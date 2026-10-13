@@ -190,8 +190,10 @@ def raw_15_scene_hotspot(target: int,
 class SceneExecutorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not LIBRARY.is_file():
-            subprocess.run([str(PROJECT / "scripts/build_scene_executor.sh")], check=True)
+        subprocess.run(
+            [str(PROJECT / "scripts/build_scene_executor.sh"), "--test-hooks"],
+            check=True,
+        )
         cls.lib = c.CDLL(str(LIBRARY))
         cls.lib.scene_resource_open_memory.argtypes = [
             c.POINTER(c.c_uint8), c.c_size_t, c.c_char_p, c.c_size_t
