@@ -1,0 +1,50 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f8bdc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004f8c1f) */
+
+undefined4 FUN_004f8bdc(int param_1,int param_2)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  char *local_c;
+  
+  iVar2 = *(int *)(in_ECX + 0x3ce) + param_1 * 0x5bb;
+  *(undefined4 *)(in_ECX + 0x3ca) = 0;
+  if (*(int *)(iVar2 + 0x29b) == 0) {
+    uVar1 = 0;
+  }
+  else {
+    *(int *)(iVar2 + 0x2db) = param_2;
+    uVar1 = (**(code **)(**(int **)(iVar2 + 0x29b) + 0x48))
+                      (*(undefined4 *)(iVar2 + 0x29b),param_2,0);
+    *(undefined4 *)(in_ECX + 0x3ca) = uVar1;
+    if (*(int *)(in_ECX + 0x3ca) == 0) {
+      if (DAT_0063a4cd != 0) {
+        local_c = (char *)0x0;
+        if (param_2 == 0) {
+          local_c = s_DS3DMODE_NORMAL_0055f034;
+        }
+        else if (param_2 == 1) {
+          local_c = s_DS3DMODE_HEADRELATIVE_0055f044;
+        }
+        else if (param_2 == 2) {
+          local_c = s_DS3DMODE_DISABLE_0055f05c;
+        }
+        FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Set3DSoundMode_____0055f070,param_1,local_c);
+        FUN_0044a2b7(&DAT_0063888b);
+      }
+      uVar1 = 1;
+    }
+    else {
+      uVar1 = 0;
+    }
+  }
+  return uVar1;
+}
+

@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a35d7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_fc5359404bceb01696d4d66c12c8c7af865d10a5749afed948949b75d1acc7af
+ */
+
+void FUN_004a35d7(void)
+
+{
+  FUN_004c5377(DAT_005d15e3,DAT_005cf665,DAT_0061d2fd + 3,&DAT_0061d305,
+               s_RIDDLE_PUZZLE_Data_Entry_Backgro_005504b0);
+  FUN_004d2c20(&DAT_0061d315,(int)&DAT_005a4c24 + *DAT_0061d2fd * 0x7f3,
+               &DAT_005adb3a + *DAT_0061d2fd * 0x1d0,CONCAT22(*DAT_0061d2fd >> 0xf,DAT_0061d305),
+               DAT_0061d311,*(undefined4 *)(&DAT_005d032f + *DAT_0061d2fd * 4),DAT_005cf665,0);
+  return;
+}
+

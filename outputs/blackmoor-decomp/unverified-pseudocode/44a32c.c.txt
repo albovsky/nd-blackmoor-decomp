@@ -1,0 +1,38 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44a32c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+float10 FUN_0044a32c(undefined1 *param_1)
+
+{
+  float10 fVar1;
+  
+  if ((DAT_0063a848 & 1) == 0) {
+    DAT_0063a848 = DAT_0063a848 | 1;
+    DAT_0063a844 = GetTickCount();
+  }
+  *param_1 = 0;
+  DAT_00548aa8 = DAT_00548aa8 + 1;
+  if (DAT_00548aa8 < 0x1e) {
+    fVar1 = (float10)_DAT_0063a854;
+  }
+  else {
+    DAT_0063a850 = GetTickCount();
+    if ((DAT_0063a850 - DAT_0063a844 == 0) || (DAT_0063a850 < DAT_0063a844)) {
+      fVar1 = (float10)0.0;
+    }
+    else {
+      _DAT_0063a854 = ((float)DAT_00548aa8 / (float)(DAT_0063a850 - DAT_0063a844)) * 1000.0;
+      DAT_00548aa8 = 0;
+      DAT_0063a844 = DAT_0063a850;
+      *param_1 = 1;
+      fVar1 = (float10)_DAT_0063a854;
+    }
+  }
+  return fVar1;
+}
+

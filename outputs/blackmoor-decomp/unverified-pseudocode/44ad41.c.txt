@@ -1,0 +1,76 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44ad41
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044ad41(void)
+
+{
+  DWORD dwLen;
+  BOOL BVar1;
+  undefined4 uVar2;
+  uint uVar3;
+  undefined4 *puVar4;
+  undefined4 *local_18;
+  uint local_14;
+  undefined4 *local_10;
+  LPVOID local_c;
+  DWORD local_8;
+  
+  local_c = (LPVOID)0x0;
+  local_18 = (undefined4 *)0x0;
+  dwLen = GetFileVersionInfoSizeA(&DAT_0063999b,&local_8);
+  if (dwLen == 0) {
+    FUN_004264e8(s_GetVersionInfo_____Bad_return_on_00548d94);
+  }
+  else {
+    local_c = (LPVOID)FUN_0051dc43(dwLen);
+    if (local_c == (LPVOID)0x0) {
+      FUN_0042639d(s_Unable_to_allocate_memory_00548dec,s_GetVersionInfo_____pBuffer_00548dd0);
+    }
+    else {
+      BVar1 = GetFileVersionInfoA(&DAT_0063999b,local_8,dwLen,local_c);
+      if (BVar1 == 0) {
+        FUN_004264e8(s_GetVersionInfo_____Bad_return_on_00548e08);
+      }
+      else {
+        VerQueryValueA(local_c,s__StringFileInfo_040904B0_FileVer_00548e40,&local_10,&local_14);
+        local_18 = (undefined4 *)FUN_0051dc43(local_14);
+        if (local_18 == (undefined4 *)0x0) {
+          FUN_0042639d(s_Unable_to_allocate_memory_00548e88,
+                       s_GetVersionInfo_____pTempBuffer_00548e68);
+        }
+        else {
+          puVar4 = local_18;
+          for (uVar3 = local_14 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+            *puVar4 = *local_10;
+            local_10 = local_10 + 1;
+            puVar4 = puVar4 + 1;
+          }
+          for (local_14 = local_14 & 3; local_14 != 0; local_14 = local_14 - 1) {
+            *(undefined1 *)puVar4 = *(undefined1 *)local_10;
+            local_10 = (undefined4 *)((int)local_10 + 1);
+            puVar4 = (undefined4 *)((int)puVar4 + 1);
+          }
+          uVar2 = FUN_0050deda(local_18,&DAT_00548ea4);
+          DAT_005bb21e = FUN_0050cb1b(uVar2);
+          uVar2 = FUN_0050deda(0,&DAT_00548ea8);
+          DAT_005bb220 = FUN_0050cb1b(uVar2);
+          uVar2 = FUN_0050deda(0,&DAT_00548eac);
+          DAT_005bb222 = FUN_0050cb1b(uVar2);
+          uVar2 = FUN_0050deda(0,&DAT_00548eb0);
+          DAT_005bb224 = FUN_0050cb1b(uVar2);
+        }
+      }
+    }
+  }
+  if (local_c != (LPVOID)0x0) {
+    FUN_0051dc6c(local_c);
+  }
+  if (local_18 != (undefined4 *)0x0) {
+    FUN_0051dc6c(local_18);
+  }
+  return;
+}
+

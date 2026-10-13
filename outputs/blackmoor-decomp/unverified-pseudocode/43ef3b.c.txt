@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x43ef3b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_a02c75cbc1d4015894407da678b6f6960a9313cc0dac24962171d655dab0d610
+ */
+
+void FUN_0043ef3b(int param_1,undefined1 param_2,int param_3)
+
+{
+  undefined4 local_c;
+  
+  for (local_c = 0; local_c < param_3; local_c = local_c + 1) {
+    *(undefined1 *)(param_1 + local_c) = param_2;
+  }
+  return;
+}
+

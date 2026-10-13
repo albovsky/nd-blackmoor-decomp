@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x469505
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+void FUN_00469505(void)
+
+{
+  int in_ECX;
+  
+  if (((DAT_005919f4 != 0) && (DAT_005919f8 != 0)) &&
+     (*(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x5d5) != -1)) {
+    *(uint *)(&DAT_00585801 +
+             *(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x5d5) * 4) =
+         (uint)*(byte *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x5d7);
+  }
+  return;
+}
+

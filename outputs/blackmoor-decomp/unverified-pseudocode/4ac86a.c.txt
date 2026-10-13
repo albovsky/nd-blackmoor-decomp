@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ac86a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c162e587d744a5d109b183c8ad170721ecaf16eed1b508d2b71afde20c121117
+ */
+
+undefined4 * FUN_004ac86a(void)
+
+{
+  undefined4 *in_ECX;
+  void *local_10;
+  undefined1 *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &LAB_005286bd;
+  local_10 = ExceptionList;
+  ExceptionList = &local_10;
+  FUN_0051d716();
+  local_8 = 0;
+  *in_ECX = &PTR_FUN_0052df88;
+  FUN_004ac8da();
+  ExceptionList = local_10;
+  return in_ECX;
+}
+

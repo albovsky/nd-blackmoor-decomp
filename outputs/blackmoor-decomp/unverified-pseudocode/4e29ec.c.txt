@@ -1,0 +1,56 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e29ec
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8385f85130572c281c3b234a54cbdfd62040e051350169a9d81ca47906b8da6a
+ */
+
+void FUN_004e29ec(void)
+
+{
+  undefined4 uVar1;
+  DWORD DVar2;
+  int iVar3;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x30) != 4) {
+    if (*(int *)(in_ECX + 0x14) == 0) {
+      if (*(int *)(in_ECX + 0x187) == 0) {
+        if (*(int *)(in_ECX + 0x18b) == 0) {
+          uVar1 = FUN_004c2790(s_CIFTREE_0055bf94,in_ECX + 0x38,6,s_UI_Button_0055bf88);
+          *(undefined4 *)(in_ECX + 0x24) = uVar1;
+        }
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x24) = DAT_005d0377;
+      }
+      if (*(int *)(in_ECX + 0x28) == 0) {
+        uVar1 = FUN_004c2790(s_CIFTREE_0055bfb0,in_ECX + 0x59,6,s_UI_Button_restore_0055bf9c);
+        *(undefined4 *)(in_ECX + 0x28) = uVar1;
+      }
+      *(undefined4 *)(in_ECX + 0x14) = 1;
+    }
+    else if (*(int *)(in_ECX + 0x14) == 1) {
+      if (*(int *)(in_ECX + 0x18) == 0) {
+        if (((*(int *)(in_ECX + 0x30) == 2) &&
+            (DVar2 = GetTickCount(), *(uint *)(in_ECX + 0x2c) < DVar2)) &&
+           ((*(int *)(in_ECX + 0x17f) == 0 ||
+            ((*(int *)(in_ECX + 0x17f) != 0 &&
+             (iVar3 = FUN_004f6334((int)*(short *)(in_ECX + 0x117)), iVar3 == 0)))))) {
+          *(undefined4 *)(in_ECX + 0x30) = 0;
+          *(undefined4 *)(in_ECX + 0x17b) = 1;
+        }
+      }
+      else if ((((*(int *)(in_ECX + 0x18) == 1) && (*(int *)(in_ECX + 0x20) != 0)) &&
+               (DVar2 = GetTickCount(), *(uint *)(in_ECX + 0x2c) < DVar2)) &&
+              ((*(int *)(in_ECX + 0x17f) == 0 ||
+               ((*(int *)(in_ECX + 0x17f) != 0 &&
+                (iVar3 = FUN_004f6334((int)*(short *)(in_ECX + 0x117)), iVar3 == 0)))))) {
+        *(undefined4 *)(in_ECX + 0x1c) = 1;
+        *(undefined4 *)(in_ECX + 0x20) = 0;
+        *(undefined4 *)(in_ECX + 0x17b) = 1;
+      }
+    }
+  }
+  return;
+}
+

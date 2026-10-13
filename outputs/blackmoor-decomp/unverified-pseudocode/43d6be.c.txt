@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x43d6be
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0043d6be(void)
+
+{
+  if ((DAT_0063a4d9 != 0) &&
+     ((DAT_0063a4e9 = DAT_0063a4e9 + 1, DAT_0063a4e5 <= DAT_0063a4e9 || (DAT_00583999 != 3)))) {
+    FUN_0050ca3e(&DAT_0063888b,s_Scene__4d_Test_Completed___3d_lo_005475e0,DAT_0063a4ed,DAT_0063a4e9
+                );
+    FUN_0043d7c4(&DAT_0063888b);
+    DAT_0063a4ed = DAT_0063a4ed + 1;
+    if (DAT_0063a4e1 < DAT_0063a4ed) {
+      FUN_0050ca3e(&DAT_0063888b,s_Test_Mode_Complete___SUCCESS___s_00547608);
+      FUN_0043d7c4(&DAT_0063888b);
+      _DAT_005bb20c = 1;
+      FUN_004c97b4();
+    }
+    else {
+      DAT_005bb599 = 0;
+      DAT_005bb595 = 0;
+      DAT_005c39ff = 0;
+      DAT_005bb59b = 0;
+      DAT_005bb59f = 0;
+      DAT_005bb5a3 = 1;
+      DAT_00583999 = 4;
+      DAT_005bb57b = DAT_0063a4ed;
+    }
+  }
+  return;
+}
+

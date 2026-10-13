@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51a3f4
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+void FUN_0051a3f4(void)
+
+{
+  undefined4 *puVar1;
+  undefined4 *in_ECX;
+  
+  while (in_ECX != (undefined4 *)0x0) {
+    puVar1 = (undefined4 *)*in_ECX;
+    FUN_0051dc6c(in_ECX);
+    in_ECX = puVar1;
+  }
+  return;
+}
+

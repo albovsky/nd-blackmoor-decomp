@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x515a7f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ef606b3611f71cae908ae4dfd9c171d87d1bf5b814f82e9c922d3be8f60ac641
+ */
+
+/* Library Function - Single Match
+    __copysign
+   
+   Libraries: Visual Studio 2003 Release, Visual Studio 2019 Release */
+
+double __cdecl __copysign(double _Number,double _Sign)
+
+{
+  return (double)CONCAT44((_Sign._4_4_ ^ _Number._4_4_) & 0x7fffffff ^ _Sign._4_4_,_Number._0_4_);
+}
+

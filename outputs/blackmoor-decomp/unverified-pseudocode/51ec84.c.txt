@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ec84
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+/* Library Function - Single Match
+    void __stdcall AfxEndThread(unsigned int,int)
+   
+   Library: Visual Studio 2003 Release */
+
+void AfxEndThread(uint param_1,int param_2)
+
+{
+  int *piVar1;
+  AFX_MODULE_THREAD_STATE *pAVar2;
+  
+  pAVar2 = AfxGetModuleThreadState();
+  piVar1 = *(int **)(pAVar2 + 4);
+  if (piVar1 != (int *)0x0) {
+    if ((code *)piVar1[0x15] != (code *)0x0) {
+      (*(code *)piVar1[0x15])(1,0);
+    }
+    if (param_2 != 0) {
+      (**(code **)(*piVar1 + 0x78))();
+    }
+    *(undefined4 *)(pAVar2 + 4) = 0;
+  }
+  FUN_0051ed28(0);
+  FUN_0050ff80(param_1);
+  return;
+}
+

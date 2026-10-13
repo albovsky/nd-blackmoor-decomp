@@ -1,0 +1,75 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d341d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7011e58f3afdde6fc878edb0312973c24208872876d4104777064ce751b49e1e
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004d341d(void)
+
+{
+  short sVar1;
+  short sVar2;
+  short local_c;
+  
+  DAT_005b15ce = 0xffff;
+  _DAT_005d1639 = 1;
+  sVar1 = ((short)DAT_00583102 + (short)(&DAT_005b30cc)[DAT_005b44f0 * 4 + DAT_005b44f4 * 2]) -
+          (short)DAT_005b0227;
+  sVar2 = (((short)DAT_00583106 + (short)(&DAT_005b30d0)[DAT_005b44f0 * 4 + DAT_005b44f4 * 2]) -
+          (short)DAT_005b022b) + (short)DAT_005b0a82;
+  local_c = 0;
+  while( true ) {
+    if (DAT_005b0a8e <= local_c) {
+      local_c = 0;
+      while( true ) {
+        if (DAT_005b0a90 <= local_c) {
+          _DAT_005d1639 = 1;
+          _DAT_005d1631 = &DAT_005b168c;
+          DAT_005b44f4 = 0;
+          DAT_005b44f0 = 4;
+          DAT_005b15ce = 0xffff;
+          DAT_005b15cc = 0xffff;
+          return;
+        }
+        if (((*(short *)(&DAT_005b142e + local_c * 0x29) <= sVar1) &&
+            (sVar1 <= *(short *)(&DAT_005b1432 + local_c * 0x29))) &&
+           ((*(short *)(&DAT_005b1430 + local_c * 0x29) <= sVar2 &&
+            (sVar2 <= *(short *)(&DAT_005b1434 + local_c * 0x29))))) break;
+        local_c = local_c + 1;
+      }
+      DAT_005b15cc = 0xffff;
+      DAT_005b15ce = local_c;
+      DAT_005b44f0 = 4;
+      DAT_005b44f4 = 1;
+      _DAT_005d1631 = (undefined4 *)&DAT_005b169c;
+      _DAT_005d1639 = 1;
+      return;
+    }
+    if ((((*(short *)(&DAT_005b0a92 + local_c * 0x29) <= sVar1) &&
+         (sVar1 <= *(short *)(&DAT_005b0a96 + local_c * 0x29))) &&
+        (*(short *)(&DAT_005b0a94 + local_c * 0x29) <= sVar2)) &&
+       (sVar2 <= *(short *)(&DAT_005b0a98 + local_c * 0x29))) break;
+    local_c = local_c + 1;
+  }
+  DAT_005b44f4 = 1;
+  DAT_005b44f0 = 4;
+  DAT_005b15cc = local_c;
+  _DAT_005d1631 = (undefined4 *)&DAT_005b169c;
+  if (DAT_005c39e9 == 0) {
+    DAT_005b15ce = 0xffff;
+    DAT_005b44f0 = 4;
+    DAT_005b44f4 = 1;
+    _DAT_005d1639 = 1;
+    return;
+  }
+  DAT_005b15da = 1;
+  _DAT_005b15de = (int)*(short *)(&DAT_005b0a92 + local_c * 0x29);
+  _DAT_005b15e6 = (int)*(short *)(&DAT_005b0a96 + local_c * 0x29);
+  _DAT_005b15e2 = (int)*(short *)(&DAT_005b0a94 + local_c * 0x29);
+  _DAT_005b15ea = (int)*(short *)(&DAT_005b0a98 + local_c * 0x29);
+  FUN_00420b9e();
+  return;
+}
+

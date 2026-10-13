@@ -1,0 +1,67 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a4d55
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_fc5359404bceb01696d4d66c12c8c7af865d10a5749afed948949b75d1acc7af
+ */
+
+void FUN_004a4d55(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int in_ECX;
+  undefined2 uVar3;
+  int local_10;
+  int local_c;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  local_10 = 0;
+  do {
+    if (*(char *)(iVar1 + 0x22) <= local_10) {
+LAB_004a4f34:
+      *(undefined1 *)(in_ECX + 0x27f) = 1;
+      *(undefined4 *)(in_ECX + 0x27b) = 2;
+      return;
+    }
+    for (local_c = 0; local_c < *(char *)(iVar1 + 0x21); local_c = local_c + 1) {
+      if (*(short *)(&DAT_00591a64 +
+                    local_c * 2 + local_10 * 0xc + *(short *)(in_ECX + 0x264) * 0x7c) ==
+          *(short *)(iVar1 + 0x4f3 + local_10 * 0xc + local_c * 2)) {
+        uVar3 = (undefined2)((uint)iVar1 >> 0x10);
+        iVar2 = FUN_004a4c15(CONCAT22((short)((uint)(local_10 * 0xc) >> 0x10),
+                                      *(undefined2 *)
+                                       (&DAT_00591a28 +
+                                       local_c * 2 +
+                                       local_10 * 0xc + *(short *)(in_ECX + 0x264) * 0x7c)),
+                             CONCAT22(uVar3,*(undefined2 *)
+                                             (iVar1 + 0x4b7 + local_10 * 0xc + local_c * 2)));
+        if (iVar2 == 0) {
+          if (*(char *)(iVar1 + 0x52f) == '\0') {
+            return;
+          }
+          for (local_10 = 0; local_10 < *(char *)(iVar1 + 0x22); local_10 = local_10 + 1) {
+            for (local_c = 0; local_c < *(char *)(iVar1 + 0x21); local_c = local_c + 1) {
+              if ((*(short *)(&DAT_00591a64 +
+                             local_c * 2 + local_10 * 0xc + *(short *)(in_ECX + 0x264) * 0x7c) ==
+                   *(short *)(iVar1 + 0x56c + local_10 * 0xc + local_c * 2)) &&
+                 (iVar2 = FUN_004a4c15(CONCAT22((short)((uint)(local_10 * 0xc) >> 0x10),
+                                                *(undefined2 *)
+                                                 (&DAT_00591a28 +
+                                                 local_c * 2 +
+                                                 local_10 * 0xc + *(short *)(in_ECX + 0x264) * 0x7c)
+                                               ),
+                                       CONCAT22(uVar3,*(undefined2 *)
+                                                       (iVar1 + 0x530 + local_10 * 0xc + local_c * 2
+                                                       ))), iVar2 == 0)) {
+                return;
+              }
+            }
+          }
+          goto LAB_004a4f34;
+        }
+      }
+    }
+    local_10 = local_10 + 1;
+  } while( true );
+}
+

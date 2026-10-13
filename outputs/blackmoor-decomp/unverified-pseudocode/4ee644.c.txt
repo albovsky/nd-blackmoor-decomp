@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ee644
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+undefined4 * FUN_004ee644(undefined4 *param_1)
+
+{
+  int in_ECX;
+  
+  *param_1 = *(undefined4 *)(in_ECX + 0x1c);
+  param_1[1] = *(undefined4 *)(in_ECX + 0x20);
+  param_1[2] = *(undefined4 *)(in_ECX + 0x24);
+  param_1[3] = *(undefined4 *)(in_ECX + 0x28);
+  return param_1;
+}
+

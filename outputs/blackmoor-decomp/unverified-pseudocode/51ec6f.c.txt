@@ -1,0 +1,27 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ec6f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+/* Library Function - Single Match
+    class CWinThread * __stdcall AfxGetThread(void)
+   
+   Library: Visual Studio 1998 Release */
+
+CWinThread * AfxGetThread(void)
+
+{
+  AFX_MODULE_THREAD_STATE *pAVar1;
+  int iVar2;
+  CWinThread *pCVar3;
+  
+  pAVar1 = AfxGetModuleThreadState();
+  pCVar3 = *(CWinThread **)(pAVar1 + 4);
+  if (pCVar3 == (CWinThread *)0x0) {
+    iVar2 = FUN_00525371();
+    pCVar3 = *(CWinThread **)(iVar2 + 4);
+  }
+  return pCVar3;
+}
+

@@ -1,0 +1,60 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524c59
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+CWinThread * FUN_00524c59(void)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  int iVar3;
+  HANDLE pvVar4;
+  DWORD DVar5;
+  CWinThread *this;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(CWinThread **)(unaff_EBP + -0x10) = this;
+  CWinThread::CWinThread(this);
+  *(undefined ***)this = &PTR_LAB_0052f514;
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  if (*(int *)(unaff_EBP + 8) == 0) {
+    *(undefined4 *)(this + 0x78) = 0;
+  }
+  else {
+    uVar1 = FUN_0050ffb2(*(undefined4 *)(unaff_EBP + 8));
+    *(undefined4 *)(this + 0x78) = uVar1;
+  }
+  iVar2 = FUN_00525371();
+  iVar3 = FUN_00525b0f(&LAB_00524bd4);
+  *(CWinThread **)(iVar3 + 4) = this;
+  pvVar4 = GetCurrentThread();
+  *(HANDLE *)(this + 0x28) = pvVar4;
+  DVar5 = GetCurrentThreadId();
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  *(DWORD *)(this + 0x2c) = DVar5;
+  *(CWinThread **)(iVar2 + 4) = this;
+  *(undefined4 *)(this + 0x68) = 0;
+  *(undefined4 *)(this + 0x8c) = 0;
+  *(undefined4 *)(this + 0x90) = 0;
+  *(undefined4 *)(this + 0x7c) = 0;
+  *(undefined4 *)(this + 0x88) = 0;
+  *(undefined4 *)(this + 0xa8) = 0;
+  *(undefined4 *)(this + 0x80) = 0;
+  *(undefined2 *)(this + 0xb2) = 0;
+  *(undefined2 *)(this + 0xb0) = 0;
+  *(undefined4 *)(this + 0x70) = 0;
+  *(undefined4 *)(this + 0xac) = 0;
+  *(undefined4 *)(this + 0xa0) = 0;
+  *(undefined4 *)(this + 0xa4) = 0;
+  *(undefined4 *)(this + 0x94) = 0;
+  *(undefined4 *)(this + 0x98) = 0;
+  *(undefined4 *)(this + 0xb4) = 0;
+  *(undefined4 *)(this + 0xbc) = 0;
+  *(undefined4 *)(this + 0x84) = 0;
+  *(undefined4 *)(this + 0xb8) = 0x200;
+  return this;
+}
+

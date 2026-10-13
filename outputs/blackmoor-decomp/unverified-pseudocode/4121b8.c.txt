@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4121b8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e1d5cf90f6aebf321704f8d611ce26ca2904fc537a9974fc07aaf8081db3bfa6
+ */
+
+void FUN_004121b8(short param_1)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  undefined2 extraout_var;
+  undefined2 extraout_var_00;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + param_1 * 0x8d);
+  uVar2 = *(undefined4 *)(&DAT_005bb5e5 + param_1 * 0x8d);
+  *(undefined4 *)(in_ECX + 0x102a) = 0;
+  FUN_00413187(uVar2,iVar1 + 0x210,0,0);
+  FUN_0042ba3a(CONCAT22(extraout_var,param_1));
+  FUN_00411b16(uVar2,CONCAT22(extraout_var_00,param_1),0);
+  return;
+}
+

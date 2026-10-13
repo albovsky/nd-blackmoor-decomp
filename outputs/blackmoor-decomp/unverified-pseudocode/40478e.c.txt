@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x40478e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_51b415fb048676855f87480857f7034bf358ef4aa71116bcd269a8a5b14202e2
+ */
+
+void FUN_0040478e(int param_1)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  
+  DVar1 = GetTickCount();
+  if (*(uint *)(in_ECX + 0x4b0) < DVar1) {
+    DVar1 = GetTickCount();
+    *(DWORD *)(in_ECX + 0x4b0) = DVar1 + 300;
+    DAT_005c3a63 = DAT_005c3a63 - *(int *)(param_1 + 0x10);
+    if (DAT_005c3a63 < 10) {
+      if (DAT_005c3a63 < 0) {
+        DAT_005c3a63 = 9;
+      }
+    }
+    else {
+      DAT_005c3a63 = 0;
+    }
+  }
+  FUN_004033db();
+  return;
+}
+

@@ -1,0 +1,60 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x500ac0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_972c31dda55968754e368178e4f1ca1e6ce23b20babc5beca5b7ede707c8db74
+ */
+
+void FUN_00500ac0(int *param_1,int param_2,float *param_3)
+
+{
+  float *pfVar1;
+  float fVar2;
+  float *pfVar3;
+  float *pfVar4;
+  int iVar5;
+  int iVar6;
+  int iVar7;
+  
+  pfVar3 = param_3;
+  iVar7 = *param_1;
+  FUN_0050c920();
+  FUN_00500bb0(iVar7,param_1[6],param_2,param_3,0x430c0000,0xffffffff);
+  if (0 < iVar7) {
+    iVar5 = param_2 - (int)param_3;
+    iVar6 = -(int)param_3;
+    pfVar4 = param_3;
+    param_3 = (float *)iVar7;
+    do {
+      pfVar1 = (float *)(iVar5 + (int)pfVar4);
+      fVar2 = *pfVar4;
+      pfVar4 = pfVar4 + 1;
+      *(float *)(&stack0xffffffe8 + iVar6 + (int)pfVar4) = *pfVar1 - fVar2;
+      param_3 = (float *)((int)param_3 + -1);
+    } while (param_3 != (float *)0x0);
+  }
+  FUN_00500bb0(iVar7,param_1[6],&stack0xffffffec,pfVar3,0,*(undefined4 *)(param_1[1] + 0x80));
+  if (0 < iVar7) {
+    pfVar4 = (float *)&stack0xffffffec;
+    iVar6 = iVar7;
+    do {
+      iVar6 = iVar6 + -1;
+      *pfVar4 = *(float *)((param_2 - (int)&stack0xffffffec) + (int)pfVar4) - *pfVar4;
+      pfVar4 = pfVar4 + 1;
+    } while (iVar6 != 0);
+    if (0 < iVar7) {
+      pfVar4 = pfVar3;
+      do {
+        iVar6 = __ftol();
+        if (0x27 < iVar6) {
+          iVar6 = 0x27;
+        }
+        iVar7 = iVar7 + -1;
+        *pfVar4 = *(float *)(param_1[1] + 0x150 + iVar6 * 4) +
+                  *(float *)((int)pfVar4 + (int)(&stack0xffffffec + -(int)pfVar3));
+        pfVar4 = pfVar4 + 1;
+      } while (iVar7 != 0);
+    }
+  }
+  return;
+}
+

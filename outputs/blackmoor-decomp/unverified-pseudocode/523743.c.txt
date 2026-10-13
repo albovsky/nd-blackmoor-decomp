@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x523743
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_00523743(HDROP param_1)
+
+{
+  int *piVar1;
+  HWND pHVar2;
+  int iVar3;
+  int in_ECX;
+  UINT iFile;
+  CHAR local_10c [260];
+  UINT local_8;
+  
+  pHVar2 = SetActiveWindow(*(HWND *)(in_ECX + 0x1c));
+  FUN_0051abe4(pHVar2);
+  iFile = 0;
+  local_8 = DragQueryFileA(param_1,0xffffffff,(LPSTR)0x0,0);
+  iVar3 = FUN_00525371();
+  piVar1 = *(int **)(iVar3 + 4);
+  if (local_8 != 0) {
+    do {
+      DragQueryFileA(param_1,iFile,local_10c,0x104);
+      (**(code **)(*piVar1 + 0x7c))(local_10c);
+      iFile = iFile + 1;
+    } while (iFile < local_8);
+  }
+  DragFinish(param_1);
+  return;
+}
+

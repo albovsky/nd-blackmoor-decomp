@@ -1,0 +1,104 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44e035
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+void FUN_0044e035(void)
+
+{
+  int iVar1;
+  short local_24;
+  short local_1c;
+  undefined1 local_18 [16];
+  int local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + DAT_00624cdd * 0x8d);
+  if (((DAT_00624cec == 0) || (DAT_00624cec == 8)) || ((DAT_00624cec == 2 && (DAT_00624cf0 == 8))))
+  {
+    local_1c = DAT_00624cf4;
+    local_24 = DAT_00624cf6;
+    local_8 = DAT_00624cf8;
+  }
+  else {
+    local_1c = DAT_00624cfc;
+    local_24 = DAT_00624cfe;
+    local_8 = DAT_00624d00;
+  }
+  FUN_0044d9b5(iVar1 + 0x41,local_18);
+  if (local_8 == 0) {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                 iVar1 + 0x1d1,local_18,s_PM_Overlay_00549620);
+  }
+  else {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                 iVar1 + 0x1c1,local_18,s_AM_Overlay_00549614);
+  }
+  FUN_0044d9b5(iVar1 + 0xb1,local_18);
+  if (((DAT_00624cec == 0) || (DAT_00624cec == 8)) || ((DAT_00624cec == 2 && (DAT_00624cf0 == 8))))
+  {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                 iVar1 + 0x241,local_18,s_Time_Mode_Light_Overlay_0054962c);
+  }
+  else {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                 iVar1 + 0x251,local_18,s_Alarm_Mode_Light_Overlay_00549644);
+  }
+  FUN_0044d9b5(iVar1 + 0x31,local_18);
+  FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+               iVar1 + 0x101 + local_1c * 0x10,local_18,s_Clock_Hour_Digits_Overlays_00549660);
+  FUN_0044d9b5(iVar1 + 0x21,local_18);
+  FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+               iVar1 + 0xc1 + local_24 * 0x10,local_18,s_Clock_Minute_Digits_Overlays_0054967c);
+  if (DAT_00624cec == 2) {
+    switch(DAT_00624cf0) {
+    case 0:
+      FUN_0044d9b5(iVar1 + 0x51,local_18);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                   iVar1 + 0x1e1,local_18,s_Clock_Time_Mode_Down_005496c8);
+      break;
+    case 1:
+      FUN_0044d9b5(iVar1 + 0x61,local_18);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                   iVar1 + 0x1f1,local_18,s_Clock_Alarm_Mode_Down_005496b0);
+      break;
+    case 3:
+      FUN_0044d9b5(iVar1 + 0x91,local_18);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                   iVar1 + 0x221,local_18,s_Clock_Alarm_Increase_Down_005496f8);
+      break;
+    case 4:
+      FUN_0044d9b5(iVar1 + 0xa1,local_18);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                   iVar1 + 0x231,local_18,s_Clock_Alarm_Decrease_Down_00549714);
+      break;
+    case 6:
+      FUN_0044d9b5(iVar1 + 0x71,local_18);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                   iVar1 + 0x201,local_18,s_Clock_Alarm_Set_Down_005496e0);
+      break;
+    case 8:
+      FUN_0044d9b5(iVar1 + 0x81,local_18);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624cdb * 0x4a),DAT_005cf665,
+                   iVar1 + 0x211,local_18,s_Clock_Cancel_Down_0054969c);
+    }
+  }
+  else if (DAT_00624d04 != 0) {
+    FUN_0044d9b5(iVar1 + 0x81,local_18);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0x81,local_18,s_Cancel_up_00549730);
+    FUN_0044d9b5(iVar1 + 0x61,local_18);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0x61,local_18,s_Alarm_button_up_0054973c);
+    FUN_0044d9b5(iVar1 + 0x51,local_18);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0x51,local_18,s_Time_button_up_0054974c);
+    FUN_0044d9b5(iVar1 + 0x71,local_18);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0x71,local_18,s_Set_button_up_0054975c);
+    FUN_0044d9b5(iVar1 + 0x91,local_18);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0x91,local_18,s_Increase_button_up_0054976c);
+    FUN_0044d9b5(iVar1 + 0xa1,local_18);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0xa1,local_18,s_Decrease_button_up_00549780);
+    DAT_00624d04 = 0;
+  }
+  DAT_00624ce3 = 0;
+  return;
+}
+

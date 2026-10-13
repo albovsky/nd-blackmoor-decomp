@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5122ad
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c14b206e0317066be1d027bdae31364ff1ffe02c3df6c0ccff4b69686384ad63
+ */
+
+undefined4 FUN_005122ad(uint param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  HANDLE hObject;
+  BOOL BVar3;
+  DWORD DVar4;
+  undefined4 uVar5;
+  
+  iVar1 = FUN_005176d9(param_1);
+  if (iVar1 != -1) {
+    if ((param_1 == 1) || (param_1 == 2)) {
+      iVar1 = FUN_005176d9(2);
+      iVar2 = FUN_005176d9(1);
+      if (iVar2 == iVar1) goto LAB_005122fb;
+    }
+    hObject = (HANDLE)FUN_005176d9(param_1);
+    BVar3 = CloseHandle(hObject);
+    if (BVar3 == 0) {
+      DVar4 = GetLastError();
+      goto LAB_005122fd;
+    }
+  }
+LAB_005122fb:
+  DVar4 = 0;
+LAB_005122fd:
+  FUN_0051765a(param_1);
+  *(undefined1 *)((&DAT_0063cde0)[(int)param_1 >> 5] + 4 + (param_1 & 0x1f) * 0x24) = 0;
+  if (DVar4 == 0) {
+    uVar5 = 0;
+  }
+  else {
+    FUN_0050ea0b(DVar4);
+    uVar5 = 0xffffffff;
+  }
+  return uVar5;
+}
+

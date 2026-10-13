@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52116f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+void FUN_0052116f(undefined4 *param_1)
+
+{
+  if ((HGDIOBJ)*param_1 != (HGDIOBJ)0x0) {
+    DeleteObject((HGDIOBJ)*param_1);
+    *param_1 = 0;
+  }
+  return;
+}
+

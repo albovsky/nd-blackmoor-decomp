@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42d215
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+void FUN_0042d215(void)
+
+{
+  switch(DAT_005b4e14) {
+  case 0:
+    DAT_005b4e00 = DAT_005b4e00 + 1;
+    if (*(short *)(DAT_005b4ead + 0x4e) < DAT_005b4e00) {
+      DAT_005b4e00 = *(short *)(DAT_005b4ead + 0x4c);
+    }
+    break;
+  case 1:
+    DAT_005b4e00 = DAT_005b4e00 + 1;
+    if (*(short *)(DAT_005b4ead + 0x52) < DAT_005b4e00) {
+      DAT_005b4e00 = *(short *)(DAT_005b4ead + 0x52);
+    }
+    break;
+  case 2:
+    DAT_005b4e00 = DAT_005b4e00 + -1;
+    if (DAT_005b4e00 < *(short *)(DAT_005b4ead + 0x4c)) {
+      DAT_005b4e00 = *(short *)(DAT_005b4ead + 0x4c);
+      DAT_005b4e14 = 0;
+    }
+    break;
+  case 3:
+    DAT_005b4e00 = DAT_005b4e00 + 1;
+    if (*(short *)(DAT_005b4ead + 0x56) < DAT_005b4e00) {
+      DAT_005b4e00 = *(short *)(DAT_005b4ead + 0x56);
+    }
+  }
+  if ((DAT_005b4e14 == 1) && (DAT_005c39e5 != DAT_005b4e89)) {
+    DAT_005b4e14 = 2;
+  }
+  return;
+}
+

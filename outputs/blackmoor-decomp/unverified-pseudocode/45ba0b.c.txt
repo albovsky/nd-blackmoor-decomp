@@ -1,0 +1,60 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x45ba0b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f51cc55276120d19811669e671858343b4478877f4752e92acf19b83badf3e68
+ */
+
+void FUN_0045ba0b(void)
+
+{
+  undefined4 *puVar1;
+  undefined4 *puVar2;
+  int iVar3;
+  int in_ECX;
+  short local_c;
+  
+  iVar3 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  for (local_c = 0; local_c < 4; local_c = local_c + 1) {
+    puVar2 = (undefined4 *)(iVar3 + 0x36d + local_c * 0x20);
+    puVar1 = (undefined4 *)(in_ECX + 0x36 + local_c * 0x10);
+    *puVar1 = *puVar2;
+    puVar1[1] = puVar2[1];
+    puVar1[2] = puVar2[2];
+    puVar1[3] = puVar2[3];
+  }
+  for (local_c = 0; local_c < 4; local_c = local_c + 1) {
+    puVar2 = (undefined4 *)(iVar3 + 0x36d + local_c * 0x20);
+    puVar1 = (undefined4 *)(in_ECX + 0x76 + local_c * 0x10);
+    *puVar1 = *puVar2;
+    puVar1[1] = puVar2[1];
+    puVar1[2] = puVar2[2];
+    puVar1[3] = puVar2[3];
+  }
+  *(undefined2 *)(in_ECX + 0x178) = *(undefined2 *)(iVar3 + 0x29);
+  *(undefined2 *)(in_ECX + 0x17a) = *(undefined2 *)(iVar3 + 0x2b);
+  *(undefined2 *)(in_ECX + 0xba) = 0;
+  puVar1 = (undefined4 *)(iVar3 + 0xad + (*(short *)(in_ECX + 0x178) + -1) * 0x10);
+  *(undefined4 *)(in_ECX + 0xbc) = *puVar1;
+  *(undefined4 *)(in_ECX + 0xc0) = puVar1[1];
+  *(undefined4 *)(in_ECX + 0xc4) = puVar1[2];
+  *(undefined4 *)(in_ECX + 200) = puVar1[3];
+  puVar1 = (undefined4 *)(iVar3 + 0xad + (*(short *)(in_ECX + 0x17a) + -1) * 0x10);
+  *(undefined4 *)(in_ECX + 0xcc) = *puVar1;
+  *(undefined4 *)(in_ECX + 0xd0) = puVar1[1];
+  *(undefined4 *)(in_ECX + 0xd4) = puVar1[2];
+  *(undefined4 *)(in_ECX + 0xd8) = puVar1[3];
+  *(undefined4 *)(in_ECX + 0xec) = *(undefined4 *)(iVar3 + 0x3ed);
+  *(undefined4 *)(in_ECX + 0xf0) = *(undefined4 *)(iVar3 + 0x3f1);
+  *(undefined4 *)(in_ECX + 0xf4) = *(undefined4 *)(iVar3 + 0x3f5);
+  *(undefined4 *)(in_ECX + 0xf8) = *(undefined4 *)(iVar3 + 0x3f9);
+  *(undefined4 *)(in_ECX + 0xfc) = *(undefined4 *)(iVar3 + 0x3fd);
+  *(undefined4 *)(in_ECX + 0x100) = *(undefined4 *)(iVar3 + 0x401);
+  *(undefined4 *)(in_ECX + 0x104) = *(undefined4 *)(iVar3 + 0x405);
+  *(undefined4 *)(in_ECX + 0x108) = *(undefined4 *)(iVar3 + 0x409);
+  *(undefined4 *)(in_ECX + 0x28) = 0;
+  *(undefined4 *)(in_ECX + 0x2c) = 0;
+  *(undefined4 *)(in_ECX + 0x30) = 0;
+  *(undefined2 *)(in_ECX + 0x34) = 0;
+  return;
+}
+

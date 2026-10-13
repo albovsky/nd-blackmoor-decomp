@@ -1,0 +1,62 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x470e8e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136
+ */
+
+void FUN_00470e8e(int *param_1,int *param_2,int *param_3,int param_4)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  undefined4 *puVar3;
+  
+  if (param_4 == 0) {
+    iVar1 = FUN_0051dc43(0x6c5);
+    *param_1 = iVar1;
+    if (iVar1 == 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_0054c388,DAT_005bb57b,
+                   (int)DAT_005c39e3);
+      FUN_0042639d(s_Unable_to_allocate_memory_0054c3b4,&DAT_0063888b);
+      FUN_004c97b4();
+    }
+    puVar2 = (undefined4 *)*param_2;
+    puVar3 = (undefined4 *)*param_1;
+    for (iVar1 = 0x1b1; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar3 = *puVar2;
+      puVar2 = puVar2 + 1;
+      puVar3 = puVar3 + 1;
+    }
+    *(undefined1 *)puVar3 = *(undefined1 *)puVar2;
+    *param_3 = *param_3 + 0x6c5;
+    *param_2 = *param_2 + 0x6c5;
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_Loaded_AT_KEYPAD_PUZZLE_action_r_0054c3d0);
+    }
+  }
+  else {
+    iVar1 = FUN_0051dc43(0x126);
+    *param_1 = iVar1;
+    if (iVar1 == 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_0054c400,DAT_005bb57b,
+                   (int)DAT_005c39e3);
+      FUN_0042639d(s_Unable_to_allocate_memory_0054c42c,&DAT_0063888b);
+      FUN_004c97b4();
+    }
+    puVar2 = (undefined4 *)*param_2;
+    puVar3 = (undefined4 *)*param_1;
+    for (iVar1 = 0x49; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar3 = *puVar2;
+      puVar2 = puVar2 + 1;
+      puVar3 = puVar3 + 1;
+    }
+    *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+    *param_3 = *param_3 + 0x126;
+    *param_2 = *param_2 + 0x126;
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_Loaded_AT_KEYPAD_TERSE_PUZZLE_ac_0054c448);
+    }
+  }
+  return;
+}
+

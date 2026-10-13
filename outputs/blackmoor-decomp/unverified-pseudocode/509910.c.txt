@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x509910
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+uint FUN_00509910(void)
+
+{
+  uint uVar1;
+  
+  uVar1 = __ftol();
+  if (0x3ff < (int)uVar1) {
+    return 0x3ff;
+  }
+  return uVar1 & ((int)uVar1 < 0) - 1;
+}
+

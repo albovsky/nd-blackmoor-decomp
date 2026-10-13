@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4473be
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8af1f64874eb3e8469c17e0baf09bf0097f1882284f135b85877e988363a520
+ */
+
+void FUN_004473be(void)
+
+{
+  int in_ECX;
+  
+  switch(*(undefined4 *)(in_ECX + 0x2d)) {
+  case 0:
+    FUN_00447418();
+    break;
+  case 1:
+    FUN_004474cf();
+  case 2:
+    FUN_0044753b();
+    break;
+  case 3:
+    FUN_004477b2();
+  }
+  return;
+}
+

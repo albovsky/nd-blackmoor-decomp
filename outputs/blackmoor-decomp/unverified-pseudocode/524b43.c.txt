@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524b43
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+/* Library Function - Single Match
+    public: virtual void * __thiscall CWinThread::`scalar deleting destructor'(unsigned int)
+   
+   Library: Visual Studio 2003 Release */
+
+void * __thiscall CWinThread::_scalar_deleting_destructor_(CWinThread *this,uint param_1)
+
+{
+  ~CWinThread(this);
+  if ((param_1 & 1) != 0) {
+    FUN_0051dc6c(this);
+  }
+  return this;
+}
+

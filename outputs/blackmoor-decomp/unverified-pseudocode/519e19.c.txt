@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519e19
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+void FUN_00519e19(void)
+
+{
+  int *piVar1;
+  int *in_ECX;
+  
+  piVar1 = (int *)(**(code **)(*in_ECX + 0xd0))();
+  FUN_0051b097(piVar1);
+  FUN_0051ab4b();
+  FUN_0051b0e3();
+  if (piVar1 != (int *)0x0) {
+    (**(code **)(*piVar1 + 4))(1);
+  }
+  return;
+}
+

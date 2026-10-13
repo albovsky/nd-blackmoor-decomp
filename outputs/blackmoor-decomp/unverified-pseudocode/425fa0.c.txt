@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x425fa0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00425fa0(void)
+
+{
+  FUN_004c924d(DAT_005b0266);
+  _DAT_005d1761 = 1;
+  return;
+}
+

@@ -1,0 +1,96 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x43423d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+undefined4 FUN_0043423d(byte *param_1)
+
+{
+  char cVar1;
+  byte bVar2;
+  int iVar3;
+  byte *pbVar4;
+  int in_ECX;
+  uint uVar5;
+  uint uVar6;
+  char *pcVar7;
+  byte *pbVar8;
+  bool bVar9;
+  int local_28;
+  byte *local_20;
+  byte *local_1c;
+  int local_c;
+  
+  local_c = 0;
+  do {
+    if (*(int *)(in_ECX + 0x5f64) <= local_c) {
+      return 0;
+    }
+    uVar5 = 0xffffffff;
+    pcVar7 = &DAT_00545ef0;
+    do {
+      if (uVar5 == 0) break;
+      uVar5 = uVar5 - 1;
+      cVar1 = *pcVar7;
+      pcVar7 = pcVar7 + 1;
+    } while (cVar1 != '\0');
+    iVar3 = *(int *)(in_ECX + 0x1144 + local_c * 4) + (~uVar5 - 1);
+    uVar5 = FUN_004347b8(iVar3);
+    if (uVar5 < 9) {
+      FUN_0042639d(s_DATA_is_TOO_SMALL___invalid_DATA_00545f04,s_SelectData_00545ef8);
+      FUN_004c97b4();
+    }
+    pbVar4 = (byte *)FUN_00434814(iVar3 + 4);
+    local_1c = param_1;
+    local_20 = pbVar4;
+    do {
+      bVar2 = *local_20;
+      bVar9 = bVar2 < *local_1c;
+      if (bVar2 != *local_1c) {
+LAB_00434329:
+        local_28 = (1 - (uint)bVar9) - (uint)(bVar9 != 0);
+        goto LAB_00434331;
+      }
+      if (bVar2 == 0) break;
+      bVar2 = local_20[1];
+      bVar9 = bVar2 < local_1c[1];
+      if (bVar2 != local_1c[1]) goto LAB_00434329;
+      local_20 = local_20 + 2;
+      local_1c = local_1c + 2;
+    } while (bVar2 != 0);
+    local_28 = 0;
+LAB_00434331:
+    if (local_28 == 0) {
+      *(int *)(in_ECX + 0x111c) = iVar3 + 8;
+      *(uint *)(in_ECX + 0x1128) = uVar5 - 4;
+      uVar5 = 0xffffffff;
+      break;
+    }
+    local_c = local_c + 1;
+  } while( true );
+  while( true ) {
+    uVar5 = uVar5 - 1;
+    pbVar8 = pbVar4 + 1;
+    bVar2 = *pbVar4;
+    pbVar4 = pbVar8;
+    if (bVar2 == 0) break;
+    pbVar8 = pbVar4;
+    if (uVar5 == 0) break;
+  }
+  uVar5 = ~uVar5;
+  pbVar4 = pbVar8 + -uVar5;
+  pbVar8 = (byte *)(in_ECX + 0x1136);
+  for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+    *(undefined4 *)pbVar8 = *(undefined4 *)pbVar4;
+    pbVar4 = pbVar4 + 4;
+    pbVar8 = pbVar8 + 4;
+  }
+  for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+    *pbVar8 = *pbVar4;
+    pbVar4 = pbVar4 + 1;
+    pbVar8 = pbVar8 + 1;
+  }
+  return 1;
+}
+

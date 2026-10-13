@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52570f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d63d6a362278f40ee32ccb564ca8ec5738c7bbf1d9d11225df7a30f9c22e09d6
+ */
+
+void FUN_0052570f(void)
+
+{
+  DWORD DVar1;
+  DWORD *in_ECX;
+  
+  in_ECX[5] = 0;
+  in_ECX[6] = 0;
+  in_ECX[6] = 4;
+  in_ECX[1] = 0;
+  in_ECX[2] = 1;
+  in_ECX[3] = 0;
+  in_ECX[4] = 0;
+  DVar1 = TlsAlloc();
+  *in_ECX = DVar1;
+  if (DVar1 == 0xffffffff) {
+    FUN_00519cc0();
+  }
+  InitializeCriticalSection((LPCRITICAL_SECTION)(in_ECX + 7));
+  return;
+}
+

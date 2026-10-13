@@ -1,0 +1,335 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x49251f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+void FUN_0049251f(void)
+
+{
+  int *piVar1;
+  undefined4 uVar2;
+  ushort uVar3;
+  int in_ECX;
+  int iVar4;
+  uint uVar5;
+  uint uVar6;
+  char *pcVar7;
+  undefined4 *puVar8;
+  char *pcVar9;
+  undefined4 *puVar10;
+  char cVar11;
+  undefined4 local_1c4;
+  int local_1c0;
+  int local_1b8;
+  char local_1b4 [256];
+  undefined1 local_b4 [160];
+  int local_14;
+  int local_10;
+  uint local_c;
+  undefined4 *local_8;
+  
+  local_8 = (undefined4 *)0x0;
+  *(undefined4 *)(in_ECX + 0x45a1) = 1;
+  *(undefined4 *)(in_ECX + 0x459d) = 1;
+  *(undefined4 *)(in_ECX + 0x45a9) = 0;
+  *(undefined4 *)(in_ECX + 0x45a5) = 0;
+  local_10 = 0;
+  do {
+    if (0xea < local_10) {
+      local_14 = 0;
+      for (local_10 = 0; local_10 < 0x55; local_10 = local_10 + 1) {
+        if (*(int *)(in_ECX + 0x41f1 + local_10 * 4) != 0) {
+          local_14 = local_14 + 1;
+          FUN_0050ca3e(local_b4,s_CRayCast__LoadTextureSurfaces_____0054f420,local_10);
+          FUN_0052139c(local_b4,0,0);
+          if (DAT_0063a4cd != 0) {
+            FUN_0044a2b7(local_b4);
+          }
+        }
+      }
+      for (local_10 = 0; local_10 < 0x28; local_10 = local_10 + 1) {
+        if (*(int *)(in_ECX + 0x4345 + local_10 * 4) != 0) {
+          local_14 = local_14 + 1;
+          FUN_0050ca3e(local_b4,s_CRayCast__LoadTextureSurfaces_____0054f484,local_10);
+          FUN_0052139c(local_b4,0,0);
+          if (DAT_0063a4cd != 0) {
+            FUN_0044a2b7(local_b4);
+          }
+        }
+      }
+      for (local_10 = 0; local_10 < 0x55; local_10 = local_10 + 1) {
+        if (*(int *)(in_ECX + 0x43e5 + local_10 * 4) != 0) {
+          local_14 = local_14 + 1;
+          FUN_0050ca3e(local_b4,s_CRayCast__LoadTextureSurfaces_____0054f4f0,local_10);
+          FUN_0052139c(local_b4,0,0);
+          if (DAT_0063a4cd != 0) {
+            FUN_0044a2b7(local_b4);
+          }
+        }
+      }
+      for (local_10 = 0; local_10 < 0x19; local_10 = local_10 + 1) {
+        if (*(int *)(in_ECX + 0x4539 + local_10 * 4) != 0) {
+          local_14 = local_14 + 1;
+          FUN_0050ca3e(local_b4,s_CRayCast__LoadTextureSurfaces_____0054f554,local_10);
+          FUN_0052139c(local_b4,0,0);
+          if (DAT_0063a4cd != 0) {
+            FUN_0044a2b7(local_b4);
+          }
+        }
+      }
+      if (local_14 != 0) {
+        FUN_004c97b4();
+      }
+      *(undefined4 *)(in_ECX + 0x47d1) = 0;
+      local_c = *(uint *)(in_ECX + 0x2095);
+      while ((local_c & 1) == 0) {
+        local_c = (int)local_c >> 1;
+        *(int *)(in_ECX + 0x47d1) = *(int *)(in_ECX + 0x47d1) + 1;
+      }
+      *(undefined4 *)(in_ECX + 0x47d5) = 0;
+      for (local_10 = 0; (local_10 < 0x55 && (*(int *)(in_ECX + 0x20e5 + local_10 * 4) == 0));
+          local_10 = local_10 + 1) {
+      }
+      for (uVar3 = *(ushort *)(*(int *)(in_ECX + 0x20e5 + local_10 * 4) + 0x2f); (uVar3 & 1) == 0;
+          uVar3 = (short)uVar3 >> 1) {
+        *(int *)(in_ECX + 0x47d5) = *(int *)(in_ECX + 0x47d5) + 1;
+      }
+      *(undefined4 *)(in_ECX + 0x47d9) = 0;
+      for (local_10 = 0; (local_10 < 0x55 && (*(int *)(in_ECX + 0x20e5 + local_10 * 4) == 0));
+          local_10 = local_10 + 1) {
+      }
+      for (uVar3 = *(ushort *)(*(int *)(in_ECX + 0x20e5 + local_10 * 4) + 0x2f); (uVar3 & 1) == 0;
+          uVar3 = (short)uVar3 >> 1) {
+        *(int *)(in_ECX + 0x47d9) = *(int *)(in_ECX + 0x47d9) + 1;
+      }
+      *(undefined4 *)(in_ECX + 0x47dd) = 0;
+      for (local_10 = 0; (local_10 < 0x55 && (*(int *)(in_ECX + 0x22d9 + local_10 * 4) == 0));
+          local_10 = local_10 + 1) {
+      }
+      for (uVar3 = *(ushort *)(*(int *)(in_ECX + 0x22d9 + local_10 * 4) + 0x2f); (uVar3 & 1) == 0;
+          uVar3 = (short)uVar3 >> 1) {
+        *(int *)(in_ECX + 0x47dd) = *(int *)(in_ECX + 0x47dd) + 1;
+      }
+      *(undefined4 *)(in_ECX + 0x47e1) = 0;
+      for (local_10 = 0; (local_10 < 0x19 && (*(int *)(in_ECX + 0x242d + local_10 * 4) == 0));
+          local_10 = local_10 + 1) {
+      }
+      for (uVar3 = *(ushort *)(*(int *)(in_ECX + 0x242d + local_10 * 4) + 0x2f); (uVar3 & 1) == 0;
+          uVar3 = (short)uVar3 >> 1) {
+        *(int *)(in_ECX + 0x47e1) = *(int *)(in_ECX + 0x47e1) + 1;
+      }
+      *(undefined4 *)(in_ECX + 0x47e5) = 0;
+      for (uVar3 = DAT_00639895; (uVar3 & 1) == 0; uVar3 = (short)uVar3 >> 1) {
+        *(int *)(in_ECX + 0x47e5) = *(int *)(in_ECX + 0x47e5) + 1;
+      }
+      return;
+    }
+    iVar4 = -1;
+    pcVar7 = (char *)(in_ECX + 0xa0 + local_10 * 0x21);
+    do {
+      if (iVar4 == 0) break;
+      iVar4 = iVar4 + -1;
+      cVar11 = *pcVar7;
+      pcVar7 = pcVar7 + 1;
+    } while (cVar11 != '\0');
+    if (iVar4 != -2) {
+      uVar5 = 0xffffffff;
+      pcVar7 = (char *)(in_ECX + 0xa0 + local_10 * 0x21);
+      do {
+        pcVar9 = pcVar7;
+        if (uVar5 == 0) break;
+        uVar5 = uVar5 - 1;
+        pcVar9 = pcVar7 + 1;
+        cVar11 = *pcVar7;
+        pcVar7 = pcVar9;
+      } while (cVar11 != '\0');
+      uVar5 = ~uVar5;
+      pcVar7 = pcVar9 + -uVar5;
+      pcVar9 = local_1b4;
+      for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+        *(undefined4 *)pcVar9 = *(undefined4 *)pcVar7;
+        pcVar7 = pcVar7 + 4;
+        pcVar9 = pcVar9 + 4;
+      }
+      for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+        *pcVar9 = *pcVar7;
+        pcVar7 = pcVar7 + 1;
+        pcVar9 = pcVar9 + 1;
+      }
+      FUN_0050d0bc(local_1b4);
+      iVar4 = FUN_0050d8e0(local_1b4,&DAT_0054f184);
+      cVar11 = iVar4 != 0;
+      if ((bool)cVar11) {
+        local_1c4 = 0;
+      }
+      iVar4 = FUN_0050d8e0(local_1b4,&PTR_DAT_0054f18c);
+      if (iVar4 != 0) {
+        local_1c4 = 1;
+        cVar11 = cVar11 + '\x01';
+      }
+      iVar4 = FUN_0050d8e0(local_1b4,&DAT_0054f190);
+      if (iVar4 != 0) {
+        local_1c4 = 2;
+        cVar11 = cVar11 + '\x01';
+      }
+      iVar4 = FUN_0050d8e0(local_1b4,s_FLOOR_0054f198);
+      if (iVar4 != 0) {
+        local_1c4 = 3;
+        cVar11 = cVar11 + '\x01';
+      }
+      if (cVar11 != '\x01') {
+        FUN_0050ca3e(&DAT_0063888b,s_CRayCast__LoadTextureSurfaces_____0054f1a0,cVar11,local_1b4);
+        FUN_0052139c(&DAT_0063888b,0,0);
+        FUN_004c97b4();
+      }
+      switch(local_1c4) {
+      case 0:
+        if (*(int *)(in_ECX + 0x41f1 + *(int *)(in_ECX + 0x459d) * 4) != 0) {
+          *(undefined4 *)(in_ECX + 0x41f1 + *(int *)(in_ECX + 0x459d) * 4) = 0;
+          uVar2 = FUN_004c2790(s_CIFTREE_0054f214,local_1b4,6,s_Ray_Caster_Wall_Texture_0054f1fc);
+          *(undefined4 *)(in_ECX + 0x20e5 + *(int *)(in_ECX + 0x459d) * 4) = uVar2;
+          piVar1 = *(int **)(in_ECX + 0x20e5 + *(int *)(in_ECX + 0x459d) * 4);
+          *(int *)(in_ECX + 0x2491 + *(int *)(in_ECX + 0x459d) * 4) = *piVar1;
+          local_8 = (undefined4 *)FUN_0051dc43(*(undefined4 *)((int)piVar1 + 0x23));
+          if (local_8 == (undefined4 *)0x0) {
+            FUN_0052139c(s_CRayCast__LoadTextureSurfaces_____0054f21c,0,0);
+            FUN_004c97b4();
+          }
+          uVar5 = *(uint *)((int)piVar1 + 0x23);
+          puVar8 = (undefined4 *)*piVar1;
+          puVar10 = local_8;
+          for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+            *puVar10 = *puVar8;
+            puVar8 = puVar8 + 1;
+            puVar10 = puVar10 + 1;
+          }
+          for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+            *(undefined1 *)puVar10 = *(undefined1 *)puVar8;
+            puVar8 = (undefined4 *)((int)puVar8 + 1);
+            puVar10 = (undefined4 *)((int)puVar10 + 1);
+          }
+          for (local_1c0 = 0; local_1c0 < *(short *)((int)piVar1 + 0x2d); local_1c0 = local_1c0 + 1)
+          {
+            for (local_1b8 = 0; local_1b8 < *(short *)((int)piVar1 + 0x2b);
+                local_1b8 = local_1b8 + 1) {
+              *(undefined1 *)
+               (*piVar1 + local_1b8 * *(short *)((int)piVar1 + 0x2f) +
+               local_1c0 * (short)DAT_00639895) =
+                   *(undefined1 *)
+                    ((int)local_8 +
+                    local_1b8 * (short)DAT_00639895 + local_1c0 * *(short *)((int)piVar1 + 0x2f));
+              *(undefined1 *)
+               (*piVar1 + local_1b8 * *(short *)((int)piVar1 + 0x2f) + 1 +
+               local_1c0 * (short)DAT_00639895) =
+                   *(undefined1 *)
+                    ((int)local_8 +
+                    local_1b8 * (short)DAT_00639895 + local_1c0 * *(short *)((int)piVar1 + 0x2f) + 1
+                    );
+            }
+          }
+          FUN_0051dc6c(local_8);
+          FUN_004933ff(piVar1,0,*(undefined4 *)(in_ECX + 0x459d));
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s_CRayCast__LoadTextureSurfaces_____0054f260,
+                         *(undefined4 *)(in_ECX + 0x459d),local_1b4);
+            FUN_0044a2b7(&DAT_0063888b);
+          }
+        }
+        *(int *)(in_ECX + 0x459d) = *(int *)(in_ECX + 0x459d) + 1;
+        break;
+      case 1:
+        if (*(int *)(in_ECX + 0x4345 + *(int *)(in_ECX + 0x45a1) * 4) != 0) {
+          *(undefined4 *)(in_ECX + 0x4345 + *(int *)(in_ECX + 0x45a1) * 4) = 0;
+          uVar2 = FUN_004c2790(s_CIFTREE_0054f2c0,local_1b4,6,
+                               s_Ray_Caster_Special_Wall_Texture_0054f2a0);
+          *(undefined4 *)(in_ECX + 0x2239 + *(int *)(in_ECX + 0x45a1) * 4) = uVar2;
+          piVar1 = *(int **)(in_ECX + 0x2239 + *(int *)(in_ECX + 0x45a1) * 4);
+          *(int *)(in_ECX + 0x2f31 + *(int *)(in_ECX + 0x45a1) * 4) = *piVar1;
+          local_8 = (undefined4 *)FUN_0051dc43(*(undefined4 *)((int)piVar1 + 0x23));
+          if (local_8 == (undefined4 *)0x0) {
+            FUN_0052139c(s_CRayCast__LoadTextureSurfaces_____0054f2c8,0,0);
+            FUN_004c97b4();
+          }
+          uVar5 = *(uint *)((int)piVar1 + 0x23);
+          puVar8 = (undefined4 *)*piVar1;
+          puVar10 = local_8;
+          for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+            *puVar10 = *puVar8;
+            puVar8 = puVar8 + 1;
+            puVar10 = puVar10 + 1;
+          }
+          for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+            *(undefined1 *)puVar10 = *(undefined1 *)puVar8;
+            puVar8 = (undefined4 *)((int)puVar8 + 1);
+            puVar10 = (undefined4 *)((int)puVar10 + 1);
+          }
+          for (local_1c0 = 0; local_1c0 < *(short *)((int)piVar1 + 0x2d); local_1c0 = local_1c0 + 1)
+          {
+            for (local_1b8 = 0; local_1b8 < *(short *)((int)piVar1 + 0x2b);
+                local_1b8 = local_1b8 + 1) {
+              *(undefined1 *)
+               (*piVar1 + local_1b8 * *(short *)((int)piVar1 + 0x2f) +
+               local_1c0 * (short)DAT_00639895) =
+                   *(undefined1 *)
+                    ((int)local_8 +
+                    local_1b8 * (short)DAT_00639895 + local_1c0 * *(short *)((int)piVar1 + 0x2f));
+              *(undefined1 *)
+               (*piVar1 + local_1b8 * *(short *)((int)piVar1 + 0x2f) + 1 +
+               local_1c0 * (short)DAT_00639895) =
+                   *(undefined1 *)
+                    ((int)local_8 +
+                    local_1b8 * (short)DAT_00639895 + local_1c0 * *(short *)((int)piVar1 + 0x2f) + 1
+                    );
+            }
+          }
+          FUN_0051dc6c(local_8);
+          FUN_004933ff(piVar1,1,*(undefined4 *)(in_ECX + 0x45a1));
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s_CRayCast__LoadTextureSurfaces_____0054f30c,
+                         *(undefined4 *)(in_ECX + 0x45a1),local_1b4);
+            FUN_0044a2b7(&DAT_0063888b);
+          }
+        }
+        *(int *)(in_ECX + 0x45a1) = *(int *)(in_ECX + 0x45a1) + 1;
+        break;
+      case 2:
+        if (*(int *)(in_ECX + 0x4539 + *(int *)(in_ECX + 0x45a9) * 4) != 0) {
+          *(undefined4 *)(in_ECX + 0x4539 + *(int *)(in_ECX + 0x45a9) * 4) = 0;
+          uVar2 = FUN_004c2790(s_CIFTREE_0054f370,local_1b4,6,s_Ray_Caster_Ceiling_Texture_0054f354)
+          ;
+          *(undefined4 *)(in_ECX + 0x242d + *(int *)(in_ECX + 0x45a9) * 4) = uVar2;
+          *(undefined4 *)(in_ECX + 0x3ed1 + *(int *)(in_ECX + 0x45a9) * 4) =
+               **(undefined4 **)(in_ECX + 0x242d + *(int *)(in_ECX + 0x45a9) * 4);
+          FUN_004933ff(*(undefined4 *)(in_ECX + 0x242d + *(int *)(in_ECX + 0x45a9) * 4),2,
+                       *(undefined4 *)(in_ECX + 0x45a9));
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s_CRayCast__LoadTextureSurfaces_____0054f378,
+                         *(undefined4 *)(in_ECX + 0x45a9),local_1b4);
+            FUN_0044a2b7(&DAT_0063888b);
+          }
+        }
+        *(int *)(in_ECX + 0x45a9) = *(int *)(in_ECX + 0x45a9) + 1;
+        break;
+      case 3:
+        if (*(int *)(in_ECX + 0x43e5 + *(int *)(in_ECX + 0x45a5) * 4) != 0) {
+          *(undefined4 *)(in_ECX + 0x43e5 + *(int *)(in_ECX + 0x45a5) * 4) = 0;
+          uVar2 = FUN_004c2790(s_CIFTREE_0054f3d8,local_1b4,6,s_Ray_Caster_Floor_Texture_0054f3bc);
+          *(undefined4 *)(in_ECX + 0x22d9 + *(int *)(in_ECX + 0x45a5) * 4) = uVar2;
+          *(undefined4 *)(in_ECX + 0x3431 + *(int *)(in_ECX + 0x45a5) * 4) =
+               **(undefined4 **)(in_ECX + 0x22d9 + *(int *)(in_ECX + 0x45a5) * 4);
+          FUN_004933ff(*(undefined4 *)(in_ECX + 0x22d9 + *(int *)(in_ECX + 0x45a5) * 4),3,
+                       *(undefined4 *)(in_ECX + 0x45a5));
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s_CRayCast__LoadTextureSurfaces_____0054f3e0,
+                         *(undefined4 *)(in_ECX + 0x45a5),local_1b4);
+            FUN_0044a2b7(&DAT_0063888b);
+          }
+        }
+        *(int *)(in_ECX + 0x45a5) = *(int *)(in_ECX + 0x45a5) + 1;
+      }
+    }
+    local_10 = local_10 + 1;
+  } while( true );
+}
+

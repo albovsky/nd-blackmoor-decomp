@@ -1,0 +1,136 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4fdc70
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_972c31dda55968754e368178e4f1ca1e6ce23b20babc5beca5b7ede707c8db74
+ */
+
+undefined4 FUN_004fdc70(int param_1,uint param_2,int param_3)
+
+{
+  int iVar1;
+  uint *puVar2;
+  int iVar3;
+  int extraout_EDX;
+  int iVar4;
+  int iVar5;
+  int *piVar6;
+  uint uVar7;
+  bool bVar8;
+  undefined8 uVar9;
+  uint local_1a0;
+  int local_19c;
+  undefined1 local_198 [16];
+  undefined1 local_188 [16];
+  uint local_178;
+  uint local_174;
+  undefined1 local_168 [360];
+  
+  if (1 < *(int *)(param_1 + 0x58)) {
+    if (*(int *)(param_1 + 4) == 0) {
+      return 0xffffff76;
+    }
+    if (((-1 < param_3) && (param_3 <= *(int *)(param_1 + 0x14))) &&
+       ((param_3 < *(int *)(param_1 + 0x14) || (param_2 <= *(uint *)(param_1 + 0x10))))) {
+      *(undefined4 *)(param_1 + 0x50) = 0xffffffff;
+      *(undefined4 *)(param_1 + 0x54) = 0xffffffff;
+      FUN_004fdf40(param_1);
+      FUN_004fd650(param_1,param_2,param_3);
+      local_1a0 = 0;
+      FUN_0050b2c0(local_168,0xffffffff);
+      iVar4 = local_19c;
+      iVar5 = 0;
+      do {
+        while ((*(int *)(param_1 + 0x58) != 3 ||
+               (iVar1 = FUN_0050ba70(local_168,local_188), iVar1 < 1))) {
+          if (iVar5 != 0) {
+            *(undefined4 *)(param_1 + 0x50) = 0xffffffff;
+            *(undefined4 *)(param_1 + 0x54) = 0xffffffff;
+            goto LAB_004fdf0c;
+          }
+          FUN_004fd2b0(param_1,local_198,0xffffffff,0xffffffff);
+          if (extraout_EDX < 0) {
+            uVar9 = FUN_004fdc00(param_1,0xffffffff);
+            *(undefined8 *)(param_1 + 0x50) = uVar9;
+            goto LAB_004fdf0c;
+          }
+          iVar4 = *(int *)(param_1 + 0x58);
+          if (iVar4 == 3) {
+            iVar4 = FUN_0050b260(local_198);
+            if (*(int *)(param_1 + 0x5c) != iVar4) {
+              FUN_004fdf40(param_1);
+              FUN_0050b330(local_168);
+            }
+            iVar4 = *(int *)(param_1 + 0x58);
+          }
+          if (iVar4 < 3) {
+            iVar1 = FUN_0050b260(local_198);
+            iVar4 = *(int *)(param_1 + 0x34);
+            iVar3 = 0;
+            *(int *)(param_1 + 0x5c) = iVar1;
+            if (0 < iVar4) {
+              piVar6 = *(int **)(param_1 + 0x40);
+              do {
+                if (*piVar6 == iVar1) break;
+                iVar3 = iVar3 + 1;
+                piVar6 = piVar6 + 1;
+              } while (iVar3 < iVar4);
+            }
+            if (iVar3 == iVar4) {
+              *(undefined4 *)(param_1 + 0x50) = 0xffffffff;
+              *(undefined4 *)(param_1 + 0x54) = 0xffffffff;
+              FUN_0050b330(local_168);
+              FUN_004fdf40(param_1);
+              return 0xffffff77;
+            }
+            *(int *)(param_1 + 0x60) = iVar3;
+            FUN_0050ba50(param_1 + 0x74,iVar1);
+            FUN_0050ba50(local_168,*(undefined4 *)(param_1 + 0x5c));
+            *(undefined4 *)(param_1 + 0x58) = 3;
+          }
+          FUN_0050b6f0(param_1 + 0x74,local_198);
+          FUN_0050b6f0(local_168,local_198);
+          iVar4 = FUN_0050b170(local_198);
+        }
+        iVar1 = *(int *)(param_1 + 0x60) * 0x20 + *(int *)(param_1 + 0x48);
+        if (*(int *)(iVar1 + 0x1c) != 0) {
+          local_19c = FUN_004ffb90(iVar1,local_188);
+        }
+        if (iVar4 == 0) {
+          if (iVar5 != 0) {
+            local_1a0 = local_1a0 + (local_19c + iVar5 >> 2);
+          }
+        }
+        else {
+          FUN_0050ba70(param_1 + 0x74,0);
+        }
+        iVar5 = local_19c;
+      } while ((local_178 & local_174) == 0xffffffff);
+      iVar4 = *(int *)(param_1 + 0x60);
+      iVar5 = *(int *)(param_1 + 0x44);
+      puVar2 = (uint *)(iVar4 * 0x10 + iVar5);
+      uVar7 = local_178 - *puVar2;
+      iVar1 = (local_174 - *(int *)(iVar4 * 0x10 + 4 + iVar5)) - (uint)(local_178 < *puVar2);
+      if ((iVar1 < 1) && (iVar1 < 0)) {
+        uVar7 = 0;
+        iVar1 = 0;
+      }
+      if (0 < iVar4) {
+        puVar2 = (uint *)(iVar5 + 8);
+        do {
+          bVar8 = CARRY4(uVar7,*puVar2);
+          uVar7 = uVar7 + *puVar2;
+          iVar1 = iVar1 + puVar2[1] + (uint)bVar8;
+          puVar2 = puVar2 + 4;
+          iVar4 = iVar4 + -1;
+        } while (iVar4 != 0);
+      }
+      *(uint *)(param_1 + 0x50) = uVar7 - local_1a0;
+      *(uint *)(param_1 + 0x54) = (iVar1 - ((int)local_1a0 >> 0x1f)) - (uint)(uVar7 < local_1a0);
+LAB_004fdf0c:
+      FUN_0050b330(local_168);
+      return 0;
+    }
+  }
+  return 0xffffff7d;
+}
+

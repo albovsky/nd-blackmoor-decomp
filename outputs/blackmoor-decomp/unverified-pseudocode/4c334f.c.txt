@@ -1,0 +1,124 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c334f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004c3699) */
+
+undefined4 FUN_004c334f(int param_1,int param_2,int param_3,undefined4 param_4)
+
+{
+  ushort uVar1;
+  uint uVar2;
+  int iVar3;
+  int iVar4;
+  ushort uVar5;
+  uint uVar6;
+  undefined4 *puVar7;
+  undefined4 *puVar8;
+  int local_7c;
+  undefined4 local_5c;
+  int local_58;
+  int local_54;
+  undefined2 local_50;
+  undefined2 local_4e;
+  undefined4 local_4c;
+  int local_48;
+  undefined4 local_44;
+  undefined4 local_40;
+  undefined4 local_3c;
+  undefined4 local_38;
+  int local_34;
+  int local_30;
+  undefined1 local_2c;
+  undefined1 local_2b;
+  int local_2a;
+  undefined2 local_26;
+  undefined2 local_24;
+  undefined4 local_22;
+  int local_1c;
+  short local_18;
+  int local_14;
+  int local_10;
+  char local_c;
+  undefined1 *local_8;
+  
+  uVar2 = param_2 * 3;
+  local_1c = uVar2 * param_3;
+  local_30 = param_2 * 2 * param_3;
+  uVar5 = (short)uVar2 + 3U & 0xfffc;
+  local_14 = (short)uVar5 * param_3;
+  iVar3 = FUN_0051dc43(local_14);
+  if (iVar3 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_ERROR___Unable_to_allocate_memor_005540d0);
+  }
+  else {
+    local_7c = FUN_0051dc43(local_1c);
+    if (local_7c != 0) {
+      local_8 = &local_2c;
+      local_2c = 0x42;
+      local_2b = 0x4d;
+      local_2a = local_14 + 0x36;
+      local_26 = 0;
+      local_24 = 0;
+      local_22 = 0x36;
+      local_5c = 0x28;
+      local_58 = param_2;
+      local_54 = param_3;
+      local_50 = 1;
+      local_4e = 0x18;
+      local_4c = 0;
+      local_48 = local_14;
+      local_44 = 0;
+      local_40 = 0;
+      local_3c = 0;
+      local_38 = 0;
+      FUN_004c7481(param_1,param_2 * param_3 * (int)DAT_00639895);
+      local_10 = 0;
+      for (local_34 = 0; local_34 < local_30; local_34 = local_34 + 2) {
+        uVar1 = *(ushort *)(param_1 + local_34);
+        local_c = (char)((int)(uint)uVar1 >> 5) << 3;
+        *(char *)(local_7c + local_10) = (char)uVar1 << 3;
+        *(char *)(local_7c + local_10 + 1) = local_c;
+        *(char *)(local_7c + local_10 + 2) = (char)((int)(uint)uVar1 >> 10) << 3;
+        local_10 = local_10 + 3;
+      }
+      local_18 = (short)param_3;
+      local_34 = 0;
+      while (local_18 = local_18 + -1, -1 < local_18) {
+        puVar7 = (undefined4 *)(local_7c + local_34 * uVar2);
+        puVar8 = (undefined4 *)(iVar3 + (int)local_18 * (int)(short)uVar5);
+        for (uVar6 = uVar2 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+          *puVar8 = *puVar7;
+          puVar7 = puVar7 + 1;
+          puVar8 = puVar8 + 1;
+        }
+        for (uVar6 = uVar2 & 3; uVar6 != 0; uVar6 = uVar6 - 1) {
+          *(undefined1 *)puVar8 = *(undefined1 *)puVar7;
+          puVar7 = (undefined4 *)((int)puVar7 + 1);
+          puVar8 = (undefined4 *)((int)puVar8 + 1);
+        }
+        local_34 = local_34 + 1;
+      }
+      FUN_0050cd72(&DAT_0063888b,&DAT_00639a9f,&DAT_00639aa2,param_4,&DAT_00554114);
+      iVar4 = FUN_0050d0a9(&DAT_0063888b,&DAT_0055411c);
+      if (iVar4 != 0) {
+        FUN_0050e493(&local_2c,0xe,1,iVar4);
+        FUN_0050e493(&local_5c,0x28,1,iVar4);
+        FUN_0050e493(iVar3,local_14,1,iVar4);
+        if (iVar4 != 0) {
+          FUN_0050cee4(iVar4);
+        }
+      }
+    }
+  }
+  if (local_7c != 0) {
+    FUN_0051dc6c(local_7c);
+  }
+  if (iVar3 != 0) {
+    FUN_0051dc6c(iVar3);
+  }
+  return 1;
+}
+

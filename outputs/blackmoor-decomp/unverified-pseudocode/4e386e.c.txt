@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e386e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4b72dd02859bc1f1213a228f2ee2963f47a2ab84ba0199a8e771a37aa8a24763
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004e38ef) */
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004e386e(short param_1)
+
+{
+  char cVar1;
+  short sVar2;
+  short sVar3;
+  short *psVar4;
+  int in_ECX;
+  int iVar5;
+  char *pcVar6;
+  char *pcVar7;
+  
+  psVar4 = *(short **)(&DAT_005bb5e5 + param_1 * 0x8d);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_CCellPhone__PopCellSceneFromStac_0055c06c,DAT_005bb57b,
+                 (int)*(short *)(in_ECX + 0x6ba));
+    FUN_0044a2b7(&DAT_0063888b);
+    iVar5 = -1;
+    pcVar6 = (char *)&DAT_0063888b;
+    do {
+      pcVar7 = pcVar6;
+      if (iVar5 == 0) break;
+      iVar5 = iVar5 + -1;
+      pcVar7 = pcVar6 + 1;
+      cVar1 = *pcVar6;
+      pcVar6 = pcVar7;
+    } while (cVar1 != '\0');
+    *(undefined2 *)(pcVar7 + -1) = DAT_0055c0bc;
+  }
+  if (*psVar4 == 9999) {
+    sVar2 = *(short *)(in_ECX + 0x6ba);
+    sVar3 = *(short *)(in_ECX + 0x6ba);
+  }
+  else {
+    sVar2 = *psVar4;
+    sVar3 = *psVar4;
+  }
+  _DAT_005bb57f = (int)sVar3;
+  DAT_005bb57b = (int)sVar2;
+  DAT_005bb599 = *(undefined2 *)(in_ECX + 0x6bc);
+  DAT_005bb595 = *(undefined2 *)(in_ECX + 0x6be);
+  DAT_005bb59b = *(undefined4 *)(in_ECX + 0x6c2);
+  DAT_005bb59f = *(undefined4 *)(in_ECX + 0x6c6);
+  DAT_005bb5a3 = *(undefined4 *)(in_ECX + 0x6ca);
+  DAT_005c39ff = 1;
+  DAT_00583999 = 4;
+  if ((*(int *)(in_ECX + 0x4528) == 2) || (*(int *)(in_ECX + 0x4528) == 3)) {
+    DAT_00583204 = 5;
+    DAT_005bb22a = 0;
+    *(undefined4 *)(in_ECX + 0x4530) = 0;
+    if ((*(short *)(in_ECX + 0x6b2) != 9999) &&
+       (*(undefined2 *)(in_ECX + 0x6b2) = 9999, *(int *)(in_ECX + 0x6b4) != 0)) {
+      *(undefined4 *)(in_ECX + 0x65d2) = 1;
+      *(undefined4 *)(in_ECX + 0x6b4) = 0;
+    }
+  }
+  return;
+}
+

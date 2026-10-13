@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c8ce
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+/* Library Function - Single Match
+    protected: long __thiscall CWnd::OnDisplayChange(unsigned int,long)
+   
+   Library: Visual Studio 2003 Release */
+
+long __thiscall CWnd::OnDisplayChange(CWnd *this,uint param_1,long param_2)
+
+{
+  CWnd *pCVar1;
+  uint uVar2;
+  int iVar3;
+  long lVar4;
+  
+  pCVar1 = (CWnd *)FUN_0050c193();
+  if (pCVar1 == this) {
+    FUN_0051f96d();
+  }
+  uVar2 = FUN_0051d526();
+  if ((uVar2 & 0x40000000) == 0) {
+    iVar3 = FUN_0051ab16();
+    FUN_0051c22e(*(undefined4 *)(this + 0x1c),*(undefined4 *)(iVar3 + 4),*(undefined4 *)(iVar3 + 8),
+                 *(undefined4 *)(iVar3 + 0xc),1,1);
+  }
+  lVar4 = FUN_0051ab4b();
+  return lVar4;
+}
+

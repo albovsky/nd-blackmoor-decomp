@@ -1,0 +1,59 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a9b2b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f8b80bcdfd5ca2ee198de08d56d1d294d47bc0bea221b480c34a35dbdce25af4
+ */
+
+void FUN_004a9b2b(void)
+
+{
+  int iVar1;
+  short local_10;
+  short local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + DAT_00627353 * 0x8d);
+  if (DAT_00628197 != 0) {
+    DAT_00628197 = 0;
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00627865 + DAT_0062819b * 0x10 + DAT_0062819d * 0x90
+                 ,&DAT_00627355 + DAT_0062819b * 0x10 + DAT_0062819d * 0x90,
+                 s_Rip_Letter_Puzzle_Background_Res_00550c58);
+  }
+  if (DAT_00628193 != 0) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_0062814b,&DAT_0062816b,
+                 s_Ripped_Letter_Puzzle_RES_area_un_00550c8c);
+  }
+  if ((DAT_0062818f != 0) && (DAT_00628193 == 0)) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_0062814b,&DAT_0062816b,
+                 s_Ripped_Letter_Puzzle_clear_RES_a_00550cc4);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_0062815b,&DAT_0062817b,
+                 s_Ripped_Letter_Puzzle_clear_CUR_a_00550cfc);
+    DAT_0062818f = 0;
+  }
+  for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x43); local_8 = local_8 + 1) {
+    for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x45); local_10 = local_10 + 1) {
+      if ((DAT_0062818b == 0) || (*(short *)(&DAT_00627d75 + local_10 * 6 + local_8 * 0x36) != -10))
+      {
+        if (*(short *)(&DAT_00627d75 + local_10 * 6 + local_8 * 0x36) != -10) {
+          FUN_004c5377(DAT_0062819f,DAT_005cf665,
+                       iVar1 + 0x4d +
+                       *(short *)(&DAT_00627d75 + local_10 * 6 + local_8 * 0x36) * 0x50 +
+                       *(short *)(&DAT_00627d77 + local_10 * 6 + local_8 * 0x36) * 0x10,
+                       &DAT_00627355 + local_10 * 0x10 + local_8 * 0x90,
+                       s_Sort_puzzle_item_overlays_00550d58);
+        }
+      }
+      else {
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00627865 + local_10 * 0x10 + local_8 * 0x90,
+                     &DAT_00627355 + local_10 * 0x10 + local_8 * 0x90,
+                     s_Sort_Puzzle_Background_pSrcSurfa_00550d34);
+        DAT_0062818b = 0;
+      }
+    }
+  }
+  if (DAT_00628193 != 0) {
+    FUN_004c5d4b(DAT_006281a3,DAT_005cf665,iVar1 + 0x2cd + DAT_00628149 * 0x10,&DAT_0062817b,
+                 s_Ripped_Letter_Puzzle_CURRENT_are_00550d74);
+  }
+  return;
+}
+

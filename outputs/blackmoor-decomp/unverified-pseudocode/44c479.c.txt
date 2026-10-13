@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44c479
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+undefined4 FUN_0044c479(int *param_1)
+
+{
+  undefined4 uVar1;
+  
+  while (*param_1 == 1) {
+    Sleep(1);
+  }
+  if (*param_1 == 2) {
+    uVar1 = 2;
+  }
+  else {
+    *param_1 = 1;
+    uVar1 = 1;
+  }
+  return uVar1;
+}
+

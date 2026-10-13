@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4aa002
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f8b80bcdfd5ca2ee198de08d56d1d294d47bc0bea221b480c34a35dbdce25af4
+ */
+
+void FUN_004aa002(int *param_1,int *param_2,int *param_3)
+
+{
+  int iVar1;
+  uint uVar2;
+  short sVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  
+  sVar3 = (0x14 - *(short *)(*param_2 + 0xf7)) * -0x15c + 0x1c29;
+  iVar1 = FUN_0051dc43((int)sVar3);
+  *param_1 = iVar1;
+  if (iVar1 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_00550dbc,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_00550de8,&DAT_0063888b);
+    FUN_004c97b4();
+  }
+  puVar4 = (undefined4 *)*param_2;
+  puVar5 = (undefined4 *)*param_1;
+  for (uVar2 = (uint)(int)sVar3 >> 2; uVar2 != 0; uVar2 = uVar2 - 1) {
+    *puVar5 = *puVar4;
+    puVar4 = puVar4 + 1;
+    puVar5 = puVar5 + 1;
+  }
+  for (uVar2 = (int)sVar3 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+    *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+    puVar4 = (undefined4 *)((int)puVar4 + 1);
+    puVar5 = (undefined4 *)((int)puVar5 + 1);
+  }
+  *param_3 = *param_3 + (int)sVar3;
+  *param_2 = *param_2 + (int)sVar3;
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_Loaded_AT_SOUNDMATCH_PUZZLE_data_00550e04);
+  }
+  return;
+}
+

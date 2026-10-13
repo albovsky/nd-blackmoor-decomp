@@ -1,0 +1,134 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x411f24
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e1d5cf90f6aebf321704f8d611ce26ca2904fc537a9974fc07aaf8081db3bfa6
+ */
+
+void FUN_00411f24(short param_1)
+
+{
+  char cVar1;
+  int iVar2;
+  uint uVar3;
+  uint uVar4;
+  undefined2 extraout_var;
+  char *pcVar5;
+  char *pcVar6;
+  char *pcVar7;
+  undefined4 *puVar8;
+  char local_18 [8];
+  undefined2 *local_10;
+  undefined2 *local_c;
+  char *local_8;
+  
+  local_10 = *(undefined2 **)(&DAT_005bb5e5 + param_1 * 0x8d);
+  local_c = (undefined2 *)((int)local_10 + 0xe7);
+  FUN_00413187(local_10,(int)local_10 + 0x12d,0,0);
+  FUN_0042ba3a(CONCAT22(extraout_var,param_1));
+  local_8 = (char *)FUN_0051dc43(0xaba);
+  if (local_8 == (char *)0x0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_Overlay_A_00541564,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_005415ac,&DAT_0063888b);
+    FUN_004c97b4();
+  }
+  pcVar5 = local_8;
+  for (iVar2 = 0x2ae; iVar2 != 0; iVar2 = iVar2 + -1) {
+    pcVar5[0] = '\0';
+    pcVar5[1] = '\0';
+    pcVar5[2] = '\0';
+    pcVar5[3] = '\0';
+    pcVar5 = pcVar5 + 4;
+  }
+  pcVar5[0] = '\0';
+  pcVar5[1] = '\0';
+  FUN_0048945b(local_8,local_c + 1);
+  uVar3 = 0xffffffff;
+  pcVar5 = s_USE_AUTOTEXT_005415c8;
+  do {
+    pcVar7 = pcVar5;
+    if (uVar3 == 0) break;
+    uVar3 = uVar3 - 1;
+    pcVar7 = pcVar5 + 1;
+    cVar1 = *pcVar5;
+    pcVar5 = pcVar7;
+  } while (cVar1 != '\0');
+  uVar3 = ~uVar3;
+  pcVar5 = pcVar7 + -uVar3;
+  pcVar7 = local_8;
+  for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+    *(undefined4 *)pcVar7 = *(undefined4 *)pcVar5;
+    pcVar5 = pcVar5 + 4;
+    pcVar7 = pcVar7 + 4;
+  }
+  for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *pcVar7 = *pcVar5;
+    pcVar5 = pcVar5 + 1;
+    pcVar7 = pcVar7 + 1;
+  }
+  FUN_005193ca((short)local_10[1] + 1,local_18,10);
+  uVar3 = 0xffffffff;
+  pcVar5 = local_18;
+  do {
+    pcVar7 = pcVar5;
+    if (uVar3 == 0) break;
+    uVar3 = uVar3 - 1;
+    pcVar7 = pcVar5 + 1;
+    cVar1 = *pcVar5;
+    pcVar5 = pcVar7;
+  } while (cVar1 != '\0');
+  uVar3 = ~uVar3;
+  iVar2 = -1;
+  pcVar5 = local_8;
+  do {
+    pcVar6 = pcVar5;
+    if (iVar2 == 0) break;
+    iVar2 = iVar2 + -1;
+    pcVar6 = pcVar5 + 1;
+    cVar1 = *pcVar5;
+    pcVar5 = pcVar6;
+  } while (cVar1 != '\0');
+  pcVar5 = pcVar7 + -uVar3;
+  pcVar7 = pcVar6 + -1;
+  for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+    *(undefined4 *)pcVar7 = *(undefined4 *)pcVar5;
+    pcVar5 = pcVar5 + 4;
+    pcVar7 = pcVar7 + 4;
+  }
+  for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *pcVar7 = *pcVar5;
+    pcVar5 = pcVar5 + 1;
+    pcVar7 = pcVar7 + 1;
+  }
+  *(undefined2 *)(local_8 + 0x23) = *local_10;
+  *(undefined2 *)(local_8 + 0x27) = *local_c;
+  *(undefined4 *)(local_8 + 0xac) = *(undefined4 *)(local_c + 9);
+  *(undefined4 *)(local_8 + 0xb0) = *(undefined4 *)(local_c + 0xb);
+  *(undefined4 *)(local_8 + 0xb4) = *(undefined4 *)(local_c + 0xd);
+  *(undefined4 *)(local_8 + 0xb8) = *(undefined4 *)(local_c + 0xf);
+  FUN_0051dc6c(*(undefined4 *)(&DAT_005bb5e5 + param_1 * 0x8d));
+  *(undefined4 *)(&DAT_005bb5e5 + param_1 * 0x8d) = 0;
+  iVar2 = FUN_0051dc43(0xaba);
+  *(int *)(&DAT_005bb5e5 + param_1 * 0x8d) = iVar2;
+  if (iVar2 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_OVERLAY_A_005415d8,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_0054161c,&DAT_0063888b);
+    FUN_004c97b4();
+  }
+  pcVar5 = local_8;
+  puVar8 = *(undefined4 **)(&DAT_005bb5e5 + param_1 * 0x8d);
+  for (iVar2 = 0x2ae; iVar2 != 0; iVar2 = iVar2 + -1) {
+    *puVar8 = *(undefined4 *)pcVar5;
+    pcVar5 = pcVar5 + 4;
+    puVar8 = puVar8 + 1;
+  }
+  *(undefined2 *)puVar8 = *(undefined2 *)pcVar5;
+  (&DAT_005bb625)[param_1 * 0x8d] = 0;
+  (&DAT_005bb5e3)[param_1 * 0x8d] = 0x36;
+  (&DAT_005bb5e4)[param_1 * 0x8d] = 1;
+  *(undefined4 *)(&DAT_005bb632 + param_1 * 0x8d) = 0;
+  FUN_0051dc6c(local_8);
+  return;
+}
+

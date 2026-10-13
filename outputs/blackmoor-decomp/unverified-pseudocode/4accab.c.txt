@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4accab
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c162e587d744a5d109b183c8ad170721ecaf16eed1b508d2b71afde20c121117
+ */
+
+void FUN_004accab(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  int *piVar2;
+  int iVar3;
+  
+  iVar1 = in_ECX + *(short *)(in_ECX + 0x24) * 199;
+  piVar2 = (int *)(iVar1 + 0x70);
+  if (*(int *)(iVar1 + 0x74) < DAT_0058319a) {
+    iVar3 = DAT_0058319a - *(int *)(iVar1 + 0x74);
+    *(int *)(iVar1 + 0x74) = *(int *)(iVar1 + 0x74) + iVar3;
+    *(int *)(iVar1 + 0x7c) = *(int *)(iVar1 + 0x7c) + iVar3;
+  }
+  else if (DAT_005831a2 < *(int *)(iVar1 + 0x7c)) {
+    iVar3 = *(int *)(iVar1 + 0x7c) - DAT_005831a2;
+    *(int *)(iVar1 + 0x74) = *(int *)(iVar1 + 0x74) - iVar3;
+    *(int *)(iVar1 + 0x7c) = *(int *)(iVar1 + 0x7c) - iVar3;
+  }
+  if (*piVar2 < DAT_00583196) {
+    iVar3 = DAT_00583196 - *piVar2;
+    *piVar2 = *piVar2 + iVar3;
+    *(int *)(iVar1 + 0x78) = *(int *)(iVar1 + 0x78) + iVar3;
+  }
+  else if (DAT_0058319e < *(int *)(iVar1 + 0x78)) {
+    iVar3 = *(int *)(iVar1 + 0x78) - DAT_0058319e;
+    *piVar2 = *piVar2 - iVar3;
+    *(int *)(iVar1 + 0x78) = *(int *)(iVar1 + 0x78) - iVar3;
+  }
+  return;
+}
+

@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51db71
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051db71(LPCSTR param_1)
+
+{
+  UINT UVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0xc) == 0) {
+    FUN_00521117(*(undefined4 *)(*(int *)(in_ECX + 0x14) + 0x1c),param_1);
+  }
+  else if (*(int *)(in_ECX + 0x10) == 0) {
+    UVar1 = GetMenuState(*(HMENU *)(*(int *)(in_ECX + 0xc) + 4),*(UINT *)(in_ECX + 8),0x400);
+    ModifyMenuA(*(HMENU *)(*(int *)(in_ECX + 0xc) + 4),*(UINT *)(in_ECX + 8),
+                UVar1 & 0xfffff6fb | 0x400,*(UINT_PTR *)(in_ECX + 4),param_1);
+  }
+  return;
+}
+

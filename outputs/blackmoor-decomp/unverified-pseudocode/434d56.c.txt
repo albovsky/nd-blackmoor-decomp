@@ -1,0 +1,127 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x434d56
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+void FUN_00434d56(LPCSTR param_1,byte *param_2,char *param_3,size_t param_4)
+
+{
+  byte bVar1;
+  LPSTR lpReturnedString;
+  undefined4 *puVar2;
+  int iVar3;
+  bool bVar4;
+  DWORD nSize;
+  LPCSTR lpFileName;
+  undefined1 local_7c;
+  undefined1 local_74;
+  int local_68;
+  byte *local_60;
+  byte *local_5c;
+  undefined1 local_38 [4];
+  uint local_34;
+  undefined1 local_30 [4];
+  uint local_2c;
+  undefined1 local_28 [4];
+  uint local_24;
+  undefined1 local_20 [4];
+  uint local_1c;
+  byte *local_18;
+  char *local_14;
+  void *local_10;
+  undefined1 *puStack_c;
+  int local_8;
+  
+  puStack_c = &LAB_00527e44;
+  local_10 = ExceptionList;
+  local_18 = PTR_DAT_005679b0;
+  local_14 = PTR_DAT_005679b0;
+  local_8._0_1_ = 1;
+  local_8._1_3_ = 0;
+  lpFileName = (LPCSTR)&DAT_00639897;
+  nSize = 0x104;
+  ExceptionList = &local_10;
+  lpReturnedString = (LPSTR)FUN_0051ea75(0x104);
+  GetPrivateProfileStringA
+            (s_Nancy_Data_005462fc,param_1,(LPCSTR)param_2,lpReturnedString,nSize,lpFileName);
+  FUN_0051eac4(0xffffffff);
+  local_5c = local_18;
+  local_60 = param_2;
+  do {
+    bVar1 = *local_60;
+    bVar4 = bVar1 < *local_5c;
+    if (bVar1 != *local_5c) {
+LAB_00434e0b:
+      local_68 = (1 - (uint)bVar4) - (uint)(bVar4 != 0);
+      goto LAB_00434e13;
+    }
+    if (bVar1 == 0) break;
+    bVar1 = local_60[1];
+    bVar4 = bVar1 < local_5c[1];
+    if (bVar1 != local_5c[1]) goto LAB_00434e0b;
+    local_60 = local_60 + 2;
+    local_5c = local_5c + 2;
+  } while (bVar1 != 0);
+  local_68 = 0;
+LAB_00434e13:
+  if (local_68 != 0) {
+    FUN_0051e8a7(&local_18);
+    goto LAB_00434fd8;
+  }
+  FUN_0051e8f7(&DAT_0063a2c5);
+  puVar2 = (undefined4 *)FUN_00519acb(local_20,1);
+  local_8 = CONCAT31(local_8._1_3_,2);
+  iVar3 = FUN_0050da98(*puVar2,&DAT_00546308);
+  if (iVar3 == 0) {
+    puVar2 = (undefined4 *)FUN_00519b47(local_28,1);
+    iVar3 = FUN_0050da98(*puVar2,&DAT_0054630c);
+    local_24 = CONCAT31(local_24._1_3_,'\x01' - (iVar3 != 0));
+    FUN_0051e7ba();
+    if ((local_24 & 0xff) == 0) goto LAB_00434ec2;
+    local_74 = 1;
+  }
+  else {
+LAB_00434ec2:
+    local_74 = 0;
+  }
+  local_1c = CONCAT31(local_1c._1_3_,local_74);
+  local_8._0_1_ = 1;
+  FUN_0051e7ba();
+  if ((local_1c & 0xff) == 0) {
+    puVar2 = (undefined4 *)FUN_00519acb(local_30,1);
+    local_8 = CONCAT31(local_8._1_3_,3);
+    iVar3 = FUN_0050da98(*puVar2,&DAT_00546310);
+    if (iVar3 == 0) {
+LAB_00434f8b:
+      local_7c = 0;
+    }
+    else {
+      puVar2 = (undefined4 *)FUN_00519b47(local_38,1);
+      iVar3 = FUN_0050da98(*puVar2,&DAT_00546314);
+      local_34 = CONCAT31(local_34._1_3_,iVar3 != 0);
+      FUN_0051e7ba();
+      if ((local_34 & 0xff) == 0) goto LAB_00434f8b;
+      local_7c = 1;
+    }
+    local_2c = CONCAT31(local_2c._1_3_,local_7c);
+    local_8._0_1_ = 1;
+    FUN_0051e7ba();
+    if ((local_2c & 0xff) != 0) {
+      FUN_0051ea21(&DAT_00546318);
+    }
+  }
+  else {
+    FUN_00519c12(0x5c);
+  }
+  FUN_0051ea5d(&local_18);
+LAB_00434fd8:
+  _strncpy(param_3,local_14,param_4);
+  local_8 = (uint)local_8._1_3_ << 8;
+  FUN_0051e7ba();
+  local_8 = 0xffffffff;
+  FUN_0051e7ba();
+  ExceptionList = local_10;
+  return;
+}
+

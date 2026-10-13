@@ -1,0 +1,89 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x41c133
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5
+ */
+
+void FUN_0041c133(void)
+
+{
+  ushort uVar1;
+  int iVar2;
+  uint uVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  uint local_658c;
+  uint local_6588;
+  int local_6584;
+  ushort *local_5460;
+  undefined4 local_614 [375];
+  int local_38;
+  undefined4 local_34 [4];
+  undefined4 uStack_24;
+  undefined4 *puStack_20;
+  undefined4 *puStack_1c;
+  void *local_10;
+  undefined1 *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &LAB_005273a2;
+  local_10 = ExceptionList;
+  ExceptionList = &local_10;
+  FUN_0050c920();
+  puStack_1c = (undefined4 *)&DAT_005b01ae;
+  puStack_20 = (undefined4 *)0x41c16d;
+  FUN_00433c60();
+  local_8 = 0;
+  local_38 = 2;
+  puStack_1c = (undefined4 *)&DAT_005431a8;
+  puStack_20 = (undefined4 *)0x41c19f;
+  FUN_004343a2();
+  local_658c = (uint)*local_5460;
+  for (local_6584 = 0; local_6584 < (int)local_658c; local_6584 = local_6584 + 1) {
+    puVar4 = local_34;
+    for (iVar2 = 8; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *puVar4 = 0;
+      puVar4 = puVar4 + 1;
+    }
+    *(undefined1 *)puVar4 = 0;
+    puVar4 = local_614;
+    for (iVar2 = 0x177; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *puVar4 = 0;
+      puVar4 = puVar4 + 1;
+    }
+    puVar4 = (undefined4 *)((int)local_5460 + local_38);
+    puVar5 = local_34;
+    for (iVar2 = 8; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+    uVar1 = *(ushort *)((int)local_5460 + local_38 + 0x21);
+    local_6588 = (uint)uVar1;
+    puVar4 = (undefined4 *)((int)local_5460 + local_38 + 0x23);
+    puVar5 = local_614;
+    for (uVar3 = (uint)(uVar1 >> 2); uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (uVar3 = uVar1 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    puStack_1c = local_614;
+    puStack_20 = local_34;
+    uStack_24 = 0x41c263;
+    FUN_00423142();
+    local_38 = local_38 + 0x23 + local_6588;
+  }
+  local_8 = 0xffffffff;
+  puStack_1c = (undefined4 *)0x41c28a;
+  FUN_00433e63();
+  ExceptionList = local_10;
+  return;
+}
+

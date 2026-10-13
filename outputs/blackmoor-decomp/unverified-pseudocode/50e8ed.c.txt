@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50e8ed
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+/* Library Function - Single Match
+    __amsg_exit
+   
+   Library: Visual Studio 2003 Release */
+
+void __cdecl __amsg_exit(int param_1)
+
+{
+  if (DAT_0063ca70 == 1) {
+    FUN_00514d99();
+  }
+  FUN_00514dd2(param_1);
+  (*(code *)PTR___exit_00567e7c)(0xff);
+  return;
+}
+

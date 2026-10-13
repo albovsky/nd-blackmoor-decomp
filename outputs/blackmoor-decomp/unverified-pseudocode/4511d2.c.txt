@@ -1,0 +1,50 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4511d2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_44f9ad36cfcb6cd07f5dfecee6ae0cfb679ab9d068db67b1a73f7c4febbd58e5
+ */
+
+void FUN_004511d2(void)
+
+{
+  undefined4 *puVar1;
+  int in_ECX;
+  
+  switch(*(undefined4 *)(in_ECX + 0x184)) {
+  case 0:
+    FUN_0045133d();
+    break;
+  case 1:
+  case 2:
+    FUN_0044bf8b(in_ECX + 0xe8);
+    break;
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+    FUN_0044c223(in_ECX + 0xe8,in_ECX + 0xe8,in_ECX + 0x188 + *(int *)(in_ECX + 0x184) * 0xc,1);
+    break;
+  case 7:
+  case 8:
+  case 9:
+  case 10:
+    FUN_0044c223(in_ECX + 0xe8,in_ECX + 0xe8,in_ECX + 0x188 + *(int *)(in_ECX + 0x184) * 0xc,1);
+    break;
+  case 0xb:
+  case 0xc:
+  case 0xd:
+  case 0xe:
+    puVar1 = (undefined4 *)(in_ECX + 0x188 + *(int *)(in_ECX + 0x184) * 0xc);
+    *(undefined4 *)(in_ECX + 0xe8) = *puVar1;
+    *(undefined4 *)(in_ECX + 0xec) = puVar1[1];
+    *(undefined4 *)(in_ECX + 0xf0) = puVar1[2];
+    break;
+  case 0xf:
+    FUN_0044bf8b(in_ECX + 0xe8);
+    break;
+  case 0x10:
+    FUN_0044bf8b(in_ECX + 0xe8);
+  }
+  return;
+}
+

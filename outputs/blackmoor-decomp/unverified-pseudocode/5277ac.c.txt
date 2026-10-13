@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5277ac
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b63e1118bba1204c7ea8b81c8fd34d19f989b1bf23170257a27495e3973a3a30
+ */
+
+void Unwind_005277ac(void)
+
+{
+  int unaff_EBP;
+  
+  COleResizeBar::~COleResizeBar((COleResizeBar *)(*(int *)(unaff_EBP + -0x10) + 0xb48a2));
+  return;
+}
+

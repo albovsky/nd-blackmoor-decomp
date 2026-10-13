@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x449ba5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c532ca6fd2b24db6f7392da771f9de1073079eaf8a4051621b7fba1333cc82be
+ */
+
+void FUN_00449ba5(void)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x36) != 0) {
+    DVar1 = SuspendThread(*(HANDLE *)(*(int *)(in_ECX + 0x36) + 0x28));
+    if (DVar1 == 0xffffffff) {
+      FUN_004264e8(s_Error_suspending_a_thread_005489c8);
+      FUN_004c97b4();
+    }
+    else {
+      *(undefined4 *)(in_ECX + 0x42) = 1;
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44a2b7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044a2b7(undefined4 param_1)
+
+{
+  undefined4 unaff_EBP;
+  _SYSTEMTIME local_14;
+  undefined2 uStack_4;
+  undefined2 uStack_2;
+  
+  uStack_4 = (undefined2)unaff_EBP;
+  uStack_2 = (undefined2)((uint)unaff_EBP >> 0x10);
+  GetSystemTime(&local_14);
+  FUN_0050ddb9(DAT_005a4c10,s__05d__04d__02d__02d__03d___s_00548abc,DAT_0063a84c,local_14.wHour,
+               local_14.wMinute,local_14.wSecond,local_14.wMilliseconds,param_1);
+  FUN_0050dc53(DAT_005a4c10);
+  DAT_0063a84c = DAT_0063a84c + 1;
+  return;
+}
+

@@ -1,0 +1,76 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b8783
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+void FUN_004b8783(void)
+
+{
+  undefined4 *puVar1;
+  undefined1 uVar2;
+  short sVar3;
+  int iVar4;
+  DWORD DVar5;
+  int in_ECX;
+  undefined4 *puVar6;
+  short local_c;
+  
+  iVar4 = _rand();
+  *(short *)(in_ECX + 0x48) =
+       (short)(iVar4 % ((*(short *)(*(int *)(in_ECX + 8) + 0x458) + 1) -
+                       (int)*(short *)(*(int *)(in_ECX + 8) + 0x456))) +
+       *(short *)(*(int *)(in_ECX + 8) + 0x456);
+  puVar6 = (undefined4 *)(in_ECX + 0x4a);
+  for (iVar4 = 0x113; iVar4 != 0; iVar4 = iVar4 + -1) {
+    *puVar6 = 0;
+    puVar6 = puVar6 + 1;
+  }
+  for (local_c = 0; local_c < *(short *)(in_ECX + 0x48); local_c = local_c + 1) {
+    iVar4 = *(int *)(in_ECX + 8);
+    sVar3 = FUN_004b866e();
+    puVar1 = (undefined4 *)(iVar4 + 0x175 + sVar3 * 0x10);
+    puVar6 = (undefined4 *)(in_ECX + 0x5a + local_c * 0x37);
+    *puVar6 = *puVar1;
+    puVar6[1] = puVar1[1];
+    puVar6[2] = puVar1[2];
+    puVar6[3] = puVar1[3];
+    *(int *)(in_ECX + 0x5e + local_c * 0x37) =
+         *(int *)(in_ECX + 0x5e + local_c * 0x37) + DAT_0058318a;
+    *(int *)(in_ECX + 0x66 + local_c * 0x37) =
+         *(int *)(in_ECX + 0x66 + local_c * 0x37) + DAT_0058318a;
+    *(int *)(in_ECX + 0x5a + local_c * 0x37) =
+         *(int *)(in_ECX + 0x5a + local_c * 0x37) + DAT_00583186;
+    *(int *)(in_ECX + 0x62 + local_c * 0x37) =
+         *(int *)(in_ECX + 0x62 + local_c * 0x37) + DAT_00583186;
+    *(int *)(in_ECX + 0x6f + local_c * 0x37) =
+         (*(int *)(in_ECX + 0x66 + local_c * 0x37) -
+         (*(int *)(in_ECX + 0x66 + local_c * 0x37) - *(int *)(in_ECX + 0x5e + local_c * 0x37)) / 2)
+         + 6;
+    *(int *)(in_ECX + 0x6b + local_c * 0x37) =
+         (*(int *)(in_ECX + 0x62 + local_c * 0x37) -
+         (*(int *)(in_ECX + 0x62 + local_c * 0x37) - *(int *)(in_ECX + 0x5a + local_c * 0x37)) / 2)
+         + -8;
+    iVar4 = _rand();
+    puVar6 = (undefined4 *)
+             (*(int *)(in_ECX + 8) + 0x23 +
+             (short)(iVar4 % (int)*(short *)(*(int *)(in_ECX + 8) + 0x21)) * 0x10);
+    puVar1 = (undefined4 *)(in_ECX + 0x4a + local_c * 0x37);
+    *puVar1 = *puVar6;
+    puVar1[1] = puVar6[1];
+    puVar1[2] = puVar6[2];
+    puVar1[3] = puVar6[3];
+    *(undefined4 *)(in_ECX + 0x7d + local_c * 0x37) = 1;
+    uVar2 = FUN_004b85f6();
+    *(undefined1 *)(in_ECX + 0x6a + local_c * 0x37) = uVar2;
+    DVar5 = GetTickCount();
+    *(DWORD *)(in_ECX + 0x77 + local_c * 0x37) = DVar5;
+    iVar4 = _rand();
+    *(short *)(in_ECX + 0x7b + local_c * 0x37) =
+         (short)(iVar4 % ((*(short *)(*(int *)(in_ECX + 8) + 0x454) + 1) -
+                         (int)*(short *)(*(int *)(in_ECX + 8) + 0x452))) +
+         *(short *)(*(int *)(in_ECX + 8) + 0x452);
+  }
+  return;
+}
+

@@ -1,0 +1,40 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c4c2b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c4c2b(void)
+
+{
+  int in_ECX;
+  short local_12;
+  short local_c;
+  short local_8;
+  
+  local_8 = 0;
+  DAT_0063a8dc = DAT_0063a8dc + 1;
+  FUN_004c9805();
+  for (local_c = 0; local_c < *(short *)(in_ECX + 0xe88); local_c = local_c + 1) {
+    if (*(char *)(in_ECX + 0xe8a + (int)local_c) == '\x01') {
+      FUN_004c500c(*(undefined4 *)(in_ECX + 0xc),*(undefined4 *)(in_ECX + 8),
+                   *(undefined4 *)(in_ECX + 0xf84 + local_c * 0x10),
+                   *(undefined4 *)(in_ECX + 0xf88 + local_c * 0x10),in_ECX + 0xf84 + local_c * 0x10,
+                   s_Dirty_Rect_Fast_Blt_00554670);
+      local_8 = local_8 + 1;
+    }
+  }
+  if (local_8 != DAT_0063a8d8) {
+    if (local_8 < *(short *)(in_ECX + 0xe86)) {
+      local_12 = *(short *)(in_ECX + 0xe86);
+    }
+    else {
+      local_12 = local_8;
+    }
+    *(short *)(in_ECX + 0xe86) = local_12;
+    DAT_0063a8d8 = local_8;
+  }
+  FUN_004c94ec();
+  return;
+}
+

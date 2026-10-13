@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519965
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b751a5094d1e8211f653554618c4b14e01ac05861f47e521c34e1b18a0e9f8e5
+ */
+
+int FUN_00519965(uchar *param_1,size_t param_2)
+
+{
+  uchar *_Str2;
+  int iVar1;
+  int *piVar2;
+  
+  _Str2 = (uchar *)*DAT_0063ca2c;
+  piVar2 = DAT_0063ca2c;
+  while( true ) {
+    if (_Str2 == (uchar *)0x0) {
+      return -((int)piVar2 - (int)DAT_0063ca2c >> 2);
+    }
+    iVar1 = __mbsnbicoll(param_1,_Str2,param_2);
+    if ((iVar1 == 0) &&
+       ((*(char *)(*piVar2 + param_2) == '=' || (*(char *)(*piVar2 + param_2) == '\0')))) break;
+    _Str2 = (uchar *)piVar2[1];
+    piVar2 = piVar2 + 1;
+  }
+  return (int)piVar2 - (int)DAT_0063ca2c >> 2;
+}
+

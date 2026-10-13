@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4fb737
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_edb26fcf7b21a4e4f4785e0b56b76960182762a5eae671897573c39f3cf8c11e
+ */
+
+void FUN_004fb737(void)
+
+{
+  short local_8;
+  
+  for (local_8 = 0; local_8 < 3; local_8 = local_8 + 1) {
+    FUN_004fc808(*(undefined2 *)(&DAT_00583381 + local_8 * 0x2f));
+  }
+  return;
+}
+

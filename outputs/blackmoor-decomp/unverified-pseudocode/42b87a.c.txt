@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42b87a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+void FUN_0042b87a(short param_1)
+
+{
+  DWORD DVar1;
+  undefined2 extraout_var;
+  
+  switch(**(undefined1 **)(&DAT_005bb5e5 + param_1 * 0x8d)) {
+  case 1:
+    DAT_00585d51 = *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 1);
+    DAT_00585d4f = *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 3);
+    break;
+  case 2:
+    DAT_00585d51 = DAT_00585d51 + *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 1);
+    DAT_00585d4f = DAT_00585d4f + *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 3);
+    break;
+  case 3:
+    FUN_004d3c5f();
+    break;
+  case 4:
+    FUN_004d3c88();
+    break;
+  case 5:
+    FUN_004d3c88();
+    DAT_00585d51 = *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 1);
+    DAT_00585d4f = *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 3);
+    break;
+  case 6:
+    FUN_004d3c88();
+    DAT_00585d51 = DAT_00585d51 + *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 1);
+    DAT_00585d4f = DAT_00585d4f + *(short *)(*(int *)(&DAT_005bb5e5 + param_1 * 0x8d) + 3);
+  }
+  DAT_00585d4b = DAT_00585d51 * 0x3c + (int)DAT_00585d4f;
+  DVar1 = GetTickCount();
+  DAT_00585d55 = DVar1 + (int)DAT_005b0280;
+  FUN_0042ba3a(CONCAT22(extraout_var,param_1));
+  return;
+}
+

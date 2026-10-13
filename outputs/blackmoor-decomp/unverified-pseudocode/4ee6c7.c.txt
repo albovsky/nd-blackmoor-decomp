@@ -1,0 +1,58 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ee6c7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+undefined4 FUN_004ee6c7(int param_1)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  int in_ECX;
+  
+  switch(*(undefined4 *)(in_ECX + 0x4af)) {
+  case 0:
+    if (*(int *)(in_ECX + 0x4ab) == 0) {
+      uVar1 = FUN_004c2790(s_CIFTREE_0055cdd4,in_ECX + 0x2c,6,s_UI_Popup_0055cdc8);
+      *(undefined4 *)(in_ECX + 0x4ab) = uVar1;
+    }
+    if (DAT_0055cd94 == 0) {
+      *(undefined4 *)(in_ECX + 0x4af) = 4;
+    }
+    else {
+      *(undefined4 *)(in_ECX + 0x4af) = 5;
+    }
+    break;
+  case 4:
+    if (DAT_0055cd94 != 0) {
+      *(undefined4 *)(in_ECX + 0x4af) = 5;
+    }
+    break;
+  case 5:
+    *(undefined4 *)(in_ECX + 0x4af) = *(undefined4 *)(in_ECX + 0x4b3);
+    iVar2 = *(int *)(in_ECX + 0x4af);
+    if (((1 < iVar2) && (iVar2 < 4)) && (*(int *)(in_ECX + 0x675) != 0)) {
+      FUN_004fb2e3(CONCAT22((short)((uint)iVar2 >> 0x10),*(undefined2 *)(in_ECX + 0xbc)));
+    }
+    if (param_1 != 0) {
+      FUN_004db993(*(undefined4 *)(in_ECX + 0x689),*(undefined4 *)(in_ECX + 0x68d));
+      DAT_005839a9 = 0;
+    }
+  case 2:
+  case 3:
+    if (*(int *)(in_ECX + 0x15f) != 0) {
+      FUN_004e29ec();
+    }
+    if (*(int *)(in_ECX + 0x252) != 0) {
+      FUN_004ef89b();
+    }
+    if (((*(int *)(in_ECX + 0x685) != 0) && (*(int *)(in_ECX + 0x15f) != 0)) &&
+       (iVar2 = FUN_004e2913(), iVar2 != 0)) {
+      FUN_004edb97();
+      return 0;
+    }
+  }
+  return 1;
+}
+

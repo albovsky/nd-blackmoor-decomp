@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521756
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+/* Library Function - Multiple Matches With Different Base Names
+    public: virtual __thiscall CAnimateCtrl::~CAnimateCtrl(void)
+    public: virtual __thiscall CButton::~CButton(void)
+    public: virtual __thiscall CComboBox::~CComboBox(void)
+    public: virtual __thiscall CDateTimeCtrl::~CDateTimeCtrl(void)
+     21 names - too many to list
+   
+   Library: Visual Studio 2003 Release */
+
+void FID_conflict__CHotKeyCtrl(void)
+
+{
+  CWnd *this;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(CWnd **)(unaff_EBP + -0x10) = this;
+  *(undefined ***)this = &PTR_LAB_0052ed6c;
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  FUN_0051b414();
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  CWnd::~CWnd(this);
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

@@ -1,0 +1,72 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44fc9b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_44f9ad36cfcb6cd07f5dfecee6ae0cfb679ab9d068db67b1a73f7c4febbd58e5
+ */
+
+void FUN_0044fc9b(void)
+
+{
+  SHORT SVar1;
+  DWORD DVar2;
+  undefined4 uVar3;
+  int in_ECX;
+  
+  if ((*(int *)(in_ECX + 0x28) == 0) && (*(int *)(in_ECX + 0x24) == 0)) {
+    DVar2 = GetTickCount();
+    *(DWORD *)(in_ECX + 0x4e4) = DVar2;
+    *(int *)(in_ECX + 0x4ec) = *(int *)(in_ECX + 0x4e4) - *(int *)(in_ECX + 0x4e8);
+    *(undefined4 *)(in_ECX + 0x4e8) = *(undefined4 *)(in_ECX + 0x4e4);
+    SVar1 = GetAsyncKeyState(*(int *)(in_ECX + 0x4f4));
+    if (((int)SVar1 & 0x8000U) == 0) {
+      SVar1 = GetAsyncKeyState(*(int *)(in_ECX + 0x4f8));
+      if (((int)SVar1 & 0x8000U) != 0) {
+        *(undefined4 *)(in_ECX + 0xd8) = *(undefined4 *)(in_ECX + 200);
+        *(undefined4 *)(in_ECX + 0xdc) = *(undefined4 *)(in_ECX + 0xcc);
+        *(undefined4 *)(in_ECX + 0xe0) = *(undefined4 *)(in_ECX + 0xd0);
+        *(undefined4 *)(in_ECX + 0xe4) = *(undefined4 *)(in_ECX + 0xd4);
+        *(float *)(in_ECX + 0x50c) =
+             (float)*(uint *)(in_ECX + 0x4ec) * *(float *)(in_ECX + 0x508) +
+             *(float *)(in_ECX + 0x50c);
+        uVar3 = __ftol();
+        *(undefined4 *)(in_ECX + 200) = uVar3;
+        *(int *)(in_ECX + 0xd0) = *(int *)(in_ECX + 200) + -1 + *(int *)(in_ECX + 0x94);
+        if (*(int *)(in_ECX + 0x44) < *(int *)(in_ECX + 0xd0)) {
+          *(undefined4 *)(in_ECX + 0xd0) = *(undefined4 *)(in_ECX + 0x44);
+          *(int *)(in_ECX + 200) = (*(int *)(in_ECX + 0xd0) - *(int *)(in_ECX + 0x94)) + 1;
+          *(float *)(in_ECX + 0x50c) = (float)*(int *)(in_ECX + 200);
+        }
+        if ((((*(int *)(in_ECX + 200) != *(int *)(in_ECX + 0xd8)) ||
+             (*(int *)(in_ECX + 0xd0) != *(int *)(in_ECX + 0xe0))) ||
+            (*(int *)(in_ECX + 0xcc) != *(int *)(in_ECX + 0xdc))) ||
+           (*(int *)(in_ECX + 0xd4) != *(int *)(in_ECX + 0xe4))) {
+          *(undefined4 *)(in_ECX + 0xc0) = 1;
+        }
+      }
+    }
+    else {
+      *(undefined4 *)(in_ECX + 0xd8) = *(undefined4 *)(in_ECX + 200);
+      *(undefined4 *)(in_ECX + 0xdc) = *(undefined4 *)(in_ECX + 0xcc);
+      *(undefined4 *)(in_ECX + 0xe0) = *(undefined4 *)(in_ECX + 0xd0);
+      *(undefined4 *)(in_ECX + 0xe4) = *(undefined4 *)(in_ECX + 0xd4);
+      *(float *)(in_ECX + 0x50c) =
+           *(float *)(in_ECX + 0x50c) -
+           (float)*(uint *)(in_ECX + 0x4ec) * *(float *)(in_ECX + 0x508);
+      uVar3 = __ftol();
+      *(undefined4 *)(in_ECX + 200) = uVar3;
+      if (*(int *)(in_ECX + 200) < *(int *)(in_ECX + 0x3c)) {
+        *(undefined4 *)(in_ECX + 200) = *(undefined4 *)(in_ECX + 0x3c);
+        *(float *)(in_ECX + 0x50c) = (float)*(int *)(in_ECX + 0x3c);
+      }
+      *(int *)(in_ECX + 0xd0) = *(int *)(in_ECX + 200) + -1 + *(int *)(in_ECX + 0x94);
+      if (((*(int *)(in_ECX + 200) != *(int *)(in_ECX + 0xd8)) ||
+          (*(int *)(in_ECX + 0xd0) != *(int *)(in_ECX + 0xe0))) ||
+         ((*(int *)(in_ECX + 0xcc) != *(int *)(in_ECX + 0xdc) ||
+          (*(int *)(in_ECX + 0xd4) != *(int *)(in_ECX + 0xe4))))) {
+        *(undefined4 *)(in_ECX + 0xc0) = 1;
+      }
+    }
+  }
+  return;
+}
+

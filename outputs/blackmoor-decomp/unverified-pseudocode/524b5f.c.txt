@@ -1,0 +1,29 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524b5f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+/* Library Function - Single Match
+    public: __thiscall CWinThread::CWinThread(void)
+   
+   Library: Visual Studio 2003 Release */
+
+undefined4 * __thiscall CWinThread::CWinThread(CWinThread *this)
+
+{
+  undefined4 *extraout_ECX;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(undefined4 **)(unaff_EBP + -0x10) = extraout_ECX;
+  FUN_0051d716();
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  *extraout_ECX = &PTR_LAB_0052f3c0;
+  extraout_ECX[0x13] = 0;
+  extraout_ECX[0x14] = 0;
+  FUN_00524b9c();
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return extraout_ECX;
+}
+

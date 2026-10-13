@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4dfed2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+void FUN_004dfed2(void)
+
+{
+  undefined4 uVar1;
+  CHAR local_68 [100];
+  
+  FUN_0050ca3e(local_68,&DAT_0055b9c0,DAT_005bb202);
+  WritePrivateProfileStringA
+            (s_Nancy_Data_0055b9d8,s_ClosedCaptioning_0055b9c4,local_68,(LPCSTR)&DAT_00639897);
+  FUN_0050ca3e(local_68,&DAT_0055b9e4,DAT_005bb206);
+  WritePrivateProfileStringA
+            (s_Nancy_Data_0055b9f4,s_AutoMove_0055b9e8,local_68,(LPCSTR)&DAT_00639897);
+  uVar1 = __ftol();
+  FUN_0050ca3e(local_68,&DAT_0055ba00,uVar1);
+  WritePrivateProfileStringA
+            (s_Nancy_Data_0055ba18,s_VoiceMasterVolume_0055ba04,local_68,(LPCSTR)&DAT_00639897);
+  uVar1 = __ftol();
+  FUN_0050ca3e(local_68,&DAT_0055ba24,uVar1);
+  WritePrivateProfileStringA
+            (s_Nancy_Data_0055ba3c,s_MusicMasterVolume_0055ba28,local_68,(LPCSTR)&DAT_00639897);
+  uVar1 = __ftol();
+  FUN_0050ca3e(local_68,&DAT_0055ba48,uVar1);
+  WritePrivateProfileStringA
+            (s_Nancy_Data_0055ba68,s_SpecialEffectsMasterVolume_0055ba4c,local_68,
+             (LPCSTR)&DAT_00639897);
+  return;
+}
+

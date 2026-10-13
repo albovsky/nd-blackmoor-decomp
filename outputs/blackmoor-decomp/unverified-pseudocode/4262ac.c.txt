@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4262ac
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+void FUN_004262ac(void)
+
+{
+  FUN_004fc97d();
+  DAT_00583981 = DAT_00583989;
+  DAT_005d2f09 = 1;
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_RegainFocus____LOST_>REGAINED_FO_005453e4,DAT_00583989);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  return;
+}
+

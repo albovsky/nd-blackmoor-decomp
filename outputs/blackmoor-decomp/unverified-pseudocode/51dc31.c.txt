@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51dc31
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+undefined * FUN_0051dc31(undefined *param_1)
+
+{
+  undefined *puVar1;
+  
+  puVar1 = PTR_FUN_00567944;
+  PTR_FUN_00567944 = param_1;
+  return puVar1;
+}
+

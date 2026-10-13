@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5233c8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005233c8(void)
+
+{
+  HMENU hMenu;
+  HMENU pHVar1;
+  int iVar2;
+  int in_ECX;
+  
+  FUN_00523ef2();
+  if (*(int *)(in_ECX + 0x44) != 0) {
+    hMenu = *(HMENU *)(in_ECX + 0x44);
+    pHVar1 = GetMenu(*(HWND *)(in_ECX + 0x1c));
+    if (pHVar1 != hMenu) {
+      SetMenu(*(HWND *)(in_ECX + 0x1c),hMenu);
+    }
+  }
+  iVar2 = FUN_00525371();
+  if ((*(int *)(iVar2 + 4) != 0) && (*(int *)(*(int *)(iVar2 + 4) + 0x1c) == in_ECX)) {
+    WinHelpA(*(HWND *)(in_ECX + 0x1c),(LPCSTR)0x0,2,0);
+  }
+  FUN_0051b2d3();
+  return;
+}
+

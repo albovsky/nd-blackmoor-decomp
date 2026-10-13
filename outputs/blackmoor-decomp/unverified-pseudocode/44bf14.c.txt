@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44bf14
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044bf14(float *param_1,float *param_2)
+
+{
+  float local_10;
+  float local_c;
+  
+  local_10 = *param_2 - *param_1;
+  local_c = param_2[1] - param_1[1];
+  FUN_0044bed5(&local_10);
+  return;
+}
+

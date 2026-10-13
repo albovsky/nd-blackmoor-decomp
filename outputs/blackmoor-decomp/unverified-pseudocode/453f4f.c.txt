@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x453f4f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_44f9ad36cfcb6cd07f5dfecee6ae0cfb679ab9d068db67b1a73f7c4febbd58e5
+ */
+
+void FUN_00453f4f(int param_1)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  
+  if ((param_1 < *(int *)(in_ECX + 0xac)) &&
+     (*(int *)(*(int *)(in_ECX + 0x2a0) + 0x58 + param_1 * 0x5c) == 1)) {
+    FUN_004c51a5(DAT_005d15e3,*(undefined4 *)(in_ECX + 0x2a4),
+                 *(int *)(in_ECX + 0x2a0) + 0x20 + param_1 * 0x5c,
+                 *(int *)(in_ECX + 0x2a0) + param_1 * 0x5c,
+                 s_Arcade_Puzzle_Background_behind_a_00549d80);
+    FUN_004c5b3a(*(undefined4 *)(in_ECX + 0xc),*(undefined4 *)(in_ECX + 0x2a4),
+                 *(int *)(in_ECX + 8) + 0xe5 +
+                 *(int *)(*(int *)(in_ECX + 0x2a0) + 0x40 + param_1 * 0x5c) * 0x10,
+                 *(int *)(in_ECX + 0x2a0) + param_1 * 0x5c,
+                 s_Arcade_Puzzle_Dying_Tile__>_Subl_00549db0);
+    *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x58 + param_1 * 0x5c) = 2;
+    DVar1 = GetTickCount();
+    *(DWORD *)(*(int *)(in_ECX + 0x2a0) + 0x54 + param_1 * 0x5c) = DVar1 + 0x7d;
+    FUN_004541cf(param_1);
+  }
+  return;
+}
+

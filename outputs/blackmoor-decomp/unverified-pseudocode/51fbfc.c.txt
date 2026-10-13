@@ -1,0 +1,35 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51fbfc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+undefined4 FUN_0051fbfc(undefined4 param_1,int param_2)
+
+{
+  HGLOBAL hMem;
+  uint *puVar1;
+  uint uVar2;
+  undefined4 uVar3;
+  undefined4 *in_ECX;
+  
+  in_ECX[1] = param_2;
+  hMem = GlobalAlloc(0x40,param_2 + 0x40);
+  *in_ECX = hMem;
+  uVar3 = 0;
+  if (hMem != (HGLOBAL)0x0) {
+    puVar1 = GlobalLock(hMem);
+    FUN_0050fa90(puVar1,param_1,in_ECX[1]);
+    if (*(short *)((int)puVar1 + 2) == -1) {
+      uVar2 = puVar1[3];
+    }
+    else {
+      uVar2 = *puVar1;
+    }
+    in_ECX[2] = ~uVar2 >> 6 & 1;
+    GlobalUnlock((HGLOBAL)*in_ECX);
+    uVar3 = 1;
+  }
+  return uVar3;
+}
+

@@ -1,0 +1,46 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f55d5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
+ */
+
+void FUN_004f55d5(int param_1)
+
+{
+  DWORD DVar1;
+  int iVar2;
+  int iVar3;
+  int iVar4;
+  int in_ECX;
+  
+  DVar1 = GetTickCount();
+  *(undefined4 *)(in_ECX + 0x3c2) = 1000;
+  iVar2 = *(int *)(in_ECX + 0x3ce) + param_1 * 0x5bb;
+  if ((((*(int *)(iVar2 + 0x287) == 0) && (*(int *)(iVar2 + 0x16e) == 0)) &&
+      (*(int *)(iVar2 + 0x172) == 0)) && (*(int *)(iVar2 + 0x166) == 0)) {
+    if ((*(ushort *)(iVar2 + 300) & 0x20) != 0) {
+      FUN_004f9f92(param_1);
+      FUN_004f8f94(param_1);
+      FUN_004f9040(param_1,iVar2 + 0x2a3);
+    }
+    if (*(int *)(iVar2 + 0x130) == 0) {
+      if ((*(ushort *)(iVar2 + 300) & 0x10) == 0) {
+        FUN_004f6059(param_1);
+      }
+      else {
+        *(undefined4 *)(iVar2 + 0x19e) = 1;
+        iVar3 = *(int *)(iVar2 + 0x1ae) - *(int *)(iVar2 + 0x1aa);
+        if (iVar3 < 1) {
+          *(undefined4 *)(iVar2 + 0x1a2) = 0;
+        }
+        else {
+          iVar4 = _rand();
+          *(int *)(iVar2 + 0x1a2) = iVar4 % iVar3 + *(int *)(iVar2 + 0x1aa);
+        }
+        *(DWORD *)(iVar2 + 0x1a6) = DVar1 + *(int *)(iVar2 + 0x1a2);
+      }
+    }
+  }
+  return;
+}
+

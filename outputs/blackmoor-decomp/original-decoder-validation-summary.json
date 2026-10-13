@@ -1,0 +1,77 @@
+{
+  "oracle": "original GAME.EXE x86 function under Unicorn",
+  "executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "decoder_va": 4306658,
+  "decoder_size": 579,
+  "decoder_bytes_sha256": "8bbf62784b5ec05fb5d4fb11ea2b1170aa6f7777124604f1b9d03c0f7b87b079",
+  "tree": {
+    "source_path": "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor/Ciftree/CIFTREE.DAT",
+    "sha256": "1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161",
+    "file_size": 55960641,
+    "header_count": 2904,
+    "record_base": 2080,
+    "record_size": 94,
+    "record_end": 275056,
+    "bucket_count": 1024,
+    "bucket_bytes": 2048,
+    "nonempty_buckets": 528,
+    "max_chain_length": 166,
+    "all_records_reachable_once": true,
+    "type_counts": {
+      "4": 18,
+      "3": 2267,
+      "2": 619
+    },
+    "type_output_bytes": {
+      "4": 0,
+      "3": 6171360,
+      "2": 141976914
+    },
+    "type_compressed_bytes": {
+      "4": 0,
+      "3": 1422589,
+      "2": 54262996
+    }
+  },
+  "archive_validation_scope": "all tree payloads plus standalone CIFs",
+  "validation_order": "all CIFTREE records in record-index order; casefold lookup for every record; type-2/type-3 resources extracted; type-4 metadata lookup only; then standalone CIF files sorted by relative path",
+  "scope_note": "decoder-level equivalence only; this does not establish whole-engine, executable, or gameplay equivalence",
+  "validation_counts": {
+    "tree_records_seen": 2904,
+    "tree_casefold_lookups": 2904,
+    "tree_payloads_decoded_by_original": 2886,
+    "tree_payloads_decoded_by_native_tree_extract": 2886,
+    "standalone_cif_files": 63,
+    "payload_comparisons": 2949
+  },
+  "payload_totals": {
+    "tree_resource_count": 2886,
+    "tree_compressed_bytes": 55685585,
+    "tree_output_bytes": 148148274,
+    "validated_compressed_bytes_including_standalones": 56140093,
+    "validated_output_bytes_including_standalones": 149360874
+  },
+  "timing": {
+    "original_decoder_seconds": 220.195461,
+    "native_api_seconds": 0.284802,
+    "wall_seconds": 224.028551
+  },
+  "native_comparison_performed": true,
+  "all_payload_comparisons_match": true,
+  "all_tree_casefold_lookups_resolved": true,
+  "source_resolution": {
+    "source_json": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/work/analysis/game-source.json",
+    "configured_path": "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor",
+    "resolved_path": "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor",
+    "fallback_used": false
+  },
+  "report_path": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/work/analysis/cif-validation-full.json",
+  "original_execution_scope": "579-byte x86 decoder; original archive lookup not dynamically executed",
+  "native_execution_scope": "public archive lookup/extraction and standalone decoding APIs",
+  "native_library_sha256": "df350a97e57e1fd09b760e4acae0289e46dc929eec40577d9bd63055c165832f",
+  "native_sources_sha256": {
+    "cif_archive.c": "166edcb178d152ddf4d17bca33b1c22f694298832ea7090cdac897bbb5af042f",
+    "cif_archive.h": "e3ee8bd523f237bf07aa80c751eb00a0da576779ea457eaf1d56586e6162dda3",
+    "ciftool.c": "454ab7bca4695c8beab3272b856227291c7bb419e670415d9753e5fe6b803feb"
+  }
+}

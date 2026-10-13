@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50f1d9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+void FUN_0050f1d9(uint param_1,uint param_2,int param_3,code *param_4)
+
+{
+  int iVar1;
+  uint uVar2;
+  uint uVar3;
+  
+  for (; uVar2 = param_1, uVar3 = param_1, param_1 < param_2; param_2 = param_2 - param_3) {
+    while (uVar3 = uVar3 + param_3, uVar3 <= param_2) {
+      iVar1 = (*param_4)(uVar3,uVar2);
+      if (0 < iVar1) {
+        uVar2 = uVar3;
+      }
+    }
+    FUN_0050f227(uVar2,param_2,param_3);
+  }
+  return;
+}
+

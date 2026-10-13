@@ -1,0 +1,40 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52205d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_0052205d(uint param_1,int param_2,undefined4 param_3,undefined4 param_4)
+
+{
+  int iVar1;
+  HWND pHVar2;
+  int *piVar3;
+  CWinThread *pCVar4;
+  undefined4 uVar5;
+  int in_ECX;
+  
+  iVar1 = FUN_0051d862(param_1,param_2,param_3,param_4);
+  if (iVar1 == 0) {
+    if ((((param_2 == 0) || (param_2 == -1)) && ((param_1 & 0x8000) != 0)) && (param_1 < 0xf000)) {
+      pHVar2 = GetParent(*(HWND *)(in_ECX + 0x1c));
+      piVar3 = (int *)FUN_0051abe4(pHVar2);
+      if (piVar3 != (int *)0x0) {
+        iVar1 = (**(code **)(*piVar3 + 0xc))(param_1,param_2,param_3,param_4);
+        if (iVar1 != 0) goto LAB_005220d4;
+      }
+      pCVar4 = AfxGetThread();
+      if (pCVar4 != (CWinThread *)0x0) {
+        iVar1 = (**(code **)(*(int *)pCVar4 + 0xc))(param_1,param_2,param_3,param_4);
+        if (iVar1 != 0) goto LAB_005220d4;
+      }
+    }
+    uVar5 = 0;
+  }
+  else {
+LAB_005220d4:
+    uVar5 = 1;
+  }
+  return uVar5;
+}
+

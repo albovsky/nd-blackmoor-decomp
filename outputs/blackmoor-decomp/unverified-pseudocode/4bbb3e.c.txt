@@ -1,0 +1,85 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4bbb3e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_a820b7e2430f534e8ea0b1abf6360ab2ba44f046f8d29cae3bd3792d6b2f52d9
+ */
+
+void FUN_004bbb3e(void)
+
+{
+  DWORD DVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  int local_c;
+  int local_8;
+  
+  if (((*(int *)(in_ECX + 0x40) == 0) && (*(int *)(in_ECX + 0x38) == 0)) &&
+     (*(int *)(in_ECX + 0x3c) == 0)) {
+    DVar1 = GetTickCount();
+    *(DWORD *)(in_ECX + 0x2d8) = DVar1;
+    if (*(int *)(in_ECX + 0x4c) != 0) {
+      for (local_c = *(int *)(in_ECX + 0x4c); local_c != 0; local_c = *(int *)(local_c + 0x150)) {
+        *(int *)(local_c + 0x13c) = *(int *)(in_ECX + 0x2d8) - *(int *)(local_c + 0x140);
+        *(undefined4 *)(local_c + 0x140) = *(undefined4 *)(in_ECX + 0x2d8);
+        *(undefined4 *)(local_c + 0x78) = *(undefined4 *)(local_c + 0x68);
+        *(undefined4 *)(local_c + 0x7c) = *(undefined4 *)(local_c + 0x6c);
+        *(undefined4 *)(local_c + 0x80) = *(undefined4 *)(local_c + 0x70);
+        *(undefined4 *)(local_c + 0x84) = *(undefined4 *)(local_c + 0x74);
+        *(float *)(local_c + 0x144) =
+             *(float *)(local_c + 0x144) -
+             (float)*(uint *)(local_c + 0x13c) * *(float *)(local_c + 0x148);
+        uVar2 = __ftol();
+        *(undefined4 *)(local_c + 0x68) = uVar2;
+        *(int *)(local_c + 0x70) = *(int *)(local_c + 0x68) + -1 + *(int *)(local_c + 0x50);
+        for (local_8 = 0; local_8 < 4; local_8 = local_8 + 1) {
+          *(undefined4 *)(local_c + 0xd8 + local_8 * 0x14) = 0;
+        }
+        if (*(int *)(in_ECX + 0xd8) < *(int *)(local_c + 0x70)) {
+          if ((*(int *)(local_c + 0x68) < *(int *)(in_ECX + 0xd8)) &&
+             (*(int *)(in_ECX + 0xd8) < *(int *)(local_c + 0x70))) {
+            *(undefined4 *)(local_c + 0x58) = *(undefined4 *)(local_c + 0x40);
+            *(undefined4 *)(local_c + 0x5c) = *(undefined4 *)(local_c + 0x44);
+            *(undefined4 *)(local_c + 0x60) = *(undefined4 *)(local_c + 0x48);
+            *(undefined4 *)(local_c + 100) = *(undefined4 *)(local_c + 0x4c);
+            *(int *)(local_c + 0x58) =
+                 *(int *)(local_c + 0x58) + (*(int *)(in_ECX + 0xd8) - *(int *)(local_c + 0x68));
+            *(undefined4 *)(local_c + 0x68) = *(undefined4 *)(in_ECX + 0xd8);
+            FUN_004bb3de(local_c);
+          }
+          else if ((*(int *)(local_c + 0x68) < *(int *)(in_ECX + 0xd8)) ||
+                  (*(int *)(in_ECX + 0xe0) < *(int *)(local_c + 0x70))) {
+            if ((*(int *)(local_c + 0x68) <= *(int *)(in_ECX + 0xe0)) &&
+               (*(int *)(in_ECX + 0xe0) <= *(int *)(local_c + 0x70))) {
+              *(undefined4 *)(local_c + 0x58) = *(undefined4 *)(local_c + 0x40);
+              *(undefined4 *)(local_c + 0x5c) = *(undefined4 *)(local_c + 0x44);
+              *(undefined4 *)(local_c + 0x60) = *(undefined4 *)(local_c + 0x48);
+              *(undefined4 *)(local_c + 100) = *(undefined4 *)(local_c + 0x4c);
+              *(int *)(local_c + 0x60) =
+                   *(int *)(local_c + 0x60) - (*(int *)(local_c + 0x70) - *(int *)(in_ECX + 0xe0));
+              *(undefined4 *)(local_c + 0x70) = *(undefined4 *)(in_ECX + 0xe0);
+              FUN_004bb3de(local_c);
+            }
+          }
+          else {
+            *(undefined4 *)(local_c + 0x58) = *(undefined4 *)(local_c + 0x40);
+            *(undefined4 *)(local_c + 0x5c) = *(undefined4 *)(local_c + 0x44);
+            *(undefined4 *)(local_c + 0x60) = *(undefined4 *)(local_c + 0x48);
+            *(undefined4 *)(local_c + 100) = *(undefined4 *)(local_c + 0x4c);
+            FUN_004bb3de(local_c);
+          }
+        }
+        else {
+          *(undefined4 *)(local_c + 300) = 1;
+        }
+        if ((((*(int *)(local_c + 0x68) != *(int *)(local_c + 0x78)) ||
+             (*(int *)(local_c + 0x70) != *(int *)(local_c + 0x80))) ||
+            (*(int *)(local_c + 0x6c) != *(int *)(local_c + 0x7c))) ||
+           (*(int *)(local_c + 0x74) != *(int *)(local_c + 0x84))) {
+          *(undefined4 *)(local_c + 0x128) = 1;
+        }
+      }
+    }
+  }
+  return;
+}
+

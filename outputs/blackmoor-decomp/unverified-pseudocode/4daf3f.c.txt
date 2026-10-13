@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4daf3f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619
+ */
+
+bool FUN_004daf3f(void)
+
+{
+  int iVar1;
+  int *in_ECX;
+  
+  iVar1 = *in_ECX;
+  if (iVar1 != 0) {
+    *in_ECX = 0;
+    in_ECX[3] = 0;
+  }
+  return iVar1 != 0;
+}
+

@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x45e9db
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_54414b0082ebcba364d23e408bbf47fe0ab1b670355f5030623cc5b8f4a5e988
+ */
+
+undefined4 FUN_0045e9db(short param_1,short param_2,short *param_3)
+
+{
+  int in_ECX;
+  short local_8;
+  
+  local_8 = 0;
+  while( true ) {
+    if (*(short *)(*(int *)(in_ECX + 0x31d) + 0x27) <= local_8) {
+      return 0;
+    }
+    if (*(int *)(&DAT_0061f4d5 + param_1 * 4 + local_8 * 0x34 + param_2 * 0x120) == 1) break;
+    local_8 = local_8 + 1;
+  }
+  *param_3 = local_8;
+  return 1;
+}
+

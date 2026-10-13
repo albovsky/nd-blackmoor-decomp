@@ -1,0 +1,89 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x415db9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ee34a6178f9dbede580b7391fe3cb5d437b4b7e8eef1f6ac592ff17c28c7115c
+ */
+
+void FUN_00415db9(int param_1,short param_2)
+
+{
+  int iVar1;
+  int iVar2;
+  uint uVar3;
+  int iVar4;
+  char cVar5;
+  int iVar6;
+  char *pcVar7;
+  uint local_1050;
+  char local_1040 [4116];
+  uint local_2c;
+  int local_28;
+  int local_1c;
+  char local_14;
+  uint local_c;
+  uint uVar8;
+  
+  FUN_0050c920();
+  iVar1 = *(int *)(param_1 + 0x39);
+  iVar4 = *(int *)(param_1 + 0x2d) + *(int *)(*(int *)(param_1 + 0x21) + 2 + param_2 * 0x13);
+  iVar2 = *(int *)(param_1 + 0x35);
+  local_14 = '\0';
+  local_1c = 0;
+  local_28 = -1;
+  iVar6 = 0x3fb;
+  pcVar7 = local_1040;
+  while (iVar6 != 0) {
+    iVar6 = iVar6 + -1;
+    builtin_strncpy(pcVar7,"    ",4);
+    pcVar7 = pcVar7 + 4;
+  }
+  for (iVar6 = 2; iVar6 != 0; iVar6 = iVar6 + -1) {
+    *pcVar7 = ' ';
+    pcVar7 = pcVar7 + 1;
+  }
+  local_c = 0xfee;
+  uVar8 = 0;
+  while( true ) {
+    while( true ) {
+      uVar8 = uVar8 >> 1;
+      if ((uVar8 & 0x100) == 0) {
+        local_28 = local_28 + 1;
+        if (local_28 == iVar1) {
+          return;
+        }
+        cVar5 = *(char *)(iVar4 + local_28) - local_14;
+        local_14 = local_14 + '\x01';
+        uVar8 = (uint)CONCAT11(0xff,cVar5);
+      }
+      if ((uVar8 & 1) == 0) break;
+      local_28 = local_28 + 1;
+      if (local_28 == iVar1) {
+        return;
+      }
+      cVar5 = *(char *)(iVar4 + local_28) - local_14;
+      local_14 = local_14 + '\x01';
+      *(char *)(iVar2 + local_1c) = cVar5;
+      local_1c = local_1c + 1;
+      local_1040[local_c] = cVar5;
+      local_c = local_c + 1 & 0xfff;
+    }
+    if (local_28 + 1 == iVar1) {
+      return;
+    }
+    local_2c = (uint)(byte)(*(char *)(iVar4 + local_28 + 1) - local_14);
+    uVar3 = local_2c;
+    local_28 = local_28 + 2;
+    if (local_28 == iVar1) break;
+    local_2c = (uint)(byte)(*(char *)(iVar4 + local_28) - (local_14 + '\x01'));
+    local_14 = local_14 + '\x02';
+    for (local_1050 = 0; local_1050 <= (local_2c & 0xf) + 2; local_1050 = local_1050 + 1) {
+      cVar5 = local_1040[(uVar3 | (local_2c & 0xf0) << 4) + local_1050 & 0xfff];
+      *(char *)(iVar2 + local_1c) = cVar5;
+      local_1c = local_1c + 1;
+      local_1040[local_c] = cVar5;
+      local_c = local_c + 1 & 0xfff;
+    }
+  }
+  return;
+}
+

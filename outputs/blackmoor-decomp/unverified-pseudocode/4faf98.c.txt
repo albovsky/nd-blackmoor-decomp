@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4faf98
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+void FUN_004faf98(undefined4 param_1,undefined2 param_2)
+
+{
+  int iVar1;
+  undefined2 extraout_var;
+  
+  iVar1 = FUN_004fadc4(param_1,param_2);
+  if (iVar1 != 0) {
+    FUN_004fb2e3(CONCAT22(extraout_var,param_2));
+  }
+  return;
+}
+

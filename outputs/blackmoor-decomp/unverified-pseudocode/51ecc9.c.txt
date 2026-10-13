@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ecc9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+void FUN_0051ecc9(void)
+
+{
+  int iVar1;
+  DWORD dwThreadId;
+  HHOOK pHVar2;
+  int iVar3;
+  
+  iVar1 = FUN_00525371();
+  if (*(char *)(iVar1 + 0x14) == '\0') {
+    iVar1 = FUN_0052513f();
+    dwThreadId = GetCurrentThreadId();
+    pHVar2 = SetWindowsHookExA(-1,(HOOKPROC)&LAB_0051f164,(HINSTANCE)0x0,dwThreadId);
+    *(HHOOK *)(iVar1 + 0x30) = pHVar2;
+    iVar1 = FUN_00525bd1(&LAB_005249d1);
+    if (*(int *)(iVar1 + 0x14) != 0) {
+      iVar3 = FUN_00525371();
+      (**(code **)(iVar1 + 0x14))(*(undefined4 *)(iVar3 + 8));
+    }
+    FUN_00525b0f(&LAB_00524c05);
+  }
+  return;
+}
+

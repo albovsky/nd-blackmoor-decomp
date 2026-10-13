@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x449a78
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c532ca6fd2b24db6f7392da771f9de1073079eaf8a4051621b7fba1333cc82be
+ */
+
+void FUN_00449a78(void)
+
+{
+  undefined4 *in_ECX;
+  
+  *in_ECX = &PTR_FUN_0052cb5c;
+  FUN_00449a94();
+  return;
+}
+

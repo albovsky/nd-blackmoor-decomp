@@ -1,0 +1,53 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x468aeb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+void FUN_00468aeb(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  int iVar4;
+  int iVar5;
+  int local_24;
+  int local_18;
+  int local_10;
+  int local_c;
+  int local_8;
+  
+  if ((DAT_0061e80a != 0) && (*(int *)(&DAT_005bb632 + DAT_0061e664 * 0x8d) == 1)) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00583196,&DAT_00583186,
+                 s_DOTCONNECTPUZZLE___refresh_entir_0054b8e0);
+    iVar4 = (int)*(short *)(DAT_0061e806 + 0x244);
+    for (local_24 = 0; local_24 < DAT_0061e89c; local_24 = local_24 + 1) {
+      iVar1 = *(int *)(&DAT_0061e77e + *(int *)(&DAT_0061e81c + local_24 * 8) * 8);
+      iVar2 = *(int *)(&DAT_0061e782 + *(int *)(&DAT_0061e81c + local_24 * 8) * 8);
+      iVar3 = *(int *)(&DAT_0061e77e + *(int *)(&DAT_0061e820 + local_24 * 8) * 8);
+      local_18 = *(int *)(&DAT_0061e782 + *(int *)(&DAT_0061e820 + local_24 * 8) * 8) - iVar4;
+      for (local_10 = iVar2 - iVar4; iVar5 = local_10, local_c = iVar3 - iVar4,
+          local_8 = iVar1 - iVar4, local_10 <= iVar2 + iVar4; local_10 = local_10 + 1) {
+        for (; local_8 <= iVar1 + iVar4; local_8 = local_8 + 1) {
+          FUN_004c7770(DAT_005cf665,local_8,local_10,local_c,local_18,
+                       CONCAT22((short)((uint)iVar5 >> 0x10),DAT_0061e81a));
+          iVar5 = local_8 + 1;
+          local_c = local_c + 1;
+        }
+        local_18 = local_18 + 1;
+      }
+    }
+    for (local_24 = 0; local_24 < 0x11; local_24 = local_24 + 1) {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,DAT_0061e806 + 0x21 + local_24 * 0x10,
+                   &DAT_0061e66e + local_24 * 0x10,s_DOTCONNECTPUZZLE___refresh_point_0054b910);
+    }
+    if (-1 < DAT_0061e816) {
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061e66c * 0x4a),DAT_005cf665,
+                   DAT_0061e806 + 0x131 + DAT_0061e816 * 0x10,&DAT_0061e66e + DAT_0061e816 * 0x10,
+                   s_DOTCONNECTPUZZLE___active_point_0054b940);
+    }
+  }
+  return;
+}
+

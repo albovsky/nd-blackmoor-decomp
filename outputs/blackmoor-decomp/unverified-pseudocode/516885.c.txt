@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x516885
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+uint FUN_00516885(uint param_1,uint param_2)
+
+{
+  uint uVar1;
+  
+  uVar1 = FUN_005168d0();
+  uVar1 = uVar1 & ~param_2 | param_1 & param_2;
+  FUN_00516962(uVar1);
+  return uVar1;
+}
+

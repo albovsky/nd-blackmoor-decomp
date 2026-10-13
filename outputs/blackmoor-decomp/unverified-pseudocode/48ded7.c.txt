@@ -1,0 +1,57 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x48ded7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7981f36fcfb340c87ff1ac4ba66e833832bd1313751938cee07fade4f0082dcf
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0048ded7(void)
+
+{
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  undefined4 local_c;
+  int local_8;
+  
+  local_c = *(undefined4 *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d);
+  if ((DAT_0061d369 != '\0') && (DAT_0061d374 != 0)) {
+    local_8 = (int)DAT_0061d36c;
+    if ((DAT_0061d36b == '\0') || (local_8 == -1)) {
+      if ((DAT_0061d36a != '\0') && (DAT_0061d36e != -1)) {
+        local_18 = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x117 +
+                           DAT_0061d36e * 0x10) + DAT_0058318a;
+        local_10 = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x11f +
+                           DAT_0061d36e * 0x10) + DAT_0058318a;
+        local_1c = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x113 +
+                           DAT_0061d36e * 0x10) + DAT_00583186;
+        local_14 = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x11b +
+                           DAT_0061d36e * 0x10) + DAT_00583186;
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,
+                     *(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x113 + DAT_0061d36e * 0x10,
+                     &local_1c,s_Piano_Puzzle_pSrcSurface_0054e8fc);
+        DAT_0061d36a = '\0';
+        FUN_0048d89e();
+      }
+    }
+    else {
+      local_18 = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x117 + local_8 * 0x10) +
+                 DAT_0058318a;
+      local_10 = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x11f + local_8 * 0x10) +
+                 DAT_0058318a;
+      local_1c = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x113 + local_8 * 0x10) +
+                 DAT_00583186;
+      local_14 = *(int *)(*(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x11b + local_8 * 0x10) +
+                 DAT_00583186;
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d361 * 0x4a),DAT_005cf665,
+                   *(int *)(&DAT_005bb5e5 + DAT_0061d363 * 0x8d) + 0x23 + local_8 * 0x10,&local_1c,
+                   s_Piano_puzzle_pSrcSurface_0054e8e0);
+      _DAT_0061d370 = 0;
+    }
+    DAT_0061d369 = '\0';
+  }
+  return;
+}
+

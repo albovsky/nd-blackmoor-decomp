@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46dea0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+undefined ** FUN_0046dea0(void)
+
+{
+  return &PTR_DAT_0052d2c8;
+}
+

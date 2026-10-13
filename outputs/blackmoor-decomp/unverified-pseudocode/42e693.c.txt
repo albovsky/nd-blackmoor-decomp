@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42e693
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+/* WARNING: Removing unreachable block (ram,0x0042e6a9) */
+
+void FUN_0042e693(undefined2 param_1)
+
+{
+  DAT_005c3a31 = (undefined2)DAT_005bb57b;
+  DAT_005c3a33 = DAT_005bb57f;
+  DAT_005c3a35 = DAT_005bb50b;
+  DAT_005c3a37 = DAT_005bb593;
+  DAT_005c3a39 = param_1;
+  DAT_005c3a3b = DAT_005bb5a7;
+  DAT_005c3a3f = DAT_005bb5af;
+  return;
+}
+

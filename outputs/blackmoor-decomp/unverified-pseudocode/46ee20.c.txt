@@ -1,0 +1,109 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46ee20
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+uint FUN_0046ee20(void)
+
+{
+  char cVar1;
+  char cVar2;
+  char cVar3;
+  char cVar4;
+  uint uVar5;
+  uint in_ECX;
+  
+  cVar1 = *(char *)(in_ECX + 0x87);
+  cVar2 = *(char *)(in_ECX + 0x88);
+  cVar3 = *(char *)(in_ECX + 0x89);
+  cVar4 = *(char *)(in_ECX + 0x8a);
+  if ((*(char *)(in_ECX + 0x8b) == '\0') && (cVar1 != '\0')) {
+    if ((cVar1 == '\x01') && (((cVar2 == '\x02' && (cVar3 == '\0')) && (cVar4 == '\0')))) {
+      uVar5 = 0x61;
+    }
+    else if ((((cVar1 == '\x02') && (cVar2 == '\x01')) && (cVar3 == '\x01')) && (cVar4 == '\x01')) {
+      uVar5 = 0x62;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\x01')) && ((cVar3 == '\x02' && (cVar4 == '\x01')))) {
+      uVar5 = 99;
+    }
+    else if ((((cVar1 == '\x02') && (cVar2 == '\x01')) && (cVar3 == '\x01')) && (cVar4 == '\0')) {
+      uVar5 = 100;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\0')) && ((cVar3 == '\0' && (cVar4 == '\0')))) {
+      uVar5 = 0x65;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\x01')) && ((cVar3 == '\x02' && (cVar4 == '\x01')))) {
+      uVar5 = 0x66;
+    }
+    else if ((((cVar1 == '\x02') && (cVar2 == '\x02')) && (cVar3 == '\x01')) && (cVar4 == '\0')) {
+      uVar5 = 0x67;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\x01')) && ((cVar3 == '\x01' && (cVar4 == '\x01')))) {
+      uVar5 = 0x68;
+    }
+    else if ((((cVar1 == '\x01') && (cVar2 == '\x01')) && (cVar3 == '\0')) && (cVar4 == '\0')) {
+      uVar5 = 0x69;
+    }
+    else if ((((cVar1 == '\x01') && (cVar2 == '\x02')) && (cVar3 == '\x02')) && (cVar4 == '\x02')) {
+      uVar5 = 0x6a;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\x01')) && ((cVar3 == '\x02' && (cVar4 == '\0')))) {
+      uVar5 = 0x6b;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\x02')) && ((cVar3 == '\x01' && (cVar4 == '\x01')))) {
+      uVar5 = 0x6c;
+    }
+    else if ((((cVar1 == '\x02') && (cVar2 == '\x02')) && (cVar3 == '\0')) && (cVar4 == '\0')) {
+      uVar5 = 0x6d;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\x01')) && ((cVar3 == '\0' && (cVar4 == '\0')))) {
+      uVar5 = 0x6e;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\x02')) && ((cVar3 == '\x02' && (cVar4 == '\0')))) {
+      uVar5 = 0x6f;
+    }
+    else if ((((cVar1 == '\x01') && (cVar2 == '\x02')) && (cVar3 == '\x02')) && (cVar4 == '\x01')) {
+      uVar5 = 0x70;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\x02')) && ((cVar3 == '\x01' && (cVar4 == '\x02')))) {
+      uVar5 = 0x71;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\x02')) && ((cVar3 == '\x01' && (cVar4 == '\0')))) {
+      uVar5 = 0x72;
+    }
+    else if ((((cVar1 == '\x01') && (cVar2 == '\x01')) && (cVar3 == '\x01')) && (cVar4 == '\0')) {
+      uVar5 = 0x73;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\0')) && ((cVar3 == '\0' && (cVar4 == '\0')))) {
+      uVar5 = 0x74;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\x01')) && ((cVar3 == '\x02' && (cVar4 == '\0')))) {
+      uVar5 = 0x75;
+    }
+    else if ((((cVar1 == '\x01') && (cVar2 == '\x01')) && (cVar3 == '\x01')) && (cVar4 == '\x02')) {
+      uVar5 = 0x76;
+    }
+    else if (((cVar1 == '\x01') && (cVar2 == '\x02')) && ((cVar3 == '\x02' && (cVar4 == '\0')))) {
+      uVar5 = 0x77;
+    }
+    else if ((((cVar1 == '\x02') && (cVar2 == '\x01')) && (cVar3 == '\x01')) && (cVar4 == '\x02')) {
+      uVar5 = 0x78;
+    }
+    else if ((((cVar1 == '\x02') && (cVar2 == '\x01')) && (cVar3 == '\x02')) && (cVar4 == '\x02')) {
+      uVar5 = 0x79;
+    }
+    else if (((cVar1 == '\x02') && (cVar2 == '\x02')) && ((cVar3 == '\x01' && (cVar4 == '\x01')))) {
+      uVar5 = 0x7a;
+    }
+    else {
+      uVar5 = 0;
+    }
+  }
+  else {
+    uVar5 = in_ECX & 0xffffff00;
+  }
+  return uVar5;
+}
+

@@ -1,0 +1,84 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ce72
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+int FUN_0051ce72(byte param_1)
+
+{
+  bool bVar1;
+  bool bVar2;
+  uint uVar3;
+  HWND hWnd;
+  CWinThread *pCVar4;
+  BOOL BVar5;
+  LRESULT LVar6;
+  CWinThread *pCVar7;
+  int iVar8;
+  int *in_ECX;
+  LPMSG lpMsg;
+  int local_c;
+  
+  bVar1 = true;
+  local_c = 0;
+  if ((param_1 & 4) != 0) {
+    uVar3 = FUN_0051d526();
+    bVar2 = true;
+    if ((uVar3 & 0x10000000) == 0) goto LAB_0051cea3;
+  }
+  bVar2 = false;
+LAB_0051cea3:
+  hWnd = GetParent((HWND)in_ECX[7]);
+  in_ECX[9] = in_ECX[9] | 0x18;
+  pCVar4 = AfxGetThread();
+  lpMsg = (LPMSG)(pCVar4 + 0x30);
+LAB_0051cec4:
+  while ((!bVar1 || (BVar5 = PeekMessageA(lpMsg,(HWND)0x0,0,0,0), BVar5 != 0))) {
+    do {
+      pCVar7 = AfxGetThread();
+      iVar8 = (**(code **)(*(int *)pCVar7 + 0x5c))();
+      if (iVar8 == 0) {
+        AfxPostQuitMessage(0);
+        return -1;
+      }
+      if ((bVar2) && ((*(int *)(pCVar4 + 0x34) == 0x118 || (*(int *)(pCVar4 + 0x34) == 0x104)))) {
+        FUN_0051d630(1);
+        UpdateWindow((HWND)in_ECX[7]);
+        bVar2 = false;
+      }
+      iVar8 = (**(code **)(*in_ECX + 0x70))();
+      if (iVar8 == 0) {
+        in_ECX[9] = in_ECX[9] & 0xffffffe7;
+        return in_ECX[0xb];
+      }
+      pCVar7 = AfxGetThread();
+      iVar8 = (**(code **)(*(int *)pCVar7 + 100))(lpMsg);
+      if (iVar8 != 0) {
+        bVar1 = true;
+        local_c = 0;
+      }
+      BVar5 = PeekMessageA(lpMsg,(HWND)0x0,0,0,0);
+    } while (BVar5 != 0);
+  }
+  if (bVar2) {
+    FUN_0051d630(1);
+    UpdateWindow((HWND)in_ECX[7]);
+    bVar2 = false;
+  }
+  if ((((param_1 & 1) == 0) && (hWnd != (HWND)0x0)) && (local_c == 0)) {
+    SendMessageA(hWnd,0x121,0,in_ECX[7]);
+  }
+  if ((param_1 & 2) == 0) goto code_r0x0051cf1e;
+  goto LAB_0051cf3a;
+code_r0x0051cf1e:
+  iVar8 = local_c + 1;
+  LVar6 = SendMessageA((HWND)in_ECX[7],0x36a,0,local_c);
+  local_c = iVar8;
+  if (LVar6 == 0) {
+LAB_0051cf3a:
+    bVar1 = false;
+  }
+  goto LAB_0051cec4;
+}
+

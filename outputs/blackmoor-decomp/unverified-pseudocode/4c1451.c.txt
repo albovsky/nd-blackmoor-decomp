@@ -1,0 +1,86 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c1451
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+void FUN_004c1451(void)
+
+{
+  char cVar1;
+  HINSTANCE hInstance;
+  HINSTANCE hInstance_00;
+  int iVar2;
+  HICON pHVar3;
+  HGDIOBJ pvVar4;
+  HCURSOR pHVar5;
+  char *pcVar6;
+  uint uVar7;
+  uint uVar8;
+  char *pcVar9;
+  
+  iVar2 = FUN_00525371();
+  hInstance = *(HINSTANCE *)(iVar2 + 0xc);
+  iVar2 = FUN_00525371();
+  hInstance_00 = *(HINSTANCE *)(iVar2 + 0xc);
+  pHVar3 = LoadIconA(hInstance,(LPCSTR)0x80);
+  pvVar4 = GetStockObject(4);
+  pHVar5 = LoadCursorA(hInstance_00,(LPCSTR)0x99);
+  pcVar6 = (char *)FUN_0051b7c1(0x8b,pHVar5,pvVar4,pHVar3);
+  uVar7 = 0xffffffff;
+  pcVar9 = pcVar6;
+  do {
+    if (uVar7 == 0) break;
+    uVar7 = uVar7 - 1;
+    cVar1 = *pcVar9;
+    pcVar9 = pcVar9 + 1;
+  } while (cVar1 != '\0');
+  uVar7 = ~uVar7;
+  DAT_00570448 = (char *)FUN_0051dc43(uVar7);
+  if (DAT_00570448 == (char *)0x0) {
+    FUN_004264e8(s_ERROR___CDirectDraw__RegisterWin_00552cd4);
+    FUN_004c97b4();
+  }
+  else {
+    pcVar9 = DAT_00570448;
+    for (uVar8 = uVar7 >> 2; uVar8 != 0; uVar8 = uVar8 - 1) {
+      pcVar9[0] = '\0';
+      pcVar9[1] = '\0';
+      pcVar9[2] = '\0';
+      pcVar9[3] = '\0';
+      pcVar9 = pcVar9 + 4;
+    }
+    for (uVar7 = uVar7 & 3; uVar7 != 0; uVar7 = uVar7 - 1) {
+      *pcVar9 = '\0';
+      pcVar9 = pcVar9 + 1;
+    }
+    uVar7 = 0xffffffff;
+    do {
+      pcVar9 = pcVar6;
+      if (uVar7 == 0) break;
+      uVar7 = uVar7 - 1;
+      pcVar9 = pcVar6 + 1;
+      cVar1 = *pcVar6;
+      pcVar6 = pcVar9;
+    } while (cVar1 != '\0');
+    uVar7 = ~uVar7;
+    pcVar6 = pcVar9 + -uVar7;
+    pcVar9 = DAT_00570448;
+    for (uVar8 = uVar7 >> 2; uVar8 != 0; uVar8 = uVar8 - 1) {
+      *(undefined4 *)pcVar9 = *(undefined4 *)pcVar6;
+      pcVar6 = pcVar6 + 4;
+      pcVar9 = pcVar9 + 4;
+    }
+    for (uVar7 = uVar7 & 3; uVar7 != 0; uVar7 = uVar7 - 1) {
+      *pcVar9 = *pcVar6;
+      pcVar6 = pcVar6 + 1;
+      pcVar9 = pcVar9 + 1;
+    }
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_CDirectDraw__RegisterWindowClass_00552d2c,DAT_00570448);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+  }
+  return;
+}
+

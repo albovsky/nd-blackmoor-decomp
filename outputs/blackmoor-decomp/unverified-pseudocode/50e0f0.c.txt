@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50e0f0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+void FUN_0050e0f0(void)
+
+{
+  float10 in_ST0;
+  
+  FUN_00513ca8((double)in_ST0);
+  FUN_0050e10d();
+  return;
+}
+

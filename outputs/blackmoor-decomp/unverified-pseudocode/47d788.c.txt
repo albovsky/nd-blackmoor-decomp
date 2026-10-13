@@ -1,0 +1,221 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47d788
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618
+ */
+
+void FUN_0047d788(short param_1)
+
+{
+  char cVar1;
+  int iVar2;
+  uint3 uVar3;
+  undefined2 uVar4;
+  int iVar5;
+  undefined4 uVar6;
+  int in_ECX;
+  uint uVar7;
+  uint uVar8;
+  char *pcVar9;
+  undefined4 *puVar10;
+  char *pcVar11;
+  float10 fVar12;
+  int local_18;
+  int local_14;
+  void *local_10;
+  undefined1 *puStack_c;
+  int local_8;
+  
+  puStack_c = &LAB_00528359;
+  local_10 = ExceptionList;
+  iVar2 = *(int *)(&DAT_005bb5e5 + param_1 * 0x8d);
+  local_8._1_3_ = 0;
+  uVar3 = local_8._1_3_;
+  local_8._0_1_ = 1;
+  local_8._1_3_ = 0;
+  if (*(int *)(&DAT_005bb632 + param_1 * 0x8d) == 0) {
+    ExceptionList = &local_10;
+    *(undefined1 *)(in_ECX + 0x57) = 1;
+    DAT_005bb1ca = 1;
+    *(short *)(in_ECX + 0x1d) = param_1;
+    *(undefined1 *)(in_ECX + 0x1c) = 1;
+    *(ushort *)(in_ECX + 0x55) = (ushort)*(byte *)(iVar2 + 0x21);
+    *(undefined4 *)(in_ECX + 0x29) = 0;
+    *(undefined4 *)(in_ECX + 0x31) = 0;
+    *(undefined4 *)(in_ECX + 0x2d) = 0;
+    *(undefined4 *)(in_ECX + 0x35) = 0;
+    iVar5 = FUN_0051dc43();
+    *(int *)(in_ECX + 0x49) = iVar5;
+    if (iVar5 == 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_for_Mouselight_puzzle_Composite_b_0054d2c0,DAT_005bb57b);
+      FUN_0042639d(s_Unable_to_allocate_memory_0054d2f4,&DAT_0063888b);
+      FUN_004c97b4();
+    }
+    if (*(char *)(iVar2 + 0x22) == '\0') {
+      iVar5 = FUN_0051dc43();
+      *(int *)(in_ECX + 0x51) = iVar5;
+      if (iVar5 == 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_for_Mouselight_puzzle_Mask_buffe_0054d360,DAT_005bb57b);
+        FUN_0042639d(s_Unable_to_allocate_memory_0054d390,&DAT_0063888b);
+        FUN_004c97b4();
+      }
+      for (local_18 = -(int)*(short *)(in_ECX + 0x55); local_18 < *(short *)(in_ECX + 0x55);
+          local_18 = local_18 + 1) {
+        for (local_14 = -(int)*(short *)(in_ECX + 0x55); local_14 < *(short *)(in_ECX + 0x55);
+            local_14 = local_14 + 1) {
+          fVar12 = (float10)FUN_0050df94((double)(local_18 * local_18 + local_14 * local_14));
+          if ((float10)(int)*(short *)(in_ECX + 0x55) <= fVar12) {
+            *(undefined1 *)
+             (*(int *)(in_ECX + 0x51) +
+             *(short *)(in_ECX + 0x55) + local_14 +
+             (*(short *)(in_ECX + 0x55) + local_18) * (int)*(short *)(in_ECX + 0x55) * 2) = 0;
+          }
+          else {
+            *(undefined1 *)
+             (*(int *)(in_ECX + 0x51) +
+             *(short *)(in_ECX + 0x55) + local_14 +
+             (*(short *)(in_ECX + 0x55) + local_18) * (int)*(short *)(in_ECX + 0x55) * 2) = 1;
+          }
+        }
+      }
+    }
+    else {
+      iVar5 = FUN_0051dc43();
+      *(int *)(in_ECX + 0x4d) = iVar5;
+      if (iVar5 == 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_for_Mouselight_puzzle_AlphaMap_b_0054d310,DAT_005bb57b);
+        FUN_0042639d(s_Unable_to_allocate_memory_0054d344,&DAT_0063888b);
+        FUN_004c97b4();
+      }
+      puVar10 = *(undefined4 **)(in_ECX + 0x4d);
+      for (uVar7 = (*(short *)(in_ECX + 0x55) * 2 * (int)*(short *)(in_ECX + 0x55) & 0x7fffffffU) >>
+                   1; uVar7 != 0; uVar7 = uVar7 - 1) {
+        *puVar10 = 0;
+        puVar10 = puVar10 + 1;
+      }
+      for (iVar5 = 0; iVar5 != 0; iVar5 = iVar5 + -1) {
+        *(undefined1 *)puVar10 = 0;
+        puVar10 = (undefined4 *)((int)puVar10 + 1);
+      }
+      for (local_18 = -(int)*(short *)(in_ECX + 0x55); local_18 < *(short *)(in_ECX + 0x55);
+          local_18 = local_18 + 1) {
+        for (local_14 = -(int)*(short *)(in_ECX + 0x55); local_14 < *(short *)(in_ECX + 0x55);
+            local_14 = local_14 + 1) {
+          fVar12 = (float10)FUN_0050df94();
+          if (fVar12 < (float10)(int)*(short *)(in_ECX + 0x55)) {
+            fVar12 = (float10)FUN_0050de00();
+            *(float *)(*(int *)(in_ECX + 0x4d) +
+                      (*(short *)(in_ECX + 0x55) + local_14 +
+                      (*(short *)(in_ECX + 0x55) + local_18) * (int)*(short *)(in_ECX + 0x55) * 2) *
+                      4) = (float)fVar12;
+          }
+          else {
+            *(undefined4 *)
+             (*(int *)(in_ECX + 0x4d) +
+             (*(short *)(in_ECX + 0x55) + local_14 +
+             (*(short *)(in_ECX + 0x55) + local_18) * (int)*(short *)(in_ECX + 0x55) * 2) * 4) = 0;
+          }
+        }
+      }
+    }
+    uVar4 = FUN_004d39f9();
+    *(undefined2 *)(in_ECX + 0x23) = uVar4;
+    *(undefined4 *)(&DAT_005d1591 + *(short *)(in_ECX + 0x23) * 0x4a) = 10;
+    *(code **)(&DAT_005d1595 + *(short *)(in_ECX + 0x23) * 0x4a) = FUN_0047df57;
+    *(undefined4 *)((int)&DAT_005d1599 + *(short *)(in_ECX + 0x23) * 0x4a) =
+         *(undefined4 *)(in_ECX + 0x1f);
+    *(undefined4 *)(&DAT_005d159d + *(short *)(in_ECX + 0x23) * 0x4a) = 0;
+    *(undefined4 *)(&DAT_005d15a1 + *(short *)(in_ECX + 0x23) * 0x4a) = 0;
+    *(undefined4 *)(&DAT_005d15a5 + *(short *)(in_ECX + 0x23) * 0x4a) = 1;
+    *(undefined4 *)(&DAT_005d15a9 + *(short *)(in_ECX + 0x23) * 0x4a) = 1;
+    *(undefined2 *)(&DAT_005d15ad + *(short *)(in_ECX + 0x23) * 0x4a) = 0;
+    uVar7 = 0xffffffff;
+    pcVar9 = s_MOUSELIGHT_PUZZLE_BITMAP_0054d3ac;
+    do {
+      pcVar11 = pcVar9;
+      if (uVar7 == 0) break;
+      uVar7 = uVar7 - 1;
+      pcVar11 = pcVar9 + 1;
+      cVar1 = *pcVar9;
+      pcVar9 = pcVar11;
+    } while (cVar1 != '\0');
+    uVar7 = ~uVar7;
+    pcVar9 = pcVar11 + -uVar7;
+    pcVar11 = (char *)((int)&DAT_005d15b3 + *(short *)(in_ECX + 0x23) * 0x4a);
+    for (uVar8 = uVar7 >> 2; uVar8 != 0; uVar8 = uVar8 - 1) {
+      *(undefined4 *)pcVar11 = *(undefined4 *)pcVar9;
+      pcVar9 = pcVar9 + 4;
+      pcVar11 = pcVar11 + 4;
+    }
+    for (uVar7 = uVar7 & 3; uVar7 != 0; uVar7 = uVar7 - 1) {
+      *pcVar11 = *pcVar9;
+      pcVar9 = pcVar9 + 1;
+      pcVar11 = pcVar11 + 1;
+    }
+    if (*(int *)(in_ECX + 0x1f) == 0) {
+      uVar6 = FUN_004c2790(s_CIFTREE_0054d3e4,iVar2,6,s_DF_MouselightPuzzle_Surface_0054d3c8);
+      *(undefined4 *)(in_ECX + 0x1f) = uVar6;
+    }
+    *(undefined4 *)((int)&DAT_005d1599 + *(short *)(in_ECX + 0x23) * 0x4a) =
+         *(undefined4 *)(in_ECX + 0x1f);
+    *(undefined4 *)(&DAT_005bb632 + *(short *)(in_ECX + 0x1d) * 0x8d) = 1;
+    uVar3 = local_8._1_3_;
+  }
+  else {
+    ExceptionList = &local_10;
+    if (*(int *)(&DAT_005bb632 + param_1 * 0x8d) == 1) {
+      ExceptionList = &local_10;
+      *(undefined4 *)(in_ECX + 0x39) = *(undefined4 *)(in_ECX + 0x29);
+      *(undefined4 *)(in_ECX + 0x41) = *(undefined4 *)(in_ECX + 0x31);
+      *(undefined4 *)(in_ECX + 0x3d) = *(undefined4 *)(in_ECX + 0x2d);
+      *(undefined4 *)(in_ECX + 0x45) = *(undefined4 *)(in_ECX + 0x35);
+      uVar3 = local_8._1_3_;
+      if ((DAT_00583192 - DAT_0058318a) + 5 < (int)*(short *)(in_ECX + 0x27)) {
+        *(undefined4 *)(in_ECX + 0x29) = 0;
+        *(undefined4 *)(in_ECX + 0x31) = 0;
+        *(undefined4 *)(in_ECX + 0x2d) = 0;
+        *(undefined4 *)(in_ECX + 0x35) = 0;
+      }
+      else {
+        if ((int)*(short *)(in_ECX + 0x25) - (int)*(short *)(in_ECX + 0x55) < 0) {
+          *(undefined4 *)(in_ECX + 0x29) = 0;
+        }
+        else {
+          *(int *)(in_ECX + 0x29) = (int)*(short *)(in_ECX + 0x25) - (int)*(short *)(in_ECX + 0x55);
+        }
+        if (DAT_005831ae < *(short *)(in_ECX + 0x25) + -1 + (int)*(short *)(in_ECX + 0x55)) {
+          *(int *)(in_ECX + 0x31) = DAT_005831ae;
+        }
+        else if (*(short *)(in_ECX + 0x25) + -1 + (int)*(short *)(in_ECX + 0x55) < 0) {
+          *(undefined4 *)(in_ECX + 0x31) = 0;
+        }
+        else {
+          *(int *)(in_ECX + 0x31) = *(short *)(in_ECX + 0x25) + -1 + (int)*(short *)(in_ECX + 0x55);
+        }
+        if ((int)*(short *)(in_ECX + 0x27) - (int)*(short *)(in_ECX + 0x55) < 0) {
+          *(undefined4 *)(in_ECX + 0x2d) = 0;
+        }
+        else {
+          *(int *)(in_ECX + 0x2d) = (int)*(short *)(in_ECX + 0x27) - (int)*(short *)(in_ECX + 0x55);
+        }
+        if (DAT_005831b2 < *(short *)(in_ECX + 0x27) + -1 + (int)*(short *)(in_ECX + 0x55)) {
+          *(int *)(in_ECX + 0x35) = DAT_005831b2;
+        }
+        else if (*(short *)(in_ECX + 0x27) + -1 + (int)*(short *)(in_ECX + 0x55) < 0) {
+          *(undefined4 *)(in_ECX + 0x35) = 0;
+        }
+        else {
+          *(int *)(in_ECX + 0x35) = *(short *)(in_ECX + 0x27) + -1 + (int)*(short *)(in_ECX + 0x55);
+        }
+      }
+    }
+  }
+  local_8._1_3_ = uVar3;
+  local_8 = (uint)local_8._1_3_ << 8;
+  FUN_0051e7ba();
+  local_8 = 0xffffffff;
+  FUN_0051e7ba();
+  ExceptionList = local_10;
+  return;
+}
+

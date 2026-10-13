@@ -1,0 +1,111 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47e582
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618
+ */
+
+void FUN_0047e582(short param_1,short param_2,int param_3)
+
+{
+  int iVar1;
+  int in_ECX;
+  uint uVar2;
+  uint uVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  undefined4 local_34;
+  undefined4 local_30;
+  undefined4 local_2c;
+  undefined4 local_28;
+  undefined2 *local_24;
+  int *local_20;
+  short local_1c;
+  int *local_18;
+  short local_14;
+  int local_10;
+  uint local_c;
+  undefined4 *local_8;
+  
+  local_10 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  local_24 = (undefined2 *)(in_ECX + 0x7b4 + param_1 * 0x25);
+  local_8 = (undefined4 *)(local_10 + 0x99 + param_2 * 0x53);
+  if ((((param_3 != 0) || (*(char *)(local_10 + 0x42) == '\0')) || (DAT_005a055d == 0)) ||
+     (DAT_005a0561 != DAT_005bb57b)) {
+    *local_24 = 0;
+    *(undefined1 *)((int)local_24 + 0x23) = (undefined1)param_2;
+    *(undefined1 *)(local_24 + 0x12) = 0;
+    *(undefined4 *)(local_24 + 1) = local_8[4];
+    *(undefined4 *)(local_24 + 3) = local_8[5];
+    *(undefined4 *)(local_24 + 5) = local_8[6];
+    *(undefined4 *)(local_24 + 7) = local_8[7];
+    FUN_0047e52f(local_24 + 1,local_24 + 9);
+  }
+  if (param_1 == param_2) {
+    local_18 = (int *)(in_ECX + 0x20 + param_2 * 0x60);
+    iVar1 = FUN_0047e99e(local_8 + 8);
+    if (iVar1 == 0) {
+      *(short *)(local_18 + 5) = ((short)local_8[6] - (short)local_8[4]) + 1;
+      local_1c = (short)local_18[5];
+      *(short *)((int)local_18 + 0x16) = ((short)local_8[7] - (short)local_8[5]) + 1;
+      local_14 = *(short *)((int)local_18 + 0x16);
+      local_34 = *local_8;
+      local_30 = local_8[1];
+      local_2c = local_8[2];
+      local_28 = local_8[3];
+    }
+    else {
+      *(short *)(local_18 + 5) = ((short)local_8[10] - (short)local_8[8]) + 1;
+      local_1c = (short)local_18[5];
+      *(short *)((int)local_18 + 0x16) = ((short)local_8[0xb] - (short)local_8[9]) + 1;
+      local_14 = *(short *)((int)local_18 + 0x16);
+      local_34 = local_8[8];
+      local_30 = local_8[9];
+      local_2c = local_8[10];
+      local_28 = local_8[0xb];
+    }
+    iVar1 = FUN_004c2a8d(CONCAT22((short)((uint)local_2c >> 0x10),local_1c),local_14,6,
+                         s_pDFSurface_for_Multibuild_Puzzle_0054d4f0);
+    *local_18 = iVar1;
+    local_18[2] = 0;
+    local_18[1] = 0;
+    local_18[4] = local_18[2] + -1 + (int)local_14;
+    local_18[3] = local_18[1] + -1 + (int)local_1c;
+    FUN_004c51a5(*(undefined4 *)(in_ECX + 0x13a4),*local_18,&local_34,local_18 + 1,
+                 s_Orientation_0___pDFSurface_load_f_0054d528);
+    if ((*(char *)(local_10 + 0x48) != '\0') || (*(char *)(local_24 + 0x11) != '\0')) {
+      local_c = CONCAT31(local_c._1_3_,1);
+      while ((local_c & 0xff) < 4) {
+        local_20 = local_18;
+        local_18 = (int *)(in_ECX + 0x20 + param_2 * 0x60 + (local_c & 0xff) * 0x18);
+        iVar1 = FUN_004c2a8d(CONCAT22((short)((uint)local_18 >> 0x10),local_1c),local_14,6,
+                             s_pDFSurface_for_Multibuild_Puzzle_0054d564);
+        *local_18 = iVar1;
+        uVar3 = *(uint *)(*local_20 + 0x23);
+        puVar4 = *(undefined4 **)*local_20;
+        puVar5 = *(undefined4 **)*local_18;
+        for (uVar2 = uVar3 >> 2; uVar2 != 0; uVar2 = uVar2 - 1) {
+          *puVar5 = *puVar4;
+          puVar4 = puVar4 + 1;
+          puVar5 = puVar5 + 1;
+        }
+        for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+          *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+          puVar4 = (undefined4 *)((int)puVar4 + 1);
+          puVar5 = (undefined4 *)((int)puVar5 + 1);
+        }
+        FUN_004c7070(*local_18,&DAT_0063a898);
+        local_18[2] = 0;
+        local_18[1] = 0;
+        local_18[4] = local_18[2] + -1 + (int)*(short *)(*local_18 + 0x2d);
+        local_18[3] = local_18[1] + -1 + (int)*(short *)(*local_18 + 0x2b);
+        *(undefined2 *)(local_18 + 5) = *(undefined2 *)(*local_18 + 0x2b);
+        *(undefined2 *)((int)local_18 + 0x16) = *(undefined2 *)(*local_18 + 0x2d);
+        local_1c = (short)local_18[5];
+        local_14 = *(short *)((int)local_18 + 0x16);
+        local_c = CONCAT31(local_c._1_3_,(char)local_c + '\x01');
+      }
+    }
+  }
+  return;
+}
+

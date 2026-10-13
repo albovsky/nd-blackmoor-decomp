@@ -1,0 +1,135 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x426d0f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+/* WARNING: Removing unreachable block (ram,0x00426f3e) */
+/* WARNING: Removing unreachable block (ram,0x004270b9) */
+/* WARNING: Removing unreachable block (ram,0x00426fde) */
+/* WARNING: Removing unreachable block (ram,0x00426e11) */
+
+void FUN_00426d0f(void)
+
+{
+  char cVar1;
+  int iVar2;
+  undefined4 uVar3;
+  int in_ECX;
+  char *pcVar4;
+  char *pcVar5;
+  int local_8;
+  
+  local_8 = FUN_004270de();
+  do {
+    if (local_8 == 0) {
+      return;
+    }
+    iVar2 = FUN_00516530(in_ECX + 0xca171,&DAT_00545548);
+    if ((iVar2 == 0) && (*(int *)(in_ECX + 0xca16d) != 0)) {
+      iVar2 = FUN_004271cd();
+      if ((iVar2 != 0) && (*(int *)(in_ECX + 0xca16d) == 0)) {
+        uVar3 = FUN_0050cb1b(in_ECX + 0xca171);
+        *(undefined4 *)(in_ECX + 0xca155) = uVar3;
+        *(undefined4 *)(in_ECX + 0xca159) = *(undefined4 *)(in_ECX + 0xca155);
+        *(undefined4 *)(in_ECX + 0xca149) = 1;
+        if (DAT_0063a4cd != 0) {
+          FUN_0050ca3e(&DAT_0063888b,s_ParseCommandLine____S___Starting_0054554c,
+                       *(undefined4 *)(in_ECX + 0xca155));
+          FUN_0044a2b7(&DAT_0063888b);
+          iVar2 = -1;
+          pcVar4 = (char *)&DAT_0063888b;
+          do {
+            pcVar5 = pcVar4;
+            if (iVar2 == 0) break;
+            iVar2 = iVar2 + -1;
+            pcVar5 = pcVar4 + 1;
+            cVar1 = *pcVar4;
+            pcVar4 = pcVar5;
+          } while (cVar1 != '\0');
+          *(undefined2 *)(pcVar5 + -1) = DAT_00545578;
+        }
+      }
+    }
+    else {
+      iVar2 = FUN_00516530(in_ECX + 0xca171,&DAT_0054557c);
+      if ((iVar2 == 0) && (*(int *)(in_ECX + 0xca16d) != 0)) {
+        iVar2 = FUN_004271cd();
+        if ((iVar2 != 0) && (*(int *)(in_ECX + 0xca16d) == 0)) {
+          uVar3 = FUN_0050cb1b(in_ECX + 0xca171);
+          *(undefined4 *)(in_ECX + 0xca155) = uVar3;
+          iVar2 = FUN_004271cd();
+          if ((iVar2 != 0) && (*(int *)(in_ECX + 0xca16d) == 0)) {
+            uVar3 = FUN_0050cb1b(in_ECX + 0xca171);
+            *(undefined4 *)(in_ECX + 0xca159) = uVar3;
+            *(undefined4 *)(in_ECX + 0xca14d) = 1;
+            if (DAT_0063a4cd != 0) {
+              FUN_0050ca3e(&DAT_0063888b,s_ParseCommandLine____SR___Start_S_00545580,
+                           *(undefined4 *)(in_ECX + 0xca155),*(undefined4 *)(in_ECX + 0xca159));
+              FUN_0044a2b7(&DAT_0063888b);
+              iVar2 = -1;
+              pcVar4 = (char *)&DAT_0063888b;
+              do {
+                pcVar5 = pcVar4;
+                if (iVar2 == 0) break;
+                iVar2 = iVar2 + -1;
+                pcVar5 = pcVar4 + 1;
+                cVar1 = *pcVar4;
+                pcVar4 = pcVar5;
+              } while (cVar1 != '\0');
+              *(undefined2 *)(pcVar5 + -1) = DAT_005455bc;
+            }
+          }
+        }
+      }
+      else {
+        iVar2 = FUN_00516530(in_ECX + 0xca171,&DAT_005455c0);
+        if ((iVar2 == 0) && (*(int *)(in_ECX + 0xca16d) != 0)) {
+          *(undefined4 *)(in_ECX + 0xca151) = 1;
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s_ParseCommandLine____T___Test_Mod_005455c4);
+            FUN_0044a2b7(&DAT_0063888b);
+            iVar2 = -1;
+            pcVar4 = (char *)&DAT_0063888b;
+            do {
+              pcVar5 = pcVar4;
+              if (iVar2 == 0) break;
+              iVar2 = iVar2 + -1;
+              pcVar5 = pcVar4 + 1;
+              cVar1 = *pcVar4;
+              pcVar4 = pcVar5;
+            } while (cVar1 != '\0');
+            *(undefined2 *)(pcVar5 + -1) = DAT_005455f0;
+          }
+        }
+        else {
+          iVar2 = FUN_00516530(in_ECX + 0xca171,&DAT_005455f4);
+          if ((iVar2 == 0) &&
+             (((*(int *)(in_ECX + 0xca16d) != 0 && (iVar2 = FUN_004271cd(), iVar2 != 0)) &&
+              (*(int *)(in_ECX + 0xca16d) == 0)))) {
+            uVar3 = FUN_0050cb1b(in_ECX + 0xca171);
+            *(undefined4 *)(in_ECX + 0xca15d) = uVar3;
+            if (DAT_0063a4cd != 0) {
+              FUN_0050ca3e(&DAT_0063888b,s_ParseCommandLine____TL___Test_Mo_005455f8,
+                           *(undefined4 *)(in_ECX + 0xca15d));
+              FUN_0044a2b7(&DAT_0063888b);
+              iVar2 = -1;
+              pcVar4 = (char *)&DAT_0063888b;
+              do {
+                pcVar5 = pcVar4;
+                if (iVar2 == 0) break;
+                iVar2 = iVar2 + -1;
+                pcVar5 = pcVar4 + 1;
+                cVar1 = *pcVar4;
+                pcVar4 = pcVar5;
+              } while (cVar1 != '\0');
+              *(undefined2 *)(pcVar5 + -1) = DAT_0054562c;
+            }
+          }
+        }
+      }
+    }
+    local_8 = FUN_004271cd();
+  } while( true );
+}
+

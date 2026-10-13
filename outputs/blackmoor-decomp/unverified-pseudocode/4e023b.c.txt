@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e023b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+void FUN_004e023b(void)
+
+{
+  short local_8;
+  
+  if (DAT_005bb202 == 0) {
+    FUN_004c5377(DAT_005d2819,DAT_005cf665,&DAT_005832ae,&DAT_005832ae,s_setup_surface_0055babc);
+  }
+  else {
+    FUN_004c5d4b(DAT_005d2819,DAT_005cf665,&DAT_005832de,&DAT_005832ae,s_setup_surface_0055baac);
+  }
+  if (DAT_005bb206 == 0) {
+    FUN_004c5377(DAT_005d2819,DAT_005cf665,&DAT_005832be,&DAT_005832be,s_setup_surface_0055badc);
+  }
+  else {
+    FUN_004c5d4b(DAT_005d2819,DAT_005cf665,&DAT_005832ee,&DAT_005832be,s_setup_surface_0055bacc);
+  }
+  if (DAT_005835da != 0) {
+    FUN_004c5377(DAT_005d2819,DAT_005cf665,&DAT_005832fe,&DAT_005832ce,s_setup_surface_0055baec);
+  }
+  for (local_8 = 0; local_8 < 3; local_8 = local_8 + 1) {
+    FUN_004c5d4b(DAT_005d2819,DAT_005cf665,&DAT_0058331e + local_8 * 0x10,
+                 &DAT_005835e4 + local_8 * 0x10,s_setup_surface_0055bafc);
+  }
+  return;
+}
+

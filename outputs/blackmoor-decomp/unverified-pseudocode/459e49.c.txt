@@ -1,0 +1,76 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x459e49
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f51cc55276120d19811669e671858343b4478877f4752e92acf19b83badf3e68
+ */
+
+void FUN_00459e49(void)
+
+{
+  int in_ECX;
+  int iVar1;
+  char *pcVar2;
+  char *pcVar3;
+  bool bVar4;
+  
+  if ((((*(char *)(in_ECX + 0xd6) != '\0') && (*(char *)(in_ECX + 0xe1) == '\0')) &&
+      (*(int *)(in_ECX + 0xdb) == 0)) &&
+     ((*(int *)(&DAT_005bb632 + *(short *)(in_ECX + 0x1c) * 0x8d) == 1 && (DAT_005c39e5 == 0x2742)))
+     ) {
+    if ((*(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1c) * 0x8d) + 0x217) == 0xff) ||
+       (DAT_00583a29 ==
+        *(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1c) * 0x8d) + 0x217))) {
+      *(undefined1 *)(in_ECX + 0x1e + (int)*(short *)(in_ECX + 0xcc)) = 1;
+      if (*(short *)(in_ECX + 0xdf) < 4) {
+        *(undefined2 *)(in_ECX + 0xce + *(short *)(in_ECX + 0xdf) * 2) =
+             *(undefined2 *)(in_ECX + 0xcc);
+      }
+      *(short *)(in_ECX + 0xdf) = *(short *)(in_ECX + 0xdf) + 1;
+      if (4 < *(short *)(in_ECX + 0xdf)) {
+        *(undefined2 *)(in_ECX + 0xdf) = 4;
+      }
+      if (DAT_005bb1ca != 0) {
+        iVar1 = 9;
+        bVar4 = true;
+        pcVar2 = (char *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1c) * 0x8d) + 0x1b5);
+        pcVar3 = s_NO_SOUND_0054a7c4;
+        do {
+          if (iVar1 == 0) break;
+          iVar1 = iVar1 + -1;
+          bVar4 = *pcVar2 == *pcVar3;
+          pcVar2 = pcVar2 + 1;
+          pcVar3 = pcVar3 + 1;
+        } while (bVar4);
+        if ((!bVar4) &&
+           (iVar1 = FUN_004f6334((int)*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                         *(short *)(in_ECX + 0x1c) * 0x8d) + 0x1d6))
+           , iVar1 == 0)) {
+          FUN_004fb2e3(*(undefined2 *)
+                        (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1c) * 0x8d) + 0x1d6));
+        }
+      }
+    }
+    else if (DAT_005bb1ca != 0) {
+      iVar1 = 9;
+      bVar4 = true;
+      pcVar2 = (char *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1c) * 0x8d) + 0x1e6);
+      pcVar3 = s_NO_SOUND_0054a7d0;
+      do {
+        if (iVar1 == 0) break;
+        iVar1 = iVar1 + -1;
+        bVar4 = *pcVar2 == *pcVar3;
+        pcVar2 = pcVar2 + 1;
+        pcVar3 = pcVar3 + 1;
+      } while (bVar4);
+      if ((!bVar4) &&
+         (iVar1 = FUN_004f6334((int)*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                       *(short *)(in_ECX + 0x1c) * 0x8d) + 0x207)),
+         iVar1 == 0)) {
+        FUN_004fb2e3(*(undefined2 *)
+                      (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1c) * 0x8d) + 0x207));
+      }
+    }
+  }
+  return;
+}
+

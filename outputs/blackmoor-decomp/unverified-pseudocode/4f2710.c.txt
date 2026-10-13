@@ -1,0 +1,334 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f2710
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+undefined4 FUN_004f2710(int param_1,undefined4 param_2)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  HANDLE pvVar3;
+  int in_ECX;
+  undefined4 *puVar4;
+  int local_8;
+  
+  *(undefined4 *)(in_ECX + 0x3be) = 1;
+  *(undefined4 *)(in_ECX + 0x3c2) = 1000;
+  *(undefined4 *)(in_ECX + 0x3ca) = 0;
+  iVar1 = FUN_004f709c();
+  if (iVar1 == 0) {
+    if (param_1 == 0) {
+      *(undefined4 *)(in_ECX + 0x3c2) = 0x3f0;
+      *(undefined4 *)(in_ECX + 0x3be) = 0;
+      uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+    }
+    else {
+      *(int *)(in_ECX + 0x3ba) = param_1;
+      *(undefined4 *)(in_ECX + 0x3ce) = param_2;
+      iVar1 = FUN_004f83c8();
+      if (iVar1 == 0) {
+        *(undefined4 *)(in_ECX + 0x3c2) = 0x3fa;
+        *(undefined4 *)(in_ECX + 0x3be) = 0;
+        uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+      }
+      else {
+        uVar2 = Ordinal_1(*(undefined4 *)(in_ECX + 400),in_ECX + 0x194,0);
+        *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+        if (*(int *)(in_ECX + 0x3ca) == 0) {
+          if (DAT_0063a4cd != 0) {
+            FUN_0044a2b7(s_CDirectSound__Init_____Created_D_0055cf44);
+          }
+          uVar2 = (**(code **)(**(int **)(in_ECX + 0x194) + 0x18))
+                            (*(undefined4 *)(in_ECX + 0x194),*(undefined4 *)(in_ECX + 0x3ba),2);
+          *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+          if (*(int *)(in_ECX + 0x3ca) == 0) {
+            if (DAT_0063a4cd != 0) {
+              FUN_0044a2b7(s_CDirectSound__Init_____PRIORITY_c_0055cf7c);
+            }
+            puVar4 = (undefined4 *)(in_ECX + 0x1a4);
+            for (iVar1 = 0x18; iVar1 != 0; iVar1 = iVar1 + -1) {
+              *puVar4 = 0;
+              puVar4 = puVar4 + 1;
+            }
+            *(undefined4 *)(in_ECX + 0x1a4) = 0x60;
+            uVar2 = (**(code **)(**(int **)(in_ECX + 0x194) + 0x10))
+                              (*(undefined4 *)(in_ECX + 0x194),in_ECX + 0x1a4);
+            *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+            if (*(int *)(in_ECX + 0x3ca) == 0) {
+              if (DAT_0063a4cd != 0) {
+                if ((*(uint *)(in_ECX + 0x1a8) & 0x40) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055cfb8);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 0x20) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055cff0);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 4) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d02c);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 8) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d068);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 1) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d0a4);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 2) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d0e0);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 0x800) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d11c);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 0x400) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d15c);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 0x100) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d198);
+                }
+                if ((*(uint *)(in_ECX + 0x1a8) & 0x200) != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____hardware_c_0055d1d4);
+                }
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d214,
+                             *(undefined4 *)(in_ECX + 0x1ac));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d25c,
+                             *(undefined4 *)(in_ECX + 0x1b0));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d2a4,
+                             *(undefined4 *)(in_ECX + 0x1b8));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d2e8,
+                             *(undefined4 *)(in_ECX + 0x1bc));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d330,
+                             *(undefined4 *)(in_ECX + 0x1c4));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d378,
+                             *(undefined4 *)(in_ECX + 0x1c8));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d3c0,
+                             *(undefined4 *)(in_ECX + 0x1e8));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d400,
+                             *(undefined4 *)(in_ECX + 0x1ec));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d440,
+                             *(undefined4 *)(in_ECX + 0x1f0));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d488,
+                             *(undefined4 *)(in_ECX + 500));
+                FUN_0044a2b7(&DAT_0063888b);
+                FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____hardware_c_0055d4d4,
+                             *(undefined4 *)(in_ECX + 0x1f8));
+                FUN_0044a2b7(&DAT_0063888b);
+              }
+              puVar4 = (undefined4 *)(in_ECX + 0x218);
+              for (iVar1 = 9; iVar1 != 0; iVar1 = iVar1 + -1) {
+                *puVar4 = 0;
+                puVar4 = puVar4 + 1;
+              }
+              *(undefined4 *)(in_ECX + 0x218) = 0x24;
+              *(undefined4 *)(in_ECX + 0x21c) = 0x11;
+              *(undefined4 *)(in_ECX + 0x220) = 0;
+              *(undefined4 *)(in_ECX + 0x228) = 0;
+              uVar2 = (**(code **)(**(int **)(in_ECX + 0x194) + 0xc))
+                                (*(undefined4 *)(in_ECX + 0x194),in_ECX + 0x218,in_ECX + 0x198,0);
+              *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+              if (*(int *)(in_ECX + 0x3ca) == 0) {
+                if (DAT_0063a4cd != 0) {
+                  FUN_0044a2b7(s_CDirectSound__Init_____Created_P_0055d51c);
+                }
+                *(undefined4 *)(in_ECX + 0x288) = 0;
+                *(undefined4 *)(in_ECX + 0x28c) = 0;
+                *(undefined4 *)(in_ECX + 0x290) = 0;
+                *(undefined4 *)(in_ECX + 0x294) = 0;
+                *(undefined2 *)(in_ECX + 0x298) = 0;
+                *(undefined2 *)(in_ECX + 0x288) = 1;
+                *(undefined2 *)(in_ECX + 0x28a) = 2;
+                *(undefined4 *)(in_ECX + 0x28c) = 0xac44;
+                *(undefined2 *)(in_ECX + 0x296) = 0x10;
+                *(short *)(in_ECX + 0x294) =
+                     (short)((int)(uint)*(ushort *)(in_ECX + 0x296) >> 3) *
+                     *(short *)(in_ECX + 0x28a);
+                *(uint *)(in_ECX + 0x290) =
+                     *(int *)(in_ECX + 0x28c) * (uint)*(ushort *)(in_ECX + 0x294);
+                uVar2 = (**(code **)(**(int **)(in_ECX + 0x198) + 0x38))
+                                  (*(undefined4 *)(in_ECX + 0x198),in_ECX + 0x288);
+                *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+                if (*(int *)(in_ECX + 0x3ca) == 0) {
+                  if (DAT_0063a4cd != 0) {
+                    FUN_0044a2b7(s_CDirectSound__Init_____Set_forma_0055d560);
+                  }
+                  iVar1 = FUN_004f8364(*(undefined4 *)(in_ECX + 0x198),in_ECX + 0x204);
+                  if (iVar1 == 0) {
+                    *(undefined4 *)(in_ECX + 0x3c2) = 0x401;
+                    *(undefined4 *)(in_ECX + 0x3be) = 0;
+                    uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+                  }
+                  else {
+                    if (DAT_0063a4cd != 0) {
+                      if ((*(uint *)(in_ECX + 0x208) & 4) != 0) {
+                        FUN_0044a2b7(s_CDirectSound__Init_____Primary_D_0055d5ac);
+                      }
+                      if ((*(uint *)(in_ECX + 0x208) & 8) != 0) {
+                        FUN_0044a2b7(s_CDirectSound__Init_____Primary_D_0055d5fc);
+                      }
+                      if ((*(uint *)(in_ECX + 0x208) & 1) != 0) {
+                        FUN_0044a2b7(s_CDirectSound__Init_____Primary_D_0055d64c);
+                      }
+                      FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____Primary_D_0055d69c,
+                                   *(undefined4 *)(in_ECX + 0x20c));
+                      FUN_0044a2b7(&DAT_0063888b);
+                      FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____Primary_D_0055d6e8,
+                                   *(undefined4 *)(in_ECX + 0x210));
+                      FUN_0044a2b7(&DAT_0063888b);
+                      FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____Primary_D_0055d73c,
+                                   *(undefined4 *)(in_ECX + 0x214));
+                      FUN_0044a2b7(&DAT_0063888b);
+                    }
+                    iVar1 = FUN_004f80d3(*(undefined4 *)(in_ECX + 0x198),1);
+                    if (iVar1 == 0) {
+                      *(undefined4 *)(in_ECX + 0x3c2) = 0x402;
+                      *(undefined4 *)(in_ECX + 0x3be) = 0;
+                      uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+                    }
+                    else {
+                      if (DAT_0063a4cd != 0) {
+                        FUN_0044a2b7(s_CDirectSound__Init_____Started_P_0055d78c);
+                      }
+                      uVar2 = (**(code **)**(undefined4 **)(in_ECX + 0x198))
+                                        (*(undefined4 *)(in_ECX + 0x198),&DAT_0052e54c,
+                                         in_ECX + 0x19c);
+                      *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+                      if (*(int *)(in_ECX + 0x3ca) == 0) {
+                        if (DAT_0063a4cd != 0) {
+                          FUN_0044a2b7(s_CDirectSound__Init_____Created_t_0055d7d4);
+                        }
+                        FUN_004f84a6(0x3f800000);
+                        FUN_004f8a66(0x3f800000);
+                        puVar4 = (undefined4 *)(in_ECX + 0x23c);
+                        for (iVar1 = 0x10; iVar1 != 0; iVar1 = iVar1 + -1) {
+                          *puVar4 = 0;
+                          puVar4 = puVar4 + 1;
+                        }
+                        *(undefined4 *)(in_ECX + 0x23c) = 0x40;
+                        uVar2 = (**(code **)(**(int **)(in_ECX + 0x19c) + 0xc))
+                                          (*(undefined4 *)(in_ECX + 0x19c),in_ECX + 0x23c);
+                        *(undefined4 *)(in_ECX + 0x3ca) = uVar2;
+                        if (*(int *)(in_ECX + 0x3ca) == 0) {
+                          *(undefined4 *)(in_ECX + 0x27c) = *(undefined4 *)(in_ECX + 0x264);
+                          *(undefined4 *)(in_ECX + 0x280) = *(undefined4 *)(in_ECX + 0x268);
+                          *(undefined4 *)(in_ECX + 0x284) = *(undefined4 *)(in_ECX + 0x26c);
+                          if (DAT_0063a4cd != 0) {
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055d810,
+                                         (double)*(float *)(in_ECX + 0x240),
+                                         (double)*(float *)(in_ECX + 0x244),
+                                         (double)*(float *)(in_ECX + 0x248));
+                            FUN_0044a2b7();
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055d868,
+                                         (double)*(float *)(in_ECX + 0x24c),
+                                         (double)*(float *)(in_ECX + 0x250),
+                                         (double)*(float *)(in_ECX + 0x254));
+                            FUN_0044a2b7();
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055d8c0,
+                                         (double)*(float *)(in_ECX + 600),
+                                         (double)*(float *)(in_ECX + 0x25c),
+                                         (double)*(float *)(in_ECX + 0x260));
+                            FUN_0044a2b7();
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055d91c,
+                                         (double)*(float *)(in_ECX + 0x264),
+                                         (double)*(float *)(in_ECX + 0x268),
+                                         (double)*(float *)(in_ECX + 0x26c));
+                            FUN_0044a2b7();
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055d974,
+                                         (double)*(float *)(in_ECX + 0x270));
+                            FUN_0044a2b7();
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055d9bc,
+                                         (double)*(float *)(in_ECX + 0x274));
+                            FUN_0044a2b7();
+                            FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Init_____3D_Listen_0055da00,
+                                         (double)*(float *)(in_ECX + 0x278));
+                            FUN_0044a2b7();
+                          }
+                          for (local_8 = 0; local_8 < 0x40; local_8 = local_8 + 1) {
+                            pvVar3 = CreateEventA((LPSECURITY_ATTRIBUTES)0x0,0,0,(LPCSTR)0x0);
+                            *(HANDLE *)(in_ECX + 0x2ba + local_8 * 4) = pvVar3;
+                            if (*(int *)(in_ECX + 0x2ba + local_8 * 4) == 0) {
+                              *(undefined4 *)(in_ECX + 0x3c2) = 0x413;
+                              *(undefined4 *)(in_ECX + 0x3be) = 0;
+                              return *(undefined4 *)(in_ECX + 0x3be);
+                            }
+                          }
+                          if (DAT_0063a4cd != 0) {
+                            FUN_0044a2b7();
+                          }
+                          (**(code **)(**(int **)(in_ECX + 0x198) + 8))();
+                          *(undefined4 *)(in_ECX + 0x198) = 0;
+                          for (local_8 = 0; local_8 < 0x20; local_8 = local_8 + 1) {
+                            *(undefined4 *)(*(int *)(in_ECX + 0x3ce) + 0x2f1 + local_8 * 0x5bb) = 0;
+                          }
+                          *(code **)(in_ECX + 0x436) = FUN_0050cf61;
+                          *(code **)(in_ECX + 0x43a) = FUN_0050ce2b;
+                          *(code **)(in_ECX + 0x43e) = FUN_0050cee4;
+                          *(code **)(in_ECX + 0x442) = FUN_0050d337;
+                          _BinkSetSoundSystem_8();
+                          *(undefined4 *)(in_ECX + 0x1a0) = 1;
+                          uVar2 = 1;
+                        }
+                        else {
+                          *(undefined4 *)(in_ECX + 0x3c2) = 0x416;
+                          *(undefined4 *)(in_ECX + 0x3be) = 0;
+                          uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+                        }
+                      }
+                      else {
+                        *(undefined4 *)(in_ECX + 0x19c) = 0;
+                        *(undefined4 *)(in_ECX + 0x3c2) = 0x415;
+                        *(undefined4 *)(in_ECX + 0x3be) = 0;
+                        uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+                      }
+                    }
+                  }
+                }
+                else {
+                  *(undefined4 *)(in_ECX + 0x3c2) = 0x400;
+                  *(undefined4 *)(in_ECX + 0x3be) = 0;
+                  uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+                }
+              }
+              else {
+                *(undefined4 *)(in_ECX + 0x198) = 0;
+                *(undefined4 *)(in_ECX + 0x3c2) = 0x3ff;
+                *(undefined4 *)(in_ECX + 0x3be) = 0;
+                uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+              }
+            }
+            else {
+              *(undefined4 *)(in_ECX + 0x3c2) = 0x3fd;
+              *(undefined4 *)(in_ECX + 0x3be) = 0;
+              uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+            }
+          }
+          else {
+            *(undefined4 *)(in_ECX + 0x3c2) = 0x3fc;
+            *(undefined4 *)(in_ECX + 0x3be) = 0;
+            uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+          }
+        }
+        else {
+          *(undefined4 *)(in_ECX + 0x194) = 0;
+          *(undefined4 *)(in_ECX + 0x3c2) = 0x3fb;
+          *(undefined4 *)(in_ECX + 0x3be) = 0;
+          uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+        }
+      }
+    }
+  }
+  else {
+    *(undefined4 *)(in_ECX + 0x3c2) = 0x3e9;
+    *(undefined4 *)(in_ECX + 0x3be) = 0;
+    uVar2 = *(undefined4 *)(in_ECX + 0x3be);
+  }
+  return uVar2;
+}
+

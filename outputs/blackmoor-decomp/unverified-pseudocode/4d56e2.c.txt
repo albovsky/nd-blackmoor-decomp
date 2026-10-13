@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d56e2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b736ef8a907767b6bd5de2b1c70fa87373ac4b8d720af669c98493a6a3d19492
+ */
+
+undefined4 FUN_004d56e2(int *param_1,int *param_2,int *param_3)
+
+{
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  int iVar4;
+  int iVar5;
+  int iVar6;
+  undefined4 uVar7;
+  
+  if (((param_1 == (int *)0x0) || (param_2 == (int *)0x0)) || (param_3 == (int *)0x0)) {
+    uVar7 = 0;
+  }
+  else if (((*param_3 < *param_2) || (param_2[2] < param_3[2])) ||
+          ((param_3[1] < param_2[1] || (param_2[3] < param_3[3])))) {
+    uVar7 = 0;
+  }
+  else {
+    iVar1 = param_3[1];
+    iVar2 = param_2[1];
+    iVar3 = param_3[2];
+    iVar4 = *param_3;
+    iVar5 = param_3[3];
+    iVar6 = param_3[1];
+    *param_1 = *param_1 + (*param_3 - *param_2);
+    param_1[1] = param_1[1] + (iVar1 - iVar2);
+    param_1[2] = *param_1 + (iVar3 - iVar4);
+    param_1[3] = param_1[1] + (iVar5 - iVar6);
+    *param_2 = *param_3;
+    param_2[1] = param_3[1];
+    param_2[2] = param_3[2];
+    param_2[3] = param_3[3];
+    uVar7 = 1;
+  }
+  return uVar7;
+}
+

@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x516667
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00516667(undefined4 *param_1)
+
+{
+  void *pvVar1;
+  
+  _DAT_0063ca9c = _DAT_0063ca9c + 1;
+  pvVar1 = _malloc(0x1000);
+  param_1[2] = pvVar1;
+  if (pvVar1 == (void *)0x0) {
+    param_1[3] = param_1[3] | 4;
+    param_1[2] = param_1 + 5;
+    param_1[6] = 2;
+  }
+  else {
+    param_1[3] = param_1[3] | 8;
+    param_1[6] = 0x1000;
+  }
+  param_1[1] = 0;
+  *param_1 = param_1[2];
+  return;
+}
+

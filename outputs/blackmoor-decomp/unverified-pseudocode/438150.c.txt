@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x438150
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+void FUN_00438150(void)
+
+{
+  switch(DAT_00583999) {
+  case 0:
+    FUN_004381f4();
+    break;
+  case 1:
+    if (DAT_005c39ff == 0) {
+      DAT_00583999 = 2;
+    }
+    else {
+      DAT_00583999 = 3;
+    }
+    FUN_00439822();
+    if (DAT_006198f3 != '\0') {
+      DAT_005839a9 = 1;
+    }
+    break;
+  case 2:
+    FUN_004fb018();
+    FUN_004fc341();
+    DAT_00583999 = 3;
+    break;
+  case 3:
+    FUN_0043a7ca();
+    break;
+  case 4:
+    FUN_0043d227();
+  }
+  return;
+}
+

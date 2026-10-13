@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x426367
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+undefined4 FUN_00426367(void)
+
+{
+  DWORD dwMessageId;
+  undefined4 *in_ECX;
+  DWORD dwLanguageId;
+  LPSTR lpBuffer;
+  DWORD nSize;
+  va_list *Arguments;
+  
+  Arguments = (va_list *)0x0;
+  nSize = 0x3ff;
+  lpBuffer = (LPSTR)*in_ECX;
+  dwLanguageId = 0x400;
+  dwMessageId = GetLastError();
+  FormatMessageA(0x1200,(LPCVOID)0x0,dwMessageId,dwLanguageId,lpBuffer,nSize,Arguments);
+  return *in_ECX;
+}
+

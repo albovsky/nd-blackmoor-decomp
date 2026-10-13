@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51db1b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051db1b(int param_1)
+
+{
+  int *in_ECX;
+  
+  (**(code **)(*in_ECX + 4))(param_1 != 0);
+  if ((in_ECX[3] != 0) && (in_ECX[4] == 0)) {
+    if ((DAT_0063c798 == (HBITMAP)0x0) && (FUN_00524a01(), DAT_0063c798 == (HBITMAP)0x0)) {
+      return;
+    }
+    SetMenuItemBitmaps(*(HMENU *)(in_ECX[3] + 4),in_ECX[2],0x400,(HBITMAP)0x0,DAT_0063c798);
+  }
+  return;
+}
+

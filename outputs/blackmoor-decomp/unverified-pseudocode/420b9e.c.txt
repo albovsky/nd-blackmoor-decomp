@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x420b9e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6aea749257e733e6a888071535cd523e265e1b5dc78f23c23f75e3654451d196
+ */
+
+void FUN_00420b9e(void)
+
+{
+  int in_ECX;
+  
+  if (DAT_005b15da == 0) {
+    FUN_004c51a5(*(undefined4 *)(&DAT_005d02cb + *(short *)(in_ECX + 0xf73) * 4),DAT_005d03af,
+                 &DAT_005b15de,&DAT_005b15de,s_load_NORMAL_pDFSTextBox_hotspot_a_00543b88);
+  }
+  else {
+    FUN_004c51a5(*(undefined4 *)(&DAT_005d02cb + *(short *)(in_ECX + 0xf75) * 4),DAT_005d03af,
+                 &DAT_005b15de,&DAT_005b15de,s_load_HILITE_pDFSTextBox_hotspot_a_00543b60);
+  }
+  return;
+}
+

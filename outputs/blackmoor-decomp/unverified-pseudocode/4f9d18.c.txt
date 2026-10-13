@@ -1,0 +1,53 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f9d18
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+void FUN_004f9d18(int param_1)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  int iVar2;
+  float10 fVar3;
+  float local_14;
+  float local_10;
+  float local_c;
+  int local_8;
+  
+  iVar2 = *(int *)(in_ECX + 0x3ce) + param_1 * 0x5bb;
+  local_8 = iVar2 + 0x19e;
+  DVar1 = GetTickCount();
+  fVar3 = (float10)FUN_0050df94((double)((*(int *)(local_8 + 0x18) - *(int *)(local_8 + 0x14)) *
+                                         (*(int *)(local_8 + 0x18) - *(int *)(local_8 + 0x14)) +
+                                         (*(int *)(local_8 + 0x20) - *(int *)(local_8 + 0x1c)) *
+                                         (*(int *)(local_8 + 0x20) - *(int *)(local_8 + 0x1c)) +
+                                        (*(int *)(local_8 + 0x28) - *(int *)(local_8 + 0x24)) *
+                                        (*(int *)(local_8 + 0x28) - *(int *)(local_8 + 0x24))));
+  *(float *)(local_8 + 0x5c) = (float)fVar3;
+  FUN_004f9f92();
+  do {
+    FUN_004fa127(param_1,&local_14);
+    fVar3 = (float10)FUN_0050df94();
+  } while ((float)fVar3 < *(float *)(local_8 + 0x5c) / 2.0);
+  *(float *)(local_8 + 0x60) = local_14 - *(float *)(iVar2 + 0x2a3);
+  *(float *)(local_8 + 100) = local_10 - *(float *)(iVar2 + 0x2a7);
+  *(float *)(local_8 + 0x68) = local_c - *(float *)(iVar2 + 0x2ab);
+  *(float *)(local_8 + 0x44) = *(float *)(local_8 + 0x60) / (float)*(int *)(local_8 + 0x3c);
+  *(float *)(local_8 + 0x48) = *(float *)(local_8 + 100) / (float)*(int *)(local_8 + 0x3c);
+  *(float *)(local_8 + 0x4c) = *(float *)(local_8 + 0x68) / (float)*(int *)(local_8 + 0x3c);
+  *(undefined4 *)(local_8 + 0x54) = 0;
+  *(DWORD *)(local_8 + 0x40) = DVar1 + *(int *)(local_8 + 0x38);
+  FUN_004f8f94();
+  FUN_004f9040(param_1,iVar2 + 0x2a3);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__InitRandomLinearMo_0055f4a0,param_1,
+                 (double)*(float *)(local_8 + 0x60),(double)*(float *)(local_8 + 100),
+                 (double)*(float *)(local_8 + 0x68),(double)*(float *)(local_8 + 0x44),
+                 (double)*(float *)(local_8 + 0x48),(double)*(float *)(local_8 + 0x4c));
+    FUN_0044a2b7();
+  }
+  return;
+}
+

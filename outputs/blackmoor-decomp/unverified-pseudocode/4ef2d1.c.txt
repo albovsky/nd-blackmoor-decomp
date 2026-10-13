@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ef2d1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_004ef2d1(short param_1,short param_2)
+
+{
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x19a) = 0;
+  if (((*(int *)(in_ECX + 0x10) == 0) || (*(int *)(in_ECX + 0x10) == 1)) ||
+     (*(int *)(in_ECX + 0x10) == 2)) {
+    if (((*(int *)(in_ECX + 0x142) + 5 <= (int)param_2) &&
+        ((int)param_2 <= *(int *)(in_ECX + 0x14a) + 10)) &&
+       ((*(int *)(in_ECX + 0x13e) + 5 <= (int)param_1 &&
+        ((int)param_1 <= *(int *)(in_ECX + 0x146) + 5)))) {
+      *(undefined4 *)(in_ECX + 0x19a) = 1;
+      if ((*(int *)(in_ECX + 0x10) == 0) && (*(int *)(in_ECX + 0xc2) != 0)) {
+        *(undefined4 *)(in_ECX + 0x10) = 1;
+      }
+      if (*(int *)(in_ECX + 0xca) != 0) {
+        DAT_005c39e5 = 0x27d9;
+        DAT_005b44f4 = 1;
+        _DAT_005d1631 = &DAT_005b161c + DAT_005b44f0 * 0x20;
+        _DAT_005d1639 = 1;
+      }
+      return 1;
+    }
+    *(undefined4 *)(in_ECX + 0x10) = 0;
+  }
+  return 0;
+}
+

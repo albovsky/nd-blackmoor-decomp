@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4013cc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5101d3157a7cceecfaf0c751ae06a21a7013310d21b12b5f59cdca7af1ddb679
+ */
+
+void FUN_004013cc(void)
+
+{
+  undefined4 local_8;
+  
+  DAT_00583981 = DAT_00583985;
+  FUN_0043dbd5();
+  FUN_004db870();
+  local_8 = ShowCursor(0);
+  while (-1 < local_8) {
+    local_8 = ShowCursor(0);
+  }
+  DAT_00583985 = 0x10;
+  FUN_004dad60();
+  return;
+}
+

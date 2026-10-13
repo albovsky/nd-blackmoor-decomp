@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ddd5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051ddd5(void)
+
+{
+  undefined4 *in_ECX;
+  
+  FUN_0051a7c3();
+  *in_ECX = &PTR_LAB_0052f29c;
+  _memset(in_ECX + 0xf,0,0x20);
+  return;
+}
+

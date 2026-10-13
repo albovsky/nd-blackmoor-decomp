@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b7f1f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+void FUN_004b7f1f(void)
+
+{
+  undefined4 *in_ECX;
+  
+  *in_ECX = &PTR_FUN_0052e1f8;
+  FUN_004b7ff4();
+  return;
+}
+

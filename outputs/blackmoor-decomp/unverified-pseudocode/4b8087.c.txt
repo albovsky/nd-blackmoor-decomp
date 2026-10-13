@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b8087
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004b8087(void)
+
+{
+  _DAT_005a4c0a = 0;
+  DAT_005a4c0e = 0;
+  return;
+}
+

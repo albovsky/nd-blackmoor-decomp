@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47f19d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618
+ */
+
+void FUN_0047f19d(int *param_1)
+
+{
+  short sVar1;
+  short sVar2;
+  
+  sVar1 = (short)param_1[2] - (short)*param_1;
+  sVar2 = (short)param_1[3] - (short)param_1[1];
+  if (param_1[1] < DAT_0058319a) {
+    param_1[1] = DAT_0058319a;
+    param_1[3] = param_1[1] + (int)sVar2;
+  }
+  if (DAT_005831a2 < param_1[3]) {
+    param_1[3] = DAT_005831a2;
+    param_1[1] = param_1[3] - (int)sVar2;
+  }
+  if (*param_1 < DAT_00583196) {
+    *param_1 = DAT_00583196;
+    param_1[2] = *param_1 + (int)sVar1;
+  }
+  if (DAT_0058319e < param_1[2]) {
+    param_1[2] = DAT_0058319e;
+    *param_1 = param_1[2] - (int)sVar1;
+  }
+  return;
+}
+

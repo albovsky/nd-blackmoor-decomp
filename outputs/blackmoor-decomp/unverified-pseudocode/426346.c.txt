@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x426346
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+/* Library Function - Single Match
+    public: __thiscall Concurrency::SchedulerPolicy::~SchedulerPolicy(void)
+   
+   Library: Visual Studio 2010 Debug */
+
+void __thiscall Concurrency::SchedulerPolicy::~SchedulerPolicy(SchedulerPolicy *this)
+
+{
+  FUN_0051dc6c(*(undefined4 *)this);
+  return;
+}
+

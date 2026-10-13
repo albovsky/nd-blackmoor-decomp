@@ -1,0 +1,13 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x43dbd5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+void FUN_0043dbd5(void)
+
+{
+  DAT_005bb1c4 = 1;
+  return;
+}
+

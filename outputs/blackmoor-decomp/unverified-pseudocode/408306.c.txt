@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x408306
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f077da93048f8988a96399f357fa9b0d462c71f5ee4ac3437f49adc8ae869a09
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00408306(void)
+
+{
+  undefined1 local_18 [20];
+  
+  FUN_0051d5b2(local_18,0x13);
+  _DAT_005ec29e = FUN_0050cb1b(local_18);
+  FUN_00407ca7();
+  return;
+}
+

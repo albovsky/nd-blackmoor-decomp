@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c32e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+int * FUN_0050c32e(int *param_1,int param_2,int param_3,LPCSTR param_4,int param_5,int param_6,
+                  INT *param_7,int param_8)
+
+{
+  LONG LVar1;
+  int in_ECX;
+  
+  LVar1 = TabbedTextOutA(*(HDC *)(in_ECX + 4),param_2,param_3,param_4,param_5,param_6,param_7,
+                         param_8);
+  param_1[1] = (int)(short)((uint)LVar1 >> 0x10);
+  *param_1 = (int)(short)LVar1;
+  return param_1;
+}
+

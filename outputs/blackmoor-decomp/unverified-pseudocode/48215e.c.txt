@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x48215e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6c02d307fa64542cf9e9341ca14b210665cb9d9c7d2fca978f50048355ee46d9
+ */
+
+void FUN_0048215e(void)
+
+{
+  undefined4 *in_ECX;
+  
+  *in_ECX = &PTR_FUN_0052d6b8;
+  FUN_0051d730();
+  return;
+}
+

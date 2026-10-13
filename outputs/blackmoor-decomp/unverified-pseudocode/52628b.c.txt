@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52628b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+UINT FUN_0052628b(LPCSTR param_1,LPCSTR param_2,UINT param_3)
+
+{
+  HKEY hKey;
+  LSTATUS LVar1;
+  UINT in_ECX;
+  DWORD local_c;
+  UINT local_8;
+  
+  if (*(int *)(in_ECX + 0x7c) == 0) {
+    param_3 = GetPrivateProfileIntA(param_1,param_2,param_3,*(LPCSTR *)(in_ECX + 0x90));
+  }
+  else {
+    local_8 = in_ECX;
+    hKey = (HKEY)GetSectionKey(param_1);
+    if (hKey != (HKEY)0x0) {
+      param_1 = (LPCSTR)0x4;
+      LVar1 = RegQueryValueExA(hKey,param_2,(LPDWORD)0x0,&local_c,(LPBYTE)&local_8,(LPDWORD)&param_1
+                              );
+      RegCloseKey(hKey);
+      if (LVar1 == 0) {
+        return local_8;
+      }
+    }
+  }
+  return param_3;
+}
+

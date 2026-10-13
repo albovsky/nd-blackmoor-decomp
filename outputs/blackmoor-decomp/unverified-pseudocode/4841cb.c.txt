@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4841cb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6c02d307fa64542cf9e9341ca14b210665cb9d9c7d2fca978f50048355ee46d9
+ */
+
+void FUN_004841cb(int *param_1,int *param_2)
+
+{
+  param_2[1] = param_1[1] + DAT_0058318a;
+  param_2[3] = param_1[3] + DAT_0058318a;
+  *param_2 = *param_1 + DAT_00583186;
+  param_2[2] = param_1[2] + DAT_00583186;
+  return;
+}
+

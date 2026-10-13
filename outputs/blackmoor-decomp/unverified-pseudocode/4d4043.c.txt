@@ -1,0 +1,13 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d4043
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+void FUN_004d4043(void)
+
+{
+  FUN_004c5377(DAT_005d0377,DAT_005cf665,&DAT_0061c7b5,&DAT_0061c497,s_inactive_clock_0055a4b4);
+  return;
+}
+

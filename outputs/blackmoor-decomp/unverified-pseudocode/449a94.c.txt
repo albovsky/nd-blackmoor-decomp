@@ -1,0 +1,47 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x449a94
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c532ca6fd2b24db6f7392da771f9de1073079eaf8a4051621b7fba1333cc82be
+ */
+
+void FUN_00449a94(void)
+
+{
+  BOOL BVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  undefined1 local_6c [100];
+  DWORD local_8;
+  
+  local_8 = 0;
+  if (*(int *)(in_ECX + 0x36) != 0) {
+    if ((*(int *)(in_ECX + 0x36) != 0) && (*(int *)(in_ECX + 0x42) == 1)) {
+      FUN_00449bff();
+      Sleep(0);
+    }
+    *(undefined4 *)(in_ECX + 0x3e) = 1;
+    Sleep(0);
+    while (*(int *)(in_ECX + 0x36) != 0) {
+      BVar1 = GetExitCodeThread(*(HANDLE *)(*(int *)(in_ECX + 0x36) + 0x28),&local_8);
+      if (BVar1 == 0) {
+        if (DAT_0063a4cd != 0) {
+          uVar2 = FUN_00426367();
+          FUN_0044a2b7(uVar2);
+        }
+      }
+      else if (local_8 == 0) break;
+      Sleep(0);
+    }
+    *(undefined4 *)(*(int *)(in_ECX + 0x36) + 0x24) = 1;
+    (**(code **)(**(int **)(in_ECX + 0x36) + 0x78))();
+    *(undefined4 *)(in_ECX + 0x36) = 0;
+    *(undefined4 *)(in_ECX + 0x42) = 3;
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(local_6c,s_CThread__KillThread_____ID_0x_x___005489a0,
+                   *(undefined4 *)(in_ECX + 0x3a),in_ECX + 4);
+      FUN_0044a2b7(local_6c);
+    }
+  }
+  return;
+}
+

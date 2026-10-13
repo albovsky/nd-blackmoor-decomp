@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51bf99
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+void FUN_0051bf99(void)
+
+{
+  CCmdUI *in_ECX;
+  
+  CCmdUI::CCmdUI(in_ECX);
+  *(undefined ***)in_ECX = &PTR_LAB_0052eb40;
+  *(undefined4 *)(in_ECX + 0x28) = 1;
+  return;
+}
+

@@ -1,0 +1,14 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x404b19
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_51b415fb048676855f87480857f7034bf358ef4aa71116bcd269a8a5b14202e2
+ */
+
+undefined4 FUN_00404b19(void)
+
+{
+  FUN_00521b22();
+  FUN_00404be1();
+  return 1;
+}
+

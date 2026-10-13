@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44b05a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044b05a(int *param_1,int *param_2,int *param_3)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_0051dc43(4);
+  *param_1 = iVar1;
+  if (iVar1 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_00548ec0,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_00548eec,&DAT_0063888b);
+    FUN_004c97b4();
+  }
+  *(undefined4 *)*param_1 = *(undefined4 *)*param_2;
+  *param_3 = *param_3 + 4;
+  *param_2 = *param_2 + 4;
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_Loaded_AT_SET_VALUE_action_recor_00548f08);
+  }
+  return;
+}
+

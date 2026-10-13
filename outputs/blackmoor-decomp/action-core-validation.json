@@ -1,0 +1,71 @@
+{
+  "scope": "selected state-editing handlers 0x4d/0x61/0x6b/0x71 entered via original 0x427a50 dispatcher; not a whole-scene or full-game comparison",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "native_library_sha256": "20018ae171afba1426f1075d2e5ed2b3c9b1bb91fd10679485dac792783c54f9",
+  "original_engine": "GAME.EXE PE32 x86, executed under Unicorn 2.1.4",
+  "native_engine": "ARM64 macOS C shared library",
+  "code_ranges": [
+    {
+      "name": "0x427a50 original action dispatcher",
+      "start": "0x427a50",
+      "end_exclusive": "0x42acad",
+      "sha256": "1ceb29e4b0897a0f347693be385bd86e120cbb0090c0ee1fe3e8d8de02381fac"
+    },
+    {
+      "name": "0x44b26a set-value handler",
+      "start": "0x44b26a",
+      "end_exclusive": "0x44b3c8",
+      "sha256": "d800a30bfee6a006119b98eff1f0a704f17bac09bae6f3e8c348cb00c760e7cc"
+    },
+    {
+      "name": "0x42ba3a completion helper",
+      "start": "0x42ba3a",
+      "end_exclusive": "0x42babf",
+      "sha256": "066fe5bde9b51c2ee65aa884653d97880ac8d35003ef8ac2338e11d9da9eb909"
+    },
+    {
+      "name": "0x423d33 dependency-reset helper",
+      "start": "0x423d33",
+      "end_exclusive": "0x423da2",
+      "sha256": "b9d41f8f47db076f8a2c7eb1d5cc5e9bb66c8f1ba46e523063ad29f8f201f29e"
+    },
+    {
+      "name": "0x423f57 eligibility helper (hooked)",
+      "start": "0x423f57",
+      "end_exclusive": "0x423fbb",
+      "sha256": "5093f0ba82e963de43e474acd41e6057604127a9ba5b035896bfe11874578aed"
+    }
+  ],
+  "controlled_hook": {
+    "address": "0x423f57",
+    "behavior": "returns seeded eligibility values; dependency evaluation is excluded"
+  },
+  "original_paths_left_real": [
+    "0x427a50 switch branches for action types 0x4d, 0x61, 0x6b, and 0x71",
+    "0x44b26a SET VALUE handler",
+    "0x42ba3a completion behavior",
+    "0x423d33 subtype-2 reset branch for a fixture whose field 13 is zero"
+  ],
+  "compared_cases": 145,
+  "case_groups": {
+    "set": 55,
+    "flags": 64,
+    "difficulty": 24,
+    "ordered": 1,
+    "already": 1
+  },
+  "mismatches": [],
+  "float_scope": "finite exactly representable initial values and signed-16 deltas only; NaN/Infinity are covered by native IEEE smoke assertions, not original-oracle claims",
+  "event_flag_capacity_scope": "64-entry oracle fixture; the native count checks caller storage bounds, not a claim about the original event-flag table capacity",
+  "native_invalid_input_policy": "index -1 skips; any other negative or index >= caller count returns an explicit bounds error before the action/dispatch writes. This safe native input policy does not claim the original performed equivalent bounds checks.",
+  "excluded": [
+    "dependency expression evaluation, action timing, full scene dispatch, and unknown action implementations",
+    "original debug-log side effects for SET VALUE indices >= 40",
+    "full-game behavior, scene/runtime ownership, rendering, audio, phone controls, and UI"
+  ],
+  "limitations": [
+    "the 0x423f57 dependency result is controlled by the harness",
+    "oracle cases exercise only the selected action families and bounded fixtures",
+    "this report does not establish original event-flag allocation capacity"
+  ]
+}

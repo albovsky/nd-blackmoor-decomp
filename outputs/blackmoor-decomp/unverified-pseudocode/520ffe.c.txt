@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520ffe
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+BOOL FUN_00520ffe(void)
+
+{
+  HGDIOBJ ho;
+  BOOL BVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 4) == 0) {
+    return 0;
+  }
+  ho = (HGDIOBJ)Detach();
+  BVar1 = DeleteObject(ho);
+  return BVar1;
+}
+

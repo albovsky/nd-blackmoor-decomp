@@ -1,0 +1,157 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x456516
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d9db35753575c6f4f6d3b54f0e558794e685953e363fb4d0275dfb0787ca7633
+ */
+
+void FUN_00456516(void)
+
+{
+  uint uVar1;
+  int iVar2;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  int local_18;
+  short local_14;
+  short local_10;
+  int local_c;
+  short local_8;
+  
+  if (DAT_00624a02 != 0) {
+    local_c = *(int *)(&DAT_005bb5e5 + DAT_006249fa * 0x8d);
+    if ((DAT_00624a06 != 0) || (DAT_00624a0a != 0)) {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00624a16,&DAT_00624a36,
+                   s_Assembly_Puzzle_RES_area_under_m_0054a104);
+      DAT_00624a0a = 0;
+    }
+    if (DAT_00624a0e != 0) {
+      FUN_00454f29(&DAT_00624a56,&local_28);
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00624a56,&local_28,
+                   s_Assembly_Puzzle_RES_area_piece_s_0054a138);
+      DAT_00624a0e = 0;
+    }
+    if (DAT_00624a6a != -1) {
+      for (local_10 = 0; local_10 < *(short *)(local_c + 0x21); local_10 = local_10 + 1) {
+        local_18 = local_c + 0x45 + local_10 * 0x96;
+        if (*(short *)(local_18 + 0x94) != 0) {
+          local_24 = *(int *)(&DAT_00624a70 + local_10 * 0x10) - DAT_0058318a;
+          local_1c = *(int *)(&DAT_00624a78 + local_10 * 0x10) - DAT_0058318a;
+          local_28 = *(int *)(&DAT_00624a6c + local_10 * 0x10) - DAT_00583186;
+          local_20 = *(int *)(&DAT_00624a74 + local_10 * 0x10) - DAT_00583186;
+          FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_28,&DAT_00624a6c + local_10 * 0x10,
+                       s_Assembly_Puzzle_restore_under_pi_0054a168);
+        }
+      }
+      DAT_00624a6a = -1;
+    }
+    for (local_14 = 0; local_14 < 3; local_14 = local_14 + 1) {
+      for (local_8 = 0; local_8 < *(short *)(local_c + 0x23); local_8 = local_8 + 1) {
+        for (local_10 = 0; local_10 < *(short *)(local_c + 0x21); local_10 = local_10 + 1) {
+          local_28 = 0;
+          local_24 = 0;
+          local_20 = 0;
+          local_1c = 0;
+          if (DAT_00624a12 != local_10) {
+            local_18 = local_c + 0x45 + local_10 * 0x96;
+            if (*(short *)(local_18 + 0x94) == 0) {
+              if (local_14 == 2) {
+                FUN_00454f29(local_18 + 0x80,&local_28);
+                FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),DAT_005cf665,
+                             local_18,&local_28,s_Assembly_Puzzle__drawing_in_init_0054a19c);
+              }
+              local_1c = 0;
+              local_20 = 0;
+              local_24 = 0;
+              local_28 = 0;
+            }
+            else if (*(short *)(local_18 + 0x92) + -1 == (int)local_8) {
+              if (local_14 == 0) {
+                uVar1 = (int)*(short *)(local_18 + 0x90) + 2U & 0x80000003;
+                if ((int)uVar1 < 0) {
+                  uVar1 = (uVar1 - 1 | 0xfffffffc) + 1;
+                }
+                if ((int)DAT_00624a66 == uVar1) {
+                  FUN_00454f29(local_18 + 0x60,&local_28);
+                  FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),
+                               DAT_005cf665,local_18 + 0x20,&local_28,
+                               s_ASSEMBLY_Puzzle___drawing_placed_0054a1cc);
+                }
+              }
+              else if (local_14 == 1) {
+                switch(DAT_00624a66) {
+                case 0:
+                  if ((*(short *)(local_18 + 0x90) == 1) || (*(short *)(local_18 + 0x90) == 3)) {
+                    FUN_00454f29(local_18 + 0x40 + *(short *)(local_18 + 0x90) * 0x10,&local_28);
+                    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),
+                                 DAT_005cf665,local_18 + *(short *)(local_18 + 0x90) * 0x10,
+                                 &local_28,s_ASSEMBLY_Puzzle___drawing_side_p_0054a1f4);
+                  }
+                  break;
+                case 1:
+                  if (*(short *)(local_18 + 0x90) == 0) {
+                    FUN_00454f29(local_18 + 0x70,&local_28);
+                    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),
+                                 DAT_005cf665,local_18 + 0x30,&local_28,
+                                 s_ASSEMBLY_Puzzle___drawing_side_p_0054a220);
+                  }
+                  else if (*(short *)(local_18 + 0x90) == 2) {
+                    FUN_00454f29(local_18 + 0x50,&local_28);
+                    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),
+                                 DAT_005cf665,local_18 + 0x10,&local_28,
+                                 s_ASSEMBLY_Puzzle___drawing_side_p_0054a24c);
+                  }
+                  break;
+                case 2:
+                  if ((*(short *)(local_18 + 0x90) == 1) || (*(short *)(local_18 + 0x90) == 3)) {
+                    uVar1 = (int)*(short *)(local_18 + 0x90) + 2U & 0x80000003;
+                    if ((int)uVar1 < 0) {
+                      uVar1 = (uVar1 - 1 | 0xfffffffc) + 1;
+                    }
+                    FUN_00454f29(local_18 + 0x40 + uVar1 * 0x10,&local_28);
+                    uVar1 = (int)*(short *)(local_18 + 0x90) + 2U & 0x80000003;
+                    if ((int)uVar1 < 0) {
+                      uVar1 = (uVar1 - 1 | 0xfffffffc) + 1;
+                    }
+                    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),
+                                 DAT_005cf665,local_18 + uVar1 * 0x10,&local_28,
+                                 s_ASSEMBLY_Puzzle___drawing_side_p_0054a278);
+                  }
+                  break;
+                case 3:
+                  if ((*(short *)(local_18 + 0x90) == 0) || (*(short *)(local_18 + 0x90) == 2)) {
+                    FUN_00454f29(local_18 + 0x40 + (*(short *)(local_18 + 0x90) + 1) * 0x10,
+                                 &local_28);
+                    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),
+                                 DAT_005cf665,local_18 + (*(short *)(local_18 + 0x90) + 1) * 0x10,
+                                 &local_28,s_ASSEMBLY_Puzzle___drawing_side_p_0054a2a4);
+                  }
+                }
+              }
+              else if ((local_14 == 2) && (DAT_00624a66 == *(short *)(local_18 + 0x90))) {
+                FUN_00454f29(local_18 + 0x40,&local_28);
+                FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),DAT_005cf665,
+                             local_18,&local_28,s_ASSEMBLY_Puzzle___drawing_placed_0054a2d0);
+              }
+            }
+            if (0 < local_24) {
+              iVar2 = local_10 * 0x10;
+              *(int *)(&DAT_00624a6c + iVar2) = local_28;
+              *(int *)(&DAT_00624a70 + iVar2) = local_24;
+              *(int *)(&DAT_00624a74 + iVar2) = local_20;
+              *(int *)(&DAT_00624a78 + iVar2) = local_1c;
+            }
+          }
+        }
+      }
+    }
+    if (DAT_00624a06 != 0) {
+      FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249f8 * 0x4a),DAT_005cf665,
+                   local_c + 0x45 + DAT_00624a12 * 0x96,&DAT_00624a46,
+                   s_ASSEMBLY_Puzzle___drawing_moving_0054a2f8);
+    }
+  }
+  return;
+}
+

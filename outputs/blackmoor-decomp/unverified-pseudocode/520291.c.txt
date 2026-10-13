@@ -1,0 +1,48 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520291
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+undefined4
+FUN_00520291(undefined4 param_1,int param_2,LPCSTR param_3,int param_4,undefined4 param_5)
+
+{
+  CHAR CVar1;
+  LPSTR lpString1;
+  int iVar2;
+  int iVar3;
+  int in_ECX;
+  CHAR local_10c [260];
+  int local_8;
+  
+  if (*(int *)(*(int *)(*(int *)(in_ECX + 8) + param_2 * 4) + -8) == 0) {
+    return 0;
+  }
+  local_8 = in_ECX;
+  lpString1 = (LPSTR)FUN_0051ea75(0x104);
+  lstrcpyA(lpString1,*(LPCSTR *)(*(int *)(local_8 + 8) + param_2 * 4));
+  iVar2 = FUN_0052658e(lpString1,0,0);
+  iVar3 = lstrlenA(lpString1);
+  iVar3 = (1 - iVar2) + iVar3;
+  if (iVar3 == param_4) {
+    CVar1 = lpString1[iVar3];
+    lpString1[param_4] = '\0';
+    iVar2 = lstrcmpiA(param_3,lpString1);
+    lpString1[iVar3] = CVar1;
+    if (iVar2 == 0) {
+      FUN_0052094d(lpString1 + param_4,local_10c,0x104);
+      lstrcpynA(lpString1,local_10c,0x104);
+      goto LAB_00520383;
+    }
+  }
+  if (*(int *)(local_8 + 0x18) != -1) {
+    FUN_0052094d(lpString1 + iVar3,local_10c,0x104);
+    lstrcpynA(lpString1 + iVar3,local_10c,0x104 - iVar3);
+    FUN_0051ff98(lpString1,*(undefined4 *)(local_8 + 0x18),param_5);
+  }
+LAB_00520383:
+  FUN_0051eac4(0xffffffff);
+  return 1;
+}
+

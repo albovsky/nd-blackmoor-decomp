@@ -1,0 +1,248 @@
+{
+  "title": "Original type 0x9f sound-action recovery",
+  "scope": "First-scene S0 sound command plus selector-defined type-0x9f body and phase lifecycle; not a whole audio-engine or decoder claim.",
+  "original_executable": {
+    "path": "work/original/GAME.EXE",
+    "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+    "architecture": "PE32 x86",
+    "pseudocode_status": "Ghidra pseudocode is unverified; machine disassembly and Unicorn execution are cited separately."
+  },
+  "body_layout": {
+    "stem": {
+      "offset": 0,
+      "width": 33,
+      "encoding": "NUL-terminated bytes"
+    },
+    "channel": {
+      "offset": 33,
+      "width": 2,
+      "type": "u16"
+    },
+    "control_word": {
+      "offset": 35,
+      "width": 4,
+      "type": "u32",
+      "semantics": "retained raw; copied to CSound channel +0x134 and used by DirectSound flags/restart code"
+    },
+    "first_percent": {
+      "offset": 39,
+      "width": 2,
+      "type": "i16"
+    },
+    "second_percent": {
+      "offset": 41,
+      "width": 2,
+      "type": "i16"
+    },
+    "mode": {
+      "offset": 43,
+      "width": 1,
+      "type": "u8"
+    },
+    "transition_scene": {
+      "offset": 44,
+      "width": 2,
+      "type": "i16",
+      "no_transition": 9999
+    },
+    "selector": {
+      "offset": 46,
+      "width": 2,
+      "type": "u16",
+      "auto_text": 65535,
+      "literal_max": 9999
+    },
+    "selector_body_rule": {
+      "auto_text_body_bytes": 81,
+      "literal_body_bytes": "48 + selector"
+    }
+  },
+  "corpus": {
+    "resource_validation": "work/analysis/action-body-recovery-validation.json",
+    "type_0x9f_record_count": 3570,
+    "selector_zero_count": 3289,
+    "selector_ffff_count": 281,
+    "selector_distinct_count": 2,
+    "selector_zero_body_length": 48,
+    "selector_ffff_body_length": 81,
+    "s0_resource": "0800.bin",
+    "s0_asset_stem": "NSHT01",
+    "s0_channel": 13,
+    "s0_dependency_count": 1,
+    "s0_dependency": {
+      "opcode": 9,
+      "scene_visit": 6400,
+      "comparison": "<",
+      "value": 1
+    }
+  },
+  "channel_categories": {
+    "capacity": 32,
+    "initializer": "0x4faa03",
+    "default_category": 3,
+    "category_0": [
+      12,
+      13,
+      30
+    ],
+    "category_1": [
+      0,
+      1,
+      2,
+      26,
+      27,
+      29,
+      19
+    ],
+    "category_2": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      20,
+      24,
+      25,
+      23,
+      22,
+      21,
+      31,
+      18,
+      17
+    ]
+  },
+  "runtime_mapping": {
+    "body_control_word_to_runtime": "body +0x23 -> runtime +0x27",
+    "first_scalar": "body +0x27 -> runtime +0x2b -> clamp(i16 / 100, 0, 1) -> CSound +0x138",
+    "second_scalar": "body +0x29 -> runtime +0x2d -> clamp(i16 / 100, 0, 1) -> CSound +0x13c",
+    "mode": "body +0x2b -> runtime +0x90",
+    "transition": "body +0x2c -> runtime +0x91",
+    "event_flag": {
+      "runtime_offset": "0xa5",
+      "s0_value": -1,
+      "write_value_offset": "0xa7",
+      "s0_write_value": 1
+    }
+  },
+  "attenuation": {
+    "function": "0x4fadc4",
+    "formula": "__ftol(gain * channel_category_master * 2857.142822265625f - 2857.142857142857)",
+    "conversion": "0x50ce04 changes x87 rounding to truncation toward zero",
+    "outputs": [
+      "CSound channel +0x140",
+      "CSound channel +0x144"
+    ],
+    "s0": {
+      "master_category_0": 0.85,
+      "first_gain": 0.75,
+      "second_gain": 0.75,
+      "first_attenuation": -1035,
+      "second_attenuation": -1035
+    },
+    "note": "Scalar roles are intentionally neutral; both outputs are independently derived."
+  },
+  "control_word_alias": {
+    "initializer": "0x4faa03 calls 0x4f2710 with CSound + 4",
+    "device_pointer_store": "0x4f2710 stores its second argument at CDirectSound + 0x3ce",
+    "alias": "CDirectSound per-slot +0x130 == CSound per-channel +0x134; CDirectSound +0x12c == CSound +0x130",
+    "play_flags": "0x4f6059 chooses flags and calls 0x4f80d3; that wrapper calls DirectSoundBuffer vtable +0x30",
+    "restart": "0x4f55d5 can restart when the raw word is zero; random-repeat flag path remains unresolved",
+    "native_policy": "retain raw word and return explicit backend unsupported for unimplemented control/restart combinations"
+  },
+  "captions": {
+    "global_enabled_in_game_ini": true,
+    "lookup": "0x423259",
+    "missing_lookup_branch": "0x41c7f4",
+    "fallback_bytes": "Missing closed captioning text string<h><n><o>",
+    "fallback_length": 46,
+    "terminator": "<e>",
+    "ui_boundary": "0x448d11",
+    "phase_gate": "global caption enabled && dispatch argument nonzero && signed runtime length > 0",
+    "native_policy": "resolver NO_RESOURCE becomes exact fallback; missing presenter returns unsupported"
+  },
+  "phases": {
+    "handler": "0x432d1a",
+    "phase_0": "optional typed caption; load and play after successful load; direct completion iff transition=9999, event flag=-1 and raw control word=0; else phase=1",
+    "phase_1": "mode=1 advances to phase 2; otherwise query and advance only when stopped",
+    "phase_2": "non-9999 transition requests engine state 4 and scene flag 1; unload only mode=0; subtype 1 completes, subtype 2 clears completion and resets dependency tree; phase=0",
+    "false_dependency_gate": "subtype 2 clears completion and phase only; no dependency-tree reset"
+  },
+  "oracle": {
+    "script": "outputs/blackmoor-decomp/tests/action_sound_original_oracle.py",
+    "runtime_copier": "0x410f99",
+    "handler": "0x432d1a",
+    "platform_hooks": [
+      "0x449d90 file lookup",
+      "0x448d11 caption UI",
+      "0x4f379c HIS load/decode",
+      "fake DirectSound COM vtable calls"
+    ],
+    "original_phase_results": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "native_phase_results": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "original_path": "CDSound\\NSHT01.his",
+    "original_play_flags": [
+      0
+    ],
+    "original_status_queries": [
+      1,
+      0,
+      0
+    ],
+    "original_buffer_releases": 1,
+    "result_json": "work/analysis/action-sound-validation.json",
+    "result": "pass",
+    "play_flag_scope": "flags0 belong to the controlled non-streaming buffer fixture; actual HIS streaming/loop-buffer behavior is unverified"
+  },
+  "native_files": [
+    "outputs/blackmoor-decomp/src/action_sound.h",
+    "outputs/blackmoor-decomp/src/action_sound.c",
+    "outputs/blackmoor-decomp/scripts/build_action_sound.sh",
+    "outputs/blackmoor-decomp/tests/test_action_sound.py",
+    "outputs/blackmoor-decomp/tests/action_sound_original_oracle.py"
+  ],
+  "limitations": [
+    "Original scene action-resource loading and successful auto-text lookup are not executed by this sound oracle; runtime receives a fallback caption fixture sourced from GAME.EXE.",
+    "HIS decode, Windows file/device operations, DirectSound device creation, real playback, and audible output are not validated.",
+    "Only category 0 master volume 0.85f is compared for S0; other runtime volume configurations are not claimed.",
+    "Control-word-zero restart/random-delay behavior, streaming, other audio flag combinations, other playback modes, and successful caption content are not implemented by this kernel subset.",
+    "The corpus only has selector 0 or 0xffff; nonzero numeric literal captions are accepted by the loader rule but do not have corpus coverage."
+  ]
+}

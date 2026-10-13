@@ -1,0 +1,83 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4afec1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7
+ */
+
+int FUN_004afec1(undefined2 param_1)
+
+{
+  int in_ECX;
+  int local_8;
+  
+  local_8 = 1;
+  switch(param_1) {
+  case 0x2794:
+    if (*(short *)(in_ECX + 0x41) == 0) {
+      local_8 = 0;
+    }
+    else if (*(int *)(in_ECX + 0x43 + *(short *)(in_ECX + 0x3f) * 0x1e4 +
+                     (*(short *)(in_ECX + 0x41) + -1) * 0x2c) == 1) {
+      local_8 = 0;
+    }
+    else if ((*(short *)(in_ECX + *(short *)(in_ECX + 0x3f) * 0x1e4 + 0x5b +
+                        *(short *)(in_ECX + 0x41) * 0x2c) == 5) &&
+            (*(int *)(in_ECX + 0x43 + (*(short *)(in_ECX + 0x3f) + 1) * 0x1e4 +
+                     (*(short *)(in_ECX + 0x41) + -1) * 0x2c) == 1)) {
+      local_8 = 0;
+    }
+    break;
+  case 0x2795:
+    if (*(short *)(in_ECX + 0x3f) == 0) {
+      local_8 = 0;
+    }
+    else if (*(int *)(in_ECX + 0x43 + (*(short *)(in_ECX + 0x3f) + -1) * 0x1e4 +
+                     *(short *)(in_ECX + 0x41) * 0x2c) == 1) {
+      local_8 = 0;
+    }
+    else if ((*(short *)(in_ECX + *(short *)(in_ECX + 0x3f) * 0x1e4 + 0x5b +
+                        *(short *)(in_ECX + 0x41) * 0x2c) == 5) &&
+            (*(int *)(in_ECX + 0x43 + (*(short *)(in_ECX + 0x3f) + -1) * 0x1e4 +
+                     (*(short *)(in_ECX + 0x41) + -1) * 0x2c) == 1)) {
+      local_8 = 0;
+    }
+    break;
+  case 0x2796:
+    if ((int)*(short *)(in_ECX + 0x3f) ==
+        *(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d) + 0x21) + -1) {
+      local_8 = 0;
+    }
+    else if (*(int *)(in_ECX + 0x43 + (*(short *)(in_ECX + 0x3f) + 1) * 0x1e4 +
+                     *(short *)(in_ECX + 0x41) * 0x2c) == 1) {
+      local_8 = 0;
+    }
+    else if ((*(short *)(in_ECX + *(short *)(in_ECX + 0x3f) * 0x1e4 + 0x5b +
+                        *(short *)(in_ECX + 0x41) * 0x2c) == 5) &&
+            (*(int *)(in_ECX + 0x43 + (*(short *)(in_ECX + 0x3f) + 1) * 0x1e4 +
+                     (*(short *)(in_ECX + 0x41) + 1) * 0x2c) == 1)) {
+      local_8 = 0;
+    }
+    break;
+  case 0x2797:
+    if ((int)*(short *)(in_ECX + 0x41) ==
+        *(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d) + 0x23) + -1) {
+      local_8 = 0;
+    }
+    else if (*(int *)(in_ECX + 0x43 + *(short *)(in_ECX + 0x3f) * 0x1e4 +
+                     (*(short *)(in_ECX + 0x41) + 1) * 0x2c) == 1) {
+      local_8 = 0;
+    }
+    else if ((*(short *)(in_ECX + *(short *)(in_ECX + 0x3f) * 0x1e4 + 0x5b +
+                        *(short *)(in_ECX + 0x41) * 0x2c) == 5) &&
+            (*(int *)(in_ECX + 0x43 + (*(short *)(in_ECX + 0x3f) + -1) * 0x1e4 +
+                     (*(short *)(in_ECX + 0x41) + 1) * 0x2c) == 1)) {
+      local_8 = 0;
+    }
+  }
+  if (local_8 == 0) {
+    *(undefined2 *)(in_ECX + 0x1531) = 0;
+    *(undefined2 *)(in_ECX + 0x1533) = 0;
+  }
+  return local_8;
+}
+

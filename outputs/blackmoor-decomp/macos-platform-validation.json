@@ -1,0 +1,34 @@
+{
+  "scope": "native macOS framebuffer/input adapter smoke test, not whole-game execution",
+  "asset": "original standalone Logo.CIF",
+  "frame_size": [
+    640,
+    480
+  ],
+  "actual_native_window_seen": true,
+  "orientation": "upright logo and title observed via computer-use screenshot",
+  "pointer_down_up": [
+    [
+      "down",
+      320,
+      224,
+      0
+    ],
+    [
+      "up",
+      320,
+      224,
+      0
+    ]
+  ],
+  "key_checks": {
+    "comma": 188,
+    "left_bracket": 219,
+    "shifted_1": 49,
+    "shift": 16
+  },
+  "stable_key_down_up": true,
+  "timer_ticks": 3602,
+  "completed": true,
+  "log": "frame_presented standalone_Logo.CIF 640 480\nfirst_tick 949376939\npointer 0 320 224 0\npointer 1 320 224 0\npointer 2 320 224 0\nkey 188 1 0\nkey 188 0 0\nkey 219 1 0\nkey 219 0 0\nkey 16 1 0\nkey 49 1 0\nkey 49 0 0\nkey 16 0 0\nstopped ticks 3602\n"
+}

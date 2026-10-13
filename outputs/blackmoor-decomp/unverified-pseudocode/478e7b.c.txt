@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x478e7b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_827db53a64242b59e9f92d38aeb544549dfa70f780a54958ee5eb67fb48784ea
+ */
+
+void FUN_00478e7b(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int in_ECX;
+  undefined2 uVar3;
+  short local_8;
+  
+  iVar2 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  uVar3 = (undefined2)((uint)iVar2 >> 0x10);
+  FUN_00479cd7(CONCAT22(uVar3,*(undefined2 *)(iVar2 + 0xae)),
+               CONCAT22(uVar3,*(undefined2 *)(iVar2 + 0xac)),0,in_ECX + 0x1536);
+  *(undefined2 *)(in_ECX + 0x158e) = *(undefined2 *)(iVar2 + 0xac);
+  *(undefined2 *)(in_ECX + 0x1590) = *(undefined2 *)(iVar2 + 0xae);
+  for (local_8 = 0; local_8 < *(short *)(iVar2 + 0x25); local_8 = local_8 + 1) {
+    iVar1 = in_ECX + 0x1546 + local_8 * 0x10;
+    uVar3 = (undefined2)((uint)iVar1 >> 0x10);
+    FUN_00479cd7(CONCAT22(uVar3,*(undefined2 *)(iVar2 + 0xb2 + local_8 * 4)),
+                 CONCAT22(uVar3,*(undefined2 *)(iVar2 + 0xb0 + local_8 * 4)),0,iVar1);
+    *(undefined2 *)(in_ECX + 0x1592 + local_8 * 4) = *(undefined2 *)(iVar2 + 0xb0 + local_8 * 4);
+    *(undefined2 *)(in_ECX + 0x1594 + local_8 * 4) = *(undefined2 *)(iVar2 + 0xb2 + local_8 * 4);
+  }
+  return;
+}
+

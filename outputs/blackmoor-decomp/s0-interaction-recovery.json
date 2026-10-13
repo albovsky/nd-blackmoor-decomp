@@ -1,0 +1,322 @@
+{
+  "title": "S0 interaction recovery",
+  "scope": "Read-only static trace of raw types 0x82, 0x1d, 0x6a, and 0x15 for S0 resource 0800.bin.",
+  "provenance": {
+    "original_executable": "work/original/GAME.EXE",
+    "original_executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+    "evidence": [
+      "static PE32 x86 disassembly",
+      "existing unverified Ghidra pseudocode",
+      "existing native scene parser",
+      "S0 resource bytes"
+    ],
+    "source_files_modified": false,
+    "executable_launched": false,
+    "unicorn_execution_attempted": false,
+    "oracle_python": "work/tools/oracle-python/bin/python (Unicorn 2.1.4 installed)"
+  },
+  "corrections": {
+    "raw_0x15_runtime_type": "Only raw body byte 0 is copied into the slot runtime type. For S0 this is 0x0d; the 16-bit word at raw offset 0 is not used as the type.",
+    "internal_payload_word_0": "Runtime type 0x0d maps through 0x40b2d0 to zero, stored at constructed payload offset 0.",
+    "parser_contract": "Preserve raw type 0x15 and original 20-byte body; derive runtime type and normalized payload in the executor."
+  },
+  "s0_actions": {
+    "0x82": [
+      {
+        "index": 0,
+        "subtype": 1,
+        "dependency_count": 0,
+        "body_length": 41,
+        "body_hex": "0a0001050203050505090700014d72732e20506574726f7600000000000000000040060100ffff0000",
+        "name": "Mrs. Petrov",
+        "key_offset": 2,
+        "key_length": 11,
+        "name_offset": 13,
+        "name_length": 20,
+        "opaque_prefix": "u16 10",
+        "opaque_tail_offset": 33,
+        "opaque_tail_length": 8
+      },
+      {
+        "index": 1,
+        "subtype": 1,
+        "dependency_count": 0,
+        "body_length": 41,
+        "body_hex": "0a0001050203050505040305074e6564204e69636b6572736f6e00000000000000a4060100ffff0000",
+        "name": "Ned Nickerson",
+        "key_offset": 2,
+        "key_length": 11,
+        "name_offset": 13,
+        "name_length": 20,
+        "opaque_prefix": "u16 10",
+        "opaque_tail_offset": 33,
+        "opaque_tail_length": 8
+      }
+    ],
+    "0x1d": [
+      {
+        "index": 2,
+        "group_i16": 3,
+        "code_u8": 13,
+        "mode_u8": 1,
+        "start_i16": 0,
+        "end_i16": 0
+      },
+      {
+        "index": 3,
+        "group_i16": 1,
+        "code_u8": 13,
+        "mode_u8": 1,
+        "start_i16": 0,
+        "end_i16": 0
+      },
+      {
+        "index": 4,
+        "group_i16": 2,
+        "code_u8": 13,
+        "mode_u8": 1,
+        "start_i16": 0,
+        "end_i16": 0
+      }
+    ],
+    "0x6a": [
+      {
+        "index": 34,
+        "subtype": 2,
+        "body_length": 60,
+        "dependency_count": 0,
+        "flag_pair": [
+          1000,
+          1
+        ],
+        "record_count": 1,
+        "frame": 0,
+        "rect_xyxy": [
+          388,
+          225,
+          492,
+          284
+        ]
+      },
+      {
+        "index": 35,
+        "subtype": 2,
+        "body_length": 60,
+        "dependency_count": 0,
+        "flag_pair": [
+          1002,
+          1
+        ],
+        "record_count": 1,
+        "frame": 0,
+        "rect_xyxy": [
+          396,
+          150,
+          489,
+          211
+        ]
+      }
+    ],
+    "0x15": {
+      "index": 32,
+      "subtype": 1,
+      "dependency_count": 0,
+      "body_length": 20,
+      "body_hex": "0d000019870100004b000000ea0100008a000000",
+      "runtime_type_u8": 13,
+      "target_scene_i16": 6400,
+      "frame_i16": 0,
+      "rect_dwords": [
+        391,
+        75,
+        490,
+        138
+      ]
+    }
+  },
+  "runtime_contracts": {
+    "0x82": {
+      "dependency_mode": 0,
+      "handler_va": "0x4e7253",
+      "lookup_va": "0x4e45be",
+      "sort_va": "0x4e3ade",
+      "ui_helper_va": "0x4e0559",
+      "record_table_va": "0x5a1e62",
+      "record_count_va": "0x5a1e5c",
+      "record_stride_bytes": 41,
+      "upsert_key": {
+        "offset": 2,
+        "length": 11
+      },
+      "sort_name": {
+        "offset": 13,
+        "length": 20,
+        "normalizer_va": "0x50d0bc"
+      },
+      "normalization": "ASCII a-z uppercased if global 0x63cb1c is zero; nonzero selects locale/NLS path.",
+      "post_update_ui_effect": {
+        "group": 3,
+        "availability": 1,
+        "subflag_index": 0,
+        "subflag_value": 1
+      },
+      "completion": "Dispatcher directly sets slot byte +0x42 after handler; does not use 0x42ba3a.",
+      "capacity": "Unproven; original handler has no visible capacity guard."
+    },
+    "0x1d": {
+      "dependency_mode": 0,
+      "handler_va": "0x4e13e4",
+      "loader_va": "0x40bc47",
+      "group_base_va": "0x5a1620",
+      "group_count": 5,
+      "group_stride_bytes": 420,
+      "entries_per_group": 50,
+      "offsets": {
+        "state_dword": "0x00",
+        "starts_i16": "0x04",
+        "ends_i16": "0x68",
+        "codes_dword": "0xcc",
+        "availability_dword": "0x194",
+        "flag_dwords": [
+          "0x198",
+          "0x19c",
+          "0x1a0"
+        ]
+      },
+      "body_offsets": {
+        "group_i16": 0,
+        "code_u8": 2,
+        "mode_u8": 3,
+        "start_i16": 4,
+        "end_i16": 6
+      },
+      "s0_effect": "Insert [0,0] code 13 into groups 3, 1, and 2 after standard sentinel initialization.",
+      "completion": "Dispatcher directly sets slot byte +0x42 after handler; does not use 0x42ba3a.",
+      "consumer_va": "0x4e18e5",
+      "consumer_effect": "Inclusive range check selects control value 3 or 0 through 0x4e2940, which writes ECX+0x30."
+    },
+    "0x6a": {
+      "dependency_mode": 1,
+      "handler_va": "0x42e844",
+      "body_layout": {
+        "flag_pairs": "10 x (i16 id,i16 value), offsets 0..39",
+        "count_i16_offset": 40,
+        "records_offset": 42,
+        "record_stride": 18,
+        "record_fields": [
+          "i16 frame +0",
+          "i32 left +2",
+          "i32 top +6",
+          "i32 right +10",
+          "i32 bottom +14"
+        ]
+      },
+      "lifecycle": "Phase 0 enters phase 1 and searches current-frame records; phase 1 exports rect on a frame match; phase 2 writes flags then calls 0x42ba3a; S0 subtype 2 resets phase/dependencies.",
+      "required_context": [
+        "current frame",
+        "active hotspot rectangle",
+        "phase-2 interaction/input event"
+      ],
+      "click_path_anchors": [
+        "0x43a7ca",
+        "0x4d3073",
+        "0x4f0059"
+      ]
+    },
+    "0x15": {
+      "raw_body_length": 20,
+      "runtime_type_source": "body[0] only",
+      "runtime_type_s0": 13,
+      "normalized_payload_length": 40,
+      "constructed_payload": {
+        "+0": "u16 mapper result 0",
+        "+2": "i16 target",
+        "+4/+6": "u16 0/u16 0",
+        "+8": "u16 1",
+        "+10/+14/+18": "i32 0/i32 0/i32 1",
+        "+0x16": "i16 frame 0",
+        "+0x18/+0x1c/+0x20/+0x24": "four raw body i32 rectangle values"
+      },
+      "handler_va": "0x42ae73",
+      "dependency_mode": 1,
+      "lifecycle": "Phase 0 exports rectangle; phase 1 arms on frame match; phase 2 completes, sets engine state 4, and copies payload fields to transition globals.",
+      "executor_gap": "Needs runtime normalization, frame/input context, and delayed transition disposition."
+    }
+  },
+  "anchors": [
+    {
+      "range": "0x40e8c8-0x40e975",
+      "evidence": "0x82 allocates and copies 41 bytes."
+    },
+    {
+      "range": "0x4296be-0x4296ec",
+      "evidence": "0x82 dependency gate, handler call, direct completion latch."
+    },
+    {
+      "range": "0x4e7253-0x4e72f8",
+      "evidence": "Phone upsert, sort, and UI update."
+    },
+    {
+      "range": "0x40bc47-0x40bce6",
+      "evidence": "0x1d allocates/copies 8 bytes."
+    },
+    {
+      "range": "0x429324-0x429367",
+      "evidence": "0x1d dependency gate, handler call, direct completion latch."
+    },
+    {
+      "range": "0x4e13e4",
+      "evidence": "Control code/mode tests and range state update."
+    },
+    {
+      "range": "0x4e1a7e",
+      "evidence": "Five groups and 50-entry sentinel initialization."
+    },
+    {
+      "range": "0x428cd0-0x428d07",
+      "evidence": "0x6a dependency mode 1 and hotspot handler."
+    },
+    {
+      "range": "0x40b667-0x40b7c0",
+      "evidence": "Raw 0x15 payload construction and byte-0 runtime-type rewrite."
+    },
+    {
+      "range": "0x40b2d0-0x40b319",
+      "evidence": "0x0d maps to zero."
+    },
+    {
+      "range": "0x42ae73",
+      "evidence": "Runtime 0x0d hotspot and transition state machine."
+    },
+    {
+      "range": "0x42e844",
+      "evidence": "0x6a frame hotspot and flag-writing phase."
+    }
+  ],
+  "oracle_candidate": {
+    "existing_components": [
+      "tests/cif_original_oracle.py PEImage.parse_and_map",
+      "tests/action_core_original_oracle.py dispatcher harness pattern"
+    ],
+    "suggested_entrypoints": [
+      "0x427a50 with a true 0x423f57 dependency hook and a single action",
+      "direct 0x4e7253",
+      "direct 0x4e13e4 after 0x4e1a7e initialization"
+    ],
+    "useful_cases": [
+      "phone insert",
+      "duplicate-key replacement",
+      "ASCII-normalized sorting with 0x63cb1c=0",
+      "phone group availability",
+      "control range insert and duplicate no-op"
+    ],
+    "executed": false
+  },
+  "uncertainties": [
+    "Phone contact capacity and overflow behavior are unproven.",
+    "Phone sort normalization has a global-dependent locale/NLS branch.",
+    "The meaning of control code 13 is unresolved.",
+    "Hit-test code does not prove an independent mouse-button gate.",
+    "Downstream meanings of raw-0x15 transition fields remain opaque."
+  ]
+}

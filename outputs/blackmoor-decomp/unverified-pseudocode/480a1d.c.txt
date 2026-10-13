@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x480a1d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618
+ */
+
+void FUN_00480a1d(void)
+
+{
+  int iVar1;
+  DWORD DVar2;
+  int in_ECX;
+  int iVar3;
+  char *pcVar4;
+  char *pcVar5;
+  bool bVar6;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  iVar3 = 9;
+  bVar6 = true;
+  pcVar4 = (char *)(iVar1 + 0x777);
+  pcVar5 = s_NO_SOUND_0054d5c4;
+  do {
+    if (iVar3 == 0) break;
+    iVar3 = iVar3 + -1;
+    bVar6 = *pcVar4 == *pcVar5;
+    pcVar4 = pcVar4 + 1;
+    pcVar5 = pcVar5 + 1;
+  } while (bVar6);
+  if (bVar6) {
+    DVar2 = GetTickCount();
+    *(DWORD *)(in_ECX + 0x13e7) = DVar2;
+  }
+  else {
+    FUN_004fb2e3(CONCAT22((short)((uint)iVar1 >> 0x10),*(undefined2 *)(iVar1 + 0x798)));
+    DVar2 = GetTickCount();
+    *(DWORD *)(in_ECX + 0x13e7) = DVar2 + 300;
+  }
+  FUN_00480b34();
+  *(undefined4 *)(in_ECX + 0x13ca) = 4;
+  DVar2 = GetTickCount();
+  *(DWORD *)(in_ECX + 0x13eb) = DVar2 + 100;
+  return;
+}
+

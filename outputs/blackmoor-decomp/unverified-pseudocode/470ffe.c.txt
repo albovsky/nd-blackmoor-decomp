@@ -1,0 +1,61 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x470ffe
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_00470ffe(short param_1,short param_2)
+
+{
+  int iVar1;
+  int in_ECX;
+  short local_c;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0xd28) * 0x8d);
+  if (*(char *)(in_ECX + 0xd3e) != '\0') {
+    if ((((*(int *)(iVar1 + 0x100) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar1 + 0x108))) &&
+        (*(int *)(iVar1 + 0xfc) <= (int)param_1)) && ((int)param_1 <= *(int *)(iVar1 + 0x104))) {
+      DAT_005b44f0 = 9;
+      DAT_005b44f4 = 1;
+      DAT_005c39e5 = 0x27ad;
+      _DAT_005d162d = DAT_005d0377;
+      _DAT_005d1631 = &DAT_005b173c;
+      _DAT_005d1639 = 1;
+      return 1;
+    }
+    for (local_c = 0; local_c < *(short *)(iVar1 + 0x21); local_c = local_c + 1) {
+      if (((*(char *)(in_ECX + 0xd3b) == '\0') &&
+          (*(int *)(in_ECX + 0x660 + local_c * 0x10) <= (int)param_2)) &&
+         (((int)param_2 <= *(int *)(in_ECX + 0x668 + local_c * 0x10) &&
+          ((*(int *)(in_ECX + 0x65c + local_c * 0x10) <= (int)param_1 &&
+           ((int)param_1 <= *(int *)(in_ECX + 0x664 + local_c * 0x10))))))) {
+        DAT_005b44f0 = 0x16;
+        DAT_005b44f4 = 1;
+        _DAT_005d162d = DAT_005d0377;
+        _DAT_005d1631 = &DAT_005b18dc;
+        _DAT_005d1639 = 1;
+        DAT_005c39e5 = 0x27a6;
+        *(short *)(in_ECX + 0xd2a) = local_c;
+        return 1;
+      }
+    }
+    if (((((*(char *)(in_ECX + 0xd3b) == '\0') && (*(char *)(iVar1 + 0x24) != '\0')) &&
+         (*(int *)(iVar1 + 0x39) <= (int)param_2)) &&
+        (((int)param_2 <= *(int *)(iVar1 + 0x41) && (*(int *)(iVar1 + 0x35) <= (int)param_1)))) &&
+       ((int)param_1 <= *(int *)(iVar1 + 0x3d))) {
+      DAT_005b44f0 = 0x16;
+      DAT_005b44f4 = 1;
+      _DAT_005d162d = DAT_005d0377;
+      _DAT_005d1631 = &DAT_005b18dc;
+      _DAT_005d1639 = 1;
+      DAT_005c39e5 = 0x27a6;
+      *(undefined2 *)(in_ECX + 0xd2a) = 0x28;
+      return 1;
+    }
+  }
+  *(undefined2 *)(in_ECX + 0xd2a) = 0xffff;
+  return 0;
+}
+

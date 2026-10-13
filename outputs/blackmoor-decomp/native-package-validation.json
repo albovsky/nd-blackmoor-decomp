@@ -1,0 +1,11 @@
+{
+  "scope": "clean local signed archive extraction; headless startup/scene diagnostic; no window or output device",
+  "signed_archive": "Blackmoor Reconstruction.app.zip",
+  "strict_signature_validation": "passed",
+  "executable_sha256": "94c3b784ca91f500aae6f1702484f7961f641366406a453c33f261c9159846b3",
+  "headless_startup": "passed through original NewGame resource selection",
+  "headless_scene_runtime": "passed S0 caption+offline voice+hotspot to resource-requested S5900 first frame",
+  "archive_contains_verified_executable": true,
+  "workspace_app_metadata": "File Provider can attach FinderInfo; clean archive and Run copy avoid metadata issue",
+  "live_gameplay_complete": false
+}

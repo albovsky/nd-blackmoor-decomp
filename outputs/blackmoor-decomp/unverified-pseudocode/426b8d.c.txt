@@ -1,0 +1,46 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x426b8d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+undefined4 FUN_00426b8d(void)
+
+{
+  short sVar1;
+  DWORD idThread;
+  undefined4 uVar2;
+  int iVar3;
+  int in_ECX;
+  
+  idThread = GetCurrentThreadId();
+  GetKeyboardLayout(idThread);
+  FUN_0051d97f();
+  FUN_00524da3(4);
+  FUN_00524fe7(0,0xc0c0c0);
+  *(undefined4 *)(in_ECX + 0xca202) = 0;
+  sVar1 = FUN_00435015();
+  if (sVar1 == 0) {
+    uVar2 = 0;
+  }
+  else {
+    FUN_0043f0fb();
+    iVar3 = FUN_004c1572();
+    if (iVar3 == 0) {
+      if (DAT_0063a561 == 0) {
+        FUN_0042639d(s_Unable_to_create_window_005454d4,s_Nancy_Drew__The_Curse_of_Blackmo_005454a8)
+        ;
+      }
+      else {
+        FUN_004264e8(s_You_are_already_running_this_pro_00545468);
+      }
+      uVar2 = 0;
+    }
+    else {
+      FUN_00426d0f();
+      uVar2 = 1;
+    }
+  }
+  return uVar2;
+}
+

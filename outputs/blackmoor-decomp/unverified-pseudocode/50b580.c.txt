@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50b580
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_14398f730fa9c49e7db80307b54fbb5d04baa803ce1c29895906ff2fa90b272c
+ */
+
+undefined4 FUN_0050b580(int param_1,int param_2)
+
+{
+  param_2 = *(int *)(param_1 + 8) + param_2;
+  if (*(int *)(param_1 + 4) < param_2) {
+    return 0xffffffff;
+  }
+  *(int *)(param_1 + 8) = param_2;
+  return 0;
+}
+

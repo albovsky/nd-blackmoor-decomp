@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x40769e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9898ee3dd29de1cd9f576346b0a9ae1f1061f4efc32a7db77236610d8adfef6
+ */
+
+void FUN_0040769e(void)
+
+{
+  if (DAT_005e35e2 == 1) {
+    DAT_005e35e2 = 0;
+  }
+  else {
+    DAT_005e35e2 = 1;
+    if (DAT_005e335e == 0x36) {
+      DAT_005e335e = -1;
+    }
+  }
+  FUN_00404be1();
+  return;
+}
+

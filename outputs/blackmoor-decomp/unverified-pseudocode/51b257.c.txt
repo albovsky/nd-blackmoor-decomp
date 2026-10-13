@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51b257
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+/* Library Function - Single Match
+    public: virtual __thiscall CWnd::~CWnd(void)
+   
+   Library: Visual Studio 2003 Release */
+
+void __thiscall CWnd::~CWnd(CWnd *this)
+
+{
+  int iVar1;
+  undefined4 *extraout_ECX;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(undefined4 **)(unaff_EBP + -0x10) = extraout_ECX;
+  *extraout_ECX = &PTR_LAB_0052ea60;
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  if ((((extraout_ECX[7] != 0) && (extraout_ECX != (undefined4 *)&DAT_0063c318)) &&
+      (extraout_ECX != (undefined4 *)&DAT_0063c2d8)) &&
+     ((extraout_ECX != (undefined4 *)&DAT_0063c298 && (extraout_ECX != (undefined4 *)&DAT_0063c258))
+     )) {
+    FUN_0051b414();
+  }
+  if ((int *)extraout_ECX[0xd] != (int *)0x0) {
+    (**(code **)(*(int *)extraout_ECX[0xd] + 4))(1);
+  }
+  iVar1 = extraout_ECX[0xe];
+  if ((iVar1 != 0) && (*(undefined4 **)(iVar1 + 0x24) == extraout_ECX)) {
+    *(undefined4 *)(iVar1 + 0x24) = 0;
+  }
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  FUN_0051d730();
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

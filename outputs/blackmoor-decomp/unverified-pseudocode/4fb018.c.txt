@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4fb018
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+void FUN_004fb018(void)
+
+{
+  short local_8;
+  
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_CSound__StopAndUnloadSceneSpecif_00560678);
+  }
+  FUN_004fc05d();
+  for (local_8 = 0; local_8 < 0xe; local_8 = local_8 + 1) {
+    FUN_004fc808(local_8);
+  }
+  return;
+}
+

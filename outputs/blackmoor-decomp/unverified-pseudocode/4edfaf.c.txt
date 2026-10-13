@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4edfaf
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e731b644a5c720787f42bc3e741b2e19c9bb1b49c397d136b9ddf0255f267052
+ */
+
+void FUN_004edfaf(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x4af) == 3) {
+    *(int *)(in_ECX + 0x689) =
+         (*(int *)(in_ECX + 0x665) + ((*(int *)(in_ECX + 0x66d) - *(int *)(in_ECX + 0x665)) + 1) / 2
+         ) - (int)DAT_005b3790 / 2;
+    *(int *)(in_ECX + 0x68d) =
+         (*(int *)(in_ECX + 0x669) + ((*(int *)(in_ECX + 0x671) - *(int *)(in_ECX + 0x669)) + 1) / 2
+         ) - (int)DAT_005b3792 / 2;
+  }
+  else {
+    *(int *)(in_ECX + 0x689) =
+         (*(int *)(in_ECX + 0x1c) + ((*(int *)(in_ECX + 0x24) - *(int *)(in_ECX + 0x1c)) + 1) / 2) -
+         (int)DAT_005b3790 / 2;
+    *(int *)(in_ECX + 0x68d) =
+         (*(int *)(in_ECX + 0x20) + ((*(int *)(in_ECX + 0x28) - *(int *)(in_ECX + 0x20)) + 1) / 2) -
+         (int)DAT_005b3792 / 2;
+  }
+  FUN_004db993(*(undefined4 *)(in_ECX + 0x689),*(undefined4 *)(in_ECX + 0x68d));
+  return;
+}
+

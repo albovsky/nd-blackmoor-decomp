@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50eace
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+LPVOID FUN_0050eace(uint param_1)
+
+{
+  LPVOID pvVar1;
+  
+  if (param_1 <= DAT_00568b78) {
+    FUN_00512c18(9);
+    pvVar1 = (LPVOID)FUN_005152b9(param_1);
+    FUN_00512c79(9);
+    if (pvVar1 != (LPVOID)0x0) {
+      return pvVar1;
+    }
+  }
+  if (param_1 == 0) {
+    param_1 = 1;
+  }
+  pvVar1 = HeapAlloc(DAT_0063cdd8,0,param_1 + 0xf & 0xfffffff0);
+  return pvVar1;
+}
+

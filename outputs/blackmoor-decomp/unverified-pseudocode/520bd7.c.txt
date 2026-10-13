@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520bd7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+void FUN_00520bd7(int param_1)
+
+{
+  HGDIOBJ h;
+  HGDIOBJ pvVar1;
+  int in_ECX;
+  
+  h = GetStockObject(param_1);
+  pvVar1 = (HGDIOBJ)0x0;
+  if (*(HDC *)(in_ECX + 4) != *(HDC *)(in_ECX + 8)) {
+    pvVar1 = SelectObject(*(HDC *)(in_ECX + 4),h);
+  }
+  if (*(HDC *)(in_ECX + 8) != (HDC)0x0) {
+    pvVar1 = SelectObject(*(HDC *)(in_ECX + 8),h);
+  }
+  FUN_00520fbf(pvVar1);
+  return;
+}
+

@@ -1,0 +1,64 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42e006
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0042e006(short param_1,int param_2)
+
+{
+  if ((*(int *)(param_2 + 0xc) < *(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42)) ||
+     (*(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42) < *(int *)(param_2 + 4))) {
+    if (((*(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42) <= *(int *)(param_2 + 0xc)) &&
+        (*(int *)(param_2 + 0xc) <= *(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42))) ||
+       ((*(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42) <= *(int *)(param_2 + 4) &&
+        (*(int *)(param_2 + 4) <= *(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42))))) {
+      if (*(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42) < *(int *)(param_2 + 4)) {
+        DAT_005b50c3 = *(int *)(param_2 + 4);
+      }
+      else {
+        DAT_005b50c3 = *(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42);
+      }
+      if (*(int *)(param_2 + 0xc) < *(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42)) {
+        DAT_005b50cb = *(int *)(param_2 + 0xc);
+      }
+      else {
+        DAT_005b50cb = *(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42);
+      }
+      _DAT_005b50b3 =
+           *(int *)(DAT_005b5120 + 0x26 + param_1 * 0x42) +
+           (DAT_005b50c3 - *(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42));
+      _DAT_005b50bb =
+           *(int *)(DAT_005b5120 + 0x2e + param_1 * 0x42) -
+           (*(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42) - DAT_005b50cb);
+      _DAT_005b50af = *(undefined4 *)(DAT_005b5120 + 0x22 + param_1 * 0x42);
+      _DAT_005b50b7 = *(undefined4 *)(DAT_005b5120 + 0x2a + param_1 * 0x42);
+      DAT_005b50c3 = (DAT_005b50c3 - *(int *)(param_2 + 4)) + DAT_0058318a;
+      DAT_005b50cb = (DAT_005b50cb - *(int *)(param_2 + 4)) + DAT_0058318a;
+      DAT_005b50bf = *(int *)(DAT_005b5120 + 0x32 + param_1 * 0x42) + DAT_00583186;
+      DAT_005b50c7 = *(int *)(DAT_005b5120 + 0x3a + param_1 * 0x42) + DAT_00583186;
+      DAT_005b5104 = 1;
+    }
+  }
+  else {
+    _DAT_005b50b3 = *(int *)(DAT_005b5120 + 0x26 + param_1 * 0x42);
+    _DAT_005b50bb = *(int *)(DAT_005b5120 + 0x2e + param_1 * 0x42);
+    _DAT_005b50af = *(undefined4 *)(DAT_005b5120 + 0x22 + param_1 * 0x42);
+    _DAT_005b50b7 = *(undefined4 *)(DAT_005b5120 + 0x2a + param_1 * 0x42);
+    DAT_005b50c3 = (*(int *)(DAT_005b5120 + 0x36 + param_1 * 0x42) - *(int *)(param_2 + 4)) +
+                   DAT_0058318a;
+    DAT_005b50cb = (*(int *)(DAT_005b5120 + 0x3e + param_1 * 0x42) - *(int *)(param_2 + 4)) +
+                   DAT_0058318a;
+    DAT_005b50bf = *(int *)(DAT_005b5120 + 0x32 + param_1 * 0x42) + DAT_00583186;
+    DAT_005b50c7 = *(int *)(DAT_005b5120 + 0x3a + param_1 * 0x42) + DAT_00583186;
+    DAT_005b5104 = 1;
+  }
+  _DAT_005b510e = DAT_005b50c3 - DAT_0058318a;
+  _DAT_005b5116 = DAT_005b50cb - DAT_0058318a;
+  _DAT_005b510a = DAT_005b50bf - DAT_00583186;
+  _DAT_005b5112 = DAT_005b50c7 - DAT_00583186;
+  return;
+}
+

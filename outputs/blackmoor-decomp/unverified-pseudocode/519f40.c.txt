@@ -1,0 +1,64 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519f40
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_00519f40(HWND param_1,uint param_2,undefined4 param_3,uint param_4)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  int *piVar3;
+  
+  if (param_1 != (HWND)0x0) {
+    iVar1 = FUN_00525b0f(&LAB_0052496c);
+    if (*(int *)(iVar1 + 0x18) != 0) {
+      FUN_0051d392(param_1);
+      *(undefined4 *)(iVar1 + 0x18) = 0;
+    }
+    if (param_2 == 0x110) {
+      DAT_0063ca00 = RegisterWindowMessageA("commdlg_LBSelChangedNotify");
+      DAT_0063c9fc = RegisterWindowMessageA("commdlg_ShareViolation");
+      DAT_0063c9f8 = RegisterWindowMessageA("commdlg_FileNameOK");
+      DAT_0063c9f4 = RegisterWindowMessageA("commdlg_ColorOK");
+      DAT_0063c9f0 = RegisterWindowMessageA("commdlg_help");
+      _DAT_0063c9ec = RegisterWindowMessageA("commdlg_SetRGBColor");
+      uVar2 = FUN_0051dc77(param_1,0x110,param_3,param_4);
+      return uVar2;
+    }
+    if ((param_2 == DAT_0063c9f0) || ((param_2 == 0x111 && ((short)param_3 == 0x40e)))) {
+      SendMessageA(param_1,0x111,0xe146,0);
+      return 1;
+    }
+    if (0xbfff < param_2) {
+      piVar3 = (int *)FUN_0051ac0b(param_1);
+      iVar1 = FUN_0051f599(&PTR_s_CFileDialog_00530200);
+      if ((iVar1 == 0) || ((*(byte *)((int)piVar3 + 0x92) & 8) == 0)) {
+        if (param_2 == DAT_0063c9fc) {
+          uVar2 = (**(code **)(*piVar3 + 0xd0))(param_4);
+          return uVar2;
+        }
+        if (param_2 == DAT_0063c9f8) {
+          if (DAT_0063c7a4 != 0) {
+            piVar3[0x7d] = param_4;
+          }
+          uVar2 = (**(code **)(*piVar3 + 0xd4))();
+          piVar3[0x7d] = 0;
+          return uVar2;
+        }
+        if (param_2 == DAT_0063ca00) {
+          (**(code **)(*piVar3 + 0xd8))(param_3,param_4 & 0xffff,param_4 >> 0x10);
+        }
+        else if (param_2 == DAT_0063c9f4) {
+          uVar2 = (**(code **)(*piVar3 + 0xd0))();
+          return uVar2;
+        }
+      }
+    }
+  }
+  return 0;
+}
+

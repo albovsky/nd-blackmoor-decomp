@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x407d90
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f077da93048f8988a96399f357fa9b0d462c71f5ee4ac3437f49adc8ae869a09
+ */
+
+undefined4 FUN_00407d90(void)
+
+{
+  return 1;
+}
+

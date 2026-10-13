@@ -1,0 +1,13 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5168ba
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+void FUN_005168ba(undefined4 param_1,uint param_2)
+
+{
+  FUN_00516885(param_1,param_2 & 0xfff7ffff);
+  return;
+}
+

@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525fac
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+void FUN_00525fac(void)
+
+{
+  LPCRITICAL_SECTION lpCriticalSection;
+  int *piVar1;
+  
+  if ((DAT_0063c9e4 != 0) && (DAT_0063c9e4 = DAT_0063c9e4 + -1, DAT_0063c9e0 == 0)) {
+    DeleteCriticalSection((LPCRITICAL_SECTION)&DAT_0063c830);
+    piVar1 = &DAT_0063c7e8;
+    lpCriticalSection = (LPCRITICAL_SECTION)&DAT_0063c848;
+    do {
+      if (*piVar1 != 0) {
+        DeleteCriticalSection(lpCriticalSection);
+        *piVar1 = *piVar1 + -1;
+      }
+      lpCriticalSection = lpCriticalSection + 1;
+      piVar1 = piVar1 + 1;
+    } while ((int)lpCriticalSection < 0x63c9e0);
+  }
+  return;
+}
+

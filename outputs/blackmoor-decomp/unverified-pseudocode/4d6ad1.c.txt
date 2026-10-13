@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d6ad1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b736ef8a907767b6bd5de2b1c70fa87373ac4b8d720af669c98493a6a3d19492
+ */
+
+void FUN_004d6ad1(void)
+
+{
+  char cVar1;
+  DWORD DVar2;
+  int in_ECX;
+  uint uVar3;
+  char *pcVar4;
+  
+  *(undefined4 *)(in_ECX + 0x461) = 0;
+  DVar2 = GetTickCount();
+  *(DWORD *)(in_ECX + 0x465) = DVar2 + (int)*(short *)(in_ECX + 0x2cc);
+  uVar3 = 0xffffffff;
+  pcVar4 = (char *)(in_ECX + 0x96d3);
+  do {
+    if (uVar3 == 0) break;
+    uVar3 = uVar3 - 1;
+    cVar1 = *pcVar4;
+    pcVar4 = pcVar4 + 1;
+  } while (cVar1 != '\0');
+  *(uint *)(in_ECX + 0x469) = ~uVar3 - 1;
+  *(undefined1 *)(in_ECX + 0x46d) = 0;
+  *(undefined4 *)(in_ECX + 0x46e) = 0;
+  *(undefined4 *)(in_ECX + 0x472) = 0;
+  return;
+}
+

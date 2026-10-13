@@ -1,0 +1,62 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x41bf4d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0041bf4d(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  undefined4 *puVar3;
+  short local_c;
+  short local_8;
+  
+  *(undefined2 *)(in_ECX + 0xf73) = 0xffff;
+  *(undefined2 *)(in_ECX + 0xf75) = 0xffff;
+  *(undefined4 *)(in_ECX + 0x6b2) = 0;
+  for (local_c = 0; local_c < 0x4b; local_c = local_c + 1) {
+    *(undefined2 *)(in_ECX + 0x1c + local_c * 0x16) = 0xffff;
+    *(undefined4 *)(in_ECX + 0x1e + local_c * 0x16) = 0;
+    for (local_8 = 0; local_8 < 4; local_8 = local_8 + 1) {
+      *(undefined4 *)(in_ECX + local_c * 0x16 + 0x22 + local_8 * 4) = 0;
+      uVar1 = FUN_004c2c3a(1,1,8,1,s_CONVO_CACHE_pDFSurfHeader_array_00543188);
+      *(undefined4 *)(in_ECX + local_c * 0x16 + 0x22 + local_8 * 4) = uVar1;
+    }
+  }
+  puVar3 = (undefined4 *)(in_ECX + 0xf77);
+  for (iVar2 = 10; iVar2 != 0; iVar2 = iVar2 + -1) {
+    *puVar3 = 0;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = 0;
+  *(undefined4 *)(in_ECX + 0xfa1) = 0;
+  *(undefined4 *)(in_ECX + 0xfa5) = 0;
+  *(undefined4 *)(in_ECX + 0xfa9) = 0;
+  _DAT_0061870b = FUN_0043f31a;
+  _DAT_0061870f = FUN_0043ff18;
+  _DAT_00618713 = FUN_00440dfc;
+  _DAT_00618717 = FUN_004416a2;
+  _DAT_0061871b = FUN_00441931;
+  _DAT_0061871f = FUN_00441d74;
+  _DAT_00618723 = FUN_00443ad8;
+  _DAT_00618727 = FUN_00443ecd;
+  _DAT_0061872b = FUN_0044423f;
+  _DAT_0061872f = FUN_0044499c;
+  _DAT_00618733 = FUN_0044512a;
+  _DAT_00618737 = FUN_00445253;
+  _DAT_0061873b = FUN_004453b7;
+  _DAT_0061873f = FUN_0044551b;
+  _DAT_00618743 = FUN_004455b8;
+  _DAT_00618747 = FUN_004456e1;
+  _DAT_0061874b = FUN_004458d4;
+  _DAT_0061874f = FUN_004459fd;
+  _DAT_00618753 = FUN_00445b26;
+  _DAT_00618757 = FUN_00445c8a;
+  return;
+}
+

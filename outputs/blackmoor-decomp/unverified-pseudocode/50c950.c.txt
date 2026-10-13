@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c950
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c01bda5c208998c8b38f9e1693c1f9d27cef570b0e4d2e523c0f31431a0d762
+ */
+
+/* Library Function - Single Match
+    __global_unwind2
+   
+   Library: Visual Studio */
+
+void __global_unwind2(PVOID param_1)
+
+{
+  RtlUnwind(param_1,(PVOID)0x50c968,(PEXCEPTION_RECORD)0x0,(PVOID)0x0);
+  return;
+}
+

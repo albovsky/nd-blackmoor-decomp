@@ -1,0 +1,1456 @@
+{
+  "chunk_count": 5,
+  "chunk_names": [
+    "PRE1",
+    "DATA",
+    "POST",
+    "KID1",
+    "KID2"
+  ],
+  "chunks": [
+    {
+      "aligned_size": 4,
+      "content_offset": 20,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 0,
+      "name": "PRE1",
+      "offset": 12,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 16,
+      "content_offset": 56,
+      "declared_size": 16,
+      "first_containing_data_index_inferred": 0,
+      "index": 1,
+      "name": "DATA",
+      "offset": 48,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 80,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 2,
+      "name": "POST",
+      "offset": 72,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 44,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 3,
+      "name": "KID1",
+      "offset": 36,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 68,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 4,
+      "name": "KID2",
+      "offset": 60,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 20,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 0,
+      "name": "PRE1",
+      "offset": 12,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 16,
+      "content_offset": 56,
+      "declared_size": 16,
+      "first_containing_data_index_inferred": 0,
+      "index": 1,
+      "name": "DATA",
+      "offset": 48,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 80,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 2,
+      "name": "POST",
+      "offset": 72,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 44,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 3,
+      "name": "KID1",
+      "offset": 36,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 68,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 4,
+      "name": "KID2",
+      "offset": 60,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 20,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 0,
+      "name": "PRE1",
+      "offset": 12,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 16,
+      "content_offset": 56,
+      "declared_size": 16,
+      "first_containing_data_index_inferred": 0,
+      "index": 1,
+      "name": "DATA",
+      "offset": 48,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 80,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 2,
+      "name": "POST",
+      "offset": 72,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 44,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 3,
+      "name": "KID1",
+      "offset": 36,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 68,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 4,
+      "name": "KID2",
+      "offset": 60,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 20,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 0,
+      "name": "PRE1",
+      "offset": 12,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 16,
+      "content_offset": 56,
+      "declared_size": 16,
+      "first_containing_data_index_inferred": 0,
+      "index": 1,
+      "name": "DATA",
+      "offset": 48,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 80,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 2,
+      "name": "POST",
+      "offset": 72,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 44,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 3,
+      "name": "KID1",
+      "offset": 36,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 68,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 4,
+      "name": "KID2",
+      "offset": 60,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 20,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 0,
+      "name": "PRE1",
+      "offset": 12,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 16,
+      "content_offset": 56,
+      "declared_size": 16,
+      "first_containing_data_index_inferred": 0,
+      "index": 1,
+      "name": "DATA",
+      "offset": 48,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 80,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 2,
+      "name": "POST",
+      "offset": 72,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 44,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 3,
+      "name": "KID1",
+      "offset": 36,
+      "selected_by_iteration": true
+    },
+    {
+      "aligned_size": 4,
+      "content_offset": 68,
+      "declared_size": 4,
+      "first_containing_data_index_inferred": 0,
+      "index": 4,
+      "name": "KID2",
+      "offset": 60,
+      "selected_by_iteration": true
+    }
+  ],
+  "data": [
+    {
+      "content_offset": 12,
+      "content_size": 72,
+      "declared_size": 76,
+      "index": 0,
+      "marker_offset": 0,
+      "name": "ROOT",
+      "table_size": 84
+    },
+    {
+      "content_offset": 36,
+      "content_size": 12,
+      "declared_size": 16,
+      "index": 1,
+      "marker_offset": 24,
+      "name": "CHL1",
+      "table_size": 24
+    },
+    {
+      "content_offset": 60,
+      "content_size": 12,
+      "declared_size": 16,
+      "index": 2,
+      "marker_offset": 48,
+      "name": "CHL2",
+      "table_size": 24
+    }
+  ],
+  "data_count": 3,
+  "data_names": [
+    "ROOT",
+    "CHL1",
+    "CHL2"
+  ],
+  "duplicate_iteration_fixture": {
+    "chunk_count": 4,
+    "chunk_names": [
+      "DUP1",
+      "KEEP",
+      "DUP1",
+      "DUP1"
+    ],
+    "chunks": [
+      {
+        "aligned_size": 4,
+        "content_offset": 20,
+        "declared_size": 3,
+        "first_containing_data_index_inferred": 0,
+        "index": 0,
+        "name": "DUP1",
+        "offset": 12,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 4,
+        "content_offset": 32,
+        "declared_size": 4,
+        "first_containing_data_index_inferred": 0,
+        "index": 1,
+        "name": "KEEP",
+        "offset": 24,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 4,
+        "content_offset": 44,
+        "declared_size": 3,
+        "first_containing_data_index_inferred": 0,
+        "index": 2,
+        "name": "DUP1",
+        "offset": 36,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 6,
+        "content_offset": 56,
+        "declared_size": 5,
+        "first_containing_data_index_inferred": 0,
+        "index": 3,
+        "name": "DUP1",
+        "offset": 48,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 4,
+        "content_offset": 20,
+        "declared_size": 3,
+        "first_containing_data_index_inferred": 0,
+        "index": 0,
+        "name": "DUP1",
+        "offset": 12,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 4,
+        "content_offset": 32,
+        "declared_size": 4,
+        "first_containing_data_index_inferred": 0,
+        "index": 1,
+        "name": "KEEP",
+        "offset": 24,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 4,
+        "content_offset": 44,
+        "declared_size": 3,
+        "first_containing_data_index_inferred": 0,
+        "index": 2,
+        "name": "DUP1",
+        "offset": 36,
+        "selected_by_iteration": true
+      },
+      {
+        "aligned_size": 6,
+        "content_offset": 56,
+        "declared_size": 5,
+        "first_containing_data_index_inferred": 0,
+        "index": 3,
+        "name": "DUP1",
+        "offset": 48,
+        "selected_by_iteration": true
+      }
+    ],
+    "data": [
+      {
+        "content_offset": 12,
+        "content_size": 50,
+        "declared_size": 54,
+        "index": 0,
+        "marker_offset": 0,
+        "name": "DUPS",
+        "table_size": 62
+      }
+    ],
+    "data_count": 1,
+    "data_names": [
+      "DUPS"
+    ],
+    "expected_original_flat_order": [
+      "DUP1",
+      "KEEP",
+      "DUP1",
+      "DUP1"
+    ],
+    "fixture": "DUPS=[DUP1(one),KEEP(stay),DUP1(two),DUP1(three)]",
+    "index_elapsed_seconds": 0.001744,
+    "input_sha256": "43159290af0ebe4492a78ca7ec994dd2f0638afe8ad2997784205b5fb5f17db7",
+    "input_size": 62,
+    "label": "duplicate-chunk-fixture",
+    "native_comparison": {
+      "chunk_mismatch_count": 0,
+      "chunk_rows_compared": 4,
+      "data_mismatch_count": 0,
+      "data_rows_compared": 1,
+      "mismatches": [],
+      "native_chunk_sha256": "319967c08078768b5a77fd2d2ae3d4cd0166fcf207d7dbbf5cb34243e2d29bb0",
+      "native_data_index_provenance": "native traversal metadata; original CHiff stores no per-chunk data_index",
+      "native_data_sha256": "cfda64901e4b0cce6cbdc6c019e3f4150e8eb6723341e7180283f7548b955ccb",
+      "original_chunk_sha256": "319967c08078768b5a77fd2d2ae3d4cd0166fcf207d7dbbf5cb34243e2d29bb0",
+      "original_data_sha256": "cfda64901e4b0cce6cbdc6c019e3f4150e8eb6723341e7180283f7548b955ccb",
+      "selection": {
+        "duplicate_first_next_sequences_compared": 1,
+        "first_next_sequences_compared": 2,
+        "mismatches": [],
+        "operations_compared": 11,
+        "selection_mismatch_count": 0
+      }
+    },
+    "selection_traces": [
+      {
+        "after": {
+          "chunk": {
+            "name": "",
+            "pointer": 0,
+            "size": 0
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "",
+            "pointer": 0,
+            "size": 0
+          },
+          "data": {
+            "name": "",
+            "pointer": 0,
+            "size": 0
+          }
+        },
+        "elapsed_seconds": 0.00045950000640004873,
+        "found": true,
+        "kind": "data",
+        "name": "DUPS",
+        "operation": "select_data"
+      },
+      {
+        "after": {
+          "chunk": {
+            "name": "",
+            "pointer": 0,
+            "size": 0
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "",
+            "pointer": 0,
+            "size": 0
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "elapsed_seconds": 0.0001571659231558442,
+        "found": false,
+        "kind": "data",
+        "name": "~!~!",
+        "operation": "select_data_miss"
+      },
+      {
+        "after": {
+          "chunk": {
+            "name": "DUP1",
+            "pointer": 536870932,
+            "size": 3
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "",
+            "pointer": 0,
+            "size": 0
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "elapsed_seconds": 0.00036574993282556534,
+        "found": true,
+        "kind": "chunk",
+        "name": "DUP1",
+        "operation": "select_chunk"
+      },
+      {
+        "after": {
+          "chunk": {
+            "name": "KEEP",
+            "pointer": 536870944,
+            "size": 4
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "DUP1",
+            "pointer": 536870932,
+            "size": 3
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "elapsed_seconds": 0.00022433302365243435,
+        "found": true,
+        "kind": "chunk",
+        "name": "KEEP",
+        "operation": "select_chunk"
+      },
+      {
+        "after": {
+          "chunk": {
+            "name": "KEEP",
+            "pointer": 536870944,
+            "size": 4
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "KEEP",
+            "pointer": 536870944,
+            "size": 4
+          },
+          "data": {
+            "name": "DUPS",
+            "pointer": 536870924,
+            "size": 50
+          }
+        },
+        "elapsed_seconds": 0.0002629590453580022,
+        "found": false,
+        "kind": "chunk",
+        "name": "~!~!",
+        "operation": "select_chunk_miss"
+      },
+      {
+        "end": {
+          "after": {
+            "chunk": {
+              "name": "DUP1",
+              "pointer": 536870968,
+              "size": 5
+            },
+            "data": {
+              "name": "DUPS",
+              "pointer": 536870924,
+              "size": 50
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "DUP1",
+              "pointer": 536870968,
+              "size": 5
+            },
+            "data": {
+              "name": "DUPS",
+              "pointer": 536870924,
+              "size": 50
+            }
+          },
+          "elapsed_seconds": 0.0003160829655826092,
+          "found": false,
+          "kind": "chunk",
+          "name": "DUP1"
+        },
+        "name": "DUP1",
+        "operation": "first_next_sequence",
+        "steps": [
+          {
+            "after": {
+              "chunk": {
+                "name": "DUP1",
+                "pointer": 536870932,
+                "size": 3
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "before": {
+              "chunk": {
+                "name": "KEEP",
+                "pointer": 536870944,
+                "size": 4
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "elapsed_seconds": 0.004375374992378056,
+            "found": true,
+            "kind": "chunk",
+            "name": "DUP1"
+          },
+          {
+            "after": {
+              "chunk": {
+                "name": "DUP1",
+                "pointer": 536870956,
+                "size": 3
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "before": {
+              "chunk": {
+                "name": "DUP1",
+                "pointer": 536870932,
+                "size": 3
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "elapsed_seconds": 0.0005767910042777658,
+            "found": true,
+            "kind": "chunk",
+            "name": "DUP1"
+          },
+          {
+            "after": {
+              "chunk": {
+                "name": "DUP1",
+                "pointer": 536870968,
+                "size": 5
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "before": {
+              "chunk": {
+                "name": "DUP1",
+                "pointer": 536870956,
+                "size": 3
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "elapsed_seconds": 0.0003366670571267605,
+            "found": true,
+            "kind": "chunk",
+            "name": "DUP1"
+          }
+        ]
+      },
+      {
+        "end": {
+          "after": {
+            "chunk": {
+              "name": "KEEP",
+              "pointer": 536870944,
+              "size": 4
+            },
+            "data": {
+              "name": "DUPS",
+              "pointer": 536870924,
+              "size": 50
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "KEEP",
+              "pointer": 536870944,
+              "size": 4
+            },
+            "data": {
+              "name": "DUPS",
+              "pointer": 536870924,
+              "size": 50
+            }
+          },
+          "elapsed_seconds": 0.00026891694869846106,
+          "found": false,
+          "kind": "chunk",
+          "name": "KEEP"
+        },
+        "name": "KEEP",
+        "operation": "first_next_sequence",
+        "steps": [
+          {
+            "after": {
+              "chunk": {
+                "name": "KEEP",
+                "pointer": 536870944,
+                "size": 4
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "before": {
+              "chunk": {
+                "name": "DUP1",
+                "pointer": 536870968,
+                "size": 5
+              },
+              "data": {
+                "name": "DUPS",
+                "pointer": 536870924,
+                "size": 50
+              }
+            },
+            "elapsed_seconds": 0.004244667012244463,
+            "found": true,
+            "kind": "chunk",
+            "name": "KEEP"
+          }
+        ]
+      }
+    ]
+  },
+  "expected_original_flat_order": [
+    "PRE1",
+    "DATA",
+    "POST",
+    "KID1",
+    "KID2"
+  ],
+  "finding": "The original skips one nested DATA extent, then immediately indexes the next nested DATA header as a DATA chunk before continuing; later child DATA passes add KID1 and KID2.",
+  "fixture": "ROOT=[PRE1,CHL1{KID1},CHL2{KID2},POST]",
+  "index_elapsed_seconds": 0.002041,
+  "input_sha256": "e8440e77f0b55b601c85743043375cece459b2cd33c2d9c0b1f8076d61481b56",
+  "input_size": 84,
+  "label": "nested-data-quirk-fixture",
+  "native_comparison": {
+    "chunk_mismatch_count": 0,
+    "chunk_rows_compared": 5,
+    "data_mismatch_count": 0,
+    "data_rows_compared": 3,
+    "mismatches": [],
+    "native_chunk_sha256": "2bfb99027e46530c27334e96324b72ad3220804f7ea13e0944b4507779c05136",
+    "native_data_index_provenance": "native traversal metadata; original CHiff stores no per-chunk data_index",
+    "native_data_sha256": "5e8f842916c74257605a9ec0478671ecaefdb606ced4ab639414efb9fb356cf7",
+    "original_chunk_sha256": "2bfb99027e46530c27334e96324b72ad3220804f7ea13e0944b4507779c05136",
+    "original_data_sha256": "5e8f842916c74257605a9ec0478671ecaefdb606ced4ab639414efb9fb356cf7",
+    "selection": {
+      "duplicate_first_next_sequences_compared": 0,
+      "first_next_sequences_compared": 5,
+      "mismatches": [],
+      "operations_compared": 20,
+      "selection_mismatch_count": 0
+    }
+  },
+  "selection_traces": [
+    {
+      "after": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "ROOT",
+          "pointer": 536870924,
+          "size": 72
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        }
+      },
+      "elapsed_seconds": 0.000485458062030375,
+      "found": true,
+      "kind": "data",
+      "name": "ROOT",
+      "operation": "select_data"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "CHL1",
+          "pointer": 536870948,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "ROOT",
+          "pointer": 536870924,
+          "size": 72
+        }
+      },
+      "elapsed_seconds": 0.00026741705369204283,
+      "found": true,
+      "kind": "data",
+      "name": "CHL1",
+      "operation": "select_data"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "CHL1",
+          "pointer": 536870948,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00033016595989465714,
+      "found": true,
+      "kind": "data",
+      "name": "CHL2",
+      "operation": "select_data"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00028912501875311136,
+      "found": false,
+      "kind": "data",
+      "name": "~!~!",
+      "operation": "select_data_miss"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "PRE1",
+          "pointer": 536870932,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "",
+          "pointer": 0,
+          "size": 0
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00034783396404236555,
+      "found": true,
+      "kind": "chunk",
+      "name": "PRE1",
+      "operation": "select_chunk"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "DATA",
+          "pointer": 536870968,
+          "size": 16
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "PRE1",
+          "pointer": 536870932,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00022658298257738352,
+      "found": true,
+      "kind": "chunk",
+      "name": "DATA",
+      "operation": "select_chunk"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "POST",
+          "pointer": 536870992,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "DATA",
+          "pointer": 536870968,
+          "size": 16
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00024420907720923424,
+      "found": true,
+      "kind": "chunk",
+      "name": "POST",
+      "operation": "select_chunk"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "KID1",
+          "pointer": 536870956,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "POST",
+          "pointer": 536870992,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00029162492137402296,
+      "found": true,
+      "kind": "chunk",
+      "name": "KID1",
+      "operation": "select_chunk"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "KID2",
+          "pointer": 536870980,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "KID1",
+          "pointer": 536870956,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.00035699992440640926,
+      "found": true,
+      "kind": "chunk",
+      "name": "KID2",
+      "operation": "select_chunk"
+    },
+    {
+      "after": {
+        "chunk": {
+          "name": "KID2",
+          "pointer": 536870980,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "before": {
+        "chunk": {
+          "name": "KID2",
+          "pointer": 536870980,
+          "size": 4
+        },
+        "data": {
+          "name": "CHL2",
+          "pointer": 536870972,
+          "size": 12
+        }
+      },
+      "elapsed_seconds": 0.0003112090053036809,
+      "found": false,
+      "kind": "chunk",
+      "name": "~!~!",
+      "operation": "select_chunk_miss"
+    },
+    {
+      "end": {
+        "after": {
+          "chunk": {
+            "name": "DATA",
+            "pointer": 536870968,
+            "size": 16
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "DATA",
+            "pointer": 536870968,
+            "size": 16
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "elapsed_seconds": 0.0004926249384880066,
+        "found": false,
+        "kind": "chunk",
+        "name": "DATA"
+      },
+      "name": "DATA",
+      "operation": "first_next_sequence",
+      "steps": [
+        {
+          "after": {
+            "chunk": {
+              "name": "DATA",
+              "pointer": 536870968,
+              "size": 16
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "KID2",
+              "pointer": 536870980,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "elapsed_seconds": 0.004550833022221923,
+          "found": true,
+          "kind": "chunk",
+          "name": "DATA"
+        }
+      ]
+    },
+    {
+      "end": {
+        "after": {
+          "chunk": {
+            "name": "KID1",
+            "pointer": 536870956,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "KID1",
+            "pointer": 536870956,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "elapsed_seconds": 0.0003351250197738409,
+        "found": false,
+        "kind": "chunk",
+        "name": "KID1"
+      },
+      "name": "KID1",
+      "operation": "first_next_sequence",
+      "steps": [
+        {
+          "after": {
+            "chunk": {
+              "name": "KID1",
+              "pointer": 536870956,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "DATA",
+              "pointer": 536870968,
+              "size": 16
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "elapsed_seconds": 0.0043137079337611794,
+          "found": true,
+          "kind": "chunk",
+          "name": "KID1"
+        }
+      ]
+    },
+    {
+      "end": {
+        "after": {
+          "chunk": {
+            "name": "KID2",
+            "pointer": 536870980,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "KID2",
+            "pointer": 536870980,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "elapsed_seconds": 0.00033433304633945227,
+        "found": false,
+        "kind": "chunk",
+        "name": "KID2"
+      },
+      "name": "KID2",
+      "operation": "first_next_sequence",
+      "steps": [
+        {
+          "after": {
+            "chunk": {
+              "name": "KID2",
+              "pointer": 536870980,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "KID1",
+              "pointer": 536870956,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "elapsed_seconds": 0.00440287496894598,
+          "found": true,
+          "kind": "chunk",
+          "name": "KID2"
+        }
+      ]
+    },
+    {
+      "end": {
+        "after": {
+          "chunk": {
+            "name": "POST",
+            "pointer": 536870992,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "POST",
+            "pointer": 536870992,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "elapsed_seconds": 0.0003223329549655318,
+        "found": false,
+        "kind": "chunk",
+        "name": "POST"
+      },
+      "name": "POST",
+      "operation": "first_next_sequence",
+      "steps": [
+        {
+          "after": {
+            "chunk": {
+              "name": "POST",
+              "pointer": 536870992,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "KID2",
+              "pointer": 536870980,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "elapsed_seconds": 0.004256749991327524,
+          "found": true,
+          "kind": "chunk",
+          "name": "POST"
+        }
+      ]
+    },
+    {
+      "end": {
+        "after": {
+          "chunk": {
+            "name": "PRE1",
+            "pointer": 536870932,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "before": {
+          "chunk": {
+            "name": "PRE1",
+            "pointer": 536870932,
+            "size": 4
+          },
+          "data": {
+            "name": "CHL2",
+            "pointer": 536870972,
+            "size": 12
+          }
+        },
+        "elapsed_seconds": 0.0003225839463993907,
+        "found": false,
+        "kind": "chunk",
+        "name": "PRE1"
+      },
+      "name": "PRE1",
+      "operation": "first_next_sequence",
+      "steps": [
+        {
+          "after": {
+            "chunk": {
+              "name": "PRE1",
+              "pointer": 536870932,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "before": {
+            "chunk": {
+              "name": "POST",
+              "pointer": 536870992,
+              "size": 4
+            },
+            "data": {
+              "name": "CHL2",
+              "pointer": 536870972,
+              "size": 12
+            }
+          },
+          "elapsed_seconds": 0.004136833013035357,
+          "found": true,
+          "kind": "chunk",
+          "name": "PRE1"
+        }
+      ]
+    }
+  ]
+}

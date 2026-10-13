@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4de743
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+void FUN_004de743(void)
+
+{
+  switch(DAT_00583995) {
+  case 0:
+    FUN_004de7c4();
+    break;
+  case 1:
+    FUN_004fb397();
+    DAT_00583995 = 3;
+    break;
+  case 2:
+    FUN_004fb737();
+    DAT_00583995 = 4;
+    break;
+  case 3:
+    FUN_004deed7();
+    break;
+  case 4:
+    FUN_004dfdc9();
+  }
+  return;
+}
+

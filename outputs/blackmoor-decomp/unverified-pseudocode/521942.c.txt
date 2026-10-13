@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521942
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+/* Library Function - Single Match
+    protected: void __thiscall CPropertyPage::Cleanup(void)
+   
+   Library: Visual Studio 2003 Release */
+
+void __thiscall CPropertyPage::Cleanup(CPropertyPage *this)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_00525371();
+  if ((*(int **)(iVar1 + 0x1038) != (int *)0x0) && (*(int *)(this + 0x58) != 0)) {
+    (**(code **)(**(int **)(iVar1 + 0x1038) + 0x14))(*(int *)(this + 0x58));
+    FUN_0050e936(*(undefined4 *)(this + 0x58));
+    *(undefined4 *)(this + 0x58) = 0;
+  }
+  return;
+}
+

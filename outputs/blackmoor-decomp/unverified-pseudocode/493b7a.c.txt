@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x493b7a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+void FUN_00493b7a(int *param_1,int *param_2,int *param_3)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  undefined4 *puVar3;
+  
+  iVar1 = FUN_0051dc43(0xc6);
+  *param_1 = iVar1;
+  if (iVar1 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_0054f784,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_0054f7b0,&DAT_0063888b);
+    FUN_004c97b4();
+  }
+  puVar2 = (undefined4 *)*param_2;
+  puVar3 = (undefined4 *)*param_1;
+  for (iVar1 = 0x31; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  *param_3 = *param_3 + 0xc6;
+  *param_2 = *param_2 + 0xc6;
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_Loaded_AT_RAYCAST_PUZZLE_action_r_0054f7cc);
+  }
+  return;
+}
+

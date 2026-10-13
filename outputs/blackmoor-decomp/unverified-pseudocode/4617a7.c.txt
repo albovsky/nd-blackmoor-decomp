@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4617a7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_54414b0082ebcba364d23e408bbf47fe0ab1b670355f5030623cc5b8f4a5e988
+ */
+
+undefined ** FUN_004617a7(void)
+
+{
+  return &PTR_s_CCollisionPuzzle_0052d048;
+}
+

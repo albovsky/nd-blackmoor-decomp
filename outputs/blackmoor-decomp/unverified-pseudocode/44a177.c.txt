@@ -1,0 +1,92 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44a177
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+undefined4 FUN_0044a177(void)
+
+{
+  byte bVar1;
+  char cVar2;
+  undefined1 uVar3;
+  undefined4 uVar4;
+  undefined3 uVar5;
+  int iVar6;
+  uint uVar7;
+  byte *pbVar8;
+  bool bVar9;
+  byte *local_50;
+  byte *local_48;
+  byte *local_44;
+  undefined4 local_3c;
+  byte local_38 [52];
+  
+  FUN_0050cd72(&DAT_0063888b,0x639dab,&DAT_0063a2c5,&DAT_005b0172,&DAT_00548ab0);
+  cVar2 = FUN_0044a116(0x639dab);
+  if (cVar2 == '\0') {
+    uVar4 = 100;
+  }
+  else {
+    local_3c = FUN_0050d0a9(&DAT_0063888b,&DAT_00548ab8);
+    if (local_3c == 0) {
+      uVar4 = 100;
+    }
+    else {
+      FUN_0050de76(local_3c);
+      FUN_0050de14(&DAT_0063888b,5,local_3c);
+      uVar3 = FUN_0050cb1b(&DAT_0063888b);
+      pbVar8 = local_38;
+      for (iVar6 = 0xc; iVar6 != 0; iVar6 = iVar6 + -1) {
+        pbVar8[0] = 0;
+        pbVar8[1] = 0;
+        pbVar8[2] = 0;
+        pbVar8[3] = 0;
+        pbVar8 = pbVar8 + 4;
+      }
+      pbVar8[0] = 0;
+      pbVar8[1] = 0;
+      FUN_0050de14(local_38,0x31,local_3c);
+      uVar7 = 0xffffffff;
+      pbVar8 = local_38;
+      do {
+        if (uVar7 == 0) break;
+        uVar7 = uVar7 - 1;
+        bVar1 = *pbVar8;
+        pbVar8 = pbVar8 + 1;
+      } while (bVar1 != 0);
+      local_38[~uVar7 - 2] = 0;
+      FUN_0050cee4(local_3c);
+      local_44 = &DAT_005b017c;
+      pbVar8 = local_38;
+      do {
+        local_48 = pbVar8;
+        bVar1 = *local_48;
+        bVar9 = bVar1 < *local_44;
+        if (bVar1 != *local_44) {
+LAB_0044a297:
+          local_48 = (byte *)((1 - (uint)bVar9) - (uint)(bVar9 != 0));
+          local_50 = local_48;
+          goto LAB_0044a29f;
+        }
+        if (bVar1 == 0) break;
+        bVar1 = local_48[1];
+        bVar9 = bVar1 < local_44[1];
+        if (bVar1 != local_44[1]) goto LAB_0044a297;
+        local_44 = local_44 + 2;
+        pbVar8 = local_48 + 2;
+      } while (bVar1 != 0);
+      local_50 = (byte *)0x0;
+LAB_0044a29f:
+      uVar5 = (undefined3)((uint)local_48 >> 8);
+      if (local_50 == (byte *)0x0) {
+        uVar4 = CONCAT31(uVar5,uVar3);
+      }
+      else {
+        uVar4 = CONCAT31(uVar5,100);
+      }
+    }
+  }
+  return uVar4;
+}
+

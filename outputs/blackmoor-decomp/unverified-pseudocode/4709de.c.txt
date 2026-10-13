@@ -1,0 +1,38 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4709de
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136
+ */
+
+undefined4 FUN_004709de(int param_1,int param_2)
+
+{
+  undefined4 uVar1;
+  int local_8;
+  
+  local_8 = param_2 - param_1;
+  if (local_8 < 0) {
+    local_8 = (param_2 + 0x1e) - param_1;
+  }
+  switch(local_8) {
+  case 1:
+    uVar1 = 300;
+    break;
+  case 2:
+    uVar1 = 200;
+    break;
+  case 3:
+    uVar1 = 200;
+    break;
+  case 4:
+    uVar1 = 100;
+    break;
+  case 5:
+    uVar1 = 100;
+    break;
+  default:
+    uVar1 = 0x32;
+  }
+  return uVar1;
+}
+

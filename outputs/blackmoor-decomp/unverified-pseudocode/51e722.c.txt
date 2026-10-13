@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51e722
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+void FUN_0051e722(LONG *param_1)
+
+{
+  LONG LVar1;
+  
+  if (param_1 != (LONG *)PTR_DAT_005679b4) {
+    LVar1 = InterlockedDecrement(param_1);
+    if (LVar1 < 1) {
+      FUN_0051e6a9();
+    }
+  }
+  return;
+}
+

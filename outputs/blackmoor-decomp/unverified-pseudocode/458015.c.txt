@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x458015
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00458015(void)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  
+  _DAT_005a4bd2 = 0;
+  puVar2 = &DAT_005a4bd6;
+  for (iVar1 = 6; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0xffffffff;
+    puVar2 = puVar2 + 1;
+  }
+  *(undefined1 *)puVar2 = 0xff;
+  DAT_005a4c08 = 0;
+  return;
+}
+

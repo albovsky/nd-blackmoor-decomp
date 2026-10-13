@@ -1,0 +1,27 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x501880
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_20c7c52bf11d994d9023881598efe05eb08f3d2ab61411fd9b04f8b74b2165a9
+ */
+
+float10 FUN_00501880(float param_1,float param_2)
+
+{
+  if (param_1 <= 0.0) {
+    if (param_2 < 0.0) {
+      return -SQRT((float10)param_2 * (float10)param_2 + (float10)param_1 * (float10)param_1);
+    }
+    if ((float10)param_2 < -(float10)param_1) {
+      return -SQRT((float10)param_1 * (float10)param_1 - (float10)param_2 * (float10)param_2);
+    }
+    return SQRT((float10)param_2 * (float10)param_2 - (float10)param_1 * (float10)param_1);
+  }
+  if (0.0 < param_2) {
+    return SQRT((float10)param_2 * (float10)param_2 + (float10)param_1 * (float10)param_1);
+  }
+  if (-param_2 < param_1) {
+    return SQRT((float10)param_1 * (float10)param_1 - (float10)param_2 * (float10)param_2);
+  }
+  return -SQRT((float10)param_2 * (float10)param_2 - (float10)param_1 * (float10)param_1);
+}
+

@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5166ab
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+byte FUN_005166ab(uint param_1)
+
+{
+  if (DAT_0063cee0 <= param_1) {
+    return 0;
+  }
+  return *(byte *)((&DAT_0063cde0)[(int)param_1 >> 5] + 4 + (param_1 & 0x1f) * 0x24) & 0x40;
+}
+

@@ -1,0 +1,73 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51b2f1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+void FUN_0051b2f1(void)
+
+{
+  CWinThread *pCVar1;
+  int iVar2;
+  LONG LVar3;
+  LONG LVar4;
+  int *piVar5;
+  CWnd *in_ECX;
+  undefined4 local_30;
+  undefined4 local_2c;
+  undefined4 local_28;
+  undefined4 local_24;
+  
+  pCVar1 = AfxGetThread();
+  if (pCVar1 == (CWinThread *)0x0) goto LAB_0051b33c;
+  if (*(CWnd **)(pCVar1 + 0x1c) == in_ECX) {
+    iVar2 = FUN_00525371();
+    if (*(char *)(iVar2 + 0x14) == '\0') {
+      iVar2 = FUN_00525371();
+      if (pCVar1 == *(CWinThread **)(iVar2 + 4)) {
+        iVar2 = FUN_00524861();
+        if (iVar2 == 0) goto LAB_0051b331;
+      }
+      AfxPostQuitMessage(0);
+    }
+LAB_0051b331:
+    *(undefined4 *)(pCVar1 + 0x1c) = 0;
+  }
+  if (*(CWnd **)(pCVar1 + 0x20) == in_ECX) {
+    *(undefined4 *)(pCVar1 + 0x20) = 0;
+  }
+LAB_0051b33c:
+  if (*(int **)(in_ECX + 0x30) != (int *)0x0) {
+    (**(code **)(**(int **)(in_ECX + 0x30) + 0x50))();
+    *(undefined4 *)(in_ECX + 0x30) = 0;
+  }
+  if (*(int **)(in_ECX + 0x34) != (int *)0x0) {
+    (**(code **)(**(int **)(in_ECX + 0x34) + 4))(1);
+  }
+  *(undefined4 *)(in_ECX + 0x34) = 0;
+  if (((byte)in_ECX[0x24] & 1) != 0) {
+    iVar2 = FUN_0052513f();
+    iVar2 = *(int *)(iVar2 + 0xcc);
+    if ((iVar2 != 0) && (*(int *)(iVar2 + 0x1c) != 0)) {
+      _memset(&local_30,0,0x2c);
+      local_28 = *(undefined4 *)(in_ECX + 0x1c);
+      local_30 = 0x28;
+      local_2c = 1;
+      local_24 = local_28;
+      SendMessageA(*(HWND *)(iVar2 + 0x1c),0x405,0,(LPARAM)&local_30);
+    }
+  }
+  LVar3 = GetWindowLongA(*(HWND *)(in_ECX + 0x1c),-4);
+  FUN_0051ab4b();
+  LVar4 = GetWindowLongA(*(HWND *)(in_ECX + 0x1c),-4);
+  if (LVar4 == LVar3) {
+    piVar5 = (int *)(**(code **)(*(int *)in_ECX + 0x80))();
+    if (*piVar5 != 0) {
+      SetWindowLongA(*(HWND *)(in_ECX + 0x1c),-4,*piVar5);
+    }
+  }
+  CWnd::Detach(in_ECX);
+  (**(code **)(*(int *)in_ECX + 0xa4))();
+  return;
+}
+

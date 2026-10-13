@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42e560
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+void FUN_0042e560(undefined2 param_1)
+
+{
+  DAT_005c3a05 = (undefined2)DAT_005bb57b;
+  DAT_005c3a07 = DAT_005bb57f;
+  DAT_005c3a09 = DAT_005bb50b;
+  DAT_005c3a0b = DAT_005bb593;
+  DAT_005c3a0d = param_1;
+  DAT_005c3a0f = DAT_005bb5a7;
+  DAT_005c3a13 = DAT_005bb5af;
+  return;
+}
+

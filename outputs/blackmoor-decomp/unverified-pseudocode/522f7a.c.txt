@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522f7a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_00522f7a(int param_1)
+
+{
+  if (*(int *)(param_1 + 0x28) == 0) {
+    FUN_0051d0b9(8);
+    *(char **)(param_1 + 0x28) = "AfxFrameOrView42s";
+  }
+  if ((*(uint *)(param_1 + 0x20) & 0x8000) != 0) {
+    if (DAT_0063c7a4 == 0) {
+      return 1;
+    }
+    *(uint *)(param_1 + 0x20) = *(uint *)(param_1 + 0x20) | 0x4000;
+  }
+  if (DAT_0063c7a4 != 0) {
+    *(byte *)(param_1 + 0x2d) = *(byte *)(param_1 + 0x2d) | 2;
+  }
+  return 1;
+}
+

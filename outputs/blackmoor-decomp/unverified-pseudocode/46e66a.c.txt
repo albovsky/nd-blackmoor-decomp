@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46e66a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+/* Library Function - Single Match
+    public: virtual __thiscall COleResizeBar::~COleResizeBar(void)
+   
+   Library: Visual Studio 2003 Debug */
+
+void __thiscall COleResizeBar::~COleResizeBar(COleResizeBar *this)
+
+{
+  void *local_10;
+  undefined1 *puStack_c;
+  undefined4 local_8;
+  
+  puStack_c = &LAB_0052823f;
+  local_10 = ExceptionList;
+  ExceptionList = &local_10;
+  *(undefined ***)this = &PTR_FUN_0052d370;
+  local_8 = 0;
+  FUN_0051e7ba();
+  local_8 = 0xffffffff;
+  FUN_0051d730();
+  ExceptionList = local_10;
+  return;
+}
+

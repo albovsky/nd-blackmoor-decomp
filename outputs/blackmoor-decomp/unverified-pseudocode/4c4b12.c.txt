@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c4b12
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c4b12(int *param_1,undefined2 param_2,int *param_3)
+
+{
+  int iVar1;
+  int iVar2;
+  uint uVar3;
+  int local_14;
+  int local_8;
+  
+  local_8 = *param_1 + param_3[1] * (int)*(short *)((int)param_1 + 0x2f) +
+            *param_3 * (int)DAT_00639895;
+  iVar1 = param_3[3];
+  iVar2 = param_3[1];
+  uVar3 = ((param_3[2] - *param_3) + 1) * (int)DAT_00639895;
+  local_14 = 0;
+  do {
+    if ((iVar1 - iVar2) + 1 <= local_14) {
+      return;
+    }
+    if ((uVar3 & 3) == 0) {
+      FUN_0043efb6(local_8,CONCAT22(param_2,param_2),(int)uVar3 >> 2);
+    }
+    else {
+      if ((uVar3 & 1) != 0) {
+        FUN_004264e8(s_ERROR___FastFloodFillRect_____in_0055462c);
+        FUN_004c97b4();
+        return;
+      }
+      FUN_0043ef77(local_8,param_2,(int)uVar3 >> 1);
+    }
+    local_8 = local_8 + *(short *)((int)param_1 + 0x2f);
+    local_14 = local_14 + 1;
+  } while( true );
+}
+

@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44c384
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+void FUN_0044c384(void)
+
+{
+  FUN_004c2dfb(&DAT_005d03c7);
+  FUN_004c2dfb(&DAT_005d03cb);
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_UnloadPriSecVideoSurfaces_____Un_0054922c);
+  }
+  FUN_004c2dfb(&DAT_005d03bf);
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_UnloadPriSecVideoSurfaces_____Un_0054927c);
+  }
+  FUN_004c2dfb(&DAT_005d03c3);
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_UnloadPriSecVideoSurfaces_____Un_005492cc);
+  }
+  FUN_004c2dfb(&DAT_006381f1);
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_UnloadPriSecVideoSurfaces_____Un_0054931c);
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_UnloadPriSecVideoSurfaces_____ex_00549364);
+  }
+  return;
+}
+

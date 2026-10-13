@@ -1,0 +1,36 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520a5c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+undefined4 FUN_00520a5c(void)
+
+{
+  AFX_MODULE_THREAD_STATE *pAVar1;
+  undefined4 uVar2;
+  int iVar3;
+  undefined4 uVar4;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  pAVar1 = AfxGetModuleThreadState();
+  if ((*(int *)(pAVar1 + 0x1c) == 0) && (*(int *)(unaff_EBP + 8) != 0)) {
+    uVar2 = FUN_0051dc31(&LAB_00521235);
+    iVar3 = FUN_0051dc43(0x48);
+    *(int *)(unaff_EBP + 8) = iVar3;
+    *(undefined4 *)(unaff_EBP + -4) = 0;
+    if (iVar3 == 0) {
+      uVar4 = 0;
+    }
+    else {
+      uVar4 = FUN_0051f7a0(&PTR_s_CTempDC_0052fbc0,4,2);
+    }
+    *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+    *(undefined4 *)(pAVar1 + 0x1c) = uVar4;
+    FUN_0051dc31(uVar2);
+  }
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return *(undefined4 *)(pAVar1 + 0x1c);
+}
+

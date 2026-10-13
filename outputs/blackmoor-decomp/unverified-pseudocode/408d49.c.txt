@@ -1,0 +1,104 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x408d49
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e386b18c20787bc48aa972834711e5868c42e616144977f55cc3e9972895a2f0
+ */
+
+void FUN_00408d49(void)
+
+{
+  undefined4 *in_ECX;
+  void *local_10;
+  undefined1 *puStack_c;
+  int local_8;
+  
+  puStack_c = &LAB_00527242;
+  local_10 = ExceptionList;
+  ExceptionList = &local_10;
+  *in_ECX = &PTR_FUN_0052c3c0;
+  local_8 = 0x27;
+  FUN_00401032();
+  local_8._0_1_ = 0x26;
+  FUN_00401032();
+  local_8._0_1_ = 0x25;
+  FUN_00401032();
+  local_8._0_1_ = 0x24;
+  FUN_00401032();
+  local_8._0_1_ = 0x23;
+  FUN_00401032();
+  local_8._0_1_ = 0x22;
+  FUN_00401032();
+  local_8._0_1_ = 0x21;
+  FUN_00401032();
+  local_8._0_1_ = 0x20;
+  FUN_00401032();
+  local_8._0_1_ = 0x1f;
+  FUN_00401032();
+  local_8._0_1_ = 0x1e;
+  FUN_00401032();
+  local_8._0_1_ = 0x1d;
+  FUN_00401032();
+  local_8._0_1_ = 0x1c;
+  FUN_00401032();
+  local_8._0_1_ = 0x1b;
+  FUN_00401032();
+  local_8._0_1_ = 0x1a;
+  FUN_00401032();
+  local_8._0_1_ = 0x19;
+  FUN_00401032();
+  local_8._0_1_ = 0x18;
+  FUN_00401032();
+  local_8._0_1_ = 0x17;
+  FUN_00401032();
+  local_8._0_1_ = 0x16;
+  FUN_00401032();
+  local_8._0_1_ = 0x15;
+  FUN_00401032();
+  local_8._0_1_ = 0x14;
+  FUN_00401032();
+  local_8._0_1_ = 0x13;
+  FUN_00401032();
+  local_8._0_1_ = 0x12;
+  FUN_00401032();
+  local_8._0_1_ = 0x11;
+  FUN_00401032();
+  local_8._0_1_ = 0x10;
+  FUN_00401032();
+  local_8._0_1_ = 0xf;
+  FUN_00401032();
+  local_8._0_1_ = 0xe;
+  FUN_00401032();
+  local_8._0_1_ = 0xd;
+  FUN_00401032();
+  local_8._0_1_ = 0xc;
+  FUN_00401032();
+  local_8._0_1_ = 0xb;
+  FUN_00401032();
+  local_8._0_1_ = 10;
+  FUN_00401032();
+  local_8._0_1_ = 9;
+  FUN_00401032();
+  local_8._0_1_ = 8;
+  FUN_00401032();
+  local_8._0_1_ = 7;
+  FUN_00401032();
+  local_8._0_1_ = 6;
+  FUN_00401032();
+  local_8._0_1_ = 5;
+  FUN_00401032();
+  local_8._0_1_ = 4;
+  FUN_00401032();
+  local_8._0_1_ = 3;
+  FUN_00401032();
+  local_8._0_1_ = 2;
+  FUN_00401032();
+  local_8._0_1_ = 1;
+  FUN_00401032();
+  local_8 = (uint)local_8._1_3_ << 8;
+  FUN_00401032();
+  local_8 = 0xffffffff;
+  FUN_005218ea();
+  ExceptionList = local_10;
+  return;
+}
+

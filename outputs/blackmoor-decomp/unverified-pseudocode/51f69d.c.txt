@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51f69d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+void FUN_0051f69d(void)
+
+{
+  AFX_MODULE_THREAD_STATE *pAVar1;
+  
+  pAVar1 = AfxGetModuleThreadState();
+  *(int *)(pAVar1 + 0x10) = *(int *)(pAVar1 + 0x10) + 1;
+  return;
+}
+

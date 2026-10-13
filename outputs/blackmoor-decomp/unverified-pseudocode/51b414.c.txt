@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51b414
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+BOOL FUN_0051b414(void)
+
+{
+  int iVar1;
+  BOOL BVar2;
+  CWnd *in_ECX;
+  
+  if (*(int *)(in_ECX + 0x1c) == 0) {
+    return 0;
+  }
+  FUN_0051ab72(0);
+  iVar1 = FUN_0051a57e(*(undefined4 *)(in_ECX + 0x1c));
+  if (*(int **)(in_ECX + 0x38) == (int *)0x0) {
+    BVar2 = DestroyWindow(*(HWND *)(in_ECX + 0x1c));
+  }
+  else {
+    BVar2 = (**(code **)(**(int **)(in_ECX + 0x38) + 0x50))();
+  }
+  if (iVar1 == 0) {
+    CWnd::Detach(in_ECX);
+  }
+  return BVar2;
+}
+

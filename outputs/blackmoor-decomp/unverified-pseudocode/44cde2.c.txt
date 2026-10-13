@@ -1,0 +1,43 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44cde2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+void FUN_0044cde2(int *param_1)
+
+{
+  short sVar1;
+  undefined2 extraout_var;
+  undefined2 uVar2;
+  
+  do {
+    if (*param_1 == 0) {
+      if ((DAT_005b4e0a == 0) && (sVar1 = FUN_0044c479(&DAT_005b4c3a), sVar1 != 2)) {
+        if (DAT_005b4dc8 == 0) {
+          uVar2 = 0;
+          if (DAT_005b4dbc != 0) {
+            FUN_0051dc6c(DAT_005b4dbc);
+            DAT_005b4dbc = 0;
+            uVar2 = extraout_var;
+          }
+          DAT_005b4dbc = FUN_00415176(&DAT_005b4c3e,CONCAT22(uVar2,DAT_005b4e00),0,0,0);
+        }
+        else {
+          if (DAT_005b4db8 != 0) {
+            FUN_0051dc6c(DAT_005b4db8);
+            DAT_005b4db8 = 0;
+          }
+          DAT_005b4db8 = FUN_00415176(&DAT_005b4c3e,DAT_005b4e00,0,0,0);
+        }
+        FUN_0044c4ab(&DAT_005b4c3a);
+        DAT_005b4e0a = 1;
+      }
+    }
+    else {
+      AfxEndThread(0,1);
+    }
+    Sleep(1);
+  } while( true );
+}
+

@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50f65d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+float10 FUN_0050f65d(double param_1,undefined4 *param_2)
+
+{
+  double dVar1;
+  undefined4 uVar2;
+  int iVar3;
+  float10 fVar4;
+  undefined4 uVar5;
+  
+  uVar2 = FUN_005146dc(0x133f,0xffff);
+  uVar5 = (undefined4)((ulonglong)param_1 >> 0x20);
+  if ((param_1._6_2_ & 0x7ff0) != 0x7ff0) {
+    fVar4 = (float10)FUN_005145fe(SUB84(param_1,0),uVar5,param_2);
+    FUN_005146dc(uVar2,0xffff);
+    return (float10)(double)fVar4;
+  }
+  *param_2 = 0xffffffff;
+  iVar3 = FUN_005145a4(SUB84(param_1,0),uVar5);
+  if (0 < iVar3) {
+    dVar1 = _DAT_00568a20;
+    if (iVar3 < 3) goto LAB_0050f6ce;
+    if (iVar3 == 3) {
+      fVar4 = (float10)FUN_00513dac();
+      return fVar4;
+    }
+  }
+  dVar1 = param_1 + 1.0;
+LAB_0050f6ce:
+  fVar4 = (float10)FUN_00513e60(8,0x17,param_1,SUB84(dVar1,0),(int)((ulonglong)dVar1 >> 0x20),uVar2)
+  ;
+  return fVar4;
+}
+

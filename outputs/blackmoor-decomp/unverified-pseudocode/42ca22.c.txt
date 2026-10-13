@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42ca22
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+void FUN_0042ca22(void)
+
+{
+  short *psVar1;
+  int local_8;
+  
+  if ((DAT_005b4ea5 != 0) && (*(short *)(DAT_005b4ead + 0x6d) != 0)) {
+    for (local_8 = 0; local_8 < *(short *)(DAT_005b4ead + 0x6d); local_8 = local_8 + 1) {
+      psVar1 = (short *)(DAT_005b4ea5 + local_8 * 6);
+      if ((psVar1[1] != -1) && (*psVar1 == DAT_005b4e00)) {
+        *(int *)(&DAT_00585801 + psVar1[1] * 4) = (int)psVar1[2];
+      }
+    }
+  }
+  return;
+}
+

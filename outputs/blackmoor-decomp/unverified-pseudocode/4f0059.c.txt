@@ -1,0 +1,1262 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f0059
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_004f0059(void)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  uint uVar3;
+  int in_ECX;
+  undefined2 extraout_var;
+  undefined2 extraout_var_00;
+  undefined2 extraout_var_01;
+  undefined2 extraout_var_02;
+  undefined2 extraout_var_03;
+  undefined2 extraout_var_04;
+  undefined2 extraout_var_05;
+  undefined2 extraout_var_06;
+  undefined2 extraout_var_07;
+  undefined2 extraout_var_08;
+  undefined2 extraout_var_09;
+  undefined2 extraout_var_10;
+  undefined2 extraout_var_11;
+  undefined2 extraout_var_12;
+  undefined2 extraout_var_13;
+  undefined2 extraout_var_14;
+  undefined2 extraout_var_15;
+  undefined2 extraout_var_16;
+  undefined2 extraout_var_17;
+  undefined2 extraout_var_18;
+  undefined2 extraout_var_19;
+  undefined2 extraout_var_20;
+  undefined2 extraout_var_21;
+  undefined2 extraout_var_22;
+  undefined2 extraout_var_23;
+  undefined2 extraout_var_24;
+  undefined2 extraout_var_25;
+  undefined2 extraout_var_26;
+  undefined2 extraout_var_27;
+  undefined2 extraout_var_28;
+  
+  if ((((DAT_00583102 < *(int *)(in_ECX + 4)) &&
+       ((*(int *)(in_ECX + 4) < DAT_00583102 || (DAT_0058310a < *(int *)(in_ECX + 4))))) ||
+      ((*(int *)(in_ECX + 0xc) < DAT_0058310a &&
+       ((*(int *)(in_ECX + 0xc) < DAT_00583102 || (DAT_0058310a < *(int *)(in_ECX + 0xc))))))) ||
+     (((DAT_00583106 < *(int *)(in_ECX + 8) &&
+       ((*(int *)(in_ECX + 8) < DAT_00583106 || (DAT_0058310e < *(int *)(in_ECX + 8))))) ||
+      ((*(int *)(in_ECX + 0x10) < DAT_0058310e &&
+       ((*(int *)(in_ECX + 0x10) < DAT_00583106 || (DAT_0058310e < *(int *)(in_ECX + 0x10))))))))) {
+    uVar1 = 0;
+  }
+  else {
+    if (DAT_00583a29 == -1) {
+      DAT_005b44f0 = 0;
+      DAT_005b44f4 = 0;
+      _DAT_005d162d = DAT_005d0377;
+    }
+    else if ((DAT_00583a29 == -1) || (DAT_005b44f8 == 0)) {
+      if ((DAT_00583a29 != -1) && (DAT_005b44f8 == 0)) {
+        DAT_005b44f0 = (int)DAT_00583a29 + 0x25;
+        _DAT_005d162d = DAT_00571ad3;
+      }
+    }
+    else {
+      DAT_005b44f4 = 0;
+      _DAT_005d162d = DAT_005d0377;
+    }
+    DAT_00583172 = DAT_00583102 - *(int *)(in_ECX + 4);
+    DAT_0058317a = DAT_0058310a - *(int *)(in_ECX + 4);
+    DAT_00583176 = DAT_00583106 - *(int *)(in_ECX + 8);
+    DAT_0058317e = DAT_0058310e - *(int *)(in_ECX + 8);
+    *(int *)(in_ECX + 0x4a) = DAT_00583172;
+    *(int *)(in_ECX + 0x52) = DAT_0058317a;
+    *(int *)(in_ECX + 0x4e) = DAT_00583176 + DAT_005bb587;
+    *(int *)(in_ECX + 0x56) = DAT_0058317e + DAT_005bb587;
+    *(int *)(in_ECX + 0x5a) =
+         *(int *)(in_ECX + 0x4e) + (&DAT_005b30d0)[DAT_005b44f0 * 4 + DAT_005b44f4 * 2];
+    *(int *)(in_ECX + 0x5e) =
+         *(int *)(in_ECX + 0x4a) + (&DAT_005b30cc)[DAT_005b44f0 * 4 + DAT_005b44f4 * 2];
+    DAT_005c3a5b = *(undefined4 *)(in_ECX + 0x5e);
+    DAT_005c3a5f = *(undefined4 *)(in_ECX + 0x5a);
+    if (DAT_005b5158 != '\0') {
+      *(undefined4 *)(in_ECX + 0x62) = 0;
+      while (*(int *)(in_ECX + 0x62) <
+             (int)*(short *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x21)) {
+        if ((((*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x127 +
+                       *(int *)(in_ECX + 0x62) * 0x10) <= *(int *)(in_ECX + 0x5a)) &&
+             (*(int *)(in_ECX + 0x5a) <=
+              *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x12f +
+                      *(int *)(in_ECX + 0x62) * 0x10))) &&
+            (*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x123 +
+                     *(int *)(in_ECX + 0x62) * 0x10) <= *(int *)(in_ECX + 0x5e))) &&
+           (*(int *)(in_ECX + 0x5e) <=
+            *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 299 +
+                    *(int *)(in_ECX + 0x62) * 0x10))) {
+          DAT_005b44f4 = 1;
+          DAT_005b515b = *(undefined2 *)(in_ECX + 0x62);
+          DAT_005c39e5 = 0x2719;
+          _DAT_005d1631 = (undefined4 *)(&DAT_005b161c + DAT_005b44f0 * 0x20);
+          return 1;
+        }
+        *(int *)(in_ECX + 0x62) = *(int *)(in_ECX + 0x62) + 1;
+      }
+      if (((*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x2cf) <=
+            *(int *)(in_ECX + 0x5a)) &&
+          (*(int *)(in_ECX + 0x5a) <=
+           *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x2d7))) &&
+         ((*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x2cb) <=
+           *(int *)(in_ECX + 0x5e) &&
+          (*(int *)(in_ECX + 0x5e) <=
+           *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b5159 * 0x8d) + 0x2d3))))) {
+        DAT_005b44f0 = 9;
+        DAT_005c39e5 = 0x271a;
+        _DAT_005d162d = DAT_005d0377;
+        _DAT_005d1631 = (undefined4 *)(&DAT_005b172c + DAT_005b44f4 * 0x10);
+        _DAT_005d1639 = 1;
+        return 1;
+      }
+    }
+    if (((DAT_005b61af == '\0') ||
+        (*(int *)(in_ECX + 0x5a) < *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) + 0x233)))
+       || ((*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) + 0x23b) <
+            *(int *)(in_ECX + 0x5a) ||
+           ((*(int *)(in_ECX + 0x5e) <
+             *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) + 0x22f) ||
+            (*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) + 0x237) <
+             *(int *)(in_ECX + 0x5e))))))) {
+      if (DAT_005b615e != '\0') {
+        *(int *)(in_ECX + 0x6a) =
+             (int)*(short *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x23);
+        *(int *)(in_ECX + 0x66) =
+             (int)*(short *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x21);
+        DAT_005b6161 = 0xffff;
+        DAT_005b6163 = 0xffff;
+        *(undefined4 *)(in_ECX + 0x7a) = 0;
+        while (*(int *)(in_ECX + 0x7a) < *(int *)(in_ECX + 0x6a)) {
+          *(undefined4 *)(in_ECX + 0x76) = 0;
+          while (*(int *)(in_ECX + 0x76) < *(int *)(in_ECX + 0x66)) {
+            if (((((*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) +
+                             *(int *)(in_ECX + 0x7a) * 0x60 + 0x269 + *(int *)(in_ECX + 0x76) * 0x10
+                            ) <= *(int *)(in_ECX + 0x5a)) &&
+                  (*(int *)(in_ECX + 0x5a) <=
+                   *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) +
+                            *(int *)(in_ECX + 0x7a) * 0x60 + 0x271 + *(int *)(in_ECX + 0x76) * 0x10)
+                  )) && (*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x265 +
+                                  *(int *)(in_ECX + 0x7a) * 0x60 + *(int *)(in_ECX + 0x76) * 0x10)
+                         <= *(int *)(in_ECX + 0x5e))) &&
+                ((*(int *)(in_ECX + 0x5e) <=
+                  *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) +
+                           *(int *)(in_ECX + 0x7a) * 0x60 + 0x26d + *(int *)(in_ECX + 0x76) * 0x10)
+                 && (*(short *)((int)&DAT_00591992 +
+                               *(int *)(in_ECX + 0x76) * 2 + *(int *)(in_ECX + 0x7a) * 0xc) != -10))
+                )) && (((((*(int *)(in_ECX + 0x76) + 1 < *(int *)(in_ECX + 0x66) &&
+                          (*(short *)(*(int *)(in_ECX + 0x7a) * 0xc + 0x591994 +
+                                     *(int *)(in_ECX + 0x76) * 2) == -10)) ||
+                         ((-1 < *(int *)(in_ECX + 0x76) + -1 &&
+                          ((&DAT_00591990)[*(int *)(in_ECX + 0x7a) * 6 + *(int *)(in_ECX + 0x76)] ==
+                           -10)))) ||
+                        ((*(int *)(in_ECX + 0x7a) + 1 < *(int *)(in_ECX + 0x6a) &&
+                         (*(short *)((int)&DAT_00591992 +
+                                    *(int *)(in_ECX + 0x76) * 2 +
+                                    (*(int *)(in_ECX + 0x7a) + 1) * 0xc) == -10)))) ||
+                       ((-1 < *(int *)(in_ECX + 0x7a) + -1 &&
+                        (*(short *)((int)&DAT_00591992 +
+                                   *(int *)(in_ECX + 0x76) * 2 +
+                                   (*(int *)(in_ECX + 0x7a) + -1) * 0xc) == -10)))))) {
+              DAT_005b44f4 = 1;
+              DAT_005b6161 = *(undefined2 *)(in_ECX + 0x76);
+              DAT_005b6163 = *(undefined2 *)(in_ECX + 0x7a);
+              DAT_005c39e5 = 0x2722;
+              _DAT_005d1631 = (undefined4 *)(&DAT_005b161c + DAT_005b44f0 * 0x20);
+              _DAT_005d1639 = 1;
+              return 1;
+            }
+            *(int *)(in_ECX + 0x76) = *(int *)(in_ECX + 0x76) + 1;
+          }
+          *(int *)(in_ECX + 0x7a) = *(int *)(in_ECX + 0x7a) + 1;
+        }
+        if ((((*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x5ce) <=
+               *(int *)(in_ECX + 0x5a)) &&
+             (*(int *)(in_ECX + 0x5a) <=
+              *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x5d6))) &&
+            (*(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x5ca) <=
+             *(int *)(in_ECX + 0x5e))) &&
+           (*(int *)(in_ECX + 0x5e) <=
+            *(int *)(*(int *)(&DAT_005bb5e5 + DAT_005b615f * 0x8d) + 0x5d2))) {
+          DAT_005b44f0 = 9;
+          DAT_005c39e5 = 0x2723;
+          _DAT_005d162d = DAT_005d0377;
+          _DAT_005d1631 = (undefined4 *)(&DAT_005b172c + DAT_005b44f4 * 0x10);
+          _DAT_005d1639 = 1;
+          return 1;
+        }
+      }
+      iVar2 = FUN_00469057(*(undefined2 *)(in_ECX + 0x5e),*(undefined2 *)(in_ECX + 0x5a));
+      if (iVar2 == 0) {
+        iVar2 = FUN_004b42d3(*(undefined2 *)(in_ECX + 0x5e),
+                             CONCAT22(extraout_var,*(undefined2 *)(in_ECX + 0x5a)),in_ECX + 0x4a);
+        if (iVar2 == 0) {
+          iVar2 = FUN_00459cc9(*(undefined2 *)(in_ECX + 0x5e),
+                               CONCAT22(extraout_var_16,*(undefined2 *)(in_ECX + 0x5a)));
+          if (iVar2 == 0) {
+            iVar2 = FUN_004a3f40(*(undefined2 *)(in_ECX + 0x5e),
+                                 CONCAT22(extraout_var_00,*(undefined2 *)(in_ECX + 0x5a)),
+                                 in_ECX + 0x4a);
+            if (iVar2 == 0) {
+              iVar2 = FUN_004acf45(*(undefined2 *)(in_ECX + 0x5e),*(undefined2 *)(in_ECX + 0x5a),
+                                   in_ECX + 0x4a);
+              if (iVar2 == 0) {
+                iVar2 = FUN_0048a920(*(undefined2 *)(in_ECX + 0x5e),
+                                     CONCAT22(extraout_var_01,*(undefined2 *)(in_ECX + 0x5a)));
+                if (iVar2 == 0) {
+                  iVar2 = FUN_004a1e16(*(undefined2 *)(in_ECX + 0x5e),
+                                       CONCAT22(extraout_var_17,*(undefined2 *)(in_ECX + 0x5a)));
+                  if (iVar2 == 0) {
+                    iVar2 = FUN_0048e628(*(undefined2 *)(in_ECX + 0x5e),
+                                         *(undefined2 *)(in_ECX + 0x5a));
+                    if (iVar2 == 0) {
+                      iVar2 = FUN_0048d1e8(*(undefined2 *)(in_ECX + 0x5e),
+                                           CONCAT22(extraout_var_02,*(undefined2 *)(in_ECX + 0x5a)))
+                      ;
+                      if (iVar2 == 0) {
+                        iVar2 = FUN_004a6574(*(undefined2 *)(in_ECX + 0x5e),
+                                             CONCAT22(extraout_var_18,*(undefined2 *)(in_ECX + 0x5a)
+                                                     ));
+                        if (iVar2 == 0) {
+                          iVar2 = FUN_004b5d17(*(undefined2 *)(in_ECX + 0x5e),
+                                               *(undefined2 *)(in_ECX + 0x5a));
+                          if (iVar2 == 0) {
+                            iVar2 = FUN_004ab528(*(undefined2 *)(in_ECX + 0x5e),
+                                                 CONCAT22(extraout_var_03,
+                                                          *(undefined2 *)(in_ECX + 0x5a)));
+                            if (iVar2 == 0) {
+                              iVar2 = FUN_00465c99(*(undefined2 *)(in_ECX + 0x5e),
+                                                   CONCAT22(extraout_var_19,
+                                                            *(undefined2 *)(in_ECX + 0x5a)));
+                              if (iVar2 == 0) {
+                                iVar2 = FUN_00462c39(*(undefined2 *)(in_ECX + 0x5e),
+                                                     *(undefined2 *)(in_ECX + 0x5a));
+                                if (iVar2 == 0) {
+                                  iVar2 = FUN_00487c92(*(undefined2 *)(in_ECX + 0x5e),
+                                                       CONCAT22(extraout_var_04,
+                                                                *(undefined2 *)(in_ECX + 0x5a)));
+                                  if (iVar2 == 0) {
+                                    iVar2 = FUN_004b2250(*(undefined2 *)(in_ECX + 0x5e),
+                                                         CONCAT22(extraout_var_20,
+                                                                  *(undefined2 *)(in_ECX + 0x5a)));
+                                    if (iVar2 == 0) {
+                                      iVar2 = FUN_00479deb(*(undefined2 *)(in_ECX + 0x5e),
+                                                           *(undefined2 *)(in_ECX + 0x5a));
+                                      if (iVar2 == 0) {
+                                        iVar2 = FUN_00475da4(*(undefined2 *)(in_ECX + 0x5e),
+                                                             CONCAT22(extraout_var_05,
+                                                                      *(undefined2 *)(in_ECX + 0x5a)
+                                                                     ));
+                                        if (iVar2 == 0) {
+                                          iVar2 = FUN_0045b5bb(*(undefined2 *)(in_ECX + 0x5e),
+                                                               CONCAT22(extraout_var_21,
+                                                                        *(undefined2 *)
+                                                                         (in_ECX + 0x5a)));
+                                          if (iVar2 == 0) {
+                                            iVar2 = FUN_004571e1(*(undefined2 *)(in_ECX + 0x5e),
+                                                                 *(undefined2 *)(in_ECX + 0x5a));
+                                            if (iVar2 == 0) {
+                                              iVar2 = FUN_0044eab1(*(undefined2 *)(in_ECX + 0x5e),
+                                                                   CONCAT22(extraout_var_06,
+                                                                            *(undefined2 *)
+                                                                             (in_ECX + 0x5a)));
+                                              if (iVar2 == 0) {
+                                                iVar2 = FUN_004b7389(*(undefined2 *)(in_ECX + 0x5e),
+                                                                     CONCAT22(extraout_var_22,
+                                                                              *(undefined2 *)
+                                                                               (in_ECX + 0x5a)));
+                                                if (iVar2 == 0) {
+                                                  iVar2 = FUN_00455180(*(undefined2 *)
+                                                                        (in_ECX + 0x5e),
+                                                                       CONCAT22(extraout_var_07,
+                                                                                *(undefined2 *)
+                                                                                 (in_ECX + 0x5a)),
+                                                                       in_ECX + 0x4a);
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_004aa0f0(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         CONCAT22(extraout_var_23,
+                                                                                  *(undefined2 *)
+                                                                                   (in_ECX + 0x5a)))
+                                                    ;
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_00484f42(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           CONCAT22(extraout_var_08,
+                                                                                    *(undefined2 *)
+                                                                                     (in_ECX + 0x5a)
+                                                                                   ),in_ECX + 0x4a);
+                                                      if (iVar2 == 0) {
+                                                        iVar2 = FUN_0047f421(*(undefined2 *)
+                                                                              (in_ECX + 0x5e),
+                                                                             *(undefined2 *)
+                                                                              (in_ECX + 0x5a),
+                                                                             in_ECX + 0x4a);
+                                                        if (iVar2 == 0) {
+                                                          iVar2 = FUN_004a835c(*(undefined2 *)
+                                                                                (in_ECX + 0x5e),
+                                                                               CONCAT22(
+                                                  extraout_var_24,*(undefined2 *)(in_ECX + 0x5a)),
+                                                  in_ECX + 0x4a);
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_0046bca9(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         CONCAT22(extraout_var_09,
+                                                                                  *(undefined2 *)
+                                                                                   (in_ECX + 0x5a)),
+                                                                         in_ECX + 0x4a);
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_00464792(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           *(undefined2 *)
+                                                                            (in_ECX + 0x5a),
+                                                                           in_ECX + 0x4a);
+                                                      if (iVar2 == 0) {
+                                                        iVar2 = FUN_0046ea16(*(undefined2 *)
+                                                                              (in_ECX + 0x5e),
+                                                                             CONCAT22(
+                                                  extraout_var_10,*(undefined2 *)(in_ECX + 0x5a)));
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_00470ffe(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         CONCAT22(extraout_var_25,
+                                                                                  *(undefined2 *)
+                                                                                   (in_ECX + 0x5a)))
+                                                    ;
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_00467740(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           *(undefined2 *)
+                                                                            (in_ECX + 0x5a));
+                                                      if (iVar2 == 0) {
+                                                        iVar2 = FUN_00473206(*(undefined2 *)
+                                                                              (in_ECX + 0x5e),
+                                                                             CONCAT22(
+                                                  extraout_var_11,*(undefined2 *)(in_ECX + 0x5a)));
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_0045841e(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         *(undefined2 *)
+                                                                          (in_ECX + 0x5a),
+                                                                         in_ECX + 0x4a);
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_0045e1ca(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           CONCAT22(extraout_var_12,
+                                                                                    *(undefined2 *)
+                                                                                     (in_ECX + 0x5a)
+                                                                                   ));
+                                                      if (iVar2 == 0) {
+                                                        iVar2 = FUN_004b81ff(*(undefined2 *)
+                                                                              (in_ECX + 0x5e),
+                                                                             CONCAT22(
+                                                  extraout_var_26,*(undefined2 *)(in_ECX + 0x5a)));
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_0048bd91(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         *(undefined2 *)
+                                                                          (in_ECX + 0x5a));
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_004ba377(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           CONCAT22(extraout_var_13,
+                                                                                    *(undefined2 *)
+                                                                                     (in_ECX + 0x5a)
+                                                                                   ));
+                                                      if (iVar2 == 0) {
+                                                        iVar2 = FUN_0047b4aa(*(undefined2 *)
+                                                                              (in_ECX + 0x5e),
+                                                                             CONCAT22(
+                                                  extraout_var_27,*(undefined2 *)(in_ECX + 0x5a)));
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_0047d734(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         *(undefined2 *)
+                                                                          (in_ECX + 0x5a));
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_0044d28c(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           CONCAT22(extraout_var_14,
+                                                                                    *(undefined2 *)
+                                                                                     (in_ECX + 0x5a)
+                                                                                   ));
+                                                      if (iVar2 == 0) {
+                                                        iVar2 = FUN_00482359(*(undefined2 *)
+                                                                              (in_ECX + 0x5e),
+                                                                             CONCAT22(
+                                                  extraout_var_28,*(undefined2 *)(in_ECX + 0x5a)));
+                                                  if (iVar2 == 0) {
+                                                    iVar2 = FUN_004897cd(*(undefined2 *)
+                                                                          (in_ECX + 0x5e),
+                                                                         *(undefined2 *)
+                                                                          (in_ECX + 0x5a));
+                                                    if (iVar2 == 0) {
+                                                      iVar2 = FUN_004cb058(*(undefined2 *)
+                                                                            (in_ECX + 0x5e),
+                                                                           CONCAT22(extraout_var_15,
+                                                                                    *(undefined2 *)
+                                                                                     (in_ECX + 0x5a)
+                                                                                   ));
+                                                      if (iVar2 == 0) {
+                                                        if (DAT_005b51f6 != '\0') {
+                                                          *(undefined4 *)(in_ECX + 0x62) = 0;
+                                                          while (*(int *)(in_ECX + 0x62) < 0xc) {
+                                                            if (((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                   DAT_005b51fb *
+                                                                                   0x8d) + 0xe5 +
+                                                                          *(int *)(in_ECX + 0x62) *
+                                                                          0x10) <=
+                                                                  *(int *)(in_ECX + 0x5a)) &&
+                                                                (*(int *)(in_ECX + 0x5a) <=
+                                                                 *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                  DAT_005b51fb *
+                                                                                  0x8d) + 0xed +
+                                                                         *(int *)(in_ECX + 0x62) *
+                                                                         0x10))) &&
+                                                               ((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                  DAT_005b51fb *
+                                                                                  0x8d) + 0xe1 +
+                                                                         *(int *)(in_ECX + 0x62) *
+                                                                         0x10) <=
+                                                                 *(int *)(in_ECX + 0x5e) &&
+                                                                (*(int *)(in_ECX + 0x5e) <=
+                                                                 *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                  DAT_005b51fb *
+                                                                                  0x8d) + 0xe9 +
+                                                                         *(int *)(in_ECX + 0x62) *
+                                                                         0x10))))) {
+                                                              DAT_005b44f4 = 1;
+                                                              DAT_005b51fd = *(undefined2 *)
+                                                                              (in_ECX + 0x62);
+                                                              DAT_005c39e5 = 0x2720;
+                                                              _DAT_005d1631 =
+                                                                   (undefined4 *)
+                                                                   (&DAT_005b161c +
+                                                                   DAT_005b44f0 * 0x20);
+                                                              _DAT_005d1639 = 1;
+                                                              return 1;
+                                                            }
+                                                            *(int *)(in_ECX + 0x62) =
+                                                                 *(int *)(in_ECX + 0x62) + 1;
+                                                          }
+                                                          if (((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                 DAT_005b51fb * 0x8d
+                                                                                 ) + 0x61b) <=
+                                                                *(int *)(in_ECX + 0x5a)) &&
+                                                              (*(int *)(in_ECX + 0x5a) <=
+                                                               *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                DAT_005b51fb * 0x8d)
+                                                                       + 0x623))) &&
+                                                             ((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                DAT_005b51fb * 0x8d)
+                                                                       + 0x617) <=
+                                                               *(int *)(in_ECX + 0x5e) &&
+                                                              (*(int *)(in_ECX + 0x5e) <=
+                                                               *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                DAT_005b51fb * 0x8d)
+                                                                       + 0x61f))))) {
+                                                            DAT_005b44f0 = 9;
+                                                            DAT_005c39e5 = 0x2721;
+                                                            _DAT_005d162d = DAT_005d0377;
+                                                            _DAT_005d1631 =
+                                                                 (undefined4 *)
+                                                                 (&DAT_005b172c +
+                                                                 DAT_005b44f4 * 0x10);
+                                                            _DAT_005d1639 = 1;
+                                                            return 1;
+                                                          }
+                                                        }
+                                                        if (DAT_005b51c6 != '\0') {
+                                                          *(undefined4 *)(in_ECX + 0x62) = 0;
+                                                          while (*(int *)(in_ECX + 0x62) < 3) {
+                                                            if ((((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                    DAT_005b51c7 *
+                                                                                    0x8d) + 0xe5 +
+                                                                           *(int *)(in_ECX + 0x62) *
+                                                                           0x10) <=
+                                                                   *(int *)(in_ECX + 0x5a)) &&
+                                                                 (*(int *)(in_ECX + 0x5a) <=
+                                                                  *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                   DAT_005b51c7 *
+                                                                                   0x8d) + 0xed +
+                                                                          *(int *)(in_ECX + 0x62) *
+                                                                          0x10))) &&
+                                                                (*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                  DAT_005b51c7 *
+                                                                                  0x8d) + 0xe1 +
+                                                                         *(int *)(in_ECX + 0x62) *
+                                                                         0x10) <=
+                                                                 *(int *)(in_ECX + 0x5e))) &&
+                                                               (*(int *)(in_ECX + 0x5e) <=
+                                                                *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                 DAT_005b51c7 * 0x8d
+                                                                                 ) + 0xe9 +
+                                                                        *(int *)(in_ECX + 0x62) *
+                                                                        0x10))) {
+                                                              DAT_005b44f4 = 1;
+                                                              DAT_005b51c9 = *(undefined2 *)
+                                                                              (in_ECX + 0x62);
+                                                              DAT_005c39e5 = 0x271e;
+                                                              _DAT_005d1631 =
+                                                                   (undefined4 *)
+                                                                   (&DAT_005b161c +
+                                                                   DAT_005b44f0 * 0x20);
+                                                              _DAT_005d1639 = 1;
+                                                              return 1;
+                                                            }
+                                                            *(int *)(in_ECX + 0x62) =
+                                                                 *(int *)(in_ECX + 0x62) + 1;
+                                                          }
+                                                          if (((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                 DAT_005b51c7 * 0x8d
+                                                                                 ) + 0x1e2) <=
+                                                                *(int *)(in_ECX + 0x5a)) &&
+                                                              (*(int *)(in_ECX + 0x5a) <=
+                                                               *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                DAT_005b51c7 * 0x8d)
+                                                                       + 0x1ea))) &&
+                                                             ((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                DAT_005b51c7 * 0x8d)
+                                                                       + 0x1de) <=
+                                                               *(int *)(in_ECX + 0x5e) &&
+                                                              (*(int *)(in_ECX + 0x5e) <=
+                                                               *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                                DAT_005b51c7 * 0x8d)
+                                                                       + 0x1e6))))) {
+                                                            DAT_005b44f0 = 9;
+                                                            DAT_005c39e5 = 0x271f;
+                                                            _DAT_005d162d = DAT_005d0377;
+                                                            _DAT_005d1631 =
+                                                                 (undefined4 *)
+                                                                 (&DAT_005b172c +
+                                                                 DAT_005b44f4 * 0x10);
+                                                            _DAT_005d1639 = 1;
+                                                            return 1;
+                                                          }
+                                                        }
+                                                        if (DAT_005b51ab != '\0') {
+                                                          *(undefined4 *)(in_ECX + 0x62) = 0;
+                                                          while (*(int *)(in_ECX + 0x62) <
+                                                                 (int)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + DAT_005b51ac * 0x8d) + 0x21)) {
+                                                    if (((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                           DAT_005b51ac * 0x8d) +
+                                                                   0x169 + *(int *)(in_ECX + 0x62) *
+                                                                           0x10) <=
+                                                          *(int *)(in_ECX + 0x5a)) &&
+                                                        (*(int *)(in_ECX + 0x5a) <=
+                                                         *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                          DAT_005b51ac * 0x8d) +
+                                                                  0x171 + *(int *)(in_ECX + 0x62) *
+                                                                          0x10))) &&
+                                                       ((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                          DAT_005b51ac * 0x8d) +
+                                                                  0x165 + *(int *)(in_ECX + 0x62) *
+                                                                          0x10) <=
+                                                         *(int *)(in_ECX + 0x5e) &&
+                                                        (*(int *)(in_ECX + 0x5e) <=
+                                                         *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                          DAT_005b51ac * 0x8d) +
+                                                                  0x16d + *(int *)(in_ECX + 0x62) *
+                                                                          0x10))))) {
+                                                      if (*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                             DAT_005b51ac * 0x8d) +
+                                                                    0x26d) == 0) {
+                                                        DAT_005b44f0 = 10;
+                                                      }
+                                                      else {
+                                                        DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + DAT_005b51ac * 0x8d) + 0x26d);
+                                                  }
+                                                  DAT_005b51ae = *(undefined2 *)(in_ECX + 0x62);
+                                                  DAT_005c39e5 = 0x271b;
+                                                  _DAT_005d162d = DAT_005d0377;
+                                                  _DAT_005d1631 =
+                                                       &DAT_005b160c +
+                                                       DAT_005b44f0 * 8 + DAT_005b44f4 * 4;
+                                                  _DAT_005d1639 = 1;
+                                                  return 1;
+                                                  }
+                                                  *(int *)(in_ECX + 0x62) =
+                                                       *(int *)(in_ECX + 0x62) + 1;
+                                                  }
+                                                  *(undefined4 *)(in_ECX + 0x62) = 0;
+                                                  while (*(int *)(in_ECX + 0x62) <
+                                                         (int)*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                                 DAT_005b51ac * 0x8d
+                                                                                 ) + 0x21)) {
+                                                    if ((((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                            DAT_005b51ac * 0x8d) +
+                                                                    0x1e9 + *(int *)(in_ECX + 0x62)
+                                                                            * 0x10) <=
+                                                           *(int *)(in_ECX + 0x5a)) &&
+                                                         (*(int *)(in_ECX + 0x5a) <=
+                                                          *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                           DAT_005b51ac * 0x8d) +
+                                                                   0x1f1 + *(int *)(in_ECX + 0x62) *
+                                                                           0x10))) &&
+                                                        (*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                          DAT_005b51ac * 0x8d) +
+                                                                  0x1e5 + *(int *)(in_ECX + 0x62) *
+                                                                          0x10) <=
+                                                         *(int *)(in_ECX + 0x5e))) &&
+                                                       (*(int *)(in_ECX + 0x5e) <=
+                                                        *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                         DAT_005b51ac * 0x8d) +
+                                                                 0x1ed + *(int *)(in_ECX + 0x62) *
+                                                                         0x10))) {
+                                                      if (*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                             DAT_005b51ac * 0x8d) +
+                                                                    0x26f) == 0) {
+                                                        DAT_005b44f0 = 0xb;
+                                                      }
+                                                      else {
+                                                        DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + DAT_005b51ac * 0x8d) + 0x26f);
+                                                  }
+                                                  DAT_005b51ae = *(undefined2 *)(in_ECX + 0x62);
+                                                  DAT_005c39e5 = 0x271c;
+                                                  _DAT_005d162d = DAT_005d0377;
+                                                  _DAT_005d1631 =
+                                                       &DAT_005b160c +
+                                                       DAT_005b44f0 * 8 + DAT_005b44f4 * 4;
+                                                  _DAT_005d1639 = 1;
+                                                  return 1;
+                                                  }
+                                                  *(int *)(in_ECX + 0x62) =
+                                                       *(int *)(in_ECX + 0x62) + 1;
+                                                  }
+                                                  if (((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                         DAT_005b51ac * 0x8d) +
+                                                                0x30b) <= *(int *)(in_ECX + 0x5a))
+                                                      && (*(int *)(in_ECX + 0x5a) <=
+                                                          *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                           DAT_005b51ac * 0x8d) +
+                                                                  0x313))) &&
+                                                     ((*(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                        DAT_005b51ac * 0x8d) + 0x307
+                                                               ) <= *(int *)(in_ECX + 0x5e) &&
+                                                      (*(int *)(in_ECX + 0x5e) <=
+                                                       *(int *)(*(int *)(&DAT_005bb5e5 +
+                                                                        DAT_005b51ac * 0x8d) + 0x30f
+                                                               ))))) {
+                                                    DAT_005b44f0 = 9;
+                                                    DAT_005c39e5 = 0x271d;
+                                                    _DAT_005d162d = DAT_005d0377;
+                                                    _DAT_005d1631 =
+                                                         (undefined4 *)
+                                                         (&DAT_005b172c + DAT_005b44f4 * 0x10);
+                                                    _DAT_005d1639 = 1;
+                                                    return 1;
+                                                  }
+                                                  }
+                                                  if (DAT_005a4c1c == 0) {
+                                                    *(undefined4 *)(in_ECX + 0x72) = 0;
+                                                  }
+                                                  else {
+                                                    *(undefined4 *)(in_ECX + 0x72) = 1;
+                                                  }
+                                                  if (*(int *)(in_ECX + 0x72) != 0) {
+                                                    if (((DAT_005bb2cc == 0) || (DAT_005bb587 < 1))
+                                                       || ((DAT_0058316a <
+                                                            (*(int *)(in_ECX + 8) -
+                                                            (int)DAT_005bb2cc) + -10 ||
+                                                           (((*(int *)(in_ECX + 0x38) < DAT_0058316a
+                                                             || (DAT_0058316e <
+                                                                 *(int *)(in_ECX + 0x34))) ||
+                                                            (*(int *)(in_ECX + 0x3c) < DAT_0058316e)
+                                                            ))))) {
+                                                      if (((((DAT_005bb2cc == 0) ||
+                                                            (DAT_005bb58f == DAT_005bb4fd)) ||
+                                                           (DAT_0058316a < *(int *)(in_ECX + 0x40)))
+                                                          || ((*(int *)(in_ECX + 0x10) + 0x28 +
+                                                               (int)DAT_005bb2cc < DAT_0058316a ||
+                                                              (DAT_0058316e <
+                                                               *(int *)(in_ECX + 0x34))))) ||
+                                                         (*(int *)(in_ECX + 0x3c) < DAT_0058316e)) {
+                                                        if ((DAT_005bb2ca == 0) ||
+                                                           ((((DAT_005bb2b6 != 1 &&
+                                                              ((DAT_005bb2b6 != 2 ||
+                                                               (DAT_005bb50b == DAT_005bb4e5)))) ||
+                                                             (DAT_0058316a < *(int *)(in_ECX + 0x38)
+                                                             )) || (((*(int *)(in_ECX + 0x40) <
+                                                                      DAT_0058316a ||
+                                                                     (DAT_0058316e <
+                                                                      (*(int *)(in_ECX + 4) -
+                                                                      (int)DAT_005bb2ca) + -0x2d))
+                                                                    || (*(int *)(in_ECX + 0x34) <
+                                                                        DAT_0058316e)))))) {
+                                                          if (((DAT_005bb2ca == 0) ||
+                                                              (((DAT_005bb2b6 != 1 &&
+                                                                ((DAT_005bb2b6 != 2 ||
+                                                                 (DAT_005bb50b == DAT_005bb4e3))))
+                                                               || ((DAT_0058316a <
+                                                                    *(int *)(in_ECX + 0x38) ||
+                                                                   ((*(int *)(in_ECX + 0x40) <
+                                                                     DAT_0058316a ||
+                                                                    (DAT_0058316e <
+                                                                     *(int *)(in_ECX + 0x3c)))))))))
+                                                             || (*(int *)(in_ECX + 0xc) + 0x2d +
+                                                                 (int)DAT_005bb2ca < DAT_0058316e))
+                                                          {
+                                                            if ((((((DAT_005bb2cc == 0) ||
+                                                                   (DAT_005bb2ca == 0)) ||
+                                                                  (DAT_005bb587 < 1)) ||
+                                                                 ((DAT_005bb2b6 != 1 &&
+                                                                  ((DAT_005bb2b6 != 2 ||
+                                                                   (DAT_005bb50b == DAT_005bb4e5))))
+                                                                 )) || (DAT_0058316a <
+                                                                        (*(int *)(in_ECX + 8) -
+                                                                        (int)DAT_005bb2cc) + -10))
+                                                               || (((*(int *)(in_ECX + 0x38) <
+                                                                     DAT_0058316a ||
+                                                                    (DAT_0058316e <
+                                                                     (*(int *)(in_ECX + 4) -
+                                                                     (int)DAT_005bb2ca) + -0x2d)) ||
+                                                                   (*(int *)(in_ECX + 0x34) <
+                                                                    DAT_0058316e)))) {
+                                                              if ((((DAT_005bb2cc == 0) ||
+                                                                   (DAT_005bb2ca == 0)) ||
+                                                                  (DAT_005bb587 < 1)) ||
+                                                                 (((DAT_005bb2b6 != 1 &&
+                                                                   ((DAT_005bb2b6 != 2 ||
+                                                                    (DAT_005bb50b == DAT_005bb4e3)))
+                                                                   ) || (((DAT_0058316a <
+                                                                           (*(int *)(in_ECX + 8) -
+                                                                           (int)DAT_005bb2cc) + -10
+                                                                          || ((*(int *)(in_ECX + 
+                                                  0x38) < DAT_0058316a ||
+                                                  (DAT_0058316e < *(int *)(in_ECX + 0x3c))))) ||
+                                                  (*(int *)(in_ECX + 0xc) + 0x2d + (int)DAT_005bb2ca
+                                                   < DAT_0058316e)))))) {
+                                                    if ((((((DAT_005bb2cc == 0) ||
+                                                           (DAT_005bb2ca == 0)) ||
+                                                          (DAT_005bb58f == DAT_005bb4fd)) ||
+                                                         ((DAT_005bb2b6 != 1 &&
+                                                          ((DAT_005bb2b6 != 2 ||
+                                                           (DAT_005bb50b == DAT_005bb4e5)))))) ||
+                                                        ((DAT_0058316a < *(int *)(in_ECX + 0x40) ||
+                                                         ((*(int *)(in_ECX + 0x10) +
+                                                           (int)DAT_005bb2cc < DAT_0058316a ||
+                                                          (DAT_0058316e <
+                                                           *(int *)(in_ECX + 4) - (int)DAT_005bb2ca)
+                                                          ))))) ||
+                                                       (*(int *)(in_ECX + 0x34) < DAT_0058316e)) {
+                                                      if (((((DAT_005bb2cc != 0) &&
+                                                            (DAT_005bb2ca != 0)) &&
+                                                           (DAT_005bb58f != DAT_005bb4fd)) &&
+                                                          (((DAT_005bb2b6 == 1 ||
+                                                            ((DAT_005bb2b6 == 2 &&
+                                                             (DAT_005bb50b != DAT_005bb4e3)))) &&
+                                                           (*(int *)(in_ECX + 0x40) <= DAT_0058316a)
+                                                           ))) && (((DAT_0058316a <=
+                                                                     *(int *)(in_ECX + 0x10) +
+                                                                     (int)DAT_005bb2cc &&
+                                                                    (*(int *)(in_ECX + 0x3c) <=
+                                                                     DAT_0058316e)) &&
+                                                                   (DAT_0058316e <=
+                                                                    *(int *)(in_ECX + 0xc) +
+                                                                    (int)DAT_005bb2ca)))) {
+                                                        DAT_005a4c18 = 8;
+                                                      }
+                                                    }
+                                                    else {
+                                                      DAT_005a4c18 = 7;
+                                                    }
+                                                  }
+                                                  else {
+                                                    DAT_005a4c18 = 6;
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005a4c18 = 5;
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005a4c18 = 2;
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005a4c18 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005a4c18 = 4;
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005a4c18 = 3;
+                                                  }
+                                                  }
+                                                  if (DAT_005a4c18 == 0) {
+                                                    _DAT_005d1631 = &DAT_005b160c + DAT_005b44f0 * 8
+                                                    ;
+                                                    _DAT_005d1639 = 1;
+                                                    DAT_005b44f4 = 0;
+                                                    DAT_005b44f8 = 0;
+                                                    *(undefined4 *)(in_ECX + 0x6e) = 0;
+                                                    while (*(int *)(in_ECX + 0x6e) <
+                                                           (int)DAT_005c39e3) {
+                                                      if ((((((*(int *)(in_ECX + 0x6e) !=
+                                                               (int)DAT_005b4e89) &&
+                                                             (*(int *)(in_ECX + 0x6e) !=
+                                                              (int)DAT_005b5100)) &&
+                                                            (*(int *)(&DAT_005bb626 +
+                                                                     *(int *)(in_ECX + 0x6e) * 0x8d)
+                                                             != 0)) &&
+                                                           (((int)*(short *)(&DAT_005bb62c +
+                                                                            *(int *)(in_ECX + 0x6e)
+                                                                            * 0x8d) <=
+                                                             *(int *)(in_ECX + 0x5a) &&
+                                                            (*(int *)(in_ECX + 0x5a) <=
+                                                             (int)*(short *)(&DAT_005bb630 +
+                                                                            *(int *)(in_ECX + 0x6e)
+                                                                            * 0x8d))))) &&
+                                                          ((int)*(short *)(&DAT_005bb62a +
+                                                                          *(int *)(in_ECX + 0x6e) *
+                                                                          0x8d) <=
+                                                           *(int *)(in_ECX + 0x5e))) &&
+                                                         (*(int *)(in_ECX + 0x5e) <=
+                                                          (int)*(short *)(&DAT_005bb62e +
+                                                                         *(int *)(in_ECX + 0x6e) *
+                                                                         0x8d))) {
+                                                        DAT_005c39e5 = *(undefined4 *)
+                                                                        (in_ECX + 0x6e);
+                                                        switch((&DAT_005bb5e3)
+                                                               [*(int *)(in_ECX + 0x6e) * 0x8d]) {
+                                                        case 0xb:
+                                                          if (((**(short **)
+                                                                  (&DAT_005bb5e5 +
+                                                                  *(int *)(in_ECX + 0x6e) * 0x8d) <
+                                                                4) || (0x1a < **(short **)
+                                                                                (&DAT_005bb5e5 +
+                                                                                *(int *)(in_ECX + 
+                                                  0x6e) * 0x8d))) || (DAT_00583a29 == -1)) {
+                                                    if (DAT_00583a29 == -1) {
+                                                      DAT_005b44f0 = (uint)**(short **)
+                                                                             (&DAT_005bb5e5 +
+                                                                             *(int *)(in_ECX + 0x6e)
+                                                                             * 0x8d);
+                                                    }
+                                                  }
+                                                  else {
+                                                    DAT_005b44f8 = 1;
+                                                    DAT_005b44f0 = (uint)**(short **)
+                                                                           (&DAT_005bb5e5 +
+                                                                           *(int *)(in_ECX + 0x6e) *
+                                                                           0x8d);
+                                                  }
+                                                  break;
+                                                  case 0xc:
+                                                    if (((**(short **)
+                                                            (&DAT_005bb5e5 +
+                                                            *(int *)(in_ECX + 0x6e) * 0x8d) < 4) ||
+                                                        (0x1a < **(short **)
+                                                                  (&DAT_005bb5e5 +
+                                                                  *(int *)(in_ECX + 0x6e) * 0x8d)))
+                                                       || (DAT_00583a29 == -1)) {
+                                                      if (DAT_00583a29 == -1) {
+                                                        DAT_005b44f0 = (uint)**(short **)
+                                                                               (&DAT_005bb5e5 +
+                                                                               *(int *)(in_ECX + 
+                                                  0x6e) * 0x8d);
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005b44f8 = 1;
+                                                    DAT_005b44f0 = (uint)**(short **)
+                                                                           (&DAT_005bb5e5 +
+                                                                           *(int *)(in_ECX + 0x6e) *
+                                                                           0x8d);
+                                                  }
+                                                  break;
+                                                  default:
+                                                    if (DAT_00583a29 == -1) {
+                                                      DAT_005b44f0 = 0;
+                                                    }
+                                                    break;
+                                                  case 0xe:
+                                                  case 0xf:
+                                                  case 0x10:
+                                                  case 0x11:
+                                                  case 0x12:
+                                                  case 0x13:
+                                                  case 0x14:
+                                                  case 0x17:
+                                                  case 0x18:
+                                                  case 0x19:
+                                                    if (DAT_00583a29 != -1) {
+                                                      DAT_005b44f8 = 1;
+                                                    }
+                                                    uVar3 = FUN_0040b2d0(CONCAT31((int3)(char)((
+                                                  ushort)DAT_00583a29 >> 8),
+                                                  (&DAT_005bb5e3)[*(int *)(in_ECX + 0x6e) * 0x8d]));
+                                                  DAT_005b44f0 = uVar3 & 0xff;
+                                                  break;
+                                                  case 0x1b:
+                                                    if (DAT_00583a29 == -1) {
+                                                      DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + *(int *)(in_ECX + 0x6e) * 0x8d) + 6
+                                                  );
+                                                  }
+                                                  break;
+                                                  case 0x42:
+                                                    if (DAT_00583a29 == -1) {
+                                                      DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + *(int *)(in_ECX + 0x6e) * 0x8d) +
+                                                  0x2f);
+                                                  }
+                                                  break;
+                                                  case 0x62:
+                                                    if (((*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                             *(int *)(in_ECX + 0x6e)
+                                                                             * 0x8d) + 8) < 4) ||
+                                                        (0x1a < *(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                                   *(int *)(in_ECX +
+                                                                                           0x6e) *
+                                                                                   0x8d) + 8))) ||
+                                                       (DAT_00583a29 == -1)) {
+                                                      if (DAT_00583a29 == -1) {
+                                                        DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + *(int *)(in_ECX + 0x6e) * 0x8d) + 8
+                                                  );
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005b44f8 = 1;
+                                                    DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + *(int *)(in_ECX + 0x6e) * 0x8d) + 8
+                                                  );
+                                                  }
+                                                  break;
+                                                  case 99:
+                                                    if (((*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                             *(int *)(in_ECX + 0x6e)
+                                                                             * 0x8d) + 0x28) < 4) ||
+                                                        (0x1a < *(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                                   *(int *)(in_ECX +
+                                                                                           0x6e) *
+                                                                                   0x8d) + 0x28)))
+                                                       || (DAT_00583a29 == -1)) {
+                                                      if (DAT_00583a29 == -1) {
+                                                        DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + *(int *)(in_ECX + 0x6e) * 0x8d) +
+                                                  0x28);
+                                                  }
+                                                  }
+                                                  else {
+                                                    DAT_005b44f8 = 1;
+                                                    DAT_005b44f0 = (uint)*(short *)(*(int *)(&
+                                                  DAT_005bb5e5 + *(int *)(in_ECX + 0x6e) * 0x8d) +
+                                                  0x28);
+                                                  }
+                                                  break;
+                                                  case 0x7a:
+                                                    _DAT_005d162d = DAT_005d0377;
+                                                    DAT_005b44f0 = 2;
+                                                  }
+                                                  if ((DAT_00583a29 == -1) || (DAT_005b44f8 == 0)) {
+                                                    if ((DAT_00583a29 != -1) && (DAT_005b44f8 == 0))
+                                                    {
+                                                      DAT_005b44f0 = (int)DAT_00583a29 + 0x25;
+                                                      _DAT_005d162d = DAT_00571ad3;
+                                                    }
+                                                  }
+                                                  else {
+                                                    _DAT_005d162d = DAT_005d0377;
+                                                  }
+                                                  DAT_005b44f4 = 1;
+                                                  _DAT_005d1631 =
+                                                       (undefined4 *)
+                                                       (&DAT_005b161c + DAT_005b44f0 * 0x20);
+                                                  _DAT_005d1639 = 1;
+                                                  return 1;
+                                                  }
+                                                  if (((((*(int *)(in_ECX + 0x6e) ==
+                                                          (int)DAT_005b4e89) ||
+                                                        (*(int *)(in_ECX + 0x6e) ==
+                                                         (int)DAT_005b5100)) &&
+                                                       (*(int *)(&DAT_005bb626 +
+                                                                *(int *)(in_ECX + 0x6e) * 0x8d) != 0
+                                                       )) && (((int)*(short *)(&DAT_005bb62c +
+                                                                              *(int *)(in_ECX + 0x6e
+                                                                                      ) * 0x8d) <=
+                                                               *(int *)(in_ECX + 0x5a) &&
+                                                              (*(int *)(in_ECX + 0x5a) <=
+                                                               (int)*(short *)(&DAT_005bb630 +
+                                                                              *(int *)(in_ECX + 0x6e
+                                                                                      ) * 0x8d)))))
+                                                     && (((int)*(short *)(&DAT_005bb62a +
+                                                                         *(int *)(in_ECX + 0x6e) *
+                                                                         0x8d) <=
+                                                          *(int *)(in_ECX + 0x5e) &&
+                                                         (*(int *)(in_ECX + 0x5e) <=
+                                                          (int)*(short *)(&DAT_005bb62e +
+                                                                         *(int *)(in_ECX + 0x6e) *
+                                                                         0x8d))))) {
+                                                    _DAT_005d1631 = (undefined4 *)&DAT_005b167c;
+                                                    if ((*(int *)(in_ECX + 0x6e) ==
+                                                         (int)DAT_005b4e89) &&
+                                                       (*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                           *(int *)(in_ECX + 0x6e) *
+                                                                           0x8d) + 0x48) == 1)) {
+                                                      if (DAT_005b4e14 == 0) {
+                                                        DAT_005b4e14 = 1;
+                                                        DAT_005b4e00 = *(undefined2 *)
+                                                                        (*(int *)(&DAT_005bb5e5 +
+                                                                                 *(int *)(in_ECX + 
+                                                  0x6e) * 0x8d) + 0x50);
+                                                  }
+                                                  }
+                                                  else if ((*(int *)(in_ECX + 0x6e) ==
+                                                            (int)DAT_005b5100) &&
+                                                          ((*(short *)(*(int *)(&DAT_005bb5e5 +
+                                                                               *(int *)(in_ECX + 
+                                                  0x6e) * 0x8d) + 0x48) == 1 && (DAT_005b508b == 0))
+                                                  )) {
+                                                    DAT_005b508b = 1;
+                                                    DAT_005b5077 = *(undefined2 *)
+                                                                    (*(int *)(&DAT_005bb5e5 +
+                                                                             *(int *)(in_ECX + 0x6e)
+                                                                             * 0x8d) + 0x50);
+                                                  }
+                                                  DAT_005b44f0 = 3;
+                                                  DAT_005b44f4 = 1;
+                                                  DAT_005c39e5 = *(undefined4 *)(in_ECX + 0x6e);
+                                                  _DAT_005d162d = DAT_005d0377;
+                                                  _DAT_005d1639 = 1;
+                                                  return 1;
+                                                  }
+                                                  *(int *)(in_ECX + 0x6e) =
+                                                       *(int *)(in_ECX + 0x6e) + 1;
+                                                  }
+                                                  uVar1 = 1;
+                                                  }
+                                                  else {
+                                                    if (DAT_005a4c18 == 1) {
+                                                      if (DAT_005bb2d0 == 0x4d) {
+                                                        DAT_005b44f0 = 0x11;
+                                                      }
+                                                      else {
+                                                        DAT_005b44f0 = 0xe;
+                                                      }
+                                                      _DAT_005d162d = DAT_005d0377;
+                                                    }
+                                                    else if (DAT_005a4c18 == 2) {
+                                                      if (DAT_005bb2d0 == 0x4d) {
+                                                        DAT_005b44f0 = 0x10;
+                                                      }
+                                                      else {
+                                                        DAT_005b44f0 = 0xf;
+                                                      }
+                                                      _DAT_005d162d = DAT_005d0377;
+                                                    }
+                                                    else {
+                                                      DAT_005b44f0 = 0;
+                                                    }
+                                                    _DAT_005d1631 =
+                                                         &DAT_005b160c +
+                                                         DAT_005b44f0 * 8 + DAT_005b44f4 * 4;
+                                                    _DAT_005d1639 = 1;
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                  }
+                                                  else {
+                                                    uVar1 = 1;
+                                                  }
+                                                }
+                                                else {
+                                                  uVar1 = 1;
+                                                }
+                                              }
+                                              else {
+                                                uVar1 = 1;
+                                              }
+                                            }
+                                            else {
+                                              uVar1 = 1;
+                                            }
+                                          }
+                                          else {
+                                            uVar1 = 1;
+                                          }
+                                        }
+                                        else {
+                                          uVar1 = 1;
+                                        }
+                                      }
+                                      else {
+                                        uVar1 = 1;
+                                      }
+                                    }
+                                    else {
+                                      uVar1 = 1;
+                                    }
+                                  }
+                                  else {
+                                    uVar1 = 1;
+                                  }
+                                }
+                                else {
+                                  uVar1 = 1;
+                                }
+                              }
+                              else {
+                                uVar1 = 1;
+                              }
+                            }
+                            else {
+                              uVar1 = 1;
+                            }
+                          }
+                          else {
+                            uVar1 = 1;
+                          }
+                        }
+                        else {
+                          uVar1 = 1;
+                        }
+                      }
+                      else {
+                        uVar1 = 1;
+                      }
+                    }
+                    else {
+                      uVar1 = 1;
+                    }
+                  }
+                  else {
+                    uVar1 = 1;
+                  }
+                }
+                else {
+                  uVar1 = 1;
+                }
+              }
+              else {
+                uVar1 = 1;
+              }
+            }
+            else {
+              uVar1 = 1;
+            }
+          }
+          else {
+            uVar1 = 1;
+          }
+        }
+        else {
+          uVar1 = 1;
+        }
+      }
+      else {
+        uVar1 = 1;
+      }
+    }
+    else {
+      DAT_005b44f0 = 9;
+      _DAT_005d162d = DAT_005d0377;
+      _DAT_005d1631 = (undefined4 *)(&DAT_005b172c + DAT_005b44f4 * 0x10);
+      _DAT_005d1639 = 1;
+      DAT_005c39e5 = 0x2724;
+      uVar1 = 1;
+    }
+  }
+  return uVar1;
+}
+

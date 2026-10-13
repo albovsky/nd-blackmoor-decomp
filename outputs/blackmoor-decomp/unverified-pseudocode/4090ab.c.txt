@@ -1,0 +1,1219 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4090ab
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e386b18c20787bc48aa972834711e5868c42e616144977f55cc3e9972895a2f0
+ */
+
+void FUN_004090ab(void)
+
+{
+  char cVar1;
+  uint uVar2;
+  uint uVar3;
+  char *pcVar4;
+  char *pcVar5;
+  char local_18 [20];
+  
+  if (DAT_005ec2d6 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eb90;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2d6,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2d8 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eb94;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2d8,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2da == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eb98;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2da,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2dc == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eb9c;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2dc,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2de == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eba0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2de,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2e0 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eba4;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2e0,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2e2 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053eba8;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2e2,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2e4 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebac;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2e4,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2e6 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebb0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2e6,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2e8 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebb4;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2e8,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2ea == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebb8;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2ea,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2ec == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebbc;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2ec,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2ee == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebc0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2ee,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2f0 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebc4;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2f0,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2f2 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebc8;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2f2,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2f4 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebcc;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2f4,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2f6 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebd0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2f6,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2f8 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebd4;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2f8,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2fa == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebd8;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2fa,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2fc == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebdc;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2fc,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec2fe == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebe0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec2fe,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec300 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebe4;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec300,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec302 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebe8;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec302,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec304 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebec;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec304,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec306 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebf0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec306,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec308 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebf4;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec308,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec30a == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebf8;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec30a,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec30c == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ebfc;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec30c,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec30e == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec00;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec30e,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec310 == 9999) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec04;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_005193ca((int)DAT_005ec310,local_18,10);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec312 == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec08;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec0c,(double)DAT_005ec312);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec316 == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec10;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec14,(double)DAT_005ec316);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec31a == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec18;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec1c,(double)DAT_005ec31a);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec31e == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec20;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec24,(double)DAT_005ec31e);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec322 == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec28;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec2c,(double)DAT_005ec322);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec326 == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec30;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec34,(double)DAT_005ec326);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec32a == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec38;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec3c,(double)DAT_005ec32a);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec32e == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec40;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec44,(double)DAT_005ec32e);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec332 == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec48;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec4c,(double)DAT_005ec332);
+    FUN_0051d58b();
+  }
+  if (DAT_005ec336 == 9999.0) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_0053ec50;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_18;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+    FUN_0051d58b();
+  }
+  else {
+    FUN_0050ca3e(local_18,&DAT_0053ec54,(double)DAT_005ec336);
+    FUN_0051d58b();
+  }
+  return;
+}
+

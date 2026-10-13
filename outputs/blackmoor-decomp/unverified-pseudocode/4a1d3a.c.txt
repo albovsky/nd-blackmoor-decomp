@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a1d3a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f9d88b0169a812ae2c4ead5dc0ce17ad9653751613cdfaa979f2506d84e4924b
+ */
+
+void FUN_004a1d3a(int *param_1,int *param_2,int *param_3)
+
+{
+  uint uVar1;
+  int iVar2;
+  uint uVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  
+  uVar1 = *(short *)(*param_2 + 0x151) * 0x1e5 + 0x153;
+  iVar2 = FUN_0051dc43(uVar1);
+  *param_1 = iVar2;
+  if (iVar2 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_005502dc,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_00550308,&DAT_0063888b);
+    FUN_004c97b4();
+  }
+  puVar4 = (undefined4 *)*param_2;
+  puVar5 = (undefined4 *)*param_1;
+  for (uVar3 = uVar1 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *puVar5 = *puVar4;
+    puVar4 = puVar4 + 1;
+    puVar5 = puVar5 + 1;
+  }
+  for (uVar3 = uVar1 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+    puVar4 = (undefined4 *)((int)puVar4 + 1);
+    puVar5 = (undefined4 *)((int)puVar5 + 1);
+  }
+  *param_3 = *param_3 + uVar1;
+  *param_2 = *param_2 + uVar1;
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_Loaded_AT_RIDDLE_PUZZLE_action_r_00550324);
+  }
+  return;
+}
+

@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x515c62
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ef606b3611f71cae908ae4dfd9c171d87d1bf5b814f82e9c922d3be8f60ac641
+ */
+
+undefined4 FUN_00515c62(double param_1)
+
+{
+  uint uVar1;
+  float10 fVar2;
+  undefined4 uVar3;
+  undefined8 extraout_var;
+  
+  uVar1 = FUN_00515aa0(param_1);
+  if ((uVar1 & 0x90) == 0) {
+    fVar2 = (float10)__frnd(param_1,extraout_var);
+    if ((double)fVar2 == param_1) {
+      fVar2 = (float10)__frnd();
+      if (fVar2 == (float10)(param_1 / 2.0)) {
+        uVar3 = 2;
+      }
+      else {
+        uVar3 = 1;
+      }
+      return uVar3;
+    }
+  }
+  return 0;
+}
+

@@ -1,0 +1,53 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4571e1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a
+ */
+
+undefined4 FUN_004571e1(short param_1,short param_2)
+
+{
+  int iVar1;
+  int in_ECX;
+  short local_c;
+  
+  if ((*(int *)(in_ECX + 0x3e) != 0) && (*(int *)(in_ECX + 0x2c) == 0)) {
+    iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+    if ((*(int *)(iVar1 + 0x3b) + -5 <= (int)param_2) &&
+       ((((int)param_2 <= *(int *)(iVar1 + 0x43) + 5 && (*(int *)(iVar1 + 0x37) <= (int)param_1)) &&
+        ((int)param_1 <= *(int *)(iVar1 + 0x3f))))) {
+      FUN_0045741d(0x27bc,0);
+      return 1;
+    }
+    if (((*(int *)(iVar1 + 0x4b) + 5 <= (int)param_2) &&
+        ((int)param_2 <= *(int *)(iVar1 + 0x53) + 5)) &&
+       ((*(int *)(iVar1 + 0x47) + 10 <= (int)param_1 &&
+        ((int)param_1 <= *(int *)(iVar1 + 0x4f) + -10)))) {
+      FUN_0045741d(0x27bc,1);
+      return 1;
+    }
+    if (((*(int *)(iVar1 + 0x5b) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar1 + 99))) &&
+       ((*(int *)(iVar1 + 0x57) <= (int)param_1 && ((int)param_1 <= *(int *)(iVar1 + 0x5f))))) {
+      FUN_0045741d(0x27bc,2);
+      return 1;
+    }
+    for (local_c = 0; local_c < *(short *)(iVar1 + 0x25); local_c = local_c + 1) {
+      if ((((*(int *)(iVar1 + 0x9b + local_c * 0x10) <= (int)param_2) &&
+           ((int)param_2 <= *(int *)(iVar1 + 0xa3 + local_c * 0x10))) &&
+          (*(int *)(iVar1 + 0x97 + local_c * 0x10) <= (int)param_1)) &&
+         ((int)param_1 <= *(int *)(iVar1 + 0x9f + local_c * 0x10))) {
+        if (local_c != *(short *)(in_ECX + 0x2a)) {
+          FUN_0045741d(0x27be,(int)local_c);
+        }
+        return 1;
+      }
+    }
+    if (((*(int *)(iVar1 + 0x26f) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar1 + 0x277))) &&
+       ((*(int *)(iVar1 + 0x26b) <= (int)param_1 && ((int)param_1 <= *(int *)(iVar1 + 0x273))))) {
+      FUN_0045741d(0x27bd,0);
+      return 1;
+    }
+  }
+  return 0;
+}
+

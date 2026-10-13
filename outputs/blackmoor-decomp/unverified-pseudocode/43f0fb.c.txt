@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x43f0fb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_a02c75cbc1d4015894407da678b6f6960a9313cc0dac24962171d655dab0d610
+ */
+
+undefined4 * FUN_0043f0fb(void)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  undefined1 local_100 [252];
+  
+  puVar2 = &DAT_0063a5d0;
+  for (iVar1 = 8; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  DAT_0063a5d0 = 0x20;
+  GlobalMemoryStatus((LPMEMORYSTATUS)&DAT_0063a5d0);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(local_100,s_CURRENT_MEMORY_USAGE__Memory_Uti_005477ec,DAT_0063a5d4);
+    FUN_0044a2b7(local_100);
+    FUN_0050ca3e(local_100,s_Total_Physical_Memory___d_Availa_00547820,DAT_0063a5d8,DAT_0063a5dc);
+    FUN_0044a2b7(local_100);
+    FUN_0050ca3e(local_100,s_Total_Virtual_Memory___d_Availab_0054785c,DAT_0063a5e8,DAT_0063a5ec);
+    FUN_0044a2b7(local_100);
+  }
+  return &DAT_0063a5d0;
+}
+

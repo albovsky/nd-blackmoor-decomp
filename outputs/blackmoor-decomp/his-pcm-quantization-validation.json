@@ -1,0 +1,99 @@
+{
+  "case_count": 8,
+  "cases": [
+    {
+      "bits_per_sample": 8,
+      "byte_match": true,
+      "case": "8-bit-stereo-extrema-specials",
+      "channels": 2,
+      "frames_input": 17,
+      "frames_written": 17,
+      "output_bytes": 34,
+      "output_sha256": "62f5322e7970ca384a3a505e41cad8e88050f26e06da9e0283c1afb14c80d95c"
+    },
+    {
+      "bits_per_sample": 16,
+      "byte_match": true,
+      "case": "16-bit-stereo-extrema-specials",
+      "channels": 2,
+      "frames_input": 17,
+      "frames_written": 17,
+      "output_bytes": 68,
+      "output_sha256": "2e40c0a83cdb4f4f77df95e80b8146ff3946d3fff1330123e2e39b82c3b7d51b"
+    },
+    {
+      "bits_per_sample": 8,
+      "byte_match": true,
+      "case": "8-bit-nearest-even-ties",
+      "channels": 1,
+      "frames_input": 6,
+      "frames_written": 6,
+      "output_bytes": 6,
+      "output_sha256": "de63075b199ce23881a755ca538db629acd32316050427fcb05c4cc1e0e1a158"
+    },
+    {
+      "bits_per_sample": 16,
+      "byte_match": true,
+      "case": "16-bit-nearest-even-ties",
+      "channels": 1,
+      "frames_input": 6,
+      "frames_written": 6,
+      "output_bytes": 12,
+      "output_sha256": "8dd655d117f96b22eabb4b6f3a1a2804acf08e3796acc71758e565bb4d26bfcf"
+    },
+    {
+      "bits_per_sample": 8,
+      "byte_match": true,
+      "case": "8-bit-int32-conversion-boundary",
+      "channels": 1,
+      "frames_input": 4,
+      "frames_written": 4,
+      "output_bytes": 4,
+      "output_sha256": "81ff65efc4487853bdb4625559e69ab44f19e0f5efbd6d5b2af5e3ab267c8e06"
+    },
+    {
+      "bits_per_sample": 16,
+      "byte_match": true,
+      "case": "16-bit-int32-conversion-boundary",
+      "channels": 1,
+      "frames_input": 4,
+      "frames_written": 4,
+      "output_bytes": 8,
+      "output_sha256": "419e987812e715c013b32a4a02b332951c13b90be85ac07ec50fdf7a217330e6"
+    },
+    {
+      "bits_per_sample": 16,
+      "byte_match": true,
+      "case": "16-bit-stereo-whole-frame-capacity",
+      "channels": 2,
+      "frames_input": 3,
+      "frames_written": 1,
+      "output_bytes": 4,
+      "output_sha256": "f5e19f6c6bb54f19e47e8aae11bb829724e21dd48db79265a645ba4029f7e6c9"
+    },
+    {
+      "bits_per_sample": 8,
+      "byte_match": true,
+      "case": "8-bit-mono-whole-frame-capacity",
+      "channels": 1,
+      "frames_input": 3,
+      "frames_written": 2,
+      "output_bytes": 2,
+      "output_sha256": "085edad400785fca7e7e90b1fac4beb776fc2beee5aa24352d5f39b5d57efcad"
+    }
+  ],
+  "converter_byte_length": 862,
+  "converter_code_sha256": "57de982dcd417e8686592ed8b479ffc20beac24bfde848141b073fc0de89f7c7",
+  "converter_file_offset": 1041104,
+  "converter_va": "0x004fe2d0",
+  "exe_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "native_library": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/libhis_pcm_quantize.dylib",
+  "native_library_sha256": "6e169c41d26594ee64d49c2e10a8a1029966789c247a4d67f5ce25ff11eaf756",
+  "scope": "float-to-PCM machine-code comparison only; no HIS/Ogg decoder parity claim",
+  "stubbed_external_boundaries": [
+    "0x004ff9a0",
+    "0x004fe290",
+    "0x004ffa00"
+  ],
+  "x87_control_word": "0x037f"
+}

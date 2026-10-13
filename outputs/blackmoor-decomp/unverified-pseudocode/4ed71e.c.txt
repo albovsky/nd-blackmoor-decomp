@@ -1,0 +1,62 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ed71e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e731b644a5c720787f42bc3e741b2e19c9bb1b49c397d136b9ddf0255f267052
+ */
+
+void FUN_004ed71e(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  undefined4 uVar3;
+  int iVar4;
+  char *pcVar5;
+  
+  if ((*(int *)(in_ECX + 0xca0) == 2) || (*(int *)(in_ECX + 0xca0) == 3)) {
+    FUN_004ee86f();
+    *(undefined4 *)(in_ECX + 0xfc6) = 0;
+    while (*(int *)(in_ECX + 0xfc6) < 2) {
+      if (*(int *)(in_ECX + 0x985 + *(int *)(in_ECX + 0xfc6) * 0xf7) != 0) {
+        FUN_004e2b99();
+      }
+      if (*(int *)(in_ECX + 0xfca) == *(int *)(in_ECX + 0x989 + *(int *)(in_ECX + 0xfc6) * 0xf7)) {
+        pcVar5 = s_write_tab_string_0055cd44;
+        iVar2 = in_ECX + 0xc90;
+        iVar4 = in_ECX + 0xc70 + *(int *)(in_ECX + 0xfc6) * 0x10;
+        uVar3 = DAT_005cf665;
+        uVar1 = FUN_004ee630(DAT_005cf665,iVar4,iVar2,s_write_tab_string_0055cd44);
+        FUN_004c5377(uVar1,uVar3,iVar4,iVar2,pcVar5);
+      }
+      *(int *)(in_ECX + 0xfc6) = *(int *)(in_ECX + 0xfc6) + 1;
+    }
+    if ((*(int *)(in_ECX + 0xfca) == 1) && (DAT_005d03a7 != 0)) {
+      FUN_004c5d4b(DAT_005d03a7,DAT_005cf665,in_ECX + 0x28e0,in_ECX + 0xb73,
+                   s_Render_Journal_list_0055cd58);
+    }
+    else if ((*(int *)(in_ECX + 0xfca) == 2) && (DAT_005d03a3 != 0)) {
+      FUN_004c5d4b(DAT_005d03a3,DAT_005cf665,in_ECX + 0x28e0,in_ECX + 0xb73,
+                   s_Render_Task_list_0055cd6c);
+      *(undefined4 *)(in_ECX + 0xfc6) = 0;
+      while (*(int *)(in_ECX + 0xfc6) < (int)*(short *)(in_ECX + 0x28da)) {
+        if (((*(short *)(&DAT_0059f27b + *(int *)(in_ECX + 0xfc6) * 2) == 8) &&
+            (*(int *)(in_ECX + 0xb77) <=
+             *(int *)(in_ECX + 0xfde +
+                     (((int)*(short *)(in_ECX + 0x28da) - *(int *)(in_ECX + 0xfc6)) + -1) * 0x10)))
+           && (*(int *)(in_ECX + 0xfe6 +
+                       (((int)*(short *)(in_ECX + 0x28da) - *(int *)(in_ECX + 0xfc6)) + -1) * 0x10)
+               <= *(int *)(in_ECX + 0xb7f))) {
+          FUN_004c5d4b(DAT_005d0377,DAT_005cf665,
+                       &DAT_005afc7e + (*(short *)(in_ECX + 0xb85) + -1) * 4,
+                       in_ECX + 0xfda +
+                       (((int)*(short *)(in_ECX + 0x28da) - *(int *)(in_ECX + 0xfc6)) + -1) * 0x10,
+                       s_Drawing_checked_box_0055cd80);
+        }
+        *(int *)(in_ECX + 0xfc6) = *(int *)(in_ECX + 0xfc6) + 1;
+      }
+    }
+  }
+  return;
+}
+

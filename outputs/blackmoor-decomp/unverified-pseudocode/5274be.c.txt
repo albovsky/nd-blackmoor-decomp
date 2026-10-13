@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5274be
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006a4e0c0f3816d014729cd22cd3627c49e1859fbb02a66a24789866f81eb18a
+ */
+
+void Unwind_005274be(void)
+
+{
+  int unaff_EBP;
+  
+  Concurrency::SchedulerPolicy::~SchedulerPolicy
+            ((SchedulerPolicy *)(*(int *)(unaff_EBP + -0x10) + 0x135f1));
+  return;
+}
+

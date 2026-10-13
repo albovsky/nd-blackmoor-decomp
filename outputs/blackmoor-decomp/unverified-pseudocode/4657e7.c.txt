@@ -1,0 +1,61 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4657e7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_87c215b6acae2dc5650e31fcd27f76d139aec2c1d8e05fbf5ef1e7fe469374cd
+ */
+
+void FUN_004657e7(void)
+
+{
+  int iVar1;
+  undefined4 local_18;
+  undefined4 local_14;
+  undefined4 local_10;
+  undefined4 local_c;
+  short local_8;
+  
+  if (DAT_00624b76 != 0) {
+    iVar1 = *(int *)(&DAT_005bb5e5 + DAT_00624b6e * 0x8d);
+    if ((DAT_00624b7a != 0) || (DAT_00624b7e != 0)) {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00624b8a,&DAT_00624baa,
+                   s_Cube_Puzzle_RES_area_under_movin_0054b3e8);
+      DAT_00624b7e = 0;
+    }
+    if (DAT_00624b82 != 0) {
+      FUN_0046453b(&DAT_00624bca,&local_18);
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00624bca,&local_18,
+                   s_Cube_Puzzle_RES_area_piece_setup_0054b418);
+      DAT_00624b82 = 0;
+    }
+    for (local_8 = 0; local_8 < 5; local_8 = local_8 + 1) {
+      local_18 = 0;
+      local_14 = 0;
+      local_10 = 0;
+      local_c = 0;
+      if ((DAT_00624b86 != local_8) && (*(int *)(&DAT_00624be4 + local_8 * 4) == 0)) {
+        FUN_00454f29(iVar1 + 0x61 + local_8 * 0x20,&local_18);
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624b6c * 0x4a),DAT_005cf665,
+                     iVar1 + 0x51 + local_8 * 0x20,&local_18,
+                     s_Cube_Puzzle__drawing_in_initial_p_0054b444);
+      }
+      local_c = 0;
+      local_10 = 0;
+      local_14 = 0;
+      local_18 = 0;
+    }
+    FUN_0046453b(iVar1 + 0x41,&local_18);
+    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624b6c * 0x4a),DAT_005cf665,
+                 &DAT_00624bf8,&local_18,s_Cube_Puzzle__drawing_in_initial_p_0054b470);
+    local_18 = 0;
+    local_14 = 0;
+    local_10 = 0;
+    local_c = 0;
+    if (DAT_00624b7a != 0) {
+      FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624b6c * 0x4a),DAT_005cf665,
+                   iVar1 + 0x51 + DAT_00624b86 * 0x20,&DAT_00624bba,
+                   s_CUBE_Puzzle___drawing_moving_pie_0054b49c);
+    }
+  }
+  return;
+}
+

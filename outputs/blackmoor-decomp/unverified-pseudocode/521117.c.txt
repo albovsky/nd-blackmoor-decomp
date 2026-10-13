@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521117
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+void FUN_00521117(HWND param_1,LPCSTR param_2)
+
+{
+  uint uVar1;
+  uint uVar2;
+  int iVar3;
+  CHAR local_104 [256];
+  
+  uVar1 = lstrlenA(param_2);
+  if (((uVar1 < 0x101) && (uVar2 = GetWindowTextA(param_1,local_104,0x100), uVar2 == uVar1)) &&
+     (iVar3 = lstrcmpA(local_104,param_2), iVar3 == 0)) {
+    return;
+  }
+  SetWindowTextA(param_1,param_2);
+  return;
+}
+

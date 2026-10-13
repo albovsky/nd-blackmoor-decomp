@@ -1,0 +1,35 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x45879e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0045879e(short param_1)
+
+{
+  int in_ECX;
+  
+  if (param_1 == 0x279f) {
+    DAT_005b44f0 = 9;
+    DAT_005b44f4 = 1;
+    _DAT_005d1631 = (undefined4 *)&DAT_005b173c;
+  }
+  else {
+    if (*(int *)(in_ECX + 0x20) == 5) {
+      DAT_005b44f0 = 0;
+    }
+    else {
+      DAT_005b44f0 = (int)*(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x26) * 0x8d) +
+                                    0x4f7);
+    }
+    DAT_005b44f4 = (uint)(*(char *)(in_ECX + 0x9d) == '\0');
+    _DAT_005d1631 = &DAT_005b160c + DAT_005b44f0 * 8 + DAT_005b44f4 * 4;
+  }
+  DAT_005c39e5 = (int)param_1;
+  _DAT_005d1639 = 1;
+  _DAT_005d162d = DAT_005d0377;
+  return;
+}
+

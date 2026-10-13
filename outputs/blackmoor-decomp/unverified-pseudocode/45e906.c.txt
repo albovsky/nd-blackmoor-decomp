@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x45e906
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_54414b0082ebcba364d23e408bbf47fe0ab1b670355f5030623cc5b8f4a5e988
+ */
+
+void FUN_0045e906(short param_1,short param_2,short param_3,short param_4)
+
+{
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x24 + param_3 * 0x120 + param_2 * 0x34 + param_1 * 4) = 0;
+  *(short *)(in_ECX + param_3 * 0x120 + 0xf4 + param_1 * 2) =
+       *(short *)(in_ECX + param_3 * 0x120 + 0xf4 + param_1 * 2) + -1;
+  *(undefined4 *)(in_ECX + 0x24 + param_4 * 0x120 + param_2 * 0x34 + param_1 * 4) = 1;
+  *(short *)(in_ECX + param_4 * 0x120 + 0xf4 + param_1 * 2) =
+       *(short *)(in_ECX + param_4 * 0x120 + 0xf4 + param_1 * 2) + 1;
+  return;
+}
+

@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a835c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f8b80bcdfd5ca2ee198de08d56d1d294d47bc0bea221b480c34a35dbdce25af4
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_004a835c(short param_1,short param_2,undefined4 *param_3)
+
+{
+  int iVar1;
+  int in_ECX;
+  int local_c;
+  int local_8;
+  
+  if (*(int *)(in_ECX + 0xe72) != 0) {
+    iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+    *(undefined2 *)(in_ECX + 0xe7a) = 0xffff;
+    *(undefined2 *)(in_ECX + 0xe7c) = 0xffff;
+    *(undefined4 *)(in_ECX + 0xe88) = param_3[1];
+    *(undefined4 *)(in_ECX + 0xe90) = param_3[3];
+    *(undefined4 *)(in_ECX + 0xe84) = *param_3;
+    *(undefined4 *)(in_ECX + 0xe8c) = param_3[2];
+    if (*(int *)(in_ECX + 0xe5e) != 0) {
+      FUN_004a8007();
+      local_8 = 0;
+      do {
+        if (*(short *)(iVar1 + 0x43) <= local_8) {
+          DAT_005b44f0 = 0x24;
+          DAT_005b44f4 = 0;
+          _DAT_005d162d = DAT_005d0377;
+          _DAT_005d1631 = &DAT_005b1a8c;
+          _DAT_005d1639 = 1;
+          return 1;
+        }
+        for (local_c = 0; local_c < *(short *)(iVar1 + 0x45); local_c = local_c + 1) {
+          if ((((*(int *)(in_ECX + local_8 * 0x90 + 0xe98 + local_c * 0x10) <= (int)param_2) &&
+               ((int)param_2 <= *(int *)(in_ECX + local_8 * 0x90 + 0xea0 + local_c * 0x10))) &&
+              (*(int *)(in_ECX + 0xe94 + local_8 * 0x90 + local_c * 0x10) <= (int)param_1)) &&
+             ((int)param_1 <= *(int *)(in_ECX + local_8 * 0x90 + 0xe9c + local_c * 0x10))) {
+            FUN_004a8697(0x2799,local_8,local_c);
+            return 1;
+          }
+        }
+        local_8 = local_8 + 1;
+      } while( true );
+    }
+    for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x43); local_8 = local_8 + 1) {
+      for (local_c = 0; local_c < *(short *)(iVar1 + 0x45); local_c = local_c + 1) {
+        if (((*(int *)(in_ECX + local_8 * 0x90 + 0xe98 + local_c * 0x10) <= (int)param_2) &&
+            ((int)param_2 <= *(int *)(in_ECX + local_8 * 0x90 + 0xea0 + local_c * 0x10))) &&
+           ((*(int *)(in_ECX + 0xe94 + local_8 * 0x90 + local_c * 0x10) <= (int)param_1 &&
+            ((int)param_1 <= *(int *)(in_ECX + local_8 * 0x90 + 0xe9c + local_c * 0x10))))) {
+          FUN_004a8697(0x2798,local_8,local_c);
+          return 1;
+        }
+      }
+    }
+    if (((*(int *)(iVar1 + 0x43e) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar1 + 0x446))) &&
+       ((*(int *)(iVar1 + 0x43a) <= (int)param_1 && ((int)param_1 <= *(int *)(iVar1 + 0x442))))) {
+      FUN_004a8697(0x279a,0,0);
+      return 1;
+    }
+  }
+  return 0;
+}
+

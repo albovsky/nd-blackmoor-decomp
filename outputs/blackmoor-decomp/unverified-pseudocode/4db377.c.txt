@@ -1,0 +1,13 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4db377
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+void FUN_004db377(void)
+
+{
+  FUN_004db29b();
+  return;
+}
+

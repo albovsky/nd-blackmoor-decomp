@@ -1,0 +1,23 @@
+{
+  "chunk_mismatch_count": 0,
+  "chunk_rows": 21733,
+  "chunk_rows_compared": 21733,
+  "data_mismatch_count": 0,
+  "data_rows": 2083,
+  "data_rows_compared": 2083,
+  "exclusions": [],
+  "executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "format": "original-x86-chiff-oracle-report-v1",
+  "manifest_resource_count": 2267,
+  "native_library": "outputs/blackmoor-decomp/build/libhiff.dylib",
+  "original_index_seconds": 103.08057,
+  "resource_manifest": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/work/analysis/hiff-resources.json",
+  "resources_excluded": 0,
+  "resources_indexed_by_original": 2267,
+  "resources_opened_by_native": 2267,
+  "resources_requested": 2267,
+  "scope": "Original game x86 CHiff index/selection routines only; no whole-game equivalence claim.",
+  "selection": "all type-3 decoded resources in archive record order",
+  "selection_mismatch_count": null,
+  "selection_scope": "Separate boot/AUTOTEXT/duplicate fixtures and 11-resource sample; full corpus comparison covers index tables, not all possible selection histories"
+}

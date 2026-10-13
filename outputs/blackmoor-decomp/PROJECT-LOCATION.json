@@ -1,0 +1,25 @@
+{
+  "destination": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "source": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave",
+  "method": "rename complete project tree; retain real old chat directory with child compatibility references",
+  "private_evidence_and_tools_retained": true,
+  "original_gog_installation_modified": false,
+  "worker_packets": 75,
+  "slice_complete": true,
+  "game_complete": false,
+  "verification_status": "passed",
+  "critical_files_hashed_before_and_after": 129,
+  "all_critical_hashes_preserved": true,
+  "old_path_is_compatibility_symlink": false,
+  "canonical_project_root": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "git_directory_preserved": true,
+  "old_path_is_compatibility_directory": true,
+  "compatibility_note": "Real old chat directory with child references; symlinked writable roots are not supported by the sandbox.",
+  "post_move_full_suite": {
+    "ran": 216,
+    "passed": 214,
+    "skipped": 2,
+    "status": "passed"
+  },
+  "permanent_project_full_suite_passed": true
+}

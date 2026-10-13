@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x516b16
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+void FUN_00516b16(int param_1,undefined4 *param_2)
+
+{
+  int iVar1;
+  
+  param_1 = param_1 - (int)param_2;
+  iVar1 = 3;
+  do {
+    *(undefined4 *)(param_1 + (int)param_2) = *param_2;
+    param_2 = param_2 + 1;
+    iVar1 = iVar1 + -1;
+  } while (iVar1 != 0);
+  return;
+}
+

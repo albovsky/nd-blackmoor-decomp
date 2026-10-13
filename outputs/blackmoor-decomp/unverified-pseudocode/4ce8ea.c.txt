@@ -1,0 +1,57 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ce8ea
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5d7e582f83f0537e633fb10e380fdbc2f4e8820249923868fd009a4829ea2231
+ */
+
+void FUN_004ce8ea(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int in_ECX;
+  
+  iVar1 = *(int *)(in_ECX + 0x226) + *(int *)(in_ECX + 0x246) * 0x35;
+  if (*(int *)(in_ECX + 0x1da) == 0) {
+    iVar2 = FUN_004bef85(*(undefined4 *)(in_ECX + 0x18e));
+    if (iVar2 != 0) {
+      FUN_004befc8(*(undefined4 *)(in_ECX + 0x18e));
+      FUN_004bf098(*(undefined4 *)(in_ECX + 0x18e),**(undefined4 **)(in_ECX + 0x212),
+                   (int)*(short *)(*(int *)(in_ECX + 0x212) + 0x2f),
+                   (int)*(short *)(*(int *)(in_ECX + 0x212) + 0x2d),0,0);
+      iVar2 = FUN_004bee2c(*(undefined4 *)(in_ECX + 0x18e));
+      *(int *)(in_ECX + 0x232) = iVar2 + -1;
+      *(undefined4 *)(in_ECX + 0x206) = 1;
+      *(undefined4 *)(in_ECX + 0x20a) = 1;
+      FUN_004ceb8c();
+      iVar2 = FUN_004bf10f(*(undefined4 *)(in_ECX + 0x18e));
+      if ((iVar2 == 0) || (*(int *)(in_ECX + 0x232) == (int)*(short *)(iVar1 + 0x23))) {
+        *(undefined4 *)(in_ECX + 0x1de) = 3;
+        if (DAT_0063a4cd != 0) {
+          FUN_0044a2b7(s_RANDOMMOVIE_ProcessBinkAnimation_00559a28);
+        }
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x1da) = 4;
+      }
+    }
+  }
+  else if ((*(int *)(in_ECX + 0x1da) == 4) &&
+          (iVar2 = FUN_004bef85(*(undefined4 *)(in_ECX + 0x18e)), iVar2 != 0)) {
+    FUN_004befc8(*(undefined4 *)(in_ECX + 0x18e));
+    FUN_004bf098(*(undefined4 *)(in_ECX + 0x18e),**(undefined4 **)(in_ECX + 0x212),
+                 (int)*(short *)(*(int *)(in_ECX + 0x212) + 0x2f),
+                 (int)*(short *)(*(int *)(in_ECX + 0x212) + 0x2d),0,0);
+    iVar2 = FUN_004bee2c(*(undefined4 *)(in_ECX + 0x18e));
+    *(int *)(in_ECX + 0x232) = iVar2 + -1;
+    *(undefined4 *)(in_ECX + 0x206) = 1;
+    FUN_004ceb8c();
+    iVar2 = FUN_004bf10f(*(undefined4 *)(in_ECX + 0x18e));
+    if (((iVar2 == 0) || (*(int *)(in_ECX + 0x232) == (int)*(short *)(iVar1 + 0x23))) &&
+       (*(undefined4 *)(in_ECX + 0x1de) = 3, DAT_0063a4cd != 0)) {
+      FUN_0044a2b7(s_RANDOMMOVIE_ProcessBinkAnimation_00559aa8);
+    }
+  }
+  return;
+}
+

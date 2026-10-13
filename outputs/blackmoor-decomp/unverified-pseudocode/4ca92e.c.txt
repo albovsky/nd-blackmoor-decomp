@@ -1,0 +1,146 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ca92e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d590aeb62d3bd1e1413a3f3e4f07f565aba52ab8fd98207292a76569576fbcb9
+ */
+
+void FUN_004ca92e(int param_1)
+
+{
+  if ((*(uint *)(param_1 + 4) & 1) != 0) {
+    FUN_0044a2b7(s_DDCAPS_3D___The_display_hardware_005582dc);
+  }
+  if ((*(uint *)(param_1 + 4) & 2) != 0) {
+    FUN_0044a2b7(s_DDCAPS_ALIGNBOUNDARYDEST_00558314);
+  }
+  if ((*(uint *)(param_1 + 4) & 4) != 0) {
+    FUN_0044a2b7(s_DDCAPS_ALIGNSIZEDEST_00558330);
+  }
+  if ((*(uint *)(param_1 + 4) & 8) != 0) {
+    FUN_0044a2b7(s_DDCAPS_ALIGNBOUNDARYSRC_00558348);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x10) != 0) {
+    FUN_0044a2b7(s_DDCAPS_ALIGNSIZESRC_00558364);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x8000000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_BANKSWITCHED_0055837c);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x40) != 0) {
+    FUN_0044a2b7(s_DDCAPS_BLT_00558394);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x10000000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_BLTDEPTHFILL___Display_ha_005583a4);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x80) != 0) {
+    FUN_0044a2b7(s_DDCAPS_BLTQUEUE_00558404);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x200) != 0) {
+    FUN_0044a2b7(s_DDCAPS_BLTSTRETCH_00558418);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x80000000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_CANBLTSYSMEM___Display_ha_0055842c);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x400) != 0) {
+    FUN_0044a2b7(s_DDCAPS_GDI___Display_hardware_is_00558488);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x2000000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_NOHARDWARE___There_is_no_h_005584bc);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x800) != 0) {
+    FUN_0044a2b7(s_DDCAPS_OVERLAY___Display_hardwar_005584f0);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x8000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_PALETTE_00558528);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x20000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_READSCANLINE_0055853c);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x100000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_ZBLTS___Supports_the_use_o_00558554);
+  }
+  if ((*(uint *)(param_1 + 4) & 0x800000) != 0) {
+    FUN_0044a2b7(s_DDCAPS_ALPHA___The_display_hardw_00558598);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x100000) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_CANCALIBRATEGAMMA_005585dc);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x800000) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_CANMANAGETEXTURE_005585f8);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x80000) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_CANRENDERWINDOWED___The_d_00558614);
+  }
+  if ((*(uint *)(param_1 + 8) & 1) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_CERTIFIED___Display_hard_00558668);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x80) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_COLORCONTROLPRIMARY_0055869c);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x200) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_NONLOCALVIDMEM_005586bc);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x20000) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_PRIMARYGAMMA_005586d8);
+  }
+  if ((*(uint *)(param_1 + 8) & 0x1000) != 0) {
+    FUN_0044a2b7(s_DDCAPS2_WIDESURFACES_005586f0);
+  }
+  if ((*(uint *)(param_1 + 0xc) & 1) != 0) {
+    FUN_0044a2b7(s_DDCKEYCAPS_DESTBLT_00558708);
+  }
+  if ((*(uint *)(param_1 + 0xc) & 0x200) != 0) {
+    FUN_0044a2b7(s_DDCKEYCAPS_SRCBLT_00558720);
+  }
+  if ((*(uint *)(param_1 + 0x10) & 1) != 0) {
+    FUN_0044a2b7(s_DDFXCAPS_BLTALPHA___Supports_alp_00558734);
+  }
+  if ((*(uint *)(param_1 + 0x10) & 4) != 0) {
+    FUN_0044a2b7(s_DDFXCAPS_OVERLAYALPHA___Supports_00558774);
+  }
+  if ((*(uint *)(param_1 + 0x14) & 2) != 0) {
+    FUN_0044a2b7(s_DDFXALPHACAPS_BLTALPHAPIXELS___S_005587bc);
+  }
+  if ((*(uint *)(param_1 + 0x14) & 8) != 0) {
+    FUN_0044a2b7(s_DDFXALPHACAPS_BLTALPHASURFACES___0055880c);
+  }
+  if ((*(uint *)(param_1 + 0x14) & 0x40) != 0) {
+    FUN_0044a2b7(s_DDFXALPHACAPS_OVERLAYALPHAPIXELS_00558850);
+  }
+  if ((*(uint *)(param_1 + 0x14) & 0x100) != 0) {
+    FUN_0044a2b7(s_DDFXALPHACAPS_OVERLAYALPHASURFAC_005588a0);
+  }
+  if ((*(uint *)(param_1 + 0x16c) & 0x2000) != 0) {
+    FUN_0044a2b7(s_DDSCAPS_3DDEVICE___This_surface_c_005588e4);
+  }
+  if ((*(uint *)(param_1 + 0x16c) & 0x40) != 0) {
+    FUN_0044a2b7(s_DDSCAPS_OFFSCREENPLAIN___This_su_00558924);
+  }
+  if ((*(uint *)(param_1 + 0x16c) & 0x200) != 0) {
+    FUN_0044a2b7(s_DDSCAPS_PRIMARYSURFACE___The_sur_00558968);
+  }
+  if ((*(uint *)(param_1 + 0x16c) & 0x800) != 0) {
+    FUN_0044a2b7(s_DDSCAPS_SYSTEMMEMORY___This_surf_005589a8);
+  }
+  if ((*(uint *)(param_1 + 0x16c) & 0x4000) != 0) {
+    FUN_0044a2b7(s_DDSCAPS_VIDEOMEMORY___This_surfa_005589f4);
+  }
+  if ((*(uint *)(param_1 + 0x16c) & 0x20000) != 0) {
+    FUN_0044a2b7(s_DDSCAPS_ZBUFFER___This_surface_i_00558a34);
+  }
+  FUN_0050ca3e(&DAT_0063888b,s__lu_total_video_memory_00558a68,*(undefined4 *)(param_1 + 0x3c));
+  FUN_0044a2b7(&DAT_0063888b);
+  FUN_0050ca3e(&DAT_0063888b,s__lu_available_video_memory_00558a84,*(undefined4 *)(param_1 + 0x40));
+  FUN_0044a2b7(&DAT_0063888b);
+  FUN_0050ca3e(&DAT_0063888b,s__lu_alignment_boundary_source_00558aa4,
+               *(undefined4 *)(param_1 + 0x50));
+  FUN_0044a2b7(&DAT_0063888b);
+  FUN_0050ca3e(&DAT_0063888b,s__lu_alignment_size_source_00558ac4,*(undefined4 *)(param_1 + 0x54));
+  FUN_0044a2b7(&DAT_0063888b);
+  FUN_0050ca3e(&DAT_0063888b,s__lu_alignment_boundary_dest_00558ae0,*(undefined4 *)(param_1 + 0x58))
+  ;
+  FUN_0044a2b7(&DAT_0063888b);
+  FUN_0050ca3e(&DAT_0063888b,s__lu_alignment_size_dest_00558b00,*(undefined4 *)(param_1 + 0x5c));
+  FUN_0044a2b7(&DAT_0063888b);
+  return;
+}
+

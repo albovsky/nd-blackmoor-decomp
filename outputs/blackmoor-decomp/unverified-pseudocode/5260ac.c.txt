@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5260ac
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+bool FUN_005260ac(int *param_1,short *param_2,int param_3)
+
+{
+  short sVar1;
+  int iVar2;
+  HMODULE hModule;
+  HRSRC hResInfo;
+  HGLOBAL pvVar3;
+  LPSTR lpString1;
+  
+  iVar2 = FUN_00525bd1(&LAB_0052615c);
+  if (*(short *)(iVar2 + 8) == 0) {
+    hModule = GetModuleHandleA("COMCTL32.DLL");
+    if (hModule != (HMODULE)0x0) {
+      hResInfo = FindResourceA(hModule,(LPCSTR)((-(uint)(param_3 != 0) & 0xe) + 0x3ee),(LPCSTR)0x5);
+      pvVar3 = LoadResource(hModule,hResInfo);
+      if (pvVar3 != (HGLOBAL)0x0) {
+        FUN_0051fd7e(pvVar3,param_1,param_2);
+      }
+    }
+    lpString1 = GlobalAlloc(0x40,*(int *)(*param_1 + -8) + 1);
+    *(LPSTR *)(iVar2 + 4) = lpString1;
+    lstrcpyA(lpString1,(LPCSTR)*param_1);
+    *(short *)(iVar2 + 8) = *param_2;
+  }
+  FUN_0051e8f7(*(undefined4 *)(iVar2 + 4));
+  sVar1 = *(short *)(iVar2 + 8);
+  *param_2 = sVar1;
+  return sVar1 != -1;
+}
+

@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f79ce
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
+ */
+
+void FUN_004f79ce(void)
+
+{
+  undefined4 uVar1;
+  DWORD DVar2;
+  int in_ECX;
+  int iVar3;
+  int local_8;
+  
+  DVar2 = GetTickCount();
+  *(undefined4 *)(in_ECX + 0x3c2) = 1000;
+  for (local_8 = 0; local_8 < 0x20; local_8 = local_8 + 1) {
+    iVar3 = *(int *)(in_ECX + 0x3ce) + local_8 * 0x5bb;
+    if (((((*(int *)(iVar3 + 0x152) != 0) && (*(int *)(iVar3 + 0x162) != 0)) &&
+         (*(int *)(iVar3 + 0x287) == 0)) &&
+        ((*(int *)(iVar3 + 0x16e) == 0 && (*(int *)(iVar3 + 0x172) == 0)))) &&
+       ((*(int *)(iVar3 + 0x152) != 0 && (*(uint *)(iVar3 + 0x14e) < DVar2)))) {
+      *(float *)(iVar3 + 0x134) = *(float *)(iVar3 + 0x134) - *(float *)(iVar3 + 0x14a);
+      *(float *)(iVar3 + 0x138) = *(float *)(iVar3 + 0x138) - *(float *)(iVar3 + 0x14a);
+      if (*(float *)(iVar3 + 0x134) <= 0.0) {
+        uVar1 = 0;
+      }
+      else {
+        uVar1 = *(undefined4 *)(iVar3 + 0x134);
+      }
+      *(undefined4 *)(iVar3 + 0x134) = uVar1;
+      if (1.0 <= *(float *)(iVar3 + 0x134)) {
+        uVar1 = 0x3f800000;
+      }
+      else {
+        uVar1 = *(undefined4 *)(iVar3 + 0x134);
+      }
+      *(undefined4 *)(iVar3 + 0x134) = uVar1;
+      if (*(float *)(iVar3 + 0x138) <= 0.0) {
+        uVar1 = 0;
+      }
+      else {
+        uVar1 = *(undefined4 *)(iVar3 + 0x138);
+      }
+      *(undefined4 *)(iVar3 + 0x138) = uVar1;
+      if (1.0 <= *(float *)(iVar3 + 0x138)) {
+        uVar1 = 0x3f800000;
+      }
+      else {
+        uVar1 = *(undefined4 *)(iVar3 + 0x138);
+      }
+      *(undefined4 *)(iVar3 + 0x138) = uVar1;
+      FUN_004fca60(CONCAT22((short)((uint)*(undefined4 *)(iVar3 + 0x138) >> 0x10),
+                            (undefined2)local_8),*(undefined4 *)(iVar3 + 0x134),
+                   *(undefined4 *)(iVar3 + 0x138));
+      if ((*(float *)(iVar3 + 0x134) <= 0.0) || (*(float *)(iVar3 + 0x138) <= 0.0)) {
+        *(undefined4 *)(iVar3 + 0x152) = 0;
+        FUN_004f61e7(local_8);
+      }
+      else {
+        *(DWORD *)(iVar3 + 0x14e) = DVar2 + *(int *)(iVar3 + 0x146);
+      }
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ff07
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+void FUN_0051ff07(int param_1)
+
+{
+  HANDLE h;
+  int iVar1;
+  HDC hdc;
+  int iVar2;
+  char *pcVar3;
+  bool bVar4;
+  int local_44 [7];
+  char local_28 [36];
+  
+  iVar2 = 10;
+  pcVar3 = "System";
+  h = GetStockObject(0x11);
+  if (h == (HGDIOBJ)0x0) {
+    h = GetStockObject(0xd);
+    if (h == (HGDIOBJ)0x0) goto LAB_0051ff7b;
+  }
+  iVar1 = GetObjectA(h,0x3c,local_44);
+  if (iVar1 != 0) {
+    pcVar3 = local_28;
+    hdc = GetDC((HWND)0x0);
+    if (local_44[0] < 0) {
+      local_44[0] = -local_44[0];
+    }
+    iVar2 = GetDeviceCaps(hdc,0x5a);
+    iVar2 = MulDiv(local_44[0],0x48,iVar2);
+    ReleaseDC((HWND)0x0,hdc);
+  }
+LAB_0051ff7b:
+  bVar4 = (short)param_1 == 0;
+  if (bVar4) {
+    param_1 = iVar2;
+  }
+  FUN_0051fded(pcVar3,param_1);
+  return;
+}
+

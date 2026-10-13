@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51fa6a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+/* Library Function - Multiple Matches With Same Base Name
+    public: void * __thiscall CGdiObject::Detach(void)
+    public: struct _IMAGELIST * __thiscall CImageList::Detach(void)
+    public: struct HMENU__ * __thiscall CMenu::Detach(void)
+   
+   Library: Visual Studio */
+
+int Detach(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int in_ECX;
+  
+  iVar1 = *(int *)(in_ECX + 4);
+  if (iVar1 != 0) {
+    iVar2 = FUN_0051f9c5(0);
+    if (iVar2 != 0) {
+      FUN_0051a601(*(undefined4 *)(in_ECX + 4));
+    }
+  }
+  *(undefined4 *)(in_ECX + 4) = 0;
+  return iVar1;
+}
+

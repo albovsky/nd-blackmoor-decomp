@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47591f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f110a51708a87e42a1df088442ce84584fa97ada22af5597067d90dfc82d854f
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0047591f(void)
+
+{
+  short local_8;
+  
+  _DAT_005a0545 = 0;
+  for (local_8 = 0; local_8 < 5; local_8 = local_8 + 1) {
+    *(undefined4 *)(&DAT_005a0549 + local_8 * 4) = 0;
+  }
+  return;
+}
+

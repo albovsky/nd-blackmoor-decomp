@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51a387
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+/* Library Function - Multiple Matches With Same Base Name
+    public: struct __POSITION * __thiscall CList<struct HWND__ *,struct HWND__ *>::AddTail(struct
+   HWND__ *)
+    public: struct __POSITION * __thiscall CList<class IControlSiteFactory *,class
+   IControlSiteFactory *>::AddTail(class IControlSiteFactory *)
+    public: struct __POSITION * __thiscall CObList::AddTail(class CObject *)
+    public: struct __POSITION * __thiscall CPtrList::AddTail(void *)
+   
+   Libraries: Visual Studio 2003 Release, Visual Studio 2005 Release */
+
+void AddTail(undefined4 param_1)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  iVar1 = FUN_0051a316(*(undefined4 *)(in_ECX + 8),0);
+  *(undefined4 *)(iVar1 + 8) = param_1;
+  if (*(int **)(in_ECX + 8) == (int *)0x0) {
+    *(int *)(in_ECX + 4) = iVar1;
+  }
+  else {
+    **(int **)(in_ECX + 8) = iVar1;
+  }
+  *(int *)(in_ECX + 8) = iVar1;
+  return;
+}
+

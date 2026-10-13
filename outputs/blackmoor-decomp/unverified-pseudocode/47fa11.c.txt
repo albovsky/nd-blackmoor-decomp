@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47fa11
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618
+ */
+
+void FUN_0047fa11(short param_1)
+
+{
+  int iVar1;
+  short sVar2;
+  short sVar3;
+  int in_ECX;
+  int iVar4;
+  
+  iVar1 = in_ECX + 0x7b4 + param_1 * 0x25;
+  *(undefined4 *)(in_ECX + 0x134c) = 1;
+  *(undefined4 *)(in_ECX + 0x1392) = *(undefined4 *)(iVar1 + 2);
+  *(undefined4 *)(in_ECX + 0x1396) = *(undefined4 *)(iVar1 + 6);
+  *(undefined4 *)(in_ECX + 0x139a) = *(undefined4 *)(iVar1 + 10);
+  *(undefined4 *)(in_ECX + 0x139e) = *(undefined4 *)(iVar1 + 0xe);
+  iVar4 = in_ECX + 0x20 + (uint)*(byte *)(iVar1 + 0x23) * 0x60 +
+          (uint)*(byte *)(iVar1 + 0x22) * 0x18;
+  sVar2 = *(short *)(iVar4 + 0x14);
+  sVar3 = *(short *)(iVar4 + 0x16);
+  *(char *)(iVar1 + 0x22) = *(char *)(iVar1 + 0x22) + '\x01';
+  if (*(char *)(iVar1 + 0x22) == '\x04') {
+    *(undefined1 *)(iVar1 + 0x22) = 0;
+  }
+  iVar4 = in_ECX + 0x20 + (uint)*(byte *)(iVar1 + 0x23) * 0x60 +
+          (uint)*(byte *)(iVar1 + 0x22) * 0x18;
+  *(int *)(iVar1 + 2) =
+       (int)(short)((short)*(undefined4 *)(iVar1 + 2) + sVar2 / 2) -
+       (int)*(short *)(iVar4 + 0x14) / 2;
+  *(int *)(iVar1 + 6) =
+       (int)(short)((short)*(undefined4 *)(iVar1 + 6) + sVar3 / 2) -
+       (int)*(short *)(iVar4 + 0x16) / 2;
+  *(int *)(iVar1 + 10) = *(int *)(iVar1 + 2) + *(int *)(iVar4 + 0xc);
+  *(int *)(iVar1 + 0xe) = *(int *)(iVar1 + 6) + *(int *)(iVar4 + 0x10);
+  FUN_0047f19d(iVar1 + 2);
+  FUN_0047e52f(iVar1 + 2,iVar1 + 0x12);
+  return;
+}
+

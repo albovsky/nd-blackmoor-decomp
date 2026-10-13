@@ -1,0 +1,59 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a6574
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_fc5359404bceb01696d4d66c12c8c7af865d10a5749afed948949b75d1acc7af
+ */
+
+undefined4 FUN_004a6574(short param_1,short param_2)
+
+{
+  int in_ECX;
+  int local_8;
+  
+  if ((*(int *)(in_ECX + 0x86) != 0) && (*(char *)(in_ECX + 0x29) == '\0')) {
+    local_8 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+    if (((*(int *)(local_8 + 0x2b2) <= (int)param_2) &&
+        ((((int)param_2 <= *(int *)(local_8 + 0x2ba) && (*(int *)(local_8 + 0x2ae) <= (int)param_1))
+         && ((int)param_1 <= *(int *)(local_8 + 0x2b6))))) &&
+       ((*(char *)(local_8 + 0x65) != '\0' ||
+        ((int)*(short *)(in_ECX + 0x2e) < *(short *)(local_8 + 99) + -1)))) {
+      FUN_004a67f3(0x2772,3);
+      return 1;
+    }
+    if ((((*(int *)(local_8 + 0x2c2) <= (int)param_2) && ((int)param_2 <= *(int *)(local_8 + 0x2ca))
+         ) && ((*(int *)(local_8 + 0x2be) <= (int)param_1 &&
+               ((int)param_1 <= *(int *)(local_8 + 0x2c6))))) &&
+       ((*(char *)(local_8 + 0x65) != '\0' || (0 < *(short *)(in_ECX + 0x2e))))) {
+      FUN_004a67f3(0x2771,2);
+      return 1;
+    }
+    if ((((*(int *)(local_8 + 0x1ba) <= (int)param_2) && ((int)param_2 <= *(int *)(local_8 + 0x1c2))
+         ) && (*(int *)(local_8 + 0x1b6) <= (int)param_1)) &&
+       ((int)param_1 <= *(int *)(local_8 + 0x1be))) {
+      FUN_004a67f3(0x276f,1);
+      return 1;
+    }
+    if (((*(int *)(local_8 + 0x1da) <= (int)param_2) && ((int)param_2 <= *(int *)(local_8 + 0x1e2)))
+       && ((*(int *)(local_8 + 0x1d6) <= (int)param_1 && ((int)param_1 <= *(int *)(local_8 + 0x1de))
+           ))) {
+      FUN_004a67f3(0x276f,4);
+      *(undefined1 *)(in_ECX + 0x20) = 1;
+      return 1;
+    }
+    if (((*(int *)(local_8 + 0x3cb) <= (int)param_2) && ((int)param_2 <= *(int *)(local_8 + 0x3d3)))
+       && ((*(int *)(local_8 + 0x3c7) <= (int)param_1 && ((int)param_1 <= *(int *)(local_8 + 0x3cf))
+           ))) {
+      FUN_004a67f3(0x2770,0);
+      *(undefined1 *)(in_ECX + 0x20) = 1;
+      return 1;
+    }
+  }
+  if ((*(int *)(in_ECX + 0x86) != 0) &&
+     (((((*(int *)(local_8 + 0x6a) <= (int)param_2 && ((int)param_2 <= *(int *)(local_8 + 0x72))) &&
+        (*(int *)(local_8 + 0x66) <= (int)param_1)) && ((int)param_1 <= *(int *)(local_8 + 0x6e)))
+      || (DAT_0061d3c2 == 6)))) {
+    *(undefined1 *)(in_ECX + 0x20) = 1;
+  }
+  return 0;
+}
+

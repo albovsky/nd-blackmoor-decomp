@@ -1,0 +1,13 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x512c79
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+void FUN_00512c79(int param_1)
+
+{
+  LeaveCriticalSection(*(LPCRITICAL_SECTION *)(&DAT_005686b0 + param_1 * 4));
+  return;
+}
+

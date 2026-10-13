@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e0377
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+void FUN_004e0377(void)
+
+{
+  if (DAT_005835d8 == 2) {
+    FUN_004c5377(DAT_005d298b,DAT_005cf665,&DAT_0058330e,&DAT_005832ce,
+                 s_setup_surface___hilite_buttons_0055bb0c);
+  }
+  else {
+    FUN_004c5377(DAT_005d2819,DAT_005cf665,&DAT_005832ce,&DAT_005832ce,
+                 s_setup_surface___clear_hilite_but_0055bb2c);
+  }
+  return;
+}
+

@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x505580
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+void FUN_00505580(undefined4 *param_1)
+
+{
+  if (param_1 != (undefined4 *)0x0) {
+    if (param_1[2] != 0) {
+      FUN_0050e936(param_1[2]);
+    }
+    if (param_1[3] != 0) {
+      FUN_0050e936(param_1[3]);
+    }
+    *param_1 = 0;
+    param_1[1] = 0;
+    param_1[2] = 0;
+    param_1[3] = 0;
+    param_1[4] = 0;
+  }
+  return;
+}
+

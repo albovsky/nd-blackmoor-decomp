@@ -1,0 +1,86 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4876ed
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_54bace4f2834e1ad21518a3c0097c08b99de1c57712a85070ff3f94714efabd4
+ */
+
+void FUN_004876ed(void)
+
+{
+  int iVar1;
+  undefined1 local_30 [16];
+  short local_20;
+  short *local_1c;
+  short local_18;
+  short local_14;
+  int local_10;
+  short local_c;
+  short local_8;
+  
+  local_10 = *(int *)(&DAT_005bb5e5 + DAT_006252d3 * 0x8d);
+  if ((DAT_00625d43 != 0) || (DAT_00625d3f != 0)) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00625d4d,&DAT_00625d6d,
+                 s_Onebuild_Puzzle_RES_area_under_m_0054dc64);
+    DAT_00625d43 = 0;
+  }
+  if (DAT_00625d47 != 0) {
+    FUN_004841cb(&DAT_00625d8d,local_30);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00625d8d,local_30,
+                 s_Onebuild_Puzzle_RES_area_piece_s_0054dc98);
+    DAT_00625d47 = 0;
+  }
+  local_18 = *(short *)(local_10 + 0x21);
+  local_20 = local_18;
+  if (DAT_00625d3f != 0) {
+    local_20 = local_18 + -1;
+  }
+  local_8 = 0;
+  local_14 = 0;
+  do {
+    if (local_14 == local_20) {
+      if (DAT_00625d3f != 0) {
+        iVar1 = DAT_00625d4b * 0x85;
+        local_1c = (short *)(&DAT_006252d5 + iVar1);
+        FUN_004c5d4b(*(undefined4 *)(iVar1 + 0x6252f9 + (uint)(byte)(&DAT_006252f7)[iVar1] * 0x18),
+                     DAT_005cf665,iVar1 + 0x6252fd + (uint)(byte)(&DAT_006252f7)[iVar1] * 0x18,
+                     &DAT_00625d7d,s_ONEBUILD_Puzzle___drawing_moving_0054dd0c);
+      }
+      if (DAT_00625e40 == 0) {
+        if (DAT_00625e3c != 0) {
+          FUN_004841cb(local_10 + 0x5e8,local_30);
+          FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_10 + 0x5e8,local_30,
+                       s_Onebuild_Puzzle__animation_resto_0054dd50);
+          DAT_00625e3c = 0;
+        }
+      }
+      else {
+        FUN_004841cb(local_10 + 0x5e8,local_30);
+        FUN_004c5377(DAT_006252cb,DAT_005cf665,&DAT_00625e44,local_30,
+                     s_Onebuild_Puzzle___animation_0054dd34);
+      }
+      return;
+    }
+    for (local_c = 0; local_c < local_18; local_c = local_c + 1) {
+      if ((DAT_00625d3f == 0) || (DAT_00625d4b != local_c)) {
+        iVar1 = local_c * 0x85;
+        local_1c = (short *)(&DAT_006252d5 + iVar1);
+        if (*local_1c == local_8) {
+          if ((&DAT_00625359)[iVar1] == '\0') {
+            FUN_004c5d4b(DAT_006252cf,DAT_005cf665,local_10 + 0x7f + local_c * 0x42,iVar1 + 0x6252e7
+                         ,s_MULTIBUILD_Orig_Src_Overlay_Rend_0054dce8);
+          }
+          else {
+            FUN_004c5d4b(*(undefined4 *)
+                          (iVar1 + 0x6252f9 + (uint)(byte)(&DAT_006252f7)[iVar1] * 0x18),
+                         DAT_005cf665,iVar1 + 0x6252fd + (uint)(byte)(&DAT_006252f7)[iVar1] * 0x18,
+                         iVar1 + 0x6252e7,s_ONEBUILD_Puzzle_Piece_Render_0054dcc8);
+          }
+          local_14 = local_14 + 1;
+          if (local_14 == local_20) break;
+        }
+      }
+    }
+    local_8 = local_8 + 1;
+  } while( true );
+}
+

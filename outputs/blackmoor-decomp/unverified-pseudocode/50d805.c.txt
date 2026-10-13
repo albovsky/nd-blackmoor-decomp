@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50d805
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4d268ec7993df48128cba5d0df1108836b8002175a429e70814bf1b72161879f
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0050d805(UINT param_1,int param_2,int param_3)
+
+{
+  HANDLE hProcess;
+  undefined4 *puVar1;
+  UINT uExitCode;
+  
+  FUN_0050d8aa();
+  if (DAT_0063ca4c == 1) {
+    uExitCode = param_1;
+    hProcess = GetCurrentProcess();
+    TerminateProcess(hProcess,uExitCode);
+  }
+  _DAT_0063ca48 = 1;
+  DAT_0063ca44 = (undefined1)param_3;
+  if (param_2 == 0) {
+    if ((DAT_0063e138 != (undefined4 *)0x0) &&
+       (puVar1 = (undefined4 *)(DAT_0063e134 - 4), DAT_0063e138 <= puVar1)) {
+      do {
+        if ((code *)*puVar1 != (code *)0x0) {
+          (*(code *)*puVar1)();
+        }
+        puVar1 = puVar1 + -1;
+      } while (DAT_0063e138 <= puVar1);
+    }
+    FUN_0050d8bc(&DAT_00537098,&DAT_005370a0);
+  }
+  FUN_0050d8bc(&DAT_005370a4,&DAT_005370ac);
+  if (param_3 == 0) {
+    DAT_0063ca4c = 1;
+                    /* WARNING: Subroutine does not return */
+    ExitProcess(param_1);
+  }
+  FUN_0050d8b3();
+  return;
+}
+

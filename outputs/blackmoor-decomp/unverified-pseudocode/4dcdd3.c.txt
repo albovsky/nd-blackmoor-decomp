@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4dcdd3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+void FUN_004dcdd3(void)
+
+{
+  DWORD DVar1;
+  int iVar2;
+  int in_ECX;
+  
+  if (DAT_006381a9 == 0) {
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_ProcessSecondaryMovieSequence_____0055b4b0,
+                   (int)*(short *)(*(int *)(in_ECX + 0xee) + 0x1cc));
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    if (*(short *)(*(int *)(in_ECX + 0xee) + 0x1cc) != 0) {
+      if (*(int *)(*(int *)(in_ECX + 0xee) + 0x172) == 1) {
+        **(undefined4 **)(in_ECX + 0x4a) =
+             *(undefined4 *)(*(int *)(in_ECX + 0xee) + 0x17a + DAT_00638161 * 4);
+      }
+      FUN_004dd28d();
+      DVar1 = GetTickCount();
+      iVar2 = *(int *)(in_ECX + 0xee);
+      *(DWORD *)(iVar2 + 0x1be) = DVar1 + *(int *)(*(int *)(in_ECX + 0xee) + 0x1c);
+      if (*(int *)(in_ECX + 0x102) != 0) {
+        FUN_004fb2e3(CONCAT22((short)((uint)iVar2 >> 0x10),*(undefined2 *)(in_ECX + 0xde)));
+      }
+      DAT_006381e5 = 1;
+      DAT_006381a9 = 4;
+      if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_CPartnerLogo__ProcessSequence_____0055b50c);
+      }
+    }
+  }
+  else if ((DAT_006381a9 == 4) &&
+          (DVar1 = GetTickCount(), *(uint *)(*(int *)(in_ECX + 0xee) + 0x1be) <= DVar1)) {
+    if ((((*(short *)(*(int *)(in_ECX + 0xee) + 0x1c2) ==
+           *(short *)(*(int *)(in_ECX + 0xee) + 0x18e)) && (*(short *)(in_ECX + 0xb7) == 1)) ||
+        ((*(short *)(*(int *)(in_ECX + 0xee) + 0x1c2) == *(short *)(*(int *)(in_ECX + 0xee) + 0x18c)
+         && (*(short *)(in_ECX + 0xb7) == 2)))) &&
+       ((*(int *)(in_ECX + 0x102) == 0 ||
+        ((*(int *)(in_ECX + 0x102) != 0 &&
+         (iVar2 = FUN_004f6334((int)*(short *)(in_ECX + 0xde)), iVar2 == 0)))))) {
+      *(undefined4 *)(in_ECX + 0x1c) = 3;
+      FUN_004dad60();
+      if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_ProcessSecondaryMovieSequence_____0055b54c);
+      }
+    }
+    else if (*(short *)(*(int *)(in_ECX + 0xee) + 0x1cc) != 0) {
+      if (*(int *)(*(int *)(in_ECX + 0xee) + 0x172) == 1) {
+        **(undefined4 **)(in_ECX + 0x4a) =
+             *(undefined4 *)(*(int *)(in_ECX + 0xee) + 0x17a + DAT_00638161 * 4);
+      }
+      FUN_004dd28d();
+      DVar1 = GetTickCount();
+      *(DWORD *)(*(int *)(in_ECX + 0xee) + 0x1be) = DVar1 + *(int *)(*(int *)(in_ECX + 0xee) + 0x1c)
+      ;
+      DAT_006381e5 = 1;
+    }
+  }
+  return;
+}
+

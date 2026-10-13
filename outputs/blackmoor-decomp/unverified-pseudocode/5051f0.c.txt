@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5051f0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+float * FUN_005051f0(int param_1,int param_2)
+
+{
+  float *pfVar1;
+  float *pfVar2;
+  float10 fVar3;
+  
+  pfVar1 = (float *)FUN_0050e97e(param_2,4);
+  if (param_1 == 0) {
+    param_1 = 0;
+    if (0 < param_2) {
+      pfVar2 = pfVar1;
+      do {
+        fVar3 = (float10)param_1;
+        param_1 = param_1 + 1;
+        fVar3 = (float10)fsin(((fVar3 + (float10)0.5) / (float10)param_2) * (float10)3.1415927 *
+                              (float10)0.5);
+        fVar3 = (float10)fsin(fVar3 * fVar3 * (float10)1.5707964);
+        *pfVar2 = (float)fVar3;
+        pfVar2 = pfVar2 + 1;
+      } while (param_1 < param_2);
+    }
+    return pfVar1;
+  }
+  FUN_0050e936(pfVar1);
+  return (float *)0x0;
+}
+

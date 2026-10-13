@@ -1,0 +1,40 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4fcda1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_edb26fcf7b21a4e4f4785e0b56b76960182762a5eae671897573c39f3cf8c11e
+ */
+
+void FUN_004fcda1(int *param_1,int *param_2,int *param_3)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  undefined4 *puVar3;
+  
+  iVar1 = FUN_0051dc43(0x16);
+  *param_1 = iVar1;
+  if (iVar1 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_005609f0,DAT_005bb57b,
+                 (int)DAT_005c39e3);
+    FUN_0042639d(s_Unable_to_allocate_memory_00560a1c,&DAT_0063888b);
+    DAT_0063a58a = 5;
+    FUN_004c97b4();
+  }
+  else {
+    puVar2 = (undefined4 *)*param_2;
+    puVar3 = (undefined4 *)*param_1;
+    for (iVar1 = 5; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar3 = *puVar2;
+      puVar2 = puVar2 + 1;
+      puVar3 = puVar3 + 1;
+    }
+    *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+    *param_3 = *param_3 + 0x16;
+    *param_2 = *param_2 + 0x16;
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_Loaded_AT_UPDATE_3D_SOUND_action_00560a38);
+    }
+  }
+  return;
+}
+

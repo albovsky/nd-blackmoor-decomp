@@ -1,0 +1,13 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4cca42
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5d7e582f83f0537e633fb10e380fdbc2f4e8820249923868fd009a4829ea2231
+ */
+
+void FUN_004cca42(undefined4 param_1,undefined4 *param_2)
+
+{
+  FUN_004cca0e(param_1,*param_2,param_2[1],param_2[2]);
+  return;
+}
+

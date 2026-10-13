@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50eaa2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+/* Library Function - Single Match
+    __nh_malloc
+   
+   Library: Visual Studio 2003 Release */
+
+void * __cdecl __nh_malloc(size_t _Size,int _NhFlag)
+
+{
+  void *pvVar1;
+  int iVar2;
+  
+  if (_Size < 0xffffffe1) {
+    do {
+      pvVar1 = (void *)FUN_0050eace(_Size);
+      if (pvVar1 != (void *)0x0) {
+        return pvVar1;
+      }
+      if (_NhFlag == 0) {
+        return (void *)0x0;
+      }
+      iVar2 = FUN_00515a64(_Size);
+    } while (iVar2 != 0);
+  }
+  return (void *)0x0;
+}
+

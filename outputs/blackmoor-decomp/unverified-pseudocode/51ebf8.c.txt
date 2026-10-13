@@ -1,0 +1,43 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ebf8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+undefined4 FUN_0051ebf8(void)
+
+{
+  HANDLE hEvent;
+  HANDLE hHandle;
+  uint uVar1;
+  int iVar2;
+  int unaff_EBP;
+  int *unaff_ESI;
+  int unaff_EDI;
+  
+  hEvent = *(HANDLE *)(unaff_EDI + 0x10);
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  hHandle = *(HANDLE *)(unaff_EDI + 0x14);
+  SetEvent(hEvent);
+  WaitForSingleObject(hHandle,0xffffffff);
+  CloseHandle(hHandle);
+  if ((code *)unaff_ESI[0x14] == (code *)0x0) {
+    iVar2 = (**(code **)(*unaff_ESI + 0x50))();
+    if (iVar2 == 0) {
+      uVar1 = (**(code **)(*unaff_ESI + 0x68))();
+    }
+    else {
+      uVar1 = (**(code **)(*unaff_ESI + 0x54))();
+    }
+  }
+  else {
+    uVar1 = (*(code *)unaff_ESI[0x14])(unaff_ESI[0x13]);
+  }
+  CWnd::Detach((CWnd *)(unaff_EBP + -0x50));
+  AfxEndThread(uVar1,1);
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  CWnd::~CWnd((CWnd *)(unaff_EBP + -0x50));
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return 0;
+}
+

@@ -1,0 +1,62 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x523c57
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_00523c57(uint param_1,uint param_2,undefined4 param_3)
+
+{
+  int iVar1;
+  int iVar2;
+  HWND pHVar3;
+  int *in_ECX;
+  
+  iVar1 = FUN_0051c174();
+  if (((int *)in_ECX[0x1a] != (int *)0x0) &&
+     (iVar2 = (**(code **)(*(int *)in_ECX[0x1a] + 0x7c))(param_1,param_2,param_3), iVar2 != 0)) {
+    return;
+  }
+  if (param_2 == 0xffff) {
+    in_ECX[9] = in_ECX[9] & 0xffffffbf;
+    if (*(int *)(iVar1 + 0x50) == 0) {
+      in_ECX[0x24] = 0xe001;
+    }
+    else {
+      in_ECX[0x24] = 0xe002;
+    }
+    SendMessageA((HWND)in_ECX[7],0x362,in_ECX[0x24],0);
+    iVar1 = (**(code **)(*in_ECX + 0xd4))();
+    if (iVar1 != 0) {
+      UpdateWindow(*(HWND *)(iVar1 + 0x1c));
+    }
+    goto LAB_00523d2e;
+  }
+  if ((param_1 == 0) || ((param_2 & 0x810) != 0)) {
+    in_ECX[0x24] = 0;
+  }
+  else {
+    if ((param_1 < 0xf000) || (0xf1ef < param_1)) {
+      if (0xfeff < param_1) {
+        in_ECX[0x24] = 0xef1f;
+        goto LAB_00523d2a;
+      }
+    }
+    else {
+      param_1 = (param_1 - 0xf000 >> 4) + 0xef00;
+    }
+    in_ECX[0x24] = param_1;
+  }
+LAB_00523d2a:
+  *(uint *)(iVar1 + 0x24) = *(uint *)(iVar1 + 0x24) | 0x40;
+LAB_00523d2e:
+  if (in_ECX[0x24] != in_ECX[0x25]) {
+    pHVar3 = GetParent((HWND)in_ECX[7]);
+    iVar1 = FUN_0051abe4(pHVar3);
+    if (iVar1 != 0) {
+      PostMessageA((HWND)in_ECX[7],0x36a,0,0);
+    }
+  }
+  return;
+}
+

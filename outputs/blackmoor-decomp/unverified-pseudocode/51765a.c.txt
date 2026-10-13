@@ -1,0 +1,43 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51765a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b751a5094d1e8211f653554618c4b14e01ac05861f47e521c34e1b18a0e9f8e5
+ */
+
+undefined4 FUN_0051765a(uint param_1)
+
+{
+  int *piVar1;
+  undefined4 *puVar2;
+  int iVar3;
+  DWORD nStdHandle;
+  
+  if (param_1 < DAT_0063cee0) {
+    iVar3 = (param_1 & 0x1f) * 0x24;
+    piVar1 = (int *)((&DAT_0063cde0)[(int)param_1 >> 5] + iVar3);
+    if (((*(byte *)(piVar1 + 1) & 1) != 0) && (*piVar1 != -1)) {
+      if (DAT_00567e80 == 1) {
+        if (param_1 == 0) {
+          nStdHandle = 0xfffffff6;
+        }
+        else if (param_1 == 1) {
+          nStdHandle = 0xfffffff5;
+        }
+        else {
+          if (param_1 != 2) goto LAB_005176b6;
+          nStdHandle = 0xfffffff4;
+        }
+        SetStdHandle(nStdHandle,(HANDLE)0x0);
+      }
+LAB_005176b6:
+      *(undefined4 *)((&DAT_0063cde0)[(int)param_1 >> 5] + iVar3) = 0xffffffff;
+      return 0;
+    }
+  }
+  puVar2 = (undefined4 *)FUN_0050ea7e();
+  *puVar2 = 9;
+  puVar2 = (undefined4 *)FUN_0050ea87();
+  *puVar2 = 0;
+  return 0xffffffff;
+}
+

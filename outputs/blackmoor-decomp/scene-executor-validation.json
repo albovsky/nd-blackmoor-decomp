@@ -1,0 +1,87 @@
+{
+  "scope": "bounded native scene-action scheduler over parsed ACT rows; not a complete scene engine or full-game implementation",
+  "implementation": {
+    "header": "outputs/blackmoor-decomp/src/scene_executor.h",
+    "source": "outputs/blackmoor-decomp/src/scene_executor.c",
+    "build_script": "outputs/blackmoor-decomp/scripts/build_scene_executor.sh",
+    "tests": "outputs/blackmoor-decomp/tests/test_scene_executor.py",
+    "borrowed_lifetimes": [
+      "SceneResource must outlive SceneActionExecutor",
+      "ActionCoreWorld and its event_flags storage must outlive SceneActionExecutor",
+      "SceneConditionState is borrowed for one step and its event_flags pointer/count must exactly match ActionCoreWorld"
+    ],
+    "action_cap": {
+      "default": 120,
+      "maximum_configurable": 240,
+      "note": "The parser's 999-chunk bound is not treated as the original runtime ACT limit."
+    },
+    "native_action_types": [
+      "0x4d",
+      "0x61",
+      "0x6b",
+      "0x71",
+      "0x0a"
+    ],
+    "external_action_types": "Typed non-core ACT rows are dispatched only through the caller's callback registry; missing handlers and unsupported condition opcodes return explicit errors with row index/type.",
+    "opaque_action_policy": "Creation fails with the row index because unknown body boundaries cannot safely supply dependencies or eligibility.",
+    "scene_change": "0x0a preserves signed words at offsets 0/2/4/6 and signed dwords at 8/12/16, marks its row complete, returns a transition request, and stops the current pass.",
+    "loaded_row_model": "Runtime state is allocated for the parser's compact ACT rows only. Original 240-slot occupancy markers and unused slots are not modeled."
+  },
+  "validation": {
+    "native_build": {
+      "command": "./scripts/build_scene_executor.sh",
+      "result": "passed",
+      "compiler_flags": "clang arm64, C11, -Wall -Wextra -Wpedantic -Werror"
+    },
+    "native_tests": {
+      "command": "python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p 'test_*.py'",
+      "passed": 42,
+      "failed": 0,
+      "coverage": [
+        "ACT-order dependency re-evaluation and same-pass flag visibility",
+        "subtype-2 repeated action effects and reset behavior",
+        "OR-dependent 0x0a transition payload and stop-dispatch behavior",
+        "external callback pending phase, completed phase preservation, and completion lifecycle",
+        "unsupported typed and opaque actions fail explicitly without false completion",
+        "invalid dependency tree cleanup, truncated fixed body rejection, and borrowed flag storage validation",
+        "120 default / 240 explicit cap and creating the real S0 ACT table without scene-specific rules"
+      ],
+      "scope": "15 action-core, 13 condition and 14 executor tests included in the final 177-test suite",
+      "combined_suite_total": 177
+    },
+    "existing_original_x86_leaf_evidence": {
+      "action_core": {
+        "report": "work/analysis/action-core-validation.json",
+        "compared_cases": 145,
+        "mismatches": 0,
+        "scope": "selected 0x4d/0x61/0x6b/0x71 state-editing executor paths; not a whole-scene scheduler comparison"
+      },
+      "conditions": {
+        "report": "work/analysis/conditions-original-validation.json",
+        "compared_leaves": 786,
+        "mismatches": 0,
+        "scope": "original leaf evaluator opcodes 0 through 6 and 9; nested runtime scheduling is not part of this oracle"
+      }
+    },
+    "runtime_oracle": "No original x86 whole-dispatch/runtime-oracle execution was performed for this scheduler.",
+    "current_native_tests": {
+      "action_core": 15,
+      "conditions": 13,
+      "executor": 14,
+      "combined_total": 42,
+      "result": "passed in final 177-test suite"
+    },
+    "direct_completion_protocol": "DIRECT_COMPLETED sets completed=1 and preserves supplied phase, without subtype reset"
+  },
+  "trace": {
+    "markdown": "work/analysis/s0-action-runtime-trace.md",
+    "machine_readable": "work/analysis/s0-action-runtime-trace.json",
+    "coverage": [
+      "427a50 ascending action dispatch, completion and loaded-slot guards",
+      "423f57 dependency gate and 42ba3a subtype lifecycle",
+      "43a7ca/4d3073/4f0059 pointer hotspot arming sequence",
+      "4381f4/439822 scene initialization, loaded-row limits, and timer reset distinction",
+      "S0 type/subtype counts, state-array corpus lower bounds, and executor boundary"
+    ]
+  }
+}

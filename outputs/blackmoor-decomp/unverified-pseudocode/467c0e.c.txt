@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x467c0e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+undefined4 FUN_00467c0e(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x240) == 0xb) {
+    *(undefined4 *)(in_ECX + 0x264) = 0;
+    *(int *)(in_ECX + 0x268) = *(int *)(in_ECX + 0x240) + -1;
+    while (*(int *)(in_ECX + 0x264) < *(int *)(in_ECX + 0x240)) {
+      if (((*(int *)(in_ECX + 0x1c0 + *(int *)(in_ECX + 0x264) * 8) !=
+            *(int *)(*(int *)(in_ECX + 0x1aa) + 0x246 + *(int *)(in_ECX + 0x264) * 8)) ||
+          (*(int *)(in_ECX + 0x1c4 + *(int *)(in_ECX + 0x264) * 8) !=
+           *(int *)(*(int *)(in_ECX + 0x1aa) + 0x24a + *(int *)(in_ECX + 0x264) * 8))) &&
+         ((*(int *)(in_ECX + 0x1c0 + *(int *)(in_ECX + 0x264) * 8) !=
+           *(int *)(*(int *)(in_ECX + 0x1aa) + 0x24a + *(int *)(in_ECX + 0x268) * 8) ||
+          (*(int *)(in_ECX + 0x1c4 + *(int *)(in_ECX + 0x264) * 8) !=
+           *(int *)(*(int *)(in_ECX + 0x1aa) + 0x246 + *(int *)(in_ECX + 0x268) * 8))))) {
+        return 0;
+      }
+      *(int *)(in_ECX + 0x264) = *(int *)(in_ECX + 0x264) + 1;
+      *(int *)(in_ECX + 0x268) = *(int *)(in_ECX + 0x268) + -1;
+    }
+    uVar1 = 1;
+  }
+  else {
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+

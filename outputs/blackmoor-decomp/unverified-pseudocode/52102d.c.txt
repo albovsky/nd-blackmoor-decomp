@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52102d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+bool FUN_0052102d(HWND param_1,uint param_2)
+
+{
+  uint uVar1;
+  int iVar2;
+  CHAR local_10 [12];
+  
+  if ((param_1 != (HWND)0x0) && (uVar1 = GetWindowLongA(param_1,-0x10), (uVar1 & 0xf) == param_2)) {
+    GetClassNameA(param_1,local_10,10);
+    iVar2 = lstrcmpiA(local_10,"combobox");
+    return iVar2 == 0;
+  }
+  return false;
+}
+

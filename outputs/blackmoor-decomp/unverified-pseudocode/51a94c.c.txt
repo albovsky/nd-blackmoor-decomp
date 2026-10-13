@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51a94c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_af67c4288d6e639a00bd5dfa5ba373e106c1ca511fa16fda1eb070cac94bb18e
+ */
+
+void FUN_0051a94c(int param_1,WPARAM param_2,int param_3)
+
+{
+  uint uVar1;
+  int iVar2;
+  int iVar3;
+  undefined4 local_c;
+  undefined4 local_8;
+  
+  uVar1 = FUN_0051d526();
+  if ((uVar1 & 0x40000000) == 0) {
+    iVar2 = FUN_0051c14c();
+    iVar3 = FUN_0051c14c();
+    if (iVar2 != iVar3) {
+      local_c = *(undefined4 *)(param_1 + 0x1c);
+      if (param_3 == 0) {
+        local_8 = 0;
+      }
+      else {
+        local_8 = *(undefined4 *)(param_3 + 0x1c);
+      }
+      SendMessageA(*(HWND *)(iVar2 + 0x1c),0x36e,param_2,(LPARAM)&local_c);
+    }
+  }
+  return;
+}
+

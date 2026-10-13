@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x467d5f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+void FUN_00467d5f(void)
+
+{
+  int in_ECX;
+  
+  if ((((*(int *)(in_ECX + 0x250) != 0) && (*(int *)(in_ECX + 0x24c) == 0)) &&
+      (*(int *)(in_ECX + 0x240) == 1)) &&
+     (((*(int *)(in_ECX + 0x1c0) == *(int *)(*(int *)(in_ECX + 0x1aa) + 0x246) &&
+       (*(int *)(in_ECX + 0x1c4) == *(int *)(*(int *)(in_ECX + 0x1aa) + 0x24a))) ||
+      ((*(int *)(in_ECX + 0x1c0) == *(int *)(*(int *)(in_ECX + 0x1aa) + 0x29a) &&
+       (*(int *)(in_ECX + 0x1c4) == *(int *)(*(int *)(in_ECX + 0x1aa) + 0x296))))))) {
+    *(undefined4 *)(in_ECX + 0x24c) = 1;
+    FUN_004fb2e3(*(undefined2 *)(*(int *)(in_ECX + 0x1aa) + 0x2f0));
+  }
+  return;
+}
+

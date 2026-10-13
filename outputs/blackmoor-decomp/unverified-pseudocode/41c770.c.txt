@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x41c770
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5
+ */
+
+void FUN_0041c770(int param_1)
+
+{
+  *(undefined1 *)(param_1 + 0x1b7) = 0;
+  *(undefined2 *)(param_1 + 0x1ba) = 0;
+  *(undefined2 *)(param_1 + 0x1bc) = 0;
+  *(undefined2 *)(param_1 + 0x1be) = 1;
+  *(undefined4 *)(param_1 + 0x1c0) = 0;
+  *(undefined4 *)(param_1 + 0x1c4) = 0;
+  *(undefined4 *)(param_1 + 0x1c8) = 1;
+  *(undefined2 *)(param_1 + 0x1cc) = 0xffff;
+  *(undefined1 *)(param_1 + 0x1ce) = 1;
+  *(undefined2 *)(param_1 + 0x1cf) = 2;
+  return;
+}
+

@@ -1,0 +1,57 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4afa1e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7
+ */
+
+void FUN_004afa1e(void)
+
+{
+  short sVar1;
+  int iVar2;
+  short local_18;
+  short local_14;
+  short local_c;
+  short local_8;
+  
+  if (DAT_00636a2a != 0) {
+    DAT_00636a2a = 0;
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00636a2e,&DAT_00636a3e,
+                 s_Tangram_Puzzle_Background_Restor_005515c8);
+  }
+  if ((DAT_00636a04 != 0) || (DAT_00636a4e != 0)) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00636a0a,&DAT_00636a1a,
+                 s_Tangram_Puzzle_RES_area_under_mo_00551604);
+    DAT_00636a4e = 0;
+  }
+  sVar1 = *(short *)(DAT_006375fb + 0x42);
+  local_c = sVar1;
+  if (DAT_00636a04 != 0) {
+    local_c = sVar1 + -1;
+  }
+  local_8 = 0;
+  local_14 = 0;
+  do {
+    if (local_14 == local_c) {
+      if (DAT_00636a04 != 0) {
+        iVar2 = DAT_00636a08 * 199;
+        FUN_004c5d4b(*(undefined4 *)(iVar2 + 0x636a81 + (uint)(byte)(&DAT_00636a78)[iVar2] * 0x28),
+                     DAT_005cf665,iVar2 + 0x636a85 + (uint)(byte)(&DAT_00636a78)[iVar2] * 0x28,
+                     iVar2 + 0x636a64,s_Tangram_Puzzle_tile_cursor_00551654);
+      }
+      return;
+    }
+    for (local_18 = 0; local_18 < sVar1; local_18 = local_18 + 1) {
+      if (((DAT_00636a04 == 0) || (DAT_00636a08 != local_18)) &&
+         (iVar2 = local_18 * 199, *(short *)(&DAT_00636a52 + iVar2) == local_8)) {
+        FUN_004c5d4b(*(undefined4 *)(iVar2 + 0x636a81 + (uint)(byte)(&DAT_00636a78)[iVar2] * 0x28),
+                     DAT_005cf665,iVar2 + 0x636a85 + (uint)(byte)(&DAT_00636a78)[iVar2] * 0x28,
+                     iVar2 + 0x636a64,s_TANGRAM_Puzzle_Tile_Render_00551638);
+        local_14 = local_14 + 1;
+        if (local_14 == local_c) break;
+      }
+    }
+    local_8 = local_8 + 1;
+  } while( true );
+}
+

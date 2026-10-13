@@ -1,0 +1,116 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x478a2c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_827db53a64242b59e9f92d38aeb544549dfa70f780a54958ee5eb67fb48784ea
+ */
+
+bool FUN_00478a2c(short param_1)
+
+{
+  int iVar1;
+  bool bVar2;
+  int in_ECX;
+  short local_20;
+  short local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  int local_c;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  if (param_1 == 1) {
+    local_18 = *(int *)(in_ECX + 0x1546);
+    local_14 = *(int *)(in_ECX + 0x154a);
+    local_10 = *(int *)(in_ECX + 0x154e);
+    local_c = *(int *)(in_ECX + 0x1552);
+    local_20 = *(short *)(in_ECX + 0x1592);
+    local_1c = *(short *)(in_ECX + 0x1594);
+  }
+  else if (param_1 == 2) {
+    local_18 = *(int *)(in_ECX + 0x1556);
+    local_14 = *(int *)(in_ECX + 0x155a);
+    local_10 = *(int *)(in_ECX + 0x155e);
+    local_c = *(int *)(in_ECX + 0x1562);
+    local_20 = *(short *)(in_ECX + 0x1596);
+    local_1c = *(short *)(in_ECX + 0x1598);
+  }
+  else if (param_1 == 3) {
+    local_18 = *(int *)(in_ECX + 0x1536);
+    local_14 = *(int *)(in_ECX + 0x153a);
+    local_10 = *(int *)(in_ECX + 0x153e);
+    local_c = *(int *)(in_ECX + 0x1542);
+    local_20 = *(short *)(in_ECX + 0x158e);
+    local_1c = *(short *)(in_ECX + 0x1590);
+  }
+  *(int *)(in_ECX + 0x1566) = local_18;
+  *(int *)(in_ECX + 0x156a) = local_14;
+  *(int *)(in_ECX + 0x156e) = local_10;
+  *(int *)(in_ECX + 0x1572) = local_c;
+  switch(*(undefined2 *)(in_ECX + 0x159a)) {
+  case 1:
+    local_14 = local_14 - *(int *)(in_ECX + 0x158a) / (int)*(short *)(iVar1 + 0x1c2);
+    local_c = local_14 + *(int *)(in_ECX + 0x158a);
+    *(short *)(in_ECX + 0x159c) = *(short *)(in_ECX + 0x159c) + 1;
+    if (*(short *)(in_ECX + 0x159c) == *(short *)(iVar1 + 0x1c2)) {
+      local_1c = local_1c + -1;
+    }
+    break;
+  case 2:
+    local_18 = local_18 + *(int *)(in_ECX + 0x1586) / (int)*(short *)(iVar1 + 0x1c2);
+    local_10 = local_18 + *(int *)(in_ECX + 0x1586);
+    *(short *)(in_ECX + 0x159c) = *(short *)(in_ECX + 0x159c) + 1;
+    if (*(short *)(in_ECX + 0x159c) == *(short *)(iVar1 + 0x1c2)) {
+      local_20 = local_20 + 1;
+    }
+    break;
+  case 3:
+    local_14 = local_14 + *(int *)(in_ECX + 0x158a) / (int)*(short *)(iVar1 + 0x1c2);
+    local_c = local_14 + *(int *)(in_ECX + 0x158a);
+    *(short *)(in_ECX + 0x159c) = *(short *)(in_ECX + 0x159c) + 1;
+    if (*(short *)(in_ECX + 0x159c) == *(short *)(iVar1 + 0x1c2)) {
+      local_1c = local_1c + 1;
+    }
+    break;
+  case 4:
+    local_18 = local_18 - *(int *)(in_ECX + 0x1586) / (int)*(short *)(iVar1 + 0x1c2);
+    local_10 = local_18 + *(int *)(in_ECX + 0x1586);
+    *(short *)(in_ECX + 0x159c) = *(short *)(in_ECX + 0x159c) + 1;
+    if (*(short *)(in_ECX + 0x159c) == *(short *)(iVar1 + 0x1c2)) {
+      local_20 = local_20 + -1;
+    }
+  }
+  bVar2 = *(short *)(iVar1 + 0x1c2) <= *(short *)(in_ECX + 0x159c);
+  if (bVar2) {
+    iVar1 = in_ECX + 0x28 + local_1c * 0x2a0;
+    *(undefined4 *)(iVar1 + local_20 * 0x54) = 1;
+    FUN_00479cd7(CONCAT22((short)((uint)(local_20 * 0x54) >> 0x10),local_1c),
+                 CONCAT22((short)((uint)iVar1 >> 0x10),local_20),0,&local_18);
+    *(undefined2 *)(in_ECX + 0x159c) = 0;
+  }
+  if (param_1 == 1) {
+    *(int *)(in_ECX + 0x1546) = local_18;
+    *(int *)(in_ECX + 0x154a) = local_14;
+    *(int *)(in_ECX + 0x154e) = local_10;
+    *(int *)(in_ECX + 0x1552) = local_c;
+    *(short *)(in_ECX + 0x1592) = local_20;
+    *(short *)(in_ECX + 0x1594) = local_1c;
+  }
+  else if (param_1 == 2) {
+    *(int *)(in_ECX + 0x1556) = local_18;
+    *(int *)(in_ECX + 0x155a) = local_14;
+    *(int *)(in_ECX + 0x155e) = local_10;
+    *(int *)(in_ECX + 0x1562) = local_c;
+    *(short *)(in_ECX + 0x1596) = local_20;
+    *(short *)(in_ECX + 0x1598) = local_1c;
+  }
+  else if (param_1 == 3) {
+    *(int *)(in_ECX + 0x1536) = local_18;
+    *(int *)(in_ECX + 0x153a) = local_14;
+    *(int *)(in_ECX + 0x153e) = local_10;
+    *(int *)(in_ECX + 0x1542) = local_c;
+    *(short *)(in_ECX + 0x158e) = local_20;
+    *(short *)(in_ECX + 0x1590) = local_1c;
+  }
+  return bVar2;
+}
+

@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x511a58
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c14b206e0317066be1d027bdae31364ff1ffe02c3df6c0ccff4b69686384ad63
+ */
+
+void FUN_00511a58(void)
+
+{
+  HMODULE hModule;
+  FARPROC pFVar1;
+  
+  hModule = GetModuleHandleA("KERNEL32");
+  if (hModule != (HMODULE)0x0) {
+    pFVar1 = GetProcAddress(hModule,"IsProcessorFeaturePresent");
+    if (pFVar1 != (FARPROC)0x0) {
+      (*pFVar1)(0);
+      return;
+    }
+  }
+  FUN_00511a1a();
+  return;
+}
+

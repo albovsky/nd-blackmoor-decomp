@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x516d7d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+void FUN_00516d7d(undefined4 param_1,undefined4 param_2)
+
+{
+  undefined1 local_10 [12];
+  
+  FUN_00516f69(local_10,&param_2,param_2,0,0,0,0);
+  FUN_00516d51(local_10,param_1);
+  return;
+}
+

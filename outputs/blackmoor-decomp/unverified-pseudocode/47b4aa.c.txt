@@ -1,0 +1,50 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47b4aa
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_827db53a64242b59e9f92d38aeb544549dfa70f780a54958ee5eb67fb48784ea
+ */
+
+undefined4 FUN_0047b4aa(short param_1,short param_2)
+
+{
+  int in_ECX;
+  int local_8;
+  
+  if (((*(int *)(in_ECX + 0x24) != 0) && (*(int *)(in_ECX + 0x28) == 0)) &&
+     (*(int *)(in_ECX + 0x2c) == 0)) {
+    *(undefined4 *)(in_ECX + 0x27c) = 0xffffffff;
+    if (*(char *)(*(int *)(in_ECX + 0xc) + 0x35b) != '\0') {
+      for (local_8 = 0; local_8 < 3; local_8 = local_8 + 1) {
+        if (((*(int *)(*(int *)(in_ECX + 0xc) + *(int *)(in_ECX + 0x28c) * 0x30 + 0x2a5 +
+                      local_8 * 0x10) <= (int)param_2) &&
+            ((int)param_2 <=
+             *(int *)(*(int *)(in_ECX + 0xc) + *(int *)(in_ECX + 0x28c) * 0x30 + 0x2ad +
+                     local_8 * 0x10))) &&
+           ((*(int *)(*(int *)(in_ECX + 0xc) + 0x2a1 + *(int *)(in_ECX + 0x28c) * 0x30 +
+                     local_8 * 0x10) <= (int)param_1 &&
+            ((int)param_1 <=
+             *(int *)(*(int *)(in_ECX + 0xc) + *(int *)(in_ECX + 0x28c) * 0x30 + 0x2a9 +
+                     local_8 * 0x10))))) {
+          *(int *)(in_ECX + 0x27c) = local_8;
+          FUN_0047b709(0x2768);
+          return 1;
+        }
+      }
+    }
+    for (local_8 = 0; local_8 < *(int *)(in_ECX + 0x280); local_8 = local_8 + 1) {
+      *(int *)(in_ECX + 0x2b4) = *(int *)(in_ECX + 0x28c) * *(int *)(in_ECX + 0x280) + local_8;
+      if (((*(int *)(*(int *)(in_ECX + 0xc) + 0x115 + local_8 * 0x10) + 3 <= (int)param_2) &&
+          ((int)param_2 <= *(int *)(*(int *)(in_ECX + 0xc) + 0x11d + local_8 * 0x10) + -3)) &&
+         ((*(int *)(*(int *)(in_ECX + 0xc) + 0x111 + local_8 * 0x10) + 3 <= (int)param_1 &&
+          ((((int)param_1 <= *(int *)(*(int *)(in_ECX + 0xc) + 0x119 + local_8 * 0x10) + -3 &&
+            (*(int *)(*(int *)(in_ECX + 0x14) + 4 + *(int *)(in_ECX + 0x2b4) * 0xc) == 0)) &&
+           (*(int *)(*(int *)(in_ECX + 0x14) + 8 + *(int *)(in_ECX + 0x2b4) * 0xc) == 0)))))) {
+        *(int *)(in_ECX + 0x27c) = local_8;
+        FUN_0047b709(0x2769);
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+

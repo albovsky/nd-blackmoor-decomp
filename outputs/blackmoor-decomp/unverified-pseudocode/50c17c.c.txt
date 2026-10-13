@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c17c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+/* Library Function - Single Match
+    public: class CWnd * __thiscall CWnd::GetOwner(void)const 
+   
+   Libraries: Visual Studio 2003 Release, Visual Studio 2005 Release */
+
+CWnd * __thiscall CWnd::GetOwner(CWnd *this)
+
+{
+  HWND pHVar1;
+  CWnd *pCVar2;
+  
+  pHVar1 = *(HWND *)(this + 0x20);
+  if (pHVar1 == (HWND)0x0) {
+    pHVar1 = GetParent(*(HWND *)(this + 0x1c));
+  }
+  pCVar2 = (CWnd *)FUN_0051abe4(pHVar1);
+  return pCVar2;
+}
+

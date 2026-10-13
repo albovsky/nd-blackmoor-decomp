@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b9a88
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+void FUN_004b9a88(void)
+
+{
+  undefined2 extraout_var;
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  undefined1 local_c;
+  undefined1 local_b;
+  short local_8;
+  
+  if (DAT_0061ee82 != 0) {
+    if (DAT_0061ee8e == 0) {
+      for (local_8 = 0; local_8 < *(short *)(DAT_0061ee76 + 0x173); local_8 = local_8 + 1) {
+        if (*(int *)(&DAT_0061eeeb + local_8 * 0x37) == 1) {
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061ee72 * 0x4a),DAT_005cf665,
+                       &DAT_0061eeb8 + local_8 * 0x37,&DAT_0061eec8 + local_8 * 0x37,
+                       s_Typing_Quiz_Character_00551e54);
+          local_c = (&DAT_0061eed8)[local_8 * 0x37];
+          local_b = 0;
+          FUN_004d2c20(&local_c,&DAT_005a9ba2,&DAT_005aed5a,
+                       CONCAT22((short)((uint)(local_8 * 0x37) >> 0x10),
+                                *(undefined2 *)(&DAT_0061eed9 + local_8 * 0x37)),
+                       *(undefined2 *)(&DAT_0061eedd + local_8 * 0x37),DAT_005d0357,DAT_005cf665,0);
+        }
+        else if (*(int *)(&DAT_0061eeeb + local_8 * 0x37) == 2) {
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061ee72 * 0x4a),DAT_005cf665,
+                       DAT_0061ee76 + 0x163,&DAT_0061eec8 + local_8 * 0x37,
+                       s_Typing_Quiz_Character_00551e6c);
+          FUN_004b8e42(CONCAT22(extraout_var,local_8));
+        }
+        else if (*(int *)(&DAT_0061eeeb + local_8 * 0x37) == 3) {
+          local_18 = *(int *)(&DAT_0061eecc + local_8 * 0x37) - DAT_0058318a;
+          local_10 = *(int *)(&DAT_0061eed4 + local_8 * 0x37) - DAT_0058318a;
+          local_1c = *(int *)(&DAT_0061eec8 + local_8 * 0x37) - DAT_00583186;
+          local_14 = *(int *)(&DAT_0061eed0 + local_8 * 0x37) - DAT_00583186;
+          FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_1c,&DAT_0061eec8 + local_8 * 0x37,
+                       s_Typing_Quiz_balloon_Erase_00551e84);
+          *(undefined4 *)(&DAT_0061eeeb + local_8 * 0x37) = 0;
+        }
+      }
+    }
+    else {
+      if (DAT_0061eea2 != 0) {
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00583196,&DAT_00583186,
+                     s_TYPING_PUZZLE_Background_Erase_00551ea0);
+        DAT_0061eea2 = 0;
+      }
+      local_1c = (DAT_00583186 + (DAT_0058318e - DAT_00583186) / 2) -
+                 (*(int *)(DAT_0061ee76 + 0x425) - *(int *)(DAT_0061ee76 + 0x41d)) / 2;
+      local_18 = (DAT_0058318a + (DAT_00583192 - DAT_0058318a) / 2) -
+                 (*(int *)(DAT_0061ee76 + 0x429) - *(int *)(DAT_0061ee76 + 0x421)) / 2;
+      local_14 = local_1c + (*(int *)(DAT_0061ee76 + 0x425) - *(int *)(DAT_0061ee76 + 0x41d));
+      local_10 = local_18 + (*(int *)(DAT_0061ee76 + 0x429) - *(int *)(DAT_0061ee76 + 0x421));
+      FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061ee72 * 0x4a),DAT_005cf665,
+                   DAT_0061ee76 + 0x41d,&local_1c,s_Typing_Puzzle_Passed_Msg_00551ec0);
+    }
+  }
+  return;
+}
+

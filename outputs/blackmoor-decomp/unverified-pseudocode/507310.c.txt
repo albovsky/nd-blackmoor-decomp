@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x507310
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+float10 FUN_00507310(uint *param_1)
+
+{
+  return (float10)(*param_1 & 0x7fffffff) * (float10)7.1771143e-07 - (float10)764.2712;
+}
+

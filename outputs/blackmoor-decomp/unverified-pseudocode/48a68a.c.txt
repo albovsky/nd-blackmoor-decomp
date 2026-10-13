@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x48a68a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b5201f38a5a659d5112bf314de75bb76652baa2f4916443e3ea7357100fb9b00
+ */
+
+undefined ** FUN_0048a68a(void)
+
+{
+  return &PTR_s_COverrideLockPuzzle_0052d8a0;
+}
+

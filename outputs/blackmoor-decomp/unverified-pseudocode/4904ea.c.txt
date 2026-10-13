@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4904ea
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7981f36fcfb340c87ff1ac4ba66e833832bd1313751938cee07fade4f0082dcf
+ */
+
+undefined ** FUN_004904ea(void)
+
+{
+  return &PTR_s_CRayCast_0052dac0;
+}
+

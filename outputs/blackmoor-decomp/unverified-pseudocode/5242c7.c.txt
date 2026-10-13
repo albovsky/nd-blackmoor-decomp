@@ -1,0 +1,98 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5242c7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005242c7(int param_1,int *param_2)
+
+{
+  undefined4 *puVar1;
+  int *piVar2;
+  undefined4 *puVar3;
+  int iVar4;
+  uint uVar5;
+  uint uVar6;
+  int iVar7;
+  HWND pHVar8;
+  HMENU pHVar9;
+  HWND hWnd;
+  int *in_ECX;
+  HWND unaff_retaddr;
+  uint uStack_c;
+  
+  iVar4 = (**(code **)(*in_ECX + 0xc0))();
+  if ((param_1 != 0) && (*(int **)(iVar4 + 0x68) != (int *)0x0)) {
+    (**(code **)(**(int **)(iVar4 + 0x68) + 0x5c))(0);
+  }
+  uStack_c = 0;
+  puVar3 = (undefined4 *)in_ECX[0x1c];
+  while (puVar3 != (undefined4 *)0x0) {
+    puVar1 = (undefined4 *)*puVar3;
+    piVar2 = (int *)puVar3[2];
+    uVar5 = GetDlgCtrlID((HWND)piVar2[7]);
+    uVar5 = uVar5 & 0xffff;
+    puVar3 = puVar1;
+    if ((0xe7ff < uVar5) && (uVar5 < 0xe820)) {
+      uVar6 = 1 << ((byte)uVar5 & 0x1f);
+      iVar7 = (**(code **)(*piVar2 + 200))();
+      if (iVar7 != 0) {
+        uStack_c = uStack_c | uVar6;
+      }
+      iVar7 = (**(code **)(*piVar2 + 0xd0))();
+      if ((iVar7 == 0) || (uVar5 != 0xe81f)) {
+        FUN_005239bd(piVar2,param_2[2] & uVar6,1);
+      }
+    }
+  }
+  param_2[2] = uStack_c;
+  if (param_1 == 0) {
+    in_ECX[0x27] = 0;
+    pHVar8 = GetDlgItem((HWND)in_ECX[7],0xea21);
+    if (pHVar8 != (HWND)0x0) {
+      hWnd = GetDlgItem((HWND)in_ECX[7],0xe900);
+      if (hWnd != (HWND)0x0) {
+        SetWindowLongA(hWnd,-0xc,0xea21);
+      }
+      SetWindowLongA(pHVar8,-0xc,0xe900);
+    }
+    if (param_2[1] != 0) {
+      InvalidateRect((HWND)in_ECX[7],(RECT *)0x0,1);
+      SetMenu((HWND)in_ECX[7],(HMENU)param_2[1]);
+    }
+    if (*(int **)(iVar4 + 0x68) != (int *)0x0) {
+      (**(code **)(**(int **)(iVar4 + 0x68) + 0x5c))(1);
+    }
+    (**(code **)(*in_ECX + 200))(1);
+    if (*param_2 != 0xe900) {
+      unaff_retaddr = GetDlgItem((HWND)in_ECX[7],*param_2);
+    }
+    ShowWindow(unaff_retaddr,5);
+    in_ECX[0x12] = param_2[5];
+    FUN_00522d82(1);
+  }
+  else {
+    in_ECX[0x27] = param_2[4];
+    FUN_00522d82(0);
+    pHVar8 = GetDlgItem((HWND)in_ECX[7],*param_2);
+    ShowWindow(pHVar8,0);
+    pHVar9 = GetMenu((HWND)in_ECX[7]);
+    param_2[1] = (int)pHVar9;
+    if (pHVar9 != (HMENU)0x0) {
+      InvalidateRect((HWND)in_ECX[7],(RECT *)0x0,1);
+      SetMenu((HWND)in_ECX[7],(HMENU)0x0);
+      in_ECX[0x2e] = in_ECX[0x2e] & 0xfffffffe;
+    }
+    param_2[5] = in_ECX[0x12];
+    in_ECX[0x12] = 0;
+    FUN_00522953(0x7915);
+    if (*param_2 != 0xe900) {
+      pHVar8 = GetDlgItem((HWND)in_ECX[7],0xe900);
+    }
+    if (pHVar8 != (HWND)0x0) {
+      SetWindowLongA(pHVar8,-0xc,0xea21);
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,14 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51cfd1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+uint FUN_0051cfd1(void)
+
+{
+  int in_ECX;
+  
+  return *(uint *)(in_ECX + 0x24) & 0x10;
+}
+

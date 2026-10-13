@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525d7c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00525d7c(void)
+
+{
+  if (DAT_0063c7a4 != 0) {
+    _DAT_0063c748 = GetSystemMetrics(2);
+    _DAT_0063c748 = _DAT_0063c748 + 1;
+    _DAT_0063c74c = GetSystemMetrics(3);
+    _DAT_0063c74c = _DAT_0063c74c + 1;
+    _DAT_0063c7b0 = 1;
+  }
+  return;
+}
+

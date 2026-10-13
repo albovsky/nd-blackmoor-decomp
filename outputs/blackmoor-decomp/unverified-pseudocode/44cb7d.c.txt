@@ -1,0 +1,78 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44cb7d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0044cb7d(void)
+
+{
+  undefined4 uVar1;
+  
+  if (DAT_00617e9a != (undefined4 *)0x0) {
+    FUN_0044c479(&DAT_00617e80);
+    _DAT_00617e80 = 2;
+    FUN_00449a94();
+    if (DAT_00617e9a != (undefined4 *)0x0) {
+      (**(code **)*DAT_00617e9a)(1);
+    }
+    DAT_00617e9a = (undefined4 *)0x0;
+    FUN_0044c4ab(&DAT_00617e80);
+    _DAT_00617e80 = 0;
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_KillPriSecThreads_____killed_pCo_00549430);
+  }
+  if (DAT_005b4e0c != (undefined4 *)0x0) {
+    FUN_0044c479(&DAT_005b4c3a);
+    _DAT_005b4c3a = 2;
+    FUN_00449a94();
+    if (DAT_005b4e0c != (undefined4 *)0x0) {
+      (**(code **)*DAT_005b4e0c)(1);
+    }
+    DAT_005b4e0c = (undefined4 *)0x0;
+    FUN_0044c4ab(&DAT_005b4c3a);
+    _DAT_005b4c3a = 0;
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_KillPriSecThreads_____killed_pSe_00549468);
+  }
+  if (DAT_005b5083 != (undefined4 *)0x0) {
+    FUN_0044c479(&DAT_005b4eb1);
+    _DAT_005b4eb1 = 2;
+    FUN_00449a94();
+    if (DAT_005b5083 != (undefined4 *)0x0) {
+      (**(code **)*DAT_005b5083)(1);
+    }
+    DAT_005b5083 = (undefined4 *)0x0;
+    FUN_0044c4ab(&DAT_005b4eb1);
+    _DAT_005b4eb1 = 0;
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_KillPriSecThreads_____killed_pSe_005494a0);
+  }
+  if (DAT_006381a5 != (undefined4 *)0x0) {
+    FUN_0044c479(&DAT_00637fd3);
+    _DAT_00637fd3 = 2;
+    FUN_00449a94();
+    if (DAT_006381a5 == (undefined4 *)0x0) {
+      uVar1 = 0;
+    }
+    else {
+      uVar1 = (**(code **)*DAT_006381a5)(1);
+    }
+    DAT_006381a5 = (undefined4 *)0x0;
+    FUN_0044c4ab(&DAT_00637fd3,uVar1);
+    _DAT_00637fd3 = 0;
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_KillPriSecThreads_____killed_pSe_005494d8);
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_KillPriSecThreads_____done____0054950c);
+  }
+  return;
+}
+

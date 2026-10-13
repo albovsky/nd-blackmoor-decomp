@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x45839e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a
+ */
+
+undefined4 FUN_0045839e(int *param_1,int *param_2)
+
+{
+  undefined4 uVar1;
+  
+  if ((((*param_1 < *param_2) && (*param_2 <= param_1[2])) ||
+      ((*param_2 <= *param_1 && (*param_1 <= param_2[2])))) &&
+     (((param_1[1] < param_2[1] && (param_2[1] <= param_1[3])) ||
+      ((param_2[1] <= param_1[1] && (param_1[1] <= param_2[3])))))) {
+    uVar1 = 1;
+  }
+  else {
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+

@@ -1,0 +1,21 @@
+{
+  "description": "Two field-access functions independently compiled from REA/Ghidra pseudocode. Full original GAME.EXE reconstruction remains incomplete.",
+  "source": "src/initial_functions.c",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "functions": [
+    {
+      "rva": 1167313,
+      "size": 7,
+      "symbol": "_FUN_0051cfd1",
+      "object": "build/initial_functions.obj",
+      "evidence_id": "ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859"
+    },
+    {
+      "rva": 1194379,
+      "size": 7,
+      "symbol": "_FUN_0052398b",
+      "object": "build/initial_functions.obj",
+      "evidence_id": "ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5"
+    }
+  ]
+}

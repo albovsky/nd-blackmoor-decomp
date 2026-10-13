@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519cc0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+undefined ** FUN_00519cc0(void)
+
+{
+  undefined *local_8;
+  
+  local_8 = &DAT_0063c668;
+  __CxxThrowException_8(&local_8,&DAT_005344e0);
+  return &PTR_PTR_0052ffb0;
+}
+

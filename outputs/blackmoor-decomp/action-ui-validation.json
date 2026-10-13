@@ -1,0 +1,152 @@
+{
+  "scope": "bounded 0x82 phone/contact and generic 0x1d control-state handlers; not a full scene or game comparison",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "native_library_sha256": "03922380e33d9de370e3349ffbb2aab86e6c2b96fb9d5716a9ae1e55a701e8fc",
+  "original_execution": "direct original GAME.EXE PE32 x86 handler entries under Unicorn 2.1.4",
+  "native_execution": "ARM64 macOS C shared library",
+  "code_ranges": [
+    {
+      "name": "0x4e7253 direct phone handler",
+      "start": "0x4e7253",
+      "end_exclusive": "0x4e72f9",
+      "sha256": "074402f915587c9113344a175666089c9a1b93503d12f561e4be25ccd4ff5619",
+      "boundary_basis": "static trace anchor"
+    },
+    {
+      "name": "0x4e13e4 control-handler code window",
+      "start": "0x4e13e4",
+      "end_exclusive": "0x4e18e5",
+      "sha256": "b2e63b99940ec84592abfdfa53fc306482e6ed099a5fce257409f55f0e8c13b3",
+      "boundary_basis": "window ends at next traced consumer; exact handler end was not recovered"
+    },
+    {
+      "name": "0x4e1a7e control initializer",
+      "start": "0x4e1a7e",
+      "end_exclusive": "0x4e1b79",
+      "sha256": "191e3ff8bcbcb56e5759ae7be12412d67a7ff52958d1d4297ee88733f6a8f04b",
+      "boundary_basis": "next traced function entry"
+    }
+  ],
+  "original_paths_left_real": [
+    "0x4e7253 phone body lookup, full-row update/append, sort, and UI-bit helper",
+    "0x4e45be exact 11-byte phone-key lookup",
+    "0x4e3ade adjacent phone sort and 0x50d0bc ASCII normalization branch",
+    "0x4e0559 group-3 availability/subflag update",
+    "0x4e13e4 generic (code != 1) control handler",
+    "0x4e1a7e five-group/50-slot control initialization"
+  ],
+  "controlled_globals": {
+    "0x63cb1c": "zero to select original ASCII normalization branch",
+    "0x63a4cd": "zero to exclude debug-print side effects on full range table",
+    "ECX": "0x570508 owner fixture for the control handler's loop scratch field"
+  },
+  "compared_cases": 13,
+  "cases": [
+    {
+      "case": "phone-insert",
+      "type": "0x82",
+      "body_hex": "0a007a7a7a7a7a7a7a7a7a7a7a5a756c7500000000000000000000000000000000a1a1a1a1a1a1a1a1",
+      "phone_rows_compared": 2,
+      "control_array_sha256": "59b961adcb0485ff2387105cb737d23fea83b2f681c8759fd7e080f73f192ea5"
+    },
+    {
+      "case": "phone-sort-ascii",
+      "type": "0x82",
+      "body_hex": "0a006161616161616161616161616d790000000000000000000000000000000000b2b2b2b2b2b2b2b2",
+      "phone_rows_compared": 2,
+      "control_array_sha256": "59b961adcb0485ff2387105cb737d23fea83b2f681c8759fd7e080f73f192ea5"
+    },
+    {
+      "case": "phone-duplicate-replace-and-sort",
+      "type": "0x82",
+      "body_hex": "eeff6b6b6b6b6b6b6b6b6b6b6b4d69726100000000000000000000000000000000d4d4d4d4d4d4d4d4",
+      "phone_rows_compared": 2,
+      "control_array_sha256": "59b961adcb0485ff2387105cb737d23fea83b2f681c8759fd7e080f73f192ea5"
+    },
+    {
+      "case": "phone-casefold-tie-keeps-order",
+      "type": "0x82",
+      "body_hex": "0a003232323232323232323232416c6963650000000000000000000000000000005a5a5a5a5a5a5a5a",
+      "phone_rows_compared": 2,
+      "control_array_sha256": "59b961adcb0485ff2387105cb737d23fea83b2f681c8759fd7e080f73f192ea5"
+    },
+    {
+      "case": "phone-sort-restarts-after-one-swap-per-pass",
+      "type": "0x82",
+      "body_hex": "0a006161616161616161616161416c7068610000000000000000000000000000005a5a5a5a5a5a5a5a",
+      "phone_rows_compared": 4,
+      "control_array_sha256": "59b961adcb0485ff2387105cb737d23fea83b2f681c8759fd7e080f73f192ea5"
+    },
+    {
+      "case": "control-insert",
+      "type": "0x1d",
+      "body_hex": "03000d01f6ff2500",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "dbfec9b0f8555eb9bba286bba9cf8738b844b149d98afbac7a7c76a4dc03b733"
+    },
+    {
+      "case": "control-duplicate-noop",
+      "type": "0x1d",
+      "body_hex": "0200390104000900",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "897b42dfc0607712aabcc8e356e8ad34c320daf652ea7403ccb187c3a85e8801"
+    },
+    {
+      "case": "control-remove-range",
+      "type": "0x1d",
+      "body_hex": "0100000004000900",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "7eb5985ecaf2d323169c7e2b3fe3f2a68bfb6ba6ceb8ffc4222b55a7b33827ff"
+    },
+    {
+      "case": "control-full-table-drop-first",
+      "type": "0x1d",
+      "body_hex": "00002a01f9ff0800",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "35f440cf603eeeb62d6398d18f2fa046926cad305dd445c543310db3a8d627bf"
+    },
+    {
+      "case": "control-mode1-enable",
+      "type": "0x1d",
+      "body_hex": "04000d010b270000",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "5274acefd3713ffd8df57e9d0d1a88aa44a75b26a40fd1e8f7f518a6463d760e"
+    },
+    {
+      "case": "control-mode1-disable",
+      "type": "0x1d",
+      "body_hex": "04000d0101000c27",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "6a7a11d0e05a3a1a15a11746dc6b90660164fb5a729846fc89d34ad61bfb3a0d"
+    },
+    {
+      "case": "control-mode0-state2",
+      "type": "0x1d",
+      "body_hex": "04000d0000000d27",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "47986bdaf1c49f22be8093c83cb9daf372c84659121df0502357f00901a8e6dc"
+    },
+    {
+      "case": "control-mode0-state0",
+      "type": "0x1d",
+      "body_hex": "04000d000e270000",
+      "phone_rows_compared": 0,
+      "control_array_sha256": "6a7a11d0e05a3a1a15a11746dc6b90660164fb5a729846fc89d34ad61bfb3a0d"
+    }
+  ],
+  "mismatches": [],
+  "native_invalid_input_policy": "phone capacity/name/table and control group bounds are validated before mutation; original table capacity is not established",
+  "excluded": [
+    "control code 1 immediate UI-mode branch (returns explicit native UNSUPPORTED without mutation)",
+    "nonzero NLS/locale phone-name normalization (native returns explicit UNSUPPORTED)",
+    "debug printing, phone-table overflow behavior, rendering, input handling, and full UI behavior",
+    "scene scheduling, dependency evaluation, and direct completion-byte behavior in the outer dispatcher"
+  ],
+  "limitations": [
+    "original phone-table capacity is unproven; oracle cases keep the table in a small bounded fixture",
+    "empty-table lookup's decompiled comparison local is uninitialized when the original count is zero, so oracle insert cases seed a nonmatching row and do not claim empty-table insertion behavior",
+    "control handler exact function end was not recovered; reported control range hash is an enclosing code window",
+    "generic control code values are retained as observed bytes; code 13 user-facing meaning is unresolved",
+    "native table count/capacity represents caller-owned storage and does not claim the original table was dynamically sized"
+  ]
+}

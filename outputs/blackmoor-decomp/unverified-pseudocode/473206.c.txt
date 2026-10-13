@@ -1,0 +1,102 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x473206
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_00473206(short param_1,short param_2)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  int iVar2;
+  int local_8;
+  
+  *(undefined4 *)(in_ECX + 0x76) = *(undefined4 *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0xc) * 0x8d);
+  *(undefined2 *)(in_ECX + 0xe) = 0xffff;
+  if (*(int *)(in_ECX + 0x7a) != 0) {
+    *(int *)(in_ECX + 0x335) =
+         DAT_00583102 + *(int *)(&DAT_005b3e40 + DAT_005b44f4 * 8 + DAT_005b44f0 * 0x10);
+    *(int *)(in_ECX + 0x33d) =
+         *(int *)(in_ECX + 0x335) + -1 +
+         (int)*(short *)(&DAT_005b3ae8 + DAT_005b44f0 * 8 + DAT_005b44f4 * 4);
+    *(int *)(in_ECX + 0x339) =
+         DAT_00583106 + *(int *)(&DAT_005b3e44 + DAT_005b44f4 * 8 + DAT_005b44f0 * 0x10);
+    *(int *)(in_ECX + 0x341) =
+         *(int *)(in_ECX + 0x339) + -1 +
+         (int)*(short *)(&DAT_005b3aea + DAT_005b44f0 * 8 + DAT_005b44f4 * 4);
+    *(short *)(in_ECX + 0x345) =
+         (short)*(undefined4 *)(in_ECX + 0x335) +
+         (short)((*(int *)(in_ECX + 0x33d) - *(int *)(in_ECX + 0x335)) / 2);
+    iVar2 = *(int *)(in_ECX + 0x339) + (*(int *)(in_ECX + 0x341) - *(int *)(in_ECX + 0x339)) / 2;
+    *(short *)(in_ECX + 0x347) = (short)iVar2;
+    iVar2 = FUN_004e22fd(*(undefined2 *)(in_ECX + 0x345),
+                         CONCAT22((short)((uint)iVar2 >> 0x10),*(undefined2 *)(in_ECX + 0x347)));
+    if (iVar2 != 0) {
+      DAT_005c39e5 = 0x27a3;
+      return 1;
+    }
+    if ((((*(int *)(*(int *)(in_ECX + 0x76) + 0x4f3) <= (int)param_2) &&
+         ((int)param_2 <= *(int *)(*(int *)(in_ECX + 0x76) + 0x4fb))) &&
+        (*(int *)(*(int *)(in_ECX + 0x76) + 0x4ef) <= (int)param_1)) &&
+       ((int)param_1 <= *(int *)(*(int *)(in_ECX + 0x76) + 0x4f7))) {
+      DAT_005b44f0 = 9;
+      DAT_005b44f4 = 1;
+      DAT_005c39e5 = 0x27a1;
+      _DAT_005d162d = DAT_005d0377;
+      _DAT_005d1631 = &DAT_005b173c;
+      _DAT_005d1639 = 1;
+      return 1;
+    }
+    FUN_00473651();
+    for (local_8 = 0; local_8 < 4; local_8 = local_8 + 1) {
+      if ((&DAT_005a4b4e)[local_8] == 0) {
+        if (*(char *)(*(int *)(in_ECX + 0x76) + 0x106) == '\0') {
+          iVar2 = FUN_004d5316(&DAT_005a4b5e + local_8 * 0x10,in_ECX + 0x335);
+          if (iVar2 != 0) {
+            *(undefined2 *)(in_ECX + 0xe) = (undefined2)local_8;
+            break;
+          }
+        }
+        else if (((*(int *)(&DAT_005a4b62 + local_8 * 0x10) <= (int)*(short *)(in_ECX + 0x347)) &&
+                 ((int)*(short *)(in_ECX + 0x347) <= *(int *)(&DAT_005a4b6a + local_8 * 0x10))) &&
+                ((*(int *)(&DAT_005a4b5e + local_8 * 0x10) <= (int)*(short *)(in_ECX + 0x345) &&
+                 ((int)*(short *)(in_ECX + 0x345) <= *(int *)(&DAT_005a4b66 + local_8 * 0x10))))) {
+          *(undefined2 *)(in_ECX + 0xe) = (undefined2)local_8;
+          break;
+        }
+      }
+    }
+    if (*(short *)(in_ECX + 0xe) != -1) {
+      if ((DAT_00583a29 != *(short *)(*(int *)(in_ECX + 0x76) + 0x104)) &&
+         (*(short *)(*(int *)(in_ECX + 0x76) + 0x104) != -1)) {
+        if (*(int *)(in_ECX + 0x375 + *(short *)(in_ECX + 0xe) * 4) == 0) {
+          FUN_004eb184((int)*(short *)(*(int *)(in_ECX + 0x76) + 0x104));
+          *(undefined4 *)(in_ECX + 0x375 + *(short *)(in_ECX + 0xe) * 4) = 1;
+        }
+        return 0;
+      }
+      FUN_0047409e();
+      if (DAT_005a4bce == -1) {
+        *(int *)(&DAT_005a4b9e + *(short *)(in_ECX + 0xe) * 8) =
+             DAT_00583102 - *(int *)(&DAT_005a4b5e + *(short *)(in_ECX + 0xe) * 0x10);
+        *(int *)(&DAT_005a4ba2 + *(short *)(in_ECX + 0xe) * 8) =
+             DAT_00583106 - *(int *)(&DAT_005a4b62 + *(short *)(in_ECX + 0xe) * 0x10);
+        DAT_005a4bce = (int)*(short *)(in_ECX + 0xe);
+        *(undefined4 *)(&DAT_005a4bbe + *(short *)(in_ECX + 0xe) * 4) = 1;
+        DVar1 = GetTickCount();
+        *(DWORD *)(&DAT_0063a864 + local_8 * 4) = DVar1;
+        if (*(int *)(in_ECX + 0x371) != 0) {
+          *(undefined4 *)(in_ECX + 0x371) = 0;
+          FUN_0047512a();
+        }
+      }
+      return 1;
+    }
+    FUN_00473f7d();
+  }
+  return 0;
+}
+

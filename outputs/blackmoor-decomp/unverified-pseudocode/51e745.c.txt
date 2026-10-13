@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51e745
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+void FUN_0051e745(void)
+
+{
+  int *in_ECX;
+  
+  if (*(int *)(*in_ECX + -8) != 0) {
+    if (-1 < *(int *)(*in_ECX + -0xc)) {
+      FUN_0051e6f1();
+      return;
+    }
+    FUN_0051e8f7(&DAT_0063c418);
+  }
+  return;
+}
+

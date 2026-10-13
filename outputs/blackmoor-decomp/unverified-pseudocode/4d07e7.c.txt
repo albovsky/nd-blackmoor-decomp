@@ -1,0 +1,43 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d07e7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7011e58f3afdde6fc878edb0312973c24208872876d4104777064ce751b49e1e
+ */
+
+void FUN_004d07e7(void)
+
+{
+  char cVar1;
+  short sVar2;
+  int iVar3;
+  char *pcVar4;
+  
+  FUN_004c5377(DAT_005d15e3,DAT_005cf665,*(int *)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) + 0x24,
+               &DAT_005b61c1,s_PASSWORD_Puzzle_Background_pSrcS_0055a004);
+  sVar2 = **(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d);
+  FUN_004d2c20(&DAT_005b616d,
+               (int)&DAT_005a4c24 + **(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) * 0x7f3,
+               &DAT_005adb3a + **(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) * 0x1d0,
+               CONCAT22(sVar2 >> 0xf,DAT_005b61d1),
+               CONCAT22((short)((uint)*(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) >> 0x10),
+                        DAT_005b61dd),*(undefined4 *)(&DAT_005d032f + sVar2 * 4),DAT_005cf665,0);
+  iVar3 = -1;
+  pcVar4 = &DAT_005b618e;
+  do {
+    if (iVar3 == 0) break;
+    iVar3 = iVar3 + -1;
+    cVar1 = *pcVar4;
+    pcVar4 = pcVar4 + 1;
+  } while (cVar1 != '\0');
+  if (iVar3 != -2) {
+    sVar2 = **(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d);
+    FUN_004d2c20(&DAT_005b618e,
+                 (int)&DAT_005a4c24 + **(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) * 0x7f3,
+                 &DAT_005adb3a + **(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) * 0x1d0,
+                 CONCAT22(sVar2 >> 0xf,DAT_005b61e1),
+                 CONCAT22((short)((uint)*(short **)(&DAT_005bb5e5 + DAT_005b61b0 * 0x8d) >> 0x10),
+                          DAT_005b61ed),*(undefined4 *)(&DAT_005d032f + sVar2 * 4),DAT_005cf665,0);
+  }
+  return;
+}
+

@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4cf0ce
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7011e58f3afdde6fc878edb0312973c24208872876d4104777064ce751b49e1e
+ */
+
+int FUN_004cf0ce(int param_1)
+
+{
+  bool bVar1;
+  int iVar2;
+  int iVar3;
+  int in_ECX;
+  int iVar4;
+  int local_20;
+  int local_18;
+  int local_10;
+  
+  iVar4 = *(int *)(in_ECX + 0x226) + param_1 * 0x35;
+  local_20 = (int)*(short *)(iVar4 + 0x2d);
+  for (local_18 = 0; local_18 < *(short *)(iVar4 + 0x2f); local_18 = local_18 + 1) {
+    local_20 = local_20 + *(short *)(*(int *)(iVar4 + 0x31) + 0x21 + local_18 * 0x23);
+  }
+  iVar2 = FUN_004cf0a9(local_20);
+  local_10 = 0;
+  if (((*(short *)(iVar4 + 0x2d) < 1) || (local_10 = (int)*(short *)(iVar4 + 0x2d), iVar2 < 0)) ||
+     (local_10 <= iVar2)) {
+    for (local_18 = 0; local_18 < *(short *)(iVar4 + 0x2f); local_18 = local_18 + 1) {
+      iVar3 = (int)*(short *)(*(int *)(iVar4 + 0x31) + 0x21 + local_18 * 0x23);
+      if (((0 < iVar3) &&
+          (iVar3 = local_10 + iVar3, bVar1 = local_10 <= iVar2, local_10 = iVar3, bVar1)) &&
+         (iVar2 < iVar3)) {
+        return local_18;
+      }
+    }
+  }
+  return -1;
+}
+

@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4de0cf
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+void FUN_004de0cf(void)
+
+{
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_UpdateSaveQueryDialog____enter___0055b840);
+  }
+  FUN_004c5377(DAT_005d2d4d,DAT_005cf665,&DAT_006167e8,&DAT_006167a8,
+               s_Game_Save_Confirmation_0055b864);
+  return;
+}
+

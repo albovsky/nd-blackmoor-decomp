@@ -1,0 +1,80 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x433c60
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+undefined4 * FUN_00433c60(char *param_1)
+
+{
+  char cVar1;
+  undefined4 uVar2;
+  undefined4 *in_ECX;
+  uint uVar3;
+  uint uVar4;
+  char *pcVar5;
+  char *pcVar6;
+  int local_8;
+  
+  *in_ECX = &PTR_FUN_0052c7b8;
+  uVar3 = 0xffffffff;
+  do {
+    pcVar5 = param_1;
+    if (uVar3 == 0) break;
+    uVar3 = uVar3 - 1;
+    pcVar5 = param_1 + 1;
+    cVar1 = *param_1;
+    param_1 = pcVar5;
+  } while (cVar1 != '\0');
+  uVar3 = ~uVar3;
+  pcVar5 = pcVar5 + -uVar3;
+  pcVar6 = (char *)(in_ECX + 0x405);
+  for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+    *(undefined4 *)pcVar6 = *(undefined4 *)pcVar5;
+    pcVar5 = pcVar5 + 4;
+    pcVar6 = pcVar6 + 4;
+  }
+  for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *pcVar6 = *pcVar5;
+    pcVar5 = pcVar5 + 1;
+    pcVar6 = pcVar6 + 1;
+  }
+  in_ECX[0x404] = 0;
+  in_ECX[0x403] = 0;
+  in_ECX[0x402] = 0;
+  in_ECX[0x446] = 0;
+  in_ECX[0x447] = 0;
+  in_ECX[0x448] = 0;
+  in_ECX[0x449] = 0;
+  in_ECX[0x44a] = 0;
+  in_ECX[1099] = 0;
+  *(undefined1 *)(in_ECX + 0x44c) = 0;
+  *(undefined1 *)((int)in_ECX + 0x1136) = 0;
+  in_ECX[0x44f] = 0;
+  in_ECX[0x450] = 0;
+  in_ECX[0x17d9] = 0;
+  in_ECX[0x17da] = 0;
+  for (local_8 = 0; local_8 < 1000; local_8 = local_8 + 1) {
+    in_ECX[local_8 + 0x13f1] = 0;
+  }
+  if (DAT_005bb1de == 0) {
+    uVar2 = FUN_00418e52(s_CIFTREE_00545dec,in_ECX + 0x405,in_ECX + 0x449);
+    in_ECX[0x446] = uVar2;
+  }
+  else {
+    uVar2 = FUN_00418e52(s_PROMOTREE_00545de0,in_ECX + 0x405,in_ECX + 0x449);
+    in_ECX[0x446] = uVar2;
+  }
+  if ((in_ECX[0x446] == 0) || (in_ECX[0x449] == 0)) {
+    FUN_0050ca3e(in_ECX + 2,s_CHiff__CHiff___constructor___una_00545df4,in_ECX + 0x405);
+    FUN_0052139c(in_ECX + 2,0,0);
+    DAT_0063a58a = 2;
+    FUN_004c97b4();
+  }
+  else {
+    FUN_00433eaa();
+    FUN_00434025();
+  }
+  return in_ECX;
+}
+

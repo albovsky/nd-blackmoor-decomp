@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52290b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+void FUN_0052290b(void)
+
+{
+  undefined4 in_ECX;
+  
+  FUN_00525371();
+  FUN_00525b0f(&LAB_00524bd4);
+  FUN_00525684(in_ECX);
+  return;
+}
+

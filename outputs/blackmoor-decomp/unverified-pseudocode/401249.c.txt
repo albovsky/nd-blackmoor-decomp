@@ -1,0 +1,96 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x401249
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5101d3157a7cceecfaf0c751ae06a21a7013310d21b12b5f59cdca7af1ddb679
+ */
+
+void FUN_00401249(void)
+
+{
+  int iVar1;
+  undefined1 local_27d4 [140];
+  undefined1 local_2748 [3552];
+  undefined1 local_1968 [2836];
+  uint local_e54;
+  undefined1 local_e50 [1204];
+  undefined1 local_99c [2428];
+  undefined4 uStack_20;
+  char *pcStack_1c;
+  undefined4 uStack_18;
+  undefined1 *puStack_14;
+  void *local_10;
+  undefined1 *puStack_c;
+  int local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &LAB_00526aa8;
+  local_10 = ExceptionList;
+  puStack_14 = (undefined1 *)0x40126b;
+  ExceptionList = &local_10;
+  FUN_0050c920();
+  puStack_14 = (undefined1 *)0x0;
+  uStack_18 = 0;
+  pcStack_1c = s_Nancy_Drew_Mystery___Cheat_Sheet_005370b0;
+  uStack_20 = 0x40127f;
+  FUN_00521ef1();
+  local_8 = 0;
+  puStack_14 = (undefined1 *)0x401291;
+  FUN_00407bba();
+  local_8._0_1_ = 1;
+  puStack_14 = (undefined1 *)0x4012a0;
+  FUN_00404aca();
+  local_8._0_1_ = 2;
+  puStack_14 = (undefined1 *)0x4012af;
+  FUN_004030ba();
+  local_8._0_1_ = 3;
+  puStack_14 = (undefined1 *)0x4012be;
+  FUN_0040149a();
+  local_8._0_1_ = 4;
+  puStack_14 = (undefined1 *)0x4012cd;
+  FUN_00408a2a();
+  local_8 = CONCAT31(local_8._1_3_,5);
+  puStack_14 = local_e50;
+  uStack_18 = 0x4012e3;
+  FUN_0052233d();
+  puStack_14 = local_2748;
+  uStack_18 = 0x4012f5;
+  FUN_0052233d();
+  puStack_14 = local_27d4;
+  uStack_18 = 0x401307;
+  FUN_0052233d();
+  puStack_14 = local_99c;
+  uStack_18 = 0x401319;
+  FUN_0052233d();
+  puStack_14 = local_1968;
+  uStack_18 = 0x40132b;
+  FUN_0052233d();
+  puStack_14 = (undefined1 *)0x401336;
+  iVar1 = FUN_00522135();
+  local_e54 = (uint)(iVar1 == 1);
+  if (local_e54 != 0) {
+    puStack_14 = (undefined1 *)0x401357;
+    FUN_004d940a();
+  }
+  DAT_005839ad = 2;
+  local_8._0_1_ = 4;
+  puStack_14 = (undefined1 *)0x401370;
+  FUN_00408d49();
+  local_8._0_1_ = 3;
+  puStack_14 = (undefined1 *)0x40137f;
+  FUN_004014f5();
+  local_8._0_1_ = 2;
+  puStack_14 = (undefined1 *)0x40138e;
+  FUN_00403229();
+  local_8._0_1_ = 1;
+  puStack_14 = (undefined1 *)0x40139d;
+  FUN_00404af0();
+  local_8 = (uint)local_8._1_3_ << 8;
+  puStack_14 = (undefined1 *)0x4013ac;
+  FUN_00407c29();
+  local_8 = 0xffffffff;
+  puStack_14 = (undefined1 *)0x4013be;
+  FUN_00521fa5();
+  ExceptionList = local_10;
+  return;
+}
+

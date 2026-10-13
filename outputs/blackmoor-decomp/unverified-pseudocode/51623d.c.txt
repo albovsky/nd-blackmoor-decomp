@@ -1,0 +1,78 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51623d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+bool FUN_0051623d(int *param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  undefined2 uVar3;
+  undefined2 uVar4;
+  undefined2 uVar5;
+  
+  if (DAT_00568b84 != 0) {
+    iVar2 = param_1[5];
+    if ((iVar2 != DAT_00568c18) || (iVar2 != DAT_00568c28)) {
+      if (DAT_0063cc58 == 0) {
+        FUN_005163e9(1,1,iVar2,4,1,0,0,2,0,0,0);
+        FUN_005163e9(0,1,param_1[5],10,5,0,0,2,0,0,0);
+      }
+      else {
+        if (DAT_0063ccf8 != 0) {
+          uVar4 = 0;
+          uVar3 = 0;
+          uVar5 = DAT_0063ccfe;
+        }
+        else {
+          uVar4 = DAT_0063ccfc;
+          uVar3 = DAT_0063ccfe;
+          uVar5 = 0;
+        }
+        FUN_005163e9(1,DAT_0063ccf8 == 0,iVar2,DAT_0063ccfa,uVar3,uVar4,uVar5,DAT_0063cd00,
+                     DAT_0063cd02,DAT_0063cd04,DAT_0063cd06);
+        if (DAT_0063cca4 != 0) {
+          uVar4 = 0;
+          uVar3 = 0;
+          iVar2 = param_1[5];
+          uVar5 = DAT_0063ccaa;
+        }
+        else {
+          iVar2 = param_1[5];
+          uVar4 = DAT_0063cca8;
+          uVar3 = DAT_0063ccaa;
+          uVar5 = 0;
+        }
+        FUN_005163e9(0,DAT_0063cca4 == 0,iVar2,DAT_0063cca6,uVar3,uVar4,uVar5,DAT_0063ccac,
+                     DAT_0063ccae,DAT_0063ccb0,DAT_0063ccb2);
+      }
+    }
+    iVar2 = param_1[7];
+    if (DAT_00568c1c < DAT_00568c2c) {
+      if ((DAT_00568c1c <= iVar2) && (iVar2 <= DAT_00568c2c)) {
+        if ((DAT_00568c1c < iVar2) && (iVar2 < DAT_00568c2c)) {
+          return true;
+        }
+LAB_005163b5:
+        iVar1 = ((param_1[2] * 0x3c + param_1[1]) * 0x3c + *param_1) * 1000;
+        if (iVar2 == DAT_00568c1c) {
+          return DAT_00568c20 <= iVar1;
+        }
+        return iVar1 < DAT_00568c30;
+      }
+    }
+    else {
+      if (iVar2 < DAT_00568c2c) {
+        return true;
+      }
+      if (DAT_00568c1c < iVar2) {
+        return true;
+      }
+      if ((iVar2 <= DAT_00568c2c) || (DAT_00568c1c <= iVar2)) goto LAB_005163b5;
+    }
+  }
+  return false;
+}
+

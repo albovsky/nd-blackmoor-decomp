@@ -1,0 +1,253 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x500bb0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_20c7c52bf11d994d9023881598efe05eb08f3d2ab61411fd9b04f8b74b2165a9
+ */
+
+void FUN_00500bb0(int param_1,float *param_2,int param_3,float *param_4,float param_5,float *param_6
+                 )
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float fVar5;
+  float fVar6;
+  float fVar7;
+  int iVar8;
+  int iVar9;
+  uint *puVar10;
+  int iVar11;
+  int iVar12;
+  float *pfVar13;
+  int iVar14;
+  uint uVar15;
+  uint *puVar16;
+  uint *local_34;
+  float *local_30;
+  float *local_2c;
+  float *local_28;
+  float *local_24;
+  float *local_20;
+  float *local_1c;
+  float local_10;
+  float local_c;
+  float local_8;
+  
+  iVar8 = (int)param_6;
+  FUN_0050c920();
+  FUN_0050c920();
+  FUN_0050c920();
+  FUN_0050c920();
+  FUN_0050c920();
+  fVar1 = 0.0;
+  fVar2 = 0.0;
+  fVar3 = 0.0;
+  fVar4 = 0.0;
+  fVar6 = 0.0;
+  local_10 = 0.0;
+  iVar9 = 0;
+  if (0 < param_1) {
+    local_34 = (uint *)param_1;
+    pfVar13 = (float *)&stack0xffffffb8;
+    do {
+      fVar7 = param_5 + *(float *)((param_3 - (int)&stack0xffffffb8) + (int)pfVar13);
+      if (fVar7 < 1.0) {
+        fVar7 = 1.0;
+      }
+      fVar5 = fVar7 * fVar7;
+      *pfVar13 = fVar6;
+      *pfVar13 = fVar4;
+      *pfVar13 = fVar3;
+      *pfVar13 = fVar2;
+      *pfVar13 = fVar1;
+      fVar6 = fVar5 + fVar6;
+      local_34 = (uint *)((int)local_34 + -1);
+      fVar4 = fVar5 * local_10 + fVar4;
+      fVar3 = fVar5 * local_10 * local_10 + fVar3;
+      fVar2 = fVar5 * fVar7 + fVar2;
+      fVar1 = fVar5 * fVar7 * local_10 + fVar1;
+      local_10 = local_10 + 1.0;
+      pfVar13 = pfVar13 + 1;
+      iVar9 = param_1;
+    } while (local_34 != (uint *)0x0);
+  }
+  *(float *)(&stack0xffffffb8 + iVar9 * 4) = fVar6;
+  *(float *)(&stack0xffffffb8 + iVar9 * 4) = fVar4;
+  param_3 = 0;
+  *(float *)(&stack0xffffffb8 + iVar9 * 4) = fVar3;
+  *(float *)(&stack0xffffffb8 + iVar9 * 4) = fVar2;
+  *(float *)(&stack0xffffffb8 + iVar9 * 4) = fVar1;
+  fVar1 = 0.0;
+  uVar15 = (uint)*param_2;
+  iVar9 = (int)uVar15 >> 0x10;
+  puVar16 = (uint *)param_2;
+  if (iVar9 < 0) {
+    local_34 = (uint *)param_2;
+    do {
+      puVar16 = (uint *)(uVar15 & 0xffff);
+      iVar9 = iVar9 * -4;
+      fVar2 = *(float *)(&stack0xffffffb8 + (int)puVar16 * 4) - *(float *)(&stack0xffffffb8 + iVar9)
+      ;
+      local_c = (*(float *)(&stack0xffffffb8 + iVar9) +
+                *(float *)(&stack0xffffffb8 + (int)puVar16 * 4)) *
+                (*(float *)(&stack0xffffffb8 + iVar9) +
+                *(float *)(&stack0xffffffb8 + (int)puVar16 * 4)) -
+                (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9)) * fVar2;
+      local_8 = (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9)) *
+                (*(float *)(&stack0xffffffb8 + iVar9) +
+                *(float *)(&stack0xffffffb8 + (int)puVar16 * 4)) -
+                (*(float *)(&stack0xffffffb8 + iVar9) +
+                *(float *)(&stack0xffffffb8 + (int)puVar16 * 4)) * fVar2;
+      local_10 = (*(float *)(&stack0xffffffb8 + iVar9) +
+                 *(float *)(&stack0xffffffb8 + (int)puVar16 * 4)) *
+                 (*(float *)(&stack0xffffffb8 + iVar9) +
+                 *(float *)(&stack0xffffffb8 + (int)puVar16 * 4)) - fVar2 * fVar2;
+      fVar2 = (local_8 * fVar1 + local_c) / local_10;
+      if (fVar2 < 0.0) {
+        fVar2 = 0.0;
+      }
+      local_34 = local_34 + 1;
+      *(float *)((int)param_4 + (-4 - (int)param_2) + (int)local_34) = fVar2 - param_5;
+      param_3 = param_3 + 1;
+      fVar1 = fVar1 + 1.0;
+      uVar15 = *local_34;
+      iVar9 = (int)uVar15 >> 0x10;
+    } while (iVar9 < 0);
+  }
+  if ((int)puVar16 < param_1) {
+    puVar10 = (uint *)(param_2 + param_3);
+    do {
+      puVar16 = (uint *)(*puVar10 & 0xffff);
+      iVar9 = (int)*puVar10 >> 0x10;
+      fVar2 = *(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+              *(float *)(&stack0xffffffb8 + iVar9 * 4);
+      local_c = (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9 * 4)) *
+                (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9 * 4)) -
+                (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9 * 4)) * fVar2;
+      local_8 = (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9 * 4)) *
+                (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9 * 4)) -
+                (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                *(float *)(&stack0xffffffb8 + iVar9 * 4)) * fVar2;
+      local_10 = (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                 *(float *)(&stack0xffffffb8 + iVar9 * 4)) *
+                 (*(float *)(&stack0xffffffb8 + (int)puVar16 * 4) -
+                 *(float *)(&stack0xffffffb8 + iVar9 * 4)) - fVar2 * fVar2;
+      fVar2 = (local_8 * fVar1 + local_c) / local_10;
+      if (fVar2 < 0.0) {
+        fVar2 = 0.0;
+      }
+      *(float *)((int)puVar10 + ((int)param_4 - (int)param_2)) = fVar2 - param_5;
+      fVar1 = fVar1 + 1.0;
+      param_3 = param_3 + 1;
+      puVar10 = puVar10 + 1;
+    } while ((int)puVar16 < param_1);
+  }
+  if (param_3 < param_1) {
+    iVar9 = param_1 - param_3;
+    param_2 = param_4 + param_3;
+    do {
+      fVar2 = (local_8 * fVar1 + local_c) / local_10;
+      if (fVar2 < 0.0) {
+        fVar2 = 0.0;
+      }
+      iVar9 = iVar9 + -1;
+      *param_2 = fVar2 - param_5;
+      fVar1 = fVar1 + 1.0;
+      param_2 = param_2 + 1;
+    } while (iVar9 != 0);
+  }
+  if (0 < (int)param_6) {
+    param_3 = 0;
+    fVar1 = 0.0;
+    iVar9 = ((int)param_6 + 1) / 2;
+    if (0 < iVar9) {
+      local_30 = param_4;
+      iVar14 = (int)param_6 / 2;
+      local_2c = (float *)(&stack0xffffffb8 + iVar14 * 4);
+      local_28 = (float *)(&stack0xffffffb8 + iVar14 * 4);
+      local_24 = (float *)(&stack0xffffffb8 + iVar14 * 4);
+      local_20 = (float *)(&stack0xffffffb8 + iVar14 * 4);
+      local_1c = (float *)(&stack0xffffffb8 + iVar14 * 4);
+      iVar11 = ((int)param_6 / 2) * -4;
+      do {
+        puVar16 = (uint *)(iVar14 + param_3);
+        iVar12 = iVar11 + (int)param_6 * 4;
+        fVar2 = *local_20 - *(float *)(&stack0xffffffb8 + iVar12);
+        local_c = (*(float *)(&stack0xffffffb8 + iVar12) + *local_28) *
+                  (*(float *)(&stack0xffffffb8 + iVar12) + *local_24) -
+                  (*local_2c - *(float *)(&stack0xffffffb8 + iVar12)) * fVar2;
+        local_8 = (*local_2c - *(float *)(&stack0xffffffb8 + iVar12)) *
+                  (*(float *)(&stack0xffffffb8 + iVar12) + *local_1c) -
+                  (*(float *)(&stack0xffffffb8 + iVar12) + *local_28) * fVar2;
+        local_10 = (*(float *)(&stack0xffffffb8 + iVar12) + *local_24) *
+                   (*(float *)(&stack0xffffffb8 + iVar12) + *local_1c) - fVar2 * fVar2;
+        fVar2 = (local_8 * fVar1 + local_c) / local_10;
+        if ((0.0 < fVar2) && (fVar2 = fVar2 - param_5, fVar2 < *local_30)) {
+          *local_30 = fVar2;
+        }
+        iVar11 = iVar11 + -4;
+        param_3 = param_3 + 1;
+        local_1c = local_1c + 1;
+        local_20 = local_20 + 1;
+        local_24 = local_24 + 1;
+        local_28 = local_28 + 1;
+        local_2c = local_2c + 1;
+        fVar1 = fVar1 + 1.0;
+        local_30 = local_30 + 1;
+      } while (param_3 < iVar9);
+    }
+    if ((int)puVar16 < param_1) {
+      iVar9 = (int)param_6 / 2;
+      iVar11 = (param_3 + iVar9) * 4;
+      param_6 = param_4 + param_3;
+      do {
+        iVar14 = iVar9 + param_3;
+        iVar12 = iVar11 + iVar8 * -4;
+        fVar2 = *(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12);
+        local_c = (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) *
+                  (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) -
+                  (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) *
+                  fVar2;
+        local_8 = (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) *
+                  (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) -
+                  (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) *
+                  fVar2;
+        local_10 = (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) *
+                   (*(float *)(&stack0xffffffb8 + iVar11) - *(float *)(&stack0xffffffb8 + iVar12)) -
+                   fVar2 * fVar2;
+        fVar2 = (local_8 * fVar1 + local_c) / local_10;
+        if ((0.0 < fVar2) && (fVar2 = fVar2 - param_5, fVar2 < *param_6)) {
+          *param_6 = fVar2;
+        }
+        param_3 = param_3 + 1;
+        iVar11 = iVar11 + 4;
+        fVar1 = fVar1 + 1.0;
+        param_6 = param_6 + 1;
+      } while (iVar14 < param_1);
+    }
+    if (param_3 < param_1) {
+      param_1 = param_1 - param_3;
+      param_4 = param_4 + param_3;
+      do {
+        fVar2 = (local_8 * fVar1 + local_c) / local_10;
+        if ((0.0 < fVar2) && (fVar2 = fVar2 - param_5, fVar2 < *param_4)) {
+          *param_4 = fVar2;
+        }
+        fVar1 = fVar1 + 1.0;
+        param_4 = param_4 + 1;
+        param_1 = param_1 + -1;
+      } while (param_1 != 0);
+    }
+  }
+  return;
+}
+

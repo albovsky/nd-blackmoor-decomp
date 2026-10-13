@@ -1,0 +1,485 @@
+{
+  "scope": "original x86 nested dependency loader, supported-leaf evaluator, branch reducer, and reset comparison",
+  "original_executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "native_conditions_library_sha256": "25ee97a3dd1efff7b984d61b59d624f7d74cc5d672f894fe495b9c95af7206c9",
+  "scene_resource_library_sha256": "6a7531bbec84729e5580b201370da94f862dbff78a8530a20b2be150b7c387ba",
+  "original_code_ranges": [
+    {
+      "name": "reset_entry",
+      "start_va": "0x00423d33",
+      "end_va_exclusive": "0x00423da2",
+      "byte_count": 111,
+      "sha256": "b9d41f8f47db076f8a2c7eb1d5cc5e9bb66c8f1ba46e523063ad29f8f201f29e",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    },
+    {
+      "name": "reset_traversal_window",
+      "start_va": "0x00423da2",
+      "end_va_exclusive": "0x00423f57",
+      "byte_count": 437,
+      "sha256": "10997b2179aee62e2f79f3530559b786410d092428fb6f394a856d77af1d2160",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    },
+    {
+      "name": "evaluate_wrapper_window",
+      "start_va": "0x00423f57",
+      "end_va_exclusive": "0x0042406d",
+      "byte_count": 278,
+      "sha256": "9ce0473a9e37f26c1e586b5520b722fd5ed453b9acc113bbbe2528b777705c4b",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    },
+    {
+      "name": "branch_reducer_window",
+      "start_va": "0x0042406d",
+      "end_va_exclusive": "0x00424201",
+      "byte_count": 404,
+      "sha256": "9a4edcb1161d5b566df53ed4fee8bfa443b99209cd4fb66a2cdc4d9493c24b07",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    },
+    {
+      "name": "recursive_evaluator_window",
+      "start_va": "0x00424201",
+      "end_va_exclusive": "0x00424346",
+      "byte_count": 325,
+      "sha256": "b09269b88d5deda641883fc32b6f6fe0943402365f8c58ed1cbd634426252394",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    },
+    {
+      "name": "leaf_evaluator_window",
+      "start_va": "0x00424346",
+      "end_va_exclusive": "0x00424aa8",
+      "byte_count": 1890,
+      "sha256": "5672164e09b143d391d76bbacc1075b7a0e3e9bf3b64d4bbb5bc58051faacb01",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    },
+    {
+      "name": "dependency_loader_window",
+      "start_va": "0x00424aa8",
+      "end_va_exclusive": "0x00425b8b",
+      "byte_count": 4323,
+      "sha256": "e024acef55b1cbab0bbdb4197f21033cc9cd74ffa3ba7c341fbbf8a7dc1f68a8",
+      "range_basis": "from recovered entry VA to next recovered entry VA; a code window, not an asserted compiler function size"
+    }
+  ],
+  "oracle_setup": {
+    "execution": "Unicorn maps the identified PE image; it does not launch GAME.EXE or call Windows APIs",
+    "unmodified_original_paths": [
+      "0x424aa8 dependency tree construction",
+      "0x423f57 evaluation wrapper",
+      "0x424201 recursive tree evaluation",
+      "0x42406d sibling OR reduction",
+      "0x424346 supported leaf evaluation",
+      "0x423d33 reset entry and 0x423da2 reset traversal",
+      "0x4237f7 leaf-node initializer and 0x4236d6 branch initializer"
+    ],
+    "intercepts": [
+      {
+        "va": "0x51dc43",
+        "purpose": "bounded zero-filled bump allocator for original 0x4c-byte and 0x1c-byte nodes; arena 0x20010000..0x20200000, cursor reset for each constructor call"
+      },
+      {
+        "va": "0x425b8b",
+        "purpose": "skip side-effect-free debug tree printer"
+      },
+      {
+        "va": "0x425b40",
+        "purpose": "stop only at the original malformed-tree error label before diagnostic/termination calls"
+      }
+    ],
+    "not_stubbed": [
+      "gate evaluator",
+      "branch reducer",
+      "leaf evaluator",
+      "constructor links",
+      "reset traversal"
+    ],
+    "excluded_evaluation_paths": [
+      "nested actual actions with leaf opcodes outside 0, 1, 2, 3, 4, 5, 6, 9 are topology-tested but not evaluated",
+      "game loop, Windows APIs, action execution, and unrelated engine dependencies"
+    ]
+  },
+  "original_loader_preflight": {
+    "rule": "a close opcode 0x13 at opener index +1 or +2 reaches the original malformed-tree path; marker pairs are compared after each marker is normalized by == 1",
+    "synthetic_outcomes": [
+      {
+        "case_id": "canonical_and",
+        "record_count": 4,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 4,
+        "native_node_count": 4,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": true
+      },
+      {
+        "case_id": "canonical_or",
+        "record_count": 4,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 4,
+        "native_node_count": 4,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": true
+      },
+      {
+        "case_id": "noncanonical_false_pair_2_to_0",
+        "record_count": 4,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 4,
+        "native_node_count": 4,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": true
+      },
+      {
+        "case_id": "noncanonical_false_pair_minus1_to_0",
+        "record_count": 4,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 4,
+        "native_node_count": 4,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": true
+      },
+      {
+        "case_id": "noncanonical_false_pair_2_to_2",
+        "record_count": 4,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 4,
+        "native_node_count": 4,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": true
+      },
+      {
+        "case_id": "true_marker_mismatch_1_to_0",
+        "record_count": 4,
+        "original_preflight_reason": "booleanized_open_close_marker_mismatch",
+        "original_accepted": false,
+        "native_status": 3,
+        "native_accepted": false,
+        "marker_mismatch_count": 1,
+        "constructor_outcome_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": false
+      },
+      {
+        "case_id": "true_marker_mismatch_0_to_1",
+        "record_count": 4,
+        "original_preflight_reason": "booleanized_open_close_marker_mismatch",
+        "original_accepted": false,
+        "native_status": 3,
+        "native_accepted": false,
+        "marker_mismatch_count": 1,
+        "constructor_outcome_mismatch": false,
+        "kind": "marker_pair",
+        "expected_original_accept": false
+      },
+      {
+        "case_id": "empty_group_preflight",
+        "record_count": 2,
+        "original_preflight_reason": "fewer_than_two_enclosed_source_records",
+        "original_accepted": false,
+        "native_status": 3,
+        "native_accepted": false,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "kind": "source_record_arity",
+        "expected_original_accept": false
+      },
+      {
+        "case_id": "one_leaf_group_preflight",
+        "record_count": 3,
+        "original_preflight_reason": "fewer_than_two_enclosed_source_records",
+        "original_accepted": false,
+        "native_status": 3,
+        "native_accepted": false,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "kind": "source_record_arity",
+        "expected_original_accept": false
+      },
+      {
+        "case_id": "outer_branch_with_one_nested_branch_child",
+        "record_count": 6,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 6,
+        "native_node_count": 5,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "kind": "source_record_arity",
+        "expected_original_accept": true
+      }
+    ]
+  },
+  "actual_scene_records": {
+    "scene_files_parsed": 2078,
+    "nested_actions_found": 91,
+    "topology_cases_compared": 91,
+    "original_constructor_rejections": 0,
+    "native_constructor_rejections": 0,
+    "constructor_outcome_mismatches": 0,
+    "normalized_marker_pair_mismatches": 0,
+    "supported_evaluation_actions": 63,
+    "evaluation_exclusions": {
+      "unsupported_leaf_opcode:15": 1,
+      "unsupported_leaf_opcode:13": 8,
+      "unsupported_leaf_opcode:17": 19
+    },
+    "supported_leaf_occurrences": {
+      "2": 345,
+      "1": 59,
+      "6": 24,
+      "9": 7,
+      "5": 1
+    },
+    "state_variants_per_supported_action": 4,
+    "evaluation_comparisons": 315,
+    "topology_mismatches": [],
+    "evaluation_mismatches": [],
+    "reset_mismatches": []
+  },
+  "leaf_marker_storage_differential": {
+    "description": "Original tree node slot stores (source marker == 1); native node.or_after stores the same effective boolean while native fields[3] retains the raw source marker. This private-layout difference is reported separately from effective topology.",
+    "actual_scene_cases_with_storage_difference": [],
+    "synthetic_cases_with_storage_difference": [
+      {
+        "case_id": "synthetic_nested_raw_leaf_or_markers",
+        "differences": [
+          {
+            "child_path": [
+              0,
+              0
+            ],
+            "source_record_marker": 2,
+            "original_tree_marker_slot": 0,
+            "native_fields_marker_slot": 2,
+            "expected_effective_marker": 0,
+            "original_effective_marker": 0,
+            "native_effective_marker": 0,
+            "original_slot_matches_raw_source": false,
+            "native_fields_retain_raw_source": true,
+            "effective_markers_match": true
+          },
+          {
+            "child_path": [
+              0,
+              1
+            ],
+            "source_record_marker": -1,
+            "original_tree_marker_slot": 0,
+            "native_fields_marker_slot": -1,
+            "expected_effective_marker": 0,
+            "original_effective_marker": 0,
+            "native_effective_marker": 0,
+            "original_slot_matches_raw_source": false,
+            "native_fields_retain_raw_source": true,
+            "effective_markers_match": true
+          }
+        ]
+      }
+    ],
+    "effective_marker_mismatches": [],
+    "native_raw_source_marker_mismatches": [],
+    "private_object_byte_or_layout_parity_claimed": false
+  },
+  "synthetic_truth_tables": {
+    "cases": [
+      {
+        "case_id": "synthetic_root_and_nested_or",
+        "record_count": 6,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 6,
+        "native_node_count": 6,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "truth_table_rows": 16,
+        "truth_table_mismatches": [],
+        "truth_table_mismatch_count": 0
+      },
+      {
+        "case_id": "synthetic_root_or_nested_and",
+        "record_count": 6,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 6,
+        "native_node_count": 6,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "truth_table_rows": 16,
+        "truth_table_mismatches": [],
+        "truth_table_mismatch_count": 0
+      },
+      {
+        "case_id": "synthetic_three_level_scope",
+        "record_count": 9,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 9,
+        "native_node_count": 8,
+        "leaf_marker_storage_differences": [],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "truth_table_rows": 32,
+        "truth_table_mismatches": [],
+        "truth_table_mismatch_count": 0
+      },
+      {
+        "case_id": "synthetic_nested_raw_leaf_or_markers",
+        "record_count": 6,
+        "original_preflight_reason": null,
+        "original_accepted": true,
+        "native_status": 0,
+        "native_accepted": true,
+        "marker_mismatch_count": 0,
+        "constructor_outcome_mismatch": false,
+        "original_topology_matches_records": true,
+        "native_topology_matches_records": true,
+        "original_native_topology_matches": true,
+        "native_record_count": 6,
+        "native_node_count": 6,
+        "leaf_marker_storage_differences": [
+          {
+            "child_path": [
+              0,
+              0
+            ],
+            "source_record_marker": 2,
+            "original_tree_marker_slot": 0,
+            "native_fields_marker_slot": 2,
+            "expected_effective_marker": 0,
+            "original_effective_marker": 0,
+            "native_effective_marker": 0,
+            "original_slot_matches_raw_source": false,
+            "native_fields_retain_raw_source": true,
+            "effective_markers_match": true
+          },
+          {
+            "child_path": [
+              0,
+              1
+            ],
+            "source_record_marker": -1,
+            "original_tree_marker_slot": 0,
+            "native_fields_marker_slot": -1,
+            "expected_effective_marker": 0,
+            "original_effective_marker": 0,
+            "native_effective_marker": 0,
+            "original_slot_matches_raw_source": false,
+            "native_fields_retain_raw_source": true,
+            "effective_markers_match": true
+          }
+        ],
+        "effective_leaf_marker_mismatch_count": 0,
+        "native_leaf_source_marker_mismatch_count": 0,
+        "topology_mismatch": false,
+        "truth_table_rows": 16,
+        "truth_table_mismatches": [],
+        "truth_table_mismatch_count": 0
+      }
+    ],
+    "compared_assignments": 80,
+    "mismatches": [],
+    "topology_mismatches": []
+  },
+  "synthetic_edge_topology_mismatches": [],
+  "construction_metrics": {
+    "original_allocator_intercepts": 907,
+    "debug_tree_printer_intercepts": 0,
+    "malformed_tree_error_stops": 4
+  },
+  "result_digest": "5c411be3a16cd71b85880480167e1860da8784b2397a8acd2cefd74f90b17673",
+  "status": "pass"
+}

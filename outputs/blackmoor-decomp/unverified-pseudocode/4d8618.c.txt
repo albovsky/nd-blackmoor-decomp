@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d8618
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b736ef8a907767b6bd5de2b1c70fa87373ac4b8d720af669c98493a6a3d19492
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004d8618(void)
+
+{
+  undefined4 *puVar1;
+  int *piVar2;
+  int in_ECX;
+  undefined1 local_c [8];
+  
+  FUN_004dad60();
+  *(undefined4 *)(in_ECX + 0x455) = 0;
+  *(undefined4 *)(in_ECX + 0x459) = 0;
+  *(undefined4 *)(in_ECX + 0x45d) = 0;
+  *(undefined4 *)(in_ECX + 0x955e) = 0xffffffff;
+  *(undefined4 *)(in_ECX + 0x9562) = 0xffffffff;
+  *(undefined4 *)(in_ECX + 0x951a) = 0;
+  *(undefined4 *)(in_ECX + 0x951e) = 0;
+  *(undefined4 *)(in_ECX + 0x9532) = 1;
+  *(undefined4 *)(in_ECX + 0x953a) = 1;
+  *(undefined4 *)(in_ECX + 0x9536) = 0;
+  *(undefined4 *)(in_ECX + 0x44d) = 0;
+  FUN_004d5f91();
+  DAT_005b44f0 = 4;
+  DAT_005b44f4 = 0;
+  *(int *)(in_ECX + 0x953e) = (int)DAT_005b37b0;
+  *(int *)(in_ECX + 0x9542) = (int)(short)(&DAT_005b3792)[DAT_005b44f4 * 2 + DAT_005b44f0 * 4];
+  puVar1 = &DAT_005b160c + DAT_005b44f0 * 8 + DAT_005b44f4 * 4;
+  *(undefined4 *)(in_ECX + 0x96f4) = *puVar1;
+  *(undefined4 *)(in_ECX + 0x96f8) = puVar1[1];
+  *(undefined4 *)(in_ECX + 0x96fc) = puVar1[2];
+  *(undefined4 *)(in_ECX + 0x9700) = puVar1[3];
+  piVar2 = (int *)FUN_004daeb5(local_c);
+  DAT_005830ea = *piVar2;
+  DAT_005830ee = piVar2[1];
+  DAT_005830e2 = DAT_005830ea;
+  if ((int)DAT_0063988b - *(int *)(in_ECX + 0x953e) < DAT_005830ea) {
+    DAT_005830e2 = (int)DAT_0063988b - *(int *)(in_ECX + 0x953e);
+  }
+  DAT_005830e6 = DAT_005830ee;
+  if ((int)DAT_0063988d - *(int *)(in_ECX + 0x9542) < DAT_005830ee) {
+    DAT_005830e6 = (int)DAT_0063988d - *(int *)(in_ECX + 0x9542);
+  }
+  DAT_00583106 = DAT_005830e6;
+  DAT_0058310e = DAT_005830e6 + -1 + *(int *)(in_ECX + 0x9542);
+  DAT_00583102 = DAT_005830e2;
+  DAT_0058310a = DAT_005830e2 + -1 + *(int *)(in_ECX + 0x953e);
+  FUN_004dae88(DAT_005830e2,DAT_005830e6);
+  _DAT_005830f2 = DAT_00583102;
+  _DAT_005830f6 = DAT_00583106;
+  _DAT_005830fa = DAT_0058310a;
+  _DAT_005830fe = DAT_0058310e;
+  *(int *)(in_ECX + 0x9546) = (*(int *)(in_ECX + 0x2c4) - *(int *)(in_ECX + 700)) + 1;
+  *(int *)(in_ECX + 0x954a) = (*(int *)(in_ECX + 0x2c8) - *(int *)(in_ECX + 0x2c0)) + 1;
+  *(undefined4 *)(in_ECX + 0x9512) = *(undefined4 *)(&DAT_005d032f + *(short *)(in_ECX + 0x2b6) * 4)
+  ;
+  _DAT_005d2ecb = 1;
+  _DAT_005d2ecf = 1;
+  FUN_0043dbd5();
+  return;
+}
+

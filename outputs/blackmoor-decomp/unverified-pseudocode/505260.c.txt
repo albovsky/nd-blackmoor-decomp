@@ -1,0 +1,71 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x505260
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+void FUN_00505260(undefined4 *param_1,int param_2,int param_3,uint param_4,int param_5,uint param_6)
+
+{
+  int iVar1;
+  int iVar2;
+  float *pfVar3;
+  int iVar4;
+  int iVar5;
+  int iVar6;
+  int iVar7;
+  int iVar8;
+  undefined4 *puVar9;
+  
+  param_4 = -(uint)(param_5 != 0) & param_4;
+  iVar7 = *(int *)(param_3 + param_5 * 4);
+  param_6 = -(uint)(param_5 != 0) & param_6;
+  iVar8 = *(int *)(param_3 + param_4 * 4);
+  iVar1 = *(int *)(param_3 + param_6 * 4);
+  iVar4 = (int)(iVar7 + (iVar7 >> 0x1f & 3U)) >> 2;
+  iVar5 = iVar4 - ((int)(iVar8 + (iVar8 >> 0x1f & 3U)) >> 2);
+  iVar4 = (iVar7 / 2 - ((int)((iVar1 >> 0x1f & 3U) + iVar1) >> 2)) + iVar4;
+  iVar6 = iVar1 / 2 + iVar4;
+  param_5 = iVar8 / 2 + iVar5;
+  iVar8 = 0;
+  iVar2 = iVar5;
+  puVar9 = param_1;
+  if (0 < iVar5) {
+    for (; iVar8 = iVar5, iVar2 != 0; iVar2 = iVar2 + -1) {
+      *puVar9 = 0;
+      puVar9 = puVar9 + 1;
+    }
+  }
+  if (iVar8 < param_5) {
+    param_5 = param_5 - iVar8;
+    iVar2 = 0;
+    pfVar3 = (float *)(param_1 + iVar8);
+    do {
+      param_5 = param_5 + -1;
+      *pfVar3 = *(float *)(iVar2 + *(int *)(param_2 + param_4 * 4)) * *pfVar3;
+      iVar2 = iVar2 + 4;
+      pfVar3 = pfVar3 + 1;
+    } while (param_5 != 0);
+  }
+  if (iVar4 < iVar6) {
+    iVar6 = iVar6 - iVar4;
+    iVar8 = (iVar1 / 2) * 4;
+    pfVar3 = (float *)(param_1 + iVar4);
+    iVar4 = iVar4 + iVar6;
+    do {
+      iVar8 = iVar8 + -4;
+      iVar6 = iVar6 + -1;
+      *pfVar3 = *(float *)(iVar8 + *(int *)(param_2 + param_6 * 4)) * *pfVar3;
+      pfVar3 = pfVar3 + 1;
+    } while (iVar6 != 0);
+  }
+  if (iVar4 < iVar7) {
+    puVar9 = param_1 + iVar4;
+    for (iVar7 = iVar7 - iVar4; iVar7 != 0; iVar7 = iVar7 + -1) {
+      *puVar9 = 0;
+      puVar9 = puVar9 + 1;
+    }
+  }
+  return;
+}
+

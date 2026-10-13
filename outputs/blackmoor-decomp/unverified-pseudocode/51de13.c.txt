@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51de13
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+/* Library Function - Single Match
+    public: virtual __thiscall CDialog::~CDialog(void)
+   
+   Library: Visual Studio 2003 Release */
+
+void __thiscall CDialog::~CDialog(CDialog *this)
+
+{
+  CWnd *this_00;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(CWnd **)(unaff_EBP + -0x10) = this_00;
+  *(undefined ***)this_00 = &PTR_LAB_0052f29c;
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  if (*(int *)(this_00 + 0x1c) != 0) {
+    FUN_0051b414();
+  }
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  CWnd::~CWnd(this_00);
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

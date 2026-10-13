@@ -1,0 +1,48 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5241ca
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005241ca(LPCSTR param_1)
+
+{
+  uint uVar1;
+  int iVar2;
+  int in_ECX;
+  LPCSTR pCVar3;
+  int iVar4;
+  CHAR local_208 [516];
+  
+  uVar1 = FUN_0051d526();
+  if ((uVar1 & 0x4000) == 0) {
+    lstrcpyA(local_208,*(LPCSTR *)(in_ECX + 0xac));
+    if (param_1 != (LPCSTR)0x0) {
+      lstrcatA(local_208," - ");
+      lstrcatA(local_208,param_1);
+      iVar4 = *(int *)(in_ECX + 0x40);
+      if (0 < iVar4) {
+        pCVar3 = ":%d";
+        iVar2 = lstrlenA(local_208);
+        wsprintfA(local_208 + iVar2,pCVar3,iVar4);
+      }
+    }
+  }
+  else {
+    local_208[0] = '\0';
+    if (param_1 != (LPCSTR)0x0) {
+      lstrcpyA(local_208,param_1);
+      iVar4 = *(int *)(in_ECX + 0x40);
+      if (0 < iVar4) {
+        pCVar3 = ":%d";
+        iVar2 = lstrlenA(local_208);
+        wsprintfA(local_208 + iVar2,pCVar3,iVar4);
+      }
+      lstrcatA(local_208," - ");
+    }
+    lstrcatA(local_208,*(LPCSTR *)(in_ECX + 0xac));
+  }
+  FUN_00521117(*(undefined4 *)(in_ECX + 0x1c),local_208);
+  return;
+}
+

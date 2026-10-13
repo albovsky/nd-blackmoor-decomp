@@ -1,0 +1,93 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x490d50
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+void FUN_00490d50(void)
+
+{
+  int in_ECX;
+  undefined4 local_c;
+  undefined4 local_8;
+  
+  FUN_00491422();
+  for (local_c = 0; local_c < 0x55; local_c = local_c + 1) {
+    if (*(int *)(in_ECX + 0x20e5 + local_c * 4) != 0) {
+      FUN_004c2dfb(in_ECX + 0x20e5 + local_c * 4);
+    }
+  }
+  for (local_c = 0; local_c < 0x28; local_c = local_c + 1) {
+    if (*(int *)(in_ECX + 0x2239 + local_c * 4) != 0) {
+      FUN_004c2dfb(in_ECX + 0x2239 + local_c * 4);
+    }
+  }
+  for (local_c = 0; local_c < 0x55; local_c = local_c + 1) {
+    if (*(int *)(in_ECX + 0x22d9 + local_c * 4) != 0) {
+      FUN_004c2dfb(in_ECX + 0x22d9 + local_c * 4);
+    }
+  }
+  for (local_c = 0; local_c < 0x19; local_c = local_c + 1) {
+    if (*(int *)(in_ECX + 0x242d + local_c * 4) != 0) {
+      FUN_004c2dfb(in_ECX + 0x242d + local_c * 4);
+    }
+  }
+  for (local_c = 1; local_c < 8; local_c = local_c + 1) {
+    for (local_8 = 0; local_8 < 0x55; local_8 = local_8 + 1) {
+      if (*(int *)(in_ECX + 0x2491 + local_c * 0x154 + local_8 * 4) != 0) {
+        FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x2491 + local_c * 0x154 + local_8 * 4));
+        *(undefined4 *)(in_ECX + 0x2491 + local_c * 0x154 + local_8 * 4) = 0;
+      }
+    }
+    for (local_8 = 0; local_8 < 0x28; local_8 = local_8 + 1) {
+      if (*(int *)(in_ECX + 0x2f31 + local_c * 0xa0 + local_8 * 4) != 0) {
+        FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x2f31 + local_c * 0xa0 + local_8 * 4));
+        *(undefined4 *)(in_ECX + 0x2f31 + local_c * 0xa0 + local_8 * 4) = 0;
+      }
+    }
+    for (local_8 = 0; local_8 < 0x55; local_8 = local_8 + 1) {
+      if (*(int *)(in_ECX + 0x3431 + local_c * 0x154 + local_8 * 4) != 0) {
+        FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x3431 + local_c * 0x154 + local_8 * 4));
+        *(undefined4 *)(in_ECX + 0x3431 + local_c * 0x154 + local_8 * 4) = 0;
+      }
+    }
+    for (local_8 = 0; local_8 < 0x19; local_8 = local_8 + 1) {
+      if (*(int *)(in_ECX + 0x3ed1 + local_c * 100 + local_8 * 4) != 0) {
+        FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x3ed1 + local_c * 100 + local_8 * 4));
+        *(undefined4 *)(in_ECX + 0x3ed1 + local_c * 100 + local_8 * 4) = 0;
+      }
+    }
+  }
+  if (*(int *)(in_ECX + 0x2035) != 0) {
+    FUN_004c2dfb(in_ECX + 0x2035);
+  }
+  if (*(int *)(in_ECX + 0x2039) != 0) {
+    FUN_004c2dfb(in_ECX + 0x2039);
+  }
+  if (*(int *)(in_ECX + 0x50f3) != 0) {
+    FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x50f3));
+    *(undefined4 *)(in_ECX + 0x50f3) = 0;
+  }
+  if (*(int *)(in_ECX + 0x20b5) != 0) {
+    FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x20b5));
+    *(undefined4 *)(in_ECX + 0x20b5) = 0;
+  }
+  if (*(int *)(in_ECX + 0x200f) != 0) {
+    FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x200f));
+    *(undefined4 *)(in_ECX + 0x200f) = 0;
+  }
+  if (*(int *)(in_ECX + 0x2013) != 0) {
+    FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x2013));
+    *(undefined4 *)(in_ECX + 0x2013) = 0;
+  }
+  if (*(int *)(in_ECX + 0x2017) != 0) {
+    FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x2017));
+    *(undefined4 *)(in_ECX + 0x2017) = 0;
+  }
+  if (*(short *)(in_ECX + 0x1c) != -1) {
+    FUN_004d3992(*(undefined2 *)(in_ECX + 0x1c));
+  }
+  FUN_00490598();
+  return;
+}
+

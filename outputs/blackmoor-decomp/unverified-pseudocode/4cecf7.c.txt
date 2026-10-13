@@ -1,0 +1,52 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4cecf7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7011e58f3afdde6fc878edb0312973c24208872876d4104777064ce751b49e1e
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004cecf7(void)
+
+{
+  char cVar1;
+  int in_ECX;
+  uint uVar2;
+  uint uVar3;
+  char *pcVar4;
+  char *pcVar5;
+  
+  _DAT_005d1a31 = 0xb;
+  _DAT_005d1a35 = FUN_004cf749;
+  DAT_005d1a39 = 0;
+  DAT_005d1a3d = in_ECX + 0x1e2;
+  DAT_005d1a41 = in_ECX + 0x1f2;
+  _DAT_005d1a45 = 0;
+  _DAT_005d1a49 = 1;
+  _DAT_005d1a4d = 0;
+  uVar2 = 0xffffffff;
+  pcVar4 = s_RAMDOM_MOVIE_00559b18;
+  do {
+    pcVar5 = pcVar4;
+    if (uVar2 == 0) break;
+    uVar2 = uVar2 - 1;
+    pcVar5 = pcVar4 + 1;
+    cVar1 = *pcVar4;
+    pcVar4 = pcVar5;
+  } while (cVar1 != '\0');
+  uVar2 = ~uVar2;
+  pcVar4 = pcVar5 + -uVar2;
+  pcVar5 = (char *)&DAT_005d1a53;
+  for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+    pcVar4 = pcVar4 + 4;
+    pcVar5 = pcVar5 + 4;
+  }
+  for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+    *pcVar5 = *pcVar4;
+    pcVar4 = pcVar4 + 1;
+    pcVar5 = pcVar5 + 1;
+  }
+  return;
+}
+

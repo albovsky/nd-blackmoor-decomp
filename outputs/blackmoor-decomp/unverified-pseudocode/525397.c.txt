@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525397
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+/* Library Function - Single Match
+    class AFX_MODULE_THREAD_STATE * __stdcall AfxGetModuleThreadState(void)
+   
+   Library: Visual Studio 2003 Release */
+
+AFX_MODULE_THREAD_STATE * AfxGetModuleThreadState(void)
+
+{
+  AFX_MODULE_THREAD_STATE *pAVar1;
+  
+  FUN_00525371();
+  pAVar1 = (AFX_MODULE_THREAD_STATE *)FUN_00525b0f(&LAB_00524bd4);
+  return pAVar1;
+}
+

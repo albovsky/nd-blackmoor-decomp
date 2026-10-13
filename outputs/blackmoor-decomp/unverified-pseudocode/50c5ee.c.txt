@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c5ee
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+void Catch_0050c5ee(undefined4 *param_1)
+
+{
+  int extraout_ECX;
+  int unaff_EBP;
+  
+  LeaveCriticalSection((LPCRITICAL_SECTION)(*(int *)(unaff_EBP + -0x14) + 0x10));
+  __CxxThrowException_8(0,0);
+  if (param_1 != (undefined4 *)0x0) {
+    EnterCriticalSection((LPCRITICAL_SECTION)(extraout_ECX + 0x10));
+    *param_1 = *(undefined4 *)(extraout_ECX + 0xc);
+    *(undefined4 **)(extraout_ECX + 0xc) = param_1;
+    LeaveCriticalSection((LPCRITICAL_SECTION)(extraout_ECX + 0x10));
+  }
+  return;
+}
+

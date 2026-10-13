@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x49c490
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+undefined4 FUN_0049c490(uint param_1)
+
+{
+  undefined4 in_ECX;
+  
+  FUN_00490547();
+  if ((param_1 & 1) != 0) {
+    FUN_0051dc6c(in_ECX);
+  }
+  return in_ECX;
+}
+

@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c174
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+int * FUN_0051c174(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  int *piVar3;
+  int *in_ECX;
+  
+  if ((in_ECX != (int *)0x0) && (in_ECX[7] != 0)) {
+    iVar2 = (**(code **)(*in_ECX + 0xb0))();
+    piVar3 = in_ECX;
+    if (iVar2 == 0) {
+      in_ECX = (int *)FUN_0051c0c9();
+      piVar3 = in_ECX;
+    }
+    while (piVar1 = piVar3, piVar1 != (int *)0x0) {
+      piVar3 = (int *)FUN_0051c0c9();
+      in_ECX = piVar1;
+    }
+    return in_ECX;
+  }
+  return (int *)0x0;
+}
+

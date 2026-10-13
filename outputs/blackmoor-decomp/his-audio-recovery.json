@@ -1,0 +1,289 @@
+{
+  "source_descriptor": "work/analysis/game-source.json",
+  "game_dir": "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor",
+  "asset_directory": "CDSound",
+  "corpus": {
+    "his_files": 2509,
+    "total_bytes": 103775676,
+    "min_file_bytes": 746,
+    "max_file_bytes": 751186,
+    "all_magic_his0": true,
+    "all_header_versions_2": true,
+    "all_marker2_payloads_are_ogg_at_byte_30": true,
+    "marker1_payloads_start_with_ogg": false,
+    "storage_marker_counts": {
+      "1": 103,
+      "2": 2406
+    },
+    "variant_counts": [
+      {
+        "storage_marker": 1,
+        "header_version": 2,
+        "sample_rate": 22050,
+        "channels": 1,
+        "bits_per_sample_metadata": 8,
+        "bytes_per_frame": 1,
+        "count": 24,
+        "example_files": [
+          "BoxOpen_BoardGame.HIS",
+          "ButtonClick_Down01.HIS",
+          "ButtonClick_DownUp01.HIS",
+          "ButtonClick_Up01.HIS",
+          "Click01.his"
+        ]
+      },
+      {
+        "storage_marker": 1,
+        "header_version": 2,
+        "sample_rate": 22050,
+        "channels": 1,
+        "bits_per_sample_metadata": 16,
+        "bytes_per_frame": 2,
+        "count": 3,
+        "example_files": [
+          "Click_shut.HIS",
+          "Slide02.HIS",
+          "slide03.HIS"
+        ]
+      },
+      {
+        "storage_marker": 1,
+        "header_version": 2,
+        "sample_rate": 44100,
+        "channels": 1,
+        "bits_per_sample_metadata": 8,
+        "bytes_per_frame": 1,
+        "count": 4,
+        "example_files": [
+          "ComputerGameBeep01.HIS",
+          "ComputerGameBeep02.HIS",
+          "ComputerGameBeep04.HIS",
+          "ComputerGameBeep05.HIS"
+        ]
+      },
+      {
+        "storage_marker": 1,
+        "header_version": 2,
+        "sample_rate": 44100,
+        "channels": 1,
+        "bits_per_sample_metadata": 16,
+        "bytes_per_frame": 2,
+        "count": 72,
+        "example_files": [
+          "AC_Lose04.HIS",
+          "BallHit_Billiard.HIS",
+          "Beep08.HIS",
+          "Beep12.HIS",
+          "Beep_computer_double.HIS"
+        ]
+      },
+      {
+        "storage_marker": 2,
+        "header_version": 2,
+        "sample_rate": 22050,
+        "channels": 1,
+        "bits_per_sample_metadata": 8,
+        "bytes_per_frame": 1,
+        "count": 3,
+        "example_files": [
+          "Icant.his",
+          "Thunder03.his",
+          "VoxDialAgain01.his"
+        ]
+      },
+      {
+        "storage_marker": 2,
+        "header_version": 2,
+        "sample_rate": 44100,
+        "channels": 1,
+        "bits_per_sample_metadata": 8,
+        "bytes_per_frame": 1,
+        "count": 1,
+        "example_files": [
+          "StoneSlide09.HIS"
+        ]
+      },
+      {
+        "storage_marker": 2,
+        "header_version": 2,
+        "sample_rate": 44100,
+        "channels": 1,
+        "bits_per_sample_metadata": 16,
+        "bytes_per_frame": 2,
+        "count": 2399,
+        "example_files": [
+          "AC_Win01.HIS",
+          "ALAN01.HIS",
+          "ALAN02.HIS",
+          "ALAN03.HIS",
+          "ALAN04.HIS"
+        ]
+      },
+      {
+        "storage_marker": 2,
+        "header_version": 2,
+        "sample_rate": 44100,
+        "channels": 2,
+        "bits_per_sample_metadata": 16,
+        "bytes_per_frame": 4,
+        "count": 3,
+        "example_files": [
+          "Pot01.HIS",
+          "Pot02.HIS",
+          "Pot03.HIS"
+        ]
+      }
+    ],
+    "decoded_size_field": {
+      "offset": 24,
+      "width_bytes": 4,
+      "endianness": "little-endian",
+      "raw_pcm_declared_length_matches_payload_for_all_files": true,
+      "marker2_observed_meaning": "declared decoded PCM byte length; used to cap output frames"
+    }
+  },
+  "original_engine_boundary": {
+    "executable": "GAME.EXE (PE32 x86)",
+    "imports": [
+      "DSOUND.dll",
+      "binkw32.dll",
+      "DDRAW.dll",
+      "VERSION.dll",
+      "SHLWAPI.dll",
+      "KERNEL32.dll",
+      "USER32.dll",
+      "GDI32.dll",
+      "comdlg32.dll",
+      "WINSPOOL.DRV",
+      "ADVAPI32.dll",
+      "SHELL32.dll",
+      "COMCTL32.dll"
+    ],
+    "vorbis_or_ogg_imported_dll": null,
+    "evidence": [
+      {
+        "address": "0x4fc341",
+        "observation": "sound open calls 0x4fc62d for loading and 0x4fb2e3 for playback"
+      },
+      {
+        "address": "0x4f379c",
+        "observation": "reads 30-byte HIS header, validates signature/version, declared decoded byte count and marker; selects memory or stream load by size"
+      },
+      {
+        "address": "0x4f3c26",
+        "observation": "DirectSound memory-load path; marker-2 path initializes internal Ogg/Vorbis decoder"
+      },
+      {
+        "address": "0x4f438f",
+        "observation": "DirectSound streaming path; marker-2 path initializes internal Ogg/Vorbis decoder"
+      },
+      {
+        "address": "0x4fdb90",
+        "observation": "internal decoder initialization wrapper"
+      },
+      {
+        "address": "0x4fe870",
+        "observation": "recognizes Vorbis packet signature"
+      },
+      {
+        "address": "0x4fe2d0",
+        "observation": "converts decoded float samples to 8/16-bit PCM output"
+      }
+    ],
+    "pseudocode_provenance": "Ghidra listings recovered from supplied GAME.EXE; listings are explicitly labeled unverified pseudocode, not original source"
+  },
+  "host_adapter": {
+    "files": [
+      "outputs/blackmoor-decomp/src/his_audio.c",
+      "outputs/blackmoor-decomp/src/his_audio.h"
+    ],
+    "build_script": "outputs/blackmoor-decomp/scripts/build_his_audio.sh",
+    "library": "outputs/blackmoor-decomp/build/libhis_audio.dylib",
+    "host_architecture": "ARM64",
+    "ffmpeg": "9.0.1",
+    "macos_deployment_target": "27.0",
+    "in_process_libraries": [
+      "libavformat",
+      "libavcodec",
+      "libswresample",
+      "libavutil"
+    ],
+    "output": "caller-owned interleaved float PCM; sample_rate, channels, frame_count, pointer",
+    "bounds": {
+      "max_input_bytes": 268435456,
+      "max_interleaved_float_bytes": 536870912,
+      "max_channels": 2,
+      "max_sample_rate": 192000
+    },
+    "playback_integrated": false
+  },
+  "validation": {
+    "command": "python3 outputs/blackmoor-decomp/tests/test_his_audio.py",
+    "status": "passed",
+    "test_methods_passed": 3,
+    "ogg_cli_matches": [
+      {
+        "file": "Ndsig.his",
+        "sample_rate": 44100,
+        "channels": 1,
+        "frames": 2780558,
+        "sha256": "165bfe81262e3786da85b56e98ada0587bcf2eda41e0080e8d5324b1989758a1",
+        "comparison": "exact with FFmpeg CLI over extracted Ogg payload"
+      },
+      {
+        "file": "NSHT01.his",
+        "sample_rate": 44100,
+        "channels": 1,
+        "frames": 494792,
+        "sha256": "6b4819421323164f508a3b02eced1e1c12617d3df07233adbdafeaddd1780a80",
+        "comparison": "exact with FFmpeg CLI over extracted Ogg payload"
+      },
+      {
+        "file": "Pot02.HIS",
+        "sample_rate": 44100,
+        "channels": 2,
+        "frames": 11869,
+        "sha256": "088684363756953a32fe5747c64ee37c237f4e6c946d5402bc6afd7b09c55917",
+        "comparison": "exact with FFmpeg CLI over extracted Ogg payload"
+      },
+      {
+        "file": "Icant.his",
+        "sample_rate": 22050,
+        "channels": 1,
+        "frames": 23918,
+        "sha256": "c937a1cca39d028e3e6cb2c019a670cc229624cb0f0610ba69665f2c141bae21",
+        "comparison": "exact with FFmpeg CLI over extracted Ogg payload; legacy 8-bit header metadata"
+      }
+    ],
+    "raw_pcm_samples": [
+      {
+        "file": "CardFlip05.HIS",
+        "sample_rate": 44100,
+        "channels": 1,
+        "bits_per_sample": 16,
+        "frames": 7712
+      },
+      {
+        "file": "ComputerGameBeep01.HIS",
+        "sample_rate": 44100,
+        "channels": 1,
+        "bits_per_sample": 8,
+        "frames": 8062
+      }
+    ],
+    "rejected_malformed_cases": [
+      "unsupported version",
+      "short header",
+      "truncated Ogg stream",
+    "oversized declared decoded size",
+    "misaligned declared decoded size",
+      "wrong Ogg signature",
+      "truncated raw PCM"
+    ]
+  },
+  "limits": [
+    "FFmpeg CLI comparisons use extracted Ogg bytes and are not evidence of byte equivalence with the original in-executable Vorbis decoder.",
+    "The adapter decodes the supplied version-2 HIS formats; it does not implement original DirectSound playback controls or app playback integration.",
+    "The local dylib links Homebrew FFmpeg libraries and carries the same host deployment-target constraint."
+  ]
+}

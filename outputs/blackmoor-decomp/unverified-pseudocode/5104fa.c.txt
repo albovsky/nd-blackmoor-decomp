@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5104fa
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+void FUN_005104fa(void)
+
+{
+  if (DAT_0063e130 == 0) {
+    FUN_00510122(0xfffffffd);
+    DAT_0063e130 = 1;
+  }
+  return;
+}
+

@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47badf
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_827db53a64242b59e9f92d38aeb544549dfa70f780a54958ee5eb67fb48784ea
+ */
+
+void FUN_0047badf(void)
+
+{
+  int in_ECX;
+  
+  if ((*(int *)(in_ECX + 0x290) < *(int *)(in_ECX + 0x2a0)) ||
+     (*(int *)(*(int *)(in_ECX + 0xc) + 0x341) < *(int *)(in_ECX + 0x294))) {
+    if ((*(int *)(in_ECX + 0x290) < *(int *)(in_ECX + 0x2a0)) &&
+       (*(int *)(*(int *)(in_ECX + 0xc) + 0x341) <= *(int *)(in_ECX + 0x294))) {
+      *(undefined4 *)(in_ECX + 0x2c) = 1;
+    }
+  }
+  else {
+    *(undefined4 *)(in_ECX + 0x28) = 1;
+  }
+  return;
+}
+

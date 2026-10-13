@@ -1,0 +1,73 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b2a9e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7
+ */
+
+void FUN_004b2a9e(void)
+
+{
+  int iVar1;
+  DWORD DVar2;
+  int in_ECX;
+  int iVar3;
+  undefined2 extraout_var;
+  char *pcVar4;
+  char *pcVar5;
+  bool bVar6;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  if ((((*(int *)(in_ECX + 0x1515) != 0) && (*(int *)(in_ECX + 0x151d) == 0)) &&
+      (*(int *)(in_ECX + 0x24) == 0)) &&
+     (*(int *)(&DAT_005bb632 + *(short *)(in_ECX + 0x1e) * 0x8d) == 1)) {
+    if (DAT_005c39e5 == 0x2793) {
+      *(undefined4 *)(in_ECX + 0x1519) = 1;
+      *(undefined4 *)(&DAT_005bb632 + *(short *)(in_ECX + 0x1e) * 0x8d) = 2;
+    }
+    else if (DAT_005c39e5 == 0x2792) {
+      if (DAT_005bb1ca != 0) {
+        iVar3 = 9;
+        bVar6 = true;
+        pcVar4 = (char *)(iVar1 + 0x2d6);
+        pcVar5 = s_NO_SOUND_00551764;
+        do {
+          if (iVar3 == 0) break;
+          iVar3 = iVar3 + -1;
+          bVar6 = *pcVar4 == *pcVar5;
+          pcVar4 = pcVar4 + 1;
+          pcVar5 = pcVar5 + 1;
+        } while (bVar6);
+        if (!bVar6) {
+          FUN_004fb77a(iVar1 + 0x2d6);
+          FUN_004fb2e3(CONCAT22(extraout_var,*(undefined2 *)(iVar1 + 0x2f7)));
+        }
+      }
+      DVar2 = GetTickCount();
+      *(DWORD *)(in_ECX + 0x1537) = DVar2 + 500;
+      *(undefined1 *)(in_ECX + 0x1510) = 1;
+      *(undefined4 *)(in_ECX + 0x24) = 3;
+    }
+    else if (*(short *)(in_ECX + 0x1531) != 0) {
+      *(undefined4 *)(in_ECX + 0x24) = 2;
+      if ((*(short *)(in_ECX + 0x1531) != 0) && (DAT_005bb1ca != 0)) {
+        iVar3 = 9;
+        bVar6 = true;
+        pcVar4 = (char *)(iVar1 + 0x274);
+        pcVar5 = s_NO_SOUND_00551770;
+        do {
+          if (iVar3 == 0) break;
+          iVar3 = iVar3 + -1;
+          bVar6 = *pcVar4 == *pcVar5;
+          pcVar4 = pcVar4 + 1;
+          pcVar5 = pcVar5 + 1;
+        } while (bVar6);
+        if (!bVar6) {
+          FUN_004fb2e3(CONCAT22(*(short *)(in_ECX + 0x1531) >> 0xf,*(undefined2 *)(iVar1 + 0x295)));
+        }
+      }
+    }
+    *(undefined2 *)(in_ECX + 0x1535) = *(undefined2 *)(in_ECX + 0x1531);
+  }
+  return;
+}
+

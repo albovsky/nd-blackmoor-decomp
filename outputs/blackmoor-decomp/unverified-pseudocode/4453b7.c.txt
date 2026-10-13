@@ -1,0 +1,103 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4453b7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_a02c75cbc1d4015894407da678b6f6960a9313cc0dac24962171d655dab0d610
+ */
+
+void FUN_004453b7(void)
+
+{
+  char cVar1;
+  uint uVar2;
+  uint uVar3;
+  char *pcVar4;
+  char *pcVar5;
+  undefined1 local_1dc [6];
+  undefined1 local_1d6 [400];
+  char local_46 [34];
+  undefined2 local_24;
+  undefined2 local_22;
+  undefined2 local_20;
+  undefined2 local_1e;
+  undefined4 local_1c;
+  undefined4 local_18;
+  undefined4 local_14;
+  undefined2 local_10;
+  undefined1 local_e;
+  undefined2 local_d;
+  undefined2 local_8;
+  
+  uVar2 = _rand();
+  uVar2 = uVar2 & 0x80000003;
+  if ((int)uVar2 < 0) {
+    uVar2 = (uVar2 - 1 | 0xfffffffc) + 1;
+  }
+  local_8 = (undefined2)uVar2;
+  FUN_0043f210(local_1d6,&DAT_0063a824,s_NNM90_00548198);
+  uVar2 = 0xffffffff;
+  pcVar4 = &DAT_005481a0;
+  do {
+    pcVar5 = pcVar4;
+    if (uVar2 == 0) break;
+    uVar2 = uVar2 - 1;
+    pcVar5 = pcVar4 + 1;
+    cVar1 = *pcVar4;
+    pcVar4 = pcVar5;
+  } while (cVar1 != '\0');
+  uVar2 = ~uVar2;
+  pcVar4 = pcVar5 + -uVar2;
+  pcVar5 = local_46;
+  for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+    pcVar4 = pcVar4 + 4;
+    pcVar5 = pcVar5 + 4;
+  }
+  for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+    *pcVar5 = *pcVar4;
+    pcVar4 = pcVar4 + 1;
+    pcVar5 = pcVar5 + 1;
+  }
+  local_1c = 0;
+  local_18 = 0;
+  local_14 = 1;
+  switch(local_8) {
+  case 0:
+    local_24 = 0x56e;
+    local_22 = 0;
+    local_20 = 0;
+    local_1e = 1;
+    local_10 = 0xffff;
+    local_e = 0;
+    local_d = 2;
+    break;
+  case 1:
+    local_24 = 0x56f;
+    local_22 = 0;
+    local_20 = 0;
+    local_1e = 1;
+    local_10 = 0xffff;
+    local_e = 0;
+    local_d = 2;
+    break;
+  case 2:
+    local_24 = 0x570;
+    local_22 = 0;
+    local_20 = 0;
+    local_1e = 1;
+    local_10 = 0xffff;
+    local_e = 0;
+    local_d = 2;
+    break;
+  case 3:
+    local_24 = 0x571;
+    local_22 = 0;
+    local_20 = 0;
+    local_1e = 1;
+    local_10 = 0xffff;
+    local_e = 0;
+    local_d = 2;
+  }
+  FUN_0041fd08(local_1dc);
+  return;
+}
+

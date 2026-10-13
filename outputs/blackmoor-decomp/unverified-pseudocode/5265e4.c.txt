@@ -1,0 +1,103 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5265e4
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+void FUN_005265e4(void)
+
+{
+  ushort uVar1;
+  LPCSTR lpString2;
+  bool bVar2;
+  ushort *puVar3;
+  undefined4 *puVar4;
+  int iVar5;
+  int extraout_ECX;
+  CDialog *this;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  if ((*(int *)(unaff_EBP + 8) == 0) && (*(HGLOBAL *)(extraout_ECX + 0x98) != (HGLOBAL)0x0)) {
+    puVar3 = GlobalLock(*(HGLOBAL *)(extraout_ECX + 0x98));
+    if ((puVar3[3] & 1) == 0) goto LAB_005267dc;
+    FUN_00519cdf(1,0x14000c,0);
+    *(undefined4 *)(unaff_EBP + -4) = 0;
+    FUN_00519f30();
+    if (*(int *)(*(int *)(unaff_EBP + -0x60) + 0xc) == 0) {
+      if (*(int *)(extraout_ECX + 0x94) != 0) {
+        FUN_005211ff(*(int *)(extraout_ECX + 0x94));
+      }
+      FUN_005211ff(*(undefined4 *)(extraout_ECX + 0x98));
+      *(undefined4 *)(extraout_ECX + 0x94) = 0;
+      *(undefined4 *)(extraout_ECX + 0x98) = 0;
+    }
+    else {
+      puVar4 = (undefined4 *)FUN_00519e77(unaff_EBP + -0x10);
+      lpString2 = (LPCSTR)*puVar4;
+      uVar1 = *puVar3;
+      *(undefined1 *)(unaff_EBP + -4) = 1;
+      iVar5 = lstrcmpA((LPCSTR)((uint)uVar1 + (int)puVar3),lpString2);
+      if (iVar5 == 0) {
+        puVar4 = (undefined4 *)FUN_00519eb4(unaff_EBP + -0x14);
+        iVar5 = lstrcmpA((LPCSTR)((uint)puVar3[1] + (int)puVar3),(LPCSTR)*puVar4);
+        *(bool *)(unaff_EBP + 0xb) = iVar5 != 0;
+        FUN_0051e7ba();
+        if (*(char *)(unaff_EBP + 0xb) != '\0') goto LAB_005266fc;
+        puVar4 = (undefined4 *)FUN_00519ef2(unaff_EBP + -0x18);
+        iVar5 = lstrcmpA((LPCSTR)((uint)puVar3[2] + (int)puVar3),(LPCSTR)*puVar4);
+        FUN_0051e7ba();
+        bVar2 = false;
+        if (iVar5 != 0) goto LAB_005266fc;
+      }
+      else {
+LAB_005266fc:
+        bVar2 = true;
+      }
+      *(undefined1 *)(unaff_EBP + -4) = 0;
+      FUN_0051e7ba();
+      if (bVar2) {
+        if (*(int *)(extraout_ECX + 0x94) != 0) {
+          FUN_005211ff(*(int *)(extraout_ECX + 0x94));
+        }
+        FUN_005211ff(*(undefined4 *)(extraout_ECX + 0x98));
+        iVar5 = *(int *)(unaff_EBP + -0x60);
+        *(undefined4 *)(extraout_ECX + 0x94) = *(undefined4 *)(iVar5 + 8);
+        *(undefined4 *)(extraout_ECX + 0x98) = *(undefined4 *)(iVar5 + 0xc);
+      }
+      else {
+        iVar5 = *(int *)(*(int *)(unaff_EBP + -0x60) + 8);
+        if (iVar5 != 0) {
+          FUN_005211ff(iVar5);
+        }
+        iVar5 = *(int *)(*(int *)(unaff_EBP + -0x60) + 0xc);
+        if (iVar5 != 0) {
+          FUN_005211ff(iVar5);
+        }
+      }
+    }
+    *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+    this = (CDialog *)(unaff_EBP + -0xbc);
+  }
+  else {
+    FUN_00519cdf(1,0x14000c,0);
+    *(undefined4 *)(unaff_EBP + -4) = 2;
+    FUN_00519f30();
+    if (*(int *)(extraout_ECX + 0x94) != 0) {
+      FUN_005211ff(*(int *)(extraout_ECX + 0x94));
+    }
+    if (*(int *)(extraout_ECX + 0x98) != 0) {
+      FUN_005211ff(*(int *)(extraout_ECX + 0x98));
+    }
+    iVar5 = *(int *)(unaff_EBP + -0x104);
+    *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+    *(undefined4 *)(extraout_ECX + 0x94) = *(undefined4 *)(iVar5 + 8);
+    *(undefined4 *)(extraout_ECX + 0x98) = *(undefined4 *)(iVar5 + 0xc);
+    this = (CDialog *)(unaff_EBP + -0x160);
+  }
+  CDialog::~CDialog(this);
+LAB_005267dc:
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

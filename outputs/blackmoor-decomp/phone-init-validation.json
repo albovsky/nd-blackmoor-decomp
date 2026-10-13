@@ -1,0 +1,14 @@
+{
+  "scope": "selected 0x4e2e05 BOOT phone row copy/sort; other UI descriptors disabled",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "native_library_sha256": "03922380e33d9de370e3349ffbb2aab86e6c2b96fb9d5716a9ae1e55a701e8fc",
+  "boot_sha256": "167ca6479ac93f5e4465557549d663c46a1ad48cf376ca81a4e6e6248191f6ac",
+  "source_uicl_sha256": "0e11c99406701eea7bb1ab5ab530e295fa8056ea4e6e884718ffb8a47b1f680c",
+  "original_entry": "0x4e2e05",
+  "instruction_hooks": 0,
+  "phone_rows_compared": 12,
+  "phone_bytes_compared": 492,
+  "sorted_rows_sha256": "426430a888d80df258c0ae7ef5223958d5906a9bebb4c2cb8eb987cbabdcb37b",
+  "mismatches": 0,
+  "global_table_capacity_proven": false
+}

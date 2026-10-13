@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c7cc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0051c7cc(void)
+
+{
+  int iVar1;
+  CWinThread *pCVar2;
+  CWnd *in_ECX;
+  
+  iVar1 = FUN_00525371();
+  if (*(char *)(iVar1 + 0x14) == '\0') {
+    iVar1 = FUN_00525bd1(&LAB_005249d1);
+    pCVar2 = AfxGetThread();
+    if (pCVar2 != (CWinThread *)0x0) {
+      pCVar2 = AfxGetThread();
+      if ((*(CWnd **)(pCVar2 + 0x1c) == in_ECX) && (*(code **)(iVar1 + 0x24) != (code *)0x0)) {
+        (**(code **)(iVar1 + 0x24))();
+      }
+    }
+  }
+  _DAT_0063aa2c = 0;
+  CWnd::OnDisplayChange(in_ECX,0,0);
+  return;
+}
+

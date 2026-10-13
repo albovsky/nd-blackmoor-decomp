@@ -1,0 +1,58 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x526471
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+void FUN_00526471(void)
+
+{
+  LPSTR pCVar1;
+  int iVar2;
+  undefined4 uVar3;
+  int iVar4;
+  int in_ECX;
+  undefined1 *puVar5;
+  undefined1 local_310 [256];
+  CHAR local_210 [260];
+  CHAR local_10c [260];
+  LPSTR local_8;
+  
+  iVar2 = FUN_00525371();
+  *(undefined4 *)(iVar2 + 8) = *(undefined4 *)(in_ECX + 0x68);
+  *(undefined4 *)(iVar2 + 0xc) = *(undefined4 *)(in_ECX + 0x68);
+  GetModuleFileNameA(*(HMODULE *)(in_ECX + 0x68),local_210,0x104);
+  local_8 = (LPSTR)FUN_0050fff4(local_210,0x2e);
+  *local_8 = '\0';
+  FUN_0052658e(local_210,local_10c,0x104);
+  if (*(int *)(in_ECX + 0x88) == 0) {
+    uVar3 = FUN_0050ffb2(local_10c);
+    *(undefined4 *)(in_ECX + 0x88) = uVar3;
+  }
+  if (*(int *)(in_ECX + 0x78) == 0) {
+    iVar4 = FUN_0051fb2e(0xe000,local_310,0x100);
+    if (iVar4 == 0) {
+      puVar5 = *(undefined1 **)(in_ECX + 0x88);
+    }
+    else {
+      puVar5 = local_310;
+    }
+    uVar3 = FUN_0050ffb2(puVar5);
+    *(undefined4 *)(in_ECX + 0x78) = uVar3;
+  }
+  pCVar1 = local_8;
+  *(undefined4 *)(iVar2 + 0x10) = *(undefined4 *)(in_ECX + 0x78);
+  if (*(int *)(in_ECX + 0x8c) == 0) {
+    lstrcpyA(local_8,".HLP");
+    uVar3 = FUN_0050ffb2(local_210);
+    *(undefined4 *)(in_ECX + 0x8c) = uVar3;
+    *pCVar1 = '\0';
+  }
+  if (*(int *)(in_ECX + 0x90) == 0) {
+    lstrcatA(local_10c,".INI");
+    uVar3 = FUN_0050ffb2(local_10c);
+    *(undefined4 *)(in_ECX + 0x90) = uVar3;
+  }
+  return;
+}
+

@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f8562
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004f858c) */
+
+undefined4 FUN_004f8562(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x3ca) = 0;
+  if (*(int *)(in_ECX + 0x19c) == 0) {
+    uVar1 = 0;
+  }
+  else {
+    uVar1 = (**(code **)(**(int **)(in_ECX + 0x19c) + 0x30))
+                      (*(undefined4 *)(in_ECX + 0x19c),*(undefined4 *)(in_ECX + 0x278),0);
+    *(undefined4 *)(in_ECX + 0x3ca) = uVar1;
+    if (*(int *)(in_ECX + 0x3ca) == 0) {
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__SetListenerDoppler_0055ee74,
+                     (double)*(float *)(in_ECX + 0x278));
+        FUN_0044a2b7();
+      }
+      uVar1 = 1;
+    }
+    else {
+      uVar1 = 0;
+    }
+  }
+  return uVar1;
+}
+

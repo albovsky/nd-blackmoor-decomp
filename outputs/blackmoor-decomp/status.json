@@ -1,0 +1,319 @@
+{
+  "status": "incomplete",
+  "playable_native_port": false,
+  "original_executable_rebuilt": false,
+  "pseudocode_exports": 4188,
+  "matched_byte_ranges": 2,
+  "unique_matched_bytes": 14,
+  "function_completeness": "unverified",
+  "matching_verifier_tests_passed": 12,
+  "independent_review": "Peer review found and fixed the dependency-bearing raw-0x15 classification bug and exceptional DIR cleanup. Focused regressions and original oracles passed.",
+  "remaining": [
+    "recover remaining original engine subsystems beyond resource loading",
+    "original/equivalent x86 build toolchain and settings",
+    "buildable C++ reconstruction",
+    "whole-executable comparison",
+    "native ARM64 port and gameplay validation"
+  ],
+  "native_archive_subsystem": {
+    "build_architecture": "arm64",
+    "tree_records": 2904,
+    "tree_payloads": 2886,
+    "standalone_cif_files": 63,
+    "original_decoder_payload_comparisons": 2949,
+    "decoded_bytes_compared": 149360874,
+    "mismatches": 0,
+    "retained_dictionary_compared": true,
+    "native_tests_passed": 18,
+    "independent_review": "no remaining material findings in native archive code and full comparison harness"
+  },
+  "native_hiff_subsystem": {
+    "resources_compared_to_original": 2267,
+    "data_records": 2083,
+    "chunks": 21733,
+    "exclusions": 0,
+    "table_mismatches": 0,
+    "selection_validation": "boot, AUTOTEXT, adjacent-DATA/duplicate fixtures, 11-resource sample"
+  },
+  "native_pixels": {
+    "word_comparisons_to_original": 720896,
+    "parameter_sets": 11,
+    "mismatches": 0,
+    "rgba_adapter": "separate host presentation choice"
+  },
+  "native_boot_and_images": {
+    "original_tree_images_decoded": 619,
+    "standalone_cif_images_supported": true,
+    "nominal_and_actual_dimensions_separate": true,
+    "external_patch_precedence_preserved": true
+  },
+  "native_platform_adapter": {
+    "architecture": "arm64",
+    "actual_framebuffer_window_observed": true,
+    "pointer_and_key_events_verified": true,
+    "complete_game_runtime": false
+  },
+  "scene_dependency_branch_reducer": {
+    "original_branches_compared": 738,
+    "mismatches": 0,
+    "s0_difficulty_gate": "OR",
+    "complete_dependency_tree_or_action_runtime": false
+  },
+  "tests": {
+    "discovered": 216,
+    "passed": 214,
+    "skipped": 2,
+    "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
+  },
+  "native_startup_menu": {
+    "compiled": true,
+    "original_rectangles": true,
+    "logo_timing_and_menu_requests_recovered": true,
+    "targeted_tests": 11,
+    "original_oracle": {
+      "compared_selector_steps": 94,
+      "mismatches": 0,
+      "complete_startup_or_command_dispatch": false,
+      "platform_audio_and_render_hooks": true
+    },
+    "audio_completion_gate": "modeled; native host currently silent",
+    "save_availability": "caller-supplied; fresh-session context only"
+  },
+  "native_scene_resource_parser": {
+    "scenes_parsed": 2078,
+    "parse_failures": 0,
+    "action_records": 19612,
+    "typed_actions": 9111,
+    "opaque_actions": 10501,
+    "known_dependency_records": 15281,
+    "targeted_tests": 10,
+    "action_execution": false
+  },
+  "native_bink_adapter": {
+    "native_library": "installed FFmpeg 9.0.1",
+    "first_frames_compared": 3,
+    "sample_rgba_mismatches_vs_ffmpeg_cli": 0,
+    "original_bink_dll_equivalence": "unverified",
+    "audio_or_cinematic_playback": false,
+    "minimum_macos_for_current_dependencies": "27.0",
+    "dependencies_bundled": false
+  },
+  "native_startup_app": {
+    "compiled": true,
+    "architecture": "arm64",
+    "gameplay_complete": false,
+    "headless_original_assets_to_new_game_to_s0": true,
+    "first_background_decoded": true,
+    "viewport_from_boot": [
+      10,
+      10,
+      629,
+      384
+    ],
+    "scene_view": "static preview; actions and audio absent",
+    "current_visual_verification": "not performed: Mac locked; owner requested automated checks",
+    "integration_tests": 6,
+    "original_assets_modified": false,
+    "audio_diagnostic": "real scene music/voice decode and offline graph; live gameplay audio absent",
+    "action_diagnostic": "31 original-resource actions applied; stops at missing sound handler; partial reset and analysis-only remaining world",
+    "signed_archive": "Blackmoor Reconstruction.app.zip",
+    "packaged_headless_startup_verified": true,
+    "scene_runtime_diagnostic": "selected BOOT fields, actual AUTOTEXT caption, offline NSHT01 completion, resource-driven challenge hotspot and transition to S5900",
+    "headless_original_s0_to_s5900": true,
+    "live_gameplay_execution": false,
+    "caption_renderer": false
+  },
+  "next_action_recovery": {
+    "typed_actions": 9111,
+    "opaque_actions": 10501,
+    "next_body_candidates": [
+      "0x62",
+      "0x35",
+      "0x38",
+      "0xa1"
+    ],
+    "next_runtime_work": [
+      "complete world/boot inputs and original initial phone table",
+      "0x9f sound lifecycle, volume and looping",
+      "frame/hotspot input and delayed transitions",
+      "remaining control code1 and NLS paths",
+      "timed video and remaining scene handlers"
+    ]
+  },
+  "native_conditions": {
+    "supported_opcodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      9
+    ],
+    "nested_markers": [
+      18,
+      19
+    ],
+    "original_leaf_comparisons": 786,
+    "leaf_mismatches": 0,
+    "original_nested_loader_executed": true,
+    "original_nested_actions_constructed": 91,
+    "original_supported_nested_actions_evaluated": 63,
+    "original_nested_evaluations": 315,
+    "nested_evaluation_mismatches": 0,
+    "synthetic_nested_truth_assignments": 80,
+    "synthetic_constructor_cases": 10,
+    "private_object_layout_parity": false
+  },
+  "native_action_core": {
+    "types": [
+      "0x4d",
+      "0x61",
+      "0x6b",
+      "0x71"
+    ],
+    "original_controlled_comparisons": 145,
+    "mismatches": 0,
+    "complete_scene_scheduler_equivalence": false,
+    "original_value_initializer_compared": true,
+    "value_initializer_cases": 2,
+    "value_initializer_bytes_per_case": 100,
+    "short_default": 9999,
+    "float_default": 9999.0
+  },
+  "native_scene_executor": {
+    "compiled": true,
+    "same_pass_flags_and_order_tested": true,
+    "transition_request_type": "0x0a",
+    "original_global_initialization": false,
+    "live_hotspot_dispatch": false,
+    "first_unavailable_index": 31,
+    "initial_s0_actions_applied_in_diagnostic": 31,
+    "direct_completion_without_subtype_reset": true,
+    "complete_original_scheduler_equivalence": false,
+    "transition_request_types": [
+      "0x0a",
+      "raw0x15/runtime0x0d",
+      "callback-scoped delayed request"
+    ],
+    "headless_hotspot_dispatch": true,
+    "hotspot_native_tests": 23,
+    "hotspot_original_comparisons": 13,
+    "hotspot_mismatches": 0,
+    "accepted_activation_event": "WM_LBUTTONUP primary release",
+    "legacy_action_diagnostic": "--inspect-actions intentionally registers only UI callbacks and stops at unregistered sound type0x9f; the handler now exists"
+  },
+  "native_his_audio": {
+    "files_scanned": 2509,
+    "ogg_vorbis": 2406,
+    "raw_pcm": 103,
+    "ogg_cli_samples": 4,
+    "original_vorbis_equivalence": "unverified",
+    "original_8_16_bit_quantization_recovered": true,
+    "quantizer_scope": "mono/stereo production conversion under tested x87 control word 0x037f",
+    "original_quantizer_cases": 8,
+    "quantizer_original_decoder_equivalence": false,
+    "quantizer_integrated_into_his_decoder": false
+  },
+  "native_audio_graph": {
+    "compiled": true,
+    "offline_tests": 6,
+    "actual_s0_music_offline_render_frames": 4096,
+    "hardware_output_verified": false,
+    "game_audio_controls_integrated": false,
+    "output_completion": "DataPlayedBack",
+    "offline_completion": "DataRendered"
+  },
+  "native_action_ui": {
+    "types": [
+      "0x82",
+      "0x1d generic code!=1"
+    ],
+    "original_bounded_cases": 13,
+    "mismatches": 0,
+    "native_tests": 14,
+    "immediate_code1_supported": false,
+    "nonzero_nls_supported": false,
+    "original_empty_phone_lookup_verified": false,
+    "original_phone_capacity": "unproven",
+    "boot_phone_initializer_rows": 12,
+    "boot_phone_initializer_bytes": 492,
+    "boot_phone_initializer_mismatches": 0
+  },
+  "world_initialization": {
+    "scope": "partial recovery; complete initializer not implemented",
+    "compiled_value_reset": "30 shorts and 10 floats initialized to 9999",
+    "inventory_reset_span": 70,
+    "inventory_stride_bytes": 4,
+    "full_init_event_clear_ids": [
+      1000,
+      2250
+    ],
+    "normal_scene_event_clear_ids": [
+      1000,
+      1030
+    ],
+    "same_process_lower_event_reset": "observed New Game loop leaves IDs0..999 unchanged; other alias paths not exhaustively excluded",
+    "boot_time_and_phone_initialization": "compiled bounded getters plus native source-row copy/sort; headless integration verified",
+    "initial_clock_minutes": 1080,
+    "initial_phone_rows": 12,
+    "complete_initializer": false
+  },
+  "native_action_sound": {
+    "type": "0x9f",
+    "native_tests": 16,
+    "compiled": true,
+    "original_s0_phase_sequence_matched": true,
+    "phases": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "original_audio_boundaries_hooked": true,
+    "live_gameplay_audio": false,
+    "first_scene_control1_mode0_offline_integration": true,
+    "restart_fade_loop_pan_complete": false,
+    "original_decoder_equivalence": false
+  },
+  "native_autotext": {
+    "compiled": true,
+    "entries": 1257,
+    "native_tests": 5,
+    "original_insert_lookup_verified": true,
+    "ascii_casefold_and_first_duplicate_match": true,
+    "missing_caption_fallback_verified": true,
+    "caption_renderer": false,
+    "nonzero_nls_supported": false
+  },
+  "current_slice": {
+    "status": "complete",
+    "name": "S0 sound/caption/hotspot/BOOT integration",
+    "success_boundary": "headless S0 \u2192 resource-requested S5900, first S5900 background frame loaded",
+    "game_complete": false
+  },
+  "next_scene_blockers": {
+    "scene": "S5900",
+    "opaque_raw_types": [
+      "0x64",
+      "0x62",
+      "0x28",
+      "0x51"
+    ],
+    "first_opaque_action_index": 0,
+    "timed_background_media": false
+  }
+}

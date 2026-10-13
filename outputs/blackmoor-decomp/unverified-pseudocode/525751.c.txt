@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525751
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d63d6a362278f40ee32ccb564ca8ec5738c7bbf1d9d11225df7a30f9c22e09d6
+ */
+
+void FUN_00525751(void)
+
+{
+  DWORD DVar1;
+  DWORD DVar2;
+  HGLOBAL hMem;
+  DWORD *in_ECX;
+  
+  if (*in_ECX != 0xffffffff) {
+    TlsFree(*in_ECX);
+  }
+  DVar2 = in_ECX[5];
+  while (DVar2 != 0) {
+    DVar1 = *(DWORD *)(DVar2 + 4);
+    FUN_00525a1d(DVar2,0);
+    DVar2 = DVar1;
+  }
+  if ((LPCVOID)in_ECX[4] != (LPCVOID)0x0) {
+    hMem = GlobalHandle((LPCVOID)in_ECX[4]);
+    GlobalUnlock(hMem);
+    GlobalFree(hMem);
+  }
+  DeleteCriticalSection((LPCRITICAL_SECTION)(in_ECX + 7));
+  return;
+}
+

@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51eaec
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+int FUN_0051eaec(int param_1)
+
+{
+  int *in_ECX;
+  
+  FUN_0051ea75(param_1);
+  *(int *)(*in_ECX + -8) = param_1;
+  *(undefined1 *)(*in_ECX + param_1) = 0;
+  return *in_ECX;
+}
+

@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c14c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+undefined4 FUN_0051c14c(void)
+
+{
+  HWND__ *pHVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  HWND__ *pHVar3;
+  
+  if ((in_ECX != 0) &&
+     (pHVar1 = *(HWND__ **)(in_ECX + 0x1c), *(HWND__ **)(in_ECX + 0x1c) != (HWND__ *)0x0)) {
+    do {
+      pHVar3 = pHVar1;
+      pHVar1 = AfxGetParentOwner(pHVar3);
+    } while (pHVar1 != (HWND__ *)0x0);
+    uVar2 = FUN_0051abe4(pHVar3);
+    return uVar2;
+  }
+  return 0;
+}
+

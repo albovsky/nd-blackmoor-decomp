@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d4645
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+void FUN_004d4645(void)
+
+{
+  FUN_004c2dfb(&DAT_005d0387);
+  FUN_004c2dfb(&DAT_005d038b);
+  FUN_0043dbd5();
+  FUN_004dad60();
+  DAT_00583981 = DAT_00583985;
+  if (DAT_00583985 == 6) {
+    DAT_005839a1 = 0;
+  }
+  else if (DAT_00583985 == 0xe) {
+    FUN_004db870();
+  }
+  DAT_00583985 = 5;
+  return;
+}
+

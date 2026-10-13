@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50ccec
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c01bda5c208998c8b38f9e1693c1f9d27cef570b0e4d2e523c0f31431a0d762
+ */
+
+float10 FUN_0050ccec(byte *param_1)
+
+{
+  uint uVar1;
+  size_t sVar2;
+  int iVar3;
+  undefined4 uVar4;
+  undefined4 uVar5;
+  undefined1 local_1c [24];
+  
+  while( true ) {
+    if (DAT_0056840c < 2) {
+      uVar1 = (byte)PTR_DAT_00568200[(uint)*param_1 * 2] & 8;
+    }
+    else {
+      uVar1 = FUN_005118b3(*param_1,8);
+    }
+    if (uVar1 == 0) break;
+    param_1 = param_1 + 1;
+  }
+  uVar5 = 0;
+  uVar4 = 0;
+  sVar2 = _strlen((char *)param_1);
+  iVar3 = FUN_00511ea7(local_1c,param_1,sVar2,uVar4,uVar5);
+  return (float10)*(double *)(iVar3 + 0x10);
+}
+

@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x449cfc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c532ca6fd2b24db6f7392da771f9de1073079eaf8a4051621b7fba1333cc82be
+ */
+
+bool FUN_00449cfc(int param_1)
+
+{
+  BOOL BVar1;
+  int in_ECX;
+  
+  BVar1 = SetThreadPriority(*(HANDLE *)(*(int *)(in_ECX + 0x36) + 0x28),param_1);
+  return BVar1 != 0;
+}
+

@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51fa94
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+BOOL FUN_0051fa94(void)
+
+{
+  HMENU hMenu;
+  BOOL BVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 4) == 0) {
+    return 0;
+  }
+  hMenu = (HMENU)Detach();
+  BVar1 = DestroyMenu(hMenu);
+  return BVar1;
+}
+

@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524880
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+undefined4 FUN_00524880(void)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_00525371();
+  return *(undefined4 *)(iVar1 + 0x30);
+}
+

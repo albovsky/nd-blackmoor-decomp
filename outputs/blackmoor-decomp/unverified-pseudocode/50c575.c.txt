@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c575
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+int * FUN_0050c575(void)
+
+{
+  int iVar1;
+  int *piVar2;
+  int *extraout_ECX;
+  int iVar3;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(undefined1 **)(unaff_EBP + -0x10) = &stack0xffffffe8;
+  *(int **)(unaff_EBP + -0x14) = extraout_ECX;
+  EnterCriticalSection((LPCRITICAL_SECTION)(extraout_ECX + 4));
+  if (extraout_ECX[3] == 0) {
+    iVar3 = *extraout_ECX;
+    *(undefined4 *)(unaff_EBP + -4) = 0;
+    iVar1 = FUN_0051a3d4(extraout_ECX + 2,extraout_ECX[1],iVar3);
+    iVar3 = extraout_ECX[1];
+    piVar2 = (int *)((iVar3 + -1) * *extraout_ECX + 4 + iVar1);
+    if (-1 < iVar3 + -1) {
+      do {
+        *piVar2 = extraout_ECX[3];
+        extraout_ECX[3] = (int)piVar2;
+        piVar2 = (int *)((int)piVar2 - *extraout_ECX);
+        iVar3 = iVar3 + -1;
+      } while (iVar3 != 0);
+    }
+  }
+  piVar2 = (int *)extraout_ECX[3];
+  extraout_ECX[3] = *piVar2;
+  LeaveCriticalSection((LPCRITICAL_SECTION)(extraout_ECX + 4));
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return piVar2;
+}
+

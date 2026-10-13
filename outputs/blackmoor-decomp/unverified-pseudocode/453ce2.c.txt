@@ -1,0 +1,73 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x453ce2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_44f9ad36cfcb6cd07f5dfecee6ae0cfb679ab9d068db67b1a73f7c4febbd58e5
+ */
+
+void FUN_00453ce2(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  bool bVar3;
+  DWORD DVar4;
+  int in_ECX;
+  int *local_10;
+  
+  if (*(int *)(in_ECX + 0x6a7) != 0) {
+    piVar1 = *(int **)(in_ECX + 0x6a7);
+    while (local_10 = piVar1, local_10 != (int *)0x0) {
+      piVar1 = (int *)local_10[2];
+      iVar2 = *local_10;
+      DVar4 = GetTickCount();
+      if (*(uint *)(*(int *)(in_ECX + 0x2a0) + 0x54 + iVar2 * 0x5c) < DVar4) {
+        FUN_004c51a5(DAT_005d15e3,*(undefined4 *)(in_ECX + 0x2a4),
+                     *(int *)(in_ECX + 0x2a0) + 0x20 + iVar2 * 0x5c,
+                     *(int *)(in_ECX + 0x2a0) + iVar2 * 0x5c,
+                     s_Arcade_Puzzle_Background_behind_a_00549d54);
+        *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x58 + iVar2 * 0x5c) = 0;
+        *(undefined4 *)(in_ECX + 0x6d3) =
+             *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x48 + iVar2 * 0x5c);
+        *(undefined4 *)(in_ECX + 0x6db) =
+             *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x50 + iVar2 * 0x5c);
+        *(undefined4 *)(in_ECX + 0x6d7) =
+             *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x44 + iVar2 * 0x5c);
+        *(undefined4 *)(in_ECX + 0x6df) =
+             *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x4c + iVar2 * 0x5c);
+        if (*(int *)(in_ECX + 0x6d3) != -1) {
+          *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x50 + *(int *)(in_ECX + 0x6d3) * 0x5c) =
+               0xffffffff;
+        }
+        if (*(int *)(in_ECX + 0x6db) != -1) {
+          *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x48 + *(int *)(in_ECX + 0x6db) * 0x5c) =
+               0xffffffff;
+        }
+        if (*(int *)(in_ECX + 0x6d7) != -1) {
+          *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x4c + *(int *)(in_ECX + 0x6d7) * 0x5c) =
+               0xffffffff;
+        }
+        if (*(int *)(in_ECX + 0x6df) != -1) {
+          *(undefined4 *)(*(int *)(in_ECX + 0x2a0) + 0x44 + *(int *)(in_ECX + 0x6df) * 0x5c) =
+               0xffffffff;
+        }
+        FUN_004540bd(local_10);
+      }
+    }
+    if (*(int *)(in_ECX + 0x6a7) == 0) {
+      bVar3 = true;
+      *(undefined4 *)(in_ECX + 0x510) = 0;
+      while (*(int *)(in_ECX + 0x510) < *(int *)(in_ECX + 0xac)) {
+        if (*(int *)(*(int *)(in_ECX + 0x2a0) + 0x58 + *(int *)(in_ECX + 0x510) * 0x5c) != 0) {
+          bVar3 = false;
+          break;
+        }
+        *(int *)(in_ECX + 0x510) = *(int *)(in_ECX + 0x510) + 1;
+      }
+      if (bVar3) {
+        *(undefined4 *)(in_ECX + 0x1c) = 1;
+      }
+    }
+  }
+  return;
+}
+

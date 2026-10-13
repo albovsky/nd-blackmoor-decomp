@@ -1,0 +1,27 @@
+{
+  "scope": "original leaf evaluator 0x424346 for opcodes 0..6 and 9; nested loader 0x424aa8 is not executed here",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "function_va": "0x424346",
+  "code_sha256": "5672164e09b143d391d76bbacc1075b7a0e3e9bf3b64d4bbb5bc58051faacb01",
+  "native_library_sha256": "25ee97a3dd1efff7b984d61b59d624f7d74cc5d672f894fe495b9c95af7206c9",
+  "compared_leaves": 786,
+  "by_opcode": {
+    "0": 97,
+    "1": 99,
+    "2": 97,
+    "3": 97,
+    "4": 97,
+    "5": 97,
+    "6": 102,
+    "9": 100
+  },
+  "mismatches": [],
+  "result_digest": "0dd07067c119002c7ebee892014ca334775298357742d8a1725b1a749f2a24a4",
+  "grouping_evidence": {
+    "loader_va": "0x424aa8",
+    "open_record": "0x12 adds a kind-1 branch child and descends into it",
+    "close_record": "0x13 returns to the parent after matching opener/closer OR markers normalized by ==1",
+    "operator_scope": "0x42406d reduces only the current branch's linked child siblings",
+    "validation": "native tests cover nested groups, close-marker mismatch, and empty groups"
+  }
+}

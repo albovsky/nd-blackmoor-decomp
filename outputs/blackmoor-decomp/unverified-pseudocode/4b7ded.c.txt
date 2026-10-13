@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b7ded
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+void FUN_004b7ded(void)
+
+{
+  int iVar1;
+  undefined1 local_14 [16];
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + DAT_006249c1 * 0x8d);
+  if (DAT_006249bc != '\0') {
+    FUN_00457071(iVar1 + 0x4b,local_14);
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249cf * 0x4a),DAT_005cf665,
+                 iVar1 + 0x6b + DAT_006249d1 * 0x10,local_14,s_Two_Dial_puzzle__dial_one_00551cfc);
+    FUN_00457071(iVar1 + 0x5b,local_14);
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_006249cf * 0x4a),DAT_005cf665,
+                 iVar1 + 0x1ab + DAT_006249d3 * 0x10,local_14,s_Two_Dial_puzzle__dial_two_00551d18);
+  }
+  return;
+}
+

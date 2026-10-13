@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c0f60
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+undefined ** FUN_004c0f60(void)
+
+{
+  return &PTR_s_CDirectDraw_0052e218;
+}
+

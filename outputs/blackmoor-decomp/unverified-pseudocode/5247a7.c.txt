@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5247a7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005247a7(int param_1)
+
+{
+  BOOL BVar1;
+  CFrameWnd *in_ECX;
+  
+  if (param_1 == -1) {
+    BVar1 = IsWindowVisible(*(HWND *)(in_ECX + 0x1c));
+    if (BVar1 == 0) {
+      param_1 = 1;
+    }
+    else {
+      BVar1 = IsIconic(*(HWND *)(in_ECX + 0x1c));
+      if (BVar1 != 0) {
+        param_1 = 9;
+      }
+    }
+  }
+  CFrameWnd::BringToTop(in_ECX,param_1);
+  if (param_1 != -1) {
+    FUN_0051d630(param_1);
+    CFrameWnd::BringToTop(in_ECX,param_1);
+  }
+  return;
+}
+

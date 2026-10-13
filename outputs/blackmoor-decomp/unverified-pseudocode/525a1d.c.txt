@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525a1d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d63d6a362278f40ee32ccb564ca8ec5738c7bbf1d9d11225df7a30f9c22e09d6
+ */
+
+void FUN_00525a1d(undefined4 *param_1,int param_2)
+
+{
+  undefined4 *puVar1;
+  bool bVar2;
+  DWORD *in_ECX;
+  int iVar3;
+  
+  iVar3 = 1;
+  bVar2 = true;
+  if (1 < (int)param_1[2]) {
+    do {
+      if ((param_2 == 0) || (*(int *)(in_ECX[4] + 4 + iVar3 * 8) == param_2)) {
+        puVar1 = *(undefined4 **)(param_1[3] + iVar3 * 4);
+        if (puVar1 != (undefined4 *)0x0) {
+          (**(code **)*puVar1)(1);
+        }
+        *(undefined4 *)(param_1[3] + iVar3 * 4) = 0;
+      }
+      else if (*(int *)(param_1[3] + iVar3 * 4) != 0) {
+        bVar2 = false;
+      }
+      iVar3 = iVar3 + 1;
+    } while (iVar3 < (int)param_1[2]);
+    if (!bVar2) {
+      return;
+    }
+  }
+  EnterCriticalSection((LPCRITICAL_SECTION)(in_ECX + 7));
+  FUN_00525697(param_1);
+  LeaveCriticalSection((LPCRITICAL_SECTION)(in_ECX + 7));
+  LocalFree((HLOCAL)param_1[3]);
+  if (param_1 != (undefined4 *)0x0) {
+    (**(code **)*param_1)(1);
+  }
+  TlsSetValue(*in_ECX,(LPVOID)0x0);
+  return;
+}
+

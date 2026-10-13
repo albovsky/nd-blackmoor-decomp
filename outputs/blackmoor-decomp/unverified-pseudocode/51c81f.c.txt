@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c81f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+/* Library Function - Multiple Matches With Same Base Name
+    protected: void __thiscall CWnd::OnDevModeChange(char *)
+    protected: void __thiscall CWnd::OnDevModeChange(wchar_t *)
+   
+   Library: Visual Studio 2003 Release */
+
+void OnDevModeChange(undefined4 param_1)
+
+{
+  int iVar1;
+  uint uVar2;
+  int in_ECX;
+  
+  iVar1 = FUN_00525371();
+  if ((*(int *)(iVar1 + 4) != 0) && (*(int *)(*(int *)(iVar1 + 4) + 0x1c) == in_ECX)) {
+    FUN_0051f4ec(param_1);
+  }
+  uVar2 = FUN_0051d526();
+  if ((uVar2 & 0x40000000) == 0) {
+    iVar1 = FUN_0051ab16();
+    FUN_0051c22e(*(undefined4 *)(in_ECX + 0x1c),*(undefined4 *)(iVar1 + 4),
+                 *(undefined4 *)(iVar1 + 8),*(undefined4 *)(iVar1 + 0xc),1,1);
+  }
+  return;
+}
+

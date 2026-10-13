@@ -1,0 +1,53 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5269a5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+void FUN_005269a5(void)
+
+{
+  code *pcVar1;
+  int iVar2;
+  undefined1 *puVar3;
+  int iVar4;
+  LPCSTR lpClassName;
+  
+  iVar2 = FUN_00525371();
+  FUN_00525ffa(1);
+  lpClassName = (LPCSTR)(iVar2 + 0x34);
+  while (*lpClassName != '\0') {
+    puVar3 = (undefined1 *)FUN_0050fde2(lpClassName,10);
+    *puVar3 = 0;
+    iVar4 = FUN_00525371();
+    UnregisterClassA(lpClassName,*(HINSTANCE *)(iVar4 + 8));
+    lpClassName = puVar3 + 1;
+  }
+  *(LPCSTR)(iVar2 + 0x34) = '\0';
+  FUN_0052606a(1);
+  iVar2 = FUN_00525371();
+  if ((*(int *)(iVar2 + 4) != 0) &&
+     (pcVar1 = *(code **)(*(int *)(iVar2 + 4) + 0x54), pcVar1 != (code *)0x0)) {
+    (*pcVar1)(1,0);
+  }
+  iVar2 = FUN_0052513f();
+  if (*(int **)(iVar2 + 0xcc) != (int *)0x0) {
+    iVar4 = (**(code **)(**(int **)(iVar2 + 0xcc) + 0xb8))();
+    if (iVar4 != 0) {
+      *(undefined4 *)(iVar2 + 0xcc) = 0;
+    }
+  }
+  iVar4 = FUN_00525371();
+  if (*(char *)(iVar4 + 0x14) == '\0') {
+    if (*(HHOOK *)(iVar2 + 0x30) != (HHOOK)0x0) {
+      UnhookWindowsHookEx(*(HHOOK *)(iVar2 + 0x30));
+      *(undefined4 *)(iVar2 + 0x30) = 0;
+    }
+    if (*(HHOOK *)(iVar2 + 0x2c) != (HHOOK)0x0) {
+      UnhookWindowsHookEx(*(HHOOK *)(iVar2 + 0x2c));
+      *(undefined4 *)(iVar2 + 0x2c) = 0;
+    }
+  }
+  return;
+}
+

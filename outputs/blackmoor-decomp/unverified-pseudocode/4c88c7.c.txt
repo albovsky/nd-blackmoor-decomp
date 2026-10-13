@@ -1,0 +1,262 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c88c7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d590aeb62d3bd1e1413a3f3e4f07f565aba52ab8fd98207292a76569576fbcb9
+ */
+
+char * FUN_004c88c7(int param_1)
+
+{
+  if (param_1 < -0x7789fe47) {
+    if (param_1 == -0x7789fe48) {
+      return s_DDERR_SURFACEISOBSCURED___Access_00556710;
+    }
+    if (param_1 < -0x7789ff21) {
+      if (param_1 == -0x7789ff22) {
+        return s_DDERR_NODIRECTDRAWSUPPORT___No_D_00555bac;
+      }
+      if (param_1 < -0x7789ff91) {
+        if (param_1 == -0x7789ff92) {
+          return s_DDERR_INVALIDCLIPLIST___DirectDr_00555720;
+        }
+        if (param_1 < -0x7789fff5) {
+          if (param_1 == -0x7789fff6) {
+            return s_DDERR_CANNOTATTACHSURFACE___This_00555490;
+          }
+          if (param_1 < -0x7ff8fff1) {
+            if (param_1 == -0x7ff8fff2) {
+              return s_DDERR_OUTOFMEMORY___DirectDraw_d_00556318;
+            }
+            if (param_1 == -0x7fffbfff) {
+              return s_DDERR_UNSUPPORTED___Action_not_s_005568f4;
+            }
+            if (param_1 == -0x7fffbffb) {
+              return s_DDERR_GENERIC___Generic_failure__005555e0;
+            }
+            if (param_1 == -0x7ffbfe10) {
+              return s_DDERR_NOTINITIALIZED___An_attemp_00557a0c;
+            }
+          }
+          else {
+            if (param_1 == -0x7ff8ffa9) {
+              return s_DDERR_INVALIDPARAMS___One_or_mor_00555808;
+            }
+            if (param_1 == -0x7789fffb) {
+              return s_DDERR_ALREADYINITIALIZED___The_D_0055544c;
+            }
+          }
+        }
+        else {
+          switch(param_1) {
+          case -0x7789ffec:
+            return s_DDERR_CANNOTDETACHSURFACE___This_005554e8;
+          case -0x7789ffd8:
+            return s_DDERR_CURRENTLYNOTAVAIL___Suppor_00555544;
+          case -0x7789ffc9:
+            return s_DDERR_EXCEPTION___An_exception_w_00555584;
+          case -0x7789ffa6:
+            return s_DDERR_HEIGHTALIGN___Height_of_re_00555604;
+          case -0x7789ffa1:
+            return s_DDERR_INCOMPATIBLEPRIMARY___Unab_0055565c;
+          case -0x7789ff9c:
+            return s_DDERR_INVALIDCAPS___One_or_more_o_005556c8;
+          }
+        }
+      }
+      else {
+        switch(param_1) {
+        case -0x7789ff88:
+          return s_DDERR_INVALIDMODE___DirectDraw_d_00555768;
+        case -0x7789ff7e:
+          return s_DDERR_INVALIDOBJECT___DirectDraw_005557ac;
+        case -0x7789ff6f:
+          return s_DDERR_INVALIDPIXELFORMAT___pixel_0055586c;
+        case -0x7789ff6a:
+          return s_DDERR_INVALIDRECT___Rectangle_pr_005558b0;
+        case -0x7789ff60:
+          return s_DDERR_LOCKEDSURFACES___Operation_005558e4;
+        case -0x7789ff56:
+          return s_DDERR_NO3D___There_is_no_3D_pres_00555948;
+        case -0x7789ff4c:
+          return s_DDERR_NOALPHAHW___Operation_coul_00555970;
+        case -0x7789ff33:
+          return s_DDERR_NOCLIPLIST___no_clip_list_a_005559ec;
+        case -0x7789ff2e:
+          return s_DDERR_NOCOLORCONVHW___Operation_c_00555a18;
+        case -0x7789ff2c:
+          return s_DDERR_NOCOOPERATIVELEVELSET___Cr_00555a98;
+        case -0x7789ff29:
+          return s_DDERR_NOCOLORKEY___Surface_doesn_00555af8;
+        case -0x7789ff24:
+          return s_DDERR_NOCOLORKEYHW___Operation_c_00555b38;
+        }
+      }
+    }
+    else {
+      switch(param_1) {
+      case -0x7789ff1f:
+        return s_DDERR_NOEXCLUSIVEMODE___The_appl_00555c04;
+      case -0x7789ff1a:
+        return s_DDERR_NOFLIPHW___Flipping_visibl_00555c4c;
+      case -0x7789ff10:
+        return s_DDERR_NOGDI___There_is_no_GDI_pr_00555c8c;
+      case -0x7789ff06:
+        return s_DDERR_NOMIRRORHW___Operation_cou_00555cb4;
+      case -0x7789ff01:
+        return s_DDERR_NOTFOUND___Requested_item_w_00555d20;
+      case -0x7789fefc:
+        return s_DDERR_NOOVERLAYHW___Operation_co_00555d50;
+      case -0x7789fee8:
+        return s_DDERR_NORASTEROPHW___Operation_c_00555dc4;
+      case -0x7789fede:
+        return s_DDERR_NOROTATIONHW___Operation_c_00555e48;
+      case -0x7789feca:
+        return s_DDERR_NOSTRETCHHW___Operation_co_00555ebc;
+      case -0x7789fec4:
+        return s_DDERR_NOT4BITCOLOR___DirectDrawS_00555f28;
+      case -0x7789fec3:
+        return s_DDERR_NOT4BITCOLORINDEX___Direct_00555fa8;
+      case -0x7789fec0:
+        return s_DDERR_NOT8BITCOLOR___DirectDraw_S_00556038;
+      case -0x7789feb6:
+        return s_DDERR_NOTEXTUREHW___Operation_co_005560b0;
+      case -0x7789feb1:
+        return s_DDERR_NOVSYNCHW___Operation_coul_0055612c;
+      case -0x7789feac:
+        return s_DDERR_NOZBUFFERHW___Operation_co_005561b4;
+      case -0x7789fea2:
+        return s_DDERR_NOZOVERLAYHW___Overlay_sur_00556224;
+      case -0x7789fe98:
+        return s_DDERR_OUTOFCAPS___The_hardware_n_005562b8;
+      case -0x7789fe84:
+        return s_DDERR_OUTOFVIDEOMEMORY___DirectD_00556370;
+      case -0x7789fe82:
+        return s_DDERR_OVERLAYCANTCLIP___hardware_005563cc;
+      case -0x7789fe80:
+        return s_DDERR_OVERLAYCOLORKEYONLYONEACTI_00556410;
+      case -0x7789fe7d:
+        return s_DDERR_PALETTEBUSY___Access_to_th_00556474;
+      case -0x7789fe70:
+        return s_DDERR_COLORKEYNOTSET___No_src_co_005564ec;
+      case -0x7789fe66:
+        return s_DDERR_SURFACEALREADYATTACHED___T_00556534;
+      case -0x7789fe5c:
+        return s_DDERR_SURFACEALREADYDEPENDENT___T_0055659c;
+      case -0x7789fe52:
+        return s_DDERR_SURFACEBUSY___Access_to_th_00556614;
+      case -0x7789fe4d:
+        return s_DDERR_CANTLOCKSURFACE___Access_t_0055668c;
+      }
+    }
+  }
+  else {
+    switch(param_1) {
+    case -0x7789fe3e:
+      return s_DDERR_SURFACELOST___Access_to_th_00556764;
+    case -0x7789fe34:
+      return s_DDERR_SURFACENOTATTACHED___The_r_005567c0;
+    case -0x7789fe2a:
+      return s_DDERR_TOOBIGHEIGHT___Height_requ_00556804;
+    case -0x7789fe20:
+      return s_DDERR_TOOBIGSIZE___Size_requeste_00556848;
+    case -0x7789fe16:
+      return s_DDERR_TOOBIGWIDTH___Width_reques_005568b4;
+    case -0x7789fe02:
+      return s_DDERR_UNSUPPORTEDFORMAT___FOURCC_00556920;
+    case -0x7789fdf8:
+      return s_DDERR_UNSUPPORTEDMASK___Bitmask_i_00556970;
+    case -0x7789fde7:
+      return s_DDERR_VERTICALBLANKINPROGRESS___v_005569cc;
+    case -0x7789fde4:
+      return s_DDERR_WASSTILLDRAWING___The_prev_00556a0c;
+    case -0x7789fdd0:
+      return s_DDERR_XALIGN___Rectangle_provide_00556a80;
+    case -0x7789fdcf:
+      return s_DDERR_INVALIDDIRECTDRAWGUID___Th_00556ad4;
+    case -0x7789fdce:
+      return s_DDERR_DIRECTDRAWALREADYCREATED___00556b44;
+    case -0x7789fdcd:
+      return s_DDERR_NODIRECTDRAWHW___A_hardwar_00556bc0;
+    case -0x7789fdcc:
+      return s_DDERR_PRIMARYSURFACEALREADYEXIST_00556c40;
+    case -0x7789fdcb:
+      return s_DDERR_NOEMULATION___software_emu_00556c98;
+    case -0x7789fdca:
+      return s_DDERR_REGIONTOOSMALL___region_pa_00556cd0;
+    case -0x7789fdc9:
+      return s_DDERR_CLIPPERISUSINGHWND___an_at_00556d1c;
+    case -0x7789fdc8:
+      return s_DDERR_NOCLIPPERATTACHED___No_cli_00556d98;
+    case -0x7789fdc7:
+      return s_DDERR_NOHWND___Clipper_notificat_00556de0;
+    case -0x7789fdc6:
+      return s_DDERR_HWNDSUBCLASSED___HWND_used_00556e58;
+    case -0x7789fdc5:
+      return s_DDERR_HWNDALREADYSET___The_Coope_00556edc;
+    case -0x7789fdc4:
+      return s_DDERR_NOPALETTEATTACHED___No_pal_00556f24;
+    case -0x7789fdc3:
+      return s_DDERR_NOPALETTEHW___No_hardware_s_00556f6c;
+    case -0x7789fdc2:
+      return s_DDERR_BLTFASTCANTCLIP___If_a_cli_00556fb4;
+    case -0x7789fdc1:
+      return s_DDERR_NOBLTHW___No_blter__00557020;
+    case -0x7789fdc0:
+      return s_DDERR_NODDROPSHW___No_DirectDraw_0055703c;
+    case -0x7789fdbf:
+      return s_DDERR_OVERLAYNOTVISIBLE___GetOve_0055706c;
+    case -0x7789fdbe:
+      return s_DDERR_NOOVERLAYDEST___GetOverlay_005570b8;
+    case -0x7789fdbd:
+      return s_DDERR_INVALIDPOSITION___the_posi_00557144;
+    case -0x7789fdbc:
+      return s_DDERR_NOTAOVERLAYSURFACE___an_ov_005571b4;
+    case -0x7789fdbb:
+      return s_DDERR_EXCLUSIVEMODEALREADYSET___A_00557208;
+    case -0x7789fdba:
+      return s_DDERR_NOTFLIPPABLE___An_attempt_h_00557280;
+    case -0x7789fdb9:
+      return s_DDERR_CANTDUPLICATE___Can_t_dupl_005572d8;
+    case -0x7789fdb8:
+      return s_DDERR_NOTLOCKED___Surface_was_no_00557340;
+    case -0x7789fdb7:
+      return s_DDERR_CANTCREATEDC___Windows_can_0055736c;
+    case -0x7789fdb6:
+      return s_DDERR_NODC___No_DC_was_ever_crea_005573a8;
+    case -0x7789fdb5:
+      return s_DDERR_WRONGMODE___This_surface_c_005573e0;
+    case -0x7789fdb4:
+      return s_DDERR_IMPLICITLYCREATED___This_s_00557440;
+    case -0x7789fdb3:
+      return s_DDERR_NOTPALETTIZED___The_surfac_005574a8;
+    case -0x7789fdb2:
+      return s_DDERR_UNSUPPORTEDMODE___The_disp_005574f8;
+    case -0x7789fdb1:
+      return s_DDERR_NOMIPMAPHW___Operation_cou_00557544;
+    case -0x7789fdb0:
+      return s_DDERR_INVALIDSURFACETYPE___The_r_005575c8;
+    case -0x7789fda8:
+      return s_DDERR_NOOPTIMIZEHW___Device_does_0055763c;
+    case -0x7789fda7:
+      return s_DDERR_NOTLOADED___Surface_is_an_o_005576ac;
+    case -0x7789fd94:
+      return s_DDERR_DCALREADYCREATED___A_DC_ha_0055770c;
+    case -0x7789fd8a:
+      return s_DDERR_NONONLOCALVIDMEM___An_atte_00557780;
+    case -0x7789fd80:
+      return s_DDERR_CANTPAGELOCK___The_attempt_0055780c;
+    case -0x7789fd6c:
+      return s_DDERR_CANTPAGEUNLOCK___The_attem_0055784c;
+    case -0x7789fd58:
+      return s_DDERR_NOTPAGELOCKED___An_attempt_00557890;
+    case -0x7789fd4e:
+      return s_DDERR_MOREDATA___There_is_more_d_005578f4;
+    case -0x7789fd49:
+      return s_DDERR_VIDEONOTACTIVE___The_video_00557950;
+    case -0x7789fd45:
+      return s_DDERR_DEVICEDOESNTOWNSURFACE___S_00557988;
+    }
+  }
+  return s_Unrecognized_DirectDraw_return_c_00557aa8;
+}
+

@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5268fc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+/* Library Function - Single Match
+    public: virtual __thiscall CWinThread::~CWinThread(void)
+   
+   Library: Visual Studio 2003 Release */
+
+void __thiscall CWinThread::~CWinThread(CWinThread *this)
+
+{
+  HANDLE hObject;
+  AFX_MODULE_THREAD_STATE *pAVar1;
+  undefined4 *extraout_ECX;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(undefined4 **)(unaff_EBP + -0x10) = extraout_ECX;
+  *extraout_ECX = &PTR_LAB_0052f3c0;
+  hObject = (HANDLE)extraout_ECX[10];
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  if (hObject != (HANDLE)0x0) {
+    CloseHandle(hObject);
+  }
+  pAVar1 = AfxGetModuleThreadState();
+  if (*(undefined4 **)(pAVar1 + 4) == extraout_ECX) {
+    *(undefined4 *)(pAVar1 + 4) = 0;
+  }
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  FUN_0051d730();
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

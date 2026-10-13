@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e2b99
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8385f85130572c281c3b234a54cbdfd62040e051350169a9d81ca47906b8da6a
+ */
+
+void FUN_004e2b99(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x30) != 4) {
+    if ((*(int *)(in_ECX + 0x34) == 1) || (*(int *)(in_ECX + 0x177) != 0)) {
+      *(undefined4 *)(in_ECX + 0x177) = 0;
+      FUN_004c5377(*(undefined4 *)(in_ECX + 0x28),DAT_005cf665,in_ECX + 0xbe,in_ECX + 4,
+                   s_CUIButton_object_0055bfb8);
+    }
+    if (*(int *)(in_ECX + 0x133 + *(int *)(in_ECX + 0x30) * 0x10) !=
+        *(int *)(in_ECX + 299 + *(int *)(in_ECX + 0x30) * 0x10)) {
+      if (*(int *)(in_ECX + 0x34) == 1) {
+        FUN_004c5d4b(*(undefined4 *)(in_ECX + 0x24),DAT_005cf665,
+                     in_ECX + 0x127 + *(int *)(in_ECX + 0x30) * 0x10,in_ECX + 4,
+                     s_CUIButton_transparent_object_0055bfcc);
+      }
+      else {
+        FUN_004c5377(*(undefined4 *)(in_ECX + 0x24),DAT_005cf665,
+                     in_ECX + 0x127 + *(int *)(in_ECX + 0x30) * 0x10,in_ECX + 4,
+                     s_CUIButton_object_0055bfec);
+      }
+    }
+  }
+  return;
+}
+

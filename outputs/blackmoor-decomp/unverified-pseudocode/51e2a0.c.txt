@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51e2a0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051e2a0(INT_PTR param_1)
+
+{
+  int *in_ECX;
+  
+  if ((*(byte *)(in_ECX + 9) & 0x18) != 0) {
+    (**(code **)(*in_ECX + 0x74))(param_1);
+  }
+  EndDialog((HWND)in_ECX[7],param_1);
+  return;
+}
+

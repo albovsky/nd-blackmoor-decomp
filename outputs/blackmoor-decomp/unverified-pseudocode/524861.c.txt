@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524861
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+bool FUN_00524861(void)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_00525371();
+  return *(int *)(iVar1 + 0x2c) == 0;
+}
+

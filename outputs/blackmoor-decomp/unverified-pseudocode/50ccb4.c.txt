@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50ccb4
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c01bda5c208998c8b38f9e1693c1f9d27cef570b0e4d2e523c0f31431a0d762
+ */
+
+void FUN_0050ccb4(void)
+
+{
+  PTR_FUN_0056841c = &LAB_00511adb;
+  PTR_FUN_00568418 = __cfltcvt;
+  PTR_FUN_00568420 = __fassign;
+  PTR_FUN_00568424 = FUN_00511a81;
+  PTR_FUN_00568428 = &LAB_00511b29;
+  PTR_FUN_0056842c = __cfltcvt;
+  return;
+}
+

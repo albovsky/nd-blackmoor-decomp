@@ -1,0 +1,128 @@
+{
+  "fixture": {
+    "caption_branch": "missing auto-text result supplied to original runtime; embedded executable fallback bytes used",
+    "channel": 13,
+    "control_word": 1,
+    "first_percent": 75,
+    "master_volume_category_0": 0.85,
+    "mode": 0,
+    "scene": "S0 / archive scene 0800.bin",
+    "second_percent": 75,
+    "selector": 65535,
+    "stem": "NSHT01",
+    "transition": 9999
+  },
+  "limitations": [
+    "Unicorn emulates original GAME.EXE code, not the Windows application or native VM.",
+    "The resource/file lookup, HIS decode/load result, caption UI, and DirectSound COM calls are bounded hooks.",
+    "The actual HIS decoder and audio device output are not executed; no audible output is produced.",
+    "The runtime record receives the proven missing-autotext fallback result. Successful autotext resource lookup is validated separately by the autotext parser/adapter.",
+    "Global volume category 0 is seeded to the recovered runtime S0 value 0.85f; other volume configurations are not asserted.",
+    "Unknown control-word restart/random-repeat paths and other playback modes remain unsupported by the native platform adapter."
+  ],
+  "native": {
+    "caption": "Missing closed captioning text string<h><n><o>",
+    "command": {
+      "channel": 13,
+      "control_word": 1,
+      "first_gain": 0.75,
+      "first_percent": 75,
+      "mode": 0,
+      "second_gain": 0.75,
+      "second_percent": 75,
+      "stem": "NSHT01",
+      "transition": 9999,
+      "volume_category": 0
+    },
+    "phase_results": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  "original": {
+    "caption": "Missing closed captioning text string<h><n><o><e>",
+    "loaded_command": {
+      "channel": 13,
+      "control_word": 1,
+      "first_attenuation": -1035,
+      "first_gain": 0.75,
+      "path": "CDSound\\NSHT01.his",
+      "second_attenuation": -1035,
+      "second_gain": 0.75,
+      "volume_category": 0
+    },
+    "phase_results": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "trace": {
+      "captions": [
+        "Missing closed captioning text string<h><n><o><e>"
+      ],
+      "file_paths": [
+        "CDSound\\NSHT01.his"
+      ],
+      "loads": [
+        {
+          "channel": 13,
+          "control_word": 1,
+          "first_attenuation": -1035,
+          "first_gain": 0.75,
+          "path": "CDSound\\NSHT01.his",
+          "second_attenuation": -1035,
+          "second_gain": 0.75,
+          "volume_category": 0
+        }
+      ],
+      "play_flags": [
+        0
+      ],
+      "queries": [
+        1,
+        0,
+        0
+      ],
+      "releases": 1,
+      "stops": 0
+    }
+  },
+  "original_entrypoints": {
+    "caption_ui_boundary": "0x448d11",
+    "completion": "0x42ba3a",
+    "directsound_play_wrapper": "0x4f80d3",
+    "directsound_query_wrapper": "0x4f6334",
+    "file_lookup_boundary": "0x449d90",
+    "his_decode_load_boundary": "0x4f379c",
+    "runtime_copy": "0x410f99",
+    "sound_action": "0x432d1a"
+  },
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
+}

@@ -1,0 +1,38 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51f8b3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+void Catch_0051f8b3(void)
+
+{
+  undefined4 *puVar1;
+  int extraout_ECX;
+  undefined1 auStack_10 [4];
+  code *pcStack_c;
+  int *piStack_8;
+  
+  piStack_8 = (int *)0x51f8bb;
+  FUN_0051dc31();
+  piStack_8 = (int *)0x0;
+  pcStack_c = FUN_0051f8c4;
+  __CxxThrowException_8();
+  if (extraout_ECX != 0) {
+    pcStack_c = (code *)-(uint)(*(int *)(extraout_ECX + 0x2c) != 0);
+    while (pcStack_c != (code *)0x0) {
+      FUN_0051a643(&pcStack_c,auStack_10,&piStack_8);
+      puVar1 = (undefined4 *)(*(int *)(extraout_ECX + 0x40) + (int)piStack_8);
+      *puVar1 = 0;
+      if (*(int *)(extraout_ECX + 0x44) == 2) {
+        puVar1[1] = 0;
+      }
+      if (piStack_8 != (int *)0x0) {
+        (**(code **)(*piStack_8 + 4))(1);
+      }
+    }
+    RemoveAll();
+  }
+  return;
+}
+

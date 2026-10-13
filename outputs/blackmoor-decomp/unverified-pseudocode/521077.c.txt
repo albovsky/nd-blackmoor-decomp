@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521077
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+bool FUN_00521077(HWND param_1,LPCSTR param_2)
+
+{
+  int iVar1;
+  CHAR local_24 [32];
+  
+  GetClassNameA(param_1,local_24,0x20);
+  iVar1 = lstrcmpiA(local_24,param_2);
+  return iVar1 == 0;
+}
+

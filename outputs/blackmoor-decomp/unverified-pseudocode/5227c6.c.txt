@@ -1,0 +1,46 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5227c6
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 * FUN_005227c6(void)
+
+{
+  undefined4 *extraout_ECX;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(undefined4 **)(unaff_EBP + -0x10) = extraout_ECX;
+  FUN_0051a7c3();
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  FUN_0051a28e(10);
+  extraout_ECX[0x2b] = PTR_DAT_005679b0;
+  extraout_ECX[0x10] = 0xffffffff;
+  *(undefined1 *)(unaff_EBP + -4) = 2;
+  *extraout_ECX = &PTR_LAB_0052fa5c;
+  extraout_ECX[0xf] = 1;
+  extraout_ECX[0x27] = 0;
+  extraout_ECX[0x11] = 0;
+  extraout_ECX[0x12] = 0;
+  extraout_ECX[0x23] = 0;
+  extraout_ECX[0x24] = 0;
+  extraout_ECX[0x25] = 0;
+  extraout_ECX[0x26] = 0;
+  extraout_ECX[0x28] = 0;
+  extraout_ECX[0x29] = 0;
+  extraout_ECX[0x1a] = 0;
+  extraout_ECX[0x2a] = 0;
+  extraout_ECX[0x2e] = 0;
+  SetRectEmpty((LPRECT)(extraout_ECX + 0x16));
+  extraout_ECX[0x22] = 0xffffffff;
+  extraout_ECX[0x14] = 0;
+  extraout_ECX[0x13] = 0;
+  extraout_ECX[0x15] = 0;
+  extraout_ECX[0x2c] = 0;
+  extraout_ECX[0x2d] = 0;
+  FUN_0052290b();
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return extraout_ECX;
+}
+

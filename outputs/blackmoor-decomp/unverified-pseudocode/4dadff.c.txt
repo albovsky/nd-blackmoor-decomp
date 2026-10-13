@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4dadff
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619
+ */
+
+void FUN_004dadff(void)
+
+{
+  SHORT SVar1;
+  int in_ECX;
+  
+  SVar1 = GetAsyncKeyState(*(int *)(in_ECX + 0x20));
+  DAT_0058321d = ((int)SVar1 & 0x8000U) == 0x8000;
+  SVar1 = GetAsyncKeyState(*(int *)(in_ECX + 0x24));
+  DAT_0058321e = ((int)SVar1 & 0x8000U) == 0x8000;
+  return;
+}
+

@@ -1,0 +1,40 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x437614
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+void FUN_00437614(void)
+
+{
+  int local_10;
+  int local_8;
+  
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_Begin_CleanUp___00546a58);
+  }
+  DAT_0058397d = 2;
+  if (DAT_0063a586 != 0) {
+    SystemParametersInfoA(0x11,1,(PVOID)0x0,0);
+  }
+  FUN_00425fc0();
+  for (local_8 = 0; local_8 < 10; local_8 = local_8 + 1) {
+    FUN_00433bd2((int)&DAT_00585d65 + local_8 * 0x106);
+  }
+  FUN_004fad50();
+  FUN_0043dbe3(0);
+  FUN_004e7c72();
+  FUN_004c425e();
+  local_10 = ShowCursor(1);
+  while (local_10 < 0) {
+    local_10 = ShowCursor(1);
+  }
+  if (DAT_0057044c != (int *)0x0) {
+    (**(code **)(*DAT_0057044c + 0x58))();
+  }
+  if (DAT_00570448 != 0) {
+    FUN_0051dc6c(DAT_00570448);
+  }
+  return;
+}
+

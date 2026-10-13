@@ -1,0 +1,49 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4272b2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+void FUN_004272b2(void)
+
+{
+  bool bVar1;
+  int iVar2;
+  int iVar3;
+  BOOL BVar4;
+  int *in_ECX;
+  int local_10;
+  int local_8;
+  
+  bVar1 = true;
+  do {
+    local_8 = 0;
+    local_10 = PeekMessageA((LPMSG)(in_ECX + 0xc),(HWND)0x0,0,0,0);
+    while (local_10 == 0) {
+      if (bVar1) {
+        iVar2 = local_8 + 1;
+        iVar3 = (**(code **)(*in_ECX + 0x60))(local_8);
+        local_8 = iVar2;
+        if (iVar3 == 0) {
+          bVar1 = false;
+        }
+      }
+      if ((*(int *)((int)in_ECX + 0x135f5) == 1) && (*(int *)((int)in_ECX + 0x135f9) != 0)) {
+        FUN_00426148();
+      }
+      local_10 = PeekMessageA((LPMSG)(in_ECX + 0xc),(HWND)0x0,0,0,0);
+    }
+    do {
+      iVar2 = (**(code **)(*in_ECX + 0x5c))();
+      if (iVar2 == 0) {
+        (**(code **)(*in_ECX + 0x68))();
+        return;
+      }
+      if ((!bVar1) && (iVar2 = (**(code **)(*in_ECX + 100))(in_ECX + 0xc), iVar2 != 0)) {
+        bVar1 = true;
+      }
+    } while ((*(int *)((int)in_ECX + 0x135f5) == 2) ||
+            (BVar4 = PeekMessageA((LPMSG)(in_ECX + 0xc),(HWND)0x0,0,0,0), BVar4 != 0));
+  } while( true );
+}
+

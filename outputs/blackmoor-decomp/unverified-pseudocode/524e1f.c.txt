@@ -1,0 +1,70 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524e1f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+void FUN_00524e1f(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  CWinThread *this;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(CWinThread **)(unaff_EBP + -0x10) = this;
+  *(undefined ***)this = &PTR_LAB_0052f514;
+  piVar1 = *(int **)(this + 0x80);
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  if (piVar1 != (int *)0x0) {
+    (**(code **)(*piVar1 + 4))(1);
+  }
+  if (*(int **)(this + 0xa8) != (int *)0x0) {
+    (**(code **)(**(int **)(this + 0xa8) + 0x14))(1);
+  }
+  iVar2 = FUN_00525371();
+  if (*(char *)(iVar2 + 0x14) == '\0') {
+    if (DAT_0063c424 != (int *)0x0) {
+      (**(code **)(*DAT_0063c424 + 4))(1);
+      DAT_0063c424 = (int *)0x0;
+    }
+    if (DAT_0063c420 != (int *)0x0) {
+      (**(code **)(*DAT_0063c420 + 4))(1);
+      DAT_0063c420 = (int *)0x0;
+    }
+  }
+  if (*(int *)(this + 0x94) != 0) {
+    FUN_005211ff(*(int *)(this + 0x94));
+  }
+  if (*(int *)(this + 0x98) != 0) {
+    FUN_005211ff(*(int *)(this + 0x98));
+  }
+  if (*(ATOM *)(this + 0xb0) != 0) {
+    GlobalDeleteAtom(*(ATOM *)(this + 0xb0));
+  }
+  if (*(ATOM *)(this + 0xb2) != 0) {
+    GlobalDeleteAtom(*(ATOM *)(this + 0xb2));
+  }
+  if (*(int **)(this + 0xac) != (int *)0x0) {
+    (**(code **)(**(int **)(this + 0xac) + 4))(1);
+  }
+  iVar2 = FUN_00525371();
+  if (*(int *)(iVar2 + 0x10) == *(int *)(this + 0x78)) {
+    *(undefined4 *)(iVar2 + 0x10) = 0;
+  }
+  if (*(CWinThread **)(iVar2 + 4) == this) {
+    *(undefined4 *)(iVar2 + 4) = 0;
+  }
+  FUN_0050e936(*(undefined4 *)(this + 0x78));
+  FUN_0050e936(*(undefined4 *)(this + 0x7c));
+  FUN_0050e936(*(undefined4 *)(this + 0x88));
+  FUN_0050e936(*(undefined4 *)(this + 0x8c));
+  FUN_0050e936(*(undefined4 *)(this + 0x90));
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  *(undefined4 *)(this + 0x28) = 0;
+  CWinThread::~CWinThread(this);
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

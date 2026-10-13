@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50bf50
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+bool FUN_0050bf50(void)
+
+{
+  HMODULE hModule;
+  bool bVar1;
+  
+  if (DAT_0063c370 == 0) {
+    hModule = GetModuleHandleA("USER32");
+    if ((((hModule != (HMODULE)0x0) &&
+         (_DAT_0063c358 = GetProcAddress(hModule,"GetSystemMetrics"), _DAT_0063c358 != (FARPROC)0x0)
+         ) && (DAT_0063c35c = GetProcAddress(hModule,"MonitorFromWindow"),
+              DAT_0063c35c != (FARPROC)0x0)) &&
+       (((DAT_0063c360 = GetProcAddress(hModule,"MonitorFromRect"), DAT_0063c360 != (FARPROC)0x0 &&
+         (_DAT_0063c364 = GetProcAddress(hModule,"MonitorFromPoint"), _DAT_0063c364 != (FARPROC)0x0)
+         ) && ((_DAT_0063c36c = GetProcAddress(hModule,"EnumDisplayMonitors"),
+               _DAT_0063c36c != (FARPROC)0x0 &&
+               (DAT_0063c368 = GetProcAddress(hModule,"GetMonitorInfoA"),
+               DAT_0063c368 != (FARPROC)0x0)))))) {
+      DAT_0063c370 = 1;
+      return true;
+    }
+    _DAT_0063c358 = (FARPROC)0x0;
+    DAT_0063c35c = (FARPROC)0x0;
+    DAT_0063c360 = (FARPROC)0x0;
+    _DAT_0063c364 = (FARPROC)0x0;
+    DAT_0063c368 = (FARPROC)0x0;
+    _DAT_0063c36c = (FARPROC)0x0;
+    DAT_0063c370 = 1;
+    bVar1 = false;
+  }
+  else {
+    bVar1 = DAT_0063c368 != (FARPROC)0x0;
+  }
+  return bVar1;
+}
+

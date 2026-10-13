@@ -1,0 +1,12 @@
+work/
+outputs/*.app/
+.DS_Store
+__pycache__/
+*.pyc
+
+# Generated deliverables remain on disk; worktrees rebuild their own binaries.
+outputs/blackmoor-decomp/build/
+outputs/blackmoor-decomp/Blackmoor Reconstruction.app/
+outputs/**/*.zip
+outputs/*.zip
+*.log

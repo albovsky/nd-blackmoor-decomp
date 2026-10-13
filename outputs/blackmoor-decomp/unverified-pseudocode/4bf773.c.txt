@@ -1,0 +1,44 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4bf773
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+void FUN_004bf773(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x1d6) != 0) {
+    FUN_0044c479(in_ECX + 4);
+    *(undefined4 *)(in_ECX + 4) = 2;
+    FUN_00449a94();
+    if (*(undefined4 **)(in_ECX + 0x1d6) == (undefined4 *)0x0) {
+      uVar1 = 0;
+    }
+    else {
+      uVar1 = (**(code **)**(undefined4 **)(in_ECX + 0x1d6))(1);
+    }
+    *(undefined4 *)(in_ECX + 0x1d6) = 0;
+    FUN_0044c4ab(in_ECX + 4,uVar1);
+    *(undefined4 *)(in_ECX + 4) = 0;
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_MOVIE_Process_____ACTION_TRIGGER_005525dc);
+  }
+  FUN_00415011(in_ECX + 8);
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_MOVIE_Process_____ACTION_TRIGGER_00552620);
+  }
+  if (*(int *)(in_ECX + 0x222) != 0) {
+    FUN_004c2dfb(in_ECX + 0x222);
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_MOVIE_Process_____ACTION_TRIGGER_00552664);
+  }
+  FUN_0041632b(in_ECX + 8);
+  FUN_004bedfa(in_ECX + 0x18e);
+  return;
+}
+

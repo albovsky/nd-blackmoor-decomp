@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d79c7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b736ef8a907767b6bd5de2b1c70fa87373ac4b8d720af669c98493a6a3d19492
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004d79c7(void)
+
+{
+  undefined2 extraout_var;
+  int in_ECX;
+  
+  _DAT_005d2ecb = 0;
+  FUN_004c92c5(*(undefined2 *)(in_ECX + 0x2b4));
+  FUN_004c92c5(CONCAT22(extraout_var,*(undefined2 *)(in_ECX + 0x2b6)));
+  FUN_0043dbd5();
+  FUN_004dad60();
+  return;
+}
+

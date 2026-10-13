@@ -1,0 +1,43 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4205c1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5
+ */
+
+void FUN_004205c1(short param_1)
+
+{
+  char cVar1;
+  int iVar2;
+  short sVar3;
+  int in_ECX;
+  short local_8;
+  
+  iVar2 = *(int *)(&DAT_005bb5e5 + param_1 * 0x8d);
+  for (local_8 = 0; local_8 < *(short *)(iVar2 + 0x793); local_8 = local_8 + 1) {
+    sVar3 = FUN_00420737(*(undefined4 *)(*(int *)(iVar2 + 0x795) + 2 + local_8 * 0x1d1),
+                         CONCAT22((short)((uint)(local_8 * 0x1d1) >> 0x10),
+                                  *(undefined2 *)(*(int *)(iVar2 + 0x795) + local_8 * 0x1d1)),
+                         in_ECX + 0x78e);
+    if (sVar3 != 0) {
+      cVar1 = *(char *)(*(int *)(iVar2 + 0x795) + 0x1b7 + local_8 * 0x1d1);
+      if (cVar1 == '\0') {
+        FUN_0041fa11(*(int *)(iVar2 + 0x795) + local_8 * 0x1d1);
+      }
+      else if (cVar1 == '\x01') {
+        FUN_0041fd08(*(int *)(iVar2 + 0x795) + local_8 * 0x1d1);
+      }
+      else if (cVar1 == '\x02') {
+        FUN_0042028e(*(int *)(iVar2 + 0x795) + local_8 * 0x1d1);
+      }
+    }
+  }
+  if (*(char *)(iVar2 + 0x779) != '\x14') {
+    (**(code **)(in_ECX + 0xf23 + (uint)*(byte *)(iVar2 + 0x779) * 4))();
+  }
+  if (*(char *)(iVar2 + 0x77a) != '\x14') {
+    (**(code **)(in_ECX + 0xf4b + (uint)*(byte *)(iVar2 + 0x77a) * 4))();
+  }
+  return;
+}
+

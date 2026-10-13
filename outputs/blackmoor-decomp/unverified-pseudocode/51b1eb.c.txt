@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51b1eb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+undefined4 FUN_0051b1eb(int param_1)
+
+{
+  if (*(int *)(param_1 + 0x28) == 0) {
+    FUN_0051d0b9(1);
+    *(char **)(param_1 + 0x28) = "AfxWnd42s";
+  }
+  return 1;
+}
+

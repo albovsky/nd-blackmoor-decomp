@@ -1,0 +1,104 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4033db
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e09edac65bcad9caee2d1862e36312f5e4008fb317e393d76486b97c5d7f9943
+ */
+
+void FUN_004033db(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  undefined1 local_18 [20];
+  
+  uVar1 = FUN_005193ca((int)DAT_005ec33c,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005ec33e,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005ec340,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005e5684,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005e5686,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005e5688,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005ec33a,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005ec284,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005ec286,local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca((int)DAT_005ec288,local_18,10);
+  FUN_0051d58b(uVar1);
+  if (DAT_005ec342 == 0) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x48c) + 0x1c),0xf1,0,0);
+  }
+  else {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x48c) + 0x1c),0xf1,1,0);
+  }
+  FUN_0050ca3e(local_18,s_Software_Timer__d_0053e8dc,DAT_005c3a63);
+  FUN_0051d58b(local_18);
+  uVar1 = FUN_005193ca(*(undefined4 *)(&DAT_005e56a6 + DAT_005c3a63 * 0x106),local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca(*(undefined4 *)(&DAT_005e56aa + DAT_005c3a63 * 0x106),local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca(*(undefined4 *)(&DAT_005e56a2 + DAT_005c3a63 * 0x106),local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca(*(undefined4 *)(&DAT_005e56ba + DAT_005c3a63 * 0x106),local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca(*(undefined4 *)(&DAT_005e56be + DAT_005c3a63 * 0x106),local_18,10);
+  FUN_0051d58b(uVar1);
+  uVar1 = FUN_005193ca(*(undefined4 *)(&DAT_005e56b6 + DAT_005c3a63 * 0x106),local_18,10);
+  FUN_0051d58b(uVar1);
+  if (*(int *)(&DAT_005e56ae + DAT_005c3a63 * 0x106) == 0) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a4) + 0x1c),0xf1,0,0);
+  }
+  else {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a4) + 0x1c),0xf1,1,0);
+  }
+  if (*(int *)(&DAT_005e569a + DAT_005c3a63 * 0x106) == 0) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x494) + 0x1c),0xf1,1,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x490) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x498) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x49c) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a0) + 0x1c),0xf1,0,0);
+  }
+  else if (*(int *)(&DAT_005e569a + DAT_005c3a63 * 0x106) == 1) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x494) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x490) + 0x1c),0xf1,1,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x498) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x49c) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a0) + 0x1c),0xf1,0,0);
+  }
+  else if (*(int *)(&DAT_005e569a + DAT_005c3a63 * 0x106) == 2) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x494) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x490) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x498) + 0x1c),0xf1,1,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x49c) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a0) + 0x1c),0xf1,0,0);
+  }
+  else if (*(int *)(&DAT_005e569a + DAT_005c3a63 * 0x106) == 5) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x494) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x490) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x498) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x49c) + 0x1c),0xf1,1,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a0) + 0x1c),0xf1,0,0);
+  }
+  else if (*(int *)(&DAT_005e569a + DAT_005c3a63 * 0x106) == 6) {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x494) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x490) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x498) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x49c) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a0) + 0x1c),0xf1,1,0);
+  }
+  else {
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x494) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x490) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x498) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x49c) + 0x1c),0xf1,0,0);
+    SendMessageA(*(HWND *)(*(int *)(in_ECX + 0x4a0) + 0x1c),0xf1,0,0);
+  }
+  return;
+}
+

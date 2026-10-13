@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x514893
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ef606b3611f71cae908ae4dfd9c171d87d1bf5b814f82e9c922d3be8f60ac641
+ */
+
+int * FUN_00514893(int param_1,int *param_2)
+
+{
+  int *piVar1;
+  
+  piVar1 = param_2;
+  if (*param_2 != param_1) {
+    do {
+      piVar1 = piVar1 + 3;
+      if (param_2 + DAT_00568adc * 3 <= piVar1) break;
+    } while (*piVar1 != param_1);
+  }
+  if ((param_2 + DAT_00568adc * 3 <= piVar1) || (*piVar1 != param_1)) {
+    piVar1 = (int *)0x0;
+  }
+  return piVar1;
+}
+

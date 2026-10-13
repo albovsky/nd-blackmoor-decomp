@@ -1,0 +1,978 @@
+{
+  "scope": {
+    "native_parser_library": "outputs/blackmoor-decomp/build/libsceneresource.dylib",
+    "scene_count": 2078,
+    "actions": 19612,
+    "unique_type_values": 71,
+    "unique_type_subtype_pairs": 73,
+    "typed_actions": 2449,
+    "opaque_actions": 17163,
+    "top_15_opaque_count": 16528,
+    "top_15_opaque_percent": 96.3,
+    "parse_failures": 0
+  },
+  "type_subtype_histogram": [
+    {
+      "type": "0x0a",
+      "subtype": "0x01",
+      "count": 596,
+      "opaque_count": 0,
+      "typed_count": 596
+    },
+    {
+      "type": "0x0b",
+      "subtype": "0x01",
+      "count": 1275,
+      "opaque_count": 1275,
+      "typed_count": 0
+    },
+    {
+      "type": "0x0c",
+      "subtype": "0x01",
+      "count": 43,
+      "opaque_count": 43,
+      "typed_count": 0
+    },
+    {
+      "type": "0x15",
+      "subtype": "0x01",
+      "count": 3,
+      "opaque_count": 0,
+      "typed_count": 3
+    },
+    {
+      "type": "0x16",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x17",
+      "subtype": "0x01",
+      "count": 10,
+      "opaque_count": 10,
+      "typed_count": 0
+    },
+    {
+      "type": "0x1b",
+      "subtype": "0x01",
+      "count": 4,
+      "opaque_count": 4,
+      "typed_count": 0
+    },
+    {
+      "type": "0x1c",
+      "subtype": "0x02",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x1d",
+      "subtype": "0x01",
+      "count": 182,
+      "opaque_count": 0,
+      "typed_count": 182
+    },
+    {
+      "type": "0x20",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x28",
+      "subtype": "0x01",
+      "count": 72,
+      "opaque_count": 72,
+      "typed_count": 0
+    },
+    {
+      "type": "0x2d",
+      "subtype": "0x01",
+      "count": 3,
+      "opaque_count": 3,
+      "typed_count": 0
+    },
+    {
+      "type": "0x2e",
+      "subtype": "0x01",
+      "count": 10,
+      "opaque_count": 10,
+      "typed_count": 0
+    },
+    {
+      "type": "0x33",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x33",
+      "subtype": "0x02",
+      "count": 1,
+      "opaque_count": 1,
+      "typed_count": 0
+    },
+    {
+      "type": "0x35",
+      "subtype": "0x01",
+      "count": 113,
+      "opaque_count": 113,
+      "typed_count": 0
+    },
+    {
+      "type": "0x36",
+      "subtype": "0x01",
+      "count": 20,
+      "opaque_count": 20,
+      "typed_count": 0
+    },
+    {
+      "type": "0x37",
+      "subtype": "0x01",
+      "count": 4308,
+      "opaque_count": 4308,
+      "typed_count": 0
+    },
+    {
+      "type": "0x38",
+      "subtype": "0x01",
+      "count": 425,
+      "opaque_count": 425,
+      "typed_count": 0
+    },
+    {
+      "type": "0x3e",
+      "subtype": "0x01",
+      "count": 202,
+      "opaque_count": 202,
+      "typed_count": 0
+    },
+    {
+      "type": "0x3f",
+      "subtype": "0x01",
+      "count": 493,
+      "opaque_count": 493,
+      "typed_count": 0
+    },
+    {
+      "type": "0x43",
+      "subtype": "0x01",
+      "count": 13,
+      "opaque_count": 13,
+      "typed_count": 0
+    },
+    {
+      "type": "0x44",
+      "subtype": "0x01",
+      "count": 27,
+      "opaque_count": 27,
+      "typed_count": 0
+    },
+    {
+      "type": "0x45",
+      "subtype": "0x01",
+      "count": 32,
+      "opaque_count": 32,
+      "typed_count": 0
+    },
+    {
+      "type": "0x47",
+      "subtype": "0x01",
+      "count": 139,
+      "opaque_count": 139,
+      "typed_count": 0
+    },
+    {
+      "type": "0x4b",
+      "subtype": "0x01",
+      "count": 9,
+      "opaque_count": 9,
+      "typed_count": 0
+    },
+    {
+      "type": "0x4d",
+      "subtype": "0x01",
+      "count": 378,
+      "opaque_count": 0,
+      "typed_count": 378
+    },
+    {
+      "type": "0x4e",
+      "subtype": "0x01",
+      "count": 18,
+      "opaque_count": 18,
+      "typed_count": 0
+    },
+    {
+      "type": "0x4f",
+      "subtype": "0x01",
+      "count": 815,
+      "opaque_count": 815,
+      "typed_count": 0
+    },
+    {
+      "type": "0x51",
+      "subtype": "0x01",
+      "count": 97,
+      "opaque_count": 97,
+      "typed_count": 0
+    },
+    {
+      "type": "0x61",
+      "subtype": "0x01",
+      "count": 933,
+      "opaque_count": 0,
+      "typed_count": 933
+    },
+    {
+      "type": "0x62",
+      "subtype": "0x01",
+      "count": 1802,
+      "opaque_count": 1802,
+      "typed_count": 0
+    },
+    {
+      "type": "0x64",
+      "subtype": "0x01",
+      "count": 7,
+      "opaque_count": 7,
+      "typed_count": 0
+    },
+    {
+      "type": "0x65",
+      "subtype": "0x01",
+      "count": 7,
+      "opaque_count": 7,
+      "typed_count": 0
+    },
+    {
+      "type": "0x67",
+      "subtype": "0x01",
+      "count": 27,
+      "opaque_count": 27,
+      "typed_count": 0
+    },
+    {
+      "type": "0x68",
+      "subtype": "0x01",
+      "count": 10,
+      "opaque_count": 10,
+      "typed_count": 0
+    },
+    {
+      "type": "0x69",
+      "subtype": "0x01",
+      "count": 7,
+      "opaque_count": 7,
+      "typed_count": 0
+    },
+    {
+      "type": "0x6a",
+      "subtype": "0x02",
+      "count": 2,
+      "opaque_count": 0,
+      "typed_count": 2
+    },
+    {
+      "type": "0x6b",
+      "subtype": "0x01",
+      "count": 345,
+      "opaque_count": 0,
+      "typed_count": 345
+    },
+    {
+      "type": "0x6d",
+      "subtype": "0x01",
+      "count": 1,
+      "opaque_count": 1,
+      "typed_count": 0
+    },
+    {
+      "type": "0x6e",
+      "subtype": "0x01",
+      "count": 68,
+      "opaque_count": 68,
+      "typed_count": 0
+    },
+    {
+      "type": "0x6f",
+      "subtype": "0x01",
+      "count": 25,
+      "opaque_count": 25,
+      "typed_count": 0
+    },
+    {
+      "type": "0x70",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x71",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 0,
+      "typed_count": 2
+    },
+    {
+      "type": "0x76",
+      "subtype": "0x01",
+      "count": 1,
+      "opaque_count": 1,
+      "typed_count": 0
+    },
+    {
+      "type": "0x77",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x78",
+      "subtype": "0x01",
+      "count": 466,
+      "opaque_count": 466,
+      "typed_count": 0
+    },
+    {
+      "type": "0x79",
+      "subtype": "0x01",
+      "count": 38,
+      "opaque_count": 38,
+      "typed_count": 0
+    },
+    {
+      "type": "0x7d",
+      "subtype": "0x01",
+      "count": 4,
+      "opaque_count": 4,
+      "typed_count": 0
+    },
+    {
+      "type": "0x80",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0x82",
+      "subtype": "0x01",
+      "count": 8,
+      "opaque_count": 0,
+      "typed_count": 8
+    },
+    {
+      "type": "0x83",
+      "subtype": "0x01",
+      "count": 9,
+      "opaque_count": 9,
+      "typed_count": 0
+    },
+    {
+      "type": "0x94",
+      "subtype": "0x01",
+      "count": 12,
+      "opaque_count": 12,
+      "typed_count": 0
+    },
+    {
+      "type": "0x95",
+      "subtype": "0x01",
+      "count": 123,
+      "opaque_count": 123,
+      "typed_count": 0
+    },
+    {
+      "type": "0x97",
+      "subtype": "0x01",
+      "count": 1958,
+      "opaque_count": 1958,
+      "typed_count": 0
+    },
+    {
+      "type": "0x9a",
+      "subtype": "0x01",
+      "count": 1,
+      "opaque_count": 1,
+      "typed_count": 0
+    },
+    {
+      "type": "0x9f",
+      "subtype": "0x01",
+      "count": 3554,
+      "opaque_count": 3554,
+      "typed_count": 0
+    },
+    {
+      "type": "0x9f",
+      "subtype": "0x02",
+      "count": 16,
+      "opaque_count": 16,
+      "typed_count": 0
+    },
+    {
+      "type": "0xa1",
+      "subtype": "0x01",
+      "count": 565,
+      "opaque_count": 565,
+      "typed_count": 0
+    },
+    {
+      "type": "0xaa",
+      "subtype": "0x01",
+      "count": 1,
+      "opaque_count": 1,
+      "typed_count": 0
+    },
+    {
+      "type": "0xd0",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0xd1",
+      "subtype": "0x01",
+      "count": 11,
+      "opaque_count": 11,
+      "typed_count": 0
+    },
+    {
+      "type": "0xd3",
+      "subtype": "0x01",
+      "count": 3,
+      "opaque_count": 3,
+      "typed_count": 0
+    },
+    {
+      "type": "0xd6",
+      "subtype": "0x01",
+      "count": 1,
+      "opaque_count": 1,
+      "typed_count": 0
+    },
+    {
+      "type": "0xd9",
+      "subtype": "0x01",
+      "count": 274,
+      "opaque_count": 274,
+      "typed_count": 0
+    },
+    {
+      "type": "0xda",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0xe0",
+      "subtype": "0x01",
+      "count": 3,
+      "opaque_count": 3,
+      "typed_count": 0
+    },
+    {
+      "type": "0xe4",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0xea",
+      "subtype": "0x01",
+      "count": 6,
+      "opaque_count": 6,
+      "typed_count": 0
+    },
+    {
+      "type": "0xeb",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0xee",
+      "subtype": "0x01",
+      "count": 2,
+      "opaque_count": 2,
+      "typed_count": 0
+    },
+    {
+      "type": "0xf5",
+      "subtype": "0x01",
+      "count": 4,
+      "opaque_count": 4,
+      "typed_count": 0
+    },
+    {
+      "type": "0xf6",
+      "subtype": "0x01",
+      "count": 6,
+      "opaque_count": 6,
+      "typed_count": 0
+    }
+  ],
+  "top_15_opaque_types": [
+    {
+      "rank": 1,
+      "type": "0x37",
+      "opaque_count": 4308,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 4308
+        }
+      ],
+      "loader_case_line": 459,
+      "loader_helper": "0x4895cc",
+      "boundary": "Complex helper: consumes a 0x45-byte prefix plus a range-driven 16-byte record block. Do not split dependencies until helper range fields are safely mapped.",
+      "executor_case_type": "0x36",
+      "executor_call": "0x4899ca",
+      "executor_line": 282,
+      "normalizes_to": "0x36",
+      "corpus_boundary_check": null
+    },
+    {
+      "rank": 2,
+      "type": "0x9f",
+      "opaque_count": 3570,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 3554
+        },
+        {
+          "subtype": "0x02",
+          "count": 16
+        }
+      ],
+      "loader_case_line": 2273,
+      "loader_helper": "inline",
+      "boundary": "Variable. Selector is uint16 at body+46; source cursor advance is 0x51 when selector=0xffff, otherwise selector+0x30.",
+      "executor_case_type": "0x9f",
+      "executor_call": "0x432d1a",
+      "executor_line": 931,
+      "corpus_boundary_check": {
+        "checked": 3570,
+        "aligned_tail": 3570,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 334,
+          "1": 1287,
+          "2": 269,
+          "3": 1482,
+          "4": 8,
+          "5": 1,
+          "6": 22,
+          "8": 1,
+          "9": 1,
+          "10": 1,
+          "18": 6,
+          "19": 12,
+          "20": 2,
+          "25": 143,
+          "27": 1
+        }
+      }
+    },
+    {
+      "rank": 3,
+      "type": "0x97",
+      "opaque_count": 1958,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 1958
+        }
+      ],
+      "loader_case_line": 1686,
+      "loader_helper": "inline",
+      "boundary": "Complex alternatives table; loader cursor advance is 0x2e + local_cc after count-driven alternatives. Loader rewrites the runtime type to 0x9f at line 1979.",
+      "executor_case_type": "0x9f",
+      "executor_call": "0x432d1a",
+      "executor_line": 931,
+      "normalizes_to": "0x9f",
+      "corpus_boundary_check": null
+    },
+    {
+      "rank": 4,
+      "type": "0x62",
+      "opaque_count": 1802,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 1802
+        }
+      ],
+      "loader_case_line": 1026,
+      "loader_helper": "inline",
+      "boundary": "12 + 18*n bytes, n = signed LE int16 at body+10; 1802/1802 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x62",
+      "executor_call": "0x42ea87",
+      "executor_line": 575,
+      "corpus_boundary_check": {
+        "checked": 1802,
+        "aligned_tail": 1802,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 660,
+          "1": 862,
+          "2": 178,
+          "3": 37,
+          "4": 10,
+          "5": 34,
+          "6": 18,
+          "9": 1,
+          "11": 1,
+          "18": 1
+        }
+      }
+    },
+    {
+      "rank": 5,
+      "type": "0x0b",
+      "opaque_count": 1275,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 1275
+        }
+      ],
+      "loader_case_line": 123,
+      "loader_helper": "inline",
+      "boundary": "24 bytes consumed (local_d0 += 0x18); allocator size 0x28 is destination storage, not source-body length. 1275/1275 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x0b",
+      "executor_call": "0x42ae73",
+      "executor_line": 135,
+      "corpus_boundary_check": {
+        "checked": 1275,
+        "aligned_tail": 1275,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 1016,
+          "1": 188,
+          "2": 46,
+          "4": 8,
+          "5": 8,
+          "6": 8,
+          "18": 1
+        }
+      }
+    },
+    {
+      "rank": 6,
+      "type": "0x4f",
+      "opaque_count": 815,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 815
+        }
+      ],
+      "loader_case_line": 769,
+      "loader_helper": "0x44b1b4",
+      "boundary": "10 bytes fixed; helper advances the source cursor by 10. 815/815 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x4f",
+      "executor_call": "0x44b641",
+      "executor_line": 480,
+      "corpus_boundary_check": {
+        "checked": 815,
+        "aligned_tail": 815,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 747,
+          "1": 68
+        }
+      }
+    },
+    {
+      "rank": 7,
+      "type": "0xa1",
+      "opaque_count": 565,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 565
+        }
+      ],
+      "loader_case_line": 2274,
+      "loader_helper": "inline (shared 0x9f case)",
+      "boundary": "Variable. Selector is uint16 at body+49; source cursor advance is 0x54 when selector=0xffff, otherwise selector+0x33.",
+      "executor_case_type": "0xa1",
+      "executor_call": "0x432d1a",
+      "executor_line": 931,
+      "corpus_boundary_check": {
+        "checked": 565,
+        "aligned_tail": 565,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 106,
+          "1": 335,
+          "2": 63,
+          "3": 27,
+          "4": 17,
+          "5": 2,
+          "6": 8,
+          "7": 1,
+          "9": 2,
+          "10": 1,
+          "28": 1,
+          "39": 2
+        }
+      }
+    },
+    {
+      "rank": 8,
+      "type": "0x3f",
+      "opaque_count": 493,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 493
+        }
+      ],
+      "loader_case_line": 472,
+      "loader_helper": "0x41c7f4",
+      "boundary": "Complex nested conversation layout with count-driven tables/strings; preserve opaque until each nested count is bounded.",
+      "executor_case_type": "0x3f",
+      "executor_call": "0x420c17",
+      "executor_line": 293,
+      "corpus_boundary_check": null
+    },
+    {
+      "rank": 9,
+      "type": "0x78",
+      "opaque_count": 466,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 466
+        }
+      ],
+      "loader_case_line": 1483,
+      "loader_helper": "0x4e9c2f",
+      "boundary": "6 bytes fixed; helper advances the source cursor by 6. 466/466 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x78",
+      "executor_call": "0x4eaadc",
+      "executor_line": 736,
+      "corpus_boundary_check": {
+        "checked": 466,
+        "aligned_tail": 466,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 85,
+          "1": 214,
+          "2": 167
+        }
+      }
+    },
+    {
+      "rank": 10,
+      "type": "0x38",
+      "opaque_count": 425,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 425
+        }
+      ],
+      "loader_case_line": 463,
+      "loader_helper": "0x48905b",
+      "boundary": "0x47 + 16*n bytes, n = LE_i16(body+0x35) - LE_i16(body+0x33) + 1; all 425/425 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x36",
+      "executor_call": "0x4899ca",
+      "executor_line": 282,
+      "normalizes_to": "0x36",
+      "corpus_boundary_check": {
+        "checked": 425,
+        "aligned_tail": 425,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 4,
+          "1": 421
+        }
+      }
+    },
+    {
+      "rank": 11,
+      "type": "0xd9",
+      "opaque_count": 274,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 274
+        }
+      ],
+      "loader_case_line": 2541,
+      "loader_helper": "0x47d682",
+      "boundary": "0x23 (35) bytes fixed; helper advances the source cursor by 0x23. 274/274 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0xd9",
+      "executor_call": "0x47d788",
+      "executor_line": 1045,
+      "corpus_boundary_check": {
+        "checked": 274,
+        "aligned_tail": 274,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 54,
+          "1": 6,
+          "2": 206,
+          "3": 8
+        }
+      }
+    },
+    {
+      "rank": 12,
+      "type": "0x3e",
+      "opaque_count": 202,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 202
+        }
+      ],
+      "loader_case_line": 471,
+      "loader_helper": "0x41c7f4",
+      "boundary": "Complex nested conversation layout with count-driven tables/strings; preserve opaque until each nested count is bounded.",
+      "executor_case_type": "0x3e",
+      "executor_call": "0x420c17",
+      "executor_line": 293,
+      "corpus_boundary_check": null
+    },
+    {
+      "rank": 13,
+      "type": "0x47",
+      "opaque_count": 139,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 139
+        }
+      ],
+      "loader_case_line": 533,
+      "loader_helper": "0x411a22",
+      "boundary": "0x27 (39) bytes fixed; helper advances the source cursor by 0x27. 139/139 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x47",
+      "executor_call": "0x412787",
+      "executor_line": 437,
+      "corpus_boundary_check": {
+        "checked": 139,
+        "aligned_tail": 139,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 5,
+          "1": 103,
+          "2": 24,
+          "3": 4,
+          "5": 1,
+          "6": 2
+        }
+      }
+    },
+    {
+      "rank": 14,
+      "type": "0x95",
+      "opaque_count": 123,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 123
+        }
+      ],
+      "loader_case_line": 1643,
+      "loader_helper": "inline",
+      "boundary": "3 bytes fixed; loader advances by 3. 123/123 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x95",
+      "executor_call": "0x4fca60 then 0x42ba3a",
+      "executor_line": 823,
+      "corpus_boundary_check": {
+        "checked": 123,
+        "aligned_tail": 123,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 120,
+          "1": 2,
+          "2": 1
+        }
+      }
+    },
+    {
+      "rank": 15,
+      "type": "0x35",
+      "opaque_count": 113,
+      "subtypes": [
+        {
+          "subtype": "0x01",
+          "count": 113
+        }
+      ],
+      "loader_case_line": 453,
+      "loader_helper": "0x4bf8c2",
+      "boundary": "0x3f + 6*n + 0x22*m; n = LE_i16(body+0x3b), m = LE_i16(body+0x3d+6*n). All 113/113 corpus candidates leave a multiple-of-16 tail.",
+      "executor_case_type": "0x35",
+      "executor_call": "0x4bf9bb",
+      "executor_line": 276,
+      "corpus_boundary_check": {
+        "checked": 113,
+        "aligned_tail": 113,
+        "failed": 0,
+        "tail_record_count_histogram": {
+          "0": 104,
+          "1": 8,
+          "2": 1
+        }
+      }
+    }
+  ],
+  "recommended_next_recovery_batch": {
+    "types": [
+      "0x0b",
+      "0x4f",
+      "0x78",
+      "0xd9",
+      "0x47",
+      "0x95"
+    ],
+    "records": 3092,
+    "why": "six fixed-size layouts with direct loader advancement evidence; each corpus candidate leaves a whole 16-byte dependency tail"
+  },
+  "dependency_tail_strategy": {
+    "loader": "0x40b34a calls 0x424aa8 after action-specific decoding (40b34a pseudocode line 2637).",
+    "rule": "Compute exact end of action body using the action-specific loader/helper. 0x424aa8 derives residual record count from (ACT payload length - body-end) / 16 and rejects a residual not divisible by 16.",
+    "unknown_type_policy": "Preserve the full post-header body as opaque and expose no dependencies until its body-end is verified."
+  },
+  "evidence_note": "All loader/executor evidence comes from unverified Ghidra pseudocode of the original executable under outputs/blackmoor-decomp/unverified-pseudocode; corpus alignment checks corroborate candidate boundaries but do not prove semantic decoding.",
+  "historical_basis": "Ranking before the fixed-layout/sound-body recovery; current typed=9111, opaque=10501.",
+  "current_layout_census": {
+    "typed": 9111,
+    "opaque": 10501,
+    "dependency_records": 15281
+  },
+  "completed_layout_batch": [
+    "0x0b",
+    "0x4f",
+    "0x78",
+    "0xd9",
+    "0x47",
+    "0x95",
+    "0x9f"
+  ],
+  "next_layout_candidates": [
+    "0x62",
+    "0x35",
+    "0x38",
+    "0xa1"
+  ]
+}

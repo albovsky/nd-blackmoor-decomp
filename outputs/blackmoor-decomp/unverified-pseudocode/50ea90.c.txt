@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50ea90
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+/* Library Function - Single Match
+    _malloc
+   
+   Library: Visual Studio 2003 Release */
+
+void * __cdecl _malloc(size_t _Size)
+
+{
+  void *pvVar1;
+  
+  pvVar1 = __nh_malloc(_Size,DAT_0063cc4c);
+  return pvVar1;
+}
+

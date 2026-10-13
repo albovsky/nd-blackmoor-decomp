@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522bd7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_00522bd7(HWND__ *param_1,HWND__ *param_2)
+
+{
+  do {
+    if (param_1 == param_2) {
+      return 1;
+    }
+    param_2 = AfxGetParentOwner(param_2);
+  } while (param_2 != (HWND__ *)0x0);
+  return 0;
+}
+

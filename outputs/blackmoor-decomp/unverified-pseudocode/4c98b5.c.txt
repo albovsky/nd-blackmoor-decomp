@@ -1,0 +1,77 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c98b5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d590aeb62d3bd1e1413a3f3e4f07f565aba52ab8fd98207292a76569576fbcb9
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004c98b5(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  undefined4 *puVar3;
+  undefined4 *puVar4;
+  int local_48;
+  int local_44;
+  int local_40;
+  int local_1c;
+  ushort local_18;
+  ushort local_10;
+  ushort local_c;
+  
+  if (((*(int *)(in_ECX + 0xc66) != 0) && (*(int *)(in_ECX + 0xc52) != 0)) &&
+     (*(int *)(in_ECX + 0x46) != 0)) {
+    if (*(int *)(in_ECX + 0xc62) == *(int *)(in_ECX + 0xc5e)) {
+      puVar3 = (undefined4 *)(in_ECX + 0x4a);
+      puVar4 = (undefined4 *)(in_ECX + 0x64a);
+      for (iVar2 = 0x180; iVar2 != 0; iVar2 = iVar2 + -1) {
+        *puVar4 = *puVar3;
+        puVar3 = puVar3 + 1;
+        puVar4 = puVar4 + 1;
+      }
+    }
+    else {
+      for (local_1c = 0; local_1c < 0x100; local_1c = local_1c + 1) {
+        local_40 = __ftol();
+        local_44 = __ftol();
+        local_48 = __ftol();
+        if (0xfffe < local_40) {
+          local_40 = 0xffff;
+        }
+        if (0xfffe < local_44) {
+          local_44 = 0xffff;
+        }
+        if (0xfffe < local_48) {
+          local_48 = 0xffff;
+        }
+        local_c = (local_40 < 1) - 1 & (ushort)local_40;
+        local_18 = (local_44 < 1) - 1 & (ushort)local_44;
+        local_10 = (local_48 < 1) - 1 & (ushort)local_48;
+        *(ushort *)(in_ECX + 0x64a + local_1c * 2) = local_c;
+        *(ushort *)(in_ECX + 0x84a + local_1c * 2) = local_18;
+        *(ushort *)(in_ECX + 0xa4a + local_1c * 2) = local_10;
+      }
+    }
+    if (*(int *)(in_ECX + 0xc4a) == 0) {
+      uVar1 = (**(code **)(**(int **)(in_ECX + 0x46) + 0x10))
+                        (*(undefined4 *)(in_ECX + 0x46),0,in_ECX + 0x64a);
+      *(undefined4 *)(in_ECX + 0xe82) = uVar1;
+    }
+    else {
+      uVar1 = (**(code **)(**(int **)(in_ECX + 0x46) + 0x10))
+                        (*(undefined4 *)(in_ECX + 0x46),1,in_ECX + 0x64a);
+      *(undefined4 *)(in_ECX + 0xe82) = uVar1;
+    }
+    if (*(int *)(in_ECX + 0xe82) < 0) {
+      uVar1 = FUN_004c88c7(*(undefined4 *)(in_ECX + 0xe82));
+      FUN_0042639d(s_AdjustGammaRamp____Unable_to_set_00557c2c,uVar1);
+      _DAT_005bb20c = 1;
+      FUN_004c97b4();
+    }
+  }
+  return;
+}
+

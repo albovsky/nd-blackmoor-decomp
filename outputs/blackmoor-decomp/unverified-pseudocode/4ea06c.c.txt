@@ -1,0 +1,60 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ea06c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9c656b3eec0deb5a709812e8ef40c0b3c5e683a3969dfdbc8ffe3dad08e63a8
+ */
+
+void FUN_004ea06c(short param_1)
+
+{
+  uint uVar1;
+  int in_ECX;
+  uint uVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  int local_8;
+  
+  local_8 = -1;
+  *(undefined4 *)(in_ECX + 0x822e) = 0;
+  do {
+    if ((int)DAT_00583a2b <= *(int *)(in_ECX + 0x822e)) {
+LAB_004ea0dd:
+      if (local_8 != -1) {
+        *(undefined4 *)(in_ECX + 0x822e) = 0;
+        *(undefined4 *)(in_ECX + 0x8316) = 0;
+        while (*(int *)(in_ECX + 0x822e) < (int)DAT_00583a2b) {
+          if (*(int *)(in_ECX + 0x822e) != local_8) {
+            *(undefined2 *)(in_ECX + 0x828a + *(int *)(in_ECX + 0x8316) * 2) =
+                 *(undefined2 *)((int)&DAT_00583a31 + *(int *)(in_ECX + 0x822e) * 2);
+            *(int *)(in_ECX + 0x8316) = *(int *)(in_ECX + 0x8316) + 1;
+          }
+          *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+        }
+        DAT_00583a2b = *(short *)(in_ECX + 0x8316);
+        uVar1 = *(uint *)(in_ECX + 0x8316);
+        puVar4 = (undefined4 *)(in_ECX + 0x828a);
+        puVar5 = &DAT_00583a31;
+        for (uVar2 = (uVar1 & 0x7fffffff) >> 1; uVar2 != 0; uVar2 = uVar2 - 1) {
+          *puVar5 = *puVar4;
+          puVar4 = puVar4 + 1;
+          puVar5 = puVar5 + 1;
+        }
+        for (iVar3 = (uVar1 & 1) << 1; iVar3 != 0; iVar3 = iVar3 + -1) {
+          *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+          puVar4 = (undefined4 *)((int)puVar4 + 1);
+          puVar5 = (undefined4 *)((int)puVar5 + 1);
+        }
+        (&DAT_00583bd5)[param_1] = 0;
+        FUN_004e812f();
+      }
+      return;
+    }
+    if (*(short *)((int)&DAT_00583a31 + *(int *)(in_ECX + 0x822e) * 2) == param_1) {
+      local_8 = *(int *)(in_ECX + 0x822e);
+      goto LAB_004ea0dd;
+    }
+    *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+  } while( true );
+}
+

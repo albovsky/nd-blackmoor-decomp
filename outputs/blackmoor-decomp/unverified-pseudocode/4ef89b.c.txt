@@ -1,0 +1,129 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ef89b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+undefined4 FUN_004ef89b(void)
+
+{
+  undefined4 uVar1;
+  undefined4 *puVar2;
+  int in_ECX;
+  undefined1 local_c [8];
+  
+  if (*(int *)(in_ECX + 4) == 0) {
+    if (*(int *)(in_ECX + 0x1a2) == 0) {
+      if (*(int *)(in_ECX + 8) == 0) {
+        uVar1 = FUN_004c2790(s_CIFTREE_0055cecc,in_ECX + 0x18,6,s_UI_Slider_0055cec0);
+        *(undefined4 *)(in_ECX + 8) = uVar1;
+      }
+    }
+    else {
+      *(undefined4 *)(in_ECX + 8) = DAT_005d0377;
+    }
+    if (*(int *)(in_ECX + 0xc) == 0) {
+      uVar1 = FUN_004c2790(s_CIFTREE_0055cee8,in_ECX + 0x39,6,s_UI_Button_restore_0055ced4);
+      *(undefined4 *)(in_ECX + 0xc) = uVar1;
+    }
+    *(undefined4 *)(in_ECX + 4) = 1;
+    goto LAB_004efeee;
+  }
+  if (*(int *)(in_ECX + 4) != 1) goto LAB_004efeee;
+  if (*(int *)(in_ECX + 0x19e) != 0) {
+    *(float *)(in_ECX + 0x16a) = (float)*(int *)(in_ECX + 0x162) / 100.0;
+    uVar1 = __ftol();
+    *(undefined4 *)(in_ECX + 0x166) = uVar1;
+    if (*(int *)(in_ECX + 0xce) == 0) {
+      if (*(int *)(in_ECX + 0xd2) == 1) {
+        *(int *)(in_ECX + 0x166) = *(int *)(in_ECX + 0x15e) - *(int *)(in_ECX + 0x166);
+        *(float *)(in_ECX + 0x16a) = 1.0 - *(float *)(in_ECX + 0x16a);
+      }
+LAB_004ef9f0:
+      if (*(int *)(in_ECX + 0xd2) == 3) {
+        *(int *)(in_ECX + 0x166) = *(int *)(in_ECX + 0x15e) - *(int *)(in_ECX + 0x166);
+        *(float *)(in_ECX + 0x16a) = 1.0 - *(float *)(in_ECX + 0x16a);
+      }
+    }
+    else if (*(int *)(in_ECX + 0xce) == 1) goto LAB_004ef9f0;
+    *(undefined4 *)(in_ECX + 0x19e) = 0;
+  }
+  FUN_004dadff();
+  puVar2 = (undefined4 *)FUN_004daeb5(local_c);
+  uVar1 = puVar2[1];
+  *(undefined4 *)(in_ECX + 0x18a) = *puVar2;
+  *(undefined4 *)(in_ECX + 0x18e) = uVar1;
+  if ((((*(int *)(in_ECX + 0x10) == 0) || (*(int *)(in_ECX + 0x10) == 1)) &&
+      (*(int *)(in_ECX + 0x16e) == 0)) &&
+     ((*(int *)(in_ECX + 0x19a) != 0 && (DAT_0058321d == '\x01')))) {
+    *(undefined4 *)(in_ECX + 0x16e) = 1;
+    *(undefined4 *)(in_ECX + 0x182) = *(undefined4 *)(in_ECX + 0x18a);
+    *(undefined4 *)(in_ECX + 0x186) = *(undefined4 *)(in_ECX + 0x18e);
+    *(undefined4 *)(in_ECX + 0x14e) = *(undefined4 *)(in_ECX + 0x13e);
+    *(undefined4 *)(in_ECX + 0x152) = *(undefined4 *)(in_ECX + 0x142);
+    *(undefined4 *)(in_ECX + 0x156) = *(undefined4 *)(in_ECX + 0x146);
+    *(undefined4 *)(in_ECX + 0x15a) = *(undefined4 *)(in_ECX + 0x14a);
+    if (*(int *)(in_ECX + 0xc6) != 0) {
+      *(undefined4 *)(in_ECX + 0x10) = 2;
+    }
+  }
+  else if ((*(int *)(in_ECX + 0x16e) == 1) &&
+          ((*(int *)(in_ECX + 0x19a) != 0 && (DAT_0058321d == '\x01')))) {
+    *(int *)(in_ECX + 0x192) = *(int *)(in_ECX + 0x18a) - *(int *)(in_ECX + 0x182);
+    *(int *)(in_ECX + 0x196) = *(int *)(in_ECX + 0x18e) - *(int *)(in_ECX + 0x186);
+    if (*(int *)(in_ECX + 0xce) == 0) {
+      *(int *)(in_ECX + 0x13e) = *(int *)(in_ECX + 0x14e) + *(int *)(in_ECX + 0x192);
+      *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x156) + *(int *)(in_ECX + 0x192);
+      if (*(int *)(in_ECX + 0x13e) < *(int *)(in_ECX + 0x12e)) {
+        *(undefined4 *)(in_ECX + 0x13e) = *(undefined4 *)(in_ECX + 0x12e);
+        *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + -1 + *(int *)(in_ECX + 0x17a);
+      }
+      if (*(int *)(in_ECX + 0x136) < *(int *)(in_ECX + 0x146)) {
+        *(undefined4 *)(in_ECX + 0x146) = *(undefined4 *)(in_ECX + 0x136);
+        *(int *)(in_ECX + 0x13e) = (*(int *)(in_ECX + 0x146) - *(int *)(in_ECX + 0x17a)) + 1;
+      }
+      *(int *)(in_ECX + 0x166) = *(int *)(in_ECX + 0x13e) - *(int *)(in_ECX + 0x12e);
+      *(float *)(in_ECX + 0x16a) = (float)*(int *)(in_ECX + 0x166) / (float)*(int *)(in_ECX + 0x15e)
+      ;
+      if (*(int *)(in_ECX + 0xd2) == 1) {
+        *(int *)(in_ECX + 0x166) = *(int *)(in_ECX + 0x15e) - *(int *)(in_ECX + 0x166);
+        *(float *)(in_ECX + 0x16a) = 1.0 - *(float *)(in_ECX + 0x16a);
+      }
+      uVar1 = __ftol();
+      *(undefined4 *)(in_ECX + 0x162) = uVar1;
+    }
+    else if (*(int *)(in_ECX + 0xce) == 1) {
+      *(int *)(in_ECX + 0x142) = *(int *)(in_ECX + 0x152) + *(int *)(in_ECX + 0x196);
+      *(int *)(in_ECX + 0x14a) = *(int *)(in_ECX + 0x15a) + *(int *)(in_ECX + 0x196);
+      if (*(int *)(in_ECX + 0x142) < *(int *)(in_ECX + 0x132)) {
+        *(undefined4 *)(in_ECX + 0x142) = *(undefined4 *)(in_ECX + 0x132);
+        *(int *)(in_ECX + 0x14a) = *(int *)(in_ECX + 0x142) + -1 + *(int *)(in_ECX + 0x17e);
+      }
+      if (*(int *)(in_ECX + 0x13a) < *(int *)(in_ECX + 0x14a)) {
+        *(undefined4 *)(in_ECX + 0x14a) = *(undefined4 *)(in_ECX + 0x13a);
+        *(int *)(in_ECX + 0x142) = (*(int *)(in_ECX + 0x14a) - *(int *)(in_ECX + 0x17e)) + 1;
+      }
+      *(int *)(in_ECX + 0x166) = *(int *)(in_ECX + 0x142) - *(int *)(in_ECX + 0x132);
+      *(float *)(in_ECX + 0x16a) = (float)*(int *)(in_ECX + 0x166) / (float)*(int *)(in_ECX + 0x15e)
+      ;
+      if (*(int *)(in_ECX + 0xd2) == 3) {
+        *(int *)(in_ECX + 0x166) = *(int *)(in_ECX + 0x15e) - *(int *)(in_ECX + 0x166);
+        *(float *)(in_ECX + 0x16a) = 1.0 - *(float *)(in_ECX + 0x16a);
+      }
+      uVar1 = __ftol();
+      *(undefined4 *)(in_ECX + 0x162) = uVar1;
+    }
+  }
+  else if ((*(int *)(in_ECX + 0x16e) == 1) &&
+          ((*(int *)(in_ECX + 0x19a) == 0 || (DAT_0058321d == '\0')))) {
+    *(undefined4 *)(in_ECX + 0x16e) = 0;
+    *(undefined4 *)(in_ECX + 0x10) = 0;
+  }
+  else {
+    *(undefined4 *)(in_ECX + 0x16e) = 0;
+  }
+LAB_004efeee:
+  FUN_004ef52a();
+  return *(undefined4 *)(in_ECX + 0x162);
+}
+

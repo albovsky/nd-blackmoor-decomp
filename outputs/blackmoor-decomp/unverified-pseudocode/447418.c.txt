@@ -1,0 +1,49 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x447418
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8af1f64874eb3e8469c17e0baf09bf0097f1882284f135b85877e988363a520
+ */
+
+void FUN_00447418(void)
+
+{
+  char cVar1;
+  int in_ECX;
+  uint uVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  
+  DAT_005839a9 = 1;
+  FUN_004d36ed();
+  FUN_0043dbd5();
+  DAT_00583999 = 3;
+  FUN_0043a7ca();
+  DAT_00583999 = 4;
+  FUN_00447ac7(DAT_005cf665,*(undefined4 *)(in_ECX + 0x31));
+  cVar1 = *(char *)(in_ECX + 0x49);
+  if (cVar1 != '\x01') {
+    if (cVar1 == '\x02') {
+      *(undefined4 *)(in_ECX + 0x2d) = 1;
+      if (DAT_00583999 != 4) {
+        return;
+      }
+      DAT_00583999 = 1;
+      return;
+    }
+    if (cVar1 != '\x03') {
+      return;
+    }
+  }
+  puVar4 = *(undefined4 **)(in_ECX + 0x35);
+  for (uVar2 = (uint)(*(int *)(in_ECX + 0x39) * 0xc) >> 2; uVar2 != 0; uVar2 = uVar2 - 1) {
+    *puVar4 = 0;
+    puVar4 = puVar4 + 1;
+  }
+  for (iVar3 = 0; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *(undefined1 *)puVar4 = 0;
+    puVar4 = (undefined4 *)((int)puVar4 + 1);
+  }
+  *(undefined4 *)(in_ECX + 0x2d) = 2;
+  return;
+}
+

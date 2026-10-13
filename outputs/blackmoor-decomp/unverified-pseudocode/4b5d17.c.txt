@@ -1,0 +1,67 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b5d17
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9c28e49ff0d0581c06fedda0626bb3b37c974388a5ee867a2a287f28c8c49afa
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004b5eb1) */
+/* WARNING: Removing unreachable block (ram,0x004b5ec3) */
+/* WARNING: Removing unreachable block (ram,0x004b5ed3) */
+/* WARNING: Removing unreachable block (ram,0x004b5eea) */
+/* WARNING: Removing unreachable block (ram,0x004b5f01) */
+/* WARNING: Removing unreachable block (ram,0x004b5f18) */
+/* WARNING: Removing unreachable block (ram,0x004b5f2f) */
+/* WARNING: Removing unreachable block (ram,0x004b5f45) */
+/* WARNING: Removing unreachable block (ram,0x004b5f85) */
+/* WARNING: Removing unreachable block (ram,0x004b5f57) */
+/* WARNING: Removing unreachable block (ram,0x004b5fbd) */
+/* WARNING: Removing unreachable block (ram,0x004b5fc7) */
+/* WARNING: Removing unreachable block (ram,0x004b5fdd) */
+/* WARNING: Removing unreachable block (ram,0x004b5ff3) */
+/* WARNING: Removing unreachable block (ram,0x004b6009) */
+/* WARNING: Removing unreachable block (ram,0x004b601f) */
+/* WARNING: Removing unreachable block (ram,0x004b5eba) */
+
+undefined4 FUN_004b5d17(short param_1,short param_2)
+
+{
+  int iVar1;
+  int iVar2;
+  int in_ECX;
+  int local_8;
+  
+  if (*(int *)(in_ECX + 0x225) != 0) {
+    iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+    *(undefined2 *)(in_ECX + 0x252) = 0xffff;
+    for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x21); local_8 = local_8 + 1) {
+      if (*(short *)(in_ECX + 0x232 + local_8 * 2) == 0) {
+        iVar2 = in_ECX + 0x24 + local_8 * 0x10;
+        FUN_004b6355(local_8,CONCAT22((short)((uint)iVar2 >> 0x10),
+                                      *(undefined2 *)(in_ECX + 0x254 + local_8 * 2)),0,iVar2);
+      }
+      else {
+        iVar2 = *(short *)(in_ECX + 0x22c) + -1;
+        FUN_004b6355(local_8,CONCAT22((short)((uint)iVar2 >> 0x10),
+                                      *(undefined2 *)(in_ECX + 0x254 + local_8 * 2)),iVar2,
+                     in_ECX + 0x24 + local_8 * 0x10);
+      }
+      *(undefined1 *)(in_ECX + 0x224) = 1;
+    }
+    for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x21); local_8 = local_8 + 1) {
+      if ((((*(int *)(iVar1 + 0x14b + local_8 * 0x10) <= (int)param_2) &&
+           ((int)param_2 <= *(int *)(iVar1 + 0x153 + local_8 * 0x10))) &&
+          (*(int *)(iVar1 + 0x147 + local_8 * 0x10) <= (int)param_1)) &&
+         ((int)param_1 <= *(int *)(iVar1 + 0x14f + local_8 * 0x10))) {
+        FUN_004b6097(0x276c,CONCAT22(param_1 >> 0xf,(undefined2)local_8));
+        return 1;
+      }
+    }
+    if (((*(int *)(iVar1 + 0x393) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar1 + 0x39b))) &&
+       ((*(int *)(iVar1 + 0x38f) <= (int)param_1 && ((int)param_1 <= *(int *)(iVar1 + 0x397))))) {
+      FUN_004b6097(0x276d,0);
+      return 1;
+    }
+  }
+  return 0;
+}
+

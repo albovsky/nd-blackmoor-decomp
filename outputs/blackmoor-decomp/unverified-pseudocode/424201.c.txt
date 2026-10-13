@@ -1,0 +1,52 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x424201
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+void FUN_00424201(int param_1)
+
+{
+  int *piVar1;
+  bool bVar2;
+  int *local_c;
+  
+  local_c = *(int **)(param_1 + 4);
+  bVar2 = false;
+  while( true ) {
+    do {
+      while( true ) {
+        if (bVar2) {
+          return;
+        }
+        if (*local_c != 2) break;
+        local_c[2] = local_c[1];
+        FUN_00424346(local_c);
+        local_c = (int *)local_c[0xe];
+        if (local_c == (int *)0x0) {
+          FUN_0042406d(param_1);
+          bVar2 = true;
+        }
+      }
+    } while (*local_c != 1);
+    local_c[2] = local_c[1];
+    FUN_0042356d(param_1,local_c);
+    FUN_00424201(local_c[0x11]);
+    piVar1 = (int *)FUN_004235fd();
+    if (piVar1 == (int *)0x0) break;
+    param_1 = *piVar1;
+    local_c = *(int **)(piVar1[2] + 0x38);
+    bVar2 = local_c == (int *)0x0;
+    if (bVar2) {
+      FUN_0042406d(param_1);
+    }
+  }
+  FUN_0050ca3e(&DAT_0063888b,s_CDependency__EvaluateBranch_____E_00544964);
+  FUN_0052139c(&DAT_0063888b,0,0);
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  FUN_004c97b4();
+  return;
+}
+

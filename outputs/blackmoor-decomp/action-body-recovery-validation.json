@@ -1,0 +1,242 @@
+{
+  "corpus": "work/analysis/hiff-resources",
+  "manifest_resource_count": 2267,
+  "decoded_resource_file_count": 2267,
+  "scene_resource_count_opened": 2078,
+  "parse_failures": [],
+  "act_chunk_count": 19612,
+  "raw_type_value_count": 71,
+  "raw_type_subtype_pair_count": 73,
+  "raw_type_census": {
+    "0x0a": 596,
+    "0x0b": 1275,
+    "0x0c": 43,
+    "0x15": 3,
+    "0x16": 2,
+    "0x17": 10,
+    "0x1b": 4,
+    "0x1c": 2,
+    "0x1d": 182,
+    "0x20": 2,
+    "0x28": 72,
+    "0x2d": 3,
+    "0x2e": 10,
+    "0x33": 3,
+    "0x35": 113,
+    "0x36": 20,
+    "0x37": 4308,
+    "0x38": 425,
+    "0x3e": 202,
+    "0x3f": 493,
+    "0x43": 13,
+    "0x44": 27,
+    "0x45": 32,
+    "0x47": 139,
+    "0x4b": 9,
+    "0x4d": 378,
+    "0x4e": 18,
+    "0x4f": 815,
+    "0x51": 97,
+    "0x61": 933,
+    "0x62": 1802,
+    "0x64": 7,
+    "0x65": 7,
+    "0x67": 27,
+    "0x68": 10,
+    "0x69": 7,
+    "0x6a": 2,
+    "0x6b": 345,
+    "0x6d": 1,
+    "0x6e": 68,
+    "0x6f": 25,
+    "0x70": 2,
+    "0x71": 2,
+    "0x76": 1,
+    "0x77": 2,
+    "0x78": 466,
+    "0x79": 38,
+    "0x7d": 4,
+    "0x80": 2,
+    "0x82": 8,
+    "0x83": 9,
+    "0x94": 12,
+    "0x95": 123,
+    "0x97": 1958,
+    "0x9a": 1,
+    "0x9f": 3570,
+    "0xa1": 565,
+    "0xaa": 1,
+    "0xd0": 2,
+    "0xd1": 11,
+    "0xd3": 3,
+    "0xd6": 1,
+    "0xd9": 274,
+    "0xda": 2,
+    "0xe0": 3,
+    "0xe4": 2,
+    "0xea": 6,
+    "0xeb": 2,
+    "0xee": 2,
+    "0xf5": 4,
+    "0xf6": 6
+  },
+  "typed_action_count": 9111,
+  "opaque_action_count": 10501,
+  "payload_kind_census": {
+    "0": 10501,
+    "1": 5539,
+    "2": 2,
+    "3": 3570
+  },
+  "typed_counts_by_raw_type": {
+    "0x0a": 596,
+    "0x0b": 1275,
+    "0x15": 3,
+    "0x1d": 182,
+    "0x47": 139,
+    "0x4d": 378,
+    "0x4f": 815,
+    "0x61": 933,
+    "0x6a": 2,
+    "0x6b": 345,
+    "0x71": 2,
+    "0x78": 466,
+    "0x82": 8,
+    "0x95": 123,
+    "0x9f": 3570,
+    "0xd9": 274
+  },
+  "opaque_counts_by_raw_type": {
+    "0x0c": 43,
+    "0x16": 2,
+    "0x17": 10,
+    "0x1b": 4,
+    "0x1c": 2,
+    "0x20": 2,
+    "0x28": 72,
+    "0x2d": 3,
+    "0x2e": 10,
+    "0x33": 3,
+    "0x35": 113,
+    "0x36": 20,
+    "0x37": 4308,
+    "0x38": 425,
+    "0x3e": 202,
+    "0x3f": 493,
+    "0x43": 13,
+    "0x44": 27,
+    "0x45": 32,
+    "0x4b": 9,
+    "0x4e": 18,
+    "0x51": 97,
+    "0x62": 1802,
+    "0x64": 7,
+    "0x65": 7,
+    "0x67": 27,
+    "0x68": 10,
+    "0x69": 7,
+    "0x6d": 1,
+    "0x6e": 68,
+    "0x6f": 25,
+    "0x70": 2,
+    "0x76": 1,
+    "0x77": 2,
+    "0x79": 38,
+    "0x7d": 4,
+    "0x80": 2,
+    "0x83": 9,
+    "0x94": 12,
+    "0x97": 1958,
+    "0x9a": 1,
+    "0xa1": 565,
+    "0xaa": 1,
+    "0xd0": 2,
+    "0xd1": 11,
+    "0xd3": 3,
+    "0xd6": 1,
+    "0xda": 2,
+    "0xe0": 3,
+    "0xe4": 2,
+    "0xea": 6,
+    "0xeb": 2,
+    "0xee": 2,
+    "0xf5": 4,
+    "0xf6": 6
+  },
+  "dependency_record_count": 15281,
+  "newly_recovered": {
+    "0x0b": {
+      "records": 1275,
+      "body_length_histogram": {
+        "24": 1275
+      },
+      "dependency_records": 418
+    },
+    "0x47": {
+      "records": 139,
+      "body_length_histogram": {
+        "39": 139
+      },
+      "dependency_records": 180
+    },
+    "0x4f": {
+      "records": 815,
+      "body_length_histogram": {
+        "10": 815
+      },
+      "dependency_records": 68
+    },
+    "0x78": {
+      "records": 466,
+      "body_length_histogram": {
+        "6": 466
+      },
+      "dependency_records": 548
+    },
+    "0x95": {
+      "records": 123,
+      "body_length_histogram": {
+        "3": 123
+      },
+      "dependency_records": 4
+    },
+    "0x9f": {
+      "records": 3570,
+      "body_length_histogram": {
+        "48": 3289,
+        "81": 281
+      },
+      "dependency_records": 10445
+    },
+    "0xd9": {
+      "records": 274,
+      "body_length_histogram": {
+        "35": 274
+      },
+      "dependency_records": 442
+    }
+  },
+  "newly_recovered_action_count": 6662,
+  "newly_recovered_dependency_record_count": 12105,
+  "type_0x9f_selector_modes": {
+    "auto_text_ffff": 281,
+    "numeric": 3289
+  },
+  "type_0x9f_distinct_selector_count": 2,
+  "s0_sound_boundary": {
+    "resource": "0800.bin",
+    "description": "Sound",
+    "raw_type": 159,
+    "subtype": 1,
+    "selector": 65535,
+    "total_raw_body_bytes": 97,
+    "typed_body_bytes": 81,
+    "dependency_records": 1,
+    "dependency_tail_bytes": 16
+  },
+  "normalization_check": "raw ACT type bytes are returned unchanged; census is keyed by SceneActionInfo.type",
+  "type_0x9f_selector_value_census": {
+    "0": 3289,
+    "65535": 281
+  }
+}

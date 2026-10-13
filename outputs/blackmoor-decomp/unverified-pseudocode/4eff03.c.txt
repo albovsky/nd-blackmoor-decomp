@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4eff03
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+void FUN_004eff03(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x10) != 4) {
+    FUN_004c5377(*(undefined4 *)(in_ECX + 0xc),DAT_005cf665,in_ECX + 0x9e,in_ECX + 0x12e,
+                 s_CUISlider_background_restore_0055cef0);
+    if (*(int *)(in_ECX + 0x14) == 1) {
+      FUN_004c5d4b(*(undefined4 *)(in_ECX + 8),DAT_005cf665,
+                   in_ECX + 0xde + *(int *)(in_ECX + 0x10) * 0x10,in_ECX + 0x13e,
+                   s_CUISlider_transparent_object_0055cf10);
+    }
+    else {
+      FUN_004c5377(*(undefined4 *)(in_ECX + 8),DAT_005cf665,
+                   in_ECX + 0xde + *(int *)(in_ECX + 0x10) * 0x10,in_ECX + 0x13e,
+                   s_CUISlider_object_0055cf30);
+    }
+  }
+  return;
+}
+

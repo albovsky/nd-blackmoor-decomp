@@ -1,0 +1,58 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f6cdc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
+ */
+
+undefined4 FUN_004f6cdc(int param_1,ushort param_2,undefined4 param_3)
+
+{
+  int iVar1;
+  int iVar2;
+  undefined4 uVar3;
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x3c2) = 1000;
+  iVar1 = *(int *)(in_ECX + 0x3ce) + param_1 * 0x5bb;
+  *(undefined4 *)(in_ECX + 0x3be) = 1;
+  iVar2 = FUN_004f709c();
+  if (iVar2 == 0) {
+    *(undefined4 *)(in_ECX + 0x3c2) = 0x3ea;
+    *(undefined4 *)(in_ECX + 0x3be) = 0;
+    uVar3 = *(undefined4 *)(in_ECX + 0x3be);
+  }
+  else if ((*(int *)(iVar1 + 0x162) == 0) || (*(int *)(iVar1 + 0x28f) == 0)) {
+    *(undefined4 *)(in_ECX + 0x3c2) = 0x3ef;
+    *(undefined4 *)(in_ECX + 0x3be) = 0;
+    uVar3 = *(undefined4 *)(in_ECX + 0x3be);
+  }
+  else if (param_2 == 0) {
+    *(undefined4 *)(in_ECX + 0x3c2) = 0x3f8;
+    *(undefined4 *)(in_ECX + 0x3be) = 0;
+    uVar3 = *(undefined4 *)(in_ECX + 0x3be);
+  }
+  else {
+    uVar3 = __ftol((float)*(ushort *)(iVar1 + 0x2e1),*(ushort *)(iVar1 + 0x2e1),
+                   (float)*(ushort *)(iVar1 + 0x2ed),*(ushort *)(iVar1 + 0x2ed),
+                   (float)*(ushort *)(iVar1 + 0x144));
+    *(undefined4 *)(iVar1 + 0x176) = uVar3;
+    *(uint *)(iVar1 + 0x17a) = (uint)param_2;
+    *(undefined4 *)(iVar1 + 0x17e) = 0;
+    *(undefined4 *)(iVar1 + 0x182) = 0;
+    *(undefined4 *)(iVar1 + 0x186) = param_3;
+    iVar2 = FUN_004f6334(param_1);
+    if ((iVar2 == 0) && (iVar2 = FUN_004f6059(param_1), iVar2 == 0)) {
+      *(undefined4 *)(in_ECX + 0x3c2) = *(undefined4 *)(in_ECX + 0x3c2);
+      *(undefined4 *)(in_ECX + 0x3be) = 0;
+      return *(undefined4 *)(in_ECX + 0x3be);
+    }
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__SyncInit_____Playi_0055e938,param_1,iVar1 + 4,
+                   *(undefined4 *)(iVar1 + 0x176),param_3);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    uVar3 = *(undefined4 *)(in_ECX + 0x3be);
+  }
+  return uVar3;
+}
+

@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51eb0c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_96f1bc62419512d08d4ff3f4c9af28b1e7ac57401ae5f5f4318134ff6bf21907
+ */
+
+int FUN_0051eb0c(LPWSTR param_1,LPCSTR param_2,int param_3)
+
+{
+  int iVar1;
+  
+  if ((param_3 == 0) && (param_1 != (LPWSTR)0x0)) {
+    return 0;
+  }
+  iVar1 = MultiByteToWideChar(0,0,param_2,-1,param_1,param_3);
+  if (0 < iVar1) {
+    param_1[iVar1 + -1] = L'\0';
+  }
+  return iVar1;
+}
+

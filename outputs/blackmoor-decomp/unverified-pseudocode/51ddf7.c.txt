@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ddf7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051ddf7(byte param_1)
+
+{
+  CDialog *in_ECX;
+  
+  CDialog::~CDialog(in_ECX);
+  if ((param_1 & 1) != 0) {
+    FUN_0051dc6c();
+  }
+  return;
+}
+

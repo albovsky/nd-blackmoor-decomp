@@ -1,0 +1,55 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52142d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+HWND FUN_0052142d(HWND param_1,undefined4 *param_2)
+
+{
+  HWND hWnd;
+  int iVar1;
+  HWND pHVar2;
+  HWND hWnd_00;
+  BOOL BVar3;
+  uint uVar4;
+  HWND hWnd_01;
+  
+  hWnd_01 = param_1;
+  if (param_1 != (HWND)0x0) goto LAB_005214a6;
+  iVar1 = FUN_005214c9();
+  if ((iVar1 == 0) && (iVar1 = FUN_0050c193(), iVar1 == 0)) {
+    hWnd_01 = (HWND)0x0;
+    pHVar2 = hWnd_01;
+    hWnd_00 = hWnd_01;
+  }
+  else {
+    for (hWnd_01 = *(HWND *)(iVar1 + 0x1c); pHVar2 = hWnd_01, hWnd_00 = hWnd_01,
+        hWnd_01 != (HWND)0x0; hWnd_01 = GetParent(hWnd_01)) {
+LAB_005214a6:
+      uVar4 = GetWindowLongA(hWnd_01,-0x10);
+      pHVar2 = hWnd_01;
+      hWnd_00 = hWnd_01;
+      if ((uVar4 & 0x40000000) == 0) break;
+    }
+  }
+  while (hWnd = pHVar2, hWnd != (HWND)0x0) {
+    pHVar2 = GetParent(hWnd);
+    hWnd_01 = hWnd;
+  }
+  if ((param_1 == (HWND)0x0) && (hWnd_00 != (HWND)0x0)) {
+    hWnd_00 = GetLastActivePopup(hWnd_00);
+  }
+  if (param_2 != (undefined4 *)0x0) {
+    if (((hWnd_01 == (HWND)0x0) || (BVar3 = IsWindowEnabled(hWnd_01), BVar3 == 0)) ||
+       (hWnd_01 == hWnd_00)) {
+      *param_2 = 0;
+    }
+    else {
+      *param_2 = hWnd_01;
+      EnableWindow(hWnd_01,0);
+    }
+  }
+  return hWnd_00;
+}
+

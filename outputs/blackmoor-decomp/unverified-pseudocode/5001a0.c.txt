@@ -1,0 +1,415 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5001a0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_972c31dda55968754e368178e4f1ca1e6ce23b20babc5beca5b7ede707c8db74
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void * FUN_005001a0(float *param_1,float param_2,int param_3,float param_4,float param_5)
+
+{
+  float fVar1;
+  void *pvVar2;
+  void *pvVar3;
+  int iVar4;
+  int iVar5;
+  int iVar6;
+  float *pfVar7;
+  float *pfVar8;
+  float *pfVar9;
+  float *pfVar10;
+  int iVar11;
+  float *pfVar12;
+  uint uVar13;
+  undefined4 *puVar14;
+  int iVar15;
+  float *pfVar16;
+  float10 fVar17;
+  float10 extraout_ST0;
+  float10 extraout_ST0_00;
+  float10 extraout_ST0_01;
+  float10 fVar18;
+  float local_7f0c [55];
+  float afStackY_7e30 [7561];
+  float local_80c [56];
+  undefined4 local_72c [392];
+  float local_10c [56];
+  float *local_2c;
+  undefined8 local_28;
+  float *local_20;
+  float *local_1c;
+  float *local_18;
+  
+  FUN_0050c920();
+  _local_18 = (double)CONCAT44(0x5001c0,local_18);
+  FUN_0050c920();
+  _local_18 = 1.44298304338814e-312;
+  local_1c = (float *)&stack0xfffffff0;
+  pvVar2 = _malloc(0x44);
+  pfVar8 = local_7f0c;
+  for (iVar6 = 0x1dc0; iVar6 != 0; iVar6 = iVar6 + -1) {
+    *pfVar8 = 0.0;
+    pfVar8 = pfVar8 + 1;
+  }
+  _local_18 = 4.9054567191544546e-307;
+  pfVar10 = param_1;
+  pfVar16 = local_7f0c;
+  do {
+    pfVar9 = local_10c;
+    iVar6 = 0x38;
+    pfVar12 = local_18;
+    do {
+      fVar1 = 999.0;
+      iVar11 = 4;
+      pfVar7 = pfVar12;
+      do {
+        if ((int)pfVar7 < 0x560bd8) {
+          if (*pfVar7 < fVar1) {
+            fVar1 = *pfVar7;
+          }
+        }
+        else if (_DAT_00560bd4 < fVar1) {
+          fVar1 = _DAT_00560bd4;
+        }
+        pfVar7 = pfVar7 + 1;
+        iVar11 = iVar11 + -1;
+      } while (iVar11 != 0);
+      *pfVar9 = fVar1;
+      pfVar12 = pfVar12 + 1;
+      pfVar9 = pfVar9 + 1;
+      iVar6 = iVar6 + -1;
+    } while (iVar6 != 0);
+    pfVar8 = (float *)((ulonglong)_local_18 >> 0x20);
+    pfVar9 = pfVar8;
+    pfVar12 = pfVar16 + 0x70;
+    for (iVar6 = 0x150; iVar6 != 0; iVar6 = iVar6 + -1) {
+      *pfVar12 = *pfVar9;
+      pfVar9 = pfVar9 + 1;
+      pfVar12 = pfVar12 + 1;
+    }
+    pfVar9 = pfVar8;
+    pfVar12 = pfVar16;
+    for (iVar6 = 0x38; iVar6 != 0; iVar6 = iVar6 + -1) {
+      *pfVar12 = *pfVar9;
+      pfVar9 = pfVar9 + 1;
+      pfVar12 = pfVar12 + 1;
+    }
+    local_2c = pfVar16 + 0x38;
+    pfVar9 = local_2c;
+    for (iVar6 = 0x38; iVar6 != 0; iVar6 = iVar6 + -1) {
+      *pfVar9 = *pfVar8;
+      pfVar8 = pfVar8 + 1;
+      pfVar9 = pfVar9 + 1;
+    }
+    iVar6 = 8;
+    pfVar8 = pfVar16;
+    do {
+      uVar13 = 0x10;
+      pfVar9 = pfVar8;
+      do {
+        fVar1 = (float)(int)((uVar13 ^ (int)uVar13 >> 0x1f) - ((int)uVar13 >> 0x1f)) * param_5 +
+                param_4;
+        if ((fVar1 < 0.0) && (0.0 < param_4)) {
+          fVar1 = 0.0;
+        }
+        if ((0.0 < fVar1) && (param_4 < 0.0)) {
+          fVar1 = 0.0;
+        }
+        pfVar8 = pfVar9 + 1;
+        uVar13 = uVar13 - 1;
+        *pfVar9 = fVar1 + *pfVar9;
+        pfVar9 = pfVar8;
+      } while (-0x28 < (int)uVar13);
+      iVar6 = iVar6 + -1;
+      local_28 = (double)CONCAT44(pfVar8,(undefined4)local_28);
+    } while (iVar6 != 0);
+    param_1 = (float *)0x0;
+    pfVar9 = local_80c;
+    do {
+      local_20 = (float *)0x2;
+      if (1 < (int)param_1) {
+        local_20 = param_1;
+      }
+      _local_18 = (double)CONCAT44(((*pfVar10 + 100.0) - (float)(int)local_20 * 10.0) - 30.0,pfVar16
+                                  );
+      local_1c = (float *)0x500351;
+      FUN_00500980();
+      pfVar8 = local_10c;
+      pfVar12 = pfVar9;
+      for (iVar6 = 0x38; iVar6 != 0; iVar6 = iVar6 + -1) {
+        *pfVar12 = *pfVar8;
+        pfVar8 = pfVar8 + 1;
+        pfVar12 = pfVar12 + 1;
+      }
+      _local_18 = (double)CONCAT44((100.0 - (float)(int)param_1 * 10.0) - 30.0,pfVar9);
+      local_1c = (float *)0x500381;
+      FUN_00500980();
+      local_28 = (double)CONCAT44(0x50038b,(undefined4)local_28);
+      local_20 = pfVar9;
+      local_1c = pfVar16;
+      FUN_00500950();
+      param_1 = (float *)((int)param_1 + 1);
+      pfVar16 = pfVar16 + 0x38;
+      pfVar9 = pfVar9 + 0x38;
+    } while ((int)param_1 < 8);
+    puVar14 = local_72c;
+    iVar6 = 7;
+    pfVar16 = local_2c;
+    do {
+      pfVar8 = (float *)(puVar14 + -0x38);
+      local_1c = (float *)0x5003c8;
+      local_18 = (float *)puVar14;
+      FUN_00500920();
+      local_28 = (double)CONCAT44(0x5003cf,(undefined4)local_28);
+      local_20 = pfVar16;
+      local_1c = (float *)puVar14;
+      FUN_00500920();
+      puVar14 = puVar14 + 0x38;
+      pfVar16 = pfVar16 + 0x38;
+      iVar6 = iVar6 + -1;
+    } while (iVar6 != 0);
+    puVar14 = local_18 + 4;
+    pfVar10 = pfVar10 + 1;
+    _local_18 = (double)CONCAT44(pfVar8 + 0x150,puVar14);
+    pfVar16 = local_28._4_4_;
+  } while ((int)puVar14 < 0x560b88);
+  param_4 = 0.0;
+  do {
+    _local_18 = 6.79064561585272e-313;
+    pvVar3 = _malloc(0x20);
+    *(void **)((int)pvVar2 + (int)param_4 * 4) = pvVar3;
+    local_28 = (double)((float10)(int)param_4 * (float10)0.5);
+    fVar18 = (float10)1.4426950408889634 *
+             ((float10)(int)param_4 * (float10)0.5 + (float10)5.965784072875977) *
+             (float10)0.6931470036506653;
+    fVar17 = ROUND(fVar18);
+    fVar18 = (float10)f2xm1(fVar18 - fVar17);
+    fVar17 = (float10)fscale((float10)1 + fVar18,fVar17);
+    _local_18 = (double)(fVar17 / (float10)param_2);
+    local_1c = (float *)0x500461;
+    FUN_0050e19e();
+    local_1c = (float *)0x500466;
+    iVar11 = __ftol();
+    fVar17 = (float10)log2((float10)iVar11 * (float10)param_2 + (float10)1.0);
+    fVar17 = (float10)0.6931471805599453 * fVar17 * (float10)1.4426950216293335 -
+             (float10)5.965784072875977;
+    _local_18 = (double)(fVar17 + fVar17);
+    local_1c = (float *)0x500493;
+    FUN_0050e30f();
+    local_1c = (float *)0x500498;
+    iVar6 = __ftol();
+    fVar17 = (float10)log2((float10)(iVar11 + 1) * (float10)param_2);
+    fVar17 = (float10)0.6931471805599453 * fVar17 * (float10)1.4426950216293335 -
+             (float10)5.965784072875977;
+    _local_18 = (double)(fVar17 + fVar17);
+    local_1c = (float *)0x5004c3;
+    FUN_0050e19e();
+    _local_18 = (double)CONCAT44(0x5004cb,local_18);
+    iVar11 = __ftol();
+    if ((int)param_4 < iVar6) {
+      iVar6 = (int)param_4;
+    }
+    if (iVar6 < 0) {
+      iVar6 = 0;
+    }
+    if (0x10 < iVar11) {
+      iVar11 = 0x10;
+    }
+    local_20 = (float *)0x0;
+    do {
+      pfVar10 = local_20;
+      local_18 = (float *)0x5004f9;
+      pvVar3 = _malloc(0xe8);
+      *(void **)(*(int *)((int)pvVar2 + (int)param_4 * 4) + (int)pfVar10 * 4) = pvVar3;
+      iVar15 = param_3;
+      pfVar8 = local_1c;
+      if (0 < param_3) {
+        for (; iVar15 != 0; iVar15 = iVar15 + -1) {
+          *pfVar8 = 999.0;
+          pfVar8 = pfVar8 + 1;
+        }
+      }
+      if (iVar6 <= iVar11) {
+        local_18 = (float *)((int)(pfVar10 + iVar6 * 2) * 0x38);
+        param_5 = (float)iVar6;
+        do {
+          iVar15 = 0;
+          param_1 = (float *)0x0;
+          fVar17 = (float10)(int)param_5 * (float10)0.5;
+          do {
+            fVar18 = (float10)1.4426950408889634 *
+                     ((((float10)(int)param_1 * (float10)0.125 + fVar17) - (float10)2.0625) +
+                     (float10)5.965784072875977) * (float10)0.6931470036506653;
+            fVar17 = ROUND(fVar18);
+            fVar18 = (float10)f2xm1(fVar18 - fVar17);
+            fscale((float10)1 + fVar18,fVar17);
+            _local_18 = (double)CONCAT44(0x50059d,local_18);
+            iVar4 = __ftol();
+            fVar18 = (float10)1.4426950408889634 *
+                     ((extraout_ST0 - (float10)1.9375) + (float10)5.965784072875977) *
+                     (float10)0.6931470036506653;
+            fVar17 = ROUND(fVar18);
+            fVar18 = (float10)f2xm1(fVar18 - fVar17);
+            fscale((float10)1 + fVar18,fVar17);
+            pfVar8 = (float *)0x5005d5;
+            iVar5 = __ftol();
+            if (iVar4 < 0) {
+              iVar4 = 0;
+            }
+            if (param_3 < iVar4) {
+              iVar4 = param_3;
+            }
+            if (iVar4 < iVar15) {
+              iVar15 = iVar4;
+            }
+            if (iVar5 < 0) {
+              iVar5 = 0;
+            }
+            if (param_3 < iVar5) {
+              iVar5 = param_3;
+            }
+            if (iVar15 < iVar5) {
+              pfVar10 = local_1c + iVar15;
+              do {
+                if (param_3 <= iVar15) break;
+                if (local_7f0c[(int)local_18 + (int)param_1] < *pfVar10) {
+                  *pfVar10 = local_7f0c[(int)local_18 + (int)param_1];
+                }
+                iVar15 = iVar15 + 1;
+                pfVar10 = pfVar10 + 1;
+              } while (iVar15 < iVar5);
+            }
+            param_1 = (float *)((int)param_1 + 1);
+            fVar17 = extraout_ST0_00;
+          } while ((int)param_1 < 0x38);
+          if (iVar15 < param_3) {
+            iVar5 = param_3 - iVar15;
+            pfVar10 = local_1c + iVar15;
+            do {
+              if (*pfVar8 < *pfVar10) {
+                *pfVar10 = *pfVar8;
+              }
+              pfVar10 = pfVar10 + 1;
+              iVar5 = iVar5 + -1;
+            } while (iVar5 != 0);
+          }
+          param_5 = (float)((int)param_5 + 1);
+          local_18 = (float *)((int)local_18 + 0x1c0);
+          pfVar10 = local_20;
+        } while ((int)param_5 <= iVar11);
+      }
+      if ((int)param_4 + 1 < 0x11) {
+        iVar15 = 0;
+        param_1 = (float *)0x0;
+        do {
+          fVar18 = (float10)1.4426950408889634 *
+                   ((((float10)(int)param_1 * (float10)0.125 + (float10)local_28) - (float10)2.0625)
+                   + (float10)5.965784072875977) * (float10)0.6931470036506653;
+          fVar17 = ROUND(fVar18);
+          fVar18 = (float10)f2xm1(fVar18 - fVar17);
+          fscale((float10)1 + fVar18,fVar17);
+          _local_18 = (double)CONCAT44(0x5006e9,local_18);
+          iVar5 = __ftol();
+          fVar18 = (float10)1.4426950408889634 *
+                   ((extraout_ST0_01 - (float10)1.9375) + (float10)5.965784072875977) *
+                   (float10)0.6931470036506653;
+          fVar17 = ROUND(fVar18);
+          fVar18 = (float10)f2xm1(fVar18 - fVar17);
+          fscale((float10)1 + fVar18,fVar17);
+          param_5 = (float)__ftol();
+          if (iVar5 < 0) {
+            iVar5 = 0;
+          }
+          if (param_3 < iVar5) {
+            iVar5 = param_3;
+          }
+          if (iVar5 < iVar15) {
+            iVar15 = iVar5;
+          }
+          if ((int)param_5 < 0) {
+            param_5 = 0.0;
+          }
+          if (param_3 < (int)param_5) {
+            param_5 = (float)param_3;
+          }
+          if (iVar15 < (int)param_5) {
+            pfVar8 = local_1c + iVar15;
+            do {
+              if (param_3 <= iVar15) break;
+              iVar5 = (int)param_1 + (int)(pfVar10 + ((int)param_4 + 1) * 2) * 0x38;
+              if (local_7f0c[iVar5] < *pfVar8) {
+                *pfVar8 = local_7f0c[iVar5];
+              }
+              iVar15 = iVar15 + 1;
+              pfVar8 = pfVar8 + 1;
+            } while (iVar15 < (int)param_5);
+          }
+          param_1 = (float *)((int)param_1 + 1);
+        } while ((int)param_1 < 0x38);
+        if (iVar15 < param_3) {
+          iVar5 = param_3 - iVar15;
+          pfVar8 = local_1c + iVar15;
+          do {
+            if (afStackY_7e30[(int)(pfVar10 + ((int)param_4 + 1) * 2) * 0x38] < *pfVar8) {
+              *pfVar8 = afStackY_7e30[(int)(pfVar10 + ((int)param_4 + 1) * 2) * 0x38];
+            }
+            pfVar8 = pfVar8 + 1;
+            iVar5 = iVar5 + -1;
+          } while (iVar5 != 0);
+        }
+      }
+      param_1 = (float *)0x0;
+      iVar15 = 8;
+      do {
+        fVar18 = (float10)1.4426950408889634 *
+                 ((((float10)(int)param_1 * (float10)0.125 + (float10)local_28) - (float10)2.0) +
+                 (float10)5.965784072875977) * (float10)0.6931470036506653;
+        fVar17 = ROUND(fVar18);
+        fVar18 = (float10)f2xm1(fVar18 - fVar17);
+        fscale((float10)1 + fVar18,fVar17);
+        iVar5 = __ftol();
+        if (iVar5 < 0) {
+          *(undefined4 *)
+           (*(int *)(*(int *)((int)pvVar2 + (int)param_4 * 4) + (int)pfVar10 * 4) + iVar15) =
+               0xc479c000;
+        }
+        else {
+          iVar4 = *(int *)((int)pvVar2 + (int)param_4 * 4);
+          if (iVar5 < param_3) {
+            *(float *)(*(int *)(iVar4 + (int)pfVar10 * 4) + iVar15) = local_1c[iVar5];
+          }
+          else {
+            *(undefined4 *)(*(int *)(iVar4 + (int)pfVar10 * 4) + iVar15) = 0xc479c000;
+          }
+        }
+        iVar15 = iVar15 + 4;
+        param_1 = (float *)((int)param_1 + 1);
+      } while (iVar15 < 0xe8);
+      iVar15 = 0;
+      pfVar16 = *(float **)(*(int *)((int)pvVar2 + (int)param_4 * 4) + (int)pfVar10 * 4);
+      pfVar8 = pfVar16 + 2;
+      do {
+        if (-200.0 < *pfVar8) break;
+        iVar15 = iVar15 + 1;
+        pfVar8 = pfVar8 + 1;
+      } while (iVar15 < 0x10);
+      iVar5 = 0x37;
+      *pfVar16 = (float)iVar15;
+      iVar15 = *(int *)(*(int *)((int)pvVar2 + (int)param_4 * 4) + (int)pfVar10 * 4);
+      pfVar8 = (float *)(iVar15 + 0xe4);
+      do {
+        if (-200.0 < *pfVar8) break;
+        iVar5 = iVar5 + -1;
+        pfVar8 = pfVar8 + -1;
+      } while (0x11 < iVar5);
+      local_20 = (float *)((int)pfVar10 + 1);
+      *(float *)(iVar15 + 4) = (float)iVar5;
+    } while ((int)local_20 < 8);
+    param_4 = (float)((int)param_4 + 1);
+    if (0x10 < (int)param_4) {
+      return pvVar2;
+    }
+  } while( true );
+}
+

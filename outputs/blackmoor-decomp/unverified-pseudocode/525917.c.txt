@@ -1,0 +1,52 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525917
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d63d6a362278f40ee32ccb564ca8ec5738c7bbf1d9d11225df7a30f9c22e09d6
+ */
+
+void FUN_00525917(int param_1,int param_2)
+
+{
+  undefined4 *lpTlsValue;
+  HLOCAL pvVar1;
+  DWORD *in_ECX;
+  DWORD *pDVar2;
+  
+  lpTlsValue = TlsGetValue(*in_ECX);
+  if (lpTlsValue == (undefined4 *)0x0) {
+    lpTlsValue = (undefined4 *)FUN_005256dd(0x10);
+    if (lpTlsValue == (undefined4 *)0x0) {
+      lpTlsValue = (undefined4 *)0x0;
+    }
+    else {
+      *lpTlsValue = &PTR_FUN_0052fe78;
+    }
+    lpTlsValue[2] = 0;
+    lpTlsValue[3] = 0;
+    pDVar2 = lpTlsValue + 2;
+    EnterCriticalSection((LPCRITICAL_SECTION)(in_ECX + 7));
+    FUN_00525684(lpTlsValue);
+    LeaveCriticalSection((LPCRITICAL_SECTION)(in_ECX + 7));
+  }
+  else {
+    pDVar2 = lpTlsValue + 2;
+    if ((param_1 < (int)*pDVar2) || (param_2 == 0)) goto LAB_005259ee;
+  }
+  if ((HLOCAL)lpTlsValue[3] == (HLOCAL)0x0) {
+    pvVar1 = LocalAlloc(0,in_ECX[3] << 2);
+  }
+  else {
+    pvVar1 = LocalReAlloc((HLOCAL)lpTlsValue[3],in_ECX[3] << 2,2);
+  }
+  lpTlsValue[3] = pvVar1;
+  if (pvVar1 == (HLOCAL)0x0) {
+    FUN_00519cc0();
+  }
+  _memset((void *)(lpTlsValue[3] + *pDVar2 * 4),0,(*pDVar2 * 0x3fffffff + in_ECX[3]) * 4);
+  *pDVar2 = in_ECX[3];
+  TlsSetValue(*in_ECX,lpTlsValue);
+LAB_005259ee:
+  *(int *)(lpTlsValue[3] + param_1 * 4) = param_2;
+  return;
+}
+

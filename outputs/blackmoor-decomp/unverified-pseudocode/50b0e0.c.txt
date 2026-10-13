@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50b0e0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_14398f730fa9c49e7db80307b54fbb5d04baa803ce1c29895906ff2fa90b272c
+ */
+
+float10 FUN_0050b0e0(float param_1)
+
+{
+  uint uVar1;
+  
+  uVar1 = (uint)ROUND(param_1 * -8.0 - 0.5);
+  if ((int)uVar1 < 0) {
+    return (float10)1.0;
+  }
+  if (0x45f < (int)uVar1) {
+    return (float10)0.0;
+  }
+  return (float10)*(float *)(&DAT_005672f4 + (uVar1 & 0x1f) * 4) *
+         (float10)*(float *)(&DAT_00567268 + ((int)uVar1 >> 5) * 4);
+}
+

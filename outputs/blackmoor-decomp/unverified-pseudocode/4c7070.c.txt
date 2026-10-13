@@ -1,0 +1,69 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c7070
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c7070(int *param_1,undefined4 param_2)
+
+{
+  short sVar1;
+  short sVar2;
+  short sVar3;
+  short sVar4;
+  undefined2 uVar5;
+  int iVar6;
+  undefined4 *puVar7;
+  uint uVar8;
+  uint uVar9;
+  short sVar10;
+  undefined4 *puVar11;
+  undefined4 *puVar12;
+  int local_34;
+  int local_2c;
+  int local_8;
+  
+  iVar6 = *param_1;
+  sVar1 = *(short *)((int)param_1 + 0x2b);
+  sVar2 = *(short *)((int)param_1 + 0x2d);
+  sVar3 = *(short *)((int)param_1 + 0x2f);
+  sVar4 = *(short *)((int)param_1 + 0x2d);
+  uVar5 = *(undefined2 *)((int)param_1 + 0x2b);
+  sVar10 = sVar4 * DAT_00639895;
+  puVar7 = (undefined4 *)FUN_0051dc43(*(undefined4 *)((int)param_1 + 0x23));
+  if (puVar7 == (undefined4 *)0x0) {
+    FUN_0042639d(s_ERROR___CDirectDraw__DFRotate90__005552e8,param_2);
+    FUN_004c97b4();
+  }
+  else {
+    uVar9 = *(uint *)((int)param_1 + 0x23);
+    puVar11 = (undefined4 *)*param_1;
+    puVar12 = puVar7;
+    for (uVar8 = uVar9 >> 2; uVar8 != 0; uVar8 = uVar8 - 1) {
+      *puVar12 = *puVar11;
+      puVar11 = puVar11 + 1;
+      puVar12 = puVar12 + 1;
+    }
+    for (uVar9 = uVar9 & 3; uVar9 != 0; uVar9 = uVar9 - 1) {
+      *(undefined1 *)puVar12 = *(undefined1 *)puVar11;
+      puVar11 = (undefined4 *)((int)puVar11 + 1);
+      puVar12 = (undefined4 *)((int)puVar12 + 1);
+    }
+    local_8 = 0;
+    for (local_2c = 0; local_2c < sVar1; local_2c = local_2c + 1) {
+      local_34 = (int)sVar2;
+      while (local_34 = local_34 + -1, -1 < local_34) {
+        *(undefined2 *)(iVar6 + local_8) =
+             *(undefined2 *)((int)puVar7 + local_2c * DAT_00639895 + local_34 * sVar3);
+        local_8 = local_8 + 2;
+      }
+    }
+    *(short *)((int)param_1 + 0x2b) = sVar4;
+    *(undefined2 *)((int)param_1 + 0x2d) = uVar5;
+    *(short *)((int)param_1 + 0x2f) = sVar10;
+    *(undefined2 *)((int)param_1 + 0x31) = uVar5;
+    FUN_0051dc6c(puVar7);
+  }
+  return;
+}
+

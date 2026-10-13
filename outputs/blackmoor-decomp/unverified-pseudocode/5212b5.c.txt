@@ -1,0 +1,52 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5212b5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+int FUN_005212b5(LPCSTR param_1,UINT param_2,int param_3)
+
+{
+  int *piVar1;
+  uint uVar2;
+  int iVar3;
+  int in_ECX;
+  CHAR *lpCaption;
+  CHAR local_118 [264];
+  HWND local_10;
+  int local_c;
+  HWND local_8;
+  
+  FUN_00521287(0);
+  local_10 = (HWND)FUN_0052142d(0,&local_8);
+  if (((local_10 == (HWND)0x0) ||
+      (piVar1 = (int *)SendMessageA(local_8,0x376,0,0), piVar1 == (int *)0x0)) &&
+     (piVar1 = (int *)0x0, in_ECX != 0)) {
+    piVar1 = (int *)(in_ECX + 0x9c);
+  }
+  local_c = 0;
+  if ((piVar1 != (int *)0x0) && (local_c = *piVar1, param_3 != 0)) {
+    *piVar1 = param_3 + 0x30000;
+  }
+  if (((param_2 & 0xf0) == 0) &&
+     ((uVar2 = param_2 & 0xf, uVar2 < 2 || ((2 < uVar2 && (uVar2 < 5)))))) {
+    param_2 = param_2 | 0x30;
+  }
+  if (in_ECX == 0) {
+    lpCaption = local_118;
+    GetModuleFileNameA((HMODULE)0x0,local_118,0x104);
+  }
+  else {
+    lpCaption = *(CHAR **)(in_ECX + 0x78);
+  }
+  iVar3 = MessageBoxA(local_10,param_1,lpCaption,param_2);
+  if (piVar1 != (int *)0x0) {
+    *piVar1 = local_c;
+  }
+  if (local_8 != (HWND)0x0) {
+    EnableWindow(local_8,1);
+  }
+  FUN_00521287(1);
+  return iVar3;
+}
+

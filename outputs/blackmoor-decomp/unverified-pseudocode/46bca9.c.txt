@@ -1,0 +1,135 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46bca9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_0046bca9(short param_1,short param_2,undefined4 *param_3)
+
+{
+  int iVar1;
+  int in_ECX;
+  int local_14;
+  int local_10;
+  int local_8;
+  
+  if (*(int *)(in_ECX + 0x4a48) != 0) {
+    iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+    *(undefined2 *)(in_ECX + 0x4a50) = 0xffff;
+    *(undefined2 *)(in_ECX + 0x4a52) = 0xffff;
+    *(undefined4 *)(in_ECX + 0x4a5e) = param_3[1];
+    *(undefined4 *)(in_ECX + 0x4a66) = param_3[3];
+    *(undefined4 *)(in_ECX + 0x4a5a) = *param_3;
+    *(undefined4 *)(in_ECX + 0x4a62) = param_3[2];
+    if (*(int *)(in_ECX + 0x4a2c) != 0) {
+      FUN_0046b954();
+      for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x43); local_8 = local_8 + 1) {
+        for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x45); local_10 = local_10 + 1) {
+          if ((((*(int *)(in_ECX + local_8 * 0x140 + 0x4a6e + local_10 * 0x10) <= (int)param_2) &&
+               ((int)param_2 <= *(int *)(in_ECX + local_8 * 0x140 + 0x4a76 + local_10 * 0x10))) &&
+              (*(int *)(in_ECX + 0x4a6a + local_8 * 0x140 + local_10 * 0x10) <= (int)param_1)) &&
+             ((int)param_1 <= *(int *)(in_ECX + local_8 * 0x140 + 0x4a72 + local_10 * 0x10))) {
+            local_14 = 0;
+            while( true ) {
+              if (*(short *)(iVar1 + 0x4f) <= local_14) {
+                FUN_0046c41e(0x27e3,local_8,local_10,0xffffffff);
+                return 1;
+              }
+              if (((*(int *)(in_ECX + 0x48a0 + local_14 * 0x10) == 1) &&
+                  (*(short *)(in_ECX + 0x48a8 + local_14 * 0x10) == local_8)) &&
+                 (*(short *)(in_ECX + 0x48aa + local_14 * 0x10) == local_10)) break;
+              local_14 = local_14 + 1;
+            }
+            FUN_0046c41e(0x27e2,local_8,local_10,local_14);
+            return 1;
+          }
+        }
+      }
+      local_8 = 0;
+      do {
+        if (*(short *)(iVar1 + 0x43) <= local_8) {
+          DAT_005b44f0 = 0x24;
+          DAT_005b44f4 = 0;
+          _DAT_005d162d = DAT_005d0377;
+          _DAT_005d1631 = &DAT_005b1a8c;
+          _DAT_005d1639 = 1;
+          return 1;
+        }
+        for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x45); local_10 = local_10 + 1) {
+          if (((*(int *)(in_ECX + local_8 * 0x140 + 0x636e + local_10 * 0x10) <= (int)param_2) &&
+              ((int)param_2 <= *(int *)(in_ECX + local_8 * 0x140 + 0x6376 + local_10 * 0x10))) &&
+             ((*(int *)(in_ECX + 0x636a + local_8 * 0x140 + local_10 * 0x10) <= (int)param_1 &&
+              ((int)param_1 <= *(int *)(in_ECX + local_8 * 0x140 + 0x6372 + local_10 * 0x10))))) {
+            local_14 = 0;
+            while( true ) {
+              if (*(short *)(iVar1 + 0x4f) <= local_14) {
+                FUN_0046c41e(0x27e5,local_8,local_10,0xffffffff);
+                return 1;
+              }
+              if (((*(int *)(in_ECX + 0x48a4 + local_14 * 0x10) == 1) &&
+                  (*(short *)(in_ECX + 0x48ac + local_14 * 0x10) == local_8)) &&
+                 (*(short *)(in_ECX + 0x48ae + local_14 * 0x10) == local_10)) break;
+              local_14 = local_14 + 1;
+            }
+            FUN_0046c41e(0x27e4,local_8,local_10,local_14);
+            return 1;
+          }
+        }
+        local_8 = local_8 + 1;
+      } while( true );
+    }
+    for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x43); local_8 = local_8 + 1) {
+      for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x45); local_10 = local_10 + 1) {
+        if (((*(int *)(in_ECX + local_8 * 0x140 + 0x4a6e + local_10 * 0x10) <= (int)param_2) &&
+            ((int)param_2 <= *(int *)(in_ECX + local_8 * 0x140 + 0x4a76 + local_10 * 0x10))) &&
+           ((*(int *)(in_ECX + 0x4a6a + local_8 * 0x140 + local_10 * 0x10) <= (int)param_1 &&
+            ((int)param_1 <= *(int *)(in_ECX + local_8 * 0x140 + 0x4a72 + local_10 * 0x10))))) {
+          local_14 = 0;
+          while( true ) {
+            if (*(short *)(iVar1 + 0x4f) <= local_14) {
+              FUN_0046c41e(0x27e7,local_8,local_10,0xffffffff);
+              return 1;
+            }
+            if (((*(int *)(in_ECX + 0x48a0 + local_14 * 0x10) == 1) &&
+                (*(short *)(in_ECX + 0x48a8 + local_14 * 0x10) == local_8)) &&
+               (*(short *)(in_ECX + 0x48aa + local_14 * 0x10) == local_10)) break;
+            local_14 = local_14 + 1;
+          }
+          FUN_0046c41e(0x27e6,local_8,local_10,local_14);
+          return 1;
+        }
+      }
+    }
+    for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x47); local_8 = local_8 + 1) {
+      for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x49); local_10 = local_10 + 1) {
+        if ((((*(int *)(in_ECX + local_8 * 0x140 + 0x636e + local_10 * 0x10) <= (int)param_2) &&
+             ((int)param_2 <= *(int *)(in_ECX + local_8 * 0x140 + 0x6376 + local_10 * 0x10))) &&
+            (*(int *)(in_ECX + 0x636a + local_8 * 0x140 + local_10 * 0x10) <= (int)param_1)) &&
+           ((int)param_1 <= *(int *)(in_ECX + local_8 * 0x140 + 0x6372 + local_10 * 0x10))) {
+          local_14 = 0;
+          while( true ) {
+            if (*(short *)(iVar1 + 0x4f) <= local_14) {
+              FUN_0046c41e(0x27e9,local_8,local_10,0xffffffff);
+              return 1;
+            }
+            if (((*(int *)(in_ECX + 0x48a4 + local_14 * 0x10) == 1) &&
+                (*(short *)(in_ECX + 0x48ac + local_14 * 0x10) == local_8)) &&
+               (*(short *)(in_ECX + 0x48ae + local_14 * 0x10) == local_10)) break;
+            local_14 = local_14 + 1;
+          }
+          FUN_0046c41e(0x27e8,local_8,local_10,local_14);
+          return 1;
+        }
+      }
+    }
+    if (((*(int *)(iVar1 + 0x6d5) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar1 + 0x6dd))) &&
+       ((*(int *)(iVar1 + 0x6d1) <= (int)param_1 && ((int)param_1 <= *(int *)(iVar1 + 0x6d9))))) {
+      FUN_0046c41e(0x27ea,0,0,0xffffffff);
+      return 1;
+    }
+  }
+  return 0;
+}
+

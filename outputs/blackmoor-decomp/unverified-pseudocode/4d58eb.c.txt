@@ -1,0 +1,73 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d58eb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b736ef8a907767b6bd5de2b1c70fa87373ac4b8d720af669c98493a6a3d19492
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004d58eb(void)
+
+{
+  int in_ECX;
+  int iVar1;
+  undefined4 *puVar2;
+  
+  *(undefined4 *)(in_ECX + 4) = 0;
+  *(undefined4 *)(in_ECX + 0x455) = 0;
+  *(undefined4 *)(in_ECX + 0x461) = 0;
+  *(undefined4 *)(in_ECX + 0x955e) = 0xffffffff;
+  *(undefined4 *)(in_ECX + 0x9562) = 0xffffffff;
+  *(undefined4 *)(in_ECX + 0x955a) = 0;
+  *(undefined4 *)(in_ECX + 0x9556) = 0;
+  *(undefined4 *)(in_ECX + 0x459) = 0;
+  *(undefined4 *)(in_ECX + 0x45d) = 0;
+  *(undefined4 *)(in_ECX + 0x445) = 0;
+  *(undefined4 *)(in_ECX + 0x449) = 0;
+  *(undefined4 *)(in_ECX + 0x44d) = 0;
+  *(undefined4 *)(in_ECX + 0x94d2) = 0;
+  *(undefined4 *)(in_ECX + 0x951a) = 0;
+  *(undefined4 *)(in_ECX + 0x951e) = 0;
+  *(undefined4 *)(in_ECX + 0x9532) = 0;
+  *(undefined4 *)(in_ECX + 0x9536) = 0;
+  *(undefined4 *)(in_ECX + 0x953a) = 0;
+  *(undefined4 *)(in_ECX + 0x9532) = 0;
+  *(undefined4 *)(in_ECX + 0x94d6) = 0;
+  *(undefined4 *)(in_ECX + 0x94da) = 0;
+  *(undefined4 *)(in_ECX + 0x94de) = 0;
+  *(undefined4 *)(in_ECX + 0x950a) = 0;
+  *(undefined4 *)(in_ECX + 0x950e) = 0;
+  *(undefined4 *)(in_ECX + 0x9512) = 0;
+  *(undefined4 *)(in_ECX + 0x9546) = 0;
+  *(undefined4 *)(in_ECX + 0x954a) = 0;
+  *(undefined4 *)(in_ECX + 0x98a8) = 0;
+  while (*(int *)(in_ECX + 0x98a8) < 5) {
+    *(undefined4 *)(in_ECX + 0x956e + *(int *)(in_ECX + 0x98a8) * 4) = 0;
+    *(int *)(in_ECX + 0x98a8) = *(int *)(in_ECX + 0x98a8) + 1;
+  }
+  *(undefined4 *)(in_ECX + 0x98a8) = 0;
+  while (*(int *)(in_ECX + 0x98a8) < 10) {
+    *(undefined4 *)(in_ECX + 0x94e2 + *(int *)(in_ECX + 0x98a8) * 4) = 0;
+    *(undefined1 *)(in_ECX + 0x95aa + *(int *)(in_ECX + 0x98a8) * 0x21) = 0;
+    *(undefined4 *)(in_ECX + 0x9582 + *(int *)(in_ECX + 0x98a8) * 4) = 0;
+    *(int *)(in_ECX + 0x98a8) = *(int *)(in_ECX + 0x98a8) + 1;
+  }
+  puVar2 = (undefined4 *)(in_ECX + 0x9754);
+  for (iVar1 = 0x28; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  _DAT_005d2ecb = 0;
+  puVar2 = (undefined4 *)(in_ECX + 0x476);
+  for (iVar1 = 0x2417; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  puVar2 = (undefined4 *)(in_ECX + 0x9804);
+  for (iVar1 = 0x29; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  return;
+}
+

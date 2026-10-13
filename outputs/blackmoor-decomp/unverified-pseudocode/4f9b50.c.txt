@@ -1,0 +1,42 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f9b50
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+void FUN_004f9b50(int param_1)
+
+{
+  int in_ECX;
+  int iVar1;
+  short local_1c;
+  
+  iVar1 = *(int *)(in_ECX + 0x3ce) + param_1 * 0x5bb;
+  if (*(int *)(iVar1 + 0x26f) == (int)*(short *)(in_ECX + 0x3da)) {
+    *(undefined4 *)(iVar1 + 0x2a3) = 0;
+    *(undefined4 *)(iVar1 + 0x2a7) = 0;
+    *(float *)(iVar1 + 0x2ab) = (float)*(int *)(iVar1 + 0x27b);
+  }
+  else {
+    if ((int)*(short *)(in_ECX + 0x3da) < *(int *)(iVar1 + 0x26f)) {
+      local_1c = 0x168 - ((short)*(undefined4 *)(iVar1 + 0x26f) - *(short *)(in_ECX + 0x3da)) *
+                         *(short *)(in_ECX + 0x3f4);
+    }
+    else {
+      local_1c = (*(short *)(in_ECX + 0x3da) - (short)*(undefined4 *)(iVar1 + 0x26f)) *
+                 *(short *)(in_ECX + 0x3f4);
+    }
+    FUN_004ccb50(in_ECX + 0x3f6,(float)(int)local_1c);
+    FUN_004ccc50();
+  }
+  FUN_004f8f94();
+  FUN_004f9040(param_1,iVar1 + 0x2a3);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__InitFrameAnchorPos_0055f414,param_1,(int)local_1c,
+                 (double)*(float *)(iVar1 + 0x2a3),(double)*(float *)(iVar1 + 0x2a7),
+                 (double)*(float *)(iVar1 + 0x2ab));
+    FUN_0044a2b7();
+  }
+  return;
+}
+

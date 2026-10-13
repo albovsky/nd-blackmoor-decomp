@@ -1,0 +1,100 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42b510
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+void FUN_0042b510(short param_1)
+
+{
+  char cVar1;
+  byte bVar2;
+  short *psVar3;
+  int iVar4;
+  short *psVar5;
+  bool bVar6;
+  short local_c;
+  
+  psVar3 = *(short **)(&DAT_005bb5e5 + param_1 * 0x8d);
+  iVar4 = *(int *)(&DAT_005bb632 + param_1 * 0x8d);
+  if (iVar4 == 0) {
+    DAT_005bb1ca = 1;
+    *(undefined4 *)(&DAT_005bb632 + param_1 * 0x8d) = 1;
+  }
+  else if (iVar4 != 1) {
+    if (iVar4 != 2) {
+      return;
+    }
+    bVar6 = false;
+    cVar1 = (char)psVar3[0x17];
+    if (cVar1 == '\x01') {
+      bVar6 = *(uint *)(&DAT_00585801 + *(short *)((int)psVar3 + 0x2f) * 4) !=
+              (uint)*(byte *)((int)psVar3 + 0x31);
+    }
+    else if (cVar1 == '\x02') {
+      bVar6 = (&DAT_00583bd5)[*(short *)((int)psVar3 + 0x2f)] != (uint)*(byte *)((int)psVar3 + 0x31)
+      ;
+    }
+    else if (cVar1 == '\x03') {
+      bVar6 = DAT_00583a29 != *(byte *)((int)psVar3 + 0x31);
+    }
+    else {
+      FUN_0050ca3e(&DAT_0063888b,s_ProcessHotMultiFrMultiSceneChang_0054570c,(int)param_1);
+      FUN_0052139c(&DAT_0063888b,0,0);
+      FUN_004c97b4();
+    }
+    if (bVar6) {
+      if (*(short *)((int)psVar3 + 0x17) != 9999) {
+        DAT_005bb57b = (int)*(short *)((int)psVar3 + 0x17);
+        DAT_005bb599 = *(short *)((int)psVar3 + 0x19);
+        DAT_005bb595 = *(short *)((int)psVar3 + 0x1b);
+        DAT_005c39ff = *(short *)((int)psVar3 + 0x1d);
+        DAT_005bb59b = *(undefined4 *)(psVar3 + 0x11);
+        DAT_005bb59f = *(undefined4 *)(psVar3 + 0x13);
+        DAT_005bb5a3 = *(undefined4 *)(psVar3 + 0x15);
+        DAT_00583999 = 4;
+      }
+      psVar5 = psVar3;
+      if (*(short *)((int)psVar3 + 0x1f) != -1) {
+        bVar2 = *(byte *)((int)psVar3 + 0x21);
+        *(short **)(&DAT_00585801 + *(short *)((int)psVar3 + 0x1f) * 4) = (short *)(uint)bVar2;
+        psVar5 = (short *)(uint)bVar2;
+      }
+    }
+    else {
+      if (*psVar3 != 9999) {
+        DAT_005bb57b = (int)*psVar3;
+        DAT_005bb599 = psVar3[1];
+        DAT_005bb595 = psVar3[2];
+        DAT_005c39ff = psVar3[3];
+        DAT_005bb59b = *(undefined4 *)((int)psVar3 + 0xb);
+        DAT_005bb59f = *(undefined4 *)((int)psVar3 + 0xf);
+        DAT_005bb5a3 = *(undefined4 *)((int)psVar3 + 0x13);
+        DAT_00583999 = 4;
+      }
+      psVar5 = (short *)(int)psVar3[4];
+      if ((short *)(int)psVar3[4] != (short *)0xffffffff) {
+        *(uint *)(&DAT_00585801 + psVar3[4] * 4) = (uint)*(byte *)(psVar3 + 5);
+        psVar5 = psVar3;
+      }
+    }
+    FUN_0042ba3a(CONCAT22((short)((uint)psVar5 >> 0x10),param_1));
+    return;
+  }
+  *(undefined4 *)(&DAT_005bb626 + param_1 * 0x8d) = 0;
+  local_c = 0;
+  while( true ) {
+    if (psVar3[0x19] <= local_c) {
+      return;
+    }
+    if (psVar3[local_c * 9 + 0x1a] == DAT_005bb50b) break;
+    local_c = local_c + 1;
+  }
+  *(undefined4 *)(&DAT_005bb626 + param_1 * 0x8d) = 1;
+  *(short *)(&DAT_005bb62a + param_1 * 0x8d) = psVar3[local_c * 9 + 0x1b];
+  *(short *)(&DAT_005bb62c + param_1 * 0x8d) = psVar3[local_c * 9 + 0x1d];
+  *(short *)(&DAT_005bb62e + param_1 * 0x8d) = psVar3[local_c * 9 + 0x1f];
+  *(short *)(&DAT_005bb630 + param_1 * 0x8d) = psVar3[local_c * 9 + 0x21];
+  return;
+}
+

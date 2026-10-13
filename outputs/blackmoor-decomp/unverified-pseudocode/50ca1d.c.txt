@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50ca1d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c01bda5c208998c8b38f9e1693c1f9d27cef570b0e4d2e523c0f31431a0d762
+ */
+
+/* Library Function - Single Match
+    __NLG_Notify1
+   
+   Libraries: Visual Studio 2017 Debug, Visual Studio 2017 Release, Visual Studio 2019 Debug, Visual
+   Studio 2019 Release */
+
+void __NLG_Notify1(void)
+
+{
+  undefined4 in_EAX;
+  undefined4 in_ECX;
+  undefined4 unaff_EBP;
+  
+  DAT_00567e18 = in_ECX;
+  DAT_00567e14 = in_EAX;
+  DAT_00567e1c = unaff_EBP;
+  return;
+}
+

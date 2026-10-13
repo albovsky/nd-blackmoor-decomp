@@ -1,0 +1,461 @@
+{
+  "scope": "S0 action-runtime slice for the two 0x6a flag hotspots and the raw-0x15 record normalized by the loader to runtime 0x0d; not full-game equivalence",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "scene_sha256": "ecf2410dafe20b9d0b8609d88faef89c144518c01719bb3c1cd42fa7931bd2b8",
+  "native_library_sha256": "172818d1829eac78c0d27a8536b97afcc2770dd211a7d80989bb367f3e3622ab",
+  "original_engine": "GAME.EXE PE32 x86 under Unicorn 2.1.4",
+  "native_engine": "native C scene executor on arm64 macOS",
+  "code_ranges": [
+    {
+      "name": "0x427a50 dispatcher",
+      "start": "0x00427a50",
+      "end_exclusive": "0x0042acad",
+      "sha256": "1ceb29e4b0897a0f347693be385bd86e120cbb0090c0ee1fe3e8d8de02381fac"
+    },
+    {
+      "name": "0x42e844 0x6a hotspot",
+      "start": "0x0042e844",
+      "end_exclusive": "0x0042ea87",
+      "sha256": "80447f83a1367e5dcfff7373597b837fa4aace201a01a1b607ef394eb5de2f09"
+    },
+    {
+      "name": "0x42ae73 0x0d hotspot",
+      "start": "0x0042ae73",
+      "end_exclusive": "0x0042b07e",
+      "sha256": "48d63750bd18989845fc3046817967c1cdc8f192d2590a803121d7bce5f374f6"
+    },
+    {
+      "name": "0x42ba3a generic completion",
+      "start": "0x0042ba3a",
+      "end_exclusive": "0x0042babf",
+      "sha256": "066fe5bde9b51c2ee65aa884653d97880ac8d35003ef8ac2338e11d9da9eb909"
+    },
+    {
+      "name": "0x423d33 dependency reset",
+      "start": "0x00423d33",
+      "end_exclusive": "0x00423da2",
+      "sha256": "b9d41f8f47db076f8a2c7eb1d5cc5e9bb66c8f1ba46e523063ad29f8f201f29e"
+    },
+    {
+      "name": "0x423f57 controlled dependency gate",
+      "start": "0x00423f57",
+      "end_exclusive": "0x00423fbb",
+      "sha256": "5093f0ba82e963de43e474acd41e6057604127a9ba5b035896bfe11874578aed"
+    }
+  ],
+  "controlled_boundary": {
+    "address": "0x423f57",
+    "behavior": "returns dependency-ready for each tested dispatcher pass",
+    "hooked_calls": 22
+  },
+  "original_paths_left_real": [
+    "0x427a50 action dispatcher for 0x6a and runtime 0x0d",
+    "0x42e844 0x6a phase, frame, rectangle, and ten-pair flag logic",
+    "0x42ae73 0x0d phase, frame, and delayed transition-global writes",
+    "0x42ba3a subtype-2 completion reset and 0x423d33 dependency reset",
+    "original event-flag stores"
+  ],
+  "caller_input_gate": {
+    "ordering": "43a7ca consumes the WM_LBUTTONUP latch and applies the cached candidate before 0x427a50; 0x4d3073 clears and refreshes the candidate after dispatch",
+    "activation_event": "WM_LBUTTONUP (0x0202); its message-map callback 0x43ec4a reaches 0x4db000, which consumes the original input+0 latch. WM_LBUTTONDOWN (0x0201) routes through a different callback and is not this activation event.",
+    "message_map_file_offset": "0x12c810",
+    "validated_message_map_rows": [
+      {
+        "file_offset": "0x12c810",
+        "message": "0x0202",
+        "callback": "0x0043ec4a",
+        "raw_hex": "02020000000000000000000000000000310000004aec4300"
+      },
+      {
+        "file_offset": "0x12c828",
+        "message": "0x0201",
+        "callback": "0x0043ec85",
+        "raw_hex": "010200000000000000000000000000003100000085ec4300"
+      },
+      {
+        "file_offset": "0x12c858",
+        "message": "0x0204",
+        "callback": "0x0043ecfb",
+        "raw_hex": "0402000000000000000000000000000031000000fbec4300"
+      },
+      {
+        "file_offset": "0x12c870",
+        "message": "0x0205",
+        "callback": "0x0043ed36",
+        "raw_hex": "050200000000000000000000000000003100000036ed4300"
+      },
+      {
+        "file_offset": "0x12c8d0",
+        "message": "0x0203",
+        "callback": "0x0043ecc0",
+        "raw_hex": "0302000000000000000000000000000031000000c0ec4300"
+      }
+    ],
+    "native_regressions": [
+      "hover capture alone does not activate",
+      "a later accepted event activates only the cached candidate",
+      "the activation bit represents the caller-verified primary-button release",
+      "phase-2 effects execute in the same tick's dispatcher",
+      "modal, stale-candidate, and changed-dependency guards are checked"
+    ],
+    "oracle_limit": "the Unicorn dispatcher fixture seeds phase 2 to compare handler results; it does not execute the platform-heavy 0x43a7ca input loop"
+  },
+  "comparisons": [
+    {
+      "s0_action_index": 34,
+      "case": "phase0-frame-match",
+      "flag_id": 1000,
+      "rect": [
+        388,
+        225,
+        492,
+        284
+      ],
+      "dependency_hook_calls": 1,
+      "match": true
+    },
+    {
+      "s0_action_index": 34,
+      "case": "phase0-frame-miss",
+      "flag_id": 1000,
+      "rect": [
+        388,
+        225,
+        492,
+        284
+      ],
+      "dependency_hook_calls": 1,
+      "match": true
+    },
+    {
+      "s0_action_index": 34,
+      "case": "phase1-frame-rearm",
+      "flag_id": 1000,
+      "rect": [
+        388,
+        225,
+        492,
+        284
+      ],
+      "dependency_hook_calls": 2,
+      "match": true
+    },
+    {
+      "s0_action_index": 34,
+      "case": "phase2-accepted-candidate",
+      "flag_id": 1000,
+      "rect": [
+        388,
+        225,
+        492,
+        284
+      ],
+      "dependency_hook_calls": 3,
+      "match": true
+    },
+    {
+      "s0_action_index": 35,
+      "case": "phase0-frame-match",
+      "flag_id": 1002,
+      "rect": [
+        396,
+        150,
+        489,
+        211
+      ],
+      "dependency_hook_calls": 1,
+      "match": true
+    },
+    {
+      "s0_action_index": 35,
+      "case": "phase0-frame-miss",
+      "flag_id": 1002,
+      "rect": [
+        396,
+        150,
+        489,
+        211
+      ],
+      "dependency_hook_calls": 1,
+      "match": true
+    },
+    {
+      "s0_action_index": 35,
+      "case": "phase1-frame-rearm",
+      "flag_id": 1002,
+      "rect": [
+        396,
+        150,
+        489,
+        211
+      ],
+      "dependency_hook_calls": 2,
+      "match": true
+    },
+    {
+      "s0_action_index": 35,
+      "case": "phase2-accepted-candidate",
+      "flag_id": 1002,
+      "rect": [
+        396,
+        150,
+        489,
+        211
+      ],
+      "dependency_hook_calls": 3,
+      "match": true
+    },
+    {
+      "s0_action_index": 32,
+      "case": "phase0-frame-match",
+      "runtime_type": "0x0d",
+      "target_scene": 6400,
+      "raw_rect_i32": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "effective_rect_i16": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "dependency_hook_calls": 1,
+      "original": {
+        "completed": 0,
+        "phase": 1,
+        "active": 1,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "native": {
+        "completed": 0,
+        "phase": 1,
+        "active": 1,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "match": true
+    },
+    {
+      "s0_action_index": 32,
+      "case": "phase0-frame-miss",
+      "runtime_type": "0x0d",
+      "target_scene": 6400,
+      "raw_rect_i32": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "effective_rect_i16": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "dependency_hook_calls": 1,
+      "original": {
+        "completed": 0,
+        "phase": 1,
+        "active": 0,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "native": {
+        "completed": 0,
+        "phase": 1,
+        "active": 0,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "match": true
+    },
+    {
+      "s0_action_index": 32,
+      "case": "phase1-frame-match",
+      "runtime_type": "0x0d",
+      "target_scene": 6400,
+      "raw_rect_i32": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "effective_rect_i16": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "dependency_hook_calls": 2,
+      "original": {
+        "completed": 0,
+        "phase": 1,
+        "active": 1,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "native": {
+        "completed": 0,
+        "phase": 1,
+        "active": 1,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "match": true
+    },
+    {
+      "s0_action_index": 32,
+      "case": "phase1-frame-miss",
+      "runtime_type": "0x0d",
+      "target_scene": 6400,
+      "raw_rect_i32": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "effective_rect_i16": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "dependency_hook_calls": 2,
+      "original": {
+        "completed": 0,
+        "phase": 1,
+        "active": 0,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "native": {
+        "completed": 0,
+        "phase": 1,
+        "active": 0,
+        "rectangle": [
+          391,
+          75,
+          490,
+          138
+        ]
+      },
+      "match": true
+    },
+    {
+      "s0_action_index": 32,
+      "case": "phase2-delayed-transition",
+      "runtime_type": "0x0d",
+      "target_scene": 6400,
+      "raw_rect_i32": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "effective_rect_i16": [
+        391,
+        75,
+        490,
+        138
+      ],
+      "dependency_hook_calls": 2,
+      "original": {
+        "completed": 1,
+        "phase": 2,
+        "engine_state": 4,
+        "transition": {
+          "target_scene": 6400,
+          "opaque_words": [
+            0,
+            0,
+            1
+          ],
+          "opaque_dwords": [
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      "native": {
+        "completed": 1,
+        "phase": 2,
+        "engine_state": 4,
+        "transition": {
+          "target_scene": 6400,
+          "opaque_words": [
+            0,
+            0,
+            1
+          ],
+          "opaque_dwords": [
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      "match": true
+    }
+  ],
+  "mismatches": [],
+  "raw_0x15_normalization": {
+    "retained_parser_type": "0x15",
+    "runtime_type_from_body_byte_0": "0x0d",
+    "target_scene_from_raw_body_plus_2": 6400,
+    "runtime_payload_size": 40,
+    "payload_defaults": {
+      "mapped_word_0": 0,
+      "opaque_words": [
+        0,
+        0,
+        1
+      ],
+      "opaque_dwords": [
+        0,
+        0,
+        1
+      ],
+      "frame": 0
+    },
+    "rectangle_storage": "four raw signed dwords are retained in the constructed payload, then 0x42ae73 exports their low 16 bits as signed live hit bounds"
+  },
+  "limits": [
+    "dependency expression evaluation is controlled true in the original fixture",
+    "the original input-event/cursor path is not executed under Unicorn",
+    "viewport, scroll, and cursor-sprite transforms remain a caller boundary; the executor receives the transformed scene-coordinate hot point",
+    "no whole-game scene loading, rendering, audio, or user-interface equivalence is claimed"
+  ]
+}

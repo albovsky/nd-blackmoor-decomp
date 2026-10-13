@@ -1,0 +1,132 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4497a0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c532ca6fd2b24db6f7392da771f9de1073079eaf8a4051621b7fba1333cc82be
+ */
+
+char * FUN_004497a0(_func_uint_void_ptr *param_1,char *param_2,int param_3,uint param_4)
+
+{
+  char cVar1;
+  CWinThread *this;
+  int iVar2;
+  BOOL BVar3;
+  DWORD DVar4;
+  char *in_ECX;
+  uint uVar5;
+  uint uVar6;
+  char *pcVar7;
+  char *pcVar8;
+  int local_94;
+  undefined1 local_74 [100];
+  void *local_10;
+  undefined1 *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &LAB_00527f1a;
+  local_10 = ExceptionList;
+  ExceptionList = &local_10;
+  *(undefined ***)in_ECX = &PTR_FUN_0052cb5c;
+  in_ECX[0x36] = '\0';
+  in_ECX[0x37] = '\0';
+  in_ECX[0x38] = '\0';
+  in_ECX[0x39] = '\0';
+  in_ECX[0x42] = '\x03';
+  in_ECX[0x43] = '\0';
+  in_ECX[0x44] = '\0';
+  in_ECX[0x45] = '\0';
+  in_ECX[0x3a] = -1;
+  in_ECX[0x3b] = -1;
+  in_ECX[0x3c] = -1;
+  in_ECX[0x3d] = -1;
+  in_ECX[0x3e] = '\0';
+  in_ECX[0x3f] = '\0';
+  in_ECX[0x40] = '\0';
+  in_ECX[0x41] = '\0';
+  uVar5 = 0xffffffff;
+  do {
+    pcVar8 = param_2;
+    if (uVar5 == 0) break;
+    uVar5 = uVar5 - 1;
+    pcVar8 = param_2 + 1;
+    cVar1 = *param_2;
+    param_2 = pcVar8;
+  } while (cVar1 != '\0');
+  uVar5 = ~uVar5;
+  pcVar7 = pcVar8 + -uVar5;
+  pcVar8 = in_ECX;
+  for (uVar6 = uVar5 >> 2; pcVar8 = pcVar8 + 4, uVar6 != 0; uVar6 = uVar6 - 1) {
+    *(undefined4 *)pcVar8 = *(undefined4 *)pcVar7;
+    pcVar7 = pcVar7 + 4;
+  }
+  for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+    *pcVar8 = *pcVar7;
+    pcVar7 = pcVar7 + 1;
+    pcVar8 = pcVar8 + 1;
+  }
+  this = (CWinThread *)FUN_0051dc43(0x68);
+  local_8 = 0;
+  if (this == (CWinThread *)0x0) {
+    local_94 = 0;
+  }
+  else {
+    local_94 = CWinThread::CWinThread(this,param_1,in_ECX + 0x3e);
+  }
+  local_8 = 0xffffffff;
+  *(int *)(in_ECX + 0x36) = local_94;
+  if (local_94 == 0) {
+    FUN_004264e8(s_ERROR___CThread__CThread___const_00548844);
+    FUN_004c97b4();
+  }
+  else {
+    *(undefined4 *)(*(int *)(in_ECX + 0x36) + 0x24) = 1;
+    iVar2 = FUN_0051ed8c(param_4 | 4,0,0);
+    if (iVar2 == 0) {
+      (**(code **)(**(int **)(in_ECX + 0x36) + 0x78))();
+      FUN_004264e8(s_ERROR___CThread__CThread___const_00548894);
+      FUN_004c97b4();
+    }
+    else {
+      BVar3 = SetThreadPriority(*(HANDLE *)(*(int *)(in_ECX + 0x36) + 0x28),param_3);
+      if (BVar3 == 0) {
+        (**(code **)(**(int **)(in_ECX + 0x36) + 0x78))();
+        FUN_004264e8(s_ERROR___CThread__CThread___const_005488d8);
+        FUN_004c97b4();
+      }
+      else {
+        if (((param_4 & 4) == 0) &&
+           (DVar4 = ResumeThread(*(HANDLE *)(*(int *)(in_ECX + 0x36) + 0x28)), DVar4 == 0xffffffff))
+        {
+          (**(code **)(**(int **)(in_ECX + 0x36) + 0x78))();
+          FUN_004264e8(s_ERROR___CThread__CThread___const_00548920);
+          FUN_004c97b4();
+          ExceptionList = local_10;
+          return in_ECX;
+        }
+        *(undefined4 *)(*(int *)(in_ECX + 0x36) + 0x24) = 0;
+        *(undefined4 *)(in_ECX + 0x3a) = *(undefined4 *)(*(int *)(in_ECX + 0x36) + 0x2c);
+        if (param_4 == 4) {
+          in_ECX[0x42] = '\x01';
+          in_ECX[0x43] = '\0';
+          in_ECX[0x44] = '\0';
+          in_ECX[0x45] = '\0';
+        }
+        else {
+          in_ECX[0x42] = '\x02';
+          in_ECX[0x43] = '\0';
+          in_ECX[0x44] = '\0';
+          in_ECX[0x45] = '\0';
+        }
+        if (DAT_0063a4cd != 0) {
+          FUN_0050ca3e(local_74,s_CThread__CThread_____created_thr_00548968,
+                       *(undefined4 *)(in_ECX + 0x3a),in_ECX + 4);
+          FUN_0044a2b7(local_74);
+        }
+      }
+    }
+  }
+  ExceptionList = local_10;
+  return in_ECX;
+}
+

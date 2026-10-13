@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519daa
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+void FUN_00519daa(undefined4 param_1)
+
+{
+  undefined4 *in_ECX;
+  
+  FUN_0051e08b(0,0);
+  *in_ECX = &PTR_LAB_0052ffec;
+  in_ECX[0x17] = param_1;
+  return;
+}
+

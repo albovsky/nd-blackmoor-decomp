@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44d597
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0044d597(undefined4 param_1)
+
+{
+  int in_ECX;
+  
+  DAT_005b44f0 = (int)*(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d) + 0x263)
+  ;
+  DAT_005b44f4 = 1;
+  _DAT_005d162d = DAT_005d0377;
+  _DAT_005d1631 = &DAT_005b161c + DAT_005b44f0 * 0x20;
+  _DAT_005d1639 = 1;
+  DAT_005c39e5 = 0x276e;
+  *(undefined1 *)(in_ECX + 0x24) = 1;
+  *(undefined4 *)(in_ECX + 0x31) = param_1;
+  return;
+}
+

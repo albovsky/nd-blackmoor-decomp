@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51da03
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+/* Library Function - Single Match
+    public: __thiscall CCmdUI::CCmdUI(void)
+   
+   Libraries: Visual Studio 2003 Release, Visual Studio 2005 Release, Visual Studio 2008 Release,
+   Visual Studio 2010 Release */
+
+void __thiscall CCmdUI::CCmdUI(CCmdUI *this)
+
+{
+  *(undefined ***)this = &PTR_FUN_0052ed38;
+  *(undefined4 *)(this + 0x20) = 0;
+  *(undefined4 *)(this + 8) = 0;
+  *(undefined4 *)(this + 4) = 0;
+  *(undefined4 *)(this + 0x24) = 0;
+  *(undefined4 *)(this + 0x10) = 0;
+  *(undefined4 *)(this + 0xc) = 0;
+  *(undefined4 *)(this + 0x14) = 0;
+  *(undefined4 *)(this + 0x1c) = 0;
+  *(undefined4 *)(this + 0x18) = 0;
+  return;
+}
+

@@ -1,0 +1,100 @@
+{
+  "scope": "native startup/menu integration and static S0 background; incomplete game",
+  "architecture": "arm64",
+  "executable_sha256": "060169c1c7753ff24e0711aad39fd24f49beed65ad5b97220bc7709439e59f2f",
+  "native_dependencies": {
+    "codec": "FFmpeg 9.0.1 ARM64",
+    "minimum_macos": "27.0",
+    "bundled": false
+  },
+  "headless_validation": {
+    "original_asset_patches": true,
+    "logo_sequence": [
+      "her_logo_splash",
+      "LOGO",
+      "MAIN"
+    ],
+    "menu_new_game_command": true,
+    "initial_scene": "S0",
+    "scene_action_records": 38,
+    "background": "diff.bik",
+    "decoded_dimensions": [
+      620,
+      375
+    ],
+    "destination_viewport_inclusive": [
+      10,
+      10,
+      629,
+      384
+    ],
+    "actions_executed": false,
+    "audio_playback": false,
+    "fresh_integration_tests": 4
+  },
+  "appkit_validation": {
+    "bounded_event_loop_completed": true,
+    "timer_reached_menu_state": true,
+    "automatic_exit_without_failure": true,
+    "latest_window_visually_inspected": false,
+    "latest_scene_preview_visually_inspected": false,
+    "reason": "Mac locked; owner requested continued automated checks"
+  },
+  "bink_codec_validation": {
+    "sample_frames": 3,
+    "compared_to": "installed FFmpeg CLI RGBA output",
+    "mismatches": 0,
+    "original_bink_dll_equivalence": "unverified",
+    "limit_note": "File-size and frame-dimension checks are not a strict whole-process memory ceiling during FFmpeg probing"
+  },
+  "tests": {
+    "discovered": 177,
+    "passed": 175,
+    "skipped": 2,
+    "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
+  },
+  "complete_playable_game": false,
+  "whole_original_executable_matching_rebuild": false,
+  "review": "No remaining material finding in bounded source and integration reviews; full gameplay and original scheduler equivalence unverified",
+  "original_menu_selector_validation": {
+    "steps": 94,
+    "mismatches": 0,
+    "function": "0x4da430",
+    "hooks": "cursor,clock,sound completion and menu draw",
+    "excluded": "original initialization, selected-command dispatch and complete game"
+  },
+  "action_diagnostic": {
+    "real_scene": "S0",
+    "stop_type": "0x9f",
+    "first_action_index": 31,
+    "actions_applied": 31,
+    "phone_contacts": 2,
+    "control_groups_with_first_range_0_0": [
+      1,
+      2,
+      3
+    ],
+    "value_initial_defaults": {
+      "short": 9999,
+      "float": 9999.0
+    },
+    "world_seed": "partial recovered value/control resets; other state analysis-only; empty-phone original path unverified"
+  },
+  "audio_diagnostic": {
+    "file": "Ndsig.his",
+    "decoded_frames": 2780558,
+    "offline_graph_frames": 4096,
+    "output_channels": 2,
+    "rms": 0.21676323,
+    "gain": "diagnostic unity",
+    "audible_output": false,
+    "original_decoder_equivalence": "unverified",
+    "verified_current_package": true
+  },
+  "package_validation": {
+    "clean_local_extraction": "strict signature and headless startup passed",
+    "run_copy": "strict signature passed",
+    "archive": "Blackmoor Reconstruction.app.zip",
+    "workspace_metadata": "File Provider may reattach FinderInfo; Run uses local temporary copy"
+  }
+}

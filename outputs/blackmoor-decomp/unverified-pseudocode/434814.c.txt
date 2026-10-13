@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x434814
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+undefined * FUN_00434814(int param_1)
+
+{
+  short local_8;
+  
+  for (local_8 = 0; (local_8 < 4 && (*(char *)(param_1 + local_8) != '\0')); local_8 = local_8 + 1)
+  {
+    (&DAT_0063a590)[local_8] = *(undefined1 *)(param_1 + local_8);
+  }
+  (&DAT_0063a590)[local_8] = 0;
+  return &DAT_0063a590;
+}
+

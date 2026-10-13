@@ -1,0 +1,74 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46ebff
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+void FUN_0046ebff(void)
+
+{
+  int iVar1;
+  DWORD DVar2;
+  undefined4 uVar3;
+  int in_ECX;
+  int iVar4;
+  undefined2 extraout_var;
+  char *pcVar5;
+  char *pcVar6;
+  bool bVar7;
+  int local_1c;
+  int local_14;
+  int local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  if ((((*(int *)(in_ECX + 0x46) != 0) && (*(int *)(in_ECX + 0x5f) == 0)) &&
+      (*(int *)(in_ECX + 0x28) == 0)) &&
+     (*(int *)(&DAT_005bb632 + *(short *)(in_ECX + 0x1e) * 0x8d) == 1)) {
+    if (DAT_005c39e5 == 0x27c2) {
+      if (*(byte *)(in_ECX + 0x52) < 10) {
+        local_8 = 0;
+      }
+      else {
+        local_8 = *(byte *)(in_ECX + 0x52) - 9;
+      }
+      *(undefined4 *)(in_ECX + 0x28) = 1;
+      *(ushort *)(in_ECX + 0x2c) = (ushort)*(byte *)(in_ECX + 0x52);
+      DVar2 = GetTickCount();
+      *(DWORD *)(in_ECX + 0x2e) = DVar2 + 0xfa;
+      *(undefined4 *)(in_ECX + 0x32) = 1;
+      if (DAT_005bb1ca != 0) {
+        iVar4 = 9;
+        bVar7 = true;
+        pcVar5 = (char *)(iVar1 + 0x6b1 + local_8 * 0x95);
+        pcVar6 = s_NO_SOUND_0054c140;
+        do {
+          if (iVar4 == 0) break;
+          iVar4 = iVar4 + -1;
+          bVar7 = *pcVar5 == *pcVar6;
+          pcVar5 = pcVar5 + 1;
+          pcVar6 = pcVar6 + 1;
+        } while (bVar7);
+        if ((!bVar7) &&
+           (iVar4 = FUN_004f6334((int)*(short *)(iVar1 + 0x6d2 + local_8 * 0x95)), iVar4 == 0)) {
+          FUN_004fb2e3(CONCAT22(extraout_var,*(undefined2 *)(iVar1 + 0x6d2 + local_8 * 0x95)));
+        }
+      }
+    }
+    else if (DAT_005c39e5 == 0x27c3) {
+      *(undefined4 *)(&DAT_005bb632 + *(short *)(in_ECX + 0x1e) * 0x8d) = 2;
+      for (local_1c = 0; local_1c < 8; local_1c = local_1c + 1) {
+        *(undefined1 *)(in_ECX + local_1c + 0x53) = 1;
+      }
+      *(undefined4 *)(in_ECX + 0x5f) = 1;
+      DVar2 = GetTickCount();
+      for (local_14 = 0; local_14 < *(short *)(iVar1 + 0x21); local_14 = local_14 + 1) {
+        uVar3 = FUN_004709bb(*(undefined1 *)(in_ECX + local_14 + 0x53));
+        iVar4 = FUN_004709de((int)*(short *)(in_ECX + 0x36 + local_14 * 2),uVar3);
+        *(DWORD *)(in_ECX + 0x67 + local_14 * 4) = DVar2 + iVar4;
+      }
+      FUN_00448d11(DAT_005d03b3,s_<n><e>_0054c14c,0xffffffff,0);
+    }
+  }
+  return;
+}
+

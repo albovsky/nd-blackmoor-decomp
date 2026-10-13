@@ -1,0 +1,436 @@
+{
+  "scenes": 2078,
+  "actions": 19612,
+  "typed_actions": 9111,
+  "opaque_actions": 10501,
+  "by_raw_type": [
+    {
+      "type": "0x0a",
+      "count": 596,
+      "typed": 596,
+      "opaque": 0
+    },
+    {
+      "type": "0x0b",
+      "count": 1275,
+      "typed": 1275,
+      "opaque": 0
+    },
+    {
+      "type": "0x0c",
+      "count": 43,
+      "typed": 0,
+      "opaque": 43
+    },
+    {
+      "type": "0x15",
+      "count": 3,
+      "typed": 3,
+      "opaque": 0
+    },
+    {
+      "type": "0x16",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0x17",
+      "count": 10,
+      "typed": 0,
+      "opaque": 10
+    },
+    {
+      "type": "0x1b",
+      "count": 4,
+      "typed": 0,
+      "opaque": 4
+    },
+    {
+      "type": "0x1c",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0x1d",
+      "count": 182,
+      "typed": 182,
+      "opaque": 0
+    },
+    {
+      "type": "0x20",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0x28",
+      "count": 72,
+      "typed": 0,
+      "opaque": 72
+    },
+    {
+      "type": "0x2d",
+      "count": 3,
+      "typed": 0,
+      "opaque": 3
+    },
+    {
+      "type": "0x2e",
+      "count": 10,
+      "typed": 0,
+      "opaque": 10
+    },
+    {
+      "type": "0x33",
+      "count": 3,
+      "typed": 0,
+      "opaque": 3
+    },
+    {
+      "type": "0x35",
+      "count": 113,
+      "typed": 0,
+      "opaque": 113
+    },
+    {
+      "type": "0x36",
+      "count": 20,
+      "typed": 0,
+      "opaque": 20
+    },
+    {
+      "type": "0x37",
+      "count": 4308,
+      "typed": 0,
+      "opaque": 4308
+    },
+    {
+      "type": "0x38",
+      "count": 425,
+      "typed": 0,
+      "opaque": 425
+    },
+    {
+      "type": "0x3e",
+      "count": 202,
+      "typed": 0,
+      "opaque": 202
+    },
+    {
+      "type": "0x3f",
+      "count": 493,
+      "typed": 0,
+      "opaque": 493
+    },
+    {
+      "type": "0x43",
+      "count": 13,
+      "typed": 0,
+      "opaque": 13
+    },
+    {
+      "type": "0x44",
+      "count": 27,
+      "typed": 0,
+      "opaque": 27
+    },
+    {
+      "type": "0x45",
+      "count": 32,
+      "typed": 0,
+      "opaque": 32
+    },
+    {
+      "type": "0x47",
+      "count": 139,
+      "typed": 139,
+      "opaque": 0
+    },
+    {
+      "type": "0x4b",
+      "count": 9,
+      "typed": 0,
+      "opaque": 9
+    },
+    {
+      "type": "0x4d",
+      "count": 378,
+      "typed": 378,
+      "opaque": 0
+    },
+    {
+      "type": "0x4e",
+      "count": 18,
+      "typed": 0,
+      "opaque": 18
+    },
+    {
+      "type": "0x4f",
+      "count": 815,
+      "typed": 815,
+      "opaque": 0
+    },
+    {
+      "type": "0x51",
+      "count": 97,
+      "typed": 0,
+      "opaque": 97
+    },
+    {
+      "type": "0x61",
+      "count": 933,
+      "typed": 933,
+      "opaque": 0
+    },
+    {
+      "type": "0x62",
+      "count": 1802,
+      "typed": 0,
+      "opaque": 1802
+    },
+    {
+      "type": "0x64",
+      "count": 7,
+      "typed": 0,
+      "opaque": 7
+    },
+    {
+      "type": "0x65",
+      "count": 7,
+      "typed": 0,
+      "opaque": 7
+    },
+    {
+      "type": "0x67",
+      "count": 27,
+      "typed": 0,
+      "opaque": 27
+    },
+    {
+      "type": "0x68",
+      "count": 10,
+      "typed": 0,
+      "opaque": 10
+    },
+    {
+      "type": "0x69",
+      "count": 7,
+      "typed": 0,
+      "opaque": 7
+    },
+    {
+      "type": "0x6a",
+      "count": 2,
+      "typed": 2,
+      "opaque": 0
+    },
+    {
+      "type": "0x6b",
+      "count": 345,
+      "typed": 345,
+      "opaque": 0
+    },
+    {
+      "type": "0x6d",
+      "count": 1,
+      "typed": 0,
+      "opaque": 1
+    },
+    {
+      "type": "0x6e",
+      "count": 68,
+      "typed": 0,
+      "opaque": 68
+    },
+    {
+      "type": "0x6f",
+      "count": 25,
+      "typed": 0,
+      "opaque": 25
+    },
+    {
+      "type": "0x70",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0x71",
+      "count": 2,
+      "typed": 2,
+      "opaque": 0
+    },
+    {
+      "type": "0x76",
+      "count": 1,
+      "typed": 0,
+      "opaque": 1
+    },
+    {
+      "type": "0x77",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0x78",
+      "count": 466,
+      "typed": 466,
+      "opaque": 0
+    },
+    {
+      "type": "0x79",
+      "count": 38,
+      "typed": 0,
+      "opaque": 38
+    },
+    {
+      "type": "0x7d",
+      "count": 4,
+      "typed": 0,
+      "opaque": 4
+    },
+    {
+      "type": "0x80",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0x82",
+      "count": 8,
+      "typed": 8,
+      "opaque": 0
+    },
+    {
+      "type": "0x83",
+      "count": 9,
+      "typed": 0,
+      "opaque": 9
+    },
+    {
+      "type": "0x94",
+      "count": 12,
+      "typed": 0,
+      "opaque": 12
+    },
+    {
+      "type": "0x95",
+      "count": 123,
+      "typed": 123,
+      "opaque": 0
+    },
+    {
+      "type": "0x97",
+      "count": 1958,
+      "typed": 0,
+      "opaque": 1958
+    },
+    {
+      "type": "0x9a",
+      "count": 1,
+      "typed": 0,
+      "opaque": 1
+    },
+    {
+      "type": "0x9f",
+      "count": 3570,
+      "typed": 3570,
+      "opaque": 0
+    },
+    {
+      "type": "0xa1",
+      "count": 565,
+      "typed": 0,
+      "opaque": 565
+    },
+    {
+      "type": "0xaa",
+      "count": 1,
+      "typed": 0,
+      "opaque": 1
+    },
+    {
+      "type": "0xd0",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0xd1",
+      "count": 11,
+      "typed": 0,
+      "opaque": 11
+    },
+    {
+      "type": "0xd3",
+      "count": 3,
+      "typed": 0,
+      "opaque": 3
+    },
+    {
+      "type": "0xd6",
+      "count": 1,
+      "typed": 0,
+      "opaque": 1
+    },
+    {
+      "type": "0xd9",
+      "count": 274,
+      "typed": 274,
+      "opaque": 0
+    },
+    {
+      "type": "0xda",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0xe0",
+      "count": 3,
+      "typed": 0,
+      "opaque": 3
+    },
+    {
+      "type": "0xe4",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0xea",
+      "count": 6,
+      "typed": 0,
+      "opaque": 6
+    },
+    {
+      "type": "0xeb",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0xee",
+      "count": 2,
+      "typed": 0,
+      "opaque": 2
+    },
+    {
+      "type": "0xf5",
+      "count": 4,
+      "typed": 0,
+      "opaque": 4
+    },
+    {
+      "type": "0xf6",
+      "count": 6,
+      "typed": 0,
+      "opaque": 6
+    }
+  ],
+  "parser_sha256": "8b5400eeafdce32d8adb68afca009ab4c240df8eafdcaaf42dfa231d4f2f4f62",
+  "scope": "current parser body-boundary census; typed does not imply runtime implementation"
+}

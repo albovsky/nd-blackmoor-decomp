@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5096c0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+int FUN_005096c0(int param_1,int param_2,uint param_3,uint param_4,int param_5)
+
+{
+  int iVar1;
+  uint uVar2;
+  
+  param_3 = param_3 & 0x7fff;
+  uVar2 = (param_4 & 0x7fff) - param_3;
+  iVar1 = (int)(((uVar2 ^ (int)uVar2 >> 0x1f) - ((int)uVar2 >> 0x1f)) * (param_5 - param_1)) /
+          (param_2 - param_1);
+  if ((int)uVar2 < 0) {
+    return param_3 - iVar1;
+  }
+  return iVar1 + param_3;
+}
+

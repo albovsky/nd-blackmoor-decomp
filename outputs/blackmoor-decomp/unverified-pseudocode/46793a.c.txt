@@ -1,0 +1,62 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46793a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+void FUN_0046793a(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x1aa) = *(undefined4 *)(&DAT_005bb5e5 + *(short *)(in_ECX + 8) * 0x8d);
+  if ((((*(int *)(in_ECX + 0x1ae) != 0) && (*(int *)(in_ECX + 0xc) == 0)) &&
+      (*(int *)(&DAT_005bb632 + *(short *)(in_ECX + 8) * 0x8d) == 1)) &&
+     ((*(int *)(in_ECX + 0x1b6) == 0 && (*(int *)(in_ECX + 0x1b2) == 0)))) {
+    if (DAT_005c39e5 == 0x27ac) {
+      *(undefined4 *)(in_ECX + 0x1b2) = 1;
+      *(undefined4 *)(&DAT_005bb632 + *(short *)(in_ECX + 8) * 0x8d) = 2;
+    }
+    else if (DAT_005c39e5 == 0x27ab) {
+      if (*(int *)(in_ECX + 0x1ba) == -1) {
+        *(int *)(in_ECX + 0x1ba) = (int)*(short *)(in_ECX + 10);
+      }
+      else if ((int)*(short *)(in_ECX + 10) == *(int *)(in_ECX + 0x1ba)) {
+        if ((int)*(short *)(in_ECX + 10) == *(int *)(in_ECX + 0x1ba)) {
+          if (*(int *)(in_ECX + 0x240) == 0) {
+            *(undefined4 *)(in_ECX + 0x1ba) = 0xffffffff;
+          }
+          else if ((*(int *)(in_ECX + 0x1b8 + *(int *)(in_ECX + 0x240) * 8) ==
+                    *(int *)(in_ECX + 0x1ba)) ||
+                  (*(int *)(in_ECX + 0x1bc + *(int *)(in_ECX + 0x240) * 8) ==
+                   *(int *)(in_ECX + 0x1ba))) {
+            *(undefined4 *)(in_ECX + 0x1ba) =
+                 *(undefined4 *)(in_ECX + 0x1b8 + *(int *)(in_ECX + 0x240) * 8);
+            *(int *)(in_ECX + 0x240) = *(int *)(in_ECX + 0x240) + -1;
+            if (*(int *)(in_ECX + 0x240) < 0) {
+              *(undefined4 *)(in_ECX + 0x240) = 0;
+            }
+          }
+        }
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x1c0 + *(int *)(in_ECX + 0x240) * 8) =
+             *(undefined4 *)(in_ECX + 0x1ba);
+        *(int *)(in_ECX + 0x1c4 + *(int *)(in_ECX + 0x240) * 8) = (int)*(short *)(in_ECX + 10);
+        *(int *)(in_ECX + 0x1ba) = (int)*(short *)(in_ECX + 10);
+        *(int *)(in_ECX + 0x240) = *(int *)(in_ECX + 0x240) + 1;
+        uVar1 = FUN_00467c0e();
+        *(undefined4 *)(in_ECX + 0x1b6) = uVar1;
+        FUN_00467d5f();
+        FUN_00467e70();
+        FUN_00467eb0();
+      }
+      if (*(int *)(in_ECX + 0x248) != 0) {
+        FUN_004fb2e3(*(undefined2 *)(*(int *)(in_ECX + 0x1aa) + 0x2bf));
+      }
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519c54
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+/* Library Function - Single Match
+    public: void __thiscall CSimpleException::InitString(void)
+   
+   Library: Visual Studio 2015 Release */
+
+void __thiscall CSimpleException::InitString(CSimpleException *this)
+
+{
+  int iVar1;
+  
+  *(undefined4 *)(this + 0xc) = 1;
+  iVar1 = FUN_0051fb2e(*(undefined4 *)(this + 0x94),this + 0x14,0x80);
+  *(uint *)(this + 0x10) = (uint)(iVar1 != 0);
+  return;
+}
+

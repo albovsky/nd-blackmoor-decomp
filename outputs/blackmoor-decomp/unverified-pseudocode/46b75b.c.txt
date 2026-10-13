@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46b75b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+/* Library Function - Single Match
+    protected: void __thiscall CMFCPropertyPage::CommonInit(void)
+   
+   Library: Visual Studio 2010 Debug */
+
+void __thiscall CMFCPropertyPage::CommonInit(CMFCPropertyPage *this)
+
+{
+  *(undefined4 *)(this + 0x4a28) = 0;
+  *(undefined4 *)(this + 0x4a24) = 0;
+  *(undefined4 *)(this + 0x4a4c) = 0;
+  *(undefined4 *)(this + 0x4a2c) = 0;
+  return;
+}
+

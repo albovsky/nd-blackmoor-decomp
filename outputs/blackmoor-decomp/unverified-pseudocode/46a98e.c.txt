@@ -1,0 +1,38 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46a98e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+void FUN_0046a98e(void)
+
+{
+  short sVar1;
+  short sVar2;
+  short sVar3;
+  short sVar4;
+  int in_ECX;
+  short local_10;
+  
+  for (local_10 = 0; local_10 < 6; local_10 = local_10 + 1) {
+    sVar2 = __ftol();
+    sVar1 = *(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x53 +
+                      local_10 * 6);
+    sVar4 = *(short *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x51 +
+                      local_10 * 6);
+    sVar3 = __ftol();
+    *(int *)(in_ECX + 0x1c + local_10 * 0x10) = (int)sVar4 - (int)sVar3;
+    *(int *)(in_ECX + 0x24 + local_10 * 0x10) =
+         (*(int *)(in_ECX + 0x1c + local_10 * 0x10) +
+         *(int *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x49)) -
+         *(int *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x41);
+    sVar4 = __ftol();
+    *(int *)(in_ECX + 0x20 + local_10 * 0x10) = (int)(short)(sVar1 - sVar2) - (int)sVar4;
+    *(int *)(in_ECX + 0x28 + local_10 * 0x10) =
+         *(int *)(in_ECX + 0x20 + local_10 * 0x10) +
+         (*(int *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x4d) -
+         *(int *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x7e) * 0x8d) + 0x45));
+  }
+  return;
+}
+

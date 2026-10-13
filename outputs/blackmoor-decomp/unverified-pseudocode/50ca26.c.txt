@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50ca26
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c01bda5c208998c8b38f9e1693c1f9d27cef570b0e4d2e523c0f31431a0d762
+ */
+
+void FUN_0050ca26(void)
+
+{
+  undefined4 in_EAX;
+  int unaff_EBP;
+  
+  DAT_00567e18 = *(undefined4 *)(unaff_EBP + 8);
+  DAT_00567e14 = in_EAX;
+  DAT_00567e1c = unaff_EBP;
+  return;
+}
+

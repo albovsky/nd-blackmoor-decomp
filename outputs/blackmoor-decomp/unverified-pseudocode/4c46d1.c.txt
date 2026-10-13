@@ -1,0 +1,40 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c46d1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c46d1(int *param_1,byte param_2,byte param_3,byte param_4)
+
+{
+  byte bVar1;
+  byte bVar2;
+  byte bVar3;
+  int in_ECX;
+  undefined4 local_8;
+  
+  param_2 = param_2 & *(byte *)(in_ECX + 0x38c6);
+  param_3 = param_3 & *(byte *)(in_ECX + 0x38c5);
+  param_4 = param_4 & *(byte *)(in_ECX + 0x38c4);
+  if (*(char *)(in_ECX + 0x38ca) != '\x05') {
+    param_2 = param_2 << 1;
+  }
+  if (*(char *)(in_ECX + 0x38c9) != '\x05') {
+    param_3 = param_3 << 1;
+  }
+  if (*(char *)(in_ECX + 0x38c8) != '\x05') {
+    param_4 = param_4 << 1;
+  }
+  bVar1 = *(byte *)(in_ECX + 0x38c2);
+  bVar2 = *(byte *)(in_ECX + 0x38c1);
+  bVar3 = *(byte *)(in_ECX + 0x38c0);
+  for (local_8 = 0;
+      local_8 < (int)*(short *)((int)param_1 + 0x2b) * (int)*(short *)((int)param_1 + 0x2d);
+      local_8 = local_8 + 1) {
+    *(ushort *)(*param_1 + local_8 * 2) =
+         (ushort)param_2 << (bVar1 & 0x1f) | (ushort)param_3 << (bVar2 & 0x1f) |
+         (ushort)param_4 << (bVar3 & 0x1f);
+  }
+  return;
+}
+

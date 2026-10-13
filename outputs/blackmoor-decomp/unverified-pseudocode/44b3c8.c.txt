@@ -1,0 +1,69 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44b3c8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044b3c8(short param_1)
+
+{
+  byte *pbVar1;
+  undefined2 extraout_var;
+  undefined2 uVar3;
+  uint uVar2;
+  short local_c;
+  float local_8;
+  
+  pbVar1 = *(byte **)(&DAT_005bb5e5 + param_1 * 0x8d);
+  if ((*pbVar1 < 0x1e) || (0x27 < *pbVar1)) {
+    uVar3 = (undefined2)((uint)pbVar1 >> 0x10);
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_AT_SET_VALUE_COMBO_error__index_o_00549054,*pbVar1);
+      FUN_0052139c(&DAT_0063888b,0,0);
+      uVar3 = extraout_var;
+    }
+  }
+  else {
+    uVar2 = (uint)*pbVar1;
+    *(undefined4 *)(&DAT_0058c91d + uVar2 * 4) = 0;
+    for (local_c = 0; uVar3 = (undefined2)(uVar2 >> 0x10), local_c < 10; local_c = local_c + 1) {
+      uVar2 = local_c * 3;
+      if (pbVar1[uVar2 + 1] != 99) {
+        if (pbVar1[local_c * 3 + 1] < 0x28) {
+          if (pbVar1[local_c * 3 + 1] < 0x1e) {
+            if (*(short *)((int)&DAT_0058c959 + (uint)pbVar1[local_c * 3 + 1] * 2) == 9999) {
+              local_8 = 0.0;
+            }
+            else {
+              local_8 = ((float)(int)*(short *)(pbVar1 + local_c * 3 + 2) / 100.0) *
+                        (float)(int)*(short *)((int)&DAT_0058c959 +
+                                              (uint)pbVar1[local_c * 3 + 1] * 2);
+            }
+          }
+          else if (*(float *)(&DAT_0058c91d + (uint)pbVar1[local_c * 3 + 1] * 4) == 9999.0) {
+            local_8 = 0.0;
+          }
+          else {
+            local_8 = ((float)(int)*(short *)(pbVar1 + local_c * 3 + 2) / 100.0) *
+                      *(float *)(&DAT_0058c91d + (uint)pbVar1[local_c * 3 + 1] * 4);
+          }
+        }
+        else if (pbVar1[local_c * 3 + 1] == 100) {
+          local_8 = (float)(int)*(short *)(pbVar1 + local_c * 3 + 2);
+        }
+        else {
+          FUN_0050ca3e(&DAT_0063888b,s_AT_SET_VALUE_COMBO__index_out_of_00549088,
+                       pbVar1[local_c * 3 + 1]);
+          FUN_0052139c(&DAT_0063888b,0,0);
+          local_8 = 0.0;
+        }
+        uVar2 = (uint)*pbVar1;
+        *(float *)(&DAT_0058c91d + (uint)*pbVar1 * 4) =
+             local_8 + *(float *)(&DAT_0058c91d + uVar2 * 4);
+      }
+    }
+  }
+  FUN_0042ba3a(CONCAT22(uVar3,param_1));
+  return;
+}
+

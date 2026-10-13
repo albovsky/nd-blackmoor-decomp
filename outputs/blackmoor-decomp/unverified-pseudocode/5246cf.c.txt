@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5246cf
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005246cf(int param_1)
+
+{
+  int *in_ECX;
+  
+  FUN_0051ab4b();
+  if (param_1 != 1) {
+    (**(code **)(*in_ECX + 200))(1);
+  }
+  return;
+}
+

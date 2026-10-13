@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d3d20
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+void FUN_004d3d20(void)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  
+  DVar1 = GetTickCount();
+  *(DWORD *)(in_ECX + 0x456) = DVar1 - 5;
+  return;
+}
+

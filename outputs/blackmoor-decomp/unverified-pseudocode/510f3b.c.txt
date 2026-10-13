@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x510f3b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c14b206e0317066be1d027bdae31364ff1ffe02c3df6c0ccff4b69686384ad63
+ */
+
+void FUN_00510f3b(void)
+
+{
+  void *pvStack_14;
+  undefined1 *puStack_10;
+  undefined *puStack_c;
+  undefined4 local_8;
+  
+  puStack_c = &DAT_00530420;
+  puStack_10 = &LAB_00511930;
+  pvStack_14 = ExceptionList;
+  ExceptionList = &pvStack_14;
+  if (PTR_FUN_005681f4 != (undefined *)0x0) {
+    local_8 = 1;
+    ExceptionList = &pvStack_14;
+    (*(code *)PTR_FUN_005681f4)();
+  }
+  local_8 = 0xffffffff;
+  FUN_00510eda();
+  return;
+}
+

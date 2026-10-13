@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522b60
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_00522b60(uint param_1,int param_2)
+
+{
+  int iVar1;
+  LRESULT LVar2;
+  undefined4 uVar3;
+  int in_ECX;
+  uint uVar4;
+  
+  uVar4 = param_1 & 0xffff;
+  iVar1 = FUN_0051c174();
+  if ((((*(int *)(iVar1 + 0x50) == 0) || (param_2 != 0)) || (uVar4 == 0xe146)) ||
+     ((uVar4 == 0xe147 || (uVar4 == 0xe145)))) {
+    uVar3 = FUN_0051bfc3(param_1,param_2);
+  }
+  else {
+    LVar2 = SendMessageA(*(HWND *)(in_ECX + 0x1c),0x365,0,uVar4 + 0x10000);
+    if (LVar2 == 0) {
+      SendMessageA(*(HWND *)(in_ECX + 0x1c),0x111,0xe147,0);
+    }
+    uVar3 = 1;
+  }
+  return uVar3;
+}
+

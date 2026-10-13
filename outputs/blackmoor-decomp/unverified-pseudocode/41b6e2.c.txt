@@ -1,0 +1,81 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x41b6e2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5
+ */
+
+void FUN_0041b6e2(int param_1,int param_2,int param_3)
+
+{
+  undefined1 uVar1;
+  uint uVar2;
+  char cVar3;
+  int iVar4;
+  undefined4 *puVar5;
+  int iStack00000010;
+  uint local_34;
+  uint local_24;
+  int local_20;
+  char local_14;
+  uint local_c;
+  uint local_8;
+  
+  local_14 = '\0';
+  iStack00000010 = 0;
+  local_20 = -1;
+  puVar5 = &DAT_0056f354;
+  for (iVar4 = 0x3fb; iVar4 != 0; iVar4 = iVar4 + -1) {
+    *puVar5 = 0x20202020;
+    puVar5 = puVar5 + 1;
+  }
+  for (iVar4 = 2; iVar4 != 0; iVar4 = iVar4 + -1) {
+    *(undefined1 *)puVar5 = 0x20;
+    puVar5 = (undefined4 *)((int)puVar5 + 1);
+  }
+  local_c = 0xfee;
+  local_8 = 0;
+  while( true ) {
+    while( true ) {
+      local_8 = local_8 >> 1;
+      if ((local_8 & 0x100) == 0) {
+        local_20 = local_20 + 1;
+        if (local_20 == param_3) {
+          return;
+        }
+        cVar3 = *(char *)(param_1 + local_20) - local_14;
+        local_14 = local_14 + '\x01';
+        local_8 = (uint)CONCAT11(0xff,cVar3);
+      }
+      if ((local_8 & 1) == 0) break;
+      local_20 = local_20 + 1;
+      if (local_20 == param_3) {
+        return;
+      }
+      cVar3 = *(char *)(param_1 + local_20) - local_14;
+      local_14 = local_14 + '\x01';
+      *(char *)(param_2 + iStack00000010) = cVar3;
+      iStack00000010 = iStack00000010 + 1;
+      *(char *)((int)&DAT_0056f354 + local_c) = cVar3;
+      local_c = local_c + 1 & 0xfff;
+    }
+    if (local_20 + 1 == param_3) {
+      return;
+    }
+    local_24 = (uint)(byte)(*(char *)(param_1 + local_20 + 1) - local_14);
+    uVar2 = local_24;
+    local_20 = local_20 + 2;
+    if (local_20 == param_3) break;
+    local_24 = (uint)(byte)(*(char *)(param_1 + local_20) - (local_14 + '\x01'));
+    local_14 = local_14 + '\x02';
+    for (local_34 = 0; local_34 <= (local_24 & 0xf) + 2; local_34 = local_34 + 1) {
+      uVar1 = *(undefined1 *)
+               ((int)&DAT_0056f354 + ((uVar2 | (local_24 & 0xf0) << 4) + local_34 & 0xfff));
+      *(undefined1 *)(param_2 + iStack00000010) = uVar1;
+      iStack00000010 = iStack00000010 + 1;
+      *(undefined1 *)((int)&DAT_0056f354 + local_c) = uVar1;
+      local_c = local_c + 1 & 0xfff;
+    }
+  }
+  return;
+}
+

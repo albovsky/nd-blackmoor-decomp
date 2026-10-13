@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c9ca0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d590aeb62d3bd1e1413a3f3e4f07f565aba52ab8fd98207292a76569576fbcb9
+ */
+
+void FUN_004c9ca0(undefined4 param_1)
+
+{
+  FUN_0050ca3e(&DAT_0063888b,&DAT_00557cbc,param_1);
+  WritePrivateProfileStringA
+            (s_Nancy_Data_00557ce0,s_DirectXDriverEnumerationStatus_00557cc0,(LPCSTR)&DAT_0063888b,
+             (LPCSTR)&DAT_00639897);
+  return;
+}
+

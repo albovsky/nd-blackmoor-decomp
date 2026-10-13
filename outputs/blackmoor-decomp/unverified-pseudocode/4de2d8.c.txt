@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4de2d8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004de2d8(void)
+
+{
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x991) = 1;
+  FUN_004e053f(1);
+  FUN_004e1113();
+  DAT_005b15d6 = 0;
+  _DAT_005d17f5 = 0;
+  FUN_004de214();
+  return;
+}
+

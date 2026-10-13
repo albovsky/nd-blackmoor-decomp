@@ -1,0 +1,85 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44aa79
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+undefined4 * FUN_0044aa79(undefined4 *param_1,short param_2)
+
+{
+  short sVar1;
+  BOOL BVar2;
+  int iVar3;
+  uint uVar4;
+  int iVar5;
+  int iVar6;
+  int iVar7;
+  undefined4 *puVar8;
+  undefined4 local_48;
+  HANDLE local_44;
+  _FILETIME local_40;
+  undefined2 local_38;
+  undefined2 uStack_36;
+  _FILETIME local_34;
+  _FILETIME local_2c;
+  undefined2 local_24;
+  undefined2 uStack_22;
+  undefined2 local_20;
+  undefined2 uStack_1e;
+  _FILETIME local_1c;
+  undefined4 local_14;
+  undefined4 local_10;
+  undefined2 local_c;
+  undefined2 uStack_a;
+  short local_8;
+  undefined2 uStack_6;
+  
+  puVar8 = param_1;
+  for (uVar4 = (uint)(int)param_2 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+    *puVar8 = 0;
+    puVar8 = puVar8 + 1;
+  }
+  for (uVar4 = (int)param_2 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
+    *(undefined1 *)puVar8 = 0;
+    puVar8 = (undefined4 *)((int)puVar8 + 1);
+  }
+  local_44 = CreateFileA(&DAT_0063999b,0x80000000,1,(LPSECURITY_ATTRIBUTES)0x0,3,0x80,(HANDLE)0x0);
+  if (local_44 == (HANDLE)0xffffffff) {
+    FUN_004264e8(s_GetFileTime_____Unable_to_open_a_00548ce8);
+  }
+  else {
+    BVar2 = GetFileTime(local_44,&local_1c,&local_34,&local_40);
+    if (BVar2 == 0) {
+      CloseHandle(local_44);
+      FUN_004264e8(s_GetFileTime_____Bad_return_on_Ge_00548d18);
+    }
+    else {
+      FileTimeToLocalFileTime(&local_40,&local_2c);
+      local_48 = (uint)local_48._2_2_ << 0x10;
+      local_14 = (uint)local_14._2_2_ << 0x10;
+      BVar2 = FileTimeToDosDateTime(&local_2c,(LPWORD)&local_14,(LPWORD)&local_48);
+      if (BVar2 == 0) {
+        CloseHandle(local_44);
+        FUN_004264e8(s_GetFileTime_____Bad_return_from_F_00548d44);
+      }
+      else {
+        sVar1 = (short)((int)(local_14 & 0xfe00) >> 9) + 0x7bc;
+        _local_8 = CONCAT22(uStack_6,sVar1);
+        iVar5 = (int)(local_14 & 0x1e0) >> 5;
+        _local_24 = CONCAT22(uStack_22,(short)iVar5);
+        local_10 = CONCAT22(local_10._2_2_,(short)local_14) & 0xffff001f;
+        iVar3 = (int)(local_48 & 0xf800) >> 0xb;
+        _local_20 = CONCAT22(uStack_1e,(short)iVar3);
+        iVar6 = (int)(local_48 & 0x7e0) >> 5;
+        _local_c = CONCAT22(uStack_a,(short)iVar6);
+        iVar7 = (local_48 & 0x1f) << 1;
+        _local_38 = CONCAT22(uStack_36,(short)iVar7);
+        FUN_0050ca3e(param_1,s__u__u__u__u__02u__02u_00548d7c,iVar5,local_14 & 0x1f,sVar1,iVar3,
+                     iVar6,iVar7);
+        CloseHandle(local_44);
+      }
+    }
+  }
+  return param_1;
+}
+

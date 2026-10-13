@@ -1,0 +1,62 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e97ad
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9c656b3eec0deb5a709812e8ef40c0b3c5e683a3969dfdbc8ffe3dad08e63a8
+ */
+
+void FUN_004e97ad(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  undefined4 uVar3;
+  int iVar4;
+  char *pcVar5;
+  
+  if ((*(int *)(in_ECX + 0x764c) == 2) || (*(int *)(in_ECX + 0x764c) == 3)) {
+    FUN_004ee86f();
+    *(undefined4 *)(in_ECX + 0x822e) = 0;
+    while (*(int *)(in_ECX + 0x822e) < 6) {
+      if ((*(int *)(in_ECX + 0x7012 + *(int *)(in_ECX + 0x822e) * 0xf7) != 0) &&
+         (FUN_004e2b99(),
+         *(int *)(in_ECX + 0x8232) == *(int *)(in_ECX + 0x7016 + *(int *)(in_ECX + 0x822e) * 0xf7)))
+      {
+        pcVar5 = s_write_tab_string_0055c6d8;
+        iVar2 = in_ECX + 0x763c;
+        iVar4 = in_ECX + 0x75dc + *(int *)(in_ECX + 0x822e) * 0x10;
+        uVar3 = DAT_005cf665;
+        uVar1 = FUN_004ee630(DAT_005cf665,iVar4,iVar2,s_write_tab_string_0055c6d8);
+        FUN_004c5377(uVar1,uVar3,iVar4,iVar2,pcVar5);
+      }
+      *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+    }
+    *(undefined4 *)(in_ECX + 0x822e) = 0;
+    while (*(int *)(in_ECX + 0x822e) < 0x10) {
+      if (*(int *)(in_ECX + 0x7fae + *(int *)(in_ECX + 0x822e) * 0x28) == -1) {
+        pcVar5 = s_write_empty_inventory_cell_icon_t_0055c770;
+        iVar4 = in_ECX + 0x7fc6 + *(int *)(in_ECX + 0x822e) * 0x28;
+        iVar2 = in_ECX + 0x7fb6 + *(int *)(in_ECX + 0x822e) * 0x28;
+        uVar3 = DAT_005cf665;
+        uVar1 = FUN_004ee630(DAT_005cf665,iVar2,iVar4,s_write_empty_inventory_cell_icon_t_0055c770);
+        FUN_004c5377(uVar1,uVar3,iVar2,iVar4,pcVar5);
+      }
+      else {
+        iVar4 = *(int *)(in_ECX + 0x7fae + *(int *)(in_ECX + 0x822e) * 0x28);
+        if (*(int *)(in_ECX + 0x7fb2 + *(int *)(in_ECX + 0x822e) * 0x28) == 1) {
+          FUN_004c5377(*(undefined4 *)(in_ECX + 0x695),DAT_005cf665,in_ECX + 0x794 + iVar4 * 0x16d,
+                       in_ECX + 0x7fc6 + *(int *)(in_ECX + 0x822e) * 0x28,
+                       s_write_hilited_inventory_box_icon_0055c730);
+        }
+        else {
+          FUN_004c5377(*(undefined4 *)(in_ECX + 0x695),DAT_005cf665,in_ECX + 0x784 + iVar4 * 0x16d,
+                       in_ECX + 0x7fc6 + *(int *)(in_ECX + 0x822e) * 0x28,
+                       s_write_non_hilited_inventory_popu_0055c6ec);
+        }
+      }
+      *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+    }
+  }
+  return;
+}
+

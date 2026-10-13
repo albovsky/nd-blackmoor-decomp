@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x513c65
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+/* Library Function - Single Match
+    __fload_withFB
+   
+   Library: Visual Studio */
+
+uint __fload_withFB(void)
+
+{
+  uint uVar1;
+  int in_EDX;
+  
+  uVar1 = *(uint *)(in_EDX + 4) & 0x7ff00000;
+  if (uVar1 != 0x7ff00000) {
+    return uVar1;
+  }
+  return *(uint *)(in_EDX + 4);
+}
+

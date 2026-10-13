@@ -1,0 +1,69 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4911ca
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+void FUN_004911ca(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 2);
+  *(int *)(in_ECX + 0x1f47) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054ea90,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f4b) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054ead8,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f4f) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054eb20,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 2);
+  *(int *)(in_ECX + 0x1f53) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054eb68,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f57) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054ebb0,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f5b) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054ebfc,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f5f) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054ec4c,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f63) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054eca0,0,0);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(*(int *)(in_ECX + 7999) << 1);
+  *(int *)(in_ECX + 0x1f67) = iVar1;
+  if (iVar1 == 0) {
+    FUN_0052139c(s_CRayCast__CRayCast___constructor_0054ecf8,0,0);
+    FUN_004c97b4();
+  }
+  return;
+}
+

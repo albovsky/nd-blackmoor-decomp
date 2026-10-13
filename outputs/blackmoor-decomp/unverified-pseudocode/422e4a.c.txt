@@ -1,0 +1,46 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x422e4a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6aea749257e733e6a888071535cd523e265e1b5dc78f23c23f75e3654451d196
+ */
+
+void FUN_00422e4a(int *param_1)
+
+{
+  short sVar1;
+  undefined4 uVar2;
+  undefined2 extraout_var;
+  
+  do {
+    if (*param_1 == 0) {
+      sVar1 = FUN_0044c479(&DAT_00617e80);
+      if (((sVar1 != 2) && (FUN_0041dfd2(), DAT_00617e76 < DAT_00617e7e)) &&
+         (DAT_00617e7a <= DAT_00617e8c)) {
+        sVar1 = FUN_0041e1e4(CONCAT22(DAT_00617e7e >> 0xf,DAT_00617e7a));
+        if (sVar1 == -1) {
+          uVar2 = FUN_0041e043();
+          if ((short)uVar2 == -1) goto LAB_00422f78;
+          FUN_0041e0b4(uVar2,CONCAT22(extraout_var,DAT_00617e7a));
+        }
+        if (DAT_00617e7c == -1) {
+          DAT_00617e7a = DAT_00617e7a +
+                         (ushort)*(byte *)(DAT_00617e8e + DAT_00617f6e) + DAT_00617f74;
+        }
+        else {
+          DAT_00617e7a = DAT_00617e7c;
+          DAT_00617e7c = -1;
+        }
+        if (DAT_00617e8c < DAT_00617e7a) {
+          DAT_00617e7a = DAT_00617e8c;
+        }
+      }
+    }
+    else {
+      AfxEndThread(0,1);
+    }
+LAB_00422f78:
+    FUN_0044c4ab(&DAT_00617e80);
+    Sleep(1);
+  } while( true );
+}
+

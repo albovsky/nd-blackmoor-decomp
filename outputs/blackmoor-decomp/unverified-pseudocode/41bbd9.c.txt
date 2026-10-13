@@ -1,0 +1,46 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x41bbd9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5
+ */
+
+void FUN_0041bbd9(int param_1)
+
+{
+  short local_8;
+  
+  if (*(short *)(&DAT_00569144 + param_1 * 2) != 0x1000) {
+    if (*(short *)(&DAT_0056b148 + param_1 * 2) == 0x1000) {
+      local_8 = *(short *)(&DAT_0056d34c + param_1 * 2);
+    }
+    else if (*(short *)(&DAT_0056d34c + param_1 * 2) == 0x1000) {
+      local_8 = *(short *)(&DAT_0056b148 + param_1 * 2);
+    }
+    else {
+      local_8 = *(short *)(&DAT_0056d34c + param_1 * 2);
+      if (*(short *)(&DAT_0056b148 + local_8 * 2) != 0x1000) {
+        do {
+          local_8 = *(short *)(&DAT_0056b148 + local_8 * 2);
+        } while (*(short *)(&DAT_0056b148 + local_8 * 2) != 0x1000);
+        *(undefined2 *)(&DAT_0056b148 + *(short *)(&DAT_00569144 + local_8 * 2) * 2) =
+             *(undefined2 *)(&DAT_0056d34c + local_8 * 2);
+        *(undefined2 *)(&DAT_00569144 + *(short *)(&DAT_0056d34c + local_8 * 2) * 2) =
+             *(undefined2 *)(&DAT_00569144 + local_8 * 2);
+        *(undefined2 *)(&DAT_0056d34c + local_8 * 2) = *(undefined2 *)(&DAT_0056d34c + param_1 * 2);
+        *(short *)(&DAT_00569144 + *(short *)(&DAT_0056d34c + param_1 * 2) * 2) = local_8;
+      }
+      *(undefined2 *)(&DAT_0056b148 + local_8 * 2) = *(undefined2 *)(&DAT_0056b148 + param_1 * 2);
+      *(short *)(&DAT_00569144 + *(short *)(&DAT_0056b148 + param_1 * 2) * 2) = local_8;
+    }
+    *(undefined2 *)(&DAT_00569144 + local_8 * 2) = *(undefined2 *)(&DAT_00569144 + param_1 * 2);
+    if (*(short *)(&DAT_0056b148 + *(short *)(&DAT_00569144 + param_1 * 2) * 2) == param_1) {
+      *(short *)(&DAT_0056b148 + *(short *)(&DAT_00569144 + param_1 * 2) * 2) = local_8;
+    }
+    else {
+      *(short *)(&DAT_0056d34c + *(short *)(&DAT_00569144 + param_1 * 2) * 2) = local_8;
+    }
+    *(undefined2 *)(&DAT_00569144 + param_1 * 2) = 0x1000;
+  }
+  return;
+}
+

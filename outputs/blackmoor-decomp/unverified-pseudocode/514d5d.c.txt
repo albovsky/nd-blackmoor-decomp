@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x514d5d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ef606b3611f71cae908ae4dfd9c171d87d1bf5b814f82e9c922d3be8f60ac641
+ */
+
+undefined4 FUN_00514d5d(int param_1)
+
+{
+  int iVar1;
+  
+  DAT_0063cdd8 = HeapCreate((uint)(param_1 == 0),0x1000,0);
+  if (DAT_0063cdd8 != (HANDLE)0x0) {
+    iVar1 = FUN_00514f25();
+    if (iVar1 != 0) {
+      return 1;
+    }
+    HeapDestroy(DAT_0063cdd8);
+  }
+  return 0;
+}
+

@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51e253
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+undefined4 FUN_0051e253(void)
+
+{
+  HWND pHVar1;
+  int unaff_EBP;
+  CDialog *unaff_ESI;
+  int unaff_EDI;
+  
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  if (*(int *)(unaff_EBP + -0x20) != unaff_EDI) {
+    EnableWindow(*(HWND *)(unaff_EBP + -0x14),1);
+  }
+  if (*(int *)(unaff_EBP + -0x14) != unaff_EDI) {
+    pHVar1 = GetActiveWindow();
+    if (pHVar1 == *(HWND *)(unaff_ESI + 0x1c)) {
+      SetActiveWindow(*(HWND *)(unaff_EBP + -0x14));
+    }
+  }
+  (**(code **)(*(int *)unaff_ESI + 0x58))();
+  CDialog::PostModal(unaff_ESI);
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return *(undefined4 *)(unaff_ESI + 0x2c);
+}
+

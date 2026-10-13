@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51cb17
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+undefined * Catch_0051cb17(void)
+
+{
+  int unaff_EBP;
+  
+  (**(code **)(**(int **)(unaff_EBP + -0x1c) + 0x10))(0x30,0xf108);
+  FUN_0051f636();
+  return &DAT_0051cb35;
+}
+

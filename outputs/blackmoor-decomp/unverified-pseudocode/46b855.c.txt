@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46b855
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+void FUN_0046b855(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x49f8) < DAT_0058319a) {
+    *(int *)(in_ECX + 0x49f8) = DAT_0058319a;
+    *(int *)(in_ECX + 0x4a00) = *(int *)(in_ECX + 0x49f8) + (int)*(short *)(in_ECX + 0x816c);
+  }
+  if (DAT_005831a2 < *(int *)(in_ECX + 0x4a00)) {
+    *(int *)(in_ECX + 0x4a00) = DAT_005831a2;
+    *(int *)(in_ECX + 0x49f8) = *(int *)(in_ECX + 0x4a00) - (int)*(short *)(in_ECX + 0x816c);
+  }
+  if (*(int *)(in_ECX + 0x49f4) < DAT_00583196) {
+    *(int *)(in_ECX + 0x49f4) = DAT_00583196;
+    *(int *)(in_ECX + 0x49fc) = *(int *)(in_ECX + 0x49f4) + (int)*(short *)(in_ECX + 0x816a);
+  }
+  if (DAT_0058319e < *(int *)(in_ECX + 0x49fc)) {
+    *(int *)(in_ECX + 0x49fc) = DAT_0058319e;
+    *(int *)(in_ECX + 0x49f4) = *(int *)(in_ECX + 0x49fc) - (int)*(short *)(in_ECX + 0x816a);
+  }
+  return;
+}
+

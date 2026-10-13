@@ -1,0 +1,14 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x404812
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_51b415fb048676855f87480857f7034bf358ef4aa71116bcd269a8a5b14202e2
+ */
+
+void FUN_00404812(void)
+
+{
+  *(undefined4 *)(&DAT_005e569a + DAT_005c3a63 * 0x106) = 0;
+  FUN_004033db();
+  return;
+}
+

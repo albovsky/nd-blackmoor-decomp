@@ -1,0 +1,177 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d214b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7011e58f3afdde6fc878edb0312973c24208872876d4104777064ce751b49e1e
+ */
+
+undefined4 FUN_004d214b(undefined1 param_1,int param_2,undefined2 *param_3)
+
+{
+  undefined2 local_8;
+  
+  switch(param_1) {
+  case 0x21:
+    local_8 = *(undefined2 *)(param_2 + 0x65);
+    break;
+  case 0x23:
+    local_8 = *(undefined2 *)(param_2 + 0xb5);
+    break;
+  case 0x24:
+    local_8 = *(undefined2 *)(param_2 + 0xb7);
+    break;
+  case 0x25:
+    local_8 = *(undefined2 *)(param_2 + 0x67);
+    break;
+  case 0x26:
+    local_8 = *(undefined2 *)(param_2 + 0x69);
+    break;
+  case 0x27:
+    local_8 = *(undefined2 *)(param_2 + 0x73);
+    break;
+  case 0x28:
+    local_8 = *(undefined2 *)(param_2 + 0x6d);
+    break;
+  case 0x29:
+    local_8 = *(undefined2 *)(param_2 + 0x6f);
+    break;
+  case 0x2a:
+    local_8 = *(undefined2 *)(param_2 + 0x6b);
+    break;
+  case 0x2b:
+    local_8 = *(undefined2 *)(param_2 + 0x71);
+    break;
+  case 0x2c:
+    local_8 = *(undefined2 *)(param_2 + 0x5b);
+    break;
+  case 0x2d:
+    local_8 = *(undefined2 *)(param_2 + 0x61);
+    break;
+  case 0x2e:
+    local_8 = *(undefined2 *)(param_2 + 0x59);
+    break;
+  case 0x2f:
+    local_8 = *(undefined2 *)(param_2 + 0x77);
+    break;
+  case 0x3a:
+    local_8 = *(undefined2 *)(param_2 + 0x5f);
+    break;
+  case 0x3b:
+    local_8 = *(undefined2 *)(param_2 + 0x75);
+    break;
+  case 0x3c:
+    local_8 = *(undefined2 *)(param_2 + 0xb9);
+    break;
+  case 0x3d:
+    local_8 = *(undefined2 *)(param_2 + 0x5d);
+    break;
+  case 0x3e:
+    local_8 = *(undefined2 *)(param_2 + 0xbb);
+    break;
+  case 0x3f:
+    local_8 = *(undefined2 *)(param_2 + 99);
+    break;
+  case 0x5f:
+    local_8 = *(undefined2 *)(param_2 + 0xaf);
+    break;
+  case 0x7b:
+    local_8 = *(undefined2 *)(param_2 + 0xbd);
+    break;
+  case 0x7d:
+    local_8 = *(undefined2 *)(param_2 + 0xbf);
+    break;
+  case 0x80:
+    local_8 = *(undefined2 *)(param_2 + 0xc1);
+    break;
+  default:
+    return 0;
+  case 0xa1:
+    local_8 = *(undefined2 *)(param_2 + 0x9b);
+    break;
+  case 0xbf:
+    local_8 = *(undefined2 *)(param_2 + 0x9d);
+    break;
+  case 0xc0:
+    local_8 = *(undefined2 *)(param_2 + 0x87);
+    break;
+  case 0xc4:
+    local_8 = *(undefined2 *)(param_2 + 0x8f);
+    break;
+  case 0xc5:
+    local_8 = *(undefined2 *)(param_2 + 0xb1);
+    break;
+  case 0xc9:
+    local_8 = *(undefined2 *)(param_2 + 0xa3);
+    break;
+  case 0xd1:
+    local_8 = *(undefined2 *)(param_2 + 0x9f);
+    break;
+  case 0xd6:
+    local_8 = *(undefined2 *)(param_2 + 0x93);
+    break;
+  case 0xdc:
+    local_8 = *(undefined2 *)(param_2 + 0x97);
+    break;
+  case 0xdf:
+    local_8 = *(undefined2 *)(param_2 + 0xad);
+    break;
+  case 0xe0:
+    local_8 = *(undefined2 *)(param_2 + 0x79);
+    break;
+  case 0xe1:
+    local_8 = *(undefined2 *)(param_2 + 0xa5);
+    break;
+  case 0xe2:
+    local_8 = *(undefined2 *)(param_2 + 0x89);
+    break;
+  case 0xe4:
+    local_8 = *(undefined2 *)(param_2 + 0x91);
+    break;
+  case 0xe5:
+    local_8 = *(undefined2 *)(param_2 + 0xb3);
+    break;
+  case 0xe7:
+    local_8 = *(undefined2 *)(param_2 + 0x7b);
+    break;
+  case 0xe8:
+    local_8 = *(undefined2 *)(param_2 + 0x7d);
+    break;
+  case 0xe9:
+    local_8 = *(undefined2 *)(param_2 + 0x7f);
+    break;
+  case 0xea:
+    local_8 = *(undefined2 *)(param_2 + 0x81);
+    break;
+  case 0xeb:
+    local_8 = *(undefined2 *)(param_2 + 0x83);
+    break;
+  case 0xed:
+    local_8 = *(undefined2 *)(param_2 + 0xa7);
+    break;
+  case 0xee:
+    local_8 = *(undefined2 *)(param_2 + 0x8b);
+    break;
+  case 0xf1:
+    local_8 = *(undefined2 *)(param_2 + 0xa1);
+    break;
+  case 0xf3:
+    local_8 = *(undefined2 *)(param_2 + 0xa9);
+    break;
+  case 0xf4:
+    local_8 = *(undefined2 *)(param_2 + 0x85);
+    break;
+  case 0xf6:
+    local_8 = *(undefined2 *)(param_2 + 0x95);
+    break;
+  case 0xf9:
+    local_8 = *(undefined2 *)(param_2 + 0x8d);
+    break;
+  case 0xfa:
+    local_8 = *(undefined2 *)(param_2 + 0xab);
+    break;
+  case 0xfc:
+    local_8 = *(undefined2 *)(param_2 + 0x99);
+  }
+  *param_3 = local_8;
+  return 1;
+}
+

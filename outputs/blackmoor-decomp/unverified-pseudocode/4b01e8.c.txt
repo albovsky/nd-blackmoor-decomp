@@ -1,0 +1,66 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b01e8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7
+ */
+
+bool FUN_004b01e8(void)
+
+{
+  undefined4 *puVar1;
+  short sVar2;
+  int iVar3;
+  int in_ECX;
+  short local_8;
+  
+  iVar3 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  sVar2 = *(short *)(iVar3 + 0x25);
+  local_8 = *(short *)(iVar3 + 0x27);
+  *(undefined2 *)(in_ECX + 0x1531) = *(undefined2 *)(in_ECX + 0x1535);
+  if (*(short *)(in_ECX + 0x1531) == 0x2797) {
+    local_8 = local_8 + -1;
+  }
+  puVar1 = (undefined4 *)(in_ECX + sVar2 * 0x1e4 + 0x47 + local_8 * 0x2c);
+  *(undefined4 *)(in_ECX + 0x29) = *puVar1;
+  *(undefined4 *)(in_ECX + 0x2d) = puVar1[1];
+  *(undefined4 *)(in_ECX + 0x31) = puVar1[2];
+  *(undefined4 *)(in_ECX + 0x35) = puVar1[3];
+  *(undefined4 *)(in_ECX + 0x3b) = 1;
+  switch(*(undefined2 *)(in_ECX + 0x1531)) {
+  case 0x2794:
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x47 + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x47 + local_8 * 0x2c) -
+         *(int *)(in_ECX + 0x1529) / (int)*(short *)(iVar3 + 0x1a8);
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4f + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4f + local_8 * 0x2c) -
+         *(int *)(in_ECX + 0x1529) / (int)*(short *)(iVar3 + 0x1a8);
+    break;
+  case 0x2795:
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4b + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4b + local_8 * 0x2c) -
+         *(int *)(in_ECX + 0x152d) / (int)*(short *)(iVar3 + 0x1a8);
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x53 + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x53 + local_8 * 0x2c) -
+         *(int *)(in_ECX + 0x152d) / (int)*(short *)(iVar3 + 0x1a8);
+    break;
+  case 0x2796:
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4b + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4b + local_8 * 0x2c) +
+         *(int *)(in_ECX + 0x152d) / (int)*(short *)(iVar3 + 0x1a8);
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x53 + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x53 + local_8 * 0x2c) +
+         *(int *)(in_ECX + 0x152d) / (int)*(short *)(iVar3 + 0x1a8);
+    break;
+  case 0x2797:
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x47 + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x47 + local_8 * 0x2c) +
+         *(int *)(in_ECX + 0x1529) / (int)*(short *)(iVar3 + 0x1a8);
+    *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4f + local_8 * 0x2c) =
+         *(int *)(in_ECX + sVar2 * 0x1e4 + 0x4f + local_8 * 0x2c) +
+         *(int *)(in_ECX + 0x1529) / (int)*(short *)(iVar3 + 0x1a8);
+  }
+  *(short *)(in_ECX + 0x1533) = *(short *)(in_ECX + 0x1533) + 1;
+  return (int)*(short *)(iVar3 + 0x1a8) * (int)*(short *)(iVar3 + 0x29) <=
+         (int)*(short *)(in_ECX + 0x1533);
+}
+

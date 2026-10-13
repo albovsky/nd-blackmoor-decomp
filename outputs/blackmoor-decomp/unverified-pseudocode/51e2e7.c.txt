@@ -1,0 +1,42 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51e2e7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+int FUN_0051e2e7(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  HWND pHVar3;
+  int iVar4;
+  int *in_ECX;
+  
+  (**(code **)(*in_ECX + 0xcc))();
+  iVar2 = FUN_00525371();
+  piVar1 = *(int **)(iVar2 + 0x1038);
+  if ((piVar1 != (int *)0x0) && (in_ECX[0x16] != 0)) {
+    if (in_ECX[0x13] == 0) {
+      iVar2 = (**(code **)(*piVar1 + 0x20))();
+    }
+    else {
+      iVar2 = (**(code **)(*piVar1 + 0x1c))();
+    }
+    if (iVar2 == 0) {
+      FUN_0051e2a0(0xffffffff);
+      return 0;
+    }
+  }
+  iVar2 = FUN_0051ab4b();
+  if ((iVar2 != 0) && ((*(byte *)((int)in_ECX + 0x25) & 1) != 0)) {
+    pHVar3 = GetNextDlgTabItem((HWND)in_ECX[7],(HWND)0x0,0);
+    iVar4 = FUN_0051abe4(pHVar3);
+    if (iVar4 != 0) {
+      FUN_0051d699();
+      iVar2 = 0;
+    }
+  }
+  return iVar2;
+}
+

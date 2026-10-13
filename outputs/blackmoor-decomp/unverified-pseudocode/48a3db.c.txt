@@ -1,0 +1,72 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x48a3db
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b5201f38a5a659d5112bf314de75bb76652baa2f4916443e3ea7357100fb9b00
+ */
+
+void FUN_0048a3db(int param_1)
+
+{
+  short sVar1;
+  int local_3c;
+  int local_38;
+  int local_34;
+  int local_30;
+  int local_2c;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  int local_18;
+  int *local_14;
+  int local_10;
+  int local_c;
+  short *local_8;
+  
+  local_10 = *(int *)(&DAT_005d15af + param_1 * 0x4a);
+  local_c = local_10;
+  if (param_1 != *(short *)(local_10 + 0xaa2)) {
+    FUN_0050ca3e(&DAT_0063888b,s_COverlay_object__UpdateRender_____0054e1f4,param_1,
+                 (int)*(short *)(local_10 + 0xaa2));
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    FUN_0052139c(&DAT_0063888b,0,0);
+    FUN_004c97b4();
+  }
+  for (local_3c = 0; local_3c < *(short *)(local_c + 0xaa); local_3c = local_3c + 1) {
+    local_8 = (short *)(local_10 + 0x6ec + local_3c * 0x26);
+    if (*local_8 == DAT_005bb50b) {
+      if (*(short *)(local_c + 0x29) == 2) {
+        sVar1 = *(short *)(local_10 + 0xaae);
+      }
+      else {
+        sVar1 = local_8[1];
+      }
+      local_38 = (int)sVar1;
+      local_14 = (int *)(local_10 + 0xac + local_38 * 0x10);
+      local_30 = local_14[1] + *(int *)(local_8 + 5);
+      local_28 = local_14[1] + *(int *)(local_8 + 9);
+      local_34 = *local_14 + *(int *)(local_8 + 3);
+      local_2c = *local_14 + *(int *)(local_8 + 7);
+      local_20 = *(int *)(local_8 + 0xd) + DAT_0058318a;
+      local_18 = *(int *)(local_8 + 0x11) + DAT_0058318a;
+      local_24 = *(int *)(local_8 + 0xb) + DAT_00583186;
+      local_1c = *(int *)(local_8 + 0xf) + DAT_00583186;
+      if (*(short *)(local_c + 0x23) == 1) {
+        FUN_004c5377(*(undefined4 *)(local_10 + 0xab6),DAT_005cf665,&local_34,&local_24,
+                     s_Overlay_AR_plain_blit_0054e270);
+      }
+      else {
+        if (*(short *)(local_c + 0x29) == 2) {
+          FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0xb,&local_24,
+                       s_Overlay_AR_transparent___restore_0054e288);
+        }
+        FUN_004c5d4b(*(undefined4 *)(local_10 + 0xab6),DAT_005cf665,&local_34,&local_24,
+                     s_Overlay_AR_transparent_blit_0054e2b4);
+      }
+    }
+  }
+  return;
+}
+

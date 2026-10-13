@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x466247
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b2266c122d0c3ebc240ee0b3dabe442ef76e91098e7869f9f9749891192d3067
+ */
+
+void FUN_00466247(void)
+
+{
+  int iVar1;
+  DWORD DVar2;
+  int in_ECX;
+  int local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  local_8 = 0;
+  while( true ) {
+    if (*(short *)(iVar1 + 0x42) <= local_8) {
+      *(undefined1 *)(in_ECX + 0x4e) = 1;
+      DVar2 = GetTickCount();
+      *(DWORD *)(in_ECX + 0x50) = DVar2 + *(short *)(iVar1 + 0x4ea) * 1000;
+      *(undefined4 *)(in_ECX + 0x45) = 2;
+      return;
+    }
+    if (*(short *)(in_ECX + 0x2e + local_8 * 2) != *(short *)(iVar1 + 0x3cc + local_8 * 2)) break;
+    local_8 = local_8 + 1;
+  }
+  return;
+}
+

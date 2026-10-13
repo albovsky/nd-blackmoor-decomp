@@ -1,0 +1,172 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x417b04
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ee34a6178f9dbede580b7391fe3cb5d437b4b7e8eef1f6ac592ff17c28c7115c
+ */
+
+void FUN_00417b04(short param_1,undefined4 param_2,int *param_3)
+
+{
+  undefined4 *puVar1;
+  byte bVar2;
+  char cVar3;
+  short sVar4;
+  byte *pbVar5;
+  int in_ECX;
+  int iVar6;
+  bool bVar7;
+  int local_3c;
+  byte *local_34;
+  byte *local_30;
+  short local_10;
+  int local_8;
+  
+  local_8 = 0;
+  pbVar5 = (byte *)FUN_0050d0bc(param_2);
+  if (*param_3 == 0) {
+    *(int *)(in_ECX + 0x57b) = in_ECX + 0x57f + param_1 * 0x84d;
+    *(undefined4 *)(in_ECX + 0x577) = *(undefined4 *)(in_ECX + 0x5c0 + param_1 * 0x84d);
+    *(int *)(in_ECX + 0x573) = in_ECX + 0x5c4 + param_1 * 0x84d;
+    sVar4 = FUN_0041a19c(pbVar5);
+    local_10 = *(short *)(*(int *)(in_ECX + 0x573) + sVar4 * 2);
+    if (local_10 == -1) {
+      FUN_0050ca3e(in_ECX + 799,s_Unable_to_find_file__s_in_the_HA_0054253c,pbVar5);
+      FUN_0052139c(in_ECX + 799,0,0);
+    }
+    else {
+      do {
+        local_34 = (byte *)(*(int *)(in_ECX + 0x577) + local_10 * 0x5e);
+        local_30 = pbVar5;
+        do {
+          bVar2 = *local_34;
+          bVar7 = bVar2 < *local_30;
+          if (bVar2 != *local_30) {
+LAB_00417c7a:
+            local_3c = (1 - (uint)bVar7) - (uint)(bVar7 != 0);
+            goto LAB_00417c82;
+          }
+          if (bVar2 == 0) break;
+          bVar2 = local_34[1];
+          bVar7 = bVar2 < local_30[1];
+          if (bVar2 != local_30[1]) goto LAB_00417c7a;
+          local_34 = local_34 + 2;
+          local_30 = local_30 + 2;
+        } while (bVar2 != 0);
+        local_3c = 0;
+LAB_00417c82:
+        if (local_3c == 0) {
+          *(undefined2 *)((int)param_3 + 0x2b) =
+               *(undefined2 *)(*(int *)(in_ECX + 0x577) + 0x49 + local_10 * 0x5e);
+          *(undefined2 *)((int)param_3 + 0x2d) =
+               *(undefined2 *)(*(int *)(in_ECX + 0x577) + 0x4d + local_10 * 0x5e);
+          *(undefined2 *)((int)param_3 + 0x2f) =
+               *(undefined2 *)(*(int *)(in_ECX + 0x577) + 0x4b + local_10 * 0x5e);
+          *(undefined2 *)((int)param_3 + 0x31) =
+               *(undefined2 *)(*(int *)(in_ECX + 0x577) + 0x4d + local_10 * 0x5e);
+          puVar1 = (undefined4 *)(*(int *)(in_ECX + 0x577) + 0x29 + local_10 * 0x5e);
+          *(undefined4 *)((int)param_3 + 0x35) = *puVar1;
+          *(undefined4 *)((int)param_3 + 0x39) = puVar1[1];
+          *(undefined4 *)((int)param_3 + 0x3d) = puVar1[2];
+          *(undefined4 *)((int)param_3 + 0x41) = puVar1[3];
+          puVar1 = (undefined4 *)(*(int *)(in_ECX + 0x577) + 0x39 + local_10 * 0x5e);
+          *(undefined4 *)((int)param_3 + 0x45) = *puVar1;
+          *(undefined4 *)((int)param_3 + 0x49) = puVar1[1];
+          *(undefined4 *)((int)param_3 + 0x4d) = puVar1[2];
+          *(undefined4 *)((int)param_3 + 0x51) = puVar1[3];
+          cVar3 = *(char *)(*(int *)(in_ECX + 0x577) + 0x5d + local_10 * 0x5e);
+          if (cVar3 == '\x02') {
+            local_8 = FUN_0051dc43(*(undefined4 *)
+                                    (*(int *)(in_ECX + 0x577) + 0x59 + local_10 * 0x5e));
+            if (local_8 == 0) {
+              FUN_0052139c(s_Unable_to_allocate_memory_for_pC_0054259c,0,0);
+              goto LAB_00418156;
+            }
+            iVar6 = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e))
+            ;
+            *param_3 = iVar6;
+            if (iVar6 == 0) {
+              FUN_0052139c(s_Unable_to_allocate_memory_for_pD_005425d0,0,0);
+              goto LAB_00418156;
+            }
+            FUN_0050ce2b(*(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845),
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x23 + local_10 * 0x5e),0);
+            iVar6 = FUN_0050cf61(local_8,*(undefined4 *)
+                                          (*(int *)(in_ECX + 0x577) + 0x59 + local_10 * 0x5e),1,
+                                 *(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845));
+            if (iVar6 == 1) {
+              FUN_0041b6e2(local_8,*param_3,
+                           *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + local_10 * 0x5e),
+                           *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e));
+              FUN_004c7314(*param_3,*(undefined4 *)
+                                     (*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e));
+              *(undefined4 *)((int)param_3 + 0x23) =
+                   *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e);
+              *(int *)((int)param_3 + 0x27) =
+                   *(int *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e) + 0x59;
+              goto LAB_00418188;
+            }
+            FUN_0050ca3e(in_ECX + 799,s_Unable_to_read_TREE_DATA_file__s_00542608,
+                         *(int *)(in_ECX + 0x577) + local_10 * 0x5e);
+            FUN_0052139c(in_ECX + 799,0,0);
+            goto LAB_00418156;
+          }
+          if (cVar3 != '\x03') goto LAB_00418156;
+          local_8 = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + local_10 * 0x5e))
+          ;
+          if (local_8 == 0) {
+            FUN_0052139c(s_Unable_to_allocate_memory_for_pC_0054262c,0,0);
+            goto LAB_00418156;
+          }
+          iVar6 = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e));
+          *param_3 = iVar6;
+          if (iVar6 == 0) {
+            FUN_0052139c(s_Unable_to_allocate_memory_for_pD_00542660,0,0);
+            goto LAB_00418156;
+          }
+          FUN_0050ce2b(*(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845),
+                       *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x23 + local_10 * 0x5e),0);
+          iVar6 = FUN_0050cf61(local_8,*(undefined4 *)
+                                        (*(int *)(in_ECX + 0x577) + 0x59 + local_10 * 0x5e),1,
+                               *(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845));
+          if (iVar6 == 1) {
+            FUN_0041b6e2(local_8,*param_3,
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + local_10 * 0x5e),
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e));
+            *(undefined4 *)((int)param_3 + 0x23) =
+                 *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e);
+            *(int *)((int)param_3 + 0x27) =
+                 *(int *)(*(int *)(in_ECX + 0x577) + 0x51 + local_10 * 0x5e) + 0x59;
+            goto LAB_00418188;
+          }
+          FUN_0050ca3e(in_ECX + 799,s_Unable_to_read_TREE_DATA_file__s_00542698,
+                       *(int *)(in_ECX + 0x577) + local_10 * 0x5e);
+          FUN_0052139c(in_ECX + 799,0,0);
+          goto LAB_00418156;
+        }
+        local_10 = *(short *)(*(int *)(in_ECX + 0x577) + 0x27 + local_10 * 0x5e);
+      } while (local_10 != -1);
+      FUN_0050ca3e(in_ECX + 799,s_Unable_to_find_file__s_in_the_HA_0054256c,pbVar5);
+      FUN_0052139c(in_ECX + 799,0,0);
+    }
+  }
+  else {
+    FUN_0050ca3e(in_ECX + 799,s_CCompressedInformationFormat__Ex_005424cc,pbVar5);
+    FUN_0052139c(in_ECX + 799,0,0);
+  }
+LAB_00418156:
+  if (*param_3 != 0) {
+    FUN_0051dc6c(*param_3);
+    *param_3 = 0;
+  }
+  for (iVar6 = 0x16; iVar6 != 0; iVar6 = iVar6 + -1) {
+    *param_3 = 0;
+    param_3 = param_3 + 1;
+  }
+  *(undefined1 *)param_3 = 0;
+LAB_00418188:
+  if (local_8 != 0) {
+    FUN_0051dc6c(local_8);
+  }
+  return;
+}
+

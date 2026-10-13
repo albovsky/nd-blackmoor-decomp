@@ -1,0 +1,78 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x42caa8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0042caa8(short param_1,int param_2)
+
+{
+  if (DAT_005b4ea3 == 2) {
+    *(undefined4 *)(&DAT_005bb626 + DAT_005b4e89 * 0x8d) = 1;
+    *(undefined2 *)(&DAT_005bb62a + DAT_005b4e89 * 0x8d) =
+         *(undefined2 *)(DAT_005b4ea9 + 0x12 + param_1 * 0x42);
+    *(undefined2 *)(&DAT_005bb62c + DAT_005b4e89 * 0x8d) =
+         *(undefined2 *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42);
+    *(undefined2 *)(&DAT_005bb62e + DAT_005b4e89 * 0x8d) =
+         *(undefined2 *)(DAT_005b4ea9 + 0x1a + param_1 * 0x42);
+    *(undefined2 *)(&DAT_005bb630 + DAT_005b4e89 * 0x8d) =
+         *(undefined2 *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42);
+  }
+  if ((*(int *)(param_2 + 0xc) < *(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42)) ||
+     (*(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42) < *(int *)(param_2 + 4))) {
+    if (((*(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42) <= *(int *)(param_2 + 0xc)) &&
+        (*(int *)(param_2 + 0xc) <= *(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42))) ||
+       ((*(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42) <= *(int *)(param_2 + 4) &&
+        (*(int *)(param_2 + 4) <= *(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42))))) {
+      if (*(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42) < *(int *)(param_2 + 4)) {
+        DAT_005b4e2c = *(int *)(param_2 + 4);
+      }
+      else {
+        DAT_005b4e2c = *(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42);
+      }
+      if (*(int *)(param_2 + 0xc) < *(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42)) {
+        DAT_005b4e34 = *(int *)(param_2 + 0xc);
+      }
+      else {
+        DAT_005b4e34 = *(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42);
+      }
+      _DAT_005b4e1c =
+           *(int *)(DAT_005b4ea9 + 6 + param_1 * 0x42) +
+           (DAT_005b4e2c - *(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42));
+      _DAT_005b4e24 =
+           *(int *)(DAT_005b4ea9 + 0xe + param_1 * 0x42) -
+           (*(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42) - DAT_005b4e34);
+      _DAT_005b4e18 = *(undefined4 *)(DAT_005b4ea9 + 2 + param_1 * 0x42);
+      _DAT_005b4e20 = *(undefined4 *)(DAT_005b4ea9 + 10 + param_1 * 0x42);
+      DAT_005b4e2c = (DAT_005b4e2c - *(int *)(param_2 + 4)) + DAT_0058318a;
+      DAT_005b4e34 = (DAT_005b4e34 - *(int *)(param_2 + 4)) + DAT_0058318a;
+      DAT_005b4e28 = *(int *)(DAT_005b4ea9 + 0x12 + param_1 * 0x42) + DAT_00583186;
+      DAT_005b4e30 = *(int *)(DAT_005b4ea9 + 0x1a + param_1 * 0x42) + DAT_00583186;
+      _DAT_005d1967 = 1;
+    }
+  }
+  else {
+    _DAT_005b4e1c = *(int *)(DAT_005b4ea9 + 6 + param_1 * 0x42);
+    _DAT_005b4e24 = *(int *)(DAT_005b4ea9 + 0xe + param_1 * 0x42);
+    _DAT_005b4e18 = *(undefined4 *)(DAT_005b4ea9 + 2 + param_1 * 0x42);
+    _DAT_005b4e20 = *(undefined4 *)(DAT_005b4ea9 + 10 + param_1 * 0x42);
+    DAT_005b4e2c = (*(int *)(DAT_005b4ea9 + 0x16 + param_1 * 0x42) - *(int *)(param_2 + 4)) +
+                   DAT_0058318a;
+    DAT_005b4e34 = (*(int *)(DAT_005b4ea9 + 0x1e + param_1 * 0x42) - *(int *)(param_2 + 4)) +
+                   DAT_0058318a;
+    DAT_005b4e28 = *(int *)(DAT_005b4ea9 + 0x12 + param_1 * 0x42) + DAT_00583186;
+    DAT_005b4e30 = *(int *)(DAT_005b4ea9 + 0x1a + param_1 * 0x42) + DAT_00583186;
+    _DAT_005d1967 = 1;
+  }
+  _DAT_005b4e5c = DAT_005b4e2c - DAT_0058318a;
+  _DAT_005b4e64 = DAT_005b4e34 - DAT_0058318a;
+  _DAT_005b4e58 = DAT_005b4e28 - DAT_00583186;
+  _DAT_005b4e60 = DAT_005b4e30 - DAT_00583186;
+  if (DAT_005b4e8b == 2) {
+    FUN_0042cecd(CONCAT22((short)((uint)_DAT_005b4e60 >> 0x10),param_1),param_2);
+  }
+  return;
+}
+

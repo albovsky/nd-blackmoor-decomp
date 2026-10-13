@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519453
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b751a5094d1e8211f653554618c4b14e01ac05861f47e521c34e1b18a0e9f8e5
+ */
+
+/* Library Function - Single Match
+    __mbsnbicoll
+   
+   Library: Visual Studio 2003 Release */
+
+int __cdecl __mbsnbicoll(uchar *_Str1,uchar *_Str2,size_t _MaxCount)
+
+{
+  int iVar1;
+  
+  if (_MaxCount == 0) {
+    return 0;
+  }
+  iVar1 = FUN_00519561(DAT_0063e124,1,_Str1,_MaxCount,_Str2,_MaxCount,DAT_0063df04);
+  if (iVar1 == 0) {
+    return 0x7fffffff;
+  }
+  return iVar1 + -2;
+}
+

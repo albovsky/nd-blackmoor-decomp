@@ -1,0 +1,49 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d3836
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+short FUN_004d3836(byte *param_1,int param_2,int param_3)
+
+{
+  int iVar1;
+  byte *pbVar2;
+  short local_c [2];
+  short local_8;
+  
+  local_8 = 0;
+  pbVar2 = param_1;
+  do {
+    if (*param_1 == 0) {
+      return local_8;
+    }
+    iVar1 = FUN_004d214b(CONCAT31((int3)((uint)local_c >> 8),*param_1),param_2,local_c,pbVar2);
+    if (iVar1 == 0) {
+      iVar1 = FUN_0050d651((int)(char)*param_1);
+      if (((iVar1 != 0) && (iVar1 = FUN_0050d67f((int)(char)*param_1), iVar1 != 0)) &&
+         (*param_1 < 0x80)) {
+        local_c[0] = (char)*param_1 + -0x41 + *(short *)(param_2 + 0x53);
+        goto LAB_004d3966;
+      }
+      iVar1 = FUN_0050d651((int)(char)*param_1);
+      if (((iVar1 != 0) && (iVar1 = FUN_0050d6a7((int)(char)*param_1), iVar1 != 0)) &&
+         (*param_1 < 0x80)) {
+        local_c[0] = (char)*param_1 + -0x61 + *(short *)(param_2 + 0x55);
+        goto LAB_004d3966;
+      }
+      iVar1 = FUN_0050d6cf((int)(char)*param_1);
+      if ((iVar1 != 0) && (*param_1 < 0x80)) {
+        local_c[0] = (char)*param_1 + -0x30 + *(short *)(param_2 + 0x57);
+        goto LAB_004d3966;
+      }
+      local_8 = local_8 + *(short *)(param_2 + 0x4f);
+    }
+    else {
+LAB_004d3966:
+      local_8 = local_8 + *(short *)(param_3 + local_c[0] * 4) + *(short *)(param_2 + 0x51);
+    }
+    param_1 = param_1 + 1;
+  } while( true );
+}
+

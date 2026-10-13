@@ -1,0 +1,64 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c5770
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c5770(int param_1,int param_2,int *param_3,int *param_4,int param_5,undefined4 param_6)
+
+{
+  int in_ECX;
+  uint uVar1;
+  undefined4 *puVar2;
+  undefined4 *puVar3;
+  undefined1 local_194 [252];
+  int local_98;
+  int local_94;
+  int local_90;
+  undefined1 local_8c [16];
+  int local_7c;
+  undefined4 *local_68;
+  uint local_10;
+  undefined4 *local_c;
+  undefined4 *local_8;
+  
+  if (DAT_0063a4cd != 0) {
+    local_98 = param_4[2] - *param_4;
+    if ((((param_3[2] - *param_3 != local_98) ||
+         (param_3[3] - param_3[1] != param_4[3] - param_4[1])) || (param_1 == 0)) || (param_2 == 0))
+    {
+      FUN_0050ca3e(local_194,s_ERROR___DFBltNoTrans_____Src_and_00554a7c,param_6,*param_3,param_3[1]
+                   ,param_3[2],param_3[3],*param_4,param_4[1],param_4[2],param_4[3]);
+      FUN_0052139c(local_194,0,0);
+      FUN_004c97b4();
+      return;
+    }
+  }
+  local_c = (undefined4 *)(param_1 + param_3[1] * param_5 + *param_3 * (int)DAT_00639895);
+  FUN_004c4067(param_2,param_4,local_8c,param_6,0x20);
+  local_90 = (param_3[3] - param_3[1]) + 1;
+  local_10 = ((param_3[2] - *param_3) + 1) * (int)DAT_00639895;
+  local_8 = local_68;
+  for (local_94 = 0; local_94 < local_90; local_94 = local_94 + 1) {
+    puVar2 = local_c;
+    puVar3 = local_8;
+    for (uVar1 = local_10 >> 2; uVar1 != 0; uVar1 = uVar1 - 1) {
+      *puVar3 = *puVar2;
+      puVar2 = puVar2 + 1;
+      puVar3 = puVar3 + 1;
+    }
+    for (uVar1 = local_10 & 3; uVar1 != 0; uVar1 = uVar1 - 1) {
+      *(undefined1 *)puVar3 = *(undefined1 *)puVar2;
+      puVar2 = (undefined4 *)((int)puVar2 + 1);
+      puVar3 = (undefined4 *)((int)puVar3 + 1);
+    }
+    local_c = (undefined4 *)((int)local_c + param_5);
+    local_8 = (undefined4 *)((int)local_8 + local_7c);
+  }
+  FUN_004c4202(param_2,param_4,s_CDirectDraw__DFBltNoTrans_____pD_00554b20);
+  if (param_2 == *(int *)(in_ECX + 0xc)) {
+    FUN_004c952f(param_4);
+  }
+  return;
+}
+

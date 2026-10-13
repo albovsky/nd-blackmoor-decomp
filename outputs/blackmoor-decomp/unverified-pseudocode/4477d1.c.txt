@@ -1,0 +1,77 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4477d1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8af1f64874eb3e8469c17e0baf09bf0097f1882284f135b85877e988363a520
+ */
+
+void FUN_004477d1(int param_1,int param_2,int param_3)
+
+{
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  int *piVar4;
+  int extraout_ECX;
+  int *piVar5;
+  int iVar6;
+  int local_40a4;
+  int local_409c;
+  int local_4098;
+  int local_4090;
+  int aiStack_4088 [4096];
+  undefined1 local_88 [16];
+  int local_78;
+  int local_64;
+  undefined4 uStack_1c;
+  int iStack_18;
+  int iStack_14;
+  undefined1 *puStack_10;
+  char *local_c;
+  
+  FUN_0050c920();
+  iVar1 = *(int *)(extraout_ECX + 0x29);
+  iVar2 = *(int *)(extraout_ECX + 0x21);
+  iVar6 = (*(int *)(extraout_ECX + 0x25) - *(int *)(extraout_ECX + 0x1d)) + 1;
+  local_c = s_lock_pDDSurf7_for_CSpecialEffect_00548540;
+  puStack_10 = local_88;
+  iStack_14 = extraout_ECX + 0x1d;
+  iStack_18 = param_1;
+  uStack_1c = 0x44783f;
+  FUN_004c3efb();
+  local_40a4 = *(int *)(extraout_ECX + 0x52) * *(int *)(extraout_ECX + 0x3d) +
+               *(int *)(extraout_ECX + 0x4e);
+  for (local_4090 = 0; local_4090 < 0x40; local_4090 = local_4090 + 1) {
+    for (local_409c = 0; local_409c < 0x40; local_409c = local_409c + 1) {
+      local_c = (char *)0x447900;
+      iVar3 = __ftol();
+      aiStack_4088[local_4090 * 0x40 + local_409c] = iVar3;
+    }
+  }
+  for (local_4098 = 0; local_4098 < (iVar1 - iVar2) + 1; local_4098 = local_4098 + 1) {
+    for (local_c = (char *)0x0; (int)local_c < iVar6 * 2; local_c = (char *)((int)local_c + 2)) {
+      piVar5 = (int *)(param_2 + local_40a4 * 0xc);
+      piVar4 = (int *)(param_3 + local_40a4 * 0xc);
+      *(ushort *)(local_64 + (int)local_c) =
+           (ushort)(aiStack_4088[*piVar5 * 0x40 + *piVar4] << (DAT_005d2f1b & 0x1f)) |
+           (ushort)(aiStack_4088[piVar5[1] * 0x40 + piVar4[1]] << (DAT_005d2f1a & 0x1f)) |
+           (ushort)(aiStack_4088[piVar5[2] * 0x40 + piVar4[2]] << (DAT_005d2f19 & 0x1f));
+      local_40a4 = local_40a4 + 1;
+    }
+    local_40a4 = local_40a4 + (*(int *)(extraout_ECX + 0x3d) - iVar6);
+    local_64 = local_64 + local_78;
+  }
+  local_c = s_unlock_pDDSurf7_for_CSpecialEffe_00548578;
+  puStack_10 = (undefined1 *)(extraout_ECX + 0x1d);
+  iStack_14 = param_1;
+  iStack_18 = 0x447a97;
+  FUN_004c4202();
+  if (param_1 == DAT_005cf665) {
+    local_c = (char *)(extraout_ECX + 0x1d);
+    puStack_10 = (undefined1 *)0x447ab6;
+    FUN_004c952f();
+  }
+  local_c = (char *)0x447ac0;
+  FUN_004c4c2b();
+  return;
+}
+

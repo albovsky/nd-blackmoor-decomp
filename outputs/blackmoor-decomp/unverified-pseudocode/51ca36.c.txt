@@ -1,0 +1,35 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ca36
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+undefined4 FUN_0051ca36(HDC param_1,undefined4 param_2,int param_3,HANDLE param_4,COLORREF param_5)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  undefined1 local_10 [4];
+  COLORREF local_c;
+  
+  if ((((param_1 == (HDC)0x0) || (param_4 == (HANDLE)0x0)) || (param_3 == 1)) ||
+     ((param_3 == 0 || (param_3 == 5)))) {
+LAB_0051caa5:
+    uVar2 = 0;
+  }
+  else {
+    if (param_3 == 2) {
+      iVar1 = FUN_0052102d(param_2,2);
+      if (iVar1 == 0) goto LAB_0051caa5;
+    }
+    GetObjectA(param_4,0xc,local_10);
+    SetBkColor(param_1,local_c);
+    if (param_5 == 0xffffffff) {
+      param_5 = GetSysColor(8);
+    }
+    SetTextColor(param_1,param_5);
+    uVar2 = 1;
+  }
+  return uVar2;
+}
+

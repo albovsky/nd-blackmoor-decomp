@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524901
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_00524901(byte param_1)
+
+{
+  CWnd *in_ECX;
+  
+  CWnd::~CWnd(in_ECX);
+  if ((param_1 & 1) != 0) {
+    FUN_0050c604(in_ECX);
+  }
+  return;
+}
+

@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5261b1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+HKEY FUN_005261b1(void)
+
+{
+  LSTATUS LVar1;
+  int in_ECX;
+  DWORD local_14;
+  HKEY local_10;
+  HKEY local_c;
+  HKEY local_8;
+  
+  local_10 = (HKEY)0x0;
+  local_8 = (HKEY)0x0;
+  local_c = (HKEY)0x0;
+  LVar1 = RegOpenKeyExA((HKEY)0x80000001,"software",0,0x2001f,&local_8);
+  if (LVar1 == 0) {
+    LVar1 = RegCreateKeyExA(local_8,*(LPCSTR *)(in_ECX + 0x7c),0,(LPSTR)0x0,0,0x2001f,
+                            (LPSECURITY_ATTRIBUTES)0x0,&local_c,&local_14);
+    if (LVar1 == 0) {
+      RegCreateKeyExA(local_c,*(LPCSTR *)(in_ECX + 0x90),0,(LPSTR)0x0,0,0x2001f,
+                      (LPSECURITY_ATTRIBUTES)0x0,&local_10,&local_14);
+    }
+  }
+  if (local_8 != (HKEY)0x0) {
+    RegCloseKey(local_8);
+  }
+  if (local_c != (HKEY)0x0) {
+    RegCloseKey(local_c);
+  }
+  return local_10;
+}
+

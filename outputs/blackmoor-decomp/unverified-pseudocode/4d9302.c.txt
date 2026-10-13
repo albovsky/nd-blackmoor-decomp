@@ -1,0 +1,76 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d9302
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619
+ */
+
+void FUN_004d9302(void)
+
+{
+  int in_ECX;
+  int iVar1;
+  undefined4 *puVar2;
+  undefined4 *puVar3;
+  
+  puVar2 = &DAT_005839b1;
+  puVar3 = (undefined4 *)(in_ECX + 0x476);
+  for (iVar1 = 0x1e; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar2 = (undefined4 *)&DAT_00583a29;
+  puVar3 = (undefined4 *)(in_ECX + 0x4ee);
+  for (iVar1 = 0x8c2; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  puVar2 = &DAT_00585d33;
+  puVar3 = (undefined4 *)(in_ECX + 0x27f8);
+  for (iVar1 = 0x29b; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  puVar2 = &DAT_005867a1;
+  puVar3 = (undefined4 *)(in_ECX + 0x3266);
+  for (iVar1 = 0x4e3; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar2 = &DAT_00587b2d;
+  puVar3 = (undefined4 *)(in_ECX + 0x45f2);
+  for (iVar1 = 5000; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  *(undefined4 *)(in_ECX + 0x9414) = DAT_0058c951;
+  *(undefined4 *)(in_ECX + 0x9418) = DAT_0058c955;
+  puVar2 = (undefined4 *)&DAT_00591990;
+  puVar3 = (undefined4 *)(in_ECX + 0x941c);
+  for (iVar1 = 0x12; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  puVar2 = &DAT_0058c959;
+  puVar3 = (undefined4 *)(in_ECX + 0x9466);
+  for (iVar1 = 0x19; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)(in_ECX + 0x94cc) = DAT_005bb57f;
+  *(undefined2 *)(in_ECX + 0x94ce) = DAT_005bb597;
+  *(undefined2 *)(in_ECX + 0x94d0) = DAT_005bb593;
+  *(undefined2 *)(in_ECX + 0x94ca) = DAT_0058c94f;
+  return;
+}
+

@@ -1,0 +1,1658 @@
+{
+  "scope": "original x86 menu hit/hover/press/deadline selector only; no command dispatch or complete startup",
+  "original_executable": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/work/original/GAME.EXE",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "original_function_va": "0x004da430",
+  "original_function_range": "0x004da430..0x004dad11",
+  "original_code_sha256": "73df1fe2a86cf89bbf7e5c6b8bcb2613fe23513427793bc537ce92598311d9e1",
+  "native_library_path": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/libstartupmenu.dylib",
+  "native_library_loaded_path": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/libstartupmenu.dylib",
+  "native_library_sha256": "d15ee2287b796021ce12ecee08221f9fbcbfb7024ed0bcfc02c1190ef2b90ed1",
+  "real_boot_menu_payload_size": 631,
+  "real_menu_rectangle_tables": {
+    "hit": 55,
+    "pressed": 199,
+    "disabled": 343,
+    "hover": 487
+  },
+  "disabled_mask_cases": [
+    0,
+    24
+  ],
+  "compared_fields": [
+    "hovered_button",
+    "pressed_button",
+    "command_ready"
+  ],
+  "compared_steps": 94,
+  "mismatches": 0,
+  "result_digest": "379cfbbae715e1e29db06401bcc2033813a977bfefce91c5e6cd334ffb492d7b",
+  "results": [
+    {
+      "label": "button-0-top-left",
+      "x": 198,
+      "y": 271,
+      "down": false,
+      "original": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-bottom-right",
+      "x": 357,
+      "y": 295,
+      "down": false,
+      "original": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-bottom-plus-10",
+      "x": 277,
+      "y": 305,
+      "down": false,
+      "original": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-left-outside",
+      "x": 197,
+      "y": 283,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-right-outside",
+      "x": 358,
+      "y": 283,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-top-outside",
+      "x": 277,
+      "y": 270,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-bottom-plus-11",
+      "x": 277,
+      "y": 306,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-top-left",
+      "x": 193,
+      "y": 33,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-bottom-right",
+      "x": 385,
+      "y": 57,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-bottom-plus-10",
+      "x": 289,
+      "y": 67,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-left-outside",
+      "x": 192,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-right-outside",
+      "x": 386,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-top-outside",
+      "x": 289,
+      "y": 32,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-bottom-plus-11",
+      "x": 289,
+      "y": 68,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-top-left",
+      "x": 146,
+      "y": 83,
+      "down": false,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-bottom-right",
+      "x": 404,
+      "y": 107,
+      "down": false,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-bottom-plus-10",
+      "x": 275,
+      "y": 117,
+      "down": false,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-left-outside",
+      "x": 145,
+      "y": 95,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-right-outside",
+      "x": 405,
+      "y": 95,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-top-outside",
+      "x": 275,
+      "y": 82,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-bottom-plus-11",
+      "x": 275,
+      "y": 118,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-top-left",
+      "x": 150,
+      "y": 129,
+      "down": false,
+      "original": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-bottom-right",
+      "x": 383,
+      "y": 153,
+      "down": false,
+      "original": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-bottom-plus-10",
+      "x": 266,
+      "y": 163,
+      "down": false,
+      "original": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-left-outside",
+      "x": 149,
+      "y": 141,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-right-outside",
+      "x": 384,
+      "y": 141,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-top-outside",
+      "x": 266,
+      "y": 128,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-bottom-plus-11",
+      "x": 266,
+      "y": 164,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-top-left",
+      "x": 140,
+      "y": 176,
+      "down": false,
+      "original": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-bottom-right",
+      "x": 381,
+      "y": 200,
+      "down": false,
+      "original": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-bottom-plus-10",
+      "x": 260,
+      "y": 210,
+      "down": false,
+      "original": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-left-outside",
+      "x": 139,
+      "y": 188,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-right-outside",
+      "x": 382,
+      "y": 188,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-top-outside",
+      "x": 260,
+      "y": 175,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-bottom-plus-11",
+      "x": 260,
+      "y": 211,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-top-left",
+      "x": 165,
+      "y": 223,
+      "down": false,
+      "original": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-bottom-right",
+      "x": 375,
+      "y": 251,
+      "down": false,
+      "original": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-bottom-plus-10",
+      "x": 270,
+      "y": 261,
+      "down": false,
+      "original": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-left-outside",
+      "x": 164,
+      "y": 237,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-right-outside",
+      "x": 376,
+      "y": 237,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-top-outside",
+      "x": 270,
+      "y": 222,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-bottom-plus-11",
+      "x": 270,
+      "y": 262,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-top-left",
+      "x": 192,
+      "y": 412,
+      "down": false,
+      "original": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-bottom-right",
+      "x": 367,
+      "y": 436,
+      "down": false,
+      "original": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-bottom-plus-10",
+      "x": 279,
+      "y": 446,
+      "down": false,
+      "original": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-left-outside",
+      "x": 191,
+      "y": 424,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-right-outside",
+      "x": 368,
+      "y": 424,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-top-outside",
+      "x": 279,
+      "y": 411,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-bottom-plus-11",
+      "x": 279,
+      "y": 447,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-top-left",
+      "x": 198,
+      "y": 317,
+      "down": false,
+      "original": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-bottom-right",
+      "x": 342,
+      "y": 345,
+      "down": false,
+      "original": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-bottom-plus-10",
+      "x": 270,
+      "y": 355,
+      "down": false,
+      "original": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-left-outside",
+      "x": 197,
+      "y": 331,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-right-outside",
+      "x": 343,
+      "y": 331,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-top-outside",
+      "x": 270,
+      "y": 316,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-bottom-plus-11",
+      "x": 270,
+      "y": 356,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-top-left",
+      "x": 157,
+      "y": 363,
+      "down": false,
+      "original": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-bottom-right",
+      "x": 400,
+      "y": 392,
+      "down": false,
+      "original": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-bottom-plus-10",
+      "x": 278,
+      "y": 402,
+      "down": false,
+      "original": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-left-outside",
+      "x": 156,
+      "y": 377,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-right-outside",
+      "x": 401,
+      "y": 377,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-top-outside",
+      "x": 278,
+      "y": 362,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-bottom-plus-11",
+      "x": 278,
+      "y": 403,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-arming",
+      "x": 277,
+      "y": 283,
+      "down": false,
+      "original": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 0,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-0-press",
+      "x": 277,
+      "y": 283,
+      "down": true,
+      "original": {
+        "hovered_button": 0,
+        "pressed_button": 0,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 0,
+        "pressed_button": 0,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-arming",
+      "x": 289,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-1-press",
+      "x": 289,
+      "y": 45,
+      "down": true,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-arming",
+      "x": 275,
+      "y": 95,
+      "down": false,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-2-press",
+      "x": 275,
+      "y": 95,
+      "down": true,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": 2,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": 2,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-arming",
+      "x": 266,
+      "y": 141,
+      "down": false,
+      "original": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 3,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-3-press",
+      "x": 266,
+      "y": 141,
+      "down": true,
+      "original": {
+        "hovered_button": 3,
+        "pressed_button": 3,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 3,
+        "pressed_button": 3,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-arming",
+      "x": 260,
+      "y": 188,
+      "down": false,
+      "original": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 4,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-4-press",
+      "x": 260,
+      "y": 188,
+      "down": true,
+      "original": {
+        "hovered_button": 4,
+        "pressed_button": 4,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 4,
+        "pressed_button": 4,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-arming",
+      "x": 270,
+      "y": 237,
+      "down": false,
+      "original": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 5,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-5-press",
+      "x": 270,
+      "y": 237,
+      "down": true,
+      "original": {
+        "hovered_button": 5,
+        "pressed_button": 5,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 5,
+        "pressed_button": 5,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-arming",
+      "x": 279,
+      "y": 424,
+      "down": false,
+      "original": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 6,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-6-press",
+      "x": 279,
+      "y": 424,
+      "down": true,
+      "original": {
+        "hovered_button": 6,
+        "pressed_button": 6,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 6,
+        "pressed_button": 6,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-arming",
+      "x": 270,
+      "y": 331,
+      "down": false,
+      "original": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 7,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-7-press",
+      "x": 270,
+      "y": 331,
+      "down": true,
+      "original": {
+        "hovered_button": 7,
+        "pressed_button": 7,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 7,
+        "pressed_button": 7,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-arming",
+      "x": 278,
+      "y": 377,
+      "down": false,
+      "original": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 8,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "button-8-press",
+      "x": 278,
+      "y": 377,
+      "down": true,
+      "original": {
+        "hovered_button": 8,
+        "pressed_button": 8,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 8,
+        "pressed_button": 8,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "disabled-mask-arm-first-enabled",
+      "x": 289,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "disabled-continue-hit",
+      "x": 266,
+      "y": 141,
+      "down": true,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "disabled-continue-stationary-poll",
+      "x": 266,
+      "y": 141,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "arm-preserved-through-disabled-rect",
+      "x": 275,
+      "y": 95,
+      "down": true,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": 2,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": 2,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "arm-before-leave",
+      "x": 289,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "leave-all-rectangles-clears-arm",
+      "x": 0,
+      "y": 0,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "outside-stationary-poll",
+      "x": 0,
+      "y": 0,
+      "down": false,
+      "original": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": -1,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "held-entry-after-leave-only-rearms",
+      "x": 275,
+      "y": 95,
+      "down": true,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": -1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "press-after-rearm-selects",
+      "x": 275,
+      "y": 95,
+      "down": true,
+      "original": {
+        "hovered_button": 2,
+        "pressed_button": 2,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 2,
+        "pressed_button": 2,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "pending-selection-locks-button-across-pointer-move",
+      "x": 275,
+      "y": 95,
+      "down": true,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "deadline-equal-does-not-dispatch",
+      "x": 289,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "after-deadline-waits-for-click-sound",
+      "x": 289,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": false
+      },
+      "match": true
+    },
+    {
+      "label": "after-deadline-and-sound-ready",
+      "x": 289,
+      "y": 45,
+      "down": false,
+      "original": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": true
+      },
+      "native": {
+        "hovered_button": 1,
+        "pressed_button": 1,
+        "command_ready": true
+      },
+      "match": true
+    }
+  ],
+  "oracle_execution": {
+    "engine": "original GAME.EXE PE32 code under Unicorn 2.1.4",
+    "original_instruction_count": 30424,
+    "hooked_platform_and_audio_calls": {
+      "GetCursorPos": 105,
+      "SetCursorPos": 80,
+      "GetSystemMetrics": 54,
+      "menu_render": 109,
+      "sound_start": 13,
+      "GetTickCount": 17,
+      "sound_complete": 3
+    },
+    "coordinate_setup": "identity logical mapping in selected 640x480 menu mode; cursor clamp dimensions 24x32 leave all tested hit coordinates unclamped",
+    "stubs": [
+      "GetCursorPos returns requested logical test point",
+      "GetTickCount returns requested 32-bit tick",
+      "GetSystemMetrics returns 0 for SM_SWAPBUTTON",
+      "SetCursorPos is a no-op success",
+      "0x4fb2e3 click-start audio call returns without playback",
+      "0x4f6334 click-sound completion returns the requested complete/incomplete state",
+      "0x4cf7e0 menu surface draw is skipped"
+    ],
+    "excluded": [
+      "0x4d9df3 original menu/resource initialization; relevant globals and all four rectangle tables are seeded from its verified BOOT-derived data",
+      "0x4da430 state-3 command dispatch (credits/new game/load/continue/setup/help/promo/exit), which invokes downstream engine behaviors",
+      "full Windows input, cursor graphics, audio, surface renderer and game loop"
+    ]
+  }
+}

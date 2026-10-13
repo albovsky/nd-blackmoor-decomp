@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51aacd
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_af67c4288d6e639a00bd5dfa5ba373e106c1ca511fa16fda1eb070cac94bb18e
+ */
+
+undefined * Catch_0051aacd(void)
+
+{
+  CWinThread *pCVar1;
+  undefined4 uVar2;
+  int unaff_EBP;
+  
+  pCVar1 = AfxGetThread();
+  uVar2 = (**(code **)(*(int *)pCVar1 + 0x6c))
+                    (*(undefined4 *)(unaff_EBP + 0xc),*(int *)(unaff_EBP + -0x14) + 0x34);
+  *(undefined4 *)(unaff_EBP + 0x18) = uVar2;
+  FUN_0051f636();
+  return &DAT_0051aaf4;
+}
+

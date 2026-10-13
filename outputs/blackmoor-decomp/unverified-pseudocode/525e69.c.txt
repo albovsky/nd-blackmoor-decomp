@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525e69
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+bool FUN_00525e69(void)
+
+{
+  UINT CodePage;
+  _cpinfo *lpCPInfo;
+  _cpinfo local_18;
+  
+  lpCPInfo = &local_18;
+  CodePage = GetOEMCP();
+  GetCPInfo(CodePage,lpCPInfo);
+  return 1 < local_18.MaxCharSize;
+}
+

@@ -1,0 +1,48 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522e1a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+void FUN_00522e1a(int param_1)
+
+{
+  HWND pHVar1;
+  int iVar2;
+  HWND pHVar3;
+  int *in_ECX;
+  
+  if ((param_1 == 0) || ((*(byte *)(in_ECX + 9) & 4) == 0)) {
+    pHVar1 = GetParent((HWND)in_ECX[7]);
+    iVar2 = FUN_0051abe4(pHVar1);
+    if (iVar2 == 0) {
+      if (param_1 == 0) {
+        if (in_ECX[0x28] == 0) {
+          *(byte *)(in_ECX + 9) = *(byte *)(in_ECX + 9) | 0x80;
+          (**(code **)(*in_ECX + 0x88))();
+        }
+      }
+      else {
+        if ((in_ECX[9] & 0x80U) != 0) {
+          in_ECX[9] = in_ECX[9] & 0xffffff7f;
+          (**(code **)(*in_ECX + 0x8c))();
+          pHVar1 = (HWND)in_ECX[7];
+          pHVar3 = GetActiveWindow();
+          if (pHVar3 == pHVar1) {
+            SendMessageA(pHVar1,6,1,0);
+          }
+        }
+        if ((*(byte *)(in_ECX + 9) & 0x20) != 0) {
+          SendMessageA((HWND)in_ECX[7],0x86,1,0);
+        }
+      }
+      FUN_00522ed0((-(uint)(param_1 != 0) & 0xfffffff0) + 0x20);
+    }
+  }
+  else {
+    FUN_0051d672(0);
+    SetFocus((HWND)0x0);
+  }
+  return;
+}
+

@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b3c5a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9c28e49ff0d0581c06fedda0626bb3b37c974388a5ee867a2a287f28c8c49afa
+ */
+
+void FUN_004b3c5a(void)
+
+{
+  int in_ECX;
+  
+  *(undefined2 *)(in_ECX + 0x728) = 0xffff;
+  *(undefined4 *)(in_ECX + 0x754) = 0;
+  *(undefined2 *)(in_ECX + 0x726) = 0xffff;
+  *(undefined4 *)(in_ECX + 0x76e) = 0;
+  *(undefined2 *)(in_ECX + 0x75a) = 0xffff;
+  *(undefined2 *)(in_ECX + 0x75c) = 0xffff;
+  *(undefined2 *)(in_ECX + 0x758) = 0xffff;
+  *(undefined2 *)(in_ECX + 0x71c) = 0xffff;
+  *(undefined2 *)(in_ECX + 0x72a) = 0xffff;
+  *(undefined2 *)(in_ECX + 0x750) = 0;
+  *(undefined2 *)(in_ECX + 0x752) = 0;
+  *(undefined2 *)(in_ECX + 0x74c) = 0;
+  *(undefined2 *)(in_ECX + 0x74e) = 0;
+  *(undefined4 *)(in_ECX + 0x77a) = 0;
+  *(undefined4 *)(in_ECX + 0x77e) = 0;
+  *(undefined2 *)(in_ECX + 0x71e) = 0;
+  *(undefined2 *)(in_ECX + 0x720) = 0;
+  *(undefined2 *)(in_ECX + 0x722) = 0;
+  *(undefined2 *)(in_ECX + 0x724) = 0;
+  return;
+}
+

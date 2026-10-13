@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51a40a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+/* Library Function - Multiple Matches With Same Base Name
+    public: __thiscall CMap<void *,void *,void *,void *>::CMap<void *,void *,void *,void *>(int)
+    public: __thiscall CMap<class ATL::CStringT<wchar_t,class StrTraitMFC<wchar_t,class
+   ATL::ChTraitsOS<wchar_t> > >,wchar_t const *,void *,void *>::CMap<class
+   ATL::CStringT<wchar_t,class StrTraitMFC<wchar_t,class ATL::ChTraitsOS<wchar_t> > >,wchar_t const
+   *,void *,void *>(int)
+   
+   Libraries: Visual Studio 2005 Release, Visual Studio 2008 Release */
+
+void CMap<>(undefined4 param_1)
+
+{
+  undefined4 *in_ECX;
+  
+  in_ECX[1] = 0;
+  in_ECX[3] = 0;
+  in_ECX[4] = 0;
+  in_ECX[5] = 0;
+  *in_ECX = &PTR_LAB_0052febc;
+  in_ECX[2] = 0x11;
+  in_ECX[6] = param_1;
+  return;
+}
+

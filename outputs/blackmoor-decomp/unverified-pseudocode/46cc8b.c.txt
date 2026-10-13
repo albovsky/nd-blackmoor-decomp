@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46cc8b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+void FUN_0046cc8b(void)
+
+{
+  int iVar1;
+  bool bVar2;
+  int in_ECX;
+  int local_14;
+  int local_10;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  local_10 = 0;
+  while( true ) {
+    if (*(short *)(iVar1 + 0x4ca) <= local_10) {
+      return;
+    }
+    bVar2 = true;
+    for (local_14 = 0; (bVar2 && (local_14 < *(short *)(iVar1 + 0x4f))); local_14 = local_14 + 1) {
+      if ((*(int *)(in_ECX + 0x48a0 + local_14 * 0x10) == 0) ||
+         ((*(short *)(in_ECX + 0x48a8 + local_14 * 0x10) !=
+           *(short *)(iVar1 + 0x4cc + local_10 * 0x50 + local_14 * 2) ||
+          (*(short *)(in_ECX + 0x48aa + local_14 * 0x10) !=
+           *(short *)(iVar1 + local_10 * 0x50 + 0x4f4 + local_14 * 2))))) {
+        bVar2 = false;
+      }
+    }
+    if (bVar2) break;
+    local_10 = local_10 + 1;
+  }
+  *(undefined1 *)(in_ECX + 0x4a59) = 1;
+  *(undefined4 *)(in_ECX + 0x4a55) = 2;
+  return;
+}
+

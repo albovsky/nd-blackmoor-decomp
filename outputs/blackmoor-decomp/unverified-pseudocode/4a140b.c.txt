@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a140b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f9d88b0169a812ae2c4ead5dc0ce17ad9653751613cdfaa979f2506d84e4924b
+ */
+
+void FUN_004a140b(undefined4 *param_1)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0xdf4) + -1 <= *(int *)(in_ECX + 0xdf0)) {
+    FUN_0050ca3e(&DAT_0063888b,s_CRayCastLevelBuilder__PushCellSt_00550278,
+                 *(undefined4 *)(in_ECX + 0xdf0));
+    FUN_0052139c(&DAT_0063888b,0,0);
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    FUN_004c97b4();
+  }
+  *(int *)(in_ECX + 0xdf0) = *(int *)(in_ECX + 0xdf0) + 1;
+  *param_1 = *(undefined4 *)(*(int *)(in_ECX + 0xdec) + *(int *)(in_ECX + 0xdf0) * 8);
+  param_1[1] = *(undefined4 *)(*(int *)(in_ECX + 0xdec) + 4 + *(int *)(in_ECX + 0xdf0) * 8);
+  return;
+}
+

@@ -1,0 +1,803 @@
+{
+  "project_root": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "worker_model": "gpt-6-luna",
+  "reasoning_effort": "max",
+  "current_slice_complete": true,
+  "slices": [
+    {
+      "id": "S01",
+      "title": "Complete world initialization",
+      "packet": "tasks/S01-world-init.md",
+      "status": "READY: original recovery + isolated kernel",
+      "depends_on": []
+    },
+    {
+      "id": "S02",
+      "title": "Timed Bink playback",
+      "packet": "tasks/S02-bink-player.md",
+      "status": "READY: media adapter/kernel",
+      "depends_on": []
+    },
+    {
+      "id": "S03",
+      "title": "AVF media path",
+      "packet": "tasks/S03-avf-player.md",
+      "status": "READY: original recovery + isolated codec",
+      "depends_on": []
+    },
+    {
+      "id": "S04",
+      "title": "Sound control and decoder fidelity",
+      "packet": "tasks/S04-sound-control.md",
+      "status": "READY: original recovery + isolated command kernel",
+      "depends_on": []
+    },
+    {
+      "id": "S05",
+      "title": "Caption layout and font rendering",
+      "packet": "tasks/S05-caption-layout.md",
+      "status": "READY: original recovery + isolated renderer",
+      "depends_on": []
+    },
+    {
+      "id": "S06",
+      "title": "Remaining dependency leaf operations",
+      "packet": "tasks/S06-condition-extra.md",
+      "status": "READY: original recovery + isolated evaluators",
+      "depends_on": []
+    },
+    {
+      "id": "S07",
+      "title": "Save format and serializer",
+      "packet": "tasks/S07-save-format.md",
+      "status": "READY: original recovery + isolated serializer",
+      "depends_on": []
+    },
+    {
+      "id": "S08",
+      "title": "Matching build and function batches",
+      "packet": "tasks/S08-matching-build.md",
+      "status": "READY: independent matching track",
+      "depends_on": []
+    },
+    {
+      "id": "A-0B",
+      "title": "Action 0x0b: runtime (body boundary already typed)",
+      "packet": "tasks/A-0B-action-0b.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x0b",
+      "records": 1275,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-0C",
+      "title": "Action 0x0c: body boundary and runtime",
+      "packet": "tasks/A-0C-action-0c.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x0c",
+      "records": 43,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-16",
+      "title": "Action 0x16: body boundary and runtime",
+      "packet": "tasks/A-16-action-16.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x16",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-17",
+      "title": "Action 0x17: body boundary and runtime",
+      "packet": "tasks/A-17-action-17.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x17",
+      "records": 10,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-1B",
+      "title": "Action 0x1b: body boundary and runtime",
+      "packet": "tasks/A-1B-action-1b.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x1b",
+      "records": 4,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-1C",
+      "title": "Action 0x1c: body boundary and runtime",
+      "packet": "tasks/A-1C-action-1c.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x1c",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-20",
+      "title": "Action 0x20: body boundary and runtime",
+      "packet": "tasks/A-20-action-20.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x20",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-28",
+      "title": "Action 0x28: body boundary and runtime",
+      "packet": "tasks/A-28-action-28.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x28",
+      "records": 72,
+      "priority": "S5900 opening blocker"
+    },
+    {
+      "id": "A-2D",
+      "title": "Action 0x2d: body boundary and runtime",
+      "packet": "tasks/A-2D-action-2d.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x2d",
+      "records": 3,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-2E",
+      "title": "Action 0x2e: body boundary and runtime",
+      "packet": "tasks/A-2E-action-2e.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x2e",
+      "records": 10,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-33",
+      "title": "Action 0x33: body boundary and runtime",
+      "packet": "tasks/A-33-action-33.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x33",
+      "records": 3,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-35",
+      "title": "Action 0x35: body boundary and runtime",
+      "packet": "tasks/A-35-action-35.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x35",
+      "records": 113,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-36",
+      "title": "Action 0x36: body boundary and runtime",
+      "packet": "tasks/A-36-action-36.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x36",
+      "records": 20,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-37",
+      "title": "Action 0x37: body boundary and runtime",
+      "packet": "tasks/A-37-action-37.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x37",
+      "records": 4308,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-38",
+      "title": "Action 0x38: body boundary and runtime",
+      "packet": "tasks/A-38-action-38.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x38",
+      "records": 425,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-3E",
+      "title": "Action 0x3e: body boundary and runtime",
+      "packet": "tasks/A-3E-action-3e.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x3e",
+      "records": 202,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-3F",
+      "title": "Action 0x3f: body boundary and runtime",
+      "packet": "tasks/A-3F-action-3f.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x3f",
+      "records": 493,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-43",
+      "title": "Action 0x43: body boundary and runtime",
+      "packet": "tasks/A-43-action-43.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x43",
+      "records": 13,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-44",
+      "title": "Action 0x44: body boundary and runtime",
+      "packet": "tasks/A-44-action-44.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x44",
+      "records": 27,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-45",
+      "title": "Action 0x45: body boundary and runtime",
+      "packet": "tasks/A-45-action-45.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x45",
+      "records": 32,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-47",
+      "title": "Action 0x47: runtime (body boundary already typed)",
+      "packet": "tasks/A-47-action-47.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x47",
+      "records": 139,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-4B",
+      "title": "Action 0x4b: body boundary and runtime",
+      "packet": "tasks/A-4B-action-4b.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x4b",
+      "records": 9,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-4E",
+      "title": "Action 0x4e: body boundary and runtime",
+      "packet": "tasks/A-4E-action-4e.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x4e",
+      "records": 18,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-4F",
+      "title": "Action 0x4f: runtime (body boundary already typed)",
+      "packet": "tasks/A-4F-action-4f.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x4f",
+      "records": 815,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-51",
+      "title": "Action 0x51: body boundary and runtime",
+      "packet": "tasks/A-51-action-51.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x51",
+      "records": 97,
+      "priority": "S5900 opening blocker"
+    },
+    {
+      "id": "A-62",
+      "title": "Action 0x62: body boundary and runtime",
+      "packet": "tasks/A-62-action-62.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x62",
+      "records": 1802,
+      "priority": "S5900 opening blocker"
+    },
+    {
+      "id": "A-64",
+      "title": "Action 0x64: body boundary and runtime",
+      "packet": "tasks/A-64-action-64.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x64",
+      "records": 7,
+      "priority": "S5900 opening blocker"
+    },
+    {
+      "id": "A-65",
+      "title": "Action 0x65: body boundary and runtime",
+      "packet": "tasks/A-65-action-65.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x65",
+      "records": 7,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-67",
+      "title": "Action 0x67: body boundary and runtime",
+      "packet": "tasks/A-67-action-67.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x67",
+      "records": 27,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-68",
+      "title": "Action 0x68: body boundary and runtime",
+      "packet": "tasks/A-68-action-68.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x68",
+      "records": 10,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-69",
+      "title": "Action 0x69: body boundary and runtime",
+      "packet": "tasks/A-69-action-69.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x69",
+      "records": 7,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-6D",
+      "title": "Action 0x6d: body boundary and runtime",
+      "packet": "tasks/A-6D-action-6d.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x6d",
+      "records": 1,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-6E",
+      "title": "Action 0x6e: body boundary and runtime",
+      "packet": "tasks/A-6E-action-6e.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x6e",
+      "records": 68,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-6F",
+      "title": "Action 0x6f: body boundary and runtime",
+      "packet": "tasks/A-6F-action-6f.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x6f",
+      "records": 25,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-70",
+      "title": "Action 0x70: body boundary and runtime",
+      "packet": "tasks/A-70-action-70.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x70",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-76",
+      "title": "Action 0x76: body boundary and runtime",
+      "packet": "tasks/A-76-action-76.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x76",
+      "records": 1,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-77",
+      "title": "Action 0x77: body boundary and runtime",
+      "packet": "tasks/A-77-action-77.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x77",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-78",
+      "title": "Action 0x78: runtime (body boundary already typed)",
+      "packet": "tasks/A-78-action-78.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x78",
+      "records": 466,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-79",
+      "title": "Action 0x79: body boundary and runtime",
+      "packet": "tasks/A-79-action-79.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x79",
+      "records": 38,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-7D",
+      "title": "Action 0x7d: body boundary and runtime",
+      "packet": "tasks/A-7D-action-7d.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x7d",
+      "records": 4,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-80",
+      "title": "Action 0x80: body boundary and runtime",
+      "packet": "tasks/A-80-action-80.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x80",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-83",
+      "title": "Action 0x83: body boundary and runtime",
+      "packet": "tasks/A-83-action-83.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x83",
+      "records": 9,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-94",
+      "title": "Action 0x94: body boundary and runtime",
+      "packet": "tasks/A-94-action-94.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x94",
+      "records": 12,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-95",
+      "title": "Action 0x95: runtime (body boundary already typed)",
+      "packet": "tasks/A-95-action-95.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x95",
+      "records": 123,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-97",
+      "title": "Action 0x97: body boundary and runtime",
+      "packet": "tasks/A-97-action-97.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x97",
+      "records": 1958,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-9A",
+      "title": "Action 0x9a: body boundary and runtime",
+      "packet": "tasks/A-9A-action-9a.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0x9a",
+      "records": 1,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-A1",
+      "title": "Action 0xa1: body boundary and runtime",
+      "packet": "tasks/A-A1-action-a1.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xa1",
+      "records": 565,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-AA",
+      "title": "Action 0xaa: body boundary and runtime",
+      "packet": "tasks/A-AA-action-aa.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xaa",
+      "records": 1,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-D0",
+      "title": "Action 0xd0: body boundary and runtime",
+      "packet": "tasks/A-D0-action-d0.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xd0",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-D1",
+      "title": "Action 0xd1: body boundary and runtime",
+      "packet": "tasks/A-D1-action-d1.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xd1",
+      "records": 11,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-D3",
+      "title": "Action 0xd3: body boundary and runtime",
+      "packet": "tasks/A-D3-action-d3.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xd3",
+      "records": 3,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-D6",
+      "title": "Action 0xd6: body boundary and runtime",
+      "packet": "tasks/A-D6-action-d6.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xd6",
+      "records": 1,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-D9",
+      "title": "Action 0xd9: runtime (body boundary already typed)",
+      "packet": "tasks/A-D9-action-d9.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xd9",
+      "records": 274,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-DA",
+      "title": "Action 0xda: body boundary and runtime",
+      "packet": "tasks/A-DA-action-da.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xda",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-E0",
+      "title": "Action 0xe0: body boundary and runtime",
+      "packet": "tasks/A-E0-action-e0.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xe0",
+      "records": 3,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-E4",
+      "title": "Action 0xe4: body boundary and runtime",
+      "packet": "tasks/A-E4-action-e4.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xe4",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-EA",
+      "title": "Action 0xea: body boundary and runtime",
+      "packet": "tasks/A-EA-action-ea.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xea",
+      "records": 6,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-EB",
+      "title": "Action 0xeb: body boundary and runtime",
+      "packet": "tasks/A-EB-action-eb.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xeb",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-EE",
+      "title": "Action 0xee: body boundary and runtime",
+      "packet": "tasks/A-EE-action-ee.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xee",
+      "records": 2,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-F5",
+      "title": "Action 0xf5: body boundary and runtime",
+      "packet": "tasks/A-F5-action-f5.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xf5",
+      "records": 4,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "A-F6",
+      "title": "Action 0xf6: body boundary and runtime",
+      "packet": "tasks/A-F6-action-f6.md",
+      "status": "READY recovery/kernel",
+      "depends_on": [],
+      "raw_type": "0xf6",
+      "records": 6,
+      "priority": "remaining corpus family"
+    },
+    {
+      "id": "I01",
+      "title": "Live world and S0 app loop",
+      "packet": "tasks/I01-live-world-and-s0-app-loop.md",
+      "status": "BLOCKED integration",
+      "depends_on": [
+        "S01",
+        "S02",
+        "S04",
+        "S05"
+      ]
+    },
+    {
+      "id": "I02",
+      "title": "Opening scene execution",
+      "packet": "tasks/I02-opening-scene-execution.md",
+      "status": "BLOCKED integration",
+      "depends_on": [
+        "I01",
+        "A-64",
+        "A-62",
+        "A-28",
+        "A-51"
+      ]
+    },
+    {
+      "id": "I03",
+      "title": "Dialogue, inventory and puzzle integration",
+      "packet": "tasks/I03-dialogue-inventory-and-puzzle-integration.md",
+      "status": "BLOCKED integration",
+      "depends_on": [
+        "I02",
+        "S06"
+      ],
+      "completion_requires": [
+        "A-0B",
+        "A-0C",
+        "A-16",
+        "A-17",
+        "A-1B",
+        "A-1C",
+        "A-20",
+        "A-28",
+        "A-2D",
+        "A-2E",
+        "A-33",
+        "A-35",
+        "A-36",
+        "A-37",
+        "A-38",
+        "A-3E",
+        "A-3F",
+        "A-43",
+        "A-44",
+        "A-45",
+        "A-47",
+        "A-4B",
+        "A-4E",
+        "A-4F",
+        "A-51",
+        "A-62",
+        "A-64",
+        "A-65",
+        "A-67",
+        "A-68",
+        "A-69",
+        "A-6D",
+        "A-6E",
+        "A-6F",
+        "A-70",
+        "A-76",
+        "A-77",
+        "A-78",
+        "A-79",
+        "A-7D",
+        "A-80",
+        "A-83",
+        "A-94",
+        "A-95",
+        "A-97",
+        "A-9A",
+        "A-A1",
+        "A-AA",
+        "A-D0",
+        "A-D1",
+        "A-D3",
+        "A-D6",
+        "A-D9",
+        "A-DA",
+        "A-E0",
+        "A-E4",
+        "A-EA",
+        "A-EB",
+        "A-EE",
+        "A-F5",
+        "A-F6"
+      ]
+    },
+    {
+      "id": "I04",
+      "title": "Menus, save/load and session restart",
+      "packet": "tasks/I04-menus-save-load-and-session-restart.md",
+      "status": "BLOCKED integration",
+      "depends_on": [
+        "S07",
+        "I01",
+        "I03"
+      ]
+    },
+    {
+      "id": "I05",
+      "title": "Complete gameplay and hardware verification",
+      "packet": "tasks/I05-complete-gameplay-and-hardware-verification.md",
+      "status": "BLOCKED integration",
+      "depends_on": [
+        "I03",
+        "I04"
+      ]
+    },
+    {
+      "id": "I06",
+      "title": "Whole executable match and final package",
+      "packet": "tasks/I06-whole-executable-match-and-final-package.md",
+      "status": "BLOCKED integration",
+      "depends_on": [
+        "S08",
+        "I05"
+      ]
+    }
+  ]
+}

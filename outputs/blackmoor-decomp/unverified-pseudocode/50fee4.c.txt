@@ -1,0 +1,38 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50fee4
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+undefined4 FUN_0050fee4(DWORD *param_1)
+
+{
+  BOOL BVar1;
+  DWORD DVar2;
+  undefined4 uVar3;
+  void *local_14;
+  undefined1 *puStack_10;
+  undefined *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &DAT_00530290;
+  puStack_10 = &LAB_00511930;
+  local_14 = ExceptionList;
+  ExceptionList = &local_14;
+  BVar1 = TlsSetValue(DAT_005681f0,param_1);
+  if (BVar1 == 0) {
+    __amsg_exit(0x10);
+  }
+  DVar2 = GetCurrentThreadId();
+  *param_1 = DVar2;
+  if (PTR_FUN_00567e2c != (undefined *)0x0) {
+    (*(code *)PTR_FUN_00567e2c)();
+  }
+  local_8 = 0;
+  uVar3 = (*(code *)param_1[0x12])(param_1[0x13]);
+  FUN_0050ff80(uVar3);
+  ExceptionList = local_14;
+  return 0;
+}
+

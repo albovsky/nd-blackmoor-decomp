@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b82cd
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+void FUN_004b82cd(void)
+
+{
+  int in_ECX;
+  
+  if ((((*(int *)(in_ECX + 0x14) != 0) && (*(int *)(in_ECX + 0x20) == 0)) &&
+      (*(int *)(in_ECX + 0x10) == 0)) &&
+     ((*(int *)(&DAT_005bb632 + *(short *)(in_ECX + 6) * 0x8d) == 1 && (DAT_005c39e5 == 0x27eb)))) {
+    *(undefined4 *)(&DAT_005bb632 + *(short *)(in_ECX + 6) * 0x8d) = 2;
+  }
+  return;
+}
+

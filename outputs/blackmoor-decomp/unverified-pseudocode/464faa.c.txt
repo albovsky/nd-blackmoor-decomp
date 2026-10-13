@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x464faa
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_87c215b6acae2dc5650e31fcd27f76d139aec2c1d8e05fbf5ef1e7fe469374cd
+ */
+
+void FUN_00464faa(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  int iVar2;
+  char *pcVar3;
+  char *pcVar4;
+  bool bVar5;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  iVar2 = 9;
+  bVar5 = true;
+  pcVar3 = (char *)(iVar1 + 0x395);
+  pcVar4 = s_NO_SOUND_0054b344;
+  do {
+    if (iVar2 == 0) break;
+    iVar2 = iVar2 + -1;
+    bVar5 = *pcVar3 == *pcVar4;
+    pcVar3 = pcVar3 + 1;
+    pcVar4 = pcVar4 + 1;
+  } while (bVar5);
+  if (!bVar5) {
+    FUN_004fb2e3(CONCAT22((short)((uint)iVar1 >> 0x10),*(undefined2 *)(iVar1 + 0x3b6)));
+  }
+  return;
+}
+

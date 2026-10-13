@@ -1,0 +1,97 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c2a8d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+int * FUN_004c2a8d(short param_1,short param_2,int param_3,char *param_4)
+
+{
+  char cVar1;
+  int *piVar2;
+  int iVar3;
+  uint uVar4;
+  uint uVar5;
+  int iVar6;
+  int *piVar7;
+  char *pcVar8;
+  int *piVar9;
+  
+  piVar2 = (int *)FUN_0051dc43(0x59);
+  if (piVar2 == (int *)0x0) {
+    FUN_0042639d(s_ERROR___CDirectDraw__CreateDFSur_00553dbc,param_4);
+    FUN_004c97b4();
+    piVar2 = (int *)0x0;
+  }
+  else {
+    piVar7 = piVar2;
+    for (iVar3 = 0x16; iVar3 != 0; iVar3 = iVar3 + -1) {
+      *piVar7 = 0;
+      piVar7 = piVar7 + 1;
+    }
+    *(undefined1 *)piVar7 = 0;
+    iVar6 = (int)param_1 * (int)DAT_00639895 * (int)param_2;
+    iVar3 = FUN_0051dc43(iVar6);
+    *piVar2 = iVar3;
+    if (iVar3 == 0) {
+      FUN_0042639d(s_ERROR___CDirectDraw__CreateDFSur_00553e14,param_4);
+      FUN_004c97b4();
+      piVar2 = (int *)0x0;
+    }
+    else {
+      uVar4 = 0xffffffff;
+      pcVar8 = param_4;
+      do {
+        if (uVar4 == 0) break;
+        uVar4 = uVar4 - 1;
+        cVar1 = *pcVar8;
+        pcVar8 = pcVar8 + 1;
+      } while (cVar1 != '\0');
+      if (0x18 < ~uVar4 - 1) {
+        param_4[0x18] = '\0';
+      }
+      uVar4 = 0xffffffff;
+      do {
+        pcVar8 = param_4;
+        if (uVar4 == 0) break;
+        uVar4 = uVar4 - 1;
+        pcVar8 = param_4 + 1;
+        cVar1 = *param_4;
+        param_4 = pcVar8;
+      } while (cVar1 != '\0');
+      uVar4 = ~uVar4;
+      piVar7 = (int *)(pcVar8 + -uVar4);
+      piVar9 = piVar2 + 2;
+      for (uVar5 = uVar4 >> 2; uVar5 != 0; uVar5 = uVar5 - 1) {
+        *piVar9 = *piVar7;
+        piVar7 = piVar7 + 1;
+        piVar9 = piVar9 + 1;
+      }
+      for (uVar4 = uVar4 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
+        *(char *)piVar9 = (char)*piVar7;
+        piVar7 = (int *)((int)piVar7 + 1);
+        piVar9 = (int *)((int)piVar9 + 1);
+      }
+      piVar2[1] = param_3;
+      *(undefined2 *)((int)piVar2 + 0x21) = 0x59;
+      *(int *)((int)piVar2 + 0x23) = iVar6;
+      *(int *)((int)piVar2 + 0x27) = iVar6 + 0x59;
+      *(short *)((int)piVar2 + 0x2b) = param_1;
+      *(short *)((int)piVar2 + 0x2d) = param_2;
+      *(short *)((int)piVar2 + 0x2f) = param_1 * DAT_00639895;
+      *(short *)((int)piVar2 + 0x31) = param_2;
+      *(undefined2 *)((int)piVar2 + 0x33) = DAT_00639893;
+      *(undefined4 *)((int)piVar2 + 0x55) = 0;
+      *(undefined4 *)((int)piVar2 + 0x35) = 0;
+      *(undefined4 *)((int)piVar2 + 0x39) = 0;
+      *(int *)((int)piVar2 + 0x3d) = param_1 + -1;
+      *(int *)((int)piVar2 + 0x41) = param_2 + -1;
+      *(undefined4 *)((int)piVar2 + 0x45) = 0;
+      *(undefined4 *)((int)piVar2 + 0x49) = 0;
+      *(undefined4 *)((int)piVar2 + 0x4d) = 0;
+      *(undefined4 *)((int)piVar2 + 0x51) = 0;
+    }
+  }
+  return piVar2;
+}
+

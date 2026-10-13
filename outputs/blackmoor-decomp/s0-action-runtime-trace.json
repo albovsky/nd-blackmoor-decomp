@@ -1,0 +1,454 @@
+{
+  "scope": "readonly original action runtime trace for generic scene-action executor work",
+  "authority": "existing unverified Ghidra pseudocode plus read-only scan via existing scene parser",
+  "production_files_modified": false,
+  "native_oracle_executed": false,
+  "slot": {
+    "stride": 141,
+    "type_offset": 0,
+    "subtype_offset": 1,
+    "payload_pointer_offset": 2,
+    "dependency_pointer_offset": 6,
+    "complete_offset": 66,
+    "hotspot_active_offset": 67,
+    "click_rect_i16_offsets": [
+      71,
+      73,
+      75,
+      77
+    ],
+    "phase_status_i32_offset": 79,
+    "unused_marker_i32_offset": 85,
+    "unused_marker_initial": 1,
+    "unused_marker_after_successful_load": 0,
+    "runtime_action_limit_normal_scene": 120,
+    "runtime_action_limit_special_scene": 240,
+    "active_high_water_global": "DAT_005c39e3"
+  },
+  "lifecycle": {
+    "full_init": "4381f4",
+    "loader": "439822 -> 40b34a -> 424aa8",
+    "scene_tick": "43a7ca -> 427a50",
+    "dispatcher_order": "ascending occupied slots; own dependency gate before own executor; earlier writes visible to later slots in same pass",
+    "dispatcher_predicates": [
+      "DAT_00583999 == 3",
+      "slot complete byte == 0",
+      "slot unused marker == 0"
+    ],
+    "dependency_gate": "423f57 -> 424201 -> 424346",
+    "completion_helper": {
+      "function": "42ba3a",
+      "subtype_1": "set complete byte to 1",
+      "subtype_2": "clear complete byte, reset dependency tree via 423d33",
+      "both": "clear phase/status i32 at offset 0x4f",
+      "removes_slot": false,
+      "caveat": "not all executor branches use this helper; 0x71 completes directly"
+    }
+  },
+  "hotspot_input": {
+    "input_path": "43a7ca -> 4d3073 -> 4f0059; next 43a7ca iteration handles pending slot index before 427a50",
+    "executor_effect": "hotspot executors export rectangle and set active flag; they do not write phase 2",
+    "rect_slot_offsets": {
+      "left": 71,
+      "top": 73,
+      "right": 75,
+      "bottom": 77
+    },
+    "hit_test_pointer_offsets": {
+      "y": 90,
+      "x": 94
+    },
+    "bounds": "inclusive",
+    "event_index_global": "DAT_005c39e5",
+    "phase2_global_slot_offset": 79,
+    "phase2_gate": "valid slot index < 240 and no modal event; action/dependency helpers gate phase-2 write",
+    "explicit_mouse_button_gate_in_rect_loop": "not evident; preserve input-event contract rather than adding one in executor",
+    "frame_match_global": "DAT_005bb50b"
+  },
+  "atomic_executor_contracts": {
+    "0x4d": {
+      "body_bytes": 4,
+      "fields": [
+        "u8 index",
+        "u8 mode",
+        "i16 value"
+      ],
+      "dependency_context_mode": 1,
+      "storage": {
+        "index_0_29": "30 x i16 at DAT_0058c959",
+        "index_30_39": "10 x float at DAT_0058c91d"
+      },
+      "mode_0": "add, except old value 9999 causes assignment",
+      "mode_nonzero": "assign",
+      "completion": "42ba3a"
+    },
+    "0x61": {
+      "body_bytes": 8,
+      "fields": "2 x (i16 id, i16 value)",
+      "dependency_context_mode": 0,
+      "effect": "for each id != -1, store sign-extended i16 value as i32 event flag",
+      "completion": "42ba3a"
+    },
+    "0x6b": {
+      "body_bytes": 40,
+      "fields": "10 x (i16 id, i16 value)",
+      "dependency_context_mode": 0,
+      "effect": "for each id != -1, store sign-extended i16 value as i32 event flag",
+      "completion": "42ba3a"
+    },
+    "0x71": {
+      "body_bytes": 6,
+      "fields": [
+        "i16 difficulty",
+        "i16 optional_flag_id",
+        "i16 flag_value"
+      ],
+      "dependency_context_mode": 0,
+      "effect": "store difficulty in DAT_0058c94f; if optional_flag_id != -1, store sign-extended value in event flags",
+      "completion": "direct complete=1; subtype does not go through 42ba3a"
+    }
+  },
+  "s0": {
+    "resource": "work/analysis/hiff-resources/0800.bin",
+    "title": "Player Challenge Screen",
+    "action_count": 38,
+    "typed_parser_counts_by_raw_type": {
+      "0x0a": 1,
+      "0x15": 1,
+      "0x1d": 3,
+      "0x4d": 23,
+      "0x61": 1,
+      "0x6a": 2,
+      "0x6b": 2,
+      "0x71": 2,
+      "0x82": 2,
+      "0x9f": 1
+    },
+    "subtypes": {
+      "subtype_1": 36,
+      "subtype_2": 2
+    },
+    "runtime_rewrite": {
+      "raw_type": "0x15",
+      "body_first_u16_runtime_type": "0x0d",
+      "runtime_executor": "42ae73 hotspot scene-change"
+    },
+    "set_values": {
+      "mode": 1,
+      "value": 0,
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "index_4_repeated": true
+    },
+    "event_flag_rows": [
+      {
+        "raw_type": "0x6b",
+        "pairs": [
+          [
+            1490,
+            1
+          ],
+          [
+            1672,
+            1
+          ],
+          [
+            1514,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            0
+          ],
+          [
+            -1,
+            0
+          ],
+          [
+            -1,
+            0
+          ]
+        ]
+      },
+      {
+        "raw_type": "0x6b",
+        "pairs": [
+          [
+            1549,
+            1
+          ],
+          [
+            1510,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            0
+          ],
+          [
+            -1,
+            0
+          ],
+          [
+            -1,
+            0
+          ]
+        ]
+      },
+      {
+        "raw_type": "0x61",
+        "pairs": [
+          [
+            2201,
+            0
+          ],
+          [
+            2200,
+            0
+          ]
+        ]
+      }
+    ],
+    "hotspot_flag_rows": [
+      {
+        "raw_type": "0x6a",
+        "subtype": 2,
+        "flag": [
+          1000,
+          1
+        ],
+        "frame": 0,
+        "rect_xyxy": [
+          388,
+          225,
+          492,
+          284
+        ]
+      },
+      {
+        "raw_type": "0x6a",
+        "subtype": 2,
+        "flag": [
+          1002,
+          1
+        ],
+        "frame": 0,
+        "rect_xyxy": [
+          396,
+          150,
+          489,
+          211
+        ]
+      }
+    ],
+    "difficulty_actions": [
+      {
+        "fields": [
+          0,
+          -1,
+          0
+        ],
+        "dependency_opcode": 2,
+        "dependency_fields": [
+          2,
+          1000,
+          1
+        ]
+      },
+      {
+        "fields": [
+          2,
+          -1,
+          0
+        ],
+        "dependency_opcode": 2,
+        "dependency_fields": [
+          2,
+          1002,
+          1
+        ]
+      }
+    ],
+    "scene_change": {
+      "raw_type": "0x0a",
+      "dependency_count": 2,
+      "dependency_opcode": 2,
+      "or_after": 1
+    }
+  },
+  "state_arrays": {
+    "inventory_presence": {
+      "global": "DAT_00583bd5",
+      "element_type": "i32",
+      "init_clears_indices": [
+        0,
+        69
+      ],
+      "init_cleared_entries": 70,
+      "init_value": 0,
+      "corpus_exposed_dependency_max_index": 28,
+      "capacity_proven": null,
+      "stride_bytes": 4,
+      "disassembly_evidence": "0x4e7e7b..0x4e7e8e: index < 0x46; mov dword ptr [4*eax + 0x583bd5], 0",
+      "correction": "Original disassembly supersedes the earlier pseudocode-based byte-index claim."
+    },
+    "event_flags": {
+      "global": "DAT_00585801",
+      "element_type": "i32",
+      "corpus_max_referenced_or_written_index": 2242,
+      "minimum_entries_for_scanned_corpus": 2243,
+      "capacity_proven": null,
+      "initial_values_proven": false,
+      "runtime_has_index_bounds_checks": false
+    },
+    "label_values": {
+      "global": "DAT_00581a71",
+      "element_type": "i32",
+      "opcode3_records_in_parser_exposed_corpus": 0,
+      "writers_found_in_action_runtime_pseudocode": 0,
+      "capacity_proven": null,
+      "initial_values_proven": false
+    },
+    "set_value": {
+      "i16_entries": 30,
+      "float_entries": 10,
+      "valid_indices": [
+        0,
+        39
+      ]
+    },
+    "timers": {
+      "DAT_00585d37": {
+        "meaning": "global/run elapsed milliseconds",
+        "full_init_reset": true,
+        "scene_clear_reset": false
+      },
+      "DAT_00585d41": {
+        "meaning": "scene elapsed milliseconds",
+        "full_init_reset": true,
+        "normal_scene_clear_reset": true
+      }
+    }
+  },
+  "corpus_scan": {
+    "method": "read-only ctypes scan through existing libsceneresource.dylib",
+    "resource_directory": "work/analysis/hiff-resources",
+    "scene_resources_opened": 2078,
+    "actions": 19612,
+    "parser_failures": 0,
+    "parser_exposed_dependency_records": 15281,
+    "max_dependency_indexes": {
+      "opcode_1_inventory": 28,
+      "opcode_2_event_flags": 2242,
+      "opcode_3_label_values": null
+    },
+    "event_flag_typed_action_writes_scanned": 3247
+  },
+  "oracle_candidates": [
+    {
+      "type": "0x4d",
+      "executor": "44b26a",
+      "helper": "42ba3a",
+      "subtype2_stub_candidate": "423d33"
+    },
+    {
+      "type": "0x61/0x6b",
+      "executor": "427a50 bounded switch case",
+      "dependency_stub_candidate": "423f57",
+      "completion_helper": "42ba3a"
+    },
+    {
+      "type": "0x71",
+      "executor": "427a50 bounded switch case",
+      "dependency_stub_candidate": "423f57",
+      "completion": "direct"
+    }
+  ],
+  "evidence_files": [
+    "outputs/blackmoor-decomp/unverified-pseudocode/4381f4.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/439822.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/40b34a.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/427a50.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/423f57.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/424201.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/424346.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/424aa8.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/42ba3a.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/423d33.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/42ae73.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/42e844.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/43a7ca.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/4d3073.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/4f0059.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/43dbe3.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/44b26a.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/4e13e4.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/4e7253.c.txt",
+    "outputs/blackmoor-decomp/unverified-pseudocode/4e7e15.c.txt"
+  ],
+  "limitations": [
+    "All pseudocode is unverified Ghidra output.",
+    "The 2,243 event-flag count is a corpus compatibility lower bound, not a proven memory capacity.",
+    "Initial event-flag and label-value contents are not established here.",
+    "The rectangle hit test does not itself reveal a discrete mouse-button condition.",
+    "No runtime execution or native/x86 oracle test was performed."
+  ]
+}

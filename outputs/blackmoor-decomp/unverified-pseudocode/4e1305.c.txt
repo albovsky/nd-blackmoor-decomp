@@ -1,0 +1,48 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e1305
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+void FUN_004e1305(short param_1,short param_2,undefined4 *param_3)
+
+{
+  *param_3 = 1;
+  if (param_1 != 0) {
+    if (param_2 == 1) {
+      if (DAT_00583204 == 4) {
+        FUN_004eb96e();
+      }
+      else if (DAT_00583204 == 5) {
+        FUN_004e303b();
+      }
+      else {
+        *param_3 = 0;
+      }
+    }
+    else if (param_2 == 2) {
+      if (DAT_00583204 == 3) {
+        FUN_004e7d04();
+      }
+      else if (DAT_00583204 == 5) {
+        FUN_004e303b();
+      }
+      else {
+        *param_3 = 0;
+      }
+    }
+    else if (param_2 == 3) {
+      if (DAT_00583204 == 3) {
+        FUN_004e7d04();
+      }
+      else if (DAT_00583204 == 4) {
+        FUN_004eb96e();
+      }
+      else {
+        *param_3 = 0;
+      }
+    }
+  }
+  return;
+}
+

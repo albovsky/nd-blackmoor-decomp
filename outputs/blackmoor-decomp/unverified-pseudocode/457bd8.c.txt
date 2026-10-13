@@ -1,0 +1,61 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x457bd8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a
+ */
+
+void FUN_00457bd8(void)
+
+{
+  undefined1 local_1c [16];
+  short local_c;
+  int local_8;
+  
+  local_8 = *(int *)(&DAT_005bb5e5 + DAT_0062490b * 0x8d);
+  FUN_00457071(local_8 + 0x67,local_1c);
+  if (DAT_005957c3 == 0) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0x67,local_1c,
+                 s_Bball__restore_thrower_in_closes_0054a434);
+  }
+  else {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624909 * 0x4a),DAT_005cf665,
+                 local_8 + 0xf7 + (DAT_005957c3 + -1) * 0x10,local_1c,
+                 s_Bball___current_thrower_position_0054a460);
+  }
+  FUN_00457071(local_8 + 0x77,local_1c);
+  if (DAT_00624915 == 0) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0x77,local_1c,
+                 s_Bball__restore_power_to_lowest_s_0054a484);
+  }
+  else {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624909 * 0x4a),DAT_005cf665,
+                 local_8 + 0x127 + (DAT_00624915 + -1) * 0x10,local_1c,
+                 s_Bball___current_thrower_position_0054a4ac);
+  }
+  FUN_00457071(local_8 + 0x87,local_1c);
+  if (DAT_00624917 == 0) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0x87,local_1c,
+                 s_Bball__restore_angle_slider_to_h_0054a4d0);
+  }
+  else {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624909 * 0x4a),DAT_005cf665,
+                 local_8 + 0x177 + (DAT_00624917 + -1) * 0x10,local_1c,
+                 s_Bball___current_thrower_position_0054a4f4);
+  }
+  if (DAT_00624919 != 0) {
+    local_c = DAT_0062491d;
+    FUN_00457071(local_8 + 0x37 + DAT_0062491d * 0x10,local_1c);
+    if (DAT_00624923 == 0) {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0x37 + local_c * 0x10,local_1c,
+                   s_Bball_Button_down___button_resto_0054a548);
+      DAT_00624919 = 0;
+    }
+    else {
+      FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00624909 * 0x4a),DAT_005cf665,
+                   local_8 + 199 + local_c * 0x10,local_1c,
+                   s_Bball_Button_down___doing_button_0054a518);
+    }
+  }
+  return;
+}
+

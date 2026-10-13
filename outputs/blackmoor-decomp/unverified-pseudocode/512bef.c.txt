@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x512bef
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+void FUN_00512bef(void)
+
+{
+  InitializeCriticalSection((LPCRITICAL_SECTION)PTR_DAT_005686f4);
+  InitializeCriticalSection((LPCRITICAL_SECTION)PTR_DAT_005686e4);
+  InitializeCriticalSection((LPCRITICAL_SECTION)PTR_DAT_005686d4);
+  InitializeCriticalSection((LPCRITICAL_SECTION)PTR_DAT_005686b4);
+  return;
+}
+

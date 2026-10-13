@@ -1,0 +1,80 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c1572
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+undefined4 FUN_004c1572(void)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  HWND pHVar3;
+  int iVar4;
+  int in_ECX;
+  undefined4 uVar5;
+  undefined4 uVar6;
+  int local_28;
+  void *local_10;
+  undefined1 *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &LAB_005287fe;
+  local_10 = ExceptionList;
+  ExceptionList = &local_10;
+  FUN_004c1451();
+  iVar1 = FUN_0051dc43(0xbc);
+  local_8 = 0;
+  if (iVar1 == 0) {
+    local_28 = 0;
+  }
+  else {
+    local_28 = FUN_0043eb3a();
+  }
+  local_8 = 0xffffffff;
+  DAT_0057044c = local_28;
+  if (local_28 == 0) {
+    uVar2 = 0;
+  }
+  else {
+    DAT_005703a4 = local_28;
+    pHVar3 = FindWindowA((LPCSTR)0x0,s_Nancy_Drew__The_Curse_of_Blackmo_00552d64);
+    iVar1 = FUN_0051abe4(pHVar3);
+    if (iVar1 == 0) {
+      if (*(int *)(in_ECX + 0x38ac) == 0) {
+        uVar6 = 0;
+        uVar5 = 0;
+        uVar2 = 0;
+        iVar1 = GetSystemMetrics(1);
+        iVar4 = GetSystemMetrics(0);
+        iVar1 = FUN_0051b125(8,DAT_00570448,s_Nancy_Drew__The_Curse_of_Blackmo_00552dbc,0x90000000,
+                             (int)DAT_0063988f,(int)DAT_00639891,iVar4,iVar1,uVar2,uVar5,uVar6);
+        if (iVar1 == 0) {
+          ExceptionList = local_10;
+          return 0;
+        }
+      }
+      else {
+        iVar1 = FUN_0051b125(0x300,DAT_00570448,s_Nancy_Drew__The_Curse_of_Blackmo_00552d90,
+                             0x90000000,(int)DAT_0063988f,(int)DAT_00639891,(int)DAT_0063988b,
+                             (int)DAT_0063988d,0,0,0);
+        if (iVar1 == 0) {
+          ExceptionList = local_10;
+          return 0;
+        }
+      }
+      FUN_0051d699();
+      FUN_0051d630(5);
+      UpdateWindow(*(HWND *)(DAT_0057044c + 0x1c));
+      uVar2 = 1;
+    }
+    else {
+      DAT_0063a561 = 1;
+      uVar2 = 0;
+    }
+  }
+  ExceptionList = local_10;
+  return uVar2;
+}
+

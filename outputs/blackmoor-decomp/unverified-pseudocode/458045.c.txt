@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x458045
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a
+ */
+
+void FUN_00458045(void)
+
+{
+  int in_ECX;
+  
+  if ((*(int *)(in_ECX + 0x98) != 0) && (*(short *)(in_ECX + 0x24) != -1)) {
+    *(undefined4 *)(&DAT_005d15a5 + *(short *)(in_ECX + 0x24) * 0x4a) = 1;
+  }
+  return;
+}
+

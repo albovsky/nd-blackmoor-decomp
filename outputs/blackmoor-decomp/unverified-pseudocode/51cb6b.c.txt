@@ -1,0 +1,87 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51cb6b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+void FUN_0051cb6b(int param_1)
+
+{
+  uint uVar1;
+  int iVar2;
+  undefined4 uVar3;
+  HWND pHVar4;
+  int in_ECX;
+  int iVar5;
+  HWND hWnd;
+  undefined4 *puVar6;
+  undefined4 local_64 [5];
+  RECT local_50;
+  tagRECT local_3c;
+  tagRECT local_2c;
+  tagRECT local_1c;
+  uint local_8;
+  
+  local_8 = FUN_0051d526();
+  if (param_1 == 0) {
+    if ((local_8 & 0x40000000) == 0) {
+      hWnd = GetWindow(*(HWND *)(in_ECX + 0x1c),4);
+    }
+    else {
+      hWnd = GetParent(*(HWND *)(in_ECX + 0x1c));
+    }
+    if ((hWnd != (HWND)0x0) && (pHVar4 = (HWND)SendMessageA(hWnd,0x36b,0,0), pHVar4 != (HWND)0x0)) {
+      hWnd = pHVar4;
+    }
+  }
+  else {
+    hWnd = *(HWND *)(param_1 + 0x1c);
+  }
+  GetWindowRect(*(HWND *)(in_ECX + 0x1c),&local_2c);
+  if ((local_8 & 0x40000000) == 0) {
+    if ((hWnd != (HWND)0x0) &&
+       ((uVar1 = GetWindowLongA(hWnd,-0x10), (uVar1 & 0x10000000) == 0 ||
+        ((uVar1 & 0x20000000) != 0)))) {
+      hWnd = (HWND)0x0;
+    }
+    local_64[0] = 0x28;
+    if (hWnd == (HWND)0x0) {
+      iVar2 = FUN_0050c193();
+      uVar3 = 0;
+      if (iVar2 != 0) {
+        uVar3 = *(undefined4 *)(iVar2 + 0x1c);
+      }
+      puVar6 = local_64;
+      uVar3 = xMonitorFromWindow(uVar3,1);
+      FUN_0050c0e9(uVar3,puVar6);
+      CopyRect(&local_3c,&local_50);
+      CopyRect(&local_1c,&local_50);
+    }
+    else {
+      GetWindowRect(hWnd,&local_3c);
+      puVar6 = local_64;
+      uVar3 = xMonitorFromWindow(hWnd,2);
+      FUN_0050c0e9(uVar3,puVar6);
+      CopyRect(&local_1c,&local_50);
+    }
+  }
+  else {
+    pHVar4 = GetParent(*(HWND *)(in_ECX + 0x1c));
+    GetClientRect(pHVar4,&local_1c);
+    GetClientRect(hWnd,&local_3c);
+    MapWindowPoints(hWnd,pHVar4,(LPPOINT)&local_3c,2);
+  }
+  iVar2 = (local_3c.left + local_3c.right) / 2 - (local_2c.right - local_2c.left) / 2;
+  iVar5 = (local_3c.top + local_3c.bottom) / 2 - (local_2c.bottom - local_2c.top) / 2;
+  if ((local_1c.left <= iVar2) &&
+     (local_1c.left = iVar2, local_1c.right < (local_2c.right - local_2c.left) + iVar2)) {
+    local_1c.left = (local_1c.right - local_2c.right) + local_2c.left;
+  }
+  if ((local_1c.top <= iVar5) &&
+     (local_1c.top = iVar5, local_1c.bottom < (local_2c.bottom - local_2c.top) + iVar5)) {
+    local_1c.top = (local_2c.top - local_2c.bottom) + local_1c.bottom;
+  }
+  FUN_0051d5e1(0,local_1c.left,local_1c.top,0xffffffff,0xffffffff,0x15);
+  return;
+}
+

@@ -1,0 +1,60 @@
+{
+  "component": "native-macos-pcm-audio-adapter",
+  "date": "2026-10-13",
+  "platform": {
+    "macos": "27.0.1",
+    "architecture": "arm64",
+    "sdk": "27.0",
+    "deployment_target": "27.0"
+  },
+  "build": {
+    "script": "outputs/blackmoor-decomp/scripts/build_macos_audio.sh",
+    "artifact": "outputs/blackmoor-decomp/build/libmacos_audio.dylib",
+    "result": "passed",
+    "compiler": "Apple Clang C++17 with ARC",
+    "warnings": "-Wall -Wextra -Wpedantic -Werror"
+  },
+  "offline_tests": {
+    "command": "python3 outputs/blackmoor-decomp/tests/test_macos_audio.py",
+    "scoped_unsandboxed_runs": 3,
+    "tests_per_run": 6,
+    "result": "all six tests passed in each scoped run",
+    "sandboxed_run": {
+      "result": "1 passed, 5 skipped",
+      "skip_reason": "restricted process could not query the AudioComponent registrar while enabling AVAudioEngine manual rendering"
+    },
+    "audio_output_device_used": false,
+    "original_assets_read_or_modified": false
+  },
+  "verified_behaviors": [
+    "owned copy of interleaved float PCM",
+    "stereo channel order and gain",
+    "multiple slot mixing and runtime gain update",
+    "stop and rendered silence",
+    "loop continuity",
+    "offline DataRendered completion state and stale-generation protection",
+    "24 kHz source conversion to 48 kHz offline output",
+    "slot reconnection when its source format changes",
+    "argument validation, finite PCM, and main-thread enforcement",
+    "output mode does not expose manual render"
+  ],
+  "completion_boundary": {
+    "output": "AVAudioPlayerNode DataPlayedBack callback; physical playback completion boundary",
+    "offline": "AVAudioPlayerNode DataRendered callback; manual-render test boundary only"
+  },
+  "limits": [
+    "No audible hardware-output test",
+    "No DirectSound volume-curve or original game gain mapping claim",
+    "No spatial audio, original panning/fade rules, route changes, or interruption parity claim",
+    "Offline tests establish native AVAudioEngine graph behavior only, not original-engine byte equivalence"
+  ],
+  "api_provenance": "Installed Apple AVFAudio SDK 27.0 headers for AVAudioEngine manual rendering, AVAudioPlayerNode rendered completion, and error-returning graph/play methods",
+  "final_combined_suite": {
+    "command": "python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p 'test_*.py'",
+    "tests": 177,
+    "passed": 175,
+    "skipped": 2,
+    "skip_reason": "case-distinct filename fixtures on case-insensitive filesystem",
+    "result": "passed"
+  }
+}

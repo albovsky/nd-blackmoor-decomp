@@ -1,0 +1,79 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4acf45
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c162e587d744a5d109b183c8ad170721ecaf16eed1b508d2b71afde20c121117
+ */
+
+undefined4 FUN_004acf45(short param_1,short param_2,undefined4 *param_3)
+
+{
+  int iVar1;
+  char cVar2;
+  int iVar3;
+  int in_ECX;
+  undefined4 *puVar4;
+  int local_18;
+  int local_14;
+  char local_10;
+  undefined3 uStack_f;
+  int local_c;
+  int local_8;
+  
+  if (*(int *)(in_ECX + 0xc1b) != 0) {
+    *(undefined4 *)(in_ECX + 0xc29) = param_3[1];
+    *(undefined4 *)(in_ECX + 0xc31) = param_3[3];
+    *(undefined4 *)(in_ECX + 0xc25) = *param_3;
+    *(undefined4 *)(in_ECX + 0xc2d) = param_3[2];
+    if (*(int *)(in_ECX + 0x20) != 0) {
+      FUN_004acdc2();
+      FUN_004ad1e5(0x2776);
+      iVar3 = FUN_004aec35(&local_14);
+      if (iVar3 == 0) {
+        FUN_004ae495((int)*(short *)(in_ECX + 0x24));
+      }
+      else if (local_14 == 0) {
+        FUN_004ae495((int)*(short *)(in_ECX + 0x24));
+      }
+      else {
+        FUN_004ae452((int)*(short *)(in_ECX + 0x24));
+      }
+      return 1;
+    }
+    puVar4 = (undefined4 *)(in_ECX + 0xe39);
+    for (iVar3 = 7; iVar3 != 0; iVar3 = iVar3 + -1) {
+      *puVar4 = 0;
+      puVar4 = puVar4 + 1;
+    }
+    *(undefined2 *)puVar4 = 0;
+    *(undefined2 *)(in_ECX + 0xe57) = 0;
+    for (local_18 = 0; local_18 < *(short *)(*(int *)(in_ECX + 0xc17) + 0x42);
+        local_18 = local_18 + 1) {
+      iVar3 = in_ECX + 0x6e + local_18 * 199;
+      if ((((*(int *)(iVar3 + 6) <= (int)param_2) && ((int)param_2 <= *(int *)(iVar3 + 0xe))) &&
+          (*(int *)(iVar3 + 2) <= (int)param_1)) && ((int)param_1 <= *(int *)(iVar3 + 10))) {
+        iVar1 = iVar3 + 0x27 + (uint)*(byte *)(iVar3 + 0x26) * 0x28;
+        local_8 = (int)param_1 - *(int *)(iVar3 + 2);
+        local_c = (int)param_2 - *(int *)(iVar3 + 6);
+        cVar2 = *(char *)(*(int *)(iVar1 + 0x1c) + local_c * *(short *)(iVar1 + 0x20) + local_8);
+        _local_10 = CONCAT31(uStack_f,cVar2);
+        if (cVar2 != '\0') {
+          *(undefined2 *)(in_ECX + 0xe39 + *(short *)(in_ECX + 0xe57) * 2) = (undefined2)local_18;
+          *(short *)(in_ECX + 0xe57) = *(short *)(in_ECX + 0xe57) + 1;
+        }
+      }
+    }
+    if (*(short *)(in_ECX + 0xe57) != 0) {
+      FUN_004ad1e5(0x2774);
+      return 1;
+    }
+    if (((*(int *)(*(int *)(in_ECX + 0xc17) + 0x32e) <= (int)param_2) &&
+        ((int)param_2 <= *(int *)(*(int *)(in_ECX + 0xc17) + 0x336))) &&
+       ((*(int *)(*(int *)(in_ECX + 0xc17) + 0x32a) <= (int)param_1 &&
+        ((int)param_1 <= *(int *)(*(int *)(in_ECX + 0xc17) + 0x332))))) {
+      FUN_004ad1e5(0x2775);
+      return 1;
+    }
+  }
+  return 0;
+}
+

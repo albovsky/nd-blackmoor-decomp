@@ -1,0 +1,80 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522451
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_00522451(void)
+
+{
+  HWND pHVar1;
+  int iVar2;
+  uint uVar3;
+  int in_ECX;
+  int *piVar4;
+  tagRECT local_30;
+  tagRECT local_20;
+  HWND local_10;
+  HWND local_c;
+  int *local_8;
+  
+  if (*(int *)(in_ECX + 0x80) == 0) {
+    pHVar1 = GetDlgItem(*(HWND *)(in_ECX + 0x1c),0x3020);
+    if (pHVar1 != (HWND)0x0) {
+      FUN_0051a87c(pHVar1,0x200,0,0);
+    }
+  }
+  iVar2 = FUN_00521de7();
+  if ((*(ushort *)(iVar2 + 4) & 0x2020) == 0) {
+    local_c = GetDlgItem(*(HWND *)(in_ECX + 0x1c),0x3020);
+    GetWindowRect(local_c,&local_20);
+    FUN_00520ed5(&local_20);
+    local_30.left = 0;
+    local_30.top = 0;
+    local_30.right = 0;
+    local_30.bottom = 0x20;
+    MapDialogRect(*(HWND *)(in_ECX + 0x1c),&local_30);
+    if (local_30.bottom < local_20.bottom) {
+      local_10 = (HWND)((local_20.bottom - local_20.top) - local_30.bottom);
+      SetWindowPos(local_c,(HWND)0x0,0,0,local_20.right - local_20.left,local_30.bottom,0x16);
+      local_8 = &DAT_00567948;
+      do {
+        local_c = GetDlgItem(*(HWND *)(in_ECX + 0x1c),*local_8);
+        if (local_c != (HWND)0x0) {
+          GetWindowRect(local_c,&local_20);
+          FUN_00520ed5(&local_20);
+          SetWindowPos(local_c,(HWND)0x0,local_20.left,local_20.top - (int)local_10,0,0,0x15);
+        }
+        local_8 = local_8 + 1;
+      } while ((int)local_8 < 0x567958);
+      GetWindowRect(*(HWND *)(in_ECX + 0x1c),&local_20);
+      FUN_0051d5e1(0,0,0,local_20.right - local_20.left,
+                   (local_20.bottom - local_20.top) - (int)local_10,0x16);
+    }
+  }
+  local_c = (HWND)FUN_0051ab4b();
+  if (*(int *)(in_ECX + 0x84) != 0) {
+    iVar2 = FUN_00521de7();
+    if ((*(ushort *)(iVar2 + 4) & 0x2020) == 0) {
+      GetWindowRect(*(HWND *)(in_ECX + 0x1c),&local_30);
+      pHVar1 = GetDlgItem(*(HWND *)(in_ECX + 0x1c),1);
+      GetWindowRect(pHVar1,&local_20);
+      FUN_0051d5e1(0,0,0,local_30.right - local_30.left,local_20.top - local_30.top,0x16);
+      piVar4 = &DAT_00567948;
+      do {
+        local_10 = GetDlgItem(*(HWND *)(in_ECX + 0x1c),*piVar4);
+        if (local_10 != (HWND)0x0) {
+          ShowWindow(local_10,0);
+          EnableWindow(local_10,0);
+        }
+        piVar4 = piVar4 + 1;
+      } while ((int)piVar4 < 0x567958);
+    }
+  }
+  uVar3 = FUN_0051d526();
+  if ((uVar3 & 0x40000000) == 0) {
+    FUN_0051cb6b(0);
+  }
+  return local_c;
+}
+

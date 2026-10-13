@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521014
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+bool FUN_00521014(void)
+
+{
+  uint uVar1;
+  int iVar2;
+  HWND unaff_EBP;
+  uint unaff_retaddr;
+  CHAR aCStack_18 [4];
+  code *pcStack_14;
+  undefined **ppuStack_10;
+  undefined *puStack_c;
+  undefined *local_8;
+  
+  ppuStack_10 = &local_8;
+  puStack_c = &DAT_00534470;
+  local_8 = &DAT_0063c4e8;
+  pcStack_14 = FUN_0052102d;
+  __CxxThrowException_8();
+  if ((unaff_EBP != (HWND)0x0) &&
+     (puStack_c = &stack0xfffffffc, uVar1 = GetWindowLongA(unaff_EBP,-0x10),
+     (uVar1 & 0xf) == unaff_retaddr)) {
+    GetClassNameA(unaff_EBP,aCStack_18,10);
+    iVar2 = lstrcmpiA(aCStack_18,"combobox");
+    return iVar2 == 0;
+  }
+  return false;
+}
+

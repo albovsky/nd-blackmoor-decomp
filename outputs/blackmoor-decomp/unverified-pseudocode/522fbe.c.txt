@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522fbe
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4
+FUN_00522fbe(undefined4 param_1,undefined4 param_2,undefined4 param_3,int *param_4,int param_5,
+            LPCSTR param_6,undefined4 param_7,undefined4 param_8)
+
+{
+  int iVar1;
+  int *in_ECX;
+  HMENU hMenu;
+  undefined4 uVar2;
+  
+  uVar2 = 0;
+  hMenu = (HMENU)0x0;
+  if (param_6 != (LPCSTR)0x0) {
+    iVar1 = FUN_00525371();
+    hMenu = LoadMenuA(*(HINSTANCE *)(iVar1 + 0xc),param_6);
+    if (hMenu == (HMENU)0x0) {
+      (**(code **)(*in_ECX + 0xa4))();
+      return 0;
+    }
+  }
+  FUN_0051e8f7(param_2);
+  if (param_5 != 0) {
+    uVar2 = *(undefined4 *)(param_5 + 0x1c);
+  }
+  iVar1 = FUN_0051b125(param_7,param_1,param_2,param_3,*param_4,param_4[1],param_4[2] - *param_4,
+                       param_4[3] - param_4[1],uVar2,hMenu,param_8);
+  if (iVar1 == 0) {
+    if (hMenu != (HMENU)0x0) {
+      DestroyMenu(hMenu);
+    }
+    return 0;
+  }
+  return 1;
+}
+

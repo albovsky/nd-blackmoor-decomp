@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x415113
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ee34a6178f9dbede580b7391fe3cb5d437b4b7e8eef1f6ac592ff17c28c7115c
+ */
+
+void FUN_00415113(int param_1,int *param_2)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_0051dc43(*(undefined4 *)(param_1 + 0x3d));
+  *param_2 = iVar1;
+  if (iVar1 == 0) {
+    FUN_00415011(param_1);
+    FUN_0042639d(s_Unable_to_allocate_memory_00541a8c,s_CChunk__AllocDecompChunkData_____00541a58);
+    DAT_0063a58a = 4;
+    FUN_004c97b4();
+  }
+  return;
+}
+

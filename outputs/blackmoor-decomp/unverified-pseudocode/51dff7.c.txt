@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51dff7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+undefined4 FUN_0051dff7(void)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  int *unaff_EBX;
+  int unaff_EBP;
+  int *unaff_ESI;
+  int *unaff_EDI;
+  
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  if (unaff_EDI != unaff_EBX) {
+    (**(code **)(*unaff_EDI + 0x14))(unaff_EBP + -0x34);
+    if (*(int **)(unaff_EBP + -0x18) != unaff_EBX) {
+      (**(code **)(*unaff_ESI + 0xb4))();
+    }
+  }
+  iVar1 = FUN_0051b0e3();
+  if (iVar1 == 0) {
+    (**(code **)(*unaff_ESI + 0xa4))();
+  }
+  if ((*(int **)(unaff_EBP + -0x18) != unaff_EBX) && ((*(byte *)(unaff_ESI + 9) & 0x10) == 0)) {
+    DestroyWindow(*(HWND *)(unaff_EBP + -0x18));
+    *(int **)(unaff_EBP + -0x18) = unaff_EBX;
+  }
+  if (*(int **)(unaff_EBP + -0x14) != unaff_EBX) {
+    GlobalUnlock(*(HGLOBAL *)(unaff_EBP + -0x14));
+    GlobalFree(*(HGLOBAL *)(unaff_EBP + -0x14));
+  }
+  if ((*(int **)(unaff_EBP + -0x18) == unaff_EBX) && ((*(byte *)(unaff_ESI + 9) & 0x10) != 0)) {
+    uVar2 = 0;
+  }
+  else {
+    uVar2 = 1;
+  }
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return uVar2;
+}
+

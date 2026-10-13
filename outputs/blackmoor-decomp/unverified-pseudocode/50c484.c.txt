@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c484
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+void FUN_0050c484(void)
+
+{
+  undefined4 *extraout_ECX;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  *(undefined4 **)(unaff_EBP + -0x10) = extraout_ECX;
+  *extraout_ECX = &PTR_FUN_0052fe80;
+  *(undefined4 *)(unaff_EBP + -4) = 1;
+  FUN_0051f8c4();
+  *(undefined1 *)(unaff_EBP + -4) = 0;
+  FUN_0051a4bd();
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  FUN_0051a4bd();
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

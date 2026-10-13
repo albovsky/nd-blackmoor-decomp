@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520f11
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+void FUN_00520f11(LPPOINT param_1)
+
+{
+  LPPOINT lpPoint;
+  LONG LVar1;
+  uint uVar2;
+  int in_ECX;
+  
+  ClientToScreen(*(HWND *)(in_ECX + 0x1c),param_1);
+  lpPoint = param_1 + 1;
+  ClientToScreen(*(HWND *)(in_ECX + 0x1c),lpPoint);
+  uVar2 = FUN_0051d540();
+  if ((uVar2 & 0x400000) != 0) {
+    LVar1 = param_1->x;
+    param_1->x = lpPoint->x;
+    lpPoint->x = LVar1;
+  }
+  return;
+}
+

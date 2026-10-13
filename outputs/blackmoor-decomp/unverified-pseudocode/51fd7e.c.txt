@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51fd7e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+undefined4 FUN_0051fd7e(uint *param_1,undefined4 param_2,undefined2 *param_3)
+
+{
+  short sVar1;
+  uint uVar2;
+  undefined2 *puVar3;
+  LPSTR lpMultiByteStr;
+  int cbMultiByte;
+  LPCSTR lpDefaultChar;
+  LPBOOL lpUsedDefaultChar;
+  
+  if (*(short *)((int)param_1 + 2) == -1) {
+    uVar2 = param_1[3];
+  }
+  else {
+    uVar2 = *param_1;
+  }
+  if ((uVar2 & 0x40) == 0) {
+    return 0;
+  }
+  puVar3 = (undefined2 *)FUN_0051fc70(param_1);
+  lpUsedDefaultChar = (LPBOOL)0x0;
+  *param_3 = *puVar3;
+  sVar1 = *(short *)((int)param_1 + 2);
+  lpDefaultChar = (LPCSTR)0x0;
+  cbMultiByte = 0x20;
+  lpMultiByteStr = (LPSTR)FUN_0051eaec(0x20);
+  WideCharToMultiByte(0,0,puVar3 + ((sVar1 != -1) - 1 & 2) + 1,-1,lpMultiByteStr,cbMultiByte,
+                      lpDefaultChar,lpUsedDefaultChar);
+  FUN_0051eac4(0xffffffff);
+  return 1;
+}
+

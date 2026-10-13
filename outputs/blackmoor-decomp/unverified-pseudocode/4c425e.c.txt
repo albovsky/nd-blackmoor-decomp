@@ -1,0 +1,125 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c425e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c425e(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  undefined4 *puVar3;
+  undefined4 *puVar4;
+  short local_c;
+  int local_8;
+  
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_Begin_CloseDirectDraw___00554404);
+  }
+  if (*(int *)(in_ECX + 4) != 0) {
+    if ((*(int *)(in_ECX + 0xc52) != 0) && (*(int *)(in_ECX + 0x46) != 0)) {
+      puVar3 = (undefined4 *)(in_ECX + 0x4a);
+      puVar4 = (undefined4 *)(in_ECX + 0x64a);
+      for (iVar2 = 0x180; iVar2 != 0; iVar2 = iVar2 + -1) {
+        *puVar4 = *puVar3;
+        puVar3 = puVar3 + 1;
+        puVar4 = puVar4 + 1;
+      }
+      if (*(int *)(in_ECX + 0xc4a) == 0) {
+        local_8 = (**(code **)(**(int **)(in_ECX + 0x46) + 0x10))
+                            (*(undefined4 *)(in_ECX + 0x46),0,in_ECX + 0x64a);
+      }
+      else {
+        local_8 = (**(code **)(**(int **)(in_ECX + 0x46) + 0x10))
+                            (*(undefined4 *)(in_ECX + 0x46),1,in_ECX + 0x64a);
+      }
+      if (local_8 < 0) {
+        uVar1 = FUN_004c88c7(local_8);
+        FUN_0042639d(s_CloseDirectDraw____Unable_to_res_0055441c,uVar1);
+        if (DAT_0063a4cd != 0) {
+          FUN_0044a2b7(s_CloseDirectDraw____Unable_to_res_00554458);
+        }
+      }
+      else if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_Restored_original_gamma_ramp_00554494);
+      }
+    }
+    iVar2 = (**(code **)(**(int **)(in_ECX + 4) + 0x4c))(*(undefined4 *)(in_ECX + 4));
+    if (iVar2 == 0) {
+      if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_Success_RestoreDisplayMode___005544f4);
+      }
+    }
+    else {
+      uVar1 = FUN_004c88c7(iVar2);
+      FUN_0042639d(s_CloseDirectDraw_____005544b4,uVar1);
+      if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_Error_return_from_RestoreDisplay_005544cc);
+      }
+    }
+    if (*(int *)(in_ECX + 0x46) != 0) {
+      (**(code **)(**(int **)(in_ECX + 0x46) + 8))(*(undefined4 *)(in_ECX + 0x46));
+      *(undefined4 *)(in_ECX + 0x46) = 0;
+      if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_Release_pGammaControl_00554514);
+      }
+    }
+    if (*(int *)(in_ECX + 8) != 0) {
+      uVar1 = (**(code **)(**(int **)(in_ECX + 8) + 8))(*(undefined4 *)(in_ECX + 8));
+      *(undefined4 *)(in_ECX + 8) = 0;
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_Release_pSPrimary___new_ref_coun_0055452c,uVar1);
+        FUN_0044a2b7(&DAT_0063888b);
+      }
+    }
+    if (*(int *)(in_ECX + 0xc) != 0) {
+      uVar1 = (**(code **)(**(int **)(in_ECX + 0xc) + 8))(*(undefined4 *)(in_ECX + 0xc));
+      *(undefined4 *)(in_ECX + 0xc) = 0;
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_Release_pSDestSurface___new_ref_c_00554554,uVar1);
+        FUN_0044a2b7(&DAT_0063888b);
+      }
+    }
+    uVar1 = (**(code **)(**(int **)(in_ECX + 4) + 8))(*(undefined4 *)(in_ECX + 4));
+    *(undefined4 *)(in_ECX + 4) = 0;
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_Release_pDD___new_ref_count____u_00554580,uVar1);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+  }
+  if (*(int *)(in_ECX + 0x14) != 0) {
+    FUN_0051dc6c(*(undefined4 *)(in_ECX + 0x14));
+  }
+  FUN_004c9428();
+  FUN_004c2dfb(in_ECX + 0xcd2);
+  FUN_004c2dfb(in_ECX + 0xd62);
+  FUN_004c2dfb(in_ECX + 0xd1e);
+  FUN_004c2dfb(in_ECX + 0xd22);
+  FUN_004c2dfb(in_ECX + 0xd5e);
+  FUN_004c2dfb(in_ECX + 0xd26);
+  FUN_004c2dfb(in_ECX + 0xd2a);
+  FUN_004c2dfb(in_ECX + 0xd36);
+  FUN_004c2dfb(in_ECX + 0xd3a);
+  FUN_004c2dfb(in_ECX + 0xd56);
+  FUN_004c2dfb(in_ECX + 0xd5a);
+  FUN_004c2dfb(in_ECX + 0xd2e);
+  FUN_004c2dfb(in_ECX + 0xd32);
+  FUN_004c2dfb(in_ECX + 0xd76);
+  FUN_004c2dfb(in_ECX + 0xd7a);
+  FUN_004c2dfb(in_ECX + 0xd7e);
+  FUN_004c2dfb(in_ECX + 0xd82);
+  FUN_004c2dfb(in_ECX + 0xd86);
+  FUN_0044c384();
+  for (local_c = 0; local_c < 0x12; local_c = local_c + 1) {
+    if (*(int *)(in_ECX + 0xcd6 + local_c * 4) != 0) {
+      FUN_004c2dfb(in_ECX + 0xcd6 + local_c * 4);
+    }
+  }
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_End_CloseDirectDraw___005545a4);
+  }
+  return;
+}
+

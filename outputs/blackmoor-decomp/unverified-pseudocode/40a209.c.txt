@@ -1,0 +1,56 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x40a209
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e386b18c20787bc48aa972834711e5868c42e616144977f55cc3e9972895a2f0
+ */
+
+undefined4 FUN_0040a209(void)
+
+{
+  undefined4 in_ECX;
+  
+  FUN_0051e3c8();
+  FUN_0051d3d5(0x567,in_ECX);
+  FUN_0051d3d5(0x3f0,in_ECX);
+  FUN_0051d3d5(0x3ef,in_ECX);
+  FUN_0051d3d5(0x3f1,in_ECX);
+  FUN_0051d3d5(0x3f3,in_ECX);
+  FUN_0051d3d5(0x3f5,in_ECX);
+  FUN_0051d3d5(0x3f4,in_ECX);
+  FUN_0051d3d5(0x3f6,in_ECX);
+  FUN_0051d3d5(0x3ff,in_ECX);
+  FUN_0051d3d5(0x400,in_ECX);
+  FUN_0051d3d5(0x40d,in_ECX);
+  FUN_0051d3d5(0x40f,in_ECX);
+  FUN_0051d3d5(0x40e,in_ECX);
+  FUN_0051d3d5(0x410,in_ECX);
+  FUN_0051d3d5(0x411,in_ECX);
+  FUN_0051d3d5(0x413,in_ECX);
+  FUN_0051d3d5(0x412,in_ECX);
+  FUN_0051d3d5(0x414,in_ECX);
+  FUN_0051d3d5(0x415,in_ECX);
+  FUN_0051d3d5(0x416,in_ECX);
+  FUN_0051d3d5(0x421,in_ECX);
+  FUN_0051d3d5(0x422,in_ECX);
+  FUN_0051d3d5(0x423,in_ECX);
+  FUN_0051d3d5(0x424,in_ECX);
+  FUN_0051d3d5(0x425,in_ECX);
+  FUN_0051d3d5(0x426,in_ECX);
+  FUN_0051d3d5(0x427,in_ECX);
+  FUN_0051d3d5(0x428,in_ECX);
+  FUN_0051d3d5(0x429,in_ECX);
+  FUN_0051d3d5(0x42a,in_ECX);
+  FUN_0051d3d5(0x417,in_ECX);
+  FUN_0051d3d5(0x418,in_ECX);
+  FUN_0051d3d5(0x419,in_ECX);
+  FUN_0051d3d5(0x41a,in_ECX);
+  FUN_0051d3d5(0x41b,in_ECX);
+  FUN_0051d3d5(0x41c,in_ECX);
+  FUN_0051d3d5(0x41d,in_ECX);
+  FUN_0051d3d5(0x41e,in_ECX);
+  FUN_0051d3d5(0x41f,in_ECX);
+  FUN_0051d3d5(0x420,in_ECX);
+  FUN_004090ab();
+  return 1;
+}
+

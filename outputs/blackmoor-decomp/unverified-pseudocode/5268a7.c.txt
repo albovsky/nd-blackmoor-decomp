@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5268a7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+void FUN_005268a7(void)
+
+{
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  FUN_00519cdf(1,0x14000c,0);
+  *(undefined4 *)(unaff_EBP + -4) = 0;
+  FUN_005267f2(unaff_EBP + -0xb0);
+  *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+  CDialog::~CDialog((CDialog *)(unaff_EBP + -0xb0));
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

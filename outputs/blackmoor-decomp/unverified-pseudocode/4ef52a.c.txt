@@ -1,0 +1,74 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ef52a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_78bf7b8051c4829a48ca604612d5796f301092cb8406263fd1630b9c874c5c2a
+ */
+
+void FUN_004ef52a(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0xce) == 0) {
+    if (*(int *)(in_ECX + 0xd2) == 0) {
+      *(int *)(in_ECX + 0x13e) = *(int *)(in_ECX + 0x12e) + *(int *)(in_ECX + 0x166);
+      *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + -1 + *(int *)(in_ECX + 0x17a);
+      if (*(int *)(in_ECX + 0x1a6) == 0) {
+        *(int *)(in_ECX + 0x142) =
+             (*(int *)(in_ECX + 0x132) + *(int *)(in_ECX + 0x176) / 2) -
+             *(int *)(in_ECX + 0x17e) / 2;
+        *(int *)(in_ECX + 0x14a) = *(int *)(in_ECX + 0x142) + -1 + *(int *)(in_ECX + 0x17e);
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x142) = *(undefined4 *)(in_ECX + 0x132);
+        *(undefined4 *)(in_ECX + 0x14a) = *(undefined4 *)(in_ECX + 0x13a);
+      }
+    }
+    else if (*(int *)(in_ECX + 0xd2) == 1) {
+      *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x136) - *(int *)(in_ECX + 0x166);
+      *(int *)(in_ECX + 0x13e) = (*(int *)(in_ECX + 0x146) - *(int *)(in_ECX + 0x17a)) + 1;
+      if (*(int *)(in_ECX + 0x1a6) == 0) {
+        *(int *)(in_ECX + 0x142) =
+             (*(int *)(in_ECX + 0x132) + *(int *)(in_ECX + 0x176) / 2) -
+             *(int *)(in_ECX + 0x17e) / 2;
+        *(int *)(in_ECX + 0x14a) = *(int *)(in_ECX + 0x142) + -1 + *(int *)(in_ECX + 0x17e);
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x142) = *(undefined4 *)(in_ECX + 0x132);
+        *(undefined4 *)(in_ECX + 0x14a) = *(undefined4 *)(in_ECX + 0x13a);
+      }
+    }
+  }
+  else if (*(int *)(in_ECX + 0xce) == 1) {
+    if (*(int *)(in_ECX + 0xd2) == 2) {
+      *(int *)(in_ECX + 0x142) = *(int *)(in_ECX + 0x132) + *(int *)(in_ECX + 0x166);
+      *(int *)(in_ECX + 0x14a) = *(int *)(in_ECX + 0x142) + -1 + *(int *)(in_ECX + 0x17e);
+      if (*(int *)(in_ECX + 0x1aa) == 0) {
+        *(int *)(in_ECX + 0x13e) =
+             (*(int *)(in_ECX + 0x12e) + *(int *)(in_ECX + 0x172) / 2) -
+             *(int *)(in_ECX + 0x17a) / 2;
+        *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + -1 + *(int *)(in_ECX + 0x17a);
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x13e) = *(undefined4 *)(in_ECX + 0x12e);
+        *(undefined4 *)(in_ECX + 0x146) = *(undefined4 *)(in_ECX + 0x136);
+      }
+    }
+    else if (*(int *)(in_ECX + 0xd2) == 3) {
+      *(int *)(in_ECX + 0x14a) = *(int *)(in_ECX + 0x13a) - *(int *)(in_ECX + 0x166);
+      *(int *)(in_ECX + 0x142) = (*(int *)(in_ECX + 0x14a) - *(int *)(in_ECX + 0x17e)) + 1;
+      if (*(int *)(in_ECX + 0x1aa) == 0) {
+        *(int *)(in_ECX + 0x13e) =
+             (*(int *)(in_ECX + 0x12e) + *(int *)(in_ECX + 0x172) / 2) -
+             *(int *)(in_ECX + 0x17a) / 2;
+        *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + -1 + *(int *)(in_ECX + 0x17a);
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x13e) = *(undefined4 *)(in_ECX + 0x12e);
+        *(undefined4 *)(in_ECX + 0x146) = *(undefined4 *)(in_ECX + 0x136);
+      }
+    }
+  }
+  return;
+}
+

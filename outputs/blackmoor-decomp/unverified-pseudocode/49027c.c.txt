@@ -1,0 +1,65 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x49027c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7981f36fcfb340c87ff1ac4ba66e833832bd1313751938cee07fade4f0082dcf
+ */
+
+void FUN_0049027c(void)
+
+{
+  int iVar1;
+  char *pcVar2;
+  char *pcVar3;
+  bool bVar4;
+  int local_2c;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  short *local_c;
+  short local_8;
+  
+  local_c = *(short **)(&DAT_005bb5e5 + DAT_00624de7 * 0x8d);
+  local_8 = 0;
+  do {
+    if (local_c[0x58] <= local_8) {
+      return;
+    }
+    local_18 = *(int *)(local_c + local_8 * 0x68 + 0x5b);
+    local_10 = *(int *)(local_c + local_8 * 0x68 + 0x5f);
+    local_1c = *(int *)(local_c + local_8 * 0x68 + 0x59);
+    local_14 = *(int *)(local_c + local_8 * 0x68 + 0x5d) + 8;
+    local_28 = local_18 + DAT_0058318a;
+    local_20 = local_10 + DAT_0058318a;
+    local_2c = local_1c + DAT_00583186;
+    local_24 = local_14 + DAT_00583186;
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_1c,&local_2c,
+                 s_QUIZ_PUZZLE_text_entry_refresh_i_0054ea24);
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_c + local_8 * 0x68 + 0x59,
+                 &DAT_00624de9 + local_8 * 0x10,s_QUIZ_PUZZLE_text_entry_refresh_i_0054ea54);
+    iVar1 = 1;
+    bVar4 = true;
+    pcVar2 = &DAT_00624fc9 + local_8 * 0x11;
+    pcVar3 = &DAT_0063a8bc;
+    do {
+      if (iVar1 == 0) break;
+      iVar1 = iVar1 + -1;
+      bVar4 = *pcVar2 == *pcVar3;
+      pcVar2 = pcVar2 + 1;
+      pcVar3 = pcVar3 + 1;
+    } while (bVar4);
+    if (!bVar4) {
+      FUN_004d2c20(&DAT_00624fc9 + local_8 * 0x11,(int)&DAT_005a4c24 + *local_c * 0x7f3,
+                   &DAT_005adb3a + *local_c * 0x1d0,
+                   CONCAT22((short)((uint)(local_8 * 0x10) >> 0x10),
+                            *(undefined2 *)(&DAT_00624de9 + local_8 * 0x10)),
+                   CONCAT22(*local_c >> 0xf,*(undefined2 *)(&DAT_00624df5 + local_8 * 0x10)),
+                   *(undefined4 *)(&DAT_005d032f + *local_c * 4),DAT_005cf665,0);
+    }
+    local_8 = local_8 + 1;
+  } while( true );
+}
+

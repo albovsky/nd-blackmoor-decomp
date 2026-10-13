@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50f7e0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+/* Library Function - Single Match
+    __allshl
+   
+   Library: Visual Studio */
+
+longlong __allshl(void)
+
+{
+  uint in_EAX;
+  byte in_CL;
+  int in_EDX;
+  
+  if (0x3f < in_CL) {
+    return 0;
+  }
+  if (in_CL < 0x20) {
+    return CONCAT44(in_EDX << (in_CL & 0x1f) | in_EAX >> 0x20 - (in_CL & 0x1f),
+                    in_EAX << (in_CL & 0x1f));
+  }
+  return (ulonglong)(in_EAX << (in_CL & 0x1f)) << 0x20;
+}
+

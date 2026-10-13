@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44c44c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0044c44c(void)
+
+{
+  _DAT_00617e80 = 0;
+  _DAT_005b4c3a = 0;
+  _DAT_005b4eb1 = 0;
+  _DAT_00637fd3 = 0;
+  return;
+}
+

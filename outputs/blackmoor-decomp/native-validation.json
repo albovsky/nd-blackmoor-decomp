@@ -1,0 +1,334 @@
+{
+  "scope": "native-only structural and declared-length validation; no original-oracle equivalence claim",
+  "tree_records_looked_up": 2904,
+  "tree_payloads_decoded": 2886,
+  "tree_decoded_bytes": 148148274,
+  "tree_sequence_sha256": "28e4f91c2f4ee5d2b8aa05da1532d02351bb73f6627004a7a6923e40b7807235",
+  "standalone_files_decoded": 63,
+  "standalone": [
+    {
+      "name": "HID_WellLckLft4_OVL.CIF",
+      "output_size": 42300,
+      "sha256": "9274edde71b972c30aa1fad1f2f3186abb2fc7bd309414bd00d160d4e87c1018"
+    },
+    {
+      "name": "HID_WellLckMid1_OVL.CIF",
+      "output_size": 26508,
+      "sha256": "840a3c48869abe21a1f7280055695bc8cbf70ba4796d91614e378f1f05d54418"
+    },
+    {
+      "name": "Logo.CIF",
+      "output_size": 614400,
+      "sha256": "9409b93fb8eb6efa917df6dccf8ff3475a377568391c26a2f476bfdabe068170"
+    },
+    {
+      "name": "S2347.CIF",
+      "output_size": 1780,
+      "sha256": "16f106a110e45c3c9fad68e663835d9c23f58d4df2ce56940dd49e9e731b40fb"
+    },
+    {
+      "name": "S2351.CIF",
+      "output_size": 1838,
+      "sha256": "1e6194e8328e92630e5df83139ecde7c224274d371e80d1d9ac19762292d03db"
+    },
+    {
+      "name": "S6500.CIF",
+      "output_size": 1366,
+      "sha256": "9d8974603d713d86793fb19e43868f3118dc8bf15ebf7a7e0c8dfa29ef274f4a"
+    },
+    {
+      "name": "TUT_Next_OVL.CIF",
+      "output_size": 4818,
+      "sha256": "b83e1a76ac3fdd05d498fdd7cd659f867b8df81285f2974f19edccf3cb038f21"
+    },
+    {
+      "name": "autotext.CIF",
+      "output_size": 154984,
+      "sha256": "8b60086a428f45d476c5ccf4170c9132bb5d438e021e4d68137d79714397e9c0"
+    },
+    {
+      "name": "boot.CIF",
+      "output_size": 69442,
+      "sha256": "167ca6479ac93f5e4465557549d663c46a1ad48cf376ca81a4e6e6248191f6ac"
+    },
+    {
+      "name": "convo.CIF",
+      "output_size": 153166,
+      "sha256": "6c53d43e74bf2c1d536460de504ec23d3450b4efe9322273a914917b6e98b9b9"
+    },
+    {
+      "name": "s1340.CIF",
+      "output_size": 3442,
+      "sha256": "8b3c8620748fb49b99c4afced31d33bc530593757ad2a75bb4779e47e1cf2dda"
+    },
+    {
+      "name": "s1341.CIF",
+      "output_size": 3438,
+      "sha256": "35b590b0028b4d085dad4058a6d793e9339de247dbe2ec2d4db63caf4075d145"
+    },
+    {
+      "name": "s1432.CIF",
+      "output_size": 534,
+      "sha256": "d928ab15c959d24d898d261d35d2b1e12a2332ba32fd822ed0488186d2e30ee1"
+    },
+    {
+      "name": "s1500.CIF",
+      "output_size": 9742,
+      "sha256": "102b1eb70190a507b4343f4d3f969755d0f593064f3049d7214fc30d92527144"
+    },
+    {
+      "name": "s1558.CIF",
+      "output_size": 350,
+      "sha256": "6a846c9e08062cfa82c17a86b7624cf3a69c9f9a0b8e6e42e4073b64d6f4813a"
+    },
+    {
+      "name": "s1559.CIF",
+      "output_size": 400,
+      "sha256": "0f69a4d4603efe9b8888d04d088516d8f8315d61b7313f043cc8a2b621784cb1"
+    },
+    {
+      "name": "s1560.CIF",
+      "output_size": 400,
+      "sha256": "515cdb825f312d1ab00e42a36681b5eb543f6d0570acb13bf0b9e641a7a47741"
+    },
+    {
+      "name": "s1561.CIF",
+      "output_size": 400,
+      "sha256": "6a75cd22746c13f6b6cb8dd2ec618a5aee6303265c700cc9b9efaf31778a6a05"
+    },
+    {
+      "name": "s1562.CIF",
+      "output_size": 400,
+      "sha256": "51eafd916612ac9875ccfd2563f3be8ee52850f2908d8982b4214fc7b787d3c5"
+    },
+    {
+      "name": "s1598.CIF",
+      "output_size": 440,
+      "sha256": "d37b6c22f995cb9d6f7806c1ca0eb0aa66b950aaff4e6a2cc5fb80c6aa33f489"
+    },
+    {
+      "name": "s1800.CIF",
+      "output_size": 1440,
+      "sha256": "35f711cb8ff8965205930db0d358f6a0eca86b69c516855d6ad38ea971c36da4"
+    },
+    {
+      "name": "s2000.CIF",
+      "output_size": 4076,
+      "sha256": "9877e9433dfa0f294be48d7fc972e2372942a4095d58479c4d4893e7485a7bb9"
+    },
+    {
+      "name": "s2100.CIF",
+      "output_size": 1272,
+      "sha256": "74f8280a066978ee0a1513dc53e25b0f07dc1a5cf41ba1bd8476f98b9b5e3fd8"
+    },
+    {
+      "name": "s2115.CIF",
+      "output_size": 1978,
+      "sha256": "6087e79b9d073a186f1762af8e7afb86c74b13a3431a3c7668390398a159ac55"
+    },
+    {
+      "name": "s2120.CIF",
+      "output_size": 1978,
+      "sha256": "811941fefed169e257efcda926fa9669808e0d7fe04961f1deaca9f370d647ea"
+    },
+    {
+      "name": "s2124.CIF",
+      "output_size": 1978,
+      "sha256": "d450f3ca174167d8c63afda4e433a5cc2ef2173a4b129e385c8eb1f4c209c5b1"
+    },
+    {
+      "name": "s2128.CIF",
+      "output_size": 1978,
+      "sha256": "abc966958cbbe1950f5868f7aa94481e5f49f1b9163f8d5679c2961fb427368c"
+    },
+    {
+      "name": "s2176.CIF",
+      "output_size": 2662,
+      "sha256": "8eaddd88c5611441e20f97fecf7f04168757c309621a0ebdf07b504196f0435d"
+    },
+    {
+      "name": "s2610.CIF",
+      "output_size": 3590,
+      "sha256": "246363e6cd3ffadbb6aa231cc3e30ebbd11063d4c5298d5a207b54a7fe570d02"
+    },
+    {
+      "name": "s2681.CIF",
+      "output_size": 5626,
+      "sha256": "79071f22642d2509684f11abecf95a5bca9b1904263a996c8b6bb48a2a26ea1c"
+    },
+    {
+      "name": "s2682.CIF",
+      "output_size": 5438,
+      "sha256": "4a49ad7dc4c3f3fa179dbdb88ed3df84f232eec98bf66ac4212ac14dd1ffa2c7"
+    },
+    {
+      "name": "s2683.CIF",
+      "output_size": 5438,
+      "sha256": "0658d06b0c3996dede6247ee7dfe75875ecce1a8497c2b3b7c4eaa9357d9658e"
+    },
+    {
+      "name": "s2684.CIF",
+      "output_size": 5418,
+      "sha256": "b1a22671e7a0bb73e11d0b7a2b93ea1afaef59fc3a3b0a9704519eef2cb87bc0"
+    },
+    {
+      "name": "s2685.CIF",
+      "output_size": 5438,
+      "sha256": "d782764ff33708130292e71890e6c67f5148e498fe2bb5172b22c81bb1e3f742"
+    },
+    {
+      "name": "s2686.CIF",
+      "output_size": 5438,
+      "sha256": "d38020978d2ee84f16498d52846667f2177e71efe6a558f84bdadd4bf4a70ec0"
+    },
+    {
+      "name": "s3036.CIF",
+      "output_size": 1564,
+      "sha256": "ed16a67d72e3c4db494785703da1bd29fafd66546ae1e17b8091f3dae871420d"
+    },
+    {
+      "name": "s3081.CIF",
+      "output_size": 9080,
+      "sha256": "90b09934a69fe1d52d50d2d0c7253c1d180a764aa431de0d2da2f7fb5ff2b191"
+    },
+    {
+      "name": "s3317.CIF",
+      "output_size": 1608,
+      "sha256": "a779a5841b747bb01de7cb8033aad86c81226e381cbf0e59e4a574b4fcbee51e"
+    },
+    {
+      "name": "s3328.CIF",
+      "output_size": 1624,
+      "sha256": "6d86e3b178950771c7531d4a39991dd51f0de8608ccc28fe5c19b01907510255"
+    },
+    {
+      "name": "s3330.CIF",
+      "output_size": 1282,
+      "sha256": "214041c230c011546de63f022a274452051c4abeaa09faa74dac02468e57629d"
+    },
+    {
+      "name": "s3341.CIF",
+      "output_size": 2016,
+      "sha256": "9e6f9a4e5ed353bf604f612211c9e3eed49ccdc394727386888ddb8e163525b5"
+    },
+    {
+      "name": "s3345.CIF",
+      "output_size": 5034,
+      "sha256": "4b9125220a36be36f3876a96f115610a8e095f1920ea13516a8db70880244ec8"
+    },
+    {
+      "name": "s3346.CIF",
+      "output_size": 1518,
+      "sha256": "fe78383c0cd2709b579b8547e434fc4fd996ac65d3ff9e279cf114a5cf17f7e0"
+    },
+    {
+      "name": "s3347.CIF",
+      "output_size": 3210,
+      "sha256": "ab2b981d8d0552c8be0fafb15e31d5317fa9c76e2cf7dd82ff334409a878e2e4"
+    },
+    {
+      "name": "s3348.CIF",
+      "output_size": 1208,
+      "sha256": "1762b633db2c51521e5937afc467e16dd00ca28b3bd88ef782acc520946c7438"
+    },
+    {
+      "name": "s3359.CIF",
+      "output_size": 484,
+      "sha256": "b0029b99190c151eae406f5e297345984957ef5863bd970a0ea407bd331860dc"
+    },
+    {
+      "name": "s3366.CIF",
+      "output_size": 3876,
+      "sha256": "c41649cdf85456afdcf67314ffe348fbfa9b778b776cbd014eb99d7876acef89"
+    },
+    {
+      "name": "s3394.CIF",
+      "output_size": 2378,
+      "sha256": "c4c99529de69197ba5d97f30138c7c6fd16eba599ece4efc741df3c1d5529826"
+    },
+    {
+      "name": "s3500.CIF",
+      "output_size": 1326,
+      "sha256": "3fad29b60c7b94ccb48c7af92879123518d4b74d280b009b0914c81c3ffadbd3"
+    },
+    {
+      "name": "s3506.CIF",
+      "output_size": 1476,
+      "sha256": "f7826ffb6e78cccd3d2b8d3247399207001bd1384c1d0289c5f6042a42bc906b"
+    },
+    {
+      "name": "s3507.CIF",
+      "output_size": 2200,
+      "sha256": "e51eae9d9bca6a6f4073567fc9642db472e26642b5f41c491a3ed632306805bc"
+    },
+    {
+      "name": "s3571.CIF",
+      "output_size": 958,
+      "sha256": "4e7f4d983801e1a6f38179e6db7a6992efb151d919f1c8c92bbe5efcabf806c6"
+    },
+    {
+      "name": "s3844.CIF",
+      "output_size": 894,
+      "sha256": "e74150481b61ccadcac7cea5acc7d63ae9aadfe9d166044a35456776e776d0ee"
+    },
+    {
+      "name": "s3876.CIF",
+      "output_size": 6920,
+      "sha256": "3b316895794997ce57b41541e9b05bd53b3b8467fbb0adf6bc144f68775efc99"
+    },
+    {
+      "name": "s4124.CIF",
+      "output_size": 4742,
+      "sha256": "9b2ff7d4b4f6dbd88022f180727b8df281aa96ee7b6ddb6511452919c87338ac"
+    },
+    {
+      "name": "s5060.CIF",
+      "output_size": 448,
+      "sha256": "3a0eb979f4dc8a9609b9aa19f1add22634e3ec1d34746284f2ebff021f5f64d0"
+    },
+    {
+      "name": "s5066.CIF",
+      "output_size": 366,
+      "sha256": "03b41193182c55be26dc846884f3c36543cbb0210ed657bf4b4f2e8e863198c2"
+    },
+    {
+      "name": "s5067.CIF",
+      "output_size": 366,
+      "sha256": "7fe5049c2e8647dbf0925f43ebc41192d6a7f8f0cce49579c00e683a5be69fe8"
+    },
+    {
+      "name": "s5068.CIF",
+      "output_size": 366,
+      "sha256": "ebbdf3d9b01f88e6cd3bc5ea278f93f4c18789b4e0ece6ecdf470abbfe85893b"
+    },
+    {
+      "name": "s6400.CIF",
+      "output_size": 3466,
+      "sha256": "78c3120adf5b9fe695d19e6b4a2f0f27965028f24254a39852e4fe1aa28702b3"
+    },
+    {
+      "name": "s6518.CIF",
+      "output_size": 1140,
+      "sha256": "29c851ba175f445fcbbeeb648f2c6d4f18184b59350fb26a59a5ffaf94928973"
+    },
+    {
+      "name": "s7100.CIF",
+      "output_size": 5124,
+      "sha256": "44cfe19476d1dd166543cd7d7ea98416c5fa2825f2421104a38d31e266331a79"
+    },
+    {
+      "name": "s7101.CIF",
+      "output_size": 4030,
+      "sha256": "c8cee0c68d1d6183189a829ad8b8b13bce6687bb69edbaf2e09e9fa043a2140e"
+    }
+  ],
+  "elapsed_seconds": 0.3847268749959767,
+  "archive_sha256": "1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161",
+  "original_executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "native_synthetic_tests_passed": 18,
+  "matching_verifier_tests_passed": 12,
+  "sanitizers": {
+    "address_and_undefined_behavior": "no findings in full archive listing and standalone boot.CIF CLI decode",
+    "scope": "smoke checks; not exhaustive sanitizer coverage"
+  }
+}

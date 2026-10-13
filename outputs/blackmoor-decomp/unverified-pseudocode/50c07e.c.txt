@@ -1,0 +1,47 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c07e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+/* Library Function - Single Match
+    _xMonitorFromWindow@8
+   
+   Libraries: Visual Studio 2003 Release, Visual Studio 2005 Release, Visual Studio 2008 Release
+   __stdcall xMonitorFromWindow,8 */
+
+undefined4 xMonitorFromWindow(HWND param_1,uint param_2)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  BOOL BVar3;
+  WINDOWPLACEMENT local_30;
+  
+  iVar1 = FUN_0050bf50();
+  if (iVar1 == 0) {
+    if ((param_2 & 3) == 0) {
+      BVar3 = IsIconic(param_1);
+      if (BVar3 == 0) {
+        iVar1 = GetWindowRect(param_1,&local_30.rcNormalPosition);
+      }
+      else {
+        iVar1 = GetWindowPlacement(param_1,&local_30);
+      }
+      if (iVar1 == 0) {
+        uVar2 = 0;
+      }
+      else {
+        uVar2 = FUN_0050c028(&local_30.rcNormalPosition,param_2);
+      }
+    }
+    else {
+      uVar2 = 0x12340042;
+    }
+  }
+  else {
+    uVar2 = (*DAT_0063c35c)(param_1,param_2);
+  }
+  return uVar2;
+}
+

@@ -1,0 +1,183 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44a6f2
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044a6f2(void)
+
+{
+  char cVar1;
+  uint uVar2;
+  uint uVar3;
+  char *pcVar4;
+  char *pcVar5;
+  char local_a0 [100];
+  CHAR local_3c [16];
+  DWORD local_2c;
+  _union_530 local_28;
+  undefined4 local_24;
+  undefined4 local_20;
+  undefined4 local_1c;
+  int local_10;
+  undefined4 local_c;
+  
+  local_2c = 0x10;
+  if (DAT_0063a4cd != 0) {
+    FUN_0044a2b7(s_SYSTEM_INFO__00548b38);
+  }
+  GetComputerNameA(local_3c,&local_2c);
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548b54,s_SystemName_00548b48,local_3c,(LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_System_Name___s_00548b60,local_3c);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  GetSystemInfo((LPSYSTEM_INFO)&local_28.s);
+  FUN_0050ca3e(&DAT_0063888b,&DAT_00548b74,local_28.dwOemId);
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548b84,s_OEMId_00548b7c,(LPCSTR)&DAT_0063888b,(LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_OEMId__0x_X_00548b90,local_28.dwOemId);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  FUN_0050ca3e(&DAT_0063888b,s_0x_LX_00548ba0,local_20);
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548bb8,s_MinCodeAddress_00548ba8,(LPCSTR)&DAT_0063888b,
+             (LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_Min_Code_Addr__0x_LX_00548bc4,local_20);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  FUN_0050ca3e(&DAT_0063888b,s_0x_LX_00548bdc,local_1c);
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548bf4,s_MaxCodeAddress_00548be4,(LPCSTR)&DAT_0063888b,
+             (LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_Max_Code_Addr__0x_LX_00548c00,local_1c);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  FUN_0050ca3e(&DAT_0063888b,s_0x_LX_00548c18,local_24);
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548c2c,s_PageSize_00548c20,(LPCSTR)&DAT_0063888b,(LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_Page_Size__0x_LX_00548c38,local_24);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  FUN_0050ca3e(&DAT_0063888b,s_0x_LX_00548c4c,local_c);
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548c6c,s_AllocationGranularity_00548c54,(LPCSTR)&DAT_0063888b,
+             (LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_Alloc_Gran__0x_LX_00548c78,local_c);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  if (local_10 == 0x182) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_00548c90;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_a0;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+  }
+  else if (local_10 == 0x1e6) {
+    uVar2 = 0xffffffff;
+    pcVar4 = &DAT_00548c94;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_a0;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+  }
+  else if (local_10 == 0x24a) {
+    uVar2 = 0xffffffff;
+    pcVar4 = s_Pentium_00548c98;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_a0;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+  }
+  else {
+    uVar2 = 0xffffffff;
+    pcVar4 = s_UnrecognizedProcessor_00548ca0;
+    do {
+      pcVar5 = pcVar4;
+      if (uVar2 == 0) break;
+      uVar2 = uVar2 - 1;
+      pcVar5 = pcVar4 + 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar5;
+    } while (cVar1 != '\0');
+    uVar2 = ~uVar2;
+    pcVar4 = pcVar5 + -uVar2;
+    pcVar5 = local_a0;
+    for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined4 *)pcVar5 = *(undefined4 *)pcVar4;
+      pcVar4 = pcVar4 + 4;
+      pcVar5 = pcVar5 + 4;
+    }
+    for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *pcVar5 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    }
+  }
+  WritePrivateProfileStringA
+            (s_SystemInfo_00548cc8,s_ProcessorType_00548cb8,local_a0,(LPCSTR)&DAT_00639897);
+  if (DAT_0063a4cd != 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_Processor___s_00548cd4,local_a0);
+    FUN_0044a2b7(&DAT_0063888b);
+  }
+  return;
+}
+

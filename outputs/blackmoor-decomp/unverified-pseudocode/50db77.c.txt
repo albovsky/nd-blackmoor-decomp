@@ -1,0 +1,53 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50db77
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4d268ec7993df48128cba5d0df1108836b8002175a429e70814bf1b72161879f
+ */
+
+void FUN_0050db77(undefined4 *param_1)
+
+{
+  DWORD DVar1;
+  undefined4 uVar2;
+  _TIME_ZONE_INFORMATION local_d0;
+  _SYSTEMTIME local_24;
+  _SYSTEMTIME local_14;
+  
+  GetLocalTime(&local_14);
+  GetSystemTime(&local_24);
+  if (local_24.wMinute == DAT_0063ca60._2_2_) {
+    if (local_24.wHour == (WORD)DAT_0063ca60) {
+      if (local_24.wDay == DAT_0063ca5c._2_2_) {
+        if (local_24.wMonth == DAT_0063ca58._2_2_) {
+          if (local_24.wYear == (WORD)DAT_0063ca58) goto LAB_0050dc21;
+        }
+      }
+    }
+  }
+  DVar1 = GetTimeZoneInformation(&local_d0);
+  if (DVar1 == 0xffffffff) {
+    DAT_0063ca50 = 0xffffffff;
+  }
+  else if (((DVar1 == 2) && (local_d0.DaylightDate.wMonth != 0)) && (local_d0.DaylightBias != 0)) {
+    DAT_0063ca50 = 1;
+  }
+  else {
+    DAT_0063ca50 = 0;
+  }
+  DAT_0063ca58._0_2_ = local_24.wYear;
+  DAT_0063ca58._2_2_ = local_24.wMonth;
+  DAT_0063ca5c._0_2_ = local_24.wDayOfWeek;
+  DAT_0063ca5c._2_2_ = local_24.wDay;
+  DAT_0063ca60._0_2_ = local_24.wHour;
+  DAT_0063ca60._2_2_ = local_24.wMinute;
+  DAT_0063ca64._0_2_ = local_24.wSecond;
+  DAT_0063ca64._2_2_ = local_24.wMilliseconds;
+LAB_0050dc21:
+  uVar2 = FUN_00513174(local_14.wYear,local_14.wMonth,local_14.wDay,local_14.wHour,local_14.wMinute,
+                       local_14.wSecond,DAT_0063ca50);
+  if (param_1 != (undefined4 *)0x0) {
+    *param_1 = uVar2;
+  }
+  return;
+}
+

@@ -1,0 +1,151 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e2e05
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8385f85130572c281c3b234a54cbdfd62040e051350169a9d81ca47906b8da6a
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004e2e05(void)
+
+{
+  char cVar1;
+  int in_ECX;
+  uint uVar2;
+  uint uVar3;
+  int iVar4;
+  undefined4 *puVar5;
+  char *pcVar6;
+  undefined4 *puVar7;
+  char *pcVar8;
+  bool bVar9;
+  
+  DAT_005a1e54 = 0;
+  DAT_005a1e58 = 0;
+  uVar2 = *(short *)(in_ECX + 0x1471) * 0x29;
+  puVar5 = (undefined4 *)(in_ECX + 0x457b);
+  puVar7 = &DAT_005a1e62;
+  for (uVar3 = uVar2 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *puVar7 = *puVar5;
+    puVar5 = puVar5 + 1;
+    puVar7 = puVar7 + 1;
+  }
+  for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+    *(undefined1 *)puVar7 = *(undefined1 *)puVar5;
+    puVar5 = (undefined4 *)((int)puVar5 + 1);
+    puVar7 = (undefined4 *)((int)puVar7 + 1);
+  }
+  DAT_005a1e5c = *(undefined2 *)(in_ECX + 0x1471);
+  FUN_004e3ade();
+  iVar4 = 1;
+  bVar9 = true;
+  pcVar6 = (char *)(in_ECX + 0x139d);
+  pcVar8 = &DAT_0063a9e4;
+  do {
+    if (iVar4 == 0) break;
+    iVar4 = iVar4 + -1;
+    bVar9 = *pcVar6 == *pcVar8;
+    pcVar6 = pcVar6 + 1;
+    pcVar8 = pcVar8 + 1;
+  } while (bVar9);
+  if (bVar9) {
+    DAT_005a1e5e = 0;
+  }
+  else {
+    DAT_005a1e5e = 1;
+    uVar3 = 0xffffffff;
+    pcVar6 = (char *)(in_ECX + 0x139d);
+    do {
+      pcVar8 = pcVar6;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar8 = pcVar6 + 1;
+      cVar1 = *pcVar6;
+      pcVar6 = pcVar8;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar6 = pcVar8 + -uVar3;
+    pcVar8 = (char *)&DAT_005a2664;
+    for (uVar2 = uVar3 >> 2; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *(undefined4 *)pcVar8 = *(undefined4 *)pcVar6;
+      pcVar6 = pcVar6 + 4;
+      pcVar8 = pcVar8 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar8 = *pcVar6;
+      pcVar6 = pcVar6 + 1;
+      pcVar8 = pcVar8 + 1;
+    }
+    uVar3 = 0xffffffff;
+    pcVar6 = (char *)(in_ECX + 0x13be);
+    do {
+      pcVar8 = pcVar6;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar8 = pcVar6 + 1;
+      cVar1 = *pcVar6;
+      pcVar6 = pcVar8;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar6 = pcVar8 + -uVar3;
+    pcVar8 = (char *)&DAT_005a2685;
+    for (uVar2 = uVar3 >> 2; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *(undefined4 *)pcVar8 = *(undefined4 *)pcVar6;
+      pcVar6 = pcVar6 + 4;
+      pcVar8 = pcVar8 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar8 = *pcVar6;
+      pcVar6 = pcVar6 + 1;
+      pcVar8 = pcVar8 + 1;
+    }
+    _DAT_005a26a6 = *(undefined2 *)(in_ECX + 0x13df);
+    _DAT_005a26a8 = *(undefined2 *)(in_ECX + 0x13e1);
+    _DAT_005a26aa = 0;
+  }
+  iVar4 = 1;
+  bVar9 = true;
+  pcVar6 = (char *)(in_ECX + 0x13e3);
+  pcVar8 = &DAT_0063a9e8;
+  do {
+    if (iVar4 == 0) break;
+    iVar4 = iVar4 + -1;
+    bVar9 = *pcVar6 == *pcVar8;
+    pcVar6 = pcVar6 + 1;
+    pcVar8 = pcVar8 + 1;
+  } while (bVar9);
+  if (bVar9) {
+    DAT_005a1e60 = 0;
+  }
+  else {
+    DAT_005a1e60 = 1;
+    uVar3 = 0xffffffff;
+    pcVar6 = (char *)(in_ECX + 0x13e3);
+    do {
+      pcVar8 = pcVar6;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar8 = pcVar6 + 1;
+      cVar1 = *pcVar6;
+      pcVar6 = pcVar8;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar6 = pcVar8 + -uVar3;
+    pcVar8 = (char *)&DAT_005a434c;
+    for (uVar2 = uVar3 >> 2; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *(undefined4 *)pcVar8 = *(undefined4 *)pcVar6;
+      pcVar6 = pcVar6 + 4;
+      pcVar8 = pcVar8 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar8 = *pcVar6;
+      pcVar6 = pcVar6 + 1;
+      pcVar8 = pcVar8 + 1;
+    }
+    _DAT_005a4371 = (int)*(short *)(in_ECX + 0x1404);
+    _DAT_005a436d = *(undefined2 *)(in_ECX + 0x1406);
+    _DAT_005a436f = *(undefined2 *)(in_ECX + 0x1408);
+  }
+  return;
+}
+

@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51d9c1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051d9c1(void)
+
+{
+  CTypeLibCache *this;
+  int *in_ECX;
+  
+  FUN_00525ffa(0xd);
+  this = (CTypeLibCache *)(**(code **)(*in_ECX + 0x20))();
+  if (this != (CTypeLibCache *)0x0) {
+    CTypeLibCache::Unlock(this);
+  }
+  FUN_0052606a(0xd);
+  if (in_ECX != (int *)0x0) {
+    (**(code **)(*in_ECX + 4))(1);
+  }
+  return;
+}
+

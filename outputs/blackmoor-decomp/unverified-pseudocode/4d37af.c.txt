@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d37af
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+void FUN_004d37af(void)
+
+{
+  FUN_004c5377(DAT_005d03bb,DAT_005cf665,&DAT_005b50cf,DAT_005d19ad,s_pSBackground_0055a3c4);
+  FUN_004c5d4b(DAT_005d19a5,DAT_005cf665,DAT_005d19a9,DAT_005d19ad,s_sec_1_surface_0055a3d4);
+  if (DAT_005b5104 != 0) {
+    FUN_004c5d4b(DAT_005d03cb,DAT_005cf665,&DAT_005b50af,&DAT_005b50bf,
+                 s_pDFSSec1VideoBitmapOverlay_0055a3e4);
+  }
+  return;
+}
+

@@ -1,0 +1,137 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a10f1
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f9d88b0169a812ae2c4ead5dc0ce17ad9653751613cdfaa979f2506d84e4924b
+ */
+
+void FUN_004a10f1(void)
+
+{
+  int in_ECX;
+  uint uVar1;
+  int iVar2;
+  uint uVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  int local_8;
+  
+  for (local_8 = 0; local_8 < *(int *)(in_ECX + 0x20); local_8 = local_8 + 1) {
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe38) + local_8 * *(int *)(in_ECX + 0x1c) * 4);
+    puVar5 = (undefined4 *)(DAT_006329e1 + local_8 * 0x298);
+    for (uVar1 = *(uint *)(in_ECX + 0x1c) & 0x3fffffff; uVar1 != 0; uVar1 = uVar1 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = 0; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe30) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_006329e5 + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe34) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_006329e9 + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe3c) + local_8 * *(int *)(in_ECX + 0x1c) * 4);
+    puVar5 = (undefined4 *)(DAT_006329ed + local_8 * 0x298);
+    for (uVar1 = *(uint *)(in_ECX + 0x1c) & 0x3fffffff; uVar1 != 0; uVar1 = uVar1 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = 0; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe40) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_006329f1 + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe40) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_006329f5 + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe44) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_006329f9 + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe44) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_006329fd + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+    uVar1 = *(uint *)(in_ECX + 0x1c);
+    puVar4 = (undefined4 *)(*(int *)(in_ECX + 0xe48) + local_8 * *(int *)(in_ECX + 0x1c) * 2);
+    puVar5 = (undefined4 *)(DAT_00632a01 + local_8 * 0x14c);
+    for (uVar3 = (uVar1 & 0x7fffffff) >> 1; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *puVar5 = *puVar4;
+      puVar4 = puVar4 + 1;
+      puVar5 = puVar5 + 1;
+    }
+    for (iVar2 = (uVar1 & 1) << 1; iVar2 != 0; iVar2 = iVar2 + -1) {
+      *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+      puVar4 = (undefined4 *)((int)puVar4 + 1);
+      puVar5 = (undefined4 *)((int)puVar5 + 1);
+    }
+  }
+  return;
+}
+

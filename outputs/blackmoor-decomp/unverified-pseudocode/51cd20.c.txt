@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51cd20
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+undefined4 FUN_0051cd20(LPCSTR param_1)
+
+{
+  HMODULE hModule;
+  int iVar1;
+  HRSRC hResInfo;
+  HGLOBAL hResData;
+  undefined4 uVar2;
+  LPVOID pvVar3;
+  
+  pvVar3 = (LPVOID)0x0;
+  if (param_1 != (LPCSTR)0x0) {
+    iVar1 = FUN_00525371();
+    hModule = *(HMODULE *)(iVar1 + 0xc);
+    hResInfo = FindResourceA(hModule,param_1,(LPCSTR)0xf0);
+    if (hResInfo != (HRSRC)0x0) {
+      hResData = LoadResource(hModule,hResInfo);
+      if (hResData == (HGLOBAL)0x0) {
+        return 0;
+      }
+      pvVar3 = LockResource(hResData);
+    }
+  }
+  uVar2 = FUN_0051cd70(pvVar3);
+  return uVar2;
+}
+

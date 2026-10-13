@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ea1cb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9c656b3eec0deb5a709812e8ef40c0b3c5e683a3969dfdbc8ffe3dad08e63a8
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004ea1cb(undefined4 param_1)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x699) == 0) {
+    uVar1 = FUN_004c2790(s_CIFTREE_0055cad0,param_1,6,s_DF_INVENTORY_Surface_0055cab8);
+    *(undefined4 *)(in_ECX + 0x699) = uVar1;
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_LoadBitmapSurface_____loaded_inv_0055cad8);
+    }
+  }
+  _DAT_005d1717 = 0;
+  return;
+}
+

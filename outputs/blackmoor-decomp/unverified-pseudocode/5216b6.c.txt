@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5216b6
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+uint FUN_005216b6(LPCSTR param_1,LPCSTR param_2,BYTE *param_3)
+
+{
+  HKEY hKey;
+  int iVar1;
+  uint uVar2;
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x7c) == 0) {
+    uVar2 = WritePrivateProfileStringA(param_1,param_2,(LPCSTR)param_3,*(LPCSTR *)(in_ECX + 0x90));
+    return uVar2;
+  }
+  if (param_2 == (LPCSTR)0x0) {
+    hKey = (HKEY)FUN_005261b1();
+    if (hKey != (HKEY)0x0) {
+      iVar1 = RegDeleteKeyA(hKey,param_1);
+      goto LAB_00521729;
+    }
+  }
+  else if (param_3 == (BYTE *)0x0) {
+    hKey = (HKEY)GetSectionKey(param_1);
+    if (hKey != (HKEY)0x0) {
+      iVar1 = RegDeleteValueA(hKey,param_2);
+LAB_00521729:
+      RegCloseKey(hKey);
+      return (uint)(iVar1 == 0);
+    }
+  }
+  else {
+    hKey = (HKEY)GetSectionKey(param_1);
+    if (hKey != (HKEY)0x0) {
+      iVar1 = lstrlenA((LPCSTR)param_3);
+      iVar1 = RegSetValueExA(hKey,param_2,0,1,param_3,iVar1 + 1);
+      goto LAB_00521729;
+    }
+  }
+  return 0;
+}
+

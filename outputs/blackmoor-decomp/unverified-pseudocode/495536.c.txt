@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x495536
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+void FUN_00495536(byte *param_1,ushort *param_2)
+
+{
+  if (DAT_005d2f23 == '\x05') {
+    *param_1 = *param_1 >> 3;
+  }
+  else {
+    *param_1 = *param_1 >> 2;
+  }
+  if (DAT_005d2f22 == '\x05') {
+    param_1[1] = param_1[1] >> 3;
+  }
+  else {
+    param_1[1] = param_1[1] >> 2;
+  }
+  if (DAT_005d2f21 == '\x05') {
+    param_1[2] = param_1[2] >> 3;
+  }
+  else {
+    param_1[2] = param_1[2] >> 2;
+  }
+  *param_2 = (ushort)*param_1 << (DAT_005d2f1b & 0x1f) | (ushort)param_1[1] << (DAT_005d2f1a & 0x1f)
+             | (ushort)param_1[2] << (DAT_005d2f19 & 0x1f);
+  return;
+}
+

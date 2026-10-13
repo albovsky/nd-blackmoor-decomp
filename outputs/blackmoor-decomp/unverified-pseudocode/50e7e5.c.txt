@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50e7e5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void entry(void)
+
+{
+  DWORD DVar1;
+  int iVar2;
+  undefined4 uVar3;
+  uint uVar4;
+  HMODULE pHVar5;
+  undefined4 uVar6;
+  _STARTUPINFOA local_60;
+  undefined1 *local_1c;
+  undefined4 *local_18;
+  void *pvStack_14;
+  undefined1 *puStack_10;
+  undefined *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &DAT_00530258;
+  puStack_10 = &LAB_00511930;
+  pvStack_14 = ExceptionList;
+  local_1c = &stack0xffffff88;
+  ExceptionList = &pvStack_14;
+  DVar1 = GetVersion();
+  _DAT_0063ca1c = DVar1 >> 8 & 0xff;
+  _DAT_0063ca18 = DVar1 & 0xff;
+  _DAT_0063ca14 = _DAT_0063ca18 * 0x100 + _DAT_0063ca1c;
+  _DAT_0063ca10 = DVar1 >> 0x10;
+  iVar2 = FUN_00514d5d(1);
+  if (iVar2 == 0) {
+    FUN_0050e912(0x1c);
+  }
+  iVar2 = FUN_00510d6c();
+  if (iVar2 == 0) {
+    FUN_0050e912(0x10);
+  }
+  local_8 = 0;
+  FUN_00512d28();
+  DAT_0063e128 = GetCommandLineA();
+  DAT_0063ca68 = FUN_00514c2b();
+  FUN_005149de();
+  FUN_00514925();
+  FUN_0050d7b6();
+  local_60.dwFlags = 0;
+  GetStartupInfoA(&local_60);
+  uVar3 = FUN_005148cd();
+  if ((local_60.dwFlags & 1) == 0) {
+    uVar4 = 10;
+  }
+  else {
+    uVar4 = (uint)local_60.wShowWindow;
+  }
+  uVar6 = 0;
+  pHVar5 = GetModuleHandleA((LPCSTR)0x0);
+  uVar3 = FUN_00519a60(pHVar5,uVar6,uVar3,uVar4);
+  FUN_0050d7e3(uVar3);
+  FUN_00514755(*(undefined4 *)*local_18,local_18);
+  return;
+}
+

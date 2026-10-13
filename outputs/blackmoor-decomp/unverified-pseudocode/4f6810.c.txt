@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f6810
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
+ */
+
+undefined4 FUN_004f6810(void)
+
+{
+  undefined4 local_8;
+  
+  for (local_8 = 0; local_8 < 0x20; local_8 = local_8 + 1) {
+    FUN_004f6624(local_8,1);
+  }
+  return 1;
+}
+

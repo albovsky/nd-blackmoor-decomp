@@ -1,0 +1,65 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e22fd
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8385f85130572c281c3b234a54cbdfd62040e051350169a9d81ca47906b8da6a
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_004e22fd(short param_1,short param_2)
+
+{
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x183) = 0;
+  if (*(int *)(in_ECX + 0x30) != 4) {
+    if (*(int *)(in_ECX + 0x18) == 0) {
+      if (((*(int *)(in_ECX + 0x30) == 0) || (*(int *)(in_ECX + 0x30) == 1)) ||
+         (*(int *)(in_ECX + 0x30) == 3)) {
+        if (((*(int *)(in_ECX + 8) <= (int)param_2) && ((int)param_2 <= *(int *)(in_ECX + 0x10))) &&
+           ((*(int *)(in_ECX + 4) <= (int)param_1 && ((int)param_1 <= *(int *)(in_ECX + 0xc))))) {
+          *(undefined4 *)(in_ECX + 0x183) = 1;
+          if ((*(int *)(in_ECX + 0xe2) != 0) && (*(int *)(in_ECX + 0x30) != 3)) {
+            *(undefined4 *)(in_ECX + 0x30) = 1;
+          }
+          if (*(int *)(in_ECX + 0xe6) != 0) {
+            DAT_005c39e5 = 0x27d8;
+            DAT_005b44f4 = 1;
+            _DAT_005d1631 = &DAT_005b161c + DAT_005b44f0 * 0x20;
+            _DAT_005d1639 = 1;
+          }
+          return 1;
+        }
+        if (*(int *)(in_ECX + 0x30) == 1) {
+          *(undefined4 *)(in_ECX + 0x30) = 0;
+        }
+      }
+    }
+    else if ((*(int *)(in_ECX + 0x18) == 1) &&
+            (((*(int *)(in_ECX + 0x30) == 0 || (*(int *)(in_ECX + 0x30) == 1)) ||
+             (*(int *)(in_ECX + 0x30) == 2)))) {
+      if ((((*(int *)(in_ECX + 8) <= (int)param_2) && ((int)param_2 <= *(int *)(in_ECX + 0x10))) &&
+          (*(int *)(in_ECX + 4) <= (int)param_1)) && ((int)param_1 <= *(int *)(in_ECX + 0xc))) {
+        *(undefined4 *)(in_ECX + 0x183) = 1;
+        if (*(int *)(in_ECX + 0xe2) != 0) {
+          *(undefined4 *)(in_ECX + 0x30) = 1;
+        }
+        if (*(int *)(in_ECX + 0xe6) != 0) {
+          DAT_005c39e5 = 0x27d8;
+          DAT_005b44f4 = 1;
+          _DAT_005d1631 = &DAT_005b161c + DAT_005b44f0 * 0x20;
+          _DAT_005d1639 = 1;
+        }
+        return 1;
+      }
+      if (*(int *)(in_ECX + 0x1c) == 0) {
+        *(undefined4 *)(in_ECX + 0x30) = 2;
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x30) = 0;
+      }
+    }
+  }
+  return 0;
+}
+

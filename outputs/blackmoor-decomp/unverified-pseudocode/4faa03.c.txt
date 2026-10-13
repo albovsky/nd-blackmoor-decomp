@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4faa03
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+void FUN_004faa03(undefined4 param_1)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  int local_8;
+  
+  iVar1 = FUN_004f709c();
+  if (iVar1 == 0) {
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_CSound__InitSoundSystem___begin__0056051c);
+    }
+    for (local_8 = 0; local_8 < 0x20; local_8 = local_8 + 1) {
+      *(undefined2 *)(in_ECX + 0x132 + local_8 * 0x5bb) = 0;
+      *(undefined2 *)(in_ECX + 0x10c + local_8 * 0x5bb) = 3;
+      *(undefined4 *)(in_ECX + 300 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x28b + local_8 * 0x5bb) = 0;
+      *(int *)(in_ECX + 4 + local_8 * 0x5bb) = local_8;
+      *(undefined1 *)(in_ECX + 8 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x293 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x29f + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x15a + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x166 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x156 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x172 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x176 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x15e + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x297 + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x29b + local_8 * 0x5bb) = 0;
+      *(undefined4 *)(in_ECX + 0x28f + local_8 * 0x5bb) = 0;
+    }
+    iVar1 = FUN_004f2710(param_1,in_ECX + 4);
+    if (iVar1 == 0) {
+      if (DAT_0063a4cd != 0) {
+        uVar2 = FUN_004fa2a8();
+        FUN_0050ca3e(&DAT_0063888b,s_CSound___DIRECTSOUND__Init___Err_00560540,uVar2);
+        FUN_0044a2b7(&DAT_0063888b);
+      }
+    }
+    else {
+      for (local_8 = 0; *(short *)(&DAT_005604dc + local_8 * 2) != -1; local_8 = local_8 + 1) {
+        *(undefined2 *)(in_ECX + 0x10c + *(short *)(&DAT_005604dc + local_8 * 2) * 0x5bb) = 0;
+      }
+      for (local_8 = 0; *(short *)(&DAT_005604e4 + local_8 * 2) != -1; local_8 = local_8 + 1) {
+        *(undefined2 *)(in_ECX + 0x10c + *(short *)(&DAT_005604e4 + local_8 * 2) * 0x5bb) = 1;
+      }
+      for (local_8 = 0; *(short *)(&DAT_005604f4 + local_8 * 2) != -1; local_8 = local_8 + 1) {
+        *(undefined2 *)(in_ECX + 0x10c + *(short *)(&DAT_005604f4 + local_8 * 2) * 0x5bb) = 2;
+      }
+      *(undefined4 *)(in_ECX + 0x5e3f) = 0;
+      *(undefined2 *)(in_ECX + 0x5cbc) = 3;
+      *(undefined2 *)(in_ECX + 0x5ce0) = 1;
+      *(undefined4 *)(in_ECX + 0x5d1a) = 1;
+      *(undefined4 *)(in_ECX + 0x5ce4) = 0;
+      FUN_004fc62d(0x10,s_silence_00560570,0,0,1);
+      FUN_004fb2e3(0x10);
+    }
+  }
+  return;
+}
+

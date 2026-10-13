@@ -1,0 +1,54 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50f72d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+float10 FUN_0050f72d(int param_1,uint param_2)
+
+{
+  uint in_EAX;
+  bool in_ZF;
+  short in_FPUControlWord;
+  float10 in_ST0;
+  float10 extraout_ST0;
+  float10 fVar1;
+  
+  if (in_ZF) {
+    if (((in_EAX & 0xfffff) != 0) || (fVar1 = _DAT_00568910, param_1 != 0)) {
+      fVar1 = (float10)FUN_00513c4c();
+    }
+LAB_0050f7bc:
+    if (DAT_0063ca04 == 0) {
+      fVar1 = (float10)__startOneArgErrorHandling();
+      return fVar1;
+    }
+  }
+  else {
+    if (in_FPUControlWord != 0x27f) {
+      in_EAX = FUN_00513c35();
+      in_ST0 = extraout_ST0;
+    }
+    if (in_EAX < 0x3ff00000) {
+      fVar1 = (float10)fpatan(SQRT(((float10)1 - in_ST0) * ((float10)1 + in_ST0)),in_ST0);
+    }
+    else {
+      fVar1 = _DAT_00568910;
+      if ((0x3ff00000 < in_EAX) || ((param_2 & 0xfffff) != 0 || param_1 != 0)) goto LAB_0050f7bc;
+      if ((param_2 & 0x80000000) == 0) {
+        fVar1 = (float10)0;
+      }
+      else {
+        fVar1 = (float10)3.141592653589793;
+      }
+    }
+    if (DAT_0063ca04 == 0) {
+      fVar1 = (float10)__math_exit();
+      return fVar1;
+    }
+  }
+  return fVar1;
+}
+

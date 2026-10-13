@@ -1,0 +1,96 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x454847
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d9db35753575c6f4f6d3b54f0e558794e685953e363fb4d0275dfb0787ca7633
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00454847(void)
+
+{
+  int local_2c;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  int local_c;
+  int local_8;
+  
+  if (DAT_0061d887 != 0) {
+    if (DAT_0061d937 == 0) {
+      if (DAT_0061d933 != 0) {
+        local_14 = DAT_0061d94b - _DAT_0061dbbf;
+        local_c = DAT_0061d953 - _DAT_0061dbbf;
+        local_10 = DAT_0061d94f - _DAT_0061dbc3;
+        local_8 = DAT_0061d957 - _DAT_0061dbc3;
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_14,&DAT_0061d94b,
+                     s_Arcade_Puzzle_Background_Restora_00549e88);
+        DAT_0061d933 = 0;
+      }
+      if (DAT_0061d9d3 != 0) {
+        local_14 = DAT_0061d9c3 - _DAT_0061dbbf;
+        local_c = DAT_0061d9cb - _DAT_0061dbbf;
+        local_10 = DAT_0061d9c7 - _DAT_0061dbc3;
+        local_8 = DAT_0061d9cf - _DAT_0061dbc3;
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_14,&DAT_0061d9c3,
+                     s_Arcade_Puzzle_Background_Restora_00549eb8);
+        DAT_0061d9d3 = 0;
+      }
+      FUN_004c5377(DAT_0061db17,DAT_005cf665,&DAT_0061db7f,&DAT_0061db8f,
+                   s_Arcade_Puzzle_Blocks_00549ee4);
+      FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d877 * 0x4a),DAT_005cf665,
+                   &DAT_0061d89f,&DAT_0061d93b,s_Arcade_Puzzle_Paddle_00549efc);
+      if ((DAT_0061d897 == 0) && (DAT_0061d89b == 0)) {
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d877 * 0x4a),DAT_005cf665,
+                     &DAT_0061d97b,&DAT_0061d98b,s_Arcade_Puzzle_Ball_00549f14);
+      }
+      else if ((DAT_0061d897 != 0) && (DAT_0061d89b == 0)) {
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d877 * 0x4a),DAT_005cf665,
+                     &DAT_0061d99b,&DAT_0061d9ab,s_Arcade_Puzzle_Ball_DYING_00549f28);
+      }
+      if (DAT_0061d893 != 0) {
+        local_1c = (DAT_0061d8f7 - _DAT_0061d8ef) + 1;
+        local_18 = (DAT_0061d8fb - _DAT_0061d8f3) + 1;
+        local_2c = (DAT_0061dbcf - local_1c) / 2 + _DAT_0061dbbf;
+        local_28 = (DAT_0061dbd3 - local_18) / 2 + _DAT_0061dbc3;
+        local_24 = local_2c + -1 + local_1c;
+        local_20 = local_28 + -1 + local_18;
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d877 * 0x4a),DAT_005cf665,
+                     &DAT_0061d8ef,&local_2c,s_Arcade_Puzzle_FAILURE_message_00549f44);
+      }
+      if (DAT_0061d88f != 0) {
+        local_1c = (DAT_0061d8d7 - _DAT_0061d8cf) + 1;
+        local_18 = (DAT_0061d8db - _DAT_0061d8d3) + 1;
+        local_2c = (DAT_0061dbcf - local_1c) / 2 + _DAT_0061dbbf;
+        local_28 = (DAT_0061dbd3 - local_18) / 2 + _DAT_0061dbc3;
+        local_24 = local_2c + -1 + local_1c;
+        local_20 = local_28 + -1 + local_18;
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d877 * 0x4a),DAT_005cf665,
+                     &DAT_0061d8cf,&local_2c,s_Arcade_Puzzle_SUBLEVEL_SOLVED_me_00549f64);
+      }
+      if (DAT_0061d88b != 0) {
+        local_1c = (DAT_0061d8e7 - _DAT_0061d8df) + 1;
+        local_18 = (DAT_0061d8eb - _DAT_0061d8e3) + 1;
+        local_2c = (DAT_0061dbcf - local_1c) / 2 + _DAT_0061dbbf;
+        local_28 = (DAT_0061dbd3 - local_18) / 2 + _DAT_0061dbc3;
+        local_24 = local_2c + -1 + local_1c;
+        local_20 = local_28 + -1 + local_18;
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d877 * 0x4a),DAT_005cf665,
+                     &DAT_0061d8df,&local_2c,s_Arcade_Puzzle_SOLVED_message_00549f8c);
+      }
+    }
+    else {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_0061d8bf,&DAT_0061d8af,
+                   s_Arcade_Puzzle_Background_Restora_00549e60);
+      DAT_0061d937 = 0;
+      DAT_0061d933 = 0;
+      DAT_0061d9d3 = 0;
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,27 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4db817
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004db817(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x24) = *(undefined4 *)(in_ECX + 0x34);
+  *(undefined4 *)(in_ECX + 0x28) = *(undefined4 *)(in_ECX + 0x38);
+  *(undefined4 *)(in_ECX + 0x2c) = *(undefined4 *)(in_ECX + 0x3c);
+  *(undefined4 *)(in_ECX + 0x30) = *(undefined4 *)(in_ECX + 0x40);
+  _DAT_005d1683 = 1;
+  _DAT_005d16cd = 0;
+  iVar1 = FUN_00493a47();
+  if (iVar1 != 0) {
+    FUN_00493af0();
+  }
+  return;
+}
+

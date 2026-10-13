@@ -1,0 +1,121 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4641bb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_87c215b6acae2dc5650e31fcd27f76d139aec2c1d8e05fbf5ef1e7fe469374cd
+ */
+
+void FUN_004641bb(void)
+
+{
+  undefined4 *puVar1;
+  int iVar2;
+  short sVar3;
+  int in_ECX;
+  short sVar4;
+  uint uVar5;
+  short local_8;
+  
+  iVar2 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  *(undefined4 *)(in_ECX + 0xa8) = 0;
+  *(undefined4 *)(in_ECX + 0xac) = 0;
+  *(undefined4 *)(in_ECX + 0xb0) = 0;
+  *(undefined4 *)(in_ECX + 0xb4) = 0;
+  if (*(int *)(in_ECX + 0x8c) == 0) {
+    if (*(int *)(in_ECX + 0x90) == 0) {
+      if (*(int *)(in_ECX + 0x98 + *(short *)(in_ECX + 0x8a) * 4) == 0) {
+        uVar5 = (int)*(short *)(in_ECX + 0x8a) + 1U & 0x80000003;
+        if ((int)uVar5 < 0) {
+          uVar5 = (uVar5 - 1 | 0xfffffffc) + 1;
+        }
+        sVar4 = (short)uVar5;
+        local_8 = *(short *)(in_ECX + 0x8a) + -1;
+        if (local_8 < 0) {
+          local_8 = 3;
+        }
+        uVar5 = (int)*(short *)(in_ECX + 0x8a) + 2U & 0x80000003;
+        if ((int)uVar5 < 0) {
+          uVar5 = (uVar5 - 1 | 0xfffffffc) + 1;
+        }
+        sVar3 = (short)uVar5;
+        if ((*(int *)(in_ECX + 0x98 + sVar4 * 4) == 0) ||
+           (*(int *)(in_ECX + 0x98 + local_8 * 4) == 0)) {
+          if ((*(int *)(in_ECX + 0x98 + sVar4 * 4) == 0) ||
+             (*(int *)(in_ECX + 0x98 + sVar3 * 4) == 0)) {
+            if ((*(int *)(in_ECX + 0x98 + local_8 * 4) == 0) ||
+               (*(int *)(in_ECX + 0x98 + sVar3 * 4) == 0)) {
+              if (*(int *)(in_ECX + 0x98 + sVar4 * 4) == 0) {
+                if (*(int *)(in_ECX + 0x98 + local_8 * 4) == 0) {
+                  if (*(int *)(in_ECX + 0x98 + sVar3 * 4) != 0) {
+                    puVar1 = (undefined4 *)(iVar2 + 0x141 + *(short *)(in_ECX + 0x8a) * 0x90);
+                    *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+                    *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+                    *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+                    *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+                  }
+                }
+                else {
+                  puVar1 = (undefined4 *)(iVar2 + 0x131 + *(short *)(in_ECX + 0x8a) * 0x90);
+                  *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+                  *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+                  *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+                  *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+                }
+              }
+              else {
+                puVar1 = (undefined4 *)(iVar2 + 0x121 + *(short *)(in_ECX + 0x8a) * 0x90);
+                *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+                *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+                *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+                *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+              }
+            }
+            else {
+              puVar1 = (undefined4 *)(iVar2 + 0x161 + *(short *)(in_ECX + 0x8a) * 0x90);
+              *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+              *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+              *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+              *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+            }
+          }
+          else {
+            puVar1 = (undefined4 *)(iVar2 + 0x151 + *(short *)(in_ECX + 0x8a) * 0x90);
+            *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+            *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+            *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+            *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+          }
+        }
+        else {
+          puVar1 = (undefined4 *)(iVar2 + 0x171 + *(short *)(in_ECX + 0x8a) * 0x90);
+          *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+          *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+          *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+          *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+        }
+      }
+      else {
+        puVar1 = (undefined4 *)(iVar2 + 0x111 + *(short *)(in_ECX + 0x8a) * 0x90);
+        *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+        *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+        *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+        *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+      }
+    }
+    else {
+      puVar1 = (undefined4 *)(iVar2 + 0x101 + *(short *)(in_ECX + 0x8a) * 0x90);
+      *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+      *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+      *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+      *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+    }
+  }
+  else {
+    puVar1 = (undefined4 *)(iVar2 + 0xf1 + *(short *)(in_ECX + 0x8a) * 0x90);
+    *(undefined4 *)(in_ECX + 0xa8) = *puVar1;
+    *(undefined4 *)(in_ECX + 0xac) = puVar1[1];
+    *(undefined4 *)(in_ECX + 0xb0) = puVar1[2];
+    *(undefined4 *)(in_ECX + 0xb4) = puVar1[3];
+  }
+  return;
+}
+

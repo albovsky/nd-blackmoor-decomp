@@ -1,0 +1,143 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4348b0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_004348b0(void)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  UINT UVar3;
+  char *pcVar4;
+  char *pcVar5;
+  bool bVar6;
+  CHAR local_68 [100];
+  
+  iVar1 = FUN_0050d0a9(&DAT_00639897,&DAT_00545f28);
+  if (iVar1 == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_ERROR___incorrect_path_to_INI_fi_00545f2c,&DAT_00639897);
+    FUN_0052139c(&DAT_0063888b,0,0);
+    uVar2 = 0;
+  }
+  else {
+    FUN_0050cee4(iVar1);
+    GetPrivateProfileStringA
+              (s_Nancy_Data_00545f6c,s_IDPath_00545f64,s_GAME_FILE_DIR_00545f54,&DAT_0063a2c5,0x104,
+               (LPCSTR)&DAT_00639897);
+    iVar1 = _strncmp(&DAT_0063a2c5,s_GAME_FILE_DIR_00545f78,0x104);
+    if (iVar1 == 0) {
+      _strncpy(&DAT_0063a2c5,&DAT_00639aa2,0x104);
+    }
+    FUN_00434d56(s_CifTreePath_00545f94,s__Ciftree__00545f88,0x639db1,0x104);
+    FUN_00434d56(s_HDVideoPath_00545fac,s__HDVideo__00545fa0,&DAT_00639eb5,0x104);
+    FUN_00434d56(s_CDVideoPath_00545fc4,s__CDVideo__00545fb8,&DAT_00639fb9,0x104);
+    FUN_00434d56(s_HDSoundPath_00545fdc,s__HDSound__00545fd0,&DAT_0063a0bd,0x104);
+    FUN_00434d56(s_CDSoundPath_00545ff4,s__CDSound__00545fe8,&DAT_0063a1c1,0x104);
+    iVar1 = 1;
+    bVar6 = true;
+    pcVar4 = &DAT_0063a3c9;
+    pcVar5 = &DAT_0063a59c;
+    do {
+      if (iVar1 == 0) break;
+      iVar1 = iVar1 + -1;
+      bVar6 = *pcVar4 == *pcVar5;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    } while (bVar6);
+    if (bVar6) {
+      FUN_00434d56(s_LoadSavePath_00546008,&DAT_00546000,&DAT_0063a3c9,0x104);
+      FUN_0050cd72(&DAT_0063a3c9,&DAT_00639dae,&DAT_0063a3c9,&DAT_0063a5a4,&DAT_0063a5a0);
+    }
+    GetPrivateProfileStringA
+              (s_Nancy_Data_00546040,s_PlayerWonTheGame_0054602c,s_StillWorkingOnIt_00546018,
+               local_68,100,(LPCSTR)&DAT_00639897);
+    iVar1 = 0xc;
+    bVar6 = true;
+    pcVar4 = local_68;
+    pcVar5 = s_AcedTheGame_0054604c;
+    do {
+      if (iVar1 == 0) break;
+      iVar1 = iVar1 + -1;
+      bVar6 = *pcVar4 == *pcVar5;
+      pcVar4 = pcVar4 + 1;
+      pcVar5 = pcVar5 + 1;
+    } while (bVar6);
+    DAT_005bb218 = (ushort)bVar6;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_00546064,s_DebugOutput_00546058,0,(LPCSTR)&DAT_00639897);
+    DAT_0063a4cd = (short)UVar3;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_00546088,s_RunEntirelyFromCDDrive_00546070,0,
+                       (LPCSTR)&DAT_00639897);
+    DAT_0063a4cf = (short)UVar3;
+    DAT_005d2f05 = GetPrivateProfileIntA
+                             (s_Nancy_Data_005460a8,s_RunInWindowedMode_00546094,0,
+                              (LPCSTR)&DAT_00639897);
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_005460cc,s_MaxXAxisTravelPerMove_005460b4,0x85,
+                       (LPCSTR)&DAT_00639897);
+    DAT_005d2f0d = (short)UVar3;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_005460f0,s_MaxYAxisTravelPerMove_005460d8,100,
+                       (LPCSTR)&DAT_00639897);
+    DAT_005d2f0f = (short)UVar3;
+    _DAT_005d1589 =
+         GetPrivateProfileIntA
+                   (s_Nancy_Data_0054611c,s_DirectXDriverEnumerationStatus_005460fc,0,
+                    (LPCSTR)&DAT_00639897);
+    _DAT_005d02af =
+         GetPrivateProfileIntA
+                   (s_Nancy_Data_0054613c,s_MinGammaAdjustment_00546128,0x32,(LPCSTR)&DAT_00639897);
+    _DAT_005d02b3 =
+         GetPrivateProfileIntA
+                   (s_Nancy_Data_0054615c,s_MaxGammaAdjustment_00546148,0x96,(LPCSTR)&DAT_00639897);
+    DAT_005d02b7 = GetPrivateProfileIntA
+                             (s_Nancy_Data_00546180,s_CenterGammaAdjustment_00546168,100,
+                              (LPCSTR)&DAT_00639897);
+    DAT_005d02bb = GetPrivateProfileIntA
+                             (s_Nancy_Data_0054619c,s_GammaAdjustment_0054618c,100,
+                              (LPCSTR)&DAT_00639897);
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_005461b4,s_EnableGamma_005461a8,0,(LPCSTR)&DAT_00639897);
+    DAT_005d02bf = (uint)(UVar3 != 0);
+    DAT_005bb1fe = GetPrivateProfileIntA
+                             (s_Nancy_Data_005461d8,s_ExternalCifFileChecking_005461c0,0,
+                              (LPCSTR)&DAT_00639897);
+    DAT_005bb1fa = GetPrivateProfileIntA
+                             (s_Nancy_Data_005461f8,s_CifTreeAndFilesOnCD_005461e4,0,
+                              (LPCSTR)&DAT_00639897);
+    DAT_005bb202 = GetPrivateProfileIntA
+                             (s_Nancy_Data_00546218,s_ClosedCaptioning_00546204,0,
+                              (LPCSTR)&DAT_00639897);
+    DAT_005bb206 = GetPrivateProfileIntA
+                             (s_Nancy_Data_00546230,s_AutoMove_00546224,1,(LPCSTR)&DAT_00639897);
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_0054625c,s_SystemQualityForConversation_0054623c,1,
+                       (LPCSTR)&DAT_00639897);
+    DAT_00617f6e = (short)UVar3;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_0054627c,s_VoiceMasterVolume_00546268,0x32,(LPCSTR)&DAT_00639897
+                      );
+    DAT_005cf1cb = (float)UVar3 / 100.0;
+    _DAT_005cf1d7 = DAT_005cf1cb;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_0054629c,s_MusicMasterVolume_00546288,0x32,(LPCSTR)&DAT_00639897
+                      );
+    _DAT_005cf1cf = (float)UVar3 / 100.0;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_005462c4,s_SpecialEffectsMasterVolume_005462a8,0x32,
+                       (LPCSTR)&DAT_00639897);
+    _DAT_005cf1d3 = (float)UVar3 / 100.0;
+    UVar3 = GetPrivateProfileIntA
+                      (s_Nancy_Data_005462f0,s_SwapLeftAndRightSoundChannels_005462d0,0,
+                       (LPCSTR)&DAT_00639897);
+    _DAT_005cf1e9 = (undefined2)UVar3;
+    uVar2 = 1;
+  }
+  return uVar2;
+}
+

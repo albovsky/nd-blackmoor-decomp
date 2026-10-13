@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525697
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d63d6a362278f40ee32ccb564ca8ec5738c7bbf1d9d11225df7a30f9c22e09d6
+ */
+
+undefined4 FUN_00525697(int param_1)
+
+{
+  int iVar1;
+  int iVar2;
+  int *in_ECX;
+  int iVar3;
+  
+  iVar3 = *in_ECX;
+  if (iVar3 == 0) {
+    return 0;
+  }
+  if (iVar3 == param_1) {
+    *in_ECX = *(int *)(in_ECX[1] + param_1);
+  }
+  else {
+    if (iVar3 == 0) {
+      return 0;
+    }
+    iVar1 = in_ECX[1];
+    do {
+      iVar2 = *(int *)(iVar1 + iVar3);
+      if (iVar2 == param_1) break;
+      iVar3 = iVar2;
+    } while (iVar2 != 0);
+    if (iVar3 == 0) {
+      return 0;
+    }
+    *(undefined4 *)(iVar1 + iVar3) = *(undefined4 *)(iVar1 + param_1);
+  }
+  return 1;
+}
+

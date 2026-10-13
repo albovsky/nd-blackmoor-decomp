@@ -1,0 +1,61 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a0ec3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f9d88b0169a812ae2c4ead5dc0ce17ad9653751613cdfaa979f2506d84e4924b
+ */
+
+void FUN_004a0ec3(int param_1)
+
+{
+  short sVar1;
+  ushort uVar2;
+  int iVar3;
+  int in_ECX;
+  short asStack_44 [12];
+  int local_2c;
+  int local_28;
+  int local_24;
+  short local_1c;
+  int local_18;
+  int local_14;
+  uint local_10;
+  int local_c;
+  
+  local_18 = 0;
+  local_c = 0;
+  for (local_14 = 0; local_14 < 10; local_14 = local_14 + 1) {
+    local_1c = *(short *)(in_ECX + param_1 * 0x15e + 0xcc + local_14 * 2);
+    if (local_1c != -1) {
+      asStack_44[local_c] = local_1c;
+      local_c = local_c + 1;
+    }
+  }
+  if (local_c == 0) {
+    FUN_0050ca3e(&DAT_0063888b,s_CRayCastLevelBuilder__WriteExitF_005501b0,param_1);
+    FUN_0052139c(&DAT_0063888b,0,0);
+    FUN_004c97b4();
+  }
+  iVar3 = _rand();
+  local_2c = iVar3 % local_c;
+  sVar1 = asStack_44[iVar3 % local_c];
+  for (local_24 = 0; local_24 < *(int *)(in_ECX + 0x20); local_24 = local_24 + 1) {
+    for (local_28 = 0; local_28 < *(int *)(in_ECX + 0x1c); local_28 = local_28 + 1) {
+      if (*(int *)(*(int *)(in_ECX + 0xe3c) + local_24 * *(int *)(in_ECX + 0x1c) * 4 + local_28 * 4)
+          == 1) {
+        uVar2 = *(ushort *)
+                 (*(int *)(in_ECX + 0xe44) + local_24 * *(int *)(in_ECX + 0x1c) * 2 + local_28 * 2);
+        local_10 = (uint)uVar2;
+        iVar3 = (local_10 & 0xf) - 2;
+        *(ushort *)
+         (*(int *)(in_ECX + 0xe44) + local_24 * *(int *)(in_ECX + 0x1c) * 2 + local_28 * 2) =
+             uVar2 & 0xf000 | (ushort)(((int)local_10 >> 4 & 0xfU) << 4) |
+             (iVar3 < 1) - 1 & (ushort)iVar3;
+        *(short *)(*(int *)(in_ECX + 0xe30) + local_24 * *(int *)(in_ECX + 0x1c) * 2 + local_28 * 2)
+             = sVar1 + (short)local_18;
+        local_18 = local_18 + 1;
+      }
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51d97f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+void FUN_0051d97f(void)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_00525371();
+  (**(code **)(**(int **)(iVar1 + 4) + 0x90))(1);
+  return;
+}
+

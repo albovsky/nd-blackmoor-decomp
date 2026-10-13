@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x510984
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+undefined4
+FUN_00510984(undefined4 param_1,undefined4 param_2,undefined4 param_3,undefined4 param_4,
+            undefined4 param_5,undefined4 param_6,undefined4 param_7)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  void *local_14;
+  undefined1 *puStack_10;
+  undefined *puStack_c;
+  undefined4 local_8;
+  
+  local_8 = 0xffffffff;
+  puStack_c = &DAT_005303d0;
+  puStack_10 = &LAB_00511930;
+  local_14 = ExceptionList;
+  ExceptionList = &local_14;
+  FUN_00510dd3();
+  FUN_00510dd3();
+  iVar1 = FUN_00510dd3();
+  *(undefined4 *)(iVar1 + 0x6c) = param_1;
+  iVar1 = FUN_00510dd3();
+  *(undefined4 *)(iVar1 + 0x70) = param_3;
+  local_8 = 1;
+  uVar2 = FUN_0050c6fc(param_2,param_4,param_5,param_6,param_7);
+  local_8 = 0xffffffff;
+  FUN_00510a51();
+  ExceptionList = local_14;
+  return uVar2;
+}
+

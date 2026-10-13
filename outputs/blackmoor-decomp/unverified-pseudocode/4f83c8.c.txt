@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f83c8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
+ */
+
+undefined4 FUN_004f83c8(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x3ca) = 0;
+  *(undefined4 *)(in_ECX + 400) = 0;
+  uVar1 = Ordinal_2(FUN_004fa8d2,in_ECX + 400);
+  *(undefined4 *)(in_ECX + 0x3ca) = uVar1;
+  if (*(int *)(in_ECX + 0x3ca) == 0) {
+    if (*(int *)(in_ECX + 400) == 0) {
+      uVar1 = 0;
+    }
+    else {
+      uVar1 = 1;
+    }
+  }
+  else {
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+

@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ba377
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+undefined4 FUN_004ba377(short param_1,short param_2)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 0x34) != 0) {
+    *(undefined4 *)(in_ECX + 0x2d4) = 0xffffffff;
+    *(undefined4 *)(in_ECX + 0x310) = 0;
+    while (*(int *)(in_ECX + 0x310) < 2) {
+      if ((((*(int *)(in_ECX + 0x24 + *(int *)(in_ECX + 0x310) * 8) == 0) &&
+           (*(int *)(*(int *)(in_ECX + 0x18) + 0x7f0 + *(int *)(in_ECX + 0x310) * 0x10) <=
+            (int)param_2)) &&
+          ((int)param_2 <=
+           *(int *)(*(int *)(in_ECX + 0x18) + 0x7f8 + *(int *)(in_ECX + 0x310) * 0x10))) &&
+         ((*(int *)(*(int *)(in_ECX + 0x18) + 0x7ec + *(int *)(in_ECX + 0x310) * 0x10) <=
+           (int)param_1 &&
+          ((int)param_1 <=
+           *(int *)(*(int *)(in_ECX + 0x18) + 0x7f4 + *(int *)(in_ECX + 0x310) * 0x10))))) {
+        FUN_004ba486(CONCAT22(param_1 >> 0xf,*(undefined2 *)(in_ECX + 0x310)));
+        return 1;
+      }
+      *(int *)(in_ECX + 0x310) = *(int *)(in_ECX + 0x310) + 1;
+    }
+  }
+  return 0;
+}
+

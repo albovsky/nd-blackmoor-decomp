@@ -1,0 +1,34 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5102cf
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+UINT FUN_005102cf(UINT param_1)
+
+{
+  UINT UVar1;
+  bool bVar2;
+  
+  if (param_1 == 0xfffffffe) {
+    DAT_0063ca74 = 1;
+                    /* WARNING: Could not recover jumptable at 0x005102e9. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+    UVar1 = GetOEMCP();
+    return UVar1;
+  }
+  if (param_1 == 0xfffffffd) {
+    DAT_0063ca74 = 1;
+                    /* WARNING: Could not recover jumptable at 0x005102fe. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+    UVar1 = GetACP();
+    return UVar1;
+  }
+  bVar2 = param_1 == 0xfffffffc;
+  if (bVar2) {
+    param_1 = DAT_0063cb2c;
+  }
+  DAT_0063ca74 = (uint)bVar2;
+  return param_1;
+}
+

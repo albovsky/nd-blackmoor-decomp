@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b4913
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9c28e49ff0d0581c06fedda0626bb3b37c974388a5ee867a2a287f28c8c49afa
+ */
+
+void FUN_004b4913(undefined2 param_1,short param_2)
+
+{
+  int in_ECX;
+  undefined2 extraout_var;
+  short local_8;
+  
+  local_8 = 0;
+  while( true ) {
+    if (DAT_00591a22 <= local_8) {
+      return;
+    }
+    if (*(short *)(&DAT_005919fe + local_8 * 2 + param_2 * 0xc) == -1) break;
+    local_8 = local_8 + 1;
+  }
+  FUN_004fb2e3(*(undefined2 *)(*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x82b))
+  ;
+  *(undefined2 *)(&DAT_005919fe + local_8 * 2 + param_2 * 0xc) = param_1;
+  *(undefined2 *)(in_ECX + 0x74e) = 1;
+  *(undefined2 *)(in_ECX + 0x750) = 0;
+  FUN_004b49d4(CONCAT22(extraout_var,param_2));
+  return;
+}
+

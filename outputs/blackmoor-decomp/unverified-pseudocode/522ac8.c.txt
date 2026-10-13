@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522ac8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_00522ac8(void)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  
+  iVar1 = FUN_0051c174();
+  if (*(int *)(iVar1 + 0x50) == 0) {
+    uVar2 = FUN_0051ab4b();
+  }
+  else {
+    SetCursor(DAT_0063c78c);
+    uVar2 = 1;
+  }
+  return uVar2;
+}
+

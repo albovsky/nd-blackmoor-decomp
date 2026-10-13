@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e79ca
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9c656b3eec0deb5a709812e8ef40c0b3c5e683a3969dfdbc8ffe3dad08e63a8
+ */
+
+void FUN_004e79ca(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  iVar1 = FUN_004ee630();
+  if (iVar1 != 0) {
+    FUN_004c5377(iVar1,DAT_005cf665,in_ECX + 0x981,&DAT_005b0227,s_CUIConvo__RestoreTextBox_0055c514
+                );
+  }
+  return;
+}
+

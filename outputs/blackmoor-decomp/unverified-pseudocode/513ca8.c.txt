@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x513ca8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+uint FUN_00513ca8(undefined4 param_1,uint param_2)
+
+{
+  if ((param_2 & 0x7ff00000) != 0x7ff00000) {
+    return param_2 & 0x7ff00000;
+  }
+  return param_2;
+}
+

@@ -1,0 +1,107 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50d550
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4d268ec7993df48128cba5d0df1108836b8002175a429e70814bf1b72161879f
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_0050d550(byte *param_1,char *param_2,int param_3)
+
+{
+  char cVar1;
+  int iVar2;
+  byte bVar3;
+  ushort uVar4;
+  uint uVar5;
+  undefined4 uVar6;
+  uint uVar7;
+  bool bVar8;
+  uint uVar9;
+  
+  iVar2 = _DAT_0063cee8;
+  uVar6 = 0;
+  if (param_3 != 0) {
+    if (DAT_0063cb1c == 0) {
+      do {
+        bVar3 = *param_1;
+        cVar1 = *param_2;
+        uVar4 = CONCAT11(bVar3,cVar1);
+        if (bVar3 == 0) break;
+        uVar4 = CONCAT11(bVar3,cVar1);
+        uVar7 = (uint)uVar4;
+        if (cVar1 == '\0') break;
+        param_1 = param_1 + 1;
+        param_2 = param_2 + 1;
+        if ((0x40 < bVar3) && (bVar3 < 0x5b)) {
+          uVar7 = (uint)CONCAT11(bVar3 + 0x20,cVar1);
+        }
+        uVar4 = (ushort)uVar7;
+        bVar3 = (byte)uVar7;
+        if ((0x40 < bVar3) && (bVar3 < 0x5b)) {
+          uVar4 = (ushort)CONCAT31((int3)(uVar7 >> 8),bVar3 + 0x20);
+        }
+        bVar3 = (byte)(uVar4 >> 8);
+        bVar8 = bVar3 < (byte)uVar4;
+        if (bVar3 != (byte)uVar4) goto LAB_0050d5af;
+        param_3 = param_3 + -1;
+      } while (param_3 != 0);
+      uVar6 = 0;
+      bVar3 = (byte)(uVar4 >> 8);
+      bVar8 = bVar3 < (byte)uVar4;
+      if (bVar3 != (byte)uVar4) {
+LAB_0050d5af:
+        uVar6 = 0xffffffff;
+        if (!bVar8) {
+          uVar6 = 1;
+        }
+      }
+    }
+    else {
+      LOCK();
+      _DAT_0063cee8 = _DAT_0063cee8 + 1;
+      UNLOCK();
+      bVar8 = 0 < DAT_0063cee4;
+      if (bVar8) {
+        LOCK();
+        UNLOCK();
+        _DAT_0063cee8 = iVar2;
+        FUN_00512c18(0x13);
+      }
+      uVar9 = (uint)bVar8;
+      uVar5 = 0;
+      uVar7 = 0;
+      do {
+        uVar5 = CONCAT31((int3)(uVar5 >> 8),*param_1);
+        uVar7 = CONCAT31((int3)(uVar7 >> 8),*param_2);
+        if ((uVar5 == 0) || (uVar7 == 0)) break;
+        param_1 = param_1 + 1;
+        param_2 = param_2 + 1;
+        uVar7 = FUN_00512f53(uVar7,uVar5);
+        uVar5 = FUN_00512f53();
+        bVar8 = uVar5 < uVar7;
+        if (uVar5 != uVar7) goto LAB_0050d625;
+        param_3 = param_3 + -1;
+      } while (param_3 != 0);
+      uVar6 = 0;
+      bVar8 = uVar5 < uVar7;
+      if (uVar5 != uVar7) {
+LAB_0050d625:
+        uVar6 = 0xffffffff;
+        if (!bVar8) {
+          uVar6 = 1;
+        }
+      }
+      if (uVar9 == 0) {
+        LOCK();
+        _DAT_0063cee8 = _DAT_0063cee8 + -1;
+        UNLOCK();
+      }
+      else {
+        FUN_00512c79(0x13);
+      }
+    }
+  }
+  return uVar6;
+}
+

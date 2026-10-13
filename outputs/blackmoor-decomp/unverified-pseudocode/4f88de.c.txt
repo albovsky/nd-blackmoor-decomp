@@ -1,0 +1,46 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f88de
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004f8908) */
+
+undefined4
+FUN_004f88de(float param_1,float param_2,float param_3,float param_4,float param_5,float param_6)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x3ca) = 0;
+  if (*(int *)(in_ECX + 0x19c) == 0) {
+    uVar1 = 0;
+  }
+  else {
+    *(float *)(in_ECX + 600) = param_1;
+    *(float *)(in_ECX + 0x25c) = param_2;
+    *(float *)(in_ECX + 0x260) = param_3;
+    *(float *)(in_ECX + 0x264) = param_4;
+    *(float *)(in_ECX + 0x268) = param_5;
+    *(float *)(in_ECX + 0x26c) = param_6;
+    uVar1 = (**(code **)(**(int **)(in_ECX + 0x19c) + 0x34))
+                      (*(undefined4 *)(in_ECX + 0x19c),param_1,param_2,param_3,param_4,param_5,
+                       param_6,0);
+    *(undefined4 *)(in_ECX + 0x3ca) = uVar1;
+    if (*(int *)(in_ECX + 0x3ca) == 0) {
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__SetListenerOrienta_0055ef3c,(double)param_1,
+                     (double)param_2,(double)param_3,(double)param_4,(double)param_5,(double)param_6
+                    );
+        FUN_0044a2b7();
+      }
+      uVar1 = 1;
+    }
+    else {
+      uVar1 = 0;
+    }
+  }
+  return uVar1;
+}
+

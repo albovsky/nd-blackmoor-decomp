@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50b030
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_14398f730fa9c49e7db80307b54fbb5d04baa803ce1c29895906ff2fa90b272c
+ */
+
+float10 FUN_0050b030(float param_1)
+
+{
+  int iVar1;
+  
+  iVar1 = (int)ROUND(param_1 * 40.743668 - 0.5);
+  return ((float10)(param_1 * 40.743668) - (float10)iVar1) *
+         ((float10)*(float *)(&DAT_00566ee0 + iVar1 * 4) -
+         (float10)*(float *)(&DAT_00566edc + iVar1 * 4)) +
+         (float10)*(float *)(&DAT_00566edc + iVar1 * 4);
+}
+

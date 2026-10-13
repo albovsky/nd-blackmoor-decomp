@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5244f6
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005244f6(void)
+
+{
+  int *in_ECX;
+  
+  if ((*(byte *)(in_ECX + 0x2e) & 1) != 0) {
+    (**(code **)(*in_ECX + 0xe4))(in_ECX[0x2a]);
+  }
+  if ((*(byte *)(in_ECX + 0x2e) & 2) != 0) {
+    (**(code **)(*in_ECX + 0xe0))(1);
+  }
+  if ((in_ECX[0x2e] & 8U) != 0) {
+    (**(code **)(*in_ECX + 200))(in_ECX[0x2e] & 4);
+    UpdateWindow((HWND)in_ECX[7]);
+  }
+  if (in_ECX[0x24] != in_ECX[0x25]) {
+    FUN_00523edb(in_ECX[0x24]);
+  }
+  in_ECX[0x2e] = 0;
+  return;
+}
+

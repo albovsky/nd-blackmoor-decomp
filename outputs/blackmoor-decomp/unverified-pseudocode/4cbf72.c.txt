@@ -1,0 +1,133 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4cbf72
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5d7e582f83f0537e633fb10e380fdbc2f4e8820249923868fd009a4829ea2231
+ */
+
+void FUN_004cbf72(void)
+
+{
+  char cVar1;
+  bool bVar2;
+  bool bVar3;
+  int iVar4;
+  int in_ECX;
+  uint uVar5;
+  uint uVar6;
+  char *pcVar7;
+  char *pcVar8;
+  int local_c;
+  int local_8;
+  
+  bVar2 = true;
+  bVar3 = true;
+  local_c = 0;
+  local_8 = 0;
+  *(undefined4 *)(in_ECX + 0x13a) = 0;
+  *(undefined4 *)(in_ECX + 0x13e) = 0;
+  *(int *)(in_ECX + 0x142) = *(int *)(in_ECX + 0x13a) + 0x18;
+  *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + 0x18;
+  if (*(int *)(in_ECX + 0x1a) != 0) {
+    FUN_004cbb00();
+  }
+  FUN_004cc70f(in_ECX + 0x1a,0x29);
+  uVar5 = 0xffffffff;
+  pcVar7 = s_IVTest_30Sec_Half_00558e30;
+  do {
+    pcVar8 = pcVar7;
+    if (uVar5 == 0) break;
+    uVar5 = uVar5 - 1;
+    pcVar8 = pcVar7 + 1;
+    cVar1 = *pcVar7;
+    pcVar7 = pcVar8;
+  } while (cVar1 != '\0');
+  uVar5 = ~uVar5;
+  pcVar7 = pcVar8 + -uVar5;
+  pcVar8 = *(char **)(in_ECX + 0x1a);
+  for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+    *(undefined4 *)pcVar8 = *(undefined4 *)pcVar7;
+    pcVar7 = pcVar7 + 4;
+    pcVar8 = pcVar8 + 4;
+  }
+  for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+    *pcVar8 = *pcVar7;
+    pcVar7 = pcVar7 + 1;
+    pcVar8 = pcVar8 + 1;
+  }
+  *(undefined4 *)(*(int *)(in_ECX + 0x1a) + 0x21) = 0x1c2;
+  FUN_004cc70f(*(int *)(in_ECX + 0x1a) + 0x25,*(int *)(*(int *)(in_ECX + 0x1a) + 0x21) * 0xd);
+  *(undefined4 *)(in_ECX + 0x12e) = 0;
+  while (*(int *)(in_ECX + 0x12e) < *(int *)(*(int *)(in_ECX + 0x1a) + 0x21)) {
+    *(int *)(in_ECX + 0x122) =
+         *(int *)(*(int *)(in_ECX + 0x1a) + 0x25) + *(int *)(in_ECX + 0x12e) * 0xd;
+    **(undefined2 **)(in_ECX + 0x122) = *(undefined2 *)(in_ECX + 0x12e);
+    *(undefined2 *)(*(int *)(in_ECX + 0x122) + 2) = 2;
+    *(undefined1 *)(*(int *)(in_ECX + 0x122) + 4) = 1;
+    *(undefined2 *)(*(int *)(in_ECX + 0x122) + 5) = 0;
+    *(undefined2 *)(*(int *)(in_ECX + 0x122) + 7) = 0;
+    FUN_004cc70f(*(int *)(in_ECX + 0x122) + 9,*(short *)(*(int *)(in_ECX + 0x122) + 2) * 0x18);
+    *(undefined4 *)(in_ECX + 0x132) = 0;
+    while (*(int *)(in_ECX + 0x132) < (int)*(short *)(*(int *)(in_ECX + 0x122) + 2)) {
+      *(int *)(in_ECX + 0x126) =
+           *(int *)(*(int *)(in_ECX + 0x122) + 9) + *(int *)(in_ECX + 0x132) * 0x18;
+      if (*(int *)(in_ECX + 0x132) == 0) {
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 4) = *(undefined4 *)(in_ECX + 0x13a);
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 8) = *(undefined4 *)(in_ECX + 0x13e);
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 0xc) = *(undefined4 *)(in_ECX + 0x142);
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 0x10) = *(undefined4 *)(in_ECX + 0x146);
+      }
+      else if (*(int *)(in_ECX + 0x132) == 1) {
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 4) = 0;
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 8) = 0;
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 0xc) = 0x18;
+        *(undefined4 *)(*(int *)(in_ECX + 0x126) + 0x10) = 0xe;
+      }
+      **(undefined4 **)(in_ECX + 0x126) = *(undefined4 *)(in_ECX + 0x132);
+      *(short *)(*(int *)(in_ECX + 0x126) + 0x14) = (short)*(undefined4 *)(in_ECX + 0x132) + 1;
+      *(short *)(*(int *)(in_ECX + 0x126) + 0x16) = (short)*(undefined4 *)(in_ECX + 0x132) + 1;
+      if (bVar2) {
+        iVar4 = local_c + 0x1c;
+        local_c = local_c + 3;
+        if (0x10b < iVar4) {
+          bVar2 = false;
+          local_c = 0xf3;
+        }
+        *(int *)(in_ECX + 0x13a) = local_c;
+        *(int *)(in_ECX + 0x142) = *(int *)(in_ECX + 0x13a) + 0x18;
+      }
+      else {
+        local_c = local_c + -3;
+        if (local_c < 1) {
+          bVar2 = true;
+          local_c = 0;
+        }
+        *(int *)(in_ECX + 0x13a) = local_c;
+        *(int *)(in_ECX + 0x142) = *(int *)(in_ECX + 0x13a) + 0x18;
+      }
+      if (bVar3) {
+        iVar4 = local_8 + 0x1b;
+        local_8 = local_8 + 2;
+        if (0x91 < iVar4) {
+          bVar3 = false;
+          local_8 = 0x79;
+        }
+        *(int *)(in_ECX + 0x13e) = local_8;
+        *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + 0x18;
+      }
+      else {
+        local_8 = local_8 + -2;
+        if (local_8 < 1) {
+          bVar3 = true;
+          local_8 = 0;
+        }
+        *(int *)(in_ECX + 0x13e) = local_8;
+        *(int *)(in_ECX + 0x146) = *(int *)(in_ECX + 0x13e) + 0x18;
+      }
+      *(int *)(in_ECX + 0x132) = *(int *)(in_ECX + 0x132) + 1;
+    }
+    *(int *)(in_ECX + 0x12e) = *(int *)(in_ECX + 0x12e) + 1;
+  }
+  FUN_004cc3bd();
+  return;
+}
+

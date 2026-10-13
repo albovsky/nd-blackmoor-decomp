@@ -1,0 +1,87 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4344bf
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+undefined4 FUN_004344bf(byte *param_1)
+
+{
+  byte bVar1;
+  int iVar2;
+  byte *pbVar3;
+  undefined4 uVar4;
+  int in_ECX;
+  uint uVar5;
+  uint uVar6;
+  byte *pbVar7;
+  bool bVar8;
+  int local_24;
+  byte *local_1c;
+  byte *local_18;
+  int local_c;
+  
+  for (local_c = 0; local_c < 1000; local_c = local_c + 1) {
+    *(undefined4 *)(in_ECX + 0x4fc4 + local_c * 4) = 0;
+  }
+  local_c = 0;
+  do {
+    if (*(int *)(in_ECX + 0x5f68) <= local_c) {
+      return 0;
+    }
+    iVar2 = *(int *)(in_ECX + 0x20e4 + local_c * 4);
+    pbVar3 = (byte *)FUN_00434814(iVar2);
+    local_18 = param_1;
+    local_1c = pbVar3;
+    do {
+      bVar1 = *local_1c;
+      bVar8 = bVar1 < *local_18;
+      if (bVar1 != *local_18) {
+LAB_00434584:
+        local_24 = (1 - (uint)bVar8) - (uint)(bVar8 != 0);
+        goto LAB_0043458c;
+      }
+      if (bVar1 == 0) break;
+      bVar1 = local_1c[1];
+      bVar8 = bVar1 < local_18[1];
+      if (bVar1 != local_18[1]) goto LAB_00434584;
+      local_1c = local_1c + 2;
+      local_18 = local_18 + 2;
+    } while (bVar1 != 0);
+    local_24 = 0;
+LAB_0043458c:
+    if ((local_24 == 0) && (*(int *)(in_ECX + 0x4fc4 + local_c * 4) != 1)) {
+      *(undefined4 *)(in_ECX + 0x4fc4 + local_c * 4) = 1;
+      uVar4 = FUN_004347b8(iVar2 + 4);
+      *(undefined4 *)(in_ECX + 0x112c) = uVar4;
+      *(int *)(in_ECX + 0x1120) = iVar2 + 8;
+      uVar5 = 0xffffffff;
+      break;
+    }
+    local_c = local_c + 1;
+  } while( true );
+  while( true ) {
+    uVar5 = uVar5 - 1;
+    pbVar7 = pbVar3 + 1;
+    bVar1 = *pbVar3;
+    pbVar3 = pbVar7;
+    if (bVar1 == 0) break;
+    pbVar7 = pbVar3;
+    if (uVar5 == 0) break;
+  }
+  uVar5 = ~uVar5;
+  pbVar3 = pbVar7 + -uVar5;
+  pbVar7 = (byte *)(in_ECX + 0x1130);
+  for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+    *(undefined4 *)pbVar7 = *(undefined4 *)pbVar3;
+    pbVar3 = pbVar3 + 4;
+    pbVar7 = pbVar7 + 4;
+  }
+  for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+    *pbVar7 = *pbVar3;
+    pbVar3 = pbVar3 + 1;
+    pbVar7 = pbVar7 + 1;
+  }
+  return 1;
+}
+

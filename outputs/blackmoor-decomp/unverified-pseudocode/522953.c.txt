@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522953
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+bool FUN_00522953(LPCSTR param_1)
+
+{
+  int iVar1;
+  HACCEL pHVar2;
+  int in_ECX;
+  
+  iVar1 = FUN_00525371();
+  pHVar2 = LoadAcceleratorsA(*(HINSTANCE *)(iVar1 + 0xc),param_1);
+  *(HACCEL *)(in_ECX + 0x48) = pHVar2;
+  return pHVar2 != (HACCEL)0x0;
+}
+

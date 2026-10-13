@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x434773
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+undefined4 FUN_00434773(char *param_1)
+
+{
+  undefined4 uVar1;
+  
+  if ((((*param_1 == 'D') && (param_1[1] == 'A')) && (param_1[2] == 'T')) && (param_1[3] == 'A')) {
+    uVar1 = 1;
+  }
+  else {
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+

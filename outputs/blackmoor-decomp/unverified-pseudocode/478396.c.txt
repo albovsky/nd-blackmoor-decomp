@@ -1,0 +1,65 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x478396
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f110a51708a87e42a1df088442ce84584fa97ada22af5597067d90dfc82d854f
+ */
+
+undefined4 FUN_00478396(short param_1,short param_2,short param_3)
+
+{
+  int iVar1;
+  int in_ECX;
+  undefined4 local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  local_8 = 1;
+  if ((0 < param_1) && (param_1 < 5)) {
+    switch(param_1) {
+    case 1:
+      if (param_3 == 0) {
+        local_8 = 0;
+      }
+      else if ((((*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 6) ||
+                (*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 2)) ||
+               (*(short *)(iVar1 + 0x2c + (param_3 + -1) * 0x10 + param_2 * 2) == 6)) ||
+              (*(short *)(iVar1 + 0x2c + (param_3 + -1) * 0x10 + param_2 * 2) == 4)) {
+        local_8 = 0;
+      }
+      break;
+    case 2:
+      if ((int)param_2 == *(short *)(iVar1 + 0x21) + -1) {
+        local_8 = 0;
+      }
+      else if (((*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 5) ||
+               (*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 3)) ||
+              ((*(short *)(iVar1 + param_3 * 0x10 + 0x2e + param_2 * 2) == 5 ||
+               (*(short *)(iVar1 + param_3 * 0x10 + 0x2e + param_2 * 2) == 1)))) {
+        local_8 = 0;
+      }
+      break;
+    case 3:
+      if ((int)param_3 == *(short *)(iVar1 + 0x23) + -1) {
+        local_8 = 0;
+      }
+      else if (((*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 6) ||
+               (*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 4)) ||
+              ((*(short *)(iVar1 + 0x2c + (param_3 + 1) * 0x10 + param_2 * 2) == 6 ||
+               (*(short *)(iVar1 + 0x2c + (param_3 + 1) * 0x10 + param_2 * 2) == 2)))) {
+        local_8 = 0;
+      }
+      break;
+    case 4:
+      if (param_2 == 0) {
+        local_8 = 0;
+      }
+      else if ((((*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 5) ||
+                (*(short *)(iVar1 + 0x2c + param_3 * 0x10 + param_2 * 2) == 1)) ||
+               (*(short *)(iVar1 + param_3 * 0x10 + 0x2a + param_2 * 2) == 5)) ||
+              (*(short *)(iVar1 + param_3 * 0x10 + 0x2a + param_2 * 2) == 3)) {
+        local_8 = 0;
+      }
+    }
+  }
+  return local_8;
+}
+

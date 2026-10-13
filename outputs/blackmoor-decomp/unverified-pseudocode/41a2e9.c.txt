@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x41a2e9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ee34a6178f9dbede580b7391fe3cb5d437b4b7e8eef1f6ac592ff17c28c7115c
+ */
+
+short FUN_0041a2e9(void)
+
+{
+  int in_ECX;
+  short local_8;
+  
+  local_8 = 0;
+  while( true ) {
+    if (0x1d < local_8) {
+      return -1;
+    }
+    if (*(int *)(in_ECX + 0xdc8 + local_8 * 0x84d) == 0) break;
+    local_8 = local_8 + 1;
+  }
+  return local_8;
+}
+

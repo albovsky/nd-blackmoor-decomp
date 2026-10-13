@@ -1,0 +1,33 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5205d8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+void FUN_005205d8(void)
+
+{
+  int iVar1;
+  LPSTR pCVar2;
+  int in_ECX;
+  int iVar3;
+  
+  pCVar2 = (LPSTR)FUN_0051dc43(*(int *)(*(int *)(in_ECX + 0x10) + -8) + 5);
+  FUN_00525371();
+  iVar3 = 0;
+  FUN_005216b6(*(undefined4 *)(in_ECX + 0xc),0,0);
+  if (0 < *(int *)(in_ECX + 4)) {
+    do {
+      iVar1 = iVar3 + 1;
+      wsprintfA(pCVar2,*(LPCSTR *)(in_ECX + 0x10),iVar1);
+      iVar3 = *(int *)(*(int *)(in_ECX + 8) + iVar3 * 4);
+      if (*(int *)(iVar3 + -8) != 0) {
+        FUN_005216b6(*(undefined4 *)(in_ECX + 0xc),pCVar2,iVar3);
+      }
+      iVar3 = iVar1;
+    } while (iVar1 < *(int *)(in_ECX + 4));
+  }
+  FUN_0051dc6c(pCVar2);
+  return;
+}
+

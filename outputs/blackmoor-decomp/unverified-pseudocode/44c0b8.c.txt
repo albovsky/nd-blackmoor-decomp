@@ -1,0 +1,14 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44c0b8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+void FUN_0044c0b8(float *param_1,float *param_2)
+
+{
+  *param_1 = *param_1 - *param_2;
+  param_1[1] = param_1[1] - param_2[1];
+  return;
+}
+

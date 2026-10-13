@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ab706
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c162e587d744a5d109b183c8ad170721ecaf16eed1b508d2b71afde20c121117
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004ab706(short param_1,undefined2 param_2)
+
+{
+  int in_ECX;
+  
+  if (param_1 == 0x27ce) {
+    DAT_005b44f0 = 0x16;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = &DAT_005b18dc;
+    _DAT_005d1639 = 1;
+    *(undefined2 *)(in_ECX + 0x32) = param_2;
+  }
+  else if (param_1 == 0x27cf) {
+    DAT_005b44f0 = 0x12;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = &DAT_005b185c;
+    _DAT_005d1639 = 1;
+    *(undefined2 *)(in_ECX + 0x32) = param_2;
+  }
+  else if (param_1 == 0x27d0) {
+    DAT_005b44f0 = 9;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = &DAT_005b173c;
+    _DAT_005d1639 = 1;
+    *(undefined2 *)(in_ECX + 0x32) = 0xffff;
+  }
+  DAT_005c39e5 = (int)param_1;
+  return;
+}
+

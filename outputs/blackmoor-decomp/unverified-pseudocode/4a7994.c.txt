@@ -1,0 +1,20 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4a7994
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f8b80bcdfd5ca2ee198de08d56d1d294d47bc0bea221b480c34a35dbdce25af4
+ */
+
+void FUN_004a7994(void)
+
+{
+  if ((DAT_0061d3e5 == 0) && (DAT_0061d3ed == 0)) {
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,*(int *)(&DAT_005bb5e5 + DAT_0061d3bf * 0x8d) + 0x66,
+                 &DAT_0061d3f1,s_SafeDial_background_dial_00550a5c);
+  }
+  else {
+    FUN_004c5377(DAT_0061d3d1,DAT_005cf665,&DAT_0061d3e1,&DAT_0061d3f1,
+                 s_SafeDial_Puzzle_Turning_Overlay_00550a78);
+  }
+  return;
+}
+

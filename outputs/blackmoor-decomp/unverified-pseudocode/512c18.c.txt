@@ -1,0 +1,32 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x512c18
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+void FUN_00512c18(int param_1)
+
+{
+  int *piVar1;
+  LPCRITICAL_SECTION lpCriticalSection;
+  
+  piVar1 = (int *)(&DAT_005686b0 + param_1 * 4);
+  if (*(int *)(&DAT_005686b0 + param_1 * 4) == 0) {
+    lpCriticalSection = _malloc(0x18);
+    if (lpCriticalSection == (LPCRITICAL_SECTION)0x0) {
+      __amsg_exit(0x11);
+    }
+    FUN_00512c18(0x11);
+    if (*piVar1 == 0) {
+      InitializeCriticalSection(lpCriticalSection);
+      *piVar1 = (int)lpCriticalSection;
+    }
+    else {
+      FUN_0050e936();
+    }
+    FUN_00512c79(0x11);
+  }
+  EnterCriticalSection((LPCRITICAL_SECTION)*piVar1);
+  return;
+}
+

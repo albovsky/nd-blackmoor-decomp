@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x512330
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c14b206e0317066be1d027bdae31364ff1ffe02c3df6c0ccff4b69686384ad63
+ */
+
+/* Library Function - Single Match
+    __freebuf
+   
+   Library: Visual Studio 2003 Release */
+
+void __cdecl __freebuf(FILE *_File)
+
+{
+  if (((_File->_flag & 0x83U) != 0) && ((_File->_flag & 8U) != 0)) {
+    FUN_0050e936(_File->_base);
+    *(ushort *)&_File->_flag = (ushort)_File->_flag & 0xfbf7;
+    _File->_ptr = (char *)0x0;
+    _File->_base = (char *)0x0;
+    _File->_cnt = 0;
+  }
+  return;
+}
+

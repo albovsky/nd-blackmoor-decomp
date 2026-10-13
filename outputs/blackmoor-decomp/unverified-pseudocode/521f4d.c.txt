@@ -1,0 +1,27 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521f4d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+void FUN_00521f4d(undefined4 param_1,undefined4 param_2)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  _memset((undefined4 *)(in_ECX + 0x3c),0,0x28);
+  *(undefined4 *)(in_ECX + 0x84) = 0;
+  *(undefined4 *)(in_ECX + 0x50) = *(undefined4 *)(in_ECX + 0x78);
+  *(undefined4 *)(in_ECX + 0x3c) = 0x28;
+  *(undefined4 *)(in_ECX + 0x40) = 8;
+  *(undefined4 *)(in_ECX + 0x58) = param_2;
+  *(undefined4 *)(in_ECX + 0x80) = 1;
+  iVar1 = FUN_0051e36f();
+  if (iVar1 != 0) {
+    *(byte *)(in_ECX + 0x41) = *(byte *)(in_ECX + 0x41) | 2;
+  }
+  *(undefined4 *)(in_ECX + 0x7c) = param_1;
+  return;
+}
+

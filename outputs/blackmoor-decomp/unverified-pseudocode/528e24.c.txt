@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x528e24
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_911401004da6a50fe2c6da2a1636d1d967e1d217200235f8b7d699d8e6aaea05
+ */
+
+void Unwind_00528e24(void)
+
+{
+  int unaff_EBP;
+  
+  CDialog::~CDialog((CDialog *)(unaff_EBP + -0xb0));
+  return;
+}
+

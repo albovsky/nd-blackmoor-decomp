@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x526978
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+/* Library Function - Single Match
+    void __stdcall AfxPostQuitMessage(int)
+   
+   Library: Visual Studio 1998 Release */
+
+void AfxPostQuitMessage(int param_1)
+
+{
+  CWinThread *pCVar1;
+  
+  pCVar1 = AfxGetThread();
+  if ((pCVar1 != (CWinThread *)0x0) && (*(code **)(pCVar1 + 0x54) != (code *)0x0)) {
+    (**(code **)(pCVar1 + 0x54))(1,1);
+  }
+  PostQuitMessage(param_1);
+  return;
+}
+

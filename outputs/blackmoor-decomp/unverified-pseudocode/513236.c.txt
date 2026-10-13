@@ -1,0 +1,48 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x513236
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+undefined4 FUN_00513236(uint param_1)
+
+{
+  HANDLE hFile;
+  BOOL BVar1;
+  DWORD DVar2;
+  DWORD *pDVar3;
+  undefined4 *puVar4;
+  int iVar5;
+  undefined4 uVar6;
+  
+  if (DAT_0063cee0 <= param_1) {
+LAB_005132b7:
+    puVar4 = (undefined4 *)FUN_0050ea7e();
+    *puVar4 = 9;
+    return 0xffffffff;
+  }
+  iVar5 = (param_1 & 0x1f) * 0x24;
+  if ((*(byte *)((&DAT_0063cde0)[(int)param_1 >> 5] + 4 + iVar5) & 1) == 0) goto LAB_005132b7;
+  FUN_0051771b(param_1);
+  if ((*(byte *)((&DAT_0063cde0)[(int)param_1 >> 5] + 4 + iVar5) & 1) != 0) {
+    hFile = (HANDLE)FUN_005176d9(param_1);
+    BVar1 = FlushFileBuffers(hFile);
+    if (BVar1 == 0) {
+      DVar2 = GetLastError();
+    }
+    else {
+      DVar2 = 0;
+    }
+    uVar6 = 0;
+    if (DVar2 == 0) goto LAB_005132ac;
+    pDVar3 = (DWORD *)FUN_0050ea87();
+    *pDVar3 = DVar2;
+  }
+  puVar4 = (undefined4 *)FUN_0050ea7e();
+  *puVar4 = 9;
+  uVar6 = 0xffffffff;
+LAB_005132ac:
+  FUN_0051777a(param_1);
+  return uVar6;
+}
+

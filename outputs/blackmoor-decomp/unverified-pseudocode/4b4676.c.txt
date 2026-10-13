@@ -1,0 +1,74 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b4676
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9c28e49ff0d0581c06fedda0626bb3b37c974388a5ee867a2a287f28c8c49afa
+ */
+
+undefined4 FUN_004b4676(void)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  undefined4 *puVar2;
+  short local_c;
+  short local_8;
+  
+  local_8 = DAT_00591a22;
+  if (*(short *)(in_ECX + 0x72a) == -1) {
+    uVar1 = 0;
+  }
+  else {
+    do {
+      local_8 = local_8 + -1;
+      if (local_8 < 0) goto LAB_004b48fc;
+      local_c = *(short *)(&DAT_005919fe + local_8 * 2 + *(short *)(in_ECX + 0x72a) * 0xc);
+    } while (local_c == -1);
+    FUN_004fb2e3(*(undefined2 *)
+                  (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x7fa));
+    *(short *)(in_ECX + 0x71c) = local_c;
+    *(undefined2 *)(in_ECX + 0x750) = 1;
+    *(undefined2 *)(in_ECX + 0x752) = 0;
+    *(undefined2 *)(&DAT_005919fe + local_8 * 2 + *(short *)(in_ECX + 0x72a) * 0xc) = 0xffff;
+    *(undefined2 *)(in_ECX + 0x74c) = 1;
+    puVar2 = (undefined4 *)
+             (in_ECX + 0x1c + *(short *)(in_ECX + 0x71c) * 0x120 + *(short *)(in_ECX + 0x72a) * 0x60
+             + local_8 * 0x10);
+    *(undefined4 *)(in_ECX + 0x72c) = *puVar2;
+    *(undefined4 *)(in_ECX + 0x730) = puVar2[1];
+    *(undefined4 *)(in_ECX + 0x734) = puVar2[2];
+    *(undefined4 *)(in_ECX + 0x738) = puVar2[3];
+    puVar2 = (undefined4 *)
+             (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x119 +
+              *(short *)(in_ECX + 0x71c) * 0x120 + *(short *)(in_ECX + 0x72a) * 0x60 +
+             local_8 * 0x10);
+    *(undefined4 *)(in_ECX + 0x73c) = *puVar2;
+    *(undefined4 *)(in_ECX + 0x740) = puVar2[1];
+    *(undefined4 *)(in_ECX + 0x744) = puVar2[2];
+    *(undefined4 *)(in_ECX + 0x748) = puVar2[3];
+    *(short *)(in_ECX + 0x71e) =
+         (short)*(undefined4 *)
+                 (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x91 +
+                 *(short *)(in_ECX + 0x71c) * 0x10) -
+         (short)*(undefined4 *)
+                 (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x89 +
+                 *(short *)(in_ECX + 0x71c) * 0x10);
+    *(short *)(in_ECX + 0x722) =
+         (short)*(undefined4 *)
+                 (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x95 +
+                 *(short *)(in_ECX + 0x71c) * 0x10) -
+         (short)*(undefined4 *)
+                 (*(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x728) * 0x8d) + 0x8d +
+                 *(short *)(in_ECX + 0x71c) * 0x10);
+    *(short *)(in_ECX + 0x720) = *(short *)(in_ECX + 0x71e) >> 1;
+    *(short *)(in_ECX + 0x724) = *(short *)(in_ECX + 0x722) >> 1;
+LAB_004b48fc:
+    if (local_c == -1) {
+      uVar1 = 0;
+    }
+    else {
+      uVar1 = 1;
+    }
+  }
+  return uVar1;
+}
+

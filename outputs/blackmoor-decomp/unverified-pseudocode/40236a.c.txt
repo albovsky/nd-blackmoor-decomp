@@ -1,0 +1,158 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x40236a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e09edac65bcad9caee2d1862e36312f5e4008fb317e393d76486b97c5d7f9943
+ */
+
+void FUN_0040236a(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(&DAT_005e60d6 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x3fc,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x3fc,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60da + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x3fd,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x3fd,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60de + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x3fe,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x3fe,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60e2 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x3ff,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x3ff,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60e6 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x400,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x400,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60ea + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x401,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x401,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60ee + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x402,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x402,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60f2 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x403,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x403,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60f6 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x40e,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x40e,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60fa + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x40d,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x40d,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e60fe + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x40c,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x40c,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6102 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x40b,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x40b,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6106 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x404,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x404,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e610a + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x405,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x405,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e610e + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x406,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x406,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6112 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x407,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x407,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6116 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x408,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x408,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e611a + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x409,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x409,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e611e + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x40a,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x40a,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6122 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x40f,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x40f,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6126 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x410,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x410,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e612a + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x411,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x411,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e612e + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x412,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x412,0xf1,0,0);
+  }
+  if (*(int *)(&DAT_005e6132 + *(int *)(in_ECX + 0x5c) * 4) == 1) {
+    FUN_0051d48c(0x413,0xf1,1,0);
+  }
+  else {
+    FUN_0051d48c(0x413,0xf1,0,0);
+  }
+  return;
+}
+

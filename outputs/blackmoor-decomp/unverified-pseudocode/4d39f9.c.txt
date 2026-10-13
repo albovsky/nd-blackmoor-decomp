@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d39f9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+short FUN_004d39f9(void)
+
+{
+  short local_8;
+  
+  local_8 = 0x18;
+  while( true ) {
+    if (0x3f < local_8) {
+      FUN_0052139c(s_GetNextGenericZRenderStruct_____E_0055a448,0,0);
+      FUN_004c97b4();
+      return -1;
+    }
+    if (*(int *)(&DAT_005d15a9 + local_8 * 0x4a) == 0) break;
+    local_8 = local_8 + 1;
+  }
+  return local_8;
+}
+

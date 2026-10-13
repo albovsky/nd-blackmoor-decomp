@@ -1,0 +1,74 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x434025
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+ */
+
+void FUN_00434025(void)
+
+{
+  char cVar1;
+  int iVar2;
+  int in_ECX;
+  uint uVar3;
+  char *pcVar4;
+  uint local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  uint local_10;
+  int local_8;
+  
+  *(undefined4 *)(in_ECX + 0x5f68) = 0;
+  local_8 = 0;
+  local_18 = 0;
+  do {
+    if (*(int *)(in_ECX + 0x5f64) <= local_18) {
+      return;
+    }
+    uVar3 = 0xffffffff;
+    pcVar4 = &DAT_00545e7c;
+    do {
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      cVar1 = *pcVar4;
+      pcVar4 = pcVar4 + 1;
+    } while (cVar1 != '\0');
+    local_1c = *(int *)(in_ECX + 0x1144 + local_18 * 4) + (~uVar3 - 1);
+    uVar3 = FUN_004347b8(local_1c);
+    if (uVar3 < 9) {
+      FUN_0042639d(s_DATA_is_TOO_SMALL___invalid_DATA_00545e98,s_CreateChunkDatabase_00545e84);
+      FUN_004c97b4();
+    }
+    local_1c = local_1c + 8;
+    local_20 = 5;
+    do {
+      iVar2 = FUN_00434773(local_1c);
+      if (iVar2 == 1) {
+        for (local_14 = 0; local_14 < *(int *)(in_ECX + 0x5f64); local_14 = local_14 + 1) {
+          if ((local_14 != local_18) && (*(int *)(in_ECX + 0x1144 + local_14 * 4) == local_1c)) {
+            local_8 = local_14;
+            break;
+          }
+        }
+        local_1c = local_1c + *(int *)(in_ECX + 0x3084 + local_8 * 4);
+        local_20 = local_20 + *(int *)(in_ECX + 0x3084 + local_8 * 4);
+        if (uVar3 <= local_20) break;
+      }
+      if (0x3e6 < *(int *)(in_ECX + 0x5f68)) {
+        FUN_0042639d(s_Too_many_CHUNKs_in_this_file_00545ed0,s_CreateChunkDatabase_00545ebc);
+        FUN_004c97b4();
+      }
+      *(int *)(in_ECX + 0x20e4 + *(int *)(in_ECX + 0x5f68) * 4) = local_1c;
+      *(int *)(in_ECX + 0x5f68) = *(int *)(in_ECX + 0x5f68) + 1;
+      local_10 = FUN_004347b8(local_1c + 4);
+      if ((local_10 & 1) == 1) {
+        local_10 = local_10 + 1;
+      }
+      local_1c = local_1c + 8 + local_10;
+      local_20 = local_20 + 8 + local_10;
+    } while (local_20 <= uVar3);
+    local_18 = local_18 + 1;
+  } while( true );
+}
+

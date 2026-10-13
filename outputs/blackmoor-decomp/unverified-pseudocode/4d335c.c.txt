@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d335c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7011e58f3afdde6fc878edb0312973c24208872876d4104777064ce751b49e1e
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004d335c(short param_1)
+
+{
+  FUN_004ee673((int)param_1);
+  _DAT_005b0a78 = (float)(int)param_1 / 100.0;
+  DAT_005b0a82 = __ftol((float)(int)DAT_005b0a7c);
+  if (DAT_005b0a82 < DAT_005b0a26) {
+    DAT_005b0a82 = DAT_005b0a26;
+  }
+  else if (DAT_005b0a2e < DAT_005b0a82 + (DAT_005b0a1e - _DAT_005b0a16)) {
+    DAT_005b0a82 = DAT_005b0a2e - (DAT_005b0a1e - _DAT_005b0a16);
+  }
+  _DAT_005b0a8a = DAT_005b0a82 + (DAT_005b0a1e - _DAT_005b0a16);
+  return;
+}
+

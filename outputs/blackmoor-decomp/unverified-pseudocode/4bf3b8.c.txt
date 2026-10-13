@@ -1,0 +1,153 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4bf3b8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+int FUN_004bf3b8(undefined4 param_1)
+
+{
+  char cVar1;
+  undefined4 uVar2;
+  int in_ECX;
+  uint uVar3;
+  uint uVar4;
+  char *pcVar5;
+  char *pcVar6;
+  
+  switch(*(undefined4 *)(in_ECX + 0x2c0)) {
+  case 0xfffffffa:
+    uVar2 = _BinkGetError_0();
+    FUN_0050ca3e(in_ECX + 0xc0,s_BINK_ERROR___Error_return_from_B_00552564,uVar2);
+    break;
+  case 0xfffffffb:
+    FUN_0050ca3e(in_ECX + 0xc0,s_BINK_ERROR___Invalid_Pathname____00552540,param_1);
+    break;
+  case 0xfffffffc:
+    uVar3 = 0xffffffff;
+    pcVar5 = s_BINK_ERROR___Unsupported_DirectD_00552508;
+    do {
+      pcVar6 = pcVar5;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar6 = pcVar5 + 1;
+      cVar1 = *pcVar5;
+      pcVar5 = pcVar6;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar5 = pcVar6 + -uVar3;
+    pcVar6 = (char *)(in_ECX + 0xc0);
+    for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+      *(undefined4 *)pcVar6 = *(undefined4 *)pcVar5;
+      pcVar5 = pcVar5 + 4;
+      pcVar6 = pcVar6 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar6 = *pcVar5;
+      pcVar5 = pcVar5 + 1;
+      pcVar6 = pcVar6 + 1;
+    }
+    break;
+  case 0xfffffffd:
+    uVar3 = 0xffffffff;
+    pcVar5 = s_BINK_ERROR___Invalid_BINK_handle_005524e4;
+    do {
+      pcVar6 = pcVar5;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar6 = pcVar5 + 1;
+      cVar1 = *pcVar5;
+      pcVar5 = pcVar6;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar5 = pcVar6 + -uVar3;
+    pcVar6 = (char *)(in_ECX + 0xc0);
+    for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+      *(undefined4 *)pcVar6 = *(undefined4 *)pcVar5;
+      pcVar5 = pcVar5 + 4;
+      pcVar6 = pcVar6 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar6 = *pcVar5;
+      pcVar5 = pcVar5 + 1;
+      pcVar6 = pcVar6 + 1;
+    }
+    break;
+  case 0xfffffffe:
+    uVar3 = 0xffffffff;
+    pcVar5 = s_BINK_ERROR___Not_using_the_BINK_A_00552494;
+    do {
+      pcVar6 = pcVar5;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar6 = pcVar5 + 1;
+      cVar1 = *pcVar5;
+      pcVar5 = pcVar6;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar5 = pcVar6 + -uVar3;
+    pcVar6 = (char *)(in_ECX + 0xc0);
+    for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+      *(undefined4 *)pcVar6 = *(undefined4 *)pcVar5;
+      pcVar5 = pcVar5 + 4;
+      pcVar6 = pcVar6 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar6 = *pcVar5;
+      pcVar5 = pcVar5 + 1;
+      pcVar6 = pcVar6 + 1;
+    }
+    break;
+  case 0xffffffff:
+    uVar3 = 0xffffffff;
+    pcVar5 = s_BINK_ERROR___Unspecified_general_005524bc;
+    do {
+      pcVar6 = pcVar5;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar6 = pcVar5 + 1;
+      cVar1 = *pcVar5;
+      pcVar5 = pcVar6;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar5 = pcVar6 + -uVar3;
+    pcVar6 = (char *)(in_ECX + 0xc0);
+    for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+      *(undefined4 *)pcVar6 = *(undefined4 *)pcVar5;
+      pcVar5 = pcVar5 + 4;
+      pcVar6 = pcVar6 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar6 = *pcVar5;
+      pcVar5 = pcVar5 + 1;
+      pcVar6 = pcVar6 + 1;
+    }
+    break;
+  default:
+    uVar3 = 0xffffffff;
+    pcVar5 = s_BINK_ERROR___No_errors_00552594;
+    do {
+      pcVar6 = pcVar5;
+      if (uVar3 == 0) break;
+      uVar3 = uVar3 - 1;
+      pcVar6 = pcVar5 + 1;
+      cVar1 = *pcVar5;
+      pcVar5 = pcVar6;
+    } while (cVar1 != '\0');
+    uVar3 = ~uVar3;
+    pcVar5 = pcVar6 + -uVar3;
+    pcVar6 = (char *)(in_ECX + 0xc0);
+    for (uVar4 = uVar3 >> 2; uVar4 != 0; uVar4 = uVar4 - 1) {
+      *(undefined4 *)pcVar6 = *(undefined4 *)pcVar5;
+      pcVar5 = pcVar5 + 4;
+      pcVar6 = pcVar6 + 4;
+    }
+    for (uVar3 = uVar3 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *pcVar6 = *pcVar5;
+      pcVar5 = pcVar5 + 1;
+      pcVar6 = pcVar6 + 1;
+    }
+  }
+  return in_ECX + 0xc0;
+}
+

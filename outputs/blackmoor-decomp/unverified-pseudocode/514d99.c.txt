@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x514d99
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ef606b3611f71cae908ae4dfd9c171d87d1bf5b814f82e9c922d3be8f60ac641
+ */
+
+void FUN_00514d99(void)
+
+{
+  if ((DAT_0063ca70 == 1) || ((DAT_0063ca70 == 0 && (DAT_00567e80 == 1)))) {
+    FUN_00514dd2(0xfc);
+    if (DAT_0063cc44 != (code *)0x0) {
+      (*DAT_0063cc44)();
+    }
+    FUN_00514dd2(0xff);
+  }
+  return;
+}
+

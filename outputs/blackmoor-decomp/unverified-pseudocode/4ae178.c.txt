@@ -1,0 +1,81 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ae178
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7
+ */
+
+void FUN_004ae178(void)
+
+{
+  short sVar1;
+  int *piVar2;
+  int iVar3;
+  undefined4 uVar4;
+  int iVar5;
+  int in_ECX;
+  uint uVar6;
+  uint uVar7;
+  undefined4 *puVar8;
+  int local_20;
+  int local_1c;
+  int local_10;
+  
+  uVar4 = FUN_004c2790(s_CIFTREE_005514e0,*(int *)(in_ECX + 0xc17) + 0x21,6,
+                       s_DF_Solution_Source_Surface_005514c4);
+  *(undefined4 *)(in_ECX + 0xe59) = uVar4;
+  piVar2 = *(int **)(in_ECX + 0xe59);
+  iVar3 = *piVar2;
+  iVar5 = *(int *)(in_ECX + 0xc17);
+  *(undefined4 *)(in_ECX + 0xe79) = *(undefined4 *)(iVar5 + 0x224);
+  *(undefined4 *)(in_ECX + 0xe7d) = *(undefined4 *)(iVar5 + 0x228);
+  *(undefined4 *)(in_ECX + 0xe81) = *(undefined4 *)(iVar5 + 0x22c);
+  *(undefined4 *)(in_ECX + 0xe85) = *(undefined4 *)(iVar5 + 0x230);
+  *(short *)(in_ECX + 0xe71) =
+       ((short)*(undefined4 *)(in_ECX + 0xe81) - (short)*(undefined4 *)(in_ECX + 0xe79)) + 1;
+  *(short *)(in_ECX + 0xe73) =
+       ((short)*(undefined4 *)(in_ECX + 0xe85) - (short)*(undefined4 *)(in_ECX + 0xe7d)) + 1;
+  *(undefined4 *)(in_ECX + 0xe5d) = 0;
+  *(undefined4 *)(in_ECX + 0xe61) = 0;
+  *(int *)(in_ECX + 0xe69) = *(int *)(in_ECX + 0xe61) + -1 + (int)*(short *)(in_ECX + 0xe73);
+  *(int *)(in_ECX + 0xe65) = *(int *)(in_ECX + 0xe5d) + -1 + (int)*(short *)(in_ECX + 0xe71);
+  *(int *)(in_ECX + 0xe75) = (int)*(short *)(in_ECX + 0xe71) * (int)*(short *)(in_ECX + 0xe73);
+  iVar5 = FUN_0051dc43(*(undefined4 *)(in_ECX + 0xe75));
+  *(int *)(in_ECX + 0xe6d) = iVar5;
+  if (iVar5 == 0) {
+    FUN_0050ca3e(in_ECX + 0xd39,s_Unable_to_get_memory_for_Solutio_005514e8);
+    FUN_0050ca3e(in_ECX + 0xc39,s_CTangramPuzzle__SolutionSetup_____00551510,in_ECX + 0xd39);
+    FUN_0052139c(in_ECX + 0xc39,0,0);
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(in_ECX + 0xc39);
+    }
+    FUN_004c97b4();
+  }
+  else {
+    uVar7 = *(uint *)(in_ECX + 0xe75);
+    puVar8 = *(undefined4 **)(in_ECX + 0xe6d);
+    for (uVar6 = uVar7 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+      *puVar8 = 0;
+      puVar8 = puVar8 + 1;
+    }
+    for (uVar7 = uVar7 & 3; uVar7 != 0; uVar7 = uVar7 - 1) {
+      *(undefined1 *)puVar8 = 0;
+      puVar8 = (undefined4 *)((int)puVar8 + 1);
+    }
+    sVar1 = *(short *)((int)piVar2 + 0x2f);
+    local_10 = 0;
+    for (local_20 = *(int *)(in_ECX + 0xe7d); local_20 <= *(int *)(in_ECX + 0xe85);
+        local_20 = local_20 + 1) {
+      for (local_1c = *(int *)(in_ECX + 0xe79); local_1c <= *(int *)(in_ECX + 0xe81);
+          local_1c = local_1c + 1) {
+        if (*(short *)(iVar3 + local_20 * sVar1 + local_1c * DAT_00639895) != DAT_005d2f29) {
+          *(undefined1 *)(*(int *)(in_ECX + 0xe6d) + local_10) = 0x80;
+        }
+        local_10 = local_10 + 1;
+      }
+    }
+    FUN_004c2dfb(in_ECX + 0xe59);
+    *(undefined4 *)(in_ECX + 0xe59) = 0;
+  }
+  return;
+}
+

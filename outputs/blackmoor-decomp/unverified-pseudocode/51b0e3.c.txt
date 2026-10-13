@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51b0e3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_af67c4288d6e639a00bd5dfa5ba373e106c1ca511fa16fda1eb070cac94bb18e
+ */
+
+undefined4 FUN_0051b0e3(void)
+
+{
+  int iVar1;
+  int iVar2;
+  
+  iVar1 = FUN_00525b0f(&LAB_0052496c);
+  iVar2 = FUN_00525371();
+  if ((*(char *)(iVar2 + 0x14) != '\0') && (*(HHOOK *)(iVar1 + 0x2c) != (HHOOK)0x0)) {
+    UnhookWindowsHookEx(*(HHOOK *)(iVar1 + 0x2c));
+    *(undefined4 *)(iVar1 + 0x2c) = 0;
+  }
+  if (*(int *)(iVar1 + 0x14) != 0) {
+    *(undefined4 *)(iVar1 + 0x14) = 0;
+    return 0;
+  }
+  return 1;
+}
+

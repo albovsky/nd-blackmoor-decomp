@@ -1,0 +1,189 @@
+{
+  "schema": "world-init-recovery/v1",
+  "source": {
+    "path": "work/original/GAME.EXE",
+    "format": "PE32/i386",
+    "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+    "execution_performed": false
+  },
+  "menu_path": {
+    "dispatch_va": "0x4da430",
+    "selection": "DAT_005aff4d == 3 && DAT_005aff55 == 1 (logged as NEW GAME)",
+    "full_init_branch_guard": "DAT_005e32b9 == 0",
+    "dispatch_writes": {
+      "DAT_005bb1e2": 1,
+      "DAT_00583981": 14,
+      "DAT_00583999": 0,
+      "byte_clear": {
+        "address": "0x0063a565",
+        "count": 33
+      }
+    },
+    "dispatch_calls": {
+      "address": "0x43dbd5",
+      "effect": "sets DAT_005bb1c4 = 1 (pending latch only)"
+    },
+    "deferred_full_initializer": {
+      "primary_loop_state": 14,
+      "engine_state": 0,
+      "address": "0x4381f4"
+    },
+    "alternate_guard_branch": "When DAT_005e32b9 != 0, menu case sets primary state 17, clears DAT_00616783 and DAT_005e32b9; it does not select state 14 in this dispatch."
+  },
+  "reset_contract": {
+    "event_flags": {
+      "base_address": "0x00585801",
+      "element_type": "int32",
+      "capacity": {
+        "status": "unknown",
+        "minimum_entries_required_by_observed_scene_corpus": 2243,
+        "do_not_assume_analysis_model_capacity": 4096
+      },
+      "explicit_clear": {
+        "address": "0x005867a1",
+        "index_first": 1000,
+        "count": 1251,
+        "index_last": 2250,
+        "stride_bytes": 4,
+        "value": 0,
+        "byte_span_half_open": ["0x005867a1", "0x00587b2d"],
+        "evidence": "Original VA 0x4381f4 loop bound 0x4e3; instruction writes dword [4*edx+0x5867a1] = 0."
+      },
+      "indices_0_through_999_same_process_new_game": "not covered by the explicit loop; reset by other callees or paths unresolved",
+      "capacity_inference": "0x587b2d is the next scene-visit table base; adjacency does not alone establish logical or allocation capacity."
+    },
+    "scene_visits": {
+      "address": "0x00587b2d",
+      "element_type": "int16",
+      "count": 10001,
+      "indices": [0, 10000],
+      "stride_bytes": 2,
+      "value": 0,
+      "byte_span_half_open": ["0x00587b2d", "0x0058c94f"],
+      "evidence": "Original VA 0x4381f4 loop bound 0x2711 with word stores; save/restore at 0x4d9302/0x4d940a copies 5000 dwords plus one word. Successful non-restore scene load increments current count at 0x439822.",
+      "observed_scene_id_guard": "< 0x2707 (9991); separate from table entry count"
+    },
+    "unclassified_dword_table": {
+      "address": "0x005839b1",
+      "element_type": "uint32 storage; semantic type unknown",
+      "count": 30,
+      "stride_bytes": 4,
+      "value": 0,
+      "byte_span_half_open": ["0x005839b1", "0x00583a29"],
+      "evidence": "Original VA 0x4381f4 loop bound 0x1e and dword stores."
+    },
+    "inventory": {
+      "presence": {
+        "address": "0x00583bd5",
+        "element_type": "signed int32",
+        "count": 70,
+        "indices": [0, 69],
+        "stride_bytes": 4,
+        "value": 0,
+        "byte_span_half_open": ["0x00583bd5", "0x00583ced"],
+        "evidence": "VA 0x4e7e15 loop bound 0x46; original instruction at 0x4e7e84 writes dword [4*eax+0x583bd5] = 0."
+      },
+      "parallel_reset_arrays": [
+        {"address": "0x00583a31", "element_type": "uint16", "count": 70, "stride_bytes": 2, "value": 65535},
+        {"address": "0x00583abd", "element_type": "uint16", "count": 70, "stride_bytes": 2, "value": 65535},
+        {"address": "0x00583b49", "element_type": "uint16", "count": 70, "stride_bytes": 2, "value": 65535},
+        {"address": "0x00583ced", "element_type": "uint32", "count": 70, "stride_bytes": 4, "value": 0},
+        {"address": "0x00583e05", "element_type": "uint32", "count": 70, "stride_bytes": 4, "value": 0}
+      ],
+      "warning": "The 70 reset slots are proven; this alone does not prove maximum item ID accepted elsewhere. This corrects a stale byte-indexed statement in work/analysis/s0-action-runtime-trace.md."
+    },
+    "short_values": {
+      "address": "0x0058c959",
+      "element_type": "uint16",
+      "count": 30,
+      "indices": [0, 29],
+      "stride_bytes": 2,
+      "value": 9999,
+      "value_hex": "0x270f",
+      "evidence": "VA 0x44aff2 loop compares index <= 29 and stores word 0x270f."
+    },
+    "float_values": {
+      "address": "0x0058c995",
+      "element_type": "float32",
+      "count": 10,
+      "indices": [0, 9],
+      "stride_bytes": 4,
+      "value": 9999.0,
+      "value_bits_hex": "0x461c3c00",
+      "evidence": "VA 0x44aff2 loops indices 30..39, storing dword 0x461c3c00 at 0x58c91d + 4*index; direct original execution confirms 9999.0f."
+    },
+    "difficulty": {
+      "address": "0x0058c94f",
+      "element_type": "uint16 storage; later written as difficulty by action opcode 0x71",
+      "count": 1,
+      "value": 0,
+      "evidence": "Direct store in VA 0x4381f4; opcode 0x71 handler at VA 0x427a50 later writes this field.",
+      "adjacent_config_words": {
+        "0x0058c951": "uint16 from byte 0x005b6048",
+        "0x0058c953": "uint16 from byte 0x005b6049",
+        "0x0058c955": "uint16 from byte 0x005b604a",
+        "0x0058c957": "uint16 65535"
+      }
+    },
+    "time_records": {
+      "base_address": "0x00585d65",
+      "count": 10,
+      "stride_bytes": 262,
+      "total_bytes": 2620,
+      "per_record": {
+        "zeroed_bytes": 262,
+        "zeroing_widths": "65 dwords followed by one word",
+        "word_sentinels": {"base_offset": 222, "stride_bytes": 4, "count": 10, "value": 65535},
+        "sound_name": {"offset": 40, "value": "NO_SOUND\\u0000"}
+      },
+      "evidence": "VA 0x4381f4 initializes ten records at stride 0x106 via 0x433bd2. Helper 0x433bd2 has the stated write widths and overrides."
+    },
+    "clock_globals": {
+      "run_tick_baseline": {"address": "0x00585d33", "value": "GetTickCount()"},
+      "run_elapsed_ms": {"address": "0x00585d37", "value": 0},
+      "run_display_words": {"addresses": ["0x00585d3b", "0x00585d3d", "0x00585d3f"], "value": 0},
+      "scene_elapsed_ms": {"address": "0x00585d41", "value": 0},
+      "scene_display_words": {"addresses": ["0x00585d45", "0x00585d47", "0x00585d49"], "value": 0},
+      "time_of_day": {
+        "address_hour_word": "0x00585d51",
+        "source_hour_word": "0x005b01f6",
+        "address_minute_word": "0x00585d4f",
+        "source_minute_word": "0x005b01f8",
+        "combined_minutes": "0x00585d4b = source_hour*60 + source_minute"
+      },
+      "deadline_tick": {"address": "0x00585d55", "source": "GetTickCount() + 0x005b0280"},
+      "auxiliary_words": {"0x00585d59": "0x005b01fa", "0x00585d5b": "0x005b01fc"},
+      "other_tick_baselines": {"0x00585d61": "GetTickCount()", "0x00585d5d": "GetTickCount()"},
+      "zeroed_word": {"address": "0x00585d53", "value": 0}
+    }
+  },
+  "boot_inputs": {
+    "ordinary_start_tuple": ["0x005b01f0 (scene)", "0x005b01f2 (coordA)", "0x005b01f4 (coordB)"],
+    "alternate_start_tuple": ["0x005b01fe (scene)", "0x005b0200 (coordA)", "0x005b0202 (coordB)"],
+    "selector": "DAT_005bb1de == 0 selects ordinary tuple; nonzero selects alternate tuple",
+    "decoded_current_boot_resource_initial_scene": 0,
+    "boot_resource_mapping_to_ordinary_scene_global": "not demonstrated",
+    "test_override": "With ordinary tuple selected, either DAT_0063a4d1 or DAT_0063a4d5 nonzero substitutes scene from DAT_0063a4dd and copies it to DAT_0063a4ed; coordinates remain from ordinary tuple. DAT_0063a4d9 activates additional test-mode handling.",
+    "additional_clock_inputs": ["0x005b01f6", "0x005b01f8", "0x005b01fa", "0x005b01fc", "0x005b0280"],
+    "adjacent_config_words": "Words at 0x0058c951/0x0058c953/0x0058c955 are initialized from bytes 0x005b6048/49/4a.",
+    "runtime_values": "Not reconstructed in this pass; initializer consumes pre-populated globals."
+  },
+  "reset_vs_persistence": {
+    "full_init": "New Game state-14 dispatch reaches 0x4381f4, where the listed direct reset loops run.",
+    "scene_clear": "VA 0x43dbe3 clears 31 dwords at 0x5867a1 (event indices 1000..1030), resets scene timer and scene display fields when DAT_005e32b5 == 0, and does not directly reset run elapsed at 0x585d37.",
+    "visit_increment": "VA 0x439822 increments the current scene's int16 visit count after successful load unless DAT_005e32b5 indicates restore.",
+    "cold_process_event_bss": "Event base 0x585801 lies in .data VA 0x537000 + raw size 0x33000, below virtual end 0x63e13c; PE zero-fill makes it cold-launch zero. This does not prove same-process New Game resets IDs 0..999."
+  },
+  "unknowns": [
+    "Logical and allocated event-flag capacity / legal maximum ID; report only explicit upper-segment reset and observed corpus minimum.",
+    "Whether another 0x4381f4 callee resets lower event IDs 0..999 on a same-process New Game.",
+    "Semantics of the 30 dwords at 0x5839b1 and other incompletely named saved tables.",
+    "Actual runtime values of startup scene, coordinates, time, and config globals."
+  ],
+  "oracle_boundary": {
+    "candidate": "VA 0x44aff2 initializes only short-value and float-value sentinels and has no explicit inputs.",
+    "not_executed": true,
+    "full_initializer_reason_to_avoid_as_narrow_oracle": "VA 0x4381f4 depends on GetTickCount, resources, GUI/global state, configuration, and many callees."
+  },
+  "correction_note": "An earlier draft mislabeled bits 0x461c3c00 as 10000.0f. Direct original execution and IEEE-754 decoding establish 9999.0f."
+}

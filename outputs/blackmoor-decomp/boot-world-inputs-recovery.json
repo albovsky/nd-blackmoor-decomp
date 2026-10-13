@@ -1,0 +1,340 @@
+{
+  "title": "Original BOOT, New Game, clock, and phone input contract",
+  "scope": "Read-only original GAME.EXE and decoded BOOT resource recovery for the first scene baseline. Capacity claims are explicitly excluded unless proved by loader bounds.",
+  "sources": {
+    "original_executable": {
+      "path": "work/original/GAME.EXE",
+      "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+      "format": "PE32 i386"
+    },
+    "decoded_boot": {
+      "path": "work/analysis/cif-boot-native.bin",
+      "size": 69442,
+      "sha256": "167ca6479ac93f5e4465557549d663c46a1ad48cf376ca81a4e6e6248191f6ac"
+    },
+    "existing_context": [
+      "work/analysis/current-boot-info.json",
+      "work/analysis/world-init-recovery.md",
+      "work/analysis/game-source.json"
+    ],
+    "instruction_evidence": "Original x86 bytes/disassembly at listed VAs; exported pseudocode used only as navigation."
+  },
+  "boot_summary": {
+    "resource": "BOOT",
+    "chunk": "BSUM",
+    "payload_file_offset": 20,
+    "payload_length": 402,
+    "destination_base_va": "0x005b0113",
+    "copy_evidence_va": "0x004356df-0x004356fc",
+    "mapping": "BSUM[k] -> VA 0x005b0113 + k",
+    "fields": [
+      {
+        "offset": 221,
+        "file_offset": 241,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0000",
+        "value": 0,
+        "destination_va": "0x005b01f0",
+        "meaning": "ordinary initial scene",
+        "runtime_destinations": ["0x005bb57b", "0x005bb57f"]
+      },
+      {
+        "offset": 223,
+        "file_offset": 243,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0000",
+        "value": 0,
+        "destination_va": "0x005b01f2",
+        "meaning": "ordinary start-coordinate word A",
+        "runtime_destinations": ["0x005bb597"]
+      },
+      {
+        "offset": 225,
+        "file_offset": 245,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0000",
+        "value": 0,
+        "destination_va": "0x005b01f4",
+        "meaning": "ordinary start-coordinate word B",
+        "runtime_destinations": ["0x005bb593"]
+      },
+      {
+        "offset": 227,
+        "file_offset": 247,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "1200",
+        "value": 18,
+        "destination_va": "0x005b01f6",
+        "meaning": "initial hour",
+        "runtime_destination": "0x00585d51"
+      },
+      {
+        "offset": 229,
+        "file_offset": 249,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0000",
+        "value": 0,
+        "destination_va": "0x005b01f8",
+        "meaning": "initial minute",
+        "runtime_destination": "0x00585d4f"
+      },
+      {
+        "offset": 231,
+        "file_offset": 251,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0300",
+        "value": 3,
+        "destination_va": "0x005b01fa",
+        "meaning": "hour threshold for the first-day timed event check",
+        "runtime_destination": "0x00585d59"
+      },
+      {
+        "offset": 233,
+        "file_offset": 253,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "8406",
+        "value": 1668,
+        "destination_va": "0x005b01fc",
+        "meaning": "event flag ID written when first-day hour reaches threshold; -1 disables",
+        "runtime_destination": "0x00585d5b"
+      },
+      {
+        "offset": 235,
+        "file_offset": 255,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "401f",
+        "value": 8000,
+        "destination_va": "0x005b01fe",
+        "meaning": "alternate initial scene, selected when 0x005bb1de != 0",
+        "runtime_destinations": ["0x005bb57b", "0x005bb57f"]
+      },
+      {
+        "offset": 237,
+        "file_offset": 257,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0000",
+        "value": 0,
+        "destination_va": "0x005b0200",
+        "meaning": "alternate start-coordinate word A",
+        "runtime_destination": "0x005bb597"
+      },
+      {
+        "offset": 239,
+        "file_offset": 259,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "0000",
+        "value": 0,
+        "destination_va": "0x005b0202",
+        "meaning": "alternate start-coordinate word B",
+        "runtime_destination": "0x005bb593"
+      },
+      {
+        "offset": 365,
+        "file_offset": 385,
+        "width": 2,
+        "encoding": "signed little-endian int16",
+        "raw_hex": "204e",
+        "value": 20000,
+        "destination_va": "0x005b0280",
+        "meaning": "clock update scheduling interval in milliseconds",
+        "runtime_destination": "0x00585d55"
+      }
+    ],
+    "ordinary_cold_start": {
+      "scene": 0,
+      "coordinate_word_a": 0,
+      "coordinate_word_b": 0,
+      "clock": {"hour": 18, "minute": 0, "total_minutes": 1080},
+      "clock_day_counter_va": "0x00585d53",
+      "clock_day_counter_initialized_to": 0,
+      "alternate_scene": 8000,
+      "alternate_scene_gate_va": "0x005bb1de",
+      "forced_scene_overrides": {
+        "selector_flags": ["0x0063a4d1", "0x0063a4d5"],
+        "scene_value_va": "0x0063a4dd",
+        "behavior": "If either selector is nonzero and alternate tuple gate is zero, replace scene and preserve ordinary coordinate words."
+      },
+      "coordinate_axis_names_and_units": "unknown"
+    }
+  },
+  "game_ini": {
+    "path_from_game_source_descriptor": "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of the Blackmoor Manor/Game.ini",
+    "sha256": "f8f892e828eca6086f5a25720e5e8e0c2ebbb7d81f1bb90bb8b73ea244419c79",
+    "section": "Nancy Data",
+    "values": {
+      "TestingModeEnabled": "0",
+      "ExternalCifFileChecking": "1",
+      "DebugOutput": "0",
+      "RunInWindowedMode": "0"
+    },
+    "boot_mapping": "No scene, start-coordinate, clock, or phone defaults are supplied by these keys. The current app parser reads ExternalCifFileChecking only.",
+    "current_parser_evidence": "outputs/blackmoor-decomp/src/blackmoor_app.mm:103"
+  },
+  "event_flags": {
+    "base_va": "0x00585801",
+    "element_width_bytes": 4,
+    "cold_process_initialization": {
+      "pe_section": ".data",
+      "image_base": "0x00400000",
+      "section_rva": "0x00137000",
+      "section_va": "0x00537000",
+      "virtual_size": "0x0010713c",
+      "raw_size": "0x00033000",
+      "event_base_section_offset": "0x0004e801",
+      "event_base_in_zero_filled_tail": true,
+      "lower_ids_0_through_999": "zero on cold process start due to PE virtual-tail zero-fill"
+    },
+    "new_game_route": {
+      "menu_dispatch_va": "0x004da430",
+      "new_game_case_va": "0x004daa24",
+      "new_game_latch_va": "0x005bb1e2",
+      "full_init_gate": "0x005e32b9 == 0",
+      "state_va_value": {"va": "0x00583981", "value": 14},
+      "substate_va_value": {"va": "0x00583999", "value": 0},
+      "preinit_clear": {"va": "0x0063a565", "length_bytes": 33},
+      "deferred_dispatch_va": "0x0043dbd5",
+      "state_zero_dispatch_va": "0x00438150",
+      "initializer_va": "0x004381f4",
+      "alternate_gate_branch": "If 0x005e32b9 != 0, menu selects state 17, clears 0x00616783 and 0x005e32b9, and does not take the state-14 full-init route."
+    },
+    "initializer_clear": {
+      "start_va": "0x005867a1",
+      "element_count": 1251,
+      "first_event_id": 1000,
+      "last_event_id": 2250,
+      "loop_bound_immediate": "0x4e3",
+      "instruction_va": "0x00438251",
+      "cleared_ids": "1000..2250 inclusive",
+      "lower_ids_0_through_999_cleared_by_this_loop": false
+    },
+    "same_process_new_game_contract": "The observed full initializer clears IDs 1000..2250 and contains no direct clear of IDs 0..999. Lower IDs are cold-zero but remain untouched by this clear loop across same-process New Game, so they persist unless another code path changes them. This does not rule out an unrelated alias-based write elsewhere.",
+    "capacity": "unknown; the clear span is not a table-capacity declaration"
+  },
+  "phone_table": {
+    "resource": "BOOT",
+    "chunk": "UICL",
+    "payload_file_offset": 47972,
+    "payload_file_offset_hex": "0xbb64",
+    "payload_size": 3981,
+    "payload_sha256": "0e11c99406701eea7bb1ab5ab530e295fa8056ea4e6e884718ffb8a47b1f680c",
+    "loader": {
+      "va": "0x004e4337",
+      "startup_call_va": "0x004369d6",
+      "source_object_base_va": "0x0057975c",
+      "count_payload_offset": 3487,
+      "count_payload_offset_hex": "0xd9f",
+      "count_object_offset": "0x1471",
+      "count_object_va": "0x0057abcd",
+      "count_encoding": "signed little-endian int16",
+      "table_payload_offset": 3489,
+      "table_payload_offset_hex": "0xda1",
+      "table_object_offset": "0x457b",
+      "table_object_va": "0x0057dcd7",
+      "row_stride_bytes": 41,
+      "size_condition": "0xda1 + count*41 <= UICL payload size",
+      "size_condition_checked_after_copy": true,
+      "payload_copy_evidence_va": "0x004e4342-0x004e43e5"
+    },
+    "row_layout": {
+      "kind": {"offset": 0, "length": 2, "encoding": "little-endian uint16"},
+      "key": {"offset": 2, "length": 11},
+      "display_name": {"offset": 13, "length": 20, "encoding": "NUL-padded bytes"},
+      "opaque_tail": {"offset": 33, "length": 8}
+    },
+    "count": 12,
+    "rows_source_order": [
+      {"index": 0, "boot_file_offset": "0xc905", "kind": "0x000a", "key_hex": "0105020305050509070001", "display_name": "Mrs. Petrov", "tail_hex": "40060100ffff0000"},
+      {"index": 1, "boot_file_offset": "0xc92e", "kind": "0x000b", "key_hex": "0005020305050509070001", "display_name": "Mrs. Petrov", "tail_hex": "40060100ffff0000"},
+      {"index": 2, "boot_file_offset": "0xc957", "kind": "0x000b", "key_hex": "0000000005050509070001", "display_name": "Mrs. Petrov", "tail_hex": "40060100ffff0000"},
+      {"index": 3, "boot_file_offset": "0xc980", "kind": "0x000a", "key_hex": "0105020305050503070309", "display_name": "Home", "tail_hex": "3c190100ffff0000"},
+      {"index": 4, "boot_file_offset": "0xc9a9", "kind": "0x000b", "key_hex": "0502030505050307030900", "display_name": "Home", "tail_hex": "3c190100ffff0000"},
+      {"index": 5, "boot_file_offset": "0xc9d2", "kind": "0x000b", "key_hex": "0505050307030900000000", "display_name": "Home", "tail_hex": "3c190100ffff0000"},
+      {"index": 6, "boot_file_offset": "0xc9fb", "kind": "0x000a", "key_hex": "0105020305050504030507", "display_name": "Ned Nickerson", "tail_hex": "a4060100ffff0000"},
+      {"index": 7, "boot_file_offset": "0xca24", "kind": "0x000b", "key_hex": "0005020305050504030507", "display_name": "Ned Nickerson", "tail_hex": "a4060100ffff0000"},
+      {"index": 8, "boot_file_offset": "0xca4d", "kind": "0x000b", "key_hex": "0000000005050504030507", "display_name": "Ned Nickerson", "tail_hex": "dc050100ffff0000"},
+      {"index": 9, "boot_file_offset": "0xca76", "kind": "0x000b", "key_hex": "0105020305050509040008", "display_name": "Paliki Vadas", "tail_hex": "a4060100ffff0000"},
+      {"index": 10, "boot_file_offset": "0xca9f", "kind": "0x000b", "key_hex": "0005020305050509040008", "display_name": "Paliki Vadas", "tail_hex": "b2070100ffff0000"},
+      {"index": 11, "boot_file_offset": "0xcac8", "kind": "0x000b", "key_hex": "0000000005050509040008", "display_name": "Paliki Vadas", "tail_hex": "b2070100ffff0000"}
+    ],
+    "new_game_runtime_copy": {
+      "initializer_va": "0x004381f4",
+      "copy_routine_va": "0x004e2e05",
+      "source_object_va": "0x0057975c",
+      "runtime_count_va": "0x005a1e5c",
+      "runtime_rows_va": "0x005a1e62",
+      "copy_length": "count*41 bytes",
+      "sort_routine_va": "0x004e3ade",
+      "before_first_s0_action": true,
+      "repeat_new_game": "Runtime rows are recopied from the startup-loaded UICL source table, replacing prior runtime action edits."
+    },
+    "capacity": {
+      "value": null,
+      "status": "unknown",
+      "evidence": "Payload size constrains rows in this UICL file; it does not prove destination capacity. Observed action handler 0x4e7253 appends and increments count without an explicit maximum check. Do not infer 50 or 4096."
+    },
+    "empty_lookup_note": "Lookup 0x4e45be initializes comparison status only within its row loop. With count zero the return path uses an uninitialized local; ordinary BOOT/New Game baseline has 12 rows and avoids this path."
+  },
+  "unknowns": [
+    "Coordinate word axis names and units are not established.",
+    "Potential pre-initializer writers to the alternate-tuple and forced-scene gates are outside this bounded trace.",
+    "Original global capacity of the event-flag table is unknown.",
+    "Original global capacity of the phone/contact table is unknown.",
+    "Equal-display-name phone-row tie ordering after sort is not asserted."
+  ],
+  "native_extraction_api": {
+    "files": [
+      "outputs/blackmoor-decomp/src/engine_boot.h",
+      "outputs/blackmoor-decomp/src/engine_boot.c"
+    ],
+    "summary_abi": "EngineBootSummary remains unchanged; startup fields are exposed by a separate struct.",
+    "startup_settings": {
+      "type": "EngineBootStartupSettings",
+      "getter": "engine_boot_get_startup_settings(const EngineBoot *, EngineBootStartupSettings *)",
+      "field_order": [
+        "ordinary_initial_scene",
+        "ordinary_coordinate_word_a",
+        "ordinary_coordinate_word_b",
+        "alternate_initial_scene",
+        "alternate_coordinate_word_a",
+        "alternate_coordinate_word_b",
+        "initial_hour",
+        "initial_minute",
+        "first_day_event_hour",
+        "first_day_event_flag_id",
+        "clock_update_interval_ms"
+      ],
+      "field_type": "signed int16 values"
+    },
+    "phone_rows": {
+      "row_size_bytes": 41,
+      "count_getter": "engine_boot_get_phone_count(const EngineBoot *, size_t *)",
+      "row_getter": "engine_boot_phone_row_at(const EngineBoot *, size_t, uint8_t raw_row[ENGINE_BOOT_PHONE_ROW_SIZE])",
+      "selection_scope": "UICL chunk belonging to selected BOOT DATA only",
+      "order": "UICL source order; caller owns any original-runtime sorting",
+      "preaccess_checks": [
+        "UICL payload size >= 0xda1",
+        "signed count >= 0",
+        "0xda1 + count*41 <= UICL payload size"
+      ],
+      "errors": {
+        "missing_or_foreign_uicl": "ENGINE_BOOT_ERR_NOT_FOUND",
+        "negative_count": "ENGINE_BOOT_ERR_FORMAT",
+        "short_payload_or_count_overrun": "ENGINE_BOOT_ERR_BOUNDS",
+        "row_index_out_of_range": "ENGINE_BOOT_ERR_NOT_FOUND"
+      },
+      "capacity_note": "The validated source payload length does not declare the original runtime table's global capacity."
+    },
+    "focused_test": "outputs/blackmoor-decomp/tests/test_engine_boot_inputs.py"
+  },
+  "report": "work/analysis/boot-world-inputs-recovery.md"
+}

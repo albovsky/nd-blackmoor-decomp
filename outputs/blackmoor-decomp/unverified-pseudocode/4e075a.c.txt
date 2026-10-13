@@ -1,0 +1,71 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e075a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004e0943) */
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_004e075a(void)
+
+{
+  char cVar1;
+  int iVar2;
+  undefined4 uVar3;
+  int in_ECX;
+  char *pcVar4;
+  char *pcVar5;
+  int local_8;
+  
+  if (*(int *)(in_ECX + 0xf2a) == 1) {
+    if ((((*(int *)(in_ECX + 0x35) <= DAT_00583102) && (DAT_0058310a <= *(int *)(in_ECX + 0x3d))) &&
+        (*(int *)(in_ECX + 0x39) <= DAT_00583106)) && (DAT_0058310e <= *(int *)(in_ECX + 0x41))) {
+      DAT_005b44f0 = 4;
+      DAT_005b44f4 = 0;
+      _DAT_005d162d = DAT_005d0377;
+      _DAT_005d1631 = &DAT_005b168c;
+      _DAT_005d1639 = 1;
+    }
+    *(int *)(in_ECX + 0xf22) = DAT_00583102 + (&DAT_005b30cc)[DAT_005b44f0 * 4 + DAT_005b44f4 * 2];
+    *(int *)(in_ECX + 0xf26) = DAT_00583106 + (&DAT_005b30d0)[DAT_005b44f0 * 4 + DAT_005b44f4 * 2];
+    DAT_005c3a5b = *(undefined4 *)(in_ECX + 0xf22);
+    uVar3 = *(undefined4 *)(in_ECX + 0xf26);
+    DAT_005c3a5f = uVar3;
+    for (local_8 = 0; local_8 < 5; local_8 = local_8 + 1) {
+      iVar2 = FUN_004e22fd(*(undefined2 *)(in_ECX + 0xf22),
+                           CONCAT22((short)((uint)uVar3 >> 0x10),*(undefined2 *)(in_ECX + 0xf26)));
+      if (iVar2 != 0) {
+        uVar3 = FUN_004e2967();
+        *(undefined4 *)(in_ECX + 0xf36) = uVar3;
+        if (*(int *)(in_ECX + 0xf36) == *(int *)(in_ECX + 0xf32)) {
+          return 1;
+        }
+        if (DAT_0063a4cd == 0) goto LAB_004e0953;
+        FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_DoCurso_0055bb54,
+                     *(undefined4 *)(in_ECX + 0xf36),DAT_005bb57b);
+        FUN_0044a2b7(&DAT_0063888b);
+        iVar2 = -1;
+        pcVar4 = (char *)&DAT_0063888b;
+        goto code_r0x004e0925;
+      }
+      uVar3 = 0;
+    }
+  }
+  return 0;
+  while( true ) {
+    iVar2 = iVar2 + -1;
+    pcVar5 = pcVar4 + 1;
+    cVar1 = *pcVar4;
+    pcVar4 = pcVar5;
+    if (cVar1 == '\0') break;
+code_r0x004e0925:
+    pcVar5 = pcVar4;
+    if (iVar2 == 0) break;
+  }
+  *(undefined2 *)(pcVar5 + -1) = DAT_0055bba4;
+LAB_004e0953:
+  *(undefined4 *)(in_ECX + 0xf32) = *(undefined4 *)(in_ECX + 0xf36);
+  return 1;
+}
+

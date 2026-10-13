@@ -1,0 +1,59 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x48d3cb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7981f36fcfb340c87ff1ac4ba66e833832bd1313751938cee07fade4f0082dcf
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_0048d3cb(short param_1,short param_2)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  if (param_1 == 0x2766) {
+    DAT_005b44f0 = 9;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = &DAT_005b173c;
+    _DAT_005d1639 = 1;
+    DAT_005c39e5 = 0x2766;
+    *(undefined1 *)(in_ECX + 0x24) = 1;
+    *(undefined2 *)(in_ECX + 0x27) = 0xffff;
+  }
+  else if (param_1 == 0x2765) {
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    if ((((*(int *)(iVar1 + 0x207 + param_2 * 0x10) < *(int *)(iVar1 + 0x2f9)) ||
+         (*(int *)(iVar1 + 0x301) < *(int *)(iVar1 + 0x20f + param_2 * 0x10))) ||
+        (*(int *)(iVar1 + 0x203 + param_2 * 0x10) < *(int *)(iVar1 + 0x2f5))) ||
+       (*(int *)(iVar1 + 0x2fd) < *(int *)(iVar1 + 0x20b + param_2 * 0x10))) {
+      if (((*(int *)(iVar1 + 0x207 + param_2 * 0x10) < *(int *)(iVar1 + 0x30b)) ||
+          (*(int *)(iVar1 + 0x313) < *(int *)(iVar1 + 0x20f + param_2 * 0x10))) ||
+         ((*(int *)(iVar1 + 0x203 + param_2 * 0x10) < *(int *)(iVar1 + 0x307) ||
+          (*(int *)(iVar1 + 0x30f) < *(int *)(iVar1 + 0x20b + param_2 * 0x10))))) {
+        DAT_005b44f0 = 0;
+      }
+      else {
+        DAT_005b44f0 = (int)*(short *)(iVar1 + 0x305);
+      }
+    }
+    else {
+      DAT_005b44f0 = (int)*(short *)(iVar1 + 0x2f3);
+    }
+    _DAT_005d1631 = &DAT_005b161c + DAT_005b44f0 * 0x20;
+    _DAT_005d1639 = 1;
+    DAT_005c39e5 = 0x2765;
+    *(undefined1 *)(in_ECX + 0x24) = 1;
+    if (*(char *)(in_ECX + 0x26) == '\0') {
+      *(short *)(in_ECX + 0x27) = param_2;
+    }
+  }
+  else {
+    *(undefined2 *)(in_ECX + 0x27) = 0xffff;
+  }
+  return;
+}
+

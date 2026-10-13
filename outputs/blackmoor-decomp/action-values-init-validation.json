@@ -1,0 +1,54 @@
+{
+  "scope": "direct original VA 0x44aff2 call with no function stubs; compares all 100 contiguous short/float bytes and verifies difficulty/event state preservation. Not a whole-game check.",
+  "original_executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "original_code_window": {
+    "start": "0x0044aff2",
+    "end_exclusive": "0x0044b05a",
+    "size_bytes": 104,
+    "sha256": "f030cbb26d5dd17c35cc5f9cdc0ca2b8ca447ae2e0c387682b16d0c7fd6e0489",
+    "executed_instruction_count_per_case": 377,
+    "external_calls_or_stubs": 0
+  },
+  "native_library_sha256": "20018ae171afba1426f1075d2e5ed2b3c9b1bb91fd10679485dac792783c54f9",
+  "sentinel_contract": {
+    "short_values_address": "0x0058c959",
+    "short_count": 30,
+    "short_value": 9999,
+    "float_values_address": "0x0058c995",
+    "float_count": 10,
+    "float_value": 9999.0,
+    "float_bits_hex": "0x461c3c00",
+    "compared_contiguous_value_bytes": 100,
+    "difficulty_address": "0x0058c94f",
+    "event_flags_address": "0x00585801",
+    "native_event_pointer_and_count_unchanged": true
+  },
+  "cases": [
+    {
+      "case": 1,
+      "difficulty_before_and_after": -1234,
+      "seeded_value_bytes_sha256": "2c625a7be6d41cf026a3b3e610a9f792a29f5fe34fb59cd794d54234178ea18f",
+      "value_bytes_sha256": "c9e7e1e45c2f17feab1158b6d117d2fb249fb42390b8cf3f8c2ff3e6cc744a77",
+      "value_bytes_match_original": true,
+      "difficulty_unchanged_original_and_native": true,
+      "event_flags_unchanged_original_and_native": true,
+      "native_event_pointer_and_count_unchanged": true
+    },
+    {
+      "case": 2,
+      "difficulty_before_and_after": 23456,
+      "seeded_value_bytes_sha256": "e3f92a75a912189da30a57b360e4bf988d80880b12e3327a9622812aa328c727",
+      "value_bytes_sha256": "c9e7e1e45c2f17feab1158b6d117d2fb249fb42390b8cf3f8c2ff3e6cc744a77",
+      "value_bytes_match_original": true,
+      "difficulty_unchanged_original_and_native": true,
+      "event_flags_unchanged_original_and_native": true,
+      "native_event_pointer_and_count_unchanged": true
+    }
+  ],
+  "case_count": 2,
+  "preliminary_test_run": {
+    "result": "failed_before_correction",
+    "reason": "The first test expectation used float 10000.0f; direct original execution and bits 0x461c3c00 establish 9999.0f. The implementation and expected value were corrected before final passing checks."
+  },
+  "result": "pass"
+}

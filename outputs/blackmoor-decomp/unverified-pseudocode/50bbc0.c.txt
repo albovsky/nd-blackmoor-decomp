@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50bbc0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_14398f730fa9c49e7db80307b54fbb5d04baa803ce1c29895906ff2fa90b272c
+ */
+
+void FUN_0050bbc0(undefined4 *param_1)
+
+{
+  undefined1 *puVar1;
+  
+  *param_1 = 0;
+  param_1[1] = 0;
+  param_1[2] = 0;
+  param_1[3] = 0;
+  param_1[4] = 0;
+  puVar1 = _malloc(0x100);
+  param_1[2] = puVar1;
+  param_1[3] = puVar1;
+  *puVar1 = 0;
+  param_1[4] = 0x100;
+  return;
+}
+

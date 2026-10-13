@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520c59
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+COLORREF FUN_00520c59(COLORREF param_1)
+
+{
+  COLORREF CVar1;
+  int in_ECX;
+  
+  CVar1 = 0xffffffff;
+  if (*(HDC *)(in_ECX + 4) != *(HDC *)(in_ECX + 8)) {
+    CVar1 = SetBkColor(*(HDC *)(in_ECX + 4),param_1);
+  }
+  if (*(HDC *)(in_ECX + 8) != (HDC)0x0) {
+    CVar1 = SetBkColor(*(HDC *)(in_ECX + 8),param_1);
+  }
+  return CVar1;
+}
+

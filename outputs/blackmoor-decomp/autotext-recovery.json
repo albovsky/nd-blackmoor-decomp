@@ -1,0 +1,43 @@
+{
+  "allocator_calls": 2514,
+  "cvtx_payload_length": 154240,
+  "duplicate_groups": [
+    {
+      "normalized_key_hex": "4a504d363058",
+      "record_indexes": [
+        184,
+        566
+      ],
+      "returned_record_index": 184
+    }
+  ],
+  "entry_count": 1257,
+  "executable_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "execution_scope": "Original GAME.EXE table init/insert/lookup routines only; one bounded allocator hook; no game launch, file/window/audio API, or caption renderer.",
+  "missing_caption_fallback": {
+    "byte_length": 46,
+    "bytes_hex": "4d697373696e6720636c6f7365642063617074696f6e696e67207465787420737472696e673c683e3c6e3e3c6f3e",
+    "caller_copy_bytes": 47,
+    "caller_source": "FUN_0041c7f4, branches with DAT_0063a4cd == 0",
+    "source_va": "0x00543310",
+    "terminator_in_binary": true
+  },
+  "missing_probe": {
+    "found": false,
+    "lookup_return": "NULL"
+  },
+  "nls_mode": "ASCII only; NLS uppercase branch not executed",
+  "nsht01": {
+    "ascii_case_variant_matches": true,
+    "caption_length": 185,
+    "caption_sha256": "6e19433329887d22c48f661afb69f38c803ff90328730c7027281182173f5632",
+    "found": true,
+    "raw_payload_length": 185
+  },
+  "original_allocator_hook_va": "0x0051dc43",
+  "original_insert_va": "0x00423142",
+  "original_lookup_va": "0x00423259",
+  "original_table_initializer_va": "0x00423097",
+  "resource_sha256": "9c3d5cabe39edc21603e06e1ee933837cd080650762df4d2a8d107eebcfca441",
+  "resource_type": "AUTOTEXT/TEXT/CVTX"
+}

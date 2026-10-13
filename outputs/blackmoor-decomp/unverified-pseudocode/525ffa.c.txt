@@ -1,0 +1,29 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525ffa
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+void FUN_00525ffa(int param_1)
+
+{
+  int *piVar1;
+  
+  if (DAT_0063c9e4 == 0) {
+    FUN_00525f67();
+  }
+  if (DAT_0063c9e0 == 0) {
+    piVar1 = &DAT_0063c7e8 + param_1;
+    if ((&DAT_0063c7e8)[param_1] == 0) {
+      EnterCriticalSection((LPCRITICAL_SECTION)&DAT_0063c830);
+      if (*piVar1 == 0) {
+        InitializeCriticalSection((LPCRITICAL_SECTION)(&DAT_0063c848 + param_1 * 0x18));
+        *piVar1 = *piVar1 + 1;
+      }
+      LeaveCriticalSection((LPCRITICAL_SECTION)&DAT_0063c830);
+    }
+    EnterCriticalSection((LPCRITICAL_SECTION)(&DAT_0063c848 + param_1 * 0x18));
+  }
+  return;
+}
+

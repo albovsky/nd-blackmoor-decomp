@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c962
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+void FUN_0051c962(void)
+
+{
+  BOOL BVar1;
+  tagMSG local_20;
+  
+  while( true ) {
+    BVar1 = PeekMessageA(&local_20,(HWND)0x0,0x121,0x121,1);
+    if (BVar1 == 0) break;
+    DispatchMessageA(&local_20);
+  }
+  FUN_0051ab4b();
+  return;
+}
+

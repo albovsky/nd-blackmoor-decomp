@@ -1,0 +1,14 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52398b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+undefined4 FUN_0052398b(void)
+
+{
+  int in_ECX;
+  
+  return *(undefined4 *)(in_ECX + 0x98);
+}
+

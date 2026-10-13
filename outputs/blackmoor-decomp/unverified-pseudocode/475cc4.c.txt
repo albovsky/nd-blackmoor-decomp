@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x475cc4
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f110a51708a87e42a1df088442ce84584fa97ada22af5597067d90dfc82d854f
+ */
+
+void FUN_00475cc4(char *param_1,undefined4 *param_2)
+
+{
+  char cVar1;
+  int iVar2;
+  undefined4 uVar3;
+  undefined4 uVar4;
+  short sVar5;
+  short sVar6;
+  int in_ECX;
+  int iVar7;
+  undefined2 extraout_var;
+  char *pcVar8;
+  
+  iVar2 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x22) * 0x8d);
+  iVar7 = -1;
+  pcVar8 = param_1;
+  do {
+    if (iVar7 == 0) break;
+    iVar7 = iVar7 + -1;
+    cVar1 = *pcVar8;
+    pcVar8 = pcVar8 + 1;
+  } while (cVar1 != '\0');
+  if (0 < (short)(~(ushort)iVar7 - 1)) {
+    uVar3 = param_2[3];
+    sVar5 = (short)DAT_0058318a;
+    uVar4 = *param_2;
+    sVar6 = (short)DAT_00583186;
+    FUN_004c924d(*(undefined2 *)(iVar2 + 0x23a));
+    FUN_004d2c20(param_1,(int)&DAT_005a4c24 + *(short *)(iVar2 + 0x23a) * 0x7f3,
+                 &DAT_005adb3a + *(short *)(iVar2 + 0x23a) * 0x1d0,
+                 CONCAT22(*(short *)(iVar2 + 0x23a) >> 0xf,(short)uVar4 + sVar6),
+                 CONCAT22((short)((uint)iVar2 >> 0x10),(short)uVar3 + sVar5),
+                 *(undefined4 *)(&DAT_005d032f + *(short *)(iVar2 + 0x23a) * 4),DAT_005cf665,
+                 CONCAT22(extraout_var,*(undefined2 *)(iVar2 + 0x23c)));
+  }
+  return;
+}
+

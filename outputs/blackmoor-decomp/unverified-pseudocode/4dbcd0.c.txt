@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4dbcd0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004dbcd0(void)
+
+{
+  DWORD DVar1;
+  undefined2 extraout_var;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  ushort local_18;
+  undefined2 uStack_16;
+  undefined4 local_14;
+  undefined4 local_10;
+  int local_c;
+  int local_8;
+  
+  if (DAT_0058398d == 0) {
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_LogoSequence____begin_LOGO_INIT_s_0055afe0);
+    }
+    FUN_004dad60();
+    DAT_005d032b = FUN_004c2790(s_CIFTREE_0055b024,&DAT_005b0685,6,
+                                s_DF_Company_Logo_Surface_0055b00c);
+    if (DAT_005bb21a != 0) {
+      _local_18 = CONCAT22(uStack_16,DAT_005b451f);
+      if (*(short *)(&DAT_005c3b99 + (uint)DAT_005b451f * 0x5bb) == 0) {
+        FUN_004faf98(&DAT_005b452d,CONCAT22(extraout_var,DAT_005b451f));
+      }
+      DAT_005bb21a = 0;
+    }
+    _DAT_0063a9c8 = GetTickCount();
+    DAT_0058398d = 1;
+  }
+  else if (DAT_0058398d == 1) {
+    local_10 = 0;
+    local_14 = 0;
+    local_c = DAT_0063988b + -1;
+    local_8 = DAT_0063988d + -1;
+    local_24 = (int)DAT_00639891;
+    local_28 = (int)DAT_0063988f;
+    local_20 = local_28 + -1 + (int)DAT_0063988b;
+    local_1c = local_24 + -1 + (int)DAT_0063988d;
+    FUN_004c5377(DAT_005d032b,DAT_005cf661,&local_14,&local_28,s_copy_pDFSLogo__>_pSPrimary_0055b02c
+                );
+    FUN_004dadff();
+    DVar1 = GetTickCount();
+    if ((4000 < DVar1 - _DAT_0063a9c8) || (DAT_0058321d == '\x01')) {
+      FUN_004dad60();
+      DAT_0058398d = 2;
+    }
+  }
+  else if (DAT_0058398d == 2) {
+    FUN_004c2dfb(&DAT_005d032b);
+    DAT_00583985 = 3;
+    DAT_00583981 = 6;
+    DAT_005839a1 = 0;
+  }
+  return;
+}
+

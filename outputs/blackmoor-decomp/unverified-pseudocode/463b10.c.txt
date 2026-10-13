@@ -1,0 +1,85 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x463b10
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_87c215b6acae2dc5650e31fcd27f76d139aec2c1d8e05fbf5ef1e7fe469374cd
+ */
+
+void FUN_00463b10(void)
+
+{
+  int local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  short local_10;
+  int local_c;
+  short local_8;
+  
+  local_c = *(int *)(&DAT_005bb5e5 + DAT_0061d797 * 0x8d);
+  for (local_8 = 0; local_8 < *(short *)(local_c + 0x22); local_8 = local_8 + 1) {
+    for (local_10 = 0; local_10 < *(short *)(local_c + 0x24); local_10 = local_10 + 1) {
+      if ((&DAT_00594db5)[local_8 * 0x50 + local_10 * 10] != 0) {
+        switch(*(undefined2 *)(&DAT_00594dd9 + local_10 * 0x28 + local_8 * 0x140)) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+          if (*(int *)(local_c + 0x178 +
+                      (*(short *)(&DAT_00594dd9 + local_10 * 0x28 + local_8 * 0x140) + -1) * 0x10)
+              != *(int *)(local_c + 0x170 +
+                         (*(short *)(&DAT_00594dd9 + local_10 * 0x28 + local_8 * 0x140) + -1) * 0x10
+                         )) {
+            FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d795 * 0x4a),DAT_005cf665,
+                         local_c + 0x170 +
+                         (*(short *)(&DAT_00594dd9 + local_10 * 0x28 + local_8 * 0x140) + -1) * 0x10
+                         ,&DAT_00594db9 + local_8 * 0x50 + local_10 * 10,
+                         s_Collision_Puzzle_Piece_Overlays_0054b264);
+          }
+          break;
+        case 0x10:
+        case 0x13:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d795 * 0x4a),DAT_005cf665,
+                       local_c + 0x210,&DAT_00594db9 + local_8 * 0x50 + local_10 * 10,
+                       s_Collision_Puzzle_Overlays_0054b210);
+          break;
+        case 0x11:
+        case 0x12:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d795 * 0x4a),DAT_005cf665,
+                       local_c + 0x220,&DAT_00594db9 + local_8 * 0x50 + local_10 * 10,
+                       s_Collision_Puzzle_Overlays_0054b22c);
+          break;
+        case 0x14:
+          if (*(int *)(local_c + 0x238) != *(int *)(local_c + 0x230)) {
+            FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d795 * 0x4a),DAT_005cf665,
+                         local_c + 0x230,&DAT_00594db9 + local_8 * 0x50 + local_10 * 10,
+                         s_Collision_Puzzle_Overlays_0054b248);
+          }
+        }
+        if (*(short *)(&DAT_00594ddb + local_10 * 0x28 + local_8 * 0x140) != 0) {
+          if (((DAT_0061d79d == 2) || (DAT_0061d7b4 == 1)) &&
+             (DAT_0061d7b2 == *(short *)(&DAT_00594ddb + local_10 * 0x28 + local_8 * 0x140))) {
+            local_1c = DAT_0061d7a6 - DAT_0058318a;
+            local_14 = DAT_0061d7ae - DAT_0058318a;
+            local_20 = DAT_0061d7a2 - DAT_00583186;
+            local_18 = DAT_0061d7aa - DAT_00583186;
+            FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_20,&DAT_0061d7a2,
+                         s_restore_background_0054b284);
+          }
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d795 * 0x4a),DAT_005cf665,
+                       local_c + 0xd0 +
+                       (*(short *)(&DAT_00594ddb + local_10 * 0x28 + local_8 * 0x140) + -1) * 0x10,
+                       &DAT_00594dc9 + local_10 * 0x28 + local_8 * 0x140,
+                       s_Collision_Puzzle_Overlays_0054b298);
+        }
+      }
+    }
+  }
+  return;
+}
+

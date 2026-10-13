@@ -1,0 +1,42 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47f275
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618
+ */
+
+void FUN_0047f275(void)
+
+{
+  int in_ECX;
+  
+  *(undefined4 *)(in_ECX + 0x1352) = *(undefined4 *)(in_ECX + 0x1362);
+  *(undefined4 *)(in_ECX + 0x1356) = *(undefined4 *)(in_ECX + 0x1366);
+  *(undefined4 *)(in_ECX + 0x135a) = *(undefined4 *)(in_ECX + 0x136a);
+  *(undefined4 *)(in_ECX + 0x135e) = *(undefined4 *)(in_ECX + 0x136e);
+  *(undefined4 *)(in_ECX + 0x1372) = *(undefined4 *)(in_ECX + 0x1382);
+  *(undefined4 *)(in_ECX + 0x1376) = *(undefined4 *)(in_ECX + 0x1386);
+  *(undefined4 *)(in_ECX + 0x137a) = *(undefined4 *)(in_ECX + 0x138a);
+  *(undefined4 *)(in_ECX + 0x137e) = *(undefined4 *)(in_ECX + 0x138e);
+  *(int *)(in_ECX + 0x1366) =
+       ((*(int *)(in_ECX + 0x13db) - *(int *)(in_ECX + 0x13d3)) / 2 + *(int *)(in_ECX + 0x13d3)) -
+       (int)*(short *)(in_ECX + 0x13e5) / 2;
+  *(int *)(in_ECX + 0x1362) =
+       ((*(int *)(in_ECX + 0x13d7) - *(int *)(in_ECX + 0x13cf)) / 2 + *(int *)(in_ECX + 0x13cf)) -
+       (int)*(short *)(in_ECX + 0x13e3) / 2;
+  *(int *)(in_ECX + 0x136e) = *(int *)(in_ECX + 0x1366) + (int)*(short *)(in_ECX + 0x13e5);
+  *(int *)(in_ECX + 0x136a) = *(int *)(in_ECX + 0x1362) + (int)*(short *)(in_ECX + 0x13e3);
+  FUN_0047f19d(in_ECX + 0x1362);
+  FUN_0047e52f(in_ECX + 0x1362,in_ECX + 0x1382);
+  if ((*(int *)(in_ECX + 0x1356) == 0) && (*(int *)(in_ECX + 0x135e) == 0)) {
+    *(undefined4 *)(in_ECX + 0x1352) = *(undefined4 *)(in_ECX + 0x1362);
+    *(undefined4 *)(in_ECX + 0x1356) = *(undefined4 *)(in_ECX + 0x1366);
+    *(undefined4 *)(in_ECX + 0x135a) = *(undefined4 *)(in_ECX + 0x136a);
+    *(undefined4 *)(in_ECX + 0x135e) = *(undefined4 *)(in_ECX + 0x136e);
+    *(undefined4 *)(in_ECX + 0x1372) = *(undefined4 *)(in_ECX + 0x1382);
+    *(undefined4 *)(in_ECX + 0x1376) = *(undefined4 *)(in_ECX + 0x1386);
+    *(undefined4 *)(in_ECX + 0x137a) = *(undefined4 *)(in_ECX + 0x138a);
+    *(undefined4 *)(in_ECX + 0x137e) = *(undefined4 *)(in_ECX + 0x138e);
+  }
+  return;
+}
+

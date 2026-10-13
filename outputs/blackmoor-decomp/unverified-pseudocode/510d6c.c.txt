@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x510d6c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+undefined4 FUN_00510d6c(void)
+
+{
+  DWORD *lpTlsValue;
+  BOOL BVar1;
+  DWORD DVar2;
+  
+  FUN_00512bef();
+  DAT_005681f0 = TlsAlloc();
+  if (DAT_005681f0 != 0xffffffff) {
+    lpTlsValue = (DWORD *)FUN_0050e97e(1,0x74);
+    if (lpTlsValue != (DWORD *)0x0) {
+      BVar1 = TlsSetValue(DAT_005681f0,lpTlsValue);
+      if (BVar1 != 0) {
+        FUN_00510dc0(lpTlsValue);
+        DVar2 = GetCurrentThreadId();
+        lpTlsValue[1] = 0xffffffff;
+        *lpTlsValue = DVar2;
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+

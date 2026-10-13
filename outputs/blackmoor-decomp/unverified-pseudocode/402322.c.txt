@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x402322
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e09edac65bcad9caee2d1862e36312f5e4008fb317e393d76486b97c5d7f9943
+ */
+
+void FUN_00402322(short param_1,int param_2,undefined2 *param_3)
+
+{
+  FUN_0050ca3e(param_2,&DAT_0053e8c8,(&PTR_s_Generic0_005374d0)[param_1 * 0x18]);
+  *(undefined1 *)(param_2 + 0x1a) = 0;
+  *param_3 = *(undefined2 *)(&DAT_005370f8 + param_1 * 0x14);
+  return;
+}
+

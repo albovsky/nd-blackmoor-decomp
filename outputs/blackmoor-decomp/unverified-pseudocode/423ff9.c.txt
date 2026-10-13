@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x423ff9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6aea749257e733e6a888071535cd523e265e1b5dc78f23c23f75e3654451d196
+ */
+
+int FUN_00423ff9(int param_1)
+
+{
+  int iVar1;
+  
+  if (*(int *)(param_1 + 0x20) == 0) {
+    iVar1 = -1;
+  }
+  else {
+    iVar1 = (int)*(short *)(*(int *)(param_1 + 0x20) + 0x12);
+    *(undefined4 *)(param_1 + 0x20) = *(undefined4 *)(*(int *)(param_1 + 0x20) + 0x40);
+  }
+  return iVar1;
+}
+

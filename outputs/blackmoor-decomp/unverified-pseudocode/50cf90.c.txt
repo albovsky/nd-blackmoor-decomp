@@ -1,0 +1,75 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50cf90
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c01bda5c208998c8b38f9e1693c1f9d27cef570b0e4d2e523c0f31431a0d762
+ */
+
+uint FUN_0050cf90(undefined1 *param_1,uint param_2,uint param_3,int *param_4)
+
+{
+  int *piVar1;
+  uint uVar2;
+  int iVar3;
+  undefined1 *puVar4;
+  uint uVar5;
+  uint uVar6;
+  
+  piVar1 = param_4;
+  uVar5 = param_2 * param_3;
+  if (uVar5 == 0) {
+    param_3 = 0;
+  }
+  else {
+    puVar4 = param_1;
+    param_1 = (undefined1 *)uVar5;
+    if ((*(ushort *)(param_4 + 3) & 0x10c) == 0) {
+      param_4 = (int *)0x1000;
+    }
+    else {
+      param_4 = (int *)param_4[6];
+    }
+    do {
+      if (((*(ushort *)(piVar1 + 3) & 0x10c) == 0) || (uVar2 = piVar1[1], uVar2 == 0)) {
+        if (param_1 < param_4) {
+          iVar3 = FUN_0051235b(piVar1);
+          if (iVar3 == -1) goto LAB_0050d06c;
+          *puVar4 = (char)iVar3;
+          param_4 = (int *)piVar1[6];
+          puVar4 = puVar4 + 1;
+          param_1 = (undefined1 *)((int)param_1 - 1);
+        }
+        else {
+          uVar2 = (uint)param_1;
+          if (param_4 != (int *)0x0) {
+            uVar2 = (int)param_1 - (uint)param_1 % (uint)param_4;
+          }
+          iVar3 = FUN_00512437(piVar1[4],puVar4,uVar2);
+          if (iVar3 == 0) {
+            piVar1[3] = piVar1[3] | 0x10;
+LAB_0050d06c:
+            return (uVar5 - (int)param_1) / param_2;
+          }
+          if (iVar3 == -1) {
+            piVar1[3] = piVar1[3] | 0x20;
+            goto LAB_0050d06c;
+          }
+          param_1 = (undefined1 *)((int)param_1 - iVar3);
+          puVar4 = puVar4 + iVar3;
+        }
+      }
+      else {
+        uVar6 = (uint)param_1;
+        if (uVar2 <= param_1) {
+          uVar6 = uVar2;
+        }
+        FUN_0050fa90(puVar4,*piVar1,uVar6);
+        param_1 = (undefined1 *)((int)param_1 - uVar6);
+        piVar1[1] = piVar1[1] - uVar6;
+        *piVar1 = *piVar1 + uVar6;
+        puVar4 = puVar4 + uVar6;
+      }
+    } while (param_1 != (undefined1 *)0x0);
+  }
+  return param_3;
+}
+

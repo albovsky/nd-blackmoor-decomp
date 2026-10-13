@@ -1,0 +1,22 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ccb50
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5d7e582f83f0537e633fb10e380fdbc2f4e8820249923868fd009a4829ea2231
+ */
+
+void FUN_004ccb50(float *param_1,float param_2)
+
+{
+  float10 fVar1;
+  float10 fVar2;
+  
+  FUN_004cc962();
+  fVar1 = (float10)FUN_0050e054((double)(param_2 * 0.017453292));
+  fVar2 = (float10)FUN_0050e104((double)(param_2 * 0.017453292));
+  *param_1 = (float)fVar1;
+  param_1[2] = -(float)fVar2;
+  param_1[8] = (float)fVar2;
+  param_1[10] = (float)fVar1;
+  return;
+}
+

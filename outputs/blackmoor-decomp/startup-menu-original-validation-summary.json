@@ -1,0 +1,58 @@
+{
+  "scope": "original x86 menu hit/hover/press/deadline selector only; no command dispatch or complete startup",
+  "original_executable": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/work/original/GAME.EXE",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "original_function_va": "0x004da430",
+  "original_function_range": "0x004da430..0x004dad11",
+  "original_code_sha256": "73df1fe2a86cf89bbf7e5c6b8bcb2613fe23513427793bc537ce92598311d9e1",
+  "native_library_path": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/libstartupmenu.dylib",
+  "native_library_loaded_path": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/libstartupmenu.dylib",
+  "native_library_sha256": "d15ee2287b796021ce12ecee08221f9fbcbfb7024ed0bcfc02c1190ef2b90ed1",
+  "real_boot_menu_payload_size": 631,
+  "real_menu_rectangle_tables": {
+    "hit": 55,
+    "pressed": 199,
+    "disabled": 343,
+    "hover": 487
+  },
+  "disabled_mask_cases": [
+    0,
+    24
+  ],
+  "compared_fields": [
+    "hovered_button",
+    "pressed_button",
+    "command_ready"
+  ],
+  "compared_steps": 94,
+  "mismatches": 0,
+  "result_digest": "379cfbbae715e1e29db06401bcc2033813a977bfefce91c5e6cd334ffb492d7b",
+  "oracle_execution": {
+    "engine": "original GAME.EXE PE32 code under Unicorn 2.1.4",
+    "original_instruction_count": 30424,
+    "hooked_platform_and_audio_calls": {
+      "GetCursorPos": 105,
+      "SetCursorPos": 80,
+      "GetSystemMetrics": 54,
+      "menu_render": 109,
+      "sound_start": 13,
+      "GetTickCount": 17,
+      "sound_complete": 3
+    },
+    "coordinate_setup": "identity logical mapping in selected 640x480 menu mode; cursor clamp dimensions 24x32 leave all tested hit coordinates unclamped",
+    "stubs": [
+      "GetCursorPos returns requested logical test point",
+      "GetTickCount returns requested 32-bit tick",
+      "GetSystemMetrics returns 0 for SM_SWAPBUTTON",
+      "SetCursorPos is a no-op success",
+      "0x4fb2e3 click-start audio call returns without playback",
+      "0x4f6334 click-sound completion returns the requested complete/incomplete state",
+      "0x4cf7e0 menu surface draw is skipped"
+    ],
+    "excluded": [
+      "0x4d9df3 original menu/resource initialization; relevant globals and all four rectangle tables are seeded from its verified BOOT-derived data",
+      "0x4da430 state-3 command dispatch (credits/new game/load/continue/setup/help/promo/exit), which invokes downstream engine behaviors",
+      "full Windows input, cursor graphics, audio, surface renderer and game loop"
+    ]
+  }
+}

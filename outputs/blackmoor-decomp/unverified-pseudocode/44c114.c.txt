@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44c114
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0
+ */
+
+void FUN_0044c114(float *param_1,float param_2)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float10 fVar5;
+  float10 fVar6;
+  float local_10;
+  
+  fVar5 = (float10)FUN_0050e104((double)(param_2 * 0.017453292));
+  fVar6 = (float10)FUN_0050e054((double)(param_2 * 0.017453292));
+  fVar1 = *param_1;
+  fVar2 = param_1[1];
+  fVar3 = *param_1;
+  fVar4 = param_1[1];
+  FUN_0044bf4b();
+  *param_1 = (float)fVar6 * fVar1 - (float)fVar5 * fVar2;
+  param_1[1] = (float)fVar6 * fVar4 + (float)fVar5 * fVar3;
+  param_1[2] = local_10;
+  return;
+}
+

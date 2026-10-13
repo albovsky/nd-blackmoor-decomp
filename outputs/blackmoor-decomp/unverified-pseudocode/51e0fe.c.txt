@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51e0fe
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+/* Library Function - Single Match
+    protected: void __thiscall CDialog::PostModal(void)
+   
+   Library: Visual Studio 2008 Release */
+
+void __thiscall CDialog::PostModal(CDialog *this)
+
+{
+  BOOL BVar1;
+  int iVar2;
+  
+  FUN_0051b0e3();
+  CWnd::Detach((CWnd *)this);
+  BVar1 = IsWindow(*(HWND *)(this + 0x54));
+  if (BVar1 != 0) {
+    EnableWindow(*(HWND *)(this + 0x54),1);
+  }
+  *(undefined4 *)(this + 0x54) = 0;
+  iVar2 = FUN_00525371();
+  if (*(int *)(iVar2 + 4) != 0) {
+    FUN_00521287(1);
+  }
+  return;
+}
+

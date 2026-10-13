@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5214f0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+void FUN_005214f0(void)
+
+{
+  int in_ECX;
+  
+  FUN_0051d630(0);
+  ShowOwnedPopups(*(HWND *)(*(int *)(in_ECX + 0x1c) + 0x1c),0);
+  FUN_0051d5e1(&DAT_0063c2d8,0,0,0,0,0x13);
+  return;
+}
+

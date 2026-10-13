@@ -1,0 +1,36 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c7623
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c7623(int param_1,undefined4 *param_2,undefined2 param_3)
+
+{
+  undefined2 extraout_var;
+  int in_ECX;
+  undefined2 extraout_var_00;
+  undefined2 extraout_var_01;
+  undefined2 extraout_var_02;
+  undefined1 local_84 [16];
+  undefined4 local_74;
+  undefined4 local_60;
+  undefined4 local_8;
+  
+  FUN_004c4067(param_1,0,local_84,s_CDirectDraw__DrawRectangle_____p_005553a8,0x20);
+  local_8 = local_60;
+  FUN_004c808f(local_60,local_74,*param_2,param_2[1],param_2[2],param_2[1],
+               CONCAT22(extraout_var_00,param_3));
+  FUN_004c808f(local_8,local_74,*param_2,param_2[3],param_2[2],param_2[3],
+               CONCAT22(extraout_var,param_3));
+  FUN_004c808f(local_8,local_74,*param_2,param_2[1],*param_2,param_2[3],
+               CONCAT22(extraout_var_02,param_3));
+  FUN_004c808f(local_8,local_74,param_2[2],param_2[1],param_2[2],param_2[3],
+               CONCAT22(extraout_var_01,param_3));
+  FUN_004c4202(param_1,param_2,s_CDirectDraw__DrawRectangle_____p_005553d0);
+  if (param_1 == *(int *)(in_ECX + 0xc)) {
+    FUN_004c952f(param_2);
+  }
+  return;
+}
+

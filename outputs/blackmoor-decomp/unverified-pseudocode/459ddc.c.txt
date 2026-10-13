@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x459ddc
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f51cc55276120d19811669e671858343b4478877f4752e92acf19b83badf3e68
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00459ddc(undefined2 param_1)
+
+{
+  int in_ECX;
+  
+  DAT_005c39e5 = 0x2742;
+  *(undefined2 *)(in_ECX + 0xcc) = param_1;
+  DAT_005b44f0 = 0x16;
+  DAT_005b44f4 = 1;
+  _DAT_005d162d = DAT_005d0377;
+  _DAT_005d1631 = &DAT_005b18dc;
+  _DAT_005d1639 = 1;
+  return;
+}
+

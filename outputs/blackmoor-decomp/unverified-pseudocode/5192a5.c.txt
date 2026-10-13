@@ -1,0 +1,77 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5192a5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b751a5094d1e8211f653554618c4b14e01ac05861f47e521c34e1b18a0e9f8e5
+ */
+
+int FUN_005192a5(undefined4 param_1,int param_2)
+
+{
+  int iVar1;
+  int *piVar2;
+  undefined4 *puVar3;
+  HANDLE hFile;
+  BOOL BVar4;
+  DWORD DVar5;
+  DWORD *pDVar6;
+  int iVar7;
+  undefined1 local_1008 [4064];
+  undefined4 uStackY_28;
+  undefined4 uStackY_24;
+  undefined4 uStackY_20;
+  
+  FUN_0050c920();
+  iVar7 = 0;
+  iVar1 = FUN_005121dd();
+  if ((iVar1 == -1) || (iVar1 = FUN_005121dd(), iVar1 == -1)) {
+    iVar7 = -1;
+  }
+  else {
+    param_2 = param_2 - iVar1;
+    if (param_2 < 1) {
+      if (param_2 < 0) {
+        uStackY_20 = 0x519376;
+        FUN_005121dd();
+        uStackY_20 = param_1;
+        uStackY_24 = 0x51937e;
+        hFile = (HANDLE)FUN_005176d9();
+        BVar4 = SetEndOfFile(hFile);
+        iVar7 = (BVar4 != 0) - 1;
+        if (iVar7 == -1) {
+          puVar3 = (undefined4 *)FUN_0050ea7e();
+          *puVar3 = 0xd;
+          DVar5 = GetLastError();
+          pDVar6 = (DWORD *)FUN_0050ea87();
+          *pDVar6 = DVar5;
+        }
+      }
+    }
+    else {
+      uStackY_20 = 0x519305;
+      _memset(local_1008,0,0x1000);
+      uStackY_20 = 0x8000;
+      uStackY_24 = param_1;
+      uStackY_28 = 0x519312;
+      FUN_00519500();
+      do {
+        uStackY_20 = 0x519330;
+        iVar1 = FUN_0051332e();
+        if (iVar1 == -1) {
+          piVar2 = (int *)FUN_0050ea87();
+          if (*piVar2 == 5) {
+            puVar3 = (undefined4 *)FUN_0050ea7e();
+            *puVar3 = 0xd;
+          }
+          iVar7 = -1;
+          break;
+        }
+        param_2 = param_2 - iVar1;
+      } while (0 < param_2);
+      FUN_00519500();
+    }
+    uStackY_20 = 0x5193bc;
+    FUN_005121dd();
+  }
+  return iVar7;
+}
+

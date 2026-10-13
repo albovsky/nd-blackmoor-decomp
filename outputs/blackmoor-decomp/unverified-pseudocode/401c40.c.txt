@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x401c40
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_455a1567ac014214df64acbf5361dabf30a6cc1d06d560bab71935befaaf0a54
+ */
+
+undefined4 FUN_00401c40(uint param_1)
+
+{
+  undefined4 in_ECX;
+  
+  FUN_004014f5();
+  if ((param_1 & 1) != 0) {
+    FUN_0051dc6c(in_ECX);
+  }
+  return in_ECX;
+}
+

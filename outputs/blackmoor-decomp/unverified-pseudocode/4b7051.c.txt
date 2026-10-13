@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b7051
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9c28e49ff0d0581c06fedda0626bb3b37c974388a5ee867a2a287f28c8c49afa
+ */
+
+void FUN_004b7051(void)
+
+{
+  int iVar1;
+  int local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + DAT_0061d467 * 0x8d);
+  for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x21); local_8 = local_8 + 1) {
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061d465 * 0x4a),DAT_005cf665,
+                 &DAT_0061d46d + local_8 * 0x10,&DAT_0061d56d + local_8 * 0x10,
+                 s_Turning_Puzzle_Overlays_00551bb0);
+  }
+  return;
+}
+

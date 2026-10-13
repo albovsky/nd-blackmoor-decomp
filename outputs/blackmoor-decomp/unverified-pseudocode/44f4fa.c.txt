@@ -1,0 +1,29 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44f4fa
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_44f9ad36cfcb6cd07f5dfecee6ae0cfb679ab9d068db67b1a73f7c4febbd58e5
+ */
+
+void FUN_0044f4fa(void)
+
+{
+  int iVar1;
+  undefined1 local_14 [16];
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + DAT_0062494f * 0x8d);
+  FUN_0044e95b(iVar1 + 0xdd,local_14);
+  FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0062494d * 0x4a),DAT_005cf665,
+               iVar1 + 0x13d + DAT_00624955 * 0x10,local_14,
+               s_AngleToss___current_power_positi_005498b8);
+  FUN_0044e95b(iVar1 + 0x7d,local_14);
+  FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0062494d * 0x4a),DAT_005cf665,
+               iVar1 + 0x8d + DAT_00624957 * 0x10,local_14,
+               s_AngleToss___current_angle_positi_005498dc);
+  if (DAT_00624959 != 0) {
+    FUN_0044e95b(iVar1 + 0x3d,local_14);
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0062494d * 0x4a),DAT_005cf665,iVar1 + 0x4d
+                 ,local_14,s_AngleToss___Throw_position_00549900);
+  }
+  return;
+}
+

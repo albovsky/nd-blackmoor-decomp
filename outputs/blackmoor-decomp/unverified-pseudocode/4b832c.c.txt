@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b832c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d
+ */
+
+void FUN_004b832c(void)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  undefined4 local_1c;
+  undefined4 local_18;
+  
+  DVar1 = GetTickCount();
+  *(DWORD *)(in_ECX + 0x632) = DVar1 - *(int *)(in_ECX + 0x62e);
+  local_1c = (int)*(short *)(*(int *)(in_ECX + 8) + 0x45a) - *(uint *)(in_ECX + 0x632) / 1000;
+  local_18 = local_1c / 0x3c;
+  if (0x3a < local_18) {
+    local_18 = 0x3b;
+  }
+  local_1c = local_1c + local_18 * -0x3c;
+  if (0x3a < local_1c) {
+    local_1c = 0x3b;
+  }
+  if ((local_18 != *(int *)(in_ECX + 0x626)) || (local_1c != *(int *)(in_ECX + 0x62a))) {
+    *(int *)(in_ECX + 0x626) = local_18;
+    *(int *)(in_ECX + 0x62a) = local_1c;
+    if (*(int *)(in_ECX + 0x62a) < 0) {
+      *(undefined4 *)(in_ECX + 0x62a) = 0;
+    }
+    if (*(int *)(in_ECX + 0x626) < 0) {
+      *(undefined4 *)(in_ECX + 0x626) = 0;
+    }
+    FUN_00446598(*(undefined4 *)(in_ECX + 0x626),*(undefined4 *)(in_ECX + 0x62a));
+  }
+  return;
+}
+

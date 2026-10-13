@@ -1,0 +1,12 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x461d4b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_54414b0082ebcba364d23e408bbf47fe0ab1b670355f5030623cc5b8f4a5e988
+ */
+
+bool FUN_00461d4b(short param_1,short param_2,short param_3)
+
+{
+  return *(short *)(&DAT_00594dd9 + param_3 * 0x28 + param_2 * 0x140) == param_1;
+}
+

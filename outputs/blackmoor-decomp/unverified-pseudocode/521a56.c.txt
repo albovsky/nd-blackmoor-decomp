@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521a56
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_006be9b362b7cfce7238776a88a8741cad5ae334489097b537f8f7dadb6e60eb
+ */
+
+void FUN_00521a56(undefined4 param_1)
+
+{
+  void *pvVar1;
+  int iVar2;
+  CPropertyPage *in_ECX;
+  
+  CPropertyPage::Cleanup(in_ECX);
+  pvVar1 = _malloc(8);
+  *(void **)(in_ECX + 0x58) = pvVar1;
+  iVar2 = FUN_00525371();
+  (**(code **)(**(int **)(iVar2 + 0x1038) + 0x10))(*(undefined4 *)(in_ECX + 0x58),param_1);
+  return;
+}
+

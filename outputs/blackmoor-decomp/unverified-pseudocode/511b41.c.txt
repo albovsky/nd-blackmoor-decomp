@@ -1,0 +1,28 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x511b41
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c14b206e0317066be1d027bdae31364ff1ffe02c3df6c0ccff4b69686384ad63
+ */
+
+/* Library Function - Single Match
+    __fassign
+   
+   Library: Visual Studio 2003 Release */
+
+void __cdecl __fassign(int flag,char *argument,char *number)
+
+{
+  undefined4 local_c;
+  undefined4 local_8;
+  
+  if (flag != 0) {
+    FUN_00516d7d(&local_c);
+    *(undefined4 *)argument = local_c;
+    *(undefined4 *)(argument + 4) = local_8;
+    return;
+  }
+  FUN_00516daa(&number,number);
+  *(char **)argument = number;
+  return;
+}
+

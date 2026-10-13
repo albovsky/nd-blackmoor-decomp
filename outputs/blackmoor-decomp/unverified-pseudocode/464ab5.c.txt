@@ -1,0 +1,49 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x464ab5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_87c215b6acae2dc5650e31fcd27f76d139aec2c1d8e05fbf5ef1e7fe469374cd
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00464ab5(short param_1,undefined2 param_2)
+
+{
+  int in_ECX;
+  
+  if (param_1 == 0x27cc) {
+    DAT_005b44f0 = 0x16;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = (undefined4 *)&DAT_005b18dc;
+    _DAT_005d1639 = 1;
+    DAT_005c39e5 = 0x27cc;
+  }
+  else if ((param_1 == 0x27c9) || (param_1 == 0x27cd)) {
+    DAT_005b44f0 = 0x12;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    *(undefined2 *)(in_ECX + 0x38) = param_2;
+    _DAT_005d1631 = &DAT_005b160c + DAT_005b44f0 * 8 + DAT_005b44f4 * 4;
+    _DAT_005d1639 = 1;
+    DAT_005c39e5 = (int)param_1;
+  }
+  else if (param_1 == 0x27ca) {
+    DAT_005b44f0 = 0x14;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = (undefined4 *)&DAT_005b189c;
+    _DAT_005d1639 = 1;
+    DAT_005c39e5 = 0x27ca;
+  }
+  else if (param_1 == 0x27cb) {
+    DAT_005b44f0 = 0x15;
+    DAT_005b44f4 = 1;
+    _DAT_005d162d = DAT_005d0377;
+    _DAT_005d1631 = (undefined4 *)&DAT_005b18bc;
+    _DAT_005d1639 = 1;
+    DAT_005c39e5 = 0x27cb;
+  }
+  return;
+}
+

@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5169eb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_98c0ebdb80e1dc743c9c9838442f65b708a07df0ee1290290e5016ddd355241c
+ */
+
+undefined4 FUN_005169eb(int param_1,int param_2)
+
+{
+  int *piVar1;
+  int iVar2;
+  
+  if ((*(uint *)(param_1 + (param_2 / 0x20) * 4) & ~(-1 << (0x1fU - (char)(param_2 % 0x20) & 0x1f)))
+      != 0) {
+    return 0;
+  }
+  iVar2 = param_2 / 0x20 + 1;
+  if (iVar2 < 3) {
+    piVar1 = (int *)(param_1 + iVar2 * 4);
+    do {
+      if (*piVar1 != 0) {
+        return 0;
+      }
+      iVar2 = iVar2 + 1;
+      piVar1 = piVar1 + 1;
+    } while (iVar2 < 3);
+  }
+  return 1;
+}
+

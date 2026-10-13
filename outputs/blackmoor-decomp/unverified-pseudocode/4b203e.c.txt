@@ -1,0 +1,42 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4b203e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7
+ */
+
+void FUN_004b203e(short param_1,short param_2,undefined2 param_3,int *param_4)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  *param_4 = (int)*(short *)(iVar1 + 0x1a6) * (int)param_2 +
+             DAT_00583186 + *(int *)(iVar1 + 0x19e) + (int)param_2 * *(int *)(in_ECX + 0x1529);
+  param_4[1] = (int)*(short *)(iVar1 + 0x1a6) * (int)param_1 +
+               DAT_0058318a + *(int *)(iVar1 + 0x1a2) + (int)param_1 * *(int *)(in_ECX + 0x152d);
+  switch(param_3) {
+  case 1:
+  case 6:
+    param_4[3] = param_4[1] + *(int *)(in_ECX + 0x152d);
+    param_4[2] = *param_4 + *(int *)(in_ECX + 0x1529) * 2 + (int)*(short *)(iVar1 + 0x1a6);
+    break;
+  case 2:
+    param_4[2] = *param_4 + *(int *)(in_ECX + 0x1529);
+    param_4[3] = param_4[1] + *(int *)(in_ECX + 0x152d) * 2 + (int)*(short *)(iVar1 + 0x1a6);
+    break;
+  case 3:
+    param_4[3] = param_4[1] + *(int *)(in_ECX + 0x152d);
+    param_4[2] = *param_4 + *(int *)(in_ECX + 0x1529) * 3 + *(short *)(iVar1 + 0x1a6) * 2;
+    break;
+  case 4:
+    param_4[2] = *param_4 + *(int *)(in_ECX + 0x1529);
+    param_4[3] = param_4[1] + *(int *)(in_ECX + 0x152d) * 3 + *(short *)(iVar1 + 0x1a6) * 2;
+    break;
+  case 5:
+    param_4[2] = *param_4 + *(int *)(in_ECX + 0x1529) * 2 + (int)*(short *)(iVar1 + 0x1a6);
+    param_4[3] = param_4[1] + *(int *)(in_ECX + 0x152d) * 2 + (int)*(short *)(iVar1 + 0x1a6);
+  }
+  return;
+}
+

@@ -1,0 +1,66 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x426148
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00426148(void)
+
+{
+  switch(DAT_00583981) {
+  case 1:
+    FUN_00426063();
+    break;
+  case 2:
+    FUN_004dc182();
+    break;
+  case 3:
+    FUN_004dbcd0();
+    break;
+  default:
+    FUN_0042639d(s_PrimaryGameLoop___ERROR___Invali_005453ac,&DAT_00570380);
+    _DAT_005bb20c = 1;
+    FUN_004c97b4();
+    break;
+  case 5:
+    FUN_004d42e0();
+    break;
+  case 6:
+    FUN_004d9d70();
+    break;
+  case 7:
+    FUN_004d6705();
+    break;
+  case 8:
+    FUN_004de743();
+    break;
+  case 10:
+    FUN_004d47b0();
+    break;
+  case 0xb:
+    FUN_004dd409(&DAT_00616787,0xb);
+    break;
+  case 0xc:
+    FUN_004dd409(&DAT_006169a1,0xc);
+    break;
+  case 0xd:
+    FUN_004dd409(&DAT_00616894,0xd);
+    break;
+  case 0xe:
+    FUN_00438150();
+    break;
+  case 0x10:
+    FUN_004011c0();
+    break;
+  case 0x11:
+    FUN_004dd409(&DAT_006169a1,0x11);
+    break;
+  case 0x12:
+    FUN_004262ac();
+  }
+  FUN_004f52a9();
+  return;
+}
+

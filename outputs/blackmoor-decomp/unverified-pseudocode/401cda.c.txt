@@ -1,0 +1,90 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x401cda
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e09edac65bcad9caee2d1862e36312f5e4008fb317e393d76486b97c5d7f9943
+ */
+
+undefined4 FUN_00401cda(void)
+
+{
+  int in_ECX;
+  
+  FUN_0051e3c8();
+  *(undefined4 *)(in_ECX + 0x5c) = *(undefined4 *)(&DAT_005370ec + DAT_00569138 * 0x14);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e808,*(undefined4 *)(in_ECX + 0x5c),
+               (&PTR_s_Generic0_005374d0)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x3fc,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e810,*(int *)(in_ECX + 0x5c) + 1,
+               (&PTR_s_Generic1_005374d4)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x3fd,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e818,*(int *)(in_ECX + 0x5c) + 2,
+               (&PTR_s_Generic2_005374d8)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x3fe,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e820,*(int *)(in_ECX + 0x5c) + 3,
+               (&PTR_s_Generic3_005374dc)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x3ff,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e828,*(int *)(in_ECX + 0x5c) + 4,
+               (&PTR_s_Generic4_005374e0)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x400,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e830,*(int *)(in_ECX + 0x5c) + 5,
+               (&PTR_s_Generic5_005374e4)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x401,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e838,*(int *)(in_ECX + 0x5c) + 6,
+               (&PTR_s_Generic6_005374e8)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x402,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e840,*(int *)(in_ECX + 0x5c) + 7,
+               (&PTR_s_Generic7_005374ec)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x403,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e848,*(int *)(in_ECX + 0x5c) + 8,
+               (&PTR_s_Generic8_005374f0)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x40e,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e850,*(int *)(in_ECX + 0x5c) + 9,
+               (&PTR_s_Generic9_005374f4)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x40d,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e858,*(int *)(in_ECX + 0x5c) + 10,
+               (&PTR_s_Generic10_005374f8)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x40c,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e860,*(int *)(in_ECX + 0x5c) + 0xb,
+               (&PTR_s_Generic11_005374fc)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x40b,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e868,*(int *)(in_ECX + 0x5c) + 0xc,
+               (&PTR_s_Generic12_00537500)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x404,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e870,*(int *)(in_ECX + 0x5c) + 0xd,
+               (&PTR_s_Generic13_00537504)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x405,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e878,*(int *)(in_ECX + 0x5c) + 0xe,
+               (&PTR_s_Generic14_00537508)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x406,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e880,*(int *)(in_ECX + 0x5c) + 0xf,
+               (&PTR_s_Generic15_0053750c)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x407,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e888,*(int *)(in_ECX + 0x5c) + 0x10,
+               (&PTR_s_Generic16_00537510)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x408,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e890,*(int *)(in_ECX + 0x5c) + 0x11,
+               (&PTR_s_Generic17_00537514)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x409,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e898,*(int *)(in_ECX + 0x5c) + 0x12,
+               (&PTR_s_Generic18_00537518)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x40a,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e8a0,*(int *)(in_ECX + 0x5c) + 0x13,
+               (&PTR_s_Generic19_0053751c)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x40f,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e8a8,*(int *)(in_ECX + 0x5c) + 0x14,
+               (&PTR_s_Generic20_00537520)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x410,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e8b0,*(int *)(in_ECX + 0x5c) + 0x15,
+               (&PTR_s_Generic21_00537524)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x411,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e8b8,*(int *)(in_ECX + 0x5c) + 0x16,
+               (&PTR_s_Generic22_00537528)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x412,in_ECX + 0x60);
+  FUN_0050ca3e(in_ECX + 0x60,s__d____s_0053e8c0,*(int *)(in_ECX + 0x5c) + 0x17,
+               (&PTR_s_Generic23_0053752c)[*(int *)(in_ECX + 0x5c)]);
+  FUN_0051d4c4(0x413,in_ECX + 0x60);
+  FUN_0051d58b((&PTR_s_Event_Flags_0_to_23_005370f4)[DAT_00569138 * 5]);
+  FUN_0040236a();
+  return 1;
+}
+

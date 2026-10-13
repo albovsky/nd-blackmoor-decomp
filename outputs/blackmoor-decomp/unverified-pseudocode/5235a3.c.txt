@@ -1,0 +1,53 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5235a3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+void FUN_005235a3(int param_1,int *param_2,int param_3)
+
+{
+  bool bVar1;
+  uint uVar2;
+  int *piVar3;
+  LRESULT LVar4;
+  int *piVar5;
+  int *in_ECX;
+  
+  FUN_0051ab4b();
+  uVar2 = FUN_0051d526();
+  piVar5 = in_ECX;
+  if ((uVar2 & 0x40000000) == 0) {
+    piVar5 = (int *)FUN_0051c174();
+  }
+  if (param_1 != 0) {
+    param_2 = in_ECX;
+  }
+  if ((piVar5 == param_2) ||
+     ((piVar3 = (int *)FUN_0051c174(), piVar5 == piVar3 &&
+      (LVar4 = SendMessageA((HWND)param_2[7],0x36d,0x40,0), LVar4 != 0)))) {
+    bVar1 = true;
+  }
+  else {
+    bVar1 = false;
+  }
+  piVar5[9] = piVar5[9] & 0xffffffdf;
+  if (bVar1) {
+    piVar5[9] = piVar5[9] | 0x20;
+  }
+  FUN_00522ed0((-(uint)bVar1 & 0xfffffffc) + 8);
+  piVar5 = (int *)FUN_0052398b();
+  if (piVar5 == (int *)0x0) {
+    (**(code **)(*in_ECX + 0xc0))();
+    piVar5 = (int *)FUN_0052398b();
+    if (piVar5 == (int *)0x0) {
+      return;
+    }
+  }
+  if ((param_1 != 0) && (param_3 == 0)) {
+    (**(code **)(*piVar5 + 0xe4))(1,piVar5,piVar5);
+  }
+  (**(code **)(*piVar5 + 0xe8))(param_1);
+  return;
+}
+

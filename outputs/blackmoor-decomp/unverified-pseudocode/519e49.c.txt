@@ -1,0 +1,27 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519e49
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+/* Library Function - Single Match
+    public: virtual int __thiscall CPrintDialog::DoModal(void)
+   
+   Library: Visual Studio 2008 Release */
+
+int __thiscall CPrintDialog::DoModal(CPrintDialog *this)
+
+{
+  HWND__ *pHVar1;
+  int iVar2;
+  
+  pHVar1 = CDialog::PreModal((CDialog *)this);
+  *(HWND__ **)(*(int *)(this + 0x5c) + 4) = pHVar1;
+  iVar2 = PrintDlgA(*(LPPRINTDLGA *)(this + 0x5c));
+  CDialog::PostModal((CDialog *)this);
+  if (iVar2 == 0) {
+    iVar2 = 2;
+  }
+  return iVar2;
+}
+

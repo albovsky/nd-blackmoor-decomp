@@ -1,0 +1,98 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x522135
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+int FUN_00522135(void)
+
+{
+  byte *pbVar1;
+  bool bVar2;
+  int iVar3;
+  undefined4 uVar4;
+  HWND hWnd;
+  LPCPROPSHEETHEADERA pPVar5;
+  BOOL BVar6;
+  HWND pHVar7;
+  INT_PTR IVar8;
+  int iVar9;
+  uint uVar10;
+  int *in_ECX;
+  HWND pHStack_8;
+  int iStack_4;
+  
+  FUN_0051d0b9(0x10);
+  FUN_0051d0b9(0x3c000);
+  (**(code **)(*in_ECX + 0xbc))();
+  iVar3 = FUN_00525371();
+  iStack_4 = *(int *)(iVar3 + 4);
+  if (iStack_4 != 0) {
+    FUN_00521287(0);
+  }
+  if (in_ECX[0x1f] == 0) {
+    uVar4 = 0;
+  }
+  else {
+    uVar4 = *(undefined4 *)(in_ECX[0x1f] + 0x1c);
+  }
+  hWnd = (HWND)FUN_0052142d(uVar4,&pHStack_8);
+  pPVar5 = (LPCPROPSHEETHEADERA)FUN_00521de7();
+  bVar2 = false;
+  pPVar5->hwndParent = hWnd;
+  if (hWnd != (HWND)0x0) {
+    BVar6 = IsWindowEnabled(hWnd);
+    if (BVar6 != 0) {
+      EnableWindow(hWnd,0);
+      bVar2 = true;
+    }
+  }
+  pHVar7 = GetCapture();
+  if (pHVar7 != (HWND)0x0) {
+    SendMessageA(pHVar7,0x1f,0,0);
+  }
+  in_ECX[9] = in_ECX[9] | 0x10;
+  in_ECX[0xb] = 0;
+  FUN_0051b097(in_ECX);
+  pbVar1 = (byte *)((int)&pPVar5->dwFlags + 1);
+  *pbVar1 = *pbVar1 | 4;
+  in_ECX[9] = in_ECX[9] | 0x10;
+  IVar8 = PropertySheetA(pPVar5);
+  pbVar1 = (byte *)((int)&pPVar5->dwFlags + 1);
+  *pbVar1 = *pbVar1 & 0xfb;
+  FUN_0051b0e3();
+  if ((IVar8 == 0) || (IVar8 == -1)) {
+    in_ECX[9] = in_ECX[9] & 0xffffffef;
+  }
+  iVar3 = in_ECX[0xb];
+  iVar9 = (**(code **)(*in_ECX + 0x70))();
+  if (iVar9 != 0) {
+    uVar4 = 4;
+    uVar10 = FUN_0051d526();
+    if ((uVar10 & 0x100) != 0) {
+      uVar4 = 5;
+    }
+    iVar3 = FUN_0051ce72(uVar4);
+  }
+  if (in_ECX[7] != 0) {
+    FUN_0051d5e1(0,0,0,0,0,0x97);
+  }
+  if (bVar2) {
+    EnableWindow(hWnd,1);
+  }
+  if (hWnd != (HWND)0x0) {
+    pHVar7 = GetActiveWindow();
+    if (pHVar7 == (HWND)in_ECX[7]) {
+      SetActiveWindow(hWnd);
+    }
+  }
+  (**(code **)(*in_ECX + 0x58))();
+  if (iStack_4 != 0) {
+    FUN_00521287(1);
+  }
+  if (pHStack_8 != (HWND)0x0) {
+    EnableWindow(pHStack_8,1);
+  }
+  return iVar3;
+}
+

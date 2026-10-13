@@ -1,0 +1,83 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x472a5c
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136
+ */
+
+void FUN_00472a5c(void)
+
+{
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  short local_c;
+  int local_8;
+  
+  local_8 = *(int *)(&DAT_005bb5e5 + DAT_006245a4 * 0x8d);
+  if (DAT_0062457c != '\0') {
+    for (local_c = 0; local_c < *(short *)(local_8 + 0x21); local_c = local_c + 1) {
+      local_18 = *(int *)(&DAT_00623edc + local_c * 0x10) + DAT_0058318a;
+      local_10 = *(int *)(&DAT_00623ee4 + local_c * 0x10) + DAT_0058318a;
+      local_1c = *(int *)(&DAT_00623ed8 + local_c * 0x10) + DAT_00583186;
+      local_14 = *(int *)(&DAT_00623ee0 + local_c * 0x10) + DAT_00583186;
+      if ((&DAT_00624518)[local_c] == '\0') {
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00623ed8 + local_c * 0x10,&local_1c,
+                     s_Keypad_buttons_up_refresh_0054c508);
+      }
+      else {
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006245b4 * 0x4a),DAT_005cf665,
+                     &DAT_00623898 + local_c * 0x10,&local_1c,s_Keypad_buttons_down_0054c4f4);
+      }
+    }
+    if (DAT_006245b9 == '\0') {
+      for (local_c = 0; local_c < DAT_005957b7; local_c = local_c + 1) {
+        if (*(int *)(local_8 + 0x16a + local_c * 0x10) != *(int *)(local_8 + 0x162 + local_c * 0x10)
+           ) {
+          local_18 = *(int *)(local_8 + 0x162 + local_c * 0x10) + DAT_0058318a;
+          local_10 = *(int *)(local_8 + 0x16a + local_c * 0x10) + DAT_0058318a;
+          local_1c = *(int *)(local_8 + 0x15e + local_c * 0x10) + DAT_00583186;
+          local_14 = *(int *)(local_8 + 0x166 + local_c * 0x10) + DAT_00583186;
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006245b4 * 0x4a),DAT_005cf665,
+                       local_8 + 0x10e + local_c * 0x10,&local_1c,s_Keypad_buttons_down_0054c524);
+        }
+      }
+      if ((0 < DAT_005957b7) &&
+         (*(int *)(local_8 + 0x20a + (DAT_005957b7 + -1) * 0x10) !=
+          *(int *)(local_8 + 0x202 + (DAT_005957b7 + -1) * 0x10))) {
+        local_18 = *(int *)(local_8 + 0x202 + (DAT_005957b7 + -1) * 0x10) + DAT_0058318a;
+        local_10 = *(int *)(local_8 + 0x20a + (DAT_005957b7 + -1) * 0x10) + DAT_0058318a;
+        local_1c = *(int *)(local_8 + 0x1fe + (DAT_005957b7 + -1) * 0x10) + DAT_00583186;
+        local_14 = *(int *)(local_8 + 0x206 + (DAT_005957b7 + -1) * 0x10) + DAT_00583186;
+        if (DAT_006245b8 == '\0') {
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006245b4 * 0x4a),DAT_005cf665,
+                       local_8 + 0x1ae + (DAT_005957b7 + -1) * 0x10,&local_1c,
+                       s_Keypad_buttons_down_0054c54c);
+        }
+        else {
+          FUN_004c5d4b(DAT_005d15e3,DAT_005cf665,local_8 + 0x1fe + (DAT_005957b7 + -1) * 0x10,
+                       &local_1c,s_Keypad_buttons_down_0054c538);
+        }
+      }
+    }
+    if (DAT_006245b6 == '\0') {
+      local_18 = *(int *)(local_8 + 0x39) + DAT_0058318a;
+      local_10 = *(int *)(local_8 + 0x41) + DAT_0058318a;
+      local_1c = *(int *)(local_8 + 0x35) + DAT_00583186;
+      local_14 = *(int *)(local_8 + 0x3d) + DAT_00583186;
+      FUN_004c5d4b(DAT_005d15e3,DAT_005cf665,local_8 + 0x35,&local_1c,
+                   s_Ordering_puzzle_pSrcSurface_0054c57c);
+    }
+    else {
+      local_18 = *(int *)(local_8 + 0x39) + DAT_0058318a;
+      local_10 = *(int *)(local_8 + 0x41) + DAT_0058318a;
+      local_1c = *(int *)(local_8 + 0x35) + DAT_00583186;
+      local_14 = *(int *)(local_8 + 0x3d) + DAT_00583186;
+      FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_006245b4 * 0x4a),DAT_005cf665,
+                   local_8 + 0x25,&local_1c,s_Ordering_puzzle_pSrcSurface_0054c560);
+      DAT_006245b7 = 1;
+    }
+  }
+  return;
+}
+

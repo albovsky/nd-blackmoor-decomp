@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4beeb3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_a820b7e2430f534e8ea0b1abf6360ab2ba44f046f8d29cae3bd3792d6b2f52d9
+ */
+
+int FUN_004beeb3(int param_1)
+
+{
+  int in_ECX;
+  int iVar1;
+  undefined4 *puVar2;
+  
+  FUN_004bf38c();
+  if (param_1 == 0) {
+    puVar2 = (undefined4 *)(in_ECX + 0x84);
+    for (iVar1 = 0xe; iVar1 != 0; iVar1 = iVar1 + -1) {
+      *puVar2 = 0;
+      puVar2 = puVar2 + 1;
+    }
+    *(undefined4 *)(in_ECX + 0x2c0) = 0xfffffffd;
+    iVar1 = 0;
+  }
+  else {
+    _BinkGetRealtime_12(param_1,in_ECX + 0x84,0);
+    iVar1 = in_ECX + 0x84;
+  }
+  return iVar1;
+}
+

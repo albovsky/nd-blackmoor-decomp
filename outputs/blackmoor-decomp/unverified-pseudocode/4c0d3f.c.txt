@@ -1,0 +1,73 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c0d3f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+void FUN_004c0d3f(void)
+
+{
+  int local_34;
+  int local_30;
+  int local_2c;
+  int local_28;
+  undefined4 *local_24;
+  undefined4 *local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  undefined4 *local_c;
+  undefined *local_8;
+  
+  local_8 = &DAT_00637fd7;
+  local_c = &DAT_006381ad;
+  local_24 = &DAT_006381bd;
+  local_20 = &DAT_00583122;
+  if (DAT_006381e5 == 0) {
+    if ((((DAT_006381e9 != 0) &&
+         (((DAT_0063814d == 0 && (DAT_00638149 == 1)) || (DAT_0063814d == 1)))) &&
+        (((DAT_00583122 <= DAT_006381c5 && (DAT_006381bd <= DAT_0058312a)) &&
+         (DAT_00583126 <= DAT_006381c9)))) && (DAT_006381c1 <= DAT_0058312e)) {
+      if (DAT_00583122 < DAT_006381bd) {
+        local_34 = DAT_006381bd;
+      }
+      else {
+        local_34 = DAT_00583122;
+      }
+      if (DAT_006381c5 < DAT_0058312a) {
+        local_2c = DAT_006381c5;
+      }
+      else {
+        local_2c = DAT_0058312a;
+      }
+      if (DAT_00583126 < DAT_006381c1) {
+        local_30 = DAT_006381c1;
+      }
+      else {
+        local_30 = DAT_00583126;
+      }
+      if (DAT_006381c9 < DAT_0058312e) {
+        local_28 = DAT_006381c9;
+      }
+      else {
+        local_28 = DAT_0058312e;
+      }
+      local_1c = (local_34 - DAT_006381bd) + DAT_006381ad;
+      local_14 = (local_2c - DAT_006381bd) + DAT_006381ad;
+      local_18 = (local_30 - DAT_006381c1) + DAT_006381b1;
+      local_10 = (local_28 - DAT_006381c1) + DAT_006381b1;
+      FUN_004c5377(DAT_005d19ef,DAT_005cf665,&local_1c,&local_34,
+                   s_sec_movie_surface___cursor_inter_00552b90);
+    }
+  }
+  else {
+    DAT_006381e5 = 0;
+    FUN_004c5377(DAT_005d19ef,DAT_005cf665,DAT_005d19f3,DAT_005d19f7,s_sec_movie_surface_00552b7c);
+    if (DAT_006381ed == 0) {
+      *(undefined2 *)(local_8 + 0x1cc) = 0;
+    }
+  }
+  return;
+}
+

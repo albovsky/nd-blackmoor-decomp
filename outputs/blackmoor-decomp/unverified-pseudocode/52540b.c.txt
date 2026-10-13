@@ -1,0 +1,18 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52540b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+void FUN_0052540b(byte param_1)
+
+{
+  undefined4 in_ECX;
+  
+  thunk_FUN_005251ee();
+  if ((param_1 & 1) != 0) {
+    FUN_005256fb(in_ECX);
+  }
+  return;
+}
+

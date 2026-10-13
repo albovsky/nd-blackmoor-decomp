@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x524da3
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c715b3bd3208197e01b2ebef20c92856fcb381a668a9ff837ea142d14b02822
+ */
+
+void FUN_00524da3(void)
+
+{
+  int iVar1;
+  int *piVar2;
+  undefined4 uVar3;
+  int extraout_ECX;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  if (*(int *)(unaff_EBP + 8) != 0) {
+    iVar1 = FUN_0051dc43(0x20);
+    *(int *)(unaff_EBP + -0x10) = iVar1;
+    *(undefined4 *)(unaff_EBP + -4) = 0;
+    if (iVar1 == 0) {
+      piVar2 = (int *)0x0;
+    }
+    else {
+      piVar2 = (int *)FUN_00520069(0,"Recent File List","File%d",*(undefined4 *)(unaff_EBP + 8),0x1e
+                                  );
+    }
+    *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+    *(int **)(extraout_ECX + 0xa8) = piVar2;
+    (**(code **)(*piVar2 + 0xc))();
+  }
+  uVar3 = FUN_0052628b("Settings","PreviewPages",0);
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  *(undefined4 *)(extraout_ECX + 0xb4) = uVar3;
+  return;
+}
+

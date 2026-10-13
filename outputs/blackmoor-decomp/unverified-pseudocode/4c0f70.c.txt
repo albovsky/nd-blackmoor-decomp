@@ -1,0 +1,125 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c0f70
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9b97a3dfc13c18288f6cf40dd7f15c3bf5b969f690eaa08654df89043c2c39c3
+ */
+
+undefined4 * FUN_004c0f70(void)
+
+{
+  undefined4 *in_ECX;
+  int iVar1;
+  undefined4 *puVar2;
+  short local_14;
+  void *local_10;
+  undefined1 *puStack_c;
+  undefined4 local_8;
+  
+  puStack_c = &LAB_005287c8;
+  local_10 = ExceptionList;
+  local_8 = 0;
+  ExceptionList = &local_10;
+  FUN_0043ef10();
+  local_8 = CONCAT31(local_8._1_3_,1);
+  *in_ECX = &PTR_FUN_0052e230;
+  in_ECX[1] = 0;
+  in_ECX[2] = 0;
+  in_ECX[3] = 0;
+  *(undefined4 *)((int)in_ECX + 0x46) = 0;
+  in_ECX[5] = 0;
+  for (local_14 = 0; local_14 < 0x18; local_14 = local_14 + 1) {
+    *(undefined4 *)((int)in_ECX + local_14 * 4 + 0xc72) = 0;
+  }
+  *(undefined4 *)((int)in_ECX + 0xcd2) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd1e) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd62) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd76) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd7a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd7e) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd82) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd86) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd6e) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd72) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd66) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd6a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd22) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd5e) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd36) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd3a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd56) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd5a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd26) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd2a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd2e) = 0;
+  *(undefined4 *)((int)in_ECX + 0xd32) = 0;
+  in_ECX[0xe2a] = 0;
+  for (local_14 = 0; local_14 < 0x12; local_14 = local_14 + 1) {
+    *(undefined4 *)((int)in_ECX + local_14 * 4 + 0xcd6) = 0;
+  }
+  puVar2 = (undefined4 *)((int)in_ECX + 0xd8a);
+  for (iVar1 = 0x1b; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  *(undefined4 *)((int)in_ECX + 0xe72) = 0;
+  *(undefined4 *)((int)in_ECX + 0xe76) = 0;
+  *(undefined4 *)((int)in_ECX + 0xe7a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xe7e) = 0;
+  *(undefined2 *)((int)in_ECX + 0xe86) = 0;
+  FUN_004c94ec();
+  in_ECX[0xe2c] = 1;
+  iVar1 = FUN_0051dc43(0x1764);
+  in_ECX[0x7c9] = iVar1;
+  if (iVar1 == 0) {
+    FUN_004264e8(s_ERROR___CDirectDraw__CDirectDraw_00552c04);
+    FUN_004c97b4();
+  }
+  iVar1 = FUN_0051dc43(0x1764);
+  in_ECX[0x7ca] = iVar1;
+  if (iVar1 == 0) {
+    FUN_004264e8(s_ERROR___CDirectDraw__CDirectDraw_00552c6c);
+    FUN_004c97b4();
+  }
+  puVar2 = (undefined4 *)in_ECX[0x7c9];
+  for (iVar1 = 0x5d9; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  puVar2 = (undefined4 *)in_ECX[0x7ca];
+  for (iVar1 = 0x5d9; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  *(undefined4 *)(in_ECX[0x7c9] + 0x175c) = 0xffffffff;
+  *(undefined4 *)(in_ECX[0x7ca] + 0x175c) = 0xffffffff;
+  in_ECX[0x7cb] = 0;
+  in_ECX[0x7cd] = 0;
+  in_ECX[0x7cc] = 0;
+  *(undefined4 *)((int)in_ECX + 0xc4a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xc4e) = 0;
+  *(undefined4 *)((int)in_ECX + 0xc52) = 0;
+  puVar2 = (undefined4 *)((int)in_ECX + 0x4a);
+  for (iVar1 = 0x180; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  puVar2 = (undefined4 *)((int)in_ECX + 0x64a);
+  for (iVar1 = 0x180; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  *(undefined4 *)((int)in_ECX + 0xc56) = 0x32;
+  *(undefined4 *)((int)in_ECX + 0xc5a) = 0x96;
+  *(undefined4 *)((int)in_ECX + 0xc5e) = 100;
+  *(undefined4 *)((int)in_ECX + 0xc62) = 100;
+  *(undefined4 *)((int)in_ECX + 0xc66) = 0;
+  *(undefined4 *)((int)in_ECX + 0xc6a) = 0;
+  *(undefined4 *)((int)in_ECX + 0xc6e) = 0;
+  DAT_0063a8d4 = 0;
+  for (local_14 = 0; local_14 < 1; local_14 = local_14 + 1) {
+    DAT_0063a8d4 = DAT_0063a8d4 | *(uint *)(&DAT_00552be8 + local_14 * 0x40);
+  }
+  ExceptionList = local_10;
+  return in_ECX;
+}
+

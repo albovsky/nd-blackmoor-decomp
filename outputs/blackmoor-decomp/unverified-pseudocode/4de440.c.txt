@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4de440
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004de440(void)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_004ee69e();
+  _DAT_005b0a78 = (float)iVar1 / 100.0;
+  DAT_005b0a82 = __ftol((float)(int)DAT_005b0a7c);
+  if (DAT_005b0a82 < DAT_005b0a26) {
+    DAT_005b0a82 = DAT_005b0a26;
+  }
+  else if (DAT_005b0a2e < DAT_005b0a82 + (DAT_005b0a1e - _DAT_005b0a16)) {
+    DAT_005b0a82 = DAT_005b0a2e - (DAT_005b0a1e - _DAT_005b0a16);
+  }
+  _DAT_005b0a8a = DAT_005b0a82 + (DAT_005b0a1e - _DAT_005b0a16);
+  return;
+}
+

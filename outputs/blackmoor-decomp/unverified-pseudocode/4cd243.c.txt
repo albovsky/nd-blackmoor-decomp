@@ -1,0 +1,141 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4cd243
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_5d7e582f83f0537e633fb10e380fdbc2f4e8820249923868fd009a4829ea2231
+ */
+
+undefined4 FUN_004cd243(undefined4 *param_1,int *param_2,int *param_3)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  undefined4 *puVar3;
+  int in_ECX;
+  undefined4 *puVar4;
+  uint uVar5;
+  uint uVar6;
+  undefined4 *puVar7;
+  undefined4 *puVar8;
+  int local_10;
+  int local_c;
+  
+  if (*(int *)(in_ECX + 0x216) == 0) {
+    *(int *)(in_ECX + 0x23e) = (int)DAT_005c39e3;
+    iVar2 = FUN_004cf1e4(param_1,0x27);
+    if (iVar2 == 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_for_SCENE__d__pData_for_ACTION_R_005590f8,DAT_005bb57b,
+                   (int)DAT_005c39e3);
+      FUN_0042639d(s_Unable_to_allocate_memory_00559124,&DAT_0063888b);
+      FUN_004c97b4();
+      uVar1 = 0;
+    }
+    else {
+      puVar7 = (undefined4 *)*param_2;
+      puVar8 = (undefined4 *)*param_1;
+      for (iVar2 = 9; iVar2 != 0; iVar2 = iVar2 + -1) {
+        *puVar8 = *puVar7;
+        puVar7 = puVar7 + 1;
+        puVar8 = puVar8 + 1;
+      }
+      *(undefined2 *)puVar8 = *(undefined2 *)puVar7;
+      *(undefined1 *)((int)puVar8 + 2) = *(undefined1 *)((int)puVar7 + 2);
+      *param_3 = *param_3 + 0x27;
+      *param_2 = *param_2 + 0x27;
+      *(undefined4 *)(in_ECX + 0x222) = *param_1;
+      iVar2 = FUN_004cf1e4(in_ECX + 0x226,*(short *)(*(int *)(in_ECX + 0x222) + 0x23) * 0x35);
+      if (iVar2 == 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_for_RANDOMMOVIE_SEQUENCE_pSequen_00559140,DAT_005bb57b,
+                     (int)DAT_005c39e3);
+        FUN_0042639d(s_Unable_to_allocate_memory_00559184,&DAT_0063888b);
+        FUN_004c97b4();
+        uVar1 = 0;
+      }
+      else {
+        local_10 = 0;
+        for (local_c = 0; local_c < *(short *)(*(int *)(in_ECX + 0x222) + 0x23);
+            local_c = local_c + 1) {
+          puVar4 = (undefined4 *)(*(int *)(in_ECX + 0x226) + local_c * 0x35);
+          puVar3 = (undefined4 *)(*param_2 + local_10);
+          puVar7 = puVar3;
+          puVar8 = puVar4;
+          for (iVar2 = 8; iVar2 != 0; iVar2 = iVar2 + -1) {
+            *puVar8 = *puVar7;
+            puVar7 = puVar7 + 1;
+            puVar8 = puVar8 + 1;
+          }
+          *(undefined1 *)puVar8 = *(undefined1 *)puVar7;
+          *(undefined2 *)((int)puVar4 + 0x21) = *(undefined2 *)((int)puVar3 + 0x21);
+          *(undefined2 *)((int)puVar4 + 0x23) = *(undefined2 *)((int)puVar3 + 0x23);
+          *(undefined4 *)((int)puVar4 + 0x25) = *(undefined4 *)((int)puVar3 + 0x25);
+          *(undefined4 *)((int)puVar4 + 0x29) = *(undefined4 *)((int)puVar3 + 0x29);
+          *(undefined2 *)((int)puVar4 + 0x2d) = *(undefined2 *)((int)puVar3 + 0x2d);
+          *(undefined2 *)((int)puVar4 + 0x2f) = *(undefined2 *)((int)puVar3 + 0x2f);
+          iVar2 = FUN_004cf1e4((undefined1 *)((int)puVar4 + 0x31),
+                               *(short *)((int)puVar4 + 0x2f) * 0x23);
+          if (iVar2 == 0) {
+            FUN_0050ca3e(&DAT_0063888b,s_for_RANDOMMOVIE_REF_pPotentialMo_005591a0,DAT_005bb57b,
+                         (int)DAT_005c39e3);
+            FUN_0042639d(s_Unable_to_allocate_memory_005591e4,&DAT_0063888b);
+            FUN_004c97b4();
+            return 0;
+          }
+          uVar5 = *(short *)((int)puVar4 + 0x2f) * 0x23;
+          puVar7 = (undefined4 *)(*param_2 + local_10 + 0x31);
+          puVar8 = *(undefined4 **)((int)puVar4 + 0x31);
+          for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+            *puVar8 = *puVar7;
+            puVar7 = puVar7 + 1;
+            puVar8 = puVar8 + 1;
+          }
+          for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+            *(undefined1 *)puVar8 = *(undefined1 *)puVar7;
+            puVar7 = (undefined4 *)((int)puVar7 + 1);
+            puVar8 = (undefined4 *)((int)puVar8 + 1);
+          }
+          local_10 = local_10 + 0x31 + *(short *)((int)puVar4 + 0x2f) * 0x23;
+        }
+        *param_3 = *param_3 + local_10;
+        *param_2 = *param_2 + local_10;
+        iVar2 = FUN_004cf1e4(in_ECX + 0x22a,*(short *)(*(int *)(in_ECX + 0x222) + 0x25) * 0x22);
+        if (iVar2 == 0) {
+          FUN_0050ca3e(&DAT_0063888b,s_for_TERSEVIDEOHOTSPOT_pSequences_00559200,DAT_005bb57b,
+                       (int)DAT_005c39e3);
+          FUN_0042639d(s_Unable_to_allocate_memory_00559240,&DAT_0063888b);
+          FUN_004c97b4();
+          uVar1 = 0;
+        }
+        else {
+          uVar5 = *(short *)(*(int *)(in_ECX + 0x222) + 0x25) * 0x22;
+          puVar7 = (undefined4 *)*param_2;
+          puVar8 = *(undefined4 **)(in_ECX + 0x22a);
+          for (uVar6 = uVar5 >> 2; uVar6 != 0; uVar6 = uVar6 - 1) {
+            *puVar8 = *puVar7;
+            puVar7 = puVar7 + 1;
+            puVar8 = puVar8 + 1;
+          }
+          for (uVar5 = uVar5 & 3; uVar5 != 0; uVar5 = uVar5 - 1) {
+            *(undefined1 *)puVar8 = *(undefined1 *)puVar7;
+            puVar7 = (undefined4 *)((int)puVar7 + 1);
+            puVar8 = (undefined4 *)((int)puVar8 + 1);
+          }
+          *param_3 = *param_3 + *(short *)(*(int *)(in_ECX + 0x222) + 0x25) * 0x22;
+          *param_2 = *param_2 + *(short *)(*(int *)(in_ECX + 0x222) + 0x25) * 0x22;
+          if (DAT_0063a4cd != 0) {
+            FUN_004cf276();
+            FUN_0044a2b7(s_Loaded_AT_PLAY_RANDOM_MOVIE_acti_0055925c);
+          }
+          uVar1 = 1;
+        }
+      }
+    }
+  }
+  else {
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_LoadPlayRandomMovie_ActionRecord_0055907c,(int)DAT_005c39e3);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+

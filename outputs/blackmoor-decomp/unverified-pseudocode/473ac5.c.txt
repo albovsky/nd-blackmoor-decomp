@@ -1,0 +1,96 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x473ac5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+undefined4 FUN_00473ac5(void)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  BOOL BVar3;
+  int in_ECX;
+  undefined4 local_2c;
+  tagRECT local_18;
+  int local_8;
+  
+  local_8 = DAT_005a4bce;
+  CopyRect(&local_18,(RECT *)(&DAT_005a4b5e + DAT_005a4bce * 0x10));
+  DAT_0063a874 = GetTickCount();
+  DAT_0063a860 = DAT_0063a874 - *(int *)(&DAT_0063a864 + local_8 * 4);
+  *(DWORD *)(&DAT_0063a864 + local_8 * 4) = DAT_0063a874;
+  FUN_0044bebb(in_ECX + 0x3d5);
+  FUN_0044bebb(in_ECX + 0x3e1);
+  FUN_0044bebb(in_ECX + 0x3ed);
+  *(float *)(in_ECX + 0x3d5) = (float)local_18.left;
+  *(float *)(in_ECX + 0x3d9) = (float)local_18.top;
+  *(float *)(in_ECX + 0x3e1) = (float)*(int *)(in_ECX + 0x361);
+  *(float *)(in_ECX + 0x3e5) = (float)*(int *)(in_ECX + 0x365);
+  FUN_0044c0e6(in_ECX + 0x3e1,in_ECX + 0x3d5,in_ECX + 0x3ed);
+  if ((((0.001 <= *(float *)(in_ECX + 0x3ed)) || (*(float *)(in_ECX + 0x3ed) <= -0.001)) ||
+      (0.001 <= *(float *)(in_ECX + 0x3f1))) || (*(float *)(in_ECX + 0x3f1) <= -0.001)) {
+    FUN_0044bf4b(in_ECX + 0x3ed);
+    *(float *)(in_ECX + 0x3f9) = _DAT_0063a878 * (float)DAT_0063a860;
+    if (*(float *)(in_ECX + 0x3f5) <= *(float *)(in_ECX + 0x3f9)) {
+      local_2c = *(undefined4 *)(in_ECX + 0x3f5);
+    }
+    else {
+      local_2c = *(undefined4 *)(in_ECX + 0x3f9);
+    }
+    *(undefined4 *)(in_ECX + 0x3f9) = local_2c;
+    if (1.0 <= *(float *)(in_ECX + 0x3f9)) {
+      *(LONG *)(in_ECX + 0x361) = local_18.left;
+      *(LONG *)(in_ECX + 0x365) = local_18.top;
+      *(LONG *)(in_ECX + 0x369) = local_18.right;
+      *(LONG *)(in_ECX + 0x36d) = local_18.bottom;
+      *(LONG *)(in_ECX + 0x3fd) = local_18.left;
+      *(LONG *)(in_ECX + 0x401) = local_18.top;
+      *(LONG *)(in_ECX + 0x405) = local_18.right;
+      *(LONG *)(in_ECX + 0x409) = local_18.bottom;
+      *(float *)(in_ECX + 0x40d) = (float)local_18.left;
+      *(float *)(in_ECX + 0x411) = (float)local_18.top;
+      *(undefined4 *)(in_ECX + 0x415) = 0;
+      while (iVar2 = __ftol(), *(int *)(in_ECX + 0x415) <= iVar2) {
+        *(undefined4 *)(in_ECX + 0x3fd) = *(undefined4 *)(in_ECX + 0x361);
+        *(undefined4 *)(in_ECX + 0x401) = *(undefined4 *)(in_ECX + 0x365);
+        *(undefined4 *)(in_ECX + 0x405) = *(undefined4 *)(in_ECX + 0x369);
+        *(undefined4 *)(in_ECX + 0x409) = *(undefined4 *)(in_ECX + 0x36d);
+        *(float *)(in_ECX + 0x40d) = *(float *)(in_ECX + 0x40d) + *(float *)(in_ECX + 0x3ed);
+        *(float *)(in_ECX + 0x411) = *(float *)(in_ECX + 0x411) + *(float *)(in_ECX + 0x3f1);
+        uVar1 = __ftol();
+        *(undefined4 *)(in_ECX + 0x361) = uVar1;
+        uVar1 = __ftol();
+        *(undefined4 *)(in_ECX + 0x365) = uVar1;
+        *(int *)(in_ECX + 0x369) =
+             *(int *)(in_ECX + 0x361) + -1 + *(int *)(in_ECX + 0xb6 + local_8 * 0x38);
+        *(int *)(in_ECX + 0x36d) =
+             *(int *)(in_ECX + 0x365) + -1 + *(int *)(in_ECX + 0xba + local_8 * 0x38);
+        iVar2 = FUN_00473e8a(in_ECX + 0x361);
+        if (iVar2 != 0) break;
+        *(int *)(in_ECX + 0x415) = *(int *)(in_ECX + 0x415) + 1;
+      }
+      BVar3 = EqualRect((RECT *)(in_ECX + 0x3fd),&local_18);
+      if (BVar3 == 0) {
+        *(undefined4 *)(in_ECX + 0x361) = *(undefined4 *)(in_ECX + 0x3fd);
+        *(undefined4 *)(in_ECX + 0x365) = *(undefined4 *)(in_ECX + 0x401);
+        *(undefined4 *)(in_ECX + 0x369) = *(undefined4 *)(in_ECX + 0x405);
+        *(undefined4 *)(in_ECX + 0x36d) = *(undefined4 *)(in_ECX + 0x409);
+        uVar1 = 1;
+      }
+      else {
+        uVar1 = 0;
+      }
+    }
+    else {
+      uVar1 = 0;
+    }
+  }
+  else {
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+

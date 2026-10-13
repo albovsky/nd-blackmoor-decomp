@@ -1,0 +1,29 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c0c9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+int * FUN_0051c0c9(void)
+
+{
+  HWND pHVar1;
+  int *piVar2;
+  int iVar3;
+  int in_ECX;
+  
+  if ((in_ECX != 0) && (pHVar1 = *(HWND *)(in_ECX + 0x1c), pHVar1 != (HWND)0x0)) {
+    while( true ) {
+      pHVar1 = GetParent(pHVar1);
+      piVar2 = (int *)FUN_0051abe4(pHVar1);
+      if (piVar2 == (int *)0x0) break;
+      iVar3 = (**(code **)(*piVar2 + 0xb0))();
+      if (iVar3 != 0) {
+        return piVar2;
+      }
+      pHVar1 = (HWND)piVar2[7];
+    }
+  }
+  return (int *)0x0;
+}
+

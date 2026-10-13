@@ -1,0 +1,35 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d3eba
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_bf957760d550f0e548de8548930c8ec98377495a573f71e3ff1a1c67dc9f78d6
+ */
+
+void FUN_004d3eba(void)
+
+{
+  DWORD DVar1;
+  int in_ECX;
+  
+  DVar1 = GetTickCount();
+  if (*(uint *)(in_ECX + 0x452) < DVar1) {
+    if (*(int *)(in_ECX + 0x444) == 0) {
+      *(short *)(in_ECX + 0x43e) = *(short *)(in_ECX + 0x43e) + -1;
+      if (*(short *)(in_ECX + 0x43e) < 0) {
+        *(undefined2 *)(in_ECX + 0x43e) = 0;
+        *(undefined4 *)(in_ECX + 0x462) = 3;
+      }
+    }
+    else {
+      *(short *)(in_ECX + 0x43e) = *(short *)(in_ECX + 0x43e) + 1;
+      if (6 < *(short *)(in_ECX + 0x43e)) {
+        *(undefined2 *)(in_ECX + 0x43e) = 6;
+        *(undefined4 *)(in_ECX + 0x444) = 0;
+        *(DWORD *)(in_ECX + 0x456) = DVar1 + *(int *)(in_ECX + 800);
+        *(undefined4 *)(in_ECX + 0x462) = 2;
+      }
+    }
+    *(DWORD *)(in_ECX + 0x452) = DVar1 + (int)*(short *)(in_ECX + 0x324);
+  }
+  return;
+}
+

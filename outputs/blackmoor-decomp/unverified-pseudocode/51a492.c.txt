@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51a492
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+/* Library Function - Multiple Matches With Same Base Name
+    public: void __thiscall CMapPtrToPtr::RemoveAll(void)
+    public: void __thiscall CMapPtrToWord::RemoveAll(void)
+    public: void __thiscall CMapWordToOb::RemoveAll(void)
+    public: void __thiscall CMapWordToPtr::RemoveAll(void)
+   
+   Libraries: Visual Studio 2003 Release, Visual Studio 2005 Release, Visual Studio 2008 Release,
+   Visual Studio 2010 Release */
+
+void RemoveAll(void)
+
+{
+  int in_ECX;
+  
+  if (*(int *)(in_ECX + 4) != 0) {
+    FUN_0051dc6c(*(int *)(in_ECX + 4));
+    *(undefined4 *)(in_ECX + 4) = 0;
+  }
+  *(undefined4 *)(in_ECX + 0xc) = 0;
+  *(undefined4 *)(in_ECX + 0x10) = 0;
+  FUN_0051a3f4();
+  *(undefined4 *)(in_ECX + 0x14) = 0;
+  return;
+}
+

@@ -1,0 +1,98 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4d940a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619
+ */
+
+void FUN_004d940a(void)
+
+{
+  int in_ECX;
+  int iVar1;
+  undefined4 *puVar2;
+  undefined4 *puVar3;
+  
+  puVar2 = (undefined4 *)(in_ECX + 0x476);
+  puVar3 = &DAT_005839b1;
+  for (iVar1 = 0x1e; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar2 = (undefined4 *)(in_ECX + 0x4ee);
+  puVar3 = (undefined4 *)&DAT_00583a29;
+  for (iVar1 = 0x8c2; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  puVar2 = (undefined4 *)(in_ECX + 0x27f8);
+  puVar3 = &DAT_00585d33;
+  for (iVar1 = 0x29b; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  puVar2 = (undefined4 *)(in_ECX + 0x3266);
+  puVar3 = &DAT_005867a1;
+  for (iVar1 = 0x4e3; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar2 = (undefined4 *)(in_ECX + 0x45f2);
+  puVar3 = &DAT_00587b2d;
+  for (iVar1 = 5000; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  puVar2 = (undefined4 *)(in_ECX + 0x941c);
+  puVar3 = (undefined4 *)&DAT_00591990;
+  for (iVar1 = 0x12; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  *(undefined2 *)puVar3 = *(undefined2 *)puVar2;
+  DAT_0058c94f = *(undefined2 *)(in_ECX + 0x94ca);
+  DAT_0058c951 = *(undefined4 *)(in_ECX + 0x9414);
+  DAT_0058c955 = *(undefined4 *)(in_ECX + 0x9418);
+  puVar2 = (undefined4 *)(in_ECX + 0x9466);
+  puVar3 = &DAT_0058c959;
+  for (iVar1 = 0x19; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *puVar2;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  if (*(int *)(in_ECX + 0x94d2) != 0) {
+    DAT_005bb57b = (int)*(short *)(in_ECX + 0x94cc);
+    DAT_005bb599 = *(undefined2 *)(in_ECX + 0x94ce);
+    DAT_005bb595 = *(undefined2 *)(in_ECX + 0x94d0);
+    DAT_00583999 = 4;
+  }
+  DAT_00583a2b = 0;
+  DAT_00583a2d = 0;
+  DAT_00583a2f = 0;
+  *(undefined4 *)(in_ECX + 0x98a8) = 0;
+  while (*(int *)(in_ECX + 0x98a8) < 0x46) {
+    *(undefined2 *)((int)&DAT_00583a31 + *(int *)(in_ECX + 0x98a8) * 2) = 0xffff;
+    (&DAT_00583abd)[*(int *)(in_ECX + 0x98a8)] = 0xffff;
+    (&DAT_00583b49)[*(int *)(in_ECX + 0x98a8)] = 0xffff;
+    *(int *)(in_ECX + 0x98a8) = *(int *)(in_ECX + 0x98a8) + 1;
+  }
+  *(undefined4 *)(in_ECX + 0x98a8) = 0;
+  while (*(int *)(in_ECX + 0x98a8) < 0x46) {
+    if ((&DAT_00583bd5)[*(int *)(in_ECX + 0x98a8)] == 1) {
+      FUN_004e9e84(*(undefined2 *)(in_ECX + 0x98a8),1);
+    }
+    *(int *)(in_ECX + 0x98a8) = *(int *)(in_ECX + 0x98a8) + 1;
+  }
+  DAT_005a4c1c = (uint)(DAT_00586825 != 1);
+  DAT_00585d33 = GetTickCount();
+  return;
+}
+

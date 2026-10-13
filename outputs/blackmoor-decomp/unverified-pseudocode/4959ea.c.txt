@@ -1,0 +1,31 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4959ea
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+undefined4 FUN_004959ea(int param_1)
+
+{
+  int *piVar1;
+  int in_ECX;
+  int local_8;
+  
+  local_8 = 0;
+  while( true ) {
+    if (*(int *)(in_ECX + 0x4765) <= local_8) {
+      return 0;
+    }
+    piVar1 = (int *)(in_ECX + 0x45c1 + local_8 * 0x1c);
+    if (piVar1[1] == param_1) break;
+    local_8 = local_8 + 1;
+  }
+  if (*piVar1 == 0) {
+    return 0;
+  }
+  if (piVar1[3] != 0) {
+    return 1;
+  }
+  return 0;
+}
+

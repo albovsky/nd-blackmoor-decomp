@@ -1,0 +1,89 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x483ad9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6c02d307fa64542cf9e9341ca14b210665cb9d9c7d2fca978f50048355ee46d9
+ */
+
+void FUN_00483ad9(void)
+
+{
+  undefined4 local_34;
+  undefined4 local_30;
+  undefined2 local_2c;
+  undefined1 local_2a;
+  short local_28;
+  short local_24;
+  short local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  short local_c;
+  int local_8;
+  
+  local_8 = *(int *)(&DAT_005bb5e5 + DAT_00624d30 * 0x8d);
+  if (*(char *)(local_8 + 0x21) != '\0') {
+    if (DAT_00624d90 == '\0') {
+      if (DAT_00624da6 == '\0') {
+        if ((DAT_00624d8a == 2) || (DAT_00624d8a == 3)) {
+          FUN_004c5377(DAT_00624d32,DAT_005cf665,local_8 + 0x3a6,&DAT_00624d91,
+                       s_Cell_Phone_dialing_message_0054d990);
+        }
+        else if (DAT_00624da3 == '\0') {
+          if (0 < DAT_00624da4) {
+            local_24 = (short)DAT_00624d95 + 0x14;
+            local_20 = (short)DAT_00624d91 + 0x14;
+            local_34 = 0;
+            local_30 = 0;
+            local_2c = 0;
+            local_2a = 0;
+            for (local_28 = 0; (local_28 < 0xb && (local_28 < DAT_00624da4));
+                local_28 = local_28 + 1) {
+              FUN_005193ca((&DAT_00624da7)[local_28],(int)&local_34 + (int)local_28,10);
+            }
+            FUN_004d2c20(&local_34,(int)&DAT_005a4c24 + *(short *)(local_8 + 0x22) * 0x7f3,
+                         &DAT_005adb3a + *(short *)(local_8 + 0x22) * 0x1d0,
+                         CONCAT22(*(short *)(local_8 + 0x22) >> 0xf,local_20),local_24,
+                         *(undefined4 *)(&DAT_005d032f + *(short *)(local_8 + 0x22) * 4),
+                         DAT_005cf665,0);
+          }
+        }
+        else {
+          FUN_004c5377(DAT_00624d32,DAT_005cf665,local_8 + 0x88b + DAT_00624da1 * 0x37,&DAT_00624d91
+                       ,s_Cell_Phone_Init_Anim_0054d9ac);
+        }
+      }
+      else {
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0xeb,&DAT_00624d91,
+                     s_NEW_PHONE_pSrcSurface_0054d978);
+        DAT_00624da6 = '\0';
+      }
+    }
+    else {
+      FUN_004c5377(DAT_00624d36,DAT_005cf665,local_8 + 0x4b + DAT_00624d8e * 0x10,&DAT_00624d91,
+                   s_Cell_Phone_Init_Anim_0054d960);
+    }
+  }
+  for (local_c = 0; local_c < *(short *)(local_8 + 0xfc); local_c = local_c + 1) {
+    local_18 = *(int *)(local_8 + 0x242 + local_c * 0x10) + DAT_0058318a;
+    local_10 = *(int *)(local_8 + 0x24a + local_c * 0x10) + DAT_0058318a;
+    local_1c = *(int *)(local_8 + 0x23e + local_c * 0x10) + DAT_00583186;
+    local_14 = *(int *)(local_8 + 0x246 + local_c * 0x10) + DAT_00583186;
+    if (*(int *)(&DAT_00624d3a + local_c * 4) == 0) {
+      if ((DAT_00624da3 == '\0') || (local_c != *(short *)(local_8 + 0x3a4))) {
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_8 + 0x23e + local_c * 0x10,&local_1c,
+                     s_NEW_PHONE_redraw_buttons_0054d9f4);
+      }
+      else {
+        FUN_004c5377(DAT_00624d32,DAT_005cf665,local_8 + 0x37e,&local_1c,
+                     s_NEW_PHONE_pSrcSurface_0054d9dc);
+      }
+    }
+    else {
+      FUN_004c5377(DAT_00624d32,DAT_005cf665,local_8 + 0xfe + local_c * 0x10,&local_1c,
+                   s_NEW_PHONE_pSrcSurface_0054d9c4);
+    }
+  }
+  return;
+}
+

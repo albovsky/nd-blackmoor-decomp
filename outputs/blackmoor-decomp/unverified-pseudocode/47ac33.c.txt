@@ -1,0 +1,105 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47ac33
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_827db53a64242b59e9f92d38aeb544549dfa70f780a54958ee5eb67fb48784ea
+ */
+
+void FUN_0047ac33(void)
+
+{
+  int iVar1;
+  int local_24;
+  int local_20;
+  int local_1c;
+  int local_18;
+  short local_14;
+  short local_10;
+  short local_c;
+  short local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + DAT_00621a20 * 0x8d);
+  if (DAT_005957bb == 1) {
+    FUN_00479d98(iVar1 + 0x160,&local_24);
+    FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,iVar1 + 0xf8
+                 ,&local_24,s_MazeChase_refill_light_overlay_0054cc20);
+  }
+  if (DAT_00622f2a != 0) {
+    local_8 = DAT_00622f2e + -1;
+    FUN_00479d98(iVar1 + 0x170 + local_8 * 0x10,&local_24);
+    if (DAT_00622f34 == 0) {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,iVar1 + 0x170 + local_8 * 0x10,&local_24,
+                   s_Maze_Control_Restoration_Under_K_0054cc70);
+      DAT_00622f2a = 0;
+    }
+    else {
+      FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                   iVar1 + 0x108 + local_8 * 0x10,&local_24,
+                   s_Control_Key_DOWN___doing_button_s_0054cc40);
+    }
+  }
+  if (DAT_00622f70 != 0) {
+    local_20 = DAT_00622f6c - DAT_0058318a;
+    local_18 = DAT_00622f74 - DAT_0058318a;
+    local_24 = DAT_00622f68 - DAT_00583186;
+    local_1c = DAT_00622f70 - DAT_00583186;
+    FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_24,&DAT_00622f68,
+                 s_restore_background_beneath_movin_0054cc94);
+    DAT_00622f68 = 0;
+    DAT_00622f6c = 0;
+    DAT_00622f70 = 0;
+    DAT_00622f74 = 0;
+  }
+  for (local_c = 0; local_c < *(short *)(iVar1 + 0x23); local_c = local_c + 1) {
+    for (local_14 = 0; local_14 < *(short *)(iVar1 + 0x21); local_14 = local_14 + 1) {
+      if (*(int *)(&DAT_00621a2a + local_14 * 0x54 + local_c * 0x2a0) != 0) {
+        switch(*(undefined2 *)(iVar1 + 0x2c + local_c * 0x10 + local_14 * 2)) {
+        case 1:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xd8,&DAT_00621a3e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054ccc4);
+          break;
+        case 2:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xe8,&DAT_00621a4e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054cd34);
+          break;
+        case 3:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xd8,&DAT_00621a5e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054cce0);
+          break;
+        case 4:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xe8,&DAT_00621a6e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054cd50);
+          break;
+        case 5:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xd8,&DAT_00621a3e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054ccfc);
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xd8,&DAT_00621a5e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054cd18);
+          break;
+        case 6:
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xe8,&DAT_00621a4e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054cd6c);
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,
+                       iVar1 + 0xe8,&DAT_00621a6e + local_14 * 0x54 + local_c * 0x2a0,
+                       s_MazeChase_Puzzle_Overlays_0054cd88);
+        }
+      }
+    }
+  }
+  if ((DAT_00622f78 == 0) || ((DAT_00622f78 != 0 && (*(char *)(iVar1 + 0x2b) != '\0')))) {
+    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,iVar1 + 0xb8
+                 ,&DAT_00622f38,s_Draw_Maze_Player_Piece_0054cda4);
+  }
+  for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x25); local_10 = local_10 + 1) {
+    FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_00621a1e * 0x4a),DAT_005cf665,iVar1 + 200,
+                 &DAT_00622f48 + local_10 * 0x10,s_Draw_Maze_Chaser_Pieces_0054cdbc);
+  }
+  return;
+}
+

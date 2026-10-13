@@ -1,0 +1,29 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51ac62
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_af67c4288d6e639a00bd5dfa5ba373e106c1ca511fa16fda1eb070cac94bb18e
+ */
+
+/* Library Function - Single Match
+    public: struct HWND__ * __thiscall CWnd::Detach(void)
+   
+   Library: Visual Studio 2008 Release */
+
+HWND__ * __thiscall CWnd::Detach(CWnd *this)
+
+{
+  HWND__ *pHVar1;
+  int iVar2;
+  
+  pHVar1 = *(HWND__ **)(this + 0x1c);
+  if (pHVar1 != (HWND__ *)0x0) {
+    iVar2 = FUN_0051ab72(0);
+    if (iVar2 != 0) {
+      FUN_0051a601(*(undefined4 *)(this + 0x1c));
+    }
+    *(undefined4 *)(this + 0x1c) = 0;
+  }
+  *(undefined4 *)(this + 0x38) = 0;
+  return pHVar1;
+}
+

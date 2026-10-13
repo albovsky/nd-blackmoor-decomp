@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c1de
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+void FUN_0050c1de(void)
+
+{
+  undefined4 *in_ECX;
+  
+  *(undefined4 *)(in_ECX[1] + 0xc4) = *in_ECX;
+  return;
+}
+

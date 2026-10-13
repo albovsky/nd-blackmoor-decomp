@@ -1,0 +1,68 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c9cdd
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d590aeb62d3bd1e1413a3f3e4f07f565aba52ab8fd98207292a76569576fbcb9
+ */
+
+undefined4 FUN_004c9cdd(int param_1)
+
+{
+  undefined4 uVar1;
+  int iVar2;
+  byte *pbVar3;
+  byte *pbVar4;
+  bool bVar5;
+  bool bVar6;
+  int local_20;
+  byte local_18 [16];
+  int local_8;
+  
+  local_18[0] = 0;
+  local_18[1] = 0;
+  local_18[2] = 0;
+  local_18[3] = 0;
+  local_18[4] = 0;
+  local_18[5] = 0;
+  local_18[6] = 0;
+  local_18[7] = 0;
+  local_18[8] = 0;
+  local_18[9] = 0;
+  local_18[10] = 0;
+  local_18[0xb] = 0;
+  local_18[0xc] = 0;
+  local_18[0xd] = 0;
+  local_18[0xe] = 0;
+  local_18[0xf] = 0;
+  if (param_1 == 0) {
+    uVar1 = 0;
+  }
+  else {
+    for (local_8 = 0; local_8 < *(int *)(param_1 + 0x1758); local_8 = local_8 + 1) {
+      iVar2 = 0x10;
+      bVar5 = false;
+      bVar6 = true;
+      local_20 = 0;
+      pbVar3 = (byte *)(param_1 + 0x30c + local_8 * 0x3e4);
+      pbVar4 = local_18;
+      do {
+        if (iVar2 == 0) break;
+        iVar2 = iVar2 + -1;
+        bVar5 = *pbVar3 < *pbVar4;
+        bVar6 = *pbVar3 == *pbVar4;
+        pbVar3 = pbVar3 + 1;
+        pbVar4 = pbVar4 + 1;
+      } while (bVar6);
+      if (!bVar6) {
+        local_20 = (1 - (uint)bVar5) - (uint)(bVar5 != 0);
+      }
+      if (local_20 == 0) {
+        *(int *)(param_1 + 0x175c) = local_8;
+        return 1;
+      }
+    }
+    *(undefined4 *)(param_1 + 0x175c) = 0;
+    uVar1 = 1;
+  }
+  return uVar1;
+}
+

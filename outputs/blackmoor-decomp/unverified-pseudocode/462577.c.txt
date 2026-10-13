@@ -1,0 +1,104 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x462577
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_54414b0082ebcba364d23e408bbf47fe0ab1b670355f5030623cc5b8f4a5e988
+ */
+
+void FUN_00462577(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  int iVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  short local_18;
+  short local_10;
+  short local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  if (DAT_00594db3 == 0) {
+    DAT_00594db3 = 1;
+    for (local_10 = 0; local_10 < *(short *)(iVar1 + 0x22); local_10 = local_10 + 1) {
+      for (local_18 = 0; local_18 < *(short *)(iVar1 + 0x24); local_18 = local_18 + 1) {
+        puVar4 = &DAT_00594db5 + local_10 * 0x50 + local_18 * 10;
+        for (iVar2 = 10; iVar2 != 0; iVar2 = iVar2 + -1) {
+          *puVar4 = 0;
+          puVar4 = puVar4 + 1;
+        }
+        *(undefined2 *)(&DAT_00594dd9 + local_18 * 0x28 + local_10 * 0x140) =
+             *(undefined2 *)(iVar1 + 0x28 + local_10 * 0x10 + local_18 * 2);
+        FUN_00462b84(CONCAT22((short)((uint)(local_18 * 0x28) >> 0x10),local_10),
+                     CONCAT22((short)((uint)(local_10 * 0x140) >> 0x10),local_18),0,
+                     &DAT_00594db9 + local_10 * 0x50 + local_18 * 10);
+        FUN_00462b84(CONCAT22((short)((uint)(local_18 * 0x28) >> 0x10),local_10),
+                     CONCAT22((short)((uint)(local_10 * 0x140) >> 0x10),local_18),0,
+                     &DAT_00594dc9 + local_18 * 0x28 + local_10 * 0x140);
+        if (*(short *)(&DAT_00594dd9 + local_18 * 0x28 + local_10 * 0x140) != 0) {
+          (&DAT_00594db5)[local_10 * 0x50 + local_18 * 10] = 1;
+          switch(*(undefined2 *)(&DAT_00594dd9 + local_18 * 0x28 + local_10 * 0x140)) {
+          case 0x10:
+          case 0x13:
+            iVar2 = *(int *)(iVar1 + 0x218) - *(int *)(iVar1 + 0x210);
+            iVar3 = *(int *)(iVar1 + 0x21c) - *(int *)(iVar1 + 0x214);
+            *(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) =
+                 *(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) +
+                 (*(int *)(in_ECX + 0x53) - iVar3) / 2;
+            *(int *)(&DAT_00594dc5 + local_18 * 0x28 + local_10 * 0x140) =
+                 *(int *)(&DAT_00594dc5 + local_18 * 0x28 + local_10 * 0x140) -
+                 (*(int *)(in_ECX + 0x53) - iVar3) / 2;
+            if (*(short *)(&DAT_00594dd9 + local_18 * 0x28 + local_10 * 0x140) == 0x10) {
+              (&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] =
+                   ((&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] -
+                   (int)*(short *)(iVar1 + 0x248) / 2) - iVar2 / 2;
+              *(int *)(&DAT_00594dc1 + local_18 * 0x28 + local_10 * 0x140) =
+                   (&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] + iVar2;
+            }
+            else {
+              (&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] =
+                   (*(int *)(&DAT_00594dc1 + local_18 * 0x28 + local_10 * 0x140) +
+                   (int)*(short *)(iVar1 + 0x248) / 2) - iVar2 / 2;
+              *(int *)(&DAT_00594dc1 + local_18 * 0x28 + local_10 * 0x140) =
+                   (&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] + iVar2;
+            }
+            break;
+          case 0x11:
+          case 0x12:
+            iVar2 = *(int *)(iVar1 + 0x228) - *(int *)(iVar1 + 0x220);
+            iVar3 = *(int *)(iVar1 + 0x22c) - *(int *)(iVar1 + 0x224);
+            (&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] =
+                 (&DAT_00594db9)[local_10 * 0x50 + local_18 * 10] +
+                 (*(int *)(in_ECX + 0x4f) - iVar2) / 2;
+            *(int *)(&DAT_00594dc1 + local_18 * 0x28 + local_10 * 0x140) =
+                 *(int *)(&DAT_00594dc1 + local_18 * 0x28 + local_10 * 0x140) -
+                 (*(int *)(in_ECX + 0x4f) - iVar2) / 2;
+            if (*(short *)(&DAT_00594dd9 + local_18 * 0x28 + local_10 * 0x140) == 0x11) {
+              *(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) =
+                   (*(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) -
+                   (int)*(short *)(iVar1 + 0x248) / 2) - iVar3 / 2;
+              *(int *)(&DAT_00594dc5 + local_18 * 0x28 + local_10 * 0x140) =
+                   *(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) + iVar3;
+            }
+            else {
+              *(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) =
+                   (*(int *)(&DAT_00594dc5 + local_18 * 0x28 + local_10 * 0x140) +
+                   (int)*(short *)(iVar1 + 0x248) / 2) - iVar3 / 2;
+              *(int *)(&DAT_00594dc5 + local_18 * 0x28 + local_10 * 0x140) =
+                   *(int *)(&DAT_00594dbd + local_18 * 0x28 + local_10 * 0x140) + iVar3;
+            }
+          }
+        }
+        *(undefined2 *)(&DAT_00594ddb + local_18 * 0x28 + local_10 * 0x140) = 0;
+        for (local_8 = 0; local_8 < *(short *)(iVar1 + 0x26); local_8 = local_8 + 1) {
+          if ((*(short *)(iVar1 + 0xa8 + local_8 * 4) == local_18) &&
+             (*(short *)(iVar1 + 0xaa + local_8 * 4) == local_10)) {
+            (&DAT_00594db5)[local_10 * 0x50 + local_18 * 10] = 1;
+            *(short *)(&DAT_00594ddb + local_18 * 0x28 + local_10 * 0x140) = local_8 + 1;
+          }
+        }
+      }
+    }
+  }
+  return;
+}
+

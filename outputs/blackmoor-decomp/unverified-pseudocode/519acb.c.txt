@@ -1,0 +1,41 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519acb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_b751a5094d1e8211f653554618c4b14e01ac05861f47e521c34e1b18a0e9f8e5
+ */
+
+undefined4 FUN_00519acb(void)
+
+{
+  int iVar1;
+  undefined4 uVar2;
+  int *extraout_ECX;
+  int iVar3;
+  int unaff_EBP;
+  
+  FUN_0050f978();
+  iVar3 = *(int *)(unaff_EBP + 0xc);
+  *(undefined4 *)(unaff_EBP + -0x10) = 0;
+  if (iVar3 < 0) {
+    iVar3 = 0;
+  }
+  iVar1 = *extraout_ECX;
+  if (iVar3 < *(int *)(iVar1 + -8)) {
+    *(undefined **)(unaff_EBP + 0xc) = PTR_DAT_005679b0;
+    iVar1 = *(int *)(iVar1 + -8);
+    *(undefined4 *)(unaff_EBP + -4) = 1;
+    FUN_0051e7e4(unaff_EBP + 0xc,iVar3,iVar1 - iVar3,0);
+    FUN_0051e52f(unaff_EBP + 0xc);
+    *(undefined1 *)(unaff_EBP + -4) = 0;
+    *(undefined4 *)(unaff_EBP + -0x10) = 1;
+    FUN_0051e7ba();
+    uVar2 = *(undefined4 *)(unaff_EBP + 8);
+  }
+  else {
+    FUN_0051e52f(extraout_ECX);
+    uVar2 = *(undefined4 *)(unaff_EBP + 8);
+  }
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return uVar2;
+}
+

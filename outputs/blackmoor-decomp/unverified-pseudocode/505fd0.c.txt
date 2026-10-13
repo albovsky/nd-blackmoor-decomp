@@ -1,0 +1,35 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x505fd0
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+void FUN_00505fd0(float *param_1)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float fVar5;
+  float fVar6;
+  
+  fVar1 = param_1[6];
+  fVar2 = param_1[6];
+  fVar3 = param_1[4];
+  fVar4 = *param_1;
+  param_1[6] = *param_1 + param_1[4] + param_1[2] + fVar1;
+  param_1[4] = (param_1[2] + fVar1) - (*param_1 + param_1[4]);
+  fVar1 = param_1[3];
+  *param_1 = (fVar2 - param_1[2]) + (param_1[5] - param_1[1]);
+  param_1[2] = (fVar2 - param_1[2]) - (param_1[5] - param_1[1]);
+  fVar2 = param_1[1];
+  fVar5 = param_1[3];
+  fVar6 = param_1[7];
+  param_1[3] = (fVar3 - fVar4) + (param_1[7] - fVar1);
+  param_1[1] = (param_1[7] - fVar1) - (fVar3 - fVar4);
+  param_1[7] = fVar5 + fVar6 + fVar2 + param_1[5];
+  param_1[5] = (fVar5 + fVar6) - (fVar2 + param_1[5]);
+  return;
+}
+

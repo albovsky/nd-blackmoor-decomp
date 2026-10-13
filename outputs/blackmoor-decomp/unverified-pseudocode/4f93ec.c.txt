@@ -1,0 +1,40 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4f93ec
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004f942f) */
+
+undefined4 FUN_004f93ec(int param_1,undefined4 param_2)
+
+{
+  undefined4 uVar1;
+  int in_ECX;
+  int iVar2;
+  
+  iVar2 = *(int *)(in_ECX + 0x3ce) + param_1 * 0x5bb;
+  *(undefined4 *)(in_ECX + 0x3ca) = 0;
+  if (*(int *)(iVar2 + 0x29b) == 0) {
+    uVar1 = 0;
+  }
+  else {
+    *(undefined4 *)(iVar2 + 0x2d7) = param_2;
+    uVar1 = (**(code **)(**(int **)(iVar2 + 0x29b) + 0x40))
+                      (*(undefined4 *)(iVar2 + 0x29b),param_2,0);
+    *(undefined4 *)(in_ECX + 0x3ca) = uVar1;
+    if (*(int *)(in_ECX + 0x3ca) == 0) {
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_CDirectSound__Set3DSoundMaxDista_0055f1bc,param_1,
+                     (double)*(float *)(iVar2 + 0x2d7));
+        FUN_0044a2b7();
+      }
+      uVar1 = 1;
+    }
+    else {
+      uVar1 = 0;
+    }
+  }
+  return uVar1;
+}
+

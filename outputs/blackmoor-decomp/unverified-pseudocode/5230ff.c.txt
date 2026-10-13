@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x5230ff
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_005230ff(undefined4 param_1,undefined4 param_2)
+
+{
+  int iVar1;
+  int *in_ECX;
+  
+  iVar1 = FUN_0051ab4b();
+  if ((iVar1 != -1) && (iVar1 = (**(code **)(*in_ECX + 0xdc))(param_1,param_2), iVar1 != 0)) {
+    PostMessageA((HWND)in_ECX[7],0x362,0xe001,0);
+    (**(code **)(*in_ECX + 200))(1);
+    return 0;
+  }
+  return 0xffffffff;
+}
+

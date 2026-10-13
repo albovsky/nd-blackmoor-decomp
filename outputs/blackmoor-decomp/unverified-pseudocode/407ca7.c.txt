@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x407ca7
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9898ee3dd29de1cd9f576346b0a9ae1f1061f4efc32a7db77236610d8adfef6
+ */
+
+void FUN_00407ca7(void)
+
+{
+  undefined4 uVar1;
+  short local_20;
+  short local_1c;
+  undefined1 local_18 [20];
+  
+  if (DAT_005ec28c == 0) {
+    FUN_0051d48c(0x4b7,0xf1,0,0);
+  }
+  else {
+    FUN_0051d48c(0x4b7,0xf1,1,0);
+  }
+  for (local_20 = 0; local_20 < 6; local_20 = local_20 + 1) {
+    for (local_1c = 0; local_1c < 6; local_1c = local_1c + 1) {
+      uVar1 = FUN_005193ca((int)*(short *)(&DAT_005ec28e + local_1c * 2 + local_20 * 0xc),local_18,
+                           10);
+      FUN_0051d58b(uVar1);
+    }
+  }
+  return;
+}
+

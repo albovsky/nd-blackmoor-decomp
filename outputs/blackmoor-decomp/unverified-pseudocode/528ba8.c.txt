@@ -1,0 +1,15 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x528ba8
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d2c5fd8ee18803d4fcbad81aadf07f5107591d57975583e6b9ac0607df6e36be
+ */
+
+void Unwind_00528ba8(void)
+
+{
+  int unaff_EBP;
+  
+  CWnd::~CWnd((CWnd *)(unaff_EBP + -0x60));
+  return;
+}
+

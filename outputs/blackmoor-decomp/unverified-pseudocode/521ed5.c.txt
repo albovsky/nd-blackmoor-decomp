@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521ed5
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+void FUN_00521ed5(byte param_1)
+
+{
+  FUN_00521fa5();
+  if ((param_1 & 1) != 0) {
+    FUN_0051dc6c();
+  }
+  return;
+}
+

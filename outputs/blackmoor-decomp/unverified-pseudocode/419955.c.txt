@@ -1,0 +1,104 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x419955
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_ee34a6178f9dbede580b7391fe3cb5d437b4b7e8eef1f6ac592ff17c28c7115c
+ */
+
+int FUN_00419955(undefined4 param_1,short param_2)
+
+{
+  char cVar1;
+  undefined2 uVar2;
+  int iVar3;
+  int in_ECX;
+  int local_c;
+  int local_8;
+  
+  local_c = 0;
+  local_8 = 0;
+  uVar2 = FUN_0041a216(param_1);
+  *(undefined2 *)(in_ECX + 0x571) = uVar2;
+  if (*(short *)(in_ECX + 0x571) == -1) {
+    FUN_0050ca3e(in_ECX + 799,s_Unable_to_find_tree_file__s_in_t_00542de4,param_1);
+    FUN_0052139c(in_ECX + 799,0,0);
+  }
+  else {
+    *(int *)(in_ECX + 0x57b) = in_ECX + 0x57f + *(short *)(in_ECX + 0x571) * 0x84d;
+    *(undefined4 *)(in_ECX + 0x577) =
+         *(undefined4 *)(in_ECX + 0x5c0 + *(short *)(in_ECX + 0x571) * 0x84d);
+    cVar1 = *(char *)(*(int *)(in_ECX + 0x577) + 0x5d + param_2 * 0x5e);
+    if (cVar1 == '\x02') {
+      local_8 = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + param_2 * 0x5e));
+      if (local_8 == 0) {
+        FUN_0052139c(s_Unable_to_allocate_memory_for_pC_00542e20,0,0);
+      }
+      else {
+        local_c = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + param_2 * 0x5e));
+        if (local_c == 0) {
+          FUN_0052139c(s_Unable_to_allocate_memory_for_pR_00542e54,0,0);
+        }
+        else {
+          FUN_0050ce2b(*(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845),
+                       *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x23 + param_2 * 0x5e),0);
+          iVar3 = FUN_0050cf61(local_8,*(undefined4 *)
+                                        (*(int *)(in_ECX + 0x577) + 0x59 + param_2 * 0x5e),1,
+                               *(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845));
+          if (iVar3 == 1) {
+            FUN_0041b6e2(local_8,local_c,
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + param_2 * 0x5e),
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + param_2 * 0x5e));
+            FUN_004c7314(local_c,*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + param_2 * 0x5e));
+            goto LAB_00419d2d;
+          }
+          FUN_0050ca3e(in_ECX + 799,s_Unable_to_read_TREE_DATA_file__s_00542e84,
+                       *(int *)(in_ECX + 0x577) + param_2 * 0x5e);
+          FUN_0052139c(in_ECX + 799,0,0);
+        }
+      }
+    }
+    else {
+      if (cVar1 != '\x03') {
+LAB_00419d2d:
+        if (local_8 == 0) {
+          return local_c;
+        }
+        FUN_0051dc6c(local_8);
+        return local_c;
+      }
+      local_8 = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + param_2 * 0x5e));
+      if (local_8 == 0) {
+        FUN_0052139c(s_Unable_to_allocate_memory_for_pC_00542ea8,0,0);
+      }
+      else {
+        local_c = FUN_0051dc43(*(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + param_2 * 0x5e));
+        if (local_c == 0) {
+          FUN_0052139c(s_Unable_to_allocate_memory_for_pR_00542edc,0,0);
+        }
+        else {
+          FUN_0050ce2b(*(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845),
+                       *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x23 + param_2 * 0x5e),0);
+          iVar3 = FUN_0050cf61(local_8,*(undefined4 *)
+                                        (*(int *)(in_ECX + 0x577) + 0x59 + param_2 * 0x5e),1,
+                               *(undefined4 *)(*(int *)(in_ECX + 0x57b) + 0x845));
+          if (iVar3 == 1) {
+            FUN_0041b6e2(local_8,local_c,
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x59 + param_2 * 0x5e),
+                         *(undefined4 *)(*(int *)(in_ECX + 0x577) + 0x51 + param_2 * 0x5e));
+            goto LAB_00419d2d;
+          }
+          FUN_0050ca3e(in_ECX + 799,s_Unable_to_read_TREE_DATA_file__s_00542f0c,
+                       *(int *)(in_ECX + 0x577) + param_2 * 0x5e);
+          FUN_0052139c(in_ECX + 799,0,0);
+        }
+      }
+    }
+  }
+  if (local_c != 0) {
+    FUN_0051dc6c(local_c);
+  }
+  if (local_8 != 0) {
+    FUN_0051dc6c(local_8);
+  }
+  return 0;
+}
+

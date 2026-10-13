@@ -1,0 +1,19 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51fb2e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+void FUN_0051fb2e(UINT param_1,LPSTR param_2,int param_3)
+
+{
+  int iVar1;
+  
+  iVar1 = FUN_00525371();
+  iVar1 = LoadStringA(*(HINSTANCE *)(iVar1 + 0xc),param_1,param_2,param_3);
+  if (iVar1 == 0) {
+    *param_2 = '\0';
+  }
+  return;
+}
+

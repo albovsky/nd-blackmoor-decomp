@@ -1,0 +1,26 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x406739
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_7e0487646cbf109e03053d69b2d5d595199e6535938b5dd843b65bab05dc6edd
+ */
+
+void FUN_00406739(void)
+
+{
+  LRESULT LVar1;
+  int in_ECX;
+  undefined2 local_8;
+  
+  LVar1 = SendMessageA(*(HWND *)(*(int *)(in_ECX + 0xddc) + 0x1c),0x188,0,0);
+  if (LVar1 == 0) {
+    DAT_005e335e = 0xffff;
+  }
+  else {
+    (&DAT_005e350a)[LVar1 + -1] = 0;
+    local_8 = (undefined2)(LVar1 + -1);
+    DAT_005e335e = local_8;
+  }
+  FUN_00404be1();
+  return;
+}
+

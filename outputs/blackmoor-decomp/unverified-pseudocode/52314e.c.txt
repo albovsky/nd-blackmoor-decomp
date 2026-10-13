@@ -1,0 +1,43 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x52314e
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5
+ */
+
+/* Library Function - Multiple Matches With Same Base Name
+    protected: char const * __thiscall CFrameWnd::GetIconWndClass(unsigned long,unsigned int)
+    protected: wchar_t const * __thiscall CFrameWnd::GetIconWndClass(unsigned long,unsigned int)
+   
+   Library: Visual Studio 2003 Release */
+
+undefined4 GetIconWndClass(undefined4 param_1,ushort param_2)
+
+{
+  int iVar1;
+  HICON pHVar2;
+  BOOL BVar3;
+  undefined4 uVar4;
+  int *in_ECX;
+  undefined1 local_5c [32];
+  undefined4 local_3c;
+  LPCSTR local_34;
+  tagWNDCLASSA local_2c;
+  
+  iVar1 = FUN_00525371();
+  pHVar2 = LoadIconA(*(HINSTANCE *)(iVar1 + 0xc),(LPCSTR)(uint)param_2);
+  if (pHVar2 != (HICON)0x0) {
+    _memset(local_5c,0,0x30);
+    local_3c = param_1;
+    (**(code **)(*in_ECX + 0x5c))(local_5c);
+    if (local_34 != (LPCSTR)0x0) {
+      iVar1 = FUN_00525371();
+      BVar3 = GetClassInfoA(*(HINSTANCE *)(iVar1 + 8),local_34,&local_2c);
+      if ((BVar3 != 0) && (local_2c.hIcon != pHVar2)) {
+        uVar4 = FUN_0051b7c1(local_2c.style,local_2c.hCursor,local_2c.hbrBackground,pHVar2);
+        return uVar4;
+      }
+    }
+  }
+  return 0;
+}
+

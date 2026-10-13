@@ -1,0 +1,81 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x521bed
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_678efcee983ed42467ff29c0f0add470391dbcd9713e4f2458e22dd6f2eb7249
+ */
+
+undefined4 FUN_00521bed(undefined4 param_1,int *param_2,uint *param_3)
+
+{
+  int iVar1;
+  HWND pHVar2;
+  undefined4 uVar3;
+  uint uVar4;
+  int *in_ECX;
+  
+  iVar1 = FUN_0051c04f(param_1,param_2,param_3);
+  if (iVar1 != 0) {
+    return 1;
+  }
+  if (((HWND)*param_2 != (HWND)in_ECX[7]) &&
+     (pHVar2 = GetParent((HWND)in_ECX[7]), (HWND)*param_2 != pHVar2)) {
+LAB_00521d33:
+    return 0;
+  }
+  switch(param_2[2]) {
+  case -0xd1:
+    iVar1 = (**(code **)(*in_ECX + 0xe0))();
+    break;
+  case -0xd0:
+    iVar1 = (**(code **)(*in_ECX + 0xec))();
+    break;
+  case -0xcf:
+    iVar1 = FUN_00521bcb(0x3024);
+    if (iVar1 == 0) {
+      return 1;
+    }
+    uVar3 = (**(code **)(*in_ECX + 0xe8))();
+    goto LAB_00521cdb;
+  case -0xce:
+    iVar1 = FUN_00521bcb(0x3023);
+    if (iVar1 == 0) {
+      return 1;
+    }
+    uVar3 = (**(code **)(*in_ECX + 0xe4))();
+LAB_00521cdb:
+    uVar4 = FUN_00521b51(uVar3);
+    goto LAB_00521d10;
+  case -0xcd:
+    SendMessageA((HWND)in_ECX[7],0x111,0xe146,0);
+    return 1;
+  default:
+    goto LAB_00521d33;
+  case -0xcb:
+    (**(code **)(*in_ECX + 0xd4))();
+    return 1;
+  case -0xca:
+    iVar1 = (**(code **)(*in_ECX + 0xd0))();
+    uVar4 = (-(uint)(iVar1 != 0) & 0xfffffffe) + 2;
+    goto LAB_00521d10;
+  case -0xc9:
+    iVar1 = (**(code **)(*in_ECX + 0xdc))();
+    break;
+  case -200:
+    pHVar2 = GetParent((HWND)in_ECX[7]);
+    uVar3 = FUN_0051abe4(pHVar2);
+    iVar1 = FUN_0051f5ab(&PTR_s_CPropertySheet_0052ee58,uVar3);
+    if (((iVar1 != 0) && ((*(byte *)(iVar1 + 0x24) & 0x10) == 0)) && (*(int *)(iVar1 + 0x84) == 0))
+    {
+      *param_3 = 0xffffffff;
+      return 1;
+    }
+    iVar1 = (**(code **)(*in_ECX + 0xd8))();
+    uVar4 = (iVar1 != 0) - 1;
+    goto LAB_00521d10;
+  }
+  uVar4 = (uint)(iVar1 == 0);
+LAB_00521d10:
+  *param_3 = uVar4;
+  return 1;
+}
+

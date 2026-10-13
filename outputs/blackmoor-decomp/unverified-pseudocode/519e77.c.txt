@@ -1,0 +1,24 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x519e77
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_0680edc662884da36b8b0465edad49b6c92edef1a0a3fe66526c018dc441b835
+ */
+
+undefined4 FUN_00519e77(undefined4 param_1)
+
+{
+  HGLOBAL hMem;
+  ushort *puVar1;
+  int in_ECX;
+  
+  hMem = *(HGLOBAL *)(*(int *)(in_ECX + 0x5c) + 0xc);
+  if (hMem == (HGLOBAL)0x0) {
+    FUN_0051e52f(&PTR_DAT_005679b0);
+  }
+  else {
+    puVar1 = GlobalLock(hMem);
+    FUN_0051e828((uint)*puVar1 + (int)puVar1);
+  }
+  return param_1;
+}
+

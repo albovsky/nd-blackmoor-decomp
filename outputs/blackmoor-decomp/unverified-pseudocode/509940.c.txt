@@ -1,0 +1,96 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x509940
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_2c7b89b0c56f509b73593de956bd6bce397158201dc29b2101fbbc0ba74b9315
+ */
+
+void FUN_00509940(int *param_1,int param_2,int *param_3,int *param_4)
+
+{
+  int iVar1;
+  double dVar2;
+  double dVar3;
+  double dVar4;
+  int *piVar5;
+  int iVar6;
+  int iVar7;
+  int iVar8;
+  int iVar9;
+  int iVar10;
+  int iVar11;
+  int local_2c;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  
+  iVar7 = 0;
+  iVar6 = *param_1;
+  iVar8 = 0;
+  iVar10 = 0;
+  iVar11 = 0;
+  iVar9 = 0;
+  local_2c = 0;
+  local_28 = 0;
+  iVar1 = param_1[param_2 * 9 + -8];
+  local_24 = 0;
+  local_20 = 0;
+  local_1c = 0;
+  if (0 < param_2) {
+    piVar5 = param_1 + 3;
+    do {
+      iVar7 = iVar7 + piVar5[-1];
+      iVar8 = iVar8 + *piVar5;
+      iVar10 = iVar10 + piVar5[1];
+      iVar11 = iVar11 + piVar5[3];
+      iVar9 = iVar9 + piVar5[5];
+      param_2 = param_2 + -1;
+      piVar5 = piVar5 + 9;
+      local_2c = iVar7;
+      local_28 = iVar8;
+      local_24 = iVar10;
+      local_20 = iVar11;
+      local_1c = iVar9;
+    } while (param_2 != 0);
+  }
+  iVar7 = *param_3;
+  if (-1 < iVar7) {
+    local_28 = local_28 + iVar7;
+    local_2c = local_2c + iVar6;
+    local_24 = local_24 + iVar6 * iVar6;
+    local_20 = local_20 + iVar7 * iVar6;
+    local_1c = local_1c + 1;
+  }
+  iVar7 = *param_4;
+  if (-1 < iVar7) {
+    local_2c = local_2c + iVar1;
+    local_28 = local_28 + iVar7;
+    local_24 = local_24 + iVar1 * iVar1;
+    local_20 = local_20 + iVar7 * iVar1;
+    local_1c = local_1c + 1;
+  }
+  dVar4 = (double)local_2c;
+  dVar2 = 1.0 / ((double)local_1c * (double)local_24 - dVar4 * dVar4);
+  dVar3 = ((double)local_24 * (double)local_28 - (double)local_20 * dVar4) * dVar2;
+  dVar2 = ((double)local_1c * (double)local_20 - (double)local_28 * dVar4) * dVar2;
+  FUN_0050e19e((double)iVar6 * dVar2 + dVar3 + 0.5);
+  iVar6 = __ftol();
+  *param_3 = iVar6;
+  FUN_0050e19e((double)iVar1 * dVar2 + dVar3 + 0.5);
+  iVar6 = __ftol();
+  *param_4 = iVar6;
+  if (0x3ff < *param_3) {
+    *param_3 = 0x3ff;
+  }
+  if (0x3ff < *param_4) {
+    *param_4 = 0x3ff;
+  }
+  if (*param_3 < 0) {
+    *param_3 = 0;
+  }
+  if (*param_4 < 0) {
+    *param_4 = 0;
+  }
+  return;
+}
+

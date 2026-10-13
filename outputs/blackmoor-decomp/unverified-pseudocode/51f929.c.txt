@@ -1,0 +1,30 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51f929
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_48d32b48f2cea7034d614eb024d79a97cc56e9906b5dc4d1688daa691f89583b
+ */
+
+void FUN_0051f929(void)
+
+{
+  DWORD DVar1;
+  HBRUSH pHVar2;
+  int in_ECX;
+  
+  DVar1 = GetSysColor(0xf);
+  *(DWORD *)(in_ECX + 0x28) = DVar1;
+  DVar1 = GetSysColor(0x10);
+  *(DWORD *)(in_ECX + 0x2c) = DVar1;
+  DVar1 = GetSysColor(0x14);
+  *(DWORD *)(in_ECX + 0x30) = DVar1;
+  DVar1 = GetSysColor(0x12);
+  *(DWORD *)(in_ECX + 0x34) = DVar1;
+  DVar1 = GetSysColor(6);
+  *(DWORD *)(in_ECX + 0x38) = DVar1;
+  pHVar2 = GetSysColorBrush(0xf);
+  *(HBRUSH *)(in_ECX + 0x24) = pHVar2;
+  pHVar2 = GetSysColorBrush(6);
+  *(HBRUSH *)(in_ECX + 0x20) = pHVar2;
+  return;
+}
+

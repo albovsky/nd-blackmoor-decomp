@@ -1,0 +1,37 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525b0f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d63d6a362278f40ee32ccb564ca8ec5738c7bbf1d9d11225df7a30f9c22e09d6
+ */
+
+/* WARNING: Removing unreachable block (ram,0x00525b36) */
+
+int FUN_00525b0f(code *param_1)
+
+{
+  int iVar1;
+  LPVOID pvVar2;
+  int *in_ECX;
+  
+  if (*in_ECX == 0) {
+    if (DAT_0063c704 == (DWORD *)0x0) {
+      DAT_0063c704 = (DWORD *)FUN_0052570f();
+    }
+    iVar1 = FUN_005257a8();
+    *in_ECX = iVar1;
+  }
+  iVar1 = *in_ECX;
+  pvVar2 = TlsGetValue(*DAT_0063c704);
+  if ((pvVar2 == (LPVOID)0x0) || (*(int *)((int)pvVar2 + 8) <= iVar1)) {
+    iVar1 = 0;
+  }
+  else {
+    iVar1 = *(int *)(*(int *)((int)pvVar2 + 0xc) + iVar1 * 4);
+  }
+  if (iVar1 == 0) {
+    iVar1 = (*param_1)();
+    FUN_00525917(*in_ECX,iVar1);
+  }
+  return iVar1;
+}
+

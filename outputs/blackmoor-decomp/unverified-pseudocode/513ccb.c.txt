@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x513ccb
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d7f4aec8bb0e093ec20247522281ab9457c1cc675ad71ff176c6b77b54b753d3
+ */
+
+/* Library Function - Single Match
+    __math_exit
+   
+   Library: Visual Studio */
+
+void __math_exit(void)
+
+{
+  ushort in_FPUStatusWord;
+  ushort unaff_retaddr;
+  
+  if (((unaff_retaddr != 0x27f) && ((unaff_retaddr & 0x20) != 0)) &&
+     ((in_FPUStatusWord & 0x20) != 0)) {
+    __startOneArgErrorHandling();
+    return;
+  }
+  return;
+}
+

@@ -1,0 +1,67 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e9e84
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_e9c656b3eec0deb5a709812e8ef40c0b3c5e683a3969dfdbc8ffe3dad08e63a8
+ */
+
+void FUN_004e9e84(short param_1,int param_2)
+
+{
+  int in_ECX;
+  uint uVar1;
+  uint uVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  
+  *(undefined4 *)(in_ECX + 0x822e) = 0;
+  while( true ) {
+    if ((int)DAT_00583a2b <= *(int *)(in_ECX + 0x822e)) {
+      if (param_2 != 0) {
+        FUN_004fb2e3(0x17);
+      }
+      if ((*(char *)(in_ECX + 0x7010) == '\0') || (*(int *)(in_ECX + 0x764c) != 2)) {
+        *(undefined4 *)(in_ECX + 0x822e) = 0;
+        while (*(int *)(in_ECX + 0x822e) < (int)DAT_00583a2b) {
+          *(undefined2 *)(in_ECX + 0x828c + *(int *)(in_ECX + 0x822e) * 2) =
+               *(undefined2 *)((int)&DAT_00583a31 + *(int *)(in_ECX + 0x822e) * 2);
+          *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+        }
+        *(short *)(in_ECX + 0x828a) = param_1;
+      }
+      else {
+        *(undefined4 *)(in_ECX + 0x822e) = 0;
+        while (*(int *)(in_ECX + 0x822e) < (int)DAT_00583a2b) {
+          *(undefined2 *)(in_ECX + 0x828a + *(int *)(in_ECX + 0x822e) * 2) =
+               *(undefined2 *)((int)&DAT_00583a31 + *(int *)(in_ECX + 0x822e) * 2);
+          *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+        }
+        *(short *)(in_ECX + 0x828a + DAT_00583a2b * 2) = param_1;
+      }
+      DAT_00583a2b = DAT_00583a2b + 1;
+      uVar1 = (uint)DAT_00583a2b;
+      puVar4 = (undefined4 *)(in_ECX + 0x828a);
+      puVar5 = &DAT_00583a31;
+      for (uVar2 = (uVar1 & 0x7fffffff) >> 1; uVar2 != 0; uVar2 = uVar2 - 1) {
+        *puVar5 = *puVar4;
+        puVar4 = puVar4 + 1;
+        puVar5 = puVar5 + 1;
+      }
+      for (iVar3 = (uVar1 & 1) << 1; iVar3 != 0; iVar3 = iVar3 + -1) {
+        *(undefined1 *)puVar5 = *(undefined1 *)puVar4;
+        puVar4 = (undefined4 *)((int)puVar4 + 1);
+        puVar5 = (undefined4 *)((int)puVar5 + 1);
+      }
+      (&DAT_00583bd5)[param_1] = 1;
+      FUN_004e812f();
+      if ((*(int *)(in_ECX + 0x764c) != 2) && (param_2 != 0)) {
+        FUN_004e0559(1,1,0);
+      }
+      return;
+    }
+    if (*(short *)((int)&DAT_00583a31 + *(int *)(in_ECX + 0x822e) * 2) == param_1) break;
+    *(int *)(in_ECX + 0x822e) = *(int *)(in_ECX + 0x822e) + 1;
+  }
+  return;
+}
+

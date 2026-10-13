@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x502370
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_20c7c52bf11d994d9023881598efe05eb08f3d2ab61411fd9b04f8b74b2165a9
+ */
+
+void FUN_00502370(float param_1,uint param_2,uint param_3,float *param_4,undefined4 *param_5)
+
+{
+  uint uVar1;
+  uint uVar2;
+  
+  uVar1 = ((int)param_3 < (int)param_2) - 1;
+  uVar2 = (int)(param_2 - param_3) >> 0x1f;
+  uVar2 = 0x1f - ((param_2 - param_3 ^ uVar2) - uVar2);
+  *param_4 = (*(float *)(&DAT_00566960 + (((int)uVar2 < 0) - 1 & uVar2) * 4) + 1.0) *
+             *(float *)(&DAT_00566560 + (~uVar1 & param_2 | uVar1 & param_3) * 4) * param_1;
+  *param_5 = 0;
+  return;
+}
+

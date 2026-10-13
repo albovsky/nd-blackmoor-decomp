@@ -1,0 +1,45 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x47a1a9
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_827db53a64242b59e9f92d38aeb544549dfa70f780a54958ee5eb67fb48784ea
+ */
+
+undefined4 FUN_0047a1a9(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  int iVar2;
+  undefined2 extraout_var;
+  char *pcVar3;
+  char *pcVar4;
+  bool bVar5;
+  short local_8;
+  
+  iVar1 = *(int *)(&DAT_005bb5e5 + *(short *)(in_ECX + 0x1e) * 0x8d);
+  local_8 = 0;
+  while( true ) {
+    if (*(short *)(iVar1 + 0x25) <= local_8) {
+      return 0;
+    }
+    if ((*(short *)(in_ECX + 0x1592 + local_8 * 4) == *(short *)(in_ECX + 0x158e)) &&
+       (*(short *)(in_ECX + 0x1594 + local_8 * 4) == *(short *)(in_ECX + 0x1590))) break;
+    local_8 = local_8 + 1;
+  }
+  iVar2 = 9;
+  bVar5 = true;
+  pcVar3 = (char *)(iVar1 + 0x1c4);
+  pcVar4 = s_NO_SOUND_0054cb98;
+  do {
+    if (iVar2 == 0) break;
+    iVar2 = iVar2 + -1;
+    bVar5 = *pcVar3 == *pcVar4;
+    pcVar3 = pcVar3 + 1;
+    pcVar4 = pcVar4 + 1;
+  } while (bVar5);
+  if ((!bVar5) && (iVar2 = FUN_004f6334((int)*(short *)(iVar1 + 0x1e5)), iVar2 == 0)) {
+    FUN_004fb2e3(CONCAT22(extraout_var,*(undefined2 *)(iVar1 + 0x1e5)));
+  }
+  return 1;
+}
+

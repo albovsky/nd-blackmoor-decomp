@@ -1,0 +1,66 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4dd05a
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_1170d6ff0aa8c399a4290cb7ce31f9814821c7e7912b3a9e53fd0c614d22037c
+ */
+
+void FUN_004dd05a(void)
+
+{
+  int iVar1;
+  int in_ECX;
+  
+  if (DAT_006381a9 == 0) {
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_ProcessSecondaryMovieSequence_____0055b5c0);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    iVar1 = FUN_004bef85(*(undefined4 *)(in_ECX + 0x106));
+    if (iVar1 != 0) {
+      FUN_004befc8(*(undefined4 *)(in_ECX + 0x106));
+      FUN_004bf098(*(undefined4 *)(in_ECX + 0x106),**(undefined4 **)(in_ECX + 0x4a),
+                   (int)*(short *)(*(int *)(in_ECX + 0x4a) + 0x2f),
+                   (int)*(short *)(*(int *)(in_ECX + 0x4a) + 0x2d),0,0);
+      iVar1 = FUN_004bf10f(*(undefined4 *)(in_ECX + 0x106));
+      if (iVar1 == 0) {
+        DAT_006381a9 = 5;
+      }
+      else {
+        DAT_006381a9 = 4;
+      }
+      if (*(int *)(in_ECX + 0x102) != 0) {
+        FUN_004fb2e3(*(undefined2 *)(in_ECX + 0xde));
+      }
+      DAT_006381e5 = 1;
+      if (DAT_0063a4cd != 0) {
+        FUN_0044a2b7(s_CPartnerLogo__ProcessSequence_____0055b604);
+      }
+    }
+  }
+  else if (DAT_006381a9 == 4) {
+    iVar1 = FUN_004bef85(*(undefined4 *)(in_ECX + 0x106));
+    if (iVar1 != 0) {
+      FUN_004befc8(*(undefined4 *)(in_ECX + 0x106));
+      FUN_004bf098(*(undefined4 *)(in_ECX + 0x106),**(undefined4 **)(in_ECX + 0x4a),
+                   (int)*(short *)(*(int *)(in_ECX + 0x4a) + 0x2f),
+                   (int)*(short *)(*(int *)(in_ECX + 0x4a) + 0x2d),0,0);
+      iVar1 = FUN_004bf10f(*(undefined4 *)(in_ECX + 0x106));
+      if ((iVar1 == 0) &&
+         ((*(int *)(in_ECX + 0x102) == 0 ||
+          ((*(int *)(in_ECX + 0x102) != 0 &&
+           (iVar1 = FUN_004f6334((int)*(short *)(in_ECX + 0xde)), iVar1 == 0)))))) {
+        DAT_006381a9 = 5;
+      }
+      DAT_006381e5 = 1;
+    }
+  }
+  else if (DAT_006381a9 == 5) {
+    *(undefined4 *)(in_ECX + 0x1c) = 3;
+    FUN_004dad60();
+    if (DAT_0063a4cd != 0) {
+      FUN_0044a2b7(s_ProcessSecondaryMovieSequence_____0055b644);
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,39 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c74f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+void FUN_0051c74f(void)
+
+{
+  int iVar1;
+  CWinThread *pCVar2;
+  uint uVar3;
+  int in_ECX;
+  
+  iVar1 = FUN_00525371();
+  if ((*(int *)(iVar1 + 4) != 0) && (*(int *)(*(int *)(iVar1 + 4) + 0x1c) == in_ECX)) {
+    FUN_0051f929();
+  }
+  iVar1 = FUN_00525371();
+  if (*(char *)(iVar1 + 0x14) == '\0') {
+    pCVar2 = AfxGetThread();
+    if (pCVar2 != (CWinThread *)0x0) {
+      pCVar2 = AfxGetThread();
+      if (*(int *)(pCVar2 + 0x1c) == in_ECX) {
+        iVar1 = FUN_00525bd1(&LAB_005249d1);
+        if (*(code **)(iVar1 + 0x1c) != (code *)0x0) {
+          (**(code **)(iVar1 + 0x1c))();
+        }
+      }
+    }
+  }
+  uVar3 = FUN_0051d526();
+  if ((uVar3 & 0x40000000) == 0) {
+    FUN_0051c22e(*(undefined4 *)(in_ECX + 0x1c),0x15,0,0,1,1);
+  }
+  FUN_0051ab4b();
+  return;
+}
+

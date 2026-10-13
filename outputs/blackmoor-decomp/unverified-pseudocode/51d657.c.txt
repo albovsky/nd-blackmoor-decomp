@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51d657
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_660f113b4cd6f4812ca4e37feb1ec9db247cedee282c56d4fe5eb89c030f3859
+ */
+
+void FUN_0051d657(void)
+
+{
+  int in_ECX;
+  
+  if (*(int **)(in_ECX + 0x38) == (int *)0x0) {
+    IsWindowEnabled(*(HWND *)(in_ECX + 0x1c));
+    return;
+  }
+                    /* WARNING: Could not recover jumptable at 0x0051d66c. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+  (**(code **)(**(int **)(in_ECX + 0x38) + 0xa4))();
+  return;
+}
+

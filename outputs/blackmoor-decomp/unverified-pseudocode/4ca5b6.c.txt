@@ -1,0 +1,77 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4ca5b6
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d590aeb62d3bd1e1413a3f3e4f07f565aba52ab8fd98207292a76569576fbcb9
+ */
+
+undefined4 FUN_004ca5b6(undefined4 *param_1,char *param_2,char *param_3,int param_4)
+
+{
+  undefined4 *puVar1;
+  int iVar2;
+  undefined4 *puVar3;
+  int *local_c;
+  int local_8;
+  
+  local_c = (int *)0x0;
+  puVar1 = (undefined4 *)(param_4 + *(int *)(param_4 + 0x1758) * 0x3e4);
+  puVar3 = puVar1;
+  for (iVar2 = 0xf9; iVar2 != 0; iVar2 = iVar2 + -1) {
+    *puVar3 = 0;
+    puVar3 = puVar3 + 1;
+  }
+  local_8 = DirectDrawCreateEx(param_1,&local_c,&DAT_0052e56c,0);
+  if (local_8 < 0) {
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_DirectDrawEnumerateCallback_____D_00558164,param_3,param_2);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+  }
+  else {
+    if (DAT_0063a4cd != 0) {
+      FUN_0050ca3e(&DAT_0063888b,s_DirectDrawEnumerateCallback_____D_005581b4,param_3,param_2);
+      FUN_0044a2b7(&DAT_0063888b);
+    }
+    _strncpy((char *)(puVar1 + 0xe0),param_3,99);
+    _strncpy((char *)(puVar1 + 199),param_2,99);
+    puVar1[0xc2] = param_1;
+    if (param_1 != (undefined4 *)0x0) {
+      puVar1[0xc3] = *param_1;
+      puVar1[0xc4] = param_1[1];
+      puVar1[0xc5] = param_1[2];
+      puVar1[0xc6] = param_1[3];
+    }
+    puVar1[2] = 0x17c;
+    puVar1[0x61] = 0x17c;
+    (**(code **)(*local_c + 0x2c))(local_c,puVar1 + 2,puVar1 + 0x61);
+    if ((puVar1[4] & 0x100000) == 0) {
+      puVar1[0xc0] = 0;
+    }
+    else {
+      puVar1[0xc0] = 1;
+    }
+    if ((puVar1[4] & 0x20000) == 0) {
+      puVar1[0xc1] = 0;
+    }
+    else {
+      puVar1[0xc1] = 1;
+    }
+    (**(code **)(*local_c + 0x20))(local_c,0,0,puVar1,FUN_004ca81e);
+    if (puVar1[1] == 0) {
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_DirectDrawEnumerateCallback_____E_00558204,param_3,param_2);
+        FUN_0044a2b7(&DAT_0063888b);
+      }
+    }
+    else {
+      if (DAT_0063a4cd != 0) {
+        FUN_0050ca3e(&DAT_0063888b,s_DirectDrawEnumerateCallback_____E_00558270,param_3,param_2);
+        FUN_0044a2b7(&DAT_0063888b);
+      }
+      *(int *)(param_4 + 0x1758) = *(int *)(param_4 + 0x1758) + 1;
+    }
+    (**(code **)(*local_c + 8))(local_c);
+  }
+  return 1;
+}
+

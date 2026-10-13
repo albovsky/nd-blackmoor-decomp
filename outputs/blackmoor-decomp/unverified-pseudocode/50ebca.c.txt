@@ -1,0 +1,84 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50ebca
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+ */
+
+void * FUN_0050ebca(LPVOID param_1,uint param_2)
+
+{
+  void *pvVar1;
+  int iVar2;
+  int iVar3;
+  LPVOID pvVar4;
+  uint uVar5;
+  
+  if (param_1 == (LPVOID)0x0) {
+    pvVar1 = _malloc(param_2);
+  }
+  else {
+    if (param_2 == 0) {
+      FUN_0050e936(param_1);
+    }
+    else {
+      do {
+        if (param_2 < 0xffffffe1) {
+          FUN_00512c18(9);
+          iVar2 = FUN_00514f63(param_1);
+          if (iVar2 == 0) {
+            FUN_00512c79(9);
+            if (param_2 == 0) {
+              param_2 = 1;
+            }
+            param_2 = param_2 + 0xf & 0xfffffff0;
+            pvVar4 = HeapReAlloc(DAT_0063cdd8,0,param_1,param_2);
+          }
+          else {
+            if (DAT_00568b78 < param_2) {
+LAB_0050ec69:
+              if (param_2 == 0) {
+                param_2 = 1;
+              }
+              param_2 = param_2 + 0xf & 0xfffffff0;
+              pvVar4 = HeapAlloc(DAT_0063cdd8,0,param_2);
+              if (pvVar4 != (LPVOID)0x0) {
+                uVar5 = *(int *)((int)param_1 + -4) - 1;
+                if (param_2 <= uVar5) {
+                  uVar5 = param_2;
+                }
+                FUN_0050fa90(pvVar4,param_1,uVar5);
+                FUN_00514f8e(iVar2,param_1);
+              }
+            }
+            else {
+              iVar3 = FUN_0051576e(iVar2,param_1,param_2);
+              pvVar4 = param_1;
+              if (iVar3 == 0) {
+                pvVar4 = (LPVOID)FUN_005152b9(param_2);
+                if (pvVar4 == (LPVOID)0x0) goto LAB_0050ec69;
+                uVar5 = *(int *)((int)param_1 + -4) - 1;
+                if (param_2 <= uVar5) {
+                  uVar5 = param_2;
+                }
+                FUN_0050fa90(pvVar4,param_1,uVar5);
+                FUN_00514f8e(iVar2,param_1);
+              }
+              if (pvVar4 == (LPVOID)0x0) goto LAB_0050ec69;
+            }
+            FUN_00512c79(9);
+          }
+          if (pvVar4 != (LPVOID)0x0) {
+            return pvVar4;
+          }
+        }
+        if (DAT_0063cc4c == 0) {
+          return (void *)0x0;
+        }
+        iVar2 = FUN_00515a64(param_2);
+      } while (iVar2 != 0);
+    }
+    pvVar1 = (void *)0x0;
+  }
+  return pvVar1;
+}
+

@@ -1,0 +1,50 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x423368
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6aea749257e733e6a888071535cd523e265e1b5dc78f23c23f75e3654451d196
+ */
+
+int FUN_00423368(char *param_1)
+
+{
+  char cVar1;
+  short sVar2;
+  uint uVar3;
+  int iVar4;
+  int iVar5;
+  char *pcVar6;
+  short local_8;
+  
+  iVar5 = -1;
+  pcVar6 = param_1;
+  do {
+    if (iVar5 == 0) break;
+    iVar5 = iVar5 + -1;
+    cVar1 = *pcVar6;
+    pcVar6 = pcVar6 + 1;
+  } while (cVar1 != '\0');
+  uVar3 = FUN_0050cb1b(param_1 + 3);
+  uVar3 = uVar3 & 0x800003ff;
+  if ((int)uVar3 < 0) {
+    uVar3 = (uVar3 - 1 | 0xfffffc00) + 1;
+  }
+  sVar2 = (short)uVar3;
+  if (sVar2 == 0) {
+    for (local_8 = 0; local_8 < (short)(~(ushort)iVar5 - 1); local_8 = local_8 + 1) {
+      iVar4 = FUN_0050d6cf((int)param_1[local_8]);
+      if (iVar4 != 0) {
+        uVar3 = FUN_0050cb1b(param_1 + local_8);
+        uVar3 = uVar3 & 0x800003ff;
+        if ((int)uVar3 < 0) {
+          uVar3 = (uVar3 - 1 | 0xfffffc00) + 1;
+        }
+        sVar2 = (short)uVar3;
+        goto LAB_0042343b;
+      }
+    }
+    sVar2 = (short)*param_1;
+  }
+LAB_0042343b:
+  return (int)sVar2;
+}
+

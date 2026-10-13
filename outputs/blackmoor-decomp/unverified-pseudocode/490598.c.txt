@@ -1,0 +1,146 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x490598
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342
+ */
+
+void FUN_00490598(void)
+
+{
+  float fVar1;
+  int in_ECX;
+  float10 fVar2;
+  undefined4 local_c;
+  undefined4 local_8;
+  
+  *(undefined4 *)(in_ECX + 0x200b) = 0;
+  *(undefined2 *)(in_ECX + 0x1e) = 0xffff;
+  *(undefined2 *)(in_ECX + 0x1c) = 0xffff;
+  *(undefined4 *)(in_ECX + 0x1f77) = 0;
+  *(undefined4 *)(in_ECX + 0x4769) = 0;
+  *(undefined4 *)(in_ECX + 0x1f7f) = 0;
+  *(undefined4 *)(in_ECX + 0x1eeb) = 0x54524550;
+  *(undefined4 *)(in_ECX + 0x1eef) = 0x400921fb;
+  *(undefined4 *)(in_ECX + 0x1f2f) = 0;
+  *(undefined4 *)(in_ECX + 0x1f33) = 0;
+  *(undefined4 *)(in_ECX + 0x1f37) = 0;
+  *(undefined4 *)(in_ECX + 0x1eff) = 0;
+  *(undefined4 *)(in_ECX + 0x1f03) = 0;
+  *(undefined4 *)(in_ECX + 0x1f07) = 0;
+  *(undefined4 *)(in_ECX + 0x1f0b) = 0;
+  *(undefined4 *)(in_ECX + 0x20c1) = 0;
+  *(undefined4 *)(in_ECX + 7999) = 0x6ba4;
+  *(undefined4 *)(in_ECX + 0x1f47) = 0;
+  *(undefined4 *)(in_ECX + 0x1f4b) = 0;
+  *(undefined4 *)(in_ECX + 0x1f4f) = 0;
+  *(undefined4 *)(in_ECX + 0x1f53) = 0;
+  *(undefined4 *)(in_ECX + 0x1f57) = 0;
+  *(undefined4 *)(in_ECX + 0x1f5b) = 0;
+  *(undefined4 *)(in_ECX + 0x1f5f) = 0;
+  *(undefined4 *)(in_ECX + 0x1f63) = 0;
+  *(undefined4 *)(in_ECX + 0x1f67) = 0;
+  *(undefined4 *)(in_ECX + 0x1f6f) = 0;
+  *(undefined4 *)(in_ECX + 0x1f73) = 0;
+  DAT_0058322e = 0;
+  *(undefined4 *)(in_ECX + 0x2035) = 0;
+  *(undefined4 *)(in_ECX + 0x2039) = 0;
+  DAT_0058322f = 0;
+  DAT_00583230 = 0;
+  DAT_00583231 = 0;
+  *(undefined4 *)(in_ECX + 0x1f43) = 0;
+  *(undefined4 *)(in_ECX + 0x459d) = 0;
+  *(undefined4 *)(in_ECX + 0x45a5) = 0;
+  *(undefined4 *)(in_ECX + 0x45a9) = 0;
+  *(undefined4 *)(in_ECX + 0x200f) = 0;
+  *(undefined4 *)(in_ECX + 0x2013) = 0;
+  *(undefined4 *)(in_ECX + 0x2017) = 0;
+  *(undefined4 *)(in_ECX + 0x50f3) = 0;
+  *(undefined4 *)(in_ECX + 0x50f7) = 0;
+  *(undefined1 *)(in_ECX + 0x50fb) = 0;
+  *(undefined1 *)(in_ECX + 0x50fc) = 0;
+  *(undefined1 *)(in_ECX + 0x50fd) = 0;
+  *(undefined4 *)(in_ECX + 0x4781) = 0;
+  *(undefined4 *)(in_ECX + 0x4785) = 0;
+  *(undefined4 *)(in_ECX + 0x4789) = 0;
+  *(undefined4 *)(in_ECX + 0x478d) = 0;
+  DAT_0058322d = 0;
+  *(undefined4 *)(in_ECX + 0x4791) = 0;
+  *(undefined4 *)(in_ECX + 0x4795) = 1;
+  *(undefined4 *)(in_ECX + 0x20b5) = 0;
+  *(undefined4 *)(in_ECX + 0x2095) = 0x80;
+  *(int *)(in_ECX + 0x2099) = *(int *)(in_ECX + 0x2095) >> 1;
+  *(undefined4 *)(in_ECX + 0x209d) = 0;
+  *(int *)(in_ECX + 0x20a1) = *(int *)(in_ECX + 0x2095) * 0xa6 + -1;
+  *(undefined4 *)(in_ECX + 0x20a5) = 0;
+  *(int *)(in_ECX + 0x20a9) = *(int *)(in_ECX + 0x2095) * 0xa6 + -1;
+  fVar1 = (float)*(int *)(in_ECX + 0x2095) * 166.0 * (float)*(int *)(in_ECX + 0x2095) * 166.0;
+  fVar2 = (float10)FUN_0050df94((double)(fVar1 + fVar1));
+  *(float *)(in_ECX + 0x20ad) = (float)fVar2;
+  *(undefined4 *)(in_ECX + 0x20b1) = 0xa5;
+  *(undefined4 *)(in_ECX + 0x1f27) = 1;
+  *(undefined4 *)(in_ECX + 0x1f0f) = 0;
+  *(undefined4 *)(in_ECX + 0x1f13) = 0x200;
+  *(undefined4 *)(in_ECX + 0x1f17) = 0x400;
+  *(undefined4 *)(in_ECX + 0x1f1b) = 0x600;
+  *(undefined4 *)(in_ECX + 0x1f1f) = 0x800;
+  *(undefined4 *)(in_ECX + 0x1f23) = 0xc00;
+  *(undefined4 *)(in_ECX + 0x20b9) = 7;
+  *(int *)(in_ECX + 0x20bd) = *(int *)(in_ECX + 0x2095) * 0xa6;
+  *(undefined4 *)(in_ECX + 0x1f3b) = *(undefined4 *)(in_ECX + 0x2095);
+  *(undefined4 *)(in_ECX + 0x45b1) = *(undefined4 *)(in_ECX + 0x2095);
+  *(undefined4 *)(in_ECX + 0x45b9) = *(undefined4 *)(in_ECX + 0x2095);
+  *(int *)(in_ECX + 0x45bd) = *(int *)(in_ECX + 0x45b9) + -1;
+  *(undefined4 *)(in_ECX + 0x476d) = 0xc0;
+  *(float *)(in_ECX + 0x47a9) = (float)*(int *)(in_ECX + 0x1f3b) / 8.0;
+  *(undefined4 *)(in_ECX + 0x1f2b) = 0x40900000;
+  *(undefined4 *)(in_ECX + 0x47f1) = *(undefined4 *)(in_ECX + 0x2099);
+  *(int *)(in_ECX + 0x47f5) = *(int *)(in_ECX + 0x2099) + -0xf;
+  *(int *)(in_ECX + 0x47f9) = *(int *)(in_ECX + 0x2095) - *(int *)(in_ECX + 0x47f5);
+  *(int *)(in_ECX + 0x47fd) = *(int *)(in_ECX + 0x2095) / 6;
+  *(int *)(in_ECX + 0x4801) = *(int *)(in_ECX + 0x2095) - *(int *)(in_ECX + 0x47fd);
+  *(int *)(in_ECX + 0x4805) = *(int *)(in_ECX + 0x2095) * 0xa5 - *(int *)(in_ECX + 0x47f1);
+  *(int *)(in_ECX + 0x4809) = *(int *)(in_ECX + 0x2095) * 0xa5 - *(int *)(in_ECX + 0x47f1);
+  *(int *)(in_ECX + 0x480d) = *(int *)(in_ECX + 0x2095) + *(int *)(in_ECX + 0x47f1);
+  *(int *)(in_ECX + 0x4811) = *(int *)(in_ECX + 0x2095) + *(int *)(in_ECX + 0x47f1);
+  *(undefined4 *)(in_ECX + 0x4815) = 0x3951b717;
+  *(undefined4 *)(in_ECX + 0x4819) = 0x3a1d4952;
+  *(undefined4 *)(in_ECX + 0x201b) = 0x3db40000;
+  *(float *)(in_ECX + 0x47ed) =
+       (float)((float10)4096.0 / ((float10)2.0 * (float10)*(double *)(in_ECX + 0x1eeb)));
+  for (local_c = 0; local_c < 0x55; local_c = local_c + 1) {
+    *(undefined4 *)(in_ECX + 0x20e5 + local_c * 4) = 0;
+    *(undefined4 *)(in_ECX + 0x41f1 + local_c * 4) = 0;
+  }
+  for (local_c = 0; local_c < 0x28; local_c = local_c + 1) {
+    *(undefined4 *)(in_ECX + 0x2239 + local_c * 4) = 0;
+    *(undefined4 *)(in_ECX + 0x4345 + local_c * 4) = 0;
+  }
+  for (local_c = 0; local_c < 0x55; local_c = local_c + 1) {
+    *(undefined4 *)(in_ECX + 0x22d9 + local_c * 4) = 0;
+    *(undefined4 *)(in_ECX + 0x43e5 + local_c * 4) = 0;
+  }
+  for (local_c = 0; local_c < 0x19; local_c = local_c + 1) {
+    *(undefined4 *)(in_ECX + 0x242d + local_c * 4) = 0;
+    *(undefined4 *)(in_ECX + 0x4539 + local_c * 4) = 0;
+  }
+  for (local_c = 0; local_c < 8; local_c = local_c + 1) {
+    for (local_8 = 0; local_8 < 0x55; local_8 = local_8 + 1) {
+      *(undefined4 *)(in_ECX + 0x2491 + local_c * 0x154 + local_8 * 4) = 0;
+    }
+    for (local_8 = 0; local_8 < 0x28; local_8 = local_8 + 1) {
+      *(undefined4 *)(in_ECX + 0x2f31 + local_c * 0xa0 + local_8 * 4) = 0;
+    }
+    for (local_8 = 0; local_8 < 0x55; local_8 = local_8 + 1) {
+      *(undefined4 *)(in_ECX + 0x3431 + local_c * 0x154 + local_8 * 4) = 0;
+    }
+    for (local_8 = 0; local_8 < 0x19; local_8 = local_8 + 1) {
+      *(undefined4 *)(in_ECX + 0x3ed1 + local_c * 100 + local_8 * 4) = 0;
+    }
+  }
+  *(undefined4 *)(in_ECX + 0x4765) = 0;
+  for (local_c = 0; local_c < 0xf; local_c = local_c + 1) {
+    *(undefined4 *)(in_ECX + 0x45c1 + local_c * 0x1c) = 0;
+  }
+  return;
+}
+

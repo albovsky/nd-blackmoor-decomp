@@ -1,0 +1,25 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x510066
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_3784ce9180aeab8362927bb1029087f7d883b0ec5d34301a09ab54177a07ada3
+ */
+
+SIZE_T FUN_00510066(LPCVOID param_1)
+
+{
+  int iVar1;
+  SIZE_T SVar2;
+  
+  FUN_00512c18(9);
+  iVar1 = FUN_00514f63(param_1);
+  if (iVar1 == 0) {
+    FUN_00512c79(9);
+    SVar2 = HeapSize(DAT_0063cdd8,0,param_1);
+  }
+  else {
+    SVar2 = *(int *)((int)param_1 + -4) - 9;
+    FUN_00512c79(9);
+  }
+  return SVar2;
+}
+

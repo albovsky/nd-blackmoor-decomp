@@ -1,0 +1,114 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4e0e2b
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_9518a8d38812b37051c445b712839a110fe36a23c18959a042dc948141dd9772
+ */
+
+/* WARNING: Removing unreachable block (ram,0x004e10c0) */
+
+void FUN_004e0e2b(void)
+
+{
+  char cVar1;
+  undefined4 uVar2;
+  int iVar3;
+  int in_ECX;
+  char *pcVar4;
+  char *pcVar5;
+  int local_8;
+  
+  FUN_004e18e5(DAT_005bb57b & 0xffff);
+  iVar3 = *(int *)(in_ECX + 0xf2a);
+  if (iVar3 == 0) {
+    if (*(int *)(in_ECX + 0x74f) == 0) {
+      uVar2 = FUN_004c2790(s_CIFTREE_0055bc44,in_ECX + 4,6,s_game_frame_0055bc38);
+      *(undefined4 *)(in_ECX + 0x74f) = uVar2;
+    }
+    *(undefined4 *)(in_ECX + 0xf2a) = 1;
+  }
+  else if (iVar3 == 1) {
+    for (local_8 = 0; local_8 < 5; local_8 = local_8 + 1) {
+      FUN_004e29ec();
+    }
+    DAT_00583220 = 0;
+    DAT_00583232 = 0;
+    DAT_00583233 = 0;
+    DAT_00583234 = 0;
+    DAT_0058321f = 0;
+    for (local_8 = 0; local_8 < 5; local_8 = local_8 + 1) {
+      iVar3 = FUN_004e2913();
+      if (iVar3 != 0) {
+        DAT_0063888b._0_1_ = 0;
+        switch(local_8) {
+        case 0:
+          DAT_00583220 = 1;
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_Process_0055bc4c,DAT_005bb57b);
+          }
+          break;
+        case 1:
+          DAT_00583232 = 1;
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_Process_0055bc94,DAT_005bb57b);
+          }
+          break;
+        case 2:
+          DAT_00583233 = 1;
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_Process_0055bce0,DAT_005bb57b);
+          }
+          break;
+        case 3:
+          DAT_00583234 = 1;
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_Process_0055bd2c,DAT_005bb57b);
+          }
+          break;
+        case 4:
+          DAT_0058321f = 1;
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_Process_0055bd78,DAT_005bb57b);
+          }
+          break;
+        default:
+          if (DAT_0063a4cd != 0) {
+            FUN_0050ca3e(&DAT_0063888b,s____DIAGNOSTIC____TASKBAR_Process_0055bdbc,DAT_005bb57b);
+          }
+        }
+        if (DAT_0063a4cd != 0) {
+          iVar3 = -1;
+          pcVar4 = (char *)&DAT_0063888b;
+          do {
+            if (iVar3 == 0) break;
+            iVar3 = iVar3 + -1;
+            cVar1 = *pcVar4;
+            pcVar4 = pcVar4 + 1;
+          } while (cVar1 != '\0');
+          if (iVar3 != -2) {
+            FUN_0044a2b7(&DAT_0063888b);
+            iVar3 = -1;
+            pcVar4 = (char *)&DAT_0063888b;
+            do {
+              pcVar5 = pcVar4;
+              if (iVar3 == 0) break;
+              iVar3 = iVar3 + -1;
+              pcVar5 = pcVar4 + 1;
+              cVar1 = *pcVar4;
+              pcVar4 = pcVar5;
+            } while (cVar1 != '\0');
+            *(undefined2 *)(pcVar5 + -1) = DAT_0055be08;
+          }
+        }
+      }
+    }
+  }
+  else if (iVar3 == 2) {
+    DAT_00583220 = 0;
+    DAT_00583232 = 0;
+    DAT_00583233 = 0;
+    DAT_00583234 = 0;
+    DAT_0058321f = 0;
+  }
+  return;
+}
+

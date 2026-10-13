@@ -1,0 +1,122 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x520397
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_4885e6fea92dac09228c0a462164bd336a5e033477c51bac06a0c68b22eedb5b
+ */
+
+void FUN_00520397(void)
+
+{
+  byte bVar1;
+  int *piVar2;
+  UINT_PTR uIDNewItem;
+  LPCSTR lpNewItem;
+  undefined *puVar3;
+  LPSTR lpString;
+  int iVar4;
+  byte *pbVar5;
+  undefined4 uVar6;
+  undefined4 *puVar7;
+  int extraout_ECX;
+  byte *pbVar8;
+  int iVar9;
+  int unaff_EBP;
+  int iVar10;
+  UINT UVar11;
+  
+  FUN_0050f978();
+  piVar2 = *(int **)(unaff_EBP + 8);
+  iVar10 = *(int *)(extraout_ECX + 0x1c);
+  iVar4 = piVar2[3];
+  *(int *)(unaff_EBP + -0x18) = iVar4;
+  if ((*(int *)(iVar10 + -8) == 0) && (iVar4 != 0)) {
+    UVar11 = 0;
+    *(int *)(unaff_EBP + 8) = piVar2[1];
+    iVar10 = 0x100;
+    lpString = (LPSTR)FUN_0051ea75(0x100);
+    GetMenuStringA(*(HMENU *)(*(int *)(unaff_EBP + -0x18) + 4),*(UINT *)(unaff_EBP + 8),lpString,
+                   iVar10,UVar11);
+    FUN_0051eac4(0xffffffff);
+  }
+  if (*(int *)(**(int **)(extraout_ECX + 8) + -8) == 0) {
+    if (*(int *)(*(int *)(extraout_ECX + 0x1c) + -8) != 0) {
+      (**(code **)(*piVar2 + 0xc))(*(int *)(extraout_ECX + 0x1c));
+    }
+    (**(code **)*piVar2)(0);
+  }
+  else if (piVar2[3] != 0) {
+    iVar10 = 0;
+    if (0 < *(int *)(extraout_ECX + 4)) {
+      do {
+        DeleteMenu(*(HMENU *)(piVar2[3] + 4),piVar2[1] + iVar10,0);
+        iVar10 = iVar10 + 1;
+      } while (iVar10 < *(int *)(extraout_ECX + 4));
+    }
+    GetCurrentDirectoryA(0x104,(LPSTR)(unaff_EBP + -0x130));
+    iVar4 = lstrlenA((LPCSTR)(unaff_EBP + -0x130));
+    puVar3 = PTR_DAT_005679b0;
+    *(undefined1 *)(unaff_EBP + -0x130 + iVar4) = 0x5c;
+    *(undefined1 *)(unaff_EBP + -0x12f + iVar4) = 0;
+    iVar4 = iVar4 + 1;
+    *(int *)(unaff_EBP + -0x18) = iVar4;
+    *(undefined **)(unaff_EBP + -0x14) = puVar3;
+    iVar9 = 0;
+    *(undefined **)(unaff_EBP + -0x10) = puVar3;
+    *(undefined4 *)(unaff_EBP + -4) = 0;
+    iVar10 = *(int *)(extraout_ECX + 4);
+    *(undefined1 *)(unaff_EBP + -4) = 1;
+    if (0 < iVar10) {
+      while (iVar10 = FUN_00520291(unaff_EBP + -0x14,iVar9,unaff_EBP + -0x130,iVar4,1), iVar10 != 0)
+      {
+        *(int *)(unaff_EBP + 8) = *(int *)(unaff_EBP + -0x14);
+        pbVar5 = (byte *)FUN_0051ea75(*(int *)(*(int *)(unaff_EBP + -0x14) + -8) * 2);
+        for (pbVar8 = *(byte **)(unaff_EBP + 8); *pbVar8 != 0; pbVar8 = pbVar8 + 1) {
+          if (*pbVar8 == 0x26) {
+            *pbVar5 = 0x26;
+            pbVar5 = pbVar5 + 1;
+          }
+          bVar1 = *pbVar8;
+          *(byte *)(unaff_EBP + 0xb) = bVar1;
+          if ((*(byte *)((int)&DAT_0063e020 + bVar1 + 1) & 4) != 0) {
+            *pbVar5 = *(byte *)(unaff_EBP + 0xb);
+            pbVar5 = pbVar5 + 1;
+            pbVar8 = pbVar8 + 1;
+          }
+          *pbVar5 = *pbVar8;
+          pbVar5 = pbVar5 + 1;
+        }
+        *pbVar5 = 0;
+        FUN_0051eac4(0xffffffff);
+        wsprintfA((LPSTR)(unaff_EBP + -0x2c),"&%d ",
+                  (uint)(*(int *)(extraout_ECX + 0x14) + 1 + iVar9) % 10);
+        uVar6 = FUN_0051e828(unaff_EBP + -0x2c);
+        *(undefined1 *)(unaff_EBP + -4) = 2;
+        puVar7 = (undefined4 *)FUN_0051e95c(unaff_EBP + -0x1c,uVar6,unaff_EBP + -0x10);
+        UVar11 = piVar2[2];
+        *(undefined4 *)(unaff_EBP + 8) = *puVar7;
+        uIDNewItem = piVar2[1];
+        lpNewItem = *(LPCSTR *)(unaff_EBP + 8);
+        piVar2[2] = UVar11 + 1;
+        piVar2[1] = uIDNewItem + 1;
+        InsertMenuA(*(HMENU *)(piVar2[3] + 4),UVar11,0x400,uIDNewItem,lpNewItem);
+        FUN_0051e7ba();
+        *(undefined1 *)(unaff_EBP + -4) = 1;
+        FUN_0051e7ba();
+        iVar9 = iVar9 + 1;
+        if (*(int *)(extraout_ECX + 4) <= iVar9) break;
+        iVar4 = *(int *)(unaff_EBP + -0x18);
+      }
+    }
+    piVar2[2] = piVar2[2] + -1;
+    iVar10 = GetMenuItemCount(*(HMENU *)(piVar2[3] + 4));
+    *(undefined1 *)(unaff_EBP + -4) = 0;
+    piVar2[8] = iVar10;
+    piVar2[6] = 1;
+    FUN_0051e7ba();
+    *(undefined4 *)(unaff_EBP + -4) = 0xffffffff;
+    FUN_0051e7ba();
+  }
+  ExceptionList = *(void **)(unaff_EBP + -0xc);
+  return;
+}
+

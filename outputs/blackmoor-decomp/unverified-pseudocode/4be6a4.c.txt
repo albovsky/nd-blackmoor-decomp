@@ -1,0 +1,149 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4be6a4
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_a820b7e2430f534e8ea0b1abf6360ab2ba44f046f8d29cae3bd3792d6b2f52d9
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_004be6a4(void)
+
+{
+  int iVar1;
+  int local_30;
+  int local_2c;
+  int local_28;
+  int local_24;
+  int local_20;
+  int local_1c;
+  int local_18;
+  int local_14;
+  int local_10;
+  int local_c;
+  int local_8;
+  
+  local_20 = DAT_0061df6e;
+  if (DAT_0061df8a != 0) {
+    if (DAT_0061e10a != 0) {
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&DAT_00583196,&DAT_0061dfae,
+                   s_Whale_Survivor_Puzzle___Backgrou_005521d0);
+      DAT_0061e10a = 0;
+      DAT_0061e106 = 0;
+    }
+    if (DAT_0061e106 != 0) {
+      local_1c = DAT_0061e122 - _DAT_0061e132;
+      local_14 = DAT_0061e12a - _DAT_0061e132;
+      local_18 = DAT_0061e126 - _DAT_0061e136;
+      local_10 = DAT_0061e12e - _DAT_0061e136;
+      FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_1c,&DAT_0061e122,
+                   s_Whale_Survivor_Puzzle___restore_D_00552200);
+      DAT_0061e106 = 0;
+    }
+    if (DAT_0061dfa2 != 0) {
+      local_8 = DAT_0061dfa2;
+      while (local_8 != 0) {
+        if (*(int *)(local_8 + 0x128) != 0) {
+          *(undefined4 *)(local_8 + 0x128) = 0;
+          local_30 = *(int *)(local_8 + 0x78) - _DAT_0061e132;
+          local_28 = *(int *)(local_8 + 0x80) - _DAT_0061e132;
+          local_2c = *(int *)(local_8 + 0x7c) - _DAT_0061e136;
+          local_24 = *(int *)(local_8 + 0x84) - _DAT_0061e136;
+          FUN_004c5377(DAT_005d15e3,DAT_005cf665,&local_30,local_8 + 0x78,
+                       s_Whale_Survivor_Puzzle___restore_o_00552228);
+        }
+        if (*(int *)(local_8 + 300) == 0) {
+          local_8 = *(int *)(local_8 + 0x150);
+        }
+        else {
+          iVar1 = *(int *)(local_8 + 0x150);
+          FUN_004be1dd(local_8);
+          local_8 = iVar1;
+        }
+      }
+    }
+    switch(DAT_0061df72) {
+    case 0:
+      FUN_004c5377(DAT_0061df62,DAT_005cf665,DAT_0061df62 + 0x35,&DAT_0061e03e,
+                   s_Whale_Survivor_Puzzle___Start_sc_00552250);
+      break;
+    case 1:
+      for (local_c = 0; local_c < 7; local_c = local_c + 1) {
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x614 + local_c * 0x10,&DAT_0061e04e + local_c * 0x10,
+                     s_Whale_Survivor_Puzzle___SeaWeed_005522cc);
+      }
+      if (DAT_0061dfa2 != 0) {
+        for (local_8 = DAT_0061dfa2; local_8 != 0; local_8 = *(int *)(local_8 + 0x150)) {
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                       local_8 + 0x58,local_8 + 0x68,local_8);
+        }
+      }
+      if (DAT_0061e21a == 0) {
+        FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_20 + 0x7ac,&DAT_0061dfce,
+                     s_Whale_Survivor_Puzzle___Oxygen_G_005522ec);
+      }
+      else if ((0 < DAT_0061e21a) && (DAT_0061e21a < 9)) {
+        FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x684 + (DAT_0061e21a + -1) * 0x10,&DAT_0061dfce,
+                     s_Whale_Survivor_Puzzle___Oxygen_G_00552314);
+      }
+      for (local_c = 0; local_c < 3; local_c = local_c + 1) {
+        if (DAT_0061e226 + -1 < local_c) {
+          FUN_004c5377(DAT_005d15e3,DAT_005cf665,local_20 + 0x7bc + local_c * 0x10,
+                       &DAT_0061dfde + local_c * 0x10,s_Whale_Survivor_Puzzle___lives_0055235c);
+        }
+        else {
+          FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                       local_20 + 0xa4,&DAT_0061dfde + local_c * 0x10,
+                       s_Whale_Survivor_Puzzle___Lives_0055233c);
+        }
+      }
+      switch(DAT_0061df76) {
+      case 0:
+      case 2:
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x84,&DAT_0061e112,s_Whale_Survivor_Puzzle___Dally_0055237c);
+        break;
+      case 1:
+        local_30 = DAT_0061e112 + _DAT_0061e0ea + *(int *)(local_20 + 0x794);
+        local_28 = local_30 + -1 + DAT_0061e0ee;
+        local_24 = DAT_0061e0c6;
+        local_2c = (DAT_0061e0c6 - _DAT_0061e0f2) + 1;
+        FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x704 + DAT_0061e0f6 * 0x10,&local_30,
+                     s_Whale_Survivor_Puzzle___Dally_sp_005523c0);
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x84,&DAT_0061e112,s_Whale_Survivor_Puzzle___Dally_005523ec);
+        break;
+      case 3:
+        FUN_004c5d4b(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x94,&DAT_0061e112,s_Whale_Survivor_Puzzle___Dally_de_0055239c);
+      }
+      break;
+    case 2:
+    case 6:
+      if (DAT_0061df8e != 0) {
+        FUN_004c5377(DAT_0061df6a,DAT_005cf665,DAT_0061df6a + 0x35,&DAT_0061e03e,
+                     s_Whale_Survivor_Puzzle___win_scre_005522a8);
+      }
+      break;
+    case 3:
+      FUN_004c5377(DAT_0061df66,DAT_005cf665,DAT_0061df66 + 0x35,&DAT_0061e03e,
+                   s_Whale_Survivor_Puzzle___failed_t_00552278);
+    }
+    for (local_c = 0; local_c < 2; local_c = local_c + 1) {
+      if (*(int *)(&DAT_0061df7a + local_c * 8) == 0) {
+        FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x534 + local_c * 0x20,&DAT_0061e00e + local_c * 0x10,
+                     s_Whale_Survivor_Puzzle___Button_U_0055240c);
+      }
+      else if (*(int *)(&DAT_0061df7a + local_c * 8) == 1) {
+        FUN_004c5377(*(undefined4 *)((int)&DAT_005d1599 + DAT_0061df5a * 0x4a),DAT_005cf665,
+                     local_20 + 0x544 + local_c * 0x20,&DAT_0061e00e + local_c * 0x10,
+                     s_Whale_Survivor_Puzzle___Button_U_00552430);
+      }
+    }
+  }
+  return;
+}
+

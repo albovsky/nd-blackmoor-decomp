@@ -1,0 +1,16 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x50c309
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6b87ed72115c87fed1179d88fa97974f93d6f22889e386bb49899d21464413f2
+ */
+
+void FUN_0050c309(int param_1,int param_2,UINT param_3,RECT *param_4,LPCSTR param_5,UINT param_6,
+                 INT *param_7)
+
+{
+  int in_ECX;
+  
+  ExtTextOutA(*(HDC *)(in_ECX + 4),param_1,param_2,param_3,param_4,param_5,param_6,param_7);
+  return;
+}
+

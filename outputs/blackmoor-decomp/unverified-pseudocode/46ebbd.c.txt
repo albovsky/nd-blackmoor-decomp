@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x46ebbd
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704
+ */
+
+undefined4 FUN_0046ebbd(int param_1,int param_2,int param_3,int param_4,int param_5,int param_6)
+
+{
+  undefined4 local_c;
+  
+  if ((((param_2 < param_4) || (param_6 < param_2)) || (param_1 < param_3)) || (param_5 < param_1))
+  {
+    local_c = 0;
+  }
+  else {
+    local_c = 1;
+  }
+  return local_c;
+}
+

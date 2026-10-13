@@ -1,0 +1,23 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51c47f
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_c6207830fef0c4b941fc09c5e41c70003429cfb7399be898b71e969597eb455b
+ */
+
+void FUN_0051c47f(LPRECT param_1,int param_2)
+
+{
+  uint dwExStyle;
+  DWORD dwStyle;
+  BOOL bMenu;
+  
+  dwExStyle = FUN_0051d540();
+  if (param_2 == 0) {
+    dwExStyle = dwExStyle & 0xfffffdff;
+  }
+  bMenu = 0;
+  dwStyle = FUN_0051d526();
+  AdjustWindowRectEx(param_1,dwStyle,bMenu,dwExStyle);
+  return;
+}
+

@@ -1,0 +1,72 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x4c3c5d
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e
+ */
+
+void FUN_004c3c5d(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int in_ECX;
+  undefined1 local_b8;
+  undefined1 local_b7;
+  undefined1 local_b6;
+  undefined2 local_b5;
+  undefined2 local_b3;
+  undefined1 local_b1;
+  undefined2 local_b0;
+  undefined2 local_ae;
+  short local_ac;
+  short local_aa;
+  undefined1 local_a8;
+  undefined1 local_a7;
+  undefined1 local_a4 [36];
+  undefined1 local_80 [16];
+  undefined4 local_70;
+  undefined4 local_5c;
+  
+  iVar1 = FUN_0051dc43((int)DAT_0063988b * (int)DAT_0063988d * (int)DAT_00639895);
+  if (iVar1 == 0) {
+    FUN_004264e8(s_ERROR___CDirectDraw__PrintScreen_00554274);
+    FUN_004c97b4();
+  }
+  else {
+    FUN_004c4067(*(undefined4 *)(in_ECX + 8),0,local_80,s_CDirectDraw__PrintScreen_____Fro_005542b8,
+                 0x10);
+    FUN_0043f04b(iVar1,local_5c,(int)DAT_0063988d,(int)DAT_0063988b * (int)DAT_00639895,local_70);
+    FUN_004c4202(*(undefined4 *)(in_ECX + 8),0,s_CDirectDraw__PrintScreen_____Fro_005542ec);
+    local_b8 = 0;
+    local_b7 = 0;
+    local_b6 = 2;
+    local_b5 = 0;
+    local_b3 = 0;
+    local_b1 = 0;
+    local_b0 = 0;
+    local_ae = 0;
+    local_ac = DAT_0063988b;
+    local_aa = DAT_0063988d;
+    local_a8 = (undefined1)DAT_00639893;
+    local_a7 = 0x20;
+    FUN_0050ca3e(local_a4,s_PIC_d_00554320,DAT_005a4c14);
+    FUN_0050cd72(&DAT_0063888b,&DAT_00639a9f,&DAT_00639aa2,local_a4,&DAT_00554328);
+    iVar2 = FUN_0050d0a9(&DAT_0063888b,&DAT_00554330);
+    if (iVar2 == 0) {
+      FUN_0042639d(s_Unable_to_create_file___it_may_e_00554334,&DAT_0063888b);
+      FUN_004c97b4();
+    }
+    else {
+      FUN_0050e493(&local_b8,0x12,1,iVar2);
+      FUN_004c7481(iVar1,(int)DAT_0063988b * (int)DAT_0063988d * (int)DAT_00639895);
+      FUN_0050e493(iVar1,(int)DAT_0063988b * (int)DAT_0063988d * (int)DAT_00639895,1,iVar2);
+      FUN_0050cee4(iVar2);
+      DAT_00583224 = 0;
+      DAT_005a4c14 = DAT_005a4c14 + 1;
+      FUN_0051dc6c(iVar1);
+      MessageBeep(0xffffffff);
+    }
+  }
+  return;
+}
+

@@ -1,0 +1,17 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x525dac
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_32e70435e0f93fa23474409ec6f8f2149ef102be09e1d26950abf41be9f26959
+ */
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_00525dac(void)
+
+{
+  _DAT_0063c748 = GetSystemMetrics(2);
+  _DAT_0063c74c = GetSystemMetrics(3);
+  _DAT_0063c7b0 = 0;
+  return;
+}
+

@@ -1,0 +1,77 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x51d862
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+ */
+
+int FUN_0051d862(uint param_1,uint param_2,int param_3,undefined4 param_4)
+
+{
+  void *_Buf1;
+  int iVar1;
+  undefined4 *puVar2;
+  uint uVar3;
+  AFX_MSGMAP_ENTRY *pAVar4;
+  int *in_ECX;
+  uint uVar5;
+  int *piVar6;
+  
+  if (param_2 == 0xfffffffe) {
+    iVar1 = FUN_00525371();
+    iVar1 = (**(code **)(**(int **)(iVar1 + 0x1038) + 4))();
+    return iVar1;
+  }
+  if (param_2 == 0xfffffffd) {
+    param_2 = 0;
+    _Buf1 = *(void **)(param_3 + 0x30);
+    puVar2 = (undefined4 *)(**(code **)(*in_ECX + 0x2c))();
+    do {
+      if (puVar2 == (undefined4 *)0x0) {
+        return param_2;
+      }
+      if (param_2 != 0) {
+        return param_2;
+      }
+      piVar6 = (int *)puVar2[1];
+      while (((piVar6[1] != 0 && (piVar6[2] != 0)) && (param_2 == 0))) {
+        if (param_1 == piVar6[1]) {
+          if (_Buf1 == (void *)0x0) {
+            iVar1 = *piVar6;
+          }
+          else {
+            if ((void *)*piVar6 == (void *)0x0) goto LAB_0051d905;
+            iVar1 = _memcmp(_Buf1,(void *)*piVar6,0x10);
+          }
+          if (iVar1 == 0) {
+            param_2 = 1;
+            *(int *)(param_3 + 4) = piVar6[2];
+          }
+        }
+LAB_0051d905:
+        piVar6 = piVar6 + 3;
+      }
+      puVar2 = (undefined4 *)*puVar2;
+    } while( true );
+  }
+  if (param_2 != 0xffffffff) {
+    uVar3 = param_2 & 0xffff;
+    uVar5 = param_2 >> 0x10;
+    param_2 = uVar3;
+    if (uVar5 != 0) goto LAB_0051d92a;
+  }
+  uVar5 = 0x111;
+LAB_0051d92a:
+  puVar2 = (undefined4 *)(**(code **)(*in_ECX + 0x28))();
+  while( true ) {
+    if (puVar2 == (undefined4 *)0x0) {
+      return 0;
+    }
+    pAVar4 = AfxFindMessageEntry((AFX_MSGMAP_ENTRY *)puVar2[1],uVar5,param_2,param_1);
+    if (pAVar4 != (AFX_MSGMAP_ENTRY *)0x0) break;
+    puVar2 = (undefined4 *)*puVar2;
+  }
+  iVar1 = FUN_0051d75b(in_ECX,param_1,param_2,*(undefined4 *)(pAVar4 + 0x14),param_3,
+                       *(undefined4 *)(pAVar4 + 0x10),param_4);
+  return iVar1;
+}
+

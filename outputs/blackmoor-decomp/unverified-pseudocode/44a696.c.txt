@@ -1,0 +1,21 @@
+/* UNVERIFIED GHIDRA PSEUDOCODE. Not original source, not buildable code.
+ * Original VA: 0x44a696
+ * Provider: Ghidra 12.1.4 via REA 6.4.0
+ * Evidence: ev_f3b444d1f980f96ceffd70dc3b45d7531f1aac7d9be5a687ffea9f3ee5b15a33
+ */
+
+void FUN_0044a696(void)
+
+{
+  if ((DAT_00586821 == 1) && (DAT_005bb218 == 0)) {
+    DAT_005bb218 = 1;
+    WritePrivateProfileStringA
+              (s_Nancy_Data_00548b2c,s_PlayerWonTheGame_00548b18,s_AcedTheGame_00548b0c,
+               (LPCSTR)&DAT_00639897);
+  }
+  else if ((DAT_00586821 == 0) && (DAT_005bb218 != 0)) {
+    DAT_00586821 = 1;
+  }
+  return;
+}
+
