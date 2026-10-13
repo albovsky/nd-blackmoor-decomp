@@ -618,13 +618,12 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         }
         if (!eligible) {
             /* 0x427a50's type-0x9f blocked-dependency branch executes this
-             * subtype-2 reset on every pass. Subtype 1 intentionally leaves
-             * the runtime phase and completion byte alone. */
+             * subtype-2 reset of completion and phase only. Subtype 1
+             * intentionally leaves both runtime fields alone. */
             if (action.type == SCENE_ACTION_ASYNC_SOUND &&
                 action.subtype == 2u) {
                 runtime_state->completed = 0u;
                 runtime_state->phase = 0u;
-                scene_conditions_reset(executor->conditions[index]);
             }
             continue;
         }
@@ -818,3 +817,22 @@ const char *scene_executor_status_string(int status)
     default: return "unknown scene executor status";
     }
 }
+
+#ifdef SCENE_EXECUTOR_TEST_HOOKS
+int scene_executor_test_condition_node_status(
+    const SceneActionExecutor *executor,
+    size_t action_index,
+    size_t node_index,
+    int32_t *out_status)
+{
+    if (executor == NULL || out_status == NULL ||
+        action_index >= executor->action_count) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    return scene_conditions_test_node_status(executor->conditions[action_index],
+                                             node_index, out_status) ==
+                   SCENE_CONDITION_OK
+               ? SCENE_EXECUTOR_OK
+               : SCENE_EXECUTOR_ERR_ARGUMENT;
+}
+#endif

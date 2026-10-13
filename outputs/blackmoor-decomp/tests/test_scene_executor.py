@@ -222,6 +222,10 @@ class SceneExecutorTests(unittest.TestCase):
             c.c_void_p, c.c_size_t, c.POINTER(HotspotState)
         ]
         cls.lib.scene_executor_get_hotspot_state.restype = c.c_int
+        cls.lib.scene_executor_test_condition_node_status.argtypes = [
+            c.c_void_p, c.c_size_t, c.c_size_t, c.POINTER(c.c_int32)
+        ]
+        cls.lib.scene_executor_test_condition_node_status.restype = c.c_int
         cls.lib.scene_executor_request_transition.argtypes = [
             c.c_void_p, c.POINTER(TransitionRequest)
         ]
@@ -290,6 +294,12 @@ class SceneExecutorTests(unittest.TestCase):
         self.assertEqual(self.lib.scene_executor_get_hotspot_state(
             executor, index, c.byref(state)), OK)
         return state
+
+    def condition_node_status(self, executor, action_index, node_index):
+        status = c.c_int32()
+        self.assertEqual(self.lib.scene_executor_test_condition_node_status(
+            executor, action_index, node_index, c.byref(status)), OK)
+        return status.value
 
     @staticmethod
     def frame(frame=0, x=0, y=0, *, pointer=False, context=False,
@@ -591,14 +601,17 @@ class SceneExecutorTests(unittest.TestCase):
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)
 
-    def test_9f_subtype_two_resets_on_each_blocked_pass(self):
+    def test_9f_subtype_two_blocked_pass_preserves_latched_dependency_results(self):
         body = bytearray(48)
         body[46:48] = i16(0)
         scene, _storage = self.open_scene([
-            action(0x9F, 2, bytes(body), (condition(2, 0, 1),))
+            action(0x9F, 2, bytes(body), (
+                condition(2, 0, 1, 1),
+                condition(2, 1, 1),
+                condition(2, 2, 1),
+            ))
         ])
-        world, flags = self.world()
-        flags[0] = 1
+        world, flags = self.world([1, 0, 1])
         status, executor, _ = self.create_executor(scene, world)
         self.assertEqual(status, OK)
 
@@ -614,14 +627,18 @@ class SceneExecutorTests(unittest.TestCase):
             status, _ = self.step(executor, state, [registry])
             self.assertEqual(status, OK)
             self.assertEqual(self.action_state(executor, 0).phase, 17)
+            self.assertEqual([self.condition_node_status(executor, 0, node)
+                              for node in (1, 2, 3)], [1, 1, 1])
 
-            flags[0] = 0
-            for _pass in range(2):
-                status, info = self.step(executor, state, [registry])
-                runtime = self.action_state(executor, 0)
-                self.assertEqual((status, info.actions_applied,
-                                  runtime.completed, runtime.phase),
-                                 (OK, 0, 0, 0))
+            flags[2] = 0
+            status, info = self.step(executor, state, [registry])
+            runtime = self.action_state(executor, 0)
+            self.assertEqual((status, info.actions_applied,
+                              runtime.completed, runtime.phase), (OK, 0, 0, 0))
+            # The condition evaluator retains the OR-latched source results;
+            # the original blocked path clears only completion and phase.
+            self.assertEqual([self.condition_node_status(executor, 0, node)
+                              for node in (1, 2, 3)], [1, 1, 0])
         finally:
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)

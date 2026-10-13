@@ -4,6 +4,7 @@ project_dir="$(cd "$(dirname "$0")/.." && pwd)"
 mkdir -p "$project_dir/build"
 xcrun --sdk macosx clang -arch arm64 -std=c11 \
     -Wall -Wextra -Wpedantic -Werror -O2 -fPIC -dynamiclib \
+    -DSCENE_EXECUTOR_TEST_HOOKS \
     "$project_dir/src/hiff.c" \
     "$project_dir/src/scene_resource.c" \
     "$project_dir/src/scene_conditions.c" \

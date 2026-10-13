@@ -184,6 +184,15 @@ int scene_executor_request_transition(SceneActionExecutor *executor,
 
 const char *scene_executor_status_string(int status);
 
+#ifdef SCENE_EXECUTOR_TEST_HOOKS
+/* Test-only visibility into the dependency reducer's retained node results. */
+int scene_executor_test_condition_node_status(
+    const SceneActionExecutor *executor,
+    size_t action_index,
+    size_t node_index,
+    int32_t *out_status);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
