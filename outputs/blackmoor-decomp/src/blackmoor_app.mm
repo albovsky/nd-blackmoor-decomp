@@ -17,6 +17,11 @@
 #include "action_family28_surface.h"
 #include "scene_conditions.h"
 #include "scene_session.h"
+#include "caption_layout.h"
+#include "caption_lifecycle.h"
+#include "cif_pixels.h"
+#include "hiff.h"
+#include "autotext.h"
 
 #import <AppKit/AppKit.h>
 #include <cstdio>
@@ -46,6 +51,41 @@ struct HostImage {
     uint32_t width = 0, height = 0;
     std::vector<uint8_t> rgba;
     int32_t frame_index = -1;
+};
+
+struct NativeRaw555Image {
+    uint32_t width = 0, height = 0;
+    uint32_t pitch = 0;
+    std::vector<uint8_t> pixels;
+};
+
+struct NativeCaptionRuntime {
+    CaptionFonts fonts{};
+    CaptionGeometry geometry{};
+    CaptionPixelFormat pixel_format{};
+    CaptionTextBox writer_box{};
+    CaptionGlobals writer_globals{};
+    CaptionLifecycle lifecycle{};
+    CaptionBackend writer_backend{};
+    CaptionLifecycleBackend lifecycle_backend{};
+    CaptionSurface caption_surface{};
+    CaptionSurface framed_surface{};
+    std::vector<uint8_t> caption_pixels;
+    std::vector<uint8_t> framed_pixels;
+    std::map<std::string, uint32_t> image_handles;
+    std::map<uint32_t, NativeRaw555Image> raw_images;
+    AutoText *auto_text = nullptr;
+    size_t auto_text_entry_count = 0u;
+    uint32_t next_image_handle = 1u;
+    uint32_t caption_surface_handle = UINT32_C(0xf0000001);
+    uint32_t framed_surface_handle = UINT32_C(0xf0000002);
+    bool initialized = false;
+    bool transfer_blocked = false;
+    bool action_caption_attempted = false;
+    bool action_caption_lookup_attempted = false;
+    int last_writer_status = CAPTION_OK;
+    int last_lifecycle_status = CAPTION_LIFECYCLE_OK;
+    CaptionResult last_writer_result{};
 };
 
 /* Exact bounded spans proven by the New Game reset paths. These counts are
@@ -106,6 +146,7 @@ struct NativeApp {
     WorldClockSession world_clock_session{};
     WorldClockEffectSink world_clock_effect_sink{};
     SceneConditionState session_conditions{};
+    NativeCaptionRuntime captions;
     ActionFamily64Backend action64_backend{};
     FILE *log = nullptr;
     std::map<std::string, HostImage> images;
@@ -236,6 +277,586 @@ static HostImage *image(NativeApp *app, const char *name)
     return &app->images.emplace(name, std::move(value)).first->second;
 }
 
+static uint32_t read_u32_le(const uint8_t *bytes)
+{
+    return (uint32_t)bytes[0] | ((uint32_t)bytes[1] << 8) |
+           ((uint32_t)bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
+}
+
+static int32_t read_i32_le(const uint8_t *bytes)
+{
+    const uint32_t bits = read_u32_le(bytes);
+    int32_t value;
+    std::memcpy(&value, &bits, sizeof(value));
+    return value;
+}
+
+static bool selected_boot_data_index(const NativeApp *app, size_t *data_index)
+{
+    if (app == nullptr || app->boot == nullptr || data_index == nullptr) return false;
+    EngineBootSummary summary{};
+    HiffChunkInfo bsum{};
+    const uint8_t *payload = nullptr;
+    size_t payload_size = 0;
+    if (engine_boot_get_summary(app->boot, &summary) != ENGINE_BOOT_OK ||
+        engine_boot_chunk_at(app->boot, summary.bsum_chunk_index, &bsum,
+                             &payload, &payload_size) != ENGINE_BOOT_OK ||
+        std::strcmp(bsum.id, "BSUM") != 0 ||
+        payload_size < ENGINE_BOOT_BSUM_SIZE) return false;
+    *data_index = bsum.data_index;
+    return true;
+}
+
+/* Caption records must come from the DATA record selected by EngineBoot,
+ * which is the one whose BSUM supplied the initial settings. */
+static bool find_boot_payload(const NativeApp *app, const char *id,
+                              const uint8_t **payload, size_t *payload_size)
+{
+    size_t selected_data = SIZE_MAX;
+    size_t matches = 0;
+    if (app == nullptr || id == nullptr || payload == nullptr ||
+        payload_size == nullptr || !selected_boot_data_index(app, &selected_data)) {
+        return false;
+    }
+    *payload = nullptr;
+    *payload_size = 0u;
+    for (size_t index = 0; index < engine_boot_chunk_count(app->boot); ++index) {
+        HiffChunkInfo chunk{};
+        const uint8_t *candidate = nullptr;
+        size_t candidate_size = 0;
+        if (engine_boot_chunk_at(app->boot, index, &chunk, &candidate,
+                                 &candidate_size) != ENGINE_BOOT_OK) return false;
+        if (chunk.data_index != selected_data || std::strcmp(chunk.id, id) != 0) continue;
+        ++matches;
+        *payload = candidate;
+        *payload_size = candidate_size;
+    }
+    return matches == 1u;
+}
+
+static bool find_font_payload(GameResources *resources,
+                              const uint8_t **font_payload,
+                              size_t *font_payload_size,
+                              Hiff **font_container,
+                              GameResourceBytes *font_bytes,
+                              char *error, size_t error_capacity)
+{
+    Hiff *hiff = nullptr;
+    HiffSelectionInfo data_selection{};
+    HiffSelectionInfo selected_info{};
+    size_t font_data_index = SIZE_MAX;
+    const uint8_t *payload = nullptr;
+    size_t payload_size = 0;
+    size_t matching_chunks = 0;
+
+    if (resources == nullptr || font_payload == nullptr || font_payload_size == nullptr ||
+        font_container == nullptr || font_bytes == nullptr) return false;
+    *font_payload = nullptr;
+    *font_payload_size = 0u;
+    *font_container = nullptr;
+    if (!game_resources_load_bytes(resources, "FONT", font_bytes,
+                                   error, error_capacity)) return false;
+    hiff = hiff_open_memory(font_bytes->bytes, font_bytes->length,
+                            error, error_capacity);
+    if (hiff == nullptr || hiff_select_data(hiff, "FONT") != HIFF_OK ||
+        hiff_get_selected_data(hiff, nullptr, nullptr, &data_selection) != HIFF_OK) {
+        hiff_close(hiff);
+        return false;
+    }
+    font_data_index = data_selection.data_index;
+    for (size_t index = 0; index < hiff_chunk_count(hiff); ++index) {
+        HiffChunkInfo chunk{};
+        if (hiff_chunk_at(hiff, index, &chunk) != HIFF_OK) {
+            hiff_close(hiff);
+            return false;
+        }
+        if (chunk.data_index == data_selection.data_index &&
+            std::strcmp(chunk.id, "FONT") == 0) {
+            ++matching_chunks;
+        }
+    }
+    if (matching_chunks != 1u) {
+        hiff_close(hiff);
+        return false;
+    }
+    if (hiff_select_first(hiff, "FONT") != HIFF_OK ||
+        hiff_get_selected_chunk(hiff, &payload, &payload_size,
+                                &selected_info) != HIFF_OK) {
+        hiff_close(hiff);
+        return false;
+    }
+    /* The resource may contain other DATA records with a same-named chunk;
+     * walk the id cursor until the exact selected FONT record is reached. */
+    while (selected_info.data_index != font_data_index) {
+        if (hiff_select_next(hiff, "FONT") != HIFF_OK ||
+            hiff_get_selected_chunk(hiff, &payload, &payload_size,
+                                    &selected_info) != HIFF_OK) {
+            hiff_close(hiff);
+            return false;
+        }
+    }
+    if (payload == nullptr || payload_size == 0u) {
+        hiff_close(hiff);
+        return false;
+    }
+    *font_payload = payload;
+    *font_payload_size = payload_size;
+    *font_container = hiff;
+    return true;
+}
+
+static NativeRaw555Image *load_native_raw555_image(NativeApp *app,
+                                                   const char *requested_name)
+{
+    if (app == nullptr || requested_name == nullptr || app->resources == nullptr) return nullptr;
+    std::string name(requested_name);
+    if (name.size() > 0x18u) name.resize(0x18u); /* 0x4c2790 name bound. */
+    auto found = app->captions.image_handles.find(name);
+    if (found != app->captions.image_handles.end()) {
+        auto image_found = app->captions.raw_images.find(found->second);
+        return image_found == app->captions.raw_images.end() ? nullptr : &image_found->second;
+    }
+
+    cif_image decoded = CIF_IMAGE_INIT;
+    GameResourceSource source = GAME_RESOURCE_ARCHIVE;
+    char error[256] = {};
+    if (!game_resources_load_image(app->resources, name.c_str(), &decoded, &source,
+                                   error, sizeof(error))) {
+        record(app, "caption_image_error name=%s detail=%s", name.c_str(), error);
+        return nullptr;
+    }
+    const size_t row_bytes = (size_t)decoded.width * 2u;
+    const size_t required = decoded.height == 0u ? SIZE_MAX :
+        (size_t)(decoded.height - 1u) * decoded.pitch + row_bytes;
+    if (decoded.depth != 16u || decoded.width == 0u || decoded.height == 0u ||
+        decoded.pitch < row_bytes || decoded.pixels == nullptr ||
+        required > decoded.byte_count || decoded.byte_count > UINT32_MAX ||
+        decoded.pitch > INT16_MAX || decoded.width > INT16_MAX ||
+        decoded.height > INT16_MAX) {
+        record(app, "caption_image_error name=%s detail=unsupported-or-truncated-RGB555",
+               name.c_str());
+        cif_image_destroy(&decoded);
+        return nullptr;
+    }
+
+    NativeRaw555Image raw;
+    raw.width = decoded.width;
+    raw.height = decoded.height;
+    raw.pitch = decoded.pitch;
+    try { raw.pixels.assign(decoded.pixels, decoded.pixels + decoded.byte_count); }
+    catch (...) {
+        cif_image_destroy(&decoded);
+        throw;
+    }
+    cif_image_destroy(&decoded);
+    cif_pixel_format conversion{};
+    conversion.enabled = 1u;
+    for (size_t channel = 0; channel < 3u; ++channel) {
+        conversion.shifts[channel] = app->captions.pixel_format.shifts[channel];
+        conversion.channel_bits[channel] =
+            (int8_t)app->captions.pixel_format.channel_bits[channel];
+    }
+    cif_pixels_convert_555(raw.pixels.data(), (uint32_t)raw.pixels.size(), &conversion);
+    if (app->captions.next_image_handle == 0u ||
+        app->captions.next_image_handle >= UINT32_C(0xf0000000)) {
+        record(app, "caption_image_error name=%s detail=handle-space-exhausted", name.c_str());
+        return nullptr;
+    }
+    const uint32_t handle = app->captions.next_image_handle++;
+    auto inserted = app->captions.raw_images.emplace(handle, std::move(raw));
+    app->captions.image_handles.emplace(name, handle);
+    record(app, "caption_image_loaded name=%s handle=%u width=%u height=%u pitch=%u "
+           "format=RGB555 source=%s raw_bytes=%zu",
+           name.c_str(), handle, inserted.first->second.width,
+           inserted.first->second.height, inserted.first->second.pitch,
+           source == GAME_RESOURCE_EXTERNAL_CIF ? "external-CIF" : "CIFTREE",
+           inserted.first->second.pixels.size());
+    return &inserted.first->second;
+}
+
+static uint32_t native_caption_load_image(void *context, const char *name,
+                                         const char *purpose)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *loaded = load_native_raw555_image(app, name);
+    if (loaded == nullptr) return 0u;
+    (void)purpose;
+    auto found = app->captions.image_handles.find(name);
+    if (found == app->captions.image_handles.end()) {
+        std::string bounded(name);
+        if (bounded.size() > 0x18u) bounded.resize(0x18u);
+        found = app->captions.image_handles.find(bounded);
+    }
+    return found == app->captions.image_handles.end() ? 0u : found->second;
+}
+
+static CaptionBackendStatus native_caption_load_font_sheet(
+    void *context, int16_t font, const char *name, CaptionSurface *sheet)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *image = load_native_raw555_image(app, name);
+    if (app == nullptr || image == nullptr || sheet == nullptr ||
+        image->width > INT16_MAX || image->height > INT16_MAX ||
+        image->pitch > INT16_MAX) return CAPTION_BACKEND_ERROR;
+    sheet->pixels = image->pixels.data();
+    sheet->width = (int16_t)image->width;
+    sheet->height = (int16_t)image->height;
+    sheet->pitch = (int16_t)image->pitch;
+    record(app, "caption_font_sheet_acquired font=%d name=%s width=%u height=%u "
+           "pitch=%u format=RGB555", font, name, image->width, image->height,
+           image->pitch);
+    return CAPTION_BACKEND_OK;
+}
+
+static void native_caption_release_font_sheet(void *context, int16_t font,
+                                              CaptionSurface *sheet)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr) record(app, "caption_font_sheet_released font=%d", font);
+    if (sheet != nullptr) std::memset(sheet, 0, sizeof(*sheet));
+}
+
+static CaptionLifecycleBackendStatus native_caption_lifecycle_blit(
+    void *context, const CaptionBlit *blit)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || blit == nullptr) return CAPTION_LIFECYCLE_BACKEND_ERROR;
+    app->captions.transfer_blocked = true;
+    record(app, "caption_transfer_blocked kind=%d handle=%u label=%s "
+           "src=%d,%d,%d,%d dst=%d,%d,%d,%d reason=s05-3-transfer-contract-pending "
+           "destination=full-640x480-composition-unavailable",
+           blit->kind, blit->surface, blit->label ? blit->label : "unknown",
+           blit->src.left, blit->src.top, blit->src.right, blit->src.bottom,
+           blit->dst.left, blit->dst.top, blit->dst.right, blit->dst.bottom);
+    return CAPTION_LIFECYCLE_BACKEND_ERROR;
+}
+
+static CaptionBackendStatus native_caption_restore_box(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return CAPTION_BACKEND_ERROR;
+    const int status = caption_taskbar_restore_cc(&app->captions.lifecycle,
+                                                   &app->captions.lifecycle_backend);
+    app->captions.last_lifecycle_status = status;
+    return status == CAPTION_LIFECYCLE_OK ? CAPTION_BACKEND_OK :
+                                            CAPTION_BACKEND_ERROR;
+}
+
+static CaptionBackendStatus native_caption_close_frame(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return CAPTION_BACKEND_ERROR;
+    const int status = caption_ctb_close(&app->captions.lifecycle,
+                                          &app->captions.lifecycle_backend);
+    app->captions.last_lifecycle_status = status;
+    return status == CAPTION_LIFECYCLE_OK ? CAPTION_BACKEND_OK :
+                                            CAPTION_BACKEND_ERROR;
+}
+
+static void native_caption_debug_log(void *context, const char *message)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr) record(app, "caption_debug=%s", message ? message : "");
+}
+
+static ActionSoundBackendStatus native_action_sound_present_caption(
+    void *context, const ActionSoundCaptionRequest *caption)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || caption == nullptr || !app->captions.initialized) {
+        return ACTION_SOUND_BACKEND_ERROR;
+    }
+    app->captions.action_caption_attempted = true;
+    app->captions.transfer_blocked = false;
+    const size_t max_text_bytes = caption->kind == ACTION_SOUND_CAPTION_LITERAL
+        ? ACTION_SOUND_MAX_LITERAL_BYTES
+        : caption->kind == ACTION_SOUND_CAPTION_RESOLVED_AUTO_TEXT
+            ? (size_t)INT16_MAX : 0u;
+    if (max_text_bytes == 0u ||
+        (caption->length != 0u && caption->bytes == nullptr) ||
+        caption->terminator == nullptr || caption->terminator_length != 3u ||
+        std::memcmp(caption->terminator, "<e>", 3u) != 0 ||
+        caption->length > max_text_bytes ||
+        caption->length > SIZE_MAX - caption->terminator_length - 1u) {
+        return ACTION_SOUND_BACKEND_UNSUPPORTED;
+    }
+    std::vector<uint8_t> text;
+    try { text.resize(caption->length + caption->terminator_length + 1u); }
+    catch (...) { return ACTION_SOUND_BACKEND_ERROR; }
+    if (caption->length != 0u)
+        std::memcpy(text.data(), caption->bytes, caption->length);
+    std::memcpy(text.data() + caption->length, caption->terminator,
+                caption->terminator_length);
+    text.back() = 0u;
+    CaptionRequest request{text.data(), text.size(), CAPTION_MODE_CAPTION, 0u, 0u};
+    const int status = caption_layout_write(&app->captions.fonts,
+        &app->captions.geometry, &app->captions.pixel_format,
+        &app->captions.writer_box, &app->captions.writer_globals,
+        &app->captions.writer_backend, &app->captions.caption_surface,
+        &request, &app->captions.last_writer_result);
+    app->captions.last_writer_status = status;
+    record(app, "caption_action_writer kind=%d bytes=%zu status=%d lines=%d glyphs=%u "
+           "terminator_appended=%u surface_cleared=%u visible=%d finish=%d "
+           "transfer_blocked=%d partial_surface_retained=1",
+           caption->kind, caption->length, status,
+           app->captions.last_writer_result.lines,
+           app->captions.last_writer_result.glyphs_drawn,
+           app->captions.last_writer_result.terminator_appended,
+           app->captions.last_writer_result.surface_cleared,
+           app->captions.writer_globals.caption_visible_flag,
+           app->captions.writer_globals.caption_finish_flag,
+           app->captions.transfer_blocked);
+    if (status == CAPTION_OK) return ACTION_SOUND_BACKEND_OK;
+    if (status == CAPTION_ERR_BACKEND && app->captions.transfer_blocked)
+        return ACTION_SOUND_BACKEND_UNSUPPORTED;
+    return ACTION_SOUND_BACKEND_ERROR;
+}
+
+static ActionSoundBackendStatus native_action_sound_resolve_auto_text(
+    void *context, const uint8_t *key, size_t key_length,
+    const uint8_t **text, size_t *text_length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    size_t raw_length = 0u;
+    if (text != nullptr) *text = nullptr;
+    if (text_length != nullptr) *text_length = 0u;
+    if (app == nullptr || key == nullptr || text == nullptr || text_length == nullptr ||
+        app->captions.auto_text == nullptr) {
+        return ACTION_SOUND_BACKEND_UNSUPPORTED;
+    }
+    app->captions.action_caption_lookup_attempted = true;
+    const int status = autotext_lookup(app->captions.auto_text, key, key_length,
+                                       text, &raw_length, text_length);
+    if (status == AUTOTEXT_ERR_NOT_FOUND) {
+        record(app, "caption_action_lookup result=missing key_bytes=%zu", key_length);
+        return ACTION_SOUND_BACKEND_NO_RESOURCE;
+    }
+    if (status == AUTOTEXT_ERR_UNSUPPORTED) {
+        record(app, "caption_action_lookup result=unsupported status=%d key_bytes=%zu",
+               status, key_length);
+        return ACTION_SOUND_BACKEND_UNSUPPORTED;
+    }
+    if (status != AUTOTEXT_OK) {
+        record(app, "caption_action_lookup result=error status=%d key_bytes=%zu",
+               status, key_length);
+        return ACTION_SOUND_BACKEND_ERROR;
+    }
+    record(app, "caption_action_lookup result=found key_bytes=%zu text_bytes=%zu raw_bytes=%zu",
+           key_length, *text_length, raw_length);
+    return ACTION_SOUND_BACKEND_OK;
+}
+
+static ActionSoundBackendStatus native_action_sound_load(
+    void *context, const ActionSoundAudioCommand *command)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || command == nullptr) return ACTION_SOUND_BACKEND_ERROR;
+    record(app, "action_sound_load_blocked stem=%s channel=%u category=%u "
+           "control_word=0x%08x reason=live-audio-channel-provider-unavailable",
+           command->asset_stem, command->channel, command->volume_category,
+           command->control_word);
+    return ACTION_SOUND_BACKEND_UNSUPPORTED;
+}
+
+static ActionSoundBackendStatus native_action_sound_play(void *context,
+                                                          uint16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr)
+        record(app, "action_sound_play_blocked channel=%u reason=live-audio-channel-provider-unavailable",
+               channel);
+    return ACTION_SOUND_BACKEND_UNSUPPORTED;
+}
+
+static CaptionLifecycleBackendStatus native_caption_write_framed(
+    void *context, uint8_t *text, size_t capacity)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr || !app->captions.initialized) {
+        return CAPTION_LIFECYCLE_BACKEND_ERROR;
+    }
+    CaptionRequest request{text, capacity, CAPTION_MODE_FRAMED, 0u, 0u};
+    const int status = caption_layout_write(&app->captions.fonts,
+        &app->captions.geometry, &app->captions.pixel_format,
+        &app->captions.writer_box, &app->captions.writer_globals,
+        &app->captions.writer_backend, &app->captions.framed_surface,
+        &request, &app->captions.last_writer_result);
+    app->captions.last_writer_status = status;
+    record(app, "caption_framed_writer status=%d lines=%d glyphs=%u "
+           "surface_cleared=%u frame_open=%u",
+           status, app->captions.last_writer_result.lines,
+           app->captions.last_writer_result.glyphs_drawn,
+           app->captions.last_writer_result.surface_cleared,
+           app->captions.writer_globals.frame_open);
+    return status == CAPTION_OK ? CAPTION_LIFECYCLE_BACKEND_OK :
+                                  CAPTION_LIFECYCLE_BACKEND_ERROR;
+}
+
+static void native_caption_fatal(void *context, const char *message)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr) record(app, "caption_lifecycle_fatal=%s", message ? message : "");
+}
+
+static bool initialize_caption_runtime(NativeApp *app)
+{
+    if (app == nullptr || app->boot == nullptr || app->resources == nullptr) return false;
+    const uint8_t *tbox = nullptr, *sctb = nullptr, *task = nullptr, *font = nullptr;
+    size_t tbox_size = 0, sctb_size = 0, task_size = 0, font_size = 0;
+    GameResourceBytes font_bytes = GAME_RESOURCE_BYTES_INIT;
+    Hiff *font_container = nullptr;
+    char error[256] = {};
+    EngineBootSummary summary{};
+    if (engine_boot_get_summary(app->boot, &summary) != ENGINE_BOOT_OK ||
+        !find_boot_payload(app, "TBOX", &tbox, &tbox_size) ||
+        !find_boot_payload(app, "SCTB", &sctb, &sctb_size) ||
+        !find_boot_payload(app, "TASK", &task, &task_size) ||
+        task_size < 0x61u ||
+        !find_font_payload(app->resources, &font, &font_size, &font_container,
+                            &font_bytes, error, sizeof(error))) {
+        record(app, "caption_runtime_error provider=resources detail=%s",
+               error[0] ? error : "selected BOOT DATA missing TBOX/SCTB/TASK or FONT");
+        hiff_close(font_container);
+        game_resource_bytes_destroy(&font_bytes);
+        return false;
+    }
+    if (app->closed_captioning != 0u) {
+        GameResourceBytes text_bytes = GAME_RESOURCE_BYTES_INIT;
+        if (!game_resources_load_bytes(app->resources, "AUTOTEXT", &text_bytes,
+                                       error, sizeof(error))) {
+            record(app, "caption_runtime_error provider=autotext detail=%s", error);
+            return false;
+        }
+        const int text_status = autotext_open_memory(
+            text_bytes.bytes, text_bytes.length, 0, &app->captions.auto_text,
+            error, sizeof(error));
+        game_resource_bytes_destroy(&text_bytes);
+        if (text_status != AUTOTEXT_OK) {
+            record(app, "caption_runtime_error provider=autotext status=%d detail=%s",
+                   text_status, error);
+            return false;
+        }
+        app->captions.auto_text_entry_count =
+            autotext_entry_count(app->captions.auto_text);
+    }
+    const int pixel_status = caption_pixel_format_from_masks(
+        UINT32_C(0x7c00), UINT32_C(0x03e0), UINT32_C(0x001f),
+        summary.bsum_raw + 324u, &app->captions.pixel_format);
+    const int fonts_status = pixel_status == CAPTION_OK
+        ? caption_fonts_init(font, font_size, summary.font_count,
+                             &app->captions.fonts) : pixel_status;
+    const int geometry_status = fonts_status == CAPTION_OK
+        ? caption_geometry_init(tbox, tbox_size, &app->captions.geometry)
+        : fonts_status;
+    hiff_close(font_container);
+    game_resource_bytes_destroy(&font_bytes);
+    if (geometry_status != CAPTION_OK) {
+        record(app, "caption_runtime_error provider=layout pixel=%d fonts=%d geometry=%d",
+               pixel_status, fonts_status, geometry_status);
+        return false;
+    }
+    const int32_t caption_width = app->captions.geometry.caption_surface_width;
+    const int32_t caption_height = app->captions.geometry.caption_surface_height;
+    const int32_t framed_width = app->captions.geometry.framed_surface_width;
+    const int32_t framed_height = app->captions.geometry.framed_surface_height;
+    if (caption_width <= 0 || caption_height <= 0 || framed_width <= 0 ||
+        framed_height <= 0 || caption_width > INT16_MAX / 2 ||
+        framed_width > INT16_MAX / 2 ||
+        (size_t)caption_width > SIZE_MAX / (size_t)caption_height / 2u ||
+        (size_t)framed_width > SIZE_MAX / (size_t)framed_height / 2u) {
+        record(app, "caption_runtime_error provider=surface detail=invalid TBOX dimensions");
+        return false;
+    }
+    try {
+        app->captions.caption_pixels.assign((size_t)caption_width *
+                                            (size_t)caption_height * 2u, 0u);
+        app->captions.framed_pixels.assign((size_t)framed_width *
+                                           (size_t)framed_height * 2u, 0u);
+    } catch (...) {
+        record(app, "caption_runtime_error provider=host detail=surface allocation");
+        return false;
+    }
+    app->captions.caption_surface = {
+        app->captions.caption_pixels.data(), (int16_t)caption_width,
+        (int16_t)caption_height, (int16_t)(caption_width * 2)};
+    app->captions.framed_surface = {
+        app->captions.framed_pixels.data(), (int16_t)framed_width,
+        (int16_t)framed_height, (int16_t)(framed_width * 2)};
+
+    app->captions.lifecycle.shared = &app->captions.writer_globals;
+    app->captions.lifecycle.geometry = &app->captions.geometry;
+    app->captions.lifecycle.view_origin[0] = app->scene_destination.left;
+    app->captions.lifecycle.view_origin[1] = app->scene_destination.top;
+    app->captions.lifecycle_backend.context = app;
+    app->captions.lifecycle_backend.load_image = native_caption_load_image;
+    app->captions.lifecycle_backend.blit = native_caption_lifecycle_blit;
+    app->captions.lifecycle_backend.write_framed_text = native_caption_write_framed;
+    app->captions.lifecycle_backend.fatal = native_caption_fatal;
+    app->captions.writer_backend.context = app;
+    app->captions.writer_backend.load_font_sheet = native_caption_load_font_sheet;
+    app->captions.writer_backend.release_font_sheet = native_caption_release_font_sheet;
+    app->captions.writer_backend.close_frame_text = native_caption_close_frame;
+    app->captions.writer_backend.restore_caption_box = native_caption_restore_box;
+    app->captions.writer_backend.debug_log = native_caption_debug_log;
+
+    const size_t frame_name_length = strnlen((const char *)task, 33u);
+    if (frame_name_length == 0u || frame_name_length == 33u) {
+        record(app, "caption_runtime_error provider=taskbar detail=invalid saved-image name");
+        return false;
+    }
+    const std::string frame_name((const char *)task, frame_name_length);
+    const uint32_t frame_handle = native_caption_load_image(app, frame_name.c_str(),
+                                                             "CUITaskBar saved surface");
+    if (frame_handle == 0u) {
+        record(app, "caption_runtime_error provider=taskbar detail=Frame image unavailable");
+        return false;
+    }
+    app->captions.lifecycle.taskbar.saved_surface = frame_handle;
+    CaptionRect *taskbar_rects[] = {
+        &app->captions.lifecycle.taskbar.area_src,
+        &app->captions.lifecycle.taskbar.area_dst,
+        &app->captions.lifecycle.taskbar.cc_rect
+    };
+    const size_t task_offsets[] = {0x21u, 0x31u, 0x51u};
+    for (size_t rect = 0; rect < 3u; ++rect) {
+        taskbar_rects[rect]->left = read_i32_le(task + task_offsets[rect]);
+        taskbar_rects[rect]->top = read_i32_le(task + task_offsets[rect] + 4u);
+        taskbar_rects[rect]->right = read_i32_le(task + task_offsets[rect] + 8u);
+        taskbar_rects[rect]->bottom = read_i32_le(task + task_offsets[rect] + 12u);
+    }
+    if (caption_ctb_load_chunk(&app->captions.lifecycle,
+            &app->captions.lifecycle_backend, sctb, sctb_size) != CAPTION_LIFECYCLE_OK) {
+        record(app, "caption_runtime_error provider=sctb detail=chunk load failed");
+        return false;
+    }
+    const int lifecycle_status = caption_ctb_init(&app->captions.lifecycle,
+                                                   &app->captions.lifecycle_backend);
+    app->captions.last_lifecycle_status = lifecycle_status;
+    if (lifecycle_status != CAPTION_LIFECYCLE_OK) {
+        record(app, "caption_runtime_error provider=sctb status=%d", lifecycle_status);
+        return false;
+    }
+    app->captions.initialized = true;
+    record(app, "caption_runtime_initialized fonts=%d tbox=%zu sctb=%zu task=%zu "
+           "view_origin=%d,%d format=RGB555 caption_surface=%dx%d/%zu framed_surface=%dx%d/%zu "
+           "saved_surface=Frame handle=%u bytes=%zu autotext_entries=%zu popup_state=%d slider=%u modal=%d "
+           "transfer=source-backed-kernel-pending composition=not-certified",
+           app->captions.fonts.count, tbox_size, sctb_size, task_size,
+           app->captions.lifecycle.view_origin[0], app->captions.lifecycle.view_origin[1],
+           app->captions.caption_surface.width, app->captions.caption_surface.height,
+           app->captions.caption_pixels.size(), app->captions.framed_surface.width,
+           app->captions.framed_surface.height, app->captions.framed_pixels.size(),
+           frame_handle, app->captions.raw_images.at(frame_handle).pixels.size(),
+           app->captions.auto_text_entry_count,
+           (int)(app->captions.lifecycle.box[CTB_STATE] |
+               ((uint32_t)app->captions.lifecycle.box[CTB_STATE + 1u] << 8) |
+               ((uint32_t)app->captions.lifecycle.box[CTB_STATE + 2u] << 16) |
+               ((uint32_t)app->captions.lifecycle.box[CTB_STATE + 3u] << 24)),
+           (unsigned)app->captions.lifecycle.box[CTB_HAS_SLIDER],
+           app->captions.lifecycle.g.modal_input);
+    return true;
+}
+
 /* Host-side opaque RGBA copy. The recovered 0x4c5377 blit uses inclusive
  * rectangle endpoints. Reject malformed coordinates instead of retaining its
  * unchecked memory accesses. No scaling, transparency or guessed color keys. */
@@ -297,6 +918,8 @@ static void cleanup(NativeApp *app)
     if (app->scene) scene_resource_close(app->scene);
     if (app->video) bink_player_close(app->video);
     if (app->boot) engine_boot_close(app->boot);
+    autotext_close(app->captions.auto_text);
+    app->captions.auto_text = nullptr;
     if (app->resources) game_resources_close(app->resources);
     if (app->log) std::fclose(app->log);
     app->platform = nullptr;
@@ -350,25 +973,15 @@ static bool render_startup(NativeApp *app, const StartupMenuFrame &frame)
  * 0x439822 uses the first as screen destination and the second as source. */
 static bool load_viewport(NativeApp *app)
 {
-    unsigned matches = 0;
-    for (size_t i = 0; i < engine_boot_chunk_count(app->boot); ++i) {
-        HiffChunkInfo chunk{};
-        const uint8_t *payload = nullptr;
-        size_t length = 0;
-        if (engine_boot_chunk_at(app->boot, i, &chunk, &payload, &length) != ENGINE_BOOT_OK) return false;
-        if (std::strcmp(chunk.id, "VIEW") != 0) continue;
-        if (++matches > 1 || length != 48) return false;
-        int32_t coordinates[8];
-        for (size_t field = 0; field < 8; ++field) {
-            const uint8_t *bytes = payload + field * 4;
-            const uint32_t value = (uint32_t)bytes[0] | ((uint32_t)bytes[1] << 8) |
-                ((uint32_t)bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
-            std::memcpy(&coordinates[field], &value, sizeof(value));
-        }
-        app->scene_destination = {coordinates[0], coordinates[1], coordinates[2], coordinates[3]};
-        app->scene_source = {coordinates[4], coordinates[5], coordinates[6], coordinates[7]};
-    }
-    return matches == 1;
+    const uint8_t *payload = nullptr;
+    size_t length = 0;
+    if (!find_boot_payload(app, "VIEW", &payload, &length) || length != 48u) return false;
+    int32_t coordinates[8];
+    for (size_t field = 0; field < 8u; ++field)
+        coordinates[field] = read_i32_le(payload + field * 4u);
+    app->scene_destination = {coordinates[0], coordinates[1], coordinates[2], coordinates[3]};
+    app->scene_source = {coordinates[4], coordinates[5], coordinates[6], coordinates[7]};
+    return true;
 }
 
 static bool render_scene_preview(NativeApp *app)
@@ -470,6 +1083,8 @@ static int native_action_sound_handler(
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || info == nullptr || before == nullptr || result == nullptr)
         return SCENE_ACTION_HANDLER_ERROR;
+    app->captions.action_caption_attempted = false;
+    app->captions.action_caption_lookup_attempted = false;
     ActionSoundAction action{};
     action.type = info->type;
     action.subtype = info->subtype;
@@ -482,20 +1097,33 @@ static int native_action_sound_handler(
     action.body = info->typed_body;
     action.body_length = info->typed_body_length;
     ActionSoundStepResult effect{};
-    const int status = action_sound_step(&action, nullptr, &effect);
+    ActionSoundBackend backend{};
+    backend.context = app;
+    backend.resolve_auto_text = native_action_sound_resolve_auto_text;
+    backend.present_caption = native_action_sound_present_caption;
+    backend.load_sound = native_action_sound_load;
+    backend.play_sound = native_action_sound_play;
+    const int status = action_sound_step(&action, &backend, &effect);
     const bool has_selector = info->typed_body != nullptr &&
         info->typed_body_length >= 48u &&
         (info->typed_body[46] != 0u || info->typed_body[47] != 0u);
     const bool caption_gate = status == ACTION_SOUND_ERR_UNSUPPORTED &&
+        (app->captions.action_caption_attempted ||
+         app->captions.action_caption_lookup_attempted) &&
         action.captions_enabled != 0u && action.scene_dispatch_argument != 0u &&
         has_selector;
     record(app, "scene_action_sound row=%zu phase=%u kernel_status=%d "
-           "captions=%u dispatch_argument=%u boundary=%s",
+           "captions=%u dispatch_argument=%u boundary=%s lookup_attempted=%u writer_status=%d "
+           "audio_provider=unavailable transfer_blocked=%d",
            action_index, action.phase_before, status, action.captions_enabled,
            action.scene_dispatch_argument,
-           caption_gate ? "caption-presentation" :
-                          status == ACTION_SOUND_ERR_UNSUPPORTED
-                              ? "audio-backend" : "kernel");
+           caption_gate
+               ? (app->captions.action_caption_attempted
+                      ? "caption-presentation" : "caption-lookup")
+               : status == ACTION_SOUND_ERR_UNSUPPORTED
+                     ? "audio-backend" : "kernel",
+           app->captions.action_caption_lookup_attempted,
+           app->captions.last_writer_status, app->captions.transfer_blocked);
     if (status == ACTION_SOUND_ERR_UNSUPPORTED)
         return SCENE_ACTION_HANDLER_UNSUPPORTED;
     if (status != ACTION_SOUND_OK || effect.has_transition != 0u)
@@ -717,7 +1345,8 @@ static bool create_native_scene_session(NativeApp *app)
     record(app, "scene_session_created scene=%d generation=%llu ui_phone_rows=%zu "
            "world=borrowed lifetime=app-owned transition=opaque-tuple-retained "
            "clock=world-clock-normal+timer-records post-clock-gates=guarded "
-           "pointer_transform=unverified action_sound_and_caption_backend=unavailable",
+           "pointer_transform=unverified caption_writer=bound-RGB555 "
+           "caption_transfer=unavailable audio_provider=unavailable",
            app->current_scene_id,
            (unsigned long long)scene_session_scene_generation(app->session),
            phone_count);
@@ -1507,6 +2136,8 @@ int main(int argc, char **argv)
             if (world_init_cold_zero_event_flags(&app.new_game.action_core) != WORLD_INIT_OK)
                 throw std::runtime_error("Cannot initialize bounded cold event-flag view");
             if (!load_viewport(&app)) throw std::runtime_error("BOOT VIEW configuration unavailable");
+            if (!initialize_caption_runtime(&app))
+                throw std::runtime_error("Original caption BOOT resources or RGB555 surfaces unavailable");
             StartupMenuConfig config{};
             config.disabled_button_mask = (1u << 3) | (1u << 4); // Fresh session, no save restoration implemented.
             config.click_feedback_ms = 0;
