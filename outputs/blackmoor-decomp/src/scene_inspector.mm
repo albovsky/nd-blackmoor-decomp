@@ -28,6 +28,9 @@ struct Inspector {
     uint64_t video_now_ns = 0;
     int32_t current_frame = 0;
     bool video_ended = false;
+    std::vector<uint8_t> current_rgba;
+    uint32_t current_width = 0;
+    uint32_t current_height = 0;
     AutoText *text = nullptr;
     MacAudioHost *audio = nullptr;
     SceneActionExecutor *executor = nullptr;
@@ -50,6 +53,63 @@ uint64_t monotonic_now_ns()
 {
     return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+bool copy_current_video_frame(Inspector &state, const BinkPlayerFrame &frame)
+{
+    if (frame.rgba == nullptr || frame.width == 0u || frame.height == 0u)
+        return false;
+    const size_t row_bytes = static_cast<size_t>(frame.width) * 4u;
+    if (row_bytes / 4u != frame.width) return false;
+    if (frame.stride < row_bytes ||
+        static_cast<size_t>(frame.height - 1u) >
+            (SIZE_MAX - row_bytes) / frame.stride) return false;
+    const size_t required = static_cast<size_t>(frame.height - 1u) *
+                            frame.stride + row_bytes;
+    if (required > frame.rgba_bytes ||
+        static_cast<size_t>(frame.width) > SIZE_MAX / frame.height / 4u) {
+        return false;
+    }
+    const size_t image_bytes = static_cast<size_t>(frame.width) *
+                               frame.height * 4u;
+    state.current_rgba.resize(image_bytes);
+    for (uint32_t row = 0; row < frame.height; ++row) {
+        std::memcpy(state.current_rgba.data() + static_cast<size_t>(row) * row_bytes,
+                    frame.rgba + static_cast<size_t>(row) * frame.stride,
+                    row_bytes);
+    }
+    state.current_width = frame.width;
+    state.current_height = frame.height;
+    state.current_frame = frame.current_frame;
+    return true;
+}
+
+bool copy_initial_frame(Inspector &state, const SceneInspectorFrameView &frame)
+{
+    if (frame.rgba == nullptr || frame.width == 0u || frame.height == 0u)
+        return false;
+    const size_t row_bytes = static_cast<size_t>(frame.width) * 4u;
+    if (row_bytes / 4u != frame.width) return false;
+    if (frame.stride < row_bytes ||
+        static_cast<size_t>(frame.height - 1u) >
+            (SIZE_MAX - row_bytes) / frame.stride ||
+        static_cast<size_t>(frame.width) > SIZE_MAX / frame.height / 4u) {
+        return false;
+    }
+    const size_t required = static_cast<size_t>(frame.height - 1u) *
+                            frame.stride + row_bytes;
+    if (required > frame.byte_length) return false;
+    const size_t tight_row_bytes = row_bytes;
+    state.current_rgba.resize(static_cast<size_t>(frame.width) * frame.height * 4u);
+    for (uint32_t row = 0; row < frame.height; ++row) {
+        std::memcpy(state.current_rgba.data() + static_cast<size_t>(row) * tight_row_bytes,
+                    frame.rgba + static_cast<size_t>(row) * frame.stride,
+                    tight_row_bytes);
+    }
+    state.current_width = frame.width;
+    state.current_height = frame.height;
+    state.current_frame = frame.frame_index;
+    return true;
 }
 
 ActionFamily64BackendStatus read_host_tick_count(void *, uint32_t *tick)
@@ -215,6 +275,12 @@ bool advance_video(Inspector &state, SceneExecutorFrameInput &input)
         const int status = bink_player_advance(state.video, state.video_now_ns,
                                                 &frame, error, sizeof(error));
         if (status == BINK_PLAYER_OK) {
+            if (!copy_current_video_frame(state, frame)) {
+                std::fprintf(state.log,
+                    "scene_inspect video_error invalid-frame-buffer frame=%d\n",
+                    frame.current_frame);
+                return false;
+            }
             state.current_frame = frame.current_frame;
             input.current_frame = frame.current_frame;
             continue;
@@ -287,13 +353,21 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
                          const char *game_directory,
                          WorldInitState *new_game_state,
                          ActionFamily64World *action64_world, FILE *log,
-                         SceneTransitionRequest *transition)
+                         const SceneInspectorFrameView *initial_frame,
+                         SceneTransitionRequest *transition,
+                         SceneInspectorFrameSnapshot *current_frame)
 {
     if (!resources || !boot || !scene || !video || !game_directory || !new_game_state ||
-        !new_game_state->action_core || !action64_world || !log || !transition) return 0;
+        !new_game_state->action_core || !action64_world || !log || !initial_frame ||
+        !transition ||
+        !current_frame) return 0;
     Inspector state(log, game_directory);
     state.video = video;
     state.video_now_ns = monotonic_now_ns();
+    if (!copy_initial_frame(state, *initial_frame)) {
+        std::fprintf(log, "scene_inspect initial-frame=invalid\n");
+        return 0;
+    }
     char video_error[256] = {};
     if (bink_player_set_mode(video, 0, state.video_now_ns,
                              video_error, sizeof(video_error)) != BINK_PLAYER_OK) {
@@ -417,8 +491,32 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
         input.hotspot_activation_event = 1;
         if (!dispatch() || step.kind != SCENE_EXECUTOR_STEP_TRANSITION) return 0;
         *transition = step.transition;
+        if (state.current_rgba.empty() || state.current_width == 0u ||
+            state.current_height == 0u ||
+            state.current_rgba.size() > UINT32_MAX ||
+            state.current_width > UINT32_MAX / 4u) {
+            std::fprintf(log, "scene_inspect transition_frame=unavailable\n");
+            return 0;
+        }
+        SceneInspectorFrameSnapshot snapshot{};
+        snapshot.rgba = static_cast<uint8_t *>(std::malloc(state.current_rgba.size()));
+        if (!snapshot.rgba) {
+            std::fprintf(log, "scene_inspect transition_frame=allocation-failed\n");
+            return 0;
+        }
+        std::memcpy(snapshot.rgba, state.current_rgba.data(),
+                    state.current_rgba.size());
+        snapshot.byte_length = state.current_rgba.size();
+        snapshot.width = state.current_width;
+        snapshot.height = state.current_height;
+        snapshot.stride = state.current_width * 4u;
+        snapshot.frame_index = state.current_frame;
+        *current_frame = snapshot;
         std::fprintf(log, "scene_inspect transition_target=%d difficulty=%d phone_rows=%zu boundary=resource-driven incomplete_game=1\n",
             transition->target_scene, world.difficulty, state.ui.phone_count);
+        std::fprintf(log, "scene_inspect transition_current_frame=owned-decoded-background width=%u height=%u frame=%d bytes=%zu composition=not-included\n",
+            snapshot.width, snapshot.height, snapshot.frame_index,
+            snapshot.byte_length);
         return 1;
     }
     std::fprintf(log, "scene_inspect no-supported-active-flag-hotspot\n");
@@ -430,16 +528,30 @@ int scene_inspector_run(GameResources *resources, const EngineBoot *boot,
                          const char *game_directory,
                          WorldInitState *new_game_state,
                          ActionFamily64World *action64_world, FILE *log,
-                         SceneTransitionRequest *transition)
+                         const SceneInspectorFrameView *initial_frame,
+                         SceneTransitionRequest *transition,
+                         SceneInspectorFrameSnapshot *current_frame)
 {
+    if (!current_frame) return 0;
+    *current_frame = {};
     try {
         return run_inspection(resources, boot, scene, video, game_directory,
-                              new_game_state, action64_world, log, transition);
+                              new_game_state, action64_world, log, initial_frame,
+                              transition, current_frame);
     } catch (const std::exception &error) {
+        scene_inspector_frame_snapshot_destroy(current_frame);
         if (log) std::fprintf(log, "scene_inspect host_error=%s\n", error.what());
         return 0;
     } catch (...) {
+        scene_inspector_frame_snapshot_destroy(current_frame);
         if (log) std::fprintf(log, "scene_inspect host_error=unknown-exception\n");
         return 0;
     }
+}
+
+void scene_inspector_frame_snapshot_destroy(SceneInspectorFrameSnapshot *frame)
+{
+    if (!frame) return;
+    std::free(frame->rgba);
+    std::memset(frame, 0, sizeof(*frame));
 }

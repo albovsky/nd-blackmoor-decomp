@@ -12,6 +12,8 @@
 #include "macos_audio.h"
 #include "scene_inspector.h"
 #include "world_init.h"
+#include "action_family28_surface.h"
+#include "scene_conditions.h"
 
 #import <AppKit/AppKit.h>
 #include <cstdio>
@@ -40,6 +42,7 @@ static const char *default_game_directory =
 struct HostImage {
     uint32_t width = 0, height = 0;
     std::vector<uint8_t> rgba;
+    int32_t frame_index = -1;
 };
 
 /* Exact bounded spans proven by the New Game reset paths. These counts are
@@ -107,10 +110,19 @@ struct NativeApp {
     bool command_reported = false;
     int last_stage = -1, last_hover = -2;
     int16_t initial_scene = 0;
+    int16_t current_scene_id = 0;
+    int16_t transition_source_scene_id = 0;
     int32_t scene_current_frame = 0;
     std::string game_directory;
     HostImage scene_frame;
+    HostImage transition_source_frame;
     bool has_scene_frame = false;
+    bool has_transition_source_frame = false;
+    std::vector<uint8_t> a28_primary_rgb565;
+    std::vector<uint8_t> a28_target_rgb565;
+    std::vector<uint8_t> a28_source_capture_words;
+    std::vector<uint8_t> a28_destination_capture_words;
+    bool a28_capture_pair_ready = false;
     StartupMenuFrame last_frame{};
     StartupMenuRect scene_source{}, scene_destination{};
 };
@@ -348,6 +360,7 @@ static bool copy_player_frame(NativeApp *app, const BinkPlayerFrame &frame)
     catch (...) { return false; }
     app->scene_frame.width = frame.width;
     app->scene_frame.height = frame.height;
+    app->scene_frame.frame_index = frame.current_frame;
     for (uint32_t row = 0; row < frame.height; ++row) {
         std::memcpy(app->scene_frame.rgba.data() + static_cast<size_t>(row) * row_bytes,
                     frame.rgba + static_cast<size_t>(row) * frame.stride, row_bytes);
@@ -404,6 +417,7 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
     app->scene = scene_resource_open_memory(resource.bytes, resource.length, error, sizeof(error));
     game_resource_bytes_destroy(&resource);
     if (!app->scene) { record(app, "scene_error name=%s detail=%s", name, error); return false; }
+    app->current_scene_id = scene_id;
     SceneResourceSummary summary{};
     if (scene_resource_get_summary(app->scene, &summary) != SCENE_RESOURCE_OK) return false;
     if (app->new_game.view.action_core != nullptr) {
@@ -478,6 +492,255 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
         app->scene_destination.left, app->scene_destination.top,
         app->scene_destination.right, app->scene_destination.bottom);
     /* Action execution is a separate, still-unimplemented boundary. */
+    return true;
+}
+
+static bool evaluate_a28_dependency_gate(NativeApp *app,
+                                         size_t action_index,
+                                         const SceneActionInfo &action,
+                                         int *satisfied)
+{
+    if (!app || !satisfied || !app->scene || !app->new_game.view.action_core ||
+        action.dependency_count > SIZE_MAX / sizeof(SceneDependencyInfo)) return false;
+    std::vector<SceneDependencyInfo> dependencies(action.dependency_count);
+    for (size_t i = 0; i < action.dependency_count; ++i) {
+        if (scene_resource_dependency_at(app->scene, action_index, i,
+                                         &dependencies[i]) != SCENE_RESOURCE_OK) {
+            return false;
+        }
+    }
+    SceneConditionTree *tree = nullptr;
+    const int built = scene_conditions_build(dependencies.data(),
+        dependencies.size(), &tree);
+    if (built != SCENE_CONDITION_OK) return false;
+
+    const ActionCoreWorld &world = *app->new_game.view.action_core;
+    SceneConditionState conditions{};
+    conditions.event_flags = world.event_flags;
+    conditions.event_flag_count = world.event_flag_count;
+    conditions.inventory_presence =
+        app->new_game.view.inventory.presence_583bd5.values;
+    conditions.inventory_count =
+        app->new_game.view.inventory.presence_583bd5.count;
+    conditions.selected_inventory_item =
+        app->new_game.view.inventory.selected_item_candidate
+            ? *app->new_game.view.inventory.selected_item_candidate : -1;
+    conditions.scene_visit_counts = reinterpret_cast<const int16_t *>(
+        app->new_game.view.scene_visit_counts_587b2d.values);
+    conditions.scene_visit_count =
+        app->new_game.view.scene_visit_counts_587b2d.count;
+    conditions.time_of_day_minutes = app->new_game.view.clock.total_minutes;
+    uint16_t unsupported_opcode = 0;
+    const int status = scene_conditions_evaluate(tree, &conditions, satisfied,
+                                                  &unsupported_opcode);
+    scene_conditions_destroy(tree);
+    if (status != SCENE_CONDITION_OK) {
+        record(app, "scene_a28_gate_error status=%d unsupported_opcode=%u",
+               status, unsupported_opcode);
+        return false;
+    }
+    return true;
+}
+
+static bool prepare_a28_handoff_frames(NativeApp *app)
+{
+    if (!app || !app->scene || !app->has_scene_frame ||
+        !app->has_transition_source_frame) return false;
+    app->a28_capture_pair_ready = false;
+    size_t action_index = SIZE_MAX;
+    SceneActionInfo action{};
+    for (size_t i = 0; i < scene_resource_action_count(app->scene); ++i) {
+        SceneActionInfo candidate{};
+        if (scene_resource_action_at(app->scene, i, &candidate) != SCENE_RESOURCE_OK) {
+            return false;
+        }
+        if (candidate.type != ACTION_FAMILY_28_TYPE) {
+            record(app, "scene_a28_prefix row=%zu type=0x%02x subtype=%u "
+                   "payload_kind=%d body_bytes=%zu dependency_records=%zu "
+                   "dispatch=not-run-by-handoff-inspector",
+                   i, candidate.type, candidate.subtype, candidate.payload_kind,
+                   candidate.typed_body_length, candidate.dependency_count);
+        }
+        if (candidate.type == ACTION_FAMILY_28_TYPE) {
+            action_index = i;
+            action = candidate;
+            break;
+        }
+    }
+    if (action_index == SIZE_MAX) {
+        record(app, "scene_a28_handoff=unsupported no-type-28-action");
+        return true;
+    }
+
+    ActionFamily28Decoded decoded{};
+    size_t consumed = 0;
+    if (action_family28_decode(action.typed_body, action.typed_body_length,
+                               &decoded, &consumed) != ACTION_FAMILY28_OK ||
+        consumed != ACTION_FAMILY_28_BODY_BYTES) {
+        record(app, "scene_a28_handoff=unsupported malformed-action index=%zu",
+               action_index);
+        return true;
+    }
+    int dependency_satisfied = 0;
+    int entry_gate_known = 0;
+    if (!evaluate_a28_dependency_gate(app, action_index, action,
+                                      &dependency_satisfied)) {
+        record(app, "scene_a28_entry_gate=unresolved action=%zu dependency_records=%zu "
+               "phase=pre-dispatch",
+               action_index, action.dependency_count);
+    } else {
+        entry_gate_known = 1;
+        const int32_t flag_1000 =
+            app->new_game.action_core.event_flag_count > 1000u
+                ? app->new_game.action_core.event_flags[1000] : INT32_MIN;
+        record(app, "scene_a28_entry_gate action=%zu subtype=%u dependency=%d "
+               "event_flag_1000=%d clock_minutes=%d visit_span_count=%zu "
+               "status=pre-dispatch-snapshot-only",
+               action_index, action.subtype, dependency_satisfied, flag_1000,
+               app->new_game.view.clock.total_minutes,
+               app->new_game.view.scene_visit_counts_587b2d.count);
+    }
+
+    /* S5900's recovered A-28 uses a zero-sized body rectangle, which the
+     * original leaf expands to the full BOOT destination canvas. Other A-28
+     * geometry needs a source-backed scene-state transform and stays explicit. */
+    if (decoded.rect.right != decoded.rect.left ||
+        decoded.rect.bottom != decoded.rect.top) {
+        record(app, "scene_a28_handoff=unsupported non-full-canvas-body-rect="
+               "%d,%d,%d,%d", decoded.rect.left, decoded.rect.top,
+               decoded.rect.right, decoded.rect.bottom);
+        return true;
+    }
+    const int64_t source_width = (int64_t)app->scene_source.right -
+                                 app->scene_source.left + 1;
+    const int64_t source_height = (int64_t)app->scene_source.bottom -
+                                  app->scene_source.top + 1;
+    const int64_t destination_width = (int64_t)app->scene_destination.right -
+                                      app->scene_destination.left + 1;
+    const int64_t destination_height = (int64_t)app->scene_destination.bottom -
+                                       app->scene_destination.top + 1;
+    if (source_width <= 0 || source_height <= 0 ||
+        source_width != destination_width || source_height != destination_height ||
+        (uint64_t)source_width > SIZE_MAX / (uint64_t)source_height ||
+        (uint64_t)source_width * (uint64_t)source_height > SIZE_MAX / 12u ||
+        app->scene_source.left < 0 || app->scene_source.top < 0 ||
+        app->transition_source_frame.width == 0u ||
+        app->scene_frame.width == 0u ||
+        (int64_t)app->scene_source.right >=
+            (int64_t)app->transition_source_frame.width ||
+        (int64_t)app->scene_source.bottom >=
+            (int64_t)app->transition_source_frame.height ||
+        (int64_t)app->scene_source.right >= (int64_t)app->scene_frame.width ||
+        (int64_t)app->scene_source.bottom >= (int64_t)app->scene_frame.height ||
+        decoded.rect.left < 0 || decoded.rect.top < 0) {
+        record(app, "scene_a28_handoff=unsupported viewport-or-frame-bounds");
+        return true;
+    }
+    const size_t width = static_cast<size_t>(source_width);
+    const size_t height = static_cast<size_t>(source_height);
+    const size_t pixel_count = width * height;
+    if (pixel_count > SIZE_MAX / 2u) {
+        record(app, "scene_a28_handoff=unsupported rgb565-overflow");
+        return true;
+    }
+    const size_t rgb_bytes = pixel_count * 2u;
+    size_t capture_bytes = 0;
+    if (action_family28_capture_required_bytes(width, height, width,
+                                               &capture_bytes) !=
+        ACTION_FAMILY28_SURFACE_OK) {
+        record(app, "scene_a28_handoff=unsupported capture-size");
+        return true;
+    }
+    app->a28_primary_rgb565.resize(rgb_bytes);
+    app->a28_target_rgb565.resize(rgb_bytes);
+    app->a28_source_capture_words.resize(capture_bytes);
+    app->a28_destination_capture_words.resize(capture_bytes);
+    BinkPlayerFrame source_frame{};
+    source_frame.rgba = app->transition_source_frame.rgba.data();
+    source_frame.rgba_bytes = app->transition_source_frame.rgba.size();
+    source_frame.width = app->transition_source_frame.width;
+    source_frame.height = app->transition_source_frame.height;
+    source_frame.stride = source_frame.width * 4u;
+    source_frame.current_frame = app->transition_source_frame.frame_index;
+    BinkPlayerFrame target_frame{};
+    target_frame.rgba = app->scene_frame.rgba.data();
+    target_frame.rgba_bytes = app->scene_frame.rgba.size();
+    target_frame.width = app->scene_frame.width;
+    target_frame.height = app->scene_frame.height;
+    target_frame.stride = target_frame.width * 4u;
+    target_frame.current_frame = app->scene_frame.frame_index;
+    ActionFamily28PrimarySurface source_surface{};
+    ActionFamily28PrimarySurface target_surface{};
+    int status = action_family28_surface_from_rgba_rect(&source_frame,
+        static_cast<size_t>(app->scene_source.left),
+        static_cast<size_t>(app->scene_source.top), width, height,
+        app->a28_primary_rgb565.data(), app->a28_primary_rgb565.size(),
+        app->scene_destination.left, app->scene_destination.top,
+        &source_surface);
+    if (status == ACTION_FAMILY28_SURFACE_OK) {
+        status = action_family28_surface_from_rgba_rect(&target_frame,
+            static_cast<size_t>(app->scene_source.left),
+            static_cast<size_t>(app->scene_source.top), width, height,
+            app->a28_target_rgb565.data(), app->a28_target_rgb565.size(),
+            app->scene_destination.left, app->scene_destination.top,
+            &target_surface);
+    }
+    if (status != ACTION_FAMILY28_SURFACE_OK) {
+        record(app, "scene_a28_handoff=unsupported surface-conversion status=%d",
+               status);
+        app->a28_primary_rgb565.clear();
+        app->a28_target_rgb565.clear();
+        app->a28_source_capture_words.clear();
+        app->a28_destination_capture_words.clear();
+        return true;
+    }
+    const ActionFamily28Rect target_rect = {
+        app->scene_destination.left, app->scene_destination.top,
+        app->scene_destination.right, app->scene_destination.bottom};
+    ActionFamily28WordCapture source_capture{
+        app->a28_source_capture_words.data(),
+        app->a28_source_capture_words.size(), width, height, width,
+        static_cast<size_t>(decoded.rect.left),
+        static_cast<size_t>(decoded.rect.top),
+        ACTION_FAMILY28_STORAGE_CALLER_OWNED};
+    ActionFamily28WordCapture destination_capture{
+        app->a28_destination_capture_words.data(),
+        app->a28_destination_capture_words.size(), width, height, width,
+        static_cast<size_t>(decoded.rect.left),
+        static_cast<size_t>(decoded.rect.top),
+        ACTION_FAMILY28_STORAGE_CALLER_OWNED};
+    status = action_family28_surface_capture_words_at(&source_surface,
+        &target_rect, static_cast<size_t>(decoded.rect.left),
+        static_cast<size_t>(decoded.rect.top), &source_capture);
+    if (status == ACTION_FAMILY28_SURFACE_OK) {
+        status = action_family28_surface_capture_words_at(&target_surface,
+            &target_rect, static_cast<size_t>(decoded.rect.left),
+            static_cast<size_t>(decoded.rect.top), &destination_capture);
+    }
+    if (status != ACTION_FAMILY28_SURFACE_OK) {
+        record(app, "scene_a28_handoff=unsupported word-capture status=%d", status);
+        app->a28_primary_rgb565.clear();
+        app->a28_target_rgb565.clear();
+        app->a28_source_capture_words.clear();
+        app->a28_destination_capture_words.clear();
+        return true;
+    }
+    app->a28_capture_pair_ready = true;
+    record(app, "scene_a28_capture_pair current_scene=%d current_frame=%d "
+           "target_scene=%d target_frame=%d source_view=%d,%d,%d,%d "
+           "target_view=%d,%d,%d,%d crop=%d,%d canvas=%zux%zu "
+           "capture_bytes_each=%zu scope=decoded-background-only "
+           "original-composed-framebuffer=not-represented",
+           app->transition_source_scene_id, app->transition_source_frame.frame_index,
+           app->current_scene_id, app->scene_frame.frame_index,
+           app->scene_source.left, app->scene_source.top,
+           app->scene_source.right, app->scene_source.bottom,
+           app->scene_destination.left, app->scene_destination.top,
+           app->scene_destination.right, app->scene_destination.bottom,
+           decoded.rect.left, decoded.rect.top, width, height, capture_bytes);
+    record(app, "scene_a28_execution=not-run reason=successor-scene-dispatch-"
+           "not-integrated gate=not-evaluated-after-prefix entry_gate_known=%d "
+           "entry_gate=%d", entry_gate_known, dependency_satisfied);
     return true;
 }
 
@@ -848,11 +1111,55 @@ int main(int argc, char **argv)
                 if (inspect_audio && !inspect_audio_graph(&app)) app.failure = true;
                 if (inspect_scene_runtime) {
                     SceneTransitionRequest transition{};
+                    SceneInspectorFrameSnapshot snapshot{};
+                    SceneInspectorFrameView initial_frame{};
+                    if (!app.has_scene_frame ||
+                        app.scene_frame.width > UINT32_MAX / 4u) {
+                        throw std::runtime_error("Headless source scene frame unavailable");
+                    }
+                    initial_frame.rgba = app.scene_frame.rgba.data();
+                    initial_frame.byte_length = app.scene_frame.rgba.size();
+                    initial_frame.width = app.scene_frame.width;
+                    initial_frame.height = app.scene_frame.height;
+                    initial_frame.stride = static_cast<size_t>(app.scene_frame.width) * 4u;
+                    initial_frame.frame_index = app.scene_frame.frame_index;
                     if (!scene_inspector_run(app.resources, app.boot, app.scene, app.video,
                             app.game_directory.c_str(), &app.new_game.view,
-                            &app.new_game.action64_world, app.log, &transition) ||
-                        !clear_before_scene_entry(&app, blackmoor_macos_monotonic_ms()) ||
-                        !load_scene(&app, transition.target_scene)) app.failure = true;
+                            &app.new_game.action64_world, app.log, &initial_frame,
+                            &transition, &snapshot)) {
+                        scene_inspector_frame_snapshot_destroy(&snapshot);
+                        app.failure = true;
+                    } else {
+                        std::unique_ptr<uint8_t, decltype(&std::free)> snapshot_owner(
+                            snapshot.rgba, &std::free);
+                        snapshot.rgba = nullptr;
+                        const size_t snapshot_row_bytes =
+                            static_cast<size_t>(snapshot.width) * 4u;
+                        if (!snapshot_owner || snapshot.width == 0u ||
+                            snapshot.height == 0u ||
+                            snapshot.width > UINT32_MAX / 4u ||
+                            snapshot.stride < snapshot_row_bytes ||
+                            static_cast<size_t>(snapshot.height - 1u) >
+                                (SIZE_MAX - snapshot_row_bytes) / snapshot.stride ||
+                            static_cast<size_t>(snapshot.height - 1u) * snapshot.stride +
+                                snapshot_row_bytes > snapshot.byte_length) {
+                            throw std::runtime_error("Headless transition frame is invalid");
+                        }
+                        app.transition_source_frame.width = snapshot.width;
+                        app.transition_source_frame.height = snapshot.height;
+                        app.transition_source_frame.frame_index = snapshot.frame_index;
+                        app.transition_source_frame.rgba.assign(
+                            snapshot_owner.get(),
+                            snapshot_owner.get() + snapshot.byte_length);
+                        app.has_transition_source_frame = true;
+                        app.transition_source_scene_id = app.current_scene_id;
+                        if (!clear_before_scene_entry(&app,
+                                blackmoor_macos_monotonic_ms()) ||
+                            !load_scene(&app, transition.target_scene) ||
+                            !prepare_a28_handoff_frames(&app)) {
+                            app.failure = true;
+                        }
+                    }
                 }
             } else {
                 BlackmoorPlatformCallbacks callbacks{};

@@ -120,11 +120,32 @@ class NativeAppIntegrationTests(unittest.TestCase):
                              'fixture_hotspot=34',
                              'input=hover-then-accepted-primary-release',
                              'transition_target=5900 difficulty=0 phone_rows=12',
+                             'scene_inspect transition_current_frame=owned-decoded-background width=620 height=375 frame=0 bytes=930000 composition=not-included',
                              'scene_parsed name=S5900',
-                             'background=OPEN_A', 'incomplete_game=1',
+                             'background=OPEN_A',
+                             'scene_a28_prefix row=0 type=0x64 subtype=1 payload_kind=1 body_bytes=5 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=1 type=0x82 subtype=1 payload_kind=1 body_bytes=41 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=2 type=0x82 subtype=1 payload_kind=1 body_bytes=41 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=3 type=0x82 subtype=1 payload_kind=1 body_bytes=41 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=4 type=0x1d subtype=1 payload_kind=1 body_bytes=8 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=5 type=0x1d subtype=1 payload_kind=1 body_bytes=8 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=6 type=0x1d subtype=1 payload_kind=1 body_bytes=8 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_prefix row=7 type=0x62 subtype=1 payload_kind=3 body_bytes=30 dependency_records=0 dispatch=not-run-by-handoff-inspector',
+                             'scene_a28_entry_gate action=8 subtype=1 dependency=0 event_flag_1000=0 clock_minutes=1080 visit_span_count=10001 status=pre-dispatch-snapshot-only',
+                             'scene_a28_capture_pair current_scene=0 current_frame=0 target_scene=5900 target_frame=0 source_view=0,0,619,374 target_view=10,10,629,384 crop=0,0 canvas=620x375 capture_bytes_each=2790000 scope=decoded-background-only original-composed-framebuffer=not-represented',
+                             'scene_a28_execution=not-run reason=successor-scene-dispatch-not-integrated gate=not-evaluated-after-prefix entry_gate_known=1 entry_gate=0',
+                             'incomplete_game=1',
                              'stopped failure=0'):
                 self.assertIn(evidence, contents)
             self.assertLess(contents.index('audio_completed'), contents.index('transition_target'))
+            self.assertLess(contents.index('transition_current_frame'),
+                            contents.index('scene_a28_capture_pair'))
+            self.assertLess(contents.index('scene_parsed name=S5900'),
+                            contents.index('scene_a28_capture_pair'))
+            self.assertLess(contents.index('scene_a28_prefix row=7'),
+                            contents.index('scene_a28_entry_gate'))
+            self.assertLess(contents.index('scene_a28_entry_gate'),
+                            contents.index('scene_a28_capture_pair'))
 
     def test_scene_fixture_missing_sound_cannot_report_transition_success(self):
         with tempfile.TemporaryDirectory() as directory:

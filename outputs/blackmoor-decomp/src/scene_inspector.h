@@ -12,6 +12,31 @@
 extern "C" {
 #endif
 
+/* Owned copy of the last Bink frame observed before a resource-driven scene
+ * transition. `rgba` is allocated by the inspector and remains valid until
+ * scene_inspector_frame_snapshot_destroy; it is the decoded background only,
+ * not the original composed DirectDraw surface. */
+typedef struct scene_inspector_frame_snapshot {
+    uint8_t *rgba;
+    size_t byte_length;
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    int32_t frame_index;
+} SceneInspectorFrameSnapshot;
+
+/* Borrowed decoded frame at inspector entry. The inspector copies it before
+ * advancing the player so a transition on the first dispatch still returns
+ * the actual current scene image. */
+typedef struct scene_inspector_frame_view {
+    const uint8_t *rgba;
+    size_t byte_length;
+    uint32_t width;
+    uint32_t height;
+    size_t stride;
+    int32_t frame_index;
+} SceneInspectorFrameView;
+
 /* Automated integration fixture, with no window or output audio device.
  * Uses the caller's bounded New Game snapshot, recovered BOOT phone inputs,
  * decoded sound and timed Action64 clock; then selects the first active flag
@@ -23,7 +48,10 @@ int scene_inspector_run(GameResources *resources, const EngineBoot *boot,
                          const char *game_directory,
                          WorldInitState *new_game_state,
                          ActionFamily64World *action64_world, FILE *log,
-                         SceneTransitionRequest *transition);
+                         const SceneInspectorFrameView *initial_frame,
+                         SceneTransitionRequest *transition,
+                         SceneInspectorFrameSnapshot *current_frame);
+void scene_inspector_frame_snapshot_destroy(SceneInspectorFrameSnapshot *frame);
 
 #ifdef __cplusplus
 }

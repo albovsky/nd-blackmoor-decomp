@@ -132,6 +132,27 @@ class SceneResourceTests(unittest.TestCase):
         finally:
             self.lib.scene_resource_close(scene)
 
+    def test_s5900_action_8_has_a28_body_and_flag_1000_dependency(self):
+        path = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources/2743.bin"
+        scene, error = self.open_bytes(path.read_bytes())
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 8, c.byref(action)), 0)
+            self.assertEqual((action.type, action.subtype), (0x28, 1))
+            self.assertEqual((action.payload_kind, action.typed_body_length,
+                              action.dependency_count), (1, 21, 1))
+            self.assertEqual(
+                c.string_at(action.typed_body, action.typed_body_length).hex(),
+                "02f401d00700000000000000000000000000000000",
+            )
+            dependency = SceneDependencyInfo()
+            self.assertEqual(self.lib.scene_resource_dependency_at(
+                scene, 8, 0, c.byref(dependency)), 0)
+            self.assertEqual(tuple(dependency.fields[:4]), (2, 1000, 1, 0))
+        finally:
+            self.lib.scene_resource_close(scene)
+
     def test_unknown_action_type_keeps_entire_body_opaque(self):
         description = b"unknown action".ljust(48, b"\0")
         scene, error = self.open_bytes(
@@ -181,6 +202,7 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_new_fixed_action_boundaries_and_truncation(self):
         fixed_lengths = {
+            0x28: 21,
             0x0B: 24,
             0x4F: 10,
             0x78: 6,
@@ -435,7 +457,7 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21}
         counts = {action_type: 0 for action_type in
                   (*expected_fixed, 0x9F, 0x51, 0x62)}
         scenes = 0
@@ -520,8 +542,10 @@ class SceneResourceTests(unittest.TestCase):
                 self.lib.scene_resource_close(scene)
         self.assertEqual(scenes, 2078)
         self.assertEqual(actions, 19612)
-        self.assertEqual(typed_actions, 11017)
-        self.assertEqual(opaque_actions, 8595)
+        # A-28 contributes 72 recovered 21-byte bodies; dependency tails stay
+        # separate from the typed body, preserving the total action count.
+        self.assertEqual(typed_actions, 11089)
+        self.assertEqual(opaque_actions, 8523)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
@@ -536,6 +560,7 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(counts[0x9F], 3570)
         self.assertEqual(counts[0x62], 1802)
         self.assertEqual(counts[0x64], 7)
+        self.assertEqual(counts[0x28], 72)
         self.assertEqual(counts[0x51], 97)
 
     def test_rejects_short_tsum_and_truncated_known_action_body(self):
