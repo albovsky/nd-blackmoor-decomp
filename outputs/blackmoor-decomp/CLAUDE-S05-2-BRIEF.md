@@ -2,6 +2,10 @@
 
 Continue as Claude, as the owner requested. Your S05-1 text writer is committed as `db638f3f1ca2347f7e286969fd0ba24f0b0e82e0`. Its handoff explicitly leaves S05-2 open; this task completes the surrounding lifecycle before the queued S03 AVF work.
 
+## Immediate prerequisite
+
+Fix the three independent S05-1 findings in [CLAUDE-S05-1-REVIEW-FIXES.md](CLAUDE-S05-1-REVIEW-FIXES.md) and obtain narrow re-review first. Use that corrected writer commit as this child's baseline; `db638f3` alone is not yet accepted.
+
 ## Objective
 
 Replace the remaining caption/framed-box lifecycle stubs with original-derived state and typed presentation/input commands. This is needed to connect A-51 and sound captions to the real persistent scene runtime. Do not rewrite the completed text writer.
