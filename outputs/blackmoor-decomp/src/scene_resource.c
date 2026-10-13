@@ -121,6 +121,7 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x1d: fixed_length = 8u;  break; /* AT_CONTROL */
     case 0x4d: fixed_length = 4u;  break; /* AT_SET_VALUE */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x64: fixed_length = 5u;  break; /* constructor 0x40b34a copies exactly five bytes */
     case 0x6b: fixed_length = 40u; break; /* AT_EVENTFLAGS */
     case 0x71: fixed_length = 6u;  break; /* AT_DIFFICULTY_LEVEL */
     case 0x82: fixed_length = 41u; break; /* AT_CELLPHONE_NUMBER */
@@ -129,6 +130,29 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x78: fixed_length = 6u;  break; /* 0x4e9c2f advances source by 6 */
     case 0x95: fixed_length = 3u;  break; /* loader advances source by 3 */
     case 0xd9: fixed_length = 35u; break; /* 0x47d682 advances source by 0x23 */
+    case 0x62: {
+        int16_t count;
+        size_t typed_length;
+
+        /* The constructor reads a signed short at +10 and narrows its
+         * 12 + count*18 result to signed short before copying. Validate the
+         * complete 12-byte prefix before the read, reject negative/unrepresentable
+         * counts, then let parse_action bound the typed span against this row. */
+        if (length < 12u) {
+            return -1;
+        }
+        count = read_i16le(body + 10u);
+        if (count < 0) {
+            return -1;
+        }
+        typed_length = 12u + (size_t)count * 18u;
+        if (typed_length > (size_t)INT16_MAX) {
+            return -1;
+        }
+        *body_length = typed_length;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
     case 0x9f: {
         uint16_t selector;
         if (length < 48u) {
