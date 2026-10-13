@@ -1,5 +1,7 @@
 # S05-2: Framed text box and caption presentation lifecycle
 
+**Status:** implemented and checked against the original code: 19 sequences, 333 steps, 0 mismatches. The offscreen pixel-composition fixture and the independent review are still open; see `work/analysis/slices/S05-2.handoff.json`.
+
 **Parent:** S05 (caption layout and font rendering). S05-1, the text writer `0x448d11` and its layout, glyph, blit and font code, is implemented in `src/caption_layout.[ch]` and checked against the original code. This child packet holds the UI lifecycle around that writer. **S05 stays incomplete until this packet passes.**
 
 **Spec:** `../PROJECT-SPEC.md`. Read `work/analysis/slices/S05.recovery.md` first.
