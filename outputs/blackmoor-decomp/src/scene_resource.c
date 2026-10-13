@@ -123,6 +123,22 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
     case 0x64: fixed_length = 5u;  break; /* constructor 0x40b34a copies exactly five bytes */
     case 0x6b: fixed_length = 40u; break; /* AT_EVENTFLAGS */
+    case 0x51: {
+        int16_t selector;
+        if (length < 12u) {
+            return -1;
+        }
+        selector = read_i16le(body + 10u);
+        if (selector == -1) {
+            *body_length = 45u; /* loader copies the 33-byte AUTOTEXT key */
+        } else if (selector >= 0 && selector <= 9999) {
+            *body_length = 12u + (size_t)selector;
+        } else {
+            return -1;
+        }
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
     case 0x71: fixed_length = 6u;  break; /* AT_DIFFICULTY_LEVEL */
     case 0x82: fixed_length = 41u; break; /* AT_CELLPHONE_NUMBER */
     case 0x4f: fixed_length = 10u; break; /* 0x44b1b4 advances source by 10 */
