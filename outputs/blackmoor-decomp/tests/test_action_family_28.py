@@ -26,11 +26,17 @@ class Result(c.Structure):
 def payload(kind=2,budget=500,pause=2000,rect=(0,0,0,0)):
     return struct.pack("<Bhh4i",kind,budget,pause,*rect)
 def buffer(data): return (c.c_uint8*len(data)).from_buffer_copy(data)
+def world_value(w):
+    return (w.busy,tuple(getattr(w.full_canvas,x) for x in ("left","top","right","bottom")),
+        tuple(getattr(w.current_rect,x) for x in ("left","top","right","bottom")),
+        w.sequence_counter,bytes(w.active_payload))
 def configure(lib):
     lib.action_family28_decode.argtypes=[c.POINTER(c.c_uint8),c.c_size_t,c.POINTER(Decoded),c.POINTER(c.c_size_t)]
     lib.action_family28_step.argtypes=[c.POINTER(Input),c.POINTER(World),c.POINTER(Result)]
     lib.action_family28_blend_table.argtypes=[c.c_double,c.POINTER(c.c_int32),c.c_size_t]
+    lib.action_family28_blend_table_for_cw.argtypes=[c.c_double,c.c_uint16,c.POINTER(c.c_int32),c.c_size_t]
     lib.action_family28_blend_pixels.argtypes=[c.POINTER(c.c_uint8),c.POINTER(c.c_uint8),c.c_size_t,c.c_double,c.POINTER(c.c_uint8),c.POINTER(c.c_uint16),c.c_size_t]
+    lib.action_family28_blend_pixels_for_cw.argtypes=[c.POINTER(c.c_uint8),c.POINTER(c.c_uint8),c.c_size_t,c.c_double,c.c_uint16,c.POINTER(c.c_uint8),c.POINTER(c.c_uint16),c.c_size_t]
     return lib
 class Action28Tests(unittest.TestCase):
     @classmethod
@@ -75,12 +81,28 @@ class Action28Tests(unittest.TestCase):
     def test_busy_false_gate_and_other_phases_preserve_state(self):
         for kw in [dict(busy=1),dict(eligible=0),dict(phase=1),dict(phase=3)]:
             r=self.step(**kw);w=self.world();w.busy=kw.get("busy",0)
-            self.assertEqual(bytes(r.world),bytes(w));self.assertEqual(r.applied,0)
+            self.assertEqual(world_value(r.world),world_value(w));self.assertEqual(r.applied,0)
     def test_phase_two_subtype_completion_and_reset(self):
-        for sub,completed,reset in [(1,1,0),(2,0,1),(0,1,0),(7,1,0)]:
-            r=self.step(phase=2,subtype=sub,completed=1,busy=1)
+        # The dispatcher skips an action whose completion byte is already set;
+        # these cases enter the original completion helper with it clear.
+        for sub,completed,reset in [(1,1,0),(2,0,1),(0,0,0),(7,0,0)]:
+            r=self.step(phase=2,subtype=sub,completed=0,busy=1)
             self.assertEqual((r.phase,r.completion_valid,r.completed,r.reset_dependencies,r.job_started),(0,1,completed,reset,0))
             self.assertEqual(r.world.busy,1)
+    def test_phase_two_false_gate_and_already_completed_skip(self):
+        for eligible,completed_before in [(0,0),(1,1)]:
+            r=self.step(phase=2,busy=1,eligible=eligible,completed=completed_before)
+            self.assertEqual((r.phase,r.applied,r.job_started,r.completion_valid),(2,0,0,0))
+            expected=self.world();expected.busy=1
+            self.assertEqual(world_value(r.world),world_value(expected))
+    def test_invalid_start_and_wrong_type_are_atomic(self):
+        short=buffer(payload()[:20]);a=Input(0x28,1,1,0,0,short,20)
+        w=self.world();r=Result();c.memset(c.byref(r),0x55,c.sizeof(r));before=bytes(r)
+        self.assertEqual(self.lib.action_family28_step(c.byref(a),c.byref(w),c.byref(r)),BODY)
+        self.assertEqual(bytes(r),before)
+        raw=buffer(payload());a=Input(0x29,1,1,0,0,raw,21)
+        self.assertEqual(self.lib.action_family28_step(c.byref(a),c.byref(w),c.byref(r)),UNSUPPORTED)
+        self.assertEqual(bytes(r),before)
     def test_phase_two_does_not_read_payload(self):
         a=Input(0x28,1,1,0,2,None,0);w=self.world();r=Result()
         self.assertEqual(self.lib.action_family28_step(c.byref(a),c.byref(w),c.byref(r)),OK)
@@ -103,10 +125,36 @@ class Action28Tests(unittest.TestCase):
         self.assertEqual(out[0],0x5555)
         self.assertEqual(self.lib.action_family28_blend_pixels(rgb,rgb,1,.5,shifts,out,0),BOUNDS)
         self.assertEqual(out[0],0x5555)
+    def test_blend_rejects_wrapping_pointer_spans_before_dereference(self):
+        shifts=buffer(bytes([11,5,0]));rgb=buffer(bytes([0,0,0]))
+        out=(c.c_uint16*1)(0x5555)
+        address_bits=c.sizeof(c.c_void_p)*8
+        top=(1<<address_bits)-1
+        invalid_source=c.cast(c.c_void_p(top-1),c.POINTER(c.c_uint8))
+        self.assertEqual(self.lib.action_family28_blend_pixels(
+            invalid_source,rgb,1,.5,shifts,out,1),BOUNDS)
+        self.assertEqual(out[0],0x5555)
+        invalid_output=c.cast(c.c_void_p(top-1),c.POINTER(c.c_uint16))
+        self.assertEqual(self.lib.action_family28_blend_pixels(
+            rgb,rgb,1,.5,shifts,invalid_output,1),BOUNDS)
+        self.assertEqual(out[0],0x5555)
     def test_table_cap_and_rounding(self):
         table=(c.c_int32*4096)(*([777]*4096))
         self.assertEqual(self.lib.action_family28_blend_table(.5,table,4095),BOUNDS)
         self.assertEqual(table[0],777)
         self.assertEqual(self.lib.action_family28_blend_table(.5,table,4096),OK)
         self.assertEqual((table[31*64],table[63],table[31*64+63]),(16,32,47))
+    def test_explicit_x87_precision_modes_and_unsupported_control_word(self):
+        weight=math.nextafter(.5,0)
+        double_precision=(c.c_int32*4096)()
+        extended_precision=(c.c_int32*4096)()
+        self.assertEqual(self.lib.action_family28_blend_table_for_cw(
+            weight,0x027f,double_precision,4096),OK)
+        self.assertEqual(self.lib.action_family28_blend_table_for_cw(
+            weight,0x037f,extended_precision,4096),OK)
+        self.assertEqual((double_precision[64],extended_precision[64]),(1,0))
+        before=bytes(double_precision)
+        self.assertEqual(self.lib.action_family28_blend_table_for_cw(
+            weight,0x017f,double_precision,4096),UNSUPPORTED)
+        self.assertEqual(bytes(double_precision),before)
 if __name__=="__main__": unittest.main()
