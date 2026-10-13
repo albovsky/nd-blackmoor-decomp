@@ -162,22 +162,59 @@ class MacAudioTests(unittest.TestCase):
         self.assertTrue(all(abs(value) < 1e-6 for value in silence), max(map(abs, silence)))
 
         self.assertEqual(self.play(5, [0.2, -0.4, 0.6, -0.8], loop=True), 0)
-        self.render(8)  # A newly attached node may enter the graph on the next render quantum.
-        repeated = self.render(128)
-        active_frames = [frame for frame in range(128)
+        self.assertTrue(self.is_playing(5))
+
+        # A newly attached player can return successful silent manual-render
+        # blocks before its graph contribution is observable. Use rendered PCM
+        # itself as readiness, with a strict frame bound rather than a delay or
+        # the host's logical active flag.
+        startup_frame_limit = 512
+        probe_frame_count = 128
+        rendered_frames = 0
+        captured: list[float] = []
+        first_active_frame: int | None = None
+        while rendered_frames < startup_frame_limit and first_active_frame is None:
+            frame_count = min(probe_frame_count, startup_frame_limit - rendered_frames)
+            block = self.render(frame_count)
+            block_start = rendered_frames
+            captured.extend(block)
+            for frame in range(frame_count):
+                if max(abs(block[2 * frame]), abs(block[2 * frame + 1])) > 0.1:
+                    first_active_frame = block_start + frame
+                    break
+            rendered_frames += frame_count
+
+        if first_active_frame is None:
+            self.fail(f"loop produced no audible PCM within {startup_frame_limit} rendered frames")
+
+        # Keep a full post-readiness window so the loop pattern is checked on
+        # actual output, even when readiness arrives near the end of a probe.
+        verification_frame_count = 128
+        while rendered_frames - first_active_frame < verification_frame_count:
+            frame_count = min(probe_frame_count,
+                              first_active_frame + verification_frame_count - rendered_frames)
+            captured.extend(self.render(frame_count))
+            rendered_frames += frame_count
+
+        window_start = first_active_frame * 2
+        repeated = captured[window_start:window_start + verification_frame_count * 2]
+        active_frames = [frame for frame in range(verification_frame_count)
                          if max(abs(repeated[2 * frame]), abs(repeated[2 * frame + 1])) > 0.1]
-        self.assertGreaterEqual(len(active_frames), 32)
+        self.assertEqual(len(active_frames), verification_frame_count)
         first = active_frames[0]
         phase = 0 if abs(repeated[2 * first] - 0.2) < 1e-5 else 1
-        for offset in range(16):
+        for offset in range(verification_frame_count):
             frame = first + offset
             expected_left = [0.2, 0.6][(phase + offset) % 2]
             expected_right = [-0.4, -0.8][(phase + offset) % 2]
             self.assertAlmostEqual(repeated[2 * frame], expected_left, delta=1e-5)
             self.assertAlmostEqual(repeated[2 * frame + 1], expected_right, delta=1e-5)
         self.assertTrue(self.is_playing(5))
-        self.library.mac_audio_stop(self.host, 5, self.error, ctypes.sizeof(self.error))
+        status = self.library.mac_audio_stop(self.host, 5, self.error, ctypes.sizeof(self.error))
+        self.assertEqual(status, 0, self.error.value.decode(errors="replace"))
         self.assertFalse(self.is_playing(5))
+        stopped = self.render(32)
+        self.assertTrue(all(abs(value) < 1e-6 for value in stopped), max(map(abs, stopped)))
 
     def test_offline_data_rendered_completion_clears_only_current_slot_generation(self) -> None:
         self.open_offline()
