@@ -60,8 +60,8 @@
     "complete_dependency_tree_or_action_runtime": false
   },
   "tests": {
-    "discovered": 216,
-    "passed": 214,
+    "discovered": 332,
+    "passed": 330,
     "skipped": 2,
     "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
   },
@@ -83,10 +83,10 @@
     "scenes_parsed": 2078,
     "parse_failures": 0,
     "action_records": 19612,
-    "typed_actions": 9111,
-    "opaque_actions": 10501,
+    "typed_actions": 11017,
+    "opaque_actions": 8595,
     "known_dependency_records": 15281,
-    "targeted_tests": 10,
+    "targeted_tests": 17,
     "action_execution": false
   },
   "native_bink_adapter": {
@@ -124,8 +124,8 @@
     "caption_renderer": false
   },
   "next_action_recovery": {
-    "typed_actions": 9111,
-    "opaque_actions": 10501,
+    "typed_actions": 11017,
+    "opaque_actions": 8595,
     "next_body_candidates": [
       "0x62",
       "0x35",
@@ -315,5 +315,19 @@
     ],
     "first_opaque_action_index": 0,
     "timed_background_media": false
+  },
+  "current_integration": {
+    "source_ref": "33c1733431fdaa459f6b8bafb42cff3d49e6ef2d",
+    "native_build_passed": true,
+    "full_suite": {
+      "discovered": 332,
+      "passed": 330,
+      "skipped": 2
+    },
+    "build_log_sha256": "471b75826e26dc2eda8dae6f9e26083467bfa0305fd7d29450a4fb0d50d6a5fd",
+    "test_log_sha256": "08afb2297a9febd1536aa497774d10a943ea614b8865e25dfdac272994c4a125",
+    "scope": "Collected world/clock/timed-background integration and isolated A28/A51/A62/A64 kernels; older diagnostic fields retain their original report scope. Caption/frame rendering, live interaction providers, complete gameplay and whole-file x86 matching remain open.",
+    "gui_verified": false,
+    "hardware_audio_verified": false
   }
 }
