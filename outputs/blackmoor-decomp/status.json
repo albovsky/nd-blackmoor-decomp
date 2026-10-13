@@ -329,5 +329,20 @@
     "scope": "Collected world/clock/timed-background integration and isolated A28/A51/A62/A64 kernels; older diagnostic fields retain their original report scope. Caption/frame rendering, live interaction providers, complete gameplay and whole-file x86 matching remain open.",
     "gui_verified": false,
     "hardware_audio_verified": false
+  },
+  "progress_map": {
+    "entrypoint": "progress-map/index.html",
+    "indexed_starts": 4188,
+    "area_semantics": "Estimated spans to next indexed start; final extent unknown; no decompilation percentage",
+    "exact_selected_bytes": 14,
+    "exact_selected_ranges": 2,
+    "exact_function_completeness": "unverified",
+    "selected_oracle_report_families": 5,
+    "s08_audited_function_extents": 6,
+    "s08_exact_functions": 0,
+    "independent_review": "Two provenance findings fixed; narrow re-review clear on 0a27d1520c128a4553089e366c2c3bd376242958",
+    "tests_passed": 17,
+    "offline": true,
+    "live_refresh": false
   }
 }

@@ -8,6 +8,8 @@ The target is the original Windows `GAME.EXE` from the supplied GOG Mac bundle.
 The ScummVM approach was abandoned at the owner's request. No ScummVM code or
 runtime is used in this reconstruction project.
 
+The offline [progress map](progress-map/index.html) provides filtering and an evidence inspector for all indexed starts. Tile sizes are estimated address spans; exact byte ranges and bounded oracle evidence have separate colours. Its selected report coverage and unknown extents are visible in the page.
+
 ## What has been done
 
 - Inspected the original bundle and PE resources with REA 6.4.0.

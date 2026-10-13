@@ -10,7 +10,7 @@ Root orchestrates assignments, independent review, collection and verification. 
 | A-62 interaction | Collected integration | Body/lifecycle and interaction kernels reviewed; original interaction oracle 28/28; live providers remain open |
 | A-51 multi-text kernel | Claude / collected integration | Commit 8e90977 independently reviewed; original 108 loader cases and 485 executor visits matched; renderer remains pending |
 | S05 caption/framed renderer | Claude | Claimed on codex/blackmoor-s05-captions from 8e90977; owns caption files only |
-| Progress map | hotspot_runtime_luna6 / Astra review | Offline 4,188-start map; provenance review corrections underway before release |
+| Progress map | Collected release | Offline 4,188-start map accepted after both provenance findings were fixed; independent re-review and 17 regression tests passed |
 | S08 matching | Collected integration | Six complete original ranges, 112 bytes; real C compile produced 0 exact / 6 mismatches / 62 differing positions |
 | S03 AVF | Next Claude task | Queued after S05; not claimed or accepted |
 
