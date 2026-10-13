@@ -33,6 +33,9 @@ def world_value(w):
 def configure(lib):
     lib.action_family28_decode.argtypes=[c.POINTER(c.c_uint8),c.c_size_t,c.POINTER(Decoded),c.POINTER(c.c_size_t)]
     lib.action_family28_step.argtypes=[c.POINTER(Input),c.POINTER(World),c.POINTER(Result)]
+    lib.action_family28_render_gate.argtypes=[c.c_uint8,c.c_uint8,c.c_uint32,c.c_uint32,c.POINTER(c.c_uint8)]
+    lib.action_family28_sequence_frame_count.argtypes=[c.c_int16,c.c_uint32,c.POINTER(c.c_uint32)]
+    lib.action_family28_unpack_rgb16.argtypes=[c.POINTER(c.c_uint8),c.c_size_t,c.c_size_t,c.c_size_t,c.c_size_t,c.c_size_t,c.c_size_t,c.c_size_t,c.c_size_t,c.POINTER(c.c_uint8),c.POINTER(c.c_uint8),c.POINTER(c.c_uint8),c.c_size_t]
     lib.action_family28_blend_table.argtypes=[c.c_double,c.POINTER(c.c_int32),c.c_size_t]
     lib.action_family28_blend_table_for_cw.argtypes=[c.c_double,c.c_uint16,c.POINTER(c.c_int32),c.c_size_t]
     lib.action_family28_blend_pixels.argtypes=[c.POINTER(c.c_uint8),c.POINTER(c.c_uint8),c.c_size_t,c.c_double,c.POINTER(c.c_uint8),c.POINTER(c.c_uint16),c.c_size_t]
@@ -95,6 +98,70 @@ class Action28Tests(unittest.TestCase):
             self.assertEqual((r.phase,r.applied,r.job_started,r.completion_valid),(2,0,0,0))
             expected=self.world();expected.busy=1
             self.assertEqual(world_value(r.world),world_value(expected))
+    def test_render_gate_rule(self):
+        for busy in (0,1):
+            for subtype in (0,1,2,3,4):
+                for scene_state in (2,3,4):
+                    for stage in (0,1,2,3):
+                        actual=c.c_uint8(0x55)
+                        self.assertEqual(self.lib.action_family28_render_gate(
+                            busy,subtype,scene_state,stage,c.byref(actual)),OK)
+                        expected=bool(busy and (
+                            (subtype==1 and scene_state==4) or
+                            (subtype in (2,3) and (
+                                (scene_state==4 and stage==0) or
+                                (scene_state==3 and stage in (1,2))
+                            ))
+                        ))
+                        self.assertEqual(actual.value,int(expected),(busy,subtype,scene_state,stage))
+    def test_sequence_frame_count_wrapped_get_tick_arithmetic(self):
+        for budget,elapsed,expected in [
+            (11,2,5),(4,0,30),(4,2,2),(11,3,3),(4,0xfffffffd,1),
+            (4,0x7fffffff,1),
+        ]:
+            count=c.c_uint32(0xdeadbeef)
+            self.assertEqual(self.lib.action_family28_sequence_frame_count(
+                budget,elapsed,c.byref(count)),OK)
+            self.assertEqual(count.value,expected,(budget,elapsed))
+    def test_unpack_rgb16_full_surface_and_crop_match_original_capture(self):
+        pixels=[0xf800,0x07e0,0x001f,0xffff,0x0000,0x0841,0x7bef,0x4208]
+        source=buffer(struct.pack('<8H',*pixels));shifts=buffer(bytes([11,5,0]))
+        masks=buffer(bytes([31,63,31]));full=(c.c_uint8*24)(*([0xa5]*24))
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(source,len(source),4,2,8,
+            0,0,4,2,shifts,masks,full,24),OK)
+        self.assertEqual(bytes(full),bytes([31,0,0,0,63,0,0,0,31,31,63,31,
+            0,0,0,1,2,1,15,31,15,8,16,8]))
+        crop=(c.c_uint8*12)()
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(source,len(source),4,2,8,
+            1,0,2,2,shifts,masks,crop,12),OK)
+        self.assertEqual(bytes(crop),bytes([0,63,0,0,0,31,1,2,1,15,31,15]))
+    def test_unpack_rgb16_invalid_spans_are_atomic(self):
+        source=buffer(struct.pack('<H',0xf800));shifts=buffer(bytes([11,5,0]))
+        masks=buffer(bytes([31,63,31]));out=(c.c_uint8*3)(1,2,3);before=bytes(out)
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(source,1,1,1,2,
+            0,0,1,1,shifts,masks,out,3),BOUNDS)
+        self.assertEqual(bytes(out),before)
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(source,2,1,1,2,
+            0,0,1,1,shifts,masks,out,2),BOUNDS)
+        self.assertEqual(bytes(out),before)
+        top=(1<<(c.sizeof(c.c_void_p)*8))-1
+        invalid=c.cast(c.c_void_p(top-1),c.POINTER(c.c_uint8))
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(invalid,2,1,1,2,
+            0,0,1,1,shifts,masks,out,3),BOUNDS)
+        self.assertEqual(bytes(out),before)
+        invalid_output=c.cast(c.c_void_p(top-1),c.POINTER(c.c_uint8))
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(source,2,1,1,2,
+            0,0,1,1,shifts,masks,invalid_output,3),BOUNDS)
+        self.assertEqual(bytes(out),before)
+        aliased=(c.c_uint8*6).from_buffer_copy(struct.pack('<H',0xf800)+bytes(4))
+        alias_before=bytes(aliased)
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(aliased,6,1,1,2,
+            0,0,1,1,shifts,masks,aliased,3),BOUNDS)
+        self.assertEqual(bytes(aliased),alias_before)
+        invalid_masks=buffer(bytes([31,64,31]))
+        self.assertEqual(self.lib.action_family28_unpack_rgb16(source,2,1,1,2,
+            0,0,1,1,shifts,invalid_masks,out,3),ARGUMENT)
+        self.assertEqual(bytes(out),before)
     def test_invalid_start_and_wrong_type_are_atomic(self):
         short=buffer(payload()[:20]);a=Input(0x28,1,1,0,0,short,20)
         w=self.world();r=Result();c.memset(c.byref(r),0x55,c.sizeof(r));before=bytes(r)

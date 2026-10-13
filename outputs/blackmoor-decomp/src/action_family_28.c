@@ -322,6 +322,161 @@ int action_family28_step(const ActionFamily28Input *input,
     return ACTION_FAMILY28_OK;
 }
 
+int action_family28_render_gate(uint8_t busy,
+                                uint8_t subtype,
+                                uint32_t scene_state,
+                                uint32_t stage,
+                                uint8_t *out_should_run)
+{
+    uint8_t should_run = 0u;
+
+    if (out_should_run == NULL) {
+        return ACTION_FAMILY28_ERR_ARGUMENT;
+    }
+    if (busy != 0u) {
+        if (subtype == 1u) {
+            should_run = (uint8_t)(scene_state == 4u);
+        } else if (subtype == 2u || subtype == 3u) {
+            should_run = (uint8_t)((scene_state == 4u && stage == 0u) ||
+                                   (scene_state == 3u &&
+                                    (stage == 1u || stage == 2u)));
+        }
+    }
+    *out_should_run = should_run;
+    return ACTION_FAMILY28_OK;
+}
+
+int action_family28_sequence_frame_count(int16_t sequence_budget_ms,
+                                         uint32_t first_frame_elapsed_ms,
+                                         uint32_t *out_frame_count)
+{
+    int32_t elapsed = signed_i32(first_frame_elapsed_ms);
+    int32_t configured_count;
+
+    if (out_frame_count == NULL) {
+        return ACTION_FAMILY28_ERR_ARGUMENT;
+    }
+    if (elapsed == 0) {
+        configured_count = 30;
+    } else {
+        int32_t doubled_elapsed = signed_i32((uint32_t)elapsed * 2u);
+        if (doubled_elapsed < sequence_budget_ms) {
+            configured_count = (int32_t)sequence_budget_ms / elapsed;
+        } else {
+            configured_count = 2;
+        }
+    }
+    /* The original is a do/while loop, so even a zero or negative configured
+     * count still runs the first blend and pump iteration. */
+    *out_frame_count = configured_count > 1 ? (uint32_t)configured_count : 1u;
+    return ACTION_FAMILY28_OK;
+}
+
+int action_family28_unpack_rgb16(const uint8_t *surface,
+                                 size_t surface_length,
+                                 size_t surface_width,
+                                 size_t surface_height,
+                                 size_t source_pitch_bytes,
+                                 size_t left,
+                                 size_t top,
+                                 size_t width,
+                                 size_t height,
+                                 const uint8_t shifts[3],
+                                 const uint8_t masks[3],
+                                 uint8_t *rgb,
+                                 size_t output_capacity)
+{
+    size_t row_bytes;
+    size_t pixels;
+    size_t output_bytes;
+    size_t last_row;
+    size_t source_offset;
+    size_t source_end;
+    size_t source_span;
+    uintptr_t source_address;
+    const uint8_t *source_region;
+    uint8_t local_shifts[3];
+    uint8_t local_masks[3];
+    int overlaps;
+    size_t row;
+    size_t column;
+
+    if (shifts == NULL || masks == NULL) {
+        return ACTION_FAMILY28_ERR_ARGUMENT;
+    }
+    memcpy(local_shifts, shifts, sizeof(local_shifts));
+    memcpy(local_masks, masks, sizeof(local_masks));
+    if (surface_width > SIZE_MAX / 2u ||
+        (height != 0u && width > SIZE_MAX / height) ||
+        (height != 0u && width * height > SIZE_MAX / 3u)) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    row_bytes = surface_width * 2u;
+    if (source_pitch_bytes < row_bytes || left > surface_width ||
+        width > surface_width - left || top > surface_height ||
+        height > surface_height - top) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    pixels = width * height;
+    output_bytes = pixels * 3u;
+    if (output_capacity < output_bytes) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    if (output_bytes == 0u) {
+        return ACTION_FAMILY28_OK;
+    }
+    if (surface == NULL || rgb == NULL) {
+        return ACTION_FAMILY28_ERR_ARGUMENT;
+    }
+    if (local_masks[0] > 63u || local_masks[1] > 63u || local_masks[2] > 63u) {
+        return ACTION_FAMILY28_ERR_ARGUMENT;
+    }
+    if (top > SIZE_MAX / source_pitch_bytes) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    source_offset = top * source_pitch_bytes;
+    if (left > SIZE_MAX / 2u || source_offset > SIZE_MAX - left * 2u) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    source_offset += left * 2u;
+    if (top + height - 1u > SIZE_MAX / source_pitch_bytes) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    last_row = (top + height - 1u) * source_pitch_bytes;
+    if (left + width > SIZE_MAX / 2u ||
+        last_row > SIZE_MAX - (left + width) * 2u) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    source_end = last_row + (left + width) * 2u;
+    if (source_end > surface_length) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    source_span = source_end - source_offset;
+    source_address = (uintptr_t)surface;
+    if (source_offset > UINTPTR_MAX - source_address) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+    source_region = (const uint8_t *)(source_address + source_offset);
+    if (!ranges_overlap(source_region, source_span, rgb, output_bytes,
+                        &overlaps) || overlaps) {
+        return ACTION_FAMILY28_ERR_BOUNDS;
+    }
+
+    for (row = 0u; row < height; ++row) {
+        size_t input_row = (top + row) * source_pitch_bytes + left * 2u;
+        for (column = 0u; column < width; ++column) {
+            uint16_t packed = read_u16_le(surface + input_row + column * 2u);
+            size_t output_index = (row * width + column) * 3u;
+            size_t channel;
+            for (channel = 0u; channel < 3u; ++channel) {
+                rgb[output_index + channel] = (uint8_t)(
+                    (packed >> (local_shifts[channel] & 31u)) & local_masks[channel]);
+            }
+        }
+    }
+    return ACTION_FAMILY28_OK;
+}
+
 int action_family28_blend_table_for_cw(double weight,
                                       uint16_t control_word,
                                       int32_t *table,

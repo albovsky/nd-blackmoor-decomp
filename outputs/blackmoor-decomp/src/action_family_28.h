@@ -52,6 +52,16 @@ int action_family28_decode(const uint8_t *, size_t, ActionFamily28Decoded *, siz
  * framebuffer capture, controller scheduling and dependency reset. */
 int action_family28_step(const ActionFamily28Input *, const ActionFamily28World *,
                          ActionFamily28Result *);
+/* Exact 0x447c36 outer render-gate predicate. `out_should_run` is unchanged
+ * on error; a zero result means the controller is not called this tick. */
+int action_family28_render_gate(uint8_t busy, uint8_t subtype,
+    uint32_t scene_state, uint32_t stage, uint8_t *out_should_run);
+/* Number of executed sequence iterations selected after timing the first
+ * rendered frame; the mandatory first iteration means this is at least one.
+ * The elapsed milliseconds are the wrapped DWORD difference returned by
+ * GetTickCount. */
+int action_family28_sequence_frame_count(int16_t sequence_budget_ms,
+    uint32_t first_frame_elapsed_ms, uint32_t *out_frame_count);
 /* Explicit original x87 control-word variants: CW=0x027f uses 53-bit
  * significand precision; CW=0x037f uses 64-bit. Other words are unsupported.
  * Output has 4096 entries indexed a*64+b; failures leave it unchanged. */
@@ -68,6 +78,16 @@ int action_family28_blend_pixels(const uint8_t *first_rgb, const uint8_t *second
 int action_family28_blend_pixels_for_cw(const uint8_t *first_rgb,
     const uint8_t *second_rgb, size_t pixels, double weight,
     uint16_t control_word, const uint8_t shifts[3], uint16_t *output,
+    size_t output_capacity);
+/* Bounded 16-bit surface capture equivalent to 0x447ac7's shift/mask step.
+ * The requested rectangle is copied as RGB triples with caller-provided
+ * channel shifts/masks. Each mask must be <= 63; captured values are raw
+ * masked channel values and are not rescaled. Source and output spans must
+ * not overlap. */
+int action_family28_unpack_rgb16(const uint8_t *surface, size_t surface_length,
+    size_t surface_width, size_t surface_height, size_t source_pitch_bytes,
+    size_t left, size_t top, size_t width, size_t height,
+    const uint8_t shifts[3], const uint8_t masks[3], uint8_t *rgb,
     size_t output_capacity);
 #ifdef __cplusplus
 }

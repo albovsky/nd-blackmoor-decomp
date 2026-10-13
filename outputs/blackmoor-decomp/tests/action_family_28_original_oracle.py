@@ -21,8 +21,10 @@ from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_ECX, UC
 ROOT=Path(__file__).resolve().parents[3]
 STACK=0x10000000; TOP=STACK+0x1f000; DATA=0x20000000; END=0x30000000
 EFFECT=0x6198d7
+IAT_GET_TICK_COUNT=0x52a23c; HOOK_GET_TICK=END+0x100
 CODE_WINDOWS=[(0x4471ca,0x44727a),(0x44727a,0x4473be),(0x427eed,0x427f27),
-    (0x4477d1,0x447ac7),(0x447870,0x447920),(0x50ce04,0x50ce2b),
+    (0x4473be,0x4477b2),(0x4477d1,0x447ac7),(0x447ac7,0x447c36),(0x447c36,0x447d00),
+    (0x447870,0x447920),(0x50ce04,0x50ce2b),
     (0x4c3efb,0x4c4064),(0x4c4202,0x4c425c),(0x4c952f,0x4c9580),(0x42ba3a,0x42babf)]
 def sha(b):return hashlib.sha256(b).hexdigest()
 def read32(u,a): return struct.unpack('<I',u.mem_read(a,4))[0]
@@ -36,13 +38,35 @@ class Original:
         self.uc.mem_map(pe.image_base,align_up(pe.size_of_image));self.uc.mem_write(pe.image_base,pe.image)
         self.uc.mem_map(STACK,0x20000);self.uc.mem_map(DATA,0x10000);self.uc.mem_map(END,0x1000)
         self.gate=True;self.gate_calls=0;self.alloc_calls=0;self.pump_calls=0;self.blit_calls=0
+        self.tick_values=[];self.tick_index=0;self.controller_weights=[]
+        self.controller_mode=False;self.render_gate_mode=False;self.render_gate_calls=0
+        self.uc.mem_write(IAT_GET_TICK_COUNT,struct.pack('<I',HOOK_GET_TICK))
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x423f57,end=0x423f57)
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x51dc43,end=0x51dc43)
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4c4c2b,end=0x4c4c2b)
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4c952f,end=0x4c952f)
+        self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=HOOK_GET_TICK,end=HOOK_GET_TICK)
+        self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4477d1,end=0x4477d1)
+        self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4f52a9,end=0x4f52a9)
+        self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4473be,end=0x4473be)
     def hook(self,u,addr,size,user):
         esp=u.reg_read(UC_X86_REG_ESP)
-        if addr==0x4c952f:
+        if addr==HOOK_GET_TICK:
+            if not self.controller_mode:return
+            value=self.tick_values[min(self.tick_index,len(self.tick_values)-1)]
+            self.tick_index+=1;u.reg_write(UC_X86_REG_EAX,value)
+            pop=0
+        elif addr==0x4477d1:
+            if not self.controller_mode:return
+            self.controller_weights.append(struct.unpack('<d',u.mem_read(esp+16,8))[0])
+            pop=0
+        elif addr==0x4f52a9:
+            if not self.controller_mode:return
+            self.pump_calls+=1;pop=0
+        elif addr==0x4473be:
+            if not self.render_gate_mode:return
+            self.render_gate_calls+=1;pop=0
+        elif addr==0x4c952f:
             # The original memory surface is complete; skip only its
             # presentation/upload operation after checking captured pixels.
             self.blit_calls+=1;pop=0
@@ -142,6 +166,57 @@ class Original:
         for row in range(height):
             result.extend(struct.unpack('<'+'H'*width,u.mem_read(output+row*pitch_bytes,width*2)))
         return result,bytes(u.mem_read(output,pitch_bytes*height))
+    def sequence_trace(self,subtype,budget,pause,ticks,control_word=0x037f):
+        u=self.uc;obj=DATA+0x2000;first=DATA+0x3000;second=DATA+0x4000
+        u.mem_write(obj,bytes(0x100));u.mem_write(first,bytes(12));u.mem_write(second,bytes(12))
+        u.mem_write(obj+0x1c,b'\x01');u.mem_write(obj+0x2d,struct.pack('<I',2))
+        u.mem_write(obj+0x31,struct.pack('<I',first));u.mem_write(obj+0x35,struct.pack('<I',second))
+        u.mem_write(obj+0x3d,struct.pack('<i',1));u.mem_write(obj+0x41,struct.pack('<i',1))
+        u.mem_write(obj+0x45,struct.pack('<i',2));u.mem_write(obj+0x49,bytes([subtype]))
+        u.mem_write(obj+0x4a,struct.pack('<h',budget));u.mem_write(obj+0x4c,struct.pack('<h',pause))
+        u.mem_write(0x583999,struct.pack('<I',4));u.mem_write(0x5839a9,b'\x01')
+        u.mem_write(0x63a4cd,b'\x00\x00');u.mem_write(0x5d1639,b'\x00')
+        self.tick_values=list(ticks);self.tick_index=0;self.controller_weights=[]
+        self.pump_calls=0;self.controller_mode=True
+        u.reg_write(UC_X86_REG_FPCW,control_word);self.call(0x44753b,ecx=obj)
+        self.controller_mode=False
+        return {'weights':[float(x).hex() for x in self.controller_weights],
+            'get_tick_calls':self.tick_index,'pump_calls':self.pump_calls,
+            'busy':u.mem_read(obj+0x1c,1)[0],'stage':read32(u,obj+0x2d),
+            'subtype':u.mem_read(obj+0x49,1)[0],
+            'source_pointer':read32(u,obj+0x31),'destination_pointer':read32(u,obj+0x35),
+            'scene_state':read32(u,0x583999),'render_guard':u.mem_read(0x5839a9,1)[0],
+            'redraw_flag':u.mem_read(0x5d1639,1)[0]}
+    def capture_rgb16(self,width,height,pitch_pixels,pixels,rect=None):
+        if len(pixels)!=pitch_pixels*height:raise ValueError('capture fixture geometry')
+        u=self.uc;obj=DATA+0x2000;surface=DATA+0x5000;output=DATA+0x8000
+        wrapper=0x5cf659
+        if rect is None:rect=(0,0,width-1,height-1)
+        if rect[2]-rect[0]+1!=width or rect[3]-rect[1]+1!=height:
+            raise ValueError('capture rectangle dimensions')
+        u.mem_write(obj,bytes(0x100));u.mem_write(surface,struct.pack('<'+'H'*len(pixels),*pixels))
+        u.mem_write(output,bytes(width*height*12));u.mem_write(wrapper+0x0c,struct.pack('<I',surface))
+        u.mem_write(wrapper+0x14,struct.pack('<I',surface));u.mem_write(wrapper+0x18,struct.pack('<h',pitch_pixels))
+        u.mem_write(wrapper+0x1a,struct.pack('<h',height));u.mem_write(wrapper+0x1c,struct.pack('<i',pitch_pixels*2))
+        u.mem_write(wrapper+0x20,struct.pack('<h',2));u.mem_write(0x5cf665,struct.pack('<I',surface))
+        u.mem_write(0x583186,struct.pack('<4i',*rect))
+        u.mem_write(obj+0x41,struct.pack('<i',height));u.mem_write(obj+0x45,struct.pack('<i',width*2))
+        for address,value in [(0x5d2f1b,11),(0x5d2f1a,5),(0x5d2f19,0),
+                              (0x5d2f1f,31),(0x5d2f1e,63),(0x5d2f1d,31)]:
+            u.mem_write(address,bytes([value]))
+        self.call(0x447ac7,(surface,output),ecx=obj)
+        raw=bytes(u.mem_read(output,width*height*12))
+        return list(struct.unpack('<'+'I'*(width*height*3),raw))
+    def render_gate_trace(self,busy,subtype,scene_state,stage):
+        u=self.uc;obj=DATA+0x2000
+        u.mem_write(obj,bytes(0x100));u.mem_write(obj+0x1c,bytes([busy]))
+        u.mem_write(obj+0x49,bytes([subtype]));u.mem_write(obj+0x2d,struct.pack('<I',stage))
+        u.mem_write(0x583999,struct.pack('<I',scene_state))
+        self.render_gate_calls=0;self.render_gate_mode=True
+        self.call(0x447c36,ecx=obj);self.render_gate_mode=False
+        return {'busy':busy,'subtype':subtype,'scene_state':scene_state,'stage':stage,
+            'run_controller':bool(u.reg_read(UC_X86_REG_EAX)),
+            'controller_calls':self.render_gate_calls}
 def native_dispatch(lib,case):
     raw=buffer(bytes.fromhex(case['body']));eligible=case.get('eligible',1) and not case.get('completed',0)
     a=Input(0x28,case.get('subtype',1),int(eligible),case.get('completed',0),case.get('phase',0),raw,21)
@@ -158,6 +233,23 @@ def native_blend_pixels(lib,first,second,weight,width,height,stride,shifts,contr
     status=lib.action_family28_blend_pixels_for_cw(a,b,count,weight,control_word,shift_buf,out,count)
     if status:raise RuntimeError(f'native pixel blender rejected oracle case: {status}')
     return list(out)
+def native_render_gate(lib,busy,subtype,scene_state,stage):
+    out=c.c_uint8(0x55)
+    status=lib.action_family28_render_gate(busy,subtype,scene_state,stage,c.byref(out))
+    if status:raise RuntimeError(f'native render gate rejected oracle case: {status}')
+    return bool(out.value)
+def native_sequence_frame_count(lib,budget,elapsed):
+    count=c.c_uint32(0xdeadbeef)
+    status=lib.action_family28_sequence_frame_count(budget,elapsed,c.byref(count))
+    if status:raise RuntimeError(f'native sequence counter rejected oracle case: {status}')
+    return count.value
+def native_unpack_rgb16(lib,surface,surface_width,surface_height,pitch_bytes,left,top,width,height,shifts,masks):
+    source_buf=buffer(surface);shift_buf=buffer(bytes(shifts));mask_buf=buffer(bytes(masks))
+    output=(c.c_uint8*(width*height*3))()
+    status=lib.action_family28_unpack_rgb16(source_buf,len(surface),surface_width,surface_height,
+        pitch_bytes,left,top,width,height,shift_buf,mask_buf,output,len(output))
+    if status:raise RuntimeError(f'native RGB16 unpacker rejected oracle case: {status}')
+    return list(output)
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--original-only',action='store_true');args=ap.parse_args()
     pe=PEImage.parse_and_map(ROOT/'work/original/GAME.EXE')
@@ -217,6 +309,54 @@ def main():
             if lib and native_blend_pixels(lib,pixel_first,pixel_second,w,pixel_width,pixel_height,pixel_stride,pixel_shifts,cw)!=out:
                 mismatches.append(f'pixels:{cw:#06x}:{w.hex()}')
         pixel_hashes[f'{cw:#06x}']=mode_hashes
+    controller_cases=[
+        {'label':'subtype2-budget11-elapsed2','subtype':2,'budget':11,'pause':17,
+            'ticks':[100,102],'cw':0x037f},
+        {'label':'subtype2-zero-elapsed','subtype':2,'budget':4,'pause':17,
+            'ticks':[100,100],'cw':0x037f},
+        {'label':'subtype2-elapsed-at-half-budget','subtype':2,'budget':4,'pause':0,
+            'ticks':[100,102],'cw':0x037f},
+        {'label':'subtype1-pause','subtype':1,'budget':4,'pause':2,
+            'ticks':[1000,1002,1002,1003,1004],'cw':0x037f},
+        {'label':'subtype3-restart-swap','subtype':3,'budget':4,'pause':2,
+            'ticks':[1000,1002,1002,1003,1004],'cw':0x037f},
+        {'label':'subtype2-cw027f','subtype':2,'budget':11,'pause':17,
+            'ticks':[100,102],'cw':0x027f},
+        {'label':'subtype2-tick-wrap-positive','subtype':2,'budget':11,'pause':0,
+            'ticks':[0xfffffffe,1],'cw':0x037f},
+        {'label':'subtype2-tick-wrap-negative','subtype':2,'budget':4,'pause':0,
+            'ticks':[100,97],'cw':0x037f},
+    ]
+    controller_traces=[]
+    for case in controller_cases:
+        trace=original.sequence_trace(case['subtype'],case['budget'],case['pause'],
+                                       case['ticks'],case['cw'])
+        elapsed=(case['ticks'][1]-case['ticks'][0])&0xffffffff
+        if lib and native_sequence_frame_count(lib,case['budget'],elapsed)!=len(trace['weights']):
+            mismatches.append(f"sequence-frame-count:{case['label']}")
+        controller_traces.append({'label':case['label'],'control_word':f"{case['cw']:#06x}",
+            'tick_values':[f'0x{x & 0xffffffff:08x}' for x in case['ticks']],
+            'budget_ms':case['budget'],'pause_ms':case['pause'],
+            'frame_count':len(trace['weights']),'trace':trace})
+    capture_surface=[0xf800,0x07e0,0x001f,0xffff,0x0000,0x0841,0x7bef,0x4208]
+    capture_full=original.capture_rgb16(4,2,4,capture_surface)
+    capture_crop=original.capture_rgb16(2,2,4,capture_surface,(1,0,2,1))
+    gate_traces=[]
+    for busy in [0,1]:
+        for subtype in [1,2,3]:
+            for scene_state in [3,4]:
+                for stage in [0,1,2]:
+                    gate_traces.append(original.render_gate_trace(busy,subtype,scene_state,stage))
+    if lib:
+        for case in gate_traces:
+            if native_render_gate(lib,case['busy'],case['subtype'],case['scene_state'],case['stage'])!=case['run_controller']:
+                mismatches.append(f"render-gate:{case['busy']}:{case['subtype']}:{case['scene_state']}:{case['stage']}")
+    surface_bytes=struct.pack('<'+'H'*len(capture_surface),*capture_surface)
+    if lib:
+        full_native=native_unpack_rgb16(lib,surface_bytes,4,2,8,0,0,4,2,[11,5,0],[31,63,31])
+        crop_native=native_unpack_rgb16(lib,surface_bytes,4,2,8,1,0,2,2,[11,5,0],[31,63,31])
+        if full_native!=capture_full:mismatches.append('capture:full')
+        if crop_native!=capture_crop:mismatches.append('capture:crop')
     report={'executable_sha256':sha(pe.data),'corpus_records':len(corpus),'constructor_calls':len(constructs),
         'dispatcher_calls':len(cases),'lut_weight_cases_per_cw':len(weights),
         'lut_entries_per_cw':len(weights)*4096,'lut_entries_total':len(weights)*4096*2,
@@ -224,12 +364,26 @@ def main():
         'packed_visible_pixels':len(weights)*pixel_width*pixel_height*2,
         'pixel_geometry':{'width':pixel_width,'height':pixel_height,'source_pitch_pixels':pixel_stride,'destination_pitch_bytes':8},
         'pixel_output_sha256':pixel_hashes,
+        'controller_trace':{'original_compared':True,'cadence_native_compared':bool(lib),
+            'full_playback_native_compared':False,
+            'summary':'Original 0x44753b ran with scripted GetTickCount; 0x4477d1 weight calls and 0x4f52a9 pump calls were recorded then returned at their entry boundaries. No pixels, capture, or sound update ran.',
+            'cases':controller_traces},
+        'capture_trace':{'original_compared':True,'native_compared':bool(lib),
+            'description':'Original 0x447ac7 captured an in-memory 16-bit surface and expanded each pixel through the original shift/mask globals; source wrapper selected the internal-memory surface branch, so DirectDraw locking was not exercised.',
+            'source_geometry':{'width':4,'height':2,'pitch_pixels':4,'pixel_words':[f'0x{x:04x}' for x in capture_surface]},
+            'full_rgb_triples':capture_full,'cropped_geometry':{'rect':[1,0,2,1],'width':2,'height':2},
+            'cropped_rgb_triples':capture_crop},
+        'render_gate_trace':{'original_compared':True,'native_compared':bool(lib),
+            'cases':gate_traces,'count':len(gate_traces)},
         'native_compared':bool(lib),'mismatches':mismatches,'dispatcher_result_hash':dispatch_hash.hexdigest(),
         'lut_hashes_by_cw':lut_hashes,'weights':[w.hex() for w in weights],
         'code_windows':[{'start':hex(a),'end':hex(b),'sha256':sha(pe.image[a-pe.image_base:b-pe.image_base])} for a,b in CODE_WINDOWS],
         'hooks':['0x51dc43 allocation (21 bytes)','0x423f57 dependency-result leaf',
             '0x4c952f presentation/upload skipped after the original pixel loop',
-            '0x4c4c2b graphics/task pump skipped after blit return'],
+            '0x4c4c2b graphics/task pump skipped after blit return',
+            'GetTickCount IAT scripted only for controller probes',
+            '0x4477d1 blend call recorded and skipped only for controller probes',
+            '0x4f52a9 DirectSound/system event pump recorded and skipped only for controller probes'],
         'x87_control_word':{'oracle_forced_per_case':['0x037f','0x027f'],'meaning':'application ambient precision-control policy remains unresolved'},
         'alternate_x87_control_word_probe':{'cw':'0x027f','cases':alternate_cw,
             'ftol_observation':'0x50ce04 saves CW, ORs 0x0c into AH to select truncation, FISTP, then restores saved CW; it preserves PC bits'},
