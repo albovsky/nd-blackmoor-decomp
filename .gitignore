@@ -10,3 +10,4 @@ outputs/blackmoor-decomp/Blackmoor Reconstruction.app/
 outputs/**/*.zip
 outputs/*.zip
 *.log
+outputs/**/*.app/
