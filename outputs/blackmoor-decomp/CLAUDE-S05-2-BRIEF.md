@@ -32,4 +32,4 @@ Own only new src/caption_lifecycle.[ch], scripts/build_caption_lifecycle.sh, tes
 - Pin executable/code-window/native/source/test hashes, enumerate oracle hooks and intentional safety divergences, obtain independent review, fix findings, and commit owned files.
 - Return commit hash, S05-2 handoff/validation receipts, public signatures and the shared-runtime wiring proposal. Close parent S05 only when both children meet their acceptance conditions.
 
-The Mac remains locked: no GUI or hardware audio. Use original-x86 oracles and offscreen tests. Original GOG files remain immutable. S03 AVF follows this lifecycle child; do not start an overlapping S03 claim now.
+The Mac remains locked: no GUI or hardware audio. Use original-x86 oracles and offscreen tests. Original GOG files remain immutable. The current dispatch is recorded in CLAUDE-NEXT-TASK.md. The owner has authorized a new independent S03-1 assignment while root reviews prior caption work; preserve the caption checkout and return its final handoff before switching.

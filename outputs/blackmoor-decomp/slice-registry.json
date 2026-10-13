@@ -22,8 +22,11 @@
       "id": "S03",
       "title": "AVF media path",
       "packet": "tasks/S03-avf-player.md",
-      "status": "READY: original recovery + isolated codec",
-      "depends_on": []
+      "status": "READY: S03-1 brief issued to Claude; claim pending",
+      "depends_on": [],
+      "current_child_packet": "tasks/S03-1-avf-decoder.md",
+      "assigned_worker": "Claude (owner-authorized external worker)",
+      "assignment_state": "brief issued; acceptance not yet recorded"
     },
     {
       "id": "S04",

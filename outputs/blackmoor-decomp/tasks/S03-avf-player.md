@@ -24,7 +24,9 @@ Read `../PROJECT-SPEC.md` and root `AGENTS.md`. Use GPT-6 Luna Max. Keep origina
 
 ## Task: S03
 
-**Status:** READY: original recovery + isolated codec
+**Status:** READY: S03-1 decoder brief issued to Claude; worker claim pending. Parent remains open for S03-2 playback and integration.
+
+**Current child:** [S03-1 AVF decoder](S03-1-avf-decoder.md) defines the active file ownership and acceptance contract. Read it before starting implementation. The parent file list below is reserved for later playback work.
 
 **Files:** Own new `src/avf_player.[ch]` (or `.mm` only for native rendering), `tests/test_avf_player.py`, `tests/avf_player_original_oracle.py`, `scripts/build_avf_player.sh`, and `work/analysis/slices/S03.*`. Prefix paths with `outputs/blackmoor-decomp/` except evidence. Existing shared files are read-only; deliver integration proposals separately.
 
