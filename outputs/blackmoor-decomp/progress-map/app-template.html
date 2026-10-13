@@ -36,9 +36,10 @@ h1{margin:0;font-size:19px;letter-spacing:-.025em}.kicker,.stamp,.mono{font-fami
 <article class="metric"><div class="metric-label">Indexed function starts</div><div class="metric-value" id="metricFunctions">—</div><div class="metric-detail">Ghidra inventory · starts only outside audited ranges</div></article>
 <article class="metric"><div class="metric-label">Exact selected bytes</div><div class="metric-value" id="metricExact">—</div><div class="metric-detail" id="metricExactDetail"></div></article>
 <article class="metric"><div class="metric-label">Audited complete extents</div><div class="metric-value" id="metricAudited">—</div><div class="metric-detail" id="metricAuditedDetail"></div></article>
-<article class="metric"><div class="metric-label">Oracle evidence starts</div><div class="metric-value" id="metricOracle">—</div><div class="metric-detail" id="metricOracleDetail"></div></article>
+<article class="metric"><div class="metric-label">Selected-report evidence starts</div><div class="metric-value" id="metricOracle">—</div><div class="metric-detail" id="metricOracleDetail"></div></article>
 </section>
 <div class="notice" role="note"><span class="notice-dot" aria-hidden="true"></span><div><strong>Extent limits.</strong> Most tile areas use the span to the next indexed start and may include padding, data, or gaps. Internal gaps cannot be measured from this starts-only index. The map does not calculate a decompilation percentage or imply whole-game completion.</div></div>
+<div class="notice" role="note"><span class="notice-dot" aria-hidden="true"></span><div><strong>Selected report coverage.</strong> This view adapts S0 hotspot runtime, selected action-core, dependency, action-UI, and A-64 reports only. S01/S02/A28/A51 and coreCIF/HIFF/pixels report families are omitted and do not contribute to these counts.</div></div>
 <section class="workbench" aria-label="Function treemap and inspector">
 <article class="panel map-panel">
 <div class="panel-heading"><h2>Function address treemap</h2><span class="micro" id="mapMeta"></span></div>
@@ -88,9 +89,9 @@ $("metricExactDetail").textContent=fmt(data.summary.exact_selected_ranges)+" sel
 $("metricAudited").textContent=fmt(data.summary.s08_audited_extents);
 $("metricAuditedDetail").textContent=data.summary.s08_exact_functions+" exact byte matches · "+data.summary.s08_compiler_mismatches+" compiler mismatches";
 $("metricOracle").textContent=fmt(data.summary.bounded_oracle_source_bound_starts+data.summary.bounded_oracle_report_only_starts+data.summary.controlled_boundary_starts);
-$("metricOracleDetail").textContent=data.summary.bounded_oracle_source_bound_starts+" source-bound · "+data.summary.bounded_oracle_report_only_starts+" report-only · "+data.summary.controlled_boundary_starts+" controlled";
+$("metricOracleDetail").textContent=data.summary.bounded_oracle_source_bound_starts+" source-bound · "+data.summary.bounded_oracle_report_only_starts+" report-only · "+data.summary.controlled_boundary_starts+" controlled · selected report set only";
 $("mapMeta").textContent=fmt(data.functions.filter(f=>f.size!==null).length)+" weighted spans · "+fmt(data.functions.filter(f=>f.size===null).length)+" unknown extent";
-$("tailNote").textContent="Final extent unresolved · "+fmt(data.inventory.text_section.unresolved_tail_bytes)+" .text bytes after final start"
+$("tailNote").textContent=data.inventory.text_section.unresolved_tail_bytes===null?"Final extent unresolved · pinned .text bounds unavailable":"Final extent unresolved · "+fmt(data.inventory.text_section.unresolved_tail_bytes)+" .text bytes after final start"
 }
 function fillUnits(){
 const select=$("unitFilter"),all=document.createElement("option");all.value="all";all.textContent="All address units";select.appendChild(all);
@@ -123,11 +124,13 @@ function card(title,detail,link,sha){const c=el("div","","lineage-card");c.appen
 card("Source snapshot","Project HEAD "+data.source_ref+" · generated "+data.generated_utc,null,null);
 card("Pinned original","GAME.EXE · "+fmt(data.original.size)+" bytes · whole-file rebuild incomplete",null,data.original.sha256);
 card("Function index",data.inventory.provider+" · "+fmt(data.inventory.indexed_starts)+" starts / "+data.inventory.failures+" failures",data.report_bindings[0].link,data.inventory.index_sha256);
-card("Selected exact ranges",fmt(data.summary.exact_selected_ranges)+" ranges / "+fmt(data.summary.exact_selected_bytes)+" bytes · function completeness unverified",data.report_bindings[1].link,data.report_bindings[1].sha256);
-card("S08 complete-range audit",fmt(data.summary.s08_audited_extents)+" extents · "+data.summary.s08_compiler_mismatches+" compiler mismatches · "+data.summary.s08_exact_functions+" exact",data.s08.report_link,data.s08.report_sha256);
-card("Starts-only extent limits",data.inventory.text_section.span_note+" Final tail: "+fmt(data.inventory.text_section.unresolved_tail_bytes)+" bytes unresolved; internal gaps cannot be measured.",null,null);
+card("Selected exact ranges",fmt(data.summary.exact_selected_ranges)+" disjoint ranges / "+data.summary.exact_selected_bytes+" unique bytes · function completeness unverified · "+data.matching_validation.reason,data.report_bindings[1].link,data.report_bindings[1].sha256);
+card("Bound matching manifest",data.matching_validation.valid?"Manifest is bound to the pinned GAME.EXE.":data.matching_validation.reason,data.matching_validation.manifest_link,data.matching_validation.manifest_sha256);
+card("S08 complete-range audit",fmt(data.summary.s08_audited_extents)+" extents · "+data.summary.s08_compiler_mismatches+" compiler mismatches · "+data.summary.s08_exact_functions+" exact · "+data.s08.validation.reason,data.s08.report_link,data.s08.report_sha256);
+card("Selected report coverage",data.oracle_coverage.note+" Adapters: "+data.oracle_coverage.selected_reports.join(", ")+". Omitted: "+data.oracle_coverage.omitted_families.join(", ")+".",null,null);
+card("Starts-only extent limits",data.inventory.text_section.span_note+" "+(data.inventory.text_section.unresolved_tail_bytes===null?"Pinned .text bounds unavailable.":"Final tail: "+fmt(data.inventory.text_section.unresolved_tail_bytes)+" bytes unresolved.")+" Internal gaps cannot be measured.",null,null);
 if(!data.census.included_in_metrics)card("Action census",data.census.state+". Counts omitted.",data.census.report_link,data.census.saved_report_sha256);
-data.oracle_reports.forEach(r=>card(r.title,r.scope+" · "+r.source_binding_reason+" Report ref is separate from source HEAD.",r.report_link,r.report_sha256))
+data.oracle_reports.forEach(r=>card(r.title,r.status+" · "+r.scope+" · "+r.source_binding_reason+" Report ref is separate from source HEAD.",r.report_link,r.report_sha256))
 }
 function drawPackets(){
 const body=$("packetRows");$("packetCount").textContent=fmt(data.slices.length)+" registry entries";

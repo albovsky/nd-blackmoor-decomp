@@ -1,6 +1,6 @@
 {
-  "generated_utc": "2026-10-13T20:52:30Z",
-  "source_ref": "b28e27792d12c9a640707f7e674a0e87b8a81dc8",
+  "generated_utc": "2026-10-13T21:09:10Z",
+  "source_ref": "cdcbd9b3ebb9c317b8bcba903d9cefaa7f1f6ce5",
   "source_root_label": "blackmoor-reconstruction",
   "original": {
     "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
@@ -18,6 +18,7 @@
       "raw_size": 1216512,
       "final_indexed_start": 5411400,
       "unresolved_tail_bytes": 18,
+      "validation": "pinned original and comparison/range state verified",
       "internal_gaps": "not measurable from starts-only index",
       "span_note": "Estimated spans end at the next indexed start and may include padding, data, or gaps; they are not exact body sizes."
     }
@@ -25,6 +26,7 @@
   "summary": {
     "exact_selected_bytes": 14,
     "exact_selected_ranges": 2,
+    "exact_source_ranges": 2,
     "exact_function_completeness": "unverified",
     "s08_audited_extents": 6,
     "s08_exact_functions": 0,
@@ -7692,7 +7694,7 @@
           "report_link": "../hotspot-runtime-validation.json",
           "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
           "source_link": "../src/scene_executor.c",
-          "source_sha256": "ea08f2829bbc35436386f0c8d174d5b540bc6c3147ddd463c9cf7a0e3b9e030e",
+          "source_sha256": "e605d085d4e1908a3674796b2481b1204c9bbba2b673db21bce10667ba20d8cf",
           "source_sha256_in_report": null,
           "source_binding": "not source-hash-bound",
           "source_binding_reason": "Report does not record a source-file hash binding.",
@@ -7791,7 +7793,7 @@
           "report_link": "../hotspot-runtime-validation.json",
           "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
           "source_link": "../src/scene_executor.c",
-          "source_sha256": "ea08f2829bbc35436386f0c8d174d5b540bc6c3147ddd463c9cf7a0e3b9e030e",
+          "source_sha256": "e605d085d4e1908a3674796b2481b1204c9bbba2b673db21bce10667ba20d8cf",
           "source_sha256_in_report": null,
           "source_binding": "not source-hash-bound",
           "source_binding_reason": "Report does not record a source-file hash binding.",
@@ -8499,7 +8501,7 @@
           "report_link": "../hotspot-runtime-validation.json",
           "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
           "source_link": "../src/scene_executor.c",
-          "source_sha256": "ea08f2829bbc35436386f0c8d174d5b540bc6c3147ddd463c9cf7a0e3b9e030e",
+          "source_sha256": "e605d085d4e1908a3674796b2481b1204c9bbba2b673db21bce10667ba20d8cf",
           "source_sha256_in_report": null,
           "source_binding": "not source-hash-bound",
           "source_binding_reason": "Report does not record a source-file hash binding.",
@@ -8646,7 +8648,7 @@
           "report_link": "../hotspot-runtime-validation.json",
           "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
           "source_link": "../src/scene_executor.c",
-          "source_sha256": "ea08f2829bbc35436386f0c8d174d5b540bc6c3147ddd463c9cf7a0e3b9e030e",
+          "source_sha256": "e605d085d4e1908a3674796b2481b1204c9bbba2b673db21bce10667ba20d8cf",
           "source_sha256_in_report": null,
           "source_binding": "not source-hash-bound",
           "source_binding_reason": "Report does not record a source-file hash binding.",
@@ -8772,7 +8774,7 @@
           "report_link": "../hotspot-runtime-validation.json",
           "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
           "source_link": "../src/scene_executor.c",
-          "source_sha256": "ea08f2829bbc35436386f0c8d174d5b540bc6c3147ddd463c9cf7a0e3b9e030e",
+          "source_sha256": "e605d085d4e1908a3674796b2481b1204c9bbba2b673db21bce10667ba20d8cf",
           "source_sha256_in_report": null,
           "source_binding": "not source-hash-bound",
           "source_binding_reason": "Report does not record a source-file hash binding.",
@@ -9127,7 +9129,7 @@
           "report_link": "../hotspot-runtime-validation.json",
           "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
           "source_link": "../src/scene_executor.c",
-          "source_sha256": "ea08f2829bbc35436386f0c8d174d5b540bc6c3147ddd463c9cf7a0e3b9e030e",
+          "source_sha256": "e605d085d4e1908a3674796b2481b1204c9bbba2b673db21bce10667ba20d8cf",
           "source_sha256_in_report": null,
           "source_binding": "not source-hash-bound",
           "source_binding_reason": "Report does not record a source-file hash binding.",
@@ -67686,7 +67688,7 @@
       "id": "hotspot-runtime",
       "title": "S0 hotspot runtime",
       "scope": "S0 action-runtime slice for the two 0x6a flag hotspots and the raw-0x15 record normalized by the loader to runtime 0x0d; not full-game equivalence",
-      "status": "original SHA and mismatch check passed",
+      "status": "original SHA/state/mismatch checks passed",
       "report_sha256": "917f91f3db4637685e9ccf0d4fac67c440148ec51f5003c66f97545aad43b3da",
       "report_link": "../hotspot-runtime-validation.json",
       "source_path": "outputs/blackmoor-decomp/src/scene_executor.c",
@@ -67696,13 +67698,15 @@
       "binding_report_link": null,
       "binding_report_sha256": null,
       "native_library_sha256": "172818d1829eac78c0d27a8536b97afcc2770dd211a7d80989bb367f3e3622ab",
-      "entrypoint_count": 6
+      "entrypoint_count": 6,
+      "rejected_range_count": 0,
+      "rejected_ranges": []
     },
     {
       "id": "action-core",
       "title": "Selected action-core handlers",
       "scope": "selected state-editing handlers 0x4d/0x61/0x6b/0x71 entered via original 0x427a50 dispatcher; not a whole-scene or full-game comparison",
-      "status": "original SHA and mismatch check passed",
+      "status": "original SHA/state/mismatch checks passed",
       "report_sha256": "0ad48ec9cfde2c97dae60b19e0f3898ea156c4a5f9364c62a2c0a0075d57544c",
       "report_link": "../action-core-validation.json",
       "source_path": "outputs/blackmoor-decomp/src/action_core.c",
@@ -67712,13 +67716,15 @@
       "binding_report_link": null,
       "binding_report_sha256": null,
       "native_library_sha256": "20018ae171afba1426f1075d2e5ed2b3c9b1bb91fd10679485dac792783c54f9",
-      "entrypoint_count": 5
+      "entrypoint_count": 5,
+      "rejected_range_count": 0,
+      "rejected_ranges": []
     },
     {
       "id": "dependency",
       "title": "Dependency branch reducer",
       "scope": "branch reduction only; not complete dependency tree construction, leaf evaluation or gameplay",
-      "status": "original SHA and mismatch check passed",
+      "status": "original SHA/state/mismatch checks passed",
       "report_sha256": "bcdfb287e9da9c81e36dbe7736d31baf326ac7b8af656e316a5c01c8b17a8847",
       "report_link": "../dependency-validation.json",
       "source_path": "outputs/blackmoor-decomp/src/scene_dependencies.c",
@@ -67728,13 +67734,15 @@
       "binding_report_link": null,
       "binding_report_sha256": null,
       "native_library_sha256": "98a33efaa0e34db37d4ea54c3f1b35b36ab816682b94bae599bb04c76eb1dab4",
-      "entrypoint_count": 1
+      "entrypoint_count": 1,
+      "rejected_range_count": 0,
+      "rejected_ranges": []
     },
     {
       "id": "action-ui",
       "title": "Phone/control-state handlers",
       "scope": "bounded 0x82 phone/contact and generic 0x1d control-state handlers; not a full scene or game comparison",
-      "status": "original SHA and mismatch check passed",
+      "status": "original SHA/state/mismatch checks passed",
       "report_sha256": "1d976880efb752c20dbb34ee52999d53b8815d9826147205defb64521b13dfc5",
       "report_link": "../action-ui-validation.json",
       "source_path": "outputs/blackmoor-decomp/src/action_ui.c",
@@ -67744,13 +67752,15 @@
       "binding_report_link": null,
       "binding_report_sha256": null,
       "native_library_sha256": "03922380e33d9de370e3349ffbb2aab86e6c2b96fb9d5716a9ae1e55a701e8fc",
-      "entrypoint_count": 3
+      "entrypoint_count": 3,
+      "rejected_range_count": 0,
+      "rejected_ranges": []
     },
     {
       "id": "action64",
       "title": "A-64 original oracle",
       "scope": "bounded action-family 0x64 runtime; not whole-scene or full-game equivalence",
-      "status": "original SHA and mismatch check passed",
+      "status": "original SHA/state/mismatch checks passed",
       "report_sha256": "2f2ef34c8b207713b1e85697e40680c5ce1a28785da050903f049e67ec5f88cb",
       "report_link": "../../../work/analysis/slices/A-64-original-oracle.json",
       "source_path": "outputs/blackmoor-decomp/src/action_family_64.c",
@@ -67760,7 +67770,9 @@
       "binding_report_link": "../../../work/analysis/slices/A-64-validation.json",
       "binding_report_sha256": "f1665675cf41e32ebb1a58e98c323b298e0b7a4268f07ace9f6dfd4b77856417",
       "native_library_sha256": "f0e82771297a98c99ef5b8f9b38956b6263dd7c89302c2d509b6660a67a514e9",
-      "entrypoint_count": 10
+      "entrypoint_count": 10,
+      "rejected_range_count": 0,
+      "rejected_ranges": []
     }
   ],
   "report_bindings": [
@@ -67774,43 +67786,49 @@
       "name": "matching-report.json",
       "sha256": "6729191b6b06cd77bb7ca59518c7236f4ad2411cba68a0a41b6cc327ce1f9f63",
       "link": "../matching-report.json",
-      "note": "selected byte ranges; completeness unverified"
+      "note": "accepted: pinned original, manifest, and aggregate state verified; exact rows are checked individually"
     },
     {
       "name": "S08 matching report",
       "sha256": "a4c2ee71df99febb63fe7bb3b56560d4c20f95d81670d36def42ec4a4f603305",
       "link": "../../../work/analysis/slices/S08-matching-report.json",
-      "note": "six complete instruction ranges; all six differ"
+      "note": "accepted: pinned original and comparison/range state verified"
     },
     {
       "name": "S0 hotspot runtime",
       "sha256": "917f91f3db4637685e9ccf0d4fac67c440148ec51f5003c66f97545aad43b3da",
       "link": "../hotspot-runtime-validation.json",
-      "note": "S0 action-runtime slice for the two 0x6a flag hotspots and the raw-0x15 record normalized by the loader to runtime 0x0d; not full-game equivalence"
+      "note": "original SHA/state/mismatch checks passed · S0 action-runtime slice for the two 0x6a flag hotspots and the raw-0x15 record normalized by the loader to runtime 0x0d; not full-game equivalence"
     },
     {
       "name": "Selected action-core handlers",
       "sha256": "0ad48ec9cfde2c97dae60b19e0f3898ea156c4a5f9364c62a2c0a0075d57544c",
       "link": "../action-core-validation.json",
-      "note": "selected state-editing handlers 0x4d/0x61/0x6b/0x71 entered via original 0x427a50 dispatcher; not a whole-scene or full-game comparison"
+      "note": "original SHA/state/mismatch checks passed · selected state-editing handlers 0x4d/0x61/0x6b/0x71 entered via original 0x427a50 dispatcher; not a whole-scene or full-game comparison"
     },
     {
       "name": "Dependency branch reducer",
       "sha256": "bcdfb287e9da9c81e36dbe7736d31baf326ac7b8af656e316a5c01c8b17a8847",
       "link": "../dependency-validation.json",
-      "note": "branch reduction only; not complete dependency tree construction, leaf evaluation or gameplay"
+      "note": "original SHA/state/mismatch checks passed · branch reduction only; not complete dependency tree construction, leaf evaluation or gameplay"
     },
     {
       "name": "Phone/control-state handlers",
       "sha256": "1d976880efb752c20dbb34ee52999d53b8815d9826147205defb64521b13dfc5",
       "link": "../action-ui-validation.json",
-      "note": "bounded 0x82 phone/contact and generic 0x1d control-state handlers; not a full scene or game comparison"
+      "note": "original SHA/state/mismatch checks passed · bounded 0x82 phone/contact and generic 0x1d control-state handlers; not a full scene or game comparison"
     },
     {
       "name": "A-64 original oracle",
       "sha256": "2f2ef34c8b207713b1e85697e40680c5ce1a28785da050903f049e67ec5f88cb",
       "link": "../../../work/analysis/slices/A-64-original-oracle.json",
-      "note": "bounded action-family 0x64 runtime; not whole-scene or full-game equivalence"
+      "note": "original SHA/state/mismatch checks passed · bounded action-family 0x64 runtime; not whole-scene or full-game equivalence"
+    },
+    {
+      "name": "Bound exact-range manifest",
+      "sha256": "b5264d0a86bfe9cc49130df3d7514c2494eb3a8273d4047df174e0033a61c10d",
+      "link": "../matches.json",
+      "note": "Manifest original SHA and its link to GAME.EXE are checked before exact-range display."
     },
     {
       "name": "A-64 original oracle source/library binding",
@@ -67819,6 +67837,34 @@
       "note": "Validation hashes used to bind the report to current source."
     }
   ],
+  "matching_validation": {
+    "valid": true,
+    "reason": "pinned original, manifest, and aggregate state verified; exact rows are checked individually",
+    "manifest_sha256": "b5264d0a86bfe9cc49130df3d7514c2494eb3a8273d4047df174e0033a61c10d",
+    "report_original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+    "manifest_link": "../matches.json",
+    "accepted_range_count": 2,
+    "rejected_ranges": []
+  },
+  "oracle_coverage": {
+    "selected_reports": [
+      "S0 hotspot runtime",
+      "selected action-core handlers",
+      "dependency branch reducer",
+      "phone/control-state handlers",
+      "A-64 original oracle"
+    ],
+    "omitted_families": [
+      "S01 world-init",
+      "S02 Bink/player",
+      "A28",
+      "A51",
+      "coreCIF",
+      "HIFF",
+      "pixels"
+    ],
+    "note": "This map adapts only the selected report set listed here; omitted report families are not counted or mapped."
+  },
   "slices": [
     {
       "id": "S01",
@@ -68008,7 +68054,7 @@
           "claim_id": "",
           "commit": "",
           "file": "A-28-claim-root-20261013.json",
-          "sha256": "81a547f5146cf7cc945d8d51978eda3cf6e2535d2a8e150f4e8540bfff5bca61",
+          "sha256": "ba3b4c4ef5aa11f74144b6b86baad7eabb60d9550289e1d864835526f0795e38",
           "link": "../../../work/analysis/slices/A-28-claim-root-20261013.json"
         }
       ]
@@ -68174,8 +68220,18 @@
           "claim_id": "",
           "commit": "",
           "file": "A-62-claim-sound9f_luna6-20261013.json",
-          "sha256": "59ac2726ace69286966c13e74addc43b4fea2d954c3fa78b88d6fba43faf9760",
+          "sha256": "e4d35766a53b632e4c01c1b0641d27f46357c5e995e738f520154532fa0f06f1",
           "link": "../../../work/analysis/slices/A-62-claim-sound9f_luna6-20261013.json"
+        },
+        {
+          "slice": "A-62-interaction",
+          "owner": "/root/sound9f_luna6",
+          "status": "ready_for_root_review",
+          "claim_id": "",
+          "commit": "81a27187a1",
+          "file": "A-62-interaction-claim-sound9f_luna6-20261013.json",
+          "sha256": "a21d988bdb088717519c5434506d70d39649fd4ac18f54ebb7b6bd59aa65ac36",
+          "link": "../../../work/analysis/slices/A-62-interaction-claim-sound9f_luna6-20261013.json"
         }
       ]
     },
@@ -68553,6 +68609,261 @@
       "rejected_count": 0,
       "source": "outputs/blackmoor-decomp/src/matching_s08.c",
       "status": "toolchain_mismatch_reported"
+    },
+    "validation": {
+      "valid": true,
+      "reason": "pinned original and comparison/range state verified",
+      "text_section": {
+        "virtual_address": 4096,
+        "virtual_size": 1213018,
+        "raw_pointer": 4096,
+        "raw_size": 1216512
+      },
+      "functions": [
+        {
+          "contains_original_byte_values": false,
+          "end_va": 5090935,
+          "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+          "exact_byte_range": false,
+          "match_status": "byte-range-mismatch",
+          "mismatch_count": 7,
+          "mismatch_offsets": [
+            1,
+            2,
+            3,
+            13,
+            14,
+            15,
+            16
+          ],
+          "object_sha256": "b1d6d53581c69a26f4c74cce70399e1e4852afcefdd21f0473b21139c0f7b834",
+          "observed_behavior": null,
+          "original_sha256": "56d9b148637ae04caedf51e503d219b7095a00c85651b319bb6b5e8bb60546cb",
+          "range_audit": {
+            "basis": "Ghidra function start and next indexed function start, corroborated by full linear disassembly ending in ret",
+            "branch_count": 0,
+            "call_count": 0,
+            "complete_to_terminal_ret": true,
+            "decoded_size": 17,
+            "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+            "first_instruction": "push",
+            "instruction_count": 9,
+            "next_indexed_start_va": 5090935,
+            "terminal_instruction": "ret"
+          },
+          "rva": 896614,
+          "size": 17,
+          "source_file": "outputs/blackmoor-decomp/src/matching_s08.c",
+          "symbol": "_FUN_004dae66",
+          "va": 5090918
+        },
+        {
+          "contains_original_byte_values": false,
+          "end_va": 5090952,
+          "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+          "exact_byte_range": false,
+          "match_status": "byte-range-mismatch",
+          "mismatch_count": 7,
+          "mismatch_offsets": [
+            1,
+            2,
+            3,
+            13,
+            14,
+            15,
+            16
+          ],
+          "object_sha256": "c49220ae555593365f707c107de8150d91df8983f539d835f6895a1a4fe9909f",
+          "observed_behavior": null,
+          "original_sha256": "55b6e58404a3e0e3a48be30a93afd471c029dbaec0b52893db79c4f37241b821",
+          "range_audit": {
+            "basis": "Ghidra function start and next indexed function start, corroborated by full linear disassembly ending in ret",
+            "branch_count": 0,
+            "call_count": 0,
+            "complete_to_terminal_ret": true,
+            "decoded_size": 17,
+            "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+            "first_instruction": "push",
+            "instruction_count": 9,
+            "next_indexed_start_va": 5090952,
+            "terminal_instruction": "ret"
+          },
+          "rva": 896631,
+          "size": 17,
+          "source_file": "outputs/blackmoor-decomp/src/matching_s08.c",
+          "symbol": "_FUN_004dae77",
+          "va": 5090935
+        },
+        {
+          "contains_original_byte_values": false,
+          "end_va": 5091074,
+          "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+          "exact_byte_range": false,
+          "match_status": "byte-range-mismatch",
+          "mismatch_count": 7,
+          "mismatch_offsets": [
+            1,
+            2,
+            3,
+            13,
+            14,
+            15,
+            16
+          ],
+          "object_sha256": "28b1222fc0a1c0a189d4b809f8ae8d2d5070e306a413745f536597c1ce4a915d",
+          "observed_behavior": null,
+          "original_sha256": "a26cd3064709e57ee483cfbbb2753f8da501718ce4ced1e834a5123dd2fcaa3d",
+          "range_audit": {
+            "basis": "Ghidra function start and next indexed function start, corroborated by full linear disassembly ending in ret",
+            "branch_count": 0,
+            "call_count": 0,
+            "complete_to_terminal_ret": true,
+            "decoded_size": 17,
+            "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+            "first_instruction": "push",
+            "instruction_count": 9,
+            "next_indexed_start_va": 5091074,
+            "terminal_instruction": "ret"
+          },
+          "rva": 896753,
+          "size": 17,
+          "source_file": "outputs/blackmoor-decomp/src/matching_s08.c",
+          "symbol": "_FUN_004daef1",
+          "va": 5091057
+        },
+        {
+          "contains_original_byte_values": false,
+          "end_va": 5091096,
+          "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+          "exact_byte_range": false,
+          "match_status": "byte-range-mismatch",
+          "mismatch_count": 17,
+          "mismatch_offsets": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "object_sha256": "1fe30b67658f82b1719288a70c77d3534b98b42b3cf41e0daea69ad13f159530",
+          "observed_behavior": null,
+          "original_sha256": "440ce1a4265fcbbe20bc6bf4b0ac22ad781ce98929626468e21a5e7175448719",
+          "range_audit": {
+            "basis": "Ghidra function start and next indexed function start, corroborated by full linear disassembly ending in ret",
+            "branch_count": 0,
+            "call_count": 0,
+            "complete_to_terminal_ret": true,
+            "decoded_size": 22,
+            "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+            "first_instruction": "push",
+            "instruction_count": 10,
+            "next_indexed_start_va": 5091096,
+            "terminal_instruction": "ret 0x4"
+          },
+          "rva": 896770,
+          "size": 22,
+          "source_file": "outputs/blackmoor-decomp/src/matching_s08.c",
+          "symbol": "_FUN_004daf02",
+          "va": 5091074
+        },
+        {
+          "contains_original_byte_values": false,
+          "end_va": 5091113,
+          "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+          "exact_byte_range": false,
+          "match_status": "byte-range-mismatch",
+          "mismatch_count": 7,
+          "mismatch_offsets": [
+            1,
+            2,
+            3,
+            13,
+            14,
+            15,
+            16
+          ],
+          "object_sha256": "0357e62885bfed0982e0580343c84318f74da0dd16f95567c8cde97f594be636",
+          "observed_behavior": null,
+          "original_sha256": "d500a64daa2531474397cfd9958b6e1b88fc9b0b86d04aa2ea4015b50431bc91",
+          "range_audit": {
+            "basis": "Ghidra function start and next indexed function start, corroborated by full linear disassembly ending in ret",
+            "branch_count": 0,
+            "call_count": 0,
+            "complete_to_terminal_ret": true,
+            "decoded_size": 17,
+            "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+            "first_instruction": "push",
+            "instruction_count": 9,
+            "next_indexed_start_va": 5091113,
+            "terminal_instruction": "ret"
+          },
+          "rva": 896792,
+          "size": 17,
+          "source_file": "outputs/blackmoor-decomp/src/matching_s08.c",
+          "symbol": "_FUN_004daf18",
+          "va": 5091096
+        },
+        {
+          "contains_original_byte_values": false,
+          "end_va": 5091135,
+          "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+          "exact_byte_range": false,
+          "match_status": "byte-range-mismatch",
+          "mismatch_count": 17,
+          "mismatch_offsets": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "object_sha256": "a5d6f90df5c074b2ae567c1538054fd26ab54c84c8fb702bb44c56f857a2afd1",
+          "observed_behavior": null,
+          "original_sha256": "e7c806708bab2ad8df826d25bf5a7db32c74e0439276e644978409f12ada7d4d",
+          "range_audit": {
+            "basis": "Ghidra function start and next indexed function start, corroborated by full linear disassembly ending in ret",
+            "branch_count": 0,
+            "call_count": 0,
+            "complete_to_terminal_ret": true,
+            "decoded_size": 22,
+            "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+            "first_instruction": "push",
+            "instruction_count": 10,
+            "next_indexed_start_va": 5091135,
+            "terminal_instruction": "ret 0x4"
+          },
+          "rva": 896809,
+          "size": 22,
+          "source_file": "outputs/blackmoor-decomp/src/matching_s08.c",
+          "symbol": "_FUN_004daf29",
+          "va": 5091113
+        }
+      ],
+      "report_original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
     },
     "report_sha256": "a4c2ee71df99febb63fe7bb3b56560d4c20f95d81670d36def42ec4a4f603305",
     "report_link": "../../../work/analysis/slices/S08-matching-report.json"
