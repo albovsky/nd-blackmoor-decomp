@@ -9,6 +9,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,14 @@ def sha256(data: bytes) -> str:
 def json_sha256(value: Any) -> str:
     encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return sha256(encoded)
+
+
+def display_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(REPOSITORY.resolve()).as_posix()
+    except ValueError:
+        return str(resolved)
 
 
 def run(command: list[str]) -> subprocess.CompletedProcess[str]:
@@ -170,7 +179,39 @@ def sanitize_comparison(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def audit(original: Path, object_path: Path) -> dict[str, Any]:
+def reassemble_source(source_path: Path) -> tuple[str | None, str | None]:
+    """Hash a fresh pinned-GAS build to bind source and object claims.
+
+    The result proves only that this assembler invocation over this source
+    reproduces the audited object. It does not establish historical provenance.
+    """
+    with tempfile.TemporaryDirectory(prefix="s08-2-x86-source-bind-") as temporary:
+        rebuilt = Path(temporary) / "rebuilt.obj"
+        try:
+            run([str(GAS), "--32", "-o", str(rebuilt), str(source_path)])
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or exc.stdout or str(exc)).strip().replace("\n", " ")
+            return None, detail[:300]
+        return sha256(rebuilt.read_bytes()), None
+
+
+def verify_bound_object(verifier: Any, original: Path, object_path: Path) -> tuple[dict[str, Any], str]:
+    """Run the shared verifier using a temporary manifest bound to object_path."""
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    for function in manifest["functions"]:
+        function["object"] = str(object_path.resolve())
+    encoded = json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    with tempfile.TemporaryDirectory(prefix="s08-2-x86-bound-manifest-") as temporary:
+        bound_manifest = Path(temporary) / "matches-bound.json"
+        bound_manifest.write_bytes(encoded)
+        report = verifier.verify(original, bound_manifest)
+    return report, sha256(encoded)
+
+
+def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict[str, Any]:
+    original = original.resolve()
+    object_path = object_path.resolve()
+    source_path = source_path.resolve()
     data = original.read_bytes()
     original_hash = sha256(data)
     if original_hash != ORIGINAL_SHA256:
@@ -181,8 +222,11 @@ def audit(original: Path, object_path: Path) -> dict[str, Any]:
     assembler_hash = sha256(GAS.read_bytes())
 
     verifier, candidate_rows = validate_object(object_path)
-    report = verifier.verify(original, MANIFEST)
+    report, bound_manifest_hash = verify_bound_object(verifier, original, object_path)
     comparison = sanitize_comparison(report)
+    object_hash = sha256(object_path.read_bytes())
+    rebuilt_source_object_hash, reassembly_error = reassemble_source(source_path)
+    source_object_matches = rebuilt_source_object_hash == object_hash
 
     range_module = load_module("s08_2_x86_range_audit", PROJECT / "scripts/audit_matching_s08_2.py")
     original_ranges, inventory = range_module.audit_ranges(
@@ -224,7 +268,7 @@ def audit(original: Path, object_path: Path) -> dict[str, Any]:
                 "--enable-deterministic-archives", "--with-system-zlib",
             ],
             "build_targets": ["make -j2 MAKEINFO=true all-gas", "make MAKEINFO=true install-gas"],
-            "assembler_command": [str(GAS), "--32", "-o", str(object_path), str(SOURCE)],
+            "assembler_command": [str(GAS), "--32", "-o", str(object_path), str(source_path)],
             "pseudo_prefixes": "GNU as {load} source spellings select original MOV load-form register encodings",
         },
         "disassembler": {
@@ -236,14 +280,31 @@ def audit(original: Path, object_path: Path) -> dict[str, Any]:
             "original_disassembly_sha256": json_sha256(original_disassembly),
             "summary_format": "addresses, sizes, mnemonics, and operands only; no instruction byte values",
         },
-        "source": {"path": "outputs/blackmoor-decomp/src/matching_s08_2_x86.s", "sha256": sha256(SOURCE.read_bytes())},
+        "source": {"path": display_path(source_path), "sha256": sha256(source_path.read_bytes())},
         "manifest": {"path": "outputs/blackmoor-decomp/matches_s08_2_x86.json", "sha256": sha256(MANIFEST.read_bytes())},
+        "comparison_binding": {
+            "strategy": "ephemeral manifest rewrites every function object to the supplied --object path before verification",
+            "effective_manifest_sha256": bound_manifest_hash,
+            "object_path": display_path(object_path),
+            "object_file_sha256": object_hash,
+        },
+        "source_object_association": {
+            "status": "verified_reassembly_match" if source_object_matches else "unverified_external_candidate",
+            "source_path": display_path(source_path),
+            "source_sha256": sha256(source_path.read_bytes()),
+            "reassembled_object_sha256": rebuilt_source_object_hash,
+            "audited_object_sha256": object_hash,
+            "reassembly_matches_audited_object": source_object_matches,
+            "reassembly_error": reassembly_error,
+            "historical_provenance_claim": False,
+            "meaning": "verified_reassembly_match means only that the pinned assembler reproduces this object from this source now; otherwise the audited object is an unverified external candidate",
+        },
         "build_scripts": {
             "assembly_sha256": sha256((PROJECT / "scripts/build_matching_s08_2_x86.sh").read_bytes()),
             "assembler_bootstrap_sha256": sha256((PROJECT / "scripts/bootstrap_matching_s08_2_gas.sh").read_bytes()),
             "audit_sha256": sha256(Path(__file__).read_bytes()),
         },
-        "object": {"path": "outputs/blackmoor-decomp/build/matching_s08_2_x86.obj", "sha256": sha256(object_path.read_bytes()), "size": object_path.stat().st_size},
+        "object": {"path": display_path(object_path), "sha256": object_hash, "size": object_path.stat().st_size},
         "comparison": comparison,
         "function_count": len(EXPECTED),
         "compared_bytes": EXPECTED_TOTAL,
@@ -272,10 +333,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--original", type=Path, default=WORK / "original/GAME.EXE")
     parser.add_argument("--object", type=Path, default=PROJECT / "build/matching_s08_2_x86.obj")
+    parser.add_argument("--source", type=Path, default=SOURCE, help="source file to hash and independently reassemble for source/object association")
     parser.add_argument("--report", type=Path, default=WORK / "analysis/slices/S08-2-x86-report.json")
     args = parser.parse_args()
     try:
-        result = audit(args.original.resolve(), args.object.resolve())
+        result = audit(args.original.resolve(), args.object.resolve(), args.source.resolve())
         args.report.resolve().parent.mkdir(parents=True, exist_ok=True)
         args.report.resolve().write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     except (OSError, ValueError, RuntimeError, KeyError, subprocess.CalledProcessError) as exc:

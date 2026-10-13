@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -54,6 +55,12 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
         self.assertTrue(report["assembler"]["version"].startswith("GNU assembler (GNU Binutils) 2.43.1"))
         self.assertTrue(report["source"]["sha256"])
         self.assertTrue(report["object"]["sha256"])
+        self.assertEqual(report["object"]["path"], "outputs/blackmoor-decomp/build/matching_s08_2_x86.obj")
+        self.assertEqual(report["comparison_binding"]["object_path"], report["object"]["path"])
+        self.assertEqual(report["comparison_binding"]["object_file_sha256"], report["object"]["sha256"])
+        self.assertEqual(report["source_object_association"]["status"], "verified_reassembly_match")
+        self.assertTrue(report["source_object_association"]["reassembly_matches_audited_object"])
+        self.assertFalse(report["source_object_association"]["historical_provenance_claim"])
         self.assertTrue(report["manifest"]["sha256"])
         self.assertTrue(report["disassembler"]["candidate_disassembly_sha256"])
         self.assertTrue(report["disassembler"]["original_disassembly_sha256"])
@@ -70,6 +77,76 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
                 self.assertTrue(candidate["disassembly_sha256"])
                 self.assertTrue(function["range_audit"]["disassembly_sha256"])
                 self.assertEqual(function["byte_comparison"]["mismatch_offsets"], [])
+
+    def test_alternate_object_is_compared_and_source_object_claims_are_bound(self) -> None:
+        original_source_text = SOURCE.read_text(encoding="utf-8")
+        mutant_source_text = original_source_text.replace(
+            "movl 0x18(%eax), %eax", "movl 0x14(%eax), %eax", 1
+        )
+        self.assertNotEqual(mutant_source_text, original_source_text)
+        with tempfile.TemporaryDirectory(prefix="s08-2-x86-provenance-") as temp_dir:
+            temp = Path(temp_dir)
+            mutant_source = temp / "wrong-field.s"
+            mutant_object = temp / "wrong-field.obj"
+            mutant_source.write_text(mutant_source_text, encoding="utf-8")
+            built = subprocess.run(
+                [str(GAS), "--32", "-o", str(mutant_object), str(mutant_source)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+
+            def run_audit(label: str, source: Path, obj: Path) -> dict:
+                report_path = temp / f"{label}.json"
+                result = subprocess.run(
+                    [
+                        "python3", str(AUDITOR),
+                        "--original", str(ORIGINAL),
+                        "--source", str(source),
+                        "--object", str(obj),
+                        "--report", str(report_path),
+                    ],
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                return json.loads(report_path.read_text(encoding="utf-8"))
+
+            # A stale/wrong-field object supplied beside the canonical source
+            # must be the object actually compared, and cannot inherit the
+            # canonical source's exact-match result.
+            wrong_object = run_audit("wrong-object", SOURCE, mutant_object)
+            self.assertEqual(wrong_object["comparison"]["exact_byte_range_count"], 5)
+            self.assertEqual(wrong_object["comparison"]["difference_count"], 1)
+            self.assertEqual(wrong_object["source_object_association"]["status"], "unverified_external_candidate")
+            self.assertFalse(wrong_object["source_object_association"]["reassembly_matches_audited_object"])
+            self.assertEqual(wrong_object["object"]["path"], str(mutant_object.resolve()))
+            self.assertEqual(wrong_object["object"]["sha256"], hashlib.sha256(mutant_object.read_bytes()).hexdigest())
+            self.assertEqual(wrong_object["comparison_binding"]["object_path"], wrong_object["object"]["path"])
+            self.assertEqual(wrong_object["comparison_binding"]["object_file_sha256"], wrong_object["object"]["sha256"])
+            self.assertEqual(wrong_object["source"]["path"], "outputs/blackmoor-decomp/src/matching_s08_2_x86.s")
+            self.assertEqual(wrong_object["source"]["sha256"], hashlib.sha256(SOURCE.read_bytes()).hexdigest())
+
+            # Pairing the stale source with the good object reports the actual
+            # good-object match, while explicitly refusing to attribute it to
+            # the stale source. Pairing both stale source and its object proves
+            # a current reassembly relationship but still reports the field
+            # mismatch against the original.
+            stale_source = run_audit("stale-source", mutant_source, OBJECT)
+            self.assertEqual(stale_source["comparison"]["exact_byte_range_count"], 6)
+            self.assertEqual(stale_source["comparison"]["difference_count"], 0)
+            self.assertEqual(stale_source["source_object_association"]["status"], "unverified_external_candidate")
+            self.assertEqual(stale_source["object"]["sha256"], hashlib.sha256(OBJECT.read_bytes()).hexdigest())
+            self.assertEqual(stale_source["source"]["path"], str(mutant_source.resolve()))
+            self.assertEqual(stale_source["source"]["sha256"], hashlib.sha256(mutant_source.read_bytes()).hexdigest())
+
+            paired_mutants = run_audit("paired-mutants", mutant_source, mutant_object)
+            self.assertEqual(paired_mutants["comparison"]["exact_byte_range_count"], 5)
+            self.assertEqual(paired_mutants["comparison"]["difference_count"], 1)
+            self.assertEqual(paired_mutants["source_object_association"]["status"], "verified_reassembly_match")
+            self.assertTrue(paired_mutants["source_object_association"]["reassembly_matches_audited_object"])
 
     def test_structural_and_abi_mutants_are_rejected(self) -> None:
         auditor = load_auditor()

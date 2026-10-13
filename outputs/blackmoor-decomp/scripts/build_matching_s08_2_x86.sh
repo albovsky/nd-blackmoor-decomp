@@ -11,4 +11,7 @@ if [[ ! -x "$assembler" ]]; then
 fi
 mkdir -p "$(dirname "$object")"
 "$assembler" --32 -o "$object" "$project_dir/src/matching_s08_2_x86.s"
-python3 "$project_dir/scripts/audit_matching_s08_2_x86.py" --original "$original" --object "$object"
+python3 "$project_dir/scripts/audit_matching_s08_2_x86.py" \
+    --original "$original" \
+    --source "$project_dir/src/matching_s08_2_x86.s" \
+    --object "$object"
