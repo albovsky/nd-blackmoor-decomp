@@ -118,6 +118,26 @@ class HotspotState(c.Structure):
     ]
 
 
+class ActionFamily64World(c.Structure):
+    _fields_ = [
+        ("clock_value_585d51", c.c_int16),
+        ("clock_value_585d4f", c.c_int16),
+        ("clock_total_585d4b", c.c_int32),
+        ("clock_deadline_585d55", c.c_uint32),
+        ("deadline_offset_5b0280", c.c_int16),
+        ("timer_controller_active_001c", c.c_uint32),
+        ("timer_controller_tick_0456", c.c_uint32),
+        ("timer_controller_flag_0326_0061c6ad", c.c_uint8),
+    ]
+
+
+TickFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.POINTER(c.c_uint32))
+
+
+class ActionFamily64Backend(c.Structure):
+    _fields_ = [("context", c.c_void_p), ("get_tick_count", TickFn)]
+
+
 HandlerFn = c.CFUNCTYPE(
     c.c_int,
     c.c_void_p,
@@ -190,8 +210,10 @@ def raw_15_scene_hotspot(target: int,
 class SceneExecutorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not LIBRARY.is_file():
-            subprocess.run([str(PROJECT / "scripts/build_scene_executor.sh")], check=True)
+        subprocess.run(
+            [str(PROJECT / "scripts/build_scene_executor.sh"), "--test-hooks"],
+            check=True,
+        )
         cls.lib = c.CDLL(str(LIBRARY))
         cls.lib.scene_resource_open_memory.argtypes = [
             c.POINTER(c.c_uint8), c.c_size_t, c.c_char_p, c.c_size_t
@@ -204,6 +226,11 @@ class SceneExecutorTests(unittest.TestCase):
         ]
         cls.lib.scene_executor_create.restype = c.c_int
         cls.lib.scene_executor_destroy.argtypes = [c.c_void_p]
+        cls.lib.scene_executor_bind_action64_runtime.argtypes = [
+            c.c_void_p, c.POINTER(ActionFamily64World),
+            c.POINTER(ActionFamily64Backend)
+        ]
+        cls.lib.scene_executor_bind_action64_runtime.restype = c.c_int
         cls.lib.scene_executor_step.argtypes = [
             c.c_void_p, c.POINTER(SceneConditionState), c.POINTER(Handler),
             c.c_size_t, c.POINTER(StepInfo)
@@ -222,6 +249,10 @@ class SceneExecutorTests(unittest.TestCase):
             c.c_void_p, c.c_size_t, c.POINTER(HotspotState)
         ]
         cls.lib.scene_executor_get_hotspot_state.restype = c.c_int
+        cls.lib.scene_executor_test_condition_node_status.argtypes = [
+            c.c_void_p, c.c_size_t, c.c_size_t, c.POINTER(c.c_int32)
+        ]
+        cls.lib.scene_executor_test_condition_node_status.restype = c.c_int
         cls.lib.scene_executor_request_transition.argtypes = [
             c.c_void_p, c.POINTER(TransitionRequest)
         ]
@@ -291,6 +322,12 @@ class SceneExecutorTests(unittest.TestCase):
             executor, index, c.byref(state)), OK)
         return state
 
+    def condition_node_status(self, executor, action_index, node_index):
+        status = c.c_int32()
+        self.assertEqual(self.lib.scene_executor_test_condition_node_status(
+            executor, action_index, node_index, c.byref(status)), OK)
+        return status.value
+
     @staticmethod
     def frame(frame=0, x=0, y=0, *, pointer=False, context=False,
               modal=False, activation=False):
@@ -304,6 +341,125 @@ class SceneExecutorTests(unittest.TestCase):
                          ["disposition", "phase"])
         self.assertEqual(c.sizeof(RuntimeState), 8)
         self.assertEqual(c.sizeof(HandlerResult), 8)
+
+    def test_action64_clock_write_is_visible_to_later_time_dependency_same_pass(self):
+        clock_write = action(0x64, 1, bytes((1,)) + i16(1) + i16(30))
+        time_gate_fields = (6, 0, 0, 0, 1, 30, 0, 0)
+        time_gate = b"".join(i16(value) for value in time_gate_fields)
+        gated_difficulty = action(
+            0x71, 2, i16(42) + i16(-1) + i16(0), (time_gate,)
+        )
+        scene, _storage = self.open_scene([clock_write, gated_difficulty])
+        world, _flags = self.world()
+        status, executor, _ = self.create_executor(scene, world)
+        self.assertEqual(status, OK)
+        clock_world = ActionFamily64World()
+        tick_values = [100]
+        tick_calls = []
+
+        @TickFn
+        def tick(_context, out_tick):
+            tick_calls.append(len(tick_calls))
+            out_tick[0] = tick_values.pop(0)
+            return 0
+
+        backend = ActionFamily64Backend(None, tick)
+        self.assertEqual(self.lib.scene_executor_bind_action64_runtime(
+            executor, c.byref(clock_world), c.byref(backend)), OK)
+        try:
+            state = self.condition_state(world)
+            status, info = self.step(executor, state)
+            self.assertEqual((status, info.actions_applied), (OK, 2))
+            self.assertEqual((clock_world.clock_value_585d51,
+                              clock_world.clock_value_585d4f,
+                              clock_world.clock_total_585d4b,
+                              clock_world.clock_deadline_585d55),
+                             (1, 30, 90, 100))
+            self.assertEqual(world.difficulty, 42)
+            self.assertEqual(len(tick_calls), 1)
+        finally:
+            self.lib.scene_executor_destroy(executor)
+            self.lib.scene_resource_close(scene)
+
+    def test_action64_active_controller_uses_two_ticks_and_subtype_two_resets_dependencies(self):
+        clock_action = action(0x64, 2, bytes((3,)) + i16(0) + i16(0),
+                              (condition(2, 0, 1),))
+        scene, _storage = self.open_scene([clock_action])
+        world, flags = self.world()
+        flags[0] = 1
+        status, executor, _ = self.create_executor(scene, world)
+        self.assertEqual(status, OK)
+        clock_world = ActionFamily64World()
+        clock_world.clock_value_585d51 = 5
+        clock_world.clock_value_585d4f = 15
+        clock_world.clock_total_585d4b = 315
+        clock_world.deadline_offset_5b0280 = 20
+        clock_world.timer_controller_active_001c = 1
+        ticks = iter((100, 120))
+        tick_calls = []
+
+        @TickFn
+        def tick(_context, out_tick):
+            tick_calls.append(1)
+            out_tick[0] = next(ticks)
+            return 0
+
+        backend = ActionFamily64Backend(None, tick)
+        self.assertEqual(self.lib.scene_executor_bind_action64_runtime(
+            executor, c.byref(clock_world), c.byref(backend)), OK)
+        try:
+            status, info = self.step(executor, self.condition_state(world))
+            runtime = self.action_state(executor, 0)
+            self.assertEqual((status, info.actions_applied,
+                              runtime.completed, runtime.phase), (OK, 1, 0, 0))
+            self.assertEqual((clock_world.timer_controller_tick_0456,
+                              clock_world.timer_controller_flag_0326_0061c6ad,
+                              clock_world.clock_total_585d4b,
+                              clock_world.clock_deadline_585d55),
+                             (95, 1, 315, 140))
+            self.assertEqual(len(tick_calls), 2)
+            self.assertEqual(self.condition_node_status(executor, 0, 0), 0)
+        finally:
+            self.lib.scene_executor_destroy(executor)
+            self.lib.scene_resource_close(scene)
+
+    def test_action64_tick_failure_does_not_commit_clock_or_action_state(self):
+        clock_action = action(0x64, 1, bytes((3,)) + i16(0) + i16(0))
+        scene, _storage = self.open_scene([clock_action])
+        world, _flags = self.world()
+        status, executor, _ = self.create_executor(scene, world)
+        self.assertEqual(status, OK)
+        clock_world = ActionFamily64World()
+        clock_world.clock_value_585d51 = 6
+        clock_world.clock_value_585d4f = 20
+        clock_world.clock_total_585d4b = 380
+        clock_world.timer_controller_active_001c = 1
+        before = bytes(clock_world)
+        calls = []
+
+        @TickFn
+        def failing_tick(_context, out_tick):
+            calls.append(1)
+            if len(calls) == 2:
+                return 2
+            out_tick[0] = 500
+            return 0
+
+        backend = ActionFamily64Backend(None, failing_tick)
+        self.assertEqual(self.lib.scene_executor_bind_action64_runtime(
+            executor, c.byref(clock_world), c.byref(backend)), OK)
+        try:
+            status, info = self.step(executor, self.condition_state(world))
+            runtime = self.action_state(executor, 0)
+            self.assertEqual((status, info.actions_applied,
+                              info.failed_action_index, info.detail_status),
+                             (ERR_EXTERNAL, 0, 0, 4))
+            self.assertEqual((runtime.completed, runtime.phase), (0, 0))
+            self.assertEqual(bytes(clock_world), before)
+            self.assertEqual(len(calls), 2)
+        finally:
+            self.lib.scene_executor_destroy(executor)
+            self.lib.scene_resource_close(scene)
 
     def test_6a_hotspot_needs_cached_hit_then_accepted_event_and_is_repeatable(self):
         rect = (10, 20, 30, 40)
@@ -591,14 +747,17 @@ class SceneExecutorTests(unittest.TestCase):
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)
 
-    def test_9f_subtype_two_resets_on_each_blocked_pass(self):
+    def test_9f_subtype_two_blocked_pass_preserves_latched_dependency_results(self):
         body = bytearray(48)
         body[46:48] = i16(0)
         scene, _storage = self.open_scene([
-            action(0x9F, 2, bytes(body), (condition(2, 0, 1),))
+            action(0x9F, 2, bytes(body), (
+                condition(2, 0, 1, 1),
+                condition(2, 1, 1),
+                condition(2, 2, 1),
+            ))
         ])
-        world, flags = self.world()
-        flags[0] = 1
+        world, flags = self.world([1, 0, 1])
         status, executor, _ = self.create_executor(scene, world)
         self.assertEqual(status, OK)
 
@@ -614,14 +773,18 @@ class SceneExecutorTests(unittest.TestCase):
             status, _ = self.step(executor, state, [registry])
             self.assertEqual(status, OK)
             self.assertEqual(self.action_state(executor, 0).phase, 17)
+            self.assertEqual([self.condition_node_status(executor, 0, node)
+                              for node in (1, 2, 3)], [1, 1, 1])
 
-            flags[0] = 0
-            for _pass in range(2):
-                status, info = self.step(executor, state, [registry])
-                runtime = self.action_state(executor, 0)
-                self.assertEqual((status, info.actions_applied,
-                                  runtime.completed, runtime.phase),
-                                 (OK, 0, 0, 0))
+            flags[2] = 0
+            status, info = self.step(executor, state, [registry])
+            runtime = self.action_state(executor, 0)
+            self.assertEqual((status, info.actions_applied,
+                              runtime.completed, runtime.phase), (OK, 0, 0, 0))
+            # The condition evaluator retains the OR-latched source results;
+            # the original blocked path clears only completion and phase.
+            self.assertEqual([self.condition_node_status(executor, 0, node)
+                              for node in (1, 2, 3)], [1, 1, 0])
         finally:
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)

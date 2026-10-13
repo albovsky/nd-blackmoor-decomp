@@ -2,6 +2,8 @@
 
 **Status: incomplete. This is not a playable game or a full matching rebuild.**
 
+The current collected integration rebuilt successfully and passed 330 of 332 tests, with two filesystem skips. It adds bounded world/clock/timed-background integration and reviewed A-28/A-51/A-62/A-64 kernels. See [COORDINATION-STATUS.md](COORDINATION-STATUS.md) for current owners and limits. The detailed diagnostic descriptions below retain the earlier baseline scope; they are not claims of current full-game playback.
+
 The target is the original Windows `GAME.EXE` from the supplied GOG Mac bundle.
 The ScummVM approach was abandoned at the owner's request. No ScummVM code or
 runtime is used in this reconstruction project.

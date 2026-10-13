@@ -210,6 +210,197 @@ class SceneResourceTests(unittest.TestCase):
                 self.assertIsNone(scene, error)
                 self.assertTrue(error)
 
+    def test_64_clock_action_is_exactly_five_bytes_with_separate_dependency_tail(self):
+        description = b"clock action".ljust(48, b"\0")
+        typed = bytes((3,)) + (-2).to_bytes(2, "little", signed=True) + (300).to_bytes(2, "little", signed=True)
+        dependency = bytes(range(16))
+        scene, error = self.open_bytes(
+            self.resource(description + bytes((0x64, 2)) + typed + dependency)
+        )
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual(action.type, 0x64)
+            self.assertEqual(action.payload_kind, 1)
+            self.assertEqual(action.typed_body_length, 5)
+            self.assertEqual(c.string_at(action.typed_body, 5), typed)
+            self.assertEqual(action.dependency_count, 1)
+            self.assertEqual(c.string_at(action.dependency_records, 16), dependency)
+        finally:
+            self.lib.scene_resource_close(scene)
+
+        scene, error = self.open_bytes(
+            self.resource(description + bytes((0x64, 2)) + typed[:-1])
+        )
+        self.assertIsNone(scene)
+        self.assertTrue(error)
+
+    def test_62_count_body_and_dependency_tail_are_independent(self):
+        description = b"counted action".ljust(48, b"\0")
+        body = bytearray(12 + 18)
+        body[10:12] = (1).to_bytes(2, "little", signed=True)
+        body[12:30] = bytes(range(18))
+        dependency = bytes(range(0x80, 0x90))
+        scene, error = self.open_bytes(
+            self.resource(description + bytes((0x62, 7)) + body + dependency)
+        )
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual(action.type, 0x62)
+            self.assertEqual(action.payload_kind, 3)
+            self.assertEqual(action.typed_body_length, 30)
+            self.assertEqual(c.string_at(action.typed_body, 30), bytes(body))
+            self.assertEqual(action.dependency_count, 1)
+            self.assertEqual(c.string_at(action.dependency_records, 16), dependency)
+        finally:
+            self.lib.scene_resource_close(scene)
+
+        empty = bytearray(12)
+        scene, error = self.open_bytes(self.resource(description + bytes((0x62, 0)) + empty))
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual(action.typed_body_length, 12)
+            self.assertEqual(action.dependency_count, 0)
+        finally:
+            self.lib.scene_resource_close(scene)
+
+    def test_62_rejects_truncated_prefix_entries_negative_or_unrepresentable_counts(self):
+        description = b"bad counted action".ljust(48, b"\0")
+        for prefix_length in range(12):
+            with self.subTest(prefix_length=prefix_length):
+                body = bytearray(prefix_length)
+                if prefix_length >= 12:
+                    body[10:12] = (0).to_bytes(2, "little", signed=True)
+                scene, error = self.open_bytes(
+                    self.resource(description + bytes((0x62, 0)) + body)
+                )
+                self.assertIsNone(scene)
+                self.assertTrue(error)
+
+        for count in (-1, 1820):
+            with self.subTest(count=count):
+                body = bytearray(12)
+                body[10:12] = count.to_bytes(2, "little", signed=True)
+                scene, error = self.open_bytes(
+                    self.resource(description + bytes((0x62, 0)) + body)
+                )
+                self.assertIsNone(scene)
+                self.assertTrue(error)
+
+        # Count one requires all 18 bytes of its entry after the 12-byte prefix.
+        for short_entry_bytes in range(18):
+            with self.subTest(short_entry_bytes=short_entry_bytes):
+                body = bytearray(12 + short_entry_bytes)
+                body[10:12] = (1).to_bytes(2, "little", signed=True)
+                scene, error = self.open_bytes(
+                    self.resource(description + bytes((0x62, 0)) + body)
+                )
+                self.assertIsNone(scene)
+                self.assertTrue(error)
+
+    def test_62_signed_short_boundary_and_dependency_remainder(self):
+        description = b"count limit".ljust(48, b"\0")
+        maximum = bytearray(12 + 1819 * 18)
+        maximum[10:12] = (1819).to_bytes(2, "little", signed=True)
+        scene, error = self.open_bytes(
+            self.resource(description + bytes((0x62, 0)) + maximum)
+        )
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual(action.typed_body_length, 32754)
+            self.assertEqual(action.dependency_count, 0)
+        finally:
+            self.lib.scene_resource_close(scene)
+
+        body = bytearray(12)
+        body[10:12] = (0).to_bytes(2, "little", signed=True)
+        scene, error = self.open_bytes(
+            self.resource(description + bytes((0x62, 0)) + body + b"\x99")
+        )
+        self.assertIsNone(scene)
+        self.assertTrue(error)
+
+    def test_51_selector_boundaries_and_dependency_tail(self):
+        description = b"multi textbox".ljust(48, b"\0")
+        dependency = bytes(range(0xA0, 0xB0))
+        auto_text = bytearray(45)
+        auto_text[10:12] = (-1).to_bytes(2, "little", signed=True)
+        scene, error = self.open_bytes(self.resource(
+            description + bytes((0x51, 1)) + auto_text + dependency
+        ))
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual((action.type, action.payload_kind,
+                              action.typed_body_length, action.dependency_count),
+                             (0x51, 3, 45, 1))
+            self.assertEqual(c.string_at(action.dependency_records, 16), dependency)
+        finally:
+            self.lib.scene_resource_close(scene)
+
+        inline = bytearray(15)
+        inline[10:12] = (3).to_bytes(2, "little", signed=True)
+        inline[12:15] = b"abc"
+        scene, error = self.open_bytes(self.resource(
+            description + bytes((0x51, 1)) + inline + dependency
+        ))
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual(action.typed_body_length, 15)
+            self.assertEqual(action.dependency_count, 1)
+            self.assertEqual(c.string_at(action.typed_body, 15), bytes(inline))
+        finally:
+            self.lib.scene_resource_close(scene)
+
+    def test_51_rejects_short_prefix_unsupported_negative_and_oversized_selectors(self):
+        description = b"invalid multi textbox".ljust(48, b"\0")
+        for prefix_length in range(12):
+            with self.subTest(prefix_length=prefix_length):
+                scene, error = self.open_bytes(self.resource(
+                    description + bytes((0x51, 1)) + bytes(prefix_length)
+                ))
+                self.assertIsNone(scene)
+                self.assertTrue(error)
+        for selector in (-2, 10000):
+            with self.subTest(selector=selector):
+                body = bytearray(12)
+                body[10:12] = selector.to_bytes(2, "little", signed=True)
+                scene, error = self.open_bytes(self.resource(
+                    description + bytes((0x51, 1)) + body
+                ))
+                self.assertIsNone(scene)
+                self.assertTrue(error)
+
+    def test_63_remains_opaque(self):
+        description = b"sibling action".ljust(48, b"\0")
+        body = bytearray(30)
+        body[10:12] = (1).to_bytes(2, "little", signed=True)
+        scene, error = self.open_bytes(
+            self.resource(description + bytes((0x63, 0)) + body)
+        )
+        self.assertIsNotNone(scene, error)
+        try:
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual(action.type, 0x63)
+            self.assertEqual(action.payload_kind, 0)
+            self.assertEqual(action.typed_body_length, 0)
+            self.assertFalse(bool(action.typed_body))
+            self.assertEqual(action.raw_body_length, len(body))
+            self.assertEqual(action.dependency_count, 0)
+        finally:
+            self.lib.scene_resource_close(scene)
+
     def test_9f_numeric_and_malformed_boundaries(self):
         description = b"numbered sound".ljust(48, b"\0")
         body = bytearray(0x35)
@@ -244,8 +435,9 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3}
-        counts = {action_type: 0 for action_type in (*expected_fixed, 0x9F)}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5}
+        counts = {action_type: 0 for action_type in
+                  (*expected_fixed, 0x9F, 0x51, 0x62)}
         scenes = 0
         actions = 0
         typed_actions = 0
@@ -298,12 +490,38 @@ class SceneResourceTests(unittest.TestCase):
                             (len(body) - boundary) // 16,
                             (path.name, index, selector),
                         )
+                    elif action.type == 0x62:
+                        counts[0x62] += 1
+                        body = c.string_at(action.raw_body, action.raw_body_length)
+                        self.assertGreaterEqual(len(body), 12, (path.name, index))
+                        count = int.from_bytes(body[10:12], "little", signed=True)
+                        self.assertGreaterEqual(count, 0, (path.name, index, count))
+                        boundary = 12 + count * 18
+                        self.assertLessEqual(boundary, 32767, (path.name, index, count))
+                        self.assertEqual(action.payload_kind, 3, (path.name, index))
+                        self.assertEqual(action.typed_body_length, boundary, (path.name, index, count))
+                        self.assertEqual(action.dependency_count, (len(body) - boundary) // 16,
+                                         (path.name, index, count))
+                    elif action.type == 0x51:
+                        counts[0x51] += 1
+                        body = c.string_at(action.raw_body, action.raw_body_length)
+                        self.assertGreaterEqual(len(body), 12, (path.name, index))
+                        selector = int.from_bytes(body[10:12], "little", signed=True)
+                        self.assertTrue(selector == -1 or 0 <= selector <= 9999,
+                                        (path.name, index, selector))
+                        boundary = 45 if selector == -1 else 12 + selector
+                        self.assertEqual(action.payload_kind, 3, (path.name, index))
+                        self.assertEqual(action.typed_body_length, boundary,
+                                         (path.name, index, selector))
+                        self.assertEqual(action.dependency_count,
+                                         (len(body) - boundary) // 16,
+                                         (path.name, index, selector))
             finally:
                 self.lib.scene_resource_close(scene)
         self.assertEqual(scenes, 2078)
         self.assertEqual(actions, 19612)
-        self.assertEqual(typed_actions, 9111)
-        self.assertEqual(opaque_actions, 10501)
+        self.assertEqual(typed_actions, 11017)
+        self.assertEqual(opaque_actions, 8595)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
@@ -316,6 +534,9 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(counts[0x47], 139)
         self.assertEqual(counts[0x95], 123)
         self.assertEqual(counts[0x9F], 3570)
+        self.assertEqual(counts[0x62], 1802)
+        self.assertEqual(counts[0x64], 7)
+        self.assertEqual(counts[0x51], 97)
 
     def test_rejects_short_tsum_and_truncated_known_action_body(self):
         scene, error = self.open_bytes(self.resource(tsum_length=125))

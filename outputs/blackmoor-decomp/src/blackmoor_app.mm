@@ -5,12 +5,13 @@
 #include "engine_boot.h"
 #include "startup_menu.h"
 #include "scene_resource.h"
-#include "bink_adapter.h"
+#include "bink_player.h"
 #include "scene_executor.h"
 #include "action_ui.h"
 #include "his_audio.h"
 #include "macos_audio.h"
 #include "scene_inspector.h"
+#include "world_init.h"
 
 #import <AppKit/AppKit.h>
 #include <cstdio>
@@ -23,10 +24,12 @@
 #include <map>
 #include <new>
 #include <algorithm>
+#include <array>
 #include <stdexcept>
 #include <unistd.h>
 #include <dirent.h>
 #include <cmath>
+#include <chrono>
 #include <memory>
 
 static const char *default_game_directory =
@@ -39,12 +42,60 @@ struct HostImage {
     std::vector<uint8_t> rgba;
 };
 
+/* Exact bounded spans proven by the New Game reset paths. These counts are
+ * caller-view sizes, not declarations of original global capacities. */
+struct NativeNewGameState {
+    std::vector<int32_t> event_flags;
+    std::vector<int32_t> opaque_state;
+    std::vector<uint16_t> scene_visits;
+    std::array<uint16_t, 3> selector_words{};
+    int16_t selected_item_candidate = 0;
+    int16_t opaque_selector = 0;
+    std::vector<int32_t> inventory_presence;
+    std::array<uint16_t, WORLD_INIT_INVENTORY_ENTRY_COUNT> inventory_ids_a{};
+    std::array<uint16_t, WORLD_INIT_INVENTORY_ENTRY_COUNT> inventory_ids_b{};
+    std::array<uint16_t, WORLD_INIT_INVENTORY_ENTRY_COUNT> inventory_ids_c{};
+    std::array<uint32_t, WORLD_INIT_INVENTORY_ENTRY_COUNT> inventory_aux_a{};
+    std::array<uint32_t, WORLD_INIT_INVENTORY_ENTRY_COUNT> inventory_aux_b{};
+    std::array<uint8_t, WORLD_INIT_TIME_RECORD_BYTES> time_records{};
+    ActionCoreWorld action_core{};
+    ActionFamily64World action64_world{};
+    WorldInitState view{};
+
+    NativeNewGameState()
+        : event_flags(WORLD_INIT_EVENT_NEW_GAME_FIRST_ID +
+                      WORLD_INIT_EVENT_NEW_GAME_COUNT, 0),
+          opaque_state(WORLD_INIT_STATE_DWORD_COUNT, 0),
+          scene_visits(WORLD_INIT_VISIT_RESET_COUNT, 0),
+          inventory_presence(WORLD_INIT_INVENTORY_ENTRY_COUNT, 0)
+    {
+        action_core.event_flags = event_flags.data();
+        action_core.event_flag_count = event_flags.size();
+        view.action_core = &action_core;
+        view.opaque_state_dwords_5839b1 = {opaque_state.data(), opaque_state.size()};
+        view.scene_visit_counts_587b2d = {scene_visits.data(), scene_visits.size()};
+        view.inventory.selected_item_candidate = &selected_item_candidate;
+        view.inventory.opaque_selector_583f1d = &opaque_selector;
+        view.inventory.selector_words_583a2b = {selector_words.data(), selector_words.size()};
+        view.inventory.presence_583bd5 = {inventory_presence.data(), inventory_presence.size()};
+        view.inventory.item_ids_583a31 = {inventory_ids_a.data(), inventory_ids_a.size()};
+        view.inventory.item_ids_583abd = {inventory_ids_b.data(), inventory_ids_b.size()};
+        view.inventory.item_ids_583b49 = {inventory_ids_c.data(), inventory_ids_c.size()};
+        view.inventory.auxiliary_583ced = {inventory_aux_a.data(), inventory_aux_a.size()};
+        view.inventory.auxiliary_583e05 = {inventory_aux_b.data(), inventory_aux_b.size()};
+        view.time_records_585d65 = time_records.data();
+        view.time_records_size = time_records.size();
+    }
+};
+
 struct NativeApp {
     BlackmoorMacPlatform *platform = nullptr;
     GameResources *resources = nullptr;
     EngineBoot *boot = nullptr;
     StartupMenu *startup = nullptr;
     SceneResource *scene = nullptr;
+    BinkPlayer *video = nullptr;
+    NativeNewGameState new_game;
     FILE *log = nullptr;
     std::map<std::string, HostImage> images;
     std::vector<uint8_t> framebuffer;
@@ -56,6 +107,7 @@ struct NativeApp {
     bool command_reported = false;
     int last_stage = -1, last_hover = -2;
     int16_t initial_scene = 0;
+    int32_t scene_current_frame = 0;
     std::string game_directory;
     HostImage scene_frame;
     bool has_scene_frame = false;
@@ -191,12 +243,14 @@ static void cleanup(NativeApp *app)
     if (app->platform) blackmoor_macos_close(app->platform);
     if (app->startup) startup_menu_destroy(app->startup);
     if (app->scene) scene_resource_close(app->scene);
+    if (app->video) bink_player_close(app->video);
     if (app->boot) engine_boot_close(app->boot);
     if (app->resources) game_resources_close(app->resources);
     if (app->log) std::fclose(app->log);
     app->platform = nullptr;
     app->startup = nullptr;
     app->scene = nullptr;
+    app->video = nullptr;
     app->boot = nullptr;
     app->resources = nullptr;
     app->log = nullptr;
@@ -274,6 +328,66 @@ static bool render_scene_preview(NativeApp *app)
         src.left, src.top, src.right, src.bottom, dst.left, dst.top);
 }
 
+static uint64_t monotonic_now_ns()
+{
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+static bool copy_player_frame(NativeApp *app, const BinkPlayerFrame &frame)
+{
+    if (frame.rgba == nullptr || frame.width == 0 || frame.height == 0 ||
+        static_cast<size_t>(frame.width) > SIZE_MAX / 4u) return false;
+    const size_t row_bytes = static_cast<size_t>(frame.width) * 4u;
+    if (frame.stride < row_bytes || frame.height > SIZE_MAX / frame.stride ||
+        static_cast<size_t>(frame.width) > SIZE_MAX / frame.height / 4u) return false;
+    const size_t required = static_cast<size_t>(frame.height - 1u) * frame.stride + row_bytes;
+    const size_t image_bytes = static_cast<size_t>(frame.width) * frame.height * 4u;
+    if (frame.rgba_bytes < required) return false;
+    try { app->scene_frame.rgba.resize(image_bytes); }
+    catch (...) { return false; }
+    app->scene_frame.width = frame.width;
+    app->scene_frame.height = frame.height;
+    for (uint32_t row = 0; row < frame.height; ++row) {
+        std::memcpy(app->scene_frame.rgba.data() + static_cast<size_t>(row) * row_bytes,
+                    frame.rgba + static_cast<size_t>(row) * frame.stride, row_bytes);
+    }
+    app->scene_current_frame = frame.current_frame;
+    return true;
+}
+
+static bool advance_scene_video(NativeApp *app)
+{
+    if (app->video == nullptr) return true;
+    char error[256] = {};
+    bool ended = false;
+    for (uint32_t count = 0; count < 100001u; ++count) {
+        BinkPlayerFrame next{};
+        const int status = bink_player_advance(app->video, monotonic_now_ns(),
+                                                &next, error, sizeof(error));
+        if (status == BINK_PLAYER_OK) {
+            /* The player invalidates its borrowed RGBA view on the next
+             * advance; copy each due frame before asking for another. */
+            if (!copy_player_frame(app, next)) {
+                record(app, "scene_video_error invalid-frame-buffer frame=%d",
+                       next.current_frame);
+                return false;
+            }
+            continue;
+        }
+        if (status == BINK_PLAYER_NOT_DUE) break;
+        if (status == BINK_PLAYER_EOS) { ended = true; break; }
+        record(app, "scene_video_error status=%d detail=%s", status, error);
+        return false;
+    }
+    if (ended) {
+        record(app, "scene_video_eos last_frame=%d", app->scene_current_frame);
+        bink_player_close(app->video);
+        app->video = nullptr;
+    }
+    return true;
+}
+
 static bool load_scene(NativeApp *app, int16_t scene_id)
 {
     char name[33], error[256];
@@ -284,12 +398,22 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
     }
     scene_resource_close(app->scene);
     app->scene = nullptr;
+    if (app->video) bink_player_close(app->video);
+    app->video = nullptr;
     app->has_scene_frame = false;
     app->scene = scene_resource_open_memory(resource.bytes, resource.length, error, sizeof(error));
     game_resource_bytes_destroy(&resource);
     if (!app->scene) { record(app, "scene_error name=%s detail=%s", name, error); return false; }
     SceneResourceSummary summary{};
     if (scene_resource_get_summary(app->scene, &summary) != SCENE_RESOURCE_OK) return false;
+    if (app->new_game.view.action_core != nullptr) {
+        const int visit_status = world_init_record_successful_scene_load(
+            &app->new_game.view, scene_id, 0);
+        if (visit_status != WORLD_INIT_OK) {
+            record(app, "world_init_visit_error scene=%d status=%d", scene_id, visit_status);
+            return false;
+        }
+    }
     record(app, "scene_parsed name=%s title=%s background=%s audio=%s actions=%zu",
            name, summary.title, summary.background, summary.audio, summary.action_count);
     /* The original opener probes BIK before AVF. This adapter currently covers
@@ -315,20 +439,39 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
     }
     closedir(directory);
     if (matches != 1) { record(app, "scene_media_error missing-or-ambiguous=%s", wanted.c_str()); return false; }
-    BinkFrame frame = BINK_FRAME_INIT;
-    if (bink_adapter_decode_first_frame(path.c_str(), &frame, error, sizeof(error)) != BINK_ADAPTER_OK) {
-        record(app, "scene_media_error=%s", error); return false;
+    BinkPlayer *opened_player = nullptr;
+    std::unique_ptr<BinkPlayer, decltype(&bink_player_close)> player(
+        nullptr, &bink_player_close);
+    BinkPlayerInfo info{};
+    int video_status = bink_player_open(path.c_str(), &opened_player, &info,
+                                        error, sizeof(error));
+    player.reset(opened_player);
+    if (video_status != BINK_PLAYER_OK) {
+        record(app, "scene_media_error status=%d detail=%s", video_status, error);
+        return false;
     }
-    try {
-        app->scene_frame.width = frame.width; app->scene_frame.height = frame.height;
-        app->scene_frame.rgba.resize((size_t)frame.width * frame.height * 4);
-        for (uint32_t row = 0; row < frame.height; ++row)
-            std::memcpy(app->scene_frame.rgba.data() + (size_t)row * frame.width * 4,
-                        frame.rgba + (size_t)row * frame.stride, (size_t)frame.width * 4);
-    } catch (...) { bink_adapter_destroy(&frame); throw; }
-    bink_adapter_destroy(&frame);
-    record(app, "scene_frame_decoded width=%u height=%u codec=native-FFmpeg original-Bink-equivalence=unverified",
-           app->scene_frame.width, app->scene_frame.height);
+    const uint64_t playback_origin_ns = monotonic_now_ns();
+    video_status = bink_player_set_mode(player.get(), 0, playback_origin_ns,
+                                        error, sizeof(error));
+    if (video_status != BINK_PLAYER_OK) {
+        record(app, "scene_media_error status=%d detail=%s", video_status, error);
+        return false;
+    }
+    BinkPlayerFrame first_frame{};
+    video_status = bink_player_advance(player.get(), playback_origin_ns,
+                                       &first_frame, error, sizeof(error));
+    if (video_status != BINK_PLAYER_OK || !copy_player_frame(app, first_frame)) {
+        record(app, "scene_media_error status=%d detail=%s", video_status,
+               video_status == BINK_PLAYER_OK ? "invalid first-frame buffer" : error);
+        return false;
+    }
+    app->video = player.release();
+    record(app, "scene_video_open width=%u height=%u frames=%u rate=%d/%d retained_bytes=%llu "
+           "mode=0 pacing=native-FFmpeg-timestamps BinkWait-parity=unverified",
+           info.width, info.height, info.total_frames, info.frame_rate_num,
+           info.frame_rate_den, (unsigned long long)info.decoded_frame_storage_bytes);
+    record(app, "scene_frame_decoded width=%u height=%u frame=%d codec=native-FFmpeg original-Bink-equivalence=unverified",
+           app->scene_frame.width, app->scene_frame.height, app->scene_current_frame);
     app->has_scene_frame = true;
     if (!render_scene_preview(app)) { app->has_scene_frame = false; return false; }
     record(app, "scene_preview viewport=%d,%d,%d,%d actions=not-executed audio=absent",
@@ -338,8 +481,72 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
     return true;
 }
 
+static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
+{
+    EngineBootStartupSettings settings{};
+    WorldInitStartupOverrides overrides{};
+    overrides.forced_scene_id = -1;
+    if (engine_boot_get_startup_settings(app->boot, &settings) != ENGINE_BOOT_OK) {
+        record(app, "world_init_error startup-settings");
+        return false;
+    }
+    const int status = world_init_apply_new_game(&app->new_game.view, &settings,
+                                                  &overrides, now_tick);
+    if (status != WORLD_INIT_OK) {
+        record(app, "world_init_error new-game status=%d", status);
+        return false;
+    }
+    if (app->new_game.view.start_tuple.scene_id < INT16_MIN ||
+        app->new_game.view.start_tuple.scene_id > INT16_MAX) {
+        record(app, "world_init_error scene-id-out-of-host-range=%d",
+               app->new_game.view.start_tuple.scene_id);
+        return false;
+    }
+    app->initial_scene = static_cast<int16_t>(app->new_game.view.start_tuple.scene_id);
+    app->new_game.action64_world.clock_value_585d51 =
+        app->new_game.view.clock.configured_hour;
+    app->new_game.action64_world.clock_value_585d4f =
+        app->new_game.view.clock.configured_minute;
+    app->new_game.action64_world.clock_total_585d4b =
+        app->new_game.view.clock.total_minutes;
+    app->new_game.action64_world.clock_deadline_585d55 =
+        app->new_game.view.clock.next_update_tick;
+    app->new_game.action64_world.deadline_offset_5b0280 =
+        app->new_game.view.clock.update_interval_ms;
+    record(app, "new_game_initialized scene=%d coordinate_words=%d,%d source=%u "
+           "clock=%d:%02d tick=%u flags_view=%zu visits_view=%zu inventory_view=%zu "
+           "original-global-capacities=unknown",
+           app->new_game.view.start_tuple.scene_id,
+           app->new_game.view.start_tuple.coordinate_word_a,
+           app->new_game.view.start_tuple.coordinate_word_b,
+           app->new_game.view.start_tuple.source,
+           app->new_game.view.clock.configured_hour,
+           app->new_game.view.clock.configured_minute,
+           now_tick, app->new_game.action_core.event_flag_count,
+           app->new_game.view.scene_visit_counts_587b2d.count,
+           app->new_game.view.inventory.presence_583bd5.count);
+    return true;
+}
+
+static bool clear_before_scene_entry(NativeApp *app, uint32_t now_tick)
+{
+    const int status = world_init_apply_scene_clear(&app->new_game.view, 0, now_tick);
+    if (status != WORLD_INIT_OK) {
+        record(app, "world_init_error scene-clear status=%d", status);
+        return false;
+    }
+    app->new_game.action64_world.clock_deadline_585d55 =
+        app->new_game.view.clock.next_update_tick;
+    return true;
+}
+
 static void update(NativeApp *app, uint32_t now)
 {
+    if (!advance_scene_video(app)) {
+        app->failure = true;
+        if (app->platform) blackmoor_macos_stop(app->platform);
+        return;
+    }
     StartupMenuInput input{};
     input.tick_ms = now;
     input.logical_x = app->pointer_x; input.logical_y = app->pointer_y;
@@ -370,7 +577,9 @@ static void update(NativeApp *app, uint32_t now)
         app->command_reported = true;
         record(app, "command_requested=%d", frame.requested_command);
         if (frame.requested_command == STARTUP_MENU_COMMAND_NEW_GAME) {
-            if (!load_scene(app, app->initial_scene)) {
+            if (!initialize_new_game(app, now) ||
+                !clear_before_scene_entry(app, now) ||
+                !load_scene(app, app->initial_scene)) {
                 app->failure = true;
                 record(app, "scene_setup_failed");
                 if (app->platform) {
@@ -608,6 +817,8 @@ int main(int argc, char **argv)
             if (engine_boot_get_summary(app.boot, &summary) != ENGINE_BOOT_OK)
                 throw std::runtime_error("BOOT summary unavailable");
             app.initial_scene = summary.initial_scene;
+            if (world_init_cold_zero_event_flags(&app.new_game.action_core) != WORLD_INIT_OK)
+                throw std::runtime_error("Cannot initialize bounded cold event-flag view");
             if (!load_viewport(&app)) throw std::runtime_error("BOOT VIEW configuration unavailable");
             StartupMenuConfig config{};
             config.disabled_button_mask = (1u << 3) | (1u << 4); // Fresh session, no save restoration implemented.
@@ -637,8 +848,10 @@ int main(int argc, char **argv)
                 if (inspect_audio && !inspect_audio_graph(&app)) app.failure = true;
                 if (inspect_scene_runtime) {
                     SceneTransitionRequest transition{};
-                    if (!scene_inspector_run(app.resources, app.boot, app.scene,
-                            app.game_directory.c_str(), app.log, &transition) ||
+                    if (!scene_inspector_run(app.resources, app.boot, app.scene, app.video,
+                            app.game_directory.c_str(), &app.new_game.view,
+                            &app.new_game.action64_world, app.log, &transition) ||
+                        !clear_before_scene_entry(&app, blackmoor_macos_monotonic_ms()) ||
                         !load_scene(&app, transition.target_scene)) app.failure = true;
                 }
             } else {

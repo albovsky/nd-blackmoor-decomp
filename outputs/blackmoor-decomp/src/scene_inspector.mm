@@ -4,8 +4,10 @@
 #include "autotext.h"
 #include "his_audio.h"
 #include "macos_audio.h"
+#include "macos_platform.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -21,6 +23,11 @@ struct Inspector {
     FILE *log;
     std::string directory;
     ActionUIWorld ui{};
+    ActionFamily64Backend clock_backend{};
+    BinkPlayer *video = nullptr; /* borrowed from NativeApp */
+    uint64_t video_now_ns = 0;
+    int32_t current_frame = 0;
+    bool video_ended = false;
     AutoText *text = nullptr;
     MacAudioHost *audio = nullptr;
     SceneActionExecutor *executor = nullptr;
@@ -38,6 +45,19 @@ struct Inspector {
         autotext_close(text);
     }
 };
+
+uint64_t monotonic_now_ns()
+{
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+ActionFamily64BackendStatus read_host_tick_count(void *, uint32_t *tick)
+{
+    if (!tick) return ACTION_FAMILY64_BACKEND_ERROR;
+    *tick = blackmoor_macos_monotonic_ms();
+    return ACTION_FAMILY64_BACKEND_OK;
+}
 
 /* Read only the original keys required by this diagnostic. Values remain
  * configuration inputs; no preferences are written to the installed game. */
@@ -183,6 +203,41 @@ ActionSoundBackendStatus unload(void *context, uint16_t channel)
     return ACTION_SOUND_BACKEND_OK;
 }
 
+bool advance_video(Inspector &state, SceneExecutorFrameInput &input)
+{
+    if (state.video == nullptr || state.video_ended) {
+        input.current_frame = state.current_frame;
+        return 1;
+    }
+    char error[256] = {};
+    for (uint32_t count = 0; count < 100001u; ++count) {
+        BinkPlayerFrame frame{};
+        const int status = bink_player_advance(state.video, state.video_now_ns,
+                                                &frame, error, sizeof(error));
+        if (status == BINK_PLAYER_OK) {
+            state.current_frame = frame.current_frame;
+            input.current_frame = frame.current_frame;
+            continue;
+        }
+        if (status == BINK_PLAYER_NOT_DUE) {
+            input.current_frame = state.current_frame;
+            return true;
+        }
+        if (status == BINK_PLAYER_EOS) {
+            state.video_ended = true;
+            input.current_frame = state.current_frame;
+            std::fprintf(state.log, "scene_inspect video_eos frame=%d\n",
+                         state.current_frame);
+            return true;
+        }
+        std::fprintf(state.log, "scene_inspect video_error status=%d detail=%s\n",
+                     status, error);
+        return false;
+    }
+    std::fprintf(state.log, "scene_inspect video_error excessive-catchup\n");
+    return false;
+}
+
 int ui_action(void *context, size_t, const SceneActionInfo *action,
                const SceneActionRuntimeState *before, SceneActionHandlerResult *result)
 {
@@ -228,11 +283,23 @@ int sound_action(void *context, size_t, const SceneActionInfo *info,
 }
 
 static int run_inspection(GameResources *resources, const EngineBoot *boot,
-                         const SceneResource *scene, const char *game_directory,
-                         FILE *log, SceneTransitionRequest *transition)
+                         const SceneResource *scene, BinkPlayer *video,
+                         const char *game_directory,
+                         WorldInitState *new_game_state,
+                         ActionFamily64World *action64_world, FILE *log,
+                         SceneTransitionRequest *transition)
 {
-    if (!resources || !boot || !scene || !game_directory || !log || !transition) return 0;
+    if (!resources || !boot || !scene || !video || !game_directory || !new_game_state ||
+        !new_game_state->action_core || !action64_world || !log || !transition) return 0;
     Inspector state(log, game_directory);
+    state.video = video;
+    state.video_now_ns = monotonic_now_ns();
+    char video_error[256] = {};
+    if (bink_player_set_mode(video, 0, state.video_now_ns,
+                             video_error, sizeof(video_error)) != BINK_PLAYER_OK) {
+        std::fprintf(log, "scene_inspect video_mode_error=%s\n", video_error);
+        return 0;
+    }
     if (!configuration(state)) return 0;
     EngineBootStartupSettings settings{};
     size_t phone_count = 0;
@@ -249,6 +316,8 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
     std::fprintf(log, "scene_inspect boot_scene=%d coordinate_words=%d,%d clock_minutes=%d phone_rows=%zu caller_phone_capacity=%zu initialization=selected-recovered-fields\n",
         settings.ordinary_initial_scene, settings.ordinary_coordinate_word_a, settings.ordinary_coordinate_word_b,
         settings.initial_hour * 60 + settings.initial_minute, state.ui.phone_count, state.ui.phone_capacity);
+    std::fprintf(log, "scene_inspect video_start=forward frame=0 pacing=native-timestamp-advancement "
+        "BinkWait-parity=unverified frame_rate_source=decoded-PTS\n");
     char error[256];
     GameResourceBytes text_bytes = GAME_RESOURCE_BYTES_INIT;
     if (!game_resources_load_bytes(resources, "AUTOTEXT", &text_bytes, error, sizeof(error))) return 0;
@@ -259,19 +328,26 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
         return 0;
     /* The observed flag clear ends at ID2250. This diagnostic supplies that
      * bounded view; it does not infer the original allocation capacity. */
-    std::vector<int32_t> flags(2251, 0), inventory(70, 0);
-    std::vector<int16_t> visits(10001, 0);
-    ActionCoreWorld world{};
-    world.event_flags = flags.data(); world.event_flag_count = flags.size();
-    if (action_core_initialize_values(&world) != ACTION_CORE_OK) return 0;
+    ActionCoreWorld &world = *new_game_state->action_core;
     SceneConditionState conditions{};
-    conditions.event_flags = flags.data(); conditions.event_flag_count = flags.size();
-    conditions.inventory_presence = inventory.data(); conditions.inventory_count = inventory.size();
-    conditions.selected_inventory_item = -1;
-    conditions.scene_visit_counts = visits.data(); conditions.scene_visit_count = visits.size();
-    conditions.time_of_day_minutes = settings.initial_hour * 60 + settings.initial_minute;
+    conditions.event_flags = world.event_flags;
+    conditions.event_flag_count = world.event_flag_count;
+    conditions.inventory_presence = new_game_state->inventory.presence_583bd5.values;
+    conditions.inventory_count = new_game_state->inventory.presence_583bd5.count;
+    conditions.selected_inventory_item =
+        new_game_state->inventory.selected_item_candidate
+            ? *new_game_state->inventory.selected_item_candidate : -1;
+    conditions.scene_visit_counts = reinterpret_cast<const int16_t *>(
+        new_game_state->scene_visit_counts_587b2d.values);
+    conditions.scene_visit_count = new_game_state->scene_visit_counts_587b2d.count;
+    conditions.time_of_day_minutes = new_game_state->clock.total_minutes;
+    state.clock_backend.context = nullptr;
+    state.clock_backend.get_tick_count = read_host_tick_count;
     size_t failed_index = SIZE_MAX;
     if (scene_executor_create(scene, &world, 0, &state.executor, &failed_index) != SCENE_EXECUTOR_OK) return 0;
+    if (scene_executor_bind_action64_runtime(state.executor,
+                                             action64_world,
+                                             &state.clock_backend) != SCENE_EXECUTOR_OK) return 0;
     const SceneActionHandler handlers[] = {
         {0x82, ui_action, &state}, {0x1d, ui_action, &state}, {0x9f, sound_action, &state}
     };
@@ -279,8 +355,23 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
     input.cursor_context_allowed = 1;
     SceneExecutorStepInfo step{};
     auto dispatch = [&]() {
+        if (!advance_video(state, input)) return false;
+        /* The executor reflects A64 writes to later rows in this dispatch.
+         * Seed the next dispatch from the persistent New Game clock snapshot. */
+        conditions.time_of_day_minutes = new_game_state->clock.total_minutes;
         const int status = scene_executor_step_frame(state.executor, &conditions, handlers,
             sizeof(handlers) / sizeof(handlers[0]), &input, &step);
+        /* Keep the caller's world-init clock snapshot in sync with each
+         * committed Action64 result, including source-order partial effects
+         * before a later action reports an error. */
+        new_game_state->clock.configured_hour =
+            action64_world->clock_value_585d51;
+        new_game_state->clock.configured_minute =
+            action64_world->clock_value_585d4f;
+        new_game_state->clock.total_minutes =
+            action64_world->clock_total_585d4b;
+        new_game_state->clock.next_update_tick =
+            action64_world->clock_deadline_585d55;
         if (status != SCENE_EXECUTOR_OK)
             std::fprintf(log, "scene_inspect executor_error=%d row=%zu type=0x%02x detail=%d\n",
                 status, step.failed_action_index, step.failed_action_type, step.detail_status);
@@ -293,6 +384,18 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
         if (mac_audio_host_render_offline(state.audio, 4096, &rendered, error, sizeof(error)) != MAC_AUDIO_OK)
             return 0;
         state.frames_rendered += rendered.frame_count;
+        if (rendered.sample_rate == 0 ||
+            rendered.frame_count > UINT64_MAX / UINT64_C(1000000000)) {
+            mac_audio_render_destroy(&rendered);
+            return 0;
+        }
+        const uint64_t simulated_delta_ns = rendered.frame_count * UINT64_C(1000000000) /
+                                            rendered.sample_rate;
+        if (simulated_delta_ns > UINT64_MAX - state.video_now_ns) {
+            mac_audio_render_destroy(&rendered);
+            return 0;
+        }
+        state.video_now_ns += simulated_delta_ns;
         bool finite = true;
         for (uint64_t i = 0; i < rendered.frame_count * rendered.channels; ++i)
             if (!std::isfinite(rendered.interleaved_pcm[i])) { finite = false; break; }
@@ -323,11 +426,15 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
 }
 
 int scene_inspector_run(GameResources *resources, const EngineBoot *boot,
-                         const SceneResource *scene, const char *game_directory,
-                         FILE *log, SceneTransitionRequest *transition)
+                         const SceneResource *scene, BinkPlayer *video,
+                         const char *game_directory,
+                         WorldInitState *new_game_state,
+                         ActionFamily64World *action64_world, FILE *log,
+                         SceneTransitionRequest *transition)
 {
     try {
-        return run_inspection(resources, boot, scene, game_directory, log, transition);
+        return run_inspection(resources, boot, scene, video, game_directory,
+                              new_game_state, action64_world, log, transition);
     } catch (const std::exception &error) {
         if (log) std::fprintf(log, "scene_inspect host_error=%s\n", error.what());
         return 0;

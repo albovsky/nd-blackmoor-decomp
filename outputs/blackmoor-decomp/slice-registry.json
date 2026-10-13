@@ -8,14 +8,14 @@
       "id": "S01",
       "title": "Complete world initialization",
       "packet": "tasks/S01-world-init.md",
-      "status": "READY: original recovery + isolated kernel",
+      "status": "IN PROGRESS: bounded world kernel integrated; complete initializer unverified",
       "depends_on": []
     },
     {
       "id": "S02",
       "title": "Timed Bink playback",
       "packet": "tasks/S02-bink-player.md",
-      "status": "READY: media adapter/kernel",
+      "status": "IN PROGRESS: timed player integrated; original Bink DLL equivalence unverified",
       "depends_on": []
     },
     {
@@ -36,7 +36,7 @@
       "id": "S05",
       "title": "Caption layout and font rendering",
       "packet": "tasks/S05-caption-layout.md",
-      "status": "READY: original recovery + isolated renderer",
+      "status": "CLAIMED: Claude caption/framed renderers",
       "depends_on": []
     },
     {
@@ -57,7 +57,7 @@
       "id": "S08",
       "title": "Matching build and function batches",
       "packet": "tasks/S08-matching-build.md",
-      "status": "READY: independent matching track",
+      "status": "IN PROGRESS: six-function source batch audited; 0/6 exact",
       "depends_on": []
     },
     {
@@ -134,7 +134,7 @@
       "id": "A-28",
       "title": "Action 0x28: body boundary and runtime",
       "packet": "tasks/A-28-action-28.md",
-      "status": "READY recovery/kernel",
+      "status": "IN PROGRESS: dispatcher/blend/capture helpers reviewed; sequence and native presentation active",
       "depends_on": [],
       "raw_type": "0x28",
       "records": 72,
@@ -304,7 +304,7 @@
       "id": "A-51",
       "title": "Action 0x51: body boundary and runtime",
       "packet": "tasks/A-51-action-51.md",
-      "status": "READY recovery/kernel",
+      "status": "KERNEL REVIEWED: parser integrated; S05 renderer/live dispatcher pending",
       "depends_on": [],
       "raw_type": "0x51",
       "records": 97,
@@ -314,7 +314,7 @@
       "id": "A-62",
       "title": "Action 0x62: body boundary and runtime",
       "packet": "tasks/A-62-action-62.md",
-      "status": "READY recovery/kernel",
+      "status": "IN PROGRESS: body/lifecycle/interaction kernels reviewed; live providers pending",
       "depends_on": [],
       "raw_type": "0x62",
       "records": 1802,
@@ -324,7 +324,7 @@
       "id": "A-64",
       "title": "Action 0x64: body boundary and runtime",
       "packet": "tasks/A-64-action-64.md",
-      "status": "READY recovery/kernel",
+      "status": "IN PROGRESS: bounded clock action integrated; full scene coverage pending",
       "depends_on": [],
       "raw_type": "0x64",
       "records": 7,

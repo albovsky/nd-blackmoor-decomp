@@ -480,3 +480,19 @@ const char *scene_conditions_status_string(int status)
     default: return "unknown scene condition status";
     }
 }
+
+#ifdef SCENE_EXECUTOR_TEST_HOOKS
+int scene_conditions_test_node_status(const SceneConditionTree *tree,
+                                      size_t node_index,
+                                      int32_t *out_status)
+{
+    if (tree == NULL || out_status == NULL) {
+        return SCENE_CONDITION_ERR_ARGUMENT;
+    }
+    if (node_index >= tree->node_count) {
+        return SCENE_CONDITION_ERR_BOUNDS;
+    }
+    *out_status = tree->nodes[node_index].status;
+    return SCENE_CONDITION_OK;
+}
+#endif

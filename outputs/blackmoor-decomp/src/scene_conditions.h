@@ -73,6 +73,14 @@ int scene_conditions_evaluate(SceneConditionTree *tree,
 
 const char *scene_conditions_status_string(int status);
 
+#ifdef SCENE_EXECUTOR_TEST_HOOKS
+/* Test-only visibility into retained reducer results. This is compiled only
+ * into the executor test library, never into the native application. */
+int scene_conditions_test_node_status(const SceneConditionTree *tree,
+                                      size_t node_index,
+                                      int32_t *out_status);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
