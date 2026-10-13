@@ -497,6 +497,13 @@ int action_family28_surface_blend_present_words(
     if (status != ACTION_FAMILY28_SURFACE_OK) {
         return status;
     }
+    /* The recovered A-28 loop uses one shared crop index for both captures.
+     * Reject broader host inputs rather than silently reading the target from
+     * the source crop when their origins differ. */
+    if (source->offset_x != target->offset_x ||
+        source->offset_y != target->offset_y) {
+        return ACTION_FAMILY28_SURFACE_ERR_UNSUPPORTED;
+    }
     if (source->stride_pixels != target->stride_pixels) {
         return ACTION_FAMILY28_SURFACE_ERR_UNSUPPORTED;
     }

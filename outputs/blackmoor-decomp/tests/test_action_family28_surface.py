@@ -296,6 +296,46 @@ class ActionFamily28SurfaceTests(unittest.TestCase):
         self.assertEqual(bytes(source_bytes), before)
         self.assertEqual((invalid.offset_x, invalid.offset_y), (1, 0))
 
+    def test_different_capture_crop_origins_are_rejected_before_surface_mutation(self):
+        # The recovered effect loop uses one source index for both captures.
+        # Both origins below are independently in bounds, but they cannot be
+        # represented by that shared-crop contract.
+        colors = [
+            (255, 0, 0, 255), (0, 255, 0, 255), (0, 0, 255, 255),
+            (255, 255, 255, 255), (0, 0, 0, 255), (248, 252, 248, 255),
+        ]
+        rgba, frame = self.frame(colors)
+        background, source_surface = self.make_surface(rgba, frame)
+        rect = Rect(1, 0, 1, 0)
+
+        capture_size = c.c_size_t()
+        self.assertEqual(self.lib.action_family28_capture_required_bytes(
+            3, 2, 3, c.byref(capture_size)), 0)
+        source_bytes = (c.c_uint8 * capture_size.value)()
+        target_bytes = (c.c_uint8 * capture_size.value)()
+        source_capture = WordCapture(c.cast(source_bytes, c.POINTER(c.c_uint8)),
+            capture_size.value, 3, 2, 3, 0, 0, 1)
+        target_capture = WordCapture(c.cast(target_bytes, c.POINTER(c.c_uint8)),
+            capture_size.value, 3, 2, 3, 1, 0, 1)
+        self.assertEqual(self.lib.action_family28_surface_capture_words_at(
+            c.byref(source_surface), c.byref(rect), 0, 0,
+            c.byref(source_capture)), 0)
+        self.assertEqual(self.lib.action_family28_surface_capture_words_at(
+            c.byref(source_surface), c.byref(rect), 1, 0,
+            c.byref(target_capture)), 0)
+        self.assertEqual((source_capture.offset_x, source_capture.offset_y), (0, 0))
+        self.assertEqual((target_capture.offset_x, target_capture.offset_y), (1, 0))
+
+        output = (c.c_uint8 * len(background)).from_buffer_copy(background)
+        output_surface = PrimarySurface.from_buffer_copy(source_surface)
+        output_surface.pixels = c.cast(output, c.POINTER(c.c_uint8))
+        output_surface.byte_length = len(output)
+        before = bytes(output)
+        self.assertEqual(self.lib.action_family28_surface_blend_present_words(
+            c.byref(output_surface), c.byref(rect), c.byref(source_capture),
+            c.byref(target_capture), 0.0, 0x027F, 1), 2)
+        self.assertEqual(bytes(output), before)
+
     def test_failures_are_rejected_before_surface_or_output_mutation(self):
         rgba, frame = self.frame([(255, 0, 0, 255)] * 6)
         storage, surface = self.make_surface(rgba, frame)

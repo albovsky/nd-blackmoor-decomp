@@ -158,6 +158,8 @@ int action_family28_surface_capture_words(
 /* Blend the two original-layout capture spans using the portable A-28 math,
  * then update the inclusive rectangle in the declared offscreen primary
  * surface. All input bounds and RGB values validate before any surface write.
+ * The original loop uses a shared capture crop index; differing source and
+ * target offset_x/offset_y values are explicitly unsupported.
  * A non-primary target or unsupported composition scope fails explicitly. */
 int action_family28_surface_blend_present_words(
     ActionFamily28PrimarySurface *surface,
