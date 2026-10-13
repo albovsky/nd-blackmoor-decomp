@@ -1,38 +1,41 @@
 {
+  "source_ref": "b89e5e47e1e7ffc53de229d9b01f16a16db3dee4",
+  "generated_utc": "2026-10-13T21:32:40.093Z",
+  "browser": "cached Chromium headless shell via CDP; no CUA/GUI",
   "initial": {
+    "title": "Blackmoor · Local Decompilation Map",
+    "bodyTextChars": 14653,
     "tiles": 4187,
-    "units": 20,
-    "source": "SOURCE cdcbd9b3ebb9 · 2026-10-13T21:22:28Z",
+    "unknown": 1,
+    "units": 19,
+    "source": "SOURCE b89e5e47e1e7 · 2026-10-13T21:29:13Z",
     "coverageNote": true,
     "historyDisabled": true,
-    "externalResources": 0
+    "scrollY": 0
   },
   "exact": {
     "tiles": 2,
-    "inspectorHasExactRange": true
+    "inspectorHasExactRange": true,
+    "inspectorText": "FUN_0052398b\n0x52398b\nAddress unit\n0x0052xxxx (VA band)\nSpan\n50 bytes\nExtent basis\nnext-start address span (estimated)\nEvidence ID\nev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/52398b.c.txt\nEXACT SELECTED BYTE RANGES\n7 bytes at 0x52398b · selected range; function completeness unverified"
+  },
+  "search": {
+    "count": 1,
+    "label": "FUN_00427a50, 0x427a50, 12,893 byte address span",
+    "oracle": true
   },
   "keyboard": {
     "moved": true,
-    "before": "FUN_0052398b, 0x52398b, 50 byte address span",
-    "after": "FUN_0051cfd1, 0x51cfd1, 48 byte address span"
-  },
-  "search": {
-    "hit": {
-      "count": 1,
-      "label": "FUN_00427a50, 0x427a50, 12,893 byte address span"
-    },
-    "inspectorHasOracleEvidence": true
-  },
-  "unknown": {
-    "tiles": 0,
-    "record": "Unknown extent record, not area-scaled: 0x529248 Unwind@00529248",
-    "tail": "Final extent unresolved · 18 .text bytes after final start"
+    "before": "FUN_00496410, 0x496410, 24,652 byte address span",
+    "after": "FUN_0040b34a, 0x40b34a, 23,631 byte address span"
   },
   "mobile": {
     "viewport": 390,
+    "innerWidth": 390,
     "scroll": 390,
+    "bodyScroll": 390,
     "overflow": false
   },
+  "externalRequests": [],
   "uncaughtErrors": [],
   "quarantineRegression": {
     "fixture": "Synthetic snapshot carrying stale direct and interior windows",
@@ -51,5 +54,9 @@
     "lineageShowsQuarantinedReport": true,
     "lineageShowsBothWindows": true,
     "uncaughtErrors": []
+  },
+  "screenshots": {
+    "initialViewport": "preview-headless.png",
+    "exactInspector": "preview-exact-inspector.png"
   }
 }
