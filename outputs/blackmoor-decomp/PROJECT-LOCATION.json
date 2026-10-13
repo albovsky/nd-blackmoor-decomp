@@ -22,5 +22,6 @@
     "status": "passed"
   },
   "permanent_project_full_suite_passed": true,
-  "git_baseline_commit": "3155d7d3c81e877e9bf385e9e663cc6e5ce1cf6c"
+  "git_baseline_commit": "e288cd3eb42d8cf5cf90e40691ea2d63c6842f97",
+  "git_generated_files_excluded_at_head": true
 }

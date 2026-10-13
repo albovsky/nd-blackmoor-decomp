@@ -11,3 +11,6 @@ outputs/**/*.zip
 outputs/*.zip
 *.log
 outputs/**/*.app/
+
+# Local agent session state (e.g. superpowers SDD ledgers).
+.superpowers/
