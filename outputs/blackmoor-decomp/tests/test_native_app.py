@@ -50,6 +50,24 @@ class NativeAppIntegrationTests(unittest.TestCase):
                 self.assertIn(evidence, contents)
         self.assertEqual(hashlib.sha256(configuration.read_bytes()).hexdigest(), original_hash)
 
+    def test_actual_app_update_uses_one_sticky_persistent_session_boundary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'session.log'
+            result = subprocess.run([str(self.executable), '--inspect-session-boundary',
+                                     '--game-dir', str(self.game), '--log', str(log)],
+                                    capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            contents = log.read_text()
+            self.assertIn('scene_session_created scene=0 generation=1 ui_phone_rows=12', contents)
+            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer_transform=unverified action_sound_and_caption_backend=unavailable', contents)
+            self.assertIn('scene_session_blocked stage=3 provider=action-sound action=31 type=0x9f', contents)
+            self.assertIn('scene_clock_tick ', contents)
+            self.assertIn('scene_session_media_eos frame=0', contents)
+            self.assertIn('scene_action_sound row=31 phase=0 kernel_status=3 captions=1 dispatch_argument=1 boundary=caption-presentation', contents)
+            self.assertIn('scene_session_probe status=2 provider=action-sound tick_index=1 tick_count=1 generation=1 media_attempted=1 dispatch_attempted=1 same_path=app-update', contents)
+            self.assertIn('effects_before_block=31', contents)
+            self.assertIn('stopped failure=0', contents)
+
     def test_missing_configuration_fails_without_gameplay_success(self):
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / 'startup.log'
@@ -58,7 +76,7 @@ class NativeAppIntegrationTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 1)
             contents = log.read_text()
-            self.assertIn('Cannot read original external-CIF configuration', contents)
+            self.assertIn('Cannot read original game configuration', contents)
             self.assertNotIn('scene_parsed', contents)
 
     def test_corrupt_background_fails_after_new_game_without_preview_success(self):

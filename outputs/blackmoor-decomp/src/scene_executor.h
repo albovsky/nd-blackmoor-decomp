@@ -76,12 +76,12 @@ typedef struct scene_transition_request {
 } SceneTransitionRequest;
 
 /* Per-tick input for the recovered frame-matched hotspot path. Pointer
- * coordinates are the cursor hot point already transformed into scene
- * coordinates: subtract viewport origin, add scene scroll to Y, then add the
- * cursor sprite's hot-point offsets. Rectangles are tested inclusively. The
+ * coordinates must already be in the same comparison space as the action
+ * rectangles; the original producer, viewport/scroll/hot-point transform and
+ * clipping path remain unresolved. Rectangles are tested inclusively. The
  * separate context/modal bits model the original cursor-mode and event guards;
- * hotspot_activation_event must represent an accepted WM_LBUTTONUP (primary
- * button release), not a hover or button-down event. */
+ * hotspot_activation_event must represent a source-verified accepted event,
+ * not a hover or button-down event. */
 typedef struct scene_executor_frame_input {
     int32_t current_frame;
     int32_t pointer_x;
@@ -120,6 +120,14 @@ typedef struct scene_action_handler {
     void *context;
 } SceneActionHandler;
 
+/* Called synchronously after an eligible 0x64 handler commits changed clock
+ * fields, before the next ACT row is evaluated. `world` is the same mutable
+ * snapshot bound to the executor. No call is made for false gates, unsupported
+ * rows, or rows whose four clock fields did not change. */
+typedef void (*SceneAction64WorldCommitFn)(
+    void *context,
+    const ActionFamily64World *world);
+
 typedef struct scene_executor_step_info {
     SceneExecutorStepKind kind;
     size_t actions_considered;
@@ -152,6 +160,13 @@ int scene_executor_bind_action64_runtime(
     SceneActionExecutor *executor,
     ActionFamily64World *world,
     ActionFamily64Backend *backend);
+
+/* Optional mirror for process/world-owned clock storage. The callback and its
+ * context are borrowed and must outlive the executor. */
+int scene_executor_set_action64_world_commit_observer(
+    SceneActionExecutor *executor,
+    SceneAction64WorldCommitFn observer,
+    void *context);
 
 /* Evaluate ACT rows in ascending order. Each row's dependencies are evaluated
  * immediately before its handler. The current event-flag view must be the same

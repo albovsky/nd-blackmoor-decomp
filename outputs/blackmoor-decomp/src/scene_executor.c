@@ -33,6 +33,8 @@ struct SceneActionExecutor {
     SceneTransitionRequest transition;
     ActionFamily64World *action64_world;
     ActionFamily64Backend *action64_backend;
+    SceneAction64WorldCommitFn action64_world_commit_observer;
+    void *action64_world_commit_context;
 };
 
 static uint16_t read_u16le(const uint8_t *bytes)
@@ -259,6 +261,28 @@ int scene_executor_bind_action64_runtime(
     executor->action64_world = world;
     executor->action64_backend = backend;
     return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_set_action64_world_commit_observer(
+    SceneActionExecutor *executor,
+    SceneAction64WorldCommitFn observer,
+    void *context)
+{
+    if (executor == NULL || (observer == NULL && context != NULL)) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->action64_world_commit_observer = observer;
+    executor->action64_world_commit_context = context;
+    return SCENE_EXECUTOR_OK;
+}
+
+static int action64_clock_fields_changed(const ActionFamily64World *before,
+                                         const ActionFamily64World *after)
+{
+    return before->clock_value_585d51 != after->clock_value_585d51 ||
+           before->clock_value_585d4f != after->clock_value_585d4f ||
+           before->clock_total_585d4b != after->clock_total_585d4b ||
+           before->clock_deadline_585d55 != after->clock_deadline_585d55;
 }
 
 static int validate_handlers(const SceneActionHandler *handlers,
@@ -681,6 +705,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         if (action.type == SCENE_ACTION_CLOCK) {
             ActionFamily64Input clock_action;
             ActionFamily64Result clock_result;
+            ActionFamily64World clock_before;
             if (executor->action64_world == NULL ||
                 executor->action64_backend == NULL) {
                 fill_failure(&local_info, index, action.type,
@@ -695,6 +720,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             clock_action.phase_before = runtime_state->phase;
             clock_action.body = action.typed_body;
             clock_action.body_length = action.typed_body_length;
+            clock_before = *executor->action64_world;
             status = action_family64_step(&clock_action,
                                          executor->action64_world,
                                          executor->action64_backend,
@@ -725,6 +751,13 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             }
             dispatch_state.time_of_day_minutes =
                 clock_result.world.clock_total_585d4b;
+            if (executor->action64_world_commit_observer != NULL &&
+                action64_clock_fields_changed(&clock_before,
+                                              &clock_result.world)) {
+                executor->action64_world_commit_observer(
+                    executor->action64_world_commit_context,
+                    executor->action64_world);
+            }
             ++local_info.actions_applied;
             local_info.kind = SCENE_EXECUTOR_STEP_PROCESSED;
             continue;

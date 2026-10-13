@@ -8,12 +8,15 @@
 #include "bink_player.h"
 #include "scene_executor.h"
 #include "action_ui.h"
+#include "action_sound.h"
 #include "his_audio.h"
 #include "macos_audio.h"
 #include "scene_inspector.h"
 #include "world_init.h"
+#include "world_clock.h"
 #include "action_family28_surface.h"
 #include "scene_conditions.h"
+#include "scene_session.h"
 
 #import <AppKit/AppKit.h>
 #include <cstdio>
@@ -98,16 +101,29 @@ struct NativeApp {
     StartupMenu *startup = nullptr;
     SceneResource *scene = nullptr;
     BinkPlayer *video = nullptr;
+    SceneSession *session = nullptr;
     NativeNewGameState new_game;
+    WorldClockSession world_clock_session{};
+    WorldClockEffectSink world_clock_effect_sink{};
+    SceneConditionState session_conditions{};
+    ActionFamily64Backend action64_backend{};
     FILE *log = nullptr;
     std::map<std::string, HostImage> images;
     std::vector<uint8_t> framebuffer;
     uint32_t started = 0, stop_after = 0;
+    uint32_t session_tick_sample = 0;
+    int32_t post_clock_object_enabled_001c = 0;
+    uint8_t post_clock_aux_enabled_61c6ad = 0;
+    int32_t post_clock_aux_value_61c7bd = 0;
+    uint8_t closed_captioning = 0;
     int32_t pointer_x = -1, pointer_y = -1;
     bool primary_down = false;
     bool primary_pressed = false, primary_released = false;
     bool failure = false;
     bool command_reported = false;
+    bool scene_runtime_enabled = false;
+    bool session_block_reported = false;
+    bool session_transition_reported = false;
     int last_stage = -1, last_hover = -2;
     int16_t initial_scene = 0;
     int16_t current_scene_id = 0;
@@ -146,14 +162,19 @@ static std::string trim(const std::string &value)
     return value.substr(begin, value.find_last_not_of(" \t\r\n") - begin + 1);
 }
 
-/* Narrow host configuration adapter. This reads the original patch-loading
- * switch only; it does not claim to implement Windows profile APIs in full. */
-static bool external_cif_configuration(const std::string &directory, int *enabled)
+/* Narrow host configuration adapter. It reads the original patch-loading
+ * switch and the ClosedCaptioning integer consumed by 0x4348b0. Missing
+ * ClosedCaptioning uses the source GetPrivateProfileIntA default of zero. */
+static bool game_ini_configuration(const std::string &directory,
+                                   int *external_cif_enabled,
+                                   uint8_t *captions_enabled)
 {
     FILE *file = std::fopen((directory + "/Game.ini").c_str(), "rb");
     if (!file) return false;
     char line[4096];
-    bool data_section = false, found = false;
+    bool data_section = false, found_external = false;
+    bool found_captions = false;
+    *captions_enabled = 0u;
     while (std::fgets(line, sizeof(line), file)) {
         std::string value = trim(line);
         const size_t comment = value.find(';');
@@ -164,15 +185,29 @@ static bool external_cif_configuration(const std::string &directory, int *enable
             continue;
         }
         const size_t equal = value.find('=');
-        if (!data_section || equal == std::string::npos ||
-            trim(value.substr(0, equal)) != "ExternalCifFileChecking") continue;
+        if (!data_section || equal == std::string::npos) continue;
+        const std::string key = trim(value.substr(0, equal));
         const std::string setting = trim(value.substr(equal + 1));
-        if (setting != "0" && setting != "1") { std::fclose(file); return false; }
-        *enabled = setting == "1";
-        found = true;
-        break;
+        if (key == "ExternalCifFileChecking" && !found_external) {
+            if (setting != "0" && setting != "1") {
+                std::fclose(file);
+                return false;
+            }
+            *external_cif_enabled = setting == "1";
+            found_external = true;
+        } else if (key == "ClosedCaptioning" && !found_captions) {
+            char *end = nullptr;
+            const long parsed = std::strtol(setting.c_str(), &end, 10);
+            if (setting.empty() || end == setting.c_str() || *end != '\0' ||
+                parsed < INT_MIN || parsed > INT_MAX) {
+                std::fclose(file);
+                return false;
+            }
+            *captions_enabled = parsed != 0 ? 1u : 0u;
+            found_captions = true;
+        }
     }
-    const bool success = found && !std::ferror(file);
+    const bool success = found_external && !std::ferror(file);
     std::fclose(file);
     return success;
 }
@@ -227,8 +262,12 @@ static void pointer(void *context, BlackmoorPointerKind kind,
                     int32_t x, int32_t y, unsigned button)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    app->pointer_x = x;
-    app->pointer_y = y;
+    /* The original message-map helper stores coordinates for WM_MOUSEMOVE.
+     * Button down/up notify the input latch without replacing that last move. */
+    if (kind == BLACKMOOR_POINTER_MOVE) {
+        app->pointer_x = x;
+        app->pointer_y = y;
+    }
     if (button == 0 && kind == BLACKMOOR_POINTER_DOWN) {
         app->primary_down = true; app->primary_pressed = true;
     }
@@ -252,6 +291,7 @@ static void closed(void *context)
 
 static void cleanup(NativeApp *app)
 {
+    if (app->session) scene_session_destroy(app->session);
     if (app->platform) blackmoor_macos_close(app->platform);
     if (app->startup) startup_menu_destroy(app->startup);
     if (app->scene) scene_resource_close(app->scene);
@@ -260,6 +300,7 @@ static void cleanup(NativeApp *app)
     if (app->resources) game_resources_close(app->resources);
     if (app->log) std::fclose(app->log);
     app->platform = nullptr;
+    app->session = nullptr;
     app->startup = nullptr;
     app->scene = nullptr;
     app->video = nullptr;
@@ -366,6 +407,320 @@ static bool copy_player_frame(NativeApp *app, const BinkPlayerFrame &frame)
                     frame.rgba + static_cast<size_t>(row) * frame.stride, row_bytes);
     }
     app->scene_current_frame = frame.current_frame;
+    return true;
+}
+
+static ActionFamily64BackendStatus session_get_tick_count(void *context,
+                                                               uint32_t *tick_count)
+{
+    if (context == nullptr || tick_count == nullptr) return ACTION_FAMILY64_BACKEND_ERROR;
+    *tick_count = blackmoor_macos_monotonic_ms();
+    return ACTION_FAMILY64_BACKEND_OK;
+}
+
+static void sync_action64_clock_from_new_game(NativeApp *app)
+{
+    if (app == nullptr) return;
+    app->new_game.action64_world.clock_value_585d51 =
+        app->new_game.view.clock.configured_hour;
+    app->new_game.action64_world.clock_value_585d4f =
+        app->new_game.view.clock.configured_minute;
+    app->new_game.action64_world.clock_total_585d4b =
+        app->new_game.view.clock.total_minutes;
+    app->new_game.action64_world.clock_deadline_585d55 =
+        app->new_game.view.clock.next_update_tick;
+    app->new_game.action64_world.deadline_offset_5b0280 =
+        app->new_game.view.clock.update_interval_ms;
+}
+
+static void mirror_action64_clock_commit(void *context,
+                                         const ActionFamily64World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    /* WorldInitClock is the session's authoritative civil clock. This callback
+     * runs synchronously after an accepted A-64 write and before the next ACT
+     * row, so later providers cannot observe a stale copy. */
+    app->new_game.view.clock.configured_hour = world->clock_value_585d51;
+    app->new_game.view.clock.configured_minute = world->clock_value_585d4f;
+    app->new_game.view.clock.total_minutes = world->clock_total_585d4b;
+    app->new_game.view.clock.next_update_tick = world->clock_deadline_585d55;
+}
+
+static SceneSessionProvider world_clock_failure_provider(
+    const WorldClockResult *clock_result)
+{
+    if (clock_result == nullptr) return SCENE_SESSION_PROVIDER_WORLD_CLOCK;
+    switch (clock_result->trigger) {
+    case WORLD_CLOCK_TRIGGER_SOUND_DESCRIPTOR:
+    case WORLD_CLOCK_TRIGGER_SOUND_CHANNEL_PLAY:
+        return SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    case WORLD_CLOCK_TRIGGER_CAPTION_LOOKUP:
+    case WORLD_CLOCK_TRIGGER_CAPTION_PRESENT:
+        return SCENE_SESSION_PROVIDER_CAPTION;
+    default:
+        return SCENE_SESSION_PROVIDER_WORLD_CLOCK;
+    }
+}
+
+static int native_action_sound_handler(
+    void *context, size_t action_index, const SceneActionInfo *info,
+    const SceneActionRuntimeState *before, SceneActionHandlerResult *result)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || info == nullptr || before == nullptr || result == nullptr)
+        return SCENE_ACTION_HANDLER_ERROR;
+    ActionSoundAction action{};
+    action.type = info->type;
+    action.subtype = info->subtype;
+    action.eligible = 1u;
+    action.completed_before = before->completed;
+    action.phase_before = before->phase;
+    /* The original 0x427a50 switch calls 0x432d1a(row, 1, 0) for 0x9f. */
+    action.scene_dispatch_argument = 1u;
+    action.captions_enabled = app->world_clock_session.captions_enabled_5bb202;
+    action.body = info->typed_body;
+    action.body_length = info->typed_body_length;
+    ActionSoundStepResult effect{};
+    const int status = action_sound_step(&action, nullptr, &effect);
+    const bool has_selector = info->typed_body != nullptr &&
+        info->typed_body_length >= 48u &&
+        (info->typed_body[46] != 0u || info->typed_body[47] != 0u);
+    const bool caption_gate = status == ACTION_SOUND_ERR_UNSUPPORTED &&
+        action.captions_enabled != 0u && action.scene_dispatch_argument != 0u &&
+        has_selector;
+    record(app, "scene_action_sound row=%zu phase=%u kernel_status=%d "
+           "captions=%u dispatch_argument=%u boundary=%s",
+           action_index, action.phase_before, status, action.captions_enabled,
+           action.scene_dispatch_argument,
+           caption_gate ? "caption-presentation" :
+                          status == ACTION_SOUND_ERR_UNSUPPORTED
+                              ? "audio-backend" : "kernel");
+    if (status == ACTION_SOUND_ERR_UNSUPPORTED)
+        return SCENE_ACTION_HANDLER_UNSUPPORTED;
+    if (status != ACTION_SOUND_OK || effect.has_transition != 0u)
+        return SCENE_ACTION_HANDLER_ERROR;
+    result->phase = effect.phase;
+    if (effect.reset_dependencies != 0u) {
+        result->disposition = SCENE_ACTION_HANDLER_RESET_DEPENDENCIES;
+    } else if (effect.completion_valid != 0u && effect.completed != 0u) {
+        result->disposition = SCENE_ACTION_HANDLER_DIRECT_COMPLETED;
+    } else {
+        result->disposition = SCENE_ACTION_HANDLER_PENDING;
+    }
+    return SCENE_ACTION_HANDLER_OK;
+}
+
+static SceneSessionCallbackStatus prepare_native_session_tick(
+    void *context,
+    SceneConditionState *conditions,
+    SceneExecutorFrameInput *frame_input,
+    SceneSessionFailure *failure)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || conditions == nullptr || frame_input == nullptr ||
+        failure == nullptr) return SCENE_SESSION_CALLBACK_ERROR;
+    std::memset(conditions, 0, sizeof(*conditions));
+    conditions->event_flags = app->new_game.action_core.event_flags;
+    conditions->event_flag_count = app->new_game.action_core.event_flag_count;
+    conditions->inventory_presence =
+        app->new_game.view.inventory.presence_583bd5.values;
+    conditions->inventory_count =
+        app->new_game.view.inventory.presence_583bd5.count;
+    conditions->selected_inventory_item =
+        app->new_game.view.inventory.selected_item_candidate
+            ? *app->new_game.view.inventory.selected_item_candidate : -1;
+    conditions->scene_visit_counts = reinterpret_cast<const int16_t *>(
+        app->new_game.view.scene_visit_counts_587b2d.values);
+    conditions->scene_visit_count =
+        app->new_game.view.scene_visit_counts_587b2d.count;
+    WorldClockResult clock_result{};
+    const int clock_status = world_clock_update_normal(
+        &app->world_clock_session, app->session_tick_sample,
+        &app->world_clock_effect_sink, &clock_result);
+    record(app, "scene_clock_tick sample=%u delta=%u status=%d trigger=%d "
+           "record=%u event=%d partial=%u total_minutes=%d "
+           "outside_window=%d continuation=0x%08x",
+           app->session_tick_sample, clock_result.delta_ms, clock_status,
+           clock_result.trigger, clock_result.record_index,
+           clock_result.event_flag_id, clock_result.partial_state_committed,
+           app->new_game.view.clock.total_minutes,
+           app->world_clock_session.outside_window_flag_5bb20a,
+           clock_result.continuation_va);
+    if (clock_status != WORLD_CLOCK_OK) {
+        failure->stage = SCENE_SESSION_STAGE_PREPARE;
+        failure->provider = world_clock_failure_provider(&clock_result);
+        failure->action_index = SIZE_MAX;
+        failure->action_type = 0u;
+        failure->detail_status = clock_status;
+        return SCENE_SESSION_CALLBACK_BLOCKED;
+    }
+
+    /* These are the two original post-clock gates at 0x43b13d. The cold
+     * constructor sets object+0x1c to zero; event 0x2711 activation and the
+     * auxiliary 0x61c6ad/0x61c7bd route remain explicit blockers if a future
+     * accepted input provider mutates them. */
+    if (app->post_clock_object_enabled_001c != 0) {
+        failure->stage = SCENE_SESSION_STAGE_PREPARE;
+        failure->provider = SCENE_SESSION_PROVIDER_POST_CLOCK;
+        failure->action_index = SIZE_MAX;
+        failure->action_type = 0u;
+        failure->detail_status = 0x4d3d48;
+        return SCENE_SESSION_CALLBACK_BLOCKED;
+    }
+    if (app->post_clock_aux_enabled_61c6ad != 0u &&
+        app->post_clock_aux_value_61c7bd != 0) {
+        failure->stage = SCENE_SESSION_STAGE_PREPARE;
+        failure->provider = SCENE_SESSION_PROVIDER_POST_CLOCK;
+        failure->action_index = SIZE_MAX;
+        failure->action_type = 0u;
+        failure->detail_status = 0x4d4043;
+        return SCENE_SESSION_CALLBACK_BLOCKED;
+    }
+
+    int32_t clock_value = 0;
+    for (uint16_t opcode = 4u; opcode <= 6u; ++opcode) {
+        if (world_clock_condition_read(&app->new_game.view, opcode,
+                                       &clock_value) != WORLD_CLOCK_OK) {
+            failure->stage = SCENE_SESSION_STAGE_PREPARE;
+            failure->provider = SCENE_SESSION_PROVIDER_WORLD_CLOCK;
+            failure->action_index = SIZE_MAX;
+            failure->action_type = 0u;
+            failure->detail_status = opcode;
+            return SCENE_SESSION_CALLBACK_BLOCKED;
+        }
+        if (opcode == 4u) conditions->timer_4_value = clock_value;
+        else if (opcode == 5u) conditions->timer_5_value = clock_value;
+        else conditions->time_of_day_minutes = clock_value;
+    }
+
+    /* The clock kernel mutates the authoritative WorldInitState first. Only
+     * now refresh the A-64 snapshot, immediately before the ordered ACT scan;
+     * A-64 commits mirror back synchronously before later dependency rows. */
+    sync_action64_clock_from_new_game(app);
+    frame_input->current_frame = app->scene_current_frame;
+    failure->stage = SCENE_SESSION_STAGE_PREPARE;
+    failure->provider = SCENE_SESSION_PROVIDER_NONE;
+    failure->action_index = SIZE_MAX;
+    failure->action_type = 0u;
+    failure->detail_status = 0;
+    return SCENE_SESSION_CALLBACK_OK;
+}
+
+static SceneSessionCallbackStatus advance_native_session_media_one(
+    void *context,
+    SceneExecutorFrameInput *frame_input,
+    SceneSessionFailure *failure)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || frame_input == nullptr || failure == nullptr)
+        return SCENE_SESSION_CALLBACK_ERROR;
+    if (app->video != nullptr) {
+        BinkPlayerFrame next{};
+        char error[256] = {};
+        const int status = bink_player_advance(app->video, monotonic_now_ns(),
+                                                &next, error, sizeof(error));
+        if (status == BINK_PLAYER_OK) {
+            if (!copy_player_frame(app, next)) {
+                failure->stage = SCENE_SESSION_STAGE_MEDIA;
+                failure->provider = SCENE_SESSION_PROVIDER_MEDIA;
+                failure->action_index = SIZE_MAX;
+                failure->detail_status = BINK_PLAYER_ERR_BOUNDS;
+                return SCENE_SESSION_CALLBACK_ERROR;
+            }
+        } else if (status == BINK_PLAYER_EOS) {
+            record(app, "scene_session_media_eos frame=%d", app->scene_current_frame);
+            bink_player_close(app->video);
+            app->video = nullptr;
+        } else if (status != BINK_PLAYER_NOT_DUE) {
+            record(app, "scene_session_media_error status=%d detail=%s", status, error);
+            failure->stage = SCENE_SESSION_STAGE_MEDIA;
+            failure->provider = SCENE_SESSION_PROVIDER_MEDIA;
+            failure->action_index = SIZE_MAX;
+            failure->detail_status = status;
+            return SCENE_SESSION_CALLBACK_ERROR;
+        }
+    }
+    frame_input->current_frame = app->scene_current_frame;
+    return SCENE_SESSION_CALLBACK_OK;
+}
+
+static bool create_native_scene_session(NativeApp *app)
+{
+    if (app == nullptr || app->scene == nullptr || app->session != nullptr) return false;
+    size_t phone_count = 0;
+    if (engine_boot_get_phone_count(app->boot, &phone_count) != ENGINE_BOOT_OK ||
+        phone_count > SIZE_MAX / sizeof(std::array<uint8_t, ACTION_UI_PHONE_RECORD_SIZE>)) {
+        record(app, "scene_session_create_error provider=action-ui detail=BOOT UICL unavailable");
+        return false;
+    }
+    std::vector<std::array<uint8_t, ACTION_UI_PHONE_RECORD_SIZE>> phone_rows;
+    try { phone_rows.resize(phone_count); }
+    catch (...) {
+        record(app, "scene_session_create_error provider=host detail=phone rows allocation");
+        return false;
+    }
+    for (size_t row = 0; row < phone_count; ++row) {
+        if (engine_boot_phone_row_at(app->boot, row, phone_rows[row].data()) != ENGINE_BOOT_OK) {
+            record(app, "scene_session_create_error provider=action-ui row=%zu", row);
+            return false;
+        }
+    }
+    app->session_conditions = {};
+    app->session_conditions.event_flags = app->new_game.action_core.event_flags;
+    app->session_conditions.event_flag_count = app->new_game.action_core.event_flag_count;
+    app->session_conditions.inventory_presence =
+        app->new_game.view.inventory.presence_583bd5.values;
+    app->session_conditions.inventory_count =
+        app->new_game.view.inventory.presence_583bd5.count;
+    app->session_conditions.selected_inventory_item =
+        app->new_game.view.inventory.selected_item_candidate
+            ? *app->new_game.view.inventory.selected_item_candidate : -1;
+    app->session_conditions.scene_visit_counts = reinterpret_cast<const int16_t *>(
+        app->new_game.view.scene_visit_counts_587b2d.values);
+    app->session_conditions.scene_visit_count =
+        app->new_game.view.scene_visit_counts_587b2d.count;
+    app->session_conditions.time_of_day_minutes = app->new_game.view.clock.total_minutes;
+    app->action64_backend.context = app;
+    app->action64_backend.get_tick_count = session_get_tick_count;
+
+    SceneSessionConfig config{};
+    config.scene = app->scene;
+    config.scene_id = app->current_scene_id;
+    config.action_core_world = &app->new_game.action_core;
+    config.conditions = &app->session_conditions;
+    config.action64_world = &app->new_game.action64_world;
+    config.action64_backend = &app->action64_backend;
+    config.initial_phone_rows = phone_rows.empty() ? nullptr :
+        reinterpret_cast<const uint8_t (*)[ACTION_UI_PHONE_RECORD_SIZE]>(phone_rows.data());
+    config.initial_phone_count = phone_rows.size();
+    config.prepare_tick = prepare_native_session_tick;
+    config.advance_media_one = advance_native_session_media_one;
+    config.provider_context = app;
+    config.action64_world_commit_observer = mirror_action64_clock_commit;
+    config.action64_world_commit_context = app;
+    SceneSessionActionBinding action_sound_binding{};
+    action_sound_binding.type = ACTION_SOUND_TYPE;
+    action_sound_binding.provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    action_sound_binding.callback = native_action_sound_handler;
+    action_sound_binding.context = app;
+    config.action_bindings = &action_sound_binding;
+    config.action_binding_count = 1u;
+    SceneSessionFailure failure{};
+    const int status = scene_session_create(&config, &app->session, &failure);
+    if (status != SCENE_SESSION_OK) {
+        record(app, "scene_session_create_error status=%d provider=%s stage=%d action=%zu type=0x%02x detail=%d",
+               status, scene_session_provider_string(failure.provider), failure.stage,
+               failure.action_index, failure.action_type, failure.detail_status);
+        return false;
+    }
+    record(app, "scene_session_created scene=%d generation=%llu ui_phone_rows=%zu "
+           "world=borrowed lifetime=app-owned transition=opaque-tuple-retained "
+           "clock=world-clock-normal+timer-records post-clock-gates=guarded "
+           "pointer_transform=unverified action_sound_and_caption_backend=unavailable",
+           app->current_scene_id,
+           (unsigned long long)scene_session_scene_generation(app->session),
+           phone_count);
     return true;
 }
 
@@ -759,6 +1114,15 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
         record(app, "world_init_error new-game status=%d", status);
         return false;
     }
+    app->world_clock_session.world = &app->new_game.view;
+    /* The two signed window bounds are in the PE zero-filled data tail and
+     * have no direct .text stores in the pinned image. The session object is
+     * zero-initialized to those cold values; the clock update owns the flag. */
+    app->world_clock_session.outside_window_flag_5bb20a = 0;
+    app->world_clock_session.time_window_start_5b0284 = 0;
+    app->world_clock_session.time_window_end_5b0286 = 0;
+    /* 0x4348b0 reads [Nancy Data] ClosedCaptioning with default zero. */
+    app->world_clock_session.captions_enabled_5bb202 = app->closed_captioning;
     if (app->new_game.view.start_tuple.scene_id < INT16_MIN ||
         app->new_game.view.start_tuple.scene_id > INT16_MAX) {
         record(app, "world_init_error scene-id-out-of-host-range=%d",
@@ -805,6 +1169,58 @@ static bool clear_before_scene_entry(NativeApp *app, uint32_t now_tick)
 
 static void update(NativeApp *app, uint32_t now)
 {
+    app->session_tick_sample = now;
+    if (app->session != nullptr) {
+        SceneSessionTickResult session_result{};
+        const int session_status = scene_session_tick(app->session, &session_result);
+        if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
+            record(app, "scene_session_blocked stage=%d provider=%s action=%zu type=0x%02x detail=%d "
+                   "effects_before_block=%zu dispatch_attempted=%u",
+                   session_result.failure.stage,
+                   scene_session_provider_string(session_result.failure.provider),
+                   session_result.failure.action_index, session_result.failure.action_type,
+                   session_result.failure.detail_status,
+                   session_result.executor.actions_applied,
+                   session_result.dispatch_attempted);
+            app->session_block_reported = true;
+        } else if (session_status == SCENE_SESSION_TRANSITION_PENDING &&
+                   !app->session_transition_reported) {
+            SceneTransitionRequest transition{};
+            if (scene_session_get_pending_transition(app->session, &transition)) {
+                record(app, "scene_session_transition_pending source=%d target=%d "
+                       "opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d "
+                       "target_loader=not-integrated",
+                       app->current_scene_id, transition.target_scene,
+                       transition.opaque_words[0], transition.opaque_words[1],
+                       transition.opaque_words[2], transition.opaque_dwords[0],
+                       transition.opaque_dwords[1], transition.opaque_dwords[2]);
+            }
+            app->session_transition_reported = true;
+        } else if (session_status != SCENE_SESSION_OK &&
+                   session_status != SCENE_SESSION_BLOCKED &&
+                   session_status != SCENE_SESSION_TRANSITION_PENDING) {
+            app->failure = true;
+            record(app, "scene_session_error status=%d", session_status);
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (app->has_scene_frame && !render_scene_preview(app)) {
+            app->failure = true;
+            record(app, "scene_session_render_error scope=decoded-background-only");
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (app->platform && !blackmoor_macos_present(app->platform,
+                app->framebuffer.data(), app->framebuffer.size(), 640 * 4)) {
+            app->failure = true;
+            blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (app->platform && app->stop_after &&
+            (uint32_t)(now - app->started) > app->stop_after)
+            blackmoor_macos_stop(app->platform);
+        return;
+    }
     if (!advance_scene_video(app)) {
         app->failure = true;
         if (app->platform) blackmoor_macos_stop(app->platform);
@@ -842,7 +1258,8 @@ static void update(NativeApp *app, uint32_t now)
         if (frame.requested_command == STARTUP_MENU_COMMAND_NEW_GAME) {
             if (!initialize_new_game(app, now) ||
                 !clear_before_scene_entry(app, now) ||
-                !load_scene(app, app->initial_scene)) {
+                !load_scene(app, app->initial_scene) ||
+                (app->scene_runtime_enabled && !create_native_scene_session(app))) {
                 app->failure = true;
                 record(app, "scene_setup_failed");
                 if (app->platform) {
@@ -852,7 +1269,8 @@ static void update(NativeApp *app, uint32_t now)
                 return;
             }
             if (app->platform) blackmoor_macos_set_title(app->platform,
-                "Blackmoor reconstruction — scene preview; actions and audio incomplete");
+                app->session ? "Blackmoor reconstruction — persistent scene session; providers incomplete"
+                             : "Blackmoor reconstruction — scene preview; actions and audio incomplete");
         } else if (frame.requested_command == STARTUP_MENU_COMMAND_EXIT_GAME) {
             if (app->platform) blackmoor_macos_stop(app->platform);
         } else {
@@ -1030,12 +1448,14 @@ int main(int argc, char **argv)
         bool inspect_actions = false;
         bool inspect_audio = false;
         bool inspect_scene_runtime = false;
+        bool inspect_session_boundary = false;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
             if (argument == "--inspect-actions") { inspect_only = inspect_actions = true; continue; }
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
             if (argument == "--inspect-scene-runtime") { inspect_only = inspect_scene_runtime = true; continue; }
+            if (argument == "--inspect-session-boundary") { inspect_only = inspect_session_boundary = true; continue; }
             if (i + 1 == argc) { std::fprintf(stderr, "Missing argument value\n"); return 2; }
             const char *value = argv[++i];
             if (argument == "--game-dir") app.game_directory = value;
@@ -1047,6 +1467,7 @@ int main(int argc, char **argv)
                 app.stop_after = (uint32_t)duration;
             } else { std::fprintf(stderr, "Unknown option: %s\n", argument.c_str()); return 2; }
         }
+        app.scene_runtime_enabled = !inspect_only || inspect_session_boundary;
         if (log_path.empty()) {
             NSString *directory = NSTemporaryDirectory();
             std::string pattern = std::string(directory.fileSystemRepresentation) + "blackmoor-startup-XXXXXX";
@@ -1064,9 +1485,12 @@ int main(int argc, char **argv)
         GameResourceBytes boot_bytes = GAME_RESOURCE_BYTES_INIT;
         int result = 1;
         try {
-            if (!external_cif_configuration(app.game_directory, &external))
-                throw std::runtime_error("Cannot read original external-CIF configuration");
-            record(&app, "external_cif_checking=%d gameplay_audio=absent engine=incomplete", external);
+            if (!game_ini_configuration(app.game_directory, &external,
+                                        &app.closed_captioning))
+                throw std::runtime_error("Cannot read original game configuration");
+            record(&app, "external_cif_checking=%d closed_captioning=%u "
+                   "gameplay_audio=absent engine=incomplete",
+                   external, app.closed_captioning);
             app.resources = game_resources_open((app.game_directory + "/Ciftree").c_str(), external, error, sizeof(error));
             if (!app.resources) throw std::runtime_error(error);
             if (!game_resources_load_bytes(app.resources, "BOOT", &boot_bytes, error, sizeof(error)))
@@ -1107,6 +1531,31 @@ int main(int argc, char **argv)
                 update(&app, app.started + 8005);
                 if (!app.scene || app.last_frame.requested_command != STARTUP_MENU_COMMAND_NEW_GAME)
                     throw std::runtime_error("Headless New Game did not load the original initial scene");
+                if (inspect_session_boundary) {
+                    if (!app.session) throw std::runtime_error("Persistent scene session was not created");
+                    update(&app, app.started + 8006);
+                    update(&app, app.started + 8007);
+                    SceneSessionTickResult session_result{};
+                    if (scene_session_get_last_result(app.session, &session_result) != SCENE_SESSION_OK)
+                        throw std::runtime_error("Persistent scene session result unavailable");
+                    record(&app, "scene_session_probe status=%d provider=%s tick_index=%llu "
+                           "tick_count=%llu generation=%llu media_attempted=%u dispatch_attempted=%u "
+                           "same_path=app-update",
+                           session_result.status,
+                           scene_session_provider_string(session_result.failure.provider),
+                           (unsigned long long)session_result.tick_index,
+                           (unsigned long long)scene_session_tick_count(app.session),
+                           (unsigned long long)scene_session_scene_generation(app.session),
+                           session_result.media_attempted, session_result.dispatch_attempted);
+                    if (session_result.status != SCENE_SESSION_BLOCKED ||
+                        session_result.failure.provider != SCENE_SESSION_PROVIDER_ACTION_SOUND ||
+                        scene_session_tick_count(app.session) != 1u ||
+                        session_result.media_attempted != 1u ||
+                        session_result.dispatch_attempted != 1u ||
+                        session_result.executor.actions_applied != 31u) {
+                        app.failure = true;
+                    }
+                }
                 if (inspect_actions && !inspect_action_kernel(&app)) app.failure = true;
                 if (inspect_audio && !inspect_audio_graph(&app)) app.failure = true;
                 if (inspect_scene_runtime) {
