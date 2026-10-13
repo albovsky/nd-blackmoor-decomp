@@ -1,0 +1,83 @@
+{
+  "description": "C++ member-method reconstruction of six complete x86 thiscall accessors; this is semantic source evidence and a compiler comparison, not an exact-match claim.",
+  "source": "src/matching_s08_2.cpp",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "functions": [
+    {
+      "rva": 896614,
+      "size": 17,
+      "symbol": "?get@FUN_004dae66_receiver@@QAEIXZ",
+      "object": "build/matching_s08_2/cpp_O0.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+      "source_file": "src/matching_s08_2.cpp",
+      "observed_behavior": {
+        "kind": "getter",
+        "field_offset": 24
+      }
+    },
+    {
+      "rva": 896631,
+      "size": 17,
+      "symbol": "?get@FUN_004dae77_receiver@@QAEIXZ",
+      "object": "build/matching_s08_2/cpp_O0.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+      "source_file": "src/matching_s08_2.cpp",
+      "observed_behavior": {
+        "kind": "getter",
+        "field_offset": 28
+      }
+    },
+    {
+      "rva": 896753,
+      "size": 17,
+      "symbol": "?get@FUN_004daef1_receiver@@QAEIXZ",
+      "object": "build/matching_s08_2/cpp_O0.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+      "source_file": "src/matching_s08_2.cpp",
+      "observed_behavior": {
+        "kind": "getter",
+        "field_offset": 12
+      }
+    },
+    {
+      "rva": 896770,
+      "size": 22,
+      "symbol": "?set@FUN_004daf02_receiver@@QAEXI@Z",
+      "object": "build/matching_s08_2/cpp_O0.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+      "source_file": "src/matching_s08_2.cpp",
+      "observed_behavior": {
+        "kind": "setter",
+        "field_offset": 12,
+        "argument_stack_offset": 8,
+        "callee_stack_cleanup": 4
+      }
+    },
+    {
+      "rva": 896792,
+      "size": 17,
+      "symbol": "?get@FUN_004daf18_receiver@@QAEIXZ",
+      "object": "build/matching_s08_2/cpp_O0.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+      "source_file": "src/matching_s08_2.cpp",
+      "observed_behavior": {
+        "kind": "getter",
+        "field_offset": 16
+      }
+    },
+    {
+      "rva": 896809,
+      "size": 22,
+      "symbol": "?set@FUN_004daf29_receiver@@QAEXI@Z",
+      "object": "build/matching_s08_2/cpp_O0.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619",
+      "source_file": "src/matching_s08_2.cpp",
+      "observed_behavior": {
+        "kind": "setter",
+        "field_offset": 16,
+        "argument_stack_offset": 8,
+        "callee_stack_cleanup": 4
+      }
+    }
+  ]
+}
