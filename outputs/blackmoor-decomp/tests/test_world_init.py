@@ -241,6 +241,41 @@ class WorldInitTests(unittest.TestCase):
     def default_overrides():
         return StartupOverrides(0, 0, 0, -1, 0)
 
+    @staticmethod
+    def complete_state_snapshot(state, keepalive):
+        (flags, core, opaque, visits, selected, opaque_selector, words, presence,
+         ids_a, ids_b, ids_c, aux_a, aux_b, records) = keepalive
+
+        def raw(value):
+            return c.string_at(c.addressof(value), c.sizeof(value))
+
+        return {
+            "state_and_global_fields": raw(state),
+            "action_core_and_globals": raw(core),
+            "event_flags": bytes(flags),
+            "opaque_dwords": bytes(opaque),
+            "scene_visits": bytes(visits),
+            "selected_item": raw(selected),
+            "opaque_selector": raw(opaque_selector),
+            "selector_words": bytes(words),
+            "inventory_presence": bytes(presence),
+            "inventory_ids_a": bytes(ids_a),
+            "inventory_ids_b": bytes(ids_b),
+            "inventory_ids_c": bytes(ids_c),
+            "inventory_aux_a": bytes(aux_a),
+            "inventory_aux_b": bytes(aux_b),
+            "time_records": bytes(records),
+        }
+
+    def assert_new_game_rejection_unchanged(self, state, keepalive, settings,
+                                            overrides, expected_status):
+        before = self.complete_state_snapshot(state, keepalive)
+        status = self.lib.world_init_apply_new_game(
+            c.byref(state), c.byref(settings), c.byref(overrides), 0x76543210
+        )
+        self.assertEqual(status, expected_status)
+        self.assertEqual(self.complete_state_snapshot(state, keepalive), before)
+
     def test_new_game_matches_cold_boot_fields_and_preserves_lower_flags(self):
         state, keepalive = self.make_state()
         flags, core, opaque, visits, selected, opaque_selector, words, presence, \
@@ -434,25 +469,159 @@ class WorldInitTests(unittest.TestCase):
         self.assertEqual(list(flags), [0] * 15)
         self.assertEqual(self.lib.world_init_cold_zero_event_flags(None), ERR_ARGUMENT)
 
-    def test_new_game_rejects_short_spans_before_any_write(self):
-        state, keepalive = self.make_state(flag_count=2250)
-        flags, core, opaque, visits, _selected, _selector, _words, _presence, \
-            _ids_a, _ids_b, _ids_c, _aux_a, _aux_b, records = keepalive
-        before_flags = bytes(flags)
+        core.event_flags = c.POINTER(c.c_int32)()
         before_core = c.string_at(c.addressof(core), c.sizeof(core))
-        before_opaque = bytes(opaque)
-        before_visits = bytes(visits)
-        before_records = bytes(records)
+        before_flags = bytes(flags)
+        self.assertEqual(self.lib.world_init_cold_zero_event_flags(c.byref(core)),
+                         ERR_ARGUMENT)
+        self.assertEqual(c.string_at(c.addressof(core), c.sizeof(core)), before_core)
+        self.assertEqual(bytes(flags), before_flags)
+
+    def test_new_game_rejects_each_null_required_pointer_atomically(self):
+        null_i16 = c.POINTER(c.c_int16)()
+        null_i32 = c.POINTER(c.c_int32)()
+        null_u16 = c.POINTER(c.c_uint16)()
+        null_u32 = c.POINTER(c.c_uint32)()
+        null_u8 = c.POINTER(c.c_uint8)()
+        cases = (
+            ("action_core", lambda state, keepalive: setattr(
+                state, "action_core", c.POINTER(ActionCoreWorld)()
+            )),
+            ("event_flags", lambda state, keepalive: setattr(
+                keepalive[1], "event_flags", null_i32
+            )),
+            ("opaque_state_dwords", lambda state, keepalive: setattr(
+                state.opaque_state_dwords_5839b1, "values", null_i32
+            )),
+            ("scene_visits", lambda state, keepalive: setattr(
+                state.scene_visit_counts_587b2d, "values", null_u16
+            )),
+            ("selected_item", lambda state, keepalive: setattr(
+                state.inventory, "selected_item_candidate", null_i16
+            )),
+            ("opaque_selector", lambda state, keepalive: setattr(
+                state.inventory, "opaque_selector_583f1d", null_i16
+            )),
+            ("selector_words", lambda state, keepalive: setattr(
+                state.inventory.selector_words_583a2b, "values", null_u16
+            )),
+            ("inventory_presence", lambda state, keepalive: setattr(
+                state.inventory.presence_583bd5, "values", null_i32
+            )),
+            ("inventory_ids_a", lambda state, keepalive: setattr(
+                state.inventory.item_ids_583a31, "values", null_u16
+            )),
+            ("inventory_ids_b", lambda state, keepalive: setattr(
+                state.inventory.item_ids_583abd, "values", null_u16
+            )),
+            ("inventory_ids_c", lambda state, keepalive: setattr(
+                state.inventory.item_ids_583b49, "values", null_u16
+            )),
+            ("inventory_aux_a", lambda state, keepalive: setattr(
+                state.inventory.auxiliary_583ced, "values", null_u32
+            )),
+            ("inventory_aux_b", lambda state, keepalive: setattr(
+                state.inventory.auxiliary_583e05, "values", null_u32
+            )),
+            ("time_records", lambda state, keepalive: setattr(
+                state, "time_records_585d65", null_u8
+            )),
+        )
         settings = self.boot_settings()
         overrides = self.default_overrides()
-        self.assertEqual(self.lib.world_init_apply_new_game(
-            c.byref(state), c.byref(settings), c.byref(overrides), 55
-        ), ERR_BOUNDS)
-        self.assertEqual(bytes(flags), before_flags)
-        self.assertEqual(c.string_at(c.addressof(core), c.sizeof(core)), before_core)
-        self.assertEqual(bytes(opaque), before_opaque)
-        self.assertEqual(bytes(visits), before_visits)
-        self.assertEqual(bytes(records), before_records)
+        for name, invalidate in cases:
+            with self.subTest(span=name):
+                state, keepalive = self.make_state()
+                invalidate(state, keepalive)
+                self.assert_new_game_rejection_unchanged(
+                    state, keepalive, settings, overrides, ERR_ARGUMENT
+                )
+
+    def test_new_game_rejects_each_one_element_short_span_atomically(self):
+        cases = (
+            ("event_flags", lambda state, keepalive: setattr(
+                keepalive[1], "event_flag_count", 2250
+            )),
+            ("opaque_state_dwords", lambda state, keepalive: setattr(
+                state.opaque_state_dwords_5839b1, "count", 29
+            )),
+            ("scene_visits", lambda state, keepalive: setattr(
+                state.scene_visit_counts_587b2d, "count", 10000
+            )),
+            ("selector_words", lambda state, keepalive: setattr(
+                state.inventory.selector_words_583a2b, "count", 2
+            )),
+            ("inventory_presence", lambda state, keepalive: setattr(
+                state.inventory.presence_583bd5, "count", 69
+            )),
+            ("inventory_ids_a", lambda state, keepalive: setattr(
+                state.inventory.item_ids_583a31, "count", 69
+            )),
+            ("inventory_ids_b", lambda state, keepalive: setattr(
+                state.inventory.item_ids_583abd, "count", 69
+            )),
+            ("inventory_ids_c", lambda state, keepalive: setattr(
+                state.inventory.item_ids_583b49, "count", 69
+            )),
+            ("inventory_aux_a", lambda state, keepalive: setattr(
+                state.inventory.auxiliary_583ced, "count", 69
+            )),
+            ("inventory_aux_b", lambda state, keepalive: setattr(
+                state.inventory.auxiliary_583e05, "count", 69
+            )),
+            ("time_records", lambda state, keepalive: setattr(
+                state, "time_records_size", 2619
+            )),
+        )
+        settings = self.boot_settings()
+        overrides = self.default_overrides()
+        for name, invalidate in cases:
+            with self.subTest(span=name):
+                state, keepalive = self.make_state()
+                invalidate(state, keepalive)
+                self.assert_new_game_rejection_unchanged(
+                    state, keepalive, settings, overrides, ERR_BOUNDS
+                )
+
+    def test_scene_clear_rejects_null_and_one_short_event_span_atomically(self):
+        cases = (
+            ("null", lambda state, keepalive: setattr(
+                keepalive[1], "event_flags", c.POINTER(c.c_int32)()
+            ), ERR_ARGUMENT),
+            ("one_short", lambda state, keepalive: setattr(
+                keepalive[1], "event_flag_count", 1030
+            ), ERR_BOUNDS),
+        )
+        for name, invalidate, expected in cases:
+            with self.subTest(span=name):
+                state, keepalive = self.make_state()
+                invalidate(state, keepalive)
+                before = self.complete_state_snapshot(state, keepalive)
+                status = self.lib.world_init_apply_scene_clear(
+                    c.byref(state), 0, 0x76543210
+                )
+                self.assertEqual(status, expected)
+                self.assertEqual(self.complete_state_snapshot(state, keepalive), before)
+
+    def test_scene_visit_record_rejects_null_and_one_short_span_atomically(self):
+        cases = (
+            ("null", lambda state, keepalive: setattr(
+                state.scene_visit_counts_587b2d, "values", c.POINTER(c.c_uint16)()
+            ), ERR_ARGUMENT),
+            ("one_short", lambda state, keepalive: setattr(
+                state.scene_visit_counts_587b2d, "count", 12
+            ), ERR_BOUNDS),
+        )
+        for name, invalidate, expected in cases:
+            with self.subTest(span=name):
+                state, keepalive = self.make_state()
+                invalidate(state, keepalive)
+                before = self.complete_state_snapshot(state, keepalive)
+                status = self.lib.world_init_record_successful_scene_load(
+                    c.byref(state), 12, 0
+                )
+                self.assertEqual(status, expected)
+                self.assertEqual(self.complete_state_snapshot(state, keepalive), before)
 
 
 if __name__ == "__main__":
