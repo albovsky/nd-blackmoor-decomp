@@ -24,7 +24,7 @@ Read `../PROJECT-SPEC.md` and root `AGENTS.md`. Use GPT-6 Luna Max. Keep origina
 
 ## Task: I01
 
-**Status:** BLOCKED by S01, S02, S04, S05. This is a gated integration packet, not authorization to guess the missing interfaces.
+**Status:** I01-1 persistent-session implementation assigned to Boot. Parent completion remains gated by accepted S01/S02/S04/S05 behavior. [The I01-1 child contract](I01-1-persistent-scene-session.md) authorizes source-backed lifecycle and shared integration work; unavailable providers stay explicit.
 
 **Files:** Integrator owns `src/blackmoor_app.mm`, `src/scene_executor.[ch]`, `src/scene_resource.[ch]`, `src/scene_conditions.[ch]`, `src/macos_platform.[h,mm]`, `src/macos_audio.[h,mm]`, central build scripts and combined integration tests. For packaging/matching use the existing verifier and matching-source files.
 

@@ -25,6 +25,10 @@ The following packets can start independently. For four workers, start A-64, A-6
 
 All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. The largest opaque families are 0x37 (4,308 records), 0x97 (1,958), 0x62 (1,802), 0xa1 (565), 0x3f (493) and 0x38 (425). S5900's immediate blockers are 0x64,0x62,0x28,0x51.
 
+## Current integration assignment
+
+Boot (/root/boot_world_contract_luna6) is the sole shared writer for [I01-1 persistent scene session](tasks/I01-1-persistent-scene-session.md), following A-28 adapter review repairs. Claude owns the independent [S03-1 AVF decoder](tasks/S03-1-avf-decoder.md). Sound-control and condition-provider workers use separate module/evidence ownership. Root coordinates independent review and sequential collection. Parent integration gates remain open until their complete requirements pass.
+
 ## Ownership and coordination
 
 Workers create only their packet's new module/test/build/evidence files. The integrator alone edits shared scene parsing, scheduling, conditions, existing audio/platform/app files and central build scripts. Workers supply registration proposals and public headers; the integrator incorporates them sequentially. A local Git baseline supports separate branches/worktrees. Every worktree must also have access to the private `work/` evidence/tools (link the canonical project's `work/` directory when needed); generated builds stay local to each checkout. Workers write unique slice evidence/receipt filenames in the shared evidence directory. Use separate branches/worktrees if simultaneous work could touch the same file. Claim a packet with a JSON receipt at `work/analysis/slices/<ID>-claim-<owner>-<date>.json` containing `slice`, `owner`, `status`, `branch`, `baseline`, `worktree` and `created_utc_date`; do not have every worker rewrite the central registry.

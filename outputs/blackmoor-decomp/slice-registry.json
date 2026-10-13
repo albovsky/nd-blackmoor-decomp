@@ -683,7 +683,10 @@
         "S02",
         "S04",
         "S05"
-      ]
+      ],
+      "current_child_packet": "tasks/I01-1-persistent-scene-session.md",
+      "assigned_worker": "/root/boot_world_contract_luna6",
+      "assignment_state": "I01-1 assigned; parent completion gates remain open"
     },
     {
       "id": "I02",
