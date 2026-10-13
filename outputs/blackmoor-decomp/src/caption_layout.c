@@ -371,6 +371,18 @@ static void sync_target(const Engine *e)
     }
 }
 
+/* Backends may write through their live context. Pull allowed target-pixel
+ * writes back into the staging image so later writer work cannot overwrite
+ * them with a stale copy. */
+static void capture_target(const Engine *e)
+{
+    if (!e->simulate && e->target != NULL && e->canvas.pixels != NULL &&
+        e->canvas.pixels != e->target->pixels) {
+        memcpy(e->canvas.pixels, e->target->pixels,
+               (size_t)e->target->pitch * (size_t)e->target->height);
+    }
+}
+
 static uint16_t get16(const uint8_t *p)
 {
     return (uint16_t)(p[0] | (p[1] << 8));
@@ -425,11 +437,13 @@ static int acquire_font(Engine *e, int16_t font)
 
         sync_target(e);
         /* 0x4c2790 reports a failed load (0x42639d) and quits (0x4c97b4). */
-        if (e->backend->load_font_sheet(e->backend->context, font,
-                                        caption_font_sheet_name(e->fonts, font),
-                                        &sheet) != CAPTION_BACKEND_OK ||
-            sheet.pixels == NULL) {
-            return CAPTION_ERR_BACKEND;
+        {
+            int load_status = e->backend->load_font_sheet(
+                e->backend->context, font, caption_font_sheet_name(e->fonts, font), &sheet);
+            capture_target(e);
+            if (load_status != CAPTION_BACKEND_OK || sheet.pixels == NULL) {
+                return CAPTION_ERR_BACKEND;
+            }
         }
         g->sheets[font] = sheet;
     }
@@ -454,6 +468,7 @@ static void release_font(Engine *e, int16_t font)
                 sync_target(e);
                 e->backend->release_font_sheet(e->backend->context, font,
                                                &g->sheets[font]);
+                capture_target(e);
             }
             memset(&g->sheets[font], 0, sizeof(g->sheets[font]));
         }
@@ -610,6 +625,7 @@ static int flush(Engine *e)
                 if (!e->simulate && e->backend->debug_log != NULL) {
                     sync_target(e);
                     e->backend->debug_log(e->backend->context, CAPTION_DEBUG_TOO_MUCH_TEXT);
+                    capture_target(e);
                 }
                 e->box->too_long_reported = 1;
             }
@@ -893,7 +909,9 @@ static int run(Engine *e, char *text)
     if (e->globals->frame_open != 0) {
         if (!e->simulate) {
             sync_target(e);
-            if (e->backend->close_frame_text(e->backend->context) != CAPTION_BACKEND_OK) {
+            int close_status = e->backend->close_frame_text(e->backend->context);
+            capture_target(e);
+            if (close_status != CAPTION_BACKEND_OK) {
                 return CAPTION_ERR_BACKEND;
             }
         }
@@ -1001,8 +1019,9 @@ static int run(Engine *e, char *text)
             e->globals->caption_visible_flag = 1;
             if (!e->simulate) {
                 sync_target(e);
-                if (e->backend->restore_caption_box(e->backend->context) !=
-                    CAPTION_BACKEND_OK) {
+                int restore_status = e->backend->restore_caption_box(e->backend->context);
+                capture_target(e);
+                if (restore_status != CAPTION_BACKEND_OK) {
                     return CAPTION_ERR_BACKEND;
                 }
             }

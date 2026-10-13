@@ -312,6 +312,111 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(self.lib.caption_ctb_init(c.byref(life), c.byref(backend.struct)),
                          ERR_UNSUPPORTED)
 
+    def activate_popup(self, life, backend):
+        self.assertEqual(self.lib.caption_ctb_open(c.byref(life), c.byref(backend.struct), 2,
+                                                   layout.buf(b"\0"), 1), OK)
+        self.assertEqual(self.lib.caption_ctb_poll(c.byref(life), c.byref(backend.struct)), OK)
+        self.assertEqual(self.field(life, 0x4AF), 2)
+
+    def test_invalid_live_slider_visual_rejected_before_blits(self):
+        for visual in (-1, 5, 0x7FFFFFFF):
+            with self.subTest(visual=visual):
+                life, backend = self.boot()
+                self.activate_popup(life, backend)
+                struct.pack_into("<i", life.box, SLIDER + 0x10, visual)
+                before = bytes(life.box)
+                backend.events.clear()
+                self.assertEqual(self.lib.caption_ctb_draw(c.byref(life),
+                                                           c.byref(backend.struct)), ERR_FORMAT)
+                self.assertEqual(bytes(life.box), before)
+                self.assertEqual(backend.events, [])
+
+    def test_invalid_slider_visual_from_initial_config(self):
+        for visual in (-1, 5, 0x7FFFFFFF):
+            with self.subTest(visual=visual):
+                sctb = bytearray(self.sctb)
+                # Slider config's SLD_INIT_VISUAL is the last dword at SCTB + 0x2ec.
+                struct.pack_into("<i", sctb, 0x2EC, visual)
+                # If validation runs too late, popup_init reaches this resource callback.
+                sctb[0x9B:0xA4] = b"TEST.WAV\0"
+                life = make_life(self.data, self.geometry)
+                backend = RecordingBackend(Script())
+                self.assertEqual(self.lib.caption_ctb_load_chunk(c.byref(life),
+                                                                 c.byref(backend.struct),
+                                                                 layout.buf(bytes(sctb)),
+                                                                 len(sctb)), OK)
+                status = self.lib.caption_ctb_init(c.byref(life), c.byref(backend.struct))
+                self.assertEqual(status, ERR_FORMAT)
+                self.assertEqual(backend.events, [])
+
+    def test_scene_reset_extreme_tbox_uses_x86_int32_wrap(self):
+        life, backend = self.boot()
+        backend.events.clear()
+        life.taskbar.saved_surface = 0
+        struct.pack_into("<i", life.geometry.contents.tbox, 0x1C, 0x7FFFFFFF)
+        struct.pack_into("<i", life.geometry.contents.tbox, 0x14, -0x80000000)
+        struct.pack_into("<i", life.geometry.contents.tbox, 0x0C, 0x7FFFFFFF)
+        struct.pack_into("<i", life.geometry.contents.tbox, 0x04, -0x80000000)
+        struct.pack_into("<i", life.geometry.contents.tbox, 0x10, -0x80000000)
+        struct.pack_into("<i", life.geometry.contents.tbox, 0x18, 0x7FFFFFFF)
+        self.assertEqual(self.lib.caption_scene_reset(c.byref(life), c.byref(backend.struct)), OK)
+        self.assertEqual(life.shared[0].framed_scroll_lines, 0)
+        self.assertEqual((life.g.scroll_src.top, life.g.scroll_src.bottom,
+                          life.g.scroll_src.left, life.g.scroll_src.right),
+                         (0, -1, -0x80000000, 0x7FFFFFFF))
+        self.assertEqual(backend.events, [])
+
+    def test_relative_slider_initialization_wraps_extreme_origins(self):
+        sctb = bytearray(self.sctb)
+        # Relative slider track uses the view origin during slider_init.
+        struct.pack_into("<i", sctb, 0x2D0, 1)
+        life = make_life(self.data, self.geometry)
+        life.view_origin[0] = 0x7FFFFFFF
+        life.view_origin[1] = -0x80000000
+        backend = RecordingBackend(Script())
+        self.assertEqual(self.lib.caption_ctb_load_chunk(c.byref(life), c.byref(backend.struct),
+                                                         layout.buf(bytes(sctb)), len(sctb)), OK)
+        self.assertEqual(self.lib.caption_ctb_init(c.byref(life), c.byref(backend.struct)), OK)
+        raw_left = self.field(life, SLIDER + 0xAE)
+        raw_top = self.field(life, SLIDER + 0xB2)
+        track_left = self.field(life, SLIDER + 0x12E)
+        track_top = self.field(life, SLIDER + 0x132)
+        self.assertEqual(track_left, ((raw_left + 0x7FFFFFFF + 0x80000000) & 0xFFFFFFFF) -
+                         0x80000000)
+        self.assertEqual(track_top, ((raw_top - 0x80000000 + 0x80000000) & 0xFFFFFFFF) -
+                         0x80000000)
+
+    def test_extreme_slider_drag_and_popup_hover_wrap(self):
+        int_min, int_max = -0x80000000, 0x7FFFFFFF
+        life, backend = self.boot(Script(cursor=(int_max, int_min), left_down=True))
+        self.activate_popup(life, backend)
+        struct.pack_into("<i", life.box, SLIDER + 0xCE, 0)  # horizontal
+        struct.pack_into("<i", life.box, SLIDER + 0x162, 1)  # nonzero range
+        struct.pack_into("<i", life.box, SLIDER + 0x16E, 1)  # dragging
+        struct.pack_into("<i", life.box, SLIDER + 0x19A, 1)  # hover
+        struct.pack_into("<i", life.box, SLIDER + 0x182, int_min)
+        struct.pack_into("<i", life.box, SLIDER + 0x186, int_max)
+        struct.pack_into("<4i", life.box, SLIDER + 0x14E, int_max, int_min,
+                         int_max, int_min)
+        self.assertEqual(self.lib.caption_ctb_poll(c.byref(life), c.byref(backend.struct)), OK)
+        self.assertEqual((self.field(life, SLIDER + 0x192), self.field(life, SLIDER + 0x196)),
+                         (-1, 1))
+
+        # Force popup_hover's cursor additions across both signed endpoints.
+        life.g.modal_input = 0
+        life.g.cursor_rect = Rect(int_max, int_min, int_max, int_min)
+        struct.pack_into("<4i", life.box, 0x1C, int_max, int_min, int_max, int_min)
+        def extreme_geometry(_ctx, _type, _variant, out):
+            out[0] = CursorGeometry(int_max, int_min, int_max, int_min, 32767, -32768)
+            return 0
+        backend.struct.cursor_geometry = GEOM(extreme_geometry)
+        self.assertEqual(self.lib.caption_ctb_hover(c.byref(life), c.byref(backend.struct)), OK)
+        self.assertEqual((self.field(life, 0x04), self.field(life, 0x08),
+                          self.field(life, 0x0C), self.field(life, 0x10)),
+                         (-2, 0, -2, 0))
+        self.assertEqual((self.field(life, 0x14), self.field(life, 0x18)),
+                         (32764, -32769))
+
     def test_caption_two_frame_clear_and_layers(self):
         life, backend = self.boot()
         sh = life.shared[0]
@@ -342,6 +447,147 @@ class LifecycleTests(unittest.TestCase):
     def test_status_strings(self):
         self.assertEqual(self.lib.caption_lifecycle_status_string(ERR_FATAL),
                          b"original fatal path")
+
+
+LIFECYCLE_SANITIZER_DRIVER = r"""
+#include "caption_lifecycle.h"
+#include <limits.h>
+#include <stdio.h>
+#include <string.h>
+
+static CaptionLifecycle life;
+static CaptionGeometry geometry;
+static CaptionGlobals shared;
+static int blits;
+
+static void put32(uint8_t *p, size_t o, int32_t value)
+{
+    uint32_t u = (uint32_t)value;
+    p[o] = (uint8_t)u; p[o + 1] = (uint8_t)(u >> 8);
+    p[o + 2] = (uint8_t)(u >> 16); p[o + 3] = (uint8_t)(u >> 24);
+}
+static int32_t get32(const uint8_t *p, size_t o)
+{
+    uint32_t u = (uint32_t)p[o] | ((uint32_t)p[o + 1] << 8) |
+                 ((uint32_t)p[o + 2] << 16) | ((uint32_t)p[o + 3] << 24);
+    int64_t value = u <= INT32_MAX ? (int64_t)u : (int64_t)u - INT64_C(4294967296);
+    return (int32_t)value;
+}
+static uint32_t load_image(void *c, const char *n, const char *p)
+{ (void)c; (void)n; (void)p; return 1; }
+static CaptionLifecycleBackendStatus sound(void *c, const uint8_t *d)
+{ (void)c; (void)d; return CAPTION_LIFECYCLE_BACKEND_OK; }
+static void unsound(void *c, const uint8_t *d) { (void)c; (void)d; }
+static CaptionLifecycleBackendStatus play(void *c, int16_t ch)
+{ (void)c; (void)ch; return CAPTION_LIFECYCLE_BACKEND_OK; }
+static int key(void *c, int32_t vk) { (void)c; return vk == 1; }
+static void pos(void *c, int32_t *x, int32_t *y)
+{ (void)c; *x = INT32_MAX; *y = INT32_MIN; }
+static CaptionLifecycleBackendStatus cursor_geometry(void *c, int32_t type, int32_t variant,
+                                                      CaptionCursorGeometry *out)
+{
+    (void)c; (void)type; (void)variant;
+    out->hot_dx = INT32_MAX; out->hot_dy = INT32_MIN;
+    out->rect_dx = INT32_MAX; out->rect_dy = INT32_MIN;
+    out->width = INT16_MAX; out->height = INT16_MIN;
+    return CAPTION_LIFECYCLE_BACKEND_OK;
+}
+static CaptionLifecycleBackendStatus blit(void *c, const CaptionBlit *b)
+{ (void)c; (void)b; ++blits; return CAPTION_LIFECYCLE_BACKEND_OK; }
+static CaptionLifecycleBackendStatus write_text(void *c, uint8_t *t, size_t n)
+{ (void)c; (void)t; (void)n; return CAPTION_LIFECYCLE_BACKEND_OK; }
+static CaptionLifecycleBackendStatus simple(void *c) { (void)c; return 0; }
+static void fatal(void *c, const char *m) { (void)c; (void)m; }
+
+int main(void)
+{
+    CaptionLifecycleBackend backend = {
+        .load_image = load_image, .load_sound = sound, .unload_sound = unsound,
+        .play_sound = play, .key_down = key, .cursor_pos = pos,
+        .cursor_geometry = cursor_geometry, .blit = blit, .write_framed_text = write_text,
+        .convo_restore = simple, .fatal = fatal,
+    };
+    life.shared = &shared; life.geometry = &geometry;
+    life.taskbar.saved_surface = 0;
+
+    put32(geometry.tbox, 0x1c, INT32_MAX); put32(geometry.tbox, 0x14, INT32_MIN);
+    put32(geometry.tbox, 0x0c, INT32_MAX); put32(geometry.tbox, 0x04, INT32_MIN);
+    put32(geometry.tbox, 0x10, INT32_MIN); put32(geometry.tbox, 0x18, INT32_MAX);
+    if (caption_scene_reset(&life, &backend) != CAPTION_LIFECYCLE_OK ||
+        shared.framed_scroll_lines != 0 || life.g.scroll_src.bottom != -1) return 1;
+
+    put32(life.box, CTB_MODE, 2); put32(life.box, CTB_STATE, 2);
+    put32(life.box, CTB_POPUP_IMAGE, 1); put32(life.box, CTB_HAS_SLIDER, 1);
+    put32(life.box, CTB_SLIDER + SLD_VISUAL, INT32_MAX);
+    if (caption_ctb_draw(&life, &backend) != CAPTION_LIFECYCLE_ERR_FORMAT || blits != 0) return 2;
+
+    put32(life.box, CTB_SLIDER + SLD_VISUAL, 2);
+    put32(life.box, CTB_SLIDER + SLD_LOADED, 1);
+    put32(life.box, CTB_SLIDER + SLD_ORIENTATION, 0);
+    put32(life.box, CTB_SLIDER + SLD_DIRECTION, 0);
+    put32(life.box, CTB_SLIDER + SLD_RANGE, 1);
+    put32(life.box, CTB_SLIDER + SLD_DRAGGING, 1);
+    put32(life.box, CTB_SLIDER + SLD_HOVER, 1);
+    put32(life.box, CTB_SLIDER + SLD_PRESS_X, INT32_MIN);
+    put32(life.box, CTB_SLIDER + SLD_PRESS_Y, INT32_MAX);
+    put32(life.box, CTB_SLIDER + SLD_DRAG_THUMB, INT32_MAX);
+    put32(life.box, CTB_SLIDER + SLD_DRAG_THUMB + 4, INT32_MIN);
+    put32(life.box, CTB_SLIDER + SLD_DRAG_THUMB + 8, INT32_MAX);
+    put32(life.box, CTB_SLIDER + SLD_DRAG_THUMB + 12, INT32_MIN);
+    put32(life.box, CTB_SLIDER + SLD_TRACK, INT32_MAX);
+    put32(life.box, CTB_SLIDER + SLD_TRACK + 4, INT32_MIN);
+    put32(life.box, CTB_SLIDER + SLD_TRACK + 8, INT32_MIN);
+    put32(life.box, CTB_SLIDER + SLD_TRACK + 12, INT32_MAX);
+    put32(life.box, CTB_SLIDER + SLD_THUMB_W, INT32_MAX);
+    put32(life.box, CTB_SLIDER + SLD_THUMB_H, INT32_MIN);
+    life.g.mouse_vk[0] = 1; life.g.mouse_vk[1] = 2;
+    if (caption_ctb_poll(&life, &backend) != CAPTION_LIFECYCLE_OK ||
+        get32(life.box, CTB_SLIDER + SLD_DELTA_X) != -1 ||
+        get32(life.box, CTB_SLIDER + SLD_DELTA_Y) != 1) return 3;
+
+    put32(life.box, CTB_HAS_SLIDER, 0);
+    life.g.modal_input = 0; life.g.cursor_override = 1;
+    life.g.cursor_rect.left = INT32_MAX; life.g.cursor_rect.top = INT32_MIN;
+    life.g.cursor_rect.right = INT32_MAX; life.g.cursor_rect.bottom = INT32_MIN;
+    put32(life.box, CTB_NORMAL_DST, INT32_MAX);
+    put32(life.box, CTB_NORMAL_DST + 4, INT32_MIN);
+    put32(life.box, CTB_NORMAL_DST + 8, INT32_MAX);
+    put32(life.box, CTB_NORMAL_DST + 12, INT32_MIN);
+    if (caption_ctb_hover(&life, &backend) != CAPTION_LIFECYCLE_OK ||
+        get32(life.box, CTB_HOT_X) != -2 || get32(life.box, CTB_HOT_Y) != 0 ||
+        get32(life.box, CTB_CURSOR_RECT + 8) != 32764 ||
+        get32(life.box, CTB_CURSOR_RECT + 12) != -32769) return 4;
+
+    puts("lifecycle sanitizer driver ok");
+    return 0;
+}
+"""
+
+
+class LifecycleSanitizerTests(unittest.TestCase):
+    def test_asan_ubsan_extreme_state_driver(self):
+        import os
+        import shutil
+        import subprocess
+        import tempfile
+        if shutil.which("xcrun") is None:
+            raise unittest.SkipTest("xcrun unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory)
+            driver = temp / "driver.c"
+            binary = temp / "driver"
+            driver.write_text(LIFECYCLE_SANITIZER_DRIVER)
+            build = subprocess.run(
+                ["xcrun", "clang", "-arch", "arm64", "-std=c11", "-g", "-O1",
+                 "-fsanitize=address,undefined", "-fno-sanitize-recover=all",
+                 "-I", str(PROJECT / "src"), str(driver),
+                 str(PROJECT / "src/caption_lifecycle.c"), "-o", str(binary)],
+                capture_output=True, text=True)
+            self.assertEqual(build.returncode, 0, build.stderr)
+            run = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60,
+                                 env={**os.environ, "ASAN_OPTIONS": "detect_leaks=0"})
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr[-3000:])
+            self.assertIn("lifecycle sanitizer driver ok", run.stdout)
 
 
 if __name__ == "__main__":

@@ -215,8 +215,12 @@ typedef struct caption_result {
  * open frame box and loads/releases font sheets. `target` may be NULL only
  * in measure mode.
  *
- * Backends may update `globals` during callbacks (e.g. a frame close); the
- * writer never restores a stale copy. `globals->sheets[]` point at
+ * `target`, `box` and `globals` remain valid until this call returns, so a
+ * backend context may borrow them during callbacks but must not retain them.
+ * The caller's target pixels, box and globals reflect each committed prefix;
+ * backend pixel writes are pulled back into the staging image. Backend
+ * mutations persist unless a later source-ordered writer assignment replaces
+ * that field. `globals->sheets[]` point at
  * backend-owned memory; the writer passes them back to release_font_sheet
  * when their count reaches zero. Invariant: a non-NULL sheet has
  * sheet_refcount > 0; callers must not pass a held sheet with a zero count.

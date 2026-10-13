@@ -621,6 +621,36 @@ class CaptionLayoutTests(unittest.TestCase):
                                   b"x<n>", -1, 1, globals_=g)
         self.assertEqual((status, g.caption_visible_flag, g.frame_open), (OK, 7, 0))
 
+    def test_callback_pixel_and_state_mutations_survive_success_and_failure(self):
+        for restore_fails in (False, True):
+            with self.subTest(restore_fails=restore_fails):
+                surface, pixels = self.caption_surface()
+                g = Globals()
+                box = TextBox()
+                backend = SheetBackend(self.data, self.fmt, fail_restore=restore_fails)
+                observed = []
+
+                def restore(_ctx):
+                    body = bytes(pixels)
+                    observed.append((body != b"\xa5" * len(body), g.caption_visible_flag,
+                                     g.caption_finish_flag, box.left_margin))
+                    pixels[-2:] = b"\xcd\xab"
+                    g.caption_finish_flag = 0x3344
+                    box.too_long_reported = 0x5566
+                    return 1 if restore_fails else 0
+
+                backend.struct.restore_caption_box = SIMPLE(restore)
+                status, _, _, g, _ = native_write(
+                    self.lib, self.fmt, self.fonts, self.geometry, backend, b"Visible<n>",
+                    -1, 0, surface=surface, globals_=g, box=box)
+                self.assertEqual(status, ERR_BACKEND if restore_fails else OK)
+                self.assertEqual(observed, [(True, 1, 0, 4)])
+                self.assertEqual(bytes(pixels[-2:]), b"\xcd\xab")
+                self.assertEqual((g.caption_finish_flag, g.caption_visible_flag,
+                                  box.too_long_reported), (0x3344, 1, 0x5566))
+                self.assertEqual((g.sheet_refcount[9], bool(g.sheets[9].pixels)), (0, False))
+                self.assertEqual([event[0] for event in backend.events], ["load", "release"])
+
     def test_missing_callbacks_rejected_before_any_call(self):
         for field, mode, measure, frame_open in (
                 ("release_font_sheet", -1, 1, 0), ("load_font_sheet", -1, 1, 0),

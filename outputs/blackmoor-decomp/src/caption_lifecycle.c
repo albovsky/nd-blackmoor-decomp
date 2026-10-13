@@ -28,6 +28,53 @@ static int16_t rd16(const uint8_t *p, size_t o)
     return (int16_t)(uint16_t)(p[o] | (p[o + 1] << 8));
 }
 
+/* Source arithmetic is performed in 32-bit x86 registers. Compute in a wider
+ * type and fold once to the signed 32-bit range without signed overflow. */
+static int32_t wrap_add32(int32_t a, int32_t b)
+{
+    int64_t value = (int64_t)a + (int64_t)b;
+
+    if (value > INT32_MAX) {
+        value -= INT64_C(4294967296);
+    } else if (value < INT32_MIN) {
+        value += INT64_C(4294967296);
+    }
+    return (int32_t)value;
+}
+
+static int32_t wrap_sub32(int32_t a, int32_t b)
+{
+    int64_t value = (int64_t)a - (int64_t)b;
+
+    if (value > INT32_MAX) {
+        value -= INT64_C(4294967296);
+    } else if (value < INT32_MIN) {
+        value += INT64_C(4294967296);
+    }
+    return (int32_t)value;
+}
+
+static int32_t wrap_mul32(int32_t a, int32_t b)
+{
+    int64_t value = ((int64_t)a * (int64_t)b) % INT64_C(4294967296);
+
+    if (value > INT32_MAX) {
+        value -= INT64_C(4294967296);
+    } else if (value < INT32_MIN) {
+        value += INT64_C(4294967296);
+    }
+    return (int32_t)value;
+}
+
+static int16_t wrap16(int32_t value)
+{
+    uint16_t bits = (uint16_t)(uint32_t)value;
+    int32_t signed_value = bits <= INT16_MAX ? (int32_t)bits
+                                               : (int32_t)bits - INT32_C(65536);
+
+    return (int16_t)signed_value;
+}
+
 static void wr32(uint8_t *p, size_t o, int32_t v)
 {
     uint32_t u = (uint32_t)v;
@@ -87,7 +134,7 @@ static CaptionRect rect_at(const uint8_t *p, size_t o)
     return r;
 }
 
-static int tbox32(const CaptionLifecycle *life, size_t o)
+static int32_t tbox32(const CaptionLifecycle *life, size_t o)
 {
     return rd32(life->geometry->tbox, o);
 }
@@ -149,6 +196,9 @@ static int load_image(const CaptionLifecycleBackend *backend, const uint8_t *nam
 /* ---- CUISlider (object at box + 0x4b7) --------------------------------- */
 
 #define S(o) (CTB_SLIDER + (o))
+#define SCTB_HAS_SLIDER (CTB_HAS_SLIDER - CTB_CONFIG)
+#define SCTB_SLIDER_INIT_VISUAL \
+    (CTB_SLIDER_CONFIG - CTB_CONFIG + SLD_INIT_VISUAL - SLD_CONFIG)
 
 /* 0x4ee9bb. */
 static void slider_reset(uint8_t *box)
@@ -176,44 +226,46 @@ static void slider_place(uint8_t *box)
 
     if (orientation == 0) {
         if (direction == 0) {
-            wr32(box, S(SLD_THUMB), rd32(box, S(SLD_TRACK)) + offset);
+            wr32(box, S(SLD_THUMB), wrap_add32(rd32(box, S(SLD_TRACK)), offset));
             wr32(box, S(SLD_THUMB + 8),
-                 rd32(box, S(SLD_THUMB)) - 1 + rd32(box, S(SLD_THUMB_W)));
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB)), 1), rd32(box, S(SLD_THUMB_W))));
         } else if (direction == 1) {
-            wr32(box, S(SLD_THUMB + 8), rd32(box, S(SLD_TRACK + 8)) - offset);
+            wr32(box, S(SLD_THUMB + 8), wrap_sub32(rd32(box, S(SLD_TRACK + 8)), offset));
             wr32(box, S(SLD_THUMB),
-                 rd32(box, S(SLD_THUMB + 8)) - rd32(box, S(SLD_THUMB_W)) + 1);
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + 8)), rd32(box, S(SLD_THUMB_W))), 1));
         } else {
             return;
         }
         if (rd32(box, S(SLD_FILLS_H)) == 0) {
             wr32(box, S(SLD_THUMB + 4),
-                 rd32(box, S(SLD_TRACK + 4)) + rd32(box, S(SLD_TRACK_H)) / 2 -
-                     rd32(box, S(SLD_THUMB_H)) / 2);
+                 wrap_sub32(wrap_add32(rd32(box, S(SLD_TRACK + 4)),
+                                             rd32(box, S(SLD_TRACK_H)) / 2),
+                                  rd32(box, S(SLD_THUMB_H)) / 2));
             wr32(box, S(SLD_THUMB + 12),
-                 rd32(box, S(SLD_THUMB + 4)) - 1 + rd32(box, S(SLD_THUMB_H)));
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + 4)), 1), rd32(box, S(SLD_THUMB_H))));
         } else {
             wr32(box, S(SLD_THUMB + 4), rd32(box, S(SLD_TRACK + 4)));
             wr32(box, S(SLD_THUMB + 12), rd32(box, S(SLD_TRACK + 12)));
         }
     } else if (orientation == 1) {
         if (direction == 2) {
-            wr32(box, S(SLD_THUMB + 4), rd32(box, S(SLD_TRACK + 4)) + offset);
+            wr32(box, S(SLD_THUMB + 4), wrap_add32(rd32(box, S(SLD_TRACK + 4)), offset));
             wr32(box, S(SLD_THUMB + 12),
-                 rd32(box, S(SLD_THUMB + 4)) - 1 + rd32(box, S(SLD_THUMB_H)));
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + 4)), 1), rd32(box, S(SLD_THUMB_H))));
         } else if (direction == 3) {
-            wr32(box, S(SLD_THUMB + 12), rd32(box, S(SLD_TRACK + 12)) - offset);
+            wr32(box, S(SLD_THUMB + 12), wrap_sub32(rd32(box, S(SLD_TRACK + 12)), offset));
             wr32(box, S(SLD_THUMB + 4),
-                 rd32(box, S(SLD_THUMB + 12)) - rd32(box, S(SLD_THUMB_H)) + 1);
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + 12)), rd32(box, S(SLD_THUMB_H))), 1));
         } else {
             return;
         }
         if (rd32(box, S(SLD_FILLS_W)) == 0) {
             wr32(box, S(SLD_THUMB),
-                 rd32(box, S(SLD_TRACK)) + rd32(box, S(SLD_TRACK_W)) / 2 -
-                     rd32(box, S(SLD_THUMB_W)) / 2);
+                 wrap_sub32(wrap_add32(rd32(box, S(SLD_TRACK)),
+                                             rd32(box, S(SLD_TRACK_W)) / 2),
+                                  rd32(box, S(SLD_THUMB_W)) / 2));
             wr32(box, S(SLD_THUMB + 8),
-                 rd32(box, S(SLD_THUMB)) - 1 + rd32(box, S(SLD_THUMB_W)));
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB)), 1), rd32(box, S(SLD_THUMB_W))));
         } else {
             wr32(box, S(SLD_THUMB), rd32(box, S(SLD_TRACK)));
             wr32(box, S(SLD_THUMB + 8), rd32(box, S(SLD_TRACK + 8)));
@@ -223,11 +275,13 @@ static void slider_place(uint8_t *box)
 
 static void slider_reverse(uint8_t *box)
 {
-    wr32(box, S(SLD_OFFSET), rd32(box, S(SLD_RANGE)) - rd32(box, S(SLD_OFFSET)));
+    wr32(box, S(SLD_OFFSET), wrap_sub32(rd32(box, S(SLD_RANGE)), rd32(box, S(SLD_OFFSET))));
     wrf(box, S(SLD_FRACTION), (float)(1.0 - (double)rdf(box, S(SLD_FRACTION))));
 }
 
 /* 0x4ef89b. */
+static int slider_visual_valid(int32_t visual);
+
 static int slider_update(CaptionLifecycle *life, const CaptionLifecycleBackend *backend)
 {
     uint8_t *box = life->box;
@@ -317,8 +371,8 @@ static int slider_update(CaptionLifecycle *life, const CaptionLifecycleBackend *
         } else if (dragging == 1 && hover != 0 && left) {
             int32_t orientation = rd32(box, S(SLD_ORIENTATION));
 
-            wr32(box, S(SLD_DELTA_X), rd32(box, S(SLD_CURSOR_X)) - rd32(box, S(SLD_PRESS_X)));
-            wr32(box, S(SLD_DELTA_Y), rd32(box, S(SLD_CURSOR_Y)) - rd32(box, S(SLD_PRESS_Y)));
+            wr32(box, S(SLD_DELTA_X), wrap_sub32(rd32(box, S(SLD_CURSOR_X)), rd32(box, S(SLD_PRESS_X))));
+            wr32(box, S(SLD_DELTA_Y), wrap_sub32(rd32(box, S(SLD_CURSOR_Y)), rd32(box, S(SLD_PRESS_Y))));
             if (orientation == 0 || orientation == 1) {
                 size_t lo = orientation == 0 ? 0u : 4u;      /* left / top */
                 size_t hi = orientation == 0 ? 8u : 12u;     /* right / bottom */
@@ -327,22 +381,24 @@ static int slider_update(CaptionLifecycle *life, const CaptionLifecycleBackend *
                 int32_t reverse = orientation == 0 ? 1 : 3;
                 float fraction;
 
-                wr32(box, S(SLD_THUMB + lo), rd32(box, S(SLD_DRAG_THUMB + lo)) +
-                                                 rd32(box, S(delta)));
-                wr32(box, S(SLD_THUMB + hi), rd32(box, S(SLD_DRAG_THUMB + hi)) +
-                                                 rd32(box, S(delta)));
+                wr32(box, S(SLD_THUMB + lo), wrap_add32(rd32(box, S(SLD_DRAG_THUMB + lo)),
+                                                  rd32(box, S(delta))));
+                wr32(box, S(SLD_THUMB + hi), wrap_add32(rd32(box, S(SLD_DRAG_THUMB + hi)),
+                                                  rd32(box, S(delta))));
                 if (rd32(box, S(SLD_THUMB + lo)) < rd32(box, S(SLD_TRACK + lo))) {
                     wr32(box, S(SLD_THUMB + lo), rd32(box, S(SLD_TRACK + lo)));
                     wr32(box, S(SLD_THUMB + hi),
-                         rd32(box, S(SLD_THUMB + lo)) - 1 + rd32(box, S(size)));
+                         wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + lo)), 1),
+                                    rd32(box, S(size))));
                 }
                 if (rd32(box, S(SLD_TRACK + hi)) < rd32(box, S(SLD_THUMB + hi))) {
                     wr32(box, S(SLD_THUMB + hi), rd32(box, S(SLD_TRACK + hi)));
                     wr32(box, S(SLD_THUMB + lo),
-                         rd32(box, S(SLD_THUMB + hi)) - rd32(box, S(size)) + 1);
+                         wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + hi)),
+                                                       rd32(box, S(size))), 1));
                 }
                 wr32(box, S(SLD_OFFSET),
-                     rd32(box, S(SLD_THUMB + lo)) - rd32(box, S(SLD_TRACK + lo)));
+                     wrap_sub32(rd32(box, S(SLD_THUMB + lo)), rd32(box, S(SLD_TRACK + lo))));
                 fraction = x87_divide((float)rd32(box, S(SLD_OFFSET)),
                                       (float)rd32(box, S(SLD_RANGE)));
                 wrf(box, S(SLD_FRACTION), fraction);
@@ -383,69 +439,84 @@ static int slider_init(CaptionLifecycle *life, const CaptionLifecycleBackend *ba
     if (rd32(box, S(SLD_RELATIVE)) == 0) {
         memcpy(box + S(SLD_TRACK), box + S(SLD_TRACK_RAW), 16u);
     } else {
-        wr32(box, S(SLD_TRACK), rd32(box, S(SLD_TRACK_RAW)) + life->view_origin[0]);
-        wr32(box, S(SLD_TRACK + 8), rd32(box, S(SLD_TRACK_RAW + 8)) + life->view_origin[0]);
-        wr32(box, S(SLD_TRACK + 4), rd32(box, S(SLD_TRACK_RAW + 4)) + life->view_origin[1]);
-        wr32(box, S(SLD_TRACK + 12), rd32(box, S(SLD_TRACK_RAW + 12)) + life->view_origin[1]);
+        wr32(box, S(SLD_TRACK), wrap_add32(rd32(box, S(SLD_TRACK_RAW)), life->view_origin[0]));
+        wr32(box, S(SLD_TRACK + 8), wrap_add32(rd32(box, S(SLD_TRACK_RAW + 8)), life->view_origin[0]));
+        wr32(box, S(SLD_TRACK + 4), wrap_add32(rd32(box, S(SLD_TRACK_RAW + 4)), life->view_origin[1]));
+        wr32(box, S(SLD_TRACK + 12), wrap_add32(rd32(box, S(SLD_TRACK_RAW + 12)), life->view_origin[1]));
     }
-    wr32(box, S(SLD_TRACK_W), rd32(box, S(SLD_TRACK + 8)) - rd32(box, S(SLD_TRACK)) + 1);
-    wr32(box, S(SLD_TRACK_H), rd32(box, S(SLD_TRACK + 12)) - rd32(box, S(SLD_TRACK + 4)) + 1);
-    wr32(box, S(SLD_THUMB_W), rd32(box, S(SLD_SRC_RECTS + 8)) - rd32(box, S(SLD_SRC_RECTS)) + 1);
+    wr32(box, S(SLD_TRACK_W), wrap_add32(wrap_sub32(rd32(box, S(SLD_TRACK + 8)),
+                                  rd32(box, S(SLD_TRACK))), 1));
+    wr32(box, S(SLD_TRACK_H), wrap_add32(wrap_sub32(rd32(box, S(SLD_TRACK + 12)),
+                                  rd32(box, S(SLD_TRACK + 4))), 1));
+    wr32(box, S(SLD_THUMB_W), wrap_add32(wrap_sub32(rd32(box, S(SLD_SRC_RECTS + 8)),
+                                  rd32(box, S(SLD_SRC_RECTS))), 1));
     wr32(box, S(SLD_THUMB_H),
-         rd32(box, S(SLD_SRC_RECTS + 12)) - rd32(box, S(SLD_SRC_RECTS + 4)) + 1);
+         wrap_add32(wrap_sub32(rd32(box, S(SLD_SRC_RECTS + 12)),
+                                  rd32(box, S(SLD_SRC_RECTS + 4))), 1));
     wr32(box, S(SLD_FILLS_W), rd32(box, S(SLD_TRACK_W)) == rd32(box, S(SLD_THUMB_W)));
     wr32(box, S(SLD_FILLS_H), rd32(box, S(SLD_TRACK_H)) == rd32(box, S(SLD_THUMB_H)));
-    if (rd32(box, S(SLD_BG_SRC + 8)) - rd32(box, S(SLD_BG_SRC)) + 1 != rd32(box, S(SLD_TRACK_W)) ||
-        rd32(box, S(SLD_BG_SRC + 12)) - rd32(box, S(SLD_BG_SRC + 4)) + 1 !=
+    if (wrap_add32(wrap_sub32(rd32(box, S(SLD_BG_SRC + 8)),
+                                  rd32(box, S(SLD_BG_SRC))), 1) != rd32(box, S(SLD_TRACK_W)) ||
+        wrap_add32(wrap_sub32(rd32(box, S(SLD_BG_SRC + 12)),
+                                       rd32(box, S(SLD_BG_SRC + 4))), 1) !=
             rd32(box, S(SLD_TRACK_H))) {
         /* "CUISlider::CUISlider() - ID %d - Mismatched ..." then quit. */
         return fatal(backend, "CUISlider: background and track sizes differ");
     }
     wr32(box, S(SLD_VISUAL), rd32(box, S(SLD_INIT_VISUAL)));
+    if (!slider_visual_valid(rd32(box, S(SLD_VISUAL)))) {
+        return CAPTION_LIFECYCLE_ERR_FORMAT;
+    }
     wr32(box, S(SLD_TRANSPARENT), rd32(box, S(SLD_INIT_TRANSPARENT)));
     orientation = rd32(box, S(SLD_ORIENTATION));
     direction = rd32(box, S(SLD_DIRECTION));
     if (orientation == 0) {
-        wr32(box, S(SLD_RANGE), rd32(box, S(SLD_TRACK + 8)) - rd32(box, S(SLD_TRACK)) + 1 -
-                                    rd32(box, S(SLD_THUMB_W)));
+        wr32(box, S(SLD_RANGE), wrap_sub32(wrap_add32(wrap_sub32(rd32(box, S(SLD_TRACK + 8)),
+                                                    rd32(box, S(SLD_TRACK))), 1),
+                                   rd32(box, S(SLD_THUMB_W))));
         if (direction == 0) {
             wr32(box, S(SLD_THUMB), rd32(box, S(SLD_TRACK)));
-            wr32(box, S(SLD_THUMB + 8), rd32(box, S(SLD_THUMB)) - 1 + rd32(box, S(SLD_THUMB_W)));
+            wr32(box, S(SLD_THUMB + 8), wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB)), 1), rd32(box, S(SLD_THUMB_W))));
         } else if (direction == 1) {
             wr32(box, S(SLD_THUMB + 8), rd32(box, S(SLD_TRACK + 8)));
-            wr32(box, S(SLD_THUMB), rd32(box, S(SLD_THUMB + 8)) - rd32(box, S(SLD_THUMB_W)) + 1);
+            wr32(box, S(SLD_THUMB), wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + 8)), rd32(box, S(SLD_THUMB_W))), 1));
         }
         if (direction == 0 || direction == 1) {
             if (rd32(box, S(SLD_FILLS_H)) == 0) {
                 wr32(box, S(SLD_THUMB + 4),
-                     rd32(box, S(SLD_TRACK + 4)) + rd32(box, S(SLD_TRACK_H)) / 2 -
-                         rd32(box, S(SLD_THUMB_H)) / 2);
+                     wrap_sub32(wrap_add32(rd32(box, S(SLD_TRACK + 4)),
+                                             rd32(box, S(SLD_TRACK_H)) / 2),
+                                  rd32(box, S(SLD_THUMB_H)) / 2));
                 wr32(box, S(SLD_THUMB + 12),
-                     rd32(box, S(SLD_THUMB + 4)) - 1 + rd32(box, S(SLD_THUMB_H)));
+                     wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB + 4)), 1), rd32(box, S(SLD_THUMB_H))));
             } else {
                 wr32(box, S(SLD_THUMB + 4), rd32(box, S(SLD_TRACK + 4)));
                 wr32(box, S(SLD_THUMB + 12), rd32(box, S(SLD_TRACK + 12)));
             }
         }
     } else if (orientation == 1) {
-        wr32(box, S(SLD_RANGE), rd32(box, S(SLD_TRACK + 12)) - rd32(box, S(SLD_TRACK + 4)) + 1 -
-                                    rd32(box, S(SLD_THUMB_H)));
+        wr32(box, S(SLD_RANGE), wrap_sub32(wrap_add32(wrap_sub32(rd32(box, S(SLD_TRACK + 12)),
+                                                    rd32(box, S(SLD_TRACK + 4))), 1),
+                                   rd32(box, S(SLD_THUMB_H))));
         if (direction == 2) {
             wr32(box, S(SLD_THUMB + 4), rd32(box, S(SLD_TRACK + 4)));
             wr32(box, S(SLD_THUMB + 12),
-                 rd32(box, S(SLD_TRACK + 4)) - 1 + rd32(box, S(SLD_THUMB_H)));
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_TRACK + 4)), 1),
+                            rd32(box, S(SLD_THUMB_H))));
         } else if (direction == 3) {
             wr32(box, S(SLD_THUMB + 12), rd32(box, S(SLD_TRACK + 12)));
             wr32(box, S(SLD_THUMB + 4),
-                 rd32(box, S(SLD_TRACK + 12)) - rd32(box, S(SLD_THUMB_H)) + 1);
+                 wrap_add32(wrap_sub32(rd32(box, S(SLD_TRACK + 12)),
+                                       rd32(box, S(SLD_THUMB_H))), 1));
         }
         if (direction == 2 || direction == 3) {
             if (rd32(box, S(SLD_FILLS_W)) == 0) {
                 wr32(box, S(SLD_THUMB),
-                     rd32(box, S(SLD_TRACK)) + rd32(box, S(SLD_TRACK_W)) / 2 -
-                         rd32(box, S(SLD_THUMB_W)) / 2);
+                     wrap_sub32(wrap_add32(rd32(box, S(SLD_TRACK)),
+                                             rd32(box, S(SLD_TRACK_W)) / 2),
+                                  rd32(box, S(SLD_THUMB_W)) / 2));
                 wr32(box, S(SLD_THUMB + 8),
-                     rd32(box, S(SLD_THUMB)) - 1 + rd32(box, S(SLD_THUMB_W)));
+                     wrap_add32(wrap_sub32(rd32(box, S(SLD_THUMB)), 1), rd32(box, S(SLD_THUMB_W))));
             } else {
                 wr32(box, S(SLD_THUMB), rd32(box, S(SLD_TRACK)));
                 wr32(box, S(SLD_THUMB + 8), rd32(box, S(SLD_TRACK + 8)));
@@ -469,10 +540,10 @@ static int slider_hit(CaptionLifecycle *life, int16_t x, int16_t y)
     if (visual != 0 && visual != 1 && visual != 2) {
         return 0;
     }
-    if ((int32_t)y >= rd32(box, S(SLD_THUMB + 4)) + 5 &&
-        (int32_t)y <= rd32(box, S(SLD_THUMB + 12)) + 10 &&
-        (int32_t)x >= rd32(box, S(SLD_THUMB)) + 5 &&
-        (int32_t)x <= rd32(box, S(SLD_THUMB + 8)) + 5) {
+    if ((int32_t)y >= wrap_add32(rd32(box, S(SLD_THUMB + 4)), 5) &&
+        (int32_t)y <= wrap_add32(rd32(box, S(SLD_THUMB + 12)), 10) &&
+        (int32_t)x >= wrap_add32(rd32(box, S(SLD_THUMB)), 5) &&
+        (int32_t)x <= wrap_add32(rd32(box, S(SLD_THUMB + 8)), 5)) {
         wr32(box, S(SLD_HOVER), 1);
         if (rd32(box, S(SLD_VISUAL)) == 0 && rd32(box, S(SLD_HOVER_STATE)) != 0) {
             wr32(box, S(SLD_VISUAL), 1);
@@ -480,7 +551,8 @@ static int slider_hit(CaptionLifecycle *life, int16_t x, int16_t y)
         if (rd32(box, S(SLD_CURSOR_CHANGE)) != 0) {
             g->slider_cursor_scene = 0x27d9;
             g->cursor_variant = 1;
-            g->cursor_src_index = g->cursor_type * 8 + g->cursor_variant * 4;
+            g->cursor_src_index = wrap_add32(wrap_mul32(g->cursor_type, 8),
+                                              wrap_mul32(g->cursor_variant, 4));
             g->cursor_layer_enabled = 1;
         }
         return 1;
@@ -490,12 +562,20 @@ static int slider_hit(CaptionLifecycle *life, int16_t x, int16_t y)
 }
 
 /* 0x4eff03. */
+static int slider_visual_valid(int32_t visual)
+{
+    return (visual >= 0 && visual <= 3) || visual == 4;
+}
+
 static int slider_draw(CaptionLifecycle *life, const CaptionLifecycleBackend *backend)
 {
     uint8_t *box = life->box;
     int32_t visual = rd32(box, S(SLD_VISUAL));
     int status;
 
+    if (!slider_visual_valid(visual)) {
+        return CAPTION_LIFECYCLE_ERR_FORMAT;
+    }
     if (visual == 4) {
         return CAPTION_LIFECYCLE_OK;
     }
@@ -549,6 +629,13 @@ static int popup_init(CaptionLifecycle *life, const CaptionLifecycleBackend *bac
     uint8_t copy[0xbcu * 4u];
 
     memcpy(copy, config, sizeof(copy));
+    /* Reject malformed selector data before popup setup can invoke resource
+     * callbacks. slider_init validates again after those callbacks so live
+     * host mutations cannot reach the selector table unchecked. */
+    if (rd32(copy, SCTB_HAS_SLIDER) != 0 &&
+        !slider_visual_valid(rd32(copy, SCTB_SLIDER_INIT_VISUAL))) {
+        return CAPTION_LIFECYCLE_ERR_FORMAT;
+    }
     popup_reset(life);
     memcpy(box + CTB_CONFIG, copy, sizeof(copy));
     if (rd32(box, CTB_RELATIVE) == 0) {
@@ -557,14 +644,14 @@ static int popup_init(CaptionLifecycle *life, const CaptionLifecycleBackend *bac
     } else {
         int32_t dx = life->view_origin[0];
         int32_t dy = life->view_origin[1];
-        wr32(box, CTB_NORMAL_DST, rd32(box, CTB_NORMAL_DST_RAW) + dx);
-        wr32(box, CTB_NORMAL_DST + 8, rd32(box, CTB_NORMAL_DST_RAW + 8) + dx);
-        wr32(box, CTB_NORMAL_DST + 4, rd32(box, CTB_NORMAL_DST_RAW + 4) + dy);
-        wr32(box, CTB_NORMAL_DST + 12, rd32(box, CTB_NORMAL_DST_RAW + 12) + dy);
-        wr32(box, CTB_MAX_DST, rd32(box, CTB_MAX_DST_RAW) + dx);
-        wr32(box, CTB_MAX_DST + 8, rd32(box, CTB_MAX_DST_RAW + 8) + dx);
-        wr32(box, CTB_MAX_DST + 4, rd32(box, CTB_MAX_DST_RAW + 4) + dy);
-        wr32(box, CTB_MAX_DST + 12, rd32(box, CTB_MAX_DST_RAW + 12) + dy);
+        wr32(box, CTB_NORMAL_DST, wrap_add32(rd32(box, CTB_NORMAL_DST_RAW), dx));
+        wr32(box, CTB_NORMAL_DST + 8, wrap_add32(rd32(box, CTB_NORMAL_DST_RAW + 8), dx));
+        wr32(box, CTB_NORMAL_DST + 4, wrap_add32(rd32(box, CTB_NORMAL_DST_RAW + 4), dy));
+        wr32(box, CTB_NORMAL_DST + 12, wrap_add32(rd32(box, CTB_NORMAL_DST_RAW + 12), dy));
+        wr32(box, CTB_MAX_DST, wrap_add32(rd32(box, CTB_MAX_DST_RAW), dx));
+        wr32(box, CTB_MAX_DST + 8, wrap_add32(rd32(box, CTB_MAX_DST_RAW + 8), dx));
+        wr32(box, CTB_MAX_DST + 4, wrap_add32(rd32(box, CTB_MAX_DST_RAW + 4), dy));
+        wr32(box, CTB_MAX_DST + 12, wrap_add32(rd32(box, CTB_MAX_DST_RAW + 12), dy));
     }
     for (i = 0; i < 4u; ++i) {
         const uint8_t *descriptor = box + CTB_SOUND0 + i * CTB_SOUND_STRIDE;
@@ -671,7 +758,7 @@ static int popup_hover(CaptionLifecycle *life, const CaptionLifecycleBackend *ba
             g->cursor_variant = 0;
             g->cursor_surface = g->default_cursor_surface;
         } else if (g->cursor_alt == 0) {
-            g->cursor_type = g->held_item + 0x25;
+            g->cursor_type = wrap_add32(g->held_item, 0x25);
             g->cursor_variant = 0;
             g->cursor_surface = g->item_cursor_surface;
         } else {
@@ -684,21 +771,22 @@ static int popup_hover(CaptionLifecycle *life, const CaptionLifecycleBackend *ba
         g->cursor_variant = 0;
         g->cursor_surface = g->default_cursor_surface;
     }
-    g->cursor_src_index = g->cursor_type * 8 + g->cursor_variant * 4;
+    g->cursor_src_index = wrap_add32(wrap_mul32(g->cursor_type, 8),
+                                              wrap_mul32(g->cursor_variant, 4));
     g->cursor_layer_enabled = 1;
     if (backend->cursor_geometry == NULL ||
         backend->cursor_geometry(backend->context, g->cursor_type, g->cursor_variant,
                                  &geometry) != CAPTION_LIFECYCLE_BACKEND_OK) {
         return CAPTION_LIFECYCLE_ERR_BACKEND;
     }
-    wr32(box, CTB_HOT_X, g->cursor_rect.left + geometry.hot_dx);
-    wr32(box, CTB_HOT_Y, g->cursor_rect.top + geometry.hot_dy);
+    wr32(box, CTB_HOT_X, wrap_add32(g->cursor_rect.left, geometry.hot_dx));
+    wr32(box, CTB_HOT_Y, wrap_add32(g->cursor_rect.top, geometry.hot_dy));
     g->cursor_hot[0] = rd32(box, CTB_HOT_X);
     g->cursor_hot[1] = rd32(box, CTB_HOT_Y);
-    wr32(box, CTB_CURSOR_RECT, g->cursor_rect.left + geometry.rect_dx);
-    wr32(box, CTB_CURSOR_RECT + 8, rd32(box, CTB_CURSOR_RECT) - 1 + geometry.width);
-    wr32(box, CTB_CURSOR_RECT + 4, g->cursor_rect.top + geometry.rect_dy);
-    wr32(box, CTB_CURSOR_RECT + 12, rd32(box, CTB_CURSOR_RECT + 4) - 1 + geometry.height);
+    wr32(box, CTB_CURSOR_RECT, wrap_add32(g->cursor_rect.left, geometry.rect_dx));
+    wr32(box, CTB_CURSOR_RECT + 8, wrap_add32(wrap_sub32(rd32(box, CTB_CURSOR_RECT), 1), geometry.width));
+    wr32(box, CTB_CURSOR_RECT + 4, wrap_add32(g->cursor_rect.top, geometry.rect_dy));
+    wr32(box, CTB_CURSOR_RECT + 12, wrap_add32(wrap_sub32(rd32(box, CTB_CURSOR_RECT + 4), 1), geometry.height));
     state = rd32(box, CTB_STATE);
     if (state == 2 || state == 3) {
         if (rd32(box, CTB_HAS_BUTTON) != 0) {
@@ -811,7 +899,8 @@ static void scroll(CaptionLifecycle *life)
     int32_t position = rd32(life->box, CTB_HAS_SLIDER) != 0
                            ? rd32(life->box, S(SLD_POSITION))
                            : 0;
-    int32_t view = tbox32(life, TBOX_FRAME_VIEW_BOTTOM) - tbox32(life, TBOX_FRAME_VIEW_TOP);
+    int32_t view = wrap_sub32(tbox32(life, TBOX_FRAME_VIEW_BOTTOM),
+                              tbox32(life, TBOX_FRAME_VIEW_TOP));
     float fraction = (float)((double)(float)position / 100.0);
     int32_t top;
 
@@ -819,11 +908,11 @@ static void scroll(CaptionLifecycle *life)
     top = ftol((double)fraction * (double)(float)life->shared->framed_scroll_lines);
     if (top < tbox32(life, TBOX_FRAME_TOP)) {
         top = tbox32(life, TBOX_FRAME_TOP);
-    } else if (top + view > tbox32(life, TBOX_FRAME_BOTTOM)) {
-        top = tbox32(life, TBOX_FRAME_BOTTOM) - view;
+    } else if (wrap_add32(top, view) > tbox32(life, TBOX_FRAME_BOTTOM)) {
+        top = wrap_sub32(tbox32(life, TBOX_FRAME_BOTTOM), view);
     }
     life->g.scroll_src.top = top;
-    life->g.scroll_src.bottom = top + view;
+    life->g.scroll_src.bottom = wrap_add32(top, view);
 }
 
 int caption_ctb_poll(CaptionLifecycle *life, const CaptionLifecycleBackend *backend)
@@ -839,6 +928,10 @@ int caption_ctb_poll(CaptionLifecycle *life, const CaptionLifecycleBackend *back
         if (mode < 2 || mode > 3) {
             return CAPTION_LIFECYCLE_OK;
         }
+    }
+    if (rd32(life->box, CTB_HAS_SLIDER) != 0 &&
+        !slider_visual_valid(rd32(life->box, S(SLD_VISUAL)))) {
+        return CAPTION_LIFECYCLE_ERR_FORMAT;
     }
     status = popup_poll(life, backend, &open);
     if (status != CAPTION_LIFECYCLE_OK) {
@@ -864,6 +957,10 @@ int caption_ctb_hover(CaptionLifecycle *life, const CaptionLifecycleBackend *bac
     }
     if (!active_mode(life)) {
         return CAPTION_LIFECYCLE_OK;
+    }
+    if (rd32(life->box, CTB_HAS_SLIDER) != 0 &&
+        !slider_visual_valid(rd32(life->box, S(SLD_VISUAL)))) {
+        return CAPTION_LIFECYCLE_ERR_FORMAT;
     }
     popup = rect_at(life->box, CTB_NORMAL_DST);              /* 0x4ee644 */
     c = &life->g.cursor_rect;
@@ -910,6 +1007,10 @@ int caption_ctb_draw(CaptionLifecycle *life, const CaptionLifecycleBackend *back
     if (state != 2 && state != 3) {
         return CAPTION_LIFECYCLE_OK;
     }
+    if (rd32(box, CTB_HAS_SLIDER) != 0 &&
+        !slider_visual_valid(rd32(box, S(SLD_VISUAL)))) {
+        return CAPTION_LIFECYCLE_ERR_FORMAT;
+    }
     if (state == 2) {
         status = blit(backend, CAPTION_BLIT_OPAQUE, (uint32_t)rd32(box, CTB_POPUP_IMAGE),
                       rect_at(box, CTB_NORMAL_SRC), rect_at(box, CTB_NORMAL_DST),
@@ -937,7 +1038,7 @@ void caption_clear_step(CaptionLifecycle *life)
 {
     CaptionLifecycleGlobals *g = &life->g;
 
-    g->caption_clear_counter = (int16_t)(g->caption_clear_counter + 1);
+    g->caption_clear_counter = wrap16((int32_t)g->caption_clear_counter + 1);
     if (g->caption_clear_counter >= 0 && g->caption_clear_counter < 1) {
         g->caption_layer_enabled = 0;
         g->caption_restore_layer = 1;
@@ -955,7 +1056,7 @@ int caption_clear_slot_step(CaptionLifecycle *life, int16_t slot, int *slot_done
 
     (void)slot;
     *slot_done = 0;
-    g->caption_clear_counter = (int16_t)(g->caption_clear_counter + 1);
+    g->caption_clear_counter = wrap16((int32_t)g->caption_clear_counter + 1);
     if (g->caption_clear_counter >= 0 && g->caption_clear_counter < 1) {
         g->caption_layer_enabled = 0;
         g->caption_restore_layer = 1;
@@ -990,7 +1091,7 @@ void caption_framed_clear_step(CaptionLifecycle *life)
 {
     CaptionLifecycleGlobals *g = &life->g;
 
-    g->framed_clear_counter = (int16_t)(g->framed_clear_counter + 1);
+    g->framed_clear_counter = wrap16((int32_t)g->framed_clear_counter + 1);
     if (g->framed_clear_counter >= 0 && g->framed_clear_counter < 1) {
         g->framed_layer_enabled = 0;
         g->convo_restore_layer = 1;
@@ -1042,13 +1143,17 @@ int caption_scene_reset(CaptionLifecycle *life, const CaptionLifecycleBackend *b
     g->scroll_fraction = 0.0f;                              /* 0x438de4 */
     life->shared->framed_ready = 0;                         /* 0x438df7 */
     /* 0x438e58: scroll lines = framed height - view height. */
-    life->shared->framed_scroll_lines =
-        (int16_t)((tbox32(life, TBOX_FRAME_BOTTOM) - tbox32(life, TBOX_FRAME_TOP) + 1) -
-                  (tbox32(life, TBOX_FRAME_VIEW_BOTTOM) - tbox32(life, TBOX_FRAME_VIEW_TOP) + 1));
+    life->shared->framed_scroll_lines = wrap16(wrap_sub32(
+        wrap_add32(wrap_sub32(tbox32(life, TBOX_FRAME_BOTTOM),
+                               tbox32(life, TBOX_FRAME_TOP)), 1),
+        wrap_add32(wrap_sub32(tbox32(life, TBOX_FRAME_VIEW_BOTTOM),
+                              tbox32(life, TBOX_FRAME_VIEW_TOP)), 1)));
     g->scroll_src.top = ftol((double)g->scroll_fraction *
                              (double)(float)life->shared->framed_scroll_lines);
-    g->scroll_src.bottom = g->scroll_src.top +
-        (tbox32(life, TBOX_FRAME_VIEW_BOTTOM) - tbox32(life, TBOX_FRAME_VIEW_TOP));
+    g->scroll_src.bottom = wrap_add32(
+        g->scroll_src.top,
+        wrap_sub32(tbox32(life, TBOX_FRAME_VIEW_BOTTOM),
+                   tbox32(life, TBOX_FRAME_VIEW_TOP)));
     g->scroll_src.left = tbox32(life, TBOX_FRAME_LEFT);
     g->scroll_src.right = tbox32(life, TBOX_FRAME_RIGHT);
     life->shared->caption_finish_flag = 0;                  /* 0x438f08 */
