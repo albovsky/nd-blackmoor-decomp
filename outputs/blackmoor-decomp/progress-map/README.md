@@ -22,6 +22,8 @@ Cyan marks manifest-selected exact byte ranges only after the matching report SH
 
 The oracle panel is a selected report subset: S0 hotspot runtime, selected action-core handlers, dependency reducer, action-UI handlers, and A-64. S01 world-init, S02 Bink/player, A28, A51, coreCIF, HIFF, and pixels report families are intentionally omitted from the adapters and all map counts. The panel does not represent complete oracle-report coverage.
 
+Oracle ranges from a report with the wrong original SHA, a failed state, or nonzero mismatches are quarantined in the lineage panel. They do not color tiles, enter oracle filters, or appear as positive direct/interior evidence in the inspector. Evidence links resolve from the actual report or receipt file, including when `--evidence-root` is outside the project tree.
+
 The saved action-census count is omitted when its parser hash does not match current parser-source candidates. Packet READY status and claim receipts are displayed separately. The coordination file is shown with its own hash and can lag individual receipts. History controls are disabled because no historical snapshots were supplied.
 
 The snapshot is a review index, not a completion metric. Oracle comparisons are bounded to their recorded cases and boundaries. Refreshing creates a new static snapshot; there is no live polling or fabricated history.

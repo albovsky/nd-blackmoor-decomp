@@ -131,6 +131,65 @@ class ProgressMapDataTests(unittest.TestCase):
         self.assertEqual(data["summary"]["bounded_oracle_source_bound_starts"], 1)
         self.assertEqual(data["summary"]["bounded_oracle_report_only_starts"], 1)
 
+    def test_quarantined_oracle_reports_do_not_create_direct_or_interior_evidence(self):
+        mutations = (
+            ("wrong original SHA", lambda report: report.update(original_sha256="0" * 64)),
+            ("failed report state", lambda report: report.update(status="comparison_failed")),
+            ("nonzero mismatches", lambda report: report.update(mismatches=["mismatch"])),
+        )
+        for label, mutate in mutations:
+            with self.subTest(case=label):
+                with tempfile.TemporaryDirectory() as tmp:
+                    project, evidence = self.fixture(pathlib.Path(tmp))
+                    path = evidence / "A-64-original-oracle.json"
+                    report = json.loads(path.read_text(encoding="utf-8"))
+                    mutate(report)
+                    self.write_json(path, report)
+                    data = GEN.build_snapshot(project, evidence, "2026-10-13T00:00:00Z")
+                report_row = next(row for row in data["oracle_reports"] if row["id"] == "action64")
+                mapped = [window for function in data["functions"]
+                          for window in function["oracle"] + function["oracle_ranges"]
+                          if window["report_id"] == "action64"]
+                self.assertEqual(mapped, [])
+                self.assertEqual(report_row["entrypoint_count"], 0)
+                self.assertEqual(report_row["quarantined_range_count"], 2)
+                self.assertTrue(report_row["status"].startswith("quarantined:"))
+                self.assertEqual({row["start"] for row in report_row["quarantined_ranges"]}, {0x401008, 0x401010})
+
+    def test_external_evidence_links_resolve_to_files_whose_hashes_are_shown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, evidence = self.fixture(pathlib.Path(tmp))
+            local_evidence = project / "work/analysis/slices"
+            local_evidence.unlink()
+            local_evidence.mkdir(parents=True)
+            for name in ("S08-matching-report.json", "A-64-original-oracle.json", "A-64-validation.json", "S05-claim.json"):
+                (local_evidence / name).write_text('{"wrong":"local collision"}\n', encoding="utf-8")
+            artifact = pathlib.Path(tmp) / "canonical-artifact-root"
+            artifact.mkdir()
+            (artifact / "outputs").symlink_to(project / "outputs", target_is_directory=True)
+            data = GEN.build_snapshot(project, evidence, "2026-10-13T00:00:00Z", artifact_root=artifact)
+            outdir = artifact / "outputs/blackmoor-decomp/progress-map"
+            a64 = next(row for row in data["oracle_reports"] if row["id"] == "action64")
+            s05 = next(row for row in data["slices"] if row["id"] == "S05")["claims"][0]
+            s08_binding = data["report_bindings"][2]
+            linked = (
+                ("S08 snapshot", data["s08"]["report_link"], data["s08"]["report_sha256"]),
+                ("S08 lineage", s08_binding["link"], s08_binding["sha256"]),
+                ("A64 report", a64["report_link"], a64["report_sha256"]),
+                ("A64 validation", a64["binding_report_link"], a64["binding_report_sha256"]),
+                ("claim receipt", s05["link"], s05["sha256"]),
+                ("project source", data["report_bindings"][0]["link"], data["report_bindings"][0]["sha256"]),
+            )
+            for label, link, expected_hash in linked:
+                with self.subTest(input=label):
+                    linked_path = outdir / link
+                    resolved = linked_path.resolve()
+                    if label == "project source":
+                        self.assertTrue(linked_path.absolute().is_relative_to(artifact.absolute()))
+                    else:
+                        self.assertTrue(resolved.is_relative_to(evidence.resolve()))
+                    self.assertEqual(hashlib.sha256(resolved.read_bytes()).hexdigest(), expected_hash)
+
     def test_source_match_does_not_hide_native_library_mismatch(self):
         with tempfile.TemporaryDirectory() as tmp:
             project, evidence = self.fixture(pathlib.Path(tmp))

@@ -228,9 +228,18 @@ def merge_exact_ranges(ranges):
             merged.append(dict(item))
     return merged
 
-def build_snapshot(project, evidence, generated_utc=None):
+def build_snapshot(project, evidence, generated_utc=None, artifact_root=None):
     project, evidence = pathlib.Path(project).absolute(), pathlib.Path(evidence).absolute()
-    outdir = project / OUT
+    artifact_root = pathlib.Path(artifact_root).absolute() if artifact_root else project
+    outdir = artifact_root / OUT
+    def output_link(path):
+        path = pathlib.Path(path)
+        try:
+            candidate = artifact_root / path.relative_to(project)
+            target = candidate if path.is_file() and candidate.is_file() and digest(path) == digest(candidate) else path
+        except ValueError:
+            target = path
+        return href(outdir, target)
     index_path = project / "outputs/blackmoor-decomp/function-index.json"
     index = load(index_path)
     if not index.get("functions") or index.get("original_sha256") != EXPECTED_EXE:
@@ -244,7 +253,7 @@ def build_snapshot(project, evidence, generated_utc=None):
     matching = load(matching_path)
     matching_validation = validate_matching(project, matching)
     matching_manifest_path = matching_validation.pop("manifest_path", None)
-    matching_validation["manifest_link"] = href(outdir, matching_manifest_path) if matching_manifest_path else None
+    matching_validation["manifest_link"] = output_link(matching_manifest_path) if matching_manifest_path else None
 
     s08_path = evidence / "S08-matching-report.json"
     s08 = load(s08_path)
@@ -257,7 +266,7 @@ def build_snapshot(project, evidence, generated_utc=None):
                 "start": start, "end": end, "size": size, "match_status": item["match_status"],
                 "mismatch_count": item["mismatch_count"], "evidence_id": item.get("evidence_id"),
                 "report_sha256": digest(s08_path),
-                "report_link": href(outdir, project / "work/analysis/slices/S08-matching-report.json"),
+                "report_link": output_link(s08_path),
             }
 
     exact_by_start = {}
@@ -332,7 +341,7 @@ def build_snapshot(project, evidence, generated_utc=None):
             validation = load(binding_path)
             expected_source_sha = validation.get("source_file_sha256", {}).get("src/action_family_64.c")
             expected_native_sha = validation.get("native_arm64_library_sha256")
-            binding_report_link = href(outdir, project / "work/analysis/slices" / binding_file)
+            binding_report_link = output_link(binding_path)
             binding_report_sha = digest(binding_path)
         if not binding_file:
             source_binding_reason = "Report does not record a source-file hash binding."
@@ -364,8 +373,8 @@ def build_snapshot(project, evidence, generated_utc=None):
         ranges = list(report.get("code_ranges", []))
         if report.get("function_va"):
             ranges.append({"name": "bounded direct function entry", "start": report["function_va"]})
-        rlink = href(outdir, project / "work/analysis/slices" / evname) if evname else href(outdir, project / path)
-        entries_for_report, rejected_report_ranges = [], []
+        rlink = output_link(report_path)
+        entries_for_report, rejected_report_ranges, quarantined_report_ranges = [], [], []
         for item in ranges:
             if not isinstance(item, dict):
                 continue
@@ -377,14 +386,20 @@ def build_snapshot(project, evidence, generated_utc=None):
             if not bounded:
                 rejected_report_ranges.append({"name": item.get("name", "unnamed range"), "start": item.get("start"), "end_exclusive": item.get("end_exclusive")})
                 continue
-            kind = "stale-or-failing" if not report_ok else ("controlled-boundary" if start in controlled else ("oracle-bound" if source_bound else "bounded-report"))
+            if not report_ok:
+                quarantined_report_ranges.append({
+                    "name": item.get("name", "original entrypoint"), "start": start, "end": end,
+                    "reason": "original SHA, report state, or mismatch check failed",
+                })
+                continue
+            kind = "controlled-boundary" if start in controlled else ("oracle-bound" if source_bound else "bounded-report")
             row = {
                 "report_id": rid, "report_title": title, "range_name": item.get("name", "original entrypoint"),
                 "start": start, "end": end,
                 "boundary_basis": item.get("boundary_basis", "report range; no function extent inferred"),
                 "kind": kind, "scope": report.get("scope", "scope not recorded"),
                 "report_sha256": digest(report_path), "report_link": rlink,
-                "source_path": source, "source_link": href(outdir, source_path),
+                "source_path": source, "source_link": output_link(source_path),
                 "source_sha256": current_source_sha, "source_sha256_in_report": expected_source_sha,
                 "source_binding": "matched" if source_bound and report_ok else "not source-hash-bound",
                 "source_binding_reason": source_binding_reason,
@@ -399,11 +414,12 @@ def build_snapshot(project, evidence, generated_utc=None):
             "id": rid, "title": title, "scope": report.get("scope", "scope not recorded"),
             "status": "original SHA/state/mismatch checks passed" if report_ok else "quarantined: original SHA, state, or mismatch check failed",
             "report_sha256": digest(report_path), "report_link": rlink,
-            "source_path": source, "source_link": href(outdir, source_path),
+            "source_path": source, "source_link": output_link(source_path),
             "source_binding": "matched" if source_bound else "not source-hash-bound",
             "source_binding_reason": source_binding_reason,
             "binding_report_link": binding_report_link, "binding_report_sha256": binding_report_sha,
             "native_library_sha256": report.get("native_library_sha256"), "entrypoint_count": len(entries_for_report),
+            "quarantined_range_count": len(quarantined_report_ranges), "quarantined_ranges": quarantined_report_ranges,
             "rejected_range_count": len(rejected_report_ranges), "rejected_ranges": rejected_report_ranges,
         })
 
@@ -418,7 +434,7 @@ def build_snapshot(project, evidence, generated_utc=None):
         functions.append({
             "va": start, "address": "0x%06x" % start, "name": item.get("name", "FUN_%08X" % start),
             "evidence_id": item.get("evidence_id", ""), "pseudocode": item.get("file", ""),
-            "pseudocode_link": href(outdir, project / "outputs/blackmoor-decomp" / item.get("file", "")),
+            "pseudocode_link": output_link(project / "outputs/blackmoor-decomp" / item.get("file", "")),
             "address_unit": ("0x%04x" % (start >> 16)) + "xxxx", "size": size,
             "extent_kind": "complete range audited to terminal return" if audit else ("unknown final extent" if size is None else "next-start address span (estimated)"),
             "exact_ranges": exact_by_start.get(start, []), "s08_audit": audit,
@@ -437,7 +453,7 @@ def build_snapshot(project, evidence, generated_utc=None):
             claims.append({
                 "slice": sid, "owner": claim.get("owner", "owner not recorded"), "status": claim.get("status", "status not recorded"),
                 "claim_id": claim.get("claim_id", ""), "commit": claim.get("commit", ""), "file": path.name,
-                "sha256": digest(path), "link": href(outdir, project / "work/analysis/slices" / path.name),
+                "sha256": digest(path), "link": output_link(path),
             })
     slices = []
     for item in registry.get("slices", []):
@@ -445,7 +461,7 @@ def build_snapshot(project, evidence, generated_utc=None):
         packet = str(item.get("packet", ""))
         slices.append({
             "id": sid, "title": item.get("title", ""), "registry_status": item.get("status", ""),
-            "packet": packet, "packet_link": href(outdir, project / "outputs/blackmoor-decomp" / packet),
+            "packet": packet, "packet_link": output_link(project / "outputs/blackmoor-decomp" / packet),
             "claims": [c for c in claims if c["slice"] == sid or str(c["slice"]).startswith(sid + "-")],
         })
 
@@ -457,9 +473,9 @@ def build_snapshot(project, evidence, generated_utc=None):
     index_sha = digest(index_path)
     match_sha = digest(matching_path)
     bindings = [
-        {"name": "function-index.json", "sha256": index_sha, "link": href(outdir, index_path), "note": "Ghidra/REA indexed starts; not exact extents"},
-        {"name": "matching-report.json", "sha256": match_sha, "link": href(outdir, matching_path), "note": ("accepted: " if matching_validation["valid"] else "quarantined: ") + matching_validation["reason"]},
-        {"name": "S08 matching report", "sha256": digest(s08_path), "link": href(outdir, project / "work/analysis/slices/S08-matching-report.json"), "note": ("accepted: " if s08_validation["valid"] else "quarantined: ") + s08_validation["reason"]},
+        {"name": "function-index.json", "sha256": index_sha, "link": output_link(index_path), "note": "Ghidra/REA indexed starts; not exact extents"},
+        {"name": "matching-report.json", "sha256": match_sha, "link": output_link(matching_path), "note": ("accepted: " if matching_validation["valid"] else "quarantined: ") + matching_validation["reason"]},
+        {"name": "S08 matching report", "sha256": digest(s08_path), "link": output_link(s08_path), "note": ("accepted: " if s08_validation["valid"] else "quarantined: ") + s08_validation["reason"]},
     ] + [{"name": r["title"], "sha256": r["report_sha256"], "link": r["report_link"], "note": r["status"] + " · " + r["scope"]} for r in oracle_reports]
     if matching_manifest_path:
         bindings.append({"name": "Bound exact-range manifest", "sha256": matching_validation["manifest_sha256"],
@@ -524,7 +540,7 @@ def build_snapshot(project, evidence, generated_utc=None):
             "note": "This map adapts only the selected report set listed here; omitted report families are not counted or mapped.",
         },
         "slices": slices, "coordination": {
-            "source_link": href(outdir, coord_path), "source_sha256": digest(coord_path),
+            "source_link": output_link(coord_path), "source_sha256": digest(coord_path),
             "s03_row": get_row("| S03 AVF |"), "s05_row": get_row("| S05 caption"),
             "note": "The coordination table may lag newer claim receipts; both are shown.",
         },
@@ -532,10 +548,10 @@ def build_snapshot(project, evidence, generated_utc=None):
             "included_in_metrics": census_bound,
             "state": "bound to a current parser candidate" if census_bound else "suppressed: saved parser SHA does not match current parser-source candidates",
             "saved_report_sha256": digest(census_path), "saved_parser_sha256": census.get("parser_sha256"),
-            "current_parser_sources": parser_candidates, "report_link": href(outdir, census_path),
+            "current_parser_sources": parser_candidates, "report_link": output_link(census_path),
         },
         "s08": {"status": s08.get("status"), "comparison": s08.get("comparison"), "validation": s08_validation,
-                "report_sha256": digest(s08_path), "report_link": href(outdir, project / "work/analysis/slices/S08-matching-report.json")},
+                "report_sha256": digest(s08_path), "report_link": output_link(s08_path)},
     }
 
 def embed(template, snapshot):

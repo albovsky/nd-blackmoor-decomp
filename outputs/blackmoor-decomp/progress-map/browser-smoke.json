@@ -2,7 +2,7 @@
   "initial": {
     "tiles": 4187,
     "units": 20,
-    "source": "SOURCE cdcbd9b3ebb9 · 2026-10-13T21:09:10Z",
+    "source": "SOURCE cdcbd9b3ebb9 · 2026-10-13T21:22:28Z",
     "coverageNote": true,
     "historyDisabled": true,
     "externalResources": 0
@@ -33,5 +33,23 @@
     "scroll": 390,
     "overflow": false
   },
-  "uncaughtErrors": []
+  "uncaughtErrors": [],
+  "quarantineRegression": {
+    "fixture": "Synthetic snapshot carrying stale direct and interior windows",
+    "initial": {
+      "tiles": 1,
+      "className": "tile tile-unverified"
+    },
+    "positiveFilters": {
+      "oracle-range": 0,
+      "oracle-report": 0,
+      "oracle-bound": 0
+    },
+    "unverifiedTileCount": 1,
+    "inspectorShowsExplicitQuarantine": true,
+    "inspectorShowsPositiveWindows": false,
+    "lineageShowsQuarantinedReport": true,
+    "lineageShowsBothWindows": true,
+    "uncaughtErrors": []
+  }
 }

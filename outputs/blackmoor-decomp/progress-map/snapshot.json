@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-10-13T21:09:10Z",
+  "generated_utc": "2026-10-13T21:22:28Z",
   "source_ref": "cdcbd9b3ebb9c317b8bcba903d9cefaa7f1f6ce5",
   "source_root_label": "blackmoor-reconstruction",
   "original": {
@@ -67699,6 +67699,8 @@
       "binding_report_sha256": null,
       "native_library_sha256": "172818d1829eac78c0d27a8536b97afcc2770dd211a7d80989bb367f3e3622ab",
       "entrypoint_count": 6,
+      "quarantined_range_count": 0,
+      "quarantined_ranges": [],
       "rejected_range_count": 0,
       "rejected_ranges": []
     },
@@ -67717,6 +67719,8 @@
       "binding_report_sha256": null,
       "native_library_sha256": "20018ae171afba1426f1075d2e5ed2b3c9b1bb91fd10679485dac792783c54f9",
       "entrypoint_count": 5,
+      "quarantined_range_count": 0,
+      "quarantined_ranges": [],
       "rejected_range_count": 0,
       "rejected_ranges": []
     },
@@ -67735,6 +67739,8 @@
       "binding_report_sha256": null,
       "native_library_sha256": "98a33efaa0e34db37d4ea54c3f1b35b36ab816682b94bae599bb04c76eb1dab4",
       "entrypoint_count": 1,
+      "quarantined_range_count": 0,
+      "quarantined_ranges": [],
       "rejected_range_count": 0,
       "rejected_ranges": []
     },
@@ -67753,6 +67759,8 @@
       "binding_report_sha256": null,
       "native_library_sha256": "03922380e33d9de370e3349ffbb2aab86e6c2b96fb9d5716a9ae1e55a701e8fc",
       "entrypoint_count": 3,
+      "quarantined_range_count": 0,
+      "quarantined_ranges": [],
       "rejected_range_count": 0,
       "rejected_ranges": []
     },
@@ -67771,6 +67779,8 @@
       "binding_report_sha256": "f1665675cf41e32ebb1a58e98c323b298e0b7a4268f07ace9f6dfd4b77856417",
       "native_library_sha256": "f0e82771297a98c99ef5b8f9b38956b6263dd7c89302c2d509b6660a67a514e9",
       "entrypoint_count": 10,
+      "quarantined_range_count": 0,
+      "quarantined_ranges": [],
       "rejected_range_count": 0,
       "rejected_ranges": []
     }
@@ -67785,7 +67795,7 @@
     {
       "name": "matching-report.json",
       "sha256": "6729191b6b06cd77bb7ca59518c7236f4ad2411cba68a0a41b6cc327ce1f9f63",
-      "link": "../matching-report.json",
+      "link": "../../../../../.codex/worktrees/blackmoor-opening/blackmoor-reconstruction/outputs/blackmoor-decomp/matching-report.json",
       "note": "accepted: pinned original, manifest, and aggregate state verified; exact rows are checked individually"
     },
     {
@@ -67869,7 +67879,7 @@
     {
       "id": "S01",
       "title": "Complete world initialization",
-      "registry_status": "READY: original recovery + isolated kernel",
+      "registry_status": "IN PROGRESS: bounded world kernel integrated; complete initializer unverified",
       "packet": "tasks/S01-world-init.md",
       "packet_link": "../tasks/S01-world-init.md",
       "claims": [
@@ -67888,7 +67898,7 @@
     {
       "id": "S02",
       "title": "Timed Bink playback",
-      "registry_status": "READY: media adapter/kernel",
+      "registry_status": "IN PROGRESS: timed player integrated; original Bink DLL equivalence unverified",
       "packet": "tasks/S02-bink-player.md",
       "packet_link": "../tasks/S02-bink-player.md",
       "claims": [
@@ -67933,7 +67943,7 @@
     {
       "id": "S05",
       "title": "Caption layout and font rendering",
-      "registry_status": "READY: original recovery + isolated renderer",
+      "registry_status": "CLAIMED: Claude caption/framed renderers",
       "packet": "tasks/S05-caption-layout.md",
       "packet_link": "../tasks/S05-caption-layout.md",
       "claims": [
@@ -67968,7 +67978,7 @@
     {
       "id": "S08",
       "title": "Matching build and function batches",
-      "registry_status": "READY: independent matching track",
+      "registry_status": "IN PROGRESS: six-function source batch audited; 0/6 exact",
       "packet": "tasks/S08-matching-build.md",
       "packet_link": "../tasks/S08-matching-build.md",
       "claims": [
@@ -68043,7 +68053,7 @@
     {
       "id": "A-28",
       "title": "Action 0x28: body boundary and runtime",
-      "registry_status": "READY recovery/kernel",
+      "registry_status": "IN PROGRESS: dispatcher/blend/capture helpers reviewed; sequence and native presentation active",
       "packet": "tasks/A-28-action-28.md",
       "packet_link": "../tasks/A-28-action-28.md",
       "claims": [
@@ -68190,7 +68200,7 @@
     {
       "id": "A-51",
       "title": "Action 0x51: body boundary and runtime",
-      "registry_status": "READY recovery/kernel",
+      "registry_status": "KERNEL REVIEWED: parser integrated; S05 renderer/live dispatcher pending",
       "packet": "tasks/A-51-action-51.md",
       "packet_link": "../tasks/A-51-action-51.md",
       "claims": [
@@ -68209,7 +68219,7 @@
     {
       "id": "A-62",
       "title": "Action 0x62: body boundary and runtime",
-      "registry_status": "READY recovery/kernel",
+      "registry_status": "IN PROGRESS: body/lifecycle/interaction kernels reviewed; live providers pending",
       "packet": "tasks/A-62-action-62.md",
       "packet_link": "../tasks/A-62-action-62.md",
       "claims": [
@@ -68238,7 +68248,7 @@
     {
       "id": "A-64",
       "title": "Action 0x64: body boundary and runtime",
-      "registry_status": "READY recovery/kernel",
+      "registry_status": "IN PROGRESS: bounded clock action integrated; full scene coverage pending",
       "packet": "tasks/A-64-action-64.md",
       "packet_link": "../tasks/A-64-action-64.md",
       "claims": [
@@ -68577,9 +68587,9 @@
   ],
   "coordination": {
     "source_link": "../COORDINATION-STATUS.md",
-    "source_sha256": "1d617915c90f062be151e902b73ac04983c58e69a4cf089a590a85080137338c",
-    "s03_row": "| S03 AVF | Next Claude task | Queued after S05; no acceptance implied |",
-    "s05_row": "| S05 caption/framed renderer | Claude | Next handoff prepared; not claimed until Claude accepts |",
+    "source_sha256": "e4dada15f1b1de72e7c7383621e0696b692f2ace1df439a07b483f2f39b0192f",
+    "s03_row": "| S03 AVF | Next Claude task | Queued after S05; not claimed or accepted |",
+    "s05_row": "| S05 caption/framed renderer | Claude | Claimed on codex/blackmoor-s05-captions from 8e90977; owns caption files only |",
     "note": "The coordination table may lag newer claim receipts; both are shown."
   },
   "census": {
