@@ -3,9 +3,9 @@
   "playable_native_port": false,
   "original_executable_rebuilt": false,
   "pseudocode_exports": 4188,
-  "matched_byte_ranges": 2,
-  "unique_matched_bytes": 14,
-  "function_completeness": "unverified",
+  "matched_byte_ranges": 8,
+  "unique_matched_bytes": 126,
+  "function_completeness": "Six reconstructed mnemonic-assembly accessor extents verified; two other selected ranges and whole executable remain unverified.",
   "matching_verifier_tests_passed": 12,
   "independent_review": "Peer review found and fixed the dependency-bearing raw-0x15 classification bug and exceptional DIR cleanup. Focused regressions and original oracles passed.",
   "remaining": [
@@ -60,8 +60,8 @@
     "complete_dependency_tree_or_action_runtime": false
   },
   "tests": {
-    "discovered": 367,
-    "passed": 365,
+    "discovered": 440,
+    "passed": 438,
     "skipped": 2,
     "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
   },
@@ -324,24 +324,34 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
+    "source_ref": "f7b57a09a39c6bf84b241569314316fad373e7ab",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 367,
-      "passed": 365,
+      "discovered": 440,
+      "passed": 438,
       "skipped": 2
     },
-    "build_log_sha256": "c9c7ad900165e8fb402603dbcfd2931c8e0b82b0cb4bf095317c71b50924a7c4",
-    "test_log_sha256": "61b277894736ffb38b42623890661b1e3e39ce619f68c1d618aefe3a1a0e4c6d",
+    "build_log_sha256": "5e3f8c69374f9c39116dcd29a7b217d6d8009a82ea7cbc3304634be1fa4f596c",
+    "test_log_sha256": "bac63b518b5225efbb65257b83b577fe7fd346f286bd0835e736cfe7716e1fcc",
     "original_oracles": {
       "sound_control_cases": 34,
       "sound_control_mismatches": 0,
       "action28_frame_cases": 1,
       "action28_frame_mismatches": 0
     },
-    "scope": "Reviewed S04-1 raw sound control and A28 controller/frame adapter collected. S0/S5900 diagnostic captures remain separate from persistent gameplay; I01-1 implements the session. Caption renderer/lifecycle review, broader sound/media parity, complete gameplay and whole-file x86 matching remain open.",
+    "scope": "Reviewed captions, world clock, six exact accessor assembly functions and persistent SceneSession milestone collected. Actual app tick applies S0 rows0..30 then stops at row31 missing caption presentation. Live choices, composed rendering, audio provider, S5900 execution, complete gameplay and whole-file x86 matching remain open.",
     "gui_verified": false,
-    "hardware_audio_verified": false
+    "hardware_audio_verified": false,
+    "persistent_session": {
+      "reviewed_worker_commit": "8764e8b9eae12fcaa722ef72b7042baa77c6985e",
+      "collected_commit": "f7b57a0",
+      "child_complete": false,
+      "observed_scene": "S0",
+      "prior_action_effects": 31,
+      "stop_row": 31,
+      "stop_action": "0x9f",
+      "stop_provider": "caption-presentation"
+    }
   },
   "progress_map": {
     "entrypoint": "progress-map/index.html",
@@ -356,7 +366,9 @@
     "independent_review": "Two provenance findings fixed; narrow re-review clear on 0a27d1520c128a4553089e366c2c3bd376242958",
     "tests_passed": 17,
     "offline": true,
-    "live_refresh": false
+    "live_refresh": false,
+    "refresh_required": true,
+    "refresh_reason": "Released map predates S08-2 reviewed source-bound assembly evidence; do not treat its static snapshot as current."
   },
   "native_sound_control": {
     "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
@@ -411,7 +423,29 @@
       "lifecycle signed geometry overflow"
     ],
     "repair_owner": "/root/sound_control_luna6",
-    "accepted_source": false,
-    "pixel_composition_verified": false
+    "accepted_source": true,
+    "pixel_composition_verified": false,
+    "repair_commit": "26927043bf04fc0d613a4400ce5794259b73871a",
+    "collected_repair_commit": "a1dbe42",
+    "review_status": "No material findings after narrow independent review; 42 fresh tests passed.",
+    "findings_resolved": true,
+    "original_comparisons": {
+      "writer_classified_cases": 3828,
+      "writer_successful_cases": 3813,
+      "writer_mismatches": 0,
+      "lifecycle_sequences": 19,
+      "lifecycle_steps": 333,
+      "lifecycle_mismatches": 0
+    }
+  },
+  "matching_s08_2": {
+    "complete_functions": 6,
+    "exact_bytes": 112,
+    "classification": "explicit_reconstructed_assembly_source",
+    "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+    "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+    "compiler_generated_C_match": false,
+    "original_source_provenance_verified": false,
+    "whole_executable_rebuilt": false
   }
 }

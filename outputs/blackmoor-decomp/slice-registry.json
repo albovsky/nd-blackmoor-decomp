@@ -40,11 +40,11 @@
       "id": "S05",
       "title": "Caption layout and font rendering",
       "packet": "tasks/S05-caption-layout.md",
-      "status": "INCOMPLETE: writer/lifecycle review repairs assigned to Codex",
+      "status": "INCOMPLETE: reviewed writer/lifecycle collected; composition/live UI open",
       "depends_on": [],
       "current_child_packet": "tasks/S05-review-repairs.md",
-      "assigned_worker": "/root/sound_control_luna6",
-      "assignment_state": "combined five-finding repair; original Claude handoffs frozen"
+      "assigned_worker": "Boot: shared caption integration; isolated repair worker frozen",
+      "assignment_state": "repair snapshot26927043 reviewed clear and collecteda1dbe42; shared integration Boot"
     },
     {
       "id": "S06",

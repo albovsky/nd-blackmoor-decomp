@@ -1,6 +1,6 @@
 # Parallel reconstruction work
 
-The current S0 integration slice is complete. The complete game remains unfinished. This catalogue covers every currently observed unimplemented raw action family, plus world/media/audio/caption/conditions/save/matching work and the later integration gates.
+The earlier S0 diagnostic slice is complete; persistent live scene integration remains incomplete. The complete game remains unfinished. This catalogue covers every currently observed unimplemented raw action family, plus world/media/audio/caption/conditions/save/matching work and the later integration gates.
 
 Permanent project: `/Users/albovsky/Projects/blackmoor-reconstruction`.
 
@@ -21,7 +21,7 @@ The following packets can start independently. For four workers, start A-64, A-6
 
 ## Complete catalogue
 
-`slice-registry.json` contains 75 packets: 69 independent recovery/kernel packets and 6 gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 9,111 typed body boundaries, 10,501 opaque records. Typed metadata is not implemented gameplay.
+`slice-registry.json` contains 75 packets: 69 independent recovery/kernel packets and 6 gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 11,089 typed body boundaries, 8,523 opaque records. Typed metadata is not implemented gameplay.
 
 All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. The largest opaque families are 0x37 (4,308 records), 0x97 (1,958), 0x62 (1,802), 0xa1 (565), 0x3f (493) and 0x38 (425). S5900's immediate blockers are 0x64,0x62,0x28,0x51.
 
