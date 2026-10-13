@@ -31,6 +31,7 @@ typedef struct BinkPlayerInfo {
     int32_t frame_rate_den;
     int32_t time_base_num;
     int32_t time_base_den;
+    /* Sum of unique retained AVBufferRef payload sizes, including extended_buf. */
     uint64_t decoded_frame_storage_bytes;
 } BinkPlayerInfo;
 
@@ -63,8 +64,10 @@ typedef struct BinkPlayerFrame {
  * Opens and decodes a bounded local Bink video. The existing first-frame
  * adapter is used to establish/retain frame zero; the timed player retains
  * decoded video frames for deterministic forward/reverse stepping and seek.
- * Audio packets are ignored. The player supports at most 256 MiB of decoded
- * frame storage and 4096x4096 dimensions; exceeding either limit is an
+ * Audio packets are ignored. The player supports at most 256 MiB of unique
+ * retained decoded AVBufferRef payload bytes (buf and extended_buf identities
+ * counted once), 100,000 frames, and 4096x4096 dimensions. The byte metric
+ * excludes RGBA staging and frame/index bookkeeping. Exceeding a limit is an
  * explicit bounds error.
  */
 int bink_player_open(const char *path,

@@ -13,6 +13,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/buffer.h>
 #include <libavutil/dict.h>
 #include <libavutil/error.h>
 #include <libavutil/pixdesc.h>
@@ -25,19 +26,28 @@
 #define BINK_PLAYER_MAX_INPUT_BYTES (256LL * 1024LL * 1024LL)
 #define BINK_PLAYER_MAX_STORED_BYTES (256ULL * 1024ULL * 1024ULL)
 #define BINK_PLAYER_MAX_FRAMES 100000U
+#define BINK_PLAYER_MAX_TRACKED_BUFFERS 1000000U
+#define BINK_PLAYER_MAX_BUFFERS_PER_FRAME 256
 #define BINK_PLAYER_MAX_TIMESTAMP_NS (24LL * 60LL * 60LL * 1000000000LL)
 #define BINK_PLAYER_NANO_TIME_BASE ((AVRational){ 1, 1000000000 })
 
 typedef struct bink_stored_frame {
     AVFrame *decoded;
     int64_t pts_ns;
-    uint64_t storage_bytes;
 } bink_stored_frame;
+
+typedef struct bink_buffer_allocation {
+    const AVBuffer *identity;
+    uint64_t size;
+} bink_buffer_allocation;
 
 struct BinkPlayer {
     BinkFrame first_adapter_frame;
     bink_stored_frame *frames;
     size_t frame_capacity;
+    bink_buffer_allocation *buffer_allocations;
+    size_t buffer_table_capacity;
+    size_t tracked_buffer_count;
     uint32_t frame_count;
     uint32_t width;
     uint32_t height;
@@ -124,17 +134,16 @@ static int reduce_positive_rational(AVRational value,
     return 1;
 }
 
-static int decoded_frame_storage_size(const AVFrame *frame, uint64_t *out_size)
+static int decoded_frame_layout_valid(const AVFrame *frame)
 {
     const AVPixFmtDescriptor *descriptor;
     uint64_t plane_rows[4] = { 0u, 0u, 0u, 0u };
-    uint64_t total = 0u;
     int plane_count;
     int component;
     int plane;
 
-    if (frame == NULL || out_size == NULL ||
-        frame->format < 0 || frame->width <= 0 || frame->height <= 0) {
+    if (frame == NULL || frame->format < 0 ||
+        frame->width <= 0 || frame->height <= 0) {
         return 0;
     }
     descriptor = av_pix_fmt_desc_get((enum AVPixelFormat)frame->format);
@@ -160,29 +169,241 @@ static int decoded_frame_storage_size(const AVFrame *frame, uint64_t *out_size)
     }
     for (plane = 0; plane < plane_count; ++plane) {
         int64_t line_size = frame->linesize[plane];
-        uint64_t absolute_line_size;
-        uint64_t bytes;
 
         if (plane_rows[plane] == 0u || frame->data[plane] == NULL ||
             line_size == 0 || line_size == INT_MIN) {
             return 0;
         }
-        absolute_line_size = (uint64_t)(line_size < 0 ? -line_size : line_size);
-        if (absolute_line_size > UINT64_MAX / plane_rows[plane]) {
-            return 0;
-        }
-        bytes = absolute_line_size * plane_rows[plane];
-        if (bytes > UINT64_MAX - total) {
-            return 0;
-        }
-        total += bytes;
     }
-    if (total == 0u) {
-        return 0;
-    }
-    *out_size = total;
     return 1;
 }
+
+static size_t buffer_hash(const AVBuffer *identity)
+{
+    uint64_t value = (uint64_t)(uintptr_t)identity;
+
+    value ^= value >> 33;
+    value *= UINT64_C(0xff51afd7ed558ccd);
+    value ^= value >> 33;
+    value *= UINT64_C(0xc4ceb9fe1a85ec53);
+    value ^= value >> 33;
+    return (size_t)value;
+}
+
+static void insert_buffer_allocation(bink_buffer_allocation *table,
+                                    size_t capacity,
+                                    bink_buffer_allocation allocation)
+{
+    size_t index = buffer_hash(allocation.identity) & (capacity - 1u);
+
+    while (table[index].identity != NULL) {
+        index = (index + 1u) & (capacity - 1u);
+    }
+    table[index] = allocation;
+}
+
+static int reserve_buffer_table(BinkPlayer *player, size_t requested_count)
+{
+    size_t capacity = player->buffer_table_capacity;
+    bink_buffer_allocation *replacement;
+    size_t index;
+
+    if (requested_count > BINK_PLAYER_MAX_TRACKED_BUFFERS) {
+        return 0;
+    }
+    if (capacity == 0u) {
+        capacity = 16u;
+    }
+    while (requested_count > capacity - capacity / 3u) {
+        if (capacity > SIZE_MAX / 2u) {
+            return 0;
+        }
+        capacity *= 2u;
+    }
+    if (capacity == player->buffer_table_capacity) {
+        return 1;
+    }
+    if (capacity > SIZE_MAX / sizeof(*replacement)) {
+        return 0;
+    }
+    replacement = (bink_buffer_allocation *)calloc(capacity, sizeof(*replacement));
+    if (replacement == NULL) {
+        return -1;
+    }
+    for (index = 0u; index < player->buffer_table_capacity; ++index) {
+        if (player->buffer_allocations[index].identity != NULL) {
+            insert_buffer_allocation(replacement, capacity,
+                                     player->buffer_allocations[index]);
+        }
+    }
+    free(player->buffer_allocations);
+    player->buffer_allocations = replacement;
+    player->buffer_table_capacity = capacity;
+    return 1;
+}
+
+static int account_buffer_reference(BinkPlayer *player,
+                                   const AVBufferRef *reference,
+                                   uint64_t max_bytes)
+{
+    size_t index;
+    uint64_t size;
+    int reserve_result;
+
+    if (reference == NULL || reference->buffer == NULL ||
+        reference->data == NULL || reference->size == 0u) {
+        return BINK_PLAYER_ERR_FORMAT;
+    }
+    size = (uint64_t)reference->size;
+    if ((size_t)size != reference->size ||
+        player->decoded_storage_bytes > max_bytes) {
+        return BINK_PLAYER_ERR_BOUNDS;
+    }
+    if (player->buffer_table_capacity != 0u) {
+        index = buffer_hash(reference->buffer) &
+                (player->buffer_table_capacity - 1u);
+        while (player->buffer_allocations[index].identity != NULL) {
+            bink_buffer_allocation *allocation = &player->buffer_allocations[index];
+            if (allocation->identity == reference->buffer) {
+                uint64_t increase = size > allocation->size
+                    ? size - allocation->size : 0u;
+                if (increase > max_bytes - player->decoded_storage_bytes) {
+                    return BINK_PLAYER_ERR_BOUNDS;
+                }
+                if (increase != 0u) {
+                    allocation->size = size;
+                    player->decoded_storage_bytes += increase;
+                }
+                return BINK_PLAYER_OK;
+            }
+            index = (index + 1u) & (player->buffer_table_capacity - 1u);
+        }
+    }
+    if (player->tracked_buffer_count >= BINK_PLAYER_MAX_TRACKED_BUFFERS ||
+        size > max_bytes - player->decoded_storage_bytes) {
+        return BINK_PLAYER_ERR_BOUNDS;
+    }
+    reserve_result = reserve_buffer_table(player, player->tracked_buffer_count + 1u);
+    if (reserve_result == 0) {
+        return BINK_PLAYER_ERR_BOUNDS;
+    }
+    if (reserve_result < 0) {
+        return BINK_PLAYER_ERR_MEMORY;
+    }
+    {
+        bink_buffer_allocation allocation;
+        allocation.identity = reference->buffer;
+        allocation.size = size;
+        insert_buffer_allocation(player->buffer_allocations,
+                                 player->buffer_table_capacity, allocation);
+    }
+    player->tracked_buffer_count += 1u;
+    player->decoded_storage_bytes += size;
+    return BINK_PLAYER_OK;
+}
+
+static int account_decoded_frame_storage(BinkPlayer *player,
+                                         const AVFrame *frame,
+                                         uint64_t max_bytes)
+{
+    int references = 0;
+    int index;
+    int status;
+
+    if (player == NULL || frame == NULL || !decoded_frame_layout_valid(frame)) {
+        return BINK_PLAYER_ERR_FORMAT;
+    }
+    if (frame->nb_extended_buf < 0 ||
+        frame->nb_extended_buf > BINK_PLAYER_MAX_BUFFERS_PER_FRAME ||
+        (frame->nb_extended_buf > 0 && frame->extended_buf == NULL)) {
+        return BINK_PLAYER_ERR_FORMAT;
+    }
+    for (index = 0; index < AV_NUM_DATA_POINTERS; ++index) {
+        if (frame->buf[index] != NULL) {
+            status = account_buffer_reference(player, frame->buf[index], max_bytes);
+            if (status != BINK_PLAYER_OK) {
+                return status;
+            }
+            references += 1;
+        }
+    }
+    for (index = 0; index < frame->nb_extended_buf; ++index) {
+        if (frame->extended_buf[index] == NULL) {
+            return BINK_PLAYER_ERR_FORMAT;
+        }
+        status = account_buffer_reference(player, frame->extended_buf[index], max_bytes);
+        if (status != BINK_PLAYER_OK) {
+            return status;
+        }
+        references += 1;
+    }
+    return references > 0 ? BINK_PLAYER_OK : BINK_PLAYER_ERR_FORMAT;
+}
+
+#if defined(BINK_PLAYER_TESTING)
+int bink_player_test_buffer_accounting(uint64_t primary_bytes,
+                                       uint64_t extended_bytes,
+                                       int shared,
+                                       uint64_t budget,
+                                       uint64_t *out_used)
+{
+    AVFrame *frame = NULL;
+    AVFrame *clone = NULL;
+    BinkPlayer player = { 0 };
+    int status = BINK_PLAYER_ERR_MEMORY;
+
+    if (out_used == NULL || primary_bytes == 0u ||
+        primary_bytes > SIZE_MAX || extended_bytes > SIZE_MAX ||
+        (shared != 0 && shared != 1)) {
+        return BINK_PLAYER_ERR_ARGUMENT;
+    }
+    *out_used = 0u;
+    frame = av_frame_alloc();
+    if (frame == NULL) {
+        goto cleanup;
+    }
+    frame->format = AV_PIX_FMT_GRAY8;
+    frame->width = 1;
+    frame->height = 1;
+    frame->linesize[0] = 1;
+    frame->buf[0] = av_buffer_alloc((size_t)primary_bytes);
+    if (frame->buf[0] == NULL) {
+        goto cleanup;
+    }
+    frame->data[0] = frame->buf[0]->data;
+    if (shared || extended_bytes != 0u) {
+        frame->extended_buf = av_calloc(1u, sizeof(*frame->extended_buf));
+        if (frame->extended_buf == NULL) {
+            goto cleanup;
+        }
+        frame->nb_extended_buf = 1;
+        if (shared) {
+            frame->extended_buf[0] = av_buffer_ref(frame->buf[0]);
+        } else {
+            frame->extended_buf[0] = av_buffer_alloc((size_t)extended_bytes);
+        }
+        if (frame->extended_buf[0] == NULL) {
+            goto cleanup;
+        }
+    }
+    clone = av_frame_clone(frame);
+    if (clone == NULL) {
+        goto cleanup;
+    }
+
+    status = account_decoded_frame_storage(&player, frame, budget);
+    if (status == BINK_PLAYER_OK) {
+        status = account_decoded_frame_storage(&player, clone, budget);
+    }
+    *out_used = player.decoded_storage_bytes;
+
+cleanup:
+    av_frame_free(&clone);
+    av_frame_free(&frame);
+    free(player.buffer_allocations);
+    return status;
+}
+#endif
 
 static int reserve_frame_slot(BinkPlayer *player)
 {
@@ -223,9 +444,9 @@ static int append_decoded_frame(BinkPlayer *player,
 {
     int64_t pts;
     int64_t pts_ns;
-    uint64_t storage_bytes;
     AVFrame *retained;
     int reserve_result;
+    int storage_status;
 
     if (decoded->width != (int)player->width ||
         decoded->height != (int)player->height ||
@@ -234,16 +455,21 @@ static int append_decoded_frame(BinkPlayer *player,
                   "decoded Bink frame dimensions changed or exceed the player limit");
         return BINK_PLAYER_ERR_BOUNDS;
     }
-    if (!decoded_frame_storage_size(decoded, &storage_bytes)) {
-        set_error(error, error_capacity,
-                  "decoded Bink frame has an unsupported pixel layout");
-        return BINK_PLAYER_ERR_FORMAT;
-    }
-    if (storage_bytes > BINK_PLAYER_MAX_STORED_BYTES - player->decoded_storage_bytes) {
-        set_error(error, error_capacity,
-                  "decoded Bink frames exceed the %llu MiB retained-frame limit",
-                  (unsigned long long)(BINK_PLAYER_MAX_STORED_BYTES / (1024u * 1024u)));
-        return BINK_PLAYER_ERR_BOUNDS;
+    storage_status = account_decoded_frame_storage(
+        player, decoded, BINK_PLAYER_MAX_STORED_BYTES);
+    if (storage_status != BINK_PLAYER_OK) {
+        if (storage_status == BINK_PLAYER_ERR_BOUNDS) {
+            set_error(error, error_capacity,
+                      "decoded Bink buffers exceed the %llu MiB retained-payload limit",
+                      (unsigned long long)(BINK_PLAYER_MAX_STORED_BYTES / (1024u * 1024u)));
+        } else if (storage_status == BINK_PLAYER_ERR_MEMORY) {
+            set_error(error, error_capacity,
+                      "cannot allocate the decoded Bink buffer index");
+        } else {
+            set_error(error, error_capacity,
+                      "decoded Bink frame has an unsupported pixel or buffer layout");
+        }
+        return storage_status;
     }
     pts = decoded->best_effort_timestamp;
     if (pts == AV_NOPTS_VALUE) {
@@ -288,9 +514,7 @@ static int append_decoded_frame(BinkPlayer *player,
     }
     player->frames[player->frame_count].decoded = retained;
     player->frames[player->frame_count].pts_ns = pts_ns;
-    player->frames[player->frame_count].storage_bytes = storage_bytes;
     player->frame_count += 1u;
-    player->decoded_storage_bytes += storage_bytes;
     return BINK_PLAYER_OK;
 }
 
@@ -976,6 +1200,7 @@ void bink_player_close(BinkPlayer *player)
         av_frame_free(&player->frames[index].decoded);
     }
     free(player->frames);
+    free(player->buffer_allocations);
     free(player->rgba);
     sws_freeContext(player->scaler);
     bink_adapter_destroy(&player->first_adapter_frame);

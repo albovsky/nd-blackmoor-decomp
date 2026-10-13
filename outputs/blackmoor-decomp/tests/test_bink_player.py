@@ -6,6 +6,7 @@ from __future__ import annotations
 import ctypes
 import hashlib
 import json
+import os
 import pathlib
 import subprocess
 import tempfile
@@ -51,7 +52,9 @@ class BinkPlayerTests(unittest.TestCase):
         build_script = PROJECT / "scripts/build_bink_player.sh"
         if not build_script.is_file():
             raise AssertionError("S02 build script has not been implemented")
-        subprocess.run([str(build_script)], check=True)
+        build_environment = os.environ.copy()
+        build_environment["BINK_PLAYER_TESTING"] = "1"
+        subprocess.run([str(build_script)], check=True, env=build_environment)
         cls.library = ctypes.CDLL(str(PROJECT / "build/libbink_player.dylib"))
         cls.open_player = cls.library.bink_player_open
         cls.open_player.argtypes = [
@@ -92,6 +95,15 @@ class BinkPlayerTests(unittest.TestCase):
         cls.close = cls.library.bink_player_close
         cls.close.argtypes = [ctypes.c_void_p]
         cls.close.restype = None
+        cls.test_buffer_accounting = cls.library.bink_player_test_buffer_accounting
+        cls.test_buffer_accounting.argtypes = [
+            ctypes.c_uint64,
+            ctypes.c_uint64,
+            ctypes.c_int,
+            ctypes.c_uint64,
+            ctypes.POINTER(ctypes.c_uint64),
+        ]
+        cls.test_buffer_accounting.restype = ctypes.c_int
 
         game_source = json.loads((REPOSITORY / "work/analysis/game-source.json").read_text())
         cls.video_dir = pathlib.Path(game_source["game_dir"]) / "CDVideo"
@@ -139,6 +151,27 @@ class BinkPlayerTests(unittest.TestCase):
         if not frame.rgba:
             return b""
         return ctypes.string_at(frame.rgba, frame.rgba_bytes)
+
+    def test_retained_budget_counts_avbuffer_backing_and_extended_refs(self) -> None:
+        used = ctypes.c_uint64()
+        status = self.test_buffer_accounting(
+            128 * 1024, 0, 0, 64 * 1024, ctypes.byref(used)
+        )
+        self.assertEqual(status, -6, "large backing allocation must exceed the cap")
+
+        backing_bytes = 128 * 1024 + 64 * 1024
+        status = self.test_buffer_accounting(
+            128 * 1024, 64 * 1024, 0, backing_bytes, ctypes.byref(used)
+        )
+        self.assertEqual(status, 0, "primary plus extended AVBuffers fit exactly")
+        self.assertEqual(used.value, backing_bytes)
+
+        shared_bytes = 96 * 1024
+        status = self.test_buffer_accounting(
+            shared_bytes, 0, 1, shared_bytes, ctypes.byref(used)
+        )
+        self.assertEqual(status, 0, "same AVBuffer identity is charged once")
+        self.assertEqual(used.value, shared_bytes)
 
     def test_diff_and_open_a_first_frame_match_ffmpeg_rgba(self) -> None:
         for name in ("diff", "OPEN_A"):
@@ -189,7 +222,7 @@ class BinkPlayerTests(unittest.TestCase):
             print(
                 "EXT_OpnCin_ANIM: "
                 f"{info.total_frames} frames, "
-                f"{info.decoded_frame_storage_bytes} retained plane bytes"
+                f"{info.decoded_frame_storage_bytes} unique retained AVBuffer payload bytes"
             )
 
             self.call_mode(player, 0)
