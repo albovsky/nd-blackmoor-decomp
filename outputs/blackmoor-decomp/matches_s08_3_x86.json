@@ -1,0 +1,10 @@
+{
+  "description": "Explicitly reconstructed assembly for the complete original input move/down/up method extents. Exact selected-function match only; not original C/compiler provenance or a whole-executable rebuild.",
+  "source": "src/matching_s08_3_x86.s",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "functions": [
+    {"rva": 896927, "size": 36, "symbol": "_FUN_004daf9f", "object": "build/matching_s08_3_x86.obj", "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"},
+    {"rva": 896963, "size": 61, "symbol": "_FUN_004dafc3", "object": "build/matching_s08_3_x86.obj", "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"},
+    {"rva": 897024, "size": 79, "symbol": "_FUN_004db000", "object": "build/matching_s08_3_x86.obj", "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"}
+  ]
+}
