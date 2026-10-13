@@ -106,7 +106,11 @@ class NativeAppIntegrationTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stderr)
             contents = log.read_text()
-            for evidence in ('clock_minutes=1080 phone_rows=12',
+            for evidence in ('new_game_initialized scene=0 coordinate_words=0,0 source=0 clock=18:00',
+                             'scene_video_open width=620 height=375 frames=1 rate=15/1',
+                             'mode=0 pacing=native-FFmpeg-timestamps BinkWait-parity=unverified',
+                             'clock_minutes=1080 phone_rows=12',
+                             'video_start=forward frame=0 pacing=native-timestamp-advancement',
                              'caption=1 bytes=185 terminator=<e>',
                              'destination=diagnostic-recorder renderer=unimplemented',
                              'sound_loaded stem=NSHT01 channel=13 frames=494792',

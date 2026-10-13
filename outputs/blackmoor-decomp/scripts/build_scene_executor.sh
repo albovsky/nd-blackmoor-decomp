@@ -15,6 +15,7 @@ xcrun --sdk macosx clang -arch arm64 -std=c11 \
     "$project_dir/src/scene_resource.c" \
     "$project_dir/src/scene_conditions.c" \
     "$project_dir/src/action_core.c" \
+    "$project_dir/src/action_family_64.c" \
     "$project_dir/src/scene_executor.c" \
     -o "$project_dir/build/libsceneexecutor.dylib"
 printf 'Built %s (native arm64)\n' "$project_dir/build/libsceneexecutor.dylib"

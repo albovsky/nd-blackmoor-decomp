@@ -13,6 +13,7 @@ enum {
     SCENE_ACTION_CHANGE_SCENE = 0x0a,
     SCENE_ACTION_RAW_SCENE_HOTSPOT = 0x15,
     SCENE_ACTION_SCENE_HOTSPOT_RUNTIME = 0x0d,
+    SCENE_ACTION_CLOCK = 0x64,
     SCENE_ACTION_ASYNC_SOUND = 0x9f
 };
 
@@ -30,6 +31,8 @@ struct SceneActionExecutor {
     SceneTransitionRequest callback_transition;
     int transition_requested;
     SceneTransitionRequest transition;
+    ActionFamily64World *action64_world;
+    ActionFamily64Backend *action64_backend;
 };
 
 static uint16_t read_u16le(const uint8_t *bytes)
@@ -242,6 +245,20 @@ void scene_executor_destroy(SceneActionExecutor *executor)
     free(executor->states);
     free(executor->hotspots);
     free(executor);
+}
+
+int scene_executor_bind_action64_runtime(
+    SceneActionExecutor *executor,
+    ActionFamily64World *world,
+    ActionFamily64Backend *backend)
+{
+    if (executor == NULL || world == NULL || backend == NULL ||
+        backend->get_tick_count == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->action64_world = world;
+    executor->action64_backend = backend;
+    return SCENE_EXECUTOR_OK;
 }
 
 static int validate_handlers(const SceneActionHandler *handlers,
@@ -516,6 +533,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
 {
     size_t index;
     SceneExecutorStepInfo local_info;
+    SceneConditionState dispatch_state;
 
     if (step_info == NULL) {
         return SCENE_EXECUTOR_ERR_ARGUMENT;
@@ -533,6 +551,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         *step_info = local_info;
         return SCENE_EXECUTOR_ERR_STATE_MISMATCH;
     }
+    dispatch_state = *state;
     if (executor->transition_requested) {
         local_info.kind = SCENE_EXECUTOR_STEP_STOPPED;
         local_info.transition = executor->transition;
@@ -568,7 +587,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             }
             if (is_builtin_hotspot(&candidate_action)) {
                 candidate_status = scene_conditions_evaluate(
-                    executor->conditions[candidate], state,
+                    executor->conditions[candidate], &dispatch_state,
                     &candidate_eligible, &candidate_opcode);
                 if (candidate_status != SCENE_CONDITION_OK) {
                     fill_failure(&local_info, candidate,
@@ -607,7 +626,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         if (is_builtin_hotspot(&action)) {
             hotspot->active = 0u;
         }
-        status = scene_conditions_evaluate(executor->conditions[index], state,
+        status = scene_conditions_evaluate(executor->conditions[index], &dispatch_state,
                                           &eligible, &unsupported_opcode);
         if (status != SCENE_CONDITION_OK) {
             fill_failure(&local_info, index, action.type, status);
@@ -656,6 +675,58 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
                 *step_info = local_info;
                 return SCENE_EXECUTOR_OK;
             }
+            continue;
+        }
+
+        if (action.type == SCENE_ACTION_CLOCK) {
+            ActionFamily64Input clock_action;
+            ActionFamily64Result clock_result;
+            if (executor->action64_world == NULL ||
+                executor->action64_backend == NULL) {
+                fill_failure(&local_info, index, action.type,
+                             ACTION_FAMILY64_ERR_UNSUPPORTED);
+                *step_info = local_info;
+                return SCENE_EXECUTOR_ERR_UNSUPPORTED;
+            }
+            clock_action.type = action.type;
+            clock_action.subtype = action.subtype;
+            clock_action.eligible = 1u;
+            clock_action.completed_before = runtime_state->completed;
+            clock_action.phase_before = runtime_state->phase;
+            clock_action.body = action.typed_body;
+            clock_action.body_length = action.typed_body_length;
+            status = action_family64_step(&clock_action,
+                                         executor->action64_world,
+                                         executor->action64_backend,
+                                         &clock_result);
+            if (status != ACTION_FAMILY64_OK) {
+                fill_failure(&local_info, index, action.type, status);
+                *step_info = local_info;
+                if (status == ACTION_FAMILY64_ERR_UNSUPPORTED) {
+                    return SCENE_EXECUTOR_ERR_UNSUPPORTED;
+                }
+                return status == ACTION_FAMILY64_ERR_BODY
+                           ? SCENE_EXECUTOR_ERR_FORMAT
+                           : SCENE_EXECUTOR_ERR_EXTERNAL;
+            }
+            if (!clock_result.recognized || !clock_result.applied) {
+                fill_failure(&local_info, index, action.type,
+                             ACTION_FAMILY64_ERR_UNSUPPORTED);
+                *step_info = local_info;
+                return SCENE_EXECUTOR_ERR_UNSUPPORTED;
+            }
+            *executor->action64_world = clock_result.world;
+            if (clock_result.completion_valid != 0u) {
+                runtime_state->completed = clock_result.completed;
+            }
+            runtime_state->phase = clock_result.phase;
+            if (clock_result.reset_dependencies != 0u) {
+                scene_conditions_reset(executor->conditions[index]);
+            }
+            dispatch_state.time_of_day_minutes =
+                clock_result.world.clock_total_585d4b;
+            ++local_info.actions_applied;
+            local_info.kind = SCENE_EXECUTOR_STEP_PROCESSED;
             continue;
         }
 

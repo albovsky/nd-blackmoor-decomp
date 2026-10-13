@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "action_core.h"
+#include "action_family_64.h"
 #include "scene_conditions.h"
 #include "scene_resource.h"
 
@@ -142,6 +143,15 @@ int scene_executor_create(const SceneResource *scene,
                           SceneActionExecutor **executor,
                           size_t *failed_action_index);
 void scene_executor_destroy(SceneActionExecutor *executor);
+
+/* Bind the caller-owned type-0x64 clock snapshot and GetTickCount backend.
+ * The executor borrows both pointers; they must outlive every step using this
+ * binding. Eligible type-0x64 actions without a binding remain unsupported.
+ * This extension does not change the legacy public structs. */
+int scene_executor_bind_action64_runtime(
+    SceneActionExecutor *executor,
+    ActionFamily64World *world,
+    ActionFamily64Backend *backend);
 
 /* Evaluate ACT rows in ascending order. Each row's dependencies are evaluated
  * immediately before its handler. The current event-flag view must be the same
