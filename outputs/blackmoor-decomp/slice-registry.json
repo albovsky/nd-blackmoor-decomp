@@ -22,11 +22,12 @@
       "id": "S03",
       "title": "AVF media path",
       "packet": "tasks/S03-avf-player.md",
-      "status": "CLAIMED: Claude S03-1 AVF decoder",
+      "status": "INCOMPLETE: S03-1 reported complete; S03-2 brief issued",
       "depends_on": [],
-      "current_child_packet": "tasks/S03-1-avf-decoder.md",
+      "current_child_packet": "tasks/S03-2-avf-playback.md",
       "assigned_worker": "Claude (owner-authorized external worker)",
-      "assignment_state": "accepted: S03-1-claim-avf_decoder_claude-20261013.json"
+      "assignment_state": "S03-2 claim pending; S03-1 final handoff/review pending",
+      "previous_child_packet": "tasks/S03-1-avf-decoder.md"
     },
     {
       "id": "S04",

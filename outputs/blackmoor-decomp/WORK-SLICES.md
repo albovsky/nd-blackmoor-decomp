@@ -27,7 +27,7 @@ All remaining action-family packets are in `tasks/A-*.md`; each raw family has o
 
 ## Current integration assignment
 
-Boot (/root/boot_world_contract_luna6) is the sole shared writer for [I01-1 persistent scene session](tasks/I01-1-persistent-scene-session.md), following A-28 adapter review repairs. Claude owns the independent [S03-1 AVF decoder](tasks/S03-1-avf-decoder.md). The Codex sound worker now owns [caption review repairs](tasks/S05-review-repairs.md) after freezing S04-2 recovery; the condition worker owns the isolated world_clock kernel. Root coordinates independent review and sequential collection. Parent integration gates remain open until their complete requirements pass.
+Boot (/root/boot_world_contract_luna6) is the sole shared writer for [I01-1 persistent scene session](tasks/I01-1-persistent-scene-session.md), following A-28 adapter review repairs. Claude has been issued [S03-2 AVF playback](tasks/S03-2-avf-playback.md) after reporting the S03-1 decoder complete; its final handoff and root review remain pending. The Codex sound worker now owns [caption review repairs](tasks/S05-review-repairs.md) after freezing S04-2 recovery; the condition worker owns isolated [condition extras](tasks/S06-condition-extra.md) after the reviewed world_clock kernel was collected. Root coordinates independent review and sequential collection. Parent integration gates remain open until their complete requirements pass.
 
 ## Ownership and coordination
 
