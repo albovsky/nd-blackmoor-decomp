@@ -20,6 +20,7 @@ SOURCE = PROJECT / "src/matching_s08_2_x86.s"
 MANIFEST = PROJECT / "matches_s08_2_x86.json"
 GAS = WORK / "tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as"
 ORIGINAL_SHA256 = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
+CANONICAL_SOURCE_SHA256 = "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a"
 BINUTILS_SHA512 = "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824"
 EXPECTED = [
     {"rva": 0x0DAE66, "va": 0x4DAE66, "size": 17, "symbol": "_FUN_004dae66", "kind": "getter", "field_offset": 0x18},
@@ -227,6 +228,9 @@ def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict
     object_hash = sha256(object_path.read_bytes())
     rebuilt_source_object_hash, reassembly_error = reassemble_source(source_path)
     source_object_matches = rebuilt_source_object_hash == object_hash
+    source_hash = sha256(source_path.read_bytes())
+    reviewed_source_match = source_hash == CANONICAL_SOURCE_SHA256
+    reviewed_source_reproduces_object = reviewed_source_match and source_object_matches
 
     range_module = load_module("s08_2_x86_range_audit", PROJECT / "scripts/audit_matching_s08_2.py")
     original_ranges, inventory = range_module.audit_ranges(
@@ -245,10 +249,21 @@ def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict
         row["byte_comparison"] = cmp_row
 
     exact = comparison["all_byte_ranges_exact"]
+    if reviewed_source_reproduces_object:
+        classification = "explicit_reconstructed_assembly_source"
+        status = "exact_match_from_reviewed_reconstructed_assembly_source" if exact else "reviewed_reconstructed_assembly_source_byte_mismatch"
+        next_blocker = None if exact else "The pinned reviewed reconstructed assembly source reproduces this object, but its complete function bytes differ from the original."
+    else:
+        classification = "external_candidate_object"
+        status = "external_candidate_exact_byte_match" if exact else "external_candidate_byte_mismatch"
+        if not source_object_matches:
+            next_blocker = "The supplied source does not reproduce the audited object; the object is an external candidate, so no reconstructed-source match is established."
+        else:
+            next_blocker = "The supplied source hash is not the pinned reviewed reconstruction; the audited object remains an external candidate despite reassembly."
     return {
         "slice": "S08-2-x86-assembly-lowering",
-        "classification": "human_reconstructed_x86_assembly_lowering",
-        "status": "exact_six_function_match" if exact else "assembly_source_valid_but_byte_mismatch",
+        "classification": classification,
+        "status": status,
         "compiler_generated_C_claim": False,
         "whole_executable_rebuilt": False,
         "original": {"sha256": original_hash, "size": len(data), "path": "work/original/GAME.EXE"},
@@ -268,7 +283,7 @@ def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict
                 "--enable-deterministic-archives", "--with-system-zlib",
             ],
             "build_targets": ["make -j2 MAKEINFO=true all-gas", "make MAKEINFO=true install-gas"],
-            "assembler_command": [str(GAS), "--32", "-o", str(object_path), str(source_path)],
+            "reproduction_command": [str(GAS), "--32", "-o", "<temporary-object>", str(source_path)],
             "pseudo_prefixes": "GNU as {load} source spellings select original MOV load-form register encodings",
         },
         "disassembler": {
@@ -280,7 +295,7 @@ def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict
             "original_disassembly_sha256": json_sha256(original_disassembly),
             "summary_format": "addresses, sizes, mnemonics, and operands only; no instruction byte values",
         },
-        "source": {"path": display_path(source_path), "sha256": sha256(source_path.read_bytes())},
+        "source": {"path": display_path(source_path), "sha256": source_hash},
         "manifest": {"path": "outputs/blackmoor-decomp/matches_s08_2_x86.json", "sha256": sha256(MANIFEST.read_bytes())},
         "comparison_binding": {
             "strategy": "ephemeral manifest rewrites every function object to the supplied --object path before verification",
@@ -291,13 +306,15 @@ def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict
         "source_object_association": {
             "status": "verified_reassembly_match" if source_object_matches else "unverified_external_candidate",
             "source_path": display_path(source_path),
-            "source_sha256": sha256(source_path.read_bytes()),
+            "source_sha256": source_hash,
+            "canonical_reviewed_source_sha256": CANONICAL_SOURCE_SHA256,
+            "matches_canonical_reviewed_source": reviewed_source_match,
             "reassembled_object_sha256": rebuilt_source_object_hash,
             "audited_object_sha256": object_hash,
             "reassembly_matches_audited_object": source_object_matches,
             "reassembly_error": reassembly_error,
             "historical_provenance_claim": False,
-            "meaning": "verified_reassembly_match means only that the pinned assembler reproduces this object from this source now; otherwise the audited object is an unverified external candidate",
+            "meaning": "verified_reassembly_match means only that the pinned assembler reproduces this object from this source now, with no historical provenance claim; the top-level reconstructed-source classification additionally requires the pinned reviewed source hash",
         },
         "build_scripts": {
             "assembly_sha256": sha256((PROJECT / "scripts/build_matching_s08_2_x86.sh").read_bytes()),
@@ -324,7 +341,7 @@ def audit(original: Path, object_path: Path, source_path: Path = SOURCE) -> dict
             "Original linker configuration, CRT/import/thunk boundaries, globals, and whole-PE reconstruction remain unverified.",
             "The earlier 14-byte initial_functions ranges remain range-only and completeness-unproven; they are outside this slice.",
         ],
-        "next_blocker": None if exact else "Available local LLVM and Apple cctools assemblers canonicalize MOV register forms; the pinned GNU as {load} form is being tested for exact encoding. Any remaining differences are reported per complete function.",
+        "next_blocker": next_blocker,
         "contains_original_byte_values": False,
     }
 

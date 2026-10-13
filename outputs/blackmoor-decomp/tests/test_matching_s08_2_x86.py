@@ -44,7 +44,8 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
         report = json.loads(AUDIT_REPORT.read_text(encoding="utf-8"))
         self.assertEqual(report["original"]["sha256"], EXPECTED_SHA256)
         self.assertEqual(report["original"]["size"], 1_511_424)
-        self.assertEqual(report["classification"], "human_reconstructed_x86_assembly_lowering")
+        self.assertEqual(report["classification"], "explicit_reconstructed_assembly_source")
+        self.assertEqual(report["status"], "exact_match_from_reviewed_reconstructed_assembly_source")
         self.assertFalse(report["compiler_generated_C_claim"])
         self.assertFalse(report["whole_executable_rebuilt"])
         self.assertEqual(report["function_count"], 6)
@@ -59,8 +60,11 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
         self.assertEqual(report["comparison_binding"]["object_path"], report["object"]["path"])
         self.assertEqual(report["comparison_binding"]["object_file_sha256"], report["object"]["sha256"])
         self.assertEqual(report["source_object_association"]["status"], "verified_reassembly_match")
+        self.assertTrue(report["source_object_association"]["matches_canonical_reviewed_source"])
         self.assertTrue(report["source_object_association"]["reassembly_matches_audited_object"])
         self.assertFalse(report["source_object_association"]["historical_provenance_claim"])
+        self.assertEqual(report["assembler"]["reproduction_command"][3], "<temporary-object>")
+        self.assertNotIn("assembler_command", report["assembler"])
         self.assertTrue(report["manifest"]["sha256"])
         self.assertTrue(report["disassembler"]["candidate_disassembly_sha256"])
         self.assertTrue(report["disassembler"]["original_disassembly_sha256"])
@@ -122,6 +126,9 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
             self.assertEqual(wrong_object["comparison"]["difference_count"], 1)
             self.assertEqual(wrong_object["source_object_association"]["status"], "unverified_external_candidate")
             self.assertFalse(wrong_object["source_object_association"]["reassembly_matches_audited_object"])
+            self.assertEqual(wrong_object["classification"], "external_candidate_object")
+            self.assertEqual(wrong_object["status"], "external_candidate_byte_mismatch")
+            self.assertIsNotNone(wrong_object["next_blocker"])
             self.assertEqual(wrong_object["object"]["path"], str(mutant_object.resolve()))
             self.assertEqual(wrong_object["object"]["sha256"], hashlib.sha256(mutant_object.read_bytes()).hexdigest())
             self.assertEqual(wrong_object["comparison_binding"]["object_path"], wrong_object["object"]["path"])
@@ -138,6 +145,9 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
             self.assertEqual(stale_source["comparison"]["exact_byte_range_count"], 6)
             self.assertEqual(stale_source["comparison"]["difference_count"], 0)
             self.assertEqual(stale_source["source_object_association"]["status"], "unverified_external_candidate")
+            self.assertEqual(stale_source["classification"], "external_candidate_object")
+            self.assertEqual(stale_source["status"], "external_candidate_exact_byte_match")
+            self.assertIsNotNone(stale_source["next_blocker"])
             self.assertEqual(stale_source["object"]["sha256"], hashlib.sha256(OBJECT.read_bytes()).hexdigest())
             self.assertEqual(stale_source["source"]["path"], str(mutant_source.resolve()))
             self.assertEqual(stale_source["source"]["sha256"], hashlib.sha256(mutant_source.read_bytes()).hexdigest())
@@ -147,6 +157,40 @@ class MatchingS08SecondX86BatchTests(unittest.TestCase):
             self.assertEqual(paired_mutants["comparison"]["difference_count"], 1)
             self.assertEqual(paired_mutants["source_object_association"]["status"], "verified_reassembly_match")
             self.assertTrue(paired_mutants["source_object_association"]["reassembly_matches_audited_object"])
+            self.assertFalse(paired_mutants["source_object_association"]["matches_canonical_reviewed_source"])
+            self.assertEqual(paired_mutants["classification"], "external_candidate_object")
+            self.assertEqual(paired_mutants["status"], "external_candidate_byte_mismatch")
+
+    def test_failed_source_reassembly_keeps_exact_object_as_external_candidate(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="s08-2-x86-failed-source-") as temp_dir:
+            temp = Path(temp_dir)
+            failed_source = temp / "invalid.s"
+            failed_source.write_text(".text\nthis is not a valid instruction\n", encoding="utf-8")
+            report_path = temp / "failed-reassembly.json"
+            result = subprocess.run(
+                [
+                    "python3", str(AUDITOR),
+                    "--original", str(ORIGINAL),
+                    "--source", str(failed_source),
+                    "--object", str(OBJECT),
+                    "--report", str(report_path),
+                ],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report["comparison"]["exact_byte_range_count"], 6)
+            self.assertEqual(report["comparison"]["difference_count"], 0)
+            self.assertEqual(report["classification"], "external_candidate_object")
+            self.assertEqual(report["status"], "external_candidate_exact_byte_match")
+            self.assertEqual(report["source_object_association"]["status"], "unverified_external_candidate")
+            self.assertFalse(report["source_object_association"]["reassembly_matches_audited_object"])
+            self.assertFalse(report["source_object_association"]["matches_canonical_reviewed_source"])
+            self.assertFalse(report["source_object_association"]["historical_provenance_claim"])
+            self.assertTrue(report["source_object_association"]["reassembly_error"])
+            self.assertIsNotNone(report["next_blocker"])
 
     def test_structural_and_abi_mutants_are_rejected(self) -> None:
         auditor = load_auditor()
