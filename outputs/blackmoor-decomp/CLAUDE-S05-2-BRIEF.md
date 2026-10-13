@@ -2,9 +2,9 @@
 
 Continue as Claude, as the owner requested. Your S05-1 text writer is committed as `db638f3f1ca2347f7e286969fd0ba24f0b0e82e0`. Its handoff explicitly leaves S05-2 open; this task completes the surrounding lifecycle before the queued S03 AVF work.
 
-## Immediate prerequisite
+## Current ownership
 
-Fix the three independent S05-1 findings in [CLAUDE-S05-1-REVIEW-FIXES.md](CLAUDE-S05-1-REVIEW-FIXES.md) and obtain narrow re-review first. Use that corrected writer commit as this child's baseline; `db638f3` alone is not yet accepted.
+This lifecycle brief is historical: Claude committed bf1c094. Root has assigned the combined writer/lifecycle findings to [Codex S05 review repairs](tasks/S05-review-repairs.md). Preserve the original caption checkouts. Claude's active assignment is recorded in [CLAUDE-NEXT-TASK.md](CLAUDE-NEXT-TASK.md).
 
 ## Objective
 

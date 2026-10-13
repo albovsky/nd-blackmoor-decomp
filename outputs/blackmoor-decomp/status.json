@@ -393,5 +393,25 @@
       "live A28 dispatch/source capture/composition/presentation/pumps",
       "broader pixel/timing behavior beyond tested fixtures"
     ]
+  },
+  "caption_review": {
+    "writer_commit": "db638f3f1ca2347f7e286969fd0ba24f0b0e82e0",
+    "lifecycle_commit": "bf1c094ff8286f4de47ad1622cf3a58df3278a02",
+    "root_precheck": {
+      "native_tests": 10,
+      "original_sequences": 19,
+      "original_steps": 333,
+      "mismatches": 0
+    },
+    "independent_findings": [
+      "writer callback sees stale pixels/shared-state risk",
+      "writer missing release callback leaks sheets",
+      "writer signed geometry overflow",
+      "lifecycle unchecked slider visual index",
+      "lifecycle signed geometry overflow"
+    ],
+    "repair_owner": "/root/sound_control_luna6",
+    "accepted_source": false,
+    "pixel_composition_verified": false
   }
 }

@@ -12,7 +12,7 @@ Active work is split by ownership:
 
 - Boot: [I01-1 persistent scene session](tasks/I01-1-persistent-scene-session.md), shared app/executor integration and genuine per-tick input/audio/action state.
 - Claude: [S03-1 AVF decoder brief](CLAUDE-S03-1-BRIEF.md), separate decoder/oracle work; prior caption handoffs still require root acceptance.
-- Sound worker: [S04-2 stream lifecycle](tasks/S04-2-mode1-stream-lifecycle.md), original load/status/unload/restart recovery.
+- Sound worker: [S05 review repairs](tasks/S05-review-repairs.md), fixing three writer and two lifecycle findings after completing the bounded S04-2 recovery.
 - Condition worker: original clock producers and dependency state, with explicit unsupported opcode-3 state until established.
 - Matching worker: six complete x86 source candidates and compiler constraints. Whole-file matching remains open; the baseline still has only 14 exact bytes across two ranges, without complete-function proof for those ranges.
 

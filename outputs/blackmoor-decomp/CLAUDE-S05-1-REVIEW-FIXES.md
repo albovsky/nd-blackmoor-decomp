@@ -1,5 +1,10 @@
 # Claude: repair S05-1 review findings before S05-2 integration
 
+## Current repair owner
+
+Root has assigned the combined writer/lifecycle repairs to Codex worker /root/sound_control_luna6 in [S05-review-repairs](tasks/S05-review-repairs.md). Claude continues the independent S03-1 AVF assignment. This document remains the original writer finding record; preserve the frozen caption checkouts.
+
+
 Reviewed snapshot: db638f3f1ca2347f7e286969fd0ba24f0b0e82e0. Independent Astra review found three issues. The writer remains unaccepted by root until these are fixed and re-reviewed. Continue as Claude; keep the S05-2 lifecycle work queued behind this small repair.
 
 1. **P1 — Restore callback sees stale pixels/state.** `caption_layout.c` near 959 invokes `restore_caption_box` while drawing is in private staged `e->canvas`; the caller target is copied only near 1099 after `run()` returns. The callback receives context only. Reviewer reproduced a valid write where restoration sees the old 0xa5a5 target and the successful return exposes different pixels. The original restores the rendered surface. Supply the staged rendered surface and relevant authoritative state to the backend, or revise commit/presentation ordering with explicit source-order and failure semantics. Review callback-visible globals as well. Add assertions inside the callback that check pixels/flags at call time, not only post-return pixels or event names. Preserve backend flag side effects rather than overwriting them with a stale snapshot. Do not manufacture atomic rollback after a visible host effect.

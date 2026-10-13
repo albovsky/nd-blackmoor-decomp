@@ -22,11 +22,11 @@
       "id": "S03",
       "title": "AVF media path",
       "packet": "tasks/S03-avf-player.md",
-      "status": "READY: S03-1 brief issued to Claude; claim pending",
+      "status": "CLAIMED: Claude S03-1 AVF decoder",
       "depends_on": [],
       "current_child_packet": "tasks/S03-1-avf-decoder.md",
       "assigned_worker": "Claude (owner-authorized external worker)",
-      "assignment_state": "brief issued; acceptance not yet recorded"
+      "assignment_state": "accepted: S03-1-claim-avf_decoder_claude-20261013.json"
     },
     {
       "id": "S04",
@@ -39,8 +39,11 @@
       "id": "S05",
       "title": "Caption layout and font rendering",
       "packet": "tasks/S05-caption-layout.md",
-      "status": "CLAIMED: Claude caption/framed renderers",
-      "depends_on": []
+      "status": "INCOMPLETE: writer/lifecycle review repairs assigned to Codex",
+      "depends_on": [],
+      "current_child_packet": "tasks/S05-review-repairs.md",
+      "assigned_worker": "/root/sound_control_luna6",
+      "assignment_state": "combined five-finding repair; original Claude handoffs frozen"
     },
     {
       "id": "S06",
