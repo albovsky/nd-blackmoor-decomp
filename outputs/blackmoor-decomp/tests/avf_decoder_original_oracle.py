@@ -261,7 +261,15 @@ class Original:
             raise OracleError(f"0x{function:x} stopped at 0x{self.reg('EIP'):x}")
         return self.reg("EAX")
 
-    def open(self, data: bytes, path: bytes = b"CDVideo\\fixture.avf") -> dict[str, Any]:
+    def reopen(self, data: bytes) -> None:
+        """Re-open after a fatal call (its error path already ran 0x415011),
+        keeping the reader buffers and mode (+0x172..+0x1cc)."""
+        kept = self.r(OBJECT + 0x172, 0x5A)
+        self.open(data, fresh=False)
+        self.w(OBJECT + 0x172, kept)
+
+    def open(self, data: bytes, path: bytes = b"CDVideo\\fixture.avf",
+             fresh: bool = True) -> dict[str, Any]:
         if len(data) > VIEW_SIZE:
             raise OracleError("file larger than the view window")
         self.w(VIEW, data + bytes(VIEW_SIZE - len(data)))
@@ -269,7 +277,8 @@ class Original:
         self.w(OBJECT, b"\0" * 0x800)
         self.w(OBJECT + 0x4D, path + b"\0")
         self.use_arena("persist")
-        self.cursor["persist"] = PERSIST
+        if fresh:
+            self.cursor["persist"] = PERSIST
         self.events = []
         self.call(OPEN, [OBJECT])
         count = struct.unpack("<h", self.r(OBJECT + 0x15, 2))[0]
@@ -318,12 +327,14 @@ class Original:
         self.events = []
         self.call(function, [OBJECT])
 
-    def get_chunk(self, index: int, arena: int, flags: int, previous: int = 0,
+    def get_chunk(self, index: int, arena: int, flags: int | None, previous: int = 0,
                   previous_index: int = 0) -> int:
-        self.w(FLAG_WORD, struct.pack("<H", flags))
+        if flags is not None:
+            self.w(FLAG_WORD, struct.pack("<H", flags))
         self.use_arena(arena)
         self.events = []
-        return self.call(GET_CHUNK, [OBJECT, index & 0xFFFF, FLAG_WORD, previous,
+        return self.call(GET_CHUNK, [OBJECT, index & 0xFFFF,
+                                     FLAG_WORD if flags is not None else 0, previous,
                                      previous_index & 0xFFFF])
 
 
@@ -492,10 +503,18 @@ class Runner:
         mode = "double" if double else "single"
         function = DOUBLE if double else SINGLE
         slots = 2 if double else 1
+        skipping = closed = False
         for step, index in enumerate(order):
             if index is None:  # reset/replay marker
+                if closed:
+                    self.o.reopen(data)
+                    closed = False
                 self.o.reset()
                 self.lib.avf_stream_reset(c.byref(native.st))
+                skipping = False
+                continue
+            if skipping:
+                self.count(f"{mode}_skipped_after_failure")
                 continue
             kind = self.record_type(native, index)
             where = f"{name}:{mode}:{step}:frame{index}:{kind}"
@@ -515,12 +534,14 @@ class Runner:
                     self.mismatch(where, f"original fatal {exc}, native OK")
                 else:
                     self.count(f"fatal_vs_{fx.STATUS[status]}")
-                # A fatal call ends the original stream; stop this sequence.
-                return
+                # A fatal call closes the original stream; resume after the next reset.
+                skipping = closed = True
+                continue
             self.note_hosts()
             if status != fx.OK:
                 self.mismatch(where, f"original OK, native {fx.STATUS[status]}")
-                return
+                skipping = True
+                continue
             buffers_o = {k: (self.o.buffers[k], fb) for k in range(slots)}
             buffers_n = {k: (c.addressof(native.buffers[k]), fb) for k in range(slots)}
             ostate = self.o.state()
@@ -544,7 +565,9 @@ class Runner:
 
     # -- random access chunk ---------------------------------------------------
     def chunks(self, name: str, data: bytes, plan: list[tuple]) -> None:
-        """plan: (index, override_from_step or None, override_index); None index = reset.
+        """plan: (index, override_from_step or None, override_index[, null_flags]).
+
+        A None index is a reset; after a failure the plan resumes at the next reset.
 
         Each decoding call gets a fresh buffer: the original allocates from the
         arena not holding the predecessor, the native side uses the matching
@@ -563,10 +586,20 @@ class Runner:
         results_n: dict[int, int] = {}
         sizes_n: dict[int, int] = {}
         data_steps = 0
-        for step, (index, override_step, override_index) in enumerate(plan):
+        skipping = closed = False
+        for step, entry in enumerate(plan):
+            index, override_step, override_index = entry[:3]
+            null_flags = len(entry) > 3 and entry[3]
             if index is None:
+                if closed:
+                    self.o.reopen(data)
+                    closed = False
                 self.o.reset()
                 self.lib.avf_stream_reset(c.byref(native.st))
+                skipping = False
+                continue
+            if skipping:
+                self.count("chunk_skipped_after_failure")
                 continue
             kind = self.record_type(native, index)
             fresh = kind.startswith("type")
@@ -585,39 +618,46 @@ class Runner:
             status = self.lib.avf_get_chunk(
                 c.byref(native.st), index, out, size, prev_ptr,
                 sizes_n.get(override_step, 0) if override_step is not None else 0,
-                override_index, c.byref(flags), c.byref(result), c.byref(result_bytes),
-                c.byref(state))
+                override_index, None if null_flags else c.byref(flags), c.byref(result),
+                c.byref(result_bytes), c.byref(state))
             try:
-                address = self.o.get_chunk(index, arena, 0x100, prev_o, override_index)
+                address = self.o.get_chunk(index, arena, None if null_flags else 0x100, prev_o,
+                                           override_index)
             except Fatal as exc:
                 self.count("chunk_fatal")
                 if status == fx.OK:
                     self.mismatch(where, f"original fatal {exc}, native OK")
                 else:
                     self.count(f"fatal_vs_{fx.STATUS[status]}")
-                return
+                skipping = closed = True
+                continue
             self.note_hosts()
             if status != fx.OK:
                 self.mismatch(where, f"original OK, native {fx.STATUS[status]}")
-                return
+                skipping = True
+                continue
             n_address = c.addressof(result.contents) if result else 0
             length = result_bytes.value
             in_arena = ARENAS[arena] <= address < ARENAS[arena] + ARENA_SIZE
             ostate = self.o.state()
+            allocations = [e[1] for e in self.o.events if e[0] == "new"]
             original = {
+                # The result is the last allocation of a decoding call.
+                "result_bytes": allocations[-1] if fresh and allocations else None,
                 "result_step": step if fresh and in_arena else latest_o.get(address, "foreign"),
                 "result": digest(self.o.r(address, length)) if fresh else None,
-                "flags": struct.unpack("<H", self.o.r(FLAG_WORD, 2))[0],
+                "flags": None if null_flags else struct.unpack("<H", self.o.r(FLAG_WORD, 2))[0],
                 "last_index": ostate["last_index"],
                 "converts": self.original_converts({"out": (address, length)}),
                 "lzss": self.o.lzss,
             }
             nat = {
+                "result_bytes": length if fresh else None,
                 "result_step": step if fresh and n_address == c.addressof(out)
                 else latest_n.get(n_address, "foreign"),
                 "result": digest(bytes((c.c_uint8 * length).from_address(n_address)))
                 if fresh else None,
-                "flags": flags.value,
+                "flags": None if null_flags else flags.value,
                 "last_index": native.st.last_index,
                 "converts": self.native_converts(native, {"out": (n_address, length)}),
                 "lzss": lzss_view(state) if self.o.lzss is not None else None,
@@ -659,8 +699,15 @@ def synthetic_fixtures() -> dict[str, dict[str, Any]]:
     lit_end = fx.lzss_tokens([("lit", b) for b in key[:7]])[:-1]  # stream ends at a literal
     fixtures: dict[str, dict[str, Any]] = {}
 
-    def add(name: str, frames: list, width: int = W, height: int = H, **kw) -> None:
-        fixtures[name] = {"data": fx.build_avf(width, height, frames, **kw)}
+    def add(name: str, frames: list, width: int = W, height: int = H, *,
+            readers: bool = True, chunk_plan: list | None = None,
+            formats: tuple[str, ...] = tuple(FORMATS), unpacked: dict | None = None,
+            **kw) -> None:
+        data = bytearray(fx.build_avf(width, height, frames, **kw))
+        for index, value in (unpacked or {}).items():  # declared-size overrides
+            struct.pack_into("<I", data, fx.HEADER_BYTES + index * fx.RECORD_BYTES + 0xA, value)
+        fixtures[name] = {"data": bytes(data), "readers": readers, "chunk_plan": chunk_plan,
+                          "formats": formats}
 
     add("type1_full", [(1, full, None), (1, overlap, None), (1, corner, None)])
     add("type2_chain", [(0, key, None), (2, delta_all, None), (2, overlap, None),
@@ -680,6 +727,19 @@ def synthetic_fixtures() -> dict[str, dict[str, Any]]:
         (0, key[:6], lit_end),
         (0, key[:7], fx.lzss_tokens([("lit", b) for b in key[:7]]) + b"\x33"),
     ])
+    # Reviewer cases: original-safe inputs, each run only where the original
+    # stays inside its allocations.
+    add("neg_fill_unconverted", [(0, key, None),
+                                 (2, fx.cmd_fill(7, 0, -1) +
+                                  fx.cmd_fill(8, 0x40000000, 0x80000005), None)],
+        formats=("rgb555",))
+    add("key_larger_than_frame", [(0, fx.frame_pixels(4, 2, 2), None)], width=2, height=2,
+        readers=False)
+    add("lzss_longer_than_declared", [(0, fx.frame_pixels(4, 2, 1), None)], width=4,
+        height=2, unpacked={0: 8}, chunk_plan=[])
+    add("lzss_shorter_than_declared", [(0, fx.frame_pixels(4, 1, 1), None),
+                                       (2, fx.cmd_fill(3, 1, 2), None)],
+        width=4, height=2, unpacked={0: 10}, chunk_plan=[(0, None, 0)])
     add("odd_dims", [(0, fx.frame_pixels(7, 3, 5), None), (2, fx.cmd_copy(20, [1]), None)],
         width=7, height=3)
     # Fatal in the original; the native rejects the same calls.
@@ -718,14 +778,19 @@ def plans(n: int) -> dict[str, Any]:
     replay = forward + [None] + list(reversed(forward)) + [None] + forward
     return {"single": replay, "double": replay,
             "chunk": [(i, None, 0) for i in forward] + [(None, None, 0)] +
-            [(i, None, 0) for i in reversed(forward)]}
+            [(i, None, 0) for i in reversed(forward)] + [(None, None, 0)] +
+            [(i, None, 0) for i in forward]}
 
 
-def run_case(runner: Runner, name: str, data: bytes, n: int, chunk_plan=None) -> None:
+def run_case(runner: Runner, name: str, data: bytes, n: int, chunk_plan=None,
+             readers: bool = True) -> None:
     p = plans(n)
-    runner.readers(name, data, p["single"], False)
-    runner.readers(name, data, p["double"], True)
-    runner.chunks(name, data, chunk_plan or p["chunk"])
+    if readers:
+        runner.readers(name, data, p["single"], False)
+        runner.readers(name, data, p["double"], True)
+    plan = p["chunk"] if chunk_plan is None else chunk_plan
+    if plan:
+        runner.chunks(name, data, plan)
 
 
 MUTATIONS = {
@@ -766,18 +831,25 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             run_case(runner, path.name, data, n)
         if not args.corpus_only:
             for name, fixture in fixtures.items():
+                if fmt_name not in fixture["formats"]:
+                    continue
                 n = struct.unpack_from("<h", fixture["data"], 0x15)[0]
-                chunk_plan = None
+                chunk_plan = fixture["chunk_plan"]
                 if name == "type2_chain":
-                    # After a reset: frame 0, then frame 2 with frame 0's
-                    # result named as predecessor index 1 (override path).
+                    # After a reset: frame 0, then frame 2 with frame 0's result
+                    # named as predecessor index 1 (override path); after a
+                    # second reset, an override pointer with index 0 and an
+                    # index with a NULL pointer (both ignored), then NULL flags.
                     chunk_plan = ([(i, None, 0) for i in range(n)] + [(None, None, 0)] +
-                                  [(0, None, 0), (2, n + 1, 1), (3, None, 0), (4, None, 0)])
+                                  [(0, None, 0), (2, n + 1, 1), (3, None, 0), (4, None, 0)] +
+                                  [(None, None, 0), (0, None, 0), (1, n + 6, 0),
+                                   (2, None, 9), (3, None, 0, True), (4, None, 0, True)])
                 elif name == "short_key":
                     # Type 2 after a short key would over-read the original's
                     # predecessor allocation; the native rejects it (unit test).
                     chunk_plan = [(0, None, 0)]
-                run_case(runner, f"fixture:{name}", fixture["data"], n, chunk_plan)
+                run_case(runner, f"fixture:{name}", fixture["data"], n, chunk_plan,
+                         fixture["readers"])
         report_formats[fmt_name] = {
             "display_format": original.format,
             "counts": dict(sorted(runner.counts.items())),
@@ -808,7 +880,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "fixtures_sha256": sha256((PROJECT / "tests/test_avf_decoder.py").read_bytes()),
         "corpus": {"files": len(corpus_meta), "frames": sum(m["frames"] for m in corpus_meta),
                    "entries": corpus_meta},
-        "synthetic_fixtures": {k: sha256(v["data"]) for k, v in fixtures.items()}
+        "synthetic_fixtures": {k: {"sha256": sha256(v["data"]), "formats": list(v["formats"]),
+                                   "readers": v["readers"],
+                                   "chunk_plan": "default" if v["chunk_plan"] is None
+                                   else len(v["chunk_plan"])} for k, v in fixtures.items()}
         if not args.corpus_only else {},
         "formats": report_formats,
         "total_mismatches": sum(v["mismatch_count"] for v in report_formats.values()),

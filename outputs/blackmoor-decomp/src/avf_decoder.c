@@ -286,9 +286,12 @@ static AvfStatus run_commands(const AvfStream *stream, const uint8_t *cmd, uint3
             value = rd16(cmd + pos + 1);
             offset = pixel_offset(rd32(cmd + pos + 3));
             count = (int32_t)rd32(cmd + pos + 7);
-            /* 0x43ef77 compares signed; type 2 converts (uint32)(count << 1). */
+            /*
+             * 0x43ef77 compares signed; type 2 converts (uint32)(count << 1),
+             * which 0x4c7314 skips entirely when conversion is disabled.
+             */
             fill_bytes = count > 0 ? (uint64_t)count * 2u : 0u;
-            if (type == AVF_TYPE_DELTA) {
+            if (type == AVF_TYPE_DELTA && stream->convert != NULL) {
                 convert_bytes = (uint32_t)count << 1;
             }
             span = fill_bytes > convert_bytes ? fill_bytes : convert_bytes;
@@ -300,7 +303,7 @@ static AvfStatus run_commands(const AvfStream *stream, const uint8_t *cmd, uint3
                 for (k = 0; k < fill_bytes; k += 2u) {
                     wr16(dst + offset + k, value);
                 }
-                if (type == AVF_TYPE_DELTA) {
+                if (convert_bytes >= 2u) {
                     convert_span(stream, dst + offset, convert_bytes);
                 }
             }
@@ -387,9 +390,6 @@ static AvfStatus check_data(const AvfStream *stream, const AvfRecord *record)
     if (record->type > AVF_TYPE_DELTA) {
         return AVF_ERR_UNSUPPORTED;
     }
-    if (record->type == AVF_TYPE_KEY && record->unpacked_bytes > file->frame_bytes) {
-        return AVF_ERR_CORRUPT;
-    }
     return AVF_OK;
 }
 
@@ -398,7 +398,11 @@ static const uint8_t *packed(const AvfStream *stream, const AvfRecord *record)
     return stream->file->data + record->offset;
 }
 
-/* Expand exactly unpacked_bytes, or fail without touching dst when dry. */
+/*
+ * Types 1/2 expand into scratch and then read it as commands, so the
+ * stream must fill exactly unpacked_bytes (native rejection: the original
+ * would read uninitialized heap bytes).
+ */
 static AvfStatus expand_exact(const AvfStream *stream, const AvfRecord *record,
                               uint8_t *dst, AvfLzssState *lzss)
 {
@@ -409,24 +413,41 @@ static AvfStatus expand_exact(const AvfStream *stream, const AvfRecord *record,
     if (status != AVF_OK) {
         return status;
     }
-    /* Native rejection: a short stream leaves stale or uninitialized bytes. */
     return state->produced == record->unpacked_bytes ? AVF_OK : AVF_ERR_CORRUPT;
 }
 
-/* Type 0 into dst: dry run, then output and the 0x4c7314 call. */
+/*
+ * Type 0 into dst: dry run, then output and the 0x4c7314 call over
+ * unpacked_bytes. The original decompresses until the input ends, so any
+ * output length up to `capacity` (the destination allocation) is valid;
+ * bytes it does not write keep their previous contents. The caller ensures
+ * unpacked_bytes <= capacity.
+ */
 static AvfStatus decode_key(const AvfStream *stream, const AvfRecord *record, uint8_t *dst,
-                            AvfLzssState *lzss)
+                            size_t capacity, AvfLzssState *lzss)
 {
-    AvfStatus status = expand_exact(stream, record, NULL, NULL);
+    AvfStatus status = avf_lzss_expand(packed(stream, record), record->packed_bytes, NULL,
+                                       capacity, NULL);
     if (status != AVF_OK) {
         return status;
     }
-    status = expand_exact(stream, record, dst, lzss);
+    status = avf_lzss_expand(packed(stream, record), record->packed_bytes, dst, capacity, lzss);
     if (status != AVF_OK) {
         return status;
     }
     convert_span(stream, dst, record->unpacked_bytes);
     return AVF_OK;
+}
+
+/* Single/double: key frames decompress into the frame buffer itself. */
+static AvfStatus decode_key_frame(const AvfStream *stream, const AvfRecord *record,
+                                  uint8_t *dst, AvfLzssState *lzss)
+{
+    /* Native rejection: the original would convert past the frame. */
+    if (record->unpacked_bytes > stream->file->frame_bytes) {
+        return AVF_ERR_CORRUPT;
+    }
+    return decode_key(stream, record, dst, stream->file->frame_bytes, lzss);
 }
 
 /*
@@ -525,7 +546,7 @@ AvfStatus avf_decode_single(AvfStream *stream, int16_t index, AvfLzssState *lzss
     }
     dst = stream->buffers[0];
     status = record.type == AVF_TYPE_KEY
-        ? decode_key(stream, &record, dst, lzss)
+        ? decode_key_frame(stream, &record, dst, lzss)
         : decode_commands(stream, &record, dst, NULL, lzss);
     if (status != AVF_OK) {
         return status;
@@ -570,7 +591,7 @@ AvfStatus avf_decode_double(AvfStream *stream, int16_t index, int *written,
         return status;
     }
     status = record.type == AVF_TYPE_KEY
-        ? decode_key(stream, &record, dst, lzss)
+        ? decode_key_frame(stream, &record, dst, lzss)
         : decode_commands(stream, &record, dst, previous, lzss);
     if (status != AVF_OK) {
         return status;
@@ -637,7 +658,8 @@ AvfStatus avf_get_chunk(AvfStream *stream, int16_t index,
         if (out_capacity < out_bytes) {
             return AVF_ERR_ARGUMENT;
         }
-        status = decode_key(stream, &record, out, lzss);
+        /* A fresh new(unpacked_bytes) in the original. */
+        status = decode_key(stream, &record, out, out_bytes, lzss);
     } else {
         out_bytes = stream->file->frame_bytes;
         if (out_capacity < out_bytes) {

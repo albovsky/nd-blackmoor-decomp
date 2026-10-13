@@ -53,9 +53,13 @@ typedef enum AvfStatus {
     AVF_ERR_TRUNCATED = 4,    /* header/table/chunk beyond the file (original: reads past the mapping) */
     AVF_ERR_RANGE = 5,        /* frame index outside the table (original: unchecked) */
     AVF_ERR_SEQUENCE = 6,     /* type-2 delta without decoded predecessor (original: fatal) */
-    AVF_ERR_CORRUPT = 7,      /* LZSS or command data out of bounds (original: memory corruption) */
-    AVF_ERR_UNSUPPORTED = 8   /* compression != 2, bpp != 16, record type > 2,
-                                 unknown command byte (original: fatal or endless loop) */
+    AVF_ERR_CORRUPT = 7,      /* LZSS or command data out of bounds (original: memory
+                                 corruption); also negative count or non-positive
+                                 width/height at open (native design rejection) */
+    AVF_ERR_UNSUPPORTED = 8   /* compression != 2 or record type > 2 with data (original:
+                                 fatal), unknown command byte (original: endless loop),
+                                 bpp != 16 (native design limit; the original only uses
+                                 bpp to size frames) */
 } AvfStatus;
 
 /* Frame-table record types (record +0xe). */
@@ -168,7 +172,13 @@ AvfStatus avf_stream_init(AvfStream *stream, const AvfFile *file,
 /* Return to the post-open state without touching any buffer. */
 void avf_stream_reset(AvfStream *stream);
 
-/* 0x41546f: decode `index` into buffers[0]; result flags in flags[0]. */
+/*
+ * 0x41546f: decode `index` into buffers[0]; result flags in flags[0].
+ * A key frame's LZSS output may be any length up to frame_bytes (bytes it
+ * does not reach keep the previous frame); unpacked_bytes, which is what
+ * gets converted, must not exceed frame_bytes. Command records (types 1/2)
+ * must expand to exactly unpacked_bytes.
+ */
 AvfStatus avf_decode_single(AvfStream *stream, int16_t index, AvfLzssState *lzss);
 
 /*
@@ -182,8 +192,10 @@ AvfStatus avf_decode_double(AvfStream *stream, int16_t index, int *written,
 
 /*
  * 0x415176: decode `index` into `out` (a fresh buffer in the original).
- * Type 0 writes unpacked_bytes; types 1/2 write frame_bytes, and type 1
- * leaves pixels it does not cover unchanged (uninitialized in the original).
+ * Type 0 yields unpacked_bytes (which may exceed frame_bytes) and its LZSS
+ * output may stop short of that; types 1/2 yield frame_bytes, and type 1
+ * leaves pixels it does not cover. Bytes not written keep `out`'s contents
+ * (uninitialized in the original).
  * When override_previous is non-NULL and override_index is nonzero, they
  * replace the predecessor and last index first, as the original does with
  * nonzero param_4/param_5. On success *result points to `out`, or to the

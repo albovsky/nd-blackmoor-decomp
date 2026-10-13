@@ -495,18 +495,52 @@ class AvfDecoderTests(unittest.TestCase):
         self.assertEqual((s.stream.flags[0], s.stream.last_index), (1, 1))
         self.assertEqual(state.produced, 16)
 
-    def test_key_frame_shorter_than_frame_is_rejected(self) -> None:
+    def test_key_frame_output_length_rules(self) -> None:
+        # Shorter than the frame: the tail keeps the previous frame.
         data = build_avf(4, 2, [(0, frame_pixels(4, 1, 0), None)])
         s = Session(self.lib, data)
         before = s.snapshot()
-        self.assertEqual(s.single(0), OK)  # unpacked 8 <= buffer, stale tail kept
+        self.assertEqual(s.single(0), OK)
         self.assertEqual(s.buffer(0)[8:], before[4][8:16])
+        # LZSS shorter than declared: single mode converts the declared size.
         lying = bytearray(data)
-        struct.pack_into("<I", lying, HEADER_BYTES + 0xA, 10)  # LZSS gives 8
-        s = Session(self.lib, bytes(lying))
-        before = s.snapshot()
+        struct.pack_into("<I", lying, HEADER_BYTES + 0xA, 10)
+        s = Session(self.lib, bytes(lying), convert=True)
+        self.assertEqual(s.single(0), OK)
+        self.assertEqual(s.calls, [(0, 0, 10)])
+        # LZSS longer than declared but inside the frame (reviewer case 2).
+        long_out = build_avf(4, 2, [(0, frame_pixels(4, 2, 1), None)])
+        long_out = bytearray(long_out)
+        struct.pack_into("<I", long_out, HEADER_BYTES + 0xA, 8)
+        s = Session(self.lib, bytes(long_out), convert=True)
+        self.assertEqual(s.single(0), OK)
+        self.assertEqual(s.buffer(0), bytes(struct.pack(
+            "<8H", *([(w + 1) & 0xFFFF for w in words(frame_pixels(4, 2, 1))[:4]] +
+                     words(frame_pixels(4, 2, 1))[4:]))))
+        # Output past the frame, or a declared size past it, is rejected.
+        past = build_avf(2, 2, [(0, frame_pixels(4, 2, 1), None)])
+        for declared in (8, 16):
+            mutated = bytearray(past)
+            struct.pack_into("<I", mutated, HEADER_BYTES + 0xA, declared)
+            s = Session(self.lib, bytes(mutated))
+            before = s.snapshot()
+            with self.subTest(declared=declared):
+                self.assertEqual(s.single(0), CORRUPT)
+                self.assertEqual(s.double(0)[0], CORRUPT)
+                self.assertEqual(s.snapshot(), before)
+
+    def test_get_chunk_key_larger_than_frame(self) -> None:
+        # GetChunk allocates unpacked_bytes, so a large key record is valid there.
+        payload = frame_pixels(4, 2, 2)
+        data = build_avf(2, 2, [(0, payload, None)])
+        s = Session(self.lib, data)
+        out = (c.c_uint8 * 16)()
+        status, flags, address, size = s.chunk(0, out)
+        self.assertEqual((status, flags, size), (OK, 1, 16))
+        self.assertEqual(bytes(out), payload)
         self.assertEqual(s.single(0), CORRUPT)
-        self.assertEqual(s.snapshot(), before)
+        short = (c.c_uint8 * 15)()
+        self.assertEqual(Session(self.lib, data).chunk(0, short)[0], ARGUMENT)
 
     # -- type 1 ------------------------------------------------------------------
     def test_type1_commands_keep_uncovered_pixels_and_convert_once(self) -> None:
@@ -671,19 +705,28 @@ class AvfDecoderTests(unittest.TestCase):
 
     def test_negative_fill_count(self) -> None:
         key = bytes(8)
-        # Type 1 ignores it; type 2 then converts (count & 0x7fffffff) pixels.
-        for kind, count, status in ((1, -1, OK), (2, -1, CORRUPT),
-                                    (2, -0x7FFFFFFE, OK), (2, -0x80000000, OK)):
-            with self.subTest(kind=kind, count=count):
+        # Type 1 ignores it; type 2 converts (count & 0x7fffffff) pixels, which
+        # 0x4c7314 skips when conversion is disabled (no hook).
+        cases = ((1, -1, True, OK), (2, -1, True, CORRUPT), (2, -1, False, OK),
+                 (2, -0x7FFFFFFE, True, OK), (2, -0x80000000, True, OK),
+                 (2, 0x7FFFFFFF, False, CORRUPT))
+        for kind, count, hook, status in cases:
+            with self.subTest(kind=kind, count=count, hook=hook):
                 data = build_avf(4, 1, [(0, key, None), (kind, cmd_fill(7, 0, count), None)])
-                s = Session(self.lib, data, convert=True)
+                s = Session(self.lib, data, convert=hook)
                 self.assertEqual(s.single(0), OK)
                 s.calls.clear()
                 self.assertEqual(s.single(1), status)
                 if status == OK and kind == 2:
                     # 0x4c7314 converts nothing below two bytes; such calls are omitted.
                     converted = (count << 1) & 0xFFFFFFFF
-                    self.assertEqual(s.calls, [(0, 0, converted)] if converted >= 2 else [])
+                    self.assertEqual(s.calls, [(0, 0, converted)] if hook and converted >= 2
+                                     else [])
+        # Out-of-frame offset with nothing to fill or convert is accepted.
+        data = build_avf(4, 1, [(0, key, None), (2, cmd_fill(7, 0x40000000, -0x7FFFFFFB), None)])
+        s = Session(self.lib, data)
+        self.assertEqual(s.single(0), OK)
+        self.assertEqual(s.single(1), OK)
 
     def test_malformed_command_streams_change_nothing(self) -> None:
         key = frame_pixels(4, 1, 2)
