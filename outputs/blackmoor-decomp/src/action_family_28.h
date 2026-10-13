@@ -129,13 +129,15 @@ int action_family28_sequence_frame_count(int16_t sequence_budget_ms,
     uint32_t first_frame_elapsed_ms, uint32_t *out_frame_count);
 /* Explicit x87 precision variants of the original curve. Intermediate
  * arithmetic is rounded to the selected significand precision in software;
- * native binary64 exp() substitutes for the original x86 CRT helper, so this
- * portable adapter does not promise bit-exact curve parity. */
+ * native binary64 exp() substitutes for the original x86 CRT helper. The
+ * residual curve drift is not isolated to exp(), so bit-exact parity is not
+ * promised. */
 int action_family28_sequence_weight_for_cw(uint32_t frame_index,
     uint32_t selected_frame_count, uint16_t control_word, double *out_weight);
 /* Synchronous native controller. The explicit x87 CW is used for both curve
  * arithmetic and blend callbacks; curve exp() uses native binary64/libm (see
- * above). Invalid inputs
+ * above), and remaining curve drift is not attributed solely to exp().
+ * Invalid inputs
  * leave state and report unchanged. Callback failures report prior host
  * effects and stop before the original completion/final-state writes. */
 int action_family28_run_sequence(ActionFamily28SequenceState *state,

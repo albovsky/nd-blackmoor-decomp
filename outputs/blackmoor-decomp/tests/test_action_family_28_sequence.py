@@ -1,9 +1,14 @@
 """A-28.3.2 controller contract and callback-order regressions."""
 import ctypes as c
 from pathlib import Path
+import subprocess
 import unittest
 
-LIBRARY = Path(__file__).resolve().parents[1] / "build/libactionfamily28.dylib"
+BUILD_DIR = Path(__file__).resolve().parents[1] / "build"
+LIBRARY = BUILD_DIR / "libactionfamily28.dylib"
+DIVISION_FIXTURE_SOURCE = Path(__file__).with_name(
+    "action_family_28_x87_division_fixture.c")
+DIVISION_FIXTURE_LIBRARY = BUILD_DIR / "libactionfamily28_x87_division_fixture.dylib"
 OK, ARGUMENT, BODY, UNSUPPORTED, BOUNDS, MEMORY, CALLBACK = range(7)
 CW_DOUBLE, CW_EXTENDED = 0x027F, 0x037F
 FAIL_NONE, FAIL_TICK, FAIL_BLEND, FAIL_PUMP = range(4)
@@ -164,6 +169,16 @@ class SequenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.lib = configure(c.CDLL(str(LIBRARY)))
+        subprocess.run([
+            "xcrun", "--sdk", "macosx", "clang", "-std=c11", "-Wall",
+            "-Wextra", "-Wpedantic", "-Werror", "-fPIC", "-dynamiclib",
+            str(DIVISION_FIXTURE_SOURCE), "-o", str(DIVISION_FIXTURE_LIBRARY)],
+            check=True, capture_output=True, text=True)
+        cls.division_lib = c.CDLL(str(DIVISION_FIXTURE_LIBRARY))
+        cls.division_lib.action_family28_test_divide_one_third.argtypes = [
+            c.c_uint, c.POINTER(c.c_uint64), c.POINTER(c.c_uint64),
+            c.POINTER(c.c_int32)]
+        cls.division_lib.action_family28_test_divide_one_third.restype = c.c_int
 
     def run_sequence(self, state, harness, cw=CW_EXTENDED):
         report = Report()
@@ -192,6 +207,26 @@ class SequenceTests(unittest.TestCase):
         self.assertEqual((state.busy, state.render_guard, state.redraw_flag), (0, 0, 1))
         self.assertEqual((state.finalizer_global_5831c8, state.finalizer_global_5831c6), (1, 0))
         self.assertEqual(report.completion_committed, 1)
+
+    def test_division_normalizes_before_rounding_at_both_x87_precisions(self):
+        for precision, expected_significand, expected_exponent in (
+                (53, 0x15555555555555, -54),
+                (64, 0xAAAAAAAAAAAAAAAB, -65)):
+            with self.subTest(precision=precision):
+                high, low, exponent = c.c_uint64(), c.c_uint64(), c.c_int32()
+                self.assertEqual(
+                    self.division_lib.action_family28_test_divide_one_third(
+                        precision, c.byref(high), c.byref(low),
+                        c.byref(exponent)), 0)
+                self.assertEqual(high.value, 0)
+                self.assertEqual(low.value, expected_significand)
+                self.assertEqual(exponent.value, expected_exponent)
+
+        for control_word in (CW_DOUBLE, CW_EXTENDED):
+            weight = c.c_double()
+            self.assertEqual(self.lib.action_family28_sequence_weight_for_cw(
+                3, 5, control_word, c.byref(weight)), OK)
+            self.assertEqual(weight.value.hex(), "0x1.43515738086b8p-2")
 
     def test_curve_cw_is_explicit_and_changes_the_original_precision_boundary(self):
         double_weight, extended_weight = c.c_double(), c.c_double()

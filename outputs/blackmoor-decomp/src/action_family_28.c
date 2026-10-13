@@ -254,6 +254,24 @@ static ActionFamily28X87Value divide_x87_values(
     }
     quotient = scaled_numerator / scaled_denominator;
     remainder = scaled_numerator % scaled_denominator;
+    /* The bit-length estimate can leave the quotient one bit short when the
+     * normalized numerator is smaller than the denominator. Normalize the
+     * exact quotient before rounding, or values such as 1/3 receive only
+     * precision-1 significant bits. The estimate is at most one bit short. */
+    if (quotient < ((ActionFamily28UInt128)1u << (precision - 1u))) {
+        if (shift >= 0) {
+            if (bit_length_u128(scaled_numerator) >= 128u) {
+                return round_x87_value(0, 0u, 0, precision);
+            }
+            scaled_numerator <<= 1;
+        } else {
+            scaled_denominator >>= 1;
+        }
+        shift += 1;
+        exponent_shift = shift;
+        quotient = scaled_numerator / scaled_denominator;
+        remainder = scaled_numerator % scaled_denominator;
+    }
     if (remainder > scaled_denominator - remainder ||
         (remainder == scaled_denominator - remainder &&
          (quotient & 1u) != 0u)) {
