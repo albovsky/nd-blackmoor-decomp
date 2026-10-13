@@ -60,8 +60,8 @@
     "complete_dependency_tree_or_action_runtime": false
   },
   "tests": {
-    "discovered": 332,
-    "passed": 330,
+    "discovered": 367,
+    "passed": 365,
     "skipped": 2,
     "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
   },
@@ -81,13 +81,15 @@
   },
   "native_scene_resource_parser": {
     "scenes_parsed": 2078,
-    "parse_failures": 0,
     "action_records": 19612,
-    "typed_actions": 11017,
-    "opaque_actions": 8595,
-    "known_dependency_records": 15281,
-    "targeted_tests": 17,
-    "action_execution": false
+    "typed_actions": 11089,
+    "opaque_actions": 8523,
+    "known_dependency_records": 17050,
+    "targeted_tests": 18,
+    "action_execution": false,
+    "resources_attempted": 2267,
+    "not_parsed_as_scene": 189,
+    "corpus_source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8"
   },
   "native_bink_adapter": {
     "native_library": "installed FFmpeg 9.0.1",
@@ -202,7 +204,8 @@
     "hotspot_original_comparisons": 13,
     "hotspot_mismatches": 0,
     "accepted_activation_event": "WM_LBUTTONUP primary release",
-    "legacy_action_diagnostic": "--inspect-actions intentionally registers only UI callbacks and stops at unregistered sound type0x9f; the handler now exists"
+    "legacy_action_diagnostic": "--inspect-actions intentionally registers only UI callbacks and stops at unregistered sound type0x9f; the handler now exists",
+    "live_coordinate_contract": "under original-producer reconciliation: viewport/clipping bounds must be distinguished from cursor/message coordinates; prior isolated helper fixtures do not prove the live input adapter"
   },
   "native_his_audio": {
     "files_scanned": 2509,
@@ -307,26 +310,36 @@
   },
   "next_scene_blockers": {
     "scene": "S5900",
-    "opaque_raw_types": [
-      "0x64",
-      "0x62",
-      "0x28",
-      "0x51"
+    "opaque_raw_types": [],
+    "first_opaque_action_index": null,
+    "all_15_actions_have_typed_boundaries": true,
+    "native_timed_background_adapter": true,
+    "execution_blockers": [
+      "Persistent scene session and ordered S5900 pass (I01-1)",
+      "A-62 live selector/input/guard provider",
+      "Accepted caption rendering/lifecycle and shared A-51 flags",
+      "Original clock producers and full transition tuple consumer"
     ],
-    "first_opaque_action_index": 0,
-    "timed_background_media": false
+    "gate_scope": "A28 dependency snapshot is pre-dispatch only; earlier rows are not yet executed in the diagnostic",
+    "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "33c1733431fdaa459f6b8bafb42cff3d49e6ef2d",
+    "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 332,
-      "passed": 330,
+      "discovered": 367,
+      "passed": 365,
       "skipped": 2
     },
-    "build_log_sha256": "471b75826e26dc2eda8dae6f9e26083467bfa0305fd7d29450a4fb0d50d6a5fd",
-    "test_log_sha256": "08afb2297a9febd1536aa497774d10a943ea614b8865e25dfdac272994c4a125",
-    "scope": "Collected world/clock/timed-background integration and isolated A28/A51/A62/A64 kernels; older diagnostic fields retain their original report scope. Caption/frame rendering, live interaction providers, complete gameplay and whole-file x86 matching remain open.",
+    "build_log_sha256": "c9c7ad900165e8fb402603dbcfd2931c8e0b82b0cb4bf095317c71b50924a7c4",
+    "test_log_sha256": "61b277894736ffb38b42623890661b1e3e39ce619f68c1d618aefe3a1a0e4c6d",
+    "original_oracles": {
+      "sound_control_cases": 34,
+      "sound_control_mismatches": 0,
+      "action28_frame_cases": 1,
+      "action28_frame_mismatches": 0
+    },
+    "scope": "Reviewed S04-1 raw sound control and A28 controller/frame adapter collected. S0/S5900 diagnostic captures remain separate from persistent gameplay; I01-1 implements the session. Caption renderer/lifecycle review, broader sound/media parity, complete gameplay and whole-file x86 matching remain open.",
     "gui_verified": false,
     "hardware_audio_verified": false
   },
@@ -344,5 +357,41 @@
     "tests_passed": 17,
     "offline": true,
     "live_refresh": false
+  },
+  "native_sound_control": {
+    "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
+    "reviewed": true,
+    "native_unit_tests": 10,
+    "original_comparisons": 34,
+    "original_mismatches": 0,
+    "scope": "raw flags/control, Play result, restart/random delay, volume categories/master and independent attenuation",
+    "remaining": [
+      "mode-1/HIS stream lifecycle",
+      "fade helper bodies",
+      "pan and second attenuation consumer",
+      "original decode/PCM parity",
+      "actual audible playback"
+    ]
+  },
+  "native_action28": {
+    "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
+    "reviewed_kernel_controller_and_surface_adapter": true,
+    "controller_constructor_cases": 72,
+    "controller_dispatcher_cases": 92,
+    "lut_entries_compared": 196608,
+    "packed_pixels_compared": 288,
+    "controller_fixture_mismatches": 0,
+    "surface_sequence_unit_tests": 11,
+    "original_frame_chain_cases": 1,
+    "original_frame_chain_mismatches": 0,
+    "shared_crop_offset_contract": "unequal source/target offsets rejected before output mutation",
+    "capture_scope": "owned decoded backgrounds; original composed framebuffer unrepresented",
+    "live_action_dispatch": false,
+    "curve_exact_parity": false,
+    "remaining": [
+      "exact Windows CRT curve output (residual up to46ULP in tested sweep)",
+      "live A28 dispatch/source capture/composition/presentation/pumps",
+      "broader pixel/timing behavior beyond tested fixtures"
+    ]
   }
 }
