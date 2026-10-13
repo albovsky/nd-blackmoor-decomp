@@ -42,9 +42,9 @@
       "packet": "tasks/S05-caption-layout.md",
       "status": "INCOMPLETE: reviewed writer/lifecycle collected; composition/live UI open",
       "depends_on": [],
-      "current_child_packet": "tasks/S05-review-repairs.md",
-      "assigned_worker": "Boot: shared caption integration; isolated repair worker frozen",
-      "assignment_state": "repair snapshot26927043 reviewed clear and collecteda1dbe42; shared integration Boot"
+      "current_child_packet": "tasks/S05-3-caption-composition.md",
+      "assigned_worker": "/root/sound_control_luna6: isolated compositor; Boot: shared wiring",
+      "assignment_state": "S05-3 issued; claim pending; reviewed writer/lifecycle collected"
     },
     {
       "id": "S06",
@@ -64,8 +64,10 @@
       "id": "S08",
       "title": "Matching build and function batches",
       "packet": "tasks/S08-matching-build.md",
-      "status": "IN PROGRESS: six-function source batch audited; 0/6 exact",
-      "depends_on": []
+      "status": "INCOMPLETE: S08-2 six accessor extents matched; S08-3 issued",
+      "depends_on": [],
+      "current_child_packet": "tasks/S08-3-input-method-matching.md",
+      "assignment_state": "S08-3 claim pending; 126 unique exact bytes across prior extents"
     },
     {
       "id": "A-0B",
