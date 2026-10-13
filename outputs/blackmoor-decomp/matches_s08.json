@@ -1,0 +1,49 @@
+{
+  "description": "Six complete Ghidra-indexed thiscall accessor/setter functions independently reconstructed from observed field accesses; exact selected-function match only, not whole-executable reconstruction.",
+  "source": "src/matching_s08.c",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "functions": [
+    {
+      "rva": 896614,
+      "size": 17,
+      "symbol": "_FUN_004dae66",
+      "object": "build/matching_s08.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"
+    },
+    {
+      "rva": 896631,
+      "size": 17,
+      "symbol": "_FUN_004dae77",
+      "object": "build/matching_s08.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"
+    },
+    {
+      "rva": 896753,
+      "size": 17,
+      "symbol": "_FUN_004daef1",
+      "object": "build/matching_s08.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"
+    },
+    {
+      "rva": 896770,
+      "size": 22,
+      "symbol": "_FUN_004daf02",
+      "object": "build/matching_s08.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"
+    },
+    {
+      "rva": 896792,
+      "size": 17,
+      "symbol": "_FUN_004daf18",
+      "object": "build/matching_s08.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"
+    },
+    {
+      "rva": 896809,
+      "size": 22,
+      "symbol": "_FUN_004daf29",
+      "object": "build/matching_s08.obj",
+      "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"
+    }
+  ]
+}
