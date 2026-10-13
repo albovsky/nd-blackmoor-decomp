@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "initial": {
+    "rects": 4187,
+    "units": 20,
+    "historyDisabled": true,
+    "oracleMetric": "17",
+    "source": "SOURCE b28e27792d12 · 2026-10-13T20:52:30Z"
+  },
+  "exactRects": 2,
+  "exactInspector": "FUN_0052398b\n0x52398b\nAddress unit\n0x0052xxxx (VA band)\nSpan\n50 bytes\nExtent basis\nnext-start address span (estimated)\nEvidence ID\nev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/52398b.c.txt\nEXACT SELECTED BYTE RANGES\n7 bytes at 0x52398b · selected range; function completeness unverified",
+  "keyboardArrowMovedFocus": true,
+  "vaSearch": {
+    "rects": 1,
+    "inspector": "FUN_00427a50\n0x427a50\nAddress unit\n0x0042xxxx (VA band)\nSpan\n12,893 bytes\nExtent basis\nnext-start address span (estimated)\nEvidence ID\nev_cf85def1568380b2ebf44119180440e99f852bed065d4e3cd26944aa51b63fd1\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/427a50.c.txt\nORIGINAL-ORACLE REPORT EVIDENCE\nS0 hotspot runtime · bounded report · 0x427a50 dispatcher\nScope: S0 action-runtime slice for the two 0x6a flag hotspots and the raw-0x15 record normalized by the loader to runtime 0x0d; not full-game equivalence\nReport does not record a source-file hash binding.\n· Evidence report · native source reference\nSelected action-core handlers · bounded report · 0x427a50 original action dispatcher\nScope: selected state-editing handlers 0x4d/0x61/0x6b/0x71 entered via original 0x427a50 dispatcher; not a whole-scene or full-game comparison\nReport does not record a source-file hash binding.\n· Evidence report · native source reference\nA-64 original oracle · bounded report · dispatcher 0x427a50\nScope: bounded action-family 0x64 runtime; not whole-scene or full-game equivalence\nSource SHA matches; native-library SHA differs from the validation report.\n· source-binding report · Evidence report · native source reference"
+  },
+  "interiorWindow": {
+    "rects": 1,
+    "inspector": "FUN_0040b34a\n0x40b34a\nAddress unit\n0x0040xxxx (VA band)\nSpan\n23,631 bytes\nExtent basis\nnext-start address span (estimated)\nEvidence ID\nev_e1d5cf90f6aebf321704f8d611ce26ca2904fc537a9974fc07aaf8081db3bfa6\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/40b34a.c.txt\nORIGINAL-ORACLE REPORT EVIDENCE\nA-64 original oracle · bounded report · original constructor FUN_0040b34a\nScope: bounded action-family 0x64 runtime; not whole-scene or full-game equivalence\nSource SHA matches; native-library SHA differs from the validation report.\n· source-binding report · Evidence report · native source reference\nINTERIOR ORIGINAL-ORACLE WINDOWS\n0x40d04b–0x40d116 · A-64 original oracle · 0x64 constructor case selected by table; partial window, not full function coverage · Evidence report"
+  },
+  "oracleBoundTiles": 0,
+  "unknownExtent": {
+    "rects": 0,
+    "button": "Unknown extent record, not area-scaled: 0x529248 Unwind@00529248",
+    "inspector": "Unwind@00529248\n0x529248\nAddress unit\n0x0052xxxx (VA band)\nSpan\nUnknown extent\nExtent basis\nunknown final extent\nEvidence ID\nev_103b446af90999e21d4e460ffaf2ca0eceda03f2ae40f017e023b1a6a4c96505\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/529248.c.txt\nCURRENT EVIDENCE\n\nNo function-specific original-oracle or exact-byte evidence is recorded in this snapshot. Exported pseudocode remains UNVERIFIED."
+  },
+  "mobile": {
+    "width": 390,
+    "docWidth": 390
+  },
+  "consoleErrors": [],
+  "screenshots": [
+    "preview-headless.png",
+    "preview-exact-inspector.png"
+  ]
+}

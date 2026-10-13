@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Blackmoor · Local Decompilation Map</title>
+<style>
+:root{color-scheme:dark;--bg:#0e141c;--panel:#151e29;--line:#2c3a4a;--text:#d9e3ee;--muted:#8fa0b2;--cyan:#39d9e8;--amber:#f4ad4e;--violet:#b59cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 9% -8%,rgba(34,106,135,.15),transparent 36rem),var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:var(--text);background:#111a24;border:1px solid var(--line);border-radius:8px}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}a{color:#74d9e9;text-decoration:none}a:hover{text-decoration:underline}:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.shell{max-width:1680px;margin:0 auto;padding:22px 24px 40px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:18px;border-bottom:1px solid #253241}
+.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--cyan);background:linear-gradient(145deg,#132e3b,#182434);border:1px solid #285568;font:700 18px ui-monospace,Menlo,monospace}
+h1{margin:0;font-size:19px;letter-spacing:-.025em}.kicker,.stamp,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.kicker{margin-top:4px;color:var(--muted);font-size:10px}.stamp{color:var(--muted);font-size:10px;text-align:right;overflow-wrap:anywhere}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.metric{padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:linear-gradient(145deg,rgba(25,36,49,.96),rgba(17,25,35,.96));min-width:0}
+.metric-label{color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:650}.metric-value{margin-top:5px;font:650 21px/1.05 ui-monospace,Menlo,monospace}.metric-detail{margin-top:5px;color:#9eacbb;font-size:10px}
+.notice{display:flex;gap:10px;margin:10px 0 16px;padding:10px 13px;border:1px solid #5c4b2f;border-radius:9px;color:#ddcba7;background:rgba(69,51,24,.24);font-size:11px}.notice-dot{flex:0 0 7px;height:7px;margin-top:5px;border-radius:50%;background:var(--amber)}
+.workbench{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px}.panel{border:1px solid var(--line);border-radius:12px;background:rgba(19,28,39,.9);box-shadow:0 14px 35px rgba(0,0,0,.12)}
+.map-panel{min-width:0;padding:14px}.inspector{padding:16px;min-height:580px}.panel-heading,.section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.panel-heading h2,.section-heading h2{margin:0;font-size:13px;font-weight:650}.micro{color:var(--muted);font-size:10px}
+.history{display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;margin-bottom:12px;border:1px solid #354556;border-radius:8px}.history button{min-height:34px;border:0;border-radius:0;background:#182330;font-size:11px}.history button+button{border-left:1px solid #354556}.history-note{margin:-5px 0 11px;color:var(--muted);font-size:10px}
+.filters{display:grid;grid-template-columns:minmax(145px,.72fr) minmax(180px,.9fr) minmax(200px,1.6fr);gap:8px;margin-bottom:12px}.filters label{display:flex;flex-direction:column;gap:5px;color:#aebdcb;font-size:10px;font-weight:600}.filters select,.filters input{width:100%;min-height:36px;padding:7px 10px;font-size:11px}
+#filterSummary{min-height:17px;margin:-4px 1px 8px;color:var(--muted);font:10px ui-monospace,Menlo,monospace}.unknown-extent{margin:0 0 8px}.unknown-extent[hidden]{display:none}.unknown-record{padding:6px 9px;color:#d9cba9;background:#27251e;border-color:#605337;font-size:10px}.map-frame{height:clamp(390px,61vh,780px);overflow:hidden;border-radius:8px;border:1px solid #293747;background:linear-gradient(90deg,rgba(83,105,125,.045) 1px,transparent 1px),linear-gradient(rgba(83,105,125,.045) 1px,transparent 1px),#0e151e;background-size:18px 18px}
+#treemap{display:block;width:100%;height:100%}.tile{shape-rendering:crispEdges;cursor:pointer;stroke:#101821;stroke-width:.8}.tile-unverified{fill:#536477}.tile-oracle-bound{fill:#af7939}.tile-oracle-report{fill:#364f62;stroke:#65a9ca;stroke-dasharray:2 1}.tile-oracle-range{fill:#4a5d67;stroke:#d2ad6d;stroke-dasharray:3 2}.tile-controlled{fill:#765b9d}.tile-s08{fill:#456e8b;stroke:#b59cff;stroke-width:1.3;stroke-dasharray:3 2}.tile-exact{stroke:var(--cyan);stroke-width:2}.tile:hover,.tile:focus{filter:brightness(1.42);stroke:#e9f6ff;stroke-width:1.8}.exact-tick{fill:var(--cyan);pointer-events:none}.no-results{fill:#91a3b5;font:15px ui-sans-serif,system-ui}
+.map-caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-top:9px;color:var(--muted);font-size:10px}.legend{display:flex;flex-wrap:wrap;gap:12px 17px;margin-top:13px}.legend-item{display:flex;align-items:center;gap:7px;color:#b6c4d2;font-size:10px}.swatch{width:12px;height:12px;border-radius:3px;border:1px solid #8798aa;background:#536477}.swatch.oracle{background:#af7939;border-color:#e7ae59}.swatch.report{background:#364f62;border:1px dashed #65a9ca}.swatch.range{background:#4a5d67;border:1px dashed #d2ad6d}.swatch.controlled{background:#765b9d;border-color:#c2aaf1}.swatch.s08{background:#456e8b;border:1px dashed #b59cff}.swatch.exact{border:2px solid var(--cyan);background:transparent}
+.inspector h2{margin:0 0 13px;font-size:14px}.selected-name{overflow-wrap:anywhere;color:#eff7ff;font:600 13px/1.4 ui-monospace,Menlo,monospace}.selected-va{margin:4px 0 12px;color:var(--cyan);font:12px ui-monospace,Menlo,monospace}.detail-grid{display:grid;grid-template-columns:95px minmax(0,1fr);gap:8px 10px;margin:14px 0;font-size:10px}.detail-grid dt{color:var(--muted)}.detail-grid dd{min-width:0;margin:0;overflow-wrap:anywhere;color:#cfdae5}.rule{height:1px;border:0;margin:15px 0;background:#2c3948}
+.detail-block{margin:13px 0}.detail-block h3{margin:0 0 6px;color:#aabaca;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.detail-block p,.detail-block ul{margin:0;color:#c5d0dc;font-size:10px}.detail-block ul{padding-left:16px}.detail-block li+li{margin-top:6px}.link-list{display:flex;flex-direction:column;gap:6px}.link-list a{overflow-wrap:anywhere;font-size:10px}.empty-inspector{color:var(--muted);font-size:11px}
+.lower-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:14px;margin-top:14px}.lower-panel{padding:15px;min-width:0}.section-heading{margin-bottom:11px}.lineage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.lineage-card{min-width:0;padding:10px;border:1px solid #2a3949;border-radius:8px;background:#121b25}.lineage-card strong{display:block;margin-bottom:4px;font-size:10px}.lineage-card p{margin:0;color:#aebdcb;font-size:9px;overflow-wrap:anywhere}.lineage-card code{color:#80cfe0;font-size:9px}
+.table-wrap{max-height:510px;overflow:auto;border:1px solid #2a3949;border-radius:8px}table{width:100%;border-collapse:collapse;font-size:9px}th{position:sticky;top:0;z-index:1;padding:8px;text-align:left;color:#9eacbb;background:#192430;font-size:8px;text-transform:uppercase;letter-spacing:.08em}td{padding:8px;border-top:1px solid #243240;vertical-align:top}td:first-child{white-space:nowrap;color:#83d5e5;font:9px ui-monospace,Menlo,monospace}td:nth-child(2){min-width:130px}.badge{display:inline-block;max-width:210px;padding:3px 6px;border-radius:5px;color:#bbc7d2;background:#263443;font-size:8px;overflow-wrap:anywhere}.badge.claim{color:#dfc398;background:#493b27}.badge.received{color:#a8dfc6;background:#213a32}.coordination-note{margin-top:10px;color:#b6c4d2;font-size:10px}.footer{margin-top:16px;color:#75869a;font-size:9px}
+@media(max-width:980px){.workbench{grid-template-columns:1fr}.inspector{min-height:0}.lower-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.shell{padding:14px 12px 24px}.topbar{align-items:flex-start}.stamp{max-width:130px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-value{font-size:17px}.filters{grid-template-columns:1fr 1fr}.filters label:last-child{grid-column:1/-1}.map-frame{height:440px}.lineage-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="topbar"><div class="brand"><div class="brand-mark" aria-hidden="true">▧</div><div><h1>Local Decompilation Map</h1><div class="kicker">BLACKMOOR / OFFLINE SNAPSHOT / ORIGINAL GAME.EXE</div></div></div><div class="stamp" id="snapshotStamp"></div></header>
+<section class="metrics" aria-label="Snapshot evidence summary">
+<article class="metric"><div class="metric-label">Indexed function starts</div><div class="metric-value" id="metricFunctions">—</div><div class="metric-detail">Ghidra inventory · starts only outside audited ranges</div></article>
+<article class="metric"><div class="metric-label">Exact selected bytes</div><div class="metric-value" id="metricExact">—</div><div class="metric-detail" id="metricExactDetail"></div></article>
+<article class="metric"><div class="metric-label">Audited complete extents</div><div class="metric-value" id="metricAudited">—</div><div class="metric-detail" id="metricAuditedDetail"></div></article>
+<article class="metric"><div class="metric-label">Oracle evidence starts</div><div class="metric-value" id="metricOracle">—</div><div class="metric-detail" id="metricOracleDetail"></div></article>
+</section>
+<div class="notice" role="note"><span class="notice-dot" aria-hidden="true"></span><div><strong>Extent limits.</strong> Most tile areas use the span to the next indexed start and may include padding, data, or gaps. Internal gaps cannot be measured from this starts-only index. The map does not calculate a decompilation percentage or imply whole-game completion.</div></div>
+<section class="workbench" aria-label="Function treemap and inspector">
+<article class="panel map-panel">
+<div class="panel-heading"><h2>Function address treemap</h2><span class="micro" id="mapMeta"></span></div>
+<div class="history" aria-label="Snapshot history"><button disabled title="No earlier snapshots are included">‹ Previous</button><button disabled title="No later snapshots are included">Next ›</button><button disabled title="This is the only supplied snapshot">Latest</button></div>
+<p class="history-note">History navigation is disabled because only this generated snapshot is present.</p>
+<div class="filters">
+<label>Address unit<select id="unitFilter" aria-label="Filter by address unit"></select></label>
+<label>Evidence status<select id="statusFilter" aria-label="Filter by evidence status">
+<option value="all">All indexed starts</option><option value="unverified">UNVERIFIED only</option>
+<option value="oracle-bound">Oracle bound to current source hash</option><option value="oracle-report">Oracle report, source unbound</option><option value="oracle-range">Interior oracle window</option>
+<option value="controlled">Controlled oracle boundary</option><option value="s08">S08 audited extent, bytes differ</option>
+<option value="exact">Contains exact selected byte range</option><option value="unknown">Unknown extent</option>
+</select></label>
+<label>Search name, VA, evidence ID<input id="searchInput" type="search" autocomplete="off" placeholder="e.g. FUN_00427a50 or 0x427a50"></label>
+</div>
+<div id="filterSummary" aria-live="polite"></div><div id="unknownExtent" class="unknown-extent" aria-live="polite" hidden></div>
+<div class="map-frame"><svg id="treemap" role="group" aria-label="Function treemap; focus a tile and use arrow keys to move between tiles"></svg></div>
+<div class="map-caption"><span>Area is weighted by indexed address span; exact extents are marked separately.</span><span id="tailNote"></span></div>
+<div class="legend" aria-label="Map legend">
+<div class="legend-item"><span class="swatch"></span>UNVERIFIED pseudocode / estimated span</div><div class="legend-item"><span class="swatch oracle"></span>Oracle comparison, source hash bound</div>
+<div class="legend-item"><span class="swatch report"></span>Oracle report, current source unbound</div><div class="legend-item"><span class="swatch range"></span>Interior report window, partial</div><div class="legend-item"><span class="swatch controlled"></span>Controlled dependency boundary</div>
+<div class="legend-item"><span class="swatch s08"></span>S08 extent audited, compiler bytes differ</div><div class="legend-item"><span class="swatch exact"></span>Exact selected range inside indexed span</div>
+</div>
+</article>
+<aside class="panel inspector" aria-labelledby="inspectorTitle"><h2 id="inspectorTitle">Function inspector</h2><div id="inspectorContents" aria-live="polite" aria-atomic="true"><p class="empty-inspector">Hover, focus, or select a tile to inspect its extent, pseudocode evidence, and bounded comparisons.</p></div></aside>
+</section>
+<section class="lower-grid">
+<article class="panel lower-panel"><div class="section-heading"><h2>Evidence and snapshot lineage</h2><span class="micro">Source ref and report refs are separate</span></div><div id="lineage" class="lineage-grid"></div></article>
+<article class="panel lower-panel"><div class="section-heading"><h2>Work packets and claims</h2><span class="micro" id="packetCount"></span></div><p class="micro">READY means a packet is available. Claim receipts are shown separately and determine the displayed owner/status. The coordination file can lag receipts.</p><div class="table-wrap"><table><thead><tr><th>Packet</th><th>Scope</th><th>Registry</th><th>Claim receipts</th></tr></thead><tbody id="packetRows"></tbody></table></div><div class="detail-block"><h3>Coordination note</h3><p id="coordinationNote" class="coordination-note"></p></div></article>
+</section>
+<footer class="footer">Static local files; no network requests, game assets, executable bytes, or live polling.</footer>
+</main>
+<script id="snapshot" type="application/json">__SNAPSHOT_JSON__</script>
+<script>
+(function(){
+"use strict";
+const data=JSON.parse(document.getElementById("snapshot").textContent), ns="http://www.w3.org/2000/svg";
+const $=function(id){return document.getElementById(id)}, fmt=function(n){return Number(n||0).toLocaleString("en-US")}, hex=function(n){return "0x"+Number(n).toString(16).padStart(6,"0")};
+function el(tag,txt,cls){const x=document.createElement(tag);if(cls)x.className=cls;x.textContent=txt==null?"":String(txt);return x}
+function anchor(href,label){if(!href||href.startsWith("/")||href.includes(":"))return null;const a=document.createElement("a");a.href=href;a.textContent=label;return a}
+function statuses(f){const s=[];if(!f.oracle.length&&!f.oracle_ranges.length&&!f.s08_audit&&!f.exact_ranges.length)s.push("unverified");if(f.oracle.some(o=>o.kind==="oracle-bound"))s.push("oracle-bound");if(f.oracle.some(o=>o.kind==="bounded-report"))s.push("oracle-report");if(f.oracle_ranges.length)s.push("oracle-range");if(f.oracle.some(o=>o.kind==="controlled-boundary"))s.push("controlled");if(f.s08_audit)s.push("s08");if(f.exact_ranges.length)s.push("exact");if(f.is_unknown_extent)s.push("unknown");return s}
+function fillHeader(){
+$("snapshotStamp").textContent="SOURCE "+data.source_ref.slice(0,12)+" · "+data.generated_utc;
+$("metricFunctions").textContent=fmt(data.inventory.indexed_starts);
+$("metricExact").textContent=fmt(data.summary.exact_selected_bytes)+" B";
+$("metricExactDetail").textContent=fmt(data.summary.exact_selected_ranges)+" selected ranges · function completeness "+data.summary.exact_function_completeness;
+$("metricAudited").textContent=fmt(data.summary.s08_audited_extents);
+$("metricAuditedDetail").textContent=data.summary.s08_exact_functions+" exact byte matches · "+data.summary.s08_compiler_mismatches+" compiler mismatches";
+$("metricOracle").textContent=fmt(data.summary.bounded_oracle_source_bound_starts+data.summary.bounded_oracle_report_only_starts+data.summary.controlled_boundary_starts);
+$("metricOracleDetail").textContent=data.summary.bounded_oracle_source_bound_starts+" source-bound · "+data.summary.bounded_oracle_report_only_starts+" report-only · "+data.summary.controlled_boundary_starts+" controlled";
+$("mapMeta").textContent=fmt(data.functions.filter(f=>f.size!==null).length)+" weighted spans · "+fmt(data.functions.filter(f=>f.size===null).length)+" unknown extent";
+$("tailNote").textContent="Final extent unresolved · "+fmt(data.inventory.text_section.unresolved_tail_bytes)+" .text bytes after final start"
+}
+function fillUnits(){
+const select=$("unitFilter"),all=document.createElement("option");all.value="all";all.textContent="All address units";select.appendChild(all);
+Array.from(new Set(data.functions.map(f=>f.address_unit))).sort().forEach(u=>{const o=document.createElement("option");o.value=u;o.textContent=u+" · VA band";select.appendChild(o)})
+}
+function filtered(){
+const unit=$("unitFilter").value,status=$("statusFilter").value,q=$("searchInput").value.trim().toLowerCase();
+return data.functions.filter(f=>(unit==="all"||f.address_unit===unit)&&(status==="all"||statuses(f).includes(status))&&(!q||[f.name,f.address,f.evidence_id,f.pseudocode,statuses(f).join(" ")].join(" ").toLowerCase().includes(q)))
+}
+function worst(row,side){if(!row.length||side<=0)return Infinity;let sum=0,max=0,min=Infinity;row.forEach(n=>{sum+=n.area;max=Math.max(max,n.area);min=Math.min(min,n.area)});if(min<=0)return Infinity;return Math.max(side*side*max/(sum*sum),(sum*sum)/(side*side*min))}
+function placeRow(row,box){const area=row.reduce((s,n)=>s+n.area,0);if(box.w>=box.h){const sw=area/box.h;let y=box.y;row.forEach(n=>{const h=n.area/sw;n.box={x:box.x,y:y,w:sw,h:h};y+=h});box.x+=sw;box.w-=sw}else{const sh=area/box.w;let x=box.x;row.forEach(n=>{const w=n.area/sh;n.box={x:x,y:box.y,w:w,h:sh};x+=w});box.y+=sh;box.h-=sh}}
+let selected=null, visibleRects=[];
+function inspect(f){
+const host=$("inspectorContents");while(host.firstChild)host.removeChild(host.firstChild);
+host.appendChild(el("div",f.name,"selected-name"));host.appendChild(el("div",f.address,"selected-va"));
+const dl=document.createElement("dl");dl.className="detail-grid";
+function row(k,v){dl.appendChild(el("dt",k));dl.appendChild(el("dd",v))}
+row("Address unit",f.address_unit+" (VA band)");row("Span",f.size==null?"Unknown extent":fmt(f.size)+" bytes");row("Extent basis",f.extent_kind);row("Evidence ID",f.evidence_id||"not recorded");row("Pseudocode","UNVERIFIED");host.appendChild(dl);
+function block(title){const b=el("div","","detail-block");b.appendChild(el("h3",title));host.appendChild(b);return b}
+const pseudo=anchor(f.pseudocode_link,"Open exported pseudocode · "+f.pseudocode);if(pseudo){const b=block("Pseudocode source"),l=el("div","","link-list");l.appendChild(pseudo);b.appendChild(l)}
+if(f.exact_ranges.length){const b=block("Exact selected byte ranges"),ul=document.createElement("ul");f.exact_ranges.forEach(r=>{const li=el("li",fmt(r.bytes)+" bytes at "+hex(r.start)+" · selected range; function completeness "+r.completeness);ul.appendChild(li)});b.appendChild(ul)}
+if(f.s08_audit){const b=block("S08 complete-range comparison");b.appendChild(el("p",fmt(f.s08_audit.size)+" bytes audited through terminal return; "+fmt(f.s08_audit.mismatch_count)+" byte differences. Extent evidence, not a match."));const a=anchor(f.s08_audit.report_link,"Open S08 matching report");if(a)b.appendChild(a)}
+if(f.oracle.length){const b=block("Original-oracle report evidence"),ul=document.createElement("ul");f.oracle.forEach(o=>{const li=document.createElement("li");li.appendChild(document.createTextNode(o.report_title+" · "+o.kind.replaceAll("-"," ")+" · "+o.range_name));li.appendChild(document.createElement("br"));li.appendChild(document.createTextNode("Scope: "+o.scope));li.appendChild(el("div",o.source_binding_reason,"micro"));const binding=anchor(o.binding_report_link,"source-binding report");if(binding){li.appendChild(document.createTextNode(" · "));li.appendChild(binding)}const a=anchor(o.report_link,"Evidence report");if(a){li.appendChild(document.createTextNode(" · "));li.appendChild(a)}const s=anchor(o.source_link,"native source reference");if(s){li.appendChild(document.createTextNode(" · "));li.appendChild(s)}ul.appendChild(li)});b.appendChild(ul)}
+if(f.oracle_ranges.length){const b=block("Interior original-oracle windows"),ul=document.createElement("ul");f.oracle_ranges.forEach(o=>{const li=el("li",hex(o.start)+(o.end?"–"+hex(o.end):"")+" · "+o.report_title+" · "+o.range_name+"; partial window, not full function coverage");const a=anchor(o.report_link,"Evidence report");if(a){li.appendChild(document.createTextNode(" · "));li.appendChild(a)}ul.appendChild(li)});b.appendChild(ul)}
+if(!f.oracle.length&&!f.oracle_ranges.length&&!f.s08_audit&&!f.exact_ranges.length){const b=block("Current evidence");b.appendChild(el("p","No function-specific original-oracle or exact-byte evidence is recorded in this snapshot. Exported pseudocode remains UNVERIFIED."))}
+}
+function drawLineage(){
+const host=$("lineage");
+function card(title,detail,link,sha){const c=el("div","","lineage-card");c.appendChild(el("strong",title));const p=el("p",detail);if(sha){p.appendChild(document.createElement("br"));p.appendChild(el("code","SHA-256 "+sha))}const a=anchor(link,"Open input");if(a){p.appendChild(document.createElement("br"));p.appendChild(a)}c.appendChild(p);host.appendChild(c)}
+card("Source snapshot","Project HEAD "+data.source_ref+" · generated "+data.generated_utc,null,null);
+card("Pinned original","GAME.EXE · "+fmt(data.original.size)+" bytes · whole-file rebuild incomplete",null,data.original.sha256);
+card("Function index",data.inventory.provider+" · "+fmt(data.inventory.indexed_starts)+" starts / "+data.inventory.failures+" failures",data.report_bindings[0].link,data.inventory.index_sha256);
+card("Selected exact ranges",fmt(data.summary.exact_selected_ranges)+" ranges / "+fmt(data.summary.exact_selected_bytes)+" bytes · function completeness unverified",data.report_bindings[1].link,data.report_bindings[1].sha256);
+card("S08 complete-range audit",fmt(data.summary.s08_audited_extents)+" extents · "+data.summary.s08_compiler_mismatches+" compiler mismatches · "+data.summary.s08_exact_functions+" exact",data.s08.report_link,data.s08.report_sha256);
+card("Starts-only extent limits",data.inventory.text_section.span_note+" Final tail: "+fmt(data.inventory.text_section.unresolved_tail_bytes)+" bytes unresolved; internal gaps cannot be measured.",null,null);
+if(!data.census.included_in_metrics)card("Action census",data.census.state+". Counts omitted.",data.census.report_link,data.census.saved_report_sha256);
+data.oracle_reports.forEach(r=>card(r.title,r.scope+" · "+r.source_binding_reason+" Report ref is separate from source HEAD.",r.report_link,r.report_sha256))
+}
+function drawPackets(){
+const body=$("packetRows");$("packetCount").textContent=fmt(data.slices.length)+" registry entries";
+data.slices.forEach(p=>{const tr=document.createElement("tr"),id=el("td","");const a=anchor(p.packet_link,p.id);if(a)id.appendChild(a);else id.textContent=p.id;tr.appendChild(id);tr.appendChild(el("td",p.title));tr.appendChild(el("td",p.registry_status));const cell=el("td","");if(!p.claims.length)cell.appendChild(el("span","No receipt found","badge"));p.claims.forEach(c=>{const row=el("div",""),claimLike=/claim|progress/i.test(c.status);row.appendChild(el("span",c.status,claimLike?"badge claim":"badge received"));row.appendChild(document.createTextNode(" "+c.owner+(c.commit?" · "+c.commit:"")));const a=anchor(c.link,c.file);if(a){row.appendChild(document.createTextNode(" · "));row.appendChild(a)}cell.appendChild(row)});tr.appendChild(cell);body.appendChild(tr)});
+const s05=data.slices.find(x=>x.id==="S05"),s05claim=s05&&s05.claims.length?s05.claims.map(c=>c.owner+" / "+c.status).join(", "):"no receipt";
+$("coordinationNote").textContent="S05 receipt: "+s05claim+". S03 coordination row: "+(data.coordination.s03_row||"not recorded")+". The S05 row in the coordination file may predate its receipt: "+(data.coordination.s05_row||"not recorded")
+}
+function drawMap(){
+const svg=$("treemap");while(svg.firstChild)svg.removeChild(svg.firstChild);const all=filtered(),list=all.filter(f=>f.size!==null),unknown=all.filter(f=>f.size===null),frame=svg.getBoundingClientRect(),w=Math.max(1,Math.round(frame.width)),h=Math.max(1,Math.round(frame.height));svg.setAttribute("viewBox","0 0 "+w+" "+h);
+const unknownHost=$("unknownExtent");while(unknownHost.firstChild)unknownHost.removeChild(unknownHost.firstChild);unknownHost.hidden=unknown.length===0;
+if(unknown.length){const record=el("button","Unknown extent record, not area-scaled: "+unknown.map(f=>f.address+" "+f.name).join(", "),"unknown-record");record.type="button";record.addEventListener("click",()=>{selected=unknown[0];inspect(unknown[0])});unknownHost.appendChild(record)}
+if(!list.length){const t=document.createElementNS(ns,"text");t.setAttribute("x","18");t.setAttribute("y","28");t.setAttribute("class","no-results");t.textContent=unknown.length?"No size-bearing spans match; inspect the unknown-extent record above.":"No functions match these filters.";svg.appendChild(t);$("filterSummary").textContent=fmt(unknown.length)+" unknown extent records · no area assigned";return}
+const total=list.reduce((s,f)=>s+Math.max(1,Number(f.size||1)),0),work=list.map(f=>({data:f,area:Math.max(1,Number(f.size||1))*w*h/total,box:null})).sort((a,b)=>b.area-a.area);
+let box={x:0,y:0,w:w,h:h},row=[],finished=[];
+function flush(){if(!row.length)return;placeRow(row,box);row.forEach(n=>finished.push(n));row=[]}
+while(work.length){const next=work[0],side=Math.min(box.w,box.h);if(!row.length||worst(row,side)>=worst(row.concat([next]),side))row.push(work.shift());else flush()}flush();
+visibleRects=[];
+finished.forEach((node,index)=>{const f=node.data,b=node.box;if(!b||b.w<=0||b.h<=0)return;const r=document.createElementNS(ns,"rect");r.setAttribute("x",String(b.x+.3));r.setAttribute("y",String(b.y+.3));r.setAttribute("width",String(Math.max(.45,b.w-.6)));r.setAttribute("height",String(Math.max(.45,b.h-.6)));
+const s=statuses(f),cls=["tile"];if(s.includes("oracle-bound"))cls.push("tile-oracle-bound");else if(s.includes("controlled"))cls.push("tile-controlled");else if(s.includes("oracle-report"))cls.push("tile-oracle-report");else if(s.includes("oracle-range"))cls.push("tile-oracle-range");else if(s.includes("s08"))cls.push("tile-s08");else cls.push("tile-unverified");if(s.includes("exact"))cls.push("tile-exact");r.setAttribute("class",cls.join(" "));r.setAttribute("role","button");r.setAttribute("tabindex",index===0?"0":"-1");r.setAttribute("aria-label",f.name+", "+f.address+", "+(f.size==null?"extent unknown":fmt(f.size)+" byte address span"));const title=document.createElementNS(ns,"title");title.textContent=f.name+" · "+f.address+" · "+(f.size==null?"extent unknown":fmt(f.size)+" B "+f.extent_kind);r.appendChild(title);
+r.addEventListener("pointerenter",()=>inspect(f));r.addEventListener("pointerleave",()=>{if(selected)inspect(selected)});r.addEventListener("focus",()=>inspect(f));r.addEventListener("click",()=>{selected=f;inspect(f)});
+r.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();selected=f;inspect(f)}else if(["ArrowRight","ArrowDown","ArrowLeft","ArrowUp"].includes(event.key)){event.preventDefault();const step=(event.key==="ArrowRight"||event.key==="ArrowDown")?1:-1;const pos=visibleRects.indexOf(r),next=visibleRects[(pos+step+visibleRects.length)%visibleRects.length];if(next){r.setAttribute("tabindex","-1");next.setAttribute("tabindex","0");next.focus()}}});
+svg.appendChild(r);visibleRects.push(r);
+if(s.includes("exact")){const tick=document.createElementNS(ns,"rect"),er=f.exact_ranges[0],ratio=er.size/Math.max(1,f.size||er.size);tick.setAttribute("x",String(b.x+.5));tick.setAttribute("y",String(b.y+.5));tick.setAttribute("width",String(Math.min(Math.max(2,b.w*ratio),Math.max(2,b.w))));tick.setAttribute("height",String(Math.min(3,Math.max(1,b.h))));tick.setAttribute("class","exact-tick");tick.setAttribute("aria-hidden","true");svg.appendChild(tick)}
+});
+$("filterSummary").textContent=fmt(list.length)+" weighted spans in treemap · "+fmt(unknown.length)+" unknown extents outside area map"
+}
+function render(){fillHeader();fillUnits();drawLineage();drawPackets();drawMap();$("unitFilter").addEventListener("change",drawMap);$("statusFilter").addEventListener("change",drawMap);$("searchInput").addEventListener("input",drawMap);new ResizeObserver(drawMap).observe($("treemap").parentElement)}
+render()
+})();
+</script>
+</body></html>
