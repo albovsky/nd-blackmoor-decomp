@@ -55,6 +55,18 @@ static int16_t s16(int32_t value)
     return (int16_t)(uint16_t)(uint32_t)value;
 }
 
+/* 32-bit two's-complement arithmetic as the x86 code performs it; used for
+ * values read from FONT/TBOX records, which may hold any int32. */
+static int32_t wadd(int32_t a, int32_t b)
+{
+    return (int32_t)((uint32_t)a + (uint32_t)b);
+}
+
+static int32_t wsub(int32_t a, int32_t b)
+{
+    return (int32_t)((uint32_t)a - (uint32_t)b);
+}
+
 /* ---- pixel format (0x4c2f09..0x4c3149) -------------------------------- */
 
 static int channel(uint32_t mask, uint8_t *shift, uint8_t *bits_mask, uint8_t *bits)
@@ -145,9 +157,9 @@ int caption_fonts_init(const uint8_t *font_chunk,
         for (glyph = 0u; glyph < CAPTION_FONT_GLYPHS; ++glyph) {
             size_t rect = FONT_GLYPH_RECTS + glyph * 16u;
             fonts->glyph_size[font][glyph][0] =
-                s16(rd32(record, rect + 8u) - rd32(record, rect) + 1);
+                s16(wadd(wsub(rd32(record, rect + 8u), rd32(record, rect)), 1));
             fonts->glyph_size[font][glyph][1] =
-                s16(rd32(record, rect + 12u) - rd32(record, rect + 4u) + 1);
+                s16(wadd(wsub(rd32(record, rect + 12u), rd32(record, rect + 4u)), 1));
         }
     }
     return CAPTION_OK;
@@ -173,13 +185,13 @@ int caption_geometry_init(const uint8_t *tbox, size_t tbox_length,
     memcpy(geometry->tbox, tbox, CAPTION_TBOX_BYTES);
     /* 0x437300..0x437359. */
     geometry->framed_surface_width =
-        s16(rd32(tbox, TBOX_FRAME_RIGHT) - rd32(tbox, TBOX_FRAME_LEFT) + 1);
+        s16(wadd(wsub(rd32(tbox, TBOX_FRAME_RIGHT), rd32(tbox, TBOX_FRAME_LEFT)), 1));
     geometry->framed_surface_height =
-        s16(rd32(tbox, TBOX_FRAME_BOTTOM) - rd32(tbox, TBOX_FRAME_TOP) + 1);
+        s16(wadd(wsub(rd32(tbox, TBOX_FRAME_BOTTOM), rd32(tbox, TBOX_FRAME_TOP)), 1));
     geometry->caption_surface_width =
-        s16(rd32(tbox, TBOX_CAPTION_RIGHT) - rd32(tbox, TBOX_CAPTION_LEFT) + 1);
+        s16(wadd(wsub(rd32(tbox, TBOX_CAPTION_RIGHT), rd32(tbox, TBOX_CAPTION_LEFT)), 1));
     geometry->caption_surface_height =
-        s16(rd32(tbox, TBOX_CAPTION_BOTTOM) - rd32(tbox, TBOX_CAPTION_TOP) + 1);
+        s16(wadd(wsub(rd32(tbox, TBOX_CAPTION_BOTTOM), rd32(tbox, TBOX_CAPTION_TOP)), 1));
     return CAPTION_OK;
 }
 
@@ -193,11 +205,17 @@ typedef struct engine {
     CaptionSurface *target;
     /* Pass 2 draws into a private copy of the target, committed on success. */
     CaptionSurface canvas;
-    CaptionTextBox box;
-    CaptionGlobals globals;
-    /* Pass 2 bookkeeping for cleanup after a mid-pass failure. */
-    uint8_t loaded[CAPTION_MAX_FONTS];
-    uint8_t frame_closed;
+    /* Pass 1 works on copies; pass 2 on the caller's objects, so backend
+     * callbacks observe the live state in source order. */
+    CaptionTextBox *box;
+    CaptionGlobals *globals;
+    CaptionTextBox box_copy;
+    CaptionGlobals globals_copy;
+    /* Sheet references taken by this call (released after a failure). */
+    int16_t acquired[CAPTION_MAX_FONTS];
+    uint8_t *caller_text;
+    size_t caller_length;
+    int appended;
     int16_t mode;
     int simulate;
     int measure;
@@ -321,7 +339,7 @@ static int color_offsets(const Engine *e, int32_t *dx, int32_t *dy)
 /* The original addresses surface words linearly (pixels + row * pitch +
  * column * 2) without clipping: a glyph past the right edge continues on the
  * next row. Only addresses outside the pitch * height buffer are rejected. */
-static uint8_t *word_at(const CaptionSurface *surface, int32_t row, int32_t column)
+static uint8_t *word_at(const CaptionSurface *surface, int64_t row, int64_t column)
 {
     int64_t offset;
     int64_t size;
@@ -330,12 +348,27 @@ static uint8_t *word_at(const CaptionSurface *surface, int32_t row, int32_t colu
         surface->height <= 0) {
         return NULL;
     }
-    offset = (int64_t)row * surface->pitch + (int64_t)column * 2;
+    if (row < INT32_MIN || row > INT32_MAX || column < INT32_MIN || column > INT32_MAX) {
+        return NULL;
+    }
+    offset = row * surface->pitch + column * 2;
     size = (int64_t)surface->pitch * surface->height;
     if (offset < 0 || offset + 2 > size) {
         return NULL;
     }
     return surface->pixels + offset;
+}
+
+/* Pass 2 stages pixels in `canvas`; before every backend call the staged
+ * pixels are copied to the caller's target so callbacks observe the surface
+ * as the original would have it at that point. */
+static void sync_target(const Engine *e)
+{
+    if (!e->simulate && e->target != NULL && e->canvas.pixels != NULL &&
+        e->canvas.pixels != e->target->pixels) {
+        memcpy(e->target->pixels, e->canvas.pixels,
+               (size_t)e->target->pitch * (size_t)e->target->height);
+    }
 }
 
 static uint16_t get16(const uint8_t *p)
@@ -354,15 +387,15 @@ static int scan_color(const Engine *e, const CaptionSurface *sheet,
                       int32_t left, int32_t top, int32_t right, int32_t bottom,
                       uint16_t *color)
 {
-    int32_t row;
-    int32_t column;
+    int64_t row;
+    int64_t column;
 
     *color = 0u;
     if (sheet == NULL || sheet->pixels == NULL) {
         return CAPTION_OK;
     }
-    for (row = top; row <= bottom; ++row) {
-        for (column = left; column <= right; ++column) {
+    for (row = top; row <= (int64_t)bottom; ++row) {
+        for (column = left; column <= (int64_t)right; ++column) {
             const uint8_t *p = word_at(sheet, row, column);
             uint16_t word;
 
@@ -382,7 +415,7 @@ static int scan_color(const Engine *e, const CaptionSurface *sheet,
 /* 0x4c924d / 0x4c92c5. */
 static int acquire_font(Engine *e, int16_t font)
 {
-    CaptionGlobals *g = &e->globals;
+    CaptionGlobals *g = e->globals;
 
     if (!font_valid(e, font)) {
         return CAPTION_ERR_FONT;
@@ -390,9 +423,7 @@ static int acquire_font(Engine *e, int16_t font)
     if (g->sheet_refcount[font] == 0 && g->sheets[font].pixels == NULL && !e->simulate) {
         CaptionSurface sheet = {NULL, 0, 0, 0};
 
-        if (e->backend->load_font_sheet == NULL) {
-            return CAPTION_ERR_UNSUPPORTED;
-        }
+        sync_target(e);
         /* 0x4c2790 reports a failed load (0x42639d) and quits (0x4c97b4). */
         if (e->backend->load_font_sheet(e->backend->context, font,
                                         caption_font_sheet_name(e->fonts, font),
@@ -401,20 +432,26 @@ static int acquire_font(Engine *e, int16_t font)
             return CAPTION_ERR_BACKEND;
         }
         g->sheets[font] = sheet;
-        e->loaded[font] = 1u;
     }
     g->sheet_refcount[font] = s16(g->sheet_refcount[font] + 1);
+    if (!e->simulate) {
+        ++e->acquired[font];
+    }
     return CAPTION_OK;
 }
 
 static void release_font(Engine *e, int16_t font)
 {
-    CaptionGlobals *g = &e->globals;
+    CaptionGlobals *g = e->globals;
 
+    if (!e->simulate && e->acquired[font] > 0) {
+        --e->acquired[font];
+    }
     if (g->sheets[font].pixels != NULL) {
         g->sheet_refcount[font] = s16(g->sheet_refcount[font] - 1);
         if (g->sheet_refcount[font] == 0) {
-            if (!e->simulate && e->backend->release_font_sheet != NULL) {
+            if (!e->simulate) {
+                sync_target(e);
                 e->backend->release_font_sheet(e->backend->context, font,
                                                &g->sheets[font]);
             }
@@ -430,7 +467,7 @@ static void release_font(Engine *e, int16_t font)
 static int draw_line(Engine *e, const char *text)
 {
     const uint8_t *record = font_record(e, e->font);
-    const CaptionSurface *sheet = &e->globals.sheets[e->font];
+    const CaptionSurface *sheet = &e->globals->sheets[e->font];
     int32_t left = e->x;
     int32_t bottom = e->y;
     int32_t start = left;
@@ -468,24 +505,27 @@ static int draw_line(Engine *e, const char *text)
             if (status != CAPTION_OK) {
                 return status;
             }
-            src_left = rd32(record, rect) + dx;
-            src_top = rd32(record, rect + 4u) + dy;
-            src_right = rd32(record, rect + 8u) + dx;
-            src_bottom = rd32(record, rect + 12u) + dy;
+            src_left = wadd(rd32(record, rect), dx);
+            src_top = wadd(rd32(record, rect + 4u), dy);
+            src_right = wadd(rd32(record, rect + 8u), dx);
+            src_bottom = wadd(rd32(record, rect + 12u), dy);
             last_right = right;
             (void)right;
             if (!e->simulate) {
-                int32_t row;
-                int32_t column;
+                int64_t row;
+                int64_t column;
+                int64_t rows = (int64_t)src_bottom - src_top + 1;
+                int64_t columns = (int64_t)src_right - src_left + 1;
 
                 if (sheet->pixels == NULL) {
                     return CAPTION_ERR_BACKEND; /* original blits from a null sheet */
                 }
                 /* 0x4c5b3a: source-height rows, source-width words; only words
                  * other than the colour key are written. */
-                for (row = 0; row < src_bottom - src_top + 1; ++row) {
-                    for (column = 0; column < src_right - src_left + 1; ++column) {
-                        const uint8_t *src = word_at(sheet, src_top + row, src_left + column);
+                for (row = 0; row < rows; ++row) {
+                    for (column = 0; column < columns; ++column) {
+                        const uint8_t *src = word_at(sheet, (int64_t)src_top + row,
+                                                     (int64_t)src_left + column);
                         uint16_t word;
                         uint8_t *dst;
 
@@ -505,7 +545,7 @@ static int draw_line(Engine *e, const char *text)
                 }
             }
             ++e->result.glyphs_drawn;
-            if (e->box.underline != 0 && !have_row) {
+            if (e->box->underline != 0 && !have_row) {
                 /* 0x4d2b41..0x4d2b67: __ftol((float)h * 0.9f) + top. The
                  * product of two 24-bit floats is exact in double, and
                  * __ftol (0x50ce04) truncates toward zero. */
@@ -516,7 +556,7 @@ static int draw_line(Engine *e, const char *text)
             left = rd16(record, FONT_CHAR_SPACING) + left + w;
         }
     }
-    if (e->box.underline != 0) {
+    if (e->box->underline != 0) {
         int32_t count = last_right - start + 1;
 
         if (!have_row) {
@@ -530,7 +570,7 @@ static int draw_line(Engine *e, const char *text)
                 if (p == NULL) {
                     return CAPTION_ERR_BOUNDS;
                 }
-                put16(p, e->box.underline_color);
+                put16(p, e->box->underline_color);
             }
         }
         ++e->result.underline_fills;
@@ -556,21 +596,22 @@ static int flush(Engine *e)
         if (e->newline_pending != 0) {
             int16_t h = e->fonts->glyph_size[e->font][0][1];
 
-            if (e->box.tight_spacing != 0) {
+            if (e->box->tight_spacing != 0) {
                 e->y = s16(e->y + h);
-            } else if (e->box.half_spacing != 0) {
+            } else if (e->box->half_spacing != 0) {
                 e->y = s16(e->y + s16((h / 9 + h) / 2));
-                e->box.half_spacing = 0;
+                e->box->half_spacing = 0;
             } else {
                 e->y = s16(e->y + s16(h + h / 9));
             }
             if (e->y >= e->y_limit &&
                 ((e->lines > 2 && !e->frame) || (e->lines > 6 && e->frame)) &&
-                !e->measure && e->debug && e->box.too_long_reported == 0) {
+                !e->measure && e->debug && e->box->too_long_reported == 0) {
                 if (!e->simulate && e->backend->debug_log != NULL) {
+                    sync_target(e);
                     e->backend->debug_log(e->backend->context, CAPTION_DEBUG_TOO_MUCH_TEXT);
                 }
-                e->box.too_long_reported = 1;
+                e->box->too_long_reported = 1;
             }
             e->newline_pending = 0;
         }
@@ -608,12 +649,12 @@ static int flush(Engine *e)
             ++source;
             e->line[count] = '\0';
             wrapped = 1;
-            if (count == 0 && source == source_start && line_start_x == e->box.left_margin) {
+            if (count == 0 && source == source_start && line_start_x == e->box->left_margin) {
                 /* The same word restarts at the margin forever. */
                 return CAPTION_ERR_UNSUPPORTED;
             }
         }
-        if (e->line[0] != '\0' && e->box.too_long_reported == 0) {
+        if (e->line[0] != '\0' && e->box->too_long_reported == 0) {
             int16_t width;
 
             if (!e->measure) {
@@ -630,7 +671,7 @@ static int flush(Engine *e)
         }
         if (wrapped) {
             wrapped = 0;
-            e->x = e->box.left_margin;
+            e->x = e->box->left_margin;
             e->newline_pending = 1;
             e->lines = s16(e->lines + 1);
         }
@@ -699,7 +740,7 @@ static int dispatch(Engine *e, char tag, const char *argument)
         if (status != CAPTION_OK) {
             return status;
         }
-        e->box.tight_spacing = e->box.tight_spacing == 0 ? 1 : 0;
+        e->box->tight_spacing = e->box->tight_spacing == 0 ? 1 : 0;
         return CAPTION_OK;
     case 'n':
     case 'w':
@@ -707,10 +748,10 @@ static int dispatch(Engine *e, char tag, const char *argument)
         if (status != CAPTION_OK) {
             return status;
         }
-        e->x = e->box.left_margin;
+        e->x = e->box->left_margin;
         e->newline_pending = 1;
         if (tag == 'w') {
-            e->box.half_spacing = 1;
+            e->box->half_spacing = 1;
         }
         return CAPTION_OK;
     case 'r': {
@@ -725,7 +766,7 @@ static int dispatch(Engine *e, char tag, const char *argument)
         if (status != CAPTION_OK) {
             return status;
         }
-        e->x = e->box.left_margin;
+        e->x = e->box->left_margin;
         e->newline_pending = 1;
         return CAPTION_OK;
     }
@@ -740,7 +781,7 @@ static int dispatch(Engine *e, char tag, const char *argument)
         return CAPTION_OK;
     }
     case 'u':
-        if (e->box.underline == 0) {
+        if (e->box->underline == 0) {
             const uint8_t *record = font_record(e, e->font);
             int16_t glyph = rd16(record, FONT_UPPER_BASE);
             int32_t dx;
@@ -756,11 +797,11 @@ static int dispatch(Engine *e, char tag, const char *argument)
             }
             rect = FONT_GLYPH_RECTS + (size_t)glyph * 16u;
             if (!e->simulate) {
-                status = scan_color(e, &e->globals.sheets[e->font],
-                                    rd32(record, rect) + dx, rd32(record, rect + 4u) + dy,
-                                    rd32(record, rect + 8u) + dx,
-                                    rd32(record, rect + 12u) + dy,
-                                    &e->box.underline_color);
+                status = scan_color(e, &e->globals->sheets[e->font],
+                                    wadd(rd32(record, rect), dx), wadd(rd32(record, rect + 4u), dy),
+                                    wadd(rd32(record, rect + 8u), dx),
+                                    wadd(rd32(record, rect + 12u), dy),
+                                    &e->box->underline_color);
                 if (status != CAPTION_OK) {
                     return status;
                 }
@@ -769,13 +810,13 @@ static int dispatch(Engine *e, char tag, const char *argument)
             if (status != CAPTION_OK) {
                 return status;
             }
-            e->box.underline = 1;
+            e->box->underline = 1;
         } else {
             status = flush(e);
             if (status != CAPTION_OK) {
                 return status;
             }
-            e->box.underline = 0;
+            e->box->underline = 0;
         }
         return CAPTION_OK;
     default:
@@ -823,31 +864,35 @@ static int run(Engine *e, char *text)
     const char *p;
     int status;
 
+    /* 0x448d73..0x448dba. */
+    e->box->too_long_reported = 0;
+    e->box->underline = 0;
+    e->box->underline_color = 0u;
+    e->box->tight_spacing = 0;
+    e->box->half_spacing = 0;
     if (e->frame) {
         e->y = rd16(tbox, TBOX_FRAME_FIRST_Y);
-        e->box.left_margin = rd16(tbox, TBOX_FRAME_LEFT_MARGIN);
-        e->x = e->box.left_margin;
-        e->y_limit = s16(rd32(tbox, TBOX_FRAME_BOTTOM) - rd16(tbox, TBOX_FRAME_BOTTOM_PAD));
-        e->right = s16(rd32(tbox, TBOX_FRAME_RIGHT) - rd16(tbox, TBOX_FRAME_RIGHT_PAD));
+        e->box->left_margin = rd16(tbox, TBOX_FRAME_LEFT_MARGIN);
+        e->x = e->box->left_margin;
+        e->y_limit = s16(wsub(rd32(tbox, TBOX_FRAME_BOTTOM), rd16(tbox, TBOX_FRAME_BOTTOM_PAD)));
+        e->right = s16(wsub(rd32(tbox, TBOX_FRAME_RIGHT), rd16(tbox, TBOX_FRAME_RIGHT_PAD)));
     } else {
         int16_t edge;
 
         e->y = rd16(tbox, TBOX_CAPTION_FIRST_Y);
-        e->box.left_margin = rd16(tbox, TBOX_CAPTION_LEFT_MARGIN);
-        e->x = e->box.left_margin;
-        e->y_limit = s16(rd32(tbox, TBOX_CAPTION_VIEW_BOTTOM) -
-                         rd32(tbox, TBOX_CAPTION_VIEW_TOP) + 4);
-        edge = s16(rd32(tbox, TBOX_CAPTION_RIGHT) - rd16(tbox, TBOX_CAPTION_RIGHT_PAD));
+        e->box->left_margin = rd16(tbox, TBOX_CAPTION_LEFT_MARGIN);
+        e->x = e->box->left_margin;
+        e->y_limit = s16(wadd(wsub(rd32(tbox, TBOX_CAPTION_VIEW_BOTTOM),
+                                   rd32(tbox, TBOX_CAPTION_VIEW_TOP)), 4));
+        edge = s16(wsub(rd32(tbox, TBOX_CAPTION_RIGHT), rd16(tbox, TBOX_CAPTION_RIGHT_PAD)));
         e->right = s16((int32_t)edge - e->x + 1);
         if (!e->measure) {
-            e->globals.caption_finish_flag = 0;
+            e->globals->caption_finish_flag = 0;
         }
     }
-    if (e->globals.frame_open != 0) {
+    if (e->globals->frame_open != 0) {
         if (!e->simulate) {
-            if (e->backend->close_frame_text == NULL) {
-                return CAPTION_ERR_UNSUPPORTED;
-            }
+            sync_target(e);
             if (e->backend->close_frame_text(e->backend->context) != CAPTION_BACKEND_OK) {
                 return CAPTION_ERR_BACKEND;
             }
@@ -855,11 +900,8 @@ static int run(Engine *e, char *text)
         /* 0x4de2d8 itself clears 0x5b15d6 (0x4de302) and, through
          * 0x4de214 -> 0x4de1f5, 0x5a161f. Its other effects (UI mode +0x991,
          * 0x5d17f5, taskbar calls) belong to the backend (S05-2). */
-        e->globals.frame_open = 0u;
-        e->globals.framed_ready = 0;
-        if (!e->simulate) {
-            e->frame_closed = 1u;
-        }
+        e->globals->frame_open = 0u;
+        e->globals->framed_ready = 0;
     }
     memset(e->text, 0, sizeof(e->text));
     memset(argument, 0, sizeof(argument));
@@ -884,6 +926,10 @@ static int run(Engine *e, char *text)
     status = acquire_font(e, e->font);
     if (status != CAPTION_OK) {
         return status;
+    }
+    /* 0x448f8d..0x448fa9: "<e>\0" written over the caller's terminator. */
+    if (!e->simulate && e->appended) {
+        memcpy(e->caller_text + e->caller_length, "<e>", 4u);
     }
 
     for (p = text;; ++p) {
@@ -938,24 +984,23 @@ static int run(Engine *e, char *text)
             if (e->y >= e->y_limit) {
                 return CAPTION_ERR_TOO_LONG; /* 0x449684 message + quit */
             }
-            if ((int32_t)e->y > rd32(tbox, TBOX_FRAME_TOP) + rd32(tbox, TBOX_FRAME_VIEW_BOTTOM)) {
-                e->globals.framed_scroll_lines =
-                    s16(((int32_t)e->y - rd32(tbox, TBOX_FRAME_TOP) + 1) -
-                        (rd32(tbox, TBOX_FRAME_VIEW_BOTTOM) -
-                         rd32(tbox, TBOX_FRAME_VIEW_TOP) + 1));
+            if ((int32_t)e->y > wadd(rd32(tbox, TBOX_FRAME_TOP),
+                                     rd32(tbox, TBOX_FRAME_VIEW_BOTTOM))) {
+                e->globals->framed_scroll_lines =
+                    s16(wsub(wadd(wsub((int32_t)e->y, rd32(tbox, TBOX_FRAME_TOP)), 1),
+                             wadd(wsub(rd32(tbox, TBOX_FRAME_VIEW_BOTTOM),
+                                       rd32(tbox, TBOX_FRAME_VIEW_TOP)), 1)));
             } else {
-                e->globals.framed_scroll_lines = 1;
+                e->globals->framed_scroll_lines = 1;
             }
-            if (e->globals.framed_scroll_lines <= 0) {
-                e->globals.framed_scroll_lines = 1;
+            if (e->globals->framed_scroll_lines <= 0) {
+                e->globals->framed_scroll_lines = 1;
             }
-            e->globals.framed_ready = 1;
+            e->globals->framed_ready = 1;
         } else {
-            e->globals.caption_visible_flag = 1;
+            e->globals->caption_visible_flag = 1;
             if (!e->simulate) {
-                if (e->backend->restore_caption_box == NULL) {
-                    return CAPTION_ERR_UNSUPPORTED;
-                }
+                sync_target(e);
                 if (e->backend->restore_caption_box(e->backend->context) !=
                     CAPTION_BACKEND_OK) {
                     return CAPTION_ERR_BACKEND;
@@ -964,6 +1009,7 @@ static int run(Engine *e, char *text)
         }
     }
     release_font(e, e->font);
+    sync_target(e);
     return CAPTION_OK;
 }
 
@@ -1003,6 +1049,14 @@ int caption_layout_write(const CaptionFonts *fonts,
     }
     if (request->mode < CAPTION_MODE_FRAMED) {
         return CAPTION_ERR_ARGUMENT;
+    }
+    /* Every backend call the request can reach must exist up front: sheets
+     * are loaded and released through the backend. */
+    if (backend->load_font_sheet == NULL || backend->release_font_sheet == NULL ||
+        (globals->frame_open != 0u && backend->close_frame_text == NULL) ||
+        (!request->measure && request->mode != CAPTION_MODE_FRAMED &&
+         backend->restore_caption_box == NULL)) {
+        return CAPTION_ERR_UNSUPPORTED;
     }
     /* 0x448f8d: strstr(text, "<e>"); if absent "<e>\0" overwrites the NUL. */
     work = malloc(length + 4u);
@@ -1052,8 +1106,18 @@ int caption_layout_write(const CaptionFonts *fonts,
             e->canvas = *target;
             e->canvas.pixels = canvas;
         }
-        e->box = *box;
-        e->globals = *globals;
+        if (pass == 0) {
+            e->box_copy = *box;
+            e->globals_copy = *globals;
+            e->box = &e->box_copy;
+            e->globals = &e->globals_copy;
+        } else {
+            e->box = box;
+            e->globals = globals;
+        }
+        e->caller_text = request->text;
+        e->caller_length = length;
+        e->appended = appended;
         e->mode = request->mode;
         e->simulate = pass == 0;
         e->measure = request->measure != 0u;
@@ -1061,12 +1125,6 @@ int caption_layout_write(const CaptionFonts *fonts,
         e->frame = request->mode == CAPTION_MODE_FRAMED;
         e->font = request->mode < 0 ? CAPTION_DEFAULT_FONT : request->mode;
         e->color = rd16(geometry->tbox, TBOX_DEFAULT_COLOR);
-        /* 0x448d73..0x448dba. */
-        e->box.too_long_reported = 0;
-        e->box.underline = 0;
-        e->box.underline_color = 0u;
-        e->box.tight_spacing = 0;
-        e->box.half_spacing = 0;
         if (!font_valid(e, e->font)) {
             status = CAPTION_ERR_FONT;
             break;
@@ -1076,33 +1134,19 @@ int caption_layout_write(const CaptionFonts *fonts,
             if (!e->simulate) {
                 int16_t font;
 
-                /* Pass 2 failed after host calls: release sheets this call
-                 * loaded and still holds, keep the caller's globals, and
-                 * keep the frame-close writes the host has already done.
-                 * Target pixels, text and the text box stay unchanged. */
+                /* Pass 2 failed after host-visible effects. State written so
+                 * far stays as the original order left it (no rollback);
+                 * only this call's sheet references are released so no
+                 * handle or count is left behind. */
                 for (font = 0; font < (int16_t)CAPTION_MAX_FONTS; ++font) {
-                    if (e->loaded[font] && e->globals.sheets[font].pixels != NULL &&
-                        backend->release_font_sheet != NULL) {
-                        backend->release_font_sheet(backend->context, font,
-                                                    &e->globals.sheets[font]);
+                    while (e->acquired[font] > 0) {
+                        release_font(e, font);
                     }
-                }
-                if (e->frame_closed) {
-                    globals->frame_open = 0u;
-                    globals->framed_ready = 0;
                 }
             }
             break;
         }
         if (!e->simulate) {
-            if (canvas != NULL) {
-                memcpy(target->pixels, canvas, canvas_bytes);
-            }
-            if (appended) {
-                memcpy(request->text + length, "<e>", 4u);
-            }
-            *box = e->box;
-            *globals = e->globals;
             *result = e->result;
             result->lines = e->lines;
             result->terminator_appended = (uint8_t)appended;

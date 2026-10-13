@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import ctypes as c
+import hashlib
 import json
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT.parents[1]
-LIBRARY = PROJECT / "build/libcaptionlayout.dylib"
+import os
+LIBRARY = Path(os.environ.get("CAPTION_LAYOUT_LIBRARY", PROJECT / "build/libcaptionlayout.dylib"))
 RESOURCES_LIBRARY = PROJECT / "build/libgameresources.dylib"
 PIXELS_LIBRARY = PROJECT / "build/libcifpixels.dylib"
 GAME_SOURCE = ROOT / "work/analysis/game-source.json"
@@ -215,11 +217,23 @@ class SheetBackend:
         self.fail_load, self.fail_close, self.fail_restore = fail_load, fail_close, fail_restore
         self.events: list[tuple] = []
         self.held: dict[int, object] = {}
+        # Optional live views so events capture callback-time state.
+        self.observe_pixels = None
+        self.observe_globals = None
         self.struct = Backend(None, LOAD(self._load), RELEASE(self._release),
                               SIMPLE(self._close), SIMPLE(self._restore), LOG(self._log))
 
+    def _observed(self):
+        if self.observe_globals is None:
+            return ()
+        g = self.observe_globals
+        digest = (hashlib.sha256(bytes(self.observe_pixels)).hexdigest()[:16]
+                  if self.observe_pixels is not None else None)
+        return (digest, g.caption_visible_flag, g.caption_finish_flag, g.frame_open,
+                tuple(g.sheet_refcount))
+
     def _load(self, _ctx, font, name, sheet):
-        self.events.append(("load", font, name))
+        self.events.append(("load", font, name) + self._observed())
         found = None if self.fail_load or font in self.missing else \
             self.data.sheet(name, self.fmt)
         if found is None:
@@ -235,7 +249,7 @@ class SheetBackend:
         self.held.pop(font, None)
 
     def _close(self, _ctx):
-        self.events.append(("close_frame_text",))
+        self.events.append(("close_frame_text",) + self._observed())
         return 1 if self.fail_close else 0
 
     def _log(self, _ctx, message):
@@ -243,7 +257,7 @@ class SheetBackend:
         self.messages = getattr(self, "messages", []) + [message]
 
     def _restore(self, _ctx):
-        self.events.append(("restore_caption_box",))
+        self.events.append(("restore_caption_box",) + self._observed())
         return 1 if self.fail_restore else 0
 
 
@@ -429,14 +443,15 @@ class CaptionLayoutTests(unittest.TestCase):
             status, _, globals_, backend, pixels, stored = self.write(text)
             self.assert_untouched(status, expected, globals_, backend, pixels, stored, text)
 
-    def test_drawing_outside_surface_is_atomic(self):
+    def test_drawing_outside_surface_releases_this_calls_sheets(self):
         text = b"The quick brown fox jumps over the lazy dog. " * 60 + b"<n>"
         status, _, globals_, backend, pixels, stored = self.write(text)
         self.assertEqual(status, ERR_BOUNDS)
-        self.assertEqual(bytes(pixels), b"\xa5" * len(pixels))
+        # No rollback after host-visible effects: the target shows the surface
+        # as of the last host call (the cleanup release), not the 0xa5 fill.
+        self.assertNotEqual(bytes(pixels), b"\xa5" * len(pixels))
         self.assertEqual(globals_.caption_visible_flag, 0)
         self.assertEqual(stored[:len(text)], text)
-        # The sheet loaded in pass 2 is handed back; nothing is retained.
         self.assertEqual(backend.events, [("load", 9, b"FONT09"), ("release", 9)])
         self.assertEqual((globals_.sheet_refcount[9], bool(globals_.sheets[9].pixels)), (0, False))
 
@@ -450,7 +465,6 @@ class CaptionLayoutTests(unittest.TestCase):
         self.assertEqual(backend.events, [("close_frame_text",), ("load", 9, b"FONT09"),
                                           ("release", 9)])
         self.assertEqual((g.frame_open, g.framed_ready, g.sheet_refcount[9]), (0, 0, 0))
-        self.assertEqual(bytes(pixels), b"\xa5" * len(pixels))
 
     def test_restore_failure_releases_loaded_sheets(self):
         backend = SheetBackend(self.data, self.fmt, fail_restore=True)
@@ -459,8 +473,9 @@ class CaptionLayoutTests(unittest.TestCase):
         self.assertEqual(backend.events, [("load", 9, b"FONT09"), ("release", 9),
                                           ("load", 5, b"FONT05"), ("restore_caption_box",),
                                           ("release", 5)])
-        self.assertEqual((tuple(g.sheet_refcount), g.caption_visible_flag), ((0,) * MAX_FONTS, 0))
-        self.assertEqual(bytes(pixels), b"\xa5" * len(pixels))
+        # 0x4496ff sets 0x5b1606 before the restore call; it stays set.
+        self.assertEqual((tuple(g.sheet_refcount), g.caption_visible_flag), ((0,) * MAX_FONTS, 1))
+        self.assertNotEqual(bytes(pixels), b"\xa5" * len(pixels))
 
     def test_framed_too_long_fails_before_mutation(self):
         status, _, globals_, backend, pixels, stored = self.write(b"x<n>" * 74, -2)
@@ -518,8 +533,9 @@ class CaptionLayoutTests(unittest.TestCase):
         backend = SheetBackend(self.data, self.fmt, fail_load=True)
         status, _, g, backend, pixels, _ = self.write(b"x<n>", backend=backend)
         self.assertEqual(status, ERR_BACKEND)
-        self.assertEqual(bytes(pixels), b"\xa5" * len(pixels))
-        self.assertEqual(g.caption_visible_flag, 0)
+        # The clear precedes the failed load and was visible to it.
+        self.assertEqual(bytes(pixels), struct.pack("<H", self.fmt.color_key) * (len(pixels) // 2))
+        self.assertEqual((g.caption_visible_flag, g.sheet_refcount[9]), (0, 0))
         # 0x4c2790 reports and quits on a failed load, even when measuring.
         backend = SheetBackend(self.data, self.fmt, fail_load=True)
         status, _, g, backend, _, _ = self.write(b"x<n>", -1, 1, backend=backend)
@@ -561,8 +577,246 @@ class CaptionLayoutTests(unittest.TestCase):
         self.assertIn(("debug_log",), backend.events)
         self.assertEqual(backend.messages, [b"CC Text::ProcessTextLine() - Too much Text"])
 
+    def test_callbacks_observe_live_pixels_and_state(self):
+        surface, pixels = self.caption_surface()
+        g = Globals()
+        g.caption_finish_flag = 1
+        backend = SheetBackend(self.data, self.fmt)
+        key = struct.pack("<H", self.fmt.color_key)
+        seen = {}
+
+        def load(ctx, font, name, sheet, original=backend._load):
+            seen["load"] = (bytes(pixels[:4]), g.caption_finish_flag, g.sheet_refcount[font])
+            return original(ctx, font, name, sheet)
+
+        def restore(ctx):
+            body = bytes(pixels)
+            seen["restore"] = (body != key * (len(body) // 2), g.caption_visible_flag,
+                               g.caption_finish_flag, g.sheet_refcount[9])
+            return 0
+
+        backend.struct.load_font_sheet = LOAD(load)
+        backend.struct.restore_caption_box = SIMPLE(restore)
+        status, result, _, g2, _ = native_write(self.lib, self.fmt, self.fonts, self.geometry,
+                                                 backend, self.autotext[b"NSHT01"], -1, 0,
+                                                 surface=surface, globals_=g)
+        self.assertEqual(status, OK)
+        # At load: cleared surface visible, 0x5b1602 already cleared, count 0.
+        self.assertEqual(seen["load"], (key * 2, 0, 0))
+        # At restore: glyphs visible, 0x5b1606 set, sheet still held.
+        self.assertEqual(seen["restore"], (True, 1, 0, 1))
+
+    def test_backend_writes_during_callbacks_are_kept(self):
+        g = Globals()
+        g.frame_open = 1
+        g.caption_visible_flag = 0
+        backend = SheetBackend(self.data, self.fmt)
+
+        def close(ctx):
+            g.caption_visible_flag = 7   # a host write the writer must not undo
+            return 0
+
+        backend.struct.close_frame_text = SIMPLE(close)
+        status, *_ = native_write(self.lib, self.fmt, self.fonts, self.geometry, backend,
+                                  b"x<n>", -1, 1, globals_=g)
+        self.assertEqual((status, g.caption_visible_flag, g.frame_open), (OK, 7, 0))
+
+    def test_missing_callbacks_rejected_before_any_call(self):
+        for field, mode, measure, frame_open in (
+                ("release_font_sheet", -1, 1, 0), ("load_font_sheet", -1, 1, 0),
+                ("restore_caption_box", -1, 0, 0), ("restore_caption_box", 5, 0, 0),
+                ("close_frame_text", -1, 1, 1)):
+            backend = SheetBackend(self.data, self.fmt)
+            setattr(backend.struct, field, type(getattr(backend.struct, field))())
+            g = Globals()
+            g.frame_open = frame_open
+            surface = pixels = None
+            if not measure:
+                surface, pixels = self.caption_surface()
+            status, _, _, g, stored = native_write(
+                self.lib, self.fmt, self.fonts, self.geometry, backend, b"x<n>", mode, measure,
+                surface=surface, globals_=g)
+            self.assertEqual((status, backend.events), (ERR_UNSUPPORTED, []), field)
+            self.assertEqual((g.frame_open, tuple(g.sheet_refcount)), (frame_open, (0,) * MAX_FONTS))
+            if pixels is not None:
+                self.assertEqual(bytes(pixels), b"\xa5" * len(pixels))
+        # Restore is not needed for measuring or for the framed box.
+        backend = SheetBackend(self.data, self.fmt)
+        backend.struct.restore_caption_box = SIMPLE()
+        self.assertEqual(self.write(b"x<n>", -1, 1, backend=backend)[0], OK)
+        self.assertEqual(self.write(b"x<n>", -2, 0, backend=backend)[0], OK)
+
+    def test_extreme_coordinates_fail_safely(self):
+        # FONT glyph and colour rectangles and TBOX values at INT32 extremes:
+        # arithmetic wraps as on x86 (no UB) and any out-of-range access is
+        # rejected (run under UBSan by the S05 fix checks).
+        chunk = bytearray(self.data.font_chunk)
+        base = 9 * FONT_RECORD
+        for glyph in range(GLYPHS):
+            struct.pack_into("<iiii", chunk, base + 0xC3 + 16 * glyph,
+                             -2**31, -2**31, 2**31 - 1, 2**31 - 1)
+        struct.pack_into("<ii", chunk, base + 0x3F, 2**31 - 1, 2**31 - 1)
+        fonts = Fonts()
+        self.assertEqual(self.lib.caption_fonts_init(buf(bytes(chunk)), len(chunk), 18,
+                                                     c.byref(fonts)), OK)
+        self.assertEqual(tuple(fonts.glyph_size[9][0]), (0, 0))
+        for measure in (1, 0):
+            backend = SheetBackend(self.data, self.fmt)
+            surface = pixels = None
+            if not measure:
+                surface, pixels = self.caption_surface()
+            status, *_ = native_write(self.lib, self.fmt, fonts, self.geometry, backend,
+                                      b"Hi<u>x<u><n>", -1, measure, surface=surface)
+            self.assertIn(status, (OK, ERR_BOUNDS), measure)
+        tbox = bytearray(self.data.tbox)
+        for offset in range(0, 0x58, 4):
+            struct.pack_into("<i", tbox, offset, -2**31 if offset % 8 else 2**31 - 1)
+        geometry = Geometry()
+        self.assertEqual(self.lib.caption_geometry_init(buf(bytes(tbox)), 98,
+                                                        c.byref(geometry)), OK)
+        for mode in (-1, -2):
+            backend = SheetBackend(self.data, self.fmt)
+            surface, pixels = self.caption_surface()
+            status, *_ = native_write(self.lib, self.fmt, self.fonts, geometry, backend,
+                                      b"Hi<n>", mode, 0, surface=surface)
+            self.assertNotEqual(status, ERR_ARGUMENT)
+
     def test_status_strings(self):
         self.assertEqual(self.lib.caption_status_string(ERR_TOO_LONG), b"framed text too long")
+
+
+SANITIZER_DRIVER = r"""
+#include "caption_layout.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static uint8_t *read_file(const char *path, size_t *length)
+{
+    FILE *f = fopen(path, "rb");
+    uint8_t *data;
+    if (f == NULL) { return NULL; }
+    fseek(f, 0, SEEK_END); *length = (size_t)ftell(f); fseek(f, 0, SEEK_SET);
+    data = malloc(*length ? *length : 1);
+    if (fread(data, 1, *length, f) != *length) { exit(2); }
+    fclose(f);
+    return data;
+}
+
+static uint16_t sheet_pixels[600 * 600];
+static int loads, releases;
+static CaptionBackendStatus load(void *c, int16_t f, const char *n, CaptionSurface *s)
+{ (void)c; (void)f; (void)n; s->pixels = (uint8_t *)sheet_pixels; s->width = 600;
+  s->height = 600; s->pitch = 1200; ++loads; return CAPTION_BACKEND_OK; }
+static void release(void *c, int16_t f, CaptionSurface *s) { (void)c; (void)f; (void)s; ++releases; }
+static CaptionBackendStatus ok(void *c) { (void)c; return CAPTION_BACKEND_OK; }
+static CaptionBackendStatus fail(void *c) { (void)c; return CAPTION_BACKEND_ERROR; }
+
+static void put32(uint8_t *p, int32_t v) { memcpy(p, &v, 4); }
+
+int main(int argc, char **argv)
+{
+    size_t font_length, tbox_length;
+    uint8_t *font, *tbox;
+    static CaptionFonts fonts;
+    CaptionGeometry geometry;
+    CaptionPixelFormat format;
+    const uint8_t key[3] = {0, 0x1f, 0};
+    static uint16_t target_pixels[623 * 1001];
+    const char *texts[] = {"Hello there, a longer caption to wrap around the box.<n>",
+                           "<u>under<u> <c1>tint<c0> <f5>five<f9> tab<t>x<r>right<n>",
+                           "x<n>", "<f30>bad<n>", "abc>def<n>"};
+    int mode_index, text_index, variant;
+    if (argc != 3) { return 2; }
+    font = read_file(argv[1], &font_length);
+    tbox = read_file(argv[2], &tbox_length);
+    if (font == NULL || tbox == NULL) { return 2; }
+    for (size_t i = 0; i < 600 * 600; ++i) { sheet_pixels[i] = (uint16_t)(i * 2654435761u >> 16); }
+    caption_pixel_format_from_masks(0x7c00, 0x3e0, 0x1f, key, &format);
+    for (variant = 0; variant < 3; ++variant) {
+        uint8_t *f = malloc(font_length);
+        uint8_t t[CAPTION_TBOX_BYTES];
+        memcpy(f, font, font_length);
+        memcpy(t, tbox, CAPTION_TBOX_BYTES);
+        if (variant >= 1) {
+            for (int g = 0; g < 115; ++g) {
+                uint8_t *r = f + 9 * 0x7f3 + 0xc3 + 16 * g;
+                put32(r, INT32_MIN); put32(r + 4, INT32_MIN);
+                put32(r + 8, INT32_MAX); put32(r + 12, INT32_MAX);
+            }
+            put32(f + 9 * 0x7f3 + 0x3f, INT32_MAX); put32(f + 9 * 0x7f3 + 0x43, INT32_MAX);
+        }
+        if (variant == 2) {
+            for (int o = 0; o < 0x58; o += 4) { put32(t + o, (o & 4) ? INT32_MIN : INT32_MAX); }
+        }
+        if (caption_fonts_init(f, font_length, 18, &fonts) != CAPTION_OK) { return 3; }
+        if (caption_geometry_init(t, CAPTION_TBOX_BYTES, &geometry) != CAPTION_OK) { return 4; }
+        for (mode_index = 0; mode_index < 3; ++mode_index) {
+            int16_t mode = mode_index == 0 ? -1 : mode_index == 1 ? -2 : 5;
+            for (text_index = 0; text_index < 5; ++text_index) {
+                for (int measure = 0; measure < 2; ++measure) {
+                    for (int restore_fails = 0; restore_fails < 2; ++restore_fails) {
+                        uint8_t text[256];
+                        CaptionTextBox box; CaptionGlobals globals; CaptionResult result;
+                        CaptionBackend backend = {NULL, load, release, ok,
+                                                  restore_fails ? fail : ok, NULL};
+                        CaptionSurface target = {(uint8_t *)target_pixels, 623, 201, 1246};
+                        CaptionRequest request;
+                        memset(&box, 0, sizeof(box)); memset(&globals, 0, sizeof(globals));
+                        globals.frame_open = (uint8_t)(text_index & 1);
+                        memset(text, 0, sizeof(text));
+                        strcpy((char *)text, texts[text_index]);
+                        request.text = text; request.text_capacity = sizeof(text);
+                        request.mode = mode; request.measure = (uint8_t)measure; request.debug_mode = 1;
+                        loads = releases = 0;
+                        (void)caption_layout_write(&fonts, &geometry, &format, &box, &globals,
+                                                   &backend, &target, &request, &result);
+                        for (int k = 0; k < 18; ++k) {
+                            if (globals.sheet_refcount[k] != 0 || globals.sheets[k].pixels != NULL) {
+                                fprintf(stderr, "leak font %d\n", k); return 5;
+                            }
+                        }
+                        if (loads != releases) { fprintf(stderr, "unbalanced\n"); return 6; }
+                    }
+                }
+            }
+        }
+        free(f);
+    }
+    puts("sanitizer driver ok");
+    return 0;
+}
+"""
+
+
+class CaptionSanitizerTests(unittest.TestCase):
+    def test_asan_ubsan_driver(self):
+        import shutil
+        import subprocess
+        import tempfile
+        if shutil.which("xcrun") is None or not GAME_SOURCE.exists():
+            raise unittest.SkipTest("xcrun or shipped data unavailable")
+        try:
+            data = ShippedData()
+        except Exception as exc:  # noqa: BLE001
+            raise unittest.SkipTest(f"shipped data unavailable: {exc}")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / "driver.c").write_text(SANITIZER_DRIVER)
+            (tmp / "font.bin").write_bytes(data.font_chunk)
+            (tmp / "tbox.bin").write_bytes(data.tbox)
+            build = subprocess.run(
+                ["xcrun", "clang", "-arch", "arm64", "-std=c11", "-g", "-O1",
+                 "-fsanitize=address,undefined", "-fno-sanitize-recover=all",
+                 "-I", str(PROJECT / "src"), str(tmp / "driver.c"),
+                 str(PROJECT / "src/caption_layout.c"), "-o", str(tmp / "driver")],
+                capture_output=True, text=True)
+            self.assertEqual(build.returncode, 0, build.stderr)
+            run = subprocess.run([str(tmp / "driver"), str(tmp / "font.bin"), str(tmp / "tbox.bin")],
+                                 capture_output=True, text=True, timeout=600,
+                                 env={**os.environ, "ASAN_OPTIONS": "detect_leaks=0"})
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr[-3000:])
+            self.assertIn("sanitizer driver ok", run.stdout)
 
 
 if __name__ == "__main__":

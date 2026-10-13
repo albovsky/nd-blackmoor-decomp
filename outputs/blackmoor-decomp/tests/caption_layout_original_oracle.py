@@ -211,11 +211,19 @@ class Original:
         self.surface_sizes = [struct.unpack("<h", self.r(a, 2))[0] for a in SURFACE_SIZES]
 
     # -- hooks -------------------------------------------------------------
+    def _observed(self) -> tuple:
+        """State a callback would see at this instant (callback-time check)."""
+        pixels = None
+        if self.target_bytes:
+            pixels = hashlib.sha256(self.r(TARGET, self.target_bytes)).hexdigest()[:16]
+        return (pixels, struct.unpack("<i", self.r(CAPTION_VISIBLE, 4))[0],
+                struct.unpack("<i", self.r(CAPTION_FINISH, 4))[0], self.r(FRAME_OPEN, 1)[0],
+                struct.unpack("<18h", self.r(SHEET_REFCOUNT, 36)))
+
     def _observe_close(self, uc, address, _size, _user) -> None:
-        """Records entry to the real 0x4de2d8; the function itself runs."""
         if self.reg("ECX") != FRAME_OBJECT:
             raise OracleError("0x4de2d8 on unexpected object")
-        self.events.append(("close_frame_text",))
+        self.events.append(("close_frame_text",) + self._observed())
 
     def _hook(self, uc, address, _size, _user) -> None:
         pop = HOOKS[address]
@@ -228,7 +236,7 @@ class Original:
                                  (c.c_uint8 * 3)(*self.format["bits"]),
                                  self.format["color_key"])
             sheet = None if font in self.missing else self.data.sheet(name, fmt)
-            self.events.append(("load", font, name))
+            self.events.append(("load", font, name) + self._observed())
             if sheet is not None:
                 pixels, width, height, pitch = sheet
                 pix = self.sheet_ptrs.get(hash((name, pixels)))
@@ -254,7 +262,7 @@ class Original:
         elif address == 0x4E1157:
             if self.reg("ECX") != TASKBAR_OBJECT:
                 raise OracleError("0x4e1157 on unexpected object")
-            self.events.append(("restore_caption_box",))
+            self.events.append(("restore_caption_box",) + self._observed())
         elif address == 0x52139C:
             self.events.append(("message", self.cstr(self.arg(0))))
         elif address == 0x42639D:
@@ -289,10 +297,12 @@ class Original:
         self.w(text, case.text + b"\0")
         surface = 0
         guard = 0
+        self.target_bytes = 0
         if not case.measure:
             surface = self.alloc(0x59)
             guard = width * height * 2
             self.w(TARGET, struct.pack("<H", GUARD_WORD) * guard)
+            self.target_bytes = guard
             self.w(surface, struct.pack("<I", TARGET))
             self.w(surface + 0x2B, struct.pack("<hhh", width, height, width * 2))
         esp = STACK + STACK_SIZE - 0x100
@@ -347,6 +357,8 @@ def native_run(lib, data, fmt, fonts, geometry, case: Case, width: int, height: 
     surface = pixels = None
     if not case.measure:
         surface, pixels = fx.make_surface(width, height, GUARD_WORD)
+    backend.observe_pixels = pixels
+    backend.observe_globals = globals_
     status, result, box, globals_, text = fx.native_write(
         lib, fmt, fonts, geometry, backend, case.text, case.mode, case.measure,
         surface=surface, globals_=globals_, box=box,

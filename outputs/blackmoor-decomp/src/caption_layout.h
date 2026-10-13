@@ -191,32 +191,36 @@ typedef struct caption_result {
 
 /* Runs 0x448d11 in two passes.
  *
- * Pass 1 lays the text out without side effects and rejects malformed input,
- * font indices outside the FONT table, buffer overruns, non-terminating
- * wraps and the framed "too long" path before any backend call or state
- * change. A font sheet that fails to load is a pass-2 failure.
+ * Pass 1 lays the text out on private copies without side effects and
+ * rejects malformed input, font indices outside the FONT table, buffer
+ * overruns, non-terminating wraps and the framed "too long" path before any
+ * backend call or state change. Every backend callback the request can reach
+ * must be present (load and release always; close_frame_text when a frame
+ * is open; restore_caption_box for caption/font-mode draws), otherwise
+ * CAPTION_ERR_UNSUPPORTED is returned before anything changes.
  *
- * Pass 2 runs in original order: frame close, sheet loads/releases and the
- * taskbar restore are real backend calls; pixels go to a private copy of
- * `target`. Pixel bounds depend on sheet contents (only non-key words are
- * written), so CAPTION_ERR_BOUNDS can arise here, as can backend failures.
- * On any pass-2 failure the target pixels, text, text box and `globals` are
- * left unchanged, except that sheets loaded by this call are released and
- * an already performed frame close is reflected (frame_open = 0,
- * framed_ready = 0). Such failures are fatal in the original (quit or a
- * fault); callers must not retry blindly.
+ * Pass 2 runs in original order on the caller's live `box` and `globals`,
+ * so callbacks observe current state: the "<e>" append, the 0x5b1602 clear,
+ * frame close, sheet loads/releases, 0x5b1606 = 1 before the taskbar
+ * restore. Pixels are staged and copied to `target` before every backend
+ * call and at the end, so a callback always sees the surface as drawn so
+ * far. A font sheet that fails to load, a failing callback, or a pixel write
+ * outside a surface (which depends on sheet contents) is a pass-2 failure:
+ * the state and the pixels visible at the last host call are kept as the
+ * original order left them (no rollback after a visible host effect), and
+ * this call's sheet references are released through the backend so no
+ * handle or count is left behind. Such failures are fatal in the original.
  *
  * Measure mode is not side-effect free, as in the original: it closes an
  * open frame box and loads/releases font sheets. `target` may be NULL only
  * in measure mode.
  *
- * `globals` is copied in and written back whole: backends must not modify
- * it during the call. `globals->sheets[]` point at backend-owned memory;
- * the writer passes them back to release_font_sheet when their count
- * reaches zero. Invariant: a non-NULL sheet has sheet_refcount > 0 (the
- * writer never produces anything else); callers must not pass a held
- * sheet with a zero count. The debug_log callback may already have run
- * when a later pass-2 failure discards too_long_reported. */
+ * Backends may update `globals` during callbacks (e.g. a frame close); the
+ * writer never restores a stale copy. `globals->sheets[]` point at
+ * backend-owned memory; the writer passes them back to release_font_sheet
+ * when their count reaches zero. Invariant: a non-NULL sheet has
+ * sheet_refcount > 0; callers must not pass a held sheet with a zero count.
+ * The debug_log callback may run before a later pass-2 failure. */
 int caption_layout_write(const CaptionFonts *fonts,
                          const CaptionGeometry *geometry,
                          const CaptionPixelFormat *format,
