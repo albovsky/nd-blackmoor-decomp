@@ -16,6 +16,9 @@ import random
 import struct
 from cif_original_oracle import PEImage, EXPECTED_EXE_SHA256, align_up
 from test_action_family_28 import Input, World, Rect, Result, Decoded, configure, buffer, payload, LIBRARY
+from test_action_family_28_sequence import (Harness as SequenceHarness,
+    Report as SequenceReport, configure as configure_sequence,
+    fixture_state as sequence_fixture_state)
 from unicorn import Uc, UC_ARCH_X86, UC_MODE_32, UC_HOOK_CODE
 from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_ECX, UC_X86_REG_EFLAGS, UC_X86_REG_EIP, UC_X86_REG_ESP, UC_X86_REG_FPCW
 ROOT=Path(__file__).resolve().parents[3]
@@ -39,6 +42,7 @@ class Original:
         self.uc.mem_map(STACK,0x20000);self.uc.mem_map(DATA,0x10000);self.uc.mem_map(END,0x1000)
         self.gate=True;self.gate_calls=0;self.alloc_calls=0;self.pump_calls=0;self.blit_calls=0
         self.tick_values=[];self.tick_index=0;self.controller_weights=[]
+        self.controller_events=[];self.controller_selected_count=None
         self.controller_mode=False;self.render_gate_mode=False;self.render_gate_calls=0
         self.uc.mem_write(IAT_GET_TICK_COUNT,struct.pack('<I',HOOK_GET_TICK))
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x423f57,end=0x423f57)
@@ -48,21 +52,30 @@ class Original:
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=HOOK_GET_TICK,end=HOOK_GET_TICK)
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4477d1,end=0x4477d1)
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4f52a9,end=0x4f52a9)
+        self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x447673,end=0x447673)
         self.uc.hook_add(UC_HOOK_CODE,self.hook,begin=0x4473be,end=0x4473be)
     def hook(self,u,addr,size,user):
         esp=u.reg_read(UC_X86_REG_ESP)
         if addr==HOOK_GET_TICK:
             if not self.controller_mode:return
             value=self.tick_values[min(self.tick_index,len(self.tick_values)-1)]
+            self.controller_events.append(('tick',self.tick_index))
             self.tick_index+=1;u.reg_write(UC_X86_REG_EAX,value)
             pop=0
         elif addr==0x4477d1:
             if not self.controller_mode:return
+            self.controller_events.append(('blend',len(self.controller_weights)))
             self.controller_weights.append(struct.unpack('<d',u.mem_read(esp+16,8))[0])
             pop=0
         elif addr==0x4f52a9:
             if not self.controller_mode:return
+            self.controller_events.append(('pump',self.pump_calls))
             self.pump_calls+=1;pop=0
+        elif addr==0x447673:
+            if self.controller_mode and self.controller_selected_count is None:
+                ebp=u.reg_read(UC_X86_REG_EBP)
+                self.controller_selected_count=struct.unpack('<i',u.mem_read(ebp-4,4))[0]
+            return
         elif addr==0x4473be:
             if not self.render_gate_mode:return
             self.render_gate_calls+=1;pop=0
@@ -177,16 +190,23 @@ class Original:
         u.mem_write(0x583999,struct.pack('<I',4));u.mem_write(0x5839a9,b'\x01')
         u.mem_write(0x63a4cd,b'\x00\x00');u.mem_write(0x5d1639,b'\x00')
         self.tick_values=list(ticks);self.tick_index=0;self.controller_weights=[]
+        self.controller_events=[];self.controller_selected_count=None
         self.pump_calls=0;self.controller_mode=True
         u.reg_write(UC_X86_REG_FPCW,control_word);self.call(0x44753b,ecx=obj)
         self.controller_mode=False
         return {'weights':[float(x).hex() for x in self.controller_weights],
+            'events':[list(x) for x in self.controller_events],
             'get_tick_calls':self.tick_index,'pump_calls':self.pump_calls,
+            'selected_frame_count':self.controller_selected_count,
             'busy':u.mem_read(obj+0x1c,1)[0],'stage':read32(u,obj+0x2d),
             'subtype':u.mem_read(obj+0x49,1)[0],
             'source_pointer':read32(u,obj+0x31),'destination_pointer':read32(u,obj+0x35),
+            'source_is_first':read32(u,obj+0x31)==first,
+            'destination_is_second':read32(u,obj+0x35)==second,
             'scene_state':read32(u,0x583999),'render_guard':u.mem_read(0x5839a9,1)[0],
-            'redraw_flag':u.mem_read(0x5d1639,1)[0]}
+            'redraw_flag':u.mem_read(0x5d1639,1)[0],
+            'finalizer_global_5831c8':read32(u,0x5831c8),
+            'finalizer_global_5831c6':struct.unpack('<H',u.mem_read(0x5831c6,2))[0]}
     def capture_rgb16(self,width,height,pitch_pixels,pixels,rect=None):
         if len(pixels)!=pitch_pixels*height:raise ValueError('capture fixture geometry')
         u=self.uc;obj=DATA+0x2000;surface=DATA+0x5000;output=DATA+0x8000
@@ -243,6 +263,31 @@ def native_sequence_frame_count(lib,budget,elapsed):
     status=lib.action_family28_sequence_frame_count(budget,elapsed,c.byref(count))
     if status:raise RuntimeError(f'native sequence counter rejected oracle case: {status}')
     return count.value
+def native_sequence_trace(lib,case):
+    state,first,second=sequence_fixture_state(case['subtype'],case['budget'],case['pause'])
+    harness=SequenceHarness(case['ticks']);report=SequenceReport()
+    status=lib.action_family28_run_sequence(c.byref(state),c.byref(harness.callbacks),
+        case['cw'],c.byref(report))
+    if status:raise RuntimeError(f"native sequence rejected {case['label']}: {status}")
+    source=c.cast(state.source_capture.data,c.c_void_p).value
+    destination=c.cast(state.destination_capture.data,c.c_void_p).value
+    first_address=c.cast(first,c.c_void_p).value
+    second_address=c.cast(second,c.c_void_p).value
+    return {'weights':[frame['weight'].hex() for frame in harness.frames],
+        'events':[list(event) for event in harness.events],
+        'get_tick_calls':report.get_tick_calls,
+        'pump_calls':report.system_audio_pump_calls,
+        'selected_frame_count':report.selected_frame_count,
+        'planned_frame_count':report.planned_frame_count,
+        'first_frame_elapsed_ms':report.first_frame_elapsed_ms,
+        'busy':state.busy,'stage':state.stage,'subtype':state.subtype,
+        'source_is_first':source==first_address,
+        'destination_is_second':destination==second_address,
+        'scene_state':state.scene_state,'render_guard':state.render_guard,
+        'redraw_flag':state.redraw_flag,
+        'finalizer_global_5831c8':state.finalizer_global_5831c8,
+        'finalizer_global_5831c6':state.finalizer_global_5831c6,
+        'completion_committed':report.completion_committed}
 def native_unpack_rgb16(lib,surface,surface_width,surface_height,pitch_bytes,left,top,width,height,shifts,masks):
     source_buf=buffer(surface);shift_buf=buffer(bytes(shifts));mask_buf=buffer(bytes(masks))
     output=(c.c_uint8*(width*height*3))()
@@ -254,7 +299,8 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--original-only',action='store_true');args=ap.parse_args()
     pe=PEImage.parse_and_map(ROOT/'work/original/GAME.EXE')
     if sha(pe.data)!=EXPECTED_EXE_SHA256:raise RuntimeError('unpinned executable')
-    original=Original(pe);lib=None if args.original_only else configure(c.CDLL(str(LIBRARY)))
+    original=Original(pe);lib=None if args.original_only else configure_sequence(
+        configure(c.CDLL(str(LIBRARY))))
     corpus=json.loads((ROOT/'work/analysis/slices/A-28-corpus.json').read_text());cases=[];constructs=[];mismatches=[]
     for row in corpus:
         label=f"{row['scene']}:{row['action']}";raw=bytes.fromhex(row['body_hex']);o=original.construct(raw);constructs.append(o)
@@ -322,22 +368,164 @@ def main():
             'ticks':[1000,1002,1002,1003,1004],'cw':0x037f},
         {'label':'subtype2-cw027f','subtype':2,'budget':11,'pause':17,
             'ticks':[100,102],'cw':0x027f},
+        {'label':'subtype0-unit-weight','subtype':0,'budget':4,'pause':0,
+            'ticks':[100,102],'cw':0x037f},
+        {'label':'subtype7-unit-weight','subtype':7,'budget':4,'pause':0,
+            'ticks':[100,102],'cw':0x027f},
         {'label':'subtype2-tick-wrap-positive','subtype':2,'budget':11,'pause':0,
             'ticks':[0xfffffffe,1],'cw':0x037f},
         {'label':'subtype2-tick-wrap-negative','subtype':2,'budget':4,'pause':0,
             'ticks':[100,97],'cw':0x037f},
+        {'label':'subtype1-negative-pause','subtype':1,'budget':4,'pause':-2,
+            'ticks':[100,102,102,102],'cw':0x037f},
+        {'label':'subtype1-zero-pause-poll','subtype':1,'budget':4,'pause':0,
+            'ticks':[100,102,102],'cw':0x027f},
+        {'label':'subtype3-overflowing-pause-deadline','subtype':3,'budget':4,'pause':4,
+            'ticks':[100,102,0xfffffffe,1,2],'cw':0x027f},
     ]
-    controller_traces=[]
+    controller_traces=[];controller_mismatches=[];curve_weight_mismatch_cases=[]
     for case in controller_cases:
         trace=original.sequence_trace(case['subtype'],case['budget'],case['pause'],
                                        case['ticks'],case['cw'])
         elapsed=(case['ticks'][1]-case['ticks'][0])&0xffffffff
         if lib and native_sequence_frame_count(lib,case['budget'],elapsed)!=len(trace['weights']):
             mismatches.append(f"sequence-frame-count:{case['label']}")
+        native_trace=native_sequence_trace(lib,case) if lib else None
+        if native_trace is not None:
+            exact_weights=(native_trace['weights']==trace['weights'])
+            compared_state={key:native_trace[key] for key in [
+                'events','get_tick_calls','pump_calls','selected_frame_count',
+                'planned_frame_count','first_frame_elapsed_ms','busy','stage',
+                'subtype','source_is_first','destination_is_second','scene_state',
+                'render_guard','redraw_flag','finalizer_global_5831c8',
+                'finalizer_global_5831c6']}
+            expected_state={'events':trace['events'],'get_tick_calls':trace['get_tick_calls'],
+                'pump_calls':trace['pump_calls'],'selected_frame_count':trace['selected_frame_count'],
+                'planned_frame_count':len(trace['weights']),
+                'first_frame_elapsed_ms':elapsed,
+                'busy':trace['busy'],'stage':trace['stage'],'subtype':trace['subtype'],
+                'source_is_first':trace['source_is_first'],
+                'destination_is_second':trace['destination_is_second'],
+                'scene_state':trace['scene_state'],'render_guard':trace['render_guard'],
+                'redraw_flag':trace['redraw_flag'],
+                'finalizer_global_5831c8':trace['finalizer_global_5831c8'],
+                'finalizer_global_5831c6':trace['finalizer_global_5831c6']}
+            if compared_state!=expected_state or len(native_trace['weights'])!=len(trace['weights']):
+                controller_mismatches.append(case['label']+':state-or-order')
+                mismatches.append('sequence:'+case['label']+':state-or-order')
+            if not exact_weights:
+                differences=[]
+                for index,(a_hex,b_hex) in enumerate(zip(trace['weights'],native_trace['weights'])):
+                    a_bits=struct.unpack('<Q',struct.pack('<d',float.fromhex(a_hex)))[0]
+                    b_bits=struct.unpack('<Q',struct.pack('<d',float.fromhex(b_hex)))[0]
+                    if a_bits!=b_bits:
+                        differences.append({'frame':index,'original':a_hex,'native':b_hex,
+                            'ulp':abs(a_bits-b_bits)})
+                curve_weight_mismatch_cases.append(case['label'])
+                if case['subtype'] not in (1, 2, 3):
+                    mismatches.append('sequence:'+case['label']+':unsupported-subtype-weight')
+            else:
+                differences=[]
+        else:
+            differences=[]
         controller_traces.append({'label':case['label'],'control_word':f"{case['cw']:#06x}",
             'tick_values':[f'0x{x & 0xffffffff:08x}' for x in case['ticks']],
             'budget_ms':case['budget'],'pause_ms':case['pause'],
-            'frame_count':len(trace['weights']),'trace':trace})
+            'frame_count':len(trace['weights']),'original_trace':trace,
+            'native_trace':native_trace,'weights_exact':None if native_trace is None else exact_weights,
+            'weight_mismatches':differences})
+    controller_curve_comparison={'original_compared':True,'native_compared':bool(lib),
+        'control_words':['0x027f','0x037f'],'counts_inclusive':[2,64],
+        'weight_tolerance_ulp':0,
+        'weight_mismatches_are_separate_from_controller_order_state':True,
+        'lut_impact_method':'For each original/native curve-weight pair, run the native CW-specific LUT over all 4096 channel pairs and compare the tables. The LUT was separately compared exactly to the original x86 for 24 sampled weights per CW; the curve sweep does not expand that original LUT sample set.',
+        'packed_impact_method':'Apply both weights to the fixed seeded 3x2 RGB fixture. This sample is diagnostic only; it is not full-frame or presentation parity.',
+        'results_by_cw':[],'curve_weight_mismatch_cases':curve_weight_mismatch_cases,
+        'state_and_callback_order_mismatches':controller_mismatches}
+    if lib:
+        for cw in [0x027f,0x037f]:
+            exact=0;total=0;max_ulp=0;first_mismatches=[]
+            frames_with_lut_changes=0;changed_lut_entries=0;max_lut_changes=0
+            frames_with_packed_changes=0;changed_packed_pixels=0
+            impact_examples=[]
+            for selected_count in range(2,65):
+                budget,ticks=(4,[100,102]) if selected_count==2 else (selected_count,[100,101])
+                case={'label':f'curve-n{selected_count}-{cw:04x}','subtype':2,
+                    'budget':budget,'pause':0,'ticks':ticks,'cw':cw}
+                expected_elapsed=(ticks[1]-ticks[0])&0xffffffff
+                trace=original.sequence_trace(2,budget,0,ticks,cw)
+                native_trace=native_sequence_trace(lib,case)
+                if (native_trace['events']!=trace['events'] or
+                    native_trace['get_tick_calls']!=trace['get_tick_calls'] or
+                    native_trace['pump_calls']!=trace['pump_calls'] or
+                    native_trace['selected_frame_count']!=trace['selected_frame_count'] or
+                    native_trace['planned_frame_count']!=len(trace['weights']) or
+                    native_trace['first_frame_elapsed_ms']!=expected_elapsed or
+                    len(native_trace['weights'])!=len(trace['weights']) or
+                    native_trace['subtype']!=trace['subtype'] or
+                    native_trace['source_is_first']!=trace['source_is_first'] or
+                    native_trace['destination_is_second']!=trace['destination_is_second'] or
+                    native_trace['busy']!=trace['busy'] or native_trace['stage']!=trace['stage'] or
+                    native_trace['scene_state']!=trace['scene_state'] or
+                    native_trace['render_guard']!=trace['render_guard'] or
+                    native_trace['redraw_flag']!=trace['redraw_flag'] or
+                    native_trace['finalizer_global_5831c8']!=trace['finalizer_global_5831c8'] or
+                    native_trace['finalizer_global_5831c6']!=trace['finalizer_global_5831c6']):
+                    controller_mismatches.append(case['label'])
+                    mismatches.append('sequence:'+case['label']+':state-or-order')
+                for index,(a_hex,b_hex) in enumerate(zip(trace['weights'],native_trace['weights'])):
+                    a_bits=struct.unpack('<Q',struct.pack('<d',float.fromhex(a_hex)))[0]
+                    b_bits=struct.unpack('<Q',struct.pack('<d',float.fromhex(b_hex)))[0]
+                    distance=abs(a_bits-b_bits)
+                    total+=1;max_ulp=max(max_ulp,distance)
+                    if distance==0:exact+=1
+                    elif len(first_mismatches)<12:
+                        first_mismatches.append({'count':selected_count,'frame':index,
+                            'original':a_hex,'native':b_hex,'ulp':distance})
+                    original_table=(c.c_int32*4096)()
+                    native_table=(c.c_int32*4096)()
+                    if (lib.action_family28_blend_table_for_cw(
+                            float.fromhex(a_hex),cw,original_table,4096) or
+                        lib.action_family28_blend_table_for_cw(
+                            float.fromhex(b_hex),cw,native_table,4096)):
+                        raise RuntimeError('curve impact LUT rejected an in-domain weight')
+                    lut_delta=sum(x!=y for x,y in zip(original_table,native_table))
+                    if lut_delta:
+                        frames_with_lut_changes+=1
+                        changed_lut_entries+=lut_delta
+                        max_lut_changes=max(max_lut_changes,lut_delta)
+                        if len(impact_examples)<8:
+                            impact_examples.append({'count':selected_count,'frame':index,
+                                'original_weight':a_hex,'native_weight':b_hex,
+                                'changed_lut_entries':lut_delta})
+                    original_pixels=native_blend_pixels(lib,pixel_first,pixel_second,
+                        float.fromhex(a_hex),pixel_width,pixel_height,pixel_stride,
+                        pixel_shifts,cw)
+                    native_pixels=native_blend_pixels(lib,pixel_first,pixel_second,
+                        float.fromhex(b_hex),pixel_width,pixel_height,pixel_stride,
+                        pixel_shifts,cw)
+                    pixel_delta=sum(x!=y for x,y in zip(original_pixels,native_pixels))
+                    if pixel_delta:
+                        frames_with_packed_changes+=1
+                        changed_packed_pixels+=pixel_delta
+                        if len(impact_examples)<8:
+                            impact_examples.append({'count':selected_count,'frame':index,
+                                'original_weight':a_hex,'native_weight':b_hex,
+                                'changed_packed_pixels_in_3x2_sample':pixel_delta})
+            controller_curve_comparison['results_by_cw'].append({
+                'cw':f'{cw:#06x}','weights_compared':total,'exact':exact,
+                'mismatches':total-exact,'max_ulp':max_ulp,
+                'first_mismatches':first_mismatches,
+                'lut_impact':{'frames_compared':total,
+                    'frames_with_any_changed_entries':frames_with_lut_changes,
+                    'changed_entries_total':changed_lut_entries,
+                    'max_changed_entries_in_one_frame':max_lut_changes,
+                    'first_examples':impact_examples},
+                'packed_pixel_sample_impact':{'sample_geometry':[pixel_width,pixel_height],
+                    'frames_compared':total,
+                    'frames_with_any_changed_pixels':frames_with_packed_changes,
+                    'changed_pixels_total':changed_packed_pixels,
+                    'pixel_values_sha_fixture':'seeded source and destination triples'} })
     capture_surface=[0xf800,0x07e0,0x001f,0xffff,0x0000,0x0841,0x7bef,0x4208]
     capture_full=original.capture_rgb16(4,2,4,capture_surface)
     capture_crop=original.capture_rgb16(2,2,4,capture_surface,(1,0,2,1))
@@ -365,8 +553,12 @@ def main():
         'pixel_geometry':{'width':pixel_width,'height':pixel_height,'source_pitch_pixels':pixel_stride,'destination_pitch_bytes':8},
         'pixel_output_sha256':pixel_hashes,
         'controller_trace':{'original_compared':True,'cadence_native_compared':bool(lib),
+            'controller_loop_and_state_native_compared':bool(lib) and not controller_mismatches,
+            'explicit_cw_curve_native_compared':bool(lib),
+            'curve_exact_parity_claimed':False,
+            'curve_comparison':controller_curve_comparison,
             'full_playback_native_compared':False,
-            'summary':'Original 0x44753b ran with scripted GetTickCount; 0x4477d1 weight calls and 0x4f52a9 pump calls were recorded then returned at their entry boundaries. No pixels, capture, or sound update ran.',
+            'summary':'Original 0x44753b ran with scripted GetTickCount. Native callback order, selected local count, completion globals and state transitions were compared against it. Controller frame callbacks only recorded frame index/weight and returned; no capture, real system/audio update or presentation ran. A separate LUT/packed-sample impact sweep found no differences from curve-weight ULP drift for the tested N range.',
             'cases':controller_traces},
         'capture_trace':{'original_compared':True,'native_compared':bool(lib),
             'description':'Original 0x447ac7 captured an in-memory 16-bit surface and expanded each pixel through the original shift/mask globals; source wrapper selected the internal-memory surface branch, so DirectDraw locking was not exercised.',
@@ -389,9 +581,9 @@ def main():
             'ftol_observation':'0x50ce04 saves CW, ORs 0x0c into AH to select truncation, FISTP, then restores saved CW; it preserves PC bits'},
         'startup_precision_trace':{'entry':'0x50e7e5','entry_observation':'CRT startup pseudocode runs runtime initialization and invokes the resolved application entry without an explicit x87 precision-control setup in the visible entry body','crt_helper':'0x511a08 -> 0x5168ba(0x10000,0x30000); static caller scan finds 0x50cc9c','related_call':'0x50cc9c invokes 0x511a08; the inspected call does not prove the x87 precision-control field','conclusion':'The entrypoint and inspected CRT path do not establish the ambient x87 precision-control field at the 0x447870 call; runtime policy remains unresolved'},
         'red_green_evidence':{'red_probe':'ordinary binary64 evaluation trunc((a-b)*weight+0.5+b), compared to original 0x037f x87 table at six near-boundary weights','red_mismatch_counts':[row['naive_binary64_mismatches_vs_extended'] for row in alternate_cw],'green_native_lut_entries_compared':len(weights)*4096*2,'green_native_pixel_cases':len(weights)*2,'green_native_visible_pixels':len(weights)*pixel_width*pixel_height*2,'green_mismatches':len(mismatches)},
-        'excluded':['framebuffer capture','blend curve and timing controller','audio pumping','DirectDraw presentation/upload','nonempty recursive dependency reset','allocator failure dialog','application startup/runtime x87 precision-control policy']}
-    name='A-28-original-only.json' if args.original_only else 'A-28-original-oracle.json'
+        'excluded':['live framebuffer capture into the 12-byte-per-pixel buffers','real 0x4477d1 destination blend/presentation and graphics-tail pumping','real DirectSound/system event pumping','exact Windows CRT exp() return parity','nonempty recursive dependency reset','allocator failure dialog','application startup/runtime x87 precision-control policy']}
+    name='A-28.3.2-sequence-original-only.json' if args.original_only else 'A-28.3.2-sequence-oracle.json'
     (ROOT/'work/analysis/slices'/name).write_text(json.dumps(report,indent=2)+'\n')
-    print(json.dumps({k:report[k] for k in ['constructor_calls','dispatcher_calls','lut_entries_per_cw','lut_entries_total','pixel_weight_cases_per_cw','x87_control_words_compared','packed_visible_pixels','native_compared','mismatches']}))
+    print(json.dumps({k:report[k] for k in ['constructor_calls','dispatcher_calls','lut_entries_per_cw','lut_entries_total','pixel_weight_cases_per_cw','x87_control_words_compared','packed_visible_pixels','native_compared','mismatches']}|{'sequence_loop_compared':report['controller_trace']['controller_loop_and_state_native_compared'],'curve_results':report['controller_trace']['curve_comparison']['results_by_cw']}))
     if mismatches:raise SystemExit(1)
 if __name__=='__main__':main()
