@@ -125,16 +125,189 @@ class MacAudioTests(unittest.TestCase):
 
     def test_slots_mix_and_gain_can_change(self) -> None:
         self.open_offline()
-        self.assertEqual(self.play(2, [0.2, 0.4] * 256, gain=0.5), 0)
-        self.assertEqual(self.play(3, [-0.1, 0.2] * 256, gain=0.25), 0)
-        status = self.library.mac_audio_set_gain(self.host, 2, 0.25,
-                                                  self.error, ctypes.sizeof(self.error))
+        source_frame_count = 4096
+        slot_two_samples = [0.1 + index * 0.0001 for index in range(source_frame_count)]
+        slot_three_samples = [0.2 + index * 0.0001 for index in range(source_frame_count)]
+        slot_two_pcm = [sample for value in slot_two_samples for sample in (value, value)]
+        slot_three_pcm = [sample for value in slot_three_samples for sample in (value, -value)]
+
+        self.assertEqual(self.play(2, slot_two_pcm, gain=0.5), 0)
+        self.assertEqual(self.play(3, slot_three_pcm, gain=0.25), 0)
+        self.assertTrue(self.is_playing(2))
+        self.assertTrue(self.is_playing(3))
+
+        # AVAudioEngine can expose one newly attached player before the other
+        # contributes to manual-rendered PCM. Establish readiness from a full
+        # mixed block instead of assuming a fixed warm-up duration.
+        startup_frame_limit = 512
+        probe_frame_count = 8
+        initial_gain = 0.5
+        slot_three_gain = 0.25
+        slot_two_index = 0
+        slot_three_index = 0
+        slot_two_started = False
+        slot_three_started = False
+        initial_mixed_streak = 0
+        initial_mix_ready = False
+        rendered_frames = 0
+
+        def consume_initial_gain(block: list[float]) -> None:
+            nonlocal slot_two_index, slot_three_index
+            nonlocal slot_two_started, slot_three_started
+            nonlocal initial_mixed_streak, initial_mix_ready
+
+            for frame in range(len(block) // 2):
+                left = block[2 * frame]
+                right = block[2 * frame + 1]
+                slot_two_value = (left + right) / (2.0 * initial_gain)
+                slot_three_value = (left - right) / (2.0 * slot_three_gain)
+                has_slot_two = abs(slot_two_value) > 1e-5
+                has_slot_three = abs(slot_three_value) > 1e-5
+
+                if has_slot_two:
+                    self.assertLess(slot_two_index, source_frame_count)
+                    self.assertAlmostEqual(
+                        slot_two_value, slot_two_samples[slot_two_index], delta=2e-5
+                    )
+                    slot_two_index += 1
+                    slot_two_started = True
+                elif slot_two_started and slot_two_index < source_frame_count:
+                    self.fail("slot 2 became silent before its scheduled PCM was rendered")
+
+                if has_slot_three:
+                    self.assertLess(slot_three_index, source_frame_count)
+                    self.assertAlmostEqual(
+                        slot_three_value, slot_three_samples[slot_three_index], delta=2e-5
+                    )
+                    slot_three_index += 1
+                    slot_three_started = True
+                elif slot_three_started and slot_three_index < source_frame_count:
+                    self.fail("slot 3 became silent before its scheduled PCM was rendered")
+
+                if has_slot_two and has_slot_three:
+                    initial_mixed_streak += 1
+                    if initial_mixed_streak >= 16:
+                        initial_mix_ready = True
+                else:
+                    initial_mixed_streak = 0
+
+        while rendered_frames < startup_frame_limit and not initial_mix_ready:
+            frame_count = min(probe_frame_count, startup_frame_limit - rendered_frames)
+            consume_initial_gain(self.render(frame_count))
+            rendered_frames += frame_count
+        self.assertTrue(
+            initial_mix_ready,
+            f"both slots did not produce 16 consecutive mixed frames within "
+            f"{startup_frame_limit} rendered frames",
+        )
+
+        status = self.library.mac_audio_set_gain(
+            self.host, 2, 0.25, self.error, ctypes.sizeof(self.error)
+        )
         self.assertEqual(status, 0, self.error.value.decode(errors="replace"))
-        self.render(16)  # Let the graph include the newly connected mixer input.
-        rendered = self.render(8)
-        for frame in range(8):
-            self.assertAlmostEqual(rendered[2 * frame], 0.2 * 0.25 - 0.1 * 0.25, delta=1e-5)
-            self.assertAlmostEqual(rendered[2 * frame + 1], 0.4 * 0.25 + 0.2 * 0.25, delta=1e-5)
+
+        # AVAudioPlayerNode applies a live volume change over rendered frames.
+        # Require a full post-change block from PCM before checking the rest of
+        # the finite source buffers.
+        gain_change_frame_limit = 512
+        changed_gain_streak = 0
+        changed_gain_ready = False
+        after_gain_frames = 0
+
+        def consume_changed_gain(block: list[float]) -> None:
+            nonlocal slot_two_index, slot_three_index
+            nonlocal changed_gain_streak, changed_gain_ready
+
+            for frame in range(len(block) // 2):
+                self.assertLess(slot_two_index, source_frame_count)
+                self.assertLess(slot_three_index, source_frame_count)
+                left = block[2 * frame]
+                right = block[2 * frame + 1]
+                slot_two_value = slot_two_samples[slot_two_index]
+                slot_three_value = slot_three_samples[slot_three_index]
+                gain_from_left = (left - slot_three_gain * slot_three_value) / slot_two_value
+                gain_from_right = (right + slot_three_gain * slot_three_value) / slot_two_value
+                self.assertAlmostEqual(gain_from_left, gain_from_right, delta=3e-5)
+                observed_gain = (gain_from_left + gain_from_right) / 2.0
+                self.assertGreaterEqual(observed_gain, 0.2499)
+                self.assertLessEqual(observed_gain, 0.5001)
+                self.assertAlmostEqual(
+                    left,
+                    observed_gain * slot_two_value + slot_three_gain * slot_three_value,
+                    delta=3e-5,
+                )
+                self.assertAlmostEqual(
+                    right,
+                    observed_gain * slot_two_value - slot_three_gain * slot_three_value,
+                    delta=3e-5,
+                )
+                slot_two_index += 1
+                slot_three_index += 1
+
+                if abs(observed_gain - 0.25) <= 1e-5:
+                    changed_gain_streak += 1
+                    if changed_gain_streak >= 16:
+                        changed_gain_ready = True
+                else:
+                    changed_gain_streak = 0
+
+        while after_gain_frames < gain_change_frame_limit and not changed_gain_ready:
+            frame_count = min(probe_frame_count, gain_change_frame_limit - after_gain_frames)
+            consume_changed_gain(self.render(frame_count))
+            after_gain_frames += frame_count
+            rendered_frames += frame_count
+        self.assertTrue(
+            changed_gain_ready,
+            f"slot 2 gain did not settle to 0.25 within {gain_change_frame_limit} "
+            "post-change rendered frames",
+        )
+
+        # Completion is driven by rendered PCM and the adapter's real callback;
+        # keep rendering within a source-length-derived bound until both slots
+        # report completion, then verify every indexed source frame appeared.
+        completion_frame_limit = source_frame_count + 512
+        while self.is_playing(2) or self.is_playing(3):
+            self.assertLess(
+                rendered_frames,
+                completion_frame_limit,
+                "finite playback did not complete within the source-length bound",
+            )
+            frame_count = min(probe_frame_count, completion_frame_limit - rendered_frames)
+            block = self.render(frame_count)
+            rendered_frames += frame_count
+            for frame in range(frame_count):
+                left = block[2 * frame]
+                right = block[2 * frame + 1]
+                has_slot_two = slot_two_index < source_frame_count
+                has_slot_three = slot_three_index < source_frame_count
+                if has_slot_two and has_slot_three:
+                    expected_two = slot_two_samples[slot_two_index]
+                    expected_three = slot_three_samples[slot_three_index]
+                    self.assertAlmostEqual(
+                        left, 0.25 * expected_two + 0.25 * expected_three, delta=3e-5
+                    )
+                    self.assertAlmostEqual(
+                        right, 0.25 * expected_two - 0.25 * expected_three, delta=3e-5
+                    )
+                    slot_two_index += 1
+                    slot_three_index += 1
+                elif has_slot_two:
+                    expected = 0.25 * slot_two_samples[slot_two_index]
+                    self.assertAlmostEqual(left, expected, delta=3e-5)
+                    self.assertAlmostEqual(right, expected, delta=3e-5)
+                    slot_two_index += 1
+                elif has_slot_three:
+                    expected = 0.25 * slot_three_samples[slot_three_index]
+                    self.assertAlmostEqual(left, expected, delta=3e-5)
+                    self.assertAlmostEqual(right, -expected, delta=3e-5)
+                    slot_three_index += 1
+                else:
+                    self.assertLess(max(abs(left), abs(right)), 1e-6)
+
+        self.assertFalse(self.is_playing(2))
+        self.assertFalse(self.is_playing(3))
+        self.assertEqual(slot_two_index, source_frame_count)
+        self.assertEqual(slot_three_index, source_frame_count)
 
     def test_native_sample_rate_conversion_and_slot_format_reconfiguration(self) -> None:
         self.open_offline()
