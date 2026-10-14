@@ -11,7 +11,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-3 0x62 / 0x51 session bindings | Reviewed, fixed, on PR 8 |
 | RT-4 dependency opcodes 11-15/17/20/21 | Reviewed, fixed, on PR 8 |
 | RT-5 scene exit handler + queued 0x28 effect | Reviewed, fixed, on PR 8 |
-| RT-6 wire the pointer module, single hotspot candidate | Reviewed (no P1), on this PR |
+| RT-6 wire the pointer module, single hotspot candidate | Reviewed (no P1), merged (PR 10) |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged (typed 19,259 / opaque 353); runtimes still unimplemented |
 | A-3E.1 / A-6E.1 / A-79.1 opaque decoders (Codex) | Reviewed, merged (typed 19,259 / opaque 353) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
