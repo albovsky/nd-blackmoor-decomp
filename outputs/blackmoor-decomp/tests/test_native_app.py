@@ -277,6 +277,31 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertNotEqual(found, -1, evidence)
             position = found
 
+    def test_bink_movie_app_glue(self):
+        from test_action_family_35_runtime import body
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / 'body.bin'
+            fixture.write_bytes(body(effect=6, mode=2))
+            executable = Path(directory) / 'a35-glue'
+            build = PROJECT / 'build/native-app'
+            command = ['xcrun', '--sdk', 'macosx', 'clang++', '-arch', 'arm64',
+                       '-mmacosx-version-min=27.0', '-std=c++17', '-fobjc-arc',
+                       '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2',
+                       str(PROJECT / 'tests/native_a35_glue_test.mm')]
+            command += [str(PROJECT / ('src/' + name + '.mm')) for name in
+                        ('macos_platform', 'macos_audio', 'scene_inspector')]
+            command += [str(p) for p in sorted(build.glob('*.o'))]
+            command += ['-framework', 'AppKit', '-framework', 'Foundation',
+                        '-framework', 'CoreGraphics', '-framework', 'AVFAudio',
+                        '-L/opt/homebrew/lib', '-lavformat', '-lavcodec', '-lavutil',
+                        '-lswscale', '-lswresample', '-Wl,-rpath,/opt/homebrew/lib',
+                        '-o', str(executable)]
+            compiled = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            result = subprocess.run([str(executable), str(fixture), directory],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_bink_movie_frames_soundtrack_events_and_new_live_stop(self):
         contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', returncode=1)
         self.assert_in_order(contents, (
@@ -289,6 +314,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_a35_frame_presented frame=0 count=1',
             'scene_a35_frame_presented frame=503 count=504',
             'scene_a35_close decoded=504 presented=504 last_frame=503',
+            'scene_a35_audio_stop status=0',
             'scene_a35_finished row=3 phase=2 next_phase=0',
             'scene_session_transition_pending source=4700 target=4710',
             'scene_parsed name=S4808',
@@ -297,8 +323,10 @@ class NativeCaptionTransferTests(unittest.TestCase):
         movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
         movie = movie.split('scene_a35_finished row=3', 1)[0]
         self.assertEqual(movie.count('scene_a35_frame_presented'), 504)
-        for event in range(1001, 1010):
-            self.assertIn(f'scene_a35_event row=3 phase=1 id={event} before=0 value=1', movie)
+        for frame, event in ((0,1001),(73,1008),(99,1004),(170,1005),(336,1006),
+                             (424,1002),(462,1003),(465,1009),(503,1007)):
+            self.assertIn(f'scene_a35_event row=3 phase=1 id={event} before=0 value=1 frame={frame}', movie)
+        self.assert_bink_viewport_hashes(movie)
         self.assertIn('pcm_sha256=29b6403df3a82a6afa575ee2533d86c71136649ffafb5b0911590612f93f1744', movie)
         self.assertIn('scene_a35_mix_capture index=0', movie)
         self.assertIn('nonfinite=0 pcm_fnv1a64=', movie)
@@ -306,6 +334,50 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertNotIn('scene_a97_blocker', contents)
         for channel in (8, 7, 4):
             self.assertRegex(contents, rf'live_audio loaded stem=\w+ channel={channel} frames=')
+
+    def assert_bink_viewport_hashes(self, movie):
+        import re
+        expected = {0: 'bd262cb5ed17776c', 251: '097b7ea3e8999a65', 503: 'e5711c55745d0f25'}
+        actual = {int(frame): value for frame, value in re.findall(
+            r'scene_a35_frame_presented frame=(\d+) .*?viewport_fnv1a64=([0-9a-f]{16})', movie)}
+        for frame, value in expected.items():
+            self.assertEqual(actual.get(frame), value, f'composed RGB555 viewport frame {frame}')
+
+    def test_bink_movie_17ms_pacing(self):
+        import re
+        contents = self.run_live('--live-tick-ms', '17', '--live-ticks', '6000',
+                                 '--rand-seed', '1')
+        movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
+        movie = movie.split('scene_a35_finished row=3', 1)[0]
+        self.assertGreater(movie.count('scene_a35_not_due'), 1000)
+        frames = re.findall(r'scene_a35_frame_presented frame=(\d+) count=\d+ .*?'
+                            r'clock_ns=(\d+) origin_ns=(\d+) pts_ns=(\d+)', movie)
+        self.assertEqual([int(row[0]) for row in frames], list(range(504)))
+        for index, clock, origin, pts in map(lambda row: map(int, row), frames):
+            self.assertLessEqual(abs(pts - index * 1_000_000_000 // 15), 1)
+            self.assertGreaterEqual(clock - origin, pts)
+            self.assertLess(clock - origin - pts, 17_000_000 + 1)
+        self.assert_bink_viewport_hashes(movie)
+        not_due = re.findall(r'scene_a35_not_due frame=(\d+) clock_ns=(\d+) origin_ns=(\d+)', movie)
+        for index, clock, origin in map(lambda row: map(int, row), not_due):
+            self.assertEqual(index, (clock - origin) * 15 // 1_000_000_000)
+        self.assert_in_order(movie, ('scene_a35_close decoded=504',
+                                    'live_audio movie_stopped', 'scene_a35_audio_stop status=0'))
+        last_clock = int(frames[-1][1])
+        stop_clock = int(re.search(r'scene_a35_audio_stop status=0 clock_ns=(\d+)', movie)[1])
+        start_clock = int(re.search(r'scene_a35_audio_start status=0 clock_ns=(\d+)', movie)[1])
+        self.assertEqual(stop_clock - last_clock, 17_000_000)
+        self.assertEqual(last_clock - int(frames[0][1]), 33_524_000_000)
+        audio_stop = re.search(r'live_audio movie_stopped clock_frames=(\d+) elapsed_frames=(\d+) '
+                               r'duration_frames=(\d+) playing_before=(\d+) query_status=0 end=(\S+)', movie)
+        self.assertIsNotNone(audio_stop)
+        clock_frames, elapsed, duration, playing = map(int, audio_stop.groups()[:4])
+        self.assertEqual(clock_frames * 1_000_000_000 // 48000, stop_clock)
+        self.assertEqual(elapsed * 1_000_000_000 // 48000, stop_clock - start_clock)
+        self.assertEqual(duration, 1613323)
+        self.assertLess(elapsed, duration)
+        self.assertEqual(playing, 1)
+        self.assertEqual(audio_stop[5], 'controller-stop')
 
     def test_live_click_goes_through_session_input_end_to_end(self):
         # RT-6: the scripted S0 click feeds the recovered message wrappers

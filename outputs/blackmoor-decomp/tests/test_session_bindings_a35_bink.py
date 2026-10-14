@@ -18,6 +18,12 @@ class BinkBindingTests(unittest.TestCase):
         run(['sh', str(BASE / 'scripts/build_session_bindings_a35_bink_test.sh')])
         run([str(BASE / 'build/session_bindings_a35_bink_test')])
 
+    def test_original_bink_controller_quick_oracle(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run([str(BASE.parents[1] / 'work/tools/oracle-python/bin/python'),
+                 str(BASE / 'tests/action_family_35_bink_original_oracle.py'),
+                 '--quick', '--report', str(Path(directory) / 'oracle.json')])
+
     def test_movie_bus_preserves_scene_channels(self):
         subprocess.run(['sh', str(BASE / 'scripts/build_live_audio.sh'), 'lib'], check=True,
                        capture_output=True, text=True)

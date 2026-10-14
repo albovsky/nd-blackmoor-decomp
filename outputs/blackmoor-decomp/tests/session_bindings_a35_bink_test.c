@@ -9,14 +9,17 @@
 struct BinkPlayer { int at, reverse; uint64_t origin; };
 static int opens, closes, starts, stops, presents, fail_audio, with_audio = 1;
 static uint64_t now;
+static uint32_t frame_count = 3;
+static int fail_decode;
 static const uint8_t pixels[16] = {1,2,3,255, 4,5,6,255, 7,8,9,255, 10,11,12,255};
 int bink_player_open(const char *p, BinkPlayer **out, BinkPlayerInfo *i, char *e, size_t n)
 { (void)e;(void)n; if (!strcmp(p,"bad")) return -2;
-  *out = calloc(1,sizeof(**out)); ++opens; memset(i,0,sizeof(*i)); i->total_frames=3;i->width=2;i->height=2;return 0; }
+  *out = calloc(1,sizeof(**out)); ++opens; memset(i,0,sizeof(*i)); i->total_frames=frame_count;i->width=2;i->height=2;return 0; }
 int bink_player_set_mode(BinkPlayer *p,int32_t m,uint64_t t,char *e,size_t n)
 { (void)e;(void)n;p->reverse=m==1;p->at=m==1?2:0;p->origin=t;return 0; }
 int bink_player_advance(BinkPlayer *p,uint64_t t,BinkPlayerFrame *f,char *e,size_t n)
-{ (void)e;(void)n; if(p->at<0||p->at>2)return 2;
+{ if(fail_decode){snprintf(e,n,"fixture corrupt packet");return BINK_PLAYER_ERR_DECODE;}
+  if(p->at<0||p->at>2)return 2;
   if(t<p->origin+(uint64_t)(p->reverse?2-p->at:p->at)*100)return 1;
   memset(f,0,sizeof(*f));f->rgba=pixels;f->rgba_bytes=16;f->width=f->height=2;f->stride=8;
   f->current_frame=p->at;f->is_terminal=p->reverse?p->at==0:p->at==2;p->at+=p->reverse?-1:1;return 0; }
@@ -63,9 +66,34 @@ int main(void)
  assert(!session_a35_bink_due(b,&due)&&due);assert(!session_a35_bink_decode(b,&frame)&&frame==0);
  assert(!session_a35_bink_next(b,&more)&&!more);session_a35_bink_close(b);
  with_audio=1;fail_audio=1;b=open_movie(&h,0);assert(!session_a35_bink_due(b,&due)&&due);
- assert(session_a35_bink_decode(b,&frame));assert(session_a35_bink_due(b,&due));session_a35_bink_close(b);
+ assert(session_a35_bink_decode(b,&frame));assert(stops==2);
+ assert(session_a35_bink_due(b,&due));session_a35_bink_close(b);
  assert(stops==2);fail_audio=0;b=open_movie(&h,0);assert(!session_a35_bink_due(b,&due)&&due);
  assert(!session_a35_bink_decode(b,&frame));src.right=2;assert(session_a35_bink_rect(b,&src,&dst));
- assert(session_a35_bink_next(b,&more));session_a35_bink_close(b);assert(opens==closes);
+ assert(session_a35_bink_next(b,&more));session_a35_bink_close(b);
+ /* Span mismatch with a fully in-bounds source, and inclusive right==width. */
+ src=(A35Rect){0,0,1,1};dst=(A35Rect){10,20,12,21};
+ b=open_movie(&h,0);assert(!session_a35_bink_due(b,&due)&&due);
+ assert(!session_a35_bink_decode(b,&frame));assert(session_a35_bink_rect(b,&src,&dst));
+ session_a35_bink_close(b);
+ dst=(A35Rect){10,20,11,22};b=open_movie(&h,0);
+ assert(!session_a35_bink_due(b,&due)&&due);assert(!session_a35_bink_decode(b,&frame));
+ assert(session_a35_bink_rect(b,&src,&dst));session_a35_bink_close(b);
+ src=(A35Rect){0,0,2,1};dst=(A35Rect){10,20,12,21};b=open_movie(&h,0);
+ assert(!session_a35_bink_due(b,&due)&&due);assert(!session_a35_bink_decode(b,&frame));
+ assert(session_a35_bink_rect(b,&src,&dst));session_a35_bink_close(b);
+ frame_count=32768;b=open_movie(&h,0);session_a35_bink_close(b);
+ frame_count=32769;{BinkPlayerInfo i;char e[128];b=NULL;
+ assert(session_a35_bink_open("ok",0,&h,&b,&i,e,sizeof(e))==A35_RUNTIME_UNSUPPORTED&&!b);}
+ frame_count=3;b=open_movie(&h,0);
+ assert(!session_a35_bink_due(b,&due)&&due);assert(!session_a35_bink_decode(b,&frame));
+ assert(!session_a35_bink_next(b,&more)&&more);
+ {int stopped=stops;fail_decode=1;now+=100;
+ assert(session_a35_bink_due(b,&due));assert(stops==stopped+1);
+ assert(strstr(session_a35_bink_failure(b),"player_status=-4")&&
+        strstr(session_a35_bink_failure(b),"fixture corrupt packet"));
+ assert(session_a35_bink_due(b,&due));assert(stops==stopped+1);
+ session_a35_bink_close(b);assert(stops==stopped+1);fail_decode=0;}
+ assert(opens==closes);
  puts("RT-9 provider: forward/reverse, due staging, terminal, audio once/stop, failure latch, rect bounds, cleanup passed");return 0;
 }

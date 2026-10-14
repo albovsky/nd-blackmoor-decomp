@@ -14,7 +14,10 @@ extern "C" {
  * clock is monotonic ns (offline uses the same clock as the mixer).
  * present borrows RGBA until it returns; stop must consume any audio borrow.
  * The single Bink soundtrack uses a separate mixer bus, never a game channel.
- * Unity gain/no pan is a host adaptation; original SDK mixer parity is unknown. */
+ * Unity gain/no pan is a host adaptation; original SDK mixer parity is unknown.
+ * Audio starts once on the first decode and free-runs on the mixer clock,
+ * including NOT_DUE and unmatched-selector visits; DoFrame does not pump or
+ * pause it. This sync rule is UNPROVEN against the original Bink SDK. */
 typedef struct SessionA35BinkHost {
     void *context;
     uint64_t (*clock)(void *);
@@ -24,7 +27,9 @@ typedef struct SessionA35BinkHost {
 } SessionA35BinkHost;
 typedef struct SessionA35Bink SessionA35Bink;
 typedef struct SessionA35BinkStats {
-    uint64_t decoded, presented;
+    uint64_t decoded, presented, not_due;
+    uint64_t origin_ns, clock_ns;
+    int64_t pts_ns;
     int32_t frame;
     char rgba_sha256[65];
     char pcm_sha256[65];
@@ -48,6 +53,7 @@ int session_a35_bink_decode(SessionA35Bink *, int16_t *frame);
 int session_a35_bink_rect(SessionA35Bink *, const A35Rect *, const A35Rect *);
 int session_a35_bink_next(SessionA35Bink *, int *more);
 int session_a35_bink_stats(const SessionA35Bink *, SessionA35BinkStats *);
+const char *session_a35_bink_failure(const SessionA35Bink *);
 #ifdef __cplusplus
 }
 #endif

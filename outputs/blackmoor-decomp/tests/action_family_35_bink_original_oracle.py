@@ -357,6 +357,7 @@ def cases():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--native', type=Path)
+    parser.add_argument('--quick', action='store_true', help='synthetic branch matrix; omit 504-frame asset case')
     parser.add_argument('--report', type=Path, default=PRIVATE / 'RT-9.bink-original-oracle.json')
     args = parser.parse_args()
     started = time.monotonic()
@@ -367,6 +368,7 @@ def main():
     results, hooks, sdk_counts, observation_counts = [], Counter(), Counter(), Counter()
     total_visits = 0
     for name, data, frames, view in cases():
+        if args.quick and name.startswith('S4700-'): continue
         o, n = Original(frames), CallbackNative(lib, data, frames)
         legacy = Native(lib, data) if frames == 3 else None
         visits, trace_digest = 0, hashlib.sha256()

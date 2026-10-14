@@ -13,7 +13,25 @@ struct SessionA35Bink {
     BinkPlayerFrame frame;
     SessionA35BinkStats stats;
     int staged, decoded, audio_started, failed;
+    char failure[320];
 };
+
+static int fail(SessionA35Bink *b, int status, const char *detail)
+{
+    b->failed = 1;
+    (void)snprintf(b->failure, sizeof(b->failure), "player_status=%d detail=%s",
+                   status, detail);
+    if (b->audio_started) {
+        b->host.audio_stop(b->host.context);
+        b->audio_started = 0;
+    }
+    return 1;
+}
+
+const char *session_a35_bink_failure(const SessionA35Bink *b)
+{
+    return b == NULL ? "movie provider unavailable" : b->failed ? b->failure : "none";
+}
 
 static int digest(const void *bytes, size_t count, char out[65])
 {
@@ -50,9 +68,14 @@ int session_a35_bink_open(const char *path, int mode, const SessionA35BinkHost *
     if (b == NULL) return A35_RUNTIME_HOST;
     b->host = *host;
     status = bink_player_open(path, &b->player, info, error, capacity);
-    if (status == BINK_PLAYER_OK && info->total_frames > 32768u) status = BINK_PLAYER_ERR_BOUNDS;
+    if (status == BINK_PLAYER_OK && info->total_frames > 32768u) {
+        status = BINK_PLAYER_ERR_BOUNDS;
+        if (error != NULL && capacity != 0u)
+            (void)snprintf(error, capacity, "frame count exceeds signed frame index limit (32768)");
+    }
+    b->stats.origin_ns = host->clock(host->context);
     if (status == BINK_PLAYER_OK) status = bink_player_set_mode(b->player, mode,
-        host->clock(host->context), error, capacity);
+        b->stats.origin_ns, error, capacity);
     if (status != BINK_PLAYER_OK) { session_a35_bink_close(b); return A35_RUNTIME_UNSUPPORTED; }
     status = bink_audio_decode_file(path, &b->audio, error, capacity);
     if (status < 0 || (b->audio.frame_count != 0u &&
@@ -74,17 +97,18 @@ int session_a35_bink_open(const char *path, int mode, const SessionA35BinkHost *
 
 int session_a35_bink_due(SessionA35Bink *b, int *due)
 {
-    char error[256];
+    char error[256] = "";
     int status;
     if (b == NULL || due == NULL || b->failed) return 1;
     *due = 0;
     if (b->staged) { *due = 1; return 0; }
     /* 0x4bef85/BinkWait. The combined native player stages a borrowed frame;
      * no pixels/audio/events are committed until the decode callback. */
-    status = bink_player_advance(b->player, b->host.clock(b->host.context),
+    b->stats.clock_ns = b->host.clock(b->host.context);
+    status = bink_player_advance(b->player, b->stats.clock_ns,
                                  &b->frame, error, sizeof(error));
-    if (status == BINK_PLAYER_NOT_DUE) return 0;
-    if (status != BINK_PLAYER_OK) { b->failed = 1; return 1; }
+    if (status == BINK_PLAYER_NOT_DUE) { ++b->stats.not_due; return 0; }
+    if (status != BINK_PLAYER_OK) return fail(b, status, error);
     b->staged = 1;
     *due = 1;
     return 0;
@@ -99,11 +123,13 @@ int session_a35_bink_decode(SessionA35Bink *b, int16_t *frame)
     if (!b->audio_started && b->audio.frame_count != 0u) {
         /* Stop even a partially failed start; host failures never retry. */
         b->audio_started = 1;
-        if (b->host.audio_start(b->host.context, &b->audio) != 0) { b->failed = 1; return 1; }
+        if (b->host.audio_start(b->host.context, &b->audio) != 0)
+            return fail(b, A35_RUNTIME_HOST, "soundtrack mixer start failed");
     }
     if (digest(b->frame.rgba, b->frame.rgba_bytes, b->stats.rgba_sha256) != 0) {
-        b->failed = 1; return 1;
+        return fail(b, A35_RUNTIME_HOST, "frame digest allocation failed");
     }
+    b->stats.pts_ns = b->frame.pts_ns;
     b->decoded = 1;
     ++b->stats.decoded;
     b->stats.frame = b->frame.current_frame;
@@ -122,8 +148,10 @@ int session_a35_bink_rect(SessionA35Bink *b, const A35Rect *src, const A35Rect *
     if (w <= 0 || h <= 0 || src->left < 0 || src->top < 0 ||
         src->right >= (int64_t)b->frame.width || src->bottom >= (int64_t)b->frame.height ||
         (int64_t)dst->right - dst->left + 1 != w ||
-        (int64_t)dst->bottom - dst->top + 1 != h) { b->failed = 1; return 1; }
-    if (b->host.present(b->host.context, &b->frame, src, dst) != 0) { b->failed = 1; return 1; }
+        (int64_t)dst->bottom - dst->top + 1 != h)
+        return fail(b, BINK_PLAYER_ERR_BOUNDS, "inclusive source/destination span rejected");
+    if (b->host.present(b->host.context, &b->frame, src, dst) != 0)
+        return fail(b, A35_RUNTIME_HOST, "viewport presentation failed");
     ++b->stats.presented;
     return 0;
 }
