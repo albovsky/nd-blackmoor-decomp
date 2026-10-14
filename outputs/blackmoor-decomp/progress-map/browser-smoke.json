@@ -1,62 +1,66 @@
 {
-  "source_ref": "b89e5e47e1e7ffc53de229d9b01f16a16db3dee4",
-  "generated_utc": "2026-10-13T21:32:40.093Z",
-  "browser": "cached Chromium headless shell via CDP; no CUA/GUI",
-  "initial": {
+  "checked_utc": "2026-10-14T00:21:24.127Z",
+  "source_ref": "8620612f0ad8e3b413cc944e3fa15c76a0e60dd8",
+  "generated_utc": "2026-10-14T00:18:27Z",
+  "browser": "cached Chromium headless shell; local file:// only",
+  "desktop": {
     "title": "Blackmoor · Local Decompilation Map",
-    "bodyTextChars": 14653,
     "tiles": 4187,
+    "assemblyTiles": 9,
     "unknown": 1,
-    "units": 19,
-    "source": "SOURCE b89e5e47e1e7 · 2026-10-13T21:29:13Z",
-    "coverageNote": true,
-    "historyDisabled": true,
-    "scrollY": 0
-  },
-  "exact": {
-    "tiles": 2,
-    "inspectorHasExactRange": true,
-    "inspectorText": "FUN_0052398b\n0x52398b\nAddress unit\n0x0052xxxx (VA band)\nSpan\n50 bytes\nExtent basis\nnext-start address span (estimated)\nEvidence ID\nev_869646559a3727888977dc07c194c56c529a01288a7f405514bc186a4be3ebc5\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/52398b.c.txt\nEXACT SELECTED BYTE RANGES\n7 bytes at 0x52398b · selected range; function completeness unverified"
+    "source": "SOURCE 8620612f0ad8 · 2026-10-14T00:18:27Z",
+    "mapTop": 640.6875,
+    "mapBottom": 1420.6875,
+    "viewport": 1700,
+    "width": 1680
   },
   "search": {
     "count": 1,
-    "label": "FUN_00427a50, 0x427a50, 12,893 byte address span",
-    "oracle": true
+    "matched": "FUN_004daf9f"
   },
-  "keyboard": {
-    "moved": true,
-    "before": "FUN_00496410, 0x496410, 24,652 byte address span",
-    "after": "FUN_0040b34a, 0x40b34a, 23,631 byte address span"
+  "exactInspector": {
+    "family": "S08-3",
+    "showsSourceAndEffectiveManifestBinding": true,
+    "text": "FUN_004daf9f\n0x4daf9f\nAddress unit\n0x004dxxxx (VA band)\nSpan\n36 bytes\nExtent basis\ncomplete range audited to terminal return\nEvidence ID\nev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619\nSource status\nComplete exact reconstructed x86 assembly · S08-3\nPseudocode\nUNVERIFIED\nPSEUDOCODE SOURCE\nOpen exported pseudocode · unverified-pseudocode/4daf9f.c.txt\nCOMPLETE EXACT RECONSTRUCTED ASSEMBLY FUNCTION · S08-3\n\n36 bytes from 0x4daf9f through the terminal return. Classification: explicit reconstructed assembly source. The current source reassembles to the supplied object; original C/compiler provenance is not claimed.\n\nSource SHA-256 b5ed9ea6659e8c179cc796cbcd0c4494b950ddbaadebed185cad92998f98ff44 · manifest SHA-256 f662172b6cc38b782b0d5dfd1a3a054791a2681dfe2a9e10e8befb542d538987 · effective binding SHA-256 8271f8b4e65dcf2fdd63243c210318fccafeecabdd98e9a08e553c2d60211b23 · object SHA-256 d943f78bf39e41efa4f12b48a69777f74fc1898beaf64d8af9900c92af52d25e\n\nCurrent object file: /private/tmp/blackmoor-s08-3/outputs/blackmoor-decomp/build/matching_s08_3_x86.obj\n\nOpen reviewed S08-3 report\nOpen reconstructed assembly source\nOpen bound manifest"
+  },
+  "statusFilter": {
+    "acceptedAssemblyTiles": 9,
+    "keyboardMoved": true,
+    "before": "FUN_004db000, 0x4db000, 79 byte address span",
+    "after": "FUN_004dafc3"
   },
   "mobile": {
-    "viewport": 390,
-    "innerWidth": 390,
-    "scroll": 390,
-    "bodyScroll": 390,
-    "overflow": false
+    "viewport": 431,
+    "document": 431,
+    "body": 431,
+    "frame": 389.421875,
+    "overflow": false,
+    "inspectorShowsS083": true
   },
   "externalRequests": [],
   "uncaughtErrors": [],
   "quarantineRegression": {
-    "fixture": "Synthetic snapshot carrying stale direct and interior windows",
-    "initial": {
-      "tiles": 1,
-      "className": "tile tile-unverified"
-    },
-    "positiveFilters": {
-      "oracle-range": 0,
-      "oracle-report": 0,
-      "oracle-bound": 0
-    },
-    "unverifiedTileCount": 1,
-    "inspectorShowsExplicitQuarantine": true,
-    "inspectorShowsPositiveWindows": false,
+    "fixture": "Synthetic stale S08-3 report; accepted S08-2 rows retained",
+    "quarantinedFilterTiles": 3,
+    "styledQuarantinedTiles": 3,
+    "remainingExactAssemblyTiles": 6,
+    "inspectorShowsQuarantine": true,
     "lineageShowsQuarantinedReport": true,
-    "lineageShowsBothWindows": true,
-    "uncaughtErrors": []
+    "separateCompilerMismatchInspectorRetained": true,
+    "exactBytesAfterQuarantine": "126 B"
   },
   "screenshots": {
-    "initialViewport": "preview-headless.png",
-    "exactInspector": "preview-exact-inspector.png"
-  }
+    "wholeTreemap": "preview-headless.png",
+    "exactInspector": "preview-exact-inspector.png",
+    "quarantineInspector": "preview-quarantine-inspector.png",
+    "mobile": "preview-mobile.png"
+  },
+  "screenshot_sha256": {
+    "preview-headless.png": "040498c9fee0b9b3d59a10002b3539bc1892f79242bf172274c1f422bec3b077",
+    "preview-exact-inspector.png": "51c58facbb2f187f950f383d8688189687da8cb0233cba945511ca9560731162",
+    "preview-quarantine-inspector.png": "cdd56b593c37a63fd711c71dac4dfbbc225d2f860774fbd2a1079e2669c6e7d1",
+    "preview-mobile.png": "d423d7f5e770ad4a4b4e0dc6ce9dbbb2e422f40430ae7efc64151a0cb49658ae"
+  },
+  "snapshot_sha256": "a4e3b0d2fea79e2e2ddbacd6abf6b39eed35fd2379903be95e2af820972f4d6e",
+  "index_sha256": "b58a4c3c72b689b74938a485d90fd9725c264775f3b8ce8ecd006e861f4a1b4c"
 }

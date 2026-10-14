@@ -1,29 +1,33 @@
 # Local Blackmoor decompilation map
 
-This directory contains a static, offline treemap snapshot and its generator. Open index.html in a local browser. The page makes no network requests and embeds no game assets or executable bytes.
+This directory contains a generated, static, offline treemap. Open `index.html` in a local browser. The page makes no network requests and embeds no game assets, executable bytes, or generated resource dumps.
 
 ## Refresh
 
-Run:
+The accepted S08-2 and S08-3 objects are supplied from their source worktrees. Pass each current object and its report-binding root explicitly:
 
     python3 outputs/blackmoor-decomp/progress-map/generate.py \
       --project-root /path/to/blackmoor-reconstruction \
-      --evidence-root /path/to/blackmoor-reconstruction/work/analysis/slices
+      --evidence-root /path/to/blackmoor-reconstruction/work/analysis/slices \
+      --artifact-root /path/to/output-project \
+      --assembly-object /path/to/s08-2-worktree/outputs/blackmoor-decomp/build/matching_s08_2_x86.obj \
+      --assembly-binding-root /path/to/s08-2-report-binding-root \
+      --s08-3-report /path/to/blackmoor-reconstruction/work/analysis/slices/S08-3-x86-report.json \
+      --s08-3-object /path/to/s08-3-worktree/outputs/blackmoor-decomp/build/matching_s08_3_x86.obj \
+      --s08-3-binding-root /path/to/s08-3-report-binding-root
 
-The generator reads the function index, selected-range report and manifest, validation reports, slice registry, and private claim receipts. It writes only progress-map/snapshot.json and progress-map/index.html. The template is app-template.html. The snapshot records project HEAD separately from each report path and SHA-256; report presence does not prove the report was produced from that source ref.
+Each family has its own schema validator. It checks the accepted report digest, original image, current reviewed source, manifest, assembler and supplied object, fresh-reassembly association, aggregate and per-function rows, indexed extent bounds, and the effective supplied-object manifest digest. A stale, alternate, equivalent-but-unreviewed, or mismatched source/object association is quarantined and contributes zero exact bytes.
 
 ## Reading the map
 
-The 4,188-entry function index contains starts, not complete body extents. For all but the last start, tile area is proportional to the span ending at the next indexed start. Such spans can include padding, data, or gaps. Internal gaps cannot be quantified from this index. The final indexed start has unknown extent; the map separately reports the trailing .text bytes. Address-unit filters are high-16-bit VA bands derived from addresses, not recovered code modules.
+The 4,188-entry function index contains starts, not complete body extents. Most tile areas are estimated spans to the next indexed start and may include padding, data, or gaps. Internal gaps cannot be measured from this index. The final indexed start has unknown extent. Address-unit filters are high-16-bit VA bands, not recovered code modules. The map reports no decompilation percentage or whole-game completion.
 
-Exported pseudocode remains UNVERIFIED. Dashed report tiles show bounded oracle evidence without a current-source file hash binding. Solid orange is reserved for evidence whose native source file and library hashes match the validation report. Purple dashed tiles mark the six S08 complete instruction ranges, all with compiler byte mismatches. S08 extents are admitted only when its nested original SHA is pinned, comparison state is usable, and every audited range has valid bounds and internally consistent audit totals.
+The current pinned evidence selects nine complete x86 assembly functions / 288 bytes across the accepted S08-2 and S08-3 families. Two earlier selected ranges contribute 14 more bytes, but remain partial with unverified function completeness. That yields 302 unique exact bytes across 11 selected extents, grouped into five adjacent-address runs. The solid teal status identifies complete functions matched from reviewed, reconstructed mnemonic assembly; it does not establish original C or compiler provenance. The whole-executable rebuild remains incomplete.
 
-Cyan marks manifest-selected exact byte ranges only after the matching report SHA, its `manifest_original_sha256`, the referenced manifest's original SHA, zero errors, consistent aggregate counts, per-range exact state, equal original/object byte hashes, and `.text`/function-span bounds pass validation. A global partial mismatch does not discard another independently verified exact range. Invalid report states or executable/manifest bindings remain in the lineage panel as quarantined inputs. Overlapping selected exact ranges are merged for unique-byte and disjoint-range totals. Exact-byte matching is still limited to selected ranges; it does not establish whole-function matches.
+C and C++ compiler-generated candidates remain separate mismatch evidence: six C functions have 62 differing byte offsets and six C++ functions have 66. The assembly matches do not promote those candidates. Bounded native original-oracle comparisons use separate filters and inspector sections. Exported pseudocode remains UNVERIFIED.
 
-The oracle panel is a selected report subset: S0 hotspot runtime, selected action-core handlers, dependency reducer, action-UI handlers, and A-64. S01 world-init, S02 Bink/player, A28, A51, coreCIF, HIFF, and pixels report families are intentionally omitted from the adapters and all map counts. The panel does not represent complete oracle-report coverage.
+This view adapts a selected oracle-report subset only. S01, S02, A28, A51, coreCIF, HIFF, and pixels reports are omitted from those oracle metrics. The omission panel lists the selected adapters. Assembly-match families are separately pinned and included in the exact-byte map.
 
-Oracle ranges from a report with the wrong original SHA, a failed state, or nonzero mismatches are quarantined in the lineage panel. They do not color tiles, enter oracle filters, or appear as positive direct/interior evidence in the inspector. Evidence links resolve from the actual report or receipt file, including when `--evidence-root` is outside the project tree.
+The snapshot records the source HEAD and each report, source, manifest, object, and assembler digest, including the effective supplied-object manifest binding. Report links resolve to their private evidence files; object bytes are never copied here. Current-source reproducibility does not establish historical provenance.
 
-The saved action-census count is omitted when its parser hash does not match current parser-source candidates. Packet READY status and claim receipts are displayed separately. The coordination file is shown with its own hash and can lag individual receipts. History controls are disabled because no historical snapshots were supplied.
-
-The snapshot is a review index, not a completion metric. Oracle comparisons are bounded to their recorded cases and boundaries. Refreshing creates a new static snapshot; there is no live polling or fabricated history.
+The action-census count is omitted when its parser hash does not match current parser sources. Packet readiness and claim receipts are displayed separately. The coordination table may lag newer receipts. There is no live polling or generated history.
