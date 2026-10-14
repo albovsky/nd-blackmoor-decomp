@@ -11,6 +11,7 @@
 #include "action_sound.h"
 #include "his_audio.h"
 #include "macos_audio.h"
+#include "live_audio.h"
 #include "scene_inspector.h"
 #include "world_init.h"
 #include "world_clock.h"
@@ -164,6 +165,10 @@ struct NativeApp {
     SceneResource *retired_scene = nullptr;
     BinkPlayer *video = nullptr;
     SceneSession *session = nullptr;
+    LiveAudio *live_audio = nullptr;
+    /* Headless runs render the offline audio graph a fixed amount per update;
+     * live runs leave this zero and let the output device pace playback. */
+    uint32_t offline_audio_frames_per_update = 0;
     NativeNewGameState new_game;
     WorldClockSession world_clock_session{};
     WorldClockEffectSink world_clock_effect_sink{};
@@ -1171,22 +1176,33 @@ static ActionSoundBackendStatus native_action_sound_load(
     void *context, const ActionSoundAudioCommand *command)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (app == nullptr || command == nullptr) return ACTION_SOUND_BACKEND_ERROR;
-    record(app, "action_sound_load_blocked stem=%s channel=%u category=%u "
-           "control_word=0x%08x reason=live-audio-channel-provider-unavailable",
-           command->asset_stem, command->channel, command->volume_category,
-           command->control_word);
-    return ACTION_SOUND_BACKEND_UNSUPPORTED;
+    if (app == nullptr || command == nullptr || app->live_audio == nullptr)
+        return ACTION_SOUND_BACKEND_ERROR;
+    return live_audio_load_sound(app->live_audio, command);
 }
 
 static ActionSoundBackendStatus native_action_sound_play(void *context,
                                                           uint16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (app != nullptr)
-        record(app, "action_sound_play_blocked channel=%u reason=live-audio-channel-provider-unavailable",
-               channel);
-    return ACTION_SOUND_BACKEND_UNSUPPORTED;
+    if (app == nullptr || app->live_audio == nullptr) return ACTION_SOUND_BACKEND_ERROR;
+    return live_audio_play_sound(app->live_audio, channel);
+}
+
+static ActionSoundBackendStatus native_action_sound_is_playing(
+    void *context, uint16_t channel, int *still_playing)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->live_audio == nullptr) return ACTION_SOUND_BACKEND_ERROR;
+    return live_audio_is_playing(app->live_audio, channel, still_playing);
+}
+
+static ActionSoundBackendStatus native_action_sound_unload(void *context,
+                                                            uint16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->live_audio == nullptr) return ACTION_SOUND_BACKEND_ERROR;
+    return live_audio_unload_sound(app->live_audio, channel);
 }
 
 static CaptionLifecycleBackendStatus native_caption_write_framed(
@@ -1465,6 +1481,8 @@ static void closed(void *context)
 static void cleanup(NativeApp *app)
 {
     if (app->session) scene_session_destroy(app->session);
+    if (app->live_audio) live_audio_destroy(app->live_audio);
+    app->live_audio = nullptr;
     if (app->platform) blackmoor_macos_close(app->platform);
     if (app->startup) startup_menu_destroy(app->startup);
     if (app->scene) scene_resource_close(app->scene);
@@ -1668,6 +1686,8 @@ static int native_action_sound_handler(
     backend.present_caption = native_action_sound_present_caption;
     backend.load_sound = native_action_sound_load;
     backend.play_sound = native_action_sound_play;
+    backend.is_playing = native_action_sound_is_playing;
+    backend.unload_sound = native_action_sound_unload;
     const int status = action_sound_step(&action, &backend, &effect);
     const bool has_selector = info->typed_body != nullptr &&
         info->typed_body_length >= 48u &&
@@ -1681,7 +1701,7 @@ static int native_action_sound_handler(
         has_selector;
     record(app, "scene_action_sound row=%zu phase=%u kernel_status=%d "
            "captions=%u dispatch_argument=%u boundary=%s lookup_attempted=%u writer_status=%d "
-           "audio_provider=unavailable transfer_blocked=%d",
+           "audio_provider=live-audio transfer_blocked=%d",
            action_index, action.phase_before, status, action.captions_enabled,
            action.scene_dispatch_argument,
            caption_gate
@@ -1953,7 +1973,7 @@ static bool create_native_scene_session(NativeApp *app)
            "clock=world-clock-normal+timer-records post-clock-gates=guarded "
            "pointer_transform=unverified caption_writer=bound-RGB555 "
            "caption_transfer=bound-RGB555-Frame-plus-decoded-background "
-           "audio_provider=unavailable",
+           "audio_provider=live-audio",
            app->current_scene_id,
            (unsigned long long)scene_session_scene_generation(app->session),
            phone_count);
@@ -2469,6 +2489,24 @@ static void update(NativeApp *app, uint32_t now)
             return;
         }
         SceneSessionTickResult session_result{};
+        /* An offline engine with no connected player node cannot render (it
+         * faults inside AVFAudio), so advance only while a sound is playing. */
+        bool audio_active = false;
+        if (app->live_audio != nullptr && app->offline_audio_frames_per_update != 0u) {
+            for (uint16_t channel = 0; channel < LIVE_AUDIO_CHANNEL_COUNT; ++channel) {
+                LiveAudioChannelInfo info{};
+                if (live_audio_get_channel_info(app->live_audio, channel, &info) == LIVE_AUDIO_OK &&
+                    info.loaded && info.started && !info.finished) { audio_active = true; break; }
+            }
+        }
+        if (audio_active &&
+            live_audio_advance_offline(app->live_audio, app->offline_audio_frames_per_update,
+                                       nullptr, nullptr, 0) != LIVE_AUDIO_OK) {
+            app->failure = true;
+            record(app, "live_audio_offline_advance_failed");
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
         const int session_status = scene_session_tick(app->session, &session_result);
         if (session_result.prepare_attempted != 0u)
             app->primary_pressed = app->primary_released = false;
@@ -2755,6 +2793,9 @@ int main(int argc, char **argv)
         bool inspect_audio = false;
         bool inspect_scene_runtime = false;
         bool inspect_session_boundary = false;
+        bool inspect_live_session = false;
+        uint32_t live_ticks = 600;
+        long live_click_row = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
@@ -2762,6 +2803,7 @@ int main(int argc, char **argv)
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
             if (argument == "--inspect-scene-runtime") { inspect_only = inspect_scene_runtime = true; continue; }
             if (argument == "--inspect-session-boundary") { inspect_only = inspect_session_boundary = true; continue; }
+            if (argument == "--inspect-live-session") { inspect_only = inspect_live_session = true; continue; }
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
             if (argument == "--test-caption-reset-after-compose") {
                 app.captions.test_reset_after_composition = true;
@@ -2782,7 +2824,16 @@ int main(int argc, char **argv)
 #endif
             if (i + 1 == argc) { std::fprintf(stderr, "Missing argument value\n"); return 2; }
             const char *value = argv[++i];
-            if (argument == "--game-dir") app.game_directory = value;
+            if (argument == "--live-click-row") {
+                char *end = nullptr;
+                live_click_row = std::strtol(value, &end, 10);
+                if (!*value || *end || live_click_row < 0) return 2;
+            } else if (argument == "--live-ticks") {
+                char *end = nullptr;
+                const unsigned long count = std::strtoul(value, &end, 10);
+                if (!*value || *end || count == 0 || count > 1000000) return 2;
+                live_ticks = (uint32_t)count;
+            } else if (argument == "--game-dir") app.game_directory = value;
             else if (argument == "--log") log_path = value;
             else if (argument == "--stop-after-ms") {
                 char *end = nullptr;
@@ -2807,7 +2858,7 @@ int main(int argc, char **argv)
             return 2;
         }
 #endif
-        app.scene_runtime_enabled = !inspect_only || inspect_session_boundary;
+        app.scene_runtime_enabled = !inspect_only || inspect_session_boundary || inspect_live_session;
         if (log_path.empty()) {
             NSString *directory = NSTemporaryDirectory();
             std::string pattern = std::string(directory.fileSystemRepresentation) + "blackmoor-startup-XXXXXX";
@@ -2849,6 +2900,18 @@ int main(int argc, char **argv)
             if (!load_viewport(&app)) throw std::runtime_error("BOOT VIEW configuration unavailable");
             if (!initialize_caption_runtime(&app))
                 throw std::runtime_error("Original caption BOOT resources or RGB555 surfaces unavailable");
+            if (app.scene_runtime_enabled) {
+                LiveAudioConfig audio_config{};
+                audio_config.game_directory = app.game_directory.c_str();
+                audio_config.mode = inspect_only ? MAC_AUDIO_MODE_OFFLINE : MAC_AUDIO_MODE_OUTPUT;
+                audio_config.log = [](void *context, const char *message) {
+                    record(static_cast<NativeApp *>(context), "%s", message);
+                };
+                audio_config.log_context = &app;
+                if (live_audio_create(&audio_config, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK)
+                    throw std::runtime_error(error);
+                if (inspect_only) app.offline_audio_frames_per_update = 4096u;
+            }
             StartupMenuConfig config{};
             config.disabled_button_mask = (1u << 3) | (1u << 4); // Fresh session, no save restoration implemented.
             config.click_feedback_ms = 0;
@@ -2897,6 +2960,70 @@ int main(int argc, char **argv)
                         session_result.executor.actions_applied != 31u) {
                         app.failure = true;
                     }
+                }
+                if (inspect_live_session) {
+                    if (!app.session) throw std::runtime_error("Persistent scene session was not created");
+                    /* Scripted headless play: advance in fixed 85 ms steps (one
+                     * offline audio render chunk each), click the first active
+                     * hotspot once it appears, and report where the session stops. */
+                    uint32_t clock = app.started + 8006u;
+                    int scripted_clicks = 0;
+                    uint32_t clicked_at = 0;
+                    int16_t last_scene = app.current_scene_id;
+                    uint32_t stalled = 0;
+                    uint64_t last_progress_tick = 0;
+                    for (uint32_t step = 0; step < live_ticks && !app.failure; ++step) {
+                        clock += 85u;
+                        update(&app, clock);
+                        if (app.current_scene_id != last_scene) {
+                            record(&app, "live_session_scene_changed from=%d to=%d step=%u",
+                                   last_scene, app.current_scene_id, step);
+                            last_scene = app.current_scene_id;
+                            scripted_clicks = 0;
+                            stalled = 0;
+                        }
+                        SceneSessionTickResult tick{};
+                        if (scene_session_get_last_result(app.session, &tick) == SCENE_SESSION_OK &&
+                            tick.status == SCENE_SESSION_BLOCKED) {
+                            if (++stalled > 3u) break;
+                        } else stalled = 0;
+                        (void)last_progress_tick;
+                        if (scripted_clicks == 0 || (scripted_clicks == 1 && clock - clicked_at > 255u)) {
+                            const size_t actions = scene_resource_action_count(app.scene);
+                            for (size_t row = 0; row < actions; ++row) {
+                                SceneExecutorHotspotState hotspot{};
+                                if (scene_session_get_hotspot_state(app.session, row, &hotspot) != SCENE_EXECUTOR_OK ||
+                                    !hotspot.active || !hotspot.rectangle_valid) continue;
+                                if (live_click_row >= 0 && (long)row != live_click_row) continue;
+                                if (scripted_clicks == 0) {
+                                    app.pointer_x = (hotspot.left + hotspot.right) / 2 + app.scene_destination.left;
+                                    app.pointer_y = (hotspot.top + hotspot.bottom) / 2 + app.scene_destination.top;
+                                    record(&app, "live_session_hover row=%zu rect=%d,%d,%d,%d window=%d,%d",
+                                           row, hotspot.left, hotspot.top, hotspot.right, hotspot.bottom,
+                                           app.pointer_x, app.pointer_y);
+                                    scripted_clicks = 1; clicked_at = clock;
+                                } else {
+                                    app.primary_down = app.primary_pressed = true;
+                                    clock += 85u; update(&app, clock);
+                                    app.primary_down = false; app.primary_released = true;
+                                    clock += 85u; update(&app, clock);
+                                    record(&app, "live_session_click row=%zu", row);
+                                    scripted_clicks = 2;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    SceneSessionTickResult tick{};
+                    scene_session_get_last_result(app.session, &tick);
+                    record(&app, "live_session_end scene=%d ticks=%llu status=%d provider=%s "
+                           "stage=%d action=%zu type=0x%02x detail=%d applied=%zu",
+                           app.current_scene_id,
+                           (unsigned long long)scene_session_tick_count(app.session),
+                           tick.status, scene_session_provider_string(tick.failure.provider),
+                           tick.failure.stage, tick.failure.action_index,
+                           tick.failure.action_type, tick.failure.detail_status,
+                           tick.executor.actions_applied);
                 }
                 if (inspect_actions && !inspect_action_kernel(&app)) app.failure = true;
                 if (inspect_audio && !inspect_audio_graph(&app)) app.failure = true;

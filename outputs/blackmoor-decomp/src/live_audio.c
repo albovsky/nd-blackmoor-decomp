@@ -474,6 +474,30 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
         return ACTION_SOUND_BACKEND_ERROR;
     }
 
+    /* The AVAudioEngine graph is stereo and its mono-to-stereo centre pan
+     * attenuates a mono source by 1/sqrt(2); the host caps gain at 1.0 so it
+     * cannot be compensated afterwards. Duplicate mono into both channels so a
+     * mono HIS (NSHT01) plays at unity, as a DirectSound centre would. */
+    if (decoded.channels == 1u) {
+        float *stereo;
+        if (decoded.frame_count > SIZE_MAX / (2u * sizeof(float))) {
+            his_audio_destroy(&decoded);
+            return ACTION_SOUND_BACKEND_ERROR;
+        }
+        stereo = malloc((size_t)decoded.frame_count * 2u * sizeof(float));
+        if (stereo == NULL) {
+            his_audio_destroy(&decoded);
+            return ACTION_SOUND_BACKEND_ERROR;
+        }
+        for (uint64_t frame = 0; frame < decoded.frame_count; ++frame) {
+            stereo[frame * 2u] = decoded.interleaved_pcm[frame];
+            stereo[frame * 2u + 1u] = decoded.interleaved_pcm[frame];
+        }
+        free(decoded.interleaved_pcm);
+        decoded.interleaved_pcm = stereo;
+        decoded.channels = 2u;
+    }
+
     channel->audio = decoded;
     channel->loaded = 1u;
     channel->volume_category = command->volume_category;
