@@ -721,7 +721,9 @@ def analyze_all(image: Image, vas: Optional[list[int]] = None, max_rounds: int =
     span split discovers (``Layout.derived``).
     """
 
-    requested = list(vas) if vas is not None else list(image.starts)
+    # Direct targets from every indexed function matter for tail classification, so the whole index is always
+    # analyzed; ``vas`` only names the results the caller wants (all layouts are returned).
+    requested = list(dict.fromkeys(list(image.starts) + (list(vas) if vas is not None else [])))
     symbols: set[int] = set(image.starts)
     known: set[int] = set()  # direct call/jump targets seen in any layout, shared across spans
     layouts: dict[int, Layout] = {}
