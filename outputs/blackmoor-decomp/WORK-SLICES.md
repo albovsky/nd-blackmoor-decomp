@@ -46,6 +46,19 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 | M02 | [Whole-file skeleton and image composer](tasks/M02-whole-file-skeleton-and-composer.md) | New `image/` sources, composer script, tests, private M02.* evidence |
 | M03 | [Hinted assembly generator and first reviewed batch](tasks/M03-hinted-assembly-generator-and-first-batch.md) | New generator/audit scripts, `asm/` batch sources, tests, private M03.* evidence |
 
+## Runtime path (RT) slices, 2026-10-14
+
+| Slice | Deliverable | State |
+|---|---|---|
+| RT-1 | [Live audio channel provider](tasks/RT-1-live-audio-channels.md) | Collected |
+| RT-2 | [Pointer input producer](tasks/RT-2-pointer-input-producer.md) | Collected; wiring is RT-6 |
+| RT-3 | [S5900 0x62/0x51 bindings](tasks/RT-3-s5900-a62-a51-binding.md) | Collected |
+| RT-4 | [Dependency leaves](tasks/RT-4-dependency-leaf-integration.md) | Collected |
+| RT-5 | [Scene exit handler and 0x28 effect](tasks/RT-5-scene-exit-handler-and-a28-effect.md) | Collected |
+| RT-6 | [Pointer integration](tasks/RT-6-pointer-integration.md) | In progress |
+
+Opaque action decoders (A-35.1, A-97.1, A-A1.1) belong to a separate Codex thread.
+
 ## Ownership and coordination
 
 Workers create only their packet's new module/test/build/evidence files. The integrator alone edits shared scene parsing, scheduling, conditions, existing audio/platform/app files and central build scripts. Workers supply registration proposals and public headers; the integrator incorporates them sequentially. A local Git baseline supports separate branches/worktrees. Every worktree must also have access to the private `work/` evidence/tools (link the canonical project's `work/` directory when needed); generated builds stay local to each checkout. Workers write unique slice evidence/receipt filenames in the shared evidence directory. Use separate branches/worktrees if simultaneous work could touch the same file. Claim a packet with a JSON receipt at `work/analysis/slices/<ID>-claim-<owner>-<date>.json` containing `slice`, `owner`, `status`, `branch`, `baseline`, `worktree` and `created_utc_date`; do not have every worker rewrite the central registry.

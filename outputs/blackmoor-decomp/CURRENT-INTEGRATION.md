@@ -1,17 +1,11 @@
 # Current integration evidence
 
-Owner requested pause after finishing the collected slice. Verified code snapshot: `3b858e6727b263a49458001a132effe80570af3e`. Combined native build passes; 499 tests run, 497 pass and two case-insensitive filesystem fixtures skip. Original GAME.EXE hash remains unchanged. No GUI or hardware audio verification was performed.
+Code snapshot: branch `claude/hungry-matsumoto-8ab8eb` at `e495947` (PR 8). Full suite: 736 tests, 731 pass, 5 skips, run with `work/tools/oracle-python/bin/python` after building the per-module libraries (`scripts/build_*.sh`; three matching builders need a GAME.EXE path argument). Original GAME.EXE hash unchanged. No GUI or listening check was done.
 
-Collected and independently reviewed:
+Collected and independently reviewed (findings fixed): live audio provider (`live_audio`, with mono-to-stereo duplication, deterministic offline completion, host-play-failure tolerance); 0x62 and 0x51 session bindings with the per-type pre-gate hook and accept-candidate model; dependency opcodes 11, 12, 13, 14, 15, 17, 20, 21 inside the executor tree reduction (whole-tree original oracle, 3,182 cases); scene exit handler (states 4/1/2) with the queued 0x28 effect and the caption/latch clears; 0x9f completion requests the scene change; original pointer producer module (not yet wired).
 
-- Caption integration `c190550` → `ae7a66a`: actual taskbar Frame restore then keyed caption transfer. Current S0 caption region has3,433 changed pixels of16,120. 34 focused tests and 50 original raster cases pass. Cached session results do not replay composition; failure prefix, injected reset and same-frame reseed checks pass. A genuine second session tick/replacement and full-scene parity remain open.
-- A-37.2 `936fdc3` + `7eb18bd` → `d458b03` + `65cc9ad`: fixed 69-byte body decoder and exact 0xABA constructor image. 4,308 shipped + 2 synthetic records compare 11,835,260 bytes without differences. Owner pointers are separate from image/name bytes. Six tests and ASan/UBSan pass; three compiled source defects are detected. Shared parser/runtime/provider/render integration remains open.
-- S08-4 `5483b78` → `3b858e6`: bounded field0/field4 input consumers and two complete exact x86 extents of 96 B. 13 focused tests, 100 original/native calls and 76 original/candidate machine calls pass. Live frame/cursor integration remains open.
+Live scripted run: S0 -> S5900 -> S5907 -> S5901 -> S5902 -> S5903 -> S5904 -> S5905 -> S5906, then `scene_transition_error ... S4700 ... type=0x35` (opaque, owned by the A-35.1 thread).
 
-Current matching coverage: 398 unique bytes across 13 extents/four merged ranges: eleven complete assembly functions (384 B) and two incomplete ranges (14 B). Original compiler/source provenance and whole-file rebuild remain unverified. The released progress map is a frozen source a864b11 snapshot with 302 bytes and has not been refreshed during the pause.
+Known gaps (see each slice's `RT-*.handoff.json` in `work/analysis/slices/` for the full lists): provisional pointer feed in the app until RT-6; whether the original keeps sounds across continuation transitions; opcode-20 CRT seed parity; 0x28 nested state-3 tick and bit-exact x87 curve; effect types 1 and 3; frame text box close order versus original; ClearSceneData's ~74 subsystem resets; control_word / looping; original attenuation curve.
 
-Actual persistent S0 execution applies rows 0–30, renders row 31 captions and stops at unavailable live audio. Separate offline FFmpeg/full-buffer playback of NSHT01 succeeds under required permissions but is a diagnostic, not original stream parity or a live provider.
-
-S04-2.1 source recovery now proves ring/setup/refill/drain and logical-active query semantics. S04-2.2 implementation is paused with untested header/C fixture drafts; copies and hashes are saved privately. A-37.3 is paused with static evidence only. All Codex workers have stopped. Claude is external: the [pause brief](CLAUDE-PAUSE-BRIEF.md) is saved for relay; his session stop cannot be confirmed here.
-
-See [finished-slice report](PAUSE-REPORT.md). Full native gameplay, input/audio, remaining action/media/UI work, save/load/endgame, both difficulty playthroughs, original codec equivalence and whole-file matching remain unfinished.
+Whole-file x86 matching is tracked by other threads (Track M) and is unchanged by this work.

@@ -304,48 +304,52 @@
     "actual_session_entries": 1258
   },
   "current_slice": {
-    "status": "complete",
-    "name": "S0 sound/caption/hotspot/BOOT integration",
-    "success_boundary": "headless S0 \u2192 resource-requested S5900, first S5900 background frame loaded",
+    "status": "in_progress",
+    "name": "Runtime path: live S0 audio, scene transitions, 0x62/0x51/0x28 bindings, dependency opcodes, scene exit handler",
+    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906; stops loading S4700 on opaque 0x35 (another thread's slice)",
     "game_complete": false
   },
   "next_scene_blockers": {
-    "scene": "S5900",
-    "opaque_raw_types": [],
-    "first_opaque_action_index": null,
-    "all_15_actions_have_typed_boundaries": true,
-    "native_timed_background_adapter": true,
-    "execution_blockers": [
-      "Persistent scene session and ordered S5900 pass (I01-1)",
-      "A-62 live selector/input/guard provider",
-      "Accepted caption rendering/lifecycle and shared A-51 flags",
-      "Original clock producers and full transition tuple consumer"
+    "scene": "S4700",
+    "opaque_raw_types": [
+      "0x35",
+      "0x97"
     ],
-    "gate_scope": "A28 dependency snapshot is pre-dispatch only; earlier rows are not yet executed in the diagnostic",
+    "execution_blockers": [
+      "opaque 0x35 and 0x97 decoders (A-35.1, A-97.1 in the other thread)",
+      "pointer producer wiring into the live session (RT-6)",
+      "whether the original keeps sounds across continuation transitions (unverified)",
+      "0x28 nested state-3 tick and bit-exact x87 curve",
+      "opcode-20 seed parity"
+    ],
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "3b858e6727b263a49458001a132effe80570af3e",
+    "source_ref": "e4959479d597948d2d405e0878780c7e52fe4d9b (branch claude/hungry-matsumoto-8ab8eb, PR 8)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 499,
-      "passed": 497,
-      "skipped": 2
+      "discovered": 736,
+      "passed": 731,
+      "skipped": 5,
+      "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
-    "build_log_sha256": "55d2c0fd78fc9223a67f9fde8169c05b315b29583fbd430fdbfcd217b6fcb449",
-    "test_log_sha256": "1b44b7ad7089540d226244d216e8a5f491ad0b82a4f10cf444d0bd9ab53f2c52",
-    "scope": "Collected caption transfer integration, exact static-overlay constructor and two input-consumption methods. Actual S0 first tick restores Frame/caption glyphs and then blocks at row31 audio. Full gameplay and whole-file matching remain open.",
+    "scope": "Live audio channel provider (RT-1), pointer producer module (RT-2, not yet wired), 0x62/0x51 bindings (RT-3), dependency opcodes 11-15/17/20/21 in tree reduction (RT-4), scene exit handler + queued 0x28 effect (RT-5), 0x9f completion scene change. Every slice independently reviewed; review findings fixed. Whole-tree dependency oracle: 3,182 cases, 0 mismatches.",
     "gui_verified": false,
     "hardware_audio_verified": false,
     "persistent_session": {
-      "reviewed_worker_commit": "c190550f5879baa7c06cfcac9ab27f5160a63e65",
-      "collected_commit": "ae7a66a",
-      "child_complete": false,
-      "observed_scene": "S0",
-      "prior_action_effects": 31,
-      "stop_row": 31,
-      "stop_action": "0x9f",
-      "stop_provider": "live audio load/play"
+      "observed_scenes": [
+        "S0",
+        "S5900",
+        "S5907",
+        "S5901",
+        "S5902",
+        "S5903",
+        "S5904",
+        "S5905",
+        "S5906"
+      ],
+      "stop": "scene_transition_error S5906 -> S4700: row 3 type 0x35 opaque (A-35.1, other thread); rows 11-13 type 0x97",
+      "child_complete": false
     }
   },
   "progress_map": {

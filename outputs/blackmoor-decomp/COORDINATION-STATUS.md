@@ -1,23 +1,21 @@
 # Reconstruction coordination
 
-Work has resumed under Claude Code as root (2026-10-13).
-- **Root:** Claude Opus. It plans, writes packets, reviews and collects onto `main`.
-- **Implementers:** Claude Sonnet (high) `slice-implementer` subagents, and Codex `gpt-6.1-sol` (xhigh).
-- **Independent review:** the `slice-reviewer` subagent, with root acceptance.
+Claude Code is root (2026-10-13). Implementers: Claude Sonnet (high) `slice-implementer` subagents and Codex `gpt-6.1-sol` (xhigh; the installed `codex` CLI rejects that model, run it through `npx @openai/codex@0.162.1`). Independent review: `slice-reviewer`. Findings are fixed before collection.
 
-The project root is `/Users/albovsky/Projects/nd-blackmoor-decomp`; the old `blackmoor-reconstruction` path is a compatibility symlink. `main` is published at https://github.com/albovsky/nd-blackmoor-decomp; `work/` evidence and the game stay local. The verified main code baseline is `3b858e6`: build passes, 497 tests pass and 2 skip.
+Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so GUI and hardware-audio checks are allowed (none have been done yet).
 
 | Work | State |
 |---|---|
-| S03-1 AVF decoder | `bb38ef6`: root review found one P2 (declared key-frame size vs conversion footprint); repair in progress |
-| S03-2 AVF playback kernel | `9f27cf5` (on `bb38ef6`); independent review findings fixed; needs the S03-1 repair and root's API doc amendments, then collection |
-| Caption transfers | Collected (`ae7a66a`); live audio is the next S0 blocker |
-| A-37.2 constructor | Collected (`d458b03`/`65cc9ad`); parent runtime/drawing incomplete |
-| S08-4 input consumers | Collected (`3b858e6`); 96 exact bytes; live integration incomplete |
-| A-37.3 runtime discovery | Paused; static-only handoff |
-| S04-2.2 stream kernel | Paused; untested header/C fixture drafts; next live blocker (S0 row 31 audio) |
-| Whole game / whole-file rebuild | Incomplete (398 exact bytes) |
+| RT-1 live audio channel provider | Reviewed, fixed, merged (PR 6) |
+| RT-2 / RT-2.1 pointer producer module (Codex) | Reviewed, fixed, on PR 8; not yet wired into the app |
+| RT-3 0x62 / 0x51 session bindings | Reviewed, fixed, on PR 8 |
+| RT-4 dependency opcodes 11-15/17/20/21 | Reviewed, fixed, on PR 8 |
+| RT-5 scene exit handler + queued 0x28 effect | Reviewed, fixed, on PR 8 |
+| RT-6 wire the pointer module, single hotspot candidate | In progress |
+| A-35.1 / A-97.1 / A-A1.1 opaque decoders | Other thread (Codex); S4700 waits on 0x35 and 0x97 |
+| Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
+| Whole game / whole-file rebuild | Incomplete |
 
-The main working tree has an uncommitted `progress-map/index.html` change that predates the takeover and is not root's. It looks like an older regeneration (exact-assembly tiles removed) and is left uncollected pending the owner's decision.
+Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000`): S0 narration plays, the click enters S5900, and the game's own transitions carry it through S5907 and S5901-S5906; it then stops loading S4700 on an opaque 0x35 row.
 
-GUI and hardware audio remain unverified while the Mac is locked.
+GUI and hardware audio remain unverified.
