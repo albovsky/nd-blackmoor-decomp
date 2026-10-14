@@ -335,5 +335,29 @@ class AuditorMutants(unittest.TestCase):
         self.assertTrue(any("overlaps" in r for f in report["functions"] for r in f["reasons"]))
 
 
+@fixture.TOOLS
+class CommittedBatch(unittest.TestCase):
+    """The committed batch against the owner's local GAME.EXE (skipped when absent)."""
+
+    MANIFEST = TESTS.parent / "asm" / "batch-001.json"
+
+    def test_batch_001_is_accepted_and_matches_the_committed_report(self) -> None:
+        if not gen.ORIGINAL_DEFAULT.is_file():
+            self.skipTest("local GAME.EXE not available")
+        report = audit.audit_manifest(self.MANIFEST, audit.AuditConfig())
+        self.assertEqual(report["errors"], [])
+        self.assertEqual([f["function"] for f in report["functions"] if f["status"] != "accepted"], [])
+        self.assertTrue(report["all_accepted"])
+        committed = json.loads((TESTS.parent / "asm" / "batch-001-report.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["code_bytes_accepted"], committed["code_bytes_accepted"])
+        self.assertEqual(
+            [f["source"]["sha256"] for f in report["functions"]],
+            [f["source"]["sha256"] for f in committed["functions"]],
+        )
+        # a real switch table is part of the batch and is audited as a separate data item
+        dispatcher = next(f for f in report["functions"] if f["function"] == "FUN_00438150")
+        self.assertEqual([i["kind"] for i in dispatcher["data_items"]], ["switch_table"])
+
+
 if __name__ == "__main__":
     unittest.main()

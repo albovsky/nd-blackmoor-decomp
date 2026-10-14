@@ -362,7 +362,11 @@ def _block_comment_audit(lines: list[Line], code_symbol: str) -> tuple[list[str]
 
 
 def check_assembler(path: Path) -> tuple[Optional[str], dict[str, Any]]:
-    info: dict[str, Any] = {"path": str(path)}
+    try:
+        shown = path.resolve().relative_to(REPOSITORY.resolve()).as_posix()
+    except ValueError:
+        shown = str(path)
+    info: dict[str, Any] = {"path": shown}
     if not path.is_file():
         return f"assembler {path} is missing", info
     try:

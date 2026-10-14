@@ -7,31 +7,31 @@
 # evidence:     ev_8e5ef5825dc8a261a7343a35a5c16f506372f91bfb53f8b1217f8abbe0377f59
 # region:       game
 # frame:        ebp
-# name:         <unfilled>
-# arguments:    <unfilled>
-# locals:       <unfilled>
-# fields:       <unfilled>
-# callees:      <unfilled>
-# track-n:      <unfilled>
-# unverified:   <unfilled>
+# name:         CDirectSound::CopyFromSoundFile
+# arguments:    thiscall, standard ebp frame: ecx=this (saved to the this slot); [ebp+8]=sound index (signed int, scaled by 0x5bb into the entry table); [ebp+0xc]=dest buffer (bytes); [ebp+0x10]=byte count requested; callee pops 0xc (ret 0xc); returns eax = bytes produced, or -1 on error with this+0x3c2 set to the failure code
+# locals:       [ebp-4]=entry_aux (entry+0x18a, stored and never read); [ebp-8]=result (bytes produced, returned on the success paths); [ebp-0xc]=entry (this+0x3ce table base + index*0x5bb); [ebp-0x10]=vf (entry+0x2f1 decoder-file object passed to FUN_004fe2d0 and FUN_004fdc70); [ebp-0x14]=last_read (latest FUN_004fe2d0 return, doubles as the loop continue flag, initial 1); [ebp-0x18]=sgned argument for the converter (1, or 0 for 8-bit); [ebp-0x1c]=bytes_done (running total); [ebp-0x20]=word argument for the converter (2, or 1 for 8-bit); [ebp-0x24]=bitstream_out (receives the converter's link output, initial 0); [ebp-0x28]=this
+# fields:       this+0x3c2: status dword, set to 0x3e8 on entry, 0x3ec on a read failure, 0x3f9 on an unknown codec id; this+0x3ce: pointer to the sound entry table (entries 0x5bb bytes apart); entry+0x04: name string used in messages; entry+0x126: codec id word (2 = Ogg path through FUN_004fe2d0, 1 = raw file read path); entry+0x156: file stream pointer for codec 1 (its dword at +0x0c is tested against flag bits 0x20 and 0x10); entry+0x18a: stored in a local only; entry+0x2ed: word, 8 selects the 8-bit converter parameters, anything else 16-bit; entry+0x2f1: embedded decoder-file object; globals: word at 0x0063a4cd (trace level: 2 enables start/finish traces, nonzero enables error messages), message buffer at 0x0063888b, format strings at 0x0055e63c, 0x0055e680, 0x0055e6c8, 0x0055e718 and 0x0055e754
+# callees:      FUN_004fe2d0 = vorbisfile_read_interleaved_pcm (cdecl, 7 args, pops 0x1c); FUN_004fdc70 = restart/seek of the decoder-file object, called as (vf, 0, 0) when the converter returns 0; FUN_0050ca3e = printf-style formatter into 0x0063888b (format and arguments pushed, cdecl); FUN_0044a2b7 = emits the formatted message buffer (1 arg); FUN_0050cf61 = fread-style read (dest, 1, count, stream); FUN_0050ce2b = fseek-style call (stream, 0x1e, 0); FUN_0052139c = error report with (format, 0, 0)
+# track-n:      host-adapter: none
+# unverified:   No Track N source reproduces this function: his_pcm_quantize.h only mentions the 0x4f5b50 -> 0x4fe2d0 path in a comment, and the oracle (tests/his_pcm_quantize_original_oracle.py) calls 0x4fe2d0 directly with word=1/sgned=0 or word=2/sgned=1, bigendianp=0; this caller, including the choice of word/sgned from entry+0x2ed (== 8) that his-pcm-quantization-validation.md describes, was not executed under an oracle. The class name in the function name comes only from the embedded trace strings, not from symbols. The roles of FUN_0050ca3e, FUN_0044a2b7, FUN_0050cf61, FUN_0050ce2b, FUN_004fdc70 and FUN_0052139c, and reading entry+0x156+0x0c as a stdio FILE flag word (0x20 error, 0x10 end of file), are inferred from call shapes and from Ghidra names only. FUN_0052139c is called with three pushed arguments and no cleanup in this function, so it presumably pops them itself; not verified. The status constants 0x3e8, 0x3ec and 0x3f9 are not given meanings beyond their use here. When the converter returns 0 the stream is restarted through FUN_004fdc70 and the loop then ends because last_read is 0, so the destination may be left partly filled with a short count returned; derived from the bytes, not exercised, and the result of FUN_004fdc70 is ignored. A nonzero bitstream_out (a link change) is treated as corruption. The raw-read short-read path with neither flag bit set is treated as corruption; not exercised.
 .intel_syntax noprefix
 .code32
 .text
 
 # --- frame symbols ---------------------------------------------------
-.equ local_4, 0x4  # [ebp - 0x4]
-.equ local_8, 0x8  # [ebp - 0x8]
-.equ local_c, 0xc  # [ebp - 0xc]
-.equ local_10, 0x10  # [ebp - 0x10]
-.equ local_14, 0x14  # [ebp - 0x14]
-.equ local_18, 0x18  # [ebp - 0x18]
-.equ local_1c, 0x1c  # [ebp - 0x1c]
-.equ local_20, 0x20  # [ebp - 0x20]
-.equ local_24, 0x24  # [ebp - 0x24]
-.equ local_28, 0x28  # [ebp - 0x28]
-.equ arg_8, 0x8  # [ebp + 0x8]
-.equ arg_c, 0xc  # [ebp + 0xc]
-.equ arg_10, 0x10  # [ebp + 0x10]
+.equ local_entry_aux, 0x4  # [ebp - 0x4]: entry+0x18a, written once and never read
+.equ local_result, 0x8  # [ebp - 0x8]: bytes produced, returned on the success paths
+.equ local_entry, 0xc  # [ebp - 0xc]: sound entry pointer (table base + index*0x5bb)
+.equ local_vf, 0x10  # [ebp - 0x10]: embedded decoder-file object at entry+0x2f1
+.equ local_last_read, 0x14  # [ebp - 0x14]: latest converter return; also the loop continue flag
+.equ local_sgned, 0x18  # [ebp - 0x18]: sgned argument for the converter (1, or 0 for 8-bit)
+.equ local_bytes_done, 0x1c  # [ebp - 0x1c]: running byte total
+.equ local_word, 0x20  # [ebp - 0x20]: word argument for the converter (2, or 1 for 8-bit)
+.equ local_bitstream_out, 0x24  # [ebp - 0x24]: int receiving the converter's bitstream output
+.equ local_this, 0x28  # [ebp - 0x28]: saved ecx (this)
+.equ arg_sound_index, 0x8  # [ebp + 0x8]: sound entry index
+.equ arg_dest, 0xc  # [ebp + 0xc]: destination buffer
+.equ arg_byte_count, 0x10  # [ebp + 0x10]: bytes requested
 
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
@@ -45,53 +45,53 @@
 .org 0x004f5b50 - 0x401000
 .globl FUN_004f5b50
 FUN_004f5b50:
-    # block 0x004f5b50: <unfilled>
+    # block 0x004f5b50: prologue: save this; this+0x3c2 = 0x3e8; entry = this+0x3ce table + index*0x5bb saved to local_entry; local_entry_aux = entry+0x18a; codec = signed word entry+0x126; if codec != 2 go to the raw-codec check
     push ebp                                     # 004f5b50
     {load} mov ebp, esp                          # 004f5b51
     sub esp, 0x28                                # 004f5b53
-    mov dword ptr [ebp - local_28], ecx          # 004f5b56
-    mov eax, dword ptr [ebp - local_28]          # 004f5b59
+    mov dword ptr [ebp - local_this], ecx          # 004f5b56
+    mov eax, dword ptr [ebp - local_this]          # 004f5b59
     mov dword ptr [eax + 0x3c2], 0x3e8           # 004f5b5c
-    mov ecx, dword ptr [ebp + arg_8]             # 004f5b66
+    mov ecx, dword ptr [ebp + arg_sound_index]             # 004f5b66
     imul ecx, ecx, 0x5bb                         # 004f5b69
-    mov edx, dword ptr [ebp - local_28]          # 004f5b6f
+    mov edx, dword ptr [ebp - local_this]          # 004f5b6f
     mov eax, dword ptr [edx + 0x3ce]             # 004f5b72
     {load} add eax, ecx                          # 004f5b78
-    mov dword ptr [ebp - local_c], eax           # 004f5b7a
-    mov ecx, dword ptr [ebp - local_c]           # 004f5b7d
+    mov dword ptr [ebp - local_entry], eax           # 004f5b7a
+    mov ecx, dword ptr [ebp - local_entry]           # 004f5b7d
     add ecx, 0x18a                               # 004f5b80
-    mov dword ptr [ebp - local_4], ecx           # 004f5b86
-    mov edx, dword ptr [ebp - local_c]           # 004f5b89
+    mov dword ptr [ebp - local_entry_aux], ecx           # 004f5b86
+    mov edx, dword ptr [ebp - local_entry]           # 004f5b89
     movsx eax, word ptr [edx + 0x126]            # 004f5b8c
     cmp eax, 0x2                                 # 004f5b93
-    jne.d32 L_004f5d32                           # 004f5b96
-    # block 0x004f5b9c: <unfilled>
-    mov ecx, dword ptr [ebp + arg_8]             # 004f5b9c
+    jne.d32 L_check_raw_codec                           # 004f5b96
+    # block 0x004f5b9c: codec 2: local_vf = entry+0x2f1; bitstream_out=0, last_read=1, bytes_done=0, sgned=1, word=2; then unsigned word entry+0x2ed; if it != 8 keep the 16-bit parameters
+    mov ecx, dword ptr [ebp + arg_sound_index]             # 004f5b9c
     imul ecx, ecx, 0x5bb                         # 004f5b9f
-    mov edx, dword ptr [ebp - local_28]          # 004f5ba5
+    mov edx, dword ptr [ebp - local_this]          # 004f5ba5
     mov eax, dword ptr [edx + 0x3ce]             # 004f5ba8
     lea ecx, [eax + ecx + 0x2f1]                 # 004f5bae
-    mov dword ptr [ebp - local_10], ecx          # 004f5bb5
-    mov dword ptr [ebp - local_24], 0x0          # 004f5bb8
-    mov dword ptr [ebp - local_14], 0x1          # 004f5bbf
-    mov dword ptr [ebp - local_1c], 0x0          # 004f5bc6
-    mov dword ptr [ebp - local_18], 0x1          # 004f5bcd
-    mov dword ptr [ebp - local_20], 0x2          # 004f5bd4
-    mov edx, dword ptr [ebp - local_c]           # 004f5bdb
+    mov dword ptr [ebp - local_vf], ecx          # 004f5bb5
+    mov dword ptr [ebp - local_bitstream_out], 0x0          # 004f5bb8
+    mov dword ptr [ebp - local_last_read], 0x1          # 004f5bbf
+    mov dword ptr [ebp - local_bytes_done], 0x0          # 004f5bc6
+    mov dword ptr [ebp - local_sgned], 0x1          # 004f5bcd
+    mov dword ptr [ebp - local_word], 0x2          # 004f5bd4
+    mov edx, dword ptr [ebp - local_entry]           # 004f5bdb
     {load} xor eax, eax                          # 004f5bde
     mov ax, word ptr [edx + 0x2ed]               # 004f5be0
     cmp eax, 0x8                                 # 004f5be7
-    jne.d8 L_004f5bfa                            # 004f5bea
-    # block 0x004f5bec: <unfilled>
-    mov dword ptr [ebp - local_18], 0x0          # 004f5bec
-    mov dword ptr [ebp - local_20], 0x1          # 004f5bf3
-L_004f5bfa:
-    # block 0x004f5bfa: <unfilled>
+    jne.d8 L_after_width_select                            # 004f5bea
+    # block 0x004f5bec: entry+0x2ed == 8: sgned=0, word=1 (8-bit unsigned output)
+    mov dword ptr [ebp - local_sgned], 0x0          # 004f5bec
+    mov dword ptr [ebp - local_word], 0x1          # 004f5bf3
+L_after_width_select:
+    # block 0x004f5bfa: trace level word at 0x0063a4cd (signed); if it != 2 skip the start trace
     movsx ecx, word ptr [0x63a4cd]               # 004f5bfa
     cmp ecx, 0x2                                 # 004f5c01
-    jne.d8 L_004f5c29                            # 004f5c04
-    # block 0x004f5c06: <unfilled>
-    mov edx, dword ptr [ebp + arg_8]             # 004f5c06
+    jne.d8 L_decode_loop                            # 004f5c04
+    # block 0x004f5c06: trace level 2: format the start message with the sound index (FUN_0050ca3e into 0x0063888b) and emit it with FUN_0044a2b7
+    mov edx, dword ptr [ebp + arg_sound_index]             # 004f5c06
     push edx                                     # 004f5c09
     push 0x55e63c                                # 004f5c0a
     push 0x63888b                                # 004f5c0f
@@ -100,49 +100,49 @@ L_004f5bfa:
     push 0x63888b                                # 004f5c1c
     call FUN_0044a2b7                            # 004f5c21
     add esp, 0x4                                 # 004f5c26
-L_004f5c29:
-    # block 0x004f5c29: <unfilled>
-    mov eax, dword ptr [ebp - local_1c]          # 004f5c29
-    cmp eax, dword ptr [ebp + arg_10]            # 004f5c2c
-    jge.d32 L_004f5cf4                           # 004f5c2f
-    # block 0x004f5c35: <unfilled>
-    cmp dword ptr [ebp - local_14], 0x0          # 004f5c35
-    je.d32 L_004f5cf4                            # 004f5c39
-    # block 0x004f5c3f: <unfilled>
-    lea ecx, [ebp - local_24]                    # 004f5c3f
+L_decode_loop:
+    # block 0x004f5c29: decode loop head: leave when bytes_done >= byte count (signed)
+    mov eax, dword ptr [ebp - local_bytes_done]          # 004f5c29
+    cmp eax, dword ptr [ebp + arg_byte_count]            # 004f5c2c
+    jge.d32 L_decode_done                           # 004f5c2f
+    # block 0x004f5c35: leave when last_read == 0
+    cmp dword ptr [ebp - local_last_read], 0x0          # 004f5c35
+    je.d32 L_decode_done                            # 004f5c39
+    # block 0x004f5c3f: call FUN_004fe2d0(vf, dest+bytes_done, count-bytes_done, 0, word, sgned, &bitstream_out), pop 0x1c; last_read = eax; if last_read < 0 (signed) go to the error path
+    lea ecx, [ebp - local_bitstream_out]                    # 004f5c3f
     push ecx                                     # 004f5c42
-    mov edx, dword ptr [ebp - local_18]          # 004f5c43
+    mov edx, dword ptr [ebp - local_sgned]          # 004f5c43
     push edx                                     # 004f5c46
-    mov eax, dword ptr [ebp - local_20]          # 004f5c47
+    mov eax, dword ptr [ebp - local_word]          # 004f5c47
     push eax                                     # 004f5c4a
     push 0x0                                     # 004f5c4b
-    mov ecx, dword ptr [ebp + arg_10]            # 004f5c4d
-    sub ecx, dword ptr [ebp - local_1c]          # 004f5c50
+    mov ecx, dword ptr [ebp + arg_byte_count]            # 004f5c4d
+    sub ecx, dword ptr [ebp - local_bytes_done]          # 004f5c50
     push ecx                                     # 004f5c53
-    mov edx, dword ptr [ebp + arg_c]             # 004f5c54
-    add edx, dword ptr [ebp - local_1c]          # 004f5c57
+    mov edx, dword ptr [ebp + arg_dest]             # 004f5c54
+    add edx, dword ptr [ebp - local_bytes_done]          # 004f5c57
     push edx                                     # 004f5c5a
-    mov eax, dword ptr [ebp - local_10]          # 004f5c5b
+    mov eax, dword ptr [ebp - local_vf]          # 004f5c5b
     push eax                                     # 004f5c5e
     call FUN_004fe2d0                            # 004f5c5f
     add esp, 0x1c                                # 004f5c64
-    mov dword ptr [ebp - local_14], eax          # 004f5c67
-    cmp dword ptr [ebp - local_14], 0x0          # 004f5c6a
-    jl.d8 L_004f5c76                             # 004f5c6e
-    # block 0x004f5c70: <unfilled>
-    cmp dword ptr [ebp - local_24], 0x0          # 004f5c70
-    je.d8 L_004f5cd0                             # 004f5c74
-L_004f5c76:
-    # block 0x004f5c76: <unfilled>
+    mov dword ptr [ebp - local_last_read], eax          # 004f5c67
+    cmp dword ptr [ebp - local_last_read], 0x0          # 004f5c6a
+    jl.d8 L_decode_error                             # 004f5c6e
+    # block 0x004f5c70: last_read >= 0: if bitstream_out != 0 go to the error path, else continue at the ok path
+    cmp dword ptr [ebp - local_bitstream_out], 0x0          # 004f5c70
+    je.d8 L_decode_ok                             # 004f5c74
+L_decode_error:
+    # block 0x004f5c76: error path: read the trace level; if it is 0 skip the message
     movsx ecx, word ptr [0x63a4cd]               # 004f5c76
     test ecx, ecx                                # 004f5c7d
-    je.d8 L_004f5cbb                             # 004f5c7f
-    # block 0x004f5c81: <unfilled>
-    mov edx, dword ptr [ebp - local_14]          # 004f5c81
+    je.d8 L_decode_error_status                             # 004f5c7f
+    # block 0x004f5c81: format the corrupted-with-error-number message (name = entry+4, error = last_read) into 0x0063888b and emit it
+    mov edx, dword ptr [ebp - local_last_read]          # 004f5c81
     push edx                                     # 004f5c84
-    mov eax, dword ptr [ebp + arg_8]             # 004f5c85
+    mov eax, dword ptr [ebp + arg_sound_index]             # 004f5c85
     imul eax, eax, 0x5bb                         # 004f5c88
-    mov ecx, dword ptr [ebp - local_28]          # 004f5c8e
+    mov ecx, dword ptr [ebp - local_this]          # 004f5c8e
     mov edx, dword ptr [ecx + 0x3ce]             # 004f5c91
     lea eax, [edx + eax + 0x4]                   # 004f5c97
     push eax                                     # 004f5c9b
@@ -153,40 +153,40 @@ L_004f5c76:
     push 0x63888b                                # 004f5cae
     call FUN_0044a2b7                            # 004f5cb3
     add esp, 0x4                                 # 004f5cb8
-L_004f5cbb:
-    # block 0x004f5cbb: <unfilled>
-    mov ecx, dword ptr [ebp - local_28]          # 004f5cbb
+L_decode_error_status:
+    # block 0x004f5cbb: this+0x3c2 = 0x3ec; return -1
+    mov ecx, dword ptr [ebp - local_this]          # 004f5cbb
     mov dword ptr [ecx + 0x3c2], 0x3ec           # 004f5cbe
     or eax, -0x1                                 # 004f5cc8
-    jmp.d32 L_004f5e2f                           # 004f5ccb
-L_004f5cd0:
-    # block 0x004f5cd0: <unfilled>
-    cmp dword ptr [ebp - local_14], 0x0          # 004f5cd0
-    jne.d8 L_004f5ce6                            # 004f5cd4
-    # block 0x004f5cd6: <unfilled>
+    jmp.d32 L_epilogue                           # 004f5ccb
+L_decode_ok:
+    # block 0x004f5cd0: ok path: if last_read != 0 skip the restart
+    cmp dword ptr [ebp - local_last_read], 0x0          # 004f5cd0
+    jne.d8 L_decode_accumulate                            # 004f5cd4
+    # block 0x004f5cd6: last_read == 0 (converter produced nothing): call FUN_004fdc70(vf, 0, 0), pop 0xc
     push 0x0                                     # 004f5cd6
     push 0x0                                     # 004f5cd8
-    mov edx, dword ptr [ebp - local_10]          # 004f5cda
+    mov edx, dword ptr [ebp - local_vf]          # 004f5cda
     push edx                                     # 004f5cdd
     call FUN_004fdc70                            # 004f5cde
     add esp, 0xc                                 # 004f5ce3
-L_004f5ce6:
-    # block 0x004f5ce6: <unfilled>
-    mov eax, dword ptr [ebp - local_1c]          # 004f5ce6
-    add eax, dword ptr [ebp - local_14]          # 004f5ce9
-    mov dword ptr [ebp - local_1c], eax          # 004f5cec
-    jmp.d32 L_004f5c29                           # 004f5cef
-L_004f5cf4:
-    # block 0x004f5cf4: <unfilled>
-    mov ecx, dword ptr [ebp - local_1c]          # 004f5cf4
-    mov dword ptr [ebp - local_8], ecx           # 004f5cf7
+L_decode_accumulate:
+    # block 0x004f5ce6: bytes_done += last_read; loop again
+    mov eax, dword ptr [ebp - local_bytes_done]          # 004f5ce6
+    add eax, dword ptr [ebp - local_last_read]          # 004f5ce9
+    mov dword ptr [ebp - local_bytes_done], eax          # 004f5cec
+    jmp.d32 L_decode_loop                           # 004f5cef
+L_decode_done:
+    # block 0x004f5cf4: loop exit: local_result = bytes_done; if trace level != 2 skip the finish trace
+    mov ecx, dword ptr [ebp - local_bytes_done]          # 004f5cf4
+    mov dword ptr [ebp - local_result], ecx           # 004f5cf7
     movsx edx, word ptr [0x63a4cd]               # 004f5cfa
     cmp edx, 0x2                                 # 004f5d01
-    jne.d8 L_004f5d2d                            # 004f5d04
-    # block 0x004f5d06: <unfilled>
-    mov eax, dword ptr [ebp - local_1c]          # 004f5d06
+    jne.d8 L_return_result_a                            # 004f5d04
+    # block 0x004f5d06: trace level 2: format the finish message (index, bytes_done) and emit it
+    mov eax, dword ptr [ebp - local_bytes_done]          # 004f5d06
     push eax                                     # 004f5d09
-    mov ecx, dword ptr [ebp + arg_8]             # 004f5d0a
+    mov ecx, dword ptr [ebp + arg_sound_index]             # 004f5d0a
     push ecx                                     # 004f5d0d
     push 0x55e6c8                                # 004f5d0e
     push 0x63888b                                # 004f5d13
@@ -195,53 +195,53 @@ L_004f5cf4:
     push 0x63888b                                # 004f5d20
     call FUN_0044a2b7                            # 004f5d25
     add esp, 0x4                                 # 004f5d2a
-L_004f5d2d:
-    # block 0x004f5d2d: <unfilled>
-    jmp.d32 L_004f5e2c                           # 004f5d2d
-L_004f5d32:
-    # block 0x004f5d32: <unfilled>
-    mov edx, dword ptr [ebp - local_c]           # 004f5d32
+L_return_result_a:
+    # block 0x004f5d2d: jump to the common result return
+    jmp.d32 L_return_result                           # 004f5d2d
+L_check_raw_codec:
+    # block 0x004f5d32: codec != 2: reload codec word entry+0x126; if it != 1 go to the unknown-codec path
+    mov edx, dword ptr [ebp - local_entry]           # 004f5d32
     movsx eax, word ptr [edx + 0x126]            # 004f5d35
     cmp eax, 0x1                                 # 004f5d3c
-    jne.d32 L_004f5e01                           # 004f5d3f
-    # block 0x004f5d45: <unfilled>
-    mov ecx, dword ptr [ebp - local_c]           # 004f5d45
+    jne.d32 L_unknown_codec                           # 004f5d3f
+    # block 0x004f5d45: codec 1: call FUN_0050cf61(dest, 1, count, entry+0x156 stream), pop 0x10; local_result = eax; if it equals the requested count go to the result return
+    mov ecx, dword ptr [ebp - local_entry]           # 004f5d45
     mov edx, dword ptr [ecx + 0x156]             # 004f5d48
     push edx                                     # 004f5d4e
-    mov eax, dword ptr [ebp + arg_10]            # 004f5d4f
+    mov eax, dword ptr [ebp + arg_byte_count]            # 004f5d4f
     push eax                                     # 004f5d52
     push 0x1                                     # 004f5d53
-    mov ecx, dword ptr [ebp + arg_c]             # 004f5d55
+    mov ecx, dword ptr [ebp + arg_dest]             # 004f5d55
     push ecx                                     # 004f5d58
     call FUN_0050cf61                            # 004f5d59
     add esp, 0x10                                # 004f5d5e
-    mov dword ptr [ebp - local_8], eax           # 004f5d61
-    mov edx, dword ptr [ebp - local_8]           # 004f5d64
-    cmp edx, dword ptr [ebp + arg_10]            # 004f5d67
-    je.d32 L_004f5dff                            # 004f5d6a
-    # block 0x004f5d70: <unfilled>
-    mov eax, dword ptr [ebp - local_c]           # 004f5d70
+    mov dword ptr [ebp - local_result], eax           # 004f5d61
+    mov edx, dword ptr [ebp - local_result]           # 004f5d64
+    cmp edx, dword ptr [ebp + arg_byte_count]            # 004f5d67
+    je.d32 L_return_result_b                            # 004f5d6a
+    # block 0x004f5d70: short read: stream dword +0x0c & 0x20; if nonzero go to the read-error path
+    mov eax, dword ptr [ebp - local_entry]           # 004f5d70
     mov ecx, dword ptr [eax + 0x156]             # 004f5d73
     mov edx, dword ptr [ecx + 0xc]               # 004f5d79
     and edx, 0x20                                # 004f5d7c
     test edx, edx                                # 004f5d7f
-    jne.d8 L_004f5d96                            # 004f5d81
-    # block 0x004f5d83: <unfilled>
-    mov eax, dword ptr [ebp - local_c]           # 004f5d83
+    jne.d8 L_raw_read_error                            # 004f5d81
+    # block 0x004f5d83: flag 0x20 clear: stream dword +0x0c & 0x10; if nonzero go to the end-of-file path (not an error)
+    mov eax, dword ptr [ebp - local_entry]           # 004f5d83
     mov ecx, dword ptr [eax + 0x156]             # 004f5d86
     mov edx, dword ptr [ecx + 0xc]               # 004f5d8c
     and edx, 0x10                                # 004f5d8f
     test edx, edx                                # 004f5d92
-    jne.d8 L_004f5de9                            # 004f5d94
-L_004f5d96:
-    # block 0x004f5d96: <unfilled>
+    jne.d8 L_raw_read_eof                            # 004f5d94
+L_raw_read_error:
+    # block 0x004f5d96: read-error path: if the trace level word is 0 skip the message
     movsx eax, word ptr [0x63a4cd]               # 004f5d96
     test eax, eax                                # 004f5d9d
-    je.d8 L_004f5dd7                             # 004f5d9f
-    # block 0x004f5da1: <unfilled>
-    mov ecx, dword ptr [ebp + arg_8]             # 004f5da1
+    je.d8 L_raw_read_error_status                             # 004f5d9f
+    # block 0x004f5da1: format the corrupted-file message (name = entry+4) into 0x0063888b and emit it
+    mov ecx, dword ptr [ebp + arg_sound_index]             # 004f5da1
     imul ecx, ecx, 0x5bb                         # 004f5da4
-    mov edx, dword ptr [ebp - local_28]          # 004f5daa
+    mov edx, dword ptr [ebp - local_this]          # 004f5daa
     mov eax, dword ptr [edx + 0x3ce]             # 004f5dad
     lea ecx, [eax + ecx + 0x4]                   # 004f5db3
     push ecx                                     # 004f5db7
@@ -252,45 +252,45 @@ L_004f5d96:
     push 0x63888b                                # 004f5dca
     call FUN_0044a2b7                            # 004f5dcf
     add esp, 0x4                                 # 004f5dd4
-L_004f5dd7:
-    # block 0x004f5dd7: <unfilled>
-    mov edx, dword ptr [ebp - local_28]          # 004f5dd7
+L_raw_read_error_status:
+    # block 0x004f5dd7: this+0x3c2 = 0x3ec; return -1
+    mov edx, dword ptr [ebp - local_this]          # 004f5dd7
     mov dword ptr [edx + 0x3c2], 0x3ec           # 004f5dda
     or eax, -0x1                                 # 004f5de4
-    jmp.d8 L_004f5e2f                            # 004f5de7
-L_004f5de9:
-    # block 0x004f5de9: <unfilled>
+    jmp.d8 L_epilogue                            # 004f5de7
+L_raw_read_eof:
+    # block 0x004f5de9: end-of-file flag set: call FUN_0050ce2b(stream, 0x1e, 0), pop 0xc; fall into the result return with the short count
     push 0x0                                     # 004f5de9
     push 0x1e                                    # 004f5deb
-    mov eax, dword ptr [ebp - local_c]           # 004f5ded
+    mov eax, dword ptr [ebp - local_entry]           # 004f5ded
     mov ecx, dword ptr [eax + 0x156]             # 004f5df0
     push ecx                                     # 004f5df6
     call FUN_0050ce2b                            # 004f5df7
     add esp, 0xc                                 # 004f5dfc
-L_004f5dff:
-    # block 0x004f5dff: <unfilled>
-    jmp.d8 L_004f5e2c                            # 004f5dff
-L_004f5e01:
-    # block 0x004f5e01: <unfilled>
+L_return_result_b:
+    # block 0x004f5dff: jump to the common result return
+    jmp.d8 L_return_result                            # 004f5dff
+L_unknown_codec:
+    # block 0x004f5e01: codec is neither 2 nor 1: if the trace level word is 0 skip the report
     movsx edx, word ptr [0x63a4cd]               # 004f5e01
     test edx, edx                                # 004f5e08
-    je.d8 L_004f5e1a                             # 004f5e0a
-    # block 0x004f5e0c: <unfilled>
+    je.d8 L_unknown_codec_status                             # 004f5e0a
+    # block 0x004f5e0c: call FUN_0052139c(format 0x0055e754, 0, 0); the call site pops nothing afterwards
     push 0x0                                     # 004f5e0c
     push 0x0                                     # 004f5e0e
     push 0x55e754                                # 004f5e10
     call FUN_0052139c                            # 004f5e15
-L_004f5e1a:
-    # block 0x004f5e1a: <unfilled>
-    mov eax, dword ptr [ebp - local_28]          # 004f5e1a
+L_unknown_codec_status:
+    # block 0x004f5e1a: this+0x3c2 = 0x3f9; return -1
+    mov eax, dword ptr [ebp - local_this]          # 004f5e1a
     mov dword ptr [eax + 0x3c2], 0x3f9           # 004f5e1d
     or eax, -0x1                                 # 004f5e27
-    jmp.d8 L_004f5e2f                            # 004f5e2a
-L_004f5e2c:
-    # block 0x004f5e2c: <unfilled>
-    mov eax, dword ptr [ebp - local_8]           # 004f5e2c
-L_004f5e2f:
-    # block 0x004f5e2f: <unfilled>
+    jmp.d8 L_epilogue                            # 004f5e2a
+L_return_result:
+    # block 0x004f5e2c: return local_result
+    mov eax, dword ptr [ebp - local_result]           # 004f5e2c
+L_epilogue:
+    # block 0x004f5e2f: epilogue: restore esp/ebp and ret 0xc
     {load} mov esp, ebp                          # 004f5e2f
     pop ebp                                      # 004f5e31
     ret 0xc                                      # 004f5e32

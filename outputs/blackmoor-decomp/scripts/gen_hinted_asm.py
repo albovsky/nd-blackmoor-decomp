@@ -1062,11 +1062,14 @@ def render_file(image: Image, layout: Layout) -> str:
     return "\n".join(out) + "\n"
 
 
-def render_census_function(image: Image, layout: Layout, shared_externals: dict[int, str]) -> str:
+def render_census_function(image: Image, layout: Layout, shared_externals: dict[int, str],
+                           hint_totals: Optional[collections.Counter] = None) -> str:
     """Function body for the single-file census (no headers, shared externals)."""
 
     rendered = render_function(image, layout)
     shared_externals.update(rendered.externals)
+    if hint_totals is not None:
+        hint_totals.update(rendered.hint_counts)
     out = []
     for name, (sign, mag) in rendered.frame.items():
         out.append(f".equ {name}, 0x{mag:x}")
@@ -1148,17 +1151,19 @@ def run_census(image: Image, out_dir: Path, vas: Optional[list[int]] = None, kee
     src_path = out_dir / "census.s"
     obj_path = out_dir / "census.obj"
     assembly_errors: dict[int, str] = {}
+    hint_totals: collections.Counter = collections.Counter()
     rounds = 0
     while True:
         rounds += 1
         shared: dict[int, str] = {}
+        hint_totals = collections.Counter()
         chunks: list[tuple[int, str]] = []
         for va in vas:
             layout = layouts[va]
             if layout.exceptions:
                 continue
             try:
-                chunks.append((va, render_census_function(image, layout, shared)))
+                chunks.append((va, render_census_function(image, layout, shared, hint_totals)))
             except Inexpressible as exc:
                 layout.exceptions.append(f"inexpressible:{exc}")
         defined = {f"FUN_{va:08x}" for va, _ in chunks}
@@ -1237,7 +1242,31 @@ def run_census(image: Image, out_dir: Path, vas: Optional[list[int]] = None, kee
                 counter[f"{item.kind}_exact_bytes"] += item.size
             else:
                 mismatches.append(f"0x{item.va:08x}:{item.kind}")
+    report["hints"] = dict(sorted(hint_totals.items()))
+    report["derived_functions"] = sum(1 for va in vas if layouts[va].derived)
+    report["fall_through_fragments"] = [f"0x{va:08x}" for va in vas if layouts[va].falls_through]
     report["by_region"] = {k: dict(v) for k, v in sorted(by_region.items())}
+    # description for the M02 composer: every code part and data item, hashes only
+    report["ranges"] = [
+        {
+            "function": f"FUN_{va:08x}",
+            "va": va,
+            "derived": layouts[va].derived,
+            "code_size": layouts[va].code_size,
+            "code_sha256": code_hash(image, layouts[va]),
+            "data_items": [
+                {"kind": i.kind, "va": i.va, "size": i.size, "sha256": hashlib.sha256(image.bytes_at(i.va, i.end)).hexdigest()}
+                for i in layouts[va].data
+            ],
+        }
+        for va in vas
+        if not layouts[va].exceptions
+    ]
+    report["unsplit_spans"] = [
+        {"function": f"FUN_{va:08x}", "va": va, "span_end": layouts[va].span_end, "reasons": layouts[va].exceptions}
+        for va in vas
+        if layouts[va].exceptions
+    ]
     totals: collections.Counter = collections.Counter()
     for counter in by_region.values():
         totals.update(counter)
