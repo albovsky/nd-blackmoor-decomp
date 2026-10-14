@@ -82,6 +82,8 @@ With mnemonics and the four hint kinds alone, 1,300 bytes in 331 instructions re
 
 Four byte runs (11 bytes) could not be rendered by the disassembler at all; they decode to invalid opcodes inside function spans and are table data that the span heuristic did not catch, which is also why three CRT/MFC spans are not reported as fully exact.
 
+The 1,205,254 bytes compared are the bytes the linear disassembler rendered as instructions. They include the 2,205 `int 3` padding bytes (assembled as `int3`) and roughly a thousand table bytes that happen to decode as valid instructions; the 7,737 bytes excluded as data are the tables the span heuristic recognised. A code census proper, after M03 splits every span, will total about 1,202,000 bytes. The round-trip result does not depend on that split: every byte the disassembler rendered reassembled to itself.
+
 Conclusion: with the pinned assembler, four hint kinds and the five `.insn` spellings above, every code byte of the executable is expressed as mnemonic assembly that reassembles exactly, with zero relocations in the object. The mechanical side of Track M is solved and measured, not assumed. The throughput question in the plan is therefore entirely about authoring policy, not tooling.
 
 ## 6. Findings that change the plan
