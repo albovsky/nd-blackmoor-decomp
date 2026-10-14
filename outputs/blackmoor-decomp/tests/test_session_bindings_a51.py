@@ -80,6 +80,9 @@ class Host:
         self.fail = None
         self.lookups = 0
         self.keep = []
+        # When set, models the app: the caption backends mutate the shared
+        # flags directly, and load/store mirror them (0x5b1602 / 0x5b1606).
+        self.shared = None
 
     def make(self, *, with_lookup=True):
         host = Host51()
@@ -95,6 +98,8 @@ class Host:
         @WriteFn
         def write(_c, text, length):
             self.log.append(("write", bytes(text[:length])))
+            if self.shared is not None:  # caption writer: finish=0, visible=1
+                self.shared["finish"], self.shared["visible"] = 0, 1
             return 1 if self.fail == "write" else 0
 
         @OpenFn
@@ -136,11 +141,17 @@ class Host:
         @WorldHookFn
         def load_world(_c, world):
             self.log.append(("load_world",))
+            if self.shared is not None:
+                world.contents.frame_text_flag = self.shared["visible"]
+                world.contents.caption_finish_flag = self.shared["finish"]
 
         @WorldHookFn
         def store_world(_c, world):
             self.log.append(("store_world", world.contents.frame_text_flag,
                              world.contents.timer_deadline))
+            if self.shared is not None:
+                self.shared["visible"] = world.contents.frame_text_flag
+                self.shared["finish"] = world.contents.caption_finish_flag
 
         host.backend = Backend51(None, measure, write, open_frame, close_frame,
                                  playing, tick)
@@ -274,7 +285,7 @@ class SessionBindingsA51Tests(unittest.TestCase):
         fixture = self.make([action(0x51, 1, S5900_ROW11)], host)
         fixture.tick()
         kinds = [entry[0] for entry in host.log]
-        self.assertEqual(kinds, ["load_world", "open", "store_world"])
+        self.assertEqual(kinds, ["load_world", "open", "load_world", "store_world"])
         # The store sees the kernel's clear of 0x5b1606 (frame_text_flag).
         self.assertEqual(host.log[-1][1], 0)
 
@@ -301,6 +312,18 @@ class SessionBindingsA51Tests(unittest.TestCase):
         self.assertEqual(host.effects(), [("measure", b"<n><e>"),
                                           ("write", b"<n><e>")])
         self.assertEqual(self.lib.session_a51_record_renderer(fixture.binding, 0), 2)
+
+    def test_backend_side_effects_on_the_shared_caption_flags_survive_the_store(self):
+        # After a timed dismiss the shared state is finish=1, visible=0. The
+        # caption writer clears finish and sets visible (0x448d11); the
+        # binding must not copy its pre-step snapshot back over that.
+        host = Host()
+        host.lines = 2
+        host.shared = {"finish": 1, "visible": 0}
+        fixture = self.make([action(0x51, 1, body51(
+            0, 0, 0, 0, -1, auto_key(b"CURL00")))], host)
+        fixture.tick()
+        self.assertEqual(host.shared, {"finish": 0, "visible": 1})
 
     def test_missing_autotext_key_uses_the_original_error_message(self):
         host = Host(autotext={})

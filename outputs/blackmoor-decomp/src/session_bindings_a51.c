@@ -191,10 +191,28 @@ int session_a51_handler(void *context,
     if (binding->host.load_world != NULL) {
         binding->host.load_world(binding->host.world_context, &binding->world);
     }
-    status = action_family_51_step(&input, &binding->world,
-                                   &binding->host.backend, &step);
-    if (binding->host.store_world != NULL) {
-        binding->host.store_world(binding->host.world_context, &binding->world);
+    {
+        /* The host backends (caption writer, close) mutate the shared caption
+         * flags directly while the kernel runs on this private copy. Commit
+         * only the fields the kernel itself changed, on top of the host's
+         * post-step state, so backend side effects are not undone. */
+        const ActionFamily51World before = binding->world;
+        status = action_family_51_step(&input, &binding->world,
+                                       &binding->host.backend, &step);
+        if (binding->host.store_world != NULL) {
+            ActionFamily51World merged = before;
+            if (binding->host.load_world != NULL) {
+                binding->host.load_world(binding->host.world_context, &merged);
+            }
+            if (binding->world.timer_deadline != before.timer_deadline)
+                merged.timer_deadline = binding->world.timer_deadline;
+            if (binding->world.frame_text_flag != before.frame_text_flag)
+                merged.frame_text_flag = binding->world.frame_text_flag;
+            if (binding->world.caption_finish_flag != before.caption_finish_flag)
+                merged.caption_finish_flag = binding->world.caption_finish_flag;
+            binding->host.store_world(binding->host.world_context, &merged);
+            binding->world = merged;
+        }
     }
     binding->last_kernel_status = status;
     if (status == ACTION_FAMILY_51_ERR_UNSUPPORTED) {

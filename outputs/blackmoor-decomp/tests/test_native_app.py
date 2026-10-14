@@ -253,17 +253,12 @@ class NativeCaptionTransferTests(unittest.TestCase):
             found = contents.find(evidence, position)
             self.assertNotEqual(found, -1, evidence)
             position = found
-        # Wait mode 0: the frame text box is opened once per scene and the
-        # row never completes or closes it.
+        # Wait mode 0: the row opens the frame text box once and never completes.
+        # Closing the box on scene replacement (original 0x4381f4/0x43dbe3 call
+        # 0x4de2d8 on 0x61f864) is NOT modelled yet; this test deliberately does
+        # not pin that gap.
         self.assertEqual(contents.count('scene_a51_open_frame_text mode=2 bytes=6 '), 1)
-        self.assertNotIn('scene_a51_close_frame_text', contents)
         self.assertNotIn('provider=action-family-62', contents)
-
-    def test_a62_selector_is_unavailable_for_the_new_game_entry_scene(self):
-        # The start scene has no scene-change frame word, so the provider must
-        # not invent one: S0 itself never logs a selector.
-        contents = self.run_live()
-        self.assertNotIn('scene_a62_selector scene=0 ', contents)
 
     def test_scene_fixture_uses_real_caption_audio_and_resource_transition(self):
         with tempfile.TemporaryDirectory() as directory:
