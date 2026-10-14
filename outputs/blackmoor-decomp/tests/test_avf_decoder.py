@@ -529,6 +529,64 @@ class AvfDecoderTests(unittest.TestCase):
                 self.assertEqual(s.double(0)[0], CORRUPT)
                 self.assertEqual(s.snapshot(), before)
 
+    def test_key_declared_size_versus_conversion_extent(self) -> None:
+        # Root review P2: the original decompresses into the frame (bounded by
+        # frame_bytes) and 0x4c7314 converts (declared >> 1) words, doing
+        # nothing when conversion is disabled. 2x2 frame = 8 bytes whose LZSS
+        # expands to 8 bytes; only the declared size is patched.
+        payload = frame_pixels(2, 2, 3)
+        base = build_avf(2, 2, [(0, payload, None)])
+
+        def patched(declared: int) -> bytes:
+            data = bytearray(base)
+            struct.pack_into("<I", data, HEADER_BYTES + 0xA, declared)
+            return bytes(data)
+
+        def bumped(count: int) -> bytes:
+            head = [(w + 1) & 0xFFFF for w in words(payload)[:count]]
+            return struct.pack("<4H", *(head + words(payload)[count:]))
+
+        # (declared, conversion hook present, expected status, converted words)
+        cases = [
+            (16, False, OK, 0), (0x1000, False, OK, 0), (9, False, OK, 0),
+            (9, True, OK, 4), (8, True, OK, 4), (1, True, OK, 0),
+            (16, True, CORRUPT, 0), (10, True, CORRUPT, 0), (17, True, CORRUPT, 0),
+            (0x1000, True, CORRUPT, 0),
+        ]
+        for declared, hooked, expected, converted in cases:
+            for reader in ("single", "double"):
+                with self.subTest(declared=declared, hooked=hooked, reader=reader):
+                    s = Session(self.lib, patched(declared), convert=hooked)
+                    before = s.snapshot()
+                    if reader == "single":
+                        status, slot = s.single(0), 0
+                    else:
+                        status, written = s.double(0)
+                        slot = 1
+                        self.assertEqual(written, 1 if expected == OK else -1)
+                    self.assertEqual(status, expected)
+                    if expected != OK:
+                        # Validate before any write: nothing visible changed.
+                        self.assertEqual(s.snapshot(), before)
+                        self.assertEqual(s.calls, [])
+                        continue
+                    self.assertEqual(s.buffer(slot), bumped(converted))
+                    self.assertEqual(s.buffer(1 - slot), bytes([0x5A]) * 8)
+                    self.assertEqual(s.stream.flags[slot], 1)
+                    self.assertEqual(s.stream.last_index, 0)
+                    expected_calls = [(slot, 0, declared)] if converted else []
+                    self.assertEqual(s.calls, expected_calls)
+        # A failed declared-size check keeps the prefix of earlier successes.
+        two = build_avf(2, 2, [(0, payload, None), (0, payload, None)])
+        data = bytearray(two)
+        struct.pack_into("<I", data, HEADER_BYTES + RECORD_BYTES + 0xA, 16)
+        s = Session(self.lib, bytes(data), convert=True)
+        self.assertEqual(s.single(0), OK)
+        before, calls = s.snapshot(), list(s.calls)
+        self.assertEqual(s.single(1), CORRUPT)
+        self.assertEqual(s.snapshot(), before)
+        self.assertEqual(s.calls, calls)
+
     def test_get_chunk_key_larger_than_frame(self) -> None:
         # GetChunk allocates unpacked_bytes, so a large key record is valid there.
         payload = frame_pixels(4, 2, 2)

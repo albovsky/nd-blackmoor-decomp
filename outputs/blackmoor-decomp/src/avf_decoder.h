@@ -175,9 +175,12 @@ void avf_stream_reset(AvfStream *stream);
 /*
  * 0x41546f: decode `index` into buffers[0]; result flags in flags[0].
  * A key frame's LZSS output may be any length up to frame_bytes (bytes it
- * does not reach keep the previous frame); unpacked_bytes, which is what
- * gets converted, must not exceed frame_bytes. Command records (types 1/2)
- * must expand to exactly unpacked_bytes.
+ * does not reach keep the previous frame). unpacked_bytes is what gets
+ * converted: with no conversion hook it may exceed frame_bytes (the
+ * original's 0x4c7314 returns at once); with a hook its touched extent,
+ * (unpacked_bytes >> 1) * 2, must fit in frame_bytes or the call fails with
+ * AVF_ERR_CORRUPT before any write. Command records (types 1/2) must expand
+ * to exactly unpacked_bytes.
  */
 AvfStatus avf_decode_single(AvfStream *stream, int16_t index, AvfLzssState *lzss);
 
