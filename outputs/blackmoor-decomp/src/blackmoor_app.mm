@@ -20,6 +20,8 @@
 #include "scene_session.h"
 #include "session_bindings_a62.h"
 #include "session_bindings_a51.h"
+#include "session_bindings_a28.h"
+#include "session_exit.h"
 #include "caption_layout.h"
 #include "caption_lifecycle.h"
 #include "caption_compositor.h"
@@ -172,6 +174,16 @@ struct NativeApp {
      * native_a51_* callbacks below). */
     SessionA62Binding *a62 = nullptr;
     SessionA51Binding *a51 = nullptr;
+    /* RT-5: scene-exit state machine (0x583999 states 1..4), the CSpecialEffect
+     * object shared with the 0x28 leaf, and the host-side capture buffers the
+     * effect controller reads (0x447ac7 targets). */
+    SessionExit exit_state{};
+    SessionA28Binding *a28 = nullptr;
+    std::vector<uint8_t> exit_primary_rgb565;
+    std::vector<uint8_t> exit_source_words;
+    std::vector<uint8_t> exit_destination_words;
+    uint32_t exit_sequence_audio_pumps = 0, exit_sequence_graphics_pumps = 0;
+    uint32_t exit_sequence_presents = 0;
     /* DAT_005bb1ca, shared "cursor allowed" process global written by 0x62. */
     int32_t start_flag_5bb1ca = 0;
     /* DAT_005bb50b as set at scene entry (0x439f20..0x439f41 copies
@@ -184,6 +196,11 @@ struct NativeApp {
      * accepted event (scan + accept reducers + candidate store). */
     bool test_a62_accept = false;
     bool test_a62_accept_done = false;
+    /* RT-5 test hook: load this scene instead of the requested target so the
+     * exit effect can be followed into a successor the executor can create.
+     * It changes game flow and exists only in the test-hooks build. */
+    int32_t test_exit_redirect_from = -1;
+    int32_t test_exit_redirect = -1;
 #endif
     /* Headless runs render the offline audio graph a fixed amount per update;
      * live runs leave this zero and let the output device pace playback. */
@@ -1502,6 +1519,8 @@ static void cleanup(NativeApp *app)
     if (app->session) scene_session_destroy(app->session);
     session_a62_destroy(app->a62);
     session_a51_destroy(app->a51);
+    session_a28_destroy(app->a28);
+    app->a28 = nullptr;
     if (app->live_audio) live_audio_destroy(app->live_audio);
     app->live_audio = nullptr;
     if (app->platform) blackmoor_macos_close(app->platform);
@@ -2115,7 +2134,13 @@ static bool create_native_session_bindings(NativeApp *app)
     a51_host.load_world = native_a51_load_world;
     a51_host.store_world = native_a51_store_world;
     app->a51 = session_a51_create(&a51_host);
-    if (app->a62 == nullptr || app->a51 == nullptr) {
+    {
+        const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
+                                         app->scene_destination.right, app->scene_destination.bottom};
+        session_exit_init(&app->exit_state, &view);
+        app->a28 = session_a28_create(&app->exit_state);
+    }
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
     }
@@ -2200,7 +2225,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[3]{};
+    SceneSessionActionBinding bindings[4]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2210,8 +2235,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[2].provider = SCENE_SESSION_PROVIDER_CAPTION;
     bindings[2].callback = session_a51_handler;
     bindings[2].context = app->a51;
+    bindings[3].type = SESSION_A28_TYPE;
+    bindings[3].provider = SCENE_SESSION_PROVIDER_A28;
+    bindings[3].callback = session_a28_handler;
+    bindings[3].context = app->a28;
     config.action_bindings = bindings;
-    config.action_binding_count = 3u;
+    config.action_binding_count = 4u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -2378,15 +2407,16 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
 }
 
 static bool evaluate_a28_dependency_gate(NativeApp *app,
+                                         const SceneResource *scene,
                                          size_t action_index,
                                          const SceneActionInfo &action,
                                          int *satisfied)
 {
-    if (!app || !satisfied || !app->scene || !app->new_game.view.action_core ||
+    if (!app || !satisfied || !scene || !app->new_game.view.action_core ||
         action.dependency_count > SIZE_MAX / sizeof(SceneDependencyInfo)) return false;
     std::vector<SceneDependencyInfo> dependencies(action.dependency_count);
     for (size_t i = 0; i < action.dependency_count; ++i) {
-        if (scene_resource_dependency_at(app->scene, action_index, i,
+        if (scene_resource_dependency_at(scene, action_index, i,
                                          &dependencies[i]) != SCENE_RESOURCE_OK) {
             return false;
         }
@@ -2424,33 +2454,39 @@ static bool evaluate_a28_dependency_gate(NativeApp *app,
     return true;
 }
 
-static bool prepare_a28_handoff_frames(NativeApp *app)
+/* RT-5: the 0x28 row that blends two scenes belongs to the OUTGOING scene (it is
+ * queued by the leaf 0x44727a and run from the state-4 handler 0x43d227 through
+ * 0x447c36, see session_exit.h). The pairing is therefore: the outgoing scene's
+ * row, the outgoing scene's last frame as source, the successor's first frame
+ * as target. This diagnostic path still has no dispatcher and does not run the
+ * effect; the live session does (exit_state_tick). */
+static bool prepare_a28_handoff_frames(NativeApp *app, const SceneResource *outgoing)
 {
-    if (!app || !app->scene || !app->has_scene_frame ||
+    if (!app || !app->scene || !outgoing || !app->has_scene_frame ||
         !app->has_transition_source_frame) return false;
     app->a28_capture_pair_ready = false;
     size_t action_index = SIZE_MAX;
     SceneActionInfo action{};
-    for (size_t i = 0; i < scene_resource_action_count(app->scene); ++i) {
+    const size_t outgoing_rows = scene_resource_action_count(outgoing);
+    size_t type28_rows = 0;
+    for (size_t i = 0; i < outgoing_rows; ++i) {
         SceneActionInfo candidate{};
-        if (scene_resource_action_at(app->scene, i, &candidate) != SCENE_RESOURCE_OK) {
+        if (scene_resource_action_at(outgoing, i, &candidate) != SCENE_RESOURCE_OK) {
             return false;
         }
-        if (candidate.type != ACTION_FAMILY_28_TYPE) {
-            record(app, "scene_a28_prefix row=%zu type=0x%02x subtype=%u "
-                   "payload_kind=%d body_bytes=%zu dependency_records=%zu "
-                   "dispatch=not-run-by-handoff-inspector",
-                   i, candidate.type, candidate.subtype, candidate.payload_kind,
-                   candidate.typed_body_length, candidate.dependency_count);
-        }
         if (candidate.type == ACTION_FAMILY_28_TYPE) {
-            action_index = i;
-            action = candidate;
-            break;
+            if (type28_rows++ == 0) {
+                action_index = i;
+                action = candidate;
+            }
         }
     }
+    record(app, "scene_a28_scan outgoing_scene=%d rows=%zu type28_rows=%zu successor_scene=%d "
+           "pairing=outgoing-row(RT-5)", app->transition_source_scene_id, outgoing_rows,
+           type28_rows, app->current_scene_id);
     if (action_index == SIZE_MAX) {
-        record(app, "scene_a28_handoff=unsupported no-type-28-action");
+        record(app, "scene_a28_handoff=not-applicable no-type-28-row-in-outgoing-scene "
+               "outgoing_scene=%d", app->transition_source_scene_id);
         return true;
     }
 
@@ -2465,7 +2501,7 @@ static bool prepare_a28_handoff_frames(NativeApp *app)
     }
     int dependency_satisfied = 0;
     int entry_gate_known = 0;
-    if (!evaluate_a28_dependency_gate(app, action_index, action,
+    if (!evaluate_a28_dependency_gate(app, outgoing, action_index, action,
                                       &dependency_satisfied)) {
         record(app, "scene_a28_entry_gate=unresolved action=%zu dependency_records=%zu "
                "phase=pre-dispatch",
@@ -2620,9 +2656,9 @@ static bool prepare_a28_handoff_frames(NativeApp *app)
            app->scene_destination.left, app->scene_destination.top,
            app->scene_destination.right, app->scene_destination.bottom,
            decoded.rect.left, decoded.rect.top, width, height, capture_bytes);
-    record(app, "scene_a28_execution=not-run reason=successor-scene-dispatch-"
-           "not-integrated gate=not-evaluated-after-prefix entry_gate_known=%d "
-           "entry_gate=%d", entry_gate_known, dependency_satisfied);
+    record(app, "scene_a28_execution=not-run reason=diagnostic-path-has-no-dispatcher "
+           "(live session runs the exit effect) entry_gate_known=%d entry_gate=%d",
+           entry_gate_known, dependency_satisfied);
     return true;
 }
 
@@ -2694,46 +2730,305 @@ static bool clear_before_scene_entry(NativeApp *app, uint32_t now_tick)
     return true;
 }
 
-/* Applies a pending session transition: scene clear, target resource load and
- * visit increment (the order the inspector path already used), then replaces
- * the session executor. The old scene resource is closed only after the
- * replacement succeeds. The opaque tuple words are retained by the session and
- * are not consumed here; A-28 handoff frames are not integrated on this path. */
+/* ---- RT-5: scene exit (states 4, 1, 2 of 0x438150) ----------------------
+ *
+ * The decisions live in session_exit.c (oracle-compared against 0x43d227,
+ * 0x447c36, 0x4473be, 0x447418, 0x4474cf and the ClearSceneData windows). This
+ * block only supplies the host boundaries: capturing the composed viewport
+ * into the A-28 capture layout, running the A-28 surface sequence and
+ * presenting its frames.
+ *
+ * Named gaps (also in the RT-5 handoff): the nested state-3 tick of the stage-0
+ * setup (0x447440) is not re-run; the capture source is the frame composed by
+ * the last session tick. The x87 control word is the Win32 thread default
+ * 0x027f and is unverified. Only the viewport rectangle is captured; the
+ * original composed framebuffer outside it is not part of the effect. */
+static const uint16_t kAmbientX87ControlWord = ACTION_FAMILY28_X87_CW_DOUBLE;
+
+static bool exit_viewport_size(NativeApp *app, size_t *width, size_t *height)
+{
+    const int64_t w = (int64_t)app->scene_destination.right - app->scene_destination.left + 1;
+    const int64_t h = (int64_t)app->scene_destination.bottom - app->scene_destination.top + 1;
+    if (w <= 0 || h <= 0 || app->scene_destination.left < 0 || app->scene_destination.top < 0 ||
+        app->scene_destination.right >= 640 || app->scene_destination.bottom >= 480 ||
+        app->framebuffer.size() != 640u * 480u * 4u) return false;
+    *width = static_cast<size_t>(w);
+    *height = static_cast<size_t>(h);
+    return true;
+}
+
+/* The composed 640x480 frame (app->framebuffer is the last presented frame,
+ * refreshed from the caption back buffer after every session tick and after
+ * every scene load) cropped to the viewport as the A-28 RGB565 primary. */
+static bool exit_build_primary(NativeApp *app, ActionFamily28PrimarySurface *surface,
+                               size_t *width, size_t *height)
+{
+    if (!exit_viewport_size(app, width, height) || *width > SIZE_MAX / *height / 2u) return false;
+    BinkPlayerFrame frame{};
+    frame.rgba = app->framebuffer.data();
+    frame.rgba_bytes = app->framebuffer.size();
+    frame.width = 640u;
+    frame.height = 480u;
+    frame.stride = 640u * 4u;
+    frame.current_frame = -1;
+    app->exit_primary_rgb565.resize(*width * *height * 2u);
+    return action_family28_surface_from_rgba_rect(&frame,
+        static_cast<size_t>(app->scene_destination.left),
+        static_cast<size_t>(app->scene_destination.top), *width, *height,
+        app->exit_primary_rgb565.data(), app->exit_primary_rgb565.size(),
+        app->scene_destination.left, app->scene_destination.top, surface) ==
+        ACTION_FAMILY28_SURFACE_OK;
+}
+
+static bool exit_payload_crop(NativeApp *app, size_t *crop_x, size_t *crop_y)
+{
+    ActionFamily28Decoded decoded{};
+    size_t consumed = 0;
+    if (action_family28_decode(app->exit_state.effect.active_payload,
+                               ACTION_FAMILY_28_BODY_BYTES, &decoded, &consumed) !=
+            ACTION_FAMILY28_OK || decoded.rect.left < 0 || decoded.rect.top < 0) return false;
+    *crop_x = static_cast<size_t>(decoded.rect.left);
+    *crop_y = static_cast<size_t>(decoded.rect.top);
+    return true;
+}
+
+static int exit_host_nested_tick(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_exit_nested_state3_tick executed=no reason=0x43a7ca-not-re-run "
+           "source=last-composed-frame effect_type=%u", app->exit_state.effect.active_payload[0]);
+    return 0;
+}
+
+static int exit_host_capture(void *context, SessionExitCapture which)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    ActionFamily28PrimarySurface surface{};
+    size_t width = 0, height = 0, crop_x = 0, crop_y = 0, bytes = 0;
+    if (!exit_build_primary(app, &surface, &width, &height) ||
+        !exit_payload_crop(app, &crop_x, &crop_y) ||
+        action_family28_capture_required_bytes(width, height, width, &bytes) !=
+            ACTION_FAMILY28_SURFACE_OK) {
+        record(app, "scene_exit_capture_error which=%d detail=viewport-or-payload", (int)which);
+        return 1;
+    }
+    std::vector<uint8_t> &words = which == SESSION_EXIT_CAPTURE_SOURCE
+        ? app->exit_source_words : app->exit_destination_words;
+    words.assign(bytes, 0u);
+    const ActionFamily28Rect target = {app->scene_destination.left, app->scene_destination.top,
+                                       app->scene_destination.right, app->scene_destination.bottom};
+    ActionFamily28WordCapture capture{words.data(), words.size(), width, height, width,
+                                      crop_x, crop_y, ACTION_FAMILY28_STORAGE_CALLER_OWNED};
+    const int status = action_family28_surface_capture_words_at(&surface, &target, crop_x,
+                                                                crop_y, &capture);
+    record(app, "scene_exit_capture which=%s status=%d canvas=%zux%zu bytes=%zu crop=%zu,%zu "
+           "scope=composed-viewport-from-last-presented-frame "
+           "original-composed-framebuffer=viewport-only",
+           which == SESSION_EXIT_CAPTURE_SOURCE ? "source" : "destination", status, width,
+           height, bytes, crop_x, crop_y);
+    return status == ACTION_FAMILY28_SURFACE_OK ? 0 : 1;
+}
+
+static int exit_host_clear_destination(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    size_t width = 0, height = 0, bytes = 0;
+    if (!exit_viewport_size(app, &width, &height) ||
+        action_family28_capture_required_bytes(width, height, width, &bytes) !=
+            ACTION_FAMILY28_SURFACE_OK) return 1;
+    app->exit_destination_words.assign(bytes, 0u);
+    record(app, "scene_exit_clear_destination bytes=%zu", bytes);
+    return 0;
+}
+
+static int exit_sequence_tick(void *, uint32_t *out)
+{
+    *out = blackmoor_macos_monotonic_ms();
+    return 0;
+}
+
+static int exit_sequence_present(void *context, const ActionFamily28PrimarySurface *surface,
+                                 uint32_t frame_index)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)frame_index;
+    if (surface == nullptr || surface->pixels == nullptr ||
+        surface->origin_x != app->scene_destination.left ||
+        surface->origin_y != app->scene_destination.top) return 1;
+    for (size_t y = 0; y < surface->height; ++y) {
+        for (size_t x = 0; x < surface->width; ++x) {
+            const uint8_t *packed = surface->pixels + y * surface->pitch_bytes + x * 2u;
+            const uint16_t word = static_cast<uint16_t>(packed[0] | (packed[1] << 8));
+            const unsigned r5 = (word >> 11) & 31u, g6 = (word >> 5) & 63u, b5 = word & 31u;
+            uint8_t *out = app->framebuffer.data() +
+                ((static_cast<size_t>(app->scene_destination.top) + y) * 640u +
+                 static_cast<size_t>(app->scene_destination.left) + x) * 4u;
+            out[0] = static_cast<uint8_t>((r5 << 3) | (r5 >> 2));
+            out[1] = static_cast<uint8_t>((g6 << 2) | (g6 >> 4));
+            out[2] = static_cast<uint8_t>((b5 << 3) | (b5 >> 2));
+            out[3] = 255u;
+        }
+    }
+    ++app->exit_sequence_presents;
+    if (app->platform && !blackmoor_macos_present(app->platform, app->framebuffer.data(),
+                                                  app->framebuffer.size(), 640 * 4)) return 1;
+    return 0;
+}
+
+static int exit_sequence_graphics_pump(void *context, uint32_t)
+{
+    ++static_cast<NativeApp *>(context)->exit_sequence_graphics_pumps;
+    return 0;
+}
+
+static int exit_sequence_audio_pump(void *context)
+{
+    ++static_cast<NativeApp *>(context)->exit_sequence_audio_pumps;
+    return 0;
+}
+
+static int exit_host_run_sequence(void *context, ActionFamily28SequenceState *state)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    ActionFamily28PrimarySurface surface{};
+    size_t width = 0, height = 0, crop_x = 0, crop_y = 0, bytes = 0;
+    if (!exit_build_primary(app, &surface, &width, &height) ||
+        !exit_payload_crop(app, &crop_x, &crop_y) ||
+        action_family28_capture_required_bytes(width, height, width, &bytes) !=
+            ACTION_FAMILY28_SURFACE_OK ||
+        app->exit_source_words.size() != bytes || app->exit_destination_words.size() != bytes) {
+        record(app, "scene_exit_sequence_error detail=capture-buffers-missing source_bytes=%zu "
+               "destination_bytes=%zu expected=%zu", app->exit_source_words.size(),
+               app->exit_destination_words.size(), bytes);
+        return 1;
+    }
+    state->source_capture = {app->exit_source_words.data(), app->exit_source_words.size()};
+    state->destination_capture = {app->exit_destination_words.data(),
+                                  app->exit_destination_words.size()};
+    state->capture_width_pixels = width;
+    state->capture_height_pixels = height;
+    state->capture_stride_pixels = width;
+    state->capture_offset_x_pixels = crop_x;
+    state->capture_offset_y_pixels = crop_y;
+    state->primary_target = 1u;
+    ActionFamily28SurfaceSequenceCallbacks callbacks{};
+    callbacks.context = app;
+    callbacks.get_tick_count = exit_sequence_tick;
+    callbacks.present_primary = exit_sequence_present;
+    callbacks.graphics_tail_pump = exit_sequence_graphics_pump;
+    callbacks.system_audio_pump = exit_sequence_audio_pump;
+    ActionFamily28SurfaceSequenceReport report{};
+    app->exit_sequence_audio_pumps = app->exit_sequence_graphics_pumps = 0u;
+    app->exit_sequence_presents = 0u;
+    const uint8_t type = state->subtype;
+    const int status = action_family28_surface_run_sequence(&surface, state, &callbacks,
+                                                            kAmbientX87ControlWord, &report);
+    /* Subtype 3 swaps the two capture spans (0x447756); keep the buffers with them. */
+    if (status == ACTION_FAMILY28_SURFACE_OK &&
+        state->source_capture.data == app->exit_destination_words.data()) {
+        app->exit_source_words.swap(app->exit_destination_words);
+    }
+    record(app, "scene_exit_sequence type=%u status=%d selected_frames=%d planned_frames=%u "
+           "first_frame_ms=%u blends=%u presents=%u graphics_pumps=%u audio_pumps=%u "
+           "completion=%u x87_cw=0x%04x(unverified) curve=non-bit-exact "
+           "scope=decoded-composed-viewport",
+           type, status, report.controller.selected_frame_count,
+           report.controller.planned_frame_count, report.controller.first_frame_elapsed_ms,
+           report.blend_successes, app->exit_sequence_presents,
+           app->exit_sequence_graphics_pumps, app->exit_sequence_audio_pumps,
+           report.controller.completion_committed, kAmbientX87ControlWord);
+    return status == ACTION_FAMILY28_SURFACE_OK ? 0 : 1;
+}
+
+static SessionExitHost make_exit_host(NativeApp *app)
+{
+    SessionExitHost host{};
+    host.context = app;
+    host.nested_scene_tick = exit_host_nested_tick;
+    host.capture = exit_host_capture;
+    host.clear_destination_capture = exit_host_clear_destination;
+    host.run_sequence = exit_host_run_sequence;
+    return host;
+}
+
+/* LoadNewSceneData (0x439822) for a pending scene change, run from state 1.
+ * Order of the proven ClearSceneData (0x43dbe3) subset and the load:
+ *   sounds (blanket unload: the original's sound reset sits in the unrecovered
+ *   first half of 0x43dbe3, its placement is unverified), world scene clear,
+ *   frame text box close + caption flags (0x43e1bd..0x43e221), action table
+ *   replacement (session replace; the original keeps rows of type 0x2d, which
+ *   the native executor does not), input latches (0x43e3d5..0x43e433), then
+ *   the target resource load. Unrecovered ClearSceneData resets (the object
+ *   reset calls of 0x43dbe3, 0x4dad60, the frame-visited words 0x5bb50d) are
+ *   not performed. The old scene resource closes after the replacement. */
 static bool perform_session_transition(NativeApp *app,
-                                       const SceneTransitionRequest &transition,
+                                       const SceneTransitionRequest &requested,
                                        uint32_t now)
 {
+    SceneTransitionRequest transition = requested;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_exit_redirect >= 0 && app->test_exit_redirect <= INT16_MAX &&
+        requested.target_scene == app->test_exit_redirect_from) {
+        record(app, "test_exit_redirect requested=%d loaded=%d (test hook; not game flow)",
+               requested.target_scene, app->test_exit_redirect);
+        transition.target_scene = static_cast<int16_t>(app->test_exit_redirect);
+    }
+#endif
     if (transition.target_scene < 0) {
         record(app, "scene_transition_error target=%d detail=negative-scene", transition.target_scene);
         return false;
     }
     const int16_t source = app->current_scene_id;
-    /* Scene clear drops the outgoing scene's sounds. Whether the original
-     * keeps mode-1 sounds across a scene change is unverified. */
     if (app->live_audio != nullptr && live_audio_unload_all(app->live_audio) != LIVE_AUDIO_OK) {
         record(app, "scene_transition_error source=%d target=%d detail=audio-unload-failed",
                source, transition.target_scene);
         return false;
     }
-    if (!clear_before_scene_entry(app, now) ||
-        !load_scene(app, transition.target_scene, true)) {
+    if (!clear_before_scene_entry(app, now)) {
+        record(app, "scene_transition_error source=%d target=%d detail=scene-clear",
+               source, transition.target_scene);
+        return false;
+    }
+    const int caption_status = session_exit_clear_caption(&app->exit_state, &app->captions.lifecycle,
+                                                          &app->captions.lifecycle_backend);
+    record(app, "scene_clear_caption status=%d order=close-frame-text-0x4de2d8,scroll-lines,"
+           "0x5b15c8,0x5b15d6,0x5b15da,0x5b1602,0x5b1606,0x5bb1da,0x5831c8 frame_open=%u "
+           "caption_visible=%d caption_finish=%d framed_ready=%d",
+           caption_status, app->captions.writer_globals.frame_open,
+           app->captions.writer_globals.caption_visible_flag,
+           app->captions.writer_globals.caption_finish_flag,
+           app->captions.writer_globals.framed_ready);
+    if (caption_status != SESSION_EXIT_OK) {
+        record(app, "scene_transition_error source=%d target=%d detail=caption-clear status=%d",
+               source, transition.target_scene, caption_status);
+        return false;
+    }
+    if (!load_scene(app, transition.target_scene, true)) {
         record(app, "scene_transition_error source=%d target=%d detail=target-load-failed",
                source, transition.target_scene);
         return false;
     }
     SceneSessionFailure failure{};
+    /* The session checks the id against its pending request; the test redirect
+     * therefore passes the requested id with the redirected resource. */
     const int status = scene_session_replace_scene(app->session, app->scene,
-                                                    transition.target_scene, &failure);
+                                                    requested.target_scene, &failure);
     if (status != SCENE_SESSION_OK) {
-        record(app, "scene_transition_error source=%d target=%d detail=session-replace status=%d provider=%s",
+        record(app, "scene_transition_error source=%d target=%d detail=session-replace status=%d provider=%s "
+               "action=%zu type=0x%02x detail_status=%d",
                source, transition.target_scene, status,
-               scene_session_provider_string(failure.provider));
+               scene_session_provider_string(failure.provider), failure.action_index,
+               failure.action_type, failure.detail_status);
         return false;
     }
     if (app->retired_scene != nullptr) {
         scene_resource_close(app->retired_scene);
         app->retired_scene = nullptr;
     }
+    session_exit_clear_latches(&app->exit_state);
+    record(app, "scene_clear_latches order=0x5c39ff,0x5c39e9,0x5c39ed,0x5c39f1,0x5c39f5,0x5c39f9,"
+           "0x5c39e5,0x5bb1c4,0x63a5c0,0x63a5c4 input_latch_5c39e5=%d cursor_override_5c39e9=%d "
+           "consumer=none(RT-2)", app->exit_state.g.input_latch, app->exit_state.g.cursor_override);
     /* DAT_005bb50b := DAT_005bb599 (0x439f20..0x439f41), the frame word of the
      * scene-change request (0x427a50 case 0x0a copies body+2 into it). */
     app->selector_entry_frame = transition.opaque_words[0];
@@ -2752,13 +3047,61 @@ static bool perform_session_transition(NativeApp *app,
     return true;
 }
 
+enum class ExitTick { Run, Consumed, Failed };
+
+/* One main-loop step for the non-running states of 0x438150. */
+static ExitTick exit_state_tick(NativeApp *app, uint32_t now)
+{
+    SessionExit &x = app->exit_state;
+    switch (x.g.game_state) {
+    case SESSION_EXIT_STATE_EXIT: {
+        const SessionExitHost host = make_exit_host(app);
+        SessionExitStepInfo info{};
+        const int status = session_exit_state4(&x, &host, &info);
+        record(app, "scene_exit_state4 status=%d controller_ran=%u stage_before=%u effect_busy=%u "
+               "effect_type=%u state_after=%u unsupported=%s boundary=%d",
+               status, info.controller_ran, info.stage_before, x.effect.busy,
+               x.effect.active_payload[0], x.g.game_state,
+               session_exit_unsupported_string(info.unsupported), (int)info.failed_boundary);
+        if (status != SESSION_EXIT_OK) {
+            record(app, "scene_transition_error source=%d target=%d detail=exit-handler "
+                   "status=%d reason=%s", app->current_scene_id, x.g.scene_request, status,
+                   session_exit_status_string(status));
+            return ExitTick::Failed;
+        }
+        return ExitTick::Consumed;
+    }
+    case SESSION_EXIT_STATE_LOAD: {
+        SceneTransitionRequest pending{};
+        if (!scene_session_get_pending_transition(app->session, &pending)) {
+            record(app, "scene_transition_error detail=load-state-without-pending-transition");
+            return ExitTick::Failed;
+        }
+        session_exit_begin_load(&x);
+        record(app, "scene_load_state next_state=%u transition_word_5c39ff=%d",
+               x.g.game_state, x.g.scene_request_flag);
+        return perform_session_transition(app, pending, now) ? ExitTick::Consumed
+                                                             : ExitTick::Failed;
+    }
+    case SESSION_EXIT_STATE_INTRO:
+        record(app, "scene_intro_state executed=no reason=0x4fb018/0x4fc341-scene-sound-start-"
+               "not-reproduced scene=%d", app->current_scene_id);
+        session_exit_finish_intro(&x);
+        return ExitTick::Consumed;
+    default:
+        return ExitTick::Run;
+    }
+}
+
 static void update(NativeApp *app, uint32_t now)
 {
     app->session_tick_sample = now;
     if (app->session != nullptr) {
-        SceneTransitionRequest pending{};
-        if (scene_session_get_pending_transition(app->session, &pending) &&
-            !perform_session_transition(app, pending, now)) {
+        /* States 4 (exit handler), 1 (load) and 2 (intro) of 0x438150 take the
+         * place of the scene tick, one state per host update like the original
+         * main loop; only state 3 runs the dispatcher. */
+        const ExitTick exit_tick = exit_state_tick(app, now);
+        if (exit_tick == ExitTick::Failed) {
             app->failure = true;
             if (app->platform) blackmoor_macos_stop(app->platform);
             return;
@@ -2770,6 +3113,18 @@ static void update(NativeApp *app, uint32_t now)
             app->failure = true;
             record(app, "live_audio_offline_advance_failed");
             if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (exit_tick == ExitTick::Consumed) {
+            if (app->platform && !blackmoor_macos_present(app->platform,
+                    app->framebuffer.data(), app->framebuffer.size(), 640 * 4)) {
+                app->failure = true;
+                blackmoor_macos_stop(app->platform);
+                return;
+            }
+            if (app->platform && app->stop_after &&
+                (uint32_t)(now - app->started) > app->stop_after)
+                blackmoor_macos_stop(app->platform);
             return;
         }
         const int session_status = scene_session_tick(app->session, &session_result);
@@ -2791,11 +3146,17 @@ static void update(NativeApp *app, uint32_t now)
             if (scene_session_get_pending_transition(app->session, &transition)) {
                 record(app, "scene_session_transition_pending source=%d target=%d "
                        "opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d "
-                       "target_loader=not-integrated",
+                       "target_loader=state-1",
                        app->current_scene_id, transition.target_scene,
                        transition.opaque_words[0], transition.opaque_words[1],
                        transition.opaque_words[2], transition.opaque_dwords[0],
                        transition.opaque_dwords[1], transition.opaque_dwords[2]);
+                /* Dispatcher case 0x0a: the scene request and state := 4. */
+                session_exit_request_transition(&app->exit_state, &transition);
+                record(app, "scene_exit_requested state=%u effect_busy=%u effect_type=%u "
+                       "effect_stage=%u", app->exit_state.g.game_state,
+                       app->exit_state.effect.busy, app->exit_state.effect.active_payload[0],
+                       app->exit_state.effect.sequence_counter);
             }
             app->session_transition_reported = true;
         } else if (session_status != SCENE_SESSION_OK &&
@@ -2817,6 +3178,25 @@ static void update(NativeApp *app, uint32_t now)
                 record(app, "scene_session_render_error scope=caption-Frame-decoded-background");
                 if (app->platform) blackmoor_macos_stop(app->platform);
                 return;
+            }
+            /* Render pass tail (0x4d00ae): the CSpecialEffect gate runs after
+             * the layers are composed, only in state 3 (the exit tick that set
+             * state 4 does not reach it in the original). */
+            if (app->exit_state.g.game_state == SESSION_EXIT_STATE_RUN) {
+                const SessionExitHost host = make_exit_host(app);
+                SessionExitStepInfo info{};
+                const int status = session_exit_render_pass(&app->exit_state, &host, &info);
+                if (info.controller_ran != 0u || status != SESSION_EXIT_OK) {
+                    record(app, "scene_exit_render_pass status=%d controller_ran=%u "
+                           "stage_before=%u effect_busy=%u boundary=%d", status,
+                           info.controller_ran, info.stage_before, app->exit_state.effect.busy,
+                           (int)info.failed_boundary);
+                }
+                if (status != SESSION_EXIT_OK) {
+                    app->failure = true;
+                    if (app->platform) blackmoor_macos_stop(app->platform);
+                    return;
+                }
             }
         }
         if (app->platform && !blackmoor_macos_present(app->platform,
@@ -3153,6 +3533,16 @@ int main(int argc, char **argv)
                 char *end = nullptr;
                 live_click_row = std::strtol(value, &end, 10);
                 if (!*value || *end || live_click_row < 0) return 2;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+            } else if (argument == "--test-exit-redirect") {
+                char *end = nullptr;
+                const long from = std::strtol(value, &end, 10);
+                if (!*value || *end != ':' || from < 0 || from > INT16_MAX) return 2;
+                const long scene = std::strtol(end + 1, &end, 10);
+                if (*end || scene < 0 || scene > INT16_MAX) return 2;
+                app.test_exit_redirect_from = (int32_t)from;
+                app.test_exit_redirect = (int32_t)scene;
+#endif
             } else if (argument == "--live-ticks") {
                 char *end = nullptr;
                 const unsigned long count = std::strtoul(value, &end, 10);
@@ -3435,9 +3825,13 @@ int main(int argc, char **argv)
                         app.transition_source_scene_id = app.current_scene_id;
                         if (!clear_before_scene_entry(&app,
                                 blackmoor_macos_monotonic_ms()) ||
-                            !load_scene(&app, transition.target_scene) ||
-                            !prepare_a28_handoff_frames(&app)) {
+                            !load_scene(&app, transition.target_scene, true) ||
+                            !prepare_a28_handoff_frames(&app, app.retired_scene)) {
                             app.failure = true;
+                        }
+                        if (app.retired_scene != nullptr) {
+                            scene_resource_close(app.retired_scene);
+                            app.retired_scene = nullptr;
                         }
                     }
                 }
