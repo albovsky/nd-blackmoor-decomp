@@ -122,8 +122,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                  '--live-click-row', '34', '--test-a62-accept',
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=120)
-        # A-35.1 registered the 0x35 body boundary, so S4700 now loads and ticks;
-        # the explicit stop moved to the unimplemented 0x35 runtime (row 3).
+        # RT-7 initializes the movie and the same ACT pass reaches 0x97 row 11.
         self.assertEqual(result.returncode, 0, result.stderr)
         contents = log.read_text()
         ordered = (
@@ -139,9 +138,9 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_parsed name=S4700',
             'scene_transition_applied source=5900 target=4700',
             'live_session_scene_changed from=5900 to=4700',
-            'scene_session_blocked stage=3 provider=action-kernel action=3 type=0x35',
+            'scene_session_blocked stage=3 provider=action-kernel action=11 type=0x97',
             'live_session_end scene=4700 ticks=10 status=2 provider=action-kernel '
-            'stage=3 action=3 type=0x35')
+            'stage=3 action=11 type=0x97')
         position = 0
         for evidence in ordered:
             found = contents.find(evidence, position)
@@ -279,6 +278,15 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertNotEqual(found, -1, evidence)
             position = found
 
+    def test_movie_initialization_reaches_the_next_unsupported_row(self):
+        contents = self.run_live('--live-ticks', '3000')
+        self.assert_in_order(contents, (
+            'scene_parsed name=S4700',
+            'scene_a35_open branch=Bink name=EXT_OpnCin_ANIM',
+            'scene_session_blocked stage=3 provider=action-kernel action=11 type=0x97'))
+        self.assertIn('embedded-audio=unbound-before-DoFrame', contents)
+        self.assertNotIn('scene_a35_frame_presented', contents)
+
     def test_live_click_goes_through_session_input_end_to_end(self):
         # RT-6: the scripted S0 click feeds the recovered message wrappers
         # (DOWN, UP -> latch edge because the candidate was retained), the
@@ -336,7 +344,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'provisional-geometry=1 projected=5,5 valid=1',
             'scene_session_transition_pending source=5900 target=4700',
             'scene_transition_applied source=5900 target=4700',
-            'scene_session_blocked stage=3 provider=action-kernel action=3 type=0x35'))
+            'scene_session_blocked stage=3 provider=action-kernel action=11 type=0x97'))
 
     def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
         # RT-4: the dependency leaves are wired, so the run no longer stops at

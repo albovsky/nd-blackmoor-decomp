@@ -330,18 +330,19 @@
   "current_slice": {
     "status": "in_progress",
     "name": "Runtime path: live S0 audio, scene transitions, 0x62/0x51/0x28 bindings, dependency opcodes, scene exit handler",
-    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906; S4700 now parses, loads and ticks; stops at the unimplemented 0x35 runtime (S4700 row 3)",
+    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906; S4700 parses, loads and ticks; the row-3 0x35 MOVIE controller initializes (RT-7); stops at the unimplemented raw 0x97 runtime (S4700 row 11); no movie frame is presented",
     "game_complete": false
   },
   "next_scene_blockers": {
     "scene": "S4700",
     "opaque_raw_types": [],
     "unsupported_typed_raw_types": [
-      "0x35",
       "0x97"
     ],
     "execution_blockers": [
-      "0x35 runtime handler (A-35.2 in the other thread)",
+      "0x35 phase-1 Bink frame/audio/rectangle providers (init only after RT-7; no frame presented)",
+      "0x97 runtime handler (S4700 rows 11-13)",
+      "dropped movie globals (layers 1-2, visible) are not mirrored out of the controller world (RT-7 review)",
       "edge/arrow cascade of 0x4f0059 (priority_clear unproven near viewport edges)",
       "whether the original keeps sounds across continuation transitions (unverified)",
       "0x28 nested state-3 tick and bit-exact x87 curve",
@@ -350,11 +351,11 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "f44761b4d0a98f937230be40ea3bc1177dcc9713 (branch claude/hungry-matsumoto-8ab8eb, PR 10; last code change, docs follow)",
+    "source_ref": "d31389d07b67813ef3eff7d0ac5e57c308187f1c (branch codex/rt-7-movie-runtime, PR 15; RT-7 0x35 MOVIE controller init)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 967,
-      "passed": 962,
+      "discovered": 1173,
+      "passed": 1168,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
@@ -374,7 +375,7 @@
         "S5906",
         "S4700"
       ],
-      "stop": "S4700 loads and ticks (rows 0-2 run); row 3 type 0x35 has a typed body but no native runtime handler: scene_session_blocked provider=action-kernel action=3",
+      "stop": "S4700 loads; row 3 (0x35 Bink) initializes; row 11 type 0x97 has a typed body but no native runtime handler: scene_session_blocked provider=action-kernel action=11",
       "child_complete": false
     }
   },
