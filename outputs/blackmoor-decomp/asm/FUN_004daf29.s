@@ -13,7 +13,7 @@
 # fields:       this+0x10: dword written with arg_value; nothing else stored, no globals touched
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/matching_s08_2.cpp:FUN_004daf29_receiver::set
-# unverified:   Which object the receiver is: the bytes only show an unnamed this-pointer in ecx; the matching offsets in src/input_latch.c (it names only FIELD_0C, FIELD_10, MOVE_X and MOVE_Y) and the object at 0x5830a6 named in tasks/S08-4 suggest the input object, but no caller was traced for this function here. Field meaning is not asserted: only a 32-bit load/store at the stated offset is verified. Whether the stored dword is signed/unsigned is not determinable (plain mov). Spill of ecx to local_this is only a frame artefact (push ecx reserves the slot, mov overwrites it with ecx). The routine leaves a scratch value in eax (this) on return; whether callers treat the method as void is not verified here.
+# unverified:   Which object the receiver is: the bytes only show an unnamed this-pointer in ecx; the matching offsets in src/input_latch.c (it names only FIELD_0C, FIELD_10, MOVE_X and MOVE_Y) and the object at 0x5830a6 named in tasks/S08-4 suggest the input object, but no caller was traced for this function here. Field meaning is not asserted: only a 32-bit load/store at the stated offset is verified. Whether the stored dword is signed/unsigned is not determinable (plain mov). Spill of ecx to local_this is only a frame artefact (push ecx reserves the slot, mov overwrites it with ecx). The routine leaves a scratch value in eax (this) on return; whether callers treat the method as void is not verified here. Field symbol names are descriptive labels chosen from src/input_latch.c and src/input_consume.c offsets (and the neighbouring routines); they assert only the verified displacement, not the field's game meaning.
 .intel_syntax noprefix
 .code32
 .text
@@ -22,7 +22,7 @@
 .equ local_this, 0x4  # [ebp - 0x4]
 .equ arg_value, 0x8  # [ebp + 0x8]
 
-.equ field_10, 0x10  # offset
+.equ recv_state_10, 0x10  # Receiver+0x10: dword (matches INPUT_LATCH_FIELD_10; object not traced)
 
 # --- external targets -----------------------------------------------
 
@@ -36,7 +36,7 @@ FUN_004daf29:
     mov dword ptr [ebp - local_this], ecx           # 004daf2d
     mov eax, dword ptr [ebp - local_this]           # 004daf30
     mov ecx, dword ptr [ebp + arg_value]             # 004daf33
-    mov dword ptr [eax + field_10], ecx              # 004daf36
+    mov dword ptr [eax + recv_state_10], ecx              # 004daf36
     {load} mov esp, ebp                          # 004daf39
     pop ebp                                      # 004daf3b
     ret 0x4                                      # 004daf3c

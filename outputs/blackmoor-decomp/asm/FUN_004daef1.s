@@ -13,7 +13,7 @@
 # fields:       this+0x0c: dword read and returned in eax unchanged; no stores, no globals touched
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/matching_s08_2.cpp:FUN_004daef1_receiver::get
-# unverified:   Which object the receiver is: the bytes only show an unnamed this-pointer in ecx; the matching offsets in src/input_latch.c (it names only FIELD_0C, FIELD_10, MOVE_X and MOVE_Y) and the object at 0x5830a6 named in tasks/S08-4 suggest the input object, but no caller was traced for this function here. Field meaning is not asserted: only a 32-bit load/store at the stated offset is verified. Whether the stored dword is signed/unsigned is not determinable (plain mov). Spill of ecx to local_this is only a frame artefact (push ecx reserves the slot, mov overwrites it with ecx).
+# unverified:   Which object the receiver is: the bytes only show an unnamed this-pointer in ecx; the matching offsets in src/input_latch.c (it names only FIELD_0C, FIELD_10, MOVE_X and MOVE_Y) and the object at 0x5830a6 named in tasks/S08-4 suggest the input object, but no caller was traced for this function here. Field meaning is not asserted: only a 32-bit load/store at the stated offset is verified. Whether the stored dword is signed/unsigned is not determinable (plain mov). Spill of ecx to local_this is only a frame artefact (push ecx reserves the slot, mov overwrites it with ecx). Field symbol names are descriptive labels chosen from src/input_latch.c and src/input_consume.c offsets (and the neighbouring routines); they assert only the verified displacement, not the field's game meaning.
 .intel_syntax noprefix
 .code32
 .text
@@ -21,7 +21,7 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
-.equ field_c, 0xc  # offset
+.equ recv_state_0c, 0xc  # Receiver+0x0c: dword (matches INPUT_LATCH_FIELD_0C; object not traced)
 
 # --- external targets -----------------------------------------------
 
@@ -34,7 +34,7 @@ FUN_004daef1:
     push ecx                                     # 004daef4
     mov dword ptr [ebp - local_this], ecx           # 004daef5
     mov eax, dword ptr [ebp - local_this]           # 004daef8
-    mov eax, dword ptr [eax + field_c]               # 004daefb
+    mov eax, dword ptr [eax + recv_state_0c]               # 004daefb
     {load} mov esp, ebp                          # 004daefe
     pop ebp                                      # 004daf00
     ret                                          # 004daf01

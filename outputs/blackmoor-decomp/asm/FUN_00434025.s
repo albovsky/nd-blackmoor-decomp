@@ -28,11 +28,11 @@
 .equ local_consumed, 0x1c  # [ebp - 0x1c]
 .equ local_saved_this, 0x20  # [ebp - 0x20]
 
-.equ field_1144, 0x1144  # offset
-.equ field_20e4, 0x20e4  # offset
-.equ field_3084, 0x3084  # offset
-.equ field_5f64, 0x5f64  # offset
-.equ field_5f68, 0x5f68  # offset
+.equ hiff_data_marker_table, 0x1144  # CHiff+0x1144: table of DATA marker pointers
+.equ hiff_chunk_ptr_table, 0x20e4  # CHiff+0x20e4: flat table of chunk header pointers
+.equ hiff_data_extent_table, 0x3084  # CHiff+0x3084: table of DATA extents (declared length + 8)
+.equ hiff_data_count, 0x5f64  # CHiff+0x5f64: DATA record count
+.equ hiff_chunk_count, 0x5f68  # CHiff+0x5f68: chunk count
 
 # --- external targets -----------------------------------------------
 .set FUN_0042639d, .text + (0x0042639d - 0x401000)
@@ -50,7 +50,7 @@ FUN_00434025:
     push edi                                     # 0043402b
     mov dword ptr [ebp - local_saved_this], ecx          # 0043402c
     mov eax, dword ptr [ebp - local_saved_this]          # 0043402f
-    mov dword ptr [eax + field_5f68], 0x0            # 00434032
+    mov dword ptr [eax + hiff_chunk_count], 0x0            # 00434032
     mov dword ptr [ebp - local_nested_index], 0x0           # 0043403c
     mov dword ptr [ebp - local_data_index], 0x0          # 00434043
     jmp.d8 L_data_test                            # 0043404a
@@ -63,12 +63,12 @@ L_data_test:
     # block 0x00434055: L_data_test: signed compare data_index with the DATA count this+0x5f64; index >= count goes to L_return
     mov edx, dword ptr [ebp - local_saved_this]          # 00434055
     mov eax, dword ptr [ebp - local_data_index]          # 00434058
-    cmp eax, dword ptr [edx + field_5f64]            # 0043405b
+    cmp eax, dword ptr [edx + hiff_data_count]            # 0043405b
     jge.d32 L_return                           # 00434061
     # block 0x00434067: load marker pointer this+0x1144[data_index], add the marker string length (4) to get the length field, read the declared length (big-endian) into data_length; length above 8 (unsigned) continues to L_data_size_ok
     mov ecx, dword ptr [ebp - local_data_index]          # 00434067
     mov edx, dword ptr [ebp - local_saved_this]          # 0043406a
-    mov eax, dword ptr [edx + 4*ecx + field_1144]    # 0043406d
+    mov eax, dword ptr [edx + 4*ecx + hiff_data_marker_table]    # 0043406d
     mov dword ptr [ebp - local_cursor], eax          # 00434074
     mov edi, 0x545e7c                            # 00434077
     or ecx, -0x1                                 # 0043407c
@@ -126,7 +126,7 @@ L_search_test:
     # block 0x0043410c: L_search_test: search_index >= DATA count ends the search at L_nested_skip
     mov eax, dword ptr [ebp - local_saved_this]          # 0043410c
     mov ecx, dword ptr [ebp - local_search_index]          # 0043410f
-    cmp ecx, dword ptr [eax + field_5f64]            # 00434112
+    cmp ecx, dword ptr [eax + hiff_data_count]            # 00434112
     jge.d8 L_nested_skip                            # 00434118
     # block 0x0043411a: search_index != data_index (skip the current record) continues to L_search_compare
     mov edx, dword ptr [ebp - local_search_index]          # 0043411a
@@ -138,7 +138,7 @@ L_search_compare:
     # block 0x00434124: L_search_compare: DATA marker pointer this+0x1144[search_index] compared with cursor; not equal goes to L_search_continue
     mov eax, dword ptr [ebp - local_search_index]          # 00434124
     mov ecx, dword ptr [ebp - local_saved_this]          # 00434127
-    mov edx, dword ptr [ecx + 4*eax + field_1144]    # 0043412a
+    mov edx, dword ptr [ecx + 4*eax + hiff_data_marker_table]    # 0043412a
     cmp edx, dword ptr [ebp - local_cursor]          # 00434131
     jne.d8 L_search_continue                            # 00434134
     # block 0x00434136: match: nested_index = search_index and leave the search for L_nested_skip
@@ -153,12 +153,12 @@ L_nested_skip:
     mov ecx, dword ptr [ebp - local_nested_index]           # 00434140
     mov edx, dword ptr [ebp - local_saved_this]          # 00434143
     mov eax, dword ptr [ebp - local_cursor]          # 00434146
-    add eax, dword ptr [edx + 4*ecx + field_3084]    # 00434149
+    add eax, dword ptr [edx + 4*ecx + hiff_data_extent_table]    # 00434149
     mov dword ptr [ebp - local_cursor], eax          # 00434150
     mov ecx, dword ptr [ebp - local_nested_index]           # 00434153
     mov edx, dword ptr [ebp - local_saved_this]          # 00434156
     mov eax, dword ptr [ebp - local_consumed]          # 00434159
-    add eax, dword ptr [edx + 4*ecx + field_3084]    # 0043415c
+    add eax, dword ptr [edx + 4*ecx + hiff_data_extent_table]    # 0043415c
     mov dword ptr [ebp - local_consumed], eax          # 00434163
     mov ecx, dword ptr [ebp - local_consumed]          # 00434166
     cmp ecx, dword ptr [ebp - local_data_length]           # 00434169
@@ -168,7 +168,7 @@ L_nested_skip:
 L_insert_chunk:
     # block 0x00434173: L_insert_chunk: signed compare chunk count this+0x5f68 with 0x3e6; at most 0x3e6 skips the error report
     mov edx, dword ptr [ebp - local_saved_this]          # 00434173
-    cmp dword ptr [edx + field_5f68], 0x3e6          # 00434176
+    cmp dword ptr [edx + hiff_chunk_count], 0x3e6          # 00434176
     jle.d8 L_store_chunk                            # 00434180
     # block 0x00434182: chunk count above 0x3e6: report 'too many CHUNKs' through FUN_0042639d and call the quit routine, then fall through
     push 0x545ebc                                # 00434182
@@ -180,15 +180,15 @@ L_insert_chunk:
 L_store_chunk:
     # block 0x004341a0: L_store_chunk: this+0x20e4[chunk count] = cursor, chunk count + 1; cursor += 4 and consumed += 4; payload_size = big-endian dword at cursor; if bit 0 of payload_size is clear go to L_after_size
     mov eax, dword ptr [ebp - local_saved_this]          # 004341a0
-    mov ecx, dword ptr [eax + field_5f68]            # 004341a3
+    mov ecx, dword ptr [eax + hiff_chunk_count]            # 004341a3
     mov edx, dword ptr [ebp - local_saved_this]          # 004341a9
     mov eax, dword ptr [ebp - local_cursor]          # 004341ac
-    mov dword ptr [edx + 4*ecx + field_20e4], eax    # 004341af
+    mov dword ptr [edx + 4*ecx + hiff_chunk_ptr_table], eax    # 004341af
     mov ecx, dword ptr [ebp - local_saved_this]          # 004341b6
-    mov edx, dword ptr [ecx + field_5f68]            # 004341b9
+    mov edx, dword ptr [ecx + hiff_chunk_count]            # 004341b9
     add edx, 0x1                                 # 004341bf
     mov eax, dword ptr [ebp - local_saved_this]          # 004341c2
-    mov dword ptr [eax + field_5f68], edx            # 004341c5
+    mov dword ptr [eax + hiff_chunk_count], edx            # 004341c5
     mov ecx, dword ptr [ebp - local_cursor]          # 004341cb
     add ecx, 0x4                                 # 004341ce
     mov dword ptr [ebp - local_cursor], ecx          # 004341d1

@@ -13,7 +13,7 @@
 # fields:       record+0x000..0x105: zeroed (dword rep stosd with ecx=0x41 = 0x104 bytes, then one word store of zero at +0x104); record+0x0de+4*i for i = 0..9 (signed compare i < 0x0a): word set to 0xffff, the high word of each dword keeps the zero from the clear; record+0x00: dword set to 0 again; record+0x28: the NUL-terminated string at global 0x00545dd4 is copied (strlen+1 bytes: repne scasb length, rep movsd of (len+1)>>2 dwords, then rep movsb of (len+1)&3 bytes); the source global 0x00545dd4 is read only (the file image holds the 8-char text NO SOUND plus NUL)
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/world_init.c:initialize_time_record
-# unverified:   String instructions assume the direction flag is clear on entry (there is no cld in this routine). The copy length comes from the runtime string at 0x00545dd4; the original file image holds NO SOUND, but nothing here proves the global is never changed, and the copy is not bounded by the record size. The Ghidra label spells the string with an underscore, the file bytes and world_clock.c use a space. The record meaning (time record) comes from world-init-recovery.md; the 0xde+4*i word pairs are not named by these bytes. The helper callers (0x4381f4 loop of ten records and the runtime completion path named by world_clock.c) were not re-traced here. The 'caller pops' claim rests on the plain ret only.
+# unverified:   String instructions assume the direction flag is clear on entry (there is no cld in this routine). The copy length comes from the runtime string at 0x00545dd4; the original file image holds NO SOUND, but nothing here proves the global is never changed, and the copy is not bounded by the record size. The Ghidra label spells the string with an underscore, the file bytes and world_clock.c use a space. The record meaning (time record) comes from world-init-recovery.md; the 0xde+4*i word pairs are not named by these bytes. The helper callers (0x4381f4 loop of ten records and the runtime completion path named by world_clock.c) were not re-traced here. The 'caller pops' claim rests on the plain ret only. The field symbol rec_sentinel_word_base is a descriptive label only; the meaning of the ten word pairs at +0xde is not established.
 .intel_syntax noprefix
 .code32
 .text
@@ -22,7 +22,7 @@
 .equ local_index, 0x4  # [ebp - 0x4]
 .equ arg_record, 0x8  # [ebp + 0x8]
 
-.equ field_de, 0xde  # offset
+.equ rec_sentinel_word_base, 0xde  # record+0xde: base of ten dwords [4*i]; low word set to 0xffff
 
 # --- external targets -----------------------------------------------
 
@@ -60,7 +60,7 @@ L_test_sentinel:
     # block 0x00433c06: sentinel loop body: word [arg_record + 4*local_index + 0xde] = 0xffff, jump back to the step
     mov ecx, dword ptr [ebp - local_index]           # 00433c06
     mov edx, dword ptr [ebp + arg_record]             # 00433c09
-    mov word ptr [edx + 4*ecx + field_de], 0xffff    # 00433c0c
+    mov word ptr [edx + 4*ecx + rec_sentinel_word_base], 0xffff    # 00433c0c
     jmp.d8 L_next_sentinel                            # 00433c16
 L_copy_name:
     # block 0x00433c18: dword [arg_record] = 0; strlen of the string at 0x545dd4 (repne scasb with ecx=-1, ecx = ~ecx = length+1); copy length+1 bytes to arg_record+0x28: rep movsd (count>>2 dwords) then rep movsb (count&3 bytes)

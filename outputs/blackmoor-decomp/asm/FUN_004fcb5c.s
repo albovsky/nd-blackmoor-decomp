@@ -13,7 +13,7 @@
 # fields:       this+0xb764+4*category float master scalar (read, clamped to [0,1], written back); per channel ch at this+ch*0x5bb: +0x10c word category (compared with arg_category), +0x132 word volume_update_state (must be 1), +0x138 float first_scalar (read), +0x13c float second_scalar (read), +0x140 dword first_attenuation (written), +0x144 dword second_attenuation (written); globals: float 0x0052db78 = 0.0, float 0x0052cbf4 = 1.0, float 0x0052e4e0 = 2857.142822265625, double 0x0052e4d8 = -2857.142857142857, CDirectSound object 0x005cf1eb
 # callees:      FUN_0050ce04 = CRT __ftol; FUN_004f684a = CDirectSound::Volume (ecx=0x005cf1eb, push channel), return value ignored
 # track-n:      outputs/blackmoor-decomp/src/sound_control.c:sound_control_set_master_absolute
-# unverified:   the name CSound::ClampMasterAndRefreshCategory is a project label: no original symbol or trace string exists for this function, and the class is inferred from its sole caller FUN_004fccf2 and the shared this+0xb764 field; the category argument is used as a table index with no bounds check although Track N rejects category >= 4, so the native module diverges deliberately; the clamp relies on x87 compare status bits (C0 for below 0.0, C0|C3 for at-most 1.0) so a NaN master compares as unordered and is replaced by 0.0, which agrees with Track N but is derived from x87 semantics rather than executed here; scalar values are not range-checked here (Track N rejects scalars outside [0,1]); the return value of FUN_004f684a (failure) is discarded in this loop; the left/right or pan role of first/second scalar is not established (S04-4 open); __ftol truncation is assumed from the CRT routine; the loop counter is a 16-bit word incremented with add dx,1 and compared as signed < 0x20
+# unverified:   the name CSound::ClampMasterAndRefreshCategory is a project label: no original symbol or trace string exists for this function, and the class is inferred from its sole caller FUN_004fccf2 and the shared this+0xb764 field; the category argument is used as a table index with no bounds check although Track N rejects category >= 4, so the native module diverges deliberately; the clamp relies on x87 compare status bits (C0 for below 0.0, C0|C3 for at-most 1.0) so a NaN master compares as unordered and is replaced by 0.0, which agrees with Track N but is derived from x87 semantics rather than executed here; scalar values are not range-checked here (Track N rejects scalars outside [0,1]); the return value of FUN_004f684a (failure) is discarded in this loop; the left/right or pan role of first/second scalar is not established (S04-4 open); __ftol truncation is assumed from the CRT routine; the loop counter is a 16-bit word incremented with add dx,1 and compared as signed < 0x20; field symbols (csnd_ch_*) are CSound-relative (this+ch*0x5bb+off); csnd_master_table is the float table at this+0xb764 indexed by category
 .intel_syntax noprefix
 .code32
 .text
@@ -25,13 +25,13 @@
 .equ local_master_high_clamped, 0x10  # [ebp - 0x10]
 .equ arg_category, 0x8  # [ebp + 0x8]
 
-.equ field_10c, 0x10c  # offset
-.equ field_132, 0x132  # offset
-.equ field_138, 0x138  # offset
-.equ field_13c, 0x13c  # offset
-.equ field_140, 0x140  # offset
-.equ field_144, 0x144  # offset
-.equ field_b764, 0xb764  # offset
+.equ csnd_ch_category, 0x10c  # CSound+ch*0x5bb+0x10c: category word (= slot+0x108)
+.equ csnd_ch_volume_update_state, 0x132  # CSound+ch*0x5bb+0x132: volume_update_state word (= slot+0x12e)
+.equ csnd_ch_first_scalar, 0x138  # CSound+ch*0x5bb+0x138: first_scalar float (= slot+0x134)
+.equ csnd_ch_second_scalar, 0x13c  # CSound+ch*0x5bb+0x13c: second_scalar float (= slot+0x138)
+.equ csnd_ch_first_attenuation, 0x140  # CSound+ch*0x5bb+0x140: first_attenuation dword (= slot+0x13c)
+.equ csnd_ch_second_attenuation, 0x144  # CSound+ch*0x5bb+0x144: second_attenuation dword (= slot+0x140)
+.equ csnd_master_table, 0xb764  # CSound+0xb764+4*category: float master scalar table
 
 # --- external targets -----------------------------------------------
 .set FUN_004f684a, .text + (0x004f684a - 0x401000)
@@ -48,7 +48,7 @@ FUN_004fcb5c:
     mov dword ptr [ebp - local_this], ecx           # 004fcb63
     mov eax, dword ptr [ebp + arg_category]             # 004fcb66
     mov ecx, dword ptr [ebp - local_this]           # 004fcb69
-    fld dword ptr [ecx + 4*eax + field_b764]         # 004fcb6c
+    fld dword ptr [ecx + 4*eax + csnd_master_table]         # 004fcb6c
     fcomp dword ptr [0x52db78]                   # 004fcb73
     fnstsw ax                                    # 004fcb79
     test ah, 0x1                                 # 004fcb7b
@@ -60,17 +60,17 @@ L_master_keep:
     # block 0x004fcb89: master >= 0: local_master_low_clamped = master[category]
     mov edx, dword ptr [ebp + arg_category]             # 004fcb89
     mov eax, dword ptr [ebp - local_this]           # 004fcb8c
-    fld dword ptr [eax + 4*edx + field_b764]         # 004fcb8f
+    fld dword ptr [eax + 4*edx + csnd_master_table]         # 004fcb8f
     fstp dword ptr [ebp - local_master_low_clamped]               # 004fcb96
 L_master_store_low:
     # block 0x004fcb99: store local_master_low_clamped back to master[category]; compare it with 1.0f via test ah,0x41; <= 1.0 goes to L_master_keep_high
     mov ecx, dword ptr [ebp + arg_category]             # 004fcb99
     mov edx, dword ptr [ebp - local_this]           # 004fcb9c
     mov eax, dword ptr [ebp - local_master_low_clamped]           # 004fcb9f
-    mov dword ptr [edx + 4*ecx + field_b764], eax    # 004fcba2
+    mov dword ptr [edx + 4*ecx + csnd_master_table], eax    # 004fcba2
     mov ecx, dword ptr [ebp + arg_category]             # 004fcba9
     mov edx, dword ptr [ebp - local_this]           # 004fcbac
-    fld dword ptr [edx + 4*ecx + field_b764]         # 004fcbaf
+    fld dword ptr [edx + 4*ecx + csnd_master_table]         # 004fcbaf
     fcomp dword ptr [0x52cbf4]                   # 004fcbb6
     fnstsw ax                                    # 004fcbbc
     test ah, 0x41                                # 004fcbbe
@@ -82,14 +82,14 @@ L_master_keep_high:
     # block 0x004fcbcc: master <= 1.0: local_master_high_clamped = master[category]
     mov eax, dword ptr [ebp + arg_category]             # 004fcbcc
     mov ecx, dword ptr [ebp - local_this]           # 004fcbcf
-    fld dword ptr [ecx + 4*eax + field_b764]         # 004fcbd2
+    fld dword ptr [ecx + 4*eax + csnd_master_table]         # 004fcbd2
     fstp dword ptr [ebp - local_master_high_clamped]              # 004fcbd9
 L_master_store_high:
     # block 0x004fcbdc: store local_master_high_clamped to master[category]; local_channel = 0, jump to the loop test
     mov edx, dword ptr [ebp + arg_category]             # 004fcbdc
     mov eax, dword ptr [ebp - local_this]           # 004fcbdf
     mov ecx, dword ptr [ebp - local_master_high_clamped]          # 004fcbe2
-    mov dword ptr [eax + 4*edx + field_b764], ecx    # 004fcbe5
+    mov dword ptr [eax + 4*edx + csnd_master_table], ecx    # 004fcbe5
     mov word ptr [ebp - local_channel], 0x0            # 004fcbec
     jmp.d8 L_channel_loop_test                            # 004fcbf2
 L_next_channel:
@@ -106,7 +106,7 @@ L_channel_loop_test:
     movsx ecx, word ptr [ebp - local_channel]          # 004fcc0d
     imul ecx, ecx, 0x5bb                         # 004fcc11
     mov edx, dword ptr [ebp - local_this]           # 004fcc17
-    movsx eax, word ptr [edx + ecx + field_10c]      # 004fcc1a
+    movsx eax, word ptr [edx + ecx + csnd_ch_category]      # 004fcc1a
     cmp eax, dword ptr [ebp + arg_category]             # 004fcc22
     jne.d32 L_channel_done                           # 004fcc25
     # block 0x004fcc2b: read word volume_update_state (+0x132, zero-extended); != 1 goes to L_channel_done
@@ -114,7 +114,7 @@ L_channel_loop_test:
     imul ecx, ecx, 0x5bb                         # 004fcc2f
     mov edx, dword ptr [ebp - local_this]           # 004fcc35
     {load} xor eax, eax                          # 004fcc38
-    mov ax, word ptr [edx + ecx + field_132]         # 004fcc3a
+    mov ax, word ptr [edx + ecx + csnd_ch_volume_update_state]         # 004fcc3a
     cmp eax, 0x1                                 # 004fcc42
     jne.d32 L_channel_done                           # 004fcc45
     # block 0x004fcc4b: first attenuation +0x140 = __ftol(first_scalar@+0x138 * master[category] * 2857.142822265625 + (-2857.142857142857)); second attenuation +0x144 likewise from second_scalar@+0x13c; then FUN_004f684a(ecx=0x5cf1eb, channel)
@@ -123,29 +123,29 @@ L_channel_loop_test:
     mov edx, dword ptr [ebp - local_this]           # 004fcc55
     mov eax, dword ptr [ebp + arg_category]             # 004fcc58
     mov esi, dword ptr [ebp - local_this]           # 004fcc5b
-    fld dword ptr [edx + ecx + field_138]            # 004fcc5e
-    fmul dword ptr [esi + 4*eax + field_b764]        # 004fcc65
+    fld dword ptr [edx + ecx + csnd_ch_first_scalar]            # 004fcc5e
+    fmul dword ptr [esi + 4*eax + csnd_master_table]        # 004fcc65
     fmul dword ptr [0x52e4e0]                    # 004fcc6c
     fadd qword ptr [0x52e4d8]                    # 004fcc72
     call FUN_0050ce04                            # 004fcc78
     movsx ecx, word ptr [ebp - local_channel]          # 004fcc7d
     imul ecx, ecx, 0x5bb                         # 004fcc81
     mov edx, dword ptr [ebp - local_this]           # 004fcc87
-    mov dword ptr [edx + ecx + field_140], eax       # 004fcc8a
+    mov dword ptr [edx + ecx + csnd_ch_first_attenuation], eax       # 004fcc8a
     movsx eax, word ptr [ebp - local_channel]          # 004fcc91
     imul eax, eax, 0x5bb                         # 004fcc95
     mov ecx, dword ptr [ebp - local_this]           # 004fcc9b
     mov edx, dword ptr [ebp + arg_category]             # 004fcc9e
     mov esi, dword ptr [ebp - local_this]           # 004fcca1
-    fld dword ptr [ecx + eax + field_13c]            # 004fcca4
-    fmul dword ptr [esi + 4*edx + field_b764]        # 004fccab
+    fld dword ptr [ecx + eax + csnd_ch_second_scalar]            # 004fcca4
+    fmul dword ptr [esi + 4*edx + csnd_master_table]        # 004fccab
     fmul dword ptr [0x52e4e0]                    # 004fccb2
     fadd qword ptr [0x52e4d8]                    # 004fccb8
     call FUN_0050ce04                            # 004fccbe
     movsx ecx, word ptr [ebp - local_channel]          # 004fccc3
     imul ecx, ecx, 0x5bb                         # 004fccc7
     mov edx, dword ptr [ebp - local_this]           # 004fcccd
-    mov dword ptr [edx + ecx + field_144], eax       # 004fccd0
+    mov dword ptr [edx + ecx + csnd_ch_second_attenuation], eax       # 004fccd0
     movsx eax, word ptr [ebp - local_channel]          # 004fccd7
     push eax                                     # 004fccdb
     mov ecx, 0x5cf1eb                            # 004fccdc

@@ -32,11 +32,11 @@
 .equ local_cmp_copy, 0x28  # [ebp - 0x28]
 .equ arg_type_name, 0x8  # [ebp + 0x8]
 
-.equ field_1, 0x1  # offset
-.equ field_111c, 0x111c  # offset
-.equ field_1128, 0x1128  # offset
-.equ field_1144, 0x1144  # offset
-.equ field_5f64, 0x5f64  # offset
+.equ str_second_byte, 0x1  # string+1: second byte of each compared string (inline strcmp pair step)
+.equ hiff_data_body_ptr, 0x111c  # CHiff+0x111c: selected DATA body pointer, zeroed
+.equ hiff_data_body_len, 0x1128  # CHiff+0x1128: selected DATA body length, zeroed
+.equ hiff_data_marker_table, 0x1144  # CHiff+0x1144: table of DATA marker pointers
+.equ hiff_data_count, 0x5f64  # CHiff+0x5f64: DATA record count
 
 # --- external targets -----------------------------------------------
 .set FUN_0042639d, .text + (0x0042639d - 0x401000)
@@ -65,12 +65,12 @@ L_data_test:
     # block 0x0043425a: L_data_test: signed compare data_index with the DATA count this+0x5f64; index >= count goes to L_not_found
     mov ecx, dword ptr [ebp - local_saved_this]          # 0043425a
     mov edx, dword ptr [ebp - local_data_index]           # 0043425d
-    cmp edx, dword ptr [ecx + field_5f64]            # 00434260
+    cmp edx, dword ptr [ecx + hiff_data_count]            # 00434260
     jge.d32 L_not_found                           # 00434266
     # block 0x0043426c: cursor = marker pointer this+0x1144[data_index] + strlen of the marker string (4), giving the length field; data_length = big-endian dword there; length above 8 (unsigned) continues to L_size_ok
     mov eax, dword ptr [ebp - local_data_index]           # 0043426c
     mov ecx, dword ptr [ebp - local_saved_this]          # 0043426f
-    mov edx, dword ptr [ecx + 4*eax + field_1144]    # 00434272
+    mov edx, dword ptr [ecx + 4*eax + hiff_data_marker_table]    # 00434272
     mov dword ptr [ebp - local_cursor], edx           # 00434279
     mov edi, 0x545ef0                            # 0043427c
     or ecx, -0x1                                 # 00434281
@@ -122,10 +122,10 @@ L_cmp_loop:
     je.d8 L_equal                             # 004342ff
     # block 0x00434301: compare the next byte pair; unequal goes to L_differ
     mov eax, dword ptr [ebp - local_name_cursor]          # 00434301
-    mov cl, byte ptr [eax + field_1]                 # 00434304
+    mov cl, byte ptr [eax + str_second_byte]                 # 00434304
     mov byte ptr [ebp - local_byte1], cl            # 00434307
     mov edx, dword ptr [ebp - local_arg_cursor]          # 0043430a
-    cmp cl, byte ptr [edx + field_1]                 # 0043430d
+    cmp cl, byte ptr [edx + str_second_byte]                 # 0043430d
     jne.d8 L_differ                            # 00434310
     # block 0x00434312: advance both cursors by 2; continue the loop while the second byte was not NUL, else fall into L_equal
     add dword ptr [ebp - local_name_cursor], 0x2          # 00434312
@@ -153,11 +153,11 @@ L_cmp_done:
     mov dword ptr [ebp - local_cursor], edx           # 00434343
     mov eax, dword ptr [ebp - local_saved_this]          # 00434346
     mov ecx, dword ptr [ebp - local_cursor]           # 00434349
-    mov dword ptr [eax + field_111c], ecx            # 0043434c
+    mov dword ptr [eax + hiff_data_body_ptr], ecx            # 0043434c
     mov edx, dword ptr [ebp - local_data_length]           # 00434352
     sub edx, 0x4                                 # 00434355
     mov eax, dword ptr [ebp - local_saved_this]          # 00434358
-    mov dword ptr [eax + field_1128], edx            # 0043435b
+    mov dword ptr [eax + hiff_data_body_len], edx            # 0043435b
     mov edi, dword ptr [ebp - local_name_buf]          # 00434361
     mov ecx, dword ptr [ebp - local_saved_this]          # 00434364
     add ecx, 0x1136                              # 00434367

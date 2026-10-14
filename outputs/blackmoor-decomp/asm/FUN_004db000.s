@@ -13,7 +13,7 @@
 # fields:       this+0x08: dword read, non-zero skips every other effect; this+0x00: dword read, set to 1 only when it is 0 and global 0x005c39e5 != 0xffffffff (the global is compared as a dword with -1); this+0x0c: dword read, set to 2 only when it is exactly 1; this+0x10: dword set to 0 (only on the path where [this+8] was 0); absolute global 0x005c39e5: dword read only (sentinel compared with -1); no other stores
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/input_latch.c:input_latch_up
-# unverified:   The receiver's identity (the input object at 0x5830a6 per tasks/S08-3 and S08-4) comes from those packets and the MFC wrappers' ECX setup, not from a caller trace redone here; semantic names of the fields are Track N's labels (input_latch.c / input_consume.c), not proven by these bytes. The global at 0x005c39e5 and the meaning of its -1 value are unnamed (tasks/S08-3 says no approved semantic name); who writes it is not traced here. The role name latch_up is the packet's 'up' role (no event source verified), and the contents of the two ignored stack dwords are unknown.
+# unverified:   The receiver's identity (the input object at 0x5830a6 per tasks/S08-3 and S08-4) comes from those packets and the MFC wrappers' ECX setup, not from a caller trace redone here; semantic names of the fields are Track N's labels (input_latch.c / input_consume.c), not proven by these bytes. The global at 0x005c39e5 and the meaning of its -1 value are unnamed (tasks/S08-3 says no approved semantic name); who writes it is not traced here. The role name latch_up is the packet's 'up' role (no event source verified), and the contents of the two ignored stack dwords are unknown. Field symbol names are descriptive labels chosen from src/input_latch.c and src/input_consume.c offsets (and the neighbouring routines); they assert only the verified displacement, not the field's game meaning.
 .intel_syntax noprefix
 .code32
 .text
@@ -21,9 +21,9 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
-.equ field_8, 0x8  # offset
-.equ field_c, 0xc  # offset
-.equ field_10, 0x10  # offset
+.equ input_gate_flag_08, 0x8  # InputObject+0x08: gate flag dword (INPUT_LATCH_FIELD_08)
+.equ input_state_0c, 0xc  # InputObject+0x0c: latch state dword (INPUT_LATCH_FIELD_0C)
+.equ input_state_10, 0x10  # InputObject+0x10: dword cleared with the latch (INPUT_LATCH_FIELD_10)
 
 # --- external targets -----------------------------------------------
 
@@ -36,7 +36,7 @@ FUN_004db000:
     push ecx                                     # 004db003
     mov dword ptr [ebp - local_this], ecx           # 004db004
     mov eax, dword ptr [ebp - local_this]           # 004db007
-    cmp dword ptr [eax + field_8], 0x0               # 004db00a
+    cmp dword ptr [eax + input_gate_flag_08], 0x0               # 004db00a
     je.d8 L_gate_open                             # 004db00e
     # block 0x004db010: [this+8] != 0: skip all effects, jump to the epilogue
     jmp.d8 L_epilogue                            # 004db010
@@ -54,15 +54,15 @@ L_gate_open:
 L_check_state_0c:
     # block 0x004db02c: compare dword [this+0x0c] with 1; if not equal jump to L_clear_field_10 (jne)
     mov eax, dword ptr [ebp - local_this]           # 004db02c
-    cmp dword ptr [eax + field_c], 0x1               # 004db02f
+    cmp dword ptr [eax + input_state_0c], 0x1               # 004db02f
     jne.d8 L_clear_field_10                            # 004db033
     # block 0x004db035: [this+0x0c] == 1: store 2 to [this+0x0c]
     mov ecx, dword ptr [ebp - local_this]           # 004db035
-    mov dword ptr [ecx + field_c], 0x2               # 004db038
+    mov dword ptr [ecx + input_state_0c], 0x2               # 004db038
 L_clear_field_10:
     # block 0x004db03f: store 0 to [this+0x10] (reached from both the [this+0x0c] test and the store above)
     mov edx, dword ptr [ebp - local_this]           # 004db03f
-    mov dword ptr [edx + field_10], 0x0              # 004db042
+    mov dword ptr [edx + input_state_10], 0x0              # 004db042
 L_epilogue:
     # block 0x004db049: epilogue: restore the frame and return popping 8 bytes (also the target of the [this+8] != 0 skip)
     {load} mov esp, ebp                          # 004db049

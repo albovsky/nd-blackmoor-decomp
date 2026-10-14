@@ -13,7 +13,7 @@
 # fields:       this+0xb764+4*category float master scalar := float(percent) / 100.0f (written); globals: word 0x0063a4cd debug-log flag, string 0x005609d4 'CSound::SetVolumeAbsolute()', float 0x0052cbec = 100.0
 # callees:      FUN_0044a2b7 = log-line writer; FUN_004fcb5c = clamp master and refresh the category's channels (ecx=this, push category)
 # track-n:      outputs/blackmoor-decomp/src/sound_control.c:sound_control_set_master_absolute
-# unverified:   the [0,1] clamp of the stored master and the per-channel refresh are in FUN_004fcb5c, not here; the category argument is used as a table index with no bounds check although Track N rejects category >= 4 (deliberate native rejection); Track N computes (double)percent / 100.0 then rounds to float, the bytes do float(percent) via fild/fstp then fdiv by the float 100.0 at x87 precision and fstp to float, which agrees under the startup precision-53 round-to-nearest control word that Track N requires but this was not executed here; percent above 100 is stored unclamped until FUN_004fcb5c clamps it; the argument order (percent, category) is the reverse of Track N's (category, percent) wrapper
+# unverified:   the [0,1] clamp of the stored master and the per-channel refresh are in FUN_004fcb5c, not here; the category argument is used as a table index with no bounds check although Track N rejects category >= 4 (deliberate native rejection); Track N computes (double)percent / 100.0 then rounds to float, the bytes do float(percent) via fild/fstp then fdiv by the float 100.0 at x87 precision and fstp to float, which agrees under the startup precision-53 round-to-nearest control word that Track N requires but this was not executed here; percent above 100 is stored unclamped until FUN_004fcb5c clamps it; the argument order (percent, category) is the reverse of Track N's (category, percent) wrapper; csnd_master_table is the float table at this+0xb764 indexed by category (name from Track N master[])
 .intel_syntax noprefix
 .code32
 .text
@@ -25,7 +25,7 @@
 .equ arg_percent, 0x8  # [ebp + 0x8]
 .equ arg_category, 0xc  # [ebp + 0xc]
 
-.equ field_b764, 0xb764  # offset
+.equ csnd_master_table, 0xb764  # CSound+0xb764+4*category: float master scalar table
 
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
@@ -57,7 +57,7 @@ L_after_debug_log:
     fdiv dword ptr [0x52cbec]                    # 004fcd28
     mov edx, dword ptr [ebp + arg_category]             # 004fcd2e
     mov eax, dword ptr [ebp - local_this]           # 004fcd31
-    fstp dword ptr [eax + 4*edx + field_b764]        # 004fcd34
+    fstp dword ptr [eax + 4*edx + csnd_master_table]        # 004fcd34
     mov ecx, dword ptr [ebp + arg_category]             # 004fcd3b
     push ecx                                     # 004fcd3e
     mov ecx, dword ptr [ebp - local_this]           # 004fcd3f

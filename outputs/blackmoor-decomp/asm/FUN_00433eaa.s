@@ -23,12 +23,12 @@
 .equ local_offset, 0x8  # [ebp - 0x8]
 .equ local_saved_this, 0xc  # [ebp - 0xc]
 
-.equ field_1008, 0x1008  # offset
-.equ field_1118, 0x1118  # offset
-.equ field_1124, 0x1124  # offset
-.equ field_1144, 0x1144  # offset
-.equ field_3084, 0x3084  # offset
-.equ field_5f64, 0x5f64  # offset
+.equ hiff_scan_ptr, 0x1008  # CHiff+0x1008: DATA scan pointer
+.equ hiff_res_base, 0x1118  # CHiff+0x1118: extracted resource base pointer
+.equ hiff_res_size, 0x1124  # CHiff+0x1124: extracted resource size
+.equ hiff_data_marker_table, 0x1144  # CHiff+0x1144: table of DATA marker pointers
+.equ hiff_data_extent_table, 0x3084  # CHiff+0x3084: table of DATA extents (declared length + 8)
+.equ hiff_data_count, 0x5f64  # CHiff+0x5f64: DATA record count
 
 # --- external targets -----------------------------------------------
 .set FUN_0042639d, .text + (0x0042639d - 0x401000)
@@ -47,11 +47,11 @@ FUN_00433eaa:
     mov dword ptr [ebp - local_saved_this], ecx           # 00433eb1
     mov dword ptr [ebp - local_offset], 0x0           # 00433eb4
     mov eax, dword ptr [ebp - local_saved_this]           # 00433ebb
-    mov dword ptr [eax + field_5f64], 0x0            # 00433ebe
+    mov dword ptr [eax + hiff_data_count], 0x0            # 00433ebe
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433ec8
     mov edx, dword ptr [ebp - local_saved_this]           # 00433ecb
-    mov eax, dword ptr [edx + field_1118]            # 00433ece
-    mov dword ptr [ecx + field_1008], eax            # 00433ed4
+    mov eax, dword ptr [edx + hiff_res_base]            # 00433ece
+    mov dword ptr [ecx + hiff_scan_ptr], eax            # 00433ed4
 L_scan_loop:
     # block 0x00433eda: L_scan_loop: constant-true loop head (mov ecx,1 / test / je never taken to L_return)
     mov ecx, 0x1                                 # 00433eda
@@ -59,7 +59,7 @@ L_scan_loop:
     je.d32 L_return                            # 00433ee1
     # block 0x00433ee7: compute size - 3 from this+0x1124 and compare unsigned with offset; offset below it continues to L_probe_signature
     mov edx, dword ptr [ebp - local_saved_this]           # 00433ee7
-    mov eax, dword ptr [edx + field_1124]            # 00433eea
+    mov eax, dword ptr [edx + hiff_res_size]            # 00433eea
     sub eax, 0x3                                 # 00433ef0
     cmp dword ptr [ebp - local_offset], eax           # 00433ef3
     jb.d8 L_probe_signature                             # 00433ef6
@@ -68,7 +68,7 @@ L_scan_loop:
 L_probe_signature:
     # block 0x00433efd: L_probe_signature: call FUN_00434773 with the scan pointer; non-zero (DATA found) goes to L_found_data
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433efd
-    mov edx, dword ptr [ecx + field_1008]            # 00433f00
+    mov edx, dword ptr [ecx + hiff_scan_ptr]            # 00433f00
     push edx                                     # 00433f06
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433f07
     call FUN_00434773                            # 00433f0a
@@ -76,10 +76,10 @@ L_probe_signature:
     jne.d8 L_found_data                            # 00433f11
     # block 0x00433f13: no DATA here: scan pointer + 1, offset + 1, loop to L_scan_loop
     mov eax, dword ptr [ebp - local_saved_this]           # 00433f13
-    mov ecx, dword ptr [eax + field_1008]            # 00433f16
+    mov ecx, dword ptr [eax + hiff_scan_ptr]            # 00433f16
     add ecx, 0x1                                 # 00433f1c
     mov edx, dword ptr [ebp - local_saved_this]           # 00433f1f
-    mov dword ptr [edx + field_1008], ecx            # 00433f22
+    mov dword ptr [edx + hiff_scan_ptr], ecx            # 00433f22
     mov eax, dword ptr [ebp - local_offset]           # 00433f28
     add eax, 0x1                                 # 00433f2b
     mov dword ptr [ebp - local_offset], eax           # 00433f2e
@@ -87,7 +87,7 @@ L_probe_signature:
 L_found_data:
     # block 0x00433f33: L_found_data: signed compare DATA count with 0x3e6; at most 0x3e6 skips the error report
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433f33
-    cmp dword ptr [ecx + field_5f64], 0x3e6          # 00433f36
+    cmp dword ptr [ecx + hiff_data_count], 0x3e6          # 00433f36
     jle.d8 L_record_data                            # 00433f40
     # block 0x00433f42: count above 0x3e6: report 'too many DATAs' through FUN_0042639d and call the quit routine, then fall into L_record_data (no early return)
     push 0x545e38                                # 00433f42
@@ -99,11 +99,11 @@ L_found_data:
 L_record_data:
     # block 0x00433f60: L_record_data: this+0x1144[count] = scan pointer; scan pointer and offset advance by the 4-character marker length; declared length = big-endian dword at the scan pointer; this+0x3084[count] = declared length + 8; count++; scan pointer and offset advance by 0xc (record resumes at marker+16); loop to L_scan_loop
     mov edx, dword ptr [ebp - local_saved_this]           # 00433f60
-    mov eax, dword ptr [edx + field_5f64]            # 00433f63
+    mov eax, dword ptr [edx + hiff_data_count]            # 00433f63
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433f69
     mov edx, dword ptr [ebp - local_saved_this]           # 00433f6c
-    mov edx, dword ptr [edx + field_1008]            # 00433f6f
-    mov dword ptr [ecx + 4*eax + field_1144], edx    # 00433f75
+    mov edx, dword ptr [edx + hiff_scan_ptr]            # 00433f6f
+    mov dword ptr [ecx + 4*eax + hiff_data_marker_table], edx    # 00433f75
     mov edi, 0x545e6c                            # 00433f7c
     or ecx, -0x1                                 # 00433f81
     {load} xor eax, eax                          # 00433f84
@@ -111,10 +111,10 @@ L_record_data:
     not ecx                                      # 00433f88
     add ecx, -0x1                                # 00433f8a
     mov eax, dword ptr [ebp - local_saved_this]           # 00433f8d
-    mov edx, dword ptr [eax + field_1008]            # 00433f90
+    mov edx, dword ptr [eax + hiff_scan_ptr]            # 00433f90
     {load} add edx, ecx                          # 00433f96
     mov eax, dword ptr [ebp - local_saved_this]           # 00433f98
-    mov dword ptr [eax + field_1008], edx            # 00433f9b
+    mov dword ptr [eax + hiff_scan_ptr], edx            # 00433f9b
     mov edi, 0x545e74                            # 00433fa1
     or ecx, -0x1                                 # 00433fa6
     {load} xor eax, eax                          # 00433fa9
@@ -125,7 +125,7 @@ L_record_data:
     {load} add edx, ecx                          # 00433fb5
     mov dword ptr [ebp - local_offset], edx           # 00433fb7
     mov eax, dword ptr [ebp - local_saved_this]           # 00433fba
-    mov ecx, dword ptr [eax + field_1008]            # 00433fbd
+    mov ecx, dword ptr [eax + hiff_scan_ptr]            # 00433fbd
     push ecx                                     # 00433fc3
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433fc4
     call FUN_004347b8                            # 00433fc7
@@ -133,19 +133,19 @@ L_record_data:
     mov edx, dword ptr [ebp - local_declared_length]           # 00433fcf
     add edx, 0x8                                 # 00433fd2
     mov eax, dword ptr [ebp - local_saved_this]           # 00433fd5
-    mov ecx, dword ptr [eax + field_5f64]            # 00433fd8
+    mov ecx, dword ptr [eax + hiff_data_count]            # 00433fd8
     mov eax, dword ptr [ebp - local_saved_this]           # 00433fde
-    mov dword ptr [eax + 4*ecx + field_3084], edx    # 00433fe1
+    mov dword ptr [eax + 4*ecx + hiff_data_extent_table], edx    # 00433fe1
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433fe8
-    mov edx, dword ptr [ecx + field_5f64]            # 00433feb
+    mov edx, dword ptr [ecx + hiff_data_count]            # 00433feb
     add edx, 0x1                                 # 00433ff1
     mov eax, dword ptr [ebp - local_saved_this]           # 00433ff4
-    mov dword ptr [eax + field_5f64], edx            # 00433ff7
+    mov dword ptr [eax + hiff_data_count], edx            # 00433ff7
     mov ecx, dword ptr [ebp - local_saved_this]           # 00433ffd
-    mov edx, dword ptr [ecx + field_1008]            # 00434000
+    mov edx, dword ptr [ecx + hiff_scan_ptr]            # 00434000
     add edx, 0xc                                 # 00434006
     mov eax, dword ptr [ebp - local_saved_this]           # 00434009
-    mov dword ptr [eax + field_1008], edx            # 0043400c
+    mov dword ptr [eax + hiff_scan_ptr], edx            # 0043400c
     mov ecx, dword ptr [ebp - local_offset]           # 00434012
     add ecx, 0xc                                 # 00434015
     mov dword ptr [ebp - local_offset], ecx           # 00434018

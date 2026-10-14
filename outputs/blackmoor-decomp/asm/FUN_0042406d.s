@@ -13,7 +13,7 @@
 # fields:       branch+0x0 (int32 result, written 1 or 0); branch+0x4 (first child node); branch+0xc (owning node, may be null; its +4 state mirrors the result); branch+0x18 (child count, compared with the nonzero-child count); node+0x4 (int32 state, tested for zero and raised to 1); node+0x16 (int16 OR link, sign-extended, compared with 1); node+0x34 (previous sibling); node+0x38 (next sibling)
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/scene_dependencies.c:scene_dependencies_reduce
-# unverified:   meaning of branch+0x18 as the child count and of branch+0xc as the owning node is taken from the loader pseudocode for 0x424aa8, not from instructions of this function; the null-first-child case is not guarded (dereferences null) and is not exercised; Track N scene_dependencies_reduce covers the sibling OR reduction and the final all-nonzero test but not the store to branch+0x0 or owning node +4 (those live in scene_condition_reduce_branch (static, singular)); whether this+0 context is ever used by this routine is not established (it is saved only)
+# unverified:   meaning of branch+0x18 as the child count and of branch+0xc as the owning node is taken from the loader pseudocode for 0x424aa8, not from instructions of this function; the null-first-child case is not guarded (dereferences null) and is not exercised; Track N scene_dependencies_reduce covers the sibling OR reduction and the final all-nonzero test but not the store to branch+0x0 or owning node +4 (those live in scene_condition_reduce_branch (static, singular)); whether this+0 context is ever used by this routine is not established (it is saved only); field names are role names from use: the object behind branch_owner_node (+0xc) is assumed to be a dependency node because its +4 is written like node_state, and node_or_link (+0x16) is a sign-extended word compared with 1 whose full meaning (OR link) comes from Track N, not these bytes
 .intel_syntax noprefix
 .code32
 .text
@@ -27,12 +27,13 @@
 .equ local_saved_this, 0x18  # [ebp - 0x18]
 .equ arg_branch, 0x8  # [ebp + 0x8]
 
-.equ field_4, 0x4  # offset
-.equ field_c, 0xc  # offset
-.equ field_16, 0x16  # offset
-.equ field_18, 0x18  # offset
-.equ field_34, 0x34  # offset
-.equ field_38, 0x38  # offset
+.equ branch_first_child, 0x4  # CDependency branch object+0x4: first child node
+.equ node_state, 0x4  # dependency node+0x4: state word (tested for zero, raised to 1); also the owning node's state
+.equ branch_owner_node, 0xc  # CDependency branch object+0xc: owning node pointer (may be null)
+.equ node_or_link, 0x16  # dependency node+0x16: int16 OR link to the neighbour (1 = linked)
+.equ branch_child_count, 0x18  # CDependency branch object+0x18: child count compared with the nonzero-child count
+.equ node_prev, 0x34  # dependency node+0x34: previous sibling node
+.equ node_next, 0x38  # dependency node+0x38: next sibling node
 
 # --- external targets -----------------------------------------------
 
@@ -45,35 +46,35 @@ FUN_0042406d:
     sub esp, 0x18                                # 00424070
     mov dword ptr [ebp - local_saved_this], ecx          # 00424073
     mov eax, dword ptr [ebp + arg_branch]             # 00424076
-    mov ecx, dword ptr [eax + field_4]               # 00424079
+    mov ecx, dword ptr [eax + branch_first_child]               # 00424079
     mov dword ptr [ebp - local_cur], ecx           # 0042407c
     mov dword ptr [ebp - local_raised], 0x0          # 0042407f
 L_visit_node:
     # block 0x00424086: per node: next = cur+0x38, prev = cur+0x34; skip the previous-link step when prev is null
     mov edx, dword ptr [ebp - local_cur]           # 00424086
-    mov eax, dword ptr [edx + field_38]              # 00424089
+    mov eax, dword ptr [edx + node_next]              # 00424089
     mov dword ptr [ebp - local_next], eax          # 0042408c
     mov ecx, dword ptr [ebp - local_cur]           # 0042408f
-    mov edx, dword ptr [ecx + field_34]              # 00424092
+    mov edx, dword ptr [ecx + node_prev]              # 00424092
     mov dword ptr [ebp - local_prev], edx           # 00424095
     cmp dword ptr [ebp - local_prev], 0x0           # 00424098
     je.d8 L_next_link_check                             # 0042409c
     # block 0x0042409e: prev link applies only if prev.link (prev+0x16, int16) == 1, else go to the next-link step
     mov eax, dword ptr [ebp - local_prev]           # 0042409e
-    movsx ecx, word ptr [eax + field_16]             # 004240a1
+    movsx ecx, word ptr [eax + node_or_link]             # 004240a1
     cmp ecx, 0x1                                 # 004240a5
     jne.d8 L_next_link_check                            # 004240a8
     # block 0x004240aa: if cur.state (+4) is nonzero go to the reverse test, else fall through (cur zero)
     mov edx, dword ptr [ebp - local_cur]           # 004240aa
-    cmp dword ptr [edx + field_4], 0x0               # 004240ad
+    cmp dword ptr [edx + node_state], 0x0               # 004240ad
     jne.d8 L_prev_link_reverse_test                            # 004240b1
     # block 0x004240b3: cur zero: if prev.state is also zero jump to the reverse test (which then skips because cur is zero)
     mov eax, dword ptr [ebp - local_prev]           # 004240b3
-    cmp dword ptr [eax + field_4], 0x0               # 004240b6
+    cmp dword ptr [eax + node_state], 0x0               # 004240b6
     je.d8 L_prev_link_reverse_test                             # 004240ba
     # block 0x004240bc: cur zero, prev nonzero: raise cur.state to 1, raised++
     mov ecx, dword ptr [ebp - local_cur]           # 004240bc
-    mov dword ptr [ecx + field_4], 0x1               # 004240bf
+    mov dword ptr [ecx + node_state], 0x1               # 004240bf
     mov edx, dword ptr [ebp - local_raised]          # 004240c6
     add edx, 0x1                                 # 004240c9
     mov dword ptr [ebp - local_raised], edx          # 004240cc
@@ -81,15 +82,15 @@ L_visit_node:
 L_prev_link_reverse_test:
     # block 0x004240d1: reverse test: if cur.state is zero go to the next-link step, else test prev
     mov eax, dword ptr [ebp - local_cur]           # 004240d1
-    cmp dword ptr [eax + field_4], 0x0               # 004240d4
+    cmp dword ptr [eax + node_state], 0x0               # 004240d4
     je.d8 L_next_link_check                             # 004240d8
     # block 0x004240da: cur nonzero: if prev.state is also nonzero nothing to do, go to next-link step
     mov ecx, dword ptr [ebp - local_prev]           # 004240da
-    cmp dword ptr [ecx + field_4], 0x0               # 004240dd
+    cmp dword ptr [ecx + node_state], 0x0               # 004240dd
     jne.d8 L_next_link_check                            # 004240e1
     # block 0x004240e3: cur nonzero, prev zero: raise prev.state to 1, raised++
     mov edx, dword ptr [ebp - local_prev]           # 004240e3
-    mov dword ptr [edx + field_4], 0x1               # 004240e6
+    mov dword ptr [edx + node_state], 0x1               # 004240e6
     mov eax, dword ptr [ebp - local_raised]          # 004240ed
     add eax, 0x1                                 # 004240f0
     mov dword ptr [ebp - local_raised], eax          # 004240f3
@@ -99,20 +100,20 @@ L_next_link_check:
     je.d8 L_end_of_pass                             # 004240fa
     # block 0x004240fc: next link applies only if cur.link (+0x16, int16) == 1, else advance
     mov ecx, dword ptr [ebp - local_cur]           # 004240fc
-    movsx edx, word ptr [ecx + field_16]             # 004240ff
+    movsx edx, word ptr [ecx + node_or_link]             # 004240ff
     cmp edx, 0x1                                 # 00424103
     jne.d8 L_advance_to_next                            # 00424106
     # block 0x00424108: if cur.state is nonzero go to the reverse test, else fall through (cur zero)
     mov eax, dword ptr [ebp - local_cur]           # 00424108
-    cmp dword ptr [eax + field_4], 0x0               # 0042410b
+    cmp dword ptr [eax + node_state], 0x0               # 0042410b
     jne.d8 L_next_link_reverse_test                            # 0042410f
     # block 0x00424111: cur zero: if next.state is also zero jump to the reverse test (which then advances because cur is zero)
     mov ecx, dword ptr [ebp - local_next]          # 00424111
-    cmp dword ptr [ecx + field_4], 0x0               # 00424114
+    cmp dword ptr [ecx + node_state], 0x0               # 00424114
     je.d8 L_next_link_reverse_test                             # 00424118
     # block 0x0042411a: cur zero, next nonzero: raise cur.state to 1, raised++
     mov edx, dword ptr [ebp - local_cur]           # 0042411a
-    mov dword ptr [edx + field_4], 0x1               # 0042411d
+    mov dword ptr [edx + node_state], 0x1               # 0042411d
     mov eax, dword ptr [ebp - local_raised]          # 00424124
     add eax, 0x1                                 # 00424127
     mov dword ptr [ebp - local_raised], eax          # 0042412a
@@ -120,15 +121,15 @@ L_next_link_check:
 L_next_link_reverse_test:
     # block 0x0042412f: reverse test: if cur.state is zero advance, else test next
     mov ecx, dword ptr [ebp - local_cur]           # 0042412f
-    cmp dword ptr [ecx + field_4], 0x0               # 00424132
+    cmp dword ptr [ecx + node_state], 0x0               # 00424132
     je.d8 L_advance_to_next                             # 00424136
     # block 0x00424138: cur nonzero: if next.state is also nonzero nothing to do, advance
     mov edx, dword ptr [ebp - local_next]          # 00424138
-    cmp dword ptr [edx + field_4], 0x0               # 0042413b
+    cmp dword ptr [edx + node_state], 0x0               # 0042413b
     jne.d8 L_advance_to_next                            # 0042413f
     # block 0x00424141: cur nonzero, next zero: raise next.state to 1, raised++
     mov eax, dword ptr [ebp - local_next]          # 00424141
-    mov dword ptr [eax + field_4], 0x1               # 00424144
+    mov dword ptr [eax + node_state], 0x1               # 00424144
     mov ecx, dword ptr [ebp - local_raised]          # 0042414b
     add ecx, 0x1                                 # 0042414e
     mov dword ptr [ebp - local_raised], ecx          # 00424151
@@ -144,7 +145,7 @@ L_end_of_pass:
     # block 0x00424162: something changed: raised = 0, cur = branch.first_child, run another pass
     mov dword ptr [ebp - local_raised], 0x0          # 00424162
     mov eax, dword ptr [ebp + arg_branch]             # 00424169
-    mov ecx, dword ptr [eax + field_4]               # 0042416c
+    mov ecx, dword ptr [eax + branch_first_child]               # 0042416c
     mov dword ptr [ebp - local_cur], ecx           # 0042416f
     jmp.d8 L_repeat_loop                            # 00424172
 L_fixpoint_reached:
@@ -157,12 +158,12 @@ L_count_phase:
     # block 0x0042417b: count phase: nonzero_count = 0, cur = branch.first_child
     mov dword ptr [ebp - local_nonzero_count], 0x0           # 0042417b
     mov edx, dword ptr [ebp + arg_branch]             # 00424182
-    mov eax, dword ptr [edx + field_4]               # 00424185
+    mov eax, dword ptr [edx + branch_first_child]               # 00424185
     mov dword ptr [ebp - local_cur], eax           # 00424188
 L_count_loop:
     # block 0x0042418b: count loop: if cur.state (+4) != 0 then nonzero_count++ (next block)
     mov ecx, dword ptr [ebp - local_cur]           # 0042418b
-    cmp dword ptr [ecx + field_4], 0x0               # 0042418e
+    cmp dword ptr [ecx + node_state], 0x0               # 0042418e
     je.d8 L_count_advance                             # 00424192
     # block 0x00424194: increment nonzero_count
     mov edx, dword ptr [ebp - local_nonzero_count]           # 00424194
@@ -171,7 +172,7 @@ L_count_loop:
 L_count_advance:
     # block 0x0042419d: cur = cur.next (+0x38); loop while cur is not null
     mov eax, dword ptr [ebp - local_cur]           # 0042419d
-    mov ecx, dword ptr [eax + field_38]              # 004241a0
+    mov ecx, dword ptr [eax + node_next]              # 004241a0
     mov dword ptr [ebp - local_cur], ecx           # 004241a3
     cmp dword ptr [ebp - local_cur], 0x0           # 004241a6
     jne.d8 L_count_again                            # 004241aa
@@ -183,19 +184,19 @@ L_count_again:
 L_compare_total:
     # block 0x004241b0: compare branch.child_count (+0x18) with nonzero_count; unequal goes to the not-satisfied case
     mov edx, dword ptr [ebp + arg_branch]             # 004241b0
-    mov eax, dword ptr [edx + field_18]              # 004241b3
+    mov eax, dword ptr [edx + branch_child_count]              # 004241b3
     cmp eax, dword ptr [ebp - local_nonzero_count]           # 004241b6
     jne.d8 L_not_all_satisfied                            # 004241b9
     # block 0x004241bb: all children nonzero: branch.result (+0) = 1; if branch.owner (+0xc) is non-null go on
     mov ecx, dword ptr [ebp + arg_branch]             # 004241bb
     mov dword ptr [ecx], 0x1                     # 004241be
     mov edx, dword ptr [ebp + arg_branch]             # 004241c4
-    cmp dword ptr [edx + field_c], 0x0               # 004241c7
+    cmp dword ptr [edx + branch_owner_node], 0x0               # 004241c7
     je.d8 L_store_done                             # 004241cb
     # block 0x004241cd: owner.state (+4) = 1
     mov eax, dword ptr [ebp + arg_branch]             # 004241cd
-    mov ecx, dword ptr [eax + field_c]               # 004241d0
-    mov dword ptr [ecx + field_4], 0x1               # 004241d3
+    mov ecx, dword ptr [eax + branch_owner_node]               # 004241d0
+    mov dword ptr [ecx + node_state], 0x1               # 004241d3
 L_store_done:
     # block 0x004241da: done with the satisfied case, go to the epilogue
     jmp.d8 L_epilogue                            # 004241da
@@ -204,12 +205,12 @@ L_not_all_satisfied:
     mov edx, dword ptr [ebp + arg_branch]             # 004241dc
     mov dword ptr [edx], 0x0                     # 004241df
     mov eax, dword ptr [ebp + arg_branch]             # 004241e5
-    cmp dword ptr [eax + field_c], 0x0               # 004241e8
+    cmp dword ptr [eax + branch_owner_node], 0x0               # 004241e8
     je.d8 L_epilogue                             # 004241ec
     # block 0x004241ee: owner.state (+4) = 0
     mov ecx, dword ptr [ebp + arg_branch]             # 004241ee
-    mov edx, dword ptr [ecx + field_c]               # 004241f1
-    mov dword ptr [edx + field_4], 0x0               # 004241f4
+    mov edx, dword ptr [ecx + branch_owner_node]               # 004241f1
+    mov dword ptr [edx + node_state], 0x0               # 004241f4
 L_epilogue:
     # block 0x004241fb: epilogue: restore frame, return popping 4
     {load} mov esp, ebp                          # 004241fb

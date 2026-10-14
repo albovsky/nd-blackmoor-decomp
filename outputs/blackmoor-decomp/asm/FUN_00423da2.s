@@ -13,7 +13,7 @@
 # fields:       branch+0x4 (first child node); branch+0x0 of a child branch (cleared); node+0x0 (kind, 2=leaf, 1=branch); node+0x4 (state, cleared); node+0x2c (leaf field, cleared to 0); node+0xc (node id, debug text only); node+0x38 (next sibling); node+0x44 (child branch object); child branch +0x8 (id, debug text only); pop-entry+0x0 and +0x8; globals 0x0063a4cd (int16 debug flag), 0x0063888b (message buffer), 0x005cf659, texts 0x005448bc, 0x005448e8, 0x00544924 (error text "CDependency::ResetBranch() - ERROR - Tried to pop empty stack!", read from the owned GAME.EXE)
 # callees:      FUN_0042356d = push (branch,node) on this evaluation stack (thiscall, 2 args, callee pops 8); FUN_004235fd = pop entry, null when empty (thiscall, no args); FUN_0050ca3e = sprintf-style formatter (cdecl); FUN_0044a2b7 = debug log line writer (cdecl); FUN_0052139c = error report taking (text,0,0), no caller cleanup after the call; FUN_004c97b4 = shutdown/quit helper called with ecx=0x5cf659; self = recursion on a child branch
 # track-n:      outputs/blackmoor-decomp/src/scene_conditions.c:scene_conditions_reset
-# unverified:   Track N scene_conditions_reset clears every node status in a flat loop, so the explicit stack, recursion, debug text and error path have no counterpart; the cleared node+0x2c leaf field and its meaning are unidentified (Track N has no such field); a node whose kind is neither 1 nor 2 spins forever with no state change (verified in the control flow, unsafe original behaviour); the empty-stack error path was not exercised; roles of 0x52139c, 0x4c97b4 and 0x44a2b7 come from pseudocode only; stack cleanup after 0x52139c is absent so its calling convention is not established here
+# unverified:   Track N scene_conditions_reset clears every node status in a flat loop, so the explicit stack, recursion, debug text and error path have no counterpart; the cleared node+0x2c leaf field and its meaning are unidentified (Track N has no such field); a node whose kind is neither 1 nor 2 spins forever with no state change (verified in the control flow, unsafe original behaviour); the empty-stack error path was not exercised; roles of 0x52139c, 0x4c97b4 and 0x44a2b7 come from pseudocode only; stack cleanup after 0x52139c is absent so its calling convention is not established here; field names are role names from use: node_leaf_cleared_field (node+0x2c) is unidentified, node_id and child_branch_id appear only in debug text; pop_entry_node (+8) is the node saved by 0x42356d, its role is inferred from how the pop result is used
 .intel_syntax noprefix
 .code32
 .text
@@ -25,12 +25,14 @@
 .equ local_saved_this, 0x10  # [ebp - 0x10]
 .equ arg_branch, 0x8  # [ebp + 0x8]
 
-.equ field_4, 0x4  # offset
-.equ field_8, 0x8  # offset
-.equ field_c, 0xc  # offset
-.equ field_2c, 0x2c  # offset
-.equ field_38, 0x38  # offset
-.equ field_44, 0x44  # offset
+.equ branch_first_child, 0x4  # CDependency branch object+0x4: first child node
+.equ node_state, 0x4  # dependency node+0x4: state word (cleared)
+.equ pop_entry_node, 0x8  # evaluation-stack pop entry+0x8: saved node
+.equ child_branch_id, 0x8  # child branch object+0x8: branch id (debug text only)
+.equ node_id, 0xc  # dependency node+0xc: node id (debug text only)
+.equ node_leaf_cleared_field, 0x2c  # dependency leaf node+0x2c: field cleared to 0 (meaning unidentified)
+.equ node_next, 0x38  # dependency node+0x38: next sibling node
+.equ node_child_branch, 0x44  # dependency branch-kind node+0x44: child branch object
 
 # --- external targets -----------------------------------------------
 .set FUN_0042356d, .text + (0x0042356d - 0x401000)
@@ -56,7 +58,7 @@ L_reset_branch_entry:
 L_have_branch:
     # block 0x00423db6: cur = arg_branch.first_child (+4); if non-null go on
     mov eax, dword ptr [ebp + arg_branch]             # 00423db6
-    mov ecx, dword ptr [eax + field_4]               # 00423db9
+    mov ecx, dword ptr [eax + branch_first_child]               # 00423db9
     mov dword ptr [ebp - local_cur], ecx           # 00423dbc
     cmp dword ptr [ebp - local_cur], 0x0           # 00423dbf
     jne.d8 L_have_first_child                            # 00423dc3
@@ -75,15 +77,15 @@ L_loop_head:
     jne.d8 L_check_branch_kind                            # 00423de1
     # block 0x00423de3: leaf: cur.state (+4) = 0; cur+0x2c = 0; if the debug flag word 0x63a4cd is zero skip the log
     mov eax, dword ptr [ebp - local_cur]           # 00423de3
-    mov dword ptr [eax + field_4], 0x0               # 00423de6
+    mov dword ptr [eax + node_state], 0x0               # 00423de6
     mov ecx, dword ptr [ebp - local_cur]           # 00423ded
-    mov dword ptr [ecx + field_2c], 0x0              # 00423df0
+    mov dword ptr [ecx + node_leaf_cleared_field], 0x0              # 00423df0
     movsx edx, word ptr [0x63a4cd]               # 00423df7
     test edx, edx                                # 00423dfe
     je.d8 L_leaf_advance                             # 00423e00
     # block 0x00423e02: debug on: sprintf(0x63888b, 0x5448bc, cur.id (+0xc)) then log it, caller cleans up both calls
     mov eax, dword ptr [ebp - local_cur]           # 00423e02
-    mov ecx, dword ptr [eax + field_c]               # 00423e05
+    mov ecx, dword ptr [eax + node_id]               # 00423e05
     push ecx                                     # 00423e08
     push 0x5448bc                                # 00423e09
     push 0x63888b                                # 00423e0e
@@ -95,7 +97,7 @@ L_loop_head:
 L_leaf_advance:
     # block 0x00423e28: cur = cur.next (+0x38); if non-null keep looping
     mov edx, dword ptr [ebp - local_cur]           # 00423e28
-    mov eax, dword ptr [edx + field_38]              # 00423e2b
+    mov eax, dword ptr [edx + node_next]              # 00423e2b
     mov dword ptr [ebp - local_cur], eax           # 00423e2e
     cmp dword ptr [ebp - local_cur], 0x0           # 00423e31
     jne.d8 L_resume_after_leaf                            # 00423e35
@@ -111,20 +113,20 @@ L_check_branch_kind:
     jne.d32 L_resume_loop                           # 00423e49
     # block 0x00423e4f: branch node: cur.state (+4) = 0; cur.child_branch (+0x44).result (+0) = 0; if the debug flag word is zero skip the log
     mov edx, dword ptr [ebp - local_cur]           # 00423e4f
-    mov dword ptr [edx + field_4], 0x0               # 00423e52
+    mov dword ptr [edx + node_state], 0x0               # 00423e52
     mov eax, dword ptr [ebp - local_cur]           # 00423e59
-    mov ecx, dword ptr [eax + field_44]              # 00423e5c
+    mov ecx, dword ptr [eax + node_child_branch]              # 00423e5c
     mov dword ptr [ecx], 0x0                     # 00423e5f
     movsx edx, word ptr [0x63a4cd]               # 00423e65
     test edx, edx                                # 00423e6c
     je.d8 L_branch_recurse                             # 00423e6e
     # block 0x00423e70: debug on: sprintf(0x63888b, 0x5448e8, cur.id (+0xc), child_branch.id (+8)) then log it, caller cleans up both calls
     mov eax, dword ptr [ebp - local_cur]           # 00423e70
-    mov ecx, dword ptr [eax + field_44]              # 00423e73
-    mov edx, dword ptr [ecx + field_8]               # 00423e76
+    mov ecx, dword ptr [eax + node_child_branch]              # 00423e73
+    mov edx, dword ptr [ecx + child_branch_id]               # 00423e76
     push edx                                     # 00423e79
     mov eax, dword ptr [ebp - local_cur]           # 00423e7a
-    mov ecx, dword ptr [eax + field_c]               # 00423e7d
+    mov ecx, dword ptr [eax + node_id]               # 00423e7d
     push ecx                                     # 00423e80
     push 0x5448e8                                # 00423e81
     push 0x63888b                                # 00423e86
@@ -142,7 +144,7 @@ L_branch_recurse:
     mov ecx, dword ptr [ebp - local_saved_this]          # 00423ea8
     call FUN_0042356d                            # 00423eab
     mov ecx, dword ptr [ebp - local_cur]           # 00423eb0
-    mov edx, dword ptr [ecx + field_44]              # 00423eb3
+    mov edx, dword ptr [ecx + node_child_branch]              # 00423eb3
     push edx                                     # 00423eb6
     mov ecx, dword ptr [ebp - local_saved_this]          # 00423eb7
     call L_reset_branch_entry                              # 00423eba
@@ -153,13 +155,13 @@ L_branch_recurse:
     je.d8 L_pop_failed                             # 00423ece
     # block 0x00423ed0: pop ok: cur = entry.node (+8); arg_branch = entry.branch (+0); cur = cur.next (+0x38); if non-null go to the keep-looping case
     mov eax, dword ptr [ebp - local_popped]           # 00423ed0
-    mov ecx, dword ptr [eax + field_8]               # 00423ed3
+    mov ecx, dword ptr [eax + pop_entry_node]               # 00423ed3
     mov dword ptr [ebp - local_cur], ecx           # 00423ed6
     mov edx, dword ptr [ebp - local_popped]           # 00423ed9
     mov eax, dword ptr [edx]                     # 00423edc
     mov dword ptr [ebp + arg_branch], eax             # 00423ede
     mov ecx, dword ptr [ebp - local_cur]           # 00423ee1
-    mov edx, dword ptr [ecx + field_38]              # 00423ee4
+    mov edx, dword ptr [ecx + node_next]              # 00423ee4
     mov dword ptr [ebp - local_cur], edx           # 00423ee7
     cmp dword ptr [ebp - local_cur], 0x0           # 00423eea
     jne.d8 L_branch_has_next                            # 00423eee

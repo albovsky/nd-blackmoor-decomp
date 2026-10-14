@@ -13,21 +13,22 @@
 # fields:       dsp+0x04: info pointer (edx); info+0x04: signed channel count, loop bound; dsp+0x08: array of per-channel float* bases (read); dsp+0x0c: array of per-channel float* output slots (written, and its address is stored through out_planes); dsp+0x14: frames buffered (upper bound); dsp+0x18: frames already consumed (offset into every plane)
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   Role names (buffered/consumed counters, plane arrays) are inferred from the arithmetic and from resemblance to libvorbis vorbis_synthesis_pcmout; no source was read. The function never validates that dsp+0x08 and dsp+0x0c point at arrays of at least channel-count entries, and never NULL-checks them; the allocation that guarantees this is not verified here. The oracle hooks this routine with a stub, so its real loop was not executed under the oracle. No Track N source implements it.
+# unverified:   Role names (buffered/consumed counters, plane arrays) are inferred from the arithmetic and from resemblance to libvorbis vorbis_synthesis_pcmout; no source was read. The function never validates that dsp+0x08 and dsp+0x0c point at arrays of at least channel-count entries, and never NULL-checks them; the allocation that guarantees this is not verified here. The oracle hooks this routine with a stub, so its real loop was not executed under the oracle. No Track N source implements it. Field names dsp_info_ptr, dsp_plane_bases, dsp_plane_slots, dsp_frames_buffered, dsp_frames_consumed are role guesses from use only; plane_slot_postinc_bias is the -4 displacement that offsets the inc of the channel index.
 .intel_syntax noprefix
 .code32
 .text
 
 # --- frame symbols ---------------------------------------------------
 
-.equ field_4, 0x4  # offset
-.equ field_minus_4, 0x4  # offset
-.equ field_8, 0x8  # offset
-.equ field_c, 0xc  # offset
-.equ field_14, 0x14  # offset
-.equ field_18, 0x18  # offset
-.equ stk_4, 0x4  # offset
-.equ stk_c, 0xc  # offset
+.equ dsp_info_ptr, 0x4  # dsp+0x04: info pointer
+.equ info_channel_count, 0x4  # info+0x04: signed channel count (loop bound)
+.equ plane_slot_postinc_bias, 0x4  # minus one float slot: compensates the inc of the channel index before the slot store
+.equ dsp_plane_bases, 0x8  # dsp+0x08: array of per-channel float* bases (read)
+.equ dsp_plane_slots, 0xc  # dsp+0x0c: array of per-channel float* output slots (written; address published via out_planes)
+.equ dsp_frames_buffered, 0x14  # dsp+0x14: frames buffered (upper bound)
+.equ dsp_frames_consumed, 0x18  # dsp+0x18: frames already consumed (offset into every plane)
+.equ stackarg_dsp, 0x4  # [esp+4]: dsp argument
+.equ stackarg_out_planes, 0xc  # [esp+0xc]: out_planes argument (second argument, read after push esi)
 
 # --- external targets -----------------------------------------------
 
@@ -35,22 +36,22 @@
 .globl FUN_004ff9a0
 FUN_004ff9a0:
     # block 0x004ff9a0: entry: ecx=dsp, save esi, eax=dsp+0x18 (consumed), edx=dsp+0x04 (info); if consumed <= -1 (signed, i.e. negative) return 0
-    mov ecx, dword ptr [esp + stk_4]               # 004ff9a0
+    mov ecx, dword ptr [esp + stackarg_dsp]               # 004ff9a0
     push esi                                     # 004ff9a4
-    mov eax, dword ptr [ecx + field_18]              # 004ff9a5
-    mov edx, dword ptr [ecx + field_4]               # 004ff9a8
+    mov eax, dword ptr [ecx + dsp_frames_consumed]              # 004ff9a5
+    mov edx, dword ptr [ecx + dsp_info_ptr]               # 004ff9a8
     cmp eax, -0x1                                # 004ff9ab
     jle.d8 L_no_pcm                            # 004ff9ae
     # block 0x004ff9b0: if consumed >= dsp+0x14 (signed, nothing left to read) return 0
-    cmp eax, dword ptr [ecx + field_14]              # 004ff9b0
+    cmp eax, dword ptr [ecx + dsp_frames_buffered]              # 004ff9b0
     jge.d8 L_no_pcm                            # 004ff9b3
     # block 0x004ff9b5: esi=out_planes; if it is NULL skip the plane publishing and just return the available count
-    mov esi, dword ptr [esp + stk_c]               # 004ff9b5
+    mov esi, dword ptr [esp + stackarg_out_planes]               # 004ff9b5
     test esi, esi                                # 004ff9b9
     je.d8 L_return_available                             # 004ff9bb
     # block 0x004ff9bd: save edi; edi=info+0x04 (channel count), eax=0 channel index; if channel count <= 0 (signed) skip the loop
     push edi                                     # 004ff9bd
-    mov edi, dword ptr [edx + field_4]               # 004ff9be
+    mov edi, dword ptr [edx + info_channel_count]               # 004ff9be
     {load} xor eax, eax                          # 004ff9c1
     test edi, edi                                # 004ff9c3
     jle.d8 L_publish_plane_array                            # 004ff9c5
@@ -58,27 +59,27 @@ FUN_004ff9a0:
     push ebx                                     # 004ff9c7
 L_channel_loop:
     # block 0x004ff9c8: per channel i: dsp+0x0c[i] = dsp+0x08[i] + consumed*4 (pointer advanced by consumed floats); i++; loop while i < channel count
-    mov edi, dword ptr [ecx + field_8]               # 004ff9c8
-    mov ebx, dword ptr [ecx + field_18]              # 004ff9cb
+    mov edi, dword ptr [ecx + dsp_plane_bases]               # 004ff9c8
+    mov ebx, dword ptr [ecx + dsp_frames_consumed]              # 004ff9cb
     mov edi, dword ptr [edi + 4*eax]             # 004ff9ce
     inc eax                                      # 004ff9d1
     lea edi, [edi + 4*ebx]                       # 004ff9d2
-    mov ebx, dword ptr [ecx + field_c]               # 004ff9d5
-    mov dword ptr [ebx + 4*eax - field_minus_4], edi       # 004ff9d8
-    mov edi, dword ptr [edx + field_4]               # 004ff9dc
+    mov ebx, dword ptr [ecx + dsp_plane_slots]               # 004ff9d5
+    mov dword ptr [ebx + 4*eax - plane_slot_postinc_bias], edi       # 004ff9d8
+    mov edi, dword ptr [edx + info_channel_count]               # 004ff9dc
     {load} cmp eax, edi                          # 004ff9df
     jl.d8 L_channel_loop                             # 004ff9e1
     # block 0x004ff9e3: loop finished: restore ebx
     pop ebx                                      # 004ff9e3
 L_publish_plane_array:
     # block 0x004ff9e4: *out_planes = dsp+0x0c (the published plane-pointer array); restore edi
-    mov eax, dword ptr [ecx + field_c]               # 004ff9e4
+    mov eax, dword ptr [ecx + dsp_plane_slots]               # 004ff9e4
     pop edi                                      # 004ff9e7
     mov dword ptr [esi], eax                     # 004ff9e8
 L_return_available:
     # block 0x004ff9ea: return dsp+0x14 - dsp+0x18 (frames available) and restore esi
-    mov eax, dword ptr [ecx + field_14]              # 004ff9ea
-    mov edx, dword ptr [ecx + field_18]              # 004ff9ed
+    mov eax, dword ptr [ecx + dsp_frames_buffered]              # 004ff9ea
+    mov edx, dword ptr [ecx + dsp_frames_consumed]              # 004ff9ed
     {load} sub eax, edx                          # 004ff9f0
     pop esi                                      # 004ff9f2
     ret                                          # 004ff9f3

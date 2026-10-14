@@ -31,12 +31,12 @@
 .equ local_cmp_copy, 0x24  # [ebp - 0x24]
 .equ arg_id_name, 0x8  # [ebp + 0x8]
 
-.equ field_1, 0x1  # offset
-.equ field_1120, 0x1120  # offset
-.equ field_112c, 0x112c  # offset
-.equ field_20e4, 0x20e4  # offset
-.equ field_4fc4, 0x4fc4  # offset
-.equ field_5f68, 0x5f68  # offset
+.equ str_second_byte, 0x1  # string+1: second byte of each compared string (inline strcmp pair step)
+.equ hiff_chunk_payload_ptr, 0x1120  # CHiff+0x1120: selected chunk payload pointer, zeroed
+.equ hiff_chunk_payload_len, 0x112c  # CHiff+0x112c: selected chunk payload length, zeroed
+.equ hiff_chunk_ptr_table, 0x20e4  # CHiff+0x20e4: flat table of chunk header pointers
+.equ hiff_chunk_used_table, 0x4fc4  # CHiff+0x4fc4: 1000 dword chunk used flags
+.equ hiff_chunk_count, 0x5f68  # CHiff+0x5f68: chunk count
 
 # --- external targets -----------------------------------------------
 .set FUN_004347b8, .text + (0x004347b8 - 0x401000)
@@ -66,7 +66,7 @@ L_clear_test:
     # block 0x004344e5: loop body: this+0x4fc4+4*index = 0 (clear a used flag), loop to L_clear_next
     mov ecx, dword ptr [ebp - local_chunk_index]           # 004344e5
     mov edx, dword ptr [ebp - local_saved_this]          # 004344e8
-    mov dword ptr [edx + 4*ecx + field_4fc4], 0x0    # 004344eb
+    mov dword ptr [edx + 4*ecx + hiff_chunk_used_table], 0x0    # 004344eb
     jmp.d8 L_clear_next                            # 004344f6
 L_scan_start:
     # block 0x004344f8: L_scan_start: chunk_index = 0, jump to L_chunk_test
@@ -81,12 +81,12 @@ L_chunk_test:
     # block 0x0043450a: L_chunk_test: signed compare chunk_index with the chunk count this+0x5f68; index >= count goes to L_not_found
     mov ecx, dword ptr [ebp - local_saved_this]          # 0043450a
     mov edx, dword ptr [ebp - local_chunk_index]           # 0043450d
-    cmp edx, dword ptr [ecx + field_5f68]            # 00434510
+    cmp edx, dword ptr [ecx + hiff_chunk_count]            # 00434510
     jge.d32 L_not_found                           # 00434516
     # block 0x0043451c: cursor = chunk header pointer this+0x20e4[chunk_index]; name_buf = FUN_00434814(cursor); arg cursor = arg_id_name, name cursor = name_buf
     mov eax, dword ptr [ebp - local_chunk_index]           # 0043451c
     mov ecx, dword ptr [ebp - local_saved_this]          # 0043451f
-    mov edx, dword ptr [ecx + 4*eax + field_20e4]    # 00434522
+    mov edx, dword ptr [ecx + 4*eax + hiff_chunk_ptr_table]    # 00434522
     mov dword ptr [ebp - local_cursor], edx           # 00434529
     mov eax, dword ptr [ebp - local_cursor]           # 0043452c
     push eax                                     # 0043452f
@@ -110,10 +110,10 @@ L_cmp_loop:
     je.d8 L_equal                             # 0043455a
     # block 0x0043455c: compare the next byte pair; unequal goes to L_differ
     mov eax, dword ptr [ebp - local_name_cursor]          # 0043455c
-    mov cl, byte ptr [eax + field_1]                 # 0043455f
+    mov cl, byte ptr [eax + str_second_byte]                 # 0043455f
     mov byte ptr [ebp - local_byte1], cl            # 00434562
     mov edx, dword ptr [ebp - local_arg_cursor]          # 00434565
-    cmp cl, byte ptr [edx + field_1]                 # 00434568
+    cmp cl, byte ptr [edx + str_second_byte]                 # 00434568
     jne.d8 L_differ                            # 0043456b
     # block 0x0043456d: advance both cursors by 2; continue the loop while the second byte was not NUL, else fall into L_equal
     add dword ptr [ebp - local_name_cursor], 0x2          # 0043456d
@@ -138,12 +138,12 @@ L_cmp_done:
     # block 0x0043459c: names equal: if this+0x4fc4[chunk_index] already equals 1 go to L_continue (cannot happen right after the clear loop above)
     mov edx, dword ptr [ebp - local_chunk_index]           # 0043459c
     mov eax, dword ptr [ebp - local_saved_this]          # 0043459f
-    cmp dword ptr [eax + 4*edx + field_4fc4], 0x1    # 004345a2
+    cmp dword ptr [eax + 4*edx + hiff_chunk_used_table], 0x1    # 004345a2
     je.d8 L_continue                             # 004345aa
     # block 0x004345ac: set this+0x4fc4[chunk_index] = 1; cursor += 4, this+0x112c = big-endian dword at cursor; cursor += 4, this+0x1120 = cursor; copy name_buf (strlen+1) to this+0x1130; return eax = 1 (jump to L_return)
     mov ecx, dword ptr [ebp - local_chunk_index]           # 004345ac
     mov edx, dword ptr [ebp - local_saved_this]          # 004345af
-    mov dword ptr [edx + 4*ecx + field_4fc4], 0x1    # 004345b2
+    mov dword ptr [edx + 4*ecx + hiff_chunk_used_table], 0x1    # 004345b2
     mov eax, dword ptr [ebp - local_cursor]           # 004345bd
     add eax, 0x4                                 # 004345c0
     mov dword ptr [ebp - local_cursor], eax           # 004345c3
@@ -152,13 +152,13 @@ L_cmp_done:
     mov ecx, dword ptr [ebp - local_saved_this]          # 004345ca
     call FUN_004347b8                            # 004345cd
     mov edx, dword ptr [ebp - local_saved_this]          # 004345d2
-    mov dword ptr [edx + field_112c], eax            # 004345d5
+    mov dword ptr [edx + hiff_chunk_payload_len], eax            # 004345d5
     mov eax, dword ptr [ebp - local_cursor]           # 004345db
     add eax, 0x4                                 # 004345de
     mov dword ptr [ebp - local_cursor], eax           # 004345e1
     mov ecx, dword ptr [ebp - local_saved_this]          # 004345e4
     mov edx, dword ptr [ebp - local_cursor]           # 004345e7
-    mov dword ptr [ecx + field_1120], edx            # 004345ea
+    mov dword ptr [ecx + hiff_chunk_payload_ptr], edx            # 004345ea
     mov edi, dword ptr [ebp - local_name_buf]           # 004345f0
     mov eax, dword ptr [ebp - local_saved_this]          # 004345f3
     add eax, 0x1130                              # 004345f6
