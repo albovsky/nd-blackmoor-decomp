@@ -291,8 +291,10 @@ AvfPlayerStatus avf_player_stop(AvfPlayer *player)
     if (!player->running) {
         return AVF_PLAYER_ERR_STATE;
     }
-    /* 0x4ccef1 / 0x4bf773 / 0x4dc043 / 0x42c221: acquire (waits for an
-       in-flight decode), H = 2, kill, release (no-op), H = 0. */
+    /* 0x4ccef1 / 0x4bf773 / 0x4dc043 / 0x42c221: acquire, H = 2, kill,
+       release (no-op), H = 0. Callers stop only at the quiescence boundary:
+       no decode is in flight, so the original acquire never has to wait for
+       H == 1 and nothing is forced to 2 over a running decode. */
     (void)acquire(player);
     player->handshake = 2;
     lifecycle(player, AVF_LIFE_HALT);

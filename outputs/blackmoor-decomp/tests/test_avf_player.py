@@ -291,6 +291,35 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual(bytes(s.slot_buffers[1]), before)    # stop keeps the shown chunk
         self.assertEqual(s.selected[0], slot1)
 
+    def test_secondary_slot_ownership_with_variable_chunk_sizes(self) -> None:
+        # Key chunks of 8, 4 and 8 bytes: the refill only writes the slot that
+        # is not shown, the presentation size is the chunk size (not the
+        # buffer size) and a poll never touches the shown slot.
+        pix = [fx.frame_pixels(2, 2, 1), fx.frame_pixels(2, 1, 2), fx.frame_pixels(2, 2, 3)]
+        data = fx.build_avf(2, 2, [(0, p, None) for p in pix])
+        s = self.session(data, slots=True)
+        self.assertEqual(s.start(config(SECONDARY, last=2, loop_last=2)), OK)
+        addresses = [c.addressof(b) for b in s.slot_buffers]
+        now = 1000
+        self.assertEqual(s.poll(), OK)                       # chunk 0 -> slot 1
+        self.assertEqual(s.tick(now), OK)                    # first advance shows it
+        for k in range(3):
+            slot = s.player.slot_toggle
+            self.assertEqual(slot, (1 + k) % 2)
+            self.assertEqual(s.selected, (addresses[slot], len(pix[k])))
+            self.assertEqual(bytes(s.slot_buffers[slot])[:len(pix[k])], pix[k])
+            if k == 2:
+                break
+            held = bytes(s.slot_buffers[slot])
+            self.assertEqual(s.poll(), OK)                   # refills the other slot only
+            self.assertEqual(bytes(s.slot_buffers[slot]), held)
+            self.assertEqual(s.player.slot_result[1 - slot], addresses[1 - slot])
+            self.assertEqual(s.player.slot_result_bytes[1 - slot], len(pix[k + 1]))
+            self.assertEqual(s.tick(now + 65), OK)           # deadline pending: still shown
+            self.assertEqual(s.selected, (addresses[slot], len(pix[k])))
+            now += 66
+            self.assertEqual(s.tick(now), OK)                # due: flip to the refilled slot
+
     def test_clock_wrap_matches_original_u32_arithmetic(self) -> None:
         s = self.session()
         s.start(config(RANDOM, surface=8))

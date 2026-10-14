@@ -57,8 +57,9 @@ The Mac remains locked: use original-x86 oracles and automated offscreen checks.
 The playback kernel is implemented and committed on `codex/blackmoor-s03-2-avf-playback`:
 - `7b750e2`: reviewed snapshot
 - `909daf0`: fixes for the review findings
+- API amendments (root decision): the header and reports now state the recovered publication order (worker acquire, decode, release, R = 1; stop acquire, H = 2, kill, release, H = 0) and that sequential fixtures prove only the tested orderings, not real-thread synchronisation; stop is a caller-owned quiescence boundary; secondary slot ownership, generation scope, typed events with provider status and GetTickCount semantics are documented; pause/seek/repeat are reported as not located (unverified/unsupported). One new unit test covers secondary slot ownership with variable chunk sizes. No behaviour changed.
 
-It depends on S03-1 `bb38ef6`, merged unmodified. The receipt is `work/analysis/slices/S03-2.handoff.json`.
+It depends on S03-1, merged unmodified at the repaired decoder commit (declared key size versus conversion footprint). The receipt is `work/analysis/slices/S03-2.handoff.json`.
 
 **Original-trace comparison.** 369 cases (209 synthetic and 160 installed-file playbacks across the four controllers), 13,501 compared steps, 0 mismatches. The oracle runs the unmodified original start, worker, tick, render and stop routines.
 

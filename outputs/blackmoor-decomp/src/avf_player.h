@@ -32,13 +32,35 @@ extern "C" {
  *                   Random-access chunks in two caller-owned slots; the
  *                   advance swaps the visible slot and clears R.
  *
- * Scheduling is sequential: avf_player_worker_poll is one iteration of the
- * original reader loop and never overlaps a tick. A host that moves the
- * worker to a thread must hold one lock around every call here; that lock
- * stands in for the original spin handshake H (0x44c479/0x44c4ab), whose
- * values and stop ordering the kernel keeps. In single-buffer mode the
- * worker decodes into the buffer the surface shows, as the original does,
- * so a threaded presenter must also hold that lock while it reads it.
+ * Scheduling is sequential and deterministic: avf_player_worker_poll is one
+ * iteration of the original reader loop and never overlaps a tick, render
+ * acknowledgement or stop. Real threading is Boot's later integration gate.
+ *
+ * Recovered publication order, which every threaded host must preserve:
+ *   worker:    acquire (0x44c479, H = 1) -> decode -> release (0x44c4ab,
+ *              H = 0 unless H == 2) -> R = 1. R is published after the
+ *              release, so a consumer that reads R == 1 sees a finished,
+ *              unlocked decode.
+ *   consumer:  reads R (and the GetTickCount deadline); it never takes H
+ *              except in the secondary swap (0x42e72c, acquire result
+ *              ignored).
+ *   stop:      acquire -> H = 2 -> kill the worker -> release (a no-op,
+ *              H stays 2) -> H = 0.
+ * The sequential model proves only the orderings its fixtures exercise
+ * (the lifecycle trace records them). It does not prove real-thread
+ * synchronisation, and a host lock around every whole tick/poll/ack/stop
+ * call is not automatically equivalent to the original handshake: it
+ * would hide the acquire/release/R interleavings above. Boot must prove
+ * its own threaded schedule against them. In single-buffer mode the worker
+ * decodes into the buffer the surface shows, as the original does, so a
+ * threaded presenter reads that buffer only under the same protection.
+ *
+ * GetTickCount: clock() returns the 32-bit tick value. A deadline is
+ * clock() + delay in unsigned 32-bit wrapping arithmetic (delay is AVF
+ * header +0x1c), and the consumer waits while clock() < deadline as an
+ * unsigned comparison, exactly as the original (jb). A wrapped deadline
+ * therefore compares as small and is due at once. The clock is sampled at
+ * every original call site; the kernel never takes extra samples.
  *
  * Failures are terminal, as in the original (which reports and quits):
  * after a tick or poll returns AVF_PLAYER_ERR_HOST, _DECODER or (worker)
@@ -48,12 +70,59 @@ extern "C" {
  *
  * Ownership: the kernel allocates nothing. The caller owns the AVF bytes,
  * the S03-1 AvfStream with its frame buffers and scratch, and (secondary
- * video) the two slot buffers. Stopping never frees or reuses them; a frame
- * the host still shows stays valid until the host itself releases it.
+ * video) the two slot buffers. The original frees its buffers at stop while
+ * the surface may still point at them; the port never frees or reuses them.
+ * The caller releases them only after decode work has ended and every reader
+ * (presenter, surface) can no longer access them.
+ *
+ * Stopping with work in flight. avf_player_stop is a caller-owned
+ * quiescence boundary. In the sequential model it is callable only between
+ * polls and ticks, so no decode is in flight, the original H == 1 wait in
+ * the stop acquire is never reached, and H is never forced to 2 over a
+ * running decode. A threaded host must first drain or park its worker so
+ * the same holds (or model the wait explicitly); it must not set H = 2 and
+ * free storage under a worker that is still decoding. Stop does not stop
+ * the presenter: buffers are released by the caller only after the presenter
+ * no longer reads them.
  *
  * Generation tokens are a port safeguard, not an original field: every
- * start and stop takes a new generation; presentations carry it, and
- * acknowledgements naming another generation are rejected as stale.
+ * start, restart and stop takes a new generation; presentations and frame
+ * events carry it, and avf_player_render_ack takes the generation it
+ * acknowledges and rejects any other as AVF_PLAYER_ERR_STALE. Poll and tick
+ * are driven by the owner of the player and carry no generation: a worker
+ * thread must not outlive the generation it was started for.
+ *
+ * Secondary video slots (0x44cde2 / 0x42e72c). The two slot buffers are
+ * caller-owned, each of at least max(frame_bytes, max_unpacked) bytes. The
+ * original frees the slot's previous chunk and lets GetChunk allocate a new
+ * one; the port reuses the slot buffer in place. The worker refills slot 1
+ * while slot_toggle is 0 and slot 0 otherwise, i.e. only the slot that is
+ * not the visible one, and GetChunk's predecessor is the other (visible)
+ * slot, which is read and never written. A failed decode leaves the slot
+ * and slot_result untouched (S03-1 validates before it writes) and latches
+ * ERR_DECODER. The chunk size varies per record (unpacked bytes
+ * for key frames, frame_bytes for the others): AvfPresentation.bytes and
+ * AvfPlayer.slot_result_bytes carry the size of the chunk actually held in
+ * the slot, not the buffer size. The advance flips the toggle and presents
+ * the new slot (present_mode 2), after which the previous slot is the next
+ * refill target; a presenter must not read it after that present call. An
+ * empty (zero packed and unpacked) record would make GetChunk return the
+ * shown predecessor as the result, aliasing the visible chunk with the slot
+ * that the next refill frees (an original use after free): the port reports
+ * ERR_UNSUPPORTED instead, after the delta-sequence check the original
+ * runs first (ERR_DECODER).
+ *
+ * Frame events are typed commands (AvfFrameEvent) delivered through the
+ * required frame_event provider; a nonzero return from it or from present
+ * is reported as AVF_PLAYER_ERR_HOST, never dropped, and effects committed
+ * before the failing call are kept. Missing providers fail start with
+ * ERR_UNSUPPORTED before any change. Only the lifecycle trace is optional.
+ *
+ * Not modelled: pause/resume, seek and repeat for AVF. These branches were
+ * not located in the four controllers; this is unverified, not a proof of
+ * absence, and the kernel provides no such operation (unsupported).
+ * Reverse play exists only through the direction fields and secondary
+ * mode 2.
  */
 
 typedef enum AvfPlayerStatus {
@@ -118,9 +187,10 @@ typedef struct AvfPlayerHost {
     void *context;
     /* GetTickCount sample, taken at every original call site. Required. */
     uint32_t (*clock)(void *context);
-    /* Required. */
+    /* Required. A nonzero return fails the call with AVF_PLAYER_ERR_HOST. */
     int (*present)(void *context, const AvfPresentation *presentation);
-    /* Required whenever the controller emits frame events (start checks). */
+    /* Required (start checks it): typed events for the controller's game
+       effects. A nonzero return fails the tick with AVF_PLAYER_ERR_HOST. */
     int (*frame_event)(void *context, const AvfFrameEvent *event);
     /* Optional handshake/stop trace. */
     void (*lifecycle)(void *context, AvfLifecycleEvent event);
@@ -211,7 +281,10 @@ AvfPlayerStatus avf_player_start(AvfPlayer *player, const AvfPlayerConfig *confi
  */
 AvfPlayerStatus avf_player_restart(AvfPlayer *player, const AvfPlayerConfig *config);
 
-/* One worker iteration; *decoded is set when it ran the decoder. */
+/*
+ * One worker iteration; *decoded is set when it ran the decoder. Follows the
+ * publication order above (acquire, decode, release, then R = 1).
+ */
 AvfPlayerStatus avf_player_worker_poll(AvfPlayer *player, int *decoded);
 
 /* One controller step with Boot's gate inputs. */
@@ -229,7 +302,9 @@ AvfPlayerStatus avf_player_set_secondary_mode(AvfPlayer *player, int32_t mode);
 
 /*
  * Stop in source order: acquire, H = 2, kill the worker, release, H = 0.
- * Buffers stay valid and owned by the caller; the generation advances.
+ * Call it only at the quiescence boundary described above (between polls and
+ * ticks, no decode in flight). Buffers stay valid and owned by the caller;
+ * the generation advances.
  */
 AvfPlayerStatus avf_player_stop(AvfPlayer *player);
 
