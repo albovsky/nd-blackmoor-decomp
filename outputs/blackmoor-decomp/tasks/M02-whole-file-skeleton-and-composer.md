@@ -16,7 +16,7 @@ Own only new files: `outputs/blackmoor-decomp/image/` (layout, import, Rich, res
 - Sections: `.text` RVA 0x1000, virtual 0x12825a, raw 0x129000 at file 0x1000, flags 0x60000020; `.rdata` RVA 0x12a000, virtual 0xc5f4, raw 0xd000 at 0x12a000, flags 0x40000040; `.data` RVA 0x137000, virtual 0x10713c, raw 0x33000 at 0x137000, flags 0xc0000040; `.rsrc` RVA 0x23f000, virtual 0x66e0, raw 0x7000 at 0x16a000, flags 0x40000040.
 - Data directories: import RVA 0x134910 size 0x118, IAT RVA 0x12a000 size 0x54c, resource RVA 0x23f000 size 0x66e0; no relocations, no debug directory.
 - DOS stub text "This program cannot be run in DOS mode." with `DanS` at 0x80 and `Rich` at 0xf0; twelve Rich tuples as tabulated in the M0 report; the Rich XOR key equals the recomputed checksum, so the composer must compute it, not store it.
-- Inside `.text`: 173 switch jump tables (about 8,707 bytes) and 2,205 bytes of `int 3` padding are data items, not code; code is partitioned by the 4,188 function extents of `function-index.json`.
+- Inside `.text`: 173 switch jump tables (about 8,707 bytes) and 2,205 bytes of `int 3` padding are data items, not code. The 4,188 entries of `function-index.json` are starts; the span to the next start includes a function's tables and padding. M03's generator splits each span into code and data items and hands the data items to this packet's description; the composer must reject any byte claimed by both a function and a data item.
 - Import order, hint values and name strings must reproduce the original import directory and IAT exactly; the DLL set and symbol lists are in `work/analysis/m0/imports.json`.
 
 ## Range classes
