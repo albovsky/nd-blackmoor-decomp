@@ -24,6 +24,16 @@
 .equ local_saved_this, 0x6c  # [ebp - 0x6c]
 .equ arg_path, 0x8  # [ebp + 0x8]
 
+.equ field_39, 0x39  # offset
+.equ field_3b, 0x3b  # offset
+.equ field_3d, 0x3d  # offset
+.equ field_41, 0x41  # offset
+.equ field_571, 0x571  # offset
+.equ field_57b, 0x57b  # offset
+.equ field_57f, 0x57f  # offset
+.equ field_845, 0x845  # offset
+.equ field_849, 0x849  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0041a2e9, .text + (0x0041a2e9 - 0x401000)
 .set FUN_004c97b4, .text + (0x004c97b4 - 0x401000)
@@ -48,9 +58,9 @@ FUN_00419dab:
     mov ecx, dword ptr [ebp - local_saved_this]          # 00419db6
     call FUN_0041a2e9                            # 00419db9
     mov ecx, dword ptr [ebp - local_saved_this]          # 00419dbe
-    mov word ptr [ecx + 0x571], ax               # 00419dc1
+    mov word ptr [ecx + field_571], ax               # 00419dc1
     mov edx, dword ptr [ebp - local_saved_this]          # 00419dc8
-    movsx eax, word ptr [edx + 0x571]            # 00419dcb
+    movsx eax, word ptr [edx + field_571]            # 00419dcb
     cmp eax, -0x1                                # 00419dd2
     jne.d8 L_slot_found                            # 00419dd5
     # block 0x00419dd7: no free slot (index == -1): format the 'unable to find empty slot' message into the error buffer, report it, jump to the L_fail_exit chain
@@ -66,12 +76,12 @@ FUN_00419dab:
 L_slot_found:
     # block 0x00419dfc: L_slot_found: entry pointer this+0x57b = this + 0x57f + slot * 0x84d; split arg_path into drive/dir/file/ext buffers; upper-case the file-name buffer; inline strlen of it, branch to L_name_length_ok when length <= 0x20
     mov ecx, dword ptr [ebp - local_saved_this]          # 00419dfc
-    movsx edx, word ptr [ecx + 0x571]            # 00419dff
+    movsx edx, word ptr [ecx + field_571]            # 00419dff
     imul edx, edx, 0x84d                         # 00419e06
     mov eax, dword ptr [ebp - local_saved_this]          # 00419e0c
-    lea ecx, [eax + edx + 0x57f]                 # 00419e0f
+    lea ecx, [eax + edx + field_57f]                 # 00419e0f
     mov edx, dword ptr [ebp - local_saved_this]          # 00419e16
-    mov dword ptr [edx + 0x57b], ecx             # 00419e19
+    mov dword ptr [edx + field_57b], ecx             # 00419e19
     mov eax, dword ptr [ebp - local_saved_this]          # 00419e1f
     add eax, 0x21f                               # 00419e22
     push eax                                     # 00419e27
@@ -121,7 +131,7 @@ L_name_length_ok:
     add ecx, 0x11f                               # 00419ea9
     {load} mov edi, ecx                          # 00419eaf
     mov edx, dword ptr [ebp - local_saved_this]          # 00419eb1
-    mov edx, dword ptr [edx + 0x57b]             # 00419eb4
+    mov edx, dword ptr [edx + field_57b]             # 00419eb4
     or ecx, -0x1                                 # 00419eba
     {load} xor eax, eax                          # 00419ebd
     repne scasb al, byte ptr es:[edi]            # 00419ebf
@@ -141,11 +151,11 @@ L_name_length_ok:
     call FUN_0050d0a9                            # 00419ee0
     add esp, 0x8                                 # 00419ee5
     mov edx, dword ptr [ebp - local_saved_this]          # 00419ee8
-    mov ecx, dword ptr [edx + 0x57b]             # 00419eeb
-    mov dword ptr [ecx + 0x845], eax             # 00419ef1
+    mov ecx, dword ptr [edx + field_57b]             # 00419eeb
+    mov dword ptr [ecx + field_845], eax             # 00419ef1
     mov edx, dword ptr [ebp - local_saved_this]          # 00419ef7
-    mov eax, dword ptr [edx + 0x57b]             # 00419efa
-    cmp dword ptr [eax + 0x845], 0x0             # 00419f00
+    mov eax, dword ptr [edx + field_57b]             # 00419efa
+    cmp dword ptr [eax + field_845], 0x0             # 00419f00
     jne.d8 L_file_opened                            # 00419f07
     # block 0x00419f09: open failed: copy arg_path (unbounded) into local_path_copy, format the 'unable to open CAL or CIF TREE file' message with it, report it, jump to the L_fail_exit chain
     mov edi, dword ptr [ebp + arg_path]             # 00419f09
@@ -177,13 +187,13 @@ L_name_length_ok:
 L_file_opened:
     # block 0x00419f55: L_file_opened: fread 0x20 bytes x 1 from the file into entry+0x21 (the header); branch to L_check_signature when exactly 1 item was read
     mov edx, dword ptr [ebp - local_saved_this]          # 00419f55
-    mov eax, dword ptr [edx + 0x57b]             # 00419f58
-    mov ecx, dword ptr [eax + 0x845]             # 00419f5e
+    mov eax, dword ptr [edx + field_57b]             # 00419f58
+    mov ecx, dword ptr [eax + field_845]             # 00419f5e
     push ecx                                     # 00419f64
     push 0x1                                     # 00419f65
     push 0x20                                    # 00419f67
     mov edx, dword ptr [ebp - local_saved_this]          # 00419f69
-    mov eax, dword ptr [edx + 0x57b]             # 00419f6c
+    mov eax, dword ptr [edx + field_57b]             # 00419f6c
     add eax, 0x21                                # 00419f72
     push eax                                     # 00419f75
     call FUN_0050cf61                            # 00419f76
@@ -200,7 +210,7 @@ L_check_signature:
     # block 0x00419f96: L_check_signature: repe cmpsb 0x14 bytes of entry+0x21 against the 'CIF TREE WayneSikes' string; mismatch goes to L_bad_header
     mov edi, 0x54301c                            # 00419f96
     mov ecx, dword ptr [ebp - local_saved_this]          # 00419f9b
-    mov esi, dword ptr [ecx + 0x57b]             # 00419f9e
+    mov esi, dword ptr [ecx + field_57b]             # 00419f9e
     add esi, 0x21                                # 00419fa4
     mov ecx, 0x14                                # 00419fa7
     {load} xor edx, edx                          # 00419fac
@@ -208,16 +218,16 @@ L_check_signature:
     jne.d8 L_bad_header                            # 00419fb0
     # block 0x00419fb2: signature matched: load the header version word at entry+0x39; not equal to 2 goes to L_bad_header
     mov eax, dword ptr [ebp - local_saved_this]          # 00419fb2
-    mov ecx, dword ptr [eax + 0x57b]             # 00419fb5
+    mov ecx, dword ptr [eax + field_57b]             # 00419fb5
     {load} xor edx, edx                          # 00419fbb
-    mov dx, word ptr [ecx + 0x39]                # 00419fbd
+    mov dx, word ptr [ecx + field_39]                # 00419fbd
     cmp edx, 0x2                                 # 00419fc1
     jne.d8 L_bad_header                            # 00419fc4
     # block 0x00419fc6: load the header version word at entry+0x3b; equal to 1 goes on to L_read_hash_table, otherwise falls to L_bad_header
     mov eax, dword ptr [ebp - local_saved_this]          # 00419fc6
-    mov ecx, dword ptr [eax + 0x57b]             # 00419fc9
+    mov ecx, dword ptr [eax + field_57b]             # 00419fc9
     {load} xor edx, edx                          # 00419fcf
-    mov dx, word ptr [ecx + 0x3b]                # 00419fd1
+    mov dx, word ptr [ecx + field_3b]                # 00419fd1
     cmp edx, 0x1                                 # 00419fd5
     je.d8 L_read_hash_table                             # 00419fd8
 L_bad_header:
@@ -230,13 +240,13 @@ L_bad_header:
 L_read_hash_table:
     # block 0x00419fed: L_read_hash_table: fread 0x800 bytes x 1 from the file into entry+0x45 (the bucket table); branch to L_alloc_records when exactly 1 item was read
     mov eax, dword ptr [ebp - local_saved_this]          # 00419fed
-    mov ecx, dword ptr [eax + 0x57b]             # 00419ff0
-    mov edx, dword ptr [ecx + 0x845]             # 00419ff6
+    mov ecx, dword ptr [eax + field_57b]             # 00419ff0
+    mov edx, dword ptr [ecx + field_845]             # 00419ff6
     push edx                                     # 00419ffc
     push 0x1                                     # 00419ffd
     push 0x800                                   # 00419fff
     mov eax, dword ptr [ebp - local_saved_this]          # 0041a004
-    mov ecx, dword ptr [eax + 0x57b]             # 0041a007
+    mov ecx, dword ptr [eax + field_57b]             # 0041a007
     add ecx, 0x45                                # 0041a00d
     push ecx                                     # 0041a010
     call FUN_0050cf61                            # 0041a011
@@ -252,17 +262,17 @@ L_read_hash_table:
 L_alloc_records:
     # block 0x0041a031: L_alloc_records: malloc (signed 16-bit count at entry+0x3d) * 0x5e bytes, store the pointer at entry+0x41, branch to L_read_records when non-null
     mov edx, dword ptr [ebp - local_saved_this]          # 0041a031
-    mov eax, dword ptr [edx + 0x57b]             # 0041a034
-    movsx ecx, word ptr [eax + 0x3d]             # 0041a03a
+    mov eax, dword ptr [edx + field_57b]             # 0041a034
+    movsx ecx, word ptr [eax + field_3d]             # 0041a03a
     imul ecx, ecx, 0x5e                          # 0041a03e
     push ecx                                     # 0041a041
     call FUN_0051dc43                            # 0041a042
     add esp, 0x4                                 # 0041a047
     mov dword ptr [ebp - local_records], eax          # 0041a04a
     mov edx, dword ptr [ebp - local_saved_this]          # 0041a04d
-    mov eax, dword ptr [edx + 0x57b]             # 0041a050
+    mov eax, dword ptr [edx + field_57b]             # 0041a050
     mov ecx, dword ptr [ebp - local_records]          # 0041a056
-    mov dword ptr [eax + 0x41], ecx              # 0041a059
+    mov dword ptr [eax + field_41], ecx              # 0041a059
     cmp dword ptr [ebp - local_records], 0x0          # 0041a05c
     jne.d8 L_read_records                            # 0041a060
     # block 0x0041a062: allocation failed: report the 'unable to allocate memory' message, jump to the L_fail_exit chain
@@ -274,18 +284,18 @@ L_alloc_records:
 L_read_records:
     # block 0x0041a072: L_read_records: fread count*0x5e bytes x 1 from the file into the record array; branch to L_open_ok when exactly 1 item was read
     mov edx, dword ptr [ebp - local_saved_this]          # 0041a072
-    mov eax, dword ptr [edx + 0x57b]             # 0041a075
-    mov ecx, dword ptr [eax + 0x845]             # 0041a07b
+    mov eax, dword ptr [edx + field_57b]             # 0041a075
+    mov ecx, dword ptr [eax + field_845]             # 0041a07b
     push ecx                                     # 0041a081
     push 0x1                                     # 0041a082
     mov edx, dword ptr [ebp - local_saved_this]          # 0041a084
-    mov eax, dword ptr [edx + 0x57b]             # 0041a087
-    movsx ecx, word ptr [eax + 0x3d]             # 0041a08d
+    mov eax, dword ptr [edx + field_57b]             # 0041a087
+    movsx ecx, word ptr [eax + field_3d]             # 0041a08d
     imul ecx, ecx, 0x5e                          # 0041a091
     push ecx                                     # 0041a094
     mov edx, dword ptr [ebp - local_saved_this]          # 0041a095
-    mov eax, dword ptr [edx + 0x57b]             # 0041a098
-    mov ecx, dword ptr [eax + 0x41]              # 0041a09e
+    mov eax, dword ptr [edx + field_57b]             # 0041a098
+    mov ecx, dword ptr [eax + field_41]              # 0041a09e
     push ecx                                     # 0041a0a1
     call FUN_0050cf61                            # 0041a0a2
     add esp, 0x10                                # 0041a0a7
@@ -300,8 +310,8 @@ L_read_records:
 L_open_ok:
     # block 0x0041a0bf: L_open_ok: set entry+0x849 (open flag) to 1 and jump to L_return, skipping the failure handling
     mov edx, dword ptr [ebp - local_saved_this]          # 0041a0bf
-    mov eax, dword ptr [edx + 0x57b]             # 0041a0c2
-    mov dword ptr [eax + 0x849], 0x1             # 0041a0c8
+    mov eax, dword ptr [edx + field_57b]             # 0041a0c2
+    mov dword ptr [eax + field_849], 0x1             # 0041a0c8
     jmp.d8 L_return                            # 0041a0d2
 L_fail_exit:
     # block 0x0041a0d4: L_fail_exit: failure tail, store 3 in the exit-code global 0x0063a58a and call FUN_004c97b4 with ecx = 0x005cf659 (post quit), then jump to L_return

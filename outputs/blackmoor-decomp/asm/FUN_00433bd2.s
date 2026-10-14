@@ -22,6 +22,8 @@
 .equ local_index, 0x4  # [ebp - 0x4]
 .equ arg_record, 0x8  # [ebp + 0x8]
 
+.equ field_de, 0xde  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x00433bd2 - 0x401000
@@ -58,7 +60,7 @@ L_test_sentinel:
     # block 0x00433c06: sentinel loop body: word [arg_record + 4*local_index + 0xde] = 0xffff, jump back to the step
     mov ecx, dword ptr [ebp - local_index]           # 00433c06
     mov edx, dword ptr [ebp + arg_record]             # 00433c09
-    mov word ptr [edx + 4*ecx + 0xde], 0xffff    # 00433c0c
+    mov word ptr [edx + 4*ecx + field_de], 0xffff    # 00433c0c
     jmp.d8 L_next_sentinel                            # 00433c16
 L_copy_name:
     # block 0x00433c18: dword [arg_record] = 0; strlen of the string at 0x545dd4 (repne scasb with ecx=-1, ecx = ~ecx = length+1); copy length+1 bytes to arg_record+0x28: rep movsd (count>>2 dwords) then rep movsb (count&3 bytes)

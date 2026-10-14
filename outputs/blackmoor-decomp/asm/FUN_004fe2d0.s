@@ -33,6 +33,13 @@
 .equ arg_sgned, 0x1c  # [ebp + 0x1c]: signed flag; overwritten by the bias 0/0x8000 on the 16-bit path
 .equ arg_bitstream, 0x20  # [ebp + 0x20]: optional int* receiving the current link
 
+.equ field_4, 0x4  # offset
+.equ field_50, 0x50  # offset
+.equ field_54, 0x54  # offset
+.equ field_58, 0x58  # offset
+.equ field_60, 0x60  # offset
+.equ field_1da, 0x1da  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_004fdfd0, .text + (0x004fdfd0 - 0x401000)
 .set FUN_004fe290, .text + (0x004fe290 - 0x401000)
@@ -53,7 +60,7 @@ FUN_004fe2d0:
     call FUN_004fe630                            # 004fe2d9
     mov edi, dword ptr [ebp + arg_vf]             # 004fe2de
     mov dword ptr [ebp - local_host_endian], eax          # 004fe2e1
-    cmp dword ptr [edi + 0x58], 0x2              # 004fe2e4
+    cmp dword ptr [edi + field_58], 0x2              # 004fe2e4
     jge.d8 L_state_ok                            # 004fe2e8
     # block 0x004fe2ea: vf+0x58 < 2: restore registers and return 0xffffff7d (-131)
     pop edi                                      # 004fe2ea
@@ -68,11 +75,11 @@ L_state_ok:
     mov ebx, 0x3                                 # 004fe2f6
 L_fill_loop:
     # block 0x004fe2fb: fill loop head: if vf+0x58 < ebx=3 (signed) go fetch more data without reading the queue
-    cmp dword ptr [edi + 0x58], ebx              # 004fe2fb
+    cmp dword ptr [edi + field_58], ebx              # 004fe2fb
     jl.d8 L_fetch_more                             # 004fe2fe
     # block 0x004fe300: state >= 3: call FUN_004ff9a0(vf+0x1da, &local_pcm_planes); esi=frames available, local_frames=esi; nonzero -> have data
     lea eax, [ebp - local_pcm_planes]                     # 004fe300
-    lea ecx, [edi + 0x1da]                       # 004fe303
+    lea ecx, [edi + field_1da]                       # 004fe303
     push eax                                     # 004fe309
     push ecx                                     # 004fe30a
     call FUN_004ff9a0                            # 004fe30b
@@ -111,7 +118,7 @@ L_have_frames:
     push -0x1                                    # 004fe347
     push edi                                     # 004fe349
     call FUN_004fe290                            # 004fe34a
-    mov ebx, dword ptr [eax + 0x4]               # 004fe34f
+    mov ebx, dword ptr [eax + field_4]               # 004fe34f
     mov edi, dword ptr [ebp + arg_word]            # 004fe352
     {load} mov ecx, ebx                          # 004fe355
     mov eax, dword ptr [ebp + arg_length]            # 004fe357
@@ -466,23 +473,23 @@ L_consume_and_account:
     # block 0x004fe5e6: common tail: edi=vf; call FUN_004ffa00(vf+0x1da, frames) to consume; then vf+0x50/+0x54 (64-bit) += sign-extended frames via add/adc
     mov edi, dword ptr [ebp + arg_vf]             # 004fe5e6
     push esi                                     # 004fe5e9
-    lea ecx, [edi + 0x1da]                       # 004fe5ea
+    lea ecx, [edi + field_1da]                       # 004fe5ea
     push ecx                                     # 004fe5f0
     call FUN_004ffa00                            # 004fe5f1
-    mov ecx, dword ptr [edi + 0x50]              # 004fe5f6
+    mov ecx, dword ptr [edi + field_50]              # 004fe5f6
     {load} mov eax, esi                          # 004fe5f9
     cdq                                          # 004fe5fb
     add esp, 0x8                                 # 004fe5fc
     {load} add ecx, eax                          # 004fe5ff
     mov eax, dword ptr [ebp + arg_bitstream]            # 004fe601
-    mov dword ptr [edi + 0x50], ecx              # 004fe604
-    mov ebx, dword ptr [edi + 0x54]              # 004fe607
+    mov dword ptr [edi + field_50], ecx              # 004fe604
+    mov ebx, dword ptr [edi + field_54]              # 004fe607
     {load} adc ebx, edx                          # 004fe60a
     test eax, eax                                # 004fe60c
-    mov dword ptr [edi + 0x54], ebx              # 004fe60e
+    mov dword ptr [edi + field_54], ebx              # 004fe60e
     je.d8 L_return_bytes                             # 004fe611
     # block 0x004fe613: bitstream pointer non-NULL: *bitstream = vf+0x60
-    mov edx, dword ptr [edi + 0x60]              # 004fe613
+    mov edx, dword ptr [edi + field_60]              # 004fe613
     mov dword ptr [eax], edx                     # 004fe616
 L_return_bytes:
     # block 0x004fe618: return local_frame_bytes * frames (bytes written) and restore registers

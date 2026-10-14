@@ -25,6 +25,8 @@
 .equ arg_percent, 0x8  # [ebp + 0x8]
 .equ arg_category, 0xc  # [ebp + 0xc]
 
+.equ field_b764, 0xb764  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
 .set FUN_004fcb5c, .text + (0x004fcb5c - 0x401000)
@@ -55,7 +57,7 @@ L_after_debug_log:
     fdiv dword ptr [0x52cbec]                    # 004fcd28
     mov edx, dword ptr [ebp + arg_category]             # 004fcd2e
     mov eax, dword ptr [ebp - local_this]           # 004fcd31
-    fstp dword ptr [eax + 4*edx + 0xb764]        # 004fcd34
+    fstp dword ptr [eax + 4*edx + field_b764]        # 004fcd34
     mov ecx, dword ptr [ebp + arg_category]             # 004fcd3b
     push ecx                                     # 004fcd3e
     mov ecx, dword ptr [ebp - local_this]           # 004fcd3f

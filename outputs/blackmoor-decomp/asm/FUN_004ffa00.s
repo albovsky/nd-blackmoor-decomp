@@ -20,20 +20,25 @@
 
 # --- frame symbols ---------------------------------------------------
 
+.equ field_14, 0x14  # offset
+.equ field_18, 0x18  # offset
+.equ stk_4, 0x4  # offset
+.equ stk_8, 0x8  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004ffa00 - 0x401000
 .globl FUN_004ffa00
 FUN_004ffa00:
     # block 0x004ffa00: entry: ecx=count, eax=dsp; if count == 0 skip the bound check
-    mov ecx, dword ptr [esp + 0x8]               # 004ffa00
-    mov eax, dword ptr [esp + 0x4]               # 004ffa04
+    mov ecx, dword ptr [esp + stk_8]               # 004ffa00
+    mov eax, dword ptr [esp + stk_4]               # 004ffa04
     test ecx, ecx                                # 004ffa08
     je.d8 L_apply_count                             # 004ffa0a
     # block 0x004ffa0c: edx=dsp+0x18 + count (new consumed), esi=dsp+0x14 (buffered); if new consumed <= buffered (signed) go apply it
-    mov edx, dword ptr [eax + 0x18]              # 004ffa0c
+    mov edx, dword ptr [eax + field_18]              # 004ffa0c
     push esi                                     # 004ffa0f
-    mov esi, dword ptr [eax + 0x14]              # 004ffa10
+    mov esi, dword ptr [eax + field_14]              # 004ffa10
     {load} add edx, ecx                          # 004ffa13
     {load} cmp edx, esi                          # 004ffa15
     pop esi                                      # 004ffa17
@@ -43,9 +48,9 @@ FUN_004ffa00:
     ret                                          # 004ffa1f
 L_apply_count:
     # block 0x004ffa20: dsp+0x18 += count; return 0
-    mov edx, dword ptr [eax + 0x18]              # 004ffa20
+    mov edx, dword ptr [eax + field_18]              # 004ffa20
     {load} add edx, ecx                          # 004ffa23
-    mov dword ptr [eax + 0x18], edx              # 004ffa25
+    mov dword ptr [eax + field_18], edx              # 004ffa25
     {load} xor eax, eax                          # 004ffa28
     ret                                          # 004ffa2a
 

@@ -20,45 +20,53 @@
 
 # --- frame symbols ---------------------------------------------------
 
+.equ field_4, 0x4  # offset
+.equ field_34, 0x34  # offset
+.equ field_48, 0x48  # offset
+.equ field_58, 0x58  # offset
+.equ field_60, 0x60  # offset
+.equ stk_4, 0x4  # offset
+.equ stk_8, 0x8  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004fe290 - 0x401000
 .globl FUN_004fe290
 FUN_004fe290:
     # block 0x004fe290: entry: edx=vf, eax=vf+0x04; if that dword is zero, take the default record path
-    mov edx, dword ptr [esp + 0x4]               # 004fe290
-    mov eax, dword ptr [edx + 0x4]               # 004fe294
+    mov edx, dword ptr [esp + stk_4]               # 004fe290
+    mov eax, dword ptr [edx + field_4]               # 004fe294
     test eax, eax                                # 004fe297
     je.d8 L_return_first_record                             # 004fe299
     # block 0x004fe29b: ecx=link; if link >= 0 (signed) go to the indexed lookup
-    mov ecx, dword ptr [esp + 0x8]               # 004fe29b
+    mov ecx, dword ptr [esp + stk_8]               # 004fe29b
     test ecx, ecx                                # 004fe29f
     jge.d8 L_link_nonnegative                            # 004fe2a1
     # block 0x004fe2a3: link < 0 (current link requested): if vf+0x58 < 3 (signed) return the default record
-    cmp dword ptr [edx + 0x58], 0x3              # 004fe2a3
+    cmp dword ptr [edx + field_58], 0x3              # 004fe2a3
     jl.d8 L_return_first_record                             # 004fe2a7
     # block 0x004fe2a9: link < 0 and vf+0x58 >= 3: return vf+0x48 + (vf+0x60)*0x20 (current-link record)
-    mov eax, dword ptr [edx + 0x60]              # 004fe2a9
-    mov ecx, dword ptr [edx + 0x48]              # 004fe2ac
+    mov eax, dword ptr [edx + field_60]              # 004fe2a9
+    mov ecx, dword ptr [edx + field_48]              # 004fe2ac
     shl eax, 0x5                                 # 004fe2af
     {load} add eax, ecx                          # 004fe2b2
     ret                                          # 004fe2b4
 L_link_nonnegative:
     # block 0x004fe2b5: link >= 0: if link < vf+0x34 (signed link count) the index is in range, else fall to the null result
-    cmp ecx, dword ptr [edx + 0x34]              # 004fe2b5
+    cmp ecx, dword ptr [edx + field_34]              # 004fe2b5
     jl.d8 L_link_in_range                             # 004fe2b8
     # block 0x004fe2ba: link >= link count: return NULL (eax=0)
     {load} xor eax, eax                          # 004fe2ba
     ret                                          # 004fe2bc
 L_link_in_range:
     # block 0x004fe2bd: in range: return vf+0x48 + link*0x20
-    mov eax, dword ptr [edx + 0x48]              # 004fe2bd
+    mov eax, dword ptr [edx + field_48]              # 004fe2bd
     shl ecx, 0x5                                 # 004fe2c0
     {load} add eax, ecx                          # 004fe2c3
     ret                                          # 004fe2c5
 L_return_first_record:
     # block 0x004fe2c6: default record: return vf+0x48 (first 0x20-byte record)
-    mov eax, dword ptr [edx + 0x48]              # 004fe2c6
+    mov eax, dword ptr [edx + field_48]              # 004fe2c6
     ret                                          # 004fe2c9
 
 # --- data items (not part of the function) -------------------------

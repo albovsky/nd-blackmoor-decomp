@@ -300,6 +300,7 @@ class DataItem:
     values: list[int] = field(default_factory=list)  # index_table: byte values
     fill: int = 0xCC  # padding byte
     lines: list[str] = field(default_factory=list)  # padding made of nop-equivalent instructions
+    owner_jmp: int = 0  # index_table: address of the switch jump that uses it
 
     @property
     def end(self) -> int:
@@ -531,7 +532,7 @@ def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] =
             if kind == "switch_table":
                 layout.data.append(DataItem(kind, tail, hi - tail, count=len(info["targets"]), targets=list(info["targets"])))
             else:
-                layout.data.append(DataItem(kind, tail, hi - tail, count=len(info["values"]), values=list(info["values"])))
+                layout.data.append(DataItem(kind, tail, hi - tail, count=len(info["values"]), values=list(info["values"]), owner_jmp=info.get("jmp", 0)))
             tail = hi
             continue
         if tail in layout.external_targets or tail in known_targets:
@@ -691,7 +692,7 @@ def _register_table(image, start, span_end, order, decoded, ins, match, tables, 
             exceptions.append(f"index_table_outside_span:0x{IDX:08x}")
             return
         values = list(image.bytes_at(IDX, IDX + entries))
-        index_tables[IDX] = {"values": values}
+        index_tables[IDX] = {"values": values, "jmp": ins.addr}
         count = max(values) + 1
     else:
         count = entries
@@ -830,6 +831,9 @@ def _decode_shape(raw: bytes):
     return i, op, modrm, dsz, dv, sib
 
 
+_FIELD_DISP = re.compile(
+    r"\[(?P<base>e[a-d]x|e[sd]i|esp)(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]"
+)
 _EBP_DISP = re.compile(r"\[ebp(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]")
 
 
@@ -874,6 +878,12 @@ def encode_hints(ins: Insn, text: str) -> str:
         elif mod == 1 and dv == 0 and dsz == 1:
             hint = "{disp8} "
     return hint + text
+
+
+def field_symbol(base: str, sign: str, magnitude: int) -> str:
+    if base == "esp":
+        return f"stk_{magnitude:x}" if sign == "+" else f"stk_minus_{magnitude:x}"
+    return f"field_{magnitude:x}" if sign == "+" else f"field_minus_{magnitude:x}"
 
 
 def frame_symbol(sign: str, magnitude: int) -> str:
@@ -941,6 +951,17 @@ def render_instruction(image: Image, layout: Layout, ins: Insn, tables: dict[int
 
     if has_standard_frame(layout):
         rendered = _EBP_DISP.sub(repl, rendered)
+
+    # object-field and stack displacements get names too (absolute addresses stay numeric)
+    def field_repl(m: re.Match) -> str:
+        mag = int(m.group("mag"), 16)
+        if mag >= 0x400000:
+            return m.group(0)
+        name = field_symbol(m.group("base"), m.group("sign"), mag)
+        frame[name] = (m.group("sign"), mag)
+        return f"[{m.group('base')}{m.group('index')} {m.group('sign')} {name}]"
+
+    rendered = _FIELD_DISP.sub(field_repl, rendered)
     return rendered
 
 
@@ -995,7 +1016,10 @@ def render_data_items(image: Image, layout: Layout) -> list[str]:
             for case in item.targets:
                 lines.append(f"    .long {label_for(case)} - .text + 0x{image.base:x}")
         elif item.kind == "index_table":
-            lines.append(f"IDXTAB_{item.va:08x}:  # {item.count} switch index byte(s)")
+            lines.append(
+                f"IDXTAB_{item.va:08x}:  # index table of FUN_{layout.va:08x} for the switch jump at 0x{item.owner_jmp:08x} "
+                f"({item.count} byte(s))"
+            )
             for start in range(0, len(item.values), 16):
                 chunk = item.values[start : start + 16]
                 lines.append("    .byte " + ", ".join(str(v) for v in chunk))
@@ -1060,7 +1084,7 @@ def render_file(image: Image, layout: Layout) -> str:
         "# --- frame symbols ---------------------------------------------------",
     ]
     for name, (sign, mag) in sorted(rendered.frame.items(), key=lambda kv: (kv[1][0] == "+", kv[1][1])):
-        out.append(f".equ {name}, 0x{mag:x}  # [ebp {sign} 0x{mag:x}]")
+        out.append(f".equ {name}, 0x{mag:x}  # offset {sign}0x{mag:x}")
     out += ["", "# --- external targets -----------------------------------------------"]
     for target, name in sorted(rendered.externals.items()):
         out.append(f".set {name}, .text + (0x{target:08x} - 0x{image.base:x})")
@@ -1331,12 +1355,19 @@ def main(argv: Optional[list[str]] = None) -> int:
     man.add_argument("--batch", required=True)
     man.add_argument("--description", required=True)
     man.add_argument("--out", type=Path, required=True)
+    fld = sub.add_parser("add-field-symbols", help="retrofit field/stack symbols (default names) into annotated .s files")
+    fld.add_argument("files", nargs="+", type=Path)
     cen = sub.add_parser("census", help="reassemble every indexed function and report")
     cen.add_argument("--out", type=Path, required=True, help="private output directory (stays under work/)")
     cen.add_argument("--vas", nargs="*", type=parse_va)
     cen.add_argument("--keep-source", action="store_true")
     args = parser.parse_args(argv)
 
+    if args.command == "add-field-symbols":
+        for path in args.files:
+            path.write_text(add_field_symbols(path.read_text(encoding="utf-8")), encoding="utf-8")
+            print(f"updated {path}")
+        return 0
     image = load_image(args.original)
     if args.command == "gen":
         layouts, _decoded = analyze_all(image, args.vas)
@@ -1434,6 +1465,40 @@ def build_manifest(
         "generator": "scripts/gen_hinted_asm.py",
         "functions": functions,
     }
+
+
+def add_field_symbols(source: str) -> str:
+    """Retrofit field and stack symbols (default names) into an already annotated ``.s`` file.
+
+    Register-relative displacements below 0x400000 in the code part become ``[reg + field_NN]`` /
+    ``[esp + stk_NN]`` with matching ``.equ`` lines; the implementer then renames them.
+    """
+
+    lines = source.split("\n")
+    start = next(i for i, line in enumerate(lines) if re.match(r"^FUN_[0-9a-f]{8}:$", line))
+    end = next((i for i in range(start, len(lines)) if lines[i].startswith(".org ")), len(lines))
+    names: dict[str, int] = {}
+
+    def repl(m: re.Match) -> str:
+        mag = int(m.group("mag"), 16)
+        if mag >= 0x400000:
+            return m.group(0)
+        name = field_symbol(m.group("base"), m.group("sign"), mag)
+        names[name] = mag
+        return f"[{m.group('base')}{m.group('index')} {m.group('sign')} {name}]"
+
+    for i in range(start, end):
+        code, hash_, comment = lines[i].partition("#")
+        if code.strip().startswith("."):
+            if not code.strip().startswith(".insn"):
+                continue
+        lines[i] = _FIELD_DISP.sub(repl, code) + hash_ + comment
+    existing = {m.group(1) for line in lines if (m := re.match(r"^\.equ (\w+),", line))}
+    equs = [f".equ {n}, 0x{v:x}  # offset" for n, v in sorted(names.items(), key=lambda kv: (kv[0].startswith("stk"), kv[1])) if n not in existing]
+    if equs:
+        anchor = next(i for i, line in enumerate(lines) if line.startswith("# --- external targets"))
+        lines[anchor:anchor] = equs + [""]
+    return "\n".join(lines)
 
 
 def describe_layout(image: Image, layout: Layout) -> dict[str, Any]:

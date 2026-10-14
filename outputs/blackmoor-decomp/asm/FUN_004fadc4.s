@@ -23,6 +23,15 @@
 .equ arg_name, 0x8  # [ebp + 0x8]
 .equ arg_channel, 0xc  # [ebp + 0xc]
 
+.equ field_8, 0x8  # offset
+.equ field_10c, 0x10c  # offset
+.equ field_132, 0x132  # offset
+.equ field_138, 0x138  # offset
+.equ field_13c, 0x13c  # offset
+.equ field_140, 0x140  # offset
+.equ field_144, 0x144  # offset
+.equ field_b764, 0xb764  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
 .set FUN_004f379c, .text + (0x004f379c - 0x401000)
@@ -64,7 +73,7 @@ L_after_begin_log:
     and eax, 0xffff                              # 004fae0b
     imul eax, eax, 0x5bb                         # 004fae10
     mov ecx, dword ptr [ebp - local_this]           # 004fae16
-    lea edx, [ecx + eax + 0x8]                   # 004fae19
+    lea edx, [ecx + eax + field_8]                   # 004fae19
     or ecx, -0x1                                 # 004fae1d
     {load} xor eax, eax                          # 004fae20
     repne scasb al, byte ptr es:[edi]            # 004fae22
@@ -85,11 +94,11 @@ L_after_begin_log:
     and edx, 0xffff                              # 004fae4c
     imul edx, edx, 0x5bb                         # 004fae52
     mov eax, dword ptr [ebp - local_this]           # 004fae58
-    movsx edx, word ptr [eax + edx + 0x10c]      # 004fae5b
+    movsx edx, word ptr [eax + edx + field_10c]      # 004fae5b
     mov eax, dword ptr [ebp - local_this]           # 004fae63
     mov esi, dword ptr [ebp - local_this]           # 004fae66
-    fld dword ptr [eax + ecx + 0x138]            # 004fae69
-    fmul dword ptr [esi + 4*edx + 0xb764]        # 004fae70
+    fld dword ptr [eax + ecx + field_138]            # 004fae69
+    fmul dword ptr [esi + 4*edx + field_b764]        # 004fae70
     fmul dword ptr [0x52e4e0]                    # 004fae77
     fadd qword ptr [0x52e4d8]                    # 004fae7d
     call FUN_0050ce04                            # 004fae83
@@ -97,7 +106,7 @@ L_after_begin_log:
     and ecx, 0xffff                              # 004fae8b
     imul ecx, ecx, 0x5bb                         # 004fae91
     mov edx, dword ptr [ebp - local_this]           # 004fae97
-    mov dword ptr [edx + ecx + 0x140], eax       # 004fae9a
+    mov dword ptr [edx + ecx + field_140], eax       # 004fae9a
     mov eax, dword ptr [ebp + arg_channel]             # 004faea1
     and eax, 0xffff                              # 004faea4
     imul eax, eax, 0x5bb                         # 004faea9
@@ -105,11 +114,11 @@ L_after_begin_log:
     and ecx, 0xffff                              # 004faeb2
     imul ecx, ecx, 0x5bb                         # 004faeb8
     mov edx, dword ptr [ebp - local_this]           # 004faebe
-    movsx ecx, word ptr [edx + ecx + 0x10c]      # 004faec1
+    movsx ecx, word ptr [edx + ecx + field_10c]      # 004faec1
     mov edx, dword ptr [ebp - local_this]           # 004faec9
     mov esi, dword ptr [ebp - local_this]           # 004faecc
-    fld dword ptr [edx + eax + 0x13c]            # 004faecf
-    fmul dword ptr [esi + 4*ecx + 0xb764]        # 004faed6
+    fld dword ptr [edx + eax + field_13c]            # 004faecf
+    fmul dword ptr [esi + 4*ecx + field_b764]        # 004faed6
     fmul dword ptr [0x52e4e0]                    # 004faedd
     fadd qword ptr [0x52e4d8]                    # 004faee3
     call FUN_0050ce04                            # 004faee9
@@ -117,7 +126,7 @@ L_after_begin_log:
     and ecx, 0xffff                              # 004faef1
     imul ecx, ecx, 0x5bb                         # 004faef7
     mov edx, dword ptr [ebp - local_this]           # 004faefd
-    mov dword ptr [edx + ecx + 0x144], eax       # 004faf00
+    mov dword ptr [edx + ecx + field_144], eax       # 004faf00
     mov ax, word ptr [ebp + arg_channel]               # 004faf07
     push eax                                     # 004faf0b
     mov ecx, 0x5cf1eb                            # 004faf0c
@@ -158,7 +167,7 @@ L_load_ok_mark_ready:
     and ecx, 0xffff                              # 004faf72
     imul ecx, ecx, 0x5bb                         # 004faf78
     mov edx, dword ptr [ebp - local_this]           # 004faf7e
-    mov word ptr [edx + ecx + 0x132], 0x1        # 004faf81
+    mov word ptr [edx + ecx + field_132], 0x1        # 004faf81
     mov eax, 0x1                                 # 004faf8b
 L_return:
     # block 0x004faf90: epilogue: restore edi, esi, frame, ret 8

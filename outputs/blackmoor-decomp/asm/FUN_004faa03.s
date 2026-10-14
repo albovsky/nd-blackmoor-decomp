@@ -23,6 +23,29 @@
 .equ local_this, 0x8  # [ebp - 0x8]
 .equ arg_ds_init_param, 0x8  # [ebp + 0x8]
 
+.equ field_4, 0x4  # offset
+.equ field_8, 0x8  # offset
+.equ field_10c, 0x10c  # offset
+.equ field_12c, 0x12c  # offset
+.equ field_132, 0x132  # offset
+.equ field_156, 0x156  # offset
+.equ field_15a, 0x15a  # offset
+.equ field_15e, 0x15e  # offset
+.equ field_166, 0x166  # offset
+.equ field_172, 0x172  # offset
+.equ field_176, 0x176  # offset
+.equ field_28b, 0x28b  # offset
+.equ field_28f, 0x28f  # offset
+.equ field_293, 0x293  # offset
+.equ field_297, 0x297  # offset
+.equ field_29b, 0x29b  # offset
+.equ field_29f, 0x29f  # offset
+.equ field_5cbc, 0x5cbc  # offset
+.equ field_5ce0, 0x5ce0  # offset
+.equ field_5ce4, 0x5ce4  # offset
+.equ field_5d1a, 0x5d1a  # offset
+.equ field_5e3f, 0x5e3f  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
 .set FUN_004f2710, .text + (0x004f2710 - 0x401000)
@@ -72,72 +95,72 @@ L_slot_loop_test:
     mov edx, dword ptr [ebp - local_channel_index]           # 004faa53
     imul edx, edx, 0x5bb                         # 004faa56
     mov eax, dword ptr [ebp - local_this]           # 004faa5c
-    mov word ptr [eax + edx + 0x132], 0x0        # 004faa5f
+    mov word ptr [eax + edx + field_132], 0x0        # 004faa5f
     mov ecx, dword ptr [ebp - local_channel_index]           # 004faa69
     imul ecx, ecx, 0x5bb                         # 004faa6c
     mov edx, dword ptr [ebp - local_this]           # 004faa72
-    mov word ptr [edx + ecx + 0x10c], 0x3        # 004faa75
+    mov word ptr [edx + ecx + field_10c], 0x3        # 004faa75
     mov eax, dword ptr [ebp - local_channel_index]           # 004faa7f
     imul eax, eax, 0x5bb                         # 004faa82
     mov ecx, dword ptr [ebp - local_this]           # 004faa88
-    mov dword ptr [ecx + eax + 0x12c], 0x0       # 004faa8b
+    mov dword ptr [ecx + eax + field_12c], 0x0       # 004faa8b
     mov edx, dword ptr [ebp - local_channel_index]           # 004faa96
     imul edx, edx, 0x5bb                         # 004faa99
     mov eax, dword ptr [ebp - local_this]           # 004faa9f
-    mov dword ptr [eax + edx + 0x28b], 0x0       # 004faaa2
+    mov dword ptr [eax + edx + field_28b], 0x0       # 004faaa2
     mov ecx, dword ptr [ebp - local_channel_index]           # 004faaad
     imul ecx, ecx, 0x5bb                         # 004faab0
     mov edx, dword ptr [ebp - local_this]           # 004faab6
     mov eax, dword ptr [ebp - local_channel_index]           # 004faab9
-    mov dword ptr [edx + ecx + 0x4], eax         # 004faabc
+    mov dword ptr [edx + ecx + field_4], eax         # 004faabc
     mov ecx, dword ptr [ebp - local_channel_index]           # 004faac0
     imul ecx, ecx, 0x5bb                         # 004faac3
     mov edx, dword ptr [ebp - local_this]           # 004faac9
-    mov byte ptr [edx + ecx + 0x8], 0x0          # 004faacc
+    mov byte ptr [edx + ecx + field_8], 0x0          # 004faacc
     mov eax, dword ptr [ebp - local_channel_index]           # 004faad1
     imul eax, eax, 0x5bb                         # 004faad4
     mov ecx, dword ptr [ebp - local_this]           # 004faada
-    mov dword ptr [ecx + eax + 0x293], 0x0       # 004faadd
+    mov dword ptr [ecx + eax + field_293], 0x0       # 004faadd
     mov edx, dword ptr [ebp - local_channel_index]           # 004faae8
     imul edx, edx, 0x5bb                         # 004faaeb
     mov eax, dword ptr [ebp - local_this]           # 004faaf1
-    mov dword ptr [eax + edx + 0x29f], 0x0       # 004faaf4
+    mov dword ptr [eax + edx + field_29f], 0x0       # 004faaf4
     mov ecx, dword ptr [ebp - local_channel_index]           # 004faaff
     imul ecx, ecx, 0x5bb                         # 004fab02
     mov edx, dword ptr [ebp - local_this]           # 004fab08
-    mov dword ptr [edx + ecx + 0x15a], 0x0       # 004fab0b
+    mov dword ptr [edx + ecx + field_15a], 0x0       # 004fab0b
     mov eax, dword ptr [ebp - local_channel_index]           # 004fab16
     imul eax, eax, 0x5bb                         # 004fab19
     mov ecx, dword ptr [ebp - local_this]           # 004fab1f
-    mov dword ptr [ecx + eax + 0x166], 0x0       # 004fab22
+    mov dword ptr [ecx + eax + field_166], 0x0       # 004fab22
     mov edx, dword ptr [ebp - local_channel_index]           # 004fab2d
     imul edx, edx, 0x5bb                         # 004fab30
     mov eax, dword ptr [ebp - local_this]           # 004fab36
-    mov dword ptr [eax + edx + 0x156], 0x0       # 004fab39
+    mov dword ptr [eax + edx + field_156], 0x0       # 004fab39
     mov ecx, dword ptr [ebp - local_channel_index]           # 004fab44
     imul ecx, ecx, 0x5bb                         # 004fab47
     mov edx, dword ptr [ebp - local_this]           # 004fab4d
-    mov dword ptr [edx + ecx + 0x172], 0x0       # 004fab50
+    mov dword ptr [edx + ecx + field_172], 0x0       # 004fab50
     mov eax, dword ptr [ebp - local_channel_index]           # 004fab5b
     imul eax, eax, 0x5bb                         # 004fab5e
     mov ecx, dword ptr [ebp - local_this]           # 004fab64
-    mov dword ptr [ecx + eax + 0x176], 0x0       # 004fab67
+    mov dword ptr [ecx + eax + field_176], 0x0       # 004fab67
     mov edx, dword ptr [ebp - local_channel_index]           # 004fab72
     imul edx, edx, 0x5bb                         # 004fab75
     mov eax, dword ptr [ebp - local_this]           # 004fab7b
-    mov dword ptr [eax + edx + 0x15e], 0x0       # 004fab7e
+    mov dword ptr [eax + edx + field_15e], 0x0       # 004fab7e
     mov ecx, dword ptr [ebp - local_channel_index]           # 004fab89
     imul ecx, ecx, 0x5bb                         # 004fab8c
     mov edx, dword ptr [ebp - local_this]           # 004fab92
-    mov dword ptr [edx + ecx + 0x297], 0x0       # 004fab95
+    mov dword ptr [edx + ecx + field_297], 0x0       # 004fab95
     mov eax, dword ptr [ebp - local_channel_index]           # 004faba0
     imul eax, eax, 0x5bb                         # 004faba3
     mov ecx, dword ptr [ebp - local_this]           # 004faba9
-    mov dword ptr [ecx + eax + 0x29b], 0x0       # 004fabac
+    mov dword ptr [ecx + eax + field_29b], 0x0       # 004fabac
     mov edx, dword ptr [ebp - local_channel_index]           # 004fabb7
     imul edx, edx, 0x5bb                         # 004fabba
     mov eax, dword ptr [ebp - local_this]           # 004fabc0
-    mov dword ptr [eax + edx + 0x28f], 0x0       # 004fabc3
+    mov dword ptr [eax + edx + field_28f], 0x0       # 004fabc3
     jmp.d32 L_slot_next                           # 004fabce
 L_init_directsound:
     # block 0x004fabd3: call FUN_004f2710 on CDirectSound 0x5cf1eb with (arg_ds_init_param, this+4); nonzero result continues at L_cat0_start, zero falls through to the failure path
@@ -188,7 +211,7 @@ L_cat0_test:
     movsx edx, word ptr [2*ecx + 0x5604dc]       # 004fac4b
     imul edx, edx, 0x5bb                         # 004fac53
     mov eax, dword ptr [ebp - local_this]           # 004fac59
-    mov word ptr [eax + edx + 0x10c], 0x0        # 004fac5c
+    mov word ptr [eax + edx + field_10c], 0x0        # 004fac5c
     jmp.d8 L_cat0_next                            # 004fac66
 L_cat1_start:
     # block 0x004fac68: category 1 list: local_channel_index = 0
@@ -210,7 +233,7 @@ L_cat1_test:
     movsx edx, word ptr [2*ecx + 0x5604e4]       # 004fac8d
     imul edx, edx, 0x5bb                         # 004fac95
     mov eax, dword ptr [ebp - local_this]           # 004fac9b
-    mov word ptr [eax + edx + 0x10c], 0x1        # 004fac9e
+    mov word ptr [eax + edx + field_10c], 0x1        # 004fac9e
     jmp.d8 L_cat1_next                            # 004faca8
 L_cat2_start:
     # block 0x004facaa: category 2 list: local_channel_index = 0
@@ -232,20 +255,20 @@ L_cat2_test:
     movsx edx, word ptr [2*ecx + 0x5604f4]       # 004faccf
     imul edx, edx, 0x5bb                         # 004facd7
     mov eax, dword ptr [ebp - local_this]           # 004facdd
-    mov word ptr [eax + edx + 0x10c], 0x2        # 004face0
+    mov word ptr [eax + edx + field_10c], 0x2        # 004face0
     jmp.d8 L_cat2_next                            # 004facea
 L_setup_silence_channel:
     # block 0x004facec: channel 16 setup: this+0x5e3f=0, category word this+0x5cbc=3, flags word this+0x5ce0=1, this+0x5d1a=1 (stream_state), control dword this+0x5ce4=0; then FUN_004fc62d(ch 16, 'silence' 0x560570, 0, 0, 1) and FUN_004fb2e3(ch 16)
     mov ecx, dword ptr [ebp - local_this]           # 004facec
-    mov dword ptr [ecx + 0x5e3f], 0x0            # 004facef
+    mov dword ptr [ecx + field_5e3f], 0x0            # 004facef
     mov edx, dword ptr [ebp - local_this]           # 004facf9
-    mov word ptr [edx + 0x5cbc], 0x3             # 004facfc
+    mov word ptr [edx + field_5cbc], 0x3             # 004facfc
     mov eax, dword ptr [ebp - local_this]           # 004fad05
-    mov word ptr [eax + 0x5ce0], 0x1             # 004fad08
+    mov word ptr [eax + field_5ce0], 0x1             # 004fad08
     mov ecx, dword ptr [ebp - local_this]           # 004fad11
-    mov dword ptr [ecx + 0x5d1a], 0x1            # 004fad14
+    mov dword ptr [ecx + field_5d1a], 0x1            # 004fad14
     mov edx, dword ptr [ebp - local_this]           # 004fad1e
-    mov dword ptr [edx + 0x5ce4], 0x0            # 004fad21
+    mov dword ptr [edx + field_5ce4], 0x0            # 004fad21
     push 0x1                                     # 004fad2b
     push 0x0                                     # 004fad2d
     push 0x0                                     # 004fad2f

@@ -21,6 +21,10 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
+.equ field_8, 0x8  # offset
+.equ field_c, 0xc  # offset
+.equ field_10, 0x10  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004db000 - 0x401000
@@ -32,7 +36,7 @@ FUN_004db000:
     push ecx                                     # 004db003
     mov dword ptr [ebp - local_this], ecx           # 004db004
     mov eax, dword ptr [ebp - local_this]           # 004db007
-    cmp dword ptr [eax + 0x8], 0x0               # 004db00a
+    cmp dword ptr [eax + field_8], 0x0               # 004db00a
     je.d8 L_gate_open                             # 004db00e
     # block 0x004db010: [this+8] != 0: skip all effects, jump to the epilogue
     jmp.d8 L_epilogue                            # 004db010
@@ -50,15 +54,15 @@ L_gate_open:
 L_check_state_0c:
     # block 0x004db02c: compare dword [this+0x0c] with 1; if not equal jump to L_clear_field_10 (jne)
     mov eax, dword ptr [ebp - local_this]           # 004db02c
-    cmp dword ptr [eax + 0xc], 0x1               # 004db02f
+    cmp dword ptr [eax + field_c], 0x1               # 004db02f
     jne.d8 L_clear_field_10                            # 004db033
     # block 0x004db035: [this+0x0c] == 1: store 2 to [this+0x0c]
     mov ecx, dword ptr [ebp - local_this]           # 004db035
-    mov dword ptr [ecx + 0xc], 0x2               # 004db038
+    mov dword ptr [ecx + field_c], 0x2               # 004db038
 L_clear_field_10:
     # block 0x004db03f: store 0 to [this+0x10] (reached from both the [this+0x0c] test and the store above)
     mov edx, dword ptr [ebp - local_this]           # 004db03f
-    mov dword ptr [edx + 0x10], 0x0              # 004db042
+    mov dword ptr [edx + field_10], 0x0              # 004db042
 L_epilogue:
     # block 0x004db049: epilogue: restore the frame and return popping 8 bytes (also the target of the [this+8] != 0 skip)
     {load} mov esp, ebp                          # 004db049

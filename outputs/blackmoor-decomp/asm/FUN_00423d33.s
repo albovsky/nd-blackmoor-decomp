@@ -22,6 +22,9 @@
 .equ local_saved_this, 0x4  # [ebp - 0x4]
 .equ arg_trunk_branch, 0x8  # [ebp + 0x8]
 
+.equ field_8, 0x8  # offset
+.equ field_34, 0x34  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_004234c8, .text + (0x004234c8 - 0x401000)
 .set FUN_00423da2, .text + (0x00423da2 - 0x401000)
@@ -37,7 +40,7 @@ FUN_00423d33:
     push ecx                                     # 00423d36
     mov dword ptr [ebp - local_saved_this], ecx           # 00423d37
     mov eax, dword ptr [ebp + arg_trunk_branch]             # 00423d3a
-    cmp dword ptr [eax + 0x34], 0x0              # 00423d3d
+    cmp dword ptr [eax + field_34], 0x0              # 00423d3d
     jne.d8 L_has_records                            # 00423d41
     # block 0x00423d43: +0x34 is zero (no dependency records): trunk.result (+0) = 1, jump to the epilogue
     mov ecx, dword ptr [ebp + arg_trunk_branch]             # 00423d43
@@ -52,7 +55,7 @@ L_has_records:
     je.d8 L_reset_tree                             # 00423d60
     # block 0x00423d62: debug on: sprintf(0x63888b, 0x54488c, trunk.id (+8)) then log it with 0x44a2b7, caller cleans up both calls
     mov ecx, dword ptr [ebp + arg_trunk_branch]             # 00423d62
-    mov edx, dword ptr [ecx + 0x8]               # 00423d65
+    mov edx, dword ptr [ecx + field_8]               # 00423d65
     push edx                                     # 00423d68
     push 0x54488c                                # 00423d69
     push 0x63888b                                # 00423d6e

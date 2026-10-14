@@ -21,6 +21,10 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
+.equ field_8, 0x8  # offset
+.equ field_c, 0xc  # offset
+.equ field_10, 0x10  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004dafc3 - 0x401000
@@ -34,17 +38,17 @@ FUN_004dafc3:
     mov eax, dword ptr [ebp - local_this]           # 004dafca
     mov dword ptr [eax], 0x0                     # 004dafcd
     mov ecx, dword ptr [ebp - local_this]           # 004dafd3
-    mov dword ptr [ecx + 0x8], 0x0               # 004dafd6
+    mov dword ptr [ecx + field_8], 0x0               # 004dafd6
     mov edx, dword ptr [ebp - local_this]           # 004dafdd
-    cmp dword ptr [edx + 0xc], 0x0               # 004dafe0
+    cmp dword ptr [edx + field_c], 0x0               # 004dafe0
     jne.d8 L_clear_field_10                            # 004dafe4
     # block 0x004dafe6: [this+0x0c] was 0: store 1 to [this+0x0c]
     mov eax, dword ptr [ebp - local_this]           # 004dafe6
-    mov dword ptr [eax + 0xc], 0x1               # 004dafe9
+    mov dword ptr [eax + field_c], 0x1               # 004dafe9
 L_clear_field_10:
     # block 0x004daff0: common tail (also the branch target when [this+0x0c] != 0): store 0 to [this+0x10], restore the frame and return popping 8 bytes
     mov ecx, dword ptr [ebp - local_this]           # 004daff0
-    mov dword ptr [ecx + 0x10], 0x0              # 004daff3
+    mov dword ptr [ecx + field_10], 0x0              # 004daff3
     {load} mov esp, ebp                          # 004daffa
     pop ebp                                      # 004daffc
     ret 0x8                                      # 004daffd

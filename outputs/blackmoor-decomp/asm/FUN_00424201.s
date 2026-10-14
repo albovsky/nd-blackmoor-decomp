@@ -25,6 +25,11 @@
 .equ local_saved_this, 0x10  # [ebp - 0x10]
 .equ arg_branch, 0x8  # [ebp + 0x8]
 
+.equ field_4, 0x4  # offset
+.equ field_8, 0x8  # offset
+.equ field_38, 0x38  # offset
+.equ field_44, 0x44  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0042356d, .text + (0x0042356d - 0x401000)
 .set FUN_004235fd, .text + (0x004235fd - 0x401000)
@@ -45,7 +50,7 @@ L_evaluate_branch_entry:
     sub esp, 0x10                                # 00424204
     mov dword ptr [ebp - local_saved_this], ecx          # 00424207
     mov eax, dword ptr [ebp + arg_branch]             # 0042420a
-    mov ecx, dword ptr [eax + 0x4]               # 0042420d
+    mov ecx, dword ptr [eax + field_4]               # 0042420d
     mov dword ptr [ebp - local_cur], ecx           # 00424210
     mov dword ptr [ebp - local_done], 0x0           # 00424213
 L_loop_head:
@@ -59,14 +64,14 @@ L_loop_head:
     # block 0x0042422c: leaf: cur.saved_state (+8) = cur.state (+4); call leaf evaluator 0x424346(this, cur); cur = cur.next (+0x38); if non-null go on to the next sibling
     mov eax, dword ptr [ebp - local_cur]           # 0042422c
     mov ecx, dword ptr [ebp - local_cur]           # 0042422f
-    mov edx, dword ptr [ecx + 0x4]               # 00424232
-    mov dword ptr [eax + 0x8], edx               # 00424235
+    mov edx, dword ptr [ecx + field_4]               # 00424232
+    mov dword ptr [eax + field_8], edx               # 00424235
     mov eax, dword ptr [ebp - local_cur]           # 00424238
     push eax                                     # 0042423b
     mov ecx, dword ptr [ebp - local_saved_this]          # 0042423c
     call FUN_00424346                            # 0042423f
     mov ecx, dword ptr [ebp - local_cur]           # 00424244
-    mov edx, dword ptr [ecx + 0x38]              # 00424247
+    mov edx, dword ptr [ecx + field_38]              # 00424247
     mov dword ptr [ebp - local_cur], edx           # 0042424a
     cmp dword ptr [ebp - local_cur], 0x0           # 0042424d
     jne.d8 L_resume_loop_after_leaf                            # 00424251
@@ -87,8 +92,8 @@ L_check_branch_kind:
     # block 0x00424277: branch node: cur.saved_state (+8) = cur.state (+4); push (arg_branch, cur) with 0x42356d; recurse on cur.child_branch (+0x44); pop with 0x4235fd; null pop goes to the error path
     mov edx, dword ptr [ebp - local_cur]           # 00424277
     mov eax, dword ptr [ebp - local_cur]           # 0042427a
-    mov ecx, dword ptr [eax + 0x4]               # 0042427d
-    mov dword ptr [edx + 0x8], ecx               # 00424280
+    mov ecx, dword ptr [eax + field_4]               # 0042427d
+    mov dword ptr [edx + field_8], ecx               # 00424280
     mov edx, dword ptr [ebp - local_cur]           # 00424283
     push edx                                     # 00424286
     mov eax, dword ptr [ebp + arg_branch]             # 00424287
@@ -96,7 +101,7 @@ L_check_branch_kind:
     mov ecx, dword ptr [ebp - local_saved_this]          # 0042428b
     call FUN_0042356d                            # 0042428e
     mov ecx, dword ptr [ebp - local_cur]           # 00424293
-    mov edx, dword ptr [ecx + 0x44]              # 00424296
+    mov edx, dword ptr [ecx + field_44]              # 00424296
     push edx                                     # 00424299
     mov ecx, dword ptr [ebp - local_saved_this]          # 0042429a
     call L_evaluate_branch_entry                              # 0042429d
@@ -107,13 +112,13 @@ L_check_branch_kind:
     je.d8 L_pop_failed                             # 004242b1
     # block 0x004242b3: pop ok: cur = entry.node (+8); arg_branch = entry.branch (+0); cur = cur.next (+0x38); if non-null go to the keep-looping case
     mov eax, dword ptr [ebp - local_popped]           # 004242b3
-    mov ecx, dword ptr [eax + 0x8]               # 004242b6
+    mov ecx, dword ptr [eax + field_8]               # 004242b6
     mov dword ptr [ebp - local_cur], ecx           # 004242b9
     mov edx, dword ptr [ebp - local_popped]           # 004242bc
     mov eax, dword ptr [edx]                     # 004242bf
     mov dword ptr [ebp + arg_branch], eax             # 004242c1
     mov ecx, dword ptr [ebp - local_cur]           # 004242c4
-    mov edx, dword ptr [ecx + 0x38]              # 004242c7
+    mov edx, dword ptr [ecx + field_38]              # 004242c7
     mov dword ptr [ebp - local_cur], edx           # 004242ca
     cmp dword ptr [ebp - local_cur], 0x0           # 004242cd
     jne.d8 L_branch_has_next                            # 004242d1

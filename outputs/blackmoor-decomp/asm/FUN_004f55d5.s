@@ -26,6 +26,20 @@
 .equ local_this, 0x14  # [ebp - 0x14]
 .equ arg_channel, 0x8  # [ebp + 0x8]
 
+.equ field_12c, 0x12c  # offset
+.equ field_130, 0x130  # offset
+.equ field_166, 0x166  # offset
+.equ field_16e, 0x16e  # offset
+.equ field_172, 0x172  # offset
+.equ field_19e, 0x19e  # offset
+.equ field_1a2, 0x1a2  # offset
+.equ field_1a6, 0x1a6  # offset
+.equ field_1aa, 0x1aa  # offset
+.equ field_1ae, 0x1ae  # offset
+.equ field_287, 0x287  # offset
+.equ field_3c2, 0x3c2  # offset
+.equ field_3ce, 0x3ce  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_004f6059, .text + (0x004f6059 - 0x401000)
 .set FUN_004f8f94, .text + (0x004f8f94 - 0x401000)
@@ -44,30 +58,30 @@ FUN_004f55d5:
     call dword ptr [0x52a23c]                    # 004f55de
     mov dword ptr [ebp - local_tick], eax           # 004f55e4
     mov eax, dword ptr [ebp - local_this]          # 004f55e7
-    mov dword ptr [eax + 0x3c2], 0x3e8           # 004f55ea
+    mov dword ptr [eax + field_3c2], 0x3e8           # 004f55ea
     mov ecx, dword ptr [ebp + arg_channel]             # 004f55f4
     imul ecx, ecx, 0x5bb                         # 004f55f7
     mov edx, dword ptr [ebp - local_this]          # 004f55fd
-    mov eax, dword ptr [edx + 0x3ce]             # 004f5600
+    mov eax, dword ptr [edx + field_3ce]             # 004f5600
     {load} add eax, ecx                          # 004f5606
     mov dword ptr [ebp - local_slot], eax           # 004f5608
     mov ecx, dword ptr [ebp - local_slot]           # 004f560b
     add ecx, 0x18a                               # 004f560e
     mov dword ptr [ebp - local_unused_slot_plus_18a], ecx           # 004f5614
     mov edx, dword ptr [ebp - local_slot]           # 004f5617
-    cmp dword ptr [edx + 0x287], 0x0             # 004f561a
+    cmp dword ptr [edx + field_287], 0x0             # 004f561a
     jne.d8 L_return_gated                            # 004f5621
     # block 0x004f5623: gate: slot+0x16e != 0 jumps to L_return_gated
     mov eax, dword ptr [ebp - local_slot]           # 004f5623
-    cmp dword ptr [eax + 0x16e], 0x0             # 004f5626
+    cmp dword ptr [eax + field_16e], 0x0             # 004f5626
     jne.d8 L_return_gated                            # 004f562d
     # block 0x004f562f: gate: slot+0x172 != 0 jumps to L_return_gated
     mov ecx, dword ptr [ebp - local_slot]           # 004f562f
-    cmp dword ptr [ecx + 0x172], 0x0             # 004f5632
+    cmp dword ptr [ecx + field_172], 0x0             # 004f5632
     jne.d8 L_return_gated                            # 004f5639
     # block 0x004f563b: gate: slot+0x166 (stream_state) zero continues at L_check_stage_flag, nonzero falls to L_return_gated
     mov edx, dword ptr [ebp - local_slot]           # 004f563b
-    cmp dword ptr [edx + 0x166], 0x0             # 004f563e
+    cmp dword ptr [edx + field_166], 0x0             # 004f563e
     je.d8 L_check_stage_flag                             # 004f5645
 L_return_gated:
     # block 0x004f5647: gated early return: jump to epilogue without touching the channel
@@ -76,7 +90,7 @@ L_check_stage_flag:
     # block 0x004f564c: test (word slot+0x12c & 0x20); zero skips the stage chain
     mov eax, dword ptr [ebp - local_slot]           # 004f564c
     {load} xor ecx, ecx                          # 004f564f
-    mov cx, word ptr [eax + 0x12c]               # 004f5651
+    mov cx, word ptr [eax + field_12c]               # 004f5651
     and ecx, 0x20                                # 004f5658
     test ecx, ecx                                # 004f565b
     je.d8 L_check_raw_control                             # 004f565d
@@ -99,22 +113,22 @@ L_check_stage_flag:
 L_check_raw_control:
     # block 0x004f568d: if slot+0x130 (raw control) != 0 jump to epilogue (no restart, no repeat)
     mov eax, dword ptr [ebp - local_slot]           # 004f568d
-    cmp dword ptr [eax + 0x130], 0x0             # 004f5690
+    cmp dword ptr [eax + field_130], 0x0             # 004f5690
     jne.d32 L_return                           # 004f5697
     # block 0x004f569d: raw control == 0: test (word slot+0x12c & 0x10); zero goes to L_restart_play
     mov ecx, dword ptr [ebp - local_slot]           # 004f569d
     {load} xor edx, edx                          # 004f56a0
-    mov dx, word ptr [ecx + 0x12c]               # 004f56a2
+    mov dx, word ptr [ecx + field_12c]               # 004f56a2
     and edx, 0x10                                # 004f56a9
     test edx, edx                                # 004f56ac
     je.d8 L_restart_play                             # 004f56ae
     # block 0x004f56b0: random-repeat: slot+0x19e=1, local_repeat_range = slot+0x1ae - slot+0x1aa; signed range <= 0 goes to L_range_not_positive
     mov eax, dword ptr [ebp - local_slot]           # 004f56b0
-    mov dword ptr [eax + 0x19e], 0x1             # 004f56b3
+    mov dword ptr [eax + field_19e], 0x1             # 004f56b3
     mov ecx, dword ptr [ebp - local_slot]           # 004f56bd
     mov edx, dword ptr [ebp - local_slot]           # 004f56c0
-    mov eax, dword ptr [ecx + 0x1ae]             # 004f56c3
-    sub eax, dword ptr [edx + 0x1aa]             # 004f56c9
+    mov eax, dword ptr [ecx + field_1ae]             # 004f56c3
+    sub eax, dword ptr [edx + field_1aa]             # 004f56c9
     mov dword ptr [ebp - local_repeat_range], eax          # 004f56cf
     cmp dword ptr [ebp - local_repeat_range], 0x0          # 004f56d2
     jle.d8 L_range_not_positive                            # 004f56d6
@@ -123,21 +137,21 @@ L_check_raw_control:
     cdq                                          # 004f56dd
     idiv dword ptr [ebp - local_repeat_range]              # 004f56de
     mov ecx, dword ptr [ebp - local_slot]           # 004f56e1
-    add edx, dword ptr [ecx + 0x1aa]             # 004f56e4
+    add edx, dword ptr [ecx + field_1aa]             # 004f56e4
     mov eax, dword ptr [ebp - local_slot]           # 004f56ea
-    mov dword ptr [eax + 0x1a2], edx             # 004f56ed
+    mov dword ptr [eax + field_1a2], edx             # 004f56ed
     jmp.d8 L_set_due_tick                            # 004f56f3
 L_range_not_positive:
     # block 0x004f56f5: range <= 0: slot+0x1a2 = 0
     mov ecx, dword ptr [ebp - local_slot]           # 004f56f5
-    mov dword ptr [ecx + 0x1a2], 0x0             # 004f56f8
+    mov dword ptr [ecx + field_1a2], 0x0             # 004f56f8
 L_set_due_tick:
     # block 0x004f5702: slot+0x1a6 = local_tick + slot+0x1a2, then jump to epilogue
     mov edx, dword ptr [ebp - local_slot]           # 004f5702
     mov eax, dword ptr [ebp - local_tick]           # 004f5705
-    add eax, dword ptr [edx + 0x1a2]             # 004f5708
+    add eax, dword ptr [edx + field_1a2]             # 004f5708
     mov ecx, dword ptr [ebp - local_slot]           # 004f570e
-    mov dword ptr [ecx + 0x1a6], eax             # 004f5711
+    mov dword ptr [ecx + field_1a6], eax             # 004f5711
     jmp.d8 L_return                            # 004f5717
 L_restart_play:
     # block 0x004f5719: restart: call FUN_004f6059(channel) (ecx=this), result ignored

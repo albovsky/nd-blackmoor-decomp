@@ -22,6 +22,8 @@
 .equ local_this, 0x4  # [ebp - 0x4]
 .equ arg_value, 0x8  # [ebp + 0x8]
 
+.equ field_c, 0xc  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004daf02 - 0x401000
@@ -34,7 +36,7 @@ FUN_004daf02:
     mov dword ptr [ebp - local_this], ecx           # 004daf06
     mov eax, dword ptr [ebp - local_this]           # 004daf09
     mov ecx, dword ptr [ebp + arg_value]             # 004daf0c
-    mov dword ptr [eax + 0xc], ecx               # 004daf0f
+    mov dword ptr [eax + field_c], ecx               # 004daf0f
     {load} mov esp, ebp                          # 004daf12
     pop ebp                                      # 004daf14
     ret 0x4                                      # 004daf15

@@ -21,6 +21,8 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
+.equ field_10, 0x10  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004daf18 - 0x401000
@@ -32,7 +34,7 @@ FUN_004daf18:
     push ecx                                     # 004daf1b
     mov dword ptr [ebp - local_this], ecx           # 004daf1c
     mov eax, dword ptr [ebp - local_this]           # 004daf1f
-    mov eax, dword ptr [eax + 0x10]              # 004daf22
+    mov eax, dword ptr [eax + field_10]              # 004daf22
     {load} mov esp, ebp                          # 004daf25
     pop ebp                                      # 004daf27
     ret                                          # 004daf28

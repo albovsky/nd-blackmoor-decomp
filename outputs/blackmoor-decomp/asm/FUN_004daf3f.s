@@ -21,6 +21,8 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
+.equ field_c, 0xc  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004daf3f - 0x401000
@@ -38,7 +40,7 @@ FUN_004daf3f:
     mov ecx, dword ptr [ebp - local_this]           # 004daf4e
     mov dword ptr [ecx], 0x0                     # 004daf51
     mov edx, dword ptr [ebp - local_this]           # 004daf57
-    mov dword ptr [edx + 0xc], 0x0               # 004daf5a
+    mov dword ptr [edx + field_c], 0x0               # 004daf5a
     mov eax, 0x1                                 # 004daf61
     jmp.d8 L_epilogue                            # 004daf66
 L_not_set_return_0:

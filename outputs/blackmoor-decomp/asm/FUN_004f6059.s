@@ -24,6 +24,16 @@
 .equ local_this, 0xc  # [ebp - 0xc]
 .equ arg_channel, 0x8  # [ebp + 0x8]
 
+.equ field_12c, 0x12c  # offset
+.equ field_130, 0x130  # offset
+.equ field_162, 0x162  # offset
+.equ field_166, 0x166  # offset
+.equ field_287, 0x287  # offset
+.equ field_28f, 0x28f  # offset
+.equ field_3be, 0x3be  # offset
+.equ field_3c2, 0x3c2  # offset
+.equ field_3ce, 0x3ce  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
 .set FUN_004f709c, .text + (0x004f709c - 0x401000)
@@ -39,67 +49,67 @@ FUN_004f6059:
     sub esp, 0xc                                 # 004f605c
     mov dword ptr [ebp - local_this], ecx           # 004f605f
     mov eax, dword ptr [ebp - local_this]           # 004f6062
-    mov dword ptr [eax + 0x3c2], 0x3e8           # 004f6065
+    mov dword ptr [eax + field_3c2], 0x3e8           # 004f6065
     mov ecx, dword ptr [ebp + arg_channel]             # 004f606f
     imul ecx, ecx, 0x5bb                         # 004f6072
     mov edx, dword ptr [ebp - local_this]           # 004f6078
-    mov eax, dword ptr [edx + 0x3ce]             # 004f607b
+    mov eax, dword ptr [edx + field_3ce]             # 004f607b
     {load} add eax, ecx                          # 004f6081
     mov dword ptr [ebp - local_slot], eax           # 004f6083
     mov dword ptr [ebp - local_play_flags], 0x0           # 004f6086
     mov ecx, dword ptr [ebp - local_this]           # 004f608d
-    mov dword ptr [ecx + 0x3be], 0x1             # 004f6090
+    mov dword ptr [ecx + field_3be], 0x1             # 004f6090
     mov ecx, dword ptr [ebp - local_this]           # 004f609a
     call FUN_004f709c                            # 004f609d
     test eax, eax                                # 004f60a2
     jne.d8 L_device_ready                            # 004f60a4
     # block 0x004f60a6: device not ready: error 0x3ea, device_state=0, return this+0x3be (0)
     mov edx, dword ptr [ebp - local_this]           # 004f60a6
-    mov dword ptr [edx + 0x3c2], 0x3ea           # 004f60a9
+    mov dword ptr [edx + field_3c2], 0x3ea           # 004f60a9
     mov eax, dword ptr [ebp - local_this]           # 004f60b3
-    mov dword ptr [eax + 0x3be], 0x0             # 004f60b6
+    mov dword ptr [eax + field_3be], 0x0             # 004f60b6
     mov ecx, dword ptr [ebp - local_this]           # 004f60c0
-    mov eax, dword ptr [ecx + 0x3be]             # 004f60c3
+    mov eax, dword ptr [ecx + field_3be]             # 004f60c3
     jmp.d32 L_return                           # 004f60c9
 L_device_ready:
     # block 0x004f60ce: channel gate: slot+0x162 (resource_ready) zero goes to L_err_channel_not_loaded
     mov edx, dword ptr [ebp - local_slot]           # 004f60ce
-    cmp dword ptr [edx + 0x162], 0x0             # 004f60d1
+    cmp dword ptr [edx + field_162], 0x0             # 004f60d1
     je.d8 L_err_channel_not_loaded                             # 004f60d8
     # block 0x004f60da: channel gate: slot+0x28f (buffer pointer) nonzero goes to L_select_play_flags, zero falls to the error
     mov eax, dword ptr [ebp - local_slot]           # 004f60da
-    cmp dword ptr [eax + 0x28f], 0x0             # 004f60dd
+    cmp dword ptr [eax + field_28f], 0x0             # 004f60dd
     jne.d8 L_select_play_flags                            # 004f60e4
 L_err_channel_not_loaded:
     # block 0x004f60e6: channel not loaded: error 0x3ef, device_state=0, return this+0x3be (0)
     mov ecx, dword ptr [ebp - local_this]           # 004f60e6
-    mov dword ptr [ecx + 0x3c2], 0x3ef           # 004f60e9
+    mov dword ptr [ecx + field_3c2], 0x3ef           # 004f60e9
     mov edx, dword ptr [ebp - local_this]           # 004f60f3
-    mov dword ptr [edx + 0x3be], 0x0             # 004f60f6
+    mov dword ptr [edx + field_3be], 0x0             # 004f60f6
     mov eax, dword ptr [ebp - local_this]           # 004f6100
-    mov eax, dword ptr [eax + 0x3be]             # 004f6103
+    mov eax, dword ptr [eax + field_3be]             # 004f6103
     jmp.d32 L_return                           # 004f6109
 L_select_play_flags:
     # block 0x004f610e: if slot+0x130 (raw control) != 0 go to L_check_stream_state
     mov ecx, dword ptr [ebp - local_slot]           # 004f610e
-    cmp dword ptr [ecx + 0x130], 0x0             # 004f6111
+    cmp dword ptr [ecx + field_130], 0x0             # 004f6111
     jne.d8 L_check_stream_state                            # 004f6118
     # block 0x004f611a: raw control == 0: (word slot+0x12c & 1) != 0 goes to L_set_play_flag_1
     mov edx, dword ptr [ebp - local_slot]           # 004f611a
     {load} xor eax, eax                          # 004f611d
-    mov ax, word ptr [edx + 0x12c]               # 004f611f
+    mov ax, word ptr [edx + field_12c]               # 004f611f
     and eax, 0x1                                 # 004f6126
     test eax, eax                                # 004f6129
     jne.d8 L_set_play_flag_1                            # 004f612b
 L_check_stream_state:
     # block 0x004f612d: slot+0x166 (stream_state) != 0 goes to L_set_play_flag_1
     mov ecx, dword ptr [ebp - local_slot]           # 004f612d
-    cmp dword ptr [ecx + 0x166], 0x0             # 004f6130
+    cmp dword ptr [ecx + field_166], 0x0             # 004f6130
     jne.d8 L_set_play_flag_1                            # 004f6137
     # block 0x004f6139: (word slot+0x12c & 0x100) == 0 goes to L_clear_gate_and_play, otherwise falls to L_set_play_flag_1
     mov edx, dword ptr [ebp - local_slot]           # 004f6139
     {load} xor eax, eax                          # 004f613c
-    mov ax, word ptr [edx + 0x12c]               # 004f613e
+    mov ax, word ptr [edx + field_12c]               # 004f613e
     and eax, 0x100                               # 004f6145
     test eax, eax                                # 004f614a
     je.d8 L_clear_gate_and_play                             # 004f614c
@@ -111,11 +121,11 @@ L_set_play_flag_1:
 L_clear_gate_and_play:
     # block 0x004f6157: slot+0x287=0, call FUN_004f80d3(slot+0x28f, local_play_flags) with ecx=this; zero result falls to the failure
     mov edx, dword ptr [ebp - local_slot]           # 004f6157
-    mov dword ptr [edx + 0x287], 0x0             # 004f615a
+    mov dword ptr [edx + field_287], 0x0             # 004f615a
     mov eax, dword ptr [ebp - local_play_flags]           # 004f6164
     push eax                                     # 004f6167
     mov ecx, dword ptr [ebp - local_slot]           # 004f6168
-    mov edx, dword ptr [ecx + 0x28f]             # 004f616b
+    mov edx, dword ptr [ecx + field_28f]             # 004f616b
     push edx                                     # 004f6171
     mov ecx, dword ptr [ebp - local_this]           # 004f6172
     call FUN_004f80d3                            # 004f6175
@@ -123,11 +133,11 @@ L_clear_gate_and_play:
     jne.d8 L_play_ok                            # 004f617c
     # block 0x004f617e: Play failed: error 0x403, device_state=0, return this+0x3be (0)
     mov eax, dword ptr [ebp - local_this]           # 004f617e
-    mov dword ptr [eax + 0x3c2], 0x403           # 004f6181
+    mov dword ptr [eax + field_3c2], 0x403           # 004f6181
     mov ecx, dword ptr [ebp - local_this]           # 004f618b
-    mov dword ptr [ecx + 0x3be], 0x0             # 004f618e
+    mov dword ptr [ecx + field_3be], 0x0             # 004f618e
     mov edx, dword ptr [ebp - local_this]           # 004f6198
-    mov eax, dword ptr [edx + 0x3be]             # 004f619b
+    mov eax, dword ptr [edx + field_3be]             # 004f619b
     jmp.d8 L_return                            # 004f61a1
 L_play_ok:
     # block 0x004f61a3: Play succeeded: skip the log when debug-log word [0x63a4cd] is zero
@@ -150,7 +160,7 @@ L_play_ok:
 L_return_state:
     # block 0x004f61d8: return this+0x3be (device_state, 1)
     mov eax, dword ptr [ebp - local_this]           # 004f61d8
-    mov eax, dword ptr [eax + 0x3be]             # 004f61db
+    mov eax, dword ptr [eax + field_3be]             # 004f61db
 L_return:
     # block 0x004f61e1: epilogue: restore frame, ret 4
     {load} mov esp, ebp                          # 004f61e1

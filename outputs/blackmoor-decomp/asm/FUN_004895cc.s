@@ -26,6 +26,15 @@
 .equ arg_cursor, 0xc  # [ebp + 0xc]
 .equ arg_payload_offset, 0x10  # [ebp + 0x10]
 
+.equ field_4, 0x4  # offset
+.equ field_8, 0x8  # offset
+.equ field_c, 0xc  # offset
+.equ field_1c, 0x1c  # offset
+.equ field_20, 0x20  # offset
+.equ field_21, 0x21  # offset
+.equ field_23, 0x23  # offset
+.equ field_27, 0x27  # offset
+
 # --- external targets -----------------------------------------------
 .set FUN_0042639d, .text + (0x0042639d - 0x401000)
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
@@ -79,11 +88,11 @@ L_alloc_ok:
     mov eax, dword ptr [ebp - local_saved_this]           # 00489643
     mov ecx, dword ptr [ebp + arg_out_slot]             # 00489646
     mov edx, dword ptr [ecx]                     # 00489649
-    mov dword ptr [eax + 0x1c], edx              # 0048964b
+    mov dword ptr [eax + field_1c], edx              # 0048964b
     mov eax, dword ptr [ebp - local_saved_this]           # 0048964e
     mov ecx, dword ptr [ebp - local_saved_this]           # 00489651
-    mov edx, dword ptr [ecx + 0x1c]              # 00489654
-    mov dword ptr [eax + 0x20], edx              # 00489657
+    mov edx, dword ptr [ecx + field_1c]              # 00489654
+    mov dword ptr [eax + field_20], edx              # 00489657
     mov eax, dword ptr [ebp + arg_cursor]             # 0048965a
     mov ecx, dword ptr [eax]                     # 0048965d
     mov dword ptr [ebp - local_body], ecx           # 0048965f
@@ -91,13 +100,13 @@ L_alloc_ok:
     add edx, 0x25                                # 00489665
     push edx                                     # 00489668
     mov eax, dword ptr [ebp - local_saved_this]           # 00489669
-    mov ecx, dword ptr [eax + 0x1c]              # 0048966c
+    mov ecx, dword ptr [eax + field_1c]              # 0048966c
     push ecx                                     # 0048966f
     mov ecx, dword ptr [ebp - local_saved_this]           # 00489670
     call FUN_0048945b                            # 00489673
     mov edi, dword ptr [ebp - local_body]           # 00489678
     mov edx, dword ptr [ebp - local_saved_this]           # 0048967b
-    mov edx, dword ptr [edx + 0x20]              # 0048967e
+    mov edx, dword ptr [edx + field_20]              # 0048967e
     or ecx, -0x1                                 # 00489681
     {load} xor eax, eax                          # 00489684
     repne scasb al, byte ptr es:[edi]            # 00489686
@@ -112,28 +121,28 @@ L_alloc_ok:
     and ecx, 0x3                                 # 00489699
     rep movsb byte ptr es:[edi], byte ptr [esi]  # 0048969c
     mov ecx, dword ptr [ebp - local_saved_this]           # 0048969e
-    mov edx, dword ptr [ecx + 0x20]              # 004896a1
+    mov edx, dword ptr [ecx + field_20]              # 004896a1
     mov eax, dword ptr [ebp - local_body]           # 004896a4
-    mov cx, word ptr [eax + 0x21]                # 004896a7
-    mov word ptr [edx + 0x23], cx                # 004896ab
+    mov cx, word ptr [eax + field_21]                # 004896a7
+    mov word ptr [edx + field_23], cx                # 004896ab
     mov edx, dword ptr [ebp - local_saved_this]           # 004896af
-    mov eax, dword ptr [edx + 0x20]              # 004896b2
+    mov eax, dword ptr [edx + field_20]              # 004896b2
     mov ecx, dword ptr [ebp - local_body]           # 004896b5
-    mov dx, word ptr [ecx + 0x23]                # 004896b8
-    mov word ptr [eax + 0x27], dx                # 004896bc
+    mov dx, word ptr [ecx + field_23]                # 004896b8
+    mov word ptr [eax + field_27], dx                # 004896bc
     mov eax, dword ptr [ebp - local_body]           # 004896c0
     add eax, 0x35                                # 004896c3
     mov ecx, dword ptr [ebp - local_saved_this]           # 004896c6
-    mov edx, dword ptr [ecx + 0x1c]              # 004896c9
+    mov edx, dword ptr [ecx + field_1c]              # 004896c9
     add edx, 0xac                                # 004896cc
     mov ecx, dword ptr [eax]                     # 004896d2
     mov dword ptr [edx], ecx                     # 004896d4
-    mov ecx, dword ptr [eax + 0x4]               # 004896d6
-    mov dword ptr [edx + 0x4], ecx               # 004896d9
-    mov ecx, dword ptr [eax + 0x8]               # 004896dc
-    mov dword ptr [edx + 0x8], ecx               # 004896df
-    mov eax, dword ptr [eax + 0xc]               # 004896e2
-    mov dword ptr [edx + 0xc], eax               # 004896e5
+    mov ecx, dword ptr [eax + field_4]               # 004896d6
+    mov dword ptr [edx + field_4], ecx               # 004896d9
+    mov ecx, dword ptr [eax + field_8]               # 004896dc
+    mov dword ptr [edx + field_8], ecx               # 004896df
+    mov eax, dword ptr [eax + field_c]               # 004896e2
+    mov dword ptr [edx + field_c], eax               # 004896e5
     mov ecx, dword ptr [ebp + arg_cursor]             # 004896e8
     mov edx, dword ptr [ecx]                     # 004896eb
     add edx, 0x45                                # 004896ed

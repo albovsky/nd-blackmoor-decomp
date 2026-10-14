@@ -37,6 +37,14 @@
 .equ arg_pixels, 0x8  # [ebp + 0x8]
 .equ arg_byte_count, 0xc  # [ebp + 0xc]
 
+.equ field_38a8, 0x38a8  # offset
+.equ field_38c0, 0x38c0  # offset
+.equ field_38c1, 0x38c1  # offset
+.equ field_38c2, 0x38c2  # offset
+.equ field_38c8, 0x38c8  # offset
+.equ field_38c9, 0x38c9  # offset
+.equ field_38ca, 0x38ca  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004c7314 - 0x401000
@@ -48,7 +56,7 @@ FUN_004c7314:
     sub esp, 0x3c                                # 004c7317
     mov dword ptr [ebp - local_saved_this], ecx          # 004c731a
     mov eax, dword ptr [ebp - local_saved_this]          # 004c731d
-    cmp dword ptr [eax + 0x38a8], 0x0            # 004c7320
+    cmp dword ptr [eax + field_38a8], 0x0            # 004c7320
     jne.d8 L_enabled                            # 004c7327
     # block 0x004c7329: enable flag is zero: jump to L_return, buffer untouched
     jmp.d32 L_return                           # 004c7329
@@ -61,22 +69,22 @@ L_enabled:
     mov eax, dword ptr [ebp + arg_pixels]             # 004c733a
     mov dword ptr [ebp - local_saved_pixels], eax          # 004c733d
     mov ecx, dword ptr [ebp - local_saved_this]          # 004c7340
-    mov dl, byte ptr [ecx + 0x38c2]              # 004c7343
+    mov dl, byte ptr [ecx + field_38c2]              # 004c7343
     mov byte ptr [ebp - local_shift_hi], dl            # 004c7349
     mov eax, dword ptr [ebp - local_saved_this]          # 004c734c
-    mov cl, byte ptr [eax + 0x38c1]              # 004c734f
+    mov cl, byte ptr [eax + field_38c1]              # 004c734f
     mov byte ptr [ebp - local_shift_mid], cl            # 004c7355
     mov edx, dword ptr [ebp - local_saved_this]          # 004c7358
-    mov al, byte ptr [edx + 0x38c0]              # 004c735b
+    mov al, byte ptr [edx + field_38c0]              # 004c735b
     mov byte ptr [ebp - local_shift_lo], al            # 004c7361
     mov ecx, dword ptr [ebp - local_saved_this]          # 004c7364
-    mov dl, byte ptr [ecx + 0x38ca]              # 004c7367
+    mov dl, byte ptr [ecx + field_38ca]              # 004c7367
     mov byte ptr [ebp - local_width_hi], dl             # 004c736d
     mov eax, dword ptr [ebp - local_saved_this]          # 004c7370
-    mov cl, byte ptr [eax + 0x38c9]              # 004c7373
+    mov cl, byte ptr [eax + field_38c9]              # 004c7373
     mov byte ptr [ebp - local_width_mid], cl            # 004c7379
     mov edx, dword ptr [ebp - local_saved_this]          # 004c737c
-    mov al, byte ptr [edx + 0x38c8]              # 004c737f
+    mov al, byte ptr [edx + field_38c8]              # 004c737f
     mov byte ptr [ebp - local_width_lo], al            # 004c7385
     mov dword ptr [ebp - local_index], 0x0          # 004c7388
     jmp.d8 L_loop_test                            # 004c738f

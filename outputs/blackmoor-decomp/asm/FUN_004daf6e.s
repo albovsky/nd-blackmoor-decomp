@@ -21,6 +21,9 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
 
+.equ field_4, 0x4  # offset
+.equ field_10, 0x10  # offset
+
 # --- external targets -----------------------------------------------
 
 .org 0x004daf6e - 0x401000
@@ -32,13 +35,13 @@ FUN_004daf6e:
     push ecx                                     # 004daf71
     mov dword ptr [ebp - local_this], ecx           # 004daf72
     mov eax, dword ptr [ebp - local_this]           # 004daf75
-    cmp dword ptr [eax + 0x4], 0x0               # 004daf78
+    cmp dword ptr [eax + field_4], 0x0               # 004daf78
     je.d8 L_not_set_return_0                             # 004daf7c
     # block 0x004daf7e: latch set (dword [this+4] != 0): store 0 to [this+4], then 0 to [this+0x10], eax=1, jump to the epilogue
     mov ecx, dword ptr [ebp - local_this]           # 004daf7e
-    mov dword ptr [ecx + 0x4], 0x0               # 004daf81
+    mov dword ptr [ecx + field_4], 0x0               # 004daf81
     mov edx, dword ptr [ebp - local_this]           # 004daf88
-    mov dword ptr [edx + 0x10], 0x0              # 004daf8b
+    mov dword ptr [edx + field_10], 0x0              # 004daf8b
     mov eax, 0x1                                 # 004daf92
     jmp.d8 L_epilogue                            # 004daf97
 L_not_set_return_0:
