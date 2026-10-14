@@ -95,13 +95,37 @@ MUTATIONS = [
          "    if (0) {\n        *status_out = 1;")]),
     ("selected_item_slot_cleared_by_any_miss", "condition_extra.c", [
         ("        if (*session->selected_dependency_leaf == leaf_identity) {", "        if (1) {")]),
+    ("bsum_variable_word_always_zero", "session_bindings_conditions.c", [
+        ("    *value = (int16_t)(uint16_t)((uint16_t)bsum[offset] |\n                                 ((uint16_t)bsum[offset + 1] << 8));\n",
+         "    *value = 0;\n")]),
+    ("bsum_variable_word_offset_off_by_two", "session_bindings_conditions.c", [
+        ("offset = 2 * (int32_t)index - 9618;", "offset = 2 * (int32_t)index - 9616;")]),
+    ("audio_control_zero_refusal_removed", "session_bindings_conditions_audio.c", [
+        ("info.started != 0u && info.control_word == 0u", "info.started != 0u && info.control_word == 77u")]),
+    ("audio_unloaded_channel_reported_loaded", "session_bindings_conditions_audio.c", [
+        ("    if (info.loaded == 0u) {", "    if (0 && info.loaded == 0u) {")]),
+    ("app_variable_word_provider_stubbed_to_zero", "blackmoor_app.mm", [
+        ("    return session_conditions_bsum_variable_word(summary.bsum_raw, ENGINE_BOOT_BSUM_SIZE,\n                                                 index, value);",
+         "    if (value == nullptr || index < 5000 || index > 5003) return 0;\n    *value = 0;\n    return 1;")]),
+    ("app_context_provider_ignores_difficulty", "blackmoor_app.mm", [
+        ("    *value = app->new_game.action_core.difficulty;\n    return CONDITION_EXTRA_HOST_OK;",
+         "    *value = 0;\n    return CONDITION_EXTRA_HOST_OK;")]),
+    ("app_channel_provider_always_unavailable", "blackmoor_app.mm", [
+        ("    return session_conditions_live_audio_channel_record(app->live_audio, channel, record);",
+         "    (void)channel; (void)record; return CONDITION_EXTRA_HOST_UNAVAILABLE;")]),
     # ---- executor / session ----
+    ("candidate_tree_evaluated_without_item_leaves", "scene_executor.c", [
+        ("                if (decision->chain_count == 0u) {\n                    decision->accepted = 1u;\n                } else {",
+         "                if (0) {\n                    decision->accepted = 1u;\n                } else {")]),
+    ("candidate_accepts_on_gate_without_label", "scene_executor.c", [
+        ("decision->accepted = decision->label != -1 ? 1u : 0u;", "decision->accepted = 1u;")]),
+    ("candidate_check_uses_mode_one", "scene_executor.c", [
+        ("                        tree, &dispatch_state, executor->condition_extension, 0,\n                        &candidate_eligible",
+         "                        tree, &dispatch_state, executor->condition_extension, 1,\n                        &candidate_eligible")]),
     ("executor_pass_notice_never_sent", "scene_executor.c", [
         ("        executor->condition_extension->pass_started(\n            executor->condition_extension->context);\n", "        (void)0;\n")]),
     ("executor_mode_always_zero", "scene_executor.c", [
         ("            scene_conditions_gate_mode_for_type(\n                (uint8_t)action_runtime_type(&action)),", "            0,")]),
-    ("executor_candidate_check_uses_mode_one", "scene_executor.c", [
-        ("                    executor->condition_extension, 0,\n                    &candidate_eligible,", "                    executor->condition_extension, 1,\n                    &candidate_eligible,")]),
     ("executor_host_unavailable_is_a_hard_error", "scene_executor.c", [
         (" ||\n                   condition_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE", "")]),
     ("executor_does_not_arm_thresholds", "scene_executor.c", [
@@ -111,7 +135,7 @@ MUTATIONS = [
         ("    status = scene_executor_set_condition_extension(\n        *out_executor, session->condition_extension);\n",
          "    status = SCENE_EXECUTOR_OK;\n")]),
     ("session_host_unavailable_not_dependency_provider", "scene_session.c", [
-        ("            local.executor.detail_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE ||\n", "")]),
+        ("        if (session->condition_failure.opcode != 0u &&\n", "        if (0 && session->condition_failure.opcode != 0u &&\n")]),
 ]
 
 
@@ -159,13 +183,67 @@ def suites(libs: dict[str, Path] | None):
     ]
 
 
-def run_suites(libs):
+def build_audio_fixture(work: Path) -> Path:
+    src = work / "src"
+    fixture = work / "session_conditions_audio_fixture"
+    command = ["xcrun", "--sdk", "macosx", "clang", "-arch", "arm64", "-mmacosx-version-min=27.0",
+               "-std=gnu17", "-Wall", "-Wextra", "-Werror", "-O1", "-g", "-I", str(src),
+               str(PROJECT / "tests/session_conditions_audio_fixture.c"),
+               str(src / "scene_conditions.c"), str(src / "condition_extra.c"),
+               str(src / "session_bindings_conditions.c"),
+               str(src / "session_bindings_conditions_audio.c"),
+               f"-L{PROJECT / 'build'}", "-lliveaudio", "-lmacos_audio", "-lhis_audio",
+               f"-Wl,-rpath,{PROJECT / 'build'}", "-Wl,-rpath,/opt/homebrew/lib", "-o", str(fixture)]
+    built = subprocess.run(command, capture_output=True, text=True)
+    if built.returncode != 0:
+        raise RuntimeError(f"audio fixture build failed:\n{built.stderr[-1500:]}")
+    return fixture
+
+
+def run_audio_fixture(fixture: Path) -> bool:
+    sys.path.insert(0, str(PROJECT / "tests"))
+    import test_live_audio as live  # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as tmp:
+        live.build_fixture_tree(Path(tmp))
+        done = subprocess.run([str(fixture), tmp], capture_output=True, text=True, timeout=120)
+    return done.returncode == 0 and done.stdout.count(" PASS") == 4
+
+
+def build_app(work: Path) -> Path:
+    # The build script derives its project directory from its own location.
+    shutil.copytree(PROJECT / "scripts", work / "scripts")
+    built = subprocess.run([str(work / "scripts/build_native_app.sh"), "--test-hooks"],
+                           capture_output=True, text=True)
+    if built.returncode != 0:
+        raise RuntimeError(f"mutant app build failed:\n{built.stderr[-1500:]}")
+    return work / "Blackmoor Reconstruction Test.app/Contents/MacOS/BlackmoorNative"
+
+
+APP_TESTS = ["test_native_app.NativeCaptionTransferTests.test_condition_providers_read_boot_bsum_difficulty_and_live_audio"]
+
+
+def run_suites(libs, work: Path | None = None, mutated_file: str = ""):
     env_extra, commands = suites(libs)
     env = dict(os.environ, **env_extra)
     outcome = {}
     for name, command in commands:
         done = subprocess.run(command, cwd=PROJECT / "tests", env=env, capture_output=True, text=True)
         outcome[name] = done.returncode == 0
+    if work is None:                                  # baseline: production artifacts
+        fixture = PROJECT / "build/session_conditions_audio_fixture"
+        outcome["audio_fixture"] = run_audio_fixture(fixture)
+        done = subprocess.run(["python3", "-m", "unittest", *APP_TESTS], cwd=PROJECT / "tests",
+                              capture_output=True, text=True)
+        outcome["app_providers"] = done.returncode == 0
+    else:
+        if mutated_file.startswith("session_bindings_conditions"):
+            outcome["audio_fixture"] = run_audio_fixture(build_audio_fixture(work))
+        if mutated_file == "blackmoor_app.mm":
+            executable = build_app(work)
+            done = subprocess.run(["python3", "-m", "unittest", *APP_TESTS], cwd=PROJECT / "tests",
+                                  env=dict(env, RT4_NATIVE_EXECUTABLE=str(executable)),
+                                  capture_output=True, text=True)
+            outcome["app_providers"] = done.returncode == 0
     return outcome
 
 
@@ -193,7 +271,7 @@ def main() -> int:
                 text = text.replace(old, new)
             target.write_text(text)
             libs = build_mutant(work)
-            outcome = run_suites(libs)
+            outcome = run_suites(libs, work, filename)
             detected_by = [k for k, passed in outcome.items() if not passed]
             if not detected_by:
                 survivors += 1

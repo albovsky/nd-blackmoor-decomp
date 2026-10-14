@@ -138,6 +138,18 @@ int session_conditions_query_channel_record(
     const SessionConditionsChannelRecord *record,
     SessionConditionsSoundManager *manager);
 
+/* Word of the loader table at 0x5adb81 + 2 * index as seen through the BOOT
+ * BSUM chunk. The BOOT loader (0x4356eb..0x4356fc: `mov edi, 0x5b0113;
+ * rep movsd/movsb`) copies the 402-byte BSUM payload over 0x5b0113..0x5b02a4,
+ * so byte k of BSUM is at 0x5b0113 + k and table word `index` is BSUM byte
+ * 2 * index - 9618 (0x5b0113 - 0x5adb81 = 9618). For the corpus indexes
+ * 5000..5003 that is BSUM[382..389] = 300, 180, 1500, 60. Returns 1 with
+ * *value (signed little-endian) when the word lies inside the payload
+ * (indexes 4809..5009), else 0: the rest of that memory is not BSUM and has
+ * no recovered source. */
+int session_conditions_bsum_variable_word(const uint8_t *bsum, size_t bsum_size,
+                                          int16_t index, int16_t *value);
+
 /* MSVC CRT rand(): holdrand = holdrand * 214013 + 2531011;
  * return (holdrand >> 16) & 0x7fff (original 0x50cd50 / srand 0x50cd43).
  * A fresh generator holds 1, the CRT's initial per-thread value. */

@@ -81,9 +81,18 @@ static ConditionExtraHostStatus context_fn(void *ctx, int16_t *value)
     return CONDITION_EXTRA_HOST_OK;
 }
 
+static uint8_t bsum_bytes[402];
+static size_t bsum_size = sizeof(bsum_bytes);
+
 static int variable_fn(void *ctx, int16_t index, int16_t *value)
 {
-    (void)ctx; (void)index;
+    (void)ctx;
+    /* the real mapping over hostile sizes and indexes, plus random answers */
+    if (pick(2) == 0) {
+        return session_conditions_bsum_variable_word(pick(8) == 0 ? NULL : bsum_bytes,
+                                                     bsum_size, pick(3) == 0 ? edge() : index,
+                                                     pick(16) == 0 ? NULL : value);
+    }
     if (pick(4) == 0) return 0;
     *value = edge();
     return 1;
@@ -168,6 +177,8 @@ int main(void)
         binding = session_conditions_create(&config, &create_status);
         if (binding == NULL || create_status != SESSION_CONDITIONS_OK) return 1;
 
+        for (i = 0; i < sizeof(bsum_bytes); ++i) bsum_bytes[i] = (uint8_t)next_random();
+        bsum_size = pick(4) == 0 ? (size_t)pick(sizeof(bsum_bytes) + 1u) : sizeof(bsum_bytes);
         memset(&state, 0, sizeof(state));
         state.selected_inventory_item = edge();
         state.event_flags = flags;
@@ -196,6 +207,9 @@ int main(void)
             }
             ++counters.evaluated;
             (void)scene_conditions_selected_item_label(tree, &label);
+            (void)scene_conditions_item_leaf_count(tree);
+            (void)scene_conditions_first_item_label(tree, &label);
+            (void)scene_conditions_first_item_label(tree, NULL);
             if (pick(5) == 0) scene_conditions_resolve_thresholds(tree, session_conditions_extension(binding));
         }
         scene_conditions_destroy(tree);

@@ -486,9 +486,11 @@ int scene_session_tick(SceneSession *session,
          * it is nonzero only when the freeze came from a dependency leaf. */
         (void)scene_executor_get_condition_failure(session->executor,
                                                    &session->condition_failure);
-        if (local.executor.detail_status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE ||
-            local.executor.detail_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE ||
-            local.executor.detail_status == SCENE_CONDITION_ERR_PROVIDER) {
+        if (session->condition_failure.opcode != 0u &&
+            (executor_status == SCENE_EXECUTOR_ERR_UNSUPPORTED ||
+             executor_status == SCENE_EXECUTOR_ERR_CONDITION)) {
+            /* A dependency leaf stopped the evaluation (the record is only
+             * nonzero then); detail_status stays the SceneConditionStatus. */
             failure.provider = SCENE_SESSION_PROVIDER_DEPENDENCY;
         } else if (local.executor.failed_action_type == ACTION_TYPE_PHONE ||
                    local.executor.failed_action_type == ACTION_TYPE_CONTROL) {
@@ -734,4 +736,16 @@ const char *scene_session_provider_string(SceneSessionProvider provider)
     case SCENE_SESSION_PROVIDER_HOST: return "host-adapter";
     default: return "unknown-provider";
     }
+}
+
+int scene_session_request_transition(SceneSession *session,
+                                     const SceneTransitionRequest *request)
+{
+    if (session == NULL || request == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    return scene_executor_request_transition(session->executor, request) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK
+               : SCENE_SESSION_ERR_STATE;
 }

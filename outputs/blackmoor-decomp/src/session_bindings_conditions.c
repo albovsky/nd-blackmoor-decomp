@@ -280,6 +280,22 @@ int session_conditions_get_stats(const SessionConditions *binding,
     return SESSION_CONDITIONS_OK;
 }
 
+int session_conditions_bsum_variable_word(const uint8_t *bsum, size_t bsum_size,
+                                          int16_t index, int16_t *value)
+{
+    int32_t offset;
+    if (bsum == NULL || value == NULL) {
+        return 0;
+    }
+    offset = 2 * (int32_t)index - 9618;
+    if (offset < 0 || (size_t)offset + 2u > bsum_size) {
+        return 0;
+    }
+    *value = (int16_t)(uint16_t)((uint16_t)bsum[offset] |
+                                 ((uint16_t)bsum[offset + 1] << 8));
+    return 1;
+}
+
 void session_conditions_crt_rand_init(SessionConditionsCrtRand *generator)
 {
     if (generator != NULL) {

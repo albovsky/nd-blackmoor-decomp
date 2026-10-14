@@ -236,6 +236,9 @@ class SessionConditionsTests(unittest.TestCase):
         lib.session_conditions_crt_rand.restype = c.c_uint32
         lib.session_conditions_crt_rand_host.argtypes = [c.c_void_p, c.POINTER(c.c_uint32)]
         lib.session_conditions_crt_rand_host.restype = c.c_int
+        lib.session_conditions_bsum_variable_word.argtypes = [
+            c.c_char_p, c.c_size_t, c.c_int16, c.POINTER(c.c_int16)]
+        lib.session_conditions_bsum_variable_word.restype = c.c_int
         lib.session_conditions_status_string.argtypes = [c.c_int]
         lib.session_conditions_status_string.restype = c.c_char_p
 
@@ -301,6 +304,56 @@ class SessionConditionsTests(unittest.TestCase):
         self.assertEqual(f.evaluate(before)[:2], (OK, 0))
         self.assertEqual(f.evaluate(after)[:2], (OK, 1))
         self.assertEqual(f.variable_reads, [5000, 5000])        # once per tree
+
+    # -- BOOT BSUM variable table (review P1) -----------------------------------
+    BSUM_PATH = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources/0053.bin"
+
+    def bsum_word(self, bsum, index):
+        out = c.c_int16(0)
+        ok = self.lib.session_conditions_bsum_variable_word(bsum, len(bsum), index, c.byref(out))
+        return (ok, out.value) if ok else (0, None)
+
+    def test_bsum_variable_word_maps_table_index_to_the_copied_boot_chunk(self):
+        # word index i is BSUM byte 2*i - 9618 (0x5b0113 - 0x5adb81 = 9618)
+        bsum = bytearray(402)
+        for offset, word in ((0, -2), (382, 300), (384, 180), (386, 1500), (388, 60), (400, -32768)):
+            bsum[offset:offset + 2] = struct.pack("<h", word)
+        bsum = bytes(bsum)
+        self.assertEqual(self.bsum_word(bsum, 5000), (1, 300))
+        self.assertEqual(self.bsum_word(bsum, 5001), (1, 180))
+        self.assertEqual(self.bsum_word(bsum, 5002), (1, 1500))
+        self.assertEqual(self.bsum_word(bsum, 5003), (1, 60))
+        self.assertEqual(self.bsum_word(bsum, 4809), (1, -2))          # first byte of the chunk
+        self.assertEqual(self.bsum_word(bsum, 5009), (1, -32768))      # last whole word
+        for outside in (4808, 5010, 5100, 32767, -1, -32768):
+            self.assertEqual(self.bsum_word(bsum, outside), (0, None), outside)
+        self.assertEqual(self.lib.session_conditions_bsum_variable_word(None, 0, 5000, None), 0)
+
+    def test_corpus_timer_thresholds_come_from_the_real_boot_bsum(self):
+        if not self.BSUM_PATH.is_file():
+            self.skipTest("work/analysis/hiff-resources/0053.bin (BOOT) not present")
+        data = self.BSUM_PATH.read_bytes()
+        at = data.find(b"BSUM")
+        self.assertEqual(int.from_bytes(data[at + 4:at + 8], "big"), 402)
+        bsum = data[at + 8:at + 8 + 402]
+        self.assertEqual([self.bsum_word(bsum, i)[1] for i in range(5000, 5004)], [300, 180, 1500, 60])
+        f = Fixture(self)
+        f.variables = {i: self.bsum_word(bsum, i)[1] for i in range(5000, 5004)}
+        before = f.tree([record(13, 1, 1, 0, (0, 0, 5000, 0))])
+        after = f.tree([record(14, 1, 1, 0, (0, 0, 5000, 0))])
+        # Review counterexample: timer 1 active, 120000 ms elapsed. The
+        # threshold is 300 s = 300000 ms, so "not yet elapsed" (13) is true.
+        f.fixture.put_timer(1, 1, 120000)
+        self.assertEqual(f.evaluate(before)[:2], (OK, 1))
+        self.assertEqual(f.evaluate(after)[:2], (OK, 0))
+        for variable, seconds in ((5001, 180), (5002, 1500), (5003, 60)):
+            for op, edge, expect in ((13, seconds * 1000, 1), (13, seconds * 1000 + 1, 0),
+                                     (14, seconds * 1000, 0), (14, seconds * 1000 + 1, 1)):
+                g = Fixture(self)
+                g.variables = f.variables
+                g.fixture.put_timer(1, 1, edge)
+                got = g.evaluate(g.tree([record(op, 1, 1, 0, (0, 0, variable, 0))]))[:2]
+                self.assertEqual(got, (OK, expect), (op, variable, edge))
 
     def test_unsourced_variable_word_blocks_the_timer_leaf_not_a_default(self):
         f = Fixture(self)

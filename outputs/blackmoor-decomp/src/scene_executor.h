@@ -245,6 +245,35 @@ int scene_executor_set_condition_extension(
 int scene_executor_get_condition_failure(const SceneActionExecutor *executor,
                                          SceneConditionFailure *failure);
 
+/* What the accepted-click candidate check (0x43bfb6..0x43c09c) decided for
+ * the most recent candidate. This is the seam for the pointer integration:
+ * the executor owns the gate logic, a later module may own the candidate
+ * cache and the item-use feedback calls the original makes
+ * (0x4eb107(label) on accept, 0x4eb184(first_chain_label) on reject).
+ *   chain_count          0x42405a: opcode-11 leaves in the tree.
+ *   tree_evaluated       0 when chain_count == 0 (the original accepts with
+ *                        NO tree evaluation, no 0x5c3a47 store, no leaf
+ *                        side effects).
+ *   tree_satisfied       wrapper result with mode 0.
+ *   label                0x424035 read right after the evaluation, -1 if the
+ *                        slot is empty (initial value of the original local).
+ *   first_chain_label    0x423fbb, -1 if none.
+ *   accepted             phase 2 was stored (0x43c054). */
+typedef struct scene_executor_candidate_decision {
+    size_t action_index;
+    size_t chain_count;
+    uint8_t tree_evaluated;
+    uint8_t tree_satisfied;
+    uint8_t accepted;
+    uint8_t reserved;
+    int32_t label;
+    int32_t first_chain_label;
+} SceneExecutorCandidateDecision;
+
+/* Zeroed with action_index SIZE_MAX until the first candidate check ran. */
+int scene_executor_get_candidate_decision(const SceneActionExecutor *executor,
+                                          SceneExecutorCandidateDecision *decision);
+
 /* Opcode-11 slot of the action's tree (accessor 0x424035): returns 1 and the
  * selected item label when a selected-item leaf owns the slot, else 0/-1. */
 int scene_executor_get_selected_item_label(const SceneActionExecutor *executor,

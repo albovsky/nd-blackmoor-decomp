@@ -667,6 +667,43 @@ int scene_conditions_selected_item_label(const SceneConditionTree *tree,
     return 1;
 }
 
+size_t scene_conditions_item_leaf_count(const SceneConditionTree *tree)
+{
+    size_t index, count = 0u;
+    if (tree == NULL) {
+        return 0u;
+    }
+    for (index = 0u; index < tree->node_count; ++index) {
+        if (tree->nodes[index].kind == SCENE_CONDITION_LEAF &&
+            tree->nodes[index].opcode == 11) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+int scene_conditions_first_item_label(const SceneConditionTree *tree,
+                                      int32_t *label)
+{
+    size_t index;
+    if (label != NULL) {
+        *label = -1;
+    }
+    if (tree == NULL) {
+        return 0;
+    }
+    for (index = 0u; index < tree->node_count; ++index) {
+        if (tree->nodes[index].kind == SCENE_CONDITION_LEAF &&
+            tree->nodes[index].opcode == 11) {
+            if (label != NULL) {
+                *label = tree->nodes[index].fields[1];
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
 const char *scene_conditions_status_string(int status)
 {
     switch (status) {

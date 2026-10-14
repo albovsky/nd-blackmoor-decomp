@@ -58,6 +58,9 @@ class ExecutorExtensionTests(unittest.TestCase):
         cls.lib.scene_executor_get_selected_item_label.argtypes = [
             c.c_void_p, c.c_size_t, c.POINTER(c.c_int32)]
         cls.lib.scene_executor_get_selected_item_label.restype = c.c_int
+        cls.lib.scene_executor_get_candidate_decision.argtypes = [
+            c.c_void_p, c.c_void_p]
+        cls.lib.scene_executor_get_candidate_decision.restype = c.c_int
 
     def setUp(self):
         self.events = []
@@ -156,19 +159,95 @@ class ExecutorExtensionTests(unittest.TestCase):
         modes = [e[2] for e in self.events if e[0] == "leaf"]
         self.assertEqual(modes, [1, 0, 1, 1])
 
-    def test_hotspot_candidate_check_uses_mode_zero_before_the_pass(self):
+    # -- accepted-click candidate check (0x43bfb6..0x43c09c) ------------------
+    class Decision(c.Structure):
+        _fields_ = [("action_index", c.c_size_t), ("chain_count", c.c_size_t),
+                    ("tree_evaluated", c.c_uint8), ("tree_satisfied", c.c_uint8),
+                    ("accepted", c.c_uint8), ("reserved", c.c_uint8),
+                    ("label", c.c_int32), ("first_chain_label", c.c_int32)]
+
+    def decision(self, executor):
+        value = self.Decision()
+        self.assertEqual(self.lib.scene_executor_get_candidate_decision(
+            executor, c.byref(value)), OK)
+        return value
+
+    def click(self, executor, state, rect=(10, 20, 30, 40)):
+        self.step_frame(executor, state, self.frame())
+        self.step_frame(executor, state, self.frame(x=rect[0], y=rect[1], pointer=True, context=True))
+        self.events.clear()
+        return self.step_frame(executor, state, self.frame(activation=True))
+
+    @staticmethod
+    def item_behaviour(selected_labels):
+        """Fake opcode 11 (like the kernel, mode 0): hit sets the slot; other
+        opcodes are true."""
+        def behaviour(req):
+            if req.record.opcode == 11:
+                if req.evaluation_mode == 0 and req.record.fields[1] in selected_labels:
+                    req.selected_leaf_slot[0] = req.leaf_identity
+                    return 0, 1, 0
+                if req.evaluation_mode != 0:
+                    req.selected_leaf_slot[0] = None
+                    return 0, 1, 0
+                return 0, 0, 0
+            return 0, 1, 0
+        return behaviour
+
+    def test_hotspot_without_item_leaves_is_accepted_with_no_tree_evaluation(self):
         rect = (10, 20, 30, 40)
-        actions = [action(0x6A, 2, base.hotspot_6a_body(0, rect), (condition(11, 1),))]
+        # Extension leaves that would have side effects (17: sound manager, 20: rand).
+        actions = [action(0x6A, 2, base.hotspot_6a_body(0, rect),
+                          (condition(17, 4, 1), condition(20, 0, 50)))]
         executor, world, _ = self.setup_executor(actions)
         self.register(executor, self.make_extension(lambda r: (0, 1, 0)))
-        state = self.condition_state(world)
-        self.step_frame(executor, state, self.frame())
-        self.step_frame(executor, state, self.frame(x=10, y=20, pointer=True, context=True))
-        self.events.clear()
-        status, _ = self.step_frame(executor, state, self.frame(activation=True))
+        status, _ = self.click(executor, self.condition_state(world))
         self.assertEqual(status, OK)
-        self.assertEqual(self.events[:4], [("leaf", 11, 0, 0), ("tree", 1),
-                                           ("pass",), ("leaf", 11, 1, 0)])
+        d = self.decision(executor)
+        self.assertEqual((d.action_index, d.chain_count, d.tree_evaluated, d.accepted,
+                          d.label, d.first_chain_label), (0, 0, 0, 1, -1, -1))
+        # Nothing ran before the pass: no leaf, no 0x5c3a47 store at click time.
+        self.assertEqual(self.events[0], ("pass",))
+
+    def test_hotspot_with_item_leaf_needs_the_gate_and_a_selected_label(self):
+        rect = (10, 20, 30, 40)
+        for selected, expect_accept in (({7}, True), (set(), False)):
+            actions = [action(0x6A, 2, base.hotspot_6a_body(0, rect, ((2, 9),)),
+                              (condition(11, 7),))]
+            executor, world, flags = self.setup_executor(actions)
+            self.register(executor, self.make_extension(self.item_behaviour(selected)))
+            status, _ = self.click(executor, self.condition_state(world))
+            self.assertEqual(status, OK)
+            d = self.decision(executor)
+            self.assertEqual((d.chain_count, d.tree_evaluated, d.first_chain_label), (1, 1, 7))
+            self.assertEqual((d.tree_satisfied, d.accepted, d.label),
+                             (1, 1, 7) if expect_accept else (0, 0, -1))
+            # the candidate eval ran with mode 0 before the pass; the pass uses mode 1
+            self.assertEqual(self.events[0], ("leaf", 11, 0, 0))
+            self.assertIn(("pass",), self.events)
+            # the effects (flag 2 := 9) only run with an accepted click
+            self.assertEqual(flags[2], 9 if expect_accept else 0)
+
+    def test_or_true_tree_with_an_empty_item_slot_is_rejected(self):
+        rect = (10, 20, 30, 40)
+        # (item 7) OR (anything true): the tree is true but no item is selected.
+        actions = [action(0x6A, 2, base.hotspot_6a_body(0, rect, ((2, 9),)),
+                          (condition(11, 7, 0, 1), condition(17, 4, 1)))]
+        executor, world, flags = self.setup_executor(actions)
+        self.register(executor, self.make_extension(self.item_behaviour(set())))
+        status, _ = self.click(executor, self.condition_state(world))
+        self.assertEqual(status, OK)
+        d = self.decision(executor)
+        self.assertEqual((d.chain_count, d.tree_evaluated, d.tree_satisfied, d.label, d.accepted),
+                         (1, 1, 1, -1, 0))
+        self.assertEqual(flags[2], 0)
+
+    def test_decision_starts_empty_and_follows_the_latest_candidate(self):
+        executor, world, _ = self.setup_executor([action(0x71, 1, i16(5) + i16(-1) + i16(0))])
+        d = self.decision(executor)
+        self.assertEqual((d.action_index, d.chain_count, d.accepted, d.label, d.first_chain_label),
+                         (2 ** 64 - 1, 0, 0, -1, -1))
+        self.assertNotEqual(self.lib.scene_executor_get_candidate_decision(None, c.byref(d)), OK)
 
     def test_host_unavailable_is_an_explicit_blocker_with_failure_detail(self):
         actions = [

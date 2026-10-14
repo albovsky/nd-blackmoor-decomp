@@ -171,6 +171,11 @@ int scene_session_get_condition_failure(const SceneSession *session,
 int scene_session_accept_action_candidate(SceneSession *session,
                                           size_t action_index);
 
+/* For an external action handler running inside scene_session_tick: asks the
+ * executor to end the scene with this request once the handler returns OK.
+ * Any call outside a handler, or a second request, is ERR_STATE. */
+int scene_session_request_transition(SceneSession *session,
+                                     const SceneTransitionRequest *request);
 int scene_session_get_action_state(const SceneSession *session,
                                    size_t action_index,
                                    SceneActionRuntimeState *state);

@@ -184,6 +184,14 @@ int32_t scene_conditions_gate_mode_for_type(uint8_t runtime_type);
 int scene_conditions_selected_item_label(const SceneConditionTree *tree,
                                          int32_t *label);
 
+/* The loader's opcode-11 chain (container +0x30 count, accessor 0x42405a;
+ * head leaf label via accessor 0x423fbb). The count is the number of
+ * selected-item leaves in the tree; the first label is the first such leaf's
+ * signed fields[1] in source order (returns 1) or -1 (returns 0). */
+size_t scene_conditions_item_leaf_count(const SceneConditionTree *tree);
+int scene_conditions_first_item_label(const SceneConditionTree *tree,
+                                      int32_t *label);
+
 const char *scene_conditions_status_string(int status);
 
 #ifdef SCENE_EXECUTOR_TEST_HOOKS

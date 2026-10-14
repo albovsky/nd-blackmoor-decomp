@@ -45,6 +45,7 @@ struct SceneActionExecutor {
     size_t pre_gate_count;
     const SceneConditionExtension *condition_extension;
     SceneConditionFailure condition_failure;
+    SceneExecutorCandidateDecision candidate_decision;
 };
 
 static uint16_t read_u16le(const uint8_t *bytes)
@@ -152,6 +153,9 @@ int scene_executor_create(const SceneResource *scene,
     }
     executor->scene = scene;
     executor->world = world;
+    executor->candidate_decision.action_index = SIZE_MAX;
+    executor->candidate_decision.label = -1;
+    executor->candidate_decision.first_chain_label = -1;
     executor->action_count = action_count;
     if (action_count != 0u) {
         executor->conditions = (SceneConditionTree **)calloc(
@@ -677,19 +681,40 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
                 return SCENE_EXECUTOR_ERR_FORMAT;
             }
             if (is_builtin_hotspot(&candidate_action)) {
-                /* 0x43c019 passes mode 0 to the wrapper. */
-                candidate_status = scene_conditions_evaluate_ex(
-                    executor->conditions[candidate], &dispatch_state,
-                    executor->condition_extension, 0,
-                    &candidate_eligible, &candidate_opcode,
-                    &executor->condition_failure);
-                if (candidate_status != SCENE_CONDITION_OK) {
-                    fill_failure(&local_info, candidate,
-                                 candidate_action.type, candidate_status);
-                    *step_info = local_info;
-                    return condition_failure_to_executor_status(candidate_status);
+                /* 0x43bff8: 0x42405a(root) returns the opcode-11 chain count.
+                 * Empty chain: 0x43c048 accepts with no tree evaluation. Else
+                 * 0x43c019 runs the wrapper with mode 0 and acceptance also
+                 * needs the 0x424035 label read right afterwards to differ
+                 * from -1 (the local starts at -1, 0x43a7e5). */
+                SceneConditionTree *tree = executor->conditions[candidate];
+                SceneExecutorCandidateDecision *decision = &executor->candidate_decision;
+                memset(decision, 0, sizeof(*decision));
+                decision->action_index = candidate;
+                decision->label = -1;
+                decision->first_chain_label = -1;
+                decision->chain_count = scene_conditions_item_leaf_count(tree);
+                (void)scene_conditions_first_item_label(tree, &decision->first_chain_label);
+                if (decision->chain_count == 0u) {
+                    decision->accepted = 1u;
+                } else {
+                    candidate_status = scene_conditions_evaluate_ex(
+                        tree, &dispatch_state, executor->condition_extension, 0,
+                        &candidate_eligible, &candidate_opcode,
+                        &executor->condition_failure);
+                    if (candidate_status != SCENE_CONDITION_OK) {
+                        fill_failure(&local_info, candidate,
+                                     candidate_action.type, candidate_status);
+                        *step_info = local_info;
+                        return condition_failure_to_executor_status(candidate_status);
+                    }
+                    decision->tree_evaluated = 1u;
+                    decision->tree_satisfied = candidate_eligible ? 1u : 0u;
+                    if (candidate_eligible) {
+                        (void)scene_conditions_selected_item_label(tree, &decision->label);
+                        decision->accepted = decision->label != -1 ? 1u : 0u;
+                    }
                 }
-                if (candidate_eligible) {
+                if (decision->accepted) {
                     executor->states[candidate].phase = 2u;
                 }
             }
@@ -960,6 +985,16 @@ int scene_executor_set_condition_extension(
         return SCENE_EXECUTOR_ERR_ARGUMENT;
     }
     executor->condition_extension = extension;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_candidate_decision(const SceneActionExecutor *executor,
+                                          SceneExecutorCandidateDecision *decision)
+{
+    if (executor == NULL || decision == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    *decision = executor->candidate_decision;
     return SCENE_EXECUTOR_OK;
 }
 

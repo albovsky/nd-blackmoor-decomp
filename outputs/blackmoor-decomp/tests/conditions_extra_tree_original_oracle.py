@@ -117,6 +117,8 @@ RandomFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.POINTER(c.c_uint32))
 ContextFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.POINTER(c.c_int16))
 VariableFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_int16, c.POINTER(c.c_int16))
 VARIABLE_TABLE = 0x005ADB81
+BSUM_BASE = 0x005B0113          # BOOT loader copies the 402-byte BSUM chunk here
+BSUM_PATH = ROOT / "work/analysis/hiff-resources/0053.bin"
 
 
 class Host(c.Structure):
@@ -187,9 +189,8 @@ class ExtraMachine(nested.OriginalMachine):
             uc.reg_write(self._reg_esp, esp + 12)
 
     # -- scenario state --------------------------------------------------
-    def write_variable_table(self, table: dict):
-        for index, word in table.items():
-            self.machine.mem_write(VARIABLE_TABLE + 2 * index, struct.pack("<h", word))
+    def write_bsum(self, bsum: bytes):
+        self.machine.mem_write(BSUM_BASE, bsum)
 
     def reset_world(self):
         w = self.machine.mem_write
@@ -332,9 +333,9 @@ class Scenario:
 # Native driver
 # ----------------------------------------------------------------------------
 class NativeSide:
-    def __init__(self, lib, rows: Sequence[Sequence[int]], table: dict):
+    def __init__(self, lib, rows: Sequence[Sequence[int]], bsum: bytes):
         self.lib = lib
-        self.table = table
+        self.bsum = bsum
         self.scenario: Scenario | None = None
         self.rand_queue: list[int] = []
         self.channel_calls = 0
@@ -359,10 +360,9 @@ class NativeSide:
             return 0
 
         def variable_fn(_ctx, index, out):
-            if index not in self.table:
-                return 0
-            out[0] = self.table[index]
-            return 1
+            # the same BSUM-to-table mapping the app provider uses
+            return self.lib.session_conditions_bsum_variable_word(
+                self.bsum, len(self.bsum), index, out)
 
         self.fns = (ChannelFn(channel_fn), RandomFn(random_fn), ContextFn(context_fn),
                     VariableFn(variable_fn))
@@ -483,6 +483,9 @@ def native_library(path: Path):
     lib.session_conditions_extension.restype = c.c_void_p
     lib.session_conditions_global_5c3a47.argtypes = [c.c_void_p]
     lib.session_conditions_global_5c3a47.restype = c.c_int32
+    lib.session_conditions_bsum_variable_word.argtypes = [
+        c.c_char_p, c.c_size_t, c.c_int16, c.POINTER(c.c_int16)]
+    lib.session_conditions_bsum_variable_word.restype = c.c_int
     lib.session_conditions_set_global_5c3a47.argtypes = [c.c_void_p, c.c_int32]
     lib.session_conditions_get_sound_manager.argtypes = [c.c_void_p, c.POINTER(Manager)]
     lib.session_conditions_get_stats.argtypes = [c.c_void_p, c.POINTER(Stats)]
@@ -535,7 +538,7 @@ def synthetic_trees(count: int, seed: int):
         if opcode in (13, 14):
             return (opcode, rng.randrange(0, TIME_RECORD_COUNT), 1, marker,
                     rng.choice((0, 0, 1, -1, 2)), rng.choice((0, 0, 3, -2)),
-                    rng.choice((0, 7, 4999, 5000, 5001, 5003, 5100, -3)),
+                    rng.choice((0, 7, 4999, 5000, 5001, 5003, 5009, -3)),
                     rng.choice((0, 0, 250, -250)))
         if opcode == 15:
             return (15, 0, rng.choice((-1, 0, 1)), marker, 0, 0, 0, 0)
@@ -609,19 +612,32 @@ def compare_snapshots(original: dict, native: dict, o_result: int, n_result: int
     return mismatches, len(checks)
 
 
+def real_bsum() -> bytes:
+    data = BSUM_PATH.read_bytes()
+    at = data.find(b"BSUM")
+    if at < 0 or int.from_bytes(data[at + 4:at + 8], "big") != 402:
+        raise RuntimeError("BOOT BSUM chunk not found")
+    return data[at + 8:at + 8 + 402]
+
+
 def run_case(machine: ExtraMachine, lib, case: dict, rng_seed: int, steps: int):
     rows = case["rows"]
     rng = random.Random(rng_seed)
-    # Loader table 0x5adb81[idx] read when an opcode 13/14 leaf with
-    # fields[6] >= 5000 is built; fixed for the case on both sides.
-    table = {row[6]: rng.choice((0, 0, 1, 2, 30, -1, 100, 32767, -32768))
-             for row in rows if row[0] in (13, 14) and row[6] >= 5000}
-    machine.machine.mem_write(VARIABLE_TABLE, bytes(2 * 6000))
-    machine.write_variable_table(table)
+    # The loader table 0x5adb81[idx] for idx 5000.. is the BOOT BSUM chunk the
+    # BOOT loader copied over 0x5b0113 (words 5000..5003 = 300, 180, 1500, 60).
+    # Half the cases keep the real chunk; the others overwrite words
+    # 5000..5009 with random values so thresholds vary on both sides.
+    bsum = bytearray(real_bsum())
+    if rng.random() < 0.5:
+        for index in range(5000, 5010):
+            struct.pack_into("<h", bsum, 2 * index - 9618,
+                             rng.choice((0, 1, 2, 30, -1, 100, 32767, -32768, 300)))
+    bsum = bytes(bsum)
+    machine.write_bsum(bsum)
     accepted, root = machine.load(rows)
     comparisons = collections.Counter()
     mismatches = []
-    native = NativeSide(lib, rows, table)
+    native = NativeSide(lib, rows, bsum)
     comparisons["constructor_outcomes"] += 1
     if accepted != (native.build_status == 0):
         mismatches.append({"field": "constructor", "case_id": case["case_id"],
@@ -776,7 +792,7 @@ def run(args) -> bool:
         "divergence_notes": [
             "native rejects timer indexes >= 10 and channels >= 32 (original reads unchecked); corpus uses timers 1..4 and channels 0..13, so no comparison hits the rejection",
             "debug-fatal path of opcode 20 (0x63a4cd != 0) is not compared: the original continues into the headless modal-error boundary",
-            "the 0x5adb81 variable table is a per-case fixture on both sides; its real producer (if any) is unrecovered",
+            "the 0x5adb81 variable table words 5000..5009 are the BOOT BSUM chunk (real bytes or random overrides per case), written into original memory at 0x5b0113 and read natively through session_conditions_bsum_variable_word; indexes outside 4809..5009 are unavailable natively and not generated",
             "threshold +0x20 writers outside the loader (none found by static scan) are not modelled on either side",
         ],
     }
