@@ -6,7 +6,7 @@ Permanent project: `/Users/albovsky/Projects/nd-blackmoor-decomp`.
 
 ## First work wave
 
-The following packets can start independently. For four workers, start A-64, A-62, S01 and S02; then add A-28/A-51 and sound/caption work as slots become free. Use GPT-6 Luna Max. Workers are already active: before starting a packet, check `work/analysis/slices/` for an existing claim. Registry `READY` status means a packet can start, not that it is unclaimed.
+The following packets can start independently. For four workers, start A-64, A-62, S01 and S02; then add A-28/A-51 and sound/caption work as slots become free. Workers follow the `AGENTS.md` roster. Workers may already be active: before starting a packet, check `work/analysis/slices/` for an existing claim. Registry `READY` status means a packet can start, not that it is unclaimed.
 
 | Slice | Deliverable | Ownership |
 |---|---|---|
@@ -36,6 +36,15 @@ First assignment: finish S03.
 4. Collect onto main.
 
 A-37.3 and S04-2.2 stay paused; S04-2.2 is the live-audio blocker at S0 row 31 and is the likely next slice. See `COORDINATION-STATUS.md`.
+
+## Track M: whole-file x86 match
+
+Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): functions may be produced as tool-assisted assembly with independent review. Two packets start now and need no shared-file edits:
+
+| Slice | Deliverable | Ownership |
+|---|---|---|
+| M02 | [Whole-file skeleton and image composer](tasks/M02-whole-file-skeleton-and-composer.md) | New `image/` sources, composer script, tests, private M02.* evidence |
+| M03 | [Hinted assembly generator and first reviewed batch](tasks/M03-hinted-assembly-generator-and-first-batch.md) | New generator/audit scripts, `asm/` batch sources, tests, private M03.* evidence |
 
 ## Ownership and coordination
 

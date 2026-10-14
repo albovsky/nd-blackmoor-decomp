@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-Read `../PROJECT-SPEC.md` and root `AGENTS.md`. Use GPT-6 Luna Max. Keep original executable/assets unchanged. Use original bytes to substantiate behavior; retain unsupported branches explicitly. No GUI while the Mac remains locked. Do not edit integrator-owned files.
+Read `../PROJECT-SPEC.md` and root `AGENTS.md`. Workers are the `AGENTS.md` roster (Sonnet `slice-implementer`, Codex `gpt-6.1-sol` xhigh). Keep original executable/assets unchanged. Use original bytes to substantiate behavior; retain unsupported branches explicitly. No GUI while the Mac remains locked. Do not edit integrator-owned files.
 
 ## Review Focus
 
@@ -41,3 +41,7 @@ Read `../PROJECT-SPEC.md` and root `AGENTS.md`. Use GPT-6 Luna Max. Keep origina
 - [ ] Hand off source/header/tests/build command, code/native hashes, comparison counts, unresolved behavior and the shared integration patch proposal. Update only this packet's status or a separate completion receipt.
 
 **Acceptance:** A reproducible x86 build produces a report for every candidate range with hashes and exact mismatch locations; matching source functions are audited individually. Toolchain gaps remain explicit; entire-exe success requires the complete original SHA.
+
+## Production policy update (2026-10-14)
+
+The owner adopted tool-assisted assembly with independent review as the Track M production method; see the ruling in root `AGENTS.md` and the evidence in `../M0-binary-census-report.md`. The earlier child-packet wording "no automatic disassembly copying" is superseded for functions produced through the M03 generator and review workflow. Hand-authored `explicit_reconstructed_assembly_source` remains valid and is reported as its own class. Child packets: [M02 whole-file skeleton and composer](M02-whole-file-skeleton-and-composer.md), [M03 hinted assembly generator and first reviewed batch](M03-hinted-assembly-generator-and-first-batch.md).
