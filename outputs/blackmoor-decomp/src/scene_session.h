@@ -153,6 +153,19 @@ int scene_session_set_pre_gate(SceneSession *session,
                                SceneActionPreGateFn callback,
                                void *context);
 
+/* RT-4: register the dependency-leaf extension (see
+ * SceneConditionExtension). The pointer is borrowed, must outlive the session,
+ * is re-applied to every replacement executor and is registered before the
+ * first tick. NULL clears it. Without it extension opcodes are an explicit
+ * dependency-provider blocker. */
+int scene_session_set_condition_extension(
+    SceneSession *session, const SceneConditionExtension *extension);
+
+/* Detail of the dependency evaluation that froze the session (zeroed if the
+ * freeze had another cause). */
+int scene_session_get_condition_failure(const SceneSession *session,
+                                        SceneConditionFailure *failure);
+
 /* Candidate-accept store of 0x43c054 (see
  * scene_executor_accept_action_candidate). */
 int scene_session_accept_action_candidate(SceneSession *session,

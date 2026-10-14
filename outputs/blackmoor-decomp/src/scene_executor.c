@@ -43,6 +43,8 @@ struct SceneActionExecutor {
     void *action64_world_commit_context;
     SceneExecutorPreGate pre_gates[SCENE_EXECUTOR_MAX_PRE_GATES];
     size_t pre_gate_count;
+    const SceneConditionExtension *condition_extension;
+    SceneConditionFailure condition_failure;
 };
 
 static uint16_t read_u16le(const uint8_t *bytes)
@@ -384,6 +386,16 @@ static void fill_failure(SceneExecutorStepInfo *info,
     info->detail_status = detail_status;
 }
 
+/* An unsupported opcode or a missing host provider is an explicit blocker;
+ * every other condition failure is a hard error. */
+static int condition_failure_to_executor_status(int condition_status)
+{
+    return condition_status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE ||
+                   condition_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE
+               ? SCENE_EXECUTOR_ERR_UNSUPPORTED
+               : SCENE_EXECUTOR_ERR_CONDITION;
+}
+
 static void decode_scene_transition(const uint8_t *body,
                                     SceneTransitionRequest *request)
 {
@@ -665,23 +677,41 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
                 return SCENE_EXECUTOR_ERR_FORMAT;
             }
             if (is_builtin_hotspot(&candidate_action)) {
-                candidate_status = scene_conditions_evaluate(
+                /* 0x43c019 passes mode 0 to the wrapper. */
+                candidate_status = scene_conditions_evaluate_ex(
                     executor->conditions[candidate], &dispatch_state,
-                    &candidate_eligible, &candidate_opcode);
+                    executor->condition_extension, 0,
+                    &candidate_eligible, &candidate_opcode,
+                    &executor->condition_failure);
                 if (candidate_status != SCENE_CONDITION_OK) {
                     fill_failure(&local_info, candidate,
                                  candidate_action.type, candidate_status);
                     *step_info = local_info;
-                    return candidate_status ==
-                                   SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE
-                               ? SCENE_EXECUTOR_ERR_UNSUPPORTED
-                               : SCENE_EXECUTOR_ERR_CONDITION;
+                    return condition_failure_to_executor_status(candidate_status);
                 }
                 if (candidate_eligible) {
                     executor->states[candidate].phase = 2u;
                 }
             }
         }
+    }
+
+    /* The original loader bakes each leaf's threshold, reading the
+     * 0x5adb81 table, while the scene loads; the first dispatch is the native
+     * equivalent point (idempotent). */
+    if (executor->condition_extension != NULL) {
+        size_t tree_index;
+        for (tree_index = 0u; tree_index < executor->action_count; ++tree_index) {
+            scene_conditions_resolve_thresholds(executor->conditions[tree_index],
+                                                executor->condition_extension);
+        }
+    }
+
+    /* 0x43cf25 stores 1 into 0x5c3a47 right before calling 0x427a50. */
+    if (executor->condition_extension != NULL &&
+        executor->condition_extension->pass_started != NULL) {
+        executor->condition_extension->pass_started(
+            executor->condition_extension->context);
     }
 
     for (index = 0u; index < executor->action_count; ++index) {
@@ -708,14 +738,16 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         if (is_builtin_hotspot(&action)) {
             hotspot->active = 0u;
         }
-        status = scene_conditions_evaluate(executor->conditions[index], &dispatch_state,
-                                          &eligible, &unsupported_opcode);
+        status = scene_conditions_evaluate_ex(
+            executor->conditions[index], &dispatch_state,
+            executor->condition_extension,
+            scene_conditions_gate_mode_for_type(
+                (uint8_t)action_runtime_type(&action)),
+            &eligible, &unsupported_opcode, &executor->condition_failure);
         if (status != SCENE_CONDITION_OK) {
             fill_failure(&local_info, index, action.type, status);
             *step_info = local_info;
-            return status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE
-                       ? SCENE_EXECUTOR_ERR_UNSUPPORTED
-                       : SCENE_EXECUTOR_ERR_CONDITION;
+            return condition_failure_to_executor_status(status);
         }
         if (!eligible) {
             /* 0x427a50's type-0x9f blocked-dependency branch executes this
@@ -918,6 +950,42 @@ int scene_executor_step(SceneActionExecutor *executor,
     const SceneExecutorFrameInput frame_input = {0, 0, 0, 0u, 0u, 0u, 0u};
     return scene_executor_step_frame(executor, state, handlers, handler_count,
                                      &frame_input, step_info);
+}
+
+int scene_executor_set_condition_extension(
+    SceneActionExecutor *executor,
+    const SceneConditionExtension *extension)
+{
+    if (executor == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->condition_extension = extension;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_condition_failure(const SceneActionExecutor *executor,
+                                         SceneConditionFailure *failure)
+{
+    if (executor == NULL || failure == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    *failure = executor->condition_failure;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_selected_item_label(const SceneActionExecutor *executor,
+                                           size_t action_index,
+                                           int32_t *label)
+{
+    if (label != NULL) {
+        *label = -1;
+    }
+    if (executor == NULL || label == NULL ||
+        action_index >= executor->action_count) {
+        return 0;
+    }
+    return scene_conditions_selected_item_label(
+        executor->conditions[action_index], label);
 }
 
 int scene_executor_get_action_state(const SceneActionExecutor *executor,

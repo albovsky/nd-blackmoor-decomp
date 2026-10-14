@@ -209,7 +209,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertIn('seed=analysis-only', contents)
             self.assertNotIn('stopped failure=0', contents)
 
-    def run_live(self, *extra_args):
+    def run_live(self, *extra_args, allowed_codes=(0,)):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         log = Path(directory.name) / 'live.log'
@@ -217,12 +217,16 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                  '--live-click-row', '34', *extra_args,
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=120)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(result.returncode, allowed_codes, result.stderr)
         return log.read_text()
 
     def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
-        contents = self.run_live()
-        ordered = ('live_audio loaded stem=NSHT01 channel=13',
+        # RT-4: the dependency leaves are wired, so the run no longer stops at
+        # opcode 17; it ends when Open_A completes and its action-sound row
+        # asks for a scene transition the app does not yet apply (exit code 1).
+        contents = self.run_live(allowed_codes=(1,))
+        ordered = ('scene_conditions_binding status=0 rand=msvc-crt-lcg',
+                   'live_audio loaded stem=NSHT01 channel=13',
                    'live_session_hover row=34 rect=388,225,492,284',
                    'live_session_click row=34',
                    'scene_parsed name=S5900',
@@ -243,11 +247,13 @@ class NativeCaptionTransferTests(unittest.TestCase):
                    'scene_a62_selector scene=5907 value=0',
                    'scene_a51_open_frame_text mode=2 bytes=51 status=0 detail=ok',
                    'live_audio loaded stem=Open_A channel=13',
-                   # New stop: S5907 row 6 (0x9f) is gated by dependency opcode 17.
-                   'scene_session_blocked stage=3 provider=dependency-provider '
-                   'action=6 type=0x9f detail=6',
                    'live_session_scene_changed from=5900 to=5907',
-                   'live_session_end scene=5907')
+                   # New stop: S5907 row 5 (0x9f Open_A) completes and its phase-2
+                   # step carries a scene transition (effect.has_transition).
+                   'scene_action_sound row=5 phase=2',
+                   'scene_session_error status=5',
+                   'scene_conditions_stats leaves=',
+                   'live_session_end scene=5907 ticks=')
         position = 0
         for evidence in ordered:
             found = contents.find(evidence, position)
@@ -259,6 +265,16 @@ class NativeCaptionTransferTests(unittest.TestCase):
         # not pin that gap.
         self.assertEqual(contents.count('scene_a51_open_frame_text mode=2 bytes=6 '), 1)
         self.assertNotIn('provider=action-family-62', contents)
+        # Row 6 (opcode 17, channel 4 idle) was queried once per tick while
+        # carstart plays; the gate never reports an unavailable provider.
+        self.assertIn('status=5 provider=action-sound stage=3 action=5 type=0x9f detail=2',
+                      contents.split('live_session_end ', 1)[1])
+        self.assertNotIn('provider=dependency-provider', contents)
+        self.assertNotIn('scene_session_dependency_failure', contents)
+        queries = int(contents.split('scene_conditions_stats ', 1)[1]
+                      .split('sound_queries=', 1)[1].split()[0])
+        self.assertGreater(queries, 20)
+        self.assertIn('sound_manager_error=0x3e8', contents)
 
     def test_scene_fixture_uses_real_caption_audio_and_resource_transition(self):
         with tempfile.TemporaryDirectory() as directory:

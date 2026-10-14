@@ -118,6 +118,11 @@ class NativeConditionTree(c.Structure):
         ("node_count", c.c_size_t),
         ("record_count", c.c_size_t),
         ("root", c.c_size_t),
+        # RT-4 private additions (sidecars, opcode-11 slot, threshold state).
+        ("runtime", c.c_void_p),
+        ("selected_leaf", c.c_void_p),
+        ("threshold_state", c.c_void_p),
+        ("thresholds_armed", c.c_int),
     ]
 
 
@@ -622,7 +627,7 @@ def native_library(path: Path):
 
 def native_topology(tree_pointer: c.c_void_p):
     tree = c.cast(tree_pointer, c.POINTER(NativeConditionTree)).contents
-    if c.sizeof(NativeConditionNode) != 88 or c.sizeof(NativeConditionTree) != 32:
+    if c.sizeof(NativeConditionNode) != 88 or c.sizeof(NativeConditionTree) != 64:
         raise RuntimeError("private native condition layout changed; refresh read-only mirror")
     if tree.node_count > 513 or tree.root >= tree.node_count:
         raise RuntimeError("native condition tree metadata exceeds oracle bounds")

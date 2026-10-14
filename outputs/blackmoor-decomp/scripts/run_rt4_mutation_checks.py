@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""RT-4 mutation checks: deliberately break one rule at a time in a COPY of the
+sources, rebuild the affected libraries from the copy, and require that the
+unit suites or the original-x86 whole-tree oracle fail. The production sources
+are never modified. Run with the oracle interpreter:
+
+    work/tools/oracle-python/bin/python \
+      outputs/blackmoor-decomp/scripts/run_rt4_mutation_checks.py
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+PROJECT = Path(__file__).resolve().parents[1]
+ROOT = PROJECT.parents[1]
+REPORT = ROOT / "work/analysis/slices/RT-4-mutation-checks.json"
+ORACLE_LIMIT = "800"
+
+CLANG = ["xcrun", "--sdk", "macosx", "clang", "-arch", "arm64", "-std=c11", "-Wall",
+         "-Wextra", "-Wpedantic", "-Werror", "-O1", "-g", "-fPIC", "-dynamiclib"]
+
+# (name, file, [(anchor, replacement)])  -- every anchor must match exactly once.
+MUTATIONS = [
+    # ---- tree (scene_conditions.c) ----
+    ("reset_keeps_random_evaluated_flag", "scene_conditions.c", [
+        ("            tree->runtime[index].random_cache_valid_2c = 0u;\n", "")]),
+    ("reset_clears_selected_item_slot", "scene_conditions.c", [
+        ("    for (index = 0u; index < tree->node_count; ++index) {\n        tree->nodes[index].status = 0;\n",
+         "    tree->selected_leaf = NULL;\n    for (index = 0u; index < tree->node_count; ++index) {\n        tree->nodes[index].status = 0;\n")]),
+    ("leaf_status_not_preset_to_retained", "scene_conditions.c", [
+        ("    int32_t status = node->status;\n    int provider_status = 0;\n",
+         "    int32_t status = 0;\n    int provider_status = 0;\n")]),
+    ("threshold_seconds_term_dropped", "scene_conditions.c", [
+        ("    value += (uint32_t)seconds_word * UINT32_C(1000);\n",
+         "    value += (uint32_t)seconds_word * UINT32_C(0);\n")]),
+    ("threshold_table_word_ignored", "scene_conditions.c", [
+        ("scene_condition_make_threshold(tree->nodes[index].fields, word);",
+         "scene_condition_make_threshold(tree->nodes[index].fields, tree->nodes[index].fields[6]);")]),
+    ("adjacent_selected_item_preflight_removed", "scene_conditions.c", [
+        ("records[record_index + 1u].opcode == 11u && record->fields[3] == 0) {",
+         "records[record_index + 1u].opcode == 11u && record->fields[3] == 77) {")]),
+    ("evaluation_mode_not_forwarded", "scene_conditions.c", [
+        ("        request.evaluation_mode = context->evaluation_mode;\n",
+         "        request.evaluation_mode = 0;\n")]),
+    ("empty_tree_does_not_notify", "scene_conditions.c", [
+        ("        if (extension != NULL && extension->tree_evaluated != NULL) {\n            extension->tree_evaluated(extension->context, 1);\n        }\n",
+         "")]),
+    ("gate_mode_table_drops_0x62", "scene_conditions.c", [
+        ("    case 0x62: case 0x63: case 0x6a:", "    case 0x63: case 0x6a:")]),
+    # ---- binding (session_bindings_conditions.c) ----
+    ("post_tree_store_polarity_inverted", "session_bindings_conditions.c", [
+        ("binding->global_5c3a47 = root_status == 0 ? 1 : 0;", "binding->global_5c3a47 = root_status != 0 ? 1 : 0;")]),
+    ("pass_start_stores_zero", "session_bindings_conditions.c", [
+        ("        binding->global_5c3a47 = 1;                    /* 0x43cf25 */",
+         "        binding->global_5c3a47 = 0;                    /* 0x43cf25 */")]),
+    ("prior_gate_reads_zero", "session_bindings_conditions.c", [
+        ("    session.previous_global_5c3a47 = binding->global_5c3a47;",
+         "    session.previous_global_5c3a47 = 0;")]),
+    ("sidecar_not_copied_back", "session_bindings_conditions.c", [
+        ("    memcpy(request->runtime, &runtime, sizeof(runtime));\n", "")]),
+    ("context_word_ignored", "session_bindings_conditions.c", [
+        ("        session.context_58c94f = value;", "        session.context_58c94f = 0; (void)value;")]),
+    ("channel_bounds_widened", "session_bindings_conditions.c", [
+        ("(uint32_t)channel >= SESSION_CONDITIONS_CHANNEL_COUNT", "(uint32_t)channel >= 64u")]),
+    ("pause_gates_or_instead_of_and", "session_bindings_conditions.c", [
+        ("record->gate_172 == 0u && record->gate_16e == 0u ? 1 : 0",
+         "record->gate_172 == 0u || record->gate_16e == 0u ? 1 : 0")]),
+    ("missing_resource_error_code_wrong", "session_bindings_conditions.c", [
+        ("manager->error_3c2 = 0x3efu;", "manager->error_3c2 = 0x3e8u;")]),
+    ("get_status_hresult_not_recorded", "session_bindings_conditions.c", [
+        ("    manager->host_result_3ca = record->get_status_hresult;   /* GetStatus */\n", "")]),
+    ("crt_rand_multiplier_off_by_one", "session_bindings_conditions.c", [
+        ("UINT32_C(0x343fd)", "UINT32_C(0x343fc)")]),
+    # ---- kernel (condition_extra.c) ----
+    ("random_sample_modulo_99", "condition_extra.c", [
+        ("sample = raw_value % 100u;", "sample = raw_value % 99u;")]),
+    ("random_evaluated_flag_never_set", "condition_extra.c", [
+        ("    runtime->random_cache_valid_2c = 1u;\n    *status_out = runtime->random_sample_30",
+         "    *status_out = runtime->random_sample_30")]),
+    ("timer_pending_status_not_active", "condition_extra.c", [
+        ("record_status != TIMER_PAUSED &&\n        record_status != TIMER_PENDING) {",
+         "record_status != TIMER_PAUSED) {")]),
+    ("prior_gate_polarity_inverted", "condition_extra.c", [
+        ("*status_out = session->previous_global_5c3a47 != 0 ? 1 : 0;",
+         "*status_out = session->previous_global_5c3a47 == 0 ? 1 : 0;")]),
+    ("selected_item_mode_ignored", "condition_extra.c", [
+        ("    if (session->evaluation_mode_614 != 0) {\n        *status_out = 1;",
+         "    if (0) {\n        *status_out = 1;")]),
+    ("selected_item_slot_cleared_by_any_miss", "condition_extra.c", [
+        ("        if (*session->selected_dependency_leaf == leaf_identity) {", "        if (1) {")]),
+    # ---- executor / session ----
+    ("executor_pass_notice_never_sent", "scene_executor.c", [
+        ("        executor->condition_extension->pass_started(\n            executor->condition_extension->context);\n", "        (void)0;\n")]),
+    ("executor_mode_always_zero", "scene_executor.c", [
+        ("            scene_conditions_gate_mode_for_type(\n                (uint8_t)action_runtime_type(&action)),", "            0,")]),
+    ("executor_candidate_check_uses_mode_one", "scene_executor.c", [
+        ("                    executor->condition_extension, 0,\n                    &candidate_eligible,", "                    executor->condition_extension, 1,\n                    &candidate_eligible,")]),
+    ("executor_host_unavailable_is_a_hard_error", "scene_executor.c", [
+        (" ||\n                   condition_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE", "")]),
+    ("executor_does_not_arm_thresholds", "scene_executor.c", [
+        ("            scene_conditions_resolve_thresholds(executor->conditions[tree_index],\n                                                executor->condition_extension);\n",
+         "            (void)tree_index;\n")]),
+    ("session_does_not_reapply_extension", "scene_session.c", [
+        ("    status = scene_executor_set_condition_extension(\n        *out_executor, session->condition_extension);\n",
+         "    status = SCENE_EXECUTOR_OK;\n")]),
+    ("session_host_unavailable_not_dependency_provider", "scene_session.c", [
+        ("            local.executor.detail_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE ||\n", "")]),
+]
+
+
+def build_mutant(work: Path) -> dict[str, Path]:
+    src = work / "src"
+    libs = {
+        "conditions": work / "libsessionconditions.dylib",
+        "executor": work / "libsceneexecutor.dylib",
+        "session": work / "libscenesession.dylib",
+    }
+    common = ["hiff.c", "scene_resource.c", "scene_conditions.c", "action_core.c",
+              "action_family_64.c"]
+    jobs = {
+        "conditions": (["scene_conditions.c", "condition_extra.c", "session_bindings_conditions.c"], []),
+        "executor": (common + ["scene_executor.c"], ["-DSCENE_EXECUTOR_TEST_HOOKS"]),
+        "session": (common + ["world_clock.c", "action_ui.c", "scene_executor.c", "scene_session.c"],
+                    ["-DSCENE_EXECUTOR_TEST_HOOKS"]),
+    }
+    for name, (sources, flags) in jobs.items():
+        command = CLANG + flags + ["-I", str(src)] + [str(src / s) for s in sources] + ["-o", str(libs[name])]
+        built = subprocess.run(command, capture_output=True, text=True)
+        if built.returncode != 0:
+            raise RuntimeError(f"mutant build failed ({name}):\n{built.stderr[-1500:]}")
+    return libs
+
+
+def suites(libs: dict[str, Path] | None):
+    env_extra = {}
+    if libs is not None:
+        env_extra = {
+            "SCENE_CONDITIONS_LIBRARY": str(libs["conditions"]),
+            "SESSION_CONDITIONS_LIBRARY": str(libs["conditions"]),
+            "RT4_EXECUTOR_LIBRARY": str(libs["executor"]),
+            "RT4_SESSION_LIBRARY": str(libs["session"]),
+        }
+    conditions = str(libs["conditions"]) if libs else str(PROJECT / "build/libsessionconditions.dylib")
+    return env_extra, [
+        ("tree_unit", ["python3", "-m", "unittest", "test_scene_conditions_extension"]),
+        ("binding_unit", ["python3", "-m", "unittest", "test_session_bindings_conditions"]),
+        ("executor_unit", ["python3", "-m", "unittest", "test_scene_executor_extension"]),
+        ("session_unit", ["python3", "-m", "unittest", "test_scene_session_extension"]),
+        ("whole_tree_oracle", [sys.executable, "conditions_extra_tree_original_oracle.py",
+                               "--native-library", conditions, "--limit", ORACLE_LIMIT,
+                               "--no-report"]),
+    ]
+
+
+def run_suites(libs):
+    env_extra, commands = suites(libs)
+    env = dict(os.environ, **env_extra)
+    outcome = {}
+    for name, command in commands:
+        done = subprocess.run(command, cwd=PROJECT / "tests", env=env, capture_output=True, text=True)
+        outcome[name] = done.returncode == 0
+    return outcome
+
+
+def main() -> int:
+    subprocess.run([str(PROJECT / "scripts/build_session_conditions.sh")], check=True,
+                   capture_output=True)
+    subprocess.run([str(PROJECT / "scripts/build_scene_conditions.sh")], check=True,
+                   capture_output=True)
+    baseline = run_suites(None)
+    if not all(baseline.values()):
+        print(f"unmutated suite must pass first: {baseline}", file=sys.stderr)
+        return 1
+    results = []
+    survivors = 0
+    with tempfile.TemporaryDirectory() as scratch:
+        for name, filename, pairs in MUTATIONS:
+            work = Path(scratch) / name
+            shutil.copytree(PROJECT / "src", work / "src")
+            target = work / "src" / filename
+            text = target.read_text()
+            for old, new in pairs:
+                if text.count(old) != 1:
+                    print(f"{name}: anchor not unique/found in {filename}: {old[:60]!r}", file=sys.stderr)
+                    return 1
+                text = text.replace(old, new)
+            target.write_text(text)
+            libs = build_mutant(work)
+            outcome = run_suites(libs)
+            detected_by = [k for k, passed in outcome.items() if not passed]
+            if not detected_by:
+                survivors += 1
+            results.append({"mutation": name, "file": filename, "detected_by": detected_by})
+            shutil.rmtree(work)
+    report = {"baseline_passes": baseline, "oracle_case_limit": int(ORACLE_LIMIT),
+              "mutations": len(results), "survivors": survivors, "results": results}
+    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    REPORT.write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps({"mutations": len(results), "survivors": survivors}))
+    for item in results:
+        print(f"  {item['mutation']}: {', '.join(item['detected_by']) or 'SURVIVED'}")
+    return 0 if survivors == 0 else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

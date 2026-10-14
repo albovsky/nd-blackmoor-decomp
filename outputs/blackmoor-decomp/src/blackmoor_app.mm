@@ -20,6 +20,8 @@
 #include "scene_session.h"
 #include "session_bindings_a62.h"
 #include "session_bindings_a51.h"
+#include "session_bindings_conditions.h"
+#include "session_bindings_conditions_audio.h"
 #include "caption_layout.h"
 #include "caption_lifecycle.h"
 #include "caption_compositor.h"
@@ -32,6 +34,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
+#include <ctime>
 #include <climits>
 #include <string>
 #include <vector>
@@ -172,6 +175,9 @@ struct NativeApp {
      * native_a51_* callbacks below). */
     SessionA62Binding *a62 = nullptr;
     SessionA51Binding *a51 = nullptr;
+    /* RT-4 dependency leaves 11..21. */
+    SessionConditions *conditions_binding = nullptr;
+    SessionConditionsCrtRand condition_rand{};
     /* DAT_005bb1ca, shared "cursor allowed" process global written by 0x62. */
     int32_t start_flag_5bb1ca = 0;
     /* DAT_005bb50b as set at scene entry (0x439f20..0x439f41 copies
@@ -1502,6 +1508,7 @@ static void cleanup(NativeApp *app)
     if (app->session) scene_session_destroy(app->session);
     session_a62_destroy(app->a62);
     session_a51_destroy(app->a51);
+    session_conditions_destroy(app->conditions_binding);
     if (app->live_audio) live_audio_destroy(app->live_audio);
     app->live_audio = nullptr;
     if (app->platform) blackmoor_macos_close(app->platform);
@@ -2091,6 +2098,48 @@ static void native_a51_store_world(void *context, const ActionFamily51World *wor
     app->captions.writer_globals.caption_finish_flag = world->caption_finish_flag;
 }
 
+/* RT-4 host providers for the dependency leaves (see
+ * session_bindings_conditions.h for what each one proves). */
+static ConditionExtraHostStatus native_cond_channel_record(
+    void *context, uint16_t channel, SessionConditionsChannelRecord *record)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->live_audio == nullptr) return CONDITION_EXTRA_HOST_UNAVAILABLE;
+    return session_conditions_live_audio_channel_record(app->live_audio, channel, record);
+}
+
+static ConditionExtraHostStatus native_cond_next_random(void *context, uint32_t *raw)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return CONDITION_EXTRA_HOST_UNAVAILABLE;
+    return session_conditions_crt_rand_host(&app->condition_rand, raw);
+}
+
+/* 0x58c94f is the difficulty word: action 0x71 stores it (0x4292b3) and New
+ * Game zeroes it (0x4383af); ActionCoreWorld.difficulty is that word. */
+static ConditionExtraHostStatus native_cond_context_58c94f(void *context, int16_t *value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || value == nullptr) return CONDITION_EXTRA_HOST_UNAVAILABLE;
+    *value = app->new_game.action_core.difficulty;
+    return CONDITION_EXTRA_HOST_OK;
+}
+
+/* Loader table word 0x5adb81 + 2*idx for opcode 13/14 leaves whose
+ * fields[6] >= 5000. The corpus uses indexes 5000..5003 = 0x5b0291..0x5b0297.
+ * A scan of every instruction operand in .text finds no write to those
+ * addresses (the only references are the four indexed loads at 0x42577f,
+ * 0x428936, 0x428a3e and 0x428b5a), and the range lies in .bss, so the words
+ * are zero for the whole run unless an unseen pointer write exists. Other
+ * indexes are not audited and stay unavailable. */
+static int native_cond_variable_word(void *context, int16_t index, int16_t *value)
+{
+    (void)context;
+    if (value == nullptr || index < 5000 || index > 5003) return 0;
+    *value = 0;
+    return 1;
+}
+
 /* Builds both bindings and loads their per-scene tables for app->scene. */
 static bool create_native_session_bindings(NativeApp *app)
 {
@@ -2115,7 +2164,24 @@ static bool create_native_session_bindings(NativeApp *app)
     a51_host.load_world = native_a51_load_world;
     a51_host.store_world = native_a51_store_world;
     app->a51 = session_a51_create(&a51_host);
-    if (app->a62 == nullptr || app->a51 == nullptr) {
+    SessionConditionsConfig cond{};
+    cond.world = &app->new_game.view;
+    cond.clock = &app->world_clock_session;
+    cond.host.context = app;
+    cond.host.channel_record = native_cond_channel_record;
+    cond.host.next_random = native_cond_next_random;
+    cond.host.read_context_58c94f = native_cond_context_58c94f;
+    cond.host.read_variable_word = native_cond_variable_word;
+    int cond_status = 0;
+    app->conditions_binding = session_conditions_create(&cond, &cond_status);
+    /* The original seeds the CRT with srand(time(NULL)) at 0x43504f; the
+     * native seed is the wall clock at session creation. Seed parity with a
+     * given original run is unprovable and not claimed. */
+    const uint32_t seed = static_cast<uint32_t>(std::time(nullptr));
+    session_conditions_crt_srand(&app->condition_rand, seed);
+    record(app, "scene_conditions_binding status=%d rand=msvc-crt-lcg seed=%u seed-source=time(NULL) "
+           "seed-parity=unproven", cond_status, seed);
+    if (app->a62 == nullptr || app->a51 == nullptr || app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
     }
@@ -2222,6 +2288,9 @@ static bool create_native_scene_session(NativeApp *app)
     }
     if (scene_session_set_pre_gate(app->session, SESSION_A62_TYPE, session_a62_pre_gate,
                                    app->a62) != SCENE_SESSION_OK ||
+        scene_session_set_condition_extension(
+            app->session, session_conditions_extension(app->conditions_binding)) !=
+            SCENE_SESSION_OK ||
         !begin_native_session_bindings_scene(app)) {
         record(app, "scene_session_create_error provider=host detail=binding registration");
         return false;
@@ -2784,6 +2853,13 @@ static void update(NativeApp *app, uint32_t now)
                    session_result.failure.detail_status,
                    session_result.executor.actions_applied,
                    session_result.dispatch_attempted);
+            SceneConditionFailure condition_failure{};
+            if (scene_session_get_condition_failure(app->session, &condition_failure) ==
+                    SCENE_SESSION_OK && condition_failure.opcode != 0u) {
+                record(app, "scene_session_dependency_failure opcode=%u record=%zu provider_status=%d",
+                       condition_failure.opcode, condition_failure.record_index,
+                       condition_failure.provider_status);
+            }
             app->session_block_reported = true;
         } else if (session_status == SCENE_SESSION_TRANSITION_PENDING &&
                    !app->session_transition_reported) {
@@ -3357,6 +3433,26 @@ int main(int argc, char **argv)
                     }
                     SceneSessionTickResult tick{};
                     scene_session_get_last_result(app.session, &tick);
+                    {
+                        SessionConditionsStats cond_stats{};
+                        SessionConditionsSoundManager cond_manager{};
+                        if (session_conditions_get_stats(app.conditions_binding, &cond_stats) ==
+                                SESSION_CONDITIONS_OK &&
+                            session_conditions_get_sound_manager(app.conditions_binding,
+                                                                 &cond_manager) ==
+                                SESSION_CONDITIONS_OK) {
+                            record(&app, "scene_conditions_stats leaves=%llu sound_queries=%llu "
+                                   "rand_draws=%llu passes=%llu trees=%llu global_5c3a47=%d "
+                                   "sound_manager_error=0x%x",
+                                   (unsigned long long)cond_stats.leaf_evaluations,
+                                   (unsigned long long)cond_stats.sound_queries,
+                                   (unsigned long long)cond_stats.random_draws,
+                                   (unsigned long long)cond_stats.passes_started,
+                                   (unsigned long long)cond_stats.trees_evaluated,
+                                   session_conditions_global_5c3a47(app.conditions_binding),
+                                   cond_manager.error_3c2);
+                        }
+                    }
                     record(&app, "live_session_end scene=%d ticks=%llu status=%d provider=%s "
                            "stage=%d action=%zu type=0x%02x detail=%d applied=%zu",
                            app.current_scene_id,

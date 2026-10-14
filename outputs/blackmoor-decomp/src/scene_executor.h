@@ -227,6 +227,30 @@ int scene_executor_set_pre_gate(SceneActionExecutor *executor,
 int scene_executor_accept_action_candidate(SceneActionExecutor *executor,
                                            size_t action_index);
 
+/* RT-4: register the dependency-leaf extension (opcodes outside 0..6 and 9,
+ * the post-tree 0x5c3a47 store and the per-pass reset at 0x43cf25). The
+ * pointer is borrowed and must outlive the executor; NULL clears it. Each
+ * gate evaluation passes the mode 0x427a50 passes to 0x423f57 for the row's
+ * runtime type (scene_conditions_gate_mode_for_type); the hotspot candidate
+ * check at 0x43c019 uses mode 0. Without an extension extra opcodes stay
+ * unsupported. Register before the first step. */
+int scene_executor_set_condition_extension(
+    SceneActionExecutor *executor,
+    const SceneConditionExtension *extension);
+
+/* Detail of the most recent dependency evaluation: zeroed when it succeeded,
+ * else the failing leaf's opcode, source record position and the extension's
+ * own `provider_status`. A failure freezes the session, so this stays valid
+ * for reporting. */
+int scene_executor_get_condition_failure(const SceneActionExecutor *executor,
+                                         SceneConditionFailure *failure);
+
+/* Opcode-11 slot of the action's tree (accessor 0x424035): returns 1 and the
+ * selected item label when a selected-item leaf owns the slot, else 0/-1. */
+int scene_executor_get_selected_item_label(const SceneActionExecutor *executor,
+                                           size_t action_index,
+                                           int32_t *label);
+
 int scene_executor_get_action_state(const SceneActionExecutor *executor,
                                     size_t action_index,
                                     SceneActionRuntimeState *state);

@@ -58,6 +58,8 @@ struct SceneSession {
     int transition_pending;
     SceneTransitionRequest transition;
     int frozen;
+    const SceneConditionExtension *condition_extension;
+    SceneConditionFailure condition_failure;
     SceneSessionTickResult last_result;
     int last_ui_status;
 };
@@ -197,6 +199,19 @@ static int build_executor(SceneSession *session,
                 return status;
             }
         }
+    }
+    status = scene_executor_set_condition_extension(
+        *out_executor, session->condition_extension);
+    if (status != SCENE_EXECUTOR_OK) {
+        scene_executor_destroy(*out_executor);
+        *out_executor = NULL;
+        if (failure != NULL) {
+            clear_failure(failure);
+            failure->stage = SCENE_SESSION_STAGE_SCENE_REPLACE;
+            failure->provider = SCENE_SESSION_PROVIDER_DEPENDENCY;
+            failure->detail_status = status;
+        }
+        return status;
     }
     if (session->action64_world_commit_observer != NULL) {
         status = scene_executor_set_action64_world_commit_observer(*out_executor,
@@ -467,7 +482,13 @@ int scene_session_tick(SceneSession *session,
         failure.action_type = local.executor.failed_action_type;
         failure.detail_status = local.executor.detail_status;
         failure.provider = provider_for_type(local.executor.failed_action_type);
-        if (local.executor.detail_status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE) {
+        /* The executor zeroes this record on every successful evaluation, so
+         * it is nonzero only when the freeze came from a dependency leaf. */
+        (void)scene_executor_get_condition_failure(session->executor,
+                                                   &session->condition_failure);
+        if (local.executor.detail_status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE ||
+            local.executor.detail_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE ||
+            local.executor.detail_status == SCENE_CONDITION_ERR_PROVIDER) {
             failure.provider = SCENE_SESSION_PROVIDER_DEPENDENCY;
         } else if (local.executor.failed_action_type == ACTION_TYPE_PHONE ||
                    local.executor.failed_action_type == ACTION_TYPE_CONTROL) {
@@ -587,6 +608,29 @@ int scene_session_set_pre_gate(SceneSession *session,
     session->pre_gates[session->pre_gate_count].callback = callback;
     session->pre_gates[session->pre_gate_count].context = context;
     ++session->pre_gate_count;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_set_condition_extension(
+    SceneSession *session, const SceneConditionExtension *extension)
+{
+    if (session == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    session->condition_extension = extension;
+    return scene_executor_set_condition_extension(session->executor, extension) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK
+               : SCENE_SESSION_ERR_EXECUTOR;
+}
+
+int scene_session_get_condition_failure(const SceneSession *session,
+                                        SceneConditionFailure *failure)
+{
+    if (session == NULL || failure == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    *failure = session->condition_failure;
     return SCENE_SESSION_OK;
 }
 
