@@ -928,6 +928,36 @@
       "parent": "A-3F",
       "raw_type": "0x3f",
       "records": 493
+    },
+    {
+      "id": "A-3E.1",
+      "title": "Action 0x3e: body boundary and isolated decoder",
+      "packet": "tasks/A-3E.1-body-boundary-and-decoder.md",
+      "status": "READY Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-3E",
+      "raw_type": "0x3e",
+      "records": 202
+    },
+    {
+      "id": "A-6E.1",
+      "title": "Action 0x6e: body boundary and isolated decoder",
+      "packet": "tasks/A-6E.1-body-boundary-and-decoder.md",
+      "status": "READY Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-6E",
+      "raw_type": "0x6e",
+      "records": 68
+    },
+    {
+      "id": "A-79.1",
+      "title": "Action 0x79: body boundary and isolated decoder",
+      "packet": "tasks/A-79.1-body-boundary-and-decoder.md",
+      "status": "READY Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-79",
+      "raw_type": "0x79",
+      "records": 38
     }
   ]
 }
