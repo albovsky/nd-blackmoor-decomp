@@ -174,6 +174,10 @@ ActionSoundBackendStatus live_audio_is_playing(void *context, uint16_t channel,
 ActionSoundBackendStatus live_audio_unload_sound(void *context,
                                                  uint16_t channel);
 
+/* Unloads every loaded channel (scene clear). The original's treatment of
+ * sounds that span scene changes is unverified; callers state that choice. */
+int live_audio_unload_all(LiveAudio *audio);
+
 /* Stops a channel's playback but keeps it loaded (a following play restarts
  * from the beginning). Bumps the generation. */
 int live_audio_stop_channel(LiveAudio *audio, uint16_t channel);

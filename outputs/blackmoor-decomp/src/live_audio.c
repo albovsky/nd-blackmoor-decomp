@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "his_audio.h"
 
@@ -42,6 +43,8 @@ typedef struct Channel {
      * a late completion for the old sound cannot be mistaken for the new
      * one's even by a host that does not tag completions itself. */
     uint64_t load_serial;
+    /* offline_frames_rendered when the host accepted play */
+    uint64_t play_mark;
     uint32_t host_slot;
     uint32_t control_word;
     int16_t first_percent;
@@ -65,6 +68,9 @@ struct LiveAudio {
     uint32_t offline_sample_rate;
     uint32_t offline_channels;
     uint64_t offline_frames_rendered;
+    /* AVAudioEngine's manual render faults until a player node exists, so
+     * offline advances before the first host play are virtual. */
+    uint8_t host_played;
     Channel channels[LIVE_AUDIO_CHANNEL_COUNT];
 };
 
@@ -511,9 +517,10 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
     channel->host_slot = host_slot_for(command->channel, channel->load_serial);
     refresh_gain(audio, channel);
     logf_line(audio, "live_audio loaded stem=%s channel=%u frames=%llu rate=%u channels=%u category=%u "
-              "control_word=0x%08x gain=%.6f",
+              "control_word=0x%08x%s gain=%.6f",
               command->asset_stem, command->channel, (unsigned long long)decoded.frame_count,
               decoded.sample_rate, decoded.channels, command->volume_category, command->control_word,
+              command->control_word == 0u ? " restart-on-completion=unsupported" : "",
               (double)channel->final_gain);
     return ACTION_SOUND_BACKEND_OK;
 }
@@ -541,9 +548,14 @@ ActionSoundBackendStatus live_audio_play_sound(void *context, uint16_t index)
                   channel->host_slot, status, error);
         (void)audio->ops.stop(audio->host, channel->host_slot, error, sizeof(error));
         channel->started = 0u;
-        return ACTION_SOUND_BACKEND_ERROR;
+        /* The original play wrapper logs a device failure and carries on; the
+         * channel then reads as not playing, so the action advances. A missing
+         * output device must not end the game. */
+        return ACTION_SOUND_BACKEND_NO_RESOURCE;
     }
     channel->started = 1u;
+    channel->play_mark = audio->offline_frames_rendered;
+    audio->host_played = 1u;
     return ACTION_SOUND_BACKEND_OK;
 }
 
@@ -573,6 +585,19 @@ ActionSoundBackendStatus live_audio_is_playing(void *context, uint16_t index, in
     }
     *still_playing = 1;
     return ACTION_SOUND_BACKEND_OK;
+}
+
+int live_audio_unload_all(LiveAudio *audio)
+{
+    uint16_t index;
+    int result = LIVE_AUDIO_OK;
+
+    if (audio == NULL) return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    for (index = 0u; index < LIVE_AUDIO_CHANNEL_COUNT; ++index)
+        if (audio->channels[index].loaded && release_channel(audio, index) != MAC_AUDIO_OK)
+            result = LIVE_AUDIO_ERR_HOST;
+    return result;
 }
 
 ActionSoundBackendStatus live_audio_unload_sound(void *context, uint16_t index)
@@ -688,6 +713,37 @@ uint64_t live_audio_offline_frames_rendered(const LiveAudio *audio)
     return audio != NULL ? audio->offline_frames_rendered : 0u;
 }
 
+/* The host reports natural completion from its own callback thread, a moment
+ * after the render that consumed the last frame. Once the frames rendered
+ * since a channel started cover its length, wait (bounded) for that flip so a
+ * headless run observes completion on the same tick every time. */
+static void settle_completions(LiveAudio *audio)
+{
+    uint16_t index;
+
+    for (index = 0u; index < LIVE_AUDIO_CHANNEL_COUNT; ++index) {
+        Channel *channel = &audio->channels[index];
+        uint64_t needed;
+        unsigned attempt;
+
+        if (!channel->loaded || !channel->started || channel->finished ||
+            channel->audio.sample_rate == 0u)
+            continue;
+        needed = (channel->audio.frame_count * audio->offline_sample_rate +
+                  channel->audio.sample_rate - 1u) / channel->audio.sample_rate;
+        if (audio->offline_frames_rendered - channel->play_mark < needed) continue;
+        for (attempt = 0u; attempt < 100u; ++attempt) {
+            char error[64] = "";
+            int playing = 1;
+
+            if (audio->ops.is_playing(audio->host, channel->host_slot, &playing, error,
+                                      sizeof(error)) != MAC_AUDIO_OK || playing == 0)
+                break;
+            usleep(1000u);
+        }
+    }
+}
+
 int live_audio_advance_offline(LiveAudio *audio, uint64_t frames, LiveAudioOfflineStats *stats,
                                float *capture, uint64_t capture_capacity_frames)
 {
@@ -698,6 +754,15 @@ int live_audio_advance_offline(LiveAudio *audio, uint64_t frames, LiveAudioOffli
     if (audio == NULL || (capture == NULL && capture_capacity_frames != 0u)) return LIVE_AUDIO_ERR_ARGUMENT;
     if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
     if (audio->mode != MAC_AUDIO_MODE_OFFLINE) return LIVE_AUDIO_ERR_MODE;
+    if (!audio->host_played) {
+        if (capture != NULL && capture_capacity_frames != 0u) {
+            uint64_t zero = frames < capture_capacity_frames ? frames : capture_capacity_frames;
+            memset(capture, 0, (size_t)zero * audio->offline_channels * sizeof(float));
+        }
+        audio->offline_frames_rendered += frames;
+        if (stats != NULL) stats->frames = frames;
+        return LIVE_AUDIO_OK;
+    }
     while (remaining > 0u) {
         uint32_t chunk = remaining > LIVE_AUDIO_RENDER_CHUNK_FRAMES ? LIVE_AUDIO_RENDER_CHUNK_FRAMES
                                                                     : (uint32_t)remaining;
@@ -743,6 +808,7 @@ int live_audio_advance_offline(LiveAudio *audio, uint64_t frames, LiveAudioOffli
         if (stats != NULL) stats->frames += chunk;
         remaining -= chunk;
     }
+    settle_completions(audio);
     return LIVE_AUDIO_OK;
 }
 

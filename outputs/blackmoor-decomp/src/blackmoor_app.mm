@@ -2450,6 +2450,13 @@ static bool perform_session_transition(NativeApp *app,
         return false;
     }
     const int16_t source = app->current_scene_id;
+    /* Scene clear drops the outgoing scene's sounds. Whether the original
+     * keeps mode-1 sounds across a scene change is unverified. */
+    if (app->live_audio != nullptr && live_audio_unload_all(app->live_audio) != LIVE_AUDIO_OK) {
+        record(app, "scene_transition_error source=%d target=%d detail=audio-unload-failed",
+               source, transition.target_scene);
+        return false;
+    }
     if (!clear_before_scene_entry(app, now) ||
         !load_scene(app, transition.target_scene, true)) {
         record(app, "scene_transition_error source=%d target=%d detail=target-load-failed",
@@ -2489,17 +2496,7 @@ static void update(NativeApp *app, uint32_t now)
             return;
         }
         SceneSessionTickResult session_result{};
-        /* An offline engine with no connected player node cannot render (it
-         * faults inside AVFAudio), so advance only while a sound is playing. */
-        bool audio_active = false;
-        if (app->live_audio != nullptr && app->offline_audio_frames_per_update != 0u) {
-            for (uint16_t channel = 0; channel < LIVE_AUDIO_CHANNEL_COUNT; ++channel) {
-                LiveAudioChannelInfo info{};
-                if (live_audio_get_channel_info(app->live_audio, channel, &info) == LIVE_AUDIO_OK &&
-                    info.loaded && info.started && !info.finished) { audio_active = true; break; }
-            }
-        }
-        if (audio_active &&
+        if (app->live_audio != nullptr && app->offline_audio_frames_per_update != 0u &&
             live_audio_advance_offline(app->live_audio, app->offline_audio_frames_per_update,
                                        nullptr, nullptr, 0) != LIVE_AUDIO_OK) {
             app->failure = true;

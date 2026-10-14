@@ -554,7 +554,7 @@ static void t_reload_replaces(Ctx *ctx)
     CHECK(ctx, live_audio_load_sound(audio, &b) == ACTION_SOUND_BACKEND_OK);
     CHECK(ctx, live_audio_get_channel_info(audio, 7, &after) == LIVE_AUDIO_OK);
     CHECK(ctx, after.loaded == 1u && after.started == 0u && after.finished == 0u);
-    CHECK(ctx, after.frame_count == MONO_FRAMES && after.channels == 1u && after.sample_rate == 22050u);
+    CHECK(ctx, after.frame_count == MONO_FRAMES && after.channels == 2u && after.sample_rate == 22050u /* mono is duplicated to stereo */);
     CHECK(ctx, after.control_word == 0x22u && after.volume_category == 2u);
     CHECK(ctx, after.generation > before.generation);
     /* the replaced sound was stopped in its own slot, and is not audible */
@@ -681,9 +681,10 @@ static void t_is_playing_lifecycle_fake(Ctx *ctx)
     CHECK(ctx, playing(audio, 9) == -1);
     g_fake->fail_is_playing = 0;
     CHECK(ctx, playing(audio, 9) == 1);
-    /* play failure leaves the channel loaded but not playing */
+    /* a host play failure is logged and advances like the original wrapper
+     * (NO_RESOURCE); it leaves the channel loaded but not playing */
     g_fake->fail_play = 1;
-    CHECK(ctx, live_audio_play_sound(audio, 9) == ACTION_SOUND_BACKEND_ERROR);
+    CHECK(ctx, live_audio_play_sound(audio, 9) == ACTION_SOUND_BACKEND_NO_RESOURCE);
     g_fake->fail_play = 0;
     CHECK(ctx, live_audio_get_channel_info(audio, 9, &info) == LIVE_AUDIO_OK && info.loaded == 1u && info.started == 0u);
     CHECK(ctx, playing(audio, 9) == 0);
@@ -840,15 +841,22 @@ static void t_advance_offline_splits_and_counts(Ctx *ctx)
     LiveAudioOfflineStats stats;
     float capture[16];
     if (!create_fake(ctx, &audio, MAC_AUDIO_MODE_OFFLINE)) return;
+    {
+        ActionSoundAudioCommand c = make_command("tone", 0, 1, 1.0f, 1.0f, 0);
+        CHECK(ctx, live_audio_advance_offline(audio, 100, &stats, NULL, 0) == LIVE_AUDIO_OK && stats.frames == 100u);
+        CHECK(ctx, g_fake->renders == 0, "advances before the first play never reach the host");
+        CHECK(ctx, live_audio_load_sound(audio, &c) == ACTION_SOUND_BACKEND_OK);
+        CHECK(ctx, live_audio_play_sound(audio, 0) == ACTION_SOUND_BACKEND_OK);
+    }
     memset(&stats, 0xee, sizeof(stats));
     CHECK(ctx, live_audio_advance_offline(audio, 10000, &stats, NULL, 0) == LIVE_AUDIO_OK);
     CHECK(ctx, stats.frames == 10000u && stats.nonfinite_samples == 0u && stats.peak == 0.0);
-    CHECK(ctx, live_audio_offline_frames_rendered(audio) == 10000u);
+    CHECK(ctx, live_audio_offline_frames_rendered(audio) == 10100u);
     CHECK(ctx, g_fake->renders == 3, "10000 frames in 4096 chunks = 3 renders, got %d", g_fake->renders);
     CHECK(ctx, live_audio_advance_offline(audio, 0, &stats, NULL, 0) == LIVE_AUDIO_OK && stats.frames == 0u);
     CHECK(ctx, live_audio_advance_offline(audio, 5, NULL, capture, 4) == LIVE_AUDIO_OK, "capture capacity is a cap, not a requirement");
     CHECK(ctx, live_audio_advance_offline(audio, 5, NULL, NULL, 4) != LIVE_AUDIO_OK, "capacity without buffer");
-    CHECK(ctx, live_audio_offline_frames_rendered(audio) == 10005u);
+    CHECK(ctx, live_audio_offline_frames_rendered(audio) == 10105u);
     live_audio_destroy(audio);
     fake_free();
 }
@@ -1013,6 +1021,51 @@ static void t_real_offline_lifecycle(Ctx *ctx)
     CHECK(ctx, live_audio_destroy(audio) == LIVE_AUDIO_OK);
 }
 
+static void t_real_offline_advance_before_any_play(Ctx *ctx)
+{
+    LiveAudio *audio = NULL;
+    LiveAudioOfflineStats stats;
+    float capture[16];
+    char dir[1024];
+    snprintf(dir, sizeof(dir), "%s", ctx->fixture_dir);
+    if (!create_real(ctx, &audio, dir, MAC_AUDIO_MODE_OFFLINE, 48000, 2)) return;
+    /* AVAudioEngine faults when rendered with no player node attached; the
+     * provider must treat advances before the first play as virtual */
+    memset(capture, 0x7f, sizeof(capture));
+    CHECK(ctx, live_audio_advance_offline(audio, 4096, &stats, capture, 8) == LIVE_AUDIO_OK);
+    CHECK(ctx, stats.frames == 4096u && stats.nonzero_samples == 0u && capture[0] == 0.0f);
+    CHECK(ctx, live_audio_offline_frames_rendered(audio) == 4096u);
+    CHECK(ctx, live_audio_unload_all(audio) == LIVE_AUDIO_OK);
+    CHECK(ctx, live_audio_destroy(audio) == LIVE_AUDIO_OK);
+}
+
+static void t_real_offline_completion_is_deterministic(Ctx *ctx)
+{
+    /* completion must land on the same tick every run, not whenever the host
+     * callback thread gets scheduled */
+    for (int run = 0; run < 6 && !ctx->failed; ++run) {
+        LiveAudio *audio = NULL;
+        ActionSoundAudioCommand c = make_command("tone", 0, 1, 1.0f, 1.0f, 0);
+        uint64_t rendered = 0;
+        int completed_tick = -1;
+        char dir[1024];
+        snprintf(dir, sizeof(dir), "%s", ctx->fixture_dir);
+        if (!create_real(ctx, &audio, dir, MAC_AUDIO_MODE_OFFLINE, 48000, 2)) return;
+        CHECK(ctx, live_audio_load_sound(audio, &c) == ACTION_SOUND_BACKEND_OK);
+        CHECK(ctx, live_audio_play_sound(audio, 0) == ACTION_SOUND_BACKEND_OK);
+        for (int tick = 0; tick < 40 && completed_tick < 0; ++tick) {
+            CHECK(ctx, live_audio_advance_offline(audio, 2500, NULL, NULL, 0) == LIVE_AUDIO_OK);
+            rendered += 2500u;
+            if (playing(audio, 0) == 0) completed_tick = tick;
+        }
+        CHECK(ctx, completed_tick >= 0 && rendered >= TONE_FRAMES);
+        /* tone is 20000 frames at the render rate: the 8th advance covers it */
+        CHECK(ctx, completed_tick == 7, "run %d completed at tick %d", run, completed_tick);
+        CHECK(ctx, live_audio_unload_all(audio) == LIVE_AUDIO_OK);
+        CHECK(ctx, live_audio_destroy(audio) == LIVE_AUDIO_OK);
+    }
+}
+
 static void t_real_offline_gain_composition(Ctx *ctx)
 {
     LiveAudio *audio = NULL;
@@ -1160,7 +1213,7 @@ static void t_end_to_end_nsht01(Ctx *ctx)
 
     CHECK(ctx, live_audio_load_sound(audio, &c) == ACTION_SOUND_BACKEND_OK);
     CHECK(ctx, live_audio_get_channel_info(audio, 5, &info) == LIVE_AUDIO_OK);
-    CHECK(ctx, info.frame_count == decoded.frame_count && info.sample_rate == rate && info.channels == channels,
+    CHECK(ctx, info.frame_count == decoded.frame_count && info.sample_rate == rate && info.channels == (channels == 1u ? 2u : channels),
           "frames %llu vs %llu", (unsigned long long)info.frame_count, (unsigned long long)decoded.frame_count);
     CHECK(ctx, live_audio_play_sound(audio, 5) == ACTION_SOUND_BACKEND_OK);
     double squares = 0.0, peak = 0.0;
@@ -1232,7 +1285,7 @@ static void t_end_to_end_nsht01(Ctx *ctx)
         CHECK(ctx, mismatched == 0u, "%llu of %llu samples differ from scale*decoded (scale=%.6f)",
               (unsigned long long)mismatched, (unsigned long long)compared, scale);
         CHECK(ctx, channels == 2u || worst_lr < 1e-6, "mono source rendered unequal left/right: %g", worst_lr);
-        CHECK(ctx, scale > 0.1 && scale <= 1.0001, "host scale %.6f", scale);
+        CHECK(ctx, scale > 0.999 && scale <= 1.0001, "host scale %.6f (mono is duplicated to stereo, unity)", scale);
     }
     snprintf(ctx->detail, sizeof(ctx->detail),
              "decoded_frames=%llu rate=%u src_channels=%u rendered_at_completion=%llu peak=%.6f nonzero=%llu compared=%llu mismatched=%llu start_offset=%llu host_scale=%.6f",
@@ -1292,6 +1345,8 @@ static const TestCase tests[] = {
     {"main_thread_only", t_main_thread_only},
     {"malformed_header_sweep", t_malformed_header_sweep},
     {"real_offline_lifecycle", t_real_offline_lifecycle},
+    {"real_offline_advance_before_any_play", t_real_offline_advance_before_any_play},
+    {"real_offline_completion_is_deterministic", t_real_offline_completion_is_deterministic},
     {"real_offline_gain_composition", t_real_offline_gain_composition},
     {"real_offline_stop_and_unload", t_real_offline_stop_and_unload},
     {"real_offline_stale_completion_after_reload", t_real_offline_stale_completion_after_reload},
