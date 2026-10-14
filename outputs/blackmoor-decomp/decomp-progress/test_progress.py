@@ -49,6 +49,7 @@ class RepoEvidenceTests(unittest.TestCase):
     def test_cpp_candidate_manifest_is_not_counted(self):
         roles = {s["path"]: s["role"] for s in self.model["evidence"]["sources"]}
         self.assertEqual(roles["matches_s08_2.json"], "excluded")
+        self.assertEqual(roles["matches_s08.json"], "excluded")
         self.assertEqual(roles["matches_s08_4_x86.json"], "counted")
 
     def test_bands_stay_inside_their_region(self):
@@ -111,6 +112,32 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(m["totals"]["matched_code"], 398)
         self.assertEqual(m["totals"]["matched_data"], 4096)
         self.assertEqual(m["totals"]["code"], 1213018)
+
+    def test_verify_manifests_gates_on_the_verifier(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            fake = d / "fake_verify.py"
+            fake.write_text(
+                "import json,sys\n"
+                "m=sys.argv[2]\nrep=sys.argv[sys.argv.index('--report')+1]\n"
+                "ok='bad' not in m\n"
+                "json.dump({'all_byte_ranges_exact':ok,'exact_byte_range_bytes':1},open(rep,'w'))\n"
+                "sys.exit(0 if ok else 1)\n")
+            orig = d / "GAME.EXE"
+            orig.write_bytes(b"x")
+            (d / "good.json").write_text("{}")
+            (d / "bad.json").write_text("{}")
+            with self.assertRaisesRegex(GEN.ProgressError, "pinned"):
+                GEN.verify_manifests(["good.json"], d, orig, fake)
+            real_sha = GEN.PINNED_SHA
+            GEN.PINNED_SHA = GEN.sha256_file(orig)
+            try:
+                res = GEN.verify_manifests(["good.json"], d, orig, fake)
+                self.assertTrue(res["manifests"]["good.json"]["exact"])
+                with self.assertRaisesRegex(GEN.ProgressError, "did not confirm"):
+                    GEN.verify_manifests(["good.json", "bad.json"], d, orig, fake)
+            finally:
+                GEN.PINNED_SHA = real_sha
 
 
 class MiniFixture(unittest.TestCase):
@@ -195,6 +222,15 @@ class MiniFixture(unittest.TestCase):
             self.model_for(base[:3] + [{"offset": 0x140, "size": 0xc1, "kind": "data", "class": "referenced"}])
         with self.assertRaisesRegex(GEN.ProgressError, "pinned"):
             GEN.ledger_evidence(self.layout, self.ledger(base, original_sha256="0" * 64), False)
+
+    def test_partial_ledger_keeps_full_file_denominator(self):
+        m = self.model_for([{"offset": 0, "size": 0x100, "kind": "data", "class": "structured"}],
+                           allow_partial=True)
+        t = m["totals"]
+        self.assertEqual(t["file_bytes"], 0x200)
+        self.assertEqual(t["classified"], 0x100)
+        self.assertEqual(t["unclassified"], 0x100)
+        self.assertEqual(t["matched_data"], 0x100)
 
     def test_layout_gap_is_rejected(self):
         self.layout["data_pieces"][1]["size"] = 0xb0

@@ -38,12 +38,12 @@ Matched means byte-exact against the original through reviewed reconstructed ass
 
 | VA | Bytes | Symbol | Manifest | Whole indexed function |
 |---|---:|---|---|---|
-| 0x004dae66 | 17 | `_FUN_004dae66` | matches_s08.json | yes |
-| 0x004dae77 | 17 | `_FUN_004dae77` | matches_s08.json | yes |
-| 0x004daef1 | 17 | `_FUN_004daef1` | matches_s08.json | yes |
-| 0x004daf02 | 22 | `_FUN_004daf02` | matches_s08.json | yes |
-| 0x004daf18 | 17 | `_FUN_004daf18` | matches_s08.json | yes |
-| 0x004daf29 | 22 | `_FUN_004daf29` | matches_s08.json | yes |
+| 0x004dae66 | 17 | `_FUN_004dae66` | matches_s08_2_x86.json | yes |
+| 0x004dae77 | 17 | `_FUN_004dae77` | matches_s08_2_x86.json | yes |
+| 0x004daef1 | 17 | `_FUN_004daef1` | matches_s08_2_x86.json | yes |
+| 0x004daf02 | 22 | `_FUN_004daf02` | matches_s08_2_x86.json | yes |
+| 0x004daf18 | 17 | `_FUN_004daf18` | matches_s08_2_x86.json | yes |
+| 0x004daf29 | 22 | `_FUN_004daf29` | matches_s08_2_x86.json | yes |
 | 0x004daf3f | 47 | `_FUN_004daf3f` | matches_s08_4_x86.json | yes |
 | 0x004daf6e | 49 | `_FUN_004daf6e` | matches_s08_4_x86.json | yes |
 | 0x004daf9f | 36 | `_FUN_004daf9f` | matches_s08_3_x86.json | yes |
@@ -66,9 +66,9 @@ Cross-check against `status.json` unique_matched_bytes (398): agrees.
 - `function-index.json` sha256 `3fc0c2eea03dd93f25d8b6b66f9eaa9a9fbb652839ec7d7584a7a6a37b94aa9d` (index)
 - `layout.json` sha256 `a7c946e8775e208df70741e9350db2213ed9df20601f8df04b856d697c46dfff` (layout)
 - `matches.json` sha256 `b5264d0a86bfe9cc49130df3d7514c2494eb3a8273d4047df174e0033a61c10d` (counted)
-- `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (counted)
 - `matches_s08_2_x86.json` sha256 `0e5cea6eb58e4f33604600146198d3677461e7b224e9217447040be30a971f03` (counted)
 - `matches_s08_3_x86.json` sha256 `f662172b6cc38b782b0d5dfd1a3a054791a2681dfe2a9e10e8befb542d538987` (counted)
 - `matches_s08_4_x86.json` sha256 `9d6fe21088d8bc10b9bba34fb7c561fa5fe2d14617e3bda07a166e6b82984ccd` (counted)
+- `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (excluded)
 - `matches_s08_2.json` sha256 `a173f7c06607d87e3e630a937d7d786037dc83202609f524eece7b146b6ba41c` (excluded)
 - `status.json` sha256 `0f85da1064e6df5656998d967ec7403e062faf22d05fb5fd3203f429d9e8ca09` (crosscheck)

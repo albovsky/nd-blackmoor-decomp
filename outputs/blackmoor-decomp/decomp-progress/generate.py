@@ -26,20 +26,22 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent  # outputs/blackmoor-decomp
 
+PINNED_SHA = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 SCHEMA = "blackmoor-decomp-progress/1"
 LEDGER_SCHEMA = "blackmoor-range-ledger/1"
 
-# Manifests whose ranges are reviewed, byte-exact reconstructed assembly.
-# matches_s08_2.json is the C++ compiler-comparison candidate and is not an
-# exact-match claim, so it is deliberately absent.
+# Manifests whose ranges are byte-exact against the original (confirmed by
+# scripts/verify_matches.py when --verify-original is given). The C and C++
+# compiler candidates are mismatch evidence, not exact-match claims, so they
+# are deliberately absent.
 COUNTED_MANIFESTS = [
     "matches.json",
-    "matches_s08.json",
     "matches_s08_2_x86.json",
     "matches_s08_3_x86.json",
     "matches_s08_4_x86.json",
 ]
 EXCLUDED_MANIFESTS = {
+    "matches_s08.json": "C compiler candidate; verify_matches.py reports 62 differing bytes (the same addresses are matched by matches_s08_2_x86.json)",
     "matches_s08_2.json": "C++ compiler comparison; semantic evidence, not an exact-match claim",
 }
 
@@ -149,6 +151,46 @@ def merge_intervals(ivs):
         else:
             out.append([s, e])
     return out
+
+
+VERIFIER = OUT / "scripts" / "verify_matches.py"
+
+
+def verify_manifests(names, root: Path, original: Path, verifier: Path = VERIFIER) -> dict:
+    """Run the repository's byte verifier on each counted manifest.
+
+    ``root`` must hold the manifests with their ``build/`` objects (the
+    objects are gitignored, so this is usually the primary checkout). Every
+    manifest must exit 0 with ``all_byte_ranges_exact``; anything else is an
+    error, so an unverified manifest cannot add to the totals.
+    """
+    import subprocess
+    import tempfile
+    if not original.is_file():
+        raise ProgressError(f"original executable not found: {original}")
+    if sha256_file(original) != PINNED_SHA:
+        raise ProgressError("--verify-original does not point at the pinned GAME.EXE")
+    results = {}
+    for name in names:
+        manifest = root / name
+        if not manifest.is_file():
+            raise ProgressError(f"cannot verify {name}: not found under {root}")
+        with tempfile.TemporaryDirectory() as td:
+            report = Path(td) / "report.json"
+            proc = subprocess.run(
+                [sys.executable, str(verifier), str(original), str(manifest), "--report", str(report)],
+                cwd=root, capture_output=True, text=True)
+            try:
+                rep = json.loads(report.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                rep = {}
+        if proc.returncode != 0 or rep.get("all_byte_ranges_exact") is not True:
+            raise ProgressError(
+                f"{name}: verify_matches.py did not confirm exact bytes (exit {proc.returncode})")
+        results[name] = {"exact": True, "exact_byte_range_bytes": rep.get("exact_byte_range_bytes"),
+                         "manifest_sha256": sha256_file(manifest)}
+    return {"run": True, "verifier_sha256": sha256_file(verifier),
+            "original_sha256": PINNED_SHA, "manifests": results}
 
 
 def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
@@ -287,7 +329,7 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
                        "matched_code": sum(u["matched_code"] for u in gu),
                        "matched_data": sum(u["matched_data"] for u in gu)})
     totals = {
-        "file_bytes": sum(u["size"] for u in units),
+        "file_bytes": layout["file_size"],
         "code": sum(u["code"] for u in units),
         "data": sum(u["data"] for u in units),
         "matched_code": sum(u["matched_code"] for u in units),
@@ -295,7 +337,8 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
         "functions": sum(u.get("function_count", 0) for u in units),
         "functions_complete": sum(u.get("functions_complete", 0) for u in units),
     }
-    totals["unclassified"] = layout["file_size"] - totals["file_bytes"]
+    totals["classified"] = totals["code"] + totals["data"]
+    totals["unclassified"] = layout["file_size"] - totals["classified"]
     if totals["unclassified"] and evidence_meta.get("ledger_bytes_covered") is None:
         raise ProgressError("accounted bytes differ from the file size")
 
@@ -436,6 +479,12 @@ def main(argv=None) -> int:
     ap.add_argument("--layout", type=Path, default=HERE / "layout.json")
     ap.add_argument("--ledger", type=Path, help="whole-file range ledger (M02-shaped)")
     ap.add_argument("--allow-partial-ledger", action="store_true")
+    ap.add_argument("--verify-original", type=Path, metavar="GAME.EXE",
+                    help="re-run scripts/verify_matches.py on every counted manifest against "
+                         "this original; any non-exact manifest is an error")
+    ap.add_argument("--verify-root", type=Path,
+                    help="directory holding the manifests and their build/ objects "
+                         "(default: --evidence-dir); manifests must be byte-identical to the evidence copies")
     ap.add_argument("--band-kib", type=int, default=16, help="code unit band size in KiB")
     args = ap.parse_args(argv)
 
@@ -445,8 +494,19 @@ def main(argv=None) -> int:
         index = load_json(index_path)
         if args.ledger:
             rows, meta = ledger_evidence(layout, args.ledger, args.allow_partial_ledger)
+            meta["verification"] = {"run": False, "reason": "ledger mode; the composer's whole-file hash is the check"}
         else:
             rows, meta = baseline_evidence(layout, args.evidence_dir)
+            if args.verify_original:
+                root = args.verify_root or args.evidence_dir
+                for name in COUNTED_MANIFESTS:
+                    if sha256_file(root / name) != sha256_file(args.evidence_dir / name):
+                        raise ProgressError(f"{name} under --verify-root differs from the evidence copy")
+                meta["verification"] = verify_manifests(
+                    COUNTED_MANIFESTS, root, args.verify_original)
+            else:
+                meta["verification"] = {"run": False,
+                                        "reason": "manifests trusted; pass --verify-original to re-verify"}
         sources = [{"path": "function-index.json", "sha256": sha256_file(index_path), "role": "index"},
                    {"path": "layout.json", "sha256": sha256_file(args.layout), "role": "layout"}]
         sources += meta.pop("inputs")

@@ -23,7 +23,9 @@ Refresh after any new match manifest or ledger:
 
 ## Evidence and what counts as matched
 
-Baseline mode (default) uses the reviewed manifests `matches.json`, `matches_s08.json`, `matches_s08_2_x86.json`, `matches_s08_3_x86.json` and `matches_s08_4_x86.json`, merged by byte range, and cross-checks the result against `status.json` `unique_matched_bytes`. `matches_s08_2.json` is the C++ compiler comparison and is excluded on purpose. Each manifest is pinned by SHA-256 in `progress.json`. The generator does not re-run `scripts/verify_matches.py`; it trusts the manifests the same way `status.json` does, so rerun the verifier before relying on a new manifest.
+Baseline mode (default) uses the manifests `matches.json`, `matches_s08_2_x86.json`, `matches_s08_3_x86.json` and `matches_s08_4_x86.json`, merged by byte range, and cross-checks the result against `status.json` `unique_matched_bytes`. `matches_s08.json` (C candidate, 62 differing bytes) and `matches_s08_2.json` (C++ comparison) are excluded on purpose. Each manifest is pinned by SHA-256 in `progress.json`.
+
+By default the manifests are trusted, and the page and report say so. For a verified refresh pass `--verify-original PATH/TO/GAME.EXE`: the generator then runs `scripts/verify_matches.py` on every counted manifest and refuses to produce output unless each is exact. The object files live in the gitignored `build/`, so point `--verify-root` at the checkout that holds them (the manifests there must be byte-identical to the evidence copies). The committed outputs were generated this way.
 
 Today that gives 398 matched code bytes (11 whole functions plus two 7-byte partial ranges), 0 matched data bytes, and 398 of 1,511,424 file bytes.
 
