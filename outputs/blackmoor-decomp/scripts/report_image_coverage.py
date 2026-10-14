@@ -53,10 +53,12 @@ def check_report(report: dict[str, Any]) -> list[str]:
     if section_sum != total:
         problems.append(f"section totals sum to {section_sum}, image is {total} bytes")
     listed = report["referenced_ranges"]
-    if sum(item["length"] for item in listed["list"]) != listed["bytes"]:
-        problems.append("referenced range list does not add up to its byte count")
-    if listed["count"] != len(listed["list"]):
-        problems.append("referenced range count does not match the list")
+    # The published report omits the list (it is image/ranges.json); check it only when present.
+    if "list" in listed:
+        if sum(item["length"] for item in listed["list"]) != listed["bytes"]:
+            problems.append("referenced range list does not add up to its byte count")
+        if listed["count"] != len(listed["list"]):
+            problems.append("referenced range count does not match the list")
     staged = report.get("stage_referenced_bytes", 0)
     if by_class["referenced"]["bytes"] != listed["bytes"] + staged:
         problems.append("referenced class bytes differ from the listed referenced ranges plus staged groups")

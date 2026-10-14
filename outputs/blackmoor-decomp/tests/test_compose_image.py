@@ -287,6 +287,18 @@ class ReportConsistencyTests(unittest.TestCase):
     def test_consistent_report_has_no_problems(self):
         self.assertEqual(report_image_coverage.check_report(self.synthetic_report()), [])
 
+    def test_published_report_without_the_range_list_is_accepted(self):
+        report = self.synthetic_report()
+        report["referenced_ranges"] = {"count": 1, "bytes": 4, "list_source": "image/ranges.json"}
+        self.assertEqual(report_image_coverage.check_report(report), [])
+
+    def test_committed_published_report_can_be_reprinted(self):
+        path = IMAGE_DIR / "coverage-report.json"
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            code = report_image_coverage.main(["--from-report", str(path)])
+        self.assertEqual(code, 0)
+        self.assertIn("NOT matched", out.getvalue())
+
     def test_missing_bytes_are_flagged(self):
         report = self.synthetic_report()
         report["by_class"]["missing"]["bytes"] = 1
