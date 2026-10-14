@@ -2796,6 +2796,7 @@ int main(int argc, char **argv)
         bool inspect_live_session = false;
         uint32_t live_ticks = 600;
         long live_click_row = -1;
+        long dump_scene = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
@@ -2824,7 +2825,12 @@ int main(int argc, char **argv)
 #endif
             if (i + 1 == argc) { std::fprintf(stderr, "Missing argument value\n"); return 2; }
             const char *value = argv[++i];
-            if (argument == "--live-click-row") {
+            if (argument == "--dump-scene-actions") {
+                char *end = nullptr;
+                dump_scene = std::strtol(value, &end, 10);
+                if (!*value || *end || dump_scene < 0) return 2;
+                inspect_only = true;
+            } else if (argument == "--live-click-row") {
                 char *end = nullptr;
                 live_click_row = std::strtol(value, &end, 10);
                 if (!*value || *end || live_click_row < 0) return 2;
@@ -3033,6 +3039,27 @@ int main(int argc, char **argv)
                            tick.failure.stage, tick.failure.action_index,
                            tick.failure.action_type, tick.failure.detail_status,
                            tick.executor.actions_applied);
+                }
+                if (dump_scene >= 0) {
+                    /* Developer inspector: one line per ACT row, no bodies. */
+                    char name[33];
+                    std::snprintf(name, sizeof(name), "S%ld", dump_scene);
+                    GameResourceBytes bytes = GAME_RESOURCE_BYTES_INIT;
+                    if (!game_resources_load_bytes(app.resources, name, &bytes, error, sizeof(error)))
+                        throw std::runtime_error(error);
+                    SceneResource *dump = scene_resource_open_memory(bytes.bytes, bytes.length,
+                                                                      error, sizeof(error));
+                    game_resource_bytes_destroy(&bytes);
+                    if (!dump) throw std::runtime_error(error);
+                    for (size_t row = 0; row < scene_resource_action_count(dump); ++row) {
+                        SceneActionInfo info{};
+                        if (scene_resource_action_at(dump, row, &info) != SCENE_RESOURCE_OK) continue;
+                        record(&app, "dump_action scene=%ld row=%zu type=0x%02x subtype=%u kind=%d "
+                               "body=%zu typed=%zu deps=%zu desc=%s", dump_scene, row, info.type,
+                               info.subtype, (int)info.payload_kind, info.raw_body_length,
+                               info.typed_body_length, info.dependency_count, info.description);
+                    }
+                    scene_resource_close(dump);
                 }
                 if (inspect_actions && !inspect_action_kernel(&app)) app.failure = true;
                 if (inspect_audio && !inspect_audio_graph(&app)) app.failure = true;
