@@ -1,0 +1,17 @@
+# Root decision: S03-2 AVF player API
+
+Root read the actual private S03-2.api-proposal.md and approves the architecture with the amendments below. Claude may implement the isolated module after making the interface reflect these boundaries. Boot retains shared runtime ownership; root reviews and collects. S03-1 final decoder handoff remains a separately reviewed dependency.
+
+1. One avf_player module for all four controllers is acceptable. Keep tagged controller-specific state, substates, event paths and ready/acknowledge rules. Share proven common protocol; do not flatten distinct RANDOMMOVIE, MOVIE, partner-logo and secondary-video lifecycles into one assumed state machine.
+2. Boot owns authoritative current-view/world state and integration. The player receives an explicit typed gate or raw view inputs and preserves the source comparison at its actual point. A blanket caller precondition that omits tick must not hide source effects that still occur while visibility fails. Compare both matching and nonmatching cases, view changes and expiry/ready interactions.
+3. Use deterministic sequential scheduling in S03-2 and leave real native threading to Boot integration. Preserve an explicit worker/consumer protocol and source-observable phases, start/stop ordering and borrowed-data lifetime. Sequential fixtures prove those tested orderings; they do not prove real-thread synchronization. Do not describe a host lock around entire tick/poll/ack/stop calls as automatically equivalent to the original handshake, whose release/ready publication order must remain recoverable.
+
+## Required interface amendments
+
+- Generation protection needs generation-bearing acknowledgements/completions in the signature; the proposed render_ack(AvfPlayer*) cannot identify a stale caller. Document generations as native safeguards, not original fields.
+- Model stopping with work in flight explicitly. Either expose request/finish protocol steps or a precisely defined caller-owned quiescence boundary. Do not bypass an original H==1 wait by silently setting H=2 and freeing storage. Buffers are released only after decode work and readers can no longer access them.
+- Define secondary GetChunk slot allocation/free, replacement and predecessor ownership. Identify which bytes and handles the caller owns, which slot may be written/presented, and the prefix retained on failure. Cover empty-record aliases, variable chunk sizes and pending presentation lifetime; classify unsafe original cases separately.
+- Frame-triggered events must produce typed commands or return an explicit provider status. A missing optional void callback cannot silently drop real events while returning playback success. Preserve prior committed effects if an event/presentation provider fails or is unavailable.
+- Keep GetTickCount width, wrapping addition and original unsigned comparison semantics. Preserve the secondary mode-0 loop. Unlocated pause/seek/repeat branches stay unverified/unsupported; do not invent behaviours or treat an incomplete search as proof of universal absence.
+
+The original/native oracle must execute controller/worker decisions and compare ordered commands, state/index/slot/ready flags and completion. OS boundaries remain enumerated. Exercise worker-first/consumer-first, release-before-ready publication, slow worker/consumer, false view gates, wrap boundaries, stop during pending work and stale acknowledgements. Real-thread and live game integration remain later gates; no parent S03 completion from this isolated kernel.
