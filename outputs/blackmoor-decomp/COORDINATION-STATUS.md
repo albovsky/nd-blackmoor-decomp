@@ -7,11 +7,11 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | Work | State |
 |---|---|
 | RT-1 live audio channel provider | Reviewed, fixed, merged (PR 6) |
-| RT-2 / RT-2.1 pointer producer module (Codex) | Reviewed, fixed, on PR 8; not yet wired into the app |
+| RT-2 / RT-2.1 pointer producer module (Codex) | Reviewed, fixed, merged; wired into the live session by RT-6 |
 | RT-3 0x62 / 0x51 session bindings | Reviewed, fixed, on PR 8 |
 | RT-4 dependency opcodes 11-15/17/20/21 | Reviewed, fixed, on PR 8 |
 | RT-5 scene exit handler + queued 0x28 effect | Reviewed, fixed, on PR 8 |
-| RT-6 wire the pointer module, single hotspot candidate | In progress |
+| RT-6 wire the pointer module, single hotspot candidate | Reviewed (no P1), on this PR |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged (typed 18,951 / opaque 661); runtimes still unimplemented |
 | A-3E.1 / A-6E.1 / A-79.1 opaque decoders (Codex) | In progress; next largest opaque families |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
@@ -27,3 +27,16 @@ Merged: raw 0x35, 0x38 and 0x3f body boundaries and isolated decoders (A-35.1, A
 In progress (Codex gpt-6.1-sol xhigh): A-3E.1 (202), A-6E.1 (68), A-79.1 (38), branches `codex/A-3E.1`, `codex/A-6E.1`, `codex/A-79.1`.
 Review follow-ups carried forward as unverified: A-3F.1 oracle does not run the 0x424aa8 tail-modulus loop or assert `body_length`; its text-lookup model is only valid for corpus-shaped keys (A-3F.2); 0x38 and 0x37 share runtime byte 0x36, so A-38.2 must discriminate by object contents.
 Next: runtime handlers for 0x35 (A-35.2) and 0x97, then the next opaque families (0x6f, 0x45, 0x67, 0x44).
+
+## Handoff for the next session (runtime-path thread)
+
+State: the live scripted run (`--inspect-live-session --live-click-row 34 --live-ticks 3000`) goes S0 -> S5900 -> S5907 -> S5901..S5906 -> S4700, then S4700 row 3 (type 0x35, typed body, no runtime handler) blocks as `provider=action-kernel`. Pointer input goes through the recovered `session_input` module with one shared hotspot candidate.
+
+Working rules (Glib, 2026-10-14): Pacific time only; hand implementation to Codex (`npx @openai/codex@0.162.1 exec -m gpt-6.1-sol -c model_reasoning_effort=xhigh`; the installed CLI rejects the model) and keep Sonnet `slice-implementer` for the rest; one `slice-reviewer` per slice; two threads (this one plus the Codex action-decoding thread); merge PRs yourself when ready (fix Codex review threads first); after every merged slice regenerate the progress map (`decomp-progress/generate.py`, PROG-1 adds a Playable build panel) and show it to Glib.
+
+Next slices, in order:
+1. Drive the run past S4700 once the 0x35 runtime lands (Codex thread, A-35.2); bind it into the session like `session_bindings_a62` (executor extern handler) and read the next stop from the live log.
+2. Recover the 0x4f0059 edge/arrow cascade (`[0x5a4c1c]`, `[0x5bb2ca/cc/b6]`, `[0x5b0260/62]`, `[0x5b51f6]`, `[0x5b51c6]`, `[0x5b51ab]`) so `priority_clear` and hover near viewport edges are proven rather than assumed (RT-6 review P2).
+3. Settle whether the original keeps sounds across continuation transitions (the blanket `live_audio_unload_all` in `perform_session_transition` is an unverified choice; S5907 row 6 behaves differently with it).
+4. Interactive pass on the real window (needs Glib or computer use): click through S0, listen to the narration, check the hover cursor and a double click. Nothing interactive has been verified yet.
+5. Menus, save/load and the second difficulty (I04/I05) once the opening scenes run.

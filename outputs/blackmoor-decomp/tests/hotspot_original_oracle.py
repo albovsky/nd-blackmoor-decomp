@@ -313,9 +313,13 @@ def native_run(action_type: int, subtype: int, body: bytes,
 
 def frame(frame_number: int, *, x: int = 0, y: int = 0, pointer: bool = False,
           context: bool = False, modal: bool = False,
-          activation: bool = False) -> FrameInput:
+          activation: bool = False, candidate: int | None = None) -> FrameInput:
+    # RT-6: the executor keeps no hover cache; the accepted event carries the
+    # host input module's retained candidate (single native row 0 here).
     return FrameInput(frame_number, x, y, int(pointer), int(context),
-                      int(modal), int(activation))
+                      int(modal), int(activation),
+                      0 if candidate is None else 1,
+                      0 if candidate is None else candidate)
 
 
 def original_run(pe: PEImage, action_type: int, subtype: int, payload: bytes,
@@ -447,7 +451,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
              [frame(frame_number),
               frame(frame_number, x=rect[0], y=rect[1], pointer=True,
                     context=True),
-              frame(frame_number, activation=True)],
+              frame(frame_number, activation=True, candidate=0)],
              (frame_number, 2)),
         ]
         for label, original_passes, native_frames, _last in cases:
@@ -487,7 +491,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         # call. The third original pass seeds phase 2 after that caller gate.
         ("phase2-delayed-transition", [(0, None), (0, 2)],
          [frame(0), frame(0, x=rect[0], y=rect[1], pointer=True, context=True),
-          frame(0, activation=True)]),
+          frame(0, activation=True, candidate=0)]),
     ]
     for label, original_passes, native_frames in raw_cases:
         original = original_run(pe, 0x0D, 1, runtime_payload,

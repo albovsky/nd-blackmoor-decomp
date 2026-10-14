@@ -62,7 +62,7 @@ class NativeAppIntegrationTests(unittest.TestCase):
             self.assertIn('scene_session_created scene=0 generation=1 ui_phone_rows=12', contents)
             self.assertIn('caption_runtime_initialized fonts=18 tbox=98 sctb=768 task=1867 view_bytes=48 view_origin=10,10 format=RGB555 caption_surface=623x201/250446 framed_surface=578x1001/1157156 saved_surface=Frame', contents)
             self.assertIn('autotext_entries=1258', contents)
-            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer_transform=unverified caption_writer=bound-RGB555 caption_transfer=bound-RGB555-Frame-plus-decoded-background audio_provider=live-audio', contents)
+            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer=session_input(RT-6)+provisional-cursor-geometry caption_writer=bound-RGB555 caption_transfer=bound-RGB555-Frame-plus-decoded-background audio_provider=live-audio', contents)
             self.assertNotIn('scene_session_blocked', contents)
             self.assertIn('scene_clock_tick ', contents)
             self.assertIn('scene_session_media_eos frame=0', contents)
@@ -128,7 +128,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         contents = log.read_text()
         ordered = (
             'test_a62_synthetic_accept result=phase2 row=7 coordinates=5,5 '
-            'pointer_path=not-implemented(RT-2)',
+            'pointer_path=session_input(RT-6)',
             'scene_session_transition_pending source=5900 target=4700',
             'scene_exit_requested state=4 effect_busy=1 effect_type=2 effect_stage=0',
             'scene_exit_capture which=source status=0 canvas=620x375',
@@ -271,6 +271,72 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                 capture_output=True, text=True, timeout=120)
         self.assertEqual(result.returncode, returncode, result.stderr)
         return log.read_text()
+
+    def assert_in_order(self, contents, ordered):
+        position = 0
+        for evidence in ordered:
+            found = contents.find(evidence, position)
+            self.assertNotEqual(found, -1, evidence)
+            position = found
+
+    def test_live_click_goes_through_session_input_end_to_end(self):
+        # RT-6: the scripted S0 click feeds the recovered message wrappers
+        # (DOWN, UP -> latch edge because the candidate was retained), the
+        # session consume reports the module's decision instead of the old
+        # inline formula, and S0 still enters S5900. The projection equals the
+        # old formula (x-10, y-10) because the provisional geometry says so.
+        contents = self.run_live('--live-ticks', '40')
+        self.assert_in_order(contents, (
+            'pointer_input_reset status=0 candidate=-1',
+            'pointer_provider provisional sprite=1x1 hot=0,0 scroll=0 '
+            'guards[5b5158,5b61af,5b615e,5a4c18]=0,0,0,0 priority_clear=1',
+            'live_session_hover row=34 rect=388,225,492,284 window=450,264',
+            'pointer_candidate candidate=34 rows=3 cursor=450,264 provisional-geometry=1',
+            'pointer_input event=DOWN candidate_at_message=34 latch_edge=0',
+            'pointer_input event=UP candidate_at_message=34 latch_edge=1',
+            'pointer_consume status=0 edge=1 candidate=34 activation=1 modal=0 mode=0 '
+            'provisional-geometry=1 projected=440,254 valid=1',
+            'live_session_click row=34',
+            'pointer_input_reset status=0 candidate=-1',
+            'scene_transition_applied source=0 target=5900 generation=2'))
+        self.assertNotIn('pointer_feed_error', contents)
+
+    def test_live_double_click_second_release_is_rejected_by_the_latch(self):
+        # DOWN, UP, tick, DBLCLK, UP, tick: with the candidate still retained
+        # at the second UP, the inhibit set by DBLCLK keeps the latch empty.
+        contents = self.run_live('--live-double-click', '--live-ticks', '40')
+        self.assert_in_order(contents, (
+            'pointer_input event=UP candidate_at_message=34 latch_edge=1',
+            'live_session_click row=34',
+            'pointer_input event=DBLCLK candidate_at_message=34 latch_edge=0',
+            'pointer_input event=UP candidate_at_message=34 latch_edge=0',
+            'live_session_double_click first_activation_tick=7 candidate_at_second_up=34 '
+            'edge_after_second_up=0 second_release_activation=rejected'))
+        self.assertEqual(contents.count('pointer_consume status=0 edge=1'), 1)
+
+    def test_live_s5900_row_7_hover_then_accepted_click_reaches_the_s4700_stop(self):
+        # Item 4 of the packet: the 0x62 request row's rectangle (0,0)-(10,10)
+        # is hit through the transformed cursor (window 15,15 -> 5,5). Hover
+        # alone leaves the run on its natural path; the accepted release stores
+        # phase 2 through the single candidate and the row ends the scene.
+        hover = self.run_live('--live-scene-row', '5900:7', '--live-hover-only',
+                              '--live-ticks', '3000', returncode=0)
+        self.assert_in_order(hover, (
+            'live_session_hover row=7 rect=0,0,10,10 window=15,15',
+            'pointer_candidate candidate=7 rows=1 cursor=15,15',
+            'scene_transition_applied source=5900 target=5907'))
+        self.assertNotIn('live_session_click row=7', hover)
+        click = self.run_live('--live-scene-row', '5900:7', '--live-ticks', '3000',
+                              returncode=0)
+        self.assert_in_order(click, (
+            'live_session_hover row=7 rect=0,0,10,10 window=15,15',
+            'pointer_candidate candidate=7 rows=1 cursor=15,15',
+            'pointer_input event=UP candidate_at_message=7 latch_edge=1',
+            'pointer_consume status=0 edge=1 candidate=7 activation=1 modal=0 mode=0 '
+            'provisional-geometry=1 projected=5,5 valid=1',
+            'scene_session_transition_pending source=5900 target=4700',
+            'scene_transition_applied source=5900 target=4700',
+            'scene_session_blocked stage=3 provider=action-kernel action=3 type=0x35'))
 
     def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
         # RT-4: the dependency leaves are wired, so the run no longer stops at
