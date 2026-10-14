@@ -9,7 +9,7 @@
 # frame:        none
 # name:         vorbis_dsp_get_pcm_planes
 # arguments:    cdecl, stack args, caller pops (plain ret): [esp+4]=dsp (decode-state object, loaded to ecx; callers pass vf+0x1da); [esp+8]=out_planes (float*** destination, loaded to esi after push esi so it is read as [esp+0xc]; may be NULL); returns eax = frames available (dsp+0x14 minus dsp+0x18), or 0 when the consumed counter is out of range
-# locals:       none (no frame); esi is saved/restored, edi is saved on the non-NULL out_planes path and ebx inside the channel loop
+# locals:       none (no frame); esi is saved/restored, edi is saved on the non-NULL out_planes path and ebx is saved around the loop (only when the channel count is positive)
 # fields:       dsp+0x04: info pointer (edx); info+0x04: signed channel count, loop bound; dsp+0x08: array of per-channel float* bases (read); dsp+0x0c: array of per-channel float* output slots (written, and its address is stored through out_planes); dsp+0x14: frames buffered (upper bound); dsp+0x18: frames already consumed (offset into every plane)
 # callees:      none
 # track-n:      host-adapter: none

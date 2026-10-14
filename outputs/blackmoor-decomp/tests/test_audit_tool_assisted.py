@@ -104,8 +104,10 @@ class AuditorMutants(unittest.TestCase):
 
     # ------------------------------------------------------------------ helpers
 
-    def config(self, assembler: Path = None) -> "audit.AuditConfig":
+    def config(self, assembler: Path = None, allow_index_byte_lists: bool = True, pinned: str = None) -> "audit.AuditConfig":
         return audit.AuditConfig(
+            pinned_assembler_sha256=pinned or hashlib.sha256(gen.AS_DEFAULT.read_bytes()).hexdigest(),
+            allow_index_byte_lists=allow_index_byte_lists,
             original=self.original,
             index=self.index,
             assembler=assembler or gen.AS_DEFAULT,
@@ -116,7 +118,7 @@ class AuditorMutants(unittest.TestCase):
             image_base=0x400000,
         )
 
-    def batch(self, mutate=None, manifest_edit=None, objects=None):
+    def batch(self, mutate=None, manifest_edit=None, config=None):
         """Copy the pristine batch, apply ``mutate(dir)``, rebuild the manifest, audit."""
 
         work = Path(tempfile.mkdtemp(dir=self.tmp.name))
@@ -130,7 +132,7 @@ class AuditorMutants(unittest.TestCase):
             manifest_edit(manifest)
         path = work / "batch.json"
         path.write_text(json.dumps(manifest), encoding="utf-8")
-        return audit.audit_manifest(path, self.config()), work, manifest
+        return audit.audit_manifest(path, config or self.config()), work, manifest
 
     def rejected(self, report, symbol_va: int, needle: str) -> None:
         by_name = {f["function"]: f for f in report["functions"]}
@@ -333,6 +335,116 @@ class AuditorMutants(unittest.TestCase):
         report = audit.audit_manifest(path, self.config())
         self.assertFalse(report["all_accepted"])
         self.assertTrue(any("overlaps" in r for f in report["functions"] for r in f["reasons"]))
+
+    # ------------------------------------------------------- reviewer-found bypasses
+
+    def test_statement_separator_on_an_instruction_line_is_rejected(self) -> None:
+        va = BASE + fixture.F_LEAF
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "    pop ebp ", "    pop ebp; .byte 0x5d ", 1))
+        self.rejected(report, va, "statement separator")
+
+    def test_label_followed_by_a_directive_is_rejected(self) -> None:
+        va = BASE + fixture.F_LEAF
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "    pop ebp ", "lbl1: .byte 0x5d ", 1))
+        self.rejected(report, va, "label and statement on one line")
+
+    def test_incbin_and_macro_style_lines_are_rejected(self) -> None:
+        va = BASE + fixture.F_LEAF
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "    pop ebp ", '    .incbin "/tmp/x.bin" ', 1))
+        self.rejected(report, va, "directive or raw data")
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "    pop ebp ", "    mypop ebp ", 1))
+        self.rejected(report, va, "not an instruction mnemonic")
+
+    def test_extra_code_after_the_final_ret_is_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+
+        def append(work: Path) -> None:
+            path = work / f"FUN_{va:08x}.s"
+            path.write_text(path.read_text(encoding="utf-8") + "    nop\n    nop\n    nop\n    nop\n    nop\n", encoding="utf-8")
+
+        report, _w, _m = self.batch(mutate=append)
+        self.rejected(report, va, "object .text is")
+
+    def test_extra_data_after_the_switch_table_is_rejected(self) -> None:
+        va = BASE + fixture.F_SWITCH
+
+        def append(work: Path) -> None:
+            path = work / f"FUN_{va:08x}.s"
+            text = path.read_text(encoding="utf-8")
+            label = re.search(r"^(L_[0-9a-f]{8}|\w+):$", text, re.M | re.S)
+            label = re.findall(r"^(\w+):$", text, re.M)[1]
+            path.write_text(text + f"    .long {label} - .text + 0x401000\n", encoding="utf-8")
+
+        report, _w, _m = self.batch(mutate=append)
+        self.rejected(report, va, "")
+
+    def test_numeric_ebp_offsets_in_any_spelling_are_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+        for spelling in ("[ebp - 0X4]", "[ebp - 0b100]", "[ebp-4]"):
+            report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "[ebp - local_slot4]", spelling))
+            self.rejected(report, va, "unnamed [ebp")
+
+    def test_short_frame_names_are_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "local_slot4", "a", 100))
+        self.rejected(report, va, "too short to be a name")
+
+    def test_placeholder_dodges_are_rejected(self) -> None:
+        va = BASE + fixture.F_LEAF
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "none; every branch was reassembled", "TBD."))
+        self.rejected(report, va, "placeholder")
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "# this block does the fixture's work", "# TODO fill this in later"))
+        self.rejected(report, va, "has no comment")
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "fixture_00401040", f"sub_{va:08x}"))
+        self.rejected(report, va, "not a real name")
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "<unfilled>", "< unfilled >") if False else self.edit(w, va, "stack arguments of the fixture", "< unfilled >"))
+        self.rejected(report, va, "placeholder")
+
+    def test_header_evidence_and_span_are_checked(self) -> None:
+        va = BASE + fixture.F_LEAF
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "# evidence:     ev_fixture", "# evidence:     ev_bogus"))
+        self.rejected(report, va, "header 'evidence'")
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "# span:         ", "# span:         nothing "))
+        self.rejected(report, va, "header 'span'")
+
+    def test_a_wrapper_that_forges_the_version_line_is_rejected(self) -> None:
+        shim = Path(self.tmp.name) / "shim-as"
+        shim.write_text(f"#!/bin/sh\nexec {gen.AS_DEFAULT} \"$@\"\n")
+        shim.chmod(shim.stat().st_mode | stat.S_IEXEC)
+        work = Path(tempfile.mkdtemp(dir=self.tmp.name))
+        for path in self.pristine.glob("*.s"):
+            shutil.copy(path, work / path.name)
+        manifest = gen.build_manifest(self.image, self.layouts, [BASE + off for off in FUNCTIONS], work, "test", "fixture", original_sha256=self.pe_sha)
+        path = work / "batch.json"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        config = self.config(assembler=shim, pinned=hashlib.sha256(gen.AS_DEFAULT.read_bytes()).hexdigest())
+        report = audit.audit_manifest(path, config)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("version" in e or "pinned" in e for e in report["errors"]), report["errors"])
+
+    def test_source_path_cannot_leave_the_manifest_directory(self) -> None:
+        va = BASE + fixture.F_LEAF
+
+        def escape(manifest) -> None:
+            for entry in manifest["functions"]:
+                if entry["va"] == f"0x{va:08x}":
+                    entry["source"] = "../" + Path(self.tmp.name).name + "/pristine/" + Path(entry["source"]).name
+
+        report, _w, _m = self.batch(manifest_edit=escape)
+        self.rejected(report, va, "leaves the manifest directory")
+
+    def test_index_table_byte_lists_need_a_ruling_by_default(self) -> None:
+        va = BASE + fixture.F_SWITCH
+        report, _w, _m = self.batch(config=self.config(allow_index_byte_lists=False))
+        self.rejected(report, va, "needs a root ruling")
+
+    def test_short_branch_to_another_function_must_name_a_defined_symbol(self) -> None:
+        # the generator writes F_TAIL's short jump as '. + (n)  # -> FUN_x'; the note must name a .set symbol
+        source = gen.render_file(self.image, gen.analyze_all(self.image, [BASE + fixture.F_TAIL])[0][BASE + fixture.F_TAIL])
+        self.assertRegex(source, r"jmp\.d8 \. \+ \(-?\d+\)\s+# -> FUN_[0-9a-f]{8}")
+        broken = re.sub(r"(# -> )FUN_([0-9a-f]{8})", r"\g<1>FUN_deadbeef", source, count=1)
+        reasons, _facts = audit.audit_source(annotate(broken, BASE + fixture.F_TAIL), {}, f"FUN_{BASE + fixture.F_TAIL:08x}", True)
+        self.assertTrue(any("short branch to another function" in r for r in reasons), reasons)
 
 
 @fixture.TOOLS

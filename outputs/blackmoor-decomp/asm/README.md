@@ -30,11 +30,11 @@ The generator splits the span of every function (entry to next indexed start) in
 | Region | Functions (derived) | Code bytes | Exact | Switch tables | Index tables | Padding | Unsplit |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | game | 2,514 (7) | 1,023,548 | 1,023,548 | 5,236 | 1,934 | 1,202 | 0 |
-| Vorbis/ogg | 203 | 60,076 | 60,076 | 64 | 0 | 1,396 | 0 |
-| CRT/MFC | 2,014 | 116,524 | 116,524 | 316 | 0 | 1,080 | 1,642 |
-| total | 4,731 (543 derived of 4,729 split) | 1,200,148 | 1,200,148 | 5,616 | 1,934 | 3,678 | 1,642 |
+| Vorbis/ogg | 203 (25) | 60,076 | 60,076 | 64 | 0 | 1,396 | 0 |
+| CRT/MFC | 2,014 (511) | 116,524 | 116,524 | 316 | 0 | 1,080 | 1,642 |
+| total | 4,731 (543) | 1,200,148 | 1,200,148 | 5,616 | 1,934 | 3,678 | 1,642 |
 
-The classified bytes plus the unsplit span add up to the `.text` virtual size 1,213,018. Mismatching bytes: 0. Relocations in the census object: 0. Hint counts: `{load}` 20,642, `.d8` 22,051, `.d32` 7,943, `.insn` 384, `{disp8}` 99, `{store}` 28, `{disp32}` 2. M0's linear-sweep figure (1,205,254 bytes) was a round-trip number, not a code total; the code total here is 1,200,148.
+The figure in parentheses is the number of *derived* functions (code found by the span split, not in `function-index.json`). The classified bytes plus the unsplit span add up to the `.text` virtual size 1,213,018. Mismatching bytes: 0. Relocations in the census object: 0. Hint counts: `{load}` 20,642, `.d8` 22,051, `.d32` 7,943, `.insn` 384, `{disp8}` 99, `{store}` 28, `{disp32}` 2. M0's linear-sweep figure (1,205,254 bytes) was a round-trip number, not a code total; the code total here is 1,200,148. That denominator excludes the 1,642 bytes of the two unsplit spans (their code share is still unclassified) and includes the 38 bytes of the seven fall-through fragments below, which the auditor currently refuses, so the auditable code total is 1,200,110.
 
 **Exceptions (listed, not hidden).** Two spans are left unsplit: the CRT block copy routines `FUN_0050ed50` and `FUN_0050fa90` (1,642 bytes in all). Their jump tables sit between code blocks, and one table base lies four bytes before its first live entry, so the contract "code part, then tables, then padding" does not describe them. They need a multi-part code description and are left for a later batch. Seven derived fragments fall through into the next function instead of ending in `ret`/`jmp` (`0x00510a4b`, `0x00513843`, `0x0051aaf4`, `0x0051cb35`, `0x0051dfef`, `0x0051e24e`, `0x0051ebf2`): their bytes reassemble exactly, but the auditor refuses them until a rule for fall-through fragments is agreed. M0 estimated 173 jump tables; the split found 158 dword tables in split spans plus the tables inside the two unsplit spans.
 
@@ -65,3 +65,9 @@ These are recorded per function under `unverified` and are not changes to the by
 * `0x4fadc4` is the whole `CSound::LoadDIGISound` routine, but Track N's `sound_control_calculate_attenuation` covers only its two attenuation expressions; Track N's "fade" labels for the three calls under flag 0x20 in `0x4f55d5` are unproven.
 * `world-init-recovery.md` spells the default time-record string with an underscore; the original bytes at 0x545dd4 have a space.
 * `0x4fe2d0` has the call shape of libvorbisfile's `ov_read`; Track N covers only its quantization loops.
+
+## What the auditor does and does not prove
+
+The auditor reassembles each file with the pinned assembler (version line and the SHA-256 of the assembler binary are both pinned; a rebuild on another machine needs a deliberate pin update by root), rejects any relocation, compares the code part and every data item with the original through `verify_matches.py`, requires the whole object `.text` to equal the original bytes over the entire span (nothing may be appended after the final `ret` or after a data item), and decodes the assembled code part with `llvm-objdump` to confirm it decodes contiguously to a terminal instruction. Lines must be a label, a whitelisted directive form, a `.insn` in one of the five spellings, or an instruction whose mnemonic occurs in the original's code; statement separators, `label: statement`, `.incbin`, macros and C-style comments are rejected. Frame offsets must be named, header fields filled, and every basic block needs a real comment. It does **not** prove that a name or comment is true (that is the independent review), and the span split itself is the generator's analysis, cross-checked by the decode test above rather than by a second analysis.
+
+Open ruling for batch 002: an index table is a table of small case numbers rendered as `.byte` values. `AGENTS.md` forbids committed machine-byte arrays, so the auditor refuses `.byte` lists by default (`allow_index_byte_lists` is off). Batch 001 has no index table; the census finds 1,934 such bytes in game code. Root needs to decide whether to express them symbolically or keep them out of the `.s` and in M02's data description.

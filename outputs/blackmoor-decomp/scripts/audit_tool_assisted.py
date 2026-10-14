@@ -61,7 +61,22 @@ REQUIRED_FIELDS = (
     "name", "arguments", "locals", "fields", "callees", "track-n", "unverified",
 )
 ANNOTATION_FIELDS = ("name", "arguments", "locals", "fields", "callees", "track-n", "unverified")
-PLACEHOLDERS = ("<unfilled>", "todo", "tbd", "fixme", "xxx", "unknown", "n/a", "none yet")
+PLACEHOLDER_RE = re.compile(r"todo|tbd|fixme|xxx+|<\s*unfilled\s*>|placeholder|lorem|n/a|none yet|to be (?:filled|determined|written)", re.I)
+# SHA-256 of the pinned i686-w64-mingw32-as 2.43.1 binary built by bootstrap_matching_s08_2_gas.sh on the project Mac.
+# A rebuild on another machine may differ; root updates the pin deliberately (see README).
+PINNED_AS_SHA256 = "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"
+# Mnemonics that occur in the code part of the original (128 observed over all 4,729 split spans) plus a few
+# control-flow and string forms; anything else on an instruction line is rejected, which closes the door to
+# macros, user-defined pseudo-instructions and data smuggled onto an instruction line.
+MNEMONICS = frozenset(
+    "adc add and bt bts call cdq cld cmp dec div f2xm1 fabs fadd faddp fchs fcom fcomp fcompp fcos fdiv fdivp fdivr "
+    "fdivrp fiadd fidiv fild fimul fistp fisub fld fld1 fldcw fldenv fldl2e fldlg2 fldln2 fldpi fldz fmul fmulp fnclex "
+    "fnsave fnstcw fnstenv fnstsw fpatan fprem fprem1 fptan frndint frstor fscale fsin fsqrt fst fstp fsub fsubp fsubr "
+    "fsubrp ftst fxam fxch fyl2x idiv imul inc int ja jae jb jbe je jecxz jg jge jl jle jmp jne jns jp js lea leave lock "
+    "mov movsb movsd movsw movsx movzx mul neg nop not or pop push rcr rep repne ret rol sahf sar sbb sete setg setge setl "
+    "setle setne shl shld shr shrd std stosb stosd stosw sub test wait xchg xlatb xor "
+    "jo jno jnp loop loope loopne cwde int3 iretd retf cmpsb cmpsd scasb scasd lodsb lodsd".split()
+)
 
 
 def load_module(name: str, path: Path) -> Any:
@@ -96,7 +111,10 @@ _INSN_SPELLINGS = (
     re.compile(r"^\.insn 0x6681/[0-7], (?:e[a-ds][xip]|e[sd]i|ebp|esp), -?\d+\{:s16\}$"),
     re.compile(r"^\.insn 0x6681/[0-7], dword ptr \[[^\]]+\], -?\d+\{:s16\}$"),
 )
-_NUMBER = re.compile(r"(?<![\w.])(?:0x[0-9a-fA-F]+|\d+)(?![\w])")
+_NUMBER = re.compile(r"(?<![\w.])\d")  # any numeric literal, whatever its base or case
+_WEAK_NAME = re.compile(r"^(?:[a-z]\d*|(?:local|arg|var|tmp|slot|off)\d*)$", re.I)
+_SYNTHETIC_FUNCTION_NAME = re.compile(r"^(?:fun|sub|loc|func|unk|dat|lab)_[0-9a-f]{6,8}$", re.I)
+_SHORT_BRANCH_NOTE = re.compile(r"\. \+ \((-?\d+)\)")
 _DEFAULT_FRAME_NAME = re.compile(r"^(?:local|arg)_[0-9a-f]+$")
 _TERMINAL = {"ret", "retf", "lret", "iret", "iretd", "hlt", "ud2", "jmp", "ljmp"}
 _NOP_LIKE = re.compile(r"^(?:nop|int3|mov (e[a-d]x|e[sd]i|e[sb]p), \1|lea (e[a-d]x|e[sd]i|e[sb]p), \[\2\])$")
@@ -136,9 +154,9 @@ def meaningful(comment: str) -> bool:
     if text.startswith("->"):
         return False
     text = _ADDRESS_COMMENT.sub("", text).strip()
-    if "<unfilled>" in text:
+    if PLACEHOLDER_RE.search(text):
         return False
-    return len(text) >= 8 and re.search(r"[A-Za-z]{3}", text) is not None
+    return len(text) >= 8 and len(text.split()) >= 2 and re.search(r"[A-Za-z]{3}", text) is not None
 
 
 def parse_header(lines: list[Line]) -> dict[str, str]:
@@ -161,7 +179,7 @@ def mnemonic_of(code: str) -> str:
     return re.sub(r"\.d(?:8|32)$", "", tokens[0])
 
 
-def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> tuple[list[str], dict[str, Any]]:
+def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = False) -> tuple[list[str], dict[str, Any]]:
     """Lexical checks; returns (reasons, facts)."""
 
     reasons: list[str] = []
@@ -169,17 +187,26 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> 
     header = parse_header(lines)
     facts: dict[str, Any] = {"header": header}
 
-    if "<unfilled>" in text:
+    if re.search(r"<\s*unfilled\s*>", text, re.I):
         reasons.append("source still contains <unfilled> placeholders")
     for key in REQUIRED_FIELDS:
         if key not in header:
             reasons.append(f"header field {key!r} is missing")
     for key in ANNOTATION_FIELDS:
         value = header.get(key, "")
-        if not value or value.lower() in PLACEHOLDERS or "<unfilled>" in value:
+        words = re.findall(r"[A-Za-z0-9_]+", value)
+        if not value or PLACEHOLDER_RE.search(value) or not words:
             reasons.append(f"header field {key!r} is empty or a placeholder")
+        elif key in ("arguments", "locals", "fields", "callees") and len(words) < 2 and not value.lower().startswith("none"):
+            reasons.append(f"header field {key!r} is too short to describe anything")
+        elif key == "unverified" and value.strip().lower() != "none" and len(words) < 3 and not value.lower().startswith("none"):
+            reasons.append("header field 'unverified' must be 'none' or say what is unverified")
     name = header.get("name", "")
-    if name and (not re.match(r"^[A-Za-z_][A-Za-z0-9_:.]*$", name) or re.match(r"^FUN_[0-9a-f]{8}$", name)):
+    if name and (
+        not re.match(r"^[A-Za-z_][A-Za-z0-9_:.]*$", name)
+        or re.match(r"^FUN_[0-9a-f]{8}$", name)
+        or _SYNTHETIC_FUNCTION_NAME.match(name)
+    ):
         reasons.append(f"function name {name!r} is not a real name")
     track = header.get("track-n", "")
     if track and track != "host-adapter: none":
@@ -200,9 +227,15 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> 
     last_code_mnemonic = ""
     ebp_frame = header.get("frame") == "ebp"
     placeholder_frame_names: set[str] = set()
+    set_symbols: set[str] = set()
     for line in lines:
         code = line.code
+        if "/*" in line.raw or "*/" in line.raw:
+            reasons.append(f"line {line.number}: C-style comment")
         if not code:
+            continue
+        if ";" in code or "\\" in code:
+            reasons.append(f"line {line.number}: statement separator or line continuation is not permitted")
             continue
         if code in (".intel_syntax noprefix", ".code32", ".text"):
             continue
@@ -226,8 +259,11 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> 
                 equ = _EQU.match(code).group(1)
                 if _DEFAULT_FRAME_NAME.match(equ):
                     reasons.append(f"line {line.number}: frame symbol {equ} still has the generator's default name")
+                elif _WEAK_NAME.match(equ):
+                    reasons.append(f"line {line.number}: frame symbol {equ} is too short to be a name")
                 continue
             if _SET_EXTERNAL.match(code) or _SET_TABLE.match(code):
+                set_symbols.add(code.split()[1].rstrip(","))
                 continue
             if code.startswith(".globl "):
                 if code != f".globl {code_symbol}":
@@ -249,7 +285,11 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> 
             if state == "data" and data_kind == "SWTAB" and _SWTAB_LONG.match(code):
                 continue
             if state == "data" and data_kind == "IDXTAB" and _BYTE_LIST.match(code):
-                if any(int(v) > 255 for v in re.findall(r"\d+", code)):
+                if not allow_index_byte_lists:
+                    reasons.append(
+                        f"line {line.number}: index table as a raw byte list needs a root ruling (AGENTS.md forbids committed byte arrays)"
+                    )
+                elif any(int(v) > 255 for v in re.findall(r"\d+", code)):
                     reasons.append(f"line {line.number}: index byte out of range")
                 continue
             if state == "data" and data_kind == "PAD" and _FILL.match(code):
@@ -257,6 +297,12 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> 
             reasons.append(f"line {line.number}: directive or raw data not permitted here: {code.split()[0]}")
             continue
         # instruction
+        if re.match(r"^[A-Za-z_.][\w.$]*:", code):
+            reasons.append(f"line {line.number}: label and statement on one line: {code}")
+            continue
+        if mnemonic_of(code) not in MNEMONICS:
+            reasons.append(f"line {line.number}: {mnemonic_of(code)!r} is not an instruction mnemonic the original uses")
+            continue
         if state == "data":
             if data_kind == "PAD" and _NOP_LIKE.match(re.sub(r"^(\{[a-z0-9]+\} )+", "", code)):
                 continue
@@ -267,12 +313,17 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str) -> 
             continue
         code_lines.append(line)
         last_code_mnemonic = mnemonic_of(code)
+        note = _SHORT_BRANCH_NOTE.search(code)
+        if note:
+            named = re.search(r"-> ((?:FUN|LOC)_[0-9a-f]{8})(?: # ([0-9a-f]{8}))?", line.raw)
+            if not named or named.group(1) not in set_symbols:
+                reasons.append(f"line {line.number}: short branch to another function names no defined .set symbol")
         if ebp_frame:
             for operand in re.findall(r"\[([^\]]*)\]", code):
                 if "ebp" not in operand:
                     continue
                 stripped = re.sub(r"(?<![\w.])[1248]\*", "", operand)
-                if _NUMBER.search(stripped):
+                if _NUMBER.search(stripped) or re.search(r"0[xXbBoO]", stripped):
                     reasons.append(f"line {line.number}: unnamed [ebp±n] offset in [{operand}]")
                 for token in re.findall(r"[A-Za-z_]\w*", operand):
                     if _DEFAULT_FRAME_NAME.match(token) and token not in placeholder_frame_names:
@@ -348,8 +399,6 @@ def _block_comment_audit(lines: list[Line], code_symbol: str) -> tuple[list[str]
         mnem = mnemonic_of(code)
         if mnem in _TERMINAL or mnem in gen._COND_JUMPS:
             needs_new = True
-    if pending and blocks:
-        blocks[-1]["comments"] += pending
     for block in blocks:
         if block["comments"] < 1:
             reasons.append(f"basic block at line {block['line']} has no comment")
@@ -361,11 +410,14 @@ def _block_comment_audit(lines: list[Line], code_symbol: str) -> tuple[list[str]
 # ---------------------------------------------------------------------------
 
 
-def check_assembler(path: Path) -> tuple[Optional[str], dict[str, Any]]:
-    try:
-        shown = path.resolve().relative_to(REPOSITORY.resolve()).as_posix()
-    except ValueError:
-        shown = str(path)
+def check_assembler(path: Path, pinned_sha256: str = PINNED_AS_SHA256) -> tuple[Optional[str], dict[str, Any]]:
+    shown = str(path)
+    for base in (REPOSITORY, WORK.resolve().parent):
+        try:
+            shown = path.resolve().relative_to(base.resolve()).as_posix()
+            break
+        except ValueError:
+            continue
     info: dict[str, Any] = {"path": shown}
     if not path.is_file():
         return f"assembler {path} is missing", info
@@ -378,6 +430,8 @@ def check_assembler(path: Path) -> tuple[Optional[str], dict[str, Any]]:
     info["sha256"] = sha256(path.read_bytes())
     if line != ASSEMBLER_VERSION_LINE:
         return f"assembler is {line!r}, not the pinned {ASSEMBLER_VERSION_LINE!r}", info
+    if info["sha256"] != pinned_sha256:
+        return f"assembler binary {info['sha256']} is not the pinned build {pinned_sha256}", info
     archive = path.parents[2] / "binutils-2.43.1.tar.xz"
     if archive.is_file():
         digest = hashlib.sha512(archive.read_bytes()).hexdigest()
@@ -385,7 +439,7 @@ def check_assembler(path: Path) -> tuple[Optional[str], dict[str, Any]]:
         if digest != BINUTILS_SHA512:
             return "binutils source archive does not match the pinned SHA-512", info
     else:
-        info["binutils_archive_sha512"] = "archive not present beside the pinned prefix; version line only"
+        info["binutils_archive_sha512"] = "archive not present beside the pinned prefix"
     return None, info
 
 
@@ -404,6 +458,8 @@ class AuditConfig:
     repository: Optional[Path] = REPOSITORY
     baseline_dir: Optional[Path] = PROJECT
     image_base: int = 0x400000
+    pinned_assembler_sha256: str = PINNED_AS_SHA256
+    allow_index_byte_lists: bool = False
 
 
 def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
@@ -421,7 +477,7 @@ def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
         report["errors"].append("manifest class is not tool_assisted_reconstructed_assembly")
     if manifest.get("original_sha256") != config.expected_sha256:
         report["errors"].append("manifest original_sha256 is not the pinned original")
-    problem, assembler_info = check_assembler(config.assembler)
+    problem, assembler_info = check_assembler(config.assembler, config.pinned_assembler_sha256)
     report["assembler"] = assembler_info
     if problem:
         report["errors"].append(problem)
@@ -523,6 +579,9 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     if name != symbol:
         reasons.append(f"function name {name!r} does not match its VA {symbol}")
     source_path = (manifest_path.parent / entry["source"]).resolve()
+    if manifest_path.parent.resolve() not in source_path.parents:
+        reasons.append("source path leaves the manifest directory")
+        return result
     try:
         source_bytes = source_path.read_bytes()
     except OSError as exc:
@@ -572,8 +631,15 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
         "region": gen.region_of(va),
         "extent": f"0x{va:08x}-0x{layout.code_end:08x} ({layout.code_size} code bytes)",
         "frame": "ebp" if gen.has_standard_frame(layout) else "none",
+        "span": (
+            f"0x{va:08x}-0x{layout.span_end:08x} (code {layout.code_size}, tables {layout.table_bytes}, "
+            f"padding {layout.padding_bytes})"
+        ),
+        "evidence": entry.get("evidence_id", ""),
     }
-    lexical, facts = audit_source(text, header_expect, symbol)
+    if entry.get("evidence_id") != image.evidence.get(va):
+        reasons.append("evidence_id in the manifest differs from function-index.json")
+    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists)
     reasons += lexical
     result["basic_blocks"] = facts.get("basic_blocks")
     track = facts["header"].get("track-n", "")
@@ -583,8 +649,10 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
             target = (config.repository / match.group(1))
             if not target.is_file():
                 reasons.append(f"track-n file {match.group(1)} does not exist")
-            elif match.group(2) not in target.read_text(encoding="utf-8", errors="replace"):
-                reasons.append(f"track-n symbol {match.group(2)} is not in {match.group(1)}")
+            elif len(match.group(2)) < 6 or not re.search(
+                r"(?<![\w])" + re.escape(match.group(2)) + r"(?![\w])", target.read_text(encoding="utf-8", errors="replace")
+            ):
+                reasons.append(f"track-n symbol {match.group(2)} is too short or not a whole word in {match.group(1)}")
 
     # --- reassemble with the pinned assembler ----------------------------------
     with tempfile.TemporaryDirectory(prefix="m03-audit-") as tmp:
@@ -605,6 +673,19 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
             reasons.append(f"object unreadable: {exc}")
             return result
         result["relocations"] = relocations
+        base = image.base
+        want_len = layout.span_end - base
+        if len(text_bytes) != (want_len + 3) & ~3 or set(text_bytes[want_len:]) - {0x00, 0x90}:
+            reasons.append(
+                f"object .text is {len(text_bytes)} bytes, expected the span end {want_len} plus section alignment only"
+            )
+        elif text_bytes[va - base : layout.span_end - base] != image.bytes_at(va, layout.span_end):
+            reasons.append("object bytes over the whole span differ from the original")
+        if any(text_bytes[: va - base]):
+            reasons.append("object has non-zero bytes before the function")
+        decode_problem = decode_code_part(object_path, va - base, layout.code_size)
+        if decode_problem:
+            reasons.append(decode_problem)
         if relocations:
             reasons.append(f"object carries {relocations} relocation(s); every target must resolve at assembly time")
         supplied = entry.get("object")
@@ -663,14 +744,45 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     return result
 
 
+def decode_code_part(object_path: Path, offset: int, size: int) -> Optional[str]:
+    """Independent plausibility check: the assembled code part decodes linearly to its last byte."""
+
+    try:
+        out = subprocess.run(
+            gen.find_objdump() + ["-d", "--x86-asm-syntax=intel", f"--start-address={offset:#x}", f"--stop-address={offset + size:#x}", str(object_path)],
+            capture_output=True, text=True, check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return f"llvm-objdump could not decode the code part: {exc}"
+    cursor = offset
+    last = ""
+    for line in out.splitlines():
+        match = gen._LINE.match(line)
+        if not match:
+            continue
+        addr = int(match.group(1), 16)
+        if addr != cursor:
+            return f"code part does not decode contiguously at +0x{cursor - offset:x}"
+        body = match.group(3).split("#")[0].strip()
+        mnem = body.split("\t")[0].strip()
+        if mnem in ("<unknown>", "(bad)") or mnem.startswith("."):
+            return f"code part contains an undecodable instruction at +0x{addr - offset:x}"
+        cursor += len(match.group(2).split())
+        last = mnem
+    if cursor != offset + size:
+        return "code part does not decode to its last byte"
+    if last not in _TERMINAL and last != "call":
+        return f"code part decodes to a last instruction {last!r}, not a terminal ret/jmp"
+    return None
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--original", type=Path, default=WORK / "original/GAME.EXE")
-    parser.add_argument("--assembler", type=Path, default=gen.AS_DEFAULT)
     parser.add_argument("--report", type=Path)
     args = parser.parse_args(argv)
-    config = AuditConfig(original=args.original, assembler=args.assembler)
+    config = AuditConfig(original=args.original)
     report = audit_manifest(args.manifest, config)
     encoded = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.report:

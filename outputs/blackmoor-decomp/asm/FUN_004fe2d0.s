@@ -11,9 +11,9 @@
 # arguments:    cdecl, 7 stack args, caller pops 0x1c (plain ret), standard ebp frame, ebx/esi/edi saved; [ebp+8]=vf (decoder-file object, edi); [ebp+0xc]=buffer (output byte pointer, copied to esi/edx/ecx working registers; the slot is also reused as an FISTP dword temp and as a write-pointer home); [ebp+0x10]=length (output capacity in bytes; in one 16-bit path the slot is reused as an FISTP temp); [ebp+0x14]=bigendianp (compared with the host byte-order flag returned by FUN_004fe630); [ebp+0x18]=word (bytes per sample: 1 selects the 8-bit path, any other value the 16-bit path; the slot is reused as a loop counter); [ebp+0x1c]=sgned (nonzero = signed output; the slot is overwritten with the unsigned bias 0 or 0x8000 on the 16-bit path and reused as an FISTP temp in the signed native path); [ebp+0x20]=bitstream (int* receiving vf+0x60, may be NULL); returns eax = bytes written, 0 at end of data, or a negative error code (0xffffff7d = -131)
 # locals:       [ebp-4]=pcm_planes (float** from FUN_004ff9a0, per-channel plane pointers); [ebp-8]=frames (frames available, then clamped to length/frame_bytes; loop bound and tail consume count); [ebp-0xc]=channels (info+4 from FUN_004fe290(vf,-1)); [ebp-0x10]=host_endian (FUN_004fe630 result, read only at 0x4fe401); [ebp-0x14]=x87 scratch qword occupying [ebp-0x14..-0xd], whose upper dword aliases the host_endian slot (safe because host_endian is last read at 0x4fe401, before any FSTP); [ebp-0x18]=frame_bytes (channels*word, used for the division and the return value)
 # fields:       vf+0x50/vf+0x54: 64-bit running frame total, += frames by add/adc at the tail; vf+0x58: signed state value (< 2 fails, < 3 forces a fetch); vf+0x60: current link, copied to *bitstream; vf+0x1da: embedded decode-state sub-object passed to FUN_004ff9a0 and FUN_004ffa00; info+0x04 (via FUN_004fe290): channel count; globals 0x0052e580 = 128.0f (8-bit scale) and 0x0052e57c = 32768.0f (16-bit scale), both read as float by fmul
-# callees:      FUN_004fe630 = host byte-order flag (its original bytes are xor eax,eax; ret, so it returns 0); FUN_004fdfd0 = fetch and decode more data into vf (called with vf, 0, 1; returns -2 at end of data); FUN_004ff9a0 = get planar float pointers and available frame count; FUN_004fe290 = info record lookup (called with link -1); FUN_004ffa00 = consume decoded frames
+# callees:      FUN_004fe630 = constant 0 (original bytes xor eax,eax; ret), used here as the host big-endian flag; FUN_004fdfd0 = fetch and decode more data into vf (called with vf, 0, 1; returns -2 at end of data); FUN_004ff9a0 = get planar float pointers and available frame count; FUN_004fe290 = info record lookup (called with link -1); FUN_004ffa00 = consume decoded frames
 # track-n:      outputs/blackmoor-decomp/src/his_pcm_quantize.c:his_pcm_quantize_planar
-# unverified:   Track N his_pcm_quantize_planar models only the quantization loops of the production call (mono/stereo, word=1 with sgned=0 and word=2 with sgned=1, bigendianp=0, native order); the fetch loop, the length/frame_bytes clamp, the vf+0x50/+0x54 accounting, *bitstream and the return codes are not in Track N. Branches not exercised by the oracle: unsigned native 16-bit (0x4fe496), signed 8-bit (sgned nonzero with word=1), both byte-swapped branches (0x4fe515 onward, unreachable while FUN_004fe630 returns 0 and bigendianp is 0), channel counts above 2, word values other than 1 and 2, and every error return. Any word other than 1 takes the 16-bit path but frame_bytes uses the passed word, so word 3 or more would return more bytes than it writes; not exercised. idiv by channels*word has no zero guard (a zero product would fault); not exercised. Results under x87 control words other than 0x037f are not verified; this function does not set the control word and fstp qword/fistp use the ambient rounding mode. Identification with libvorbisfile ov_read and the field names (state, current link, 64-bit offset, dsp sub-object) are inferred from layout and call pattern. vf+0x1da is not dword aligned; the layout of that sub-object is not verified. FUN_004fdfd0 argument and return meanings (0, 1, -2) are inferred from the call site only.
+# unverified:   Track N his_pcm_quantize_planar models only the quantization loops of the production call (mono/stereo, word=1 with sgned=0 and word=2 with sgned=1, bigendianp=0, native order); the fetch loop, the length/frame_bytes clamp, the vf+0x50/+0x54 accounting, *bitstream and the return codes are not in Track N. Branches not exercised by the oracle: unsigned native 16-bit (0x4fe496), signed 8-bit (sgned nonzero with word=1), the big-endian output loop (reachable with bigendianp nonzero because the host flag is constant 0, but unexercised) and the little-endian-on-swapped-host loop at 0x4fe582 (dead code: it needs the host flag nonzero), channel counts above 2, word values other than 1 and 2, and every error return. Any word other than 1 takes the 16-bit path but frame_bytes uses the passed word, so word 3 or more would return more bytes than it writes; not exercised. idiv by channels*word has no zero guard (a zero product would fault); not exercised. Results under x87 control words other than 0x037f are not verified; this function does not set the control word and fstp qword/fistp use the ambient rounding mode. Identification with libvorbisfile ov_read and the field names (state, current link, 64-bit offset, dsp sub-object) are inferred from layout and call pattern. vf+0x1da is not dword aligned; the layout of that sub-object is not verified. FUN_004fdfd0 argument and return meanings (0, 1, -2) are inferred from the call site only.
 .intel_syntax noprefix
 .code32
 .text
@@ -163,7 +163,7 @@ L_pcm8_channel_loop:
     mov ecx, dword ptr [ebp - local_pcm_planes]           # 004fe3aa
     mov ecx, dword ptr [ecx + 4*eax]             # 004fe3ad
     # x87 sequence (stack depth in brackets): fld loads the float sample -> st0 [1]
-    # fmul by the float constant at 0x0052e580 (bytes 00 00 00 43 = 128.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
+    # fmul by the float constant at 0x0052e580 (128.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
     # fstp qword stores st0 as a double into the x87 scratch qword and pops [0]; fld qword reloads it [1]
     # fistp dword converts st0 to int32 using the ambient x87 rounding mode (indefinite 0x80000000 on invalid when masked) into the arg_buffer slot ([ebp+0xc]; the write pointer is in esi) and pops [0]
     fld dword ptr [ecx + 4*edi]                  # 004fe3b0
@@ -239,7 +239,7 @@ L_s16_channel_loop:
 L_s16_sample_loop:
     # block 0x004fe444: per sample: fld [ecx] (next plane float), convert sample*32768.0f to int32 into the arg_sgned slot (bias is 0 on this path); eax = that integer
     # x87 sequence (stack depth in brackets): fld loads the float sample -> st0 [1]
-    # fmul by the float constant at 0x0052e57c (bytes 00 00 00 47 = 32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
+    # fmul by the float constant at 0x0052e57c (32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
     # fstp qword stores st0 as a double into the x87 scratch qword and pops [0]; fld qword reloads it [1]
     # fistp dword converts st0 to int32 using the ambient x87 rounding mode (indefinite 0x80000000 on invalid when masked) into the arg_sgned slot ([ebp+0x1c]; bias is 0 here) and pops [0]
     fld dword ptr [ecx]                          # 004fe444
@@ -300,7 +300,7 @@ L_u16_channel_loop:
 L_u16_sample_loop:
     # block 0x004fe4b8: per sample: fld [edx], convert sample*32768.0f to int32 into the arg_length slot; eax = that integer
     # x87 sequence (stack depth in brackets): fld loads the float sample -> st0 [1]
-    # fmul by the float constant at 0x0052e57c (bytes 00 00 00 47 = 32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
+    # fmul by the float constant at 0x0052e57c (32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
     # fstp qword stores st0 as a double into the x87 scratch qword and pops [0]; fld qword reloads it [1]
     # fistp dword converts st0 to int32 using the ambient x87 rounding mode (indefinite 0x80000000 on invalid when masked) into the arg_length slot ([ebp+0x10]) and pops [0]
     fld dword ptr [edx]                          # 004fe4b8
@@ -364,7 +364,7 @@ L_be_channel_loop:
     mov eax, dword ptr [ebp - local_pcm_planes]           # 004fe52c
     mov eax, dword ptr [eax + 4*ecx]             # 004fe52f
     # x87 sequence (stack depth in brackets): fld loads the float sample -> st0 [1]
-    # fmul by the float constant at 0x0052e57c (bytes 00 00 00 47 = 32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
+    # fmul by the float constant at 0x0052e57c (32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
     # fstp qword stores st0 as a double into the x87 scratch qword and pops [0]; fld qword reloads it [1]
     # fistp dword converts st0 to int32 using the ambient x87 rounding mode (indefinite 0x80000000 on invalid when masked) into the arg_buffer slot ([ebp+0xc]; the write pointer is in esi) and pops [0]
     fld dword ptr [eax + 4*edi]                  # 004fe532
@@ -424,7 +424,7 @@ L_le_channel_loop:
     mov edi, dword ptr [ebp + arg_word]            # 004fe595
     mov eax, dword ptr [eax + 4*ecx]             # 004fe598
     # x87 sequence (stack depth in brackets): fld loads the float sample -> st0 [1]
-    # fmul by the float constant at 0x0052e57c (bytes 00 00 00 47 = 32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
+    # fmul by the float constant at 0x0052e57c (32768.0f) -> st0 = sample*scale, exact because the scale is a power of two [1]
     # fstp qword stores st0 as a double into the x87 scratch qword and pops [0]; fld qword reloads it [1]
     # fistp dword converts st0 to int32 using the ambient x87 rounding mode (indefinite 0x80000000 on invalid when masked) into the arg_buffer slot ([ebp+0xc]; the write pointer is in edx) and pops [0]
     fld dword ptr [eax + 4*edi]                  # 004fe59b
@@ -498,7 +498,7 @@ L_return_esi:
     # block 0x004fe625: return the negative queue value held in esi
     {load} mov eax, esi                          # 004fe625
 L_return_eax:
-    # block 0x004fe627: common error/EOF return: restore registers, eax already holds the result
+    # block 0x004fe627: common return of a non-positive fetch result unchanged: restore registers, eax already holds the result
     pop edi                                      # 004fe627
     pop esi                                      # 004fe628
     pop ebx                                      # 004fe629

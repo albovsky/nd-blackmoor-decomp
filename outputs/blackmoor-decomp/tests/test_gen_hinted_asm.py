@@ -118,7 +118,7 @@ F_DERIVED:
 .org 0x1c0, 0xcc
 F_TAIL:
     mov eax, dword ptr [ebp + 8]
-    jmp.d8 F_LEAF
+    jmp.d8 F_DERIVED_PARENT
     jmp F_LEAF
 """
 
@@ -201,7 +201,7 @@ class SpanSplitTests(SyntheticMixin, unittest.TestCase):
         layout = self.layouts[BASE + F_TAIL]
         self.assertEqual(layout.exceptions, [])
         self.assertEqual(layout.insns[-1].mnem, "jmp")
-        self.assertIn(BASE + F_LEAF, layout.external_targets)
+        self.assertIn(BASE + F_DERIVED_PARENT, layout.external_targets)
 
 
 @TOOLS
@@ -220,6 +220,12 @@ class RenderTests(SyntheticMixin, unittest.TestCase):
         self.assertIn(".set FUN_", source)  # call target resolved without a relocation
         self.assertIn(f".org 0x{BASE:08x} - 0x{BASE:x}", source)
         self.assertIn(f".globl FUN_{BASE:08x}", source)
+
+    def test_short_branch_to_another_function_is_location_relative(self) -> None:
+        # GNU as cannot size a short branch to an expression symbol, so the operand is '. + (n)'
+        source = self.render(F_TAIL)
+        self.assertRegex(source, r"jmp\.d8 \. \+ \(-?\d+\)\s+# -> FUN_[0-9a-f]{8}")
+        self.assertIn(".set FUN_", source)
 
     def test_no_raw_bytes_in_code(self) -> None:
         for off in (F_FRAME, F_LEAF, F_SWITCH, F_PAD, F_DERIVED_PARENT, F_TAIL):

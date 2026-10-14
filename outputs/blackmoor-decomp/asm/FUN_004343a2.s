@@ -100,7 +100,7 @@ L_equal:
     mov dword ptr [ebp - local_cmp], 0x0          # 00434430
     jmp.d8 L_cmp_done                            # 00434437
 L_differ:
-    # block 0x00434439: L_differ: sbb eax,eax / sbb eax,-1 turn the carry of the failed unsigned compare into the non-zero result 1 (below) or -1
+    # block 0x00434439: L_differ: sbb eax,eax / sbb eax,-1 turn the carry of the failed unsigned byte compare into -1 (name_buf byte below the argument byte) or +1 (above); only zero versus non-zero is consumed
     {load} sbb eax, eax                          # 00434439
     sbb eax, -0x1                                # 0043443b
     mov dword ptr [ebp - local_cmp], eax          # 0043443e

@@ -12,7 +12,7 @@
 # locals:       none: push ebp / mov ebp,esp only, no locals; the frame holds just the saved ebp
 # fields:       absolute global 0x005bb1c4: 16-bit word written with 1 (mov word ptr, 0x1; the adjacent bytes are not touched); nothing is read
 # callees:      none
-# track-n:      outputs/blackmoor-decomp/src/caption_lifecycle.c:first_render_level
+# track-n:      outputs/blackmoor-decomp/src/caption_lifecycle.c:caption_ctb_open  (inlined store of first_render_level, marked 0x43dbd5 there)
 # unverified:   The word at 0x005bb1c4 is named first_render_level by caption_lifecycle.h (int16_t at 0x5bb1c4) and described as the New Game 'pending latch' by world-init-recovery.md; these bytes only prove the 16-bit store of 1. Who consumes or clears the word, and whether the New Game menu path and the caption lifecycle intend the same meaning, is not verified here. Calling convention (no args) is inferred from the lack of any stack/register reads.
 .intel_syntax noprefix
 .code32

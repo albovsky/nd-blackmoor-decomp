@@ -13,7 +13,7 @@
 # fields:       this+0x5f64: DATA count (read); this+0x1144[n]: DATA marker pointers (read); this+0x111c: selected DATA body pointer (written on a match only); this+0x1128: selected DATA body length, declared length minus 4 (written on a match only); this+0x1136: selected DATA type name buffer, copied with its NUL (written on a match only); globals 0x00545ef0: the 4-character DATA marker string used for its strlen; 0x00583979 and 0x005cf659: objects passed in ecx to the error and quit routines; the static name buffer at 0x0063a590 is written inside FUN_00434814
 # callees:      FUN_004347b8 = read big-endian dword at a pointer (stack arg, thiscall); FUN_0042639d = report error (message, caller name); FUN_004c97b4 = post quit message; FUN_00434814 = CHiff::copy_fourcc_static (copy up to four non-NUL bytes to the static buffer at 0x0063a590, NUL terminate, return its address)
 # track-n:      outputs/blackmoor-decomp/src/hiff.c:hiff_select_data
-# unverified:   after a DATA length of 8 or less the original reports an error and calls the quit routine and then continues (no early return), whereas Track N rejects; the inline pairwise compare is the CRT strcmp expansion (name_buf byte versus argument byte, two bytes per step, stopping at a mismatch or NUL) and only its zero versus non-zero outcome is used here, so the sign of a non-zero result is not verified to matter; the strings at 0x545ef0 (marker), 0x545ef8 and 0x545f04 (error texts) were identified by reading original data, not by the instructions; length and type reads are not bounds checked against the resource end; the static name buffer is a shared global, its reuse between calls is not analysed; a failed selection leaves this+0x111c, 0x1128 and 0x1136 unchanged
+# unverified:   the name CHiff::select_data_by_name was chosen by the annotator (the error strings in the binary call this routine SelectData); after a DATA length of 8 or less the original reports an error and calls the quit routine and then continues (no early return), whereas Track N rejects; the inline pairwise compare is the CRT strcmp expansion (name_buf byte versus argument byte, two bytes per step, stopping at a mismatch or NUL) and only its zero versus non-zero outcome is used here, so the sign of a non-zero result is not verified to matter; the strings at 0x545ef0 (marker), 0x545ef8 and 0x545f04 (error texts) were identified by reading original data, not by the instructions; length and type reads are not bounds checked against the resource end; the static name buffer is a shared global, its reuse between calls is not analysed; a failed selection leaves this+0x111c, 0x1128 and 0x1136 unchanged
 .intel_syntax noprefix
 .code32
 .text
@@ -131,7 +131,7 @@ L_equal:
     mov dword ptr [ebp - local_cmp], 0x0          # 00434320
     jmp.d8 L_cmp_done                            # 00434327
 L_differ:
-    # block 0x00434329: L_differ: sbb eax,eax / sbb eax,-1 turn the carry of the failed unsigned compare into the non-zero result 1 (below) or -1
+    # block 0x00434329: L_differ: sbb eax,eax / sbb eax,-1 turn the carry of the failed unsigned byte compare into -1 (name_buf byte below the argument byte) or +1 (above); only zero versus non-zero is consumed
     {load} sbb eax, eax                          # 00434329
     sbb eax, -0x1                                # 0043432b
     mov dword ptr [ebp - local_cmp], eax          # 0043432e

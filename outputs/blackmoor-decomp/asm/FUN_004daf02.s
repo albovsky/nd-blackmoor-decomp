@@ -13,7 +13,7 @@
 # fields:       this+0x0c: dword written with arg_value; nothing else stored, no globals touched
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/matching_s08_2.cpp:FUN_004daf02_receiver::set
-# unverified:   Which object the receiver is: the bytes only show an unnamed this-pointer in ecx; the matching offsets in src/input_latch.c (+0x0c state, +0x10 flag, +0x18/+0x1c move x/y) and the object at 0x5830a6 named in tasks/S08-4 suggest the input object, but no caller was traced for this function here. Field meaning is not asserted: only a 32-bit load/store at the stated offset is verified. Whether the stored dword is signed/unsigned is not determinable (plain mov). Spill of ecx to local_this is only a frame artefact (push ecx reserves the slot, mov overwrites it with ecx). The routine leaves a scratch value in eax (this) on return; whether callers treat the method as void is not verified here.
+# unverified:   Which object the receiver is: the bytes only show an unnamed this-pointer in ecx; the matching offsets in src/input_latch.c (it names only FIELD_0C, FIELD_10, MOVE_X and MOVE_Y) and the object at 0x5830a6 named in tasks/S08-4 suggest the input object, but no caller was traced for this function here. Field meaning is not asserted: only a 32-bit load/store at the stated offset is verified. Whether the stored dword is signed/unsigned is not determinable (plain mov). Spill of ecx to local_this is only a frame artefact (push ecx reserves the slot, mov overwrites it with ecx). The routine leaves a scratch value in eax (this) on return; whether callers treat the method as void is not verified here.
 .intel_syntax noprefix
 .code32
 .text

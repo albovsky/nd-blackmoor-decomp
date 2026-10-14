@@ -13,7 +13,7 @@
 # fields:       0x00583999: boot/new-game state (0..4); 0x005c39ff: signed 16-bit flag (0 selects state 2, nonzero state 3); 0x006198f3: byte flag; 0x005839a9: set to 1 when 0x006198f3 is nonzero
 # callees:      FUN_004381f4 (state 0: full world initializer); FUN_00439822 (state 1, called after the state update); FUN_004fb018 and FUN_004fc341 (state 2, called with ecx=0x005c3a67); FUN_0043a7ca (state 3); FUN_0043d227 (state 4)
 # track-n:      host-adapter: none
-# unverified:   Roles of the callees other than FUN_004381f4 (see boot-world-inputs-recovery.md and world-init-recovery.md) are not established here; the meaning of states 2 to 4 and of the flags at 0x005c39ff and 0x006198f3 is unverified. No Track N source implements this dispatcher.
+# unverified:   the compare of the state word is unsigned (ja against 4) and the store to 0x5839a9 is a dword; Roles of the callees other than FUN_004381f4 (see boot-world-inputs-recovery.md and world-init-recovery.md) are not established here; the meaning of states 2 to 4 and of the flags at 0x005c39ff and 0x006198f3 is unverified. No Track N source implements this dispatcher.
 .intel_syntax noprefix
 .code32
 .text

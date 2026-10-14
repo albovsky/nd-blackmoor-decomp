@@ -12,7 +12,7 @@
 # locals:       [ebp-4]=saved this (the single push ecx slot)
 # fields:       none (no fields touched); reads four bytes at arg_ptr
 # callees:      none
-# track-n:      outputs/blackmoor-decomp/src/hiff.c:scan_data_records
+# track-n:      outputs/blackmoor-decomp/src/hiff.c:scan_data_records  (the same four-byte DATA test is an inlined memcmp in index_chunks)
 # unverified:   the four compares use sign-extended bytes against 0x44, 0x41, 0x54, 0x41 (D, A, T, A); the class name and thiscall form are inferred from callers that load ecx = this; the native code folds this test into the memcmp inside scan_data_records and index_chunks rather than having a separate function; the pointer is not bounds checked
 .intel_syntax noprefix
 .code32

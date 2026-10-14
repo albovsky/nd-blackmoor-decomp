@@ -13,7 +13,7 @@
 # fields:       0x0056f354: 4096-byte LZ dictionary ring (global); bytes 0..0xfed are filled with 0x20 on every call by rep stosd/stosb, bytes 0xfee..0xfff are left as the previous call left them
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/cif_archive.c:cif_decode
-# unverified:   whether any caller reads the arg_out_pos slot after the call is not checked here (the slot is popped by ret 0x10 and is written as the output length counter); the original has no output bound (writes arg_out unchecked), an unsafe behaviour that Track N replaces by a native rejection; end-of-input is detected only by input index equality with arg_in_len, so a stream that ends mid token simply returns (Track N reports it as malformed); ecx/this is spilled but unused so its meaning is not verified; the loop count of the literal/match paths was checked from the bytes but the compressor side is not recovered
+# unverified:   the fourth stack dword is a caller-pushed dummy slot whose incoming value is discarded (it is zeroed at entry) and then serves as the running output position; it is popped by ret 0x10, so no caller can read it back; the original has no output bound (writes arg_out unchecked), an unsafe behaviour that Track N replaces by a native rejection; end-of-input is detected only by input index equality with arg_in_len, so a stream that ends mid token simply returns (Track N reports it as malformed); ecx/this is spilled but unused so its meaning is not verified; the loop count of the literal/match paths was checked from the bytes but the compressor side is not recovered
 .intel_syntax noprefix
 .code32
 .text

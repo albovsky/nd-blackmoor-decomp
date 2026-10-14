@@ -10,7 +10,7 @@
 # name:         vorbisfile_get_link_info
 # arguments:    cdecl, stack args, caller pops (plain ret): [esp+4]=vf (decoder-file object, loaded to edx); [esp+8]=link (signed int, loaded to ecx; -1 selects the current link); returns eax = pointer to a 0x20-byte info record, or 0 when link >= link count
 # locals:       none (no frame, nothing pushed; leaf function using only eax, ecx, edx)
-# fields:       vf+0x04: dword tested for zero, selecting the default record when zero; vf+0x34: signed link count bounding the link index; vf+0x48: pointer to an array of 0x20-byte info records (record 0 is the default result); vf+0x58: state dword compared signed against 3 (link -1 only); vf+0x60: current link index used for link -1
+# fields:       vf+0x04: dword tested for zero, selecting the default record when zero; vf+0x34: signed link count bounding the link index; vf+0x48: pointer to an array of 0x20-byte info records (record 0 is the default result); vf+0x58: state dword compared signed against 3 (any negative link takes the current-link path); vf+0x60: current link index used when the link argument is negative
 # callees:      none
 # track-n:      host-adapter: none
 # unverified:   Role names are inferred, not read from source: the 0x20 record stride, the +0x04 gate, +0x34 link count, +0x58 state and +0x60 current link resemble a libvorbisfile ov_info lookup, but that identification rests on field layout only. What vf+0x04 means (it is merely compared with zero) is not established. The oracle (tests/his_pcm_quantize_original_oracle.py) hooks this function with a stub returning a fixed record, so its real branches (link >= 0 in range, link >= count, link -1 with state < 3) were never executed under the oracle. No Track N source implements it.

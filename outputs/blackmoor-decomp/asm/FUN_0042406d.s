@@ -13,7 +13,7 @@
 # fields:       branch+0x0 (int32 result, written 1 or 0); branch+0x4 (first child node); branch+0xc (owning node, may be null; its +4 state mirrors the result); branch+0x18 (child count, compared with the nonzero-child count); node+0x4 (int32 state, tested for zero and raised to 1); node+0x16 (int16 OR link, sign-extended, compared with 1); node+0x34 (previous sibling); node+0x38 (next sibling)
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/scene_dependencies.c:scene_dependencies_reduce
-# unverified:   meaning of branch+0x18 as the child count and of branch+0xc as the owning node is taken from the loader pseudocode for 0x424aa8, not from instructions of this function; the null-first-child case is not guarded (dereferences null) and is not exercised; Track N scene_dependencies_reduce covers the sibling OR reduction and the final all-nonzero test but not the store to branch+0x0 or owning node +4 (those live in scene_conditions_reduce_branch); whether this+0 context is ever used by this routine is not established (it is saved only)
+# unverified:   meaning of branch+0x18 as the child count and of branch+0xc as the owning node is taken from the loader pseudocode for 0x424aa8, not from instructions of this function; the null-first-child case is not guarded (dereferences null) and is not exercised; Track N scene_dependencies_reduce covers the sibling OR reduction and the final all-nonzero test but not the store to branch+0x0 or owning node +4 (those live in scene_condition_reduce_branch (static, singular)); whether this+0 context is ever used by this routine is not established (it is saved only)
 .intel_syntax noprefix
 .code32
 .text
