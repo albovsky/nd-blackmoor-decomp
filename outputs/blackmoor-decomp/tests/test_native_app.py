@@ -122,34 +122,32 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                  '--live-click-row', '34', '--test-a62-accept',
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=120)
-        # The successor S4700 cannot be created (opaque 0x35 row): an explicit stop.
-        self.assertEqual(result.returncode, 1, result.stderr)
+        # A-35.1 registered the 0x35 body boundary, so S4700 now loads and ticks;
+        # the explicit stop moved to the unimplemented 0x35 runtime (row 3).
+        self.assertEqual(result.returncode, 0, result.stderr)
         contents = log.read_text()
         ordered = (
             'test_a62_synthetic_accept result=phase2 row=7 coordinates=5,5 '
             'pointer_path=not-implemented(RT-2)',
-            # Rows 8-10 run in one pass: row 8 queues the effect (0x44727a), row 10
-            # requests the scene change and ends the pass.
             'scene_session_transition_pending source=5900 target=4700',
             'scene_exit_requested state=4 effect_busy=1 effect_type=2 effect_stage=0',
-            # State 4 (0x43d227): effect type 2 stage 0 captures the source and
-            # hands the loader state over (state 1).
             'scene_exit_capture which=source status=0 canvas=620x375',
             'scene_exit_state4 status=0 controller_ran=1 stage_before=0 effect_busy=1 '
             'effect_type=2 state_after=1',
             'scene_load_state next_state=3 transition_word_5c39ff=1',
             'scene_clear_caption status=0',
             'scene_parsed name=S4700',
-            'scene_transition_error source=5900 target=4700 detail=session-replace '
-            'status=5 provider=scene-resource action=3 type=0x35 detail_status=6',
-            'stopped failure=1')
+            'scene_transition_applied source=5900 target=4700',
+            'live_session_scene_changed from=5900 to=4700',
+            'scene_session_blocked stage=3 provider=action-kernel action=3 type=0x35',
+            'live_session_end scene=4700 ticks=10 status=2 provider=action-kernel '
+            'stage=3 action=3 type=0x35')
         position = 0
         for evidence in ordered:
             found = contents.find(evidence, position)
             self.assertNotEqual(found, -1, evidence)
             position = found
         self.assertNotIn('provider=action-family-28', contents)
-        self.assertNotIn('scene_exit_sequence', contents)   # the successor never ticked
 
     def test_exit_effect_continues_into_the_successors_first_tick(self):
         # Test hook: load S5907 (which the executor can create) for the S5900 ->
