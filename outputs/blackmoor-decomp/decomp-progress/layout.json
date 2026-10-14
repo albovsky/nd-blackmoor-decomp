@@ -1,0 +1,158 @@
+{
+ "schema": "blackmoor-image-layout/1",
+ "note": "Public structural facts only (addresses, sizes, names) from M0-binary-census-report.md sections 1, 3 and 6 and the M02 packet 'Facts the skeleton must reproduce'. No original bytes. Code-region seams fall exactly on function starts in function-index.json but the underlying evidence is only good to a few hundred bytes.",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "file_size": 1511424,
+ "image_base": 4194304,
+ "sections": [
+  {
+   "name": "headers",
+   "rva": 0,
+   "raw_off": 0,
+   "raw_size": 4096,
+   "virt_size": 4096
+  },
+  {
+   "name": ".text",
+   "rva": 4096,
+   "raw_off": 4096,
+   "raw_size": 1216512,
+   "virt_size": 1213018
+  },
+  {
+   "name": ".rdata",
+   "rva": 1220608,
+   "raw_off": 1220608,
+   "raw_size": 53248,
+   "virt_size": 50676
+  },
+  {
+   "name": ".data",
+   "rva": 1273856,
+   "raw_off": 1273856,
+   "raw_size": 208896,
+   "virt_size": 1077564
+  },
+  {
+   "name": ".rsrc",
+   "rva": 2355200,
+   "raw_off": 1482752,
+   "raw_size": 28672,
+   "virt_size": 26336
+  }
+ ],
+ "code_regions": [
+  {
+   "id": "game",
+   "label": "Game code (C++, unoptimized)",
+   "start_va": 4198400,
+   "end_va": 5230320
+  },
+  {
+   "id": "vorbis",
+   "label": "libvorbis and libogg (C, optimized)",
+   "start_va": 5230320,
+   "end_va": 5291856
+  },
+  {
+   "id": "crt_mfc",
+   "label": "Static CRT and MFC 4.2",
+   "start_va": 5291856,
+   "end_va": 5411418
+  }
+ ],
+ "data_pieces": [
+  {
+   "id": "headers",
+   "group": "headers",
+   "label": "PE headers, Rich header, section table",
+   "file_off": 0,
+   "size": 4096
+  },
+  {
+   "id": "text-tail",
+   "group": "padding",
+   "label": ".text file padding after its virtual end",
+   "file_off": 1217114,
+   "size": 3494
+  },
+  {
+   "id": "iat",
+   "group": "rdata",
+   "label": "Import address table",
+   "file_off": 1220608,
+   "size": 1356
+  },
+  {
+   "id": "rdata-a",
+   "group": "rdata",
+   "label": "Read-only data before the import directory",
+   "file_off": 1221964,
+   "size": 41924
+  },
+  {
+   "id": "import-dir",
+   "group": "rdata",
+   "label": "Import directory",
+   "file_off": 1263888,
+   "size": 280
+  },
+  {
+   "id": "rdata-b",
+   "group": "rdata",
+   "label": "Read-only data after the import directory",
+   "file_off": 1264168,
+   "size": 7116
+  },
+  {
+   "id": "rdata-pad",
+   "group": "padding",
+   "label": ".rdata file padding after its virtual end",
+   "file_off": 1271284,
+   "size": 2572
+  },
+  {
+   "id": "data",
+   "group": "data",
+   "label": "Initialised data",
+   "file_off": 1273856,
+   "size": 208896
+  },
+  {
+   "id": "rsrc",
+   "group": "rsrc",
+   "label": "Resources (dialogs, icons, bitmaps, version info)",
+   "file_off": 1482752,
+   "size": 26336
+  },
+  {
+   "id": "rsrc-pad",
+   "group": "padding",
+   "label": ".rsrc file padding after its virtual end",
+   "file_off": 1509088,
+   "size": 2336
+  }
+ ],
+ "data_groups": [
+  {
+   "id": "headers",
+   "label": "Headers"
+  },
+  {
+   "id": "rdata",
+   "label": ".rdata"
+  },
+  {
+   "id": "data",
+   "label": ".data"
+  },
+  {
+   "id": "rsrc",
+   "label": ".rsrc"
+  },
+  {
+   "id": "padding",
+   "label": "File padding"
+  }
+ ]
+}
