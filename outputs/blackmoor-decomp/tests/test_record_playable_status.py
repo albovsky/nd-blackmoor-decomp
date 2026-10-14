@@ -111,7 +111,7 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(P.SCHEMA, "blackmoor-playable-status/1")
         self.assertEqual(P.validate_status(self.public), self.public)
         seeded = RECORD.seed(P.read_json(OUT / "status.json"))
-        self.assertEqual(seeded["reached_scenes"], [f"S{s}" for s in PATH])
+        self.assertEqual(seeded["reached_scenes"], [f"S{s}" for s in [*PATH, 4700]])
         self.assertEqual(seeded["evidence"]["kind"], "seeded_committed_integration")
         self.assertIsNone(seeded["evidence"]["native_sha256"])
 
