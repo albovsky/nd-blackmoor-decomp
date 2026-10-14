@@ -475,6 +475,13 @@ class AuditorMutants(unittest.TestCase):
         )
         self.rejected(report, va, "leaves the repository")
 
+    def test_ebp_offsets_are_audited_even_when_the_header_says_no_frame(self) -> None:
+        reasons, _facts = audit.audit_source(
+            "# FUN_00401000\n# frame:        none\nFUN_00401000:\n    mov edi, edi\n    push ebp\n    {load} mov ebp, esp\n"
+            "    mov eax, dword ptr [ebp - 0x4]\n    ret\n", {}, "FUN_00401000"
+        )
+        self.assertTrue(any("unnamed [ebp" in r for r in reasons), reasons)
+
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
         tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)

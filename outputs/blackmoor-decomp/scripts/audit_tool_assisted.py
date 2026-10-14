@@ -225,7 +225,7 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
     globl_seen = False
     entry_seen = False
     last_code_mnemonic = ""
-    ebp_frame = header.get("frame") == "ebp"
+    ebp_frame = header.get("frame") == "ebp" or bool(re.search(r"^\s+(?:\{\w+\} )*mov ebp, esp\b", text, re.M))
     placeholder_frame_names: set[str] = set()
     def check_ebp(code: str, number: int) -> None:
         if not ebp_frame:

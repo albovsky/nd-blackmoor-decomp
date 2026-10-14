@@ -945,10 +945,13 @@ def render_instruction(image: Image, layout: Layout, ins: Insn, tables: dict[int
 
 
 def has_standard_frame(layout: Layout) -> bool:
-    if len(layout.insns) < 2:
-        return False
-    first, second = layout.insns[0], layout.insns[1]
-    return first.mnem == "push" and first.ops == "ebp" and second.mnem == "mov" and second.ops == "ebp, esp"
+    """``push ebp; mov ebp, esp`` within the first few instructions (a hot-patch prefix may precede it)."""
+
+    head = layout.insns[:5]
+    for first, second in zip(head, head[1:]):
+        if first.mnem == "push" and first.ops == "ebp" and second.mnem == "mov" and second.ops == "ebp, esp":
+            return True
+    return False
 
 
 def render_function(image: Image, layout: Layout, label_names: Optional[dict[int, str]] = None) -> Rendered:
