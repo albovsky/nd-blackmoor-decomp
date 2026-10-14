@@ -54,3 +54,22 @@ Provide build/test/oracle commands, exact corpus counts and per-branch compariso
 The native API must decode the complete installed AVF corpus and support reproducible sequential/reset use. Return S03-1.handoff.json, S03-1.validation.json, a concise recovery report and a read-only shared-runtime integration proposal. Report any missing branch as open; do not close parent S03 here. S03-2 will recover playback timing, commands, worker/queue lifetime and engine integration after the decoder handoff.
 
 The Mac remains locked. Use original-x86 oracles and automated offscreen checks; GUI and hardware audio wait for explicit unlock. This slice does not claim whole-file x86 matching or complete native gameplay.
+
+## Status (Claude, 2026-10-13)
+
+The decoder is implemented and committed on `codex/blackmoor-s03-1-avf-decoder`:
+- `fdc3ab6`: initial implementation
+- `3182f57`: fixes for the independent review findings
+- repair commit (see the handoff): root review P2, declared size versus conversion footprint. A single/double key frame whose declared `unpacked_bytes` exceeds the frame is valid when conversion is disabled (original `0x4c7314` returns at once); with conversion it is rejected, before any write, only when `(unpacked_bytes >> 1) * 2` exceeds the frame. The LZSS output bound stays the frame size. New native tests and original-oracle fixtures `declared_over_frame_no_conversion` (rgb555 only) and `odd_declared_conversion_extent` (both formats).
+
+The receipt is `work/analysis/slices/S03-1.handoff.json`. It holds the hashes, exact comparison counts, mutation results and divergences.
+
+**Installed corpus.** 32 files and 245 records, every one a type-0 key frame. There are no metadata issues and no trailing bytes.
+
+**Synthetic fixtures** cover the record types and command branches the corpus never uses (types 1/2, empty records, every LZSS termination point).
+
+**Original comparison.** The unmodified original readers run on every installed frame and on every fixture, in both 5/5/5 and 5/6/5 display formats. Unexplained valid-input mismatches: 0. Six planted bugs (in decompression, delta and conversion rules) are each detected.
+
+**ASan/UBSan.** Clean on 32 installed and 36 malformed inputs.
+
+**Still open:** root re-review of the repair commit. Playback timing and handoff belong to S03-2; the decoder does not consume header +0x1c (the per-frame delay). Parent S03 stays open.

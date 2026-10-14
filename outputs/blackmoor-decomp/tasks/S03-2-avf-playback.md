@@ -51,3 +51,27 @@ Follow actual callers and writes to object/global state, including the candidate
 Write `S03-2.handoff.json`, `S03-2.validation.json`, concise recovery evidence and a read-only integration proposal specifying Boot's load/tick/present/stop/destruction calls. This child is accepted only when timing, ownership and completion have original-backed comparisons plus real decoder-backed corpus playback. A timer demo or predecoded slideshow does not satisfy those checks.
 
 The Mac remains locked: use original-x86 oracles and automated offscreen checks. GUI/hardware checks wait for explicit unlock. Live ACT movie integration, all-game playthroughs, complete x86 matching and native packaging remain separate open work.
+
+## Status (Claude, 2026-10-13)
+
+The playback kernel is implemented and committed on `codex/blackmoor-s03-2-avf-playback`:
+- `7b750e2`: reviewed snapshot
+- `909daf0`: fixes for the review findings
+- API amendments (root decision): the header and reports now state the recovered publication order (worker acquire, decode, release, R = 1; stop acquire, H = 2, kill, release, H = 0) and that sequential fixtures prove only the tested orderings, not real-thread synchronisation; stop is a caller-owned quiescence boundary; secondary slot ownership, generation scope, typed events with provider status and GetTickCount semantics are documented; pause/seek/repeat are reported as not located (unverified/unsupported). One new unit test covers secondary slot ownership with variable chunk sizes. No behaviour changed.
+
+It depends on S03-1, merged unmodified at the repaired decoder commit (declared key size versus conversion footprint). The receipt is `work/analysis/slices/S03-2.handoff.json`.
+
+**Original-trace comparison.** 369 cases (209 synthetic and 160 installed-file playbacks across the four controllers), 13,501 compared steps, 0 mismatches. The oracle runs the unmodified original start, worker, tick, render and stop routines.
+
+**Decoder-backed playback.** 168 playbacks (32 installed files × 5 controller configurations, plus synthetic delta and full files). Presented pixels match the pinned decoder for every frame (0 mismatches), and every playback is in order.
+
+**Mutation check.** All 10 planted timing and handshake bugs are detected.
+
+**ASan/UBSan.** Clean over about 621k randomized operations.
+
+**Still open:**
+- Boot integration: threading, view gate, surfaces and controller completion.
+- Bink variants.
+- Root review of the final commit.
+
+Parent S03 stays open.
