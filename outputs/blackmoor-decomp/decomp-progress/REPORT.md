@@ -59,6 +59,8 @@ Matched means byte-exact against the original through reviewed reconstructed ass
 - Data progress is 0 until the composer reproduces data ranges; no data evidence exists in the repository today.
 - Referenced (not yet reconstructed) ranges are reported as not done, never as matched.
 
+Manifests re-verified against the original in this run with `scripts/verify_matches.py` (sha256 `cdb33b15cf2aa2bb1d9586b77ad28e112308b4a3619280e8f9dfc26816cda116`): matches.json, matches_s08_2_x86.json, matches_s08_3_x86.json, matches_s08_4_x86.json, all exact.
+
 Cross-check against `status.json` unique_matched_bytes (398): agrees.
 
 ## Sources

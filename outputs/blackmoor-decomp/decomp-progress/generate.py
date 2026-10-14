@@ -454,6 +454,13 @@ def write_report(model, path: Path):
               "- Data progress is 0 until the composer reproduces data ranges; no data evidence "
               "exists in the repository today.",
               "- Referenced (not yet reconstructed) ranges are reported as not done, never as matched."]
+    ver = ev.get("verification", {})
+    if ver.get("run"):
+        lines += ["", "Manifests re-verified against the original in this run with "
+                  f"`scripts/verify_matches.py` (sha256 `{ver['verifier_sha256']}`): "
+                  f"{', '.join(sorted(ver['manifests']))}, all exact."]
+    else:
+        lines += ["", f"Manifests were **not** re-verified in this run ({ver.get('reason', 'not run')})."]
     ck = ev.get("crosscheck")
     if ck:
         lines += ["", f"Cross-check against `status.json` unique_matched_bytes "
