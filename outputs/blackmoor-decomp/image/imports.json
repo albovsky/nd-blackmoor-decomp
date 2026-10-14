@@ -1,0 +1,1773 @@
+{
+ "schema": 1,
+ "note": "Import directory and IAT of GAME.EXE: DLL order, symbol order, hints, name strings and RVAs. Unbound (zero time/date stamp); every thunk points at its hint/name entry or carries an ordinal.",
+ "directory_rva": "0x134910",
+ "directory_size": "0x118",
+ "iat_rva": "0x12a000",
+ "iat_size": "0x54c",
+ "region_rva": "0x134910",
+ "region_end_rva": "0x1365f4",
+ "dlls": [
+  {
+   "name": "DDRAW.dll",
+   "ilt_rva": "0x134a5c",
+   "iat_rva": "0x12a034",
+   "name_rva": "0x134fa4",
+   "symbols": [
+    {
+     "name": "DirectDrawEnumerateExA",
+     "hint": 11,
+     "hint_name_rva": "0x134f8a"
+    },
+    {
+     "name": "DirectDrawCreateEx",
+     "hint": 9,
+     "hint_name_rva": "0x134f74"
+    }
+   ]
+  },
+  {
+   "name": "DSOUND.dll",
+   "ilt_rva": "0x134a68",
+   "iat_rva": "0x12a040",
+   "name_rva": "0x134fae",
+   "symbols": [
+    {
+     "ordinal": 1,
+     "name": "#1"
+    },
+    {
+     "ordinal": 2,
+     "name": "#2"
+    }
+   ]
+  },
+  {
+   "name": "VERSION.dll",
+   "ilt_rva": "0x134f0c",
+   "iat_rva": "0x12a4e4",
+   "name_rva": "0x134ffc",
+   "symbols": [
+    {
+     "name": "VerQueryValueA",
+     "hint": 10,
+     "hint_name_rva": "0x134fba"
+    },
+    {
+     "name": "GetFileVersionInfoA",
+     "hint": 0,
+     "hint_name_rva": "0x134fcc"
+    },
+    {
+     "name": "GetFileVersionInfoSizeA",
+     "hint": 1,
+     "hint_name_rva": "0x134fe2"
+    }
+   ]
+  },
+  {
+   "name": "binkw32.dll",
+   "ilt_rva": "0x134f2c",
+   "iat_rva": "0x12a504",
+   "name_rva": "0x135108",
+   "symbols": [
+    {
+     "name": "_BinkClose@4",
+     "hint": 15,
+     "hint_name_rva": "0x135008"
+    },
+    {
+     "name": "_BinkGetSummary@8",
+     "hint": 26,
+     "hint_name_rva": "0x135018"
+    },
+    {
+     "name": "_BinkOpenDirectSound@4",
+     "hint": 36,
+     "hint_name_rva": "0x1350ee"
+    },
+    {
+     "name": "_BinkSetSoundSystem@8",
+     "hint": 52,
+     "hint_name_rva": "0x1350d6"
+    },
+    {
+     "name": "_BinkGetError@0",
+     "hint": 22,
+     "hint_name_rva": "0x1350c4"
+    },
+    {
+     "name": "_BinkOpen@8",
+     "hint": 35,
+     "hint_name_rva": "0x1350b6"
+    },
+    {
+     "name": "_BinkDDSurfaceType@4",
+     "hint": 19,
+     "hint_name_rva": "0x13509e"
+    },
+    {
+     "name": "_BinkNextFrame@4",
+     "hint": 34,
+     "hint_name_rva": "0x13508a"
+    },
+    {
+     "name": "_BinkCopyToBuffer@28",
+     "hint": 17,
+     "hint_name_rva": "0x135072"
+    },
+    {
+     "name": "_BinkDoFrame@4",
+     "hint": 21,
+     "hint_name_rva": "0x135060"
+    },
+    {
+     "name": "_BinkWait@4",
+     "hint": 56,
+     "hint_name_rva": "0x135052"
+    },
+    {
+     "name": "_BinkGoto@12",
+     "hint": 31,
+     "hint_name_rva": "0x135042"
+    },
+    {
+     "name": "_BinkGetRealtime@12",
+     "hint": 24,
+     "hint_name_rva": "0x13502c"
+    }
+   ]
+  },
+  {
+   "name": "SHLWAPI.dll",
+   "ilt_rva": "0x134d08",
+   "iat_rva": "0x12a2e0",
+   "name_rva": "0x135122",
+   "symbols": [
+    {
+     "name": "PathAppendA",
+     "hint": 11,
+     "hint_name_rva": "0x135114"
+    }
+   ]
+  },
+  {
+   "name": "KERNEL32.dll",
+   "ilt_rva": "0x134adc",
+   "iat_rva": "0x12a0b4",
+   "name_rva": "0x135a6c",
+   "symbols": [
+    {
+     "name": "InitializeCriticalSection",
+     "hint": 426,
+     "hint_name_rva": "0x135596"
+    },
+    {
+     "name": "TlsAlloc",
+     "hint": 674,
+     "hint_name_rva": "0x1355b2"
+    },
+    {
+     "name": "DeleteCriticalSection",
+     "hint": 85,
+     "hint_name_rva": "0x1355be"
+    },
+    {
+     "name": "GlobalHandle",
+     "hint": 395,
+     "hint_name_rva": "0x1355d6"
+    },
+    {
+     "name": "TlsFree",
+     "hint": 675,
+     "hint_name_rva": "0x1355e6"
+    },
+    {
+     "name": "LeaveCriticalSection",
+     "hint": 449,
+     "hint_name_rva": "0x1355f0"
+    },
+    {
+     "name": "GlobalReAlloc",
+     "hint": 399,
+     "hint_name_rva": "0x135608"
+    },
+    {
+     "name": "EnterCriticalSection",
+     "hint": 102,
+     "hint_name_rva": "0x135618"
+    },
+    {
+     "name": "TlsSetValue",
+     "hint": 677,
+     "hint_name_rva": "0x135630"
+    },
+    {
+     "name": "LocalReAlloc",
+     "hint": 463,
+     "hint_name_rva": "0x13563e"
+    },
+    {
+     "name": "TlsGetValue",
+     "hint": 676,
+     "hint_name_rva": "0x13564e"
+    },
+    {
+     "name": "GlobalFlags",
+     "hint": 391,
+     "hint_name_rva": "0x13565c"
+    },
+    {
+     "name": "GetProcessVersion",
+     "hint": 325,
+     "hint_name_rva": "0x13566a"
+    },
+    {
+     "name": "GetCPInfo",
+     "hint": 191,
+     "hint_name_rva": "0x13567e"
+    },
+    {
+     "name": "GetOEMCP",
+     "hint": 305,
+     "hint_name_rva": "0x13568a"
+    },
+    {
+     "name": "GetCurrentDirectoryA",
+     "hint": 245,
+     "hint_name_rva": "0x135696"
+    },
+    {
+     "name": "SetErrorMode",
+     "hint": 612,
+     "hint_name_rva": "0x1356ae"
+    },
+    {
+     "name": "GetCurrentProcess",
+     "hint": 247,
+     "hint_name_rva": "0x1356be"
+    },
+    {
+     "name": "ReadFile",
+     "hint": 536,
+     "hint_name_rva": "0x1356d2"
+    },
+    {
+     "name": "WriteFile",
+     "hint": 735,
+     "hint_name_rva": "0x1356de"
+    },
+    {
+     "name": "SetFilePointer",
+     "hint": 618,
+     "hint_name_rva": "0x1356ea"
+    },
+    {
+     "name": "FlushFileBuffers",
+     "hint": 170,
+     "hint_name_rva": "0x1356fc"
+    },
+    {
+     "name": "SetEndOfFile",
+     "hint": 609,
+     "hint_name_rva": "0x135710"
+    },
+    {
+     "name": "FindClose",
+     "hint": 144,
+     "hint_name_rva": "0x135720"
+    },
+    {
+     "name": "FindFirstFileA",
+     "hint": 148,
+     "hint_name_rva": "0x13572c"
+    },
+    {
+     "name": "GetVolumeInformationA",
+     "hint": 375,
+     "hint_name_rva": "0x13573e"
+    },
+    {
+     "name": "GetFullPathNameA",
+     "hint": 278,
+     "hint_name_rva": "0x135756"
+    },
+    {
+     "name": "GetStringTypeExA",
+     "hint": 340,
+     "hint_name_rva": "0x13576a"
+    },
+    {
+     "name": "GetThreadLocale",
+     "hint": 360,
+     "hint_name_rva": "0x13577e"
+    },
+    {
+     "name": "FileTimeToSystemTime",
+     "hint": 138,
+     "hint_name_rva": "0x135790"
+    },
+    {
+     "name": "RtlUnwind",
+     "hint": 559,
+     "hint_name_rva": "0x1357a8"
+    },
+    {
+     "name": "ExitProcess",
+     "hint": 125,
+     "hint_name_rva": "0x1357b4"
+    },
+    {
+     "name": "LocalAlloc",
+     "hint": 456,
+     "hint_name_rva": "0x135588"
+    },
+    {
+     "name": "GetTimeZoneInformation",
+     "hint": 368,
+     "hint_name_rva": "0x1357d6"
+    },
+    {
+     "name": "GetLocalTime",
+     "hint": 283,
+     "hint_name_rva": "0x1357f0"
+    },
+    {
+     "name": "FindNextFileA",
+     "hint": 157,
+     "hint_name_rva": "0x135800"
+    },
+    {
+     "name": "GetStartupInfoA",
+     "hint": 336,
+     "hint_name_rva": "0x135810"
+    },
+    {
+     "name": "GetCommandLineA",
+     "hint": 202,
+     "hint_name_rva": "0x135822"
+    },
+    {
+     "name": "HeapFree",
+     "hint": 415,
+     "hint_name_rva": "0x135834"
+    },
+    {
+     "name": "HeapAlloc",
+     "hint": 409,
+     "hint_name_rva": "0x135840"
+    },
+    {
+     "name": "HeapReAlloc",
+     "hint": 418,
+     "hint_name_rva": "0x13584c"
+    },
+    {
+     "name": "RaiseException",
+     "hint": 523,
+     "hint_name_rva": "0x13585a"
+    },
+    {
+     "name": "CreateThread",
+     "hint": 74,
+     "hint_name_rva": "0x13586c"
+    },
+    {
+     "name": "ExitThread",
+     "hint": 126,
+     "hint_name_rva": "0x13587c"
+    },
+    {
+     "name": "HeapSize",
+     "hint": 419,
+     "hint_name_rva": "0x13588a"
+    },
+    {
+     "name": "GetACP",
+     "hint": 185,
+     "hint_name_rva": "0x135896"
+    },
+    {
+     "name": "LCMapStringA",
+     "hint": 447,
+     "hint_name_rva": "0x1358a0"
+    },
+    {
+     "name": "LCMapStringW",
+     "hint": 448,
+     "hint_name_rva": "0x1358b0"
+    },
+    {
+     "name": "SetHandleCount",
+     "hint": 621,
+     "hint_name_rva": "0x1358c0"
+    },
+    {
+     "name": "GetStdHandle",
+     "hint": 338,
+     "hint_name_rva": "0x1358d2"
+    },
+    {
+     "name": "GetFileType",
+     "hint": 277,
+     "hint_name_rva": "0x1358e2"
+    },
+    {
+     "name": "UnhandledExceptionFilter",
+     "hint": 685,
+     "hint_name_rva": "0x1358f0"
+    },
+    {
+     "name": "FreeEnvironmentStringsA",
+     "hint": 178,
+     "hint_name_rva": "0x13590c"
+    },
+    {
+     "name": "FreeEnvironmentStringsW",
+     "hint": 179,
+     "hint_name_rva": "0x135926"
+    },
+    {
+     "name": "GetEnvironmentStrings",
+     "hint": 262,
+     "hint_name_rva": "0x135940"
+    },
+    {
+     "name": "GetEnvironmentStringsW",
+     "hint": 264,
+     "hint_name_rva": "0x135958"
+    },
+    {
+     "name": "HeapDestroy",
+     "hint": 413,
+     "hint_name_rva": "0x135972"
+    },
+    {
+     "name": "HeapCreate",
+     "hint": 411,
+     "hint_name_rva": "0x135980"
+    },
+    {
+     "name": "VirtualFree",
+     "hint": 703,
+     "hint_name_rva": "0x13598e"
+    },
+    {
+     "name": "VirtualAlloc",
+     "hint": 699,
+     "hint_name_rva": "0x13599c"
+    },
+    {
+     "name": "IsBadWritePtr",
+     "hint": 440,
+     "hint_name_rva": "0x1359ac"
+    },
+    {
+     "name": "SetUnhandledExceptionFilter",
+     "hint": 651,
+     "hint_name_rva": "0x1359bc"
+    },
+    {
+     "name": "GetStringTypeA",
+     "hint": 339,
+     "hint_name_rva": "0x1359da"
+    },
+    {
+     "name": "GetStringTypeW",
+     "hint": 342,
+     "hint_name_rva": "0x1359ec"
+    },
+    {
+     "name": "IsBadReadPtr",
+     "hint": 437,
+     "hint_name_rva": "0x1359fe"
+    },
+    {
+     "name": "IsBadCodePtr",
+     "hint": 434,
+     "hint_name_rva": "0x135a0e"
+    },
+    {
+     "name": "SetStdHandle",
+     "hint": 636,
+     "hint_name_rva": "0x135a1e"
+    },
+    {
+     "name": "CompareStringA",
+     "hint": 33,
+     "hint_name_rva": "0x135a2e"
+    },
+    {
+     "name": "CompareStringW",
+     "hint": 34,
+     "hint_name_rva": "0x135a40"
+    },
+    {
+     "name": "SetEnvironmentVariableA",
+     "hint": 610,
+     "hint_name_rva": "0x135a52"
+    },
+    {
+     "name": "MulDiv",
+     "hint": 483,
+     "hint_name_rva": "0x13557e"
+    },
+    {
+     "name": "SetLastError",
+     "hint": 625,
+     "hint_name_rva": "0x13556e"
+    },
+    {
+     "name": "lstrcpynA",
+     "hint": 773,
+     "hint_name_rva": "0x135562"
+    },
+    {
+     "name": "LocalFree",
+     "hint": 460,
+     "hint_name_rva": "0x135556"
+    },
+    {
+     "name": "GlobalAlloc",
+     "hint": 385,
+     "hint_name_rva": "0x135548"
+    },
+    {
+     "name": "GetCurrentThread",
+     "hint": 249,
+     "hint_name_rva": "0x135534"
+    },
+    {
+     "name": "lstrcmpA",
+     "hint": 764,
+     "hint_name_rva": "0x135528"
+    },
+    {
+     "name": "SetEvent",
+     "hint": 613,
+     "hint_name_rva": "0x13551c"
+    },
+    {
+     "name": "WaitForSingleObject",
+     "hint": 718,
+     "hint_name_rva": "0x135506"
+    },
+    {
+     "name": "MultiByteToWideChar",
+     "hint": 484,
+     "hint_name_rva": "0x1354f0"
+    },
+    {
+     "name": "WideCharToMultiByte",
+     "hint": 722,
+     "hint_name_rva": "0x1354da"
+    },
+    {
+     "name": "lstrlenA",
+     "hint": 776,
+     "hint_name_rva": "0x1354ce"
+    },
+    {
+     "name": "InterlockedDecrement",
+     "hint": 429,
+     "hint_name_rva": "0x1354b6"
+    },
+    {
+     "name": "InterlockedIncrement",
+     "hint": 432,
+     "hint_name_rva": "0x13549e"
+    },
+    {
+     "name": "GlobalLock",
+     "hint": 396,
+     "hint_name_rva": "0x135490"
+    },
+    {
+     "name": "GlobalUnlock",
+     "hint": 403,
+     "hint_name_rva": "0x135480"
+    },
+    {
+     "name": "GlobalFree",
+     "hint": 392,
+     "hint_name_rva": "0x135472"
+    },
+    {
+     "name": "LoadLibraryA",
+     "hint": 450,
+     "hint_name_rva": "0x135462"
+    },
+    {
+     "name": "FreeLibrary",
+     "hint": 180,
+     "hint_name_rva": "0x135454"
+    },
+    {
+     "name": "FindResourceA",
+     "hint": 163,
+     "hint_name_rva": "0x135444"
+    },
+    {
+     "name": "LoadResource",
+     "hint": 455,
+     "hint_name_rva": "0x135434"
+    },
+    {
+     "name": "LockResource",
+     "hint": 469,
+     "hint_name_rva": "0x135424"
+    },
+    {
+     "name": "GetVersion",
+     "hint": 372,
+     "hint_name_rva": "0x135416"
+    },
+    {
+     "name": "lstrcatA",
+     "hint": 761,
+     "hint_name_rva": "0x13540a"
+    },
+    {
+     "name": "GlobalGetAtomNameA",
+     "hint": 393,
+     "hint_name_rva": "0x1353f4"
+    },
+    {
+     "name": "lstrcmpiA",
+     "hint": 767,
+     "hint_name_rva": "0x1353e8"
+    },
+    {
+     "name": "GlobalAddAtomA",
+     "hint": 383,
+     "hint_name_rva": "0x1353d6"
+    },
+    {
+     "name": "GlobalFindAtomA",
+     "hint": 388,
+     "hint_name_rva": "0x1353c4"
+    },
+    {
+     "name": "GetTickCount",
+     "hint": 365,
+     "hint_name_rva": "0x13512e"
+    },
+    {
+     "name": "GlobalDeleteAtom",
+     "hint": 387,
+     "hint_name_rva": "0x1353b0"
+    },
+    {
+     "name": "lstrcpyA",
+     "hint": 770,
+     "hint_name_rva": "0x1353a4"
+    },
+    {
+     "name": "GetModuleHandleA",
+     "hint": 294,
+     "hint_name_rva": "0x135390"
+    },
+    {
+     "name": "GetProcAddress",
+     "hint": 318,
+     "hint_name_rva": "0x13537e"
+    },
+    {
+     "name": "WaitForMultipleObjects",
+     "hint": 716,
+     "hint_name_rva": "0x135364"
+    },
+    {
+     "name": "CreateEventA",
+     "hint": 49,
+     "hint_name_rva": "0x135354"
+    },
+    {
+     "name": "GetFileTime",
+     "hint": 276,
+     "hint_name_rva": "0x135346"
+    },
+    {
+     "name": "FileTimeToLocalFileTime",
+     "hint": 137,
+     "hint_name_rva": "0x13532c"
+    },
+    {
+     "name": "FileTimeToDosDateTime",
+     "hint": 136,
+     "hint_name_rva": "0x135314"
+    },
+    {
+     "name": "GetComputerNameA",
+     "hint": 206,
+     "hint_name_rva": "0x135300"
+    },
+    {
+     "name": "GetSystemInfo",
+     "hint": 347,
+     "hint_name_rva": "0x1352f0"
+    },
+    {
+     "name": "WritePrivateProfileStringA",
+     "hint": 741,
+     "hint_name_rva": "0x1352d2"
+    },
+    {
+     "name": "GetSystemTime",
+     "hint": 349,
+     "hint_name_rva": "0x1352c2"
+    },
+    {
+     "name": "GetLogicalDrives",
+     "hint": 288,
+     "hint_name_rva": "0x1352ae"
+    },
+    {
+     "name": "GetThreadPriority",
+     "hint": 361,
+     "hint_name_rva": "0x13529a"
+    },
+    {
+     "name": "SuspendThread",
+     "hint": 664,
+     "hint_name_rva": "0x13528a"
+    },
+    {
+     "name": "GetExitCodeThread",
+     "hint": 268,
+     "hint_name_rva": "0x135276"
+    },
+    {
+     "name": "ResumeThread",
+     "hint": 556,
+     "hint_name_rva": "0x135266"
+    },
+    {
+     "name": "GlobalMemoryStatus",
+     "hint": 397,
+     "hint_name_rva": "0x135250"
+    },
+    {
+     "name": "GetModuleFileNameA",
+     "hint": 292,
+     "hint_name_rva": "0x13523a"
+    },
+    {
+     "name": "CreateDirectoryA",
+     "hint": 45,
+     "hint_name_rva": "0x135226"
+    },
+    {
+     "name": "CopyFileA",
+     "hint": 40,
+     "hint_name_rva": "0x13521a"
+    },
+    {
+     "name": "GetPrivateProfileStringA",
+     "hint": 314,
+     "hint_name_rva": "0x1351fe"
+    },
+    {
+     "name": "GetPrivateProfileIntA",
+     "hint": 308,
+     "hint_name_rva": "0x1351e6"
+    },
+    {
+     "name": "GetCurrentThreadId",
+     "hint": 250,
+     "hint_name_rva": "0x1351d0"
+    },
+    {
+     "name": "GetLastError",
+     "hint": 282,
+     "hint_name_rva": "0x1351c0"
+    },
+    {
+     "name": "FormatMessageA",
+     "hint": 175,
+     "hint_name_rva": "0x1351ae"
+    },
+    {
+     "name": "SetThreadPriority",
+     "hint": 647,
+     "hint_name_rva": "0x13519a"
+    },
+    {
+     "name": "Sleep",
+     "hint": 662,
+     "hint_name_rva": "0x135192"
+    },
+    {
+     "name": "UnmapViewOfFile",
+     "hint": 688,
+     "hint_name_rva": "0x135180"
+    },
+    {
+     "name": "CloseHandle",
+     "hint": 27,
+     "hint_name_rva": "0x135172"
+    },
+    {
+     "name": "CreateFileA",
+     "hint": 52,
+     "hint_name_rva": "0x135164"
+    },
+    {
+     "name": "CreateFileMappingA",
+     "hint": 53,
+     "hint_name_rva": "0x13514e"
+    },
+    {
+     "name": "MapViewOfFile",
+     "hint": 470,
+     "hint_name_rva": "0x13513e"
+    },
+    {
+     "name": "TerminateProcess",
+     "hint": 670,
+     "hint_name_rva": "0x1357c2"
+    }
+   ]
+  },
+  {
+   "name": "USER32.dll",
+   "ilt_rva": "0x134d10",
+   "iat_rva": "0x12a2e8",
+   "name_rva": "0x136298",
+   "symbols": [
+    {
+     "name": "IsWindowVisible",
+     "hint": 402,
+     "hint_name_rva": "0x135e9c"
+    },
+    {
+     "name": "EndDeferWindowPos",
+     "hint": 184,
+     "hint_name_rva": "0x135eae"
+    },
+    {
+     "name": "BeginDeferWindowPos",
+     "hint": 11,
+     "hint_name_rva": "0x135ec2"
+    },
+    {
+     "name": "DeferWindowPos",
+     "hint": 134,
+     "hint_name_rva": "0x135ed8"
+    },
+    {
+     "name": "AdjustWindowRectEx",
+     "hint": 2,
+     "hint_name_rva": "0x135eea"
+    },
+    {
+     "name": "SetFocus",
+     "hint": 559,
+     "hint_name_rva": "0x135f00"
+    },
+    {
+     "name": "IsWindow",
+     "hint": 399,
+     "hint_name_rva": "0x135f0c"
+    },
+    {
+     "name": "SetActiveWindow",
+     "hint": 540,
+     "hint_name_rva": "0x135f18"
+    },
+    {
+     "name": "GetFocus",
+     "hint": 263,
+     "hint_name_rva": "0x135f2a"
+    },
+    {
+     "name": "DispatchMessageA",
+     "hint": 149,
+     "hint_name_rva": "0x135f36"
+    },
+    {
+     "name": "GetSysColor",
+     "hint": 323,
+     "hint_name_rva": "0x135f4a"
+    },
+    {
+     "name": "MapWindowPoints",
+     "hint": 441,
+     "hint_name_rva": "0x135f58"
+    },
+    {
+     "name": "SendDlgItemMessageA",
+     "hint": 527,
+     "hint_name_rva": "0x135f6a"
+    },
+    {
+     "name": "PostMessageA",
+     "hint": 478,
+     "hint_name_rva": "0x135f80"
+    },
+    {
+     "name": "SetDlgItemTextA",
+     "hint": 556,
+     "hint_name_rva": "0x135f90"
+    },
+    {
+     "name": "IsDialogMessageA",
+     "hint": 392,
+     "hint_name_rva": "0x135fa2"
+    },
+    {
+     "name": "SetWindowTextA",
+     "hint": 606,
+     "hint_name_rva": "0x135fb6"
+    },
+    {
+     "name": "ShowWindow",
+     "hint": 618,
+     "hint_name_rva": "0x135fc8"
+    },
+    {
+     "name": "IsWindowEnabled",
+     "hint": 400,
+     "hint_name_rva": "0x135fd6"
+    },
+    {
+     "name": "GetNextDlgTabItem",
+     "hint": 307,
+     "hint_name_rva": "0x135fe8"
+    },
+    {
+     "name": "EnableMenuItem",
+     "hint": 181,
+     "hint_name_rva": "0x135ffc"
+    },
+    {
+     "name": "CheckMenuItem",
+     "hint": 52,
+     "hint_name_rva": "0x13600e"
+    },
+    {
+     "name": "SetMenuItemBitmaps",
+     "hint": 569,
+     "hint_name_rva": "0x13601e"
+    },
+    {
+     "name": "ModifyMenuA",
+     "hint": 452,
+     "hint_name_rva": "0x136034"
+    },
+    {
+     "name": "GetMenuState",
+     "hint": 295,
+     "hint_name_rva": "0x136042"
+    },
+    {
+     "name": "LoadBitmapA",
+     "hint": 408,
+     "hint_name_rva": "0x136052"
+    },
+    {
+     "name": "GetMenuCheckMarkDimensions",
+     "hint": 286,
+     "hint_name_rva": "0x136060"
+    },
+    {
+     "name": "GetActiveWindow",
+     "hint": 221,
+     "hint_name_rva": "0x13607e"
+    },
+    {
+     "name": "MapDialogRect",
+     "hint": 436,
+     "hint_name_rva": "0x136090"
+    },
+    {
+     "name": "CreateDialogIndirectParamA",
+     "hint": 76,
+     "hint_name_rva": "0x1360a0"
+    },
+    {
+     "name": "EndDialog",
+     "hint": 185,
+     "hint_name_rva": "0x1360be"
+    },
+    {
+     "name": "ValidateRect",
+     "hint": 666,
+     "hint_name_rva": "0x1360ca"
+    },
+    {
+     "name": "TranslateMessage",
+     "hint": 642,
+     "hint_name_rva": "0x1360da"
+    },
+    {
+     "name": "GetMessageA",
+     "hint": 298,
+     "hint_name_rva": "0x1360ee"
+    },
+    {
+     "name": "ShowOwnedPopups",
+     "hint": 615,
+     "hint_name_rva": "0x1360fc"
+    },
+    {
+     "name": "SetRectEmpty",
+     "hint": 581,
+     "hint_name_rva": "0x13610e"
+    },
+    {
+     "name": "LoadAcceleratorsA",
+     "hint": 406,
+     "hint_name_rva": "0x13611e"
+    },
+    {
+     "name": "TranslateAcceleratorA",
+     "hint": 639,
+     "hint_name_rva": "0x136132"
+    },
+    {
+     "name": "ReleaseCapture",
+     "hint": 514,
+     "hint_name_rva": "0x13614a"
+    },
+    {
+     "name": "GetDesktopWindow",
+     "hint": 255,
+     "hint_name_rva": "0x13615c"
+    },
+    {
+     "name": "DestroyMenu",
+     "hint": 141,
+     "hint_name_rva": "0x136170"
+    },
+    {
+     "name": "LoadMenuA",
+     "hint": 422,
+     "hint_name_rva": "0x13617e"
+    },
+    {
+     "name": "SetMenu",
+     "hint": 565,
+     "hint_name_rva": "0x13618a"
+    },
+    {
+     "name": "ReuseDDElParam",
+     "hint": 521,
+     "hint_name_rva": "0x136194"
+    },
+    {
+     "name": "UnpackDDElParam",
+     "hint": 650,
+     "hint_name_rva": "0x1361a6"
+    },
+    {
+     "name": "InvalidateRect",
+     "hint": 378,
+     "hint_name_rva": "0x1361b8"
+    },
+    {
+     "name": "BringWindowToTop",
+     "hint": 14,
+     "hint_name_rva": "0x1361ca"
+    },
+    {
+     "name": "GetDC",
+     "hint": 253,
+     "hint_name_rva": "0x1361de"
+    },
+    {
+     "name": "ReleaseDC",
+     "hint": 515,
+     "hint_name_rva": "0x1361e6"
+    },
+    {
+     "name": "TabbedTextOutA",
+     "hint": 627,
+     "hint_name_rva": "0x1361f2"
+    },
+    {
+     "name": "DrawTextA",
+     "hint": 175,
+     "hint_name_rva": "0x136204"
+    },
+    {
+     "name": "GrayStringA",
+     "hint": 356,
+     "hint_name_rva": "0x136210"
+    },
+    {
+     "name": "GetClassNameA",
+     "hint": 237,
+     "hint_name_rva": "0x13621e"
+    },
+    {
+     "name": "PtInRect",
+     "hint": 490,
+     "hint_name_rva": "0x13622e"
+    },
+    {
+     "name": "GetSysColorBrush",
+     "hint": 324,
+     "hint_name_rva": "0x13623a"
+    },
+    {
+     "name": "InsertMenuA",
+     "hint": 372,
+     "hint_name_rva": "0x13625c"
+    },
+    {
+     "name": "DeleteMenu",
+     "hint": 135,
+     "hint_name_rva": "0x13626a"
+    },
+    {
+     "name": "GetMenuStringA",
+     "hint": 296,
+     "hint_name_rva": "0x136278"
+    },
+    {
+     "name": "CharUpperA",
+     "hint": 47,
+     "hint_name_rva": "0x13628a"
+    },
+    {
+     "name": "GetTopWindow",
+     "hint": 332,
+     "hint_name_rva": "0x135e8c"
+    },
+    {
+     "name": "MessageBoxA",
+     "hint": 446,
+     "hint_name_rva": "0x135e7e"
+    },
+    {
+     "name": "GetParent",
+     "hint": 309,
+     "hint_name_rva": "0x135e72"
+    },
+    {
+     "name": "GetCapture",
+     "hint": 228,
+     "hint_name_rva": "0x135e64"
+    },
+    {
+     "name": "WinHelpA",
+     "hint": 678,
+     "hint_name_rva": "0x135e58"
+    },
+    {
+     "name": "wsprintfA",
+     "hint": 684,
+     "hint_name_rva": "0x135e4c"
+    },
+    {
+     "name": "GetClassInfoA",
+     "hint": 231,
+     "hint_name_rva": "0x135e3c"
+    },
+    {
+     "name": "RegisterClassA",
+     "hint": 498,
+     "hint_name_rva": "0x135e2a"
+    },
+    {
+     "name": "GetMenu",
+     "hint": 284,
+     "hint_name_rva": "0x135e20"
+    },
+    {
+     "name": "GetMenuItemCount",
+     "hint": 290,
+     "hint_name_rva": "0x135e0c"
+    },
+    {
+     "name": "GetSubMenu",
+     "hint": 322,
+     "hint_name_rva": "0x135dfe"
+    },
+    {
+     "name": "GetMenuItemID",
+     "hint": 291,
+     "hint_name_rva": "0x135dee"
+    },
+    {
+     "name": "GetDlgItem",
+     "hint": 258,
+     "hint_name_rva": "0x135de0"
+    },
+    {
+     "name": "GetWindowTextA",
+     "hint": 350,
+     "hint_name_rva": "0x135dce"
+    },
+    {
+     "name": "GetDlgCtrlID",
+     "hint": 257,
+     "hint_name_rva": "0x135dbe"
+    },
+    {
+     "name": "DefWindowProcA",
+     "hint": 132,
+     "hint_name_rva": "0x135dac"
+    },
+    {
+     "name": "DestroyWindow",
+     "hint": 142,
+     "hint_name_rva": "0x135d9c"
+    },
+    {
+     "name": "CreateWindowExA",
+     "hint": 89,
+     "hint_name_rva": "0x135d8a"
+    },
+    {
+     "name": "SetWindowsHookExA",
+     "hint": 610,
+     "hint_name_rva": "0x135d76"
+    },
+    {
+     "name": "CallNextHookEx",
+     "hint": 21,
+     "hint_name_rva": "0x135d64"
+    },
+    {
+     "name": "GetClassLongA",
+     "hint": 235,
+     "hint_name_rva": "0x135d54"
+    },
+    {
+     "name": "SetPropA",
+     "hint": 578,
+     "hint_name_rva": "0x135d48"
+    },
+    {
+     "name": "UnhookWindowsHookEx",
+     "hint": 646,
+     "hint_name_rva": "0x135d32"
+    },
+    {
+     "name": "GetPropA",
+     "hint": 314,
+     "hint_name_rva": "0x135d26"
+    },
+    {
+     "name": "CallWindowProcA",
+     "hint": 22,
+     "hint_name_rva": "0x135d14"
+    },
+    {
+     "name": "RemovePropA",
+     "hint": 517,
+     "hint_name_rva": "0x135d06"
+    },
+    {
+     "name": "GetMessageTime",
+     "hint": 301,
+     "hint_name_rva": "0x135cf4"
+    },
+    {
+     "name": "GetMessagePos",
+     "hint": 300,
+     "hint_name_rva": "0x135ce4"
+    },
+    {
+     "name": "GetLastActivePopup",
+     "hint": 281,
+     "hint_name_rva": "0x135cce"
+    },
+    {
+     "name": "GetForegroundWindow",
+     "hint": 264,
+     "hint_name_rva": "0x135cb8"
+    },
+    {
+     "name": "SetForegroundWindow",
+     "hint": 560,
+     "hint_name_rva": "0x135ca2"
+    },
+    {
+     "name": "GetWindow",
+     "hint": 338,
+     "hint_name_rva": "0x135c96"
+    },
+    {
+     "name": "GetWindowLongA",
+     "hint": 342,
+     "hint_name_rva": "0x135c84"
+    },
+    {
+     "name": "SetWindowLongA",
+     "hint": 600,
+     "hint_name_rva": "0x135c72"
+    },
+    {
+     "name": "SetWindowPos",
+     "hint": 603,
+     "hint_name_rva": "0x135c62"
+    },
+    {
+     "name": "RegisterWindowMessageA",
+     "hint": 512,
+     "hint_name_rva": "0x135c48"
+    },
+    {
+     "name": "IsIconic",
+     "hint": 396,
+     "hint_name_rva": "0x135c3c"
+    },
+    {
+     "name": "GetWindowPlacement",
+     "hint": 347,
+     "hint_name_rva": "0x135c26"
+    },
+    {
+     "name": "GetWindowRect",
+     "hint": 348,
+     "hint_name_rva": "0x135c16"
+    },
+    {
+     "name": "SetClassLongA",
+     "hint": 544,
+     "hint_name_rva": "0x135c06"
+    },
+    {
+     "name": "SetCursor",
+     "hint": 550,
+     "hint_name_rva": "0x135bfa"
+    },
+    {
+     "name": "ClientToScreen",
+     "hint": 58,
+     "hint_name_rva": "0x135be8"
+    },
+    {
+     "name": "ScreenToClient",
+     "hint": 522,
+     "hint_name_rva": "0x135bd6"
+    },
+    {
+     "name": "ClipCursor",
+     "hint": 59,
+     "hint_name_rva": "0x135bb8"
+    },
+    {
+     "name": "GetCursorPos",
+     "hint": 252,
+     "hint_name_rva": "0x135ba8"
+    },
+    {
+     "name": "SetCursorPos",
+     "hint": 552,
+     "hint_name_rva": "0x135b98"
+    },
+    {
+     "name": "PostQuitMessage",
+     "hint": 480,
+     "hint_name_rva": "0x135b86"
+    },
+    {
+     "name": "MessageBeep",
+     "hint": 445,
+     "hint_name_rva": "0x135b78"
+    },
+    {
+     "name": "FindWindowA",
+     "hint": 213,
+     "hint_name_rva": "0x135b6a"
+    },
+    {
+     "name": "GetSystemMetrics",
+     "hint": 326,
+     "hint_name_rva": "0x135b56"
+    },
+    {
+     "name": "UpdateWindow",
+     "hint": 657,
+     "hint_name_rva": "0x135b46"
+    },
+    {
+     "name": "LoadIconA",
+     "hint": 414,
+     "hint_name_rva": "0x135b3a"
+    },
+    {
+     "name": "LoadCursorA",
+     "hint": 410,
+     "hint_name_rva": "0x135b2c"
+    },
+    {
+     "name": "IsRectEmpty",
+     "hint": 398,
+     "hint_name_rva": "0x135b1e"
+    },
+    {
+     "name": "CopyRect",
+     "hint": 68,
+     "hint_name_rva": "0x135b12"
+    },
+    {
+     "name": "EqualRect",
+     "hint": 209,
+     "hint_name_rva": "0x135b06"
+    },
+    {
+     "name": "GetAsyncKeyState",
+     "hint": 227,
+     "hint_name_rva": "0x135af2"
+    },
+    {
+     "name": "GetKeyState",
+     "hint": 274,
+     "hint_name_rva": "0x135ae4"
+    },
+    {
+     "name": "SystemParametersInfoA",
+     "hint": 625,
+     "hint_name_rva": "0x135acc"
+    },
+    {
+     "name": "PeekMessageA",
+     "hint": 476,
+     "hint_name_rva": "0x135abc"
+    },
+    {
+     "name": "GetKeyboardLayout",
+     "hint": 275,
+     "hint_name_rva": "0x135aa8"
+    },
+    {
+     "name": "SendMessageA",
+     "hint": 532,
+     "hint_name_rva": "0x135a98"
+    },
+    {
+     "name": "ShowCursor",
+     "hint": 614,
+     "hint_name_rva": "0x135a8a"
+    },
+    {
+     "name": "EnableWindow",
+     "hint": 183,
+     "hint_name_rva": "0x135a7a"
+    },
+    {
+     "name": "LoadStringA",
+     "hint": 427,
+     "hint_name_rva": "0x13624e"
+    },
+    {
+     "name": "GetClientRect",
+     "hint": 240,
+     "hint_name_rva": "0x135bc6"
+    },
+    {
+     "name": "UnregisterClassA",
+     "hint": 651,
+     "hint_name_rva": "0x1365e0"
+    }
+   ]
+  },
+  {
+   "name": "GDI32.dll",
+   "ilt_rva": "0x134a74",
+   "iat_rva": "0x12a04c",
+   "name_rva": "0x13642c",
+   "symbols": [
+    {
+     "name": "SetTextColor",
+     "hint": 499,
+     "hint_name_rva": "0x1362c4"
+    },
+    {
+     "name": "SetBkColor",
+     "hint": 461,
+     "hint_name_rva": "0x1362d4"
+    },
+    {
+     "name": "GetObjectA",
+     "hint": 335,
+     "hint_name_rva": "0x1362e2"
+    },
+    {
+     "name": "GetClipBox",
+     "hint": 282,
+     "hint_name_rva": "0x1362b6"
+    },
+    {
+     "name": "CreateBitmap",
+     "hint": 36,
+     "hint_name_rva": "0x1362f0"
+    },
+    {
+     "name": "CreateSolidBrush",
+     "hint": 77,
+     "hint_name_rva": "0x136300"
+    },
+    {
+     "name": "DeleteDC",
+     "hint": 80,
+     "hint_name_rva": "0x136314"
+    },
+    {
+     "name": "SaveDC",
+     "hint": 448,
+     "hint_name_rva": "0x136320"
+    },
+    {
+     "name": "RestoreDC",
+     "hint": 441,
+     "hint_name_rva": "0x13632a"
+    },
+    {
+     "name": "SelectObject",
+     "hint": 455,
+     "hint_name_rva": "0x136336"
+    },
+    {
+     "name": "SetMapMode",
+     "hint": 482,
+     "hint_name_rva": "0x136346"
+    },
+    {
+     "name": "SetViewportOrgEx",
+     "hint": 502,
+     "hint_name_rva": "0x136354"
+    },
+    {
+     "name": "OffsetViewportOrgEx",
+     "hint": 396,
+     "hint_name_rva": "0x136368"
+    },
+    {
+     "name": "SetViewportExtEx",
+     "hint": 501,
+     "hint_name_rva": "0x13637e"
+    },
+    {
+     "name": "ScaleViewportExtEx",
+     "hint": 449,
+     "hint_name_rva": "0x136392"
+    },
+    {
+     "name": "SetWindowExtEx",
+     "hint": 505,
+     "hint_name_rva": "0x1363a8"
+    },
+    {
+     "name": "ScaleWindowExtEx",
+     "hint": 450,
+     "hint_name_rva": "0x1363ba"
+    },
+    {
+     "name": "DeleteObject",
+     "hint": 83,
+     "hint_name_rva": "0x1363ce"
+    },
+    {
+     "name": "GetDeviceCaps",
+     "hint": 293,
+     "hint_name_rva": "0x1363de"
+    },
+    {
+     "name": "PtVisible",
+     "hint": 426,
+     "hint_name_rva": "0x1363ee"
+    },
+    {
+     "name": "RectVisible",
+     "hint": 430,
+     "hint_name_rva": "0x1363fa"
+    },
+    {
+     "name": "TextOutA",
+     "hint": 517,
+     "hint_name_rva": "0x136408"
+    },
+    {
+     "name": "ExtTextOutA",
+     "hint": 158,
+     "hint_name_rva": "0x136414"
+    },
+    {
+     "name": "Escape",
+     "hint": 149,
+     "hint_name_rva": "0x136422"
+    },
+    {
+     "name": "GetStockObject",
+     "hint": 351,
+     "hint_name_rva": "0x1362a4"
+    }
+   ]
+  },
+  {
+   "name": "comdlg32.dll",
+   "ilt_rva": "0x134f64",
+   "iat_rva": "0x12a53c",
+   "name_rva": "0x13646a",
+   "symbols": [
+    {
+     "name": "GetFileTitleA",
+     "hint": 7,
+     "hint_name_rva": "0x13645a"
+    },
+    {
+     "name": "PrintDlgA",
+     "hint": 16,
+     "hint_name_rva": "0x13644e"
+    },
+    {
+     "name": "CommDlgExtendedError",
+     "hint": 4,
+     "hint_name_rva": "0x136436"
+    }
+   ]
+  },
+  {
+   "name": "WINSPOOL.DRV",
+   "ilt_rva": "0x134f1c",
+   "iat_rva": "0x12a4f4",
+   "name_rva": "0x1364ae",
+   "symbols": [
+    {
+     "name": "DocumentPropertiesA",
+     "hint": 71,
+     "hint_name_rva": "0x136488"
+    },
+    {
+     "name": "OpenPrinterA",
+     "hint": 124,
+     "hint_name_rva": "0x13649e"
+    },
+    {
+     "name": "ClosePrinter",
+     "hint": 28,
+     "hint_name_rva": "0x136478"
+    }
+   ]
+  },
+  {
+   "name": "ADVAPI32.dll",
+   "ilt_rva": "0x134a28",
+   "iat_rva": "0x12a000",
+   "name_rva": "0x136534",
+   "symbols": [
+    {
+     "name": "RegCloseKey",
+     "hint": 347,
+     "hint_name_rva": "0x1364bc"
+    },
+    {
+     "name": "RegDeleteKeyA",
+     "hint": 354,
+     "hint_name_rva": "0x136524"
+    },
+    {
+     "name": "RegCreateKeyExA",
+     "hint": 351,
+     "hint_name_rva": "0x1364ca"
+    },
+    {
+     "name": "RegDeleteValueA",
+     "hint": 356,
+     "hint_name_rva": "0x136512"
+    },
+    {
+     "name": "RegOpenKeyExA",
+     "hint": 370,
+     "hint_name_rva": "0x1364dc"
+    },
+    {
+     "name": "RegSetValueExA",
+     "hint": 390,
+     "hint_name_rva": "0x136500"
+    },
+    {
+     "name": "RegQueryValueExA",
+     "hint": 379,
+     "hint_name_rva": "0x1364ec"
+    }
+   ]
+  },
+  {
+   "name": "SHELL32.dll",
+   "ilt_rva": "0x134cf8",
+   "iat_rva": "0x12a2d0",
+   "name_rva": "0x13657c",
+   "symbols": [
+    {
+     "name": "DragQueryFileA",
+     "hint": 20,
+     "hint_name_rva": "0x13656a"
+    },
+    {
+     "name": "DragFinish",
+     "hint": 18,
+     "hint_name_rva": "0x13655c"
+    },
+    {
+     "name": "SHGetSpecialFolderPathA",
+     "hint": 84,
+     "hint_name_rva": "0x136542"
+    }
+   ]
+  },
+  {
+   "name": "COMCTL32.dll",
+   "ilt_rva": "0x134a48",
+   "iat_rva": "0x12a020",
+   "name_rva": "0x1365d2",
+   "symbols": [
+    {
+     "ordinal": 17,
+     "name": "#17"
+    },
+    {
+     "name": "CreatePropertySheetPageA",
+     "hint": 2,
+     "hint_name_rva": "0x1365b6"
+    },
+    {
+     "name": "DestroyPropertySheetPage",
+     "hint": 10,
+     "hint_name_rva": "0x13659a"
+    },
+    {
+     "name": "PropertySheetA",
+     "hint": 73,
+     "hint_name_rva": "0x136588"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  [
+   "0x134fb9",
+   1
+  ],
+  [
+   "0x135a79",
+   1
+  ],
+  [
+   "0x1362a3",
+   1
+  ],
+  [
+   "0x136477",
+   1
+  ],
+  [
+   "0x1364bb",
+   1
+  ],
+  [
+   "0x136541",
+   1
+  ],
+  [
+   "0x1365df",
+   1
+  ]
+ ]
+}
