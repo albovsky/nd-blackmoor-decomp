@@ -59,19 +59,86 @@ class NativeAppIntegrationTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             contents = log.read_text()
             self.assertIn('scene_session_created scene=0 generation=1 ui_phone_rows=12', contents)
-            self.assertIn('caption_runtime_initialized fonts=18 tbox=98 sctb=768 task=1867 view_origin=10,10 format=RGB555 caption_surface=623x201/250446 framed_surface=578x1001/1157156 saved_surface=Frame', contents)
+            self.assertIn('caption_runtime_initialized fonts=18 tbox=98 sctb=768 task=1867 view_bytes=48 view_origin=10,10 format=RGB555 caption_surface=623x201/250446 framed_surface=578x1001/1157156 saved_surface=Frame', contents)
             self.assertIn('autotext_entries=1258', contents)
-            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer_transform=unverified caption_writer=bound-RGB555 caption_transfer=unavailable audio_provider=unavailable', contents)
+            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer_transform=unverified caption_writer=bound-RGB555 caption_transfer=bound-RGB555-Frame-plus-decoded-background audio_provider=unavailable', contents)
             self.assertIn('scene_session_blocked stage=3 provider=action-sound action=31 type=0x9f', contents)
             self.assertIn('scene_clock_tick ', contents)
             self.assertIn('scene_session_media_eos frame=0', contents)
             self.assertIn('caption_action_lookup result=found key_bytes=6 text_bytes=185 raw_bytes=185', contents)
-            self.assertIn('scene_action_sound row=31 phase=0 kernel_status=3 captions=1 dispatch_argument=1 boundary=caption-presentation', contents)
-            self.assertIn('caption_action_writer kind=1 bytes=185 status=7', contents)
-            self.assertIn('caption_transfer_blocked kind=1', contents)
+            self.assertIn('scene_action_sound row=31 phase=0 kernel_status=3 captions=1 dispatch_argument=1 boundary=audio-backend', contents)
+            self.assertIn('caption_action_writer kind=1 bytes=185 status=0', contents)
+            self.assertIn('label=CUITaskBar::RestoreCCTextBox', contents)
+            self.assertIn('label=RenderMainDisplay() ZRENDER layer 10', contents)
+            self.assertIn('caption_composition_pixels tick=1 attempts=2 successes=2 cc_rect=10,392,629,417 frame_equal=12687 frame_different=3433 caption_non_key=3433', contents)
+            self.assertEqual(contents.count('caption_composition_pixels tick='), 1)
+            self.assertEqual(contents.count('caption_transfer_applied tick=1'), 2)
             self.assertIn('scene_session_probe status=2 provider=action-sound tick_index=1 tick_count=1 generation=1 media_attempted=1 dispatch_attempted=1 same_path=app-update', contents)
             self.assertIn('effects_before_block=31', contents)
             self.assertIn('stopped failure=0', contents)
+
+
+class NativeCaptionTransferTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        source = WORKSPACE / 'work/analysis/game-source.json'
+        if not source.is_file():
+            raise unittest.SkipTest('Supply the original GOG game descriptor')
+        cls.game = Path(json.loads(source.read_text())['game_dir'])
+        if not (cls.game / 'Game.ini').is_file():
+            raise unittest.SkipTest('Original game files unavailable')
+        build = subprocess.run([str(PROJECT / 'scripts/build_native_app.sh'),
+                                '--test-hooks'],
+                               capture_output=True, text=True)
+        if build.returncode:
+            raise RuntimeError(build.stdout + build.stderr)
+        cls.executable = PROJECT / 'Blackmoor Reconstruction Test.app/Contents/MacOS/BlackmoorNative'
+
+    def run_session_probe(self, *extra_args):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'caption.log'
+        result = subprocess.run([
+            str(self.executable), '--inspect-session-boundary',
+            '--game-dir', str(self.game), '--log', str(log), *extra_args
+        ], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return log.read_text()
+
+    def test_failed_layer_transfer_retains_applied_restore_prefix(self):
+        contents = self.run_session_probe('--test-caption-fail-blit', '2')
+        self.assertIn('caption_transfer_applied tick=1 attempt=1 success=1 kind=1', contents)
+        self.assertIn('caption_transfer_test_injected_failure attempt=2', contents)
+        self.assertIn('caption_transfer_failed tick=1 attempt=2 successes=1 kind=2', contents)
+        self.assertIn('label=RenderMainDisplay() ZRENDER layer 10', contents)
+        self.assertIn('caption_composition_blocked lifecycle_status=', contents)
+        self.assertIn('partial_backbuffer_prefix_preserved=1 retry=disabled', contents)
+        self.assertIn('caption_composition_pixels tick=1 attempts=2 successes=1 '
+                      'cc_rect=10,392,629,417 frame_equal=16120 frame_different=0', contents)
+        self.assertIn('caption_non_key=3433', contents)
+        self.assertNotIn('caption_transfer_applied tick=1 attempt=3', contents)
+
+    def test_injected_scene_reset_restores_taskbar_area_and_keeps_owners(self):
+        contents = self.run_session_probe('--test-caption-reset-after-compose')
+        self.assertIn('caption_transfer_applied tick=1 attempt=1 success=1', contents)
+        self.assertIn('caption_transfer_applied tick=1 attempt=2 success=2', contents)
+        self.assertIn('label=CUITaskBar::RestoreTaskbarArea()', contents)
+        self.assertIn('caption_injected_reset_probe injected=1 actual_scene_replacement=0 '
+                      'reset_api=caption_scene_reset reset=0 flags=0 draw=0 owners_stable=1 '
+                      'flags_reset=1 area_frame_matches=60800/60800', contents)
+        self.assertIn('order=RestoreCCTextBox,caption-layer,scene-reset-RestoreTaskbarArea,post-reset-layers', contents)
+        self.assertIn('caption_composition_pixels tick=1 attempts=3 successes=3 '
+                      'cc_rect=10,392,629,417 frame_equal=16120 frame_different=0', contents)
+        self.assertIn('caption_layer=0 reset_layer=0', contents)
+
+    def test_reseeded_current_scene_frame_retains_active_caption_pixels(self):
+        contents = self.run_session_probe('--test-caption-reseed-visible')
+        self.assertIn('caption_reseed_probe provider=seed-current-Frame-and-decoded-background '
+                      'second_scene_session_tick=0 seeds=2->3 flags=0 draw=0 '
+                      'caption_retained=1 pixels_retained=1', contents)
+        self.assertIn('frame_different=3433 caption_non_key=3433', contents)
+        self.assertIn('owner_stable=1', contents)
+        self.assertIn('caption_transfer_applied tick=1 attempt=3 success=3', contents)
 
     def test_missing_configuration_fails_without_gameplay_success(self):
         with tempfile.TemporaryDirectory() as directory:

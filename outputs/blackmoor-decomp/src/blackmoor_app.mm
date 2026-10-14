@@ -19,6 +19,7 @@
 #include "scene_session.h"
 #include "caption_layout.h"
 #include "caption_lifecycle.h"
+#include "caption_compositor.h"
 #include "cif_pixels.h"
 #include "hiff.h"
 #include "autotext.h"
@@ -68,10 +69,13 @@ struct NativeCaptionRuntime {
     CaptionLifecycle lifecycle{};
     CaptionBackend writer_backend{};
     CaptionLifecycleBackend lifecycle_backend{};
+    CaptionCompositorFormat compositor_format = CAPTION_COMPOSITOR_RGB555_LE;
     CaptionSurface caption_surface{};
     CaptionSurface framed_surface{};
     std::vector<uint8_t> caption_pixels;
     std::vector<uint8_t> framed_pixels;
+    std::vector<uint8_t> backbuffer_pixels;
+    CaptionRect framed_destination{};
     std::map<std::string, uint32_t> image_handles;
     std::map<uint32_t, NativeRaw555Image> raw_images;
     AutoText *auto_text = nullptr;
@@ -81,11 +85,26 @@ struct NativeCaptionRuntime {
     uint32_t framed_surface_handle = UINT32_C(0xf0000002);
     bool initialized = false;
     bool transfer_blocked = false;
+    bool transfer_failed_sticky = false;
+    bool backbuffer_ready = false;
+    uint64_t backbuffer_seed_count = 0u;
     bool action_caption_attempted = false;
     bool action_caption_lookup_attempted = false;
+    bool action_caption_present_succeeded = false;
     int last_writer_status = CAPTION_OK;
     int last_lifecycle_status = CAPTION_LIFECYCLE_OK;
     CaptionResult last_writer_result{};
+    uint64_t transfer_attempts = 0u;
+    uint64_t transfer_successes = 0u;
+    uint64_t transfer_tick = 0u;
+    uint64_t composed_session_tick = 0u;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    uint32_t test_fail_blit_index = 0u;
+    bool test_reset_after_composition = false;
+    bool test_reset_probe_done = false;
+    bool test_reseed_visible_caption = false;
+    bool test_reseed_probe_done = false;
+#endif
 };
 
 /* Exact bounded spans proven by the New Game reset paths. These counts are
@@ -170,6 +189,7 @@ struct NativeApp {
     int16_t current_scene_id = 0;
     int16_t transition_source_scene_id = 0;
     int32_t scene_current_frame = 0;
+    std::array<int32_t, 12> view_words{};
     std::string game_directory;
     HostImage scene_frame;
     HostImage transition_source_frame;
@@ -516,19 +536,516 @@ static void native_caption_release_font_sheet(void *context, int16_t font,
     if (sheet != nullptr) std::memset(sheet, 0, sizeof(*sheet));
 }
 
+static bool native_caption_pack_rgba(const NativeCaptionRuntime &captions,
+                                     const uint8_t *rgba, uint8_t *packed)
+{
+    if (rgba == nullptr || packed == nullptr) return false;
+    uint16_t word = 0u;
+    for (size_t channel = 0; channel < 3u; ++channel) {
+        const uint8_t bits = captions.pixel_format.channel_bits[channel];
+        const uint8_t shift = captions.pixel_format.shifts[channel];
+        const uint8_t mask = captions.pixel_format.masks[channel];
+        if (bits == 0u || bits > 8u || shift >= 16u || mask == 0u ||
+            (unsigned)shift + bits > 16u) return false;
+        const size_t rgba_channel = channel == 0u ? 2u : channel == 2u ? 0u : 1u;
+        const uint16_t value = (uint16_t)((rgba[rgba_channel] >> (8u - bits)) & mask);
+        word = (uint16_t)(word | (uint16_t)(value << shift));
+    }
+    packed[0] = (uint8_t)word;
+    packed[1] = (uint8_t)(word >> 8);
+    return true;
+}
+
+static bool native_caption_unpack_rgba(const NativeCaptionRuntime &captions,
+                                       uint16_t word, uint8_t *rgba)
+{
+    if (rgba == nullptr) return false;
+    for (size_t channel = 0; channel < 3u; ++channel) {
+        const uint8_t bits = captions.pixel_format.channel_bits[channel];
+        const uint8_t shift = captions.pixel_format.shifts[channel];
+        const uint8_t mask = captions.pixel_format.masks[channel];
+        if (bits == 0u || bits > 8u || shift >= 16u || mask == 0u ||
+            (unsigned)shift + bits > 16u) return false;
+        const uint32_t value = (word >> shift) & mask;
+        const uint8_t expanded = (uint8_t)((value * 255u) / mask);
+        const size_t rgba_channel = channel == 0u ? 2u : channel == 2u ? 0u : 1u;
+        rgba[rgba_channel] = expanded;
+    }
+    rgba[3] = 255u;
+    return true;
+}
+
+static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
+                                            CaptionCompositorView *view)
+{
+    if (app == nullptr || view == nullptr) return false;
+    NativeCaptionRuntime &captions = app->captions;
+    if (handle == captions.caption_surface_handle) {
+        if (captions.caption_surface.pixels == nullptr ||
+            captions.caption_surface.width <= 0 || captions.caption_surface.height <= 0 ||
+            captions.caption_surface.pitch <= 0) return false;
+        view->pixels = captions.caption_surface.pixels;
+        view->byte_capacity = captions.caption_pixels.size();
+        view->width = captions.caption_surface.width;
+        view->height = captions.caption_surface.height;
+        view->pitch_bytes = captions.caption_surface.pitch;
+        view->format = captions.compositor_format;
+        return true;
+    }
+    if (handle == captions.framed_surface_handle) {
+        if (captions.framed_surface.pixels == nullptr ||
+            captions.framed_surface.width <= 0 || captions.framed_surface.height <= 0 ||
+            captions.framed_surface.pitch <= 0) return false;
+        view->pixels = captions.framed_surface.pixels;
+        view->byte_capacity = captions.framed_pixels.size();
+        view->width = captions.framed_surface.width;
+        view->height = captions.framed_surface.height;
+        view->pitch_bytes = captions.framed_surface.pitch;
+        view->format = captions.compositor_format;
+        return true;
+    }
+    const auto found = captions.raw_images.find(handle);
+    if (found == captions.raw_images.end() || found->second.pixels.empty() ||
+        found->second.width == 0u || found->second.height == 0u ||
+        found->second.width > INT32_MAX || found->second.height > INT32_MAX ||
+        found->second.pitch == 0u || found->second.pitch > INT32_MAX) return false;
+    view->pixels = const_cast<uint8_t *>(found->second.pixels.data());
+    view->byte_capacity = found->second.pixels.size();
+    view->width = (int32_t)found->second.width;
+    view->height = (int32_t)found->second.height;
+    view->pitch_bytes = (int32_t)found->second.pitch;
+    view->format = captions.compositor_format;
+    return true;
+}
+
+/* Build the host's persistent RGB555/565 destination from the actual saved
+ * Frame surface, then overlay only the decoded Bink scene viewport. The Frame
+ * is a CIFTREE taskbar image; it is not treated as a captured scene frame. */
+static bool seed_native_caption_backbuffer(NativeApp *app)
+{
+    if (app == nullptr || !app->captions.initialized || !app->has_scene_frame ||
+        app->captions.transfer_failed_sticky) return false;
+    NativeCaptionRuntime &captions = app->captions;
+    CaptionCompositorView frame_view{};
+    if (!native_caption_view_for_handle(app, captions.lifecycle.taskbar.saved_surface,
+                                        &frame_view) ||
+        frame_view.width != 640 || frame_view.height != 480 ||
+        frame_view.format != captions.compositor_format ||
+        captions.backbuffer_pixels.size() != 640u * 480u * 2u) return false;
+
+    const size_t row_bytes = 640u * 2u;
+    if (frame_view.pitch_bytes < (int32_t)row_bytes ||
+        frame_view.byte_capacity < (size_t)(frame_view.height - 1) *
+            (size_t)frame_view.pitch_bytes + row_bytes) return false;
+    for (size_t row = 0; row < 480u; ++row) {
+        std::memcpy(captions.backbuffer_pixels.data() + row * row_bytes,
+                    frame_view.pixels + row * (size_t)frame_view.pitch_bytes,
+                    row_bytes);
+    }
+
+    const int64_t copy_width = (int64_t)app->scene_source.right -
+                               app->scene_source.left + 1;
+    const int64_t copy_height = (int64_t)app->scene_source.bottom -
+                                app->scene_source.top + 1;
+    const int64_t dest_width = (int64_t)app->scene_destination.right -
+                               app->scene_destination.left + 1;
+    const int64_t dest_height = (int64_t)app->scene_destination.bottom -
+                                app->scene_destination.top + 1;
+    if (copy_width <= 0 || copy_height <= 0 || copy_width != dest_width ||
+        copy_height != dest_height || app->scene_source.left < 0 ||
+        app->scene_source.top < 0 || app->scene_destination.left < 0 ||
+        app->scene_destination.top < 0 || app->scene_destination.right >= 640 ||
+        app->scene_destination.bottom >= 480 ||
+        app->scene_source.right >= (int32_t)app->scene_frame.width ||
+        app->scene_source.bottom >= (int32_t)app->scene_frame.height ||
+        app->scene_frame.width == 0u || app->scene_frame.height == 0u ||
+        (size_t)app->scene_frame.width > SIZE_MAX / 4u ||
+        (size_t)app->scene_frame.height > SIZE_MAX /
+            ((size_t)app->scene_frame.width * 4u) ||
+        app->scene_frame.rgba.size() < (size_t)app->scene_frame.width *
+            (size_t)app->scene_frame.height * 4u) return false;
+
+    for (int64_t row = 0; row < copy_height; ++row) {
+        const int32_t source_y = app->scene_source.top + (int32_t)row;
+        const int32_t dest_y = app->scene_destination.top + (int32_t)row;
+        for (int64_t column = 0; column < copy_width; ++column) {
+            const int32_t source_x = app->scene_source.left + (int32_t)column;
+            const int32_t dest_x = app->scene_destination.left + (int32_t)column;
+            const size_t rgba_offset = ((size_t)source_y * app->scene_frame.width +
+                                        (size_t)source_x) * 4u;
+            const size_t destination_offset = ((size_t)dest_y * 640u +
+                                               (size_t)dest_x) * 2u;
+            if (!native_caption_pack_rgba(captions, app->scene_frame.rgba.data() +
+                                          rgba_offset,
+                                          captions.backbuffer_pixels.data() +
+                                          destination_offset)) return false;
+        }
+    }
+    captions.backbuffer_ready = true;
+    ++captions.backbuffer_seed_count;
+    record(app, "caption_backbuffer_seeded width=640 height=480 format=%s pitch=1280 "
+           "base=CIFTREE-Frame overlay=decoded-background-viewport viewport=%d,%d,%d,%d "
+           "scope=host-adapter-original-composed-framebuffer=unverified",
+           captions.compositor_format == CAPTION_COMPOSITOR_RGB555_LE ? "RGB555" : "RGB565",
+           app->scene_destination.left, app->scene_destination.top,
+           app->scene_destination.right, app->scene_destination.bottom);
+    return true;
+}
+
+static bool native_caption_region_metrics(NativeApp *app, size_t *frame_equal,
+                                         size_t *frame_different,
+                                         size_t *caption_non_key,
+                                         uint64_t *region_hash)
+{
+    if (app == nullptr || frame_equal == nullptr || frame_different == nullptr ||
+        caption_non_key == nullptr || region_hash == nullptr ||
+        !app->captions.backbuffer_ready) return false;
+    CaptionCompositorView frame_view{};
+    if (!native_caption_view_for_handle(app, app->captions.lifecycle.taskbar.saved_surface,
+                                        &frame_view)) return false;
+    const CaptionRect &rect = app->captions.lifecycle.taskbar.cc_rect;
+    if (rect.left < 0 || rect.top < 0 || rect.right < rect.left ||
+        rect.bottom < rect.top || rect.right >= 640 || rect.bottom >= 480 ||
+        frame_view.width != 640 || frame_view.height != 480) return false;
+    *frame_equal = 0u;
+    *frame_different = 0u;
+    *caption_non_key = 0u;
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (int32_t y = rect.top; y <= rect.bottom; ++y) {
+        for (int32_t x = rect.left; x <= rect.right; ++x) {
+            const size_t offset = ((size_t)y * 640u + (size_t)x) * 2u;
+            const uint8_t *pixel = app->captions.backbuffer_pixels.data() + offset;
+            const uint8_t *saved = frame_view.pixels + (size_t)y *
+                (size_t)frame_view.pitch_bytes + (size_t)x * 2u;
+            if (pixel[0] == saved[0] && pixel[1] == saved[1]) ++*frame_equal;
+            else ++*frame_different;
+            hash ^= pixel[0]; hash *= UINT64_C(1099511628211);
+            hash ^= pixel[1]; hash *= UINT64_C(1099511628211);
+        }
+    }
+    /* The writer's caption source rectangle is TBOX + 0x28. */
+    const uint8_t *tbox = app->captions.geometry.tbox;
+    CaptionRect source_rect{read_i32_le(tbox + 0x28u), read_i32_le(tbox + 0x2cu),
+                            read_i32_le(tbox + 0x30u), read_i32_le(tbox + 0x34u)};
+    if (source_rect.left < 0 || source_rect.top < 0 ||
+        source_rect.right < source_rect.left || source_rect.bottom < source_rect.top ||
+        source_rect.right >= app->captions.caption_surface.width ||
+        source_rect.bottom >= app->captions.caption_surface.height) return false;
+    for (int32_t y = source_rect.top; y <= source_rect.bottom; ++y) {
+        for (int32_t x = source_rect.left; x <= source_rect.right; ++x) {
+            const uint8_t *pixel = app->captions.caption_pixels.data() +
+                (size_t)y * (size_t)app->captions.caption_surface.pitch +
+                (size_t)x * 2u;
+            const uint16_t value = (uint16_t)(pixel[0] | ((uint16_t)pixel[1] << 8));
+            if (value != app->captions.pixel_format.color_key) ++*caption_non_key;
+        }
+    }
+    *region_hash = hash;
+    return true;
+}
+
+static bool native_caption_present_rgba(NativeApp *app)
+{
+    if (app == nullptr || !app->captions.backbuffer_ready ||
+        app->framebuffer.size() != 640u * 480u * 4u) return false;
+    for (size_t index = 0; index < 640u * 480u; ++index) {
+        const uint8_t *packed = app->captions.backbuffer_pixels.data() + index * 2u;
+        const uint16_t word = (uint16_t)(packed[0] | ((uint16_t)packed[1] << 8));
+        if (!native_caption_unpack_rgba(app->captions, word,
+                                        app->framebuffer.data() + index * 4u)) return false;
+    }
+    return true;
+}
+
 static CaptionLifecycleBackendStatus native_caption_lifecycle_blit(
     void *context, const CaptionBlit *blit)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || blit == nullptr) return CAPTION_LIFECYCLE_BACKEND_ERROR;
-    app->captions.transfer_blocked = true;
-    record(app, "caption_transfer_blocked kind=%d handle=%u label=%s "
-           "src=%d,%d,%d,%d dst=%d,%d,%d,%d reason=s05-3-transfer-contract-pending "
-           "destination=full-640x480-composition-unavailable",
+    NativeCaptionRuntime &captions = app->captions;
+    ++captions.transfer_attempts;
+    const uint64_t attempt = captions.transfer_attempts;
+    CaptionCompositorView source{};
+    CaptionCompositorView destination{};
+    destination.pixels = captions.backbuffer_pixels.data();
+    destination.byte_capacity = captions.backbuffer_pixels.size();
+    destination.width = 640;
+    destination.height = 480;
+    destination.pitch_bytes = 1280;
+    destination.format = captions.compositor_format;
+    int status = CAPTION_COMPOSITOR_OK;
+    if (captions.transfer_failed_sticky || !captions.backbuffer_ready ||
+        !native_caption_view_for_handle(app, blit->surface, &source)) {
+        status = CAPTION_COMPOSITOR_ERR_UNSUPPORTED;
+    }
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (status == CAPTION_COMPOSITOR_OK && captions.test_fail_blit_index != 0u &&
+        attempt == captions.test_fail_blit_index) {
+        status = CAPTION_COMPOSITOR_ERR_UNSUPPORTED;
+        record(app, "caption_transfer_test_injected_failure attempt=%llu",
+               (unsigned long long)attempt);
+    }
+#endif
+    if (status == CAPTION_COMPOSITOR_OK) {
+        status = caption_compositor_blit(&source, &destination, blit->kind,
+                                         &blit->src, &blit->dst,
+                                         captions.pixel_format.color_key);
+    }
+    if (status != CAPTION_COMPOSITOR_OK) {
+        captions.transfer_blocked = true;
+        captions.transfer_failed_sticky = true;
+        record(app, "caption_transfer_failed tick=%llu attempt=%llu successes=%llu "
+               "kind=%d handle=%u label=%s status=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+               "prefix_preserved=1 retry=disabled",
+               (unsigned long long)captions.transfer_tick,
+               (unsigned long long)attempt,
+               (unsigned long long)captions.transfer_successes,
+               blit->kind, blit->surface, blit->label ? blit->label : "unknown",
+               status, blit->src.left, blit->src.top, blit->src.right, blit->src.bottom,
+               blit->dst.left, blit->dst.top, blit->dst.right, blit->dst.bottom);
+        return CAPTION_LIFECYCLE_BACKEND_ERROR;
+    }
+    ++captions.transfer_successes;
+    record(app, "caption_transfer_applied tick=%llu attempt=%llu success=%llu "
+           "kind=%d handle=%u label=%s src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+           "format=%s destination=full-640x480-raw-backbuffer",
+           (unsigned long long)captions.transfer_tick,
+           (unsigned long long)attempt,
+           (unsigned long long)captions.transfer_successes,
            blit->kind, blit->surface, blit->label ? blit->label : "unknown",
            blit->src.left, blit->src.top, blit->src.right, blit->src.bottom,
-           blit->dst.left, blit->dst.top, blit->dst.right, blit->dst.bottom);
-    return CAPTION_LIFECYCLE_BACKEND_ERROR;
+           blit->dst.left, blit->dst.top, blit->dst.right, blit->dst.bottom,
+           captions.compositor_format == CAPTION_COMPOSITOR_RGB555_LE ? "RGB555" : "RGB565");
+    return CAPTION_LIFECYCLE_BACKEND_OK;
+}
+
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+static bool native_caption_region_matches_frame(NativeApp *app,
+                                                const CaptionRect &rect,
+                                                size_t *matched_pixels)
+{
+    if (app == nullptr || matched_pixels == nullptr || !app->captions.backbuffer_ready)
+        return false;
+    CaptionCompositorView frame{};
+    if (!native_caption_view_for_handle(app,
+            app->captions.lifecycle.taskbar.saved_surface, &frame) ||
+        rect.left < 0 || rect.top < 0 || rect.right < rect.left ||
+        rect.bottom < rect.top || rect.right >= frame.width ||
+        rect.bottom >= frame.height) return false;
+    *matched_pixels = 0u;
+    for (int32_t y = rect.top; y <= rect.bottom; ++y) {
+        for (int32_t x = rect.left; x <= rect.right; ++x) {
+            const size_t back_offset = ((size_t)y * 640u + (size_t)x) * 2u;
+            const uint8_t *back = app->captions.backbuffer_pixels.data() + back_offset;
+            const uint8_t *saved = frame.pixels + (size_t)y *
+                (size_t)frame.pitch_bytes + (size_t)x * 2u;
+            if (back[0] == saved[0] && back[1] == saved[1]) ++*matched_pixels;
+        }
+    }
+    return true;
+}
+#endif
+
+static bool native_caption_reset_probe(NativeApp *app)
+{
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app == nullptr || !app->captions.test_reset_after_composition ||
+        app->captions.test_reset_probe_done) return true;
+    NativeCaptionRuntime &captions = app->captions;
+    uint8_t *caption_owner = captions.caption_pixels.data();
+    uint8_t *framed_owner = captions.framed_pixels.data();
+    uint8_t *backbuffer_owner = captions.backbuffer_pixels.data();
+    auto frame_it = captions.raw_images.find(captions.lifecycle.taskbar.saved_surface);
+    if (frame_it == captions.raw_images.end()) return false;
+    uint8_t *frame_owner = frame_it->second.pixels.data();
+    const int reset_status = caption_scene_reset(&captions.lifecycle,
+                                                 &captions.lifecycle_backend);
+    const int flags_status = reset_status == CAPTION_LIFECYCLE_OK
+        ? caption_main_loop_flags(&captions.lifecycle) : reset_status;
+    const int draw_status = flags_status == CAPTION_LIFECYCLE_OK
+        ? caption_present_layers(&captions.lifecycle, &captions.lifecycle_backend,
+                                 captions.caption_surface_handle,
+                                 captions.framed_surface_handle,
+                                 &captions.framed_destination)
+        : flags_status;
+    size_t area_matched = 0u;
+    const bool area_compared = native_caption_region_matches_frame(
+        app, captions.lifecycle.taskbar.area_dst, &area_matched);
+    const size_t area_pixels =
+        (size_t)(captions.lifecycle.taskbar.area_dst.right -
+                 captions.lifecycle.taskbar.area_dst.left + 1) *
+        (size_t)(captions.lifecycle.taskbar.area_dst.bottom -
+                 captions.lifecycle.taskbar.area_dst.top + 1);
+    const bool owners_stable = caption_owner == captions.caption_pixels.data() &&
+        framed_owner == captions.framed_pixels.data() &&
+        backbuffer_owner == captions.backbuffer_pixels.data() &&
+        frame_owner == frame_it->second.pixels.data();
+    const bool flags_reset = captions.writer_globals.caption_visible_flag == 0 &&
+        captions.writer_globals.caption_finish_flag == 0 &&
+        captions.writer_globals.frame_open == 0u &&
+        captions.lifecycle.shared->framed_ready == 0;
+    record(app, "caption_injected_reset_probe injected=1 actual_scene_replacement=0 "
+           "reset_api=caption_scene_reset reset=%d flags=%d draw=%d owners_stable=%d "
+           "flags_reset=%d area_frame_matches=%zu/%zu transfer_attempts=%llu "
+           "transfer_successes=%llu order=RestoreCCTextBox,caption-layer,"
+           "scene-reset-RestoreTaskbarArea,post-reset-layers",
+           reset_status, flags_status, draw_status, owners_stable, flags_reset,
+           area_matched, area_pixels,
+           (unsigned long long)captions.transfer_attempts,
+           (unsigned long long)captions.transfer_successes);
+    captions.test_reset_probe_done = true;
+    if (reset_status != CAPTION_LIFECYCLE_OK || flags_status != CAPTION_LIFECYCLE_OK ||
+        draw_status != CAPTION_LIFECYCLE_OK || !owners_stable || !flags_reset ||
+        !area_compared || area_matched != area_pixels) {
+        captions.transfer_failed_sticky = true;
+        return false;
+    }
+#else
+    (void)app;
+#endif
+    return true;
+}
+
+static bool native_caption_reseed_visible_probe(NativeApp *app)
+{
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app == nullptr || !app->captions.test_reseed_visible_caption ||
+        app->captions.test_reseed_probe_done) return true;
+    NativeCaptionRuntime &captions = app->captions;
+    if (captions.writer_globals.caption_visible_flag == 0 ||
+        captions.writer_globals.caption_finish_flag != 0) {
+        record(app, "caption_reseed_probe_failed reason=caption-not-active");
+        return false;
+    }
+    size_t before_equal = 0u, before_different = 0u, before_non_key = 0u;
+    uint64_t before_hash = 0u;
+    if (!native_caption_region_metrics(app, &before_equal, &before_different,
+                                       &before_non_key, &before_hash) ||
+        before_different == 0u || before_non_key == 0u) {
+        record(app, "caption_reseed_probe_failed reason=initial-caption-pixels-missing");
+        return false;
+    }
+    uint8_t *backbuffer_owner = captions.backbuffer_pixels.data();
+    const uint64_t seed_before = captions.backbuffer_seed_count;
+    if (!seed_native_caption_backbuffer(app)) {
+        record(app, "caption_reseed_probe_failed reason=source-seed-failed");
+        return false;
+    }
+    const int flags_status = caption_main_loop_flags(&captions.lifecycle);
+    const int draw_status = flags_status == CAPTION_LIFECYCLE_OK
+        ? caption_present_layers(&captions.lifecycle, &captions.lifecycle_backend,
+                                 captions.caption_surface_handle,
+                                 captions.framed_surface_handle,
+                                 &captions.framed_destination)
+        : flags_status;
+    size_t after_equal = 0u, after_different = 0u, after_non_key = 0u;
+    uint64_t after_hash = 0u;
+    const bool measured = native_caption_region_metrics(app, &after_equal,
+        &after_different, &after_non_key, &after_hash);
+    const bool stable_owner = backbuffer_owner == captions.backbuffer_pixels.data();
+    const bool caption_retained = captions.writer_globals.caption_visible_flag != 0 &&
+        captions.writer_globals.caption_finish_flag == 0 &&
+        captions.lifecycle.g.caption_layer_enabled != 0;
+    const bool pixels_retained = measured && after_different != 0u &&
+        after_non_key != 0u && before_hash == after_hash;
+    record(app, "caption_reseed_probe provider=seed-current-Frame-and-decoded-background "
+           "second_scene_session_tick=0 seeds=%llu->%llu flags=%d draw=%d "
+           "caption_retained=%d pixels_retained=%d frame_equal=%zu frame_different=%zu "
+           "caption_non_key=%zu hash=%016llx owner_stable=%d",
+           (unsigned long long)seed_before,
+           (unsigned long long)captions.backbuffer_seed_count,
+           flags_status, draw_status, caption_retained, pixels_retained,
+           after_equal, after_different, after_non_key,
+           (unsigned long long)after_hash, stable_owner);
+    captions.test_reseed_probe_done = true;
+    return flags_status == CAPTION_LIFECYCLE_OK &&
+        draw_status == CAPTION_LIFECYCLE_OK && stable_owner &&
+        caption_retained && pixels_retained &&
+        captions.backbuffer_seed_count == seed_before + 1u;
+#else
+    (void)app;
+    return true;
+#endif
+}
+
+static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempted)
+{
+    if (app == nullptr || !app->captions.initialized) return true;
+    NativeCaptionRuntime &captions = app->captions;
+    if (!captions.backbuffer_ready && !seed_native_caption_backbuffer(app)) {
+        record(app, "caption_composition_blocked reason=backbuffer-seed-unavailable");
+        captions.transfer_failed_sticky = true;
+        return false;
+    }
+    if (dispatch_attempted != 0u && captions.action_caption_attempted &&
+        captions.last_writer_status != CAPTION_OK) {
+        record(app, "caption_composition_stopped reason=writer-failed status=%d "
+               "partial_backbuffer_prefix_preserved=1",
+               captions.last_writer_status);
+    } else if (!captions.transfer_failed_sticky) {
+        int status = caption_main_loop_flags(&captions.lifecycle);
+        if (status == CAPTION_LIFECYCLE_OK) {
+            status = caption_present_layers(&captions.lifecycle,
+                &captions.lifecycle_backend, captions.caption_surface_handle,
+                captions.framed_surface_handle, &captions.framed_destination);
+        }
+        captions.last_lifecycle_status = status;
+        if (status != CAPTION_LIFECYCLE_OK) {
+            captions.transfer_failed_sticky = true;
+            record(app, "caption_composition_blocked lifecycle_status=%d detail=%s "
+                   "attempts=%llu successes=%llu partial_backbuffer_prefix_preserved=1 "
+                   "retry=disabled",
+                   status, caption_lifecycle_status_string(status),
+                   (unsigned long long)captions.transfer_attempts,
+                   (unsigned long long)captions.transfer_successes);
+        }
+    } else {
+        record(app, "caption_composition_stopped reason=sticky-backend-failure "
+               "attempts=%llu successes=%llu",
+               (unsigned long long)captions.transfer_attempts,
+               (unsigned long long)captions.transfer_successes);
+    }
+    if (!captions.transfer_failed_sticky &&
+        dispatch_attempted != 0u && captions.action_caption_attempted &&
+        captions.last_writer_status == CAPTION_OK &&
+        !native_caption_reset_probe(app)) {
+        record(app, "caption_reset_probe_failed prefix_preserved=1");
+        captions.transfer_failed_sticky = true;
+    }
+    size_t frame_equal = 0u, frame_different = 0u, caption_non_key = 0u;
+    uint64_t region_hash = 0u;
+    if (!native_caption_region_metrics(app, &frame_equal, &frame_different,
+                                       &caption_non_key, &region_hash)) {
+        record(app, "caption_composition_metrics unavailable");
+        captions.transfer_failed_sticky = true;
+        return false;
+    }
+    record(app, "caption_composition_pixels tick=%llu attempts=%llu successes=%llu "
+           "cc_rect=%d,%d,%d,%d frame_equal=%zu frame_different=%zu "
+           "caption_non_key=%zu cc_fnv64=%016llx flags_visible=%d flags_finish=%d "
+           "caption_layer=%d reset_layer=%d scope=Frame-plus-decoded-background",
+           (unsigned long long)captions.transfer_tick,
+           (unsigned long long)captions.transfer_attempts,
+           (unsigned long long)captions.transfer_successes,
+           captions.lifecycle.taskbar.cc_rect.left,
+           captions.lifecycle.taskbar.cc_rect.top,
+           captions.lifecycle.taskbar.cc_rect.right,
+           captions.lifecycle.taskbar.cc_rect.bottom,
+           frame_equal, frame_different, caption_non_key,
+           (unsigned long long)region_hash,
+           captions.writer_globals.caption_visible_flag,
+           captions.writer_globals.caption_finish_flag,
+           captions.lifecycle.g.caption_layer_enabled,
+           captions.lifecycle.g.caption_restore_layer);
+    if (!captions.transfer_failed_sticky &&
+        dispatch_attempted != 0u && captions.action_caption_attempted &&
+        captions.last_writer_status == CAPTION_OK &&
+        !native_caption_reseed_visible_probe(app)) {
+        captions.transfer_failed_sticky = true;
+        record(app, "caption_reseed_probe_failed prefix_preserved=1");
+        return false;
+    }
+    return native_caption_present_rgba(app);
 }
 
 static CaptionBackendStatus native_caption_restore_box(void *context)
@@ -595,6 +1112,7 @@ static ActionSoundBackendStatus native_action_sound_present_caption(
         &app->captions.writer_backend, &app->captions.caption_surface,
         &request, &app->captions.last_writer_result);
     app->captions.last_writer_status = status;
+    app->captions.action_caption_present_succeeded = status == CAPTION_OK;
     record(app, "caption_action_writer kind=%d bytes=%zu status=%d lines=%d glyphs=%u "
            "terminator_appended=%u surface_cleared=%u visible=%d finish=%d "
            "transfer_blocked=%d partial_surface_retained=1",
@@ -742,6 +1260,10 @@ static bool initialize_caption_runtime(NativeApp *app)
     const int pixel_status = caption_pixel_format_from_masks(
         UINT32_C(0x7c00), UINT32_C(0x03e0), UINT32_C(0x001f),
         summary.bsum_raw + 324u, &app->captions.pixel_format);
+    const int compositor_status = pixel_status == CAPTION_OK
+        ? caption_compositor_format_from_pixel_format(&app->captions.pixel_format,
+                                                       &app->captions.compositor_format)
+        : CAPTION_COMPOSITOR_ERR_FORMAT;
     const int fonts_status = pixel_status == CAPTION_OK
         ? caption_fonts_init(font, font_size, summary.font_count,
                              &app->captions.fonts) : pixel_status;
@@ -750,9 +1272,10 @@ static bool initialize_caption_runtime(NativeApp *app)
         : fonts_status;
     hiff_close(font_container);
     game_resource_bytes_destroy(&font_bytes);
-    if (geometry_status != CAPTION_OK) {
-        record(app, "caption_runtime_error provider=layout pixel=%d fonts=%d geometry=%d",
-               pixel_status, fonts_status, geometry_status);
+    if (geometry_status != CAPTION_OK || compositor_status != CAPTION_COMPOSITOR_OK) {
+        record(app, "caption_runtime_error provider=layout pixel=%d compositor=%d "
+               "fonts=%d geometry=%d",
+               pixel_status, compositor_status, fonts_status, geometry_status);
         return false;
     }
     const int32_t caption_width = app->captions.geometry.caption_surface_width;
@@ -772,6 +1295,7 @@ static bool initialize_caption_runtime(NativeApp *app)
                                             (size_t)caption_height * 2u, 0u);
         app->captions.framed_pixels.assign((size_t)framed_width *
                                            (size_t)framed_height * 2u, 0u);
+        app->captions.backbuffer_pixels.assign(640u * 480u * 2u, 0u);
     } catch (...) {
         record(app, "caption_runtime_error provider=host detail=surface allocation");
         return false;
@@ -824,6 +1348,20 @@ static bool initialize_caption_runtime(NativeApp *app)
         taskbar_rects[rect]->right = read_i32_le(task + task_offsets[rect] + 8u);
         taskbar_rects[rect]->bottom = read_i32_le(task + task_offsets[rect] + 12u);
     }
+    app->captions.framed_destination = {
+        read_i32_le(summary.bsum_raw + 0x114u),
+        read_i32_le(summary.bsum_raw + 0x118u),
+        read_i32_le(summary.bsum_raw + 0x11cu),
+        read_i32_le(summary.bsum_raw + 0x120u)};
+    if (app->captions.framed_destination.left < 0 ||
+        app->captions.framed_destination.top < 0 ||
+        app->captions.framed_destination.right < app->captions.framed_destination.left ||
+        app->captions.framed_destination.bottom < app->captions.framed_destination.top ||
+        app->captions.framed_destination.right >= 640 ||
+        app->captions.framed_destination.bottom >= 480) {
+        record(app, "caption_runtime_error provider=bsum detail=invalid framed destination");
+        return false;
+    }
     if (caption_ctb_load_chunk(&app->captions.lifecycle,
             &app->captions.lifecycle_backend, sctb, sctb_size) != CAPTION_LIFECYCLE_OK) {
         record(app, "caption_runtime_error provider=sctb detail=chunk load failed");
@@ -838,16 +1376,27 @@ static bool initialize_caption_runtime(NativeApp *app)
     }
     app->captions.initialized = true;
     record(app, "caption_runtime_initialized fonts=%d tbox=%zu sctb=%zu task=%zu "
-           "view_origin=%d,%d format=RGB555 caption_surface=%dx%d/%zu framed_surface=%dx%d/%zu "
-           "saved_surface=Frame handle=%u bytes=%zu autotext_entries=%zu popup_state=%d slider=%u modal=%d "
-           "transfer=source-backed-kernel-pending composition=not-certified",
+           "view_bytes=48 view_origin=%d,%d format=%s caption_surface=%dx%d/%zu framed_surface=%dx%d/%zu "
+           "saved_surface=Frame handle=%u bytes=%zu autotext_entries=%zu "
+           "task_cc=%d,%d,%d,%d framed_dst=%d,%d,%d,%d popup_state=%d slider=%u modal=%d "
+           "transfer=source-backed-RGB555/565 "
+           "composition=decoded-background-plus-Frame-taskbar-only",
            app->captions.fonts.count, tbox_size, sctb_size, task_size,
            app->captions.lifecycle.view_origin[0], app->captions.lifecycle.view_origin[1],
+           app->captions.compositor_format == CAPTION_COMPOSITOR_RGB555_LE ? "RGB555" : "RGB565",
            app->captions.caption_surface.width, app->captions.caption_surface.height,
            app->captions.caption_pixels.size(), app->captions.framed_surface.width,
            app->captions.framed_surface.height, app->captions.framed_pixels.size(),
            frame_handle, app->captions.raw_images.at(frame_handle).pixels.size(),
            app->captions.auto_text_entry_count,
+           app->captions.lifecycle.taskbar.cc_rect.left,
+           app->captions.lifecycle.taskbar.cc_rect.top,
+           app->captions.lifecycle.taskbar.cc_rect.right,
+           app->captions.lifecycle.taskbar.cc_rect.bottom,
+           app->captions.framed_destination.left,
+           app->captions.framed_destination.top,
+           app->captions.framed_destination.right,
+           app->captions.framed_destination.bottom,
            (int)(app->captions.lifecycle.box[CTB_STATE] |
                ((uint32_t)app->captions.lifecycle.box[CTB_STATE + 1u] << 8) |
                ((uint32_t)app->captions.lifecycle.box[CTB_STATE + 2u] << 16) |
@@ -975,12 +1524,22 @@ static bool load_viewport(NativeApp *app)
 {
     const uint8_t *payload = nullptr;
     size_t length = 0;
-    if (!find_boot_payload(app, "VIEW", &payload, &length) || length != 48u) return false;
-    int32_t coordinates[8];
-    for (size_t field = 0; field < 8u; ++field)
-        coordinates[field] = read_i32_le(payload + field * 4u);
-    app->scene_destination = {coordinates[0], coordinates[1], coordinates[2], coordinates[3]};
-    app->scene_source = {coordinates[4], coordinates[5], coordinates[6], coordinates[7]};
+    if (!find_boot_payload(app, "VIEW", &payload, &length) ||
+        payload == nullptr || length != 48u) return false;
+    for (size_t field = 0; field < app->view_words.size(); ++field)
+        app->view_words[field] = read_i32_le(payload + field * 4u);
+    app->scene_destination = {app->view_words[0], app->view_words[1],
+                              app->view_words[2], app->view_words[3]};
+    app->scene_source = {app->view_words[4], app->view_words[5],
+                         app->view_words[6], app->view_words[7]};
+    record(app, "scene_view_loaded bytes=%zu viewport=%d,%d,%d,%d source=%d,%d,%d,%d "
+           "third_rect=%d,%d,%d,%d",
+           length, app->scene_destination.left, app->scene_destination.top,
+           app->scene_destination.right, app->scene_destination.bottom,
+           app->scene_source.left, app->scene_source.top,
+           app->scene_source.right, app->scene_source.bottom,
+           app->view_words[8], app->view_words[9],
+           app->view_words[10], app->view_words[11]);
     return true;
 }
 
@@ -1085,6 +1644,7 @@ static int native_action_sound_handler(
         return SCENE_ACTION_HANDLER_ERROR;
     app->captions.action_caption_attempted = false;
     app->captions.action_caption_lookup_attempted = false;
+    app->captions.action_caption_present_succeeded = false;
     ActionSoundAction action{};
     action.type = info->type;
     action.subtype = info->subtype;
@@ -1108,8 +1668,10 @@ static int native_action_sound_handler(
         info->typed_body_length >= 48u &&
         (info->typed_body[46] != 0u || info->typed_body[47] != 0u);
     const bool caption_gate = status == ACTION_SOUND_ERR_UNSUPPORTED &&
-        (app->captions.action_caption_attempted ||
-         app->captions.action_caption_lookup_attempted) &&
+        ((app->captions.action_caption_attempted &&
+          !app->captions.action_caption_present_succeeded) ||
+         (app->captions.action_caption_lookup_attempted &&
+          !app->captions.action_caption_attempted)) &&
         action.captions_enabled != 0u && action.scene_dispatch_argument != 0u &&
         has_selector;
     record(app, "scene_action_sound row=%zu phase=%u kernel_status=%d "
@@ -1148,6 +1710,14 @@ static SceneSessionCallbackStatus prepare_native_session_tick(
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || conditions == nullptr || frame_input == nullptr ||
         failure == nullptr) return SCENE_SESSION_CALLBACK_ERROR;
+    if (app->captions.transfer_failed_sticky) {
+        failure->stage = SCENE_SESSION_STAGE_PREPARE;
+        failure->provider = SCENE_SESSION_PROVIDER_CAPTION;
+        failure->action_index = SIZE_MAX;
+        failure->action_type = 0u;
+        failure->detail_status = app->captions.last_lifecycle_status;
+        return SCENE_SESSION_CALLBACK_BLOCKED;
+    }
     std::memset(conditions, 0, sizeof(*conditions));
     conditions->event_flags = app->new_game.action_core.event_flags;
     conditions->event_flag_count = app->new_game.action_core.event_flag_count;
@@ -1243,6 +1813,17 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || frame_input == nullptr || failure == nullptr)
         return SCENE_SESSION_CALLBACK_ERROR;
+    if (app->captions.transfer_failed_sticky) {
+        failure->stage = SCENE_SESSION_STAGE_MEDIA;
+        failure->provider = SCENE_SESSION_PROVIDER_CAPTION;
+        failure->action_index = SIZE_MAX;
+        failure->detail_status = CAPTION_COMPOSITOR_ERR_UNSUPPORTED;
+        return SCENE_SESSION_CALLBACK_BLOCKED;
+    }
+    ++app->captions.transfer_tick;
+    app->captions.transfer_attempts = 0u;
+    app->captions.transfer_successes = 0u;
+    app->captions.transfer_blocked = false;
     if (app->video != nullptr) {
         BinkPlayerFrame next{};
         char error[256] = {};
@@ -1270,6 +1851,15 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
         }
     }
     frame_input->current_frame = app->scene_current_frame;
+    if (!seed_native_caption_backbuffer(app)) {
+        failure->stage = SCENE_SESSION_STAGE_MEDIA;
+        failure->provider = SCENE_SESSION_PROVIDER_CAPTION;
+        failure->action_index = SIZE_MAX;
+        failure->detail_status = CAPTION_COMPOSITOR_ERR_BOUNDS;
+        record(app, "caption_backbuffer_seed_failed scene=%d frame=%d",
+               app->current_scene_id, app->scene_current_frame);
+        return SCENE_SESSION_CALLBACK_BLOCKED;
+    }
     return SCENE_SESSION_CALLBACK_OK;
 }
 
@@ -1346,7 +1936,8 @@ static bool create_native_scene_session(NativeApp *app)
            "world=borrowed lifetime=app-owned transition=opaque-tuple-retained "
            "clock=world-clock-normal+timer-records post-clock-gates=guarded "
            "pointer_transform=unverified caption_writer=bound-RGB555 "
-           "caption_transfer=unavailable audio_provider=unavailable",
+           "caption_transfer=bound-RGB555-Frame-plus-decoded-background "
+           "audio_provider=unavailable",
            app->current_scene_id,
            (unsigned long long)scene_session_scene_generation(app->session),
            phone_count);
@@ -1471,7 +2062,13 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
     record(app, "scene_frame_decoded width=%u height=%u frame=%d codec=native-FFmpeg original-Bink-equivalence=unverified",
            app->scene_frame.width, app->scene_frame.height, app->scene_current_frame);
     app->has_scene_frame = true;
-    if (!render_scene_preview(app)) { app->has_scene_frame = false; return false; }
+    if (!render_scene_preview(app) ||
+        (app->scene_runtime_enabled &&
+         (!seed_native_caption_backbuffer(app) ||
+          !native_caption_present_rgba(app)))) {
+        app->has_scene_frame = false;
+        return false;
+    }
     record(app, "scene_preview viewport=%d,%d,%d,%d actions=not-executed audio=absent",
         app->scene_destination.left, app->scene_destination.top,
         app->scene_destination.right, app->scene_destination.bottom);
@@ -1833,11 +2430,18 @@ static void update(NativeApp *app, uint32_t now)
             if (app->platform) blackmoor_macos_stop(app->platform);
             return;
         }
-        if (app->has_scene_frame && !render_scene_preview(app)) {
-            app->failure = true;
-            record(app, "scene_session_render_error scope=decoded-background-only");
-            if (app->platform) blackmoor_macos_stop(app->platform);
-            return;
+        if (session_result.media_succeeded != 0u &&
+            session_result.tick_index != 0u &&
+            session_result.tick_index != app->captions.composed_session_tick) {
+            /* A frozen session returns its last result on later host updates.
+             * Do not replay its completed media/composition side effects. */
+            app->captions.composed_session_tick = session_result.tick_index;
+            if (!native_caption_finish_tick(app, session_result.dispatch_attempted)) {
+                app->failure = true;
+                record(app, "scene_session_render_error scope=caption-Frame-decoded-background");
+                if (app->platform) blackmoor_macos_stop(app->platform);
+                return;
+            }
         }
         if (app->platform && !blackmoor_macos_present(app->platform,
                 app->framebuffer.data(), app->framebuffer.size(), 640 * 4)) {
@@ -2085,6 +2689,24 @@ int main(int argc, char **argv)
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
             if (argument == "--inspect-scene-runtime") { inspect_only = inspect_scene_runtime = true; continue; }
             if (argument == "--inspect-session-boundary") { inspect_only = inspect_session_boundary = true; continue; }
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+            if (argument == "--test-caption-reset-after-compose") {
+                app.captions.test_reset_after_composition = true;
+                continue;
+            }
+            if (argument == "--test-caption-reseed-visible") {
+                app.captions.test_reseed_visible_caption = true;
+                continue;
+            }
+            if (argument == "--test-caption-fail-blit") {
+                if (i + 1 == argc) { std::fprintf(stderr, "Missing argument value\n"); return 2; }
+                char *end = nullptr;
+                const unsigned long index = std::strtoul(argv[++i], &end, 10);
+                if (!*argv[i] || *end || index == 0u || index > UINT32_MAX) return 2;
+                app.captions.test_fail_blit_index = (uint32_t)index;
+                continue;
+            }
+#endif
             if (i + 1 == argc) { std::fprintf(stderr, "Missing argument value\n"); return 2; }
             const char *value = argv[++i];
             if (argument == "--game-dir") app.game_directory = value;
@@ -2096,6 +2718,22 @@ int main(int argc, char **argv)
                 app.stop_after = (uint32_t)duration;
             } else { std::fprintf(stderr, "Unknown option: %s\n", argument.c_str()); return 2; }
         }
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+        if ((app.captions.test_fail_blit_index != 0u ||
+             app.captions.test_reset_after_composition ||
+             app.captions.test_reseed_visible_caption) && !inspect_session_boundary) {
+            std::fprintf(stderr, "Caption test hooks require --inspect-session-boundary\n");
+            return 2;
+        }
+        if ((app.captions.test_reset_after_composition &&
+             app.captions.test_reseed_visible_caption) ||
+            (app.captions.test_fail_blit_index != 0u &&
+             (app.captions.test_reset_after_composition ||
+              app.captions.test_reseed_visible_caption))) {
+            std::fprintf(stderr, "Caption test probes must run separately\n");
+            return 2;
+        }
+#endif
         app.scene_runtime_enabled = !inspect_only || inspect_session_boundary;
         if (log_path.empty()) {
             NSString *directory = NSTemporaryDirectory();
