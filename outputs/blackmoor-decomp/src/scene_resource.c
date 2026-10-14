@@ -123,6 +123,8 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x6e: fixed_length = 1u;  break; /* 0x40e250 copies one byte (A-6E.1) */
+    case 0x79: fixed_length = 2u;  break; /* 0x4e9add copies one word (A-79.1) */
     case 0x64: fixed_length = 5u;  break; /* constructor 0x40b34a copies exactly five bytes */
     case 0x6b: fixed_length = 40u; break; /* AT_EVENTFLAGS */
     case 0x51: {
@@ -294,6 +296,77 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             return -1;
         }
         *body_length = 71u + (size_t)count * 16u;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x3e: {
+        int16_t primary_count;
+        size_t secondary_count;
+        size_t cursor = 178u;
+        size_t entry;
+
+        /* 0x41c7f4 with the 0x3e prefix arm: 178-byte prefix (five 33-byte
+         * name/key fields at 0, 33, 66, 101 and 136), signed word primary
+         * count at +176, low-signed-byte condition counts (high byte skipped).
+         * Negative counts and unterminated names are native safety rejections,
+         * mirrored from action_family_3e_decode. */
+        if (length < cursor) {
+            return -1;
+        }
+        if (memchr(body, 0, 33u) == NULL || memchr(body + 33u, 0, 33u) == NULL ||
+            memchr(body + 66u, 0, 33u) == NULL || memchr(body + 101u, 0, 33u) == NULL ||
+            memchr(body + 136u, 0, 33u) == NULL) {
+            return -1;
+        }
+        primary_count = read_i16le(body + 176u);
+        if (primary_count < 0) {
+            return -1;
+        }
+        for (entry = 0u; entry < (size_t)primary_count; ++entry) {
+            size_t count;
+            size_t extent;
+            if (length - cursor < 2u) {
+                return -1;
+            }
+            count = body[cursor];
+            if (count > 127u) {
+                return -1;
+            }
+            extent = 70u + 5u * count;
+            if (extent > length - cursor) {
+                return -1;
+            }
+            if (memchr(body + cursor + 2u + 5u * count, 0, 33u) == NULL ||
+                memchr(body + cursor + 35u + 5u * count, 0, 33u) == NULL) {
+                return -1;
+            }
+            cursor += extent;
+        }
+        if (length - cursor < 2u) {
+            return -1;
+        }
+        secondary_count = body[cursor];
+        if (secondary_count > 127u) {
+            return -1;
+        }
+        cursor += 2u;
+        for (entry = 0u; entry < secondary_count; ++entry) {
+            size_t count;
+            size_t extent;
+            if (length - cursor < 2u) {
+                return -1;
+            }
+            count = body[cursor];
+            if (count > 127u) {
+                return -1;
+            }
+            extent = 6u + 5u * count;
+            if (extent > length - cursor) {
+                return -1;
+            }
+            cursor += extent;
+        }
+        *body_length = cursor;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
