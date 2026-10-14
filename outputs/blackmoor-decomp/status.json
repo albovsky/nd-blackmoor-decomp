@@ -134,8 +134,8 @@
     "caption_renderer": true
   },
   "next_action_recovery": {
-    "typed_actions": 11017,
-    "opaque_actions": 8595,
+    "typed_actions": 15397,
+    "opaque_actions": 4215,
     "next_body_candidates": [
       "0x62",
       "0x35",
@@ -148,7 +148,8 @@
       "frame/hotspot input and delayed transitions",
       "remaining control code1 and NLS paths",
       "timed video and remaining scene handlers"
-    ]
+    ],
+    "superseded_note": "Counts refreshed 2026-10-14 to match native_scene_resource_parser. next_body_candidates is a historical list: 0x62 is already typed and 0x37 is registered; 0x38 and 0x3f remain opaque. Packets now active: A-97.1, A-A1.1, A-35.1."
   },
   "native_conditions": {
     "supported_opcodes": [
