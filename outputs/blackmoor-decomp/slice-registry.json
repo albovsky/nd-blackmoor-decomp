@@ -908,6 +908,26 @@
       "parent": "A-35",
       "raw_type": "0x35",
       "records": 113
+    },
+    {
+      "id": "A-38.1",
+      "title": "Action 0x38: body boundary and isolated decoder",
+      "packet": "tasks/A-38.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-38",
+      "raw_type": "0x38",
+      "records": 425
+    },
+    {
+      "id": "A-3F.1",
+      "title": "Action 0x3f: body boundary and isolated decoder",
+      "packet": "tasks/A-3F.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-3F",
+      "raw_type": "0x3f",
+      "records": 493
     }
   ]
 }
