@@ -120,6 +120,7 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x15: fixed_length = 20u; break; /* original decoder consumes 20 bytes */
     case 0x1d: fixed_length = 8u;  break; /* AT_CONTROL */
     case 0x4d: fixed_length = 4u;  break; /* AT_SET_VALUE */
+    case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
     case 0x64: fixed_length = 5u;  break; /* constructor 0x40b34a copies exactly five bytes */
@@ -185,6 +186,62 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
                 return -1;
             }
             *body_length = (size_t)selector + 0x30u;
+        }
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x97: {
+        int16_t count;
+        size_t offset;
+        size_t sum = 0u;
+        size_t entry;
+
+        /* 0x40f532..0x40fd17: signed count at +0 (original accepts < 10;
+         * zero/negative counts are unsafe there and rejected here), n 33-byte
+         * names from +2, 13 neutral bytes, then n selector entries. A -1
+         * entry consumes 0x23 bytes, a non-negative one 2 + selector; the
+         * original narrows the entry sum to int16, so reject sums above it. */
+        if (length < 2u) {
+            return -1;
+        }
+        count = read_i16le(body);
+        if (count < 1 || count > 9) {
+            return -1;
+        }
+        offset = 15u + 33u * (size_t)count;
+        for (entry = 0u; entry < (size_t)count; ++entry) {
+            int16_t selector;
+            if (length < offset + sum + 2u) {
+                return -1;
+            }
+            selector = read_i16le(body + offset + sum);
+            if (selector == -1) {
+                sum += 35u;
+            } else if (selector >= 0) {
+                sum += 2u + (size_t)selector;
+            } else {
+                return -1;
+            }
+            if (sum > (size_t)INT16_MAX) {
+                return -1;
+            }
+        }
+        *body_length = offset + sum;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0xa1: {
+        int16_t selector;
+        if (length < 51u) {
+            return -1;
+        }
+        selector = read_i16le(body + 49u);
+        if (selector == -1) {
+            *body_length = 84u; /* 0x40f0cd key form: 0x2743 - 0x26ef */
+        } else if (selector >= 0 && selector <= 9999) {
+            *body_length = 51u + (size_t)selector;
+        } else {
+            return -1;
         }
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;

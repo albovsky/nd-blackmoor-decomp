@@ -1026,6 +1026,32 @@ class SceneExecutorTests(unittest.TestCase):
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)
 
+    def test_raw_37_typed_boundary_without_handler_is_explicit_and_inert(self):
+        # Raw 0x37 has a recovered 69-byte body boundary (A-37.2) but no
+        # execution handler: creation succeeds and dispatch must fail loudly.
+        scene, _storage = self.open_scene([action(0x37, 1, bytes(69))])
+        world, flags = self.world()
+        status, executor, _ = self.create_executor(scene, world)
+        self.assertEqual(status, OK)
+        try:
+            status, info = self.step(executor, self.condition_state(world))
+            self.assertEqual((status, info.failed_action_index,
+                              info.failed_action_type), (ERR_UNSUPPORTED, 0, 0x37))
+            self.assertEqual((info.actions_applied, world.difficulty, list(flags)),
+                             (0, 0, [0] * 8))
+            self.assertEqual(self.action_state(executor, 0).completed, 0)
+        finally:
+            self.lib.scene_executor_destroy(executor)
+            self.lib.scene_resource_close(scene)
+
+    def test_raw_37_non_multiple_of_16_tail_is_rejected_by_resource_parser(self):
+        raw = scene_bytes([action(0x37, 1, bytes(70))])
+        storage = (c.c_uint8 * len(raw)).from_buffer_copy(raw)
+        error = c.create_string_buffer(256)
+        scene = self.lib.scene_resource_open_memory(storage, len(raw), error, len(error))
+        self.assertFalse(scene)
+        self.assertIn(b"invalid ACT", error.value)
+
     def test_opaque_action_fails_creation_without_fake_eligibility(self):
         scene, _storage = self.open_scene([action(0xFE, 1, b"opaque")])
         world, _flags = self.world()
