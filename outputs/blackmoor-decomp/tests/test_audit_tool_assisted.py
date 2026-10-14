@@ -458,6 +458,12 @@ class AuditorMutants(unittest.TestCase):
         report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "jmp.d8 L_", "jmp.d8 . + 0x0 + L_") if False else self.edit(w, va, "call FUN_" + f"{BASE + fixture.F_LEAF:08x}", "call . + 0x20"))
         self.rejected(report, va, "direct branch operand")
 
+    def test_unnamed_frame_offset_in_an_insn_line_is_rejected(self) -> None:
+        reasons, _facts = audit.audit_source(
+            "# FUN_00401000\n# frame:        ebp\nFUN_00401000:\n    .insn 0x6681/7, dword ptr [ebp - 0x4], 1{:s16}\n    ret\n", {}, "FUN_00401000"
+        )
+        self.assertTrue(any("unnamed [ebp" in r for r in reasons), reasons)
+
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
         tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)

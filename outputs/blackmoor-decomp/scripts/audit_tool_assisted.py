@@ -227,6 +227,20 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
     last_code_mnemonic = ""
     ebp_frame = header.get("frame") == "ebp"
     placeholder_frame_names: set[str] = set()
+    def check_ebp(code: str, number: int) -> None:
+        if not ebp_frame:
+            return
+        for operand in re.findall(r"\[([^\]]*)\]", code):
+            if "ebp" not in operand:
+                continue
+            stripped = re.sub(r"(?<![\w.])[1248]\*", "", operand)
+            if _NUMBER.search(stripped) or re.search(r"0[xXbBoO]", stripped):
+                reasons.append(f"line {number}: unnamed [ebp±n] offset in [{operand}]")
+            for token in re.findall(r"[A-Za-z_]\w*", operand):
+                if _DEFAULT_FRAME_NAME.match(token) and token not in placeholder_frame_names:
+                    placeholder_frame_names.add(token)
+                    reasons.append(f"line {number}: frame offset uses placeholder name {token}")
+
     set_symbols: set[str] = set()
     for line in lines:
         code = line.code
@@ -292,6 +306,7 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
                 else:
                     code_lines.append(line)
                     last_code_mnemonic = ".insn"
+                    check_ebp(code, line.number)
                 continue
             if state == "data" and data_kind == "SWTAB" and _SWTAB_LONG.match(code):
                 continue
@@ -337,17 +352,7 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             named = re.search(r"-> ((?:FUN|LOC)_[0-9a-f]{8})(?: # ([0-9a-f]{8}))?", line.raw)
             if not named or named.group(1) not in set_symbols:
                 reasons.append(f"line {line.number}: short branch to another function names no defined .set symbol")
-        if ebp_frame:
-            for operand in re.findall(r"\[([^\]]*)\]", code):
-                if "ebp" not in operand:
-                    continue
-                stripped = re.sub(r"(?<![\w.])[1248]\*", "", operand)
-                if _NUMBER.search(stripped) or re.search(r"0[xXbBoO]", stripped):
-                    reasons.append(f"line {line.number}: unnamed [ebp±n] offset in [{operand}]")
-                for token in re.findall(r"[A-Za-z_]\w*", operand):
-                    if _DEFAULT_FRAME_NAME.match(token) and token not in placeholder_frame_names:
-                        placeholder_frame_names.add(token)
-                        reasons.append(f"line {line.number}: frame offset uses placeholder name {token}")
+        check_ebp(code, line.number)
     if not entry_seen:
         reasons.append(f"function label {code_symbol} is missing")
     if not globl_seen:

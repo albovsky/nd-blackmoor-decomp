@@ -537,14 +537,14 @@ def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] =
         fill = image.text[tail - image.base]
         if fill in (0xCC, 0x90):
             end = tail
-            while end < span_end and image.text[end - image.base] == fill and end not in by_start:
+            while end < span_end and image.text[end - image.base] == fill and end not in by_start and (end == tail or end not in layout.external_targets):
                 end += 1
             layout.data.append(DataItem("padding", tail, end - tail, fill=fill))
             tail = end
             continue
         pad_lines: list[str] = []
         end = tail
-        while end < span_end and end not in by_start:
+        while end < span_end and end not in by_start and (end == tail or end not in layout.external_targets):
             found = nop_like(image.text, end - image.base)
             if found is None or end + found[0] > span_end:
                 break
