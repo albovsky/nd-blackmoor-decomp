@@ -2,7 +2,13 @@
 
 Owner objective: reconstruct the original game as buildable source, prove a whole-file x86 matching rebuild, and deliver a playable native ARM64 macOS game. A static preview, diagnostic run or passing helper tests does not satisfy that objective.
 
-Use GPT-6 Luna at Max for Codex workers (`gpt-6-luna`, `max`); never dispatch GPT-5.6 Luna. The owner explicitly authorizes Claude as an external worker. Root orchestrates assignments, independent review, commit collection and verification; delegate implementation to workers. Parallel agents are authorized for independent slices. One designated integration worker owns shared parser/dispatcher/app files at a time, under root coordination. Each worker reads its packet under `outputs/blackmoor-decomp/tasks/` and obeys the ownership map in `WORK-SLICES.md`.
+Claude Code is root. The root session (Claude Opus) plans, writes packets, assigns slices, runs or arranges independent review, collects reviewed commits onto `main` and keeps the status documents honest. Implementation is delegated:
+
+- Claude Sonnet at high effort, through the `slice-implementer` subagent in `.claude/agents/`, in its own git worktree.
+- Codex as an additional worker, always `gpt-6.1-sol` at `xhigh` (`codex exec -m gpt-6.1-sol -c model_reasoning_effort=xhigh`). Never dispatch a Luna model.
+- Independent review uses the `slice-reviewer` subagent against a frozen commit; root accepts or rejects its findings before collection. A reviewer never reviews its own implementation.
+
+Parallel agents are authorized for independent slices. One designated integration owner edits shared parser/dispatcher/app files at a time, under root coordination; root may take that role itself. Each worker reads its packet under `outputs/blackmoor-decomp/tasks/` and obeys the ownership map in `WORK-SLICES.md`.
 
 Read `outputs/blackmoor-decomp/PROJECT-SPEC.md` before implementing. Read `outputs/blackmoor-decomp/status.json` for current coverage. For original-code recovery, read the local REA skill at `work/tools/rea/node_modules/rea-agents/skills/reverse-engineer-anything/SKILL.md`; use REA/Ghidra evidence plus immutable original bytes, and distinguish pseudocode from reconstructed source.
 

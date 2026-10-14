@@ -1,16 +1,23 @@
-# Reconstruction coordination — paused
+# Reconstruction coordination
 
-Owner requested stop after finishing the collected slice. Verified code3b858e6: build passes;497 tests pass, two skip. All Codex workers have stopped; their follow-on checkpoints are saved. No new assignments should start until the owner resumes.
+Work has resumed under Claude Code as root (2026-10-13).
+- **Root:** Claude Opus. It plans, writes packets, reviews and collects onto `main`.
+- **Implementers:** Claude Sonnet (high) `slice-implementer` subagents, and Codex `gpt-6.1-sol` (xhigh).
+- **Independent review:** the `slice-reviewer` subagent, with root acceptance.
+
+The verified main code baseline is `3b858e6`: build passes, 497 tests pass and 2 skip.
 
 | Work | State |
 |---|---|
-| Caption transfers | Reviewed c190550, collectedae7a66a; actual S0 caption pixels render; live audio remains the next blocker |
-| A-37.2 constructor | Reviewed936fdc3/7eb18bd, collectedd458b03/65cc9ad; complete bounded child; parent runtime/drawing incomplete |
-| S08-4 input consumers | Reviewed5483b78, collected3b858e6;96 exact bytes; live integration incomplete |
-| A-37.3 runtime discovery | Paused; static-only handoff; no runtime oracle or implementation |
-| S04-2.2 stream kernel | Paused; untested header/C fixture drafts preserved; no implementation/build/oracle |
-| Boot audio host exploration | Finished read-only proposal and escalated offline diagnostic; no live provider implemented |
-| Claude S03 work | External; pause brief saved for relay; session stop not confirmed |
-| Whole game / whole-file rebuild | Incomplete |
+| S03-1 AVF decoder | `bb38ef6`: root review found one P2 (declared key-frame size vs conversion footprint); repair in progress |
+| S03-2 AVF playback kernel | `9f27cf5` (on `bb38ef6`); independent review findings fixed; needs the S03-1 repair and root's API doc amendments, then collection |
+| Caption transfers | Collected (`ae7a66a`); live audio is the next S0 blocker |
+| A-37.2 constructor | Collected (`d458b03`/`65cc9ad`); parent runtime/drawing incomplete |
+| S08-4 input consumers | Collected (`3b858e6`); 96 exact bytes; live integration incomplete |
+| A-37.3 runtime discovery | Paused; static-only handoff |
+| S04-2.2 stream kernel | Paused; untested header/C fixture drafts; next live blocker (S0 row 31 audio) |
+| Whole game / whole-file rebuild | Incomplete (398 exact bytes) |
 
-[Pause report](PAUSE-REPORT.md), [current evidence](CURRENT-INTEGRATION.md), [Claude pause brief](CLAUDE-PAUSE-BRIEF.md). Progress map remains frozen to its earlier302-byte snapshot; current reviewed exact-byte total398 is in the report/status. GUI/hardware audio remains unverified while locked.
+The main working tree has an uncommitted `progress-map/index.html` change that predates the takeover and is not root's. It looks like an older regeneration (exact-assembly tiles removed) and is left uncollected pending the owner's decision.
+
+GUI and hardware audio remain unverified while the Mac is locked.

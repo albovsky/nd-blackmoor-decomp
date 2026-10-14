@@ -27,7 +27,15 @@ All remaining action-family packets are in `tasks/A-*.md`; each raw family has o
 
 ## Current integration assignment
 
-Owner requested pause after the collected slice. All Codex workers have stopped. Caption transfer, A-37.2 decoder/constructor and S08-4 input consumers are reviewed/collected. A-37.3 static discovery and S04-2.2 protocol drafts are saved and incomplete. Claude is external; the [pause relay brief](CLAUDE-PAUSE-BRIEF.md) is saved but session stop is unconfirmed. No new slice should start until the owner resumes. See [pause report](PAUSE-REPORT.md) for verified source and next blockers.
+The owner resumed work with Claude Code as root on 2026-10-13. Root (Claude Opus) plans, reviews and collects. Implementers are Claude Sonnet (high) subagents, defined in `.claude/agents/slice-implementer.md`, and Codex `gpt-6.1-sol` (xhigh). Independent review uses `.claude/agents/slice-reviewer.md`.
+
+First assignment: finish S03.
+1. Apply root's S03-1 decoder repair (`CLAUDE-S03-1-REVIEW-FIX.md`).
+2. Propagate it into S03-2, applying root's API amendments (`CLAUDE-S03-2-API-DECISION.md`).
+3. Run an independent review.
+4. Collect onto main.
+
+A-37.3 and S04-2.2 stay paused; S04-2.2 is the live-audio blocker at S0 row 31 and is the likely next slice. See `COORDINATION-STATUS.md`.
 
 ## Ownership and coordination
 
