@@ -64,6 +64,11 @@ class RepoEvidenceTests(unittest.TestCase):
                 self.assertLessEqual(va + size, r["end_va"])
         self.assertEqual(sum(u.get("function_count", 0) for u in self.model["units"]), 4188)
 
+    def test_progress_json_is_compact_and_round_trips(self):
+        text = (self.out / "progress.json").read_text()
+        self.assertLess(text.count("\n"), 400)
+        self.assertEqual(json.loads(text), self.model)
+
     def test_html_is_offline_and_embeds_the_model(self):
         html = (self.out / "index.html").read_text()
         self.assertNotIn("__DATA__", html)

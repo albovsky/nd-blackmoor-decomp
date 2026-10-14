@@ -400,6 +400,19 @@ def pct(n, d):
     return f"{p:.2f}%"
 
 
+def dump_model(model: dict) -> str:
+    """One line per top-level key and per unit/group/range, so diffs stay readable."""
+    compact = lambda v: json.dumps(v, separators=(",", ":"))
+    lines = []
+    for key, val in model.items():
+        if isinstance(val, list):
+            body = ",\n".join("  " + compact(item) for item in val)
+            lines.append(f' "{key}": [\n{body}\n ]' if val else f' "{key}": []')
+        else:
+            lines.append(f' "{key}": {compact(val)}')
+    return "{\n" + ",\n".join(lines) + "\n}\n"
+
+
 def write_report(model, path: Path):
     t = model["totals"]
     ev = model["evidence"]
@@ -556,8 +569,7 @@ def main(argv=None) -> int:
         return 2
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    (args.out_dir / "progress.json").write_text(
-        json.dumps(model, indent=1) + "\n", encoding="utf-8")
+    (args.out_dir / "progress.json").write_text(dump_model(model), encoding="utf-8")
     write_report(model, args.out_dir / "REPORT.md")
     write_html(model, HERE / "template.html", args.out_dir / "index.html")
     t = model["totals"]
