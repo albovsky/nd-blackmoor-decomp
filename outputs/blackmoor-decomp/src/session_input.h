@@ -19,7 +19,8 @@ typedef enum SessionInputStatus {
 typedef enum SessionInputEvent {
     SESSION_INPUT_MOVE = 0,
     SESSION_INPUT_PRIMARY_DOWN = 1,
-    SESSION_INPUT_PRIMARY_UP = 2
+    SESSION_INPUT_PRIMARY_UP = 2,
+    SESSION_INPUT_PRIMARY_DBLCLK = 3
 } SessionInputEvent;
 
 typedef struct SessionInputRect {
@@ -36,18 +37,25 @@ typedef struct SessionInputState {
 typedef struct SessionInputContext {
     /* Original comparison rectangle at 0x583182+4 and composed cursor
      * rectangle at 0x583102. Both inclusive, in the same logical space.
-     * cursor is a displayed sprite rectangle, NOT a WM_MOUSEMOVE point. */
+     * cursor is a displayed sprite rectangle, NOT a WM_MOUSEMOVE point.
+     * Cursor endpoint ordering is not validated: the original accepts an
+     * inside-viewport right=left-1 rectangle and projects from its left/top. */
     SessionInputRect viewport;
     SessionInputRect cursor;
-    /* Selected 0x5b30cc/0x5b30d0 pair AFTER 4f0059's inventory selection. */
+    /* Selected 0x5b30cc/0x5b30d0 pair AFTER 4f0059's inventory selection.
+     * Index [5b44f0] / variant [5b44f4] are persisted provider state: no item
+     * resets both to 0; a selected item normally preserves the variant, and
+     * a generic hit sets it to 1 for later projections. Supply the actual
+     * pair at index*16 + variant*8, not an assumed zero/constant hot point. */
     int32_t hot_x, hot_y;
     int32_t scroll_y;           /* 0x5bb587. No horizontal scroll add here. */
     int32_t cursor_mode;        /* 0x583204 at the consumer/scan. */
     uint32_t modal_event;       /* 0x5c39e9. Zero/nonzero, not a bool enum. */
     uint32_t producer_disabled; /* 0x5839a9: clears candidate at scan only. */
     /* Required evidence/readiness declarations for a needed generic scan.
-     * Missing evidence returns a named limit,
-     * without changing the latch, candidate or frame. No permissive defaults.
+     * Missing evidence returns a named limit. Scan preserves state; tick has
+     * already consumed the edge and preserves candidate/frame on a limit.
+     * No permissive defaults.
      * geometry_ready includes the original screen-to-logical adapter, cursor
      * polling/warp/size/clamp/render lifecycle and selected hot-point source.
      * priority_clear means 4f0059's earlier UI/puzzle/navigation paths are
@@ -69,7 +77,11 @@ typedef struct SessionInputHotspot {
 typedef void (*SessionInputMessageTail)(void *context, SessionInputEvent event,
                                        uint32_t flags, int32_t x, int32_t y);
 
+/* Latch constructor 4dad60 plus candidate=-1. Call on every scene replacement:
+ * loaders 435015/4381f4/43dbe3 reconstruct the latch and reset 5c39e5=-1 and
+ * 5c39e9=0. The caller must also reset its external modal_event to 0. */
 int session_input_init(SessionInputState *state);
+/* PRIMARY_DBLCLK sets latch +8=1; subsequent UP events do nothing until DOWN. */
 int session_input_feed(SessionInputState *state, SessionInputEvent event,
                        uint32_t flags, int32_t logical_x, int32_t logical_y,
                        SessionInputMessageTail tail, void *tail_context);
@@ -82,6 +94,11 @@ int session_input_feed(SessionInputState *state, SessionInputEvent event,
  * Activation uses the retained candidate at CONSUMER time. It is independent
  * of this tick's pointer validity and modal bit (the executor checks modal).
  * Do not call on preparation/media failure before the consumer is reached.
+ * Projection limits/invalid geometry still consume; candidate and frame are
+ * preserved on that return. Null arguments and state/frame overlap do not.
+ * Candidate acceptance assumes the intervening 43b1d7..43bfb6 UI body leaves
+ * it unchanged. Active writers (e.g. 44d604/4574cd) require a separate provider
+ * and publication at the activation boundary; this API does not run that body.
  * frame must not overlap state. Context is snapshotted before any mutation. */
 int session_input_tick(SessionInputState *state, const SessionInputContext *context,
                        SceneExecutorFrameInput *frame);

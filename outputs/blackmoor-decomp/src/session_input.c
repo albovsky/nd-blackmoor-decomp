@@ -45,12 +45,18 @@ static int project(const SessionInputContext *context,
         return SESSION_INPUT_OK;
     if (context->geometry_ready == 0)
         return SESSION_INPUT_LIMIT_CURSOR_GEOMETRY;
-    if (!valid_rect(&context->cursor) || !valid_rect(&context->viewport))
+    if (!valid_rect(&context->viewport))
         return SESSION_INPUT_INVALID_ARGUMENT;
-    if (context->cursor.right < context->viewport.left ||
-        context->cursor.left > context->viewport.right ||
-        context->cursor.bottom < context->viewport.top ||
-        context->cursor.top > context->viewport.bottom)
+    /* Original compares both endpoints; it does not validate cursor ordering.
+     * In particular a right=left-1 sprite inside the viewport still projects. */
+    if ((context->cursor.left < context->viewport.left &&
+         context->cursor.right < context->viewport.left) ||
+        (context->cursor.left > context->viewport.right &&
+         context->cursor.right > context->viewport.right) ||
+        (context->cursor.top < context->viewport.top &&
+         context->cursor.bottom < context->viewport.top) ||
+        (context->cursor.top > context->viewport.bottom &&
+         context->cursor.bottom > context->viewport.bottom))
         return SESSION_INPUT_OK;
     if (context->priority_clear == 0)
         return SESSION_INPUT_LIMIT_PRIORITY_PATH;
@@ -78,7 +84,7 @@ int session_input_feed(SessionInputState *state, SessionInputEvent event,
 {
     InputLatchStateView view;
     InputLatchStatus status;
-    if (state == NULL || event < SESSION_INPUT_MOVE || event > SESSION_INPUT_PRIMARY_UP)
+    if (state == NULL || event < SESSION_INPUT_MOVE || event > SESSION_INPUT_PRIMARY_DBLCLK)
         return SESSION_INPUT_INVALID_ARGUMENT;
     view.bytes = state->latch;
     view.length = sizeof(state->latch);
@@ -88,8 +94,14 @@ int session_input_feed(SessionInputState *state, SessionInputEvent event,
         status = input_latch_move(&view, flags, &point);
     } else if (event == SESSION_INPUT_PRIMARY_DOWN) {
         status = input_latch_down(&view, flags, 0);
-    } else {
+    } else if (event == SESSION_INPUT_PRIMARY_UP) {
         status = input_latch_up(&view, flags, 0, (uint32_t)state->candidate);
+    } else {
+        /* 43ecc0 -> 4db04f: only +8 is set. UP leaves the entire latch alone
+         * while inhibited; only a subsequent DOWN clears this field. */
+        uint32_t inhibited = 1;
+        memcpy(state->latch + 8, &inhibited, sizeof(inhibited));
+        status = INPUT_LATCH_OK;
     }
     if (status != INPUT_LATCH_OK) return SESSION_INPUT_INVALID_ARGUMENT;
     if (tail != NULL) tail(tail_context, event, flags, logical_x, logical_y);
@@ -115,12 +127,14 @@ int session_input_tick(SessionInputState *state, const SessionInputContext *cont
          frame_start < state_start + sizeof(*state)))
         return SESSION_INPUT_INVALID_ARGUMENT;
     snapshot = *context;
-    status = project(&snapshot, &projected);
-    if (status != SESSION_INPUT_OK) return status;
     view.bytes = state->latch;
     view.length = sizeof(state->latch);
     if (input_consume_field0(&view, &consumed) != INPUT_CONSUME_OK)
         return SESSION_INPUT_INVALID_ARGUMENT;
+    /* Projection readiness is an adapter limit, never a reason to retain an
+     * edge after execution has reached the original unconditional consumer. */
+    status = project(&snapshot, &projected);
+    if (status != SESSION_INPUT_OK) return status;
     /* 43b199 consume precedes 43b1a6 mode switch and 43bfb6 range/modal gate.
      * producer_disabled suppresses only the subsequent scan, not this event. */
     projected.hotspot_activation_event = consumed != 0 &&

@@ -93,9 +93,10 @@ class SessionInputTests(unittest.TestCase):
         self.assertEqual(self.state.candidate, 34)
 
     def test_viewport_offset_hot_point_scroll(self):
+        self.ctx.viewport.top = 23
         self.ctx.hot_x, self.ctx.hot_y, self.ctx.scroll_y = 3, -2, 19
         f = self.tick()
-        self.assertEqual((f.pointer_x, f.pointer_y), (433, 262))
+        self.assertEqual((f.pointer_x, f.pointer_y), (433, 249))
         self.assertEqual(f.pointer_valid, 1)
 
     def test_outside_and_inclusive_sprite_overlap(self):
@@ -186,18 +187,67 @@ class SessionInputTests(unittest.TestCase):
         self.scan(a, b)
         self.assertEqual(self.state.candidate, -1)
 
-    def test_named_limits_are_atomic_and_do_not_consume(self):
-        self.arm(); self.feed(2)
-        for field, status in (('geometry_ready', 2), ('priority_clear', 3)):
-            setattr(self.ctx, field, 0)
-            before = bytes(self.state)
-            f = Frame(5, 6, 7, 8, 9, 10, 11)
-            old = bytes(f)
-            self.assertEqual(self.api.session_input_tick(c.byref(self.state), c.byref(self.ctx),
-                                                         c.byref(f)), status)
-            self.assertEqual((bytes(self.state), bytes(f)), (before, old))
-            setattr(self.ctx, field, 1)
+    def test_double_click_inhibits_releases_until_down(self):
+        self.arm(); self.feed(1); self.feed(2)
         self.assertEqual(self.tick().hotspot_activation_event, 1)
+        self.feed(3)
+        self.assertEqual(word(self.state, 8), 1)
+        self.assertEqual(self.effects[-1][0], 3)
+        for _ in range(2):
+            self.feed(2)
+            self.assertEqual(self.tick().hotspot_activation_event, 0)
+            self.assertEqual(word(self.state, 8), 1)
+        self.feed(1)
+        self.assertEqual(word(self.state, 8), 0)
+        self.feed(2)
+        self.assertEqual(self.tick().hotspot_activation_event, 1)
+        # DBLCLK stores only +8: an already pending first release still consumes.
+        self.feed(2); self.feed(3)
+        self.assertEqual(self.tick().hotspot_activation_event, 1)
+
+    def test_projection_limits_consume_without_replay(self):
+        for field, status in (('geometry_ready', 2), ('priority_clear', 3)):
+            with self.subTest(field=field):
+                self.ctx = context()
+                self.arm(); self.feed(1); self.feed(2)
+                setattr(self.ctx, field, 0)
+                f = Frame(5, 6, 7, 8, 9, 10, 11)
+                old = bytes(f)
+                self.assertEqual(self.api.session_input_tick(c.byref(self.state), c.byref(self.ctx),
+                                                             c.byref(f)), status)
+                self.assertEqual(bytes(f), old)
+                self.assertEqual((word(self.state, 0), word(self.state, 12)), (0, 0))
+                self.assertEqual(self.state.candidate, 34)
+                setattr(self.ctx, field, 1)
+                self.assertEqual(self.tick().hotspot_activation_event, 0)
+                # Scan limits still preserve the candidate and latch.
+                setattr(self.ctx, field, 0)
+                self.feed(2)
+                before = bytes(self.state)
+                self.assertEqual(self.api.session_input_scan(c.byref(self.state), c.byref(self.ctx),
+                                                             None, 0), status)
+                self.assertEqual(bytes(self.state), before)
+                setattr(self.ctx, field, 1)
+                self.assertEqual(self.tick().hotspot_activation_event, 1)
+
+    def test_degenerate_cursor_uses_original_overlap(self):
+        self.ctx.cursor.right = self.ctx.cursor.left - 1
+        f = self.tick()
+        self.assertEqual((f.pointer_valid, f.pointer_x, f.pointer_y), (1, 430, 245))
+        self.arm()
+        self.assertEqual(self.state.candidate, 34)
+
+    def test_active_is_a_dword_nonzero_predicate(self):
+        for active, want in ((0, -1), (1, 34), (2, 34), (256, 34), (0xffffffff, 34)):
+            self.scan(Hotspot(34, Rect(388, 225, 492, 284), active))
+            self.assertEqual(self.state.candidate, want)
+
+    def test_scene_replacement_resets_inhibit_candidate_and_edge(self):
+        self.arm(); self.feed(2); self.feed(3)
+        self.assertEqual(self.api.session_input_init(c.byref(self.state)), 0)
+        self.assertEqual(bytes(self.state.latch), bytes(32))
+        self.assertEqual(self.state.candidate, -1)
+        self.assertEqual(self.tick().hotspot_activation_event, 0)
 
     def test_malformed_arguments_and_rectangles(self):
         self.assertEqual(self.api.session_input_init(None), 1)
@@ -242,7 +292,7 @@ int main(void) {
     assert(session_input_init(&state) == 0);
     for (size_t n = 0; n < 50000; ++n) {
         memset(&context, 0, sizeof(context));
-        context.viewport = (SessionInputRect){10, 10, 629, 384};
+        context.viewport = (SessionInputRect){10, 23, 629, 397};
         int32_t x = signed_word(), y = signed_word();
         context.cursor = (SessionInputRect){x, y, x, y};
         context.hot_x = signed_word(); context.hot_y = signed_word();
@@ -256,17 +306,21 @@ int main(void) {
         if (n % 3 == 0) assert(session_input_publish_candidate(&state, (int32_t)(random_word() % 242) - 1) == 0);
         if (n % 7 == 0) state.latch[8] = (uint8_t)(random_word() % 2);
         before = state;
-        int event = (int)(random_word() % 6) - 1;
+        int event = (int)(random_word() % 7) - 1;
         int status = session_input_feed(&state, (SessionInputEvent)event,
                                        random_word(), x, y, NULL, NULL);
         if (status != 0) assert(memcmp(&state, &before, sizeof(state)) == 0);
         memset(&frame, 0x7a, sizeof(frame)); old_frame = frame; before = state;
         status = session_input_tick(&state, &context, &frame);
         assert(frame.current_frame == old_frame.current_frame);
-        if (status != 0) {
-            assert(memcmp(&state, &before, sizeof(state)) == 0);
-            assert(memcmp(&frame, &old_frame, sizeof(frame)) == 0);
+        uint32_t edge;
+        memcpy(&edge, before.latch, sizeof(edge));
+        if (edge != 0) {
+            memset(before.latch, 0, 4);
+            memset(before.latch + 12, 0, 4);
         }
+        assert(memcmp(&state, &before, sizeof(state)) == 0);
+        if (status != 0) assert(memcmp(&frame, &old_frame, sizeof(frame)) == 0);
         size_t count = random_word() % 242;
         for (size_t i = 0; i < 241; ++i) {
             spots[i].index = (int32_t)i;
