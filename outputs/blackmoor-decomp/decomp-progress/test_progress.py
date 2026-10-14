@@ -65,16 +65,16 @@ class RepoEvidenceTests(unittest.TestCase):
         committed = json.loads((HERE / "progress.json").read_text())["playable"]
         self.assertEqual(p, committed, "Refresh progress after changes to live registrations or evidence")
         self.assertEqual(p["scene_total"], 2078)
-        self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)]])
+        self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
         self.assertEqual(p["stop"]["action_type"], "0x35")
         self.assertEqual(p["stop"]["row"], 3)
-        self.assertEqual(p["tests"], {"discovered": 774, "passed": 769, "skipped": 5,
+        self.assertEqual(p["tests"], {"discovered": 899, "passed": 894, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 18951)
-        self.assertEqual(a["opaque"]["records"], 661)
+        self.assertEqual(a["typed"]["records"], 19259)
+        self.assertEqual(a["opaque"]["records"], 353)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -109,8 +109,8 @@ class RepoEvidenceTests(unittest.TestCase):
         report = (self.out / "REPORT.md").read_text()
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700", report)
-        self.assertIn("provider scene-resource", report)
-        self.assertIn("774 discovered; 769 passed; 5 skipped", report)
+        self.assertIn("provider action-kernel", report)
+        self.assertIn("899 discovered; 894 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
         t = self.model["totals"]
@@ -706,10 +706,10 @@ class RegistrationDriftTests(unittest.TestCase):
 
     def test_new_parser_layout_moves_opaque_records_to_typed(self):
         self.change("src/scene_resource.c", "default:\n        return 0;",
-                    "case 0x3e: fixed_length = 1u; break;\n    default:\n        return 0;")
+                    "case 0x45: fixed_length = 1u; break;\n    default:\n        return 0;")
         changed = GEN.PLAYABLE.derive_actions(self.out)
-        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 202)
-        self.assertIn("0x3e", changed["unsupported"]["types"])
+        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 32)
+        self.assertIn("0x45", changed["unsupported"]["types"])
         self.assertNotEqual(changed, self.original)
 
     def test_stale_committed_test_totals_are_rejected(self):
