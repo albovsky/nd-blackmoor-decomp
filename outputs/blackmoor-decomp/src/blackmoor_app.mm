@@ -1519,7 +1519,7 @@ static bool copy_rectangle(NativeApp *app, const HostImage &source,
     return true;
 }
 
-/* A macOS left mouseDown with clickCount 2 is the WM_LBUTTONDBLCLK the
+/* A macOS left mouseDown with an even clickCount is the WM_LBUTTONDBLCLK the
  * original receives instead of the second WM_LBUTTONDOWN. The platform layer
  * (not owned by this slice) passes only DOWN/UP/MOVE, so the count is read
  * from the event being dispatched; headless runs have none and report 1. The
@@ -1550,7 +1550,7 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     if (event_kind == BLACKMOOR_POINTER_MOVE || button == 0) {
         SessionInputEvent input_event = SESSION_INPUT_MOVE;
         if (event_kind == BLACKMOOR_POINTER_DOWN)
-            input_event = (current_left_click_count() == 2) ? SESSION_INPUT_PRIMARY_DBLCLK
+            input_event = (current_left_click_count() % 2u == 0u) ? SESSION_INPUT_PRIMARY_DBLCLK
                                                             : SESSION_INPUT_PRIMARY_DOWN;
         else if (event_kind == kPointerDoubleClick) input_event = SESSION_INPUT_PRIMARY_DBLCLK;
         else if (event_kind == BLACKMOOR_POINTER_UP) input_event = SESSION_INPUT_PRIMARY_UP;
@@ -3645,7 +3645,7 @@ static void synthetic_a62_accept(NativeApp *app)
             return;
         }
         record(app, "test_a62_synthetic_accept result=phase2 row=%d coordinates=%d,%d "
-               "pointer_path=not-implemented(RT-2)", scan.candidate_action_index,
+               "pointer_path=session_input(RT-6)", scan.candidate_action_index,
                request.coordinate_a, request.coordinate_b);
         app->test_a62_accept_done = true;
         return;

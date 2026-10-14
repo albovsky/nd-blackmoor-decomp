@@ -128,7 +128,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         contents = log.read_text()
         ordered = (
             'test_a62_synthetic_accept result=phase2 row=7 coordinates=5,5 '
-            'pointer_path=not-implemented(RT-2)',
+            'pointer_path=session_input(RT-6)',
             'scene_session_transition_pending source=5900 target=4700',
             'scene_exit_requested state=4 effect_busy=1 effect_type=2 effect_stage=0',
             'scene_exit_capture which=source status=0 canvas=620x375',
@@ -320,14 +320,14 @@ class NativeCaptionTransferTests(unittest.TestCase):
         # alone leaves the run on its natural path; the accepted release stores
         # phase 2 through the single candidate and the row ends the scene.
         hover = self.run_live('--live-scene-row', '5900:7', '--live-hover-only',
-                              '--live-ticks', '3000', returncode=1)
+                              '--live-ticks', '3000', returncode=0)
         self.assert_in_order(hover, (
             'live_session_hover row=7 rect=0,0,10,10 window=15,15',
             'pointer_candidate candidate=7 rows=1 cursor=15,15',
             'scene_transition_applied source=5900 target=5907'))
         self.assertNotIn('live_session_click row=7', hover)
         click = self.run_live('--live-scene-row', '5900:7', '--live-ticks', '3000',
-                              returncode=1)
+                              returncode=0)
         self.assert_in_order(click, (
             'live_session_hover row=7 rect=0,0,10,10 window=15,15',
             'pointer_candidate candidate=7 rows=1 cursor=15,15',
@@ -335,7 +335,8 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'pointer_consume status=0 edge=1 candidate=7 activation=1 modal=0 mode=0 '
             'provisional-geometry=1 projected=5,5 valid=1',
             'scene_session_transition_pending source=5900 target=4700',
-            'scene_transition_error source=5900 target=4700'))
+            'scene_transition_applied source=5900 target=4700',
+            'scene_session_blocked stage=3 provider=action-kernel action=3 type=0x35'))
 
     def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
         # RT-4: the dependency leaves are wired, so the run no longer stops at
