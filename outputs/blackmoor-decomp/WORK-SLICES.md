@@ -2,7 +2,7 @@
 
 The earlier S0 diagnostic slice is complete; persistent live scene integration remains incomplete. The complete game remains unfinished. This catalogue covers every currently observed unimplemented raw action family, plus world/media/audio/caption/conditions/save/matching work and the later integration gates.
 
-Permanent project: `/Users/albovsky/Projects/blackmoor-reconstruction`.
+Permanent project: `/Users/albovsky/Projects/nd-blackmoor-decomp`.
 
 ## First work wave
 

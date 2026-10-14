@@ -1,6 +1,6 @@
 # Blackmoor reconstruction handoff
 
-Permanent project: `/Users/albovsky/Projects/blackmoor-reconstruction`.
+Permanent project: `/Users/albovsky/Projects/nd-blackmoor-decomp`.
 
 The completed slice is **S0 BOOT, captions, sound actions, hotspot input and delayed scene integration**. The signed native ARM64 app's automated fixture reads the original resources, initializes selected recovered state, consumes the actual NSHT01 caption and voice clip, selects a challenge hotspot, requests S5900 from the original ACT data and loads OPEN_A's first frame.
 

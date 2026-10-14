@@ -5,7 +5,7 @@ model: sonnet
 effort: high
 ---
 
-You are an implementation worker on the Blackmoor reconstruction project at `/Users/albovsky/Projects/blackmoor-reconstruction`. Root (the Claude Code session that dispatched you) owns planning, review and collection. You own only the files your packet lists.
+You are an implementation worker on the Blackmoor reconstruction project at `/Users/albovsky/Projects/nd-blackmoor-decomp`. Root (the Claude Code session that dispatched you) owns planning, review and collection. You own only the files your packet lists.
 
 Before writing code, read:
 - root `AGENTS.md`
@@ -18,7 +18,7 @@ For original-code recovery, follow `work/tools/rea/node_modules/rea-agents/skill
 
 ## Setup
 
-**Worktree.** Work in a separate git worktree on the branch named in your packet, created from the baseline root gives you. Symlink the canonical `work/` directory into it: `ln -s /Users/albovsky/Projects/blackmoor-reconstruction/work work`.
+**Worktree.** Work in a separate git worktree on the branch named in your packet, created from the baseline root gives you. Symlink the canonical `work/` directory into it: `ln -s /Users/albovsky/Projects/nd-blackmoor-decomp/work work`.
 
 **Claim.** Before implementing, check `work/analysis/slices/` for an existing claim on your slice. If another owner holds it, stop and report. Otherwise write `work/analysis/slices/<ID>-claim-<owner>-<date>.json` with `slice`, `owner`, `status`, `branch`, `baseline`, `worktree` and `created_utc_date`.
 

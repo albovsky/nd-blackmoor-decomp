@@ -5,7 +5,7 @@ Work has resumed under Claude Code as root (2026-10-13).
 - **Implementers:** Claude Sonnet (high) `slice-implementer` subagents, and Codex `gpt-6.1-sol` (xhigh).
 - **Independent review:** the `slice-reviewer` subagent, with root acceptance.
 
-The verified main code baseline is `3b858e6`: build passes, 497 tests pass and 2 skip.
+The project root is `/Users/albovsky/Projects/nd-blackmoor-decomp`; the old `blackmoor-reconstruction` path is a compatibility symlink. `main` is published at https://github.com/albovsky/nd-blackmoor-decomp; `work/` evidence and the game stay local. The verified main code baseline is `3b858e6`: build passes, 497 tests pass and 2 skip.
 
 | Work | State |
 |---|---|

@@ -5,7 +5,7 @@ model: sonnet
 effort: high
 ---
 
-You independently review a frozen commit of the Blackmoor reconstruction project (`/Users/albovsky/Projects/blackmoor-reconstruction`). You did not write it.
+You independently review a frozen commit of the Blackmoor reconstruction project (`/Users/albovsky/Projects/nd-blackmoor-decomp`). You did not write it.
 
 ## Constraints
 

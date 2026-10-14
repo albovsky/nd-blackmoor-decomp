@@ -1,5 +1,5 @@
 {
-  "destination": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "destination": "/Users/albovsky/Projects/nd-blackmoor-decomp",
   "source": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave",
   "method": "rename complete project tree; retain real old chat directory with child compatibility references",
   "private_evidence_and_tools_retained": true,
@@ -11,7 +11,7 @@
   "critical_files_hashed_before_and_after": 129,
   "all_critical_hashes_preserved": true,
   "old_path_is_compatibility_symlink": false,
-  "canonical_project_root": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "canonical_project_root": "/Users/albovsky/Projects/nd-blackmoor-decomp",
   "git_directory_preserved": true,
   "old_path_is_compatibility_directory": true,
   "compatibility_note": "Real old chat directory with child references; symlinked writable roots are not supported by the sandbox.",
@@ -23,5 +23,9 @@
   },
   "permanent_project_full_suite_passed": true,
   "git_baseline_commit": "e288cd3eb42d8cf5cf90e40691ea2d63c6842f97",
-  "git_generated_files_excluded_at_head": true
+  "git_generated_files_excluded_at_head": true,
+  "previous_root": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "previous_root_is_compatibility_symlink": true,
+  "renamed_utc_date": "2026-10-13",
+  "github": "https://github.com/albovsky/nd-blackmoor-decomp (public)"
 }

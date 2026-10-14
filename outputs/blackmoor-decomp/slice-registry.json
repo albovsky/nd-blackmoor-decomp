@@ -1,5 +1,5 @@
 {
-  "project_root": "/Users/albovsky/Projects/blackmoor-reconstruction",
+  "project_root": "/Users/albovsky/Projects/nd-blackmoor-decomp",
   "worker_model": "gpt-6-luna",
   "reasoning_effort": "max",
   "current_slice_complete": true,
