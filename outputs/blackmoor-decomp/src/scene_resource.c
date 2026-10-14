@@ -123,6 +123,8 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x67: fixed_length = 1u;  break; /* 0x40d29f copies one byte (A-67.1) */
+    case 0x6f: fixed_length = 1u;  break; /* 0x40e314 copies one byte (A-6F.1) */
     case 0x6e: fixed_length = 1u;  break; /* 0x40e250 copies one byte (A-6E.1) */
     case 0x79: fixed_length = 2u;  break; /* 0x4e9add copies one word (A-79.1) */
     case 0x64: fixed_length = 5u;  break; /* constructor 0x40b34a copies exactly five bytes */
@@ -296,6 +298,32 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             return -1;
         }
         *body_length = 71u + (size_t)count * 16u;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x43: {
+        /* 0x41137f: 301-byte prefix; a nonzero byte at +265 selects the
+         * keyed form (33-byte key at +266), otherwise the inline text count
+         * at +299 extends the body. Unterminated key/text and negative counts
+         * are native safety rejections mirrored from action_family_43_decode. */
+        size_t typed_length = 301u;
+        if (length < typed_length) {
+            return -1;
+        }
+        if (body[0x109u] == 0u) {
+            int16_t count = read_i16le(body + 0x12bu);
+            if (read_i16le(body + 2u) > 2 || count < 0) {
+                return -1;
+            }
+            typed_length += (size_t)count;
+            if (length < typed_length ||
+                memchr(body + 301u, 0, (size_t)count) == NULL) {
+                return -1;
+            }
+        } else if (memchr(body + 0x10au, 0, 33u) == NULL) {
+            return -1;
+        }
+        *body_length = typed_length;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
