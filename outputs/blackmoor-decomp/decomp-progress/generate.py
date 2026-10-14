@@ -269,7 +269,9 @@ def account(units, atoms, evidence_rows, mode):
     """Fill per-atom code/data/matched figures from the evidence rows."""
     by_unit = {u["id"]: u for u in units}
     for u in units:
-        u.update(code=0, data=0, matched_code=0, matched_data=0, functions=[])
+        u.update(code=0, data=0, matched_code=0, matched_data=0, extent=0, functions=[])
+    for a in atoms:
+        by_unit[a["unit"]]["extent"] += a["size"]
     if mode == "baseline":
         matched = merge_intervals([(s, e) for s, e, *_ in evidence_rows])
         for a in atoms:
@@ -303,7 +305,10 @@ def account(units, atoms, evidence_rows, mode):
             if a["va"] is not None:
                 u["functions"].append([a["va"], a["size"], mc + md])
     for u in units:
-        u["size"] = u["code"] + u["data"]
+        # A unit keeps its full extent even when a partial ledger leaves bytes
+        # unclassified; those bytes render as not done.
+        u["size"] = u.pop("extent")
+        u["unclassified"] = u["size"] - u["code"] - u["data"]
         if u["kind"] == "data":
             u.pop("functions")
         else:
@@ -455,12 +460,15 @@ def write_report(model, path: Path):
               "exists in the repository today.",
               "- Referenced (not yet reconstructed) ranges are reported as not done, never as matched."]
     ver = ev.get("verification", {})
-    if ver.get("run"):
+    if ver.get("run") and ver.get("kind") == "composed image hash":
+        lines += ["", f"The composed image was hashed in this run and equals the pinned GAME.EXE "
+                  f"(`{ver['image_sha256']}`)."]
+    elif ver.get("run"):
         lines += ["", "Manifests re-verified against the original in this run with "
                   f"`scripts/verify_matches.py` (sha256 `{ver['verifier_sha256']}`): "
                   f"{', '.join(sorted(ver['manifests']))}, all exact."]
     else:
-        lines += ["", f"Manifests were **not** re-verified in this run ({ver.get('reason', 'not run')})."]
+        lines += ["", f"Evidence was **not** re-verified in this run ({ver.get('reason', 'not run')})."]
     ck = ev.get("crosscheck")
     if ck:
         lines += ["", f"Cross-check against `status.json` unique_matched_bytes "
@@ -492,16 +500,32 @@ def main(argv=None) -> int:
     ap.add_argument("--verify-root", type=Path,
                     help="directory holding the manifests and their build/ objects "
                          "(default: --evidence-dir); manifests must be byte-identical to the evidence copies")
+    ap.add_argument("--verify-image", type=Path, metavar="COMPOSED.EXE",
+                    help="with --ledger: the composer's output image; its SHA-256 must equal the "
+                         "pinned GAME.EXE hash or the run fails")
     ap.add_argument("--band-kib", type=int, default=16, help="code unit band size in KiB")
     args = ap.parse_args(argv)
 
+    if args.verify_image and not args.ledger:
+        print("error: --verify-image needs --ledger", file=sys.stderr)
+        return 2
     try:
         layout = load_layout(args.layout)
         index_path = args.evidence_dir / "function-index.json"
         index = load_json(index_path)
         if args.ledger:
             rows, meta = ledger_evidence(layout, args.ledger, args.allow_partial_ledger)
-            meta["verification"] = {"run": False, "reason": "ledger mode; the composer's whole-file hash is the check"}
+            if args.verify_image:
+                if not args.verify_image.is_file():
+                    raise ProgressError(f"composed image not found: {args.verify_image}")
+                got = sha256_file(args.verify_image)
+                if got != PINNED_SHA:
+                    raise ProgressError("--verify-image does not hash to the pinned GAME.EXE")
+                meta["verification"] = {"run": True, "kind": "composed image hash",
+                                        "image_sha256": got}
+            else:
+                meta["verification"] = {"run": False, "reason": "ledger not tied to a composed image; "
+                                        "pass --verify-image with the composer's output"}
         else:
             rows, meta = baseline_evidence(layout, args.evidence_dir)
             if args.verify_original:

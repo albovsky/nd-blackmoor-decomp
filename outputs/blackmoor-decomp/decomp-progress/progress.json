@@ -986,6 +986,7 @@
     ]
    ],
    "size": 19298,
+   "unclassified": 0,
    "function_count": 158,
    "functions_complete": 0
   },
@@ -1632,6 +1633,7 @@
     ]
    ],
    "size": 13564,
+   "unclassified": 0,
    "function_count": 126,
    "functions_complete": 0
   },
@@ -1893,6 +1895,7 @@
     ]
    ],
    "size": 32571,
+   "unclassified": 0,
    "function_count": 49,
    "functions_complete": 0
   },
@@ -1914,6 +1917,7 @@
     ]
    ],
    "size": 231,
+   "unclassified": 0,
    "function_count": 1,
    "functions_complete": 0
   },
@@ -2095,6 +2099,7 @@
     ]
    ],
    "size": 16273,
+   "unclassified": 0,
    "function_count": 33,
    "functions_complete": 0
   },
@@ -2226,6 +2231,7 @@
     ]
    ],
    "size": 18756,
+   "unclassified": 0,
    "function_count": 23,
    "functions_complete": 0
   },
@@ -2397,6 +2403,7 @@
     ]
    ],
    "size": 16875,
+   "unclassified": 0,
    "function_count": 31,
    "functions_complete": 0
   },
@@ -2518,6 +2525,7 @@
     ]
    ],
    "size": 20016,
+   "unclassified": 0,
    "function_count": 21,
    "functions_complete": 0
   },
@@ -2749,6 +2757,7 @@
     ]
    ],
    "size": 12827,
+   "unclassified": 0,
    "function_count": 43,
    "functions_complete": 0
   },
@@ -2925,6 +2934,7 @@
     ]
    ],
    "size": 20770,
+   "unclassified": 0,
    "function_count": 32,
    "functions_complete": 0
   },
@@ -3016,6 +3026,7 @@
     ]
    ],
    "size": 9576,
+   "unclassified": 0,
    "function_count": 15,
    "functions_complete": 0
   },
@@ -3127,6 +3138,7 @@
     ]
    ],
    "size": 16846,
+   "unclassified": 0,
    "function_count": 19,
    "functions_complete": 0
   },
@@ -3243,6 +3255,7 @@
     ]
    ],
    "size": 15410,
+   "unclassified": 0,
    "function_count": 20,
    "functions_complete": 0
   },
@@ -3319,6 +3332,7 @@
     ]
    ],
    "size": 18445,
+   "unclassified": 0,
    "function_count": 12,
    "functions_complete": 0
   },
@@ -3345,6 +3359,7 @@
     ]
    ],
    "size": 14853,
+   "unclassified": 0,
    "function_count": 2,
    "functions_complete": 0
   },
@@ -3581,6 +3596,7 @@
     ]
    ],
    "size": 17531,
+   "unclassified": 0,
    "function_count": 44,
    "functions_complete": 0
   },
@@ -3632,6 +3648,7 @@
     ]
    ],
    "size": 14984,
+   "unclassified": 0,
    "function_count": 7,
    "functions_complete": 0
   },
@@ -4018,6 +4035,7 @@
     ]
    ],
    "size": 17990,
+   "unclassified": 0,
    "function_count": 74,
    "functions_complete": 0
   },
@@ -4379,6 +4397,7 @@
     ]
    ],
    "size": 14512,
+   "unclassified": 0,
    "function_count": 69,
    "functions_complete": 0
   },
@@ -4645,6 +4664,7 @@
     ]
    ],
    "size": 16818,
+   "unclassified": 0,
    "function_count": 50,
    "functions_complete": 0
   },
@@ -4841,6 +4861,7 @@
     ]
    ],
    "size": 15993,
+   "unclassified": 0,
    "function_count": 36,
    "functions_complete": 0
   },
@@ -5117,6 +5138,7 @@
     ]
    ],
    "size": 17814,
+   "unclassified": 0,
    "function_count": 52,
    "functions_complete": 0
   },
@@ -5318,6 +5340,7 @@
     ]
    ],
    "size": 15573,
+   "unclassified": 0,
    "function_count": 37,
    "functions_complete": 0
   },
@@ -5469,6 +5492,7 @@
     ]
    ],
    "size": 17498,
+   "unclassified": 0,
    "function_count": 27,
    "functions_complete": 0
   },
@@ -5695,6 +5719,7 @@
     ]
    ],
    "size": 14693,
+   "unclassified": 0,
    "function_count": 42,
    "functions_complete": 0
   },
@@ -5951,6 +5976,7 @@
     ]
    ],
    "size": 16354,
+   "unclassified": 0,
    "function_count": 48,
    "functions_complete": 0
   },
@@ -6107,6 +6133,7 @@
     ]
    ],
    "size": 20041,
+   "unclassified": 0,
    "function_count": 28,
    "functions_complete": 0
   },
@@ -6308,6 +6335,7 @@
     ]
    ],
    "size": 13328,
+   "unclassified": 0,
    "function_count": 37,
    "functions_complete": 0
   },
@@ -6444,6 +6472,7 @@
     ]
    ],
    "size": 15994,
+   "unclassified": 0,
    "function_count": 24,
    "functions_complete": 0
   },
@@ -6675,6 +6704,7 @@
     ]
    ],
    "size": 19373,
+   "unclassified": 0,
    "function_count": 43,
    "functions_complete": 0
   },
@@ -6836,6 +6866,7 @@
     ]
    ],
    "size": 13142,
+   "unclassified": 0,
    "function_count": 29,
    "functions_complete": 0
   },
@@ -7097,6 +7128,7 @@
     ]
    ],
    "size": 19580,
+   "unclassified": 0,
    "function_count": 49,
    "functions_complete": 0
   },
@@ -7298,6 +7330,7 @@
     ]
    ],
    "size": 14087,
+   "unclassified": 0,
    "function_count": 37,
    "functions_complete": 0
   },
@@ -7504,6 +7537,7 @@
     ]
    ],
    "size": 15531,
+   "unclassified": 0,
    "function_count": 38,
    "functions_complete": 0
   },
@@ -7745,6 +7779,7 @@
     ]
    ],
    "size": 16368,
+   "unclassified": 0,
    "function_count": 45,
    "functions_complete": 0
   },
@@ -7971,6 +8006,7 @@
     ]
    ],
    "size": 16767,
+   "unclassified": 0,
    "function_count": 42,
    "functions_complete": 0
   },
@@ -8117,6 +8153,7 @@
     ]
    ],
    "size": 17260,
+   "unclassified": 0,
    "function_count": 26,
    "functions_complete": 0
   },
@@ -8173,6 +8210,7 @@
     ]
    ],
    "size": 28454,
+   "unclassified": 0,
    "function_count": 8,
    "functions_complete": 0
   },
@@ -8244,6 +8282,7 @@
     ]
    ],
    "size": 3037,
+   "unclassified": 0,
    "function_count": 11,
    "functions_complete": 0
   },
@@ -8335,6 +8374,7 @@
     ]
    ],
    "size": 16568,
+   "unclassified": 0,
    "function_count": 15,
    "functions_complete": 0
   },
@@ -8566,6 +8606,7 @@
     ]
    ],
    "size": 19945,
+   "unclassified": 0,
    "function_count": 43,
    "functions_complete": 0
   },
@@ -8772,6 +8813,7 @@
     ]
    ],
    "size": 15425,
+   "unclassified": 0,
    "function_count": 38,
    "functions_complete": 0
   },
@@ -9028,6 +9070,7 @@
     ]
    ],
    "size": 14026,
+   "unclassified": 0,
    "function_count": 48,
    "functions_complete": 0
   },
@@ -9214,6 +9257,7 @@
     ]
    ],
    "size": 16126,
+   "unclassified": 0,
    "function_count": 34,
    "functions_complete": 0
   },
@@ -9365,6 +9409,7 @@
     ]
    ],
    "size": 18261,
+   "unclassified": 0,
    "function_count": 27,
    "functions_complete": 0
   },
@@ -9661,6 +9706,7 @@
     ]
    ],
    "size": 16976,
+   "unclassified": 0,
    "function_count": 56,
    "functions_complete": 0
   },
@@ -9787,6 +9833,7 @@
     ]
    ],
    "size": 18179,
+   "unclassified": 0,
    "function_count": 22,
    "functions_complete": 0
   },
@@ -10103,6 +10150,7 @@
     ]
    ],
    "size": 12815,
+   "unclassified": 0,
    "function_count": 60,
    "functions_complete": 0
   },
@@ -10259,6 +10307,7 @@
     ]
    ],
    "size": 15474,
+   "unclassified": 0,
    "function_count": 28,
    "functions_complete": 0
   },
@@ -10410,6 +10459,7 @@
     ]
    ],
    "size": 16961,
+   "unclassified": 0,
    "function_count": 27,
    "functions_complete": 0
   },
@@ -10751,6 +10801,7 @@
     ]
    ],
    "size": 16331,
+   "unclassified": 0,
    "function_count": 65,
    "functions_complete": 0
   },
@@ -10942,6 +10993,7 @@
     ]
    ],
    "size": 18048,
+   "unclassified": 0,
    "function_count": 35,
    "functions_complete": 0
   },
@@ -11228,6 +11280,7 @@
     ]
    ],
    "size": 14632,
+   "unclassified": 0,
    "function_count": 54,
    "functions_complete": 0
   },
@@ -11449,6 +11502,7 @@
     ]
    ],
    "size": 16234,
+   "unclassified": 0,
    "function_count": 41,
    "functions_complete": 0
   },
@@ -11755,6 +11809,7 @@
     ]
    ],
    "size": 16176,
+   "unclassified": 0,
    "function_count": 58,
    "functions_complete": 11
   },
@@ -12046,6 +12101,7 @@
     ]
    ],
    "size": 16569,
+   "unclassified": 0,
    "function_count": 55,
    "functions_complete": 0
   },
@@ -12392,6 +12448,7 @@
     ]
    ],
    "size": 20168,
+   "unclassified": 0,
    "function_count": 66,
    "functions_complete": 0
   },
@@ -12628,6 +12685,7 @@
     ]
    ],
    "size": 13518,
+   "unclassified": 0,
    "function_count": 44,
    "functions_complete": 0
   },
@@ -12869,6 +12927,7 @@
     ]
    ],
    "size": 17013,
+   "unclassified": 0,
    "function_count": 45,
    "functions_complete": 0
   },
@@ -13120,6 +13179,7 @@
     ]
    ],
    "size": 20210,
+   "unclassified": 0,
    "function_count": 47,
    "functions_complete": 0
   },
@@ -13181,6 +13241,7 @@
     ]
    ],
    "size": 11417,
+   "unclassified": 0,
    "function_count": 9,
    "functions_complete": 0
   },
@@ -13437,6 +13498,7 @@
     ]
    ],
    "size": 15767,
+   "unclassified": 0,
    "function_count": 48,
    "functions_complete": 0
   },
@@ -13723,6 +13785,7 @@
     ]
    ],
    "size": 16048,
+   "unclassified": 0,
    "function_count": 54,
    "functions_complete": 0
   },
@@ -14009,6 +14072,7 @@
     ]
    ],
    "size": 17088,
+   "unclassified": 0,
    "function_count": 54,
    "functions_complete": 0
   },
@@ -14230,6 +14294,7 @@
     ]
    ],
    "size": 15888,
+   "unclassified": 0,
    "function_count": 41,
    "functions_complete": 0
   },
@@ -14396,6 +14461,7 @@
     ]
    ],
    "size": 17008,
+   "unclassified": 0,
    "function_count": 30,
    "functions_complete": 0
   },
@@ -14677,6 +14743,7 @@
     ]
    ],
    "size": 11552,
+   "unclassified": 0,
    "function_count": 53,
    "functions_complete": 0
   },
@@ -15543,6 +15610,7 @@
     ]
    ],
    "size": 16432,
+   "unclassified": 0,
    "function_count": 170,
    "functions_complete": 0
   },
@@ -16104,6 +16172,7 @@
     ]
    ],
    "size": 16413,
+   "unclassified": 0,
    "function_count": 109,
    "functions_complete": 0
   },
@@ -16550,6 +16619,7 @@
     ]
    ],
    "size": 18526,
+   "unclassified": 0,
    "function_count": 86,
    "functions_complete": 0
   },
@@ -17216,6 +17286,7 @@
     ]
    ],
    "size": 14238,
+   "unclassified": 0,
    "function_count": 130,
    "functions_complete": 0
   },
@@ -18167,6 +18238,7 @@
     ]
    ],
    "size": 16383,
+   "unclassified": 0,
    "function_count": 187,
    "functions_complete": 0
   },
@@ -18848,6 +18920,7 @@
     ]
    ],
    "size": 16519,
+   "unclassified": 0,
    "function_count": 133,
    "functions_complete": 0
   },
@@ -21174,6 +21247,7 @@
     ]
    ],
    "size": 16183,
+   "unclassified": 0,
    "function_count": 462,
    "functions_complete": 0
   },
@@ -22320,6 +22394,7 @@
     ]
    ],
    "size": 4868,
+   "unclassified": 0,
    "function_count": 226,
    "functions_complete": 0
   },
@@ -22333,7 +22408,8 @@
    "data": 4096,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 4096
+   "size": 4096,
+   "unclassified": 0
   },
   {
    "id": "text-tail",
@@ -22345,7 +22421,8 @@
    "data": 3494,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 3494
+   "size": 3494,
+   "unclassified": 0
   },
   {
    "id": "iat",
@@ -22357,7 +22434,8 @@
    "data": 1356,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 1356
+   "size": 1356,
+   "unclassified": 0
   },
   {
    "id": "rdata-a",
@@ -22369,7 +22447,8 @@
    "data": 41924,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 41924
+   "size": 41924,
+   "unclassified": 0
   },
   {
    "id": "import-dir",
@@ -22381,7 +22460,8 @@
    "data": 280,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 280
+   "size": 280,
+   "unclassified": 0
   },
   {
    "id": "rdata-b",
@@ -22393,7 +22473,8 @@
    "data": 7116,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 7116
+   "size": 7116,
+   "unclassified": 0
   },
   {
    "id": "rdata-pad",
@@ -22405,7 +22486,8 @@
    "data": 2572,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 2572
+   "size": 2572,
+   "unclassified": 0
   },
   {
    "id": "data",
@@ -22417,7 +22499,8 @@
    "data": 208896,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 208896
+   "size": 208896,
+   "unclassified": 0
   },
   {
    "id": "rsrc",
@@ -22429,7 +22512,8 @@
    "data": 26336,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 26336
+   "size": 26336,
+   "unclassified": 0
   },
   {
    "id": "rsrc-pad",
@@ -22441,7 +22525,8 @@
    "data": 2336,
    "matched_code": 0,
    "matched_data": 0,
-   "size": 2336
+   "size": 2336,
+   "unclassified": 0
   }
  ],
  "matched_ranges": [

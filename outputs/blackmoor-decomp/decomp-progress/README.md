@@ -50,6 +50,8 @@ M02 had not landed when this was written, and its coverage report format is not 
 
 Offsets are file offsets. `kind` is `code` or `data` (jump tables and `int 3` padding inside `.text` are `data`). `class` is `structured`, `reconstructed` or `referenced`, the packet's three classes. The ledger must tile the whole file without overlap; a `missing` range is rejected, and a gap is rejected unless `--allow-partial-ledger` is given (the gap is then reported as unclassified).
 
+A ledger is a claim, not proof. Pass `--verify-image COMPOSED.EXE` (the composer's output image): the run fails unless its SHA-256 equals the pinned `GAME.EXE` hash, and the report and page say whether that check ran. Without it the output states that the ledger was not tied to a composed image. A partial ledger keeps every unit's full extent; bytes it does not cover render as not done and are counted as unclassified.
+
 Accounting: `reconstructed` and `structured` bytes are matched, in the bar for their `kind`; `referenced` bytes are not done. Totals and unit denominators then come from the ledger itself, so code and data denominators become exact and the matched-data bar starts moving. Units stay the same bands and pieces, so the treemap does not change shape.
 
 ## Not covered

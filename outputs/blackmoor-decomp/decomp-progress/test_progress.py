@@ -231,6 +231,34 @@ class MiniFixture(unittest.TestCase):
         self.assertEqual(t["classified"], 0x100)
         self.assertEqual(t["unclassified"], 0x100)
         self.assertEqual(t["matched_data"], 0x100)
+        # every unit keeps its extent, so uncovered bytes still occupy tiles
+        self.assertEqual(sum(u["size"] for u in m["units"]), 0x200)
+        tail = next(u for u in m["units"] if u["id"] == "tail")
+        self.assertEqual((tail["size"], tail["unclassified"], tail["matched_data"]), (0xc0, 0xc0, 0))
+
+    def test_verify_image_requires_the_pinned_hash(self):
+        led = self.ledger(self.full_ranges())
+        img = self.dir / "image.exe"
+        img.write_bytes(b"not the game")
+        lay = self.layout_path
+        idx = self.dir / "function-index.json"
+        write(idx, self.index)
+        base = ["--layout", str(lay), "--evidence-dir", str(self.dir), "--ledger", str(led),
+                "--out-dir", str(self.dir / "out")]
+        self.assertEqual(GEN.main(base + ["--verify-image", str(img)]), 2)
+        self.assertEqual(GEN.main(["--layout", str(lay), "--evidence-dir", str(self.dir),
+                                   "--verify-image", str(img)]), 2)
+        self.assertEqual(GEN.main(base), 0)
+        out = json.loads((self.dir / "out" / "progress.json").read_text())
+        self.assertFalse(out["evidence"]["verification"]["run"])
+        real = GEN.PINNED_SHA
+        GEN.PINNED_SHA = GEN.sha256_file(img)
+        try:
+            self.assertEqual(GEN.main(base + ["--verify-image", str(img)]), 0)
+        finally:
+            GEN.PINNED_SHA = real
+        out = json.loads((self.dir / "out" / "progress.json").read_text())
+        self.assertTrue(out["evidence"]["verification"]["run"])
 
     def test_layout_gap_is_rejected(self):
         self.layout["data_pieces"][1]["size"] = 0xb0
