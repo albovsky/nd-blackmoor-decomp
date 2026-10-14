@@ -896,6 +896,16 @@
       "parent": "A-A1",
       "raw_type": "0xa1",
       "records": 565
+    },
+    {
+      "id": "A-35.1",
+      "title": "Action 0x35: body boundary and isolated decoder",
+      "packet": "tasks/A-35.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-35",
+      "raw_type": "0x35",
+      "records": 113
     }
   ]
 }
