@@ -1,6 +1,6 @@
 {
-  "generated_utc": "2026-10-14T00:18:27Z",
-  "source_ref": "8620612f0ad8e3b413cc944e3fa15c76a0e60dd8",
+  "generated_utc": "2026-10-14T00:29:52Z",
+  "source_ref": "a864b11e6c154f6b2a3449e06fb1ef22da3e0f08",
   "source_root_label": "blackmoor-reconstruction",
   "original": {
     "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
@@ -76353,8 +76353,8 @@
     },
     {
       "name": "matching-report.json",
-      "sha256": "1747c7b971ddabcdb4f622c7cd6e28ca7ff430e8ea90b955cb3a10a892ae6685",
-      "link": "../../../../../../../Projects/blackmoor-reconstruction/outputs/blackmoor-decomp/matching-report.json",
+      "sha256": "6729191b6b06cd77bb7ca59518c7236f4ad2411cba68a0a41b6cc327ce1f9f63",
+      "link": "evidence/matching-report.json",
       "note": "accepted: pinned original, manifest, and aggregate state verified; exact rows are checked individually"
     },
     {

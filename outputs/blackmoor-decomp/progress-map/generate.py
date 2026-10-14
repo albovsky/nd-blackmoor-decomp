@@ -7,6 +7,9 @@ EXPECTED_EXE = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45
 IMAGE_BASE = 0x400000
 U32_LIMIT = 0x100000000
 OUT = pathlib.Path("outputs/blackmoor-decomp/progress-map")
+MATCHING_REPORT = pathlib.Path("outputs/blackmoor-decomp/matching-report.json")
+MATCHING_REPORT_COPY = pathlib.Path("evidence/matching-report.json")
+MATCHING_REPORT_COPY_LIMIT = 64 * 1024
 SPECS = [
     ("hotspot-runtime", "S0 hotspot runtime", "outputs/blackmoor-decomp/hotspot-runtime-validation.json", None, "outputs/blackmoor-decomp/src/scene_executor.c", None),
     ("action-core", "Selected action-core handlers", "outputs/blackmoor-decomp/action-core-validation.json", None, "outputs/blackmoor-decomp/src/action_core.c", None),
@@ -795,11 +798,38 @@ def build_snapshot(project, evidence, generated_utc=None, artifact_root=None, as
     def output_link(path):
         path = pathlib.Path(path)
         try:
-            candidate = artifact_root / path.relative_to(project)
-            target = candidate if path.is_file() and candidate.is_file() and digest(path) == digest(candidate) else path
+            relative = path.relative_to(project)
         except ValueError:
-            target = path
-        return href(outdir, target)
+            return href(outdir, path)
+
+        # This small JSON report is metadata-only but can contain build-root
+        # paths that differ between the canonical source checkout and the
+        # managed artifact checkout. Preserve the exact source digest in a
+        # portable copy instead of linking to a differing local report or
+        # emitting a machine-specific path that breaks after collection.
+        if relative == MATCHING_REPORT and path.is_file():
+            if path.stat().st_size > MATCHING_REPORT_COPY_LIMIT:
+                return None
+            raw = path.read_bytes()
+            try:
+                if not isinstance(json.loads(raw), dict):
+                    return None
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                return None
+            target = outdir / MATCHING_REPORT_COPY
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if digest(target) != hashlib.sha256(raw).hexdigest():
+                target.write_bytes(raw)
+            return href(outdir, target)
+
+        candidate = artifact_root / relative
+        if path.is_file() and candidate.is_file() and digest(path) == digest(candidate):
+            return href(outdir, candidate)
+        # A project-relative URL would point at the intended canonical
+        # artifact after collection, but it cannot be verified against the
+        # source bytes in this checkout. Omit such links rather than attach a
+        # stale or machine-specific target to the source digest.
+        return None
     index_path = project / "outputs/blackmoor-decomp/function-index.json"
     index = load(index_path)
     if not index.get("functions") or index.get("original_sha256") != EXPECTED_EXE:

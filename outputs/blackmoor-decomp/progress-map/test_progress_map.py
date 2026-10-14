@@ -2,6 +2,7 @@ import hashlib
 import importlib.util
 import json
 import pathlib
+import shutil
 import tempfile
 import unittest
 
@@ -644,6 +645,37 @@ class ProgressMapDataTests(unittest.TestCase):
                     else:
                         self.assertTrue(resolved.is_relative_to(evidence.resolve()))
                     self.assertEqual(hashlib.sha256(resolved.read_bytes()).hexdigest(), expected_hash)
+
+    def test_relocated_matching_report_link_copies_exact_source_metadata_when_artifact_differs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            project, evidence = self.fixture(root)
+            source_path = project / GEN.MATCHING_REPORT
+            source_report = json.loads(source_path.read_text(encoding="utf-8"))
+            source_report["source"] = str(project / "build-root" / "matching.bin")
+            self.write_json(source_path, source_report)
+            source_bytes = source_path.read_bytes()
+            source_sha = hashlib.sha256(source_bytes).hexdigest()
+
+            artifact = root / "collected-checkout"
+            shutil.copytree(project / "outputs", artifact / "outputs")
+            artifact_report_path = artifact / GEN.MATCHING_REPORT
+            artifact_report = json.loads(artifact_report_path.read_text(encoding="utf-8"))
+            artifact_report["source"] = "/old-managed-worktree/build/matching.bin"
+            self.write_json(artifact_report_path, artifact_report)
+            self.assertNotEqual(hashlib.sha256(artifact_report_path.read_bytes()).hexdigest(), source_sha)
+
+            data = GEN.build_snapshot(project, evidence, "2026-10-13T00:00:00Z", artifact_root=artifact)
+            binding = next(row for row in data["report_bindings"] if row["name"] == "matching-report.json")
+            outdir = artifact / GEN.OUT
+            linked_path = (outdir / binding["link"]).resolve()
+
+            self.assertEqual(binding["sha256"], source_sha)
+            self.assertEqual(binding["link"], GEN.MATCHING_REPORT_COPY.as_posix())
+            self.assertTrue(linked_path.is_relative_to(outdir.resolve()))
+            self.assertEqual(linked_path.read_bytes(), source_bytes)
+            self.assertEqual(hashlib.sha256(linked_path.read_bytes()).hexdigest(), binding["sha256"])
+            self.assertTrue(data["matching_validation"]["valid"])
 
     def test_source_match_does_not_hide_native_library_mismatch(self):
         with tempfile.TemporaryDirectory() as tmp:

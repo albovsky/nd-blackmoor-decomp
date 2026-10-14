@@ -1,14 +1,14 @@
 {
-  "checked_utc": "2026-10-14T00:21:24.127Z",
-  "source_ref": "8620612f0ad8e3b413cc944e3fa15c76a0e60dd8",
-  "generated_utc": "2026-10-14T00:18:27Z",
+  "checked_utc": "2026-10-14T00:30:02.554Z",
+  "source_ref": "a864b11e6c154f6b2a3449e06fb1ef22da3e0f08",
+  "generated_utc": "2026-10-14T00:29:52Z",
   "browser": "cached Chromium headless shell; local file:// only",
   "desktop": {
     "title": "Blackmoor · Local Decompilation Map",
     "tiles": 4187,
     "assemblyTiles": 9,
     "unknown": 1,
-    "source": "SOURCE 8620612f0ad8 · 2026-10-14T00:18:27Z",
+    "source": "SOURCE a864b11e6c15 · 2026-10-14T00:29:52Z",
     "mapTop": 640.6875,
     "mapBottom": 1420.6875,
     "viewport": 1700,
@@ -56,11 +56,11 @@
     "mobile": "preview-mobile.png"
   },
   "screenshot_sha256": {
-    "preview-headless.png": "040498c9fee0b9b3d59a10002b3539bc1892f79242bf172274c1f422bec3b077",
-    "preview-exact-inspector.png": "51c58facbb2f187f950f383d8688189687da8cb0233cba945511ca9560731162",
-    "preview-quarantine-inspector.png": "cdd56b593c37a63fd711c71dac4dfbbc225d2f860774fbd2a1079e2669c6e7d1",
-    "preview-mobile.png": "d423d7f5e770ad4a4b4e0dc6ce9dbbb2e422f40430ae7efc64151a0cb49658ae"
+    "preview-headless.png": "dd79f2978c1f01b57c3e16267ed833a4fd4b89b445714061e39160af631c0803",
+    "preview-exact-inspector.png": "5ba3552a41411b4a983a3901a02e47ffe25746bd57987651a83345c4bf0706f8",
+    "preview-quarantine-inspector.png": "47e0a2bdf34689c959a0745d46d86bf6c982963c3a4fea2e68d298f3b050ffe0",
+    "preview-mobile.png": "59d9589cc69db11553ff40f7886450a197a559a02000f5526153af308b942ebf"
   },
-  "snapshot_sha256": "a4e3b0d2fea79e2e2ddbacd6abf6b39eed35fd2379903be95e2af820972f4d6e",
-  "index_sha256": "b58a4c3c72b689b74938a485d90fd9725c264775f3b8ce8ecd006e861f4a1b4c"
+  "snapshot_sha256": "0811237e691af192b5e37fe14a6f303bc49c84a63168cb266c92ced2ea894fc0",
+  "index_sha256": "dde0cda8a2ec87526b97a96407d18cbcf2dff92f1678bb4e8311b3a5429fbe03"
 }

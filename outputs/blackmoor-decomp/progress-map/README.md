@@ -28,6 +28,6 @@ C and C++ compiler-generated candidates remain separate mismatch evidence: six C
 
 This view adapts a selected oracle-report subset only. S01, S02, A28, A51, coreCIF, HIFF, and pixels reports are omitted from those oracle metrics. The omission panel lists the selected adapters. Assembly-match families are separately pinned and included in the exact-byte map.
 
-The snapshot records the source HEAD and each report, source, manifest, object, and assembler digest, including the effective supplied-object manifest binding. Report links resolve to their private evidence files; object bytes are never copied here. Current-source reproducibility does not establish historical provenance.
+The snapshot records the source HEAD and each report, source, manifest, object, and assembler digest, including the effective supplied-object manifest binding. If the canonical `matching-report.json` contains build-root metadata that differs from the output checkout, the generator keeps an exact, size-bounded metadata copy under `evidence/` so its link still resolves after collection and its SHA-256 still matches the recorded source. Report links resolve to their pinned evidence; object or resource bytes are never copied here. Current-source reproducibility does not establish historical provenance.
 
 The action-census count is omitted when its parser hash does not match current parser sources. Packet readiness and claim receipts are displayed separately. The coordination table may lag newer receipts. There is no live polling or generated history.
