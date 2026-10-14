@@ -68,6 +68,8 @@ class SceneExecutorFrameInput(c.Structure):
         ("cursor_context_allowed", c.c_uint8),
         ("modal_event_active", c.c_uint8),
         ("hotspot_activation_event", c.c_uint8),
+        ("activation_candidate_valid", c.c_uint8),
+        ("activation_candidate", c.c_int32),
     ]
 
 

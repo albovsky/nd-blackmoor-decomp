@@ -24,6 +24,7 @@
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
 #include "session_exit.h"
+#include "session_input.h"
 #include "caption_layout.h"
 #include "caption_lifecycle.h"
 #include "caption_compositor.h"
@@ -161,6 +162,28 @@ struct NativeNewGameState {
     }
 };
 
+/* RT-6: the ONE explicitly provisional cursor provider. The composed cursor
+ * sprite size, the selected hot point (table 0x5b30cc/0x5b30d0), the scroll
+ * word 0x5bb587 and the early UI/puzzle priority paths of 0x4f0059 are not
+ * recovered. These values reproduce the pre-RT-6 S0 numbers exactly: the
+ * sprite is the single pixel at the last WM_MOUSEMOVE point, the hot point is
+ * (0,0), scroll is 0, so the transformed cursor is (x - viewport.left,
+ * y - viewport.top) as before. They are NOT claimed to be the original
+ * values; every pointer log line says "provisional".
+ * The guards are the S0 values of the bytes/dword 4f0059 tests before it
+ * reaches its generic scan: [0x5b5158], [0x5b61af], [0x5b615e] (each cleared
+ * by ClearSceneData 0x43dd5e/0x43ddde/0x43ddbe; set only by action types
+ * 0x77, 0x76 and 0x75, which have no native handler so the session freezes
+ * before they could run) and [0x5a4c18] (reset by 0x4d3073 each update).
+ * The ~40 UI hit-test callees of that cascade are NOT individually verified. */
+struct ProvisionalCursorProvider {
+    int32_t sprite_width = 1, sprite_height = 1;
+    int32_t hot_x = 0, hot_y = 0;
+    int32_t scroll_y = 0;
+    uint8_t guard_5b5158 = 0, guard_5b61af = 0, guard_5b615e = 0;
+    int32_t result_5a4c18 = 0;
+};
+
 struct NativeApp {
     BlackmoorMacPlatform *platform = nullptr;
     GameResources *resources = nullptr;
@@ -229,6 +252,11 @@ struct NativeApp {
     int32_t post_clock_aux_value_61c7bd = 0;
     uint8_t closed_captioning = 0;
     int32_t pointer_x = -1, pointer_y = -1;
+    /* RT-6: the recovered pointer producer (RT-2). One retained candidate
+     * (0x5c39e5) lives in input_state; the session sequences it. */
+    SessionInputState input_state{};
+    ProvisionalCursorProvider cursor_provider{};
+    int32_t logged_candidate = -2;
     bool primary_down = false;
     bool primary_pressed = false, primary_released = false;
     bool failure = false;
@@ -1491,23 +1519,65 @@ static bool copy_rectangle(NativeApp *app, const HostImage &source,
     return true;
 }
 
+/* A macOS left mouseDown with an even clickCount is the WM_LBUTTONDBLCLK the
+ * original receives instead of the second WM_LBUTTONDOWN. The platform layer
+ * (not owned by this slice) passes only DOWN/UP/MOVE, so the count is read
+ * from the event being dispatched; headless runs have none and report 1. The
+ * scripted driver injects kPointerDoubleClick directly. */
+static const int kPointerDoubleClick = 3;
+
+static unsigned current_left_click_count()
+{
+    NSEvent *event = [NSApp currentEvent];
+    if (event == nil || event.type != NSEventTypeLeftMouseDown) return 1;
+    return (unsigned)event.clickCount;
+}
+
 static void pointer(void *context, BlackmoorPointerKind kind,
                     int32_t x, int32_t y, unsigned button)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
+    const int event_kind = static_cast<int>(kind);
     /* The original message-map helper stores coordinates for WM_MOUSEMOVE.
      * Button down/up notify the input latch without replacing that last move. */
-    if (kind == BLACKMOOR_POINTER_MOVE) {
+    if (event_kind == BLACKMOOR_POINTER_MOVE) {
         app->pointer_x = x;
         app->pointer_y = y;
     }
-    if (button == 0 && kind == BLACKMOOR_POINTER_DOWN) {
-        app->primary_down = true; app->primary_pressed = true;
+    /* RT-6: feed the recovered message wrappers straight from the platform
+     * event (0x43ed71 move, 0x43ec85 down, 0x43ec4a up, 0x43ecc0 dblclk).
+     * Right-button messages are not part of this producer. */
+    if (event_kind == BLACKMOOR_POINTER_MOVE || button == 0) {
+        SessionInputEvent input_event = SESSION_INPUT_MOVE;
+        if (event_kind == BLACKMOOR_POINTER_DOWN)
+            input_event = (current_left_click_count() % 2u == 0u) ? SESSION_INPUT_PRIMARY_DBLCLK
+                                                            : SESSION_INPUT_PRIMARY_DOWN;
+        else if (event_kind == kPointerDoubleClick) input_event = SESSION_INPUT_PRIMARY_DBLCLK;
+        else if (event_kind == BLACKMOOR_POINTER_UP) input_event = SESSION_INPUT_PRIMARY_UP;
+        if (session_input_feed(&app->input_state, input_event, 0u, x, y, nullptr, nullptr) !=
+                SESSION_INPUT_OK)
+            record(app, "pointer_feed_error event=%d", static_cast<int>(input_event));
+        if (input_event != SESSION_INPUT_MOVE)
+            record(app, "pointer_input event=%s candidate_at_message=%d latch_edge=%u",
+                   input_event == SESSION_INPUT_PRIMARY_DOWN ? "DOWN" :
+                   input_event == SESSION_INPUT_PRIMARY_UP ? "UP" : "DBLCLK",
+                   app->input_state.candidate, (unsigned)app->input_state.latch[0]);
     }
-    if (button == 0 && kind == BLACKMOOR_POINTER_UP) {
-        app->primary_down = false; app->primary_released = true;
+    /* The startup menu keeps its own edge flags; the scene session never reads
+     * them (it consumes the latch in session_input_tick). */
+    if (app->session == nullptr) {
+        if (button == 0 && event_kind == BLACKMOOR_POINTER_DOWN) {
+            app->primary_down = true; app->primary_pressed = true;
+        }
+        if (button == 0 && event_kind == BLACKMOOR_POINTER_UP) {
+            app->primary_down = false; app->primary_released = true;
+        }
+    } else {
+        if (button == 0 && event_kind == BLACKMOOR_POINTER_DOWN) app->primary_down = true;
+        if (button == 0 && event_kind == BLACKMOOR_POINTER_UP) app->primary_down = false;
     }
-    if (kind != BLACKMOOR_POINTER_MOVE) record(app, "pointer kind=%d x=%d y=%d button=%u", kind, x, y, button);
+    if (event_kind != BLACKMOOR_POINTER_MOVE)
+        record(app, "pointer kind=%d x=%d y=%d button=%u", event_kind, x, y, button);
 }
 
 static void key(void *context, unsigned virtual_key, int down, int repeat)
@@ -1890,17 +1960,8 @@ static SceneSessionCallbackStatus prepare_native_session_tick(
      * A-64 commits mirror back synchronously before later dependency rows. */
     sync_action64_clock_from_new_game(app);
     frame_input->current_frame = app->scene_current_frame;
-    /* Provisional pointer producer: platform logical window coordinates minus
-     * the scene viewport origin, which is the space the decoded S0 hotspot
-     * rectangles occupy. The original message-map transform, cursor-context
-     * and modal guards are still unrecovered, so those inputs stay permissive.
-     * A button release is the only activation event (WM_LBUTTONUP). */
-    frame_input->pointer_valid = app->pointer_x >= 0 && app->pointer_y >= 0;
-    frame_input->pointer_x = app->pointer_x - app->scene_destination.left;
-    frame_input->pointer_y = app->pointer_y - app->scene_destination.top;
-    frame_input->cursor_context_allowed = 1u;
-    frame_input->modal_event_active = 0u;
-    frame_input->hotspot_activation_event = app->primary_released ? 1u : 0u;
+    /* Pointer and activation members are produced by the session's pointer
+     * boundary (session_input_tick at the consume point), not here. */
     failure->stage = SCENE_SESSION_STAGE_PREPARE;
     failure->provider = SCENE_SESSION_PROVIDER_NONE;
     failure->action_index = SIZE_MAX;
@@ -2263,6 +2324,127 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     return true;
 }
 
+/* ---- RT-6: pointer boundary callbacks (SceneSessionPointerHost) ----------
+ * Thin wrappers over session_input; every decision (latch, consume, mode /
+ * modal / range guards, 4f0059 transform and first-hit scan) is the module's.
+ * The geometry comes from ProvisionalCursorProvider and the process mirrors
+ * the caption lifecycle already keeps for 0x583204 / 0x5c39e9 / 0x5839a9. */
+static void native_pointer_context(NativeApp *app, SessionInputContext *out)
+{
+    std::memset(out, 0, sizeof(*out));
+    const ProvisionalCursorProvider &cursor = app->cursor_provider;
+    out->viewport.left = app->scene_destination.left;
+    out->viewport.top = app->scene_destination.top;
+    out->viewport.right = app->scene_destination.right;
+    out->viewport.bottom = app->scene_destination.bottom;
+    out->cursor.left = app->pointer_x;
+    out->cursor.top = app->pointer_y;
+    out->cursor.right = app->pointer_x + cursor.sprite_width - 1;
+    out->cursor.bottom = app->pointer_y + cursor.sprite_height - 1;
+    out->hot_x = cursor.hot_x;
+    out->hot_y = cursor.hot_y;
+    out->scroll_y = cursor.scroll_y;
+    const CaptionLifecycleGlobals &g = app->captions.lifecycle.g;
+    out->cursor_mode = g.overlay_ui;            /* 0x583204 */
+    out->modal_event = (uint32_t)g.cursor_override; /* 0x5c39e9 */
+    out->producer_disabled = (uint32_t)g.modal_input; /* 0x5839a9 */
+    /* No pointer has moved yet: there is no composed sprite to project. */
+    out->geometry_ready = (app->pointer_x >= 0 && app->pointer_y >= 0) ? 1u : 0u;
+    out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
+                           cursor.guard_5b615e == 0 && cursor.result_5a4c18 == 0) ? 1u : 0u;
+    out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
+    out->excluded_1 = -1;
+}
+
+static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
+                                  int32_t *candidate)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    SessionInputContext input{};
+    native_pointer_context(app, &input);
+    const uint8_t edge_before = app->input_state.latch[0];
+    const int status = session_input_tick(&app->input_state, &input, frame);
+    *candidate = app->input_state.candidate;
+    if (edge_before != 0u || status != SESSION_INPUT_OK) {
+        record(app, "pointer_consume status=%d edge=%u candidate=%d activation=%u "
+               "modal=%u mode=%d provisional-geometry=1 projected=%d,%d valid=%u",
+               status, (unsigned)edge_before, *candidate,
+               (unsigned)frame->hotspot_activation_event, input.modal_event,
+               input.cursor_mode, frame->pointer_x, frame->pointer_y,
+               (unsigned)frame->pointer_valid);
+    }
+    return status;
+}
+
+static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
+                               size_t count, int32_t *candidate)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    SessionInputContext input{};
+    native_pointer_context(app, &input);
+    /* 0x4d3073 resets the global candidate before the 0x4f0059 scan. */
+    (void)session_input_publish_candidate(&app->input_state, -1);
+    const int status = session_input_scan(&app->input_state, &input, rows, count);
+    *candidate = app->input_state.candidate;
+    if (status != SESSION_INPUT_OK) {
+        record(app, "pointer_scan_limit status=%d rows=%zu (candidate cleared)", status, count);
+    } else if (*candidate != app->logged_candidate) {
+        record(app, "pointer_candidate candidate=%d rows=%zu cursor=%d,%d "
+               "provisional-geometry=1", *candidate, count, app->pointer_x, app->pointer_y);
+    }
+    app->logged_candidate = *candidate;
+    return status;
+}
+
+static int native_pointer_reset(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int status = session_input_init(&app->input_state);
+    app->logged_candidate = -2;
+    /* The loaders also store [0x5c39e9] = 0 (the caption lifecycle's mirror). */
+    app->captions.lifecycle.g.cursor_override = 0;
+    record(app, "pointer_input_reset status=%d candidate=%d (latch constructor 0x4dad60)",
+           status, app->input_state.candidate);
+    return status;
+}
+
+/* Rows 4f0059 hit-tests that the executor does not export: the 0x62 request /
+ * response table (slot +0x43 request, +0x47..+0x4d signed rectangle words). */
+static int native_pointer_external_row(void *context, size_t action_index,
+                                       SessionInputHotspot *row)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    ActionFamily62InteractionTarget target{};
+    if (app->a62 == nullptr ||
+        session_a62_get_target(app->a62, action_index, &target) != SESSION_A62_OK ||
+        target.request_pending == 0u) return 0;
+    row->index = (int32_t)action_index;
+    row->rectangle.left = target.response_words[0];
+    row->rectangle.top = target.response_words[1];
+    row->rectangle.right = target.response_words[2];
+    row->rectangle.bottom = target.response_words[3];
+    row->active = 1u;
+    return 1;
+}
+
+static bool bind_native_pointer(NativeApp *app)
+{
+    SceneSessionPointerHost host{};
+    host.context = app;
+    host.consume = native_pointer_consume;
+    host.scan = native_pointer_scan;
+    host.reset = native_pointer_reset;
+    host.external_row = native_pointer_external_row;
+    if (scene_session_bind_pointer(app->session, &host) != SCENE_SESSION_OK) return false;
+    const ProvisionalCursorProvider &c = app->cursor_provider;
+    record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
+           "guards[5b5158,5b61af,5b615e,5a4c18]=%u,%u,%u,%d priority_clear=1 excluded=-1,-1 "
+           "reason=cursor-sprite-size/hot-point/scroll-unrecovered values=reproduce-pre-RT-6-S0",
+           c.sprite_width, c.sprite_height, c.hot_x, c.hot_y, c.scroll_y,
+           c.guard_5b5158, c.guard_5b61af, c.guard_5b615e, c.result_5a4c18);
+    return true;
+}
+
 static bool create_native_scene_session(NativeApp *app)
 {
     if (app == nullptr || app->scene == nullptr || app->session != nullptr) return false;
@@ -2356,10 +2538,14 @@ static bool create_native_scene_session(NativeApp *app)
         record(app, "scene_session_create_error provider=host detail=binding registration");
         return false;
     }
+    if (!bind_native_pointer(app)) {
+        record(app, "scene_session_create_error provider=pointer-input detail=bind");
+        return false;
+    }
     record(app, "scene_session_created scene=%d generation=%llu ui_phone_rows=%zu "
            "world=borrowed lifetime=app-owned transition=opaque-tuple-retained "
            "clock=world-clock-normal+timer-records post-clock-gates=guarded "
-           "pointer_transform=unverified caption_writer=bound-RGB555 "
+           "pointer=session_input(RT-6)+provisional-cursor-geometry caption_writer=bound-RGB555 "
            "caption_transfer=bound-RGB555-Frame-plus-decoded-background "
            "audio_provider=live-audio",
            app->current_scene_id,
@@ -2837,6 +3023,11 @@ static bool clear_before_scene_entry(NativeApp *app, uint32_t now_tick)
     }
     app->new_game.action64_world.clock_deadline_585d55 =
         app->new_game.view.clock.next_update_tick;
+    /* ClearSceneData 0x43dbe3 also stores [0x5839a9] = 0 (0x43dff8) and, through
+     * the latch constructor call (0x43e230) and the loaders, [0x5c39e9] = 0.
+     * The caption lifecycle keeps the app's mirror of both words. */
+    app->captions.lifecycle.g.modal_input = 0;
+    app->captions.lifecycle.g.cursor_override = 0;
     return true;
 }
 
@@ -3146,7 +3337,10 @@ static bool perform_session_transition(NativeApp *app,
     session_exit_clear_latches(&app->exit_state);
     record(app, "scene_clear_latches order=0x5c39ff,0x5c39e9,0x5c39ed,0x5c39f1,0x5c39f5,0x5c39f9,"
            "0x5c39e5,0x5bb1c4,0x63a5c0,0x63a5c4 input_latch_5c39e5=%d cursor_override_5c39e9=%d "
-           "consumer=none(RT-2)", app->exit_state.g.input_latch, app->exit_state.g.cursor_override);
+           "consumer=session_input(RT-6) session_input_candidate=%d "
+           "(exit_state copies are unread mirrors; the module state is authoritative)",
+           app->exit_state.g.input_latch, app->exit_state.g.cursor_override,
+           app->input_state.candidate);
     /* DAT_005bb50b := DAT_005bb599 (0x439f20..0x439f41), the frame word of the
      * scene-change request (0x427a50 case 0x0a copies body+2 into it). */
     app->selector_entry_frame = transition.opaque_words[0];
@@ -3246,8 +3440,6 @@ static void update(NativeApp *app, uint32_t now)
             return;
         }
         const int session_status = scene_session_tick(app->session, &session_result);
-        if (session_result.prepare_attempted != 0u)
-            app->primary_pressed = app->primary_released = false;
         if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
             record(app, "scene_session_blocked stage=%d provider=%s action=%zu type=0x%02x detail=%d "
                    "effects_before_block=%zu dispatch_attempted=%u",
@@ -3453,7 +3645,7 @@ static void synthetic_a62_accept(NativeApp *app)
             return;
         }
         record(app, "test_a62_synthetic_accept result=phase2 row=%d coordinates=%d,%d "
-               "pointer_path=not-implemented(RT-2)", scan.candidate_action_index,
+               "pointer_path=session_input(RT-6)", scan.candidate_action_index,
                request.coordinate_a, request.coordinate_b);
         app->test_a62_accept_done = true;
         return;
@@ -3679,6 +3871,7 @@ int main(int argc, char **argv)
 {
     @autoreleasepool {
         NativeApp app;
+        (void)session_input_init(&app.input_state);
         app.game_directory = default_game_directory;
         std::string log_path;
         bool inspect_only = false;
@@ -3690,9 +3883,13 @@ int main(int argc, char **argv)
         bool inspect_condition_providers = false;
         uint32_t live_ticks = 600;
         long live_click_row = -1;
+        bool live_double_click = false, live_hover_only = false;
+        long live_scene = -1, live_scene_row = -1;
         long dump_scene = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
+            if (argument == "--live-double-click") { live_double_click = true; continue; }
+            if (argument == "--live-hover-only") { live_hover_only = true; continue; }
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
             if (argument == "--inspect-actions") { inspect_only = inspect_actions = true; continue; }
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
@@ -3729,6 +3926,15 @@ int main(int argc, char **argv)
                 dump_scene = std::strtol(value, &end, 10);
                 if (!*value || *end || dump_scene < 0) return 2;
                 inspect_only = true;
+            } else if (argument == "--live-scene-row") {
+                /* SCENE:ROW. In that scene the scripted gesture targets ROW
+                 * (an executor hotspot or a 0x62 request row) instead of
+                 * --live-click-row. */
+                char *end = nullptr;
+                live_scene = std::strtol(value, &end, 10);
+                if (!*value || *end != ':' || live_scene < 0) return 2;
+                live_scene_row = std::strtol(end + 1, &end, 10);
+                if (*end || live_scene_row < 0) return 2;
             } else if (argument == "--live-click-row") {
                 char *end = nullptr;
                 live_click_row = std::strtol(value, &end, 10);
@@ -3928,24 +4134,73 @@ int main(int argc, char **argv)
                         (void)last_progress_tick;
                         if (scripted_clicks == 0 || (scripted_clicks == 1 && clock - clicked_at > 255u)) {
                             const size_t actions = scene_resource_action_count(app.scene);
+                            const long wanted = (live_scene >= 0 && app.current_scene_id == live_scene)
+                                ? live_scene_row : live_click_row;
+                            if (live_scene >= 0 && live_click_row < 0 &&
+                                app.current_scene_id != live_scene) continue;
                             for (size_t row = 0; row < actions; ++row) {
+                                /* Executor hotspot, else a pending 0x62 request row. */
+                                int32_t left = 0, top = 0, right = 0, bottom = 0;
+                                bool found = false;
                                 SceneExecutorHotspotState hotspot{};
-                                if (scene_session_get_hotspot_state(app.session, row, &hotspot) != SCENE_EXECUTOR_OK ||
-                                    !hotspot.active || !hotspot.rectangle_valid) continue;
-                                if (live_click_row >= 0 && (long)row != live_click_row) continue;
+                                ActionFamily62InteractionTarget target{};
+                                if (scene_session_get_hotspot_state(app.session, row, &hotspot) ==
+                                        SCENE_EXECUTOR_OK && hotspot.active && hotspot.rectangle_valid) {
+                                    left = hotspot.left; top = hotspot.top;
+                                    right = hotspot.right; bottom = hotspot.bottom; found = true;
+                                } else if (session_a62_get_target(app.a62, row, &target) == SESSION_A62_OK &&
+                                           target.request_pending != 0u) {
+                                    left = target.response_words[0]; top = target.response_words[1];
+                                    right = target.response_words[2]; bottom = target.response_words[3];
+                                    found = true;
+                                }
+                                if (!found) continue;
+                                if (wanted >= 0 && (long)row != wanted) continue;
                                 if (scripted_clicks == 0) {
-                                    app.pointer_x = (hotspot.left + hotspot.right) / 2 + app.scene_destination.left;
-                                    app.pointer_y = (hotspot.top + hotspot.bottom) / 2 + app.scene_destination.top;
+                                    /* Window point whose provisional transform lands mid-rectangle. */
+                                    const int32_t window_x = (left + right) / 2 + app.scene_destination.left;
+                                    const int32_t window_y = (top + bottom) / 2 + app.scene_destination.top;
+                                    pointer(&app, BLACKMOOR_POINTER_MOVE, window_x, window_y, 0);
                                     record(&app, "live_session_hover row=%zu rect=%d,%d,%d,%d window=%d,%d",
-                                           row, hotspot.left, hotspot.top, hotspot.right, hotspot.bottom,
-                                           app.pointer_x, app.pointer_y);
+                                           row, left, top, right, bottom, app.pointer_x, app.pointer_y);
                                     scripted_clicks = 1; clicked_at = clock;
+                                } else if (live_hover_only && (live_scene < 0 || app.current_scene_id == live_scene)) {
+                                    scripted_clicks = 2;
                                 } else {
-                                    app.primary_down = app.primary_pressed = true;
+                                    pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
                                     clock += 85u; update(&app, clock);
-                                    app.primary_down = false; app.primary_released = true;
+                                    pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
                                     clock += 85u; update(&app, clock);
                                     record(&app, "live_session_click row=%zu", row);
+                                    if (live_double_click) {
+                                        /* Windows delivers DBLCLK instead of the second DOWN:
+                                         * DOWN, UP, tick, DBLCLK, UP, tick. The second release must
+                                         * not activate again. */
+                                        SceneSessionPointerResult first{};
+                                        if (app.session != nullptr)
+                                            scene_session_get_pointer_result(app.session, &first);
+                                        pointer(&app, static_cast<BlackmoorPointerKind>(kPointerDoubleClick),
+                                                app.pointer_x, app.pointer_y, 0);
+                                        pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                        const unsigned edge_after_second_up = app.input_state.latch[0];
+                                        const int32_t candidate_at_second_up = app.input_state.candidate;
+                                        clock += 85u; update(&app, clock);
+                                        SceneSessionPointerResult second{};
+                                        if (app.session != nullptr)
+                                            scene_session_get_pointer_result(app.session, &second);
+                                        /* In S0 the first activation ends the tick in a scene
+                                         * transition, which freezes the session's pointer result at
+                                         * the first activation tick; the latch is the evidence. */
+                                        record(&app, "live_session_double_click first_activation_tick=%llu "
+                                               "candidate_at_second_up=%d edge_after_second_up=%u "
+                                               "second_release_activation=%s",
+                                               (unsigned long long)first.tick_index, candidate_at_second_up,
+                                               edge_after_second_up,
+                                               (edge_after_second_up == 0u &&
+                                                second.tick_index == first.tick_index) ? "rejected" :
+                                               (second.tick_index != first.tick_index && second.activation_event)
+                                                   ? "ACCEPTED" : "no-new-activation");
+                                    }
                                     scripted_clicks = 2;
                                 }
                                 break;

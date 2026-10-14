@@ -55,7 +55,7 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 | RT-3 | [S5900 0x62/0x51 bindings](tasks/RT-3-s5900-a62-a51-binding.md) | Collected |
 | RT-4 | [Dependency leaves](tasks/RT-4-dependency-leaf-integration.md) | Collected |
 | RT-5 | [Scene exit handler and 0x28 effect](tasks/RT-5-scene-exit-handler-and-a28-effect.md) | Collected |
-| RT-6 | [Pointer integration](tasks/RT-6-pointer-integration.md) | In progress |
+| RT-6 | [Pointer integration](tasks/RT-6-pointer-integration.md) | Collected |
 
 Opaque action decoders (A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-97.1, A-A1.1 merged) are driven by the opaque-action thread, Codex implementers and one independent reviewer per packet.
 

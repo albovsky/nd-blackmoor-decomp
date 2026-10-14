@@ -20,5 +20,8 @@ xcrun --sdk macosx clang -arch arm64 -std=c11 \
     "$project_dir/src/action_ui.c" \
     "$project_dir/src/scene_executor.c" \
     "$project_dir/src/scene_session.c" \
+    "$project_dir/src/session_input.c" \
+    "$project_dir/src/input_latch.c" \
+    "$project_dir/src/input_consume.c" \
     -o "$project_dir/build/libscenesession.dylib"
 printf 'Built %s (native arm64)\n' "$project_dir/build/libscenesession.dylib"

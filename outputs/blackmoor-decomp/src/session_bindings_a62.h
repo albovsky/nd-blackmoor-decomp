@@ -22,8 +22,8 @@
  * 0x4f0059 consumes, and exposes that scan through a narrow interface. It does
  * not produce pointer input: the transformed cursor coordinates, the reserved
  * action indices and the cursor command arrive from the pointer provider
- * (RT-2), and a candidate is accepted with the reviewed accept reducer
- * followed by scene_session_accept_action_candidate. */
+ * (RT-2/RT-6), and a candidate is accepted through the executor's single
+ * host-supplied candidate (SceneExecutorFrameInput.activation_candidate). */
 
 #include "action_core.h"
 #include "action_family_62_interaction.h"

@@ -3,6 +3,7 @@
 
 #include "action_ui.h"
 #include "scene_executor.h"
+#include "session_input.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -46,7 +47,9 @@ typedef enum scene_session_stage {
     SCENE_SESSION_STAGE_PREPARE = 1,
     SCENE_SESSION_STAGE_MEDIA = 2,
     SCENE_SESSION_STAGE_DISPATCH = 3,
-    SCENE_SESSION_STAGE_SCENE_REPLACE = 4
+    SCENE_SESSION_STAGE_SCENE_REPLACE = 4,
+    /* RT-6: the pointer host reported an invalid-argument status. */
+    SCENE_SESSION_STAGE_POINTER = 5
 } SceneSessionStage;
 
 typedef enum scene_session_callback_status {
@@ -165,6 +168,67 @@ int scene_session_set_condition_extension(
  * freeze had another cause). */
 int scene_session_get_condition_failure(const SceneSession *session,
                                         SceneConditionFailure *failure);
+
+/* RT-6: the pointer boundary. The session owns the SEQUENCING of the recovered
+ * input module (session_input) and the single retained candidate (0x5c39e5)
+ * lives inside that module's state, held by the host; the session holds no
+ * candidate and the executor holds none either.
+ *
+ *   prepare -> media -> consume -> dispatch -> [candidate = -1; scan]
+ *
+ * consume (43a7ca -> 43b194, 4daf3f): runs once per tick after prepare and the
+ * media step succeeded and before the dispatcher. It must fill the pointer and
+ * activation members of the frame (session_input_tick) and report the raw
+ * retained candidate. Whatever prepare/media put in those members is
+ * discarded while a host is bound. A tick that fails earlier never reaches it,
+ * so a release edge is not lost to a preparation/media failure.
+ * scan (4d3073 -> 4f0059): runs after a dispatch that did not end in a scene
+ * transition (that ends the scene; the next one rescans). The session offers
+ * every hit-testable row in ascending index order: the executor's built-in
+ * hotspot rectangles that are active, and rows the host exports through
+ * external_row (the 0x62 request/response table). The host resets the
+ * candidate to -1 and scans (session_input_scan); the first hit in index
+ * order is the candidate, so a row cannot be selected twice.
+ * reset (latch constructor 0x4dad60 + candidate = -1, session_input_init): runs
+ * at bind time and on every successful scene replacement.
+ *
+ * The callbacks take typed session_input structures but call nothing in this
+ * library, so scene_session.c stays free of a link dependency on the module.
+ * Status values are SessionInputStatus: OK, or the named LIMIT_* (recorded,
+ * not fatal: the tick continues without an activation and the candidate stays
+ * -1), or INVALID_ARGUMENT (a host bug: the session freezes at
+ * SCENE_SESSION_STAGE_POINTER). */
+typedef struct scene_session_pointer_host {
+    void *context;
+    int (*consume)(void *context, SceneExecutorFrameInput *frame, int32_t *candidate);
+    int (*scan)(void *context, const SessionInputHotspot *rows, size_t count,
+                int32_t *candidate);
+    int (*reset)(void *context);
+    /* Optional. Return 1 and fill *row (index == action_index) when the
+     * executor-opaque row currently owns a request rectangle; else 0. */
+    int (*external_row)(void *context, size_t action_index, SessionInputHotspot *row);
+} SceneSessionPointerHost;
+
+typedef struct scene_session_pointer_result {
+    uint64_t tick_index;
+    /* SessionInputStatus of the consume / scan callbacks; -1 when that boundary
+     * was not reached this tick. */
+    int32_t consume_status;
+    int32_t scan_status;
+    int32_t candidate_at_consume; /* raw retained value, -1 none */
+    int32_t candidate_after_scan; /* -1 none */
+    uint32_t scan_rows;
+    uint8_t activation_event;     /* handed to the executor */
+    uint8_t activation_candidate_valid;
+} SceneSessionPointerResult;
+
+/* Bind the pointer host (before the first tick). The host is copied; its
+ * context must outlive the session. consume, scan and reset are required.
+ * Runs reset once. Re-binding replaces the host. */
+int scene_session_bind_pointer(SceneSession *session,
+                               const SceneSessionPointerHost *host);
+int scene_session_get_pointer_result(const SceneSession *session,
+                                     SceneSessionPointerResult *result);
 
 /* Candidate-accept store of 0x43c054 (see
  * scene_executor_accept_action_candidate). */
