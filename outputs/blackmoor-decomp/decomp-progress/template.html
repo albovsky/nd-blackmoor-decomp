@@ -79,6 +79,24 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
 .notes{margin-top:18px;color:var(--text-2);font-size:12px;max-width:90ch}
 .notes h3{margin:12px 0 4px;font-size:12px;color:var(--text);text-transform:uppercase;letter-spacing:.06em}
 .notes p{margin:0 0 8px}
+.playable{margin:0 0 24px;border-top:3px solid var(--code);border-bottom:1px solid var(--border);padding:14px 0 16px}
+.playable-heading{display:flex;gap:12px;justify-content:space-between;align-items:baseline;flex-wrap:wrap}
+.playable h2{margin:0;font-size:19px;letter-spacing:-.02em}
+.playable .scope{color:var(--text-2);font-size:12px;margin:0}
+.playable-metrics{display:grid;grid-template-columns:1fr 1.3fr 1fr;margin:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.playable-metric{padding:12px 18px 12px 0;min-width:0;font-variant-numeric:tabular-nums}
+.playable-metric+.playable-metric{border-left:1px solid var(--border);padding-left:18px}
+.playable-metric h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 3px;color:var(--text-2)}
+.playable-value{font-size:25px;font-weight:650;letter-spacing:-.02em}
+.playable-metric p{font-size:12px;color:var(--text-2);margin:3px 0}
+.scene-path{display:flex;list-style:none;flex-wrap:wrap;gap:3px 0;margin:0 0 8px;padding:0;font-size:12px}
+.scene-path li+li::before{content:'→';color:var(--text-3);padding:0 9px}
+.playable-stop{font-size:12px;color:var(--text-2);margin:0 0 8px;overflow-wrap:anywhere}
+.next-blocker{font-size:13px;margin:0;padding:8px 12px;background:var(--panel);border-left:3px solid var(--focus)}
+.playable details{font-size:12px;color:var(--text-2);margin-top:10px}
+.playable summary{cursor:pointer;width:fit-content}
+.playable details p{margin:6px 0;overflow-wrap:anywhere}
+@media(max-width:760px){.playable-metrics{grid-template-columns:1fr}.playable-metric+.playable-metric{border-left:0;border-top:1px solid var(--border);padding-left:0}}
 @media(max-width:760px){.bars{grid-template-columns:1fr}.controls input[type=search]{width:100%}}
 </style>
 </head>
@@ -91,6 +109,19 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
   </div>
   <div class="sub"><span id="mode"></span> <button id="theme" type="button" aria-label="Toggle colour theme">Theme</button></div>
 </header>
+
+<section class="playable" aria-labelledby="playableTitle" id="playable" hidden>
+  <div class="playable-heading"><h2 id="playableTitle">Playable build</h2><p class="scope">Scripted native session · gameplay incomplete</p></div>
+  <div class="playable-metrics">
+    <div class="playable-metric"><h3>Scenes reached</h3><div class="playable-value" id="sceneCount"></div><p id="sceneShare"></p></div>
+    <div class="playable-metric"><h3>Action types</h3><div class="playable-value" id="actionCount"></div><p id="actionHandlers"></p><p id="actionRecords"></p></div>
+    <div class="playable-metric"><h3>Tests</h3><div class="playable-value" id="testCount"></div><p id="testTotals"></p><p>Committed suite totals</p></div>
+  </div>
+  <ol class="scene-path mono" id="scenePath" aria-label="Reached scenes in first-visit order"></ol>
+  <p class="playable-stop" id="playableStop"></p>
+  <p class="next-blocker"><b>Next blocker: </b><span id="nextBlocker"></span></p>
+  <details><summary>Action coverage and evidence</summary><p id="handledTypes" class="mono"></p><p id="unsupportedTypes" class="mono"></p><p id="opaqueTypes" class="mono"></p><p>Types and record counts use current parser layouts and corpus counts. Native handlers may still block on unsupported branches or providers. Full gameplay remains unverified.</p><p id="playableEvidence"></p></details>
+</section>
 
 <section class="bars" aria-label="Progress summary" id="bars"></section>
 <div class="facts" id="facts"></div>
@@ -128,6 +159,27 @@ const $ = id => document.getElementById(id);
 const NS = "http://www.w3.org/2000/svg";
 const hex = (n,w) => "0x"+n.toString(16).padStart(w||6,"0");
 const T = D.totals;
+
+/* ---------- playable build (public summaries only) ---------- */
+if(D.playable){
+  const P=D.playable, A=P.action_types, S=P.stop, tests=P.tests;
+  $("playable").hidden=false;
+  $("sceneCount").textContent=`${fmt(P.reached_scenes.length)} / ${fmt(P.scene_total)}`;
+  $("sceneShare").textContent=`${pct(P.reached_scenes.length,P.scene_total)} of corpus scenes reached`;
+  $("actionCount").textContent=`${A.typed.type_count} typed · ${A.opaque.type_count} opaque`;
+  $("actionHandlers").textContent=`Typed: ${A.handled.type_count} native handlers · ${A.unsupported.type_count} unsupported`;
+  $("actionRecords").textContent=`Records: ${fmt(A.typed.records)} typed / ${fmt(A.opaque.records)} opaque`;
+  $("testCount").textContent=`${fmt(tests.passed)} passed`;
+  $("testTotals").textContent=`${fmt(tests.discovered)} discovered · ${fmt(tests.skipped)} skipped`;
+  for(const scene of P.reached_scenes){ const li=document.createElement("li"); li.textContent=scene; $("scenePath").appendChild(li); }
+  const target=S.target_scene ? ` → ${S.target_scene}` : "";
+  $("playableStop").textContent=`Current stop: ${S.scene}${target} · row ${S.row ?? "unavailable"} in ${S.target_scene || S.scene} · type ${S.action_type || "unavailable"} · provider ${S.provider || "unavailable"} (${S.reason})`;
+  $("nextBlocker").textContent=P.next_blocker;
+  $("handledTypes").textContent=`Live handlers: ${A.handled.types.join(", ")}`;
+  $("unsupportedTypes").textContent=`Typed, unsupported: ${A.unsupported.types.join(", ")}`;
+  $("opaqueTypes").textContent=`Opaque: ${A.opaque.types.join(", ")}`;
+  $("playableEvidence").textContent=`${P.evidence.kind.replace(/_/g," ")} · source ${P.evidence.source_ref.slice(0,12)} · ${fmt(P.ticks)} ticks · native SHA-256 ${P.evidence.native_sha256 || "unavailable (seed)"}`;
+}
 
 /* ---------- header, bars, facts ---------- */
 $("fsize").textContent = fmt(D.file_size);

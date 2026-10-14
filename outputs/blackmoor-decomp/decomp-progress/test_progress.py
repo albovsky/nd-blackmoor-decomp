@@ -2,6 +2,7 @@ import importlib.util
 import json
 import pathlib
 import re
+import shutil
 import tempfile
 import unittest
 
@@ -43,6 +44,60 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(t["file_bytes"], 1511424)
         self.assertEqual(t["code"] + t["data"], 1511424)
         self.assertEqual(sum(u["size"] for u in self.model["units"]), 1511424)
+
+    def test_playable_schema_and_committed_report_have_not_drifted(self):
+        self.assertEqual(self.model["schema"], "blackmoor-decomp-progress/1")
+        p = self.model["playable"]
+        self.assertEqual(p["schema"], "blackmoor-playable-status/1")
+        committed = json.loads((HERE / "progress.json").read_text())["playable"]
+        self.assertEqual(p, committed, "Refresh progress after changes to live registrations or evidence")
+        self.assertEqual(p["scene_total"], 2078)
+        self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)]])
+        self.assertEqual(p["stop"]["action_type"], "0x35")
+        self.assertEqual(p["stop"]["row"], 3)
+        self.assertEqual(p["tests"], {"discovered": 774, "passed": 769, "skipped": 5,
+                                     "source_field": "current_integration.full_suite"})
+
+    def test_action_body_counts_use_current_source_and_census_records(self):
+        a = self.model["playable"]["action_types"]
+        self.assertEqual(a["typed"]["records"], 17920)
+        self.assertEqual(a["opaque"]["records"], 1692)
+        self.assertEqual(a["record_total"], 19612)
+        self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
+        self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
+        self.assertFalse(set(a["handled"]["types"]) & set(a["unsupported"]["types"]))
+        self.assertEqual(a["handled"]["records"] + a["unsupported"]["records"], a["typed"]["records"])
+        for code in ("0x37", "0x97", "0xa1"):
+            self.assertIn(code, a["unsupported"]["types"])
+            self.assertNotIn(code, a["opaque"]["types"])
+
+    def test_live_registrations_match_derived_handled_list(self):
+        a = self.model["playable"]["action_types"]
+        self.assertEqual(a["registrations"], {
+            "executor": ["0x0a", "0x15", "0x4d", "0x61", "0x64", "0x6a", "0x6b", "0x71"],
+            "session_ui": ["0x1d", "0x82"],
+            "external": {"0x28": "session_a28_handler", "0x51": "session_a51_handler",
+                         "0x62": "session_a62_handler", "0x9f": "native_action_sound_handler"}})
+        self.assertEqual(a["handled"]["type_count"], 14)
+        derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
+        derived.pop("scene_total")
+        self.assertEqual(a, derived)
+        paths = {s["path"] for s in a["sources"]}
+        self.assertTrue({"src/scene_executor.c", "src/action_core.c", "src/scene_session.c",
+                         "src/blackmoor_app.mm", "src/session_bindings_a62.c",
+                         "src/session_bindings_a51.c", "src/session_bindings_a28.c"} <= paths)
+        self.assertTrue(all(p.startswith("src/") or p == "action-census-current.json" for p in paths))
+
+    def test_playable_panel_precedes_x86_panel_and_report(self):
+        html = (self.out / "index.html").read_text()
+        self.assertLess(html.index('id="playable"'), html.index('id="bars"'))
+        self.assertIn('aria-labelledby="playableTitle"', html)
+        self.assertIn('$("nextBlocker").textContent=P.next_blocker', html)
+        report = (self.out / "REPORT.md").read_text()
+        self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
+        self.assertIn("S5906 → S4700", report)
+        self.assertIn("provider scene-resource", report)
+        self.assertIn("774 discovered; 769 passed; 5 skipped", report)
 
     def test_matched_bytes_agree_with_status_json(self):
         t = self.model["totals"]
@@ -426,6 +481,68 @@ class MiniFixture(unittest.TestCase):
             {"id": "b", "label": "B", "start_va": 0x400110, "end_va": 0x400140}]
         with self.assertRaisesRegex(GEN.ProgressError, "crosses"):
             GEN.build_atoms(self.layout, self.index, 0x4000)
+
+
+class RegistrationDriftTests(unittest.TestCase):
+    """Source mutations exercise the independent registration cross-checks."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.out = pathlib.Path(self.tmp.name)
+        shutil.copytree(EVIDENCE / "src", self.out / "src")
+        shutil.copy2(EVIDENCE / "action-census-current.json", self.out)
+        self.original = GEN.PLAYABLE.derive_actions(self.out)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def change(self, path, old, new):
+        p = self.out / path
+        text = p.read_text()
+        self.assertIn(old, text)
+        p.write_text(text.replace(old, new, 1))
+
+    def test_missing_live_registration_fails_closed(self):
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "binding count drifted"):
+            GEN.PLAYABLE.derive_actions(self.out)
+
+    def test_uninstalled_live_array_fails_closed(self):
+        self.change("src/blackmoor_app.mm", "config.action_bindings = bindings;", "config.action_bindings = nullptr;")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "binding count drifted"):
+            GEN.PLAYABLE.derive_actions(self.out)
+
+    def test_core_registration_disagreement_fails_closed(self):
+        self.change("src/action_core.c", "return type == ACTION_TYPE_SET_VALUE ||", "return")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "action_core registrations drifted"):
+            GEN.PLAYABLE.derive_actions(self.out)
+
+    def test_missing_ui_present_slot_fails_closed(self):
+        self.change("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].present = 1u;", "")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "present slots drifted"):
+            GEN.PLAYABLE.derive_actions(self.out)
+
+    def test_changed_external_type_changes_report(self):
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x37;")
+        changed = GEN.PLAYABLE.derive_actions(self.out)
+        self.assertIn("0x37", changed["handled"]["types"])
+        self.assertNotIn("0x51", changed["handled"]["types"])
+        self.assertNotEqual(changed, self.original)
+
+    def test_new_parser_layout_moves_opaque_records_to_typed(self):
+        self.change("src/scene_resource.c", "default:\n        return 0;",
+                    "case 0x35: fixed_length = 1u; break;\n    default:\n        return 0;")
+        changed = GEN.PLAYABLE.derive_actions(self.out)
+        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 113)
+        self.assertIn("0x35", changed["unsupported"]["types"])
+        self.assertNotEqual(changed, self.original)
+
+    def test_stale_committed_test_totals_are_rejected(self):
+        shutil.copy2(EVIDENCE / "playable-status.json", self.out)
+        status = json.loads((EVIDENCE / "status.json").read_text())
+        status["current_integration"]["full_suite"]["passed"] -= 1
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "test totals drifted"):
+            GEN.PLAYABLE.build_panel(self.out, status)
 
 
 if __name__ == "__main__":

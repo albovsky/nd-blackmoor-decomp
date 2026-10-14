@@ -1,6 +1,6 @@
 # Decomp progress view
 
-A decomp.dev-style view of how much of `GAME.EXE` is reconstructed: a code bar, a data bar and a treemap of units sized by bytes (green matched code, blue hatched matched data, grey not done). Open `index.html` in any browser; it is one offline file with no network access.
+A playable-build panel followed by a decomp.dev-style view of how much of `GAME.EXE` is reconstructed: a code bar, a data bar and a treemap of units sized by bytes (green matched code, blue hatched matched data, grey not done). Open `index.html` in any browser; it is one offline file with no network access.
 
 This is separate from `../progress-map/` (the older function-start map with oracle and quarantine panels). Nothing in that directory is read or changed.
 
@@ -9,17 +9,52 @@ This is separate from `../progress-map/` (the older function-start map with orac
 | File | Role |
 |---|---|
 | `generate.py` | Builds everything below from committed evidence. Standard library only. |
+| `playable.py` | Validates playable evidence and derives parser/live-handler coverage from committed source. |
+| `../playable-status.json` | Schema-versioned, sanitized live-session evidence and committed test totals. |
+| `../scripts/record_playable_status.py` | Refreshes live evidence using the native app; raw logs stay private. |
 | `layout.json` | Public structural facts: sections, code regions, data pieces. Sums to 1,511,424 bytes. |
 | `template.html` | Page source (treemap, bars, table view, search, light and dark themes). |
 | `progress.json` | Generated model: totals, groups, units, per-function tuples `[va, span, matched_code, matched_data]` (matched total = the last two summed; a span can hold both when a ledger classifies jump tables or padding inside it). |
 | `REPORT.md` | Generated text report. |
 | `index.html` | Generated page with the model embedded. |
-| `preview.png` | Screenshot of the page at the time of generation. |
+| `preview.png` | Headless page export, refreshed with `--preview-browser`. |
 | `test_progress.py` | `python3 -m unittest test_progress` from this directory. |
 
 Refresh after any new match manifest or ledger:
 
     python3 outputs/blackmoor-decomp/decomp-progress/generate.py
+
+For a preview export, append `--preview-browser PATH/TO/CHROMIUM` (a Chromium or chrome-headless-shell executable). It renders a 1440 × 1200 light-theme PNG without opening a desktop window. The default generator needs only Python's standard library; the optional preview export needs an installed browser. While the owner's Mac is locked, export the artifact without computer-use or visual inspection.
+
+## Playable build evidence
+
+After merging runtime work, build and record the pinned scripted run:
+
+    outputs/blackmoor-decomp/scripts/build_native_app.sh
+    python3 outputs/blackmoor-decomp/scripts/record_playable_status.py
+    python3 outputs/blackmoor-decomp/decomp-progress/generate.py
+
+The recorder invokes `--inspect-live-session --live-click-row 34 --live-ticks 3000`, with the app's default read-only game location or an explicit `--game-dir`. This uses offline audio and opens no game window or output device. Build immediately before recording: the JSON pins the executable SHA-256 and checkout commit, but the recorder does not prove that an arbitrary supplied executable was built from that commit. Raw process/session logs stay under `work/analysis/slices/PROG-1-live-*/`; public evidence includes only scene identifiers, row/type/provider identifiers, a bounded stop reason, counts and provenance hashes. No raw log lines, resource names, payloads or original bytes are copied.
+
+`playable-status.json` has the pinned schema `blackmoor-playable-status/1`: `evidence` (kind, source commit, native hash, command), `reached_scenes`, `stop`, `ticks`, `tests`, and `next_blocker`. Its strict validator rejects extra fields. There are no timestamps. `--seed` can reproduce the packet's committed integration snapshot when the game is unavailable; it marks evidence as seeded, leaves the native hash unavailable, and uses zero ticks to indicate no measured tick count. A failed or incomplete live run leaves previous public evidence intact.
+
+The log parser reads four events. Only `scene_transition_applied` adds a successful target. `scene_session_blocked` records a provider stop. `scene_transition_error` preserves the source scene and failed target, including the target's failing action row. `live_session_end` supplies the tick count and final status; its scene or stale action fields cannot replace a preceding transition failure. Reached scenes are unique, in first-visit order. Tests come from `status.json` `current_integration.full_suite` when present, otherwise `tests`; the generator rejects a stale copy of those totals.
+
+The committed live evidence reaches S0 → S5900 → S5907 → S5901–S5906 (9 / 2,078 scenes) and stops replacing S5906 with S4700: row 3, opaque `0x35`, provider `scene-resource`. The committed suite has 774 discovered, 769 passed and 5 skipped tests. This panel does not rerun that full suite.
+
+Action coverage is derived by `playable.py`, rather than maintained as a handwritten handled list:
+
+- Corpus scene and per-type record counts come from `action-census-current.json` (2,078 scenes, 19,612 records). Its stored 9,111 typed / 10,501 opaque split predates current parser registrations. Apply the `known_body_length` cases in `src/scene_resource.c` to those per-type counts: currently 23 typed families / 17,920 records and 48 opaque families / 1,692 records. This source-based projection assumes the corpus records satisfy each registered layout; it does not reparse original resources.
+- Built-ins come from `scene_executor.c`: core type dispatch (cross-checked with `action_core.c`), dispatched scene/clock branches, and hotspot types with the raw `0x15` → runtime `0x0d` mapping. The dependency-only `0x9f` reset is excluded from built-in coverage.
+- Session UI handlers come from the installed callback/present slots in `scene_session.c`. External handlers come from the binding array installed by `create_native_scene_session` in `blackmoor_app.mm`, resolving type constants through headers and confirming callback definitions in the app or `session_bindings_*.c`. Diagnostic-only app handlers and unwired modules are excluded.
+- Live binding slots/counts and reserved types are cross-checked. Changed syntax that cannot be recognized fails generation. The union currently contains 14 families / 7,997 records. The other 9 typed families / 9,923 records are unsupported by the live session; these include `0x37`, `0x97` and `0xa1`. Typed `0x97` is no longer an opaque S4700 blocker.
+
+“Native handler” means a live dispatch path exists for the family. Branches, providers, dependencies and media may still block individual records, including handled families. It is not a count of fully playable records. Input source hashes and the actual registration sets are included in `progress.json`. Tests compare the committed generated sets/hashes with fresh derivation and exercise changed registrations, missing slots and new parser layouts, so stale generated coverage fails verification.
+
+Run the public-only acceptance tests:
+
+    python3 -m unittest discover -s outputs/blackmoor-decomp/decomp-progress -p test_progress.py
+    python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p test_record_playable_status.py
 
 ## Evidence and what counts as matched
 
@@ -56,4 +91,4 @@ Accounting: `reconstructed` and `structured` bytes are matched, in the bar for t
 
 ## Not covered
 
-No claim of original C++ or compiler provenance. No whole-file rebuild or gameplay result. Sub-function structure of data pieces is not recorded. No history over time.
+No claim of original C++ or compiler provenance, whole-file rebuild, complete native gameplay or hardware input/audio verification. Sub-function structure of data pieces is not recorded. No history over time.
