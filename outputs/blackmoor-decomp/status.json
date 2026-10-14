@@ -164,7 +164,7 @@
       "remaining control code1 and NLS paths",
       "timed video and remaining scene handlers"
     ],
-    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44 and 0x36 are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x4e (18), 0x94 (12), 0xd1 (11), 0x2e (10), 0x17 (10); A-94.1, A-D1.1 and A-2E.1 are active.1, A-44.1 and A-36.1 are active."
+    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44 and 0x36 are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x4e (18), 0x94 (12), 0xd1 (11), 0x2e (10), 0x17 (10); A-94.1, A-D1.1 and A-2E.1 are active."
   },
   "native_conditions": {
     "supported_opcodes": [
