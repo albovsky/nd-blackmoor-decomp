@@ -100,7 +100,8 @@ class RepoEvidenceTests(unittest.TestCase):
             lo, hi = a["off"], a["off"] + a["size"]
             if a["kind"] == "data":
                 ranges.append({"offset": lo, "size": a["size"], "kind": "data",
-                               "class": "structured" if a["unit"] == "headers" else "referenced"})
+                               "class": "structured" if a["unit"] == "headers" else "referenced",
+                               **({"provenance": "image_structure"} if a["unit"] == "headers" else {})})
                 continue
             pos = lo
             for s, e in hit:
@@ -109,7 +110,8 @@ class RepoEvidenceTests(unittest.TestCase):
                     continue
                 if s > pos:
                     ranges.append({"offset": pos, "size": s - pos, "kind": "code", "class": "referenced"})
-                ranges.append({"offset": s, "size": e - s, "kind": "code", "class": "reconstructed"})
+                ranges.append({"offset": s, "size": e - s, "kind": "code", "class": "reconstructed",
+                               "provenance": "explicit_reconstructed_assembly_source"})
                 pos = e
             if pos < hi:
                 ranges.append({"offset": pos, "size": hi - pos, "kind": "code", "class": "referenced"})
@@ -202,8 +204,8 @@ class MiniFixture(unittest.TestCase):
 
     def full_ranges(self):
         return [
-            {"offset": 0, "size": 0x100, "kind": "data", "class": "structured"},
-            {"offset": 0x100, "size": 0x20, "kind": "code", "class": "reconstructed"},
+            {"offset": 0, "size": 0x100, "kind": "data", "class": "structured", "provenance": "image_structure"},
+            {"offset": 0x100, "size": 0x20, "kind": "code", "class": "reconstructed", "provenance": "explicit_reconstructed_assembly_source"},
             {"offset": 0x120, "size": 0x20, "kind": "code", "class": "referenced"},
             {"offset": 0x140, "size": 0xc0, "kind": "data", "class": "referenced"},
         ]
@@ -228,7 +230,10 @@ class MiniFixture(unittest.TestCase):
         r[1]["provenance"] = "Not Valid!"
         with self.assertRaisesRegex(GEN.ProgressError, "provenance"):
             self.model_for(r)
-        self.assertEqual(self.model_for(self.full_ranges())["totals"]["by_provenance"], {"unspecified": 0x120})
+        r = self.full_ranges()
+        del r[1]["provenance"]
+        with self.assertRaisesRegex(GEN.ProgressError, "needs a provenance"):
+            self.model_for(r)
 
     def test_referenced_is_never_matched(self):
         r = self.full_ranges()
@@ -240,8 +245,8 @@ class MiniFixture(unittest.TestCase):
     def test_structured_data_inside_code_counts_as_data(self):
         r = self.full_ranges()
         r[1:3] = [
-            {"offset": 0x100, "size": 0x30, "kind": "code", "class": "reconstructed"},
-            {"offset": 0x130, "size": 0x10, "kind": "data", "class": "structured"},
+            {"offset": 0x100, "size": 0x30, "kind": "code", "class": "reconstructed", "provenance": "explicit_reconstructed_assembly_source"},
+            {"offset": 0x130, "size": 0x10, "kind": "data", "class": "structured", "provenance": "image_structure"},
         ]
         t = self.model_for(r)["totals"]
         self.assertEqual((t["code"], t["matched_code"], t["matched_data"]), (0x30, 0x30, 0x110))
@@ -265,8 +270,8 @@ class MiniFixture(unittest.TestCase):
             GEN.ledger_evidence(self.layout, self.ledger(base, original_sha256="0" * 64), False)
 
     def test_partial_ledger_keeps_full_file_denominator(self):
-        m = self.model_for([{"offset": 0, "size": 0x100, "kind": "data", "class": "structured"}],
-                           allow_partial=True)
+        m = self.model_for([{"offset": 0, "size": 0x100, "kind": "data", "class": "structured",
+                            "provenance": "image_structure"}], allow_partial=True)
         t = m["totals"]
         self.assertEqual(t["file_bytes"], 0x200)
         self.assertEqual(t["classified"], 0x100)

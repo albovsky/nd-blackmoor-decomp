@@ -249,9 +249,12 @@ def ledger_evidence(layout: dict, ledger_path: Path, allow_partial: bool):
             raise ProgressError(f"ledger range out of bounds: {r}")
         rows.append((off, off + size, r["kind"], r["class"], r.get("label", "")))
         if r["class"] in ("reconstructed", "structured"):
-            p = r.get("provenance", "unspecified")
+            p = r.get("provenance")
             if not isinstance(p, str) or not re.match(PROVENANCE_RE, p):
-                raise ProgressError(f"bad ledger provenance {p!r}")
+                raise ProgressError(
+                    f"matched ledger range at 0x{off:x} needs a provenance class "
+                    f"(for example explicit_reconstructed_assembly_source or "
+                    f"tool_assisted_reconstructed_assembly), got {p!r}")
             prov.append((off, off + size, p))
     rows.sort()
     covered = 0

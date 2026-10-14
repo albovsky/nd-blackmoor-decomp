@@ -42,13 +42,13 @@ M02 had not landed when this was written, and its coverage report format is not 
       "original_sha256": "afd337a2...5c45",
       "file_size": 1511424,
       "ranges": [
-        {"offset": 0,    "size": 4096, "kind": "data", "class": "structured"},
-        {"offset": 4096, "size": 17,   "kind": "code", "class": "reconstructed", "label": "optional"},
+        {"offset": 0,    "size": 4096, "kind": "data", "class": "structured", "provenance": "image_structure"},
+        {"offset": 4096, "size": 17,   "kind": "code", "class": "reconstructed", "provenance": "explicit_reconstructed_assembly_source"},
         {"offset": 4113, "size": 99,   "kind": "code", "class": "referenced"}
       ]
     }
 
-Offsets are file offsets. `kind` is `code` or `data` (jump tables and `int 3` padding inside `.text` are `data`). `class` is `structured`, `reconstructed` or `referenced`, the packet's three classes. The ledger must tile the whole file without overlap; a `missing` range is rejected, and a gap is rejected unless `--allow-partial-ledger` is given (the gap is then reported as unclassified).
+Offsets are file offsets. `kind` is `code` or `data` (jump tables and `int 3` padding inside `.text` are `data`). `class` is `structured`, `reconstructed` or `referenced`, the packet's three classes. Every `structured` or `reconstructed` range must carry a `provenance` (lowercase identifier such as `explicit_reconstructed_assembly_source`, `tool_assisted_reconstructed_assembly` or `image_structure`); the page and report count matched bytes per provenance and the tool rejects a matched range without one. The ledger must tile the whole file without overlap; a `missing` range is rejected, and a gap is rejected unless `--allow-partial-ledger` is given (the gap is then reported as unclassified).
 
 A ledger is a claim, not proof. Pass `--verify-image COMPOSED.EXE` (the composer's output image): the run fails unless its SHA-256 equals the pinned `GAME.EXE` hash, and the report and page say whether that check ran. Without it the output states that the ledger was not tied to a composed image. A partial ledger keeps every unit's full extent; bytes it does not cover render as not done and are counted as unclassified.
 
