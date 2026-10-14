@@ -194,6 +194,10 @@ class RepoEvidenceTests(unittest.TestCase):
             (d / "build" / "a.obj").write_text("swapped")
             with self.assertRaisesRegex(GEN.ProgressError, "reviewed object hash"):
                 GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
+            with self.assertRaisesRegex(GEN.ProgressError, "no reviewed hash record"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, None)
+            with self.assertRaisesRegex(GEN.ProgressError, "no reviewed hash record"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, {})
             write(d / "matches.json", {"source": "src/a.s", "functions": [
                 {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
             unbound = GEN.bind_reviewed_artifacts(["matches.json"], d, d, status)

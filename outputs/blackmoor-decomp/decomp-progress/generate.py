@@ -229,10 +229,14 @@ def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict 
         objs = {fn.get("object") for fn in man["functions"]}
         key = STATUS_BINDING.get(name)
         rec = (status or {}).get(key) if key else None
-        if rec is None:
+        if key is None:
             out[name] = {"bound_to_reviewed_hashes": False,
-                         "note": "no reviewed source/object hashes recorded in status.json"}
+                         "note": "no reviewed source/object hashes exist for this manifest"}
             continue
+        if rec is None:
+            raise ProgressError(
+                f"{name}: status.json has no reviewed hash record ({key}); "
+                "an assembly manifest cannot be counted as verified without one")
         if len(objs) != 1 or None in objs:
             raise ProgressError(f"{name}: expected exactly one object path")
         obj = root / objs.pop()
