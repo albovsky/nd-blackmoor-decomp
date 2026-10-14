@@ -122,7 +122,8 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertIn("upper bound", report)
         self.assertIn("typed_body[0] == 0x0d", report)
         self.assertIn("may differ from the live-run commit", report)
-        self.assertIn("f44761b4d0a98f937230be40ea3bc1177dcc9713", report)
+        status = json.loads((EVIDENCE / "status.json").read_text())
+        self.assertIn(status["current_integration"]["source_ref"][:40], report)
 
     def test_seeded_panel_labels_committed_notes(self):
         # Mutate only the evidence kind, then render through the real template.
