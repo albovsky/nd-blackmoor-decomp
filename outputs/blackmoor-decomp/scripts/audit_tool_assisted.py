@@ -122,7 +122,7 @@ _SWTAB_LONG = re.compile(r"^\.long (?:L_[0-9a-f]{8}|[A-Za-z_]\w*) - \.text \+ 0x
 _ORG = re.compile(r"^\.org 0x[0-9a-f]{8} - 0x[0-9a-f]+$")
 _EQU = re.compile(r"^\.equ ([A-Za-z_]\w*), 0x[0-9a-f]+$")
 _SET_EXTERNAL = re.compile(r"^\.set ((?:FUN|LOC)_[0-9a-f]{8}), \.text \+ \(0x[0-9a-f]{8} - 0x[0-9a-f]+\)$")
-_SET_TABLE = re.compile(r"^\.set ((?:SWTAB|IDXTAB)_[0-9a-f]{8}_VA), (?:SWTAB|IDXTAB)_[0-9a-f]{8} - \.text \+ 0x[0-9a-f]+$")
+_SET_TABLE = re.compile(r"^\.set ((?:SWTAB|IDXTAB)_[0-9a-f]{8})_VA, \1 - \.text \+ 0x[0-9a-f]+$")
 _FILL = re.compile(r"^\.fill (\d+), 1, 0x(cc|90)$")
 _BYTE_LIST = re.compile(r"^\.byte (?:\d{1,3})(?:, \d{1,3})*$")
 
@@ -710,6 +710,10 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
             reasons.append(f"symbol {symbol} is not at its original section offset")
         for item, expected in zip(entry.get("data_items", []), expected_items):
             sym = item.get("symbol")
+            prefix = {"switch_table": "SWTAB", "index_table": "IDXTAB", "padding": "PAD"}[expected["kind"]]
+            if sym != f"{prefix}_{expected['rva'] + config.image_base:08x}":
+                reasons.append(f"data symbol {sym!r} does not name its address")
+                continue
             if not sym or sym not in symbols or symbols[sym] != expected["rva"] + config.image_base - image.base:
                 reasons.append(f"data symbol {sym!r} is missing or misplaced")
                 continue

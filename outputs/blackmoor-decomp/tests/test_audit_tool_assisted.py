@@ -442,6 +442,12 @@ class AuditorMutants(unittest.TestCase):
         report, _w, _m = self.batch(mutate=rename)
         self.rejected(report, va, "does not name its target")
 
+    def test_table_symbol_must_name_its_table(self) -> None:
+        va = BASE + fixture.F_SWITCH
+        tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, f"SWTAB_{tab}_VA", "SWTAB_deadbeef_VA", 10))
+        self.rejected(report, va, "")
+
     def test_index_table_byte_lists_need_a_ruling_by_default(self) -> None:
         va = BASE + fixture.F_SWITCH
         report, _w, _m = self.batch(config=self.config(allow_index_byte_lists=False))

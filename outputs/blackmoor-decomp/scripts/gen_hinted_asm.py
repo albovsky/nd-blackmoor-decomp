@@ -430,9 +430,10 @@ def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] =
                 if ins.mnem in _TERMINAL:
                     break
                 if ins.mnem == "call":
+                    # a call is an interprocedural edge: record the callee, do not absorb it into this extent
                     if target is not None:
-                        if start <= target < span_end:
-                            add_target(target, "call")
+                        if target == start:
+                            layout.internal_targets.add(target)
                         else:
                             layout.external_targets.add(target)
                     nxt = ins.end

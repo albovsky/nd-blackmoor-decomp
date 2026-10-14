@@ -25,14 +25,14 @@ cd outputs/blackmoor-decomp/tests && python3 -m unittest test_gen_hinted_asm tes
 
 ## Census of the whole `.text` (private run, summary in `census-summary.json`)
 
-The generator splits the span of every function (entry to next indexed start) into code, tables and padding by following the function's own control flow, reassembles all of it in one pass and compares every byte. Code that the span split finds after a function's last reachable instruction and its tables (instructions only reached from other functions: import thunks, shared tails, unindexed library routines) becomes a *derived* function with its own symbol. Instruction-like alignment padding (`lea r, [r]`, `mov r, r`, `nop`, `int3`) is padding, not code.
+The generator splits the span of every function (entry to next indexed start) into code, tables and padding by following the function's own control flow, reassembles all of it in one pass and compares every byte. Calls are interprocedural edges: a called helper inside the same span is not absorbed into its caller's extent. Code that the span split finds after a function's last reachable instruction and its tables (instructions only reached from other functions: import thunks, shared tails, unindexed library routines) becomes a *derived* function with its own symbol. Instruction-like alignment padding (`lea r, [r]`, `mov r, r`, `nop`, `int3`) is padding, not code.
 
 | Region | Functions (derived) | Code bytes | Exact | Switch tables | Index tables | Padding | Unsplit |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | game | 2,514 (7) | 1,023,548 | 1,023,548 | 5,236 | 1,934 | 1,202 | 0 |
 | Vorbis/ogg | 203 (25) | 60,076 | 60,076 | 64 | 0 | 1,396 | 0 |
-| CRT/MFC | 2,014 (511) | 116,524 | 116,524 | 316 | 0 | 1,080 | 1,642 |
-| total | 4,731 (543) | 1,200,148 | 1,200,148 | 5,616 | 1,934 | 3,678 | 1,642 |
+| CRT/MFC | 2,035 (532) | 116,524 | 116,524 | 316 | 0 | 1,080 | 1,642 |
+| total | 4,752 (564) | 1,200,148 | 1,200,148 | 5,616 | 1,934 | 3,678 | 1,642 |
 
 The figure in parentheses is the number of *derived* functions (code found by the span split, not in `function-index.json`). The classified bytes plus the unsplit span add up to the `.text` virtual size 1,213,018. Mismatching bytes: 0. Relocations in the census object: 0. Hint counts: `{load}` 20,642, `.d8` 22,051, `.d32` 7,943, `.insn` 384, `{disp8}` 99, `{store}` 28, `{disp32}` 2. M0's linear-sweep figure (1,205,254 bytes) was a round-trip number, not a code total; the code total here is 1,200,148. That denominator excludes the 1,642 bytes of the two unsplit spans (their code share is still unclassified) and includes the 38 bytes of the seven fall-through fragments below, which the auditor currently refuses, so the auditable code total is 1,200,110.
 
