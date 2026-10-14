@@ -21,9 +21,9 @@ The following packets can start independently. For four workers, start A-64, A-6
 
 ## Complete catalogue
 
-`slice-registry.json` contains 86 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 18,951 typed body boundaries, 661 opaque records. Typed metadata is not implemented gameplay.
+`slice-registry.json` contains 86 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 19,259 typed body boundaries, 353 opaque records. Typed metadata is not implemented gameplay.
 
-All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. Raw 0x37 (4,308), 0x97 (1,958), 0xa1 (565), 0x3f (493), 0x38 (425) and 0x35 (113) now have registered parser body boundaries from A-37.2, A-97.1, A-A1.1, A-3F.1, A-38.1 and A-35.1 (reviewed Codex gpt-6.1-sol work); their handlers/runtime remain unimplemented and the executor reports them unsupported at dispatch. The largest remaining opaque recovery families are 0x3e (202, A-3E.1 active), 0x6e (68, A-6E.1 active) and 0x79 (38, A-79.1 active). Raw 0x62 already has typed body boundaries and a reviewed kernel; its live integration remains open. S4700 now loads in the live path and stops at the 0x35 runtime (row 3).
+All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. Raw 0x37 (4,308), 0x97 (1,958), 0xa1 (565), 0x3f (493), 0x38 (425), 0x3e (202), 0x35 (113), 0x6e (68) and 0x79 (38) now have registered parser body boundaries from A-37.2, A-97.1, A-A1.1, A-3F.1, A-38.1, A-3E.1, A-35.1, A-6E.1 and A-79.1 (reviewed Codex gpt-6.1-sol work); their handlers/runtime remain unimplemented and the executor reports them unsupported at dispatch. The largest remaining opaque recovery families are 0x45 (32), 0x67 (27), 0x44 (27), 0x6f (25) and 0x36 (20). S4700 now loads in the live path and stops at the 0x35 runtime (row 3).
 
 ## Current integration assignment
 
@@ -57,7 +57,7 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 | RT-5 | [Scene exit handler and 0x28 effect](tasks/RT-5-scene-exit-handler-and-a28-effect.md) | Collected |
 | RT-6 | [Pointer integration](tasks/RT-6-pointer-integration.md) | In progress |
 
-Opaque action decoders (A-35.1, A-38.1, A-3F.1, A-97.1, A-A1.1 merged; A-3E.1, A-6E.1, A-79.1 active) are driven by the opaque-action thread, Codex implementers and one independent reviewer per packet.
+Opaque action decoders (A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-97.1, A-A1.1 merged) are driven by the opaque-action thread, Codex implementers and one independent reviewer per packet.
 
 ## Ownership and coordination
 
