@@ -179,7 +179,7 @@ def mnemonic_of(code: str) -> str:
     return re.sub(r"\.d(?:8|32)$", "", tokens[0])
 
 
-def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = False) -> tuple[list[str], dict[str, Any]]:
+def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = False, text_base: int = 0x401000) -> tuple[list[str], dict[str, Any]]:
     """Lexical checks; returns (reasons, facts)."""
 
     reasons: list[str] = []
@@ -255,6 +255,10 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
                 code_lines.append(line)
             continue
         if code.startswith("."):
+            if code.startswith((".org ", ".set ", ".long ")):
+                tail = re.search(r"0x([0-9a-f]+)\)?$", code)
+                if tail and int(tail.group(1), 16) != text_base:
+                    reasons.append(f"line {line.number}: section base 0x{tail.group(1)} is not the text base 0x{text_base:x}")
             if _EQU.match(code):
                 equ = _EQU.match(code).group(1)
                 if _DEFAULT_FRAME_NAME.match(equ):
@@ -646,7 +650,7 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     }
     if entry.get("evidence_id") != image.evidence.get(va):
         reasons.append("evidence_id in the manifest differs from function-index.json")
-    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists)
+    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base)
     reasons += lexical
     result["basic_blocks"] = facts.get("basic_blocks")
     track = facts["header"].get("track-n", "")

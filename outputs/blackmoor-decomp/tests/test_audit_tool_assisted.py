@@ -442,6 +442,17 @@ class AuditorMutants(unittest.TestCase):
         report, _w, _m = self.batch(mutate=rename)
         self.rejected(report, va, "does not name its target")
 
+    def test_external_set_base_must_be_the_text_base(self) -> None:
+        va = BASE + fixture.F_FRAME
+        leaf = f"{BASE + fixture.F_LEAF:08x}"
+        def shift(w: Path) -> None:
+            path = w / f"FUN_{va:08x}.s"
+            text = path.read_text(encoding="utf-8")
+            text = text.replace(f"FUN_{leaf}, .text + (0x{leaf} - 0x401000)", f"FUN_{leaf}, .text + (0x{leaf} - 0x402000)")
+            path.write_text(text, encoding="utf-8")
+        report, _w, _m = self.batch(mutate=shift)
+        self.rejected(report, va, "is not the text base")
+
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
         tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)
