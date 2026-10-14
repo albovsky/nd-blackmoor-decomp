@@ -22,11 +22,11 @@
       "id": "S03",
       "title": "AVF media path",
       "packet": "tasks/S03-avf-player.md",
-      "status": "INCOMPLETE: S03-1 reported complete; S03-2 brief issued",
+      "status": "INCOMPLETE: S03-1 final decoder has one review finding; S03-2 claimed and implementing",
       "depends_on": [],
       "current_child_packet": "tasks/S03-2-avf-playback.md",
       "assigned_worker": "Claude (owner-authorized external worker)",
-      "assignment_state": "S03-2 claim pending; S03-1 final handoff/review pending",
+      "assignment_state": "Claude S03-2 active; API decision issued; S03-1 repair brief requires re-review",
       "previous_child_packet": "tasks/S03-1-avf-decoder.md"
     },
     {
@@ -40,18 +40,19 @@
       "id": "S05",
       "title": "Caption layout and font rendering",
       "packet": "tasks/S05-caption-layout.md",
-      "status": "INCOMPLETE: reviewed writer/lifecycle collected; composition/live UI open",
+      "status": "INCOMPLETE: reviewed writer/lifecycle/compositor collected; shared live UI integration open",
       "depends_on": [],
       "current_child_packet": "tasks/S05-3-caption-composition.md",
-      "assigned_worker": "/root/sound_control_luna6: isolated compositor; Boot: shared wiring",
-      "assignment_state": "S05-3 issued; claim pending; reviewed writer/lifecycle collected"
+      "assigned_worker": "Boot: shared caption composition wiring",
+      "assignment_state": "S05-3 accepted6f74c6a; caption app binding accepted a864b11; real transfers in progress"
     },
     {
       "id": "S06",
       "title": "Remaining dependency leaf operations",
       "packet": "tasks/S06-condition-extra.md",
-      "status": "READY: original recovery + isolated evaluators",
-      "depends_on": []
+      "status": "INCOMPLETE: world clock and eight extra leaves collected; whole-tree/runtime integration open",
+      "depends_on": [],
+      "assignment_state": "S06-2 reviewed leaf kernel8620612; Boot wires authoritative providers and full tree"
     },
     {
       "id": "S07",
@@ -64,10 +65,11 @@
       "id": "S08",
       "title": "Matching build and function batches",
       "packet": "tasks/S08-matching-build.md",
-      "status": "INCOMPLETE: S08-2 six accessor extents matched; S08-3 issued",
+      "status": "INCOMPLETE: nine complete assembly functions and two partial ranges; whole-file build open",
       "depends_on": [],
-      "current_child_packet": "tasks/S08-3-input-method-matching.md",
-      "assignment_state": "S08-3 claim pending; 126 unique exact bytes across prior extents"
+      "current_child_packet": "tasks/S08-4-input-consumer-matching.md",
+      "assignment_state": "S08-4 claimed;302 unique exact bytes currently accepted",
+      "assigned_worker": "/root/progress_map_luna6"
     },
     {
       "id": "A-0B",
@@ -203,11 +205,14 @@
       "id": "A-37",
       "title": "Action 0x37: body boundary and runtime",
       "packet": "tasks/A-37-action-37.md",
-      "status": "READY recovery/kernel",
+      "status": "IN PROGRESS: constructor discovery proven; A-37.2 decoder/constructor assigned",
       "depends_on": [],
       "raw_type": "0x37",
       "records": 4308,
-      "priority": "remaining corpus family"
+      "priority": "remaining corpus family",
+      "current_child_packet": "tasks/A-37.2-static-overlay-loader.md",
+      "assigned_worker": "/root/input_matching_luna6",
+      "assignment_state": "A-37.2 claimed; runtime/provider/render children remain open"
     },
     {
       "id": "A-38",
@@ -683,7 +688,7 @@
       "id": "I01",
       "title": "Live world and S0 app loop",
       "packet": "tasks/I01-live-world-and-s0-app-loop.md",
-      "status": "BLOCKED integration",
+      "status": "IN PROGRESS: persistent session/caption binding; full integration gates remain open",
       "depends_on": [
         "S01",
         "S02",
@@ -692,7 +697,7 @@
       ],
       "current_child_packet": "tasks/I01-1-persistent-scene-session.md",
       "assigned_worker": "/root/boot_world_contract_luna6",
-      "assignment_state": "I01-1 assigned; parent completion gates remain open"
+      "assignment_state": "Boot binding reviewed Frame/caption transfers; genuine audio/input and S5900 execution open"
     },
     {
       "id": "I02",
@@ -811,6 +816,26 @@
         "S08",
         "I05"
       ]
+    },
+    {
+      "id": "A-37.2",
+      "title": "Static-overlay bounded decoder and constructor",
+      "packet": "tasks/A-37.2-static-overlay-loader.md",
+      "status": "IN PROGRESS: isolated implementation",
+      "depends_on": [],
+      "parent": "A-37",
+      "assigned_worker": "/root/input_matching_luna6",
+      "evidence_dependency": "A-37.1 original constructor discovery; not an accepted runtime"
+    },
+    {
+      "id": "S08-4",
+      "title": "Input-consumption source and complete x86 matching",
+      "packet": "tasks/S08-4-input-consumer-matching.md",
+      "status": "IN PROGRESS: source/API recovery",
+      "depends_on": [],
+      "parent": "S08",
+      "assigned_worker": "/root/progress_map_luna6",
+      "evidence_dependency": "Collected S08-3 input-state boundary72c09ca"
     }
   ]
 }
