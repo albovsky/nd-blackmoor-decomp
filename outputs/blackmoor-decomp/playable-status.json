@@ -23,8 +23,8 @@
   "ticks": 675,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "7771d60ec07a8a31a719f5d4caf4508de3242e73",
-    "native_sha256": "92f12a05a7c1c083dff677f00c26856f5a662595e65c55bfc1719b2dbfea0610",
+    "source_ref": "2f3809df9a8efa78881cb23068fdf78db30793d3",
+    "native_sha256": "5d39b10166aa33c5e110de1d672406c607213f6c163be45097a00770883c8b7e",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -54,6 +54,10 @@
         "sha256": "193290adb9a3d154895e0962eafe2aeaf5867a96741c28c167beea04caefd1f3"
       },
       {
+        "path": "src/action_family_36.h",
+        "sha256": "ca5e68309ba875c476e2f1e9d931d14160200af3fc43505365344b00873103da"
+      },
+      {
         "path": "src/action_family_37.h",
         "sha256": "697456c6ba6f6cfe43b4cb2b131973cd75af3faac90e6bd8d35e79910c7a1aac"
       },
@@ -68,6 +72,18 @@
       {
         "path": "src/action_family_3f.h",
         "sha256": "563c0800eb8c064ee4a5e61ac372dca8541742d1e962ecf2969a103c424b5dd5"
+      },
+      {
+        "path": "src/action_family_43.h",
+        "sha256": "bca3bcd85d92b62fa57d01fdf2e6da29c511e3ba3cde4ebe6bb9556e436a4d7b"
+      },
+      {
+        "path": "src/action_family_44.h",
+        "sha256": "366734a9814a0ceb243a75261ec1513f49afff6f923b774c09a481c7a2f8ea41"
+      },
+      {
+        "path": "src/action_family_45.h",
+        "sha256": "3717678ad51b2b1087c2d2cec21057996a8f48477a7dadd36d2660686f884af3"
       },
       {
         "path": "src/action_family_51.h",
@@ -86,8 +102,16 @@
         "sha256": "be6081068aa821ff07d78d100128f68bcb122d55a529cf0285e4db40be98acfd"
       },
       {
+        "path": "src/action_family_67.h",
+        "sha256": "94e6d1e8c8bd7c2446e3a7d3d1fc9355c8852f0335b2c272a38b0cd77220edd3"
+      },
+      {
         "path": "src/action_family_6e.h",
         "sha256": "856c40aa7bba2195288e5b50d4449cdd71258057ff0e994e6079f21a53e84cbe"
+      },
+      {
+        "path": "src/action_family_6f.h",
+        "sha256": "139978ee3db6f43231126be298c255c4e81019a24cc06ceb6e1442ba82160b36"
       },
       {
         "path": "src/action_family_79.h",
@@ -215,7 +239,7 @@
       },
       {
         "path": "src/scene_resource.c",
-        "sha256": "1ba26592419dcd12cfbe74664ae5ed6ca250b7fa7e25175db9b4eded7229b374"
+        "sha256": "dfa920f57269d73ad42d3bffe10cf371a45684da0c8487fd89d92551e0c15dc3"
       },
       {
         "path": "src/scene_resource.h",
