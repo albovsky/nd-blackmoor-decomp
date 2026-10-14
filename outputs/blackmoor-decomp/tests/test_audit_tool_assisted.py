@@ -464,6 +464,17 @@ class AuditorMutants(unittest.TestCase):
         )
         self.assertTrue(any("unnamed [ebp" in r for r in reasons), reasons)
 
+    def test_track_n_path_cannot_leave_the_repository(self) -> None:
+        va = BASE + fixture.F_LEAF
+        outside = Path(self.tmp.name) / "outside.c"
+        outside.write_text("int outside_symbol_name;\n", encoding="utf-8")
+        config = self.config()
+        config.repository = Path(self.tmp.name) / "pristine"
+        report, _w, _m = self.batch(
+            mutate=lambda w: self.edit(w, va, "host-adapter: none", "../outside.c:outside_symbol_name"), config=config
+        )
+        self.rejected(report, va, "leaves the repository")
+
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
         tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)

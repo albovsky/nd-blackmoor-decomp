@@ -670,8 +670,10 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     if config.repository and track and track != "host-adapter: none":
         match = re.match(r"^([\w./+-]+):([\w:~]+)", track)
         if match:
-            target = (config.repository / match.group(1))
-            if not target.is_file():
+            target = (config.repository / match.group(1)).resolve()
+            if config.repository.resolve() not in target.parents:
+                reasons.append(f"track-n path {match.group(1)} leaves the repository")
+            elif not target.is_file():
                 reasons.append(f"track-n file {match.group(1)} does not exist")
             elif len(match.group(2)) < 6 or not re.search(
                 r"(?<![\w])" + re.escape(match.group(2)) + r"(?![\w])", target.read_text(encoding="utf-8", errors="replace")
