@@ -23,7 +23,7 @@
   "ticks": 675,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "25e14eecb892058de0dc87a15bcd99e6dc725234",
+    "source_ref": "d1f6da31d06527c6c523541f01b72974d886ea6e",
     "native_sha256": "92f12a05a7c1c083dff677f00c26856f5a662595e65c55bfc1719b2dbfea0610",
     "command": [
       "--inspect-live-session",
@@ -35,8 +35,8 @@
   },
   "schema": "blackmoor-playable-status/1",
   "tests": {
-    "discovered": 899,
-    "passed": 894,
+    "discovered": 961,
+    "passed": 956,
     "skipped": 5,
     "source_field": "current_integration.full_suite"
   },
