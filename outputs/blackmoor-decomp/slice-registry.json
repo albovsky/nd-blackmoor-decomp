@@ -1018,6 +1018,14 @@
       "parent": "A-36",
       "raw_type": "0x36",
       "records": 20
+    },
+    {
+      "id": "A-TAIL.1",
+      "title": "Original-backed dependency-tail oracle for the opaque-family decoders",
+      "packet": "tasks/A-TAIL.1-dependency-tail-oracle.md",
+      "status": "READY Codex gpt-6.1-sol xhigh; test hardening only",
+      "depends_on": [],
+      "records": 0
     }
   ]
 }

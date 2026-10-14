@@ -12,8 +12,8 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-4 dependency opcodes 11-15/17/20/21 | Reviewed, fixed, on PR 8 |
 | RT-5 scene exit handler + queued 0x28 effect | Reviewed, fixed, on PR 8 |
 | RT-6 wire the pointer module, single hotspot candidate | Reviewed (no P1), merged (PR 10) |
-| A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged (typed 19,259 / opaque 353); runtimes still unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 opaque decoders (Codex) | Reviewed, merged (typed 19,259 / opaque 353) |
+| A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; runtimes still unimplemented |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 opaque decoders (Codex) | Reviewed, merged (typed 19,324 / opaque 288) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -45,3 +45,9 @@ Next slices, in order:
 3. Settle whether the original keeps sounds across continuation transitions (the blanket `live_audio_unload_all` in `perform_session_transition` is an unverified choice; S5907 row 6 behaves differently with it).
 4. Interactive pass on the real window (needs Glib or computer use): click through S0, listen to the narration, check the hover cursor and a double click. Nothing interactive has been verified yet.
 5. Menus, save/load and the second difficulty (I04/I05) once the opening scenes run.
+
+## Handoff: opaque scene actions, third batch (2026-10-14 15:00 PDT)
+
+Merged: raw 0x67, 0x6f and 0x43 body boundaries and isolated decoders (A-67.1, A-6F.1, A-43.1; one independent review each, no P1 findings). Typed 19,324 / opaque 288. 0x67 and 0x6f are one-byte fixed bodies; 0x43 is registered inline with both its keyed and inline-text branches and its own unit test.
+In progress (Codex gpt-6.1-sol xhigh): A-45.1 (32), A-44.1 (27), A-36.1 (20), branches `codex/A-45.1`, `codex/A-44.1`, `codex/A-36.1`. These packets require the oracle itself to run the original dependency loader 0x424aa8.
+Open review follow-ups for every merged decoder (A-35.1 through A-43.1): the shipped oracles stop before 0x424aa8, so the tail modulus and count are verified by reviewer probes, not by the committed oracle; the original takes a fatal path on a ragged tail and on unpaired 0x12/0x13 dependency opcodes (native parser accepts the latter); dylib hashes are path-dependent. A hardening packet (A-TAIL.1) should add a shared 0x424aa8 oracle stage and tail mutants to all of them.
