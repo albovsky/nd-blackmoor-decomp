@@ -541,15 +541,26 @@ class SceneExecutorTests(unittest.TestCase):
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 1)
 
-            # Check dependencies again when the accepted event reaches the
-            # pre-dispatch gate, not only when the hover rectangle was armed.
+            # RT-4 review (0x43bff8..0x43c054): a hotspot without opcode-11
+            # leaves has an empty chain (0x42405a == 0), so the accepted event
+            # stores phase 2 WITHOUT re-evaluating the tree. The dependency is
+            # false now, so the row pass does not run the phase-2 effects yet.
             flags[0] = 0
             status, _ = self.step_frame(
                 executor, state, self.frame(3, activation=True)
             )
             self.assertEqual(status, OK)
             self.assertEqual((flags[1], self.action_state(executor, 0).phase),
-                             (0, 1))
+                             (0, 2))
+            # Once the gate opens the pending phase 2 runs its effects.
+            flags[0] = 1
+            status, _ = self.step_frame(executor, state, self.frame(3))
+            self.assertEqual(status, OK)
+            self.assertEqual(flags[1], 5)
+            flags[1] = 0
+            status, _ = self.step_frame(executor, state, self.frame(3))
+            self.assertEqual((status, self.action_state(executor, 0).phase), (OK, 1))
+            flags[0] = 0
 
             # Pointer geometry is ignored outside the caller-supplied cursor
             # context even when the rectangle itself is active.

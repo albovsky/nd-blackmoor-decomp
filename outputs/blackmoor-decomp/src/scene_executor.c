@@ -17,6 +17,12 @@ enum {
     SCENE_ACTION_ASYNC_SOUND = 0x9f
 };
 
+typedef struct SceneExecutorPreGate {
+    uint8_t type;
+    SceneActionPreGateFn callback;
+    void *context;
+} SceneExecutorPreGate;
+
 struct SceneActionExecutor {
     const SceneResource *scene;
     ActionCoreWorld *world;
@@ -35,6 +41,11 @@ struct SceneActionExecutor {
     ActionFamily64Backend *action64_backend;
     SceneAction64WorldCommitFn action64_world_commit_observer;
     void *action64_world_commit_context;
+    SceneExecutorPreGate pre_gates[SCENE_EXECUTOR_MAX_PRE_GATES];
+    size_t pre_gate_count;
+    const SceneConditionExtension *condition_extension;
+    SceneConditionFailure condition_failure;
+    SceneExecutorCandidateDecision candidate_decision;
 };
 
 static uint16_t read_u16le(const uint8_t *bytes)
@@ -142,6 +153,9 @@ int scene_executor_create(const SceneResource *scene,
     }
     executor->scene = scene;
     executor->world = world;
+    executor->candidate_decision.action_index = SIZE_MAX;
+    executor->candidate_decision.label = -1;
+    executor->candidate_decision.first_chain_label = -1;
     executor->action_count = action_count;
     if (action_count != 0u) {
         executor->conditions = (SceneConditionTree **)calloc(
@@ -276,6 +290,53 @@ int scene_executor_set_action64_world_commit_observer(
     return SCENE_EXECUTOR_OK;
 }
 
+int scene_executor_set_pre_gate(SceneActionExecutor *executor,
+                                uint8_t type,
+                                SceneActionPreGateFn callback,
+                                void *context)
+{
+    size_t index;
+    if (executor == NULL || callback == NULL ||
+        executor->pre_gate_count >= SCENE_EXECUTOR_MAX_PRE_GATES) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    for (index = 0u; index < executor->pre_gate_count; ++index) {
+        if (executor->pre_gates[index].type == type) {
+            return SCENE_EXECUTOR_ERR_ARGUMENT;
+        }
+    }
+    executor->pre_gates[executor->pre_gate_count].type = type;
+    executor->pre_gates[executor->pre_gate_count].callback = callback;
+    executor->pre_gates[executor->pre_gate_count].context = context;
+    ++executor->pre_gate_count;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_accept_action_candidate(SceneActionExecutor *executor,
+                                           size_t action_index)
+{
+    if (executor == NULL || action_index >= executor->action_count) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->states[action_index].phase = 2u;
+    return SCENE_EXECUTOR_OK;
+}
+
+static void run_pre_gate(const SceneActionExecutor *executor,
+                         size_t index,
+                         const SceneActionInfo *action)
+{
+    size_t gate;
+    for (gate = 0u; gate < executor->pre_gate_count; ++gate) {
+        if (executor->pre_gates[gate].type == action->type) {
+            executor->pre_gates[gate].callback(executor->pre_gates[gate].context,
+                                               index, action,
+                                               &executor->states[index]);
+            return;
+        }
+    }
+}
+
 static int action64_clock_fields_changed(const ActionFamily64World *before,
                                          const ActionFamily64World *after)
 {
@@ -327,6 +388,16 @@ static void fill_failure(SceneExecutorStepInfo *info,
     info->failed_action_index = index;
     info->failed_action_type = type;
     info->detail_status = detail_status;
+}
+
+/* An unsupported opcode or a missing host provider is an explicit blocker;
+ * every other condition failure is a hard error. */
+static int condition_failure_to_executor_status(int condition_status)
+{
+    return condition_status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE ||
+                   condition_status == SCENE_CONDITION_ERR_HOST_UNAVAILABLE
+               ? SCENE_EXECUTOR_ERR_UNSUPPORTED
+               : SCENE_EXECUTOR_ERR_CONDITION;
 }
 
 static void decode_scene_transition(const uint8_t *body,
@@ -610,23 +681,62 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
                 return SCENE_EXECUTOR_ERR_FORMAT;
             }
             if (is_builtin_hotspot(&candidate_action)) {
-                candidate_status = scene_conditions_evaluate(
-                    executor->conditions[candidate], &dispatch_state,
-                    &candidate_eligible, &candidate_opcode);
-                if (candidate_status != SCENE_CONDITION_OK) {
-                    fill_failure(&local_info, candidate,
-                                 candidate_action.type, candidate_status);
-                    *step_info = local_info;
-                    return candidate_status ==
-                                   SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE
-                               ? SCENE_EXECUTOR_ERR_UNSUPPORTED
-                               : SCENE_EXECUTOR_ERR_CONDITION;
+                /* 0x43bff8: 0x42405a(root) returns the opcode-11 chain count.
+                 * Empty chain: 0x43c048 accepts with no tree evaluation. Else
+                 * 0x43c019 runs the wrapper with mode 0 and acceptance also
+                 * needs the 0x424035 label read right afterwards to differ
+                 * from -1 (the local starts at -1, 0x43a7e5). */
+                SceneConditionTree *tree = executor->conditions[candidate];
+                SceneExecutorCandidateDecision *decision = &executor->candidate_decision;
+                memset(decision, 0, sizeof(*decision));
+                decision->action_index = candidate;
+                decision->label = -1;
+                decision->first_chain_label = -1;
+                decision->chain_count = scene_conditions_item_leaf_count(tree);
+                (void)scene_conditions_first_item_label(tree, &decision->first_chain_label);
+                if (decision->chain_count == 0u) {
+                    decision->accepted = 1u;
+                } else {
+                    candidate_status = scene_conditions_evaluate_ex(
+                        tree, &dispatch_state, executor->condition_extension, 0,
+                        &candidate_eligible, &candidate_opcode,
+                        &executor->condition_failure);
+                    if (candidate_status != SCENE_CONDITION_OK) {
+                        fill_failure(&local_info, candidate,
+                                     candidate_action.type, candidate_status);
+                        *step_info = local_info;
+                        return condition_failure_to_executor_status(candidate_status);
+                    }
+                    decision->tree_evaluated = 1u;
+                    decision->tree_satisfied = candidate_eligible ? 1u : 0u;
+                    if (candidate_eligible) {
+                        (void)scene_conditions_selected_item_label(tree, &decision->label);
+                        decision->accepted = decision->label != -1 ? 1u : 0u;
+                    }
                 }
-                if (candidate_eligible) {
+                if (decision->accepted) {
                     executor->states[candidate].phase = 2u;
                 }
             }
         }
+    }
+
+    /* The original loader bakes each leaf's threshold, reading the
+     * 0x5adb81 table, while the scene loads; the first dispatch is the native
+     * equivalent point (idempotent). */
+    if (executor->condition_extension != NULL) {
+        size_t tree_index;
+        for (tree_index = 0u; tree_index < executor->action_count; ++tree_index) {
+            scene_conditions_resolve_thresholds(executor->conditions[tree_index],
+                                                executor->condition_extension);
+        }
+    }
+
+    /* 0x43cf25 stores 1 into 0x5c3a47 right before calling 0x427a50. */
+    if (executor->condition_extension != NULL &&
+        executor->condition_extension->pass_started != NULL) {
+        executor->condition_extension->pass_started(
+            executor->condition_extension->context);
     }
 
     for (index = 0u; index < executor->action_count; ++index) {
@@ -647,17 +757,22 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             return SCENE_EXECUTOR_ERR_FORMAT;
         }
         ++local_info.actions_considered;
+        /* 0x427a50 stores the request clear before the type switch and the
+         * dependency gate (see SceneActionPreGateFn). */
+        run_pre_gate(executor, index, &action);
         if (is_builtin_hotspot(&action)) {
             hotspot->active = 0u;
         }
-        status = scene_conditions_evaluate(executor->conditions[index], &dispatch_state,
-                                          &eligible, &unsupported_opcode);
+        status = scene_conditions_evaluate_ex(
+            executor->conditions[index], &dispatch_state,
+            executor->condition_extension,
+            scene_conditions_gate_mode_for_type(
+                (uint8_t)action_runtime_type(&action)),
+            &eligible, &unsupported_opcode, &executor->condition_failure);
         if (status != SCENE_CONDITION_OK) {
             fill_failure(&local_info, index, action.type, status);
             *step_info = local_info;
-            return status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE
-                       ? SCENE_EXECUTOR_ERR_UNSUPPORTED
-                       : SCENE_EXECUTOR_ERR_CONDITION;
+            return condition_failure_to_executor_status(status);
         }
         if (!eligible) {
             /* 0x427a50's type-0x9f blocked-dependency branch executes this
@@ -860,6 +975,52 @@ int scene_executor_step(SceneActionExecutor *executor,
     const SceneExecutorFrameInput frame_input = {0, 0, 0, 0u, 0u, 0u, 0u};
     return scene_executor_step_frame(executor, state, handlers, handler_count,
                                      &frame_input, step_info);
+}
+
+int scene_executor_set_condition_extension(
+    SceneActionExecutor *executor,
+    const SceneConditionExtension *extension)
+{
+    if (executor == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->condition_extension = extension;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_candidate_decision(const SceneActionExecutor *executor,
+                                          SceneExecutorCandidateDecision *decision)
+{
+    if (executor == NULL || decision == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    *decision = executor->candidate_decision;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_condition_failure(const SceneActionExecutor *executor,
+                                         SceneConditionFailure *failure)
+{
+    if (executor == NULL || failure == NULL) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    *failure = executor->condition_failure;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_selected_item_label(const SceneActionExecutor *executor,
+                                           size_t action_index,
+                                           int32_t *label)
+{
+    if (label != NULL) {
+        *label = -1;
+    }
+    if (executor == NULL || label == NULL ||
+        action_index >= executor->action_count) {
+        return 0;
+    }
+    return scene_conditions_selected_item_label(
+        executor->conditions[action_index], label);
 }
 
 int scene_executor_get_action_state(const SceneActionExecutor *executor,

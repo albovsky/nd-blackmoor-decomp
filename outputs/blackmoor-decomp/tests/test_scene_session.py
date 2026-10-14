@@ -20,6 +20,7 @@ PROVIDER_NONE = 0
 PROVIDER_WORLD_CLOCK = 1
 PROVIDER_MEDIA = 4
 PROVIDER_ACTION_SOUND = 7
+PROVIDER_A62 = 10
 PROVIDER_CAPTION = 8
 STAGE_PREPARE = 1
 STAGE_MEDIA = 2
@@ -191,6 +192,10 @@ MediaFn = c.CFUNCTYPE(c.c_int, c.c_void_p,
 ActionFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_size_t,
                        c.POINTER(SceneActionInfo), c.POINTER(RuntimeState),
                        c.POINTER(HandlerResult))
+
+
+PreGateFn = c.CFUNCTYPE(None, c.c_void_p, c.c_size_t,
+                        c.POINTER(SceneActionInfo), c.POINTER(RuntimeState))
 
 
 class Binding(c.Structure):
@@ -811,6 +816,179 @@ class SceneSessionTests(unittest.TestCase):
             self.lib.scene_resource_close(scene)
             self.lib.scene_resource_close(target_scene)
             self.assertTrue(owner and target_owner)
+
+    # ---- RT-3: type-0x62 pre-gate request clear and candidate accept -------
+
+    @staticmethod
+    def a62_body(selector_word=0):
+        # 12-byte prefix (ids -1/-1, threshold 0, count 1) + one 18-byte entry.
+        return (i16(-1) + i16(0) + i16(-1) + i16(0) + i16(0) + i16(1) +
+                i16(selector_word) + bytes(16))
+
+    @staticmethod
+    def flag_gate(flag_id, value=1):
+        return b"".join(i16(v) for v in (2, flag_id, value, 0, 0, 0, 0, 0))
+
+    def a62_session(self, scene, world, conditions, handler):
+        @PrepareFn
+        def prepare(_context, _conditions, _frame, _failure):
+            return CALLBACK_OK
+
+        @MediaFn
+        def media(_context, _frame, _failure):
+            return CALLBACK_OK
+
+        binding = Binding(type=0x62, provider=PROVIDER_A62, callback=handler,
+                          context=None)
+        session, initial, bindings = self.create_session(
+            scene, world, conditions, prepare=prepare, media=media,
+            bindings=[binding])
+        self.lib.scene_session_set_pre_gate.argtypes = [
+            c.c_void_p, c.c_uint8, PreGateFn, c.c_void_p]
+        self.lib.scene_session_set_pre_gate.restype = c.c_int
+        self.lib.scene_session_accept_action_candidate.argtypes = [
+            c.c_void_p, c.c_size_t]
+        self.lib.scene_session_accept_action_candidate.restype = c.c_int
+        return session, (prepare, media, binding, initial, bindings)
+
+    def test_pre_gate_runs_before_the_dependency_gate_of_its_type_only(self):
+        # 0x427a50 clears the row's request dword before it evaluates the
+        # dependency tree, so a false gate still leaves the clear behind.
+        scene, owner = self.open_scene([
+            action(0x62, 1, self.a62_body(), (self.flag_gate(5),)),
+            action(0x61, 1, i16(0) + i16(7) + i16(-1) + i16(0)),
+        ])
+        flags, world, conditions = self.make_world()
+        order = []
+
+        @ActionFn
+        def handler(_context, index, _action, before, result):
+            order.append(("handler", index, before.contents.phase))
+            result.contents.disposition = HANDLER_PENDING
+            result.contents.phase = 1
+            return HANDLER_OK
+
+        @PreGateFn
+        def pre_gate(_context, index, info, state):
+            order.append(("pre", index, info.contents.type,
+                          state.contents.completed, state.contents.phase))
+
+        session, keep = self.a62_session(scene, world, conditions, handler)
+        try:
+            self.assertEqual(self.lib.scene_session_set_pre_gate(
+                session, 0x62, pre_gate, None), 0)
+            result = SceneSessionTickResult()
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            # Gate false: pre-gate ran, handler did not; the 0x61 row is not a
+            # registered type and never reaches the hook.
+            self.assertEqual(order, [("pre", 0, 0x62, 0, 0)])
+            self.assertEqual(list(flags[:1]), [7])
+            flags[5] = 1
+            order.clear()
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(order, [("pre", 0, 0x62, 0, 0),
+                                     ("handler", 0, 0)])
+            order.clear()
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(order, [("pre", 0, 0x62, 0, 1),
+                                     ("handler", 0, 1)])
+        finally:
+            self.lib.scene_session_destroy(session)
+            self.lib.scene_resource_close(scene)
+            self.assertTrue(owner and keep)
+
+    def test_pre_gate_skips_completed_rows_and_survives_scene_replacement(self):
+        scene, owner = self.open_scene([action(0x62, 1, self.a62_body())])
+        replacement, replacement_owner = self.open_scene([
+            action(0x61, 1, i16(0) + i16(1) + i16(-1) + i16(0)),
+            action(0x62, 1, self.a62_body()),
+        ])
+        _flags, world, conditions = self.make_world()
+        order = []
+
+        @ActionFn
+        def handler(_context, index, _action, before, result):
+            order.append(("handler", index))
+            result.contents.disposition = HANDLER_DIRECT_COMPLETED
+            result.contents.phase = 0
+            return HANDLER_OK
+
+        @PreGateFn
+        def pre_gate(_context, index, _info, _state):
+            order.append(("pre", index))
+
+        session, keep = self.a62_session(scene, world, conditions, handler)
+        try:
+            self.assertEqual(self.lib.scene_session_set_pre_gate(
+                session, 0x62, pre_gate, None), 0)
+            result = SceneSessionTickResult()
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(order, [("pre", 0), ("handler", 0)])
+            order.clear()
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(order, [])  # completed rows get no request clear
+            self.assertEqual(self.lib.scene_session_replace_scene(
+                session, replacement, 11, c.byref(SceneSessionFailure())), 0)
+            self.lib.scene_resource_close(scene)
+            scene = None
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(order, [("pre", 1), ("handler", 1)])
+            # Duplicate type registrations and null callbacks are rejected.
+            self.assertNotEqual(self.lib.scene_session_set_pre_gate(
+                session, 0x62, PreGateFn(), None), 0)
+        finally:
+            self.lib.scene_session_destroy(session)
+            if scene:
+                self.lib.scene_resource_close(scene)
+            self.lib.scene_resource_close(replacement)
+            self.assertTrue(owner and replacement_owner and keep)
+
+    def test_accept_candidate_stores_phase_two_for_the_next_handler_visit(self):
+        # 0x43c054 stores 2 into the candidate row's phase dword; the handler
+        # then runs with that phase on the same scene tick that follows.
+        scene, owner = self.open_scene([action(0x62, 1, self.a62_body())])
+        _flags, world, conditions = self.make_world()
+        seen = []
+
+        @ActionFn
+        def handler(_context, _index, _action, before, result):
+            seen.append(before.contents.phase)
+            if before.contents.phase == 2:
+                result.contents.disposition = HANDLER_DIRECT_COMPLETED
+                result.contents.phase = 0
+            else:
+                result.contents.disposition = HANDLER_PENDING
+                result.contents.phase = 1
+            return HANDLER_OK
+
+        session, keep = self.a62_session(scene, world, conditions, handler)
+        try:
+            result = SceneSessionTickResult()
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(self.lib.scene_session_accept_action_candidate(session, 0), 0)
+            state = RuntimeState()
+            self.assertEqual(self.lib.scene_session_get_action_state(
+                session, 0, c.byref(state)), 0)
+            self.assertEqual((state.completed, state.phase), (0, 2))
+            self.assertEqual(self.lib.scene_session_tick(session, c.byref(result)),
+                             SESSION_OK)
+            self.assertEqual(seen, [0, 2])
+            self.assertEqual(self.lib.scene_session_get_action_state(
+                session, 0, c.byref(state)), 0)
+            self.assertEqual((state.completed, state.phase), (1, 0))
+            # Out-of-range rows are rejected without touching any state.
+            self.assertNotEqual(self.lib.scene_session_accept_action_candidate(session, 1), 0)
+        finally:
+            self.lib.scene_session_destroy(session)
+            self.lib.scene_resource_close(scene)
+            self.assertTrue(owner and keep)
 
 
 if __name__ == "__main__":

@@ -144,6 +144,38 @@ int scene_session_replace_scene(SceneSession *session,
                                 int32_t scene_id,
                                 SceneSessionFailure *failure);
 
+/* Register a per-type dispatcher pre-gate (see SceneActionPreGateFn). The
+ * registration is kept by the session and re-applied to every replacement
+ * executor, so it survives scene changes. The hook is borrowed; register it
+ * before the first tick. Duplicate types and NULL callbacks are rejected. */
+int scene_session_set_pre_gate(SceneSession *session,
+                               uint8_t type,
+                               SceneActionPreGateFn callback,
+                               void *context);
+
+/* RT-4: register the dependency-leaf extension (see
+ * SceneConditionExtension). The pointer is borrowed, must outlive the session,
+ * is re-applied to every replacement executor and is registered before the
+ * first tick. NULL clears it. Without it extension opcodes are an explicit
+ * dependency-provider blocker. */
+int scene_session_set_condition_extension(
+    SceneSession *session, const SceneConditionExtension *extension);
+
+/* Detail of the dependency evaluation that froze the session (zeroed if the
+ * freeze had another cause). */
+int scene_session_get_condition_failure(const SceneSession *session,
+                                        SceneConditionFailure *failure);
+
+/* Candidate-accept store of 0x43c054 (see
+ * scene_executor_accept_action_candidate). */
+int scene_session_accept_action_candidate(SceneSession *session,
+                                          size_t action_index);
+
+/* For an external action handler running inside scene_session_tick: asks the
+ * executor to end the scene with this request once the handler returns OK.
+ * Any call outside a handler, or a second request, is ERR_STATE. */
+int scene_session_request_transition(SceneSession *session,
+                                     const SceneTransitionRequest *request);
 int scene_session_get_action_state(const SceneSession *session,
                                    size_t action_index,
                                    SceneActionRuntimeState *state);

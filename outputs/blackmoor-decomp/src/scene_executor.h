@@ -128,6 +128,24 @@ typedef void (*SceneAction64WorldCommitFn)(
     void *context,
     const ActionFamily64World *world);
 
+/* Dispatcher prologue of 0x427a50 for one ACT row. For every row whose
+ * completion byte (slot +0x42) is clear and whose action-active dword
+ * (slot +0x55, 0x5bb638) is zero, the original stores zero to the request
+ * dword (slot +0x43, 0x5bb626) BEFORE it switches on the type and evaluates
+ * the dependency tree. A false dependency gate therefore still leaves the
+ * clear behind, and the handler never sees it. This hook runs at exactly that
+ * point for a registered type: after the completed-row skip, before the
+ * dependency gate, once per visit. The executor has no producer for the
+ * action-active dword (0x435015, 0x4381f4, 0x43dbe3, 0x43e484, 0x43e776,
+ * 0x43e96c, 0x4ccff5 and 0x4d812e set it), so it is treated as zero. The
+ * callback must not re-enter the executor. */
+typedef void (*SceneActionPreGateFn)(void *context,
+                                     size_t action_index,
+                                     const SceneActionInfo *action,
+                                     const SceneActionRuntimeState *state);
+
+#define SCENE_EXECUTOR_MAX_PRE_GATES 8u
+
 typedef struct scene_executor_step_info {
     SceneExecutorStepKind kind;
     size_t actions_considered;
@@ -190,6 +208,77 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
                               size_t handler_count,
                               const SceneExecutorFrameInput *frame_input,
                               SceneExecutorStepInfo *step_info);
+
+/* Register the pre-gate hook for one action type. A type may be registered
+ * once; a NULL callback, a duplicate type or a ninth registration is
+ * rejected with SCENE_EXECUTOR_ERR_ARGUMENT. The callback and context are
+ * borrowed. Registration affects every later step of this executor. */
+int scene_executor_set_pre_gate(SceneActionExecutor *executor,
+                                uint8_t type,
+                                SceneActionPreGateFn callback,
+                                void *context);
+
+/* Candidate-accept store of 0x43c054: `mov [row*0x8d + 0x5bb632], 2`. The
+ * caller has already run the accept decision (see
+ * action_family_62_interaction_accept); this only performs the phase store so
+ * the row's handler is visited with phase 2 on the next dispatch. The
+ * original does not test the completion byte here. Out-of-range rows return
+ * SCENE_EXECUTOR_ERR_ARGUMENT and change nothing. */
+int scene_executor_accept_action_candidate(SceneActionExecutor *executor,
+                                           size_t action_index);
+
+/* RT-4: register the dependency-leaf extension (opcodes outside 0..6 and 9,
+ * the post-tree 0x5c3a47 store and the per-pass reset at 0x43cf25). The
+ * pointer is borrowed and must outlive the executor; NULL clears it. Each
+ * gate evaluation passes the mode 0x427a50 passes to 0x423f57 for the row's
+ * runtime type (scene_conditions_gate_mode_for_type); the hotspot candidate
+ * check at 0x43c019 uses mode 0. Without an extension extra opcodes stay
+ * unsupported. Register before the first step. */
+int scene_executor_set_condition_extension(
+    SceneActionExecutor *executor,
+    const SceneConditionExtension *extension);
+
+/* Detail of the most recent dependency evaluation: zeroed when it succeeded,
+ * else the failing leaf's opcode, source record position and the extension's
+ * own `provider_status`. A failure freezes the session, so this stays valid
+ * for reporting. */
+int scene_executor_get_condition_failure(const SceneActionExecutor *executor,
+                                         SceneConditionFailure *failure);
+
+/* What the accepted-click candidate check (0x43bfb6..0x43c09c) decided for
+ * the most recent candidate. This is the seam for the pointer integration:
+ * the executor owns the gate logic, a later module may own the candidate
+ * cache and the item-use feedback calls the original makes
+ * (0x4eb107(label) on accept, 0x4eb184(first_chain_label) on reject).
+ *   chain_count          0x42405a: opcode-11 leaves in the tree.
+ *   tree_evaluated       0 when chain_count == 0 (the original accepts with
+ *                        NO tree evaluation, no 0x5c3a47 store, no leaf
+ *                        side effects).
+ *   tree_satisfied       wrapper result with mode 0.
+ *   label                0x424035 read right after the evaluation, -1 if the
+ *                        slot is empty (initial value of the original local).
+ *   first_chain_label    0x423fbb, -1 if none.
+ *   accepted             phase 2 was stored (0x43c054). */
+typedef struct scene_executor_candidate_decision {
+    size_t action_index;
+    size_t chain_count;
+    uint8_t tree_evaluated;
+    uint8_t tree_satisfied;
+    uint8_t accepted;
+    uint8_t reserved;
+    int32_t label;
+    int32_t first_chain_label;
+} SceneExecutorCandidateDecision;
+
+/* Zeroed with action_index SIZE_MAX until the first candidate check ran. */
+int scene_executor_get_candidate_decision(const SceneActionExecutor *executor,
+                                          SceneExecutorCandidateDecision *decision);
+
+/* Opcode-11 slot of the action's tree (accessor 0x424035): returns 1 and the
+ * selected item label when a selected-item leaf owns the slot, else 0/-1. */
+int scene_executor_get_selected_item_label(const SceneActionExecutor *executor,
+                                           size_t action_index,
+                                           int32_t *label);
 
 int scene_executor_get_action_state(const SceneActionExecutor *executor,
                                     size_t action_index,

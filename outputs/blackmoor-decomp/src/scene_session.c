@@ -19,6 +19,12 @@ enum {
     ACTION_TYPE_PHONE = 0x82
 };
 
+typedef struct SceneSessionPreGateSlot {
+    uint8_t type;
+    SceneActionPreGateFn callback;
+    void *context;
+} SceneSessionPreGateSlot;
+
 typedef struct SceneSessionBindingSlot {
     uint8_t present;
     SceneSessionProvider provider;
@@ -45,11 +51,15 @@ struct SceneSession {
     SceneSessionBindingSlot bindings[256];
     SceneActionHandler executor_handlers[256];
     size_t executor_handler_count;
+    SceneSessionPreGateSlot pre_gates[SCENE_EXECUTOR_MAX_PRE_GATES];
+    size_t pre_gate_count;
     uint64_t tick_count;
     uint64_t scene_generation;
     int transition_pending;
     SceneTransitionRequest transition;
     int frozen;
+    const SceneConditionExtension *condition_extension;
+    SceneConditionFailure condition_failure;
     SceneSessionTickResult last_result;
     int last_ui_status;
 };
@@ -169,6 +179,39 @@ static int build_executor(SceneSession *session,
             }
             return status;
         }
+    }
+    {
+        size_t gate;
+        for (gate = 0u; gate < session->pre_gate_count; ++gate) {
+            status = scene_executor_set_pre_gate(*out_executor,
+                session->pre_gates[gate].type,
+                session->pre_gates[gate].callback,
+                session->pre_gates[gate].context);
+            if (status != SCENE_EXECUTOR_OK) {
+                scene_executor_destroy(*out_executor);
+                *out_executor = NULL;
+                if (failure != NULL) {
+                    clear_failure(failure);
+                    failure->stage = SCENE_SESSION_STAGE_SCENE_REPLACE;
+                    failure->provider = SCENE_SESSION_PROVIDER_HOST;
+                    failure->detail_status = status;
+                }
+                return status;
+            }
+        }
+    }
+    status = scene_executor_set_condition_extension(
+        *out_executor, session->condition_extension);
+    if (status != SCENE_EXECUTOR_OK) {
+        scene_executor_destroy(*out_executor);
+        *out_executor = NULL;
+        if (failure != NULL) {
+            clear_failure(failure);
+            failure->stage = SCENE_SESSION_STAGE_SCENE_REPLACE;
+            failure->provider = SCENE_SESSION_PROVIDER_DEPENDENCY;
+            failure->detail_status = status;
+        }
+        return status;
     }
     if (session->action64_world_commit_observer != NULL) {
         status = scene_executor_set_action64_world_commit_observer(*out_executor,
@@ -439,7 +482,15 @@ int scene_session_tick(SceneSession *session,
         failure.action_type = local.executor.failed_action_type;
         failure.detail_status = local.executor.detail_status;
         failure.provider = provider_for_type(local.executor.failed_action_type);
-        if (local.executor.detail_status == SCENE_CONDITION_ERR_UNSUPPORTED_OPCODE) {
+        /* The executor zeroes this record on every successful evaluation, so
+         * it is nonzero only when the freeze came from a dependency leaf. */
+        (void)scene_executor_get_condition_failure(session->executor,
+                                                   &session->condition_failure);
+        if (session->condition_failure.opcode != 0u &&
+            (executor_status == SCENE_EXECUTOR_ERR_UNSUPPORTED ||
+             executor_status == SCENE_EXECUTOR_ERR_CONDITION)) {
+            /* A dependency leaf stopped the evaluation (the record is only
+             * nonzero then); detail_status stays the SceneConditionStatus. */
             failure.provider = SCENE_SESSION_PROVIDER_DEPENDENCY;
         } else if (local.executor.failed_action_type == ACTION_TYPE_PHONE ||
                    local.executor.failed_action_type == ACTION_TYPE_CONTROL) {
@@ -536,6 +587,67 @@ int scene_session_replace_scene(SceneSession *session,
     return SCENE_SESSION_OK;
 }
 
+int scene_session_set_pre_gate(SceneSession *session,
+                               uint8_t type,
+                               SceneActionPreGateFn callback,
+                               void *context)
+{
+    size_t index;
+    int status;
+    if (session == NULL || session->executor == NULL || callback == NULL ||
+        session->pre_gate_count >= SCENE_EXECUTOR_MAX_PRE_GATES) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    for (index = 0u; index < session->pre_gate_count; ++index) {
+        if (session->pre_gates[index].type == type) {
+            return SCENE_SESSION_ERR_ARGUMENT;
+        }
+    }
+    status = scene_executor_set_pre_gate(session->executor, type, callback,
+                                         context);
+    if (status != SCENE_EXECUTOR_OK) return SCENE_SESSION_ERR_EXECUTOR;
+    session->pre_gates[session->pre_gate_count].type = type;
+    session->pre_gates[session->pre_gate_count].callback = callback;
+    session->pre_gates[session->pre_gate_count].context = context;
+    ++session->pre_gate_count;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_set_condition_extension(
+    SceneSession *session, const SceneConditionExtension *extension)
+{
+    if (session == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    session->condition_extension = extension;
+    return scene_executor_set_condition_extension(session->executor, extension) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK
+               : SCENE_SESSION_ERR_EXECUTOR;
+}
+
+int scene_session_get_condition_failure(const SceneSession *session,
+                                        SceneConditionFailure *failure)
+{
+    if (session == NULL || failure == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    *failure = session->condition_failure;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_accept_action_candidate(SceneSession *session,
+                                          size_t action_index)
+{
+    if (session == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    return scene_executor_accept_action_candidate(session->executor,
+                                                  action_index) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK : SCENE_SESSION_ERR_ARGUMENT;
+}
+
 int scene_session_get_action_state(const SceneSession *session,
                                    size_t action_index,
                                    SceneActionRuntimeState *state)
@@ -624,4 +736,16 @@ const char *scene_session_provider_string(SceneSessionProvider provider)
     case SCENE_SESSION_PROVIDER_HOST: return "host-adapter";
     default: return "unknown-provider";
     }
+}
+
+int scene_session_request_transition(SceneSession *session,
+                                     const SceneTransitionRequest *request)
+{
+    if (session == NULL || request == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    return scene_executor_request_transition(session->executor, request) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK
+               : SCENE_SESSION_ERR_STATE;
 }
