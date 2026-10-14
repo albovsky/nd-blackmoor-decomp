@@ -11,7 +11,7 @@ This is separate from `../progress-map/` (the older function-start map with orac
 | `generate.py` | Builds everything below from committed evidence. Standard library only. |
 | `layout.json` | Public structural facts: sections, code regions, data pieces. Sums to 1,511,424 bytes. |
 | `template.html` | Page source (treemap, bars, table view, search, light and dark themes). |
-| `progress.json` | Generated model: totals, groups, units, per-function `[va, span, matched]`. |
+| `progress.json` | Generated model: totals, groups, units, per-function tuples `[va, span, matched_code, matched_data]` (matched total = the last two summed; a span can hold both when a ledger classifies jump tables or padding inside it). |
 | `REPORT.md` | Generated text report. |
 | `index.html` | Generated page with the model embedded. |
 | `preview.png` | Screenshot of the page at the time of generation. |
