@@ -144,6 +144,20 @@ int scene_session_replace_scene(SceneSession *session,
                                 int32_t scene_id,
                                 SceneSessionFailure *failure);
 
+/* Register a per-type dispatcher pre-gate (see SceneActionPreGateFn). The
+ * registration is kept by the session and re-applied to every replacement
+ * executor, so it survives scene changes. The hook is borrowed; register it
+ * before the first tick. Duplicate types and NULL callbacks are rejected. */
+int scene_session_set_pre_gate(SceneSession *session,
+                               uint8_t type,
+                               SceneActionPreGateFn callback,
+                               void *context);
+
+/* Candidate-accept store of 0x43c054 (see
+ * scene_executor_accept_action_candidate). */
+int scene_session_accept_action_candidate(SceneSession *session,
+                                          size_t action_index);
+
 int scene_session_get_action_state(const SceneSession *session,
                                    size_t action_index,
                                    SceneActionRuntimeState *state);

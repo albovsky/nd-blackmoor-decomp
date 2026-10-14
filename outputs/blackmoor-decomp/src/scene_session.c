@@ -19,6 +19,12 @@ enum {
     ACTION_TYPE_PHONE = 0x82
 };
 
+typedef struct SceneSessionPreGateSlot {
+    uint8_t type;
+    SceneActionPreGateFn callback;
+    void *context;
+} SceneSessionPreGateSlot;
+
 typedef struct SceneSessionBindingSlot {
     uint8_t present;
     SceneSessionProvider provider;
@@ -45,6 +51,8 @@ struct SceneSession {
     SceneSessionBindingSlot bindings[256];
     SceneActionHandler executor_handlers[256];
     size_t executor_handler_count;
+    SceneSessionPreGateSlot pre_gates[SCENE_EXECUTOR_MAX_PRE_GATES];
+    size_t pre_gate_count;
     uint64_t tick_count;
     uint64_t scene_generation;
     int transition_pending;
@@ -168,6 +176,26 @@ static int build_executor(SceneSession *session,
                 failure->detail_status = status;
             }
             return status;
+        }
+    }
+    {
+        size_t gate;
+        for (gate = 0u; gate < session->pre_gate_count; ++gate) {
+            status = scene_executor_set_pre_gate(*out_executor,
+                session->pre_gates[gate].type,
+                session->pre_gates[gate].callback,
+                session->pre_gates[gate].context);
+            if (status != SCENE_EXECUTOR_OK) {
+                scene_executor_destroy(*out_executor);
+                *out_executor = NULL;
+                if (failure != NULL) {
+                    clear_failure(failure);
+                    failure->stage = SCENE_SESSION_STAGE_SCENE_REPLACE;
+                    failure->provider = SCENE_SESSION_PROVIDER_HOST;
+                    failure->detail_status = status;
+                }
+                return status;
+            }
         }
     }
     if (session->action64_world_commit_observer != NULL) {
@@ -534,6 +562,44 @@ int scene_session_replace_scene(SceneSession *session,
     session->last_result.scene_generation = session->scene_generation;
     scene_executor_destroy(old_executor);
     return SCENE_SESSION_OK;
+}
+
+int scene_session_set_pre_gate(SceneSession *session,
+                               uint8_t type,
+                               SceneActionPreGateFn callback,
+                               void *context)
+{
+    size_t index;
+    int status;
+    if (session == NULL || session->executor == NULL || callback == NULL ||
+        session->pre_gate_count >= SCENE_EXECUTOR_MAX_PRE_GATES) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    for (index = 0u; index < session->pre_gate_count; ++index) {
+        if (session->pre_gates[index].type == type) {
+            return SCENE_SESSION_ERR_ARGUMENT;
+        }
+    }
+    status = scene_executor_set_pre_gate(session->executor, type, callback,
+                                         context);
+    if (status != SCENE_EXECUTOR_OK) return SCENE_SESSION_ERR_EXECUTOR;
+    session->pre_gates[session->pre_gate_count].type = type;
+    session->pre_gates[session->pre_gate_count].callback = callback;
+    session->pre_gates[session->pre_gate_count].context = context;
+    ++session->pre_gate_count;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_accept_action_candidate(SceneSession *session,
+                                          size_t action_index)
+{
+    if (session == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    return scene_executor_accept_action_candidate(session->executor,
+                                                  action_index) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK : SCENE_SESSION_ERR_ARGUMENT;
 }
 
 int scene_session_get_action_state(const SceneSession *session,
