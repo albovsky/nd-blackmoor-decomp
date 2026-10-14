@@ -1245,6 +1245,11 @@ def run_census(image: Image, out_dir: Path, vas: Optional[list[int]] = None, kee
                 mismatches.append(f"0x{item.va:08x}:{item.kind}")
     report["hints"] = dict(sorted(hint_totals.items()))
     report["derived_functions"] = sum(1 for va in vas if layouts[va].derived)
+    # evidence for a derived entry: a direct call or jump to it somewhere in .text (reachable code only)
+    referenced = {t for ins in decoded.map.values() if (t := direct_target(ins)) is not None}
+    derived = [va for va in vas if layouts[va].derived]
+    report["derived_with_direct_reference"] = sum(1 for va in derived if va in referenced)
+    report["derived_without_direct_reference"] = [f"0x{va:08x}" for va in derived if va not in referenced]
     report["fall_through_fragments"] = [f"0x{va:08x}" for va in vas if layouts[va].falls_through]
     report["by_region"] = {k: dict(v) for k, v in sorted(by_region.items())}
     # description for the M02 composer: every code part and data item, hashes only

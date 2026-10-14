@@ -46,6 +46,9 @@
   }
  },
  "derived_functions": 564,
+ "derived_with_direct_reference": 49,
+ "derived_without_direct_reference_code_bytes": 17742,
+ "derived_without_direct_reference_count": 515,
  "fall_through_fragments": [
   "0x00510a4b",
   "0x00513843",
