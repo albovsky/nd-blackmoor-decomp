@@ -22,6 +22,12 @@ typedef struct SessionA97Host {
     int (*transition)(void *, const ActionSoundTransition *);
 } SessionA97Host;
 
+/* This binding verifies loader selection and the bounded lifecycle host
+ * effects, not complete channel-state parity. UNVERIFIED: 0x432d1a copies
+ * word +0x25 and about 22 constructor-default fields (+0x2f..+0x8c) that
+ * ActionSoundAudioCommand omits and the oracle does not compare. The sound
+ * manager at 0x4f5651..0x4f56d8 reads chan+0x1aa/+0x1ae and calls rand;
+ * its effects and additional shared-RNG consumption remain unverified. */
 SessionA97Binding *session_a97_create(const SessionA97Host *);
 void session_a97_destroy(SessionA97Binding *);
 int session_a97_begin_scene(SessionA97Binding *, const SceneResource *);

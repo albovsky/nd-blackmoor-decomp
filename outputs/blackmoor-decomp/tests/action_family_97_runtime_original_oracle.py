@@ -9,12 +9,12 @@ subtype reset execute as original x86. Dependencies are supplied true here;
 the native session/executor tests cover false gates and populated resets.
 """
 from collections import Counter
+import argparse
 import ctypes as c
 import hashlib
 import json
 from pathlib import Path
 import struct
-import subprocess
 import time
 
 import action_family_97_original_oracle as ctor
@@ -43,9 +43,28 @@ class Original(audio.OriginalSoundOracle):
             self.hooks[f'{address:#x}:{labels[address]}'] += 1
         if address in (0x432d1a, 0x42ba3a, 0x423d33, 0x4faf98, 0x4f6334, 0x4fba69):
             self.observed[f'{address:#x}'] += 1
+        # Project original execution onto the native host boundaries. Queries
+        # internal to load/play are part of that provider, not lifecycle queries:
+        # the latter is the 0x433564 call, with return address 0x433569.
+        if address == audio.CAPTION_UI_VA:
+            esp = machine.reg_read(self._esp)
+            text = audio.read_c_string(machine, audio.read_u32(machine, esp + 8))
+            self.events.append(('caption', text))
+        elif address == audio.HIS_LOAD_VA:
+            channel = audio.read_u32(machine, machine.reg_read(self._esp) + 4) & 0xffff
+            self.events.append(('load', channel))
+        elif address == audio.PLAY_STUB:
+            self.events.append(('play', self.channel))
+        elif address == 0x4f6334 and audio.read_u32(machine, machine.reg_read(self._esp)) == 0x433569:
+            channel = audio.read_u32(machine, machine.reg_read(self._esp) + 4) & 0xffff
+            self.events.append(('query', channel))
+        elif address == audio.RELEASE_STUB:
+            self.events.append(('unload', self.channel))
         super()._hook_code(machine, address, size, user)
 
     def install(self, payload, subtype, captions):
+        self.events = []
+        self.channel = struct.unpack_from('<H', payload, 0x21)[0]
         self.trace = {'file_paths': [], 'captions': [], 'loads': [],
                       'play_flags': [], 'queries': [], 'releases': 0, 'stops': 0}
         self.uc.mem_write(audio.CSOUND_VA + 4, bytes(32 * audio.SOUND_CHANNEL_STRIDE))
@@ -71,7 +90,7 @@ def verify_case(lib, original_loader, original, lookup, act, seed, subtype=1, ca
     assert selected.selected_index == got['selected'], 'selection mismatch'
     assert got['runtime_type'] == 0x9f, 'normalised type mismatch'
     original.install(got['payload'], subtype, captions)
-    recorder = sound.Recorder()
+    recorder = native.Recorder()
     steps = 0
     for phase, playing, completed in [(0, 1, 0), (1, 1, 0), (1, 0, 0), (2, 0, 0), (7, 0, 1)]:
         original.uc.mem_write(audio.ACTION_DONE_BASE_VA, bytes([completed]))
@@ -81,6 +100,8 @@ def verify_case(lib, original_loader, original, lookup, act, seed, subtype=1, ca
         assert status == 0, (status, why)
         finish_before = original.observed['0x42ba3a']
         original_phase, original_done = original.step(phase, bool(playing))
+        assert recorder.events == original.events, (
+            'effect order mismatch', phase, recorder.events, original.events)
         assert (out.phase, out.completed) == (original_phase, original_done), 'phase/completion mismatch'
         assert out.finish == original.observed['0x42ba3a'] - finish_before, 'finish helper mismatch'
         if out.transition:
@@ -104,10 +125,10 @@ def verify_case(lib, original_loader, original, lookup, act, seed, subtype=1, ca
     return steps, selected
 
 
-def main():
+def main(*, library=None, report_path=REPORT):
     begin = time.monotonic()
-    subprocess.run(['sh', str(native.PROJECT / 'scripts/build_action_family_97_runtime.sh')],
-                   check=True, capture_output=True)
+    if library is None:
+        native.build_library()
     corpus, resources = ctor.inputs()  # Pins manifest, archive, every resource.
     original_loader = ctor.Original97(ROOT / 'work/original/GAME.EXE')
     assert ctor.sha(original_loader.pe.data) == ctor.EXE_HASH
@@ -118,7 +139,7 @@ def main():
     original_loader.install_table(entries, extras)
     lookup = loader.DictionaryLookup({**{e['key_field'].split(b'\0', 1)[0]: e['raw_value'] for e in entries}, **extras})
     original = Original(original_loader.pe)
-    lib = native.bind()
+    lib = library if library is not None else native.bind()
     distributions = {k: Counter() for k in ('subtype', 'count', 'text_kind', 'dependencies', 'control', 'mode', 'channel')}
     s4700, steps, cases = [], 0, 0
     body_hash = hashlib.sha256()
@@ -169,17 +190,21 @@ def main():
               for name, (a,b) in windows.items()}
     report = dict(slice='RT-8', corpus_records=cases, synthetic_cases=len(synthetic),
                   visits=steps, mismatches=0, distributions=distributions, s4700=s4700,
+                  effect_order_compared_visits=steps,
+                  effect_order_scope='Merged caption/load/play/lifecycle-query/unload events per visit; provider-internal queries excluded',
                   runtime_hooks=original.hooks, executed_function_entries=original.observed,
                   constructor_os_hooks=original_loader.os_calls,
                   constructor_allocator_calls=original_loader._allocator_calls,
                   original_sha256=ctor.EXE_HASH, original_code=hashes,
-                  native_sha256=ctor.sha(native.LIBRARY.read_bytes()),
+                  native_sha256=ctor.sha(Path(lib._name).read_bytes()),
                   manifest_sha256=ctor.MANIFEST_HASH, raw_bodies_sha256=body_hash.hexdigest(),
                   seconds=round(time.monotonic()-begin, 2),
                   scope='Controlled true-gate handler visits; file/decoder/caption/COM boundaries hooked; no original session or PCM parity')
-    REPORT.write_text(json.dumps(report, indent=2) + '\n')
+    report_path.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({k: report[k] for k in ('corpus_records','synthetic_cases','visits','mismatches','seconds')}))
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--report', type=Path, default=REPORT)
+    main(report_path=parser.parse_args().report)

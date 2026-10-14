@@ -290,8 +290,9 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('embedded-audio=unbound-before-DoFrame', contents)
         self.assertIn('scene_a35_blocker detail=Bink frame/audio or rectangle provider', contents)
         self.assertNotIn('scene_a97_blocker', contents)
+        visit_log = contents[contents.index('scene_a97_construct row=13'):]
         for channel in (8, 7, 4):
-            self.assertRegex(contents, rf'live_audio loaded stem=\w+ channel={channel} frames=')
+            self.assertRegex(visit_log, rf'live_audio loaded stem=\w+ channel={channel} frames=')
         self.assertNotIn('scene_a35_frame_presented', contents)
 
     def test_live_click_goes_through_session_input_end_to_end(self):
