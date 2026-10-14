@@ -132,6 +132,21 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(m["totals"]["matched_data"], 4096)
         self.assertEqual(m["totals"]["code"], 1213018)
 
+    def test_report_notes_follow_the_mode(self):
+        text = (self.out / "REPORT.md").read_text()
+        self.assertIn("no data evidence", text)
+        mini = MiniFixtureReport()
+        self.assertNotIn("no data evidence", mini)
+
+    def test_cross_provenance_overlap_is_rejected(self):
+        layout = GEN.load_layout(HERE / "layout.json")
+        index = GEN.load_json(EVIDENCE / "function-index.json")
+        rows, meta = GEN.baseline_evidence(layout, EVIDENCE)
+        a, b, _ = meta["provenance_ranges"][0]
+        meta["provenance_ranges"] = meta["provenance_ranges"] + [(a, a + 1, "other_class")]
+        with self.assertRaisesRegex(GEN.ProgressError, "provenance classes overlap"):
+            GEN.build_model(layout, index, rows, meta, 16384, None, [])
+
     def test_verify_manifests_gates_on_the_verifier(self):
         with tempfile.TemporaryDirectory() as d:
             d = pathlib.Path(d)
@@ -184,9 +199,17 @@ class RepoEvidenceTests(unittest.TestCase):
             write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
                 {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
             status = {"matching_s08_2": {"source_sha256": hashlib_sha("source"),
-                                         "object_sha256": hashlib_sha("object")}}
+                                         "object_sha256": hashlib_sha("object"),
+                                         "complete_functions": 1, "exact_bytes": 1}}
             ok = GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
             self.assertTrue(ok["matches_s08_2_x86.json"]["bound_to_reviewed_hashes"])
+            write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
+                {"rva": 4096, "size": 1, "object": "build/a.obj"},
+                {"rva": 4200, "size": 1, "object": "build/a.obj"}]})
+            with self.assertRaisesRegex(GEN.ProgressError, "status.json records"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
+            write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
+                {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
             (d / "src" / "a.s").write_text("edited")
             with self.assertRaisesRegex(GEN.ProgressError, "reviewed source hash"):
                 GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
@@ -218,6 +241,19 @@ class RepoEvidenceTests(unittest.TestCase):
         html = (HERE / "template.html").read_text()
         self.assertIn("D.units.filter(u=>!state.only || matchedOf(u)>0)", html)
         self.assertIn("else renderTable();", html)
+
+
+def MiniFixtureReport():
+    """Report text for a ledger-mode model with matched data."""
+    case = MiniFixture("test_ledger_splits_matched_code_and_data")
+    case.setUp()
+    try:
+        m = case.model_for(case.full_ranges())
+        out = case.dir / "REPORT.md"
+        GEN.write_report(m, out)
+        return out.read_text()
+    finally:
+        case.tearDown()
 
 
 class MiniFixture(unittest.TestCase):

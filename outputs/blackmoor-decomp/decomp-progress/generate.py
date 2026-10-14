@@ -242,13 +242,21 @@ def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict 
         obj = root / objs.pop()
         if not src.is_file() or not obj.is_file():
             raise ProgressError(f"{name}: source or object file missing")
+        funcs = man["functions"]
+        if len(funcs) != rec.get("complete_functions") or \
+                sum(int(f["size"]) for f in funcs) != rec.get("exact_bytes"):
+            raise ProgressError(
+                f"{name}: manifest has {len(funcs)} functions / "
+                f"{sum(int(f['size']) for f in funcs)} bytes but status.json records "
+                f"{rec.get('complete_functions')} / {rec.get('exact_bytes')}")
         got_src, got_obj = sha256_file(src), sha256_file(obj)
         if got_src != rec.get("source_sha256"):
             raise ProgressError(f"{name}: committed source does not match the reviewed source hash")
         if got_obj != rec.get("object_sha256"):
             raise ProgressError(f"{name}: verified object does not match the reviewed object hash")
         out[name] = {"bound_to_reviewed_hashes": True, "source_sha256": got_src,
-                     "object_sha256": got_obj}
+                     "object_sha256": got_obj,
+                     "functions": len(funcs), "bytes": sum(int(f["size"]) for f in funcs)}
     return out
 
 
@@ -410,9 +418,15 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
         "functions": sum(u.get("function_count", 0) for u in units),
         "functions_complete": sum(u.get("functions_complete", 0) for u in units),
     }
-    by_prov = {}
+    by_prov, claimed = {}, []
     for p in sorted({p for *_, p in evidence_meta.get("provenance_ranges", [])}):
         ivs = merge_intervals([(a, b) for a, b, q in evidence_meta["provenance_ranges"] if q == p])
+        for a, b in ivs:
+            if overlap(claimed, a, b):
+                raise ProgressError(
+                    f"provenance classes overlap near file offset 0x{a:x}; each matched byte "
+                    "must belong to exactly one provenance class")
+        claimed = merge_intervals([tuple(c) for c in claimed] + [(a, b) for a, b in ivs])
         by_prov[p] = sum(b - a for a, b in ivs)
     totals["by_provenance"] = by_prov
     totals["classified"] = totals["code"] + totals["data"]
@@ -554,15 +568,24 @@ def write_report(model, path: Path):
         for r in model["matched_ranges"]:
             lines.append(f"| 0x{r['va']:08x} | {r['size']} | `{r['symbol']}` | {r['manifest']} | "
                          f"{'yes' if r['complete_function'] else 'no (partial range)'} |")
-    lines += ["", "## How to read the denominators", "",
-              f"- {model['unit_definition']}",
-              "- Baseline code totals are function spans (start to next indexed start). A span "
-              "also holds the function's switch jump tables and `int 3` padding "
-              "(about 10.9 KB in all, M0 report section 3), so baseline code is slightly "
-              "overstated and baseline data slightly understated until the M02 ledger splits them.",
-              "- Data progress is 0 until the composer reproduces data ranges; no data evidence "
-              "exists in the repository today.",
-              "- Referenced (not yet reconstructed) ranges are reported as not done, never as matched."]
+    notes = [f"- {model['unit_definition']}"]
+    if ev["mode"] == "baseline":
+        notes += [
+            "- Baseline code totals are function spans (start to next indexed start). A span "
+            "also holds the function's switch jump tables and `int 3` padding "
+            "(about 10.9 KB in all, M0 report section 3), so baseline code is slightly "
+            "overstated and baseline data slightly understated until the M02 ledger splits them.",
+            "- Data progress is 0 until the composer reproduces data ranges; no data evidence "
+            "exists in the repository today."]
+    else:
+        notes += [
+            "- Code and data totals come from the composer ledger, where every classified byte has "
+            "a kind; matched data is the ledger's `structured` data ranges."]
+        if t.get("unclassified"):
+            notes += [f"- {t['unclassified']:,} bytes are unclassified (partial ledger) and are "
+                      "counted as not done."]
+    notes += ["- Referenced (not yet reconstructed) ranges are reported as not done, never as matched."]
+    lines += ["", "## How to read the denominators", "", *notes]
     ver = ev.get("verification", {})
     if ver.get("run") and ver.get("kind") == "composed image hash":
         lines += ["", f"The composed image was hashed in this run and equals the pinned GAME.EXE "
