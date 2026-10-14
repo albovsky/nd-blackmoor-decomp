@@ -82,14 +82,21 @@
   "native_scene_resource_parser": {
     "scenes_parsed": 2078,
     "action_records": 19612,
-    "typed_actions": 11089,
-    "opaque_actions": 8523,
+    "typed_actions": 15397,
+    "opaque_actions": 4215,
     "known_dependency_records": 17050,
     "targeted_tests": 18,
     "action_execution": false,
     "resources_attempted": 2267,
     "not_parsed_as_scene": 189,
-    "corpus_source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8"
+    "corpus_source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
+    "registered_0x37": {
+      "records": 4308,
+      "typed_body_bytes": 69,
+      "source": "A-37.2 parser-registration proposal; 0x4895cc consumes 69 bytes",
+      "execution": false,
+      "note": "typed body boundary only; the 0x37 handler (runtime type 0x36 lifecycle, rendering) is not implemented and the executor still reports it unsupported at dispatch"
+    }
   },
   "native_bink_adapter": {
     "native_library": "installed FFmpeg 9.0.1",

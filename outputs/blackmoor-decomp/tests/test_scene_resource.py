@@ -209,6 +209,7 @@ class SceneResourceTests(unittest.TestCase):
             0xD9: 35,
             0x47: 39,
             0x95: 3,
+            0x37: 69,
         }
         for action_type, body_length in fixed_lengths.items():
             with self.subTest(action_type=hex(action_type)):
@@ -457,7 +458,7 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69}
         counts = {action_type: 0 for action_type in
                   (*expected_fixed, 0x9F, 0x51, 0x62)}
         scenes = 0
@@ -544,8 +545,9 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(actions, 19612)
         # A-28 contributes 72 recovered 21-byte bodies; dependency tails stay
         # separate from the typed body, preserving the total action count.
-        self.assertEqual(typed_actions, 11089)
-        self.assertEqual(opaque_actions, 8523)
+        # A-37 registers 4,308 raw 0x37 bodies (69-byte prefix, see A-37.2).
+        self.assertEqual(typed_actions, 15397)
+        self.assertEqual(opaque_actions, 4215)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
@@ -562,6 +564,7 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(counts[0x64], 7)
         self.assertEqual(counts[0x28], 72)
         self.assertEqual(counts[0x51], 97)
+        self.assertEqual(counts[0x37], 4308)
 
     def test_rejects_short_tsum_and_truncated_known_action_body(self):
         scene, error = self.open_bytes(self.resource(tsum_length=125))

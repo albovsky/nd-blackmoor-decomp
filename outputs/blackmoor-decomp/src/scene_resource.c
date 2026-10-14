@@ -120,6 +120,7 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x15: fixed_length = 20u; break; /* original decoder consumes 20 bytes */
     case 0x1d: fixed_length = 8u;  break; /* AT_CONTROL */
     case 0x4d: fixed_length = 4u;  break; /* AT_SET_VALUE */
+    case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
     case 0x64: fixed_length = 5u;  break; /* constructor 0x40b34a copies exactly five bytes */
