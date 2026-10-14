@@ -147,6 +147,29 @@ class RepoEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(GEN.ProgressError, "provenance classes overlap"):
             GEN.build_model(layout, index, rows, meta, 16384, None, [])
 
+    def test_bind_checks_row_identity(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            (d / "src").mkdir()
+            (d / "build").mkdir()
+            (d / "src" / "a.s").write_text("source")
+            (d / "build" / "a.obj").write_text("object")
+            status = {"matching_s08_2": {"source_sha256": hashlib_sha("source"),
+                                         "object_sha256": hashlib_sha("object"),
+                                         "complete_functions": 1, "exact_bytes": 1}}
+            def man(rva, symbol):
+                write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
+                    {"rva": rva, "size": 1, "object": "build/a.obj", "symbol": symbol}]})
+            man(4096, "_FUN_00401000")
+            self.assertTrue(GEN.bind_reviewed_artifacts(
+                ["matches_s08_2_x86.json"], d, d, status, {0x401000})["matches_s08_2_x86.json"]["bound_to_reviewed_hashes"])
+            man(4100, "_FUN_00401000")  # edited RVA, stale symbol
+            with self.assertRaisesRegex(GEN.ProgressError, "does not match its RVA"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status, {0x401000})
+            man(4100, "_FUN_00401004")  # consistent but not a function start
+            with self.assertRaisesRegex(GEN.ProgressError, "not an indexed function start"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status, {0x401000})
+
     def test_verify_manifests_gates_on_the_verifier(self):
         with tempfile.TemporaryDirectory() as d:
             d = pathlib.Path(d)
@@ -197,7 +220,7 @@ class RepoEvidenceTests(unittest.TestCase):
             (d / "src" / "a.s").write_text("source")
             (d / "build" / "a.obj").write_text("object")
             write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
-                {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
+                {"rva": 4096, "size": 1, "object": "build/a.obj", "symbol": "_FUN_00401000"}]})
             status = {"matching_s08_2": {"source_sha256": hashlib_sha("source"),
                                          "object_sha256": hashlib_sha("object"),
                                          "complete_functions": 1, "exact_bytes": 1}}
@@ -209,7 +232,7 @@ class RepoEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(GEN.ProgressError, "status.json records"):
                 GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
             write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
-                {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
+                {"rva": 4096, "size": 1, "object": "build/a.obj", "symbol": "_FUN_00401000"}]})
             (d / "src" / "a.s").write_text("edited")
             with self.assertRaisesRegex(GEN.ProgressError, "reviewed source hash"):
                 GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)

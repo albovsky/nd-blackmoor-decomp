@@ -27,6 +27,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent  # outputs/blackmoor-decomp
 
+IMAGE_BASE = 0x400000
 PINNED_SHA = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 SCHEMA = "blackmoor-decomp-progress/1"
 LEDGER_SCHEMA = "blackmoor-range-ledger/1"
@@ -211,7 +212,8 @@ def verify_manifests(names, root: Path, original: Path, verifier: Path = VERIFIE
             "original_sha256": PINNED_SHA, "manifests": results}
 
 
-def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict | None) -> dict:
+def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict | None,
+                            starts: set | None = None) -> dict:
     """Tie each verified object to its committed source and the reviewed hashes.
 
     For the assembly manifests, ``status.json`` records the reviewed source and
@@ -221,6 +223,8 @@ def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict 
     reassembly with the pinned assembler is not rerun here; the slice audits own
     that (see scripts/audit_matching_s08_*_x86.py). Manifests with no recorded
     hashes (matches.json, two partial 7-byte C ranges) are reported as unbound.
+    Row identity is checked too: each row's symbol must encode its own address, and
+    (when ``starts`` is given) every row must begin at an indexed function start.
     """
     out = {}
     for name in names:
@@ -249,6 +253,17 @@ def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict 
                 f"{name}: manifest has {len(funcs)} functions / "
                 f"{sum(int(f['size']) for f in funcs)} bytes but status.json records "
                 f"{rec.get('complete_functions')} / {rec.get('exact_bytes')}")
+        base = IMAGE_BASE
+        for f in funcs:
+            m = re.fullmatch(r"_?FUN_([0-9a-f]{8})", str(f.get("symbol", "")))
+            va = base + int(f["rva"])
+            if not m or int(m.group(1), 16) != va:
+                raise ProgressError(
+                    f"{name}: symbol {f.get('symbol')!r} does not match its RVA 0x{int(f['rva']):x}")
+            if starts is not None and va not in starts:
+                raise ProgressError(
+                    f"{name}: 0x{va:x} is not an indexed function start, so it cannot be a "
+                    "complete-function claim")
         got_src, got_obj = sha256_file(src), sha256_file(obj)
         if got_src != rec.get("source_sha256"):
             raise ProgressError(f"{name}: committed source does not match the reviewed source hash")
@@ -674,7 +689,8 @@ def main(argv=None) -> int:
                 bound = bind_reviewed_artifacts(
                     COUNTED_MANIFESTS, root.resolve(), args.evidence_dir,
                     load_json(args.evidence_dir / "status.json")
-                    if (args.evidence_dir / "status.json").exists() else None)
+                    if (args.evidence_dir / "status.json").exists() else None,
+                    starts={int(f["address"], 16) for f in index["functions"]})
                 for n, b in bound.items():
                     meta["verification"]["manifests"][n].update(b)
             else:
