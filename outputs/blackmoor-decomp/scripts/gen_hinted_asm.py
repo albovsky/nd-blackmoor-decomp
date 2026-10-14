@@ -1245,8 +1245,14 @@ def run_census(image: Image, out_dir: Path, vas: Optional[list[int]] = None, kee
                 mismatches.append(f"0x{item.va:08x}:{item.kind}")
     report["hints"] = dict(sorted(hint_totals.items()))
     report["derived_functions"] = sum(1 for va in vas if layouts[va].derived)
-    # evidence for a derived entry: a direct call or jump to it somewhere in .text (reachable code only)
-    referenced = {t for ins in decoded.map.values() if (t := direct_target(ins)) is not None}
+    # evidence for a derived entry: a direct call or jump to it from a classified code part
+    referenced = {
+        t
+        for layout in layouts.values()
+        if not layout.exceptions
+        for ins in layout.insns
+        if (t := direct_target(ins)) is not None
+    }
     derived = [va for va in vas if layouts[va].derived]
     report["derived_with_direct_reference"] = sum(1 for va in derived if va in referenced)
     report["derived_without_direct_reference"] = [f"0x{va:08x}" for va in derived if va not in referenced]
