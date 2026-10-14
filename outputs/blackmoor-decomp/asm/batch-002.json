@@ -1,0 +1,650 @@
+{
+  "batch": "002",
+  "class": "tool_assisted_reconstructed_assembly",
+  "description": "Batch 002 of tool-assisted reconstructed assembly: the 40 largest call-free (leaf) game-region functions of 250 to 700 bytes not already in batch 001. Mostly no Track N counterpart; names are annotator labels and say so under unverified. Generated from the owner's local GAME.EXE, annotated, audited; no claim about original C++ or compiler provenance.",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "generator": "scripts/gen_hinted_asm.py",
+  "functions": [
+    {
+      "function": "FUN_00470ffe",
+      "va": "0x00470ffe",
+      "source": "FUN_00470ffe.s",
+      "source_sha256": "82eb0600d7273baa0a4f4440a1083a6f0bf9ada4a5f75404296cfe1685a523f1",
+      "region": "game",
+      "evidence_id": "ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136",
+      "code": {
+        "symbol": "FUN_00470ffe",
+        "rva": 462846,
+        "size": 690,
+        "sha256": "1a99ab253749788c02e0224f889d8dfcdf2d74f3b92e0989721b5121733255f9"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00420737",
+      "va": "0x00420737",
+      "source": "FUN_00420737.s",
+      "source_sha256": "d45e438224dc6b85b18a274ab8715ae226b181f20ad16dd3fd62649f466707d8",
+      "region": "game",
+      "evidence_id": "ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5",
+      "code": {
+        "symbol": "FUN_00420737",
+        "rva": 132919,
+        "size": 689,
+        "sha256": "c7e6effcb4220a2b50265636f2c37f7c05d99e857e40b5995cfaca88f63cf77b"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00478396",
+      "va": "0x00478396",
+      "source": "FUN_00478396.s",
+      "source_sha256": "cb838797b2dcaab374f9be1df910986eb6f24d4999105c7996ef49bc2245b6c5",
+      "region": "game",
+      "evidence_id": "ev_f110a51708a87e42a1df088442ce84584fa97ada22af5597067d90dfc82d854f",
+      "code": {
+        "symbol": "FUN_00478396",
+        "rva": 492438,
+        "size": 688,
+        "sha256": "ea1b3b7f06b616cc2c3ac36434963621d3966dac8b06545a450bd9e071251f38"
+      },
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "symbol": "SWTAB_00478646",
+          "rva": 493126,
+          "size": 16
+        }
+      ]
+    },
+    {
+      "function": "FUN_0046c41e",
+      "va": "0x0046c41e",
+      "source": "FUN_0046c41e.s",
+      "source_sha256": "c36b0ee8db430d4c23b5a875044f8187f816e37a7971e2baa13c03a9250009e6",
+      "region": "game",
+      "evidence_id": "ev_6f599cab3f17e12adbc143b2bc9a4485485dbe70817326805f2abd1569d53704",
+      "code": {
+        "symbol": "FUN_0046c41e",
+        "rva": 443422,
+        "size": 651,
+        "sha256": "97dd00785d63c8e2705fdfe79c897c6eef3a9caeb63c9e57cf5fcda6b09184df"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00437ea1",
+      "va": "0x00437ea1",
+      "source": "FUN_00437ea1.s",
+      "source_sha256": "73e0c64bf79fa29d766c396b6076c30f23f604c00b0cccb7b40be72f7adb2e76",
+      "region": "game",
+      "evidence_id": "ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd",
+      "code": {
+        "symbol": "FUN_00437ea1",
+        "rva": 229025,
+        "size": 633,
+        "sha256": "6b5b77e944445a850fdcab16519f38e7336e51e2c4d5d56ca84bcd4be0701831"
+      },
+      "data_items": [
+        {
+          "kind": "padding",
+          "symbol": "PAD_0043811a",
+          "rva": 229658,
+          "size": 6
+        }
+      ]
+    },
+    {
+      "function": "FUN_004d58eb",
+      "va": "0x004d58eb",
+      "source": "FUN_004d58eb.s",
+      "source_sha256": "cb06913625667127a34e03852344d1ae12b408aa6ccf2861bed41e2a393ba1e9",
+      "region": "game",
+      "evidence_id": "ev_b736ef8a907767b6bd5de2b1c70fa87373ac4b8d720af669c98493a6a3d19492",
+      "code": {
+        "symbol": "FUN_004d58eb",
+        "rva": 874731,
+        "size": 617,
+        "sha256": "32df088195b5985d5eb2b11d5ce63da1130ed31bd6e0d11ae792f16576446784"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004a10f1",
+      "va": "0x004a10f1",
+      "source": "FUN_004a10f1.s",
+      "source_sha256": "6a5a09209a0030a60eed8bc981522fcf83f2372624cc2ec3ae11e58fd6c49a14",
+      "region": "game",
+      "evidence_id": "ev_f9d88b0169a812ae2c4ead5dc0ce17ad9653751613cdfaa979f2506d84e4924b",
+      "code": {
+        "symbol": "FUN_004a10f1",
+        "rva": 659697,
+        "size": 615,
+        "sha256": "ab3faee814343bd8eb79d4e860eba94d974500229c729bf35a7e00741112ee41"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0042b07e",
+      "va": "0x0042b07e",
+      "source": "FUN_0042b07e.s",
+      "source_sha256": "2029b462210d0224a2c319c08414315b682a2aef75f58598017e1a687f59630f",
+      "region": "game",
+      "evidence_id": "ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b",
+      "code": {
+        "symbol": "FUN_0042b07e",
+        "rva": 176254,
+        "size": 614,
+        "sha256": "b88ed7735c97e51ccc9c5d0354d8c3749cc1adcc4e3ca03ec39d4d7e92bf23f8"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004462d3",
+      "va": "0x004462d3",
+      "source": "FUN_004462d3.s",
+      "source_sha256": "a73b0601c70002edae54693bfefd8e41bb13d005c54c622fa61bd07dd6804ca1",
+      "region": "game",
+      "evidence_id": "ev_d8af1f64874eb3e8469c17e0baf09bf0097f1882284f135b85877e988363a520",
+      "code": {
+        "symbol": "FUN_004462d3",
+        "rva": 287443,
+        "size": 607,
+        "sha256": "d92ec6be39e659ace36761b5a6d2e5a8e3a7f48cf24fd1019921b77eff6f37e8"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0041b992",
+      "va": "0x0041b992",
+      "source": "FUN_0041b992.s",
+      "source_sha256": "5fd7a2bd5f5ffa2b0ac67424c6820e49d3cf3022b62f96e62ef425be6ab2470e",
+      "region": "game",
+      "evidence_id": "ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5",
+      "code": {
+        "symbol": "FUN_0041b992",
+        "rva": 113042,
+        "size": 583,
+        "sha256": "6193ec68ceb93ef450595ed4e34d07a2b8d00cd1340b0561a9be4d21f5dce287"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004b9e3b",
+      "va": "0x004b9e3b",
+      "source": "FUN_004b9e3b.s",
+      "source_sha256": "b083869706bb100c5613ac492ee41542b41d3f76c2138c240c26d8824e67722d",
+      "region": "game",
+      "evidence_id": "ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d",
+      "code": {
+        "symbol": "FUN_004b9e3b",
+        "rva": 761403,
+        "size": 580,
+        "sha256": "ca265743a503c513dadf5142a69a99f2e0d896ccad2974c5bb40f6f06e819673"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00482359",
+      "va": "0x00482359",
+      "source": "FUN_00482359.s",
+      "source_sha256": "5b64db819755201b883ebd65735af23d4aa7307b30ef721ecdbb528b92135e76",
+      "region": "game",
+      "evidence_id": "ev_6c02d307fa64542cf9e9341ca14b210665cb9d9c7d2fca978f50048355ee46d9",
+      "code": {
+        "symbol": "FUN_00482359",
+        "rva": 533337,
+        "size": 572,
+        "sha256": "286336193b807c5d9ec13efb771848e456ca7cc54e5429dd0759305536c8e4f7"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0042b2e4",
+      "va": "0x0042b2e4",
+      "source": "FUN_0042b2e4.s",
+      "source_sha256": "66f2832e6934ef2ffe6b9a5b26749aa6a44f186d999c10985b13c6cfc244287b",
+      "region": "game",
+      "evidence_id": "ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b",
+      "code": {
+        "symbol": "FUN_0042b2e4",
+        "rva": 176868,
+        "size": 556,
+        "sha256": "42f18431421029a9cc80c950e85be0b860c58e13d5f34687e1e4b7599860e447"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0048d3cb",
+      "va": "0x0048d3cb",
+      "source": "FUN_0048d3cb.s",
+      "source_sha256": "20f5260b3c35d06776031237d3846c88b37a3b90922904a737b58cfd3aec213a",
+      "region": "game",
+      "evidence_id": "ev_7981f36fcfb340c87ff1ac4ba66e833832bd1313751938cee07fade4f0082dcf",
+      "code": {
+        "symbol": "FUN_0048d3cb",
+        "rva": 578507,
+        "size": 553,
+        "sha256": "24c7997adcd6e49ebf1cc544724aacb8770595cf8b5831aa00942d01edd94b2b"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004fa658",
+      "va": "0x004fa658",
+      "source": "FUN_004fa658.s",
+      "source_sha256": "15c8d45b6d33f45ea10149e6e98287160e017193e41cd519d129d1f38f213c54",
+      "region": "game",
+      "evidence_id": "ev_d8c2dc1abacade9fcaea6f9166cbe932f044917e9393a6899ce49be1397e0396",
+      "code": {
+        "symbol": "FUN_004fa658",
+        "rva": 1025624,
+        "size": 553,
+        "sha256": "ba2b4e2941a95f25fc13ac7f812156eeaae68898a2e2db743b0aac80718bd1f1"
+      },
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "symbol": "SWTAB_004fa881",
+          "rva": 1026177,
+          "size": 20
+        },
+        {
+          "kind": "index_table",
+          "symbol": "IDXTAB_004fa895",
+          "rva": 1026197,
+          "size": 61
+        }
+      ]
+    },
+    {
+      "function": "FUN_004e22fd",
+      "va": "0x004e22fd",
+      "source": "FUN_004e22fd.s",
+      "source_sha256": "21c2df953f3f7bd3b0658e0f7497673eb562ef9e4d19ceb670753c508e66a649",
+      "region": "game",
+      "evidence_id": "ev_8385f85130572c281c3b234a54cbdfd62040e051350169a9d81ca47906b8da6a",
+      "code": {
+        "symbol": "FUN_004e22fd",
+        "rva": 926461,
+        "size": 549,
+        "sha256": "a255537effcab825f59fc19465913931e457058483472244a196a3abc53c8494"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0042ae73",
+      "va": "0x0042ae73",
+      "source": "FUN_0042ae73.s",
+      "source_sha256": "cc975ae0fdf7688030d09d1b1da509a3fba33105ce5f264e8160d70ea6a10604",
+      "region": "game",
+      "evidence_id": "ev_1d431cfa6c768c56b3ff5b0532b8ec8e82594a4738783c4d24404ae7730f624b",
+      "code": {
+        "symbol": "FUN_0042ae73",
+        "rva": 175731,
+        "size": 523,
+        "sha256": "48d63750bd18989845fc3046817967c1cdc8f192d2590a803121d7bce5f374f6"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004a42c0",
+      "va": "0x004a42c0",
+      "source": "FUN_004a42c0.s",
+      "source_sha256": "f795825705eacca8f2a86ac1befae3760f042a35b6055794254315bd06e8de70",
+      "region": "game",
+      "evidence_id": "ev_fc5359404bceb01696d4d66c12c8c7af865d10a5749afed948949b75d1acc7af",
+      "code": {
+        "symbol": "FUN_004a42c0",
+        "rva": 672448,
+        "size": 512,
+        "sha256": "b899bdc19a2f1b5dc8d9f9a0d94b3869249513ee3d0f4df2d063012104c0af24"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004460d6",
+      "va": "0x004460d6",
+      "source": "FUN_004460d6.s",
+      "source_sha256": "957b43510229d97296198f5eb38a4d5dec8574c1f829f1f8f3e899ce30fa2d2a",
+      "region": "game",
+      "evidence_id": "ev_d8af1f64874eb3e8469c17e0baf09bf0097f1882284f135b85877e988363a520",
+      "code": {
+        "symbol": "FUN_004460d6",
+        "rva": 286934,
+        "size": 509,
+        "sha256": "cc71ba678570f339a179e918bf0eb72728be11c478e340ebb2eff5baa18cbf3a"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004897cd",
+      "va": "0x004897cd",
+      "source": "FUN_004897cd.s",
+      "source_sha256": "3c8ba68de00bef464580540918b2736adc1499bfcea19fc4a9b0529476b4e008",
+      "region": "game",
+      "evidence_id": "ev_b5201f38a5a659d5112bf314de75bb76652baa2f4916443e3ea7357100fb9b00",
+      "code": {
+        "symbol": "FUN_004897cd",
+        "rva": 563149,
+        "size": 509,
+        "sha256": "715a602f9a6f12d750b580d6d7e6d51b73adab4e076b9bd4b531a3d96628423f"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004b203e",
+      "va": "0x004b203e",
+      "source": "FUN_004b203e.s",
+      "source_sha256": "e45839aa9c40b7f08a07141209a9c49156fe6644ce3ae0549019a8ebd01a8cbf",
+      "region": "game",
+      "evidence_id": "ev_7c6d57367e8ac056df8040674f52c35604171c6d5eb562dd00d81d843a97baa7",
+      "code": {
+        "symbol": "FUN_004b203e",
+        "rva": 729150,
+        "size": 506,
+        "sha256": "0587435a9434da253f5a166752a86d0b4d96fd8539e1f118729507a1f484ad34"
+      },
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "symbol": "SWTAB_004b2238",
+          "rva": 729656,
+          "size": 24
+        }
+      ]
+    },
+    {
+      "function": "FUN_0049d55d",
+      "va": "0x0049d55d",
+      "source": "FUN_0049d55d.s",
+      "source_sha256": "8e045db839d27e70014219768ed30348378d2e4707cf681f59bbad831124b4bb",
+      "region": "game",
+      "evidence_id": "ev_f9d88b0169a812ae2c4ead5dc0ce17ad9653751613cdfaa979f2506d84e4924b",
+      "code": {
+        "symbol": "FUN_0049d55d",
+        "rva": 644445,
+        "size": 504,
+        "sha256": "3ea89a40b5caf9d1b9e55bff4bc528a56d8ca8b3fa0deb0a9983713c5118a2ee"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00456dc8",
+      "va": "0x00456dc8",
+      "source": "FUN_00456dc8.s",
+      "source_sha256": "4be70266ca9cf69a51da0092f8aaa2f76369bbe96f3602b54eeffad51044c2c7",
+      "region": "game",
+      "evidence_id": "ev_c5b87421894e5714fd1694e86f0c1a1a152e3b4da3a586d74d8eca29257d482a",
+      "code": {
+        "symbol": "FUN_00456dc8",
+        "rva": 355784,
+        "size": 478,
+        "sha256": "9a8c80e14a5bc4b8e2187043d488f972648bfd21372b5cb7925212e33e3b372c"
+      },
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "symbol": "SWTAB_00456fa6",
+          "rva": 356262,
+          "size": 16
+        }
+      ]
+    },
+    {
+      "function": "FUN_004b7389",
+      "va": "0x004b7389",
+      "source": "FUN_004b7389.s",
+      "source_sha256": "20471c8dbfd8de32779a7d4ca681803fec8cafbdf43a966c937681fec8f10ecd",
+      "region": "game",
+      "evidence_id": "ev_0a6ac0edbe5602a7eee9dc902ec1f93eea8bd2aa232e8044e889effe410b6a1d",
+      "code": {
+        "symbol": "FUN_004b7389",
+        "rva": 750473,
+        "size": 474,
+        "sha256": "e5127f1855b2f91943ce2241bdd73f5dff6d86acd31c5a7c199f0f049f354635"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004ee0d4",
+      "va": "0x004ee0d4",
+      "source": "FUN_004ee0d4.s",
+      "source_sha256": "75b60678344d607a43594f680b16f11945e39817f54eef386bbf09c86dd59911",
+      "region": "game",
+      "evidence_id": "ev_e731b644a5c720787f42bc3e741b2e19c9bb1b49c397d136b9ddf0255f267052",
+      "code": {
+        "symbol": "FUN_004ee0d4",
+        "rva": 975060,
+        "size": 469,
+        "sha256": "dc325cfed86c33f37dfe482b7ae9123e6b167b3937d4db7738b553cb5c822622"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00484762",
+      "va": "0x00484762",
+      "source": "FUN_00484762.s",
+      "source_sha256": "cfe67302e50899b69d0b234ba1ad5df0afe9b964981d910e9704e7142c577b15",
+      "region": "game",
+      "evidence_id": "ev_6c02d307fa64542cf9e9341ca14b210665cb9d9c7d2fca978f50048355ee46d9",
+      "code": {
+        "symbol": "FUN_00484762",
+        "rva": 542562,
+        "size": 467,
+        "sha256": "18857f1882b6325bbd9f20668785eb0a93c1edd406423aeb122c200b7f5a6fb5"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0049581a",
+      "va": "0x0049581a",
+      "source": "FUN_0049581a.s",
+      "source_sha256": "cac172aec610c5b355834e626de48a3557df62078278a718e7525c50144c34b2",
+      "region": "game",
+      "evidence_id": "ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342",
+      "code": {
+        "symbol": "FUN_0049581a",
+        "rva": 612378,
+        "size": 464,
+        "sha256": "fbb0c7675310e32f051c1734bf2a5310a9e6b5b093acc2b0e5dda06334de4a83"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0045ba0b",
+      "va": "0x0045ba0b",
+      "source": "FUN_0045ba0b.s",
+      "source_sha256": "635ef37108a462569cd04dac06bf7e9a7aab3d75422a18883309f5e9c346666c",
+      "region": "game",
+      "evidence_id": "ev_f51cc55276120d19811669e671858343b4478877f4752e92acf19b83badf3e68",
+      "code": {
+        "symbol": "FUN_0045ba0b",
+        "rva": 375307,
+        "size": 461,
+        "sha256": "bda1fb6e9941f00ef4c139013cff48b674f6f19034c345b3b7dc570a2453d506"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004e3ede",
+      "va": "0x004e3ede",
+      "source": "FUN_004e3ede.s",
+      "source_sha256": "6a11c0fb114048bbe20b2161afccb5d1aa474557e071bdda22377ee072b6dcf9",
+      "region": "game",
+      "evidence_id": "ev_4b72dd02859bc1f1213a228f2ee2963f47a2ab84ba0199a8e771a37aa8a24763",
+      "code": {
+        "symbol": "FUN_004e3ede",
+        "rva": 933598,
+        "size": 456,
+        "sha256": "94381b075a7044da91fd2028feae1cf850c3ba843f9dda924351de28f3326b75"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0041bbd9",
+      "va": "0x0041bbd9",
+      "source": "FUN_0041bbd9.s",
+      "source_sha256": "3f0e023df500a1d77ad3a69bb1141f588089ba17a75431cf7ae9dd8703ee7885",
+      "region": "game",
+      "evidence_id": "ev_6d14e36254d52595d49112e8022fb6a1363c93f1543311eb137634febb6a6ec5",
+      "code": {
+        "symbol": "FUN_0041bbd9",
+        "rva": 113625,
+        "size": 455,
+        "sha256": "3daab37a4e668129bf5fa4ba9f30589ba45a2cf43beed828938b6bdafd4daa7b"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004ead69",
+      "va": "0x004ead69",
+      "source": "FUN_004ead69.s",
+      "source_sha256": "e1c5daa8475743bdd1e735c698e61995800424c75392fae84a9fc88304d752b1",
+      "region": "game",
+      "evidence_id": "ev_e731b644a5c720787f42bc3e741b2e19c9bb1b49c397d136b9ddf0255f267052",
+      "code": {
+        "symbol": "FUN_004ead69",
+        "rva": 961897,
+        "size": 449,
+        "sha256": "387fbcac1e51ab8506e15062e9d8317f0c4ffe1e8b8b7401ccedaec862a84d87"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004e8bb4",
+      "va": "0x004e8bb4",
+      "source": "FUN_004e8bb4.s",
+      "source_sha256": "a78901ec3e761be87e6e8cbf11306d77d091c21872ac26036b26c89284d8f1ba",
+      "region": "game",
+      "evidence_id": "ev_e9c656b3eec0deb5a709812e8ef40c0b3c5e683a3969dfdbc8ffe3dad08e63a8",
+      "code": {
+        "symbol": "FUN_004e8bb4",
+        "rva": 953268,
+        "size": 446,
+        "sha256": "297cedb2821f3c564f004101b600579be69434e6c1be9b3545333442962e30d6"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0045150e",
+      "va": "0x0045150e",
+      "source": "FUN_0045150e.s",
+      "source_sha256": "213425cb3cee6dc0fd48f7b756c2779b244c667dd29f1e7a09f58af815a162fd",
+      "region": "game",
+      "evidence_id": "ev_44f9ad36cfcb6cd07f5dfecee6ae0cfb679ab9d068db67b1a73f7c4febbd58e5",
+      "code": {
+        "symbol": "FUN_0045150e",
+        "rva": 333070,
+        "size": 441,
+        "sha256": "1256a6434fa9106c75a762252be270de6f1cff1424df1b386c3b9205dbfe6bfd"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0047fd65",
+      "va": "0x0047fd65",
+      "source": "FUN_0047fd65.s",
+      "source_sha256": "1ff6782d2136b924529eeb07f4f0a2db7c22514535d99581a387eaebefd78b04",
+      "region": "game",
+      "evidence_id": "ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618",
+      "code": {
+        "symbol": "FUN_0047fd65",
+        "rva": 523621,
+        "size": 425,
+        "sha256": "05a9653ac9793f62cc284140f22b9621eb2f64dafb70aacc30e54371a2085bb3"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004554bb",
+      "va": "0x004554bb",
+      "source": "FUN_004554bb.s",
+      "source_sha256": "f225de7b6c8a106427f6a52cd3174d321468448c501a01831bd8e85ef0cf7133",
+      "region": "game",
+      "evidence_id": "ev_d9db35753575c6f4f6d3b54f0e558794e685953e363fb4d0275dfb0787ca7633",
+      "code": {
+        "symbol": "FUN_004554bb",
+        "rva": 349371,
+        "size": 420,
+        "sha256": "ec0637aa72db5f532174fb1aab8e236ebe9e2f5ba961593d425f3905c93c832e"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_00464ab5",
+      "va": "0x00464ab5",
+      "source": "FUN_00464ab5.s",
+      "source_sha256": "b95b02dbd3bf03b02ba58e48136c5ce8bbf3123818387ec85f2a5de5f31f81e1",
+      "region": "game",
+      "evidence_id": "ev_87c215b6acae2dc5650e31fcd27f76d139aec2c1d8e05fbf5ef1e7fe469374cd",
+      "code": {
+        "symbol": "FUN_00464ab5",
+        "rva": 412341,
+        "size": 420,
+        "sha256": "2b207500a44da63cbf294b4e9585d1c75c23cea530fbfa6638e3c3e933c5fc45"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004854fb",
+      "va": "0x004854fb",
+      "source": "FUN_004854fb.s",
+      "source_sha256": "2937d3901be3d33c553c519e237ec5b2ff374344e52f9faba95303246cc80b54",
+      "region": "game",
+      "evidence_id": "ev_6c02d307fa64542cf9e9341ca14b210665cb9d9c7d2fca978f50048355ee46d9",
+      "code": {
+        "symbol": "FUN_004854fb",
+        "rva": 546043,
+        "size": 419,
+        "sha256": "81850f86de93ecda5129d44a2ff1c9323cf536507db7631f5a8a5554c3c699e1"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_004c7481",
+      "va": "0x004c7481",
+      "source": "FUN_004c7481.s",
+      "source_sha256": "b0b39e21ce43c32f33286fe934c356145f589ba2cf160be252fe7ea1078d68e0",
+      "region": "game",
+      "evidence_id": "ev_093fc7c080074dc275f9d9269921c6e8fdf13c9a1ff4cfaef6b063be7d9fe60e",
+      "code": {
+        "symbol": "FUN_004c7481",
+        "rva": 816257,
+        "size": 418,
+        "sha256": "c9fafe526715e93f5de672a4340002a5cffbff9e1473ba5de1ae462277a8673d"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0044d711",
+      "va": "0x0044d711",
+      "source": "FUN_0044d711.s",
+      "source_sha256": "a53a836918a1c158498225b019170815f390a4738ad40a26345bb948f22110a7",
+      "region": "game",
+      "evidence_id": "ev_d54384a81422438ce41408b3d09c0b74870a458e28d3ae9119129a4b7b6a2bf0",
+      "code": {
+        "symbol": "FUN_0044d711",
+        "rva": 317201,
+        "size": 412,
+        "sha256": "06e25bdc66b7fa2b9850cb38dd36d767353318e5256fcb572540d2e961d94d0e"
+      },
+      "data_items": []
+    },
+    {
+      "function": "FUN_0047ea73",
+      "va": "0x0047ea73",
+      "source": "FUN_0047ea73.s",
+      "source_sha256": "a0528cf81a7b0a7ab20e6aa0559220b22b96ed6c185a0de7d545761e5026f8ac",
+      "region": "game",
+      "evidence_id": "ev_d92d6876f912287d796d65b7f2d0c60600fa32141855ab3fd7de0798df4ef618",
+      "code": {
+        "symbol": "FUN_0047ea73",
+        "rva": 518771,
+        "size": 403,
+        "sha256": "b7d749bd5a60867f2126f964406947e35fd016f4d473b9fa6e5ee5ed5070f092"
+      },
+      "data_items": []
+    }
+  ]
+}
