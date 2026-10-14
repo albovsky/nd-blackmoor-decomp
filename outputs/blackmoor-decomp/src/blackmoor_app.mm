@@ -159,6 +159,9 @@ struct NativeApp {
     EngineBoot *boot = nullptr;
     StartupMenu *startup = nullptr;
     SceneResource *scene = nullptr;
+    /* The previous scene resource stays open while a session executor still
+     * borrows it; it is closed after scene_session_replace_scene succeeds. */
+    SceneResource *retired_scene = nullptr;
     BinkPlayer *video = nullptr;
     SceneSession *session = nullptr;
     NativeNewGameState new_game;
@@ -1465,6 +1468,7 @@ static void cleanup(NativeApp *app)
     if (app->platform) blackmoor_macos_close(app->platform);
     if (app->startup) startup_menu_destroy(app->startup);
     if (app->scene) scene_resource_close(app->scene);
+    if (app->retired_scene) scene_resource_close(app->retired_scene);
     if (app->video) bink_player_close(app->video);
     if (app->boot) engine_boot_close(app->boot);
     autotext_close(app->captions.auto_text);
@@ -1475,6 +1479,7 @@ static void cleanup(NativeApp *app)
     app->session = nullptr;
     app->startup = nullptr;
     app->scene = nullptr;
+    app->retired_scene = nullptr;
     app->video = nullptr;
     app->boot = nullptr;
     app->resources = nullptr;
@@ -1797,6 +1802,17 @@ static SceneSessionCallbackStatus prepare_native_session_tick(
      * A-64 commits mirror back synchronously before later dependency rows. */
     sync_action64_clock_from_new_game(app);
     frame_input->current_frame = app->scene_current_frame;
+    /* Provisional pointer producer: platform logical window coordinates minus
+     * the scene viewport origin, which is the space the decoded S0 hotspot
+     * rectangles occupy. The original message-map transform, cursor-context
+     * and modal guards are still unrecovered, so those inputs stay permissive.
+     * A button release is the only activation event (WM_LBUTTONUP). */
+    frame_input->pointer_valid = app->pointer_x >= 0 && app->pointer_y >= 0;
+    frame_input->pointer_x = app->pointer_x - app->scene_destination.left;
+    frame_input->pointer_y = app->pointer_y - app->scene_destination.top;
+    frame_input->cursor_context_allowed = 1u;
+    frame_input->modal_event_active = 0u;
+    frame_input->hotspot_activation_event = app->primary_released ? 1u : 0u;
     failure->stage = SCENE_SESSION_STAGE_PREPARE;
     failure->provider = SCENE_SESSION_PROVIDER_NONE;
     failure->action_index = SIZE_MAX;
@@ -1976,7 +1992,9 @@ static bool advance_scene_video(NativeApp *app)
     return true;
 }
 
-static bool load_scene(NativeApp *app, int16_t scene_id)
+/* With a live session the previous scene is parked in app->retired_scene
+ * instead of closed, because the session executor still borrows it. */
+static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open = false)
 {
     char name[33], error[256];
     std::snprintf(name, sizeof(name), "S%d", scene_id);
@@ -1984,7 +2002,12 @@ static bool load_scene(NativeApp *app, int16_t scene_id)
     if (!game_resources_load_bytes(app->resources, name, &resource, error, sizeof(error))) {
         record(app, "scene_error name=%s detail=%s", name, error); return false;
     }
-    scene_resource_close(app->scene);
+    if (keep_previous_open && app->scene != nullptr) {
+        if (app->retired_scene != nullptr) scene_resource_close(app->retired_scene);
+        app->retired_scene = app->scene;
+    } else {
+        scene_resource_close(app->scene);
+    }
     app->scene = nullptr;
     if (app->video) bink_player_close(app->video);
     app->video = nullptr;
@@ -2393,12 +2416,62 @@ static bool clear_before_scene_entry(NativeApp *app, uint32_t now_tick)
     return true;
 }
 
+/* Applies a pending session transition: scene clear, target resource load and
+ * visit increment (the order the inspector path already used), then replaces
+ * the session executor. The old scene resource is closed only after the
+ * replacement succeeds. The opaque tuple words are retained by the session and
+ * are not consumed here; A-28 handoff frames are not integrated on this path. */
+static bool perform_session_transition(NativeApp *app,
+                                       const SceneTransitionRequest &transition,
+                                       uint32_t now)
+{
+    if (transition.target_scene < 0) {
+        record(app, "scene_transition_error target=%d detail=negative-scene", transition.target_scene);
+        return false;
+    }
+    const int16_t source = app->current_scene_id;
+    if (!clear_before_scene_entry(app, now) ||
+        !load_scene(app, transition.target_scene, true)) {
+        record(app, "scene_transition_error source=%d target=%d detail=target-load-failed",
+               source, transition.target_scene);
+        return false;
+    }
+    SceneSessionFailure failure{};
+    const int status = scene_session_replace_scene(app->session, app->scene,
+                                                    transition.target_scene, &failure);
+    if (status != SCENE_SESSION_OK) {
+        record(app, "scene_transition_error source=%d target=%d detail=session-replace status=%d provider=%s",
+               source, transition.target_scene, status,
+               scene_session_provider_string(failure.provider));
+        return false;
+    }
+    if (app->retired_scene != nullptr) {
+        scene_resource_close(app->retired_scene);
+        app->retired_scene = nullptr;
+    }
+    app->session_block_reported = false;
+    app->session_transition_reported = false;
+    record(app, "scene_transition_applied source=%d target=%d generation=%llu",
+           source, transition.target_scene,
+           (unsigned long long)scene_session_scene_generation(app->session));
+    return true;
+}
+
 static void update(NativeApp *app, uint32_t now)
 {
     app->session_tick_sample = now;
     if (app->session != nullptr) {
+        SceneTransitionRequest pending{};
+        if (scene_session_get_pending_transition(app->session, &pending) &&
+            !perform_session_transition(app, pending, now)) {
+            app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
         SceneSessionTickResult session_result{};
         const int session_status = scene_session_tick(app->session, &session_result);
+        if (session_result.prepare_attempted != 0u)
+            app->primary_pressed = app->primary_released = false;
         if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
             record(app, "scene_session_blocked stage=%d provider=%s action=%zu type=0x%02x detail=%d "
                    "effects_before_block=%zu dispatch_attempted=%u",
