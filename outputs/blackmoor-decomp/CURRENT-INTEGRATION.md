@@ -1,6 +1,6 @@
 # Current integration evidence
 
-Code snapshot: branch `claude/hungry-matsumoto-8ab8eb` at `e495947` (PR 8). Full suite: 736 tests, 731 pass, 5 skips, run with `work/tools/oracle-python/bin/python` after building the per-module libraries (`scripts/build_*.sh`; three matching builders need a GAME.EXE path argument). Original GAME.EXE hash unchanged. No GUI or listening check was done.
+Code snapshot: branch `claude/hungry-matsumoto-8ab8eb` at `e495947` (PR 8). Full suite: 774 tests, 769 pass, 5 skips, run with `work/tools/oracle-python/bin/python` after building the per-module libraries (`scripts/build_*.sh`; three matching builders need a GAME.EXE path argument). Original GAME.EXE hash unchanged. No GUI or listening check was done.
 
 Collected and independently reviewed (findings fixed): live audio provider (`live_audio`, with mono-to-stereo duplication, deterministic offline completion, host-play-failure tolerance); 0x62 and 0x51 session bindings with the per-type pre-gate hook and accept-candidate model; dependency opcodes 11, 12, 13, 14, 15, 17, 20, 21 inside the executor tree reduction (whole-tree original oracle, 3,182 cases); scene exit handler (states 4/1/2) with the queued 0x28 effect and the caption/latch clears; 0x9f completion requests the scene change; original pointer producer module (not yet wired).
 

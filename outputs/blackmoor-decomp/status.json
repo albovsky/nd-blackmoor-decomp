@@ -352,8 +352,8 @@
     "source_ref": "e4959479d597948d2d405e0878780c7e52fe4d9b (branch claude/hungry-matsumoto-8ab8eb, PR 8)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 736,
-      "passed": 731,
+      "discovered": 774,
+      "passed": 769,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
