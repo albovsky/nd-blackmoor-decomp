@@ -7,7 +7,7 @@ Sources for the M02 whole-file composer (`scripts/compose_image.py`). Nothing he
 | `layout.json` | DOS header, Rich tuples (key recomputed, not stored), PE/optional header, data directories, section table, code regions, zero fill | structured: `dos_header`, `rich_header`, `pe_headers`, `section_table`, `header_padding`, `section_padding` |
 | `imports.json` | 13 DLLs, 326 symbols with hints and RVAs | structured: `import_directory`, `iat` |
 | `resources.json` | ID-only resource directory tree (38 leaves), leaf RVA/size/codepage, zero fill | structured: `resource_tree`; leaf payloads are `referenced` |
-| `text_data.json` | switch jump tables, byte index tables, 0xCC span padding | structured: `jump_tables`, `int3_padding` |
+| `text_data.json` | switch jump tables (code addresses), 0xCC span padding; byte index tables by extent only | structured: `jump_tables`, `int3_padding`; index table bytes stay `referenced` |
 | `reconstructed.json` | reviewed matching manifests bound as reconstructed ranges | reconstructed |
 | `ranges.json` | every remaining range: offset, length, SHA-256, kind, region, name | referenced |
 | `coverage-report.{json,md}` | snapshot of the composer's report | |

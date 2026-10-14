@@ -6,8 +6,8 @@ Referenced ranges are copied from the local original at build time and are NOT c
 
 ## Progress
 
-- Generated (structured + reconstructed): 33,832 bytes (2.24%)
-- Referenced from the local original (not matched): 1,477,592 bytes in 4,293 described ranges
+- Generated (structured + reconstructed): 31,898 bytes (2.11%)
+- Referenced from the local original (not matched): 1,479,526 bytes in 4,312 described ranges
 - Missing: 0 bytes
 - Code bytes: 1,203,014; reconstructed 398; still referenced 1,202,616
 
@@ -17,9 +17,9 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 
 | Class | Bytes | Contiguous runs |
 |---|---:|---:|
-| structured | 33,434 | 555 |
+| structured | 31,500 | 560 |
 | reconstructed | 398 | 4 |
-| referenced | 1,477,592 | 542 |
+| referenced | 1,479,526 | 561 |
 | missing | 0 | 0 |
 
 ## By section
@@ -27,7 +27,7 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 | Section | structured | reconstructed | referenced |
 |---|---:|---:|---:|
 | <headers> | 4,096 | 0 | 0 |
-| .text | 13,498 | 398 | 1,202,616 |
+| .text | 11,564 | 398 | 1,204,550 |
 | .rdata | 11,324 | 0 | 41,924 |
 | .data | 0 | 0 | 208,896 |
 | .rsrc | 4,516 | 0 | 24,156 |
@@ -49,9 +49,9 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 | pe_headers | 248 | 1 |
 | section_table | 160 | 1 |
 | header_padding | 3,416 | 1 |
-| referenced | 1,477,592 | 4,293 |
+| referenced | 1,479,526 | 4,312 |
 | int3_padding | 2,214 | 381 |
-| jump_tables | 7,790 | 191 |
+| jump_tables | 5,856 | 172 |
 | reconstructed | 398 | 13 |
 | section_padding | 8,502 | 24 |
 | iat | 1,356 | 13 |

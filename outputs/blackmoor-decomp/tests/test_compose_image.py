@@ -174,13 +174,12 @@ class StructuredGeneratorTests(unittest.TestCase):
         text_data = {
             "jump_tables": [
                 {"offset": "0x2000", "kind": "dword", "entries": ["0x402010", "0x402020"]},
-                {"offset": "0x2008", "kind": "index8", "values": [0, 1, 1, 0]},
             ],
             "int3_padding": [{"offset": "0x200c", "length": 3}],
         }
         tables = compose_image.gen_jump_tables(layout, text_data)
         self.assertEqual(tables[0].data, struct.pack("<II", 0x402010, 0x402020))
-        self.assertEqual(tables[1].data, bytes([0, 1, 1, 0]))
+        self.assertEqual(len(tables), 1)
         self.assertEqual(compose_image.gen_int3_padding(layout, text_data)[0].data, b"\xcc\xcc\xcc")
 
 
@@ -515,12 +514,14 @@ class MutantTests(OriginalMixin, unittest.TestCase):
 
         self.assert_mutant_fails(self.edit_json("text_data", change), "jump_tables")
 
-    def test_flip_an_index_table_byte(self):
-        def change(value):
-            table = next(t for t in value["jump_tables"] if t["kind"] == "index8")
-            table["values"][0] ^= 1
-
-        self.assert_mutant_fails(self.edit_json("text_data", change), "jump_tables")
+    def test_index_tables_are_not_generated_from_stored_bytes(self):
+        text_data = load_descriptions()["text_data"]
+        self.assertTrue(text_data["index_tables"])
+        self.assertTrue(all(t["kind"] == "dword" for t in text_data["jump_tables"]))
+        self.assertTrue(all("values" not in t for t in text_data["index_tables"]))
+        layout = compose_image.Layout(load_descriptions()["layout"])
+        with self.assertRaises(compose_image.ComposeError):
+            compose_image.gen_jump_tables(layout, {"jump_tables": [{"offset": "0x2000", "kind": "index8", "values": [1]}]})
 
     def test_change_padding_length(self):
         def change(value):

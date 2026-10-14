@@ -21,9 +21,9 @@
  "claim": "Referenced ranges are copied from the local original at build time and are NOT counted as matched. Structured and reconstructed ranges are generated from committed sources. Structured generation does not claim original C++ or compiler provenance.",
  "progress": {
   "total_bytes": 1511424,
-  "generated_bytes": 33832,
-  "generated_fraction": 0.022384,
-  "referenced_bytes": 1477592,
+  "generated_bytes": 31898,
+  "generated_fraction": 0.021105,
+  "referenced_bytes": 1479526,
   "missing_bytes": 0,
   "code_bytes": 1203014,
   "code_bytes_reconstructed": 398,
@@ -32,16 +32,16 @@
  },
  "by_class": {
   "structured": {
-   "bytes": 33434,
-   "ranges": 555
+   "bytes": 31500,
+   "ranges": 560
   },
   "reconstructed": {
    "bytes": 398,
    "ranges": 4
   },
   "referenced": {
-   "bytes": 1477592,
-   "ranges": 542
+   "bytes": 1479526,
+   "ranges": 561
   },
   "missing": {
    "bytes": 0,
@@ -56,9 +56,9 @@
    "missing": 0
   },
   ".text": {
-   "structured": 13498,
+   "structured": 11564,
    "reconstructed": 398,
-   "referenced": 1202616,
+   "referenced": 1204550,
    "missing": 0
   },
   ".rdata": {
@@ -122,16 +122,16 @@
    "items": 1
   },
   "referenced": {
-   "bytes": 1477592,
-   "items": 4293
+   "bytes": 1479526,
+   "items": 4312
   },
   "int3_padding": {
    "bytes": 2214,
    "items": 381
   },
   "jump_tables": {
-   "bytes": 7790,
-   "items": 191
+   "bytes": 5856,
+   "items": 172
   },
   "reconstructed": {
    "bytes": 398,
@@ -156,8 +156,8 @@
  },
  "stage_referenced_bytes": 0,
  "referenced_ranges": {
-  "count": 4293,
-  "bytes": 1477592,
+  "count": 4312,
+  "bytes": 1479526,
   "list_source": "image/ranges.json"
  },
  "reconstructed": [
@@ -313,7 +313,7 @@
    "source_kind": "c_incomplete_byte_range",
    "provenance_class": "incomplete_byte_range_not_a_complete_function",
    "source_sha256": "6505a0b14d4406347739a2b869e804f8c46ac5bc5e7adb3b26d4b8bf4831127f",
-   "object_sha256": "c3ebf1f5f27d84fd88e6be11d2bb8141c72eb6fb94f320301cd4360bb488cfd9",
+   "object_sha256": "12364de866ab02dfca74db3f83bbf1d780a395e081916f9121226db6b362008b",
    "range_sha256": "619829cd4f296ce81e5275137505e34628c8e741d1c31c498d2c26ceec0f3241",
    "status": "bound"
   },
@@ -326,7 +326,7 @@
    "source_kind": "c_incomplete_byte_range",
    "provenance_class": "incomplete_byte_range_not_a_complete_function",
    "source_sha256": "6505a0b14d4406347739a2b869e804f8c46ac5bc5e7adb3b26d4b8bf4831127f",
-   "object_sha256": "c3ebf1f5f27d84fd88e6be11d2bb8141c72eb6fb94f320301cd4360bb488cfd9",
+   "object_sha256": "12364de866ab02dfca74db3f83bbf1d780a395e081916f9121226db6b362008b",
    "range_sha256": "84358b64bfaccfd336ed4b2ce706f45729f875f610a80f96346cc982b5cad304",
    "status": "bound"
   }
@@ -336,8 +336,8 @@
   "layout.json": "9311d87d8bfa5707e3b2e429f4cc183672d23056eb82bfdefd5200cc5674d733",
   "imports.json": "d8554106d841d0b26f0f501e753a3ad4e40ac487da3ab4e766a978e0e1200a7e",
   "resources.json": "c91a1c319ad94d3ed264d6aca44f893ba831ddfbbd4ff0625e94943a57d4f991",
-  "text_data.json": "0726e141f88dbdfc734caf3cdf1e7bfd56de3016113e611fdb4212abecf6bc39",
-  "ranges.json": "c36a1e73c7106524001feeec83b7e1dc0d98cddc4378035917939462c7c0b254",
+  "text_data.json": "82b1cc313361bd8341508f2a67b2962eef5203b87cd7398fcc9f2d15efdf2328",
+  "ranges.json": "302c1fde0c6e0a32ef5d1c581e6b86a6e8e1a73eebcf7dabbd0c6ecc69505d7a",
   "reconstructed.json": "c833b69e8fbb8748164cdf756013a08514f43b521260b755db875bff7258d3a2"
  }
 }

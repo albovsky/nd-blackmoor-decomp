@@ -508,9 +508,6 @@ def gen_jump_tables(layout: Layout, text_data: dict[str, Any]) -> list[Item]:
         if table["kind"] == "dword":
             data = b"".join(struct.pack("<I", num(v)) for v in table["entries"])
             name = f"switch table {hx(offset + layout.image_base)}"
-        elif table["kind"] == "index8":
-            data = bytes(num(v) for v in table["values"])
-            name = f"switch index table {hx(offset + layout.image_base)}"
         else:
             raise ComposeError(f"unknown jump table kind {table['kind']!r}")
         items.append(Item(offset, len(data), CLS_STRUCTURED, "jump_tables", name, ".text", "data", data=data))
@@ -1299,7 +1296,7 @@ class Derivation:
 
         # 3. byte index tables: the bytes after a dword table that are smaller than its entry count
         jump_tables: list[dict[str, Any]] = []
-        index_tables = 0
+        index_tables: list[dict[str, Any]] = []
         for start, n in tables:
             s, e = span_of(start)
             end = start + 4 * n
@@ -1309,14 +1306,10 @@ class Derivation:
             while probe < limit and text[probe - base_va] < n:
                 probe += 1
             if probe > end:
-                index_tables += 1
-                jump_tables.append(
-                    {
-                        "offset": hx(end - layout.image_base),
-                        "kind": "index8",
-                        "table": hx(start - layout.image_base),
-                        "values": list(text[end - base_va : probe - base_va]),
-                    }
+                # Raw index bytes are original data: only the extent is described here and
+                # the bytes stay hash-referenced (see derive_ranges).
+                index_tables.append(
+                    {"offset": hx(end - layout.image_base), "length": probe - end, "table": hx(start - layout.image_base)}
                 )
         # 4. trailing 0xCC padding of each span (after tables)
         padding_runs = []
@@ -1329,7 +1322,8 @@ class Derivation:
                 padding_runs.append({"offset": hx(text_offset + cursor), "length": (e - base_va) - cursor})
         # sanity: tables and padding must not overlap one another
         taken = sorted(
-            [(num(t["offset"]), num(t["offset"]) + (4 * len(t["entries"]) if t["kind"] == "dword" else len(t["values"]))) for t in jump_tables]
+            [(num(t["offset"]), num(t["offset"]) + 4 * len(t["entries"])) for t in jump_tables]
+            + [(num(t["offset"]), num(t["offset"]) + t["length"]) for t in index_tables]
             + [(num(p["offset"]), num(p["offset"]) + p["length"]) for p in padding_runs]
         )
         for a, b in zip(taken, taken[1:]):
@@ -1338,13 +1332,15 @@ class Derivation:
         return {
             "schema": SCHEMA,
             "note": (
-                "Data items inside .text: switch jump tables (absolute code addresses), the byte index tables that follow some of them, and 0xCC padding at the end of function spans. "
+                "Data items inside .text: switch jump tables (absolute code addresses) and 0xCC padding at the end of function spans are structured; "
+                "the byte index tables that follow some tables are listed by extent only (index_tables) and stay hash-referenced data ranges. "
                 "Offsets are file offsets (equal to RVAs in .text). Derived by M02's own heuristic (jmp [reg*4+table] references, in-span code addresses, index bytes smaller than the entry count); "
                 "M03's per-function split supersedes it."
             ),
             "dword_table_count": len(tables),
-            "index_table_count": index_tables,
+            "index_table_count": len(index_tables),
             "jump_tables": jump_tables,
+            "index_tables": index_tables,
             "int3_padding": padding_runs,
         }
 
@@ -1377,12 +1373,18 @@ class Derivation:
         reconstructed: list[tuple[int, int]],
         spans: list[tuple[int, int]],
         resources: dict[str, Any],
+        index_tables: list[dict[str, Any]],
     ) -> dict[str, Any]:
         d = self.d
         claimed = bytearray(len(d))
         for item in structured:
             claimed[item.offset : item.end] = b"\x01" * item.length
         for offset, length in reconstructed:
+            claimed[offset : offset + length] = b"\x01" * length
+        for table in index_tables:
+            offset, length = num(table["offset"]), num(table["length"])
+            if any(claimed[offset : offset + length]):
+                raise ComposeError(f"index table at {hx(offset)} overlaps a structured or reconstructed item")
             claimed[offset : offset + length] = b"\x01" * length
         rows: list[list[Any]] = []
 
@@ -1409,6 +1411,9 @@ class Derivation:
                 emit(cursor, end, name, "code", region, ".text")
                 piece += 1
                 cursor = end
+        for table in index_tables:
+            offset, length = num(table["offset"]), num(table["length"])
+            emit(offset, offset + length, f"switch index table {hx(offset + layout.image_base)}", "data", layout.code_region(offset + layout.image_base), ".text")
         # data sections: everything not claimed, in page-bounded chunks
         for section in layout.sections[1:]:
             if section["name"] == ".rsrc":
@@ -1480,7 +1485,7 @@ def derive(original_path: Path, image_dir: Path, function_index: Path, assembler
     flat = [item for group in GROUPS for item in structured[group]]
     # reconstructed ranges (RVA == offset in .text)
     bound, _ = bind_reconstructed(layout, reconstructed, original_path, build_dir, assembler)
-    ranges = derivation.derive_ranges(layout, flat, [(i.offset, i.length) for i in bound], spans, resources)
+    ranges = derivation.derive_ranges(layout, flat, [(i.offset, i.length) for i in bound], spans, resources, text_data["index_tables"])
     write_json(image_dir / "layout.json", layout_raw)
     write_json(image_dir / "imports.json", imports)
     write_json(image_dir / "resources.json", resources)
