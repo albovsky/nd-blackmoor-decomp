@@ -114,6 +114,10 @@ static AvfPlayerStatus check_config(const AvfPlayerConfig *c, const AvfStream *s
     if (c->mode != 0 && c->mode != 1) {
         return AVF_PLAYER_ERR_UNSUPPORTED;
     }
+    /* 0x4dc182 case 0 always plays the partner animation single-buffered. */
+    if (c->kind == AVF_PLAYER_PARTNER_LOGO && c->mode != 0) {
+        return AVF_PLAYER_ERR_UNSUPPORTED;
+    }
     if (stream->buffers[0] == NULL || (c->mode == 1 && stream->buffers[1] == NULL)) {
         return AVF_PLAYER_ERR_ARGUMENT;
     }
@@ -144,6 +148,9 @@ AvfPlayerStatus avf_player_start(AvfPlayer *player, const AvfPlayerConfig *confi
 
     if (player == NULL || config == NULL || host == NULL) {
         return AVF_PLAYER_ERR_ARGUMENT;
+    }
+    if (player->running) {
+        return AVF_PLAYER_ERR_STATE;   /* the original stops the old stream first */
     }
     if (host->clock == NULL || host->present == NULL || host->frame_event == NULL) {
         return AVF_PLAYER_ERR_UNSUPPORTED;
@@ -191,8 +198,11 @@ AvfPlayerStatus avf_player_start(AvfPlayer *player, const AvfPlayerConfig *confi
         begin_stream(player, 1);
         if (config->mode == 0) {
             /* single buffer: the surface shows +0x17a directly */
-            CHECK_HOST(present(player, AVF_PRESENT_SELECT, stream->buffers[0],
-                               stream->file->frame_bytes, 0, -1));
+            if (present(player, AVF_PRESENT_SELECT, stream->buffers[0],
+                        stream->file->frame_bytes, 0, -1) != 0) {
+                player->running = 0;
+                return AVF_PLAYER_ERR_HOST;
+            }
         }
         player->index = config->direction == 1 ? config->first : config->last;
         player->ready = 0;
@@ -206,8 +216,11 @@ AvfPlayerStatus avf_player_start(AvfPlayer *player, const AvfPlayerConfig *confi
         player->dirty = 0;                          /* 0x6381e5 */
         begin_stream(player, 1);
         if (config->mode == 0) {
-            CHECK_HOST(present(player, AVF_PRESENT_SELECT, stream->buffers[0],
-                               stream->file->frame_bytes, 0, -1));
+            if (present(player, AVF_PRESENT_SELECT, stream->buffers[0],
+                        stream->file->frame_bytes, 0, -1) != 0) {
+                player->running = 0;
+                return AVF_PLAYER_ERR_HOST;
+            }
         }
         player->index = config->direction == 1 ? config->first : config->last;
         player->ready = 0;
@@ -247,12 +260,15 @@ AvfPlayerStatus avf_player_restart(AvfPlayer *player, const AvfPlayerConfig *con
     if (player->running) {
         return AVF_PLAYER_ERR_STATE;  /* 0x4cd6ff state 3 stops first (0x4ccef1) */
     }
-    if (check_config(config, player->stream, NULL, NULL, 0) != AVF_PLAYER_OK) {
+    if (check_config(config, player->stream, NULL, NULL, 0) != AVF_PLAYER_OK ||
+        config->mode != player->config.mode) {
+        /* +0x17a is set only in 0x4cd6ff state 0; 0x4cdfd3 keeps it. */
         return AVF_PLAYER_ERR_ARGUMENT;
     }
     player->generation += 1u;
     player->config = *config;
     player->running = 1;
+    player->failed = 0;
     player->exit_flag = 0;
     player->decoder_status = AVF_OK;
     begin_stream(player, 1);    /* toggle survives: only state 0 resets +0x192 */
@@ -310,7 +326,7 @@ AvfPlayerStatus avf_player_worker_poll(AvfPlayer *player, int *decoded)
     if (player == NULL) {
         return AVF_PLAYER_ERR_ARGUMENT;
     }
-    if (!player->running || player->exit_flag) {
+    if (!player->running || player->exit_flag || player->failed) {
         return AVF_PLAYER_ERR_STATE;            /* AfxEndThread */
     }
     if (player->ready != 0 || acquire(player) == 2) {
@@ -325,8 +341,19 @@ AvfPlayerStatus avf_player_worker_poll(AvfPlayer *player, int *decoded)
         AvfRecord record;
         if (avf_record(player->stream->file, player->index, &record) == AVF_OK &&
             record.packed_bytes == 0 && record.unpacked_bytes == 0) {
+            /* The original checks the delta sequence first (fatal). */
+            if (record.type == AVF_TYPE_DELTA &&
+                !(player->stream->chunk_previous != NULL &&
+                  player->stream->last_index != -1 &&
+                  player->stream->last_index == (int32_t)player->index - 1)) {
+                player->decoder_status = AVF_ERR_SEQUENCE;
+                player->failed = 1;
+                release(player);
+                return AVF_PLAYER_ERR_DECODER;
+            }
             /* GetChunk would return the shown predecessor, which the next
                refill frees while it is on screen (use after free). */
+            player->failed = 1;
             release(player);
             return AVF_PLAYER_ERR_UNSUPPORTED;
         }
@@ -345,6 +372,7 @@ AvfPlayerStatus avf_player_worker_poll(AvfPlayer *player, int *decoded)
     if (status != AVF_OK) {
         /* Original: report and quit. The port keeps R = 0. */
         player->decoder_status = status;
+        player->failed = 1;
         release(player);
         return AVF_PLAYER_ERR_DECODER;
     }
@@ -560,7 +588,7 @@ AvfPlayerStatus avf_player_render_ack(AvfPlayer *player, uint32_t generation, in
     if (generation != player->generation) {
         return AVF_PLAYER_ERR_STALE;
     }
-    if (!player->running) {
+    if (!player->running || player->failed) {
         return AVF_PLAYER_ERR_STATE;
     }
     if (player->kind != AVF_PLAYER_MOVIE) {
@@ -771,7 +799,7 @@ AvfPlayerStatus avf_player_set_secondary_mode(AvfPlayer *player, int32_t mode)
     if (player->kind != AVF_PLAYER_SECONDARY_VIDEO) {
         return AVF_PLAYER_ERR_UNSUPPORTED;
     }
-    if (!player->running) {
+    if (!player->running || player->failed) {
         return AVF_PLAYER_ERR_STATE;
     }
     player->secondary_mode = mode;
@@ -780,23 +808,38 @@ AvfPlayerStatus avf_player_set_secondary_mode(AvfPlayer *player, int32_t mode)
 
 AvfPlayerStatus avf_player_tick(AvfPlayer *player, const AvfPlayerGate *gate)
 {
+    AvfPlayerStatus status = AVF_PLAYER_ERR_ARGUMENT;
+    size_t i;
+
     if (player == NULL || gate == NULL || (gate->record_count != 0 && gate->records == NULL)) {
         return AVF_PLAYER_ERR_ARGUMENT;
     }
-    if (!player->running) {
+    for (i = 0; i < gate->record_count; ++i) {
+        if (gate->records[i] < 0) {
+            return AVF_PLAYER_ERR_ARGUMENT;    /* record indices, never "none" */
+        }
+    }
+    if (!player->running || player->failed) {
         return AVF_PLAYER_ERR_STATE;
     }
     switch (player->kind) {
     case AVF_PLAYER_RANDOM_MOVIE:
-        return random_tick(player, gate);
+        status = random_tick(player, gate);
+        break;
     case AVF_PLAYER_MOVIE:
-        return movie_tick(player, gate);
+        status = movie_tick(player, gate);
+        break;
     case AVF_PLAYER_PARTNER_LOGO:
-        return partner_tick(player, gate);
+        status = partner_tick(player, gate);
+        break;
     case AVF_PLAYER_SECONDARY_VIDEO:
-        return secondary_tick(player, gate);
+        status = secondary_tick(player, gate);
+        break;
     }
-    return AVF_PLAYER_ERR_ARGUMENT;
+    if (status == AVF_PLAYER_ERR_HOST) {
+        player->failed = 1;
+    }
+    return status;
 }
 
 const char *avf_player_status_name(AvfPlayerStatus status)

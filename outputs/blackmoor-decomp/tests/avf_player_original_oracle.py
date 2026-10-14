@@ -104,25 +104,25 @@ CODE_WINDOWS = {
     "random_start_0x4cdfd3": (0x4CDFD3, 0x4CE5FF),
     "random_tick_0x4cd6ff": (0x4CD6FF, 0x4CDFD3),
     "random_step_0x4ce602": (0x4CE602, 0x4CE8EA),
-    "random_index_0x4cec6c": (0x4CEC6C, 0x4CECE3),
+    "random_index_0x4cec6c": (0x4CEC6C, 0x4CECF6),
     "random_worker_0x4cf687": (0x4CF687, 0x4CF749),
     "random_stop_0x4ccef1": (0x4CCEF1, 0x4CCFBD),
     "movie_tick_0x4bf9bb": (0x4BF9BB, 0x4C0205),
     "movie_step_0x4c0205": (0x4C0205, 0x4C04E3),
     "movie_index_0x4c09fe": (0x4C09FE, 0x4C0AB1),
     "movie_worker_0x4c0c7d": (0x4C0C7D, 0x4C0D3F),
-    "movie_render_0x4c0d3f": (0x4C0D3F, 0x4C0E90),
-    "movie_stop_0x4bf773": (0x4BF773, 0x4BF838),
+    "movie_render_0x4c0d3f": (0x4C0D3F, 0x4C0F21),
+    "movie_stop_0x4bf773": (0x4BF773, 0x4BF8A6),
     "partner_0x4dc182": (0x4DC182, 0x4DCDD3),
     "partner_step_0x4dcdd3": (0x4DCDD3, 0x4DD05A),
-    "partner_index_0x4dd28d": (0x4DD28D, 0x4DD32A),
-    "partner_stop_0x4dc043": (0x4DC043, 0x4DC0D2),
+    "partner_index_0x4dd28d": (0x4DD28D, 0x4DD378),
+    "partner_stop_0x4dc043": (0x4DC043, 0x4DC13E),
     "secondary_tick_0x42c221": (0x42C221, 0x42CA22),
     "secondary_index_0x42d215": (0x42D215, 0x42D35A),
-    "secondary_swap_0x42e72c": (0x42E72C, 0x42E7A0),
+    "secondary_swap_0x42e72c": (0x42E72C, 0x42E7B7),
     "secondary_worker_0x44cde2": (0x44CDE2, 0x44CF01),
     "handshake_0x44c479": (0x44C479, 0x44C4C1),
-    "open_0x44c4c1": (0x44C4C1, 0x44C6E5),
+    "open_0x44c4c1": (0x44C4C1, 0x44C9DA),
     "buffers_0x4161d1": (0x4161D1, 0x41632B),
     "free_0x41632b": (0x41632B, 0x4163B4),
 }
@@ -310,6 +310,18 @@ class PlayerOriginal(dec.Original):
             out += b
         return bytes(out)
 
+    def _observe_present(self, uc, access, address, size, value, user) -> None:
+        """Presentation: a write of the surface pixel pointer (select) or the
+        first dword of the surface's own pixels (RANDOM memcpy)."""
+        if user == "copy":
+            self.trace.append(("present",))
+            return
+        slots = [self.u32(a) for a in self.slot_fields]
+        value &= 0xFFFFFFFF
+        self.trace.append(("present", slots.index(value) if value in slots else "other"))
+
+    slot_fields: tuple[int, ...] = ()
+
     def new_surface(self, width: int, height: int) -> int:
         obj = self.fake(0x60)
         width = struct.unpack("<i", struct.pack("<I", width & 0xFFFFFFFF))[0]
@@ -321,6 +333,8 @@ class PlayerOriginal(dec.Original):
         self.w(obj, struct.pack("<I", pixels))
         self.w(obj + 0x23, struct.pack("<I", size))
         self.w(obj + 0x2B, struct.pack("<hh", width, height))
+        self.uc.hook_add(self._write_hook, self._observe_present, "select", obj, obj + 3)
+        self.uc.hook_add(self._write_hook, self._observe_present, "copy", pixels, pixels + 3)
         return obj
 
     view_index: Callable[[int], int] = staticmethod(lambda ptr: ptr)
@@ -379,6 +393,7 @@ class Player(c.Structure):
     _fields_ = [("kind", c.c_int), ("config", Config), ("host", Host),
                 ("stream", c.POINTER(fx.AvfStream)), ("slots", c.c_void_p * 2),
                 ("slot_bytes", c.c_size_t), ("generation", c.c_uint32), ("running", c.c_int32),
+                ("failed", c.c_int32),
                 ("decoder_status", c.c_int), ("handshake", c.c_int32), ("exit_flag", c.c_int32),
                 ("ready", c.c_int16), ("index", c.c_int16), ("delay", c.c_int32),
                 ("substate", c.c_int32), ("deadline", c.c_uint32), ("presented", c.c_int32),
@@ -454,8 +469,10 @@ class NativeSession:
         p = Presentation.from_address(ptr)
         if p.kind == 1:
             self.surface[:p.bytes] = bytes((c.c_uint8 * p.bytes).from_address(p.pixels))
+            self.trace.append(("present",))
         else:
             self.selected = (p.pixels or 0, p.bytes)
+            self.trace.append(("present", p.slot))
         return 1 if self.fail_on == "present" else 0
 
     def _event(self, _ctx, ptr):
@@ -565,6 +582,7 @@ class RandomMovie(Controller):
     def __init__(self, o, data, cfg):
         super().__init__(o, data, cfg)
         o.watch_handshake(RANDOM_OBJ + 4)
+        o.slot_fields = (RANDOM_OBJ + 0x182, RANDOM_OBJ + 0x186)
         rec = o.alloc(0x40)
         o.w(rec, b"\0" * 0x40)
         o.w(rec + 0x21, struct.pack("<hhh", cfg["mode"], 1, len(cfg["views"])))
@@ -637,6 +655,7 @@ class Movie(Controller):
     def __init__(self, o, data, cfg):
         super().__init__(o, data, cfg)
         o.watch_handshake(MOVIE_OBJ + 4)
+        o.slot_fields = (MOVIE_OBJ + 0x182, MOVIE_OBJ + 0x186)
         rec = o.alloc(0x200)
         o.w(rec, b"fixture\0" + b"\0" * (0x200 - 8))
         o.w(rec + 0x21, struct.pack("<h", 0))                     # AVF
@@ -718,6 +737,7 @@ class Partner(Controller):
     def __init__(self, o, data, cfg):
         super().__init__(o, data, cfg)
         o.watch_handshake(MOVIE_OBJ + 4)
+        o.slot_fields = (MOVIE_OBJ + 0x182, MOVIE_OBJ + 0x186)
         b = PARTNER_OBJ
         o.w(b, b"\0" * 0x200)
         o.w(MOVIE_OBJ, b"\0" * 0x260)
@@ -786,6 +806,7 @@ class Secondary(Controller):
     def __init__(self, o, data, cfg):
         super().__init__(o, data, cfg)
         o.watch_handshake(0x5B4C3A)
+        o.slot_fields = (0x5B4DB8, 0x5B4DBC)
         rec = o.alloc(0x200)
         o.w(rec, b"fixture\0" + b"\0" * (0x200 - 8))
         o.w(rec + 0x42, struct.pack("<hhhhhhhhhhh", 0, cfg["present_mode"], 1,
@@ -919,11 +940,21 @@ class Runner:
             if step.op == "poll" and kind == "secondary" and n.player.ready == 0 and \
                     self.empty_record(n, n.player.index):
                 # Original GetChunk returns the shown predecessor, and the next
-                # refill frees it while on screen: native rejects the path.
+                # refill frees it while on screen: native rejects the path,
+                # unless the delta-sequence check fails first (fatal in both).
                 status = self.lib.avf_player_worker_poll(c.byref(n.player), None)
-                self.compare(where, {"status": "UNSUPPORTED"},
-                             {"status": self.lib.avf_player_status_name(status).decode()})
-                self.count("secondary:empty_record_unsupported")
+                name_ = self.lib.avf_player_status_name(status).decode()
+                if name_ == "DECODER":
+                    try:
+                        ctrl.poll()
+                        expected = "OK"
+                    except dec.Fatal:
+                        expected = "DECODER"
+                    self.compare(where, {"status": expected}, {"status": name_})
+                    self.count("secondary:empty_record_sequence_fatal")
+                else:
+                    self.compare(where, {"status": "UNSUPPORTED"}, {"status": name_})
+                    self.count("secondary:empty_record_unsupported")
                 break
             if step.op == "poll":
                 index = n.player.index
@@ -1056,7 +1087,7 @@ def randomized(kind: str, seed: int, length: int, t0: int, delay: int,
         elif kind == "movie":
             steps.append(Step("ack", t))
         else:
-            steps.append(Step("mode", t, arg=rng.choice([0, 1, 2, 3])))
+            steps.append(Step("mode", t, arg=rng.choice([0, 1, 1, 2, 3, 4])))
     steps.append(Step("stop", t + 1))
     return steps
 
@@ -1132,6 +1163,21 @@ def synthetic_cases() -> list[tuple[str, str, bytes, dict, list[Step]]]:
     cases.append(("partner", "sound-busy", key, base_cfg("partner", n, sound=1, sound_id=3),
                   [s if s.op != "tick" else Step("tick", s.now, s.view, sound_busy=1)
                    for s in nominal("partner", n, 1000, DELAY, extra_advances=4)]))
+    one = make_avf(4, 2, 1)
+    cases.append(("movie", "reverse-one-frame", key, base_cfg("movie", n, first=2, last=2,
+                                                              direction=2),
+                  nominal("movie", 1, 1000, DELAY, extra_advances=3)))
+    cases.append(("partner", "reverse-one-frame", one, base_cfg("partner", 1, direction=2),
+                  nominal("partner", 1, 1000, DELAY, extra_advances=3)))
+    for kind in ("movie", "partner"):
+        cases.append((kind, "direction3", key, base_cfg(kind, n, direction=3, first=1, last=3),
+                      randomized(kind, 31, 60, 1000, DELAY, [1])))
+    cases.append(("partner", "skip-before-first", key, base_cfg("partner", n),
+                  [Step("tick", 1000, skip=1), Step("poll", 1000), Step("tick", 1000, skip=1),
+                   Step("stop", 1001)]))
+    cases.append(("secondary", "mode-default", key, base_cfg("secondary", n),
+                  [Step("poll", 900), Step("tick", 900), Step("mode", 900, arg=4)] +
+                  randomized("secondary", 77, 40, 1000, DELAY, [7, 1, 9])))
     for start_mode, present_mode in ((1, 2), (2, 2), (1, 0)):
         cfg = base_cfg("secondary", n, start_mode=start_mode, present_mode=present_mode,
                        hold_start=2, loop_last=3, hold_last=3, end_last=4)
@@ -1184,6 +1230,8 @@ MUTATIONS = {
     "partner_ignores_sound": ("(p->config.sound == 0 || g->sound_busy == 0)", "(1)"),
     "secondary_swap_order": ("    p->slot_toggle = (int16_t)(p->slot_toggle == 0);\n    if (p->config.present_mode == 2) {",
                              "    if (p->config.present_mode == 2) {"),
+    "movie_select_after_triggers": ("    if (movie_select(p) != AVF_PLAYER_OK) {\n        return AVF_PLAYER_ERR_HOST;\n    }\n    CHECK_HOST(event(p, AVF_EVENT_TRIGGERS, (int16_t)p->presented, -1));\n    p->dirty = 1;\n    CHECK_HOST",
+                                    "    CHECK_HOST(event(p, AVF_EVENT_TRIGGERS, (int16_t)p->presented, -1));\n    if (movie_select(p) != AVF_PLAYER_OK) {\n        return AVF_PLAYER_ERR_HOST;\n    }\n    p->dirty = 1;\n    CHECK_HOST"),
     "random_toggle_reset_on_restart": ("    begin_stream(player, 1);    /* toggle survives", "    begin_stream(player, 0);    /* toggle survives"),
 }
 
@@ -1245,18 +1293,21 @@ def playback_evidence(lib: c.CDLL, kind: str, name: str, data: bytes, cfg: dict[
         elif step.op == "tick":
             g, keep = gate_struct([k for k, v in enumerate(cfg["views"]) if v == step.view])
             claimed["frame"] = None
+            index_before = int(n.player.index)
             before_trace = len(n.trace)
             lib.avf_player_tick(c.byref(n.player), c.byref(g))
             events = n.trace[before_trace:]
             frame = claimed["frame"]
             if kind == "random" and frame is not None:
                 pixels = dec.digest(bytes(n.surface[:fb]))
-            elif kind in ("movie", "partner") and (frame is not None or any(
-                    t[0] in ("rect", "blit") for t in events)):
-                # MOVIE presents with a RECT event (its completion only fires
-                # TRIGGERS); PARTNER single-buffer frames show on BLIT.
-                if frame is None:      # single buffer: the decoder writes the shown surface
-                    frame = n.stream.last_index
+            elif kind == "movie" and any(t[0] == "rect" for t in events):
+                # MOVIE presents with a RECT event; the kernel's presented
+                # field (+0x244) names the frame, not the decoder state.
+                frame = n.player.presented
+                pixels = n.selected_digest()
+            elif kind == "partner" and any(t[0] == "blit" for t in events):
+                # The frame shown is the one requested before this step.
+                frame = index_before
                 pixels = n.selected_digest()
             elif kind == "secondary" and frame is not None:
                 pixels = dec.digest(bytes((c.c_uint8 * fb).from_address(n.selected[0])))
@@ -1273,7 +1324,18 @@ def playback_evidence(lib: c.CDLL, kind: str, name: str, data: bytes, cfg: dict[
         if n.player.finished:
             break
     frames = struct.unpack_from("<h", data, 0x15)[0]
-    return {"kind": kind, "case": name, "frames": frames, "decoded": len(decoded),
+    # Expected presentation order for the controller (repeats collapsed).
+    seq = [f for i, f in enumerate(presented) if i == 0 or f != presented[i - 1]]
+    if kind == "secondary":
+        order = [k % frames for k in range(len(seq))]
+    elif cfg.get("direction", 1) == 2 and kind == "movie":
+        order = list(range(cfg["last"], cfg["first"] - 1, -1))
+    elif kind == "partner":
+        order = list(range(frames - 1)) if frames > 1 else [0]
+    else:
+        order = list(range(cfg["first"], cfg["last"] + 1))
+    return {"kind": kind, "case": name, "frames": frames, "in_order": seq == order,
+            "decoded": len(decoded),
             "requested": len(requested), "presented": len(presented),
             "presented_distinct": len(set(presented)), "finished": bool(n.player.finished),
             "pixel_mismatches": problems[:10], "presented_head": presented[:8],
@@ -1301,7 +1363,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         runner.count(f"compared:{group}:{kind}", runner.compared - before)
     evidence = []
     if not args.synthetic_only and not args.limit:
-        for kind, name, data, cfg, steps in corpus_cases():
+        chain = make_avf(4, 2, 6, "chain")
+        full = make_avf(4, 2, 4, "full")
+        extra = [(k, f"synthetic-{label}", d, base_cfg(k, struct.unpack_from("<h", d, 0x15)[0],
+                                                       **({"mode": 1} if k in ("random", "movie")
+                                                          else {})),
+                  nominal(k, struct.unpack_from("<h", d, 0x15)[0], 10_000, DELAY))
+                 for label, d in (("chain", chain), ("full", full))
+                 for k in ("random", "movie", "partner", "secondary")]
+        for kind, name, data, cfg, steps in corpus_cases() + extra:
             expected = expected_digests(lib, data)
             evidence.append(playback_evidence(lib, kind, name, data, cfg, steps, expected))
     pe = PEImage.parse_and_map(Path(args.exe))
@@ -1313,6 +1383,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     playback_summary = {
         "playbacks": len(evidence),
         "pixel_mismatches": sum(len(e["pixel_mismatches"]) for e in evidence),
+        "out_of_order": [e["case"] for e in evidence if not e["in_order"]],
         "decoded": sum(e["decoded"] for e in evidence),
         "requested": sum(e["requested"] for e in evidence),
         "presented": sum(e["presented"] for e in evidence),

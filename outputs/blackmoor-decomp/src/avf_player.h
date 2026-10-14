@@ -36,7 +36,15 @@ extern "C" {
  * original reader loop and never overlaps a tick. A host that moves the
  * worker to a thread must hold one lock around every call here; that lock
  * stands in for the original spin handshake H (0x44c479/0x44c4ab), whose
- * values and stop ordering the kernel keeps.
+ * values and stop ordering the kernel keeps. In single-buffer mode the
+ * worker decodes into the buffer the surface shows, as the original does,
+ * so a threaded presenter must also hold that lock while it reads it.
+ *
+ * Failures are terminal, as in the original (which reports and quits):
+ * after a tick or poll returns AVF_PLAYER_ERR_HOST, _DECODER or (worker)
+ * _UNSUPPORTED, every call except avf_player_stop returns
+ * AVF_PLAYER_ERR_STATE. Effects made before the failing point are kept and
+ * are never replayed. A start that fails leaves the player stopped.
  *
  * Ownership: the kernel allocates nothing. The caller owns the AVF bytes,
  * the S03-1 AvfStream with its frame buffers and scratch, and (secondary
@@ -158,6 +166,7 @@ typedef struct AvfPlayer {
     /* port safeguards (not original fields) */
     uint32_t generation;
     int32_t running;
+    int32_t failed;                 /* latched after HOST/DECODER/worker UNSUPPORTED */
     AvfStatus decoder_status;
     /* original state */
     int32_t handshake;              /* H */

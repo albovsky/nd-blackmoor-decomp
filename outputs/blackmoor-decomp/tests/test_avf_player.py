@@ -190,7 +190,8 @@ class AvfPlayerTests(unittest.TestCase):
         s.trace.clear()
         s.tick(1000, records=(0, 2))
         self.assertEqual((s.player.visible, s.player.matched, s.player.record), (1, 1, 2))
-        self.assertEqual(s.trace, [("triggers", 0), ("rect", 0)])   # second call: deadline pending
+        # select, triggers, rect for record 0; record 2's call finds the deadline pending
+        self.assertEqual(s.trace, [("present", 1), ("triggers", 0), ("rect", 0)])
         s.tick(1000 + 66, records=())                    # hidden tick clears dirty
         self.assertEqual((s.player.dirty, s.player.shown), (0, 3))
         self.assertEqual(s.ack(), (OK, 0))               # nothing to consume: R stays set
@@ -223,12 +224,39 @@ class AvfPlayerTests(unittest.TestCase):
         # Selected, triggers and dirty happened before the failing rect call.
         self.assertEqual((s.player.presented, s.player.dirty, s.player.substate), (0, 1, 0))
         s.fail_on = None
+        # Failures are terminal: nothing is replayed; only stop is accepted.
+        self.assertEqual(s.tick(1066), STATE)
+        self.assertEqual(s.poll(), STATE)
+        self.assertEqual(s.ack(), (STATE, 0))
+        self.assertEqual(s.player.presented, 0)
+        self.assertEqual(s.stop(), OK)
         s2 = self.session()
         s2.start(config(RANDOM, surface=8))
         s2.poll()
         s2.fail_on = "present"
         self.assertEqual(s2.tick(1000), HOST)
         self.assertEqual((s2.player.presented, s2.player.substate, s2.player.ready), (-1, 0, 1))
+
+    def test_start_contract(self) -> None:
+        s = self.session(mode=0)
+        s.fail_on = "present"                            # single-buffer select at start fails
+        self.assertEqual(s.start(config(MOVIE, mode=0)), HOST)
+        self.assertEqual(s.player.running, 0)
+        self.assertEqual(s.tick(1000), STATE)
+        s.fail_on = None
+        self.assertEqual(s.start(config(MOVIE, mode=0)), OK)
+        self.assertEqual(s.start(config(MOVIE, mode=0)), STATE)   # running: stop first
+        p = self.session()
+        self.assertEqual(p.start(config(PARTNER, mode=1)), UNSUPPORTED)  # 0x4dc182 forces 0
+        r = self.session()
+        cfg = config(RANDOM, surface=8)
+        r.start(cfg)
+        r.stop()
+        self.assertEqual(self.lib.avf_player_restart(c.byref(r.player),
+                                                     c.byref(config(RANDOM, mode=0, surface=8))),
+                         ARGUMENT)                       # +0x17a only set by state 0
+        r.start(cfg)
+        self.assertEqual(r.tick(1000, records=(-1,)), ARGUMENT)
 
     def test_decoder_failure(self) -> None:
         data = fx.build_avf(2, 2, [(0, fx.frame_pixels(2, 2, 0), None),
@@ -240,6 +268,12 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual((s.player.ready, s.player.handshake, s.player.decoder_status),
                          (0, 0, fx.SEQUENCE))
         self.assertEqual(s.trace[-2:], [("acquire",), ("release",)])
+        self.assertEqual(s.poll(), STATE)                # terminal, like the original quit
+        empty = fx.build_avf(2, 2, [(0, fx.frame_pixels(2, 2, 0), None), (2, None, None)])
+        sec = self.session(empty, slots=True)
+        sec.start(config(SECONDARY, first=1, last=1, loop_last=1))
+        self.assertEqual(sec.poll(), DECODER)            # sequence check precedes the empty rule
+        self.assertEqual(sec.player.decoder_status, fx.SEQUENCE)
 
     def test_secondary_empty_record_and_slot_ownership(self) -> None:
         data = fx.build_avf(2, 2, [(0, fx.frame_pixels(2, 2, 0), None), (2, None, None)])
