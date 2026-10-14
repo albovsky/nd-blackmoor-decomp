@@ -71,6 +71,7 @@ struct LiveAudio {
     /* AVAudioEngine's manual render faults until a player node exists, so
      * offline advances before the first host play are virtual. */
     uint8_t host_played;
+    uint8_t movie_started;
     Channel channels[LIVE_AUDIO_CHANNEL_COUNT];
 };
 
@@ -387,6 +388,7 @@ int live_audio_destroy(LiveAudio *audio)
     if (audio == NULL) return LIVE_AUDIO_OK;
     if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
     for (index = 0u; index < LIVE_AUDIO_CHANNEL_COUNT; ++index) (void)release_channel(audio, (uint16_t)index);
+    (void)live_audio_movie_stop(audio);
     status = audio->ops.close(audio->host, error, sizeof(error));
     if (status != MAC_AUDIO_OK) logf_line(audio, "live_audio close_failed status=%d detail=%s", status, error);
     free(audio->game_directory);
@@ -585,6 +587,44 @@ ActionSoundBackendStatus live_audio_is_playing(void *context, uint16_t index, in
     }
     *still_playing = 1;
     return ACTION_SOUND_BACKEND_OK;
+}
+
+/* A dedicated native host slot, outside all two-slot game channels. Bink
+ * SDK owns a separate audio stream in the original; no game channel is
+ * inferred here and no scene sound's gain/routing is changed. */
+#define MOVIE_HOST_SLOT (LIVE_AUDIO_CHANNEL_COUNT * HOST_SLOTS_PER_CHANNEL)
+int live_audio_movie_stop(LiveAudio *audio)
+{
+    char error[256];
+    int status;
+    if (audio == NULL) return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    if (!audio->movie_started) return LIVE_AUDIO_OK;
+    status = audio->ops.stop(audio->host, MOVIE_HOST_SLOT, error, sizeof(error));
+    if (status != MAC_AUDIO_OK) return LIVE_AUDIO_ERR_HOST;
+    audio->movie_started = 0;
+    return LIVE_AUDIO_OK;
+}
+
+int live_audio_movie_start(LiveAudio *audio, const float *pcm, uint64_t frames,
+                          uint32_t channels, uint32_t sample_rate)
+{
+    char error[256];
+    int status;
+    if (audio == NULL || pcm == NULL || frames == 0 || channels < 1 || channels > 2 ||
+        sample_rate == 0) return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    if (live_audio_movie_stop(audio) != LIVE_AUDIO_OK) return LIVE_AUDIO_ERR_HOST;
+    /* Mark before play so a partially failed host call is stopped on close. */
+    audio->movie_started = 1;
+    status = audio->ops.play(audio->host, MOVIE_HOST_SLOT, pcm, frames, channels,
+                             sample_rate, 1.0f, 0, error, sizeof(error));
+    if (status != MAC_AUDIO_OK) return LIVE_AUDIO_ERR_HOST;
+    audio->host_played = 1;
+    logf_line(audio, "live_audio movie_started frames=%llu rate=%u channels=%u "
+              "bus=Bink-independent gain=unity-host-adaptation SDK-mix-parity=unverified",
+              (unsigned long long)frames, sample_rate, channels);
+    return LIVE_AUDIO_OK;
 }
 
 int live_audio_unload_all(LiveAudio *audio)

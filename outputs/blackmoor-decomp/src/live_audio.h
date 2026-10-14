@@ -178,6 +178,15 @@ ActionSoundBackendStatus live_audio_unload_sound(void *context,
  * sounds that span scene changes is unverified; callers state that choice. */
 int live_audio_unload_all(LiveAudio *audio);
 
+/* RT-9 minimal PCM entry to the SAME mixer: Bink's independent soundtrack
+ * bus does not consume/replace a recovered scene sound channel. Host slot
+ * identities are adapter details, not original channel numbers. Unity gain,
+ * no pan, no loop; original Bink SDK mixing is unverified. PCM is borrowed
+ * until stop/destroy; the host copies it on play. Main thread only. */
+int live_audio_movie_start(LiveAudio *, const float *pcm, uint64_t frames,
+                          uint32_t channels, uint32_t sample_rate);
+int live_audio_movie_stop(LiveAudio *);
+
 /* Stops a channel's playback but keeps it loaded (a following play restarts
  * from the beginning). Bumps the generation. */
 int live_audio_stop_channel(LiveAudio *audio, uint16_t channel);
