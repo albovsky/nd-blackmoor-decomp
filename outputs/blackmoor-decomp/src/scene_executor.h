@@ -75,13 +75,29 @@ typedef struct scene_transition_request {
     int32_t opaque_dwords[3];
 } SceneTransitionRequest;
 
-/* Per-tick input for the recovered frame-matched hotspot path. Pointer
- * coordinates must already be in the same comparison space as the action
- * rectangles; the original producer, viewport/scroll/hot-point transform and
- * clipping path remain unresolved. Rectangles are tested inclusively. The
- * separate context/modal bits model the original cursor-mode and event guards;
- * hotspot_activation_event must represent a source-verified accepted event,
- * not a hover or button-down event. */
+/* Per-tick input for the recovered frame-matched hotspot path.
+ *
+ * RT-6: the executor no longer produces, caches or scans pointer candidates.
+ * The original keeps ONE global candidate (0x5c39e5), written by the cursor
+ * scan 0x4f0059 after each dispatch (first generic hit in row order) and read
+ * by the accept block at 0x43bfb6 on the next accepted release. The host's
+ * input module (session_input) owns that value; the tick passes it here as
+ * activation_candidate together with the accepted-release event, and the
+ * executor stores phase 2 on that row (any row type, as in the original).
+ *
+ *   hotspot_activation_event   the 4daf3f consume reported a release edge and
+ *                              the cursor mode is a normal one (session_input
+ *                              sets it; hover and button-down never do).
+ *   activation_candidate_valid the host supplies a candidate with this tick;
+ *                              zero-initialised inputs therefore cannot name
+ *                              row 0.
+ *   activation_candidate       raw 0x5c39e5, accepted only in [0, 0xf0) and
+ *                              below the scene's action count.
+ *   modal_event_active         [0x5c39e9] != 0 (43bfd3): rejects the event.
+ *
+ * pointer_x/pointer_y/pointer_valid/cursor_context_allowed are the producer's
+ * projected output (session_input_tick fills them for the host's diagnostics);
+ * the executor does not read them. */
 typedef struct scene_executor_frame_input {
     int32_t current_frame;
     int32_t pointer_x;
@@ -92,6 +108,8 @@ typedef struct scene_executor_frame_input {
     /* True only when the host's accepted WM_LBUTTONUP path reaches the
      * original candidate-consumption gate. */
     uint8_t hotspot_activation_event;
+    uint8_t activation_candidate_valid;
+    int32_t activation_candidate;
 } SceneExecutorFrameInput;
 
 /* Current rectangle exported by a built-in hotspot action. A rectangle can
@@ -198,10 +216,11 @@ int scene_executor_step(SceneActionExecutor *executor,
                         SceneExecutorStepInfo *step_info);
 
 /* Like scene_executor_step, but supplies the current animation frame and the
- * host's cursor/context state. A hit is captured after this tick's dispatcher.
- * On a later accepted input event, that candidate is checked before the
- * dispatcher; phase-2 effects execute in that same tick. The compatibility
- * step above supplies frame zero and no pointer or activation event. */
+ * host's accepted-release event with its retained candidate (see
+ * SceneExecutorFrameInput). The candidate is checked before the dispatcher;
+ * phase-2 effects execute in that same tick. The executor retains nothing
+ * between steps. The compatibility step above supplies frame zero and no
+ * activation event. */
 int scene_executor_step_frame(SceneActionExecutor *executor,
                               const SceneConditionState *state,
                               const SceneActionHandler *handlers,
@@ -219,11 +238,15 @@ int scene_executor_set_pre_gate(SceneActionExecutor *executor,
                                 void *context);
 
 /* Candidate-accept store of 0x43c054: `mov [row*0x8d + 0x5bb632], 2`. The
- * caller has already run the accept decision (see
- * action_family_62_interaction_accept); this only performs the phase store so
- * the row's handler is visited with phase 2 on the next dispatch. The
+ * caller has already run the accept decision; this only performs the phase
+ * store so the row's handler is visited with phase 2 on the next dispatch. The
  * original does not test the completion byte here. Out-of-range rows return
- * SCENE_EXECUTOR_ERR_ARGUMENT and change nothing. */
+ * SCENE_EXECUTOR_ERR_ARGUMENT and change nothing.
+ * RT-6: the live path no longer needs this. scene_executor_step_frame runs the
+ * whole 0x43bfb6 decision for the single input-module candidate (0x6a/raw 0x15
+ * hotspots and 0x62 rows alike). A host that calls this for the SAME activation
+ * the step already handled would store phase 2 twice; it exists for hosts and
+ * tests that run the decision themselves. */
 int scene_executor_accept_action_candidate(SceneActionExecutor *executor,
                                            size_t action_index);
 
@@ -247,8 +270,9 @@ int scene_executor_get_condition_failure(const SceneActionExecutor *executor,
 
 /* What the accepted-click candidate check (0x43bfb6..0x43c09c) decided for
  * the most recent candidate. This is the seam for the pointer integration:
- * the executor owns the gate logic, a later module may own the candidate
- * cache and the item-use feedback calls the original makes
+ * the executor owns the gate logic (RT-6: the candidate itself now arrives in
+ * SceneExecutorFrameInput from the input module); the item-use feedback calls
+ * the original makes
  * (0x4eb107(label) on accept, 0x4eb184(first_chain_label) on reject).
  *   chain_count          0x42405a: opcode-11 leaves in the tree.
  *   tree_evaluated       0 when chain_count == 0 (the original accepts with

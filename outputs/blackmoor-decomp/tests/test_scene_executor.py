@@ -103,7 +103,17 @@ class FrameInput(c.Structure):
         ("cursor_context_allowed", c.c_uint8),
         ("modal_event_active", c.c_uint8),
         ("hotspot_activation_event", c.c_uint8),
+        # RT-6: the raw 0x5c39e5 candidate the host's input module retained.
+        ("activation_candidate_valid", c.c_uint8),
+        ("activation_candidate", c.c_int32),
     ]
+
+
+class CandidateDecision(c.Structure):
+    _fields_ = [("action_index", c.c_size_t), ("chain_count", c.c_size_t),
+                ("tree_evaluated", c.c_uint8), ("tree_satisfied", c.c_uint8),
+                ("accepted", c.c_uint8), ("reserved", c.c_uint8),
+                ("label", c.c_int32), ("first_chain_label", c.c_int32)]
 
 
 class HotspotState(c.Structure):
@@ -330,9 +340,12 @@ class SceneExecutorTests(unittest.TestCase):
 
     @staticmethod
     def frame(frame=0, x=0, y=0, *, pointer=False, context=False,
-              modal=False, activation=False):
+              modal=False, activation=False, candidate=None):
+        """pointer/context are producer outputs the executor no longer reads
+        (RT-6); candidate is the host input module's retained 0x5c39e5."""
         return FrameInput(frame, x, y, int(pointer), int(context), int(modal),
-                          int(activation))
+                          int(activation), 0 if candidate is None else 1,
+                          0 if candidate is None else candidate)
 
     def test_public_runtime_and_handler_result_abi_layout_is_unchanged(self):
         self.assertEqual([name for name, _kind in RuntimeState._fields_],
@@ -461,7 +474,7 @@ class SceneExecutorTests(unittest.TestCase):
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)
 
-    def test_6a_hotspot_needs_cached_hit_then_accepted_event_and_is_repeatable(self):
+    def test_6a_hotspot_needs_host_candidate_and_accepted_event_and_is_repeatable(self):
         rect = (10, 20, 30, 40)
         body = hotspot_6a_body(0, rect, ((2, 7),))
         scene, _storage = self.open_scene([action(0x6A, 2, body)])
@@ -481,22 +494,37 @@ class SceneExecutorTests(unittest.TestCase):
             self.assertEqual((flags[2], self.action_state(executor, 0).phase),
                              (0, 1))
 
-            # A hover scan caches a candidate. Repeating the same cursor scan
-            # without an accepted event cannot activate it.
+            # RT-6: the executor owns NO candidate. Pointer fields over the
+            # rectangle (a hover) followed by an accepted event without the
+            # host's retained candidate cannot activate anything.
             hit = self.frame(x=rect[0], y=rect[1], pointer=True, context=True)
             status, info = self.step_frame(executor, state, hit)
             self.assertEqual((status, info.actions_applied), (OK, 1))
             self.assertEqual((flags[2], self.action_state(executor, 0).phase),
                              (0, 1))
+            status, _ = self.step_frame(executor, state, self.frame(activation=True))
+            self.assertEqual((status, flags[2], self.action_state(executor, 0).phase),
+                             (OK, 0, 1))
 
-            # The next accepted input event consumes the cached candidate
-            # before this tick's dispatcher; phase 2 effects run this tick.
-            activation = self.frame(activation=True)
+            # An event with the candidate flag clear but a stale index is ignored.
+            stale = self.frame(activation=True)
+            stale.activation_candidate = 0
+            status, _ = self.step_frame(executor, state, stale)
+            self.assertEqual((status, flags[2]), (OK, 0))
+
+            # The accepted event plus the host candidate stores phase 2 before
+            # this tick's dispatcher; phase-2 effects run this tick.
+            activation = self.frame(activation=True, candidate=0)
             status, info = self.step_frame(executor, state, activation)
             runtime = self.action_state(executor, 0)
             self.assertEqual((status, info.actions_applied), (OK, 1))
             self.assertEqual((flags[2], runtime.completed, runtime.phase),
                              (7, 0, 0))
+
+            # A candidate without the accepted event is only a hover.
+            flags[2] = 0
+            status, _ = self.step_frame(executor, state, self.frame(candidate=0))
+            self.assertEqual((status, flags[2]), (OK, 0))
 
             # Subtype 2 reset returns the hotspot to phase 0 so it can re-arm.
             status, _ = self.step_frame(executor, state, self.frame())
@@ -507,7 +535,7 @@ class SceneExecutorTests(unittest.TestCase):
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)
 
-    def test_6a_frame_gate_modal_gate_dependencies_and_candidate_expiry(self):
+    def test_6a_frame_gate_modal_gate_and_dependencies_with_host_candidate(self):
         rect = (10, 20, 30, 40)
         body = hotspot_6a_body(3, rect, ((1, 5),))
         scene, _storage = self.open_scene([
@@ -518,26 +546,17 @@ class SceneExecutorTests(unittest.TestCase):
         self.assertEqual(status, OK)
         try:
             state = self.condition_state(world)
-            status, _ = self.step_frame(
-                executor, state,
-                self.frame(2, x=20, y=30, pointer=True, context=True),
-            )
+            status, _ = self.step_frame(executor, state, self.frame(2))
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 0)
 
             # Frame 3 is a match but the condition blocks the executor.
-            status, _ = self.step_frame(
-                executor, state,
-                self.frame(3, x=20, y=30, pointer=True, context=True),
-            )
+            status, _ = self.step_frame(executor, state, self.frame(3))
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 0)
 
             flags[0] = 1
-            status, _ = self.step_frame(
-                executor, state,
-                self.frame(3, x=rect[2], y=rect[3], pointer=True, context=True),
-            )
+            status, _ = self.step_frame(executor, state, self.frame(3))
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 1)
 
@@ -545,9 +564,11 @@ class SceneExecutorTests(unittest.TestCase):
             # leaves has an empty chain (0x42405a == 0), so the accepted event
             # stores phase 2 WITHOUT re-evaluating the tree. The dependency is
             # false now, so the row pass does not run the phase-2 effects yet.
+            # (0x43bfb6 does not look at the row's active flag either: the
+            # candidate was retained from a scan in which it was active.)
             flags[0] = 0
             status, _ = self.step_frame(
-                executor, state, self.frame(3, activation=True)
+                executor, state, self.frame(3, activation=True, candidate=0)
             )
             self.assertEqual(status, OK)
             self.assertEqual((flags[1], self.action_state(executor, 0).phase),
@@ -560,39 +581,112 @@ class SceneExecutorTests(unittest.TestCase):
             flags[1] = 0
             status, _ = self.step_frame(executor, state, self.frame(3))
             self.assertEqual((status, self.action_state(executor, 0).phase), (OK, 1))
-            flags[0] = 0
 
-            # Pointer geometry is ignored outside the caller-supplied cursor
-            # context even when the rectangle itself is active.
+            # The modal guard (0x43bfd3: [0x5c39e9] != 0) blocks the event; the
+            # executor keeps no candidate, so a later non-modal event with the
+            # host's candidate is accepted.
             status, _ = self.step_frame(
                 executor, state,
-                self.frame(3, x=rect[2], y=rect[3], pointer=True, context=False),
-            )
-            self.assertEqual(status, OK)
-            status, _ = self.step_frame(executor, state,
-                                        self.frame(3, activation=True))
-            self.assertEqual(status, OK)
-            self.assertEqual((flags[1], self.action_state(executor, 0).phase),
-                             (0, 1))
-
-            # Restore eligibility and recapture the inclusive bottom-right
-            # edge, then block the next event with the modal guard.
-            flags[0] = 1
-            status, _ = self.step_frame(
-                executor, state,
-                self.frame(3, x=rect[2], y=rect[3], pointer=True, context=True),
-            )
-            self.assertEqual(status, OK)
-            status, _ = self.step_frame(
-                executor, state, self.frame(3, modal=True, activation=True)
+                self.frame(3, modal=True, activation=True, candidate=0)
             )
             self.assertEqual(status, OK)
             self.assertEqual(self.action_state(executor, 0).phase, 1)
-            status, _ = self.step_frame(executor, state,
-                                        self.frame(3, activation=True))
+            status, _ = self.step_frame(
+                executor, state, self.frame(3, activation=True, candidate=0))
             self.assertEqual(status, OK)
             self.assertEqual((flags[1], self.action_state(executor, 0).phase),
-                             (0, 1))
+                             (5, 0))
+        finally:
+            self.lib.scene_executor_destroy(executor)
+            self.lib.scene_resource_close(scene)
+
+    def test_host_candidate_names_the_row_and_overlap_order_is_not_the_executors(self):
+        # RT-6: two hotspots with identical rectangles. The executor used to
+        # scan them itself and the LAST overlapping hit won; the original loop
+        # (0x4f1eb8..0x4f2390) takes the FIRST. That choice now belongs to the
+        # input module; the executor stores phase 2 on exactly the row named.
+        rect = (10, 20, 30, 40)
+        scene, _storage = self.open_scene([
+            action(0x6A, 2, hotspot_6a_body(0, rect, ((1, 5),))),
+            action(0x6A, 2, hotspot_6a_body(0, rect, ((2, 9),))),
+        ])
+        for named, expected in ((0, (5, 0)), (1, (0, 9))):
+            world, flags = self.world()
+            status, executor, _ = self.create_executor(scene, world)
+            self.assertEqual(status, OK)
+            try:
+                state = self.condition_state(world)
+                self.assertEqual(self.step_frame(executor, state, self.frame())[0], OK)
+                self.assertEqual(self.hotspot_state(executor, 0).active, 1)
+                self.assertEqual(self.hotspot_state(executor, 1).active, 1)
+                status, _ = self.step_frame(
+                    executor, state, self.frame(activation=True, candidate=named))
+                self.assertEqual(status, OK)
+                self.assertEqual((flags[1], flags[2]), expected)
+                other = 1 - named
+                self.assertEqual(self.action_state(executor, other).phase, 1)
+            finally:
+                self.lib.scene_executor_destroy(executor)
+        self.lib.scene_resource_close(scene)
+
+    def test_candidate_may_name_any_action_row_like_the_original_phase_store(self):
+        # 0x43bfb6..0x43c054 does not test the row type: the 0x62 request rows
+        # (and every other row a scan can name) share the candidate. A row
+        # with an external handler receives phase 2 on its next visit.
+        body = bytearray(48)
+        body[46:48] = i16(0)
+        scene, _storage = self.open_scene([action(0x9F, 1, bytes(body))])
+        world, _flags = self.world()
+        status, executor, _ = self.create_executor(scene, world)
+        self.assertEqual(status, OK)
+        seen = []
+
+        @HandlerFn
+        def pending(_context, _index, _action_info, state_before, result):
+            seen.append(state_before.contents.phase)
+            result.contents.disposition = HANDLER_PENDING
+            result.contents.phase = 1
+            return 0
+
+        registry = Handler(0x9F, pending, None)
+        try:
+            state = self.condition_state(world)
+            self.assertEqual(self.step_frame(executor, state, self.frame(), [registry])[0], OK)
+            self.assertEqual(seen, [0])
+            status, _ = self.step_frame(
+                executor, state, self.frame(activation=True, candidate=0), [registry])
+            self.assertEqual(status, OK)
+            self.assertEqual(seen, [0, 2])
+            decision = CandidateDecision()
+            self.assertEqual(self.lib.scene_executor_get_candidate_decision(
+                executor, c.byref(decision)), OK)
+            self.assertEqual((decision.action_index, decision.accepted), (0, 1))
+        finally:
+            self.lib.scene_executor_destroy(executor)
+            self.lib.scene_resource_close(scene)
+
+    def test_invalid_or_unflagged_host_candidates_change_nothing(self):
+        rect = (10, 20, 30, 40)
+        scene, _storage = self.open_scene([
+            action(0x6A, 2, hotspot_6a_body(0, rect, ((1, 5),))),
+        ])
+        world, flags = self.world()
+        status, executor, _ = self.create_executor(scene, world)
+        self.assertEqual(status, OK)
+        try:
+            state = self.condition_state(world)
+            self.assertEqual(self.step_frame(executor, state, self.frame())[0], OK)
+            for bad in (-1, -2, 1, 2, 119, 239, 240, 0x7fffffff, -0x80000000):
+                status, _ = self.step_frame(
+                    executor, state, self.frame(activation=True, candidate=bad))
+                self.assertEqual(status, OK, bad)
+                self.assertEqual((flags[1], self.action_state(executor, 0).phase),
+                                 (0, 1), bad)
+            # The candidate flag is what arms the field; index 0 alone is not.
+            unflagged = self.frame(activation=True)
+            unflagged.activation_candidate = 0
+            self.assertEqual(self.step_frame(executor, state, unflagged)[0], OK)
+            self.assertEqual(flags[1], 0)
         finally:
             self.lib.scene_executor_destroy(executor)
             self.lib.scene_resource_close(scene)
@@ -611,11 +705,11 @@ class SceneExecutorTests(unittest.TestCase):
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 0)
             flags[0] = 1
-            status, _ = self.step_frame(executor, state,
-                self.frame(0, x=10, y=20, pointer=True, context=True))
+            status, _ = self.step_frame(executor, state, self.frame(0))
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 1)
-            status, info = self.step_frame(executor, state, self.frame(0, activation=True))
+            status, info = self.step_frame(
+                executor, state, self.frame(0, activation=True, candidate=0))
             self.assertEqual((status, info.kind, info.transition.target_scene),
                              (OK, STEP_TRANSITION, 6400))
         finally:
@@ -651,23 +745,17 @@ class SceneExecutorTests(unittest.TestCase):
 
             # Phase 1 now matches frame zero; matching still only exposes the
             # rectangle and never synthesizes phase 2.
-            status, _ = self.step_frame(
-                executor, state,
-                self.frame(0, x=rect[0], y=rect[1], pointer=True, context=True),
-            )
+            status, _ = self.step_frame(executor, state, self.frame(0))
             self.assertEqual(status, OK)
             self.assertEqual(self.hotspot_state(executor, 0).active, 1)
             self.assertEqual(self.action_state(executor, 0).phase, 1)
 
-            status, idle = self.step_frame(
-                executor, state,
-                self.frame(0, x=rect[0], y=rect[1], pointer=True, context=True),
-            )
+            status, idle = self.step_frame(executor, state, self.frame(0, candidate=0))
             self.assertEqual((status, idle.kind), (OK, STEP_PROCESSED))
             self.assertEqual(self.action_state(executor, 0).phase, 1)
 
             status, transition = self.step_frame(
-                executor, state, self.frame(0, activation=True)
+                executor, state, self.frame(0, activation=True, candidate=0)
             )
             self.assertEqual((status, transition.kind,
                               transition.actions_applied),

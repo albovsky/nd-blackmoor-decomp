@@ -488,6 +488,10 @@ static int run_inspection(GameResources *resources, const EngineBoot *boot,
         std::fprintf(log, "scene_inspect fixture_hotspot=%zu rect=%d,%d,%d,%d frame=%d input=hover-then-accepted-primary-release\n",
             i, hotspot.left, hotspot.top, hotspot.right, hotspot.bottom, input.current_frame);
         if (!dispatch() || step.kind == SCENE_EXECUTOR_STEP_TRANSITION) return 0;
+        /* RT-6: the executor keeps no hover cache; the fixture names the hovered
+         * row as the retained candidate together with the accepted release. */
+        input.activation_candidate_valid = 1;
+        input.activation_candidate = (int32_t)i;
         input.hotspot_activation_event = 1;
         if (!dispatch() || step.kind != SCENE_EXECUTOR_STEP_TRANSITION) return 0;
         *transition = step.transition;
