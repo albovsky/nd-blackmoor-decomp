@@ -148,6 +148,7 @@ $("bars").innerHTML =
 $("facts").innerHTML =
   `<span><b>${fmt(T.functions_complete)}</b> of ${fmt(T.functions)} indexed functions fully matched</span>` +
   `<span><b>${fmt(D.units.filter(u=>u.matched_code||u.matched_data).length)}</b> of ${fmt(D.units.length)} units touched</span>` +
+  Object.entries(T.by_provenance||{}).map(([p,n])=>`<span>${p.replace(/_/g," ")}: <b>${fmt(n)} B</b></span>`).join("") +
   `<span>Whole-file rebuild: <b>incomplete</b></span>` +
   (T.unclassified ? `<span><b>${fmt(T.unclassified)}</b> bytes unclassified (partial ledger)</span>` : "") +
   `<span>Evidence re-verified this run: <b>${D.evidence.verification && D.evidence.verification.run ? "yes" : "no"}</b></span>`;
@@ -308,18 +309,21 @@ function drawUnit(u,W,H,pad,S){
   squarify(fs,0,0,W,H);
   for(const it of fs){
     const f=it.f, r=it.rect; r.x+=.5; r.y+=.5; r.w-=1; r.h-=1;
-    const full = f[2]===f[1], part = f[2]>0 && !full;
-    const g = el("g",{class:"tile",tabindex:0,"aria-label":`function ${hex(f[0])}, ${f[1]} bytes, ${f[2]} matched`},svg);
+    const mc=f[2], md=f[3], tot=mc+md, full = tot===f[1], part = tot>0 && !full;
+    const g = el("g",{class:"tile",tabindex:0,"aria-label":`function ${hex(f[0])}, ${f[1]} bytes, ${mc} matched code, ${md} matched data`},svg);
     const hitSearch = S.fns.has(f[0]);
-    el("rect",{class:"base",x:r.x,y:r.y,width:Math.max(0,r.w),height:Math.max(0,r.h),
-      fill: full ? "var(--code)" : "var(--todo)",
+    el("rect",{class:"base",x:r.x,y:r.y,width:Math.max(0,r.w),height:Math.max(0,r.h),fill:"var(--todo)",
       stroke: hitSearch ? "var(--focus)" : part ? "var(--code)" : "var(--todo-edge)",
       "stroke-width": hitSearch ? 2.5 : part ? 2 : .75,
-      opacity: state.only && !f[2] ? 0.25 : 1},g);
-    if(part){ const bh=Math.min(r.h,Math.max(3,r.h*f[2]/f[1])); el("rect",{x:r.x,y:r.y+r.h-bh,width:Math.max(0,r.w),height:bh,fill:"var(--code)"},g); }
-    if(r.w>56 && r.h>14){ const t=el("text",{x:r.x+4,y:r.y+12,fill:"#fff"},g); t.textContent=trunc(hex(f[0]),r.w-8);
+      opacity: state.only && !tot ? 0.25 : 1},g);
+    if(tot){
+      const bh = full ? r.h : Math.min(r.h,Math.max(3,r.h*tot/f[1])), cw = mc/tot;
+      if(mc) el("rect",{x:r.x,y:r.y+r.h-bh,width:Math.max(1,r.w*cw),height:bh,fill:"var(--code)"},g);
+      if(md) el("rect",{x:r.x+r.w*cw,y:r.y+r.h-bh,width:Math.max(1,r.w*(1-cw)),height:bh,fill:"url(#hatch)"},g);
+    }
+    if(r.w>56 && r.h>14){ const t=el("text",{x:r.x+4,y:r.y+12},g); t.textContent=trunc(hex(f[0]),r.w-8);
       if(full) t.setAttribute("style","fill:#fff"); }
-    bindTip(g, tipHtml(hex(f[0],8), [["Span",fmt(f[1])+" B"],["Matched",fmt(f[2])+" B"],["State", full?"fully matched":part?"partial range":"not done"]]));
+    bindTip(g, tipHtml(hex(f[0],8), [["Span",fmt(f[1])+" B"],["Matched code",fmt(mc)+" B"],["Matched data",fmt(md)+" B"],["State", full?"fully matched":part?"partial range":"not done"]]));
   }
 }
 
@@ -354,7 +358,7 @@ function setView(v){
 const ev = D.evidence;
 $("notes").innerHTML =
   `<h3>What the colours mean</h3>
-   <p>Green is code that reassembles byte-exactly from reviewed reconstructed assembly. Blue (hatched) is data produced by the composer and confirmed by the whole-file hash. Grey is everything else: unreconstructed, or still copied from the local original and therefore reported, never counted, as matched.</p>
+   <p>Green is code that is byte-exact against the original; the facts line above splits it by provenance (for example explicit reconstructed assembly versus an exact partial range compiled from C). Blue (hatched) is data produced by the composer and confirmed by the whole-file hash. Grey is everything else: unreconstructed, or still copied from the local original and therefore reported, never counted, as matched.</p>
    <h3>Units</h3><p>${D.unit_definition} Tile area is bytes.</p>
    <h3>Limits</h3>
    <p>Matched is a byte-exact claim, not a claim of original C++ or compiler provenance. ${ev.mode==="baseline" ? "Baseline code totals are function spans, which also hold jump tables and <code>int 3</code> padding (about 10.9 KB), and no data range has composer evidence yet, so data stays at zero. Both change when the composer ledger is supplied." : "Totals come from the composer ledger, where every byte has a kind and a class. Those classes are the composer's own declaration: this page checks the composed image hash when one is supplied, but cannot tell reconstructed bytes from referenced original bytes by itself."} Whole-file x86 match and native gameplay are both still required for completion.</p>

@@ -46,6 +46,13 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertTrue(self.model["evidence"]["crosscheck"]["agrees"])
         self.assertEqual(t["functions_complete"], 11)
 
+    def test_provenance_classes_stay_separate(self):
+        bp = self.model["totals"]["by_provenance"]
+        self.assertEqual(bp, {"exact_range_compiled_c_partial": 14,
+                              "explicit_reconstructed_assembly_source": 384})
+        self.assertNotIn("tool_assisted_reconstructed_assembly", bp)
+        self.assertIn("exact_range_compiled_c_partial", (self.out / "REPORT.md").read_text())
+
     def test_cpp_candidate_manifest_is_not_counted(self):
         roles = {s["path"]: s["role"] for s in self.model["evidence"]["sources"]}
         self.assertEqual(roles["matches_s08_2.json"], "excluded")
@@ -59,7 +66,7 @@ class RepoEvidenceTests(unittest.TestCase):
             if u["kind"] != "code":
                 continue
             r = regions[u["group"]]
-            for va, size, _ in u["functions"]:
+            for va, size, *_ in u["functions"]:
                 self.assertGreaterEqual(va, r["start_va"])
                 self.assertLessEqual(va + size, r["end_va"])
         self.assertEqual(sum(u.get("function_count", 0) for u in self.model["units"]), 4188)
@@ -212,6 +219,17 @@ class MiniFixture(unittest.TestCase):
         self.assertEqual((t["matched_code"], t["matched_data"]), (0x20, 0x100))
         self.assertEqual(t["functions_complete"], 1)
 
+    def test_ledger_provenance_is_kept_and_validated(self):
+        r = self.full_ranges()
+        r[1]["provenance"] = "tool_assisted_reconstructed_assembly"
+        r[0]["provenance"] = "image_structure"
+        bp = self.model_for(r)["totals"]["by_provenance"]
+        self.assertEqual(bp, {"image_structure": 0x100, "tool_assisted_reconstructed_assembly": 0x20})
+        r[1]["provenance"] = "Not Valid!"
+        with self.assertRaisesRegex(GEN.ProgressError, "provenance"):
+            self.model_for(r)
+        self.assertEqual(self.model_for(self.full_ranges())["totals"]["by_provenance"], {"unspecified": 0x120})
+
     def test_referenced_is_never_matched(self):
         r = self.full_ranges()
         r[1]["class"] = "referenced"
@@ -227,6 +245,8 @@ class MiniFixture(unittest.TestCase):
         ]
         t = self.model_for(r)["totals"]
         self.assertEqual((t["code"], t["matched_code"], t["matched_data"]), (0x30, 0x30, 0x110))
+        units = {u["id"]: u for u in self.model_for(r)["units"]}
+        self.assertEqual(units["game-400100"]["functions"], [[0x400100, 0x20, 0x20, 0], [0x400120, 0x20, 0x10, 0x10]])
 
     def test_rejections(self):
         base = self.full_ranges()

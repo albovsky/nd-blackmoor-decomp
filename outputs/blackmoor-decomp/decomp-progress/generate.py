@@ -20,6 +20,7 @@ import argparse
 import bisect
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -45,6 +46,16 @@ EXCLUDED_MANIFESTS = {
     "matches_s08_2.json": "C++ compiler comparison; semantic evidence, not an exact-match claim",
 }
 
+# Provenance of each counted manifest, from status.json's classification and the
+# manifest descriptions. matches.json holds two 7-byte ranges compiled from
+# src/initial_functions.c whose function completeness is unverified.
+MANIFEST_PROVENANCE = {
+    "matches.json": "exact_range_compiled_c_partial",
+    "matches_s08_2_x86.json": "explicit_reconstructed_assembly_source",
+    "matches_s08_3_x86.json": "explicit_reconstructed_assembly_source",
+    "matches_s08_4_x86.json": "explicit_reconstructed_assembly_source",
+}
+PROVENANCE_RE = r"^[a-z][a-z0-9_]*$"
 LEDGER_CLASSES = {"structured", "reconstructed", "referenced"}
 LEDGER_KINDS = {"code", "data"}
 
@@ -197,7 +208,7 @@ def verify_manifests(names, root: Path, original: Path, verifier: Path = VERIFIE
 def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
     """Matched intervals (file offsets, class reconstructed) from manifests."""
     text = next(s for s in layout["sections"] if s["name"] == ".text")
-    ivs, inputs = [], []
+    ivs, inputs, prov = [], [], []
     for name in COUNTED_MANIFESTS:
         path = out_dir / name
         man = load_json(path)
@@ -209,13 +220,14 @@ def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
                 raise ProgressError(f"{name}: {fn.get('symbol')} is outside .text")
             off = text["raw_off"] + (rva - text["rva"])
             ivs.append((off, off + size, "reconstructed", name, fn.get("symbol", "")))
+            prov.append((off, off + size, MANIFEST_PROVENANCE[name]))
         inputs.append({"path": name, "sha256": sha256_file(path), "role": "counted"})
     for name, why in sorted(EXCLUDED_MANIFESTS.items()):
         path = out_dir / name
         if path.exists():
             inputs.append({"path": name, "sha256": sha256_file(path), "role": "excluded",
                            "reason": why})
-    return ivs, {"mode": "baseline", "inputs": inputs}
+    return ivs, {"mode": "baseline", "inputs": inputs, "provenance_ranges": prov}
 
 
 def ledger_evidence(layout: dict, ledger_path: Path, allow_partial: bool):
@@ -226,7 +238,7 @@ def ledger_evidence(layout: dict, ledger_path: Path, allow_partial: bool):
         raise ProgressError("ledger does not describe the pinned GAME.EXE")
     if ledger.get("file_size") != layout["file_size"]:
         raise ProgressError("ledger file_size differs from the layout")
-    rows = []
+    rows, prov = [], []
     for r in ledger["ranges"]:
         if r.get("class") == "missing":
             raise ProgressError("ledger contains a 'missing' range; the composer must not emit one")
@@ -236,6 +248,11 @@ def ledger_evidence(layout: dict, ledger_path: Path, allow_partial: bool):
         if size <= 0 or off < 0 or off + size > layout["file_size"]:
             raise ProgressError(f"ledger range out of bounds: {r}")
         rows.append((off, off + size, r["kind"], r["class"], r.get("label", "")))
+        if r["class"] in ("reconstructed", "structured"):
+            p = r.get("provenance", "unspecified")
+            if not isinstance(p, str) or not re.match(PROVENANCE_RE, p):
+                raise ProgressError(f"bad ledger provenance {p!r}")
+            prov.append((off, off + size, p))
     rows.sort()
     covered = 0
     for prev, cur in zip(rows, rows[1:]):
@@ -248,7 +265,7 @@ def ledger_evidence(layout: dict, ledger_path: Path, allow_partial: bool):
     meta = {"mode": "ledger",
             "inputs": [{"path": str(ledger_path.name), "sha256": sha256_file(ledger_path),
                         "role": "ledger"}],
-            "ledger_bytes_covered": covered}
+            "ledger_bytes_covered": covered, "provenance_ranges": prov}
     return rows, meta
 
 
@@ -285,7 +302,7 @@ def account(units, atoms, evidence_rows, mode):
                 u["data"] += a["size"]
                 u["matched_data"] += m  # always 0: no data evidence in baseline
             if a["kind"] == "code":
-                u["functions"].append([a["va"], a["size"], m])
+                u["functions"].append([a["va"], a["size"], m, 0])
     else:
         done = {k: merge_intervals([(s, e) for s, e, kind, cls, _ in evidence_rows
                                     if kind == k and cls in ("reconstructed", "structured")])
@@ -304,7 +321,7 @@ def account(units, atoms, evidence_rows, mode):
             u["matched_code"] += mc
             u["matched_data"] += md
             if a["va"] is not None:
-                u["functions"].append([a["va"], a["size"], mc + md])
+                u["functions"].append([a["va"], a["size"], mc, md])
     for u in units:
         # A unit keeps its full extent even when a partial ledger leaves bytes
         # unclassified; those bytes render as not done.
@@ -314,7 +331,7 @@ def account(units, atoms, evidence_rows, mode):
             u.pop("functions")
         else:
             u["function_count"] = len(u["functions"])
-            u["functions_complete"] = sum(1 for _, sz, m in u["functions"] if m == sz)
+            u["functions_complete"] = sum(1 for _, sz, mc, md in u["functions"] if mc + md == sz)
 
 
 def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status, sources):
@@ -343,6 +360,11 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
         "functions": sum(u.get("function_count", 0) for u in units),
         "functions_complete": sum(u.get("functions_complete", 0) for u in units),
     }
+    by_prov = {}
+    for p in sorted({p for *_, p in evidence_meta.get("provenance_ranges", [])}):
+        ivs = merge_intervals([(a, b) for a, b, q in evidence_meta["provenance_ranges"] if q == p])
+        by_prov[p] = sum(b - a for a, b in ivs)
+    totals["by_provenance"] = by_prov
     totals["classified"] = totals["code"] + totals["data"]
     totals["unclassified"] = layout["file_size"] - totals["classified"]
     if totals["unclassified"] and evidence_meta.get("ledger_bytes_covered") is None:
@@ -374,7 +396,7 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
         "schema": SCHEMA,
         "original_sha256": layout["original_sha256"],
         "file_size": layout["file_size"],
-        "evidence": {**evidence_meta, "sources": sources, "crosscheck": crosscheck},
+        "evidence": {**{k: v for k, v in evidence_meta.items() if k != "provenance_ranges"}, "sources": sources, "crosscheck": crosscheck},
         "unit_definition": ("Code units are address bands of the indexed function spans "
                             f"({band_bytes // 1024} KiB bands within each code region), a stand-in "
                             "for translation units until a unit map exists. Data units are "
@@ -435,10 +457,14 @@ def write_report(model, path: Path):
         f"| Functions fully matched | {t['functions_complete']:,} | {t['functions']:,} | "
         f"{pct(t['functions_complete'], t['functions'])} |",
         "",
-        "Matched means byte-exact against the original through reviewed reconstructed "
-        "assembly (or, in ledger mode, composer ranges classed `reconstructed` or "
-        "`structured`). It is not a claim of original C++ or compiler provenance, and "
-        "the whole-file rebuild is incomplete.",
+        "Matched means byte-exact against the original (baseline: manifest ranges the "
+        "repository verifier confirms; ledger mode: composer ranges classed `reconstructed` "
+        "or `structured`). Provenance classes are kept separate below. Nothing here claims "
+        "original C++ or compiler provenance, and the whole-file rebuild is incomplete.",
+        "",
+        "| Matched bytes by provenance | Bytes |",
+        "|---|---:|",
+        *([f"| `{p}` | {n:,} |" for p, n in t["by_provenance"].items()] or ["| none | 0 |"]),
         "",
         "## By group",
         "",
