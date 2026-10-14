@@ -1,0 +1,234 @@
+{
+ "schema": 1,
+ "note": "Structured PE skeleton description for GAME.EXE. Field values only; no original code or data bytes. The Rich key is recomputed, not stored.",
+ "original": {
+  "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "size": 1511424
+ },
+ "dos_header": {
+  "e_cblp": "0x90",
+  "e_cp": "0x3",
+  "e_crlc": "0x0",
+  "e_cparhdr": "0x4",
+  "e_minalloc": "0x0",
+  "e_maxalloc": "0xffff",
+  "e_ss": "0x0",
+  "e_sp": "0xb8",
+  "e_csum": "0x0",
+  "e_ip": "0x0",
+  "e_cs": "0x0",
+  "e_lfarlc": "0x40",
+  "e_ovno": "0x0"
+ },
+ "dos_stub": {
+  "note": "Standard Microsoft linker 16-bit DOS stub (14 code bytes, then the message); boilerplate shared by every LINK-produced PE, not game code.",
+  "code_hex": "0e1fba0e00b409cd21b8014ccd21",
+  "message": "This program cannot be run in DOS mode.\r\r\n$"
+ },
+ "rich": {
+  "dans_offset": "0x80",
+  "note": "Tuples are [prodid, build, object count]; product names are community RichPE inferences (see M0 report).",
+  "tuples": [
+   [
+    12,
+    7291,
+    2
+   ],
+   [
+    14,
+    7299,
+    44
+   ],
+   [
+    10,
+    8168,
+    161
+   ],
+   [
+    0,
+    0,
+    12
+   ],
+   [
+    25,
+    9466,
+    2
+   ],
+   [
+    10,
+    8966,
+    21
+   ],
+   [
+    19,
+    8034,
+    16
+   ],
+   [
+    1,
+    0,
+    423
+   ],
+   [
+    25,
+    9210,
+    5
+   ],
+   [
+    29,
+    9178,
+    1
+   ],
+   [
+    11,
+    8168,
+    182
+   ],
+   [
+    6,
+    1720,
+    1
+   ]
+  ]
+ },
+ "pe": {
+  "lfanew": "0x110",
+  "file_header": {
+   "Machine": "0x14c",
+   "NumberOfSections": "0x4",
+   "TimeDateStamp": "0x4638f61c",
+   "PointerToSymbolTable": "0x0",
+   "NumberOfSymbols": "0x0",
+   "SizeOfOptionalHeader": "0xe0",
+   "Characteristics": "0x10f"
+  },
+  "optional_header": {
+   "Magic": "0x10b",
+   "MajorLinkerVersion": "0x6",
+   "MinorLinkerVersion": "0x0",
+   "SizeOfCode": "0x129000",
+   "SizeOfInitializedData": "0x11c000",
+   "SizeOfUninitializedData": "0x0",
+   "AddressOfEntryPoint": "0x10e7e5",
+   "BaseOfCode": "0x1000",
+   "BaseOfData": "0x12a000",
+   "ImageBase": "0x400000",
+   "SectionAlignment": "0x1000",
+   "FileAlignment": "0x1000",
+   "MajorOperatingSystemVersion": "0x4",
+   "MinorOperatingSystemVersion": "0x0",
+   "MajorImageVersion": "0x0",
+   "MinorImageVersion": "0x0",
+   "MajorSubsystemVersion": "0x4",
+   "MinorSubsystemVersion": "0x0",
+   "Win32VersionValue": "0x0",
+   "SizeOfImage": "0x246000",
+   "SizeOfHeaders": "0x1000",
+   "CheckSum": "0x0",
+   "Subsystem": "0x2",
+   "DllCharacteristics": "0x0",
+   "SizeOfStackReserve": "0x100000",
+   "SizeOfStackCommit": "0x1000",
+   "SizeOfHeapReserve": "0x100000",
+   "SizeOfHeapCommit": "0x1000",
+   "LoaderFlags": "0x0",
+   "NumberOfRvaAndSizes": "0x10"
+  }
+ },
+ "data_directories": {
+  "1": [
+   "0x134910",
+   "0x118"
+  ],
+  "2": [
+   "0x23f000",
+   "0x66e0"
+  ],
+  "12": [
+   "0x12a000",
+   "0x54c"
+  ]
+ },
+ "sections": [
+  {
+   "name": ".text",
+   "virtual_size": "0x12825a",
+   "virtual_address": "0x1000",
+   "raw_size": "0x129000",
+   "raw_pointer": "0x1000",
+   "relocations_pointer": "0x0",
+   "line_numbers_pointer": "0x0",
+   "relocations_count": 0,
+   "line_numbers_count": 0,
+   "characteristics": "0x60000020"
+  },
+  {
+   "name": ".rdata",
+   "virtual_size": "0xc5f4",
+   "virtual_address": "0x12a000",
+   "raw_size": "0xd000",
+   "raw_pointer": "0x12a000",
+   "relocations_pointer": "0x0",
+   "line_numbers_pointer": "0x0",
+   "relocations_count": 0,
+   "line_numbers_count": 0,
+   "characteristics": "0x40000040"
+  },
+  {
+   "name": ".data",
+   "virtual_size": "0x10713c",
+   "virtual_address": "0x137000",
+   "raw_size": "0x33000",
+   "raw_pointer": "0x137000",
+   "relocations_pointer": "0x0",
+   "line_numbers_pointer": "0x0",
+   "relocations_count": 0,
+   "line_numbers_count": 0,
+   "characteristics": "0xc0000040"
+  },
+  {
+   "name": ".rsrc",
+   "virtual_size": "0x66e0",
+   "virtual_address": "0x23f000",
+   "raw_size": "0x7000",
+   "raw_pointer": "0x16a000",
+   "relocations_pointer": "0x0",
+   "line_numbers_pointer": "0x0",
+   "relocations_count": 0,
+   "line_numbers_count": 0,
+   "characteristics": "0x40000040"
+  }
+ ],
+ "code_regions": [
+  {
+   "name": "game",
+   "start_va": "0x401000",
+   "end_va": "0x4fcef0",
+   "note": "C++ /Od game code"
+  },
+  {
+   "name": "vorbis",
+   "start_va": "0x4fcef0",
+   "end_va": "0x50bf50",
+   "note": "libvorbis and libogg"
+  },
+  {
+   "name": "crt_mfc",
+   "start_va": "0x50bf50",
+   "end_va": "0x52925a",
+   "note": "static CRT and MFC 4.2"
+  }
+ ],
+ "section_padding": [
+  [
+   "0x12925a",
+   3494,
+   ".text"
+  ],
+  [
+   "0x1365f4",
+   2572,
+   ".rdata"
+  ]
+ ]
+}

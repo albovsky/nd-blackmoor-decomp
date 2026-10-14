@@ -1,0 +1,343 @@
+{
+ "schema": 1,
+ "packet": "M02",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "composed_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "whole_file_hash_match": true,
+ "composed_size": 1511424,
+ "enabled_structured_groups": [
+  "dos_header",
+  "rich_header",
+  "pe_headers",
+  "section_table",
+  "header_padding",
+  "iat",
+  "import_directory",
+  "resource_tree",
+  "jump_tables",
+  "int3_padding",
+  "section_padding"
+ ],
+ "claim": "Referenced ranges are copied from the local original at build time and are NOT counted as matched. Structured and reconstructed ranges are generated from committed sources. Structured generation does not claim original C++ or compiler provenance.",
+ "progress": {
+  "total_bytes": 1511424,
+  "generated_bytes": 31898,
+  "generated_fraction": 0.021105,
+  "referenced_bytes": 1479526,
+  "missing_bytes": 0,
+  "code_bytes": 1203014,
+  "code_bytes_reconstructed": 398,
+  "code_bytes_referenced": 1202616,
+  "code_bytes_reconstructed_fraction": 0.000331
+ },
+ "by_class": {
+  "structured": {
+   "bytes": 31500,
+   "ranges": 560
+  },
+  "reconstructed": {
+   "bytes": 398,
+   "ranges": 4
+  },
+  "referenced": {
+   "bytes": 1479526,
+   "ranges": 561
+  },
+  "missing": {
+   "bytes": 0,
+   "ranges": 0
+  }
+ },
+ "by_section": {
+  "<headers>": {
+   "structured": 4096,
+   "reconstructed": 0,
+   "referenced": 0,
+   "missing": 0
+  },
+  ".text": {
+   "structured": 11564,
+   "reconstructed": 398,
+   "referenced": 1204550,
+   "missing": 0
+  },
+  ".rdata": {
+   "structured": 11324,
+   "reconstructed": 0,
+   "referenced": 41924,
+   "missing": 0
+  },
+  ".data": {
+   "structured": 0,
+   "reconstructed": 0,
+   "referenced": 208896,
+   "missing": 0
+  },
+  ".rsrc": {
+   "structured": 4516,
+   "reconstructed": 0,
+   "referenced": 24156,
+   "missing": 0
+  }
+ },
+ "by_code_region": {
+  "game": {
+   "structured": 0,
+   "reconstructed": 384,
+   "referenced": 1023164,
+   "missing": 0
+  },
+  "vorbis": {
+   "structured": 0,
+   "reconstructed": 0,
+   "referenced": 61472,
+   "missing": 0
+  },
+  "crt_mfc": {
+   "structured": 0,
+   "reconstructed": 14,
+   "referenced": 117980,
+   "missing": 0
+  }
+ },
+ "by_group": {
+  "dos_header": {
+   "bytes": 128,
+   "items": 1
+  },
+  "rich_header": {
+   "bytes": 144,
+   "items": 1
+  },
+  "pe_headers": {
+   "bytes": 248,
+   "items": 1
+  },
+  "section_table": {
+   "bytes": 160,
+   "items": 1
+  },
+  "header_padding": {
+   "bytes": 3416,
+   "items": 1
+  },
+  "referenced": {
+   "bytes": 1479526,
+   "items": 4312
+  },
+  "int3_padding": {
+   "bytes": 2214,
+   "items": 381
+  },
+  "jump_tables": {
+   "bytes": 5856,
+   "items": 172
+  },
+  "reconstructed": {
+   "bytes": 398,
+   "items": 13
+  },
+  "section_padding": {
+   "bytes": 8502,
+   "items": 24
+  },
+  "iat": {
+   "bytes": 1356,
+   "items": 13
+  },
+  "import_directory": {
+   "bytes": 7396,
+   "items": 357
+  },
+  "resource_tree": {
+   "bytes": 2080,
+   "items": 87
+  }
+ },
+ "stage_referenced_bytes": 0,
+ "referenced_ranges": {
+  "count": 4312,
+  "bytes": 1479526,
+  "list_source": "image/ranges.json"
+ },
+ "reconstructed": [
+  {
+   "manifest": "matches_s08_4_x86.json",
+   "symbol": "_FUN_004daf3f",
+   "offset": 896831,
+   "length": 47,
+   "source": "src/matching_s08_4_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "34db631d30eb9d2f1a5c5d5fa3154988cd922712515c76641e1af7f69bbc9238",
+   "object_sha256": "89ea93598a9c82fc0ec1d79b4fbe30342777fee29817d265fe23d01481f5dde8",
+   "range_sha256": "d14f2737a806fb01ffd15002d2d0d291d9bff0f9c77849a4524bc55567db6fcc",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_4_x86.json",
+   "symbol": "_FUN_004daf6e",
+   "offset": 896878,
+   "length": 49,
+   "source": "src/matching_s08_4_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "34db631d30eb9d2f1a5c5d5fa3154988cd922712515c76641e1af7f69bbc9238",
+   "object_sha256": "89ea93598a9c82fc0ec1d79b4fbe30342777fee29817d265fe23d01481f5dde8",
+   "range_sha256": "c9d366738b9dd578e5b9ba5ea0e3c507ef84d16e5bcb7f2838bc71082ebead67",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_3_x86.json",
+   "symbol": "_FUN_004daf9f",
+   "offset": 896927,
+   "length": 36,
+   "source": "src/matching_s08_3_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "b5ed9ea6659e8c179cc796cbcd0c4494b950ddbaadebed185cad92998f98ff44",
+   "object_sha256": "d943f78bf39e41efa4f12b48a69777f74fc1898beaf64d8af9900c92af52d25e",
+   "range_sha256": "f443aaff08be83a4918c28dca4648dc31659f730c9d6b22fa596627a776d29d0",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_3_x86.json",
+   "symbol": "_FUN_004dafc3",
+   "offset": 896963,
+   "length": 61,
+   "source": "src/matching_s08_3_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "b5ed9ea6659e8c179cc796cbcd0c4494b950ddbaadebed185cad92998f98ff44",
+   "object_sha256": "d943f78bf39e41efa4f12b48a69777f74fc1898beaf64d8af9900c92af52d25e",
+   "range_sha256": "fac063aec02e8b4aab491f5a203e8f07f765eb6c3a6bef5a309583cd69381498",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_3_x86.json",
+   "symbol": "_FUN_004db000",
+   "offset": 897024,
+   "length": 79,
+   "source": "src/matching_s08_3_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "b5ed9ea6659e8c179cc796cbcd0c4494b950ddbaadebed185cad92998f98ff44",
+   "object_sha256": "d943f78bf39e41efa4f12b48a69777f74fc1898beaf64d8af9900c92af52d25e",
+   "range_sha256": "8aab7f111dd59d365919ae80a2dd25a8d2cf25d5bbe12a26fcaf117e2e4966e5",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "symbol": "_FUN_004dae66",
+   "offset": 896614,
+   "length": 17,
+   "source": "src/matching_s08_2_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+   "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+   "range_sha256": "56d9b148637ae04caedf51e503d219b7095a00c85651b319bb6b5e8bb60546cb",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "symbol": "_FUN_004dae77",
+   "offset": 896631,
+   "length": 17,
+   "source": "src/matching_s08_2_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+   "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+   "range_sha256": "55b6e58404a3e0e3a48be30a93afd471c029dbaec0b52893db79c4f37241b821",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "symbol": "_FUN_004daef1",
+   "offset": 896753,
+   "length": 17,
+   "source": "src/matching_s08_2_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+   "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+   "range_sha256": "a26cd3064709e57ee483cfbbb2753f8da501718ce4ced1e834a5123dd2fcaa3d",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "symbol": "_FUN_004daf02",
+   "offset": 896770,
+   "length": 22,
+   "source": "src/matching_s08_2_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+   "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+   "range_sha256": "440ce1a4265fcbbe20bc6bf4b0ac22ad781ce98929626468e21a5e7175448719",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "symbol": "_FUN_004daf18",
+   "offset": 896792,
+   "length": 17,
+   "source": "src/matching_s08_2_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+   "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+   "range_sha256": "d500a64daa2531474397cfd9958b6e1b88fc9b0b86d04aa2ea4015b50431bc91",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "symbol": "_FUN_004daf29",
+   "offset": 896809,
+   "length": 22,
+   "source": "src/matching_s08_2_x86.s",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source",
+   "source_sha256": "22de8caa942c3b26f278137158ae86cbe759f4309d143e811e9aac5e64b8c22a",
+   "object_sha256": "ca083f3fa44e665a22c0a1006b10cf1bb082c7904c855b0804a9eb6b920167e7",
+   "range_sha256": "e7c806708bab2ad8df826d25bf5a7db32c74e0439276e644978409f12ada7d4d",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches.json",
+   "symbol": "_FUN_0051cfd1",
+   "offset": 1167313,
+   "length": 7,
+   "source": "src/initial_functions.c",
+   "source_kind": "c_incomplete_byte_range",
+   "provenance_class": "incomplete_byte_range_not_a_complete_function",
+   "source_sha256": "6505a0b14d4406347739a2b869e804f8c46ac5bc5e7adb3b26d4b8bf4831127f",
+   "object_sha256": "12364de866ab02dfca74db3f83bbf1d780a395e081916f9121226db6b362008b",
+   "range_sha256": "619829cd4f296ce81e5275137505e34628c8e741d1c31c498d2c26ceec0f3241",
+   "status": "bound"
+  },
+  {
+   "manifest": "matches.json",
+   "symbol": "_FUN_0052398b",
+   "offset": 1194379,
+   "length": 7,
+   "source": "src/initial_functions.c",
+   "source_kind": "c_incomplete_byte_range",
+   "provenance_class": "incomplete_byte_range_not_a_complete_function",
+   "source_sha256": "6505a0b14d4406347739a2b869e804f8c46ac5bc5e7adb3b26d4b8bf4831127f",
+   "object_sha256": "12364de866ab02dfca74db3f83bbf1d780a395e081916f9121226db6b362008b",
+   "range_sha256": "84358b64bfaccfd336ed4b2ce706f45729f875f610a80f96346cc982b5cad304",
+   "status": "bound"
+  }
+ ],
+ "structured_mismatches": [],
+ "description_sha256": {
+  "layout.json": "9311d87d8bfa5707e3b2e429f4cc183672d23056eb82bfdefd5200cc5674d733",
+  "imports.json": "d8554106d841d0b26f0f501e753a3ad4e40ac487da3ab4e766a978e0e1200a7e",
+  "resources.json": "c91a1c319ad94d3ed264d6aca44f893ba831ddfbbd4ff0625e94943a57d4f991",
+  "text_data.json": "82b1cc313361bd8341508f2a67b2962eef5203b87cd7398fcc9f2d15efdf2328",
+  "ranges.json": "302c1fde0c6e0a32ef5d1c581e6b86a6e8e1a73eebcf7dabbd0c6ecc69505d7a",
+  "reconstructed.json": "c833b69e8fbb8748164cdf756013a08514f43b521260b755db875bff7258d3a2"
+ }
+}

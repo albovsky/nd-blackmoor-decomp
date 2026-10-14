@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "note": "Reviewed matching objects bound as reconstructed ranges, in precedence order. Each manifest is built from its committed source (pinned GNU as 2.43.1 for assembly, Apple clang for the two incomplete C ranges), re-verified through verify_matches.py semantics against the local original, and its bytes are taken from the assembled object, never from the original.",
+ "bindings": [
+  {
+   "manifest": "matches_s08_4_x86.json",
+   "source": "src/matching_s08_4_x86.s",
+   "object": "matching_s08_4_x86.obj",
+   "tool": "gnu-as",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source"
+  },
+  {
+   "manifest": "matches_s08_3_x86.json",
+   "source": "src/matching_s08_3_x86.s",
+   "object": "matching_s08_3_x86.obj",
+   "tool": "gnu-as",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source"
+  },
+  {
+   "manifest": "matches_s08_2_x86.json",
+   "source": "src/matching_s08_2_x86.s",
+   "object": "matching_s08_2_x86.obj",
+   "tool": "gnu-as",
+   "source_kind": "assembly",
+   "provenance_class": "explicit_reconstructed_assembly_source"
+  },
+  {
+   "manifest": "matches.json",
+   "source": "src/initial_functions.c",
+   "object": "initial_functions.obj",
+   "tool": "clang-c",
+   "source_kind": "c_incomplete_byte_range",
+   "provenance_class": "incomplete_byte_range_not_a_complete_function"
+  }
+ ],
+ "not_bound": [
+  {
+   "manifest": "matches_s08.json",
+   "reason": "C compile of the same six RVAs that matches_s08_2_x86.json reproduces as reviewed assembly; superseded"
+  },
+  {
+   "manifest": "matches_s08_2.json",
+   "reason": "C++ O0 comparison of the same six RVAs; semantic evidence only, superseded by matches_s08_2_x86.json"
+  }
+ ]
+}

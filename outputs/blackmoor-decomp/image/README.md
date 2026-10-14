@@ -1,0 +1,34 @@
+# image/: structured description of GAME.EXE
+
+Sources for the M02 whole-file composer (`scripts/compose_image.py`). Nothing here is an original code, data or resource byte dump: the files hold PE field values, import names and hints, resource tree shape, switch-table targets and hashes. The only literal bytes are the 14-byte standard Microsoft linker DOS stub in `layout.json` (boilerplate in every LINK-produced PE).
+
+| File | Content | Class produced |
+|---|---|---|
+| `layout.json` | DOS header, Rich tuples (key recomputed, not stored), PE/optional header, data directories, section table, code regions, zero fill | structured: `dos_header`, `rich_header`, `pe_headers`, `section_table`, `header_padding`, `section_padding` |
+| `imports.json` | 13 DLLs, 326 symbols with hints and RVAs | structured: `import_directory`, `iat` |
+| `resources.json` | ID-only resource directory tree (38 leaves), leaf RVA/size/codepage, zero fill | structured: `resource_tree`; leaf payloads are `referenced` |
+| `text_data.json` | switch jump tables (code addresses), 0xCC span padding; byte index tables by extent only | structured: `jump_tables`, `int3_padding`; index table bytes stay `referenced` |
+| `reconstructed.json` | reviewed matching manifests bound as reconstructed ranges | reconstructed |
+| `ranges.json` | every remaining range: offset, length, SHA-256, kind, region, name | referenced |
+| `coverage-report.{json,md}` | snapshot of the composer's report | |
+
+`ranges.json`, `text_data.json`, `layout.json`, `imports.json` and `resources.json` are produced by `compose_image.py derive` from the local original and `function-index.json`; `reconstructed.json` is hand-written. A test re-runs `derive` and requires byte-identical output.
+
+## Commands
+
+```bash
+python3 outputs/blackmoor-decomp/scripts/compose_image.py build     # compose, require the whole-file SHA-256
+python3 outputs/blackmoor-decomp/scripts/compose_image.py stages    # enable structured groups one at a time, re-check the hash
+python3 outputs/blackmoor-decomp/scripts/report_image_coverage.py   # the Track M progress number
+python3 -m unittest outputs/blackmoor-decomp/tests/test_compose_image.py
+```
+
+The composed file and the full report are written under `outputs/blackmoor-decomp/build/image/` (git-ignored).
+
+## Replacing a referenced range
+
+1. Add the reviewed object (M03 `tool_assisted_reconstructed_assembly` or a hand-reviewed `explicit_reconstructed_assembly_source`) and bind its manifest in `reconstructed.json`.
+2. Remove the covered bytes from `ranges.json` (re-run `derive`, which carves bound ranges out of the referenced list).
+3. `compose_image.py build` must still print the original SHA-256; `report_image_coverage.py` shows the new generated/referenced split.
+
+The composer rejects overlapping ranges (a function and a data item claiming one byte), missing bytes, and a referenced range whose SHA-256 differs from the description.
