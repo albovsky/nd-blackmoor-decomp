@@ -1,0 +1,43 @@
+{
+  "reached_scenes": [
+    "S0",
+    "S5900",
+    "S5907",
+    "S5901",
+    "S5902",
+    "S5903",
+    "S5904",
+    "S5905",
+    "S5906"
+  ],
+  "stop": {
+    "kind": "scene_transition_error",
+    "scene": "S5906",
+    "target_scene": "S4700",
+    "row": 3,
+    "action_type": "0x35",
+    "provider": "scene-resource",
+    "reason": "session-replace"
+  },
+  "ticks": 674,
+  "evidence": {
+    "kind": "scripted_live_session",
+    "source_ref": "702b97824637b2136ac13e2774b87955bb131a52",
+    "native_sha256": "a5e1c5ce8327a5726d2a7dbb3f10d902fa09887260ca510b48c1b0580888e447",
+    "command": [
+      "--inspect-live-session",
+      "--live-click-row",
+      "34",
+      "--live-ticks",
+      "3000"
+    ]
+  },
+  "schema": "blackmoor-playable-status/1",
+  "tests": {
+    "discovered": 774,
+    "passed": 769,
+    "skipped": 5,
+    "source_field": "current_integration.full_suite"
+  },
+  "next_blocker": "S4700 load: opaque action 0x35 at row 3 (scene-resource)."
+}
