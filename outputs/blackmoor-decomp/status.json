@@ -3,11 +3,11 @@
   "playable_native_port": false,
   "original_executable_rebuilt": false,
   "pseudocode_exports": 4188,
-  "matched_byte_ranges": 8,
-  "unique_matched_bytes": 126,
-  "function_completeness": "Six reconstructed mnemonic-assembly accessor extents verified; two other selected ranges and whole executable remain unverified.",
+  "matched_byte_ranges": 11,
+  "unique_matched_bytes": 302,
+  "function_completeness": "Nine complete reviewed reconstructed mnemonic-assembly functions (288 bytes), plus two incomplete selected ranges (14 bytes). Original C/compiler provenance and whole executable rebuild remain unverified.",
   "matching_verifier_tests_passed": 12,
-  "independent_review": "Peer review found and fixed the dependency-bearing raw-0x15 classification bug and exceptional DIR cleanup. Focused regressions and original oracles passed.",
+  "independent_review": "Reviewed input latch, condition-extra leaves, caption transfer kernel, app caption binding and source-bound progress map accepted. Final AVF decoder review found a remaining valid-input divergence; decoder not yet collected.",
   "remaining": [
     "recover remaining original engine subsystems beyond resource loading",
     "original/equivalent x86 build toolchain and settings",
@@ -60,8 +60,8 @@
     "complete_dependency_tree_or_action_runtime": false
   },
   "tests": {
-    "discovered": 440,
-    "passed": 438,
+    "discovered": 477,
+    "passed": 475,
     "skipped": 2,
     "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
   },
@@ -112,9 +112,9 @@
       629,
       384
     ],
-    "scene_view": "static preview; actions and audio absent",
+    "scene_view": "Persistent scene session with actual caption writer; stops at unavailable RestoreCCTextBox transfer. Accepted compositor is not yet wired in this verified app snapshot.",
     "current_visual_verification": "not performed: Mac locked; owner requested automated checks",
-    "integration_tests": 6,
+    "integration_tests": 7,
     "original_assets_modified": false,
     "audio_diagnostic": "real scene music/voice decode and offline graph; live gameplay audio absent",
     "action_diagnostic": "31 original-resource actions applied; stops at missing sound handler; partial reset and analysis-only remaining world",
@@ -300,7 +300,8 @@
     "ascii_casefold_and_first_duplicate_match": true,
     "missing_caption_fallback_verified": true,
     "caption_renderer": false,
-    "nonzero_nls_supported": false
+    "nonzero_nls_supported": false,
+    "actual_session_entries": 1258
   },
   "current_slice": {
     "status": "complete",
@@ -324,51 +325,52 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "f7b57a09a39c6bf84b241569314316fad373e7ab",
+    "source_ref": "43360868896b1adf6aac2eeb7ca84c42dbd4ab54",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 440,
-      "passed": 438,
+      "discovered": 477,
+      "passed": 475,
       "skipped": 2
     },
-    "build_log_sha256": "5e3f8c69374f9c39116dcd29a7b217d6d8009a82ea7cbc3304634be1fa4f596c",
-    "test_log_sha256": "bac63b518b5225efbb65257b83b577fe7fd346f286bd0835e736cfe7716e1fcc",
-    "original_oracles": {
-      "sound_control_cases": 34,
-      "sound_control_mismatches": 0,
-      "action28_frame_cases": 1,
-      "action28_frame_mismatches": 0
-    },
-    "scope": "Reviewed captions, world clock, six exact accessor assembly functions and persistent SceneSession milestone collected. Actual app tick applies S0 rows0..30 then stops at row31 missing caption presentation. Live choices, composed rendering, audio provider, S5900 execution, complete gameplay and whole-file x86 matching remain open.",
+    "build_log_sha256": "7389fac4f9e79ba8b05dca25ce470d0582d7aeb2d8dc3f12c234723ff5be2872",
+    "test_log_sha256": "3f8ab3ab0cdf729747a66e8d7b801109f0f693b951a130eef6ab283ba187ae7c",
+    "scope": "Reviewed input latch, condition extras, compositor and persistent app caption binding collected. Actual S0 update applies rows0..30 then action9f resolves AUTOTEXT and runs the writer, stopping at RestoreCCTextBox. Boot is binding accepted pixel transfers; live choices, audio/input, S5900 ordered execution, complete game and whole-file matching remain open.",
     "gui_verified": false,
     "hardware_audio_verified": false,
     "persistent_session": {
-      "reviewed_worker_commit": "8764e8b9eae12fcaa722ef72b7042baa77c6985e",
-      "collected_commit": "f7b57a0",
+      "reviewed_worker_commit": "8eed75a09cc0f1b62778f45069d0a14369f26e69",
+      "collected_commit": "a864b11",
       "child_complete": false,
       "observed_scene": "S0",
       "prior_action_effects": 31,
       "stop_row": 31,
       "stop_action": "0x9f",
-      "stop_provider": "caption-presentation"
+      "stop_provider": "RestoreCCTextBox pixel transfer"
     }
   },
   "progress_map": {
     "entrypoint": "progress-map/index.html",
+    "source_ref": "a864b11e6c154f6b2a3449e06fb1ef22da3e0f08",
     "indexed_starts": 4188,
     "area_semantics": "Estimated spans to next indexed start; final extent unknown; no decompilation percentage",
-    "exact_selected_bytes": 14,
-    "exact_selected_ranges": 2,
-    "exact_function_completeness": "unverified",
+    "exact_selected_bytes": 302,
+    "exact_selected_ranges": 11,
+    "exact_merged_address_ranges": 5,
+    "complete_assembly_functions": 9,
+    "complete_assembly_bytes": 288,
+    "partial_exact_ranges": 2,
+    "partial_exact_bytes": 14,
+    "exact_function_completeness": "Nine reviewed assembly functions complete; two partial ranges incomplete; full executable unverified",
     "selected_oracle_report_families": 5,
     "s08_audited_function_extents": 6,
     "s08_exact_functions": 0,
-    "independent_review": "Two provenance findings fixed; narrow re-review clear on 0a27d1520c128a4553089e366c2c3bd376242958",
-    "tests_passed": 17,
+    "independent_review": "Clear at79313a99da2c6bd6a42fdfdf95312fad67459664; 4310 local links resolve after modeled collection, report-copy and snapshot/HTML/screenshot hashes agree",
+    "tests_passed": 23,
     "offline": true,
     "live_refresh": false,
-    "refresh_required": true,
-    "refresh_reason": "Released map predates S08-2 reviewed source-bound assembly evidence; do not treat its static snapshot as current."
+    "refresh_required": false,
+    "snapshot_sha256": "0811237e691af192b5e37fe14a6f303bc49c84a63168cb266c92ced2ea894fc0",
+    "snapshot_scope": "Frozen selected-report view; excludes major native oracle families and does not establish total reconstruction coverage"
   },
   "native_sound_control": {
     "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
@@ -447,5 +449,67 @@
     "compiler_generated_C_match": false,
     "original_source_provenance_verified": false,
     "whole_executable_rebuilt": false
+  },
+  "matching_s08_3": {
+    "reviewed_worker_commit": "08d00c3c76ebce27a7d271443130fe371e2f569c",
+    "collected_commit": "72c09ca",
+    "complete_functions": 3,
+    "exact_bytes": 176,
+    "classification": "explicit_reconstructed_assembly_source",
+    "source_sha256": "b5ed9ea6659e8c179cc796cbcd0c4494b950ddbaadebed185cad92998f98ff44",
+    "object_sha256": "d943f78bf39e41efa4f12b48a69777f74fc1898beaf64d8af9900c92af52d25e",
+    "original_native_calls": 421,
+    "original_candidate_machine_calls": 421,
+    "mismatches": 0,
+    "compiler_generated_C_match": false,
+    "original_source_provenance_verified": false,
+    "whole_executable_rebuilt": false,
+    "live_cursor_mapping_integrated": false
+  },
+  "condition_extra": {
+    "reviewed_worker_commit": "6bac467dbd724f9032434743ad3a2dc41f1995d1",
+    "collected_commit": "8620612",
+    "supported_leaf_opcodes": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      17,
+      20,
+      21
+    ],
+    "native_tests": 14,
+    "original_native_leaf_comparisons": 390,
+    "leaf_mismatches": 0,
+    "native_whole_tree_comparisons": 0,
+    "shared_evaluator_integration": false,
+    "parent_complete": false
+  },
+  "caption_compositor": {
+    "reviewed_worker_commit": "69bc05bc01ba47bce323a35a349d830cad055ec0",
+    "collected_commit": "6f74c6a",
+    "native_tests": 8,
+    "original_pixel_cases": 50,
+    "mismatches": 0,
+    "original_raster_logic_hooked": false,
+    "scope": "Positive-pitch bounded16-bit opaque/keyed software transfers and installed BOOT caption composition fixture",
+    "live_app_binding": false,
+    "whole_scene_frame_parity": false,
+    "parent_complete": false
+  },
+  "avf_decoder_review": {
+    "source_ref": "bb38ef612bbc5ec28a9d400607c08851a7a1d8bd",
+    "state": "One remaining P2 valid-input size-guard divergence; not accepted or collected",
+    "parent_complete": false,
+    "finding": "decode_key_frame rejects declared length beyond frame although actual conversion extent is safe",
+    "repair_brief": "CLAUDE-S03-1-REVIEW-FIX.md",
+    "fresh_native_tests": 29,
+    "selected_original_native_comparisons": 226,
+    "selected_mismatches": 0,
+    "additional_safe_input_replay_mismatches": [
+      6,
+      12
+    ]
   }
 }
