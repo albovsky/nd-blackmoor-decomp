@@ -13,12 +13,17 @@
 # fields:       dsp+0x14: frames buffered (signed upper bound); dsp+0x18: frames consumed counter, read and then advanced by count on success
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   Role names are inferred from the arithmetic and from resemblance to libvorbis vorbis_synthesis_read; no source was read. A negative count is not rejected by the bytes (the signed check consumed+count <= buffered passes and the consumed counter decreases); that original behaviour was not exercised. The oracle hooks this routine with a stub, so the real compare and the counter update were never executed under the oracle. No Track N source implements it.
+# unverified:   Role names are inferred from the arithmetic and from resemblance to libvorbis vorbis_synthesis_read; no source was read. A negative count is not rejected by the bytes (the signed check consumed+count <= buffered passes and the consumed counter decreases); that original behaviour was not exercised. The oracle hooks this routine with a stub, so the real compare and the counter update were never executed under the oracle. No Track N source implements it. Field names dsp_frames_buffered and dsp_frames_consumed are role guesses from use only.
 .intel_syntax noprefix
 .code32
 .text
 
 # --- frame symbols ---------------------------------------------------
+
+.equ dsp_frames_buffered, 0x14  # dsp+0x14: frames buffered (signed upper bound)
+.equ dsp_frames_consumed, 0x18  # dsp+0x18: frames consumed counter
+.equ stackarg_dsp, 0x4  # [esp+4]: dsp argument
+.equ stackarg_count, 0x8  # [esp+8]: count argument (frames to consume)
 
 # --- external targets -----------------------------------------------
 
@@ -26,14 +31,14 @@
 .globl FUN_004ffa00
 FUN_004ffa00:
     # block 0x004ffa00: entry: ecx=count, eax=dsp; if count == 0 skip the bound check
-    mov ecx, dword ptr [esp + 0x8]               # 004ffa00
-    mov eax, dword ptr [esp + 0x4]               # 004ffa04
+    mov ecx, dword ptr [esp + stackarg_count]               # 004ffa00
+    mov eax, dword ptr [esp + stackarg_dsp]               # 004ffa04
     test ecx, ecx                                # 004ffa08
     je.d8 L_apply_count                             # 004ffa0a
     # block 0x004ffa0c: edx=dsp+0x18 + count (new consumed), esi=dsp+0x14 (buffered); if new consumed <= buffered (signed) go apply it
-    mov edx, dword ptr [eax + 0x18]              # 004ffa0c
+    mov edx, dword ptr [eax + dsp_frames_consumed]              # 004ffa0c
     push esi                                     # 004ffa0f
-    mov esi, dword ptr [eax + 0x14]              # 004ffa10
+    mov esi, dword ptr [eax + dsp_frames_buffered]              # 004ffa10
     {load} add edx, ecx                          # 004ffa13
     {load} cmp edx, esi                          # 004ffa15
     pop esi                                      # 004ffa17
@@ -43,9 +48,9 @@ FUN_004ffa00:
     ret                                          # 004ffa1f
 L_apply_count:
     # block 0x004ffa20: dsp+0x18 += count; return 0
-    mov edx, dword ptr [eax + 0x18]              # 004ffa20
+    mov edx, dword ptr [eax + dsp_frames_consumed]              # 004ffa20
     {load} add edx, ecx                          # 004ffa23
-    mov dword ptr [eax + 0x18], edx              # 004ffa25
+    mov dword ptr [eax + dsp_frames_consumed], edx              # 004ffa25
     {load} xor eax, eax                          # 004ffa28
     ret                                          # 004ffa2a
 

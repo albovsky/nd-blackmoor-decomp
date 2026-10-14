@@ -23,6 +23,23 @@
 .equ local_this, 0x8  # [ebp - 0x8]
 .equ arg_name, 0x8  # [ebp + 0x8]
 
+.equ hiff_scan_ptr, 0x1008  # CHiff+0x1008: DATA scan pointer
+.equ hiff_zeroed_100c, 0x100c  # CHiff+0x100c: dword zeroed by the constructor, not read here
+.equ hiff_zeroed_1010, 0x1010  # CHiff+0x1010: dword zeroed by the constructor, not read here
+.equ hiff_res_base, 0x1118  # CHiff+0x1118: extracted resource base pointer
+.equ hiff_data_body_ptr, 0x111c  # CHiff+0x111c: selected DATA body pointer, zeroed
+.equ hiff_chunk_payload_ptr, 0x1120  # CHiff+0x1120: selected chunk payload pointer, zeroed
+.equ hiff_res_size, 0x1124  # CHiff+0x1124: extracted resource size
+.equ hiff_data_body_len, 0x1128  # CHiff+0x1128: selected DATA body length, zeroed
+.equ hiff_chunk_payload_len, 0x112c  # CHiff+0x112c: selected chunk payload length, zeroed
+.equ hiff_chunk_name_buf, 0x1130  # CHiff+0x1130: selected chunk name buffer, first byte zeroed
+.equ hiff_data_name_buf, 0x1136  # CHiff+0x1136: selected DATA name buffer, first byte zeroed
+.equ hiff_zeroed_113c, 0x113c  # CHiff+0x113c: dword zeroed by the constructor, not read here
+.equ hiff_zeroed_1140, 0x1140  # CHiff+0x1140: dword zeroed by the constructor, not read here
+.equ hiff_chunk_used_table, 0x4fc4  # CHiff+0x4fc4: 1000 dword chunk used flags
+.equ hiff_data_count, 0x5f64  # CHiff+0x5f64: DATA record count
+.equ hiff_chunk_count, 0x5f68  # CHiff+0x5f68: chunk count
+
 # --- external targets -----------------------------------------------
 .set FUN_00418e52, .text + (0x00418e52 - 0x401000)
 .set FUN_00433eaa, .text + (0x00433eaa - 0x401000)
@@ -61,35 +78,35 @@ FUN_00433c60:
     and ecx, 0x3                                 # 00433c9a
     rep movsb byte ptr es:[edi], byte ptr [esi]  # 00433c9d
     mov ecx, dword ptr [ebp - local_this]           # 00433c9f
-    mov dword ptr [ecx + 0x1010], 0x0            # 00433ca2
+    mov dword ptr [ecx + hiff_zeroed_1010], 0x0            # 00433ca2
     mov edx, dword ptr [ebp - local_this]           # 00433cac
-    mov dword ptr [edx + 0x100c], 0x0            # 00433caf
+    mov dword ptr [edx + hiff_zeroed_100c], 0x0            # 00433caf
     mov eax, dword ptr [ebp - local_this]           # 00433cb9
-    mov dword ptr [eax + 0x1008], 0x0            # 00433cbc
+    mov dword ptr [eax + hiff_scan_ptr], 0x0            # 00433cbc
     mov ecx, dword ptr [ebp - local_this]           # 00433cc6
-    mov dword ptr [ecx + 0x1118], 0x0            # 00433cc9
+    mov dword ptr [ecx + hiff_res_base], 0x0            # 00433cc9
     mov edx, dword ptr [ebp - local_this]           # 00433cd3
-    mov dword ptr [edx + 0x111c], 0x0            # 00433cd6
+    mov dword ptr [edx + hiff_data_body_ptr], 0x0            # 00433cd6
     mov eax, dword ptr [ebp - local_this]           # 00433ce0
-    mov dword ptr [eax + 0x1120], 0x0            # 00433ce3
+    mov dword ptr [eax + hiff_chunk_payload_ptr], 0x0            # 00433ce3
     mov ecx, dword ptr [ebp - local_this]           # 00433ced
-    mov dword ptr [ecx + 0x1124], 0x0            # 00433cf0
+    mov dword ptr [ecx + hiff_res_size], 0x0            # 00433cf0
     mov edx, dword ptr [ebp - local_this]           # 00433cfa
-    mov dword ptr [edx + 0x1128], 0x0            # 00433cfd
+    mov dword ptr [edx + hiff_data_body_len], 0x0            # 00433cfd
     mov eax, dword ptr [ebp - local_this]           # 00433d07
-    mov dword ptr [eax + 0x112c], 0x0            # 00433d0a
+    mov dword ptr [eax + hiff_chunk_payload_len], 0x0            # 00433d0a
     mov ecx, dword ptr [ebp - local_this]           # 00433d14
-    mov byte ptr [ecx + 0x1130], 0x0             # 00433d17
+    mov byte ptr [ecx + hiff_chunk_name_buf], 0x0             # 00433d17
     mov edx, dword ptr [ebp - local_this]           # 00433d1e
-    mov byte ptr [edx + 0x1136], 0x0             # 00433d21
+    mov byte ptr [edx + hiff_data_name_buf], 0x0             # 00433d21
     mov eax, dword ptr [ebp - local_this]           # 00433d28
-    mov dword ptr [eax + 0x113c], 0x0            # 00433d2b
+    mov dword ptr [eax + hiff_zeroed_113c], 0x0            # 00433d2b
     mov ecx, dword ptr [ebp - local_this]           # 00433d35
-    mov dword ptr [ecx + 0x1140], 0x0            # 00433d38
+    mov dword ptr [ecx + hiff_zeroed_1140], 0x0            # 00433d38
     mov edx, dword ptr [ebp - local_this]           # 00433d42
-    mov dword ptr [edx + 0x5f64], 0x0            # 00433d45
+    mov dword ptr [edx + hiff_data_count], 0x0            # 00433d45
     mov eax, dword ptr [ebp - local_this]           # 00433d4f
-    mov dword ptr [eax + 0x5f68], 0x0            # 00433d52
+    mov dword ptr [eax + hiff_chunk_count], 0x0            # 00433d52
     mov dword ptr [ebp - local_index], 0x0           # 00433d5c
     jmp.d8 L_clear_test                            # 00433d63
 L_clear_next:
@@ -104,7 +121,7 @@ L_clear_test:
     # block 0x00433d77: loop body: this+0x4fc4+4*index = 0 (clear the chunk used-flag table), loop to L_clear_next
     mov edx, dword ptr [ebp - local_index]           # 00433d77
     mov eax, dword ptr [ebp - local_this]           # 00433d7a
-    mov dword ptr [eax + 4*edx + 0x4fc4], 0x0    # 00433d7d
+    mov dword ptr [eax + 4*edx + hiff_chunk_used_table], 0x0    # 00433d7d
     jmp.d8 L_clear_next                            # 00433d88
 L_choose_tree:
     # block 0x00433d8a: L_choose_tree: test global 0x5bb1de; zero selects L_query_default_tree
@@ -121,7 +138,7 @@ L_choose_tree:
     mov ecx, 0x5d2f31                            # 00433dac
     call FUN_00418e52                            # 00433db1
     mov ecx, dword ptr [ebp - local_this]           # 00433db6
-    mov dword ptr [ecx + 0x1118], eax            # 00433db9
+    mov dword ptr [ecx + hiff_res_base], eax            # 00433db9
     jmp.d8 L_check_extract                            # 00433dbf
 L_query_default_tree:
     # block 0x00433dc1: L_query_default_tree: flag clear, same call with the second tree name (0x545dec); store the result at this+0x1118
@@ -135,15 +152,15 @@ L_query_default_tree:
     mov ecx, 0x5d2f31                            # 00433dd9
     call FUN_00418e52                            # 00433dde
     mov ecx, dword ptr [ebp - local_this]           # 00433de3
-    mov dword ptr [ecx + 0x1118], eax            # 00433de6
+    mov dword ptr [ecx + hiff_res_base], eax            # 00433de6
 L_check_extract:
     # block 0x00433dec: L_check_extract: if this+0x1118 (data pointer) is zero go to L_extract_failed
     mov edx, dword ptr [ebp - local_this]           # 00433dec
-    cmp dword ptr [edx + 0x1118], 0x0            # 00433def
+    cmp dword ptr [edx + hiff_res_base], 0x0            # 00433def
     je.d8 L_extract_failed                             # 00433df6
     # block 0x00433df8: pointer non-null: test this+0x1124 (size); non-zero goes to L_index_resource, zero falls to the failure path
     mov eax, dword ptr [ebp - local_this]           # 00433df8
-    cmp dword ptr [eax + 0x1124], 0x0            # 00433dfb
+    cmp dword ptr [eax + hiff_res_size], 0x0            # 00433dfb
     jne.d8 L_index_resource                            # 00433e02
 L_extract_failed:
     # block 0x00433e04: L_extract_failed: format the constructor failure message with the resource name into this+0x8, report it, store 2 in the exit-code global 0x63a58a, call the quit routine with ecx=0x5cf659, jump to L_return

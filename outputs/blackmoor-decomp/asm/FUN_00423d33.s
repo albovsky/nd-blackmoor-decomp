@@ -13,7 +13,7 @@
 # fields:       trunk branch +0x0 (int32 result word, written 1 or 0); +0x8 (branch id, only formatted into the debug text); +0x34 (read, zero or nonzero selects the path; the loader at 0x424aa8 stores the source record count here per its pseudocode); globals 0x0063a4cd (int16 debug flag), 0x0063888b (message buffer), 0x0054488c (format text)
 # callees:      FUN_004234c8 = clear the evaluation-stack depth (this+4 = 0) (thiscall, no args); FUN_00423da2 = reset branch and leaf states recursively (thiscall, 1 arg); FUN_0050ca3e = sprintf-style formatter (cdecl); FUN_0044a2b7 = debug log line writer (cdecl)
 # track-n:      outputs/blackmoor-decomp/src/scene_conditions.c:scene_conditions_reset
-# unverified:   meaning of branch+0x34 as the dependency record count comes from the loader pseudocode, not from this function (Track N maps the zero case to record_count == 0, which is its reading, not proven by these bytes alone); when branch+0x34 is zero the original sets the root result to 1 and does not call 0x423da2, leaving node states untouched, whereas Track N clears all nodes and then sets the root; Track N clears every node status in one pass while the original clears per-kind fields through 0x423da2 and does not touch the +0x2c leaf field here; the debug text is not modelled by Track N; roles of 0x44a2b7 and 0x4234c8 come from pseudocode
+# unverified:   meaning of branch+0x34 as the dependency record count comes from the loader pseudocode, not from this function (Track N maps the zero case to record_count == 0, which is its reading, not proven by these bytes alone); when branch+0x34 is zero the original sets the root result to 1 and does not call 0x423da2, leaving node states untouched, whereas Track N clears all nodes and then sets the root; Track N clears every node status in one pass while the original clears per-kind fields through 0x423da2 and does not touch the +0x2c leaf field here; the debug text is not modelled by Track N; roles of 0x44a2b7 and 0x4234c8 come from pseudocode; field names branch_id and branch_record_count are role names from use and loader pseudocode, not proven by this function
 .intel_syntax noprefix
 .code32
 .text
@@ -21,6 +21,9 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_saved_this, 0x4  # [ebp - 0x4]
 .equ arg_trunk_branch, 0x8  # [ebp + 0x8]
+
+.equ branch_id, 0x8  # CDependency branch object+0x8: branch id (debug text only)
+.equ branch_record_count, 0x34  # CDependency branch object+0x34: dependency record count (zero selects the no-records path; loader-pseudocode reading)
 
 # --- external targets -----------------------------------------------
 .set FUN_004234c8, .text + (0x004234c8 - 0x401000)
@@ -37,7 +40,7 @@ FUN_00423d33:
     push ecx                                     # 00423d36
     mov dword ptr [ebp - local_saved_this], ecx           # 00423d37
     mov eax, dword ptr [ebp + arg_trunk_branch]             # 00423d3a
-    cmp dword ptr [eax + 0x34], 0x0              # 00423d3d
+    cmp dword ptr [eax + branch_record_count], 0x0              # 00423d3d
     jne.d8 L_has_records                            # 00423d41
     # block 0x00423d43: +0x34 is zero (no dependency records): trunk.result (+0) = 1, jump to the epilogue
     mov ecx, dword ptr [ebp + arg_trunk_branch]             # 00423d43
@@ -52,7 +55,7 @@ L_has_records:
     je.d8 L_reset_tree                             # 00423d60
     # block 0x00423d62: debug on: sprintf(0x63888b, 0x54488c, trunk.id (+8)) then log it with 0x44a2b7, caller cleans up both calls
     mov ecx, dword ptr [ebp + arg_trunk_branch]             # 00423d62
-    mov edx, dword ptr [ecx + 0x8]               # 00423d65
+    mov edx, dword ptr [ecx + branch_id]               # 00423d65
     push edx                                     # 00423d68
     push 0x54488c                                # 00423d69
     push 0x63888b                                # 00423d6e
