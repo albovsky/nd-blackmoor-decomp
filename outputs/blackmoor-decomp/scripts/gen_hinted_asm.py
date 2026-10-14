@@ -361,7 +361,7 @@ class Decoded:
         return self.map[addr]
 
 
-def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] = None) -> Layout:
+def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] = None, known_targets: frozenset = frozenset()) -> Layout:
     """Split the span of the function at ``va`` into code, tables and padding."""
 
     if span_end is None:
@@ -534,7 +534,7 @@ def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] =
                 layout.data.append(DataItem(kind, tail, hi - tail, count=len(info["values"]), values=list(info["values"])))
             tail = hi
             continue
-        if tail in layout.external_targets:
+        if tail in layout.external_targets or tail in known_targets:
             layout.next_entry = tail  # a direct call or jump enters here: this is a function start, not padding
             layout.span_end = tail
             layout.notes.append(f"further_unindexed_code_at:0x{tail:08x}")
@@ -542,14 +542,14 @@ def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] =
         fill = image.text[tail - image.base]
         if fill in (0xCC, 0x90):
             end = tail
-            while end < span_end and image.text[end - image.base] == fill and end not in by_start and end not in layout.external_targets:
+            while end < span_end and image.text[end - image.base] == fill and end not in by_start and end not in layout.external_targets and end not in known_targets:
                 end += 1
             layout.data.append(DataItem("padding", tail, end - tail, fill=fill))
             tail = end
             continue
         pad_lines: list[str] = []
         end = tail
-        while end < span_end and end not in by_start and end not in layout.external_targets:
+        while end < span_end and end not in by_start and end not in layout.external_targets and end not in known_targets:
             found = nop_like(image.text, end - image.base)
             if found is None or end + found[0] > span_end:
                 break
@@ -723,6 +723,7 @@ def analyze_all(image: Image, vas: Optional[list[int]] = None, max_rounds: int =
 
     requested = list(vas) if vas is not None else list(image.starts)
     symbols: set[int] = set(image.starts)
+    known: set[int] = set()  # direct call/jump targets seen in any layout, shared across spans
     layouts: dict[int, Layout] = {}
     decoded = Decoded({})
     for _ in range(max_rounds):
@@ -732,7 +733,7 @@ def analyze_all(image: Image, vas: Optional[list[int]] = None, max_rounds: int =
         queue: list[tuple[int, Optional[int]]] = [(va, None) for va in requested]
         while queue:
             va, limit = queue.pop(0)
-            layout = analyze(image, va, decoded, limit)
+            layout = analyze(image, va, decoded, limit, frozenset(known))
             layouts[va] = layout
             if layout.need_symbols:
                 new = layout.need_symbols - symbols
@@ -746,7 +747,10 @@ def analyze_all(image: Image, vas: Optional[list[int]] = None, max_rounds: int =
                 parent_end = limit if limit is not None else image.span(va)[1]
                 queue.append((layout.next_entry, parent_end))
         if not changed:
-            break
+            targets = {t for lay in layouts.values() if not lay.exceptions for t in lay.external_targets}
+            if targets <= known:
+                break
+            known |= targets  # classify tail padding again knowing every direct entry
     else:
         for layout in layouts.values():
             if layout.need_symbols:
