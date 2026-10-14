@@ -1,0 +1,9 @@
+{
+  "description": "Explicitly reconstructed assembly for the complete original input field-0 and field-4 consume method extents. Selected-function exact match only; not original C/compiler provenance or a whole-executable rebuild.",
+  "source": "src/matching_s08_4_x86.s",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "functions": [
+    {"rva": 896831, "va": 5091135, "size": 47, "symbol": "_FUN_004daf3f", "object": "build/matching_s08_4_x86.obj", "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"},
+    {"rva": 896878, "va": 5091182, "size": 49, "symbol": "_FUN_004daf6e", "object": "build/matching_s08_4_x86.obj", "evidence_id": "ev_6b108bc55ab995dff591d60480e699c5391fdca071fca0daf43a01e1312df619"}
+  ]
+}
