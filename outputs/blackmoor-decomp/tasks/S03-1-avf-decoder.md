@@ -54,3 +54,21 @@ Provide build/test/oracle commands, exact corpus counts and per-branch compariso
 The native API must decode the complete installed AVF corpus and support reproducible sequential/reset use. Return S03-1.handoff.json, S03-1.validation.json, a concise recovery report and a read-only shared-runtime integration proposal. Report any missing branch as open; do not close parent S03 here. S03-2 will recover playback timing, commands, worker/queue lifetime and engine integration after the decoder handoff.
 
 The Mac remains locked. Use original-x86 oracles and automated offscreen checks; GUI and hardware audio wait for explicit unlock. This slice does not claim whole-file x86 matching or complete native gameplay.
+
+## Status (Claude, 2026-10-13)
+
+The decoder is implemented and committed on `codex/blackmoor-s03-1-avf-decoder`:
+- `fdc3ab6`: initial implementation
+- `3182f57`: fixes for the independent review findings
+
+The receipt is `work/analysis/slices/S03-1.handoff.json`. It holds the hashes, exact comparison counts, mutation results and divergences.
+
+**Installed corpus.** 32 files and 245 records, every one a type-0 key frame. There are no metadata issues and no trailing bytes.
+
+**Synthetic fixtures** cover the record types and command branches the corpus never uses (types 1/2, empty records, every LZSS termination point).
+
+**Original comparison.** The unmodified original readers run on every installed frame and on every fixture, in both 5/5/5 and 5/6/5 display formats. Unexplained valid-input mismatches: 0. Six planted bugs (in decompression, delta and conversion rules) are each detected.
+
+**ASan/UBSan.** Clean on 32 installed and 36 malformed inputs.
+
+**Still open:** root review of the final commit. Playback timing and handoff belong to S03-2; the decoder does not consume header +0x1c (the per-frame delay). Parent S03 stays open.
