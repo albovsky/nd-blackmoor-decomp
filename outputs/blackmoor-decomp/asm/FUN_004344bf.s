@@ -1,0 +1,186 @@
+# FUN_004344bf
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x004344bf
+# extent:       0x004344bf-0x00434630 (369 code bytes)
+# span:         0x004344bf-0x00434630 (code 369, tables 0, padding 0)
+# sha256:       170621f02b872e6595467b0abfd42155f691430808b69866851fdb2464ea40d9
+# evidence:     ev_3f720ed99d7ee62579a1c4d62aac8774f6ab111d9bf85cc01f36ab5743eb6edd
+# region:       game
+# frame:        ebp
+# name:         CHiff::select_first_chunk
+# arguments:    thiscall: ecx=this (spilled); [ebp+8]=arg_id_name NUL-terminated chunk ID to find (case-sensitive); callee pops 4 (ret 4); returns eax = 1 when a chunk was selected, 0 when none matched
+# locals:       [ebp-4]=cursor, starts at the chunk header pointer and is advanced by 4 twice to the payload; [ebp-8]=chunk index; [ebp-0xc]=pointer to the static 4-char name buffer returned by FUN_00434814; [ebp-0x10]=saved this; [ebp-0x14]=inline strcmp cursor in arg_id_name; [ebp-0x18]=inline strcmp cursor in the name buffer; [ebp-0x19], [ebp-0x1a]=the two bytes held across one comparison step; [ebp-0x20]=strcmp result (0 equal, otherwise 1 or -1 via sbb); [ebp-0x24]=copy of the result; esi/edi saved and restored
+# fields:       this+0x5f68: chunk count (read); this+0x20e4[n]: flat chunk header pointers (read); this+0x4fc4[n]: 1000 dword used flags, all cleared to 0 first, then the matching entry set to 1 (written); this+0x1120: selected chunk payload pointer = header + 8; this+0x112c: selected chunk payload length, big-endian dword at header + 4; this+0x1130: selected chunk name buffer, copied with its NUL (these three written on a match only)
+# callees:      FUN_00434814 = CHiff::copy_fourcc_static (copy up to four non-NUL bytes to the static buffer at 0x0063a590, NUL terminate, return its address); FUN_004347b8 = read big-endian dword at a pointer (stack arg, thiscall)
+# track-n:      outputs/blackmoor-decomp/src/hiff.c:hiff_select_first
+# unverified:   the inline pairwise compare is the CRT strcmp expansion (name_buf byte versus argument byte, two bytes per step, stopping at a mismatch or NUL) and only its zero versus non-zero outcome is used, so the sign of a non-zero result is not verified to matter; the chunk length read at header+4 and the name read at header+0 are not bounds checked (the tables are built by FUN_00434025); the static name buffer at 0x0063a590 is a shared global and its reuse between calls is not analysed; a failed selection leaves this+0x1120, 0x112c and 0x1130 unchanged; the already-used test after the clear loop is unreachable as a skip in this function (all flags were just cleared) and is kept as written; the clear loop reuses local_chunk_index as its counter
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ local_cursor, 0x4  # [ebp - 0x4]
+.equ local_chunk_index, 0x8  # [ebp - 0x8]
+.equ local_name_buf, 0xc  # [ebp - 0xc]
+.equ local_saved_this, 0x10  # [ebp - 0x10]
+.equ local_arg_cursor, 0x14  # [ebp - 0x14]
+.equ local_name_cursor, 0x18  # [ebp - 0x18]
+.equ local_byte0, 0x19  # [ebp - 0x19]
+.equ local_byte1, 0x1a  # [ebp - 0x1a]
+.equ local_cmp, 0x20  # [ebp - 0x20]
+.equ local_cmp_copy, 0x24  # [ebp - 0x24]
+.equ arg_id_name, 0x8  # [ebp + 0x8]
+
+# --- external targets -----------------------------------------------
+.set FUN_004347b8, .text + (0x004347b8 - 0x401000)
+.set FUN_00434814, .text + (0x00434814 - 0x401000)
+
+.org 0x004344bf - 0x401000
+.globl FUN_004344bf
+FUN_004344bf:
+    # block 0x004344bf: function entry: build frame, spill this, clear loop index chunk_index = 0, jump to L_clear_test
+    push ebp                                     # 004344bf
+    {load} mov ebp, esp                          # 004344c0
+    sub esp, 0x24                                # 004344c2
+    push esi                                     # 004344c5
+    push edi                                     # 004344c6
+    mov dword ptr [ebp - local_saved_this], ecx          # 004344c7
+    mov dword ptr [ebp - local_chunk_index], 0x0           # 004344ca
+    jmp.d8 L_clear_test                            # 004344d1
+L_clear_next:
+    # block 0x004344d3: L_clear_next: index + 1
+    mov eax, dword ptr [ebp - local_chunk_index]           # 004344d3
+    add eax, 0x1                                 # 004344d6
+    mov dword ptr [ebp - local_chunk_index], eax           # 004344d9
+L_clear_test:
+    # block 0x004344dc: L_clear_test: signed compare index with 1000 (0x3e8); index >= 1000 goes to L_scan_start
+    cmp dword ptr [ebp - local_chunk_index], 0x3e8         # 004344dc
+    jge.d8 L_scan_start                            # 004344e3
+    # block 0x004344e5: loop body: this+0x4fc4+4*index = 0 (clear a used flag), loop to L_clear_next
+    mov ecx, dword ptr [ebp - local_chunk_index]           # 004344e5
+    mov edx, dword ptr [ebp - local_saved_this]          # 004344e8
+    mov dword ptr [edx + 4*ecx + 0x4fc4], 0x0    # 004344eb
+    jmp.d8 L_clear_next                            # 004344f6
+L_scan_start:
+    # block 0x004344f8: L_scan_start: chunk_index = 0, jump to L_chunk_test
+    mov dword ptr [ebp - local_chunk_index], 0x0           # 004344f8
+    jmp.d8 L_chunk_test                            # 004344ff
+L_next_chunk:
+    # block 0x00434501: L_next_chunk: chunk_index + 1
+    mov eax, dword ptr [ebp - local_chunk_index]           # 00434501
+    add eax, 0x1                                 # 00434504
+    mov dword ptr [ebp - local_chunk_index], eax           # 00434507
+L_chunk_test:
+    # block 0x0043450a: L_chunk_test: signed compare chunk_index with the chunk count this+0x5f68; index >= count goes to L_not_found
+    mov ecx, dword ptr [ebp - local_saved_this]          # 0043450a
+    mov edx, dword ptr [ebp - local_chunk_index]           # 0043450d
+    cmp edx, dword ptr [ecx + 0x5f68]            # 00434510
+    jge.d32 L_not_found                           # 00434516
+    # block 0x0043451c: cursor = chunk header pointer this+0x20e4[chunk_index]; name_buf = FUN_00434814(cursor); arg cursor = arg_id_name, name cursor = name_buf
+    mov eax, dword ptr [ebp - local_chunk_index]           # 0043451c
+    mov ecx, dword ptr [ebp - local_saved_this]          # 0043451f
+    mov edx, dword ptr [ecx + 4*eax + 0x20e4]    # 00434522
+    mov dword ptr [ebp - local_cursor], edx           # 00434529
+    mov eax, dword ptr [ebp - local_cursor]           # 0043452c
+    push eax                                     # 0043452f
+    mov ecx, dword ptr [ebp - local_saved_this]          # 00434530
+    call FUN_00434814                            # 00434533
+    mov dword ptr [ebp - local_name_buf], eax           # 00434538
+    mov ecx, dword ptr [ebp + arg_id_name]             # 0043453b
+    mov dword ptr [ebp - local_arg_cursor], ecx          # 0043453e
+    mov edx, dword ptr [ebp - local_name_buf]           # 00434541
+    mov dword ptr [ebp - local_name_cursor], edx          # 00434544
+L_cmp_loop:
+    # block 0x00434547: L_cmp_loop: load a name_buf byte; unequal to the argument byte goes to L_differ
+    mov eax, dword ptr [ebp - local_name_cursor]          # 00434547
+    mov cl, byte ptr [eax]                       # 0043454a
+    mov byte ptr [ebp - local_byte0], cl            # 0043454c
+    mov edx, dword ptr [ebp - local_arg_cursor]          # 0043454f
+    cmp cl, byte ptr [edx]                       # 00434552
+    jne.d8 L_differ                            # 00434554
+    # block 0x00434556: bytes equal: a NUL byte means both strings ended, go to L_equal
+    cmp byte ptr [ebp - local_byte0], 0x0           # 00434556
+    je.d8 L_equal                             # 0043455a
+    # block 0x0043455c: compare the next byte pair; unequal goes to L_differ
+    mov eax, dword ptr [ebp - local_name_cursor]          # 0043455c
+    mov cl, byte ptr [eax + 0x1]                 # 0043455f
+    mov byte ptr [ebp - local_byte1], cl            # 00434562
+    mov edx, dword ptr [ebp - local_arg_cursor]          # 00434565
+    cmp cl, byte ptr [edx + 0x1]                 # 00434568
+    jne.d8 L_differ                            # 0043456b
+    # block 0x0043456d: advance both cursors by 2; continue the loop while the second byte was not NUL, else fall into L_equal
+    add dword ptr [ebp - local_name_cursor], 0x2          # 0043456d
+    add dword ptr [ebp - local_arg_cursor], 0x2          # 00434571
+    cmp byte ptr [ebp - local_byte1], 0x0           # 00434575
+    jne.d8 L_cmp_loop                            # 00434579
+L_equal:
+    # block 0x0043457b: L_equal: strcmp result = 0, go to L_cmp_done
+    mov dword ptr [ebp - local_cmp], 0x0          # 0043457b
+    jmp.d8 L_cmp_done                            # 00434582
+L_differ:
+    # block 0x00434584: L_differ: sbb eax,eax / sbb eax,-1 turn the carry of the failed unsigned byte compare into -1 (name_buf byte below the argument byte) or +1 (above); only zero versus non-zero is consumed
+    {load} sbb eax, eax                          # 00434584
+    sbb eax, -0x1                                # 00434586
+    mov dword ptr [ebp - local_cmp], eax          # 00434589
+L_cmp_done:
+    # block 0x0043458c: L_cmp_done: copy the result; non-zero goes to L_continue
+    mov ecx, dword ptr [ebp - local_cmp]          # 0043458c
+    mov dword ptr [ebp - local_cmp_copy], ecx          # 0043458f
+    cmp dword ptr [ebp - local_cmp_copy], 0x0          # 00434592
+    jne.d32 L_continue                           # 00434596
+    # block 0x0043459c: names equal: if this+0x4fc4[chunk_index] already equals 1 go to L_continue (cannot happen right after the clear loop above)
+    mov edx, dword ptr [ebp - local_chunk_index]           # 0043459c
+    mov eax, dword ptr [ebp - local_saved_this]          # 0043459f
+    cmp dword ptr [eax + 4*edx + 0x4fc4], 0x1    # 004345a2
+    je.d8 L_continue                             # 004345aa
+    # block 0x004345ac: set this+0x4fc4[chunk_index] = 1; cursor += 4, this+0x112c = big-endian dword at cursor; cursor += 4, this+0x1120 = cursor; copy name_buf (strlen+1) to this+0x1130; return eax = 1 (jump to L_return)
+    mov ecx, dword ptr [ebp - local_chunk_index]           # 004345ac
+    mov edx, dword ptr [ebp - local_saved_this]          # 004345af
+    mov dword ptr [edx + 4*ecx + 0x4fc4], 0x1    # 004345b2
+    mov eax, dword ptr [ebp - local_cursor]           # 004345bd
+    add eax, 0x4                                 # 004345c0
+    mov dword ptr [ebp - local_cursor], eax           # 004345c3
+    mov ecx, dword ptr [ebp - local_cursor]           # 004345c6
+    push ecx                                     # 004345c9
+    mov ecx, dword ptr [ebp - local_saved_this]          # 004345ca
+    call FUN_004347b8                            # 004345cd
+    mov edx, dword ptr [ebp - local_saved_this]          # 004345d2
+    mov dword ptr [edx + 0x112c], eax            # 004345d5
+    mov eax, dword ptr [ebp - local_cursor]           # 004345db
+    add eax, 0x4                                 # 004345de
+    mov dword ptr [ebp - local_cursor], eax           # 004345e1
+    mov ecx, dword ptr [ebp - local_saved_this]          # 004345e4
+    mov edx, dword ptr [ebp - local_cursor]           # 004345e7
+    mov dword ptr [ecx + 0x1120], edx            # 004345ea
+    mov edi, dword ptr [ebp - local_name_buf]           # 004345f0
+    mov eax, dword ptr [ebp - local_saved_this]          # 004345f3
+    add eax, 0x1130                              # 004345f6
+    {load} mov edx, eax                          # 004345fb
+    or ecx, -0x1                                 # 004345fd
+    {load} xor eax, eax                          # 00434600
+    repne scasb al, byte ptr es:[edi]            # 00434602
+    not ecx                                      # 00434604
+    {load} sub edi, ecx                          # 00434606
+    {load} mov esi, edi                          # 00434608
+    {load} mov eax, ecx                          # 0043460a
+    {load} mov edi, edx                          # 0043460c
+    shr ecx, 0x2                                 # 0043460e
+    rep movsd dword ptr es:[edi], dword ptr [esi] # 00434611
+    {load} mov ecx, eax                          # 00434613
+    and ecx, 0x3                                 # 00434615
+    rep movsb byte ptr es:[edi], byte ptr [esi]  # 00434618
+    mov eax, 0x1                                 # 0043461a
+    jmp.d8 L_return                            # 0043461f
+L_continue:
+    # block 0x00434621: L_continue: go to L_next_chunk to test the next chunk
+    jmp.d32 L_next_chunk                           # 00434621
+L_not_found:
+    # block 0x00434626: L_not_found: eax = 0 (no match; the used flags stay cleared, selection fields untouched)
+    {load} xor eax, eax                          # 00434626
+L_return:
+    # block 0x00434628: L_return: restore edi/esi, tear down the frame, ret 4
+    pop edi                                      # 00434628
+    pop esi                                      # 00434629
+    {load} mov esp, ebp                          # 0043462a
+    pop ebp                                      # 0043462c
+    ret 0x4                                      # 0043462d
