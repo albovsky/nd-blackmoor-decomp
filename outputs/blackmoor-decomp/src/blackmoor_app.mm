@@ -2806,6 +2806,14 @@ static bool exit_payload_crop(NativeApp *app, size_t *crop_x, size_t *crop_y)
     if (action_family28_decode(app->exit_state.effect.active_payload,
                                ACTION_FAMILY_28_BODY_BYTES, &decoded, &consumed) !=
             ACTION_FAMILY28_OK || decoded.rect.left < 0 || decoded.rect.top < 0) return false;
+    /* Same guard as the diagnostic handoff: only the zero-sized rectangle the
+     * original expands to the full canvas is recovered (types 1/3 and other
+     * geometry stay explicit rather than silently cropping). */
+    if (decoded.rect.right != decoded.rect.left || decoded.rect.bottom != decoded.rect.top) {
+        record(app, "scene_exit_effect_unsupported non-full-canvas-body-rect=%d,%d,%d,%d",
+               decoded.rect.left, decoded.rect.top, decoded.rect.right, decoded.rect.bottom);
+        return false;
+    }
     *crop_x = static_cast<size_t>(decoded.rect.left);
     *crop_y = static_cast<size_t>(decoded.rect.top);
     return true;

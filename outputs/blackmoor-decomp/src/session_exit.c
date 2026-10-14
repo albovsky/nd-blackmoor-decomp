@@ -146,15 +146,13 @@ static int controller_sequence(SessionExit *x, const SessionExitHost *host,
                                SessionExitStepInfo *info)
 {
     ActionFamily28SequenceState state;
-    const uint8_t guard_in = (uint8_t)x->g.modal_input;
-    const uint8_t redraw_in = (uint8_t)x->g.cursor_layer;
     const uint8_t *payload = x->effect.active_payload;
 
     memset(&state, 0, sizeof(state));
     state.subtype = payload[PAYLOAD_TYPE];
     state.busy = x->effect.busy;
-    state.render_guard = guard_in;
-    state.redraw_flag = redraw_in;
+    state.render_guard = (uint8_t)x->g.modal_input;
+    state.redraw_flag = (uint8_t)x->g.cursor_layer;
     state.sequence_budget_ms = read_i16(payload + PAYLOAD_BUDGET);
     state.pause_ms = read_i16(payload + PAYLOAD_PAUSE);
     state.target_rect = x->effect.current_rect;
@@ -167,12 +165,8 @@ static int controller_sequence(SessionExit *x, const SessionExitHost *host,
         return host_failure(info, SESSION_EXIT_BOUNDARY_RUN_SEQUENCE);
     }
     x->effect.busy = state.busy;
-    if (state.render_guard != guard_in) {
-        x->g.modal_input = state.render_guard;
-    }
-    if (state.redraw_flag != redraw_in) {
-        x->g.cursor_layer = state.redraw_flag;
-    }
+    x->g.modal_input = state.render_guard;
+    x->g.cursor_layer = state.redraw_flag;
     x->effect.sequence_counter = state.stage;
     x->g.game_state = state.scene_state;
     x->g.redraw_request = (int32_t)state.finalizer_global_5831c8;
