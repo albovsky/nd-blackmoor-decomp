@@ -246,6 +246,124 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
+    case 0x35: {
+        int16_t count_6;
+        int16_t count_34;
+        size_t count_34_offset;
+        size_t typed;
+
+        /* 0x4bf8c2: signed words at +59 (n) and +61+6n (m) widen into 32-bit
+         * arithmetic, size 63 + 6n + 34m with no later narrowing or bound.
+         * Negative counts are unsafe in the original and rejected here. */
+        if (length < 61u) {
+            return -1;
+        }
+        count_6 = read_i16le(body + 59u);
+        if (count_6 < 0) {
+            return -1;
+        }
+        count_34_offset = 61u + (size_t)count_6 * 6u;
+        if (length < count_34_offset + 2u) {
+            return -1;
+        }
+        count_34 = read_i16le(body + count_34_offset);
+        if (count_34 < 0) {
+            return -1;
+        }
+        typed = count_34_offset + 2u + (size_t)count_34 * 34u;
+        if (length < typed) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x38: {
+        int32_t count;
+
+        /* 0x48905b: NUL-terminated 33-byte name, signed 16-bit endpoints at
+         * +0x33/+0x35 give a 32-bit frame count (no narrowing), 16 bytes each
+         * after the 71-byte prefix. The 100-row bound is the native safety
+         * limit for the original's dedicated frame table. */
+        if (length < 71u || memchr(body, 0, 33u) == NULL) {
+            return -1;
+        }
+        count = (int32_t)read_i16le(body + 0x35u) -
+                (int32_t)read_i16le(body + 0x33u) + 1;
+        if (count < 0 || count > 100) {
+            return -1;
+        }
+        *body_length = 71u + (size_t)count * 16u;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x3f: {
+        /* 0x41cd3c..0x41dac8: 77-byte prefix, signed word primary count at +75,
+         * low-signed-byte condition counts (high byte skipped); negative or
+         * unterminated-name cases are native safety rejections. */
+        int16_t primary_count;
+        size_t secondary_count;
+        size_t cursor = 77u;
+        size_t entry;
+        if (length < cursor) {
+            return -1;
+        }
+        /* The decoder requires NUL-terminated 33-byte name and key fields. */
+        if (memchr(body, 0, 33u) == NULL || memchr(body + 35u, 0, 33u) == NULL) {
+            return -1;
+        }
+        primary_count = read_i16le(body + 75u);
+        if (primary_count < 0) {
+            return -1;
+        }
+        for (entry = 0u; entry < (size_t)primary_count; ++entry) {
+            size_t count;
+            size_t extent;
+            if (length - cursor < 2u) {
+                return -1;
+            }
+            count = body[cursor]; /* original movsx reads LOW signed byte */
+            if (count > 127u) {
+                return -1;
+            }
+            extent = 70u + 5u * count;
+            if (extent > length - cursor) {
+                return -1;
+            }
+            if (memchr(body + cursor + 2u + 5u * count, 0, 33u) == NULL ||
+                memchr(body + cursor + 35u + 5u * count, 0, 33u) == NULL) {
+                return -1;
+            }
+            cursor += extent;
+        }
+        if (length - cursor < 2u) {
+            return -1;
+        }
+        secondary_count = body[cursor]; /* high byte is skipped */
+        if (secondary_count > 127u) {
+            return -1;
+        }
+        cursor += 2u;
+        for (entry = 0u; entry < secondary_count; ++entry) {
+            size_t count;
+            size_t extent;
+            if (length - cursor < 2u) {
+                return -1;
+            }
+            count = body[cursor];
+            if (count > 127u) {
+                return -1;
+            }
+            extent = 6u + 5u * count;
+            if (extent > length - cursor) {
+                return -1;
+            }
+            cursor += extent;
+        }
+        *body_length = cursor;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
     case 0x6a: {
         uint16_t count;
         if (length < 42u) {
