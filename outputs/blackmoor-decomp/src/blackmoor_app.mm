@@ -1734,8 +1734,27 @@ static int native_action_sound_handler(
            app->captions.last_writer_status, app->captions.transfer_blocked);
     if (status == ACTION_SOUND_ERR_UNSUPPORTED)
         return SCENE_ACTION_HANDLER_UNSUPPORTED;
-    if (status != ACTION_SOUND_OK || effect.has_transition != 0u)
-        return SCENE_ACTION_HANDLER_ERROR;
+    if (status != ACTION_SOUND_OK) return SCENE_ACTION_HANDLER_ERROR;
+    if (effect.has_transition != 0u) {
+        /* Mode-0 completion ends the scene with the 0x9f transition tuple.
+         * The handler also sets engine state 4 and DAT_005bb1ca; the engine
+         * state is the exit path (session_exit) and the start-flag mirror is
+         * not wired for this route (named gap). */
+        SceneTransitionRequest request{};
+        request.target_scene = effect.transition.target_scene;
+        for (int i = 0; i < 3; ++i) {
+            request.opaque_words[i] = effect.transition.opaque_words[i];
+            request.opaque_dwords[i] = effect.transition.opaque_dwords[i];
+        }
+        if (app->session == nullptr ||
+            scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) {
+            record(app, "scene_action_sound_transition_error row=%zu target=%d",
+                   action_index, request.target_scene);
+            return SCENE_ACTION_HANDLER_ERROR;
+        }
+        record(app, "scene_action_sound_transition row=%zu target=%d", action_index,
+               request.target_scene);
+    }
     result->phase = effect.phase;
     if (effect.reset_dependencies != 0u) {
         result->disposition = SCENE_ACTION_HANDLER_RESET_DEPENDENCIES;

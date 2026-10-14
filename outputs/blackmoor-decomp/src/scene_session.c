@@ -691,3 +691,15 @@ const char *scene_session_provider_string(SceneSessionProvider provider)
     default: return "unknown-provider";
     }
 }
+
+int scene_session_request_transition(SceneSession *session,
+                                     const SceneTransitionRequest *request)
+{
+    if (session == NULL || request == NULL || session->executor == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    return scene_executor_request_transition(session->executor, request) ==
+                   SCENE_EXECUTOR_OK
+               ? SCENE_SESSION_OK
+               : SCENE_SESSION_ERR_STATE;
+}
