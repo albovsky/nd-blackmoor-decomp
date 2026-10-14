@@ -354,8 +354,8 @@
     "source_ref": "d31389d07b67813ef3eff7d0ac5e57c308187f1c (branch codex/rt-7-movie-runtime, PR 15; RT-7 0x35 MOVIE controller init)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 1074,
-      "passed": 1069,
+      "discovered": 1173,
+      "passed": 1168,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
