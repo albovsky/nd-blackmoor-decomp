@@ -19,7 +19,7 @@ S0 → S5900 → S5907 → S5901 → S5902 → S5903 → S5904 → S5905 → S59
 
 Counts use current parser registrations and the census's per-type record counts. A registered native handler can still block on an unsupported branch or provider; these counts do not prove every record or scene playable. The handled record count is an upper bound: raw `0x15` is a hotspot only when `typed_body[0] == 0x0d`.
 
-**Tests:** 961 discovered; 956 passed; 5 skipped (committed `status.json` `current_integration.full_suite`).
+**Tests:** 967 discovered; 962 passed; 5 skipped (committed `status.json` `current_integration.full_suite`).
 
 Test totals come from `status.json` `current_integration.full_suite` at its recorded source `f44761b4d0a98f937230be40ea3bc1177dcc9713 (branch claude/hungry-matsumoto-8ab8eb, PR 10; last code change, docs follow)`, which may differ from the live-run commit.
 
@@ -29,9 +29,9 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 - Typed, unsupported: `0x0b`, `0x35`, `0x37`, `0x38`, `0x3e`, `0x3f`, `0x47`, `0x4f`, `0x6e`, `0x78`, `0x79`, `0x95`, `0x97`, `0xa1`, `0xd9`
 - Opaque: `0x0c`, `0x16`, `0x17`, `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x2e`, `0x33`, `0x36`, `0x43`, `0x44`, `0x45`, `0x4b`, `0x4e`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6d`, `0x6f`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x83`, `0x94`, `0x9a`, `0xaa`, `0xd0`, `0xd1`, `0xd3`, `0xd6`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 
-Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `255d3e7cfc4ccf1a7e9df7c7dfe1b0de88dfe91d`; native SHA-256 `92f12a05a7c1c083dff677f00c26856f5a662595e65c55bfc1719b2dbfea0610`; 675 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `7771d60ec07a8a31a719f5d4caf4508de3242e73`; native SHA-256 `92f12a05a7c1c083dff677f00c26856f5a662595e65c55bfc1719b2dbfea0610`; 675 session ticks.
 
-`playable-status.json` sha256 `4e9480a4483e4a30acc0a82a1a06acad2da600ad7b329d0e3c029d8713fb6ac7`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `5b62b679b6492992c052e795ec54ce08ae1b42a42640e997e3afbfb5290683b4`. Derivation and limits: `README.md`.
 
 ## x86 matching
 
@@ -325,4 +325,4 @@ Cross-check of **legacy manifests only** against `status.json` unique_matched_by
 - `asm/batch-002-report.json` sha256 `3a7c16f30fa9b3e39758504baaaf6d875d9ca748871da221ff128109d7547426` (audit)
 - `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (excluded)
 - `matches_s08_2.json` sha256 `a173f7c06607d87e3e630a937d7d786037dc83202609f524eece7b146b6ba41c` (excluded)
-- `status.json` sha256 `69156352eb354796ebd274e592cf511a8a9e7de38a023d62e3ef22cdbcfb7afa` (crosscheck)
+- `status.json` sha256 `88ff9fe95165d7ce007de62e8cd302c2cd32bd951ad5b72d6ca411c9e5233791` (crosscheck)

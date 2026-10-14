@@ -68,7 +68,7 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
         self.assertEqual(p["stop"]["action_type"], "0x35")
         self.assertEqual(p["stop"]["row"], 3)
-        self.assertEqual(p["tests"], {"discovered": 961, "passed": 956, "skipped": 5,
+        self.assertEqual(p["tests"], {"discovered": 967, "passed": 962, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
     def test_action_body_counts_use_current_source_and_census_records(self):
@@ -147,7 +147,7 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700", report)
         self.assertIn("provider action-kernel", report)
-        self.assertIn("961 discovered; 956 passed; 5 skipped", report)
+        self.assertIn("967 discovered; 962 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
         t = self.model["totals"]
