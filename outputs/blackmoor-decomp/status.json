@@ -83,8 +83,8 @@
   "native_scene_resource_parser": {
     "scenes_parsed": 2078,
     "action_records": 19612,
-    "typed_actions": 15397,
-    "opaque_actions": 4215,
+    "typed_actions": 17920,
+    "opaque_actions": 1692,
     "known_dependency_records": 17050,
     "targeted_tests": 18,
     "action_execution": false,
@@ -97,7 +97,22 @@
       "source": "A-37.2 parser-registration proposal; 0x4895cc consumes 69 bytes",
       "execution": false,
       "note": "typed body boundary only; the 0x37 handler (runtime type 0x36 lifecycle, rendering) is not implemented and the executor still reports it unsupported at dispatch"
-    }
+    },
+    "registered_0x97": {
+      "records": 1958,
+      "rule": "signed count 1..9, 15+33n prefix, entries -1=35 bytes or 2+selector (sum<=32767)",
+      "reviewed_commit": "98ba3f8",
+      "oracle": "1958 records, 7728 alternatives, 0 mismatches",
+      "execution": false
+    },
+    "registered_0xa1": {
+      "records": 565,
+      "rule": "selector at +49: -1 -> 84 bytes, 0..9999 -> 51+selector",
+      "reviewed_commit": "f6d12f6",
+      "oracle": "565 records + 8 synthetic, 0 mismatches",
+      "execution": false
+    },
+    "note_registered": "Typed body boundaries only for 0x37, 0x97 and 0xa1; handlers/runtime unimplemented and the executor reports them unsupported at dispatch."
   },
   "native_bink_adapter": {
     "native_library": "installed FFmpeg 9.0.1",
@@ -134,8 +149,8 @@
     "caption_renderer": true
   },
   "next_action_recovery": {
-    "typed_actions": 15397,
-    "opaque_actions": 4215,
+    "typed_actions": 17920,
+    "opaque_actions": 1692,
     "next_body_candidates": [
       "0x62",
       "0x35",
@@ -149,7 +164,7 @@
       "remaining control code1 and NLS paths",
       "timed video and remaining scene handlers"
     ],
-    "superseded_note": "Counts refreshed 2026-10-14 to match native_scene_resource_parser. next_body_candidates is a historical list: 0x62 is already typed and 0x37 is registered; 0x38 and 0x3f remain opaque. Packets now active: A-97.1, A-A1.1, A-35.1."
+    "superseded_note": "Counts refreshed 2026-10-14 to match native_scene_resource_parser. next_body_candidates is a historical list: 0x62 is already typed and 0x37, 0x97, 0xa1 are registered; 0x35, 0x38 and 0x3f remain opaque. A-35.1 is active."
   },
   "native_conditions": {
     "supported_opcodes": [
