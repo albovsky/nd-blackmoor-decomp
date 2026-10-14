@@ -174,9 +174,8 @@ class ExecutorExtensionTests(unittest.TestCase):
 
     def click(self, executor, state, rect=(10, 20, 30, 40)):
         self.step_frame(executor, state, self.frame())
-        self.step_frame(executor, state, self.frame(x=rect[0], y=rect[1], pointer=True, context=True))
         self.events.clear()
-        return self.step_frame(executor, state, self.frame(activation=True))
+        return self.step_frame(executor, state, self.frame(activation=True, candidate=0))
 
     @staticmethod
     def item_behaviour(selected_labels):

@@ -30,8 +30,6 @@ struct SceneActionExecutor {
     SceneConditionTree **conditions;
     SceneActionRuntimeState *states;
     SceneExecutorHotspotState *hotspots;
-    size_t pending_hotspot_index;
-    int has_pending_hotspot;
     int in_external_callback;
     int callback_transition_requested;
     SceneTransitionRequest callback_transition;
@@ -654,16 +652,19 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         return SCENE_EXECUTOR_OK;
     }
 
-    /* 43a7ca consumes the WM_LBUTTONUP latch and accepts the candidate cached
-     * by the preceding 4d3073/4f0059 cursor scan before calling 427a50. The
-     * host supplies this message-map-verified event gate explicitly. Candidate
-     * and modal/completion/dependency guards mirror the original caller. */
-    if (executor->has_pending_hotspot) {
-        size_t candidate = executor->pending_hotspot_index;
-        executor->has_pending_hotspot = 0;
-        executor->pending_hotspot_index = SIZE_MAX;
-        if (frame_input->hotspot_activation_event &&
-            !frame_input->modal_event_active &&
+    /* 43a7ca consumes the WM_LBUTTONUP latch (4daf3f) and, in 43bfb6, accepts
+     * the global candidate 0x5c39e5 before calling 427a50. RT-6: the executor
+     * keeps NO candidate of its own. The host's input module owns the single
+     * retained value (scanned after the previous dispatch, first hit in row
+     * order) and passes it with the accepted event. The original block does
+     * not look at the row's type, only at [0,0xf0) and the modal word, so it
+     * covers built-in hotspots and the 0x62 request rows alike. Modal /
+     * completion / dependency guards mirror the original caller. */
+    if (frame_input->hotspot_activation_event &&
+        frame_input->activation_candidate_valid &&
+        frame_input->activation_candidate >= 0) {
+        size_t candidate = (size_t)frame_input->activation_candidate;
+        if (!frame_input->modal_event_active &&
             candidate < executor->action_count &&
             candidate < SCENE_EXECUTOR_MAX_ACTIONS &&
             !executor->states[candidate].completed) {
@@ -680,7 +681,7 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
                 *step_info = local_info;
                 return SCENE_EXECUTOR_ERR_FORMAT;
             }
-            if (is_builtin_hotspot(&candidate_action)) {
+            {
                 /* 0x43bff8: 0x42405a(root) returns the opcode-11 chain count.
                  * Empty chain: 0x43c048 accepts with no tree evaluation. Else
                  * 0x43c019 runs the wrapper with mode 0 and acceptance also
@@ -937,30 +938,9 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         }
     }
 
-    /* 4d3073 clears the global candidate before its 4f0059 cursor scan. Do
-     * the same even when the current frame has no usable pointer, otherwise
-     * a hover from an older frame would survive an intervening miss. */
-    executor->has_pending_hotspot = 0;
-    executor->pending_hotspot_index = SIZE_MAX;
-
-    /* 4f0059 scans active action rectangles using inclusive bounds. The host
-     * supplies the cursor hot point after viewport-origin, scene-scroll, and
-     * cursor-sprite-offset transforms; a primary-button check is not part of
-     * this recovered rectangle loop. */
-    if (frame_input->pointer_valid &&
-        frame_input->cursor_context_allowed) {
-        for (index = 0u; index < executor->action_count; ++index) {
-            const SceneExecutorHotspotState *hotspot = &executor->hotspots[index];
-            if (hotspot->active && hotspot->rectangle_valid &&
-                frame_input->pointer_y >= hotspot->top &&
-                frame_input->pointer_y <= hotspot->bottom &&
-                frame_input->pointer_x >= hotspot->left &&
-                frame_input->pointer_x <= hotspot->right) {
-                executor->pending_hotspot_index = index;
-                executor->has_pending_hotspot = 1;
-            }
-        }
-    }
+    /* The 4d3073 -> 4f0059 cursor scan that follows the dispatcher is not an
+     * executor concern any more (RT-6): the session reads the hotspot
+     * snapshot after this step and the input module scans it. */
 
     *step_info = local_info;
     return SCENE_EXECUTOR_OK;
@@ -972,7 +952,7 @@ int scene_executor_step(SceneActionExecutor *executor,
                         size_t handler_count,
                         SceneExecutorStepInfo *step_info)
 {
-    const SceneExecutorFrameInput frame_input = {0, 0, 0, 0u, 0u, 0u, 0u};
+    const SceneExecutorFrameInput frame_input = {0, 0, 0, 0u, 0u, 0u, 0u, 0u, 0};
     return scene_executor_step_frame(executor, state, handlers, handler_count,
                                      &frame_input, step_info);
 }

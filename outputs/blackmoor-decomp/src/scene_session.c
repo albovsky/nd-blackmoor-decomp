@@ -62,6 +62,9 @@ struct SceneSession {
     SceneConditionFailure condition_failure;
     SceneSessionTickResult last_result;
     int last_ui_status;
+    SceneSessionPointerHost pointer;
+    int pointer_bound;
+    SceneSessionPointerResult pointer_result;
 };
 
 static void clear_failure(SceneSessionFailure *failure)
@@ -392,6 +395,42 @@ static void freeze_result(SceneSession *session,
     session->last_result = *result;
 }
 
+/* 4d3073 -> 4f0059: offer every hit-testable row, ascending, to the host. */
+static int pointer_scan(SceneSession *session)
+{
+    SessionInputHotspot rows[SCENE_EXECUTOR_MAX_ACTIONS];
+    size_t count = 0u;
+    size_t actions = scene_resource_action_count(session->scene);
+    size_t index;
+    int32_t candidate = -1;
+    int status;
+    if (actions > SCENE_EXECUTOR_MAX_ACTIONS) actions = SCENE_EXECUTOR_MAX_ACTIONS;
+    for (index = 0u; index < actions; ++index) {
+        SceneExecutorHotspotState hotspot;
+        SessionInputHotspot row;
+        memset(&row, 0, sizeof(row));
+        if (scene_executor_get_hotspot_state(session->executor, index, &hotspot) ==
+                SCENE_EXECUTOR_OK && hotspot.active && hotspot.rectangle_valid) {
+            row.index = (int32_t)index;
+            row.rectangle.left = hotspot.left;
+            row.rectangle.top = hotspot.top;
+            row.rectangle.right = hotspot.right;
+            row.rectangle.bottom = hotspot.bottom;
+            row.active = 1u;
+            rows[count++] = row;
+        } else if (session->pointer.external_row != NULL &&
+                   session->pointer.external_row(session->pointer.context, index, &row) == 1) {
+            row.index = (int32_t)index;
+            rows[count++] = row;
+        }
+    }
+    status = session->pointer.scan(session->pointer.context, rows, count, &candidate);
+    session->pointer_result.scan_status = status;
+    session->pointer_result.scan_rows = (uint32_t)count;
+    session->pointer_result.candidate_after_scan = status == SESSION_INPUT_OK ? candidate : -1;
+    return status;
+}
+
 int scene_session_tick(SceneSession *session,
                        SceneSessionTickResult *result)
 {
@@ -412,6 +451,12 @@ int scene_session_tick(SceneSession *session,
     memset(&frame_input, 0, sizeof(frame_input));
     local.tick_index = ++session->tick_count;
     local.scene_generation = session->scene_generation;
+    memset(&session->pointer_result, 0, sizeof(session->pointer_result));
+    session->pointer_result.tick_index = local.tick_index;
+    session->pointer_result.consume_status = -1;
+    session->pointer_result.scan_status = -1;
+    session->pointer_result.candidate_at_consume = -1;
+    session->pointer_result.candidate_after_scan = -1;
 
     local.prepare_attempted = 1u;
     if (session->prepare_tick == NULL) {
@@ -471,6 +516,45 @@ int scene_session_tick(SceneSession *session,
     }
     local.media_succeeded = 1u;
 
+    if (session->pointer_bound) {
+        int32_t candidate = -1;
+        int pointer_status;
+        /* The input module owns these members while it is bound. */
+        frame_input.pointer_x = 0;
+        frame_input.pointer_y = 0;
+        frame_input.pointer_valid = 0u;
+        frame_input.cursor_context_allowed = 0u;
+        frame_input.modal_event_active = 0u;
+        frame_input.hotspot_activation_event = 0u;
+        frame_input.activation_candidate_valid = 0u;
+        frame_input.activation_candidate = 0;
+        session->pointer_result.consume_status =
+            pointer_status = session->pointer.consume(session->pointer.context,
+                                                      &frame_input, &candidate);
+        if (pointer_status == SESSION_INPUT_INVALID_ARGUMENT ||
+            (pointer_status != SESSION_INPUT_OK &&
+             pointer_status != SESSION_INPUT_LIMIT_CURSOR_GEOMETRY &&
+             pointer_status != SESSION_INPUT_LIMIT_PRIORITY_PATH)) {
+            block_missing(&failure, SCENE_SESSION_STAGE_POINTER,
+                SCENE_SESSION_PROVIDER_POINTER_INPUT, pointer_status);
+            freeze_result(session, &local, SCENE_SESSION_BLOCKED, &failure);
+            *result = session->last_result;
+            return result->status;
+        }
+        session->pointer_result.candidate_at_consume = candidate;
+        if (pointer_status != SESSION_INPUT_OK) {
+            /* A projection limit consumed the edge; nothing may activate. */
+            frame_input.hotspot_activation_event = 0u;
+        }
+        if (candidate >= 0) {
+            frame_input.activation_candidate_valid = 1u;
+            frame_input.activation_candidate = candidate;
+        }
+        session->pointer_result.activation_event = frame_input.hotspot_activation_event;
+        session->pointer_result.activation_candidate_valid =
+            frame_input.activation_candidate_valid;
+    }
+
     local.dispatch_attempted = 1u;
     executor_status = scene_executor_step_frame(session->executor,
         session->conditions, session->executor_handlers,
@@ -518,6 +602,18 @@ int scene_session_tick(SceneSession *session,
         session->last_result = local;
         *result = local;
         return local.status;
+    }
+    if (session->pointer_bound) {
+        int scan_status = pointer_scan(session);
+        if (scan_status != SESSION_INPUT_OK &&
+            scan_status != SESSION_INPUT_LIMIT_CURSOR_GEOMETRY &&
+            scan_status != SESSION_INPUT_LIMIT_PRIORITY_PATH) {
+            block_missing(&failure, SCENE_SESSION_STAGE_POINTER,
+                SCENE_SESSION_PROVIDER_POINTER_INPUT, scan_status);
+            freeze_result(session, &local, SCENE_SESSION_BLOCKED, &failure);
+            *result = session->last_result;
+            return result->status;
+        }
     }
     local.status = SCENE_SESSION_OK;
     session->last_result = local;
@@ -573,6 +669,20 @@ int scene_session_replace_scene(SceneSession *session,
         return status == SCENE_EXECUTOR_ERR_MEMORY
                    ? SCENE_SESSION_ERR_MEMORY : SCENE_SESSION_ERR_EXECUTOR;
     }
+    /* Latch constructor 0x4dad60 + candidate -1 (the loaders 0x435015,
+     * 0x4381f4 and 0x43dbe3 all run it). The candidate executor is complete,
+     * so a failing reset can still refuse the replacement unchanged. */
+    if (session->pointer_bound &&
+        session->pointer.reset(session->pointer.context) != SESSION_INPUT_OK) {
+        scene_executor_destroy(candidate);
+        if (failure != NULL) {
+            failure->stage = SCENE_SESSION_STAGE_POINTER;
+            failure->provider = SCENE_SESSION_PROVIDER_POINTER_INPUT;
+            failure->action_index = SIZE_MAX;
+            failure->detail_status = SESSION_INPUT_INVALID_ARGUMENT;
+        }
+        return SCENE_SESSION_ERR_STATE;
+    }
     old_executor = session->executor;
     session->executor = candidate;
     session->scene = scene;
@@ -583,6 +693,11 @@ int scene_session_replace_scene(SceneSession *session,
     memset(&session->last_result, 0, sizeof(session->last_result));
     session->last_result.status = SCENE_SESSION_OK;
     session->last_result.scene_generation = session->scene_generation;
+    memset(&session->pointer_result, 0, sizeof(session->pointer_result));
+    session->pointer_result.consume_status = -1;
+    session->pointer_result.scan_status = -1;
+    session->pointer_result.candidate_at_consume = -1;
+    session->pointer_result.candidate_after_scan = -1;
     scene_executor_destroy(old_executor);
     return SCENE_SESSION_OK;
 }
@@ -633,6 +748,29 @@ int scene_session_get_condition_failure(const SceneSession *session,
         return SCENE_SESSION_ERR_ARGUMENT;
     }
     *failure = session->condition_failure;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_bind_pointer(SceneSession *session,
+                               const SceneSessionPointerHost *host)
+{
+    if (session == NULL || host == NULL || host->consume == NULL ||
+        host->scan == NULL || host->reset == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    if (host->reset(host->context) != SESSION_INPUT_OK) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    session->pointer = *host;
+    session->pointer_bound = 1;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_get_pointer_result(const SceneSession *session,
+                                     SceneSessionPointerResult *result)
+{
+    if (session == NULL || result == NULL) return SCENE_SESSION_ERR_ARGUMENT;
+    *result = session->pointer_result;
     return SCENE_SESSION_OK;
 }
 
