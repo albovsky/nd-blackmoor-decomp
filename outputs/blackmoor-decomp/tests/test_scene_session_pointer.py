@@ -91,10 +91,13 @@ class Rig:
         self.external_rows = dict(external_rows)
         self.calls = []
         self.consume_override = None
+        self.on_consume = None
         rig = self
 
         def consume(_ctx, frame, candidate):
             rig.calls.append("consume")
+            if rig.on_consume is not None:
+                rig.on_consume()
             if rig.consume_override is not None:
                 return rig.consume_override
             status = lib.session_input_tick(c.byref(rig.state), c.byref(rig.ctx), frame)
@@ -261,7 +264,7 @@ class SessionPointerTests(unittest.TestCase):
         rig2.click()
         self.tick(session2)
         self.assertEqual(flags2[2], 9)
-        self.assertEqual([phase for _index, phase in visits2], [0, 0])
+        self.assertEqual([phase for _index, phase in visits2], [0, 1])  # never 2
 
     def test_scan_offers_exported_and_external_rows_in_ascending_order(self):
         # Row 2 is a hotspot whose frame never matches (not exported).
@@ -272,6 +275,20 @@ class SessionPointerTests(unittest.TestCase):
         _result, pointer = self.tick(session)
         self.assertEqual(rig.scanned, [(0, *RECT), (1, 0, 0, 5, 5), (3, 50, 60, 70, 80)])
         self.assertEqual(pointer.scan_rows, 3)
+
+    def test_inactive_hotspot_with_a_remembered_rectangle_is_not_offered(self):
+        # Once the dependency gate closes the row is inactive although its
+        # rectangle is still valid; the original request dword (+0x43) is zero
+        # then, so 4f0059 must not hit it.
+        gate = base.SceneSessionTests.flag_gate(5)
+        row = action(0x6A, 2, exe.hotspot_6a_body(0, RECT, ((1, 5),)), (gate,))
+        session, flags, rig, _visits = self.start([row])
+        flags[5] = 1
+        _result, pointer = self.tick(session)
+        self.assertEqual((pointer.scan_rows, pointer.candidate_after_scan), (1, 0))
+        flags[5] = 0
+        _result, pointer = self.tick(session)
+        self.assertEqual((pointer.scan_rows, pointer.candidate_after_scan), (0, -1))
 
     def test_no_candidate_when_cursor_is_outside_every_rectangle(self):
         session, flags, rig, _visits = self.start([self.hotspot(1, 5)])
@@ -352,7 +369,7 @@ class SessionPointerTests(unittest.TestCase):
         resets = rig.calls.count("reset")
         # A resource whose executor cannot be built fails the replacement;
         # nothing about the old scene may be disturbed.
-        bad, bad_owner = self.open_scene([action(0x6A, 2, b"\x00" * 3)])
+        bad, bad_owner = self.open_scene([action(0xEE, 0, b"opaque")])
         self.addCleanup(lambda: self.lib.scene_resource_close(bad))
         status = self.lib.scene_session_replace_scene(
             session, bad, 12, c.byref(base.SceneSessionFailure()))
@@ -366,14 +383,7 @@ class SessionPointerTests(unittest.TestCase):
         order = []
         session, _flags, rig, visits = self.start(
             [self.request_row()], external_rows={0: RECT})
-        original = rig.host.consume
-
-        @ConsumeFn
-        def traced(ctx, frame, candidate):
-            order.append(("consume", len(visits)))
-            return original(ctx, frame, candidate)
-
-        rig.host.consume = traced
+        rig.on_consume = lambda: order.append(("consume", len(visits)))
         self.tick(session)
         rig.click()
         self.tick(session)
@@ -463,6 +473,15 @@ class SessionPointerTests(unittest.TestCase):
         self.tick(session)
         self.tick(session)
         self.assertEqual(flags[1], 0)
+
+        # A host whose consume leaves the frame untouched still cannot inherit
+        # the forged event: the session reports what it hands the executor.
+        session3, flags3, rig3, _visits3 = self.start(
+            [self.hotspot(1, 5)], prepare_extra=forge)
+        rig3.consume_override = INPUT_OK
+        _result, pointer = self.tick(session3)
+        self.assertEqual((pointer.activation_event, pointer.activation_candidate_valid), (0, 0))
+        self.assertEqual(flags3[1], 0)
 
         # Without a bound input module the frame passes through unchanged (the
         # legacy host contract): the same forged event activates row 0.

@@ -531,10 +531,9 @@ int scene_session_tick(SceneSession *session,
         session->pointer_result.consume_status =
             pointer_status = session->pointer.consume(session->pointer.context,
                                                       &frame_input, &candidate);
-        if (pointer_status == SESSION_INPUT_INVALID_ARGUMENT ||
-            (pointer_status != SESSION_INPUT_OK &&
-             pointer_status != SESSION_INPUT_LIMIT_CURSOR_GEOMETRY &&
-             pointer_status != SESSION_INPUT_LIMIT_PRIORITY_PATH)) {
+        if (pointer_status != SESSION_INPUT_OK &&
+            pointer_status != SESSION_INPUT_LIMIT_CURSOR_GEOMETRY &&
+            pointer_status != SESSION_INPUT_LIMIT_PRIORITY_PATH) {
             block_missing(&failure, SCENE_SESSION_STAGE_POINTER,
                 SCENE_SESSION_PROVIDER_POINTER_INPUT, pointer_status);
             freeze_result(session, &local, SCENE_SESSION_BLOCKED, &failure);
