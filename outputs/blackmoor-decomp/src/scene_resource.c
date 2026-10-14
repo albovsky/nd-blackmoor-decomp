@@ -308,6 +308,10 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         if (length < cursor) {
             return -1;
         }
+        /* The decoder requires NUL-terminated 33-byte name and key fields. */
+        if (memchr(body, 0, 33u) == NULL || memchr(body + 35u, 0, 33u) == NULL) {
+            return -1;
+        }
         primary_count = read_i16le(body + 75u);
         if (primary_count < 0) {
             return -1;
@@ -324,6 +328,10 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             }
             extent = 70u + 5u * count;
             if (extent > length - cursor) {
+                return -1;
+            }
+            if (memchr(body + cursor + 2u + 5u * count, 0, 33u) == NULL ||
+                memchr(body + cursor + 35u + 5u * count, 0, 33u) == NULL) {
                 return -1;
             }
             cursor += extent;

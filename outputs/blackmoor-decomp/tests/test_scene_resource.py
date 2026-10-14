@@ -456,6 +456,31 @@ class SceneResourceTests(unittest.TestCase):
         self.assertIsNone(scene)
         self.assertTrue(error)
 
+    def test_3f_boundary_requires_terminated_name_and_key_fields(self):
+        description = b"variable action".ljust(48, b"\0")
+
+        def open_action(body):
+            return self.open_bytes(self.resource(description + bytes((0x3F, 1)) + body))
+
+        prefix = bytearray(77)
+        prefix[75:77] = (1).to_bytes(2, "little")
+        record = bytes((2, 0)) + bytes(10) + bytes(68)   # count 2: 2 + 10 + 68 bytes
+        trailer = bytes(2)
+        scene, error = open_action(bytes(prefix) + record + trailer)
+        self.assertIsNotNone(scene, error)
+        self.lib.scene_resource_close(scene)
+        for label, offset in (("top-level name", 0), ("top-level key", 35)):
+            body = bytearray(prefix + record + trailer)
+            body[offset:offset + 33] = b"x" * 33
+            scene, _ = open_action(bytes(body))
+            self.assertIsNone(scene, label)
+        for label, offset in (("primary key", 2 + 10), ("primary name", 35 + 10)):
+            body = bytearray(prefix + record + trailer)
+            start = 77 + offset
+            body[start:start + 33] = b"x" * 33
+            scene, _ = open_action(bytes(body))
+            self.assertIsNone(scene, label)
+
     def test_97_and_a1_variable_body_boundaries_and_rejections(self):
         description = b"variable action".ljust(48, b"\0")
         dependency = bytes(range(16))
