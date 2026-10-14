@@ -456,6 +456,76 @@ class SceneResourceTests(unittest.TestCase):
         self.assertIsNone(scene)
         self.assertTrue(error)
 
+    def test_45_44_36_boundaries_and_rejections(self):
+        description = b"variable action".ljust(48, b"\0")
+        dependency = bytes(range(16))
+
+        def open_action(action_type, body):
+            return self.open_bytes(self.resource(description + bytes((action_type, 1)) + body))
+
+        def check(action_type, body, typed, dependencies):
+            scene, error = open_action(action_type, body)
+            self.assertIsNotNone(scene, error)
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual((action.type, action.payload_kind, action.typed_body_length,
+                              action.dependency_count), (action_type, 3, typed, dependencies))
+            self.lib.scene_resource_close(scene)
+
+        def reject(action_type, body, label):
+            scene, _ = open_action(action_type, body)
+            self.assertIsNone(scene, label)
+
+        def body_45(count):
+            body = bytearray(196)
+            body[194:196] = count.to_bytes(2, "little", signed=True)
+            return bytes(body) + bytes(4 * max(count, 0))
+
+        check(0x45, body_45(0) + dependency, 196, 1)
+        check(0x45, body_45(10), 236, 0)
+        reject(0x45, body_45(11), "0x45 count above the original limit")
+        reject(0x45, body_45(-1) + bytes(4), "0x45 negative count")
+        reject(0x45, body_45(2) + dependency[:5], "0x45 fractional tail")
+        reject(0x45, bytes(195), "0x45 short body")
+
+        def body_44(keyed, count=0, text=b"", option=1):
+            body = bytearray(528)
+            body[2:4] = option.to_bytes(2, "little")
+            body[492] = 1 if keyed else 0
+            body[493:496] = b"KEY"
+            body[526:528] = count.to_bytes(2, "little", signed=True)
+            return bytes(body) + text
+
+        check(0x44, body_44(True) + dependency, 528, 1)
+        check(0x44, body_44(False, 4, b"hi\0\0"), 532, 0)
+        key33 = bytearray(body_44(True))
+        key33[493:526] = b"x" * 33
+        reject(0x44, bytes(key33), "0x44 unterminated key")
+        reject(0x44, body_44(False, -1), "0x44 negative inline count")
+        reject(0x44, body_44(False, 3, b"abc"), "0x44 inline text without NUL")
+        reject(0x44, body_44(False, 3, b"hi\0", option=3), "0x44 inline option 3")
+        reject(0x44, body_44(True) + dependency[:7], "0x44 fractional tail")
+
+        def body_36(primary, secondary, mode=1, lo=0, hi=0):
+            body = bytearray(0xac)
+            body[0x29:0x2b] = mode.to_bytes(2, "little")
+            body[0x2b:0x2d] = primary.to_bytes(2, "little", signed=True)
+            body[0x33:0x35] = lo.to_bytes(2, "little", signed=True)
+            body[0x35:0x37] = hi.to_bytes(2, "little", signed=True)
+            body[0xaa:0xac] = secondary.to_bytes(2, "little", signed=True)
+            return bytes(body) + bytes(16 * max(primary, 0) + 38 * max(secondary, 0))
+
+        check(0x36, body_36(3, 2) + dependency, 0xac + 48 + 76, 1)
+        # Mode 2 derives the count from the endpoints, narrowed to a signed word.
+        endpoint = bytearray(body_36(0, 0, mode=2, lo=5, hi=7))
+        endpoint += bytes(16 * 3)
+        check(0x36, bytes(endpoint), 0xac + 48, 0)
+        reject(0x36, body_36(101, 0), "0x36 primary above the native bound")
+        reject(0x36, body_36(0, 26), "0x36 secondary above the native bound")
+        reject(0x36, body_36(-1, 0), "0x36 negative primary")
+        reject(0x36, body_36(1, 0) + dependency[:3], "0x36 fractional tail")
+        reject(0x36, bytes(0xab), "0x36 short body")
+
     def test_43_keyed_and_inline_boundaries_and_rejections(self):
         description = b"variable action".ljust(48, b"\0")
 
@@ -607,9 +677,9 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927}
         counts = {action_type: 0 for action_type in
-                  (*expected_fixed, 0x9F, 0x51, 0x62, 0x97, 0xA1, 0x35, 0x38, 0x3F, 0x3E, 0x43)}
+                  (*expected_fixed, 0x9F, 0x51, 0x62, 0x97, 0xA1, 0x35, 0x38, 0x3F, 0x3E, 0x43, 0x45, 0x44, 0x36)}
         scenes = 0
         actions = 0
         typed_actions = 0
@@ -717,6 +787,38 @@ class SceneResourceTests(unittest.TestCase):
                         self.assertEqual(action.typed_body_length, boundary, (path.name, index))
                         self.assertEqual(action.dependency_count, (len(body) - boundary) // 16,
                                          (path.name, index))
+                    elif action.type == 0x45:
+                        counts[0x45] += 1
+                        body = c.string_at(action.raw_body, action.raw_body_length)
+                        boundary = 196 + 4 * int.from_bytes(body[194:196], "little", signed=True)
+                        self.assertEqual(action.payload_kind, 3, (path.name, index))
+                        self.assertEqual(action.typed_body_length, boundary, (path.name, index))
+                        self.assertEqual(action.dependency_count, (len(body) - boundary) // 16,
+                                         (path.name, index))
+                    elif action.type == 0x44:
+                        counts[0x44] += 1
+                        body = c.string_at(action.raw_body, action.raw_body_length)
+                        boundary = 528 if body[492] != 0 else 528 + int.from_bytes(
+                            body[526:528], "little", signed=True)
+                        self.assertEqual(action.payload_kind, 3, (path.name, index))
+                        self.assertEqual(action.typed_body_length, boundary, (path.name, index))
+                        self.assertEqual(action.dependency_count, (len(body) - boundary) // 16,
+                                         (path.name, index))
+                    elif action.type == 0x36:
+                        counts[0x36] += 1
+                        body = c.string_at(action.raw_body, action.raw_body_length)
+                        if int.from_bytes(body[0x29:0x2b], "little", signed=True) == 2:
+                            end = int.from_bytes(body[0x35:0x37], "little", signed=True)
+                            start = int.from_bytes(body[0x33:0x35], "little", signed=True)
+                            primary = (end - start + 1 + 0x8000) % 0x10000 - 0x8000
+                        else:
+                            primary = int.from_bytes(body[0x2b:0x2d], "little", signed=True)
+                        secondary = int.from_bytes(body[0xaa:0xac], "little", signed=True)
+                        boundary = 0xac + 16 * primary + 38 * secondary
+                        self.assertEqual(action.payload_kind, 3, (path.name, index))
+                        self.assertEqual(action.typed_body_length, boundary, (path.name, index))
+                        self.assertEqual(action.dependency_count, (len(body) - boundary) // 16,
+                                         (path.name, index))
                     elif action.type == 0x43:
                         counts[0x43] += 1
                         body = c.string_at(action.raw_body, action.raw_body_length)
@@ -781,8 +883,10 @@ class SceneResourceTests(unittest.TestCase):
         # 38 raw 0x79.
         # A-67.1 and A-6F.1 add 27 raw 0x67 and 25 raw 0x6f fixed one-byte
         # bodies; A-43.1 13 raw 0x43 bodies.
-        self.assertEqual(typed_actions, 19324)
-        self.assertEqual(opaque_actions, 288)
+        # A-45.1 adds 32 raw 0x45, A-44.1 27 raw 0x44 and A-36.1 20 raw 0x36 bodies.
+        # A-94.1 adds 12 raw 0x94, A-D1.1 11 raw 0xd1 and A-2E.1 10 raw 0x2e fixed bodies.
+        self.assertEqual(typed_actions, 19436)
+        self.assertEqual(opaque_actions, 176)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
@@ -811,6 +915,12 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(counts[0x67], 27)
         self.assertEqual(counts[0x6F], 25)
         self.assertEqual(counts[0x43], 13)
+        self.assertEqual(counts[0x45], 32)
+        self.assertEqual(counts[0x44], 27)
+        self.assertEqual(counts[0x36], 20)
+        self.assertEqual(counts[0x94], 12)
+        self.assertEqual(counts[0xD1], 11)
+        self.assertEqual(counts[0x2E], 10)
 
     def test_rejects_short_tsum_and_truncated_known_action_body(self):
         scene, error = self.open_bytes(self.resource(tsum_length=125))

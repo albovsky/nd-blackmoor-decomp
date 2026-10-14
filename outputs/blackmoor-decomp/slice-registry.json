@@ -993,7 +993,7 @@
       "id": "A-45.1",
       "title": "Action 0x45: body boundary and isolated decoder",
       "packet": "tasks/A-45.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-45",
       "raw_type": "0x45",
@@ -1003,7 +1003,7 @@
       "id": "A-44.1",
       "title": "Action 0x44: body boundary and isolated decoder",
       "packet": "tasks/A-44.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-44",
       "raw_type": "0x44",
@@ -1013,7 +1013,7 @@
       "id": "A-36.1",
       "title": "Action 0x36: body boundary and isolated decoder",
       "packet": "tasks/A-36.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-36",
       "raw_type": "0x36",
@@ -1023,8 +1023,78 @@
       "id": "A-TAIL.1",
       "title": "Original-backed dependency-tail oracle for the opaque-family decoders",
       "packet": "tasks/A-TAIL.1-dependency-tail-oracle.md",
-      "status": "READY Codex gpt-6.1-sol xhigh; test hardening only",
+      "status": "MERGED reviewed; original-backed tail oracle for nine decoders",
       "depends_on": [],
+      "records": 0
+    },
+    {
+      "id": "A-94.1",
+      "title": "Action 0x94: body boundary and isolated decoder",
+      "packet": "tasks/A-94.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-94",
+      "raw_type": "0x94",
+      "records": 12
+    },
+    {
+      "id": "A-D1.1",
+      "title": "Action 0xd1: body boundary and isolated decoder",
+      "packet": "tasks/A-D1.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-D1",
+      "raw_type": "0xd1",
+      "records": 11
+    },
+    {
+      "id": "A-2E.1",
+      "title": "Action 0x2e: body boundary and isolated decoder",
+      "packet": "tasks/A-2E.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-2E",
+      "raw_type": "0x2e",
+      "records": 10
+    },
+    {
+      "id": "A-0C.1",
+      "title": "Action 0x0c: body boundary and isolated decoder",
+      "packet": "tasks/A-0C.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-0C",
+      "raw_type": "0x0c",
+      "records": 43
+    },
+    {
+      "id": "A-4E.1",
+      "title": "Action 0x4e: body boundary and isolated decoder",
+      "packet": "tasks/A-4E.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-4E",
+      "raw_type": "0x4e",
+      "records": 18
+    },
+    {
+      "id": "A-17.1",
+      "title": "Action 0x17: body boundary and isolated decoder",
+      "packet": "tasks/A-17.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-17",
+      "raw_type": "0x17",
+      "records": 10
+    },
+    {
+      "id": "A-TAIL.2",
+      "title": "Extend the shared dependency-tail oracle (later decoders, pre-scan exits)",
+      "packet": "tasks/A-TAIL.2-tail-oracle-extension.md",
+      "status": "READY Codex gpt-6.1-sol xhigh; test hardening only",
+      "depends_on": [
+        "A-TAIL.1"
+      ],
       "records": 0
     }
   ]

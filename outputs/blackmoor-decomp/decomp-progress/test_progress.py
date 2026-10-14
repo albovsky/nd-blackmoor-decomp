@@ -73,8 +73,8 @@ class RepoEvidenceTests(unittest.TestCase):
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 19324)
-        self.assertEqual(a["opaque"]["records"], 288)
+        self.assertEqual(a["typed"]["records"], 19436)
+        self.assertEqual(a["opaque"]["records"], 176)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -778,10 +778,10 @@ class RegistrationDriftTests(unittest.TestCase):
 
     def test_new_parser_layout_moves_opaque_records_to_typed(self):
         self.change("src/scene_resource.c", "default:\n        return 0;",
-                    "case 0x45: fixed_length = 1u; break;\n    default:\n        return 0;")
+                    "case 0x68: fixed_length = 1u; break;\n    default:\n        return 0;")
         changed = GEN.PLAYABLE.derive_actions(self.out)
-        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 32)
-        self.assertIn("0x45", changed["unsupported"]["types"])
+        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 10)
+        self.assertIn("0x68", changed["unsupported"]["types"])
         self.assertNotEqual(changed, self.original)
 
     def test_stale_committed_test_totals_are_rejected(self):

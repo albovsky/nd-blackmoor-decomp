@@ -123,6 +123,9 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x2e: fixed_length = 15u; break; /* 0x4cd645 copies 15 bytes (A-2E.1) */
+    case 0x94: fixed_length = 50u; break; /* 0x40ea5e copies 50 bytes (A-94.1) */
+    case 0xd1: fixed_length = 927u; break; /* 0x4b5c5c copies 927 bytes (A-D1.1) */
     case 0x67: fixed_length = 1u;  break; /* 0x40d29f copies one byte (A-67.1) */
     case 0x6f: fixed_length = 1u;  break; /* 0x40e314 copies one byte (A-6F.1) */
     case 0x6e: fixed_length = 1u;  break; /* 0x40e250 copies one byte (A-6E.1) */
@@ -324,6 +327,79 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             return -1;
         }
         *body_length = typed_length;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x45: {
+        /* 0x40d4ed: 196-byte prefix (97 neutral words, signed count at +194)
+         * and count four-byte entries; counts above 10 are rejected by the
+         * original arm, negatives are a native safety rejection. */
+        int16_t count;
+        if (length < 196u) {
+            return -1;
+        }
+        count = read_i16le(body + 194u);
+        if (count < 0 || count > 10) {
+            return -1;
+        }
+        *body_length = 196u + (size_t)count * 4u;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x44: {
+        /* 0x41166e: 528-byte prefix; a nonzero byte at +492 selects the keyed
+         * form (33-byte key at +493), otherwise the inline text count at +526
+         * extends the body. Native safety rejections mirror the decoder. */
+        size_t typed = 528u;
+        if (length < typed) {
+            return -1;
+        }
+        if (body[492u] == 0u) {
+            int16_t count = read_i16le(body + 526u);
+            if (read_i16le(body + 2u) > 2 || count < 0 ||
+                (size_t)count > length - typed) {
+                return -1;
+            }
+            if (memchr(body + typed, 0, (size_t)count) == NULL) {
+                return -1;
+            }
+            typed += (size_t)count;
+        } else if (memchr(body + 493u, 0, 33u) == NULL) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x36: {
+        /* 0x488e9c: 172-byte prefix, primary rows of 16 bytes (direct count
+         * or signed-WORD-narrowed endpoint difference) and secondary rows of
+         * 38 bytes; the 100/25 limits are native safety bounds. */
+        int32_t primary;
+        int32_t secondary;
+        size_t typed;
+        if (length < 0xacu) {
+            return -1;
+        }
+        if (read_i16le(body + 0x29u) == 2) {
+            /* Original DWORD subtraction/addition narrows to a signed WORD. */
+            uint16_t bits = (uint16_t)((int32_t)read_i16le(body + 0x35u) -
+                                      (int32_t)read_i16le(body + 0x33u) + 1);
+            primary = bits <= 0x7fffu ? (int32_t)bits : (int32_t)bits - 0x10000;
+        } else {
+            primary = (int32_t)read_i16le(body + 0x2bu);
+        }
+        secondary = (int32_t)read_i16le(body + 0xaau);
+        /* Native safety limits keep the original unchecked copies inside
+         * their tables: [0xac,0x6ec), [0x6ec,0xaa2). */
+        if (primary < 0 || primary > 100 || secondary < 0 || secondary > 25) {
+            return -1;
+        }
+        typed = 0xacu + (size_t)primary * 16u + (size_t)secondary * 38u;
+        if (length < typed) {
+            return -1;
+        }
+        *body_length = typed;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
