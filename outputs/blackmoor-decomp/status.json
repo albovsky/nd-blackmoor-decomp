@@ -63,7 +63,8 @@
     "discovered": 499,
     "passed": 497,
     "skipped": 2,
-    "skip_reason": "duplicate-case-filename fixtures on case-insensitive filesystem"
+    "skip_reason": "duplicate-case-filename fixtures on case-insensitive filesystem",
+    "note": "Totals predate 2026-10-14 additions (M02/M03 and the two 0x37 parser/executor tests in PR 5); not re-run as a clean full suite because test_hiff's corpus case reads a stale manifest path in this checkout."
   },
   "native_startup_menu": {
     "compiled": true,
@@ -337,7 +338,8 @@
     "full_suite": {
       "discovered": 499,
       "passed": 497,
-      "skipped": 2
+      "skipped": 2,
+      "note": "Totals predate 2026-10-14 additions (M02/M03 and the two 0x37 parser/executor tests in PR 5); not re-run as a clean full suite because test_hiff's corpus case reads a stale manifest path in this checkout."
     },
     "build_log_sha256": "55d2c0fd78fc9223a67f9fde8169c05b315b29583fbd430fdbfcd217b6fcb449",
     "test_log_sha256": "1b44b7ad7089540d226244d216e8a5f491ad0b82a4f10cf444d0bd9ab53f2c52",
