@@ -203,6 +203,22 @@ class RepoEvidenceTests(unittest.TestCase):
             unbound = GEN.bind_reviewed_artifacts(["matches.json"], d, d, status)
             self.assertFalse(unbound["matches.json"]["bound_to_reviewed_hashes"])
 
+    def test_report_wording_follows_the_verification_state(self):
+        base = {"mode": "baseline", "verification": {"run": True}}
+        self.assertIn("confirmed byte-exact in this run", GEN.matched_meaning({"evidence": base}))
+        base["verification"] = {"run": False}
+        self.assertIn("not re-verified", GEN.matched_meaning({"evidence": base}))
+        led = {"mode": "ledger", "verification": {"run": False}}
+        self.assertIn("declared only", GEN.matched_meaning({"evidence": led}))
+        led["verification"] = {"run": True, "kind": "composed image hash"}
+        self.assertIn("image hash was checked", GEN.matched_meaning({"evidence": led}))
+        self.assertNotIn("byte-exact against", GEN.matched_meaning({"evidence": {"mode": "ledger", "verification": {"run": False}}}))
+
+    def test_table_view_honours_the_matched_only_filter(self):
+        html = (HERE / "template.html").read_text()
+        self.assertIn("D.units.filter(u=>!state.only || matchedOf(u)>0)", html)
+        self.assertIn("else renderTable();", html)
+
 
 class MiniFixture(unittest.TestCase):
     """A 0x200-byte image: 0x100 headers, two functions, 0xc0 trailing data."""

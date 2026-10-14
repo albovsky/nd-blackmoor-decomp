@@ -11,7 +11,7 @@ Evidence mode: **baseline**. Original SHA-256 `afd337a2468e0cd540f487db2c121ccb9
 | Whole file | 398 | 1,511,424 | 0.026% |
 | Functions fully matched | 11 | 4,188 | 0.263% |
 
-Matched means byte-exact against the original (baseline: manifest ranges the repository verifier confirms; ledger mode: composer ranges classed `reconstructed` or `structured`). Provenance classes are kept separate below. Nothing here claims original C++ or compiler provenance, and the whole-file rebuild is incomplete.
+Matched means: manifest ranges that the repository verifier confirmed byte-exact in this run. Provenance classes are kept separate below. Nothing here claims original C++ or compiler provenance, and the whole-file rebuild is incomplete.
 
 | Matched bytes by provenance | Bytes |
 |---|---:|

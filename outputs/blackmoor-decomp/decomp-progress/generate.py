@@ -485,6 +485,23 @@ def dump_model(model: dict) -> str:
     return "{\n" + ",\n".join(lines) + "\n}\n"
 
 
+def matched_meaning(model: dict) -> str:
+    ev = model["evidence"]
+    ver = ev.get("verification", {})
+    if ev["mode"] == "baseline":
+        how = ("manifest ranges that the repository verifier confirmed byte-exact in this run"
+               if ver.get("run") else
+               "manifest ranges taken as given and not re-verified in this run")
+    elif ver.get("run") and ver.get("kind") == "composed image hash":
+        how = ("composer ledger ranges classed `reconstructed` or `structured`; the composed "
+               "image hash was checked in this run, the classes are the composer's declaration")
+    else:
+        how = ("ranges the composer's ledger declares `reconstructed` or `structured`; "
+               "declared only, not verified against a composed image in this run")
+    return (f"Matched means: {how}. Provenance classes are kept separate below. Nothing here "
+            "claims original C++ or compiler provenance, and the whole-file rebuild is incomplete.")
+
+
 def write_report(model, path: Path):
     t = model["totals"]
     ev = model["evidence"]
@@ -507,10 +524,7 @@ def write_report(model, path: Path):
         f"| Functions fully matched | {t['functions_complete']:,} | {t['functions']:,} | "
         f"{pct(t['functions_complete'], t['functions'])} |",
         "",
-        "Matched means byte-exact against the original (baseline: manifest ranges the "
-        "repository verifier confirms; ledger mode: composer ranges classed `reconstructed` "
-        "or `structured`). Provenance classes are kept separate below. Nothing here claims "
-        "original C++ or compiler provenance, and the whole-file rebuild is incomplete.",
+        matched_meaning(model),
         "",
         "| Matched bytes by provenance | Bytes |",
         "|---|---:|",
