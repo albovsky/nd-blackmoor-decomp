@@ -61,20 +61,21 @@ class NativeAppIntegrationTests(unittest.TestCase):
             self.assertIn('scene_session_created scene=0 generation=1 ui_phone_rows=12', contents)
             self.assertIn('caption_runtime_initialized fonts=18 tbox=98 sctb=768 task=1867 view_bytes=48 view_origin=10,10 format=RGB555 caption_surface=623x201/250446 framed_surface=578x1001/1157156 saved_surface=Frame', contents)
             self.assertIn('autotext_entries=1258', contents)
-            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer_transform=unverified caption_writer=bound-RGB555 caption_transfer=bound-RGB555-Frame-plus-decoded-background audio_provider=unavailable', contents)
-            self.assertIn('scene_session_blocked stage=3 provider=action-sound action=31 type=0x9f', contents)
+            self.assertIn('clock=world-clock-normal+timer-records post-clock-gates=guarded pointer_transform=unverified caption_writer=bound-RGB555 caption_transfer=bound-RGB555-Frame-plus-decoded-background audio_provider=live-audio', contents)
+            self.assertNotIn('scene_session_blocked', contents)
             self.assertIn('scene_clock_tick ', contents)
             self.assertIn('scene_session_media_eos frame=0', contents)
             self.assertIn('caption_action_lookup result=found key_bytes=6 text_bytes=185 raw_bytes=185', contents)
-            self.assertIn('scene_action_sound row=31 phase=0 kernel_status=3 captions=1 dispatch_argument=1 boundary=audio-backend', contents)
+            self.assertIn('live_audio loaded stem=NSHT01 channel=13 frames=494792', contents)
+            self.assertIn('scene_action_sound row=31 phase=0 kernel_status=0 captions=1 dispatch_argument=1 boundary=kernel', contents)
+            self.assertIn('scene_action_sound row=31 phase=1 kernel_status=0 captions=1 dispatch_argument=1 boundary=kernel', contents)
             self.assertIn('caption_action_writer kind=1 bytes=185 status=0', contents)
             self.assertIn('label=CUITaskBar::RestoreCCTextBox', contents)
             self.assertIn('label=RenderMainDisplay() ZRENDER layer 10', contents)
             self.assertIn('caption_composition_pixels tick=1 attempts=2 successes=2 cc_rect=10,392,629,417 frame_equal=12687 frame_different=3433 caption_non_key=3433', contents)
-            self.assertEqual(contents.count('caption_composition_pixels tick='), 1)
+            self.assertEqual(contents.count('caption_composition_pixels tick='), 2)
             self.assertEqual(contents.count('caption_transfer_applied tick=1'), 2)
-            self.assertIn('scene_session_probe status=2 provider=action-sound tick_index=1 tick_count=1 generation=1 media_attempted=1 dispatch_attempted=1 same_path=app-update', contents)
-            self.assertIn('effects_before_block=31', contents)
+            self.assertIn('scene_session_probe status=0 provider=none tick_index=2 tick_count=2 generation=1 media_attempted=1 dispatch_attempted=1 same_path=app-update', contents)
             self.assertIn('stopped failure=0', contents)
 
 
@@ -187,6 +188,27 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertIn('control_group index=3 first_range=0,0 code=13 availability=1', contents)
             self.assertIn('seed=analysis-only', contents)
             self.assertNotIn('stopped failure=0', contents)
+
+    def test_live_session_plays_s0_audio_then_click_enters_s5900_and_stops_at_a62(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'live.log'
+            result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                     '--live-click-row', '34',
+                                     '--game-dir', str(self.game), '--log', str(log)],
+                                    capture_output=True, text=True, timeout=120)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            contents = log.read_text()
+            for evidence in ('live_audio loaded stem=NSHT01 channel=13',
+                             'live_session_hover row=34 rect=388,225,492,284',
+                             'live_session_click row=34',
+                             'scene_parsed name=S5900',
+                             'scene_transition_applied source=0 target=5900 generation=2',
+                             'scene_session_blocked stage=3 provider=action-family-62 action=7 type=0x62',
+                             'live_session_scene_changed from=0 to=5900',
+                             'live_session_end scene=5900'):
+                self.assertIn(evidence, contents)
+            self.assertLess(contents.index('live_session_click'),
+                            contents.index('scene_transition_applied'))
 
     def test_scene_fixture_uses_real_caption_audio_and_resource_transition(self):
         with tempfile.TemporaryDirectory() as directory:

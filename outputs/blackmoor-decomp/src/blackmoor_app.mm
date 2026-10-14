@@ -2952,12 +2952,21 @@ int main(int argc, char **argv)
                            (unsigned long long)scene_session_tick_count(app.session),
                            (unsigned long long)scene_session_scene_generation(app.session),
                            session_result.media_attempted, session_result.dispatch_attempted);
-                    if (session_result.status != SCENE_SESSION_BLOCKED ||
-                        session_result.failure.provider != SCENE_SESSION_PROVIDER_ACTION_SOUND ||
-                        scene_session_tick_count(app.session) != 1u ||
-                        session_result.media_attempted != 1u ||
-                        session_result.dispatch_attempted != 1u ||
-                        session_result.executor.actions_applied != 31u) {
+                    /* Tick 1 applies rows 0-30 and starts the row-31 sound;
+                     * tick 2 polls it while it plays: no block, no transition. */
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+                    const bool injected_caption_failure =
+                        app.captions.test_fail_blit_index != 0u &&
+                        session_result.status == SCENE_SESSION_BLOCKED &&
+                        session_result.failure.provider == SCENE_SESSION_PROVIDER_CAPTION;
+#else
+                    const bool injected_caption_failure = false;
+#endif
+                    if ((session_result.status != SCENE_SESSION_OK && !injected_caption_failure) ||
+                        scene_session_tick_count(app.session) != 2u ||
+                        (!injected_caption_failure &&
+                         (session_result.media_attempted != 1u ||
+                          session_result.dispatch_attempted != 1u))) {
                         app.failure = true;
                     }
                 }
