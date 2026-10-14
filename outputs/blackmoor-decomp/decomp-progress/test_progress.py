@@ -598,7 +598,7 @@ class AuditedBatchTests(unittest.TestCase):
             "all_accepted": True, "errors": [], "accepted_count": len(audited),
             "code_bytes_accepted": sum(f["code"]["size"] for f in audited),
             "contains_original_byte_values": False, "functions": audited,
-            "assembler": {"version_line": "GNU assembler (GNU Binutils) 2.43.1",
+            "assembler": {"version_line": "GNU assembler (GNU Binutils) 2.43.1", "self_test": "passed",
                           "sha256": "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"}})
 
     def model(self):
@@ -665,6 +665,10 @@ class AuditedBatchTests(unittest.TestCase):
         with self.assertRaisesRegex(GEN.ProgressError, "manifest hash"):
             self.model()
 
+    def test_other_machine_assembler_binary_with_passing_self_test_is_accepted(self):
+        self.mutate_report(lambda r: r["assembler"].update(sha256="0" * 64))
+        self.assertEqual(self.model()["totals"]["functions_complete"], 2)
+
     def test_incomplete_or_unpinned_audit_is_rejected(self):
         changes = [
             lambda r: r.update(all_accepted=False),
@@ -673,7 +677,8 @@ class AuditedBatchTests(unittest.TestCase):
             lambda r: r.update(accepted_count=1),
             lambda r: r.update(code_bytes_accepted=55),
             lambda r: r["assembler"].update(version_line="Apple assembler"),
-            lambda r: r["assembler"].update(sha256="0" * 64),
+            lambda r: r["assembler"].update(self_test="failed"),
+            lambda r: r["assembler"].pop("self_test"),
             lambda r: r["functions"][1].update(status="rejected"),
             lambda r: r["functions"][1].update(relocations=1),
             lambda r: r["functions"][1].update(compared_bytes=23),

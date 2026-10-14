@@ -73,7 +73,6 @@ LEDGER_KINDS = {"code", "data"}
 TOOL_ASSISTED = "tool_assisted_reconstructed_assembly"
 # Same pin as scripts/audit_tool_assisted.py. Only audit metadata is read here;
 # neither the assembler, objects nor GAME.EXE are needed for normal generation.
-M03_ASSEMBLER_SHA = "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"
 M03_ASSEMBLER_VERSION = "GNU assembler (GNU Binutils) 2.43.1"
 
 
@@ -316,7 +315,7 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
             require(report["manifest_sha256"] == sha256_file(path), "manifest hash differs from audit")
             require(report["all_accepted"] is True and report["errors"] == [], "batch audit not accepted")
             assembler = report["assembler"]
-            require(assembler["sha256"] == M03_ASSEMBLER_SHA and
+            require(assembler.get("self_test") == "passed" and
                     assembler["version_line"] == M03_ASSEMBLER_VERSION, "audit assembler is not pinned")
             functions, audited = man["functions"], report["functions"]
             require(isinstance(functions, list) and len(functions) > 0 and isinstance(audited, list),

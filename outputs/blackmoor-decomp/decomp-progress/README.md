@@ -24,7 +24,7 @@ Refresh after any new reviewed match manifest, audited/reviewed M03 batch or led
 
     python3 outputs/blackmoor-decomp/decomp-progress/generate.py
 
-For a preview export, append `--preview-browser PATH/TO/CHROMIUM` (a Chromium or chrome-headless-shell executable). It renders a 1440 × 1200 light-theme PNG without opening a desktop window. The default generator needs only Python's standard library; the optional preview export needs an installed browser. While the owner's Mac is locked, export the artifact without computer-use or visual inspection.
+Always refresh `preview.png` with the rest (a stale screenshot contradicts the page): on this Mac `~/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell` works, while headless Brave hangs. For a preview export, append `--preview-browser PATH/TO/CHROMIUM` (a Chromium or chrome-headless-shell executable). It renders a 1440 × 1200 light-theme PNG without opening a desktop window. The default generator needs only Python's standard library; the optional preview export needs an installed browser. While the owner's Mac is locked, export the artifact without computer-use or visual inspection.
 
 ## Playable build evidence
 
