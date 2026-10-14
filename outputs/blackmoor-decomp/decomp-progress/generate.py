@@ -55,6 +55,12 @@ MANIFEST_PROVENANCE = {
     "matches_s08_3_x86.json": "explicit_reconstructed_assembly_source",
     "matches_s08_4_x86.json": "explicit_reconstructed_assembly_source",
 }
+# status.json keys that record the reviewed source and object hashes per manifest.
+STATUS_BINDING = {
+    "matches_s08_2_x86.json": "matching_s08_2",
+    "matches_s08_3_x86.json": "matching_s08_3",
+    "matches_s08_4_x86.json": "matching_s08_4",
+}
 PROVENANCE_RE = r"^[a-z][a-z0-9_]*$"
 LEDGER_CLASSES = {"structured", "reconstructed", "referenced"}
 LEDGER_KINDS = {"code", "data"}
@@ -203,6 +209,43 @@ def verify_manifests(names, root: Path, original: Path, verifier: Path = VERIFIE
                          "manifest_sha256": sha256_file(manifest)}
     return {"run": True, "verifier_sha256": sha256_file(verifier),
             "original_sha256": PINNED_SHA, "manifests": results}
+
+
+def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict | None) -> dict:
+    """Tie each verified object to its committed source and the reviewed hashes.
+
+    For the assembly manifests, ``status.json`` records the reviewed source and
+    object SHA-256. The committed source must match the reviewed source hash and
+    the object that verify_matches.py just checked must match the reviewed object
+    hash, so a rebuilt-from-edited-source or swapped object is rejected. A fresh
+    reassembly with the pinned assembler is not rerun here; the slice audits own
+    that (see scripts/audit_matching_s08_*_x86.py). Manifests with no recorded
+    hashes (matches.json, two partial 7-byte C ranges) are reported as unbound.
+    """
+    out = {}
+    for name in names:
+        man = load_json(evidence_dir / name)
+        src = evidence_dir / man.get("source", "")
+        objs = {fn.get("object") for fn in man["functions"]}
+        key = STATUS_BINDING.get(name)
+        rec = (status or {}).get(key) if key else None
+        if rec is None:
+            out[name] = {"bound_to_reviewed_hashes": False,
+                         "note": "no reviewed source/object hashes recorded in status.json"}
+            continue
+        if len(objs) != 1 or None in objs:
+            raise ProgressError(f"{name}: expected exactly one object path")
+        obj = root / objs.pop()
+        if not src.is_file() or not obj.is_file():
+            raise ProgressError(f"{name}: source or object file missing")
+        got_src, got_obj = sha256_file(src), sha256_file(obj)
+        if got_src != rec.get("source_sha256"):
+            raise ProgressError(f"{name}: committed source does not match the reviewed source hash")
+        if got_obj != rec.get("object_sha256"):
+            raise ProgressError(f"{name}: verified object does not match the reviewed object hash")
+        out[name] = {"bound_to_reviewed_hashes": True, "source_sha256": got_src,
+                     "object_sha256": got_obj}
+    return out
 
 
 def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
@@ -510,6 +553,12 @@ def write_report(model, path: Path):
         lines += ["", "Manifests re-verified against the original in this run with "
                   f"`scripts/verify_matches.py` (sha256 `{ver['verifier_sha256']}`): "
                   f"{', '.join(sorted(ver['manifests']))}, all exact."]
+        bound = sorted(n for n, m in ver["manifests"].items() if m.get("bound_to_reviewed_hashes"))
+        unbound = sorted(n for n, m in ver["manifests"].items() if not m.get("bound_to_reviewed_hashes"))
+        lines += ["", "Source and object hashes matched the reviewed values recorded in `status.json` for: "
+                  f"{', '.join(bound) or 'none'}. No reviewed hashes are recorded for: "
+                  f"{', '.join(unbound) or 'none'} (partial 7-byte C ranges). A fresh reassembly with "
+                  "the pinned assembler is not rerun here; the slice audits own that."]
     else:
         lines += ["", f"Evidence was **not** re-verified in this run ({ver.get('reason', 'not run')})."]
     ck = ev.get("crosscheck")
@@ -581,6 +630,12 @@ def main(argv=None) -> int:
                         raise ProgressError(f"{name} under --verify-root differs from the evidence copy")
                 meta["verification"] = verify_manifests(
                     COUNTED_MANIFESTS, root, args.verify_original)
+                bound = bind_reviewed_artifacts(
+                    COUNTED_MANIFESTS, root.resolve(), args.evidence_dir,
+                    load_json(args.evidence_dir / "status.json")
+                    if (args.evidence_dir / "status.json").exists() else None)
+                for n, b in bound.items():
+                    meta["verification"]["manifests"][n].update(b)
             else:
                 meta["verification"] = {"run": False,
                                         "reason": "manifests trusted; pass --verify-original to re-verify"}

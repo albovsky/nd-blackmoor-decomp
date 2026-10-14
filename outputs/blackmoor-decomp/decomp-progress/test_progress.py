@@ -14,6 +14,11 @@ SPEC.loader.exec_module(GEN)
 SHA = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 
 
+def hashlib_sha(text):
+    import hashlib
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
 def write(path, value):
     path.write_text(json.dumps(value), encoding="utf-8")
 
@@ -168,6 +173,31 @@ class RepoEvidenceTests(unittest.TestCase):
                     GEN.verify_manifests(["good.json", "bad.json"], d, orig, fake)
             finally:
                 GEN.PINNED_SHA = real_sha
+
+    def test_bind_reviewed_artifacts_rejects_changed_source_or_object(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            (d / "src").mkdir()
+            (d / "build").mkdir()
+            (d / "src" / "a.s").write_text("source")
+            (d / "build" / "a.obj").write_text("object")
+            write(d / "matches_s08_2_x86.json", {"source": "src/a.s", "functions": [
+                {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
+            status = {"matching_s08_2": {"source_sha256": hashlib_sha("source"),
+                                         "object_sha256": hashlib_sha("object")}}
+            ok = GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
+            self.assertTrue(ok["matches_s08_2_x86.json"]["bound_to_reviewed_hashes"])
+            (d / "src" / "a.s").write_text("edited")
+            with self.assertRaisesRegex(GEN.ProgressError, "reviewed source hash"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
+            (d / "src" / "a.s").write_text("source")
+            (d / "build" / "a.obj").write_text("swapped")
+            with self.assertRaisesRegex(GEN.ProgressError, "reviewed object hash"):
+                GEN.bind_reviewed_artifacts(["matches_s08_2_x86.json"], d, d, status)
+            write(d / "matches.json", {"source": "src/a.s", "functions": [
+                {"rva": 4096, "size": 1, "object": "build/a.obj"}]})
+            unbound = GEN.bind_reviewed_artifacts(["matches.json"], d, d, status)
+            self.assertFalse(unbound["matches.json"]["bound_to_reviewed_hashes"])
 
 
 class MiniFixture(unittest.TestCase):

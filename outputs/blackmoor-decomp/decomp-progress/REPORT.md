@@ -66,6 +66,8 @@ Matched means byte-exact against the original (baseline: manifest ranges the rep
 
 Manifests re-verified against the original in this run with `scripts/verify_matches.py` (sha256 `cdb33b15cf2aa2bb1d9586b77ad28e112308b4a3619280e8f9dfc26816cda116`): matches.json, matches_s08_2_x86.json, matches_s08_3_x86.json, matches_s08_4_x86.json, all exact.
 
+Source and object hashes matched the reviewed values recorded in `status.json` for: matches_s08_2_x86.json, matches_s08_3_x86.json, matches_s08_4_x86.json. No reviewed hashes are recorded for: matches.json (partial 7-byte C ranges). A fresh reassembly with the pinned assembler is not rerun here; the slice audits own that.
+
 Cross-check against `status.json` unique_matched_bytes (398): agrees.
 
 ## Sources
