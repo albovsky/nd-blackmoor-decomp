@@ -350,11 +350,11 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "f44761b (branch claude/hungry-matsumoto-8ab8eb, PR 10; last code change, docs follow)",
+    "source_ref": "f44761b4d0a98f937230be40ea3bc1177dcc9713 (branch claude/hungry-matsumoto-8ab8eb, PR 10; last code change, docs follow)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 899,
-      "passed": 894,
+      "discovered": 967,
+      "passed": 962,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },

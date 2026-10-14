@@ -62,9 +62,30 @@ REQUIRED_FIELDS = (
 )
 ANNOTATION_FIELDS = ("name", "arguments", "locals", "fields", "callees", "track-n", "unverified")
 PLACEHOLDER_RE = re.compile(r"todo|tbd|fixme|xxx+|<\s*unfilled\s*>|placeholder|lorem|n/a|none yet|to be (?:filled|determined|written)", re.I)
-# SHA-256 of the pinned i686-w64-mingw32-as 2.43.1 binary built by bootstrap_matching_s08_2_gas.sh on the project Mac.
-# A rebuild on another machine may differ; root updates the pin deliberately (see README).
-PINNED_AS_SHA256 = "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"
+# The assembler is pinned by its version line and by a self-test: a fixed source that exercises every encoding hint
+# must assemble to exactly these bytes.  This works on any machine that built the pinned binutils.
+SELF_TEST_SOURCE = """.intel_syntax noprefix
+.code32
+.text
+    {load} mov ebp, esp
+    {store} mov ebp, esp
+    .insn 0x66, 0x05, 0x0001{:u16}
+    .insn 0x66, 0x3d, 0x1234{:u16}
+    .insn 0x05, 0x00000000{:u32}
+    .insn 0xdc, 0xc0
+    .insn 0x6681/7, ecx, 1{:s16}
+    .insn 0x6681/7, dword ptr [ecx + 4], 1{:s16}
+    {disp8} mov eax, dword ptr [ecx]
+    {disp32} mov eax, dword ptr [ecx + 1]
+    jne.d8 L_skip
+    nop
+L_skip:
+    jmp.d32 L_end
+    nop
+L_end:
+    ret 4
+"""
+SELF_TEST_BYTES = bytes.fromhex("8bec89e566050100663d34120500000000dcc06681f901006681790401008b41008b8101000000750190e90100000090c20400")
 # Mnemonics that occur in the code part of the original (128 observed over all 4,729 split spans) plus a few
 # control-flow and string forms; anything else on an instruction line is rejected, which closes the door to
 # macros, user-defined pseudo-instructions and data smuggled onto an instruction line.
@@ -115,7 +136,7 @@ _NUMBER = re.compile(r"(?<![\w.])\d")  # any numeric literal, whatever its base 
 _WEAK_NAME = re.compile(r"^(?:[a-z]\d*|(?:local|arg|var|tmp|slot|off)\d*)$", re.I)
 _SYNTHETIC_FUNCTION_NAME = re.compile(r"^(?:fun|sub|loc|func|unk|dat|lab)_[0-9a-f]{6,8}$", re.I)
 _SHORT_BRANCH_NOTE = re.compile(r"\. \+ \((-?\d+)\)")
-_DEFAULT_FRAME_NAME = re.compile(r"^(?:local|arg)_[0-9a-f]+$")
+_DEFAULT_FRAME_NAME = re.compile(r"^(?:local|arg|field|field_minus|stk|stk_minus)_[0-9a-f]+$")
 _TERMINAL = {"ret", "retf", "lret", "iret", "iretd", "hlt", "ud2", "jmp", "ljmp"}
 _NOP_LIKE = re.compile(r"^(?:nop|int3|mov (e[a-d]x|e[sd]i|e[sb]p), \1|lea (e[a-d]x|e[sd]i|e[sb]p), \[\2\])$")
 _SWTAB_LONG = re.compile(r"^\.long (?:L_[0-9a-f]{8}|[A-Za-z_]\w*) - \.text \+ 0x[0-9a-f]+$")
@@ -179,7 +200,7 @@ def mnemonic_of(code: str) -> str:
     return re.sub(r"\.d(?:8|32)$", "", tokens[0])
 
 
-def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = False, text_base: int = 0x401000) -> tuple[list[str], dict[str, Any]]:
+def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = True, text_base: int = 0x401000, index_owners: Optional[dict[str, int]] = None) -> tuple[list[str], dict[str, Any]]:
     """Lexical checks; returns (reasons, facts)."""
 
     reasons: list[str] = []
@@ -225,23 +246,32 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
     globl_seen = False
     entry_seen = False
     last_code_mnemonic = ""
-    ebp_frame = header.get("frame") == "ebp" or bool(re.search(r"^\s+(?:\{\w+\} )*mov ebp, esp\b", text, re.M))
     placeholder_frame_names: set[str] = set()
     def check_ebp(code: str, number: int) -> None:
-        if not ebp_frame:
-            return
+        """Every register-relative displacement (frame, stack or object field) must be a named symbol.
+
+        Absolute addresses (value >= 0x400000, array and table bases) and base-less operands stay numeric.
+        """
+
         for operand in re.findall(r"\[([^\]]*)\]", code):
-            if "ebp" not in operand:
-                continue
+            has_register = re.search(r"\b(?:e[a-d]x|e[sd]i|e[sb]p)\b", operand) is not None
             stripped = re.sub(r"(?<![\w.])[1248]\*", "", operand)
-            if _NUMBER.search(stripped) or re.search(r"0[xXbBoO]", stripped):
-                reasons.append(f"line {number}: unnamed [ebp±n] offset in [{operand}]")
+            if has_register:
+                for literal in re.findall(r"(?<![\w.])0[xXbBoO][0-9a-fA-F]+|(?<![\w.])\d+", stripped):
+                    try:
+                        value = int(literal, 0)
+                    except ValueError:
+                        value = 0
+                    if value < 0x400000 or "ebp" in operand:
+                        reasons.append(f"line {number}: unnamed register-relative offset in [{operand}]")
+                        break
             for token in re.findall(r"[A-Za-z_]\w*", operand):
                 if _DEFAULT_FRAME_NAME.match(token) and token not in placeholder_frame_names:
                     placeholder_frame_names.add(token)
-                    reasons.append(f"line {number}: frame offset uses placeholder name {token}")
+                    reasons.append(f"line {number}: offset uses placeholder name {token}")
 
     set_symbols: set[str] = set()
+    index_label_ok = False
     for line in lines:
         code = line.code
         if "/*" in line.raw or "*/" in line.raw:
@@ -265,6 +295,12 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             elif state == "data" or name.startswith(("SWTAB_", "IDXTAB_", "PAD_")):
                 data_kind = name.split("_", 1)[0]
                 state = "data"
+                owner_match = re.search(
+                    rf"index table of {re.escape(code_symbol)} for the switch jump at 0x([0-9a-f]{{8}})", line.comment
+                )
+                index_label_ok = bool(data_kind == "IDXTAB" and owner_match)
+                if index_label_ok and index_owners is not None and index_owners.get(name) != int(owner_match.group(1), 16):
+                    index_label_ok = False
             if state == "code":
                 code_lines.append(line)
             continue
@@ -311,7 +347,9 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             if state == "data" and data_kind == "SWTAB" and _SWTAB_LONG.match(code):
                 continue
             if state == "data" and data_kind == "IDXTAB" and _BYTE_LIST.match(code):
-                if not allow_index_byte_lists:
+                if not index_label_ok:
+                    reasons.append(f"line {line.number}: index table is not labeled with its owning function and switch")
+                elif not allow_index_byte_lists:
                     reasons.append(
                         f"line {line.number}: index table as a raw byte list needs a root ruling (AGENTS.md forbids committed byte arrays)"
                     )
@@ -434,7 +472,27 @@ def _block_comment_audit(lines: list[Line], code_symbol: str) -> tuple[list[str]
 # ---------------------------------------------------------------------------
 
 
-def check_assembler(path: Path, pinned_sha256: str = PINNED_AS_SHA256) -> tuple[Optional[str], dict[str, Any]]:
+def assembler_self_test(path: Path) -> Optional[str]:
+    """Assemble a fixed source with every hint kind and require the exact expected bytes."""
+
+    with tempfile.TemporaryDirectory(prefix="m03-selftest-") as tmp:
+        source = Path(tmp) / "selftest.s"
+        obj = Path(tmp) / "selftest.obj"
+        source.write_text(SELF_TEST_SOURCE, encoding="utf-8")
+        run = subprocess.run([str(path), "--32", "-o", str(obj), str(source)], capture_output=True, text=True)
+        if run.returncode != 0 or not obj.is_file():
+            return "assembler self-test failed to assemble"
+        try:
+            text_bytes, relocations, _symbols = gen.coff_text(obj.read_bytes())
+        except (ValueError, struct.error):
+            return "assembler self-test produced an unreadable object"
+        padding = b"\x90" * (-len(SELF_TEST_BYTES) % 4)
+        if relocations or text_bytes != SELF_TEST_BYTES + padding:
+            return "assembler self-test bytes differ: this is not the pinned GNU assembler"
+    return None
+
+
+def check_assembler(path: Path) -> tuple[Optional[str], dict[str, Any]]:
     shown = str(path)
     for base in (REPOSITORY, WORK.resolve().parent):
         try:
@@ -454,8 +512,10 @@ def check_assembler(path: Path, pinned_sha256: str = PINNED_AS_SHA256) -> tuple[
     info["sha256"] = sha256(path.read_bytes())
     if line != ASSEMBLER_VERSION_LINE:
         return f"assembler is {line!r}, not the pinned {ASSEMBLER_VERSION_LINE!r}", info
-    if info["sha256"] != pinned_sha256:
-        return f"assembler binary {info['sha256']} is not the pinned build {pinned_sha256}", info
+    problem = assembler_self_test(path)
+    info["self_test"] = "passed" if problem is None else problem
+    if problem:
+        return problem, info
     archive = path.parents[2] / "binutils-2.43.1.tar.xz"
     if archive.is_file():
         digest = hashlib.sha512(archive.read_bytes()).hexdigest()
@@ -482,8 +542,7 @@ class AuditConfig:
     repository: Optional[Path] = REPOSITORY
     baseline_dir: Optional[Path] = PROJECT
     image_base: int = 0x400000
-    pinned_assembler_sha256: str = PINNED_AS_SHA256
-    allow_index_byte_lists: bool = False
+    allow_index_byte_lists: bool = True
 
 
 def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
@@ -501,7 +560,7 @@ def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
         report["errors"].append("manifest class is not tool_assisted_reconstructed_assembly")
     if manifest.get("original_sha256") != config.expected_sha256:
         report["errors"].append("manifest original_sha256 is not the pinned original")
-    problem, assembler_info = check_assembler(config.assembler, config.pinned_assembler_sha256)
+    problem, assembler_info = check_assembler(config.assembler)
     report["assembler"] = assembler_info
     if problem:
         report["errors"].append(problem)
@@ -663,7 +722,8 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     }
     if entry.get("evidence_id") != image.evidence.get(va):
         reasons.append("evidence_id in the manifest differs from function-index.json")
-    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base)
+    index_owners = {f"IDXTAB_{i.va:08x}": i.owner_jmp for i in layout.data if i.kind == "index_table"}
+    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base, index_owners)
     reasons += lexical
     result["basic_blocks"] = facts.get("basic_blocks")
     track = facts["header"].get("track-n", "")

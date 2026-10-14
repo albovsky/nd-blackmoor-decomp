@@ -1,0 +1,1178 @@
+{
+  "accepted_count": 40,
+  "all_accepted": true,
+  "assembler": {
+    "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
+    "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+    "self_test": "passed",
+    "sha256": "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b",
+    "version_line": "GNU assembler (GNU Binutils) 2.43.1"
+  },
+  "baseline": {
+    "baseline_matched_bytes": 398,
+    "batch_bytes_not_in_baseline": 20790,
+    "batch_bytes_overlapping_baseline": 0,
+    "manifests": [
+      "matches.json",
+      "matches_s08.json",
+      "matches_s08_2.json",
+      "matches_s08_2_x86.json",
+      "matches_s08_3_x86.json",
+      "matches_s08_4_x86.json"
+    ]
+  },
+  "batch": "002",
+  "by_region": {
+    "game": {
+      "code_bytes": 20790,
+      "data_bytes": 143,
+      "functions": 40
+    }
+  },
+  "class_requested": "tool_assisted_reconstructed_assembly",
+  "code_bytes_accepted": 20790,
+  "contains_original_byte_values": false,
+  "data_items_for_m02": [
+    {
+      "function": "FUN_00478396",
+      "kind": "switch_table",
+      "rva": 493126,
+      "sha256": "be0c9597aa917c980f7a45257cf598ccd3d01823eec21ad0c8d43896616bbb4f",
+      "size": 16,
+      "symbol": "SWTAB_00478646"
+    },
+    {
+      "function": "FUN_00437ea1",
+      "kind": "padding",
+      "rva": 229658,
+      "sha256": "33cc4a00a0f04735602819132da3e3fac4cdeb8ec7aee92551dc79ba8488e722",
+      "size": 6,
+      "symbol": "PAD_0043811a"
+    },
+    {
+      "function": "FUN_004fa658",
+      "kind": "switch_table",
+      "rva": 1026177,
+      "sha256": "3ea660eb561a94a286d2d8d0ea0f2316c216d9e22dab3abb5c477f1079e68213",
+      "size": 20,
+      "symbol": "SWTAB_004fa881"
+    },
+    {
+      "function": "FUN_004fa658",
+      "kind": "index_table",
+      "rva": 1026197,
+      "sha256": "fbddd7a52c20f3625e69e8a1dd42356e993cb52d7d008d94250b6594669c99e9",
+      "size": 61,
+      "symbol": "IDXTAB_004fa895"
+    },
+    {
+      "function": "FUN_004b203e",
+      "kind": "switch_table",
+      "rva": 729656,
+      "sha256": "1b25ac2905cfc33e80224eb3105d1382763c1f93363f6544d1128b2ae6f9d510",
+      "size": 24,
+      "symbol": "SWTAB_004b2238"
+    },
+    {
+      "function": "FUN_00456dc8",
+      "kind": "switch_table",
+      "rva": 356262,
+      "sha256": "7917b0e15c4b36d0d7b10d25be9ec3db3f734af25fe9df3c5caaa8d923563d56",
+      "size": 16,
+      "symbol": "SWTAB_00456fa6"
+    }
+  ],
+  "errors": [],
+  "functions": [
+    {
+      "basic_blocks": 25,
+      "code": {
+        "rva": 462846,
+        "sha256": "1a99ab253749788c02e0224f889d8dfcdf2d74f3b92e0989721b5121733255f9",
+        "size": 690,
+        "symbol": "FUN_00470ffe"
+      },
+      "compared_bytes": 690,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_00470ffe",
+      "object": {
+        "sha256": "820be1ebda6970f5a7d080ced26f32837ef4c6de2a2b79e954adce1debe3cd07",
+        "size": 460496
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00470ffe.s",
+        "sha256": "7cc5003961ffad1a2725a92ea897b8d1e13b7609354ecfa0a4ba9734fcc845f3"
+      },
+      "status": "accepted",
+      "va": 4657150
+    },
+    {
+      "basic_blocks": 47,
+      "code": {
+        "rva": 132919,
+        "sha256": "c7e6effcb4220a2b50265636f2c37f7c05d99e857e40b5995cfaca88f63cf77b",
+        "size": 689,
+        "symbol": "FUN_00420737"
+      },
+      "compared_bytes": 689,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_00420737",
+      "object": {
+        "sha256": "49e6adfcad45c4257296068264ee367db68dab2f80326f7e8f2b80ca2b0e6c1e",
+        "size": 130153
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00420737.s",
+        "sha256": "d45e438224dc6b85b18a274ab8715ae226b181f20ad16dd3fd62649f466707d8"
+      },
+      "status": "accepted",
+      "va": 4327223
+    },
+    {
+      "basic_blocks": 36,
+      "code": {
+        "rva": 492438,
+        "sha256": "ea1b3b7f06b616cc2c3ac36434963621d3966dac8b06545a450bd9e071251f38",
+        "size": 688,
+        "symbol": "FUN_00478396"
+      },
+      "compared_bytes": 704,
+      "contains_original_byte_values": false,
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "rva": 493126,
+          "sha256": "be0c9597aa917c980f7a45257cf598ccd3d01823eec21ad0c8d43896616bbb4f",
+          "size": 16,
+          "symbol": "SWTAB_00478646"
+        }
+      ],
+      "function": "FUN_00478396",
+      "object": {
+        "sha256": "62f2fa4a7e28ec491e0f889cf371d0eb492c5e6fe20a10e65acf74545c62799c",
+        "size": 489820
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00478396.s",
+        "sha256": "ef40e8c8aa0a11cf73d5e65560783e2ed308b073456ed237453ac43e9b06a1da"
+      },
+      "status": "accepted",
+      "va": 4686742
+    },
+    {
+      "basic_blocks": 18,
+      "code": {
+        "rva": 443422,
+        "sha256": "97dd00785d63c8e2705fdfe79c897c6eef3a9caeb63c9e57cf5fcda6b09184df",
+        "size": 651,
+        "symbol": "FUN_0046c41e"
+      },
+      "compared_bytes": 651,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0046c41e",
+      "object": {
+        "sha256": "7faa0f96f8f24c6a458adf3f01e2ee8e63095af3e56904b5063c5091b50fb4bf",
+        "size": 440650
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0046c41e.s",
+        "sha256": "a86488d3f3c339895ea334ca83898a1180cf464fedfd29accfca2f956dc95138"
+      },
+      "status": "accepted",
+      "va": 4637726
+    },
+    {
+      "basic_blocks": 53,
+      "code": {
+        "rva": 229025,
+        "sha256": "6b5b77e944445a850fdcab16519f38e7336e51e2c4d5d56ca84bcd4be0701831",
+        "size": 633,
+        "symbol": "FUN_00437ea1"
+      },
+      "compared_bytes": 639,
+      "contains_original_byte_values": false,
+      "data_items": [
+        {
+          "kind": "padding",
+          "rva": 229658,
+          "sha256": "33cc4a00a0f04735602819132da3e3fac4cdeb8ec7aee92551dc79ba8488e722",
+          "size": 6,
+          "symbol": "PAD_0043811a"
+        }
+      ],
+      "function": "FUN_00437ea1",
+      "object": {
+        "sha256": "e79131ba4aa2bfd8e56decb9a0c9e85b91924fdc78010fbd94e8b00af320a5eb",
+        "size": 225965
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00437ea1.s",
+        "sha256": "73e0c64bf79fa29d766c396b6076c30f23f604c00b0cccb7b40be72f7adb2e76"
+      },
+      "status": "accepted",
+      "va": 4423329
+    },
+    {
+      "basic_blocks": 9,
+      "code": {
+        "rva": 874731,
+        "sha256": "32df088195b5985d5eb2b11d5ce63da1130ed31bd6e0d11ae792f16576446784",
+        "size": 617,
+        "symbol": "FUN_004d58eb"
+      },
+      "compared_bytes": 617,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004d58eb",
+      "object": {
+        "sha256": "1d61ffb3320f70bfb34ecca0d55fbf8e7f57f0270ba2210ffdae1eb3adf301cc",
+        "size": 872675
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004d58eb.s",
+        "sha256": "f18ec786224166c5542149decf279c1af836fcb6a8cb7da7f286247626171392"
+      },
+      "status": "accepted",
+      "va": 5069035
+    },
+    {
+      "basic_blocks": 5,
+      "code": {
+        "rva": 659697,
+        "sha256": "ab3faee814343bd8eb79d4e860eba94d974500229c729bf35a7e00741112ee41",
+        "size": 615,
+        "symbol": "FUN_004a10f1"
+      },
+      "compared_bytes": 615,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004a10f1",
+      "object": {
+        "sha256": "20c158d743db3badd3176c51ab45caa5956b000b13aa4f7b60732dd2bb0fb4c4",
+        "size": 656912
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004a10f1.s",
+        "sha256": "6a5a09209a0030a60eed8bc981522fcf83f2372624cc2ec3ae11e58fd6c49a14"
+      },
+      "status": "accepted",
+      "va": 4854001
+    },
+    {
+      "basic_blocks": 14,
+      "code": {
+        "rva": 176254,
+        "sha256": "b88ed7735c97e51ccc9c5d0354d8c3749cc1adcc4e3ca03ec39d4d7e92bf23f8",
+        "size": 614,
+        "symbol": "FUN_0042b07e"
+      },
+      "compared_bytes": 614,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0042b07e",
+      "object": {
+        "sha256": "044e56a55002c5bcc97930f393c57e690fd5768d5cdf136670c6164cf9265aed",
+        "size": 173524
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0042b07e.s",
+        "sha256": "4af154a9b4928d3cf9178e4030187f4d1d3cc0784bc1482737660bf9c71de6f1"
+      },
+      "status": "accepted",
+      "va": 4370558
+    },
+    {
+      "basic_blocks": 5,
+      "code": {
+        "rva": 287443,
+        "sha256": "d92ec6be39e659ace36761b5a6d2e5a8e3a7f48cf24fd1019921b77eff6f37e8",
+        "size": 607,
+        "symbol": "FUN_004462d3"
+      },
+      "compared_bytes": 607,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004462d3",
+      "object": {
+        "sha256": "e21a045db12208127db39e783fdcb2ca1af001ee0f7da34f88661b1325e8e26d",
+        "size": 285103
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004462d3.s",
+        "sha256": "338c86ee81d7dc77d5cc754bcc225b6ab12d24f4602ad66a310d0a42390a37bb"
+      },
+      "status": "accepted",
+      "va": 4481747
+    },
+    {
+      "basic_blocks": 24,
+      "code": {
+        "rva": 113042,
+        "sha256": "6193ec68ceb93ef450595ed4e34d07a2b8d00cd1340b0561a9be4d21f5dce287",
+        "size": 583,
+        "symbol": "FUN_0041b992"
+      },
+      "compared_bytes": 583,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0041b992",
+      "object": {
+        "sha256": "2214af0d84a529522c0615fa5ed476e5a7f18726e1294f321f19912817412ad6",
+        "size": 110039
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0041b992.s",
+        "sha256": "5ceb0630e1d07cc8afceb221b4648c94376af685521acaf2fefe3b2bb7883271"
+      },
+      "status": "accepted",
+      "va": 4307346
+    },
+    {
+      "basic_blocks": 1,
+      "code": {
+        "rva": 761403,
+        "sha256": "ca265743a503c513dadf5142a69a99f2e0d896ccad2974c5bb40f6f06e819673",
+        "size": 580,
+        "symbol": "FUN_004b9e3b"
+      },
+      "compared_bytes": 580,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004b9e3b",
+      "object": {
+        "sha256": "36d4479f1272b112a6ae3e67b031158078dea5eec13361fc1ea232527b5830b2",
+        "size": 759428
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004b9e3b.s",
+        "sha256": "51b46aab09d7abd8a0dcfa431b17b481bc5fe791da2125c9cdf7b2e69d37cba0"
+      },
+      "status": "accepted",
+      "va": 4955707
+    },
+    {
+      "basic_blocks": 23,
+      "code": {
+        "rva": 533337,
+        "sha256": "286336193b807c5d9ec13efb771848e456ca7cc54e5429dd0759305536c8e4f7",
+        "size": 572,
+        "symbol": "FUN_00482359"
+      },
+      "compared_bytes": 572,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_00482359",
+      "object": {
+        "sha256": "1e5a60c0799f16f87afccd3601835262d7067c327ccccbdad7cf8643010a2299",
+        "size": 531101
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00482359.s",
+        "sha256": "1ed0fdd18e9fba63d101af633eaaafe4f525494bc8eee34962391dd690c0c3fc"
+      },
+      "status": "accepted",
+      "va": 4727641
+    },
+    {
+      "basic_blocks": 14,
+      "code": {
+        "rva": 176868,
+        "sha256": "42f18431421029a9cc80c950e85be0b860c58e13d5f34687e1e4b7599860e447",
+        "size": 556,
+        "symbol": "FUN_0042b2e4"
+      },
+      "compared_bytes": 556,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0042b2e4",
+      "object": {
+        "sha256": "9299d4c0b56755e3e41ef71ef4825a7d2cbe6e7c7b95e255b0836807914dd98f",
+        "size": 174232
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0042b2e4.s",
+        "sha256": "3c947d2c0cca43fb399c2fbb892ec8a5eafdf9c95f6bcb7a8ae0f5ff64921407"
+      },
+      "status": "accepted",
+      "va": 4371172
+    },
+    {
+      "basic_blocks": 19,
+      "code": {
+        "rva": 578507,
+        "sha256": "24c7997adcd6e49ebf1cc544724aacb8770595cf8b5831aa00942d01edd94b2b",
+        "size": 553,
+        "symbol": "FUN_0048d3cb"
+      },
+      "compared_bytes": 553,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0048d3cb",
+      "object": {
+        "sha256": "4e8b3c651b3f47a6c67e2d031dd771ba9a7af990a91f2b737a62627cd664596d",
+        "size": 576231
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0048d3cb.s",
+        "sha256": "d75ca674d3c413b0fae97439d1c7bf665b540c9495c8f04b4702d326b8ae3277"
+      },
+      "status": "accepted",
+      "va": 4772811
+    },
+    {
+      "basic_blocks": 46,
+      "code": {
+        "rva": 1025624,
+        "sha256": "ba2b4e2941a95f25fc13ac7f812156eeaae68898a2e2db743b0aac80718bd1f1",
+        "size": 553,
+        "symbol": "FUN_004fa658"
+      },
+      "compared_bytes": 634,
+      "contains_original_byte_values": false,
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "rva": 1026177,
+          "sha256": "3ea660eb561a94a286d2d8d0ea0f2316c216d9e22dab3abb5c477f1079e68213",
+          "size": 20,
+          "symbol": "SWTAB_004fa881"
+        },
+        {
+          "kind": "index_table",
+          "rva": 1026197,
+          "sha256": "fbddd7a52c20f3625e69e8a1dd42356e993cb52d7d008d94250b6594669c99e9",
+          "size": 61,
+          "symbol": "IDXTAB_004fa895"
+        }
+      ],
+      "function": "FUN_004fa658",
+      "object": {
+        "sha256": "9bd7061a857467c9aa93b111901e47e5db0452e65b8838553e64170efdb9cf69",
+        "size": 1023638
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004fa658.s",
+        "sha256": "b6a497c7f3eb3da81dde11b0500bd9279d59ef34cd449fc612e57a53f9991819"
+      },
+      "status": "accepted",
+      "va": 5219928
+    },
+    {
+      "basic_blocks": 38,
+      "code": {
+        "rva": 926461,
+        "sha256": "a255537effcab825f59fc19465913931e457058483472244a196a3abc53c8494",
+        "size": 549,
+        "symbol": "FUN_004e22fd"
+      },
+      "compared_bytes": 549,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004e22fd",
+      "object": {
+        "sha256": "f4822304e3640e5fbe99df573e7141337b4674af5aa87792b9d44b640c6b2ea9",
+        "size": 924073
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004e22fd.s",
+        "sha256": "f454f97c5ea1e811cc4fb5af055ea50a309bfdb9ae87a88938eaafab3e8a89cc"
+      },
+      "status": "accepted",
+      "va": 5120765
+    },
+    {
+      "basic_blocks": 11,
+      "code": {
+        "rva": 175731,
+        "sha256": "48d63750bd18989845fc3046817967c1cdc8f192d2590a803121d7bce5f374f6",
+        "size": 523,
+        "symbol": "FUN_0042ae73"
+      },
+      "compared_bytes": 523,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0042ae73",
+      "object": {
+        "sha256": "c51e03bde58c7122b0bfc7317533e18896963a4ff9bdd335cc8120d402147901",
+        "size": 173076
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0042ae73.s",
+        "sha256": "a4c997f26fa4f61a18dd3ed4086674389f9dcc08a537b67e7a4b3bae4bde167e"
+      },
+      "status": "accepted",
+      "va": 4370035
+    },
+    {
+      "basic_blocks": 9,
+      "code": {
+        "rva": 672448,
+        "sha256": "b899bdc19a2f1b5dc8d9f9a0d94b3869249513ee3d0f4df2d063012104c0af24",
+        "size": 512,
+        "symbol": "FUN_004a42c0"
+      },
+      "compared_bytes": 512,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004a42c0",
+      "object": {
+        "sha256": "591a2e708eb46ada64d92b4f38f8bb27c73f1611ea97f4253e8b9601f2cf0a0f",
+        "size": 669563
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004a42c0.s",
+        "sha256": "717471ce65798a59dd83efb27f782a09942506c77bcfa54bd67b112fd1f0a409"
+      },
+      "status": "accepted",
+      "va": 4866752
+    },
+    {
+      "basic_blocks": 5,
+      "code": {
+        "rva": 286934,
+        "sha256": "cc71ba678570f339a179e918bf0eb72728be11c478e340ebb2eff5baa18cbf3a",
+        "size": 509,
+        "symbol": "FUN_004460d6"
+      },
+      "compared_bytes": 509,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004460d6",
+      "object": {
+        "sha256": "4ddeb444d2ff9df765f65391ea35cd43792c2f51e6a1cc11c30f95ff112086ef",
+        "size": 284321
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004460d6.s",
+        "sha256": "77574babbd5757324f16e5cf5a7d3073d0bc7351afed19bcd9cd5e666de54f71"
+      },
+      "status": "accepted",
+      "va": 4481238
+    },
+    {
+      "basic_blocks": 28,
+      "code": {
+        "rva": 563149,
+        "sha256": "715a602f9a6f12d750b580d6d7e6d51b73adab4e076b9bd4b531a3d96628423f",
+        "size": 509,
+        "symbol": "FUN_004897cd"
+      },
+      "compared_bytes": 509,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004897cd",
+      "object": {
+        "sha256": "719b832f3c2aba91213bada95b1d44ba3c2c2f9b07f54bce9c0a81a9dc8a4ec2",
+        "size": 560820
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004897cd.s",
+        "sha256": "b0e5110d5ae7436edfdddba9a1e6925b6370f3cdfc0616c220f46373a1ce7333"
+      },
+      "status": "accepted",
+      "va": 4757453
+    },
+    {
+      "basic_blocks": 8,
+      "code": {
+        "rva": 729150,
+        "sha256": "0587435a9434da253f5a166752a86d0b4d96fd8539e1f118729507a1f484ad34",
+        "size": 506,
+        "symbol": "FUN_004b203e"
+      },
+      "compared_bytes": 530,
+      "contains_original_byte_values": false,
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "rva": 729656,
+          "sha256": "1b25ac2905cfc33e80224eb3105d1382763c1f93363f6544d1128b2ae6f9d510",
+          "size": 24,
+          "symbol": "SWTAB_004b2238"
+        }
+      ],
+      "function": "FUN_004b203e",
+      "object": {
+        "sha256": "eff82efcdd367a1d4f191ef6536266bcf296c106b7771fbae2864f783c673259",
+        "size": 726467
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004b203e.s",
+        "sha256": "d5e696d18a297857a36b50891b39deb2bbbde065977469b5ed705ea36053f5bf"
+      },
+      "status": "accepted",
+      "va": 4923454
+    },
+    {
+      "basic_blocks": 15,
+      "code": {
+        "rva": 644445,
+        "sha256": "3ea89a40b5caf9d1b9e55bff4bc528a56d8ca8b3fa0deb0a9983713c5118a2ee",
+        "size": 504,
+        "symbol": "FUN_0049d55d"
+      },
+      "compared_bytes": 504,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0049d55d",
+      "object": {
+        "sha256": "c7c0b6b50321d15681152358af9c77909fbbd6cca36a5444db682602ee0266e6",
+        "size": 641579
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0049d55d.s",
+        "sha256": "44ec4a2550e879530cce19ac371584c0bc8b8fab274a45a791101b73c1c2cd6f"
+      },
+      "status": "accepted",
+      "va": 4838749
+    },
+    {
+      "basic_blocks": 12,
+      "code": {
+        "rva": 355784,
+        "sha256": "9a8c80e14a5bc4b8e2187043d488f972648bfd21372b5cb7925212e33e3b372c",
+        "size": 478,
+        "symbol": "FUN_00456dc8"
+      },
+      "compared_bytes": 494,
+      "contains_original_byte_values": false,
+      "data_items": [
+        {
+          "kind": "switch_table",
+          "rva": 356262,
+          "sha256": "7917b0e15c4b36d0d7b10d25be9ec3db3f734af25fe9df3c5caaa8d923563d56",
+          "size": 16,
+          "symbol": "SWTAB_00456fa6"
+        }
+      ],
+      "function": "FUN_00456dc8",
+      "object": {
+        "sha256": "eecf3ac13118dbf4d9b4fd921a5cace7818b88efad2663817798e8e1388f32cd",
+        "size": 352955
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00456dc8.s",
+        "sha256": "a39896726ca27db0dadababb1683a641f0fe8fcd51f39be61019e821178a9991"
+      },
+      "status": "accepted",
+      "va": 4550088
+    },
+    {
+      "basic_blocks": 25,
+      "code": {
+        "rva": 750473,
+        "sha256": "e5127f1855b2f91943ce2241bdd73f5dff6d86acd31c5a7c199f0f049f354635",
+        "size": 474,
+        "symbol": "FUN_004b7389"
+      },
+      "compared_bytes": 474,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004b7389",
+      "object": {
+        "sha256": "9c94951aed43fa87a1d5975cdd0c5373adc671490973b9f2861cc27550b94da9",
+        "size": 747815
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004b7389.s",
+        "sha256": "0f84bccee3b92b7a18af32de849f77d83dfd4df4484379330cc8bf105c83d8ab"
+      },
+      "status": "accepted",
+      "va": 4944777
+    },
+    {
+      "basic_blocks": 21,
+      "code": {
+        "rva": 975060,
+        "sha256": "dc325cfed86c33f37dfe482b7ae9123e6b167b3937d4db7738b553cb5c822622",
+        "size": 469,
+        "symbol": "FUN_004ee0d4"
+      },
+      "compared_bytes": 469,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004ee0d4",
+      "object": {
+        "sha256": "667210e861874925a8ee9d188b30d7d032c211f99cc814800096d8ebad1d904f",
+        "size": 972190
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004ee0d4.s",
+        "sha256": "75b60678344d607a43594f680b16f11945e39817f54eef386bbf09c86dd59911"
+      },
+      "status": "accepted",
+      "va": 5169364
+    },
+    {
+      "basic_blocks": 35,
+      "code": {
+        "rva": 542562,
+        "sha256": "18857f1882b6325bbd9f20668785eb0a93c1edd406423aeb122c200b7f5a6fb5",
+        "size": 467,
+        "symbol": "FUN_00484762"
+      },
+      "compared_bytes": 467,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_00484762",
+      "object": {
+        "sha256": "95ec1231647a45b5d98ea2b3182f254d7c210728b094200048aa4f9713ff9449",
+        "size": 540446
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00484762.s",
+        "sha256": "cfe67302e50899b69d0b234ba1ad5df0afe9b964981d910e9704e7142c577b15"
+      },
+      "status": "accepted",
+      "va": 4736866
+    },
+    {
+      "basic_blocks": 17,
+      "code": {
+        "rva": 612378,
+        "sha256": "fbb0c7675310e32f051c1734bf2a5310a9e6b5b093acc2b0e5dda06334de4a83",
+        "size": 464,
+        "symbol": "FUN_0049581a"
+      },
+      "compared_bytes": 464,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0049581a",
+      "object": {
+        "sha256": "6d67cce4c0550eb0ea33a629408cee8232c580f79629dd2217fe9392166b57bc",
+        "size": 609701
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0049581a.s",
+        "sha256": "fce702e32805689547727ae1aeccc9a99289fa94472497dcf04d20f65e87375e"
+      },
+      "status": "accepted",
+      "va": 4806682
+    },
+    {
+      "basic_blocks": 9,
+      "code": {
+        "rva": 375307,
+        "sha256": "bda1fb6e9941f00ef4c139013cff48b674f6f19034c345b3b7dc570a2453d506",
+        "size": 461,
+        "symbol": "FUN_0045ba0b"
+      },
+      "compared_bytes": 461,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0045ba0b",
+      "object": {
+        "sha256": "bed5caa78f9d05dd55d46d2a681e44e99c8f647527a93d80dfc0527889cf2050",
+        "size": 372728
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0045ba0b.s",
+        "sha256": "0da8fdfe76824ec83938fb4fc419d2ba42d44b619dfe04520ed0a34b31c99bc5"
+      },
+      "status": "accepted",
+      "va": 4569611
+    },
+    {
+      "basic_blocks": 15,
+      "code": {
+        "rva": 933598,
+        "sha256": "94381b075a7044da91fd2028feae1cf850c3ba843f9dda924351de28f3326b75",
+        "size": 456,
+        "symbol": "FUN_004e3ede"
+      },
+      "compared_bytes": 456,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004e3ede",
+      "object": {
+        "sha256": "340cd5224589aec660371978e0375ec9250b15e626e18fdd67292a767c9b4478",
+        "size": 930878
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004e3ede.s",
+        "sha256": "0a6931d24e845da480f1b4d589f13b9750193ac34a8aab5cdc09340524a88e4a"
+      },
+      "status": "accepted",
+      "va": 5127902
+    },
+    {
+      "basic_blocks": 15,
+      "code": {
+        "rva": 113625,
+        "sha256": "3daab37a4e668129bf5fa4ba9f30589ba45a2cf43beed828938b6bdafd4daa7b",
+        "size": 455,
+        "symbol": "FUN_0041bbd9"
+      },
+      "compared_bytes": 455,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0041bbd9",
+      "object": {
+        "sha256": "74f440e3622dc0803370dff1019c94cb44277611907dc3bf4e570dfe238b486c",
+        "size": 110655
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0041bbd9.s",
+        "sha256": "3f0e023df500a1d77ad3a69bb1141f588089ba17a75431cf7ae9dd8703ee7885"
+      },
+      "status": "accepted",
+      "va": 4307929
+    },
+    {
+      "basic_blocks": 28,
+      "code": {
+        "rva": 961897,
+        "sha256": "387fbcac1e51ab8506e15062e9d8317f0c4ffe1e8b8b7401ccedaec862a84d87",
+        "size": 449,
+        "symbol": "FUN_004ead69"
+      },
+      "compared_bytes": 449,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004ead69",
+      "object": {
+        "sha256": "2966f8543f686c37d6373b24aaa72fec9601b566dda36aeb310f92c7951de4c2",
+        "size": 958883
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004ead69.s",
+        "sha256": "e5173cfbe90214bf6ae5edc755060c1ace95e763c5aa2c8872a3200093ab91d7"
+      },
+      "status": "accepted",
+      "va": 5156201
+    },
+    {
+      "basic_blocks": 16,
+      "code": {
+        "rva": 953268,
+        "sha256": "297cedb2821f3c564f004101b600579be69434e6c1be9b3545333442962e30d6",
+        "size": 446,
+        "symbol": "FUN_004e8bb4"
+      },
+      "compared_bytes": 446,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004e8bb4",
+      "object": {
+        "sha256": "8a0bceaa98ebaafe8ae1ca7aba7bbb8db5df8b175ed0066525c7908c5958ebaf",
+        "size": 950197
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004e8bb4.s",
+        "sha256": "f700eadb50e06add59c5f7da1f56512e5a2a8e5fb772ad2d365c7795a04acaa1"
+      },
+      "status": "accepted",
+      "va": 5147572
+    },
+    {
+      "basic_blocks": 16,
+      "code": {
+        "rva": 333070,
+        "sha256": "1256a6434fa9106c75a762252be270de6f1cff1424df1b386c3b9205dbfe6bfd",
+        "size": 441,
+        "symbol": "FUN_0045150e"
+      },
+      "compared_bytes": 441,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0045150e",
+      "object": {
+        "sha256": "3bd2c387ff9929652a9859a6fdee8ca38883aeec0b66d5a9f2f1a6db1fa111f5",
+        "size": 330560
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0045150e.s",
+        "sha256": "213425cb3cee6dc0fd48f7b756c2779b244c667dd29f1e7a09f58af815a162fd"
+      },
+      "status": "accepted",
+      "va": 4527374
+    },
+    {
+      "basic_blocks": 14,
+      "code": {
+        "rva": 523621,
+        "sha256": "05a9653ac9793f62cc284140f22b9621eb2f64dafb70aacc30e54371a2085bb3",
+        "size": 425,
+        "symbol": "FUN_0047fd65"
+      },
+      "compared_bytes": 425,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0047fd65",
+      "object": {
+        "sha256": "4c307e383cb151f6f2e62c527f528f879fcd2291c54fa5a3d253ec001a2b6bf3",
+        "size": 520545
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0047fd65.s",
+        "sha256": "10d5d40d8c17aeef808b5d0a40fc2062d5af10c5cb136eb8b74b1765ef95155b"
+      },
+      "status": "accepted",
+      "va": 4717925
+    },
+    {
+      "basic_blocks": 10,
+      "code": {
+        "rva": 349371,
+        "sha256": "ec0637aa72db5f532174fb1aab8e236ebe9e2f5ba961593d425f3905c93c832e",
+        "size": 420,
+        "symbol": "FUN_004554bb"
+      },
+      "compared_bytes": 420,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004554bb",
+      "object": {
+        "sha256": "e52c368f28a3c4b1956455b2eb9180deff3b1f9eb499d05526d232ad86472b21",
+        "size": 346137
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004554bb.s",
+        "sha256": "b9cc5ecd4a3445d7b0b192dec4b1632d267b23b3a27cbe18c63148f1e439d257"
+      },
+      "status": "accepted",
+      "va": 4543675
+    },
+    {
+      "basic_blocks": 10,
+      "code": {
+        "rva": 412341,
+        "sha256": "2b207500a44da63cbf294b4e9585d1c75c23cea530fbfa6638e3c3e933c5fc45",
+        "size": 420,
+        "symbol": "FUN_00464ab5"
+      },
+      "compared_bytes": 420,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_00464ab5",
+      "object": {
+        "sha256": "6cf0c98e93910644e6406a5b397438baaa4fb332e8590035036f58fd0b89d2a7",
+        "size": 409118
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_00464ab5.s",
+        "sha256": "3fe18309c4559fa8f68328d8ff164825dafb2ee4ce929764df40106fef75ed67"
+      },
+      "status": "accepted",
+      "va": 4606645
+    },
+    {
+      "basic_blocks": 8,
+      "code": {
+        "rva": 546043,
+        "sha256": "81850f86de93ecda5129d44a2ff1c9323cf536507db7631f5a8a5554c3c699e1",
+        "size": 419,
+        "symbol": "FUN_004854fb"
+      },
+      "compared_bytes": 419,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004854fb",
+      "object": {
+        "sha256": "d4fdf9d783dd385336168c214d40b3a28539e1dd9f7ea4e06e5fef8b516d8c76",
+        "size": 542895
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004854fb.s",
+        "sha256": "ee8b5fdfc1a11065af4de636fed6e901d5e734b75fa09433a13ceaac97a0c96a"
+      },
+      "status": "accepted",
+      "va": 4740347
+    },
+    {
+      "basic_blocks": 11,
+      "code": {
+        "rva": 816257,
+        "sha256": "c9fafe526715e93f5de672a4340002a5cffbff9e1473ba5de1ae462277a8673d",
+        "size": 418,
+        "symbol": "FUN_004c7481"
+      },
+      "compared_bytes": 418,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_004c7481",
+      "object": {
+        "sha256": "b23dc8eeafa0fecc23bea8bd79a2e4fac80e7ecfd3da4b565abeb16af100f487",
+        "size": 813717
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_004c7481.s",
+        "sha256": "b86c2d7a5ca9da927cbe1c99042e135b8fe910d7a2b4ba61946b22e4cf6918c7"
+      },
+      "status": "accepted",
+      "va": 5010561
+    },
+    {
+      "basic_blocks": 27,
+      "code": {
+        "rva": 317201,
+        "sha256": "06e25bdc66b7fa2b9850cb38dd36d767353318e5256fcb572540d2e961d94d0e",
+        "size": 412,
+        "symbol": "FUN_0044d711"
+      },
+      "compared_bytes": 412,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0044d711",
+      "object": {
+        "sha256": "f5933686afe8200f185b3ed767199925538f25d12b98a2f0ef7f0098a217b06f",
+        "size": 314089
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0044d711.s",
+        "sha256": "a53a836918a1c158498225b019170815f390a4738ad40a26345bb948f22110a7"
+      },
+      "status": "accepted",
+      "va": 4511505
+    },
+    {
+      "basic_blocks": 35,
+      "code": {
+        "rva": 518771,
+        "sha256": "b7d749bd5a60867f2126f964406947e35fd016f4d473b9fa6e5ee5ed5070f092",
+        "size": 403,
+        "symbol": "FUN_0047ea73"
+      },
+      "compared_bytes": 403,
+      "contains_original_byte_values": false,
+      "data_items": [],
+      "function": "FUN_0047ea73",
+      "object": {
+        "sha256": "7ff24656dd33b84c0e6e24e120e0d16a48b10ceecf33e985691545d016aa0bc5",
+        "size": 515986
+      },
+      "reasons": [],
+      "region": "game",
+      "relocations": 0,
+      "source": {
+        "path": "FUN_0047ea73.s",
+        "sha256": "a0528cf81a7b0a7ab20e6aa0559220b22b96ed6c185a0de7d545761e5026f8ac"
+      },
+      "status": "accepted",
+      "va": 4713075
+    }
+  ],
+  "manifest_sha256": "b162b72f11bf8b60690953376541f3b97f126821684b1ec87acab515c845e867",
+  "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
+}

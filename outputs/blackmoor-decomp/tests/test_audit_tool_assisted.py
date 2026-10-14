@@ -62,6 +62,10 @@ def annotate(source: str, va: int) -> str:
         source = re.sub(rf"(# {key}:\s+)<unfilled>", lambda m: m.group(1) + value.format(f"{va:08x}"), source)
     source = re.sub(r"\blocal_([0-9a-f]+)\b", r"local_slot\1", source)
     source = re.sub(r"\barg_([0-9a-f]+)\b", r"arg_slot\1", source)
+    source = re.sub(r"\bfield_minus_([0-9a-f]+)\b", r"member_minus_\1", source)
+    source = re.sub(r"\bfield_([0-9a-f]+)\b", r"member_\1", source)
+    source = re.sub(r"\bstk_minus_([0-9a-f]+)\b", r"stackslot_minus_\1", source)
+    source = re.sub(r"\bstk_([0-9a-f]+)\b", r"stackslot_\1", source)
     source = re.sub(r"# block 0x[0-9a-f]+: <unfilled>", "# this block does the fixture's work", source)
     return source
 
@@ -104,9 +108,8 @@ class AuditorMutants(unittest.TestCase):
 
     # ------------------------------------------------------------------ helpers
 
-    def config(self, assembler: Path = None, allow_index_byte_lists: bool = True, pinned: str = None) -> "audit.AuditConfig":
+    def config(self, assembler: Path = None, allow_index_byte_lists: bool = True) -> "audit.AuditConfig":
         return audit.AuditConfig(
-            pinned_assembler_sha256=pinned or hashlib.sha256(gen.AS_DEFAULT.read_bytes()).hexdigest(),
             allow_index_byte_lists=allow_index_byte_lists,
             original=self.original,
             index=self.index,
@@ -209,7 +212,7 @@ class AuditorMutants(unittest.TestCase):
     def test_unnamed_frame_offset_is_rejected(self) -> None:
         va = BASE + fixture.F_FRAME
         report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "[ebp - local_slot4]", "[ebp - 4]"))
-        self.rejected(report, va, "unnamed [ebp")
+        self.rejected(report, va, "unnamed register-relative offset")
 
     def test_frame_symbol_left_with_the_default_name_is_rejected(self) -> None:
         va = BASE + fixture.F_FRAME
@@ -382,7 +385,7 @@ class AuditorMutants(unittest.TestCase):
         va = BASE + fixture.F_FRAME
         for spelling in ("[ebp - 0X4]", "[ebp - 0b100]", "[ebp-4]"):
             report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "[ebp - local_slot4]", spelling))
-            self.rejected(report, va, "unnamed [ebp")
+            self.rejected(report, va, "unnamed register-relative offset")
 
     def test_short_frame_names_are_rejected(self) -> None:
         va = BASE + fixture.F_FRAME
@@ -408,8 +411,16 @@ class AuditorMutants(unittest.TestCase):
         self.rejected(report, va, "header 'span'")
 
     def test_a_wrapper_that_forges_the_version_line_is_rejected(self) -> None:
+        # prints the pinned version but silently drops the {load} hint: the self-test must catch it
         shim = Path(self.tmp.name) / "shim-as"
-        shim.write_text(f"#!/bin/sh\nexec {gen.AS_DEFAULT} \"$@\"\n")
+        shim.write_text(
+            "#!/bin/sh\n"
+            f"if [ \"$1\" = --version ]; then exec {gen.AS_DEFAULT} --version; fi\n"
+            "out=; src=; prev=\n"
+            "for a in \"$@\"; do if [ \"$prev\" = -o ]; then out=$a; fi; prev=$a; src=$a; done\n"
+            f"sed 's/{{load}} //' \"$src\" > \"$src.tmp\"\n"
+            f"exec {gen.AS_DEFAULT} --32 -o \"$out\" \"$src.tmp\"\n"
+        )
         shim.chmod(shim.stat().st_mode | stat.S_IEXEC)
         work = Path(tempfile.mkdtemp(dir=self.tmp.name))
         for path in self.pristine.glob("*.s"):
@@ -417,10 +428,9 @@ class AuditorMutants(unittest.TestCase):
         manifest = gen.build_manifest(self.image, self.layouts, [BASE + off for off in FUNCTIONS], work, "test", "fixture", original_sha256=self.pe_sha)
         path = work / "batch.json"
         path.write_text(json.dumps(manifest), encoding="utf-8")
-        config = self.config(assembler=shim, pinned=hashlib.sha256(gen.AS_DEFAULT.read_bytes()).hexdigest())
-        report = audit.audit_manifest(path, config)
+        report = audit.audit_manifest(path, self.config(assembler=shim))
         self.assertFalse(report["all_accepted"])
-        self.assertTrue(any("version" in e or "pinned" in e for e in report["errors"]), report["errors"])
+        self.assertTrue(any("self-test" in e for e in report["errors"]), report["errors"])
 
     def test_source_path_cannot_leave_the_manifest_directory(self) -> None:
         va = BASE + fixture.F_LEAF
@@ -462,7 +472,7 @@ class AuditorMutants(unittest.TestCase):
         reasons, _facts = audit.audit_source(
             "# FUN_00401000\n# frame:        ebp\nFUN_00401000:\n    .insn 0x6681/7, dword ptr [ebp - 0x4], 1{:s16}\n    ret\n", {}, "FUN_00401000"
         )
-        self.assertTrue(any("unnamed [ebp" in r for r in reasons), reasons)
+        self.assertTrue(any("unnamed register-relative offset" in r for r in reasons), reasons)
 
     def test_track_n_path_cannot_leave_the_repository(self) -> None:
         va = BASE + fixture.F_LEAF
@@ -480,7 +490,25 @@ class AuditorMutants(unittest.TestCase):
             "# FUN_00401000\n# frame:        none\nFUN_00401000:\n    mov edi, edi\n    push ebp\n    {load} mov ebp, esp\n"
             "    mov eax, dword ptr [ebp - 0x4]\n    ret\n", {}, "FUN_00401000"
         )
-        self.assertTrue(any("unnamed [ebp" in r for r in reasons), reasons)
+        self.assertTrue(any("unnamed register-relative offset" in r for r in reasons), reasons)
+
+    def test_raw_and_default_named_field_offsets_are_rejected(self) -> None:
+        body = "# FUN_00401000\n# frame:        none\nFUN_00401000:\n    {operand}\n    ret\n"
+        for operand, needle in (
+            ("mov eax, dword ptr [ecx + 0x18]", "unnamed register-relative offset"),
+            ("mov eax, dword ptr [esp + 4]", "unnamed register-relative offset"),
+            ("mov eax, dword ptr [ecx + field_18]", "placeholder name"),
+        ):
+            reasons, _ = audit.audit_source(body.format(operand=operand), {}, "FUN_00401000")
+            self.assertTrue(any(needle in r for r in reasons), (operand, reasons))
+        ok, _ = audit.audit_source(body.format(operand="mov eax, dword ptr [ecx + 0x5c3a00]"), {}, "FUN_00401000")
+        self.assertFalse(any("register-relative" in r for r in ok), ok)
+
+    def test_index_table_must_name_its_owner_and_switch(self) -> None:
+        va = BASE + fixture.F_SWITCH
+        label_comment = f"index table of FUN_{va:08x} for the switch jump at"
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, label_comment, "index table of someone else for the switch jump at"))
+        self.rejected(report, va, "not labeled with its owning function and switch")
 
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
