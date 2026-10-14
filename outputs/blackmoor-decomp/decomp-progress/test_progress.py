@@ -66,15 +66,15 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(p, committed, "Refresh progress after changes to live registrations or evidence")
         self.assertEqual(p["scene_total"], 2078)
         self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
-        self.assertEqual(p["stop"]["action_type"], "0x35")
-        self.assertEqual(p["stop"]["row"], 3)
-        self.assertEqual(p["tests"], {"discovered": 967, "passed": 962, "skipped": 5,
+        self.assertEqual(p["stop"]["action_type"], "0x97")
+        self.assertEqual(p["stop"]["row"], 11)
+        self.assertEqual(p["tests"], {"discovered": 1074, "passed": 1069, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 19259)
-        self.assertEqual(a["opaque"]["records"], 353)
+        self.assertEqual(a["typed"]["records"], 19324)
+        self.assertEqual(a["opaque"]["records"], 288)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -89,9 +89,9 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(a["registrations"], {
             "executor": ["0x0a", "0x15", "0x4d", "0x61", "0x64", "0x6a", "0x6b", "0x71"],
             "session_ui": ["0x1d", "0x82"],
-            "external": {"0x28": "session_a28_handler", "0x51": "session_a51_handler",
+            "external": {"0x28": "session_a28_handler", "0x35": "session_a35_handler", "0x51": "session_a51_handler",
                          "0x62": "session_a62_handler", "0x9f": "native_action_sound_handler"}})
-        self.assertEqual(a["handled"]["type_count"], 14)
+        self.assertEqual(a["handled"]["type_count"], 15)
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
         derived.pop("scene_total")
         self.assertEqual(a, derived)
@@ -147,7 +147,7 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700", report)
         self.assertIn("provider action-kernel", report)
-        self.assertIn("967 discovered; 962 passed; 5 skipped", report)
+        self.assertIn("1,074 discovered; 1,069 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
         t = self.model["totals"]
@@ -814,7 +814,7 @@ class RegistrationDriftTests(unittest.TestCase):
                     path.write_bytes(original)
 
     def test_new_handler_cannot_reuse_old_stop_evidence(self):
-        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x35;")
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x37;")
         with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError,
                                     "evidence stale; rerun record_playable_status.py"):
             GEN.PLAYABLE.build_panel(self.out, self.status)
@@ -838,7 +838,7 @@ class RegistrationDriftTests(unittest.TestCase):
             ("src/blackmoor_app.mm", "bindings[2].callback = session_a51_handler;"),
             ("src/blackmoor_app.mm", "bindings[0] = action_sound_binding;"),
             ("src/blackmoor_app.mm", "config.action_bindings = bindings;"),
-            ("src/blackmoor_app.mm", "config.action_binding_count = 4u;"),
+            ("src/blackmoor_app.mm", "config.action_binding_count = 5u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].present = 1u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].callback = ui_action_handler;"),
         ]
