@@ -1,7 +1,7 @@
 {
   "project_root": "/Users/albovsky/Projects/nd-blackmoor-decomp",
-  "worker_model": "gpt-6-luna",
-  "reasoning_effort": "max",
+  "worker_model": "Claude Sonnet (high) slice-implementer; Codex gpt-6.1-sol (xhigh). Never Luna.",
+  "reasoning_effort": "high (Sonnet) / xhigh (Codex)",
   "current_slice_complete": true,
   "slices": [
     {
@@ -69,8 +69,8 @@
       "packet": "tasks/S08-matching-build.md",
       "status": "INCOMPLETE:398 exact bytes; whole-file rebuild open",
       "depends_on": [],
-      "current_child_packet": "tasks/S08-4-input-consumer-matching.md",
-      "assignment_state": "Owner paused after reviewed S08-4 collection3b858e6",
+      "current_child_packet": "tasks/M02-whole-file-skeleton-and-composer.md",
+      "assignment_state": "Owner ruling 2026-10-14: tool-assisted assembly with review; M02 and M03 ready",
       "assigned_worker": "/root/progress_map_luna6"
     },
     {
@@ -858,6 +858,24 @@
       "depends_on": [],
       "parent": "S04",
       "assigned_worker": "/root/sound_stream_protocol_luna6"
+    },
+    {
+      "id": "M02",
+      "title": "Whole-file skeleton and image composer",
+      "packet": "tasks/M02-whole-file-skeleton-and-composer.md",
+      "status": "READY",
+      "depends_on": [],
+      "parent": "S08",
+      "assignment_state": "unclaimed; owner ruling 2026-10-14 adopted tool-assisted assembly"
+    },
+    {
+      "id": "M03",
+      "title": "Hinted assembly generator and first reviewed batch",
+      "packet": "tasks/M03-hinted-assembly-generator-and-first-batch.md",
+      "status": "READY",
+      "depends_on": [],
+      "parent": "S08",
+      "assignment_state": "unclaimed; may run in parallel with M02"
     }
   ]
 }
