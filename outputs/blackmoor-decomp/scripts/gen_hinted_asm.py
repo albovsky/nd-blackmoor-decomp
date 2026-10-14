@@ -534,17 +534,22 @@ def analyze(image: Image, va: int, decoded: "Decoded", span_end: Optional[int] =
                 layout.data.append(DataItem(kind, tail, hi - tail, count=len(info["values"]), values=list(info["values"])))
             tail = hi
             continue
+        if tail in layout.external_targets:
+            layout.next_entry = tail  # a direct call or jump enters here: this is a function start, not padding
+            layout.span_end = tail
+            layout.notes.append(f"further_unindexed_code_at:0x{tail:08x}")
+            break
         fill = image.text[tail - image.base]
         if fill in (0xCC, 0x90):
             end = tail
-            while end < span_end and image.text[end - image.base] == fill and end not in by_start and (end == tail or end not in layout.external_targets):
+            while end < span_end and image.text[end - image.base] == fill and end not in by_start and end not in layout.external_targets:
                 end += 1
             layout.data.append(DataItem("padding", tail, end - tail, fill=fill))
             tail = end
             continue
         pad_lines: list[str] = []
         end = tail
-        while end < span_end and end not in by_start and (end == tail or end not in layout.external_targets):
+        while end < span_end and end not in by_start and end not in layout.external_targets:
             found = nop_like(image.text, end - image.base)
             if found is None or end + found[0] > span_end:
                 break
