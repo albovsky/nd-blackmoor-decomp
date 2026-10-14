@@ -106,6 +106,26 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return log.read_text()
 
+    def test_synthetic_accepted_click_completes_s5900_row_7_and_stops_at_a28(self):
+        # Stand-in for the RT-2 pointer path: one synthetic accepted event.
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'synthetic.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--test-a62-accept',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=120)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        contents = log.read_text()
+        self.assertIn('test_a62_synthetic_accept result=phase2 row=7 coordinates=5,5 '
+                      'pointer_path=not-implemented(RT-2)', contents)
+        # Row 7 completes (event 1000 opens rows 8-10); row 8 (0x28) is the
+        # next explicit blocker, before any scene change to S4700.
+        self.assertIn('scene_session_blocked stage=3 provider=action-family-28 '
+                      'action=8 type=0x28', contents)
+        self.assertIn('live_session_end scene=5900', contents)
+        self.assertNotIn('target=5907', contents)
+
     def test_failed_layer_transfer_retains_applied_restore_prefix(self):
         contents = self.run_session_probe('--test-caption-fail-blit', '2')
         self.assertIn('caption_transfer_applied tick=1 attempt=1 success=1 kind=1', contents)
@@ -189,26 +209,61 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertIn('seed=analysis-only', contents)
             self.assertNotIn('stopped failure=0', contents)
 
-    def test_live_session_plays_s0_audio_then_click_enters_s5900_and_stops_at_a62(self):
-        with tempfile.TemporaryDirectory() as directory:
-            log = Path(directory) / 'live.log'
-            result = subprocess.run([str(self.executable), '--inspect-live-session',
-                                     '--live-click-row', '34',
-                                     '--game-dir', str(self.game), '--log', str(log)],
-                                    capture_output=True, text=True, timeout=120)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            contents = log.read_text()
-            for evidence in ('live_audio loaded stem=NSHT01 channel=13',
-                             'live_session_hover row=34 rect=388,225,492,284',
-                             'live_session_click row=34',
-                             'scene_parsed name=S5900',
-                             'scene_transition_applied source=0 target=5900 generation=2',
-                             'scene_session_blocked stage=3 provider=action-family-62 action=7 type=0x62',
-                             'live_session_scene_changed from=0 to=5900',
-                             'live_session_end scene=5900'):
-                self.assertIn(evidence, contents)
-            self.assertLess(contents.index('live_session_click'),
-                            contents.index('scene_transition_applied'))
+    def run_live(self, *extra_args):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'live.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', *extra_args,
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=120)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return log.read_text()
+
+    def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
+        contents = self.run_live()
+        ordered = ('live_audio loaded stem=NSHT01 channel=13',
+                   'live_session_hover row=34 rect=388,225,492,284',
+                   'live_session_click row=34',
+                   'scene_parsed name=S5900',
+                   'scene_transition_applied source=0 target=5900 generation=2',
+                   # Row 7 (0x62): selector from the scene-change frame word,
+                   # then the phase-0 start flag store at 0x42eb04.
+                   'scene_a62_selector scene=5900 value=0 source=scene-change-frame-word',
+                   'scene_a62_start_flag DAT_005bb1ca=1 writer=0x42eb04',
+                   # Row 11 (0x51): AUTOTEXT key CURL00 into the frame text box.
+                   'scene_a51_open_frame_text mode=2 bytes=6 status=0 detail=ok',
+                   # Rows 12/14 (0x9f) start their sounds; row 13 follows the
+                   # timer-5 gate into S5907.
+                   'live_audio loaded stem=carstart channel=4',
+                   'live_audio loaded stem=Traffic channel=9',
+                   'scene_session_transition_pending source=5900 target=5907',
+                   'scene_parsed name=S5907',
+                   'scene_transition_applied source=5900 target=5907 generation=3',
+                   'scene_a62_selector scene=5907 value=0',
+                   'scene_a51_open_frame_text mode=2 bytes=51 status=0 detail=ok',
+                   'live_audio loaded stem=Open_A channel=13',
+                   # New stop: S5907 row 6 (0x9f) is gated by dependency opcode 17.
+                   'scene_session_blocked stage=3 provider=dependency-provider '
+                   'action=6 type=0x9f detail=6',
+                   'live_session_scene_changed from=5900 to=5907',
+                   'live_session_end scene=5907')
+        position = 0
+        for evidence in ordered:
+            found = contents.find(evidence, position)
+            self.assertNotEqual(found, -1, evidence)
+            position = found
+        # Wait mode 0: the frame text box is opened once per scene and the
+        # row never completes or closes it.
+        self.assertEqual(contents.count('scene_a51_open_frame_text mode=2 bytes=6 '), 1)
+        self.assertNotIn('scene_a51_close_frame_text', contents)
+        self.assertNotIn('provider=action-family-62', contents)
+
+    def test_a62_selector_is_unavailable_for_the_new_game_entry_scene(self):
+        # The start scene has no scene-change frame word, so the provider must
+        # not invent one: S0 itself never logs a selector.
+        contents = self.run_live()
+        self.assertNotIn('scene_a62_selector scene=0 ', contents)
 
     def test_scene_fixture_uses_real_caption_audio_and_resource_transition(self):
         with tempfile.TemporaryDirectory() as directory:

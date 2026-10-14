@@ -17,6 +17,12 @@ enum {
     SCENE_ACTION_ASYNC_SOUND = 0x9f
 };
 
+typedef struct SceneExecutorPreGate {
+    uint8_t type;
+    SceneActionPreGateFn callback;
+    void *context;
+} SceneExecutorPreGate;
+
 struct SceneActionExecutor {
     const SceneResource *scene;
     ActionCoreWorld *world;
@@ -35,6 +41,8 @@ struct SceneActionExecutor {
     ActionFamily64Backend *action64_backend;
     SceneAction64WorldCommitFn action64_world_commit_observer;
     void *action64_world_commit_context;
+    SceneExecutorPreGate pre_gates[SCENE_EXECUTOR_MAX_PRE_GATES];
+    size_t pre_gate_count;
 };
 
 static uint16_t read_u16le(const uint8_t *bytes)
@@ -274,6 +282,53 @@ int scene_executor_set_action64_world_commit_observer(
     executor->action64_world_commit_observer = observer;
     executor->action64_world_commit_context = context;
     return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_set_pre_gate(SceneActionExecutor *executor,
+                                uint8_t type,
+                                SceneActionPreGateFn callback,
+                                void *context)
+{
+    size_t index;
+    if (executor == NULL || callback == NULL ||
+        executor->pre_gate_count >= SCENE_EXECUTOR_MAX_PRE_GATES) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    for (index = 0u; index < executor->pre_gate_count; ++index) {
+        if (executor->pre_gates[index].type == type) {
+            return SCENE_EXECUTOR_ERR_ARGUMENT;
+        }
+    }
+    executor->pre_gates[executor->pre_gate_count].type = type;
+    executor->pre_gates[executor->pre_gate_count].callback = callback;
+    executor->pre_gates[executor->pre_gate_count].context = context;
+    ++executor->pre_gate_count;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_accept_action_candidate(SceneActionExecutor *executor,
+                                           size_t action_index)
+{
+    if (executor == NULL || action_index >= executor->action_count) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->states[action_index].phase = 2u;
+    return SCENE_EXECUTOR_OK;
+}
+
+static void run_pre_gate(const SceneActionExecutor *executor,
+                         size_t index,
+                         const SceneActionInfo *action)
+{
+    size_t gate;
+    for (gate = 0u; gate < executor->pre_gate_count; ++gate) {
+        if (executor->pre_gates[gate].type == action->type) {
+            executor->pre_gates[gate].callback(executor->pre_gates[gate].context,
+                                               index, action,
+                                               &executor->states[index]);
+            return;
+        }
+    }
 }
 
 static int action64_clock_fields_changed(const ActionFamily64World *before,
@@ -647,6 +702,9 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             return SCENE_EXECUTOR_ERR_FORMAT;
         }
         ++local_info.actions_considered;
+        /* 0x427a50 stores the request clear before the type switch and the
+         * dependency gate (see SceneActionPreGateFn). */
+        run_pre_gate(executor, index, &action);
         if (is_builtin_hotspot(&action)) {
             hotspot->active = 0u;
         }

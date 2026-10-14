@@ -18,6 +18,8 @@
 #include "action_family28_surface.h"
 #include "scene_conditions.h"
 #include "scene_session.h"
+#include "session_bindings_a62.h"
+#include "session_bindings_a51.h"
 #include "caption_layout.h"
 #include "caption_lifecycle.h"
 #include "caption_compositor.h"
@@ -166,6 +168,23 @@ struct NativeApp {
     BinkPlayer *video = nullptr;
     SceneSession *session = nullptr;
     LiveAudio *live_audio = nullptr;
+    /* RT-3 session bindings (host providers are the static native_a62_* /
+     * native_a51_* callbacks below). */
+    SessionA62Binding *a62 = nullptr;
+    SessionA51Binding *a51 = nullptr;
+    /* DAT_005bb1ca, shared "cursor allowed" process global written by 0x62. */
+    int32_t start_flag_5bb1ca = 0;
+    /* DAT_005bb50b as set at scene entry (0x439f20..0x439f41 copies
+     * DAT_005bb599, the frame word of the scene-change request). */
+    int32_t selector_entry_frame = 0;
+    bool selector_entry_valid = false;
+    bool selector_logged = false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    /* Test hook: stands in for the RT-2 pointer path with one synthetic
+     * accepted event (scan + accept reducers + candidate store). */
+    bool test_a62_accept = false;
+    bool test_a62_accept_done = false;
+#endif
     /* Headless runs render the offline audio graph a fixed amount per update;
      * live runs leave this zero and let the output device pace playback. */
     uint32_t offline_audio_frames_per_update = 0;
@@ -1481,6 +1500,8 @@ static void closed(void *context)
 static void cleanup(NativeApp *app)
 {
     if (app->session) scene_session_destroy(app->session);
+    session_a62_destroy(app->a62);
+    session_a51_destroy(app->a51);
     if (app->live_audio) live_audio_destroy(app->live_audio);
     app->live_audio = nullptr;
     if (app->platform) blackmoor_macos_close(app->platform);
@@ -1899,6 +1920,226 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
     return SCENE_SESSION_CALLBACK_OK;
 }
 
+
+/* ---- RT-3: host providers for the 0x62 and 0x51 session bindings ---------- */
+
+/* DAT_005bb50b, the signed selector 0x42ea87 compares at 0x42ebb0. Its only
+ * stores are 0x439f41 (scene entry: DAT_005bb599, the frame word copied from
+ * the scene-change request, guarded by the restore flag 0x5e32b5 == 0) and the
+ * navigation block 0x43c2b7..0x43c87f of 0x43a7ca. The navigation commands
+ * come from the keyboard path 0x437774 and the edge-scroll block 0x4f197d..
+ * 0x4f1dba, neither of which exists in the native app, so after a transition
+ * the register still holds the entry frame. The New Game entry scene has no
+ * proven entry frame, so it is reported as unavailable. */
+static int native_a62_current_selector(void *context, int16_t *selector)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || selector == nullptr || !app->selector_entry_valid ||
+        app->selector_entry_frame < INT16_MIN || app->selector_entry_frame > INT16_MAX)
+        return 1;
+    *selector = static_cast<int16_t>(app->selector_entry_frame);
+    if (!app->selector_logged) {
+        app->selector_logged = true;
+        record(app, "scene_a62_selector scene=%d value=%d source=scene-change-frame-word "
+               "(0x439f20..0x439f41 DAT_005bb50b=DAT_005bb599) navigation_producers=unbound",
+               app->current_scene_id, *selector);
+    }
+    return 0;
+}
+
+static void native_a62_set_start_flag(void *context, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    app->start_flag_5bb1ca = value;
+    record(app, "scene_a62_start_flag DAT_005bb1ca=%d writer=0x42eb04", value);
+}
+
+static std::vector<uint8_t> native_a51_text_copy(const uint8_t *text, size_t length)
+{
+    std::vector<uint8_t> copy(length + 8u, 0u);
+    if (length != 0u) std::memcpy(copy.data(), text, length);
+    return copy;
+}
+
+static ActionFamily51BackendStatus native_a51_measure(void *context, const uint8_t *text, size_t length,
+                              int16_t *lines)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr || lines == nullptr || !app->captions.initialized)
+        return ACTION_FAMILY_51_BACKEND_ERROR;
+    std::vector<uint8_t> copy = native_a51_text_copy(text, length);
+    CaptionRequest request{copy.data(), copy.size(), CAPTION_MODE_CAPTION, 1u, 0u};
+    CaptionResult result{};
+    const int status = caption_layout_write(&app->captions.fonts,
+        &app->captions.geometry, &app->captions.pixel_format,
+        &app->captions.writer_box, &app->captions.writer_globals,
+        &app->captions.writer_backend, nullptr, &request, &result);
+    app->captions.last_writer_status = status;
+    record(app, "scene_a51_measure status=%d lines=%d bytes=%zu", status, result.lines, length);
+    if (status != CAPTION_OK) return ACTION_FAMILY_51_BACKEND_ERROR;
+    *lines = result.lines;
+    return ACTION_FAMILY_51_BACKEND_OK;
+}
+
+static ActionFamily51BackendStatus native_a51_write_caption(void *context, const uint8_t *text, size_t length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr || !app->captions.initialized)
+        return ACTION_FAMILY_51_BACKEND_ERROR;
+    app->captions.action_caption_attempted = true;
+    app->captions.transfer_blocked = false;
+    std::vector<uint8_t> copy = native_a51_text_copy(text, length);
+    CaptionRequest request{copy.data(), copy.size(), CAPTION_MODE_CAPTION, 0u, 0u};
+    const int status = caption_layout_write(&app->captions.fonts,
+        &app->captions.geometry, &app->captions.pixel_format,
+        &app->captions.writer_box, &app->captions.writer_globals,
+        &app->captions.writer_backend, &app->captions.caption_surface,
+        &request, &app->captions.last_writer_result);
+    app->captions.last_writer_status = status;
+    app->captions.action_caption_present_succeeded = status == CAPTION_OK;
+    record(app, "scene_a51_write_caption status=%d bytes=%zu lines=%d glyphs=%u",
+           status, length, app->captions.last_writer_result.lines,
+           app->captions.last_writer_result.glyphs_drawn);
+    return status == CAPTION_OK ? ACTION_FAMILY_51_BACKEND_OK
+                                : ACTION_FAMILY_51_BACKEND_ERROR;
+}
+
+static ActionFamily51BackendStatus native_a51_open_frame_text(void *context, int32_t mode, const uint8_t *text,
+                                      size_t length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr || !app->captions.initialized)
+        return ACTION_FAMILY_51_BACKEND_ERROR;
+    std::vector<uint8_t> copy = native_a51_text_copy(text, length);
+    const int status = caption_ctb_open(&app->captions.lifecycle,
+        &app->captions.lifecycle_backend, mode, copy.data(), copy.size());
+    app->captions.last_lifecycle_status = status;
+    record(app, "scene_a51_open_frame_text mode=%d bytes=%zu status=%d detail=%s "
+           "frame_open=%u framed_layer=%d",
+           mode, length, status, caption_lifecycle_status_string(status),
+           app->captions.writer_globals.frame_open,
+           app->captions.lifecycle.g.framed_layer_enabled);
+    return status == CAPTION_LIFECYCLE_OK ? ACTION_FAMILY_51_BACKEND_OK
+                                          : ACTION_FAMILY_51_BACKEND_ERROR;
+}
+
+static ActionFamily51BackendStatus native_a51_close_frame_text(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || !app->captions.initialized) return ACTION_FAMILY_51_BACKEND_ERROR;
+    const int status = caption_ctb_close(&app->captions.lifecycle,
+                                          &app->captions.lifecycle_backend);
+    app->captions.last_lifecycle_status = status;
+    record(app, "scene_a51_close_frame_text status=%d", status);
+    return status == CAPTION_LIFECYCLE_OK ? ACTION_FAMILY_51_BACKEND_OK
+                                          : ACTION_FAMILY_51_BACKEND_ERROR;
+}
+
+static ActionFamily51BackendStatus native_a51_is_channel_playing(void *context, int16_t channel, int *playing)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || playing == nullptr || channel < 0 || app->live_audio == nullptr)
+        return ACTION_FAMILY_51_BACKEND_ERROR;
+    int still_playing = 0;
+    if (live_audio_is_playing(app->live_audio, static_cast<uint16_t>(channel),
+                              &still_playing) != ACTION_SOUND_BACKEND_OK)
+        return ACTION_FAMILY_51_BACKEND_ERROR;
+    *playing = still_playing;
+    return ACTION_FAMILY_51_BACKEND_OK;
+}
+
+static ActionFamily51BackendStatus native_a51_tick_count(void *context, uint32_t *now)
+{
+    if (context == nullptr || now == nullptr) return ACTION_FAMILY_51_BACKEND_ERROR;
+    *now = blackmoor_macos_monotonic_ms();
+    return ACTION_FAMILY_51_BACKEND_OK;
+}
+
+static ActionFamily51LookupStatus native_a51_autotext_lookup(
+    void *context, const uint8_t *key, size_t key_length,
+    const uint8_t **text, size_t *text_length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    size_t raw_length = 0u;
+    if (app == nullptr || app->captions.auto_text == nullptr)
+        return ACTION_FAMILY_51_LOOKUP_ERROR;
+    const int status = autotext_lookup(app->captions.auto_text, key, key_length,
+                                       text, &raw_length, text_length);
+    record(app, "scene_a51_autotext_lookup status=%d key_bytes=%zu text_bytes=%zu",
+           status, key_length, status == AUTOTEXT_OK ? *text_length : (size_t)0);
+    if (status == AUTOTEXT_OK) return ACTION_FAMILY_51_LOOKUP_FOUND;
+    if (status == AUTOTEXT_ERR_NOT_FOUND) return ACTION_FAMILY_51_LOOKUP_NOT_FOUND;
+    return ACTION_FAMILY_51_LOOKUP_ERROR;
+}
+
+/* 0x5b1606 and 0x5b1602 live in the caption renderer's CaptionGlobals; the
+ * A-51 kernel's world mirrors them, so copy them across each kernel step. */
+static void native_a51_load_world(void *context, ActionFamily51World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    world->frame_text_flag = app->captions.writer_globals.caption_visible_flag;
+    world->caption_finish_flag = app->captions.writer_globals.caption_finish_flag;
+}
+
+static void native_a51_store_world(void *context, const ActionFamily51World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->captions.writer_globals.caption_visible_flag = world->frame_text_flag;
+    app->captions.writer_globals.caption_finish_flag = world->caption_finish_flag;
+}
+
+/* Builds both bindings and loads their per-scene tables for app->scene. */
+static bool create_native_session_bindings(NativeApp *app)
+{
+    SessionA62Host a62_host{};
+    a62_host.context = app;
+    a62_host.current_selector = native_a62_current_selector;
+    a62_host.set_start_flag = native_a62_set_start_flag;
+    app->a62 = session_a62_create(&app->new_game.action_core, &a62_host);
+    SessionA51Host a51_host{};
+    a51_host.backend.context = app;
+    a51_host.backend.measure_caption_lines = native_a51_measure;
+    a51_host.backend.write_caption = native_a51_write_caption;
+    a51_host.backend.open_frame_text = native_a51_open_frame_text;
+    a51_host.backend.close_frame_text = native_a51_close_frame_text;
+    a51_host.backend.is_channel_playing = native_a51_is_channel_playing;
+    a51_host.backend.tick_count = native_a51_tick_count;
+    /* Without AUTOTEXT (ClosedCaptioning=0 skips the load) the lookup stays
+     * unbound and selector -1 rows are a named blocker if visited. */
+    a51_host.lookup = app->captions.auto_text != nullptr ? native_a51_autotext_lookup : nullptr;
+    a51_host.lookup_context = app;
+    a51_host.world_context = app;
+    a51_host.load_world = native_a51_load_world;
+    a51_host.store_world = native_a51_store_world;
+    app->a51 = session_a51_create(&a51_host);
+    if (app->a62 == nullptr || app->a51 == nullptr) {
+        record(app, "scene_session_create_error provider=host detail=binding allocation");
+        return false;
+    }
+    return true;
+}
+
+static bool begin_native_session_bindings_scene(NativeApp *app)
+{
+    size_t failed_row = SIZE_MAX;
+    int kernel_status = 0;
+    const int a51_status = session_a51_begin_scene(app->a51, app->scene, &failed_row,
+                                                   &kernel_status);
+    if (a51_status != SESSION_A51_OK) {
+        record(app, "scene_session_create_error provider=caption detail=0x51-loader "
+               "status=%d row=%zu kernel_status=%d", a51_status, failed_row, kernel_status);
+        return false;
+    }
+    if (session_a62_begin_scene(app->a62, scene_resource_action_count(app->scene)) != SESSION_A62_OK) {
+        record(app, "scene_session_create_error provider=action-family-62 detail=row-table");
+        return false;
+    }
+    return true;
+}
+
 static bool create_native_scene_session(NativeApp *app)
 {
     if (app == nullptr || app->scene == nullptr || app->session != nullptr) return false;
@@ -1958,14 +2199,31 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
-    config.action_bindings = &action_sound_binding;
-    config.action_binding_count = 1u;
+    if (!create_native_session_bindings(app)) return false;
+    SceneSessionActionBinding bindings[3]{};
+    bindings[0] = action_sound_binding;
+    bindings[1].type = SESSION_A62_TYPE;
+    bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
+    bindings[1].callback = session_a62_handler;
+    bindings[1].context = app->a62;
+    bindings[2].type = SESSION_A51_TYPE;
+    bindings[2].provider = SCENE_SESSION_PROVIDER_CAPTION;
+    bindings[2].callback = session_a51_handler;
+    bindings[2].context = app->a51;
+    config.action_bindings = bindings;
+    config.action_binding_count = 3u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
         record(app, "scene_session_create_error status=%d provider=%s stage=%d action=%zu type=0x%02x detail=%d",
                status, scene_session_provider_string(failure.provider), failure.stage,
                failure.action_index, failure.action_type, failure.detail_status);
+        return false;
+    }
+    if (scene_session_set_pre_gate(app->session, SESSION_A62_TYPE, session_a62_pre_gate,
+                                   app->a62) != SCENE_SESSION_OK ||
+        !begin_native_session_bindings_scene(app)) {
+        record(app, "scene_session_create_error provider=host detail=binding registration");
         return false;
     }
     record(app, "scene_session_created scene=%d generation=%llu ui_phone_rows=%zu "
@@ -2469,6 +2727,16 @@ static bool perform_session_transition(NativeApp *app,
         scene_resource_close(app->retired_scene);
         app->retired_scene = nullptr;
     }
+    /* DAT_005bb50b := DAT_005bb599 (0x439f20..0x439f41), the frame word of the
+     * scene-change request (0x427a50 case 0x0a copies body+2 into it). */
+    app->selector_entry_frame = transition.opaque_words[0];
+    app->selector_entry_valid = true;
+    app->selector_logged = false;
+    if (!begin_native_session_bindings_scene(app)) {
+        record(app, "scene_transition_error source=%d target=%d detail=binding-scene-load",
+               source, transition.target_scene);
+        return false;
+    }
     app->session_block_reported = false;
     app->session_transition_reported = false;
     record(app, "scene_transition_applied source=%d target=%d generation=%llu",
@@ -2641,6 +2909,56 @@ static void tick(void *context, uint32_t now)
     }
 }
 
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+/* One synthetic accepted event for the first row with a published 0x62 request:
+ * the scan and accept reducers run on the binding's own request/response table
+ * with a coordinate at the middle of the published rectangle, then the
+ * candidate store 0x43c054 is applied. The coordinates are not a pointer
+ * transform; this stands in for the RT-2 path only to show the next stop. */
+static void synthetic_a62_accept(NativeApp *app)
+{
+    if (!app->test_a62_accept || app->test_a62_accept_done || app->session == nullptr ||
+        app->a62 == nullptr) return;
+    const size_t rows = scene_resource_action_count(app->scene);
+    for (size_t row = 0; row < rows; ++row) {
+        ActionFamily62InteractionTarget target{};
+        if (session_a62_get_target(app->a62, row, &target) != SESSION_A62_OK ||
+            target.request_pending == 0u) continue;
+        SessionA62ScanRequest request{};
+        request.coordinate_a = ((int32_t)target.response_words[1] + target.response_words[3]) / 2;
+        request.coordinate_b = ((int32_t)target.response_words[0] + target.response_words[2]) / 2;
+        request.reserved_index_a = -1;
+        request.reserved_index_b = -1;
+        ActionFamily62InteractionScanResult scan{};
+        ActionFamily62InteractionAcceptResult accept{};
+        ActionFamily62InteractionAcceptInput accept_input{};
+        accept_input.dependency_child_index = -1;
+        if (session_a62_scan_candidate(app->a62, &request, &scan) != SESSION_A62_OK ||
+            !scan.candidate_found) {
+            record(app, "test_a62_synthetic_accept result=no-candidate row=%zu", row);
+            app->test_a62_accept_done = true;
+            return;
+        }
+        accept_input.candidate_action_index = scan.candidate_action_index;
+        /* control word and suppression are caller-supplied zero: the row has no
+         * dependency records and no suppression producer is bound. */
+        if (action_family_62_interaction_accept(&accept_input, &accept) !=
+                ACTION_FAMILY_62_INTERACTION_OK || !accept.phase2_requested ||
+            scene_session_accept_action_candidate(app->session,
+                (size_t)scan.candidate_action_index) != SCENE_SESSION_OK) {
+            record(app, "test_a62_synthetic_accept result=rejected row=%zu", row);
+            app->test_a62_accept_done = true;
+            return;
+        }
+        record(app, "test_a62_synthetic_accept result=phase2 row=%d coordinates=%d,%d "
+               "pointer_path=not-implemented(RT-2)", scan.candidate_action_index,
+               request.coordinate_a, request.coordinate_b);
+        app->test_a62_accept_done = true;
+        return;
+    }
+}
+#endif
+
 struct InspectUIContext {
     NativeApp *app;
     ActionUIWorld *world;
@@ -2806,6 +3124,10 @@ int main(int argc, char **argv)
             if (argument == "--inspect-session-boundary") { inspect_only = inspect_session_boundary = true; continue; }
             if (argument == "--inspect-live-session") { inspect_only = inspect_live_session = true; continue; }
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+            if (argument == "--test-a62-accept") {
+                app.test_a62_accept = true;
+                continue;
+            }
             if (argument == "--test-caption-reset-after-compose") {
                 app.captions.test_reset_after_composition = true;
                 continue;
@@ -2849,6 +3171,10 @@ int main(int argc, char **argv)
             } else { std::fprintf(stderr, "Unknown option: %s\n", argument.c_str()); return 2; }
         }
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+        if (app.test_a62_accept && !inspect_live_session) {
+            std::fprintf(stderr, "--test-a62-accept requires --inspect-live-session\n");
+            return 2;
+        }
         if ((app.captions.test_fail_blit_index != 0u ||
              app.captions.test_reset_after_composition ||
              app.captions.test_reseed_visible_caption) && !inspect_session_boundary) {
@@ -2990,6 +3316,9 @@ int main(int argc, char **argv)
                     for (uint32_t step = 0; step < live_ticks && !app.failure; ++step) {
                         clock += 85u;
                         update(&app, clock);
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+                        synthetic_a62_accept(&app);
+#endif
                         if (app.current_scene_id != last_scene) {
                             record(&app, "live_session_scene_changed from=%d to=%d step=%u",
                                    last_scene, app.current_scene_id, step);
