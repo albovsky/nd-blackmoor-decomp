@@ -677,7 +677,7 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927}
         counts = {action_type: 0 for action_type in
                   (*expected_fixed, 0x9F, 0x51, 0x62, 0x97, 0xA1, 0x35, 0x38, 0x3F, 0x3E, 0x43, 0x45, 0x44, 0x36)}
         scenes = 0
@@ -884,8 +884,9 @@ class SceneResourceTests(unittest.TestCase):
         # A-67.1 and A-6F.1 add 27 raw 0x67 and 25 raw 0x6f fixed one-byte
         # bodies; A-43.1 13 raw 0x43 bodies.
         # A-45.1 adds 32 raw 0x45, A-44.1 27 raw 0x44 and A-36.1 20 raw 0x36 bodies.
-        self.assertEqual(typed_actions, 19403)
-        self.assertEqual(opaque_actions, 209)
+        # A-94.1 adds 12 raw 0x94, A-D1.1 11 raw 0xd1 and A-2E.1 10 raw 0x2e fixed bodies.
+        self.assertEqual(typed_actions, 19436)
+        self.assertEqual(opaque_actions, 176)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
@@ -917,6 +918,9 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(counts[0x45], 32)
         self.assertEqual(counts[0x44], 27)
         self.assertEqual(counts[0x36], 20)
+        self.assertEqual(counts[0x94], 12)
+        self.assertEqual(counts[0xD1], 11)
+        self.assertEqual(counts[0x2E], 10)
 
     def test_rejects_short_tsum_and_truncated_known_action_body(self):
         scene, error = self.open_bytes(self.resource(tsum_length=125))

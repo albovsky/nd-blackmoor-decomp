@@ -13,7 +13,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-5 scene exit handler + queued 0x28 effect | Reviewed, fixed, on PR 8 |
 | RT-6 wire the pointer module, single hotspot candidate | Reviewed (no P1), merged (PR 10) |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; runtimes still unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 opaque decoders (Codex) | Reviewed, merged (typed 19,403 / opaque 209) |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 opaque decoders (Codex) | Reviewed, merged (typed 19,436 / opaque 176) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -58,3 +58,9 @@ Merged: raw 0x45, 0x44 and 0x36 body boundaries and isolated decoders (A-45.1, A
 In progress (Codex gpt-6.1-sol xhigh): A-94.1 (12), A-D1.1 (11), A-2E.1 (10). The 0x35 movie runtime belongs to RT-7 (runtime thread), not to this thread.
 Open review follow-ups: A-TAIL.2 should add the dependency pre-scan exit at `0x424e98` and its fatal log formats (unpaired 0x12/0x13, the 0xb/0xb rule at 0x424dee, count mismatch at 0x424e5d): the native parser accepts tails the original rejects there, none occur in the corpus; the tail sweep covers lengths 0..48 plus a few large ones; 0x44 test gaps (inline count 0x8000 sign boundary, 32-character key, 48/64-byte tails); 0x36 oracle needs mode-word fixtures (0, 3, 0x0102, 0x8002, 0xfffe) and the mode-selector mutants; the 0x36 runtime byte is also written for raw 0x37 and 0x38, so lifecycle code must key on raw type, not the runtime byte; native count bounds (0x36 100/25, 0x45 and 0x44 negatives) are deliberate safety limits tighter than the original.
 Next: the remaining opaque long tail (0x4e, 0x17, 0x68, 0x83, 0x4b, then the families with one to three records), A-TAIL.2, the 0x97 runtime coordination with the runtime thread.
+
+## Handoff: opaque scene actions, fifth batch (2026-10-14 17:15 PDT)
+
+Merged: raw 0x94, 0xd1 and 0x2e fixed-body boundaries and isolated decoders (A-94.1 = 50 bytes, A-D1.1 = 927, A-2E.1 = 15; one independent review each, no P1 findings). Typed 19,436 / opaque 176.
+In progress (Codex gpt-6.1-sol xhigh): A-0C.1 (43), A-4E.1 (18), A-17.1 (10).
+Open follow-ups: A-TAIL.2 should extend the shared tail oracle to the six later decoders (0x45, 0x44, 0x36, 0x94, 0xd1, 0x2e, then the next batch) and the dependency pre-scan exits; the three fixed-body oracles here cover tails 0..40 only (a 16-bit count truncation and modulus-only-for-small-tails mutants survive them; the shared oracle catches them); short-body rejection is a native safety rule with no original reference.

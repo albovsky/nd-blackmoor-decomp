@@ -1031,7 +1031,7 @@
       "id": "A-94.1",
       "title": "Action 0x94: body boundary and isolated decoder",
       "packet": "tasks/A-94.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-94",
       "raw_type": "0x94",
@@ -1041,7 +1041,7 @@
       "id": "A-D1.1",
       "title": "Action 0xd1: body boundary and isolated decoder",
       "packet": "tasks/A-D1.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-D1",
       "raw_type": "0xd1",
@@ -1051,7 +1051,7 @@
       "id": "A-2E.1",
       "title": "Action 0x2e: body boundary and isolated decoder",
       "packet": "tasks/A-2E.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-2E",
       "raw_type": "0x2e",
@@ -1086,6 +1086,16 @@
       "parent": "A-17",
       "raw_type": "0x17",
       "records": 10
+    },
+    {
+      "id": "A-TAIL.2",
+      "title": "Extend the shared dependency-tail oracle (later decoders, pre-scan exits)",
+      "packet": "tasks/A-TAIL.2-tail-oracle-extension.md",
+      "status": "READY Codex gpt-6.1-sol xhigh; test hardening only",
+      "depends_on": [
+        "A-TAIL.1"
+      ],
+      "records": 0
     }
   ]
 }
