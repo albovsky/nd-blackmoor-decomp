@@ -9,24 +9,24 @@
 # frame:        ebp
 # name:         RequestPanel::post_event_request
 # arguments:    thiscall: ecx=this (spilled to local_this; the callers in 0x46bca9 pass an object they keep at [ebp-0x14]); [ebp+8]=arg_event_code int16 (0x27e2..0x27ea, other values do nothing); [ebp+0xc]=arg_value_a int16 (stored to this+0x4a50); [ebp+0x10]=arg_value_b int16 (stored to this+0x4a52); [ebp+0x14]=arg_slot int16 (stored to this+0x49e2 or replaced by 0xffff); callee pops 0x10 (ret 0x10); no return value (eax is not set; callers load eax=1 themselves)
-# locals:       frame 8 bytes: local_record [ebp-4] = dword loaded from [0x5bb5e5 + int16(this+0x1e) * 0x8d] (pointer to the active record, read only for code 0x27ea); local_this [ebp-8] = this spilled from ecx
-# fields:       this+0x1e: int16 index into the record table at 0x5bb5e5 (stride 0x8d); this+0x4a50: int16 written with arg_value_a; this+0x4a52: int16 written with arg_value_b; this+0x49e2: int16 written with arg_slot or 0xffff; record+0x6e1: int16 read for code 0x27ea and stored sign-extended in [0x5b44f0]; globals 0x005b44f0 (dword selector: 0x24, 0x20 or record+0x6e1), 0x005b44f4 (dword 1 or 0), 0x005d0377 (dword read), 0x005d162d (dword written with the value of 0x5d0377), 0x005d1631 (dword pointer into the table at 0x5b160c), 0x005d1639 (dword, set to 1), 0x005c39e5 (dword event request code, written with arg_event_code sign-extended)
+# locals:       frame 8 bytes: local_payload [ebp-4] = dword loaded from [0x5bb5e5 + int16(this+0x1e) * 0x8d] (the payload pointer of action slot this+0x1e, slot base 0x5bb5e3 + slot*0x8d + 2, layout per action type; dereferenced only for code 0x27ea, but the table load at 0x46c434 is unconditional, so an out-of-range index in this+0x1e reads stray memory for every code); local_this [ebp-8] = this spilled from ecx
+# fields:       this+0x1e: int16 action slot index (table at 0x5bb5e5: the payload pointer at slot+2, stride 0x8d, slot base 0x5bb5e3); this+0x4a50: int16 written with arg_value_a; this+0x4a52: int16 written with arg_value_b; this+0x49e2: int16 written with arg_slot or 0xffff; payload+0x6e1: int16 read for code 0x27ea and stored sign-extended in [0x5b44f0]; globals 0x005b44f0 (dword selector: 0x24, 0x20 or payload+0x6e1), 0x005b44f4 (dword 1 or 0), 0x005d0377 (dword read), 0x005d162d (dword written with the value of 0x5d0377), 0x005d1631 (dword pointer into the table at 0x5b160c), 0x005d1639 (dword, set to 1), 0x005c39e5 (dword; s0-action-runtime-trace.md: pending event/hotspot index; Track N caption_lifecycle.h: slider_cursor_scene; here it receives arg_event_code sign-extended, role not established)
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   No Track N source covers this routine; RequestPanel::post_event_request, the argument names and the field names are my labels. By the bytes it writes the same family of globals as 0x470ffe (a selector at 0x5b44f0, 0x5b44f4, a copy of 0x5d0377 into 0x5d162d, a pointer built as 0x5b160c + 32*selector + 16*second selector into 0x5d1631, 1 into 0x5d1639, then the event code into 0x5c39e5); what those globals mean to the engine is not established here, and the link of 0x5c39e5 to the pending-event index described in outputs/blackmoor-decomp/s0-action-runtime-trace.md was not traced. The nine call sites in 0x46bca9 push arg_slot first (a loop index or -1) and the event code last; their meaning and the meaning of arg_value_a and arg_value_b (the callers pass values compared with 16-byte entries around this+0x48aa) were only skimmed. Code groups by selector: 0x27e2..0x27e5 use selector 0x24 and store arg_slot to this+0x49e2 only for 0x27e2 and 0x27e4 (0xffff for 0x27e3 and 0x27e5); 0x27e6 and 0x27e8 use selector 0x20 with second selector 1 and store arg_slot; 0x27e7 and 0x27e9 use selector 0x20 with second selector 0 and store 0xffff; 0x27ea takes the selector from the record and does not write this+0x4a50, this+0x4a52 or this+0x49e2. The pointer values (0x5b160c + ...) are computed by the code and not checked against the table that they index. Unsafe original behaviour: no check of the record-table index or of the record pointer (read only for 0x27ea); a native port must reject an out-of-range index explicitly. A code outside 0x27e2..0x27ea returns with no store at all.
+# unverified:   No Track N source covers this routine; RequestPanel::post_event_request, the argument names and the field names are my labels. By the bytes it writes the same family of globals as 0x470ffe (a selector at 0x5b44f0, 0x5b44f4, a copy of 0x5d0377 into 0x5d162d, a pointer built as 0x5b160c + 32*selector + 16*second selector into 0x5d1631, 1 into 0x5d1639, then the event code into 0x5c39e5); 0x5d162d, 0x5d1631 and 0x5d1639 are fields +8, +0xc and +0x14 of entry 2 of the render layer table 0x5d1591 (stride 0x4a, 0x5d1591 + 2*0x4a = 0x5d1625), per tests/caption_lifecycle_original_oracle.py:56-57 (the same reading as in FUN_004462d3); 0x5b44f0 and 0x5b44f4 are Track N's cursor_type and cursor_variant labels (src/caption_lifecycle.h, not proven), and the link of 0x5c39e5 to the pending-event index described in outputs/blackmoor-decomp/s0-action-runtime-trace.md was not traced. The nine call sites in 0x46bca9 push arg_slot first (a loop index or -1) and the event code last; their meaning and the meaning of arg_value_a and arg_value_b (the callers pass values compared with 16-byte entries around this+0x48aa) were only skimmed. Code groups by selector: 0x27e2..0x27e5 use selector 0x24 and store arg_slot to this+0x49e2 only for 0x27e2 and 0x27e4 (0xffff for 0x27e3 and 0x27e5); 0x27e6 and 0x27e8 use selector 0x20 with second selector 1 and store arg_slot; 0x27e7 and 0x27e9 use selector 0x20 with second selector 0 and store 0xffff; 0x27ea takes the selector from the payload and does not write this+0x4a50, this+0x4a52 or this+0x49e2. The pointer values (0x5b160c + ...) are computed by the code and not checked against the table that they index. Unsafe original behaviour: no check of the action slot index or of the payload pointer (dereferenced only for 0x27ea, but the table load at 0x46c434 happens for every code, so an out-of-range index reads stray memory even for the other codes); a native port must reject an out-of-range index explicitly. A code outside 0x27e2..0x27ea returns with no store at all.
 .intel_syntax noprefix
 .code32
 .text
 
 # --- frame symbols ---------------------------------------------------
-.equ local_record, 0x4  # [ebp - 0x4]: pointer to the active record from [0x5bb5e5 + this_record_index*0x8d]
+.equ local_payload, 0x4  # [ebp - 0x4]: payload pointer of action slot this+0x1e from [0x5bb5e5 + this_slot_index*0x8d], loaded for every code
 .equ local_this, 0x8  # [ebp - 0x8]: this, spilled from ecx
 .equ arg_event_code, 0x8  # [ebp + 0x8]: int16 event code 0x27e2..0x27ea
 .equ arg_value_a, 0xc  # [ebp + 0xc]: int16 stored to this+0x4a50
 .equ arg_value_b, 0x10  # [ebp + 0x10]: int16 stored to this+0x4a52
 .equ arg_slot, 0x14  # [ebp + 0x14]: int16 stored to this+0x49e2 for some codes
-.equ this_record_index, 0x1e  # this+0x1e: int16 index into the record table at 0x5bb5e5 (stride 0x8d)
-.equ rec_selector, 0x6e1  # record+0x6e1: int16 selector copied (sign-extended) into [0x5b44f0] for code 0x27ea
+.equ this_slot_index, 0x1e  # this+0x1e: int16 action slot index into the payload pointer table at 0x5bb5e5 (stride 0x8d)
+.equ rec_selector, 0x6e1  # payload+0x6e1: int16 selector copied (sign-extended) into [0x5b44f0] for code 0x27ea
 .equ this_request_slot, 0x49e2  # this+0x49e2: int16 slot of the request, arg_slot or 0xffff
 .equ this_request_value_a, 0x4a50  # this+0x4a50: int16 copy of arg_value_a
 .equ this_request_value_b, 0x4a52  # this+0x4a52: int16 copy of arg_value_b
@@ -36,21 +36,21 @@
 .org 0x0046c41e - 0x401000
 .globl FUN_0046c41e
 FUN_0046c41e:
-    # block 0x0046c41e: entry: spill this, local_record = dword [0x5bb5e5 + int16 this_record_index * 0x8d]; if int16 arg_event_code != 0x27ea go to L_check_group_24 (jne)
+    # block 0x0046c41e: entry: spill this, local_payload = dword [0x5bb5e5 + int16 this_slot_index * 0x8d]; if int16 arg_event_code != 0x27ea go to L_check_group_24 (jne)
     push ebp                                     # 0046c41e
     {load} mov ebp, esp                          # 0046c41f
     sub esp, 0x8                                 # 0046c421
     mov dword ptr [ebp - local_this], ecx           # 0046c424
     mov eax, dword ptr [ebp - local_this]           # 0046c427
-    movsx ecx, word ptr [eax + this_record_index]         # 0046c42a
+    movsx ecx, word ptr [eax + this_slot_index]         # 0046c42a
     imul ecx, ecx, 0x8d                          # 0046c42e
     mov edx, dword ptr [ecx + 0x5bb5e5]          # 0046c434
-    mov dword ptr [ebp - local_record], edx           # 0046c43a
+    mov dword ptr [ebp - local_payload], edx           # 0046c43a
     movsx eax, word ptr [ebp + arg_event_code]            # 0046c43d
     cmp eax, 0x27ea                              # 0046c441
     jne.d8 L_check_group_24                            # 0046c446
     # block 0x0046c448: code 0x27ea: [0x5b44f0] = sign-extended int16 rec_selector, [0x5b44f4] = 1, [0x5d162d] = [0x5d0377], [0x5d1631] = 0x5b160c + 32*[0x5b44f0] + 16*[0x5b44f4], [0x5d1639] = 1, [0x5c39e5] = 0x27ea; nothing is stored to the this+0x49e2/0x4a50/0x4a52 fields; go to L_return
-    mov ecx, dword ptr [ebp - local_record]           # 0046c448
+    mov ecx, dword ptr [ebp - local_payload]           # 0046c448
     movsx edx, word ptr [ecx + rec_selector]        # 0046c44b
     mov dword ptr [0x5b44f0], edx                # 0046c452
     mov dword ptr [0x5b44f4], 0x1                # 0046c458

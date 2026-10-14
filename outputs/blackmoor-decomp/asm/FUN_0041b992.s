@@ -13,7 +13,7 @@
 # fields:       none (no object fields touched); globals only: 0x0056f354 text buf (ring buffer, byte array); 0x0056b148 word array "right" child links, first 0x1001 slots are ring positions and the next 256 are the per-first-byte tree roots (p starts at 0x1001+byte); 0x0056d34c word array "left" child links; 0x00569144 word array parent ("dad") links; 0x0056f34e word best match length; 0x0056f350 word best match position; the value 0x1000 is the "no node" marker
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   The array roles right/left/dad and the name insert_node are inferred from the access pattern of the bytes (binary search tree keyed by byte-wise comparison of 18-byte strings, 0x12 = maximum match length, 0x1000 = no node) and from the caller 0x41a4c9, which calls this for each ring position of what looks like an LZSS compressor; the bytes do not name the algorithm. Which child array a comparison sign selects is verified from the branches (cmp >= 0 uses 0x56b148, cmp < 0 uses 0x56d34c), "right" and "left" are only labels. The compare difference is unsigned byte minus unsigned byte stored as a word, then tested as signed word; the loop runs i from 1 to at most 0x11 and compares signed words. No bounds check exists on r or on the loaded child links (a link beyond the 0x1001-slot tables would index outside them): unsafe original behaviour on corrupt tables, not examined here. The caller 0x41a4c9 and the exact table sizes are not re-verified from the bytes; the size claims in this header follow from the addresses only. ecx at entry has no use here (not read after the spill), so what object the original method belongs to is not established; it is likely a C++ method of a compressor object whose state lives in globals.
+# unverified:   The class name LzssEncoder is an annotator label (nothing in the bytes names the class or the algorithm). The array roles right/left/dad and the name insert_node are inferred from the access pattern of the bytes (binary search tree keyed by byte-wise comparison of 18-byte strings, 0x12 = maximum match length, 0x1000 = no node) and from the caller 0x41a4c9, which calls this for each ring position of what looks like an LZSS compressor; the bytes do not name the algorithm. Which child array a comparison sign selects is verified from the branches (cmp >= 0 uses 0x56b148, cmp < 0 uses 0x56d34c), "right" and "left" are only labels. The compare difference is unsigned byte minus unsigned byte stored as a word, then tested as signed word; the loop runs i from 1 to at most 0x11 and compares signed words. No bounds check exists on r or on the loaded child links (a link beyond the 0x1001-slot tables would index outside them): unsafe original behaviour on corrupt tables, not examined here. The caller 0x41a4c9 and the exact table sizes are not re-verified from the bytes; the size claims in this header follow from the addresses only. ecx at entry has no use here (not read after the spill), so what object the original method belongs to is not established; it is likely a C++ method of a compressor object whose state lives in globals.
 .intel_syntax noprefix
 .code32
 .text
@@ -21,7 +21,7 @@
 # --- frame symbols ---------------------------------------------------
 .equ local_node_p, 0x4  # [ebp - 0x4]: word p, current tree node being compared
 .equ local_key_ptr, 0x8  # [ebp - 0x8]: dword key, pointer 0x56f354 + r into the ring buffer
-.equ local_match_i, 0xc  # [ebp - 0xc]: word i, index of the byte pair being compared (1 .. 0x12)
+.equ local_match_i, 0xc  # [ebp - 0xc]: word i, index of the byte pair being compared (1 .. 0x11 inside the compare loop, 0x12 only at loop exit)
 .equ local_cmp, 0x10  # [ebp - 0x10]: word cmp, signed difference of the last byte pair (1 at entry)
 .equ local_this_unused, 0x14  # [ebp - 0x14]: ecx at entry, spilled and never read
 .equ arg_node_r, 0x8  # [ebp + 0x8]: stack argument r, ring-buffer position to insert
@@ -56,7 +56,7 @@ L_search_loop:
     movsx edx, word ptr [ebp - local_cmp]         # 0041b9e1
     test edx, edx                                # 0041b9e5
     jl.d8 L_left_branch                             # 0041b9e7
-    # block 0x0041b9e9: cmp >= 0: if right[p] (word array 0x56b148) != 0x1000 take it, otherwise fall into the attach case
+    # block 0x0041b9e9: cmp >= 0: if right[p] (word array 0x56b148) == 0x1000 the je goes to L_attach_right, otherwise execution falls through into the take-child path
     movsx eax, word ptr [ebp - local_node_p]          # 0041b9e9
     movsx ecx, word ptr [2*eax + 0x56b148]       # 0041b9ed
     cmp ecx, 0x1000                              # 0041b9f5
@@ -79,7 +79,7 @@ L_after_right_step:
     # block 0x0041ba33: after stepping right: go to the byte-compare loop
     jmp.d8 L_compare_keys                            # 0041ba33
 L_left_branch:
-    # block 0x0041ba35: cmp < 0: if left[p] (word array 0x56d34c) != 0x1000 take it, otherwise fall into the attach case
+    # block 0x0041ba35: cmp < 0: if left[p] (word array 0x56d34c) == 0x1000 the je goes to L_attach_left, otherwise execution falls through into the take-child path
     movsx edx, word ptr [ebp - local_node_p]          # 0041ba35
     movsx eax, word ptr [2*edx + 0x56d34c]       # 0041ba39
     cmp eax, 0x1000                              # 0041ba41

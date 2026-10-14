@@ -10,10 +10,10 @@
 # name:         ActionSlot::process_by_state
 # arguments:    cdecl: one stack argument arg_slot at [ebp+8] = slot index n, read only as a signed 16-bit word (movsx word ptr), so the upper half of the pushed dword is ignored; the caller pops (call sites 0x427c08 and 0x427c41 are followed by add esp,4); plain ret; no result
 # locals:       frame 8 bytes: [ebp-0x4] word i = entry index in the search loop (starts at 0); [ebp-0x8] dword state = the slot state dword read at entry (0, 1 or 2 are handled, anything else returns at once)
-# fields:       slot record n at 0x005bb5e5 + n*0x8d (141-byte stride): +0x00 dword pointer to a data block; +0x40 byte flag (set to 1 in state 2); +0x41 dword flag (0 in state 1 entry, 1 when an entry matched); +0x45, +0x47, +0x49, +0x4b words (copied from the matching entry); +0x4d dword state (0, 1 or 2; set to 1 from 0); data block: +0x00 word, +0x02 word, +0x04 word, +0x06 word, +0x08 dword, +0x0c dword, +0x10 dword (header values copied to globals in state 2); +0x14 word entry count; entries start at +0x16 with 0x12-byte stride: entry word +0x00 (key), +0x02, +0x06, +0x0a, +0x0e (values); globals: 0x005bb1ca dword set to 1 (state 0 only); 0x005bb50b word compared with the entry keys; state 2 writes 0x005bb57b dword (sign-extended block word 0), 0x005bb599 word (block+2), 0x005bb595 word (block+4), 0x005c39ff word (block+6), 0x005bb59b dword (block+8), 0x005bb59f dword (block+0xc), 0x005bb5a3 dword (block+0x10) and 0x00583999 dword = 4
+# fields:       action slot n at 0x005bb5e3 + n*0x8d (stride 0x8d, layout per s0-action-runtime-trace.md; the same slot base as FUN_0042b2e4): +0x02 dword payload pointer (0x5bb5e5 + n*0x8d); +0x42 byte completion latch (0x5bb625, set to 1 in state 2); +0x43 dword (0x5bb626, 0 on state 1 entry, 1 when an entry matched; the trace calls the slot's +0x43 a hotspot-active word while the bytes store a dword to 0x5bb626 covering +0x43..+0x46 (same store in FUN_0042b2e4)); +0x47, +0x49, +0x4b, +0x4d words (0x5bb62a, 0x5bb62c, 0x5bb62e, 0x5bb630, copied from the matching entry; the trace calls slot +0x47..+0x4d the click rectangle of four signed 16-bit coordinates, so they are the hotspot rectangle by the trace, edge order not read from a consumer here, as in FUN_0042b2e4); +0x4f dword state (0x5bb632, the trace's phase/status value: 0, 1 or 2; set to 1 from 0); payload (the data block, layout per action type): +0x00 word, +0x02 word, +0x04 word, +0x06 word, +0x08 dword, +0x0c dword, +0x10 dword (header values copied to globals in state 2); +0x14 word entry count; entries start at +0x16 with 0x12-byte stride: entry word +0x00 (key), +0x02, +0x06, +0x0a, +0x0e (values); globals: 0x005bb1ca dword set to 1 (state 0 only); 0x005bb50b word compared with the entry keys; state 2 writes 0x005bb57b dword (sign-extended block word 0), 0x005bb599 word (block+2), 0x005bb595 word (block+4), 0x005c39ff word (block+6), 0x005bb59b dword (block+8), 0x005bb59f dword (block+0xc), 0x005bb5a3 dword (block+0x10) and 0x00583999 dword = 4 (Track N caption_lifecycle.h names 0x5bb57b scene_request, 0x5c39ff scene_request_flag and 0x583999 engine_state)
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   The name ActionSlot::process_by_state and all field names are my labels; the bytes establish only the displacements, widths, comparisons and effect order. The identity of the 0x8d-byte slot table as the ACTION_RECORD table, and the case range 0x16 to 0x19 of the callers 0x427c08 and 0x427c41 (inside 0x427a50), come from pseudocode and the call-site disassembly, not from named data; what the state values 0, 1 and 2 mean, what the key word compared with the global at 0x5bb50b is, and what the copied words and the header values are used for are not established. State 0 stores 1 to both the global 0x5bb1ca and the slot state and then falls through into the state-1 code (verified in the disassembly), so the first call also runs the search. A state outside 0 to 2 returns without any effect. The search loop reads the entry count and each entry through the slot pointer without a null check or a bound on the slot index n (n is a signed word, so a negative n indexes before the table): unsafe original behaviour, unmodelled here. In state 1 the matching flag is cleared before the search and left cleared when no entry matches; the loop stops at the first match.
+# unverified:   The name ActionSlot::process_by_state and all field names are my labels; the bytes establish only the displacements, widths, comparisons and effect order. The identity of the 0x8d-byte slot table as the ACTION_RECORD table, and the case range 0x16 to 0x19 of the callers 0x427c08 and 0x427c41 (inside 0x427a50), come from pseudocode and the call-site disassembly, not from named data; what the state values 0, 1 and 2 mean, what the key word compared with the global at 0x5bb50b is, and what the header values are used for are not established; the copied entry words go to slot +0x47..+0x4d, which the trace calls the click rectangle (same stores as FUN_0042b2e4, see that file); Track N caption_lifecycle.h names 0x5bb57b scene_request, 0x5c39ff scene_request_flag and 0x583999 engine_state. Slot offsets here use slot base 0x5bb5e3 (state at +0x4f, as the trace and FUN_0042b2e4 say). The trace calls the slot's +0x43 a hotspot-active word while the bytes store a dword to 0x5bb626 covering +0x43..+0x46 (same store in FUN_0042b2e4). State 0 stores 1 to both the global 0x5bb1ca and the slot state and then falls through into the state-1 code (verified in the disassembly), so the first call also runs the search. A state outside 0 to 2 returns without any effect. The search loop reads the entry count and each entry through the slot pointer without a null check or a bound on the slot index n (n is a signed word, so a negative n indexes before the table): unsafe original behaviour, unmodelled here. In state 1 the matching flag is cleared before the search and left cleared when no entry matches; the loop stops at the first match.
 .intel_syntax noprefix
 .code32
 .text
@@ -31,10 +31,10 @@
 .equ blk_dword_10, 0x10  # data block+0x10: dword, copied to the global at 0x5bb5a3 in state 2
 .equ blk_entry_count, 0x14  # data block+0x14: word, number of entries (signed compare with i)
 .equ ent_key, 0x16  # data block+0x16 + i*0x12: word, entry key compared with the global word at 0x5bb50b
-.equ ent_val_02, 0x18  # entry+0x02 (block+0x18 + i*0x12): word, copied to the slot at +0x45 (0x5bb62a + n*0x8d)
-.equ ent_val_06, 0x1c  # entry+0x06 (block+0x1c + i*0x12): word, copied to the slot at +0x47 (0x5bb62c + n*0x8d)
-.equ ent_val_0a, 0x20  # entry+0x0a (block+0x20 + i*0x12): word, copied to the slot at +0x49 (0x5bb62e + n*0x8d)
-.equ ent_val_0e, 0x24  # entry+0x0e (block+0x24 + i*0x12): word, copied to the slot at +0x4b (0x5bb630 + n*0x8d)
+.equ ent_val_02, 0x18  # entry+0x02 (block+0x18 + i*0x12): word, copied to the slot at +0x47 (0x5bb62a + n*0x8d)
+.equ ent_val_06, 0x1c  # entry+0x06 (block+0x1c + i*0x12): word, copied to the slot at +0x49 (0x5bb62c + n*0x8d)
+.equ ent_val_0a, 0x20  # entry+0x0a (block+0x20 + i*0x12): word, copied to the slot at +0x4b (0x5bb62e + n*0x8d)
+.equ ent_val_0e, 0x24  # entry+0x0e (block+0x24 + i*0x12): word, copied to the slot at +0x4d (0x5bb630 + n*0x8d)
 
 # --- external targets -----------------------------------------------
 
@@ -60,13 +60,13 @@ FUN_0042b07e:
     # block 0x0042b0ad: any other state: return without effect
     jmp.d32 L_epilogue                           # 0042b0ad
 L_state0_first_visit:
-    # block 0x0042b0b2: state 0: global 0x5bb1ca = 1, slot state (+0x4d) = 1, then fall into the state 1 code
+    # block 0x0042b0b2: state 0: global 0x5bb1ca = 1, slot state (+0x4f, 0x5bb632) = 1, then fall into the state 1 code
     mov dword ptr [0x5bb1ca], 0x1                # 0042b0b2
     movsx edx, word ptr [ebp + arg_slot]            # 0042b0bc
     imul edx, edx, 0x8d                          # 0042b0c0
     mov dword ptr [edx + 0x5bb632], 0x1          # 0042b0c6
 L_state1_search:
-    # block 0x0042b0d0: state 1 (and state 0 after its stores): slot matched flag (+0x41) = 0, i = 0
+    # block 0x0042b0d0: state 1 (and state 0 after its stores): slot dword +0x43 (0x5bb626) = 0, i = 0
     movsx eax, word ptr [ebp + arg_slot]            # 0042b0d0
     imul eax, eax, 0x8d                          # 0042b0d4
     mov dword ptr [eax + 0x5bb626], 0x0          # 0042b0da
@@ -96,7 +96,7 @@ L_entry_loop_test:
     movsx edx, word ptr [0x5bb50b]               # 0042b134
     {load} cmp ecx, edx                          # 0042b13b
     jne.d32 L_key_differs                           # 0042b13d
-    # block 0x0042b143: key matches: slot matched flag = 1; copy the entry words +2, +6, +0xa, +0xe to the slot words +0x45, +0x47, +0x49, +0x4b; leave the loop
+    # block 0x0042b143: key matches: slot dword +0x43 (0x5bb626) = 1; copy the entry words +2, +6, +0xa, +0xe to the slot words +0x47, +0x49, +0x4b, +0x4d; leave the loop
     movsx eax, word ptr [ebp + arg_slot]            # 0042b143
     imul eax, eax, 0x8d                          # 0042b147
     mov dword ptr [eax + 0x5bb626], 0x1          # 0042b14d
@@ -144,7 +144,7 @@ L_leave_state1:
     # block 0x0042b212: search finished (match or no entry left): go to the epilogue
     jmp.d32 L_epilogue                           # 0042b212
 L_state2_copy_header:
-    # block 0x0042b217: state 2: slot byte flag (+0x40) = 1; copy the data block header to globals: 0x5bb57b = block word 0 (sign-extended), 0x5bb599 = block+2, 0x5bb595 = block+4, 0x5c39ff = block+6, 0x5bb59b = block+8, 0x5bb59f = block+0xc, 0x5bb5a3 = block+0x10; 0x583999 = 4
+    # block 0x0042b217: state 2: slot completion latch byte (+0x42, 0x5bb625) = 1; copy the data block header to globals: 0x5bb57b = block word 0 (sign-extended), 0x5bb599 = block+2, 0x5bb595 = block+4, 0x5c39ff = block+6, 0x5bb59b = block+8, 0x5bb59f = block+0xc, 0x5bb5a3 = block+0x10; 0x583999 = 4
     movsx eax, word ptr [ebp + arg_slot]            # 0042b217
     imul eax, eax, 0x8d                          # 0042b21b
     mov byte ptr [eax + 0x5bb625], 0x1           # 0042b221

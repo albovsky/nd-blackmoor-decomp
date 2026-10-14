@@ -8,21 +8,21 @@
 # region:       game
 # frame:        ebp
 # name:         AssemblyPuzzle::set_cursor_for_hover_kind
-# arguments:    thiscall: ecx=this, two stack arguments, [esp+4] = cursor kind (int16 read with movsx: 0x27c4, 0x27c5, 0x27c6, 0x27c7 or 0x27c8) and [esp+8] = int16 piece index (read as a word, stored only for kinds 0x27c4 and 0x27c8), callee pops both (ret 8), no return value (eax is scratch). The six call sites 0x004552ac, 0x004552fa, 0x00455343, 0x00455398, 0x00455433 and 0x004554a2 all lie inside FUN_00455180 and push the second argument first
+# arguments:    thiscall: ecx=this, two stack arguments, [esp+4] = kind selector (int16 read with movsx: 0x27c4, 0x27c5, 0x27c6, 0x27c7 or 0x27c8) and [esp+8] = int16 second word (read as a word, stored only for kinds 0x27c4 and 0x27c8), callee pops both (ret 8), no return value (eax is scratch). The six call sites 0x004552ac, 0x004552fa, 0x00455343, 0x00455398, 0x00455433 and 0x004554a2 all lie inside FUN_00455180 and push the second argument first
 # locals:       [ebp-4] = this, spilled from ecx (push ecx reserves the slot)
-# fields:       this+0x38: int16, written with the second argument for kinds 0x27c4 and 0x27c8 only, globals 0x005b44f0 (dword cursor row, written), 0x005b44f4 (dword cursor column, written 1), 0x005d0377 (dword read, copied), 0x005d162d (dword written with that copy), 0x005d1631 (dword written with 0x005b160c + (row << 5) + (column << 4)), 0x005d1639 (dword written 1), 0x005c39e5 (dword written with the sign-extended kind)
+# fields:       this+0x38: int16, written with the second argument for kinds 0x27c4 and 0x27c8 only, globals 0x005b44f0 (dword, Track N label cursor_type, not proven, written), 0x005b44f4 (dword, Track N label cursor_variant, not proven, written 1), 0x005d0377 (dword read, copied), 0x005d162d (dword written with that copy), 0x005d1631 (dword written with 0x005b160c + (type << 5) + (variant << 4)), 0x005d1639 (dword written 1), 0x005c39e5 (dword; s0-action-runtime-trace.md: pending event/hotspot index; Track N caption_lifecycle.h: slider_cursor_scene; here it receives the sign-extended kind argument, role not established)
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   Class name is only my label from the nearest strings (ASSEMBLY PUZZLE OVERLAYS at 0x455f3a and the Arcade puzzle texts just before it) and the caller FUN_00455180 being a hit test over a record table, not from RTTI or a vtable. The call-site constants and the pushed second arguments were read from the bytes (this+0x36 word for 0x27c8 and one 0x27c4 site, a loop index local for the other 0x27c4 site, zero for 0x27c5 to 0x27c7), but what this+0x38 and this+0x36 mean is not established, nor what the five kinds mean in the game. Rows chosen: 0x27c7 row 9, 0x27c4 and 0x27c8 row 0x12, 0x27c5 row 0x14, 0x27c6 row 0x15, always column 1, the table at 0x5b160c is a cursor table only by the structure of the writes (row stride 32, column stride 16), its contents were not read. For any other kind value the routine changes nothing and returns (no write to any global, this+0x38 untouched). Track N names for the globals exist in src/caption_lifecycle.h (cursor_type 0x5b44f0, cursor_variant 0x5b44f4, cursor_surface 0x5d162d, default_cursor_surface 0x5d0377, cursor_layer_enabled 0x5d1639) but that file does not contain this function and I do not claim the labels fit this use. The pointer written to 0x5d1631 is a full 32-bit address into the table, not an index.
+# unverified:   Class name is only my label from the nearest strings (the ASSEMBLY PUZZLE OVERLAYS text referenced at 0x455f3a, where the referencing instruction is mov edi, 0x54a068 and not the string address, and the Arcade puzzle texts just before it) and the caller FUN_00455180 being a hit test over a record table, not from RTTI or a vtable. The call-site constants and the pushed second arguments were read from the bytes (this+0x36 word for 0x27c8 and one 0x27c4 site, a loop index local for the other 0x27c4 site, zero for 0x27c5 to 0x27c7), but what this+0x38 and this+0x36 mean is not established, nor what the five kinds mean in the game. Values chosen for 0x5b44f0: 0x27c7 gives 9, 0x27c4 and 0x27c8 give 0x12, 0x27c5 gives 0x14, 0x27c6 gives 0x15, and 0x5b44f4 is always 1, the table at 0x5b160c is a cursor table only by the structure of the writes (type stride 32, variant stride 16), its contents were not read. For any other kind value the routine changes nothing and returns (no write to any global, this+0x38 untouched). Track N names for the globals exist in src/caption_lifecycle.h (cursor_type 0x5b44f0, cursor_variant 0x5b44f4, cursor_surface 0x5d162d, default_cursor_surface 0x5d0377, cursor_layer_enabled 0x5d1639) but that file does not contain this function and I do not claim the labels fit this use. The pointer written to 0x5d1631 is a full 32-bit address into the table, not an index.
 .intel_syntax noprefix
 .code32
 .text
 
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]: this, spilled from ecx
-.equ arg_cursor_kind, 0x8  # [ebp + 0x8]: int16 cursor kind
-.equ arg_piece_index, 0xc  # [ebp + 0xc]: int16 second argument (an index or zero at the call sites), stored into this+0x38 for kinds 0x27c4 and 0x27c8
-.equ this_piece_index, 0x38  # this+0x38: int16 written with arg_piece_index
+.equ arg_cursor_kind, 0x8  # [ebp + 0x8]: int16 kind selector, stored to 0x5c39e5
+.equ arg_word2, 0xc  # [ebp + 0xc]: int16 second argument (an index or zero at the call sites), stored into this+0x38 for kinds 0x27c4 and 0x27c8
+.equ this_word_38, 0x38  # this+0x38: int16 written with arg_word2
 
 # --- external targets -----------------------------------------------
 
@@ -37,7 +37,7 @@ FUN_004554bb:
     movsx eax, word ptr [ebp + arg_cursor_kind]            # 004554c2
     cmp eax, 0x27c7                              # 004554c6
     jne.d8 L_not_kind_27c7                            # 004554cb
-    # block 0x004554cd: kind 0x27c7: row 0x5b44f0 = 9, column 0x5b44f4 = 1, 0x5d162d = 0x5d0377, 0x5d1631 = 0x5b160c + (row << 5) + (column << 4), 0x5d1639 = 1, 0x5c39e5 = kind, jump to L_epilogue
+    # block 0x004554cd: kind 0x27c7: 0x5b44f0 (cursor_type label) = 9, 0x5b44f4 (cursor_variant label) = 1, 0x5d162d = 0x5d0377, 0x5d1631 = 0x5b160c + (type << 5) + (variant << 4), 0x5d1639 = 1, 0x5c39e5 = the sign-extended kind argument (role not established), jump to L_epilogue
     mov dword ptr [0x5b44f0], 0x9                # 004554cd
     mov dword ptr [0x5b44f4], 0x1                # 004554d7
     mov ecx, dword ptr [0x5d0377]                # 004554e1
@@ -62,14 +62,14 @@ L_not_kind_27c7:
     cmp ecx, 0x27c8                              # 00455533
     jne.d8 L_not_kind_27c4_27c8                            # 00455539
 L_kind_27c4_or_27c8:
-    # block 0x0045553b: kind 0x27c4 or 0x27c8: row 0x5b44f0 = 0x12, column 0x5b44f4 = 1, 0x5d162d = 0x5d0377, this+0x38 = int16 second argument, 0x5d1631 = 0x5b160c + (row << 5) + (column << 4), 0x5d1639 = 1, 0x5c39e5 = kind, jump to L_epilogue
+    # block 0x0045553b: kind 0x27c4 or 0x27c8: 0x5b44f0 (cursor_type label) = 0x12, 0x5b44f4 (cursor_variant label) = 1, 0x5d162d = 0x5d0377, this+0x38 = int16 second argument, 0x5d1631 = 0x5b160c + (type << 5) + (variant << 4), 0x5d1639 = 1, 0x5c39e5 = the sign-extended kind argument (role not established), jump to L_epilogue
     mov dword ptr [0x5b44f0], 0x12               # 0045553b
     mov dword ptr [0x5b44f4], 0x1                # 00455545
     mov edx, dword ptr [0x5d0377]                # 0045554f
     mov dword ptr [0x5d162d], edx                # 00455555
     mov eax, dword ptr [ebp - local_this]           # 0045555b
-    mov cx, word ptr [ebp + arg_piece_index]               # 0045555e
-    mov word ptr [eax + this_piece_index], cx            # 00455562
+    mov cx, word ptr [ebp + arg_word2]               # 0045555e
+    mov word ptr [eax + this_word_38], cx            # 00455562
     mov edx, dword ptr [0x5b44f0]                # 00455566
     shl edx, 0x5                                 # 0045556c
     mov eax, dword ptr [0x5b44f4]                # 0045556f
@@ -85,7 +85,7 @@ L_not_kind_27c4_27c8:
     movsx eax, word ptr [ebp + arg_cursor_kind]            # 0045559d
     cmp eax, 0x27c5                              # 004555a1
     jne.d8 L_not_kind_27c5                            # 004555a6
-    # block 0x004555a8: kind 0x27c5: row 0x5b44f0 = 0x14, column 0x5b44f4 = 1, 0x5d162d = 0x5d0377, 0x5d1631 = 0x5b160c + (row << 5) + (column << 4), 0x5d1639 = 1, 0x5c39e5 = kind, jump to L_epilogue
+    # block 0x004555a8: kind 0x27c5: 0x5b44f0 (cursor_type label) = 0x14, 0x5b44f4 (cursor_variant label) = 1, 0x5d162d = 0x5d0377, 0x5d1631 = 0x5b160c + (type << 5) + (variant << 4), 0x5d1639 = 1, 0x5c39e5 = the sign-extended kind argument (role not established), jump to L_epilogue
     mov dword ptr [0x5b44f0], 0x14               # 004555a8
     mov dword ptr [0x5b44f4], 0x1                # 004555b2
     mov ecx, dword ptr [0x5d0377]                # 004555bc
@@ -105,7 +105,7 @@ L_not_kind_27c5:
     movsx eax, word ptr [ebp + arg_cursor_kind]            # 004555fc
     cmp eax, 0x27c6                              # 00455600
     jne.d8 L_epilogue                            # 00455605
-    # block 0x00455607: kind 0x27c6: row 0x5b44f0 = 0x15, column 0x5b44f4 = 1, 0x5d162d = 0x5d0377, 0x5d1631 = 0x5b160c + (row << 5) + (column << 4), 0x5d1639 = 1, 0x5c39e5 = kind, fall into L_epilogue
+    # block 0x00455607: kind 0x27c6: 0x5b44f0 (cursor_type label) = 0x15, 0x5b44f4 (cursor_variant label) = 1, 0x5d162d = 0x5d0377, 0x5d1631 = 0x5b160c + (type << 5) + (variant << 4), 0x5d1639 = 1, 0x5c39e5 = the sign-extended kind argument (role not established), fall into L_epilogue
     mov dword ptr [0x5b44f0], 0x15               # 00455607
     mov dword ptr [0x5b44f4], 0x1                # 00455611
     mov ecx, dword ptr [0x5d0377]                # 0045561b

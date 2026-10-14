@@ -97,15 +97,15 @@
       "data_items": [],
       "function": "FUN_00470ffe",
       "object": {
-        "sha256": "cab137aedfb986bc0c7f26d678e37c9d384063b80d1ddb18ba372d364f7fe44e",
-        "size": 460497
+        "sha256": "820be1ebda6970f5a7d080ced26f32837ef4c6de2a2b79e954adce1debe3cd07",
+        "size": 460496
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_00470ffe.s",
-        "sha256": "82eb0600d7273baa0a4f4440a1083a6f0bf9ada4a5f75404296cfe1685a523f1"
+        "sha256": "2b096e8e4fae756b407c2638eab3bfebd3d106e4b7d652fcf8b6779944354c64"
       },
       "status": "accepted",
       "va": 4657150
@@ -157,15 +157,15 @@
       ],
       "function": "FUN_00478396",
       "object": {
-        "sha256": "7aab796ec19911b44a54ecc309934c3b7aceeaa2126c746117dfbeb097b3d60e",
-        "size": 489824
+        "sha256": "62f2fa4a7e28ec491e0f889cf371d0eb492c5e6fe20a10e65acf74545c62799c",
+        "size": 489820
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_00478396.s",
-        "sha256": "cb838797b2dcaab374f9be1df910986eb6f24d4999105c7996ef49bc2245b6c5"
+        "sha256": "ef40e8c8aa0a11cf73d5e65560783e2ed308b073456ed237453ac43e9b06a1da"
       },
       "status": "accepted",
       "va": 4686742
@@ -183,15 +183,15 @@
       "data_items": [],
       "function": "FUN_0046c41e",
       "object": {
-        "sha256": "72b7c44404e4765556970bbefb2db2ac02ed9207270503e150faa885c8d0925b",
-        "size": 440651
+        "sha256": "7faa0f96f8f24c6a458adf3f01e2ee8e63095af3e56904b5063c5091b50fb4bf",
+        "size": 440650
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_0046c41e.s",
-        "sha256": "c36b0ee8db430d4c23b5a875044f8187f816e37a7971e2baa13c03a9250009e6"
+        "sha256": "a86488d3f3c339895ea334ca83898a1180cf464fedfd29accfca2f956dc95138"
       },
       "status": "accepted",
       "va": 4637726
@@ -251,7 +251,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004d58eb.s",
-        "sha256": "cb06913625667127a34e03852344d1ae12b408aa6ccf2861bed41e2a393ba1e9"
+        "sha256": "f18ec786224166c5542149decf279c1af836fcb6a8cb7da7f286247626171392"
       },
       "status": "accepted",
       "va": 5069035
@@ -303,7 +303,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0042b07e.s",
-        "sha256": "2029b462210d0224a2c319c08414315b682a2aef75f58598017e1a687f59630f"
+        "sha256": "4af154a9b4928d3cf9178e4030187f4d1d3cc0784bc1482737660bf9c71de6f1"
       },
       "status": "accepted",
       "va": 4370558
@@ -321,15 +321,15 @@
       "data_items": [],
       "function": "FUN_004462d3",
       "object": {
-        "sha256": "5823c71511342d1a8789ff9344fa184e219fa0f4cfb0f495bd9bb4c78de47074",
-        "size": 285112
+        "sha256": "e21a045db12208127db39e783fdcb2ca1af001ee0f7da34f88661b1325e8e26d",
+        "size": 285103
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_004462d3.s",
-        "sha256": "a73b0601c70002edae54693bfefd8e41bb13d005c54c622fa61bd07dd6804ca1"
+        "sha256": "338c86ee81d7dc77d5cc754bcc225b6ab12d24f4602ad66a310d0a42390a37bb"
       },
       "status": "accepted",
       "va": 4481747
@@ -355,7 +355,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0041b992.s",
-        "sha256": "5fd7a2bd5f5ffa2b0ac67424c6820e49d3cf3022b62f96e62ef425be6ab2470e"
+        "sha256": "5ceb0630e1d07cc8afceb221b4648c94376af685521acaf2fefe3b2bb7883271"
       },
       "status": "accepted",
       "va": 4307346
@@ -381,7 +381,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004b9e3b.s",
-        "sha256": "b083869706bb100c5613ac492ee41542b41d3f76c2138c240c26d8824e67722d"
+        "sha256": "51b46aab09d7abd8a0dcfa431b17b481bc5fe791da2125c9cdf7b2e69d37cba0"
       },
       "status": "accepted",
       "va": 4955707
@@ -407,7 +407,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00482359.s",
-        "sha256": "5b64db819755201b883ebd65735af23d4aa7307b30ef721ecdbb528b92135e76"
+        "sha256": "1ed0fdd18e9fba63d101af633eaaafe4f525494bc8eee34962391dd690c0c3fc"
       },
       "status": "accepted",
       "va": 4727641
@@ -433,7 +433,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0042b2e4.s",
-        "sha256": "66f2832e6934ef2ffe6b9a5b26749aa6a44f186d999c10985b13c6cfc244287b"
+        "sha256": "3c947d2c0cca43fb399c2fbb892ec8a5eafdf9c95f6bcb7a8ae0f5ff64921407"
       },
       "status": "accepted",
       "va": 4371172
@@ -459,7 +459,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0048d3cb.s",
-        "sha256": "20f5260b3c35d06776031237d3846c88b37a3b90922904a737b58cfd3aec213a"
+        "sha256": "d75ca674d3c413b0fae97439d1c7bf665b540c9495c8f04b4702d326b8ae3277"
       },
       "status": "accepted",
       "va": 4772811
@@ -500,7 +500,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004fa658.s",
-        "sha256": "15c8d45b6d33f45ea10149e6e98287160e017193e41cd519d129d1f38f213c54"
+        "sha256": "b6a497c7f3eb3da81dde11b0500bd9279d59ef34cd449fc612e57a53f9991819"
       },
       "status": "accepted",
       "va": 5219928
@@ -526,7 +526,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004e22fd.s",
-        "sha256": "21c2df953f3f7bd3b0658e0f7497673eb562ef9e4d19ceb670753c508e66a649"
+        "sha256": "f454f97c5ea1e811cc4fb5af055ea50a309bfdb9ae87a88938eaafab3e8a89cc"
       },
       "status": "accepted",
       "va": 5120765
@@ -552,7 +552,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0042ae73.s",
-        "sha256": "cc975ae0fdf7688030d09d1b1da509a3fba33105ce5f264e8160d70ea6a10604"
+        "sha256": "a4c997f26fa4f61a18dd3ed4086674389f9dcc08a537b67e7a4b3bae4bde167e"
       },
       "status": "accepted",
       "va": 4370035
@@ -578,7 +578,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004a42c0.s",
-        "sha256": "f795825705eacca8f2a86ac1befae3760f042a35b6055794254315bd06e8de70"
+        "sha256": "717471ce65798a59dd83efb27f782a09942506c77bcfa54bd67b112fd1f0a409"
       },
       "status": "accepted",
       "va": 4866752
@@ -604,7 +604,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004460d6.s",
-        "sha256": "957b43510229d97296198f5eb38a4d5dec8574c1f829f1f8f3e899ce30fa2d2a"
+        "sha256": "77574babbd5757324f16e5cf5a7d3073d0bc7351afed19bcd9cd5e666de54f71"
       },
       "status": "accepted",
       "va": 4481238
@@ -630,7 +630,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004897cd.s",
-        "sha256": "3c8ba68de00bef464580540918b2736adc1499bfcea19fc4a9b0529476b4e008"
+        "sha256": "b0e5110d5ae7436edfdddba9a1e6925b6370f3cdfc0616c220f46373a1ce7333"
       },
       "status": "accepted",
       "va": 4757453
@@ -656,15 +656,15 @@
       ],
       "function": "FUN_004b203e",
       "object": {
-        "sha256": "9bfc414b3a0ad6c0142a26e31fdc753aafd263755c061d7b4d1015a9b4b5cb0b",
-        "size": 726469
+        "sha256": "eff82efcdd367a1d4f191ef6536266bcf296c106b7771fbae2864f783c673259",
+        "size": 726467
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_004b203e.s",
-        "sha256": "e45839aa9c40b7f08a07141209a9c49156fe6644ce3ae0549019a8ebd01a8cbf"
+        "sha256": "d5e696d18a297857a36b50891b39deb2bbbde065977469b5ed705ea36053f5bf"
       },
       "status": "accepted",
       "va": 4923454
@@ -690,7 +690,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0049d55d.s",
-        "sha256": "8e045db839d27e70014219768ed30348378d2e4707cf681f59bbad831124b4bb"
+        "sha256": "44ec4a2550e879530cce19ac371584c0bc8b8fab274a45a791101b73c1c2cd6f"
       },
       "status": "accepted",
       "va": 4838749
@@ -716,15 +716,15 @@
       ],
       "function": "FUN_00456dc8",
       "object": {
-        "sha256": "d7d4abbf45aac18171b793fc214b8c1bfb3d337e4f629bc345e49c1a482fd7af",
-        "size": 352964
+        "sha256": "eecf3ac13118dbf4d9b4fd921a5cace7818b88efad2663817798e8e1388f32cd",
+        "size": 352955
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_00456dc8.s",
-        "sha256": "4be70266ca9cf69a51da0092f8aaa2f76369bbe96f3602b54eeffad51044c2c7"
+        "sha256": "a39896726ca27db0dadababb1683a641f0fe8fcd51f39be61019e821178a9991"
       },
       "status": "accepted",
       "va": 4550088
@@ -742,15 +742,15 @@
       "data_items": [],
       "function": "FUN_004b7389",
       "object": {
-        "sha256": "35cb778ff6a13020c98ec1a576359147441a9b476c83d3ba88349821dd276fe0",
-        "size": 747816
+        "sha256": "9c94951aed43fa87a1d5975cdd0c5373adc671490973b9f2861cc27550b94da9",
+        "size": 747815
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_004b7389.s",
-        "sha256": "20471c8dbfd8de32779a7d4ca681803fec8cafbdf43a966c937681fec8f10ecd"
+        "sha256": "0f84bccee3b92b7a18af32de849f77d83dfd4df4484379330cc8bf105c83d8ab"
       },
       "status": "accepted",
       "va": 4944777
@@ -828,7 +828,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0049581a.s",
-        "sha256": "cac172aec610c5b355834e626de48a3557df62078278a718e7525c50144c34b2"
+        "sha256": "fce702e32805689547727ae1aeccc9a99289fa94472497dcf04d20f65e87375e"
       },
       "status": "accepted",
       "va": 4806682
@@ -854,7 +854,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0045ba0b.s",
-        "sha256": "635ef37108a462569cd04dac06bf7e9a7aab3d75422a18883309f5e9c346666c"
+        "sha256": "0da8fdfe76824ec83938fb4fc419d2ba42d44b619dfe04520ed0a34b31c99bc5"
       },
       "status": "accepted",
       "va": 4569611
@@ -880,7 +880,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004e3ede.s",
-        "sha256": "6a11c0fb114048bbe20b2161afccb5d1aa474557e071bdda22377ee072b6dcf9"
+        "sha256": "0a6931d24e845da480f1b4d589f13b9750193ac34a8aab5cdc09340524a88e4a"
       },
       "status": "accepted",
       "va": 5127902
@@ -932,7 +932,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004ead69.s",
-        "sha256": "e1c5daa8475743bdd1e735c698e61995800424c75392fae84a9fc88304d752b1"
+        "sha256": "e5173cfbe90214bf6ae5edc755060c1ace95e763c5aa2c8872a3200093ab91d7"
       },
       "status": "accepted",
       "va": 5156201
@@ -958,7 +958,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004e8bb4.s",
-        "sha256": "a78901ec3e761be87e6e8cbf11306d77d091c21872ac26036b26c89284d8f1ba"
+        "sha256": "f700eadb50e06add59c5f7da1f56512e5a2a8e5fb772ad2d365c7795a04acaa1"
       },
       "status": "accepted",
       "va": 5147572
@@ -1010,7 +1010,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0047fd65.s",
-        "sha256": "1ff6782d2136b924529eeb07f4f0a2db7c22514535d99581a387eaebefd78b04"
+        "sha256": "10d5d40d8c17aeef808b5d0a40fc2062d5af10c5cb136eb8b74b1765ef95155b"
       },
       "status": "accepted",
       "va": 4717925
@@ -1028,15 +1028,15 @@
       "data_items": [],
       "function": "FUN_004554bb",
       "object": {
-        "sha256": "74984f5b955851b9ab9cbedd41fc551af654f5abab03c66e5e861751c427ecb5",
-        "size": 346147
+        "sha256": "e52c368f28a3c4b1956455b2eb9180deff3b1f9eb499d05526d232ad86472b21",
+        "size": 346137
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_004554bb.s",
-        "sha256": "f225de7b6c8a106427f6a52cd3174d321468448c501a01831bd8e85ef0cf7133"
+        "sha256": "b9cc5ecd4a3445d7b0b192dec4b1632d267b23b3a27cbe18c63148f1e439d257"
       },
       "status": "accepted",
       "va": 4543675
@@ -1062,7 +1062,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00464ab5.s",
-        "sha256": "b95b02dbd3bf03b02ba58e48136c5ce8bbf3123818387ec85f2a5de5f31f81e1"
+        "sha256": "3fe18309c4559fa8f68328d8ff164825dafb2ee4ce929764df40106fef75ed67"
       },
       "status": "accepted",
       "va": 4606645
@@ -1080,15 +1080,15 @@
       "data_items": [],
       "function": "FUN_004854fb",
       "object": {
-        "sha256": "3a97f54b0572729a5fda8b652515263acccfd3f3ee5926d94270ef503a305e29",
-        "size": 542912
+        "sha256": "d4fdf9d783dd385336168c214d40b3a28539e1dd9f7ea4e06e5fef8b516d8c76",
+        "size": 542895
       },
       "reasons": [],
       "region": "game",
       "relocations": 0,
       "source": {
         "path": "FUN_004854fb.s",
-        "sha256": "2937d3901be3d33c553c519e237ec5b2ff374344e52f9faba95303246cc80b54"
+        "sha256": "ee8b5fdfc1a11065af4de636fed6e901d5e734b75fa09433a13ceaac97a0c96a"
       },
       "status": "accepted",
       "va": 4740347
@@ -1114,7 +1114,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004c7481.s",
-        "sha256": "b0b39e21ce43c32f33286fe934c356145f589ba2cf160be252fe7ea1078d68e0"
+        "sha256": "b86c2d7a5ca9da927cbe1c99042e135b8fe910d7a2b4ba61946b22e4cf6918c7"
       },
       "status": "accepted",
       "va": 5010561
@@ -1172,7 +1172,7 @@
       "va": 4713075
     }
   ],
-  "manifest_sha256": "0c20f95feb31da017e975134a13c1576afb1d444f88fb42ba1ac754605329fc8",
+  "manifest_sha256": "e70bc5b8665a7bcb74b6a7c4c6762a07a8dd357d626cab4bae8bae7fac785c9a",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

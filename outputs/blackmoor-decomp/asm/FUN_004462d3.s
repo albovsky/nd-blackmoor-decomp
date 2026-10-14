@@ -10,10 +10,10 @@
 # name:         TimeDisplay::init_from_descriptor
 # arguments:    thiscall: ecx=this (both call sites, 0x4532c8 and 0x4b92e0, load ecx = 0x638603, a fixed global object); one stack argument arg_descriptor at [ebp+8] = pointer to a 200-byte (0x32 dwords) descriptor block, copied into this+0x174; callee pops 4 (ret 4); no result
 # locals:       frame 4 bytes plus saved esi and edi: [ebp-0x4] = this, spilled from ecx; esi/edi are the copy source and destination of the rep movs and repne scasb sequences
-# fields:       this+0x174..0x23b: overwritten by the 200-byte descriptor copy; inside it: ten 16-byte records at this+0x174 + i*0x10 (+0 left, +4 top, +8 right, +0xc bottom as compared by the +1 width arithmetic), a further 16-byte record at this+0x214 (+0x214 left, +0x218 top, +0x21c right, +0x220 bottom), and the dwords this+0x230, this+0x234 (registry slot index) and this+0x238; this+0x284: loop counter i (dword, i < 10); this+0x64 + 4*i: dword = right - left + 1 of record i; this+0x8c + 4*i: dword = bottom - top + 1 of record i; this+0xb4: dword = this+0x21c - this+0x214 + 1; this+0xb8: dword = this+0x220 - this+0x218 + 1; this+0x240, this+0x244: dword = 0; this+0x248, +0x252, +0x266, +0x270: byte = 0; this+0x08: dword = 0; this+0x10: dword = 1; global table of 0x4a-byte entries based at 0x005d1591, entry index = this+0x234: +0x00 dword = this+0x238, +0x04 dword = 0x4468fe (a code address in .text), +0x08 dword = this+0x230, +0x0c dword = 0, +0x10 dword = 0, +0x14 dword = 1, +0x18 dword = 1, +0x1c word = 0, +0x22 (0x005d15b3 + index*0x4a) the NUL-terminated string at 0x00548228 (text "TIME DISPLAY", 13 bytes with the NUL) copied by length found with repne scasb
+# fields:       this+0x174..0x23b: overwritten by the 200-byte descriptor copy; inside it: ten 16-byte records at this+0x174 + i*0x10 (+0 left, +4 top, +8 right, +0xc bottom as compared by the +1 width arithmetic), a further 16-byte record at this+0x214 (+0x214 left, +0x218 top, +0x21c right, +0x220 bottom), and the dwords this+0x230, this+0x234 (layer table entry index) and this+0x238; this+0x284: loop counter i (dword, i < 10); this+0x64 + 4*i: dword = right - left + 1 of record i; this+0x8c + 4*i: dword = bottom - top + 1 of record i; this+0xb4: dword = this+0x21c - this+0x214 + 1; this+0xb8: dword = this+0x220 - this+0x218 + 1; this+0x240, this+0x244: dword = 0; this+0x248, +0x252, +0x266, +0x270: byte = 0; this+0x08: dword = 0; this+0x10: dword = 1; global table of 0x4a-byte entries based at 0x005d1591, entry index = this+0x234: +0x00 dword = this+0x238, +0x04 dword = 0x4468fe (a code address in .text), +0x08 dword = this+0x230, +0x0c dword = 0, +0x10 dword = 0, +0x14 dword = 1, +0x18 dword = 1, +0x1c word = 0, +0x22 (0x005d15b3 + index*0x4a) the NUL-terminated string at 0x00548228 (text "TIME DISPLAY", 13 bytes with the NUL) copied by length found with repne scasb
 # callees:      none
 # track-n:      host-adapter: none
-# unverified:   The name TimeDisplay::init_from_descriptor is my label: the evidence is the default string "TIME DISPLAY" at 0x548228 copied into the registry entry, and that the function 0x4468fe stored in the entry first compares the dword at 0x63860b (= 0x638603 + 8, the dword this function clears) with 0 (verified in the bytes at 0x446906) and then the one at 0x638613 (= this+0x10); the bytes do not say what the object is. The descriptor field names (left/top/right/bottom, registry slot) are role labels from the arithmetic (+1 widths), not proven. That the 0x4a-byte table at 0x5d1591 is a registry of widgets and that the stored code address 0x4468fe is a draw or update callback is not established here; the entry index this+0x234 is taken from the descriptor with no range check (an index beyond the table writes outside it: unsafe original behaviour on a bad descriptor). The effect of this+0x08 = 0 and this+0x10 = 1 beyond the flag read by 0x4468fe is not established. The 0x4468fe, 0x446548 and 0x446598 neighbours were not reconstructed here. The two callers (0x4532c8 in 0x452576, 0x4b92e0 in 0x4b8e92) were read from pseudocode and call-site bytes only.
+# unverified:   The name TimeDisplay::init_from_descriptor is my label: the evidence is the default string "TIME DISPLAY" at 0x548228 copied into the layer table entry, and that the function 0x4468fe stored in the entry first compares the dword at 0x63860b (= 0x638603 + 8, the dword this function clears) with 0 (verified in the bytes at 0x446906) and then the one at 0x638613 (= this+0x10); the bytes do not say what the object is. The descriptor field names (left/top/right/bottom, layer index) are role labels from the arithmetic (+1 widths), not proven. The 0x4a-byte table at 0x5d1591 is read as the render layer table by tests/caption_lifecycle_original_oracle.py (lines 15, 56-57 and 451-455: stride 0x4a, entry layout +0 z, +4 callback, +8 surface, +0xc src, +0x10 dst, +0x14 enabled, +0x18 = 1, word +0x1c kind): this routine writes entry [this+0x234] of that table (this+0x234 the layer index, this+0x238 the z field, 0x4468fe the entry callback, the +0x230 argument as surface), with the field roles following the oracle layout and not proven by these bytes; what the callback at 0x4468fe does beyond the flag test is not established here; the entry index this+0x234 is taken from the descriptor with no range check (an index beyond the table writes outside it: unsafe original behaviour on a bad descriptor). The effect of this+0x08 = 0 and this+0x10 = 1 beyond the flag read by 0x4468fe is not established. The 0x4468fe, 0x446548 and 0x446598 neighbours were not reconstructed here. The two callers (0x4532c8 in 0x452576, 0x4b92e0 in 0x4b8e92) were read from pseudocode and call-site bytes only.
 .intel_syntax noprefix
 .code32
 .text
@@ -36,9 +36,9 @@
 .equ extra_top, 0x218  # this+0x218: second dword of the extra record (top)
 .equ extra_right, 0x21c  # this+0x21c: third dword of the extra record (right)
 .equ extra_bottom, 0x220  # this+0x220: fourth dword of the extra record (bottom)
-.equ desc_registry_arg, 0x230  # this+0x230: dword from the descriptor, stored to registry entry +0x08
-.equ desc_registry_index, 0x234  # this+0x234: dword from the descriptor, index of the 0x4a-byte registry entry written
-.equ desc_registry_value, 0x238  # this+0x238: dword from the descriptor, stored to registry entry +0x00
+.equ desc_layer_arg, 0x230  # this+0x230: dword from the descriptor, stored to layer table entry +0x08
+.equ desc_layer_index, 0x234  # this+0x234: dword from the descriptor, index of the 0x4a-byte layer table entry written
+.equ desc_layer_value, 0x238  # this+0x238: dword from the descriptor, stored to layer table entry +0x00
 .equ panel_cleared_240, 0x240  # this+0x240: dword set to 0 (role not established)
 .equ panel_cleared_244, 0x244  # this+0x244: dword set to 0 (role not established)
 .equ panel_byte_248, 0x248  # this+0x248: byte set to 0 (role not established)
@@ -112,7 +112,7 @@ L_record_loop_test:
     mov dword ptr [ecx + 4*edx + rect_height_arr], eax  # 0044639d
     jmp.d32 L_next_record                           # 004463a4
 L_after_records:
-    # block 0x004463a9: after the loop: extra_width and extra_height from the record at this+0x214; fill the 0x4a-byte registry entry at 0x5d1591 + this+0x234 * 0x4a with the descriptor values, callback address 0x4468fe, constants and the "TIME DISPLAY" text; clear this+0x240/0x244, the four bytes, this+0x08 and set this+0x10 = 1; restore registers, ret 4
+    # block 0x004463a9: after the loop: extra_width and extra_height from the record at this+0x214; fill the 0x4a-byte layer table entry at 0x5d1591 + this+0x234 * 0x4a with the descriptor values, callback address 0x4468fe, constants and the "TIME DISPLAY" text; clear this+0x240/0x244, the four bytes, this+0x08 and set this+0x10 = 1; restore registers, ret 4
     mov edx, dword ptr [ebp - local_this]           # 004463a9
     mov eax, dword ptr [ebp - local_this]           # 004463ac
     mov ecx, dword ptr [edx + extra_right]         # 004463af
@@ -127,47 +127,47 @@ L_after_records:
     add edx, 0x1                                 # 004463d9
     mov eax, dword ptr [ebp - local_this]           # 004463dc
     mov dword ptr [eax + extra_height], edx          # 004463df
-    # registry entry (base 0x5d1591 + index*0x4a): +0x00 = this+0x238, +0x04 = 0x4468fe (code address), +0x08 = this+0x230, +0x0c = 0, +0x10 = 0, +0x14 = 1, +0x18 = 1, +0x1c word = 0
+    # layer table entry (base 0x5d1591 + index*0x4a): +0x00 = this+0x238, +0x04 = 0x4468fe (code address), +0x08 = this+0x230, +0x0c = 0, +0x10 = 0, +0x14 = 1, +0x18 = 1, +0x1c word = 0
     mov ecx, dword ptr [ebp - local_this]           # 004463e5
-    mov edx, dword ptr [ecx + desc_registry_index]         # 004463e8
+    mov edx, dword ptr [ecx + desc_layer_index]         # 004463e8
     imul edx, edx, 0x4a                          # 004463ee
     mov eax, dword ptr [ebp - local_this]           # 004463f1
-    mov ecx, dword ptr [eax + desc_registry_value]         # 004463f4
+    mov ecx, dword ptr [eax + desc_layer_value]         # 004463f4
     mov dword ptr [edx + 0x5d1591], ecx          # 004463fa
     mov edx, dword ptr [ebp - local_this]           # 00446400
-    mov eax, dword ptr [edx + desc_registry_index]         # 00446403
+    mov eax, dword ptr [edx + desc_layer_index]         # 00446403
     imul eax, eax, 0x4a                          # 00446409
     mov dword ptr [eax + 0x5d1595], 0x4468fe     # 0044640c
     mov ecx, dword ptr [ebp - local_this]           # 00446416
-    mov edx, dword ptr [ecx + desc_registry_index]         # 00446419
+    mov edx, dword ptr [ecx + desc_layer_index]         # 00446419
     imul edx, edx, 0x4a                          # 0044641f
     mov eax, dword ptr [ebp - local_this]           # 00446422
-    mov ecx, dword ptr [eax + desc_registry_arg]         # 00446425
+    mov ecx, dword ptr [eax + desc_layer_arg]         # 00446425
     mov dword ptr [edx + 0x5d1599], ecx          # 0044642b
     mov edx, dword ptr [ebp - local_this]           # 00446431
-    mov eax, dword ptr [edx + desc_registry_index]         # 00446434
+    mov eax, dword ptr [edx + desc_layer_index]         # 00446434
     imul eax, eax, 0x4a                          # 0044643a
     mov dword ptr [eax + 0x5d159d], 0x0          # 0044643d
     mov ecx, dword ptr [ebp - local_this]           # 00446447
-    mov edx, dword ptr [ecx + desc_registry_index]         # 0044644a
+    mov edx, dword ptr [ecx + desc_layer_index]         # 0044644a
     imul edx, edx, 0x4a                          # 00446450
     mov dword ptr [edx + 0x5d15a1], 0x0          # 00446453
     mov eax, dword ptr [ebp - local_this]           # 0044645d
-    mov ecx, dword ptr [eax + desc_registry_index]         # 00446460
+    mov ecx, dword ptr [eax + desc_layer_index]         # 00446460
     imul ecx, ecx, 0x4a                          # 00446466
     mov dword ptr [ecx + 0x5d15a5], 0x1          # 00446469
     mov edx, dword ptr [ebp - local_this]           # 00446473
-    mov eax, dword ptr [edx + desc_registry_index]         # 00446476
+    mov eax, dword ptr [edx + desc_layer_index]         # 00446476
     imul eax, eax, 0x4a                          # 0044647c
     mov dword ptr [eax + 0x5d15a9], 0x1          # 0044647f
     mov ecx, dword ptr [ebp - local_this]           # 00446489
-    mov edx, dword ptr [ecx + desc_registry_index]         # 0044648c
+    mov edx, dword ptr [ecx + desc_layer_index]         # 0044648c
     imul edx, edx, 0x4a                          # 00446492
     mov word ptr [edx + 0x5d15ad], 0x0           # 00446495
-    # text copy: repne scasb finds the length (including the NUL) of the string at 0x548228, then the bytes are copied by rep movsd and rep movsb to registry entry + 0x22 (0x5d15b3 + index*0x4a)
+    # text copy: repne scasb finds the length (including the NUL) of the string at 0x548228, then the bytes are copied by rep movsd and rep movsb to layer table entry + 0x22 (0x5d15b3 + index*0x4a)
     mov edi, 0x548228                            # 0044649e
     mov eax, dword ptr [ebp - local_this]           # 004464a3
-    mov ecx, dword ptr [eax + desc_registry_index]         # 004464a6
+    mov ecx, dword ptr [eax + desc_layer_index]         # 004464a6
     imul ecx, ecx, 0x4a                          # 004464ac
     add ecx, 0x5d15b3                            # 004464af
     {load} mov edx, ecx                          # 004464b5

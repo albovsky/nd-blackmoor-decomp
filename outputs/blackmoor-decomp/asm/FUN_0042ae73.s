@@ -10,10 +10,10 @@
 # name:         SceneHotspotAction0x0d::Execute
 # arguments:    cdecl-style: no this (ecx is not read, the push ecx only reserves the local), one stack argument [ebp+8] = action slot index as a sign-extended 16-bit word, plain ret so the caller pops it, no return value (eax is left as the last scratch value). Slot address = 0x5bb5e3 + index * 0x8d (stride 0x8d)
 # locals:       [ebp-local_phase] = the slot executor phase dword read from slot+0x4f (0x5bb632 + index*0x8d), switched on 0, 1, 2 (any other value returns at once)
-# fields:       slot+0x02: dword payload pointer (0x5bb5e5 + index*0x8d), dereferenced for every payload read. slot+0x42: byte completion latch (0x5bb625), written 1 in phase 2. slot+0x43: dword hotspot-active flag (0x5bb626), written 1 or 0 by the frame compare. slot+0x47, +0x49, +0x4b, +0x4d: words (0x5bb62a, 0x5bb62c, 0x5bb62e, 0x5bb630) written in phase 0 from payload +0x18, +0x1c, +0x20, +0x24 (low 16 bits of each dword). slot+0x4f: dword phase (0x5bb632), read, written 1 in phase 0. Payload: +0x02 word (sign-extended to dword 0x5bb57b), +0x04 word (0x5bb599), +0x06 word (0x5bb595), +0x08 word (0x5c39ff), +0x0a dword (0x5bb59b), +0x0e dword (0x5bb59f), +0x12 dword (0x5bb5a3), +0x16 word (frame, compared with word 0x5bb50b), +0x18/+0x1c/+0x20/+0x24 dwords (rectangle). Globals: 0x5bb1ca = 1 in phase 0, 0x583999 = 4 in phase 2, 0x5bb50b word read
+# fields:       slot+0x02: dword payload pointer (0x5bb5e5 + index*0x8d), dereferenced for every payload read. slot+0x42: byte completion latch (0x5bb625), written 1 in phase 2. slot+0x43: dword hotspot-active flag (0x5bb626), written 1 or 0 by the frame compare. slot+0x47, +0x49, +0x4b, +0x4d: words (0x5bb62a, 0x5bb62c, 0x5bb62e, 0x5bb630) written in phase 0 from the words at payload +0x18, +0x1c, +0x20, +0x24 (one word read at each, mov dx, word ptr [eax+0x18] at 0x42aecd and the same at +0x1c, +0x20, +0x24). slot+0x4f: dword phase (0x5bb632), read, written 1 in phase 0. Payload: +0x02 word (sign-extended to dword 0x5bb57b), +0x04 word (0x5bb599), +0x06 word (0x5bb595), +0x08 word (0x5c39ff), +0x0a dword (0x5bb59b), +0x0e dword (0x5bb59f), +0x12 dword (0x5bb5a3), +0x16 word (frame, compared with word 0x5bb50b), +0x18/+0x1c/+0x20/+0x24 words read as the rectangle left, top, right, bottom (labels) (dword per s0-interaction-recovery.md; this routine reads only the low word). Globals: 0x5bb1ca = 1 in phase 0, 0x583999 = 4 in phase 2, 0x5bb50b word read
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/scene_executor.c:apply_builtin_hotspot
-# unverified:   Track N correspondence is partial: apply_builtin_hotspot covers the runtime-type-0x0d branch only (the same C function also holds the type 0x6a branch for another original executor), restructures the effects (the rectangle becomes a SceneExecutorHotspotState, the phase 2 globals become a transition request) and does not model the phase 0 store of 0x5bb1ca = 1 (whose meaning is not established here). Its comment cites this address, but I did not compare it step by step. Names are my labels, the rectangle labels (left, top, right, bottom) follow s0-action-runtime-trace.md and the scene_executor.c reader, while the bytes only prove which payload dword goes to which slot word. That payload +0x16 is the hotspot frame and 0x5bb50b the current frame comes from s0-interaction-recovery.md, not from a traced writer. The meaning of 0x5bb57b, 0x5bb599, 0x5bb595, 0x5c39ff, 0x5bb59b, 0x5bb59f, 0x5bb5a3 as transition globals is from that same document and is not re-derived. Callers are not traced in this file (the dispatcher 0x427a50 is named by the pseudocode hint only).
+# unverified:   Track N correspondence is partial: apply_builtin_hotspot covers the runtime-type-0x0d branch only (the same C function also holds the type 0x6a branch for another original executor), restructures the effects (the rectangle becomes a SceneExecutorHotspotState, the phase 2 globals become a transition request) and does not model the phase 0 store of 0x5bb1ca = 1 (whose meaning is not established here). Its comment cites this address, but I did not compare it step by step. Names are my labels, the rectangle labels (left, top, right, bottom) follow s0-action-runtime-trace.md and the scene_executor.c reader, while the bytes only prove which payload dword goes to which slot word. That payload +0x16 is the hotspot frame and 0x5bb50b the current frame comes from s0-interaction-recovery.md, not from a traced writer. The meaning of 0x5bb57b, 0x5bb599, 0x5bb595, 0x5c39ff, 0x5bb59b, 0x5bb59f, 0x5bb5a3 as transition globals is from that same document and is not re-derived. Track N's apply_builtin_hotspot sets hotspot->active = 0 on every call of its 0x0d branch, including phase 2 and phases of 3 or more, while the original leaves slot+0x43 untouched in phase 2 (it latches completion and writes the transition globals) and does nothing at all for other phases. Callers are not traced in this file (the dispatcher 0x427a50 is named by the pseudocode hint only).
 .intel_syntax noprefix
 .code32
 .text
@@ -29,10 +29,10 @@
 .equ pl_dword_0e, 0xe  # payload+0x0e: dword, copied to 0x5bb59f in phase 2
 .equ pl_dword_12, 0x12  # payload+0x12: dword, copied to 0x5bb5a3 in phase 2
 .equ pl_frame, 0x16  # payload+0x16: word compared with the word at 0x5bb50b in phase 1
-.equ pl_rect_left, 0x18  # payload+0x18: dword, low word copied to slot+0x47 in phase 0
-.equ pl_rect_top, 0x1c  # payload+0x1c: dword, low word copied to slot+0x49 in phase 0
-.equ pl_rect_right, 0x20  # payload+0x20: dword, low word copied to slot+0x4b in phase 0
-.equ pl_rect_bottom, 0x24  # payload+0x24: dword, low word copied to slot+0x4d in phase 0
+.equ pl_rect_left, 0x18  # payload+0x18: word read and copied to slot+0x47 in phase 0 (dword per s0-interaction-recovery.md; this routine reads only the low word)
+.equ pl_rect_top, 0x1c  # payload+0x1c: word read and copied to slot+0x49 in phase 0 (dword per s0-interaction-recovery.md; this routine reads only the low word)
+.equ pl_rect_right, 0x20  # payload+0x20: word read and copied to slot+0x4b in phase 0 (dword per s0-interaction-recovery.md; this routine reads only the low word)
+.equ pl_rect_bottom, 0x24  # payload+0x24: word read and copied to slot+0x4d in phase 0 (dword per s0-interaction-recovery.md; this routine reads only the low word)
 
 # --- external targets -----------------------------------------------
 
@@ -58,7 +58,7 @@ FUN_0042ae73:
     # block 0x0042aea4: phase is not 0, 1 or 2: return without effects
     jmp.d32 epilogue                           # 0042aea4
 phase0_start:
-    # block 0x0042aea9: phase0_start: 0x5bb1ca = 1, then copy payload +0x18, +0x1c, +0x20, +0x24 (low words) to slot words +0x47, +0x49, +0x4b, +0x4d, then slot phase +0x4f = 1 and fall into phase1_frame_test
+    # block 0x0042aea9: phase0_start: 0x5bb1ca = 1, then copy the words at payload +0x18, +0x1c, +0x20, +0x24 to slot words +0x47, +0x49, +0x4b, +0x4d, then slot phase +0x4f = 1 and fall into phase1_frame_test
     mov dword ptr [0x5bb1ca], 0x1                # 0042aea9
     movsx edx, word ptr [ebp + arg_slot_index]            # 0042aeb3
     imul edx, edx, 0x8d                          # 0042aeb7

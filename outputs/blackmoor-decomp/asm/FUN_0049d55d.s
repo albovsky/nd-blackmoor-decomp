@@ -8,7 +8,7 @@
 # region:       game
 # frame:        ebp
 # name:         MapGrid::expand_cell_flags_to_double_grids
-# arguments:    thiscall: ecx=this (saved at [ebp-local_this]), no stack arguments, plain ret, no defined return value. esi and edi are saved and restored around the row copy
+# arguments:    thiscall: ecx=this (saved at [ebp-local_this]), no stack arguments, plain ret, no defined return value. esi and edi are pushed at entry (0x49d563, 0x49d564) and popped only at L_done (0x49d74f), so they are preserved for the whole function and used as the row copy pointers
 # locals:       frame 0x18 bytes: [ebp-4]=row index r (0 up to this+0xe04), [ebp-0xc]=doubled row index 2r, [ebp-8]=column index c (0 up to this+0xe00), [ebp-0x14]=doubled column index 2c, [ebp-0x10]=flag byte of the current cell (only the low byte is written, every read is masked with 0xff), [ebp-0x18]=this
 # fields:       this+0x1c: dword stride, in dwords, of the two doubled grids, this+0xde4: pointer to the byte map (one flag byte per cell, row stride this+0xe00 bytes), this+0xe00: dword number of map columns, this+0xe04: dword number of map rows, this+0xe38: pointer to dword grid A (row stride this+0x1c dwords), this+0xe3c: pointer to dword grid B (same stride), globals 0x006329c9: dword set to 2r and 0x006329cd: dword set to 2c when a cell has flag bit 4
 # callees:      none (the dword row copy is inline rep movsd)

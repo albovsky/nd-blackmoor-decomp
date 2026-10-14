@@ -10,7 +10,7 @@
 # name:         SceneUI::select_cursor_for_event
 # arguments:    thiscall: ecx=this (spilled to [ebp-8]), [ebp+8]=event id (only the low 16 bits are used, sign-extended with movsx, compared with 0x2778, 0x277c, 0x2779), callee pops 4 (ret 4), no return value (eax is not set), every other id takes the default path
 # locals:       [ebp-8]=saved this (from ecx), [ebp-4]=scene record pointer = dword at 0x5bb5e5 + int16(this+0x26)*0x8d, loaded before the event id is looked at (only the 0x2779 and default paths dereference it)
-# fields:       this+0x26: int16 scene index selecting a 0x8d-byte entry of the table at 0x5bb5e5, scene record+0xda7: int16 cursor type (default path), scene record+0xda9: int16 cursor type (event 0x2779), globals 0x005b44f0 (dword, cursor type index), 0x005b44f4 (dword, cursor variant), 0x005d0377 (dword, read), 0x005d162d (dword, written with a copy of 0x5d0377), 0x005d1631 (dword, written with 0x5b160c + type*0x20 + variant*0x10), 0x005d1639 (dword, written 1), 0x005c39e5 (dword, written with the sign-extended event id), the last four globals sit at odd (unaligned) addresses
+# fields:       this+0x26: int16 scene index selecting a 0x8d-byte entry of the table at 0x5bb5e5, scene record+0xda7: int16 cursor type (default path), scene record+0xda9: int16 cursor type (event 0x2779), globals 0x005b44f0 (dword, cursor type index), 0x005b44f4 (dword, cursor variant), 0x005d0377 (dword, read), 0x005d162d (dword, written with a copy of 0x5d0377), 0x005d1631 (dword, written with 0x5b160c + type*0x20 + variant*0x10), 0x005d1639 (dword, written 1), 0x005c39e5 (dword, written with the sign-extended event id), the last five globals (0x5d0377, 0x5d162d, 0x5d1631, 0x5d1639, 0x5c39e5) sit at odd (unaligned) addresses
 # callees:      none
 # track-n:      host-adapter: none
 # unverified:   The roles of the globals are the labels in src/caption_lifecycle.h (cursor type, cursor variant, cursor surface, cursor layer enable), they are not proven by these bytes, and the same header's reading of 0x5d1631 as a dword index and of 0x5c39e5 as a slider scene does not match the byte address and the event id stored here. The table at 0x5bb5e5 (stride 0x8d, first dword read as a record pointer) and the fields at record+0xda7 and +0xda9 are described only by this function's own accesses, what the record is and what those two int16 values mean are not established, the class of this and the method name are my labels. The default path (any id other than 0x2778, 0x277c, 0x2779) is verified in the control flow, which ids reach it in the game is not: the Ghidra pseudocode of 0x484f42 calls it with 0x2777, 0x2778, 0x2779, 0x277a, 0x277b and 0x277c, not re-verified in disassembly. No bound check exists on this+0x26 or on the type read from the record before it scales an index into the descriptor table at 0x5b160c, and a null record pointer would fault on the 0x2779 and default paths.
@@ -25,8 +25,8 @@
 
 .equ this_scene_index, 0x26  # this+0x26: int16 scene index, multiplied by 0x8d to index the table at 0x5bb5e5
 
-.equ record_cursor_type_default, 0xda7  # scene record+0xda7: int16 cursor type used on the default path
-.equ record_cursor_type_2779, 0xda9  # scene record+0xda9: int16 cursor type used for event 0x2779
+.equ payload_word_da7, 0xda7  # payload+0xda7: int16 read on the default path and stored to 0x5b44f0 (Track N cursor_type label, not proven)
+.equ payload_word_da9, 0xda9  # payload+0xda9: int16 read for event 0x2779 and stored to 0x5b44f0 (Track N cursor_type label, not proven)
 
 # --- external targets -----------------------------------------------
 
@@ -88,7 +88,7 @@ L_check_2779:
     je.d8 L_event_2779                             # 004855e7
     # block 0x004855e9: default path (any other event id): [0x5b44f0]=int16 at scene record+0xda7 (sign-extended), [0x5b44f4]=1, then the common stores, then jump to L_epilogue
     mov ecx, dword ptr [ebp - local_scene_record]           # 004855e9
-    movsx edx, word ptr [ecx + record_cursor_type_default]        # 004855ec
+    movsx edx, word ptr [ecx + payload_word_da7]        # 004855ec
     mov dword ptr [0x5b44f0], edx                # 004855f3
     mov dword ptr [0x5b44f4], 0x1                # 004855f9
     mov eax, dword ptr [0x5d0377]                # 00485603
@@ -106,7 +106,7 @@ L_check_2779:
 L_event_2779:
     # block 0x00485641: event 0x2779: [0x5b44f0]=int16 at scene record+0xda9 (sign-extended), [0x5b44f4]=1, then the common stores, then fall into L_epilogue
     mov edx, dword ptr [ebp - local_scene_record]           # 00485641
-    movsx eax, word ptr [edx + record_cursor_type_2779]        # 00485644
+    movsx eax, word ptr [edx + payload_word_da9]        # 00485644
     mov dword ptr [0x5b44f0], eax                # 0048564b
     mov dword ptr [0x5b44f4], 0x1                # 00485650
     mov ecx, dword ptr [0x5d0377]                # 0048565a
