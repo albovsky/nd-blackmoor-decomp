@@ -737,6 +737,16 @@ def synthetic_fixtures() -> dict[str, dict[str, Any]]:
         readers=False)
     add("lzss_longer_than_declared", [(0, fx.frame_pixels(4, 2, 1), None)], width=4,
         height=2, unpacked={0: 8}, chunk_plan=[])
+    # Root review P2 (declared size vs conversion footprint). Both keep the
+    # LZSS output (8 bytes) inside the 2x2 frame. A declared size of 16 makes
+    # 0x4c7314 convert past the frame when conversion is enabled (rgb565), so
+    # that case runs only unconverted (rgb555) and the converting rejection
+    # is covered by the native unit tests. A declared size of 9 converts four
+    # words (inside the frame) in both formats.
+    add("declared_over_frame_no_conversion", [(0, fx.frame_pixels(2, 2, 7), None)],
+        width=2, height=2, unpacked={0: 16}, chunk_plan=[], formats=("rgb555",))
+    add("odd_declared_conversion_extent", [(0, fx.frame_pixels(2, 2, 9), None)],
+        width=2, height=2, unpacked={0: 9}, chunk_plan=[])
     add("lzss_shorter_than_declared", [(0, fx.frame_pixels(4, 1, 1), None),
                                        (2, fx.cmd_fill(3, 1, 2), None)],
         width=4, height=2, unpacked={0: 10}, chunk_plan=[(0, None, 0)])

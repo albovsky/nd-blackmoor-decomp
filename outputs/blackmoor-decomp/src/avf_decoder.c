@@ -443,8 +443,17 @@ static AvfStatus decode_key(const AvfStream *stream, const AvfRecord *record, ui
 static AvfStatus decode_key_frame(const AvfStream *stream, const AvfRecord *record,
                                   uint8_t *dst, AvfLzssState *lzss)
 {
-    /* Native rejection: the original would convert past the frame. */
-    if (record->unpacked_bytes > stream->file->frame_bytes) {
+    /*
+     * The original decompresses into the frame buffer (bounded by the frame
+     * size) and then calls 0x4c7314(buffer, unpacked_bytes), which converts
+     * unpacked_bytes >> 1 words and returns at once when conversion is
+     * disabled. A declared size above the frame is therefore valid without a
+     * conversion hook, and with one only the touched extent
+     * (unpacked_bytes >> 1) * 2 must fit. Native rejection otherwise: the
+     * original would convert past the frame. Checked before any write.
+     */
+    if (stream->convert != NULL &&
+        (uint64_t)(record->unpacked_bytes >> 1) * 2u > stream->file->frame_bytes) {
         return AVF_ERR_CORRUPT;
     }
     return decode_key(stream, record, dst, stream->file->frame_bytes, lzss);

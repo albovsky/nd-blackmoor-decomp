@@ -60,6 +60,7 @@ The Mac remains locked. Use original-x86 oracles and automated offscreen checks;
 The decoder is implemented and committed on `codex/blackmoor-s03-1-avf-decoder`:
 - `fdc3ab6`: initial implementation
 - `3182f57`: fixes for the independent review findings
+- repair commit (see the handoff): root review P2, declared size versus conversion footprint. A single/double key frame whose declared `unpacked_bytes` exceeds the frame is valid when conversion is disabled (original `0x4c7314` returns at once); with conversion it is rejected, before any write, only when `(unpacked_bytes >> 1) * 2` exceeds the frame. The LZSS output bound stays the frame size. New native tests and original-oracle fixtures `declared_over_frame_no_conversion` (rgb555 only) and `odd_declared_conversion_extent` (both formats).
 
 The receipt is `work/analysis/slices/S03-1.handoff.json`. It holds the hashes, exact comparison counts, mutation results and divergences.
 
@@ -71,4 +72,4 @@ The receipt is `work/analysis/slices/S03-1.handoff.json`. It holds the hashes, e
 
 **ASan/UBSan.** Clean on 32 installed and 36 malformed inputs.
 
-**Still open:** root review of the final commit. Playback timing and handoff belong to S03-2; the decoder does not consume header +0x1c (the per-frame delay). Parent S03 stays open.
+**Still open:** root re-review of the repair commit. Playback timing and handoff belong to S03-2; the decoder does not consume header +0x1c (the per-frame delay). Parent S03 stays open.
