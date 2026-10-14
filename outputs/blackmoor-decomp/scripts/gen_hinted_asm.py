@@ -832,7 +832,7 @@ def _decode_shape(raw: bytes):
 
 
 _FIELD_DISP = re.compile(
-    r"\[(?P<base>e[a-d]x|e[sd]i|esp)(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]"
+    r"\[(?P<base>e[a-d]x|e[sd]i|esp|ebp)(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]"
 )
 _EBP_DISP = re.compile(r"\[ebp(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]")
 

@@ -70,15 +70,22 @@ SELF_TEST_SOURCE = """.intel_syntax noprefix
     {load} mov ebp, esp
     {store} mov ebp, esp
     .insn 0x66, 0x05, 0x0001{:u16}
+    .insn 0x66, 0x3d, 0x1234{:u16}
+    .insn 0x05, 0x00000000{:u32}
     .insn 0xdc, 0xc0
+    .insn 0x6681/7, ecx, 1{:s16}
+    .insn 0x6681/7, dword ptr [ecx + 4], 1{:s16}
     {disp8} mov eax, dword ptr [ecx]
     {disp32} mov eax, dword ptr [ecx + 1]
     jne.d8 L_skip
     nop
 L_skip:
+    jmp.d32 L_end
+    nop
+L_end:
     ret 4
 """
-SELF_TEST_BYTES = bytes.fromhex("8bec89e566050100dcc08b41008b8101000000750190c20400")
+SELF_TEST_BYTES = bytes.fromhex("8bec89e566050100663d34120500000000dcc06681f901006681790401008b41008b8101000000750190e90100000090c20400")
 # Mnemonics that occur in the code part of the original (128 observed over all 4,729 split spans) plus a few
 # control-flow and string forms; anything else on an instruction line is rejected, which closes the door to
 # macros, user-defined pseudo-instructions and data smuggled onto an instruction line.
@@ -193,7 +200,7 @@ def mnemonic_of(code: str) -> str:
     return re.sub(r"\.d(?:8|32)$", "", tokens[0])
 
 
-def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = True, text_base: int = 0x401000) -> tuple[list[str], dict[str, Any]]:
+def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = True, text_base: int = 0x401000, index_owners: Optional[dict[str, int]] = None) -> tuple[list[str], dict[str, Any]]:
     """Lexical checks; returns (reasons, facts)."""
 
     reasons: list[str] = []
@@ -288,10 +295,12 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             elif state == "data" or name.startswith(("SWTAB_", "IDXTAB_", "PAD_")):
                 data_kind = name.split("_", 1)[0]
                 state = "data"
-                index_label_ok = bool(
-                    data_kind == "IDXTAB"
-                    and re.search(rf"index table of {re.escape(code_symbol)} for the switch jump at 0x[0-9a-f]{{8}}", line.comment)
+                owner_match = re.search(
+                    rf"index table of {re.escape(code_symbol)} for the switch jump at 0x([0-9a-f]{{8}})", line.comment
                 )
+                index_label_ok = bool(data_kind == "IDXTAB" and owner_match)
+                if index_label_ok and index_owners is not None and index_owners.get(name) != int(owner_match.group(1), 16):
+                    index_label_ok = False
             if state == "code":
                 code_lines.append(line)
             continue
@@ -477,7 +486,8 @@ def assembler_self_test(path: Path) -> Optional[str]:
             text_bytes, relocations, _symbols = gen.coff_text(obj.read_bytes())
         except (ValueError, struct.error):
             return "assembler self-test produced an unreadable object"
-        if relocations or text_bytes[: len(SELF_TEST_BYTES)] != SELF_TEST_BYTES:
+        padding = b"\x90" * (-len(SELF_TEST_BYTES) % 4)
+        if relocations or text_bytes != SELF_TEST_BYTES + padding:
             return "assembler self-test bytes differ: this is not the pinned GNU assembler"
     return None
 
@@ -712,7 +722,8 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     }
     if entry.get("evidence_id") != image.evidence.get(va):
         reasons.append("evidence_id in the manifest differs from function-index.json")
-    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base)
+    index_owners = {f"IDXTAB_{i.va:08x}": i.owner_jmp for i in layout.data if i.kind == "index_table"}
+    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base, index_owners)
     reasons += lexical
     result["basic_blocks"] = facts.get("basic_blocks")
     track = facts["header"].get("track-n", "")

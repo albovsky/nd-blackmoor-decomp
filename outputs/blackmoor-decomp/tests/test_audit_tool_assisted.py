@@ -415,6 +415,7 @@ class AuditorMutants(unittest.TestCase):
         shim = Path(self.tmp.name) / "shim-as"
         shim.write_text(
             "#!/bin/sh\n"
+            f"if [ \"$1\" = --version ]; then exec {gen.AS_DEFAULT} --version; fi\n"
             "out=; src=; prev=\n"
             "for a in \"$@\"; do if [ \"$prev\" = -o ]; then out=$a; fi; prev=$a; src=$a; done\n"
             f"sed 's/{{load}} //' \"$src\" > \"$src.tmp\"\n"
@@ -429,7 +430,7 @@ class AuditorMutants(unittest.TestCase):
         path.write_text(json.dumps(manifest), encoding="utf-8")
         report = audit.audit_manifest(path, self.config(assembler=shim))
         self.assertFalse(report["all_accepted"])
-        self.assertTrue(any("self-test" in e or "version" in e for e in report["errors"]), report["errors"])
+        self.assertTrue(any("self-test" in e for e in report["errors"]), report["errors"])
 
     def test_source_path_cannot_leave_the_manifest_directory(self) -> None:
         va = BASE + fixture.F_LEAF
