@@ -867,6 +867,7 @@ const char *scene_session_provider_string(SceneSessionProvider provider)
     case SCENE_SESSION_PROVIDER_CAPTION: return "caption";
     case SCENE_SESSION_PROVIDER_A28: return "action-family-28";
     case SCENE_SESSION_PROVIDER_A62: return "action-family-62";
+    case SCENE_SESSION_PROVIDER_A35: return "action-family-35";
     case SCENE_SESSION_PROVIDER_ACTION_KERNEL: return "action-kernel";
     case SCENE_SESSION_PROVIDER_DEPENDENCY: return "dependency-provider";
     case SCENE_SESSION_PROVIDER_SCENE_RESOURCE: return "scene-resource";

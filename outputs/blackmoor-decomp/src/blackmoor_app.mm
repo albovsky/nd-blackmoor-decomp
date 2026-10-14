@@ -20,6 +20,7 @@
 #include "scene_session.h"
 #include "session_bindings_a62.h"
 #include "session_bindings_a51.h"
+#include "session_bindings_a35.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -200,6 +201,10 @@ struct NativeApp {
      * native_a51_* callbacks below). */
     SessionA62Binding *a62 = nullptr;
     SessionA51Binding *a51 = nullptr;
+    SessionA35Binding *a35 = nullptr;
+    A35World movie_world{};
+    BinkPlayer *movie_video = nullptr;
+    std::vector<uint8_t> movie_surface;
     /* RT-4 dependency leaves 11..21. */
     SessionConditions *conditions_binding = nullptr;
     SessionConditionsCrtRand condition_rand{};
@@ -1597,6 +1602,7 @@ static void cleanup(NativeApp *app)
     if (app->session) scene_session_destroy(app->session);
     session_a62_destroy(app->a62);
     session_a51_destroy(app->a51);
+    session_a35_destroy(app->a35);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
     app->a28 = nullptr;
@@ -2268,6 +2274,114 @@ static bool create_native_conditions_binding(NativeApp *app)
 }
 
 /* Builds both bindings and loads their per-scene tables for app->scene. */
+/* RT-7: opening a Bink stream allocates its video surface but does not run
+ * BinkDoFrame. The video-only S02 adapter ignores embedded audio; leave its
+ * decode provider unbound so a playing visit fails before any frame effects.
+ * No silent cinematic or synthesized audio completion is presented as play. */
+static void native_a35_close(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app->movie_video != nullptr) bink_player_close(app->movie_video);
+    app->movie_video = nullptr;
+    app->movie_surface.clear();
+}
+
+static int native_a35_open(void *context, const ActionFamily35Decoded *body,
+                           AvfStream **stream)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)stream;
+    if (body->words[0] != 1u) {
+        record(app, "scene_a35_open branch=AVF status=unsupported detail=AVF-surface-host-unbound");
+        return A35_RUNTIME_UNSUPPORTED;
+    }
+    const std::string wanted = std::string(reinterpret_cast<const char *>(body->name)) + ".bik";
+    if (wanted.find_first_of("/\\") != std::string::npos) return A35_RUNTIME_UNSUPPORTED;
+    const std::string directory_name = app->game_directory + "/CDVideo";
+    DIR *directory = opendir(directory_name.c_str());
+    if (directory == nullptr) return A35_RUNTIME_UNSUPPORTED;
+    std::string path;
+    unsigned matches = 0;
+    while (dirent *entry = readdir(directory)) {
+        const std::string candidate = entry->d_name;
+        if (candidate.size() != wanted.size()) continue;
+        bool same = true;
+        for (size_t i = 0; i < wanted.size(); ++i) {
+            unsigned char a = static_cast<unsigned char>(candidate[i]);
+            unsigned char b = static_cast<unsigned char>(wanted[i]);
+            if (a >= 'a' && a <= 'z') a -= 'a' - 'A';
+            if (b >= 'a' && b <= 'z') b -= 'a' - 'A';
+            if (a != b) { same = false; break; }
+        }
+        if (same) { ++matches; path = directory_name + "/" + candidate; }
+    }
+    closedir(directory);
+    if (matches != 1u) return A35_RUNTIME_UNSUPPORTED;
+    BinkPlayerInfo info{};
+    char error[256] = {};
+    int status = bink_player_open(path.c_str(), &app->movie_video, &info, error, sizeof(error));
+    if (status == BINK_PLAYER_OK) status = bink_player_set_mode(app->movie_video,
+        body->words[4] == 2u ? 1 : 0, monotonic_now_ns(), error, sizeof(error));
+    if (status == BINK_PLAYER_OK && info.width <= SIZE_MAX / 4u / info.height) {
+        try { app->movie_surface.resize(static_cast<size_t>(info.width) * info.height * 4u); }
+        catch (...) { status = BINK_PLAYER_ERR_MEMORY; }
+    } else if (status == BINK_PLAYER_OK) status = BINK_PLAYER_ERR_BOUNDS;
+    record(app, "scene_a35_open branch=Bink name=%s status=%d width=%u height=%u frames=%u "
+           "surface_bytes=%zu video-adapter=FFmpeg embedded-audio=unbound-before-DoFrame "
+           "frame-presented=0", body->name, status, info.width, info.height,
+           info.total_frames, app->movie_surface.size());
+    if (status != BINK_PLAYER_OK) {
+        native_a35_close(app);
+        return A35_RUNTIME_UNSUPPORTED;
+    }
+    return A35_RUNTIME_OK;
+}
+
+static int native_a35_input(void *context, A35Input *input)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (native_a62_current_selector(app, &input->selector) != 0) return 1;
+    input->origin_x = app->scene_destination.left;
+    input->origin_y = app->scene_destination.top;
+    return 0;
+}
+
+static void native_a35_load_world(void *context, A35World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    world->active = app->exit_state.g.latch_5c39f9;
+    world->modal = app->captions.lifecycle.g.modal_input;
+    world->start = app->start_flag_5bb1ca;
+    world->layers[0] = app->captions.lifecycle.g.cursor_layer_enabled;
+    world->redraw = app->exit_state.g.redraw_request;
+    world->cursor = app->exit_state.g.redraw_counter;
+}
+
+static void native_a35_store_world(void *context, const A35World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    app->exit_state.g.latch_5c39f9 = world->active;
+    app->captions.lifecycle.g.modal_input = world->modal;
+    app->start_flag_5bb1ca = world->start;
+    app->captions.lifecycle.g.cursor_layer_enabled = world->layers[0];
+    app->exit_state.g.redraw_request = world->redraw;
+    app->exit_state.g.redraw_counter = static_cast<uint16_t>(world->cursor);
+    record(app, "scene_a35_world active=%d modal=%d start=%d visible=%d redraw=%d cursor=%d",
+           world->active, world->modal, world->start, world->visible, world->redraw, world->cursor);
+}
+
+static int native_a35_transition(void *context, const A35Result *result)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    SceneTransitionRequest request{};
+    request.target_scene = result->scene;
+    request.opaque_words[0] = result->frame;
+    request.opaque_words[1] = result->vertical;
+    request.opaque_words[2] = result->word;
+    std::memcpy(request.opaque_dwords, result->dwords, sizeof(request.opaque_dwords));
+    return scene_session_request_transition(app->session, &request) == SCENE_SESSION_OK ? 0 : 1;
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2291,6 +2405,17 @@ static bool create_native_session_bindings(NativeApp *app)
     a51_host.load_world = native_a51_load_world;
     a51_host.store_world = native_a51_store_world;
     app->a51 = session_a51_create(&a51_host);
+    app->movie_world.event_flags = app->new_game.action_core.event_flags;
+    app->movie_world.event_flag_count = app->new_game.action_core.event_flag_count;
+    SessionA35Host a35_host{};
+    a35_host.movie.context = app;
+    a35_host.movie.open = native_a35_open;
+    a35_host.movie.close = native_a35_close;
+    a35_host.input = native_a35_input;
+    a35_host.load_world = native_a35_load_world;
+    a35_host.store_world = native_a35_store_world;
+    a35_host.transition = native_a35_transition;
+    app->a35 = session_a35_create(&app->movie_world, &a35_host);
     create_native_conditions_binding(app);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
@@ -2298,7 +2423,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -2321,6 +2446,9 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
         record(app, "scene_session_create_error provider=action-family-62 detail=row-table");
         return false;
     }
+    if (session_a35_begin_scene(app->a35, app->scene) != A35_RUNTIME_OK) return false;
+    /* ClearSceneData 0x43dbe3 resets 0x5c39f9 before the new ACT table runs. */
+    app->movie_world.active = 0;
     return true;
 }
 
@@ -2505,7 +2633,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[4]{};
+    SceneSessionActionBinding bindings[5]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2519,8 +2647,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[3].provider = SCENE_SESSION_PROVIDER_A28;
     bindings[3].callback = session_a28_handler;
     bindings[3].context = app->a28;
+    bindings[4].type = SESSION_A35_TYPE;
+    bindings[4].provider = SCENE_SESSION_PROVIDER_A35;
+    bindings[4].callback = session_a35_handler;
+    bindings[4].context = app->a35;
     config.action_bindings = bindings;
-    config.action_binding_count = 4u;
+    config.action_binding_count = 5u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -3449,6 +3581,8 @@ static void update(NativeApp *app, uint32_t now)
                    session_result.failure.detail_status,
                    session_result.executor.actions_applied,
                    session_result.dispatch_attempted);
+            if (session_result.failure.provider == SCENE_SESSION_PROVIDER_A35)
+                record(app, "scene_a35_blocker detail=%s", session_a35_failure(app->a35));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {

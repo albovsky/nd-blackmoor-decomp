@@ -39,7 +39,8 @@ typedef enum scene_session_provider {
     SCENE_SESSION_PROVIDER_ACTION_KERNEL = 11,
     SCENE_SESSION_PROVIDER_DEPENDENCY = 12,
     SCENE_SESSION_PROVIDER_SCENE_RESOURCE = 13,
-    SCENE_SESSION_PROVIDER_HOST = 14
+    SCENE_SESSION_PROVIDER_HOST = 14,
+    SCENE_SESSION_PROVIDER_A35 = 15
 } SceneSessionProvider;
 
 typedef enum scene_session_stage {
