@@ -240,6 +240,17 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual((status, info.controller_ran, x.g.game_state), (OK, 1, STATE_LOAD))
         self.assertEqual(len(host.events), 2)
 
+    def test_state4_without_diagnostics_gives_the_same_state_as_with_them(self):
+        for kind, pause in ((1, 0), (2, 0)):
+            a = new_exit(self.lib, kind=kind, pause=pause)
+            b = new_exit(self.lib, kind=kind, pause=pause)
+            host_a = RecordingHost(self.lib, a, ticks=(100, 102, 102, 103))
+            host_b = RecordingHost(self.lib, b, ticks=(100, 102, 102, 103))
+            self.state4(a, host_a)
+            self.assertEqual(self.lib.session_exit_state4(
+                c.byref(b), c.byref(host_b.host()), None), OK)
+            self.assertEqual((bytes(a), host_a.events), (bytes(b), host_b.events), kind)
+
     def test_state4_type1_takes_three_ticks_before_the_load(self):
         x = new_exit(self.lib, kind=1, pause=0)
         host = RecordingHost(self.lib, x, ticks=(100, 102, 102, 103))

@@ -876,6 +876,58 @@
       "depends_on": [],
       "parent": "S08",
       "assignment_state": "unclaimed; may run in parallel with M02"
+    },
+    {
+      "id": "A-97.1",
+      "title": "Action 0x97: body boundary and isolated decoder",
+      "packet": "tasks/A-97.1-body-boundary-and-decoder.md",
+      "status": "COMPLETE bounded body boundary and decoder/constructor; reviewed and collected",
+      "depends_on": [],
+      "parent": "A-97",
+      "raw_type": "0x97",
+      "records": 1958,
+      "assignment_state": "98ba3f8 accepted; parent A-97 incomplete (lifecycle/runtime open)"
+    },
+    {
+      "id": "A-A1.1",
+      "title": "Action 0xa1: body boundary and isolated decoder",
+      "packet": "tasks/A-A1.1-body-boundary-and-decoder.md",
+      "status": "COMPLETE bounded body boundary and decoder/constructor; reviewed and collected",
+      "depends_on": [],
+      "parent": "A-A1",
+      "raw_type": "0xa1",
+      "records": 565,
+      "assignment_state": "f6d12f6 accepted; parent A-A1 incomplete (lifecycle/runtime open)"
+    },
+    {
+      "id": "A-35.1",
+      "title": "Action 0x35: body boundary and isolated decoder",
+      "packet": "tasks/A-35.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-35",
+      "raw_type": "0x35",
+      "records": 113
+    },
+    {
+      "id": "A-38.1",
+      "title": "Action 0x38: body boundary and isolated decoder",
+      "packet": "tasks/A-38.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-38",
+      "raw_type": "0x38",
+      "records": 425
+    },
+    {
+      "id": "A-3F.1",
+      "title": "Action 0x3f: body boundary and isolated decoder",
+      "packet": "tasks/A-3F.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-3F",
+      "raw_type": "0x3f",
+      "records": 493
     }
   ]
 }

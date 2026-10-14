@@ -21,9 +21,9 @@ The following packets can start independently. For four workers, start A-64, A-6
 
 ## Complete catalogue
 
-`slice-registry.json` contains79 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 11,089 typed body boundaries, 8,523 opaque records. Typed metadata is not implemented gameplay.
+`slice-registry.json` contains 86 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 17,920 typed body boundaries, 1,692 opaque records. Typed metadata is not implemented gameplay.
 
-All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. The large remaining recovery families include0x37 (4,308 records),0x97 (1,958),0xa1 (565),0x3f (493) and0x38 (425). Raw0x62 already has typed body boundaries and a reviewed kernel; its live integration remains open. S5900's immediate blockers are 0x64,0x62,0x28,0x51.
+All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. The large remaining recovery families include 0x3f (493), 0x38 (425) and 0x35 (113, packet A-35.1 active). Raw 0x37 (4,308), 0x97 (1,958) and 0xa1 (565) now have registered parser body boundaries from A-37.2, A-97.1 and A-A1.1 (reviewed Codex gpt-6.1-sol work); their handlers/runtime remain unimplemented and the executor reports them unsupported at dispatch. Raw0x62 already has typed body boundaries and a reviewed kernel; its live integration remains open. S5900's immediate blockers are 0x64,0x62,0x28,0x51.
 
 ## Current integration assignment
 
@@ -45,6 +45,19 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 |---|---|---|
 | M02 | [Whole-file skeleton and image composer](tasks/M02-whole-file-skeleton-and-composer.md) | New `image/` sources, composer script, tests, private M02.* evidence |
 | M03 | [Hinted assembly generator and first reviewed batch](tasks/M03-hinted-assembly-generator-and-first-batch.md) | New generator/audit scripts, `asm/` batch sources, tests, private M03.* evidence |
+
+## Runtime path (RT) slices, 2026-10-14
+
+| Slice | Deliverable | State |
+|---|---|---|
+| RT-1 | [Live audio channel provider](tasks/RT-1-live-audio-channels.md) | Collected |
+| RT-2 | [Pointer input producer](tasks/RT-2-pointer-input-producer.md) | Collected; wiring is RT-6 |
+| RT-3 | [S5900 0x62/0x51 bindings](tasks/RT-3-s5900-a62-a51-binding.md) | Collected |
+| RT-4 | [Dependency leaves](tasks/RT-4-dependency-leaf-integration.md) | Collected |
+| RT-5 | [Scene exit handler and 0x28 effect](tasks/RT-5-scene-exit-handler-and-a28-effect.md) | Collected |
+| RT-6 | [Pointer integration](tasks/RT-6-pointer-integration.md) | In progress |
+
+Opaque action decoders (A-35.1, A-97.1, A-A1.1) belong to a separate Codex thread.
 
 ## Ownership and coordination
 

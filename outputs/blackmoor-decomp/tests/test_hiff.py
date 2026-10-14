@@ -372,7 +372,12 @@ class HiffTests(unittest.TestCase):
         indexed_resources = 0
         for resource in resources:
             with self.subTest(name=resource["name"], index=resource["index"]):
-                raw = Path(resource["path"]).read_bytes()
+                path = Path(resource["path"])
+                if not path.is_file():
+                    # The manifest records the absolute path of the workspace
+                    # that exported it; resolve against this checkout's copy.
+                    path = RESOURCE_MANIFEST.parent / "hiff-resources" / path.name
+                raw = path.read_bytes()
                 hiff, _, error = open_hiff(self.library, raw)
                 self.assertTrue(hiff, error.value.decode("ascii", errors="replace"))
                 try:

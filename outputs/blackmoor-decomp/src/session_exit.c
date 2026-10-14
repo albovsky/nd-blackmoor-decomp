@@ -258,14 +258,21 @@ int session_exit_state4(SessionExit *exit_state,
         }
         return SESSION_EXIT_ERR_UNSUPPORTED;
     }
-    status = session_exit_effect_gate(exit_state, host, info);      /* 0x43d69b */
-    if (status != SESSION_EXIT_OK) {
-        return status;
+    {
+        /* Use a local record when the caller omits diagnostics, so the gate's
+         * controller result still decides the next state. */
+        SessionExitStepInfo local;
+        SessionExitStepInfo *effective = info != NULL ? info : &local;
+        if (info == NULL) reset_info(&local);
+        status = session_exit_effect_gate(exit_state, host, effective);  /* 0x43d69b */
+        if (status != SESSION_EXIT_OK) {
+            return status;
+        }
+        if (effective->controller_ran == 0u) {
+            exit_state->g.game_state = SESSION_EXIT_STATE_LOAD;     /* 0x43d6a4 */
+        }
+        return SESSION_EXIT_OK;
     }
-    if (info == NULL || info->controller_ran == 0u) {
-        exit_state->g.game_state = SESSION_EXIT_STATE_LOAD;         /* 0x43d6a4 */
-    }
-    return SESSION_EXIT_OK;
 }
 
 int session_exit_render_pass(SessionExit *exit_state,
