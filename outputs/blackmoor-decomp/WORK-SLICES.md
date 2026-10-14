@@ -21,7 +21,7 @@ The following packets can start independently. For four workers, start A-64, A-6
 
 ## Complete catalogue
 
-`slice-registry.json` contains79 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 11,089 typed body boundaries, 8,523 opaque records. Typed metadata is not implemented gameplay.
+`slice-registry.json` contains 83 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 15,397 typed body boundaries, 4,215 opaque records. Typed metadata is not implemented gameplay.
 
 All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. The large remaining recovery families include 0x97 (1,958 records), 0xa1 (565), 0x3f (493) and 0x38 (425); raw 0x37 (4,308) now has a registered 69-byte parser boundary (the handler/runtime, type 0x36, is still unimplemented). Packets A-97.1 and A-A1.1 (body boundary + isolated decoder) are claimed by Codex gpt-6.1-sol; see `tasks/`. Raw0x62 already has typed body boundaries and a reviewed kernel; its live integration remains open. S5900's immediate blockers are 0x64,0x62,0x28,0x51.
 

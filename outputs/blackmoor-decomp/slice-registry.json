@@ -876,6 +876,26 @@
       "depends_on": [],
       "parent": "S08",
       "assignment_state": "unclaimed; may run in parallel with M02"
+    },
+    {
+      "id": "A-97.1",
+      "title": "Action 0x97: body boundary and isolated decoder",
+      "packet": "tasks/A-97.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-97",
+      "raw_type": "0x97",
+      "records": 1958
+    },
+    {
+      "id": "A-A1.1",
+      "title": "Action 0xa1: body boundary and isolated decoder",
+      "packet": "tasks/A-A1.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-A1",
+      "raw_type": "0xa1",
+      "records": 565
     }
   ]
 }
