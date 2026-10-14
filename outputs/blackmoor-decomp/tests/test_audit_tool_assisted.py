@@ -433,6 +433,15 @@ class AuditorMutants(unittest.TestCase):
         report, _w, _m = self.batch(manifest_edit=escape)
         self.rejected(report, va, "leaves the manifest directory")
 
+    def test_external_symbol_must_name_its_target_address(self) -> None:
+        va = BASE + fixture.F_FRAME
+        leaf = f"{BASE + fixture.F_LEAF:08x}"
+        def rename(w: Path) -> None:
+            path = w / f"FUN_{va:08x}.s"
+            path.write_text(path.read_text(encoding="utf-8").replace(f"FUN_{leaf}", "FUN_deadbeef"), encoding="utf-8")
+        report, _w, _m = self.batch(mutate=rename)
+        self.rejected(report, va, "does not name its target")
+
     def test_index_table_byte_lists_need_a_ruling_by_default(self) -> None:
         va = BASE + fixture.F_SWITCH
         report, _w, _m = self.batch(config=self.config(allow_index_byte_lists=False))

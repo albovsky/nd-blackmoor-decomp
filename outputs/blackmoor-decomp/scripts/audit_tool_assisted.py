@@ -262,7 +262,14 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
                 elif _WEAK_NAME.match(equ):
                     reasons.append(f"line {line.number}: frame symbol {equ} is too short to be a name")
                 continue
-            if _SET_EXTERNAL.match(code) or _SET_TABLE.match(code):
+            external = _SET_EXTERNAL.match(code)
+            if external:
+                target = re.search(r"\(0x([0-9a-f]{8}) -", code).group(1)
+                if external.group(1)[-8:] != target:
+                    reasons.append(f"line {line.number}: symbol {external.group(1)} does not name its target 0x{target}")
+                set_symbols.add(external.group(1))
+                continue
+            if _SET_TABLE.match(code):
                 set_symbols.add(code.split()[1].rstrip(","))
                 continue
             if code.startswith(".globl "):
