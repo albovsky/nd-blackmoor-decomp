@@ -13,13 +13,15 @@
 # fields:       this+0x00: dword read, compared with 0 (any non-zero value counts as set), cleared to 0 when set; this+0x0c: dword cleared to 0 when this+0 was set (store order: +0 first, then +0x0c); no globals touched
 # callees:      none
 # track-n:      outputs/blackmoor-decomp/src/input_consume.c:input_consume_field0
-# unverified:   The receiver's identity (the input object at 0x5830a6 per tasks/S08-3 and S08-4) comes from those packets and the MFC wrappers' ECX setup, not from a caller trace redone here; semantic names of the fields are Track N's labels (input_latch.c / input_consume.c), not proven by these bytes. Whether +0x0c is read anywhere before it is cleared is not part of this routine (it only stores). Callers (reported by tasks/S08-4: 0x43b199) and what the return value means to them are not re-verified here.
+# unverified:   The receiver's identity (the input object at 0x5830a6 per tasks/S08-3 and S08-4) comes from those packets and the MFC wrappers' ECX setup, not from a caller trace redone here; semantic names of the fields are Track N's labels (input_latch.c / input_consume.c), not proven by these bytes. Whether +0x0c is read anywhere before it is cleared is not part of this routine (it only stores). Callers (reported by tasks/S08-4: 0x43b199) and what the return value means to them are not re-verified here. Field symbol names are descriptive labels chosen from src/input_latch.c and src/input_consume.c offsets (and the neighbouring routines); they assert only the verified displacement, not the field's game meaning.
 .intel_syntax noprefix
 .code32
 .text
 
 # --- frame symbols ---------------------------------------------------
 .equ local_this, 0x4  # [ebp - 0x4]
+
+.equ input_state_0c, 0xc  # InputObject+0x0c: latch state dword (INPUT_LATCH_FIELD_0C)
 
 # --- external targets -----------------------------------------------
 
@@ -38,7 +40,7 @@ FUN_004daf3f:
     mov ecx, dword ptr [ebp - local_this]           # 004daf4e
     mov dword ptr [ecx], 0x0                     # 004daf51
     mov edx, dword ptr [ebp - local_this]           # 004daf57
-    mov dword ptr [edx + 0xc], 0x0               # 004daf5a
+    mov dword ptr [edx + input_state_0c], 0x0               # 004daf5a
     mov eax, 0x1                                 # 004daf61
     jmp.d8 L_epilogue                            # 004daf66
 L_not_set_return_0:

@@ -13,7 +13,7 @@
 # fields:       per channel ch=(arg_channel & 0xffff) at this+ch*0x5bb: +0x08 file-name buffer (receives a copy of arg_name including NUL, no length check); +0x10c word category (read, sign-extended); +0x138 float first_scalar (read); +0x13c float second_scalar (read); +0x140 dword first_attenuation (written); +0x144 dword second_attenuation (written); +0x132 word volume_update_state := 1 on success; this+0xb764+4*category float master (read); globals: word 0x0063a4cd debug-log flag, 0x0063888b log text buffer, float 0x0052e4e0 = 2857.142822265625, double 0x0052e4d8 = -2857.142857142857, 0x005cf1eb CDirectSound object, formats 0x005605e0 and 0x00560610
 # callees:      FUN_0050ca3e = sprintf-style formatter; FUN_0044a2b7 = log-line writer; FUN_0050ce04 = CRT __ftol (st0 to eax, truncating); FUN_004f379c = CDirectSound load of the sound file for the channel (ecx=0x5cf1eb, push channel); FUN_004fa2a8 = CDirectSound error code to text; FUN_0052139c = error report call (buffer, 0, 0)
 # track-n:      outputs/blackmoor-decomp/src/sound_control.c:sound_control_calculate_attenuation
-# unverified:   Track N sound_control_calculate_attenuation covers ONLY the two attenuation expressions (scalar * master * 2857.142822265625 + (-2857.142857142857), __ftol); the name copy, the FUN_004f379c load, the error report and the update-state store have no Track N counterpart; the name copy is unbounded (strlen+1 bytes into the slot name buffer; whether the buffer can hold it is not established) and must be a native rejection; the role of the two scalars/attenuations (left/right pan or otherwise) is NOT established (S04-4 open), only that both are stored independently; category index is read as a sign-extended word and used as master-table index with no bounds check (Track N rejects category >= 4); scalar and master range are not validated here (Track N rejects values outside [0,1] and expressions outside [-2858,1]); __ftol rounding mode switch comes from FUN_0050ce04 pseudocode/Track N, not from bytes examined here; FUN_004f379c and FUN_0052139c semantics are pseudocode only; the pushed channel dword keeps stale upper 16 bits from the last __ftol result and the callee is assumed to read only a ushort (pseudocode)
+# unverified:   Track N sound_control_calculate_attenuation covers ONLY the two attenuation expressions (scalar * master * 2857.142822265625 + (-2857.142857142857), __ftol); the name copy, the FUN_004f379c load, the error report and the update-state store have no Track N counterpart; the name copy is unbounded (strlen+1 bytes into the slot name buffer; whether the buffer can hold it is not established) and must be a native rejection; the role of the two scalars/attenuations (left/right pan or otherwise) is NOT established (S04-4 open), only that both are stored independently; category index is read as a sign-extended word and used as master-table index with no bounds check (Track N rejects category >= 4); scalar and master range are not validated here (Track N rejects values outside [0,1] and expressions outside [-2858,1]); __ftol rounding mode switch comes from FUN_0050ce04 pseudocode/Track N, not from bytes examined here; FUN_004f379c and FUN_0052139c semantics are pseudocode only; the pushed channel dword keeps stale upper 16 bits from the last __ftol result and the callee is assumed to read only a ushort (pseudocode); field symbols (csnd_ch_*) are CSound-relative (this+ch*0x5bb+off); csnd_ch_first_scalar/second_scalar names follow Track N first_scalar/second_scalar with no left/right claim; csnd_master_table is the 4-entry float table at this+0xb764
 .intel_syntax noprefix
 .code32
 .text
@@ -22,6 +22,15 @@
 .equ local_this, 0x4  # [ebp - 0x4]
 .equ arg_name, 0x8  # [ebp + 0x8]
 .equ arg_channel, 0xc  # [ebp + 0xc]
+
+.equ csnd_ch_name_buf, 0x8  # CSound+ch*0x5bb+0x8: file-name text buffer (= CDirectSound slot+0x4)
+.equ csnd_ch_category, 0x10c  # CSound+ch*0x5bb+0x10c: category word (= slot+0x108)
+.equ csnd_ch_volume_update_state, 0x132  # CSound+ch*0x5bb+0x132: volume_update_state word (= slot+0x12e)
+.equ csnd_ch_first_scalar, 0x138  # CSound+ch*0x5bb+0x138: first_scalar float (= slot+0x134)
+.equ csnd_ch_second_scalar, 0x13c  # CSound+ch*0x5bb+0x13c: second_scalar float (= slot+0x138)
+.equ csnd_ch_first_attenuation, 0x140  # CSound+ch*0x5bb+0x140: first_attenuation dword (= slot+0x13c)
+.equ csnd_ch_second_attenuation, 0x144  # CSound+ch*0x5bb+0x144: second_attenuation dword (= slot+0x140)
+.equ csnd_master_table, 0xb764  # CSound+0xb764+4*category: float master scalar table
 
 # --- external targets -----------------------------------------------
 .set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
@@ -64,7 +73,7 @@ L_after_begin_log:
     and eax, 0xffff                              # 004fae0b
     imul eax, eax, 0x5bb                         # 004fae10
     mov ecx, dword ptr [ebp - local_this]           # 004fae16
-    lea edx, [ecx + eax + 0x8]                   # 004fae19
+    lea edx, [ecx + eax + csnd_ch_name_buf]                   # 004fae19
     or ecx, -0x1                                 # 004fae1d
     {load} xor eax, eax                          # 004fae20
     repne scasb al, byte ptr es:[edi]            # 004fae22
@@ -85,11 +94,11 @@ L_after_begin_log:
     and edx, 0xffff                              # 004fae4c
     imul edx, edx, 0x5bb                         # 004fae52
     mov eax, dword ptr [ebp - local_this]           # 004fae58
-    movsx edx, word ptr [eax + edx + 0x10c]      # 004fae5b
+    movsx edx, word ptr [eax + edx + csnd_ch_category]      # 004fae5b
     mov eax, dword ptr [ebp - local_this]           # 004fae63
     mov esi, dword ptr [ebp - local_this]           # 004fae66
-    fld dword ptr [eax + ecx + 0x138]            # 004fae69
-    fmul dword ptr [esi + 4*edx + 0xb764]        # 004fae70
+    fld dword ptr [eax + ecx + csnd_ch_first_scalar]            # 004fae69
+    fmul dword ptr [esi + 4*edx + csnd_master_table]        # 004fae70
     fmul dword ptr [0x52e4e0]                    # 004fae77
     fadd qword ptr [0x52e4d8]                    # 004fae7d
     call FUN_0050ce04                            # 004fae83
@@ -97,7 +106,7 @@ L_after_begin_log:
     and ecx, 0xffff                              # 004fae8b
     imul ecx, ecx, 0x5bb                         # 004fae91
     mov edx, dword ptr [ebp - local_this]           # 004fae97
-    mov dword ptr [edx + ecx + 0x140], eax       # 004fae9a
+    mov dword ptr [edx + ecx + csnd_ch_first_attenuation], eax       # 004fae9a
     mov eax, dword ptr [ebp + arg_channel]             # 004faea1
     and eax, 0xffff                              # 004faea4
     imul eax, eax, 0x5bb                         # 004faea9
@@ -105,11 +114,11 @@ L_after_begin_log:
     and ecx, 0xffff                              # 004faeb2
     imul ecx, ecx, 0x5bb                         # 004faeb8
     mov edx, dword ptr [ebp - local_this]           # 004faebe
-    movsx ecx, word ptr [edx + ecx + 0x10c]      # 004faec1
+    movsx ecx, word ptr [edx + ecx + csnd_ch_category]      # 004faec1
     mov edx, dword ptr [ebp - local_this]           # 004faec9
     mov esi, dword ptr [ebp - local_this]           # 004faecc
-    fld dword ptr [edx + eax + 0x13c]            # 004faecf
-    fmul dword ptr [esi + 4*ecx + 0xb764]        # 004faed6
+    fld dword ptr [edx + eax + csnd_ch_second_scalar]            # 004faecf
+    fmul dword ptr [esi + 4*ecx + csnd_master_table]        # 004faed6
     fmul dword ptr [0x52e4e0]                    # 004faedd
     fadd qword ptr [0x52e4d8]                    # 004faee3
     call FUN_0050ce04                            # 004faee9
@@ -117,7 +126,7 @@ L_after_begin_log:
     and ecx, 0xffff                              # 004faef1
     imul ecx, ecx, 0x5bb                         # 004faef7
     mov edx, dword ptr [ebp - local_this]           # 004faefd
-    mov dword ptr [edx + ecx + 0x144], eax       # 004faf00
+    mov dword ptr [edx + ecx + csnd_ch_second_attenuation], eax       # 004faf00
     mov ax, word ptr [ebp + arg_channel]               # 004faf07
     push eax                                     # 004faf0b
     mov ecx, 0x5cf1eb                            # 004faf0c
@@ -158,7 +167,7 @@ L_load_ok_mark_ready:
     and ecx, 0xffff                              # 004faf72
     imul ecx, ecx, 0x5bb                         # 004faf78
     mov edx, dword ptr [ebp - local_this]           # 004faf7e
-    mov word ptr [edx + ecx + 0x132], 0x1        # 004faf81
+    mov word ptr [edx + ecx + csnd_ch_volume_update_state], 0x1        # 004faf81
     mov eax, 0x1                                 # 004faf8b
 L_return:
     # block 0x004faf90: epilogue: restore edi, esi, frame, ret 8

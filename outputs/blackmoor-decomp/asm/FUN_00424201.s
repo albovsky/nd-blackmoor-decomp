@@ -13,7 +13,7 @@
 # fields:       branch+0x4 (first child node); node+0x0 (kind, 2=leaf, 1=branch); node+0x4 (state); node+0x8 (saved copy of node+4 written before evaluation); node+0x38 (next sibling); node+0x44 (child branch object of a branch node); pop-entry+0x0 (saved parent branch) and pop-entry+0x8 (saved node); globals 0x0063888b (message buffer), 0x0063a4cd (int16 debug flag), 0x00544964 (error text "CDependency::EvaluateBranch() - ERROR - Tried to pop empty stack!", read from the owned GAME.EXE), 0x005cf659 (object passed in ecx to the shutdown call)
 # callees:      FUN_00424346 = leaf evaluator (thiscall, 1 arg: leaf node); FUN_0042406d = branch reducer (thiscall, 1 arg: branch); FUN_0042356d = push (branch,node) on this evaluation stack (thiscall, 2 args, callee pops 8); FUN_004235fd = pop evaluation stack entry, null when empty (thiscall, no args); FUN_0050ca3e = sprintf-style formatter (cdecl, caller cleans); FUN_0052139c = error report taking (text,0,0), no caller cleanup after the call; FUN_0044a2b7 = debug log line writer (cdecl); FUN_004c97b4 = shutdown/quit helper called with ecx=0x5cf659; self = recursion on a child branch
 # track-n:      outputs/blackmoor-decomp/src/scene_conditions.c:scene_condition_evaluate_branch
-# unverified:   Track N recurses with a C call stack and an explicit depth limit; the original uses an explicit 0x80-entry stack plus real recursion, so the push/pop error path (pop returns null) is original-only and has no Track N counterpart; a node whose kind is neither 1 nor 2 makes the loop spin forever with no state change (verified in the control flow, unsafe original behaviour, Track N never builds such nodes); first child null dereferences null (no guard here or in 0x42406d; 0x423da2 guards its own null first child); what reads node+8 (the saved pre-evaluation state) is not found here and Track N does not model it; roles of 0x52139c (error report), 0x4c97b4 (quit) and 0x44a2b7 (log) come from pseudocode only; by the bytes 0x52139c ends in ret 0xc and 0x4c97b4 calls an import with the value at 0x63a58a and returns; stack cleanup after 0x52139c is absent so its calling convention is not established here
+# unverified:   Track N recurses with a C call stack and an explicit depth limit; the original uses an explicit 0x80-entry stack plus real recursion, so the push/pop error path (pop returns null) is original-only and has no Track N counterpart; a node whose kind is neither 1 nor 2 makes the loop spin forever with no state change (verified in the control flow, unsafe original behaviour, Track N never builds such nodes); first child null dereferences null (no guard here or in 0x42406d; 0x423da2 guards its own null first child); what reads node+8 (the saved pre-evaluation state) is not found here and Track N does not model it; roles of 0x52139c (error report), 0x4c97b4 (quit) and 0x44a2b7 (log) come from pseudocode only; by the bytes 0x52139c ends in ret 0xc and 0x4c97b4 calls an import with the value at 0x63a58a and returns; stack cleanup after 0x52139c is absent so its calling convention is not established here; field names are role names from use: node_saved_state (+8) is written here and never read in this function, pop_entry_node (+8) is the node saved by 0x42356d
 .intel_syntax noprefix
 .code32
 .text
@@ -24,6 +24,13 @@
 .equ local_done, 0xc  # [ebp - 0xc]
 .equ local_saved_this, 0x10  # [ebp - 0x10]
 .equ arg_branch, 0x8  # [ebp + 0x8]
+
+.equ branch_first_child, 0x4  # CDependency branch object+0x4: first child node
+.equ node_state, 0x4  # dependency node+0x4: state word
+.equ node_saved_state, 0x8  # dependency node+0x8: copy of node+0x4 saved before evaluation
+.equ pop_entry_node, 0x8  # evaluation-stack pop entry+0x8: saved node
+.equ node_next, 0x38  # dependency node+0x38: next sibling node
+.equ node_child_branch, 0x44  # dependency branch-kind node+0x44: child branch object
 
 # --- external targets -----------------------------------------------
 .set FUN_0042356d, .text + (0x0042356d - 0x401000)
@@ -45,7 +52,7 @@ L_evaluate_branch_entry:
     sub esp, 0x10                                # 00424204
     mov dword ptr [ebp - local_saved_this], ecx          # 00424207
     mov eax, dword ptr [ebp + arg_branch]             # 0042420a
-    mov ecx, dword ptr [eax + 0x4]               # 0042420d
+    mov ecx, dword ptr [eax + branch_first_child]               # 0042420d
     mov dword ptr [ebp - local_cur], ecx           # 00424210
     mov dword ptr [ebp - local_done], 0x0           # 00424213
 L_loop_head:
@@ -59,14 +66,14 @@ L_loop_head:
     # block 0x0042422c: leaf: cur.saved_state (+8) = cur.state (+4); call leaf evaluator 0x424346(this, cur); cur = cur.next (+0x38); if non-null go on to the next sibling
     mov eax, dword ptr [ebp - local_cur]           # 0042422c
     mov ecx, dword ptr [ebp - local_cur]           # 0042422f
-    mov edx, dword ptr [ecx + 0x4]               # 00424232
-    mov dword ptr [eax + 0x8], edx               # 00424235
+    mov edx, dword ptr [ecx + node_state]               # 00424232
+    mov dword ptr [eax + node_saved_state], edx               # 00424235
     mov eax, dword ptr [ebp - local_cur]           # 00424238
     push eax                                     # 0042423b
     mov ecx, dword ptr [ebp - local_saved_this]          # 0042423c
     call FUN_00424346                            # 0042423f
     mov ecx, dword ptr [ebp - local_cur]           # 00424244
-    mov edx, dword ptr [ecx + 0x38]              # 00424247
+    mov edx, dword ptr [ecx + node_next]              # 00424247
     mov dword ptr [ebp - local_cur], edx           # 0042424a
     cmp dword ptr [ebp - local_cur], 0x0           # 0042424d
     jne.d8 L_resume_loop_after_leaf                            # 00424251
@@ -87,8 +94,8 @@ L_check_branch_kind:
     # block 0x00424277: branch node: cur.saved_state (+8) = cur.state (+4); push (arg_branch, cur) with 0x42356d; recurse on cur.child_branch (+0x44); pop with 0x4235fd; null pop goes to the error path
     mov edx, dword ptr [ebp - local_cur]           # 00424277
     mov eax, dword ptr [ebp - local_cur]           # 0042427a
-    mov ecx, dword ptr [eax + 0x4]               # 0042427d
-    mov dword ptr [edx + 0x8], ecx               # 00424280
+    mov ecx, dword ptr [eax + node_state]               # 0042427d
+    mov dword ptr [edx + node_saved_state], ecx               # 00424280
     mov edx, dword ptr [ebp - local_cur]           # 00424283
     push edx                                     # 00424286
     mov eax, dword ptr [ebp + arg_branch]             # 00424287
@@ -96,7 +103,7 @@ L_check_branch_kind:
     mov ecx, dword ptr [ebp - local_saved_this]          # 0042428b
     call FUN_0042356d                            # 0042428e
     mov ecx, dword ptr [ebp - local_cur]           # 00424293
-    mov edx, dword ptr [ecx + 0x44]              # 00424296
+    mov edx, dword ptr [ecx + node_child_branch]              # 00424296
     push edx                                     # 00424299
     mov ecx, dword ptr [ebp - local_saved_this]          # 0042429a
     call L_evaluate_branch_entry                              # 0042429d
@@ -107,13 +114,13 @@ L_check_branch_kind:
     je.d8 L_pop_failed                             # 004242b1
     # block 0x004242b3: pop ok: cur = entry.node (+8); arg_branch = entry.branch (+0); cur = cur.next (+0x38); if non-null go to the keep-looping case
     mov eax, dword ptr [ebp - local_popped]           # 004242b3
-    mov ecx, dword ptr [eax + 0x8]               # 004242b6
+    mov ecx, dword ptr [eax + pop_entry_node]               # 004242b6
     mov dword ptr [ebp - local_cur], ecx           # 004242b9
     mov edx, dword ptr [ebp - local_popped]           # 004242bc
     mov eax, dword ptr [edx]                     # 004242bf
     mov dword ptr [ebp + arg_branch], eax             # 004242c1
     mov ecx, dword ptr [ebp - local_cur]           # 004242c4
-    mov edx, dword ptr [ecx + 0x38]              # 004242c7
+    mov edx, dword ptr [ecx + node_next]              # 004242c7
     mov dword ptr [ebp - local_cur], edx           # 004242ca
     cmp dword ptr [ebp - local_cur], 0x0           # 004242cd
     jne.d8 L_branch_has_next                            # 004242d1

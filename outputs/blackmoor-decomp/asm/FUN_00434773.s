@@ -22,6 +22,10 @@
 .equ local_saved_this, 0x4  # [ebp - 0x4]
 .equ arg_ptr, 0x8  # [ebp + 0x8]
 
+.equ sig_byte_1, 0x1  # arg_ptr+1: second signature byte, compared with 0x41
+.equ sig_byte_2, 0x2  # arg_ptr+2: third signature byte, compared with 0x54
+.equ sig_byte_3, 0x3  # arg_ptr+3: fourth signature byte, compared with 0x41
+
 # --- external targets -----------------------------------------------
 
 .org 0x00434773 - 0x401000
@@ -38,17 +42,17 @@ FUN_00434773:
     jne.d8 L_not_data                            # 00434783
     # block 0x00434785: second byte against 0x41 ('A'); mismatch goes to L_not_data
     mov edx, dword ptr [ebp + arg_ptr]             # 00434785
-    movsx eax, byte ptr [edx + 0x1]              # 00434788
+    movsx eax, byte ptr [edx + sig_byte_1]              # 00434788
     cmp eax, 0x41                                # 0043478c
     jne.d8 L_not_data                            # 0043478f
     # block 0x00434791: third byte against 0x54 ('T'); mismatch goes to L_not_data
     mov ecx, dword ptr [ebp + arg_ptr]             # 00434791
-    movsx edx, byte ptr [ecx + 0x2]              # 00434794
+    movsx edx, byte ptr [ecx + sig_byte_2]              # 00434794
     cmp edx, 0x54                                # 00434798
     jne.d8 L_not_data                            # 0043479b
     # block 0x0043479d: fourth byte against 0x41 ('A'); equal goes to L_is_data, otherwise falls into L_not_data
     mov eax, dword ptr [ebp + arg_ptr]             # 0043479d
-    movsx ecx, byte ptr [eax + 0x3]              # 004347a0
+    movsx ecx, byte ptr [eax + sig_byte_3]              # 004347a0
     cmp ecx, 0x41                                # 004347a4
     je.d8 L_is_data                             # 004347a7
 L_not_data:
