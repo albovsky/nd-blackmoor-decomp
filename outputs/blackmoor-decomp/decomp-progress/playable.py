@@ -12,7 +12,7 @@ import json
 import re
 from pathlib import Path
 
-SCHEMA = "blackmoor-playable-status/1"
+SCHEMA = "blackmoor-playable-status/2"
 LIVE_ARGS = ["--inspect-live-session", "--live-click-row", "34", "--live-ticks", "3000"]
 PROVIDERS = {
     "none", "world-clock", "timer-effects", "post-clock-controller", "scene-media",
@@ -70,7 +70,7 @@ def validate_status(value: dict) -> dict:
     if value["schema"] != SCHEMA:
         raise PlayableError(f"playable schema must be {SCHEMA}")
     ev = value["evidence"]
-    keys(ev, "kind source_ref native_sha256 command", "evidence")
+    keys(ev, "kind source_ref native_sha256 command registration_sources", "evidence")
     if not isinstance(ev["kind"], str) or ev["kind"] not in {"scripted_live_session", "seeded_committed_integration"}:
         raise PlayableError("unknown playable evidence kind")
     if not isinstance(ev["source_ref"], str) or not re.fullmatch(r"[0-9a-f]{40}", ev["source_ref"]):
@@ -83,6 +83,20 @@ def validate_status(value: dict) -> dict:
         raise PlayableError("live evidence needs its native executable hash")
     if ev["command"] != LIVE_ARGS:
         raise PlayableError("playable evidence must use the pinned live command")
+    sources = ev["registration_sources"]
+    if not isinstance(sources, list) or not sources:
+        raise PlayableError("evidence needs registration source hashes")
+    paths = []
+    for source in sources:
+        keys(source, "path sha256", "registration source")
+        if (not isinstance(source["path"], str) or not re.fullmatch(
+                r"src/[a-z][a-z0-9_]{0,63}\.(?:c|h|mm)|action-census-current\.json", source["path"])):
+            raise PlayableError("invalid registration source path")
+        if not isinstance(source["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", source["sha256"]):
+            raise PlayableError("invalid registration source hash")
+        paths.append(source["path"])
+    if len(set(paths)) != len(paths):
+        raise PlayableError("duplicate registration source")
     reached = value["reached_scenes"]
     if not isinstance(reached, list) or not reached or any(not scene(s) for s in reached):
         raise PlayableError("invalid reached scenes")
@@ -140,7 +154,28 @@ def function(text, name):
     match = re.search(r"\b" + re.escape(name) + r"\s*\([^;{}]*\)\s*\{", text)
     if not match:
         raise PlayableError(f"source function not found: {name}")
-    return braced(text, match.end() - 1)
+    body = braced(text, match.end() - 1)
+    if re.search(r"^\s*#\s*(?:if|ifdef|ifndef|elif|else)\b", body, re.M):
+        raise PlayableError(f"preprocessor conditional in scanned function: {name}")
+    return body
+
+
+def registration_matches(text, pattern, depth=0):
+    """Accept only the reviewed lexical scope of a registration site.
+
+    Literal text cannot introduce braces or control words. A deeper block or
+    an unbraced if/else requires review; it must not become live coverage.
+    Parser cases have depth one (the switch); installed bindings have zero.
+    """
+    text = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                  lambda m: " " * len(m[0]), text)
+    matches = list(re.finditer(pattern, text))
+    for match in matches:
+        before = text[:match.start()]
+        prefix = re.split(r"[;{}]", before)[-1]
+        if before.count("{") - before.count("}") != depth or re.search(r"\b(?:if|else)\b", prefix):
+            raise PlayableError("conditional registration; review source syntax")
+    return matches
 
 
 class Sources:
@@ -164,11 +199,10 @@ class Sources:
         pattern = (r"(?:\b" + re.escape(token) + r"\s*=\s*|^\s*#define\s+" +
                    re.escape(token) + r"\s+)(?:UINT8_C\()?([A-Za-z_][A-Za-z_0-9]*|0x[0-9a-fA-F]+|[0-9]+)\)?\b")
         for p in candidates:
-            text = strip_comments(p.read_text(encoding="utf-8"))
+            path = p.relative_to(self.out).as_posix()
+            text = self.read(path)
             m = re.search(pattern, text, re.M)
             if m:
-                path = p.relative_to(self.out).as_posix()
-                self.read(path)
                 if m[1] == token:
                     break
                 return self.constant(m[1], path)
@@ -178,14 +212,14 @@ class Sources:
 def derive_actions(out: Path) -> dict:
     src = Sources(out)
     parser = function(src.read("src/scene_resource.c"), "known_body_length")
-    typed = {int(t, 16) for t in re.findall(r"\bcase\s+(0x[0-9a-fA-F]+)\s*:", parser)}
+    typed = {int(m[1], 16) for m in registration_matches(parser, r"\bcase\s+(0x[0-9a-fA-F]+)\s*:", 1)}
     if not typed:
         raise PlayableError("no parser registrations found")
     executor = src.read("src/scene_executor.c")
-    core_tokens = re.findall(r"\btype\s*==\s*(\w+)", function(executor, "is_action_core_type"))
+    core_tokens = [m[1] for m in registration_matches(function(executor, "is_action_core_type"), r"\btype\s*==\s*(\w+)")]
     core = {src.constant(t, "src/scene_executor.c") for t in core_tokens}
     kernel = function(src.read("src/action_core.c"), "is_supported_type")
-    if core != {src.constant(t, "src/action_core.c") for t in re.findall(r"\btype\s*==\s*(\w+)", kernel)}:
+    if core != {src.constant(m[1], "src/action_core.c") for m in registration_matches(kernel, r"\btype\s*==\s*(\w+)")}:
         raise PlayableError("executor and action_core registrations drifted")
     runtime_map = function(executor, "action_runtime_type")
     raw = re.findall(r"action->type\s*==\s*(\w+)", runtime_map)
@@ -194,15 +228,16 @@ def derive_actions(out: Path) -> dict:
         raise PlayableError("review the executor raw/runtime type mapping")
     aliases = {src.constant(runtime[0], "src/scene_executor.c"):
                src.constant(raw[0], "src/scene_executor.c")}
-    hotspot = {src.constant(t, "src/scene_executor.c") for t in re.findall(
-        r"runtime_type\s*==\s*(\w+)", function(executor, "is_builtin_hotspot"))}
+    hotspot = {src.constant(m[1], "src/scene_executor.c") for m in registration_matches(
+        function(executor, "is_builtin_hotspot"), r"runtime_type\s*==\s*(\w+)")}
     builtins = core | {aliases.get(t, t) for t in hotspot}
     dispatch = function(executor, "scene_executor_step_frame")
     # Count actual dispatch branches; the sound dependency reset is not a handler.
-    for m in re.finditer(r"if\s*\(action\.type\s*==\s*(\w+)\)\s*\{", dispatch):
+    for m in registration_matches(dispatch, r"if\s*\(action\.type\s*==\s*(\w+)\)\s*\{", 1):
         if "++local_info.actions_applied" in braced(dispatch, m.end() - 1):
             builtins.add(src.constant(m[1], "src/scene_executor.c"))
     session = function(src.read("src/scene_session.c"), "scene_session_create")
+    registration_matches(session, r"session->bindings\[\w+\]\.(?:present|provider|callback|context)\s*=")
     ui_tokens = re.findall(r"session->bindings\[(\w+)\]\.callback\s*=\s*ui_action_handler\s*;", session)
     ui = {src.constant(t, "src/scene_session.c") for t in ui_tokens}
     present = {src.constant(t, "src/scene_session.c") for t in re.findall(
@@ -214,6 +249,8 @@ def derive_actions(out: Path) -> dict:
         raise PlayableError("executor and session reserved registrations drifted")
     app = src.read("src/blackmoor_app.mm")
     live = function(app, "create_native_scene_session")
+    registration_matches(live, r"(?:\w+(?:\[\d+\])?\.(?:type|provider|callback|context)|"
+                               r"bindings\[\d+\]|config\.action_bindings|config\.action_binding_count)\s*=")
     registrations = re.findall(r"(\w+(?:\[\d+\])?)\.type\s*=\s*(\w+)\s*;", live)
     declared = re.search(r"SceneSessionActionBinding\s+bindings\[(\d+)\]", live)
     count = re.search(r"config\.action_binding_count\s*=\s*(\d+)u?\s*;", live)
@@ -235,7 +272,8 @@ def derive_actions(out: Path) -> dict:
         cb = callback[1]
         if cb.startswith("session_"):
             matches = [p for p in sorted((out / "src").glob("session_bindings_*.c"))
-                       if re.search(r"\b" + re.escape(cb) + r"\s*\([^;{}]*\)\s*\{", strip_comments(p.read_text()))]
+                       if re.search(r"\b" + re.escape(cb) + r"\s*\([^;{}]*\)\s*\{",
+                                    src.read(p.relative_to(out).as_posix()))]
             if len(matches) != 1:
                 raise PlayableError(f"missing or ambiguous session handler: {cb}")
             function(src.read(matches[0].relative_to(out).as_posix()), cb)
@@ -283,7 +321,13 @@ def build_panel(out: Path, status: dict) -> dict:
     if evidence["tests"] != test_totals(status):
         raise PlayableError("playable test totals drifted from status.json; rerun the recorder")
     actions = derive_actions(out)
+    if evidence["evidence"]["registration_sources"] != actions["sources"]:
+        raise PlayableError("evidence stale; rerun record_playable_status.py")
+    if evidence["stop"]["action_type"] in actions["handled"]["types"]:
+        raise PlayableError("stop action is handled by current source; rerun record_playable_status.py")
     if len(evidence["reached_scenes"]) > actions["scene_total"]:
         raise PlayableError("reached scenes exceed the corpus")
     return {**evidence, "scene_total": actions.pop("scene_total"), "action_types": actions,
+            "test_source_ref": status.get("current_integration", {}).get("source_ref")
+                if evidence["tests"]["source_field"] == "current_integration.full_suite" else None,
             "status_sha256": hashlib.sha256(path.read_bytes()).hexdigest()}

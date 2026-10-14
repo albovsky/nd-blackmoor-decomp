@@ -111,7 +111,7 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
 </header>
 
 <section class="playable" aria-labelledby="playableTitle" id="playable" hidden>
-  <div class="playable-heading"><h2 id="playableTitle">Playable build</h2><p class="scope">Scripted native session · gameplay incomplete</p></div>
+  <div class="playable-heading"><h2 id="playableTitle">Playable build</h2><p class="scope" id="playableScope"></p></div>
   <div class="playable-metrics">
     <div class="playable-metric"><h3>Scenes reached</h3><div class="playable-value" id="sceneCount"></div><p id="sceneShare"></p></div>
     <div class="playable-metric"><h3>Action types</h3><div class="playable-value" id="actionCount"></div><p id="actionHandlers"></p><p id="actionRecords"></p></div>
@@ -120,7 +120,7 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
   <ol class="scene-path mono" id="scenePath" aria-label="Reached scenes in first-visit order"></ol>
   <p class="playable-stop" id="playableStop"></p>
   <p class="next-blocker"><b>Next blocker: </b><span id="nextBlocker"></span></p>
-  <details><summary>Action coverage and evidence</summary><p id="handledTypes" class="mono"></p><p id="unsupportedTypes" class="mono"></p><p id="opaqueTypes" class="mono"></p><p>Types and record counts use current parser layouts and corpus counts. Native handlers may still block on unsupported branches or providers. Full gameplay remains unverified.</p><p id="playableEvidence"></p></details>
+  <details><summary>Action coverage and evidence</summary><p id="handledTypes" class="mono"></p><p id="unsupportedTypes" class="mono"></p><p id="opaqueTypes" class="mono"></p><p>Types and record counts use current parser layouts and corpus counts. The handled record count is an upper bound: raw <code>0x15</code> is a hotspot only when <code>typed_body[0] == 0x0d</code>. Native handlers may still block on unsupported branches or providers. Full gameplay remains unverified.</p><p id="playableEvidence"></p></details>
 </section>
 
 <section class="bars" aria-label="Progress summary" id="bars"></section>
@@ -164,6 +164,7 @@ const T = D.totals;
 if(D.playable){
   const P=D.playable, A=P.action_types, S=P.stop, tests=P.tests;
   $("playable").hidden=false;
+  $("playableScope").textContent=(P.evidence.kind==="seeded_committed_integration" ? "Seeded from committed integration notes" : "Scripted native session")+" · gameplay incomplete";
   $("sceneCount").textContent=`${fmt(P.reached_scenes.length)} / ${fmt(P.scene_total)}`;
   $("sceneShare").textContent=`${pct(P.reached_scenes.length,P.scene_total)} of corpus scenes reached`;
   $("actionCount").textContent=`${A.typed.type_count} typed · ${A.opaque.type_count} opaque`;
@@ -175,7 +176,7 @@ if(D.playable){
   const target=S.target_scene ? ` → ${S.target_scene}` : "";
   $("playableStop").textContent=`Current stop: ${S.scene}${target} · row ${S.row ?? "unavailable"} in ${S.target_scene || S.scene} · type ${S.action_type || "unavailable"} · provider ${S.provider || "unavailable"} (${S.reason})`;
   $("nextBlocker").textContent=P.next_blocker;
-  $("handledTypes").textContent=`Live handlers: ${A.handled.types.join(", ")}`;
+  $("handledTypes").textContent=`Live handlers (${fmt(A.handled.records)} records, upper bound): ${A.handled.types.join(", ")}`;
   $("unsupportedTypes").textContent=`Typed, unsupported: ${A.unsupported.types.join(", ")}`;
   $("opaqueTypes").textContent=`Opaque: ${A.opaque.types.join(", ")}`;
   $("playableEvidence").textContent=`${P.evidence.kind.replace(/_/g," ")} · source ${P.evidence.source_ref.slice(0,12)} · ${fmt(P.ticks)} ticks · native SHA-256 ${P.evidence.native_sha256 || "unavailable (seed)"}`;

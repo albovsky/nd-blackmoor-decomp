@@ -75,7 +75,11 @@ def parse_log(text: str) -> dict:
             raise PlayableError("live log: event after live_session_end")
         # Values not explicitly selected below (including resource fields) are
         # discarded. Never copy a full line or an arbitrary error description.
-        fields = dict(re.findall(r"\b([a-z_]+)=([^\s]+)", rest))
+        fields = {}
+        for key, value in re.findall(r"\b([a-z_]+)=([^\s]+)", rest):
+            if key in fields:
+                raise PlayableError(f"live log: duplicate key {key}")
+            fields[key] = value
         if event == "scene_transition_applied":
             source, target = scene(fields, "source"), scene(fields, "target")
             if current is not None and source != current:
@@ -141,7 +145,7 @@ def next_blocker(stop, actions):
     return f"{location}: {stop['reason']} ({stop['provider'] or 'provider unavailable'})."
 
 
-def seed(status):
+def seed(status, actions):
     integration = status.get("current_integration", {})
     session = integration.get("persistent_session", {})
     reached = session.get("observed_scenes")
@@ -153,7 +157,8 @@ def seed(status):
         raise PlayableError("seed has no committed source ref")
     return {
         "evidence": {"kind": "seeded_committed_integration", "source_ref": source[0],
-                     "native_sha256": None, "command": PLAYABLE.LIVE_ARGS},
+                     "native_sha256": None, "command": PLAYABLE.LIVE_ARGS,
+                     "registration_sources": actions["sources"]},
         "reached_scenes": reached, "ticks": 0,
         "stop": {"kind": "scene_session_blocked", "scene": "S4700", "target_scene": None,
                  "row": 3, "action_type": "0x35", "provider": "action-kernel", "reason": "provider-blocked"},
@@ -169,10 +174,20 @@ def main(argv=None):
     ap.add_argument("--seed", action="store_true", help="seed from committed integration evidence without a live run")
     args = ap.parse_args(argv)
     try:
+        def clean_source_ref():
+            dirty = subprocess.check_output(
+                ["git", "status", "--porcelain", "--untracked-files=all", "--",
+                 "outputs/blackmoor-decomp/src", "outputs/blackmoor-decomp/scripts"],
+                cwd=REPO, text=True)
+            if dirty.strip():
+                raise PlayableError("native source or scripts are dirty; commit changes before recording")
+            return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
+
+        ref = clean_source_ref()
         status = PLAYABLE.read_json(OUT / "status.json")
         actions = PLAYABLE.derive_actions(OUT)
         if args.seed:
-            result = seed(status)
+            result = seed(status, actions)
         else:
             if not args.app.is_file():
                 raise PlayableError("native app unavailable; run scripts/build_native_app.sh, or use --seed")
@@ -194,21 +209,28 @@ def main(argv=None):
                 raise PlayableError("native run failed without a classified blocker")
             if hashlib.sha256(args.app.read_bytes()).hexdigest() != native_hash:
                 raise PlayableError("native executable changed during the run")
-            ref = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
             result["evidence"] = {"kind": "scripted_live_session", "source_ref": ref,
-                                  "native_sha256": native_hash, "command": PLAYABLE.LIVE_ARGS}
+                                  "native_sha256": native_hash, "command": PLAYABLE.LIVE_ARGS,
+                                  "registration_sources": actions["sources"]}
             print(f"Private live evidence: {private}")
+        if clean_source_ref() != ref or PLAYABLE.derive_actions(OUT)["sources"] != actions["sources"]:
+            raise PlayableError("native source changed during recording; evidence not replaced")
         result.update(schema=PLAYABLE.SCHEMA, tests=PLAYABLE.test_totals(status),
                       next_blocker=next_blocker(result["stop"], actions))
         PLAYABLE.validate_status(result)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         # Parse and validate before replacing any prior public evidence.
-        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=args.output.parent,
-                                         prefix=".playable-status-", delete=False) as f:
-            staged = Path(f.name)
-            json.dump(result, f, indent=2)
-            f.write("\n")
-        staged.replace(args.output)
+        staged = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=args.output.parent,
+                                             prefix=".playable-status-", delete=False) as f:
+                staged = Path(f.name)
+                json.dump(result, f, indent=2)
+                f.write("\n")
+            staged.replace(args.output)
+        finally:
+            if staged is not None:
+                staged.unlink(missing_ok=True)
         print(f"Recorded {len(result['reached_scenes'])} scenes; {result['next_blocker']}")
         return 0
     except (PlayableError, OSError, subprocess.SubprocessError) as exc:

@@ -14,12 +14,14 @@ S0 → S5900 → S5907 → S5901 → S5902 → S5903 → S5904 → S5905 → S59
 |---|---:|---:|
 | Typed body layouts | 29 | 19,259 |
 | Opaque bodies | 42 | 353 |
-| Typed with native live handler | 14 | 7,997 |
+| Typed with native live handler (upper bound) | 14 | 7,997 |
 | Typed without live handler | 15 | 11,262 |
 
-Counts use current parser registrations and the census's per-type record counts. A registered native handler can still block on an unsupported branch or provider; these counts do not prove every record or scene playable.
+Counts use current parser registrations and the census's per-type record counts. A registered native handler can still block on an unsupported branch or provider; these counts do not prove every record or scene playable. The handled record count is an upper bound: raw `0x15` is a hotspot only when `typed_body[0] == 0x0d`.
 
 **Tests:** 961 discovered; 956 passed; 5 skipped (committed `status.json` `current_integration.full_suite`).
+
+Test totals come from `status.json` `current_integration.full_suite` at its recorded source `f44761b4d0a98f937230be40ea3bc1177dcc9713 (branch claude/hungry-matsumoto-8ab8eb, PR 10; last code change, docs follow)`, which may differ from the live-run commit.
 
 **Next blocker:** S4700: action 0x35 at row 3 (action-kernel).
 
@@ -27,9 +29,9 @@ Counts use current parser registrations and the census's per-type record counts.
 - Typed, unsupported: `0x0b`, `0x35`, `0x37`, `0x38`, `0x3e`, `0x3f`, `0x47`, `0x4f`, `0x6e`, `0x78`, `0x79`, `0x95`, `0x97`, `0xa1`, `0xd9`
 - Opaque: `0x0c`, `0x16`, `0x17`, `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x2e`, `0x33`, `0x36`, `0x43`, `0x44`, `0x45`, `0x4b`, `0x4e`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6d`, `0x6f`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x83`, `0x94`, `0x9a`, `0xaa`, `0xd0`, `0xd1`, `0xd3`, `0xd6`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 
-Playable evidence: `blackmoor-playable-status/1` / `scripted_live_session`; source `d1f6da31d06527c6c523541f01b72974d886ea6e`; native SHA-256 `92f12a05a7c1c083dff677f00c26856f5a662595e65c55bfc1719b2dbfea0610`; 675 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `255d3e7cfc4ccf1a7e9df7c7dfe1b0de88dfe91d`; native SHA-256 `92f12a05a7c1c083dff677f00c26856f5a662595e65c55bfc1719b2dbfea0610`; 675 session ticks.
 
-`playable-status.json` sha256 `c6c15c6412339359020fa7bb2f54f57a16e4aef5a17ba8cd8d013a548b7a91cb`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `4e9480a4483e4a30acc0a82a1a06acad2da600ad7b329d0e3c029d8713fb6ac7`. Derivation and limits: `README.md`.
 
 ## x86 matching
 
@@ -50,7 +52,7 @@ Matched means: legacy manifest ranges taken as given and not re-verified in this
 | `explicit_reconstructed_assembly_source` | 384 | 11 |
 | `tool_assisted_reconstructed_assembly` | 32,928 | 86 |
 
-Legacy classes keep overlapping bytes; M03 receives the remaining unique bytes. Complete function claims are deduplicated within each class but can overlap between classes; the total above counts each function once. An audited code extent can be complete even when its indexed span also contains unmatched tables or padding.
+Legacy classes keep overlapping bytes; M03 receives the remaining unique bytes. Complete function claims are deduplicated within each class but can overlap between classes; the total above counts each function once. An audited function is complete only when its code size plus audited table/padding sizes equals its indexed span; tables and padding remain excluded from matched code.
 
 ## By group
 

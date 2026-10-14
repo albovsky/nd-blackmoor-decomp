@@ -362,7 +362,7 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
                 off = text["raw_off"] + rva - text["rva"]
                 rows.append((off, off + size, "reconstructed", name, code["symbol"]))
                 claims.append({"va": va, "size": size, "symbol": code["symbol"], "manifest": name,
-                               "provenance": TOOL_ASSISTED, "audited": True})
+                               "provenance": TOOL_ASSISTED, "audited": True, "data_size": data_size})
                 batch_ranges.append((off, off + size))
                 batch_data += data_size
                 if source not in seen_sources:
@@ -559,8 +559,8 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
             atom = span_by_va.get(va)
             if claim["audited"] and (atom is None or size > atom["size"]):
                 raise ProgressError(f"{claim['manifest']}: audited code is outside its indexed function span")
-            complete = bool(claim["audited"] or
-                            (p != "exact_range_compiled_c_partial" and atom and size == atom["size"]))
+            complete = bool(atom and p != "exact_range_compiled_c_partial" and
+                            size + (claim["data_size"] if claim["audited"] else 0) == atom["size"])
             function_classes.setdefault(p, set())
             if complete:
                 function_classes[p].add(va)
@@ -725,8 +725,9 @@ def write_report(model, path: Path):
            for p, n in t["by_provenance"].items()] or ["| none | 0 | 0 |"]),
         *(["", "Legacy classes keep overlapping bytes; M03 receives the remaining unique bytes. "
            "Complete function claims are deduplicated within each class but can overlap between "
-           "classes; the total above counts each function once. An audited code extent can be "
-           "complete even when its indexed span also contains unmatched tables or padding."]
+           "classes; the total above counts each function once. An audited function is complete "
+           "only when its code size plus audited table/padding sizes equals its indexed span; "
+           "tables and padding remain excluded from matched code."]
           if ev["mode"] == "baseline" else []),
         "",
         "## By group",
@@ -831,12 +832,15 @@ def playable_report(panel):
              "|---|---:|---:|",
              *[f"| {label} | {a[key]['type_count']:,} | {a[key]['records']:,} |" for key, label in
                (("typed", "Typed body layouts"), ("opaque", "Opaque bodies"),
-                ("handled", "Typed with native live handler"), ("unsupported", "Typed without live handler"))],
+                ("handled", "Typed with native live handler (upper bound)"), ("unsupported", "Typed without live handler"))],
              "", "Counts use current parser registrations and the census's per-type record counts. "
              "A registered native handler can still block on an unsupported branch or provider; "
-             "these counts do not prove every record or scene playable.", "",
+             "these counts do not prove every record or scene playable. The handled record count is an "
+             "upper bound: raw `0x15` is a hotspot only when `typed_body[0] == 0x0d`.", "",
              f"**Tests:** {tests['discovered']:,} discovered; {tests['passed']:,} passed; "
              f"{tests['skipped']:,} skipped (committed `status.json` `{tests['source_field']}`).", "",
+             f"Test totals come from `status.json` `{tests['source_field']}` at its recorded source "
+             f"`{panel.get('test_source_ref') or 'unavailable'}`, which may differ from the live-run commit.", "",
              f"**Next blocker:** {panel['next_blocker']}", ""]
     for key, label in (("handled", "Live handlers"), ("unsupported", "Typed, unsupported"), ("opaque", "Opaque")):
         lines += [f"- {label}: " + ", ".join(f"`{t}`" for t in a[key]["types"])]

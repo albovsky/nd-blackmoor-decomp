@@ -61,7 +61,7 @@ class RepoEvidenceTests(unittest.TestCase):
     def test_playable_schema_and_committed_report_have_not_drifted(self):
         self.assertEqual(self.model["schema"], "blackmoor-decomp-progress/1")
         p = self.model["playable"]
-        self.assertEqual(p["schema"], "blackmoor-playable-status/1")
+        self.assertEqual(p["schema"], "blackmoor-playable-status/2")
         committed = json.loads((HERE / "progress.json").read_text())["playable"]
         self.assertEqual(p, committed, "Refresh progress after changes to live registrations or evidence")
         self.assertEqual(p["scene_total"], 2078)
@@ -100,6 +100,43 @@ class RepoEvidenceTests(unittest.TestCase):
                          "src/blackmoor_app.mm", "src/session_bindings_a62.c",
                          "src/session_bindings_a51.c", "src/session_bindings_a28.c"} <= paths)
         self.assertTrue(all(p.startswith("src/") or p == "action-census-current.json" for p in paths))
+
+    def test_batches_cover_indexed_spans_without_changing_headline_totals(self):
+        index = sorted(int(f["address"], 0) for f in GEN.load_json(EVIDENCE / "function-index.json")["functions"])
+        layout = GEN.load_layout(HERE / "layout.json")
+        _, atoms = GEN.build_atoms(layout, {"original_sha256": SHA,
+                                           "functions": [{"address": hex(va)} for va in index]}, 16384)
+        spans = {a["va"]: a["size"] for a in atoms if a["kind"] == "code"}
+        functions = [f for batch in ("001", "002")
+                     for f in GEN.load_json(EVIDENCE / "asm" / f"batch-{batch}.json")["functions"]]
+        self.assertEqual(len(functions), 86)
+        self.assertEqual(sum(f["code"]["size"] for f in functions), 33312)
+        for f in functions:
+            self.assertEqual(f["code"]["size"] + sum(d["size"] for d in f["data_items"]),
+                             spans[int(f["va"], 0)], f["function"])
+        self.assertEqual(self.model["totals"]["matched_code"], 33326)
+        self.assertEqual(self.model["totals"]["functions_complete"], 86)
+
+    def test_report_labels_hotspot_upper_bound_and_test_source(self):
+        report = (self.out / "REPORT.md").read_text()
+        self.assertIn("upper bound", report)
+        self.assertIn("typed_body[0] == 0x0d", report)
+        self.assertIn("may differ from the live-run commit", report)
+        self.assertIn("f44761b4d0a98f937230be40ea3bc1177dcc9713", report)
+
+    def test_seeded_panel_labels_committed_notes(self):
+        # Mutate only the evidence kind, then render through the real template.
+        import copy
+        model = copy.deepcopy(self.model)
+        model["playable"]["evidence"].update(kind="seeded_committed_integration", native_sha256=None)
+        html_path = self.out / "seeded.html"
+        GEN.write_html(model, HERE / "template.html", html_path)
+        html = html_path.read_text()
+        self.assertIn('id="playableScope"', html)
+        self.assertIn('P.evidence.kind==="seeded_committed_integration"', html)
+        self.assertIn("Seeded from committed integration notes", html)
+        self.assertIn("upper bound", html)
+        self.assertIn("typed_body[0] == 0x0d", html)
 
     def test_playable_panel_precedes_x86_panel_and_report(self):
         html = (self.out / "index.html").read_text()
@@ -657,6 +694,34 @@ class AuditedBatchTests(unittest.TestCase):
         with self.assertRaisesRegex(GEN.ProgressError, "indexed function span"):
             self.model()
 
+    def test_incomplete_audited_span_is_a_partial_claim(self):
+        # Keep manifest/report hashes and comparison totals internally valid;
+        # the counterexample is the missing (or excessive) data in the span.
+        manifest_path = self.asm / "batch-001.json"
+        report_path = self.asm / "batch-001-report.json"
+        original_manifest = GEN.load_json(manifest_path)
+        original_report = GEN.load_json(report_path)
+        import copy
+        for data_size in (0, 7, 9):
+            with self.subTest(data_size=data_size):
+                manifest, report = copy.deepcopy(original_manifest), copy.deepcopy(original_report)
+                data = manifest["functions"][1]["data_items"]
+                if data_size:
+                    data[0]["size"] = data_size
+                else:
+                    data.clear()
+                report["functions"][1]["data_items"] = copy.deepcopy(data)
+                report["functions"][1]["compared_bytes"] = 24 + data_size
+                write(manifest_path, manifest)
+                report["manifest_sha256"] = GEN.sha256_file(manifest_path)
+                write(report_path, report)
+                model = self.model()
+                self.assertEqual(model["totals"]["matched_code"], 56)
+                self.assertEqual(model["totals"]["functions_complete"], 1)
+                self.assertEqual(model["totals"]["functions_by_provenance"][GEN.TOOL_ASSISTED], 1)
+                row = next(r for r in model["matched_ranges"] if r["va"] == 0x400120)
+                self.assertFalse(row["complete_function"])
+
 
 class RegistrationDriftTests(unittest.TestCase):
     """Source mutations exercise the independent registration cross-checks."""
@@ -666,6 +731,8 @@ class RegistrationDriftTests(unittest.TestCase):
         self.out = pathlib.Path(self.tmp.name)
         shutil.copytree(EVIDENCE / "src", self.out / "src")
         shutil.copy2(EVIDENCE / "action-census-current.json", self.out)
+        shutil.copy2(EVIDENCE / "playable-status.json", self.out)
+        self.status = GEN.load_json(EVIDENCE / "status.json")
         self.original = GEN.PLAYABLE.derive_actions(self.out)
 
     def tearDown(self):
@@ -718,6 +785,83 @@ class RegistrationDriftTests(unittest.TestCase):
         status["current_integration"]["full_suite"]["passed"] -= 1
         with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "test totals drifted"):
             GEN.PLAYABLE.build_panel(self.out, status)
+
+    def test_handled_stop_is_rejected_even_with_current_source_hashes(self):
+        path = self.out / "playable-status.json"
+        doc = GEN.load_json(path)
+        doc["stop"]["action_type"] = "0x51"
+        write(path, doc)
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "stop action.*handled"):
+            GEN.PLAYABLE.build_panel(self.out, self.status)
+
+    def test_every_registration_input_hash_is_bound_to_recorded_evidence(self):
+        for source in self.original["sources"]:
+            path = self.out / source["path"]
+            original = path.read_bytes()
+            with self.subTest(path=source["path"]):
+                # Whitespace leaves registration/census meaning intact.
+                path.write_bytes(original + b"\n")
+                try:
+                    with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError,
+                                                "evidence stale; rerun record_playable_status.py"):
+                        GEN.PLAYABLE.build_panel(self.out, self.status)
+                finally:
+                    path.write_bytes(original)
+
+    def test_new_handler_cannot_reuse_old_stop_evidence(self):
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x35;")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError,
+                                    "evidence stale; rerun record_playable_status.py"):
+            GEN.PLAYABLE.build_panel(self.out, self.status)
+
+    def test_preprocessor_conditionals_in_registration_functions_fail_closed(self):
+        path = self.out / "src/blackmoor_app.mm"
+        original = path.read_text()
+        registration = "bindings[2].type = SESSION_A51_TYPE;"
+        blocks = ["#if 0\n{}\n#endif", "#ifdef CONDITIONAL\n{}\n#endif",
+                  "#ifndef CONDITIONAL\n{}\n#endif", "#if 0\n#elif 1\n{}\n#endif",
+                  "#if 0\n#else\n{}\n#endif", "#elif 1\n{}", "#else\n{}"]
+        for block in blocks:
+            with self.subTest(block=block):
+                path.write_text(original.replace(registration, block.format(registration), 1))
+                with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "preprocessor conditional"):
+                    GEN.PLAYABLE.derive_actions(self.out)
+
+    def test_conditional_registrations_fail_closed(self):
+        cases = [
+            ("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;"),
+            ("src/blackmoor_app.mm", "bindings[2].callback = session_a51_handler;"),
+            ("src/blackmoor_app.mm", "bindings[0] = action_sound_binding;"),
+            ("src/blackmoor_app.mm", "config.action_bindings = bindings;"),
+            ("src/blackmoor_app.mm", "config.action_binding_count = 4u;"),
+            ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].present = 1u;"),
+            ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].callback = ui_action_handler;"),
+        ]
+        for file, registration in cases:
+            path = self.out / file
+            original = path.read_text()
+            for block in ("if (cond) {{ {} }}", "if (cond) {}", "if (cond) {{ if (other) {{ {} }} }}"):
+                with self.subTest(file=file, registration=registration, block=block):
+                    path.write_text(original.replace(registration, block.format(registration), 1))
+                    try:
+                        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "conditional registration"):
+                            GEN.PLAYABLE.derive_actions(self.out)
+                    finally:
+                        path.write_text(original)
+
+    def test_conditional_parser_registration_fails_closed(self):
+        self.change("src/scene_resource.c", "switch (type) {", "if (cond) { switch (type) {")
+        self.change("src/scene_resource.c", "default:\n        return 0;", "default:\n        return 0; }")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "conditional registration"):
+            GEN.PLAYABLE.derive_actions(self.out)
+
+    def test_conditional_builtin_dispatch_registration_fails_closed(self):
+        self.change("src/scene_executor.c", "if (action.type == SCENE_ACTION_CLOCK) {",
+                    "if (cond) { if (action.type == SCENE_ACTION_CLOCK) {")
+        self.change("src/scene_executor.c", "if (is_action_core_type(action.type)) {",
+                    "} if (is_action_core_type(action.type)) {")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "conditional registration"):
+            GEN.PLAYABLE.derive_actions(self.out)
 
 
 if __name__ == "__main__":
