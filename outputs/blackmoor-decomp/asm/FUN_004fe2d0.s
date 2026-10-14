@@ -13,7 +13,7 @@
 # fields:       vf+0x50/vf+0x54: 64-bit running frame total, += frames by add/adc at the tail; vf+0x58: signed state value (< 2 fails, < 3 forces a fetch); vf+0x60: current link, copied to *bitstream; vf+0x1da: embedded decode-state sub-object passed to FUN_004ff9a0 and FUN_004ffa00; info+0x04 (via FUN_004fe290): channel count; globals 0x0052e580 = 128.0f (8-bit scale) and 0x0052e57c = 32768.0f (16-bit scale), both read as float by fmul
 # callees:      FUN_004fe630 = constant 0 (original bytes xor eax,eax; ret), used here as the host big-endian flag; FUN_004fdfd0 = fetch and decode more data into vf (called with vf, 0, 1; returns -2 at end of data); FUN_004ff9a0 = get planar float pointers and available frame count; FUN_004fe290 = info record lookup (called with link -1); FUN_004ffa00 = consume decoded frames
 # track-n:      outputs/blackmoor-decomp/src/his_pcm_quantize.c:his_pcm_quantize_planar
-# unverified:   Track N his_pcm_quantize_planar models only the quantization loops of the production call (mono/stereo, word=1 with sgned=0 and word=2 with sgned=1, bigendianp=0, native order); the fetch loop, the length/frame_bytes clamp, the vf+0x50/+0x54 accounting, *bitstream and the return codes are not in Track N. Branches not exercised by the oracle: unsigned native 16-bit (0x4fe496), signed 8-bit (sgned nonzero with word=1), the big-endian output loop (reachable with bigendianp nonzero because the host flag is constant 0, but unexercised) and the little-endian-on-swapped-host loop at 0x4fe582 (dead code: it needs the host flag nonzero), channel counts above 2, word values other than 1 and 2, and every error return. Any word other than 1 takes the 16-bit path but frame_bytes uses the passed word, so word 3 or more would return more bytes than it writes; not exercised. idiv by channels*word has no zero guard (a zero product would fault); not exercised. Results under x87 control words other than 0x037f are not verified; this function does not set the control word and fstp qword/fistp use the ambient rounding mode. Identification with libvorbisfile ov_read and the field names (state, current link, 64-bit offset, dsp sub-object) are inferred from layout and call pattern. vf+0x1da is not dword aligned; the layout of that sub-object is not verified. FUN_004fdfd0 argument and return meanings (0, 1, -2) are inferred from the call site only.
+# unverified:   Track N his_pcm_quantize_planar models only the quantization loops of the production call (mono/stereo, word=1 with sgned=0 and word=2 with sgned=1, bigendianp=0, native order); the fetch loop, the length/frame_bytes clamp, the vf+0x50/+0x54 accounting, *bitstream and the return codes are not in Track N. Branches not exercised by the oracle: unsigned native 16-bit (0x4fe496), signed 8-bit (sgned nonzero with word=1), the big-endian output loop (reachable with bigendianp nonzero because the host flag is constant 0, but unexercised) and the little-endian-on-swapped-host loop at 0x4fe582 (dead code: it needs the host flag nonzero), channel counts above 2, word values other than 1 and 2, and every error return. Any word other than 1 takes the 16-bit path but frame_bytes uses the passed word, so word 3 or more would return more bytes than it writes; not exercised. idiv by channels*word has no zero guard (a zero product would fault); not exercised. Results under x87 control words other than 0x037f are not verified; this function does not set the control word and fstp qword/fistp use the ambient rounding mode. Identification with libvorbisfile ov_read and the field names (state, current link, 64-bit offset, dsp sub-object) are inferred from layout and call pattern. vf+0x1da is not dword aligned; the layout of that sub-object is not verified. FUN_004fdfd0 argument and return meanings (0, 1, -2) are inferred from the call site only. Field names vf_frame_total_lo/hi, vf_state, vf_current_link, vf_dsp_state, info_channel_count are role guesses from use only.
 .intel_syntax noprefix
 .code32
 .text
@@ -32,6 +32,13 @@
 .equ arg_word, 0x18  # [ebp + 0x18]: bytes per sample; reused as channel counter in the unsigned native path and frame counter in the little-endian-output path
 .equ arg_sgned, 0x1c  # [ebp + 0x1c]: signed flag; overwritten by the bias 0/0x8000 on the 16-bit path
 .equ arg_bitstream, 0x20  # [ebp + 0x20]: optional int* receiving the current link
+
+.equ info_channel_count, 0x4  # info+0x04: channel count of the record returned by FUN_004fe290
+.equ vf_frame_total_lo, 0x50  # vf+0x50: low dword of the 64-bit running frame total
+.equ vf_frame_total_hi, 0x54  # vf+0x54: high dword of the 64-bit running frame total
+.equ vf_state, 0x58  # vf+0x58: signed state value (< 2 fails, < 3 forces a fetch)
+.equ vf_current_link, 0x60  # vf+0x60: current link, copied to *bitstream
+.equ vf_dsp_state, 0x1da  # vf+0x1da: embedded decode-state sub-object (unaligned) passed to FUN_004ff9a0/FUN_004ffa00
 
 # --- external targets -----------------------------------------------
 .set FUN_004fdfd0, .text + (0x004fdfd0 - 0x401000)
@@ -53,7 +60,7 @@ FUN_004fe2d0:
     call FUN_004fe630                            # 004fe2d9
     mov edi, dword ptr [ebp + arg_vf]             # 004fe2de
     mov dword ptr [ebp - local_host_endian], eax          # 004fe2e1
-    cmp dword ptr [edi + 0x58], 0x2              # 004fe2e4
+    cmp dword ptr [edi + vf_state], 0x2              # 004fe2e4
     jge.d8 L_state_ok                            # 004fe2e8
     # block 0x004fe2ea: vf+0x58 < 2: restore registers and return 0xffffff7d (-131)
     pop edi                                      # 004fe2ea
@@ -68,11 +75,11 @@ L_state_ok:
     mov ebx, 0x3                                 # 004fe2f6
 L_fill_loop:
     # block 0x004fe2fb: fill loop head: if vf+0x58 < ebx=3 (signed) go fetch more data without reading the queue
-    cmp dword ptr [edi + 0x58], ebx              # 004fe2fb
+    cmp dword ptr [edi + vf_state], ebx              # 004fe2fb
     jl.d8 L_fetch_more                             # 004fe2fe
     # block 0x004fe300: state >= 3: call FUN_004ff9a0(vf+0x1da, &local_pcm_planes); esi=frames available, local_frames=esi; nonzero -> have data
     lea eax, [ebp - local_pcm_planes]                     # 004fe300
-    lea ecx, [edi + 0x1da]                       # 004fe303
+    lea ecx, [edi + vf_dsp_state]                       # 004fe303
     push eax                                     # 004fe309
     push ecx                                     # 004fe30a
     call FUN_004ff9a0                            # 004fe30b
@@ -111,7 +118,7 @@ L_have_frames:
     push -0x1                                    # 004fe347
     push edi                                     # 004fe349
     call FUN_004fe290                            # 004fe34a
-    mov ebx, dword ptr [eax + 0x4]               # 004fe34f
+    mov ebx, dword ptr [eax + info_channel_count]               # 004fe34f
     mov edi, dword ptr [ebp + arg_word]            # 004fe352
     {load} mov ecx, ebx                          # 004fe355
     mov eax, dword ptr [ebp + arg_length]            # 004fe357
@@ -466,23 +473,23 @@ L_consume_and_account:
     # block 0x004fe5e6: common tail: edi=vf; call FUN_004ffa00(vf+0x1da, frames) to consume; then vf+0x50/+0x54 (64-bit) += sign-extended frames via add/adc
     mov edi, dword ptr [ebp + arg_vf]             # 004fe5e6
     push esi                                     # 004fe5e9
-    lea ecx, [edi + 0x1da]                       # 004fe5ea
+    lea ecx, [edi + vf_dsp_state]                       # 004fe5ea
     push ecx                                     # 004fe5f0
     call FUN_004ffa00                            # 004fe5f1
-    mov ecx, dword ptr [edi + 0x50]              # 004fe5f6
+    mov ecx, dword ptr [edi + vf_frame_total_lo]              # 004fe5f6
     {load} mov eax, esi                          # 004fe5f9
     cdq                                          # 004fe5fb
     add esp, 0x8                                 # 004fe5fc
     {load} add ecx, eax                          # 004fe5ff
     mov eax, dword ptr [ebp + arg_bitstream]            # 004fe601
-    mov dword ptr [edi + 0x50], ecx              # 004fe604
-    mov ebx, dword ptr [edi + 0x54]              # 004fe607
+    mov dword ptr [edi + vf_frame_total_lo], ecx              # 004fe604
+    mov ebx, dword ptr [edi + vf_frame_total_hi]              # 004fe607
     {load} adc ebx, edx                          # 004fe60a
     test eax, eax                                # 004fe60c
-    mov dword ptr [edi + 0x54], ebx              # 004fe60e
+    mov dword ptr [edi + vf_frame_total_hi], ebx              # 004fe60e
     je.d8 L_return_bytes                             # 004fe611
     # block 0x004fe613: bitstream pointer non-NULL: *bitstream = vf+0x60
-    mov edx, dword ptr [edi + 0x60]              # 004fe613
+    mov edx, dword ptr [edi + vf_current_link]              # 004fe613
     mov dword ptr [eax], edx                     # 004fe616
 L_return_bytes:
     # block 0x004fe618: return local_frame_bytes * frames (bytes written) and restore registers
