@@ -21,13 +21,13 @@ The following packets can start independently. For four workers, start A-64, A-6
 
 ## Complete catalogue
 
-`slice-registry.json` contains77 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 11,089 typed body boundaries, 8,523 opaque records. Typed metadata is not implemented gameplay.
+`slice-registry.json` contains79 registered packets, including bounded recovery/kernel children and six gated integration packets. Every one has a file boundary, inputs/outputs, evidence steps and acceptance conditions. The action packets use current corpus counts: 2,078 scenes, 19,612 actions, 11,089 typed body boundaries, 8,523 opaque records. Typed metadata is not implemented gameplay.
 
 All remaining action-family packets are in `tasks/A-*.md`; each raw family has one owner. Large families must split into numbered body/runtime/branch child packets before coding; their parent remains incomplete until all discovered variants pass. The large remaining recovery families include0x37 (4,308 records),0x97 (1,958),0xa1 (565),0x3f (493) and0x38 (425). Raw0x62 already has typed body boundaries and a reviewed kernel; its live integration remains open. S5900's immediate blockers are 0x64,0x62,0x28,0x51.
 
 ## Current integration assignment
 
-Boot (/root/boot_world_contract_luna6) is the sole shared runtime writer, binding accepted Frame/caption transfers after the persistent session and caption-writer entry were collected. Input latch72c09ca, condition-extra leaves8620612 and caption compositor6f74c6a are accepted; their broader shared integration remains open. The overlay worker owns [A-37.2 fixed decoder/constructor](tasks/A-37.2-static-overlay-loader.md). The matching worker owns [S08-4 input consumers](tasks/S08-4-input-consumer-matching.md). The sound worker is recovering original stream producer/completion state in isolated private S04-2.1 evidence. Claude owns [S03-2 playback](tasks/S03-2-avf-playback.md), with the [API decision](CLAUDE-S03-2-API-DECISION.md) and a separate [remaining S03-1 decoder repair](CLAUDE-S03-1-REVIEW-FIX.md). Root owns architecture, independent review, collection and verification. Check both parent and child claims before taking a family; parent requirements remain open until all its branches pass.
+Owner requested pause after the collected slice. All Codex workers have stopped. Caption transfer, A-37.2 decoder/constructor and S08-4 input consumers are reviewed/collected. A-37.3 static discovery and S04-2.2 protocol drafts are saved and incomplete. Claude is external; the [pause relay brief](CLAUDE-PAUSE-BRIEF.md) is saved but session stop is unconfirmed. No new slice should start until the owner resumes. See [pause report](PAUSE-REPORT.md) for verified source and next blockers.
 
 ## Ownership and coordination
 

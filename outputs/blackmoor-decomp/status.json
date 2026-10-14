@@ -3,9 +3,9 @@
   "playable_native_port": false,
   "original_executable_rebuilt": false,
   "pseudocode_exports": 4188,
-  "matched_byte_ranges": 11,
-  "unique_matched_bytes": 302,
-  "function_completeness": "Nine complete reviewed reconstructed mnemonic-assembly functions (288 bytes), plus two incomplete selected ranges (14 bytes). Original C/compiler provenance and whole executable rebuild remain unverified.",
+  "matched_byte_ranges": 13,
+  "unique_matched_bytes": 398,
+  "function_completeness": "Eleven complete reviewed reconstructed assembly functions (384B) plus two incomplete selected ranges (14B); four merged address ranges. Original C/compiler provenance and whole executable remain unverified.",
   "matching_verifier_tests_passed": 12,
   "independent_review": "Reviewed input latch, condition-extra leaves, caption transfer kernel, app caption binding and source-bound progress map accepted. Final AVF decoder review found a remaining valid-input divergence; decoder not yet collected.",
   "remaining": [
@@ -60,10 +60,10 @@
     "complete_dependency_tree_or_action_runtime": false
   },
   "tests": {
-    "discovered": 477,
-    "passed": 475,
+    "discovered": 499,
+    "passed": 497,
     "skipped": 2,
-    "skip_reason": "duplicate-case-filename fixtures cannot be represented on this case-insensitive volume"
+    "skip_reason": "duplicate-case-filename fixtures on case-insensitive filesystem"
   },
   "native_startup_menu": {
     "compiled": true,
@@ -112,9 +112,9 @@
       629,
       384
     ],
-    "scene_view": "Persistent scene session with actual caption writer; stops at unavailable RestoreCCTextBox transfer. Accepted compositor is not yet wired in this verified app snapshot.",
+    "scene_view": "Actual Frame + decoded background + caption composition; first S0 session tick blocks on live audio at row31",
     "current_visual_verification": "not performed: Mac locked; owner requested automated checks",
-    "integration_tests": 7,
+    "integration_tests": 10,
     "original_assets_modified": false,
     "audio_diagnostic": "real scene music/voice decode and offline graph; live gameplay audio absent",
     "action_diagnostic": "31 original-resource actions applied; stops at missing sound handler; partial reset and analysis-only remaining world",
@@ -123,7 +123,7 @@
     "scene_runtime_diagnostic": "selected BOOT fields, actual AUTOTEXT caption, offline NSHT01 completion, resource-driven challenge hotspot and transition to S5900",
     "headless_original_s0_to_s5900": true,
     "live_gameplay_execution": false,
-    "caption_renderer": false
+    "caption_renderer": true
   },
   "next_action_recovery": {
     "typed_actions": 11017,
@@ -325,27 +325,27 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "43360868896b1adf6aac2eeb7ca84c42dbd4ab54",
+    "source_ref": "3b858e6727b263a49458001a132effe80570af3e",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 477,
-      "passed": 475,
+      "discovered": 499,
+      "passed": 497,
       "skipped": 2
     },
-    "build_log_sha256": "7389fac4f9e79ba8b05dca25ce470d0582d7aeb2d8dc3f12c234723ff5be2872",
-    "test_log_sha256": "3f8ab3ab0cdf729747a66e8d7b801109f0f693b951a130eef6ab283ba187ae7c",
-    "scope": "Reviewed input latch, condition extras, compositor and persistent app caption binding collected. Actual S0 update applies rows0..30 then action9f resolves AUTOTEXT and runs the writer, stopping at RestoreCCTextBox. Boot is binding accepted pixel transfers; live choices, audio/input, S5900 ordered execution, complete game and whole-file matching remain open.",
+    "build_log_sha256": "55d2c0fd78fc9223a67f9fde8169c05b315b29583fbd430fdbfcd217b6fcb449",
+    "test_log_sha256": "1b44b7ad7089540d226244d216e8a5f491ad0b82a4f10cf444d0bd9ab53f2c52",
+    "scope": "Collected caption transfer integration, exact static-overlay constructor and two input-consumption methods. Actual S0 first tick restores Frame/caption glyphs and then blocks at row31 audio. Full gameplay and whole-file matching remain open.",
     "gui_verified": false,
     "hardware_audio_verified": false,
     "persistent_session": {
-      "reviewed_worker_commit": "8eed75a09cc0f1b62778f45069d0a14369f26e69",
-      "collected_commit": "a864b11",
+      "reviewed_worker_commit": "c190550f5879baa7c06cfcac9ab27f5160a63e65",
+      "collected_commit": "ae7a66a",
       "child_complete": false,
       "observed_scene": "S0",
       "prior_action_effects": 31,
       "stop_row": 31,
       "stop_action": "0x9f",
-      "stop_provider": "RestoreCCTextBox pixel transfer"
+      "stop_provider": "live audio load/play"
     }
   },
   "progress_map": {
@@ -368,9 +368,10 @@
     "tests_passed": 23,
     "offline": true,
     "live_refresh": false,
-    "refresh_required": false,
+    "refresh_required": true,
     "snapshot_sha256": "0811237e691af192b5e37fe14a6f303bc49c84a63168cb266c92ced2ea894fc0",
-    "snapshot_scope": "Frozen selected-report view; excludes major native oracle families and does not establish total reconstruction coverage"
+    "snapshot_scope": "Frozen selected-report view; excludes major native oracle families and does not establish total reconstruction coverage",
+    "refresh_reason": "Frozen map sourcea864b11 correctly reports302 exact bytes; current reviewed collection includes S08-4 and398 bytes. No map refresh was started after the owner requested stop."
   },
   "native_sound_control": {
     "source_ref": "2b9b41b504c58cdfb7129f215a6d0d4d762aece8",
@@ -426,7 +427,7 @@
     ],
     "repair_owner": "/root/sound_control_luna6",
     "accepted_source": true,
-    "pixel_composition_verified": false,
+    "pixel_composition_verified": true,
     "repair_commit": "26927043bf04fc0d613a4400ce5794259b73871a",
     "collected_repair_commit": "a1dbe42",
     "review_status": "No material findings after narrow independent review; 42 fresh tests passed.",
@@ -438,7 +439,8 @@
       "lifecycle_sequences": 19,
       "lifecycle_steps": 333,
       "lifecycle_mismatches": 0
-    }
+    },
+    "pixel_composition_scope": "Accepted software transfer and actual Frame/short-caption app binding only; complete scene/UI parity unverified"
   },
   "matching_s08_2": {
     "complete_functions": 6,
@@ -494,7 +496,7 @@
     "mismatches": 0,
     "original_raster_logic_hooked": false,
     "scope": "Positive-pitch bounded16-bit opaque/keyed software transfers and installed BOOT caption composition fixture",
-    "live_app_binding": false,
+    "live_app_binding": true,
     "whole_scene_frame_parity": false,
     "parent_complete": false
   },
@@ -511,5 +513,67 @@
       6,
       12
     ]
+  },
+  "goal_state": "paused_at_owner_request",
+  "paused_utc": "2026-10-14T01:34:39.035954+00:00",
+  "matching_s08_4": {
+    "reviewed_worker_commit": "5483b78143b26cd686e8bd0f010c7b72ee97626e",
+    "collected_commit": "3b858e6",
+    "complete_functions": 2,
+    "exact_bytes": 96,
+    "classification": "explicit_reconstructed_assembly_source",
+    "source_sha256": "34db631d30eb9d2f1a5c5d5fa3154988cd922712515c76641e1af7f69bbc9238",
+    "object_sha256": "89ea93598a9c82fc0ec1d79b4fbe30342777fee29817d265fe23d01481f5dde8",
+    "original_native_calls": 100,
+    "original_candidate_machine_calls": 76,
+    "mismatches": 0,
+    "native_and_matching_tests": 13,
+    "compiler_generated_C_match": false,
+    "original_source_provenance_verified": false,
+    "whole_executable_rebuilt": false,
+    "frame_integration": false
+  },
+  "action37_constructor": {
+    "reviewed_worker_commits": [
+      "936fdc3a05ba78b9f95df03ec5cfeb409b8e66bf",
+      "7eb18bd5f48208a90df0484817d3a475ea1f8e0d"
+    ],
+    "collected_commits": [
+      "d458b03",
+      "65cc9ad"
+    ],
+    "corpus_records": 4308,
+    "synthetic_cases": 2,
+    "original_native_calls": 4310,
+    "object_bytes_compared": 11835260,
+    "mismatches": 0,
+    "native_tests": 6,
+    "sanitizer_valid_cases": 20001,
+    "sanitizer_malformed_cases": 1028,
+    "compiled_native_mutants_detected": 3,
+    "mutant_fixtures_each": 4309,
+    "shared_parser_registration": false,
+    "runtime_provider_render_complete": false,
+    "parent_complete": false
+  },
+  "caption_transfer_integration": {
+    "reviewed_worker_commit": "c190550f5879baa7c06cfcac9ab27f5160a63e65",
+    "collected_commit": "ae7a66a",
+    "focused_tests": 34,
+    "original_compositor_cases": 50,
+    "mismatches": 0,
+    "caption_region_pixels": 16120,
+    "changed_pixels": 3433,
+    "frame_equal_pixels": 12687,
+    "caption_region_fnv64": "3ce7ebbbad2b6d9f",
+    "scene_ticks_proven": 1,
+    "actual_scene_replacement_proven": false,
+    "whole_frame_parity": false,
+    "current_blocker": "row31 live audio provider"
+  },
+  "paused_followons": {
+    "A-37.3": "Static discovery checkpoint only; no runtime oracle or implementation",
+    "S04-2.2": "Unimplemented protocol; header/C fixture drafts saved privately",
+    "Claude_external": "No callable session connection; pause brief saved for owner relay; external stop not confirmed"
   }
 }
