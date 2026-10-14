@@ -558,8 +558,9 @@ def main() -> int:
     if len(resource_ids) != 461:
         raise RuntimeError(f"0x37 records referenced {len(resource_ids)} resources, expected 461")
 
-    # Prove that the full-image equality comparator notices representative
-    # wrong-copy-offset, wrong-default, and wrong-width mutations.
+    # Comparator-only byte flips demonstrate that whole-image comparison is
+    # sensitive at representative fields. Actual compiled-source mutant tests
+    # are separate and live in action_family_37_native_mutation_oracle.py.
     if first_actual is None:
         raise RuntimeError("no original/native image available for mutation checks")
     selected_body, selected_native, selected_original = first_actual
@@ -630,7 +631,7 @@ def main() -> int:
             "guard_checks": "input prefix/suffix, allocation prefix/suffix, result-slot prefix/suffix, external owner prefix/suffix, stack canaries",
         },
         "synthetic_original_fixtures": synthetic_results,
-        "comparison_mutation_sensitivity": mutations,
+        "comparator_only_byte_flip_sensitivity": mutations,
         "original_process_state": {
             "DAT_0063a4cd_initial_byte": debug_flag_initial,
             "optional_constructor_logging_branch_taken": debug_flag_initial != 0,
