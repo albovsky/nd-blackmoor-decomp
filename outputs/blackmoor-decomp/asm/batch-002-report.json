@@ -105,7 +105,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00470ffe.s",
-        "sha256": "2b096e8e4fae756b407c2638eab3bfebd3d106e4b7d652fcf8b6779944354c64"
+        "sha256": "7cc5003961ffad1a2725a92ea897b8d1e13b7609354ecfa0a4ba9734fcc845f3"
       },
       "status": "accepted",
       "va": 4657150
@@ -1172,7 +1172,7 @@
       "va": 4713075
     }
   ],
-  "manifest_sha256": "e70bc5b8665a7bcb74b6a7c4c6762a07a8dd357d626cab4bae8bae7fac785c9a",
+  "manifest_sha256": "b162b72f11bf8b60690953376541f3b97f126821684b1ec87acab515c845e867",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

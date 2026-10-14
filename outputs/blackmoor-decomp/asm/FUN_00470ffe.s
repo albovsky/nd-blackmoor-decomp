@@ -9,7 +9,7 @@
 # frame:        ebp
 # name:         HotspotPanel::hit_test_pointer
 # arguments:    thiscall: ecx=this (spilled to local_this; the one caller, 0x004f0e6d, passes the constant 0x0062387c); [ebp+8]=arg_ptr_x int16 (read with movsx, caller pushes the word at pointer+0x5e), [ebp+0xc]=arg_ptr_y int16 (caller pushes the word at pointer+0x5a); callee pops 8 (ret 8); returns eax=1 on a hit (event request globals written) or eax=0 on a miss (this+0xd2a set to 0xffff)
-# locals:       frame 0xc bytes: local_payload [ebp-4] = dword loaded from [0x5bb5e5 + int16(this+0xd28) * 0x8d] (the payload pointer of action slot this+0x1e, slot base 0x5bb5e3 + slot*0x8d + 2, layout per action type; region is a label); local_slot [ebp-8] = int16 loop index over the this+0x65c rectangle array (16-bit increment, signed compare against int16 [payload+0x21]); local_this [ebp-0xc] = this spilled from ecx
+# locals:       frame 0xc bytes: local_payload [ebp-4] = dword loaded from [0x5bb5e5 + int16(this+0xd28) * 0x8d] (the payload pointer of action slot this+0xd28, slot base 0x5bb5e3 + slot*0x8d + 2, layout per action type; region is a label); local_slot [ebp-8] = int16 loop index over the this+0x65c rectangle array (16-bit increment, signed compare against int16 [payload+0x21]); local_this [ebp-0xc] = this spilled from ecx
 # fields:       this+0xd28: int16 action slot index (table at 0x5bb5e5: the payload pointer at slot+2, stride 0x8d); this+0xd3e: byte, zero means no hit is possible (zero-extended, tested for zero); this+0xd3b: byte, non-zero suppresses the slot rectangles and the extra rectangle; this+0xd2a: int16, written with the hit slot, 0x28 for the extra rectangle, or 0xffff on a miss; this+0x65c+16*slot: four dwords x_min,y_min,x_max,y_max (+0x65c,+0x660,+0x664,+0x668 compared as signed 32-bit); payload+0xfc,+0x100,+0x104,+0x108: dwords x_min,y_min,x_max,y_max of the whole-region rectangle; payload+0x21: int16 slot count; payload+0x24: byte flag enabling the extra rectangle; payload+0x35,+0x39,+0x3d,+0x41: dwords x_min,y_min,x_max,y_max of the extra rectangle (unaligned dword reads); globals: 0x005b44f0 (dword, set to 9 or 0x16), 0x005b44f4 (dword, set to 1), 0x005d0377 (dword read), 0x005d162d (dword, written with the value of 0x5d0377), 0x005d1631 (dword pointer, written 0x5b160c + 32*[0x5b44f0] + 16*[0x5b44f4], i.e. 0x5b173c or 0x5b18dc), 0x005d1639 (dword, set to 1), 0x005c39e5 (dword; s0-action-runtime-trace.md: pending event/hotspot index; Track N caption_lifecycle.h: slider_cursor_scene; here it receives 0x27ad or 0x27a6, role not established), table base 0x005bb5e5 (stride 0x8d)
 # callees:      none
 # track-n:      host-adapter: none
@@ -19,7 +19,7 @@
 .text
 
 # --- frame symbols ---------------------------------------------------
-.equ local_payload, 0x4  # [ebp - 0x4]: payload pointer of action slot this+0x1e (a region, label), loaded from [0x5bb5e5 + this_slot_index*0x8d]
+.equ local_payload, 0x4  # [ebp - 0x4]: payload pointer of action slot this+0xd28 (a region, label), loaded from [0x5bb5e5 + this_slot_index*0x8d]
 .equ local_slot, 0x8  # [ebp - 0x8]: int16 slot loop index (increment done as a 16-bit add)
 .equ local_this, 0xc  # [ebp - 0xc]: this, spilled from ecx
 .equ arg_ptr_x, 0x8  # [ebp + 0x8]: int16 pointer X (caller pushes word at pointer+0x5e)
