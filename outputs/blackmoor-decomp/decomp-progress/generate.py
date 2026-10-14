@@ -7,8 +7,8 @@ It never reads or embeds original bytes.
 
 Two evidence modes:
 
-* baseline (default): matched code comes from the reviewed ``matches*.json``
-  manifests; no data bytes are matched yet.
+* baseline (default): matched code comes from reviewed ``matches*.json`` and
+  audited M03 ``asm/batch-*.json`` manifests; data items are excluded.
 * ledger (``--ledger``): a whole-file range ledger (see README.md, "Range
   ledger contract") supplies code/data kind and class for every file byte.
   This is the shape the M02 composer's coverage report is adapted to.
@@ -70,6 +70,11 @@ STATUS_BINDING = {
 PROVENANCE_RE = r"^[a-z][a-z0-9_]*$"
 LEDGER_CLASSES = {"structured", "reconstructed", "referenced"}
 LEDGER_KINDS = {"code", "data"}
+TOOL_ASSISTED = "tool_assisted_reconstructed_assembly"
+# Same pin as scripts/audit_tool_assisted.py. Only audit metadata is read here;
+# neither the assembler, objects nor GAME.EXE are needed for normal generation.
+M03_ASSEMBLER_SHA = "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"
+M03_ASSEMBLER_VERSION = "GNU assembler (GNU Binutils) 2.43.1"
 
 
 class ProgressError(Exception):
@@ -280,10 +285,125 @@ def bind_reviewed_artifacts(names, root: Path, evidence_dir: Path, status: dict 
     return out
 
 
+def audited_batch_evidence(layout: dict, out_dir: Path):
+    """Validate committed M03 claims against audit reports and source hashes.
+
+    Root's acceptance of the independent annotation review is a prerequisite
+    for publishing these batches; the audit report alone cannot prove it.
+    This consumer checks that the published source is still the audited source.
+    It does not rerun the audit or infer provenance from original machine bytes.
+    """
+    text = next(s for s in layout["sections"] if s["name"] == ".text")
+    rows, claims, inputs, batches, seen_sources, seen_functions = [], [], [], [], set(), {}
+    for path in sorted((out_dir / "asm").glob("batch-*.json")):
+        if not re.fullmatch(r"batch-[0-9]+\.json", path.name):
+            continue  # report files are not manifests
+        name = path.relative_to(out_dir).as_posix()
+        report_path = path.with_name(path.stem + "-report.json")
+        man, report = load_json(path), load_json(report_path)
+
+        def require(ok, reason):
+            if not ok:
+                raise ProgressError(f"{name}: {reason}")
+
+        try:
+            require(man["original_sha256"] == report["original_sha256"] == layout["original_sha256"],
+                    "audit/manifest does not describe the pinned GAME.EXE")
+            require(man["class"] == report["class_requested"] == TOOL_ASSISTED,
+                    "wrong tool-assisted provenance class")
+            require(man["batch"] == report["batch"] == path.stem.removeprefix("batch-"),
+                    "batch identity differs from its audit")
+            require(report["manifest_sha256"] == sha256_file(path), "manifest hash differs from audit")
+            require(report["all_accepted"] is True and report["errors"] == [], "batch audit not accepted")
+            assembler = report["assembler"]
+            require(assembler["sha256"] == M03_ASSEMBLER_SHA and
+                    assembler["version_line"] == M03_ASSEMBLER_VERSION, "audit assembler is not pinned")
+            functions, audited = man["functions"], report["functions"]
+            require(isinstance(functions, list) and len(functions) > 0 and isinstance(audited, list),
+                    "batch needs audited functions")
+            by_symbol = {f["function"]: f for f in audited}
+            require(len(by_symbol) == len(audited) == len(functions) == report["accepted_count"],
+                    "audit function count differs from manifest")
+            require(len({f["function"] for f in functions}) == len(functions), "duplicate function in batch")
+            require(sum(f["code"]["size"] for f in functions) == report["code_bytes_accepted"],
+                    "audit code byte total differs from manifest")
+            batch_ranges, batch_data = [], 0
+            for fn in functions:
+                a = by_symbol[fn["function"]]
+                code = fn["code"]
+                va, rva, size = int(fn["va"], 0), code["rva"], code["size"]
+                require(type(rva) is int and type(size) is int and size > 0 and
+                        rva >= text["rva"] and rva + size <= text["rva"] + text["virt_size"],
+                        "code extent is outside .text")
+                require(fn["function"] == code["symbol"] == f"FUN_{va:08x}" and
+                        va == layout["image_base"] + rva, "function symbol/VA/RVA disagree")
+                require(a["status"] == "accepted" and a["reasons"] == [] and
+                        a["relocations"] == 0 and a["code"] == code and a["va"] == va and
+                        a["region"] == fn["region"], "function differs from accepted audit")
+                require(re.fullmatch(r"[0-9a-f]{64}", code["sha256"]) is not None and
+                        re.fullmatch(r"[0-9a-f]{64}", a["object"]["sha256"]) is not None,
+                        "missing code/object hash in audit")
+                data = fn["data_items"]
+                require(len(data) == len(a["data_items"]) and
+                        all(all(item.get(k) == v for k, v in expected.items())
+                            for expected, item in zip(data, a["data_items"])),
+                        "data item split differs from audit")
+                data_size = sum(d["size"] for d in data)
+                require(a["compared_bytes"] == size + data_size, "audit did not compare the full extent")
+                source = (path.parent / fn["source"]).resolve()
+                require(source.parent == path.parent.resolve() and source.suffix == ".s", "bad source path")
+                require(a["source"]["path"] == fn["source"] and
+                        a["source"]["sha256"] == fn["source_sha256"] == sha256_file(source),
+                        "source hash differs from audit")
+                identity = (rva, size, code["sha256"])
+                require(va not in seen_functions or seen_functions[va] == identity,
+                        "conflicting audited code extents for the same function")
+                seen_functions[va] = identity
+                off = text["raw_off"] + rva - text["rva"]
+                rows.append((off, off + size, "reconstructed", name, code["symbol"]))
+                claims.append({"va": va, "size": size, "symbol": code["symbol"], "manifest": name,
+                               "provenance": TOOL_ASSISTED, "audited": True})
+                batch_ranges.append((off, off + size))
+                batch_data += data_size
+                if source not in seen_sources:
+                    seen_sources.add(source)
+                    inputs.append({"path": source.relative_to(out_dir.resolve()).as_posix(),
+                                   "sha256": fn["source_sha256"], "role": "audited-source"})
+            require(sum(e - s for s, e in merge_intervals(batch_ranges)) == report["code_bytes_accepted"],
+                    "code extents overlap within the batch")
+            batches.append({"manifest": name, "audit": report_path.relative_to(out_dir).as_posix(),
+                            "functions": len(functions), "code_bytes": report["code_bytes_accepted"],
+                            "excluded_data_bytes": batch_data, "source_hashes_checked": True,
+                            "assembler_sha256": assembler["sha256"],
+                            "assembler_version": assembler["version_line"]})
+            inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
+                           {"path": report_path.relative_to(out_dir).as_posix(),
+                            "sha256": sha256_file(report_path), "role": "audit"}])
+        except (KeyError, TypeError, ValueError, OSError) as exc:
+            raise ProgressError(f"{name}: malformed or unavailable audited evidence: {exc}") from exc
+    return rows, claims, inputs, batches
+
+
+def subtract_interval(s, e, claimed):
+    """Parts of [s,e) not already owned by sorted, merged intervals."""
+    pieces, pos = [], s
+    for a, b in claimed:
+        if b <= pos:
+            continue
+        if a >= e:
+            break
+        if a > pos:
+            pieces.append((pos, min(a, e)))
+        pos = max(pos, b)
+    if pos < e:
+        pieces.append((pos, e))
+    return pieces
+
+
 def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
     """Matched intervals (file offsets, class reconstructed) from manifests."""
     text = next(s for s in layout["sections"] if s["name"] == ".text")
-    ivs, inputs, prov = [], [], []
+    ivs, inputs, prov, claims = [], [], [], []
     for name in COUNTED_MANIFESTS:
         path = out_dir / name
         man = load_json(path)
@@ -291,18 +411,32 @@ def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
             raise ProgressError(f"{name}: does not describe the pinned GAME.EXE")
         for fn in man["functions"]:
             rva, size = int(fn["rva"]), int(fn["size"])
-            if rva < text["rva"] or rva + size > text["rva"] + text["virt_size"]:
+            if size <= 0 or rva < text["rva"] or rva + size > text["rva"] + text["virt_size"]:
                 raise ProgressError(f"{name}: {fn.get('symbol')} is outside .text")
             off = text["raw_off"] + (rva - text["rva"])
             ivs.append((off, off + size, "reconstructed", name, fn.get("symbol", "")))
             prov.append((off, off + size, MANIFEST_PROVENANCE[name]))
+            claims.append({"va": layout["image_base"] + rva, "size": size,
+                           "symbol": fn.get("symbol", ""), "manifest": name,
+                           "provenance": MANIFEST_PROVENANCE[name], "audited": False})
         inputs.append({"path": name, "sha256": sha256_file(path), "role": "counted"})
+    legacy = merge_intervals([(s, e) for s, e, *_ in ivs])
+    audited, audited_claims, audited_inputs, batches = audited_batch_evidence(layout, out_dir)
+    # Preserve the legacy provenance of overlapping bytes. Same-class batch
+    # duplicates are merged by build_model, so neither total can be inflated.
+    for s, e, *_ in audited:
+        prov.extend((a, b, TOOL_ASSISTED) for a, b in subtract_interval(s, e, legacy))
+    ivs.extend(audited)
+    inputs.extend(audited_inputs)
+    claims.extend(audited_claims)
     for name, why in sorted(EXCLUDED_MANIFESTS.items()):
         path = out_dir / name
         if path.exists():
             inputs.append({"path": name, "sha256": sha256_file(path), "role": "excluded",
                            "reason": why})
-    return ivs, {"mode": "baseline", "inputs": inputs, "provenance_ranges": prov}
+    return ivs, {"mode": "baseline", "inputs": inputs, "provenance_ranges": prov,
+                 "function_claims": claims, "tool_assisted_batches": batches,
+                 "legacy_matched_code": sum(e - s for s, e in legacy)}
 
 
 def ledger_evidence(layout: dict, ledger_path: Path, allow_partial: bool):
@@ -361,7 +495,7 @@ def overlap(ivs_sorted: list[list[int]], s: int, e: int) -> int:
 
 # ------------------------------------------------------------- accounting --
 
-def account(units, atoms, evidence_rows, mode):
+def account(units, atoms, evidence_rows, mode, complete_starts=None):
     """Fill per-atom code/data/matched figures from the evidence rows."""
     by_unit = {u["id"]: u for u in units}
     for u in units:
@@ -409,12 +543,40 @@ def account(units, atoms, evidence_rows, mode):
             u.pop("functions")
         else:
             u["function_count"] = len(u["functions"])
-            u["functions_complete"] = sum(1 for _, sz, mc, md in u["functions"] if mc + md == sz)
+            u["functions_complete"] = sum(
+                1 for va, sz, mc, md in u["functions"]
+                if (va in complete_starts if complete_starts is not None else mc + md == sz))
 
 
 def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status, sources):
     units, atoms = build_atoms(layout, index, band_bytes)
-    account(units, atoms, evidence_rows, evidence_meta["mode"])
+    matched_rows, function_classes, complete_starts = [], {}, None
+    if evidence_meta["mode"] == "baseline":
+        span_by_va = {a["va"]: a for a in atoms if a["kind"] == "code"}
+        complete_starts, by_extent = set(), {}
+        for claim in evidence_meta["function_claims"]:
+            va, size, p = claim["va"], claim["size"], claim["provenance"]
+            atom = span_by_va.get(va)
+            if claim["audited"] and (atom is None or size > atom["size"]):
+                raise ProgressError(f"{claim['manifest']}: audited code is outside its indexed function span")
+            complete = bool(claim["audited"] or
+                            (p != "exact_range_compiled_c_partial" and atom and size == atom["size"]))
+            function_classes.setdefault(p, set())
+            if complete:
+                function_classes[p].add(va)
+                complete_starts.add(va)
+            key = (va, size)
+            if key not in by_extent:
+                by_extent[key] = {k: claim[k] for k in ("va", "size", "symbol", "manifest", "provenance")}
+                by_extent[key].update(complete_function=complete, supporting_manifests=[], provenances=[])
+            row = by_extent[key]
+            row["complete_function"] |= complete
+            if claim["manifest"] not in row["supporting_manifests"]:
+                row["supporting_manifests"].append(claim["manifest"])
+            if p not in row["provenances"]:
+                row["provenances"].append(p)
+        matched_rows = [by_extent[k] for k in sorted(by_extent)]
+    account(units, atoms, evidence_rows, evidence_meta["mode"], complete_starts)
     group_labels = {r["id"]: r["label"] for r in layout["code_regions"]}
     group_labels.update({g["id"]: g["label"] for g in layout["data_groups"]})
     group_order = [r["id"] for r in layout["code_regions"]] + [g["id"] for g in layout["data_groups"]]
@@ -449,6 +611,7 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
         claimed = merge_intervals([tuple(c) for c in claimed] + [(a, b) for a, b in ivs])
         by_prov[p] = sum(b - a for a, b in ivs)
     totals["by_provenance"] = by_prov
+    totals["functions_by_provenance"] = {p: len(vas) for p, vas in sorted(function_classes.items())}
     totals["classified"] = totals["code"] + totals["data"]
     totals["unclassified"] = layout["file_size"] - totals["classified"]
     if totals["unclassified"] and evidence_meta.get("ledger_bytes_covered") is None:
@@ -458,29 +621,20 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
     if evidence_meta["mode"] == "baseline" and status is not None:
         want = status.get("unique_matched_bytes")
         crosscheck = {"status_json_unique_matched_bytes": want,
+                      "scope": "legacy match manifests only; audited M03 code is added separately",
+                      "computed_legacy_matched_code": evidence_meta["legacy_matched_code"],
                       "computed_matched_code": totals["matched_code"],
-                      "agrees": want == totals["matched_code"]}
-
-    matched_rows = []
+                      "additional_audited_code": totals["matched_code"] - evidence_meta["legacy_matched_code"],
+                      "agrees": want == evidence_meta["legacy_matched_code"]}
     if evidence_meta["mode"] == "baseline":
-        span_by_va = {a["va"]: a for a in atoms if a["kind"] == "code"}
-        seen = set()
-        for s, e, cls, src, sym in sorted(evidence_rows):
-            va = s + layout["image_base"]
-            key = (s, e)
-            if key in seen:
-                continue
-            seen.add(key)
-            atom = span_by_va.get(va)
-            matched_rows.append({
-                "va": va, "size": e - s, "symbol": sym, "manifest": src,
-                "complete_function": bool(atom and atom["size"] == e - s)})
-        totals["functions_complete_manifest"] = sum(1 for r in matched_rows if r["complete_function"])
+        totals["functions_complete_manifest"] = len(complete_starts)
     return {
         "schema": SCHEMA,
         "original_sha256": layout["original_sha256"],
         "file_size": layout["file_size"],
-        "evidence": {**{k: v for k, v in evidence_meta.items() if k != "provenance_ranges"}, "sources": sources, "crosscheck": crosscheck},
+        "evidence": {**{k: v for k, v in evidence_meta.items()
+                        if k not in ("provenance_ranges", "function_claims")},
+                     "sources": sources, "crosscheck": crosscheck},
         "unit_definition": ("Code units are address bands of the indexed function spans "
                             f"({band_bytes // 1024} KiB bands within each code region), a stand-in "
                             "for translation units until a unit map exists. Data units are "
@@ -523,9 +677,13 @@ def matched_meaning(model: dict) -> str:
     ev = model["evidence"]
     ver = ev.get("verification", {})
     if ev["mode"] == "baseline":
-        how = ("manifest ranges that the repository verifier confirmed byte-exact in this run"
+        how = ("legacy manifest ranges that the repository verifier confirmed byte-exact in this run"
                if ver.get("run") else
-               "manifest ranges taken as given and not re-verified in this run")
+               "legacy manifest ranges taken as given and not re-verified in this run")
+        if ev.get("tool_assisted_batches"):
+            how += (", plus audited M03 code extents bound to the committed source hashes. "
+                    "M03 byte comparison and root acceptance of independent annotation review "
+                    "are prior evidence, not rerun here")
     elif ver.get("run") and ver.get("kind") == "composed image hash":
         how = ("composer ledger ranges classed `reconstructed` or `structured`; the composed "
                "image hash was checked in this run, the classes are the composer's declaration")
@@ -561,9 +719,15 @@ def write_report(model, path: Path):
         "",
         matched_meaning(model),
         "",
-        "| Matched bytes by provenance | Bytes |",
-        "|---|---:|",
-        *([f"| `{p}` | {n:,} |" for p, n in t["by_provenance"].items()] or ["| none | 0 |"]),
+        "| Provenance | Unique matched bytes | Complete function claims |",
+        "|---|---:|---:|",
+        *([f"| `{p}` | {n:,} | {t['functions_by_provenance'].get(p, 'n/a')} |"
+           for p, n in t["by_provenance"].items()] or ["| none | 0 | 0 |"]),
+        *(["", "Legacy classes keep overlapping bytes; M03 receives the remaining unique bytes. "
+           "Complete function claims are deduplicated within each class but can overlap between "
+           "classes; the total above counts each function once. An audited code extent can be "
+           "complete even when its indexed span also contains unmatched tables or padding."]
+          if ev["mode"] == "baseline" else []),
         "",
         "## By group",
         "",
@@ -584,10 +748,11 @@ def write_report(model, path: Path):
         lines.append("None yet.")
     if model["matched_ranges"]:
         lines += ["", "## Matched ranges (from manifests)", "",
-                  "| VA | Bytes | Symbol | Manifest | Whole indexed function |",
-                  "|---|---:|---|---|---|"]
+                  "| VA | Code bytes | Symbol | Manifests | Provenance classes | Complete code function |",
+                  "|---|---:|---|---|---|---|"]
         for r in model["matched_ranges"]:
-            lines.append(f"| 0x{r['va']:08x} | {r['size']} | `{r['symbol']}` | {r['manifest']} | "
+            lines.append(f"| 0x{r['va']:08x} | {r['size']} | `{r['symbol']}` | "
+                         f"{', '.join(r['supporting_manifests'])} | {', '.join(r['provenances'])} | "
                          f"{'yes' if r['complete_function'] else 'no (partial range)'} |")
     notes = [f"- {model['unit_definition']}"]
     if ev["mode"] == "baseline":
@@ -596,8 +761,9 @@ def write_report(model, path: Path):
             "also holds the function's switch jump tables and `int 3` padding "
             "(about 10.9 KB in all, M0 report section 3), so baseline code is slightly "
             "overstated and baseline data slightly understated until the M02 ledger splits them.",
-            "- Data progress is 0 until the composer reproduces data ranges; no data evidence "
-            "exists in the repository today."]
+            "- M03 tables and padding are excluded from matched code; their data items are "
+            "handed to M02. Baseline mode does not ingest composer data evidence; use a ledger "
+            "to count structured/reconstructed data."]
     else:
         notes += [
             "- Code and data totals come from the composer ledger, where every classified byte has "
@@ -612,7 +778,7 @@ def write_report(model, path: Path):
         lines += ["", f"The composed image was hashed in this run and equals the pinned GAME.EXE "
                   f"(`{ver['image_sha256']}`). {ver['scope']}"]
     elif ver.get("run"):
-        lines += ["", "Manifests re-verified against the original in this run with "
+        lines += ["", "Legacy manifests re-verified against the original in this run with "
                   f"`scripts/verify_matches.py` (sha256 `{ver['verifier_sha256']}`): "
                   f"{', '.join(sorted(ver['manifests']))}, all exact."]
         bound = sorted(n for n, m in ver["manifests"].items() if m.get("bound_to_reviewed_hashes"))
@@ -622,12 +788,25 @@ def write_report(model, path: Path):
                   f"{', '.join(unbound) or 'none'} (partial 7-byte C ranges). A fresh reassembly with "
                   "the pinned assembler is not rerun here; the slice audits own that."]
     else:
-        lines += ["", f"Evidence was **not** re-verified in this run ({ver.get('reason', 'not run')})."]
+        lines += ["", f"Byte evidence was **not** re-verified in this run ({ver.get('reason', 'not run')})."]
+    if ev.get("tool_assisted_batches"):
+        lines += ["", "## Audited M03 batches", "",
+                  "| Manifest | Functions | Audited code bytes | Excluded data bytes |",
+                  "|---|---:|---:|---:|"]
+        for b in ev["tool_assisted_batches"]:
+            lines += [f"| {b['manifest']} | {b['functions']} | {b['code_bytes']:,} | {b['excluded_data_bytes']:,} |"]
+        lines += ["", "Audit manifest hashes, accepted function records, pinned GNU assembler 2.43.1 "
+                  "metadata and current source hashes were checked in this run. The audit reports "
+                  "record object/code hashes, no relocations and exact comparisons of code and "
+                  "separate data items. The assembler and original executable are not read by "
+                  "this metadata check. Publication relies on root's accepted independent review "
+                  "of each batch; an audit alone is not review acceptance."]
     ck = ev.get("crosscheck")
     if ck:
-        lines += ["", f"Cross-check against `status.json` unique_matched_bytes "
+        lines += ["", f"Cross-check of **legacy manifests only** against `status.json` unique_matched_bytes "
                   f"({ck['status_json_unique_matched_bytes']}): "
-                  f"{'agrees' if ck['agrees'] else 'DISAGREES'}."]
+                  f"{'agrees' if ck['agrees'] else 'DISAGREES'}. "
+                  f"Audited M03 adds {ck['additional_audited_code']:,} unique code bytes."]
     lines += ["", "## Sources", ""]
     for s in ev["sources"]:
         lines.append(f"- `{s['path']}` sha256 `{s['sha256']}` ({s['role']})")
@@ -700,12 +879,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out-dir", type=Path, default=HERE, help="where to write outputs")
     ap.add_argument("--evidence-dir", type=Path, default=OUT,
-                    help="directory holding function-index.json, matches*.json, status.json")
+                    help="directory holding function-index.json, matches*.json, asm/batch-*.json, status.json")
     ap.add_argument("--layout", type=Path, default=HERE / "layout.json")
     ap.add_argument("--ledger", type=Path, help="whole-file range ledger (M02-shaped)")
     ap.add_argument("--allow-partial-ledger", action="store_true")
     ap.add_argument("--verify-original", type=Path, metavar="GAME.EXE",
-                    help="re-run scripts/verify_matches.py on every counted manifest against "
+                    help="re-run scripts/verify_matches.py on the legacy match manifests against "
                          "this original; any non-exact manifest is an error")
     ap.add_argument("--verify-root", type=Path,
                     help="directory holding the manifests and their build/ objects "
@@ -758,7 +937,8 @@ def main(argv=None) -> int:
                     meta["verification"]["manifests"][n].update(b)
             else:
                 meta["verification"] = {"run": False,
-                                        "reason": "manifests trusted; pass --verify-original to re-verify"}
+                                        "reason": "legacy manifests trusted; pass --verify-original to re-verify them; "
+                                                  "M03 audits are prior evidence with current source hashes checked"}
         sources = [{"path": "function-index.json", "sha256": sha256_file(index_path), "role": "index"},
                    {"path": "layout.json", "sha256": sha256_file(args.layout), "role": "layout"}]
         sources += meta.pop("inputs")

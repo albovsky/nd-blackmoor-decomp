@@ -34,6 +34,19 @@ class RepoEvidenceTests(unittest.TestCase):
         rc = GEN.main(["--out-dir", str(cls.out)])
         assert rc == 0
         cls.model = json.loads((cls.out / "progress.json").read_text())
+        # Independent byte-set accounting checks the interval implementation
+        # against whichever reviewed batches root has collected in this checkout.
+        cls.audited_vas, cls.audited_bytes, cls.legacy_bytes = set(), set(), set()
+        for path in sorted((EVIDENCE / "asm").glob("batch-*.json")):
+            if not re.fullmatch(r"batch-[0-9]+\.json", path.name):
+                continue
+            for fn in json.loads(path.read_text())["functions"]:
+                cls.audited_vas.add(int(fn["va"], 0))
+                code = fn["code"]
+                cls.audited_bytes.update(range(code["rva"], code["rva"] + code["size"]))
+        for name in GEN.COUNTED_MANIFESTS:
+            for fn in json.loads((EVIDENCE / name).read_text())["functions"]:
+                cls.legacy_bytes.update(range(fn["rva"], fn["rva"] + fn["size"]))
 
     @classmethod
     def tearDownClass(cls):
@@ -60,8 +73,8 @@ class RepoEvidenceTests(unittest.TestCase):
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 17920)
-        self.assertEqual(a["opaque"]["records"], 1692)
+        self.assertEqual(a["typed"]["records"], 18951)
+        self.assertEqual(a["opaque"]["records"], 661)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -99,19 +112,35 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertIn("provider scene-resource", report)
         self.assertIn("774 discovered; 769 passed; 5 skipped", report)
 
-    def test_matched_bytes_agree_with_status_json(self):
+    def test_audited_code_is_added_to_the_legacy_status_baseline(self):
         t = self.model["totals"]
-        self.assertEqual(t["matched_code"], 398)
+        self.assertTrue(self.audited_vas)
+        self.assertEqual(len(self.legacy_bytes), 398)
+        self.assertEqual(t["matched_code"], len(self.legacy_bytes | self.audited_bytes))
         self.assertEqual(t["matched_data"], 0)
         self.assertTrue(self.model["evidence"]["crosscheck"]["agrees"])
-        self.assertEqual(t["functions_complete"], 11)
+        self.assertEqual(self.model["evidence"]["crosscheck"]["computed_legacy_matched_code"], 398)
+        self.assertEqual(t["functions_complete"], len(self.audited_vas))
 
     def test_provenance_classes_stay_separate(self):
         bp = self.model["totals"]["by_provenance"]
         self.assertEqual(bp, {"exact_range_compiled_c_partial": 14,
-                              "explicit_reconstructed_assembly_source": 384})
-        self.assertNotIn("tool_assisted_reconstructed_assembly", bp)
+                              "explicit_reconstructed_assembly_source": 384,
+                              "tool_assisted_reconstructed_assembly": len(self.audited_bytes - self.legacy_bytes)})
+        self.assertEqual(self.model["totals"]["functions_by_provenance"], {
+            "exact_range_compiled_c_partial": 0,
+            "explicit_reconstructed_assembly_source": 11,
+            "tool_assisted_reconstructed_assembly": len(self.audited_vas)})
+        self.assertEqual(sum(bp.values()), self.model["totals"]["matched_code"])
         self.assertIn("exact_range_compiled_c_partial", (self.out / "REPORT.md").read_text())
+
+    def test_committed_x86_outputs_have_not_drifted(self):
+        committed = json.loads((HERE / "progress.json").read_text())
+        for key in ("totals", "groups", "units", "matched_ranges"):
+            self.assertEqual(self.model[key], committed[key], "Refresh progress after new audited batches")
+        report = (self.out / "REPORT.md").read_text()
+        self.assertIn("tool_assisted_reconstructed_assembly", report)
+        self.assertIn("Complete function claims", report)
 
     def test_cpp_candidate_manifest_is_not_counted(self):
         roles = {s["path"]: s["role"] for s in self.model["evidence"]["sources"]}
@@ -183,15 +212,15 @@ class RepoEvidenceTests(unittest.TestCase):
             out = pathlib.Path(d) / "out"
             self.assertEqual(GEN.main(["--out-dir", str(out), "--ledger", str(led)]), 0)
             m = json.loads((out / "progress.json").read_text())
-        self.assertEqual(m["totals"]["matched_code"], 398)
+        self.assertEqual(m["totals"]["matched_code"], self.model["totals"]["matched_code"])
         self.assertEqual(m["totals"]["matched_data"], 4096)
         self.assertEqual(m["totals"]["code"], 1213018)
 
     def test_report_notes_follow_the_mode(self):
         text = (self.out / "REPORT.md").read_text()
-        self.assertIn("no data evidence", text)
+        self.assertIn("tables and padding are excluded", text)
         mini = MiniFixtureReport()
-        self.assertNotIn("no data evidence", mini)
+        self.assertNotIn("tables and padding are excluded", mini)
 
     def test_cross_provenance_overlap_is_rejected(self):
         layout = GEN.load_layout(HERE / "layout.json")
@@ -483,6 +512,152 @@ class MiniFixture(unittest.TestCase):
             GEN.build_atoms(self.layout, self.index, 0x4000)
 
 
+class AuditedBatchTests(unittest.TestCase):
+    """Small file-backed claims catch inflation, stale audits and span/code confusion."""
+
+    def setUp(self):
+        MiniFixture.setUp(self)
+        self.asm = self.dir / "asm"
+        self.asm.mkdir()
+        for name in GEN.COUNTED_MANIFESTS:
+            functions = []
+            if name == "matches_s08_2_x86.json":
+                functions = [{"rva": 0x100, "size": 0x20, "symbol": "_FUN_00400100"}]
+            elif name == "matches.json":
+                functions = [{"rva": 0x128, "size": 4, "symbol": "_FUN_00400128"}]
+            write(self.dir / name, {"original_sha256": SHA, "functions": functions})
+        self.create_batch("001", [(0x400100, 0x20), (0x400120, 0x18)])
+
+    tearDown = MiniFixture.tearDown
+
+    def create_batch(self, batch, extents):
+        functions, audited = [], []
+        for va, size in extents:
+            symbol = f"FUN_{va:08x}"
+            source = symbol + ".s"
+            path = self.asm / source
+            path.write_text("# synthetic annotated-source fixture\n")
+            source_sha = GEN.sha256_file(path)
+            code = {"symbol": symbol, "rva": va - 0x400000, "size": size,
+                    "sha256": hashlib_sha(symbol)}
+            data = ([{"kind": "padding", "rva": 0x138, "size": 8,
+                      "symbol": "PAD_00400138", "sha256": hashlib_sha("padding")}]
+                    if va == 0x400120 else [])
+            functions.append({"function": symbol, "va": f"0x{va:08x}", "source": source,
+                              "source_sha256": source_sha, "region": "game",
+                              "evidence_id": "fixture", "code": code, "data_items": data})
+            audited.append({"function": symbol, "va": va, "region": "game", "code": code,
+                            "data_items": data, "status": "accepted", "reasons": [],
+                            "relocations": 0, "compared_bytes": size + sum(d["size"] for d in data),
+                            "contains_original_byte_values": False, "basic_blocks": 1,
+                            "source": {"path": source, "sha256": source_sha},
+                            "object": {"sha256": hashlib_sha("object"), "size": size}})
+        manifest = self.asm / f"batch-{batch}.json"
+        write(manifest, {"batch": batch, "class": "tool_assisted_reconstructed_assembly",
+                         "original_sha256": SHA, "functions": functions})
+        write(self.asm / f"batch-{batch}-report.json", {
+            "batch": batch, "class_requested": "tool_assisted_reconstructed_assembly",
+            "original_sha256": SHA, "manifest_sha256": GEN.sha256_file(manifest),
+            "all_accepted": True, "errors": [], "accepted_count": len(audited),
+            "code_bytes_accepted": sum(f["code"]["size"] for f in audited),
+            "contains_original_byte_values": False, "functions": audited,
+            "assembler": {"version_line": "GNU assembler (GNU Binutils) 2.43.1",
+                          "sha256": "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"}})
+
+    def model(self):
+        rows, meta = GEN.baseline_evidence(self.layout, self.dir)
+        return GEN.build_model(self.layout, self.index, rows, meta, 0x4000,
+                               {"unique_matched_bytes": 36}, [])
+
+    def mutate_report(self, change):
+        path = self.asm / "batch-001-report.json"
+        report = GEN.load_json(path)
+        change(report)
+        write(path, report)
+
+    def test_overlap_priority_and_code_only_function_completeness(self):
+        model = self.model()
+        t = model["totals"]
+        # 32 explicit + 24 audited, with a 4-byte C range inside the latter.
+        self.assertEqual((t["matched_code"], t["matched_data"]), (56, 0))
+        self.assertEqual(t["by_provenance"], {
+            "exact_range_compiled_c_partial": 4,
+            "explicit_reconstructed_assembly_source": 32,
+            "tool_assisted_reconstructed_assembly": 20})
+        self.assertEqual(t["functions_complete"], 2)
+        self.assertEqual(t["functions_by_provenance"], {
+            "exact_range_compiled_c_partial": 0,
+            "explicit_reconstructed_assembly_source": 1,
+            "tool_assisted_reconstructed_assembly": 2})
+        self.assertTrue(model["evidence"]["crosscheck"]["agrees"])
+        second = next(r for r in model["matched_ranges"] if r["va"] == 0x400120)
+        self.assertEqual(second["size"], 24)
+        self.assertTrue(second["complete_function"])
+        unit = next(u for u in model["units"] if u["kind"] == "code")
+        self.assertEqual(unit["functions_complete"], 2)
+        self.assertEqual(unit["functions"][1], [0x400120, 32, 24, 0])
+
+    def test_new_batches_are_discovered_and_repeated_claims_are_deduplicated(self):
+        self.create_batch("002", [(0x400120, 0x18)])
+        model = self.model()
+        self.assertEqual(model["totals"]["matched_code"], 56)
+        self.assertEqual(model["totals"]["functions_complete"], 2)
+        self.assertEqual(model["totals"]["functions_by_provenance"]["tool_assisted_reconstructed_assembly"], 2)
+        self.assertEqual(len(model["evidence"]["tool_assisted_batches"]), 2)
+
+    def test_contradictory_code_extents_are_rejected(self):
+        self.create_batch("002", [(0x400120, 0x19)])
+        with self.assertRaisesRegex(GEN.ProgressError, "conflicting audited"):
+            self.model()
+
+    def test_changed_source_is_not_counted(self):
+        (self.asm / "FUN_00400120.s").write_text("# edited after audit\n")
+        with self.assertRaisesRegex(GEN.ProgressError, "source hash"):
+            self.model()
+
+    def test_missing_audit_is_not_counted(self):
+        (self.asm / "batch-001-report.json").unlink()
+        with self.assertRaises(GEN.ProgressError):
+            self.model()
+
+    def test_changed_manifest_is_not_counted(self):
+        path = self.asm / "batch-001.json"
+        manifest = GEN.load_json(path)
+        manifest["functions"][1]["code"]["size"] += 1
+        write(path, manifest)
+        with self.assertRaisesRegex(GEN.ProgressError, "manifest hash"):
+            self.model()
+
+    def test_incomplete_or_unpinned_audit_is_rejected(self):
+        changes = [
+            lambda r: r.update(all_accepted=False),
+            lambda r: r.update(errors=["failed audit"]),
+            lambda r: r.update(original_sha256="0" * 64),
+            lambda r: r.update(accepted_count=1),
+            lambda r: r.update(code_bytes_accepted=55),
+            lambda r: r["assembler"].update(version_line="Apple assembler"),
+            lambda r: r["assembler"].update(sha256="0" * 64),
+            lambda r: r["functions"][1].update(status="rejected"),
+            lambda r: r["functions"][1].update(relocations=1),
+            lambda r: r["functions"][1].update(compared_bytes=23),
+            lambda r: r["functions"][1]["code"].update(size=25),
+            lambda r: r["functions"][1]["source"].update(sha256="0" * 64),
+            lambda r: r["functions"].pop(),
+        ]
+        original = (self.asm / "batch-001-report.json").read_text()
+        for change in changes:
+            with self.subTest(change=change):
+                (self.asm / "batch-001-report.json").write_text(original)
+                self.mutate_report(change)
+                with self.assertRaises(GEN.ProgressError):
+                    self.model()
+
+    def test_audited_claim_cannot_cross_an_indexed_function_boundary(self):
+        self.create_batch("001", [(0x400100, 0x21)])
+        with self.assertRaisesRegex(GEN.ProgressError, "indexed function span"):
+            self.model()
+
+
 class RegistrationDriftTests(unittest.TestCase):
     """Source mutations exercise the independent registration cross-checks."""
 
@@ -531,10 +706,10 @@ class RegistrationDriftTests(unittest.TestCase):
 
     def test_new_parser_layout_moves_opaque_records_to_typed(self):
         self.change("src/scene_resource.c", "default:\n        return 0;",
-                    "case 0x35: fixed_length = 1u; break;\n    default:\n        return 0;")
+                    "case 0x3e: fixed_length = 1u; break;\n    default:\n        return 0;")
         changed = GEN.PLAYABLE.derive_actions(self.out)
-        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 113)
-        self.assertIn("0x35", changed["unsupported"]["types"])
+        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + 202)
+        self.assertIn("0x3e", changed["unsupported"]["types"])
         self.assertNotEqual(changed, self.original)
 
     def test_stale_committed_test_totals_are_rejected(self):

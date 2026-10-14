@@ -185,7 +185,7 @@ if(D.playable){
 $("fsize").textContent = fmt(D.file_size);
 $("sha").textContent = D.original_sha256.slice(0,16)+"…";
 $("sha").title = D.original_sha256;
-$("mode").textContent = D.evidence.mode === "ledger" ? "Source: composer range ledger" : "Source: reviewed match manifests";
+$("mode").textContent = D.evidence.mode === "ledger" ? "Source: composer range ledger" : "Source: match manifests and audited M03 batches";
 
 function barCard(title, matched, total, cls, note){
   const w = total ? Math.max(matched ? 0.25 : 0, 100*matched/total) : 0;
@@ -200,10 +200,10 @@ $("bars").innerHTML =
 $("facts").innerHTML =
   `<span><b>${fmt(T.functions_complete)}</b> of ${fmt(T.functions)} indexed functions fully matched</span>` +
   `<span><b>${fmt(D.units.filter(u=>u.matched_code||u.matched_data).length)}</b> of ${fmt(D.units.length)} units touched</span>` +
-  Object.entries(T.by_provenance||{}).map(([p,n])=>`<span>${p.replace(/_/g," ")}: <b>${fmt(n)} B</b></span>`).join("") +
+  Object.entries(T.by_provenance||{}).map(([p,n])=>`<span>${p.replace(/_/g," ")}: <b>${fmt(n)} B</b>${p in (T.functions_by_provenance||{}) ? ` · ${fmt(T.functions_by_provenance[p])} complete function claims` : ""}</span>`).join("") +
   `<span>Whole-file rebuild: <b>incomplete</b></span>` +
   (T.unclassified ? `<span><b>${fmt(T.unclassified)}</b> bytes unclassified (partial ledger)</span>` : "") +
-  `<span>Evidence re-verified this run: <b>${D.evidence.verification && D.evidence.verification.run ? "yes" : "no"}</b></span>`;
+  `<span>${D.evidence.mode === "baseline" ? "Legacy byte ranges" : "Composed image"} re-verified this run: <b>${D.evidence.verification && D.evidence.verification.run ? "yes" : "no"}</b></span>`;
 
 /* ---------- squarified treemap ---------- */
 function squarify(items, x, y, w, h){
@@ -375,7 +375,8 @@ function drawUnit(u,W,H,pad,S){
     }
     if(r.w>56 && r.h>14){ const t=el("text",{x:r.x+4,y:r.y+12},g); t.textContent=trunc(hex(f[0]),r.w-8);
       if(full) t.setAttribute("style","fill:#fff"); }
-    bindTip(g, tipHtml(hex(f[0],8), [["Span",fmt(f[1])+" B"],["Matched code",fmt(mc)+" B"],["Matched data",fmt(md)+" B"],["State", full?"fully matched":part?"partial range":"not done"]]));
+    const codeComplete = D.matched_ranges.some(r=>r.va===f[0] && r.complete_function);
+    bindTip(g, tipHtml(hex(f[0],8), [["Span",fmt(f[1])+" B"],["Matched code",fmt(mc)+" B"],["Matched data",fmt(md)+" B"],["State", full?"fully matched span":codeComplete?"complete code; tables/padding unmatched":part?"partial range":"not done"]]));
   }
 }
 
@@ -410,13 +411,13 @@ function setView(v){
 const ev = D.evidence;
 $("notes").innerHTML =
   `<h3>What the colours mean</h3>
-   <p>Green is code counted as byte-exact against the original${D.evidence.verification && D.evidence.verification.run ? ", re-verified in this run" : ", taken as declared and not re-verified in this run"}; the facts line above splits it by provenance (for example explicit reconstructed assembly versus an exact partial range compiled from C). Blue (hatched) is data the composer declares as generated${D.evidence.verification && D.evidence.verification.run && D.evidence.verification.kind==="composed image hash" ? ", with the composed image hash checked in this run" : " (not verified against a composed image in this run)"}. Grey is everything else: unreconstructed, or still copied from the local original and therefore reported, never counted, as matched.</p>
+   <p>Green is code counted as byte-exact against the original. ${ev.mode==="baseline" ? `Legacy match ranges are ${ev.verification && ev.verification.run ? "re-verified in this run" : "taken as declared and not re-verified in this run"}. M03 code extents use committed audit reports and current source hashes; their byte comparison and independent annotation review are prior evidence, not rerun here.` : "Code classes come from the composer ledger."} The facts above keep explicit assembly, tool-assisted assembly and partial C ranges separate. Byte totals are unique: legacy classes keep overlapping bytes. Complete function claims can overlap between classes; the function total counts each once. Blue (hatched) is data the composer declares as generated${ev.verification && ev.verification.run && ev.verification.kind==="composed image hash" ? ", with the composed image hash checked in this run" : " (not verified against a composed image in this run)"}. Grey is everything else: unreconstructed, or still copied from the local original and therefore reported, never counted, as matched.</p>
    <h3>Units</h3><p>${D.unit_definition} Tile area is bytes.</p>
    <h3>Limits</h3>
-   <p>Matched is a byte-exact claim, not a claim of original C++ or compiler provenance. ${ev.mode==="baseline" ? "Baseline code totals are function spans, which also hold jump tables and <code>int 3</code> padding (about 10.9 KB), and no data range has composer evidence yet, so data stays at zero. Both change when the composer ledger is supplied." : "Totals come from the composer ledger, where every byte has a kind and a class. Those classes are the composer's own declaration: this page checks the composed image hash when one is supplied, but cannot tell reconstructed bytes from referenced original bytes by itself."} Whole-file x86 match and native gameplay are both still required for completion.</p>
+   <p>Matched is a byte-exact claim, not a claim of original C++ or compiler provenance. ${ev.mode==="baseline" ? "Baseline code totals are indexed spans, which also hold jump tables and <code>int 3</code> padding. Audited M03 code can be complete while those data bytes remain unmatched. M03 tables and padding are excluded from matched code, and composer data evidence is not ingested in this mode. Denominators and data coverage change when a composer ledger is supplied. Published M03 batches require root acceptance of independent annotation review; an audit alone is not review acceptance." : "Totals come from the composer ledger, where every byte has a kind and a class. Those classes are the composer's own declaration: this page checks the composed image hash when one is supplied, but cannot tell reconstructed bytes from referenced original bytes by itself."} Whole-file x86 match and native gameplay are both still required for completion.</p>
    <h3>Sources</h3>
    <p class="mono">${ev.sources.map(s=>`${s.path} ${s.sha256.slice(0,12)} (${s.role})`).join("<br>")}</p>
-   ${ev.crosscheck? `<p>Cross-check with status.json (${fmt(ev.crosscheck.status_json_unique_matched_bytes)} matched bytes): <b>${ev.crosscheck.agrees?"agrees":"DISAGREES"}</b>.</p>`:""}`;
+   ${ev.crosscheck? `<p>Legacy-only cross-check with status.json (${fmt(ev.crosscheck.status_json_unique_matched_bytes)} matched bytes): <b>${ev.crosscheck.agrees?"agrees":"DISAGREES"}</b>. Audited M03 adds ${fmt(ev.crosscheck.additional_audited_code)} unique code bytes.</p>`:""}`;
 
 /* ---------- wiring ---------- */
 $("q").addEventListener("input",e=>{ state.q=e.target.value; if(state.view==="tree") render(); });
