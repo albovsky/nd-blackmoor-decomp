@@ -491,6 +491,24 @@ class AuditorMutants(unittest.TestCase):
         )
         self.assertTrue(any("unnamed register-relative offset" in r for r in reasons), reasons)
 
+    def test_raw_and_default_named_field_offsets_are_rejected(self) -> None:
+        body = "# FUN_00401000\n# frame:        none\nFUN_00401000:\n    {operand}\n    ret\n"
+        for operand, needle in (
+            ("mov eax, dword ptr [ecx + 0x18]", "unnamed register-relative offset"),
+            ("mov eax, dword ptr [esp + 4]", "unnamed register-relative offset"),
+            ("mov eax, dword ptr [ecx + field_18]", "placeholder name"),
+        ):
+            reasons, _ = audit.audit_source(body.format(operand=operand), {}, "FUN_00401000")
+            self.assertTrue(any(needle in r for r in reasons), (operand, reasons))
+        ok, _ = audit.audit_source(body.format(operand="mov eax, dword ptr [ecx + 0x5c3a00]"), {}, "FUN_00401000")
+        self.assertFalse(any("register-relative" in r for r in ok), ok)
+
+    def test_index_table_must_name_its_owner_and_switch(self) -> None:
+        va = BASE + fixture.F_SWITCH
+        label_comment = f"index table of FUN_{va:08x} for the switch jump at"
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, label_comment, "index table of someone else for the switch jump at"))
+        self.rejected(report, va, "not labeled with its owning function and switch")
+
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
         tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)

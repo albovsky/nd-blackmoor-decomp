@@ -264,6 +264,33 @@ class RenderTests(SyntheticMixin, unittest.TestCase):
         self.assertEqual(accounted, totals["span_bytes"])
 
 
+class FieldSymbolTests(unittest.TestCase):
+    def test_field_and_stack_displacements_become_symbols(self) -> None:
+        sub = gen._FIELD_DISP.sub
+        calls = []
+
+        def repl(m):
+            name = gen.field_symbol(m.group("base"), m.group("sign"), int(m.group("mag"), 16))
+            calls.append(name)
+            return f"[{m.group('base')}{m.group('index')} {m.group('sign')} {name}]"
+
+        self.assertEqual(sub(repl, "mov eax, dword ptr [ecx + 0x18]"), "mov eax, dword ptr [ecx + field_18]")
+        self.assertEqual(sub(repl, "mov eax, dword ptr [esp + 0x4]"), "mov eax, dword ptr [esp + stk_4]")
+        self.assertEqual(sub(repl, "lea eax, [eax + 4*edx - 0x8]"), "lea eax, [eax + 4*edx - field_minus_8]")
+        self.assertEqual(sub(repl, "mov eax, dword ptr [0x5c39e5]"), "mov eax, dword ptr [0x5c39e5]")
+        self.assertEqual(calls, ["field_18", "stk_4", "field_minus_8"])
+
+    def test_retrofit_adds_equ_lines_and_leaves_instructions_alone(self) -> None:
+        source = (
+            "# FUN_00401000\n.intel_syntax noprefix\n\n# --- external targets ---\n.org 0x1000 - 0x401000\n"
+            "FUN_00401000:\n    mov eax, dword ptr [ecx + 0x18]    # 00401000\n    ret\n"
+        )
+        out = gen.add_field_symbols(source)
+        self.assertIn(".equ field_18, 0x18", out)
+        self.assertIn("[ecx + field_18]", out)
+        self.assertEqual(out.count("ret"), 1)
+
+
 class HintTests(unittest.TestCase):
     def insn(self, raw: str, mnem: str, ops: str, addr: int = 0x401000):
         return gen.Insn(addr, bytes.fromhex(raw), mnem, ops)
