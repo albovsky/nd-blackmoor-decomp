@@ -324,6 +324,14 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             continue
         code_lines.append(line)
         last_code_mnemonic = mnemonic_of(code)
+        if last_code_mnemonic in gen._COND_JUMPS or last_code_mnemonic in ("jmp", "call"):
+            tokens = code.split()
+            while tokens and _HINT.match(tokens[0]):
+                tokens.pop(0)
+            operand = " ".join(tokens[1:])
+            if not re.fullmatch(r"[A-Za-z_]\w*", operand) and not re.fullmatch(r"\. \+ \(-?\d+\)", operand):
+                if not operand.startswith(("dword ptr", "e")) or "[" not in operand and not re.fullmatch(r"e[a-z]{2}", operand):
+                    reasons.append(f"line {line.number}: direct branch operand {operand!r} is neither a label nor the audited short-branch form")
         note = _SHORT_BRANCH_NOTE.search(code)
         if note:
             named = re.search(r"-> ((?:FUN|LOC)_[0-9a-f]{8})(?: # ([0-9a-f]{8}))?", line.raw)

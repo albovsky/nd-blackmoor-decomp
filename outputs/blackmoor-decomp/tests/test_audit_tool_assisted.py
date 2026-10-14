@@ -453,6 +453,11 @@ class AuditorMutants(unittest.TestCase):
         report, _w, _m = self.batch(mutate=shift)
         self.rejected(report, va, "is not the text base")
 
+    def test_location_relative_branch_operand_is_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _w, _m = self.batch(mutate=lambda w: self.edit(w, va, "jmp.d8 L_", "jmp.d8 . + 0x0 + L_") if False else self.edit(w, va, "call FUN_" + f"{BASE + fixture.F_LEAF:08x}", "call . + 0x20"))
+        self.rejected(report, va, "direct branch operand")
+
     def test_table_symbol_must_name_its_table(self) -> None:
         va = BASE + fixture.F_SWITCH
         tab = re.search(r"SWTAB_([0-9a-f]{8})_VA", (self.pristine / f"FUN_{va:08x}.s").read_text(encoding="utf-8")).group(1)
