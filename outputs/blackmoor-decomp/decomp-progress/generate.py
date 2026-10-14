@@ -166,6 +166,7 @@ def verify_manifests(names, root: Path, original: Path, verifier: Path = VERIFIE
     """
     import subprocess
     import tempfile
+    original, root, verifier = original.resolve(), root.resolve(), verifier.resolve()
     if not original.is_file():
         raise ProgressError(f"original executable not found: {original}")
     if sha256_file(original) != PINNED_SHA:
@@ -462,7 +463,7 @@ def write_report(model, path: Path):
     ver = ev.get("verification", {})
     if ver.get("run") and ver.get("kind") == "composed image hash":
         lines += ["", f"The composed image was hashed in this run and equals the pinned GAME.EXE "
-                  f"(`{ver['image_sha256']}`)."]
+                  f"(`{ver['image_sha256']}`). {ver['scope']}"]
     elif ver.get("run"):
         lines += ["", "Manifests re-verified against the original in this run with "
                   f"`scripts/verify_matches.py` (sha256 `{ver['verifier_sha256']}`): "
@@ -521,8 +522,11 @@ def main(argv=None) -> int:
                 got = sha256_file(args.verify_image)
                 if got != PINNED_SHA:
                     raise ProgressError("--verify-image does not hash to the pinned GAME.EXE")
-                meta["verification"] = {"run": True, "kind": "composed image hash",
-                                        "image_sha256": got}
+                meta["verification"] = {
+                    "run": True, "kind": "composed image hash", "image_sha256": got,
+                    "scope": "The image hash is checked here; which ranges are reconstructed or "
+                             "structured rather than referenced is the composer's declaration "
+                             "and is not independently derivable from the bytes."}
             else:
                 meta["verification"] = {"run": False, "reason": "ledger not tied to a composed image; "
                                         "pass --verify-image with the composer's output"}

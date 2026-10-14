@@ -129,11 +129,27 @@ class RepoEvidenceTests(unittest.TestCase):
             (d / "bad.json").write_text("{}")
             with self.assertRaisesRegex(GEN.ProgressError, "pinned"):
                 GEN.verify_manifests(["good.json"], d, orig, fake)
+            # relative inputs resolve against the caller, not the verifier's cwd
+            import os
+            here = os.getcwd()
+            os.chdir(d)
+            try:
+                with self.assertRaisesRegex(GEN.ProgressError, "pinned"):
+                    GEN.verify_manifests(["good.json"], pathlib.Path("."), pathlib.Path("GAME.EXE"), fake)
+            finally:
+                os.chdir(here)
             real_sha = GEN.PINNED_SHA
             GEN.PINNED_SHA = GEN.sha256_file(orig)
             try:
                 res = GEN.verify_manifests(["good.json"], d, orig, fake)
                 self.assertTrue(res["manifests"]["good.json"]["exact"])
+                os.chdir(d)
+                try:
+                    rel = GEN.verify_manifests(["good.json"], pathlib.Path("."),
+                                               pathlib.Path("GAME.EXE"), fake)
+                finally:
+                    os.chdir(here)
+                self.assertTrue(rel["manifests"]["good.json"]["exact"])
                 with self.assertRaisesRegex(GEN.ProgressError, "did not confirm"):
                     GEN.verify_manifests(["good.json", "bad.json"], d, orig, fake)
             finally:
