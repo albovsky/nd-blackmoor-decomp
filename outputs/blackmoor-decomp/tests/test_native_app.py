@@ -106,7 +106,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return log.read_text()
 
-    def test_synthetic_accepted_click_completes_s5900_row_7_and_stops_at_a28(self):
+    def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_stops_at_s4700(self):
         # Stand-in for the RT-2 pointer path: one synthetic accepted event.
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
@@ -115,16 +115,63 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                  '--live-click-row', '34', '--test-a62-accept',
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=120)
+        # The successor S4700 cannot be created (opaque 0x35 row): an explicit stop.
+        self.assertEqual(result.returncode, 1, result.stderr)
+        contents = log.read_text()
+        ordered = (
+            'test_a62_synthetic_accept result=phase2 row=7 coordinates=5,5 '
+            'pointer_path=not-implemented(RT-2)',
+            # Rows 8-10 run in one pass: row 8 queues the effect (0x44727a), row 10
+            # requests the scene change and ends the pass.
+            'scene_session_transition_pending source=5900 target=4700',
+            'scene_exit_requested state=4 effect_busy=1 effect_type=2 effect_stage=0',
+            # State 4 (0x43d227): effect type 2 stage 0 captures the source and
+            # hands the loader state over (state 1).
+            'scene_exit_capture which=source status=0 canvas=620x375',
+            'scene_exit_state4 status=0 controller_ran=1 stage_before=0 effect_busy=1 '
+            'effect_type=2 state_after=1',
+            'scene_load_state next_state=3 transition_word_5c39ff=1',
+            'scene_clear_caption status=0',
+            'scene_parsed name=S4700',
+            'scene_transition_error source=5900 target=4700 detail=session-replace '
+            'status=5 provider=scene-resource action=3 type=0x35 detail_status=6',
+            'stopped failure=1')
+        position = 0
+        for evidence in ordered:
+            found = contents.find(evidence, position)
+            self.assertNotEqual(found, -1, evidence)
+            position = found
+        self.assertNotIn('provider=action-family-28', contents)
+        self.assertNotIn('scene_exit_sequence', contents)   # the successor never ticked
+
+    def test_exit_effect_continues_into_the_successors_first_tick(self):
+        # Test hook: load S5907 (which the executor can create) for the S5900 ->
+        # S4700 request so the queued type-2 effect can be followed to its end.
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'redirect.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--test-a62-accept',
+                                 '--test-exit-redirect', '4700:5907',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stderr)
         contents = log.read_text()
-        self.assertIn('test_a62_synthetic_accept result=phase2 row=7 coordinates=5,5 '
-                      'pointer_path=not-implemented(RT-2)', contents)
-        # Row 7 completes (event 1000 opens rows 8-10); row 8 (0x28) is the
-        # next explicit blocker, before any scene change to S4700.
-        self.assertIn('scene_session_blocked stage=3 provider=action-family-28 '
-                      'action=8 type=0x28', contents)
-        self.assertIn('live_session_end scene=5900', contents)
-        self.assertNotIn('target=5907', contents)
+        ordered = (
+            'scene_exit_capture which=source status=0',
+            'scene_exit_state4 status=0 controller_ran=1 stage_before=0',
+            'test_exit_redirect requested=4700 loaded=5907',
+            'scene_transition_applied source=5900 target=5907',
+            # First successor tick: target capture, then the A-28 frame loop.
+            'scene_exit_capture which=destination status=0',
+            'scene_exit_sequence type=2 status=0',
+            'scene_exit_render_pass status=0 controller_ran=1 stage_before=1 effect_busy=0')
+        position = 0
+        for evidence in ordered:
+            found = contents.find(evidence, position)
+            self.assertNotEqual(found, -1, evidence)
+            position = found
+        self.assertIn('completion=1 x87_cw=0x027f(unverified) curve=non-bit-exact', contents)
 
     def test_failed_layer_transfer_retains_applied_restore_prefix(self):
         contents = self.run_session_probe('--test-caption-fail-blit', '2')
@@ -209,7 +256,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertIn('seed=analysis-only', contents)
             self.assertNotIn('stopped failure=0', contents)
 
-    def run_live(self, *extra_args):
+    def run_live(self, *extra_args, returncode=0):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         log = Path(directory.name) / 'live.log'
@@ -217,7 +264,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                  '--live-click-row', '34', *extra_args,
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=120)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.returncode, returncode, result.stderr)
         return log.read_text()
 
     def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
@@ -238,26 +285,32 @@ class NativeCaptionTransferTests(unittest.TestCase):
                    'live_audio loaded stem=carstart channel=4',
                    'live_audio loaded stem=Traffic channel=9',
                    'scene_session_transition_pending source=5900 target=5907',
+                   'scene_exit_requested state=4 effect_busy=0',
+                   'scene_exit_state4 status=0 controller_ran=0 stage_before=0 effect_busy=0',
+                   # ClearSceneData (0x43dbe3): the frame text box opened by row 11
+                   # is closed (0x4de2d8) and the caption flags are cleared before
+                   # the target resource loads.
+                   'scene_clear_caption status=0',
                    'scene_parsed name=S5907',
                    'scene_transition_applied source=5900 target=5907 generation=3',
+                   'live_session_scene_changed from=5900 to=5907',
                    'scene_a62_selector scene=5907 value=0',
                    'scene_a51_open_frame_text mode=2 bytes=51 status=0 detail=ok',
                    'live_audio loaded stem=Open_A channel=13',
                    # New stop: S5907 row 6 (0x9f) is gated by dependency opcode 17.
                    'scene_session_blocked stage=3 provider=dependency-provider '
                    'action=6 type=0x9f detail=6',
-                   'live_session_scene_changed from=5900 to=5907',
                    'live_session_end scene=5907')
         position = 0
         for evidence in ordered:
             found = contents.find(evidence, position)
             self.assertNotEqual(found, -1, evidence)
             position = found
-        # Wait mode 0: the row opens the frame text box once and never completes.
-        # Closing the box on scene replacement (original 0x4381f4/0x43dbe3 call
-        # 0x4de2d8 on 0x61f864) is NOT modelled yet; this test deliberately does
-        # not pin that gap.
+        # Wait mode 0: the row opens the frame text box once and never completes;
+        # the box is then closed by the scene clear.
         self.assertEqual(contents.count('scene_a51_open_frame_text mode=2 bytes=6 '), 1)
+        self.assertIn('frame_open=0 caption_visible=0 caption_finish=0 framed_ready=0', contents)
+        self.assertIn('scene_clear_latches order=0x5c39ff', contents)
         self.assertNotIn('provider=action-family-62', contents)
 
     def test_scene_fixture_uses_real_caption_audio_and_resource_transition(self):
@@ -285,29 +338,20 @@ class NativeCaptionTransferTests(unittest.TestCase):
                              'scene_inspect transition_current_frame=owned-decoded-background width=620 height=375 frame=0 bytes=930000 composition=not-included',
                              'scene_parsed name=S5900',
                              'background=OPEN_A',
-                             'scene_a28_prefix row=0 type=0x64 subtype=1 payload_kind=1 body_bytes=5 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=1 type=0x82 subtype=1 payload_kind=1 body_bytes=41 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=2 type=0x82 subtype=1 payload_kind=1 body_bytes=41 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=3 type=0x82 subtype=1 payload_kind=1 body_bytes=41 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=4 type=0x1d subtype=1 payload_kind=1 body_bytes=8 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=5 type=0x1d subtype=1 payload_kind=1 body_bytes=8 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=6 type=0x1d subtype=1 payload_kind=1 body_bytes=8 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_prefix row=7 type=0x62 subtype=1 payload_kind=3 body_bytes=30 dependency_records=0 dispatch=not-run-by-handoff-inspector',
-                             'scene_a28_entry_gate action=8 subtype=1 dependency=0 event_flag_1000=0 clock_minutes=1080 visit_span_count=10001 status=pre-dispatch-snapshot-only',
-                             'scene_a28_capture_pair current_scene=0 current_frame=0 target_scene=5900 target_frame=0 source_view=0,0,619,374 target_view=10,10,629,384 crop=0,0 canvas=620x375 capture_bytes_each=2790000 scope=decoded-background-only original-composed-framebuffer=not-represented',
-                             'scene_a28_execution=not-run reason=successor-scene-dispatch-not-integrated gate=not-evaluated-after-prefix entry_gate_known=1 entry_gate=0',
+                             # RT-5: the 0x28 row belongs to the OUTGOING scene (S0 has
+                             # none), so no S5900 row is paired with the S0 -> S5900 change.
+                             'scene_a28_scan outgoing_scene=0 rows=38 type28_rows=0 successor_scene=5900 pairing=outgoing-row(RT-5)',
+                             'scene_a28_handoff=not-applicable no-type-28-row-in-outgoing-scene outgoing_scene=0',
                              'incomplete_game=1',
                              'stopped failure=0'):
                 self.assertIn(evidence, contents)
             self.assertLess(contents.index('audio_completed'), contents.index('transition_target'))
             self.assertLess(contents.index('transition_current_frame'),
-                            contents.index('scene_a28_capture_pair'))
+                            contents.index('scene_a28_scan'))
             self.assertLess(contents.index('scene_parsed name=S5900'),
-                            contents.index('scene_a28_capture_pair'))
-            self.assertLess(contents.index('scene_a28_prefix row=7'),
-                            contents.index('scene_a28_entry_gate'))
-            self.assertLess(contents.index('scene_a28_entry_gate'),
-                            contents.index('scene_a28_capture_pair'))
+                            contents.index('scene_a28_scan'))
+            self.assertNotIn('scene_a28_capture_pair', contents)
+            self.assertNotIn('scene_a28_prefix', contents)
 
     def test_scene_fixture_missing_sound_cannot_report_transition_success(self):
         with tempfile.TemporaryDirectory() as directory:
