@@ -17,7 +17,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-9 Bink playback for 0x35: frames, events, embedded audio, completion (Codex) | Reviewed (no P1), findings fixed, merged (PR 20) |
 | RT-10 edge/arrow cascade 0x4f0059; RT-11 sound persistence across scene changes (Codex) | In flight on `codex/rt-10-edge-cascade`, `codex/rt-11-sound-persistence`; not reviewed or merged |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; 0x35 and 0x97 runtimes now bound (RT-7/8/9), the rest unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 opaque decoders (Codex) | Reviewed, merged (typed 19,551 / opaque 61) |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 / A-1B.1 / A-7D.1 / A-33.1 opaque decoders (Codex) | Reviewed, merged (typed 19,562 / opaque 50) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -100,5 +100,12 @@ Live path after this registration (2026-10-14 19:30 PDT): with 0x83 typed, the s
 ## Handoff: opaque scene actions, eighth batch (2026-10-14 20:30 PDT)
 
 Merged: raw 0x69 (7 records) and 0x65 (7) one-byte bodies and raw 0x16 (2, sharing the 0x17 layout and loader arm 0x40b98f) boundaries and decoders (A-69.1, A-65.1, A-16.1; one independent review each, no P1 findings). Typed 19,551 / opaque 61. The shared tail oracle pins 23 decoders (0x69 and 0x65 added; 0x16 is a thin wrapper over the 0x17 module with no mutation sites of its own, so it stays out of the shared mutation harness and keeps its own oracle).
-Paused: Codex hit its usage limit (retry after Oct 19, 2026 9:58 PM per its own message) while A-1B.1 (4), A-7D.1 (4) and A-33.1 (3) were starting; nothing was committed, the packets are READY. Codex PR reviews are also unavailable until then. Remaining after that: 0xf6 (6), 0xea (6), 0xf5 (4), 0x2d (3), 0xe0 (3), 0xd3 (3) and a tail of one- and two-record types (about 30 records).
+Codex hit its usage limit (retry after Oct 19, 2026 9:58 PM per its own message); with Glib's approval (2026-10-14, "Sonnet high for implementation") the decoders now run on Claude Sonnet slice-implementers with one independent reviewer per batch. Codex PR reviews are unavailable until then. Remaining after that: 0xf6 (6), 0xea (6), 0xf5 (4), 0x2d (3), 0xe0 (3), 0xd3 (3) and a tail of one- and two-record types (about 30 records).
 Notes for the runtime thread: 0x65 is a save-state call in the original (do not register a no-op handler); registered-but-unhandled types fail at executor step time with `SCENE_EXECUTOR_ERR_UNSUPPORTED`, not at creation.
+
+## Handoff: opaque scene actions, ninth batch (2026-10-14 21:30 PDT)
+
+Merged: raw 0x1b (4 records, count-driven), 0x7d (4, one-byte body) and 0x33 (3, count-driven with a WORD-narrowed size) body boundaries and isolated decoders (A-1B.1, A-7D.1, A-33.1), the first batch implemented by Claude Sonnet (high) that took over unreviewed partial Codex work after the usage limit, with one independent reviewer over the batch (no P1 for 0x1b and 0x7d). Typed 19,562 / opaque 50. The shared tail oracle pins 26 decoders.
+Reviewer P1 on 0x33, waived by root as native safety policy (like 0x0c and 0x17): the original narrows `113 + 6*a + 66*b` to a signed WORD and completes cleanly for inputs where the narrowed size is positive (for example counts (10923,0), (0,1000), (-1,0)), whereas native and the registration reject negative counts and sizes above 32,767, so such a scene would fail to open. No corpus record is affected. The A-33.1 handoff's statement that these copies "would overrun" is wrong (the original completes them). If such inputs ever matter, mirror the original: size = (int16_t)(113 + 6*(int16_t)a + 66*(int16_t)b), reject only when negative.
+In review: Sonnet decoders for 0xf6 (6), 0xea (6) and 0xf5 (4), all fixed-length (4,934, 3,847 and 1,390 bytes).
+Planned: GAME.EXE function ledger (Opus plan, Sonnet implementation, one review) with a map panel.
