@@ -60,8 +60,8 @@
     "complete_dependency_tree_or_action_runtime": false
   },
   "tests": {
-    "discovered": 1472,
-    "passed": 1467,
+    "discovered": 2075,
+    "passed": 2070,
     "skipped": 5,
     "failed": 0,
     "command": "script/run_test_suite.sh -v",
@@ -71,7 +71,7 @@
       "2 live_audio ambiguous_directory fixture cases: no case-variant fixture on case-insensitive filesystem",
       "1 live_audio output smoke: needs LIVE_AUDIO_OUTPUT_SMOKE=1 with the owner install present"
     ],
-    "note": "Clean full run 2026-10-14 on origin/main b9e8982 (PR 28) plus QA-1 (canonical runner, oracle guards, build freshness test). The runner rebuilds every artifact, then runs the suite with work/tools/oracle-python/bin/python and BLACKMOOR_REQUIRE_ORACLE=1, so Unicorn oracle tests cannot silently skip. Plain python3 without Unicorn: 1,455 run, 10 skips (the 5 extra are the Unicorn oracle tests, skipped with a reason), exit 0. current_integration.full_suite stays pinned to its RT-9 source_ref."
+    "note": "Clean full run 2026-10-15 on origin/main 9f82cf3 (PR 44) plus QA-1 (canonical runner, oracle guards, build freshness test) and the executable bit on build_action_family_83_runtime.sh. The runner rebuilds every artifact, then runs the suite with work/tools/oracle-python/bin/python and BLACKMOOR_REQUIRE_ORACLE=1, so Unicorn oracle tests cannot silently skip. Under plain python3 the Unicorn oracle tests skip with a reason naming the interpreter. current_integration.full_suite stays pinned to its RT-9 source_ref."
   },
   "native_startup_menu": {
     "compiled": true,
