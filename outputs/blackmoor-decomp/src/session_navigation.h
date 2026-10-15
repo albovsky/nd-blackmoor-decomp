@@ -179,8 +179,10 @@ int session_navigation_step(NavGlobals *globals, const NavKeys *keys, uint32_t t
  * whose rows include one of these runtime types may enable a UI hit test the
  * native session does not model: members_idle returns 0 and the caller must
  * not claim priority_clear. The check is by row type (the dispatcher type of a
- * row is its record type except for the few loader rewrites listed in
- * RT-17.recovery.md). */
+ * row is its record type except for the few loader rewrites listed in the
+ * section "Raw to runtime row types" of work/analysis/slices/RT-17.recovery.md;
+ * that the identity mapping holds for the scenes in play is an unverified
+ * branch in RT-17.handoff.json). */
 size_t session_navigation_member_type_count(void);
 int session_navigation_member_type(uint8_t runtime_type);
 int session_navigation_members_idle(const uint8_t *row_types, size_t count);

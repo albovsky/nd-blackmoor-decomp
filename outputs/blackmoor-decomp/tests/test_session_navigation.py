@@ -384,6 +384,47 @@ class SessionNavigationTests(unittest.TestCase):
             self.assertEqual((cursor.index, 0 if item == -1 else 0), (expected[0], 0))
             self.assertEqual(cursor.variant, 0)
 
+    def test_malformed_rows_are_rejected_before_any_mutation(self):
+        # Review fix P2-2: the generic rows are validated up front, not on the second scan call.
+        bad_sets = {
+            'unsorted': [Hotspot(0, Rect(0, 0, 9, 9), 1), Hotspot(5, Rect(0, 0, 9, 9), 1),
+                         Hotspot(9, Rect(0, 0, 9, 9), 1), Hotspot(1, Rect(0, 0, 9, 9), 1)],
+            'duplicate': [Hotspot(3, Rect(0, 0, 9, 9), 1), Hotspot(3, Rect(0, 0, 9, 9), 1)],
+            'index_240': [Hotspot(240, Rect(0, 0, 9, 9), 1)],
+            'negative': [Hotspot(-1, Rect(0, 0, 9, 9), 1)],
+            'rect_outside_short': [Hotspot(2, Rect(0, 0, 40000, 9), 1)],
+        }
+        for mode in (0, 3):        # a normal tick and a UI-mode tick take different early paths
+            for name, rows in bad_sets.items():
+                state = State()
+                self.api.session_input_init(c.byref(state))
+                state.candidate = 55
+                context = Context(VIEW, Rect(20, 100, 20, 100), 0, 0, 0, mode, 0, 0, 1, 1, -1, -1)
+                g = globals_(state=7)
+                cursor = NavCursor(5, 1)
+                out = NavScanResult()
+                arr = (Hotspot * len(rows))(*rows)
+                status = self.api.session_navigation_scan(
+                    c.byref(state), c.byref(context), c.byref(g), c.byref(BANDS),
+                    c.byref(NavPointer(20, 100, -1)), c.byref(cursor), None, 0, arr, len(rows),
+                    c.byref(out))
+                self.assertEqual(status, 1, (name, mode))
+                self.assertEqual((state.candidate, g.state, cursor.index, cursor.variant),
+                                 (55, 7, 5, 1), (name, mode))
+        # excluded slots and priority indices are validated as well
+        for excluded, priority in ((240, None), (-2, None), (-1, Hotspot(240, Rect(0, 0, 9, 9), 1))):
+            state = State()
+            self.api.session_input_init(c.byref(state))
+            state.candidate = 55
+            context = Context(VIEW, Rect(20, 100, 20, 100), 0, 0, 0, 0, 0, 0, 1, 1, excluded, -1)
+            g = globals_(state=7)
+            pri = (Hotspot * 1)(priority) if priority is not None else None
+            status = self.api.session_navigation_scan(
+                c.byref(state), c.byref(context), c.byref(g), c.byref(BANDS),
+                c.byref(NavPointer(20, 100, -1)), c.byref(NavCursor(0, 0)), pri,
+                1 if pri is not None else 0, None, 0, c.byref(NavScanResult()))
+            self.assertEqual((status, state.candidate, g.state), (1, 55, 7))
+
     def test_invalid_arguments(self):
         out = NavZoneResult()
         self.assertEqual(self.api.session_navigation_zone(None, None, None, c.byref(out)), 1)

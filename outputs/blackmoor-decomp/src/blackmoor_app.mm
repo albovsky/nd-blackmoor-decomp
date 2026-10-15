@@ -277,6 +277,9 @@ struct NativeApp {
      * accepted event (scan + accept reducers + candidate store). */
     bool test_a62_accept = false;
     bool test_a62_accept_done = false;
+    /* RT-17 test hook: pretend the scene has a row of a cascade-member type, so the app-level
+     * priority_clear wiring (named limit instead of a zone/generic scan) can be observed. */
+    bool test_members_busy = false;
     /* RT-13 test hook: seed the New Game inventory (item ids in list order and
      * the held item) right after world_init_apply_new_game, so the raw 0x79
      * removal can be followed through the real app wiring. */
@@ -343,6 +346,7 @@ struct NativeApp {
     BinkPlayer *nav_player = nullptr;
     std::string scene_video_path;
     int32_t nav_shown_frame = -1;
+    uint64_t nav_frame_failures = 0;
     /* RT-14: the overlay hot-rectangle failure is logged once per scene. */
     bool a36_hot_rects_failure_logged = false;
     bool primary_down = false;
@@ -3174,29 +3178,35 @@ static bool nav_read_boot(NativeApp *app)
 static bool nav_show_frame(NativeApp *app, int16_t selector, const char *why)
 {
     if (app->scene_native_frames <= 1) return true;
-    if (selector < 0 || selector >= app->scene_native_frames) {
-        record(app, "nav_frame_unavailable selector=%d frames=%d reason=%s (selector outside the "
-               "movie: the original would fail the frame load, native keeps the shown frame)",
-               selector, app->scene_native_frames, why);
-        return false;
-    }
-    if (app->nav_shown_frame == selector) return true;
     char error[256] = {};
     if (app->video != nullptr) {
         /* The background player already holds every decoded frame: hand it over (no second
-         * decode) and stop advancing it. */
+         * decode) and stop advancing it. This happens before any failure below, so a failed
+         * frame change never leaves the old movie playing under a different selector. */
         if (app->nav_player != nullptr) bink_player_close(app->nav_player);
         app->nav_player = app->video;
         app->video = nullptr;
         record(app, "nav_background_hold scene=%d reason=%s (frame-hold scene: background movie stopped)",
                app->current_scene_id, why);
     }
+    if (selector < 0 || selector >= app->scene_native_frames) {
+        ++app->nav_frame_failures;
+        record(app, "nav_frame_unavailable selector=%d frames=%d reason=%s failures=%llu (selector outside the "
+               "movie: the original would fail the frame load; native keeps the last shown frame, "
+               "movie stopped)", selector, app->scene_native_frames, why,
+               (unsigned long long)app->nav_frame_failures);
+        return false;
+    }
+    if (app->nav_shown_frame == selector) return true;
     if (app->nav_player == nullptr) {
         BinkPlayerInfo info{};
         if (bink_player_open(app->scene_video_path.c_str(), &app->nav_player, &info, error,
                              sizeof(error)) != BINK_PLAYER_OK) {
             app->nav_player = nullptr;
-            record(app, "nav_frame_error stage=open detail=%s", error);
+            ++app->nav_frame_failures;
+            record(app, "nav_frame_error stage=open selector=%d reason=%s failures=%llu detail=%s "
+                   "(last shown frame kept, movie stopped)", selector, why,
+                   (unsigned long long)app->nav_frame_failures, error);
             return false;
         }
     }
@@ -3206,7 +3216,10 @@ static bool nav_show_frame(NativeApp *app, int16_t selector, const char *why)
                          sizeof(error)) != BINK_PLAYER_OK ||
         bink_player_advance(app->nav_player, now_ns, &frame, error, sizeof(error)) != BINK_PLAYER_OK ||
         frame.current_frame != selector || !copy_player_frame(app, frame)) {
-        record(app, "nav_frame_error stage=seek selector=%d detail=%s", selector, error);
+        ++app->nav_frame_failures;
+        record(app, "nav_frame_error stage=seek selector=%d reason=%s failures=%llu detail=%s "
+               "(last shown frame kept, movie stopped)", selector, why,
+               (unsigned long long)app->nav_frame_failures, error);
         return false;
     }
     app->nav_shown_frame = selector;
@@ -3224,7 +3237,10 @@ static void nav_begin_scene(NativeApp *app)
 {
     app->nav_scene_ready = false;
     if (!nav_read_boot(app)) {
-        record(app, "nav_scene_error detail=boot-summary-unavailable");
+        /* No navigation globals: the zone tests cannot run and the member check was not made,
+         * so do not keep a previous scene's "idle" verdict (priority_clear would be assumed). */
+        app->nav_members_idle = false;
+        record(app, "nav_scene_error detail=boot-summary-unavailable cascade_members_idle=0");
         return;
     }
     const int32_t frames = app->scene_native_frames;
@@ -3275,6 +3291,12 @@ static void nav_begin_scene(NativeApp *app)
             types.push_back(info.type);
     }
     app->nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) {
+        app->nav_members_idle = false;
+        record(app, "test_members_busy applied (test hook: scene treated as having a cascade-member row)");
+    }
+#endif
     app->nav_scene_ready = true;
     (void)nav_show_frame(app, g.selector, "scene-entry");
     record(app, "nav_scene_begin scene=%d selector=%d%s range=%d..%d mode=%d step=%d arrows=%d,%d "
@@ -3455,9 +3477,24 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                    step.selector_before, app->nav.selector, app->nav.scroll, app->nav.scroll_end,
                    app->nav.gate_deadline, step.view_dirty, app->session_tick_sample,
                    (unsigned long long)app->nav_steps);
-            /* 0x43ce92: the view is pointed at the new selector's frame in the same tick. */
-            if (step.selector_changed != 0u)
-                (void)nav_show_frame(app, app->nav.selector, "navigation");
+            /* 0x43ce92..0x43cf2f: the view is pointed at the new selector's frame and
+             * [0x5c3a51] := selector BEFORE the dispatcher call in the same tick. The frame
+             * input was filled by the prepare callback with the old frame, so refresh it
+             * here, and reseed the caption backbuffer from the new frame (the media step
+             * of this tick already ran with the old one). */
+            if (step.selector_changed != 0u) {
+                if (nav_show_frame(app, app->nav.selector, "navigation")) {
+                    frame->current_frame = app->scene_current_frame;
+                    const bool reseeded = seed_native_caption_backbuffer(app);
+                    record(app, "nav_frame_input current_frame=%d caption_backbuffer_reseed=%s "
+                           "(dispatcher of this tick sees the new frame)", frame->current_frame,
+                           reseeded ? "ok" : "failed");
+                } else {
+                    record(app, "nav_frame_kept selector=%d shown=%d (frame change refused or failed; "
+                           "the executor keeps the previous frame)", app->nav.selector,
+                           app->nav_shown_frame);
+                }
+            }
         }
     }
     if (edge_before != 0u || status != SESSION_INPUT_OK) {
@@ -3620,11 +3657,15 @@ static bool bind_native_pointer(NativeApp *app)
     host.external_row = native_pointer_external_row;
     if (scene_session_bind_pointer(app->session, &host) != SCENE_SESSION_OK) return false;
     const ProvisionalCursorProvider &c = app->cursor_provider;
+    const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
+                       app->nav_members_idle;
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
-           "guards[5b5158,5b61af,5b615e,5a4c18]=%u,%u,%u,%d priority_clear=1 excluded=-1,-1 "
-           "reason=cursor-sprite-size/hot-point/scroll-unrecovered values=reproduce-pre-RT-6-S0",
+           "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
+           "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "
+           "edge_state[5a4c18]=produced-by-zone-tests(RT-17)",
            c.sprite_width, c.sprite_height, c.hot_x, c.hot_y, c.scroll_y,
-           c.guard_5b5158, c.guard_5b61af, c.guard_5b615e, c.result_5a4c18);
+           c.guard_5b5158, c.guard_5b61af, c.guard_5b615e, app->nav_members_idle ? 1 : 0,
+           clear ? 1 : 0);
     return true;
 }
 
@@ -5252,6 +5293,10 @@ int main(int argc, char **argv)
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
             if (argument == "--test-a62-accept") {
                 app.test_a62_accept = true;
+                continue;
+            }
+            if (argument == "--test-members-busy") {
+                app.test_members_busy = true;
                 continue;
             }
             if (argument == "--test-caption-reset-after-compose") {

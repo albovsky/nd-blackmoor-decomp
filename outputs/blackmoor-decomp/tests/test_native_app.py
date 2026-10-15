@@ -393,7 +393,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assert_in_order(contents, (
             'pointer_input_reset status=0 candidate=-1',
             'pointer_provider provisional sprite=1x1 hot=0,0 scroll=0 '
-            'guards[5b5158,5b61af,5b615e,5a4c18]=0,0,0,0 priority_clear=1',
+            'guards[5b5158,5b61af,5b615e]=0,0,0 cascade_members_idle=1 priority_clear=1',
             'live_session_hover row=34 rect=388,225,492,284 window=450,264',
             'pointer_candidate candidate=34 rows=3 cursor=450,264 provisional-geometry=1',
             'pointer_input event=DOWN candidate_at_message=34 latch_edge=0',
@@ -832,22 +832,78 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertNotIn('candidate=-1 activation=', contents)
         self.assertNotIn('scene_a17_finish', contents)
 
+    def test_rt17_the_step_refreshes_the_frame_input_and_the_caption_backbuffer_in_the_same_tick(self):
+        # Review fix P2-1: native fills frame_input.current_frame in the prepare callback, before the
+        # step; the consume wrapper must refresh it (and the caption backbuffer) after the selector
+        # moved so the dispatcher of THIS tick sees the new frame (original 0x43cf1e..0x43cf2f).
+        contents = self.navigated()
+        self.assert_in_order(contents, (
+            'nav_step state=1 selector=1->2 ',
+            'nav_frame_shown selector=2 ',
+            'nav_frame_input current_frame=2 caption_backbuffer_reseed=ok '))
+        self.assertNotIn('nav_frame_kept', contents)
+
+    def test_rt17_automove_zero_in_game_ini_keeps_the_zone_but_disables_the_hover_step(self):
+        # 0x43c216 needs AutoMove [0x5bb206] != 0 for the mouse path; the zone tests do not.
+        # A private game directory links every original entry except a Game.ini copy with
+        # AutoMove=0 (the installed game is never modified).
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        private = Path(directory.name) / 'game'
+        private.mkdir()
+        for entry in self.game.iterdir():
+            if entry.name != 'Game.ini':
+                (private / entry.name).symlink_to(entry)
+        ini = (self.game / 'Game.ini').read_text()
+        self.assertIn('AutoMove=1', ini)
+        (private / 'Game.ini').write_text(ini.replace('AutoMove=1', 'AutoMove=0'))
+        log = Path(directory.name) / 'automove0.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session', '--live-click-row', '32',
+                                 '--live-ticks', '3000', '--rand-seed', '1',
+                                 '--live-scene-row', '6400:17', '--live-nav', '6401:left',
+                                 '--game-dir', str(private), '--log', str(log)],
+                                capture_output=True, text=True, timeout=180)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        contents = log.read_text()
+        self.assertIn('auto_move[0x5bb206]=0 (Game.ini)', contents)
+        self.assertIn('nav_zone state=1 claimed=1 ', contents)       # the zone still claims
+        self.assertNotIn('nav_step', contents)                        # but nothing steps
+        self.assertNotIn('nav_frame_shown selector=2', contents)
+
+    def test_rt17_a_scene_with_a_member_row_gets_the_named_limit_instead_of_a_zone_scan(self):
+        # App-level priority_clear wiring: a cascade-member row makes the scan return
+        # SESSION_INPUT_LIMIT_PRIORITY_PATH (3); no zone is evaluated, so no step either.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:left',
+                                 '--test-members-busy')
+        self.assertIn('test_members_busy applied', contents)
+        self.assertIn('cascade_members_idle=0 keyboard_producer=unbound', contents)
+        self.assertIn('pointer_scan_limit status=3 ', contents)
+        self.assertNotIn('nav_zone', contents)
+        self.assertNotIn('nav_step', contents)
+
     def test_rt17_right_band_steps_down_and_wraps_at_the_first_frame(self):
         contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:right:2')
         self.assert_in_order(contents, (
             'nav_zone state=2 claimed=1 ', 'nav_step state=2 selector=1->0 ',
             'nav_step state=2 selector=0->19 '))                  # mode 1 wraps to the last frame
 
-    def test_rt17_the_tutorial_chain_through_navigation_reaches_the_s6403_stop(self):
+    def test_rt17_the_tutorial_chain_through_navigation_continues_through_raw_0x0b_to_s6404(self):
+        # With RT-16 merged the raw 0x0b row of S6403 (reads the live selector through the same
+        # provider) is hot and a click on it reaches S6404.
         contents = self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
-                                 '--live-nav', '6401:left', '--live-scene-row', '6402:3')
+                                 '--live-nav', '6401:left', '--live-scene-row', '6402:3',
+                                 '--live-scene-row', '6403:2', '--live-ticks', '4000')
         self.assert_in_order(contents, (
             'scene_transition_applied source=0 target=6400',
             'scene_transition_applied source=6400 target=6401',
             'nav_step state=1 selector=1->2 ',
             'scene_transition_applied source=6401 target=6402',
             'scene_transition_applied source=6402 target=6403',
-            'scene_session_blocked stage=3 provider=action-kernel action=2 type=0x0b detail=1'))
+            'scene_a0b_register row=2 ',
+            'scene_a0b_finish row=2 ',
+            'scene_transition_applied source=6403 target=6404'))
+        self.assertNotIn('test_selector_applied', contents)
+        self.assertNotIn('scene_session_blocked', contents)
         self.assertNotIn('test_selector_applied', contents)
 
     def test_rt17_one_frame_scenes_have_no_arrow_zones(self):

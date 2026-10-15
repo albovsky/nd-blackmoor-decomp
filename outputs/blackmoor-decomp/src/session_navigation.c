@@ -396,6 +396,13 @@ static int normal_mode(int32_t mode)
     return mode < 2 || mode > 5;
 }
 
+static int rect_in_short_domain(const SessionInputRect *r)
+{
+    return r->left >= INT16_MIN && r->left <= INT16_MAX && r->top >= INT16_MIN &&
+           r->top <= INT16_MAX && r->right >= INT16_MIN && r->right <= INT16_MAX &&
+           r->bottom >= INT16_MIN && r->bottom <= INT16_MAX;
+}
+
 /* 0x4f0062..0x4f0126, the same inclusive guard session_input applies. */
 static int sprite_overlaps_viewport(const SessionInputContext *c)
 {
@@ -427,6 +434,27 @@ int session_navigation_scan(SessionInputState *input, const SessionInputContext 
     if (row_count > 240 || priority_count > 4096 || (row_count != 0 && rows == NULL) ||
         (priority_count != 0 && priority == NULL))
         return SESSION_NAVIGATION_INVALID_ARGUMENT;
+    /* Validate every row BEFORE any mutation (review fix P2-2): session_input validates the
+     * generic rows only on its second call, after the state would have been cleared. The rules
+     * are session_input_scan_priority's: generic rows strictly ascending, indices 0..239,
+     * rectangles in the signed-short domain; priority indices 0..239; excluded slots -1..239. */
+    if (context->excluded_0 < -1 || context->excluded_0 >= 240 || context->excluded_1 < -1 ||
+        context->excluded_1 >= 240)
+        return SESSION_NAVIGATION_INVALID_ARGUMENT;
+    {
+        int32_t previous = -1;
+        size_t i;
+        for (i = 0; i < row_count; ++i) {
+            const SessionInputHotspot *spot = &rows[i];
+            if (spot->index <= previous || spot->index >= 240 ||
+                !rect_in_short_domain(&spot->rectangle))
+                return SESSION_NAVIGATION_INVALID_ARGUMENT;
+            previous = spot->index;
+        }
+        for (i = 0; i < priority_count; ++i)
+            if (priority[i].index < 0 || priority[i].index >= 240)
+                return SESSION_NAVIGATION_INVALID_ARGUMENT;
+    }
     snapshot = *context;
     memset(&result, 0, sizeof(result));
     result.candidate = -1;
