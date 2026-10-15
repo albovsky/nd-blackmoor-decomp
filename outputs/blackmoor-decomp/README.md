@@ -166,11 +166,28 @@ The utility returns decoded bytes before renderer-dependent image conversion.
 See `archive-recovery.md` for original-code addresses, format details and
 deliberate bounds checks that differ from the original's unchecked behavior.
 
-After building, run the native regression tests and byte-range verifier tests:
+After building, run the native regression tests and byte-range verifier tests.
+The canonical command, run from the workspace root, rebuilds every ignored
+artifact and then runs the whole suite with the oracle interpreter (the Python
+that has Unicorn), failing instead of skipping if an oracle is unavailable
+(`--no-build` skips the rebuild; other arguments such as `-v` go to unittest):
 
 ```sh
-python3 -m unittest discover -s tests -p 'test_*.py'
+script/run_test_suite.sh
 ```
+
+The direct equivalent, after `script/build_all_native_checks.sh`:
+
+```sh
+BLACKMOOR_REQUIRE_ORACLE=1 work/tools/oracle-python/bin/python -m unittest discover \
+    -s outputs/blackmoor-decomp/tests -p 'test_*.py'
+```
+
+A plain `python3 -m unittest discover -s tests -p 'test_*.py'` (no Unicorn) skips
+the Unicorn-backed oracle tests with a reason naming the interpreter; with
+`BLACKMOOR_REQUIRE_ORACLE=1` the same tests fail. `tests/test_build_freshness.py`
+fails, per artifact, when an existing `build/` artifact is older than the
+sources or build script it came from.
 
 The original-decoder oracle requires Python with Unicorn 2.1.4. It executes
 only the original decoder for testing; the native archive utility does not use

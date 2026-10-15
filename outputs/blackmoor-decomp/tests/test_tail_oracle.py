@@ -6,12 +6,14 @@ from pathlib import Path
 import tempfile
 import unittest
 
+import oracle_support
 import tail_oracle_common as T
 
 
 class OriginalTailTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        oracle_support.require_unicorn()
         cls.machine = T.OriginalTail()
 
     def payload(self, typed=2, tail=0):
@@ -74,6 +76,7 @@ class OriginalTailTests(unittest.TestCase):
 class NativeTailTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        oracle_support.require_unicorn()
         cls.directory = tempfile.TemporaryDirectory(prefix='A-TAIL.2.tests-', dir=T.PRIVATE)
         cls.native = T.NativeFamily('79', T.build_native('79', Path(cls.directory.name)))
         cls.machine = T.OriginalTail()
@@ -120,6 +123,7 @@ class MutationDefinitionTests(unittest.TestCase):
     def test_new_mutant_witnesses_straddle_prior_coverage(self):
         # These are compiled C regressions: preserving 65536 records and small
         # ragged rejection must not let a mutant survive the extended stage.
+        oracle_support.require_unicorn()
         from tail_oracle_mutation_check import compile_mutant, witness
         with tempfile.TemporaryDirectory(prefix='A-TAIL.2.mutation-tests-', dir='/private/tmp') as path:
             directory = Path(path)
@@ -163,6 +167,7 @@ class MutationDefinitionTests(unittest.TestCase):
 class PrescanTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        oracle_support.require_unicorn()
         import tail_oracle_prescan as P
         cls.P = P
         cls.machine = P.OriginalPrescan()

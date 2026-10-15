@@ -2,6 +2,7 @@
 import subprocess
 import unittest
 import tempfile
+import oracle_support
 from test_live_audio import build_fixture_tree
 from pathlib import Path
 
@@ -19,8 +20,10 @@ class BinkBindingTests(unittest.TestCase):
         run([str(BASE / 'build/session_bindings_a35_bink_test')])
 
     def test_original_bink_controller_quick_oracle(self):
+        oracle_python = oracle_support.require_oracle_python(
+            BASE.parents[1] / 'work/tools/oracle-python/bin/python')
         with tempfile.TemporaryDirectory() as directory:
-            run([str(BASE.parents[1] / 'work/tools/oracle-python/bin/python'),
+            run([str(oracle_python),
                  str(BASE / 'tests/action_family_35_bink_original_oracle.py'),
                  '--quick', '--report', str(Path(directory) / 'oracle.json')])
 

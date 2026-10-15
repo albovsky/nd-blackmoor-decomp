@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import oracle_support
 import test_caption_layout as layout
 import test_caption_lifecycle as lifecycle
 
@@ -219,6 +220,7 @@ class CaptionCompositorTests(unittest.TestCase):
 
     def test_actual_writer_lifecycle_and_frame_resource_compose_offscreen(self):
         """Use the shipped caption writer, lifecycle command order and Frame art."""
+        oracle_support.require_unicorn()
         data = layout.ShippedData()
         laylib = layout.bind()
         fmt, fonts, geometry = layout.native_context(laylib, data)
