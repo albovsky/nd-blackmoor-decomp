@@ -1037,6 +1037,18 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(contents.count('taskbar_click '), 1)
         self.assertEqual(contents.count('taskbar_inventory_flag_consumed'), 1)
 
+    def test_rt22_open_the_release_of_a_view_click_never_reaches_the_scene(self):
+        # The view takes the press (0x43b19e -> 0x43c0aa); its release must not be fed to the
+        # scene's input latch as a second click on whatever hotspot lies under the slot.
+        for extra in ((), ('--live-click-at', '6410:203,440')):
+            with self.subTest(open_by=extra[:1] or 'script'):
+                contents = self.tutorial(*self.CHAIN_TO_6453, *extra, '--live-pick-item', '6410:23',
+                                         '--live-scene-row', '6411:2', '--live-scene-row', '6433:1')
+                start = contents.index('inventory_view_click status=0 hot_item=23')
+                end = contents.index('scene_transition_applied source=6410 target=6411')
+                self.assertNotIn('pointer_input event=UP', contents[start:end])
+                self.assertNotIn('pointer_input event=DOWN', contents[start:end])
+
     def test_rt22_open_a_click_that_misses_every_bar_button_does_nothing(self):
         # (203, 300) is above the bar; (255, 440) + the hot point falls between buttons 1 and 2.
         for point in ('203,300', '255,440'):

@@ -64,6 +64,7 @@ extern "C" {
 #define TASKBAR_RECORDS_OFFSET 0x61u
 #define TASKBAR_RECORD_BYTES 0x162u
 #define TASKBAR_LOCK_RANGES 50u        /* word pairs per lock entry (0x5a1624 / 0x5a1688) */
+#define TASKBAR_LOCK_RANGE_INIT 0x270f /* lo and hi word fill of 0x4e1a7e */
 #define TASKBAR_BUTTON_INVENTORY 1u    /* sets byte 0x583232 */
 #define TASKBAR_EVENT_NONE (-1)
 #define TASKBAR_EVENT_BUTTON 0x27d8
@@ -124,7 +125,7 @@ typedef struct {
 typedef struct {
     int32_t state;                 /* object +0xf2a: 0 not loaded, 1 running */
     TaskbarButton button[TASKBAR_BUTTONS];
-    TaskbarLock lock[TASKBAR_BUTTONS];   /* power-on: all zero (kind 0, ranges 0..0) */
+    TaskbarLock lock[TASKBAR_BUTTONS];   /* power-on (0x4e1a7e): kind 0, every lo/hi word 0x270f */
     uint8_t flag[TASKBAR_BUTTONS]; /* bytes 0x583220, 0x583232, 0x583233, 0x583234, 0x58321f */
     int32_t event;                 /* dword 0x5c39e5 as left by the bar */
     int32_t cursor_index;          /* dword 0x5b44f0 (host input before a hover) */
@@ -143,7 +144,8 @@ typedef struct {
 } TaskbarHost;
 
 /* Power-on state of the bar object after 0x4e06c0: object state 0, buttons in their record
- * state, stage 0, no hover, no flag, an all-zero lock table, event -1, hover id -1. */
+ * state, stage 0, no hover, no flag, the lock table as 0x4e1a7e fills it (kind 0, every
+ * range word 0x270f: nothing below scene request 9999 is locked), event -1, hover id -1. */
 int taskbar_init(Taskbar *bar, const TaskbarLayout *layout);
 
 /* 0x4e18e5: apply the lock table for the word 0x5bb57b (scene request). */

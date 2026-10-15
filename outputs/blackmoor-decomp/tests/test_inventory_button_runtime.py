@@ -12,7 +12,8 @@ Original facts under test (GAME.EXE, SHA-256 afd337a2...485c45):
    press completes strictly after its deadline and once its sound is idle, the flag byte
    (button 1 -> 0x583232) lasts until the next process call;
  * locks 0x4e18e5: kind 1 locks, kind 2 unlocks a locked button, kind 0 locks while the scene
-   request is inside any [lo, hi] range (the all-zero power-on table locks scene 0 only).
+   request is inside any [lo, hi] range; the power-on table is the 0x4e1a7e fill (kind 0, every
+   lo and hi word 0x270f), so it locks scene 9999 only and none of the chain scenes.
 """
 import ctypes as c
 import os
@@ -449,13 +450,25 @@ class TaskbarLockTests(unittest.TestCase):
     def locked(self, fx):
         return [fx.bar.button[i].state == 3 for i in range(5)]
 
-    def test_power_on_table_locks_scene_zero_only(self):
+    def test_power_on_table_is_the_0x4e1a7e_fill_and_locks_only_scene_9999(self):
+        # 0x4e1a7e (called from 0x4e06c0 at 0x4e0739, itself called at 0x4260e1) stores kind 0 and
+        # sets every lo and hi word to 0x270f: no button is locked for scene 0 or the chain scenes.
         fx = Fixture(self.lib)
-        fx.start(scene=0)
+        for i in range(5):
+            self.assertEqual(fx.bar.lock[i].kind, 0)
+            self.assertEqual(set(fx.bar.lock[i].lo), {0x270f})
+            self.assertEqual(set(fx.bar.lock[i].hi), {0x270f})
+        for scene in (0, 6410, 6411, 6433, 6434):
+            with self.subTest(scene=scene):
+                fx = Fixture(self.lib)
+                fx.start(scene=scene)
+                self.assertEqual(self.locked(fx), [False] * 5)
+                self.assertEqual([fx.bar.button[i].state for i in range(5)], [0] * 5)
+        fx = Fixture(self.lib)
+        fx.start(scene=0x270f)
         self.assertEqual(self.locked(fx), [True] * 5)
         fx.lib.taskbar_apply_locks(c.byref(fx.bar), 6410)
         self.assertEqual(self.locked(fx), [False] * 5)
-        self.assertEqual([fx.bar.button[i].state for i in range(5)], [0] * 5)
 
     def test_kind_one_locks_kind_two_unlocks_only_locked_buttons(self):
         fx = Fixture(self.lib)

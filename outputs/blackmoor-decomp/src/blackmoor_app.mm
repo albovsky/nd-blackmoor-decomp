@@ -253,8 +253,9 @@ struct NativeApp {
     uint64_t a78_sound_requests = 0u, a78_ui_requests = 0u;
     /* RT-22: the inventory view (object 0x571442): screen state 0x583204, slots,
      * pointer routing. Geometry comes from the boot chunks UIIV/INV/CURS (copies,
-     * read once). The open request stands in for the taskbar button (0x4e0f91 /
-     * 0x4e1450 set byte 0x583232), which is not recovered. */
+     * read once). The task bar button (0x4e0f91 / 0x4e1450 set byte 0x583232) is recovered
+     * (inventory_button_runtime, see the bar members below); the open request is its consumer
+     * (0x43a862) and the stand-in for --live-pick-item. */
     InventoryView inv_view{};
     InventoryViewLayout inv_layout{};
     bool inv_view_initialized = false;
@@ -1709,7 +1710,13 @@ static void pointer(void *context, BlackmoorPointerKind kind,
             app->pointer_y = y;
         }
         inventory_view_pointer_event(app, event_kind, x, y);
-        if (event_kind != BLACKMOOR_POINTER_MOVE) return;
+        if (event_kind != BLACKMOOR_POINTER_MOVE) {
+            /* The release of a press the view took must not reach the scene's input latch (it
+             * would register a second click on a hotspot under the slot), same as the bar's.
+             * NOT original: the original acts on the release (see the RT-22 handoff). */
+            app->bar_swallow_up = true;
+            return;
+        }
     }
     /* The original message-map helper stores coordinates for WM_MOUSEMOVE.
      * Button down/up notify the input latch without replacing that last move. */
@@ -6032,7 +6039,7 @@ int main(int argc, char **argv)
                  * pointer onto the slot holding ITEM and left-clicks it. May repeat. */
                 char *end = nullptr;
                 const long pick_scene = std::strtol(value, &end, 10);
-                if (!*value || *end != ':' || pick_scene < 0) return 2;
+                if (!*value || *end != ':' || pick_scene < 0 || pick_scene > INT32_MAX) return 2;
                 const long pick_item = std::strtol(end + 1, &end, 10);
                 if (*end || pick_item < 0 || pick_item >= (long)INVVIEW_ITEMS) return 2;
                 app.live_pick_items.emplace_back((int32_t)pick_scene, (int32_t)pick_item);
@@ -6043,7 +6050,7 @@ int main(int argc, char **argv)
                  * May repeat. */
                 char *end = nullptr;
                 const long click_scene = std::strtol(value, &end, 10);
-                if (!*value || *end != ':' || click_scene < 0) return 2;
+                if (!*value || *end != ':' || click_scene < 0 || click_scene > INT32_MAX) return 2;
                 const long click_x = std::strtol(end + 1, &end, 10);
                 if (*end != ',' || click_x < 0 || click_x > 639) return 2;
                 const long click_y = std::strtol(end + 1, &end, 10);

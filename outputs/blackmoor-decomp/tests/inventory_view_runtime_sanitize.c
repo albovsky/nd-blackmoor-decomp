@@ -25,6 +25,31 @@ int main(void)
     static uint8_t uiiv[INVVIEW_UIIV_BYTES + 64], inv[INVVIEW_INV_BYTES + 64];
     long iterations = 0, statuses[8] = {0};
     int round;
+    {   /* wrapping extremes the original's 32-bit add/sub/imul tolerate (no signed-overflow UB) */
+        InventoryViewLayout edge;
+        InventoryView edge_view;
+        int16_t edge_held = -1, edge_count = 3;
+        uint16_t edge_items[CAP] = {0};
+        int32_t edge_presence[CAP] = {0};
+        Action79Model edge_model;
+        const char *edge_why = NULL;
+        const int32_t pages[] = {0x10000000, 0x7fffffff, INT32_MIN, -1, 0x08000000};
+        size_t p;
+        memset(&edge, 0, sizeof(edge));
+        edge.rect[0][0] = INT32_MAX; edge.rect[0][2] = INT32_MAX; edge.rect[0][3] = INT32_MIN + 3;
+        edge.rect[1][1] = INT32_MAX; edge.rect[1][3] = INT32_MAX;
+        if (inventory_view_slot_hit(&edge, 0, 5, 5) != 0) return 2;
+        if (inventory_view_slot_hit(&edge, 1, 5, 5) != 0) return 2;
+        memset(&edge_model, 0, sizeof(edge_model));
+        edge_model.held_item = &edge_held; edge_model.item_count = &edge_count;
+        edge_model.items = edge_items; edge_model.item_capacity = CAP;
+        edge_model.presence = edge_presence; edge_model.presence_capacity = CAP;
+        for (p = 0; p < sizeof(pages) / sizeof(pages[0]); ++p) {
+            inventory_view_init(&edge_view);
+            edge_view.page = pages[p];
+            (void)inventory_view_rebuild(&edge_view, &edge_model, &edge_why);
+        }
+    }
     for (round = 0; round < 20000; ++round) {
         InventoryViewLayout layout;
         InventoryView view;

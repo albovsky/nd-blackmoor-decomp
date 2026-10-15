@@ -238,6 +238,16 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual([hit(60, 83), hit(60, 84), hit(60, 123), hit(60, 124)], [0, 1, 1, 0])
         self.assertEqual(self.lib.inventory_view_slot_hit(c.byref(layout), 16, 60, 100), 0)
 
+    def test_slot_hit_margin_adds_wrap_in_32_bits_like_the_original(self):
+        # left + 11 and bottom - 10 are 32-bit add/sub; they wrap instead of being UB.
+        layout = Layout()
+        layout.rect[0][:] = [0x7fffffff, 0, 0x7fffffff, 100]
+        hit = lambda x, y: self.lib.inventory_view_slot_hit(c.byref(layout), 0, x, y)   # noqa: E731
+        # left + 11 wraps to INT32_MIN + 10 = -0x7ffffff6
+        self.assertEqual([hit(-0x7ffffff7, 50), hit(-0x7ffffff6, 50), hit(0x7fffffff, 50)], [0, 1, 1])
+        layout.rect[0][:] = [0, 0, 100, -0x7ffffffe]     # bottom - 10 wraps to 0x7ffffff8
+        self.assertEqual([hit(50, 0x7ffffff8), hit(50, 0x7ffffff9)], [1, 0])
+
 
 class ViewTests(unittest.TestCase):
     @classmethod

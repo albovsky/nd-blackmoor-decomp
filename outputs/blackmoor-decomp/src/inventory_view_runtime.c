@@ -124,12 +124,12 @@ int inventory_view_rebuild(InventoryView *view, const Action79Model *inventory, 
         return INVVIEW_ERR_TAB;
     }
     count = (int32_t)*inventory->item_count;
-    base = view->page * 16;
+    base = (int32_t)((uint32_t)view->page * 16u);     /* 32-bit imul/add wrap, no signed UB */
     for (i = 0; i < INVVIEW_SLOTS; ++i) {
         view->slot_item[i] = -1;                      /* 0x4e8177 */
     }
     for (i = 0; i < INVVIEW_SLOTS; ++i) {
-        const int32_t index = base + (int32_t)i;      /* [ebp-4] */
+        const int32_t index = (int32_t)((uint32_t)base + (uint32_t)i);   /* [ebp-4] */
         if (index < LIST_LIMIT && index < count) {    /* 0x4e8554, signed compares */
             if (index < 0 || (size_t)index >= inventory->item_capacity) {
                 if (failure != NULL) {
@@ -171,10 +171,11 @@ int inventory_view_slot_hit(const InventoryViewLayout *layout, size_t slot, int3
         return 0;
     }
     /* 0x4e8c62..0x4e8cea, signed compares on dwords. */
-    if (px < layout->rect[slot][0] + HOT_MARGIN_X) return 0;
+    /* The add and sub wrap in 32 bits like the original's; done unsigned to avoid signed UB. */
+    if (px < (int32_t)((uint32_t)layout->rect[slot][0] + (uint32_t)HOT_MARGIN_X)) return 0;
     if (px > layout->rect[slot][2]) return 0;
-    if (py < layout->rect[slot][1] + HOT_MARGIN_Y) return 0;
-    if (py > layout->rect[slot][3] - HOT_MARGIN_Y) return 0;
+    if (py < (int32_t)((uint32_t)layout->rect[slot][1] + (uint32_t)HOT_MARGIN_Y)) return 0;
+    if (py > (int32_t)((uint32_t)layout->rect[slot][3] - (uint32_t)HOT_MARGIN_Y)) return 0;
     return 1;
 }
 

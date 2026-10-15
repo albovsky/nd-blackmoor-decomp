@@ -56,6 +56,17 @@ int taskbar_init(Taskbar *bar, const TaskbarLayout *layout)
     if (bar == NULL || layout == NULL) return TASKBAR_ERR_ARGUMENT;
     memset(bar, 0, sizeof(*bar));
     for (unsigned i = 0; i < TASKBAR_BUTTONS; ++i) bar->button[i].state = layout->button[i].initial_state;
+    /* 0x4e1a7e (called by 0x4e06c0 at 0x4e0739): per lock entry kind := 0 and every lo and hi
+     * word := 0x270f (9999), so no scene request below 9999 is locked until a producer
+     * (0x4e13e4, 0x4e1305; not modelled) writes the table. The other fields it fills (+0x194,
+     * +0x198.., dwords at +0xcc.. := 0xd) are not read by anything modelled here. */
+    for (unsigned i = 0; i < TASKBAR_BUTTONS; ++i) {
+        bar->lock[i].kind = 0;
+        for (unsigned k = 0; k < TASKBAR_LOCK_RANGES; ++k) {
+            bar->lock[i].lo[k] = TASKBAR_LOCK_RANGE_INIT;
+            bar->lock[i].hi[k] = TASKBAR_LOCK_RANGE_INIT;
+        }
+    }
     bar->event = TASKBAR_EVENT_NONE;
     bar->hover_id = -1;
     return TASKBAR_OK;
