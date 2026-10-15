@@ -100,8 +100,8 @@ MUTATIONS = [
          "    *value = 0;\n")]),
     ("bsum_variable_word_offset_off_by_two", "session_bindings_conditions.c", [
         ("offset = 2 * (int32_t)index - 9618;", "offset = 2 * (int32_t)index - 9616;")]),
-    ("audio_control_zero_refusal_removed", "session_bindings_conditions_audio.c", [
-        ("info.started != 0u && info.control_word == 0u", "info.started != 0u && info.control_word == 77u")]),
+    ("audio_refused_update_reported_as_idle", "session_bindings_conditions_audio.c", [
+        ("    if (info.update_refused != 0u) {", "    if (info.update_refused == 77u) {")]),
     ("audio_unloaded_channel_reported_loaded", "session_bindings_conditions_audio.c", [
         ("    if (info.loaded == 0u) {", "    if (0 && info.loaded == 0u) {")]),
     ("app_variable_word_provider_stubbed_to_zero", "blackmoor_app.mm", [

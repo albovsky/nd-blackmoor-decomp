@@ -698,6 +698,23 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
                       'view_rebuilds_requested=0', contents)
 
+    def test_rt11_1_the_looping_clock_keeps_the_s6401_dependency_open(self):
+        # S6400 loads ClockTicking_Grandfather01 (channel 4, raw control 0, 774,352
+        # decoded bytes > 0x56220: a stream the original loops forever). It stays
+        # loaded across the continuation to S6401, and the opcode-17 dependency of
+        # row 0 (0x9f) must keep answering for ~3000 ticks (it froze at tick 109
+        # when the adapter refused the completed control-0 channel).
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1',
+                                 '--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                                 row='32')
+        self.assertRegex(contents, r'live_audio loaded stem=ClockTicking_Grandfather01 channel=4 '
+                         r'.*control_word=0x00000000 class=stream completion=loop-forever')
+        self.assertIn('live_audio started channel=4 generation=1 mode=0 category=2 loop=1', contents)
+        self.assertRegex(contents, r'live_session_end scene=6401 ticks=3000 status=0 provider=none ')
+        self.assertNotIn('provider=dependency-provider', contents)
+        self.assertNotIn('live_audio update_refused', contents)
+        self.assertNotIn('live_audio restart channel=4', contents)   # a stream never completes
+
     # ---- RT-14: raw 0x36 static overlays (COverlay) -------------------------------------
     def test_rt14_overlays_are_drawn_and_the_hot_region_is_hit_before_any_generic_row(self):
         contents = self.tutorial('--live-scene-row', '6400:17', '--live-hover-only')

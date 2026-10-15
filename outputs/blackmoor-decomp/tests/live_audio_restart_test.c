@@ -565,6 +565,24 @@ static void t_adapter_control_one_and_unloaded_are_unchanged(Ctx *ctx)
     rig_close(&rig);
 }
 
+static void t_adapter_reports_an_armed_repeat_as_busy(Ctx *ctx)
+{
+    Rig rig; SessionConditionsChannelRecord r;
+    if (!rig_open(ctx, &rig, 1)) return;
+    CHECK(ctx, start(&rig, "Tone", 4, 0));
+    CHECK(ctx, live_audio_set_channel_flags(rig.audio, 4, 0x10u) == LIVE_AUDIO_OK);
+    g_random_value = 900u;
+    finish(&rig, 4);
+    (void)service(&rig, 100u);
+    memset(&r, 0xee, sizeof(r));
+    CHECK(ctx, record_of(&rig, 4, &r) == CONDITION_EXTRA_HOST_OK);
+    CHECK(ctx, r.repeat_marker_19e == 1u && r.get_status_flags == 0u);   /* 0x4f6334 marker branch */
+    (void)service(&rig, 100u + 1400u + 1u);
+    CHECK(ctx, record_of(&rig, 4, &r) == CONDITION_EXTRA_HOST_OK);
+    CHECK(ctx, r.repeat_marker_19e == 0u && r.get_status_flags == 1u);
+    rig_close(&rig);
+}
+
 static void t_adapter_still_refuses_what_it_cannot_prove(Ctx *ctx)
 {
     Rig rig; SessionConditionsChannelRecord r;
@@ -605,6 +623,7 @@ static const Test tests[] = {
     {"adapter_answers_a_completed_restartable_channel_without_refusing",
      t_adapter_answers_a_completed_restartable_channel_without_refusing},
     {"adapter_control_one_and_unloaded_are_unchanged", t_adapter_control_one_and_unloaded_are_unchanged},
+    {"adapter_reports_an_armed_repeat_as_busy", t_adapter_reports_an_armed_repeat_as_busy},
     {"adapter_still_refuses_what_it_cannot_prove", t_adapter_still_refuses_what_it_cannot_prove},
 };
 

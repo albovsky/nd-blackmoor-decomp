@@ -46,6 +46,7 @@ EXPECTED = [
     "adapter_reports_the_looping_clock_as_playing_forever",
     "adapter_answers_a_completed_restartable_channel_without_refusing",
     "adapter_control_one_and_unloaded_are_unchanged",
+    "adapter_reports_an_armed_repeat_as_busy",
     "adapter_still_refuses_what_it_cannot_prove",
 ]
 
@@ -122,6 +123,93 @@ class RestartTests(unittest.TestCase):
         self.assertNotIn("AddressSanitizer", stderr)
         self.assertNotIn("runtime error", stderr)
         self.assert_all_pass(outcomes, code, stderr)
+
+    def test_mutations_are_detected(self) -> None:
+        for name, target, old, new, must_fail, _oracle_filter in MUTATIONS:
+            with self.subTest(mutation=name):
+                source = PROVIDER if target == "provider" else ADAPTER
+                text = source.read_text()
+                self.assertEqual(text.count(old), 1, "mutation anchor must match once: " + name)
+                mutant_dir = self.tmp / ("mutant-" + name)
+                mutant_dir.mkdir()
+                mutant = mutant_dir / source.name
+                mutant.write_text(text.replace(old, new, 1))
+                result = build("fixture", build_dir=mutant_dir,
+                               provider=mutant if target == "provider" else None,
+                               adapter=mutant if target == "adapter" else None)
+                self.assertEqual(result.returncode, 0, "mutant did not build: " + result.stderr[-1500:])
+                code, outcomes, stderr = run(mutant_dir / "live_audio_restart_test", self.tree)
+                failing = [t for t in must_fail if outcomes.get(t, ("MISSING", ""))[0] == "FAIL"]
+                self.assertTrue(failing, f"mutation {name} survived: {outcomes} {stderr}")
+                self.assertNotEqual(code, 0)
+                print(f"\nmutation {name}: detected by {failing}")
+
+
+# (name, target, anchor, replacement, unit tests that must notice,
+#  scenario-name filter for the original-x86 oracle or None when the rule is
+#  not observable there). Every anchor matches exactly once.
+MUTATIONS: list[tuple[str, str, str, str, list[str], str | None]] = [
+    ("never_restart", "provider",
+     "    status = sound_control_update(&state, index, &host, &result);",
+     "    state.channels[index].update_gate_287 = 1u;\n    status = sound_control_update(&state, index, &host, &result);",
+     ["control_zero_nonstream_restarts_after_completion", "flag_matrix_decision_table"],
+     "Tone-c0x0-f0x0"),
+    ("restart_control_one", "provider",
+     "    slot->raw_control = channel->control_word;",
+     "    slot->raw_control = 0u;",
+     ["control_one_never_restarts", "other_control_words_never_restart"],
+     "Tone-c0x1-f0x0"),
+    ("stream_restarted_as_plain_buffer", "provider",
+     "    slot->stream_state = channel->stream_class;",
+     "    slot->stream_state = 0u;",
+     ["flag_matrix_decision_table"],
+     "Big-c0x0-f0x0"),
+    ("wrong_flag_word_ignored", "provider",
+     "    slot->raw_flags = channel->raw_flags;",
+     "    slot->raw_flags = 0u;",
+     ["flag_0x10_arms_the_random_delay_then_plays_after_the_due_tick", "flag_matrix_decision_table"],
+     "Tone-c0x0-f0x10"),
+    ("stream_threshold_off_by_one", "provider",
+     "decoded_bytes > STREAM_THRESHOLD_BYTES",
+     "decoded_bytes >= STREAM_THRESHOLD_BYTES",
+     ["stream_threshold_is_0x56220_signed_greater_than"],
+     None),
+    ("explicit_stop_not_gated", "provider",
+     "    if (channel->loaded) channel->update_gate_287 = 1u;\n",
+     "",
+     ["explicit_stop_and_unload_are_not_restarted"],
+     "stop-gates-update"),
+    ("stream_with_nonzero_control_loops", "provider",
+     "channel->stream_class != 0u ? channel->control_word == 0u",
+     "channel->stream_class != 0u ? 1",
+     ["control_one_stream_plays_once_and_is_not_restarted", "flag_matrix_decision_table"],
+     "Big-c0x1-f0x0"),
+    ("repeat_compare_not_strict", "provider",
+     "tick <= channel->repeat_due_tick",
+     "tick < channel->repeat_due_tick",
+     ["flag_0x10_arms_the_random_delay_then_plays_after_the_due_tick"],
+     "Tone-c0x0-f0x10-r1233"),
+    ("repeat_compare_signed", "provider",
+     "tick <= channel->repeat_due_tick",
+     "(int32_t)tick <= (int32_t)channel->repeat_due_tick",
+     ["flag_0x10_tick_wrap_uses_the_unsigned_compare"],
+     "tick-wrap"),
+    ("poll_latch_loses_the_stop_notification", "provider",
+     "        channel->finished = 1u;\n        channel->stop_event_pending = 1u;\n        return ACTION_SOUND_BACKEND_OK;",
+     "        channel->finished = 1u;\n        return ACTION_SOUND_BACKEND_OK;",
+     ["completion_latched_by_a_poll_is_still_serviced"],
+     None),
+    ("adapter_refusal_removed", "adapter",
+     "    if (info.update_refused != 0u) {",
+     "    if (info.update_refused == 77u) {",
+     ["adapter_still_refuses_what_it_cannot_prove"],
+     None),
+    ("adapter_repeat_marker_dropped", "adapter",
+     "    record->repeat_marker_19e = info.repeat_marker;",
+     "    record->repeat_marker_19e = 0u;",
+     ["adapter_reports_an_armed_repeat_as_busy"],
+     None),
+]
 
 
 if __name__ == "__main__":
