@@ -211,8 +211,12 @@ class KernelTests(unittest.TestCase):
         self.assertEqual([name for name, _ in case.log].count('request'), 2)
 
     def test_frame_words_compare_as_sign_extended_words(self):
-        records = [(-2, 1, 2, 3, 4), (0x7fff, 5, 6, 7, 8), (-32768, 9, 10, 11, 12)]
-        for selector, expect in ((-2, 0), (0x7fff, 1), (-32768, 2), (2, -1), (-3, -1)):
+        # 0x8001 and 0x0001 (and -32767 / 1) differ only in the sign bit: a compare that
+        # drops bit 15 would match them to each other.
+        records = [(-2, 1, 2, 3, 4), (0x7fff, 5, 6, 7, 8), (-32768, 9, 10, 11, 12),
+                   (-32767, 13, 14, 15, 16), (1, 17, 18, 19, 20)]
+        for selector, expect in ((-2, 0), (0x7fff, 1), (-32768, 2), (-32767, 3), (1, 4),
+                                 (2, -1), (-3, -1)):
             with self.subTest(selector=selector):
                 case = Case(self.lib, body(records=records), 1, selector=selector)
                 status, result, _ = case.run()
