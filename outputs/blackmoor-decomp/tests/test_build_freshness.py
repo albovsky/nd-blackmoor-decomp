@@ -55,6 +55,21 @@ KNOWN_UNTRACKED_OUTPUTS = {
         "compiled directly by tests/test_action_family_28_sequence.py, no build script",
     "live_audio_movie_test":
         "compiled directly by tests/test_session_bindings_a35_bink.py, no build script",
+    "action_family_79_runtime_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_79_runtime_sanitizers.sh:12 "
+        "(a sanitizer test script, not a build_*.sh), invoked from tests/test_action_family_79_runtime_oracle.py:52",
+    "action_family_79_runtime_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_79_runtime_sanitize",
+    "action_family_79_binding_stub_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_79_runtime_sanitizers.sh:22 "
+        "(stub-scene variant), invoked from tests/test_action_family_79_runtime_oracle.py:52",
+    "action_family_79_binding_stub_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_79_binding_stub_sanitize",
+    "session_bindings_a0b_stub_scene_plain":
+        "stub-scene check binary compiled directly by tests/test_action_family_0b_runtime.py:646 "
+        "(StubSceneTests), no build script",
+    "session_bindings_a0b_stub_scene_plain.dSYM/*":
+        "debug-symbol bundle of session_bindings_a0b_stub_scene_plain",
     "live_audio_movie_test.dSYM/*":
         "debug-symbol bundle of live_audio_movie_test (clang -g link)",
     "libactionfamily28_x87_division_fixture.dylib.dSYM/*":
