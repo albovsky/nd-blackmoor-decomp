@@ -37,8 +37,8 @@
   "ticks": 2187,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "26b5f00c42875c7b8494972d92f3bcaab7b9fa4a",
-    "native_sha256": "8d2805a71c414b8a02972d409471d139989e947ef55a858ab46ba098479711c8",
+    "source_ref": "ddf0808ca591d9538ce8e1afd73f593b252d7c85",
+    "native_sha256": "615c919f2a394e835102cb9f4788407dd5e81f40329e517bd655a3fc7a27e3ec",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -216,12 +216,16 @@
         "sha256": "79b8e97afe2db2ee971fac6d31bf6f2b8d31191b7085a3cda46dc781c1b35726"
       },
       {
+        "path": "src/action_family_78_runtime.h",
+        "sha256": "04d04add4518d50e013e677a6db1bace217292ae5a00a872aed722312d1de051"
+      },
+      {
         "path": "src/action_family_79.h",
         "sha256": "1c52b3cc5373b9c93a479135d6b1a524489a0efa6ab230c8b86b5ec0ba1220dd"
       },
       {
         "path": "src/action_family_79_runtime.h",
-        "sha256": "0a9aabf896d99eda2f8c888b974dad105dd38595d8e3fac4bba8053b637b1014"
+        "sha256": "f9702a9d62fd82210d10f51ca6f29c78a1dc5462fe7caa4d3305a1f0ab203224"
       },
       {
         "path": "src/action_family_7d.h",
@@ -345,7 +349,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "9fc5874fadd36a134d37e12e7c39fdfd613d326cf4a5207f6ed616e87bd51eb4"
+        "sha256": "096baf3183d57f8db3065848de2bb80bfc1a726edf5e6b5ce076491241faeed5"
       },
       {
         "path": "src/caption_compositor.h",
@@ -514,6 +518,14 @@
       {
         "path": "src/session_bindings_a62.h",
         "sha256": "8e0424fd43f86a50a8e47b439c7b2b4daeb1d12bb495e571c2cb9505e9b65cb9"
+      },
+      {
+        "path": "src/session_bindings_a78.c",
+        "sha256": "286afa77de2ff2264d06d917d2e41cba2a4ac568ce41bb2cfc8733ed14b09f41"
+      },
+      {
+        "path": "src/session_bindings_a78.h",
+        "sha256": "8d98b7bd504413818851d3db9095f8235c3e631c6aef2d5b13509c1a668777f2"
       },
       {
         "path": "src/session_bindings_a79.c",
