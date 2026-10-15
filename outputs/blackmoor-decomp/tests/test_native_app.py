@@ -847,19 +847,66 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertEqual(scene.count(f'scene_a36_register row={row} '), 1)
         self.assertNotIn('scene_session_blocked', contents)
 
-    def test_rt18_the_tutorial_chain_follows_the_next_button_to_s6453_and_stops_at_raw_0x78(self):
+    CHAIN_TO_6453 = CHAIN_TO_6452 + ('--live-scene-row', '6452:1', '--live-scene-row', '6405:7',
+                                     '--live-scene-row', '6453:3')
+
+    def test_rt18_the_tutorial_chain_follows_the_next_button_to_s6453(self):
         # S6405 row 7 is the 0x62 Next hotspot (RT-3); the raw 0x37 TUT_Next_OVL rows are only
         # pictures. S6453 row 1 is another raw 0x37 (one dependency record); row 3 is its 0x62
-        # hotspot and row 4 raw 0x78 "Add Inventory Item, No Hot Spot" is the next missing family.
-        contents = self.tutorial(*self.CHAIN_TO_6452, '--live-scene-row', '6452:1',
-                                 '--live-scene-row', '6405:7', '--live-scene-row', '6453:3')
+        # hotspot and row 4 raw 0x78 "Add Inventory Item, No Hot Spot" (RT-19: no longer a stop).
+        contents = self.tutorial(*self.CHAIN_TO_6453)
         self.assert_in_order(contents, (
             'scene_transition_applied source=6452 target=6405',
             'scene_a37_construct row=1 name=BLU_ToBedSideB_OVL ',
             'scene_transition_applied source=6405 target=6453',
-            'scene_a36_register row=1 list_index=0 ',
-            'scene_session_blocked stage=3 provider=action-kernel action=4 type=0x78 detail=1 '))
+            'scene_a36_register row=1 list_index=0 '))
         self.assertNotIn('scene_a36_blocker', contents)
+
+    # ---- RT-19: raw 0x78 add inventory item (S6453 row 4, handler 0x4eaadc) -----------------
+    def test_rt19_s6453_row_4_adds_item_23_and_requests_sound_rebuild_and_animation(self):
+        # Row 4 is raw 0x78 with the object (item 23, take 0, swap 1): the plain add. The New
+        # Game inventory is empty (S6400 row 15 removed nothing), so the item goes in first,
+        # sound slot 0x17 is requested before the stores, the view rebuild follows and then the
+        # UI animation. The sound and the animation are only recorded (no backend): never silent.
+        contents = self.tutorial(*self.CHAIN_TO_6453)
+        self.assert_in_order(contents, (
+            'scene_a78_construct row=4 item=23 take=0 swap=1 (add-inventory-item, 0x4eaadc)',
+            'scene_transition_applied source=6405 target=6453',
+            'scene_a78_sound_request slot=0x17 (0x4fb2e3 trigger; NOT PLAYED: ',
+            'scene_a78_inventory_changed item=23 count=1 view-rebuild=requested-not-modeled rebuilds=1',
+            'scene_a78_ui_animation_request button=1 enable=1 sub=0 (0x4e0559 on 0x570508: ',
+            'scene_transition_applied source=6453 target=6406',
+            'live_session_inventory count=1 held=-1 presence_nonzero=1 view_rebuilds_requested=1',
+            'live_session_inventory_requests sound_requests=1 ui_animation_requests=1 '))
+        self.assertNotIn('scene_a78_blocker', contents)
+        self.assertNotIn('type=0x78 detail', contents)
+        self.assertEqual(contents.count('scene_a78_sound_request'), 1)
+        self.assertEqual(contents.count('scene_a78_ui_animation_request'), 1)
+
+    def test_rt19_the_added_item_goes_first_in_front_of_the_seeded_inventory(self):
+        contents = self.tutorial('--test-inventory', '4,9', *self.CHAIN_TO_6453)
+        self.assert_in_order(contents, (
+            'test_inventory_seeded count=2 held=-1',
+            'scene_a78_inventory_changed item=23 count=3 view-rebuild=requested-not-modeled rebuilds=1',
+            'live_session_inventory count=3 held=-1 presence_nonzero=3 view_rebuilds_requested=1'))
+
+    def test_rt19_a_different_held_item_stays_held_while_the_row_item_is_added(self):
+        # S6400 row 15 (raw 0x79, item 23) clears a held item 23 first, so hold a different
+        # item: the plain add still runs and the held item stays.
+        contents = self.tutorial('--test-held', '9', *self.CHAIN_TO_6453)
+        self.assertIn('live_session_inventory count=1 held=9 presence_nonzero=1 '
+                      'view_rebuilds_requested=1', contents)
+
+    def test_rt19_the_next_stop_is_raw_0xa1_in_s6408(self):
+        # S6406 and S6407 pass; S6408 row 4 is raw 0xa1 "Sound" (the 0x9f dispatcher arm
+        # 0x4297be, loader arm 0x40f069): the next missing family.
+        contents = self.tutorial(*self.CHAIN_TO_6453)
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=6453 target=6406',
+            'scene_transition_applied source=6406 target=6407',
+            'scene_transition_applied source=6407 target=6408',
+            'scene_session_blocked stage=3 provider=action-kernel action=4 type=0xa1 detail=1 '))
+        self.assertEqual(contents.count('scene_session_blocked'), 1)
 
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):

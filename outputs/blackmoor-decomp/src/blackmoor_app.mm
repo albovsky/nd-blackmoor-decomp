@@ -23,6 +23,7 @@
 #include "session_bindings_a35.h"
 #include "session_bindings_a35_bink.h"
 #include "session_bindings_a79.h"
+#include "session_bindings_a78.h"
 #include "session_bindings_a36.h"
 #include "session_bindings_a17.h"
 #include "session_bindings_a0b.h"
@@ -240,6 +241,11 @@ struct NativeApp {
     /* RT-13: count of 0x4e812f view rebuilds requested by raw 0x79 (the native
      * app has no inventory view model yet; see native_a79_rebuild_view). */
     uint64_t inventory_view_rebuilds = 0u;
+    /* RT-19: raw 0x78 (add inventory item, handler 0x4eaadc). Its sound request
+     * (0x4fb2e3) and UI animation request (0x4e0559) are logged and counted, not
+     * performed: the app has no sound-effect backend and no UI button table. */
+    SessionA78Binding *a78 = nullptr;
+    uint64_t a78_sound_requests = 0u, a78_ui_requests = 0u;
     A35World movie_world{};
     /* Process globals mirrored by the controller, alongside the owning
      * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
@@ -1726,6 +1732,7 @@ static void cleanup(NativeApp *app)
     session_a97_destroy(app->a97);
     session_a83_destroy(app->a83);
     session_a79_destroy(app->a79);
+    session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
     session_a17_destroy(app->a17);
     session_a0b_destroy(app->a0b);
@@ -2780,6 +2787,50 @@ static int native_a79_rebuild_view(void *context, int16_t removed_item)
     return 0;
 }
 
+/* ---- RT-19: host providers for the raw 0x78 (add inventory item) binding ----
+ * 0x4e9e84 / 0x4ea06c request the same 0x4e812f view rebuild as raw 0x79 (counted
+ * with it, still not modeled). The two requests below are the original's host
+ * effects and are only recorded: 0x4fb2e3(0x17) starts the sound-manager slot 0x17
+ * (a validity probe 0x4f6059 plus a store of 1 into the slot's trigger word;
+ * which clip slot 0x17 holds is unrecovered and this app has no sound-effect
+ * backend), and 0x4e0559(1, 1, 0) sets two dword flags of the UI button table
+ * at 0x5a17b4 (+0x1a4 per button) that the interface renderer reads (the app
+ * renders no such buttons). Both are UNVERIFIED host effects, never silent, and
+ * neither blocks the session (the original does not wait for them). */
+static int native_a78_rebuild_view(void *context, int16_t item)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->inventory_view_rebuilds;
+    record(app, "scene_a78_inventory_changed item=%d count=%d view-rebuild=requested-not-modeled "
+           "rebuilds=%llu", item,
+           (int)static_cast<int16_t>(app->new_game.view.inventory.selector_words_583a2b.values[0]),
+           (unsigned long long)app->inventory_view_rebuilds);
+    return 0;
+}
+
+static int native_a78_request_sound(void *context, uint16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->a78_sound_requests;
+    record(app, "scene_a78_sound_request slot=0x%02x (0x4fb2e3 trigger; NOT PLAYED: no sound-effect "
+           "backend, slot clip unrecovered, unverified) requests=%llu", slot,
+           (unsigned long long)app->a78_sound_requests);
+    return 0;
+}
+
+static int native_a78_request_ui_animation(void *context, int16_t index, int32_t enable, int16_t sub)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->a78_ui_requests;
+    record(app, "scene_a78_ui_animation_request button=%d enable=%d sub=%d (0x4e0559 on 0x570508: "
+           "UI button flags 0x5a17b4/0x5a17b8; NOT RENDERED, unverified) requests=%llu", index, enable,
+           sub, (unsigned long long)app->a78_ui_requests);
+    return 0;
+}
+
 /* ---- RT-14: host providers for the raw 0x36 overlay binding -------------
  * COverlay (0x4899ca) registers a render entry per row, draws it every frame
  * through 0x48a3db and is hit-tested by the pointer cascade (0x4f104f ->
@@ -3132,6 +3183,18 @@ static bool create_native_session_bindings(NativeApp *app)
     a79_host.view.context = app;
     a79_host.view.rebuild_view = native_a79_rebuild_view;
     app->a79 = session_a79_create(&a79_host);
+    SessionA78Host a78_host{};
+    a78_host.model.inventory = a79_host.model;   /* RT-19: the same arrays as raw 0x79 */
+    /* The native app has no inventory screen that can open, so the view stays in its
+     * constructor state: mode 0x764c = 0 (0x4e7bb1) and slot byte 0x7010 = 0. */
+    a78_host.model.view.mode = 0;
+    a78_host.model.view.slot_flag = 0;
+    a78_host.view.inventory.context = app;
+    a78_host.view.inventory.rebuild_view = native_a78_rebuild_view;
+    a78_host.view.context = app;
+    a78_host.view.request_sound = native_a78_request_sound;
+    a78_host.view.request_ui_animation = native_a78_request_ui_animation;
+    app->a78 = session_a78_create(&a78_host);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -3160,7 +3223,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -3407,8 +3470,19 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_a79_failure(app->a79));
         return false;
     }
+    if (session_a78_begin_scene(app->a78, app->scene) != ACTION78_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a78_failure(app->a78));
+        return false;
+    }
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         SceneActionInfo info{};
+        Action78Object a78_object{};
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_A78_TYPE && session_a78_object(app->a78, row, &a78_object) == 1)
+            record(app, "scene_a78_construct row=%zu item=%d take=%u swap=%u (add-inventory-item, 0x4eaadc)",
+                   row, (int)static_cast<int16_t>(a78_object.item_word), (unsigned)a78_object.take_flag,
+                   (unsigned)a78_object.swap_flag);
         if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A79_TYPE)
             record(app, "scene_a79_construct row=%zu item=%d (remove-inventory-item, 0x4eac4c)",
@@ -3822,7 +3896,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[13]{};
+    SceneSessionActionBinding bindings[14]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -3874,7 +3948,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[12].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[12].callback = session_a36_handler;
     bindings[12].context = app->a36;
-    config.action_binding_count = 13u;
+    /* RT-19: raw 0x78 add inventory item (dispatcher arm 0x42944b, gate mode 0). */
+    bindings[13].type = SESSION_A78_TYPE;
+    bindings[13].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[13].callback = session_a78_handler;
+    bindings[13].context = app->a78;
+    config.action_binding_count = 14u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -4758,6 +4837,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
 {
     const char *detail = "";
     if (r.failure.action_type == SESSION_A79_TYPE) detail = session_a79_failure(app->a79);
+    else if (r.failure.action_type == SESSION_A78_TYPE) detail = session_a78_failure(app->a78);
     else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
     else if (r.failure.action_type == SESSION_A36_TYPE ||
              r.failure.action_type == SESSION_A37_TYPE) detail = session_a36_failure(app->a36);
@@ -4900,6 +4980,8 @@ static void update(NativeApp *app, uint32_t now)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
             if (session_result.failure.action_type == SESSION_A79_TYPE)
                 record(app, "scene_a79_blocker detail=%s", session_a79_failure(app->a79));
+            if (session_result.failure.action_type == SESSION_A78_TYPE)
+                record(app, "scene_a78_blocker detail=%s", session_a78_failure(app->a78));
             if (session_result.failure.action_type == SESSION_A36_TYPE ||
                 session_result.failure.action_type == SESSION_A37_TYPE)
                 record(app, "scene_a36_blocker detail=%s", session_a36_failure(app->a36));
@@ -5893,6 +5975,11 @@ int main(int argc, char **argv)
                                (int)static_cast<int16_t>(inv.selector_words_583a2b.values[0]),
                                (int)*inv.selected_item_candidate, present,
                                (unsigned long long)app.inventory_view_rebuilds);
+                        /* RT-19: host requests of raw 0x78 that the app records but does not perform. */
+                        record(&app, "live_session_inventory_requests sound_requests=%llu "
+                               "ui_animation_requests=%llu (not played / not rendered, unverified)",
+                               (unsigned long long)app.a78_sound_requests,
+                               (unsigned long long)app.a78_ui_requests);
                     }
                     {
                         /* RT-17: what the window would show at the end of the run (the

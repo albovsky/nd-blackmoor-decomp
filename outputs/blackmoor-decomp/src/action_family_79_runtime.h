@@ -97,6 +97,14 @@ int action79_visit(uint16_t item_word, const Action79Model *model,
                    const Action79Host *host, Action79Result *result,
                    const char **failure);
 
+/* RT-19: the 0x4ea06c step alone (search, compaction, count, presence, rebuild
+ * request), shared with raw 0x78's handler 0x4eaadc. Same validation, effects,
+ * order and statuses as action79_visit up to the rebuild; the held item and the
+ * completion are NOT touched (result->held_cleared and completed stay 0). */
+int action79_remove_item(uint16_t item_word, const Action79Model *model,
+                         const Action79Host *host, Action79Result *result,
+                         const char **failure);
+
 #ifdef __cplusplus
 }
 #endif
