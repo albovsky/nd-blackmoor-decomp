@@ -81,6 +81,11 @@ static int is_action_core_type(uint8_t type)
            type == SCENE_ACTION_DIFFICULTY;
 }
 
+static int is_static_overlay_raw_type(uint8_t type)
+{
+    return type == 0x37u || type == 0x38u;
+}
+
 static int action_runtime_type(const SceneActionInfo *action)
 {
     if (action->type == SCENE_ACTION_RAW_SCENE_HOTSPOT &&
@@ -91,7 +96,7 @@ static int action_runtime_type(const SceneActionInfo *action)
     /* RT-18: the raw 0x37 (arm 0x40c446 -> 0x4895cc, type store 0x40c47b) and raw 0x38 (arm
      * 0x40c404 -> 0x48905b, store 0x40c43a) loaders store the runtime type 0x36, which the
      * dispatcher gates with 0x423f57 mode 1 (push 1 at 0x428083). */
-    if (action->type == 0x37u || action->type == 0x38u) {
+    if (is_static_overlay_raw_type(action->type)) {
         return 0x36;
     }
     return action->type;

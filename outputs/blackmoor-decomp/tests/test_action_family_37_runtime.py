@@ -163,6 +163,7 @@ class BindingTests(unittest.TestCase):
         f = self.fixture([overlay37(b'A37'), overlay36(b'A36'),
                           session.action(0x61, 1, session.i16(4) + session.i16(1) +
                                          session.i16(-1) + session.i16(0))])
+        self.assertIsNotNone(f.image(0), 'the raw 0x37 row has an image after the scene load')
         self.assertEqual(bytes(f.image(0)), model_image(b'A37'))
         self.assertEqual([self.lib.session_a36_row_raw_type(f.binding, row) for row in range(4)],
                          [0x37, 0x36, 0, 0])
