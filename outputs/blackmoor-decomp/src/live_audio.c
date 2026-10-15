@@ -3,7 +3,13 @@
  * Native platform/codec adapter, not a reconstruction of the original CSound
  * stream protocol (S04-2.2 stays paused). See live_audio.h for the contract;
  * everything the original decides from state this adapter does not model is
- * reported there as unverified rather than guessed. */
+ * reported there as unverified rather than guessed.
+ *
+ * RT-11.1 adds the recovered completed-channel update. The original delivers
+ * a buffer's end as a DirectSound stop notification (event 2*channel+1,
+ * armed at load, 0x4f413d..0x4f41d6); the pump 0x4f52a9 drains events and
+ * calls the channel update 0x4f55d5 (recovered kernel sound_control_update),
+ * then the delayed-repeat pass 0x4f7207. live_audio_service is that pump. */
 
 #include "live_audio.h"
 
@@ -30,6 +36,17 @@ _Static_assert(LIVE_AUDIO_CATEGORY_COUNT == 4u, "four independent volume categor
 /* Startup x87 control word of the recovered attenuation path (S04-1). */
 #define REFERENCE_X87_CONTROL_WORD 0x027fu
 #define MAX_SUFFIX_BYTES 4u /* ".his" */
+#define HIS_HEADER_BYTES 30u
+#define HIS_DECODED_BYTES_OFFSET 24u
+/* 0x4f3b49: `cmp [slot+0x15e], 0x56220; jle` selects the whole-buffer loader
+ * (0x4f3c26, stream_state 0); anything larger takes the 16-chunk ring stream
+ * loader (0x4f438f) with stream_state (slot+0x166) set at 0x4f3b58. */
+#define STREAM_THRESHOLD_BYTES 0x56220u
+/* The 0x9f runtime record (0x410f99) carries repeat min/max constants that
+ * the phase handler copies to slot+0x1aa/+0x1ae (0x411034, 0x41103e,
+ * 0x432f69, 0x432f84); its flags word +0x25 stays zero (0x432f11). */
+#define SCENE_REPEAT_MIN 500u
+#define SCENE_REPEAT_MAX 2000u
 
 typedef struct Channel {
     uint8_t loaded;
@@ -37,6 +54,20 @@ typedef struct Channel {
     uint8_t finished;
     uint8_t volume_category;
     uint8_t mode;
+    /* RT-11.1 update state (see live_audio.h LiveAudioChannelInfo). */
+    uint8_t stream_class;
+    uint8_t looping;
+    uint8_t stop_event_pending;
+    uint8_t update_gate_287;
+    uint8_t update_refused;
+    uint8_t repeat_marker;
+    uint16_t raw_flags;
+    uint32_t decoded_bytes;
+    uint32_t repeat_min;
+    uint32_t repeat_max;
+    uint32_t repeat_delay;
+    uint32_t repeat_due_tick;
+    uint32_t restarts;
     uint64_t generation;
     /* Counts loads on this channel. Its parity picks the host slot, so a
      * replacement sound never shares a host slot with the sound it replaced:
@@ -65,6 +96,8 @@ struct LiveAudio {
     LiveAudioLogFn log;
     void *log_context;
     float category_scalar[LIVE_AUDIO_CATEGORY_COUNT];
+    LiveAudioRandomFn random_value;
+    void *random_context;
     uint32_t offline_sample_rate;
     uint32_t offline_channels;
     uint64_t offline_frames_rendered;
@@ -258,6 +291,26 @@ static void refresh_gain(const LiveAudio *audio, Channel *channel)
     channel->reference_first_attenuation = channel->reference_first_attenuation_valid ? attenuation : 0;
 }
 
+/* HIS header offset 24 is the original's data size (slot+0x122 -> +0x15e,
+ * 0x4f3aaf). The decoder has already validated the file, so a failure here is
+ * a race with the filesystem and fails the load. */
+static int read_decoded_bytes(const char *path, uint32_t *decoded_bytes)
+{
+    uint8_t header[HIS_HEADER_BYTES];
+    FILE *file = fopen(path, "rb");
+    size_t got;
+
+    if (file == NULL) return 0;
+    got = fread(header, 1u, sizeof(header), file);
+    (void)fclose(file);
+    if (got != sizeof(header) || memcmp(header, "HIS\0", 4u) != 0) return 0;
+    *decoded_bytes = (uint32_t)header[HIS_DECODED_BYTES_OFFSET] |
+                     ((uint32_t)header[HIS_DECODED_BYTES_OFFSET + 1u] << 8) |
+                     ((uint32_t)header[HIS_DECODED_BYTES_OFFSET + 2u] << 16) |
+                     ((uint32_t)header[HIS_DECODED_BYTES_OFFSET + 3u] << 24);
+    return 1;
+}
+
 /* Stops the host slot of a started sound and frees the channel's PCM.
  * The channel's generation moves on either way. */
 static int release_channel(LiveAudio *audio, uint16_t index)
@@ -276,6 +329,19 @@ static int release_channel(LiveAudio *audio, uint16_t index)
     channel->loaded = 0u;
     channel->started = 0u;
     channel->finished = 0u;
+    channel->looping = 0u;
+    channel->stream_class = 0u;
+    channel->stop_event_pending = 0u;
+    channel->update_gate_287 = 0u;
+    channel->update_refused = 0u;
+    channel->repeat_marker = 0u;
+    channel->raw_flags = 0u;
+    channel->decoded_bytes = 0u;
+    channel->repeat_min = 0u;
+    channel->repeat_max = 0u;
+    channel->repeat_delay = 0u;
+    channel->repeat_due_tick = 0u;
+    channel->restarts = 0u;
     channel->final_gain = 0.0f;
     channel->reference_first_attenuation = 0;
     channel->reference_first_attenuation_valid = 0u;
@@ -360,6 +426,8 @@ int live_audio_create(const LiveAudioConfig *config, LiveAudio **audio_out,
     audio->mode = config->mode;
     audio->log = config->log;
     audio->log_context = config->log_context;
+    audio->random_value = config->random_value;
+    audio->random_context = config->random_context;
     audio->offline_sample_rate = config->mode == MAC_AUDIO_MODE_OFFLINE ? rate : 0u;
     audio->offline_channels = config->mode == MAC_AUDIO_MODE_OFFLINE ? channels : 0u;
     for (index = 0u; index < LIVE_AUDIO_CATEGORY_COUNT; ++index) audio->category_scalar[index] = 1.0f;
@@ -423,6 +491,7 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
     char *path = NULL;
     char error[512] = "";
     HisAudio decoded = HIS_AUDIO_INIT;
+    uint32_t decoded_bytes = 0u;
     ResolveStatus resolved;
     int status;
 
@@ -468,6 +537,13 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
         return ACTION_SOUND_BACKEND_ERROR;
     }
     status = his_audio_decode_file(path, &decoded, error, sizeof(error));
+    if (status == HIS_AUDIO_OK && !read_decoded_bytes(path, &decoded_bytes)) {
+        logf_line(audio, "live_audio decode_failed stem=%s channel=%u reason=header-reread",
+                  command->asset_stem, command->channel);
+        his_audio_destroy(&decoded);
+        free(path);
+        return ACTION_SOUND_BACKEND_ERROR;
+    }
     free(path);
     if (status != HIS_AUDIO_OK) {
         logf_line(audio, "live_audio decode_failed stem=%s channel=%u status=%s detail=%s",
@@ -518,22 +594,180 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
     channel->second_gain = command->second_gain;
     ++channel->load_serial;
     channel->host_slot = host_slot_for(command->channel, channel->load_serial);
+    /* The 0x9f handler rewrites flags, control and repeat range at phase 0
+     * (0x432e57..0x432f84) and the loader clears the gates (0x4f3a85, 0x4f3a92). */
+    channel->raw_flags = 0u;
+    channel->decoded_bytes = decoded_bytes;
+    channel->stream_class = decoded_bytes > STREAM_THRESHOLD_BYTES ? 1u : 0u;
+    channel->repeat_min = SCENE_REPEAT_MIN;
+    channel->repeat_max = SCENE_REPEAT_MAX;
+    channel->repeat_marker = 0u;
+    channel->repeat_delay = 0u;
+    channel->repeat_due_tick = 0u;
+    channel->update_gate_287 = 0u;
+    channel->update_refused = 0u;
+    channel->stop_event_pending = 0u;
+    channel->looping = 0u;
+    channel->restarts = 0u;
     refresh_gain(audio, channel);
     logf_line(audio, "live_audio loaded stem=%s channel=%u frames=%llu rate=%u channels=%u category=%u "
-              "control_word=0x%08x%s gain=%.6f",
+              "control_word=0x%08x class=%s completion=%s gain=%.6f",
               command->asset_stem, command->channel, (unsigned long long)decoded.frame_count,
               decoded.sample_rate, decoded.channels, command->volume_category, command->control_word,
-              command->control_word == 0u ? " restart-on-completion=unsupported" : "",
+              channel->stream_class != 0u ? "stream" : "buffer",
+              command->control_word == 0u
+                  ? (channel->stream_class != 0u ? "loop-forever" : "restart")
+                  : "once",
               (double)channel->final_gain);
     return ACTION_SOUND_BACKEND_OK;
+}
+
+/* The host half of the original Play (0x4f80d3 inside the 0x4f6059 wrapper):
+ * starts the channel's PCM from its beginning. `loop` is decided by the
+ * caller from the recovered rule. */
+static ActionSoundBackendStatus start_host(LiveAudio *audio, uint16_t index, int loop)
+{
+    Channel *channel = &audio->channels[index];
+    char error[256] = "";
+    int status;
+
+    channel->finished = 0u;
+    channel->stop_event_pending = 0u;
+    status = audio->ops.play(audio->host, channel->host_slot, channel->audio.interleaved_pcm,
+                             channel->audio.frame_count, channel->audio.channels,
+                             channel->audio.sample_rate, channel->final_gain, loop != 0, error,
+                             sizeof(error));
+    if (status != MAC_AUDIO_OK) {
+        logf_line(audio, "live_audio play_failed channel=%u slot=%u status=%d detail=%s", index,
+                  channel->host_slot, status, error);
+        (void)audio->ops.stop(audio->host, channel->host_slot, error, sizeof(error));
+        channel->started = 0u;
+        channel->looping = 0u;
+        /* The original play wrapper logs a device failure and carries on; the
+         * channel then reads as not playing, so the action advances. A missing
+         * output device must not end the game. */
+        return ACTION_SOUND_BACKEND_NO_RESOURCE;
+    }
+    channel->started = 1u;
+    channel->looping = loop != 0 ? 1u : 0u;
+    channel->play_mark = audio->offline_frames_rendered;
+    audio->host_played = 1u;
+    logf_line(audio, "live_audio started channel=%u generation=%llu mode=%u category=%u loop=%u",
+              index, (unsigned long long)channel->generation, channel->mode,
+              channel->volume_category, (unsigned)channel->looping);
+    return ACTION_SOUND_BACKEND_OK;
+}
+
+/* Kernel bridge. The recovered S04-1 kernel (sound_control.c) makes every
+ * decision of the Play wrapper 0x4f6059 and the update 0x4f55d5; the bridge
+ * supplies only the OS/host boundaries (tick, CRT rand, the DirectSound Play
+ * call) and mirrors the channel into the kernel's slot layout. */
+typedef struct ServiceBridge {
+    LiveAudio *audio;
+    uint32_t tick;
+    int host_failed;
+} ServiceBridge;
+
+static void kernel_load(const LiveAudio *audio, uint16_t index, SoundControlState *state)
+{
+    const Channel *channel = &audio->channels[index];
+    SoundControlChannel *slot = &state->channels[index];
+
+    memset(state, 0, sizeof(*state));
+    state->device_ready = 1u;                      /* LiveAudio exists: host opened */
+    slot->raw_control = channel->control_word;
+    slot->raw_flags = channel->raw_flags;
+    slot->stream_state = channel->stream_class;
+    slot->resource_ready = channel->loaded;
+    slot->buffer_available = channel->loaded;
+    slot->update_gate_287 = channel->update_gate_287;
+    slot->repeat_marker = channel->repeat_marker;
+    slot->repeat_min = (int32_t)channel->repeat_min;
+    slot->repeat_max = (int32_t)channel->repeat_max;
+    slot->repeat_delay = channel->repeat_delay;
+    slot->repeat_due_tick = channel->repeat_due_tick;
+}
+
+static SoundControlHostStatus bridge_play(void *context, uint16_t index, uint32_t flags,
+                                          int32_t *host_result)
+{
+    ServiceBridge *bridge = context;
+    const Channel *channel = &bridge->audio->channels[index];
+    /* DirectSound loops a plain buffer when the Play wrapper says so. A
+     * stream-class channel always plays the 16-chunk ring looped; whether the
+     * sound ends or repeats is then decided by the filler: raw control 0
+     * rewinds the file at EOF (0x4f5a5e, 0x4f5de9 / 0x4f5cd0) and loops
+     * forever, any other control pads silence and stops near the end. The
+     * native whole-PCM stand-in therefore loops exactly when control is 0. */
+    const int loop = channel->stream_class != 0u ? channel->control_word == 0u
+                                                 : (flags & 1u) != 0u;
+    const ActionSoundBackendStatus status = start_host(bridge->audio, index, loop);
+
+    *host_result = status == ACTION_SOUND_BACKEND_OK ? 0 : -1;
+    if (status != ACTION_SOUND_BACKEND_OK) bridge->host_failed = 1;
+    return status == ACTION_SOUND_BACKEND_OK ? SOUND_CONTROL_HOST_OK : SOUND_CONTROL_HOST_ERROR;
+}
+
+static uint32_t bridge_tick(void *context)
+{
+    return ((ServiceBridge *)context)->tick;
+}
+
+static uint32_t bridge_random(void *context)
+{
+    const LiveAudio *audio = ((ServiceBridge *)context)->audio;
+    return audio->random_value(audio->random_context);
+}
+
+static void kernel_host(ServiceBridge *bridge, SoundControlHost *host)
+{
+    memset(host, 0, sizeof(*host));
+    host->context = bridge;
+    host->play_buffer = bridge_play;
+    host->tick_count = bridge_tick;
+    /* No random source: the flag-0x10 branch is refused, never invented.
+     * Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered: left NULL. */
+    if (bridge->audio->random_value != NULL) host->random_value = bridge_random;
+}
+
+static void kernel_store(Channel *channel, const SoundControlState *state, uint16_t index)
+{
+    const SoundControlChannel *slot = &state->channels[index];
+
+    channel->update_gate_287 = slot->update_gate_287 != 0u ? 1u : 0u;
+    channel->repeat_marker = slot->repeat_marker != 0u ? 1u : 0u;
+    channel->repeat_delay = slot->repeat_delay;
+    channel->repeat_due_tick = slot->repeat_due_tick;
+}
+
+/* Original Play wrapper 0x4f6059 for a loaded channel. */
+static ActionSoundBackendStatus play_channel(LiveAudio *audio, uint16_t index, uint32_t tick,
+                                             int *played)
+{
+    Channel *channel = &audio->channels[index];
+    SoundControlState state;
+    SoundControlResult result;
+    SoundControlHost host;
+    ServiceBridge bridge;
+    int status;
+
+    bridge.audio = audio;
+    bridge.tick = tick;
+    bridge.host_failed = 0;
+    kernel_load(audio, index, &state);
+    kernel_host(&bridge, &host);
+    status = sound_control_play(&state, index, &host, &result);
+    kernel_store(channel, &state, index);
+    if (played != NULL) *played = result.played != 0u;
+    if (bridge.host_failed) return ACTION_SOUND_BACKEND_NO_RESOURCE;
+    return status == SOUND_CONTROL_OK && result.played != 0u ? ACTION_SOUND_BACKEND_OK
+                                                             : ACTION_SOUND_BACKEND_ERROR;
 }
 
 ActionSoundBackendStatus live_audio_play_sound(void *context, uint16_t index)
 {
     LiveAudio *audio = context;
     Channel *channel;
-    char error[256] = "";
-    int status;
 
     if (audio == NULL || !on_main_thread() || index >= LIVE_AUDIO_CHANNEL_COUNT)
         return ACTION_SOUND_BACKEND_ERROR;
@@ -542,24 +776,7 @@ ActionSoundBackendStatus live_audio_play_sound(void *context, uint16_t index)
         logf_line(audio, "live_audio play_rejected reason=channel-not-loaded channel=%u", index);
         return ACTION_SOUND_BACKEND_ERROR;
     }
-    channel->finished = 0u;
-    status = audio->ops.play(audio->host, channel->host_slot, channel->audio.interleaved_pcm,
-                             channel->audio.frame_count, channel->audio.channels,
-                             channel->audio.sample_rate, channel->final_gain, 0, error, sizeof(error));
-    if (status != MAC_AUDIO_OK) {
-        logf_line(audio, "live_audio play_failed channel=%u slot=%u status=%d detail=%s", index,
-                  channel->host_slot, status, error);
-        (void)audio->ops.stop(audio->host, channel->host_slot, error, sizeof(error));
-        channel->started = 0u;
-        /* The original play wrapper logs a device failure and carries on; the
-         * channel then reads as not playing, so the action advances. A missing
-         * output device must not end the game. */
-        return ACTION_SOUND_BACKEND_NO_RESOURCE;
-    }
-    channel->started = 1u;
-    channel->play_mark = audio->offline_frames_rendered;
-    audio->host_played = 1u;
-    return ACTION_SOUND_BACKEND_OK;
+    return play_channel(audio, index, 0u, NULL);
 }
 
 ActionSoundBackendStatus live_audio_is_playing(void *context, uint16_t index, int *still_playing)
@@ -583,7 +800,10 @@ ActionSoundBackendStatus live_audio_is_playing(void *context, uint16_t index, in
         return ACTION_SOUND_BACKEND_ERROR;
     }
     if (host_playing == 0) {
+        /* The first observation of a natural end is the original's stop
+         * notification: remember it until live_audio_service drains it. */
         channel->finished = 1u;
+        channel->stop_event_pending = 1u;
         return ACTION_SOUND_BACKEND_OK;
     }
     *still_playing = 1;
@@ -652,6 +872,24 @@ int live_audio_unload_all(LiveAudio *audio)
     return result;
 }
 
+int live_audio_unload_channels(LiveAudio *audio, const uint16_t *channels,
+                                size_t count)
+{
+    int result = LIVE_AUDIO_OK;
+    if (audio == NULL || (count != 0u && channels == NULL))
+        return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    for (size_t i = 0; i < count; ++i)
+        if (channels[i] >= LIVE_AUDIO_CHANNEL_COUNT) return LIVE_AUDIO_ERR_ARGUMENT;
+    for (size_t i = 0; i < count; ++i) {
+        const uint16_t channel = channels[i];
+        const uint8_t loaded = audio->channels[channel].loaded;
+        if (release_channel(audio, channel) != MAC_AUDIO_OK) result = LIVE_AUDIO_ERR_HOST;
+        logf_line(audio, "live_audio scene_unload channel=%u loaded_before=%u", channel, loaded);
+    }
+    return result;
+}
+
 ActionSoundBackendStatus live_audio_unload_sound(void *context, uint16_t index)
 {
     LiveAudio *audio = context;
@@ -675,6 +913,11 @@ int live_audio_stop_channel(LiveAudio *audio, uint16_t index)
         status = audio->ops.stop(audio->host, channel->host_slot, error, sizeof(error));
     channel->started = 0u;
     channel->finished = 0u;
+    channel->looping = 0u;
+    /* Explicit Stop 0x4f61e7 writes slot+0x287 = 1 before the COM Stop, so the
+     * stop notification it raises returns at the update's first gate. */
+    if (channel->loaded) channel->update_gate_287 = 1u;
+    channel->stop_event_pending = 0u;
     ++channel->generation;
     if (status != MAC_AUDIO_OK) {
         logf_line(audio, "live_audio stop_failed channel=%u status=%d detail=%s", index, status, error);
@@ -747,6 +990,19 @@ int live_audio_get_channel_info(const LiveAudio *audio, uint16_t index, LiveAudi
     info->frame_count = channel->audio.frame_count;
     info->reference_first_attenuation = channel->reference_first_attenuation;
     info->reference_first_attenuation_valid = channel->reference_first_attenuation_valid;
+    info->stream_class = channel->stream_class;
+    info->looping = channel->looping;
+    info->stop_event_pending = channel->stop_event_pending;
+    info->update_gate_287 = channel->update_gate_287;
+    info->update_refused = channel->update_refused;
+    info->repeat_marker = channel->repeat_marker;
+    info->raw_flags = channel->raw_flags;
+    info->decoded_bytes = channel->decoded_bytes;
+    info->repeat_min = channel->repeat_min;
+    info->repeat_max = channel->repeat_max;
+    info->repeat_delay = channel->repeat_delay;
+    info->repeat_due_tick = channel->repeat_due_tick;
+    info->restarts = channel->restarts;
     return LIVE_AUDIO_OK;
 }
 
@@ -778,7 +1034,7 @@ static void settle_completions(LiveAudio *audio)
         uint64_t needed;
         unsigned attempt;
 
-        if (!channel->loaded || !channel->started || channel->finished ||
+        if (!channel->loaded || !channel->started || channel->finished || channel->looping ||
             channel->audio.sample_rate == 0u)
             continue;
         needed = (channel->audio.frame_count * audio->offline_sample_rate +
@@ -875,6 +1131,125 @@ int live_audio_advance_offline(LiveAudio *audio, uint64_t frames, LiveAudioOffli
                       (unsigned long long)audio->movie_duration_frames);
         }
     }
+    return LIVE_AUDIO_OK;
+}
+
+/* ---- recovered channel pump (original 0x4f52a9, 0x4f55d5, 0x4f7207) ------ */
+int live_audio_set_channel_flags(LiveAudio *audio, uint16_t index, uint16_t raw_flags)
+{
+    if (audio == NULL || index >= LIVE_AUDIO_CHANNEL_COUNT) return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    if (!audio->channels[index].loaded) return LIVE_AUDIO_ERR_ARGUMENT;
+    audio->channels[index].raw_flags = raw_flags;
+    audio->channels[index].update_refused = 0u;
+    return LIVE_AUDIO_OK;
+}
+
+/* Observation of a natural end: the host's report stands in for the stop
+ * notification. A failed poll is logged and the channel is retried next call. */
+static void observe_completion(LiveAudio *audio, uint16_t index)
+{
+    Channel *channel = &audio->channels[index];
+    char error[256] = "";
+    int host_playing = 1;
+
+    if (!channel->loaded || !channel->started || channel->finished) return;
+    if (audio->ops.is_playing(audio->host, channel->host_slot, &host_playing, error,
+                              sizeof(error)) != MAC_AUDIO_OK) {
+        logf_line(audio, "live_audio poll_failed channel=%u slot=%u detail=%s", index,
+                  channel->host_slot, error);
+        return;
+    }
+    if (host_playing == 0) {
+        channel->finished = 1u;
+        channel->stop_event_pending = 1u;
+    }
+}
+
+/* One stop notification: the 0x4f55d5 update through the recovered kernel. */
+static void run_update(LiveAudio *audio, uint16_t index, uint32_t tick, LiveAudioServiceStats *stats)
+{
+    Channel *channel = &audio->channels[index];
+    SoundControlState state;
+    SoundControlResult result;
+    SoundControlHost host;
+    ServiceBridge bridge;
+    int status;
+
+    bridge.audio = audio;
+    bridge.tick = tick;
+    bridge.host_failed = 0;
+    kernel_load(audio, index, &state);
+    kernel_host(&bridge, &host);
+    status = sound_control_update(&state, index, &host, &result);
+    if (status != SOUND_CONTROL_OK) {
+        /* Fade stages (flag 0x20) or an unseeded random draw (flag 0x10):
+         * refused with no state change rather than guessed. */
+        ++stats->refused;
+        channel->update_refused = 1u;
+        logf_line(audio, "live_audio update_refused channel=%u flags=0x%04x control_word=0x%08x "
+                  "status=%d", index, channel->raw_flags, channel->control_word, status);
+        return;
+    }
+    kernel_store(channel, &state, index);
+    if (result.update_kind == SOUND_CONTROL_UPDATE_RANDOM_REPEAT) {
+        ++stats->repeats_armed;
+        logf_line(audio, "live_audio repeat_armed channel=%u delay=%u due_tick=%u", index,
+                  channel->repeat_delay, channel->repeat_due_tick);
+    } else if (result.update_kind == SOUND_CONTROL_UPDATE_RESTART) {
+        if (result.played != 0u) {
+            ++stats->restarts;
+            ++channel->restarts;
+            logf_line(audio, "live_audio restart channel=%u generation=%llu restarts=%u",
+                      index, (unsigned long long)channel->generation, channel->restarts);
+        } else if (bridge.host_failed) {
+            ++stats->host_failures;
+            logf_line(audio, "live_audio restart_failed channel=%u", index);
+        }
+    }
+}
+
+/* The 0x4f7207 delayed-repeat pass for one channel: gates +0x162, +0x287;
+ * marker +0x19e set; unsigned tick strictly above the due tick (+0x1a6). The
+ * marker clears before the Play wrapper, whose result the original ignores. */
+static void run_repeat_pass(LiveAudio *audio, uint16_t index, uint32_t tick,
+                            LiveAudioServiceStats *stats)
+{
+    Channel *channel = &audio->channels[index];
+    int played = 0;
+
+    if (!channel->loaded || channel->update_gate_287 != 0u) return;
+    if (channel->repeat_marker == 0u || tick <= channel->repeat_due_tick) return;
+    channel->repeat_marker = 0u;
+    if (play_channel(audio, index, tick, &played) == ACTION_SOUND_BACKEND_NO_RESOURCE)
+        ++stats->host_failures;
+    if (played != 0) {
+        ++stats->repeats_fired;
+        ++channel->restarts;
+        logf_line(audio, "live_audio repeat_fired channel=%u restarts=%u", index, channel->restarts);
+    }
+}
+
+int live_audio_service(LiveAudio *audio, uint32_t tick_ms, LiveAudioServiceStats *stats)
+{
+    LiveAudioServiceStats local;
+    uint16_t index;
+
+    if (stats == NULL) stats = &local;
+    memset(stats, 0, sizeof(*stats));
+    if (audio == NULL) return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    /* WaitForMultipleObjects returns the lowest signalled index, so stop
+     * notifications (odd events 2*channel+1) are consumed channel-ascending. */
+    for (index = 0u; index < LIVE_AUDIO_CHANNEL_COUNT; ++index) {
+        observe_completion(audio, index);
+        if (audio->channels[index].stop_event_pending == 0u) continue;
+        audio->channels[index].stop_event_pending = 0u;
+        ++stats->completions;
+        run_update(audio, index, tick_ms, stats);
+    }
+    for (index = 0u; index < LIVE_AUDIO_CHANNEL_COUNT; ++index)
+        run_repeat_pass(audio, index, tick_ms, stats);
     return LIVE_AUDIO_OK;
 }
 

@@ -1178,7 +1178,9 @@ static void t_end_to_end_nsht01(Ctx *ctx)
     char error[512] = "";
     HisAudio decoded = HIS_AUDIO_INIT;
     LiveAudio *audio = NULL;
-    ActionSoundAudioCommand c = make_command("NSHT01", 5, 1, 1.0f, 1.0f, 0);
+    /* Raw control 1 as in S0 action 31: NSHT01 is a stream-class sound that the
+     * original plays once; control 0 would loop it forever (RT-11.1). */
+    ActionSoundAudioCommand c = make_command("NSHT01", 5, 1, 1.0f, 1.0f, 1);
     LiveAudioOfflineStats stats;
     float *capture = NULL;
     uint64_t capacity, rendered = 0;

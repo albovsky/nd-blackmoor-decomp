@@ -114,6 +114,96 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return log.read_text()
 
+    def test_continuation_keeps_the_traffic_channel_at_scene_load(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'audio-persistence.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--live-ticks', '200',
+                                 '--live-tick-ms', '17', '--rand-seed', '1',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=180)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        contents = log.read_text()
+        self.assertIn('scene_transition_applied source=5900 target=5907', contents)
+        for evidence in (
+                'scene_audio_channel stage=after-load source=5900 target=5907 channel=9 loaded=1',
+                'scene_audio_reset scene=5900 state=2 count=15 menu_channel=',
+                'scene_audio_policy source=5900 target=5907 continuation=1 load_reset=none'):
+            self.assertTrue(evidence in contents, evidence)
+
+    def test_fresh_entry_resets_carried_channels_in_original_order(self):
+        # RT-11: S5907 -> S5901 is a fresh entry (transition word 0), so the
+        # state-2 reset 0x4381b5 -> 0x4fb018 runs after the load: MSND channel
+        # then 0..13, with the carried carstart(4)/Traffic(9) channels among them.
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'audio-fresh.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--live-ticks', '400',
+                                 '--live-tick-ms', '17', '--rand-seed', '1',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=180)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = log.read_text().splitlines()
+        applied = next(i for i, line in enumerate(lines)
+                       if line.startswith('scene_transition_applied source=5907 target=5901'))
+        window = lines[applied:]
+        reset = next(i for i, line in enumerate(window)
+                     if line.startswith('scene_audio_reset scene=5901 state=2 count=15'))
+        stage = lambda name, rows: [l for l in rows if l.startswith(
+            'scene_audio_channel stage=%s source=5901 target=5901' % name)]
+        before = stage('before-intro-reset', window[:reset])
+        after = stage('after-intro-reset', window[reset:reset + 40])
+        for evidence in ('channel=4 loaded=1 started=1 playing=1', 'channel=9 loaded=1 started=1 playing=1'):
+            self.assertTrue(any(evidence in l for l in before), evidence)
+        self.assertEqual(after, [])  # nothing loaded survives the 0..13 reset
+        unloads = [l for l in window[:reset] if l.startswith('live_audio scene_unload')]
+        order = [int(l.split('channel=')[1].split()[0]) for l in unloads]
+        self.assertEqual(order, [27, *range(14)])
+        for evidence in ('scene_unload channel=4 loaded_before=1',
+                         'scene_unload channel=9 loaded_before=1'):
+            self.assertTrue(any(evidence in l for l in unloads), evidence)
+        # No unload anywhere in the continuation load that precedes it.
+        policy = next(i for i, line in enumerate(lines) if line.startswith(
+            'scene_audio_policy source=5900 target=5907'))
+        self.assertFalse([l for l in lines[policy:applied] if 'scene_unload' in l or 'unload_all' in l])
+        # No fade: the cargo load after the reset gets the unscaled recovered gain.
+        self.assertTrue(any('live_audio loaded stem=cargo channel=4' in l and 'gain=0.640000' in l
+                            for l in window[reset:]), 'gain=0.640000')
+
+    def test_later_continuations_carry_every_loaded_channel_unchanged(self):
+        # RT-11 review P2: the S5906 -> S4700 and S4700 -> S4710 loads are
+        # continuations; every channel loaded before the load must still be
+        # loaded with the same generation after it (no reset, no reload).
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'audio-later.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--live-ticks', '3000',
+                                 '--rand-seed', '1',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=300)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = log.read_text().splitlines()
+        for source, target in ((5906, 4700), (4700, 4710)):
+            self.assertTrue(any(l.startswith('scene_audio_policy source=%d target=%d continuation=1 '
+                                             'load_reset=none' % (source, target)) for l in lines),
+                            (source, target))
+
+            def channels(stage):
+                prefix = 'scene_audio_channel stage=%s source=%d target=%d ' % (stage, source, target)
+                found = {}
+                for l in lines:
+                    if l.startswith(prefix):
+                        fields = dict(f.split('=', 1) for f in l[len(prefix):].split())
+                        found[fields['channel']] = fields['generation']
+                return found
+            before, after = channels('before-load'), channels('after-load')
+            self.assertEqual(before, after, (source, target))
+        # S4700 -> S4710 carries the DULCIMER music channel 0.
+        self.assertIn('0', {c for c in before})
+
     def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_presents_movie(self):
         # Stand-in for the RT-2 pointer path: one synthetic accepted event.
         directory = tempfile.TemporaryDirectory()
@@ -543,11 +633,10 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('scene_clear_latches order=0x5c39ff', contents)
         self.assertNotIn('provider=action-family-62', contents)
         # Row 6 (opcode 17, channel 4 idle) is queried every tick and never
-        # reports an unavailable provider. NOTE: it fires because
-        # perform_session_transition unloads every channel (live_audio_unload_all)
-        # when the scene changes, so channel 4 reads idle after the 5900 -> 5907
-        # transition; whether the original keeps sounds across such transitions
-        # is unverified (root/RT-5 decision, not changed by RT-4).
+        # reports an unavailable provider. Since RT-11 a continuation load keeps
+        # sound channels (0x438173 selects the state-2 reset only for a zero
+        # transition word), so the row stays gated while the carried carstart
+        # sound plays and opens when it completes.
         self.assertIn('status=0 provider=none', contents.split('live_session_end ', 1)[1])
         self.assertNotIn('provider=dependency-provider', contents)
         self.assertNotIn('scene_session_dependency_failure', contents)
@@ -696,6 +785,23 @@ class NativeCaptionTransferTests(unittest.TestCase):
         contents = self.tutorial('--test-held', '23')  # absent from the list: still cleared
         self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
                       'view_rebuilds_requested=0', contents)
+
+    def test_rt11_1_the_looping_clock_keeps_the_s6401_dependency_open(self):
+        # S6400 loads ClockTicking_Grandfather01 (channel 4, raw control 0, 774,352
+        # decoded bytes > 0x56220: a stream the original loops forever). It stays
+        # loaded across the continuation to S6401, and the opcode-17 dependency of
+        # row 0 (0x9f) must keep answering for ~3000 ticks (it froze at tick 109
+        # when the adapter refused the completed control-0 channel).
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1',
+                                 '--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                                 row='32')
+        self.assertRegex(contents, r'live_audio loaded stem=ClockTicking_Grandfather01 channel=4 '
+                         r'.*control_word=0x00000000 class=stream completion=loop-forever')
+        self.assertIn('live_audio started channel=4 generation=1 mode=0 category=2 loop=1', contents)
+        self.assertRegex(contents, r'live_session_end scene=6401 ticks=3000 status=0 provider=none ')
+        self.assertNotIn('provider=dependency-provider', contents)
+        self.assertNotIn('live_audio update_refused', contents)
+        self.assertNotIn('live_audio restart channel=4', contents)   # a stream never completes
 
     # ---- RT-14: raw 0x36 static overlays (COverlay) -------------------------------------
     def test_rt14_overlays_are_drawn_and_the_hot_region_is_hit_before_any_generic_row(self):

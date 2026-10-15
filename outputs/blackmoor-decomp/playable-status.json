@@ -26,19 +26,19 @@
     "S2010"
   ],
   "stop": {
-    "kind": "scene_session_blocked",
+    "kind": "tick_limit",
     "scene": "S2010",
     "target_scene": null,
-    "row": 5,
-    "action_type": "0x0c",
-    "provider": "action-kernel",
-    "reason": "provider-blocked"
+    "row": null,
+    "action_type": null,
+    "provider": null,
+    "reason": "tick-limit"
   },
-  "ticks": 2187,
+  "ticks": 2947,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "59f1e2c10a7858cb90b4612b508e9251673bd80c",
-    "native_sha256": "22fa8ec91e5f52e2e7375000ae0dd12ef9e5da5ed0eaadf1582e47e6a097e22a",
+    "source_ref": "4b6c64abb7fed2fb904896affd3d391f0b583841",
+    "native_sha256": "9a1e7ec88e56671ee757053e09dc55bfe728d66112b8ac89fac1db098eeeb5f1",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -66,6 +66,10 @@
       {
         "path": "src/action_family_0c.h",
         "sha256": "55c2e07f7d13e968ce8efcbc22c4e985b4675ed863c606f71f88853f75049606"
+      },
+      {
+        "path": "src/action_family_0c_runtime.h",
+        "sha256": "42680c992aafcadd7e2b37204851c382fb7cb4488e17e0cc700c9e58287eaef4"
       },
       {
         "path": "src/action_family_16.h",
@@ -353,7 +357,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "d84e53311b901efd9ed280c1bb1cb5daa526e6bdb7611299bb7a751b9dde81df"
+        "sha256": "56daf613a4ba69c23548568ab920425da2b949a35753d8008fec86427a4205ea"
       },
       {
         "path": "src/caption_compositor.h",
@@ -413,7 +417,7 @@
       },
       {
         "path": "src/live_audio.h",
-        "sha256": "488b8fc170e9e9c4abe130c7867e0477d88a842760434b5e6cf320920e8cd518"
+        "sha256": "7aad02300ceb91b2de2a5288a2afd1023c71337d46713c003e4e784bc076f952"
       },
       {
         "path": "src/macos_audio.h",
@@ -466,6 +470,14 @@
       {
         "path": "src/session_bindings_a0b.h",
         "sha256": "9d354e0c3cce3fd89baa0b9585bc9920ba6ed7162540eeb581073f7e197d5f5a"
+      },
+      {
+        "path": "src/session_bindings_a0c.c",
+        "sha256": "3955378cda21a30517e23880a0cc81243e28bca12a5c2f7ab3b9ba4e765cf35c"
+      },
+      {
+        "path": "src/session_bindings_a0c.h",
+        "sha256": "30bbaf543858a99c6df058a6ea4ed460b321fe8516b407ddc44fd129a7b234cd"
       },
       {
         "path": "src/session_bindings_a17.c",
@@ -569,7 +581,7 @@
       },
       {
         "path": "src/session_bindings_conditions_audio.c",
-        "sha256": "1e1b4ed489a51b100a0f3a695350702ab1b5345f560c10cd0575237afa2ac831"
+        "sha256": "0499ea84fa17e223a6700d8c9bd0c6293dfacb2c51c55ccac80ce75c7a0ab95f"
       },
       {
         "path": "action-census-current.json",
@@ -584,5 +596,5 @@
     "skipped": 5,
     "source_field": "current_integration.full_suite"
   },
-  "next_blocker": "S2010: action 0x0c at row 5 (action-kernel)."
+  "next_blocker": "S2010: scripted tick limit reached; further gameplay remains unverified."
 }

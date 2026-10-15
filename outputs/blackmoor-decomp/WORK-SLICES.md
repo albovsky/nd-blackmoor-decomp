@@ -60,7 +60,7 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 | RT-8 | [Raw 0x97 runtime](tasks/RT-8-a97-runtime.md) | Collected (PR 18) |
 | RT-9 | [Bink playback for 0x35](tasks/RT-9-bink-movie-playback.md) | Collected (PR 20) |
 | RT-10 | [Edge/arrow cascade 0x4f0059](tasks/RT-10-edge-cascade.md) | In flight (branch `codex/rt-10-edge-cascade`) |
-| RT-11 | [Sound persistence across scenes](tasks/RT-11-sound-persistence.md) | In flight (branch `codex/rt-11-sound-persistence`) |
+| RT-11 | [Sound persistence across scenes](tasks/RT-11-sound-persistence.md) | Reviewed, fixed, merged (with RT-11.1, the completed-channel restart); see the RT-11 handoff in COORDINATION-STATUS.md |
 
 Opaque action decoders (A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-97.1, A-A1.1 merged) are driven by the opaque-action thread, Codex implementers and one independent reviewer per packet.
 

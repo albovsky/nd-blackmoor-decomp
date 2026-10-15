@@ -145,7 +145,7 @@ static void t_real_offline_play_to_completion_control_one(Ctx *ctx)
     rig_close(&rig);
 }
 
-static void t_control_zero_after_completion_is_unavailable_not_idle(Ctx *ctx)
+static void t_control_zero_after_completion_is_idle_then_restarted_by_the_pump(Ctx *ctx)
 {
     Rig rig; int answer = -1; uint64_t rendered = 0; int finished = 0;
     ActionSoundAudioCommand c = command("tone", 6, 0);
@@ -167,10 +167,46 @@ static void t_control_zero_after_completion_is_unavailable_not_idle(Ctx *ctx)
         finished = is_playing == 0;
     }
     CHECK(ctx, finished);
+    /* RT-11.1: between the end of the buffer and the pump the original's
+     * GetStatus reads "stopped" (a faithful idle, no longer a refusal) ... */
     CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &before) == SESSION_CONDITIONS_OK);
-    CHECK(ctx, query(&rig, 6, 0, &answer) == SCENE_CONDITION_ERR_HOST_UNAVAILABLE && answer == 0);
+    CHECK(ctx, query(&rig, 6, 0, &answer) == SCENE_CONDITION_OK && answer == 1);
     CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &after) == SESSION_CONDITIONS_OK);
+    CHECK(ctx, after.error_3c2 == 0x3e8u && after.host_result_3ca == 0);
     CHECK(ctx, memcmp(&before, &after, sizeof(before)) == 0);   /* nothing committed */
+    /* ... and the pump (0x4f52a9 -> 0x4f55d5) restarts the raw-control-0 channel. */
+    CHECK(ctx, live_audio_service(rig.audio, 1000u, NULL) == LIVE_AUDIO_OK);
+    CHECK(ctx, query(&rig, 6, 1, &answer) == SCENE_CONDITION_OK && answer == 1);
+    /* A completed channel whose update was refused (fade flag 0x20, reachable
+     * only through the test setter) stays unavailable, never a false idle. */
+    {
+        ActionSoundAudioCommand refused = command("tone", 7, 0);
+        int is_playing = 1;
+        CHECK(ctx, live_audio_load_sound(rig.audio, &refused) == ACTION_SOUND_BACKEND_OK);
+        CHECK(ctx, live_audio_set_channel_flags(rig.audio, 7, 0x20u) == LIVE_AUDIO_OK);
+        CHECK(ctx, live_audio_play_sound(rig.audio, 7) == ACTION_SOUND_BACKEND_OK);
+        rendered = 0u;
+        while (rendered < 8u * TONE_FRAMES && is_playing && !ctx->failed) {
+            CHECK(ctx, live_audio_advance_offline(rig.audio, 2500, &stats, NULL, 0) == LIVE_AUDIO_OK);
+            rendered += 2500u;
+            for (int i = 0; i < 200 && rendered >= TONE_FRAMES && is_playing; ++i) {
+                CHECK(ctx, live_audio_is_playing(rig.audio, 7, &is_playing) == ACTION_SOUND_BACKEND_OK);
+                if (is_playing) usleep(5000);
+            }
+        }
+        CHECK(ctx, is_playing == 0);
+        CHECK(ctx, live_audio_service(rig.audio, 2000u, NULL) == LIVE_AUDIO_OK);
+        {
+            SessionConditionsSoundManager refused_before, refused_after;
+            CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &refused_before) ==
+                       SESSION_CONDITIONS_OK);
+            answer = -1;
+            CHECK(ctx, query(&rig, 7, 0, &answer) == SCENE_CONDITION_ERR_HOST_UNAVAILABLE);
+            CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &refused_after) ==
+                       SESSION_CONDITIONS_OK);
+            CHECK(ctx, memcmp(&refused_before, &refused_after, sizeof(refused_before)) == 0);
+        }
+    }
     rig_close(&rig);
 }
 
@@ -200,8 +236,8 @@ static const Test tests[] = {
      t_unloaded_channel_is_idle_with_the_missing_resource_error},
     {"real_offline_play_to_completion_control_one",
      t_real_offline_play_to_completion_control_one},
-    {"control_zero_after_completion_is_unavailable_not_idle",
-     t_control_zero_after_completion_is_unavailable_not_idle},
+    {"control_zero_after_completion_is_idle_then_restarted_by_the_pump",
+     t_control_zero_after_completion_is_idle_then_restarted_by_the_pump},
     {"channel_outside_the_table_and_missing_audio_are_unavailable",
      t_channel_outside_the_table_and_missing_audio_are_unavailable},
 };
