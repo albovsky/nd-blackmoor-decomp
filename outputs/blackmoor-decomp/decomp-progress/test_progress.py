@@ -83,9 +83,15 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
         self.assertFalse(set(a["handled"]["types"]) & set(a["unsupported"]["types"]))
         self.assertEqual(a["handled"]["records"] + a["unsupported"]["records"], a["typed"]["records"])
-        for code in ("0x37", "0xa1"):
+        # Typed but without a native handler: still unsupported, never opaque.
+        for code in ("0x38", "0xa1"):
             self.assertIn(code, a["unsupported"]["types"])
             self.assertNotIn(code, a["opaque"]["types"])
+        # RT-18: raw 0x37 is typed and handled (registered with the 0x36 handler).
+        self.assertIn("0x37", a["typed"]["types"])
+        self.assertIn("0x37", a["handled"]["types"])
+        self.assertNotIn("0x37", a["unsupported"]["types"])
+        self.assertNotIn("0x37", a["opaque"]["types"])
 
     def test_live_registrations_match_derived_handled_list(self):
         a = self.model["playable"]["action_types"]
@@ -94,10 +100,16 @@ class RepoEvidenceTests(unittest.TestCase):
             "session_ui": ["0x1d", "0x82"],
             "external": {"0x0b": "session_a0b_handler", "0x16": "session_a17_handler", "0x17": "session_a17_handler",
                          "0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x36": "session_a36_handler",
+                         "0x37": "session_a36_handler",  # RT-18: second type on the raw 0x36 handler
                          "0x51": "session_a51_handler", "0x62": "session_a62_handler", "0x79": "session_a79_handler",
                          "0x83": "native_a83_handler",
                          "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
-        self.assertEqual(a["handled"]["type_count"], 22)
+        # Handled = every registered type seen in the census; read both instead of hard-coding a count.
+        registered = {int(t, 16) for t in a["registrations"]["executor"] + a["registrations"]["session_ui"]
+                      + list(a["registrations"]["external"])}
+        census = json.loads((EVIDENCE / "action-census-current.json").read_text())
+        observed = {int(r["type"], 16) for r in census["by_raw_type"]}
+        self.assertEqual(a["handled"]["type_count"], len(registered & observed))
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
         derived.pop("scene_total")
         self.assertEqual(a, derived)
@@ -777,11 +789,19 @@ class RegistrationDriftTests(unittest.TestCase):
             GEN.PLAYABLE.derive_actions(self.out)
 
     def test_changed_external_type_changes_report(self):
-        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x37;")
+        # 0x38 is typed but has no live handler (0x37 is already registered since RT-18).
+        self.assertNotIn("0x38", self.original["handled"]["types"])
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x38;")
         changed = GEN.PLAYABLE.derive_actions(self.out)
-        self.assertIn("0x37", changed["handled"]["types"])
+        self.assertIn("0x38", changed["handled"]["types"])
         self.assertNotIn("0x51", changed["handled"]["types"])
         self.assertNotEqual(changed, self.original)
+
+    def test_duplicate_type_registration_fails_closed(self):
+        # Two handlers for one type are ambiguous; a callback shared by two types (0x36/0x37) is fine.
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x37;")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "invalid live action binding"):
+            GEN.PLAYABLE.derive_actions(self.out)
 
     def test_removed_parser_layout_moves_typed_records_to_opaque(self):
         census = json.loads((EVIDENCE / "action-census-current.json").read_text())
@@ -836,7 +856,7 @@ class RegistrationDriftTests(unittest.TestCase):
                     path.write_bytes(original)
 
     def test_new_handler_cannot_reuse_old_stop_evidence(self):
-        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x37;")
+        self.change("src/blackmoor_app.mm", "bindings[2].type = SESSION_A51_TYPE;", "bindings[2].type = 0x38;")
         with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError,
                                     "evidence stale; rerun record_playable_status.py"):
             GEN.PLAYABLE.build_panel(self.out, self.status)
