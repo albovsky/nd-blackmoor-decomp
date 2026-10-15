@@ -1101,7 +1101,7 @@
       "id": "A-68.1",
       "title": "Action 0x68: body boundary and isolated decoder",
       "packet": "tasks/A-68.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-68",
       "raw_type": "0x68",
@@ -1111,7 +1111,7 @@
       "id": "A-83.1",
       "title": "Action 0x83: body boundary and isolated decoder",
       "packet": "tasks/A-83.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-83",
       "raw_type": "0x83",
@@ -1121,11 +1121,41 @@
       "id": "A-4B.1",
       "title": "Action 0x4b: body boundary and isolated decoder",
       "packet": "tasks/A-4B.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-4B",
       "raw_type": "0x4b",
       "records": 9
+    },
+    {
+      "id": "A-69.1",
+      "title": "Action 0x69: body boundary and isolated decoder",
+      "packet": "tasks/A-69.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-69",
+      "raw_type": "0x69",
+      "records": 7
+    },
+    {
+      "id": "A-65.1",
+      "title": "Action 0x65: body boundary and isolated decoder",
+      "packet": "tasks/A-65.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-65",
+      "raw_type": "0x65",
+      "records": 7
+    },
+    {
+      "id": "A-16.1",
+      "title": "Action 0x16: body boundary and isolated decoder",
+      "packet": "tasks/A-16.1-body-boundary-and-decoder.md",
+      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "depends_on": [],
+      "parent": "A-17",
+      "raw_type": "0x16",
+      "records": 2
     }
   ]
 }

@@ -123,6 +123,8 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x68: fixed_length = 1u;  break; /* 0x40d364 copies one byte (A-68.1) */
+    case 0x83: fixed_length = 74u; break; /* 0x40e995 copies 74 bytes (A-83.1) */
     case 0x4e: fixed_length = 31u; break; /* 0x44b102 copies 31 bytes (A-4E.1) */
     case 0x2e: fixed_length = 15u; break; /* 0x4cd645 copies 15 bytes (A-2E.1) */
     case 0x94: fixed_length = 50u; break; /* 0x40ea5e copies 50 bytes (A-94.1) */
@@ -401,6 +403,36 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             return -1;
         }
         *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x4b: {
+        int16_t selector;
+        size_t typed_length;
+
+        /* 0x40c625: selector -1 selects the 33-byte AUTOTEXT key form (35 bytes
+         * with the selector), otherwise the selector is the inline text length.
+         * Other negative selectors read uninitialised data in the original and
+         * are native safety rejections; the key must be NUL-terminated. */
+        if (length < 2u) {
+            return -1;
+        }
+        selector = read_i16le(body);
+        if (selector == -1) {
+            typed_length = 35u;
+            if (length < typed_length || memchr(body + 2u, 0, 33u) == NULL) {
+                return -1;
+            }
+        } else {
+            if (selector < 0 || selector > 9999) {
+                return -1;
+            }
+            typed_length = 2u + (size_t)selector;
+            if (length < typed_length) {
+                return -1;
+            }
+        }
+        *body_length = typed_length;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }

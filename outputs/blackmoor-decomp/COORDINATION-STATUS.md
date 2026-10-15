@@ -17,7 +17,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-9 Bink playback for 0x35: frames, events, embedded audio, completion (Codex) | Reviewed (no P1), findings fixed, merged (PR 20) |
 | RT-10 edge/arrow cascade 0x4f0059; RT-11 sound persistence across scene changes (Codex) | In flight on `codex/rt-10-edge-cascade`, `codex/rt-11-sound-persistence`; not reviewed or merged |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; 0x35 and 0x97 runtimes now bound (RT-7/8/9), the rest unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 opaque decoders (Codex) | Reviewed, merged (typed 19,507 / opaque 105) |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 opaque decoders (Codex) | Reviewed, merged (typed 19,535 / opaque 77) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -87,3 +87,12 @@ In progress (Codex gpt-6.1-sol xhigh): A-68.1 (10), A-83.1 (9), A-4B.1 (9). Rema
 Review follow-ups: raw 0x16 (2 records, resources 1602 and 1616) uses the same loader arm and layout as 0x17 (0x16..0x19 share arm 0x40b98f) but has no oracle coverage: A-16.1 should register it with its own oracle run; native rejects 0x0c/0x17 counts above 1819 (original wraps its WORD size) as a deliberate safety rule; the new decoders' oracles sweep ragged tails only to 0..40 (A-TAIL.2 covers the dense sweep and the pre-scan).
 
 Dependency pre-scan (A-TAIL.2, 2026-10-14 18:20 PDT): the tail-oracle extension (reviewed, no P1) covers 15 decoders against the original `0x424aa8` and models the content checks the loader runs after the modulus (0x424cb0..0x424e98). `scene_resource.c` now mirrors them in `dependency_prescan_ok`, so a scene whose dependency tail the original aborts on (empty group, one-leaf group, unbalanced 0x12/0x13, adjacent 0x0b pair with a zero word at +6) fails to open natively instead of loading. All 14,445 real tails in the game pass the original pre-scan and the native model. Not modelled: slot-reuse state at `0x424bd6` (loader lifecycle), the post-pre-scan tree construction and ordering of opens and closes. Review follow-ups: the ragged-tail sweep stops at 4,097 bytes (add 8,191/8,193, 65,535/65,537, 2^20+-1 sentinels), the stage's scene argument is vacuous (0), and the "fatal" wording means log, error dialog and aborted load, not process exit.
+
+## Handoff: opaque scene actions, seventh batch (2026-10-14 19:00 PDT)
+
+Merged: raw 0x68 (10 records, fixed 1 byte), 0x83 (9, fixed 74) and 0x4b (9, selector form) body boundaries and isolated decoders (A-68.1, A-83.1, A-4B.1; one independent review each, no P1 findings). Typed 19,535 / opaque 77. The shared tail oracle (`tests/tail_oracle_common.py`) now pins 21 decoders (the six from the last two batches added with their corpus digests, all pass against the original `0x424aa8` with 0 mismatches).
+In progress (Codex gpt-6.1-sol xhigh): A-69.1 (7), A-65.1 (7), A-16.1 (raw 0x16, 2 records, same arm as 0x17).
+Remaining after that: 0xf6 (6), 0xea (6), 0xf5 (4), 0x1b (4), 0x7d (4) and a tail of families with one to three records (about 40 of the 61 records left after the current batch), then runtime work through the runtime thread.
+Open: raw 0x4b record 2804/0 needs a caller-resolved missing-key fallback string (A-4B.2); the three new fixed-body oracles sweep ragged tails to 0..40 only (the shared stage covers the dense sweep); ragged-tail sentinels above 4,097 bytes are still missing from the shared stage.
+
+Live path after this registration (2026-10-14 19:30 PDT): with 0x83 typed, the scripted run now reaches 23 scenes (S0 to S5906, S4700 with its Bink movie, S4710, S4701, S4711, S4800-S4808) and stops at S4808 row 6, raw 0x83, `provider=action-kernel` (typed body, no runtime handler). The 0x83 runtime (loader arm 0x40e995, a 74-byte fixed body) is the next runtime slice for the runtime thread; the live-path tests and progress pins were updated for the new stop.

@@ -76,8 +76,8 @@ class RepoEvidenceTests(unittest.TestCase):
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 19507)
-        self.assertEqual(a["opaque"]["records"], 105)
+        self.assertEqual(a["typed"]["records"], 19535)
+        self.assertEqual(a["opaque"]["records"], 77)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -150,7 +150,7 @@ class RepoEvidenceTests(unittest.TestCase):
         report = (self.out / "REPORT.md").read_text()
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700 → S4710", report)
-        self.assertIn("provider scene-resource", report)
+        self.assertIn("provider action-kernel", report)
         self.assertIn("1,269 discovered; 1,264 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
