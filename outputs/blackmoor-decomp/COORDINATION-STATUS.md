@@ -25,7 +25,7 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
-## Handoff: tutorial bug and queued slices (2026-10-14 8:15 PM PDT)
+## Handoff: tutorial bug and queued slices (2026-10-14 8:10 PM PDT)
 
 Glib's window run (real window, log `blackmoor-startup-*` in the Mac's temp dir) showed New Game works but nothing in the tutorial is clickable. Cause, reproduced headless with `--inspect-live-session --live-click-row 32 --live-ticks 3000`: S0 hotspot row 32 enters S6400 (the tutorial), which runs rows 0-14 and then blocks at row 15, raw 0x79 ("Remove Inventory Item, No Hotspot"): parser layout exists (A-79.1) but no runtime handler. A blocked session stops all ticks, so pointer events arrive and are ignored. Rows 16-17 are raw 0x36 "static photo overlay - hot" (likely the clickable overlays), then 0x9f, 0x0a, 0x97.
 State of the queue (all branches pushed to origin, nothing merged since PR 22; fresh sessions should start from `origin/main`, restart so `bypassPermissions` in `.claude/settings.local.json` applies, and run the suite twice after a fresh build; four test classes also need `build_action_family_28.sh`, `_97.sh`, `build_condition_extra.sh`, `build_world_clock.sh` run once in a fresh worktree):
