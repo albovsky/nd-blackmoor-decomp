@@ -46,10 +46,15 @@ class Model(c.Structure):
 
 
 RebuildFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_int16)
+ObserveFn = c.CFUNCTYPE(None, c.c_void_p, c.c_int, c.c_int32)
+VISIT, COUNT, LIST, PRESENCE, REBUILD, HELD, COMPLETE = range(1, 8)
+EFFECT_NAMES = {VISIT: 'visit', COUNT: 'count', LIST: 'list', PRESENCE: 'presence',
+                REBUILD: 'rebuild', HELD: 'held', COMPLETE: 'complete'}
 
 
 class Host(c.Structure):
-    _fields_ = [('context', c.c_void_p), ('rebuild_view', RebuildFn)]
+    _fields_ = [('context', c.c_void_p), ('rebuild_view', RebuildFn),
+                ('observe', ObserveFn)]
 
 
 class Result(c.Structure):
@@ -80,6 +85,7 @@ class World:
             if 0 <= value < CAPACITY:
                 self.presence[value] = 1
         self.events = []
+        self.observed = []
         self.rebuild_status = rebuild_status
 
         @RebuildFn
@@ -87,11 +93,16 @@ class World:
             self.events.append(('rebuild', removed, self.snapshot()))
             return self.rebuild_status
 
+        @ObserveFn
+        def observe(_ctx, effect, value):
+            self.observed.append((EFFECT_NAMES[effect], value))
+
         self.rebuild = rebuild
+        self.observe = observe
         self.model = Model(c.pointer(self.held), c.pointer(self.count),
                            c.cast(self.items, c.POINTER(c.c_uint16)), CAPACITY,
                            c.cast(self.presence, c.POINTER(c.c_int32)), CAPACITY)
-        self.host = Host(None, rebuild if provider else RebuildFn())
+        self.host = Host(None, rebuild if provider else RebuildFn(), observe)
 
     def snapshot(self):
         return (self.held.value, self.count.value,
@@ -193,6 +204,34 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(list(words[:3]), [4, 8, 8])
         self.assertEqual(presence[6], 0)
         self.assertEqual(w.held.value, -1)
+
+    def test_effect_order_matches_the_original_store_order(self):
+        # 0x4ea17f count, 0x4ea1a3 list copy, 0x4ea1b0 presence, 0x4ea1be rebuild,
+        # then 0x4eac88 held, 0x4eac9b completion.
+        w = World([4, 6, 8], held=6)
+        visit(self.lib, 6, w)
+        self.assertEqual(w.observed, [('visit', 6), ('count', 2), ('list', 2), ('presence', 6),
+                                      ('rebuild', 6), ('held', -1), ('complete', 1)])
+        w = World([6], held=3)  # nothing left to copy back: no list event
+        visit(self.lib, 6, w)
+        self.assertEqual(w.observed, [('visit', 6), ('count', 0), ('presence', 6),
+                                      ('rebuild', 6), ('complete', 1)])
+        w = World([4], held=9)  # not found, held differs: visit then completion only
+        visit(self.lib, 7, w)
+        self.assertEqual(w.observed, [('visit', 7), ('complete', 1)])
+        w = World([4], held=7)  # not found, held matches: held clear is independent
+        visit(self.lib, 7, w)
+        self.assertEqual(w.observed, [('visit', 7), ('held', -1), ('complete', 1)])
+
+    def test_failures_report_only_effects_that_happened(self):
+        w = World([4, 6], held=6, rebuild_status=1)
+        visit(self.lib, 6, w)
+        self.assertEqual(w.observed, [('visit', 6), ('count', 1), ('list', 1), ('presence', 6),
+                                      ('rebuild', 6)])
+        w = World([4, 6], held=6)
+        w.host.rebuild_view = RebuildFn()
+        visit(self.lib, 6, w)
+        self.assertEqual(w.observed, [])  # rejected before the visit began
 
     def test_held_item_cleared_only_on_signed_word_equality(self):
         for held, word, cleared in ((6, 6, 1), (7, 6, 0), (-1, 0xffff, 1), (-1, 0, 0),

@@ -2,6 +2,13 @@
 
 #include <string.h>
 
+static void observe(const Action79Host *host, int effect, int32_t value)
+{
+    if (host != NULL && host->observe != NULL) {
+        host->observe(host->context, effect, value);
+    }
+}
+
 static int fail(const char **why, const char *message, int status)
 {
     if (why != NULL) {
@@ -16,7 +23,7 @@ int action79_visit(uint16_t item_word, const Action79Model *model,
 {
     int16_t id;
     int32_t count, scan, found = -1;
-    int32_t kept = 0;
+    int32_t kept, written;
     int32_t index;
 
     if (why != NULL) {
@@ -57,20 +64,31 @@ int action79_visit(uint16_t item_word, const Action79Model *model,
             return fail(why, "inventory view rebuild provider (0x4e812f)",
                         ACTION79_ERR_UNSUPPORTED);
         }
-        /* 0x4ea0eb..0x4ea1a7: compact into the view scratch skipping ONLY the
-         * first match, then copy back exactly the kept entries. Words beyond
-         * them keep their old values. In place, front to back, this is the
-         * same result: a write never lands past a not-yet-read entry. */
-        for (index = 0; index < count; ++index) {
+    }
+    observe(host, ACTION79_EFFECT_VISIT, id);
+    if (found >= 0) {
+        /* 0x4ea17f stores the new count (= count - 1) before 0x4ea1a3 copies
+         * the kept words back. The original compacts into view scratch first;
+         * in place, front to back, the result is identical: a write never
+         * lands past a not-yet-read entry. Only the first match is skipped.
+         * Words beyond the kept ones keep their old values. */
+        kept = count - 1;
+        *model->item_count = (int16_t)kept;
+        observe(host, ACTION79_EFFECT_COUNT, kept);
+        for (index = 0, written = 0; index < count; ++index) {
             if (index != found) {
-                model->items[kept++] = model->items[index];
+                model->items[written++] = model->items[index];
             }
         }
-        *model->item_count = (int16_t)kept;
+        if (written != 0) {
+            observe(host, ACTION79_EFFECT_LIST, written);
+        }
         model->presence[id] = 0;
+        observe(host, ACTION79_EFFECT_PRESENCE, id);
         result->found = 1u;
         result->found_index = found;
         result->rebuild_called = 1u;
+        observe(host, ACTION79_EFFECT_REBUILD, id);
         if (host->rebuild_view(host->context, id) != 0) {
             return fail(why, "inventory view rebuild failed after the list was committed",
                         ACTION79_ERR_HOST);
@@ -80,7 +98,9 @@ int action79_visit(uint16_t item_word, const Action79Model *model,
     if (*model->held_item == id) {
         *model->held_item = -1;
         result->held_cleared = 1u;
+        observe(host, ACTION79_EFFECT_HELD, -1);
     }
     result->completed = 1u;
+    observe(host, ACTION79_EFFECT_COMPLETE, 1);
     return ACTION79_OK;
 }

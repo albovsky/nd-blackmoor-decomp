@@ -57,12 +57,26 @@ typedef struct {
     size_t presence_capacity;
 } Action79Model;
 
+/* Ordered effect markers for oracles and tests; each is reported right after
+ * the corresponding store in the original's order. */
+typedef enum {
+    ACTION79_EFFECT_VISIT = 1,    /* 0x4ea06c entered; value = sign-extended id */
+    ACTION79_EFFECT_COUNT = 2,    /* 0x583a2b stored; value = new count */
+    ACTION79_EFFECT_LIST = 3,     /* kept words copied back; value = how many */
+    ACTION79_EFFECT_PRESENCE = 4, /* 0x583bd5[id] stored 0; value = id */
+    ACTION79_EFFECT_REBUILD = 5,  /* 0x4e812f about to run; value = id */
+    ACTION79_EFFECT_HELD = 6,     /* 0x583a29 stored -1 */
+    ACTION79_EFFECT_COMPLETE = 7  /* completion byte store requested (value 1) */
+} Action79Effect;
+
 typedef struct {
     void *context;
     /* 0x4e812f(ECX=0x571442). Called after the list, count and presence are
      * committed and BEFORE the held item is cleared. A nonzero return is a
      * host failure. */
     int (*rebuild_view)(void *context, int16_t removed_item);
+    /* Optional diagnostic observer (may be NULL; production leaves it NULL). */
+    void (*observe)(void *context, int effect, int32_t value);
 } Action79Host;
 
 typedef struct {
