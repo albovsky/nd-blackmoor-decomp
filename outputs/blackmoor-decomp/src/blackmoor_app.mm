@@ -29,6 +29,7 @@
 #include "session_bindings_a0b.h"
 #include "session_bindings_a0c.h"
 #include "session_bindings_a97.h"
+#include "session_bindings_aa1.h"
 #include "session_bindings_a83.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -218,6 +219,8 @@ struct NativeApp {
     SessionA51Binding *a51 = nullptr;
     SessionA35Binding *a35 = nullptr;
     SessionA97Binding *a97 = nullptr;
+    /* RT-21: raw 0xa1 "Sound" (loader arm 0x40f069, dispatcher arm 0x4297be). */
+    SessionAa1Binding *aa1 = nullptr;
     SessionA83Binding *a83 = nullptr;
     /* Native bounds; not a declaration of original global capacities. */
     uint8_t phone_mail[100][A83_MAIL_BYTES]{};
@@ -320,6 +323,10 @@ struct NativeApp {
      * flag cannot be read), which stops the session at the first 0x0c row before any effect. It
      * stands in for a host failure and exists only in the test-hooks build. */
     bool test_a0c_refuse_world = false;
+    /* RT-21 test hook: on entering SCENE the held (selected) inventory item becomes ITEM,
+     * standing in for the unbound inventory UI that selects it in the original. May repeat.
+     * Test-hooks build only. */
+    std::vector<std::pair<int32_t, int32_t>> test_held_at;
 #endif
     /* Headless runs render the offline audio graph a fixed amount per update;
      * live runs leave this zero and let the output device pace playback. */
@@ -1743,6 +1750,7 @@ static void cleanup(NativeApp *app)
     session_a51_destroy(app->a51);
     session_a35_destroy(app->a35);
     session_a97_destroy(app->a97);
+    session_aa1_destroy(app->aa1);
     session_a83_destroy(app->a83);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
@@ -2729,6 +2737,61 @@ static int native_a97_transition(void *context, const ActionSoundTransition *eff
     return 0;
 }
 
+/* RT-21: raw 0xa1 shares the caption writer and the caption flag with raw 0x97 (0x432d1a is
+ * one function). Its transition is the same tuple; only the log line names the family. */
+static int native_aa1_transition(void *context, const ActionSoundTransition *effect)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || effect == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = effect->target_scene;
+    std::memcpy(request.opaque_words, effect->opaque_words, sizeof(request.opaque_words));
+    std::memcpy(request.opaque_dwords, effect->opaque_dwords, sizeof(request.opaque_dwords));
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    app->start_flag_5bb1ca = effect->scene_flag_value;
+    record(app, "scene_aa1_transition target=%d start=%u engine-state=%u",
+           request.target_scene, effect->scene_flag_value, effect->engine_state_value);
+    return 0;
+}
+
+/* RT-21: the event dword table 0x585801 + id*4 (0x432e0e..0x432e35) is the same vector the
+ * dependency leaves and raw 0x61/0x62/0x36 write: the New Game event flag view. */
+static int native_aa1_load_events(void *context, A97EventTable *events)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || events == nullptr || app->new_game.action_core.event_flags == nullptr)
+        return 1;
+    events->flags = app->new_game.action_core.event_flags;
+    events->count = app->new_game.action_core.event_flag_count;
+    return 0;
+}
+
+/* One log line per visit of a raw 0xa1 row (phase before -> after, handler status), like
+ * scene_action_sound for raw 0x9f. */
+static int native_aa1_handler(void *context, size_t index, const SceneActionInfo *info,
+                              const SceneActionRuntimeState *before,
+                              SceneActionHandlerResult *result)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || result == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const uint32_t phase_before = before->phase;
+    const int status = session_aa1_handler(app->aa1, index, info, before, result);
+    record(app, "scene_aa1_visit row=%zu phase=%u status=%d phase_after=%u disposition=%d "
+           "(0x4297be -> 0x432d1a)", index, phase_before, status,
+           status == SCENE_ACTION_HANDLER_OK ? result->phase : phase_before,
+           status == SCENE_ACTION_HANDLER_OK ? (int)result->disposition : -1);
+    return status;
+}
+
+static void native_aa1_event_stored(void *context, size_t row, int16_t id, int32_t value,
+                                    int32_t previous)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    record(app, "scene_aa1_event_write row=%zu event=%d value=%d previous=%d "
+           "(dword 0x585801+id*4 := byte +0xa7, 0x432e35)", row, (int)id, value, previous);
+}
+
 static int native_a83_refresh(void *context, int16_t group, int32_t active, int16_t child)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
@@ -3238,6 +3301,15 @@ static bool create_native_session_bindings(NativeApp *app)
     a97_host.captions_enabled = native_a97_captions_enabled;
     a97_host.transition = native_a97_transition;
     app->a97 = session_a97_create(&a97_host);
+    SessionAa1Host aa1_host{};
+    aa1_host.sound = a97_host.sound;
+    aa1_host.lookup = a97_host.lookup;
+    aa1_host.lookup_context = app;
+    aa1_host.captions_enabled = native_a97_captions_enabled;
+    aa1_host.transition = native_aa1_transition;
+    aa1_host.load_events = native_aa1_load_events;
+    aa1_host.event_stored = native_aa1_event_stored;
+    app->aa1 = session_aa1_create(&aa1_host);
     const uint8_t *uicl = nullptr;
     size_t uicl_length = 0;
     if (!find_boot_payload(app, "UICL", &uicl, &uicl_length) ||
@@ -3303,7 +3375,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -3545,6 +3617,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_a97_failure(app->a97));
         return false;
     }
+    if (session_aa1_begin_scene(app->aa1, app->scene) != ACTION_SOUND_OK) {
+        record(app, "scene_session_create_error provider=action-sound detail=%s",
+               session_aa1_failure(app->aa1));
+        return false;
+    }
     if (session_a79_begin_scene(app->a79, app->scene) != ACTION79_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a79_failure(app->a79));
@@ -3571,6 +3648,19 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
             info.type == SESSION_A97_TYPE)
             record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
                    row, session_a97_selected(app->a97, row));
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_AA1_TYPE) {
+            SessionAa1Row aa1_row{};
+            if (session_aa1_row(app->aa1, row, &aa1_row) == 1)
+                record(app, "scene_aa1_construct row=%zu stem=%s channel=%u control-mode=%u "
+                       "scene=%d event=%d value=%u key_missing=%u runtime=0xa1 (loader 0x40f069)",
+                       row, aa1_row.stem, (unsigned)aa1_row.channel, (unsigned)aa1_row.mode,
+                       (int)aa1_row.transition_scene, (int)aa1_row.event_id,
+                       (unsigned)aa1_row.event_value, (unsigned)aa1_row.key_missing);
+            else
+                record(app, "scene_aa1_construct row=%zu deferred=loader-AUTOTEXT-provider-unavailable",
+                       row);
+        }
     }
     if (session_a36_begin_scene(app->a36, app->scene) != OVERLAY36_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
@@ -4001,7 +4091,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[15]{};
+    SceneSessionActionBinding bindings[16]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -4062,7 +4152,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[14].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[14].callback = session_a78_handler;
     bindings[14].context = app->a78;
-    config.action_binding_count = 15u;
+    /* RT-21: raw 0xa1 Sound (dispatcher arm 0x4297be shared with 0x9f; provider as raw 0x97). */
+    bindings[15].type = SESSION_AA1_TYPE;
+    bindings[15].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    bindings[15].callback = native_aa1_handler;
+    bindings[15].context = app;
+    config.action_binding_count = 16u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -4926,6 +5021,13 @@ static bool perform_session_transition(NativeApp *app,
             record(app, "test_selector_applied scene=%d frame=%d (stands in for the unbound navigation "
                    "producer 0x43c2b7..)", transition.target_scene, pair.second);
         }
+    for (const auto &pair : app->test_held_at)
+        if (pair.first == transition.target_scene &&
+            app->new_game.view.inventory.selected_item_candidate != nullptr) {
+            *app->new_game.view.inventory.selected_item_candidate = static_cast<int16_t>(pair.second);
+            record(app, "test_held_applied scene=%d item=%d (stands in for the unbound inventory "
+                   "selection UI)", transition.target_scene, pair.second);
+        }
 #endif
     app->selector_entry_valid = true;
     app->selector_logged = false;
@@ -4950,6 +5052,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
     if (r.failure.action_type == SESSION_A79_TYPE) detail = session_a79_failure(app->a79);
     else if (r.failure.action_type == SESSION_A78_TYPE) detail = session_a78_failure(app->a78);
     else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
+    else if (r.failure.action_type == SESSION_AA1_TYPE) detail = session_aa1_failure(app->aa1);
     else if (r.failure.action_type == SESSION_A36_TYPE ||
              r.failure.action_type == SESSION_A37_TYPE) detail = session_a36_failure(app->a36);
     else if (r.failure.action_type == SESSION_A17_TYPE ||
@@ -5090,6 +5193,8 @@ static void update(NativeApp *app, uint32_t now)
                        session_a35_bink_failure(app->movie_bink));
             if (session_result.failure.action_type == SESSION_A97_TYPE)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
+            if (session_result.failure.action_type == SESSION_AA1_TYPE)
+                record(app, "scene_aa1_blocker detail=%s", session_aa1_failure(app->aa1));
             if (session_result.failure.action_type == SESSION_A79_TYPE)
                 record(app, "scene_a79_blocker detail=%s", session_a79_failure(app->a79));
             if (session_result.failure.action_type == SESSION_A78_TYPE)
@@ -5695,6 +5800,14 @@ int main(int argc, char **argv)
                 const long frame = std::strtol(frame_text, &end, 10);
                 if (end == frame_text || *end || frame < INT16_MIN || frame > INT16_MAX) return 2;
                 app.test_selectors.emplace_back((int32_t)scene, (int32_t)frame);
+            } else if (argument == "--test-held-at") {
+                char *end = nullptr;
+                const long scene = std::strtol(value, &end, 10);
+                if (!*value || end == value || *end != ':' || scene < 0 || scene > INT16_MAX) return 2;
+                const char *item_text = end + 1;
+                const long item = std::strtol(item_text, &end, 10);
+                if (end == item_text || *end || item < -1 || item > 32767) return 2;
+                app.test_held_at.emplace_back((int32_t)scene, (int32_t)item);
             } else if (argument == "--test-exit-redirect") {
                 char *end = nullptr;
                 const long from = std::strtol(value, &end, 10);

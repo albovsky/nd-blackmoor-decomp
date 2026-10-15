@@ -35,27 +35,35 @@ static int backend_status(ActionSoundBackendStatus status, const char **why,
                                ? ACTION_SOUND_ERR_UNSUPPORTED : ACTION_SOUND_ERR_BACKEND);
 }
 
-int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
-                          ActionSoundBackend *host, A97Result *out, const char **why)
+/* One visit of 0x432d1a. allow_event selects the raw-0xa1 reading of object +0xa5/+0xa7
+ * (RT-21); without it only the raw-97 constructor default -1 is accepted (RT-8). */
+static int visit(const uint8_t *p, size_t length, const A97Input *in,
+                 ActionSoundBackend *host, const A97EventTable *events, int allow_event,
+                 ActionSoundObjectResult *object, int *started, const char **why)
 {
     ActionSoundAudioCommand command;
     ActionSoundBackendStatus status;
     size_t caption_length;
     const uint8_t *nul;
     int show_caption;
+    int16_t event_id;
+    A97Result *out;
     if (why != NULL) *why = "none";
-    if (p == NULL || in == NULL || out == NULL)
+    if (p == NULL || in == NULL || object == NULL)
         return fail(why, "invalid runtime arguments", ACTION_SOUND_ERR_ARGUMENT);
+    out = &object->visit;
     if (length < 0xacu || length > ACTION_FAMILY_97_MAX_ALLOCATION ||
         memchr(p, 0, 33u) == NULL || u16(p + 0xaa) > length - 0xacu)
         return fail(why, "invalid constructed allocation", ACTION_SOUND_ERR_BODY);
-    memset(out, 0, sizeof(*out));
+    memset(object, 0, sizeof(*object));
+    if (started != NULL) *started = 1;      /* validation passed: the result is defined from here */
     out->phase = in->phase;
     out->completed = in->completed;
     if (in->phase > 2u) return ACTION_SOUND_OK;
     if (u16(p + 0x21) >= ACTION_SOUND_CHANNEL_COUNT)
         return fail(why, "sound channel outside recovered table", ACTION_SOUND_ERR_UNSUPPORTED);
-    if (s16(p + 0xa5) != -1)
+    event_id = s16(p + 0xa5);
+    if (event_id != -1 && !allow_event)
         return fail(why, "non-default event field outside raw-97 constructor", ACTION_SOUND_ERR_UNSUPPORTED);
 
     memset(&command, 0, sizeof(command));
@@ -79,6 +87,13 @@ int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
             return fail(why, "sound load/play provider", ACTION_SOUND_ERR_UNSUPPORTED);
         if (show_caption && host->present_caption == NULL)
             return fail(why, "caption presentation provider", ACTION_SOUND_ERR_UNSUPPORTED);
+        /* 0x432e0e..0x432e35 indexes the dword table at 0x585801 with the signed
+         * word unchecked; native code needs the host's view and rejects ids outside
+         * it (and negative ids other than -1) before any effect of the visit. */
+        if (event_id != -1 && (events == NULL || events->flags == NULL || event_id < 0 ||
+                               (size_t)event_id >= events->count))
+            return fail(why, "event table provider missing or event id outside host view",
+                        ACTION_SOUND_ERR_UNSUPPORTED);
         if (show_caption) {
             ActionSoundCaptionRequest request;
             nul = memchr(p + 0xac, 0, caption_length);
@@ -91,6 +106,15 @@ int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
             if (status != ACTION_SOUND_BACKEND_OK)
                 return backend_status(status, why, "caption presentation failed");
         }
+        /* 0x432e08..0x432e35: dword [0x585801 + id*4] := byte +0xa7, after the caption
+         * and before the channel-state copies, load and play. */
+        if (event_id != -1) {
+            object->event_stored = 1u;
+            object->event_id = event_id;
+            object->event_value = (int32_t)p[0xa7];
+            object->event_previous = events->flags[event_id];
+            events->flags[event_id] = object->event_value;
+        }
         /* 0x432d1a copies defaults to channel state, then 0x4fc62d builds
          * the path and 0x4faf98 loads/plays. Decoder/device remain providers. */
         status = host->load_sound(host->context, &command);
@@ -101,8 +125,9 @@ int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
             if (status != ACTION_SOUND_BACKEND_OK && status != ACTION_SOUND_BACKEND_NO_RESOURCE)
                 return backend_status(status, why, "sound play failed");
         }
-        if (command.transition_scene == 9999 && command.control_word == 0u) {
-            /* 0x43351d: direct byte store, no 0x42ba3a/subtype reset. */
+        if (command.transition_scene == 9999 && event_id == -1 && command.control_word == 0u) {
+            /* 0x4334e1..0x43351d: scene 9999 and event -1 and control 0: direct byte
+             * store, no 0x42ba3a/subtype reset. */
             out->direct = 1u;
             out->completed = 1u;
         } else out->phase = 1u;
@@ -146,4 +171,28 @@ int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
     if (in->subtype == 1u) out->completed = 1u;
     else if (in->subtype == 2u) { out->completed = 0u; out->reset = 1u; }
     return ACTION_SOUND_OK;
+}
+
+int action_sound_object_step(const uint8_t *payload, size_t length, const A97Input *in,
+                             ActionSoundBackend *host, const A97EventTable *events,
+                             ActionSoundObjectResult *out, const char **why)
+{
+    /* Unlike the RT-8 entry point, every path leaves *out defined (all zero before a visit
+     * starts), so a caller never reads stale event fields after a rejection. */
+    if (out != NULL) memset(out, 0, sizeof(*out));
+    return visit(payload, length, in, host, events, 1, out, NULL, why);
+}
+
+int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
+                          ActionSoundBackend *host, A97Result *out, const char **why)
+{
+    ActionSoundObjectResult object;
+    int status, started = 0;
+    if (out == NULL) return fail(why, "invalid runtime arguments", ACTION_SOUND_ERR_ARGUMENT);
+    /* Early validation failures leave the caller's result untouched, as before RT-21; *out is
+     * never read here, and is written only once the visit has started. */
+    memset(&object, 0, sizeof(object));
+    status = visit(p, length, in, host, NULL, 0, &object, &started, why);
+    if (started) *out = object.visit;
+    return status;
 }
