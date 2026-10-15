@@ -1,0 +1,230 @@
+{
+ "schema": "blackmoor-function-ledger-overrides/1",
+ "status": "draft",
+ "note": "FL-3 draft. No function is accepted as ported or not needed here: port_acceptances and not_needed_entries are empty and every rule has accepted=false until a reviewer records a zero-defect sample. Machine preconditions live in scripts/extract_function_xrefs.py (RULE_PREDICATES, rule_candidates, semantics_sensitive_set); the sampler is scripts/sample_function_ledger.py.",
+ "port_acceptances": [],
+ "not_needed_entries": [],
+ "not_needed_rules": [
+  {
+   "id": "R-EH",
+   "predicate": "R-EH",
+   "accepted": false,
+   "reason_code": "compiler_eh_funclet",
+   "rationale": "Compiler-generated unwind funclet: its address appears only as an unwind-map action of a FuncInfo (magic 0x19930520) that an __ehhandler stub names, and the stub is referenced by exactly one parent function. The funclet runs only while its parent unwinds a C++ exception; it has no behaviour of its own.",
+   "parameters": {
+    "eh_parent_regions": [
+     "crt_mfc",
+     "vorbis"
+    ]
+   },
+   "deferred_decisions": [
+    "460 of the 557 unwind funclets have a game-region parent (they sit in the crt_mfc address band but belong to game functions). Covering them by rule needs an owner or reviewer ruling and, per the plan, the parent must be natively ported or have no native C++ exception path; add \"game\" to eh_parent_regions only after that ruling, and FL-1 must then check the parent's ledger status.",
+    "The 13 Catch@ funclets (all with library parents) are never rule-covered; each is reviewed individually."
+   ],
+   "machine_preconditions": [
+    "origin == compiler_eh and eh_kind == unwind (structural, from FuncInfo and the stub; never from names)",
+    "exactly one eh_parent, and eh_parent_region in parameters.eh_parent_regions",
+    "not seam, analysis_complete, not semantics_sensitive"
+   ],
+   "ledger_preconditions": [
+    "no src mention",
+    "no receipt",
+    "not listed in semantics_sensitive overrides by VA",
+    "accepted sample review recorded in review"
+   ],
+   "review": {
+    "reviewer": null,
+    "date": null,
+    "n": null,
+    "defects": null,
+    "sample_sha256": null
+   }
+  },
+  {
+   "id": "R-LIB-INTERNAL",
+   "predicate": "R-LIB-INTERNAL",
+   "accepted": false,
+   "reason_code": "library_internal_unreached_by_game",
+   "rationale": "Library-band function that no root can reach: nothing calls it, no data or immediate holds its address, the CRT entry function and game code do not reach it through direct edges, and it has no path back into game code. Roots are the CRT entry function, every game-origin function, every address-taken function (data pointer or immediate, excluding exception funclets) and every function of unknown origin.",
+   "parameters": {},
+   "machine_preconditions": [
+    "origin == library, not seam, analysis_complete",
+    "reach == unreached and not reaches_game",
+    "no callers, no data reference, no address-taking immediate",
+    "not in the resolved semantics_sensitive set"
+   ],
+   "caveats": [
+    "Edges out of derived code parts that nothing references are counted as live (over-approximation), so the candidate set can only shrink.",
+    "Indirect calls through registers or vtables are covered only by address_taken roots; code that computes a target at run time without an immediate or data pointer is not modelled."
+   ],
+   "ledger_preconditions": [
+    "no src mention",
+    "no receipt",
+    "accepted sample review recorded in review"
+   ],
+   "review": {
+    "reviewer": null,
+    "date": null,
+    "n": null,
+    "defects": null,
+    "sample_sha256": null
+   }
+  }
+ ],
+ "semantics_sensitive": [
+  {
+   "id": "SS-RAND",
+   "category": "rand",
+   "basis": "instruction fingerprint (LCG constants 0x343fd and 0x269ec3 in one function) plus Ghidra label hint",
+   "selectors": [
+    {
+     "kind": "fingerprint",
+     "value": "lcg_rand"
+    },
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "^_?_?s?rand$"
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  },
+  {
+   "id": "SS-FTOL",
+   "category": "float_to_int",
+   "basis": "instruction fingerprint (fnstcw, fldcw and fistp in one function) plus Ghidra label hint",
+   "selectors": [
+    {
+     "kind": "fingerprint",
+     "value": "x87_ftol"
+    },
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "^__ftol$|^__frnd$|^__fassign$|^__fload|^__ftoul|^__alldiv$|^__aulldiv$|^__aullrem$|^__allshl$"
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  },
+  {
+   "id": "SS-PRINTF-FLOAT",
+   "category": "printf_float_formatting",
+   "basis": "Ghidra label hint and the wsprintfA import",
+   "selectors": [
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "printf|^__cfltcvt$|^__cintrindisp|^__ctrandisp|^__trandisp|^__fltout|^__cftof|^__cftoe|^__cftog|^__forcdecpt|^__cropzeros|^__positive|^__fassign|^__math_exit|^__startOneArgErrorHandling|^__copysign|strtod|atof|^__fltin"
+    },
+    {
+     "kind": "import",
+     "names": [
+      "USER32.dll!wsprintfA"
+     ]
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  },
+  {
+   "id": "SS-QSORT",
+   "category": "qsort",
+   "basis": "Ghidra label hint only (no qsort routine is labelled in the local census; unverified)",
+   "selectors": [
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "qsort|^__shortsort$|^__swap$|bsearch"
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  },
+  {
+   "id": "SS-TIME",
+   "category": "time",
+   "basis": "time-source imports and Ghidra label hint",
+   "selectors": [
+    {
+     "kind": "import",
+     "names": [
+      "KERNEL32.dll!GetLocalTime",
+      "KERNEL32.dll!GetSystemTime",
+      "KERNEL32.dll!GetTickCount",
+      "KERNEL32.dll!GetTimeZoneInformation",
+      "KERNEL32.dll!FileTimeToLocalFileTime",
+      "KERNEL32.dll!FileTimeToSystemTime",
+      "KERNEL32.dll!FileTimeToDosDateTime",
+      "KERNEL32.dll!GetFileTime"
+     ]
+    },
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "timet_from_ft|^_time$|^_mktime$|^_localtime$|^_gmtime$|^__loctotime|^__gettime"
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  },
+  {
+   "id": "SS-FILE-IO",
+   "category": "file_io",
+   "basis": "file-system imports and Ghidra label hint",
+   "selectors": [
+    {
+     "kind": "import",
+     "names": [
+      "KERNEL32.dll!CreateFileA",
+      "KERNEL32.dll!ReadFile",
+      "KERNEL32.dll!WriteFile",
+      "KERNEL32.dll!SetFilePointer",
+      "KERNEL32.dll!SetEndOfFile",
+      "KERNEL32.dll!FlushFileBuffers",
+      "KERNEL32.dll!FindFirstFileA",
+      "KERNEL32.dll!FindNextFileA",
+      "KERNEL32.dll!FindClose",
+      "KERNEL32.dll!CreateFileMappingA",
+      "KERNEL32.dll!MapViewOfFile",
+      "KERNEL32.dll!UnmapViewOfFile",
+      "KERNEL32.dll!CopyFileA",
+      "KERNEL32.dll!CreateDirectoryA",
+      "KERNEL32.dll!GetFileType",
+      "KERNEL32.dll!GetPrivateProfileIntA",
+      "KERNEL32.dll!GetPrivateProfileStringA",
+      "KERNEL32.dll!WritePrivateProfileStringA"
+     ]
+    },
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "fopen|fclose|fread|fwrite|fseek|^__open|^__read$|^__write$|^__lseek|^__close$|^__flsbuf|^__filbuf|^__fflush|^__freebuf"
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  },
+  {
+   "id": "SS-MALLOC",
+   "category": "malloc_failure",
+   "basis": "heap/allocation imports and Ghidra label hint",
+   "selectors": [
+    {
+     "kind": "import",
+     "names": [
+      "KERNEL32.dll!HeapAlloc",
+      "KERNEL32.dll!HeapReAlloc",
+      "KERNEL32.dll!HeapCreate",
+      "KERNEL32.dll!VirtualAlloc",
+      "KERNEL32.dll!GlobalAlloc",
+      "KERNEL32.dll!GlobalReAlloc",
+      "KERNEL32.dll!LocalAlloc",
+      "KERNEL32.dll!LocalReAlloc"
+     ]
+    },
+    {
+     "kind": "ghidra_name_regex",
+     "pattern": "malloc|^_realloc$|^_calloc$|^__heap|^__nh_|^_free$"
+    }
+   ],
+   "propagate": "none",
+   "exclusion_only": true
+  }
+ ]
+}
