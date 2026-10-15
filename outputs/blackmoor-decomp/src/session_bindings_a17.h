@@ -12,8 +12,8 @@ extern "C" {
 /* Runtime types served by this binding. The shared parser types raw 0x16 and
  * 0x17 (0x18/0x19 occur nowhere in the corpus and have no typed decoder);
  * the kernel itself serves all four (same handler 0x42b07e). */
-#define SESSION_A17_TYPE 0x17u
-#define SESSION_A16_TYPE 0x16u
+#define SESSION_A17_TYPE ACTION17_RAW_TYPE
+#define SESSION_A16_TYPE ACTION16_RAW_TYPE
 
 typedef struct SessionA17Binding SessionA17Binding;
 

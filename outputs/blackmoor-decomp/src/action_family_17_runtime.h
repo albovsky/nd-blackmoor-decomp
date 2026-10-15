@@ -43,6 +43,8 @@ extern "C" {
  * exactly 22 + 18 * count bytes with 0 <= count <= 1819 (the domain in which
  * the original's 16-bit size arithmetic does not wrap, A-17.1). */
 
+#define ACTION16_RAW_TYPE UINT8_C(0x16)
+#define ACTION17_RAW_TYPE UINT8_C(0x17)
 #define ACTION17_FIRST_TYPE 0x16u
 #define ACTION17_LAST_TYPE 0x19u
 #define ACTION17_PREFIX_BYTES 22u
