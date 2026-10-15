@@ -123,6 +123,8 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x69: fixed_length = 1u;  break; /* 0x40d428 copies one byte (A-69.1) */
+    case 0x65: fixed_length = 1u;  break; /* 0x40d116 copies one byte (A-65.1) */
     case 0x68: fixed_length = 1u;  break; /* 0x40d364 copies one byte (A-68.1) */
     case 0x83: fixed_length = 74u; break; /* 0x40e995 copies 74 bytes (A-83.1) */
     case 0x4e: fixed_length = 31u; break; /* 0x44b102 copies 31 bytes (A-4E.1) */
@@ -458,6 +460,7 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
+    case 0x16: /* raw 0x16..0x19 share loader arm 0x40b98f (A-16.1, A-17.1) */
     case 0x17: {
         int16_t count;
         /* 0x40b998..0x40b9a9 narrows size to signed int16 before allocation.

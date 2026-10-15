@@ -17,7 +17,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-9 Bink playback for 0x35: frames, events, embedded audio, completion (Codex) | Reviewed (no P1), findings fixed, merged (PR 20) |
 | RT-10 edge/arrow cascade 0x4f0059; RT-11 sound persistence across scene changes (Codex) | In flight on `codex/rt-10-edge-cascade`, `codex/rt-11-sound-persistence`; not reviewed or merged |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; 0x35 and 0x97 runtimes now bound (RT-7/8/9), the rest unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 opaque decoders (Codex) | Reviewed, merged (typed 19,535 / opaque 77) |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 opaque decoders (Codex) | Reviewed, merged (typed 19,551 / opaque 61) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -96,3 +96,9 @@ Remaining after that: 0xf6 (6), 0xea (6), 0xf5 (4), 0x1b (4), 0x7d (4) and a tai
 Open: raw 0x4b record 2804/0 needs a caller-resolved missing-key fallback string (A-4B.2); the three new fixed-body oracles sweep ragged tails to 0..40 only (the shared stage covers the dense sweep); ragged-tail sentinels above 4,097 bytes are still missing from the shared stage.
 
 Live path after this registration (2026-10-14 19:30 PDT): with 0x83 typed, the scripted run now reaches 23 scenes (S0 to S5906, S4700 with its Bink movie, S4710, S4701, S4711, S4800-S4808) and stops at S4808 row 6, raw 0x83, `provider=action-kernel` (typed body, no runtime handler). The 0x83 runtime (loader arm 0x40e995, a 74-byte fixed body) is the next runtime slice for the runtime thread; the live-path tests and progress pins were updated for the new stop.
+
+## Handoff: opaque scene actions, eighth batch (2026-10-14 20:30 PDT)
+
+Merged: raw 0x69 (7 records) and 0x65 (7) one-byte bodies and raw 0x16 (2, sharing the 0x17 layout and loader arm 0x40b98f) boundaries and decoders (A-69.1, A-65.1, A-16.1; one independent review each, no P1 findings). Typed 19,551 / opaque 61. The shared tail oracle pins 23 decoders (0x69 and 0x65 added; 0x16 is a thin wrapper over the 0x17 module with no mutation sites of its own, so it stays out of the shared mutation harness and keeps its own oracle).
+In progress (Codex gpt-6.1-sol xhigh): A-1B.1 (4), A-7D.1 (4), A-33.1 (3). Remaining after that: 0xf6 (6), 0xea (6), 0xf5 (4), 0x2d (3), 0xe0 (3), 0xd3 (3) and a tail of one- and two-record types (about 30 records).
+Notes for the runtime thread: 0x65 is a save-state call in the original (do not register a no-op handler); registered-but-unhandled types fail at executor step time with `SCENE_EXECUTOR_ERR_UNSUPPORTED`, not at creation.
