@@ -17,7 +17,7 @@ LIVE_ARGS = ["--inspect-live-session", "--live-click-row", "34", "--live-ticks",
 PROVIDERS = {
     "none", "world-clock", "timer-effects", "post-clock-controller", "scene-media",
     "pointer-input-transform", "action-ui", "action-sound", "caption", "action-family-28",
-    "action-family-62", "action-kernel", "dependency-provider", "scene-resource",
+    "action-family-35", "action-family-51", "action-family-62", "action-family-97", "action-kernel", "dependency-provider", "scene-resource",
     "host-adapter", "unknown-provider",
 }
 
@@ -323,8 +323,9 @@ def build_panel(out: Path, status: dict) -> dict:
     actions = derive_actions(out)
     if evidence["evidence"]["registration_sources"] != actions["sources"]:
         raise PlayableError("evidence stale; rerun record_playable_status.py")
-    if evidence["stop"]["action_type"] in actions["handled"]["types"]:
-        raise PlayableError("stop action is handled by current source; rerun record_playable_status.py")
+    if (evidence["stop"]["action_type"] in actions["handled"]["types"]
+            and evidence["stop"]["provider"] == "action-kernel"):
+        raise PlayableError("stop reports no handler (action-kernel) for an action the current source handles; rerun record_playable_status.py")
     if len(evidence["reached_scenes"]) > actions["scene_total"]:
         raise PlayableError("reached scenes exceed the corpus")
     return {**evidence, "scene_total": actions.pop("scene_total"), "action_types": actions,

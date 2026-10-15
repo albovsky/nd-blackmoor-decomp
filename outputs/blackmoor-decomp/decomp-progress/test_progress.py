@@ -66,9 +66,9 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(p, committed, "Refresh progress after changes to live registrations or evidence")
         self.assertEqual(p["scene_total"], 2078)
         self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
-        self.assertEqual(p["stop"]["action_type"], "0x97")
-        self.assertEqual(p["stop"]["row"], 11)
-        self.assertEqual(p["tests"], {"discovered": 1173, "passed": 1168, "skipped": 5,
+        self.assertEqual(p["stop"]["action_type"], "0x35")
+        self.assertEqual(p["stop"]["row"], 3)
+        self.assertEqual(p["tests"], {"discovered": 1204, "passed": 1199, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
     def test_action_body_counts_use_current_source_and_census_records(self):
@@ -80,7 +80,7 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
         self.assertFalse(set(a["handled"]["types"]) & set(a["unsupported"]["types"]))
         self.assertEqual(a["handled"]["records"] + a["unsupported"]["records"], a["typed"]["records"])
-        for code in ("0x37", "0x97", "0xa1"):
+        for code in ("0x37", "0xa1"):
             self.assertIn(code, a["unsupported"]["types"])
             self.assertNotIn(code, a["opaque"]["types"])
 
@@ -90,8 +90,8 @@ class RepoEvidenceTests(unittest.TestCase):
             "executor": ["0x0a", "0x15", "0x4d", "0x61", "0x64", "0x6a", "0x6b", "0x71"],
             "session_ui": ["0x1d", "0x82"],
             "external": {"0x28": "session_a28_handler", "0x35": "session_a35_handler", "0x51": "session_a51_handler",
-                         "0x62": "session_a62_handler", "0x9f": "native_action_sound_handler"}})
-        self.assertEqual(a["handled"]["type_count"], 15)
+                         "0x62": "session_a62_handler", "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
+        self.assertEqual(a["handled"]["type_count"], 16)
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
         derived.pop("scene_total")
         self.assertEqual(a, derived)
@@ -147,8 +147,8 @@ class RepoEvidenceTests(unittest.TestCase):
         report = (self.out / "REPORT.md").read_text()
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700", report)
-        self.assertIn("provider action-kernel", report)
-        self.assertIn("1,173 discovered; 1,168 passed; 5 skipped", report)
+        self.assertIn("provider action-family-35", report)
+        self.assertIn("1,204 discovered; 1,199 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
         t = self.model["totals"]
@@ -796,8 +796,9 @@ class RegistrationDriftTests(unittest.TestCase):
         path = self.out / "playable-status.json"
         doc = GEN.load_json(path)
         doc["stop"]["action_type"] = "0x51"
+        doc["stop"]["provider"] = "action-kernel"
         write(path, doc)
-        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "stop action.*handled"):
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "stop reports no handler"):
             GEN.PLAYABLE.build_panel(self.out, self.status)
 
     def test_every_registration_input_hash_is_bound_to_recorded_evidence(self):
@@ -839,7 +840,7 @@ class RegistrationDriftTests(unittest.TestCase):
             ("src/blackmoor_app.mm", "bindings[2].callback = session_a51_handler;"),
             ("src/blackmoor_app.mm", "bindings[0] = action_sound_binding;"),
             ("src/blackmoor_app.mm", "config.action_bindings = bindings;"),
-            ("src/blackmoor_app.mm", "config.action_binding_count = 5u;"),
+            ("src/blackmoor_app.mm", "config.action_binding_count = 6u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].present = 1u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].callback = ui_action_handler;"),
         ]
