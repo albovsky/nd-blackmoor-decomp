@@ -806,6 +806,16 @@ const ActionUIWorld *scene_session_get_action_ui(const SceneSession *session)
     return session == NULL ? NULL : &session->action_ui;
 }
 
+int scene_session_mark_ui_dirty(SceneSession *session, int16_t group, int16_t child)
+{
+    if (session == NULL || group < 0 || (unsigned)group >= ACTION_UI_CONTROL_GROUP_COUNT ||
+        child < 0 || child >= 3) return SCENE_SESSION_ERR_ARGUMENT;
+    /* 0x4e0570 then 0x4e0588; shared with action_ui's control state. */
+    session->action_ui.controls[group].availability = 1;
+    session->action_ui.controls[group].flags[child] = 1;
+    return SCENE_SESSION_OK;
+}
+
 int scene_session_get_pending_transition(const SceneSession *session,
                                          SceneTransitionRequest *transition)
 {
@@ -868,6 +878,7 @@ const char *scene_session_provider_string(SceneSessionProvider provider)
     case SCENE_SESSION_PROVIDER_A28: return "action-family-28";
     case SCENE_SESSION_PROVIDER_A62: return "action-family-62";
     case SCENE_SESSION_PROVIDER_A35: return "action-family-35";
+    case SCENE_SESSION_PROVIDER_A83: return "action-family-83";
     case SCENE_SESSION_PROVIDER_ACTION_KERNEL: return "action-kernel";
     case SCENE_SESSION_PROVIDER_DEPENDENCY: return "dependency-provider";
     case SCENE_SESSION_PROVIDER_SCENE_RESOURCE: return "scene-resource";
