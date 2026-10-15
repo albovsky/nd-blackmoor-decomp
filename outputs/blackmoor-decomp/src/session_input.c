@@ -148,13 +148,17 @@ int session_input_tick(SessionInputState *state, const SessionInputContext *cont
     return SESSION_INPUT_OK;
 }
 
+static int rectangle_in_short_domain(const SessionInputRect *rect)
+{
+    return rect->left >= INT16_MIN && rect->left <= INT16_MAX &&
+        rect->top >= INT16_MIN && rect->top <= INT16_MAX &&
+        rect->right >= INT16_MIN && rect->right <= INT16_MAX &&
+        rect->bottom >= INT16_MIN && rect->bottom <= INT16_MAX;
+}
+
 static int hotspot_domain_ok(const SessionInputHotspot *spot)
 {
-    return spot->index >= 0 && spot->index < 240 &&
-        spot->rectangle.left >= INT16_MIN && spot->rectangle.left <= INT16_MAX &&
-        spot->rectangle.top >= INT16_MIN && spot->rectangle.top <= INT16_MAX &&
-        spot->rectangle.right >= INT16_MIN && spot->rectangle.right <= INT16_MAX &&
-        spot->rectangle.bottom >= INT16_MIN && spot->rectangle.bottom <= INT16_MAX;
+    return spot->index >= 0 && spot->index < 240 && rectangle_in_short_domain(&spot->rectangle);
 }
 
 static int spot_contains(const SessionInputHotspot *spot, const SceneExecutorFrameInput *projected)
@@ -195,14 +199,21 @@ int session_input_scan_priority(SessionInputState *state, const SessionInputCont
             return SESSION_INPUT_INVALID_ARGUMENT;
         previous = spot->index;
     }
+    /* A priority rectangle outside the signed-short domain cannot be one of
+     * the overlay hit test's rectangles as the generic rows model them: it is
+     * skipped below instead of failing the whole scan. Its row index is still
+     * validated (an out-of-range index is a caller bug). */
     for (i = 0; i < priority_count; ++i) {
-        if (!hotspot_domain_ok(&priority[i])) return SESSION_INPUT_INVALID_ARGUMENT;
+        if (priority[i].index < 0 || priority[i].index >= 240)
+            return SESSION_INPUT_INVALID_ARGUMENT;
     }
     status = project(&snapshot, &projected);
     if (status != SESSION_INPUT_OK) return status;
     if (projected.pointer_valid && projected.cursor_context_allowed) {
         for (i = 0; i < priority_count && candidate < 0; ++i) {
-            if (spot_contains(&priority[i], &projected)) candidate = priority[i].index;
+            if (rectangle_in_short_domain(&priority[i].rectangle) &&
+                spot_contains(&priority[i], &projected))
+                candidate = priority[i].index;
         }
         for (i = 0; i < count && candidate < 0; ++i) {
             const SessionInputHotspot *spot = &hotspots[i];

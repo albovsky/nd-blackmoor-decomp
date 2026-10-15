@@ -11,3 +11,13 @@ xcrun clang -arch arm64 -std=c11 -Wall -Wextra -Wpedantic -Werror -O1 -g \
     "$project_dir/src/hiff.c" "$project_dir/tests/action_family_79_runtime_sanitize.c" \
     -o "$build_dir/action_family_79_runtime_sanitize"
 "$build_dir/action_family_79_runtime_sanitize"
+# session_a79_begin_scene's malformed-row rejection, unreachable through a real
+# SceneResource (the parser refuses such rows first), against a scene double.
+xcrun clang -arch arm64 -std=c11 -Wall -Wextra -Wpedantic -Werror -O1 -g \
+    -fsanitize=address,undefined -fno-omit-frame-pointer -I "$project_dir/src" \
+    "$project_dir/src/action_family_79.c" "$project_dir/src/action_family_79_runtime.c" \
+    "$project_dir/src/session_bindings_a79.c" \
+    "$project_dir/tests/action_family_79_binding_stub_scene.c" \
+    "$project_dir/tests/action_family_79_binding_stub_sanitize.c" \
+    -o "$build_dir/action_family_79_binding_stub_sanitize"
+"$build_dir/action_family_79_binding_stub_sanitize"

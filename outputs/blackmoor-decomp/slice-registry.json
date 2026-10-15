@@ -1254,6 +1254,36 @@
       "parent": "A-F5",
       "raw_type": "0xf5",
       "records": 4
+    },
+    {
+      "id": "A-D3.1",
+      "title": "Action 0xd3: body boundary and isolated decoder",
+      "packet": "tasks/A-D3.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-D3",
+      "raw_type": "0xd3",
+      "records": 3
+    },
+    {
+      "id": "A-2D.1",
+      "title": "Action 0x2d: body boundary and isolated decoder",
+      "packet": "tasks/A-2D.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-2D",
+      "raw_type": "0x2d",
+      "records": 3
+    },
+    {
+      "id": "A-E0.1",
+      "title": "Action 0xe0: body boundary and isolated decoder",
+      "packet": "tasks/A-E0.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented; the 292-byte record of scene S2705 stays opaque (original hits its ragged-tail exit)",
+      "depends_on": [],
+      "parent": "A-E0",
+      "raw_type": "0xe0",
+      "records": 3
     }
   ]
 }

@@ -66,7 +66,7 @@ static void fill_image(uint8_t *image, uint32_t *seed, int structured)
 }
 
 static uint64_t kernel_visits, kernel_rejections, hit_calls, hit_rejections, draw_calls, draw_rejections,
-    hot_calls, hot_rejections;
+    hot_calls, hot_rejections, scan_calls, scan_rejections, scan_right_above_short;
 
 typedef struct {
     Overlay36Manager manager;
@@ -163,10 +163,57 @@ static void kernel_sweep(uint32_t seed)
         case 4: {
             Overlay36HotRect out[8];
             size_t count = 0;
-            status = overlay36_hot_rects(manager, &rows, (int16_t)(lcg(&seed) % 4u), &host, out, 1u + lcg(&seed) % 8u, &count);
+            const size_t capacity = 1u + lcg(&seed) % 8u;
+            status = overlay36_hot_rects(manager, &rows, (int16_t)(lcg(&seed) % 4u), &host, out, capacity, &count);
             ++hot_calls;
             if (status != OVERLAY36_OK) ++hot_rejections;
             assert(memcmp(manager, &before_manager, sizeof(*manager)) == 0);
+            {
+                /* The production pointer path: exported rectangles become priority
+                 * rows of session_input_scan_priority (rectangles of any int32
+                 * value, row indices possibly out of range). */
+                SessionInputHotspot rows_out[8];
+                SessionInputState input;
+                SessionInputContext context;
+                size_t used = count < capacity ? count : capacity, k;
+                const int32_t extremes[] = {INT32_MIN, -40000, -32769, -32768, -1, 0, 1, 300, 32767, 32768,
+                                            40000, INT32_MAX};
+                int scan_status;
+                memset(&context, 0, sizeof(context));
+                context.geometry_ready = 1u;
+                context.priority_clear = 1u;
+                context.excluded_0 = context.excluded_1 = -1;
+                context.hot_x = (int32_t)(lcg(&seed) % 700u) - 20;
+                context.hot_y = (int32_t)(lcg(&seed) % 500u) - 20;
+                for (k = 0; k < used; ++k) {
+                    memset(&rows_out[k], 0, sizeof(rows_out[k]));
+                    rows_out[k].index = lcg(&seed) % 9u == 0u ? 240 : out[k].row;
+                    rows_out[k].rectangle.left = out[k].left;
+                    rows_out[k].rectangle.top = out[k].top;
+                    rows_out[k].rectangle.right = lcg(&seed) % 5u == 0u ? INT32_MAX : out[k].right;
+                    rows_out[k].rectangle.bottom = out[k].bottom;
+                    rows_out[k].active = 1u;
+                    if (rows_out[k].rectangle.right > INT16_MAX) ++scan_right_above_short;
+                }
+                /* A few synthetic rows: indices around the valid range, extreme corners. */
+                for (k = used; k < 8u && k < used + 2u; ++k) {
+                    memset(&rows_out[k], 0, sizeof(rows_out[k]));
+                    rows_out[k].index = (int32_t)(lcg(&seed) % 244u) - 2;
+                    rows_out[k].rectangle.left = extremes[lcg(&seed) % 12u];
+                    rows_out[k].rectangle.top = extremes[lcg(&seed) % 12u];
+                    rows_out[k].rectangle.right = extremes[lcg(&seed) % 12u];
+                    rows_out[k].rectangle.bottom = extremes[lcg(&seed) % 12u];
+                    rows_out[k].active = lcg(&seed) % 4u != 0u;
+                    if (rows_out[k].rectangle.right > INT16_MAX) ++scan_right_above_short;
+                }
+                used = k;
+                assert(session_input_init(&input) == SESSION_INPUT_OK);
+                scan_status = session_input_scan_priority(&input, &context, rows_out, used, NULL, 0u);
+                ++scan_calls;
+                if (scan_status != SESSION_INPUT_OK) ++scan_rejections;
+                assert(scan_status == SESSION_INPUT_OK || scan_status == SESSION_INPUT_INVALID_ARGUMENT);
+                assert(scan_status != SESSION_INPUT_OK || (input.candidate >= -1 && input.candidate < 240));
+            }
             break;
         }
         default: {
@@ -327,6 +374,9 @@ int main(void)
            (unsigned long long)kernel_visits, (unsigned long long)kernel_rejections, (unsigned long long)hit_calls,
            (unsigned long long)hit_rejections, (unsigned long long)draw_calls, (unsigned long long)draw_rejections,
            (unsigned long long)hot_calls, (unsigned long long)hot_rejections);
+    printf("priority_scan_calls=%llu priority_scan_rejections=%llu rows_with_right_above_short=%llu\n",
+           (unsigned long long)scan_calls, (unsigned long long)scan_rejections,
+           (unsigned long long)scan_right_above_short);
     printf("binding_scenes_opened=%llu scenes_rejected_by_parser=%llu begin_ok=%llu begin_rejected=%llu handler_calls=%llu handler_ok=%llu handler_error=%llu handler_unsupported=%llu\n",
            (unsigned long long)scenes_opened, (unsigned long long)scenes_rejected, (unsigned long long)begin_ok,
            (unsigned long long)begin_rejected, (unsigned long long)handler_calls, (unsigned long long)handler_ok,

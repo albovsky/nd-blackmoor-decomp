@@ -23,6 +23,7 @@ import subprocess
 import unittest
 
 import session_binding_support as session
+import test_session_input as pointer_input
 
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = PROJECT / 'build/libactionfamily36_runtime.dylib'
@@ -131,7 +132,19 @@ def bind(path=None):
     lib.overlay36_render_layers.argtypes = [c.POINTER(Manager), c.POINTER(Rows), c.c_int32,
                                             c.c_int32, c.POINTER(World), c.POINTER(Host),
                                             c.POINTER(c.c_size_t), c.POINTER(c.c_char_p)]
+    # The production pointer path (blackmoor_app.mm native_pointer_scan) feeds
+    # the exported hot rectangles to this scan as priority rows.
+    lib.session_input_init.argtypes = [c.POINTER(pointer_input.State)]
+    lib.session_input_init.restype = c.c_int
+    lib.session_input_scan_priority.argtypes = [
+        c.POINTER(pointer_input.State), c.POINTER(pointer_input.Context),
+        c.POINTER(pointer_input.Hotspot), c.c_size_t,
+        c.POINTER(pointer_input.Hotspot), c.c_size_t]
+    lib.session_input_scan_priority.restype = c.c_int
     return lib
+
+
+HOT_CAPACITY = 40 * 25  # OVERLAY36_LIST_LIMIT * 25 secondary records
 
 
 # ---- image construction (same layout as the A-36.1 constructor) -----------
@@ -353,12 +366,35 @@ class Rig:
                                              c.byref(hit), c.byref(row), c.byref(why))
         return status, hit.value, row.value, why.value
 
-    def hot(self, selector):
-        out, count = (HotRect * 16)(), c.c_size_t()
+    def hot(self, selector, capacity=16):
+        out, count = (HotRect * capacity)(), c.c_size_t()
         status = self.lib.overlay36_hot_rects(c.byref(self.manager), c.byref(self.rows), selector,
-                                              c.byref(self.host), out, 16, c.byref(count))
+                                              c.byref(self.host), out, capacity, c.byref(count))
         return status, [(r.row, r.record, r.left, r.top, r.right, r.bottom)
-                        for r in out[:count.value]]
+                        for r in out[:min(count.value, capacity)]]
+
+    def pointer_candidate(self, x, y, selector=None):
+        """The app's production overlay pointer path for logical point (x, y):
+        overlay36_hot_rects -> SessionInputHotspot priority rows (index = owning
+        row, active) exactly as session_a36_priority_rows converts them ->
+        session_input_scan_priority with no generic rows. Returns
+        (hot status, scan status, candidate)."""
+        selector = self.world.selector if selector is None else selector
+        status, rects = self.hot(selector, HOT_CAPACITY)
+        if status != OK:
+            return status, None, None
+        rows = (pointer_input.Hotspot * max(len(rects), 1))()
+        for i, (row, _record, left, top, right, bottom) in enumerate(rects):
+            rows[i] = pointer_input.Hotspot(row, pointer_input.Rect(left, top, right, bottom), 1)
+        state = pointer_input.State()
+        self.lib.session_input_init(c.byref(state))
+        # pointer = cursor - viewport + hot point: the hot point carries (x, y).
+        context = pointer_input.Context(
+            pointer_input.Rect(0, 0, 0, 0), pointer_input.Rect(0, 0, 0, 0),
+            x, y, 0, 0, 0, 0, 1, 1, -1, -1)
+        scan = self.lib.session_input_scan_priority(
+            c.byref(state), c.byref(context), rows, len(rects), None, 0)
+        return OK, scan, state.candidate
 
     def draw(self, slot):
         why = c.c_char_p()
@@ -773,6 +809,53 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(rig.hit(55, 65)[1:3], (0, -1))
         rig.phases[1] = 1
         self.assertEqual(rig.hit(55, 65)[1:3], (1, 1))
+
+    def test_production_pointer_path_is_the_hit_test_for_hot_one_and_phase_one_only(self):
+        # hot word: 1 hit-testable, 2 / 0 not. frame must equal the selector.
+        secs = [secondary(0, 0, 2, (0, 0, 9, 9), (10, 10, 19, 19)),   # hot == 2
+                secondary(0, 0, 0, (0, 0, 9, 9), (30, 10, 39, 19)),   # hot == 0
+                secondary(1, 0, 1, (0, 0, 9, 9), (50, 10, 59, 19)),   # frame != selector
+                secondary(0, 0, 1, (0, 0, 9, 9), (70, 10, 79, 19))]   # the only hot one
+        rig = Rig(self.lib, [simple_image(secondaries=secs)], selector=0)
+        rig.step(0, 0)
+        for x in (15, 35, 55, 75):
+            expect = (OK, 0, 0) if x == 75 else (OK, 0, -1)
+            self.assertEqual(rig.pointer_candidate(x, 15), expect, x)
+            self.assertEqual(rig.hit(x, 15)[1:3], (1, 0) if x == 75 else (0, -1), x)
+        rig.world.selector = 1
+        self.assertEqual(rig.pointer_candidate(55, 15), (OK, 0, 0))
+        self.assertEqual(rig.hit(55, 15)[1:3], (1, 0))
+        self.assertEqual(rig.pointer_candidate(75, 15), (OK, 0, -1))
+        # an overlay whose row is not at phase 1 is not hit-testable on either path
+        rig.world.selector = 0
+        for phase in (0, 2):
+            rig.phases[0] = phase
+            self.assertEqual(rig.pointer_candidate(75, 15), (OK, 0, -1), phase)
+            self.assertEqual(rig.hit(75, 15)[1:3], (0, -1), phase)
+
+    def test_production_pointer_path_matches_inclusive_edges_and_list_order(self):
+        a = simple_image(name=b'A', secondaries=[secondary(0, 0, 1, (0, 0, 9, 9), (10, 10, 40, 40))])
+        b = simple_image(name=b'B', secondaries=[secondary(0, 0, 1, (0, 0, 9, 9), (30, 30, 60, 60)),
+                                                 secondary(0, 0, 1, (0, 0, 9, 9), (0, 0, 100, 100))])
+        rig = Rig(self.lib, [a, b], selector=0)
+        rig.step(1, 0)      # list order: row 1 first, then row 0
+        rig.step(0, 0)
+        for x, y in ((10, 10), (40, 40), (41, 41), (9, 10), (10, 9), (30, 30), (60, 60), (61, 61),
+                     (100, 100), (101, 100), (0, 0), (-1, 0), (35, 35), (20, 20)):
+            hit = rig.hit(x, y)
+            self.assertEqual(rig.pointer_candidate(x, y), (OK, 0, hit[2] if hit[1] else -1), (x, y))
+        # the overlap (35, 35) belongs to row 1 (registered first), not row 0
+        self.assertEqual(rig.pointer_candidate(35, 35), (OK, 0, 1))
+        # B's second record covers (20, 20); A's first would too but B is first in list order
+        self.assertEqual(rig.pointer_candidate(20, 20), (OK, 0, 1))
+
+    def test_production_pointer_path_ignores_disabled_overlays(self):
+        rig = Rig(self.lib, [simple_image()], selector=0)
+        rig.step(0, 0)
+        self.assertEqual(rig.pointer_candidate(15, 25), (OK, 0, 0))
+        rig.buffers[0][0xab2:0xab6] = bytes(4)       # OV36_RT_ENABLED := 0
+        self.assertEqual(rig.pointer_candidate(15, 25), (OK, 0, -1))
+        self.assertEqual(rig.hit(15, 25)[1:3], (0, -1))
 
     # ---- drawing ----------------------------------------------------------
 
