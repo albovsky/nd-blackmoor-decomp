@@ -123,6 +123,7 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x4e: fixed_length = 31u; break; /* 0x44b102 copies 31 bytes (A-4E.1) */
     case 0x2e: fixed_length = 15u; break; /* 0x4cd645 copies 15 bytes (A-2E.1) */
     case 0x94: fixed_length = 50u; break; /* 0x40ea5e copies 50 bytes (A-94.1) */
     case 0xd1: fixed_length = 927u; break; /* 0x4b5c5c copies 927 bytes (A-D1.1) */
@@ -403,6 +404,43 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
+    case 0x0c: {
+        int16_t count_18;
+        size_t typed;
+
+        /* 0x40bafd: signed count at +8, size 10 + 18 * count narrowed to a
+         * signed WORD in the original; counts outside 0..1819 are native
+         * safety rejections (no size wrap). */
+        if (length < 10u) {
+            return -1;
+        }
+        count_18 = read_i16le(body + 8u);
+        if (count_18 < 0 || count_18 > 1819) {
+            return -1;
+        }
+        typed = 10u + (size_t)count_18 * 18u;
+        if (length < typed) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x17: {
+        int16_t count;
+        /* 0x40b998..0x40b9a9 narrows size to signed int16 before allocation.
+         * Reject negative counts and any size wrap; no string fields. */
+        if (length < 22u) {
+            return -1;
+        }
+        count = read_i16le(body + 20u);
+        if (count < 0 || count > 1819) {
+            return -1;
+        }
+        *body_length = 22u + 18u * (size_t)count;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
     case 0x3e: {
         int16_t primary_count;
         size_t secondary_count;
@@ -564,6 +602,46 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     return 1;
 }
 
+/* Dependency-tail content checks the original runs before building the tree
+ * (0x424cb0..0x424e98, A-TAIL.2): opcode 0x12 opens and 0x13 closes a group.
+ * The original logs a message and aborts the load for an open immediately
+ * followed by a close, for an open, one leaf and a close, for an adjacent
+ * 0x0b pair whose first record has a zero word at +6, and for unbalanced
+ * open/close counts. Opcodes are signed 16-bit words at the start of each
+ * 16-byte record; the first failure in scan order is final. Ordering of
+ * opens and closes is not checked at this stage. */
+static int dependency_prescan_ok(const uint8_t *records, size_t count)
+{
+    size_t row;
+    size_t opens = 0u;
+    size_t closes = 0u;
+
+    for (row = 0u; row < count; ++row) {
+        int16_t opcode = read_i16le(records + row * SCENE_RESOURCE_DEPENDENCY_BYTES);
+
+        if (opcode == 0x12) {
+            ++opens;
+            if (row + 1u < count &&
+                read_i16le(records + (row + 1u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x13) {
+                return 0;
+            }
+            if (row + 2u < count &&
+                read_i16le(records + (row + 2u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x13) {
+                return 0;
+            }
+        } else if (opcode == 0x13) {
+            ++closes;
+        } else if (opcode == 0x0b) {
+            if (row + 1u < count &&
+                read_i16le(records + (row + 1u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x0b &&
+                read_i16le(records + row * SCENE_RESOURCE_DEPENDENCY_BYTES + 6u) == 0) {
+                return 0;
+            }
+        }
+    }
+    return opens == closes;
+}
+
 static int parse_action(SceneAction *action, const uint8_t *payload, size_t length)
 {
     size_t typed_length;
@@ -600,7 +678,9 @@ static int parse_action(SceneAction *action, const uint8_t *payload, size_t leng
         return 0;
     }
     remaining = action->info.raw_body_length - typed_length;
-    if (remaining % SCENE_RESOURCE_DEPENDENCY_BYTES != 0u) {
+    if (remaining % SCENE_RESOURCE_DEPENDENCY_BYTES != 0u ||
+        !dependency_prescan_ok(action->info.raw_body + typed_length,
+                               remaining / SCENE_RESOURCE_DEPENDENCY_BYTES)) {
         return 0;
     }
     action->info.payload_kind = kind;
