@@ -13,6 +13,7 @@ import ctypes as c
 import os
 from pathlib import Path
 import subprocess
+import tempfile
 import unittest
 
 import session_binding_support as session
@@ -514,6 +515,48 @@ class BindingTests(unittest.TestCase):
         self.assertEqual((f.world.count.value, list(f.world.items[:2])), (1, [5, 5]))
         self.assertEqual(len(f.world.events), 2)
 
+    def test_adjacent_rows_with_different_words_each_use_their_own_word(self):
+        # A row must read its own word, not its neighbour's (a +1 row slip
+        # would leave the second item in the list).
+        for order in ((4, 8), (8, 4)):
+            with self.subTest(order=order):
+                f = Fixture(self, self.lib, [session.action(0x79, 1, word(w)) for w in order],
+                            world=World([4, 8]))
+                self.assertEqual([self.lib.session_a79_item_word(f.binding, i) for i in range(3)],
+                                 [order[0], order[1], -1])
+                self.assertEqual(f.tick()[0], session.SESSION_OK)
+                self.assertEqual([e[1] for e in f.world.events], list(order))
+                self.assertEqual(f.world.count.value, 0)
+                self.assertEqual([f.state(i)[0] for i in range(2)], [1, 1])
+
+    def test_three_consecutive_rows_and_a_row_before_a_foreign_row_keep_their_words(self):
+        rows = [session.action(0x79, 1, word(8)), session.action(0x79, 1, word(4)),
+                session.action(0x79, 1, word(6)),
+                session.action(0x61, 1, session.i16(5) + session.i16(1) + session.i16(-1) + session.i16(0)),
+                session.action(0x79, 3, word(9))]
+        f = Fixture(self, self.lib, rows, world=World([4, 6, 8, 9]), held=6)
+        self.assertEqual([self.lib.session_a79_item_word(f.binding, i) for i in range(5)],
+                         [8, 4, 6, -1, 9])
+        self.assertEqual(f.tick()[0], session.SESSION_OK)
+        self.assertEqual([e[1] for e in f.world.events], [8, 4, 6, 9])
+        self.assertEqual(f.world.count.value, 0)
+        self.assertEqual(f.world.held.value, -1)
+        # Each removal sees the earlier removals of the same pass.
+        self.assertEqual([e[2][1] for e in f.world.events], [3, 2, 1, 0])
+
+    def test_only_the_matching_row_of_two_adjacent_rows_runs_when_the_other_is_gated(self):
+        rows = [session.action(0x79, 1, word(4), (session.flag_gate(2),)),
+                session.action(0x79, 1, word(8))]
+        f = Fixture(self, self.lib, rows, world=World([4, 8]))
+        self.assertEqual(f.tick()[0], session.SESSION_OK)
+        self.assertEqual([e[1] for e in f.world.events], [8])
+        self.assertEqual((f.world.count.value, f.world.items[0]), (1, 4))
+        self.assertEqual([f.state(i)[0] for i in range(2)], [0, 1])
+        f.flags[2] = 1
+        self.assertEqual(f.tick()[0], session.SESSION_OK)
+        self.assertEqual([e[1] for e in f.world.events], [8, 4])
+        self.assertEqual(f.world.count.value, 0)
+
     def test_missing_rebuild_provider_blocks_only_when_the_item_is_found(self):
         f = Fixture(self, self.lib, [session.action(0x79, 1, word(6))], held=6, provider=False)
         before = f.world.snapshot()
@@ -591,6 +634,100 @@ class BindingTests(unittest.TestCase):
         self.lib.scene_resource_close(other)
         self.lib.scene_resource_close(empty)
         del owner, owner2
+
+
+STUB_SOURCES = ('tests/action_family_79_binding_stub_scene.c', 'src/session_bindings_a79.c',
+                'src/action_family_79.c', 'src/action_family_79_runtime.c')
+
+
+class StubSceneTests(unittest.TestCase):
+    """session_a79_begin_scene rejection of rows the scene parser would have
+    refused (defence in depth: scene_resource.c admits only a 2-byte word plus
+    whole 16-byte dependency records for raw 0x79). The binding is linked against
+    a scriptable scene double; A79_BINDING_SOURCE / A79_RUNTIME_SOURCE let the
+    mutation check substitute a mutant source."""
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.tmp.cleanup)
+        sources = [PROJECT / path for path in STUB_SOURCES]
+        sources[1] = Path(os.environ.get('A79_BINDING_SOURCE', sources[1]))
+        sources[3] = Path(os.environ.get('A79_RUNTIME_SOURCE', sources[3]))
+        library = Path(cls.tmp.name) / 'libstub79.dylib'
+        subprocess.run(['xcrun', '--sdk', 'macosx', 'clang', '-arch', 'arm64', '-std=c11',
+                        '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O1', '-fPIC', '-dynamiclib',
+                        '-I' + str(PROJECT / 'src'), *map(str, sources), '-o', str(library)],
+                       check=True, capture_output=True)
+        lib = c.CDLL(str(library))
+        lib.session_a79_create.argtypes = [c.POINTER(BindHost)]
+        lib.session_a79_create.restype = c.c_void_p
+        lib.session_a79_destroy.argtypes = [c.c_void_p]
+        lib.session_a79_begin_scene.argtypes = [c.c_void_p, c.c_void_p]
+        lib.session_a79_begin_scene.restype = c.c_int
+        lib.session_a79_failure.argtypes = [c.c_void_p]
+        lib.session_a79_failure.restype = c.c_char_p
+        lib.session_a79_item_word.argtypes = [c.c_void_p, c.c_size_t]
+        lib.session_a79_item_word.restype = c.c_int32
+        lib.stub_scene_add.argtypes = [c.c_uint8, c.c_char_p, c.c_size_t, c.c_int]
+        lib.stub_scene_add.restype = c.c_int
+        cls.lib = lib
+
+    def setUp(self):
+        self.lib.stub_scene_reset()
+        self.world = World([4, 6, 8])
+        self.host = BindHost(self.world.model, self.world.host)
+        self.binding = self.lib.session_a79_create(c.byref(self.host))
+        self.assertTrue(self.binding)
+        self.addCleanup(self.lib.session_a79_destroy, self.binding)
+
+    def scene(self, *rows):
+        self.lib.stub_scene_reset()
+        for kind, body, unreadable in rows:
+            self.assertGreaterEqual(self.lib.stub_scene_add(kind, body, len(body), unreadable), 0)
+        return self.lib.session_a79_begin_scene(self.binding, 1)  # the double ignores the handle
+
+    def words(self, count):
+        return [self.lib.session_a79_item_word(self.binding, i) for i in range(count)]
+
+    def test_wellformed_rows_load_including_whole_dependency_records(self):
+        status = self.scene((0x79, b'\x04\x00', 0), (0x61, b'\xff' * 8, 0),
+                            (0x79, b'\x08\x00' + bytes(16), 0), (0x79, b'\xfe\xff' + bytes(32), 0))
+        self.assertEqual((status, self.words(5)), (OK, [4, -1, 8, 0xfffe, -1]))
+        self.assertEqual(self.lib.session_a79_failure(self.binding), b'none')
+
+    def test_malformed_row_fails_the_scene_and_keeps_the_previous_rows(self):
+        self.assertEqual(self.scene((0x79, b'\x04\x00', 0), (0x79, b'\x09\x00', 0)), OK)
+        for label, bad in (('one byte', b'\x07'), ('empty', b''),
+                           ('partial dependency record', b'\x07\x00' + bytes(15)),
+                           ('record plus one byte', b'\x07\x00' + bytes(17))):
+            with self.subTest(label):
+                status = self.scene((0x79, b'\x08\x00', 0), (0x79, bad, 0), (0x79, b'\x06\x00', 0))
+                self.assertEqual(status, BOUNDS)
+                self.assertEqual(self.lib.session_a79_failure(self.binding), b'invalid raw-0x79 scene row')
+                # old-rows-kept: nothing of the rejected scene is visible
+                self.assertEqual(self.words(3), [4, 9, -1])
+
+    def test_unreadable_row_fails_the_scene_and_keeps_the_previous_rows(self):
+        self.assertEqual(self.scene((0x79, b'\x04\x00', 0)), OK)
+        status = self.scene((0x79, b'\x08\x00', 0), (0x79, b'\x09\x00', 1))
+        self.assertEqual(status, BOUNDS)
+        self.assertEqual(self.lib.session_a79_failure(self.binding), b'raw-0x79 scene row unreadable')
+        self.assertEqual(self.words(2), [4, -1])
+
+    def test_a_rejected_first_scene_leaves_the_binding_with_no_rows(self):
+        self.assertEqual(self.scene((0x79, b'\x01', 0)), BOUNDS)
+        self.assertEqual(self.words(2), [-1, -1])
+
+    def test_a_good_scene_after_a_rejection_replaces_the_old_rows_and_clears_the_failure(self):
+        self.assertEqual(self.scene((0x79, b'\x04\x00', 0)), OK)
+        self.assertEqual(self.scene((0x79, b'', 0)), BOUNDS)
+        self.assertEqual(self.scene((0x79, b'\x06\x00', 0), (0x79, b'\x0a\x00', 0)), OK)
+        self.assertEqual((self.words(3), self.lib.session_a79_failure(self.binding)), ([6, 10, -1], b'none'))
+
+    def test_foreign_rows_are_never_decoded(self):
+        # A malformed body of another type is the other families' business.
+        self.assertEqual(self.scene((0x61, b'\x01', 0), (0x79, b'\x05\x00', 0)), OK)
+        self.assertEqual(self.words(3), [-1, 5, -1])
 
 
 if __name__ == '__main__':
