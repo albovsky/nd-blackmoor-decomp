@@ -389,6 +389,8 @@ class Rig17:
         self.stores = []
         self.transitions = []
         self.effects = []
+        self.lib = None
+        self.session = None       # set by the fixture; the app's callback requests the transition
         rig = self
 
         @LoadFn
@@ -408,6 +410,8 @@ class Rig17:
         def transition_fn(_ctx, request):
             r = request.contents
             rig.transitions.append((r.target_scene, tuple(r.opaque_words), tuple(r.opaque_dwords)))
+            if transition_status == 0 and rig.session is not None:
+                return rig.lib.scene_session_request_transition(rig.session, request)
             return transition_status
 
         @ObserveFn
@@ -456,6 +460,9 @@ def configure(lib):
         getattr(lib, 'session_input_' + name).restype = c.c_int
     lib.scene_session_accept_action_candidate.argtypes = [c.c_void_p, c.c_size_t]
     lib.scene_session_accept_action_candidate.restype = c.c_int
+    lib.scene_session_request_transition.argtypes = [c.c_void_p,
+                                                     c.POINTER(session.SceneTransitionRequest)]
+    lib.scene_session_request_transition.restype = c.c_int
     lib.scene_session_get_pending_transition.argtypes = [
         c.c_void_p, c.POINTER(session.SceneTransitionRequest)]
     lib.scene_session_get_pending_transition.restype = c.c_int
@@ -508,6 +515,7 @@ class Fixture:
             self.rig17_pointer.host.external_row = external
             self.rig17_pointer.bind(self.session)
             self.rig17_pointer.ctx.cursor = pointer.Rect(300, 100, 300, 100)
+        self.rig.lib, self.rig.session = lib, self.session
         test.addCleanup(self.close)
 
     def close(self):
@@ -663,7 +671,7 @@ class BindingTests(unittest.TestCase):
         f.tick()
         self.lib.scene_session_accept_action_candidate(f.session, 0)
         status, result = f.tick()
-        self.assertEqual(status, session.SESSION_BLOCKED)
+        self.assertEqual((status, result.failure.detail_status), (5, 2))  # handler error
         self.assertEqual((f.state(), f.slot()[5]), ((0, 2), 0))
         self.assertIn(b'refused', self.lib.session_a17_failure(f.binding))
 
