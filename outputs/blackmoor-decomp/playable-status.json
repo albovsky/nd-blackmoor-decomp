@@ -37,8 +37,8 @@
   "ticks": 2187,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "9f82cf34a8d26ac7d0fc0957b28840ca75a981ef",
-    "native_sha256": "c93b29c641ab229d581bd8d73f5ab745fe23912cfe9abbc93fd78996feb9dbd2",
+    "source_ref": "bff5bfd0770b6489cd8cbbf46f59448483027b66",
+    "native_sha256": "56bd9f1c7dee5eec41fedfed520dc7ea272b6cb2afd55ebeab64013ab5ebab89",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -192,6 +192,10 @@
         "sha256": "ff7129049c9318fc23d9238a03a6155789b8d7b6226f9e21b4e68adeb503ac84"
       },
       {
+        "path": "src/action_family_6d.h",
+        "sha256": "68b81a09303e44f70af35efb1a8c12973f3c22a1ac1ced6f93f9f310cf0f5413"
+      },
+      {
         "path": "src/action_family_6e.h",
         "sha256": "856c40aa7bba2195288e5b50d4449cdd71258057ff0e994e6079f21a53e84cbe"
       },
@@ -202,6 +206,10 @@
       {
         "path": "src/action_family_70.h",
         "sha256": "642cb6a0cfdb946718678c2c92733d940308061664c00edfe6c861ee94d36a41"
+      },
+      {
+        "path": "src/action_family_76.h",
+        "sha256": "c81f31472e91c4080a21ab1097bb47961c853c6afae358f921e67c40c384b6e0"
       },
       {
         "path": "src/action_family_77.h",
@@ -242,6 +250,10 @@
       {
         "path": "src/action_family_97_runtime.h",
         "sha256": "81db03b788be37d44424b53c4504e382c9cdd5f8696ea6376bbe0a8d1d33f6f0"
+      },
+      {
+        "path": "src/action_family_9a.h",
+        "sha256": "3db30d05887d943bf8afc865b7b5207a9787394fc4344ac1743ec1c3c3834a41"
       },
       {
         "path": "src/action_family_a1.h",
@@ -425,7 +437,7 @@
       },
       {
         "path": "src/scene_resource.c",
-        "sha256": "d0a5e1a59f5477fd4072e4fb10cb6ffb87343c42718f5951b6e5c8a355346f4c"
+        "sha256": "50f5138a1fc6e7e240be20f467aa71bb262e2b5a3d1459e3277dd63880b15055"
       },
       {
         "path": "src/scene_resource.h",
