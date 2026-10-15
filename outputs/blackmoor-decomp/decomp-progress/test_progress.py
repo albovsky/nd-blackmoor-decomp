@@ -839,7 +839,7 @@ class RegistrationDriftTests(unittest.TestCase):
             ("src/blackmoor_app.mm", "bindings[2].callback = session_a51_handler;"),
             ("src/blackmoor_app.mm", "bindings[0] = action_sound_binding;"),
             ("src/blackmoor_app.mm", "config.action_bindings = bindings;"),
-            ("src/blackmoor_app.mm", "config.action_binding_count = 5u;"),
+            ("src/blackmoor_app.mm", "config.action_binding_count = 6u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].present = 1u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].callback = ui_action_handler;"),
         ]
