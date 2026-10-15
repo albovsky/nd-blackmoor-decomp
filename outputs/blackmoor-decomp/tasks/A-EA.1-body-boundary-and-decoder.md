@@ -1,0 +1,47 @@
+# A-EA.1: raw action 0xea body boundary and isolated decoder
+
+Root (Claude Code) assigns this packet to a Claude Sonnet (high) `slice-implementer` (Codex is at its usage limit). It follows the proven A-37.1/A-37.2 pattern (`tasks/A-37.2-static-overlay-loader.md`, private `work/analysis/slices/A-37.1-discovery.md`, `A-37.2-handoff.json`, `A-37.2-parser-registration.md`, `src/action_family_37.[ch]`) and replaces the parent packet `tasks/A-EA-action-ea.md` for this first child. Parent A-EA stays open.
+
+## Goal
+
+Priority: 0xea (6 records in 3 scenes) is among the largest remaining opaque families. Nothing is known about the layout yet: do not assume it resembles 0x37/0x38; recover it from the loader (`0x40b34a`, raw-type arms), and report whether the loader builds a runtime object.
+
+Raw action type 0xea has 6 records in the 2,078-scene corpus and the native scene parser (`src/scene_resource.c`, `known_body_length`) still leaves them wholly opaque, so the native game cannot interpret them. Recover from the original executable (a) the exact typed body size rule and dependency-tail split, and (b) an isolated, bounded, original-verified decoder (plus constructor/state model if the original loader builds a runtime object, as 0x37 does). Do not implement lifecycle, rendering or dispatcher behaviour in this child; list those as follow-up children with the function addresses you found.
+
+## Pinned inputs
+
+- `work/original/GAME.EXE`, SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`. Read-only; never modify or write into `work/original/` or the GOG install.
+- Resource manifest `work/analysis/hiff-resources.json` (SHA-256 `440495d49bd047bff32822234dd874b0344610641e0daf053ebfb3ace97c212c`), archive SHA-256 `1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161`. Check every resource file against its manifest size/SHA-256 before scanning.
+- Corpus: 2,267 resources, 2,078 scenes, 19,612 actions. `outputs/blackmoor-decomp/action-census-current.json` is stale (typed counts predate 0x28/0x51/0x62/0x64/0x6a/0x9f registrations); build your own census with `src/scene_resource.[ch]` and verify the 6 count for raw 0xea.
+- Loader: raw-type loader `0x40b34a` (raw types are normalised to runtime types there; the generic dependency tail parser is `FUN_00424aa8`, normalised dispatch is `0x427a50`; see `function-index.json`, `action-body-recovery.md`). The ACT payload has a 50-byte header (48-byte description, raw type at +0x30, subtype at +0x31); the raw body starts at +0x32. Confirm all of this for 0xea yourself.
+- REA skill: `work/tools/rea/node_modules/rea-agents/skills/reverse-engineer-anything/SKILL.md`. Original-x86 oracle: Unicorn via `work/tools/oracle-python/bin/python` (see `outputs/blackmoor-decomp/tests/action_family_37_original_oracle.py` for the structure, hook discipline and hashing). Ghidra pseudocode is navigation only; confirm widths, signedness, comparison order and effect order in the disassembly and with the oracle.
+
+
+Oracle coverage requirement (found by review in every earlier sibling packet): the shipped original oracle must itself execute the original dependency loader 0x424aa8 (stop points at its accept, reject and empty-tail exits; read the stored count from the slot) for the corpus tails plus synthetic tails of 0..40 bytes, assert native accept/reject against what the original does, compare `body_length` success values with the original cursor advance, and include mutants for the tail modulus, the tail count and short bodies. Register inline in `scene_resource.c` terms (no link dependency): your registration proposal must be plain arithmetic plus `memchr` for name/key NUL checks, never a call into your module.
+
+## Ownership
+
+Work in your own git worktree (already created for you on branch `codex/A-EA.1` from the current `main`; `work` is a symlink to the canonical private `work/`). Claim first: write `work/analysis/slices/A-EA.1-claim-codex-gpt61sol-20261014.json` with `slice`, `owner`, `status`, `branch`, `baseline`, `worktree`, `created_utc_date`.
+
+You own only: `outputs/blackmoor-decomp/src/action_family_ea.[ch]`, `scripts/build_action_family_ea.sh`, `tests/test_action_family_ea.py`, `tests/action_family_ea_original_oracle.py` (plus mutation/sanitizer helpers named the same way, as A-37.2 did) and unique private `work/analysis/slices/A-EA.1.*` evidence. Everything else is read-only, including `scene_resource.c`, `scene_executor.c`, `scene_conditions.c`, `action_sound.c`, app/platform files, central build scripts, status/coordination docs and other families. Deliver a registration proposal as `work/analysis/slices/A-EA.1-parser-registration.md` (exact `known_body_length` case, payload kind, typed length rule and normalisation note), not as an edit.
+
+## Required work
+
+1. Discovery (read-only): locate the loader branch for raw 0xea, the body bytes it consumes (fixed or count-driven; if count-driven, the signedness/narrowing of the count and its bound), the runtime type it normalises to, and where the dependency tail begins. Hash the original code ranges you rely on. Check *every* corpus record (all 6), not just 16-byte tail alignment: report the length distribution, subtype distribution, and any record whose body cannot be explained by the rule. Write `work/analysis/slices/A-EA.1-discovery.md` plus a row-level corpus JSON without resource bytes or decoded strings.
+2. Fixtures first: write failing tests/fixtures (valid, minimum/maximum counts, short bodies, tail not a multiple of 16, count overflow/negative, null/overlap) before the decoder. Record the failing baseline.
+3. Implementation: C11, ARM64 macOS, warnings-as-errors like the other `build_action_family_*.sh` scripts. Bounded, explicit little-endian decode, borrowed dependency view, status return that is a native safety result (not an inferred original return value). Reject malformed input before any output mutation. Keep unproven fields neutral (`option_NN`, `word_N`), never invent names or semantics. Only add the constructor/object model if the original loader actually builds a runtime object for this type; compare the whole object against the original constructor via the oracle for all 6 corpus records, as A-37.2 did.
+4. Verification: run the owned build; `python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p 'test_action_family_ea.py'`; the isolated original oracle (hooks only for OS/allocation boundaries; enumerate every hook; never replace an original decision); an ASan/UBSan run on bounded malformed inputs; and mutation checks proving the oracle detects deliberately wrong offsets/rules. Report counts, hashes and commands. Use `sandbox` settings that allow Unicorn JIT; no GUI, no computer-use, no hardware audio.
+5. Handoff: commit only owned files to `codex/A-EA.1` (no push). Commit message ends with `Co-Authored-By: Codex <noreply@openai.com>` and contains no model identifiers otherwise. Write `work/analysis/slices/A-EA.1.handoff.json` and `A-EA.1.validation.json` with: commit, baseline, files, original/corpus/oracle/native hashes, commands and counts, hook inventory, deliberate safety rejections (separate from valid-original parity), unverified branches, and the follow-up child list (lifecycle/runtime, dependencies, rendering/host effects, subtype behaviour) with original function addresses.
+
+## Review focus (an independent reviewer will check these against the original bytes)
+
+- Truncated/count-overflow inputs fail before out-of-bounds reads or mutations.
+- Typed body versus dependency tail split matches the loader for every corpus record, including signed 16-bit count narrowing if present.
+- Raw type is preserved; runtime-type aliasing is stated only if proven from the loader.
+- Host/OS hooks are enumerated; passing fixtures never imply full-game equivalence.
+- Nothing claims original C++ provenance, and the packet does not mark A-EA or the game complete.
+
+**Acceptance:** every observed 0xea record has a proven body boundary and dependency split that reconciles to the full corpus count; native decoder (and constructor model if applicable) matches the original on all records; invalid input fails safely before mutation; unresolved paths are listed; owned tests, oracle, sanitizer and mutation checks pass; clean frozen commit with handoff/validation receipts.
+
+
+Shared tail oracle (merged A-TAIL.1): your own oracle must still run the original `0x424aa8` as above, but read `tests/tail_oracle_common.py` first and reuse its stop points, hook discipline and fatal-exit handling instead of re-deriving them; you may import it (it is read-only).

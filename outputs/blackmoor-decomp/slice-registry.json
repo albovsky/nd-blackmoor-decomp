@@ -1224,6 +1224,36 @@
       ],
       "parent": "FL-0",
       "owns": "decomp-progress generate.py, template.html, test_progress.py, README.md"
+    },
+    {
+      "id": "A-F6.1",
+      "title": "Action 0xf6: body boundary and isolated decoder",
+      "packet": "tasks/A-F6.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-F6",
+      "raw_type": "0xf6",
+      "records": 6
+    },
+    {
+      "id": "A-EA.1",
+      "title": "Action 0xea: body boundary and isolated decoder",
+      "packet": "tasks/A-EA.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-EA",
+      "raw_type": "0xea",
+      "records": 6
+    },
+    {
+      "id": "A-F5.1",
+      "title": "Action 0xf5: body boundary and isolated decoder",
+      "packet": "tasks/A-F5.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-F5",
+      "raw_type": "0xf5",
+      "records": 4
     }
   ]
 }

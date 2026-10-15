@@ -123,6 +123,9 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0xf6: fixed_length = 4934u; break; /* 0x45ddd0 copies 4,934 bytes (A-F6.1) */
+    case 0xea: fixed_length = 3847u; break; /* 0x484110 copies 3,847 bytes (A-EA.1) */
+    case 0xf5: fixed_length = 1390u; break; /* 0x4b80d9 copies 1,390 bytes (A-F5.1) */
     case 0x7d: fixed_length = 1u;  break; /* 0x40e61e copies one byte (A-7D.1) */
     case 0x69: fixed_length = 1u;  break; /* 0x40d428 copies one byte (A-69.1) */
     case 0x65: fixed_length = 1u;  break; /* 0x40d116 copies one byte (A-65.1) */
