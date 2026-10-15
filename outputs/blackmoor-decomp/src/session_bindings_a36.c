@@ -4,11 +4,13 @@
 #include <string.h>
 
 #include "action_family_36.h"
+#include "action_family_37.h"
 
 struct SessionA36Binding {
     SessionA36Host host;
     Overlay36Manager manager;
-    uint8_t **images; /* per action row; NULL for rows that are not raw 0x36 */
+    uint8_t **images; /* per action row; NULL for rows that are not raw 0x36 / 0x37 */
+    uint8_t *raw_types; /* per action row: 0x36 or 0x37, 0 for none */
     size_t count;
     Overlay36World world;
     const char *failure;
@@ -36,8 +38,42 @@ static void clear_rows(SessionA36Binding *b)
         free(b->images[i]);
     }
     free(b->images);
+    free(b->raw_types);
     b->images = NULL;
+    b->raw_types = NULL;
     b->count = 0u;
+}
+
+int session_a36_build_image(uint8_t raw_type, const uint8_t *raw_body, size_t raw_body_length,
+                            uint8_t image[OVERLAY36_IMAGE_BYTES])
+{
+    if (raw_body == NULL || image == NULL) {
+        return OVERLAY36_ERR_ARGUMENT;
+    }
+    if (raw_type == SESSION_A36_TYPE) {
+        /* The A-36.1 constructor (0x488e9c) leaves the bytes it does not write alone. */
+        uint8_t zeros[ACTION_FAMILY_36_OBJECT_BYTES];
+        ActionFamily36Constructed constructed;
+        memset(zeros, 0, sizeof(zeros));
+        if (action_family_36_construct(raw_body, raw_body_length, zeros, sizeof(zeros), 0u, 1u,
+                                       &constructed) != ACTION_FAMILY_36_OK) {
+            return OVERLAY36_ERR_BOUNDS;
+        }
+        memcpy(image, constructed.object_bytes, OVERLAY36_IMAGE_BYTES);
+        return OVERLAY36_OK;
+    }
+    if (raw_type == SESSION_A37_TYPE) {
+        /* 0x4895cc zeroes the 0xABA allocation, writes the 0x48945b defaults, then the
+         * name, the two option words and the primary record from the 69-byte body. */
+        ActionFamily37Constructed constructed;
+        if (action_family_37_construct(raw_body, raw_body_length, 0u, 1u, &constructed) !=
+            ACTION_FAMILY_37_OK) {
+            return OVERLAY36_ERR_BOUNDS;
+        }
+        memcpy(image, constructed.object_bytes, OVERLAY36_IMAGE_BYTES);
+        return OVERLAY36_OK;
+    }
+    return OVERLAY36_ERR_ARGUMENT;
 }
 
 void session_a36_destroy(SessionA36Binding *b)
@@ -52,42 +88,45 @@ int session_a36_begin_scene(SessionA36Binding *b, const SceneResource *scene)
 {
     size_t i, count;
     uint8_t **images;
-    uint8_t zeros[ACTION_FAMILY_36_OBJECT_BYTES];
+    uint8_t *raw_types;
     if (b == NULL || scene == NULL) {
         return OVERLAY36_ERR_ARGUMENT;
     }
-    memset(zeros, 0, sizeof(zeros));
     count = scene_resource_action_count(scene);
     images = (uint8_t **)calloc(count != 0u ? count : 1u, sizeof(*images));
-    if (images == NULL) {
+    raw_types = (uint8_t *)calloc(count != 0u ? count : 1u, sizeof(*raw_types));
+    if (images == NULL || raw_types == NULL) {
+        free(images);
+        free(raw_types);
         b->failure = "row allocation failed";
         return OVERLAY36_ERR_ARGUMENT;
     }
     for (i = 0; i < count; ++i) {
         SceneActionInfo info;
-        ActionFamily36Constructed constructed;
         if (scene_resource_action_at(scene, i, &info) != SCENE_RESOURCE_OK) {
-            b->failure = "raw-0x36 scene row unreadable";
+            b->failure = "overlay scene row unreadable";
             goto fail;
         }
-        if (info.type != SESSION_A36_TYPE) {
-            continue;
-        }
-        /* The A-36.1 constructor (0x488e9c) builds the image at scene load. */
-        if (action_family_36_construct(info.raw_body, info.raw_body_length, zeros, sizeof(zeros),
-                                       0u, 1u, &constructed) != ACTION_FAMILY_36_OK) {
-            b->failure = "invalid raw-0x36 scene row";
-            goto fail;
+        if (info.type != SESSION_A36_TYPE && info.type != SESSION_A37_TYPE) {
+            continue; /* includes raw 0x38 (runtime type 0x36 too, out of scope) */
         }
         images[i] = (uint8_t *)malloc(OVERLAY36_IMAGE_BYTES);
         if (images[i] == NULL) {
             b->failure = "image allocation failed";
             goto fail;
         }
-        memcpy(images[i], constructed.object_bytes, OVERLAY36_IMAGE_BYTES);
+        /* The loader-time constructor of the row's raw type builds the image. */
+        if (session_a36_build_image(info.type, info.raw_body, info.raw_body_length, images[i]) !=
+            OVERLAY36_OK) {
+            b->failure = info.type == SESSION_A37_TYPE ? "invalid raw-0x37 scene row"
+                                                        : "invalid raw-0x36 scene row";
+            goto fail;
+        }
+        raw_types[i] = info.type;
     }
     clear_rows(b);
     b->images = images;
+    b->raw_types = raw_types;
     b->count = count;
     overlay36_manager_reset(&b->manager);
     b->failure = "none";
@@ -97,6 +136,7 @@ fail:
         free(images[i]);
     }
     free(images);
+    free(raw_types);
     return OVERLAY36_ERR_BOUNDS;
 }
 
@@ -142,7 +182,8 @@ int session_a36_handler(void *context, size_t index, const SceneActionInfo *acti
     const uint8_t *image;
     int status;
     if (b == NULL || action == NULL || before == NULL || out == NULL ||
-        action->type != SESSION_A36_TYPE || index >= b->count || b->images[index] == NULL) {
+        (action->type != SESSION_A36_TYPE && action->type != SESSION_A37_TYPE) ||
+        index >= b->count || b->images[index] == NULL || b->raw_types[index] != action->type) {
         return SCENE_ACTION_HANDLER_ERROR;
     }
     image = b->images[index];
@@ -293,6 +334,14 @@ const uint8_t *session_a36_image(const SessionA36Binding *b, size_t row)
         return NULL;
     }
     return b->images[row];
+}
+
+uint8_t session_a36_row_raw_type(const SessionA36Binding *b, size_t row)
+{
+    if (b == NULL || row >= b->count || b->images[row] == NULL) {
+        return 0u;
+    }
+    return b->raw_types[row];
 }
 
 const Overlay36Manager *session_a36_manager(const SessionA36Binding *b)
