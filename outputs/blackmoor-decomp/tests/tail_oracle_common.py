@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Original-backed generic dependency-tail stage for nine native decoders.
+"""Original-backed generic dependency-tail stage for fifteen native decoders.
 
 Run with work/tools/oracle-python/bin/python and Unicorn JIT permitted:
     .../python outputs/blackmoor-decomp/tests/tail_oracle_common.py
@@ -51,9 +51,15 @@ FAMILIES = {
     '67': (27, 'f26ae1990be86ec635f8e2ce046593050ee52d556cbc04e97f1c8f2ff56e0829'),
     '6f': (25, '845573a98968ff9138a090544844deb05e94b13c1b500a812d5ad511640e5a3c'),
     '43': (13, '2d95f4bc387a6ada1261dc94bd3ea8c60fac55a27bd69edc3de9d8d4f0c0b284'),
+    '45': (32, '2f6c74bdba3cc31cb83c97786cdc71b4d37fb4422e257089f9fa4f6a6e20e7bd'),
+    '44': (27, 'cb5d0cdc472211747289c03b6ea99f91386518c055aa5f182f1b8eef37f4b792'),
+    '36': (20, '1177233aad4c5e32a318a1c9d2377c2bad948f016963dca89a73926a24ca4164'),
+    '94': (12, '5d16292229dcb86d91b896f4b6138361512b2d709a943754c31c1acf99a314d3'),
+    'd1': (11, '3c2707bcd27bf0fb7349e17ca9ed963122659e39d5b9b21da2c25edf5567b767'),
+    '2e': (10, '7dd8fec67f090f7256d1939c73aae3a0aecb613959b8d3d0867e0d0737f3dedf'),
 }
-TAIL_LENGTHS = tuple(range(49)) + (63, 64, 65, 255, 256, 257, 1023, 1024)
-WIDTH_TAILS = (256 * 16, 65536 * 16)
+TAIL_LENGTHS = tuple(range(301)) + tuple(range(1023, 1026)) + tuple(range(4079, 4098))
+WIDTH_TAILS = (256 * 16, 65536 * 16, 65537 * 16)
 ACTION, OWNER = 0x5bb5b3, 0x63786d
 INPUT, INPUT_CAPACITY = 0x20000000, 0x200000
 STACK, RETURN = 0x9000, 0x51000000
@@ -94,7 +100,10 @@ def write_json(path, value):
 
 
 def new_run(label):
-    return Path(tempfile.mkdtemp(prefix=f'A-TAIL.1.{label}-', dir=PRIVATE))
+    # Mutation libraries and unchanged per-family oracle reports stay outside
+    # the shared canonical evidence tree. Every run gets an exclusive directory.
+    parent = Path('/private/tmp') if label == 'mutations' else PRIVATE
+    return Path(tempfile.mkdtemp(prefix=f'A-TAIL.2.{label}-', dir=parent))
 
 
 class TailMismatch(AssertionError):
@@ -110,6 +119,8 @@ class TailResult:
 
 
 class OriginalTail:
+    exits = (EMPTY_EXIT, ACCEPT_EXIT, FATAL_EXIT)
+
     def __init__(self):
         from unicorn import Uc, UC_ARCH_X86, UC_MODE_32, UC_HOOK_CODE, UC_PROT_READ
         from unicorn import x86_const as x
@@ -129,7 +140,7 @@ class OriginalTail:
         # Exit points stop before the instruction at that address. They do not
         # rewrite the image or choose a branch, and need no internal code hooks.
         uc.ctl_exits_enabled(True)
-        uc.ctl_set_exits([EMPTY_EXIT, ACCEPT_EXIT, FATAL_EXIT])
+        uc.ctl_set_exits(list(self.exits))
         uc.hook_add(UC_HOOK_CODE, self.log, begin=LOG_BOUNDARY, end=LOG_BOUNDARY)
         self.calls = 0
 
@@ -137,25 +148,27 @@ class OriginalTail:
         r = self.r
         esp = uc.reg_read(r['ESP'])
         args = struct.unpack('<8I', uc.mem_read(esp, 32))
-        ret, destination, fmt, _scene, family, count, length, consumed = args
+        ret, destination, fmt, scene, family, count, length, consumed = args
         require(address == LOG_BOUNDARY and (ret, destination, fmt) ==
                 (0x424c8c, 0x63888b, 0x544b30), 'unexpected logging boundary/caller')
-        require((family, count, length, consumed) ==
-                (self.family, self.expected_count, self.length, self.consumed),
+        require((scene, family, count, length, consumed) ==
+                (self.scene, self.family, self.expected_count, self.length, self.consumed),
                 'original ragged diagnostic arguments mismatch')
         self.logs.append(args)
         uc.reg_write(r['EAX'], 0)  # no later original decision uses this return
         uc.reg_write(r['ESP'], esp + 4)
         uc.reg_write(r['EIP'], ret)
 
-    def invoke(self, payload, typed_length):
+    def invoke(self, payload, typed_length, *, slot_reuse=0):
         require(50 <= len(payload) <= INPUT_CAPACITY, 'ACT outside oracle input budget')
         require(0 < typed_length <= INPUT_CAPACITY and 50 + typed_length <= 0xffffffff,
                 'invalid previously validated typed extent')
+        require(0 <= slot_reuse <= 0xffffffff, 'slot reuse must be a DWORD')
         uc, r = self.uc, self.r
         require(bytes(uc.mem_read(0x63a4cd, 2)) == bytes(2), 'nonzero diagnostic flag')
         self.logs = []
         self.family, self.length, self.consumed = payload[48], len(payload), 50 + typed_length
+        self.scene = struct.unpack('<I', uc.mem_read(0x5bb57b, 4))[0]
         self.expected_count = ((self.length - self.consumed) & 0xffffffff) >> 4
         image = b'\xa6' * 16 + payload + b'\xd6' * 16
         # Host writes initialize read-only emulated source memory; emulated
@@ -163,6 +176,7 @@ class OriginalTail:
         uc.mem_write(INPUT, image)
         row = bytearray(0x8d)
         row[:50] = payload[:50]
+        struct.pack_into('<I', row, 0x3a, slot_reuse)
         uc.mem_write(ACTION - 16, b'\x91' * 16 + row + b'\x92' * 16)
         uc.mem_write(OWNER + 0x60c, struct.pack('<I', 7))
         args = struct.pack('<5I', RETURN, ACTION, self.consumed, self.length,
@@ -174,7 +188,7 @@ class OriginalTail:
             uc.reg_write(r[name], value)
         uc.emu_start(CODE_START, RETURN, count=10000)
         exit_address = uc.reg_read(r['EIP'])
-        require(exit_address in (EMPTY_EXIT, ACCEPT_EXIT, FATAL_EXIT),
+        require(exit_address in self.exits,
                 f'original did not reach a tail exit: {exit_address:#x}')
         count = struct.unpack('<I', uc.mem_read(ACTION + 0x6a, 4))[0]
         require(bytes(uc.mem_read(INPUT, len(image))) == image, 'original changed ACT input')
@@ -183,11 +197,17 @@ class OriginalTail:
                 'original action guard overwritten')
         require(bytes(uc.mem_read(ACTION, 0x36)) == bytes(row[:0x36]),
                 'original changed action header/data pointer')
+        require(bytes(uc.mem_read(ACTION + 0x3a, 4)) == bytes(row[0x3a:0x3e]),
+                'original changed slot-reuse field')
         require(bytes(uc.mem_read(STACK, 20)) == args, 'original changed caller arguments')
         require(struct.unpack('<I', uc.mem_read(OWNER + 0x60c, 4))[0] == 8,
                 'original owner initialization did not execute')
         require(len(self.logs) == int(exit_address == FATAL_EXIT),
-                'ragged path did not execute exactly one original log call')
+                'fatal path did not execute exactly one original log call')
+        if exit_address == FATAL_EXIT:
+            fatal_args = struct.unpack('<4I', uc.mem_read(uc.reg_read(r['ESP']), 16))
+            require(fatal_args == (0x425b4e, 0x63888b, 0, 0),
+                    'unexpected original fatal funnel/caller')
         self.calls += 1
         return TailResult(exit_address, exit_address != FATAL_EXIT, count, tuple(self.logs))
 
@@ -365,11 +385,12 @@ def main():
         results.append(result)
         print(json.dumps({key: result[key] for key in
                           ('family', 'corpus_records', 'parity_comparisons', 'mismatches')}), flush=True)
-    report = dict(slice='A-TAIL.1', status='pass', families=results,
+    report = dict(slice='A-TAIL.2', status='pass', families=results,
                   corpus_records=sum(row['corpus_records'] for row in results),
                   parity_comparisons=sum(row['parity_comparisons'] for row in results),
                   native_short_body_checks=sum(row['native_short_body_checks'] for row in results),
                   original_calls=machine.calls, mismatches=0,
+                  width_tail_lengths=list(WIDTH_TAILS),
                   inputs=dict(exe_sha256=EXE_HASH, code_start=hex(CODE_START), code_end=hex(CODE_END),
                               code_sha256=CODE_HASH, manifest_sha256=MANIFEST_HASH,
                               archive_sha256=ARCHIVE_HASH, corpus_pins=FAMILIES,
