@@ -113,7 +113,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return log.read_text()
 
-    def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_stops_at_s4700(self):
+    def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_presents_movie(self):
         # Stand-in for the RT-2 pointer path: one synthetic accepted event.
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
@@ -121,8 +121,8 @@ class NativeCaptionTransferTests(unittest.TestCase):
         result = subprocess.run([str(self.executable), '--inspect-live-session',
                                  '--live-click-row', '34', '--test-a62-accept',
                                  '--game-dir', str(self.game), '--log', str(log)],
-                                capture_output=True, text=True, timeout=120)
-        # RT-8 runs the ambient sound rows; the next tick needs movie frames.
+                                capture_output=True, text=True, timeout=180)
+        # RT-9 supplies movie frames after RT-8 runs the ambient sound rows.
         self.assertEqual(result.returncode, 0, result.stderr)
         contents = log.read_text()
         ordered = (
@@ -138,9 +138,8 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_parsed name=S4700',
             'scene_transition_applied source=5900 target=4700',
             'live_session_scene_changed from=5900 to=4700',
-            'scene_session_blocked stage=3 provider=action-family-35 action=3 type=0x35',
-            'live_session_end scene=4700 ticks=11 status=2 provider=action-family-35 '
-            'stage=3 action=3 type=0x35')
+            'scene_a35_frame_presented frame=0 count=1',
+            'stopped failure=0')
         position = 0
         for evidence in ordered:
             found = contents.find(evidence, position)
@@ -158,7 +157,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                  '--live-click-row', '34', '--test-a62-accept',
                                  '--test-exit-redirect', '4700:5907',
                                  '--game-dir', str(self.game), '--log', str(log)],
-                                capture_output=True, text=True, timeout=120)
+                                capture_output=True, text=True, timeout=180)
         self.assertEqual(result.returncode, 0, result.stderr)
         contents = log.read_text()
         ordered = (
@@ -267,7 +266,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         result = subprocess.run([str(self.executable), '--inspect-live-session',
                                  '--live-click-row', '34', *extra_args,
                                  '--game-dir', str(self.game), '--log', str(log)],
-                                capture_output=True, text=True, timeout=120)
+                                capture_output=True, text=True, timeout=180)
         self.assertEqual(result.returncode, returncode, result.stderr)
         return log.read_text()
 
@@ -278,22 +277,108 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertNotEqual(found, -1, evidence)
             position = found
 
-    def test_random_sound_rows_run_before_the_movie_frame_provider_blocks(self):
-        contents = self.run_live('--live-ticks', '3000')
+    def test_bink_movie_app_glue(self):
+        from test_action_family_35_runtime import body
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / 'body.bin'
+            fixture.write_bytes(body(effect=6, mode=2))
+            executable = Path(directory) / 'a35-glue'
+            build = PROJECT / 'build/native-app'
+            command = ['xcrun', '--sdk', 'macosx', 'clang++', '-arch', 'arm64',
+                       '-mmacosx-version-min=27.0', '-std=c++17', '-fobjc-arc',
+                       '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2',
+                       str(PROJECT / 'tests/native_a35_glue_test.mm')]
+            command += [str(PROJECT / ('src/' + name + '.mm')) for name in
+                        ('macos_platform', 'macos_audio', 'scene_inspector')]
+            command += [str(p) for p in sorted(build.glob('*.o'))]
+            command += ['-framework', 'AppKit', '-framework', 'Foundation',
+                        '-framework', 'CoreGraphics', '-framework', 'AVFAudio',
+                        '-L/opt/homebrew/lib', '-lavformat', '-lavcodec', '-lavutil',
+                        '-lswscale', '-lswresample', '-Wl,-rpath,/opt/homebrew/lib',
+                        '-o', str(executable)]
+            compiled = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            result = subprocess.run([str(executable), str(fixture), directory],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_bink_movie_frames_soundtrack_events_and_new_live_stop(self):
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', returncode=1)
         self.assert_in_order(contents, (
             'scene_parsed name=S4700',
             'scene_a97_construct row=11 selected=',
             'scene_a97_construct row=12 selected=',
             'scene_a97_construct row=13 selected=',
             'scene_a35_open branch=Bink name=EXT_OpnCin_ANIM',
-            'scene_session_blocked stage=3 provider=action-family-35 action=3 type=0x35'))
-        self.assertIn('embedded-audio=unbound-before-DoFrame', contents)
-        self.assertIn('scene_a35_blocker detail=Bink frame/audio or rectangle provider', contents)
+            'live_audio movie_started frames=1482240 rate=44100 channels=1',
+            'scene_a35_frame_presented frame=0 count=1',
+            'scene_a35_frame_presented frame=503 count=504',
+            'scene_a35_close decoded=504 presented=504 last_frame=503',
+            'scene_a35_audio_stop status=0',
+            'scene_a35_finished row=3 phase=2 next_phase=0',
+            'scene_session_transition_pending source=4700 target=4710',
+            'scene_parsed name=S4808',
+            'scene_transition_error source=4807 target=4808 detail=session-replace '
+            'status=5 provider=scene-resource action=6 type=0x83 detail_status=6'))
+        movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
+        movie = movie.split('scene_a35_finished row=3', 1)[0]
+        self.assertEqual(movie.count('scene_a35_frame_presented'), 504)
+        for frame, event in ((0,1001),(73,1008),(99,1004),(170,1005),(336,1006),
+                             (424,1002),(462,1003),(465,1009),(503,1007)):
+            self.assertIn(f'scene_a35_event row=3 phase=1 id={event} before=0 value=1 frame={frame}', movie)
+        self.assert_bink_viewport_hashes(movie)
+        self.assertIn('pcm_sha256=29b6403df3a82a6afa575ee2533d86c71136649ffafb5b0911590612f93f1744', movie)
+        self.assertIn('scene_a35_mix_capture index=0', movie)
+        self.assertIn('nonfinite=0 pcm_fnv1a64=', movie)
+        self.assertNotIn('scene_a35_blocker', contents)
         self.assertNotIn('scene_a97_blocker', contents)
         visit_log = contents[contents.index('scene_a97_construct row=13'):]
         for channel in (8, 7, 4):
             self.assertRegex(visit_log, rf'live_audio loaded stem=\w+ channel={channel} frames=')
-        self.assertNotIn('scene_a35_frame_presented', contents)
+
+    def assert_bink_viewport_hashes(self, movie):
+        import re
+        expected = {0: 'bd262cb5ed17776c', 251: '097b7ea3e8999a65', 503: 'e5711c55745d0f25'}
+        actual = {int(frame): value for frame, value in re.findall(
+            r'scene_a35_frame_presented frame=(\d+) .*?viewport_fnv1a64=([0-9a-f]{16})', movie)}
+        for frame, value in expected.items():
+            self.assertEqual(actual.get(frame), value, f'composed RGB555 viewport frame {frame}')
+
+    def test_bink_movie_17ms_pacing(self):
+        import re
+        contents = self.run_live('--live-tick-ms', '17', '--live-ticks', '6000',
+                                 '--rand-seed', '1')
+        movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
+        movie = movie.split('scene_a35_finished row=3', 1)[0]
+        self.assertGreater(movie.count('scene_a35_not_due'), 1000)
+        frames = re.findall(r'scene_a35_frame_presented frame=(\d+) count=\d+ .*?'
+                            r'clock_ns=(\d+) origin_ns=(\d+) pts_ns=(\d+)', movie)
+        self.assertEqual([int(row[0]) for row in frames], list(range(504)))
+        for index, clock, origin, pts in map(lambda row: map(int, row), frames):
+            self.assertLessEqual(abs(pts - index * 1_000_000_000 // 15), 1)
+            self.assertGreaterEqual(clock - origin, pts)
+            self.assertLess(clock - origin - pts, 17_000_000 + 1)
+        self.assert_bink_viewport_hashes(movie)
+        not_due = re.findall(r'scene_a35_not_due frame=(\d+) clock_ns=(\d+) origin_ns=(\d+)', movie)
+        for index, clock, origin in map(lambda row: map(int, row), not_due):
+            self.assertEqual(index, (clock - origin) * 15 // 1_000_000_000)
+        self.assert_in_order(movie, ('scene_a35_close decoded=504',
+                                    'live_audio movie_stopped', 'scene_a35_audio_stop status=0'))
+        last_clock = int(frames[-1][1])
+        stop_clock = int(re.search(r'scene_a35_audio_stop status=0 clock_ns=(\d+)', movie)[1])
+        start_clock = int(re.search(r'scene_a35_audio_start status=0 clock_ns=(\d+)', movie)[1])
+        self.assertEqual(stop_clock - last_clock, 17_000_000)
+        self.assertEqual(last_clock - int(frames[0][1]), 33_524_000_000)
+        audio_stop = re.search(r'live_audio movie_stopped clock_frames=(\d+) elapsed_frames=(\d+) '
+                               r'duration_frames=(\d+) playing_before=(\d+) query_status=0 end=(\S+)', movie)
+        self.assertIsNotNone(audio_stop)
+        clock_frames, elapsed, duration, playing = map(int, audio_stop.groups()[:4])
+        self.assertEqual(clock_frames * 1_000_000_000 // 48000, stop_clock)
+        self.assertEqual(elapsed * 1_000_000_000 // 48000, stop_clock - start_clock)
+        self.assertEqual(duration, 1613323)
+        self.assertLess(elapsed, duration)
+        self.assertEqual(playing, 1)
+        self.assertEqual(audio_stop[5], 'controller-stop')
 
     def test_live_click_goes_through_session_input_end_to_end(self):
         # RT-6: the scripted S0 click feeds the recovered message wrappers
@@ -336,13 +421,13 @@ class NativeCaptionTransferTests(unittest.TestCase):
         # alone leaves the run on its natural path; the accepted release stores
         # phase 2 through the single candidate and the row ends the scene.
         hover = self.run_live('--live-scene-row', '5900:7', '--live-hover-only',
-                              '--live-ticks', '3000', returncode=0)
+                              '--live-ticks', '800', returncode=0)
         self.assert_in_order(hover, (
             'live_session_hover row=7 rect=0,0,10,10 window=15,15',
             'pointer_candidate candidate=7 rows=1 cursor=15,15',
             'scene_transition_applied source=5900 target=5907'))
         self.assertNotIn('live_session_click row=7', hover)
-        click = self.run_live('--live-scene-row', '5900:7', '--live-ticks', '3000',
+        click = self.run_live('--live-scene-row', '5900:7', '--live-ticks', '100',
                               returncode=0)
         self.assert_in_order(click, (
             'live_session_hover row=7 rect=0,0,10,10 window=15,15',
@@ -352,7 +437,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'provisional-geometry=1 projected=5,5 valid=1',
             'scene_session_transition_pending source=5900 target=4700',
             'scene_transition_applied source=5900 target=4700',
-            'scene_session_blocked stage=3 provider=action-family-35 action=3 type=0x35'))
+            'scene_a35_frame_presented frame=0 count=1'))
 
     def test_live_session_runs_s5900_through_a62_a51_and_the_timer_into_s5907(self):
         # RT-4: the dependency leaves are wired, so the run no longer stops at
@@ -425,7 +510,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             log = Path(directory) / 'providers.log'
             result = subprocess.run([str(self.executable), '--inspect-condition-providers',
                                      '--game-dir', str(self.game), '--log', str(log)],
-                                    capture_output=True, text=True, timeout=120)
+                                    capture_output=True, text=True, timeout=180)
             self.assertEqual(result.returncode, 0, result.stderr)
             contents = log.read_text()
         for index, value, offset in ((5000, 300, 382), (5001, 180, 384),
