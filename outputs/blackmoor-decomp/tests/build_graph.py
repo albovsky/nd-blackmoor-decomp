@@ -30,7 +30,9 @@ found, and it wrote nothing the shims did not declare. Anything else is
 reported in `ScriptResult.error`; callers must surface it.
 
 Link-time library dependencies (`-lfoo` resolved through `-L`) are
-deliberately not freshness inputs: builders such as build_live_audio.sh rebuild
+deliberately not freshness inputs (a library or object file passed as an
+input file inside the project is different: it is refused as underivable unless
+produced by the same script): builders such as build_live_audio.sh rebuild
 their dependencies themselves, and build_all_native_checks.sh runs the
 builders in alphabetical order, so a dependent library may legitimately be
 older than a library another builder refreshed later.
@@ -38,6 +40,7 @@ older than a library another builder refreshed later.
 
 from __future__ import annotations
 
+import fnmatch
 import os
 import re
 import shutil
@@ -255,6 +258,7 @@ def _absolute(sandbox: _Sandbox, cwd: str, value: str) -> Path:
 
 
 def _parse_driver(sandbox: _Sandbox, script: str, cwd: str, args: Sequence[str], assembler: bool) -> _Step:
+    project_root = sandbox.real_project
     step = _Step(script=script, kind="assemble" if assembler else "compile", outputs=[])
     compile_only = False
     explicit_output = None
@@ -300,7 +304,14 @@ def _parse_driver(sandbox: _Sandbox, script: str, cwd: str, args: Sequence[str],
         elif suffix in OBJECT_SUFFIXES:
             step.objects.append(path)
         elif suffix in LIBRARY_SUFFIXES:
-            continue  # link-time library; see the module docstring
+            # Libraries named by -l/-L are link-time dependencies (module
+            # docstring), but a library passed as an input file is part of the
+            # link: outside the project it is a system library and ignored,
+            # inside the project it must not vanish silently.
+            if path == project_root or project_root in path.parents:
+                raise Underivable(
+                    f"library input {path} inside the project is not modelled; "
+                    "teach build_graph.py to track it")
         else:
             raise Underivable(f"unrecognised input {item!r} on a compiler command line")
     if explicit_output is not None:
@@ -514,6 +525,52 @@ def _relative(project: Path, path: Path) -> str:
         return str(path)
 
 
+def _built_time(artifact: Artifact) -> int:
+    """mtime of what the build produced.
+
+    A directory artifact (an .app bundle) is compared by its newest contained
+    file, preferably the main executable: the directory's own mtime is set
+    when the copy starts and says nothing about the binary inside.
+    """
+    if artifact.kind != "dir" or not artifact.path.is_dir():
+        return artifact.path.stat().st_mtime_ns
+    macos = artifact.path / "Contents/MacOS"
+    executables = [p for p in macos.iterdir() if p.is_file()] if macos.is_dir() else []
+    files = executables or [p for p in artifact.path.rglob("*") if p.is_file()]
+    if not files:
+        return artifact.path.stat().st_mtime_ns
+    return max(p.stat().st_mtime_ns for p in files)
+
+
+def unknown_build_outputs(graph: BuildGraph, known_patterns: Iterable[str]) -> List[str]:
+    """Files under build/ that no builder derivation or known pattern accounts for.
+
+    Accounted for: a derived artifact, anything inside a derived directory
+    artifact, the .dSYM bundle beside a derived artifact, and files whose
+    path relative to build/ matches one of `known_patterns` (fnmatch).
+    """
+    build = graph.project / "build"
+    if not build.is_dir():
+        return []
+    artifacts = {a.path for r in graph.scripts.values() for a in r.artifacts}
+    directories = {p for p in artifacts if p.is_dir()}
+    patterns = list(known_patterns)
+    unknown = []
+    for base, _dirs, names in os.walk(build):
+        for name in names:
+            path = Path(base) / name
+            relative = path.relative_to(build).as_posix()
+            if path in artifacts or any(d in path.parents for d in directories):
+                continue
+            if any(parent.suffix == ".dSYM" and parent.with_suffix("") in artifacts
+                   for parent in path.parents):
+                continue
+            if any(fnmatch.fnmatchcase(relative, pattern) for pattern in patterns):
+                continue
+            unknown.append(relative)
+    return sorted(unknown)
+
+
 def stale_messages(graph: BuildGraph, include_on_demand: bool = False) -> List[str]:
     """One message per existing artifact older than an input or its script.
 
@@ -530,7 +587,7 @@ def stale_messages(graph: BuildGraph, include_on_demand: bool = False) -> List[s
             if artifact.on_demand and not include_on_demand:
                 continue
             seen.add((artifact.path, artifact.script))
-            built = artifact.path.stat().st_mtime_ns
+            built = _built_time(artifact)
             candidates = []
             for path in (*sorted(artifact.inputs), artifact.script):
                 try:

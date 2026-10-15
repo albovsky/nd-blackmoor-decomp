@@ -25,12 +25,40 @@ import build_graph as bg
 
 PROJECT = Path(__file__).resolve().parents[1]
 
-# Scripts that legitimately write no artifact the freshness check can follow.
-# Every entry needs a reason; a script that derives nothing and is not listed
-# here is a failure, never a silent pass.
+# Scripts whose artifacts the freshness check cannot follow. Every entry needs
+# a reason; a script that derives nothing and is not listed here is a failure,
+# never a silent pass.
 NO_ARTIFACT_ALLOWLIST = {
     "build_matching_s08_2.sh":
-        "audit-only: runs scripts/audit_matching_s08_2.py and writes no build artifact",
+        "the script only runs scripts/audit_matching_s08_2.py, which itself compiles "
+        "13 objects into build/matching_s08_2/*.obj; those python-written outputs are "
+        "not derivable from the shell (see KNOWN_UNTRACKED_OUTPUTS)",
+}
+
+# Files under build/ that no build_*.sh derivation accounts for. Patterns are
+# fnmatch patterns relative to build/. test_no_unaccounted_build_outputs fails
+# on any other file, so a new unknown output cannot go unnoticed.
+KNOWN_UNTRACKED_OUTPUTS = {
+    "matching_s08_2/*.obj":
+        "13 compiler-variant objects compiled by scripts/audit_matching_s08_2.py (run by build_matching_s08_2.sh)",
+    "matching_s08_3_x86-report.json":
+        "report written by scripts/audit_matching_s08_3_x86.py (python3 step of build_matching_s08_3_x86.sh)",
+    "matching_s08_4_x86-report.json":
+        "report written by scripts/audit_matching_s08_4_x86.py (python3 step of build_matching_s08_4_x86.sh)",
+    "matching_s08_3_x86-oracle.json":
+        "report written by tests/test_matching_s08_3_x86.py through the original-x86 oracle",
+    "matching_s08_4_x86-oracle.json":
+        "report written by tests/test_matching_s08_4_x86.py through the original-x86 oracle",
+    "input_consume_original_oracle.json":
+        "report written by tests/test_input_consume.py through the original-x86 oracle",
+    "libactionfamily28_x87_division_fixture.dylib":
+        "compiled directly by tests/test_action_family_28_sequence.py, no build script",
+    "live_audio_movie_test":
+        "compiled directly by tests/test_session_bindings_a35_bink.py, no build script",
+    "live_audio_movie_test.dSYM/*":
+        "debug-symbol bundle of live_audio_movie_test (clang -g link)",
+    "libactionfamily28_x87_division_fixture.dylib.dSYM/*":
+        "debug-symbol bundle of the directly compiled division fixture",
 }
 
 
@@ -275,6 +303,32 @@ class BuildGraphDerivationTests(unittest.TestCase):
                 self.assertFalse(result.ok)
                 self.assertIn(fragment, result.error)
 
+    def test_library_inputs_inside_the_project_are_not_dropped(self) -> None:
+        write_source(self.project, "src/main.c")
+        write_source(self.project, "vendor/libthing.a", "!<arch>\n")
+        write_script(self.project, "build_lib.sh", textwrap.dedent("""\
+            #!/bin/sh
+            set -eu
+            project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+            mkdir -p "$project_dir/build"
+            xcrun clang "$project_dir/src/main.c" "$project_dir/vendor/libthing.a" \\
+                -o "$project_dir/build/tool"
+            """))
+        write_script(self.project, "build_syslib.sh", textwrap.dedent("""\
+            #!/bin/sh
+            set -eu
+            project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+            mkdir -p "$project_dir/build"
+            xcrun clang "$project_dir/src/main.c" /usr/lib/libz.tbd -o "$project_dir/build/tool2"
+            """))
+        graph = self.derive()
+        inside = graph.scripts["build_lib.sh"]
+        self.assertFalse(inside.ok)
+        self.assertIn("libthing.a", inside.error)
+        outside = graph.scripts["build_syslib.sh"]
+        self.assertTrue(outside.ok, outside.error)
+        self.assertEqual({a.path.name for a in outside.artifacts}, {"tool2"})
+
     def test_a_script_with_no_artifacts_is_not_silently_ok(self) -> None:
         write_script(self.project, "build_nothing.sh", "#!/bin/sh\nexit 0\n")
         result = self.derive().scripts["build_nothing.sh"]
@@ -348,9 +402,64 @@ class StaleArtifactDetectionTests(unittest.TestCase):
         self.assertEqual(bg.stale_messages(graph), [])
         self.assertEqual(len(bg.stale_messages(graph, include_on_demand=True)), 1)
 
+    def test_bundle_is_judged_by_its_executable_not_the_directory(self) -> None:
+        bundle = self.project / "B.app"
+        executable = bundle / "Contents/MacOS/B"
+        executable.parent.mkdir(parents=True)
+        executable.write_bytes(b"x")
+        graph = bg.BuildGraph(project=self.project, scripts={"build_a.sh": bg.ScriptResult(
+            name="build_a.sh", artifacts=(bg.Artifact(
+                bundle, self.script, frozenset({self.project / "src/a.c"}), kind="dir"),))})
+        self.settle(artifact=100, source=150, header=60, script=70)
+        # Directory stamped before the source (copy started early) but the
+        # executable inside was produced after it: fresh.
+        self.stamp(executable, 200)
+        self.stamp(bundle, 100)
+        self.assertEqual(bg.stale_messages(graph), [])
+        # Directory newer than the source, executable older: stale.
+        self.stamp(executable, 100)
+        self.stamp(bundle, 300)
+        (message,) = bg.stale_messages(graph)
+        self.assertIn("B.app", message)
+
     def test_equal_timestamps_are_not_stale(self) -> None:
         self.settle(artifact=100, source=100, header=100, script=100)
         self.assertEqual(bg.stale_messages(self.graph), [])
+
+
+class UnknownBuildOutputTests(unittest.TestCase):
+    """unknown_build_outputs() on a synthetic graph."""
+
+    def setUp(self) -> None:
+        self._temp = tempfile.TemporaryDirectory(prefix="build-freshness-unknown-")
+        self.addCleanup(self._temp.cleanup)
+        self.project = Path(self._temp.name).resolve() / "outputs/blackmoor-decomp"
+        write_source(self.project, "src/a.c")
+        write_script(self.project, "build_a.sh", textwrap.dedent("""\
+            #!/bin/sh
+            set -eu
+            project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+            mkdir -p "$project_dir/build"
+            xcrun clang -dynamiclib "$project_dir/src/a.c" -o "$project_dir/build/liba.dylib"
+            """))
+        self.graph = bg.derive_graph(self.project)
+
+    def touch(self, relative: str) -> None:
+        write_source(self.project, "build/" + relative, "x")
+
+    def test_derived_dsym_and_listed_files_are_accounted_for(self) -> None:
+        self.touch("liba.dylib")
+        self.touch("liba.dylib.dSYM/Contents/Resources/DWARF/liba.dylib")
+        self.touch("sub/report.json")
+        self.assertEqual(bg.unknown_build_outputs(self.graph, ["sub/*.json"]), [])
+
+    def test_new_outputs_are_reported(self) -> None:
+        self.touch("liba.dylib")
+        self.touch("mystery.bin")
+        self.touch("other.dylib.dSYM/Contents/x")
+        self.touch("sub/extra.json")
+        self.assertEqual(bg.unknown_build_outputs(self.graph, ["sub/report*.json"]),
+                         ["mystery.bin", "other.dylib.dSYM/Contents/x", "sub/extra.json"])
 
 
 class ProjectBuildFreshnessTests(unittest.TestCase):
@@ -379,6 +488,18 @@ class ProjectBuildFreshnessTests(unittest.TestCase):
                 result = self.graph.scripts.get(name)
                 self.assertIsNotNone(result, f"{name} no longer exists")
                 self.assertEqual(result.artifacts, (), f"{name} now derives artifacts; drop the entry")
+
+    def test_no_unaccounted_build_outputs(self) -> None:
+        for relative in bg.unknown_build_outputs(self.graph, KNOWN_UNTRACKED_OUTPUTS):
+            with self.subTest(output=relative):
+                self.fail(
+                    f"build/{relative} is neither derived from a scripts/build_*.sh nor listed in "
+                    "KNOWN_UNTRACKED_OUTPUTS (with a reason); find out what writes it")
+
+    def test_known_untracked_entries_have_reasons(self) -> None:
+        for pattern, reason in KNOWN_UNTRACKED_OUTPUTS.items():
+            with self.subTest(pattern=pattern):
+                self.assertTrue(reason.strip())
 
     def test_known_artifacts_are_derived(self) -> None:
         artifacts = {a.path for r in self.graph.scripts.values() for a in r.artifacts}
