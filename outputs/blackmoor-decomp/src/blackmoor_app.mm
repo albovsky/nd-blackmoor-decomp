@@ -5127,7 +5127,10 @@ int main(int argc, char **argv)
         /* RT-17: --live-nav SCENE:left|right[:COUNT] hovers the pointer on that edge
          * band of SCENE until the selector has moved COUNT times (default 1), then
          * leaves the band; the row gesture waits for it. */
-        struct LiveNav { long scene; bool left; long remaining; bool started; int16_t last_selector; };
+        struct LiveNav {
+            long scene; bool left; long remaining; bool started; int16_t last_selector;
+            bool click; bool clicked;   /* optional ":click": press and release once inside the band */
+        };
         std::vector<LiveNav> live_navs;
         long dump_scene = -1;
         for (int i = 1; i < argc; ++i) {
@@ -5192,13 +5195,22 @@ int main(int argc, char **argv)
                 const size_t colon = rest.find(':');
                 const std::string side = rest.substr(0, colon);
                 long nav_count = 1;
+                bool nav_click = false;
                 if (colon != std::string::npos) {
+                    const size_t second = rest.find(':', colon + 1);
+                    const std::string count_text = rest.substr(colon + 1, second == std::string::npos
+                                                                              ? std::string::npos
+                                                                              : second - colon - 1);
                     char *count_end = nullptr;
-                    nav_count = std::strtol(rest.c_str() + colon + 1, &count_end, 10);
-                    if (*count_end || nav_count < 1 || nav_count > 100) return 2;
+                    nav_count = std::strtol(count_text.c_str(), &count_end, 10);
+                    if (count_text.empty() || *count_end || nav_count < 1 || nav_count > 100) return 2;
+                    if (second != std::string::npos) {
+                        if (rest.substr(second + 1) != "click") return 2;
+                        nav_click = true;
+                    }
                 }
                 if (side != "left" && side != "right") return 2;
-                live_navs.push_back({nav_scene, side == "left", nav_count, false, 0});
+                live_navs.push_back({nav_scene, side == "left", nav_count, false, 0, nav_click, false});
             } else if (argument == "--live-click-row") {
                 char *end = nullptr;
                 live_click_row = std::strtol(value, &end, 10);
@@ -5466,6 +5478,15 @@ int main(int argc, char **argv)
                                        "selector=%d remaining=%ld", app.current_scene_id,
                                        nv.left ? "left" : "right", app.pointer_x, app.pointer_y,
                                        app.nav.selector, nv.remaining);
+                            } else if (nv.click && !nv.clicked && app.nav.state != 0) {
+                                /* One press/release inside the band, issued after the tick that set
+                                 * the zone state and before the step is due: the consuming tick
+                                 * must not step (0x43b19e skips the navigation block). */
+                                nv.clicked = true;
+                                pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
+                                pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                record(&app, "live_session_nav_click scene=%d state=%d selector=%d",
+                                       app.current_scene_id, app.nav.state, app.nav.selector);
                             } else if (app.nav.selector != nv.last_selector) {
                                 nv.last_selector = app.nav.selector;
                                 --nv.remaining;

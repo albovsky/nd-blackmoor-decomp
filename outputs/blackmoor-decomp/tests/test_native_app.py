@@ -754,6 +754,20 @@ class NativeCaptionTransferTests(unittest.TestCase):
         # the last step moved the pointer out of the band: no further step follows
         self.assertEqual(contents.count('nav_step '), 3)
 
+    def test_rt17_a_click_inside_a_zone_makes_no_edge_activates_nothing_and_does_not_delay_the_step(self):
+        # In a zone the cascade left the candidate at -1 (0x4f1e78); the release needs a candidate
+        # at message time (0x4db000, RT-2), so the latch gets no edge, nothing is consumed or
+        # activated, and the hover step is not delayed by the click.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:left:1:click')
+        self.assert_in_order(contents, (
+            'nav_zone state=1 claimed=1 ',
+            'pointer_input event=DOWN candidate_at_message=-1 latch_edge=0',
+            'pointer_input event=UP candidate_at_message=-1 latch_edge=0',
+            'live_session_nav_click scene=6401 state=1 selector=1',
+            'nav_step state=1 selector=1->2 '))
+        self.assertNotIn('candidate=-1 activation=', contents)
+        self.assertNotIn('scene_a17_finish', contents)
+
     def test_rt17_right_band_steps_down_and_wraps_at_the_first_frame(self):
         contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:right:2')
         self.assert_in_order(contents, (
