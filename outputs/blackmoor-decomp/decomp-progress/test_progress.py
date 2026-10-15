@@ -84,9 +84,14 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertFalse(set(a["handled"]["types"]) & set(a["unsupported"]["types"]))
         self.assertEqual(a["handled"]["records"] + a["unsupported"]["records"], a["typed"]["records"])
         # Typed but without a native handler: still unsupported, never opaque.
-        for code in ("0x38", "0xa1"):
+        for code in ("0x38",):
             self.assertIn(code, a["unsupported"]["types"])
             self.assertNotIn(code, a["opaque"]["types"])
+        # RT-21: raw 0xa1 is typed and handled (registered as aa1_handler).
+        self.assertIn("0xa1", a["typed"]["types"])
+        self.assertIn("0xa1", a["handled"]["types"])
+        self.assertNotIn("0xa1", a["unsupported"]["types"])
+        self.assertNotIn("0xa1", a["opaque"]["types"])
         # RT-18: raw 0x37 is typed and handled (registered with the 0x36 handler).
         self.assertIn("0x37", a["typed"]["types"])
         self.assertIn("0x37", a["handled"]["types"])
@@ -105,7 +110,8 @@ class RepoEvidenceTests(unittest.TestCase):
                          "0x78": "session_a78_handler",  # RT-19
                          "0x79": "session_a79_handler",
                          "0x83": "native_a83_handler",
-                         "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
+                         "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler",
+                         "0xa1": "native_aa1_handler"}})  # RT-21
         # Handled = every registered type seen in the census; read both instead of hard-coding a count.
         registered = {int(t, 16) for t in a["registrations"]["executor"] + a["registrations"]["session_ui"]
                       + list(a["registrations"]["external"])}

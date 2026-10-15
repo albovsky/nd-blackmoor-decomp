@@ -37,8 +37,8 @@
   "ticks": 2187,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "ddf0808ca591d9538ce8e1afd73f593b252d7c85",
-    "native_sha256": "615c919f2a394e835102cb9f4788407dd5e81f40329e517bd655a3fc7a27e3ec",
+    "source_ref": "59f1e2c10a7858cb90b4612b508e9251673bd80c",
+    "native_sha256": "22fa8ec91e5f52e2e7375000ae0dd12ef9e5da5ed0eaadf1582e47e6a097e22a",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -253,7 +253,7 @@
       },
       {
         "path": "src/action_family_97_runtime.h",
-        "sha256": "81db03b788be37d44424b53c4504e382c9cdd5f8696ea6376bbe0a8d1d33f6f0"
+        "sha256": "5e6c3114902d480c9519614d8661ac0463b898b94311e06d19b8256043f5c694"
       },
       {
         "path": "src/action_family_9a.h",
@@ -262,6 +262,10 @@
       {
         "path": "src/action_family_a1.h",
         "sha256": "c94cc423c1f124bc08eaca28a607668de62a2c2cfb1a94ae1369d3207142a253"
+      },
+      {
+        "path": "src/action_family_a1_runtime.h",
+        "sha256": "6f711335f441dfe99604908c271998542bc134ae14fd9af1c92e43554b93d7c9"
       },
       {
         "path": "src/action_family_aa.h",
@@ -349,7 +353,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "096baf3183d57f8db3065848de2bb80bfc1a726edf5e6b5ce076491241faeed5"
+        "sha256": "d84e53311b901efd9ed280c1bb1cb5daa526e6bdb7611299bb7a751b9dde81df"
       },
       {
         "path": "src/caption_compositor.h",
@@ -429,7 +433,7 @@
       },
       {
         "path": "src/scene_executor.c",
-        "sha256": "ae36c1d25d351b84c35517f65da44f7a10d19760e56ffbeb75c996f27f823716"
+        "sha256": "509d269ac47ace3df2df8ed0af451fb6fd74a5b4de66946a5672f68a64a5fe00"
       },
       {
         "path": "src/scene_executor.h",
@@ -550,6 +554,14 @@
       {
         "path": "src/session_bindings_a97.h",
         "sha256": "4444daf39feb5647178363287acb6d6fbadb73af72e3d26cca62c66bf31fccad"
+      },
+      {
+        "path": "src/session_bindings_aa1.c",
+        "sha256": "23e9532382966c67a9d301f7cf79a3f96d939b54da23950cd35f89cf465ce5c4"
+      },
+      {
+        "path": "src/session_bindings_aa1.h",
+        "sha256": "9574116ae70eecb82b8bc5cfb1cdc14e663d79fc395930f7b4c4eaeb7c5db4d7"
       },
       {
         "path": "src/session_bindings_conditions.c",
