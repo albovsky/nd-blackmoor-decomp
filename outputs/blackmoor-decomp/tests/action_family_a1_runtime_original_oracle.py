@@ -200,38 +200,10 @@ class Original(o97.Original):
                     start=dword(0x5bb1ca), state=dword(0x583999))
 
 
-class EventRecorder(rt97.Recorder):
-    """rt97's ordered log with the event-table stores interleaved at the moment they happen."""
-
-    def __init__(self, table):
-        super().__init__()
-        self.table = table
-        self.seen = list(table.flags)
-        for field, callback_type in (('present_caption', sound.PresentFn), ('load_sound', sound.LoadFn),
-                                     ('play_sound', sound.ChannelFn), ('is_playing', sound.QueryFn),
-                                     ('unload_sound', sound.ChannelFn)):
-            inner = callback_type(c.cast(getattr(self.backend, field), c.c_void_p).value)
-
-            def wrapped(*args, inner=inner):
-                self.diff()
-                return inner(*args)
-
-            callback = callback_type(wrapped)
-            self.callbacks.append(callback)
-            setattr(self.backend, field, callback)
-
-    def diff(self):
-        now = list(self.table.flags)
-        for index, (before, after) in enumerate(zip(self.seen, now)):
-            if before != after:
-                self.events.append(('event', index, after & 0xffffffff))
-        self.seen = now
-
-
 def native_visit(lib, payload, phase, subtype, completed, captions, recorder, table):
     status, out, why, _ = native.step(lib, payload, phase, subtype, completed, captions,
                                       recorder, table.table)
-    recorder.diff()
+    recorder.finish()
     return status, out, why
 
 
@@ -245,7 +217,7 @@ def verify_lifecycle(lib, original, payload, subtype, captions, tail=b'', *, seq
         table.flags[i] = v
     original.install_a1(payload, subtype, captions, tail)
     original.set_table(noise)
-    recorder = EventRecorder(table)
+    recorder = native.TimelineRecorder(table)
     native_object = loader97.buffer(bytes(payload))
     before = bytes(native_object)
     visits = 0
@@ -288,6 +260,24 @@ def verify_lifecycle(lib, original, payload, subtype, captions, tail=b'', *, seq
         visits += 1
     if bytes(native_object) != before:
         raise OracleError('native runtime object modified')
+    # What the visit hands the sound provider: the original's own load (path, channel,
+    # category, control word, both gains) against the native command, and the counts.
+    loads = original.trace['loads']
+    if len(recorder.commands) != len(loads) or len(loads) != 1:
+        raise OracleError(f'load count {len(recorder.commands)}/{len(loads)}')
+    command, observed = recorder.commands[0], loads[0]
+    if observed['path'] != b'CDSound\\' + command[0] + b'.his':
+        raise OracleError(f'asset path {observed["path"]} vs stem {command[0]}')
+    if (command[1], command[2], command[3], command[6], command[7]) != (
+            observed['channel'], observed['volume_category'], observed['control_word'],
+            observed['first_gain'], observed['second_gain']):
+        raise OracleError(f'load fields differ: native {command} original {observed}')
+    if len(recorder.plays) != len(original.trace['play_flags']):
+        raise OracleError('play count differs')
+    if len(recorder.unloads) != original.trace['releases']:
+        raise OracleError('unload count differs')
+    if [text + suffix for _, text, suffix in recorder.captions] != original.trace['captions']:
+        raise OracleError(f'caption text differs: {recorder.captions} vs {original.trace["captions"]}')
     if expect_stores is not None and len(original.event_writes) != expect_stores:
         raise OracleError(f'event store count {len(original.event_writes)} != {expect_stores}')
     stores = len(original.event_writes)
@@ -474,7 +464,8 @@ def main(*, library=None, report_path=REPORT, quick=False):
     distributions = {k: Counter() for k in ('subtype', 'event', 'scene9999', 'channel', 'mode',
                                            'control', 'text')}
     loaded = 0
-    keys_missing = 0
+    corpus_missing = 0      # corpus rows whose key is absent from the table (none: all resolve)
+    keys_missing = 0        # synthetic AUTOTEXT cases that exercise the original fallback text
     object_digest, body_digest = hashlib.sha256(), hashlib.sha256()
     s6408 = None
     rows = corpus['records'][:40] if quick else corpus['records']
@@ -490,7 +481,7 @@ def main(*, library=None, report_path=REPORT, quick=False):
         typed = body[:row['typed_body_length']]
         image, missing = pair.load(lib, typed, payload)
         loaded += 1
-        keys_missing += missing
+        corpus_missing += missing
         object_digest.update(image)
         body_digest.update(body)
         # Runtime on the ORIGINAL loader's object; the row's own tree is empty (true gate).
@@ -582,7 +573,17 @@ def main(*, library=None, report_path=REPORT, quick=False):
     mutation_hooks = {k: v for k, v in sorted(original.hooks.items())}
     report = dict(
         slice='RT-21', quick=quick,
-        corpus_records=loaded, corpus_keys_missing=keys_missing,
+        corpus_records=loaded, corpus_keys_missing=corpus_missing,
+        synthetic_keys_missing=keys_missing,
+        decoys=['event -1 with a nonzero value byte (no store; the corpus has 163 such rows)',
+                'event id 0 (a real flag, not a sentinel) with scene 9999 and control 0 (no direct completion)',
+                'scene 9999 + control 0 + event != -1 (waits instead of completing directly)',
+                'value byte 0 and 0xff (the byte is stored zero-extended: 0 clears, 255 stays 255)',
+                'gate false with subtype 0/1/2/3 in phases 0/1/2 (only subtype 2 clears; real tree and gate)',
+                'gate true only when the event table holds the value (event-driven gate, real evaluator)',
+                'AUTOTEXT keys that differ in case, an absent key (original fallback text), an empty value, '
+                'a 32-byte key, a prefix of a present key',
+                'channel 0/5/13/31 and mode 0/1/2 (only mode 0 unloads, only mode 1 skips the query)'],
         lifecycle_cases=stats['cases'] + synthetic + autotext_cases + inline_cases,
         corpus_lifecycle_cases=stats['cases'], synthetic_event_cases=synthetic,
         autotext_cases=autotext_cases, inline_cases=inline_cases,

@@ -304,6 +304,10 @@ struct NativeApp {
      * it in the original. Test-hooks build only. */
     /* RT-16: the option may repeat (one pair per scene). */
     std::vector<std::pair<int32_t, int32_t>> test_selectors;
+    /* RT-21 test hook: on entering SCENE the held (selected) inventory item becomes ITEM,
+     * standing in for the unbound inventory UI that selects it in the original. May repeat.
+     * Test-hooks build only. */
+    std::vector<std::pair<int32_t, int32_t>> test_held_at;
 #endif
     /* Headless runs render the offline audio graph a fixed amount per update;
      * live runs leave this zero and let the output device pace playback. */
@@ -4829,6 +4833,13 @@ static bool perform_session_transition(NativeApp *app,
             record(app, "test_selector_applied scene=%d frame=%d (stands in for the unbound navigation "
                    "producer 0x43c2b7..)", transition.target_scene, pair.second);
         }
+    for (const auto &pair : app->test_held_at)
+        if (pair.first == transition.target_scene &&
+            app->new_game.view.inventory.selected_item_candidate != nullptr) {
+            *app->new_game.view.inventory.selected_item_candidate = static_cast<int16_t>(pair.second);
+            record(app, "test_held_applied scene=%d item=%d (stands in for the unbound inventory "
+                   "selection UI)", transition.target_scene, pair.second);
+        }
 #endif
     app->selector_entry_valid = true;
     app->selector_logged = false;
@@ -5594,6 +5605,14 @@ int main(int argc, char **argv)
                 const long frame = std::strtol(frame_text, &end, 10);
                 if (end == frame_text || *end || frame < INT16_MIN || frame > INT16_MAX) return 2;
                 app.test_selectors.emplace_back((int32_t)scene, (int32_t)frame);
+            } else if (argument == "--test-held-at") {
+                char *end = nullptr;
+                const long scene = std::strtol(value, &end, 10);
+                if (!*value || end == value || *end != ':' || scene < 0 || scene > INT16_MAX) return 2;
+                const char *item_text = end + 1;
+                const long item = std::strtol(item_text, &end, 10);
+                if (end == item_text || *end || item < -1 || item > 32767) return 2;
+                app.test_held_at.emplace_back((int32_t)scene, (int32_t)item);
             } else if (argument == "--test-exit-redirect") {
                 char *end = nullptr;
                 const long from = std::strtol(value, &end, 10);

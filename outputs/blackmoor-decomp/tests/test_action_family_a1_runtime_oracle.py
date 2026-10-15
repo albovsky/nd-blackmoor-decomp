@@ -32,7 +32,8 @@ class OriginalOracleTests(unittest.TestCase):
         self.assertEqual(report['original_sha256'], EXE_HASH)
         self.assertEqual(report['mismatches'], 0)
         self.assertEqual(report['corpus_records'], 565)
-        self.assertEqual(report['corpus_keys_missing'] >= 0, True)
+        self.assertEqual(report['corpus_keys_missing'], 0)       # every corpus key resolves
+        self.assertEqual(report['synthetic_keys_missing'], 6)    # the original fallback text, 3 keys x 2
         self.assertGreaterEqual(report['corpus_lifecycle_cases'], 565)
         self.assertGreater(report['synthetic_event_cases'], 500)
         self.assertGreater(report['visits'], 6000)

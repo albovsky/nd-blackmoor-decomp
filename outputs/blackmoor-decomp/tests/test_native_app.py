@@ -906,7 +906,28 @@ class NativeCaptionTransferTests(unittest.TestCase):
         # runs on without a stop and without a further transition: not a missing-family stop.
         contents = self.tutorial(*self.CHAIN_TO_6453)
         self.assertNotIn('target=6411', contents)
+        self.assertNotIn('test_held_applied', contents)
         self.assertIn('live_session_inventory count=1 held=-1 ', contents)
+
+    def test_rt21_with_item_23_held_the_chain_runs_through_s6410_s6411_s6433_to_the_next_family(self):
+        # --test-held-at stands in for the unbound inventory selection (dependency opcode 11).
+        # S6410 row 2 then changes to S6411 once the narration has finished (channel 13); S6411 row 2
+        # and S6433 row 1 are raw 0x0b hotspots (RT-16, scripted clicks); S6434 row 1 is raw 0x0c,
+        # the next missing family (another packet).
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--test-held-at', '6410:23',
+                                 '--live-scene-row', '6411:2', '--live-scene-row', '6433:1')
+        self.assert_in_order(contents, (
+            'test_held_applied scene=6410 item=23 ',
+            'scene_transition_applied source=6409 target=6410',
+            # The row-2 scene change (channel 13 finished and item 23 selected) is evaluated in the
+            # same pass right after row 1 reached phase 2 and ends the scene before row 1's phase 2.
+            'scene_aa1_visit row=1 phase=1 status=0 phase_after=2 disposition=0 ',
+            'scene_aa1_construct row=1 stem=NSHT17 ',
+            'scene_transition_applied source=6410 target=6411',
+            'scene_transition_applied source=6411 target=6433',
+            'scene_transition_applied source=6433 target=6434',
+            'scene_session_blocked stage=3 provider=action-kernel action=1 type=0x0c detail=1 '))
+        self.assertEqual(contents.count('scene_session_blocked'), 1)
 
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):

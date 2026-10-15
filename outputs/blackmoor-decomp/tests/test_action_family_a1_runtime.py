@@ -121,11 +121,47 @@ class Events:
         self.table = EventTable(c.cast(self.flags, c.POINTER(c.c_int32)), count)
 
 
+class TimelineRecorder(rt97.Recorder):
+    """rt97's ordered log with the event-table stores interleaved at the moment they happen:
+    the table is compared before every provider call and once more by finish()."""
+
+    def __init__(self, table):
+        super().__init__()
+        self.table = table
+        self.seen = list(table.flags)
+        for field, callback_type in (('present_caption', sound.PresentFn), ('load_sound', sound.LoadFn),
+                                     ('play_sound', sound.ChannelFn), ('is_playing', sound.QueryFn),
+                                     ('unload_sound', sound.ChannelFn)):
+            inner = callback_type(c.cast(getattr(self.backend, field), c.c_void_p).value)
+
+            def wrapped(*args, inner=inner):
+                self.finish()
+                return inner(*args)
+
+            callback = callback_type(wrapped)
+            self.callbacks.append(callback)
+            setattr(self.backend, field, callback)
+
+    def finish(self):
+        now = list(self.table.flags)
+        for index, (before, after) in enumerate(zip(self.seen, now)):
+            if before != after:
+                self.events.append(('event', index, after & 0xffffffff))
+        self.seen = now
+
+
 class ConstructTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         build_library()
         cls.lib = bind()
+
+    def test_resolved_text_ends_at_its_first_nul(self):
+        # 0x423259 hands the loader a C string; the object keeps the visible part only.
+        status, out = construct(self.lib, a1_body(), loader.DictionaryLookup({b'NSHT14': b'ab\0cd'}))
+        self.assertEqual((status, out.length), (0, 176 + 2))
+        self.assertEqual(bytes(out.bytes[0xac:0xac + 5]), b'ab<e>')
+        self.assertEqual(struct.unpack_from('<H', bytes(out.bytes), 0xaa)[0], 5)
 
     def test_key_form_resolves_autotext_once_and_appends_marker(self):
         lookup = loader.DictionaryLookup({b'nsht14': b'Hello there'})
@@ -209,14 +245,17 @@ class StepTests(unittest.TestCase):
         p = self.obj(event=1747, event_value=1)
         ev = Events()
         ev.flags[1747] = 9
-        r = rt97.Recorder()
+        r = TimelineRecorder(ev)
         before = bytes(p)
         status, out, _, _ = step(self.lib, p, 0, recorder=r, table=ev.table)
+        r.finish()
         self.assertEqual(status, 0)
         self.assertEqual((out.event_stored, out.event_id, out.event_value, out.event_previous),
                          (1, 1747, 1, 9))
         self.assertEqual(ev.flags[1747], 1)
-        self.assertEqual(r.events, [('caption', b'caption<e>'), ('load', 13), ('play', 13)])
+        # 0x432de7 caption, 0x432e35 event store, 0x4334c3 load, 0x4334dc play.
+        self.assertEqual(r.events, [('caption', b'caption<e>'), ('event', 1747, 1),
+                                    ('load', 13), ('play', 13)])
         self.assertEqual((out.visit.phase, out.visit.completed, out.visit.direct), (1, 0, 0))
         self.assertEqual(bytes(p), before)
 
@@ -323,6 +362,19 @@ class StepTests(unittest.TestCase):
         status, out, _, _ = step(self.lib, p, 2, subtype=2, completed=1)
         self.assertEqual((status, out.visit.completed, out.visit.reset, out.visit.finish), (0, 0, 1, 1))
 
+    def test_every_rejection_leaves_a_zeroed_result(self):
+        # Unlike the RT-8 entry point, a caller of the object step never reads stale fields.
+        p = self.obj(event=1000)
+        for payload, table in ((loader.buffer(bytes(p)[:171]), Events().table), (p, None)):
+            out, failure = StepResult(), c.c_char_p()
+            c.memset(c.byref(out), 0xa5, c.sizeof(out))
+            inp = rt97.Input(0, 1, 0, 1)
+            status = self.lib.action_sound_object_step(payload, len(payload), c.byref(inp),
+                c.byref(rt97.Recorder().backend), c.byref(table) if table is not None else None,
+                c.byref(out), c.byref(failure))
+            self.assertNotEqual(status, 0)
+            self.assertEqual(bytes(out), bytes(StepResult()))
+
     def test_raw_97_wrapper_still_refuses_a_non_default_event(self):
         # RT-8's entry point is unchanged: its constructor can only produce event -1.
         p = self.obj(event=1000)
@@ -333,7 +385,7 @@ class StepTests(unittest.TestCase):
         status = self.lib.action97_runtime_step(p, len(p), c.byref(inp),
             c.byref(rt97.Recorder().backend), c.byref(out), c.byref(failure))
         self.assertEqual(status, sound.ERR_UNSUPPORTED)
-        self.assertIn(b'event', failure.value)
+        self.assertIn(b'outside raw-97 constructor', failure.value)    # not the table preflight
 
 
 CaptionConfigFn = rt97.CaptionConfigFn
@@ -573,6 +625,14 @@ class BindingTests(unittest.TestCase):
                 self.assertEqual(f.tick()[0], 0)
                 self.assertEqual((f.state(0), f.state(1)), ((0, 1), second))
                 self.assertEqual(f.flags[3], 1 if shared else 0)
+
+    def test_the_observer_reports_the_row_index_not_a_counter(self):
+        rows = [session.action(0xa1, 1, a1_body(scene=9999, event=-1)),
+                session.action(0xa1, 1, a1_body(scene=9999, event=5, event_value=0))]
+        f = Fixture(self, self.lib, rows, lookup=self.lookup())
+        f.ev.flags[5] = 7
+        self.assertEqual(f.tick()[0], 0)
+        self.assertEqual(f.observed, [(1, 5, 0, 7)])
 
     def test_event_less_row_does_not_need_the_event_provider(self):
         f = self.fixture(events=False, raw=a1_body(scene=9999, event=-1))
