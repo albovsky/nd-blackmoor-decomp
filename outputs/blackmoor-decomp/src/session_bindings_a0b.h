@@ -24,7 +24,10 @@ void session_a0b_destroy(SessionA0bBinding *);
 
 /* Replaces the per-row payloads and zeroes the row slots (scene load). A raw
  * 0x0b row whose typed body is not exactly 24 bytes fails the whole scene
- * (nonzero return). */
+ * (nonzero return, reason in session_a0b_failure). A failing begin KEEPS the
+ * previous scene's rows (payloads, slots, count) untouched; only a successful
+ * begin replaces them. The shared parser never produces such a scene, so the
+ * path is exercised with a stub scene resource (tests/session_bindings_a0b_stub_scene.c). */
 int session_a0b_begin_scene(SessionA0bBinding *, const SceneResource *);
 
 /* Executor handler for runtime type 0x0b. Called only after the executor's

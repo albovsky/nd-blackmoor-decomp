@@ -127,6 +127,15 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0xea: fixed_length = 3847u; break; /* 0x484110 copies 3,847 bytes (A-EA.1) */
     case 0xf5: fixed_length = 1390u; break; /* 0x4b80d9 copies 1,390 bytes (A-F5.1) */
     case 0xd3: fixed_length = 855u; break; /* 0x461903 copies 855 bytes (A-D3.1) */
+    case 0xee: fixed_length = 5826u; break; /* 0x47b3f0 copies 5,826 bytes (A-EE.1) */
+    case 0xda: fixed_length = 2958u; break; /* 0x45b4ae copies 2,958 bytes (A-DA.1) */
+    case 0x77: fixed_length = 731u; break; /* inline arm 0x40db66 copies 731 bytes (A-77.1) */
+    case 0x1c: fixed_length = 105u; break; /* 0x4caff5 copies 105 bytes (A-1C.1) */
+    case 0xeb: fixed_length = 2612u; break; /* 0x47e477 copies 2,612 bytes (A-EB.1) */
+    case 0xd0: fixed_length = 1979u; break; /* 0x48d12d copies 1,979 bytes (A-D0.1) */
+    case 0xe4: fixed_length = 2034u; break; /* 0x475964 copies 2,034 bytes (A-E4.1) */
+    case 0x80: fixed_length = 2u; break; /* inline arm 0x40e73f copies one WORD (A-80.1) */
+    case 0x70: fixed_length = 1u; break; /* inline arm 0x40e3d9 copies one byte (A-70.1) */
     case 0xe0:
         /* 0x470e8e (flag 1) copies 294 bytes (A-E0.1). Scene S2705 (resource
          * 1737) has a 292-byte body, two short of the copy: the original's
