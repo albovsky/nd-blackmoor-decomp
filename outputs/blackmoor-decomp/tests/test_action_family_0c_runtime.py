@@ -516,6 +516,22 @@ class BindingTests(unittest.TestCase):
         f.tick()
         self.assertEqual(f.row(), FRAME5)
 
+    def test_pre_gate_only_touches_rows_this_binding_owns(self):
+        flag_row = session.action(0x61, 1, session.i16(4) + session.i16(1) +
+                                  session.i16(-1) + session.i16(0))
+        f = Fixture(self, self.lib, [flag_row, self.row_action()], rig=t17.Rig17(selector=5))
+        f.tick()
+        info, state = session.SceneActionInfo(), session.RuntimeState(0, 0)
+        before = list(f.rig.effects)
+        for index in (0, 2, 99):        # a foreign row, one past the end, far out of range
+            self.lib.session_a0c_pre_gate(f.binding, index, c.byref(info), c.byref(state))
+        self.lib.session_a0c_pre_gate(None, 1, c.byref(info), c.byref(state))
+        self.assertEqual(f.rig.effects, before)
+        self.assertEqual(f.slot(1), (1, 117, 15, 292, 108, 0))      # the owned row's slot is intact
+        self.lib.session_a0c_pre_gate(f.binding, 1, c.byref(info), c.byref(state))
+        self.assertEqual(f.slot(1), (0, 117, 15, 292, 108, 0))      # an owned row is cleared
+        self.assertEqual(f.rig.effects[len(before):], [(1, 'request', 0)])
+
     def test_false_gate_from_the_start_exports_nothing_and_does_not_start(self):
         f = Fixture(self, self.lib, [self.row_action(deps=(session.flag_gate(3),))],
                     rig=t17.Rig17(selector=5))
@@ -741,6 +757,14 @@ class BindingTests(unittest.TestCase):
                           c.byref(before), c.byref(out)), 2)
         self.assertEqual(self.lib.session_a0b_handler(f.binding_0b, 1, c.byref(a0c_action),
                           c.byref(before), c.byref(out)), 2)
+        # An owned index with the other family's action info is refused too (the type is checked
+        # against the scene row, not only the index), and nothing is written.
+        effects_before = list(f.rig.effects)
+        self.assertEqual(self.lib.session_a0c_handler(f.binding, 1, c.byref(a0b_action),
+                          c.byref(before), c.byref(out)), 2)
+        self.assertEqual((out.disposition, out.phase), (0, 0))
+        self.assertEqual(f.slot(1), (0, 0, 0, 0, 0, 0))
+        self.assertEqual(f.rig.effects, effects_before)
 
     def test_scene_reload_replaces_rows(self):
         f = Fixture(self, self.lib, [self.row_action()], rig=t17.Rig17(selector=5))
@@ -764,10 +788,11 @@ class StubSceneTests(unittest.TestCase):
         src = PROJECT / 'src'
         output = PROJECT / 'build/session_bindings_a0c_stub_scene_plain'
         output.parent.mkdir(exist_ok=True)
+        # Mutation checks substitute a mutated copy of either source.
+        runtime = os.environ.get('A0C_STUB_RUNTIME_C', str(src / 'action_family_0c_runtime.c'))
+        binding = os.environ.get('A0C_STUB_BINDING_C', str(src / 'session_bindings_a0c.c'))
         subprocess.run(['xcrun', 'clang', '-arch', 'arm64', '-std=c11', '-Wall', '-Wextra',
-                        '-Wpedantic', '-Werror', '-O1', '-g', '-I', str(src),
-                        str(src / 'action_family_0c_runtime.c'),
-                        str(src / 'session_bindings_a0c.c'),
+                        '-Wpedantic', '-Werror', '-O1', '-g', '-I', str(src), runtime, binding,
                         str(PROJECT / 'tests/session_bindings_a0c_stub_scene.c'), '-o', str(output)],
                        check=True, capture_output=True)
         result = subprocess.run([str(output)], capture_output=True, text=True)

@@ -328,7 +328,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_bink_movie_frames_soundtrack_events_and_new_live_stop(self):
+    def test_bink_movie_frames_soundtrack_events_and_the_run_into_s2010(self):
         contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
         self.assert_in_order(contents, (
             'scene_parsed name=S4700',
@@ -352,10 +352,26 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_a83_refresh group=3 active=1 child=1 mail_count=3 web_count=1 status=0',
             'scene_a83_applied row=7 list=mail selected=0 inserted=1 mail_count=3 web_count=1 disposition=3 phase=0',
             'scene_session_transition_pending source=4808 target=2010',
+            # RT-20: S2010 rows 5..11 are raw 0x0c scene-change hotspots (constructed while the
+            # scene loads); at the entry selector 5 the frame-5 records of rows 5 and 6 are hot
+            # and the run no longer stops there.
+            'scene_a0c_construct row=5 target=2008 entry_frame=0 word6=1 frame_records=5 ',
+            'scene_a0c_construct row=11 target=2015 entry_frame=0 word6=1 frame_records=5 ',
             'scene_transition_applied source=4808 target=2010',
-            # The new explicit stop: S2010 row 5 is raw 0x0c (not recovered).
-            'scene_session_blocked stage=3 provider=action-kernel action=5 type=0x0c',
-            'live_session_end scene=2010 '))
+            'scene_a0c_register row=5 start_flag_5bb1ca=1',
+            'scene_a0c_frame_hit row=5 request=1 rect=117,15,292,108 selector=5',
+            'scene_a0c_register row=6 start_flag_5bb1ca=1',
+            'scene_a0c_frame_hit row=6 request=1 rect=388,73,619,303 selector=5',
+            'scene_a0c_register row=11 start_flag_5bb1ca=1'))
+        self.assertRegex(contents, r'live_session_end scene=2010 ticks=\d+ status=0 provider=none ')
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertNotIn('session_frozen', contents)
+        self.assertNotIn('scene_a0c_blocker', contents)
+        # Rows 7..11 have no frame-5 record: they register but export no rectangle, and the two
+        # hot rows log their rectangle once, not on every tick.
+        self.assertEqual(contents.count('scene_a0c_register row='), 7)
+        self.assertEqual(contents.count('scene_a0c_frame_hit row=5 '), 1)
+        self.assertEqual(contents.count('scene_a0c_frame_hit row=6 '), 1)
         self.assertIn('scene_a83_initialized source=BOOT/UICL mail_count=1 web_count=1', contents)
         self.assertNotIn('scene_a83_blocker', contents)
         movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
@@ -603,15 +619,20 @@ class NativeCaptionTransferTests(unittest.TestCase):
                       'view_rebuilds_requested=0', contents)
 
     def test_rt13_frozen_session_reports_the_blocker_and_counts_ignored_input(self):
-        # RT-13 item 3 on the S5900 path. Since RT-12 (raw 0x83 runtime) its end is S2010 row 5,
-        # raw 0x0c (a different missing family): one persistent report line, then pointer
-        # input is counted as ignored.
-        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', '--live-click-blocked')
+        # RT-13 item 3 on the S5900 path. Before RT-12 the run stopped at S4808 row 6 (raw 0x83),
+        # then at S2010 row 5 (raw 0x0c, no runtime); since RT-20 the path no longer stops at all,
+        # so the freeze is provoked with the RT-20 test hook: the world provider of the raw 0x0c
+        # binding refuses (a host failure), which stops the session at S2010 row 5 before any 0x0c
+        # effect. One persistent report line, then pointer input is counted as ignored.
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', '--live-click-blocked',
+                                 '--test-a0c-refuse-world')
         self.assert_in_order(contents, (
             'scene_session_blocked stage=3 provider=action-kernel action=5 type=0x0c detail=1',
+            'scene_a0c_blocker detail=world provider (selector 0x5bb50b, start flag 0x5bb1ca)',
             'session_frozen scene=2010 generation=',
             'row=5 type=0x0c provider=action-kernel stage=3 '
-            'reason="action type 0x0c at row 5 has no native runtime yet" '
+            'reason="action type 0x0c at row 5 stopped: world provider (selector 0x5bb50b, '
+            'start flag 0x5bb1ca) (detail 1)" '
             'ticks_after_block=stopped pointer_input=ignored',
             'session_frozen_input_ignored scene=2010 count=1 ',
             'live_session_end scene=2010 '))
@@ -619,6 +640,41 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(contents.count('session_frozen scene='), 1)
         self.assertNotIn('scene_a36_register', contents)
         self.assertNotIn('type=0x83 provider=action-kernel', contents)
+        # the host failure happens before any effect of the 0x0c rows
+        self.assertNotIn('scene_a0c_register', contents)
+        self.assertNotIn('scene_a0c_frame_hit', contents)
+
+    # ---- RT-20: raw 0x0c scene-change hotspots of S2010 --------------------------------------
+    # (row, entry selector, hot rectangle of that frame, target scene): the seven corpus rows of
+    # resource 1385. --test-selector stands in for the unbound navigation producer.
+    S2010_HOTSPOTS = (
+        (5, 5, '117,15,292,108', 2008), (6, 5, '388,73,619,303', 2009),
+        (7, 6, '1,46,172,333', 2011), (8, 8, '2,5,126,338', 2006),
+        (9, 16, '9,77,253,350', 2013), (10, 18, '135,164,213,368', 2014),
+        (11, 3, '472,81,619,258', 2015))
+
+    def test_rt20_every_s2010_hotspot_registers_hovers_and_changes_scene(self):
+        for row, selector, rect, target in self.S2010_HOTSPOTS:
+            with self.subTest(row=row):
+                contents = self.run_live('--live-scene-row', f'2010:{row}',
+                                         '--test-selector', f'2010:{selector}',
+                                         '--live-ticks', '3000', '--rand-seed', '1')
+                self.assert_in_order(contents, (
+                    'scene_transition_applied source=4808 target=2010',
+                    f'scene_a0c_register row={row} start_flag_5bb1ca=1',
+                    f'scene_a0c_frame_hit row={row} request=1 rect={rect} selector={selector}',
+                    f'live_session_hover row={row} rect={rect} window=',
+                    f'scene_a0c_finish row={row} completion_byte=1 (0x42b487)',
+                    f'scene_a0c_transition target={target} opaque_words=0,0,1 opaque_dwords=0,0,1',
+                    f'live_session_click row={row}',
+                    f'scene_parsed name=S{target} ',
+                    f'scene_transition_applied source=2010 target={target}',
+                    f'live_session_end scene={target} '))
+                self.assertIn('scene_a0c_hover_cursor row=', contents)
+                self.assertNotIn('scene_session_blocked', contents)
+                self.assertNotIn('session_frozen', contents)
+                self.assertNotIn('scene_a0c_transition_refused', contents)
+                self.assertEqual(contents.count('scene_a0c_finish'), 1)
 
     def test_rt13_raw_0x79_removes_the_seeded_item_and_clears_the_held_item_through_the_app(self):
         # Seeded list [4,23,9,23], held 23: only the FIRST 23 is removed, presence[23] is
@@ -961,18 +1017,21 @@ class NativeCaptionTransferTests(unittest.TestCase):
 
     def test_rt14_the_original_scripted_s5900_run_is_unaffected(self):
         contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
-        # The S5900..S4808 chain carries no raw 0x36/0x11/0x0b rows. With the raw 0x83 runtime
+        # The S5900..S4808 chain carries no raw 0x36/0x11/0x0b/0x0c rows. With the raw 0x83 runtime
         # (RT-12) the run continues into S2010, whose two raw 0x36 overlays are constructed while
         # that scene loads; nothing of those families may appear before the 4808 -> 2010 hand-over.
+        # Since RT-20 (raw 0x0c runtime) the run stays in S2010 until the tick limit.
         handover = contents.find('scene_session_transition_pending source=4808 target=2010')
         self.assertNotEqual(handover, -1)
         before = contents[:handover]
         self.assertNotIn('scene_a36_', before)
+        self.assertNotIn('scene_a0c_', before)
         self.assertNotIn('scene_a17_', contents)
         self.assertNotIn('scene_a0b_', contents)
         self.assertIn('scene_a83_applied row=6 ', before)
         self.assertIn('live_session_end scene=2010 ', contents)
-        self.assertIn('type=0x0c provider=action-kernel', contents)
+        self.assertIn('scene_a0c_construct row=5 ', contents)
+        self.assertNotIn('scene_session_blocked', contents)
 
     def test_rand_seed_option_is_logged_and_replayable(self):
         contents = self.run_live('--rand-seed', '12345')
