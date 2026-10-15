@@ -69,8 +69,10 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(p["reached_scenes"], recorded["reached_scenes"])
         self.assertEqual(p["reached_scenes"][:10], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
         self.assertEqual(p["stop"], recorded["stop"])
-        self.assertEqual(p["stop"]["action_type"], "0x0c")
-        self.assertEqual(p["stop"]["row"], 5)
+        # RT-20: raw 0x0c has a runtime, so the scripted run ends at the tick limit in S2010.
+        self.assertEqual(p["stop"]["kind"], "tick_limit")
+        self.assertEqual(p["stop"]["scene"], "S2010")
+        self.assertIsNone(p["stop"]["action_type"])
         self.assertEqual(p["tests"], {"discovered": 1269, "passed": 1264, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
@@ -103,7 +105,8 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(a["registrations"], {
             "executor": ["0x0a", "0x15", "0x4d", "0x61", "0x64", "0x6a", "0x6b", "0x71"],
             "session_ui": ["0x1d", "0x82"],
-            "external": {"0x0b": "session_a0b_handler", "0x16": "session_a17_handler", "0x17": "session_a17_handler",
+            "external": {"0x0b": "session_a0b_handler", "0x0c": "session_a0c_handler",  # RT-20
+                         "0x16": "session_a17_handler", "0x17": "session_a17_handler",
                          "0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x36": "session_a36_handler",
                          "0x37": "session_a36_handler",  # RT-18: second type on the raw 0x36 handler
                          "0x51": "session_a51_handler", "0x62": "session_a62_handler",
@@ -173,7 +176,7 @@ class RepoEvidenceTests(unittest.TestCase):
         report = (self.out / "REPORT.md").read_text()
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700 → S4710", report)
-        self.assertIn("provider action-kernel", report)
+        self.assertIn("**Current stop:** S2010;", report)
         self.assertIn("1,269 discovered; 1,264 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
