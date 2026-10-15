@@ -123,6 +123,7 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0x4e: fixed_length = 31u; break; /* 0x44b102 copies 31 bytes (A-4E.1) */
     case 0x2e: fixed_length = 15u; break; /* 0x4cd645 copies 15 bytes (A-2E.1) */
     case 0x94: fixed_length = 50u; break; /* 0x40ea5e copies 50 bytes (A-94.1) */
     case 0xd1: fixed_length = 927u; break; /* 0x4b5c5c copies 927 bytes (A-D1.1) */
@@ -400,6 +401,43 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             return -1;
         }
         *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x0c: {
+        int16_t count_18;
+        size_t typed;
+
+        /* 0x40bafd: signed count at +8, size 10 + 18 * count narrowed to a
+         * signed WORD in the original; counts outside 0..1819 are native
+         * safety rejections (no size wrap). */
+        if (length < 10u) {
+            return -1;
+        }
+        count_18 = read_i16le(body + 8u);
+        if (count_18 < 0 || count_18 > 1819) {
+            return -1;
+        }
+        typed = 10u + (size_t)count_18 * 18u;
+        if (length < typed) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x17: {
+        int16_t count;
+        /* 0x40b998..0x40b9a9 narrows size to signed int16 before allocation.
+         * Reject negative counts and any size wrap; no string fields. */
+        if (length < 22u) {
+            return -1;
+        }
+        count = read_i16le(body + 20u);
+        if (count < 0 || count > 1819) {
+            return -1;
+        }
+        *body_length = 22u + 18u * (size_t)count;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
