@@ -98,11 +98,32 @@ class PriorityScanTests(unittest.TestCase):
         self.state.candidate = 77
         self.assertEqual(self.scan([spot(240, 0, 0, 1, 1)], []), 1)
         self.assertEqual(self.scan([spot(-1, 0, 0, 1, 1)], []), 1)
-        self.assertEqual(self.scan([spot(1, 0, 0, 40000, 1)], []), 1)
         self.assertEqual(self.scan([], [spot(5, 0, 0, 1, 1), spot(5, 0, 0, 1, 1)]), 1)
         self.assertEqual(self.state.candidate, 77)
         self.assertEqual(self.api.session_input_scan_priority(
             c.byref(self.state), c.byref(self.ctx), None, 3, None, 0), 1)
+
+    def test_priority_rectangle_outside_the_short_domain_is_skipped_not_fatal(self):
+        # The pointer (430, 245) is inside every one of these rectangles'
+        # numeric span, but a rectangle with a coordinate outside int16 is
+        # dropped; the rest of the scan (later priority rows, generic rows)
+        # still runs and a valid index is still required.
+        for bad in (spot(1, 0, 0, 40000, 300), spot(1, -40000, 0, 500, 300),
+                    spot(1, 0, -32769, 500, 300), spot(1, 0, 0, 500, 32768)):
+            self.state.candidate = 77
+            self.assertEqual(self.scan([bad], []), 0)
+            self.assertEqual(self.state.candidate, -1)
+            self.assertEqual(self.scan([bad, spot(6, 420, 235, 440, 255)], []), 0)
+            self.assertEqual(self.state.candidate, 6)
+            self.assertEqual(self.scan([bad], [spot(2, 400, 200, 500, 300)]), 0)
+            self.assertEqual(self.state.candidate, 2)
+        # Exactly the short bounds are inside the domain.
+        self.assertEqual(self.scan([spot(8, -32768, -32768, 32767, 32767)], []), 0)
+        self.assertEqual(self.state.candidate, 8)
+        # A bad index is rejected even next to a skipped rectangle.
+        self.state.candidate = 77
+        self.assertEqual(self.scan([spot(1, 0, 0, 40000, 1), spot(240, 0, 0, 1, 1)], []), 1)
+        self.assertEqual(self.state.candidate, 77)
 
     def test_geometry_limits_apply_to_the_priority_path(self):
         self.ctx.geometry_ready = 0

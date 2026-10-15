@@ -10,6 +10,17 @@ Runs the unmodified original under Unicorn:
     0x4897cd  COverlay hit test
     0x48a3db  render callback
 
+Production pointer path: the app does NOT call overlay36_hit_test. It exports
+overlay36_hot_rects as priority rows (session_a36_priority_rows) and runs
+session_input_scan_priority (first containing rectangle) inside
+native_pointer_scan. Every original 0x4897cd call below is therefore ALSO
+compared with that pipeline (candidate row == the original's 0x5c39e5 store on
+a hit, -1 on a miss), and the `priority-scan` family drives it through
+controlled hot 1 / hot 2 / hot 0, frame != selector, phase != 1, disabled,
+overlapping, list-order and inclusive-edge cases. Not covered by it (the app
+has no hover cursor): the 0x4897cd cursor stores 0x5b44f0, 0x5b44f4, 0x5d162d,
+0x5d1631 and 0x5d1639 (those are compared against the kernel hit test only).
+
 Hooks (every one is enumerated in the report; none replaces a decision the
 original makes):
 
@@ -631,6 +642,7 @@ class Pair:
         self.compares = 0
         self.steps = 0
         self.events_compared = 0
+        self.priority_compares = 0
 
     # snapshots taken at provider calls: manager + render/cache + current-row runtime fields
     def original_snapshot(self):
@@ -708,6 +720,11 @@ class Pair:
         for row, phase in (phases or {}).items():
             o.uc.mem_write(phase_va(row), struct.pack('<I', phase))
             self.native_phases[row] = phase
+
+    def mutate_image(self, row, offset, data):
+        """Inject the same bytes into the original row object and the native image."""
+        self.original.uc.mem_write(obj_va(row) + offset, bytes(data))
+        self.rig.buffers[row][offset:offset + len(data)] = bytes(data)
 
     def check_state(self, label):
         got, mine = self.original.state(), self.native_state()
@@ -870,6 +887,13 @@ class Pair:
         if hit:
             if o.s32(0x5c39e5) != row:
                 raise OracleError((label, 'candidate row'))
+        # the app's production pointer path against the ORIGINAL's answer
+        expected = o.s32(0x5c39e5) if eax == 1 else -1
+        hot_status, scan_status, candidate = rig.pointer_candidate(x, y)
+        if hot_status != native.OK or scan_status != 0 or candidate != expected:
+            raise OracleError((label, 'production pointer path (hot rects + priority scan) differs '
+                               'from the original hit test', hot_status, scan_status, candidate, expected))
+        self.priority_compares += 1
         # cursor writes expected from the original's rule
         mine = []
         if hit:
@@ -1121,7 +1145,7 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutat
     families = {}
 
     def family(name):
-        families[name] = dict(scripts=0, steps=0, state_compares=0, events=0)
+        families[name] = dict(scripts=0, steps=0, state_compares=0, events=0, priority_compares=0)
         return families[name]
 
     def account(f, pair):
@@ -1129,6 +1153,7 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutat
         f['steps'] += pair.steps
         f['state_compares'] += pair.compares
         f['events'] += pair.events_compared
+        f['priority_compares'] += pair.priority_compares
         pairs.append(pair)
 
     rng = random.Random(0x36)
@@ -1232,7 +1257,13 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutat
         ne.row = 0
         set_tag(ne, b'OVERLAY ZRENDER\0')
         unsafe['draw_slot_mismatch'] = pair.draw(dst, expect_fatal=True)
-    families['unsafe-domain'] = dict(scripts=4, steps=4, state_compares=0, events=0)
+    families['unsafe-domain'] = dict(scripts=4, steps=4, state_compares=0, events=0,
+                                     priority_compares=0)
+
+    # F4b: the production pointer path against the original hit test
+    f = family('priority-scan')
+    priority_scan_family(pe, lib, f, account, stats, quick=quick, mutation=mutation)
+    divergence = int16_rectangle_divergence(pe, lib)
 
     # F5: interval sweep (0x50ce04 x87 path) over the 16-bit fps domain
     sweep = {}
@@ -1242,7 +1273,8 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutat
     totals = dict(scripts=sum(f['scripts'] for f in families.values()),
                   steps=sum(f['steps'] for f in families.values()),
                   state_compares=sum(f['state_compares'] for f in families.values()),
-                  ordered_events=sum(f['events'] for f in families.values()))
+                  ordered_events=sum(f['events'] for f in families.values()),
+                  priority_compares=sum(f['priority_compares'] for f in families.values()))
     hook_counts = {}
     for pair in pairs:
         for name, n in pair.original.hook_counts.items():
@@ -1250,6 +1282,7 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutat
     report = dict(
         exe_sha256=EXE_HASH, code_windows=windows, families=families, totals=totals, stats=stats,
         unsafe_original_behaviour=unsafe, fps_interval_sweep=sweep, hook_counts=hook_counts,
+        deliberate_divergence=dict(int16_priority_rectangle=divergence),
         hooks=['REPLACE 0x4c2790 CIFTREE surface load (ret 0x10)',
                'REPLACE 0x4fb77a / 0x4fb2e3 sound record start + word (ret 4 each)',
                'REPLACE 0x4f6334 sound query (ret 4)', 'REPLACE 0x4fba69 sound stop (ret 4)',
@@ -1270,6 +1303,115 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutat
                           sweep={k: v for k, v in sweep.items() if k != 'mismatches'},
                           elapsed=report['elapsed_seconds']), indent=2))
     return report
+
+
+def probe_points(images, quick):
+    """Edge, corner and centre probes of every record plus a coarse grid."""
+    points = set()
+    for image in images:
+        for index in range(native.image_s16(image, 0xaa)):
+            rec = image[0x6EC + 38 * index:0x6EC + 38 * (index + 1)]
+            left, top, right, bottom = struct.unpack_from('<4i', rec, 0x16)
+            cx, cy = (left + right) // 2, (top + bottom) // 2
+            for x in (left - 1, left, left + 1, cx, right - 1, right, right + 1):
+                for y in (top - 1, top, top + 1, cy, bottom - 1, bottom, bottom + 1):
+                    points.add((x, y))
+    step = 61 if quick else 37
+    points.update((x, y) for x in range(0, 320, step) for y in range(0, 320, step))
+    return sorted(p for p in points if -32768 <= p[0] < 32768 and -32768 <= p[1] < 32768)
+
+
+def priority_scan_images():
+    """Three overlays whose records cover every hit-test filter."""
+    zero = (0, 0, 9, 9)
+
+    def one(name, secs):
+        return native.simple_image(name=name, secondaries=secs)
+
+    a = one(b'PRI_A', [
+        sec(0, 0, 1, zero, (10, 10, 50, 50)),        # hot == 1
+        sec(0, 0, 2, zero, (60, 10, 100, 50)),       # hot == 2: never hit
+        sec(1, 0, 1, zero, (110, 10, 150, 50)),      # frame 1: only with selector 1
+        sec(0, 0, 0, zero, (160, 10, 200, 50)),      # hot == 0: never hit
+        sec(0, 0, 1, zero, (30, 30, 90, 90)),        # hot == 1, overlaps record 0 of the same overlay
+        sec(2, 0, 1, zero, (210, 10, 250, 50)),      # frame 2: only with selector 2
+        sec(0, 0, -1, zero, (255, 10, 290, 50)),     # hot == -1
+        sec(0, 0, 3, zero, (255, 60, 290, 100))])    # hot == 3
+    b = one(b'PRI_B', [
+        sec(0, 0, 1, zero, (40, 40, 70, 70)),        # overlaps A
+        sec(0, 0, 2, zero, (0, 0, 300, 300)),        # huge but hot == 2
+        sec(1, 0, 1, zero, (45, 45, 55, 55))])       # frame 1
+    cc = one(b'PRI_C', [sec(0, 0, 1, zero, (0, 0, 300, 300)),     # covers everything
+                        sec(1, 0, 1, zero, (0, 0, 300, 300))])
+    return [a, b, cc]
+
+
+def priority_scan_family(pe, lib, f, account, stats, *, quick, mutation):
+    images = priority_scan_images()
+    probes = probe_points(images, quick or mutation)
+    orders = [(1, 0, 2), (0, 1, 2), (2, 1, 0)]
+    selectors = (0, 1, 2) if not (quick or mutation) else (0, 1)
+    # row phase / enabled variants applied before probing: (phase of row 2, enabled of row 2,
+    # phase of row 1)
+    variants = [(1, 1, 1), (0, 1, 1), (2, 1, 1), (1, 0, 1), (1, 1, 2), (1, 1, 0)]
+    if quick or mutation:
+        variants = [(1, 1, 1), (0, 1, 1), (1, 0, 1), (1, 1, 2)]
+    if quick:
+        orders = orders[:1]
+    seed = 8800
+    outcomes = {}
+    for order in orders:
+        if mutation and order == orders[2]:
+            continue
+        for variant in variants:
+            seed += 1
+            r = random.Random(seed)
+            case = base_case(seed, images, subtypes={0: 1, 1: 1, 2: 1}, selector=0, rng=r,
+                             tick=r.randrange(2 ** 32), held=r.choice((-1, 4)), item_flag=r.choice((0, 1)))
+            pair = Pair(pe, lib, case)
+            pair.start()
+            for row in order:
+                pair.step(row, ticks=[1000], query=0)
+            phase2, enabled2, phase1 = variant
+            if phase2 != 1:
+                pair.mutate(phases={2: phase2})
+            if phase1 != 1:
+                pair.mutate(phases={1: phase1})
+            if not enabled2:
+                pair.mutate_image(2, 0xab2, bytes(4))
+            for selector in selectors:
+                pair.mutate(selector=selector)
+                for x, y in probes:
+                    hit, row = pair.hit(x, y)
+                    stats['hits'] += 1
+                    key = 'hit_row_%d' % row if hit else 'miss'
+                    outcomes[key] = outcomes.get(key, 0) + 1
+            account(f, pair)
+            stats['events'] += pair.events_compared
+    f['outcomes'] = dict(sorted(outcomes.items()))
+    if not all(outcomes.get(k, 0) for k in ('miss', 'hit_row_0', 'hit_row_1', 'hit_row_2')):
+        raise OracleError(('priority-scan family did not reach every outcome', outcomes))
+
+
+def int16_rectangle_divergence(pe, lib):
+    """Deliberate divergence, proved against the original: a hot rectangle whose
+    coordinates leave the signed-short domain is skipped by the production scan
+    (session_input_scan_priority), while 0x4897cd (int32 rectangle, int16 point)
+    still hits it. Real corpus rectangles are viewport relative and small."""
+    zero = (0, 0, 9, 9)
+    image = native.simple_image(name=b'WIDE', secondaries=[sec(0, 0, 1, zero, (0, 0, 40000, 100))])
+    case = base_case(8700, [image], subtypes={0: 1}, selector=0, rng=random.Random(8700), tick=0)
+    pair = Pair(pe, lib, case)
+    pair.start()
+    pair.step(0, ticks=[1000], query=0)
+    pair.current_row = None
+    pair.rig.trace.clear()
+    status, eax = pair.original.hit(500, 50, pair.rng)
+    hot_status, scan_status, candidate = pair.rig.pointer_candidate(500, 50)
+    if status != 'ok' or eax != 1 or hot_status != native.OK or scan_status != 0 or candidate != -1:
+        raise OracleError(('int16 rectangle divergence no longer as documented', status, eax,
+                           hot_status, scan_status, candidate))
+    return dict(original_hit=1, production_candidate=candidate, probe=[500, 50], rectangle=[0, 0, 40000, 100])
 
 
 def tutorial_images(lib, live):

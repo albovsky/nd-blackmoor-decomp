@@ -254,9 +254,14 @@ int overlay36_hit_test(Overlay36Manager *manager, const Overlay36Rows *rows,
                        const Overlay36Host *host, int *hit, int32_t *row,
                        const char **why);
 
-/* Read-only variant used to export the hot rectangles to a generic scan: the
- * first secondary record per registered overlay (in list order) that would
- * match the current selector. No manager/world mutation. */
+/* Read-only variant used to export the hot rectangles to a first-containing
+ * scan: EVERY secondary record (hot word 1, frame == selector) of every
+ * enabled overlay whose owning row is at phase 1, in list order and record
+ * order inside an overlay. Scanning the result for the first rectangle that
+ * contains the point gives the row overlay36_hit_test would pick. No
+ * manager/world mutation; the hit test's cursor stores are not part of it.
+ * *count is the number found even when it exceeds capacity (then
+ * OVERLAY36_ERR_BOUNDS is returned and only `capacity` entries are filled). */
 typedef struct {
     int32_t row;
     int32_t record;

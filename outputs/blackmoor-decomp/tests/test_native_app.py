@@ -693,6 +693,15 @@ class NativeCaptionTransferTests(unittest.TestCase):
         between = contents[entry:register]
         self.assertGreater(between.count('scene_clock_tick '), 50)
 
+    def test_rt15_test_selector_rejects_an_empty_or_non_numeric_frame(self):
+        for value in ('6401:', '6401:x', '6401:4x', ':4', '6401', '6401:40000'):
+            with self.subTest(value=value):
+                result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                         '--live-click-row', '32', '--test-selector', value,
+                                         '--game-dir', str(self.game)],
+                                        capture_output=True, text=True, timeout=60)
+                self.assertEqual(result.returncode, 2, result.stderr)
+
     # ---- RT-16: raw 0x0b scene change (S6403 row 2, handler 0x42ae73) -------------------
     CHAIN_TO_6403 = ('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
                      '--live-scene-row', '6402:3', '--test-selector', '6401:4')
