@@ -547,28 +547,41 @@ class NativeCaptionTransferTests(unittest.TestCase):
     def tutorial(self, *extra_args):
         return self.run_live('--live-ticks', '3000', '--rand-seed', '1', *extra_args, row='32')
 
-    def test_rt13_tutorial_runs_raw_0x79_and_stops_at_the_0x36_overlay_with_a_frozen_report(self):
+    def test_rt13_tutorial_runs_raw_0x79_and_then_the_overlays_without_a_stop(self):
         # S6400 is loaded from the external s6400.CIF. Row 15 is raw 0x79 for item 23;
         # the New Game inventory is empty, so it is a no-op that completes the row.
-        # The next row (16) is raw 0x36 (static photo overlay, hot): no runtime yet.
-        contents = self.tutorial('--live-click-blocked')
+        # RT-14: rows 16 and 17 (raw 0x36 static overlays) register and the scene keeps ticking.
+        contents = self.tutorial()
         self.assert_in_order(contents, (
             'scene_a79_construct row=15 item=23 (remove-inventory-item, 0x4eac4c)',
+            'scene_a36_construct row=16 name=BLU_Key_OVL ',
+            'scene_a36_construct row=17 name=TUT_Next_OVL ',
             'scene_transition_applied source=0 target=6400',
-            'scene_session_blocked stage=3 provider=action-kernel action=16 type=0x36 detail=1',
-            'session_frozen scene=6400 generation=2 row=16 type=0x36 provider=action-kernel stage=3 '
-            'reason="action type 0x36 at row 16 has no native runtime yet" '
-            'ticks_after_block=stopped pointer_input=ignored',
-            'session_frozen_input_ignored scene=6400 count=1 ',
-            'live_session_end scene=6400 '))
-        self.assertIn('type=0x36 detail=1 applied=16', contents)
-        self.assertNotIn('type=0x79', contents.split('scene_a79_construct')[1])
+            'scene_a36_register row=16 list_index=0',
+            'scene_a36_register row=17 list_index=1',
+            'live_session_end scene=6400 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertNotIn('session_frozen', contents)
         self.assertNotIn('scene_a79_blocker', contents)
         self.assertNotIn('scene_a79_inventory_removed', contents)
-        self.assertEqual(contents.count('scene_session_blocked'), 1)
-        self.assertEqual(contents.count('session_frozen scene='), 1)
         self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
                       'view_rebuilds_requested=0', contents)
+
+    def test_rt13_frozen_session_reports_the_blocker_and_counts_ignored_input(self):
+        # RT-13 item 3 on the S5900 path, whose end is a different missing family (0x83):
+        # one persistent report line, then pointer input is counted as ignored.
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', '--live-click-blocked')
+        self.assert_in_order(contents, (
+            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x83 detail=1',
+            'session_frozen scene=4808 generation=',
+            'row=6 type=0x83 provider=action-kernel stage=3 '
+            'reason="action type 0x83 at row 6 has no native runtime yet" '
+            'ticks_after_block=stopped pointer_input=ignored',
+            'session_frozen_input_ignored scene=4808 count=1 ',
+            'live_session_end scene=4808 '))
+        self.assertEqual(contents.count('scene_session_blocked'), 1)
+        self.assertEqual(contents.count('session_frozen scene='), 1)
+        self.assertNotIn('scene_a36_register', contents)
 
     def test_rt13_raw_0x79_removes_the_seeded_item_and_clears_the_held_item_through_the_app(self):
         # Seeded list [4,23,9,23], held 23: only the FIRST 23 is removed, presence[23] is
@@ -579,7 +592,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'test_inventory_seeded count=4 held=23',
             'scene_a79_construct row=15 item=23',
             'scene_a79_inventory_removed item=23 count=3 view-rebuild=requested-not-modeled rebuilds=1',
-            'session_frozen scene=6400 generation=2 row=16 type=0x36',
+            'scene_a36_register row=16 list_index=0',
             'live_session_inventory count=3 held=-1 presence_nonzero=2 view_rebuilds_requested=1'))
 
     def test_rt13_raw_0x79_clears_only_a_matching_held_item(self):
@@ -589,6 +602,52 @@ class NativeCaptionTransferTests(unittest.TestCase):
         contents = self.tutorial('--test-held', '23')  # absent from the list: still cleared
         self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
                       'view_rebuilds_requested=0', contents)
+
+    # ---- RT-14: raw 0x36 static overlays (COverlay) -------------------------------------
+    def test_rt14_overlays_are_drawn_and_the_hot_region_is_hit_before_any_generic_row(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-hover-only')
+        self.assert_in_order(contents, (
+            'scene_a36_register row=16 list_index=0',
+            'scene_a36_surface_load cache_slot=0 ',
+            'scene_a36_render_entry slot=24 layer=10 callback=0x48a3db',
+            'scene_a36_register row=17 list_index=1',
+            'scene_a36_render_entry slot=25 layer=10 callback=0x48a3db',
+            'scene_a36_blit row=17 slot=25 kind=plain ',
+            'live_session_hover row=17 rect=540,20,612,52',
+            'scene_a36_hot_hit row=17 rect=540,20,612,52',
+            'live_session_end scene=6400 ticks=3000 status=0 provider=none '))
+        self.assertIn('src=0,0,72,32 dst=550,30,622,62 composed=RGB555-backbuffer', contents)
+        # hover alone writes nothing
+        self.assertNotIn('scene_a36_event_write', contents)
+        self.assertNotIn('live_session_click row=17', contents)
+
+    def test_rt14_click_on_the_next_overlay_writes_event_1000_and_row_19_changes_the_scene(self):
+        contents = self.tutorial('--live-scene-row', '6400:17')
+        self.assert_in_order(contents, (
+            'live_session_hover row=17 rect=540,20,612,52',
+            'pointer_candidate candidate=17 ',
+            'scene_a36_hot_hit row=17 ',
+            'pointer_input event=DOWN candidate_at_message=17',
+            'pointer_input event=UP candidate_at_message=17 latch_edge=1',
+            'pointer_consume status=0 edge=1 candidate=17 activation=1 ',
+            'scene_a36_event_write event=1000 value=1',
+            'scene_a36_finish row=17 (0x42ba3a)',
+            'scene_session_transition_pending source=6400 target=6401 ',
+            'scene_a36_construct row=1 name=BLU_Key_OVL ',
+            'scene_transition_applied source=6400 target=6401',
+            # RT-14 next stop: raw 0x17 (MF HS scene) in S6401; its BLU_Key overlay registered first
+            'scene_a36_register row=1 list_index=0',
+            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x17 detail=1',
+            'session_frozen scene=6401 generation=3 row=6 type=0x17 '))
+        self.assertEqual(contents.count('scene_a36_event_write event=1000'), 1)
+        self.assertEqual(contents.count('scene_a36_finish row=17'), 1)
+        # row 16 (BLU_Key_OVL) is not clickable at the entry selector and never finishes
+        self.assertNotIn('scene_a36_finish row=16', contents)
+
+    def test_rt14_the_original_scripted_s5900_run_is_unaffected(self):
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
+        self.assertNotIn('scene_a36_', contents)
+        self.assertIn('live_session_end scene=4808 ', contents)
 
     def test_rand_seed_option_is_logged_and_replayable(self):
         contents = self.run_live('--rand-seed', '12345')
