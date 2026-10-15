@@ -76,8 +76,8 @@ class RepoEvidenceTests(unittest.TestCase):
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 19592)
-        self.assertEqual(a["opaque"]["records"], 20)
+        self.assertEqual(a["typed"]["records"], 19598)
+        self.assertEqual(a["opaque"]["records"], 14)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))

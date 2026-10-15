@@ -17,7 +17,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-9 Bink playback for 0x35: frames, events, embedded audio, completion (Codex) | Reviewed (no P1), findings fixed, merged (PR 20) |
 | RT-10 edge/arrow cascade 0x4f0059; RT-11 sound persistence across scene changes (Codex) | In flight on `codex/rt-10-edge-cascade`, `codex/rt-11-sound-persistence`; not reviewed or merged |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; 0x35 and 0x97 runtimes now bound (RT-7/8/9), the rest unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 / A-1B.1 / A-7D.1 / A-33.1 / A-F6.1 / A-EA.1 / A-F5.1 / A-D3.1 / A-2D.1 / A-E0.1 / A-EE.1 / A-DA.1 / A-77.1 opaque decoders (Codex, then Claude Sonnet) | Reviewed, merged (typed 19,592 / opaque 20) |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 / A-1B.1 / A-7D.1 / A-33.1 / A-F6.1 / A-EA.1 / A-F5.1 / A-D3.1 / A-2D.1 / A-E0.1 / A-EE.1 / A-DA.1 / A-77.1 / A-1C.1 / A-EB.1 / A-D0.1 opaque decoders (Codex, then Claude Sonnet) | Reviewed, merged (typed 19,598 / opaque 14) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -142,4 +142,11 @@ Merged: raw 0xee (2 records, fixed 5,826 bytes, arm 0x410785, ctor 0x47b3f0), 0x
 Process note: two implementers (A-DA.1, A-77.1) stalled for hours on Bash permission prompts (in-place `sed -i` edits, and `cd ... && ... | tee` chains); root finished both and ran the build, tests, oracle, sanitizer and mutation harness itself. Keep implementers on the Edit/Write tools, and let root run the shell steps if they stall again. Tests that used raw 0xee/0x63 as an "opaque" example moved to a type that is still opaque; `test_progress.py` now picks one from the corpus.
 Unverified: the same set as the earlier batches (allocation-failure cleanup, the nonzero diagnostics word 0x63a4cd, action-slot reuse, dependency construction, runtime handlers: 0xee 0x47c0f0 via arm 0x42a5f9; 0xda 0x45c18f via arm 0x42a424; retail reachability of resources 926, 977, 1462 and 2021).
 Remaining opaque: 20 records (1 in 0xe0 plus 19 in 12 types: 0x1c 2, 0xeb 2, 0xd0 2, 0xe4 2, 0x80 2, 0x70 2, 0x20 2; singles 0xaa, 0xd6, 0x76, 0x9a, 0x6d).
+
+## Handoff: opaque scene actions, thirteenth batch (2026-10-15 PDT)
+
+Merged: raw 0x1c (2 records, fixed 105 bytes: 0x1a DWORDs + 1 BYTE, arm 0x40bc1a, ctor 0x4caff5 over the zero-filling allocator 0x4cc70f), 0xeb (2, fixed 2,612, arm 0x4108c0, ctor 0x47e477) and 0xd0 (2, fixed 1,979, arm 0x4103a3, ctor 0x48d12d) body boundaries and isolated decoders (A-1C.1, A-EB.1, A-D0.1; Claude Sonnet (high), one independent reviewer over the batch). Typed 19,598 / opaque 14. The shared tail oracle pins 37 decoders. None of the three examines a body byte, so the registrations are plain fixed cases without `memchr`.
+Process note: this batch's implementers were told to use Edit/Write only (no `sed -i`, `chmod`, `tee`, `cd ... &&` chains or redirection into `work/`) and none stalled; the build and sanitizer scripts are committed with the executable bit via `git update-index --chmod=+x`.
+Unverified: the same set as earlier batches (allocation-failure cleanup, the nonzero diagnostics word 0x63a4cd, action-slot reuse, dependency construction, runtime handlers: 0x1c 0x4cb586 via arm 0x427cc1; 0xeb 0x480e02 via arm 0x42a794; 0xd0 0x48d914 via arm 0x42a0ea; retail reachability of resources 1546, 2169, 1600, 2305, 2146 and 2147).
+Remaining opaque: 14 records (1 in 0xe0 plus 13 in 9 types: 0xe4 2, 0x80 2, 0x70 2, 0x20 2; singles 0xaa, 0xd6, 0x76, 0x9a, 0x6d).
 
