@@ -252,6 +252,12 @@ class SelfCheckOfFixture(unittest.TestCase):
 
 
 class AddressAndPathHelpers(unittest.TestCase):
+    def test_ledger_tooling_tests_are_not_evidence(self):
+        for name in ("test_extract_function_evidence.py", "test_function_xrefs.py",
+                     "test_function_ledger.py", "test_sample_function_ledger.py"):
+            self.assertTrue(fe.FIXTURE_TESTS.search(name), name)
+        self.assertFalse(fe.FIXTURE_TESTS.search("test_native_app.py"))
+
     def test_parse_address_forms(self):
         self.assertEqual(fe.parse_address("0x40b34a"), 0x40B34A)
         self.assertEqual(fe.parse_address("0x004237f7"), 0x4237F7)

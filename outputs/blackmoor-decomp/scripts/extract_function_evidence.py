@@ -160,7 +160,7 @@ REPLACED_RE = re.compile(
     r"synthetic|fake|substitut|models?\b|inject|force|fixed", re.I)
 OBSERVED_RE = re.compile(r"observ|counter|read-only|probe only|no register|no memory|record", re.I)
 FIXTURE_TESTS = re.compile(
-    r"test_(?:extract_function_evidence|extract_function_xrefs|function_ledger|sample_function_ledger)\.py$")
+    r"test_(?:extract_function_evidence|(?:extract_)?function_xrefs|function_ledger|sample_function_ledger)\.py$")
 LEDGER_RECEIPT = re.compile(r"FL-\d")       # the function-ledger packets' own receipts carry no original-code evidence
 FILE_KEYS = ("files", "owned_files", "owned_distributable_files", "changed_tracked_files",
              "committed_files", "tracked_files")
