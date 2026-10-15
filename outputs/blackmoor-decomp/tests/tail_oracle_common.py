@@ -72,6 +72,9 @@ FAMILIES = {
     'ea': (6, '236b9cf767ac272b09dff01e6408bc868a8855636995ce7001efaa4d754be4a6'),
     'd3': (3, '213bb8f3bccd576be7374ee76e2929654283ca1e5edef46a3329c5cdd5039061'),
     '2d': (3, '95a4c6d245185ec179d2c9059f7ddfba99af3b85731c550dafd87579fb0df8c5'),
+    'ee': (2, 'c02a5098e4e502b49327d39db5d915d6fe0aa05f18923c6abc4159f65c424da9'),
+    'da': (2, 'ac739e1eecb1dc83ff92e4cca7fb993f9a6d3e1376e3f4d4a4d26ec84ea340ab'),
+    '77': (2, 'f5ea4268a0e27cb8f4b2f1281484b6b1ee7a969e3c522f0c5d02212284182c15'),
     'f5': (4, '72d8921467de2a83cc34aadb98900120887c17b9c750797df3df055035c291c3'),
 }
 TAIL_LENGTHS = tuple(range(301)) + tuple(range(1023, 1026)) + tuple(range(4079, 4098))
