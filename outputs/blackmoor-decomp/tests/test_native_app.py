@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
@@ -1197,6 +1198,34 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertNotIn('transition_target=', contents)
             self.assertNotIn('scene_parsed name=S5900', contents)
             self.assertIn('stopped failure=1', contents)
+
+
+class NativeAppBindingRegistrationTests(unittest.TestCase):
+    """Text-level pins for registrations that no scripted live run can observe.
+
+    No S2010 row carries a dependency gate, so the raw 0x0c pre-gate registration (RT-20) is
+    invisible in the headless runs; a dropped registration would otherwise pass every test.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.source = (PROJECT / 'src/blackmoor_app.mm').read_text()
+
+    def test_rt20_raw_0c_pre_gate_is_registered_against_the_a0c_binding(self):
+        self.assertEqual(self.source.count(
+            'scene_session_set_pre_gate(app->session, SESSION_A0C_TYPE, session_a0c_pre_gate,\n'
+            '                                   app->a0c) != SCENE_SESSION_OK ||'), 1)
+
+    def test_rt20_raw_0c_binding_slot_and_count_cover_every_registered_binding(self):
+        indices = sorted({int(n) for n in re.findall(r'\n    bindings\[(\d+)\]\.type', self.source)})
+        # bindings[0] is copied from action_sound_binding and has no .type line.
+        self.assertEqual(indices, list(range(1, len(indices) + 1)))
+        count = len(indices) + 1
+        self.assertIn(f'SceneSessionActionBinding bindings[{count}]{{}};', self.source)
+        self.assertIn(f'config.action_binding_count = {count}u;', self.source)
+        self.assertIn('bindings[12].type = SESSION_A0C_TYPE;', self.source)
+        self.assertIn('bindings[12].callback = session_a0c_handler;', self.source)
+        self.assertIn('bindings[12].context = app->a0c;', self.source)
 
 
 if __name__ == '__main__':
