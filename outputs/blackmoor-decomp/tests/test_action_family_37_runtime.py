@@ -327,6 +327,17 @@ class BindingTests(unittest.TestCase):
         self.lib.scene_resource_close(other)
         del owner
 
+    def test_a_0x37_row_with_an_unterminated_name_fails_the_scene_load_and_keeps_the_old_scene(self):
+        bad = session.action(0x37, 1, b'N' * 33 + body37()[33:], ())
+        scene, owner = session.open_scene(self.lib, [overlay37(b'OK'), bad])
+        f = self.fixture([overlay37(b'A')])
+        self.assertNotEqual(self.lib.session_a36_begin_scene(f.binding, scene), 0)
+        self.assertIn(b'invalid raw-0x37', self.lib.session_a36_failure(f.binding))
+        self.assertEqual(self.lib.session_a36_row_name(f.binding, 0), b'A')    # old scene kept
+        self.assertIsNone(self.lib.session_a36_row_name(f.binding, 1))
+        self.lib.scene_resource_close(scene)
+        del owner
+
     def test_exhausting_the_render_table_with_0x37_rows_is_an_explicit_rejection(self):
         # 41 rows sharing one image name (one cached surface): the original reports an error
         # at the 41st registration (manager list and render table hold 40); the native binding

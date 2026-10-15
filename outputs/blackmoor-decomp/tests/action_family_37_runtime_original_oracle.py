@@ -252,7 +252,7 @@ def main(*, report_path=REPORT, quick=False, mutation=False):
     stats = dict(constructor_images=0, constructor_bytes=0, registrations=0, visits=0, hits=0,
                  draws=0, finishes=0, events=0, draw_skipped_out_of_domain=0)
     families = {}
-    pairs = []
+    hook_counts = {}
 
     def family(name):
         families[name] = dict(scripts=0, steps=0, state_compares=0, events=0)
@@ -263,7 +263,8 @@ def main(*, report_path=REPORT, quick=False, mutation=False):
         f['steps'] += pair.steps
         f['state_compares'] += pair.compares
         f['events'] += pair.events_compared
-        pairs.append(pair)
+        for name, n in pair.original.hook_counts.items():     # the machine itself is dropped
+            hook_counts[name] = hook_counts.get(name, 0) + n
 
     ctor_machine = Original37(pe)
     ctor_machine.load(rt14.base_case(0, [None] * 4))
@@ -290,7 +291,8 @@ def main(*, report_path=REPORT, quick=False, mutation=False):
         check_constructor(ctor_machine, lib, random_body(r), r, row=index % 100, stats=stats)
         f['steps'] += 1
     f['scripts'] = 1
-    hook_counts = dict(ctor_machine.hook_counts)
+    for name, n in ctor_machine.hook_counts.items():
+        hook_counts[name] = hook_counts.get(name, 0) + n
 
     # F1: random scenes of 0x37 rows (+ random 0x36 rows in some)
     f = family('random-0x37-overlays')
@@ -320,6 +322,10 @@ def main(*, report_path=REPORT, quick=False, mutation=False):
     scene_names = sorted(images_by_scene)
     if quick:
         scene_names = [s for s in scene_names if s in tutorial_scenes][:2]
+    elif mutation:
+        # every 9th scene, the tutorial scenes and the scenes with more than 40 rows
+        scene_names = [s for index, s in enumerate(scene_names)
+                       if index % 9 == 0 or s in tutorial_scenes or len(images_by_scene[s]) > 40]
     for scene in scene_names:
         rows = images_by_scene[scene]
         size = max(a for a, _ in rows) + 1
@@ -415,9 +421,6 @@ def main(*, report_path=REPORT, quick=False, mutation=False):
                   steps=sum(f['steps'] for f in families.values()),
                   state_compares=sum(f['state_compares'] for f in families.values()),
                   ordered_events=sum(f['events'] for f in families.values()))
-    for pair in pairs:
-        for name, n in pair.original.hook_counts.items():
-            hook_counts[name] = hook_counts.get(name, 0) + n
     report = dict(
         exe_sha256=EXE_HASH, code_windows=windows, families=families, totals=totals, stats=stats,
         corpus=dict(raw_0x37_rows=total_rows, scenes=len(corpus)),
