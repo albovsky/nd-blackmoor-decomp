@@ -209,6 +209,11 @@ class Sources:
         raise PlayableError(f"cannot resolve registered action type {token}")
 
 
+# Reviewed corpus records that a guarded parser case keeps opaque (type -> records):
+# raw 0xe0 in scene S2705 has a 292-byte body, short of the 294-byte copy (A-E0.1).
+PARTIAL_OPAQUE_RECORDS = {0xe0: 1}
+
+
 def derive_actions(out: Path) -> dict:
     src = Sources(out)
     parser = function(src.read("src/scene_resource.c"), "known_body_length")
@@ -298,12 +303,28 @@ def derive_actions(out: Path) -> dict:
     summary = lambda types: {"types": [code(t) for t in sorted(types)],
                              "type_count": len(types), "records": sum(counts[t] for t in types)}
     observed = set(counts)
+    # A registered case may keep a reviewed corpus record opaque with a length
+    # guard (`return 0;`). Each such type and its record count is listed here,
+    # and an unlisted guard fails closed.
+    partial = {}
+    for m in re.finditer(r"\bcase\s+(0x[0-9a-fA-F]+)\s*:([^;]*?return\s+0\s*;)", parser):
+        if int(m[1], 16) in typed and "default" not in m[0]:
+            partial[int(m[1], 16)] = PARTIAL_OPAQUE_RECORDS.get(int(m[1], 16))
+    if any(n is None for n in partial.values()):
+        raise PlayableError("a guarded parser case keeps records opaque; list its record count")
+    moved = sum(partial.values())
+    moved_typed = lambda types: sum(n for t, n in partial.items() if t in types)
     return {
         "scene_total": census["scenes"], "record_total": census["actions"],
         "type_total": len(observed),
-        "typed": summary(observed & typed), "opaque": summary(observed - typed),
+        "typed": {**summary(observed & typed),
+                  "records": summary(observed & typed)["records"] - moved},
+        "opaque": {**summary(observed - typed),
+                   "records": summary(observed - typed)["records"] + moved},
         "handled": summary(observed & handled),
-        "unsupported": summary((observed & typed) - handled),
+        "unsupported": {**summary((observed & typed) - handled),
+                        "records": summary((observed & typed) - handled)["records"]
+                                   - moved_typed((observed & typed) - handled)},
         "registrations": {"executor": [code(t) for t in sorted(builtins)],
                           "session_ui": [code(t) for t in sorted(ui)],
                           "external": {code(t): cb for t, cb in sorted(external.items())}},

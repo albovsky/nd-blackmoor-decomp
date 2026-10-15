@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Original-backed generic dependency-tail stage for nine native decoders.
+"""Original-backed generic dependency-tail stage for fifteen native decoders.
 
 Run with work/tools/oracle-python/bin/python and Unicorn JIT permitted:
     .../python outputs/blackmoor-decomp/tests/tail_oracle_common.py
@@ -51,9 +51,46 @@ FAMILIES = {
     '67': (27, 'f26ae1990be86ec635f8e2ce046593050ee52d556cbc04e97f1c8f2ff56e0829'),
     '6f': (25, '845573a98968ff9138a090544844deb05e94b13c1b500a812d5ad511640e5a3c'),
     '43': (13, '2d95f4bc387a6ada1261dc94bd3ea8c60fac55a27bd69edc3de9d8d4f0c0b284'),
+    '45': (32, '2f6c74bdba3cc31cb83c97786cdc71b4d37fb4422e257089f9fa4f6a6e20e7bd'),
+    '44': (27, 'cb5d0cdc472211747289c03b6ea99f91386518c055aa5f182f1b8eef37f4b792'),
+    '36': (20, '1177233aad4c5e32a318a1c9d2377c2bad948f016963dca89a73926a24ca4164'),
+    '94': (12, '5d16292229dcb86d91b896f4b6138361512b2d709a943754c31c1acf99a314d3'),
+    'd1': (11, '3c2707bcd27bf0fb7349e17ca9ed963122659e39d5b9b21da2c25edf5567b767'),
+    '2e': (10, '7dd8fec67f090f7256d1939c73aae3a0aecb613959b8d3d0867e0d0737f3dedf'),
+    '0c': (43, '6bb491e9ba0b735e8c69f61e5505912c137d7bfb515c1de2fedd0701fe4d6c39'),
+    '4e': (18, 'ba8421720744d189d67502f9d2c27ff2426fd68f09f51b6ab9ba4030ec1ce0c2'),
+    '17': (10, '2399859bd72e1b7e987adb6a7acf58319d9e7f24cc33e9b3c5340050a67b5537'),
+    '68': (10, 'a2c719f18fd094f80403809486426d0394873e368648ff021ebb1ee0eaa97313'),
+    '83': (9, 'e45d78dd50efe45e8b53b781100e9fe17b8c513b797c0fd039a032b054891236'),
+    '4b': (9, 'bdcc8ed5f083a583c01b624dcb5721c24c961199e9914469a15bec0dedc8ca20'),
+    '69': (7, '831e18116acf939610c743a386609733643fb6099032412b2af2aa79f2c13f3b'),
+    '65': (7, 'c4a8a5249b0e253f63263f094f833a810fc65d52d1fa6af554c612375e57f7ae'),
+    '1b': (4, '665db35adf2a335892255588d94d1ac2dde6b5e3b14e4294bbd6865da3649f02'),
+    '7d': (4, '1ce509e19688dcf758393a0fbc38adb789de0b62788c5a8fbe0612c2a85a1eae'),
+    '33': (3, '2c5e6cb31c2617ce74a0b0e6b60c48877bda1f647323f5cb7f3064a9818dbef3'),
+    'f6': (6, '0f365b52ada75de98e2905408c9b2b485bdc5a5458ad7f17fceafc3dd41018b4'),
+    'ea': (6, '236b9cf767ac272b09dff01e6408bc868a8855636995ce7001efaa4d754be4a6'),
+    'd3': (3, '213bb8f3bccd576be7374ee76e2929654283ca1e5edef46a3329c5cdd5039061'),
+    '2d': (3, '95a4c6d245185ec179d2c9059f7ddfba99af3b85731c550dafd87579fb0df8c5'),
+    'ee': (2, 'c02a5098e4e502b49327d39db5d915d6fe0aa05f18923c6abc4159f65c424da9'),
+    'da': (2, 'ac739e1eecb1dc83ff92e4cca7fb993f9a6d3e1376e3f4d4a4d26ec84ea340ab'),
+    '77': (2, 'f5ea4268a0e27cb8f4b2f1281484b6b1ee7a969e3c522f0c5d02212284182c15'),
+    '1c': (2, 'de5b0743c3ab46960001c19022acd0e25bbdb375d8ee137abd46c7e11c83d5dc'),
+    'eb': (2, '6050e6c3f4ba9d0e153b3f133bc0be460ebc56c928634e36fbf4626cfa53c589'),
+    'd0': (2, '2e1010495647f12b2dd5df155329e48135069d270798979c83f249b0105eedf2'),
+    'e4': (2, '95d770cea5b9f2cec80f76130130d388b3fb1f4172bc1fe3176fc8adb063ccf0'),
+    '80': (2, '218d5269f1939a94a2ff1f36f4044db5ff274918e470010f2ba4a35ea7e513d6'),
+    '70': (2, 'eb6123f139725e4fe4526f54467ee3f8a1f02cbe6ad3def1f2450895908babe6'),
+    '20': (2, '0ee202728adc3c635c2e57efc97359ba98713d4047264ac901c6f32075f0eb30'),
+    'aa': (1, 'e8763c40efc8d52b242c7760d2d92b32f8182d13c0e9de3d1bcd429383a3c573'),
+    'd6': (1, '00017176de7e37c8c75c060593687aca8289c0afd984e33328703fa809c3102a'),
+    '76': (1, '013a5b764ccb48684daa55889aeb8f1be13ec5f6c0f9b18ac70a469e47edb80d'),
+    '9a': (1, 'face1d2fb46c008fdc768c0a7ffae2928bd6da784ec016abaefdae9d86aa7677'),
+    '6d': (1, '30588e0a2c4eacc10ddb57b0ae6a49d314724915f5d907c437a99e9a7d55399c'),
+    'f5': (4, '72d8921467de2a83cc34aadb98900120887c17b9c750797df3df055035c291c3'),
 }
-TAIL_LENGTHS = tuple(range(49)) + (63, 64, 65, 255, 256, 257, 1023, 1024)
-WIDTH_TAILS = (256 * 16, 65536 * 16)
+TAIL_LENGTHS = tuple(range(301)) + tuple(range(1023, 1026)) + tuple(range(4079, 4098))
+WIDTH_TAILS = (256 * 16, 65536 * 16, 65537 * 16)
 ACTION, OWNER = 0x5bb5b3, 0x63786d
 INPUT, INPUT_CAPACITY = 0x20000000, 0x200000
 STACK, RETURN = 0x9000, 0x51000000
@@ -94,7 +131,10 @@ def write_json(path, value):
 
 
 def new_run(label):
-    return Path(tempfile.mkdtemp(prefix=f'A-TAIL.1.{label}-', dir=PRIVATE))
+    # Mutation libraries and unchanged per-family oracle reports stay outside
+    # the shared canonical evidence tree. Every run gets an exclusive directory.
+    parent = Path('/private/tmp') if label == 'mutations' else PRIVATE
+    return Path(tempfile.mkdtemp(prefix=f'A-TAIL.2.{label}-', dir=parent))
 
 
 class TailMismatch(AssertionError):
@@ -110,6 +150,8 @@ class TailResult:
 
 
 class OriginalTail:
+    exits = (EMPTY_EXIT, ACCEPT_EXIT, FATAL_EXIT)
+
     def __init__(self):
         from unicorn import Uc, UC_ARCH_X86, UC_MODE_32, UC_HOOK_CODE, UC_PROT_READ
         from unicorn import x86_const as x
@@ -129,7 +171,7 @@ class OriginalTail:
         # Exit points stop before the instruction at that address. They do not
         # rewrite the image or choose a branch, and need no internal code hooks.
         uc.ctl_exits_enabled(True)
-        uc.ctl_set_exits([EMPTY_EXIT, ACCEPT_EXIT, FATAL_EXIT])
+        uc.ctl_set_exits(list(self.exits))
         uc.hook_add(UC_HOOK_CODE, self.log, begin=LOG_BOUNDARY, end=LOG_BOUNDARY)
         self.calls = 0
 
@@ -137,25 +179,27 @@ class OriginalTail:
         r = self.r
         esp = uc.reg_read(r['ESP'])
         args = struct.unpack('<8I', uc.mem_read(esp, 32))
-        ret, destination, fmt, _scene, family, count, length, consumed = args
+        ret, destination, fmt, scene, family, count, length, consumed = args
         require(address == LOG_BOUNDARY and (ret, destination, fmt) ==
                 (0x424c8c, 0x63888b, 0x544b30), 'unexpected logging boundary/caller')
-        require((family, count, length, consumed) ==
-                (self.family, self.expected_count, self.length, self.consumed),
+        require((scene, family, count, length, consumed) ==
+                (self.scene, self.family, self.expected_count, self.length, self.consumed),
                 'original ragged diagnostic arguments mismatch')
         self.logs.append(args)
         uc.reg_write(r['EAX'], 0)  # no later original decision uses this return
         uc.reg_write(r['ESP'], esp + 4)
         uc.reg_write(r['EIP'], ret)
 
-    def invoke(self, payload, typed_length):
+    def invoke(self, payload, typed_length, *, slot_reuse=0):
         require(50 <= len(payload) <= INPUT_CAPACITY, 'ACT outside oracle input budget')
         require(0 < typed_length <= INPUT_CAPACITY and 50 + typed_length <= 0xffffffff,
                 'invalid previously validated typed extent')
+        require(0 <= slot_reuse <= 0xffffffff, 'slot reuse must be a DWORD')
         uc, r = self.uc, self.r
         require(bytes(uc.mem_read(0x63a4cd, 2)) == bytes(2), 'nonzero diagnostic flag')
         self.logs = []
         self.family, self.length, self.consumed = payload[48], len(payload), 50 + typed_length
+        self.scene = struct.unpack('<I', uc.mem_read(0x5bb57b, 4))[0]
         self.expected_count = ((self.length - self.consumed) & 0xffffffff) >> 4
         image = b'\xa6' * 16 + payload + b'\xd6' * 16
         # Host writes initialize read-only emulated source memory; emulated
@@ -163,6 +207,7 @@ class OriginalTail:
         uc.mem_write(INPUT, image)
         row = bytearray(0x8d)
         row[:50] = payload[:50]
+        struct.pack_into('<I', row, 0x3a, slot_reuse)
         uc.mem_write(ACTION - 16, b'\x91' * 16 + row + b'\x92' * 16)
         uc.mem_write(OWNER + 0x60c, struct.pack('<I', 7))
         args = struct.pack('<5I', RETURN, ACTION, self.consumed, self.length,
@@ -174,7 +219,7 @@ class OriginalTail:
             uc.reg_write(r[name], value)
         uc.emu_start(CODE_START, RETURN, count=10000)
         exit_address = uc.reg_read(r['EIP'])
-        require(exit_address in (EMPTY_EXIT, ACCEPT_EXIT, FATAL_EXIT),
+        require(exit_address in self.exits,
                 f'original did not reach a tail exit: {exit_address:#x}')
         count = struct.unpack('<I', uc.mem_read(ACTION + 0x6a, 4))[0]
         require(bytes(uc.mem_read(INPUT, len(image))) == image, 'original changed ACT input')
@@ -183,11 +228,17 @@ class OriginalTail:
                 'original action guard overwritten')
         require(bytes(uc.mem_read(ACTION, 0x36)) == bytes(row[:0x36]),
                 'original changed action header/data pointer')
+        require(bytes(uc.mem_read(ACTION + 0x3a, 4)) == bytes(row[0x3a:0x3e]),
+                'original changed slot-reuse field')
         require(bytes(uc.mem_read(STACK, 20)) == args, 'original changed caller arguments')
         require(struct.unpack('<I', uc.mem_read(OWNER + 0x60c, 4))[0] == 8,
                 'original owner initialization did not execute')
         require(len(self.logs) == int(exit_address == FATAL_EXIT),
-                'ragged path did not execute exactly one original log call')
+                'fatal path did not execute exactly one original log call')
+        if exit_address == FATAL_EXIT:
+            fatal_args = struct.unpack('<4I', uc.mem_read(uc.reg_read(r['ESP']), 16))
+            require(fatal_args == (0x425b4e, 0x63888b, 0, 0),
+                    'unexpected original fatal funnel/caller')
         self.calls += 1
         return TailResult(exit_address, exit_address != FATAL_EXIT, count, tuple(self.logs))
 
@@ -365,11 +416,12 @@ def main():
         results.append(result)
         print(json.dumps({key: result[key] for key in
                           ('family', 'corpus_records', 'parity_comparisons', 'mismatches')}), flush=True)
-    report = dict(slice='A-TAIL.1', status='pass', families=results,
+    report = dict(slice='A-TAIL.2', status='pass', families=results,
                   corpus_records=sum(row['corpus_records'] for row in results),
                   parity_comparisons=sum(row['parity_comparisons'] for row in results),
                   native_short_body_checks=sum(row['native_short_body_checks'] for row in results),
                   original_calls=machine.calls, mismatches=0,
+                  width_tail_lengths=list(WIDTH_TAILS),
                   inputs=dict(exe_sha256=EXE_HASH, code_start=hex(CODE_START), code_end=hex(CODE_END),
                               code_sha256=CODE_HASH, manifest_sha256=MANIFEST_HASH,
                               archive_sha256=ARCHIVE_HASH, corpus_pins=FAMILIES,

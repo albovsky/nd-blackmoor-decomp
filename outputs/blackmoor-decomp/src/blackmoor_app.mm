@@ -22,12 +22,19 @@
 #include "session_bindings_a51.h"
 #include "session_bindings_a35.h"
 #include "session_bindings_a35_bink.h"
+#include "session_bindings_a79.h"
+#include "session_bindings_a78.h"
+#include "session_bindings_a36.h"
+#include "session_bindings_a17.h"
+#include "session_bindings_a0b.h"
 #include "session_bindings_a97.h"
+#include "session_bindings_a83.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
 #include "session_exit.h"
 #include "session_input.h"
+#include "session_navigation.h"
 #include "caption_layout.h"
 #include "caption_lifecycle.h"
 #include "caption_compositor.h"
@@ -43,6 +50,7 @@
 #include <ctime>
 #include <climits>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include <new>
@@ -178,7 +186,11 @@ struct NativeNewGameState {
  * by ClearSceneData 0x43dd5e/0x43ddde/0x43ddbe; set only by action types
  * 0x77, 0x76 and 0x75, which have no native handler so the session freezes
  * before they could run) and [0x5a4c18] (reset by 0x4d3073 each update).
- * The ~40 UI hit-test callees of that cascade are NOT individually verified. */
+ * RT-17: result_5a4c18 is no longer an input (the zone tests produce the
+ * state, session_navigation) and priority_clear additionally requires that no
+ * scene row has the runtime type of a cascade member (nav_members_idle); the
+ * ~40 UI hit-test callees are verified to miss on their power-on objects by the
+ * RT-17 oracle, not individually reconstructed. */
 struct ProvisionalCursorProvider {
     int32_t sprite_width = 1, sprite_height = 1;
     int32_t hot_x = 0, hot_y = 0;
@@ -205,6 +217,35 @@ struct NativeApp {
     SessionA51Binding *a51 = nullptr;
     SessionA35Binding *a35 = nullptr;
     SessionA97Binding *a97 = nullptr;
+    SessionA83Binding *a83 = nullptr;
+    /* Native bounds; not a declaration of original global capacities. */
+    uint8_t phone_mail[100][A83_MAIL_BYTES]{};
+    uint8_t phone_web[100][A83_WEB_BYTES]{};
+    A83World phone_lists{};
+    SessionA79Binding *a79 = nullptr;
+    /* RT-14: raw 0x36 static overlays (COverlay). */
+    SessionA36Binding *a36 = nullptr;
+    /* RT-15: raw 0x16/0x17 multiframe scene hotspots (handler 0x42b07e). */
+    SessionA17Binding *a17 = nullptr;
+    int32_t a17_rect[4]{};          /* rectangle being assembled from the kernel effects */
+    int32_t a17_logged_rect[4]{};
+    bool a17_logged_valid = false;  /* last rectangle already reported */
+    /* RT-16: raw 0x0b scene-change hotspots (handler 0x42ae73); the host is RT-15's. */
+    SessionA0bBinding *a0b = nullptr;
+    int32_t a0b_rect[4]{};
+    int32_t a0b_logged_rect[4]{};
+    bool a0b_logged_valid = false;
+    size_t a0b_finish_row = 0;      /* row of the visit that reached the finish effect */
+    std::array<uint64_t, OVERLAY36_MAX_ROWS> a36_blit_signature{};
+    uint64_t a36_blits = 0u;
+    /* RT-13: count of 0x4e812f view rebuilds requested by raw 0x79 (the native
+     * app has no inventory view model yet; see native_a79_rebuild_view). */
+    uint64_t inventory_view_rebuilds = 0u;
+    /* RT-19: raw 0x78 (add inventory item, handler 0x4eaadc). Its sound request
+     * (0x4fb2e3) and UI animation request (0x4e0559) are logged and counted, not
+     * performed: the app has no sound-effect backend and no UI button table. */
+    SessionA78Binding *a78 = nullptr;
+    uint64_t a78_sound_requests = 0u, a78_ui_requests = 0u;
     A35World movie_world{};
     /* Process globals mirrored by the controller, alongside the owning
      * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
@@ -236,6 +277,11 @@ struct NativeApp {
     /* DAT_005bb50b as set at scene entry (0x439f20..0x439f41 copies
      * DAT_005bb599, the frame word of the scene-change request). */
     int32_t selector_entry_frame = 0;
+    /* DAT_005bb595 -> 0x5bb593 -> 0x5bb587 (0x439f2e, 0x43a3a0): the vertical
+     * scroll word of the same scene-change request. After entry the live
+     * selector is owned by the navigation globals (nav.selector) and mirrored
+     * here for the providers that read it. */
+    int32_t selector_entry_scroll = 0;
     bool selector_entry_valid = false;
     bool selector_logged = false;
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
@@ -243,11 +289,24 @@ struct NativeApp {
      * accepted event (scan + accept reducers + candidate store). */
     bool test_a62_accept = false;
     bool test_a62_accept_done = false;
+    /* RT-17 test hook: pretend the scene has a row of a cascade-member type, so the app-level
+     * priority_clear wiring (named limit instead of a zone/generic scan) can be observed. */
+    bool test_members_busy = false;
+    /* RT-13 test hook: seed the New Game inventory (item ids in list order and
+     * the held item) right after world_init_apply_new_game, so the raw 0x79
+     * removal can be followed through the real app wiring. */
+    std::vector<int16_t> test_inventory;
+    int test_held = -2;
     /* RT-5 test hook: load this scene instead of the requested target so the
      * exit effect can be followed into a successor the executor can create.
      * It changes game flow and exists only in the test-hooks build. */
     int32_t test_exit_redirect_from = -1;
     int32_t test_exit_redirect = -1;
+    /* RT-15 test hook: on entering SCENE the selector 0x5bb50b becomes FRAME,
+     * standing in for the navigation producer (0x43c2b7.., unbound) that moves
+     * it in the original. Test-hooks build only. */
+    /* RT-16: the option may repeat (one pair per scene). */
+    std::vector<std::pair<int32_t, int32_t>> test_selectors;
 #endif
     /* Headless runs render the offline audio graph a fixed amount per update;
      * live runs leave this zero and let the output device pace playback. */
@@ -273,6 +332,35 @@ struct NativeApp {
     SessionInputState input_state{};
     ProvisionalCursorProvider cursor_provider{};
     int32_t logged_candidate = -2;
+    /* RT-17: the view-navigation producer (session_navigation). The globals
+     * are those of the original named in session_navigation.h; the values the
+     * scene setup 0x4381f4 derives are rebuilt at every scene entry by
+     * nav_begin_scene. gate_deadline (0x63a5c8) persists across scenes. */
+    NavGlobals nav{};
+    NavBands nav_bands{};
+    NavCursor nav_cursor{};
+    bool nav_boot_read = false;
+    int16_t nav_band_words[2] = {0, 0};         /* 0x5b0260 / 0x5b0262 (BSUM[333], [335]) */
+    bool nav_delay_override = false;            /* 0x5b0288 (BSUM[373]) */
+    int16_t nav_delay_words[2] = {0, 0};        /* 0x5b0289 / 0x5b028b (BSUM[374], [376]) */
+    int32_t nav_auto_move = 1;                  /* Game.ini AutoMove, default 1 */
+    bool nav_auto_move_from_ini = false;
+    bool nav_members_idle = true;               /* no row of a cascade-member type */
+    int32_t scene_native_frames = 0;            /* BIK frame count of the current scene */
+    int32_t scene_native_width = 0, scene_native_height = 0;
+    int32_t logged_nav_state = -1;
+    uint64_t nav_steps = 0, nav_selector_moves = 0;
+    bool nav_scene_ready = false;
+    /* RT-17: frame-hold presentation of a multi-frame scene. The original shows
+     * frame [0x5bb50b] of the scene movie (0x43ce92..0x43cf12, 0x4f7c36); a
+     * second player seeks to it (BinkGoto equivalent) once navigation or the
+     * scene entry selects a frame. */
+    BinkPlayer *nav_player = nullptr;
+    std::string scene_video_path;
+    int32_t nav_shown_frame = -1;
+    uint64_t nav_frame_failures = 0;
+    /* RT-14: the overlay hot-rectangle failure is logged once per scene. */
+    bool a36_hot_rects_failure_logged = false;
     bool primary_down = false;
     bool primary_pressed = false, primary_released = false;
     bool failure = false;
@@ -280,6 +368,9 @@ struct NativeApp {
     bool scene_runtime_enabled = false;
     bool session_block_reported = false;
     bool session_transition_reported = false;
+    /* RT-13: a blocked session stops every later tick, so pointer input is
+     * ignored. The block is reported once; ignored input is counted. */
+    uint64_t blocked_input_ignored = 0u;
     int last_stage = -1, last_hover = -2;
     int16_t initial_scene = 0;
     int16_t current_scene_id = 0;
@@ -1076,6 +1167,18 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
         captions.transfer_failed_sticky = true;
         return false;
     }
+    if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u) {
+        /* RT-14: the overlay entries of the render pass 0x4cf9f4 (layers 0..20),
+         * drawn into the seeded back buffer before the caption layers. */
+        size_t drawn = 0u;
+        const int status = session_a36_render(app->a36, 0, 20, &drawn);
+        if (status != OVERLAY36_OK) {
+            record(app, "scene_a36_render_error status=%d detail=%s", status,
+                   session_a36_failure(app->a36));
+            captions.transfer_failed_sticky = true;
+            return false;
+        }
+    }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
         record(app, "caption_composition_stopped reason=writer-failed status=%d "
@@ -1597,6 +1700,15 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     }
     if (event_kind != BLACKMOOR_POINTER_MOVE)
         record(app, "pointer kind=%d x=%d y=%d button=%u", event_kind, x, y, button);
+    if (app->session != nullptr && app->session_block_reported &&
+        event_kind != BLACKMOOR_POINTER_MOVE && button == 0u) {
+        ++app->blocked_input_ignored;
+        /* First and every 20th, so a long freeze stays visible without flooding. */
+        if (app->blocked_input_ignored == 1u || app->blocked_input_ignored % 20u == 0u)
+            record(app, "session_frozen_input_ignored scene=%d count=%llu "
+                   "reason=scene-session-blocked (see session_frozen above)",
+                   app->current_scene_id, (unsigned long long)app->blocked_input_ignored);
+    }
 }
 
 static void key(void *context, unsigned virtual_key, int down, int repeat)
@@ -1618,6 +1730,12 @@ static void cleanup(NativeApp *app)
     session_a51_destroy(app->a51);
     session_a35_destroy(app->a35);
     session_a97_destroy(app->a97);
+    session_a83_destroy(app->a83);
+    session_a79_destroy(app->a79);
+    session_a78_destroy(app->a78);
+    session_a36_destroy(app->a36);
+    session_a17_destroy(app->a17);
+    session_a0b_destroy(app->a0b);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
     app->a28 = nullptr;
@@ -1628,6 +1746,8 @@ static void cleanup(NativeApp *app)
     if (app->scene) scene_resource_close(app->scene);
     if (app->retired_scene) scene_resource_close(app->retired_scene);
     if (app->video) bink_player_close(app->video);
+    if (app->nav_player) bink_player_close(app->nav_player);
+    app->nav_player = nullptr;
     if (app->boot) engine_boot_close(app->boot);
     autotext_close(app->captions.auto_text);
     app->captions.auto_text = nullptr;
@@ -2055,11 +2175,11 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
 /* DAT_005bb50b, the signed selector 0x42ea87 compares at 0x42ebb0. Its only
  * stores are 0x439f41 (scene entry: DAT_005bb599, the frame word copied from
  * the scene-change request, guarded by the restore flag 0x5e32b5 == 0) and the
- * navigation block 0x43c2b7..0x43c87f of 0x43a7ca. The navigation commands
- * come from the keyboard path 0x437774 and the edge-scroll block 0x4f197d..
- * 0x4f1dba, neither of which exists in the native app, so after a transition
- * the register still holds the entry frame. The New Game entry scene has no
- * proven entry frame, so it is reported as unavailable. */
+ * navigation block 0x43c2b7..0x43c87f of 0x43a7ca. RT-17 binds the edge-zone
+ * command (cascade 0x4f197d..0x4f1dba, hover) and the tick step; the value
+ * returned here is the live selector (selector_entry_frame mirrors nav.selector
+ * after every step). The keyboard path 0x437774 is still unbound. The New Game
+ * entry scene has no proven entry frame, so it is reported as unavailable. */
 static int native_a62_current_selector(void *context, int16_t *selector)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
@@ -2070,7 +2190,8 @@ static int native_a62_current_selector(void *context, int16_t *selector)
     if (!app->selector_logged) {
         app->selector_logged = true;
         record(app, "scene_a62_selector scene=%d value=%d source=scene-change-frame-word "
-               "(0x439f20..0x439f41 DAT_005bb50b=DAT_005bb599) navigation_producers=unbound",
+               "(0x439f20..0x439f41 DAT_005bb50b=DAT_005bb599) navigation_producers=edge-zone+tick-step"
+               "(RT-17) keyboard=unbound",
                app->current_scene_id, *selector);
     }
     return 0;
@@ -2594,6 +2715,402 @@ static int native_a97_transition(void *context, const ActionSoundTransition *eff
     return 0;
 }
 
+static int native_a83_refresh(void *context, int16_t group, int32_t active, int16_t child)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (active != 1) return 2;
+    const int status = scene_session_mark_ui_dirty(app->session, group, child);
+    record(app, "scene_a83_refresh group=%d active=%d child=%d mail_count=%d web_count=%d status=%d",
+           group, active, child, app->phone_lists.mail_count, app->phone_lists.web_count, status);
+    return status == SCENE_SESSION_OK ? 0 : 2;
+}
+
+static int native_a83_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int status = session_a83_handler(app->a83, row, action, before, out);
+    if (status == SCENE_ACTION_HANDLER_OK && out->disposition != SCENE_ACTION_HANDLER_DIRECT_COMPLETED) {
+        record(app, "scene_a83_not_applied row=%zu disposition=%d phase=%u", row, out->disposition, out->phase);
+    } else if (status == SCENE_ACTION_HANDLER_OK) {
+        const A83Result *last = session_a83_last_result(app->a83);
+        record(app, "scene_a83_applied row=%zu list=%s selected=%d inserted=%u mail_count=%d web_count=%d disposition=%d phase=%u",
+               row, last != nullptr && last->list != 0u ? "web" : "mail",
+               last != nullptr ? last->selected : -1, last != nullptr ? last->inserted : 0u,
+               app->phone_lists.mail_count, app->phone_lists.web_count, out->disposition, out->phase);
+    } else
+        record(app, "scene_a83_blocker row=%zu status=%d detail=%s", row, status,
+               session_a83_failure(app->a83));
+    return status;
+}
+
+/* The 0x83 phone lists: bind the native storage, run the UICL initializer
+ * (0x4e4337 / 0x4e2e64..0x4e2fa4) and create the binding. A previous binding
+ * (a repeated call) is destroyed first so it is neither leaked nor left
+ * pointing at the re-initialized lists. Capacities are native bounds, not
+ * original globals. */
+static bool create_phone_list_binding(NativeApp *app, const uint8_t *uicl, size_t uicl_length)
+{
+    if (app->a83 != nullptr) {
+        record(app, "scene_a83_replaced_previous_binding");
+        session_a83_destroy(app->a83);
+        app->a83 = nullptr;
+    }
+    app->phone_lists.mail = app->phone_mail;
+    app->phone_lists.mail_capacity = 100u;
+    app->phone_lists.web = app->phone_web;
+    app->phone_lists.web_capacity = 100u;
+    if (action83_initialize(&app->phone_lists, uicl, uicl_length) != A83_OK) return false;
+    SessionA83Host a83_host{&app->phone_lists, {app, native_a83_refresh}};
+    app->a83 = session_a83_create(&a83_host);
+    if (app->a83 == nullptr) return false;
+    record(app, "scene_a83_initialized source=BOOT/UICL mail_count=%d web_count=%d",
+           app->phone_lists.mail_count, app->phone_lists.web_count);
+    return true;
+}
+
+/* RT-13: 0x4e812f is the original inventory view rebuild that follows a list
+ * change. The native app has no inventory view model (and no item type table),
+ * so this provider only records that the original would have rebuilt the view.
+ * What 0x4e812f derives (lists 0x583abd/0x583b49, words 0x583a2d/0x583a2f, the
+ * per-page slot table, paging floats) is therefore NOT maintained: UNVERIFIED,
+ * nothing in the native app reads it yet. */
+static int native_a79_rebuild_view(void *context, int16_t removed_item)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->inventory_view_rebuilds;
+    record(app, "scene_a79_inventory_removed item=%d count=%d view-rebuild=requested-not-modeled "
+           "rebuilds=%llu", removed_item,
+           (int)static_cast<int16_t>(app->new_game.selector_words[0]),
+           (unsigned long long)app->inventory_view_rebuilds);
+    return 0;
+}
+
+/* ---- RT-19: host providers for the raw 0x78 (add inventory item) binding ----
+ * 0x4e9e84 / 0x4ea06c request the same 0x4e812f view rebuild as raw 0x79 (counted
+ * with it, still not modeled). The two requests below are the original's host
+ * effects and are only recorded: 0x4fb2e3(0x17) starts the sound-manager slot 0x17
+ * (a validity probe 0x4f6059 plus a store of 1 into the slot's trigger word;
+ * which clip slot 0x17 holds is unrecovered and this app has no sound-effect
+ * backend), and 0x4e0559(1, 1, 0) sets two dword flags of the UI button table
+ * at 0x5a17b4 (+0x1a4 per button) that the interface renderer reads (the app
+ * renders no such buttons). Both are UNVERIFIED host effects, never silent, and
+ * neither blocks the session (the original does not wait for them). */
+static int native_a78_rebuild_view(void *context, int16_t item)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->inventory_view_rebuilds;
+    record(app, "scene_a78_inventory_changed item=%d count=%d view-rebuild=requested-not-modeled "
+           "rebuilds=%llu", item,
+           (int)static_cast<int16_t>(app->new_game.view.inventory.selector_words_583a2b.values[0]),
+           (unsigned long long)app->inventory_view_rebuilds);
+    return 0;
+}
+
+static int native_a78_request_sound(void *context, uint16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->a78_sound_requests;
+    record(app, "scene_a78_sound_request slot=0x%02x (0x4fb2e3 trigger; NOT PLAYED: no sound-effect "
+           "backend, slot clip unrecovered, unverified) requests=%llu", slot,
+           (unsigned long long)app->a78_sound_requests);
+    return 0;
+}
+
+static int native_a78_request_ui_animation(void *context, int16_t index, int32_t enable, int16_t sub)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->a78_ui_requests;
+    record(app, "scene_a78_ui_animation_request button=%d enable=%d sub=%d (0x4e0559 on 0x570508: "
+           "UI button flags 0x5a17b4/0x5a17b8; NOT RENDERED, unverified) requests=%llu", index, enable,
+           sub, (unsigned long long)app->a78_ui_requests);
+    return 0;
+}
+
+/* ---- RT-14: host providers for the raw 0x36 overlay binding -------------
+ * COverlay (0x4899ca) registers a render entry per row, draws it every frame
+ * through 0x48a3db and is hit-tested by the pointer cascade (0x4f104f ->
+ * 0x4897cd). Surfaces are the game's own CIFTREE images (0x4c2790), blits are
+ * the recovered 0x4c5377/0x4c5d4b into the host back buffer. Sounds named by an
+ * overlay (0x4fb77a family) have no native backend here: such a row is an
+ * explicit UNSUPPORTED blocker before it registers. */
+static int native_a36_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "overlay");
+    if (handle == 0u) {
+        record(app, "scene_a36_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    return 0;
+}
+
+static int native_a36_tick_count(void *context, uint32_t *ticks)
+{
+    if (context == nullptr || ticks == nullptr) return 1;
+    *ticks = blackmoor_macos_monotonic_ms();
+    return 0;
+}
+
+static int native_a36_row_phase(void *context, int32_t row, uint32_t *phase)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    SceneActionRuntimeState state{};
+    if (app == nullptr || app->session == nullptr || phase == nullptr || row < 0 ||
+        scene_session_get_action_state(app->session, static_cast<size_t>(row), &state) !=
+            SCENE_SESSION_OK) return 1;
+    *phase = state.phase;
+    return 0;
+}
+
+static int native_a36_blit(void *context, const Overlay36Blit *op)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || op == nullptr) return 1;
+    NativeCaptionRuntime &captions = app->captions;
+    CaptionCompositorView source{};
+    CaptionCompositorView destination{};
+    destination.pixels = captions.backbuffer_pixels.data();
+    destination.byte_capacity = captions.backbuffer_pixels.size();
+    destination.width = 640;
+    destination.height = 480;
+    destination.pitch_bytes = 1280;
+    destination.format = captions.compositor_format;
+    int status = CAPTION_COMPOSITOR_OK;
+    if (!captions.backbuffer_ready || op->source_surface == 0u ||
+        !native_caption_view_for_handle(app, op->source_surface, &source))
+        status = CAPTION_COMPOSITOR_ERR_UNSUPPORTED;
+    const CaptionRect src{op->src[0], op->src[1], op->src[2], op->src[3]};
+    const CaptionRect dst{op->dst[0], op->dst[1], op->dst[2], op->dst[3]};
+    if (status == CAPTION_COMPOSITOR_OK)
+        status = caption_compositor_blit(&source, &destination,
+            op->kind == OVERLAY36_BLIT_PLAIN ? CAPTION_BLIT_OPAQUE : CAPTION_BLIT_KEYED,
+            &src, &dst, captions.pixel_format.color_key);
+    if (status != CAPTION_COMPOSITOR_OK) {
+        record(app, "scene_a36_blit_error row=%d slot=%d kind=%d surface=%u status=%d src=%d,%d,%d,%d "
+               "dst=%d,%d,%d,%d label=%s", op->row, op->slot, op->kind, op->source_surface, status,
+               op->src[0], op->src[1], op->src[2], op->src[3], op->dst[0], op->dst[1], op->dst[2],
+               op->dst[3], op->label ? op->label : "unknown");
+        return 1;
+    }
+    ++app->a36_blits;
+    /* One line per distinct blit of a row, not one per frame. */
+    uint64_t signature = UINT64_C(14695981039346656037);
+    for (int value : {op->kind, static_cast<int>(op->source_surface), op->src[0], op->src[1], op->src[2],
+                      op->src[3], op->dst[0], op->dst[1], op->dst[2], op->dst[3]}) {
+        signature ^= static_cast<uint32_t>(value);
+        signature *= UINT64_C(1099511628211);
+    }
+    if (op->row >= 0 && static_cast<size_t>(op->row) < app->a36_blit_signature.size() &&
+        app->a36_blit_signature[static_cast<size_t>(op->row)] != signature) {
+        app->a36_blit_signature[static_cast<size_t>(op->row)] = signature;
+        record(app, "scene_a36_blit row=%d slot=%d kind=%s surface=%u src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+               "composed=RGB555-backbuffer scope=host-adapter (layer order vs UI unverified)",
+               op->row, op->slot, op->kind == OVERLAY36_BLIT_PLAIN ? "plain" : "keyed",
+               op->source_surface, op->src[0], op->src[1], op->src[2], op->src[3],
+               op->dst[0], op->dst[1], op->dst[2], op->dst[3]);
+    }
+    return 0;
+}
+
+static void native_a36_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    switch (effect) {
+    case OV36_FX_LIST_PUSH:
+        record(app, "scene_a36_register row=%d list_index=%d (COverlay::Process phase 0, 0x4899ca)", b, a);
+        break;
+    case OV36_FX_CACHE_REUSE:
+        record(app, "scene_a36_surface_reuse cache_slot=%d surface=%u", a, static_cast<uint32_t>(b));
+        break;
+    case OV36_FX_SURFACE_LOAD:
+        record(app, "scene_a36_surface_load cache_slot=%d surface=%u source=CIFTREE", a,
+               static_cast<uint32_t>(b));
+        break;
+    case OV36_FX_RENDER_STORE:
+        record(app, "scene_a36_render_entry slot=%d layer=%d callback=0x48a3db", a, b);
+        break;
+    case OV36_FX_PHASE:
+        record(app, "scene_a36_phase new_phase=%d", a);
+        break;
+    case OV36_FX_EVENT_WRITE:
+        record(app, "scene_a36_event_write event=%d value=%d", a, b);
+        break;
+    case OV36_FX_TRANSFER:
+        record(app, "scene_a36_scene_change_words target=%d (0x5bb57b.., mode 0x583999 := 4)", a);
+        break;
+    case OV36_FX_FINISH:
+        record(app, "scene_a36_finish row=%d (0x42ba3a)", a);
+        break;
+    default:
+        break;
+    }
+}
+
+static int native_a36_load_world(void *context, Overlay36World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr || app->new_game.action_core.event_flags == nullptr ||
+        !app->selector_entry_valid || app->selector_entry_frame < INT16_MIN ||
+        app->selector_entry_frame > INT16_MAX) return 1;
+    world->events = app->new_game.action_core.event_flags;
+    world->event_count = app->new_game.action_core.event_flag_count;
+    /* DAT_005bb50b, see native_a62_current_selector. */
+    world->selector = static_cast<int16_t>(app->selector_entry_frame);
+    const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+    world->held_item = held != nullptr ? *held : static_cast<int16_t>(-1);
+    world->start_flag_5bb1ca = app->start_flag_5bb1ca;
+    world->mode_583999 = 3;
+    /* 0x583186 / 0x58318a: left/top of the VIEW destination rectangle. */
+    world->view_x_583186 = app->scene_destination.left;
+    world->view_y_58318a = app->scene_destination.top;
+    /* 0x5d15e3 (saved background of the transparent-restore blit) and the
+     * AUTOTEXT surface globals are not modeled: a blit that needs them fails
+     * explicitly (surface 0). */
+    return 0;
+}
+
+static void native_a36_store_world(void *context, const Overlay36World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_a36_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a36_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1],
+           request->opaque_dwords[2]);
+    return 0;
+}
+
+/* ---- RT-15: raw 0x16/0x17 multiframe scene hotspot (handler 0x42b07e) ----- */
+static int native_a17_load_world(void *context, Action17World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr || !app->selector_entry_valid ||
+        app->selector_entry_frame < INT16_MIN || app->selector_entry_frame > INT16_MAX) return 1;
+    /* DAT_005bb50b, see native_a62_current_selector. */
+    world->selector = static_cast<int16_t>(app->selector_entry_frame);
+    world->start_flag_5bb1ca = app->start_flag_5bb1ca;
+    world->mode_583999 = 3;
+    return 0;
+}
+
+static void native_a17_store_world(void *context, const Action17World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_a17_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a17_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d "
+           "(0x42b217 scene-change cells, mode 0x583999 := 4)",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1],
+           request->opaque_dwords[2]);
+    return 0;
+}
+
+static void native_a17_observe(void *context, size_t row, int effect, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    switch (effect) {
+    case ACTION17_FX_START_FLAG:
+        record(app, "scene_a17_register row=%zu start_flag_5bb1ca=%d (0x42b0b2)", row, value);
+        break;
+    case ACTION17_FX_REQUEST:
+        break;
+    case ACTION17_FX_LEFT: app->a17_rect[0] = value; break;
+    case ACTION17_FX_TOP: app->a17_rect[1] = value; break;
+    case ACTION17_FX_RIGHT: app->a17_rect[2] = value; break;
+    case ACTION17_FX_BOTTOM:
+        app->a17_rect[3] = value;
+        if (!app->a17_logged_valid || std::memcmp(app->a17_rect, app->a17_logged_rect,
+                                                  sizeof(app->a17_rect)) != 0) {
+            std::memcpy(app->a17_logged_rect, app->a17_rect, sizeof(app->a17_rect));
+            app->a17_logged_valid = true;
+            record(app, "scene_a17_frame_hit row=%zu request=1 rect=%d,%d,%d,%d selector=%d (0x42b14d)",
+                   row, app->a17_rect[0], app->a17_rect[1], app->a17_rect[2], app->a17_rect[3],
+                   static_cast<int>(app->selector_entry_frame));
+        }
+        break;
+    case ACTION17_FX_DONE:
+        record(app, "scene_a17_finish row=%zu completion_byte=1 (0x42b221)", row);
+        break;
+    default:
+        break;
+    }
+}
+
+static int native_a0b_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a0b_transition_refused row=%zu target=%d (completion byte not committed)",
+               app->a0b_finish_row, request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a0b_finish row=%zu completion_byte=1 (0x42afb3)", app->a0b_finish_row);
+    record(app, "scene_a0b_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d "
+           "(0x42afb3 scene-change cells, mode 0x583999 := 4)",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1],
+           request->opaque_dwords[2]);
+    return 0;
+}
+
+/* RT-16: the same cells as the 0x42b07e handler; own log names. */
+static void native_a0b_observe(void *context, size_t row, int effect, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    switch (effect) {
+    case ACTION17_FX_START_FLAG:
+        record(app, "scene_a0b_register row=%zu start_flag_5bb1ca=%d (0x42aea9)", row, value);
+        break;
+    case ACTION17_FX_LEFT: app->a0b_rect[0] = value; break;
+    case ACTION17_FX_TOP: app->a0b_rect[1] = value; break;
+    case ACTION17_FX_RIGHT: app->a0b_rect[2] = value; break;
+    case ACTION17_FX_BOTTOM:
+        app->a0b_rect[3] = value;
+        if (!app->a0b_logged_valid || std::memcmp(app->a0b_rect, app->a0b_logged_rect,
+                                                  sizeof(app->a0b_rect)) != 0) {
+            std::memcpy(app->a0b_logged_rect, app->a0b_rect, sizeof(app->a0b_rect));
+            app->a0b_logged_valid = true;
+            record(app, "scene_a0b_rect row=%zu rect=%d,%d,%d,%d (0x42aed1..0x42af40)", row,
+                   app->a0b_rect[0], app->a0b_rect[1], app->a0b_rect[2], app->a0b_rect[3]);
+        }
+        break;
+    case ACTION17_FX_PHASE:
+        break;
+    case ACTION17_FX_DONE:
+        /* Reported by native_a0b_transition once the scene-change request was accepted: a
+         * refused request rolls the visit back (the completion byte is not committed). */
+        app->a0b_finish_row = row;
+        break;
+    default:
+        break;
+    }
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2646,18 +3163,280 @@ static bool create_native_session_bindings(NativeApp *app)
     a97_host.captions_enabled = native_a97_captions_enabled;
     a97_host.transition = native_a97_transition;
     app->a97 = session_a97_create(&a97_host);
+    const uint8_t *uicl = nullptr;
+    size_t uicl_length = 0;
+    if (!find_boot_payload(app, "UICL", &uicl, &uicl_length) ||
+        !create_phone_list_binding(app, uicl, uicl_length)) {
+        record(app, "scene_session_create_error provider=action-family-83 detail=UICL-initial-lists");
+        return false;
+    }
+    SessionA79Host a79_host{};
+    {
+        const WorldInitInventory &inventory = app->new_game.view.inventory;
+        a79_host.model.held_item = inventory.selected_item_candidate;
+        a79_host.model.item_count = reinterpret_cast<int16_t *>(inventory.selector_words_583a2b.values);
+        a79_host.model.items = inventory.item_ids_583a31.values;
+        a79_host.model.item_capacity = inventory.item_ids_583a31.count;
+        a79_host.model.presence = inventory.presence_583bd5.values;
+        a79_host.model.presence_capacity = inventory.presence_583bd5.count;
+    }
+    a79_host.view.context = app;
+    a79_host.view.rebuild_view = native_a79_rebuild_view;
+    app->a79 = session_a79_create(&a79_host);
+    SessionA78Host a78_host{};
+    a78_host.model.inventory = a79_host.model;   /* RT-19: the same arrays as raw 0x79 */
+    /* The native app has no inventory screen that can open, so the view stays in its
+     * constructor state: mode 0x764c = 0 (0x4e7bb1) and slot byte 0x7010 = 0. */
+    a78_host.model.view.mode = 0;
+    a78_host.model.view.slot_flag = 0;
+    a78_host.view.inventory.context = app;
+    a78_host.view.inventory.rebuild_view = native_a78_rebuild_view;
+    a78_host.view.context = app;
+    a78_host.view.request_sound = native_a78_request_sound;
+    a78_host.view.request_ui_animation = native_a78_request_ui_animation;
+    app->a78 = session_a78_create(&a78_host);
+    SessionA36Host a36_host{};
+    a36_host.kernel.context = app;
+    a36_host.kernel.load_surface = native_a36_load_surface;
+    a36_host.kernel.tick_count = native_a36_tick_count;
+    a36_host.kernel.row_phase = native_a36_row_phase;
+    a36_host.kernel.blit = native_a36_blit;
+    a36_host.kernel.observe = native_a36_observe;
+    a36_host.load_world = native_a36_load_world;
+    a36_host.store_world = native_a36_store_world;
+    a36_host.transition = native_a36_transition;
+    app->a36 = session_a36_create(&a36_host);
+    SessionA17Host a17_host{};
+    a17_host.context = app;
+    a17_host.load_world = native_a17_load_world;
+    a17_host.store_world = native_a17_store_world;
+    a17_host.transition = native_a17_transition;
+    a17_host.observe = native_a17_observe;
+    app->a17 = session_a17_create(&a17_host);
+    SessionA0bHost a0b_host = a17_host;   /* RT-16: same selector, start flag and scene-change request */
+    a0b_host.observe = native_a0b_observe;
+    a0b_host.transition = native_a0b_transition;
+    app->a0b = session_a0b_create(&a0b_host);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
                                          app->scene_destination.right, app->scene_destination.bottom};
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
     }
     return true;
+}
+
+/* ---- RT-17: view navigation (session_navigation) --------------------------- */
+
+/* Game.ini AutoMove: the original reads GetPrivateProfileIntA("Nancy Data",
+ * "AutoMove", 1, ...) into 0x5bb206 at 0x434c3b..0x434c52; the hover stepping
+ * block 0x43c216 requires it nonzero. A missing key keeps the default 1. */
+static int32_t game_ini_auto_move(const std::string &directory, bool *found)
+{
+    *found = false;
+    FILE *file = std::fopen((directory + "/Game.ini").c_str(), "rb");
+    if (!file) return 1;
+    char line[4096];
+    bool data_section = false;
+    int32_t result = 1;
+    while (std::fgets(line, sizeof(line), file)) {
+        std::string value = trim(line);
+        const size_t comment = value.find(';');
+        if (comment != std::string::npos) value = trim(value.substr(0, comment));
+        if (value.empty()) continue;
+        if (value.front() == '[') { data_section = value == "[Nancy Data]"; continue; }
+        const size_t equal = value.find('=');
+        if (!data_section || equal == std::string::npos) continue;
+        if (trim(value.substr(0, equal)) == "AutoMove") {
+            const std::string setting = trim(value.substr(equal + 1));
+            char *end = nullptr;
+            const long parsed = std::strtol(setting.c_str(), &end, 10);
+            if (!setting.empty() && end != setting.c_str() && *end == '\0') {
+                result = static_cast<int32_t>(parsed);
+                *found = true;
+            }
+            break;
+        }
+    }
+    std::fclose(file);
+    return result;
+}
+
+/* The BOOT BSUM payload is copied over 0x5b0113..0x5b02a4 (0x4356eb), so a
+ * global at 0x5b0113+n is BSUM[n]: the band words 0x5b0260 / 0x5b0262 are
+ * BSUM[333] / BSUM[335]; the optional hover/key delay override is the byte
+ * 0x5b0288 = BSUM[373] and the words 0x5b0289 / 0x5b028b = BSUM[374] / [376]
+ * (read at 0x43a6d1..0x43a6ef). */
+static bool nav_read_boot(NativeApp *app)
+{
+    if (app->nav_boot_read) return true;
+    EngineBootSummary summary{};
+    if (app->boot == nullptr || engine_boot_get_summary(app->boot, &summary) != ENGINE_BOOT_OK)
+        return false;
+    const uint8_t *b = summary.bsum_raw;
+    const auto word = [&](size_t offset) {
+        return static_cast<int16_t>(static_cast<uint16_t>(b[offset] | (b[offset + 1u] << 8)));
+    };
+    app->nav_band_words[0] = word(0x5b0260u - 0x5b0113u);
+    app->nav_band_words[1] = word(0x5b0262u - 0x5b0113u);
+    app->nav_delay_override = b[0x5b0288u - 0x5b0113u] != 0u;
+    app->nav_delay_words[0] = word(0x5b0289u - 0x5b0113u);
+    app->nav_delay_words[1] = word(0x5b028bu - 0x5b0113u);
+    app->nav_auto_move = game_ini_auto_move(app->game_directory, &app->nav_auto_move_from_ini);
+    app->nav_boot_read = true;
+    record(app, "nav_provider band_words[0x5b0260,0x5b0262]=%d,%d delay_override[0x5b0288]=%d "
+           "delay_words[0x5b0289,0x5b028b]=%d,%d auto_move[0x5bb206]=%d (%s) "
+           "source=BOOT-BSUM+Game.ini mode[0x5bb2b6]=1(default,never rewritten) step[0x5bb2c6]=1",
+           app->nav_band_words[0], app->nav_band_words[1], app->nav_delay_override ? 1 : 0,
+           app->nav_delay_words[0], app->nav_delay_words[1], app->nav_auto_move,
+           app->nav_auto_move_from_ini ? "Game.ini" : "default 1, key absent");
+    return true;
+}
+
+/* Present frame `selector` of the scene movie and stop the background movie
+ * from playing past it. The original keeps the frame set of a scene as loaded
+ * surfaces and shows [0x5bb50b] (0x43ce92: when 0x5bb509 differs from the
+ * selector it points the view at that surface); the movie is never played as a
+ * background. The native background player only exists to fetch frame 0, so
+ * for a multi-frame scene it is stopped and a second player decodes the
+ * requested frame (seek is one-based, BinkGoto-like). Single-frame scenes are
+ * untouched (their EOS handling is a separate, tested path). */
+static bool nav_show_frame(NativeApp *app, int16_t selector, const char *why)
+{
+    if (app->scene_native_frames <= 1) return true;
+    char error[256] = {};
+    if (app->video != nullptr) {
+        /* The background player already holds every decoded frame: hand it over (no second
+         * decode) and stop advancing it. This happens before any failure below, so a failed
+         * frame change never leaves the old movie playing under a different selector. */
+        if (app->nav_player != nullptr) bink_player_close(app->nav_player);
+        app->nav_player = app->video;
+        app->video = nullptr;
+        record(app, "nav_background_hold scene=%d reason=%s (frame-hold scene: background movie stopped)",
+               app->current_scene_id, why);
+    }
+    if (selector < 0 || selector >= app->scene_native_frames) {
+        ++app->nav_frame_failures;
+        record(app, "nav_frame_unavailable selector=%d frames=%d reason=%s failures=%llu (selector outside the "
+               "movie: the original would fail the frame load; native keeps the last shown frame, "
+               "movie stopped)", selector, app->scene_native_frames, why,
+               (unsigned long long)app->nav_frame_failures);
+        return false;
+    }
+    if (app->nav_shown_frame == selector) return true;
+    if (app->nav_player == nullptr) {
+        BinkPlayerInfo info{};
+        if (bink_player_open(app->scene_video_path.c_str(), &app->nav_player, &info, error,
+                             sizeof(error)) != BINK_PLAYER_OK) {
+            app->nav_player = nullptr;
+            ++app->nav_frame_failures;
+            record(app, "nav_frame_error stage=open selector=%d reason=%s failures=%llu detail=%s "
+                   "(last shown frame kept, movie stopped)", selector, why,
+                   (unsigned long long)app->nav_frame_failures, error);
+            return false;
+        }
+    }
+    const uint64_t now_ns = monotonic_now_ns();
+    BinkPlayerFrame frame{};
+    if (bink_player_seek(app->nav_player, static_cast<uint32_t>(selector) + 1u, now_ns, error,
+                         sizeof(error)) != BINK_PLAYER_OK ||
+        bink_player_advance(app->nav_player, now_ns, &frame, error, sizeof(error)) != BINK_PLAYER_OK ||
+        frame.current_frame != selector || !copy_player_frame(app, frame)) {
+        ++app->nav_frame_failures;
+        record(app, "nav_frame_error stage=seek selector=%d reason=%s failures=%llu detail=%s "
+               "(last shown frame kept, movie stopped)", selector, why,
+               (unsigned long long)app->nav_frame_failures, error);
+        return false;
+    }
+    app->nav_shown_frame = selector;
+    uint64_t fnv = 1469598103934665603ull;   /* FNV-1a over the decoded RGBA, to tell frames apart */
+    for (const uint8_t byte : app->scene_frame.rgba) fnv = (fnv ^ byte) * 1099511628211ull;
+    record(app, "nav_frame_shown selector=%d frames=%d reason=%s rgba_fnv1a=%016llx", selector,
+           app->scene_native_frames, why, (unsigned long long)fnv);
+    return true;
+}
+
+/* Rebuild the navigation globals the scene setup 0x4381f4 derives. Called at
+ * every scene entry (initial scene and each transition) after the entry
+ * selector/scroll words are known. Unbound producers are named in the log. */
+static void nav_begin_scene(NativeApp *app)
+{
+    app->nav_scene_ready = false;
+    if (!nav_read_boot(app)) {
+        /* No navigation globals: the zone tests cannot run and the member check was not made,
+         * so do not keep a previous scene's "idle" verdict (priority_clear would be assumed). */
+        app->nav_members_idle = false;
+        record(app, "nav_scene_error detail=boot-summary-unavailable cascade_members_idle=0");
+        return;
+    }
+    const int32_t frames = app->scene_native_frames;
+    NavGlobals g{};
+    g.gate_deadline = app->nav.gate_deadline;      /* 0x63a5c8 is process-wide */
+    g.selector = app->selector_entry_valid ? static_cast<int16_t>(app->selector_entry_frame)
+                                           : static_cast<int16_t>(0);
+    g.frame_min = 0;                               /* 0x416873 */
+    g.frame_max = static_cast<int16_t>(frames - 1);/* 0x416897: count - 1 */
+    g.step = 1;                                    /* 0x439e0f */
+    g.mode = 1;                                    /* 0x439ddf */
+    g.arrow_width = frames == 1 ? 0 : 15;          /* 0x439e21, zeroed by 0x439f05 when one frame */
+    g.hover_delay = 400;                           /* 0x439e33 */
+    g.key_delay = 66;                              /* 0x439e3c */
+    if (app->nav_delay_override) {                 /* 0x43a6d1..0x43a6ef */
+        g.hover_delay = app->nav_delay_words[0];
+        g.key_delay = app->nav_delay_words[1];
+    }
+    g.scroll_step = 10;                            /* 0x439e18 -> 0x5c39fd at 0x43a3e7 */
+    g.scroll = static_cast<int32_t>(static_cast<int16_t>(app->selector_entry_scroll)); /* 0x43a3a0 */
+    const StartupMenuRect image_view = {app->view_words[8], app->view_words[9],
+                                        app->view_words[10], app->view_words[11]};
+    g.scroll_end = g.scroll + (image_view.bottom - image_view.top);   /* 0x43a3ad..0x43a3c0 */
+    g.image_bottom = app->scene_native_height - 1; /* 0x4168c4: movie height - 1 */
+    const bool view_is_whole_image =
+        image_view.left == 0 && image_view.top == 0 &&
+        image_view.right == app->scene_native_width - 1 &&
+        image_view.bottom == app->scene_native_height - 1;
+    g.arrow_height = view_is_whole_image ? 0 : 15; /* 0x439e2a, zeroed by 0x43a4f3 */
+    g.nav_allowed = 1;                             /* 0x438d0c (types 0x1e/0x1f unbound) */
+    g.auto_move = app->nav_auto_move;
+    g.frames_cached = 0;                           /* 0x439efb */
+    g.cursor_mode = app->captions.lifecycle.g.overlay_ui;
+    g.state = 0;
+    app->nav = g;
+    const StartupMenuRect &view = app->scene_destination;
+    app->nav_bands.x1 = view.left + app->nav_band_words[0] - 1;    /* 0x4371da */
+    app->nav_bands.y1 = view.top + app->nav_band_words[1] - 1;     /* 0x4371ac */
+    app->nav_bands.x2 = view.right - app->nav_band_words[0] + 1;   /* 0x4371ef */
+    app->nav_bands.y2 = view.bottom - app->nav_band_words[1] + 1;  /* 0x4371c0 */
+    app->logged_nav_state = -1;
+    /* Cascade members before the zone tests: any row of their runtime types may
+     * enable a UI hit test that native does not model. */
+    std::vector<uint8_t> types;
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        SceneActionInfo info{};
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK)
+            types.push_back(info.type);
+    }
+    app->nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) {
+        app->nav_members_idle = false;
+        record(app, "test_members_busy applied (test hook: scene treated as having a cascade-member row)");
+    }
+#endif
+    app->nav_scene_ready = true;
+    (void)nav_show_frame(app, g.selector, "scene-entry");
+    record(app, "nav_scene_begin scene=%d selector=%d%s range=%d..%d mode=%d step=%d arrows=%d,%d "
+           "delays=%d,%d scroll=%d/%d image_bottom=%d bands=%d,%d,%d,%d auto_move=%d "
+           "cascade_members_idle=%d keyboard_producer=unbound",
+           app->current_scene_id, g.selector, app->selector_entry_valid ? "" : "(unbound: initial scene)",
+           g.frame_min, g.frame_max, g.mode, g.step, g.arrow_width, g.arrow_height, g.hover_delay,
+           g.key_delay, g.scroll, g.scroll_end, g.image_bottom, app->nav_bands.x1, app->nav_bands.y1,
+           app->nav_bands.x2, app->nav_bands.y2, g.auto_move, app->nav_members_idle ? 1 : 0);
 }
 
 static bool begin_native_session_bindings_scene(NativeApp *app)
@@ -2676,20 +3455,123 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
         return false;
     }
     if (session_a35_begin_scene(app->a35, app->scene) != A35_RUNTIME_OK) return false;
+    if (session_a83_begin_scene(app->a83, app->scene) != A83_OK) {
+        record(app, "scene_session_create_error provider=action-family-83 detail=%s",
+               session_a83_failure(app->a83));
+        return false;
+    }
     if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_a97_failure(app->a97));
         return false;
     }
+    if (session_a79_begin_scene(app->a79, app->scene) != ACTION79_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a79_failure(app->a79));
+        return false;
+    }
+    if (session_a78_begin_scene(app->a78, app->scene) != ACTION78_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a78_failure(app->a78));
+        return false;
+    }
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         SceneActionInfo info{};
+        Action78Object a78_object{};
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_A78_TYPE && session_a78_object(app->a78, row, &a78_object) == 1)
+            record(app, "scene_a78_construct row=%zu item=%d take=%u swap=%u (add-inventory-item, 0x4eaadc)",
+                   row, (int)static_cast<int16_t>(a78_object.item_word), (unsigned)a78_object.take_flag,
+                   (unsigned)a78_object.swap_flag);
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_A79_TYPE)
+            record(app, "scene_a79_construct row=%zu item=%d (remove-inventory-item, 0x4eac4c)",
+                   row, session_a79_item_word(app->a79, row));
         if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A97_TYPE)
             record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
                    row, session_a97_selected(app->a97, row));
     }
+    if (session_a36_begin_scene(app->a36, app->scene) != OVERLAY36_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a36_failure(app->a36));
+        return false;
+    }
+    app->a17_logged_valid = false;
+    if (session_a17_begin_scene(app->a17, app->scene) != ACTION17_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a17_failure(app->a17));
+        return false;
+    }
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        SceneActionInfo info{};
+        Action17Cursor cursor{};
+        if (scene_resource_action_at(app->scene, row, &info) != SCENE_RESOURCE_OK ||
+            (info.type != SESSION_A17_TYPE && info.type != SESSION_A16_TYPE) ||
+            info.typed_body == nullptr || info.typed_body_length < ACTION17_PREFIX_BYTES) continue;
+        const auto word = [&](size_t offset) {
+            return static_cast<int>(static_cast<int16_t>(info.typed_body[offset] |
+                                                        (info.typed_body[offset + 1u] << 8)));
+        };
+        (void)session_a17_hover_cursor(app->a17, row, -1, &cursor);
+        record(app, "scene_a17_construct row=%zu type=0x%02x target=%d frame_records=%d "
+               "hover_cursor_index=%d (multiframe scene hotspot, handler 0x42b07e)",
+               row, static_cast<unsigned>(info.type), word(0), word(20), cursor.cursor_index);
+    }
+    app->a0b_logged_valid = false;
+    if (session_a0b_begin_scene(app->a0b, app->scene) != ACTION17_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a0b_failure(app->a0b));
+        return false;
+    }
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        Action0bPayload payload{};
+        Action17Cursor cursor{};
+        if (session_a0b_payload(app->a0b, row, &payload) != ACTION17_OK) continue;
+        (void)session_a0b_hover_cursor(app->a0b, row, -1, &cursor);
+        record(app, "scene_a0b_construct row=%zu target=%d entry_frame=%d word8=%d rect=%d,%d,%d,%d "
+               "hover_cursor_index=%d (scene-change hotspot, loader 0x40b7d4, handler 0x42ae73)",
+               row, payload.target, payload.word_04, payload.word_08, payload.rect[0],
+               payload.rect[1], payload.rect[2], payload.rect[3], cursor.cursor_index);
+    }
+    app->a36_blit_signature.fill(0u);
+    app->a36_hot_rects_failure_logged = false;
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        const char *name = session_a36_row_name(app->a36, row);
+        const uint8_t *image = session_a36_image(app->a36, row);
+        if (name == nullptr || image == nullptr) continue;
+        const auto word = [&](size_t offset) {
+            return static_cast<int>(static_cast<int16_t>(image[offset] | (image[offset + 1u] << 8)));
+        };
+        if (session_a36_row_raw_type(app->a36, row) == SESSION_A37_TYPE) {
+            /* RT-18: raw 0x37 (loader 0x40c446, constructor 0x4895cc, runtime type 0x36). The
+             * record has hot word 2, so the pointer cascade never hits it (0x4897cd wants 1). */
+            const auto dword = [&](size_t offset) {
+                return static_cast<int32_t>(static_cast<uint32_t>(image[offset]) |
+                                            (static_cast<uint32_t>(image[offset + 1u]) << 8) |
+                                            (static_cast<uint32_t>(image[offset + 2u]) << 16) |
+                                            (static_cast<uint32_t>(image[offset + 3u]) << 24));
+            };
+            record(app, "scene_a37_construct row=%zu name=%s layer=%d plain_blit=%d "
+                   "rect=%d,%d,%d,%d geometry=%d,%d,%d,%d hot=%d never_completes=%d "
+                   "(raw 0x37 static overlay, ctor 0x4895cc, runtime type 0x36)",
+                   row, name, word(OV36_LAYER), word(OV36_PLAIN_23),
+                   dword(OV36_SECONDARY + OV36_SEC_DST_LEFT), dword(OV36_SECONDARY + OV36_SEC_DST_TOP),
+                   dword(OV36_SECONDARY + OV36_SEC_DST_RIGHT),
+                   dword(OV36_SECONDARY + OV36_SEC_DST_BOTTOM), dword(OV36_PRIMARY),
+                   dword(OV36_PRIMARY + 4u), dword(OV36_PRIMARY + 8u), dword(OV36_PRIMARY + 12u),
+                   word(OV36_SECONDARY + OV36_SEC_HOT), word(OV36_EVENT_INDEX) == -1 ? 1 : 0);
+            continue;
+        }
+        record(app, "scene_a36_construct row=%zu name=%s layer=%d marker=%d plain_blit=%d "
+               "event=%d/%d scene_change_option=%d primaries=%d secondaries=%d (static overlay, 0x4899ca)",
+               row, name, word(OV36_LAYER), word(OV36_MARKER), word(OV36_PLAIN_23),
+               word(OV36_EVENT_INDEX), word(OV36_EVENT_VALUE), word(OV36_ACTION_25),
+               word(OV36_PRIMARY_COUNT), word(OV36_SECONDARY_COUNT));
+    }
     /* ClearSceneData 0x43dbe3 resets 0x5c39f9 before the new ACT table runs. */
     app->movie_world.active = 0;
+    nav_begin_scene(app);
     return true;
 }
 
@@ -2712,15 +3594,22 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     out->cursor.bottom = app->pointer_y + cursor.sprite_height - 1;
     out->hot_x = cursor.hot_x;
     out->hot_y = cursor.hot_y;
-    out->scroll_y = cursor.scroll_y;
+    /* 0x5bb587 is the navigation scroll (RT-17); the display does not scroll yet
+     * (no tutorial scene has a view smaller than its image: arrow_height 0). */
+    out->scroll_y = app->nav_scene_ready ? app->nav.scroll : cursor.scroll_y;
     const CaptionLifecycleGlobals &g = app->captions.lifecycle.g;
     out->cursor_mode = g.overlay_ui;            /* 0x583204 */
     out->modal_event = (uint32_t)g.cursor_override; /* 0x5c39e9 */
     out->producer_disabled = (uint32_t)g.modal_input; /* 0x5839a9 */
     /* No pointer has moved yet: there is no composed sprite to project. */
     out->geometry_ready = (app->pointer_x >= 0 && app->pointer_y >= 0) ? 1u : 0u;
+    /* RT-17: the cascade members before the overlay hit test and the zone tests
+     * (44 call sites, RT-17.cascade-members.json) are each enabled only by the
+     * handler of one runtime row type; no row of those types exists in the
+     * scene (nav_begin_scene), so every member sees its power-on object. The
+     * edge state 0x5a4c18 is no longer an input: the zone tests produce it. */
     out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
-                           cursor.guard_5b615e == 0 && cursor.result_5a4c18 == 0) ? 1u : 0u;
+                           cursor.guard_5b615e == 0 && app->nav_members_idle) ? 1u : 0u;
     out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
     out->excluded_1 = -1;
 }
@@ -2734,6 +3623,47 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
     const uint8_t edge_before = app->input_state.latch[0];
     const int status = session_input_tick(&app->input_state, &input, frame);
     *candidate = app->input_state.candidate;
+    /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
+     * absent (no right button), so the tick reaches the navigation block
+     * 0x43c133..0x43c941 before the ACT dispatcher (0x43cf2f). A tick that
+     * consumed a click skips it (0x43b19e falls into the click handling). */
+    if (edge_before == 0u && app->nav_scene_ready) {
+        NavKeys keys{};   /* keyboard producer (0x437774) unbound: no key flag is ever set */
+        NavStepResult step{};
+        app->nav.cursor_mode = input.cursor_mode;
+        if (session_navigation_step(&app->nav, &keys, app->session_tick_sample,
+                                    app->session_tick_sample, &step) == SESSION_NAVIGATION_OK &&
+            step.entered != 0u) {
+            ++app->nav_steps;
+            if (step.selector_changed != 0u) {
+                ++app->nav_selector_moves;
+                app->selector_entry_frame = app->nav.selector;
+            }
+            record(app, "nav_step state=%d selector=%d->%d scroll=%d scroll_end=%d deadline=%u dirty=%u "
+                   "tick=%u step=%llu (tick block 0x43c251..0x43c941)", app->nav.state,
+                   step.selector_before, app->nav.selector, app->nav.scroll, app->nav.scroll_end,
+                   app->nav.gate_deadline, step.view_dirty, app->session_tick_sample,
+                   (unsigned long long)app->nav_steps);
+            /* 0x43ce92..0x43cf2f: the view is pointed at the new selector's frame and
+             * [0x5c3a51] := selector BEFORE the dispatcher call in the same tick. The frame
+             * input was filled by the prepare callback with the old frame, so refresh it
+             * here, and reseed the caption backbuffer from the new frame (the media step
+             * of this tick already ran with the old one). */
+            if (step.selector_changed != 0u) {
+                if (nav_show_frame(app, app->nav.selector, "navigation")) {
+                    frame->current_frame = app->scene_current_frame;
+                    const bool reseeded = seed_native_caption_backbuffer(app);
+                    record(app, "nav_frame_input current_frame=%d caption_backbuffer_reseed=%s "
+                           "(dispatcher of this tick sees the new frame)", frame->current_frame,
+                           reseeded ? "ok" : "failed");
+                } else {
+                    record(app, "nav_frame_kept selector=%d shown=%d (frame change refused or failed; "
+                           "the executor keeps the previous frame)", app->nav.selector,
+                           app->nav_shown_frame);
+                }
+            }
+        }
+    }
     if (edge_before != 0u || status != SESSION_INPUT_OK) {
         record(app, "pointer_consume status=%d edge=%u candidate=%d activation=%u "
                "modal=%u mode=%d provisional-geometry=1 projected=%d,%d valid=%u",
@@ -2753,13 +3683,96 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
     native_pointer_context(app, &input);
     /* 0x4d3073 resets the global candidate before the 0x4f0059 scan. */
     (void)session_input_publish_candidate(&app->input_state, -1);
-    const int status = session_input_scan(&app->input_state, &input, rows, count);
+    /* RT-14: the overlay hit test (0x4897cd) runs inside the 0x4f0059 cascade
+     * before its generic row loop, in overlay-list order. */
+    std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
+    size_t overlay_count = 0u;
+    if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u &&
+        session_a36_priority_rows(app->a36, overlay_rows.data(), overlay_rows.size(),
+                                  &overlay_count) != OVERLAY36_OK) {
+        if (!app->a36_hot_rects_failure_logged) {
+            app->a36_hot_rects_failure_logged = true;
+            record(app, "scene_a36_hot_rects_unavailable detail=%s (overlay hit test skipped "
+                   "on every tick that fails; logged once per scene)",
+                   session_a36_failure(app->a36));
+        }
+        overlay_count = 0u;
+    }
+    /* RT-17: the whole cascade as one pipeline in the original's order (overlap
+     * guard, held-item prelude, UI members via priority_clear, overlay hit test,
+     * edge/arrow zone tests, generic row loop). A zone hit returns before the
+     * generic loop (0x4f1e78) and leaves the candidate at -1. */
+    const int16_t *held_item = app->new_game.view.inventory.selected_item_candidate;
+    NavPointer nav_pointer{};
+    nav_pointer.hot_x = input.cursor.left + input.hot_x;   /* 0x58316e (provisional hot point) */
+    nav_pointer.hot_y = input.cursor.top + input.hot_y;    /* 0x58316a */
+    nav_pointer.selected_item = held_item != nullptr ? *held_item : -1;
+    NavScanResult nav_scan{};
+    app->nav.cursor_mode = input.cursor_mode;
+    int status = SESSION_INPUT_INVALID_ARGUMENT;
+    if (app->nav_scene_ready) {
+        status = session_navigation_scan(&app->input_state, &input, &app->nav, &app->nav_bands,
+                                         &nav_pointer, &app->nav_cursor, overlay_rows.data(),
+                                         overlay_count, rows, count, &nav_scan);
+    } else {
+        /* No navigation globals yet (no scene entered): the plain scan. */
+        status = session_input_scan_priority(&app->input_state, &input, overlay_rows.data(),
+                                             overlay_count, rows, count);
+    }
     *candidate = app->input_state.candidate;
+    if (status == SESSION_INPUT_OK && app->nav_scene_ready) {
+        if (nav_scan.state != app->logged_nav_state) {
+            if (nav_scan.state != 0 || app->logged_nav_state > 0)
+                record(app, "nav_zone state=%d claimed=%d hot=%d,%d cursor_index=%d variant=%d "
+                       "table_offset=0x%x surface_default=%d candidate=%d arrows=%d,%d selector=%d "
+                       "(zone test 0x4f18fa; cascade %s; cursor sprite not drawn by the app)",
+                       nav_scan.state, nav_scan.claimed_by_zone, nav_pointer.hot_x, nav_pointer.hot_y,
+                       app->nav_cursor.index, app->nav_cursor.variant,
+                       static_cast<unsigned>(nav_scan.zone.table_offset),
+                       nav_scan.zone.surface_default, *candidate, app->nav.arrow_width,
+                       app->nav.arrow_height, app->nav.selector,
+                       nav_scan.claimed_by_zone ? "returned at 0x4f1e78 before the generic loop"
+                                                : "fell through");
+            app->logged_nav_state = nav_scan.state;
+        }
+    }
     if (status != SESSION_INPUT_OK) {
         record(app, "pointer_scan_limit status=%d rows=%zu (candidate cleared)", status, count);
     } else if (*candidate != app->logged_candidate) {
         record(app, "pointer_candidate candidate=%d rows=%zu cursor=%d,%d "
                "provisional-geometry=1", *candidate, count, app->pointer_x, app->pointer_y);
+        if (overlay_count != 0u)
+            record(app, "scene_a36_hot_rows candidate=%d overlay_hot_rects=%zu", *candidate,
+                   overlay_count);
+        if (*candidate >= 0 && app->a17 != nullptr) {
+            /* RT-15: the cascade's hover cursor for a hit on a 0x16/0x17 row (0x4f1ff3 /
+             * 0x4f22ef). The app draws no game cursor yet; the selection is reported. */
+            Action17Cursor cursor{};
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            if (session_a17_hover_cursor(app->a17, static_cast<size_t>(*candidate),
+                                         held != nullptr ? *held : static_cast<int16_t>(-1),
+                                         &cursor) == ACTION17_OK)
+                record(app, "scene_a17_hover_cursor row=%d index=%d variant=%d table_offset=0x%x "
+                       "held_flag=%d surface=%d (cursor sprite not drawn by the app)",
+                       *candidate, cursor.cursor_index, cursor.variant,
+                       static_cast<unsigned>(cursor.table_offset), cursor.held_flag, cursor.surface);
+            else if (session_a0b_hover_cursor(app->a0b, static_cast<size_t>(*candidate),
+                                              held != nullptr ? *held : static_cast<int16_t>(-1),
+                                              &cursor) == ACTION17_OK)
+                record(app, "scene_a0b_hover_cursor row=%d index=%d variant=%d table_offset=0x%x "
+                       "held_flag=%d surface=%d (0x4f221e; cursor sprite not drawn by the app)",
+                       *candidate, cursor.cursor_index, cursor.variant,
+                       static_cast<unsigned>(cursor.table_offset), cursor.held_flag, cursor.surface);
+        }
+        if (*candidate >= 0) {
+            for (size_t i = 0; i < overlay_count; ++i)
+                if (overlay_rows[i].index == *candidate) {
+                    record(app, "scene_a36_hot_hit row=%d rect=%d,%d,%d,%d (0x4897cd before the generic scan)",
+                           *candidate, overlay_rows[i].rectangle.left, overlay_rows[i].rectangle.top,
+                           overlay_rows[i].rectangle.right, overlay_rows[i].rectangle.bottom);
+                    break;
+                }
+        }
     }
     app->logged_candidate = *candidate;
     return status;
@@ -2784,6 +3797,11 @@ static int native_pointer_external_row(void *context, size_t action_index,
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     ActionFamily62InteractionTarget target{};
+    /* RT-15: a 0x16/0x17 row whose frame record matched the selector (0x4f1f16
+     * reads the same request dword and rectangle words). */
+    if (session_a17_pointer_row(app->a17, action_index, row) == 1) return 1;
+    /* RT-16: a raw 0x0b row whose frame word matched the selector (same cells). */
+    if (session_a0b_pointer_row(app->a0b, action_index, row) == 1) return 1;
     if (app->a62 == nullptr ||
         session_a62_get_target(app->a62, action_index, &target) != SESSION_A62_OK ||
         target.request_pending == 0u) return 0;
@@ -2806,11 +3824,15 @@ static bool bind_native_pointer(NativeApp *app)
     host.external_row = native_pointer_external_row;
     if (scene_session_bind_pointer(app->session, &host) != SCENE_SESSION_OK) return false;
     const ProvisionalCursorProvider &c = app->cursor_provider;
+    const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
+                       app->nav_members_idle;
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
-           "guards[5b5158,5b61af,5b615e,5a4c18]=%u,%u,%u,%d priority_clear=1 excluded=-1,-1 "
-           "reason=cursor-sprite-size/hot-point/scroll-unrecovered values=reproduce-pre-RT-6-S0",
+           "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
+           "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "
+           "edge_state[5a4c18]=produced-by-zone-tests(RT-17)",
            c.sprite_width, c.sprite_height, c.hot_x, c.hot_y, c.scroll_y,
-           c.guard_5b5158, c.guard_5b61af, c.guard_5b615e, c.result_5a4c18);
+           c.guard_5b5158, c.guard_5b61af, c.guard_5b615e, app->nav_members_idle ? 1 : 0,
+           clear ? 1 : 0);
     return true;
 }
 
@@ -2874,7 +3896,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[6]{};
+    SceneSessionActionBinding bindings[14]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2897,7 +3919,41 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[5].callback = session_a97_handler;
     bindings[5].context = app->a97;
     config.action_bindings = bindings;
-    config.action_binding_count = 6u;
+    bindings[6].type = SESSION_A79_TYPE;
+    bindings[6].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[6].callback = session_a79_handler;
+    bindings[6].context = app->a79;
+    bindings[7].type = SESSION_A36_TYPE;
+    bindings[7].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[7].callback = session_a36_handler;
+    bindings[7].context = app->a36;
+    bindings[8].type = SESSION_A17_TYPE;
+    bindings[8].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[8].callback = session_a17_handler;
+    bindings[8].context = app->a17;
+    bindings[9].type = SESSION_A16_TYPE;
+    bindings[9].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[9].callback = session_a17_handler;
+    bindings[9].context = app->a17;
+    bindings[10].type = SESSION_A0B_TYPE;
+    bindings[10].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[10].callback = session_a0b_handler;
+    bindings[10].context = app->a0b;
+    bindings[11].type = SESSION_A83_TYPE;
+    bindings[11].provider = SCENE_SESSION_PROVIDER_A83;
+    bindings[11].callback = native_a83_handler;
+    bindings[11].context = app;
+    /* RT-18: raw 0x37 rows run through the same COverlay handler (runtime type 0x36). */
+    bindings[12].type = SESSION_A37_TYPE;
+    bindings[12].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[12].callback = session_a36_handler;
+    bindings[12].context = app->a36;
+    /* RT-19: raw 0x78 add inventory item (dispatcher arm 0x42944b, gate mode 0). */
+    bindings[13].type = SESSION_A78_TYPE;
+    bindings[13].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[13].callback = session_a78_handler;
+    bindings[13].context = app->a78;
+    config.action_binding_count = 14u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -2908,6 +3964,12 @@ static bool create_native_scene_session(NativeApp *app)
     }
     if (scene_session_set_pre_gate(app->session, SESSION_A62_TYPE, session_a62_pre_gate,
                                    app->a62) != SCENE_SESSION_OK ||
+        scene_session_set_pre_gate(app->session, SESSION_A17_TYPE, session_a17_pre_gate,
+                                   app->a17) != SCENE_SESSION_OK ||
+        scene_session_set_pre_gate(app->session, SESSION_A16_TYPE, session_a17_pre_gate,
+                                   app->a17) != SCENE_SESSION_OK ||
+        scene_session_set_pre_gate(app->session, SESSION_A0B_TYPE, session_a0b_pre_gate,
+                                   app->a0b) != SCENE_SESSION_OK ||
         scene_session_set_condition_extension(
             app->session, session_conditions_extension(app->conditions_binding)) !=
             SCENE_SESSION_OK ||
@@ -2982,6 +4044,9 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
     app->scene = nullptr;
     if (app->video) bink_player_close(app->video);
     app->video = nullptr;
+    if (app->nav_player) bink_player_close(app->nav_player);
+    app->nav_player = nullptr;
+    app->nav_shown_frame = -1;
     app->has_scene_frame = false;
     app->scene = scene_resource_open_memory(resource.bytes, resource.length, error, sizeof(error));
     game_resource_bytes_destroy(&resource);
@@ -3049,6 +4114,12 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
         return false;
     }
     app->video = player.release();
+    /* RT-17: the BIK branch of 0x4163b4 (0x416870..0x4169b4) derives the frame
+     * range [0, frames-1] and the image extent from the movie header. */
+    app->scene_video_path = path;
+    app->scene_native_frames = static_cast<int32_t>(info.total_frames);
+    app->scene_native_width = static_cast<int32_t>(info.width);
+    app->scene_native_height = static_cast<int32_t>(info.height);
     record(app, "scene_video_open width=%u height=%u frames=%u rate=%d/%d retained_bytes=%llu "
            "mode=0 pacing=native-FFmpeg-timestamps BinkWait-parity=unverified",
            info.width, info.height, info.total_frames, info.frame_rate_num,
@@ -3350,6 +4421,21 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
         record(app, "world_init_error new-game status=%d", status);
         return false;
     }
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (!app->test_inventory.empty() || app->test_held != -2) {
+        WorldInitInventory &inv = app->new_game.view.inventory;
+        for (size_t i = 0; i < app->test_inventory.size() && i < inv.item_ids_583a31.count; ++i) {
+            inv.item_ids_583a31.values[i] = static_cast<uint16_t>(app->test_inventory[i]);
+            if (app->test_inventory[i] >= 0 &&
+                static_cast<size_t>(app->test_inventory[i]) < inv.presence_583bd5.count)
+                inv.presence_583bd5.values[app->test_inventory[i]] = 1;
+        }
+        inv.selector_words_583a2b.values[0] = static_cast<uint16_t>(app->test_inventory.size());
+        if (app->test_held != -2) *inv.selected_item_candidate = static_cast<int16_t>(app->test_held);
+        record(app, "test_inventory_seeded count=%zu held=%d", app->test_inventory.size(),
+               (int)*inv.selected_item_candidate);
+    }
+#endif
     app->world_clock_session.world = &app->new_game.view;
     /* The two signed window bounds are in the PE zero-filled data tail and
      * have no direct .text stores in the pinned image. The session object is
@@ -3770,6 +4856,15 @@ static bool perform_session_transition(NativeApp *app,
     /* DAT_005bb50b := DAT_005bb599 (0x439f20..0x439f41), the frame word of the
      * scene-change request (0x427a50 case 0x0a copies body+2 into it). */
     app->selector_entry_frame = transition.opaque_words[0];
+    app->selector_entry_scroll = transition.opaque_words[1];
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    for (const auto &pair : app->test_selectors)
+        if (pair.first == transition.target_scene) {
+            app->selector_entry_frame = pair.second;
+            record(app, "test_selector_applied scene=%d frame=%d (stands in for the unbound navigation "
+                   "producer 0x43c2b7..)", transition.target_scene, pair.second);
+        }
+#endif
     app->selector_entry_valid = true;
     app->selector_logged = false;
     if (!begin_native_session_bindings_scene(app)) {
@@ -3784,6 +4879,36 @@ static bool perform_session_transition(NativeApp *app,
            source, transition.target_scene,
            (unsigned long long)scene_session_scene_generation(app->session));
     return true;
+}
+
+/* RT-13: say why the session stopped, in terms a player or developer can act on. */
+static void describe_session_block(const NativeApp *app, const SceneSessionTickResult &r,
+                                   char *out, size_t capacity)
+{
+    const char *detail = "";
+    if (r.failure.action_type == SESSION_A79_TYPE) detail = session_a79_failure(app->a79);
+    else if (r.failure.action_type == SESSION_A78_TYPE) detail = session_a78_failure(app->a78);
+    else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
+    else if (r.failure.action_type == SESSION_A36_TYPE ||
+             r.failure.action_type == SESSION_A37_TYPE) detail = session_a36_failure(app->a36);
+    else if (r.failure.action_type == SESSION_A17_TYPE ||
+             r.failure.action_type == SESSION_A16_TYPE) detail = session_a17_failure(app->a17);
+    else if (r.failure.action_type == SESSION_A0B_TYPE) detail = session_a0b_failure(app->a0b);
+    if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
+        r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
+        (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
+        std::snprintf(out, capacity, "action type 0x%02x at row %zu has no native runtime yet",
+                      r.failure.action_type, r.failure.action_index);
+    else if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH)
+        std::snprintf(out, capacity, "action type 0x%02x at row %zu stopped: %s (detail %d)",
+                      r.failure.action_type, r.failure.action_index,
+                      detail[0] != '\0' && std::strcmp(detail, "none") != 0 ? detail
+                          : scene_session_provider_string(r.failure.provider),
+                      r.failure.detail_status);
+    else
+        std::snprintf(out, capacity, "stage %d provider %s failed (detail %d)",
+                      r.failure.stage, scene_session_provider_string(r.failure.provider),
+                      r.failure.detail_status);
 }
 
 enum class ExitTick { Run, Consumed, Failed };
@@ -3904,6 +5029,18 @@ static void update(NativeApp *app, uint32_t now)
                        session_a35_bink_failure(app->movie_bink));
             if (session_result.failure.action_type == SESSION_A97_TYPE)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
+            if (session_result.failure.action_type == SESSION_A79_TYPE)
+                record(app, "scene_a79_blocker detail=%s", session_a79_failure(app->a79));
+            if (session_result.failure.action_type == SESSION_A78_TYPE)
+                record(app, "scene_a78_blocker detail=%s", session_a78_failure(app->a78));
+            if (session_result.failure.action_type == SESSION_A36_TYPE ||
+                session_result.failure.action_type == SESSION_A37_TYPE)
+                record(app, "scene_a36_blocker detail=%s", session_a36_failure(app->a36));
+            if (session_result.failure.action_type == SESSION_A17_TYPE ||
+                session_result.failure.action_type == SESSION_A16_TYPE)
+                record(app, "scene_a17_blocker detail=%s", session_a17_failure(app->a17));
+            if (session_result.failure.action_type == SESSION_A0B_TYPE)
+                record(app, "scene_a0b_blocker detail=%s", session_a0b_failure(app->a0b));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {
@@ -3911,6 +5048,28 @@ static void update(NativeApp *app, uint32_t now)
                        condition_failure.opcode, condition_failure.record_index,
                        condition_failure.provider_status);
             }
+            {
+                /* RT-13: the silent freeze. One persistent log line with the scene,
+                 * row, type and reason, and the same facts in the window title. */
+                char reason[192];
+                describe_session_block(app, session_result, reason, sizeof(reason));
+                record(app, "session_frozen scene=%d generation=%llu row=%zu type=0x%02x "
+                       "provider=%s stage=%d reason=\"%s\" ticks_after_block=stopped "
+                       "pointer_input=ignored",
+                       app->current_scene_id,
+                       (unsigned long long)scene_session_scene_generation(app->session),
+                       session_result.failure.action_index, session_result.failure.action_type,
+                       scene_session_provider_string(session_result.failure.provider),
+                       session_result.failure.stage, reason);
+                if (app->platform) {
+                    char title[320];
+                    std::snprintf(title, sizeof(title),
+                                  "Blackmoor reconstruction — STOPPED in scene %d: %s; input ignored",
+                                  app->current_scene_id, reason);
+                    blackmoor_macos_set_title(app->platform, title);
+                }
+            }
+            app->blocked_input_ignored = 0u;
             app->session_block_reported = true;
         } else if (session_status == SCENE_SESSION_TRANSITION_PENDING &&
                    !app->session_transition_reported) {
@@ -4339,13 +5498,28 @@ int main(int argc, char **argv)
         uint32_t live_ticks = 600, live_tick_ms = 85;
         bool live_tick_ms_set = false;
         long live_click_row = -1;
+        bool live_click_blocked = false;
         bool live_double_click = false, live_hover_only = false;
         long live_scene = -1, live_scene_row = -1;
+        /* RT-15: --live-scene-row may repeat; each pair applies in its own scene. */
+        std::vector<std::pair<long, long>> live_scene_rows;
+        /* RT-17: --live-nav SCENE:left|right[:COUNT] hovers the pointer on that edge
+         * band of SCENE until the selector has moved COUNT times (default 1), then
+         * leaves the band; the row gesture waits for it. */
+        struct LiveNav {
+            long scene; bool left; long remaining; bool started; int16_t last_selector;
+            bool click; bool clicked;   /* optional ":click": press and release once inside the band */
+        };
+        std::vector<LiveNav> live_navs;
         long dump_scene = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
             if (argument == "--live-double-click") { live_double_click = true; continue; }
             if (argument == "--live-hover-only") { live_hover_only = true; continue; }
+            /* RT-13: after the session blocks, deliver ordinary clicks at the last
+             * pointer position (what a player does at a frozen window) so the
+             * "input ignored" report can be checked headlessly. */
+            if (argument == "--live-click-blocked") { live_click_blocked = true; continue; }
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
             if (argument == "--inspect-actions") { inspect_only = inspect_actions = true; continue; }
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
@@ -4356,6 +5530,10 @@ int main(int argc, char **argv)
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
             if (argument == "--test-a62-accept") {
                 app.test_a62_accept = true;
+                continue;
+            }
+            if (argument == "--test-members-busy") {
+                app.test_members_busy = true;
                 continue;
             }
             if (argument == "--test-caption-reset-after-compose") {
@@ -4391,11 +5569,65 @@ int main(int argc, char **argv)
                 if (!*value || *end != ':' || live_scene < 0) return 2;
                 live_scene_row = std::strtol(end + 1, &end, 10);
                 if (*end || live_scene_row < 0) return 2;
+                live_scene_rows.emplace_back(live_scene, live_scene_row);
+            } else if (argument == "--live-nav") {
+                char *end = nullptr;
+                const long nav_scene = std::strtol(value, &end, 10);
+                if (!*value || *end != ':' || nav_scene < 0) return 2;
+                const std::string rest = end + 1;
+                const size_t colon = rest.find(':');
+                const std::string side = rest.substr(0, colon);
+                long nav_count = 1;
+                bool nav_click = false;
+                if (colon != std::string::npos) {
+                    const size_t second = rest.find(':', colon + 1);
+                    const std::string count_text = rest.substr(colon + 1, second == std::string::npos
+                                                                              ? std::string::npos
+                                                                              : second - colon - 1);
+                    char *count_end = nullptr;
+                    nav_count = std::strtol(count_text.c_str(), &count_end, 10);
+                    if (count_text.empty() || *count_end || nav_count < 1 || nav_count > 100) return 2;
+                    if (second != std::string::npos) {
+                        if (rest.substr(second + 1) != "click") return 2;
+                        nav_click = true;
+                    }
+                }
+                if (side != "left" && side != "right") return 2;
+                live_navs.push_back({nav_scene, side == "left", nav_count, false, 0, nav_click, false});
             } else if (argument == "--live-click-row") {
                 char *end = nullptr;
                 live_click_row = std::strtol(value, &end, 10);
                 if (!*value || *end || live_click_row < 0) return 2;
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+            } else if (argument == "--test-inventory" || argument == "--test-held") {
+                if (argument == "--test-held") {
+                    char *end = nullptr;
+                    const long held = std::strtol(value, &end, 10);
+                    if (!*value || *end || held < -1 || held > 32767) return 2;
+                    app.test_held = (int)held;
+                } else {
+                    std::string list = value;
+                    size_t position = 0;
+                    while (position < list.size()) {
+                        char *end = nullptr;
+                        const long item = std::strtol(list.c_str() + position, &end, 10);
+                        if (end == list.c_str() + position || item < 0 || item > 32767) return 2;
+                        app.test_inventory.push_back(static_cast<int16_t>(item));
+                        position = static_cast<size_t>(end - list.c_str());
+                        if (position < list.size()) {
+                            if (list[position] != ',') return 2;
+                            ++position;
+                        }
+                    }
+                }
+            } else if (argument == "--test-selector") {
+                char *end = nullptr;
+                const long scene = std::strtol(value, &end, 10);
+                if (!*value || end == value || *end != ':' || scene < 0 || scene > INT16_MAX) return 2;
+                const char *frame_text = end + 1;
+                const long frame = std::strtol(frame_text, &end, 10);
+                if (end == frame_text || *end || frame < INT16_MIN || frame > INT16_MAX) return 2;
+                app.test_selectors.emplace_back((int32_t)scene, (int32_t)frame);
             } else if (argument == "--test-exit-redirect") {
                 char *end = nullptr;
                 const long from = std::strtol(value, &end, 10);
@@ -4598,30 +5830,116 @@ int main(int argc, char **argv)
                         SceneSessionTickResult tick{};
                         if (scene_session_get_last_result(app.session, &tick) == SCENE_SESSION_OK &&
                             tick.status == SCENE_SESSION_BLOCKED) {
-                            if (++stalled > 3u) break;
+                            ++stalled;
+                            if (live_click_blocked && (stalled == 2u || stalled == 3u)) {
+                                pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
+                                clock += live_tick_ms; update(&app, clock);
+                                pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                clock += live_tick_ms; update(&app, clock);
+                                record(&app, "live_session_click_while_blocked pointer=%d,%d",
+                                       app.pointer_x, app.pointer_y);
+                            }
+                            if (stalled > 3u) break;
                         } else stalled = 0;
                         (void)last_progress_tick;
+                        /* RT-17: scripted edge hover. The selector is moved by the recovered
+                         * navigation block (nav_step in the log), never set directly. */
+                        bool nav_pending = false;
+                        for (LiveNav &nv : live_navs) {
+                            if (nv.scene != app.current_scene_id || nv.remaining <= 0 ||
+                                !app.nav_scene_ready) continue;
+                            nav_pending = true;
+                            if (!nv.started) {
+                                nv.started = true;
+                                nv.last_selector = app.nav.selector;
+                                const int32_t hover_x = nv.left ? app.scene_destination.left + 2
+                                                                : app.scene_destination.right - 2;
+                                const int32_t hover_y = (app.scene_destination.top +
+                                                         app.scene_destination.bottom) / 2;
+                                pointer(&app, BLACKMOOR_POINTER_MOVE, hover_x, hover_y, 0);
+                                record(&app, "live_session_nav_hover scene=%d side=%s window=%d,%d "
+                                       "selector=%d remaining=%ld", app.current_scene_id,
+                                       nv.left ? "left" : "right", app.pointer_x, app.pointer_y,
+                                       app.nav.selector, nv.remaining);
+                            } else if (nv.click && !nv.clicked && app.nav.state != 0) {
+                                /* One press/release inside the band, issued after the tick that set
+                                 * the zone state and before the step is due: the consuming tick
+                                 * must not step (0x43b19e skips the navigation block). */
+                                nv.clicked = true;
+                                pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
+                                pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                record(&app, "live_session_nav_click scene=%d state=%d selector=%d",
+                                       app.current_scene_id, app.nav.state, app.nav.selector);
+                            } else if (app.nav.selector != nv.last_selector) {
+                                nv.last_selector = app.nav.selector;
+                                --nv.remaining;
+                                record(&app, "live_session_nav_moved scene=%d selector=%d remaining=%ld",
+                                       app.current_scene_id, app.nav.selector, nv.remaining);
+                                if (nv.remaining == 0) {
+                                    pointer(&app, BLACKMOOR_POINTER_MOVE,
+                                            (app.scene_destination.left + app.scene_destination.right) / 2,
+                                            (app.scene_destination.top + app.scene_destination.bottom) / 2, 0);
+                                    record(&app, "live_session_nav_done scene=%d selector=%d window=%d,%d",
+                                           app.current_scene_id, app.nav.selector, app.pointer_x,
+                                           app.pointer_y);
+                                    nav_pending = false;
+                                }
+                            }
+                            break;
+                        }
+                        if (nav_pending) continue;
                         if (scripted_clicks == 0 || (scripted_clicks == 1 && clock - clicked_at > 255u)) {
                             const size_t actions = scene_resource_action_count(app.scene);
-                            const long wanted = (live_scene >= 0 && app.current_scene_id == live_scene)
-                                ? live_scene_row : live_click_row;
-                            if (live_scene >= 0 && live_click_row < 0 &&
-                                app.current_scene_id != live_scene) continue;
+                            long scene_row = -1;
+                            bool scene_listed = false;
+                            for (const auto &pair : live_scene_rows)
+                                if (pair.first == app.current_scene_id) {
+                                    scene_row = pair.second; scene_listed = true;
+                                }
+                            const long wanted = scene_listed ? scene_row : live_click_row;
+                            if (!live_scene_rows.empty() && live_click_row < 0 && !scene_listed) continue;
                             for (size_t row = 0; row < actions; ++row) {
                                 /* Executor hotspot, else a pending 0x62 request row. */
                                 int32_t left = 0, top = 0, right = 0, bottom = 0;
                                 bool found = false;
                                 SceneExecutorHotspotState hotspot{};
                                 ActionFamily62InteractionTarget target{};
+                                SessionInputHotspot a17_row{};
+                                SessionInputHotspot a0b_row{};
                                 if (scene_session_get_hotspot_state(app.session, row, &hotspot) ==
                                         SCENE_EXECUTOR_OK && hotspot.active && hotspot.rectangle_valid) {
                                     left = hotspot.left; top = hotspot.top;
                                     right = hotspot.right; bottom = hotspot.bottom; found = true;
+                                } else if (session_a17_pointer_row(app.a17, row, &a17_row) == 1) {
+                                    /* RT-15: multiframe scene hotspot of the current frame. */
+                                    left = a17_row.rectangle.left; top = a17_row.rectangle.top;
+                                    right = a17_row.rectangle.right; bottom = a17_row.rectangle.bottom;
+                                    found = true;
+                                } else if (session_a0b_pointer_row(app.a0b, row, &a0b_row) == 1) {
+                                    /* RT-16: raw 0x0b scene-change hotspot. */
+                                    left = a0b_row.rectangle.left; top = a0b_row.rectangle.top;
+                                    right = a0b_row.rectangle.right; bottom = a0b_row.rectangle.bottom;
+                                    found = true;
                                 } else if (session_a62_get_target(app.a62, row, &target) == SESSION_A62_OK &&
                                            target.request_pending != 0u) {
                                     left = target.response_words[0]; top = target.response_words[1];
                                     right = target.response_words[2]; bottom = target.response_words[3];
                                     found = true;
+                                } else if (app.a36 != nullptr && session_a36_registered(app.a36) != 0u) {
+                                    /* RT-14: a hot record of a registered raw 0x36 overlay. */
+                                    std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
+                                    size_t overlay_count = 0u;
+                                    if (session_a36_priority_rows(app.a36, overlay_rows.data(),
+                                            overlay_rows.size(), &overlay_count) == OVERLAY36_OK)
+                                        for (size_t i = 0; i < overlay_count; ++i)
+                                            if (overlay_rows[i].index == static_cast<int32_t>(row)) {
+                                                left = overlay_rows[i].rectangle.left;
+                                                top = overlay_rows[i].rectangle.top;
+                                                right = overlay_rows[i].rectangle.right;
+                                                bottom = overlay_rows[i].rectangle.bottom;
+                                                found = true;
+                                                break;
+                                            }
                                 }
                                 if (!found) continue;
                                 if (wanted >= 0 && (long)row != wanted) continue;
@@ -4633,7 +5951,7 @@ int main(int argc, char **argv)
                                     record(&app, "live_session_hover row=%zu rect=%d,%d,%d,%d window=%d,%d",
                                            row, left, top, right, bottom, app.pointer_x, app.pointer_y);
                                     scripted_clicks = 1; clicked_at = clock;
-                                } else if (live_hover_only && (live_scene < 0 || app.current_scene_id == live_scene)) {
+                                } else if (live_hover_only && (live_scene_rows.empty() || scene_listed)) {
                                     scripted_clicks = 2;
                                 } else {
                                     pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
@@ -4697,6 +6015,30 @@ int main(int argc, char **argv)
                                    session_conditions_global_5c3a47(app.conditions_binding),
                                    cond_manager.error_3c2);
                         }
+                    }
+                    {
+                        const WorldInitInventory &inv = app.new_game.view.inventory;
+                        size_t present = 0;
+                        for (size_t i = 0; i < inv.presence_583bd5.count; ++i)
+                            present += inv.presence_583bd5.values[i] != 0;
+                        record(&app, "live_session_inventory count=%d held=%d presence_nonzero=%zu "
+                               "view_rebuilds_requested=%llu",
+                               (int)static_cast<int16_t>(inv.selector_words_583a2b.values[0]),
+                               (int)*inv.selected_item_candidate, present,
+                               (unsigned long long)app.inventory_view_rebuilds);
+                        /* RT-19: host requests of raw 0x78 that the app records but does not perform. */
+                        record(&app, "live_session_inventory_requests sound_requests=%llu "
+                               "ui_animation_requests=%llu (not played / not rendered, unverified)",
+                               (unsigned long long)app.a78_sound_requests,
+                               (unsigned long long)app.a78_ui_requests);
+                    }
+                    {
+                        /* RT-17: what the window would show at the end of the run (the
+                         * composed 640x480 framebuffer), so a frame change is visible in logs. */
+                        uint64_t fnv = 1469598103934665603ull;
+                        for (const uint8_t byte : app.framebuffer) fnv = (fnv ^ byte) * 1099511628211ull;
+                        record(&app, "live_session_framebuffer bytes=%zu fnv1a=%016llx", app.framebuffer.size(),
+                               (unsigned long long)fnv);
                     }
                     record(&app, "live_session_end scene=%d ticks=%llu status=%d provider=%s "
                            "stage=%d action=%zu type=0x%02x detail=%d applied=%zu",

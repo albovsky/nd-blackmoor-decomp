@@ -1,0 +1,23 @@
+{
+ "batch": "001",
+ "class": "tool_assisted_reconstructed_assembly",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "functions": [
+  {
+   "function": "FUN_00401100",
+   "va": "0x00401100",
+   "region": "game",
+   "code": {
+    "symbol": "FUN_00401100",
+    "rva": 4352,
+    "size": 464,
+    "sha256": "ff78cf044a9444d42f3dcccd2f164f43f11c20ccc32059ea8d24bf995ca44d51"
+   },
+   "data_items": [
+    {
+     "size": 48
+    }
+   ]
+  }
+ ]
+}

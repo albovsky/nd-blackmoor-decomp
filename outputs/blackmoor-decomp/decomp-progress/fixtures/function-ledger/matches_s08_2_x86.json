@@ -1,0 +1,13 @@
+{
+ "description": "Synthetic complete function.",
+ "source": "src/fixture_core.s",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "functions": [
+  {
+   "rva": 6656,
+   "size": 256,
+   "symbol": "_FUN_00401a00",
+   "object": "build/fixture.obj"
+  }
+ ]
+}

@@ -83,9 +83,9 @@
   "native_scene_resource_parser": {
     "scenes_parsed": 2078,
     "action_records": 19612,
-    "typed_actions": 19436,
-    "opaque_actions": 176,
-    "known_dependency_records": 26270,
+    "typed_actions": 19611,
+    "opaque_actions": 1,
+    "known_dependency_records": 26386,
     "targeted_tests": 18,
     "action_execution": false,
     "resources_attempted": 2267,
@@ -149,8 +149,8 @@
     "caption_renderer": true
   },
   "next_action_recovery": {
-    "typed_actions": 19436,
-    "opaque_actions": 176,
+    "typed_actions": 19611,
+    "opaque_actions": 1,
     "next_body_candidates": [
       "0x62",
       "0x35",
@@ -164,7 +164,7 @@
       "remaining control code1 and NLS paths",
       "timed video and remaining scene handlers"
     ],
-    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1, A-94.1, A-D1.1, A-2E.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44, 0x36, 0x94, 0xd1 and 0x2e are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x0c (43), 0x4e (18), 0x17 (10), 0x68 (10), 0x83 (9); A-0C.1, A-4E.1 and A-17.1 are active."
+    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1, A-94.1, A-D1.1, A-2E.1, A-0C.1, A-4E.1, A-17.1, A-68.1, A-83.1, A-4B.1, A-69.1, A-65.1, A-16.1, A-1B.1, A-7D.1, A-33.1, A-F6.1, A-EA.1, A-F5.1, A-D3.1, A-2D.1, A-E0.1, A-EE.1, A-DA.1, A-77.1, A-1C.1, A-EB.1, A-D0.1, A-E4.1, A-80.1, A-70.1, A-20.1, A-AA.1, A-D6.1, A-76.1, A-9A.1, A-6D.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44, 0x36, 0x94, 0xd1, 0x2e, 0x0c, 0x4e, 0x17, 0x68, 0x83, 0x4b, 0x69, 0x65, 0x16, 0x1b, 0x7d, 0x33, 0xf6, 0xea, 0xf5, 0xd3, 0x2d, 0xe0, 0xee, 0xda, 0x77, 0x1c, 0xeb, 0xd0, 0xe4, 0x80, 0x70, 0x20, 0xaa, 0xd6, 0x76, 0x9a and 0x6d are now registered along with 0x37, 0x62, 0x97 and 0xa1. Remaining opaque records are listed in COORDINATION-STATUS.md (1 record after the sixteenth batch)."
   },
   "native_conditions": {
     "supported_opcodes": [
@@ -334,8 +334,10 @@
     "game_complete": false
   },
   "next_scene_blockers": {
-    "scene": "S4700",
-    "opaque_raw_types": [],
+    "scene": "S4808",
+    "opaque_raw_types": [
+      "0x83"
+    ],
     "unsupported_typed_raw_types": [],
     "execution_blockers": [
       "S4808 row 6: raw 0x83 has no body layout (opaque family A-83, other thread)",
@@ -351,8 +353,8 @@
     "source_ref": "495c5ed1ea2baefcf3b44b196fd546b0342a7814 (branch codex/rt-9-bink-movie; RT-9 Bink movie playback)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 1220,
-      "passed": 1215,
+      "discovered": 1269,
+      "passed": 1264,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
@@ -370,7 +372,19 @@
         "S5904",
         "S5905",
         "S5906",
-        "S4700"
+        "S4700",
+        "S4710",
+        "S4701",
+        "S4711",
+        "S4800",
+        "S4801",
+        "S4802",
+        "S4712",
+        "S4803",
+        "S4804",
+        "S4805",
+        "S4806",
+        "S4807"
       ],
       "stop": "S4700 movie completes (504 frames); the run proceeds through S4710 ... S4807 and stops loading S4808: scene_transition_error provider=scene-resource action=6 type=0x83",
       "child_complete": false

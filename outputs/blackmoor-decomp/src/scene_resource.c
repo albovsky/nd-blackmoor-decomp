@@ -123,6 +123,42 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0xf6: fixed_length = 4934u; break; /* 0x45ddd0 copies 4,934 bytes (A-F6.1) */
+    case 0xea: fixed_length = 3847u; break; /* 0x484110 copies 3,847 bytes (A-EA.1) */
+    case 0xf5: fixed_length = 1390u; break; /* 0x4b80d9 copies 1,390 bytes (A-F5.1) */
+    case 0xd3: fixed_length = 855u; break; /* 0x461903 copies 855 bytes (A-D3.1) */
+    case 0xee: fixed_length = 5826u; break; /* 0x47b3f0 copies 5,826 bytes (A-EE.1) */
+    case 0xda: fixed_length = 2958u; break; /* 0x45b4ae copies 2,958 bytes (A-DA.1) */
+    case 0x77: fixed_length = 731u; break; /* inline arm 0x40db66 copies 731 bytes (A-77.1) */
+    case 0x1c: fixed_length = 105u; break; /* 0x4caff5 copies 105 bytes (A-1C.1) */
+    case 0xeb: fixed_length = 2612u; break; /* 0x47e477 copies 2,612 bytes (A-EB.1) */
+    case 0xd0: fixed_length = 1979u; break; /* 0x48d12d copies 1,979 bytes (A-D0.1) */
+    case 0xe4: fixed_length = 2034u; break; /* 0x475964 copies 2,034 bytes (A-E4.1) */
+    case 0x80: fixed_length = 2u; break; /* inline arm 0x40e73f copies one WORD (A-80.1) */
+    case 0x70: fixed_length = 1u; break; /* inline arm 0x40e3d9 copies one byte (A-70.1) */
+    case 0x20: fixed_length = 8u; break; /* inline arm 0x40bd12 copies two DWORDs (A-20.1) */
+    case 0xaa: fixed_length = 763u; break; /* 0x44d1d1 copies 763 bytes (A-AA.1) */
+    case 0xd6: fixed_length = 1733u; break; /* 0x470e8e (flag 0) copies 1,733 bytes (A-D6.1) */
+    case 0x76: fixed_length = 575u; break; /* inline arm 0x40dff4 copies 575 bytes (A-76.1) */
+    /* Raw 0x9b shares this arm (same 27-byte copy) but has no corpus record, so it stays unregistered. */
+    case 0x9a: fixed_length = 27u; break; /* inline arm 0x40fee2 copies 27 bytes (A-9A.1) */
+    case 0x6d: fixed_length = 1u; break; /* inline arm 0x40e18b copies one byte (A-6D.1) */
+    case 0xe0:
+        /* 0x470e8e (flag 1) copies 294 bytes (A-E0.1). Scene S2705 (resource
+         * 1737) has a 292-byte body, two short of the copy: the original's
+         * dependency stage hits its ragged-tail exit there (error box, then a
+         * quit request), so that record stays opaque. */
+        if (length < 294u) {
+            return 0;
+        }
+        fixed_length = 294u;
+        break;
+    case 0x7d: fixed_length = 1u;  break; /* 0x40e61e copies one byte (A-7D.1) */
+    case 0x69: fixed_length = 1u;  break; /* 0x40d428 copies one byte (A-69.1) */
+    case 0x65: fixed_length = 1u;  break; /* 0x40d116 copies one byte (A-65.1) */
+    case 0x68: fixed_length = 1u;  break; /* 0x40d364 copies one byte (A-68.1) */
+    case 0x83: fixed_length = 74u; break; /* 0x40e995 copies 74 bytes (A-83.1) */
+    case 0x4e: fixed_length = 31u; break; /* 0x44b102 copies 31 bytes (A-4E.1) */
     case 0x2e: fixed_length = 15u; break; /* 0x4cd645 copies 15 bytes (A-2E.1) */
     case 0x94: fixed_length = 50u; break; /* 0x40ea5e copies 50 bytes (A-94.1) */
     case 0xd1: fixed_length = 927u; break; /* 0x4b5c5c copies 927 bytes (A-D1.1) */
@@ -250,6 +286,43 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         } else {
             return -1;
         }
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x2d: {
+        int16_t entries;
+        int16_t groups;
+        size_t cursor = 39u;
+        size_t entry;
+
+        /* 0x4cd243 (A-2D.1): 39-byte header with signed words at +0x23
+         * (entries) and +0x25 (34-byte records); each entry is 49 bytes plus
+         * 35 bytes times the signed word at entry+0x2f; then 34 bytes per
+         * record. Nothing is NUL-scanned. Negative counts are unsafe in the
+         * original (>2 GiB allocation) and rejected here. */
+        if (length < cursor) {
+            return -1;
+        }
+        entries = read_i16le(body + 0x23u);
+        groups = read_i16le(body + 0x25u);
+        if (entries < 0 || groups < 0) {
+            return -1;
+        }
+        for (entry = 0u; entry < (size_t)entries; ++entry) {
+            int16_t records;
+            if (length - cursor < 49u) {
+                return -1;
+            }
+            records = read_i16le(body + cursor + 0x2fu);
+            if (records < 0 || length - cursor - 49u < 35u * (size_t)records) {
+                return -1;
+            }
+            cursor += 49u + 35u * (size_t)records;
+        }
+        if (length - cursor < 34u * (size_t)groups) {
+            return -1;
+        }
+        *body_length = cursor + 34u * (size_t)groups;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
@@ -400,6 +473,131 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
             return -1;
         }
         *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x1b: {
+        int16_t primary_count;
+        int16_t secondary_count;
+        size_t cursor;
+
+        /* Loader arm 0x40bbed -> 0x414692 (A-1B.1). Layout: signed WORD count
+         * at +0, count * 22 bytes, a 22-byte fixed block, a signed WORD count,
+         * count * 18 bytes. Negative counts, truncation and ragged tails are
+         * native safety rejections; the original has no such guards and no
+         * body strings. Counts are at most 32767 so no multiplication wraps. */
+        if (length < 2u) {
+            return -1;
+        }
+        primary_count = read_i16le(body);
+        if (primary_count < 0) {
+            return -1;
+        }
+        cursor = 2u + (size_t)primary_count * 22u;
+        if (length < cursor || length - cursor < 24u) {
+            return -1;
+        }
+        secondary_count = read_i16le(body + cursor + 22u);
+        if (secondary_count < 0) {
+            return -1;
+        }
+        cursor += 24u + (size_t)secondary_count * 18u;
+        if (length < cursor || (length - cursor) % 16u != 0u) {
+            return -1;
+        }
+        *body_length = cursor;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x33: {
+        /* 0x40c186: counts at +0x6d/+0x6f, 113 + 6*count_6d + 66*count_6f
+         * bytes copied verbatim (A-33.1). The original narrows the size to a
+         * signed WORD; native safety rejects negative counts and any size
+         * above 32767 instead of reproducing the wrap. */
+        int16_t count_6d;
+        int16_t count_6f;
+        size_t typed;
+        if (length < 113u) {
+            return -1;
+        }
+        count_6d = read_i16le(body + 109u);
+        count_6f = read_i16le(body + 111u);
+        if (count_6d < 0 || count_6f < 0) {
+            return -1;
+        }
+        typed = 113u + 6u * (size_t)count_6d + 66u * (size_t)count_6f;
+        if (typed > 32767u || typed > length || (length - typed) % 16u != 0u) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x4b: {
+        int16_t selector;
+        size_t typed_length;
+
+        /* 0x40c625: selector -1 selects the 33-byte AUTOTEXT key form (35 bytes
+         * with the selector), otherwise the selector is the inline text length.
+         * Other negative selectors read uninitialised data in the original and
+         * are native safety rejections; the key must be NUL-terminated. */
+        if (length < 2u) {
+            return -1;
+        }
+        selector = read_i16le(body);
+        if (selector == -1) {
+            typed_length = 35u;
+            if (length < typed_length || memchr(body + 2u, 0, 33u) == NULL) {
+                return -1;
+            }
+        } else {
+            if (selector < 0 || selector > 9999) {
+                return -1;
+            }
+            typed_length = 2u + (size_t)selector;
+            if (length < typed_length) {
+                return -1;
+            }
+        }
+        *body_length = typed_length;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x0c: {
+        int16_t count_18;
+        size_t typed;
+
+        /* 0x40bafd: signed count at +8, size 10 + 18 * count narrowed to a
+         * signed WORD in the original; counts outside 0..1819 are native
+         * safety rejections (no size wrap). */
+        if (length < 10u) {
+            return -1;
+        }
+        count_18 = read_i16le(body + 8u);
+        if (count_18 < 0 || count_18 > 1819) {
+            return -1;
+        }
+        typed = 10u + (size_t)count_18 * 18u;
+        if (length < typed) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x16: /* raw 0x16..0x19 share loader arm 0x40b98f (A-16.1, A-17.1) */
+    case 0x17: {
+        int16_t count;
+        /* 0x40b998..0x40b9a9 narrows size to signed int16 before allocation.
+         * Reject negative counts and any size wrap; no string fields. */
+        if (length < 22u) {
+            return -1;
+        }
+        count = read_i16le(body + 20u);
+        if (count < 0 || count > 1819) {
+            return -1;
+        }
+        *body_length = 22u + 18u * (size_t)count;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }
@@ -564,6 +762,46 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     return 1;
 }
 
+/* Dependency-tail content checks the original runs before building the tree
+ * (0x424cb0..0x424e98, A-TAIL.2): opcode 0x12 opens and 0x13 closes a group.
+ * The original logs a message and aborts the load for an open immediately
+ * followed by a close, for an open, one leaf and a close, for an adjacent
+ * 0x0b pair whose first record has a zero word at +6, and for unbalanced
+ * open/close counts. Opcodes are signed 16-bit words at the start of each
+ * 16-byte record; the first failure in scan order is final. Ordering of
+ * opens and closes is not checked at this stage. */
+static int dependency_prescan_ok(const uint8_t *records, size_t count)
+{
+    size_t row;
+    size_t opens = 0u;
+    size_t closes = 0u;
+
+    for (row = 0u; row < count; ++row) {
+        int16_t opcode = read_i16le(records + row * SCENE_RESOURCE_DEPENDENCY_BYTES);
+
+        if (opcode == 0x12) {
+            ++opens;
+            if (row + 1u < count &&
+                read_i16le(records + (row + 1u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x13) {
+                return 0;
+            }
+            if (row + 2u < count &&
+                read_i16le(records + (row + 2u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x13) {
+                return 0;
+            }
+        } else if (opcode == 0x13) {
+            ++closes;
+        } else if (opcode == 0x0b) {
+            if (row + 1u < count &&
+                read_i16le(records + (row + 1u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x0b &&
+                read_i16le(records + row * SCENE_RESOURCE_DEPENDENCY_BYTES + 6u) == 0) {
+                return 0;
+            }
+        }
+    }
+    return opens == closes;
+}
+
 static int parse_action(SceneAction *action, const uint8_t *payload, size_t length)
 {
     size_t typed_length;
@@ -600,7 +838,9 @@ static int parse_action(SceneAction *action, const uint8_t *payload, size_t leng
         return 0;
     }
     remaining = action->info.raw_body_length - typed_length;
-    if (remaining % SCENE_RESOURCE_DEPENDENCY_BYTES != 0u) {
+    if (remaining % SCENE_RESOURCE_DEPENDENCY_BYTES != 0u ||
+        !dependency_prescan_ok(action->info.raw_body + typed_length,
+                               remaining / SCENE_RESOURCE_DEPENDENCY_BYTES)) {
         return 0;
     }
     action->info.payload_kind = kind;
