@@ -285,6 +285,9 @@ struct NativeApp {
     bool scene_runtime_enabled = false;
     bool session_block_reported = false;
     bool session_transition_reported = false;
+    /* RT-13: a blocked session stops every later tick, so pointer input is
+     * ignored. The block is reported once; ignored input is counted. */
+    uint64_t blocked_input_ignored = 0u;
     int last_stage = -1, last_hover = -2;
     int16_t initial_scene = 0;
     int16_t current_scene_id = 0;
@@ -1602,6 +1605,15 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     }
     if (event_kind != BLACKMOOR_POINTER_MOVE)
         record(app, "pointer kind=%d x=%d y=%d button=%u", event_kind, x, y, button);
+    if (app->session != nullptr && app->session_block_reported &&
+        event_kind != BLACKMOOR_POINTER_MOVE && button == 0u) {
+        ++app->blocked_input_ignored;
+        /* First and every 20th, so a long freeze stays visible without flooding. */
+        if (app->blocked_input_ignored == 1u || app->blocked_input_ignored % 20u == 0u)
+            record(app, "session_frozen_input_ignored scene=%d count=%llu "
+                   "reason=scene-session-blocked (see session_frozen above)",
+                   app->current_scene_id, (unsigned long long)app->blocked_input_ignored);
+    }
 }
 
 static void key(void *context, unsigned virtual_key, int down, int repeat)
@@ -2726,6 +2738,10 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         SceneActionInfo info{};
         if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_A79_TYPE)
+            record(app, "scene_a79_construct row=%zu item=%d (remove-inventory-item, 0x4eac4c)",
+                   row, session_a79_item_word(app->a79, row));
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A97_TYPE)
             record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
                    row, session_a97_selected(app->a97, row));
@@ -3782,6 +3798,30 @@ static bool perform_session_transition(NativeApp *app,
     return true;
 }
 
+/* RT-13: say why the session stopped, in terms a player or developer can act on. */
+static void describe_session_block(const NativeApp *app, const SceneSessionTickResult &r,
+                                   char *out, size_t capacity)
+{
+    const char *detail = "";
+    if (r.failure.action_type == SESSION_A79_TYPE) detail = session_a79_failure(app->a79);
+    else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
+    if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
+        r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
+        (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
+        std::snprintf(out, capacity, "action type 0x%02x at row %zu has no native runtime yet",
+                      r.failure.action_type, r.failure.action_index);
+    else if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH)
+        std::snprintf(out, capacity, "action type 0x%02x at row %zu stopped: %s (detail %d)",
+                      r.failure.action_type, r.failure.action_index,
+                      detail[0] != '\0' && std::strcmp(detail, "none") != 0 ? detail
+                          : scene_session_provider_string(r.failure.provider),
+                      r.failure.detail_status);
+    else
+        std::snprintf(out, capacity, "stage %d provider %s failed (detail %d)",
+                      r.failure.stage, scene_session_provider_string(r.failure.provider),
+                      r.failure.detail_status);
+}
+
 enum class ExitTick { Run, Consumed, Failed };
 
 /* One main-loop step for the non-running states of 0x438150. */
@@ -3908,6 +3948,28 @@ static void update(NativeApp *app, uint32_t now)
                        condition_failure.opcode, condition_failure.record_index,
                        condition_failure.provider_status);
             }
+            {
+                /* RT-13: the silent freeze. One persistent log line with the scene,
+                 * row, type and reason, and the same facts in the window title. */
+                char reason[192];
+                describe_session_block(app, session_result, reason, sizeof(reason));
+                record(app, "session_frozen scene=%d generation=%llu row=%zu type=0x%02x "
+                       "provider=%s stage=%d reason=\"%s\" ticks_after_block=stopped "
+                       "pointer_input=ignored",
+                       app->current_scene_id,
+                       (unsigned long long)scene_session_scene_generation(app->session),
+                       session_result.failure.action_index, session_result.failure.action_type,
+                       scene_session_provider_string(session_result.failure.provider),
+                       session_result.failure.stage, reason);
+                if (app->platform) {
+                    char title[320];
+                    std::snprintf(title, sizeof(title),
+                                  "Blackmoor reconstruction — STOPPED in scene %d: %s; input ignored",
+                                  app->current_scene_id, reason);
+                    blackmoor_macos_set_title(app->platform, title);
+                }
+            }
+            app->blocked_input_ignored = 0u;
             app->session_block_reported = true;
         } else if (session_status == SCENE_SESSION_TRANSITION_PENDING &&
                    !app->session_transition_reported) {
@@ -4336,6 +4398,7 @@ int main(int argc, char **argv)
         uint32_t live_ticks = 600, live_tick_ms = 85;
         bool live_tick_ms_set = false;
         long live_click_row = -1;
+        bool live_click_blocked = false;
         bool live_double_click = false, live_hover_only = false;
         long live_scene = -1, live_scene_row = -1;
         long dump_scene = -1;
@@ -4343,6 +4406,10 @@ int main(int argc, char **argv)
             const std::string argument = argv[i];
             if (argument == "--live-double-click") { live_double_click = true; continue; }
             if (argument == "--live-hover-only") { live_hover_only = true; continue; }
+            /* RT-13: after the session blocks, deliver ordinary clicks at the last
+             * pointer position (what a player does at a frozen window) so the
+             * "input ignored" report can be checked headlessly. */
+            if (argument == "--live-click-blocked") { live_click_blocked = true; continue; }
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
             if (argument == "--inspect-actions") { inspect_only = inspect_actions = true; continue; }
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
@@ -4595,7 +4662,16 @@ int main(int argc, char **argv)
                         SceneSessionTickResult tick{};
                         if (scene_session_get_last_result(app.session, &tick) == SCENE_SESSION_OK &&
                             tick.status == SCENE_SESSION_BLOCKED) {
-                            if (++stalled > 3u) break;
+                            ++stalled;
+                            if (live_click_blocked && (stalled == 2u || stalled == 3u)) {
+                                pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
+                                clock += live_tick_ms; update(&app, clock);
+                                pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                clock += live_tick_ms; update(&app, clock);
+                                record(&app, "live_session_click_while_blocked pointer=%d,%d",
+                                       app.pointer_x, app.pointer_y);
+                            }
+                            if (stalled > 3u) break;
                         } else stalled = 0;
                         (void)last_progress_tick;
                         if (scripted_clicks == 0 || (scripted_clicks == 1 && clock - clicked_at > 255u)) {
