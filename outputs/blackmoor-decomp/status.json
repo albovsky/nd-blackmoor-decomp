@@ -83,9 +83,9 @@
   "native_scene_resource_parser": {
     "scenes_parsed": 2078,
     "action_records": 19612,
-    "typed_actions": 19324,
-    "opaque_actions": 288,
-    "known_dependency_records": 26152,
+    "typed_actions": 19436,
+    "opaque_actions": 176,
+    "known_dependency_records": 26270,
     "targeted_tests": 18,
     "action_execution": false,
     "resources_attempted": 2267,
@@ -149,8 +149,8 @@
     "caption_renderer": true
   },
   "next_action_recovery": {
-    "typed_actions": 19324,
-    "opaque_actions": 288,
+    "typed_actions": 19436,
+    "opaque_actions": 176,
     "next_body_candidates": [
       "0x62",
       "0x35",
@@ -164,7 +164,7 @@
       "remaining control code1 and NLS paths",
       "timed video and remaining scene handlers"
     ],
-    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f and 0x43 are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x45 (32), 0x44 (27), 0x36 (20), 0x4e (18), 0x94 (12); A-45.1, A-44.1 and A-36.1 are active."
+    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1, A-94.1, A-D1.1, A-2E.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44, 0x36, 0x94, 0xd1 and 0x2e are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x0c (43), 0x4e (18), 0x17 (10), 0x68 (10), 0x83 (9); A-0C.1, A-4E.1 and A-17.1 are active."
   },
   "native_conditions": {
     "supported_opcodes": [
@@ -330,18 +330,16 @@
   "current_slice": {
     "status": "in_progress",
     "name": "Runtime path: live S0 audio, scene transitions, 0x62/0x51/0x28 bindings, dependency opcodes, scene exit handler",
-    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906; S4700 now parses, loads and ticks; stops at the unimplemented 0x35 runtime (S4700 row 3)",
+    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906; S4700 parses, loads and ticks; the row-3 0x35 MOVIE controller initializes (RT-7) and raw 0x97 rows 11-13 run (RT-8); stops at the row-3 0x35 phase-1 Bink providers (frames, audio, rectangle); no movie frame is presented",
     "game_complete": false
   },
   "next_scene_blockers": {
     "scene": "S4700",
     "opaque_raw_types": [],
-    "unsupported_typed_raw_types": [
-      "0x35",
-      "0x97"
-    ],
+    "unsupported_typed_raw_types": [],
     "execution_blockers": [
-      "0x35 runtime handler (A-35.2 in the other thread)",
+      "0x35 phase-1 Bink frame/audio/rectangle providers (init only after RT-7; no frame presented)",
+      "dropped movie globals (layers 1-2, visible) are not mirrored out of the controller world (RT-7 review)",
       "edge/arrow cascade of 0x4f0059 (priority_clear unproven near viewport edges)",
       "whether the original keeps sounds across continuation transitions (unverified)",
       "0x28 nested state-3 tick and bit-exact x87 curve",
@@ -350,11 +348,11 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "f44761b4d0a98f937230be40ea3bc1177dcc9713 (branch claude/hungry-matsumoto-8ab8eb, PR 10; last code change, docs follow)",
+    "source_ref": "432abfd02def38da2befb8f433b60e19c1098075 (branch codex/rt-8-a97-runtime; RT-8 raw 0x97 runtime)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 1074,
-      "passed": 1069,
+      "discovered": 1204,
+      "passed": 1199,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
@@ -374,7 +372,7 @@
         "S5906",
         "S4700"
       ],
-      "stop": "S4700 loads and ticks (rows 0-2 run); row 3 type 0x35 has a typed body but no native runtime handler: scene_session_blocked provider=action-kernel action=3",
+      "stop": "S4700 loads; row 3 (0x35 Bink) initializes, rows 11-13 (0x97) run; row 3 phase 1 blocks on the unbound Bink frame/audio/rectangle providers: scene_session_blocked provider=action-family-35 action=3",
       "child_complete": false
     }
   },

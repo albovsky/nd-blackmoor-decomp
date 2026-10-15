@@ -332,8 +332,9 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('nonfinite=0 pcm_fnv1a64=', movie)
         self.assertNotIn('scene_a35_blocker', contents)
         self.assertNotIn('scene_a97_blocker', contents)
+        visit_log = contents[contents.index('scene_a97_construct row=13'):]
         for channel in (8, 7, 4):
-            self.assertRegex(contents, rf'live_audio loaded stem=\w+ channel={channel} frames=')
+            self.assertRegex(visit_log, rf'live_audio loaded stem=\w+ channel={channel} frames=')
 
     def assert_bink_viewport_hashes(self, movie):
         import re
