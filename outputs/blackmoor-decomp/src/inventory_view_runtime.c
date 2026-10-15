@@ -178,8 +178,36 @@ int inventory_view_slot_hit(const InventoryViewLayout *layout, size_t slot, int3
     return 1;
 }
 
+void inventory_view_cursor_choice(int16_t held_item, int32_t override, int32_t held_flag,
+                                  int32_t *index, int32_t *variant)
+{
+    int32_t i, v = 0;
+    if (override != 0 || held_item == -1) {
+        i = 4;                                         /* 0x4ee2b9 / 0x4ee2e8 */
+    } else if (held_flag != 0) {
+        i = 9;                                         /* 0x4ee31f */
+    } else {
+        i = (int32_t)held_item + 0x25;                 /* 0x4ee356 */
+    }
+    if (index != NULL) *index = i;
+    if (variant != NULL) *variant = v;
+}
+
+int inventory_view_cursor_hotspot(const uint8_t *curs, size_t length, int32_t index,
+                                  int32_t variant, int32_t *dx, int32_t *dy)
+{
+    const size_t offset = 0x1ac0u + (size_t)index * 16u + (size_t)variant * 8u;
+    if (curs == NULL || dx == NULL || dy == NULL || index < 0 || index >= 107 || variant < 0 ||
+        variant > 1 || length < 8580u) {
+        return INVVIEW_ERR_ARGUMENT;
+    }
+    *dx = rd32(curs + offset);
+    *dy = rd32(curs + offset + 4u);
+    return INVVIEW_OK;
+}
+
 int inventory_view_hover(InventoryView *view, const InventoryViewLayout *layout, int32_t px,
-                         int32_t py, int16_t held_item, int *hover_ran)
+                         int32_t py, int16_t held_item, int frame_consumed, int *hover_ran)
 {
     size_t i;
     if (view == NULL || layout == NULL || hover_ran == NULL) {
@@ -189,6 +217,9 @@ int inventory_view_hover(InventoryView *view, const InventoryViewLayout *layout,
     if (view->screen_state != INVVIEW_STATE_INVENTORY ||
         (view->mode != 2 && view->mode != 3)) {
         return INVVIEW_OK;                            /* 0x4d30xx switch, 0x4e89f5 */
+    }
+    if (frame_consumed != 0) {
+        return INVVIEW_OK;                            /* 0x4e8a12: 0x4ee2a9 != 0, 0x4e8a1b */
     }
     *hover_ran = 1;
     view->hot = -1;                                   /* 0x4e8bbe */

@@ -24,6 +24,7 @@
 #include "session_bindings_a35_bink.h"
 #include "session_bindings_a79.h"
 #include "session_bindings_a78.h"
+#include "inventory_view_runtime.h"
 #include "session_bindings_a36.h"
 #include "session_bindings_a17.h"
 #include "session_bindings_a0b.h"
@@ -249,6 +250,18 @@ struct NativeApp {
      * performed: the app has no sound-effect backend and no UI button table. */
     SessionA78Binding *a78 = nullptr;
     uint64_t a78_sound_requests = 0u, a78_ui_requests = 0u;
+    /* RT-22: the inventory view (object 0x571442): screen state 0x583204, slots,
+     * pointer routing. Geometry comes from the boot chunks UIIV/INV/CURS (copies,
+     * read once). The open request stands in for the taskbar button (0x4e0f91 /
+     * 0x4e1450 set byte 0x583232), which is not recovered. */
+    InventoryView inv_view{};
+    InventoryViewLayout inv_layout{};
+    bool inv_view_initialized = false;
+    int16_t inv_kind[INVVIEW_ITEMS]{}, inv_text[INVVIEW_ITEMS]{};
+    std::vector<uint8_t> inv_uiiv, inv_curs;
+    bool inv_data_ready = false;
+    uint64_t inv_view_sounds = 0u;
+    std::vector<std::pair<int32_t, int32_t>> live_pick_items;
     A35World movie_world{};
     /* Process globals mirrored by the controller, alongside the owning
      * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
@@ -1662,11 +1675,26 @@ static unsigned current_left_click_count()
     return (unsigned)event.clickCount;
 }
 
+static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t x, int32_t y);
+
 static void pointer(void *context, BlackmoorPointerKind kind,
                     int32_t x, int32_t y, unsigned button)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     const int event_kind = static_cast<int>(kind);
+    /* RT-22: while the inventory screen is up (0x583204 == 3) the left click goes to
+     * the view (0x43b19e -> 0x43c0aa) instead of the scene's hotspots; moves reach
+     * its hover and still update the pointer. */
+    if (app->inv_view.screen_state == INVVIEW_STATE_INVENTORY && button == 0 &&
+        (event_kind == BLACKMOOR_POINTER_MOVE || event_kind == BLACKMOOR_POINTER_DOWN ||
+         event_kind == kPointerDoubleClick)) {
+        if (event_kind == BLACKMOOR_POINTER_MOVE) {
+            app->pointer_x = x;
+            app->pointer_y = y;
+        }
+        inventory_view_pointer_event(app, event_kind, x, y);
+        if (event_kind != BLACKMOOR_POINTER_MOVE) return;
+    }
     /* The original message-map helper stores coordinates for WM_MOUSEMOVE.
      * Button down/up notify the input latch without replacing that last move. */
     if (event_kind == BLACKMOOR_POINTER_MOVE) {
@@ -2838,11 +2866,14 @@ static bool create_phone_list_binding(NativeApp *app, const uint8_t *uicl, size_
  * What 0x4e812f derives (lists 0x583abd/0x583b49, words 0x583a2d/0x583a2f, the
  * per-page slot table, paging floats) is therefore NOT maintained: UNVERIFIED,
  * nothing in the native app reads it yet. */
+static void inventory_view_sync(NativeApp *app);
+
 static int native_a79_rebuild_view(void *context, int16_t removed_item)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr) return 1;
     ++app->inventory_view_rebuilds;
+    inventory_view_sync(app);   /* RT-22: the slot fill of 0x4e812f (rest not modeled) */
     record(app, "scene_a79_inventory_removed item=%d count=%d view-rebuild=requested-not-modeled "
            "rebuilds=%llu", removed_item,
            (int)static_cast<int16_t>(app->new_game.selector_words[0]),
@@ -2865,6 +2896,7 @@ static int native_a78_rebuild_view(void *context, int16_t item)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr) return 1;
     ++app->inventory_view_rebuilds;
+    inventory_view_sync(app);   /* RT-22 */
     record(app, "scene_a78_inventory_changed item=%d count=%d view-rebuild=requested-not-modeled "
            "rebuilds=%llu", item,
            (int)static_cast<int16_t>(app->new_game.view.inventory.selector_words_583a2b.values[0]),
@@ -2892,6 +2924,161 @@ static int native_a78_request_ui_animation(void *context, int16_t index, int32_t
            "UI button flags 0x5a17b4/0x5a17b8; NOT RENDERED, unverified) requests=%llu", index, enable,
            sub, (unsigned long long)app->a78_ui_requests);
     return 0;
+}
+
+/* ---- RT-22: the inventory view (object 0x571442) ------------------------
+ * See inventory_view_runtime.h for the recovered addresses. Rendering (icons,
+ * highlight, taskbar), the open transition (0x4e94c1 modes 0/4/5), the tab lists
+ * 0x65/0x66, paging, keyboard arrows and every sound are NOT implemented: sounds
+ * and the teardown are logged as NOT PLAYED / NOT RENDERED. */
+static Action79Model inventory_model(NativeApp *app)
+{
+    WorldInitInventory &inventory = app->new_game.view.inventory;
+    Action79Model model{};
+    model.held_item = inventory.selected_item_candidate;
+    model.item_count = reinterpret_cast<int16_t *>(inventory.selector_words_583a2b.values);
+    model.items = inventory.item_ids_583a31.values;
+    model.item_capacity = inventory.item_ids_583a31.count;
+    model.presence = inventory.presence_583bd5.values;
+    model.presence_capacity = inventory.presence_583bd5.count;
+    return model;
+}
+
+static void inventory_view_ensure(NativeApp *app)
+{
+    if (!app->inv_view_initialized) {
+        inventory_view_init(&app->inv_view);
+        app->inv_view_initialized = true;
+    }
+    if (app->inv_data_ready) return;
+    const uint8_t *uiiv = nullptr, *inv = nullptr, *curs = nullptr;
+    size_t uiiv_size = 0, inv_size = 0, curs_size = 0;
+    if (!find_boot_payload(app, "UIIV", &uiiv, &uiiv_size) ||
+        !find_boot_payload(app, "INV", &inv, &inv_size) ||
+        !find_boot_payload(app, "CURS", &curs, &curs_size) ||
+        inventory_view_items_from_inv(inv, inv_size, app->inv_kind, app->inv_text) != INVVIEW_OK) {
+        record(app, "inventory_view_data_missing (BOOT chunks UIIV/INV/CURS)");
+        return;
+    }
+    app->inv_uiiv.assign(uiiv, uiiv + uiiv_size);
+    app->inv_curs.assign(curs, curs + curs_size);
+    app->inv_data_ready = true;
+}
+
+static void inventory_view_sync(NativeApp *app)
+{
+    inventory_view_ensure(app);
+    const Action79Model model = inventory_model(app);
+    const char *why = "none";
+    const int status = inventory_view_rebuild(&app->inv_view, &model, &why);
+    if (status != INVVIEW_OK)
+        record(app, "inventory_view_rebuild_error status=%d detail=%s", status, why);
+}
+
+static int native_inv_view_sound(void *context, uint16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->inv_view_sounds;
+    record(app, "inventory_view_sound_request slot=0x%02x (0x4fb2e3 trigger; NOT PLAYED: no sound-effect "
+           "backend, unverified) requests=%llu", slot, (unsigned long long)app->inv_view_sounds);
+    return 0;
+}
+
+static int native_inv_view_close(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    record(app, "inventory_view_close (0x4e7d04: teardown 0x4edb97 and 0x4d36ed NOT RENDERED)");
+    return 0;
+}
+
+static void inventory_view_hover_now(NativeApp *app)
+{
+    const int16_t held = *app->new_game.view.inventory.selected_item_candidate;
+    int32_t index = 0, variant = 0, dx = 0, dy = 0;
+    inventory_view_cursor_choice(held, 0, 0, &index, &variant);   /* 0x5c39e9 / 0x5b44f8: no producer */
+    if (inventory_view_cursor_hotspot(app->inv_curs.data(), app->inv_curs.size(), index, variant,
+                                      &dx, &dy) != INVVIEW_OK)
+        return;
+    int ran = 0;
+    const int32_t before = app->inv_view.hot;
+    inventory_view_hover(&app->inv_view, &app->inv_layout, app->pointer_x + dx, app->pointer_y + dy,
+                         held, 0, &ran);
+    if (ran && app->inv_view.hot != before)
+        record(app, "inventory_view_hover pointer=%d,%d hot_point=%d,%d cursor=%d/%d hot_item=%d event=0x%x "
+               "(0x4e8bb4; cursor sprite not drawn)", app->pointer_x, app->pointer_y, dx, dy, index,
+               variant, app->inv_view.hot, app->inv_view.event);
+}
+
+/* The open request (byte 0x583232 consumed by 0x43a7ca). */
+static bool inventory_view_open_request(NativeApp *app, const char *source)
+{
+    inventory_view_ensure(app);
+    if (!app->inv_data_ready) return false;
+    if (inventory_view_layout_from_uiiv(app->inv_uiiv.data(), app->inv_uiiv.size(),
+                                        app->scene_destination.left, app->scene_destination.top,
+                                        &app->inv_layout) != INVVIEW_OK) {
+        record(app, "inventory_view_open_error layout");
+        return false;
+    }
+    int opened = 0;
+    inventory_view_open(&app->inv_view, &app->inv_layout, &opened);
+    const int32_t *slots = app->inv_view.slot_item;
+    record(app, "inventory_view_open source=%s opened=%d state=%d mode=%d tab=%d slots=%d,%d,%d,%d "
+           "origin=%d,%d (open transition 0x4e94c1 modes 0/4/5 NOT RECOVERED, entered at mode 2; "
+           "view NOT RENDERED; the taskbar button that sets byte 0x583232 is not recovered)",
+           source, opened, app->inv_view.screen_state, app->inv_view.mode, app->inv_view.tab,
+           slots[0], slots[1], slots[2], slots[3], app->scene_destination.left,
+           app->scene_destination.top);
+    if (opened) inventory_view_hover_now(app);   /* the first tick's hover (0x4d3106) */
+    return opened != 0;
+}
+
+static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t x, int32_t y)
+{
+    (void)x; (void)y;
+    if (!app->inv_data_ready) return;
+    if (event_kind == BLACKMOOR_POINTER_MOVE) {
+        inventory_view_hover_now(app);
+        return;
+    }
+    /* A left button down or double click: 0x4e8dc8 -> 0x4e8e78 with the hot item of the
+     * last hover (the original runs the click branch instead of the hover in that tick). */
+    const WorldInitInventory &inventory = app->new_game.view.inventory;
+    Action78Model model{};
+    model.inventory = inventory_model(app);
+    model.view.mode = app->inv_view.mode;
+    model.view.slot_flag = app->inv_layout.slot_flag;
+    InventoryViewItemData data{};
+    data.kind = app->inv_kind;
+    data.text = app->inv_text;
+    data.aux_a = inventory.auxiliary_583ced.values;
+    data.aux_b = inventory.auxiliary_583e05.values;
+    data.aux_count = inventory.auxiliary_583ced.count < inventory.auxiliary_583e05.count
+                         ? inventory.auxiliary_583ced.count : inventory.auxiliary_583e05.count;
+    InventoryViewHost host{};
+    host.inventory.inventory.context = app;
+    host.inventory.inventory.rebuild_view = native_a79_rebuild_view;
+    host.inventory.request_sound = native_a78_request_sound;
+    host.inventory.request_ui_animation = native_a78_request_ui_animation;
+    host.inventory.context = app;
+    host.request_sound = native_inv_view_sound;
+    host.close_view = native_inv_view_close;
+    host.context = app;
+    InventoryViewClickResult result{};
+    const char *why = "none";
+    const int32_t hot = app->inv_view.hot;
+    const int status = inventory_view_click(&app->inv_view, &app->inv_layout, &data, &model, &host, 0,
+                                            &result, &why);
+    record(app, "inventory_view_click status=%d hot_item=%d event=0x%x handled=%u picked=%u put_back=%u "
+           "closed=%u held=%d count=%d detail=%s (0x4e8e78)", status, hot, app->inv_view.event,
+           result.handled, result.picked, result.put_back, result.closed,
+           (int)*inventory.selected_item_candidate,
+           (int)static_cast<int16_t>(inventory.selector_words_583a2b.values[0]), why);
+    if (result.picked)
+        record(app, "inventory_view_held_item_set item=%d (word 0x583a29; the scene dependency opcode 11 "
+               "'held item == N' reads it)", (int)*inventory.selected_item_candidate);
 }
 
 /* ---- RT-14: host providers for the raw 0x36 overlay binding -------------
@@ -4531,6 +4718,7 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
                (int)*inv.selected_item_candidate);
     }
 #endif
+    inventory_view_sync(app);   /* RT-22: 0x4e7e15 -> 0x4e812f fills the view slots after New Game */
     app->world_clock_session.world = &app->new_game.view;
     /* The two signed window bounds are in the PE zero-filled data tail and
      * have no direct .text stores in the pinned image. The session object is
@@ -5624,6 +5812,16 @@ int main(int argc, char **argv)
                 live_scene_row = std::strtol(end + 1, &end, 10);
                 if (*end || live_scene_row < 0) return 2;
                 live_scene_rows.emplace_back(live_scene, live_scene_row);
+            } else if (argument == "--live-pick-item") {
+                /* RT-22: SCENE:ITEM. In that scene, once it has settled for a few ticks, the
+                 * script opens the inventory view (stand-in for the taskbar button), moves the
+                 * pointer onto the slot holding ITEM and left-clicks it. May repeat. */
+                char *end = nullptr;
+                const long pick_scene = std::strtol(value, &end, 10);
+                if (!*value || *end != ':' || pick_scene < 0) return 2;
+                const long pick_item = std::strtol(end + 1, &end, 10);
+                if (*end || pick_item < 0 || pick_item >= (long)INVVIEW_ITEMS) return 2;
+                app.live_pick_items.emplace_back((int32_t)pick_scene, (int32_t)pick_item);
             } else if (argument == "--live-nav") {
                 char *end = nullptr;
                 const long nav_scene = std::strtol(value, &end, 10);
@@ -5875,6 +6073,7 @@ int main(int argc, char **argv)
                     uint32_t clicked_at = 0;
                     int16_t last_scene = app.current_scene_id;
                     uint32_t stalled = 0;
+                    uint32_t scene_ticks = 0;
                     uint64_t last_progress_tick = 0;
                     for (uint32_t step = 0; step < live_ticks && !app.failure; ++step) {
                         clock += live_tick_ms;
@@ -5888,6 +6087,7 @@ int main(int argc, char **argv)
                             last_scene = app.current_scene_id;
                             scripted_clicks = 0;
                             stalled = 0;
+                            scene_ticks = 0;
                         }
                         SceneSessionTickResult tick{};
                         if (scene_session_get_last_result(app.session, &tick) == SCENE_SESSION_OK &&
@@ -5904,6 +6104,46 @@ int main(int argc, char **argv)
                             if (stalled > 3u) break;
                         } else stalled = 0;
                         (void)last_progress_tick;
+                        /* RT-22: scripted inventory pick (open, hover, click). Two ticks apart so
+                         * each message is processed by its own tick. */
+                        ++scene_ticks;
+                        {
+                            bool pick_active = false;
+                            for (auto it = app.live_pick_items.begin(); it != app.live_pick_items.end(); ++it) {
+                                if (it->first != app.current_scene_id) continue;
+                                pick_active = true;
+                                if (scene_ticks == 20u) {
+                                    if (!inventory_view_open_request(&app, "scripted --live-pick-item"))
+                                        app.live_pick_items.erase(it);
+                                } else if (scene_ticks == 22u) {
+                                    int slot = -1;
+                                    for (int i = 0; i < (int)INVVIEW_SLOTS; ++i)
+                                        if (app.inv_view.slot_item[i] == it->second) { slot = i; break; }
+                                    if (slot < 0 || app.inv_view.screen_state != INVVIEW_STATE_INVENTORY) {
+                                        record(&app, "live_pick_item_missing scene=%d item=%d slot=%d state=%d",
+                                               app.current_scene_id, it->second, slot,
+                                               app.inv_view.screen_state);
+                                    } else {
+                                        const int32_t cx = (app.inv_layout.rect[slot][0] + app.inv_layout.rect[slot][2]) / 2 - 9;
+                                        const int32_t cy = (app.inv_layout.rect[slot][1] + app.inv_layout.rect[slot][3]) / 2 - 9;
+                                        pointer(&app, BLACKMOOR_POINTER_MOVE, cx, cy, 0);
+                                        record(&app, "live_pick_item_hover scene=%d item=%d slot=%d pointer=%d,%d",
+                                               app.current_scene_id, it->second, slot, cx, cy);
+                                    }
+                                } else if (scene_ticks == 24u) {
+                                    if (app.inv_view.screen_state == INVVIEW_STATE_INVENTORY) {
+                                        pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
+                                        pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                        record(&app, "live_pick_item_click scene=%d item=%d held=%d",
+                                               app.current_scene_id, it->second,
+                                               (int)*app.new_game.view.inventory.selected_item_candidate);
+                                    }
+                                    app.live_pick_items.erase(it);
+                                }
+                                break;
+                            }
+                            (void)pick_active;
+                        }
                         /* RT-17: scripted edge hover. The selector is moved by the recovered
                          * navigation block (nav_step in the log), never set directly. */
                         bool nav_pending = false;

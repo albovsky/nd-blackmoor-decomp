@@ -120,7 +120,20 @@ int inventory_view_open(InventoryView *view, const InventoryViewLayout *layout, 
 /* 0x4e89eb + 0x4e8bb4. (px, py) is the pointer plus the cursor hot point. Nothing
  * happens (hover_ran 0) unless screen_state is 3 and mode is 2 or 3. */
 int inventory_view_hover(InventoryView *view, const InventoryViewLayout *layout, int32_t px,
-                         int32_t py, int16_t held_item, int *hover_ran);
+                         int32_t py, int16_t held_item, int frame_consumed, int *hover_ran);
+
+/* 0x4ee2a9 (called first by 0x4e89eb): the cursor the frame selects. override is
+ * dword 0x5c39e9, held_flag is dword 0x5b44f8. Writes 0x5b44f0 / 0x5b44f4. A nonzero
+ * return of 0x4ee2a9 (the pointer is on a frame control, 0x4e22fd / 0x4ef2d1) is the
+ * hover's frame_consumed argument: the native app has no frame controls. */
+void inventory_view_cursor_choice(int16_t held_item, int32_t override, int32_t held_flag,
+                                  int32_t *index, int32_t *variant);
+
+/* Hot point (dx, dy) of cursor (index, variant): dwords at CURS chunk +0x1ac0 +
+ * index * 16 + variant * 8 (table 0x5b30cc / 0x5b30d0; the chunk is copied to
+ * 0x5b160c, 8580 bytes, 107 cursors x 2 variants). */
+int inventory_view_cursor_hotspot(const uint8_t *curs, size_t length, int32_t index,
+                                  int32_t variant, int32_t *dx, int32_t *dy);
 
 /* Pure hit test of one slot (0x4e8c53..0x4e8cea). */
 int inventory_view_slot_hit(const InventoryViewLayout *layout, size_t slot, int32_t px, int32_t py);

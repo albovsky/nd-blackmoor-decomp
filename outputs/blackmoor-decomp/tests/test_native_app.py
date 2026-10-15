@@ -966,6 +966,39 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_session_blocked stage=3 provider=action-kernel action=1 type=0x0c detail=1 '))
         self.assertEqual(contents.count('scene_session_blocked'), 1)
 
+    def test_rt22_picking_item_23_from_the_inventory_view_replaces_the_held_hook(self):
+        # No test hook: --live-pick-item opens the inventory view in S6410, hovers the slot holding
+        # item 23 and left-clicks it (0x4e8bb4 hover, 0x4e8e78 pick up). Word 0x583a29 becomes 23,
+        # the view closes (view byte +0x7011) and the opcode-11 gate of S6410 row 2 turns true.
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--live-pick-item', '6410:23',
+                                 '--live-scene-row', '6411:2', '--live-scene-row', '6433:1')
+        self.assertNotIn('test_held_applied', contents)
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=6409 target=6410',
+            'inventory_view_open source=scripted --live-pick-item opened=1 state=3 mode=2 tab=100 slots=23,',
+            'inventory_view_hover pointer=48,94 hot_point=9,9 cursor=4/0 hot_item=23 event=0x2717 ',
+            'live_pick_item_hover scene=6410 item=23 slot=0 ',
+            'inventory_view_sound_request slot=0x17 ',
+            'inventory_view_close ',
+            'inventory_view_click status=0 hot_item=23 event=0x2717 handled=1 picked=1 put_back=0 '
+            'closed=1 held=23 count=0 ',
+            'inventory_view_held_item_set item=23 ',
+            'scene_transition_applied source=6410 target=6411',
+            'scene_transition_applied source=6411 target=6433',
+            'scene_transition_applied source=6433 target=6434',
+            'scene_session_blocked stage=3 provider=action-kernel action=1 type=0x0c detail=1 '))
+
+    def test_rt22_without_the_pick_flag_the_chain_still_waits_in_s6410(self):
+        contents = self.tutorial(*self.CHAIN_TO_6453)
+        self.assertNotIn('inventory_view_open', contents)
+        self.assertNotIn('target=6411', contents)
+
+    def test_rt22_picking_an_absent_item_is_reported_and_changes_nothing(self):
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--live-pick-item', '6410:5')
+        self.assertIn('live_pick_item_missing scene=6410 item=5 slot=-1 state=3', contents)
+        self.assertNotIn('inventory_view_held_item_set', contents)
+        self.assertNotIn('target=6411', contents)
+
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):
         return self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',

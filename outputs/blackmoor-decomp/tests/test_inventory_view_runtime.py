@@ -105,7 +105,11 @@ def bind(path=None):
                                            c.POINTER(c.c_char_p)]
     lib.inventory_view_open.argtypes = [c.POINTER(View), c.POINTER(Layout), c.POINTER(c.c_int)]
     lib.inventory_view_hover.argtypes = [c.POINTER(View), c.POINTER(Layout), c.c_int32, c.c_int32,
-                                         c.c_int16, c.POINTER(c.c_int)]
+                                         c.c_int16, c.c_int, c.POINTER(c.c_int)]
+    lib.inventory_view_cursor_choice.argtypes = [c.c_int16, c.c_int32, c.c_int32,
+                                                 c.POINTER(c.c_int32), c.POINTER(c.c_int32)]
+    lib.inventory_view_cursor_hotspot.argtypes = [c.c_char_p, c.c_size_t, c.c_int32, c.c_int32,
+                                                  c.POINTER(c.c_int32), c.POINTER(c.c_int32)]
     lib.inventory_view_slot_hit.argtypes = [c.POINTER(Layout), c.c_size_t, c.c_int32, c.c_int32]
     lib.inventory_view_click.argtypes = [c.POINTER(View), c.POINTER(Layout), c.POINTER(ItemData),
                                          c.POINTER(Model78), c.POINTER(ViewHost), c.c_int,
@@ -164,10 +168,10 @@ class Fixture:
                                               c.byref(opened))
         return status, opened.value
 
-    def hover(self, x, y):
+    def hover(self, x, y, frame_consumed=0):
         ran = c.c_int()
         status = self.lib.inventory_view_hover(c.byref(self.view), c.byref(self.layout), x, y,
-                                               self.world.held.value, c.byref(ran))
+                                               self.world.held.value, frame_consumed, c.byref(ran))
         return status, ran.value
 
     def center(self, slot):
@@ -286,6 +290,39 @@ class ViewTests(unittest.TestCase):
         self.assertEqual(f.view.hot, -1)
         f.hover(0, 0)
         self.assertEqual((f.view.hot, f.view.event), (-1, 0x2717))
+
+    def test_hover_consumed_by_the_frame_changes_nothing(self):
+        f = self.opened_one()
+        f.view.hot = 77
+        self.assertEqual(f.hover(*f.center(0), frame_consumed=1), (OK, 0))
+        self.assertEqual(f.view.hot, 77)
+
+    def opened_one(self):
+        f = Fixture(self.lib, [23])
+        f.open()
+        return f
+
+    def test_cursor_choice_and_hotspot(self):
+        index, variant = c.c_int32(), c.c_int32()
+        for held, override, flag, expect in ((-1, 0, 0, 4), (-1, 1, 1, 4), (5, 1, 0, 4),
+                                             (5, 0, 1, 9), (23, 0, 0, 60)):
+            self.lib.inventory_view_cursor_choice(held, override, flag, c.byref(index),
+                                                  c.byref(variant))
+            self.assertEqual((index.value, variant.value), (expect, 0))
+        data = BOOT.read_bytes()
+        pos = 12
+        while data[pos:pos + 4] != b'CURS':
+            size = int.from_bytes(data[pos + 4:pos + 8], 'big')
+            pos += 8 + size + (size & 1)
+        curs = data[pos + 8:pos + 8 + 8580]
+        dx, dy = c.c_int32(), c.c_int32()
+        self.assertEqual(self.lib.inventory_view_cursor_hotspot(curs, 8580, 4, 0, c.byref(dx),
+                                                                c.byref(dy)), 0)
+        self.assertEqual((dx.value, dy.value), (9, 9))
+        self.assertEqual(self.lib.inventory_view_cursor_hotspot(curs, 8580, 107, 0, c.byref(dx),
+                                                                c.byref(dy)), ARGUMENT)
+        self.assertEqual(self.lib.inventory_view_cursor_hotspot(curs, 8579, 4, 0, c.byref(dx),
+                                                                c.byref(dy)), ARGUMENT)
 
     def test_hover_event_follows_the_held_item(self):
         f = Fixture(self.lib, [5], held=23)
