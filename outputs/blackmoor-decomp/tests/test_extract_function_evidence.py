@@ -556,6 +556,30 @@ class ReceiptWindowShapes(unittest.TestCase):
         got = sorted((w.a, w.b, w.shape) for w in fe.receipt_windows(doc, "r"))
         self.assertEqual(got, [(0x40B34A, 0x410CA4, "named_pair"), (0x414CEB, 0, "start_sha")])
 
+    def test_dash_key_and_sha256_suffix_forms_are_pairs(self):
+        doc = {"code_windows": {"0x476a25-0x476ae0": "a" * 64},
+               "key_hashes": {"arm_window_0x40bd12_0x40bddd_sha256": "b" * 64}}
+        got = sorted((w.a, w.b, w.shape) for w in fe.receipt_windows(doc, "r"))
+        self.assertEqual(got, [(0x40BD12, 0x40BDDD, "named_pair"), (0x476A25, 0x476AE0, "named_pair")])
+
+    def test_residual_audit_flags_unrecognised_pair_keys(self):
+        doc = {"hashes": {"span 0x42a0ea to 0x42a125 body": "c" * 64, "0x401000..0x401100 ok": "d" * 64}}
+        wins = fe.receipt_windows(doc, "r")
+        self.assertEqual(fe.unconsumed_window_keys(doc, wins), ["hashes/span 0x42a0ea to 0x42a125 body"])
+
+    def test_hook_classifier_fails_closed(self):
+        self.assertEqual(fe._classify_hook("observe 0x4897cd entry; read-only counter"), "observed")
+        for text in ("arguments validated and recorded; EAX=0",
+                     "stop before the instruction", "writes eax=1 and records the call",
+                     "redirected to native, call recorded", "patch bytes to NOP; counter incremented",
+                     "records the call"):
+            self.assertNotEqual(fe._classify_hook(text), "observed", text)
+
+    def test_asm_track_tooling_tests_are_not_native_evidence(self):
+        for name in ("test_compose_image.py", "test_gen_hinted_asm.py", "test_matching_s08_2_x86.py",
+                     "matching_s08_2_original_oracle.py", "test_audit_tool_assisted.py", "test_verify_matches.py"):
+            self.assertTrue(fe.FIXTURE_TESTS.match(name), name)
+
     def test_list_of_three(self):
         doc = {"x": {"code_windows": [[4240202, 4240646, "b" * 64]]}}
         self.assertEqual(self.shapes(doc), {(4240202, 4240646, True, "triple")})

@@ -158,9 +158,15 @@ WINDOW_NAME_RE = re.compile(r"CODE|WINDOW|RANGE|SPAN", re.I)
 REPLACED_RE = re.compile(
     r"replac|return|stub|trampoline|malloc|alloc|skip|seeded|sentinel|stand[- ]?in|deterministic|"
     r"synthetic|fake|substitut|models?\b|inject|force|fixed", re.I)
+MUTATING_RE = re.compile(
+    r"(?<!no )(?<!never )\bwrites?\b|\bstop\b|\bEAX\b|\bpatch|\bNOP\b|redirect|increment|\bset\b|\bforce", re.I)
 OBSERVED_RE = re.compile(r"observ|counter|read-only|probe only|no register|no memory|record", re.I)
 FIXTURE_TESTS = re.compile(
-    r"test_(?:extract_function_evidence|(?:extract_)?function_xrefs|function_ledger|sample_function_ledger)\.py$")
+    r"(?:test_(?:extract_function_evidence|(?:extract_)?function_xrefs|function_ledger|sample_function_ledger)\.py$"
+    # asm-track tooling and x86-match tests: they prove the x86 match, not the native port, and
+    # cite addresses as fixtures (for example BASE = 0x401000)
+    r"|test_(?:audit_tool_assisted|compose_image|gen_hinted_asm|verify_matches)\.py$"
+    r"|(?:test_)?matching_s08[A-Za-z0-9_]*\.py$)")
 LEDGER_RECEIPT = re.compile(r"FL-\d")       # the function-ledger packets' own receipts carry no original-code evidence
 FILE_KEYS = ("files", "owned_files", "owned_distributable_files", "changed_tracked_files",
              "committed_files", "tracked_files")
@@ -733,7 +739,9 @@ START_KEYS = ("start", "start_va", "va", "begin")
 END_RE = re.compile(r"(?:^|_)(?:end|stop)(?:_|$)|^exclusive_end")
 SIZE_KEYS = ("size", "bytes", "length", "byte_count", "length_bytes")
 SHA_KEYS = ("window_sha256", "original_window_sha256", "code_sha256", "sha256", "original_sha256", "sha")
-NAMED_PAIR_KEY = re.compile(r"_0x([0-9a-fA-F]{6,8})_0x([0-9a-fA-F]{6,8})$")
+DASH_KEY = re.compile(r"^\s*0[xX]([0-9a-fA-F]{6,8})\s*-\s*0[xX]([0-9a-fA-F]{6,8})\b")
+ANY_VA_RE = re.compile(r"0[xX][0-9a-fA-F]{6,8}")
+NAMED_PAIR_KEY = re.compile(r"_0x([0-9a-fA-F]{6,8})_0x([0-9a-fA-F]{6,8})(?:_sha256)?$")
 DOTDOT_KEY = re.compile(r"^\s*0[xX]([0-9a-fA-F]{6,8})\s*\.\.\s*0[xX]([0-9a-fA-F]{6,8})\b")
 
 
@@ -798,16 +806,18 @@ def receipt_windows(doc, source: str) -> list:
     def walk(node, path):
         if isinstance(node, dict):
             dict_window(node, path)
-            if path and isinstance(path[-1], str) and "code_window" in path[-1]:
-                for k, v in node.items():
-                    if not (isinstance(k, str) and isinstance(v, str) and SHA_RE.fullmatch(v)):
-                        continue
-                    pair = NAMED_PAIR_KEY.search(k)
-                    if pair:
-                        a, b = int(pair.group(1), 16), int(pair.group(2), 16)
-                        if is_va(a):
-                            emit(a, b, v, "named_pair", None, path + [k])
-                        continue
+            for k, v in node.items():
+                if not (isinstance(k, str) and isinstance(v, str) and SHA_RE.fullmatch(v)):
+                    continue
+                # a key naming both ends of the window (dash form or name_0xA_0xB[_sha256]);
+                # the hash decides the reading, so these are safe outside code_window containers
+                pair = DASH_KEY.match(k) or NAMED_PAIR_KEY.search(k)
+                if pair:
+                    a, b = int(pair.group(1), 16), int(pair.group(2), 16)
+                    if is_va(a):
+                        emit(a, b, v, "named_pair", None, path + [k])
+                    continue
+                if path and isinstance(path[-1], str) and "code_window" in path[-1]:
                     m = re.search(r"_0x([0-9a-fA-F]{6,8})$", k)
                     if m and is_va(int(m.group(1), 16)):
                         emit(int(m.group(1), 16), 0, v, "start_sha", None, path + [k])
@@ -840,6 +850,29 @@ def receipt_windows(doc, source: str) -> list:
             seen.add(key)
             uniq.append(c)
     return uniq
+
+
+def unconsumed_window_keys(doc, wins: list) -> list:
+    """Residual audit: receipt keys that pair two VAs with a sha but produced no window candidate.
+
+    Fails the run instead of silently dropping a hashed window whose key shape nothing recognises."""
+    fields = [c.field for c in wins]
+    found = []
+
+    def walk(node, path):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if (isinstance(k, str) and isinstance(v, str) and SHA_RE.fullmatch(v)
+                        and len(ANY_VA_RE.findall(k)) >= 2
+                        and not any(f == k or f.endswith("/" + k) for f in fields)):
+                    found.append("/".join(str(p) for p in path + [k]))
+                walk(v, path + [k])
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, path + [i])
+
+    walk(doc, [])
+    return found
 
 
 # -------------------------------------------------------------- receipt metadata
@@ -921,9 +954,10 @@ def _flatten(node) -> str:
 
 
 def _classify_hook(text: str) -> str:
-    if REPLACED_RE.search(text):
-        return "replaced"
-    if OBSERVED_RE.search(text):
+    """Fail closed: ``observed`` needs an explicit 'observ' and no sign of a write, stop or forced result."""
+    if REPLACED_RE.search(text) or MUTATING_RE.search(text):
+        return "replaced" if REPLACED_RE.search(text) else "unclassified"
+    if OBSERVED_RE.search(text) and re.search(r"observ", text, re.I):
         return "observed"
     return "unclassified"
 
@@ -1155,6 +1189,8 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
                 problems.append(f"{wrel}: receipt is not a JSON object")
                 continue
             wins = receipt_windows(doc, wrel)
+            for key_path in unconsumed_window_keys(doc, wins):
+                problems.append(f"unrecognised window key shape: {wrel} [{key_path}]")
             cands.extend(wins)
             hooks = receipt_hooks(doc)
             unver = receipt_items(doc, UNVERIFIED_KEY)
