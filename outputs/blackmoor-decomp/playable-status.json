@@ -36,8 +36,8 @@
   "ticks": 2186,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "b0f9f591f6216ed6962547dd52c7bd562c745c87",
-    "native_sha256": "1906e207545fcc35ee655f5fca806d6134a2a152a9993f14a276a5372320a2b1",
+    "source_ref": "b00eb10b3dead1d56041c9fc25974cda3b9ca58c",
+    "native_sha256": "564231a24f04715d3347b41aef8a46ece46989e1558ea23d7f4ccac11a018236",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -316,7 +316,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "d53b5b144e82e9ee0a722ebfe479de1608b6c709dd8fe7f1ed6c8018a620b1b8"
+        "sha256": "5d01d2e4d71455a7e2587a6e8eaeadfa9b38eac4a29185c4c7da7594b0e56be0"
       },
       {
         "path": "src/caption_compositor.h",
