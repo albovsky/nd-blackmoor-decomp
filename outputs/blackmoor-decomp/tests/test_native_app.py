@@ -693,6 +693,15 @@ class NativeCaptionTransferTests(unittest.TestCase):
         between = contents[entry:register]
         self.assertGreater(between.count('scene_clock_tick '), 50)
 
+    def test_rt15_test_selector_rejects_an_empty_or_non_numeric_frame(self):
+        for value in ('6401:', '6401:x', '6401:4x', ':4', '6401', '6401:40000'):
+            with self.subTest(value=value):
+                result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                         '--live-click-row', '32', '--test-selector', value,
+                                         '--game-dir', str(self.game)],
+                                        capture_output=True, text=True, timeout=60)
+                self.assertEqual(result.returncode, 2, result.stderr)
+
     def test_rt15_the_tutorial_chain_reaches_the_next_missing_family_in_s6403(self):
         # S6402 row 3 is raw 0x15 (built-in scene hotspot) and S6403 row 2 is raw 0x0b:
         # the next stop, handler 0x42ae73 with the raw-0x0b loader payload.

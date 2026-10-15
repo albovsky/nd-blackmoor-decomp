@@ -4903,9 +4903,10 @@ int main(int argc, char **argv)
             } else if (argument == "--test-selector") {
                 char *end = nullptr;
                 const long scene = std::strtol(value, &end, 10);
-                if (!*value || *end != ':' || scene < 0 || scene > INT16_MAX) return 2;
-                const long frame = std::strtol(end + 1, &end, 10);
-                if (*end || frame < INT16_MIN || frame > INT16_MAX) return 2;
+                if (!*value || end == value || *end != ':' || scene < 0 || scene > INT16_MAX) return 2;
+                const char *frame_text = end + 1;
+                const long frame = std::strtol(frame_text, &end, 10);
+                if (end == frame_text || *end || frame < INT16_MIN || frame > INT16_MAX) return 2;
                 app.test_selector_scene = (int32_t)scene;
                 app.test_selector_frame = (int32_t)frame;
             } else if (argument == "--test-exit-redirect") {
