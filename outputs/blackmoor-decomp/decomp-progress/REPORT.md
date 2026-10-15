@@ -29,9 +29,9 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 - Typed, unsupported: `0x0c`, `0x1b`, `0x1c`, `0x2d`, `0x2e`, `0x33`, `0x37`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4b`, `0x4e`, `0x4f`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6e`, `0x6f`, `0x77`, `0x78`, `0x7d`, `0x83`, `0x94`, `0x95`, `0xa1`, `0xd0`, `0xd1`, `0xd3`, `0xd9`, `0xda`, `0xe0`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 - Opaque: `0x20`, `0x6d`, `0x70`, `0x76`, `0x80`, `0x9a`, `0xaa`, `0xd6`, `0xe4`
 
-Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `bca41980402a821fb93158f899e8a556d9c5e0ae`; native SHA-256 `72cff03112033fb10866d5375978e44cb341fc6594b79c1f03f5cc415690e044`; 2,186 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `236a010daecce7e8e1dbf4c73cbb59bcebd3f75d`; native SHA-256 `531868c29fbb290dc326d89476f35bb84cc1bd848977262853b4d22f8e70728b`; 2,186 session ticks.
 
-`playable-status.json` sha256 `54ff9b32f5f0b6a11c7ed4c7fc8d000f61799b2afd8f9811a42ec07ec8ced9d7`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `9044a7350555ff4cf1dbc5c09d489b887e8679225dc5e84c65d3e7a8f690fc94`. Derivation and limits: `README.md`.
 
 ## x86 matching
 
@@ -325,4 +325,4 @@ Cross-check of **legacy manifests only** against `status.json` unique_matched_by
 - `asm/batch-002-report.json` sha256 `3a7c16f30fa9b3e39758504baaaf6d875d9ca748871da221ff128109d7547426` (audit)
 - `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (excluded)
 - `matches_s08_2.json` sha256 `a173f7c06607d87e3e630a937d7d786037dc83202609f524eece7b146b6ba41c` (excluded)
-- `status.json` sha256 `879b481af6502d7d95042942d70ce11145a9fb7bbb12d8598a6c5dbcd840347d` (crosscheck)
+- `status.json` sha256 `f810657b1ac553071684710a7bdfa39d89c1f7adc62ac3d9869f78ac7cf0d09b` (crosscheck)
