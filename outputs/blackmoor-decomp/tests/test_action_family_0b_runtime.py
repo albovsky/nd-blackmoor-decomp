@@ -228,6 +228,22 @@ class KernelTests(unittest.TestCase):
                 self.assertEqual((result.phase_after, result.finished, result.requested),
                                  (phase, 0, 0))
 
+    def test_finish_maps_each_payload_field_to_its_own_scene_change_cell(self):
+        # A payload with distinct values (the loader only produces zero, zero, one for the dwords).
+        case = Case(self.lib, S6403_ROW2, 2)
+        case.payload = Payload(cursor=1, target=2, word_04=3, word_06=4, word_08=5, dword_0a=6,
+                               dword_0e=7, dword_12=8, frame=9, rect=(10, 11, 12, 13))
+        status, _ = case.run()
+        self.assertEqual(status, OK)
+        self.assertEqual([v for n, v in case.log if n.startswith('xfer')], [2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(case.state()[1], (-5, 4, 2, 3, 4, 5, 6, 7, 8))
+
+    def test_phase_one_compares_the_payload_frame_word_with_the_selector(self):
+        case = Case(self.lib, S6403_ROW2, 1, selector=-9)
+        case.payload = Payload(frame=-9)
+        self.assertEqual(case.run()[0], OK)
+        self.assertEqual(case.log, [('request', 1)])
+
     def test_null_arguments_are_rejected_and_the_observer_is_optional(self):
         p, slot, world, result = Payload(), Slot(), World(), Result()
         for args in ((None, c.byref(slot), c.byref(world), c.byref(result)),
@@ -314,6 +330,8 @@ def configure(lib):
     lib.session_a0b_slot.restype = c.c_int
     lib.session_a0b_failure.argtypes = [c.c_void_p]
     lib.session_a0b_failure.restype = c.c_char_p
+    lib.session_a0b_payload.argtypes = [c.c_void_p, c.c_size_t, c.POINTER(Payload)]
+    lib.session_a0b_payload.restype = c.c_int
     lib.session_a0b_row_count.argtypes = [c.c_void_p]
     lib.session_a0b_row_count.restype = c.c_size_t
 
@@ -593,6 +611,17 @@ class BindingTests(unittest.TestCase):
         self.assertEqual((out.disposition, out.phase), (123, 456))
         self.assertEqual(self.lib.session_a0b_handler(None, 1, c.byref(action),
                           c.byref(before), c.byref(out)), 2)
+
+    def test_hover_cursor_is_read_from_the_rows_own_payload(self):
+        f = Fixture(self, self.lib, [self.row_action(cursor=9), self.row_action(cursor=5),
+                                     self.row_action(cursor=0x1a)])
+        cursor = Cursor()
+        for row, word in ((0, 9), (1, 5), (2, 0x1a)):
+            self.assertEqual(self.lib.session_a0b_hover_cursor(f.binding, row, -1, c.byref(cursor)), 0)
+            self.assertEqual(cursor.cursor_index, word)
+        payload = Payload()
+        self.assertEqual(self.lib.session_a0b_payload(f.binding, 1, c.byref(payload)), 0)
+        self.assertEqual(payload.tuple()[:3], (5, 6404, 4))
 
     def test_scene_reload_replaces_rows(self):
         f = Fixture(self, self.lib, [self.row_action()])
