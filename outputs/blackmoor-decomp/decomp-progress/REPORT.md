@@ -71,7 +71,7 @@ Caveats:
 - Tests-only is weaker evidence than oracle-verified (a test names the function, but no original-x86 oracle window proves it); adapter-tested covers Win32 or library behaviour replaced by a tested adapter. The three ported classes are reported separately.
 - Spans include tables, padding and thunks: a span runs from a function start to the next indexed start, and the Ghidra body size can be smaller.
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
-- Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256, and drift in src/, tests/ or receipts is the job of extract_function_evidence.py --check, run separately.
+- Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
 Ledger `function-ledger.json` sha256 `cb2ce53288bb89435b50d3cbc26ef9e8dda33dc941a8a219daaa8faf4c31e3b0`; 605 pinned inputs; see `README.md` for how it is derived and checked.
 

@@ -872,8 +872,9 @@ LEDGER_CAVEATS = (
     "Spans include tables, padding and thunks: a span runs from a function start to the next indexed "
     "start, and the Ghidra body size can be smaller.",
     "Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.",
-    "Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256, and "
-    "drift in src/, tests/ or receipts is the job of extract_function_evidence.py --check, run separately.",
+    "Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. "
+    "Cited committed src/ and tests/ files are re-hashed, so changing one needs "
+    "extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.",
 )
 
 
@@ -916,8 +917,9 @@ def function_ledger_panel(root: Path, expected_functions: int):
 
     Only committed-file consistency is checked here: the ledger must pass the strict
     schema validation and equal a fresh derivation from the committed, hash-pinned
-    inputs. It never reads work/ or GAME.EXE and does not look for drift in src/, tests/
-    or private receipts; that is `extract_function_evidence.py --check`, run separately."""
+    inputs. It never reads work/ or GAME.EXE, so private receipt drift is not detected here
+    (`extract_function_evidence.py --check` does that); committed src/ and tests/ files cited
+    by the evidence are re-hashed, and a changed one fails with `function ledger invalid`."""
     path = root / FUNCTION_LEDGER_FILE
     if not path.is_file():
         return None
