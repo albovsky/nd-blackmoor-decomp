@@ -218,6 +218,19 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(n.step(raw(0, key=b'two'))[0], CAPACITY)
         self.assertEqual((n.snapshot(), len(n.events)), (before, events))
         self.assertEqual(n.step(raw(1, key=b'link'))[0], OK)
+    def test_count_above_own_capacity_with_populated_rows_is_state_error(self):
+        # Every row below the stored count is populated, so only the count/capacity
+        # check (not the empty-key scan) can reject; each list against its own capacity.
+        for list_kind, count_name, cap_name in ((0, 'mail_count', 'mail_capacity'), (1, 'web_count', 'web_capacity')):
+            n = Native(self.lib, capacity=4)
+            n.step(raw(list_kind, key=b'one')); n.step(raw(list_kind, key=b'two'))
+            self.assertEqual(getattr(n.world, count_name), 2)
+            setattr(n.world, cap_name, 1)
+            for key in (b'zzz', b'one', b'two'):  # new key, then keys held by populated rows
+                before = n.snapshot(); events = len(n.events)
+                self.assertEqual(n.step(raw(list_kind, key=key))[0], STATE)
+                self.assertEqual((n.snapshot(), len(n.events)), (before, events))
+            self.assertTrue(n.pad_intact())
     def test_malformed_reached_strings_and_short_body(self):
         n = Native(self.lib)
         for data in (raw()[:73], raw()[:2]+b'x'*33+raw()[35:], raw()[:35]+b'y'*33+raw()[68:]):
