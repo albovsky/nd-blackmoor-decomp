@@ -352,6 +352,35 @@ class BindingTests(unittest.TestCase):
         self.assertEqual(self.lib.session_a36_registered(f.binding), 40)
 
 
+class KernelTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.lib = t36.bind(t36.build_library())
+
+    def test_autotext_name_with_a_zero_surface_global_is_refused_before_any_effect(self):
+        for k, name in enumerate((b'USE_AUTOTEXT1', b'USE_AUTOTEXT2', b'USE_AUTOTEXT3')):
+            rig = t36.Rig(self.lib, [t36.simple_image(name)])
+            rig.world.autotext_surface[:] = [0x501, 0x502, 0x503]
+            rig.world.autotext_surface[k] = 0
+            before = rig.state()
+            status, _, why = rig.step(0, 0)
+            self.assertEqual(status, t36.UNSUPPORTED, name)
+            self.assertIn(b'AUTOTEXT', why)
+            self.assertEqual(rig.state(), before, name)
+            self.assertEqual(rig.fx, [('begin', 0, 0)])
+            # the same row registers once the host provides the global
+            rig.world.autotext_surface[k] = 0x600 + k
+            status, result, _ = rig.step(0, 0)
+            self.assertEqual((status, result.registered), (t36.OK, 1), name)
+            self.assertEqual(t36.image_u32(rig.image(0), 0xab6), 0x600 + k)
+
+    def test_other_names_do_not_need_the_autotext_globals(self):
+        rig = t36.Rig(self.lib, [t36.simple_image(b'TUT_Next_OVL')])
+        rig.world.autotext_surface[:] = [0, 0, 0]
+        status, result, _ = rig.step(0, 0)
+        self.assertEqual((status, result.registered), (t36.OK, 1))
+
+
 class GateModeTests(ext_tests.ExecutorExtensionTests):
     """The dispatcher gates every overlay row with 0x423f57 mode 1 because the loaders store
     the runtime type 0x36 (0x40c43a raw 0x38 arm, 0x40c47b raw 0x37 arm, 0x40c3dd arm raw 0x36),
