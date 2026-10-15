@@ -353,8 +353,8 @@
     "source_ref": "495c5ed1ea2baefcf3b44b196fd546b0342a7814 (branch codex/rt-9-bink-movie; RT-9 Bink movie playback)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 1220,
-      "passed": 1215,
+      "discovered": 1269,
+      "passed": 1264,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },

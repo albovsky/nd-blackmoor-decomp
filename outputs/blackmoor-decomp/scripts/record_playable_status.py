@@ -149,7 +149,9 @@ def seed(status, actions):
     integration = status.get("current_integration", {})
     session = integration.get("persistent_session", {})
     reached = session.get("observed_scenes")
-    expected = ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"]
+    expected = ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)],
+                "S4700", "S4710", "S4701", "S4711", "S4800", "S4801", "S4802", "S4712",
+                "S4803", "S4804", "S4805", "S4806", "S4807"]
     if reached != expected:
         raise PlayableError("seed requires the packet's committed integration scene path")
     source = re.match(r"[0-9a-f]{40}", integration.get("source_ref", ""))
@@ -160,8 +162,8 @@ def seed(status, actions):
                      "native_sha256": None, "command": PLAYABLE.LIVE_ARGS,
                      "registration_sources": actions["sources"]},
         "reached_scenes": reached, "ticks": 0,
-        "stop": {"kind": "scene_session_blocked", "scene": "S4700", "target_scene": None,
-                 "row": 3, "action_type": "0x35", "provider": "action-kernel", "reason": "provider-blocked"},
+        "stop": {"kind": "scene_transition_error", "scene": "S4807", "target_scene": "S4808",
+                 "row": 6, "action_type": "0x83", "provider": "scene-resource", "reason": "session-replace"},
     }
 
 
