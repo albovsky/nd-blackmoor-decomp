@@ -358,7 +358,9 @@ def scenarios(rng, word):
         out.append(([word], 1, held))                                # only entry
         # Decoys that share the low byte or the sign bit but are different words.
         decoys = [(word ^ 0x100) & 0xffff, (word ^ 0x8000) & 0xffff, (word + 0x4001) & 0xffff]
-        out.append((decoys + [word], 4, held))
+        # Only the absent case is safe for the original: its view rebuild indexes an
+        # item type table with every kept list word, so out-of-range words in a
+        # FOUND list read unmapped memory (outside the valid-input domain).
         out.append((decoys, 3, held))                                # decoys only: absent
         out.append((pick(3) + [word], 3, held))                      # present beyond the count
     out.append((pick(5), -1, signed))
@@ -484,6 +486,19 @@ def main(*, library=None, report_path=REPORT):
     observe_unsafe('id above the presence array', [4, 100, 5], 3, 100)
     observe_unsafe('negative id', [4, 0xfffe, 5], 3, 0xfffe)
     observe_unsafe('count above the item array', list(range(CAPACITY)), 75, 5)
+
+    # Out-of-range words among the KEPT entries: the original's rebuild indexes an
+    # item type table with each of them. Observed, not a parity target; the native
+    # kernel never indexes with other entries, so it does not validate them.
+    stray = make_case(20_000, 3, 4, 'true', [5, 0x8004, 4], 3, -1)
+    try:
+        original.run(stray, strict=False)
+        stray_result = 'original completed'
+    except Exception as error:  # Unicorn raises UcError for the unmapped read
+        stray_result = type(error).__name__ + ': ' + str(error)
+    unsafe.append(dict(label='out-of-range word among the kept entries (found item present)',
+                       original_result=stray_result,
+                       native='not validated by the kernel; the rebuild provider owns it'))
 
     report = dict(
         slice='RT-13',

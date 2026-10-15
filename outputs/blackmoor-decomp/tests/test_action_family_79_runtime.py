@@ -189,7 +189,6 @@ class RuntimeTests(unittest.TestCase):
     def test_words_that_differ_only_above_the_low_byte_or_in_the_sign_bit_do_not_match(self):
         decoys = [0x0104, 0x8004, 0x4005, 0xff04]
         w = World(decoys + [4, 9], presence=[4, 9])
-        before = w.snapshot()
         status, r, _ = visit(self.lib, 4, w)
         self.assertEqual((status, r.found_index), (OK, 4))
         self.assertEqual(list(w.snapshot()[2][:5]), decoys + [9])
