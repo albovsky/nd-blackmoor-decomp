@@ -93,8 +93,8 @@ class RepoEvidenceTests(unittest.TestCase):
             "executor": ["0x0a", "0x15", "0x4d", "0x61", "0x64", "0x6a", "0x6b", "0x71"],
             "session_ui": ["0x1d", "0x82"],
             "external": {"0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x51": "session_a51_handler",
-                         "0x62": "session_a62_handler", "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
-        self.assertEqual(a["handled"]["type_count"], 16)
+                         "0x62": "session_a62_handler", "0x79": "session_a79_handler", "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
+        self.assertEqual(a["handled"]["type_count"], 17)
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
         derived.pop("scene_total")
         self.assertEqual(a, derived)
@@ -854,7 +854,7 @@ class RegistrationDriftTests(unittest.TestCase):
             ("src/blackmoor_app.mm", "bindings[2].callback = session_a51_handler;"),
             ("src/blackmoor_app.mm", "bindings[0] = action_sound_binding;"),
             ("src/blackmoor_app.mm", "config.action_bindings = bindings;"),
-            ("src/blackmoor_app.mm", "config.action_binding_count = 6u;"),
+            ("src/blackmoor_app.mm", "config.action_binding_count = 7u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].present = 1u;"),
             ("src/scene_session.c", "session->bindings[ACTION_TYPE_PHONE].callback = ui_action_handler;"),
         ]
