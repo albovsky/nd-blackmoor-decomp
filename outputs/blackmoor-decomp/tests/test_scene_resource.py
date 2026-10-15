@@ -812,9 +812,70 @@ class SceneResourceTests(unittest.TestCase):
                 self.assertIsNone(scene)
                 self.assertTrue(error)
 
+    def test_d3_e0_and_2d_boundaries_and_rejections(self):
+        description = b"batch action".ljust(48, b"\0")
+        dependency = bytes(range(16))
+
+        def open_action(action_type, body):
+            return self.open_bytes(self.resource(description + bytes((action_type, 1)) + body))
+
+        def i16(value):
+            return value.to_bytes(2, "little", signed=True)
+
+        def body_2d(entry_counts, groups):
+            body = bytearray(39)
+            body[0x23:0x25] = i16(len(entry_counts))
+            body[0x25:0x27] = i16(groups)
+            for records in entry_counts:
+                entry = bytearray(49)
+                entry[0x2F:0x31] = i16(records)
+                body += entry + bytes(35 * max(records, 0))
+            return bytes(body) + bytes(34 * max(groups, 0))
+
+        def check(action_type, body, kind, typed, deps):
+            scene, error = open_action(action_type, body)
+            self.assertIsNotNone(scene, error)
+            action = SceneActionInfo()
+            self.assertEqual(self.lib.scene_resource_action_at(scene, 0, c.byref(action)), 0)
+            self.assertEqual((action.payload_kind, action.typed_body_length, action.dependency_count),
+                             (kind, typed, deps))
+            self.lib.scene_resource_close(scene)
+
+        # 0xd3: fixed 855 bytes (0x461903), nothing in the body is examined.
+        check(0xD3, bytes(855), 1, 855, 0)
+        check(0xD3, bytes(855) + dependency, 1, 855, 1)
+        scene, _ = open_action(0xD3, bytes(854))
+        self.assertIsNone(scene, "0xd3 short body")
+        scene, _ = open_action(0xD3, bytes(855) + dependency[:5])
+        self.assertIsNone(scene, "0xd3 fractional tail")
+
+        # 0xe0: fixed 294 bytes (0x470e8e flag 1); a shorter body stays opaque
+        # (scene S2705: the original aborts in the dependency stage there).
+        check(0xE0, bytes(294), 1, 294, 0)
+        check(0xE0, bytes(294) + dependency, 1, 294, 1)
+        check(0xE0, bytes(293), 0, 0, 0)
+        scene, _ = open_action(0xE0, bytes(294) + dependency[:5])
+        self.assertIsNone(scene, "0xe0 fractional tail")
+
+        # 0x2d: 39 + sum(49 + 35 * n) + 34 * groups (0x4cd243), signed words.
+        check(0x2D, body_2d([], 0), 3, 39, 0)
+        check(0x2D, body_2d([2, 0, 3], 1) + dependency, 3, 39 + 3 * 49 + 5 * 35 + 34, 1)
+        check(0x2D, body_2d([0], 0), 3, 88, 0)
+        for label, body in (
+                ("0x2d short header", bytes(38)),
+                ("0x2d negative entries", bytes(0x23) + i16(-1) + i16(0) + bytes(100)),
+                ("0x2d negative groups", bytes(0x25) + i16(-1) + bytes(100)),
+                ("0x2d negative records", body_2d([-1], 0) + bytes(64)),
+                ("0x2d truncated entry header", body_2d([1], 0)[:39 + 48]),
+                ("0x2d truncated records", body_2d([2], 0)[:-1]),
+                ("0x2d truncated groups", body_2d([1], 2)[:-1]),
+                ("0x2d fractional tail", body_2d([1], 1) + dependency[:5])):
+            scene, _ = open_action(0x2D, body)
+            self.assertIsNone(scene, label)
+
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927, 0x4E: 31, 0x68: 1, 0x83: 74, 0x69: 1, 0x65: 1, 0x7D: 1, 0xF6: 4934, 0xEA: 3847, 0xF5: 1390}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927, 0x4E: 31, 0x68: 1, 0x83: 74, 0x69: 1, 0x65: 1, 0x7D: 1, 0xF6: 4934, 0xEA: 3847, 0xF5: 1390, 0xD3: 855}
         counts = {action_type: 0 for action_type in
                   (*expected_fixed, 0x9F, 0x51, 0x62, 0x97, 0xA1, 0x35, 0x38, 0x3F, 0x3E, 0x43, 0x45, 0x44, 0x36, 0x0C, 0x17, 0x4B, 0x16, 0x1B, 0x33)}
         scenes = 0

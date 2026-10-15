@@ -129,8 +129,9 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0xd3: fixed_length = 855u; break; /* 0x461903 copies 855 bytes (A-D3.1) */
     case 0xe0:
         /* 0x470e8e (flag 1) copies 294 bytes (A-E0.1). Scene S2705 (resource
-         * 1737) has a 292-byte body, two short of the copy: the original
-         * aborts in the dependency stage there, so that record stays opaque. */
+         * 1737) has a 292-byte body, two short of the copy: the original's
+         * dependency stage hits its ragged-tail exit there (error box, then a
+         * quit request), so that record stays opaque. */
         if (length < 294u) {
             return 0;
         }
