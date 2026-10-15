@@ -292,31 +292,9 @@ class CursorTests(unittest.TestCase):
 # ---------------------------------------------------------------- binding
 
 def configure(lib):
-    # The session / pointer entry points shared with the RT-15 tests.
-    lib.scene_resource_action_at.argtypes = [c.c_void_p, c.c_size_t,
-                                             c.POINTER(session.SceneActionInfo)]
-    lib.scene_session_get_pointer_result.argtypes = [c.c_void_p, c.POINTER(pointer.PointerResult)]
-    lib.scene_session_bind_pointer.argtypes = [c.c_void_p, c.POINTER(pointer.PointerHost)]
-    lib.session_input_init.argtypes = [c.POINTER(pointer.InputState)]
-    lib.session_input_feed.argtypes = [c.POINTER(pointer.InputState), c.c_int, c.c_uint32,
-                                       c.c_int32, c.c_int32, c.c_void_p, c.c_void_p]
-    lib.session_input_tick.argtypes = [c.POINTER(pointer.InputState),
-                                       c.POINTER(pointer.InputContext), c.c_void_p]
-    lib.session_input_scan.argtypes = [c.POINTER(pointer.InputState),
-                                       c.POINTER(pointer.InputContext), c.c_void_p, c.c_size_t]
-    lib.session_input_publish_candidate.argtypes = [c.POINTER(pointer.InputState), c.c_int32]
-    for name in ('init', 'feed', 'tick', 'scan', 'publish_candidate'):
-        getattr(lib, 'session_input_' + name).restype = c.c_int
-    lib.scene_session_accept_action_candidate.argtypes = [c.c_void_p, c.c_size_t]
-    lib.scene_session_accept_action_candidate.restype = c.c_int
-    lib.scene_session_request_transition.argtypes = [c.c_void_p,
-                                                     c.POINTER(session.SceneTransitionRequest)]
-    lib.scene_session_request_transition.restype = c.c_int
-    lib.scene_session_get_pending_transition.argtypes = [
-        c.c_void_p, c.POINTER(session.SceneTransitionRequest)]
-    lib.scene_session_get_pending_transition.restype = c.c_int
-    lib.scene_session_set_pre_gate.argtypes = [c.c_void_p, c.c_uint8, c.c_void_p, c.c_void_p]
-    lib.scene_session_set_pre_gate.restype = c.c_int
+    # The session / pointer entry points shared with the RT-15 tests (the library links the
+    # RT-15 binding as well, for the oracle's mixed scenes).
+    t17.configure(lib)
     lib.session_a0b_create.argtypes = [c.POINTER(t17.BindHost)]
     lib.session_a0b_create.restype = c.c_void_p
     lib.session_a0b_destroy.argtypes = [c.c_void_p]
