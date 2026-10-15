@@ -334,8 +334,10 @@
     "game_complete": false
   },
   "next_scene_blockers": {
-    "scene": "S4700",
-    "opaque_raw_types": [],
+    "scene": "S4808",
+    "opaque_raw_types": [
+      "0x83"
+    ],
     "unsupported_typed_raw_types": [],
     "execution_blockers": [
       "S4808 row 6: raw 0x83 has no body layout (opaque family A-83, other thread)",
@@ -370,7 +372,19 @@
         "S5904",
         "S5905",
         "S5906",
-        "S4700"
+        "S4700",
+        "S4710",
+        "S4701",
+        "S4711",
+        "S4800",
+        "S4801",
+        "S4802",
+        "S4712",
+        "S4803",
+        "S4804",
+        "S4805",
+        "S4806",
+        "S4807"
       ],
       "stop": "S4700 movie completes (504 frames); the run proceeds through S4710 ... S4807 and stops loading S4808: scene_transition_error provider=scene-resource action=6 type=0x83",
       "child_complete": false

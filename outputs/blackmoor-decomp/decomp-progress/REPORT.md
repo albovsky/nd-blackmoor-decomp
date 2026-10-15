@@ -325,4 +325,4 @@ Cross-check of **legacy manifests only** against `status.json` unique_matched_by
 - `asm/batch-002-report.json` sha256 `3a7c16f30fa9b3e39758504baaaf6d875d9ca748871da221ff128109d7547426` (audit)
 - `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (excluded)
 - `matches_s08_2.json` sha256 `a173f7c06607d87e3e630a937d7d786037dc83202609f524eece7b146b6ba41c` (excluded)
-- `status.json` sha256 `e25512ea9240c60bffd90a57ca32b413c1d0bed8a3216fddec70491db395a23c` (crosscheck)
+- `status.json` sha256 `c102919d9d6c9eb6bd515c6951b9b0b905c3c3b54e444fb32f24e3142f10cdea` (crosscheck)
