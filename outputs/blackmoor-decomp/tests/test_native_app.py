@@ -277,6 +277,32 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertNotEqual(found, -1, evidence)
             position = found
 
+    def test_phone_list_app_glue(self):
+        import session_binding_support as sbs
+        from test_action_family_83_runtime import raw
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / 'a83-scene.bin'
+            fixture.write_bytes(sbs.scene_bytes([sbs.action(0x83, 1, raw(0, key=b'one', text=b'ONE')),
+                                                 sbs.action(0x83, 1, raw(1, key=b'link'))]))
+            executable = Path(directory) / 'a83-glue'
+            build = PROJECT / 'build/native-app'
+            command = ['xcrun', '--sdk', 'macosx', 'clang++', '-arch', 'arm64',
+                       '-mmacosx-version-min=27.0', '-std=c++17', '-fobjc-arc',
+                       '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2',
+                       str(PROJECT / 'tests/native_a83_glue_test.mm')]
+            command += [str(PROJECT / ('src/' + name + '.mm')) for name in
+                        ('macos_platform', 'macos_audio', 'scene_inspector')]
+            command += [str(p) for p in sorted(build.glob('*.o'))]
+            command += ['-framework', 'AppKit', '-framework', 'Foundation',
+                        '-framework', 'CoreGraphics', '-framework', 'AVFAudio',
+                        '-L/opt/homebrew/lib', '-lavformat', '-lavcodec', '-lavutil',
+                        '-lswscale', '-lswresample', '-Wl,-rpath,/opt/homebrew/lib',
+                        '-o', str(executable)]
+            compiled = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            result = subprocess.run([str(executable), str(fixture)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_bink_movie_app_glue(self):
         from test_action_family_35_runtime import body
         with tempfile.TemporaryDirectory() as directory:
@@ -318,11 +344,20 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_a35_finished row=3 phase=2 next_phase=0',
             'scene_session_transition_pending source=4700 target=4710',
             'scene_parsed name=S4808',
-            # A-83.1 registered the 0x83 body boundary, so S4808 now loads and the
-            # explicit stop moved to its unimplemented runtime (row 6).
             'scene_transition_applied source=4807 target=4808',
-            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x83',
-            'live_session_end scene=4808 '))
+            # RT-12: the 0x83 rows run (mail rows CMLH01/CMLH02 prepend to the
+            # list the BOOT/UICL initializer started with one entry).
+            'scene_a83_refresh group=3 active=1 child=1 mail_count=2 web_count=1 status=0',
+            'scene_a83_applied row=6 list=mail selected=0 inserted=1 mail_count=2 web_count=1 disposition=3 phase=0',
+            'scene_a83_refresh group=3 active=1 child=1 mail_count=3 web_count=1 status=0',
+            'scene_a83_applied row=7 list=mail selected=0 inserted=1 mail_count=3 web_count=1 disposition=3 phase=0',
+            'scene_session_transition_pending source=4808 target=2010',
+            'scene_transition_applied source=4808 target=2010',
+            # The new explicit stop: S2010 row 5 is raw 0x0c (not recovered).
+            'scene_session_blocked stage=3 provider=action-kernel action=5 type=0x0c',
+            'live_session_end scene=2010 '))
+        self.assertIn('scene_a83_initialized source=BOOT/UICL mail_count=1 web_count=1', contents)
+        self.assertNotIn('scene_a83_blocker', contents)
         movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
         movie = movie.split('scene_a35_finished row=3', 1)[0]
         self.assertEqual(movie.count('scene_a35_frame_presented'), 504)
