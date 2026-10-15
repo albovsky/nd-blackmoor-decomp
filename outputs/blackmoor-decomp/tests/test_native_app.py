@@ -1046,7 +1046,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_transition_applied source=6410 target=6411',
             'scene_transition_applied source=6411 target=6433',
             'scene_transition_applied source=6433 target=6434',
-            'scene_session_blocked stage=3 provider=action-kernel action=1 type=0x0c detail=1 '))
+            'scene_a0c_register row=1 start_flag_5bb1ca=1'))
 
     def test_rt22_without_the_pick_flag_the_chain_still_waits_in_s6410(self):
         contents = self.tutorial(*self.CHAIN_TO_6453)
@@ -1092,7 +1092,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_transition_applied source=6410 target=6411',
             'scene_transition_applied source=6411 target=6433',
             'scene_transition_applied source=6433 target=6434',
-            'scene_session_blocked stage=3 provider=action-kernel action=1 type=0x0c detail=1 '))
+            'scene_a0c_register row=1 start_flag_5bb1ca=1'))
         # the press was taken by the bar: the scene never saw it as a pointer input
         self.assertEqual(contents.count('taskbar_click '), 1)
         self.assertEqual(contents.count('taskbar_inventory_flag_consumed'), 1)
