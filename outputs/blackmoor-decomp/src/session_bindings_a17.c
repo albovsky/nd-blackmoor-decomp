@@ -169,9 +169,6 @@ int session_a17_handler(void *context, size_t index, const SceneActionInfo *acti
     slot = b->slots[index];
     status = action17_step(b->bodies[index], b->lengths[index], before->phase, &slot, &world,
                            &kernel_host, &result, &b->failure);
-    if (status == ACTION17_ERR_UNSUPPORTED) {
-        return SCENE_ACTION_HANDLER_UNSUPPORTED;
-    }
     if (status != ACTION17_OK) {
         return SCENE_ACTION_HANDLER_ERROR;
     }

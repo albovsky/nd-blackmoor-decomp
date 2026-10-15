@@ -294,6 +294,20 @@ class KernelTests(unittest.TestCase):
                     self.assertEqual(case.log, [])
                     self.assertEqual(case.state(), before)
 
+    def test_counts_past_the_maximum_and_negative_counts_are_rejected_even_with_a_matching_length(self):
+        # 1819 is the largest count whose 22 + 18 * n fits a signed 16-bit size (A-17.1).
+        for count, ok in ((1819, True), (1820, False), (0x7fff, False), (0x8000, False),
+                          (0xffff, False)):
+            with self.subTest(count=count):
+                data = body(records=[], count=(count if count < 0x8000 else count - 0x10000))
+                data += bytes(18 * count)
+                self.assertEqual(len(data), 22 + 18 * count)
+                case = Case(self.lib, data, 1, selector=4)
+                status, _, why = case.run()
+                self.assertEqual(status, OK if ok else BOUNDS, why)
+                if not ok:
+                    self.assertEqual(case.log, [])
+
     def test_null_arguments_are_rejected(self):
         good = body(records=GALLERY)
         slot = Slot(); world = World(); result = Result(); why = c.c_char_p()
@@ -598,6 +612,45 @@ class BindingTests(unittest.TestCase):
         f = Fixture(self, self.lib, [self.row_action(deps=(session.flag_gate(3),))])
         f.tick()
         self.assertEqual((f.state(), f.row(), f.rig.start_flag), ((0, 0), None, 0))
+
+    def test_finish_completes_directly_whatever_the_subtype(self):
+        # 0x42b217 stores the completion byte itself: no 0x42ba3a, so subtype 2 does not
+        # clear it again and dependencies are not reset.
+        for subtype in (0, 1, 2, 3, 255):
+            with self.subTest(subtype=subtype):
+                row = session.action(0x17, subtype, body(records=GALLERY))
+                f = Fixture(self, self.lib, [row])
+                f.tick()
+                self.assertEqual(self.lib.scene_session_accept_action_candidate(f.session, 0), 0)
+                status, _ = f.tick()
+                self.assertEqual(status, session.SESSION_TRANSITION)
+                self.assertEqual(f.state(), (1, 2))
+
+    def test_the_finishing_pass_clears_the_request_before_the_handler_and_never_restores_it(self):
+        # The dispatcher prologue clears the request dword before the type switch, phase 2
+        # does not set it again, and a completed row is skipped: a finished row is no longer
+        # hit-testable (the rectangle words stay as they were).
+        f = Fixture(self, self.lib, [self.row_action()])
+        f.tick()
+        self.assertEqual(f.row(), (0, 243, 86, 398, 321, 1))
+        self.lib.scene_session_accept_action_candidate(f.session, 0)
+        f.tick()
+        self.assertEqual(f.slot(), (0, 243, 86, 398, 321, 1))
+        self.assertEqual(f.row(), None)
+
+    def test_handler_checks_the_row_type_against_the_scene_row(self):
+        f = Fixture(self, self.lib, [self.row_action(0x17), self.row_action(0x16)])
+        a17, a16 = session.SceneActionInfo(), session.SceneActionInfo()
+        self.assertEqual(self.lib.scene_resource_action_at(f.scene, 0, c.byref(a17)), 0)
+        self.assertEqual(self.lib.scene_resource_action_at(f.scene, 1, c.byref(a16)), 0)
+        before, out = session.RuntimeState(0, 0), session.HandlerResult(123, 456)
+        self.assertEqual(self.lib.session_a17_handler(f.binding, 0, c.byref(a16),
+                          c.byref(before), c.byref(out)), 2)
+        self.assertEqual(self.lib.session_a17_handler(f.binding, 1, c.byref(a17),
+                          c.byref(before), c.byref(out)), 2)
+        self.assertEqual((out.disposition, out.phase), (123, 456))
+        self.assertEqual(self.lib.session_a17_handler(f.binding, 1, c.byref(a16),
+                          c.byref(before), c.byref(out)), 0)
 
     def test_accepted_candidate_finishes_with_the_scene_change_and_direct_completion(self):
         f = Fixture(self, self.lib, [self.row_action(target=6402, words=(7, 8, 9),

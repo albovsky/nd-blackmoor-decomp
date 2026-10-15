@@ -46,7 +46,10 @@ int action17_validate_body(const uint8_t *body, size_t body_length, const char *
     if (count < 0 || count > ACTION17_MAX_COUNT) {
         return reject(failure, "record count outside 0..1819", ACTION17_ERR_BOUNDS);
     }
-    if (body_length != ACTION17_PREFIX_BYTES + (size_t)count * ACTION17_RECORD_BYTES) {
+    /* The count word is read as unsigned here so that the signed range check above is
+     * the only thing that keeps a negative count (a valid-looking length for the
+     * 16-bit pattern) out; the original treats it as an empty list. */
+    if (body_length != ACTION17_PREFIX_BYTES + (size_t)(uint16_t)count * ACTION17_RECORD_BYTES) {
         return reject(failure, "typed body length is not 22 + 18 * count", ACTION17_ERR_BOUNDS);
     }
     return ACTION17_OK;

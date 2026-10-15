@@ -263,7 +263,7 @@ class Original:
         self.put(MODE_CELL, 4, 3)
         for row, spec in enumerate(rows):
             self.put(row_va(row, 0), 1, spec['type'])
-            self.put(row_va(row, 1), 1, 1)
+            self.put(row_va(row, 1), 1, spec.get('subtype', 1))
             body = spec.get('body', b'')
             uc.mem_write(obj_va(row), bytes([0xa5]) * OBJ_STRIDE)
             uc.mem_write(obj_va(row), body)
@@ -366,7 +366,7 @@ def action_bytes(spec, flag):
     if spec['type'] == 0x61:
         return session.action(0x61, 1, session.i16(15) + session.i16(1) + session.i16(-1) +
                               session.i16(0))
-    return session.action(spec['type'], 1, spec['body'], (session.flag_gate(flag),))
+    return session.action(spec['type'], spec.get('subtype', 1), spec['body'], (session.flag_gate(flag),))
 
 
 class NativeSession:
@@ -508,7 +508,9 @@ def build_sequence(rng, corpus):
             runtime_type, body = rng.choice(corpus)
         else:
             runtime_type, body = rng.choice((0x16, 0x17)), make_body(rng)
-        rows.append(dict(type=runtime_type, body=body, done=False))
+        # The handler never reads the subtype (completion is a direct store).
+        rows.append(dict(type=runtime_type, body=body, done=False,
+                         subtype=rng.choice((1, 1, 1, 0, 2, 3, 255))))
     if rng.random() < 0.4:
         rows.insert(rng.randrange(len(rows) + 1), dict(type=0x61, body=b'', done=True))
     pool = sorted({f for r in rows if r['type'] != 0x61 for f in frames_of(r['body'])})
@@ -601,7 +603,8 @@ def run_kernel_cases(lib, original, corpus, counters):
                     selector = wrap_s16(rng.choice(pool + [pool[0] ^ 0x100, -9]))
                     world = dict(start_flag=rng.choice((0, 0x5a5a5a5a)), mode=3,
                                  **{n: 1000 + i for i, n in enumerate(XFER)})
-                    rows = [dict(type=runtime_type, body=body, done=False)]
+                    rows = [dict(type=runtime_type, body=body, done=False,
+                                 subtype=rng.choice((0, 1, 2, 3, 255)))]
                     original.load_scene(rows, rng, world)
                     original.false_rows = set() if gate else {0}
                     original.put(SELECTOR_CELL, 2, selector)
