@@ -2358,6 +2358,19 @@ static ConditionExtraHostStatus native_cond_next_random(void *context, uint32_t 
     return session_conditions_crt_rand_host(&app->condition_rand, raw);
 }
 
+/* RT-11.1: the CRT _rand (0x50cd50) draw of the 0x4f55d5 delayed-repeat
+ * branch is the same global generator the dependency leaves use. Only a
+ * channel with raw flag 0x10 draws, and no scene sound carries that flag. */
+static uint32_t native_audio_random(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    uint32_t raw = 0;
+    if (app == nullptr || session_conditions_crt_rand_host(&app->condition_rand, &raw) !=
+            CONDITION_EXTRA_HOST_OK)
+        return 0;
+    return raw;
+}
+
 /* 0x58c94f is the difficulty word: action 0x71 stores it (0x4292b3) and New
  * Game zeroes it (0x4383af); ActionCoreWorld.difficulty is that word. */
 static ConditionExtraHostStatus native_cond_context_58c94f(void *context, int16_t *value)
@@ -5006,6 +5019,16 @@ static void update(NativeApp *app, uint32_t now)
                        (unsigned long long)stats.nonfinite_samples, (unsigned long long)hash);
             }
         }
+        if (app->live_audio != nullptr &&
+            live_audio_service(app->live_audio, now, nullptr) != LIVE_AUDIO_OK) {
+            /* RT-11.1: the sound pump 0x4f52a9 runs every update, ahead of the
+             * scene tick: completed channels restart (0x4f55d5) before any
+             * dependency or action polls them. */
+            app->failure = true;
+            record(app, "live_audio_service_failed");
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
         if (exit_tick == ExitTick::Consumed) {
             if (app->platform && !blackmoor_macos_present(app->platform,
                     app->framebuffer.data(), app->framebuffer.size(), 640 * 4)) {
@@ -5742,6 +5765,8 @@ int main(int argc, char **argv)
                     record(static_cast<NativeApp *>(context), "%s", message);
                 };
                 audio_config.log_context = &app;
+                audio_config.random_value = native_audio_random;
+                audio_config.random_context = &app;
                 if (live_audio_create(&audio_config, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK)
                     throw std::runtime_error(error);
                 if (inspect_only) app.offline_audio_frames_per_update = live_tick_ms_set

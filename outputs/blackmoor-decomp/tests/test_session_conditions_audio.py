@@ -17,7 +17,7 @@ PROJECT = pathlib.Path(__file__).resolve().parents[1]
 EXPECTED = [
     "unloaded_channel_is_idle_with_the_missing_resource_error",
     "real_offline_play_to_completion_control_one",
-    "control_zero_after_completion_is_unavailable_not_idle",
+    "control_zero_after_completion_is_idle_then_restarted_by_the_pump",
     "channel_outside_the_table_and_missing_audio_are_unavailable",
 ]
 
