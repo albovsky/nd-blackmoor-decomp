@@ -17,9 +17,11 @@ static int fail(const char **why, const char *message, int status)
     return status;
 }
 
-int action79_visit(uint16_t item_word, const Action79Model *model,
-                   const Action79Host *host, Action79Result *result,
-                   const char **why)
+/* 0x4ea06c alone (RT-19 shares it with raw 0x78's 0x4eaadc): everything
+ * action79_visit does up to and including the rebuild request. */
+int action79_remove_item(uint16_t item_word, const Action79Model *model,
+                         const Action79Host *host, Action79Result *result,
+                         const char **why)
 {
     int16_t id;
     int32_t count, scan, found = -1;
@@ -93,6 +95,19 @@ int action79_visit(uint16_t item_word, const Action79Model *model,
             return fail(why, "inventory view rebuild failed after the list was committed",
                         ACTION79_ERR_HOST);
         }
+    }
+    return ACTION79_OK;
+}
+
+int action79_visit(uint16_t item_word, const Action79Model *model,
+                   const Action79Host *host, Action79Result *result,
+                   const char **why)
+{
+    const int status = action79_remove_item(item_word, model, host, result, why);
+    const int16_t id = (int16_t)(item_word <= (uint16_t)INT16_MAX ? (int32_t)item_word
+                                                                  : (int32_t)item_word - 65536);
+    if (status != ACTION79_OK) {
+        return status;
     }
     /* 0x4eac79..0x4eac88: signed word equality with the held item. */
     if (*model->held_item == id) {
