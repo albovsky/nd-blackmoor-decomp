@@ -87,6 +87,12 @@ typedef struct LiveAudioHostOps {
     void (*render_destroy)(MacAudioRender *render);
 } LiveAudioHostOps;
 
+/* The original CRT _rand (0x50cd50) boundary of the delayed-repeat draw in
+ * the 0x4f55d5 channel update. Returns the nonnegative 15-bit value. Only the
+ * raw-flag-0x10 branch draws; no scene sound carries that flag (see
+ * live_audio_service). */
+typedef uint32_t (*LiveAudioRandomFn)(void *context);
+
 typedef struct LiveAudioConfig {
     /* Directory that contains the CDSound directory. Copied. */
     const char *game_directory;
@@ -98,6 +104,10 @@ typedef struct LiveAudioConfig {
     void *log_context;
     /* NULL selects the real mac_audio host. Copied. */
     const LiveAudioHostOps *host_ops;
+    /* Optional (RT-11.1). NULL makes the flag-0x10 repeat arm a refused,
+     * state-neutral update instead of an invented delay. */
+    LiveAudioRandomFn random_value;
+    void *random_context;
 } LiveAudioConfig;
 
 typedef struct LiveAudio LiveAudio;
@@ -135,7 +145,31 @@ typedef struct LiveAudioChannelInfo {
      * adapter's product gain is the packet's contract, not original parity. */
     int32_t reference_first_attenuation;
     uint8_t reference_first_attenuation_valid;
+    /* RT-11.1 channel-update state (all recovered from the original, see
+     * live_audio_service). */
+    uint8_t stream_class;        /* slot+0x166: HIS decoded bytes > 0x56220 */
+    uint8_t looping;             /* the host plays this generation looped */
+    uint8_t stop_event_pending;  /* completion seen, 0x4f55d5 not yet run */
+    uint8_t update_gate_287;     /* slot+0x287: set by an explicit stop */
+    uint8_t update_refused;      /* an unmodelled update was refused */
+    uint8_t repeat_marker;       /* slot+0x19e delayed repeat armed */
+    uint16_t raw_flags;          /* slot+0x12c, 0 for every 0x9f record */
+    uint32_t decoded_bytes;      /* HIS header offset 24 (slot+0x15e) */
+    uint32_t repeat_min;         /* slot+0x1aa, 500 from the 0x9f record */
+    uint32_t repeat_max;         /* slot+0x1ae, 2000 from the 0x9f record */
+    uint32_t repeat_delay;       /* slot+0x1a2 */
+    uint32_t repeat_due_tick;    /* slot+0x1a6 */
+    uint32_t restarts;           /* update restarts since this load */
 } LiveAudioChannelInfo;
+
+typedef struct LiveAudioServiceStats {
+    uint32_t completions;    /* natural stop notifications consumed */
+    uint32_t restarts;       /* 0x4f55d5 -> Play wrapper issued a host play */
+    uint32_t repeats_armed;  /* 0x4f55d5 flag-0x10 branch */
+    uint32_t repeats_fired;  /* 0x4f7207 repeat pass restarted a channel */
+    uint32_t refused;        /* unmodelled flag/host combination */
+    uint32_t host_failures;  /* the restart's host play failed */
+} LiveAudioServiceStats;
 
 void live_audio_default_host_ops(LiveAudioHostOps *ops);
 
@@ -198,6 +232,42 @@ int live_audio_movie_stop(LiveAudio *);
 /* Stops a channel's playback but keeps it loaded (a following play restarts
  * from the beginning). Bumps the generation. */
 int live_audio_stop_channel(LiveAudio *audio, uint16_t channel);
+
+/* RT-11.1: the recovered channel pump (original 0x4f52a9).
+ *
+ * Call once per game update on the main thread with the update's tick clock
+ * (the original samples GetTickCount). Per call, in the original's order:
+ *
+ *   1. Every channel whose natural completion was observed (the stop
+ *      notification the original arms at load, DSBPN_OFFSETSTOP on event
+ *      2*channel+1) is consumed in ascending channel order and runs the
+ *      0x4f55d5 update through the recovered sound_control_update kernel:
+ *      a non-stream (decoded bytes <= 0x56220) channel with raw control word
+ *      0 and no flag 0x10 is played again from its start (Play wrapper
+ *      0x4f6059); a nonzero control word, a stream-class channel
+ *      (slot+0x166), an explicit stop (slot+0x287) or an unloaded channel is
+ *      left alone.
+ *   2. The 0x4f7207 delayed-repeat pass: a channel armed by the flag-0x10
+ *      branch plays again once the tick is strictly greater (unsigned) than
+ *      its due tick.
+ *
+ * A stream-class channel with raw control word 0 never completes: the
+ * original's stream filler (0x4f594d / 0x4f5b50) rewinds the file at EOF
+ * and keeps filling the looping ring, so the host plays it looped.
+ *
+ * Every scene sound (0x9f record, runtime flags word +0x25) has raw flags 0,
+ * so the 0x10 and 0x20 branches are unreachable from scene data;
+ * live_audio_set_channel_flags exists to exercise them. Flag 0x20 (fade
+ * stages 0x4f9f92/0x4f8f94/0x4f9040, unrecovered) is refused.
+ * `stats` may be NULL. */
+int live_audio_service(LiveAudio *audio, uint32_t tick_ms,
+                       LiveAudioServiceStats *stats);
+
+/* Sets slot+0x12c of a loaded channel (a load resets it to 0, the value the
+ * 0x9f handler writes at 0x432f11 from the zero-initialised record). No
+ * production caller; the recovered 0x10/0x20/0x100/0x01 behaviours use it. */
+int live_audio_set_channel_flags(LiveAudio *audio, uint16_t channel,
+                                 uint16_t raw_flags);
 
 /* Volume-category scalar table, default 1.0 for all four. Scalars must be
  * finite and within [0, 1]. Loaded channels in the category are re-gained,
