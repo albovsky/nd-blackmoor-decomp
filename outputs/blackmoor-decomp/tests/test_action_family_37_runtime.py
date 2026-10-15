@@ -368,5 +368,15 @@ for _name in list(vars(ext_tests.ExecutorExtensionTests)):
         setattr(GateModeTests, _name, None)
 
 
+class SanitizerTests(unittest.TestCase):
+    def test_asan_ubsan_driver_passes_on_bounded_malformed_input(self):
+        import subprocess
+        script = t36.PROJECT / 'scripts/test_action_family_37_runtime_sanitizers.sh'
+        result = subprocess.run(['sh', str(script)], capture_output=True, text=True, timeout=600)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('builds=240000', result.stdout)
+        self.assertIn('type_mismatch_calls=', result.stdout)
+
+
 if __name__ == '__main__':
     unittest.main()
