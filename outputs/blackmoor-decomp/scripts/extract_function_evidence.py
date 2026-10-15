@@ -733,6 +733,7 @@ START_KEYS = ("start", "start_va", "va", "begin")
 END_RE = re.compile(r"(?:^|_)(?:end|stop)(?:_|$)|^exclusive_end")
 SIZE_KEYS = ("size", "bytes", "length", "byte_count", "length_bytes")
 SHA_KEYS = ("window_sha256", "original_window_sha256", "code_sha256", "sha256", "original_sha256", "sha")
+NAMED_PAIR_KEY = re.compile(r"_0x([0-9a-fA-F]{6,8})_0x([0-9a-fA-F]{6,8})$")
 DOTDOT_KEY = re.compile(r"^\s*0[xX]([0-9a-fA-F]{6,8})\s*\.\.\s*0[xX]([0-9a-fA-F]{6,8})\b")
 
 
@@ -799,8 +800,16 @@ def receipt_windows(doc, source: str) -> list:
             dict_window(node, path)
             if path and isinstance(path[-1], str) and "code_window" in path[-1]:
                 for k, v in node.items():
-                    m = re.search(r"_0x([0-9a-fA-F]{6,8})$", k) if isinstance(k, str) else None
-                    if m and isinstance(v, str) and SHA_RE.fullmatch(v) and is_va(int(m.group(1), 16)):
+                    if not (isinstance(k, str) and isinstance(v, str) and SHA_RE.fullmatch(v)):
+                        continue
+                    pair = NAMED_PAIR_KEY.search(k)
+                    if pair:
+                        a, b = int(pair.group(1), 16), int(pair.group(2), 16)
+                        if is_va(a):
+                            emit(a, b, v, "named_pair", None, path + [k])
+                        continue
+                    m = re.search(r"_0x([0-9a-fA-F]{6,8})$", k)
+                    if m and is_va(int(m.group(1), 16)):
                         emit(int(m.group(1), 16), 0, v, "start_sha", None, path + [k])
             for k, v in node.items():
                 if isinstance(k, str) and isinstance(v, str) and SHA_RE.fullmatch(v):
@@ -1182,6 +1191,8 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
                 counters["mismatch"] += 1
                 continue
             a, readings = va, ("size",)
+        elif c.shape == "named_pair":
+            readings = ("end_exclusive", "end_inclusive")
         if not (cfg.text_start <= a < cfg.text_end):
             counters["outside_text"] += 1
             add_unresolved(a, "at_or_above_text_end" if a >= cfg.text_end else "below_text_start",

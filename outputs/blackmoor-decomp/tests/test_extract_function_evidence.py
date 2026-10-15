@@ -545,6 +545,11 @@ class ReceiptWindowShapes(unittest.TestCase):
         got = fe.receipt_windows(doc, "r")
         self.assertEqual([(w.a, w.b, w.shape) for w in got], [(0x414CEB, 0, "start_sha")])
 
+    def test_named_key_with_both_addresses_is_a_pair_not_a_start(self):
+        doc = {"code_windows": {"loader_0x40b34a_0x410ca4": "a" * 64, "open_0x414ceb": "b" * 64}}
+        got = sorted((w.a, w.b, w.shape) for w in fe.receipt_windows(doc, "r"))
+        self.assertEqual(got, [(0x40B34A, 0x410CA4, "named_pair"), (0x414CEB, 0, "start_sha")])
+
     def test_list_of_three(self):
         doc = {"x": {"code_windows": [[4240202, 4240646, "b" * 64]]}}
         self.assertEqual(self.shapes(doc), {(4240202, 4240646, True, "triple")})
