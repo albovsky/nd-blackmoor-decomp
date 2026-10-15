@@ -945,8 +945,15 @@ def semantics_sensitive_set(doc: dict[str, Any], specs: list[dict[str, Any]]) ->
     return {va: sorted(cats) for va, cats in sorted(marked.items())}
 
 
-def rule_r_eh(entry: dict[str, Any], sensitive: dict[str, list[str]], parent_regions: Optional[list[str]] = None) -> tuple[bool, str]:
-    """Unwind funclet with exactly one known parent.  Catch funclets are never rule-covered."""
+def rule_r_eh(
+    entry: dict[str, Any],
+    sensitive: dict[str, list[str]],
+    parent_regions: Optional[list[str]] = None,
+    parent_entry: Optional[dict[str, Any]] = None,
+) -> tuple[bool, str]:
+    """Unwind funclet with exactly one known, non-seam parent.  Catch funclets are never rule-covered.
+
+    A funclet whose parent is library code is refused when it has a path back into game code."""
 
     if entry["origin"] != "compiler_eh" or entry["eh_kind"] != "unwind":
         return False, "not an unwind funclet"
@@ -960,6 +967,10 @@ def rule_r_eh(entry: dict[str, Any], sensitive: dict[str, list[str]], parent_reg
         return False, "semantics sensitive"
     if parent_regions is not None and entry["eh_parent_region"] not in parent_regions:
         return False, "parent region not covered by the rule"
+    if parent_entry is not None and parent_entry["seam"]:
+        return False, "parent is a seam function"
+    if entry["eh_parent_region"] != "game" and entry["reaches_game"]:
+        return False, "library-parent funclet with a path back into game code"
     return True, "unwind funclet with a single FuncInfo parent"
 
 
@@ -993,8 +1004,9 @@ def rule_candidates(
 ) -> dict[str, list[str]]:
     sensitive = semantics_sensitive_set(doc, sensitive_specs)
     out: dict[str, list[str]] = {name: [] for name in RULE_PREDICATES}
+    by_va = {e["va"]: e for e in doc["entries"]}
     for e in doc["entries"]:
-        if rule_r_eh(e, sensitive, eh_parent_regions)[0]:
+        if rule_r_eh(e, sensitive, eh_parent_regions, by_va.get(e["eh_parent"]))[0]:
             out["R-EH"].append(e["va"])
         if rule_r_lib_internal(e, sensitive)[0]:
             out["R-LIB-INTERNAL"].append(e["va"])

@@ -541,6 +541,25 @@ class ReachabilityAndRuleTests(Base):
         cands = xr.rule_candidates(self.doc, [], eh_parent_regions=["crt_mfc"])
         self.assertEqual(cands["R-EH"], [])
 
+    def test_r_eh_refuses_library_parent_funclet_that_reaches_game(self) -> None:
+        funclet = copy.deepcopy(entry(self.doc, F1))
+        self.assertTrue(xr.rule_r_eh(funclet, {})[0])
+        funclet["eh_parent_region"] = "crt_mfc"
+        funclet["reaches_game"] = True
+        ok, why = xr.rule_r_eh(funclet, {})
+        self.assertFalse(ok)
+        self.assertIn("game", why)
+        funclet["eh_parent_region"] = "game"  # a game parent legitimately calls game code
+        self.assertTrue(xr.rule_r_eh(funclet, {})[0])
+
+    def test_r_eh_refuses_seam_parent(self) -> None:
+        funclet = copy.deepcopy(entry(self.doc, F1))
+        parent = {"seam": True}
+        ok, why = xr.rule_r_eh(funclet, {}, None, parent)
+        self.assertFalse(ok)
+        self.assertIn("seam", why)
+        self.assertTrue(xr.rule_r_eh(funclet, {}, None, {"seam": False})[0])
+
     def test_semantics_sensitive_closure_propagates_to_callers(self) -> None:
         def add_caller(text: bytearray) -> None:
             put(text, L3, b"\x55\x8b\xec\xe8" + rel(L3 + 8, L4) + b"\x5d\xc3")
