@@ -25,6 +25,7 @@
 #include "session_bindings_a79.h"
 #include "session_bindings_a78.h"
 #include "inventory_view_runtime.h"
+#include "inventory_button_runtime.h"
 #include "session_bindings_a36.h"
 #include "session_bindings_a17.h"
 #include "session_bindings_a0b.h"
@@ -262,6 +263,16 @@ struct NativeApp {
     bool inv_data_ready = false;
     uint64_t inv_view_sounds = 0u;
     std::vector<std::pair<int32_t, int32_t>> live_pick_items;
+    /* RT-22 follow-up: the task bar (object 0x570508, chunk TASK) whose button 1 sets byte
+     * 0x583232. Scripted pointer gestures for --live-click-at SCENE:X,Y. */
+    TaskbarLayout bar_layout{};
+    Taskbar bar{};
+    bool bar_ready = false, bar_missing = false;
+    bool bar_swallow_up = false;
+    int32_t bar_last_hit = -2;
+    uint64_t bar_sound_requests = 0u;
+    struct LiveClickAt { int32_t scene, x, y; };
+    std::vector<LiveClickAt> live_click_ats;
     A35World movie_world{};
     /* Process globals mirrored by the controller, alongside the owning
      * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
@@ -1676,12 +1687,17 @@ static unsigned current_left_click_count()
 }
 
 static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t x, int32_t y);
+static bool taskbar_pointer_event(NativeApp *app, int event_kind, unsigned button, int32_t x,
+                                  int32_t y);
 
 static void pointer(void *context, BlackmoorPointerKind kind,
                     int32_t x, int32_t y, unsigned button)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     const int event_kind = static_cast<int>(kind);
+    /* RT-22 follow-up: a left press on a task bar button (0x4e0978) is taken before the scene's
+     * own hotspots; so is the release of that press. */
+    if (taskbar_pointer_event(app, event_kind, button, x, y)) return;
     /* RT-22: while the inventory screen is up (0x583204 == 3) the left click goes to
      * the view (0x43b19e -> 0x43c0aa) instead of the scene's hotspots; moves reach
      * its hover and still update the pointer. */
@@ -3027,7 +3043,7 @@ static bool inventory_view_open_request(NativeApp *app, const char *source)
     const int32_t *slots = app->inv_view.slot_item;
     record(app, "inventory_view_open source=%s opened=%d state=%d mode=%d tab=%d slots=%d,%d,%d,%d "
            "origin=%d,%d (open transition 0x4e94c1 modes 0/4/5 NOT RECOVERED, entered at mode 2; "
-           "view NOT RENDERED; the taskbar button that sets byte 0x583232 is not recovered)",
+           "view NOT RENDERED)",
            source, opened, app->inv_view.screen_state, app->inv_view.mode, app->inv_view.tab,
            slots[0], slots[1], slots[2], slots[3], app->scene_destination.left,
            app->scene_destination.top);
@@ -3079,6 +3095,202 @@ static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t
     if (result.picked)
         record(app, "inventory_view_held_item_set item=%d (word 0x583a29; the scene dependency opcode 11 "
                "'held item == N' reads it)", (int)*inventory.selected_item_candidate);
+}
+
+/* ---- RT-22 follow-up: the task bar (0x570508) and its inventory button ----
+ * See inventory_button_runtime.h for the recovered addresses. The bar runs while the
+ * screen state 0x583204 is 0 (0x43cf9c); its button 1 raises byte 0x583232, which the next
+ * tick turns into the inventory view (0x43a862..0x43a8ad). Sounds are logged NOT PLAYED
+ * (no effect backend), the frame image is not drawn, the locked-button message, the lock
+ * table producers and the other four buttons' actions are not modelled. */
+static int native_bar_hotspot(void *context, int32_t index, int32_t variant, int32_t *dx,
+                              int32_t *dy)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || dx == nullptr || dy == nullptr) return 1;
+    return inventory_view_cursor_hotspot(app->inv_curs.data(), app->inv_curs.size(), index,
+                                         variant, dx, dy) == INVVIEW_OK ? 0 : 1;
+}
+
+static int native_bar_sound(void *context, const char *name, uint16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr) return 1;
+    ++app->bar_sound_requests;
+    record(app, "taskbar_sound_request name=%s slot=0x%02x (0x4fb77a/0x4fb2e3 trigger; NOT PLAYED: no "
+           "sound-effect backend, unverified) requests=%llu", name, slot,
+           (unsigned long long)app->bar_sound_requests);
+    return 0;
+}
+
+static int native_bar_sound_busy(void *context, uint16_t slot, int *busy)
+{
+    (void)slot;
+    if (context == nullptr || busy == nullptr) return 1;
+    *busy = 0;   /* nothing plays, so a click sound is always finished (0x4f6334 stand-in) */
+    return 0;
+}
+
+static TaskbarHost bar_host(NativeApp *app)
+{
+    TaskbarHost host{};
+    host.hotspot = native_bar_hotspot;
+    host.request_sound = native_bar_sound;
+    host.sound_busy = native_bar_sound_busy;
+    host.context = app;
+    return host;
+}
+
+static bool taskbar_ready_now(NativeApp *app)
+{
+    if (app->bar_ready) return true;
+    if (app->bar_missing) return false;
+    inventory_view_ensure(app);   /* CURS (hot points) comes with the inventory data */
+    if (!app->inv_data_ready) return false;
+    const uint8_t *task = nullptr;
+    size_t task_size = 0;
+    if (!find_boot_payload(app, "TASK", &task, &task_size) ||
+        taskbar_layout_from_task(task, task_size, app->scene_destination.left,
+                                 app->scene_destination.top, &app->bar_layout) != TASKBAR_OK ||
+        taskbar_init(&app->bar, &app->bar_layout) != TASKBAR_OK) {
+        record(app, "taskbar_data_missing (BOOT chunk TASK)");
+        app->bar_missing = true;
+        return false;
+    }
+    app->bar_ready = true;
+    const TaskbarLayout &layout = app->bar_layout;
+    record(app, "taskbar_ready bounds=%d,%d,%d,%d inventory_button=%d,%d,%d,%d delay_ms=%u "
+           "sound=%s slot=0x%02x (chunk TASK; frame image NOT RENDERED)", layout.bounds[0],
+           layout.bounds[1], layout.bounds[2], layout.bounds[3],
+           layout.button[TASKBAR_BUTTON_INVENTORY].rect[0], layout.button[TASKBAR_BUTTON_INVENTORY].rect[1],
+           layout.button[TASKBAR_BUTTON_INVENTORY].rect[2], layout.button[TASKBAR_BUTTON_INVENTORY].rect[3],
+           layout.button[TASKBAR_BUTTON_INVENTORY].delay_ms,
+           layout.button[TASKBAR_BUTTON_INVENTORY].sound_name,
+           layout.button[TASKBAR_BUTTON_INVENTORY].sound_slot);
+    return true;
+}
+
+/* The bar belongs to a running scene session; a blocked session is frozen as before. */
+static bool taskbar_active(NativeApp *app)
+{
+    return app->session != nullptr && !app->session_block_reported && taskbar_ready_now(app);
+}
+
+/* 0x4d3073 -> 0x4e075a with the cursor rectangle of the last pointer position. */
+static void taskbar_hover_at(NativeApp *app, int32_t x, int32_t y)
+{
+    if (x < 0 || y < 0) return;
+    const ProvisionalCursorProvider &cursor = app->cursor_provider;
+    const int32_t rect[4] = {x, y, x + cursor.sprite_width - 1, y + cursor.sprite_height - 1};
+    TaskbarHost host = bar_host(app);
+    int32_t dx = 0, dy = 0;
+    /* 0x5b44f0/f4 of the previous tick: the scene cascade's cursor (nav zones), else 0/0. */
+    int32_t index = app->nav_cursor.index, variant = app->nav_cursor.variant;
+    if (native_bar_hotspot(app, index, variant, &dx, &dy) != 0) { index = 0; variant = 0; }
+    app->bar.cursor_index = index;
+    app->bar.cursor_variant = variant;
+    TaskbarHoverResult result{};
+    const int status = taskbar_hover(&app->bar, &app->bar_layout, rect, &host, &result);
+    if (status != TASKBAR_OK) {
+        record(app, "taskbar_hover_error status=%d", status);
+        return;
+    }
+    if (result.ran && result.hit != app->bar_last_hit) {
+        app->bar_last_hit = result.hit;
+        record(app, "taskbar_hover pointer=%d,%d hot_point=%d,%d hit=%d state=%d cursor=%d/%d "
+               "event=0x%x (0x4e075a/0x4e22fd; cursor sprite not drawn)", x, y, result.x - x,
+               result.y - y, result.hit,
+               result.hit >= 0 ? (int)app->bar.button[result.hit].state : -1, result.cursor_index,
+               result.cursor_variant, (unsigned)result.event);
+    }
+}
+
+/* Start of a tick (0x43a7ca): the inventory byte opens the view while 0x583204 is 0;
+ * otherwise the per-tick hover (0x4d3073). */
+static void taskbar_pre_tick(NativeApp *app)
+{
+    if (app->inv_view.screen_state != INVVIEW_STATE_NONE || !taskbar_active(app)) return;
+    if (app->bar.flag[TASKBAR_BUTTON_INVENTORY]) {
+        app->bar.flag[TASKBAR_BUTTON_INVENTORY] = 0;     /* 0x43a875 */
+        record(app, "taskbar_inventory_flag_consumed byte=0x583232 (0x43a858)");
+        inventory_view_open_request(app, "taskbar button 1 (byte 0x583232)");
+        return;
+    }
+    taskbar_hover_at(app, app->pointer_x, app->pointer_y);
+}
+
+/* End of a tick (0x43cf9c): 0x4e0e2b while 0x583204 is 0. */
+static void taskbar_post_tick(NativeApp *app, uint32_t now)
+{
+    if (app->inv_view.screen_state != INVVIEW_STATE_NONE || !taskbar_active(app)) return;
+    TaskbarHost host = bar_host(app);
+    TaskbarProcessResult result{};
+    const int status = taskbar_process(&app->bar, &app->bar_layout,
+                                       (int16_t)app->exit_state.g.scene_request, now, &host,
+                                       &result);
+    if (status != TASKBAR_OK) {
+        record(app, "taskbar_process_error status=%d", status);
+        return;
+    }
+    if (result.loaded)
+        record(app, "taskbar_loaded scene_request=%d (0x4e0e6b: frame image 'game frame' load "
+               "NOT RENDERED)", (int)(int16_t)app->exit_state.g.scene_request);
+    for (unsigned i = 0; i < TASKBAR_BUTTONS; ++i) {
+        if (result.completed[i])
+            record(app, "taskbar_button_completed index=%u (0x4e2b10: press timer expired)", i);
+        if (result.flag_set[i]) {
+            static const unsigned bytes[TASKBAR_BUTTONS] = {0x583220u, 0x583232u, 0x583233u,
+                                                            0x583234u, 0x58321fu};
+            record(app, "taskbar_flag index=%u byte=0x%x%s", i, bytes[i],
+                   i == TASKBAR_BUTTON_INVENTORY ? " (opens the inventory view next tick)"
+                                                 : " (action NOT modelled)");
+        }
+    }
+}
+
+/* A pointer message while no sub-screen is up. Returns true when the bar consumed it. */
+static bool taskbar_pointer_event(NativeApp *app, int event_kind, unsigned button, int32_t x,
+                                  int32_t y)
+{
+    if (app->inv_view.screen_state == INVVIEW_STATE_INVENTORY && button == 1u &&
+        event_kind == BLACKMOOR_POINTER_DOWN) {
+        /* NOT original: the in-view close controls (frame button 0x4ee517, keys) are not
+         * recovered, so a right click closes the view to keep the session usable. */
+        record(app, "inventory_view_close_fallback right-click (NOT in the original: frame close "
+               "button 0x4ee517 and the key table are not recovered)");
+        inventory_view_close(&app->inv_view);
+        native_inv_view_close(app);
+        return true;
+    }
+    if (button == 0u && event_kind == BLACKMOOR_POINTER_UP && app->bar_swallow_up) {
+        app->bar_swallow_up = false;   /* the release of a press the bar took */
+        return true;
+    }
+    if (button != 0u || app->inv_view.screen_state != INVVIEW_STATE_NONE || !taskbar_active(app))
+        return false;
+    if (event_kind != BLACKMOOR_POINTER_DOWN && event_kind != kPointerDoubleClick) return false;
+    /* The hover of the preceding tick, for a pointer that has settled on x,y. */
+    taskbar_hover_at(app, x, y);
+    TaskbarHost host = bar_host(app);
+    TaskbarClickResult result{};
+    const int status = taskbar_click(&app->bar, &app->bar_layout, app->session_tick_sample, &host,
+                                     &result);
+    if (status != TASKBAR_OK) {
+        record(app, "taskbar_click_error status=%d", status);
+        return false;
+    }
+    if (result.pressed >= 0 || result.locked_click >= 0)
+        record(app, "taskbar_click pointer=%d,%d pressed=%d locked=%d deadline=%u event=0x%x "
+               "(0x4e0978/0x4e26fc; locked-button message NOT modelled)", x, y, result.pressed,
+               result.locked_click,
+               result.pressed >= 0 ? (unsigned)app->bar.button[result.pressed].deadline : 0u,
+               (unsigned)app->bar.event);
+    /* 0x43b1fc: the scene's own click is not raised while the event is 0x27d8. */
+    if (app->bar.event == TASKBAR_EVENT_BUTTON) {
+        app->bar_swallow_up = true;
+        return true;
+    }
+    return false;
 }
 
 /* ---- RT-14: host providers for the raw 0x36 overlay binding -------------
@@ -5254,7 +5466,9 @@ static void update(NativeApp *app, uint32_t now)
                 blackmoor_macos_stop(app->platform);
             return;
         }
+        taskbar_pre_tick(app);   /* RT-22 follow-up: inventory byte -> view, bar hover */
         const int session_status = scene_session_tick(app->session, &session_result);
+        if (session_status != SCENE_SESSION_BLOCKED) taskbar_post_tick(app, now);   /* 0x43cf9c */
         if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
             record(app, "scene_session_blocked stage=%d provider=%s action=%zu type=0x%02x detail=%d "
                    "effects_before_block=%zu dispatch_attempted=%u",
@@ -5822,6 +6036,20 @@ int main(int argc, char **argv)
                 const long pick_item = std::strtol(end + 1, &end, 10);
                 if (*end || pick_item < 0 || pick_item >= (long)INVVIEW_ITEMS) return 2;
                 app.live_pick_items.emplace_back((int32_t)pick_scene, (int32_t)pick_item);
+            } else if (argument == "--live-click-at") {
+                /* RT-22 follow-up: SCENE:X,Y. In that scene, once it has settled, the script
+                 * moves the pointer to the window point (X, Y), presses and releases the left
+                 * button through the app's real pointer path (the task bar, then the scene).
+                 * May repeat. */
+                char *end = nullptr;
+                const long click_scene = std::strtol(value, &end, 10);
+                if (!*value || *end != ':' || click_scene < 0) return 2;
+                const long click_x = std::strtol(end + 1, &end, 10);
+                if (*end != ',' || click_x < 0 || click_x > 639) return 2;
+                const long click_y = std::strtol(end + 1, &end, 10);
+                if (*end || click_y < 0 || click_y > 479) return 2;
+                app.live_click_ats.push_back({(int32_t)click_scene, (int32_t)click_x,
+                                              (int32_t)click_y});
             } else if (argument == "--live-nav") {
                 char *end = nullptr;
                 const long nav_scene = std::strtol(value, &end, 10);
@@ -6107,13 +6335,34 @@ int main(int argc, char **argv)
                         /* RT-22: scripted inventory pick (open, hover, click). Two ticks apart so
                          * each message is processed by its own tick. */
                         ++scene_ticks;
+                        for (auto it = app.live_click_ats.begin(); it != app.live_click_ats.end(); ++it) {
+                            if (it->scene != app.current_scene_id) continue;
+                            if (scene_ticks == 12u) {
+                                pointer(&app, BLACKMOOR_POINTER_MOVE, it->x, it->y, 0);
+                                record(&app, "live_click_at_move scene=%d pointer=%d,%d",
+                                       app.current_scene_id, it->x, it->y);
+                            } else if (scene_ticks == 14u) {
+                                pointer(&app, BLACKMOOR_POINTER_DOWN, it->x, it->y, 0);
+                                record(&app, "live_click_at_down scene=%d pointer=%d,%d",
+                                       app.current_scene_id, it->x, it->y);
+                            } else if (scene_ticks == 15u) {
+                                pointer(&app, BLACKMOOR_POINTER_UP, it->x, it->y, 0);
+                                record(&app, "live_click_at_up scene=%d pointer=%d,%d",
+                                       app.current_scene_id, it->x, it->y);
+                                app.live_click_ats.erase(it);
+                            }
+                            break;
+                        }
                         {
                             bool pick_active = false;
                             for (auto it = app.live_pick_items.begin(); it != app.live_pick_items.end(); ++it) {
                                 if (it->first != app.current_scene_id) continue;
                                 pick_active = true;
                                 if (scene_ticks == 20u) {
-                                    if (!inventory_view_open_request(&app, "scripted --live-pick-item"))
+                                    /* A view already opened by the task bar button (real click
+                                     * path, --live-click-at) is used as it is. */
+                                    if (app.inv_view.screen_state != INVVIEW_STATE_INVENTORY &&
+                                        !inventory_view_open_request(&app, "scripted --live-pick-item"))
                                         app.live_pick_items.erase(it);
                                 } else if (scene_ticks == 22u) {
                                     int slot = -1;
