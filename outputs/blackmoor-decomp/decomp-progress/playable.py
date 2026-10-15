@@ -17,7 +17,7 @@ LIVE_ARGS = ["--inspect-live-session", "--live-click-row", "34", "--live-ticks",
 PROVIDERS = {
     "none", "world-clock", "timer-effects", "post-clock-controller", "scene-media",
     "pointer-input-transform", "action-ui", "action-sound", "caption", "action-family-28",
-    "action-family-62", "action-kernel", "dependency-provider", "scene-resource",
+    "action-family-35", "action-family-51", "action-family-62", "action-family-97", "action-kernel", "dependency-provider", "scene-resource",
     "host-adapter", "unknown-provider",
 }
 
