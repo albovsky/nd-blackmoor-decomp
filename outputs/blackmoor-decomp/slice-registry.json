@@ -1404,6 +1404,36 @@
       "parent": "A-D6",
       "raw_type": "0xd6",
       "records": 1
+    },
+    {
+      "id": "A-76.1",
+      "title": "Action 0x76: body boundary and isolated decoder",
+      "packet": "tasks/A-76.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-76",
+      "raw_type": "0x76",
+      "records": 1
+    },
+    {
+      "id": "A-9A.1",
+      "title": "Action 0x9a: body boundary and isolated decoder",
+      "packet": "tasks/A-9A.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-9A",
+      "raw_type": "0x9a",
+      "records": 1
+    },
+    {
+      "id": "A-6D.1",
+      "title": "Action 0x6d: body boundary and isolated decoder",
+      "packet": "tasks/A-6D.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-6D",
+      "raw_type": "0x6d",
+      "records": 1
     }
   ]
 }

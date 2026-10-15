@@ -76,8 +76,8 @@ class RepoEvidenceTests(unittest.TestCase):
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 19608)
-        self.assertEqual(a["opaque"]["records"], 4)
+        self.assertEqual(a["typed"]["records"], 19611)
+        self.assertEqual(a["opaque"]["records"], 1)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -782,17 +782,15 @@ class RegistrationDriftTests(unittest.TestCase):
         self.assertNotIn("0x51", changed["handled"]["types"])
         self.assertNotEqual(changed, self.original)
 
-    def test_new_parser_layout_moves_opaque_records_to_typed(self):
+    def test_removed_parser_layout_moves_typed_records_to_opaque(self):
         census = json.loads((EVIDENCE / "action-census-current.json").read_text())
         counts = {r["type"]: r["count"] for r in census["by_raw_type"]}
-        # Any type that is still opaque; the choice follows the corpus, so it
-        # does not need updating when a decoder batch registers more types.
-        code = self.original["opaque"]["types"][0]
-        self.change("src/scene_resource.c", "default:\n        return 0;",
-                    f"case {code}: fixed_length = 1u; break;\n    default:\n        return 0;")
+        code = "0x6d"
+        self.change("src/scene_resource.c", "case 0x6d: fixed_length = 1u; break;", "")
         changed = GEN.PLAYABLE.derive_actions(self.out)
-        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + counts[code])
-        self.assertIn(code, changed["unsupported"]["types"])
+        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] - counts[code])
+        self.assertEqual(changed["opaque"]["records"], self.original["opaque"]["records"] + counts[code])
+        self.assertIn(code, changed["opaque"]["types"])
         self.assertNotEqual(changed, self.original)
 
     def test_guarded_parser_case_counts_listed_records_as_opaque(self):
