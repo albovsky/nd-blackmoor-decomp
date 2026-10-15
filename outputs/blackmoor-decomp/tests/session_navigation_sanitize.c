@@ -96,15 +96,24 @@ int main(void)
             context.cursor_mode = rnd() % 8; context.modal_event = (uint32_t)wild();
             context.producer_disabled = rnd() % 3 == 0;
             context.geometry_ready = rnd() % 4 != 0; context.priority_clear = rnd() % 4 != 0;
-            context.excluded_0 = rnd() % 5 == 0 ? wild() : -1;
-            context.excluded_1 = rnd() % 5 == 0 ? wild() : -1;
+            context.excluded_0 = rnd() % 10 == 0 ? wild() : (rnd() % 3 == 0 ? (int32_t)(rnd() % 12) : -1);
+            context.excluded_1 = rnd() % 10 == 0 ? wild() : -1;
             for (k = 0; k < 6; ++k) {
                 memset(&priority[k], 0, sizeof(priority[k]));
                 memset(&rows[k], 0, sizeof(rows[k]));
-                priority[k].index = rnd() % 4 == 0 ? wild() : (int32_t)(rnd() % 240);
-                random_rect(&priority[k].rectangle); priority[k].active = rnd() & 3;
-                rows[k].index = rnd() % 4 == 0 ? wild() : (int32_t)k * 3;
-                random_rect(&rows[k].rectangle); rows[k].active = rnd() & 3;
+                priority[k].index = rnd() % 16 == 0 ? wild() : (int32_t)(rnd() % 240);
+                rows[k].index = rnd() % 16 == 0 ? wild() : (int32_t)k * 3;
+                if (rnd() % 4 != 0) {   /* mostly rectangles in the signed-short domain */
+                    priority[k].rectangle.left = (int32_t)(rnd() % 700) - 30;
+                    priority[k].rectangle.top = (int32_t)(rnd() % 500) - 30;
+                    priority[k].rectangle.right = priority[k].rectangle.left + (int32_t)(rnd() % 400);
+                    priority[k].rectangle.bottom = priority[k].rectangle.top + (int32_t)(rnd() % 400);
+                    rows[k].rectangle = priority[k].rectangle;
+                } else {
+                    random_rect(&priority[k].rectangle);
+                    random_rect(&rows[k].rectangle);
+                }
+                priority[k].active = rnd() & 3; rows[k].active = rnd() & 3;
             }
             bands.x1 = wild(); bands.y1 = wild(); bands.x2 = wild(); bands.y2 = wild();
             pointer.hot_x = wild(); pointer.hot_y = wild(); pointer.selected_item = wild();
