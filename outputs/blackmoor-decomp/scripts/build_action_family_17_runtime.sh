@@ -12,7 +12,7 @@ mkdir -p "$(dirname "$output")"
 xcrun --sdk macosx clang -arch arm64 -std=c11 \
     -Wall -Wextra -Wpedantic -Werror -O2 -g -fPIC -dynamiclib \
     ${A17_RUNTIME_CFLAGS:-} \
-    "$source_dir/action_family_17.c" "$source_dir/action_family_17_runtime.c" \
+    "$source_dir/action_family_17_runtime.c" \
     "$source_dir/session_bindings_a17.c" "$source_dir/scene_resource.c" \
     "$source_dir/hiff.c" "$source_dir/scene_session.c" \
     "$source_dir/scene_executor.c" "$source_dir/scene_conditions.c" \

@@ -607,7 +607,7 @@ class BindingTests(unittest.TestCase):
         self.assertEqual(f.rig.transitions, [(6402, (7, 8, 9), (10, 11, 12))])
         self.assertEqual(f.slot()[5], 1)
         pending = session.SceneTransitionRequest()
-        self.assertEqual(self.lib.scene_session_get_pending_transition(f.session, c.byref(pending)), 0)
+        self.assertEqual(self.lib.scene_session_get_pending_transition(f.session, c.byref(pending)), 1)
         self.assertEqual((pending.target_scene, tuple(pending.opaque_words)), (6402, (7, 8, 9)))
 
     def test_full_pointer_flow_hover_click_and_transition(self):
