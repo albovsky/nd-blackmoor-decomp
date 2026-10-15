@@ -248,6 +248,11 @@ struct NativeApp {
      * accepted event (scan + accept reducers + candidate store). */
     bool test_a62_accept = false;
     bool test_a62_accept_done = false;
+    /* RT-13 test hook: seed the New Game inventory (item ids in list order and
+     * the held item) right after world_init_apply_new_game, so the raw 0x79
+     * removal can be followed through the real app wiring. */
+    std::vector<int16_t> test_inventory;
+    int test_held = -2;
     /* RT-5 test hook: load this scene instead of the requested target so the
      * exit effect can be followed into a successor the executor can create.
      * It changes game flow and exists only in the test-hooks build. */
@@ -3412,6 +3417,21 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
         record(app, "world_init_error new-game status=%d", status);
         return false;
     }
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (!app->test_inventory.empty() || app->test_held != -2) {
+        WorldInitInventory &inv = app->new_game.view.inventory;
+        for (size_t i = 0; i < app->test_inventory.size() && i < inv.item_ids_583a31.count; ++i) {
+            inv.item_ids_583a31.values[i] = static_cast<uint16_t>(app->test_inventory[i]);
+            if (app->test_inventory[i] >= 0 &&
+                static_cast<size_t>(app->test_inventory[i]) < inv.presence_583bd5.count)
+                inv.presence_583bd5.values[app->test_inventory[i]] = 1;
+        }
+        inv.selector_words_583a2b.values[0] = static_cast<uint16_t>(app->test_inventory.size());
+        if (app->test_held != -2) *inv.selected_item_candidate = static_cast<int16_t>(app->test_held);
+        record(app, "test_inventory_seeded count=%zu held=%d", app->test_inventory.size(),
+               (int)*inv.selected_item_candidate);
+    }
+#endif
     app->world_clock_session.world = &app->new_game.view;
     /* The two signed window bounds are in the PE zero-filled data tail and
      * have no direct .text stores in the pinned image. The session object is
@@ -4460,6 +4480,27 @@ int main(int argc, char **argv)
                 live_click_row = std::strtol(value, &end, 10);
                 if (!*value || *end || live_click_row < 0) return 2;
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+            } else if (argument == "--test-inventory" || argument == "--test-held") {
+                if (argument == "--test-held") {
+                    char *end = nullptr;
+                    const long held = std::strtol(value, &end, 10);
+                    if (!*value || *end || held < -1 || held > 32767) return 2;
+                    app.test_held = (int)held;
+                } else {
+                    std::string list = value;
+                    size_t position = 0;
+                    while (position < list.size()) {
+                        char *end = nullptr;
+                        const long item = std::strtol(list.c_str() + position, &end, 10);
+                        if (end == list.c_str() + position || item < 0 || item > 32767) return 2;
+                        app.test_inventory.push_back(static_cast<int16_t>(item));
+                        position = static_cast<size_t>(end - list.c_str());
+                        if (position < list.size()) {
+                            if (list[position] != ',') return 2;
+                            ++position;
+                        }
+                    }
+                }
             } else if (argument == "--test-exit-redirect") {
                 char *end = nullptr;
                 const long from = std::strtol(value, &end, 10);
@@ -4770,6 +4811,17 @@ int main(int argc, char **argv)
                                    session_conditions_global_5c3a47(app.conditions_binding),
                                    cond_manager.error_3c2);
                         }
+                    }
+                    {
+                        const WorldInitInventory &inv = app.new_game.view.inventory;
+                        size_t present = 0;
+                        for (size_t i = 0; i < inv.presence_583bd5.count; ++i)
+                            present += inv.presence_583bd5.values[i] != 0;
+                        record(&app, "live_session_inventory count=%d held=%d presence_nonzero=%zu "
+                               "view_rebuilds_requested=%llu",
+                               (int)static_cast<int16_t>(inv.selector_words_583a2b.values[0]),
+                               (int)*inv.selected_item_candidate, present,
+                               (unsigned long long)app.inventory_view_rebuilds);
                     }
                     record(&app, "live_session_end scene=%d ticks=%llu status=%d provider=%s "
                            "stage=%d action=%zu type=0x%02x detail=%d applied=%zu",
