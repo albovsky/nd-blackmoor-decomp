@@ -1,6 +1,6 @@
 # Decomp progress view
 
-A playable-build panel followed by a decomp.dev-style view of how much of `GAME.EXE` is reconstructed: a code bar, a data bar and a treemap of units sized by bytes (green matched code, blue hatched matched data, grey not done). Open `index.html` in any browser; it is one offline file with no network access.
+A playable-build panel, a function-ledger panel and a decomp.dev-style view of how much of `GAME.EXE` is reconstructed: a code bar, a data bar and a treemap of units sized by bytes (green matched code, blue hatched matched data, grey not done). Open `index.html` in any browser; it is one offline file with no network access.
 
 This is separate from `../progress-map/` (the older function-start map with oracle and quarantine panels). Nothing in that directory is read or changed.
 
@@ -12,9 +12,11 @@ This is separate from `../progress-map/` (the older function-start map with orac
 | `playable.py` | Validates playable evidence and derives parser/live-handler coverage from committed source. |
 | `../playable-status.json` | Schema-versioned, sanitized live-session evidence and committed test totals. |
 | `../scripts/record_playable_status.py` | Refreshes live evidence using the native app; raw logs stay private. |
+| `function_ledger.py` | Function-ledger derivation and strict validator (FL-1), loaded by `generate.py` like `playable.py`. |
+| `../function-ledger.json` | Committed function ledger (`blackmoor-function-ledger/1`): one status per function; built by `../scripts/build_function_ledger.py --write`. |
 | `layout.json` | Public structural facts: sections, code regions, data pieces. Sums to 1,511,424 bytes. |
 | `template.html` | Page source (treemap, bars, table view, search, light and dark themes). |
-| `progress.json` | Generated model: totals, groups, units, per-function tuples `[va, span, matched_code, matched_data]`, provenance byte/function counts and pinned audit inputs. A complete audited function's code plus audited tables/padding must fill its indexed span; only code adds matched code bytes. |
+| `progress.json` | Generated model (including the compact `function_ledger` panel when a ledger exists): totals, groups, units, per-function tuples `[va, span, matched_code, matched_data]`, provenance byte/function counts and pinned audit inputs. A complete audited function's code plus audited tables/padding must fill its indexed span; only code adds matched code bytes. |
 | `REPORT.md` | Generated text report. |
 | `index.html` | Generated page with the model embedded. |
 | `preview.png` | Headless page export, refreshed with `--preview-browser`. |
@@ -55,6 +57,22 @@ Run the public-only acceptance tests:
 
     python3 -m unittest discover -s outputs/blackmoor-decomp/decomp-progress -p test_progress.py
     python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p test_record_playable_status.py
+
+## Function ledger panel
+
+`index.html` shows a "Function ledger" panel between the playable-build panel and the x86 bars, and `REPORT.md` has a matching "Function ledger" section. It answers a different question from the x86 bars: not "which bytes match", but "which of the 4,188 functions has a recorded status": `ported` (a reviewed claim that native code or a test covers it), `not_needed` (a reviewed reason) or `pending`. Ported is never an x86 match and the two tracks are shown side by side in a cross-tab. The ledger is derived and validated by `function_ledger.py`; see [FL-0](../tasks/FL-0-function-ledger.md) for the rules. This is not the whole-file range ledger that `--ledger` reads.
+
+What the panel shows: Ported (oracle-verified, tests-only, adapter), Not needed (by reason) and Pending (by subclass) counts; a stacked status bar per region; a cross-tab of x86-matched functions against native port status; and a table with status, region and class filters, address search (an address inside a function finds that function) and paging. Rows are `[va, span, region_i, status_i, class_i, ev_i]`; `ev_i` indexes a shared details table. Evidence links are relative (`../src/...`, `../tests/...`). Private receipts appear as a name plus sha256 only. Caveats are printed on the page and in the report.
+
+How generation treats it (`generate.py`):
+
+- If `function-ledger.json` is absent from `--evidence-dir` (or `--function-ledger-root`) the panel is hidden and everything else is generated as before.
+- Otherwise the ledger must pass strict schema validation and equal a fresh derivation from the committed, hash-pinned inputs (`function-xrefs.json`, `function-evidence.json`, `function-ledger-overrides.json`, the function index, layout, census and x86 manifests). Any difference fails with `error: function ledger stale; rerun scripts/build_function_ledger.py --write`; an input the derivation rejects fails with `error: function ledger invalid: ...`.
+- Only committed files are read. The generator never reads `work/` or the original executable for the ledger, and does not look for drift in `src/`, `tests/` or private receipts: that is `scripts/extract_function_evidence.py --check`, run separately. Otherwise every unrelated source or test change would break progress-map regeneration.
+- `--ledger-functions N` changes the pinned function count (default 4,188; the fixture tree uses 30). `--function-ledger-root DIR` reads the ledger and its inputs from another tree (the tests use `fixtures/function-ledger/`).
+- The first publication has 0 ported and 0 not needed, so the panel says so plainly: it is the honest baseline, with more than 80% of functions pending. Pending subclasses are leads, not progress.
+
+Run the panel tests (they also cover the generator): `python3 -m unittest test_progress.FunctionLedgerTests` from this directory. A test that renders the page needs a headless Chromium (`BLACKMOOR_PREVIEW_BROWSER` or the default Playwright path) and is skipped without one.
 
 ## Evidence and what counts as matched
 

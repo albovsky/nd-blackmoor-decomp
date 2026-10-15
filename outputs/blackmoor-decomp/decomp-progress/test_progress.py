@@ -891,5 +891,476 @@ class RegistrationDriftTests(unittest.TestCase):
             GEN.PLAYABLE.derive_actions(self.out)
 
 
+FIXTURE_LEDGER = HERE / "fixtures" / "function-ledger"
+FIXTURE_FUNCTIONS = 30
+SCRATCH_PARENT = "/private/tmp" if pathlib.Path("/private/tmp").is_dir() else None
+BROWSER = pathlib.Path(__import__("os").environ.get("BLACKMOOR_PREVIEW_BROWSER") or
+                       pathlib.Path.home() / "Library/Caches/ms-playwright/chromium_headless_shell-1243/"
+                       "chrome-headless-shell-mac-arm64/chrome-headless-shell")
+ABSOLUTE_PATH = re.compile(r"/Users/|/private/|/home/|/tmp/|/var/folders/|file://|[A-Za-z]:\\\\")
+
+
+def generate(out, *extra):
+    """Run the generator on the committed evidence; returns (exit code, stderr text)."""
+    import contextlib
+    import io
+    err = io.StringIO()
+    with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+        rc = GEN.main(["--out-dir", str(out), *map(str, extra)])
+    return rc, err.getvalue()
+
+
+class LedgerScratch:
+    """A mutable copy of the fixture ledger tree (inputs, committed ledger included)."""
+
+    def __init__(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix="fl4-", dir=SCRATCH_PARENT)
+        self.root = pathlib.Path(self.tmp.name) / "fx"
+        shutil.copytree(FIXTURE_LEDGER, self.root)
+
+    def edit(self, rel, fn):
+        p = self.root / rel
+        data = json.loads(p.read_text())
+        fn(data)
+        p.write_text(json.dumps(data, indent=1) + "\n")
+
+    def text(self, rel, fn):
+        p = self.root / rel
+        p.write_text(fn(p.read_text()))
+
+    def ledger_entry(self, va, fn):
+        """Edit one entry of the committed ledger text in place (one entry per line)."""
+        lines = (self.root / "function-ledger.json").read_text().split("\n")
+        for i, line in enumerate(lines):
+            if f'"va": "{va}"' in line:
+                body = line.rstrip(",")
+                entry = json.loads(body)
+                fn(entry)
+                lines[i] = json.dumps(entry, separators=(", ", ": ")) + ("," if line.endswith(",") else "")
+                break
+        else:
+            raise AssertionError(va)
+        (self.root / "function-ledger.json").write_text("\n".join(lines))
+
+    def generate(self, out=None):
+        target = out or pathlib.Path(self.tmp.name) / "out"
+        return generate(target, "--function-ledger-root", self.root, "--ledger-functions", FIXTURE_FUNCTIONS)
+
+
+def dump_dom(html_path, query=""):
+    import subprocess
+    with tempfile.TemporaryDirectory(prefix="fl4-dom-", dir=SCRATCH_PARENT) as profile:
+        run = subprocess.run([str(BROWSER), "--headless", "--no-sandbox", "--disable-gpu", "--no-first-run",
+                              "--disable-background-networking", f"--user-data-dir={profile}/p",
+                              "--virtual-time-budget=2000", "--dump-dom",
+                              pathlib.Path(html_path).resolve().as_uri() + query],
+                             capture_output=True, timeout=60)
+    return run.stdout.decode("utf-8", "replace")
+
+
+def dom_text(dom, element_id):
+    m = re.search(r'id="%s"[^>]*>(.*?)</(?:div|p|span)>' % element_id, dom, re.S)
+    return re.sub(r"<[^>]+>", "", m.group(1)).strip() if m else None
+
+
+class FunctionLedgerTests(unittest.TestCase):
+    """The Function ledger panel: strict validation, re-derivation and fail-closed behaviour."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory(prefix="fl4-out-", dir=SCRATCH_PARENT)
+        base = pathlib.Path(cls.tmp.name)
+        cls.real_out, cls.fx_out, cls.none_out = base / "real", base / "fixture", base / "none"
+        assert generate(cls.real_out)[0] == 0
+        assert generate(cls.fx_out, "--function-ledger-root", FIXTURE_LEDGER, "--ledger-functions", FIXTURE_FUNCTIONS)[0] == 0
+        empty = base / "empty"
+        empty.mkdir()
+        assert generate(cls.none_out, "--function-ledger-root", empty)[0] == 0
+        load = lambda out: json.loads((out / "progress.json").read_text())
+        cls.real, cls.fx, cls.none = load(cls.real_out), load(cls.fx_out), load(cls.none_out)
+        cls.real_ledger = json.loads((EVIDENCE / "function-ledger.json").read_text())
+        cls.fx_ledger = json.loads((FIXTURE_LEDGER / "function-ledger.json").read_text())
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    # ---- committed ledger equals re-derived; counts ----
+    def test_committed_ledger_equals_rederived_and_pins_4188(self):
+        fresh = GEN.FNL.check(EVIDENCE, expected_functions=4188)
+        self.assertEqual(fresh, self.real_ledger)
+        p = self.real["function_ledger"]
+        self.assertEqual(p["total"], 4188)
+        self.assertEqual(len(p["rows"]), 4188)
+        self.assertEqual(p["ledger_sha256"], GEN.sha256_file(EVIDENCE / "function-ledger.json"))
+        regions = {r: sum(p["counts"]["region"][r].values()) for r in p["regions"]}
+        self.assertEqual(regions, {"game": 2507, "vorbis": 178, "crt_mfc": 1503})
+        self.assertEqual(sum(regions.values()), 4188)
+        self.assertEqual(sum(r[1] for r in p["rows"]), 1213018)
+
+    def test_fixture_counts_sum_per_region(self):
+        p = self.fx["function_ledger"]
+        self.assertEqual(p["total"], FIXTURE_FUNCTIONS)
+        per_region = {r: sum(1 for e in self.fx_ledger["entries"] if e["region"] == r) for r in p["regions"]}
+        for r in p["regions"]:
+            self.assertEqual(sum(p["counts"]["region"][r].values()), per_region[r])
+        self.assertEqual(sum(per_region.values()), FIXTURE_FUNCTIONS)
+
+    def test_panel_counts_equal_ledger_counts(self):
+        for panel, ledger in ((self.real["function_ledger"], self.real_ledger),
+                              (self.fx["function_ledger"], self.fx_ledger)):
+            self.assertEqual(panel["counts"], ledger["counts"])
+            rows = panel["rows"]
+            for i, s in enumerate(panel["statuses"]):
+                self.assertEqual(sum(1 for r in rows if r[3] == i), ledger["counts"]["status"][s])
+            for i, c in enumerate(panel["classes"]):
+                self.assertEqual(sum(1 for r in rows if r[4] == i), ledger["counts"]["class"][c])
+            for ri, region in enumerate(panel["regions"]):
+                for si, s in enumerate(panel["statuses"]):
+                    self.assertEqual(sum(1 for r in rows if r[2] == ri and r[3] == si),
+                                     ledger["counts"]["region"][region][s])
+            cross = panel["crosstab"]
+            self.assertEqual(sum(sum(v.values()) for v in cross.values()), panel["total"])
+            self.assertEqual(sum(cross["complete"].values()), ledger["counts"]["x86"]["complete"])
+            self.assertEqual(cross["complete"]["ported"], ledger["counts"]["x86"]["complete_ported"])
+
+    def test_real_ledger_is_the_honest_baseline(self):
+        c = self.real["function_ledger"]["counts"]
+        self.assertEqual(c["status"], {"ported": 0, "not_needed": 0, "pending": 4188})
+        self.assertGreater(c["status"]["pending"] * 5, c["total"] * 4)
+        report = (self.real_out / "REPORT.md").read_text()
+        self.assertIn("honest baseline", report)
+        self.assertIn("0 ported and 0 not needed", report)
+
+    def test_rows_are_compact_and_match_the_ledger_entries(self):
+        for panel, ledger in ((self.real["function_ledger"], self.real_ledger),
+                              (self.fx["function_ledger"], self.fx_ledger)):
+            self.assertEqual(len(panel["rows"]), len(ledger["entries"]))
+            for row, e in zip(panel["rows"], ledger["entries"]):
+                self.assertEqual(len(row), 6)
+                va, span, region_i, status_i, class_i, ev_i = row
+                self.assertEqual((va, span), (int(e["va"], 16), e["span"]))
+                self.assertEqual(panel["regions"][region_i], e["region"])
+                self.assertEqual(panel["statuses"][status_i], e["status"])
+                self.assertEqual(panel["classes"][class_i], e["class"])
+                self.assertEqual(panel["class_status"][class_i], status_i)
+                self.assertTrue(0 <= ev_i < len(panel["details"]))
+                self.assertEqual(ev_i != 0, bool(e["evidence"] or e["blockers"] or e["divergences"] or e["reason"]
+                                                 or e["review"] or e["x86_match"] or e["seam"]))
+        self.assertEqual([r[0] for r in self.real["function_ledger"]["rows"]],
+                         sorted(r[0] for r in self.real["function_ledger"]["rows"]))
+
+    def test_committed_progress_json_carries_the_current_ledger_panel(self):
+        committed = json.loads((HERE / "progress.json").read_text())
+        self.assertEqual(committed["function_ledger"], self.real["function_ledger"],
+                         "Refresh progress after changes to function-ledger.json")
+
+    # ---- panel placement, wording, offline, no leaks ----
+    def test_panel_sits_after_playable_and_before_bars(self):
+        for out in (self.real_out, self.fx_out):
+            html = (out / "index.html").read_text()
+            self.assertLess(html.index('id="playable"'), html.index('id="ledger"'))
+            self.assertLess(html.index('id="ledger"'), html.index('id="bars"'))
+            self.assertRegex(html, r'<section class="ledger"[^>]*id="ledger" hidden>')
+            report = (out / "REPORT.md").read_text()
+            self.assertLess(report.index("## Playable build"), report.index("## Function ledger"))
+            self.assertLess(report.index("## Function ledger"), report.index("## x86 matching"))
+
+    def test_caveats_are_on_the_page_and_in_the_report(self):
+        phrases = ["reviewed claim, not an x86 match", "weaker evidence", "tables, padding and thunks",
+                   "a few hundred bytes", "not re-hashed at build time"]
+        for out in (self.real_out, self.fx_out):
+            report = (out / "REPORT.md").read_text()
+            blob = json.loads((out / "progress.json").read_text())["function_ledger"]["caveats"]
+            self.assertEqual(len(blob), 5)
+            for phrase in phrases:
+                self.assertIn(phrase, report)
+                self.assertTrue(any(phrase in c for c in blob), phrase)
+            self.assertIn('id="lgCaveats"', (out / "index.html").read_text())
+
+    def test_html_is_offline_with_no_absolute_paths(self):
+        for out in (self.real_out, self.fx_out, self.none_out):
+            html = (out / "index.html").read_text()
+            self.assertNotRegex(html, r"https?://(?!www\.w3\.org/2000/svg)")
+            self.assertNotRegex(html, r"\b(fetch|XMLHttpRequest|WebSocket|importScripts)\(")
+            self.assertNotRegex(html, r"""(?:src|href)=["']?(?:https?:|//)""")
+            self.assertIsNone(ABSOLUTE_PATH.search(html), ABSOLUTE_PATH.search(html))
+            for name in ("progress.json", "REPORT.md"):
+                self.assertIsNone(ABSOLUTE_PATH.search((out / name).read_text()), name)
+
+    def test_private_receipts_are_shown_as_name_and_sha_only(self):
+        panel = self.real["function_ledger"]
+        self.assertTrue(panel["receipts"])
+        for row in panel["receipts"]:
+            self.assertEqual(len(row), 3)       # slice, sha256, review state: no path
+            self.assertRegex(row[1], r"^[0-9a-f]{64}$")
+        for out in (self.real_out, self.fx_out):
+            for name in ("index.html", "progress.json", "REPORT.md"):
+                self.assertNotIn("analysis/slices", (out / name).read_text(), name)
+        for p in panel["paths"] + self.fx["function_ledger"]["paths"]:
+            self.assertRegex(p, r"^[A-Za-z0-9_][A-Za-z0-9_./-]*$")
+            self.assertFalse(p.startswith(("analysis/", "work/", "/")))
+            self.assertNotIn("..", p)
+
+    def test_no_original_bytes_or_dumps_in_the_panel(self):
+        text = json.dumps(self.real["function_ledger"])
+        self.assertNotRegex(text, r'"(bytes|data_hex|payload|disassembly)"')
+        self.assertLess(len(text), 600_000)
+
+    def test_panel_hidden_and_generation_works_without_a_ledger(self):
+        self.assertNotIn("function_ledger", self.none)
+        self.assertEqual(self.none["totals"], self.real["totals"])
+        report = (self.none_out / "REPORT.md").read_text()
+        self.assertNotIn("## Function ledger", report)
+        self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
+        html = (self.none_out / "index.html").read_text()
+        self.assertRegex(html, r'id="ledger" hidden>')
+        self.assertIn("if(D.function_ledger){", html)      # only unhidden when the model has a panel
+        self.assertNotIn('"function_ledger"', re.search(r'id="data">(.*?)</script>', html, re.S).group(1))
+
+    def test_other_outputs_are_unchanged_by_the_ledger(self):
+        for key in ("totals", "groups", "units", "matched_ranges", "playable", "evidence"):
+            self.assertEqual(self.none[key], self.real[key], key)
+
+    # ---- generation reads committed files only ----
+    def test_generation_does_not_read_private_files_or_the_original(self):
+        calls = []
+        real = GEN.FNL.derive
+
+        def spy(root, **kwargs):
+            calls.append(kwargs)
+            return real(root, **kwargs)
+        GEN.FNL.derive = spy
+        try:
+            self.assertIsNotNone(GEN.function_ledger_panel(FIXTURE_LEDGER, FIXTURE_FUNCTIONS))
+        finally:
+            GEN.FNL.derive = real
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].get("expected_functions"), FIXTURE_FUNCTIONS)
+        self.assertFalse(calls[0].get("verify_private"))
+        self.assertIsNone(calls[0].get("work_dir"))
+        source = (HERE / "generate.py").read_text()
+        self.assertNotIn("work/analysis", source)
+        self.assertNotIn("game-source.json", source)
+
+    def test_function_ledger_does_not_touch_the_range_ledger_option(self):
+        self.assertEqual(GEN.LEDGER_SCHEMA, "blackmoor-range-ledger/1")
+        self.assertEqual(GEN.FNL.SCHEMA, "blackmoor-function-ledger/1")
+
+    # ---- fail-closed mutations (the committed ledger stays; one input or entry changes) ----
+    def fails(self, scratch, expect=None):
+        rc, err = scratch.generate()
+        self.assertEqual(rc, 2, err)
+        self.assertTrue(err.startswith("error: function ledger"), err)
+        if expect:
+            self.assertIn(expect, err)
+        return err
+
+    def test_fixture_tree_generates_cleanly_before_mutation(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        self.assertEqual(s.generate()[0], 0)
+
+    def test_stale_ledger_names_the_rebuild_command(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.ledger_entry("0x401300", lambda e: e.update(name="FUN_renamed"))      # valid, but not what the inputs derive
+        self.assertEqual(self.fails(s).strip(),
+                         "error: function ledger stale; rerun scripts/build_function_ledger.py --write")
+
+    def test_new_audited_batch_makes_the_ledger_stale(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        manifest = json.loads((s.root / "asm/batch-001.json").read_text())
+        manifest["batch"] = "002"
+        (s.root / "asm/batch-002.json").write_text(json.dumps(manifest, indent=1))
+        report = json.loads((s.root / "asm/batch-001-report.json").read_text())
+        report.update(batch="002", manifest_sha256=GEN.sha256_file(s.root / "asm/batch-002.json"))
+        (s.root / "asm/batch-002-report.json").write_text(json.dumps(report, indent=1))
+        self.assertEqual(self.fails(s).strip(),
+                         "error: function ledger stale; rerun scripts/build_function_ledger.py --write")
+
+    def test_unaudited_batch_or_new_manifest_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        shutil.copy2(s.root / "asm/batch-001.json", s.root / "asm/batch-002.json")
+        self.fails(s)
+        s2 = LedgerScratch()
+        self.addCleanup(s2.tmp.cleanup)
+        s2.text("matches_s08_2_x86.json", lambda t: t + "\n")
+        self.fails(s2, "stale")
+
+    def test_deleted_citation_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.edit("function-evidence.json", lambda d: next(
+            f for f in d["functions"] if f["va"] == "0x401000")["evidence"].pop(0))
+        self.fails(s)
+
+    def test_interior_address_blocker_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        record = {"slice": "FIX-1", "path": "analysis/slices/FIX-1.handoff.json", "field": "unverified",
+                  "index": 7, "text_sha256": hashlib_sha("fixture-item-U9"), "address": "0x4010fe", "interior": True}
+        s.edit("function-evidence.json", lambda d: next(
+            f for f in d["functions"] if f["va"] == "0x401000")["blockers"].append(record))
+        self.fails(s)
+
+    def test_mapped_only_oracle_window_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.edit("function-evidence.json", lambda d: next(
+            p for f in d["functions"] if f["va"] == "0x401340" for p in f["evidence"]
+            if p["kind"] == "oracle").update(use="mapped"))
+        self.fails(s)
+
+    def test_va_size_window_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.edit("function-evidence.json", lambda d: next(
+            p for f in d["functions"] if f["va"] == "0x401000" for p in f["evidence"]
+            if p["kind"] == "oracle").update(window=["0x401000", "0xf0"]))
+        self.fails(s)
+
+    def test_non_index_acceptance_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.edit("function-ledger-overrides.json", lambda d: next(
+            a for a in d["port_acceptances"] if a["va"] == "0x401000").update(va="0x401004"))
+        self.fails(s)
+
+    def test_ported_and_not_needed_at_once_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.edit("function-ledger-overrides.json", lambda d: d["not_needed_entries"].insert(
+            0, {"va": "0x401000", "reason": "unreachable_no_refs", "text": "x", "reviewer": "r", "date": "2026-10-15"}))
+        self.fails(s, "both")
+
+    def test_edited_test_file_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.text("tests/fixture_core_tests.py", lambda t: t + "\n# edited\n")
+        self.fails(s)
+
+    def test_rule_based_not_needed_in_the_game_region_fails_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        sample = hashlib_sha("fixture-sample")
+
+        def rule(e):
+            e.update(**{"class": "nn_rule"})
+            e["reason"].update(code="library_internal_unreached_by_game", rule="R-LIB-INTERNAL")
+            e["review"]["sample"] = sample
+        s.ledger_entry("0x401b00", rule)
+        self.fails(s, "game")
+
+    def test_ledger_edits_that_are_not_derived_fail_closed(self):
+        edits = {
+            "ported without evidence": ("0x401300", lambda e: e.update(status="ported", **{"class": "native_tests_only"},
+                                                                       review={"reviewer": "r", "date": "2026-10-15", "sample": None})),
+            "vorbis ported": ("0x404800", lambda e: e.update(status="ported", **{"class": "host_adapter_tested"},
+                                                             review={"reviewer": "r", "date": "2026-10-15", "sample": None})),
+            "status class mismatch": ("0x401300", lambda e: e.update(**{"class": "nn_reviewed"})),
+            "extra field": ("0x401300", lambda e: e.update(note="x")),
+            "non-index address": ("0x401300", lambda e: e.update(va="0x401304")),
+            "unknown reason": ("0x401b00", lambda e: e["reason"].update(code="because")),
+        }
+        for label, (va, fn) in edits.items():
+            with self.subTest(label):
+                s = LedgerScratch()
+                self.addCleanup(s.tmp.cleanup)
+                s.ledger_entry(va, fn)
+                self.fails(s)
+
+    def test_tampered_counts_fail_closed(self):
+        s = LedgerScratch()
+        self.addCleanup(s.tmp.cleanup)
+        s.text("function-ledger.json", lambda t: t.replace('"ported": 5', '"ported": 6', 1))
+        self.fails(s)
+
+    def test_wrong_pinned_function_count_fails_closed(self):
+        rc, err = generate(self.tmp.name + "/wrong", "--function-ledger-root", FIXTURE_LEDGER)   # default pin is 4,188
+        self.assertEqual(rc, 2)
+        self.assertTrue(err.startswith("error: function ledger"), err)
+
+    def test_rows_that_disagree_with_counts_are_refused(self):
+        ledger = json.loads(json.dumps(self.fx_ledger))
+        ledger["entries"][0]["status"] = "ported" if ledger["entries"][0]["status"] != "ported" else "pending"
+        with self.assertRaisesRegex(GEN.ProgressError, "disagree"):
+            GEN.compact_function_ledger(ledger, "0" * 64)
+
+    def test_each_count_dimension_is_cross_checked_against_the_rows(self):
+        def tampered(fn):
+            ledger = json.loads(json.dumps(self.fx_ledger))
+            fn(ledger["entries"][0])
+            return ledger
+        other_region = lambda e: e.update(region="crt_mfc" if e["region"] != "crt_mfc" else "game")
+        other_class = lambda e: e.update(**{"class": "candidate_port" if e["class"] != "candidate_port" else "none"})
+        for label, fn in (("region", other_region), ("class", other_class)):
+            with self.subTest(label), self.assertRaisesRegex(GEN.ProgressError, "disagree"):
+                GEN.compact_function_ledger(tampered(fn), "0" * 64)
+        for field in ("complete_ported", "matched", "complete"):
+            with self.subTest(field):
+                ledger = json.loads(json.dumps(self.fx_ledger))
+                ledger["counts"]["x86"][field] += 1
+                with self.assertRaisesRegex(GEN.ProgressError, "cross-tab"):
+                    GEN.compact_function_ledger(ledger, "0" * 64)
+        ledger = json.loads(json.dumps(self.fx_ledger))
+        ledger["entries"].pop()
+        with self.assertRaisesRegex(GEN.ProgressError, "disagree"):
+            GEN.compact_function_ledger(ledger, "0" * 64)
+
+    # ---- rendered panel (headless browser, when available) ----
+    @unittest.skipUnless(BROWSER.is_file(), "headless browser not installed")
+    def test_rendered_panel_numbers_equal_the_ledger(self):
+        for out, ledger, n in ((self.real_out, self.real_ledger, 4188), (self.fx_out, self.fx_ledger, FIXTURE_FUNCTIONS)):
+            dom = dump_dom(out / "index.html")
+            c = ledger["counts"]
+            self.assertNotRegex(re.search(r'<section class="ledger"[^>]*>', dom).group(0), r"\bhidden\b")
+            first = lambda element: dom_text(dom, element).split()[0].replace(",", "")
+            self.assertEqual(int(first("lgPorted")), c["status"]["ported"])
+            self.assertEqual(int(first("lgNotNeeded")), c["status"]["not_needed"])
+            self.assertEqual(int(first("lgPending")), c["status"]["pending"])
+            self.assertIn(f"of {n:,}", dom_text(dom, "lgPorted"))
+            self.assertEqual(dom_text(dom, "lgCount"), f"{n:,} of {n:,} functions")
+            self.assertIn(f"Candidate port {c['class']['candidate_port']:,}", dom_text(dom, "lgPendingSplit"))
+            self.assertIn("Oracle-verified %d" % c["class"]["native_oracle_verified"], dom_text(dom, "lgPortedSplit"))
+            for region in ("game", "vorbis", "crt_mfc"):
+                r = c["region"][region]
+                self.assertIn(f"{r['ported']:,} ported · {r['not_needed']:,} not needed · {r['pending']:,} pending", dom)
+            for phrase in ("reviewed claim, not an x86 match", "weaker evidence", "tables, padding and thunks",
+                           "a few hundred bytes", "not re-hashed at build time"):
+                self.assertIn(phrase, dom)
+        base = dom_text(dump_dom(self.real_out / "index.html"), "lgBaseline")
+        self.assertIn("honest baseline", base)
+        self.assertIn("0 ported and 0 not needed", base)
+
+    @unittest.skipUnless(BROWSER.is_file(), "headless browser not installed")
+    def test_rendered_table_filters_pages_and_links(self):
+        dom = dump_dom(self.fx_out / "index.html")
+        self.assertEqual(dom_text(dom, "lgPage"), "rows 1–25 · page 1 of 2")
+        body = re.search(r'<tbody>(.*?)</tbody>', dom.split('id="lgTable"')[1], re.S).group(1)
+        self.assertEqual(body.count("<tr"), 25)
+        ported = dump_dom(self.fx_out / "index.html", "?lgstatus=ported")
+        self.assertEqual(dom_text(ported, "lgCount"), f"5 of {FIXTURE_FUNCTIONS} functions")
+        self.assertEqual(dom_text(ported, "lgPage"), "rows 1–5 · page 1 of 1")
+        found = dump_dom(self.fx_out / "index.html", "?lgq=401a00")
+        self.assertEqual(dom_text(found, "lgCount"), f"1 of {FIXTURE_FUNCTIONS} functions")
+        inside = dump_dom(self.fx_out / "index.html", "?lgq=401a10")       # an address inside the span finds the function
+        self.assertEqual(dom_text(inside, "lgCount"), f"1 of {FIXTURE_FUNCTIONS} functions")
+        opened = dump_dom(self.fx_out / "index.html", "?lgstatus=ported&lgopen=0x401000,0x401100")
+        self.assertIn("Native source: ", opened)
+        self.assertIn('href="../src/fixture_core.c"', opened)
+        self.assertIn('href="../tests/fixture_core_tests.py"', opened)
+        self.assertRegex(opened, r"Private receipt FIX-1 · sha256 <span class=\"mono\">[0-9a-f]{64}</span>")
+        self.assertNotIn("analysis/slices", opened)
+        hrefs = re.findall(r'<a [^>]*href="([^"]*)"', opened.split('id="lgTable"')[1])
+        self.assertTrue(hrefs)
+        for href in hrefs:
+            self.assertRegex(href, r"^\.\./(src|tests)/[A-Za-z0-9_./-]+$")
+        empty = dump_dom(self.none_out / "index.html")
+        self.assertRegex(re.search(r'<section class="ledger"[^>]*>', empty).group(0), r"\bhidden\b")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -33,6 +33,48 @@ Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; sour
 
 `playable-status.json` sha256 `9245a84308650dc2e3fa49d14aec1f01b1d78f62a482d19054abe2258592ddb5`. Derivation and limits: `README.md`.
 
+## Function ledger
+
+**4,188 functions:** 0 ported, 0 not needed, 4,188 pending (100.00%).
+
+With 0 ported and 0 not needed, this ledger is the honest baseline: every function is pending until a reviewed acceptance says otherwise. The pending subclasses are leads, not progress.
+
+| Status | Class | Functions |
+|---|---|---:|
+| ported | `native_oracle_verified` | 0 |
+| ported | `native_tests_only` | 0 |
+| ported | `host_adapter_tested` | 0 |
+| not_needed | `nn_rule` | 0 |
+| not_needed | `nn_reviewed` | 0 |
+| pending | `candidate_port` | 135 |
+| pending | `partial_native` | 266 |
+| pending | `static_navigation_only` | 59 |
+| pending | `none` | 3,728 |
+
+| Region | Functions | Ported | Not needed | Pending |
+|---|---:|---:|---:|---:|
+| game | 2,507 | 0 | 0 | 2,507 |
+| vorbis | 178 | 0 | 0 | 178 |
+| crt_mfc | 1,503 | 0 | 0 | 1,503 |
+
+Not needed, by reason: none accepted yet.
+
+| x86 match vs native port | Ported | Not needed | Pending |
+|---|---:|---:|---:|
+| x86 complete function match | 0 | 0 | 86 |
+| x86 partial range | 0 | 0 | 2 |
+| no x86 match | 0 | 0 | 4,100 |
+
+Caveats:
+
+- Ported is a reviewed claim, not an x86 match: native code or a test covers the function, and the x86 match stays a separate, orthogonal track.
+- Tests-only is weaker evidence than oracle-verified (a test names the function, but no original-x86 oracle window proves it); adapter-tested covers Win32 or library behaviour replaced by a tested adapter. The three ported classes are reported separately.
+- Spans include tables, padding and thunks: a span runs from a function start to the next indexed start, and the Ghidra body size can be smaller.
+- Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
+- Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256, and drift in src/, tests/ or receipts is the job of extract_function_evidence.py --check, run separately.
+
+Ledger `function-ledger.json` sha256 `cb2ce53288bb89435b50d3cbc26ef9e8dda33dc941a8a219daaa8faf4c31e3b0`; 605 pinned inputs; see `README.md` for how it is derived and checked.
+
 ## x86 matching
 
 Evidence mode: **baseline**. Original SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`, 1,511,424 bytes.

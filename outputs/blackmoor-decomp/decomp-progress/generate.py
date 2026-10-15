@@ -32,6 +32,13 @@ PLAYABLE_SPEC = importlib.util.spec_from_file_location("blackmoor_playable_progr
 PLAYABLE = importlib.util.module_from_spec(PLAYABLE_SPEC)
 PLAYABLE_SPEC.loader.exec_module(PLAYABLE)
 
+# The function ledger (blackmoor-function-ledger/1) is a different artifact from the
+# whole-file range ledger below (--ledger, blackmoor-range-ledger/1); nothing is shared.
+FUNCTION_LEDGER_SPEC = importlib.util.spec_from_file_location("blackmoor_function_ledger", HERE / "function_ledger.py")
+FNL = importlib.util.module_from_spec(FUNCTION_LEDGER_SPEC)
+FUNCTION_LEDGER_SPEC.loader.exec_module(FNL)
+FUNCTION_LEDGER_FILE = "function-ledger.json"
+
 IMAGE_BASE = 0x400000
 PINNED_SHA = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 SCHEMA = "blackmoor-decomp-progress/1"
@@ -703,6 +710,8 @@ def write_report(model, path: Path):
         "Open `index.html` for the treemap.",
         "",
         *playable_report(model.get("playable")),
+        *function_ledger_report(model.get("function_ledger")),
+        *(["## x86 matching", ""] if model.get("playable") or model.get("function_ledger") else []),
         f"Evidence mode: **{ev['mode']}**. Original SHA-256 `{model['original_sha256']}`, "
         f"{model['file_size']:,} bytes.",
         "",
@@ -848,8 +857,167 @@ def playable_report(panel):
               f"native SHA-256 `{panel['evidence']['native_sha256'] or 'unavailable (seed)'}`; "
               f"{panel['ticks']:,} session ticks.", "",
               f"`playable-status.json` sha256 `{panel['status_sha256']}`. "
-              "Derivation and limits: `README.md`.", "", "## x86 matching", ""]
+              "Derivation and limits: `README.md`.", ""]
     return lines
+
+
+# ------------------------------------------------------- function ledger --
+
+LEDGER_CAVEATS = (
+    "Ported is a reviewed claim, not an x86 match: native code or a test covers the function, and the x86 "
+    "match stays a separate, orthogonal track.",
+    "Tests-only is weaker evidence than oracle-verified (a test names the function, but no original-x86 "
+    "oracle window proves it); adapter-tested covers Win32 or library behaviour replaced by a tested "
+    "adapter. The three ported classes are reported separately.",
+    "Spans include tables, padding and thunks: a span runs from a function start to the next indexed "
+    "start, and the Ghidra body size can be smaller.",
+    "Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.",
+    "Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256, and "
+    "drift in src/, tests/ or receipts is the job of extract_function_evidence.py --check, run separately.",
+)
+
+
+def function_ledger_report(panel):
+    if panel is None:
+        return []
+    c, n = panel["counts"], panel["total"]
+    st, cl, rs = c["status"], c["class"], c["reason"]
+    lines = ["## Function ledger", "",
+             f"**{n:,} functions:** {st['ported']:,} ported, {st['not_needed']:,} not needed, "
+             f"{st['pending']:,} pending ({pct(st['pending'], n)}).", ""]
+    if st["ported"] == 0 and st["not_needed"] == 0:
+        lines += ["With 0 ported and 0 not needed, this ledger is the honest baseline: every function is pending "
+                  "until a reviewed acceptance says otherwise. The pending subclasses are leads, not progress.", ""]
+    elif st["pending"] * 5 > n * 4:
+        lines += ["More than 80% of functions are still pending at this publication.", ""]
+    lines += ["| Status | Class | Functions |", "|---|---|---:|"]
+    for status, classes in (("ported", FNL.PORTED_CLASSES), ("not_needed", FNL.NOT_NEEDED_CLASSES),
+                            ("pending", FNL.PENDING_CLASSES)):
+        lines += [f"| {status} | `{k}` | {cl[k]:,} |" for k in classes]
+    lines += ["", "| Region | Functions | Ported | Not needed | Pending |", "|---|---:|---:|---:|---:|"]
+    for region in panel["regions"]:
+        r = c["region"][region]
+        lines.append(f"| {region} | {sum(r.values()):,} | {r['ported']:,} | {r['not_needed']:,} | {r['pending']:,} |")
+    lines += ["", "Not needed, by reason: " +
+              (", ".join(f"`{k}` {v:,}" for k, v in rs.items() if v) or "none accepted yet") + ".", "",
+              "| x86 match vs native port | Ported | Not needed | Pending |", "|---|---:|---:|---:|"]
+    labels = {"complete": "x86 complete function match", "partial": "x86 partial range", "none": "no x86 match"}
+    for key, label in labels.items():
+        row = panel["crosstab"][key]
+        lines.append(f"| {label} | {row['ported']:,} | {row['not_needed']:,} | {row['pending']:,} |")
+    lines += ["", "Caveats:", "", *[f"- {text}" for text in panel["caveats"]], "",
+              f"Ledger `function-ledger.json` sha256 `{panel['ledger_sha256']}`; {panel['input_count']:,} pinned "
+              "inputs; see `README.md` for how it is derived and checked.", ""]
+    return lines
+
+
+def function_ledger_panel(root: Path, expected_functions: int):
+    """Compact public summary of the committed function ledger, or None when there is none.
+
+    Only committed-file consistency is checked here: the ledger must pass the strict
+    schema validation and equal a fresh derivation from the committed, hash-pinned
+    inputs. It never reads work/ or GAME.EXE and does not look for drift in src/, tests/
+    or private receipts; that is `extract_function_evidence.py --check`, run separately."""
+    path = root / FUNCTION_LEDGER_FILE
+    if not path.is_file():
+        return None
+    try:
+        raw = path.read_bytes()
+        ledger = FNL.check(root, path, expected_functions=expected_functions)
+    except FNL.LedgerError as exc:
+        if str(exc) == FNL.STALE_MESSAGE:
+            raise ProgressError(FNL.STALE_MESSAGE) from exc
+        raise ProgressError(f"function ledger invalid: {exc}") from exc
+    except OSError as exc:
+        raise ProgressError(f"cannot read {path.name}: {exc}") from exc
+    return compact_function_ledger(ledger, hashlib.sha256(raw).hexdigest())
+
+
+def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
+    """Rows are `[va, span, region_i, status_i, class_i, ev_i]`; `ev_i` indexes `details` (0 = none)."""
+    statuses, regions, classes = list(FNL.STATUSES), list(FNL.REGIONS), list(FNL.CLASSES)
+    uses, paths, path_ix = list(FNL.USES), [], {}
+    receipts, receipt_ix, items, item_ix = [], {}, [], {}     # shared tables keep 4,188 rows small
+
+    def table_index(table, ix, key):
+        if key not in ix:
+            ix[key] = len(table)
+            table.append(list(key))
+        return ix[key]
+
+    def path_index(p):
+        if p not in path_ix:
+            path_ix[p] = len(paths)
+            paths.append(p)
+        return path_ix[p]
+
+    def pointer(p):
+        k = p["kind"]
+        if k == "native_source":
+            return ["s", path_index(p["path"]), p["symbol"] or ""]
+        if k == "test":
+            return ["t", path_index(p["path"]), p["test_id"] or ""]
+        if k == "oracle":
+            return ["o", path_index(p["path"]) if p["path"] else -1,
+                    int(p["window"][0], 16), int(p["window"][1], 16), uses.index(p["use"])]
+        if k == "receipt":     # private: the page shows the slice name and sha256 only, never a path
+            return ["r", table_index(receipts, receipt_ix, (p["slice"], p["sha256"], p["review"]))]
+        if p["path"].startswith(FNL.PRIVATE_PREFIX):     # a mention inside a private receipt: its file name only
+            return ["n", p["path"].rsplit("/", 1)[-1], p["symbol"] or "", p["via"]]
+        return ["m", path_index(p["path"]), p["symbol"] or "", p["via"]]
+
+    rows, details = [], [{}]
+    cross = {key: {s: 0 for s in statuses} for key in ("complete", "partial", "none")}
+    for e in ledger["entries"]:
+        d = {}
+        if e["evidence"]:
+            d["p"] = [pointer(p) for p in e["evidence"]]
+        if e["blockers"]:
+            d["b"] = [[int(b["address"], 16), table_index(items, item_ix, (b["id"], b["text"]))]
+                      for b in e["blockers"]]
+        if e["divergences"]:
+            d["d"] = [[table_index(items, item_ix, (v["id"], v["text"])), 1 if v["safety_rejection"] else 0]
+                      for v in e["divergences"]]
+        if e["reason"]:
+            d["r"] = [e["reason"]["code"], e["reason"]["text"], e["reason"]["rule"] or ""]
+        if e["review"]:
+            d["v"] = [e["review"]["reviewer"], e["review"]["date"], e["review"]["sample"] or ""]
+        x = e["x86_match"]
+        if x:
+            d["x"] = [x["provenance"], 1 if x["complete"] else 0, x["manifest"]]
+        if d or e["seam"]:
+            d["g"] = [e["origin"], 1 if e["seam"] else 0]
+        ev_i = 0
+        if d:
+            ev_i = len(details)
+            details.append(d)
+        rows.append([int(e["va"], 16), e["span"], regions.index(e["region"]),
+                     statuses.index(e["status"]), classes.index(e["class"]), ev_i])
+        cross["complete" if x and x["complete"] else "partial" if x else "none"][e["status"]] += 1
+    counts = ledger["counts"]
+    # Defence in depth: the compact rows must reproduce the validated counts.
+    by_status = [0] * len(statuses)
+    by_class = [0] * len(classes)
+    by_region = [[0] * len(statuses) for _ in regions]
+    for _, _, ri, si, ci, _ in rows:
+        by_status[si] += 1
+        by_class[ci] += 1
+        by_region[ri][si] += 1
+    if (by_status != [counts["status"][s] for s in statuses]
+            or by_class != [counts["class"][c] for c in classes]
+            or by_region != [[counts["region"][r][s] for s in statuses] for r in regions]
+            or len(rows) != counts["total"]):
+        raise ProgressError("function ledger rows disagree with the ledger counts")
+    x86 = counts["x86"]
+    if (cross["complete"]["ported"] != x86["complete_ported"]
+            or sum(sum(c.values()) for k, c in cross.items() if k != "none") != x86["matched"]
+            or sum(cross["complete"].values()) != x86["complete"]):
+        raise ProgressError("function ledger x86 cross-tab disagrees with the ledger counts")
+    return {"schema": ledger["schema"], "ledger_sha256": ledger_sha256, "total": counts["total"],
+            "counts": counts, "statuses": statuses, "regions": regions, "classes": classes,
+            "class_status": [statuses.index(FNL.CLASS_STATUS[c]) for c in classes],
+            "uses": uses, "crosstab": cross, "caveats": list(LEDGER_CAVEATS), "input_count": len(ledger["inputs"]),
+            "paths": paths, "receipts": receipts, "items": items, "details": details, "rows": rows}
 
 
 def write_html(model, template: Path, path: Path):
@@ -896,6 +1064,12 @@ def main(argv=None) -> int:
                     help="with --ledger: the composer's output image; its SHA-256 must equal the "
                          "pinned GAME.EXE hash or the run fails")
     ap.add_argument("--band-kib", type=int, default=16, help="code unit band size in KiB")
+    ap.add_argument("--function-ledger-root", type=Path,
+                    help="tree holding function-ledger.json and its pinned inputs (default: --evidence-dir; "
+                         "a missing function-ledger.json hides the panel)")
+    ap.add_argument("--ledger-functions", type=int, default=FNL.EXPECTED_FUNCTIONS,
+                    help="pinned function count of function-ledger.json (default: %(default)s; "
+                         "fixture trees use their own count)")
     ap.add_argument("--preview-browser", type=Path, help="optional Chromium executable for a headless preview.png export")
     args = ap.parse_args(argv)
 
@@ -953,6 +1127,9 @@ def main(argv=None) -> int:
         model = build_model(layout, index, rows, meta, args.band_kib * 1024, status, sources)
         if args.evidence_dir == OUT or (args.evidence_dir / "playable-status.json").exists():
             model["playable"] = PLAYABLE.build_panel(args.evidence_dir, status or {})
+        panel = function_ledger_panel(args.function_ledger_root or args.evidence_dir, args.ledger_functions)
+        if panel is not None:
+            model["function_ledger"] = panel
     except (ProgressError, PLAYABLE.PlayableError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
