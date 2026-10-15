@@ -3120,7 +3120,10 @@ static bool nav_show_frame(NativeApp *app, int16_t selector, const char *why)
     if (app->nav_shown_frame == selector) return true;
     char error[256] = {};
     if (app->video != nullptr) {
-        bink_player_close(app->video);
+        /* The background player already holds every decoded frame: hand it over (no second
+         * decode) and stop advancing it. */
+        if (app->nav_player != nullptr) bink_player_close(app->nav_player);
+        app->nav_player = app->video;
         app->video = nullptr;
         record(app, "nav_background_hold scene=%d reason=%s (frame-hold scene: background movie stopped)",
                app->current_scene_id, why);
