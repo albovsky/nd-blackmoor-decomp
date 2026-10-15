@@ -37,8 +37,8 @@
   "ticks": 2947,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "4b6c64abb7fed2fb904896affd3d391f0b583841",
-    "native_sha256": "9a1e7ec88e56671ee757053e09dc55bfe728d66112b8ac89fac1db098eeeb5f1",
+    "source_ref": "2030d4802988f4cf15777eb135677fcc4f8cb909",
+    "native_sha256": "a73f3c22ddf9ac12d58f9e334d6ad067959412e955243404c96e8816a26ce42f",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -221,7 +221,7 @@
       },
       {
         "path": "src/action_family_78_runtime.h",
-        "sha256": "04d04add4518d50e013e677a6db1bace217292ae5a00a872aed722312d1de051"
+        "sha256": "ddab2d0c9ef6e6db2b22e74515f1971ffd3538da16d6df28ec6ee6a99dc88cd8"
       },
       {
         "path": "src/action_family_79.h",
@@ -357,7 +357,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "56daf613a4ba69c23548568ab920425da2b949a35753d8008fec86427a4205ea"
+        "sha256": "c5046af4980d908e85a2ef35b07fd76699b49d2e1f63d93207186b99eef79c2b"
       },
       {
         "path": "src/caption_compositor.h",
@@ -414,6 +414,14 @@
       {
         "path": "src/input_latch.h",
         "sha256": "5cfb28e7155bb3291968d6c3d157850c8d45c801d4848c92181d73047c456287"
+      },
+      {
+        "path": "src/inventory_button_runtime.h",
+        "sha256": "d0cdc189832702e7b31bc7cfd502dbc334895705271efc0561ac905727b475f0"
+      },
+      {
+        "path": "src/inventory_view_runtime.h",
+        "sha256": "b8b2ead53709f99022f170ae49480920ae8f676bb724984c744a9f0414c68cc0"
       },
       {
         "path": "src/live_audio.h",

@@ -29,9 +29,9 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 - Typed, unsupported: `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x2e`, `0x33`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4b`, `0x4e`, `0x4f`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6d`, `0x6e`, `0x6f`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x94`, `0x95`, `0x9a`, `0xaa`, `0xd0`, `0xd1`, `0xd3`, `0xd6`, `0xd9`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 - Opaque: 
 
-Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `4b6c64abb7fed2fb904896affd3d391f0b583841`; native SHA-256 `9a1e7ec88e56671ee757053e09dc55bfe728d66112b8ac89fac1db098eeeb5f1`; 2,947 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `2030d4802988f4cf15777eb135677fcc4f8cb909`; native SHA-256 `a73f3c22ddf9ac12d58f9e334d6ad067959412e955243404c96e8816a26ce42f`; 2,947 session ticks.
 
-`playable-status.json` sha256 `c182bfc152f55e4a16c0a6dff99ab9924b2fdb432bcb7c5e4cef430c351df6ef`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `4aef8b77a3d66226fda904f59df495589bdfde7b4282f9fa9f3feb7f89e1d778`. Derivation and limits: `README.md`.
 
 ## Function ledger
 
@@ -47,9 +47,9 @@ With 0 ported and 0 not needed, this ledger is the honest baseline: every functi
 | not_needed | `nn_rule` | 0 |
 | not_needed | `nn_reviewed` | 0 |
 | pending | `candidate_port` | 151 |
-| pending | `partial_native` | 258 |
-| pending | `static_navigation_only` | 70 |
-| pending | `none` | 3,709 |
+| pending | `partial_native` | 279 |
+| pending | `static_navigation_only` | 57 |
+| pending | `none` | 3,701 |
 
 | Region | Functions | Ported | Not needed | Pending |
 |---|---:|---:|---:|---:|
@@ -73,7 +73,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `e2be03af1d2eae94bb3513ec692ac44811ca60677bf3dfdcaeb44df7a85b1eab`; 643 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `f0f94b614e1901ecd01631c73ac6aeaa334bbe5612cc3f6a434b459ac1532e13`; 655 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 
