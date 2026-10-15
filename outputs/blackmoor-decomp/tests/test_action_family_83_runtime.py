@@ -197,6 +197,27 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(n.snapshot(), before); self.assertEqual(len(n.events), events)
         n.world.mail_count = 1
         self.assertEqual(n.step()[0], OK)  # update at capacity still allowed
+    def test_web_capacity_and_negative_counts_fail_before_effect(self):
+        n = Native(self.lib, capacity=1); n.step(raw(1, key=b'one'))
+        for count, expected in ((1, CAPACITY), (-1, STATE), (2, STATE)):
+            n.world.web_count = count; before = n.snapshot(); events = len(n.events)
+            self.assertEqual(n.step(raw(1, key=b'new'))[0], expected)
+            self.assertEqual(n.snapshot(), before); self.assertEqual(len(n.events), events)
+        n.world.web_count = 1
+        self.assertEqual(n.step(raw(1, key=b'one'))[0], OK)  # update at capacity still allowed
+    def test_each_list_uses_its_own_capacity(self):
+        # mail has room, web is full ...
+        n = Native(self.lib, capacity=4); n.step(raw(1, key=b'one')); n.world.web_capacity = 1
+        before = n.snapshot(); events = len(n.events)
+        self.assertEqual(n.step(raw(1, key=b'two'))[0], CAPACITY)
+        self.assertEqual((n.snapshot(), len(n.events)), (before, events))
+        self.assertEqual(n.step(raw(0, key=b'mail'))[0], OK)  # mail capacity 4, count 0 -> 1
+        # ... and the reverse: mail is full, web has room.
+        n = Native(self.lib, capacity=4); n.step(raw(0, key=b'one')); n.world.mail_capacity = 1
+        before = n.snapshot(); events = len(n.events)
+        self.assertEqual(n.step(raw(0, key=b'two'))[0], CAPACITY)
+        self.assertEqual((n.snapshot(), len(n.events)), (before, events))
+        self.assertEqual(n.step(raw(1, key=b'link'))[0], OK)
     def test_malformed_reached_strings_and_short_body(self):
         n = Native(self.lib)
         for data in (raw()[:73], raw()[:2]+b'x'*33+raw()[35:], raw()[:35]+b'y'*33+raw()[68:]):
@@ -359,6 +380,46 @@ class BindingTests(unittest.TestCase):
         # A handler cannot apply a row beyond the owned scene table.
         info=s.SceneActionInfo();info.type=0x83;state=s.RuntimeState();out=s.HandlerResult()
         self.assertEqual(self.lib.session_a83_handler(n.binding,9,C.byref(info),C.byref(state),C.byref(out)),2)
+
+    def call_handler(self, n, index, phase=0, completed=0, subtype=1):
+        info = s.SceneActionInfo(); info.type = 0x83; info.subtype = subtype
+        state = s.RuntimeState(); state.completed = completed; state.phase = phase
+        out = s.HandlerResult(); out.disposition = -1; out.phase = 0xDEAD
+        status = self.lib.session_a83_handler(n.binding, index, C.byref(info), C.byref(state), C.byref(out))
+        return status, out
+    def test_handler_index_equal_to_row_count_is_rejected(self):
+        n = self.make([act(raw())])
+        before = n.snapshot()
+        status, out = self.call_handler(n, 1)  # one past the last owned row
+        self.assertEqual(status, 2); self.assertEqual(n.snapshot(), before); self.assertEqual(n.events, [])
+        self.assertEqual(self.lib.session_a83_failure(n.binding), b'0x83-row-not-owned')
+        self.assertEqual((out.disposition, out.phase), (-1, 0xDEAD))
+    def test_handler_with_no_rows_rejects_index_zero_without_crashing(self):
+        # A scene with zero rows leaves the binding table NULL: index 0 == count 0.
+        code = ('import sys, ctypes as C; sys.path.insert(0, %r); import session_binding_support as s; '
+                'import test_action_family_83_runtime as t; lib = t.build(); n = t.Native(lib); '
+                'host = t.Host(C.pointer(n.world), n.backend); b = lib.session_a83_create(C.byref(host)); '
+                'scene, owner = s.open_scene(lib, []); assert lib.session_a83_begin_scene(b, scene) == 0; '
+                'info = s.SceneActionInfo(); info.type = 0x83; st = s.RuntimeState(); out = s.HandlerResult(); '
+                'r = lib.session_a83_handler(b, 0, C.byref(info), C.byref(st), C.byref(out)); '
+                'print("status", r)' % str(PROJECT / 'tests'))
+        env = dict(os.environ)
+        result = subprocess.run([__import__('sys').executable, '-c', code], capture_output=True, text=True, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr[-400:])
+        self.assertIn('status 2', result.stdout)
+    def test_handler_passes_phase_completed_and_subtype_through(self):
+        for phase in (0, 7, 0xFFFFFFFF):
+            for subtype in (0, 1, 2, 255):
+                n = self.make([act(raw(key=b'k%d' % subtype))])
+                status, out = self.call_handler(n, 0, phase=phase, subtype=subtype)
+                self.assertEqual(status, 0)
+                self.assertEqual((out.disposition, out.phase), (3, phase))  # DIRECT_COMPLETED, phase untouched
+                self.assertEqual(len(refreshes(n)), 1)
+        # An already completed row is not applied again: no effect, phase kept.
+        n = self.make([act(raw())]); before = n.snapshot()
+        status, out = self.call_handler(n, 0, phase=7, completed=1)
+        self.assertEqual((status, out.disposition, out.phase), (0, 0, 7))  # PENDING
+        self.assertEqual(n.snapshot(), before); self.assertEqual(n.events, [])
 
     def test_mark_ui_dirty_sets_only_selected_group_and_child(self):
         n = self.make([act(raw())])

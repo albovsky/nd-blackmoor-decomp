@@ -46,20 +46,30 @@ int main(int argc, char **argv)
         NativeApp app;
         app.log = tmpfile();
         assert(app.log);
-        app.phone_lists.mail = app.phone_mail;
-        app.phone_lists.mail_capacity = 100u;
-        app.phone_lists.web = app.phone_web;
-        app.phone_lists.web_capacity = 100u;
-        /* Start with one mail and one web entry like the BOOT/UICL initializer. */
+        /* Start with one mail and one web entry like the BOOT/UICL initializer,
+         * through the real create_phone_list_binding used by
+         * create_native_session_bindings. */
         std::vector<uint8_t> uicl(A83_UICL_MIN_BYTES, 0);
         std::memcpy(&uicl[0xccb], "init-mail\0", 10);
         std::memcpy(&uicl[0xcec], "init-text\0", 10);
         std::memcpy(&uicl[0xd11], "init-link\0", 10);
-        assert(action83_initialize(&app.phone_lists, uicl.data(), uicl.size()) == A83_OK);
+        assert(create_phone_list_binding(&app, uicl.data(), uicl.size()));
+        assert(app.a83 != nullptr);
+        assert(count_of(log_text(app), "scene_a83_replaced_previous_binding") == 0u);
+        assert(app.phone_lists.mail == app.phone_mail && app.phone_lists.web == app.phone_web);
+        assert(app.phone_lists.mail_capacity == 100u && app.phone_lists.web_capacity == 100u);
         assert(app.phone_lists.mail_count == 1 && app.phone_lists.web_count == 1);
-        SessionA83Host host{&app.phone_lists, {&app, native_a83_refresh}};
-        app.a83 = session_a83_create(&host);
-        assert(app.a83);
+        /* A repeated call replaces (destroys) the previous binding and
+         * re-initializes the lists; a failed initializer leaves no binding. */
+        app.phone_lists.mail_count = 5;
+        assert(create_phone_list_binding(&app, uicl.data(), uicl.size()));
+        assert(app.a83 != nullptr && app.phone_lists.mail_count == 1);
+        assert(count_of(log_text(app), "scene_a83_replaced_previous_binding") == 1u);
+        assert(!create_phone_list_binding(&app, uicl.data(), A83_UICL_MIN_BYTES - 1u));
+        assert(app.a83 == nullptr);
+        assert(count_of(log_text(app), "scene_a83_replaced_previous_binding") == 2u);
+        assert(create_phone_list_binding(&app, uicl.data(), uicl.size()));
+        assert(app.a83 != nullptr);
 
         char error[256] = {};
         SceneResource *scene = scene_resource_open_memory(bytes.data(), bytes.size(), error, sizeof(error));

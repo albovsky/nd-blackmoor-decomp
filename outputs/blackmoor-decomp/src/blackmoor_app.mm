@@ -2630,6 +2630,31 @@ static int native_a83_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* The 0x83 phone lists: bind the native storage, run the UICL initializer
+ * (0x4e4337 / 0x4e2e64..0x4e2fa4) and create the binding. A previous binding
+ * (a repeated call) is destroyed first so it is neither leaked nor left
+ * pointing at the re-initialized lists. Capacities are native bounds, not
+ * original globals. */
+static bool create_phone_list_binding(NativeApp *app, const uint8_t *uicl, size_t uicl_length)
+{
+    if (app->a83 != nullptr) {
+        record(app, "scene_a83_replaced_previous_binding");
+        session_a83_destroy(app->a83);
+        app->a83 = nullptr;
+    }
+    app->phone_lists.mail = app->phone_mail;
+    app->phone_lists.mail_capacity = 100u;
+    app->phone_lists.web = app->phone_web;
+    app->phone_lists.web_capacity = 100u;
+    if (action83_initialize(&app->phone_lists, uicl, uicl_length) != A83_OK) return false;
+    SessionA83Host a83_host{&app->phone_lists, {app, native_a83_refresh}};
+    app->a83 = session_a83_create(&a83_host);
+    if (app->a83 == nullptr) return false;
+    record(app, "scene_a83_initialized source=BOOT/UICL mail_count=%d web_count=%d",
+           app->phone_lists.mail_count, app->phone_lists.web_count);
+    return true;
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2684,19 +2709,11 @@ static bool create_native_session_bindings(NativeApp *app)
     app->a97 = session_a97_create(&a97_host);
     const uint8_t *uicl = nullptr;
     size_t uicl_length = 0;
-    app->phone_lists.mail = app->phone_mail;
-    app->phone_lists.mail_capacity = 100u;
-    app->phone_lists.web = app->phone_web;
-    app->phone_lists.web_capacity = 100u;
     if (!find_boot_payload(app, "UICL", &uicl, &uicl_length) ||
-        action83_initialize(&app->phone_lists, uicl, uicl_length) != A83_OK) {
+        !create_phone_list_binding(app, uicl, uicl_length)) {
         record(app, "scene_session_create_error provider=action-family-83 detail=UICL-initial-lists");
         return false;
     }
-    SessionA83Host a83_host{&app->phone_lists, {app, native_a83_refresh}};
-    app->a83 = session_a83_create(&a83_host);
-    record(app, "scene_a83_initialized source=BOOT/UICL mail_count=%d web_count=%d",
-           app->phone_lists.mail_count, app->phone_lists.web_count);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
                                          app->scene_destination.right, app->scene_destination.bottom};
