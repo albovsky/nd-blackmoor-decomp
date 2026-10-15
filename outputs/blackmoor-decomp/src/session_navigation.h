@@ -175,6 +175,16 @@ typedef struct NavStepResult {
 int session_navigation_step(NavGlobals *globals, const NavKeys *keys, uint32_t tick_time,
                             uint32_t now, NavStepResult *out);
 
+/* Cascade members before the zone tests (see session_navigation.c). A scene
+ * whose rows include one of these runtime types may enable a UI hit test the
+ * native session does not model: members_idle returns 0 and the caller must
+ * not claim priority_clear. The check is by row type (the dispatcher type of a
+ * row is its record type except for the few loader rewrites listed in
+ * RT-17.recovery.md). */
+size_t session_navigation_member_type_count(void);
+int session_navigation_member_type(uint8_t runtime_type);
+int session_navigation_members_idle(const uint8_t *row_types, size_t count);
+
 /* Result of the combined cascade scan. */
 typedef struct NavScanResult {
     int32_t candidate;        /* 0x5c39e5 after the cascade */

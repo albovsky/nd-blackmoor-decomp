@@ -350,6 +350,45 @@ int session_navigation_step(NavGlobals *globals, const NavKeys *keys, uint32_t t
     return SESSION_NAVIGATION_OK;
 }
 
+/* ---- cascade members before the zone tests ------------------------------ */
+
+/* Runtime row types whose handlers enable a pointer-cascade member that runs
+ * before the zone tests (the table is derived from 0x4f0059 and the dispatcher
+ * 0x427a50 by work/analysis/slices/RT-17.cascade-members.py): the 41 hit-test
+ * methods called at 0x4f097e..0x4f102c and 0x4f107c (each object is only
+ * touched by its own dispatcher arm) plus the six row guards 0x5b5158,
+ * 0x5b61af, 0x5b615e, 0x5b51f6, 0x5b51c6, 0x5b51ab, which only the types
+ * 0x72..0x77 set. The overlay manager (type 0x36) is not listed: its hit test
+ * is modelled by the priority rows. */
+static const uint8_t k_member_types[] = {
+    0xc8, 0xc9, 0xca, 0xcb, 0xcf, 0xcc, 0xcd, 0xe7, 0xd0, 0xd2, 0xd1, 0xe1, 0xe2, 0xd3, 0xd4,
+    0xd5, 0xd7, 0xe4, 0xda, 0xdb, 0xe8, 0xdc, 0xde, 0xe9, 0xea, 0xeb, 0xef, 0xf4, 0xdf, 0xdd,
+    0xd6, 0xf1, 0xf2, 0xf3, 0xf6, 0xf5, 0xd8, 0xed, 0xee, 0xd9, 0xaa, 0xe6, 0x1c, 0x72, 0x73,
+    0x74, 0x75, 0x76, 0x77
+};
+
+size_t session_navigation_member_type_count(void)
+{
+    return sizeof(k_member_types);
+}
+
+int session_navigation_member_type(uint8_t runtime_type)
+{
+    size_t i;
+    for (i = 0; i < sizeof(k_member_types); ++i)
+        if (k_member_types[i] == runtime_type) return 1;
+    return 0;
+}
+
+int session_navigation_members_idle(const uint8_t *row_types, size_t count)
+{
+    size_t i;
+    if (count != 0 && row_types == NULL) return 0;
+    for (i = 0; i < count; ++i)
+        if (session_navigation_member_type(row_types[i])) return 0;
+    return 1;
+}
+
 /* ---- cascade pipeline --------------------------------------------------- */
 
 static int normal_mode(int32_t mode)

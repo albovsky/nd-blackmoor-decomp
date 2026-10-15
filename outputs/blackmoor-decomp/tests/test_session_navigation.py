@@ -92,6 +92,11 @@ def load_navigation(path):
         c.POINTER(State), c.POINTER(Context), c.POINTER(NavGlobals), c.POINTER(NavBands),
         c.POINTER(NavPointer), c.POINTER(NavCursor), c.POINTER(Hotspot), c.c_size_t,
         c.POINTER(Hotspot), c.c_size_t, c.POINTER(NavScanResult)]
+    lib.session_navigation_member_type.argtypes = [c.c_uint8]
+    lib.session_navigation_member_type.restype = c.c_int
+    lib.session_navigation_member_type_count.restype = c.c_size_t
+    lib.session_navigation_members_idle.argtypes = [c.POINTER(c.c_uint8), c.c_size_t]
+    lib.session_navigation_members_idle.restype = c.c_int
     for name in ('zone', 'step', 'scan'):
         getattr(lib, 'session_navigation_' + name).restype = c.c_int
     lib.session_input_scan_priority.restype = c.c_int
@@ -337,6 +342,47 @@ class SessionNavigationTests(unittest.TestCase):
         for x, y in ((9, 100), (630, 100), (20, 9), (20, 385)):
             status, candidate, g, cursor, out = self.run_scan(x, y)
             self.assertEqual((status, candidate, g.state, out.zone_evaluated), (0, -1, 0, 0), (x, y))
+
+    def test_member_type_table(self):
+        listed = sorted(t for t in range(256) if self.api.session_navigation_member_type(t))
+        self.assertEqual(len(listed), self.api.session_navigation_member_type_count())
+        self.assertEqual(len(listed), 49)
+        for t in (0x0a, 0x0b, 0x15, 0x17, 0x1d, 0x36, 0x37, 0x62, 0x97, 0x9f, 0xa1):
+            self.assertNotIn(t, listed)           # types of the tutorial scenes S6400..S6404
+        for t in (0x72, 0x77, 0x1c, 0xd9, 0xaa, 0xf6):
+            self.assertIn(t, listed)
+        types = (c.c_uint8 * 3)(0x0a, 0x17, 0x36)
+        self.assertEqual(self.api.session_navigation_members_idle(types, 3), 1)
+        types = (c.c_uint8 * 3)(0x0a, 0xd9, 0x36)
+        self.assertEqual(self.api.session_navigation_members_idle(types, 3), 0)
+        self.assertEqual(self.api.session_navigation_members_idle(None, 0), 1)
+        self.assertEqual(self.api.session_navigation_members_idle(None, 2), 0)
+
+    def test_member_type_table_matches_the_derived_members(self):
+        path = PROJECT.parents[1] / 'work/analysis/slices/RT-17.cascade-members.json'
+        if not path.exists():
+            self.skipTest('private derivation evidence not present')
+        import json
+        data = json.loads(path.read_text())
+        expected = {int(t, 16) for m in data['members'] for t in m['runtime_types']} - {0x36}
+        expected |= {0x72, 0x73, 0x74, 0x75, 0x76, 0x77}
+        listed = {t for t in range(256) if self.api.session_navigation_member_type(t)}
+        self.assertEqual(listed, expected)
+
+    def test_held_item_prelude_resets_or_selects_the_cursor(self):
+        state = State()
+        self.api.session_input_init(c.byref(state))
+        context = Context(VIEW, Rect(300, 200, 300, 200), 0, 0, 0, 0, 0, 0, 1, 1, -1, -1)
+        for item, expected in ((-1, (0, 0)), (4, (0x29, 1))):
+            g = globals_()
+            cursor = NavCursor(7, 1)
+            out = NavScanResult()
+            self.api.session_navigation_scan(c.byref(state), c.byref(context), c.byref(g), c.byref(BANDS),
+                                             c.byref(NavPointer(300, 200, item)), c.byref(cursor),
+                                             None, 0, None, 0, c.byref(out))
+            # State 0 tail clears the variant after the prelude.
+            self.assertEqual((cursor.index, 0 if item == -1 else 0), (expected[0], 0))
+            self.assertEqual(cursor.variant, 0)
 
     def test_invalid_arguments(self):
         out = NavZoneResult()
