@@ -37,7 +37,7 @@
   "ticks": 2947,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "4b6c64abb7fed2fb904896affd3d391f0b583841",
+    "source_ref": "3b4ab198b22bbdbcab6f03ed7d1d27a2f032b58e",
     "native_sha256": "9a1e7ec88e56671ee757053e09dc55bfe728d66112b8ac89fac1db098eeeb5f1",
     "command": [
       "--inspect-live-session",
