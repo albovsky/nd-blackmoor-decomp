@@ -87,7 +87,10 @@ int action78_object_from_body(const uint8_t *body, size_t length, Action78Object
  * the original-x86 oracle. */
 typedef struct {
     int32_t mode;          /* view dword +0x764c (2: the inventory screen is open) */
-    uint8_t slot_flag;     /* view byte +0x7010 */
+    /* view byte +0x7010: no instruction in the image writes it (only the read at
+     * 0x4e9efa), so the item-last layout is unreachable unless something
+     * initialises it; revisit when an inventory screen exists. */
+    uint8_t slot_flag;
 } Action78View;
 
 typedef struct {

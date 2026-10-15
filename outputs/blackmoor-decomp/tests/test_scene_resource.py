@@ -849,7 +849,7 @@ class SceneResourceTests(unittest.TestCase):
         scene, _ = open_action(0xD3, bytes(855) + dependency[:5])
         self.assertIsNone(scene, "0xd3 fractional tail")
 
-        for action_type, size in ((0xEE, 5826), (0xDA, 2958), (0x77, 731), (0x1C, 105), (0xEB, 2612), (0xD0, 1979), (0xE4, 2034), (0x80, 2), (0x70, 1)):
+        for action_type, size in ((0xEE, 5826), (0xDA, 2958), (0x77, 731), (0x1C, 105), (0xEB, 2612), (0xD0, 1979), (0xE4, 2034), (0x80, 2), (0x70, 1), (0x20, 8), (0xAA, 763), (0xD6, 1733), (0x76, 575), (0x9A, 27), (0x6D, 1)):
             check(action_type, bytes(size), 1, size, 0)
             check(action_type, bytes(size) + dependency, 1, size, 1)
             scene, _ = open_action(action_type, bytes(size - 1))
@@ -883,7 +883,7 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927, 0x4E: 31, 0x68: 1, 0x83: 74, 0x69: 1, 0x65: 1, 0x7D: 1, 0xF6: 4934, 0xEA: 3847, 0xF5: 1390, 0xD3: 855, 0xEE: 5826, 0xDA: 2958, 0x77: 731, 0x1C: 105, 0xEB: 2612, 0xD0: 1979, 0xE4: 2034, 0x80: 2, 0x70: 1}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927, 0x4E: 31, 0x68: 1, 0x83: 74, 0x69: 1, 0x65: 1, 0x7D: 1, 0xF6: 4934, 0xEA: 3847, 0xF5: 1390, 0xD3: 855, 0xEE: 5826, 0xDA: 2958, 0x77: 731, 0x1C: 105, 0xEB: 2612, 0xD0: 1979, 0xE4: 2034, 0x80: 2, 0x70: 1, 0x20: 8, 0xAA: 763, 0xD6: 1733, 0x76: 575, 0x9A: 27, 0x6D: 1}
         counts = {action_type: 0 for action_type in
                   (*expected_fixed, 0x9F, 0x51, 0x62, 0x97, 0xA1, 0x35, 0x38, 0x3F, 0x3E, 0x43, 0x45, 0x44, 0x36, 0x0C, 0x17, 0x4B, 0x16, 0x1B, 0x33)}
         scenes = 0
@@ -1138,8 +1138,8 @@ class SceneResourceTests(unittest.TestCase):
         # A-D3.1 adds 3 raw 0xd3 fixed bodies, A-2D.1 3 count-driven raw 0x2d bodies and
         # A-E0.1 2 of 3 raw 0xe0 bodies (S2705's 292-byte record stays opaque).
         # A-EE.1 adds 2 raw 0xee, A-DA.1 2 raw 0xda and A-77.1 2 raw 0x77 fixed bodies.
-        self.assertEqual(typed_actions, 19604)
-        self.assertEqual(opaque_actions, 8)
+        self.assertEqual(typed_actions, 19611)
+        self.assertEqual(opaque_actions, 1)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
