@@ -12,10 +12,10 @@ S0 → S5900 → S5907 → S5901 → S5902 → S5903 → S5904 → S5905 → S59
 
 | Action body / live dispatch | Types | Corpus records |
 |---|---:|---:|
-| Typed body layouts | 38 | 19,436 |
-| Opaque bodies | 33 | 176 |
+| Typed body layouts | 41 | 19,507 |
+| Opaque bodies | 30 | 105 |
 | Typed with native live handler (upper bound) | 15 | 8,110 |
-| Typed without live handler | 23 | 11,326 |
+| Typed without live handler | 26 | 11,397 |
 
 Counts use current parser registrations and the census's per-type record counts. A registered native handler can still block on an unsupported branch or provider; these counts do not prove every record or scene playable. The handled record count is an upper bound: raw `0x15` is a hotspot only when `typed_body[0] == 0x0d`.
 
@@ -26,12 +26,12 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 **Next blocker:** S4700: action 0x97 at row 11 (action-kernel).
 
 - Live handlers: `0x0a`, `0x15`, `0x1d`, `0x28`, `0x35`, `0x4d`, `0x51`, `0x61`, `0x62`, `0x64`, `0x6a`, `0x6b`, `0x71`, `0x82`, `0x9f`
-- Typed, unsupported: `0x0b`, `0x2e`, `0x36`, `0x37`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4f`, `0x67`, `0x6e`, `0x6f`, `0x78`, `0x79`, `0x94`, `0x95`, `0x97`, `0xa1`, `0xd1`, `0xd9`
-- Opaque: `0x0c`, `0x16`, `0x17`, `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x33`, `0x4b`, `0x4e`, `0x65`, `0x68`, `0x69`, `0x6d`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x83`, `0x9a`, `0xaa`, `0xd0`, `0xd3`, `0xd6`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
+- Typed, unsupported: `0x0b`, `0x0c`, `0x17`, `0x2e`, `0x36`, `0x37`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4e`, `0x4f`, `0x67`, `0x6e`, `0x6f`, `0x78`, `0x79`, `0x94`, `0x95`, `0x97`, `0xa1`, `0xd1`, `0xd9`
+- Opaque: `0x16`, `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x33`, `0x4b`, `0x65`, `0x68`, `0x69`, `0x6d`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x83`, `0x9a`, `0xaa`, `0xd0`, `0xd3`, `0xd6`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 
-Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `44649c81b4ac6345c16e827f6088209f6e27dad4`; native SHA-256 `bc46506cde0796768881e5c06585d34342458d088dc0f31f6d1c84cd8c04d97b`; 675 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `c24b7c482c70e19cb8ce9b1db69328fa05d67e2b`; native SHA-256 `48b6d6c16ea991c5fc310566511384893bb3cdee7ddcc051f59893ce36e8720e`; 675 session ticks.
 
-`playable-status.json` sha256 `fccbfe546703658086a1f487822b823e795b7d3cb053302363446b839987d1f7`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `d30f83dc9a057feb3282afe01f4429a6b90ef1fadd81614e7721665679f960b6`. Derivation and limits: `README.md`.
 
 ## x86 matching
 
@@ -325,4 +325,4 @@ Cross-check of **legacy manifests only** against `status.json` unique_matched_by
 - `asm/batch-002-report.json` sha256 `3a7c16f30fa9b3e39758504baaaf6d875d9ca748871da221ff128109d7547426` (audit)
 - `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (excluded)
 - `matches_s08_2.json` sha256 `a173f7c06607d87e3e630a937d7d786037dc83202609f524eece7b146b6ba41c` (excluded)
-- `status.json` sha256 `dd8f6f965abacbd44f7973dea3bf308781cc6a0644dab7d054dc5ade92f5fbc4` (crosscheck)
+- `status.json` sha256 `bf7e55bba1d10cd9365c9d215700a7e834ad308ea4279bc0920b458726eeaba6` (crosscheck)
