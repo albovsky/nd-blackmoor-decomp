@@ -186,6 +186,18 @@ class RuntimeTests(unittest.TestCase):
         _, count, words, _ = w.snapshot()
         self.assertEqual((count, list(words[:4])), (3, [11, 12, 13, 13]))
 
+    def test_words_that_differ_only_above_the_low_byte_or_in_the_sign_bit_do_not_match(self):
+        decoys = [0x0104, 0x8004, 0x4005, 0xff04]
+        w = World(decoys + [4, 9], presence=[4, 9])
+        before = w.snapshot()
+        status, r, _ = visit(self.lib, 4, w)
+        self.assertEqual((status, r.found_index), (OK, 4))
+        self.assertEqual(list(w.snapshot()[2][:5]), decoys + [9])
+        w = World(decoys, presence=[])
+        status, r, _ = visit(self.lib, 4, w)
+        self.assertEqual((status, r.found), (OK, 0))
+        self.assertEqual(w.snapshot()[1], len(decoys))
+
     def test_only_first_duplicate_is_removed_and_the_other_kept(self):
         w = World([5, 9, 5, 2, 5])
         status, r, _ = visit(self.lib, 5, w)

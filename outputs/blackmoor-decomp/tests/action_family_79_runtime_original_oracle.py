@@ -356,6 +356,10 @@ def scenarios(rng, word):
         out.append((items, 6, held))
         out.append((pick(4) + [word] * 3, 7, held))                  # triple at the end
         out.append(([word], 1, held))                                # only entry
+        # Decoys that share the low byte or the sign bit but are different words.
+        decoys = [(word ^ 0x100) & 0xffff, (word ^ 0x8000) & 0xffff, (word + 0x4001) & 0xffff]
+        out.append((decoys + [word], 4, held))
+        out.append((decoys, 3, held))                                # decoys only: absent
         out.append((pick(3) + [word], 3, held))                      # present beyond the count
     out.append((pick(5), -1, signed))
     out.append(([word] * 3, -32768, signed))
