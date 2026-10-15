@@ -1,0 +1,213 @@
+{
+ "schema": "blackmoor-function-ledger-overrides/1",
+ "port_acceptances": [
+  {
+   "va": "0x401000",
+   "class": "native_oracle_verified",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/fixture_core.c",
+    "symbol": "fixture_entry"
+   },
+   "tests": [
+    {
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_entry"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fixture_core_oracle.py",
+    "window": [
+     "0x401000",
+     "0x401100"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "fixture acceptance"
+  },
+  {
+   "va": "0x401100",
+   "class": "native_tests_only",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/fixture_core.c",
+    "symbol": "fixture_tests_only"
+   },
+   "tests": [
+    {
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_tests_only"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "fixture acceptance"
+  },
+  {
+   "va": "0x401340",
+   "class": "native_oracle_verified",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/fixture_core.c",
+    "symbol": "fixture_with_parts"
+   },
+   "tests": [
+    {
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_with_parts"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fixture_core_oracle.py",
+    "window": [
+     "0x401340",
+     "0x4014c0"
+    ]
+   },
+   "parts_accounted": [
+    "0x401380",
+    "0x4013a0"
+   ],
+   "note": "fixture acceptance"
+  },
+  {
+   "va": "0x401a00",
+   "class": "native_oracle_verified",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/fixture_core.c",
+    "symbol": "fixture_rejects"
+   },
+   "tests": [
+    {
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_rejects"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fixture_core_oracle.py",
+    "window": [
+     "0x401a00",
+     "0x401af0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "fixture acceptance"
+  },
+  {
+   "va": "0x406000",
+   "class": "host_adapter_tested",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/fixture_rand.c",
+    "symbol": "fixture_rand"
+   },
+   "tests": [
+    {
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_rand_adapter"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "fixture acceptance"
+  }
+ ],
+ "not_needed_entries": [
+  {
+   "va": "0x401b00",
+   "reason": "unreachable_no_refs",
+   "text": "no callers and no data reference in the reviewed xrefs",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15"
+  },
+  {
+   "va": "0x401c00",
+   "reason": "debug_diagnostic_only",
+   "text": "only calls OutputDebugStringA",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15"
+  },
+  {
+   "va": "0x401d00",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "thread-id query with an allowlisted import",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15"
+  },
+  {
+   "va": "0x407500",
+   "reason": "compiler_eh_funclet",
+   "text": "catch funclet of a natively ported parent, reviewed one by one",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15"
+  },
+  {
+   "va": "0x407700",
+   "reason": "crt_startup_termination",
+   "text": "CRT initializer table entry, no game caller",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15"
+  },
+  {
+   "va": "0x407800",
+   "reason": "host_libc_standard_contract",
+   "text": "standard memory routine replaced by the host libc",
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15"
+  }
+ ],
+ "not_needed_rules": [
+  {
+   "id": "R-LIB-INTERNAL",
+   "predicate": "R-LIB-INTERNAL",
+   "reason": "library_internal_unreached_by_game",
+   "rationale": "library function with no path from or to game code",
+   "accepted": true,
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "sample_review": {
+    "sample_sha256": "b629b02295ece272f761f0f18910cc27351cbd88da70ae45b35858882e09cb08",
+    "n": 59,
+    "defects": 0
+   }
+  },
+  {
+   "id": "R-EH",
+   "predicate": "R-EH",
+   "reason": "compiler_eh_funclet",
+   "rationale": "unwind funclet of a natively ported parent",
+   "accepted": true,
+   "reviewer": "fixture-reviewer",
+   "date": "2026-10-15",
+   "sample_review": {
+    "sample_sha256": "146af450bf1c43799c28776f685260b6b5cca1517f8f3263d4fcd05a6c1ce95f",
+    "n": 59,
+    "defects": 0
+   },
+   "parents_without_native_exception_path": []
+  }
+ ],
+ "semantics_sensitive": [
+  {
+   "va": "0x406000",
+   "why": "CRT rand: exact generator semantics"
+  },
+  {
+   "va": "0x407900",
+   "why": "printf-style float formatting"
+  }
+ ],
+ "win32_import_allowlist": {
+  "names": [
+   "GetCurrentThreadId"
+  ],
+  "reviewer": "fixture-reviewer",
+  "date": "2026-10-15"
+ }
+}

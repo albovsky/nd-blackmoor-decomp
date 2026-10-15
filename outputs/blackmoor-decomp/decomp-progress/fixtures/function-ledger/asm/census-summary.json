@@ -1,0 +1,30 @@
+{
+ "derived_functions": 2,
+ "functions_total": 32,
+ "fall_through_fragments": [
+  "0x00401e80"
+ ],
+ "unsplit_spans": [
+  {
+   "function": "FUN_00407a00",
+   "va": 4225536,
+   "span_end": 4231168,
+   "reason": "synthetic unsplit span"
+  }
+ ],
+ "by_region": {
+  "game": {
+   "span_bytes": 12288
+  },
+  "vorbis": {
+   "span_bytes": 8192
+  },
+  "crt_mfc": {
+   "span_bytes": 12288
+  }
+ },
+ "totals": {
+  "span_bytes": 32768
+ },
+ "note": "Synthetic fixture census; counts only."
+}

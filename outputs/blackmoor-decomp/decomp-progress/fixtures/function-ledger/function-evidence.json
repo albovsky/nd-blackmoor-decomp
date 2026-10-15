@@ -1,0 +1,243 @@
+{
+ "schema": "blackmoor-function-evidence/1",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "counts": {
+  "unresolved": 0,
+  "mentions": 1
+ },
+ "functions": [
+  {
+   "va": "0x401000",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_entry",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    },
+    {
+     "kind": "test",
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_entry",
+     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
+    },
+    {
+     "kind": "oracle",
+     "path": "tests/fixture_core_oracle.py",
+     "window": [
+      "0x401000",
+      "0x401100"
+     ],
+     "window_sha256": "29e2b0493826a643d25dc06258047af6c711c4f00123f88b6d904c71f56baae9",
+     "use": "entry",
+     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
+    },
+    {
+     "kind": "receipt",
+     "slice": "FIX-1",
+     "path": "analysis/slices/FIX-1.handoff.json",
+     "sha256": "c081b1e04208f4ea6897a816be0d609af9eb56e89bd8992956350a527e083acc",
+     "review": "accepted"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  },
+  {
+   "va": "0x401100",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_tests_only",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    },
+    {
+     "kind": "test",
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_tests_only",
+     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  },
+  {
+   "va": "0x401340",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_with_parts",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    },
+    {
+     "kind": "test",
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_with_parts",
+     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
+    },
+    {
+     "kind": "oracle",
+     "path": "tests/fixture_core_oracle.py",
+     "window": [
+      "0x401340",
+      "0x4014c0"
+     ],
+     "window_sha256": "4523f4da7c1414f5d27bb95ed39bb1ee3f72333692c1299cec2bb8990c97764f",
+     "use": "callee",
+     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  },
+  {
+   "va": "0x4014c0",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_candidate_e",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    },
+    {
+     "kind": "oracle",
+     "path": "tests/fixture_core_oracle.py",
+     "window": [
+      "0x4014c0",
+      "0x401600"
+     ],
+     "window_sha256": "57a1c29c6f8b1784abb6ecce97ce2254fbe641f2d4071b1f98d9257bbadccfcb",
+     "use": "mapped",
+     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  },
+  {
+   "va": "0x401600",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_partial",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  },
+  {
+   "va": "0x401700",
+   "evidence": [
+    {
+     "kind": "mention",
+     "path": "src/fixture_core.c",
+     "symbol": null
+    },
+    {
+     "kind": "receipt",
+     "slice": "FIX-2",
+     "path": "analysis/slices/FIX-2.handoff.json",
+     "sha256": "6838235421dac65acaa292015d818d68f15fe2b0be15c3477d676c4dde5a3b28",
+     "review": "none"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  },
+  {
+   "va": "0x401900",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_candidate_i",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    },
+    {
+     "kind": "oracle",
+     "path": "tests/fixture_core_oracle.py",
+     "window": [
+      "0x401900",
+      "0x4019f8"
+     ],
+     "window_sha256": "d8eec97f34d6bc53c0242162bb574c8cb6a5a309d64fbb81c23ee807b3a2357c",
+     "use": "entry",
+     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
+    }
+   ],
+   "blockers": [
+    {
+     "address": "0x401950",
+     "id": "U1",
+     "text": "interior branch unverified"
+    }
+   ],
+   "divergences": []
+  },
+  {
+   "va": "0x401a00",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_core.c",
+     "symbol": "fixture_rejects",
+     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
+    },
+    {
+     "kind": "test",
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_rejects",
+     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
+    },
+    {
+     "kind": "oracle",
+     "path": "tests/fixture_core_oracle.py",
+     "window": [
+      "0x401a00",
+      "0x401af0"
+     ],
+     "window_sha256": "f4315000a8f6ea62bd2aaccca9cc1c67a1b27a2dafe54f8e9045b0816990752a",
+     "use": "entry",
+     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
+    }
+   ],
+   "blockers": [
+    {
+     "address": "0x401a40",
+     "id": "U2",
+     "text": "overrun path in the original"
+    }
+   ],
+   "divergences": [
+    {
+     "id": "U2",
+     "text": "native rejects the overrun input explicitly",
+     "safety_rejection": true
+    }
+   ]
+  },
+  {
+   "va": "0x406000",
+   "evidence": [
+    {
+     "kind": "native_source",
+     "path": "src/fixture_rand.c",
+     "symbol": "fixture_rand",
+     "sha256": "da9290bd59fd8a2ab0d0726729bfa3ba05e6ec8d2dc26e290c93535c3df59850"
+    },
+    {
+     "kind": "test",
+     "path": "tests/fixture_core_tests.py",
+     "test_id": "test_rand_adapter",
+     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
+    }
+   ],
+   "blockers": [],
+   "divergences": []
+  }
+ ]
+}
