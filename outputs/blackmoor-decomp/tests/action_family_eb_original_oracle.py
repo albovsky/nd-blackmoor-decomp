@@ -483,7 +483,7 @@ def main():
         unverified=['malloc failure beyond the diagnostic call: 0x42639d/0x4c97b4 fatal cleanup not executed',
             'nonzero diagnostics flag: 0x47e50f -> 0x44a2b7 and 0x40b43e logging',
             'prior action-slot reuse ([row+0x85] != 0) and index scan beyond free rows',
-            'generic dependency opcode construction/evaluation after 0x424c94, gate 0x423d37',
+            'generic dependency opcode construction/evaluation after 0x424c94, gate 0x423f57',
             'dispatcher arm 0x42a794 -> gate 0x423f57 -> 0x480e02 runtime (subtype-dependent), lookup/host effects',
             'subtype gameplay beyond header preservation, lifecycle/rendering, native gameplay and whole-file match'],
         elapsed_seconds=round(time.monotonic() - started, 3))
