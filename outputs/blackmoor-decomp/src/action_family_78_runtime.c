@@ -12,6 +12,9 @@ typedef struct {
     int dry;                /* private copies, no observer, no provider calls */
     Action78Result *result;
     const char **why;
+    int add_only;           /* RT-22: run add_item(add_item_id, add_flag) instead of a visit */
+    int16_t add_item_id;
+    int add_flag;
 } Run;
 
 static int fail(const Run *run, const char *message, int status)
@@ -219,6 +222,14 @@ static int visit(Run *run, const Action78Object *object)
     return ACTION78_OK;
 }
 
+static int step(Run *run, const Action78Object *object)
+{
+    if (run->add_only) {
+        return add_item(run, run->add_item_id, run->add_flag);
+    }
+    return visit(run, object);
+}
+
 int action78_object_from_body(const uint8_t *body, size_t length, Action78Object *out)
 {
     if (body == NULL || out == NULL || length < ACTION78_BODY_BYTES) {
@@ -230,8 +241,9 @@ int action78_object_from_body(const uint8_t *body, size_t length, Action78Object
     return ACTION78_OK;
 }
 
-int action78_visit(const Action78Object *object, const Action78Model *model,
-                   const Action78Host *host, Action78Result *result, const char **why)
+static int run_with_shadow(const Action78Object *object, int add_only, int16_t add_item_id,
+                           int add_flag, const Action78Model *model, const Action78Host *host,
+                           Action78Result *result, const char **why)
 {
     Run run;
     Action78Result scratch;
@@ -246,7 +258,7 @@ int action78_visit(const Action78Object *object, const Action78Model *model,
     if (why != NULL) {
         *why = "none";
     }
-    if (object == NULL || model == NULL || result == NULL || model->inventory.held_item == NULL ||
+    if ((object == NULL && !add_only) || model == NULL || result == NULL || model->inventory.held_item == NULL ||
         model->inventory.item_count == NULL || model->inventory.items == NULL ||
         model->inventory.presence == NULL) {
         if (why != NULL) {
@@ -290,7 +302,10 @@ int action78_visit(const Action78Object *object, const Action78Model *model,
     run.dry = 1;
     run.result = &scratch;
     run.why = why;
-    status = visit(&run, object);
+    run.add_only = add_only;
+    run.add_item_id = add_item_id;
+    run.add_flag = add_flag;
+    status = step(&run, object);
     free(shadow_items);
     free(shadow_presence);
     if (status != ACTION78_OK) {
@@ -300,6 +315,21 @@ int action78_visit(const Action78Object *object, const Action78Model *model,
     run.inventory = &model->inventory;
     run.dry = 0;
     run.result = result;
-    status = visit(&run, object);
+    status = step(&run, object);
     return status;
+}
+
+int action78_visit(const Action78Object *object, const Action78Model *model,
+                   const Action78Host *host, Action78Result *result, const char **why)
+{
+    return run_with_shadow(object, 0, 0, 0, model, host, result, why);
+}
+
+/* RT-22: the 0x4e9e84(item, flag) add step alone, for the inventory view's
+ * put-back click (0x4e9480). Same dry run, validation and effects as inside
+ * action78_visit. */
+int action78_add_item(int16_t item, int flag, const Action78Model *model,
+                      const Action78Host *host, Action78Result *result, const char **why)
+{
+    return run_with_shadow(NULL, 1, item, flag != 0, model, host, result, why);
 }

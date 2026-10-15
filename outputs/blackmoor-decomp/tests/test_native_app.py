@@ -1132,6 +1132,111 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('scene_a0c_construct row=1 target=6435 ', contents)
         self.assertNotIn('scene_session_blocked', contents)
 
+    def test_rt22_picking_item_23_from_the_inventory_view_replaces_the_held_hook(self):
+        # No test hook: --live-pick-item opens the inventory view in S6410, hovers the slot holding
+        # item 23 and left-clicks it (0x4e8bb4 hover, 0x4e8e78 pick up). Word 0x583a29 becomes 23,
+        # the view closes (view byte +0x7011) and the opcode-11 gate of S6410 row 2 turns true.
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--live-pick-item', '6410:23',
+                                 '--live-scene-row', '6411:2', '--live-scene-row', '6433:1')
+        self.assertNotIn('test_held_applied', contents)
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=6409 target=6410',
+            'inventory_view_open source=scripted --live-pick-item opened=1 state=3 mode=2 tab=100 slots=23,',
+            'inventory_view_hover pointer=48,94 hot_point=9,9 cursor=4/0 hot_item=23 event=0x2717 ',
+            'live_pick_item_hover scene=6410 item=23 slot=0 ',
+            'inventory_view_sound_request slot=0x17 ',
+            'inventory_view_close ',
+            'inventory_view_click status=0 hot_item=23 event=0x2717 handled=1 picked=1 put_back=0 '
+            'closed=1 held=23 count=0 ',
+            'inventory_view_held_item_set item=23 ',
+            'scene_transition_applied source=6410 target=6411',
+            'scene_transition_applied source=6411 target=6433',
+            'scene_transition_applied source=6433 target=6434',
+            'scene_a0c_register row=1 start_flag_5bb1ca=1'))
+
+    def test_rt22_without_the_pick_flag_the_chain_still_waits_in_s6410(self):
+        contents = self.tutorial(*self.CHAIN_TO_6453)
+        self.assertNotIn('inventory_view_open', contents)
+        self.assertNotIn('target=6411', contents)
+
+    def test_rt22_picking_an_absent_item_is_reported_and_changes_nothing(self):
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--live-pick-item', '6410:5')
+        self.assertIn('live_pick_item_missing scene=6410 item=5 slot=-1 state=3', contents)
+        self.assertNotIn('inventory_view_held_item_set', contents)
+        self.assertNotIn('target=6411', contents)
+
+    # ---- RT-22 follow-up: the task bar's inventory button (0x570508 / byte 0x583232) --------
+    # --live-click-at SCENE:X,Y sends a real move, left press and release through the app's
+    # pointer callback (the path a window event takes). The pointer plus the (9, 9) hot point of
+    # cursor 4/0 must lie inside the button rectangle 182,419..243,479 of the TASK chunk.
+    def test_rt22_open_a_real_click_on_the_bar_button_opens_the_view_and_a_slot_click_picks_up(self):
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--live-click-at', '6410:203,440',
+                                 '--live-pick-item', '6410:23', '--live-scene-row', '6411:2',
+                                 '--live-scene-row', '6433:1')
+        self.assertNotIn('test_held_applied', contents)
+        self.assertNotIn('inventory_view_open source=scripted', contents)
+        self.assert_in_order(contents, (
+            'taskbar_ready bounds=0,385,639,479 inventory_button=182,419,243,479 delay_ms=200 '
+            'sound=Click01 slot=0x03 ',
+            'taskbar_loaded scene_request=0 ',
+            'scene_transition_applied source=6409 target=6410',
+            'live_click_at_move scene=6410 pointer=203,440',
+            'taskbar_hover pointer=203,440 hot_point=9,9 hit=1 state=1 cursor=4/1 event=0x27d8 ',
+            'taskbar_sound_request name=Click01 slot=0x03 ',
+            'taskbar_click pointer=203,440 pressed=1 locked=-1 ',
+            'live_click_at_down scene=6410',
+            'live_click_at_up scene=6410',
+            'taskbar_button_completed index=1 ',
+            'taskbar_flag index=1 byte=0x583232 (opens the inventory view next tick)',
+            'taskbar_inventory_flag_consumed byte=0x583232 ',
+            'inventory_view_open source=taskbar button 1 (byte 0x583232) opened=1 state=3 mode=2 ',
+            'inventory_view_hover pointer=48,94 hot_point=9,9 cursor=4/0 hot_item=23 event=0x2717 ',
+            'live_pick_item_hover scene=6410 item=23 slot=0 ',
+            'inventory_view_click status=0 hot_item=23 event=0x2717 handled=1 picked=1 put_back=0 '
+            'closed=1 held=23 count=0 ',
+            'inventory_view_held_item_set item=23 ',
+            'scene_transition_applied source=6410 target=6411',
+            'scene_transition_applied source=6411 target=6433',
+            'scene_transition_applied source=6433 target=6434',
+            'scene_a0c_register row=1 start_flag_5bb1ca=1'))
+        # the press was taken by the bar: the scene never saw it as a pointer input
+        self.assertEqual(contents.count('taskbar_click '), 1)
+        self.assertEqual(contents.count('taskbar_inventory_flag_consumed'), 1)
+
+    def test_rt22_open_the_release_of_a_view_click_never_reaches_the_scene(self):
+        # The view takes the press (0x43b19e -> 0x43c0aa); its release must not be fed to the
+        # scene's input latch as a second click on whatever hotspot lies under the slot.
+        for extra in ((), ('--live-click-at', '6410:203,440')):
+            with self.subTest(open_by=extra[:1] or 'script'):
+                contents = self.tutorial(*self.CHAIN_TO_6453, *extra, '--live-pick-item', '6410:23',
+                                         '--live-scene-row', '6411:2', '--live-scene-row', '6433:1')
+                start = contents.index('inventory_view_click status=0 hot_item=23')
+                end = contents.index('scene_transition_applied source=6410 target=6411')
+                self.assertNotIn('pointer_input event=UP', contents[start:end])
+                self.assertNotIn('pointer_input event=DOWN', contents[start:end])
+
+    def test_rt22_open_a_click_that_misses_every_bar_button_does_nothing(self):
+        # (203, 300) is above the bar; (255, 440) + the hot point falls between buttons 1 and 2.
+        for point in ('203,300', '255,440'):
+            with self.subTest(point=point):
+                contents = self.tutorial(*self.CHAIN_TO_6453, '--live-click-at', '6410:' + point)
+                self.assertIn('live_click_at_up scene=6410', contents)
+                self.assertNotIn('taskbar_click ', contents)
+                self.assertNotIn('taskbar_flag ', contents)
+                self.assertNotIn('inventory_view_open', contents)
+                self.assertNotIn('target=6411', contents)
+
+    def test_rt22_open_another_bar_button_raises_its_own_flag_and_leaves_the_view_closed(self):
+        # Button 0 (rect 21,424..125,472): its byte 0x583220 is produced, its action is not
+        # modelled, and the inventory view stays closed.
+        contents = self.tutorial(*self.CHAIN_TO_6453, '--live-click-at', '6410:55,440')
+        self.assert_in_order(contents, (
+            'taskbar_click pointer=55,440 pressed=0 locked=-1 ',
+            'taskbar_button_completed index=0 ',
+            'taskbar_flag index=0 byte=0x583220 (action NOT modelled)'))
+        self.assertNotIn('taskbar_flag index=1', contents)
+        self.assertNotIn('inventory_view_open', contents)
+
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):
         return self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',

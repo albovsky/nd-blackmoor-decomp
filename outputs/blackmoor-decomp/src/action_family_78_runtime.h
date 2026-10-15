@@ -149,6 +149,14 @@ int action78_visit(const Action78Object *object, const Action78Model *model,
                    const Action78Host *host, Action78Result *result,
                    const char **failure);
 
+/* RT-22: the add step 0x4e9e84(item, flag) on its own (the inventory view's
+ * put-back click, 0x4e9480). Same dry run, validation, effects and statuses as
+ * the add inside action78_visit; the held item and the completion are not
+ * touched. */
+int action78_add_item(int16_t item, int flag, const Action78Model *model,
+                      const Action78Host *host, Action78Result *result,
+                      const char **failure);
+
 #ifdef __cplusplus
 }
 #endif
