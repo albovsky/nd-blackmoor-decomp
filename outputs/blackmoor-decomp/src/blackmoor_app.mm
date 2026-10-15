@@ -2380,6 +2380,19 @@ static ConditionExtraHostStatus native_cond_next_random(void *context, uint32_t 
     return session_conditions_crt_rand_host(&app->condition_rand, raw);
 }
 
+/* RT-11.1: the CRT _rand (0x50cd50) draw of the 0x4f55d5 delayed-repeat
+ * branch is the same global generator the dependency leaves use. Only a
+ * channel with raw flag 0x10 draws, and no scene sound carries that flag. */
+static uint32_t native_audio_random(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    uint32_t raw = 0;
+    if (app == nullptr || session_conditions_crt_rand_host(&app->condition_rand, &raw) !=
+            CONDITION_EXTRA_HOST_OK)
+        return 0;
+    return raw;
+}
+
 /* 0x58c94f is the difficulty word: action 0x71 stores it (0x4292b3) and New
  * Game zeroes it (0x4383af); ActionCoreWorld.difficulty is that word. */
 static ConditionExtraHostStatus native_cond_context_58c94f(void *context, int16_t *value)
@@ -4929,16 +4942,69 @@ static SessionExitHost make_exit_host(NativeApp *app)
     return host;
 }
 
+/* RT-11 diagnostics observe loaded channels without changing their identity
+ * or gain. The host query can observe natural completion; this is native
+ * mixer evidence, not execution of an original game session. */
+static void record_scene_audio(NativeApp *app, const char *stage,
+                               int16_t source, int16_t target)
+{
+    if (app->live_audio == nullptr) return;
+    for (uint16_t channel = 0; channel < LIVE_AUDIO_CHANNEL_COUNT; ++channel) {
+        LiveAudioChannelInfo info{};
+        int playing = 0;
+        const int query = live_audio_is_playing(app->live_audio, channel, &playing);
+        if (live_audio_get_channel_info(app->live_audio, channel, &info) != LIVE_AUDIO_OK ||
+            !info.loaded) continue;
+        record(app, "scene_audio_channel stage=%s source=%d target=%d channel=%u loaded=%u "
+               "started=%u playing=%d query=%d generation=%llu mode=%u category=%u gain=%.6f",
+               stage, source, target, channel, info.loaded, info.started, playing, query,
+               (unsigned long long)info.generation, info.mode, info.volume_category,
+               static_cast<double>(info.final_gain));
+    }
+}
+
+/* 0x4381b0..0x4381c4: reset only on fresh entry, one tick after the load.
+ * BOOT MSND is copied to 0x5b44fe at 0x436412; its +0x21 word is the
+ * 0x5b451f channel read by 0x4fc05d. Do not infer it from category or stem. */
+static bool reset_fresh_scene_audio(NativeApp *app)
+{
+    const uint8_t *msnd = nullptr;
+    size_t length = 0;
+    if (!find_boot_payload(app, "MSND", &msnd, &length) || length < 0x23u) {
+        record(app, "scene_audio_error detail=missing-BOOT-MSND-channel");
+        return false;
+    }
+    const uint16_t menu_channel = static_cast<uint16_t>(msnd[0x21u] |
+                                        (static_cast<uint16_t>(msnd[0x22u]) << 8));
+    SessionExitAudioPlan plan{};
+    const int plan_status = session_exit_plan_audio(&app->exit_state, menu_channel, &plan);
+    if (plan_status != SESSION_EXIT_OK) {
+        record(app, "scene_audio_error detail=reset-plan-rejected menu_channel=%u status=%d",
+               menu_channel, plan_status);
+        return false;
+    }
+    record_scene_audio(app, "before-intro-reset", app->current_scene_id, app->current_scene_id);
+    const int status = app->live_audio != nullptr
+        ? live_audio_unload_channels(app->live_audio, plan.channels, plan.count) : LIVE_AUDIO_OK;
+    record(app, "scene_audio_reset scene=%d state=%u count=%zu menu_channel=%u status=%d "
+           "original=0x4381b5->0x4fb018 order=MSND,0..13 fade=none",
+           app->current_scene_id, app->exit_state.g.game_state, plan.count, menu_channel, status);
+    record_scene_audio(app, "after-intro-reset", app->current_scene_id, app->current_scene_id);
+    return status == LIVE_AUDIO_OK;
+}
+
 /* LoadNewSceneData (0x439822) for a pending scene change, run from state 1.
  * Order of the proven ClearSceneData (0x43dbe3) subset and the load:
- *   sounds (blanket unload: the original's sound reset sits in the unrecovered
- *   first half of 0x43dbe3, its placement is unverified), world scene clear,
+ *   world scene clear,
  *   frame text box close + caption flags (0x43e1bd..0x43e221), action table
  *   replacement (session replace; the original keeps rows of type 0x2d, which
  *   the native executor does not), input latches (0x43e3d5..0x43e433), then
  *   the target resource load. Unrecovered ClearSceneData resets (the object
  *   reset calls of 0x43dbe3, 0x4dad60, the frame-visited words 0x5bb50d) are
- *   not performed. The old scene resource closes after the replacement. */
+ *   not performed. The old scene resource closes after the replacement.
+ * General audio persists through this load. State 2 later resets the scene
+ * subset. ClearSceneData's dialogue-object-owned sound cleanup remains
+ * unbound, as does that dialogue object; movie audio closes with its player. */
 static bool perform_session_transition(NativeApp *app,
                                        const SceneTransitionRequest &requested,
                                        uint32_t now)
@@ -4957,11 +5023,11 @@ static bool perform_session_transition(NativeApp *app,
         return false;
     }
     const int16_t source = app->current_scene_id;
-    if (app->live_audio != nullptr && live_audio_unload_all(app->live_audio) != LIVE_AUDIO_OK) {
-        record(app, "scene_transition_error source=%d target=%d detail=audio-unload-failed",
-               source, transition.target_scene);
-        return false;
-    }
+    record(app, "scene_audio_policy source=%d target=%d continuation=%u load_reset=none "
+           "fresh_reset=state-2-MSND-and-0..13 dialogue-object-cleanup=unbound",
+           source, transition.target_scene,
+           app->exit_state.g.game_state == SESSION_EXIT_STATE_RUN ? 1u : 0u);
+    record_scene_audio(app, "before-load", source, transition.target_scene);
     if (!clear_before_scene_entry(app, now)) {
         record(app, "scene_transition_error source=%d target=%d detail=scene-clear",
                source, transition.target_scene);
@@ -5038,6 +5104,7 @@ static bool perform_session_transition(NativeApp *app,
     }
     app->session_block_reported = false;
     app->session_transition_reported = false;
+    record_scene_audio(app, "after-load", source, transition.target_scene);
     record(app, "scene_transition_applied source=%d target=%d generation=%llu",
            source, transition.target_scene,
            (unsigned long long)scene_session_scene_generation(app->session));
@@ -5113,8 +5180,9 @@ static ExitTick exit_state_tick(NativeApp *app, uint32_t now)
                                                              : ExitTick::Failed;
     }
     case SESSION_EXIT_STATE_INTRO:
-        record(app, "scene_intro_state executed=no reason=0x4fb018/0x4fc341-scene-sound-start-"
-               "not-reproduced scene=%d", app->current_scene_id);
+        if (!reset_fresh_scene_audio(app)) return ExitTick::Failed;
+        record(app, "scene_intro_state reset=0x4fb018 scene_header_start=unbound-0x4fc341 "
+               "scene=%d", app->current_scene_id);
         session_exit_finish_intro(&x);
         return ExitTick::Consumed;
     default:
@@ -5165,6 +5233,16 @@ static void update(NativeApp *app, uint32_t now)
                        (unsigned long long)stats.nonzero_samples, stats.peak,
                        (unsigned long long)stats.nonfinite_samples, (unsigned long long)hash);
             }
+        }
+        if (app->live_audio != nullptr &&
+            live_audio_service(app->live_audio, now, nullptr) != LIVE_AUDIO_OK) {
+            /* RT-11.1: the sound pump 0x4f52a9 runs every update, ahead of the
+             * scene tick: completed channels restart (0x4f55d5) before any
+             * dependency or action polls them. */
+            app->failure = true;
+            record(app, "live_audio_service_failed");
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
         }
         if (exit_tick == ExitTick::Consumed) {
             if (app->platform && !blackmoor_macos_present(app->platform,
@@ -5918,6 +5996,8 @@ int main(int argc, char **argv)
                     record(static_cast<NativeApp *>(context), "%s", message);
                 };
                 audio_config.log_context = &app;
+                audio_config.random_value = native_audio_random;
+                audio_config.random_context = &app;
                 if (live_audio_create(&audio_config, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK)
                     throw std::runtime_error(error);
                 if (inspect_only) app.offline_audio_frames_per_update = live_tick_ms_set
