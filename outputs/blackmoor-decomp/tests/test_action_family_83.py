@@ -1,0 +1,225 @@
+"""Fixtures for raw 0x83's fixed body and successful allocation model.
+
+No lifecycle, dependency evaluation or gameplay assertions are made here.
+"""
+import ctypes as C
+import os
+from pathlib import Path
+import struct
+import subprocess
+import tempfile
+import unittest
+
+PROJECT = Path(__file__).resolve().parents[1]
+BODY_BYTES = OBJECT_BYTES = 74
+WORD_COUNT = 37
+OK, ARGUMENT, BODY, TAIL, BOUNDS, OVERLAP = range(6)
+
+
+class Decoded(C.Structure):
+    _fields_ = [('word', C.c_uint16 * WORD_COUNT),
+                ('dependency_records', C.POINTER(C.c_uint8)),
+                ('dependency_count', C.c_size_t), ('dependency_bytes', C.c_size_t),
+                ('body_bytes', C.c_size_t), ('available_body_bytes', C.c_size_t)]
+
+
+class Constructed(C.Structure):
+    _fields_ = [('object_bytes', C.c_uint8 * OBJECT_BYTES),
+                ('dependency_records', C.POINTER(C.c_uint8)),
+                ('dependency_count', C.c_size_t), ('dependency_bytes', C.c_size_t),
+                ('body_bytes_consumed', C.c_size_t), ('available_body_bytes', C.c_size_t),
+                ('payload_offset_before', C.c_uint32), ('payload_offset_after', C.c_uint32),
+                ('result_slot_handle', C.c_uint32), ('allocation_bytes', C.c_uint32),
+                ('raw_type', C.c_uint8), ('runtime_type', C.c_uint8)]
+
+
+def storage(data):
+    return (C.c_uint8 * max(1, len(data))).from_buffer_copy(data or b'\0')
+
+
+def pointer(value):
+    return C.cast(value, C.c_void_p).value
+
+
+def body_fixture(word_0=0x1234, tail=0, seed=7):
+    # Deliberately distinct fields, high bits and unterminated byte spans:
+    # original loader is a fixed copy, with no body count or NUL scan.
+    words = [word_0] + [((i * 0x531 + seed) ^ 0x8100) & 0xffff
+                        for i in range(1, WORD_COUNT)]
+    return struct.pack('<37H', *words) + bytes((i * 19 + seed) & 255 for i in range(tail * 16))
+
+
+def load_native(path):
+    lib = C.CDLL(str(path))
+    lib.action_family_83_decode.argtypes = [C.POINTER(C.c_uint8), C.c_size_t, C.POINTER(Decoded)]
+    lib.action_family_83_decode.restype = C.c_int
+    lib.action_family_83_body_length.argtypes = [C.POINTER(C.c_uint8), C.c_size_t, C.POINTER(C.c_size_t)]
+    lib.action_family_83_body_length.restype = C.c_int
+    lib.action_family_83_construct.argtypes = [C.POINTER(C.c_uint8), C.c_size_t,
+                                              C.c_uint32, C.c_uint32, C.POINTER(Constructed)]
+    lib.action_family_83_construct.restype = C.c_int
+    return lib
+
+
+class ActionFamily83Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.directory = tempfile.TemporaryDirectory(prefix='A-83.1.tests-',
+            dir=PROJECT.parents[1] / 'work/analysis/slices')
+        run = subprocess.run([str(PROJECT / 'scripts/build_action_family_83.sh')],
+                             env=dict(os.environ, BUILD_DIR=cls.directory.name),
+                             capture_output=True, text=True)
+        if run.returncode:
+            cls.directory.cleanup()
+            raise RuntimeError('fixture build failed: ' + run.stderr)
+        cls.lib = load_native(Path(cls.directory.name) / 'libactionfamily83.dylib')
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.directory.cleanup()
+
+    def calls(self, raw, length):
+        return [(Decoded(), lambda out: self.lib.action_family_83_decode(raw, length, C.byref(out))),
+                (C.c_size_t(), lambda out: self.lib.action_family_83_body_length(raw, length, C.byref(out))),
+                (Constructed(), lambda out: self.lib.action_family_83_construct(raw, length, 50, 0x830001, C.byref(out)))]
+
+    def assert_rejected(self, data, status):
+        raw = storage(data)
+        for out, call in self.calls(raw, len(data)):
+            C.memset(C.byref(out), 0xa5, C.sizeof(out))
+            before = bytes(out)
+            self.assertEqual(call(out), status)
+            self.assertEqual(bytes(out), before)
+        self.assertEqual(bytes(raw)[:len(data)], data)
+
+    def test_minimum_body(self):
+        raw = storage(bytes(BODY_BYTES))
+        d = Decoded()
+        self.assertEqual(self.lib.action_family_83_decode(raw, len(raw), C.byref(d)), OK)
+        self.assertEqual(list(d.word), [0] * WORD_COUNT)
+        self.assertEqual((d.body_bytes, d.available_body_bytes, d.dependency_count, d.dependency_bytes),
+                         (74, 74, 0, 0))
+        self.assertEqual(pointer(d.dependency_records), C.addressof(raw) + 74)
+
+    def test_every_word_and_little_endian(self):
+        body = body_fixture(seed=131)
+        raw, d = storage(body), Decoded()
+        self.assertEqual(self.lib.action_family_83_decode(raw, len(body), C.byref(d)), OK)
+        self.assertEqual(tuple(d.word), struct.unpack('<37H', body))
+
+    def test_signed_looking_maximum_words_are_not_counts(self):
+        for word in (0, 1, 0x7fff, 0x8000, 0xffff):
+            body = struct.pack('<H', word) * WORD_COUNT
+            raw, d = storage(body), Decoded()
+            self.assertEqual(self.lib.action_family_83_decode(raw, len(body), C.byref(d)), OK)
+            self.assertEqual(tuple(d.word), (word,) * WORD_COUNT)
+            self.assertEqual(d.body_bytes, 74)
+
+    def test_no_loader_nul_requirement(self):
+        raw, d = storage(b'\xff' * 74), Decoded()
+        self.assertEqual(self.lib.action_family_83_decode(raw, 74, C.byref(d)), OK)
+        self.assertEqual(tuple(d.word), (0xffff,) * WORD_COUNT)
+
+    def test_dependency_view_and_count_width(self):
+        for count in (0, 1, 9, 256, 65536):
+            raw, d = storage(body_fixture(tail=count)), Decoded()
+            self.assertEqual(self.lib.action_family_83_decode(raw, len(raw), C.byref(d)), OK)
+            self.assertEqual((d.dependency_count, d.dependency_bytes, d.body_bytes, d.available_body_bytes),
+                             (count, count * 16, 74, len(raw)))
+            self.assertEqual(pointer(d.dependency_records), C.addressof(raw) + 74)
+            if count:
+                raw[74] ^= 0xff
+                self.assertEqual(d.dependency_records[0], raw[74])
+
+    def test_body_length(self):
+        for count in (0, 1, 256):
+            raw = storage(body_fixture(tail=count))
+            n = C.c_size_t(123)
+            self.assertEqual(self.lib.action_family_83_body_length(raw, len(raw), C.byref(n)), OK)
+            self.assertEqual(n.value, 74)
+
+    def test_every_short_body_is_atomic(self):
+        for n in range(74):
+            self.assert_rejected(bytes(n), BODY)
+
+    def test_ragged_tails_are_atomic(self):
+        for n in range(1, 41):
+            if n % 16:
+                self.assert_rejected(body_fixture() + bytes(n), TAIL)
+
+    def test_constructor_entire_allocation(self):
+        body = body_fixture(tail=2)
+        raw, out = storage(body), Constructed()
+        C.memset(C.byref(out), 0xa5, C.sizeof(out))
+        self.assertEqual(self.lib.action_family_83_construct(raw, len(body), 50, 0x830001, C.byref(out)), OK)
+        self.assertEqual(bytes(out.object_bytes), body[:74])
+        self.assertEqual((out.payload_offset_before, out.payload_offset_after, out.result_slot_handle,
+                          out.allocation_bytes, out.raw_type, out.runtime_type),
+                         (50, 124, 0x830001, 74, 0x83, 0x83))
+        self.assertEqual((out.body_bytes_consumed, out.available_body_bytes, out.dependency_count,
+                          out.dependency_bytes), (74, 106, 2, 32))
+        self.assertEqual(pointer(out.dependency_records), C.addressof(raw) + 74)
+
+    def test_offset_wrap(self):
+        raw = storage(body_fixture())
+        for offset in (0, 50, 0xffffffb5, 0xffffffb6, 0xffffffff):
+            out = Constructed()
+            self.assertEqual(self.lib.action_family_83_construct(raw, 74, offset, 1, C.byref(out)), OK)
+            self.assertEqual(out.payload_offset_after, (offset + 74) & 0xffffffff)
+
+    def test_zero_handle_is_atomic(self):
+        raw, out = storage(body_fixture()), Constructed()
+        C.memset(C.byref(out), 0xa5, C.sizeof(out))
+        before = bytes(out)
+        self.assertEqual(self.lib.action_family_83_construct(raw, 74, 50, 0, C.byref(out)), ARGUMENT)
+        self.assertEqual(bytes(out), before)
+
+    def test_null_pointers(self):
+        for out, call in self.calls(None, 74):
+            C.memset(C.byref(out), 0xa5, C.sizeof(out)); before = bytes(out)
+            self.assertEqual(call(out), ARGUMENT)
+            self.assertEqual(bytes(out), before)
+        raw = storage(body_fixture())
+        self.assertEqual(self.lib.action_family_83_decode(raw, 74, None), ARGUMENT)
+        self.assertEqual(self.lib.action_family_83_body_length(raw, 74, None), ARGUMENT)
+        self.assertEqual(self.lib.action_family_83_construct(raw, 74, 0, 1, None), ARGUMENT)
+
+    def test_wrapped_input_spans_are_atomic(self):
+        raw = storage(body_fixture())
+        huge = C.c_size_t(-1).value
+        for ptr, length in ((C.cast(huge, C.POINTER(C.c_uint8)), 74), (raw, huge)):
+            for out, call in self.calls(ptr, length):
+                C.memset(C.byref(out), 0xa5, C.sizeof(out)); before = bytes(out)
+                self.assertEqual(call(out), BOUNDS)
+                self.assertEqual(bytes(out), before)
+
+    def test_wrapped_output_spans(self):
+        raw = storage(body_fixture())
+        huge = C.c_size_t(-1).value
+        self.assertEqual(self.lib.action_family_83_decode(raw, 74, C.cast(huge, C.POINTER(Decoded))), BOUNDS)
+        self.assertEqual(self.lib.action_family_83_body_length(raw, 74, C.cast(huge, C.POINTER(C.c_size_t))), BOUNDS)
+        self.assertEqual(self.lib.action_family_83_construct(raw, 74, 0, 1, C.cast(huge, C.POINTER(Constructed))), BOUNDS)
+
+    def test_overlap_and_adjacency(self):
+        for kind, func, extra in ((Decoded, self.lib.action_family_83_decode, ()),
+                                 (C.c_size_t, self.lib.action_family_83_body_length, ()),
+                                 (Constructed, self.lib.action_family_83_construct, (50, 1))):
+            for delta in (-73, -1, 0, 1, C.sizeof(kind) - 1):
+                backing = (C.c_uint8 * (74 * 2 + C.sizeof(kind)))()
+                C.memset(backing, 0xa5, len(backing)); before = bytes(backing)
+                out = C.cast(C.addressof(backing) + 74, C.POINTER(kind))
+                raw = C.cast(C.addressof(out.contents) + delta, C.POINTER(C.c_uint8))
+                self.assertEqual(func(raw, 74, *extra, out), OVERLAP)
+                self.assertEqual(bytes(backing), before)
+            for after in (True, False):
+                backing = (C.c_uint8 * (74 + C.sizeof(kind)))()
+                raw_address = C.addressof(backing) + (C.sizeof(kind) if after else 0)
+                out_address = C.addressof(backing) + (0 if after else 74)
+                raw = C.cast(raw_address, C.POINTER(C.c_uint8))
+                C.memmove(raw, body_fixture(), 74)
+                out = C.cast(out_address, C.POINTER(kind))
+                self.assertEqual(func(raw, 74, *extra, out), OK)
+
+
+if __name__ == '__main__':
+    unittest.main()
