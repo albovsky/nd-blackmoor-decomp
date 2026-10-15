@@ -174,12 +174,14 @@ int session_aa1_handler(void *context, size_t index, const SceneActionInfo *a,
     }
     status = action_sound_object_step(row->payload, row->length, &in, &b->host.sound,
                                       events_view, &result, &b->failure);
-    if (status == ACTION_SOUND_ERR_UNSUPPORTED) return SCENE_ACTION_HANDLER_UNSUPPORTED;
-    if (status != ACTION_SOUND_OK) return SCENE_ACTION_HANDLER_ERROR;
+    /* The event store is committed before the load/play, so a later provider failure keeps it
+     * (the original has no rollback either); report it whatever the status. */
     if (result.event_stored != 0u && b->host.event_stored != NULL) {
         b->host.event_stored(b->host.sound.context, index, result.event_id,
                              result.event_value, result.event_previous);
     }
+    if (status == ACTION_SOUND_ERR_UNSUPPORTED) return SCENE_ACTION_HANDLER_UNSUPPORTED;
+    if (status != ACTION_SOUND_OK) return SCENE_ACTION_HANDLER_ERROR;
     if (result.visit.transition &&
         b->host.transition(b->host.sound.context, &result.visit.request) != 0) {
         b->failure = "sound scene transition rejected";

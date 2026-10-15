@@ -39,7 +39,7 @@ static int backend_status(ActionSoundBackendStatus status, const char **why,
  * (RT-21); without it only the raw-97 constructor default -1 is accepted (RT-8). */
 static int visit(const uint8_t *p, size_t length, const A97Input *in,
                  ActionSoundBackend *host, const A97EventTable *events, int allow_event,
-                 ActionSoundObjectResult *object, const char **why)
+                 ActionSoundObjectResult *object, int *started, const char **why)
 {
     ActionSoundAudioCommand command;
     ActionSoundBackendStatus status;
@@ -56,6 +56,7 @@ static int visit(const uint8_t *p, size_t length, const A97Input *in,
         memchr(p, 0, 33u) == NULL || u16(p + 0xaa) > length - 0xacu)
         return fail(why, "invalid constructed allocation", ACTION_SOUND_ERR_BODY);
     memset(object, 0, sizeof(*object));
+    if (started != NULL) *started = 1;      /* validation passed: the result is defined from here */
     out->phase = in->phase;
     out->completed = in->completed;
     if (in->phase > 2u) return ACTION_SOUND_OK;
@@ -179,19 +180,19 @@ int action_sound_object_step(const uint8_t *payload, size_t length, const A97Inp
     /* Unlike the RT-8 entry point, every path leaves *out defined (all zero before a visit
      * starts), so a caller never reads stale event fields after a rejection. */
     if (out != NULL) memset(out, 0, sizeof(*out));
-    return visit(payload, length, in, host, events, 1, out, why);
+    return visit(payload, length, in, host, events, 1, out, NULL, why);
 }
 
 int action97_runtime_step(const uint8_t *p, size_t length, const A97Input *in,
                           ActionSoundBackend *host, A97Result *out, const char **why)
 {
     ActionSoundObjectResult object;
-    int status;
+    int status, started = 0;
     if (out == NULL) return fail(why, "invalid runtime arguments", ACTION_SOUND_ERR_ARGUMENT);
-    /* Early validation failures leave the caller's result untouched, as before RT-21. */
+    /* Early validation failures leave the caller's result untouched, as before RT-21; *out is
+     * never read here, and is written only once the visit has started. */
     memset(&object, 0, sizeof(object));
-    object.visit = *out;
-    status = visit(p, length, in, host, NULL, 0, &object, why);
-    *out = object.visit;
+    status = visit(p, length, in, host, NULL, 0, &object, &started, why);
+    if (started) *out = object.visit;
     return status;
 }

@@ -375,6 +375,27 @@ class StepTests(unittest.TestCase):
             self.assertNotEqual(status, 0)
             self.assertEqual(bytes(out), bytes(StepResult()))
 
+    def test_raw_97_wrapper_ignores_the_callers_result_on_entry_and_keeps_it_on_early_failure(self):
+        payload = self.obj(event=-1)
+        self.lib.action97_runtime_step.argtypes = [c.POINTER(c.c_uint8), c.c_size_t,
+            c.POINTER(rt97.Input), c.POINTER(sound.Backend), c.POINTER(rt97.Result),
+            c.POINTER(c.c_char_p)]
+        # Garbage on entry does not leak into a started visit (every field is rewritten).
+        out = rt97.Result()
+        c.memset(c.byref(out), 0xa5, c.sizeof(out))
+        inp, failure = rt97.Input(0, 1, 0, 1), c.c_char_p()
+        self.assertEqual(self.lib.action97_runtime_step(payload, len(payload), c.byref(inp),
+            c.byref(rt97.Recorder().backend), c.byref(out), c.byref(failure)), 0)
+        self.assertEqual((out.phase, out.completed, out.direct, out.finish, out.reset, out.transition),
+                         (1, 0, 0, 0, 0, 0))
+        # A rejected body leaves the caller's bytes exactly as they were.
+        c.memset(c.byref(out), 0xa5, c.sizeof(out))
+        before = bytes(out)
+        short = loader.buffer(bytes(payload)[:171])
+        self.assertNotEqual(self.lib.action97_runtime_step(short, len(short), c.byref(inp),
+            c.byref(rt97.Recorder().backend), c.byref(out), c.byref(failure)), 0)
+        self.assertEqual(bytes(out), before)
+
     def test_raw_97_wrapper_still_refuses_a_non_default_event(self):
         # RT-8's entry point is unchanged: its constructor can only produce event -1.
         p = self.obj(event=1000)
@@ -625,6 +646,18 @@ class BindingTests(unittest.TestCase):
                 self.assertEqual(f.tick()[0], 0)
                 self.assertEqual((f.state(0), f.state(1)), ((0, 1), second))
                 self.assertEqual(f.flags[3], 1 if shared else 0)
+
+    def test_a_load_or_play_failure_after_the_store_keeps_the_flag_and_still_reports_it(self):
+        for field in ('load', 'play'):
+            for backend_status in (sound.BACKEND_UNSUPPORTED, sound.BACKEND_ERROR):
+                with self.subTest(field=field, backend_status=backend_status):
+                    f = self.fixture()
+                    setattr(f.recorder, field + '_result', backend_status)
+                    status, _ = f.tick()
+                    self.assertNotEqual(status, 0)
+                    self.assertEqual(f.state(), (0, 0))              # the row did not advance
+                    self.assertEqual(f.ev.flags[3], 1)               # no rollback, as in the original
+                    self.assertEqual(f.observed, [(0, 3, 1, 0)])     # and it has a log line
 
     def test_the_observer_reports_the_row_index_not_a_counter(self):
         rows = [session.action(0xa1, 1, a1_body(scene=9999, event=-1)),
