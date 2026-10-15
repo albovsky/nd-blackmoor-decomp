@@ -69,15 +69,15 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(p["reached_scenes"], recorded["reached_scenes"])
         self.assertEqual(p["reached_scenes"][:10], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
         self.assertEqual(p["stop"], recorded["stop"])
-        self.assertEqual(p["stop"]["action_type"], "0x83")
-        self.assertEqual(p["stop"]["row"], 6)
+        self.assertEqual(p["stop"]["action_type"], "0x0c")
+        self.assertEqual(p["stop"]["row"], 5)
         self.assertEqual(p["tests"], {"discovered": 1269, "passed": 1264, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
     def test_action_body_counts_use_current_source_and_census_records(self):
         a = self.model["playable"]["action_types"]
-        self.assertEqual(a["typed"]["records"], 19604)
-        self.assertEqual(a["opaque"]["records"], 8)
+        self.assertEqual(a["typed"]["records"], 19611)
+        self.assertEqual(a["opaque"]["records"], 1)
         self.assertEqual(a["record_total"], 19612)
         self.assertEqual(a["typed"]["type_count"] + a["opaque"]["type_count"], a["type_total"])
         self.assertEqual(set(a["handled"]["types"]) | set(a["unsupported"]["types"]), set(a["typed"]["types"]))
@@ -95,8 +95,9 @@ class RepoEvidenceTests(unittest.TestCase):
             "external": {"0x0b": "session_a0b_handler", "0x16": "session_a17_handler", "0x17": "session_a17_handler",
                          "0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x36": "session_a36_handler",
                          "0x51": "session_a51_handler", "0x62": "session_a62_handler", "0x79": "session_a79_handler",
+                         "0x83": "native_a83_handler",
                          "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
-        self.assertEqual(a["handled"]["type_count"], 21)
+        self.assertEqual(a["handled"]["type_count"], 22)
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
         derived.pop("scene_total")
         self.assertEqual(a, derived)
@@ -782,17 +783,15 @@ class RegistrationDriftTests(unittest.TestCase):
         self.assertNotIn("0x51", changed["handled"]["types"])
         self.assertNotEqual(changed, self.original)
 
-    def test_new_parser_layout_moves_opaque_records_to_typed(self):
+    def test_removed_parser_layout_moves_typed_records_to_opaque(self):
         census = json.loads((EVIDENCE / "action-census-current.json").read_text())
         counts = {r["type"]: r["count"] for r in census["by_raw_type"]}
-        # Any type that is still opaque; the choice follows the corpus, so it
-        # does not need updating when a decoder batch registers more types.
-        code = self.original["opaque"]["types"][0]
-        self.change("src/scene_resource.c", "default:\n        return 0;",
-                    f"case {code}: fixed_length = 1u; break;\n    default:\n        return 0;")
+        code = "0x6d"
+        self.change("src/scene_resource.c", "case 0x6d: fixed_length = 1u; break;", "")
         changed = GEN.PLAYABLE.derive_actions(self.out)
-        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] + counts[code])
-        self.assertIn(code, changed["unsupported"]["types"])
+        self.assertEqual(changed["typed"]["records"], self.original["typed"]["records"] - counts[code])
+        self.assertEqual(changed["opaque"]["records"], self.original["opaque"]["records"] + counts[code])
+        self.assertIn(code, changed["opaque"]["types"])
         self.assertNotEqual(changed, self.original)
 
     def test_guarded_parser_case_counts_listed_records_as_opaque(self):
