@@ -637,7 +637,7 @@ class SceneSessionTests(unittest.TestCase):
 
     def test_failed_candidate_replacement_keeps_old_executor_live(self):
         scene, old_owner = self.open_scene([action(0x51, 1, bytes(10) + i16(0))])
-        opaque_scene, bad_owner = self.open_scene([action(0xEE, 0, b"opaque")])
+        opaque_scene, bad_owner = self.open_scene([action(0x63, 0, b"opaque")])
         _flags, world, conditions = self.make_world()
         calls = {"handler": 0}
 

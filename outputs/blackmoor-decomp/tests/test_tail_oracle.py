@@ -111,7 +111,7 @@ class MutationDefinitionTests(unittest.TestCase):
                     self.assertGreater(sites, 0)
 
     def test_extended_family_and_length_coverage(self):
-        self.assertEqual(len(T.FAMILIES), 21)
+        self.assertEqual(len(T.FAMILIES), 40)
         self.assertTrue(set(range(301)).issubset(T.TAIL_LENGTHS))
         self.assertTrue(set(range(1023, 1026)).issubset(T.TAIL_LENGTHS))
         self.assertTrue(set(range(4079, 4098)).issubset(T.TAIL_LENGTHS))

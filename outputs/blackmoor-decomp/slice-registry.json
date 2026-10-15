@@ -1131,7 +1131,7 @@
       "id": "A-69.1",
       "title": "Action 0x69: body boundary and isolated decoder",
       "packet": "tasks/A-69.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-69",
       "raw_type": "0x69",
@@ -1141,7 +1141,7 @@
       "id": "A-65.1",
       "title": "Action 0x65: body boundary and isolated decoder",
       "packet": "tasks/A-65.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-65",
       "raw_type": "0x65",
@@ -1151,10 +1151,228 @@
       "id": "A-16.1",
       "title": "Action 0x16: body boundary and isolated decoder",
       "packet": "tasks/A-16.1-body-boundary-and-decoder.md",
-      "status": "CLAIMED Codex gpt-6.1-sol xhigh; recovery and decoder, not runtime",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
-      "parent": "A-17",
+      "parent": "A-16",
       "raw_type": "0x16",
+      "records": 2
+    },
+    {
+      "id": "A-1B.1",
+      "title": "Action 0x1b: body boundary and isolated decoder",
+      "packet": "tasks/A-1B.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-1B",
+      "raw_type": "0x1b",
+      "records": 4
+    },
+    {
+      "id": "A-7D.1",
+      "title": "Action 0x7d: body boundary and isolated decoder",
+      "packet": "tasks/A-7D.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-7D",
+      "raw_type": "0x7d",
+      "records": 4
+    },
+    {
+      "id": "A-33.1",
+      "title": "Action 0x33: body boundary and isolated decoder",
+      "packet": "tasks/A-33.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-33",
+      "raw_type": "0x33",
+      "records": 3
+    },
+    {
+      "id": "FL-1",
+      "title": "Function ledger core: schema, derivation, validator, CLI",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "function_ledger.py, build_function_ledger.py, test_function_ledger.py, function-ledger.json"
+    },
+    {
+      "id": "FL-2",
+      "title": "Function ledger evidence extractor",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "extract_function_evidence.py, function-evidence.json"
+    },
+    {
+      "id": "FL-3",
+      "title": "Function ledger xrefs, library classification and sampler",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "extract_function_xrefs.py, sample_function_ledger.py, function-xrefs.json, function-ledger-overrides.json"
+    },
+    {
+      "id": "FL-4",
+      "title": "Function ledger progress-map panel",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [
+        "FL-1"
+      ],
+      "parent": "FL-0",
+      "owns": "decomp-progress generate.py, template.html, test_progress.py, README.md"
+    },
+    {
+      "id": "A-F6.1",
+      "title": "Action 0xf6: body boundary and isolated decoder",
+      "packet": "tasks/A-F6.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-F6",
+      "raw_type": "0xf6",
+      "records": 6
+    },
+    {
+      "id": "A-EA.1",
+      "title": "Action 0xea: body boundary and isolated decoder",
+      "packet": "tasks/A-EA.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-EA",
+      "raw_type": "0xea",
+      "records": 6
+    },
+    {
+      "id": "A-F5.1",
+      "title": "Action 0xf5: body boundary and isolated decoder",
+      "packet": "tasks/A-F5.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-F5",
+      "raw_type": "0xf5",
+      "records": 4
+    },
+    {
+      "id": "A-D3.1",
+      "title": "Action 0xd3: body boundary and isolated decoder",
+      "packet": "tasks/A-D3.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-D3",
+      "raw_type": "0xd3",
+      "records": 3
+    },
+    {
+      "id": "A-2D.1",
+      "title": "Action 0x2d: body boundary and isolated decoder",
+      "packet": "tasks/A-2D.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-2D",
+      "raw_type": "0x2d",
+      "records": 3
+    },
+    {
+      "id": "A-E0.1",
+      "title": "Action 0xe0: body boundary and isolated decoder",
+      "packet": "tasks/A-E0.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented; the 292-byte record of scene S2705 stays opaque (original hits its ragged-tail exit)",
+      "depends_on": [],
+      "parent": "A-E0",
+      "raw_type": "0xe0",
+      "records": 3
+    },
+    {
+      "id": "A-EE.1",
+      "title": "Action 0xee: body boundary and isolated decoder",
+      "packet": "tasks/A-EE.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-EE",
+      "raw_type": "0xee",
+      "records": 2
+    },
+    {
+      "id": "A-DA.1",
+      "title": "Action 0xda: body boundary and isolated decoder",
+      "packet": "tasks/A-DA.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-DA",
+      "raw_type": "0xda",
+      "records": 2
+    },
+    {
+      "id": "A-77.1",
+      "title": "Action 0x77: body boundary and isolated decoder",
+      "packet": "tasks/A-77.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-77",
+      "raw_type": "0x77",
+      "records": 2
+    },
+    {
+      "id": "A-1C.1",
+      "title": "Action 0x1c: body boundary and isolated decoder",
+      "packet": "tasks/A-1C.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-1C",
+      "raw_type": "0x1c",
+      "records": 2
+    },
+    {
+      "id": "A-EB.1",
+      "title": "Action 0xeb: body boundary and isolated decoder",
+      "packet": "tasks/A-EB.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-EB",
+      "raw_type": "0xeb",
+      "records": 2
+    },
+    {
+      "id": "A-D0.1",
+      "title": "Action 0xd0: body boundary and isolated decoder",
+      "packet": "tasks/A-D0.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-D0",
+      "raw_type": "0xd0",
+      "records": 2
+    },
+    {
+      "id": "A-E4.1",
+      "title": "Action 0xe4: body boundary and isolated decoder",
+      "packet": "tasks/A-E4.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-E4",
+      "raw_type": "0xe4",
+      "records": 2
+    },
+    {
+      "id": "A-80.1",
+      "title": "Action 0x80: body boundary and isolated decoder",
+      "packet": "tasks/A-80.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-80",
+      "raw_type": "0x80",
+      "records": 2
+    },
+    {
+      "id": "A-70.1",
+      "title": "Action 0x70: body boundary and isolated decoder",
+      "packet": "tasks/A-70.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-70",
+      "raw_type": "0x70",
       "records": 2
     }
   ]

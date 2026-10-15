@@ -369,7 +369,7 @@ class SessionPointerTests(unittest.TestCase):
         resets = rig.calls.count("reset")
         # A resource whose executor cannot be built fails the replacement;
         # nothing about the old scene may be disturbed.
-        bad, bad_owner = self.open_scene([action(0xEE, 0, b"opaque")])
+        bad, bad_owner = self.open_scene([action(0x63, 0, b"opaque")])
         self.addCleanup(lambda: self.lib.scene_resource_close(bad))
         status = self.lib.scene_session_replace_scene(
             session, bad, 12, c.byref(base.SceneSessionFailure()))
