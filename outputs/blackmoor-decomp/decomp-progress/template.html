@@ -97,6 +97,55 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
 .playable summary{cursor:pointer;width:fit-content}
 .playable details p{margin:6px 0;overflow-wrap:anywhere}
 @media(max-width:760px){.playable-metrics{grid-template-columns:1fr}.playable-metric+.playable-metric{border-left:0;border-top:1px solid var(--border);padding-left:0}}
+.ledger{margin:0 0 24px;border-top:3px solid var(--data);border-bottom:1px solid var(--border);padding:14px 0 16px}
+.ledger-heading{display:flex;gap:12px;justify-content:space-between;align-items:baseline;flex-wrap:wrap}
+.ledger h2{margin:0;font-size:19px;letter-spacing:-.02em}
+.ledger .scope{color:var(--text-2);font-size:12px;margin:0}
+.ledger h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 3px;color:var(--text-2)}
+.ledger-metric h3{margin-top:0}
+.ledger-metrics{display:grid;grid-template-columns:repeat(3,1fr);margin:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.ledger-metric{padding:12px 18px 12px 0;min-width:0;font-variant-numeric:tabular-nums}
+.ledger-metric+.ledger-metric{border-left:1px solid var(--border);padding-left:18px}
+.ledger-value{font-size:25px;font-weight:650;letter-spacing:-.02em}
+.ledger-value small{font-size:12px;font-weight:400;color:var(--text-2);letter-spacing:0}
+.ledger-metric p{font-size:12px;color:var(--text-2);margin:3px 0;overflow-wrap:anywhere}
+.ledger .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.sw.s-ported,.lg-seg.s-ported{background:var(--code)}
+.sw.s-not_needed,.lg-seg.s-not_needed{background:var(--data)}
+.sw.s-pending,.lg-seg.s-pending{background:var(--todo);box-shadow:inset 0 0 0 1px var(--todo-edge)}
+.ledger-baseline{font-size:13px;margin:0 0 14px;padding:8px 12px;background:var(--panel);border-left:3px solid var(--focus)}
+.lg-regions{display:grid;grid-template-columns:max-content 1fr max-content;gap:7px 12px;align-items:center;font-size:12px;margin:0 0 6px}
+.lg-regions .lg-name{font-weight:600}
+.lg-regions .lg-nums{color:var(--text-2);font-variant-numeric:tabular-nums;text-align:right}
+.lg-track{display:flex;height:16px;border-radius:5px;overflow:hidden;background:var(--todo)}
+.lg-seg{min-width:3px;height:100%}
+.lg-legend{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12px;color:var(--text-2);margin:0 0 16px}
+.lg-legend span{white-space:nowrap}
+.lg-cross{width:auto;min-width:min(100%,560px);margin:4px 0 4px}
+.lg-cross td:first-child,.lg-cross th:first-child{text-align:left}
+.lg-cross td,.lg-cross th{text-align:right}
+.ledger-note{font-size:12px;color:var(--text-2);margin:0 0 16px;max-width:90ch}
+.lg-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.lg-controls select,.lg-controls input[type=search]{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:5px 9px}
+.lg-controls input[type=search]{width:210px}
+.lg-controls .lg-count{margin-left:auto;font-size:12px;color:var(--text-2)}
+.lg-wrap{border:1px solid var(--border);border-radius:8px;overflow-x:auto}
+table.lg-table{font-size:12px}
+.lg-table th,.lg-table td{text-align:left;vertical-align:top}
+.lg-table td.num,.lg-table th.num{text-align:right}
+.lg-table tr.lg-open>td{background:var(--panel)}
+.lg-table td.lg-detail{padding:8px 12px 12px 24px;background:var(--panel);color:var(--text-2)}
+.lg-detail ul{margin:0;padding-left:16px}
+.lg-detail li{margin:2px 0;overflow-wrap:anywhere}
+.lg-detail a{color:inherit}
+.lg-pill{display:inline-block;padding:0 7px;border-radius:9px;border:1px solid var(--border);font-size:11px;white-space:nowrap}
+.lg-pill.s-ported{border-color:var(--code);color:var(--code)}
+.lg-pill.s-not_needed{border-color:var(--data);color:var(--data)}
+.lg-table button{padding:1px 8px;font-size:11px}
+.lg-pager{display:flex;gap:8px;align-items:center;margin:8px 0 14px;font-size:12px;color:var(--text-2)}
+.lg-caveats{font-size:12px;color:var(--text-2);margin:0;padding-left:18px;max-width:90ch}
+.lg-caveats li{margin:3px 0}
+@media(max-width:760px){.ledger-metrics{grid-template-columns:1fr}.ledger-metric+.ledger-metric{border-left:0;border-top:1px solid var(--border);padding-left:0}.lg-controls input[type=search]{width:100%}.lg-regions{grid-template-columns:1fr}.lg-regions .lg-nums{text-align:left}}
 @media(max-width:760px){.bars{grid-template-columns:1fr}.controls input[type=search]{width:100%}}
 </style>
 </head>
@@ -121,6 +170,34 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
   <p class="playable-stop" id="playableStop"></p>
   <p class="next-blocker"><b>Next blocker: </b><span id="nextBlocker"></span></p>
   <details><summary>Action coverage and evidence</summary><p id="handledTypes" class="mono"></p><p id="unsupportedTypes" class="mono"></p><p id="opaqueTypes" class="mono"></p><p>Types and record counts use current parser layouts and corpus counts. The handled record count is an upper bound: raw <code>0x15</code> is a hotspot only when <code>typed_body[0] == 0x0d</code>. Native handlers may still block on unsupported branches or providers. Full gameplay remains unverified.</p><p id="playableEvidence"></p></details>
+</section>
+
+<section class="ledger" aria-labelledby="ledgerTitle" id="ledger" hidden>
+  <div class="ledger-heading"><h2 id="ledgerTitle">Function ledger</h2><p class="scope" id="ledgerScope"></p></div>
+  <div class="ledger-metrics">
+    <div class="ledger-metric"><h3>Ported</h3><div class="ledger-value" id="lgPorted"></div><p id="lgPortedSplit"></p><p>Reviewed claim; not an x86 match</p></div>
+    <div class="ledger-metric"><h3>Not needed</h3><div class="ledger-value" id="lgNotNeeded"></div><p id="lgNotNeededSplit"></p><p>Per function, with a recorded reason</p></div>
+    <div class="ledger-metric"><h3>Pending</h3><div class="ledger-value" id="lgPending"></div><p id="lgPendingSplit"></p><p>Everything unproven; the default</p></div>
+  </div>
+  <p class="ledger-baseline" id="lgBaseline"></p>
+  <h3>Status by region</h3>
+  <div class="lg-regions" id="lgRegions"></div>
+  <div class="lg-legend"><span><i class="sw s-ported"></i>Ported</span><span><i class="sw s-not_needed"></i>Not needed</span><span><i class="sw s-pending"></i>Pending</span></div>
+  <h3>x86 match against native port</h3>
+  <table class="lg-cross" id="lgCross" aria-label="x86-matched functions against native port status"></table>
+  <p class="ledger-note">The x86 match is a separate track: it never makes a function ported, and a ported function need not have an x86 match.</p>
+  <h3>Caveats</h3>
+  <ul class="lg-caveats" id="lgCaveats"></ul>
+  <h3>Functions</h3>
+  <div class="lg-controls">
+    <select id="lgStatus" aria-label="Filter by status"></select>
+    <select id="lgRegion" aria-label="Filter by region"></select>
+    <select id="lgClass" aria-label="Filter by class"></select>
+    <input type="search" id="lgQ" placeholder="Find address (e.g. 4dae66)" aria-label="Find a function by address; an address inside a function finds that function">
+    <span class="lg-count mono" id="lgCount"></span>
+  </div>
+  <div class="lg-wrap"><table class="lg-table" id="lgTable"></table></div>
+  <div class="lg-pager"><button type="button" id="lgPrev">Previous</button><button type="button" id="lgNext">Next</button><span id="lgPage" class="mono"></span></div>
 </section>
 
 <section class="bars" aria-label="Progress summary" id="bars"></section>
@@ -180,6 +257,136 @@ if(D.playable){
   $("unsupportedTypes").textContent=`Typed, unsupported: ${A.unsupported.types.join(", ")}`;
   $("opaqueTypes").textContent=`Opaque: ${A.opaque.types.join(", ")}`;
   $("playableEvidence").textContent=`${P.evidence.kind.replace(/_/g," ")} · source ${P.evidence.source_ref.slice(0,12)} · ${fmt(P.ticks)} ticks · native SHA-256 ${P.evidence.native_sha256 || "unavailable (seed)"}`;
+}
+
+/* ---------- function ledger (public summaries only) ---------- */
+if(D.function_ledger){
+  const L=D.function_ledger, C=L.counts, N=L.total, ST=L.statuses, RG=L.regions, CL=L.classes;
+  const stLabel={ported:"Ported",not_needed:"Not needed",pending:"Pending"};
+  const rgLabel={game:"Game",vorbis:"Vorbis and Ogg",crt_mfc:"CRT and MFC"};
+  const clLabel={native_oracle_verified:"oracle-verified",native_tests_only:"tests-only",host_adapter_tested:"adapter",nn_rule:"by rule",nn_reviewed:"per function",candidate_port:"candidate port",partial_native:"partial native",static_navigation_only:"static navigation only",none:"no evidence"};
+  const words=s=>s.replace(/_/g," ");
+  const sw=st=>`<i class="sw s-${st}"></i>`;
+  const split=(keys,sep)=>keys.map(k=>`${fmt(C.class[k])} ${clLabel[k]}`).join(sep||" · ");
+  const S=C.status;
+  $("ledger").hidden=false;
+  $("ledgerScope").textContent=`${fmt(N)} functions in GAME.EXE · one status each · ${fmt(L.input_count)} pinned inputs · sha256 ${L.ledger_sha256.slice(0,12)}`;
+  $("lgPorted").innerHTML=`${fmt(S.ported)} <small>of ${fmt(N)}</small>`;
+  $("lgPortedSplit").textContent="Oracle-verified "+fmt(C.class.native_oracle_verified)+" · tests-only "+fmt(C.class.native_tests_only)+" · adapter "+fmt(C.class.host_adapter_tested);
+  $("lgNotNeeded").innerHTML=`${fmt(S.not_needed)} <small>of ${fmt(N)}</small>`;
+  const reasons=Object.entries(C.reason).filter(e=>e[1]);
+  $("lgNotNeededSplit").textContent=reasons.length ? "By reason: "+reasons.map(e=>`${words(e[0])} ${fmt(e[1])}`).join(" · ") : "By reason: none accepted yet";
+  $("lgPending").innerHTML=`${fmt(S.pending)} <small>of ${fmt(N)} · ${pct(S.pending,N)}</small>`;
+  $("lgPendingSplit").textContent="Candidate port "+fmt(C.class.candidate_port)+" · partial native "+fmt(C.class.partial_native)+" · static navigation only "+fmt(C.class.static_navigation_only)+" · none "+fmt(C.class.none);
+  $("lgBaseline").textContent = (S.ported===0 && S.not_needed===0)
+    ? `With 0 ported and 0 not needed, this ledger is the honest baseline: all ${fmt(N)} functions are pending (more than 80% pending at first publication), and the pending subclasses are leads, not progress.`
+    : S.pending*5>N*4 ? `More than 80% of functions (${pct(S.pending,N)}) are still pending.` : `${pct(S.pending,N)} of functions are still pending.`;
+
+  for(const r of RG){
+    const c=C.region[r], t=ST.reduce((n,s)=>n+c[s],0);
+    const name=document.createElement("div"); name.className="lg-name"; name.textContent=`${rgLabel[r]} · ${fmt(t)}`;
+    const track=document.createElement("div"); track.className="lg-track"; track.setAttribute("role","img");
+    track.setAttribute("aria-label",`${rgLabel[r]}: ${ST.map(s=>`${fmt(c[s])} ${words(s)}`).join(", ")}`);
+    for(const s of ST) if(c[s]){ const seg=document.createElement("div"); seg.className=`lg-seg s-${s}`; seg.style.flex=`${c[s]} 1 0`; seg.title=`${stLabel[s]}: ${fmt(c[s])} of ${fmt(t)}`; track.appendChild(seg); }
+    const nums=document.createElement("div"); nums.className="lg-nums";
+    nums.textContent=ST.map(s=>`${fmt(c[s])} ${words(s)}`).join(" · ");
+    $("lgRegions").append(name,track,nums);
+  }
+
+  const xl={complete:"x86 complete function match",partial:"x86 partial range",none:"no x86 match"};
+  $("lgCross").innerHTML=`<thead><tr><th>x86 match</th>${ST.map(s=>`<th>${stLabel[s]}</th>`).join("")}<th>Total</th></tr></thead><tbody>`+
+    Object.keys(xl).map(k=>{ const row=L.crosstab[k]; return `<tr><td>${xl[k]}</td>${ST.map(s=>`<td>${fmt(row[s])}</td>`).join("")}<td>${fmt(ST.reduce((n,s)=>n+row[s],0))}</td></tr>`; }).join("")+`</tbody>`;
+  for(const text of L.caveats){ const li=document.createElement("li"); li.textContent=text; $("lgCaveats").appendChild(li); }
+
+  /* table: filters, address search, paging */
+  const rows=L.rows, PAGE=25, lg={status:"",region:"",cls:"",q:"",page:0,open:new Set()};
+  const opt=(sel,value,label)=>{ const o=document.createElement("option"); o.value=value; o.textContent=label; sel.appendChild(o); };
+  opt($("lgStatus"),"","All statuses"); ST.forEach(s=>opt($("lgStatus"),s,`${stLabel[s]} (${fmt(S[s])})`));
+  opt($("lgRegion"),"","All regions"); RG.forEach(r=>opt($("lgRegion"),r,`${rgLabel[r]} (${fmt(ST.reduce((n,s)=>n+C.region[r][s],0))})`));
+  function classOptions(){
+    const sel=$("lgClass"); sel.innerHTML=""; opt(sel,"","All classes");
+    CL.forEach((c,i)=>{ if(!lg.status || ST[L.class_status[i]]===lg.status) opt(sel,c,`${clLabel[c]} (${fmt(C.class[c])})`); });
+    sel.value=lg.cls;
+  }
+  classOptions();
+  const FILTERED=()=>{
+    const q=lg.q.trim().toLowerCase().replace(/^0x/,"");
+    const num=/^[0-9a-f]{6,8}$/.test(q) ? parseInt(q,16) : null;
+    const si=lg.status ? ST.indexOf(lg.status) : -1, ri=lg.region ? RG.indexOf(lg.region) : -1, ci=lg.cls ? CL.indexOf(lg.cls) : -1;
+    return rows.filter(r=>(si<0||r[3]===si)&&(ri<0||r[2]===ri)&&(ci<0||r[4]===ci)&&
+      (!q || r[0].toString(16).startsWith(q) || (num!==null && num>=r[0] && num<r[0]+r[1])));
+  };
+  const KIND={s:"source",t:"test",o:"oracle",r:"receipt",m:"mention"};
+  const KINDKEY=k=>k==="n"?"m":k;
+  function evSummary(d){
+    const n={}; for(const p of (d.p||[])) n[KINDKEY(p[0])]=(n[KINDKEY(p[0])]||0)+1;
+    const bits=Object.keys(KIND).filter(k=>n[k]).map(k=>`${n[k]} ${KIND[k]}`);
+    if(d.b) bits.push(`${d.b.length} blocker${d.b.length===1?"":"s"}`);
+    if(d.x) bits.push(d.x[1] ? "x86 complete" : "x86 partial");
+    if(d.g && d.g[1]) bits.push("seam");
+    return bits.join(" · ") || "–";
+  }
+  const mk=(tag,text,cls)=>{ const e=document.createElement(tag); if(text!==undefined) e.textContent=text; if(cls) e.className=cls; return e; };
+  const LINKABLE=/^(src|tests)\/[A-Za-z0-9_.\/-]+$/;
+  function pathNode(path){
+    if(LINKABLE.test(path) && !path.includes("..")){ const a=mk("a",path); a.href="../"+path; return a; }
+    return mk("span",path,"mono");
+  }
+  function line(parts){ const li=document.createElement("li"); for(const p of parts) li.append(typeof p==="string" ? document.createTextNode(p) : p); return li; }
+  function detailList(d){
+    const ul=document.createElement("ul");
+    if(d.v) ul.appendChild(line([`Reviewed by ${d.v[0]}, ${d.v[1]}${d.v[2] ? `, rule sample sha256 ${d.v[2]}` : ""}`]));
+    if(d.r) ul.appendChild(line([`Not needed: ${words(d.r[0])}${d.r[2] ? ` (rule ${d.r[2]})` : ""}: ${d.r[1]}`]));
+    if(d.x) ul.appendChild(line([`x86 match: ${words(d.x[0])}, ${d.x[1] ? "complete function" : "partial range"}, manifest ${d.x[2]}`]));
+    if(d.g) ul.appendChild(line([`Origin: ${words(d.g[0])}${d.g[1] ? " · within a few hundred bytes of a region seam" : ""}`]));
+    for(const p of (d.p||[])){
+      if(p[0]==="s") ul.appendChild(line(["Native source: ",pathNode(L.paths[p[1]]),p[2] ? ` · ${p[2]}` : " (file-level citation)"]));
+      else if(p[0]==="t") ul.appendChild(line(["Test: ",pathNode(L.paths[p[1]]),p[2] ? ` · ${p[2]}` : ""]));
+      else if(p[0]==="o") ul.appendChild(line([`Oracle window ${hex(p[2])}–${hex(p[3])} (${L.uses[p[4]]}) `,p[1]>=0 ? pathNode(L.paths[p[1]]) : "listed in a private receipt"]));
+      else if(p[0]==="r"){ const r=L.receipts[p[1]]; ul.appendChild(line([`Private receipt ${r[0]} · sha256 `,mk("span",r[1],"mono"),` · review ${r[2]}`])); }
+      else if(p[0]==="n") ul.appendChild(line([`Mentioned in private file ${p[1]}${p[2] ? ` · ${p[2]}` : ""}`]));
+      else ul.appendChild(line(["Mention: ",pathNode(L.paths[p[1]]),p[2] ? ` · ${p[2]}` : ""]));
+    }
+    for(const b of (d.b||[])) ul.appendChild(line([`Blocker at ${hex(b[0])} (${L.items[b[1]][0]}): ${L.items[b[1]][1]}`]));
+    for(const v of (d.d||[])) ul.appendChild(line([`${v[1] ? "Deliberate safety rejection" : "Divergence"} (${L.items[v[0]][0]}): ${L.items[v[0]][1]}`]));
+    return ul;
+  }
+  function renderLedger(){
+    const f=FILTERED(), pages=Math.max(1,Math.ceil(f.length/PAGE));
+    lg.page=Math.min(lg.page,pages-1);
+    const from=lg.page*PAGE, shown=f.slice(from,from+PAGE);
+    $("lgCount").textContent=`${fmt(f.length)} of ${fmt(N)} functions`;
+    $("lgPage").textContent=f.length ? `rows ${fmt(from+1)}–${fmt(from+shown.length)} · page ${fmt(lg.page+1)} of ${fmt(pages)}` : "no matching functions";
+    $("lgPrev").disabled=lg.page===0; $("lgNext").disabled=lg.page>=pages-1;
+    const t=$("lgTable"); t.innerHTML="";
+    const head=t.createTHead().insertRow();
+    for(const [h,c] of [["Address",""],["Span","num"],["Region",""],["Status",""],["Class",""],["Evidence",""]]){ const th=mk("th",h,c); head.appendChild(th); }
+    const body=t.createTBody();
+    for(const r of shown){
+      const d=L.details[r[5]], tr=body.insertRow(), open=lg.open.has(r[0]);
+      if(open) tr.className="lg-open";
+      tr.insertCell().appendChild(mk("span",hex(r[0]),"mono"));
+      tr.insertCell().appendChild(mk("span",fmt(r[1]),"mono")).parentNode.className="num";
+      tr.insertCell().textContent=rgLabel[RG[r[2]]];
+      tr.insertCell().appendChild(mk("span",stLabel[ST[r[3]]],`lg-pill s-${ST[r[3]]}`));
+      tr.insertCell().textContent=clLabel[CL[r[4]]];
+      const ec=tr.insertCell(); ec.appendChild(document.createTextNode(evSummary(d)+" "));
+      if(r[5]){ const b=mk("button",open?"Hide":"Details"); b.type="button"; b.setAttribute("aria-expanded",open);
+        b.addEventListener("click",()=>{ if(lg.open.has(r[0])) lg.open.delete(r[0]); else lg.open.add(r[0]); renderLedger(); }); ec.appendChild(b); }
+      if(open){ const dr=body.insertRow(), dc=dr.insertCell(); dc.colSpan=6; dc.className="lg-detail"; dc.appendChild(detailList(d)); }
+    }
+  }
+  $("lgStatus").addEventListener("change",e=>{ lg.status=e.target.value; lg.cls=""; lg.page=0; classOptions(); renderLedger(); });
+  $("lgRegion").addEventListener("change",e=>{ lg.region=e.target.value; lg.page=0; renderLedger(); });
+  $("lgClass").addEventListener("change",e=>{ lg.cls=e.target.value; lg.page=0; renderLedger(); });
+  $("lgQ").addEventListener("input",e=>{ lg.q=e.target.value; lg.page=0; renderLedger(); });
+  $("lgPrev").addEventListener("click",()=>{ lg.page--; renderLedger(); });
+  $("lgNext").addEventListener("click",()=>{ lg.page++; renderLedger(); });
+  const lp=new URLSearchParams(location.search);
+  if(lp.get("lgstatus") && ST.includes(lp.get("lgstatus"))){ lg.status=lp.get("lgstatus"); $("lgStatus").value=lg.status; classOptions(); }
+  for(const v of (lp.get("lgopen")||"").split(",")){ const n=parseInt(v.replace(/^0x/,""),16); if(n) lg.open.add(n); }
+  if(lp.get("lgq")){ lg.q=lp.get("lgq"); $("lgQ").value=lg.q; }
+  renderLedger();
 }
 
 /* ---------- header, bars, facts ---------- */

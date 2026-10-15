@@ -1,0 +1,8 @@
+{
+ "batch": "001",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "class_requested": "tool_assisted_reconstructed_assembly",
+ "manifest_sha256": "1aafce6a82af50e2201eb7a8eff712387b96b249603ac7591ec8a36a82d89fe0",
+ "all_accepted": true,
+ "errors": []
+}

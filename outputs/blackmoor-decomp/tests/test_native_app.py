@@ -277,6 +277,32 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertNotEqual(found, -1, evidence)
             position = found
 
+    def test_phone_list_app_glue(self):
+        import session_binding_support as sbs
+        from test_action_family_83_runtime import raw
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / 'a83-scene.bin'
+            fixture.write_bytes(sbs.scene_bytes([sbs.action(0x83, 1, raw(0, key=b'one', text=b'ONE')),
+                                                 sbs.action(0x83, 1, raw(1, key=b'link'))]))
+            executable = Path(directory) / 'a83-glue'
+            build = PROJECT / 'build/native-app'
+            command = ['xcrun', '--sdk', 'macosx', 'clang++', '-arch', 'arm64',
+                       '-mmacosx-version-min=27.0', '-std=c++17', '-fobjc-arc',
+                       '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2',
+                       str(PROJECT / 'tests/native_a83_glue_test.mm')]
+            command += [str(PROJECT / ('src/' + name + '.mm')) for name in
+                        ('macos_platform', 'macos_audio', 'scene_inspector')]
+            command += [str(p) for p in sorted(build.glob('*.o'))]
+            command += ['-framework', 'AppKit', '-framework', 'Foundation',
+                        '-framework', 'CoreGraphics', '-framework', 'AVFAudio',
+                        '-L/opt/homebrew/lib', '-lavformat', '-lavcodec', '-lavutil',
+                        '-lswscale', '-lswresample', '-Wl,-rpath,/opt/homebrew/lib',
+                        '-o', str(executable)]
+            compiled = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            result = subprocess.run([str(executable), str(fixture)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_bink_movie_app_glue(self):
         from test_action_family_35_runtime import body
         with tempfile.TemporaryDirectory() as directory:
@@ -318,11 +344,20 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_a35_finished row=3 phase=2 next_phase=0',
             'scene_session_transition_pending source=4700 target=4710',
             'scene_parsed name=S4808',
-            # A-83.1 registered the 0x83 body boundary, so S4808 now loads and the
-            # explicit stop moved to its unimplemented runtime (row 6).
             'scene_transition_applied source=4807 target=4808',
-            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x83',
-            'live_session_end scene=4808 '))
+            # RT-12: the 0x83 rows run (mail rows CMLH01/CMLH02 prepend to the
+            # list the BOOT/UICL initializer started with one entry).
+            'scene_a83_refresh group=3 active=1 child=1 mail_count=2 web_count=1 status=0',
+            'scene_a83_applied row=6 list=mail selected=0 inserted=1 mail_count=2 web_count=1 disposition=3 phase=0',
+            'scene_a83_refresh group=3 active=1 child=1 mail_count=3 web_count=1 status=0',
+            'scene_a83_applied row=7 list=mail selected=0 inserted=1 mail_count=3 web_count=1 disposition=3 phase=0',
+            'scene_session_transition_pending source=4808 target=2010',
+            'scene_transition_applied source=4808 target=2010',
+            # The new explicit stop: S2010 row 5 is raw 0x0c (not recovered).
+            'scene_session_blocked stage=3 provider=action-kernel action=5 type=0x0c',
+            'live_session_end scene=2010 '))
+        self.assertIn('scene_a83_initialized source=BOOT/UICL mail_count=1 web_count=1', contents)
+        self.assertNotIn('scene_a83_blocker', contents)
         movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
         movie = movie.split('scene_a35_finished row=3', 1)[0]
         self.assertEqual(movie.count('scene_a35_frame_presented'), 504)
@@ -568,20 +603,22 @@ class NativeCaptionTransferTests(unittest.TestCase):
                       'view_rebuilds_requested=0', contents)
 
     def test_rt13_frozen_session_reports_the_blocker_and_counts_ignored_input(self):
-        # RT-13 item 3 on the S5900 path, whose end is a different missing family (0x83):
-        # one persistent report line, then pointer input is counted as ignored.
+        # RT-13 item 3 on the S5900 path. Since RT-12 (raw 0x83 runtime) its end is S2010 row 5,
+        # raw 0x0c (a different missing family): one persistent report line, then pointer
+        # input is counted as ignored.
         contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', '--live-click-blocked')
         self.assert_in_order(contents, (
-            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x83 detail=1',
-            'session_frozen scene=4808 generation=',
-            'row=6 type=0x83 provider=action-kernel stage=3 '
-            'reason="action type 0x83 at row 6 has no native runtime yet" '
+            'scene_session_blocked stage=3 provider=action-kernel action=5 type=0x0c detail=1',
+            'session_frozen scene=2010 generation=',
+            'row=5 type=0x0c provider=action-kernel stage=3 '
+            'reason="action type 0x0c at row 5 has no native runtime yet" '
             'ticks_after_block=stopped pointer_input=ignored',
-            'session_frozen_input_ignored scene=4808 count=1 ',
-            'live_session_end scene=4808 '))
+            'session_frozen_input_ignored scene=2010 count=1 ',
+            'live_session_end scene=2010 '))
         self.assertEqual(contents.count('scene_session_blocked'), 1)
         self.assertEqual(contents.count('session_frozen scene='), 1)
         self.assertNotIn('scene_a36_register', contents)
+        self.assertNotIn('type=0x83 provider=action-kernel', contents)
 
     def test_rt13_raw_0x79_removes_the_seeded_item_and_clears_the_held_item_through_the_app(self):
         # Seeded list [4,23,9,23], held 23: only the FIRST 23 is removed, presence[23] is
@@ -1084,10 +1121,18 @@ class NativeCaptionTransferTests(unittest.TestCase):
 
     def test_rt14_the_original_scripted_s5900_run_is_unaffected(self):
         contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
-        self.assertNotIn('scene_a36_', contents)
+        # The S5900..S4808 chain carries no raw 0x36/0x11/0x0b rows. With the raw 0x83 runtime
+        # (RT-12) the run continues into S2010, whose two raw 0x36 overlays are constructed while
+        # that scene loads; nothing of those families may appear before the 4808 -> 2010 hand-over.
+        handover = contents.find('scene_session_transition_pending source=4808 target=2010')
+        self.assertNotEqual(handover, -1)
+        before = contents[:handover]
+        self.assertNotIn('scene_a36_', before)
         self.assertNotIn('scene_a17_', contents)
         self.assertNotIn('scene_a0b_', contents)
-        self.assertIn('live_session_end scene=4808 ', contents)
+        self.assertIn('scene_a83_applied row=6 ', before)
+        self.assertIn('live_session_end scene=2010 ', contents)
+        self.assertIn('type=0x0c provider=action-kernel', contents)
 
     def test_rand_seed_option_is_logged_and_replayable(self):
         contents = self.run_live('--rand-seed', '12345')

@@ -40,7 +40,8 @@ typedef enum scene_session_provider {
     SCENE_SESSION_PROVIDER_DEPENDENCY = 12,
     SCENE_SESSION_PROVIDER_SCENE_RESOURCE = 13,
     SCENE_SESSION_PROVIDER_HOST = 14,
-    SCENE_SESSION_PROVIDER_A35 = 15
+    SCENE_SESSION_PROVIDER_A35 = 15,
+    SCENE_SESSION_PROVIDER_A83 = 16
 } SceneSessionProvider;
 
 typedef enum scene_session_stage {
@@ -248,6 +249,9 @@ int scene_session_get_hotspot_state(const SceneSession *session,
                                     size_t action_index,
                                     SceneExecutorHotspotState *state);
 const ActionUIWorld *scene_session_get_action_ui(const SceneSession *session);
+/* 0x4e0559's active branch: set availability then the selected dirty flag.
+ * Used by 0x83 after its list writes. No rendering is performed here. */
+int scene_session_mark_ui_dirty(SceneSession *session, int16_t group, int16_t child);
 int scene_session_get_pending_transition(const SceneSession *session,
                                         SceneTransitionRequest *transition);
 int scene_session_get_last_result(const SceneSession *session,

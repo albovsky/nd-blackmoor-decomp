@@ -1,6 +1,6 @@
 # Decomp progress view
 
-A playable-build panel followed by a decomp.dev-style view of how much of `GAME.EXE` is reconstructed: a code bar, a data bar and a treemap of units sized by bytes (green matched code, blue hatched matched data, grey not done). Open `index.html` in any browser; it is one offline file with no network access.
+A playable-build panel, a function-ledger panel and a decomp.dev-style view of how much of `GAME.EXE` is reconstructed: a code bar, a data bar and a treemap of units sized by bytes (green matched code, blue hatched matched data, grey not done). Open `index.html` in any browser; it is one offline file with no network access.
 
 This is separate from `../progress-map/` (the older function-start map with oracle and quarantine panels). Nothing in that directory is read or changed.
 
@@ -12,9 +12,11 @@ This is separate from `../progress-map/` (the older function-start map with orac
 | `playable.py` | Validates playable evidence and derives parser/live-handler coverage from committed source. |
 | `../playable-status.json` | Schema-versioned, sanitized live-session evidence and committed test totals. |
 | `../scripts/record_playable_status.py` | Refreshes live evidence using the native app; raw logs stay private. |
+| `function_ledger.py` | Function-ledger derivation and strict validator (FL-1), loaded by `generate.py` like `playable.py`. |
+| `../function-ledger.json` | Committed function ledger (`blackmoor-function-ledger/1`): one status per function; built by `../scripts/build_function_ledger.py --write`. |
 | `layout.json` | Public structural facts: sections, code regions, data pieces. Sums to 1,511,424 bytes. |
 | `template.html` | Page source (treemap, bars, table view, search, light and dark themes). |
-| `progress.json` | Generated model: totals, groups, units, per-function tuples `[va, span, matched_code, matched_data]`, provenance byte/function counts and pinned audit inputs. A complete audited function's code plus audited tables/padding must fill its indexed span; only code adds matched code bytes. |
+| `progress.json` | Generated model (including the compact `function_ledger` panel when a ledger exists): totals, groups, units, per-function tuples `[va, span, matched_code, matched_data]`, provenance byte/function counts and pinned audit inputs. A complete audited function's code plus audited tables/padding must fill its indexed span; only code adds matched code bytes. |
 | `REPORT.md` | Generated text report. |
 | `index.html` | Generated page with the model embedded. |
 | `preview.png` | Headless page export, refreshed with `--preview-browser`. |
@@ -47,7 +49,7 @@ Action coverage is derived by `playable.py`, rather than maintained as a handwri
 - Corpus scene and per-type record counts come from `action-census-current.json`. Apply the `known_body_length` cases in `src/scene_resource.c` to those per-type counts; see the generated panel/report for current typed and opaque family/record totals. This source-based projection assumes the corpus records satisfy each registered layout; it does not reparse original resources.
 - Built-ins come from `scene_executor.c`: core type dispatch (cross-checked with `action_core.c`), dispatched scene/clock branches, and hotspot types with the raw `0x15` → runtime `0x0d` mapping. The dependency-only `0x9f` reset is excluded from built-in coverage.
 - Session UI handlers come from the installed callback/present slots in `scene_session.c`. External handlers come from the binding array installed by `create_native_scene_session` in `blackmoor_app.mm`, resolving type constants through headers and confirming callback definitions in the app or `session_bindings_*.c`. Diagnostic-only app handlers and unwired modules are excluded.
-- Live binding slots/counts and reserved types are cross-checked. Preprocessor conditionals inside scanned functions, registrations in conditional/nested scopes, and changed syntax that cannot be recognized fail generation. The generated panel/report list the handled and unsupported families and record totals; unsupported families include `0x35`, `0x37`, `0x38`, `0x3f`, `0x97` and `0xa1`.
+- Live binding slots/counts and reserved types are cross-checked. Preprocessor conditionals inside scanned functions, registrations in conditional/nested scopes, and changed syntax that cannot be recognized fail generation. The generated panel/report list the handled and unsupported families and record totals; unsupported families (typed, no live handler) include `0x38`, `0x3f` and `0xa1`. One callback may serve several types (`0x16`/`0x17` share the A17 handler, `0x36`/`0x37` the A36 handler); registering one type twice fails generation as an invalid live action binding.
 
 “Native handler” means a live dispatch path exists for the family. The handled record count is an upper bound: raw `0x15` is a hotspot only when `typed_body[0] == 0x0d`. Branches, providers, dependencies and media may still block individual records, including handled families. It is not a count of fully playable records. All registration inputs read during derivation (including searched headers and callback units), their hashes and the actual registration sets are included in `progress.json` and pinned in recorded evidence. Tests mutate scratch source/evidence copies and require stale or conditional claims to fail closed.
 
@@ -55,6 +57,22 @@ Run the public-only acceptance tests:
 
     python3 -m unittest discover -s outputs/blackmoor-decomp/decomp-progress -p test_progress.py
     python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p test_record_playable_status.py
+
+## Function ledger panel
+
+`index.html` shows a "Function ledger" panel between the playable-build panel and the x86 bars, and `REPORT.md` has a matching "Function ledger" section. It answers a different question from the x86 bars: not "which bytes match", but "which of the 4,188 functions has a recorded status": `ported` (a reviewed claim that native code or a test covers it), `not_needed` (a reviewed reason) or `pending`. Ported is never an x86 match and the two tracks are shown side by side in a cross-tab. The ledger is derived and validated by `function_ledger.py`; see [FL-0](../tasks/FL-0-function-ledger.md) for the rules. This is not the whole-file range ledger that `--ledger` reads.
+
+What the panel shows: Ported (oracle-verified, tests-only, adapter), Not needed (by reason) and Pending (by subclass) counts; a stacked status bar per region; a cross-tab of x86-matched functions against native port status; and a table with status, region and class filters, address search (an address inside a function finds that function) and paging. Rows are `[va, span, region_i, status_i, class_i, ev_i]`; `ev_i` indexes a shared details table. Evidence links are relative (`../src/...`, `../tests/...`). Private receipts appear as a name plus sha256 only. Caveats are printed on the page and in the report.
+
+How generation treats it (`generate.py`):
+
+- If `function-ledger.json` is absent from `--evidence-dir` (or `--function-ledger-root`) the panel is hidden and everything else is generated as before.
+- Otherwise the ledger must pass strict schema validation and equal a fresh derivation from the committed, hash-pinned inputs (`function-xrefs.json`, `function-evidence.json`, `function-ledger-overrides.json`, the function index, layout, census and x86 manifests). Any difference fails with `error: function ledger stale; rerun scripts/build_function_ledger.py --write`; an input the derivation rejects fails with `error: function ledger invalid: ...`.
+- Only committed files are read. The generator never reads `work/` or the original executable for the ledger, so drift in private receipts is not detected here (`scripts/extract_function_evidence.py --check` does that). Committed `src/` and `tests/` files that the evidence cites are re-hashed: after changing one, run `scripts/extract_function_evidence.py --write` then `scripts/build_function_ledger.py --write` before regenerating the map, or generation stops with `error: function ledger invalid: ... pointer sha256 differs`.
+- `--ledger-functions N` changes the pinned function count (default 4,188; the fixture tree uses 30). `--function-ledger-root DIR` reads the ledger and its inputs from another tree (the tests use `fixtures/function-ledger/`).
+- The first publication has 0 ported and 0 not needed, so the panel says so plainly: it is the honest baseline, with more than 80% of functions pending. Pending subclasses are leads, not progress.
+
+Run the panel tests (they also cover the generator): `python3 -m unittest test_progress.FunctionLedgerTests` from this directory. A test that renders the page needs a headless Chromium (`BLACKMOOR_PREVIEW_BROWSER` or the default Playwright path) and is skipped without one.
 
 ## Evidence and what counts as matched
 

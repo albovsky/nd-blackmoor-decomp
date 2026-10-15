@@ -29,6 +29,7 @@
 #include "session_bindings_a0b.h"
 #include "session_bindings_a97.h"
 #include "session_bindings_aa1.h"
+#include "session_bindings_a83.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -219,6 +220,11 @@ struct NativeApp {
     SessionA97Binding *a97 = nullptr;
     /* RT-21: raw 0xa1 "Sound" (loader arm 0x40f069, dispatcher arm 0x4297be). */
     SessionAa1Binding *aa1 = nullptr;
+    SessionA83Binding *a83 = nullptr;
+    /* Native bounds; not a declaration of original global capacities. */
+    uint8_t phone_mail[100][A83_MAIL_BYTES]{};
+    uint8_t phone_web[100][A83_WEB_BYTES]{};
+    A83World phone_lists{};
     SessionA79Binding *a79 = nullptr;
     /* RT-14: raw 0x36 static overlays (COverlay). */
     SessionA36Binding *a36 = nullptr;
@@ -1732,6 +1738,7 @@ static void cleanup(NativeApp *app)
     session_a35_destroy(app->a35);
     session_a97_destroy(app->a97);
     session_aa1_destroy(app->aa1);
+    session_a83_destroy(app->a83);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -2771,6 +2778,60 @@ static void native_aa1_event_stored(void *context, size_t row, int16_t id, int32
            "(dword 0x585801+id*4 := byte +0xa7, 0x432e35)", row, (int)id, value, previous);
 }
 
+static int native_a83_refresh(void *context, int16_t group, int32_t active, int16_t child)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (active != 1) return 2;
+    const int status = scene_session_mark_ui_dirty(app->session, group, child);
+    record(app, "scene_a83_refresh group=%d active=%d child=%d mail_count=%d web_count=%d status=%d",
+           group, active, child, app->phone_lists.mail_count, app->phone_lists.web_count, status);
+    return status == SCENE_SESSION_OK ? 0 : 2;
+}
+
+static int native_a83_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int status = session_a83_handler(app->a83, row, action, before, out);
+    if (status == SCENE_ACTION_HANDLER_OK && out->disposition != SCENE_ACTION_HANDLER_DIRECT_COMPLETED) {
+        record(app, "scene_a83_not_applied row=%zu disposition=%d phase=%u", row, out->disposition, out->phase);
+    } else if (status == SCENE_ACTION_HANDLER_OK) {
+        const A83Result *last = session_a83_last_result(app->a83);
+        record(app, "scene_a83_applied row=%zu list=%s selected=%d inserted=%u mail_count=%d web_count=%d disposition=%d phase=%u",
+               row, last != nullptr && last->list != 0u ? "web" : "mail",
+               last != nullptr ? last->selected : -1, last != nullptr ? last->inserted : 0u,
+               app->phone_lists.mail_count, app->phone_lists.web_count, out->disposition, out->phase);
+    } else
+        record(app, "scene_a83_blocker row=%zu status=%d detail=%s", row, status,
+               session_a83_failure(app->a83));
+    return status;
+}
+
+/* The 0x83 phone lists: bind the native storage, run the UICL initializer
+ * (0x4e4337 / 0x4e2e64..0x4e2fa4) and create the binding. A previous binding
+ * (a repeated call) is destroyed first so it is neither leaked nor left
+ * pointing at the re-initialized lists. Capacities are native bounds, not
+ * original globals. */
+static bool create_phone_list_binding(NativeApp *app, const uint8_t *uicl, size_t uicl_length)
+{
+    if (app->a83 != nullptr) {
+        record(app, "scene_a83_replaced_previous_binding");
+        session_a83_destroy(app->a83);
+        app->a83 = nullptr;
+    }
+    app->phone_lists.mail = app->phone_mail;
+    app->phone_lists.mail_capacity = 100u;
+    app->phone_lists.web = app->phone_web;
+    app->phone_lists.web_capacity = 100u;
+    if (action83_initialize(&app->phone_lists, uicl, uicl_length) != A83_OK) return false;
+    SessionA83Host a83_host{&app->phone_lists, {app, native_a83_refresh}};
+    app->a83 = session_a83_create(&a83_host);
+    if (app->a83 == nullptr) return false;
+    record(app, "scene_a83_initialized source=BOOT/UICL mail_count=%d web_count=%d",
+           app->phone_lists.mail_count, app->phone_lists.web_count);
+    return true;
+}
+
 /* RT-13: 0x4e812f is the original inventory view rebuild that follows a list
  * change. The native app has no inventory view model (and no item type table),
  * so this provider only records that the original would have rebuilt the view.
@@ -3174,6 +3235,13 @@ static bool create_native_session_bindings(NativeApp *app)
     aa1_host.load_events = native_aa1_load_events;
     aa1_host.event_stored = native_aa1_event_stored;
     app->aa1 = session_aa1_create(&aa1_host);
+    const uint8_t *uicl = nullptr;
+    size_t uicl_length = 0;
+    if (!find_boot_payload(app, "UICL", &uicl, &uicl_length) ||
+        !create_phone_list_binding(app, uicl, uicl_length)) {
+        record(app, "scene_session_create_error provider=action-family-83 detail=UICL-initial-lists");
+        return false;
+    }
     SessionA79Host a79_host{};
     {
         const WorldInitInventory &inventory = app->new_game.view.inventory;
@@ -3227,7 +3295,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -3459,6 +3527,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
         return false;
     }
     if (session_a35_begin_scene(app->a35, app->scene) != A35_RUNTIME_OK) return false;
+    if (session_a83_begin_scene(app->a83, app->scene) != A83_OK) {
+        record(app, "scene_session_create_error provider=action-family-83 detail=%s",
+               session_a83_failure(app->a83));
+        return false;
+    }
     if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_a97_failure(app->a97));
@@ -3913,7 +3986,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[14]{};
+    SceneSessionActionBinding bindings[15]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -3956,22 +4029,26 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[10].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[10].callback = session_a0b_handler;
     bindings[10].context = app->a0b;
+    bindings[11].type = SESSION_A83_TYPE;
+    bindings[11].provider = SCENE_SESSION_PROVIDER_A83;
+    bindings[11].callback = native_a83_handler;
+    bindings[11].context = app;
     /* RT-18: raw 0x37 rows run through the same COverlay handler (runtime type 0x36). */
-    bindings[11].type = SESSION_A37_TYPE;
-    bindings[11].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[11].callback = session_a36_handler;
-    bindings[11].context = app->a36;
-    /* RT-19: raw 0x78 add inventory item (dispatcher arm 0x42944b, gate mode 0). */
-    bindings[12].type = SESSION_A78_TYPE;
+    bindings[12].type = SESSION_A37_TYPE;
     bindings[12].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[12].callback = session_a78_handler;
-    bindings[12].context = app->a78;
+    bindings[12].callback = session_a36_handler;
+    bindings[12].context = app->a36;
+    /* RT-19: raw 0x78 add inventory item (dispatcher arm 0x42944b, gate mode 0). */
+    bindings[13].type = SESSION_A78_TYPE;
+    bindings[13].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[13].callback = session_a78_handler;
+    bindings[13].context = app->a78;
     /* RT-21: raw 0xa1 Sound (dispatcher arm 0x4297be shared with 0x9f; provider as raw 0x97). */
-    bindings[13].type = SESSION_AA1_TYPE;
-    bindings[13].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
-    bindings[13].callback = native_aa1_handler;
-    bindings[13].context = app;
-    config.action_binding_count = 14u;
+    bindings[14].type = SESSION_AA1_TYPE;
+    bindings[14].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    bindings[14].callback = native_aa1_handler;
+    bindings[14].context = app;
+    config.action_binding_count = 15u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {

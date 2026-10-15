@@ -629,8 +629,8 @@ def main(*, library=None, report_path=REPORT, quick=False):
             synthetic.append((word, take, swap))
     groups = [('corpus', corpus_triples), ('live-S6453', [live_triple]), ('synthetic', synthetic)]
     rows = [0, 3, 4, 15, 16, 39, 119, 239]
-    seed = cases = false_gate = rejected_observed = rebuild_domain_parity = 0
-    sequences, footprints, per_group, unsafe_by_reason = {}, {}, {}, {}
+    seed = cases = false_gate = rejected_observed = rebuild_domain_parity = original_faulted = 0
+    sequences, footprints, per_group, unsafe_by_reason, faulted_by_type = {}, {}, {}, {}, {}
     per_case_budget = 8 if quick else 26
     for group, triple_list in groups:
         per_group[group] = 0
@@ -667,10 +667,11 @@ def main(*, library=None, report_path=REPORT, quick=False):
                         except OracleError:
                             raise
                         except Exception as error:
-                            unsafe_by_reason[REBUILD_DOMAIN + ' (original faulted: ' +
-                                             type(error).__name__ + ')'] = \
-                                unsafe_by_reason.get(REBUILD_DOMAIN + ' (original faulted: ' +
-                                                     type(error).__name__ + ')', 0) + 1
+                            # NOT rejected by native (it accepts and applies the visit); the
+                            # original faults under Unicorn, so there is no parity claim.
+                            faulted_by_type[type(error).__name__] = \
+                                faulted_by_type.get(type(error).__name__, 0) + 1
+                            original_faulted += 1
                             continue
                         rebuild_domain_parity += 1
                 if got is None:
@@ -699,7 +700,12 @@ def main(*, library=None, report_path=REPORT, quick=False):
         loader_cases=loader_cases,
         cases=cases, cases_by_input_group=per_group, false_gate_cases=false_gate,
         true_gate_cases=cases - false_gate, mismatches=0,
-        unsafe_cases_rejected_by_native=rejected_observed, unsafe_cases_by_reason=unsafe_by_reason,
+        unsafe_cases_rejected_by_native=rejected_observed, native_rejected_by_reason=unsafe_by_reason,
+        original_faulted_no_parity=original_faulted, original_faulted_by_type=faulted_by_type,
+        original_faulted_note='native-ACCEPTED cases (not rejections) whose insertion makes the real 0x4e812f '
+                              'read outside its item type table: the original faults under Unicorn, so '
+                              'non-duplicate insertion beside an out-of-table decoy list word is UNVERIFIED '
+                              '(rebuild_domain_cases_with_parity is 0)',
         rebuild_domain_cases_with_parity=rebuild_domain_parity,
         event_sequences=dict(sorted(sequences.items())),
         write_footprint_classes=dict(sorted(footprints.items())),
@@ -715,7 +721,11 @@ def main(*, library=None, report_path=REPORT, quick=False):
                     'what 0x4e812f derives (0x583a2d/2f, 0x583abd, 0x583b49, view object): runs but is not modeled',
                     'what 0x4fb2e3 does after the request (slot trigger word, mixer service): replaced, host effect',
                     'what the UI animation cells 0x5a1958/0x5a195c drive (button rendering): stores observed, not modeled',
-                    'view mode 2 / slot flag reachability in play (the native app never opens the inventory view)',
+                    'view mode 2 / slot flag reachability in play (the native app never opens the inventory view; '
+                    'view byte +0x7010 has no writer in the image, only the read at 0x4e9efa, so the item-last '
+                    'layout is unreachable unless something initialises it: revisit with an inventory screen)',
+                    'non-duplicate insertion beside an out-of-table decoy list word (the real rebuild faults '
+                    'under Unicorn; rebuild_domain_cases_with_parity is 0)',
                     'dispatcher loop ordering around the arm (executor tests)',
                     'external-CIF scenes other than S6453 / S6400'],
         seconds=round(time.monotonic() - started, 2))

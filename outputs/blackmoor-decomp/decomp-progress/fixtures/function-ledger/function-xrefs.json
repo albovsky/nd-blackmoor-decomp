@@ -1,0 +1,159 @@
+{
+ "schema": "blackmoor-function-xrefs/1",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "inputs": [
+  {"path": "GAME.EXE", "sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45", "role": "original"},
+  {"path": "outputs/blackmoor-decomp/function-index.json", "sha256": "730a1b50011030bace502fb987c2051c8f378dd19c7dbf07713c0a4588549975", "role": "function_index"},
+  {"path": "outputs/blackmoor-decomp/decomp-progress/layout.json", "sha256": "00072459e24a4fbbda0165b56ae5489078d5a6d33288b99f8cc87704c1045f58", "role": "layout"},
+  {"path": "work/analysis/m0/fable-census/functions.jsonl", "sha256": "be72a6516519538d1169a755dee5f9d35e3c8be1e59631fd2d8243ae81872250", "role": "ghidra_census"},
+  {"path": "outputs/blackmoor-decomp/scripts/gen_hinted_asm.py", "sha256": "3f2710adcf7ae0044f374fb901f457739411c465a58afbdd0c3ecb12830af86b", "role": "span_split_tool"}
+ ],
+ "tools": {
+  "disassembler": "synthetic fixture",
+  "note": "informational; ignored by --check"
+ },
+ "parameters": {
+  "seam_distance": 1024,
+  "boundaries": [
+   "0x00404000",
+   "0x00406000"
+  ]
+ },
+ "regions": [
+  {"id": "game", "start_va": "0x00401000", "end_va": "0x00404000"},
+  {"id": "vorbis", "start_va": "0x00404000", "end_va": "0x00406000"},
+  {"id": "crt_mfc", "start_va": "0x00406000", "end_va": "0x00409000"}
+ ],
+ "roots": {
+  "image_base": "0x00400000",
+  "entry_point": "0x00407700",
+  "entry_function": "0x00407700"
+ },
+ "counts": {
+  "entries": 30,
+  "span_bytes": 32768,
+  "origin": {
+   "game": 14,
+   "library": 11,
+   "compiler_eh": 3,
+   "import_thunk": 1,
+   "unknown": 1
+  },
+  "region": {
+   "crt_mfc": 13,
+   "game": 14,
+   "vorbis": 3
+  },
+  "origin_by_region": {
+   "crt_mfc": {
+    "game": 0,
+    "library": 9,
+    "compiler_eh": 3,
+    "import_thunk": 1,
+    "unknown": 0
+   },
+   "game": {
+    "game": 14,
+    "library": 0,
+    "compiler_eh": 0,
+    "import_thunk": 0,
+    "unknown": 0
+   },
+   "vorbis": {
+    "game": 0,
+    "library": 2,
+    "compiler_eh": 0,
+    "import_thunk": 0,
+    "unknown": 1
+   }
+  },
+  "eh_funclets": {
+   "unwind": 2,
+   "catch": 1
+  },
+  "eh_funclets_by_parent_region": {
+   "unwind": {
+    "game": 2
+   },
+   "catch": {
+    "game": 1
+   }
+  },
+  "thunks": {
+   "total": 2,
+   "import": 2,
+   "jump": 0
+  },
+  "eh_stubs": 0,
+  "derived_parts": {
+   "total": 3,
+   "import_thunk": 1,
+   "jump_thunk": 0,
+   "eh_handler_stub": 0,
+   "eh_funclet": 0,
+   "fallthrough_fragment": 1,
+   "code": 1
+  },
+  "reach": {
+   "entry": 0,
+   "game": 14,
+   "unknown_origin": 1,
+   "address_taken": 3,
+   "reachable": 7,
+   "unreached": 5
+  },
+  "seam": 3,
+  "analysis_incomplete": 1,
+  "address_taken": 4,
+  "reaches_game": 1,
+  "edges": 17,
+  "functions_with_imports": 3
+ },
+ "imports": [
+  "KERNEL32.dll!GetCurrentThreadId",
+  "KERNEL32.dll!GetTickCount",
+  "KERNEL32.dll!OutputDebugStringA"
+ ],
+ "thunks": [
+  {"va": "0x00401380", "size": 6, "kind": "import", "import": "KERNEL32.dll!GetTickCount", "container": "0x00401340", "ghidra_thunk": true},
+  {"va": "0x00407600", "size": 6, "kind": "import", "import": "KERNEL32.dll!GetTickCount", "container": "0x00407600", "ghidra_thunk": true}
+ ],
+ "eh_stubs": [],
+ "derived_parts": [
+  {"va": "0x00401380", "parent": "0x00401340", "size": 6, "kind": "import_thunk", "direct_refs": 1, "data_refs": 0, "code_addr_refs": 0},
+  {"va": "0x004013a0", "parent": "0x00401340", "size": 32, "kind": "code", "direct_refs": 1, "data_refs": 0, "code_addr_refs": 0},
+  {"va": "0x00401e80", "parent": "0x00401e00", "size": 16, "kind": "fallthrough_fragment", "direct_refs": 1, "data_refs": 0, "code_addr_refs": 0}
+ ],
+ "entries": [
+  {"va": "0x00401000", "name": "FUN_00401000", "region": "game", "span": 256, "body_size": 240, "code_size": 240, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401800"], "callees": ["0x00401100", "0x00401300", "0x00401340", "0x004014c0", "0x00401600", "0x00401700", "0x00401900", "0x00401a00", "0x00401e00", "0x00404000", "0x00405c00", "0x00406000"], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 1, "address_taken": true, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": ["0x00407300"], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401100", "name": "FUN_00401100", "region": "game", "span": 512, "body_size": 496, "code_size": 496, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": ["0x00407500"], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401300", "name": "FUN_00401300", "region": "game", "span": 64, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401340", "name": "FUN_00401340", "region": "game", "span": 384, "body_size": 368, "code_size": 368, "analysis_complete": true, "derived_parts": ["0x00401380", "0x004013a0"], "contains_thunks": ["0x00401380"], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x004014c0", "name": "FUN_004014c0", "region": "game", "span": 320, "body_size": 304, "code_size": 304, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": ["0x00407100"], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401600", "name": "FUN_00401600", "region": "game", "span": 256, "body_size": 240, "code_size": 240, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401700", "name": "FUN_00401700", "region": "game", "span": 256, "body_size": 240, "code_size": 240, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401800", "name": "FUN_00401800", "region": "game", "span": 256, "body_size": 240, "code_size": 240, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00407000"], "callees": ["0x00401000", "0x00407800"], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": ["0x00407400"], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401900", "name": "FUN_00401900", "region": "game", "span": 256, "body_size": 248, "code_size": 248, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401a00", "name": "FUN_00401a00", "region": "game", "span": 256, "body_size": 240, "code_size": 240, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401b00", "name": "FUN_00401b00", "region": "game", "span": 256, "body_size": 32, "code_size": 32, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401c00", "name": "FUN_00401c00", "region": "game", "span": 256, "body_size": 48, "code_size": 48, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401d00"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": ["KERNEL32.dll!OutputDebugStringA"], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401d00", "name": "FUN_00401d00", "region": "game", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": [], "callees": ["0x00401c00"], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": ["KERNEL32.dll!GetCurrentThreadId"], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00401e00", "name": "FUN_00401e00", "region": "game", "span": 8704, "body_size": 8448, "code_size": 8448, "analysis_complete": true, "derived_parts": ["0x00401e80"], "contains_thunks": [], "thunk": false, "std_frame": true, "seam": false, "origin": "game", "origin_basis": "band_game", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "game", "reaches_game": false},
+  {"va": "0x00404000", "name": "FUN_00404000", "region": "vorbis", "span": 2048, "body_size": 1792, "code_size": 1792, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": true, "origin": "unknown", "origin_basis": "seam_unresolved", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "unknown_origin", "reaches_game": false},
+  {"va": "0x00404800", "name": "FUN_00404800", "region": "vorbis", "span": 5120, "body_size": 4864, "code_size": 4864, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "unreached", "reaches_game": false},
+  {"va": "0x00405c00", "name": "FUN_00405c00", "region": "vorbis", "span": 1024, "body_size": 768, "code_size": 768, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": true, "origin": "library", "origin_basis": "band_library", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00406000", "name": "FUN_00406000", "region": "crt_mfc", "span": 2048, "body_size": 128, "code_size": 128, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": true, "origin": "library", "origin_basis": "band_library", "callers": ["0x00401000"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": ["lcg_rand"], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00406800", "name": "FUN_00406800", "region": "crt_mfc", "span": 2048, "body_size": 1792, "code_size": 1792, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "unreached", "reaches_game": false},
+  {"va": "0x00407000", "name": "FUN_00407000", "region": "crt_mfc", "span": 256, "body_size": 128, "code_size": 128, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": ["0x00401800"], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "unreached", "reaches_game": true},
+  {"va": "0x00407100", "name": "FUN_00407100", "region": "crt_mfc", "span": 256, "body_size": 128, "code_size": 128, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": ["0x004014c0"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00407200", "name": "FUN_00407200", "region": "crt_mfc", "span": 256, "body_size": 128, "code_size": 128, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 1, "data_refs_unaligned": 0, "has_data_ref": true, "code_addr_refs": 0, "address_taken": true, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "address_taken", "reaches_game": false},
+  {"va": "0x00407300", "name": "FUN_00407300", "region": "crt_mfc", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "compiler_eh", "origin_basis": "eh_funclet", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": "unwind", "eh_parent": "0x00401000", "eh_parents": ["0x00401000"], "eh_parent_region": "game", "eh_funclets": [], "fingerprints": [], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00407400", "name": "FUN_00407400", "region": "crt_mfc", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "compiler_eh", "origin_basis": "eh_funclet", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": "unwind", "eh_parent": "0x00401800", "eh_parents": ["0x00401800"], "eh_parent_region": "game", "eh_funclets": [], "fingerprints": [], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00407500", "name": "FUN_00407500", "region": "crt_mfc", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "compiler_eh", "origin_basis": "eh_funclet", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": "catch", "eh_parent": "0x00401100", "eh_parents": ["0x00401100"], "eh_parent_region": "game", "eh_funclets": [], "fingerprints": [], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00407600", "name": "FUN_00407600", "region": "crt_mfc", "span": 256, "body_size": 6, "code_size": 6, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": true, "std_frame": false, "seam": false, "origin": "import_thunk", "origin_basis": "lone_import_jump", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": ["KERNEL32.dll!GetTickCount"], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 1, "address_taken": true, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "address_taken", "reaches_game": false},
+  {"va": "0x00407700", "name": "FUN_00407700", "region": "crt_mfc", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 1, "data_refs_unaligned": 0, "has_data_ref": true, "code_addr_refs": 0, "address_taken": true, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "address_taken", "reaches_game": false},
+  {"va": "0x00407800", "name": "FUN_00407800", "region": "crt_mfc", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": ["0x00401800"], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "reachable", "reaches_game": false},
+  {"va": "0x00407900", "name": "FUN_00407900", "region": "crt_mfc", "span": 256, "body_size": 64, "code_size": 64, "analysis_complete": true, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": ["x87_ftol"], "reach": "unreached", "reaches_game": false},
+  {"va": "0x00407a00", "name": "FUN_00407a00", "region": "crt_mfc", "span": 5632, "body_size": 5376, "code_size": null, "analysis_complete": false, "derived_parts": [], "contains_thunks": [], "thunk": false, "std_frame": false, "seam": false, "origin": "library", "origin_basis": "band_library", "callers": [], "callees": [], "tail_callees": [], "indirect_calls": 0, "indirect_jumps": 0, "imports": [], "data_refs": 0, "data_refs_unaligned": 0, "has_data_ref": false, "code_addr_refs": 0, "address_taken": false, "eh_kind": null, "eh_parent": null, "eh_parents": [], "eh_parent_region": null, "eh_funclets": [], "fingerprints": [], "reach": "unreached", "reaches_game": false}
+ ]
+}
