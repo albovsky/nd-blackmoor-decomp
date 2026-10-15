@@ -23,6 +23,7 @@
 #include "session_bindings_a35.h"
 #include "session_bindings_a35_bink.h"
 #include "session_bindings_a79.h"
+#include "session_bindings_a36.h"
 #include "session_bindings_a97.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -207,6 +208,10 @@ struct NativeApp {
     SessionA35Binding *a35 = nullptr;
     SessionA97Binding *a97 = nullptr;
     SessionA79Binding *a79 = nullptr;
+    /* RT-14: raw 0x36 static overlays (COverlay). */
+    SessionA36Binding *a36 = nullptr;
+    std::array<uint64_t, OVERLAY36_MAX_ROWS> a36_blit_signature{};
+    uint64_t a36_blits = 0u;
     /* RT-13: count of 0x4e812f view rebuilds requested by raw 0x79 (the native
      * app has no inventory view model yet; see native_a79_rebuild_view). */
     uint64_t inventory_view_rebuilds = 0u;
@@ -283,6 +288,8 @@ struct NativeApp {
     SessionInputState input_state{};
     ProvisionalCursorProvider cursor_provider{};
     int32_t logged_candidate = -2;
+    /* RT-14: the overlay hot-rectangle failure is logged once per scene. */
+    bool a36_hot_rects_failure_logged = false;
     bool primary_down = false;
     bool primary_pressed = false, primary_released = false;
     bool failure = false;
@@ -1089,6 +1096,18 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
         captions.transfer_failed_sticky = true;
         return false;
     }
+    if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u) {
+        /* RT-14: the overlay entries of the render pass 0x4cf9f4 (layers 0..20),
+         * drawn into the seeded back buffer before the caption layers. */
+        size_t drawn = 0u;
+        const int status = session_a36_render(app->a36, 0, 20, &drawn);
+        if (status != OVERLAY36_OK) {
+            record(app, "scene_a36_render_error status=%d detail=%s", status,
+                   session_a36_failure(app->a36));
+            captions.transfer_failed_sticky = true;
+            return false;
+        }
+    }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
         record(app, "caption_composition_stopped reason=writer-failed status=%d "
@@ -1641,6 +1660,7 @@ static void cleanup(NativeApp *app)
     session_a35_destroy(app->a35);
     session_a97_destroy(app->a97);
     session_a79_destroy(app->a79);
+    session_a36_destroy(app->a36);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
     app->a28 = nullptr;
@@ -2635,6 +2655,171 @@ static int native_a79_rebuild_view(void *context, int16_t removed_item)
     return 0;
 }
 
+/* ---- RT-14: host providers for the raw 0x36 overlay binding -------------
+ * COverlay (0x4899ca) registers a render entry per row, draws it every frame
+ * through 0x48a3db and is hit-tested by the pointer cascade (0x4f104f ->
+ * 0x4897cd). Surfaces are the game's own CIFTREE images (0x4c2790), blits are
+ * the recovered 0x4c5377/0x4c5d4b into the host back buffer. Sounds named by an
+ * overlay (0x4fb77a family) have no native backend here: such a row is an
+ * explicit UNSUPPORTED blocker before it registers. */
+static int native_a36_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "overlay");
+    if (handle == 0u) {
+        record(app, "scene_a36_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    return 0;
+}
+
+static int native_a36_tick_count(void *context, uint32_t *ticks)
+{
+    if (context == nullptr || ticks == nullptr) return 1;
+    *ticks = blackmoor_macos_monotonic_ms();
+    return 0;
+}
+
+static int native_a36_row_phase(void *context, int32_t row, uint32_t *phase)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    SceneActionRuntimeState state{};
+    if (app == nullptr || app->session == nullptr || phase == nullptr || row < 0 ||
+        scene_session_get_action_state(app->session, static_cast<size_t>(row), &state) !=
+            SCENE_SESSION_OK) return 1;
+    *phase = state.phase;
+    return 0;
+}
+
+static int native_a36_blit(void *context, const Overlay36Blit *op)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || op == nullptr) return 1;
+    NativeCaptionRuntime &captions = app->captions;
+    CaptionCompositorView source{};
+    CaptionCompositorView destination{};
+    destination.pixels = captions.backbuffer_pixels.data();
+    destination.byte_capacity = captions.backbuffer_pixels.size();
+    destination.width = 640;
+    destination.height = 480;
+    destination.pitch_bytes = 1280;
+    destination.format = captions.compositor_format;
+    int status = CAPTION_COMPOSITOR_OK;
+    if (!captions.backbuffer_ready || op->source_surface == 0u ||
+        !native_caption_view_for_handle(app, op->source_surface, &source))
+        status = CAPTION_COMPOSITOR_ERR_UNSUPPORTED;
+    const CaptionRect src{op->src[0], op->src[1], op->src[2], op->src[3]};
+    const CaptionRect dst{op->dst[0], op->dst[1], op->dst[2], op->dst[3]};
+    if (status == CAPTION_COMPOSITOR_OK)
+        status = caption_compositor_blit(&source, &destination,
+            op->kind == OVERLAY36_BLIT_PLAIN ? CAPTION_BLIT_OPAQUE : CAPTION_BLIT_KEYED,
+            &src, &dst, captions.pixel_format.color_key);
+    if (status != CAPTION_COMPOSITOR_OK) {
+        record(app, "scene_a36_blit_error row=%d slot=%d kind=%d surface=%u status=%d src=%d,%d,%d,%d "
+               "dst=%d,%d,%d,%d label=%s", op->row, op->slot, op->kind, op->source_surface, status,
+               op->src[0], op->src[1], op->src[2], op->src[3], op->dst[0], op->dst[1], op->dst[2],
+               op->dst[3], op->label ? op->label : "unknown");
+        return 1;
+    }
+    ++app->a36_blits;
+    /* One line per distinct blit of a row, not one per frame. */
+    uint64_t signature = UINT64_C(14695981039346656037);
+    for (int value : {op->kind, static_cast<int>(op->source_surface), op->src[0], op->src[1], op->src[2],
+                      op->src[3], op->dst[0], op->dst[1], op->dst[2], op->dst[3]}) {
+        signature ^= static_cast<uint32_t>(value);
+        signature *= UINT64_C(1099511628211);
+    }
+    if (op->row >= 0 && static_cast<size_t>(op->row) < app->a36_blit_signature.size() &&
+        app->a36_blit_signature[static_cast<size_t>(op->row)] != signature) {
+        app->a36_blit_signature[static_cast<size_t>(op->row)] = signature;
+        record(app, "scene_a36_blit row=%d slot=%d kind=%s surface=%u src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+               "composed=RGB555-backbuffer scope=host-adapter (layer order vs UI unverified)",
+               op->row, op->slot, op->kind == OVERLAY36_BLIT_PLAIN ? "plain" : "keyed",
+               op->source_surface, op->src[0], op->src[1], op->src[2], op->src[3],
+               op->dst[0], op->dst[1], op->dst[2], op->dst[3]);
+    }
+    return 0;
+}
+
+static void native_a36_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    switch (effect) {
+    case OV36_FX_LIST_PUSH:
+        record(app, "scene_a36_register row=%d list_index=%d (COverlay::Process phase 0, 0x4899ca)", b, a);
+        break;
+    case OV36_FX_CACHE_REUSE:
+        record(app, "scene_a36_surface_reuse cache_slot=%d surface=%u", a, static_cast<uint32_t>(b));
+        break;
+    case OV36_FX_SURFACE_LOAD:
+        record(app, "scene_a36_surface_load cache_slot=%d surface=%u source=CIFTREE", a,
+               static_cast<uint32_t>(b));
+        break;
+    case OV36_FX_RENDER_STORE:
+        record(app, "scene_a36_render_entry slot=%d layer=%d callback=0x48a3db", a, b);
+        break;
+    case OV36_FX_PHASE:
+        record(app, "scene_a36_phase new_phase=%d", a);
+        break;
+    case OV36_FX_EVENT_WRITE:
+        record(app, "scene_a36_event_write event=%d value=%d", a, b);
+        break;
+    case OV36_FX_TRANSFER:
+        record(app, "scene_a36_scene_change_words target=%d (0x5bb57b.., mode 0x583999 := 4)", a);
+        break;
+    case OV36_FX_FINISH:
+        record(app, "scene_a36_finish row=%d (0x42ba3a)", a);
+        break;
+    default:
+        break;
+    }
+}
+
+static int native_a36_load_world(void *context, Overlay36World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr || app->new_game.action_core.event_flags == nullptr ||
+        !app->selector_entry_valid || app->selector_entry_frame < INT16_MIN ||
+        app->selector_entry_frame > INT16_MAX) return 1;
+    world->events = app->new_game.action_core.event_flags;
+    world->event_count = app->new_game.action_core.event_flag_count;
+    /* DAT_005bb50b, see native_a62_current_selector. */
+    world->selector = static_cast<int16_t>(app->selector_entry_frame);
+    const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+    world->held_item = held != nullptr ? *held : static_cast<int16_t>(-1);
+    world->start_flag_5bb1ca = app->start_flag_5bb1ca;
+    world->mode_583999 = 3;
+    /* 0x583186 / 0x58318a: left/top of the VIEW destination rectangle. */
+    world->view_x_583186 = app->scene_destination.left;
+    world->view_y_58318a = app->scene_destination.top;
+    /* 0x5d15e3 (saved background of the transparent-restore blit) and the
+     * AUTOTEXT surface globals are not modeled: a blit that needs them fails
+     * explicitly (surface 0). */
+    return 0;
+}
+
+static void native_a36_store_world(void *context, const Overlay36World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_a36_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a36_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1],
+           request->opaque_dwords[2]);
+    return 0;
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2700,13 +2885,24 @@ static bool create_native_session_bindings(NativeApp *app)
     a79_host.view.context = app;
     a79_host.view.rebuild_view = native_a79_rebuild_view;
     app->a79 = session_a79_create(&a79_host);
+    SessionA36Host a36_host{};
+    a36_host.kernel.context = app;
+    a36_host.kernel.load_surface = native_a36_load_surface;
+    a36_host.kernel.tick_count = native_a36_tick_count;
+    a36_host.kernel.row_phase = native_a36_row_phase;
+    a36_host.kernel.blit = native_a36_blit;
+    a36_host.kernel.observe = native_a36_observe;
+    a36_host.load_world = native_a36_load_world;
+    a36_host.store_world = native_a36_store_world;
+    a36_host.transition = native_a36_transition;
+    app->a36 = session_a36_create(&a36_host);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
                                          app->scene_destination.right, app->scene_destination.bottom};
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a79 == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a79 == nullptr || app->a36 == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -2750,6 +2946,26 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
             info.type == SESSION_A97_TYPE)
             record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
                    row, session_a97_selected(app->a97, row));
+    }
+    if (session_a36_begin_scene(app->a36, app->scene) != OVERLAY36_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a36_failure(app->a36));
+        return false;
+    }
+    app->a36_blit_signature.fill(0u);
+    app->a36_hot_rects_failure_logged = false;
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        const char *name = session_a36_row_name(app->a36, row);
+        const uint8_t *image = session_a36_image(app->a36, row);
+        if (name == nullptr || image == nullptr) continue;
+        const auto word = [&](size_t offset) {
+            return static_cast<int>(static_cast<int16_t>(image[offset] | (image[offset + 1u] << 8)));
+        };
+        record(app, "scene_a36_construct row=%zu name=%s layer=%d marker=%d plain_blit=%d "
+               "event=%d/%d scene_change_option=%d primaries=%d secondaries=%d (static overlay, 0x4899ca)",
+               row, name, word(OV36_LAYER), word(OV36_MARKER), word(OV36_PLAIN_23),
+               word(OV36_EVENT_INDEX), word(OV36_EVENT_VALUE), word(OV36_ACTION_25),
+               word(OV36_PRIMARY_COUNT), word(OV36_SECONDARY_COUNT));
     }
     /* ClearSceneData 0x43dbe3 resets 0x5c39f9 before the new ACT table runs. */
     app->movie_world.active = 0;
@@ -2816,13 +3032,41 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
     native_pointer_context(app, &input);
     /* 0x4d3073 resets the global candidate before the 0x4f0059 scan. */
     (void)session_input_publish_candidate(&app->input_state, -1);
-    const int status = session_input_scan(&app->input_state, &input, rows, count);
+    /* RT-14: the overlay hit test (0x4897cd) runs inside the 0x4f0059 cascade
+     * before its generic row loop, in overlay-list order. */
+    std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
+    size_t overlay_count = 0u;
+    if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u &&
+        session_a36_priority_rows(app->a36, overlay_rows.data(), overlay_rows.size(),
+                                  &overlay_count) != OVERLAY36_OK) {
+        if (!app->a36_hot_rects_failure_logged) {
+            app->a36_hot_rects_failure_logged = true;
+            record(app, "scene_a36_hot_rects_unavailable detail=%s (overlay hit test skipped "
+                   "on every tick that fails; logged once per scene)",
+                   session_a36_failure(app->a36));
+        }
+        overlay_count = 0u;
+    }
+    const int status = session_input_scan_priority(&app->input_state, &input, overlay_rows.data(),
+                                                   overlay_count, rows, count);
     *candidate = app->input_state.candidate;
     if (status != SESSION_INPUT_OK) {
         record(app, "pointer_scan_limit status=%d rows=%zu (candidate cleared)", status, count);
     } else if (*candidate != app->logged_candidate) {
         record(app, "pointer_candidate candidate=%d rows=%zu cursor=%d,%d "
                "provisional-geometry=1", *candidate, count, app->pointer_x, app->pointer_y);
+        if (overlay_count != 0u)
+            record(app, "scene_a36_hot_rows candidate=%d overlay_hot_rects=%zu", *candidate,
+                   overlay_count);
+        if (*candidate >= 0) {
+            for (size_t i = 0; i < overlay_count; ++i)
+                if (overlay_rows[i].index == *candidate) {
+                    record(app, "scene_a36_hot_hit row=%d rect=%d,%d,%d,%d (0x4897cd before the generic scan)",
+                           *candidate, overlay_rows[i].rectangle.left, overlay_rows[i].rectangle.top,
+                           overlay_rows[i].rectangle.right, overlay_rows[i].rectangle.bottom);
+                    break;
+                }
+        }
     }
     app->logged_candidate = *candidate;
     return status;
@@ -2937,7 +3181,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[7]{};
+    SceneSessionActionBinding bindings[8]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2964,7 +3208,11 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[6].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[6].callback = session_a79_handler;
     bindings[6].context = app->a79;
-    config.action_binding_count = 7u;
+    bindings[7].type = SESSION_A36_TYPE;
+    bindings[7].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[7].callback = session_a36_handler;
+    bindings[7].context = app->a36;
+    config.action_binding_count = 8u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -3825,6 +4073,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
     const char *detail = "";
     if (r.failure.action_type == SESSION_A79_TYPE) detail = session_a79_failure(app->a79);
     else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
+    else if (r.failure.action_type == SESSION_A36_TYPE) detail = session_a36_failure(app->a36);
     if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
         r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
         (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
@@ -3961,6 +4210,8 @@ static void update(NativeApp *app, uint32_t now)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
             if (session_result.failure.action_type == SESSION_A79_TYPE)
                 record(app, "scene_a79_blocker detail=%s", session_a79_failure(app->a79));
+            if (session_result.failure.action_type == SESSION_A36_TYPE)
+                record(app, "scene_a36_blocker detail=%s", session_a36_failure(app->a36));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {
@@ -4736,6 +4987,21 @@ int main(int argc, char **argv)
                                     left = target.response_words[0]; top = target.response_words[1];
                                     right = target.response_words[2]; bottom = target.response_words[3];
                                     found = true;
+                                } else if (app.a36 != nullptr && session_a36_registered(app.a36) != 0u) {
+                                    /* RT-14: a hot record of a registered raw 0x36 overlay. */
+                                    std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
+                                    size_t overlay_count = 0u;
+                                    if (session_a36_priority_rows(app.a36, overlay_rows.data(),
+                                            overlay_rows.size(), &overlay_count) == OVERLAY36_OK)
+                                        for (size_t i = 0; i < overlay_count; ++i)
+                                            if (overlay_rows[i].index == static_cast<int32_t>(row)) {
+                                                left = overlay_rows[i].rectangle.left;
+                                                top = overlay_rows[i].rectangle.top;
+                                                right = overlay_rows[i].rectangle.right;
+                                                bottom = overlay_rows[i].rectangle.bottom;
+                                                found = true;
+                                                break;
+                                            }
                                 }
                                 if (!found) continue;
                                 if (wanted >= 0 && (long)row != wanted) continue;
