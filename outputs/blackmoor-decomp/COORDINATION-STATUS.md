@@ -12,14 +12,29 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-4 dependency opcodes 11-15/17/20/21 | Reviewed, fixed, on PR 8 |
 | RT-5 scene exit handler + queued 0x28 effect | Reviewed, fixed, on PR 8 |
 | RT-6 wire the pointer module, single hotspot candidate | Reviewed (no P1), merged (PR 10) |
-| A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; runtimes still unimplemented |
+| RT-7 raw 0x35 MOVIE controller init (Codex) | Reviewed (no P1), oracle gap fixed, merged (PR 15) |
+| RT-8 raw 0x97 (runtime 0x9f) text/sound rows (Codex) | Reviewed (no P1), six coverage gaps fixed, merged (PR 18) |
+| RT-9 Bink playback for 0x35: frames, events, embedded audio, completion (Codex) | Reviewed (no P1), findings fixed, merged (PR 20) |
+| RT-10 edge/arrow cascade 0x4f0059; RT-11 sound persistence across scene changes (Codex) | In flight on `codex/rt-10-edge-cascade`, `codex/rt-11-sound-persistence`; not reviewed or merged |
+| A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; 0x35 and 0x97 runtimes now bound (RT-7/8/9), the rest unimplemented |
 | A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 opaque decoders (Codex) | Reviewed, merged (typed 19,507 / opaque 105) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
-Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000`): S0 narration plays, the click enters S5900, and the game's own transitions carry it through S5907 and S5901-S5906; S4700 now loads and ticks; it stops at the unimplemented 0x35 runtime (row 3).
+Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000`): S0 narration plays, the click enters S5900, the game's own transitions carry it through S5907, S5901-S5906 and S4700 (the 0x35 Bink cinematic decodes and presents all 504 frames with its soundtrack on the mixer, the 0x97 rows run), then S4710, S4701, S4711, S4800-S4802, S4712 and S4803-S4807 (22 scenes). It stops loading S4808, row 6, raw 0x83 (opaque, decoder in review on the action-decoding thread). Headless only.
 
-GUI and hardware audio remain unverified.
+GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
+
+## Handoff: runtime path after RT-9 (2026-10-14 5:55 PM PDT)
+
+Merged (PRs 13, 15, 18, 20, each with one independent review): PROG-1.1 progress map (Playable build panel, both audited M03 batches counted: 86 functions, 33,326 code bytes, 2.75% of code), RT-7 (0x35 MOVIE controller), RT-8 (raw 0x97), RT-9 (Bink playback). The suite is 1,269 tests (5 skipped); run it twice after a fresh merge, because the first run uses a stale cached scene-resource library and fails two `test_scene_resource` tests.
+Unverified and carried forward: Bink audio/video sync is a free-run rule (audio starts at the first decode and is not advanced per frame; at 17 ms ticks the soundtrack ends 17 ms after the last frame with about 70 ms left; BinkWait parity and the SDK default volume are unproven); the 0x97 channel defaults (+0x2f..+0x8c, about 22 fields) are not carried by `ActionSoundCommand` and the sound manager at 0x4f5651..0x4f56d8 is not compared; 311 of 1,958 raw-0x97 rows end in a scene change that is covered only by unit tests and the oracle; real threads are modelled sequentially; all of this is headless (no window, no output device).
+Next, in order:
+1. S4808 row 6 raw 0x83 runtime once the action-decoding thread's 0x83 decoder merges (build on it, do not re-decode); read the next stop from the live log and repeat the RT-7/8/9 pattern (Codex implements, one `slice-reviewer`, fix findings, merge, regenerate the map with `build_native_app.sh`, `record_playable_status.py`, `generate.py --preview-browser ~/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell`).
+2. Collect RT-10 (edge/arrow cascade) and RT-11 (sound persistence) from their branches: read `work/analysis/slices/RT-10.handoff.json` / `RT-11.handoff.json`, merge `origin/main` into the branch, run the suite twice, review, merge.
+3. The real window click-through and listening pass (needs computer use or Glib): launch the built app, New Game, click through S0 narration and the opening, watch the S4700 cinematic and listen to its audio sync.
+4. Menus, save/load and the second difficulty (I04/I05).
+Merge hygiene: the other thread merges to `main` often, so a PR can turn conflicting right after a push; the generated progress files (`REPORT.md`, `index.html`, `progress.json`, `playable-status.json`) conflict every time: take either side, rebuild, rerun the recorder and the generator, and rerun `test_progress.py` (its assertions that mirror recorded evidence were made to read it instead of hard-coding it, but counts such as typed/opaque records and the registrations list still need a manual bump).
 
 ## Handoff: opaque scene actions (2026-10-14 12:50 PDT)
 
