@@ -22,6 +22,7 @@
 #include "session_bindings_a51.h"
 #include "session_bindings_a35.h"
 #include "session_bindings_a35_bink.h"
+#include "session_bindings_a79.h"
 #include "session_bindings_a97.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -205,6 +206,10 @@ struct NativeApp {
     SessionA51Binding *a51 = nullptr;
     SessionA35Binding *a35 = nullptr;
     SessionA97Binding *a97 = nullptr;
+    SessionA79Binding *a79 = nullptr;
+    /* RT-13: count of 0x4e812f view rebuilds requested by raw 0x79 (the native
+     * app has no inventory view model yet; see native_a79_rebuild_view). */
+    uint64_t inventory_view_rebuilds = 0u;
     A35World movie_world{};
     /* Process globals mirrored by the controller, alongside the owning
      * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
@@ -243,6 +248,11 @@ struct NativeApp {
      * accepted event (scan + accept reducers + candidate store). */
     bool test_a62_accept = false;
     bool test_a62_accept_done = false;
+    /* RT-13 test hook: seed the New Game inventory (item ids in list order and
+     * the held item) right after world_init_apply_new_game, so the raw 0x79
+     * removal can be followed through the real app wiring. */
+    std::vector<int16_t> test_inventory;
+    int test_held = -2;
     /* RT-5 test hook: load this scene instead of the requested target so the
      * exit effect can be followed into a successor the executor can create.
      * It changes game flow and exists only in the test-hooks build. */
@@ -280,6 +290,9 @@ struct NativeApp {
     bool scene_runtime_enabled = false;
     bool session_block_reported = false;
     bool session_transition_reported = false;
+    /* RT-13: a blocked session stops every later tick, so pointer input is
+     * ignored. The block is reported once; ignored input is counted. */
+    uint64_t blocked_input_ignored = 0u;
     int last_stage = -1, last_hover = -2;
     int16_t initial_scene = 0;
     int16_t current_scene_id = 0;
@@ -1597,6 +1610,15 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     }
     if (event_kind != BLACKMOOR_POINTER_MOVE)
         record(app, "pointer kind=%d x=%d y=%d button=%u", event_kind, x, y, button);
+    if (app->session != nullptr && app->session_block_reported &&
+        event_kind != BLACKMOOR_POINTER_MOVE && button == 0u) {
+        ++app->blocked_input_ignored;
+        /* First and every 20th, so a long freeze stays visible without flooding. */
+        if (app->blocked_input_ignored == 1u || app->blocked_input_ignored % 20u == 0u)
+            record(app, "session_frozen_input_ignored scene=%d count=%llu "
+                   "reason=scene-session-blocked (see session_frozen above)",
+                   app->current_scene_id, (unsigned long long)app->blocked_input_ignored);
+    }
 }
 
 static void key(void *context, unsigned virtual_key, int down, int repeat)
@@ -1618,6 +1640,7 @@ static void cleanup(NativeApp *app)
     session_a51_destroy(app->a51);
     session_a35_destroy(app->a35);
     session_a97_destroy(app->a97);
+    session_a79_destroy(app->a79);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
     app->a28 = nullptr;
@@ -2594,6 +2617,24 @@ static int native_a97_transition(void *context, const ActionSoundTransition *eff
     return 0;
 }
 
+/* RT-13: 0x4e812f is the original inventory view rebuild that follows a list
+ * change. The native app has no inventory view model (and no item type table),
+ * so this provider only records that the original would have rebuilt the view.
+ * What 0x4e812f derives (lists 0x583abd/0x583b49, words 0x583a2d/0x583a2f, the
+ * per-page slot table, paging floats) is therefore NOT maintained: UNVERIFIED,
+ * nothing in the native app reads it yet. */
+static int native_a79_rebuild_view(void *context, int16_t removed_item)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->inventory_view_rebuilds;
+    record(app, "scene_a79_inventory_removed item=%d count=%d view-rebuild=requested-not-modeled "
+           "rebuilds=%llu", removed_item,
+           (int)static_cast<int16_t>(app->new_game.selector_words[0]),
+           (unsigned long long)app->inventory_view_rebuilds);
+    return 0;
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2646,13 +2687,26 @@ static bool create_native_session_bindings(NativeApp *app)
     a97_host.captions_enabled = native_a97_captions_enabled;
     a97_host.transition = native_a97_transition;
     app->a97 = session_a97_create(&a97_host);
+    SessionA79Host a79_host{};
+    {
+        const WorldInitInventory &inventory = app->new_game.view.inventory;
+        a79_host.model.held_item = inventory.selected_item_candidate;
+        a79_host.model.item_count = reinterpret_cast<int16_t *>(inventory.selector_words_583a2b.values);
+        a79_host.model.items = inventory.item_ids_583a31.values;
+        a79_host.model.item_capacity = inventory.item_ids_583a31.count;
+        a79_host.model.presence = inventory.presence_583bd5.values;
+        a79_host.model.presence_capacity = inventory.presence_583bd5.count;
+    }
+    a79_host.view.context = app;
+    a79_host.view.rebuild_view = native_a79_rebuild_view;
+    app->a79 = session_a79_create(&a79_host);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
                                          app->scene_destination.right, app->scene_destination.bottom};
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a79 == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -2681,8 +2735,17 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_a97_failure(app->a97));
         return false;
     }
+    if (session_a79_begin_scene(app->a79, app->scene) != ACTION79_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a79_failure(app->a79));
+        return false;
+    }
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         SceneActionInfo info{};
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_A79_TYPE)
+            record(app, "scene_a79_construct row=%zu item=%d (remove-inventory-item, 0x4eac4c)",
+                   row, session_a79_item_word(app->a79, row));
         if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A97_TYPE)
             record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
@@ -2874,7 +2937,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[6]{};
+    SceneSessionActionBinding bindings[7]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2897,7 +2960,11 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[5].callback = session_a97_handler;
     bindings[5].context = app->a97;
     config.action_bindings = bindings;
-    config.action_binding_count = 6u;
+    bindings[6].type = SESSION_A79_TYPE;
+    bindings[6].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[6].callback = session_a79_handler;
+    bindings[6].context = app->a79;
+    config.action_binding_count = 7u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -3350,6 +3417,21 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
         record(app, "world_init_error new-game status=%d", status);
         return false;
     }
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (!app->test_inventory.empty() || app->test_held != -2) {
+        WorldInitInventory &inv = app->new_game.view.inventory;
+        for (size_t i = 0; i < app->test_inventory.size() && i < inv.item_ids_583a31.count; ++i) {
+            inv.item_ids_583a31.values[i] = static_cast<uint16_t>(app->test_inventory[i]);
+            if (app->test_inventory[i] >= 0 &&
+                static_cast<size_t>(app->test_inventory[i]) < inv.presence_583bd5.count)
+                inv.presence_583bd5.values[app->test_inventory[i]] = 1;
+        }
+        inv.selector_words_583a2b.values[0] = static_cast<uint16_t>(app->test_inventory.size());
+        if (app->test_held != -2) *inv.selected_item_candidate = static_cast<int16_t>(app->test_held);
+        record(app, "test_inventory_seeded count=%zu held=%d", app->test_inventory.size(),
+               (int)*inv.selected_item_candidate);
+    }
+#endif
     app->world_clock_session.world = &app->new_game.view;
     /* The two signed window bounds are in the PE zero-filled data tail and
      * have no direct .text stores in the pinned image. The session object is
@@ -3736,6 +3818,30 @@ static bool perform_session_transition(NativeApp *app,
     return true;
 }
 
+/* RT-13: say why the session stopped, in terms a player or developer can act on. */
+static void describe_session_block(const NativeApp *app, const SceneSessionTickResult &r,
+                                   char *out, size_t capacity)
+{
+    const char *detail = "";
+    if (r.failure.action_type == SESSION_A79_TYPE) detail = session_a79_failure(app->a79);
+    else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
+    if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
+        r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
+        (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
+        std::snprintf(out, capacity, "action type 0x%02x at row %zu has no native runtime yet",
+                      r.failure.action_type, r.failure.action_index);
+    else if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH)
+        std::snprintf(out, capacity, "action type 0x%02x at row %zu stopped: %s (detail %d)",
+                      r.failure.action_type, r.failure.action_index,
+                      detail[0] != '\0' && std::strcmp(detail, "none") != 0 ? detail
+                          : scene_session_provider_string(r.failure.provider),
+                      r.failure.detail_status);
+    else
+        std::snprintf(out, capacity, "stage %d provider %s failed (detail %d)",
+                      r.failure.stage, scene_session_provider_string(r.failure.provider),
+                      r.failure.detail_status);
+}
+
 enum class ExitTick { Run, Consumed, Failed };
 
 /* One main-loop step for the non-running states of 0x438150. */
@@ -3853,6 +3959,8 @@ static void update(NativeApp *app, uint32_t now)
                        session_a35_bink_failure(app->movie_bink));
             if (session_result.failure.action_type == SESSION_A97_TYPE)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
+            if (session_result.failure.action_type == SESSION_A79_TYPE)
+                record(app, "scene_a79_blocker detail=%s", session_a79_failure(app->a79));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {
@@ -3860,6 +3968,28 @@ static void update(NativeApp *app, uint32_t now)
                        condition_failure.opcode, condition_failure.record_index,
                        condition_failure.provider_status);
             }
+            {
+                /* RT-13: the silent freeze. One persistent log line with the scene,
+                 * row, type and reason, and the same facts in the window title. */
+                char reason[192];
+                describe_session_block(app, session_result, reason, sizeof(reason));
+                record(app, "session_frozen scene=%d generation=%llu row=%zu type=0x%02x "
+                       "provider=%s stage=%d reason=\"%s\" ticks_after_block=stopped "
+                       "pointer_input=ignored",
+                       app->current_scene_id,
+                       (unsigned long long)scene_session_scene_generation(app->session),
+                       session_result.failure.action_index, session_result.failure.action_type,
+                       scene_session_provider_string(session_result.failure.provider),
+                       session_result.failure.stage, reason);
+                if (app->platform) {
+                    char title[320];
+                    std::snprintf(title, sizeof(title),
+                                  "Blackmoor reconstruction — STOPPED in scene %d: %s; input ignored",
+                                  app->current_scene_id, reason);
+                    blackmoor_macos_set_title(app->platform, title);
+                }
+            }
+            app->blocked_input_ignored = 0u;
             app->session_block_reported = true;
         } else if (session_status == SCENE_SESSION_TRANSITION_PENDING &&
                    !app->session_transition_reported) {
@@ -4288,6 +4418,7 @@ int main(int argc, char **argv)
         uint32_t live_ticks = 600, live_tick_ms = 85;
         bool live_tick_ms_set = false;
         long live_click_row = -1;
+        bool live_click_blocked = false;
         bool live_double_click = false, live_hover_only = false;
         long live_scene = -1, live_scene_row = -1;
         long dump_scene = -1;
@@ -4295,6 +4426,10 @@ int main(int argc, char **argv)
             const std::string argument = argv[i];
             if (argument == "--live-double-click") { live_double_click = true; continue; }
             if (argument == "--live-hover-only") { live_hover_only = true; continue; }
+            /* RT-13: after the session blocks, deliver ordinary clicks at the last
+             * pointer position (what a player does at a frozen window) so the
+             * "input ignored" report can be checked headlessly. */
+            if (argument == "--live-click-blocked") { live_click_blocked = true; continue; }
             if (argument == "--inspect-startup") { inspect_only = true; continue; }
             if (argument == "--inspect-actions") { inspect_only = inspect_actions = true; continue; }
             if (argument == "--inspect-audio") { inspect_only = inspect_audio = true; continue; }
@@ -4345,6 +4480,27 @@ int main(int argc, char **argv)
                 live_click_row = std::strtol(value, &end, 10);
                 if (!*value || *end || live_click_row < 0) return 2;
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+            } else if (argument == "--test-inventory" || argument == "--test-held") {
+                if (argument == "--test-held") {
+                    char *end = nullptr;
+                    const long held = std::strtol(value, &end, 10);
+                    if (!*value || *end || held < -1 || held > 32767) return 2;
+                    app.test_held = (int)held;
+                } else {
+                    std::string list = value;
+                    size_t position = 0;
+                    while (position < list.size()) {
+                        char *end = nullptr;
+                        const long item = std::strtol(list.c_str() + position, &end, 10);
+                        if (end == list.c_str() + position || item < 0 || item > 32767) return 2;
+                        app.test_inventory.push_back(static_cast<int16_t>(item));
+                        position = static_cast<size_t>(end - list.c_str());
+                        if (position < list.size()) {
+                            if (list[position] != ',') return 2;
+                            ++position;
+                        }
+                    }
+                }
             } else if (argument == "--test-exit-redirect") {
                 char *end = nullptr;
                 const long from = std::strtol(value, &end, 10);
@@ -4547,7 +4703,16 @@ int main(int argc, char **argv)
                         SceneSessionTickResult tick{};
                         if (scene_session_get_last_result(app.session, &tick) == SCENE_SESSION_OK &&
                             tick.status == SCENE_SESSION_BLOCKED) {
-                            if (++stalled > 3u) break;
+                            ++stalled;
+                            if (live_click_blocked && (stalled == 2u || stalled == 3u)) {
+                                pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
+                                clock += live_tick_ms; update(&app, clock);
+                                pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
+                                clock += live_tick_ms; update(&app, clock);
+                                record(&app, "live_session_click_while_blocked pointer=%d,%d",
+                                       app.pointer_x, app.pointer_y);
+                            }
+                            if (stalled > 3u) break;
                         } else stalled = 0;
                         (void)last_progress_tick;
                         if (scripted_clicks == 0 || (scripted_clicks == 1 && clock - clicked_at > 255u)) {
@@ -4646,6 +4811,17 @@ int main(int argc, char **argv)
                                    session_conditions_global_5c3a47(app.conditions_binding),
                                    cond_manager.error_3c2);
                         }
+                    }
+                    {
+                        const WorldInitInventory &inv = app.new_game.view.inventory;
+                        size_t present = 0;
+                        for (size_t i = 0; i < inv.presence_583bd5.count; ++i)
+                            present += inv.presence_583bd5.values[i] != 0;
+                        record(&app, "live_session_inventory count=%d held=%d presence_nonzero=%zu "
+                               "view_rebuilds_requested=%llu",
+                               (int)static_cast<int16_t>(inv.selector_words_583a2b.values[0]),
+                               (int)*inv.selected_item_candidate, present,
+                               (unsigned long long)app.inventory_view_rebuilds);
                     }
                     record(&app, "live_session_end scene=%d ticks=%llu status=%d provider=%s "
                            "stage=%d action=%zu type=0x%02x detail=%d applied=%zu",

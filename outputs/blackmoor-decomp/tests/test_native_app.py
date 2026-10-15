@@ -259,12 +259,12 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertIn('seed=analysis-only', contents)
             self.assertNotIn('stopped failure=0', contents)
 
-    def run_live(self, *extra_args, returncode=0):
+    def run_live(self, *extra_args, returncode=0, row='34'):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         log = Path(directory.name) / 'live.log'
         result = subprocess.run([str(self.executable), '--inspect-live-session',
-                                 '--live-click-row', '34', *extra_args,
+                                 '--live-click-row', row, *extra_args,
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=180)
         self.assertEqual(result.returncode, returncode, result.stderr)
@@ -542,6 +542,53 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('condition_provider op17 channel=4 unloaded status=0 idle_gate=1 '
                       'manager_error=0x3ef', contents)
         self.assertIn('condition_provider op17 channel=32 status=7', contents)
+
+    # ---- RT-13: the tutorial path (S0 row 32 -> S6400) ----------------------------------
+    def tutorial(self, *extra_args):
+        return self.run_live('--live-ticks', '3000', '--rand-seed', '1', *extra_args, row='32')
+
+    def test_rt13_tutorial_runs_raw_0x79_and_stops_at_the_0x36_overlay_with_a_frozen_report(self):
+        # S6400 is loaded from the external s6400.CIF. Row 15 is raw 0x79 for item 23;
+        # the New Game inventory is empty, so it is a no-op that completes the row.
+        # The next row (16) is raw 0x36 (static photo overlay, hot): no runtime yet.
+        contents = self.tutorial('--live-click-blocked')
+        self.assert_in_order(contents, (
+            'scene_a79_construct row=15 item=23 (remove-inventory-item, 0x4eac4c)',
+            'scene_transition_applied source=0 target=6400',
+            'scene_session_blocked stage=3 provider=action-kernel action=16 type=0x36 detail=1',
+            'session_frozen scene=6400 generation=2 row=16 type=0x36 provider=action-kernel stage=3 '
+            'reason="action type 0x36 at row 16 has no native runtime yet" '
+            'ticks_after_block=stopped pointer_input=ignored',
+            'session_frozen_input_ignored scene=6400 count=1 ',
+            'live_session_end scene=6400 '))
+        self.assertIn('type=0x36 detail=1 applied=16', contents)
+        self.assertNotIn('type=0x79', contents.split('scene_a79_construct')[1])
+        self.assertNotIn('scene_a79_blocker', contents)
+        self.assertNotIn('scene_a79_inventory_removed', contents)
+        self.assertEqual(contents.count('scene_session_blocked'), 1)
+        self.assertEqual(contents.count('session_frozen scene='), 1)
+        self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
+                      'view_rebuilds_requested=0', contents)
+
+    def test_rt13_raw_0x79_removes_the_seeded_item_and_clears_the_held_item_through_the_app(self):
+        # Seeded list [4,23,9,23], held 23: only the FIRST 23 is removed, presence[23] is
+        # cleared even though a second copy stays, the held item becomes -1 and exactly
+        # one view rebuild is requested (the app has no inventory view model yet).
+        contents = self.tutorial('--test-inventory', '4,23,9,23', '--test-held', '23')
+        self.assert_in_order(contents, (
+            'test_inventory_seeded count=4 held=23',
+            'scene_a79_construct row=15 item=23',
+            'scene_a79_inventory_removed item=23 count=3 view-rebuild=requested-not-modeled rebuilds=1',
+            'session_frozen scene=6400 generation=2 row=16 type=0x36',
+            'live_session_inventory count=3 held=-1 presence_nonzero=2 view_rebuilds_requested=1'))
+
+    def test_rt13_raw_0x79_clears_only_a_matching_held_item(self):
+        contents = self.tutorial('--test-inventory', '4,9', '--test-held', '9')
+        self.assertIn('live_session_inventory count=2 held=9 presence_nonzero=2 '
+                      'view_rebuilds_requested=0', contents)
+        contents = self.tutorial('--test-held', '23')  # absent from the list: still cleared
+        self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
+                      'view_rebuilds_requested=0', contents)
 
     def test_rand_seed_option_is_logged_and_replayable(self):
         contents = self.run_live('--rand-seed', '12345')
