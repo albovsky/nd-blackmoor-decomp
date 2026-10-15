@@ -638,5 +638,23 @@ class BindingTests(unittest.TestCase):
         del owner, owner2
 
 
+class StubSceneTests(unittest.TestCase):
+    def test_a_failing_begin_scene_keeps_the_previous_rows(self):
+        # begin_scene can only fail for a scene the shared parser never produces, so the
+        # contract is checked against a stub scene resource (tests/session_bindings_a0b_stub_scene.c).
+        src = PROJECT / 'src'
+        output = PROJECT / 'build/session_bindings_a0b_stub_scene_plain'
+        output.parent.mkdir(exist_ok=True)
+        subprocess.run(['xcrun', 'clang', '-arch', 'arm64', '-std=c11', '-Wall', '-Wextra',
+                        '-Wpedantic', '-Werror', '-O1', '-g', '-I', str(src),
+                        str(src / 'action_family_0b_runtime.c'), str(src / 'action_family_17_runtime.c'),
+                        str(src / 'session_bindings_a0b.c'),
+                        str(PROJECT / 'tests/session_bindings_a0b_stub_scene.c'), '-o', str(output)],
+                       check=True, capture_output=True)
+        result = subprocess.run([str(output)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('stub_scene_failing_begins=3 rows_kept=3', result.stdout)
+
+
 if __name__ == '__main__':
     unittest.main()

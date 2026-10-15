@@ -223,6 +223,7 @@ struct NativeApp {
     int32_t a0b_rect[4]{};
     int32_t a0b_logged_rect[4]{};
     bool a0b_logged_valid = false;
+    size_t a0b_finish_row = 0;      /* row of the visit that reached the finish effect */
     std::array<uint64_t, OVERLAY36_MAX_ROWS> a36_blit_signature{};
     uint64_t a36_blits = 0u;
     /* RT-13: count of 0x4e812f view rebuilds requested by raw 0x79 (the native
@@ -2908,7 +2909,12 @@ static int native_a0b_transition(void *context, const SceneTransitionRequest *re
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
-    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a0b_transition_refused row=%zu target=%d (completion byte not committed)",
+               app->a0b_finish_row, request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a0b_finish row=%zu completion_byte=1 (0x42afb3)", app->a0b_finish_row);
     record(app, "scene_a0b_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d "
            "(0x42afb3 scene-change cells, mode 0x583999 := 4)",
            request->target_scene, request->opaque_words[0], request->opaque_words[1],
@@ -2941,7 +2947,9 @@ static void native_a0b_observe(void *context, size_t row, int effect, int32_t va
     case ACTION17_FX_PHASE:
         break;
     case ACTION17_FX_DONE:
-        record(app, "scene_a0b_finish row=%zu completion_byte=1 (0x42afb3)", row);
+        /* Reported by native_a0b_transition once the scene-change request was accepted: a
+         * refused request rolls the visit back (the completion byte is not committed). */
+        app->a0b_finish_row = row;
         break;
     default:
         break;

@@ -729,6 +729,14 @@ def run_sequences(lib, original, corpus, count, counters, seed=0x16):
     return passes, transitions
 
 
+def payload_from_image(image):
+    """The 0x28-byte payload object as the decoded native struct."""
+    cursor, target, w4, w6, w8, d0a, d0e, d12, frame, *rect = struct.unpack('<hhhhhiiihiiii', image)
+    return native.Payload(cursor=cursor, target=target, word_04=w4, word_06=w6, word_08=w8,
+                          dword_0a=d0a, dword_0e=d0e, dword_12=d12, frame=frame,
+                          rect=(c.c_int32 * 4)(*rect))
+
+
 def run_kernel_cases(lib, original, corpus, counters):
     """C. Dispatcher against the kernel directly for every type served by the handler."""
     cases = 0
@@ -738,9 +746,20 @@ def run_kernel_cases(lib, original, corpus, counters):
             rng = random.Random(runtime_type * 7919 + index)
             body = random_body(rng) if index % 3 else rng.choice(corpus)
             payload, _, _ = original.run_loader(body, 0, rng)
+            # The loader always stores a zero frame word at +0x16; the 0x0d..0x14 loaders copy a
+            # body word there. Poke a random signed word into the ORIGINAL payload image so the
+            # sign-extended compare of 0x42af6b..0x42af76 is run against the original too.
+            frame = wrap_s16(rng.choice((0, 0, 4, -1, -32768, 0x7fff, rng.randrange(-32768, 32768))))
+            if index % 4:
+                payload = payload[:0x16] + struct.pack('<h', frame) + payload[0x18:]
+            else:
+                frame = 0
+            native_payload = payload_from_image(payload)
+            counters['frame_pokes'] = counters.get('frame_pokes', 0) + (1 if frame != 0 else 0)
             for phase in (0, 1, 2, 3, 5, 0x10000):
                 for gate in (True, False):
-                    selector = wrap_s16(rng.choice((0, 0, 1, -1, 0x100, 4)))
+                    selector = wrap_s16(rng.choice((0, 0, 1, -1, 0x100, 4, frame, frame, frame ^ 0x100,
+                                                    frame ^ 0x8000, -frame)))
                     world = dict(start_flag=rng.choice((0, 0x5a5a5a5a)), mode=3,
                                  **{n: 1000 + i for i, n in enumerate(XFER)})
                     rows = [dict(type=runtime_type, obj=payload, done=False,
@@ -760,6 +779,7 @@ def run_kernel_cases(lib, original, corpus, counters):
                     w = native.World(selector=selector, start_flag_5bb1ca=world['start_flag'],
                                      mode_583999=3, **{k: world[k] for k in XFER})
                     case = native.Case(lib, body, phase & 0xffffffff, slot=slot, world=w)
+                    case.payload = native_payload
                     if gate:
                         status, result = case.run()
                         if status != native.OK:
@@ -939,7 +959,8 @@ def main(*, library=None, report_path=REPORT, sequences=1500, cascade_cases=1500
         loader_cases=loader_cases,
         session_sequences=sequences, session_passes=passes, session_scene_changes=finished,
         session_0b_scene_changes=counters.get('finish_0b', 0),
-        kernel_dispatcher_cases=kernel_cases, cascade=cascade,
+        kernel_dispatcher_cases=kernel_cases, kernel_payloads_with_poked_frame_word=counters.get('frame_pokes', 0),
+        cascade=cascade,
         mismatches=0,
         write_stream_names=dict(sorted(counters['sequence'].items())),
         write_footprint_classes=dict(sorted(counters['footprint'].items())),
