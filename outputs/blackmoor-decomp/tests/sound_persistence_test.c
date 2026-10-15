@@ -44,6 +44,67 @@ static void scenario(LiveAudio *audio, int16_t flag, uint16_t special)
     assert(fake_count(g_fake, 'G') == gains_before); /* No transition fade. */
 }
 
+/* Host failure: the mixer refuses Stop for one channel's slot. The original
+ * loop has no error branch (0x4fb041..0x4fb06b ignores each unload), so the
+ * remaining channels in the ordered plan must still be released; the failure
+ * is only surfaced to the caller as LIVE_AUDIO_ERR_HOST. */
+static uint32_t g_fail_slot = 0xffffffffu;
+static int g_failed_stops;
+static int failing_stop(MacAudioHost *host, uint32_t slot, char *error, size_t capacity)
+{
+    if (slot == g_fail_slot) {
+        ++g_failed_stops;
+        return MAC_AUDIO_ERR_ENGINE;
+    }
+    return fake_stop(host, slot, error, capacity);
+}
+
+static void host_failure(const char *game_dir)
+{
+    LiveAudio *audio = NULL;
+    LiveAudioHostOps ops = fake_ops();
+    LiveAudioConfig config = {0};
+    SessionExit x;
+    SessionExitAudioPlan plan;
+    ActionFamily28Rect view = {0, 0, 639, 479};
+    LiveAudioChannelInfo before[32], after;
+    char error[128];
+    ops.stop = failing_stop;
+    config.game_directory = game_dir;
+    config.mode = MAC_AUDIO_MODE_OFFLINE;
+    config.host_ops = &ops;
+    assert(live_audio_create(&config, &audio, error, sizeof(error)) == 0);
+    assert(session_exit_init(&x, &view) == 0);
+    x.g.game_state = SESSION_EXIT_STATE_LOAD;
+    x.g.scene_request_flag = 0;
+    assert(session_exit_begin_load(&x) == 0);
+    for (uint16_t i = 0; i < 32; ++i) {
+        ActionSoundAudioCommand cmd = make_command("Tone", i, (uint8_t)(i % 4), 1, 1, 1);
+        assert(live_audio_load_sound(audio, &cmd) == ACTION_SOUND_BACKEND_OK);
+        assert(live_audio_play_sound(audio, i) == ACTION_SOUND_BACKEND_OK);
+        assert(live_audio_get_channel_info(audio, i, &before[i]) == 0);
+    }
+    g_fail_slot = before[5].host_slot; /* inside 0..13, between two good stops */
+    g_failed_stops = 0;
+    assert(session_exit_plan_audio(&x, 27, &plan) == 0);
+    assert(live_audio_unload_channels(audio, plan.channels, plan.count) == LIVE_AUDIO_ERR_HOST);
+    assert(g_failed_stops == 1);
+    for (uint16_t i = 0; i < 32; ++i) {
+        int reset = i < 14 || i == 27;
+        assert(live_audio_get_channel_info(audio, i, &after) == 0);
+        if (reset) {
+            /* A refused Stop still releases the channel: no stale loaded slot. */
+            assert(!after.loaded && !after.started);
+            assert(after.generation == before[i].generation + 1u);
+        } else {
+            assert(memcmp(&before[i], &after, sizeof(after)) == 0);
+        }
+    }
+    g_fail_slot = 0xffffffffu;
+    assert(live_audio_destroy(audio) == 0);
+    fake_free();
+}
+
 int main(int argc, char **argv)
 {
     LiveAudio *audio = NULL;
@@ -75,6 +136,7 @@ int main(int argc, char **argv)
     assert(memcmp(&before, &after, sizeof(after)) == 0);
     assert(live_audio_destroy(audio) == 0);
     fake_free();
-    puts("RT-11 scenarios passed: 15 edges, all 32 channels, reset subset, mode/category independence, no fade");
+    host_failure(argv[1]);
+    puts("RT-11 scenarios passed: 15 edges, all 32 channels, reset subset, mode/category independence, no fade, host stop failure");
     return 0;
 }

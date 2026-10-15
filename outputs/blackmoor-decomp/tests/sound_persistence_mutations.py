@@ -53,6 +53,9 @@ def run():
         ('never_unload', 'live_audio.c',
          'if (release_channel(audio, channel) != MAC_AUDIO_OK) result = LIVE_AUDIO_ERR_HOST;',
          'if (0) result = LIVE_AUDIO_ERR_HOST;'),
+        ('abort_on_stop_failure', 'live_audio.c',
+         'if (release_channel(audio, channel) != MAC_AUDIO_OK) result = LIVE_AUDIO_ERR_HOST;',
+         'if (release_channel(audio, channel) != MAC_AUDIO_OK) return LIVE_AUDIO_ERR_HOST;'),
         ('wrong_channel_set', 'live_audio.c',
          'const uint16_t channel = channels[i];', 'const uint16_t channel = (uint16_t)i;'),
         ('reset_continuations', 'session_exit.c',
@@ -100,23 +103,45 @@ def run():
         results.append(entry)
     # Frozen copies of production app sources verify the actual transition
     # glue as well as the provider kernels. No source in this checkout changes.
-    directory = WORK / 'app_blanket_unload'
-    shutil.copytree(PROJECT / 'src', directory / 'src', dirs_exist_ok=True)
-    shutil.copytree(PROJECT / 'scripts', directory / 'scripts', dirs_exist_ok=True)
-    app = directory / 'src/blackmoor_app.mm'
-    text = app.read_text()
+    def app_mutant(name, edit, test_filter, expect):
+        directory = WORK / name
+        shutil.rmtree(directory, ignore_errors=True)
+        shutil.copytree(PROJECT / 'src', directory / 'src', dirs_exist_ok=True)
+        shutil.copytree(PROJECT / 'scripts', directory / 'scripts', dirs_exist_ok=True)
+        app = directory / 'src/blackmoor_app.mm'
+        app.write_text(edit(app.read_text()))
+        checked([str(directory / 'scripts/build_native_app.sh'), '--test-hooks'], directory / 'build.log')
+        executable = directory / 'Blackmoor Reconstruction Test.app/Contents/MacOS/BlackmoorNative'
+        p = subprocess.run([str(PYTHON), '-m', 'unittest', 'discover', '-s', str(PROJECT / 'tests'),
+                            '-p', 'test_native_app.py', '-k', test_filter], capture_output=True,
+                           text=True, env={**os.environ, 'RT4_NATIVE_EXECUTABLE': str(executable)})
+        (directory / 'scenario.log').write_text(p.stdout + p.stderr)
+        assert p.returncode != 0 and 'AssertionError' in p.stderr and expect in p.stderr, (
+            'app mutant survived or failed for the wrong reason: ' + name)
+        results.append({'name': name, 'compiled': True, 'scenario_killed': True,
+                        'returncode': p.returncode})
+
+    def replace_once(text, old, new):
+        assert text.count(old) == 1, old
+        return text.replace(old, new)
+
     marker = '    record_scene_audio(app, "after-load", source, transition.target_scene);'
-    assert text.count(marker) == 1
-    app.write_text(text.replace(marker, '    live_audio_unload_all(app->live_audio);\n' + marker))
-    checked([str(directory / 'scripts/build_native_app.sh'), '--test-hooks'], directory / 'build.log')
-    executable = directory / 'Blackmoor Reconstruction Test.app/Contents/MacOS/BlackmoorNative'
-    p = subprocess.run([str(PYTHON), '-m', 'unittest', 'discover', '-s', str(PROJECT / 'tests'),
-                        '-p', 'test_native_app.py', '-k', 'continuation_keeps'], capture_output=True,
-                       text=True, env={**os.environ, 'RT4_NATIVE_EXECUTABLE': str(executable)})
-    (directory / 'scenario.log').write_text(p.stdout + p.stderr)
-    assert p.returncode != 0 and 'loaded=1' in p.stderr and 'AssertionError' in p.stderr
-    results.append({'name': 'app_blanket_unload', 'compiled': True, 'scenario_killed': True,
-                    'returncode': p.returncode})
+    app_mutant('app_blanket_unload',
+               lambda t: replace_once(t, marker, '    live_audio_unload_all(app->live_audio);\n' + marker),
+               'continuation_keeps', 'loaded=1')
+    app_mutant('app_skip_fresh_reset',
+               lambda t: replace_once(t, 'live_audio_unload_channels(app->live_audio, plan.channels, plan.count)',
+                                      'LIVE_AUDIO_OK'),
+               'fresh_entry_resets', 'channel=4 loaded=1')
+    app_mutant('app_reset_every_transition',
+               lambda t: replace_once(t, marker,
+                   '    { const uint16_t rt11[15] = {27,0,1,2,3,4,5,6,7,8,9,10,11,12,13};\n'
+                   '      (void)live_audio_unload_channels(app->live_audio, rt11, 15); }\n' + marker),
+               'continuation_keeps', 'channel=9 loaded=1')
+    app_mutant('app_fade_on_reset',
+               lambda t: replace_once(t, 'record_scene_audio(app, "after-intro-reset", app->current_scene_id, app->current_scene_id);',
+                                      'if (app->live_audio) (void)live_audio_set_category_scalar(app->live_audio, 2, 0.5f);\n    record_scene_audio(app, "after-intro-reset", app->current_scene_id, app->current_scene_id);'),
+               'fresh_entry_resets', 'gain=0.640000')
     report = {'mutants': len(results), 'killed': len(results), 'results': results}
     (WORK.parent / 'RT-11.mutations.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'mutants': len(results), 'killed': len(results)}))

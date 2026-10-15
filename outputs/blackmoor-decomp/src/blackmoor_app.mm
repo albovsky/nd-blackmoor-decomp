@@ -3651,9 +3651,10 @@ static void record_scene_audio(NativeApp *app, const char *stage,
         if (live_audio_get_channel_info(app->live_audio, channel, &info) != LIVE_AUDIO_OK ||
             !info.loaded) continue;
         record(app, "scene_audio_channel stage=%s source=%d target=%d channel=%u loaded=%u "
-               "started=%u playing=%d query=%d generation=%llu mode=%u category=%u",
+               "started=%u playing=%d query=%d generation=%llu mode=%u category=%u gain=%.6f",
                stage, source, target, channel, info.loaded, info.started, playing, query,
-               (unsigned long long)info.generation, info.mode, info.volume_category);
+               (unsigned long long)info.generation, info.mode, info.volume_category,
+               static_cast<double>(info.final_gain));
     }
 }
 

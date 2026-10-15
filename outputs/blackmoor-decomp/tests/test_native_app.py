@@ -131,6 +131,46 @@ class NativeCaptionTransferTests(unittest.TestCase):
                 'scene_audio_policy source=5900 target=5907 continuation=1 load_reset=none'):
             self.assertTrue(evidence in contents, evidence)
 
+    def test_fresh_entry_resets_carried_channels_in_original_order(self):
+        # RT-11: S5907 -> S5901 is a fresh entry (transition word 0), so the
+        # state-2 reset 0x4381b5 -> 0x4fb018 runs after the load: MSND channel
+        # then 0..13, with the carried carstart(4)/Traffic(9) channels among them.
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'audio-fresh.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--live-ticks', '400',
+                                 '--live-tick-ms', '17', '--rand-seed', '1',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=180)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = log.read_text().splitlines()
+        applied = next(i for i, line in enumerate(lines)
+                       if line.startswith('scene_transition_applied source=5907 target=5901'))
+        window = lines[applied:]
+        reset = next(i for i, line in enumerate(window)
+                     if line.startswith('scene_audio_reset scene=5901 state=2 count=15'))
+        stage = lambda name, rows: [l for l in rows if l.startswith(
+            'scene_audio_channel stage=%s source=5901 target=5901' % name)]
+        before = stage('before-intro-reset', window[:reset])
+        after = stage('after-intro-reset', window[reset:reset + 40])
+        for evidence in ('channel=4 loaded=1 started=1 playing=1', 'channel=9 loaded=1 started=1 playing=1'):
+            self.assertTrue(any(evidence in l for l in before), evidence)
+        self.assertEqual(after, [])  # nothing loaded survives the 0..13 reset
+        unloads = [l for l in window[:reset] if l.startswith('live_audio scene_unload')]
+        order = [int(l.split('channel=')[1].split()[0]) for l in unloads]
+        self.assertEqual(order, [27, *range(14)])
+        for evidence in ('scene_unload channel=4 loaded_before=1',
+                         'scene_unload channel=9 loaded_before=1'):
+            self.assertTrue(any(evidence in l for l in unloads), evidence)
+        # No unload anywhere in the continuation load that precedes it.
+        policy = next(i for i, line in enumerate(lines) if line.startswith(
+            'scene_audio_policy source=5900 target=5907'))
+        self.assertFalse([l for l in lines[policy:applied] if 'scene_unload' in l or 'unload_all' in l])
+        # No fade: the cargo load after the reset gets the unscaled recovered gain.
+        self.assertTrue(any('live_audio loaded stem=cargo channel=4' in l and 'gain=0.640000' in l
+                            for l in window[reset:]), 'gain=0.640000')
+
     def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_presents_movie(self):
         # Stand-in for the RT-2 pointer path: one synthetic accepted event.
         directory = tempfile.TemporaryDirectory()
