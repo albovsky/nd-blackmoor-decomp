@@ -22,6 +22,7 @@
 #include "session_bindings_a51.h"
 #include "session_bindings_a35.h"
 #include "session_bindings_a35_bink.h"
+#include "session_bindings_a79.h"
 #include "session_bindings_a97.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -205,6 +206,10 @@ struct NativeApp {
     SessionA51Binding *a51 = nullptr;
     SessionA35Binding *a35 = nullptr;
     SessionA97Binding *a97 = nullptr;
+    SessionA79Binding *a79 = nullptr;
+    /* RT-13: count of 0x4e812f view rebuilds requested by raw 0x79 (the native
+     * app has no inventory view model yet; see native_a79_rebuild_view). */
+    uint64_t inventory_view_rebuilds = 0u;
     A35World movie_world{};
     /* Process globals mirrored by the controller, alongside the owning
      * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
@@ -1618,6 +1623,7 @@ static void cleanup(NativeApp *app)
     session_a51_destroy(app->a51);
     session_a35_destroy(app->a35);
     session_a97_destroy(app->a97);
+    session_a79_destroy(app->a79);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
     app->a28 = nullptr;
@@ -2594,6 +2600,24 @@ static int native_a97_transition(void *context, const ActionSoundTransition *eff
     return 0;
 }
 
+/* RT-13: 0x4e812f is the original inventory view rebuild that follows a list
+ * change. The native app has no inventory view model (and no item type table),
+ * so this provider only records that the original would have rebuilt the view.
+ * What 0x4e812f derives (lists 0x583abd/0x583b49, words 0x583a2d/0x583a2f, the
+ * per-page slot table, paging floats) is therefore NOT maintained: UNVERIFIED,
+ * nothing in the native app reads it yet. */
+static int native_a79_rebuild_view(void *context, int16_t removed_item)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    ++app->inventory_view_rebuilds;
+    record(app, "scene_a79_inventory_removed item=%d count=%d view-rebuild=requested-not-modeled "
+           "rebuilds=%llu", removed_item,
+           (int)static_cast<int16_t>(app->new_game.selector_words[0]),
+           (unsigned long long)app->inventory_view_rebuilds);
+    return 0;
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2646,13 +2670,26 @@ static bool create_native_session_bindings(NativeApp *app)
     a97_host.captions_enabled = native_a97_captions_enabled;
     a97_host.transition = native_a97_transition;
     app->a97 = session_a97_create(&a97_host);
+    SessionA79Host a79_host{};
+    {
+        const WorldInitInventory &inventory = app->new_game.view.inventory;
+        a79_host.model.held_item = inventory.selected_item_candidate;
+        a79_host.model.item_count = reinterpret_cast<int16_t *>(inventory.selector_words_583a2b.values);
+        a79_host.model.items = inventory.item_ids_583a31.values;
+        a79_host.model.item_capacity = inventory.item_ids_583a31.count;
+        a79_host.model.presence = inventory.presence_583bd5.values;
+        a79_host.model.presence_capacity = inventory.presence_583bd5.count;
+    }
+    a79_host.view.context = app;
+    a79_host.view.rebuild_view = native_a79_rebuild_view;
+    app->a79 = session_a79_create(&a79_host);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
                                          app->scene_destination.right, app->scene_destination.bottom};
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->a79 == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -2679,6 +2716,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_a97_failure(app->a97));
+        return false;
+    }
+    if (session_a79_begin_scene(app->a79, app->scene) != ACTION79_OK) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s",
+               session_a79_failure(app->a79));
         return false;
     }
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
@@ -2874,7 +2916,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[6]{};
+    SceneSessionActionBinding bindings[7]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2897,7 +2939,11 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[5].callback = session_a97_handler;
     bindings[5].context = app->a97;
     config.action_bindings = bindings;
-    config.action_binding_count = 6u;
+    bindings[6].type = SESSION_A79_TYPE;
+    bindings[6].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[6].callback = session_a79_handler;
+    bindings[6].context = app->a79;
+    config.action_binding_count = 7u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -3853,6 +3899,8 @@ static void update(NativeApp *app, uint32_t now)
                        session_a35_bink_failure(app->movie_bink));
             if (session_result.failure.action_type == SESSION_A97_TYPE)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
+            if (session_result.failure.action_type == SESSION_A79_TYPE)
+                record(app, "scene_a79_blocker detail=%s", session_a79_failure(app->a79));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {
