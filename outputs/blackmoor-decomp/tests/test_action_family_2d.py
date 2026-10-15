@@ -16,7 +16,7 @@ import tempfile
 import unittest
 
 PROJECT = Path(__file__).resolve().parents[1]
-HEADER, ENTRY_FILE, ENTRY_OBJECT, REC35, REC34 = 39, 49, 53, 35, 34
+HEADER, ENTRY_FILE, REC35, REC34 = 39, 49, 35, 34
 OK, ARGUMENT, BODY_ERR, COUNT, TAIL, BOUNDS, OVERLAP, CAPACITY, INDEX = range(9)
 
 
@@ -161,9 +161,6 @@ class ActionFamily2DTests(unittest.TestCase):
         raw, d = storage(body), Decoded()
         self.assertEqual(self.lib.action_family_2d_decode(raw, len(body), C.byref(d)), OK)
         return raw, d
-
-    def test_constants(self):
-        self.assertEqual((HEADER, ENTRY_FILE, ENTRY_OBJECT, REC35, REC34), (0x27, 0x31, 0x35, 0x23, 0x22))
 
     def test_minimum_header_only_body(self):
         body = make_body([], 0)

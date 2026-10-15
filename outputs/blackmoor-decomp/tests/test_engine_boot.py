@@ -16,7 +16,6 @@ ROOT = PROJECT.parents[1]
 LIBRARY = PROJECT / "build/libengineboot.dylib"
 BOOTTOOL = PROJECT / "build/boottool"
 
-HIFF_OK = 0
 ENGINE_BOOT_OK = 0
 CIF_OK = 0
 CIF_IMAGE_OK = 0

@@ -1267,7 +1267,6 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_transition_applied source=6403 target=6404'))
         self.assertNotIn('test_selector_applied', contents)
         self.assertNotIn('scene_session_blocked', contents)
-        self.assertNotIn('test_selector_applied', contents)
 
     def test_rt17_one_frame_scenes_have_no_arrow_zones(self):
         # S0, S5900 and S4700 are single-frame movies: [0x5bb4e7] == 1 zeroes the horizontal arrows

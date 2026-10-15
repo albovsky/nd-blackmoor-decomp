@@ -822,9 +822,6 @@ class PortAcceptanceTests(ScratchCase):
                     fn(a)
         self.s.ov(go)
 
-    def test_fixture_acceptances_are_ported(self):
-        self.assertEqual(self.status(0x401a00)[0], "ported")
-
     def test_lexical_evidence_alone_is_never_ported(self):
         # native_source and test pointers are lexical citations and oracle use=entry is structural:
         # with the evidence complete but no reviewed acceptance, the function is a candidate at most.

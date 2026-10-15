@@ -94,10 +94,6 @@ class ActionFamily20Tests(unittest.TestCase):
             self.assertEqual(bytes(out), before)
         self.assertEqual(bytes(raw)[:len(data)], data)
 
-    def test_constants(self):
-        # arm 0x40bd12: push 8 / call malloc; two DWORD MOV pairs; ADD 8 twice.
-        self.assertEqual((BODY, OBJECT_BYTES), (8, 8))
-
     def test_minimum_body(self):
         raw = storage(bytes(BODY))
         d = Decoded()
