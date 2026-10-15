@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile five tail mutants per family in unique private build directories.
+"""Compile seven tail mutants per family in unique /private/tmp directories.
 
 Use work/tools/oracle-python/bin/python with Unicorn JIT permitted. Every
 mutant is checked by the shared stage, then by its unchanged old oracle with
@@ -15,7 +15,8 @@ import time
 sys.dont_write_bytecode = True
 import tail_oracle_common as T
 
-MUTATIONS = ('remove_modulus', 'modulus_8', 'drop_short_body', 'count_u8', 'count_u16')
+MUTATIONS = ('remove_modulus', 'modulus_8', 'drop_short_body', 'count_u8', 'count_u16',
+             'modulus_below_4096', 'count_u16_above_65536')
 
 
 def mutate(source, family, mutation):
@@ -32,12 +33,26 @@ def mutate(source, family, mutation):
         changed, sites = re.subn(r'return ' + prefix + r'_ERR_BODY;',
                                 '(void)0; /* mutant: missing short-body rejection */', source)
         T.require(sites > 0, f'{family}: no short-body rejection sites')
-    elif mutation in ('count_u8', 'count_u16'):
+    elif mutation == 'modulus_below_4096':
+        pattern = (r'if\s*\(\(([^()]+)\)\s*%\s*' + prefix +
+                   r'_DEPENDENCY_BYTES\s*!=\s*0u\)')
+        changed, sites = re.subn(pattern, lambda match:
+                                f'if (({match[1]}) < 4096u && '
+                                f'({match[1]}) % {prefix}_DEPENDENCY_BYTES != 0u)', source)
+        T.require(sites == 1, f'{family}: expected one tail predicate')
+    elif mutation in ('count_u8', 'count_u16', 'count_u16_above_65536'):
         cast = 'uint8_t' if mutation == 'count_u8' else 'uint16_t'
         pattern = (r'(\b(?:decoded|d)(?:->|\.)dependency_count\s*=)\s*'
                    r'([^;]+/\s*' + prefix + r'_DEPENDENCY_BYTES)\s*;')
-        changed, sites = re.subn(pattern, lambda match:
-                                f'{match[1]} ({cast})({match[2].strip()});', source)
+        def replace_count(match):
+            expression = match[2].strip()
+            value = f'({cast})({expression})'
+            if mutation == 'count_u16_above_65536':
+                # Preserve the old stage's 65536-row witness. The next row
+                # exposes a truncating fallback hidden beyond that boundary.
+                value = f'({expression}) > 65536u ? {value} : ({expression})'
+            return f'{match[1]} {value};'
+        changed, sites = re.subn(pattern, replace_count, source)
         T.require(sites == 1, f'{family}: expected one decoded count assignment')
     else:
         raise ValueError(mutation)
@@ -67,7 +82,8 @@ def witness(native, machine, payload, typed, mutation):
         # becoming ERR_TAIL; modulo 16 still prevents acceptance there.
         T.check_short_body(native, machine, payload, typed, max(0, typed - 16))
     else:
-        tail = dict(remove_modulus=1, modulus_8=8, count_u8=4096, count_u16=1048576)[mutation]
+        tail = dict(remove_modulus=1, modulus_8=8, count_u8=4096, count_u16=1048576,
+                    modulus_below_4096=4097, count_u16_above_65536=65537 * 16)[mutation]
         T.compare_tail(native, machine, payload[:50 + typed] + bytes(tail), typed)
 
 
@@ -87,8 +103,14 @@ def old_oracle(family, library, directory):
         detected = False
     else:
         reason = output.strip().splitlines()[-1] if output.strip() else ''
-        T.require(cp.returncode == 1 and ('native' in reason or 'decoded' in reason) and
-                  ('mismatch' in reason or 'rejected' in reason),
+        comparison_error = (('native' in reason or 'decoded' in reason) and
+                            ('mismatch' in reason or 'rejected' in reason))
+        # A-45.1 names its original/native status comparison "original
+        # dependency". Recognize only that audited comparison's exact message;
+        # an unrelated original trap or harness error still fails closed.
+        comparison_error |= family == '45' and bool(re.fullmatch(
+            r'OracleError: original dependency accept/reject mismatch count=\d+ tail=\d+', reason))
+        T.require(cp.returncode == 1 and comparison_error,
                   f'{family}: old oracle infrastructure/unexpected error; see {log}: {reason}')
         detected = True
     return dict(detected=detected, exit_code=cp.returncode, command=command,
@@ -133,7 +155,7 @@ def main():
             results.append(row)
             print(json.dumps(dict(family=family, mutation=mutation, new_detected=True,
                                   old_detected=previous['detected'])), flush=True)
-    report = dict(slice='A-TAIL.1', status='pass', compiled_mutants=len(results),
+    report = dict(slice='A-TAIL.2', status='pass', compiled_mutants=len(results),
                   detected=sum(row['detected'] for row in results), equivalent_mutants=[],
                   old_oracle_missed=sum(not row['old_oracle']['detected'] for row in results),
                   results=results, original_calls=machine.calls, hooks=T.HOOKS,
