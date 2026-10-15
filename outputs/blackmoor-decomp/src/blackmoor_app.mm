@@ -21,6 +21,7 @@
 #include "session_bindings_a62.h"
 #include "session_bindings_a51.h"
 #include "session_bindings_a35.h"
+#include "session_bindings_a97.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -202,6 +203,7 @@ struct NativeApp {
     SessionA62Binding *a62 = nullptr;
     SessionA51Binding *a51 = nullptr;
     SessionA35Binding *a35 = nullptr;
+    SessionA97Binding *a97 = nullptr;
     A35World movie_world{};
     BinkPlayer *movie_video = nullptr;
     std::vector<uint8_t> movie_surface;
@@ -1603,6 +1605,7 @@ static void cleanup(NativeApp *app)
     session_a62_destroy(app->a62);
     session_a51_destroy(app->a51);
     session_a35_destroy(app->a35);
+    session_a97_destroy(app->a97);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
     app->a28 = nullptr;
@@ -2382,6 +2385,52 @@ static int native_a35_transition(void *context, const A35Result *result)
     return scene_session_request_transition(app->session, &request) == SCENE_SESSION_OK ? 0 : 1;
 }
 
+/* RT-8: AUTOTEXT resolves during 0x40f532 scene construction. The caption
+ * visit receives the complete selected text, including its existing <e>. */
+static ActionFamily97LookupStatus native_a97_lookup(void *context,
+    const uint8_t *key, size_t length, const uint8_t **text, size_t *text_length)
+{
+    const int status = native_a51_autotext_lookup(context, key, length, text, text_length);
+    if (status == ACTION_FAMILY_51_LOOKUP_FOUND) return ACTION_FAMILY_97_LOOKUP_FOUND;
+    if (status == ACTION_FAMILY_51_LOOKUP_NOT_FOUND) return ACTION_FAMILY_97_LOOKUP_MISSING;
+    return ACTION_FAMILY_97_LOOKUP_FAILED;
+}
+
+static ActionSoundBackendStatus native_a97_caption(void *context,
+    const ActionSoundCaptionRequest *request)
+{
+    if (request == nullptr || request->terminator_length != 0u)
+        return ACTION_SOUND_BACKEND_ERROR;
+    const int status = native_a51_write_caption(context, request->bytes, request->length);
+    if (status == ACTION_FAMILY_51_BACKEND_OK) return ACTION_SOUND_BACKEND_OK;
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr && app->captions.transfer_blocked
+        ? ACTION_SOUND_BACKEND_UNSUPPORTED : ACTION_SOUND_BACKEND_ERROR;
+}
+
+static int native_a97_captions_enabled(void *context, uint8_t *enabled)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || enabled == nullptr) return 1;
+    *enabled = app->world_clock_session.captions_enabled_5bb202;
+    return 0;
+}
+
+static int native_a97_transition(void *context, const ActionSoundTransition *effect)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || effect == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = effect->target_scene;
+    std::memcpy(request.opaque_words, effect->opaque_words, sizeof(request.opaque_words));
+    std::memcpy(request.opaque_dwords, effect->opaque_dwords, sizeof(request.opaque_dwords));
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    app->start_flag_5bb1ca = effect->scene_flag_value;
+    record(app, "scene_a97_transition target=%d start=%u engine-state=%u",
+           request.target_scene, effect->scene_flag_value, effect->engine_state_value);
+    return 0;
+}
+
 static bool create_native_session_bindings(NativeApp *app)
 {
     SessionA62Host a62_host{};
@@ -2417,13 +2466,26 @@ static bool create_native_session_bindings(NativeApp *app)
     a35_host.transition = native_a35_transition;
     app->a35 = session_a35_create(&app->movie_world, &a35_host);
     create_native_conditions_binding(app);
+    SessionA97Host a97_host{};
+    a97_host.sound.context = app;
+    a97_host.sound.present_caption = native_a97_caption;
+    a97_host.sound.load_sound = native_action_sound_load;
+    a97_host.sound.play_sound = native_action_sound_play;
+    a97_host.sound.is_playing = native_action_sound_is_playing;
+    a97_host.sound.unload_sound = native_action_sound_unload;
+    a97_host.lookup = app->captions.auto_text != nullptr ? native_a97_lookup : nullptr;
+    a97_host.lookup_context = app;
+    a97_host.random_state = &app->condition_rand.holdrand;
+    a97_host.captions_enabled = native_a97_captions_enabled;
+    a97_host.transition = native_a97_transition;
+    app->a97 = session_a97_create(&a97_host);
     {
         const ActionFamily28Rect view = {app->scene_destination.left, app->scene_destination.top,
                                          app->scene_destination.right, app->scene_destination.bottom};
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -2447,6 +2509,18 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
         return false;
     }
     if (session_a35_begin_scene(app->a35, app->scene) != A35_RUNTIME_OK) return false;
+    if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
+        record(app, "scene_session_create_error provider=action-sound detail=%s",
+               session_a97_failure(app->a97));
+        return false;
+    }
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        SceneActionInfo info{};
+        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+            info.type == SESSION_A97_TYPE)
+            record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
+                   row, session_a97_selected(app->a97, row));
+    }
     /* ClearSceneData 0x43dbe3 resets 0x5c39f9 before the new ACT table runs. */
     app->movie_world.active = 0;
     return true;
@@ -2633,7 +2707,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[5]{};
+    SceneSessionActionBinding bindings[6]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -2651,8 +2725,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[4].provider = SCENE_SESSION_PROVIDER_A35;
     bindings[4].callback = session_a35_handler;
     bindings[4].context = app->a35;
+    bindings[5].type = SESSION_A97_TYPE;
+    bindings[5].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    bindings[5].callback = session_a97_handler;
+    bindings[5].context = app->a97;
     config.action_bindings = bindings;
-    config.action_binding_count = 5u;
+    config.action_binding_count = 6u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -3583,6 +3661,8 @@ static void update(NativeApp *app, uint32_t now)
                    session_result.dispatch_attempted);
             if (session_result.failure.provider == SCENE_SESSION_PROVIDER_A35)
                 record(app, "scene_a35_blocker detail=%s", session_a35_failure(app->a35));
+            if (session_result.failure.action_type == SESSION_A97_TYPE)
+                record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {

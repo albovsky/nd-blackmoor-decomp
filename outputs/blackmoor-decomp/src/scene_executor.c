@@ -14,7 +14,8 @@ enum {
     SCENE_ACTION_RAW_SCENE_HOTSPOT = 0x15,
     SCENE_ACTION_SCENE_HOTSPOT_RUNTIME = 0x0d,
     SCENE_ACTION_CLOCK = 0x64,
-    SCENE_ACTION_ASYNC_SOUND = 0x9f
+    SCENE_ACTION_ASYNC_SOUND = 0x9f,
+    SCENE_ACTION_RANDOM_SOUND = 0x97
 };
 
 typedef struct SceneExecutorPreGate {
@@ -776,10 +777,12 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             return condition_failure_to_executor_status(status);
         }
         if (!eligible) {
-            /* 0x427a50's type-0x9f blocked-dependency branch executes this
+            /* 0x427a50's runtime-0x9f blocked-dependency branch executes this
              * subtype-2 reset of completion and phase only. Subtype 1
-             * intentionally leaves both runtime fields alone. */
-            if (action.type == SCENE_ACTION_ASYNC_SOUND &&
+             * intentionally leaves both runtime fields alone. The raw-0x97
+             * loader normalizes its slot to the same runtime type (0x40fcf3). */
+            if ((action.type == SCENE_ACTION_ASYNC_SOUND ||
+                 action.type == SCENE_ACTION_RANDOM_SOUND) &&
                 action.subtype == 2u) {
                 runtime_state->completed = 0u;
                 runtime_state->phase = 0u;
