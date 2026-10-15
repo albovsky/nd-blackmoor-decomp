@@ -665,7 +665,7 @@ def validate_entry(e, index):
     exact_keys(reason, "code text rule".split(), (), what)
     if reason["code"] not in REASONS:
         fail(f"{what}: reason {reason['code']!r} is not in the closed enum")
-    text_value(reason["text"], what)
+    text_value(reason["text"], what, limit=2000)    # rule rationales run to a few hundred characters
     if e["class"] == "nn_reviewed":
         if reason["rule"] is not None or review["sample"] is not None:
             fail(f"{what}: a per-function not_needed entry carries no rule or sample")
@@ -1508,6 +1508,9 @@ def check_not_needed_entry(va, e, f, uni, ov, parent_decided, floor):
     x = f["x"]
     region, origin = uni.regions[va], x["origin"]
     callers = [parse_va(c, what) for c in x["callers"]]
+    if va in ov["sensitive"]:
+        fail(f"{what}: the function is in the semantics_sensitive set (rand, __ftol, formatting, qsort, time, "
+             "file I/O, malloc failure); its behaviour must be ported or adapter-tested, never waived")
     if reason == "unreachable_no_refs":
         if callers or x["address_taken"]:
             fail(f"{what}: needs zero callers and no data or address reference")
@@ -1518,6 +1521,8 @@ def check_not_needed_entry(va, e, f, uni, ov, parent_decided, floor):
             fail(f"{what}: no reviewed win32_import_allowlist exists")
         if not x["imports"] or not set(x["imports"]) <= allowed:
             fail(f"{what}: imports {x['imports']} are not all within the reviewed {label}")
+        if x["indirect_calls"] or x["indirect_jumps"]:
+            fail(f"{what}: indirect calls or jumps leave the function's effects unproven")
         for callee in sorted(parse_va(c, what) for c in x["callees"]):
             if callee != va and uni.regions.get(callee) == "game" and callee not in ov["entries"]:
                 fail(f"{what}: game-region callee {fmt(callee)} is not itself not_needed")

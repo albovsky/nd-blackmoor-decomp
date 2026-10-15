@@ -1117,6 +1117,23 @@ class NotNeededTests(ScratchCase):
         self.s.xr(0x401d00, lambda f: f.update(imports=[]))
         self.fails()
 
+    def test_plumbing_with_indirect_calls_or_jumps_fails(self):
+        self.s.xr(0x401d00, lambda f: f.update(indirect_calls=1))
+        self.fails("indirect")
+        s = self.fresh()
+        s.xr(0x401c00, lambda f: f.update(indirect_jumps=1))
+        with self.assertRaises(FL.LedgerError) as ctx:
+            s.derive()
+        self.assertIn("indirect", str(ctx.exception))
+
+    def test_semantics_sensitive_function_cannot_be_waived_as_not_needed(self):
+        self.add_entry(0x407900, "host_libc_standard_contract")           # fingerprint x87_ftol
+        self.fails("semantics_sensitive")
+
+    def test_rule_rationale_of_realistic_length_derives(self):
+        self.s.ov(lambda d: d["not_needed_rules"][0].update(rationale="r" * 405))
+        self.s.derive()
+
     def test_debug_only_needs_debug_imports(self):
         self.s.xr(0x401c00, lambda f: f.update(imports=["KERNEL32.dll!CreateFileA", "KERNEL32.dll!OutputDebugStringA"]))
         self.fails("debug")
