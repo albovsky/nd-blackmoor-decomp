@@ -1161,7 +1161,7 @@
       "id": "A-1B.1",
       "title": "Action 0x1b: body boundary and isolated decoder",
       "packet": "tasks/A-1B.1-body-boundary-and-decoder.md",
-      "status": "READY Codex gpt-6.1-sol xhigh; first run stopped at the Codex usage limit, no work committed",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-1B",
       "raw_type": "0x1b",
@@ -1171,7 +1171,7 @@
       "id": "A-7D.1",
       "title": "Action 0x7d: body boundary and isolated decoder",
       "packet": "tasks/A-7D.1-body-boundary-and-decoder.md",
-      "status": "READY Codex gpt-6.1-sol xhigh; first run stopped at the Codex usage limit, no work committed",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-7D",
       "raw_type": "0x7d",
@@ -1181,11 +1181,79 @@
       "id": "A-33.1",
       "title": "Action 0x33: body boundary and isolated decoder",
       "packet": "tasks/A-33.1-body-boundary-and-decoder.md",
-      "status": "READY Codex gpt-6.1-sol xhigh; first run stopped at the Codex usage limit, no work committed",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
       "depends_on": [],
       "parent": "A-33",
       "raw_type": "0x33",
       "records": 3
+    },
+    {
+      "id": "FL-1",
+      "title": "Function ledger core: schema, derivation, validator, CLI",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "function_ledger.py, build_function_ledger.py, test_function_ledger.py, function-ledger.json"
+    },
+    {
+      "id": "FL-2",
+      "title": "Function ledger evidence extractor",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "extract_function_evidence.py, function-evidence.json"
+    },
+    {
+      "id": "FL-3",
+      "title": "Function ledger xrefs, library classification and sampler",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "extract_function_xrefs.py, sample_function_ledger.py, function-xrefs.json, function-ledger-overrides.json"
+    },
+    {
+      "id": "FL-4",
+      "title": "Function ledger progress-map panel",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [
+        "FL-1"
+      ],
+      "parent": "FL-0",
+      "owns": "decomp-progress generate.py, template.html, test_progress.py, README.md"
+    },
+    {
+      "id": "A-F6.1",
+      "title": "Action 0xf6: body boundary and isolated decoder",
+      "packet": "tasks/A-F6.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-F6",
+      "raw_type": "0xf6",
+      "records": 6
+    },
+    {
+      "id": "A-EA.1",
+      "title": "Action 0xea: body boundary and isolated decoder",
+      "packet": "tasks/A-EA.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-EA",
+      "raw_type": "0xea",
+      "records": 6
+    },
+    {
+      "id": "A-F5.1",
+      "title": "Action 0xf5: body boundary and isolated decoder",
+      "packet": "tasks/A-F5.1-body-boundary-and-decoder.md",
+      "status": "MERGED reviewed; body boundary and isolated decoder only, runtime not implemented",
+      "depends_on": [],
+      "parent": "A-F5",
+      "raw_type": "0xf5",
+      "records": 4
     }
   ]
 }

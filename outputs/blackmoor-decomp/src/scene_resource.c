@@ -123,6 +123,10 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x37: fixed_length = 69u; break; /* 0x4895cc consumes the 69-byte static overlay prefix */
     case 0x28: fixed_length = 21u; break; /* CSpecialEffect consumes the 21-byte payload */
     case 0x61: fixed_length = 8u;  break; /* AT_EVENT_FLAGS variant */
+    case 0xf6: fixed_length = 4934u; break; /* 0x45ddd0 copies 4,934 bytes (A-F6.1) */
+    case 0xea: fixed_length = 3847u; break; /* 0x484110 copies 3,847 bytes (A-EA.1) */
+    case 0xf5: fixed_length = 1390u; break; /* 0x4b80d9 copies 1,390 bytes (A-F5.1) */
+    case 0x7d: fixed_length = 1u;  break; /* 0x40e61e copies one byte (A-7D.1) */
     case 0x69: fixed_length = 1u;  break; /* 0x40d428 copies one byte (A-69.1) */
     case 0x65: fixed_length = 1u;  break; /* 0x40d116 copies one byte (A-65.1) */
     case 0x68: fixed_length = 1u;  break; /* 0x40d364 copies one byte (A-68.1) */
@@ -402,6 +406,63 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         }
         typed = 0xacu + (size_t)primary * 16u + (size_t)secondary * 38u;
         if (length < typed) {
+            return -1;
+        }
+        *body_length = typed;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x1b: {
+        int16_t primary_count;
+        int16_t secondary_count;
+        size_t cursor;
+
+        /* Loader arm 0x40bbed -> 0x414692 (A-1B.1). Layout: signed WORD count
+         * at +0, count * 22 bytes, a 22-byte fixed block, a signed WORD count,
+         * count * 18 bytes. Negative counts, truncation and ragged tails are
+         * native safety rejections; the original has no such guards and no
+         * body strings. Counts are at most 32767 so no multiplication wraps. */
+        if (length < 2u) {
+            return -1;
+        }
+        primary_count = read_i16le(body);
+        if (primary_count < 0) {
+            return -1;
+        }
+        cursor = 2u + (size_t)primary_count * 22u;
+        if (length < cursor || length - cursor < 24u) {
+            return -1;
+        }
+        secondary_count = read_i16le(body + cursor + 22u);
+        if (secondary_count < 0) {
+            return -1;
+        }
+        cursor += 24u + (size_t)secondary_count * 18u;
+        if (length < cursor || (length - cursor) % 16u != 0u) {
+            return -1;
+        }
+        *body_length = cursor;
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x33: {
+        /* 0x40c186: counts at +0x6d/+0x6f, 113 + 6*count_6d + 66*count_6f
+         * bytes copied verbatim (A-33.1). The original narrows the size to a
+         * signed WORD; native safety rejects negative counts and any size
+         * above 32767 instead of reproducing the wrap. */
+        int16_t count_6d;
+        int16_t count_6f;
+        size_t typed;
+        if (length < 113u) {
+            return -1;
+        }
+        count_6d = read_i16le(body + 109u);
+        count_6f = read_i16le(body + 111u);
+        if (count_6d < 0 || count_6f < 0) {
+            return -1;
+        }
+        typed = 113u + 6u * (size_t)count_6d + 66u * (size_t)count_6f;
+        if (typed > 32767u || typed > length || (length - typed) % 16u != 0u) {
             return -1;
         }
         *body_length = typed;
