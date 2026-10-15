@@ -97,6 +97,15 @@ static int zone_state(const NavGlobals *g, const NavZoneGeometry *geo)
     return NAV_STATE_NONE;
 }
 
+static void zone_effect(NavZoneResult *r, int32_t cell, int64_t value)
+{
+    if (r->effect_count < NAV_EFFECT_MAX) {
+        r->effects[r->effect_count].cell = cell;
+        r->effects[r->effect_count].value = value;
+        r->effect_count++;
+    }
+}
+
 int session_navigation_zone(const NavGlobals *globals, const NavZoneGeometry *geometry,
                             const NavCursor *cursor, NavZoneResult *out)
 {
@@ -109,31 +118,42 @@ int session_navigation_zone(const NavGlobals *globals, const NavZoneGeometry *ge
     /* 0x4f18fa..0x4f1919: [0x5a4c1c] == 0 skips every zone test (local +0x72). */
     if (globals->nav_allowed != 0) {
         int32_t found = zone_state(globals, geometry);
-        if (found != NAV_STATE_NONE) state = found;
+        if (found != NAV_STATE_NONE) {
+            state = found;
+            zone_effect(&result, NAV_CELL_STATE, state);   /* 0x4f197d.. mov [0x5a4c18], n */
+        }
     }
     result.state = state;
     result.cursor = *cursor;
     if (state == NAV_STATE_NONE) {
-        /* 0x4f1e7d..0x4f1eae: variant 0, table pointer, layer flag; the generic
+        /* 0x4f1e86..0x4f1eae: variant 0, table pointer, layer flag; the generic
          * row loop follows. */
         result.cursor.variant = 0;
+        zone_effect(&result, NAV_CELL_CURSOR_VARIANT, 0);
         result.claimed = 0;
     } else {
         /* 0x4f1dc4..0x4f1e73. The arrow cursors depend on [0x5bb2d0] == 0x4d. */
         if (state == NAV_STATE_SELECTOR_PLUS) {
             result.cursor.index = globals->key_delay == 0x4d ? 0x11 : 0xe;
+            zone_effect(&result, NAV_CELL_CURSOR_INDEX, result.cursor.index);
+            zone_effect(&result, NAV_CELL_SURFACE, 0);
             result.surface_default = 1;
         } else if (state == NAV_STATE_SELECTOR_MINUS) {
             result.cursor.index = globals->key_delay == 0x4d ? 0x10 : 0xf;
+            zone_effect(&result, NAV_CELL_CURSOR_INDEX, result.cursor.index);
+            zone_effect(&result, NAV_CELL_SURFACE, 0);
             result.surface_default = 1;
         } else {
             result.cursor.index = 0;
+            zone_effect(&result, NAV_CELL_CURSOR_INDEX, 0);
         }
         result.claimed = 1;
     }
     result.table_offset = ((uint32_t)result.cursor.index << 5) +
                           ((uint32_t)result.cursor.variant << 4);
+    zone_effect(&result, NAV_CELL_TABLE, result.table_offset);
     result.layer_flag = 1;
+    zone_effect(&result, NAV_CELL_LAYER, 1);
     *out = result;
     return SESSION_NAVIGATION_OK;
 }
@@ -170,63 +190,94 @@ static int step_wanted(const NavGlobals *g, const NavKeys *k, uint32_t tick_time
     return 1;
 }
 
-/* The selector end handling shared by states 1/2 (no dirty mark) and 5..8. */
-static void selector_plus(NavGlobals *g, int mark_dirty, uint8_t *dirty)
+static void step_effect(NavStepResult *r, int32_t cell, int64_t value)
 {
-    g->selector = word_add(g->selector, g->step);
+    if (r->effect_count < NAV_EFFECT_MAX) {
+        r->effects[r->effect_count].cell = cell;
+        r->effects[r->effect_count].value = value;
+        r->effect_count++;
+    }
+}
+
+static void set_selector(NavGlobals *g, NavStepResult *r, int16_t value)
+{
+    g->selector = value;
+    step_effect(r, NAV_CELL_SELECTOR, value);
+}
+
+static void mark_dirty(NavStepResult *r)
+{
+    r->view_dirty = 1;
+    step_effect(r, NAV_CELL_VIEW_DIRTY, 1);
+}
+
+/* The selector end handling shared by states 1/2 (no dirty mark) and 5..8.
+ * 0x43c2b7..0x43c32d, 0x43c523..0x43c5a5, 0x43c70d..0x43c791. */
+static void selector_plus(NavGlobals *g, NavStepResult *r, int dirty_on_clamp)
+{
+    set_selector(g, r, word_add(g->selector, g->step));
     if (g->selector > g->frame_max) {
         if (g->mode == SELECTOR_WRAP) {
-            g->selector = g->frame_min;
+            set_selector(g, r, g->frame_min);
         } else if (g->mode == SELECTOR_CLAMP) {
-            g->selector = g->frame_max;
-            if (mark_dirty) *dirty = 1;
+            set_selector(g, r, g->frame_max);
+            if (dirty_on_clamp) mark_dirty(r);
         } else if (g->mode == 0) {
-            g->selector = g->frame_max;
-            if (mark_dirty) *dirty = 1;
+            set_selector(g, r, g->frame_max);
+            if (dirty_on_clamp) mark_dirty(r);
         }
     }
 }
 
-static void selector_minus(NavGlobals *g, int mark_dirty, uint8_t *dirty)
+/* 0x43c332..0x43c3a8, 0x43c60e..0x43c692, 0x43c80b..0x43c88d. */
+static void selector_minus(NavGlobals *g, NavStepResult *r, int dirty_on_clamp)
 {
-    g->selector = word_sub(g->selector, g->step);
+    set_selector(g, r, word_sub(g->selector, g->step));
     if (g->selector < g->frame_min) {
         if (g->mode == SELECTOR_WRAP) {
-            g->selector = g->frame_max;
+            set_selector(g, r, g->frame_max);
         } else if (g->mode == SELECTOR_CLAMP) {
-            g->selector = g->frame_min;
-            if (mark_dirty) *dirty = 1;
+            set_selector(g, r, g->frame_min);
+            if (dirty_on_clamp) mark_dirty(r);
         } else if (g->mode == 0) {
-            g->selector = g->frame_min;
-            if (mark_dirty) *dirty = 1;
+            set_selector(g, r, g->frame_min);
+            if (dirty_on_clamp) mark_dirty(r);
         }
     }
 }
 
 /* 0x43c3c2..0x43c425: scroll up by one step, clamped at the top. */
-static void scroll_up(NavGlobals *g)
+static void scroll_up(NavGlobals *g, NavStepResult *r)
 {
     int32_t target = wrapping_sub(g->scroll, g->scroll_step);
     if (target < 0) {
         g->scroll = 0;
+        step_effect(r, NAV_CELL_SCROLL, g->scroll);
         g->scroll_end = wrapping_sub(wrapping_sub(g->scroll_end, g->scroll_step), target);
+        step_effect(r, NAV_CELL_SCROLL_END, g->scroll_end);
     } else {
         g->scroll = wrapping_sub(g->scroll, g->scroll_step);
+        step_effect(r, NAV_CELL_SCROLL, g->scroll);
         g->scroll_end = wrapping_sub(g->scroll_end, g->scroll_step);
+        step_effect(r, NAV_CELL_SCROLL_END, g->scroll_end);
     }
 }
 
 /* 0x43c444..0x43c4ba: scroll down by one step, clamped at the image bottom. */
-static void scroll_down(NavGlobals *g)
+static void scroll_down(NavGlobals *g, NavStepResult *r)
 {
     int32_t target = wrapping_add(g->scroll_end, g->scroll_step);
     if (target > g->image_bottom) {
         target = wrapping_sub(target, g->image_bottom);
         g->scroll = wrapping_sub(wrapping_add(g->scroll, g->scroll_step), target);
+        step_effect(r, NAV_CELL_SCROLL, g->scroll);
         g->scroll_end = g->image_bottom;
+        step_effect(r, NAV_CELL_SCROLL_END, g->scroll_end);
     } else {
         g->scroll = wrapping_add(g->scroll, g->scroll_step);
+        step_effect(r, NAV_CELL_SCROLL, g->scroll);
         g->scroll_end = wrapping_add(g->scroll_end, g->scroll_step);
+        step_effect(r, NAV_CELL_SCROLL_END, g->scroll_end);
     }
 }
 
@@ -252,34 +303,34 @@ int session_navigation_step(NavGlobals *globals, const NavKeys *keys, uint32_t t
     result.entered = 1;
     switch (g->state) {
     case NAV_STATE_SELECTOR_PLUS:
-        selector_plus(g, 0, &result.view_dirty);
+        selector_plus(g, &result, 0);
         break;
     case NAV_STATE_SELECTOR_MINUS:
-        selector_minus(g, 0, &result.view_dirty);
+        selector_minus(g, &result, 0);
         break;
     case NAV_STATE_SCROLL_UP:
-        result.view_dirty = 1;
-        if (g->scroll != 0) scroll_up(g);
+        mark_dirty(&result);
+        if (g->scroll != 0) scroll_up(g, &result);
         break;
     case NAV_STATE_SCROLL_DOWN:
-        result.view_dirty = 1;
-        if (g->scroll_end != g->image_bottom) scroll_down(g);
+        mark_dirty(&result);
+        if (g->scroll_end != g->image_bottom) scroll_down(g, &result);
         break;
     case NAV_STATE_UP_PLUS:
-        scroll_up(g);
-        selector_plus(g, 1, &result.view_dirty);
+        scroll_up(g, &result);
+        selector_plus(g, &result, 1);
         break;
     case NAV_STATE_UP_MINUS:
-        scroll_up(g);
-        selector_minus(g, 1, &result.view_dirty);
+        scroll_up(g, &result);
+        selector_minus(g, &result, 1);
         break;
     case NAV_STATE_DOWN_PLUS:
-        scroll_down(g);
-        selector_plus(g, 1, &result.view_dirty);
+        scroll_down(g, &result);
+        selector_plus(g, &result, 1);
         break;
     case NAV_STATE_DOWN_MINUS:
-        scroll_down(g);
-        selector_minus(g, 1, &result.view_dirty);
+        scroll_down(g, &result);
+        selector_minus(g, &result, 1);
         break;
     default:
         break; /* 0x43c2a4: an out-of-range state goes straight to the deadline update */
@@ -293,6 +344,7 @@ int session_navigation_step(NavGlobals *globals, const NavKeys *keys, uint32_t t
     else
         delay = (uint32_t)(int32_t)g->hover_delay;
     g->gate_deadline = now + delay;
+    step_effect(&result, NAV_CELL_DEADLINE, g->gate_deadline);
     result.selector_changed = g->selector != result.selector_before;
     *out = result;
     return SESSION_NAVIGATION_OK;
@@ -316,7 +368,8 @@ static int sprite_overlaps_viewport(const SessionInputContext *c)
 }
 
 int session_navigation_scan(SessionInputState *input, const SessionInputContext *context,
-                            NavGlobals *nav, const NavBands *bands, NavCursor *cursor,
+                            NavGlobals *nav, const NavBands *bands, const NavPointer *pointer,
+                            NavCursor *cursor,
                             const SessionInputHotspot *priority, size_t priority_count,
                             const SessionInputHotspot *rows, size_t row_count,
                             NavScanResult *out)
@@ -327,8 +380,8 @@ int session_navigation_scan(SessionInputState *input, const SessionInputContext 
     NavZoneResult zone;
     NavGlobals scratch;
     int status;
-    if (input == NULL || context == NULL || nav == NULL || bands == NULL || cursor == NULL ||
-        out == NULL)
+    if (input == NULL || context == NULL || nav == NULL || bands == NULL || pointer == NULL ||
+        cursor == NULL || out == NULL)
         return SESSION_NAVIGATION_INVALID_ARGUMENT;
     snapshot = *context;
     memset(&result, 0, sizeof(result));
@@ -346,20 +399,30 @@ int session_navigation_scan(SessionInputState *input, const SessionInputContext 
      * validates every row and returns the named limits. */
     status = session_input_scan_priority(input, &snapshot, priority, priority_count, NULL, 0);
     if (status != SESSION_INPUT_OK) return status;
-    if (input->candidate >= 0) {
-        result.candidate = input->candidate;
-        *out = result;
-        return SESSION_INPUT_OK;
-    }
     if (!sprite_overlaps_viewport(&snapshot) || snapshot.geometry_ready == 0) {
         /* 0x4f2576: the overlap guard returned before everything. */
         *out = result;
         return SESSION_INPUT_OK;
     }
+    /* 0x4f0126..0x4f01a9: the held-item cursor prelude runs before every
+     * member. No held item resets the index and variant (0x4f0132/0x4f013c);
+     * a held item selects index item+0x25 and keeps the variant; the held-item
+     * flag 0x5b44f8 is cleared by 0x4d309f right before the cascade. */
+    if ((int16_t)pointer->selected_item == -1) {
+        cursor->index = 0;
+        cursor->variant = 0;
+    } else {
+        cursor->index = (int32_t)(int16_t)pointer->selected_item + 0x25;
+    }
+    if (input->candidate >= 0) {
+        result.candidate = input->candidate;
+        *out = result;
+        return SESSION_INPUT_OK;
+    }
     geometry.view = snapshot.viewport;
     geometry.bands = *bands;
-    geometry.hot_x = wrapping_add(snapshot.cursor.left, snapshot.hot_x);
-    geometry.hot_y = wrapping_add(snapshot.cursor.top, snapshot.hot_y);
+    geometry.hot_x = pointer->hot_x;
+    geometry.hot_y = pointer->hot_y;
     scratch = *nav;
     scratch.state = NAV_STATE_NONE;
     if (session_navigation_zone(&scratch, &geometry, cursor, &zone) != SESSION_NAVIGATION_OK)

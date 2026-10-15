@@ -31,6 +31,10 @@ class NavBands(c.Structure):
     _fields_ = [(name, c.c_int32) for name in ('x1', 'y1', 'x2', 'y2')]
 
 
+class NavPointer(c.Structure):
+    _fields_ = [('hot_x', c.c_int32), ('hot_y', c.c_int32), ('selected_item', c.c_int32)]
+
+
 class NavZoneGeometry(c.Structure):
     _fields_ = [('view', Rect), ('bands', NavBands), ('hot_x', c.c_int32), ('hot_y', c.c_int32)]
 
@@ -39,9 +43,24 @@ class NavCursor(c.Structure):
     _fields_ = [('index', c.c_int32), ('variant', c.c_int32)]
 
 
+class NavEffect(c.Structure):
+    _fields_ = [('cell', c.c_int32), ('value', c.c_int64)]
+
+
+NAV_EFFECT_MAX = 12
+CELL_NAMES = {1: 'state', 2: 'cursor_index', 3: 'cursor_variant', 4: 'surface', 5: 'table',
+              6: 'layer', 7: 'selector', 8: 'scroll', 9: 'scroll_end', 10: 'dirty', 11: 'deadline'}
+
+
+def effect_list(result):
+    return [(CELL_NAMES[result.effects[i].cell], result.effects[i].value)
+            for i in range(result.effect_count)]
+
+
 class NavZoneResult(c.Structure):
     _fields_ = [('state', c.c_int32), ('claimed', c.c_uint8), ('surface_default', c.c_uint8),
-                ('cursor', NavCursor), ('table_offset', c.c_uint32), ('layer_flag', c.c_uint8)]
+                ('cursor', NavCursor), ('table_offset', c.c_uint32), ('layer_flag', c.c_uint8),
+                ('effect_count', c.c_uint8), ('effects', NavEffect * NAV_EFFECT_MAX)]
 
 
 class NavKeys(c.Structure):
@@ -51,7 +70,8 @@ class NavKeys(c.Structure):
 
 class NavStepResult(c.Structure):
     _fields_ = [('entered', c.c_uint8), ('view_dirty', c.c_uint8), ('selector_changed', c.c_uint8),
-                ('selector_before', c.c_int16)]
+                ('selector_before', c.c_int16), ('effect_count', c.c_uint8),
+                ('effects', NavEffect * NAV_EFFECT_MAX)]
 
 
 class NavScanResult(c.Structure):
@@ -70,8 +90,8 @@ def load_navigation(path):
                                                 c.POINTER(Hotspot), c.c_size_t]
     lib.session_navigation_scan.argtypes = [
         c.POINTER(State), c.POINTER(Context), c.POINTER(NavGlobals), c.POINTER(NavBands),
-        c.POINTER(NavCursor), c.POINTER(Hotspot), c.c_size_t, c.POINTER(Hotspot), c.c_size_t,
-        c.POINTER(NavScanResult)]
+        c.POINTER(NavPointer), c.POINTER(NavCursor), c.POINTER(Hotspot), c.c_size_t,
+        c.POINTER(Hotspot), c.c_size_t, c.POINTER(NavScanResult)]
     for name in ('zone', 'step', 'scan'):
         getattr(lib, 'session_navigation_' + name).restype = c.c_int
     lib.session_input_scan_priority.restype = c.c_int
@@ -285,8 +305,8 @@ class SessionNavigationTests(unittest.TestCase):
         arr = (Hotspot * max(len(rows), 1))(*rows)
         pri = (Hotspot * max(len(priority), 1))(*priority)
         status = self.api.session_navigation_scan(
-            c.byref(state), c.byref(context), c.byref(g), c.byref(BANDS), c.byref(cursor), pri,
-            len(priority), arr, len(rows), c.byref(out))
+            c.byref(state), c.byref(context), c.byref(g), c.byref(BANDS), c.byref(NavPointer(x, y, -1)),
+            c.byref(cursor), pri, len(priority), arr, len(rows), c.byref(out))
         return status, state.candidate, g, cursor, out
 
     def test_zone_returns_before_the_generic_loop(self):

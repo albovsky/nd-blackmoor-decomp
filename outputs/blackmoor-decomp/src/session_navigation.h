@@ -53,6 +53,29 @@ enum {
     NAV_STATE_DOWN_MINUS = 8
 };
 
+/* Ordered stores of the original, one entry per `mov [cell], value` the
+ * reconstructed branch performs (the oracle compares the stream). */
+typedef enum NavCell {
+    NAV_CELL_STATE = 1,           /* 0x5a4c18 */
+    NAV_CELL_CURSOR_INDEX = 2,    /* 0x5b44f0 */
+    NAV_CELL_CURSOR_VARIANT = 3,  /* 0x5b44f4 */
+    NAV_CELL_SURFACE = 4,         /* 0x5d162d := [0x5d0377] (value not tracked: 0) */
+    NAV_CELL_TABLE = 5,           /* 0x5d1631 = 0x5b160c + offset (value: offset) */
+    NAV_CELL_LAYER = 6,           /* 0x5d1639 */
+    NAV_CELL_SELECTOR = 7,        /* 0x5bb50b */
+    NAV_CELL_SCROLL = 8,          /* 0x5bb587 */
+    NAV_CELL_SCROLL_END = 9,      /* 0x5bb58f */
+    NAV_CELL_VIEW_DIRTY = 10,     /* [ebp-0x14] of the tick */
+    NAV_CELL_DEADLINE = 11        /* 0x63a5c8 */
+} NavCell;
+
+typedef struct NavEffect {
+    int32_t cell;
+    int64_t value;
+} NavEffect;
+
+#define NAV_EFFECT_MAX 12
+
 /* Wrap modes of the selector 0x5bb2b6 (scene load default 1, never written
  * elsewhere): 1 wraps around, 2 and 0 clamp. Other values leave the selector
  * outside [min, max] untouched. */
@@ -87,6 +110,16 @@ typedef struct NavBands {
     int32_t y2;  /* +0x40 = view bottom - [0x5b0262] + 1 */
 } NavBands;
 
+/* The hot point the zone tests use: 0x58316e / 0x58316a, computed by the cursor
+ * update 0x4db38a (sprite left/top + the hot offsets of the cursor index and
+ * variant the cursor had BEFORE the cascade ran) and therefore independent of
+ * the hot pair the cascade's own transform (0x4f01ae) selects. */
+typedef struct NavPointer {
+    int32_t hot_x;
+    int32_t hot_y;
+    int32_t selected_item; /* word 0x583a29, -1 when nothing is held */
+} NavPointer;
+
 typedef struct NavZoneGeometry {
     SessionInputRect view; /* receiver +4/+8/+0xc/+0x10 = 0x583186/8a/8e/92 */
     NavBands bands;
@@ -107,6 +140,8 @@ typedef struct NavZoneResult {
     NavCursor cursor;         /* 0x5b44f0/0x5b44f4 after */
     uint32_t table_offset;    /* 0x5d1631 - 0x5b160c = index*32 + variant*16 */
     uint8_t layer_flag;       /* 0x5d1639 := 1 */
+    uint8_t effect_count;
+    NavEffect effects[NAV_EFFECT_MAX];
 } NavZoneResult;
 
 /* 0x4f18fa..0x4f1e73 (and the state-0 tail 0x4f1e7d..0x4f1eae). globals->state
@@ -128,6 +163,8 @@ typedef struct NavStepResult {
     uint8_t view_dirty;        /* [ebp-0x14] at 0x43cc61 (scroll moved or selector clamped) */
     uint8_t selector_changed;  /* 0x5bb50b differs after the step */
     int16_t selector_before;
+    uint8_t effect_count;
+    NavEffect effects[NAV_EFFECT_MAX];
 } NavStepResult;
 
 /* 0x43c133..0x43c941. tick_time is the GetTickCount sample taken at the tick
@@ -157,7 +194,8 @@ typedef struct NavScanResult {
  * (0x4d3081/0x4d308b, 0x43d14e/0x43d158). nav->state receives the new state.
  * Status values are session_input's (including its named limits). */
 int session_navigation_scan(SessionInputState *input, const SessionInputContext *context,
-                            NavGlobals *nav, const NavBands *bands, NavCursor *cursor,
+                            NavGlobals *nav, const NavBands *bands, const NavPointer *pointer,
+                            NavCursor *cursor,
                             const SessionInputHotspot *priority, size_t priority_count,
                             const SessionInputHotspot *rows, size_t row_count,
                             NavScanResult *out);
