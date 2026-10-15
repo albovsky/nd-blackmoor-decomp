@@ -101,7 +101,9 @@ class RepoEvidenceTests(unittest.TestCase):
             "external": {"0x0b": "session_a0b_handler", "0x16": "session_a17_handler", "0x17": "session_a17_handler",
                          "0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x36": "session_a36_handler",
                          "0x37": "session_a36_handler",  # RT-18: second type on the raw 0x36 handler
-                         "0x51": "session_a51_handler", "0x62": "session_a62_handler", "0x79": "session_a79_handler",
+                         "0x51": "session_a51_handler", "0x62": "session_a62_handler",
+                         "0x78": "session_a78_handler",  # RT-19
+                         "0x79": "session_a79_handler",
                          "0x83": "native_a83_handler",
                          "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
         # Handled = every registered type seen in the census; read both instead of hard-coding a count.
