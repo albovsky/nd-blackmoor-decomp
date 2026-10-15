@@ -150,7 +150,7 @@ class RepoEvidenceTests(unittest.TestCase):
         report = (self.out / "REPORT.md").read_text()
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
         self.assertIn("S5906 → S4700 → S4710", report)
-        self.assertIn("provider scene-resource", report)
+        self.assertIn("provider action-kernel", report)
         self.assertIn("1,269 discovered; 1,264 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):

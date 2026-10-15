@@ -303,7 +303,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_bink_movie_frames_soundtrack_events_and_new_live_stop(self):
-        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', returncode=1)
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
         self.assert_in_order(contents, (
             'scene_parsed name=S4700',
             'scene_a97_construct row=11 selected=',
@@ -318,8 +318,11 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_a35_finished row=3 phase=2 next_phase=0',
             'scene_session_transition_pending source=4700 target=4710',
             'scene_parsed name=S4808',
-            'scene_transition_error source=4807 target=4808 detail=session-replace '
-            'status=5 provider=scene-resource action=6 type=0x83 detail_status=6'))
+            # A-83.1 registered the 0x83 body boundary, so S4808 now loads and the
+            # explicit stop moved to its unimplemented runtime (row 6).
+            'scene_transition_applied source=4807 target=4808',
+            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x83',
+            'live_session_end scene=4808 '))
         movie = contents.split('scene_a35_open branch=Bink name=EXT_OpnCin_ANIM ', 1)[1]
         movie = movie.split('scene_a35_finished row=3', 1)[0]
         self.assertEqual(movie.count('scene_a35_frame_presented'), 504)

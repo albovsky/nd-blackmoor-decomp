@@ -94,3 +94,5 @@ Merged: raw 0x68 (10 records, fixed 1 byte), 0x83 (9, fixed 74) and 0x4b (9, sel
 In progress (Codex gpt-6.1-sol xhigh): A-69.1 (7), A-65.1 (7), A-16.1 (raw 0x16, 2 records, same arm as 0x17).
 Remaining after that: 0xf6 (6), 0xea (6), 0xf5 (4), 0x1b (4), 0x7d (4) and a tail of families with one to three records (about 40 of the 61 records left after the current batch), then runtime work through the runtime thread.
 Open: raw 0x4b record 2804/0 needs a caller-resolved missing-key fallback string (A-4B.2); the three new fixed-body oracles sweep ragged tails to 0..40 only (the shared stage covers the dense sweep); ragged-tail sentinels above 4,097 bytes are still missing from the shared stage.
+
+Live path after this registration (2026-10-14 19:30 PDT): with 0x83 typed, the scripted run now reaches 23 scenes (S0 to S5906, S4700 with its Bink movie, S4710, S4701, S4711, S4800-S4808) and stops at S4808 row 6, raw 0x83, `provider=action-kernel` (typed body, no runtime handler). The 0x83 runtime (loader arm 0x40e995, a 74-byte fixed body) is the next runtime slice for the runtime thread; the live-path tests and progress pins were updated for the new stop.
