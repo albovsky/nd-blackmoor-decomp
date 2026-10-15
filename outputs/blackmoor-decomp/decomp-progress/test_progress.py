@@ -788,6 +788,17 @@ class RegistrationDriftTests(unittest.TestCase):
         self.assertIn("0xee", changed["unsupported"]["types"])
         self.assertNotEqual(changed, self.original)
 
+    def test_guarded_parser_case_counts_listed_records_as_opaque(self):
+        a = self.original
+        self.assertIn("0xe0", a["typed"]["types"])
+        self.assertEqual(a["typed"]["records"] + a["opaque"]["records"], a["record_total"])
+
+    def test_unlisted_guarded_parser_case_fails_closed(self):
+        self.change("src/scene_resource.c", "case 0xd3: fixed_length = 855u; break;",
+                    "case 0xd3:\n        if (length < 855u) {\n            return 0;\n        }\n        fixed_length = 855u;\n        break;")
+        with self.assertRaisesRegex(GEN.PLAYABLE.PlayableError, "guarded parser case"):
+            GEN.PLAYABLE.derive_actions(self.out)
+
     def test_stale_committed_test_totals_are_rejected(self):
         shutil.copy2(EVIDENCE / "playable-status.json", self.out)
         status = json.loads((EVIDENCE / "status.json").read_text())
