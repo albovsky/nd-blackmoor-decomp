@@ -59,7 +59,12 @@ typedef struct SessionInputContext {
      * geometry_ready includes the original screen-to-logical adapter, cursor
      * polling/warp/size/clamp/render lifecycle and selected hot-point source.
      * priority_clear means 4f0059's earlier UI/puzzle/navigation paths are
-     * proved to fall through to its generic action scan for THIS tick. */
+     * proved to fall through to its generic action scan for THIS tick.
+     * RT-14: that includes the overlay hit test. 0x4897cd is called at
+     * 0x4f104f, AFTER roughly twenty earlier cascade members that are not
+     * modelled individually; with priority rows the claim is "every member
+     * before 0x4f104f missed" (only the RT-6 guard cells are evidence for it),
+     * and the overlay rows then win over the generic rows. */
     uint32_t geometry_ready;
     uint32_t priority_clear;
     int32_t excluded_0, excluded_1; /* 0x5b4e89 / 0x5b5100; -1 or 0..239. */
@@ -113,6 +118,15 @@ int session_input_tick(SessionInputState *state, const SessionInputContext *cont
  * No priority-path decision is fabricated by this function. */
 int session_input_scan(SessionInputState *state, const SessionInputContext *context,
                        const SessionInputHotspot *hotspots, size_t count);
+
+/* RT-14: scan with ordered priority rows tried before the generic rows (the
+ * overlay hit test 0x4897cd runs inside the 0x4f0059 cascade, before its
+ * generic loop). Priority rows may repeat an index and need not ascend; they
+ * are never excluded-slot hand-offs. session_input_scan is this function
+ * without priority rows. All rows are validated before any mutation. */
+int session_input_scan_priority(SessionInputState *state, const SessionInputContext *context,
+                                const SessionInputHotspot *priority, size_t priority_count,
+                                const SessionInputHotspot *hotspots, size_t count);
 
 /* Alternative to scan when an independently recovered cursor/UI provider
  * supplies the exact raw global (including special event IDs). Never publish

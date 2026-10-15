@@ -259,12 +259,12 @@ class NativeCaptionTransferTests(unittest.TestCase):
             self.assertIn('seed=analysis-only', contents)
             self.assertNotIn('stopped failure=0', contents)
 
-    def run_live(self, *extra_args, returncode=0):
+    def run_live(self, *extra_args, returncode=0, row='34'):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         log = Path(directory.name) / 'live.log'
         result = subprocess.run([str(self.executable), '--inspect-live-session',
-                                 '--live-click-row', '34', *extra_args,
+                                 '--live-click-row', row, *extra_args,
                                  '--game-dir', str(self.game), '--log', str(log)],
                                 capture_output=True, text=True, timeout=180)
         self.assertEqual(result.returncode, returncode, result.stderr)
@@ -393,7 +393,7 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assert_in_order(contents, (
             'pointer_input_reset status=0 candidate=-1',
             'pointer_provider provisional sprite=1x1 hot=0,0 scroll=0 '
-            'guards[5b5158,5b61af,5b615e,5a4c18]=0,0,0,0 priority_clear=1',
+            'guards[5b5158,5b61af,5b615e]=0,0,0 cascade_members_idle=1 priority_clear=1',
             'live_session_hover row=34 rect=388,225,492,284 window=450,264',
             'pointer_candidate candidate=34 rows=3 cursor=450,264 provisional-geometry=1',
             'pointer_input event=DOWN candidate_at_message=34 latch_edge=0',
@@ -542,6 +542,392 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('condition_provider op17 channel=4 unloaded status=0 idle_gate=1 '
                       'manager_error=0x3ef', contents)
         self.assertIn('condition_provider op17 channel=32 status=7', contents)
+
+    # ---- RT-13: the tutorial path (S0 row 32 -> S6400) ----------------------------------
+    def tutorial(self, *extra_args):
+        return self.run_live('--live-ticks', '3000', '--rand-seed', '1', *extra_args, row='32')
+
+    def test_rt13_tutorial_runs_raw_0x79_and_then_the_overlays_without_a_stop(self):
+        # S6400 is loaded from the external s6400.CIF. Row 15 is raw 0x79 for item 23;
+        # the New Game inventory is empty, so it is a no-op that completes the row.
+        # RT-14: rows 16 and 17 (raw 0x36 static overlays) register and the scene keeps ticking.
+        contents = self.tutorial()
+        self.assert_in_order(contents, (
+            'scene_a79_construct row=15 item=23 (remove-inventory-item, 0x4eac4c)',
+            'scene_a36_construct row=16 name=BLU_Key_OVL ',
+            'scene_a36_construct row=17 name=TUT_Next_OVL ',
+            'scene_transition_applied source=0 target=6400',
+            'scene_a36_register row=16 list_index=0',
+            'scene_a36_register row=17 list_index=1',
+            'live_session_end scene=6400 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertNotIn('session_frozen', contents)
+        self.assertNotIn('scene_a79_blocker', contents)
+        self.assertNotIn('scene_a79_inventory_removed', contents)
+        self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
+                      'view_rebuilds_requested=0', contents)
+
+    def test_rt13_frozen_session_reports_the_blocker_and_counts_ignored_input(self):
+        # RT-13 item 3 on the S5900 path, whose end is a different missing family (0x83):
+        # one persistent report line, then pointer input is counted as ignored.
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1', '--live-click-blocked')
+        self.assert_in_order(contents, (
+            'scene_session_blocked stage=3 provider=action-kernel action=6 type=0x83 detail=1',
+            'session_frozen scene=4808 generation=',
+            'row=6 type=0x83 provider=action-kernel stage=3 '
+            'reason="action type 0x83 at row 6 has no native runtime yet" '
+            'ticks_after_block=stopped pointer_input=ignored',
+            'session_frozen_input_ignored scene=4808 count=1 ',
+            'live_session_end scene=4808 '))
+        self.assertEqual(contents.count('scene_session_blocked'), 1)
+        self.assertEqual(contents.count('session_frozen scene='), 1)
+        self.assertNotIn('scene_a36_register', contents)
+
+    def test_rt13_raw_0x79_removes_the_seeded_item_and_clears_the_held_item_through_the_app(self):
+        # Seeded list [4,23,9,23], held 23: only the FIRST 23 is removed, presence[23] is
+        # cleared even though a second copy stays, the held item becomes -1 and exactly
+        # one view rebuild is requested (the app has no inventory view model yet).
+        contents = self.tutorial('--test-inventory', '4,23,9,23', '--test-held', '23')
+        self.assert_in_order(contents, (
+            'test_inventory_seeded count=4 held=23',
+            'scene_a79_construct row=15 item=23',
+            'scene_a79_inventory_removed item=23 count=3 view-rebuild=requested-not-modeled rebuilds=1',
+            'scene_a36_register row=16 list_index=0',
+            'live_session_inventory count=3 held=-1 presence_nonzero=2 view_rebuilds_requested=1'))
+
+    def test_rt13_raw_0x79_clears_only_a_matching_held_item(self):
+        contents = self.tutorial('--test-inventory', '4,9', '--test-held', '9')
+        self.assertIn('live_session_inventory count=2 held=9 presence_nonzero=2 '
+                      'view_rebuilds_requested=0', contents)
+        contents = self.tutorial('--test-held', '23')  # absent from the list: still cleared
+        self.assertIn('live_session_inventory count=0 held=-1 presence_nonzero=0 '
+                      'view_rebuilds_requested=0', contents)
+
+    # ---- RT-14: raw 0x36 static overlays (COverlay) -------------------------------------
+    def test_rt14_overlays_are_drawn_and_the_hot_region_is_hit_before_any_generic_row(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-hover-only')
+        self.assert_in_order(contents, (
+            'scene_a36_register row=16 list_index=0',
+            'scene_a36_surface_load cache_slot=0 ',
+            'scene_a36_render_entry slot=24 layer=10 callback=0x48a3db',
+            'scene_a36_register row=17 list_index=1',
+            'scene_a36_render_entry slot=25 layer=10 callback=0x48a3db',
+            'scene_a36_blit row=17 slot=25 kind=plain ',
+            'live_session_hover row=17 rect=540,20,612,52',
+            'scene_a36_hot_hit row=17 rect=540,20,612,52',
+            'live_session_end scene=6400 ticks=3000 status=0 provider=none '))
+        self.assertIn('src=0,0,72,32 dst=550,30,622,62 composed=RGB555-backbuffer', contents)
+        # hover alone writes nothing
+        self.assertNotIn('scene_a36_event_write', contents)
+        self.assertNotIn('live_session_click row=17', contents)
+
+    def test_rt14_click_on_the_next_overlay_writes_event_1000_and_row_19_changes_the_scene(self):
+        contents = self.tutorial('--live-scene-row', '6400:17')
+        self.assert_in_order(contents, (
+            'live_session_hover row=17 rect=540,20,612,52',
+            'pointer_candidate candidate=17 ',
+            'scene_a36_hot_hit row=17 ',
+            'pointer_input event=DOWN candidate_at_message=17',
+            'pointer_input event=UP candidate_at_message=17 latch_edge=1',
+            'pointer_consume status=0 edge=1 candidate=17 activation=1 ',
+            'scene_a36_event_write event=1000 value=1',
+            'scene_a36_finish row=17 (0x42ba3a)',
+            'scene_session_transition_pending source=6400 target=6401 ',
+            'scene_a36_construct row=1 name=BLU_Key_OVL ',
+            'scene_transition_applied source=6400 target=6401',
+            # RT-15: the raw 0x17 row of S6401 (MF HS scene) no longer blocks the session.
+            'scene_a36_register row=1 list_index=0',
+            'scene_a17_register row=6 start_flag_5bb1ca=1 (0x42b0b2)',
+            'live_session_end scene=6401 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertEqual(contents.count('scene_a36_event_write event=1000'), 1)
+        self.assertEqual(contents.count('scene_a36_finish row=17'), 1)
+        # row 16 (BLU_Key_OVL) is not clickable at the entry selector and never finishes
+        self.assertNotIn('scene_a36_finish row=16', contents)
+
+    # ---- RT-15: raw 0x17 multiframe scene hotspot (S6401 row 6, handler 0x42b07e) --------
+    def test_rt15_s6401_row_6_registers_and_the_entry_frame_has_no_hot_rectangle(self):
+        # S6400 row 19 enters S6401 with selector (DAT_005bb50b) 1; the row's frame records
+        # are 2..6, so nothing is hit-testable yet (the original needs navigation to move the
+        # selector; that producer is not bound). The session must keep ticking.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6')
+        self.assert_in_order(contents, (
+            'scene_session_transition_pending source=6400 target=6401 opaque_words=1,0,1 ',
+            'scene_a17_construct row=6 type=0x17 target=6402 frame_records=5 hover_cursor_index=8 ',
+            'scene_transition_applied source=6400 target=6401',
+            'scene_a17_register row=6 start_flag_5bb1ca=1 (0x42b0b2)',
+            'live_session_end scene=6401 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('scene_a17_frame_hit', contents)
+        self.assertNotIn('live_session_hover row=6 ', contents)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt15_click_on_the_hot_frame_rectangle_changes_the_scene_like_the_scene_change_arm(self):
+        # --test-selector stands in for the unbound navigation producer: frame 4 of the row's
+        # records (243,86,398,321).
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                                 '--test-selector', '6401:4')
+        self.assert_in_order(contents, (
+            'test_selector_applied scene=6401 frame=4 ',
+            'scene_a17_register row=6 start_flag_5bb1ca=1 (0x42b0b2)',
+            'scene_a17_frame_hit row=6 request=1 rect=243,86,398,321 selector=4 ',
+            'live_session_hover row=6 rect=243,86,398,321',
+            'pointer_candidate candidate=6 rows=1 ',
+            'pointer_input event=UP candidate_at_message=6 latch_edge=1',
+            'pointer_consume status=0 edge=1 candidate=6 activation=1 ',
+            'scene_a17_finish row=6 completion_byte=1 (0x42b221)',
+            'scene_a17_transition target=6402 opaque_words=0,0,1 opaque_dwords=0,0,1 ',
+            'scene_session_transition_pending source=6401 target=6402 ',
+            'scene_transition_applied source=6401 target=6402',
+            'live_session_end scene=6402 ticks=3000 status=0 provider=none '))
+        self.assertEqual(contents.count('scene_a17_finish row=6'), 1)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt15_the_hotspot_only_becomes_live_after_its_dependency_gate_opens(self):
+        # Row 6 carries three opcode-17 dependency records (sound channels 13, 12 and 8 idle);
+        # the row registers only after the S6401 narration finished (tick 319 in the offline
+        # schedule), not on entry.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--test-selector', '6401:4')
+        entry = contents.index('scene_transition_applied source=6400 target=6401')
+        register = contents.index('scene_a17_register row=6 ')
+        self.assertGreater(register, entry)
+        between = contents[entry:register]
+        self.assertGreater(between.count('scene_clock_tick '), 50)
+
+    def test_rt15_test_selector_rejects_an_empty_or_non_numeric_frame(self):
+        for value in ('6401:', '6401:x', '6401:4x', ':4', '6401', '6401:40000'):
+            with self.subTest(value=value):
+                result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                         '--live-click-row', '32', '--test-selector', value,
+                                         '--game-dir', str(self.game)],
+                                        capture_output=True, text=True, timeout=60)
+                self.assertEqual(result.returncode, 2, result.stderr)
+
+    # ---- RT-16: raw 0x0b scene change (S6403 row 2, handler 0x42ae73) -------------------
+    CHAIN_TO_6403 = ('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                     '--live-scene-row', '6402:3', '--test-selector', '6401:4')
+
+    def test_rt16_s6403_row_2_registers_and_exports_its_rectangle_for_the_entry_selector(self):
+        # S6402 row 3 (raw 0x15, the executor's built-in hotspot) enters S6403 with selector 0,
+        # the frame word the raw-0x0b loader stores (+0x16): request 1, rectangle 1,325,619,374.
+        contents = self.tutorial(*self.CHAIN_TO_6403)
+        self.assert_in_order(contents, (
+            'scene_session_transition_pending source=6402 target=6403 opaque_words=0,0,1 ',
+            'scene_a0b_construct row=2 target=6404 entry_frame=4 word8=1 rect=1,325,619,374 '
+            'hover_cursor_index=9 ',
+            'scene_transition_applied source=6402 target=6403',
+            'scene_a0b_register row=2 start_flag_5bb1ca=1 (0x42aea9)',
+            'scene_a0b_rect row=2 rect=1,325,619,374 ',
+            'live_session_end scene=6403 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertNotIn('scene_a0b_finish', contents)      # no click was scripted in S6403
+
+    def test_rt16_click_on_the_s6403_hotspot_reaches_s6404_with_the_loader_constants(self):
+        contents = self.tutorial(*self.CHAIN_TO_6403, '--live-scene-row', '6403:2')
+        self.assert_in_order(contents, (
+            'scene_a0b_register row=2 start_flag_5bb1ca=1 (0x42aea9)',
+            'live_session_hover row=2 rect=1,325,619,374',
+            'pointer_candidate candidate=2 rows=1 ',
+            'scene_a0b_hover_cursor row=2 index=9 variant=1 table_offset=0x130 held_flag=0 surface=0 ',
+            'pointer_input event=UP candidate_at_message=2 latch_edge=1',
+            'pointer_consume status=0 edge=1 candidate=2 activation=1 ',
+            'scene_a0b_finish row=2 completion_byte=1 (0x42afb3)',
+            # +2 target, +4 selector of the next scene, +6 loader zero, +8 body word 6,
+            # dwords +0xa/+0xe zero and +0x12 one.
+            'scene_a0b_transition target=6404 opaque_words=4,0,1 opaque_dwords=0,0,1 ',
+            'scene_session_transition_pending source=6403 target=6404 opaque_words=4,0,1 ',
+            'scene_transition_applied source=6403 target=6404',
+            'live_session_end scene=6404 ticks=3000 status=0 provider=none '))
+        self.assertEqual(contents.count('scene_a0b_finish row=2'), 1)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt16_the_hot_rectangle_needs_selector_zero(self):
+        # Standing in for the unbound navigation producer, the selector 4 at S6403's entry
+        # leaves the frame word (0) unmatched: the row registers and exports nothing.
+        contents = self.tutorial(*self.CHAIN_TO_6403, '--test-selector', '6403:4',
+                                 '--live-scene-row', '6403:2')
+        self.assertIn('test_selector_applied scene=6403 frame=4 ', contents)
+        self.assertIn('scene_a0b_register row=2 ', contents)
+        self.assertNotIn('live_session_hover row=2 ', contents)
+        self.assertNotIn('scene_a0b_finish', contents)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt16_the_tutorial_chain_reaches_the_next_missing_family_in_s6452(self):
+        # S6404 row 3 (raw 0x17, frames 15..18) needs the navigation selector: the test hook
+        # supplies frame 16. S6451 row 0 is another raw 0x0b; S6452 row 0 is raw 0x37, loaded by
+        # 0x4895cc into the runtime-0x36 overlay type: the next stop.
+        contents = self.tutorial(*self.CHAIN_TO_6403, '--live-scene-row', '6403:2',
+                                 '--live-scene-row', '6404:3', '--live-scene-row', '6451:0',
+                                 '--test-selector', '6404:16')
+        self.assert_in_order(contents, (
+            'scene_a0b_transition target=6404 opaque_words=4,0,1 ',
+            'test_selector_applied scene=6404 frame=16 ',
+            'scene_transition_applied source=6403 target=6404',
+            'scene_a17_frame_hit row=3 request=1 rect=100,62,308,337 selector=16 ',
+            'scene_a0b_construct row=0 target=6452 ',
+            'scene_transition_applied source=6404 target=6451',
+            'scene_a0b_finish row=0 completion_byte=1 ',
+            'scene_transition_applied source=6451 target=6452',
+            'scene_session_blocked stage=3 provider=action-kernel action=0 type=0x37 detail=1'))
+
+    # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
+    def navigated(self, *extra_args):
+        return self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                             '--live-nav', '6401:left', *extra_args)
+
+    def test_rt17_edge_hover_moves_the_selector_and_row_6_becomes_hot_without_test_hooks(self):
+        # No --test-selector: the selector 1 -> 2 comes from the recovered tick block
+        # (0x43c251 state 1) driven by the cascade's left-band zone (0x4f1a6e).
+        contents = self.navigated()
+        self.assert_in_order(contents, (
+            'nav_scene_begin scene=6401 selector=1 range=0..19 mode=1 step=1 arrows=15,0 '
+            'delays=400,66 scroll=0/374 image_bottom=374 bands=39,44,600,350 auto_move=1 '
+            'cascade_members_idle=1 keyboard_producer=unbound',
+            'live_session_nav_hover scene=6401 side=left ',
+            'nav_zone state=1 claimed=1 ',
+            'nav_step state=1 selector=1->2 ',
+            'nav_frame_shown selector=2 frames=20 reason=navigation',
+            'live_session_nav_moved scene=6401 selector=2 remaining=0',
+            'scene_a17_frame_hit row=6 request=1 rect=4,74,110,310 selector=2 ',
+            'live_session_hover row=6 rect=4,74,110,310',
+            'pointer_candidate candidate=6 ',
+            'scene_a17_finish row=6 completion_byte=1 (0x42b221)',
+            'scene_transition_applied source=6401 target=6402',
+            'live_session_end scene=6402 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('test_selector_applied', contents)
+        self.assertEqual(contents.count('nav_step '), 1)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt17_a_zone_hit_returns_before_the_generic_rows_and_leaves_no_candidate(self):
+        contents = self.navigated()
+        zone = contents.index('nav_zone state=1 claimed=1 ')
+        line = contents[zone:contents.index('\n', zone)]
+        self.assertIn('candidate=-1', line)
+        self.assertIn('cascade returned at 0x4f1e78 before the generic loop', line)
+        self.assertIn('cursor_index=14', line)          # left arrow, 0x4f1dd9: [0x5bb2d0] != 0x4d
+        self.assertIn('table_offset=0x1c0', line)       # 0x5b160c + 14*32
+
+    def test_rt17_the_step_waits_for_the_rate_limit_and_the_pointer_must_stay_in_the_zone(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:left:3')
+        steps = [l for l in contents.splitlines() if l.startswith('nav_step ')]
+        self.assertEqual(len(steps), 3)
+        # 0x43c8d6: deadline = tick + [0x5bb2ce] (400 ms); the next step needs tick > deadline.
+        ticks = [int(l.split(' tick=')[1].split()[0]) for l in steps]
+        self.assertTrue(all(b - a > 400 for a, b in zip(ticks, ticks[1:])), ticks)
+        self.assertIn('selector=1->2', steps[0])
+        self.assertIn('selector=3->4', steps[2])
+        # the last step moved the pointer out of the band: no further step follows
+        self.assertEqual(contents.count('nav_step '), 3)
+
+    def test_rt17_a_click_inside_a_zone_makes_no_edge_activates_nothing_and_does_not_delay_the_step(self):
+        # In a zone the cascade left the candidate at -1 (0x4f1e78); the release needs a candidate
+        # at message time (0x4db000, RT-2), so the latch gets no edge, nothing is consumed or
+        # activated, and the hover step is not delayed by the click.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:left:1:click')
+        self.assert_in_order(contents, (
+            'nav_zone state=1 claimed=1 ',
+            'pointer_input event=DOWN candidate_at_message=-1 latch_edge=0',
+            'pointer_input event=UP candidate_at_message=-1 latch_edge=0',
+            'live_session_nav_click scene=6401 state=1 selector=1',
+            'nav_step state=1 selector=1->2 '))
+        self.assertNotIn('candidate=-1 activation=', contents)
+        self.assertNotIn('scene_a17_finish', contents)
+
+    def test_rt17_the_step_refreshes_the_frame_input_and_the_caption_backbuffer_in_the_same_tick(self):
+        # Review fix P2-1: native fills frame_input.current_frame in the prepare callback, before the
+        # step; the consume wrapper must refresh it (and the caption backbuffer) after the selector
+        # moved so the dispatcher of THIS tick sees the new frame (original 0x43cf1e..0x43cf2f).
+        contents = self.navigated()
+        self.assert_in_order(contents, (
+            'nav_step state=1 selector=1->2 ',
+            'nav_frame_shown selector=2 ',
+            'nav_frame_input current_frame=2 caption_backbuffer_reseed=ok '))
+        self.assertNotIn('nav_frame_kept', contents)
+
+    def test_rt17_automove_zero_in_game_ini_keeps_the_zone_but_disables_the_hover_step(self):
+        # 0x43c216 needs AutoMove [0x5bb206] != 0 for the mouse path; the zone tests do not.
+        # A private game directory links every original entry except a Game.ini copy with
+        # AutoMove=0 (the installed game is never modified).
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        private = Path(directory.name) / 'game'
+        private.mkdir()
+        for entry in self.game.iterdir():
+            if entry.name != 'Game.ini':
+                (private / entry.name).symlink_to(entry)
+        ini = (self.game / 'Game.ini').read_text()
+        self.assertIn('AutoMove=1', ini)
+        (private / 'Game.ini').write_text(ini.replace('AutoMove=1', 'AutoMove=0'))
+        log = Path(directory.name) / 'automove0.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session', '--live-click-row', '32',
+                                 '--live-ticks', '3000', '--rand-seed', '1',
+                                 '--live-scene-row', '6400:17', '--live-nav', '6401:left',
+                                 '--game-dir', str(private), '--log', str(log)],
+                                capture_output=True, text=True, timeout=180)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        contents = log.read_text()
+        self.assertIn('auto_move[0x5bb206]=0 (Game.ini)', contents)
+        self.assertIn('nav_zone state=1 claimed=1 ', contents)       # the zone still claims
+        self.assertNotIn('nav_step', contents)                        # but nothing steps
+        self.assertNotIn('nav_frame_shown selector=2', contents)
+
+    def test_rt17_a_scene_with_a_member_row_gets_the_named_limit_instead_of_a_zone_scan(self):
+        # App-level priority_clear wiring: a cascade-member row makes the scan return
+        # SESSION_INPUT_LIMIT_PRIORITY_PATH (3); no zone is evaluated, so no step either.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:left',
+                                 '--test-members-busy')
+        self.assertIn('test_members_busy applied', contents)
+        self.assertIn('cascade_members_idle=0 keyboard_producer=unbound', contents)
+        self.assertIn('pointer_scan_limit status=3 ', contents)
+        self.assertNotIn('nav_zone', contents)
+        self.assertNotIn('nav_step', contents)
+
+    def test_rt17_right_band_steps_down_and_wraps_at_the_first_frame(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:right:2')
+        self.assert_in_order(contents, (
+            'nav_zone state=2 claimed=1 ', 'nav_step state=2 selector=1->0 ',
+            'nav_step state=2 selector=0->19 '))                  # mode 1 wraps to the last frame
+
+    def test_rt17_the_tutorial_chain_through_navigation_continues_through_raw_0x0b_to_s6404(self):
+        # With RT-16 merged the raw 0x0b row of S6403 (reads the live selector through the same
+        # provider) is hot and a click on it reaches S6404.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                                 '--live-nav', '6401:left', '--live-scene-row', '6402:3',
+                                 '--live-scene-row', '6403:2', '--live-ticks', '4000')
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=0 target=6400',
+            'scene_transition_applied source=6400 target=6401',
+            'nav_step state=1 selector=1->2 ',
+            'scene_transition_applied source=6401 target=6402',
+            'scene_transition_applied source=6402 target=6403',
+            'scene_a0b_register row=2 ',
+            'scene_a0b_finish row=2 ',
+            'scene_transition_applied source=6403 target=6404'))
+        self.assertNotIn('test_selector_applied', contents)
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertNotIn('test_selector_applied', contents)
+
+    def test_rt17_one_frame_scenes_have_no_arrow_zones(self):
+        # S0, S5900 and S4700 are single-frame movies: [0x5bb4e7] == 1 zeroes the horizontal arrows
+        # (0x439f05) and the view equals the image, which zeroes the vertical ones (0x43a4f3).
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
+        self.assertIn('nav_scene_begin scene=0 selector=0(unbound: initial scene) range=0..0 '
+                      'mode=1 step=1 arrows=0,0 ', contents)
+        self.assertNotIn('nav_zone', contents)
+        self.assertNotIn('nav_step', contents)
+
+    def test_rt17_a_selector_outside_the_movie_is_refused_not_displayed(self):
+        # The original indexes its frame surfaces with the selector; native refuses to show a
+        # frame outside [0, frames-1] (an unsafe original read) and keeps the shown frame.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--test-selector', '6401:99')
+        self.assertIn('test_selector_applied scene=6401 frame=99 ', contents)
+        self.assertIn('nav_frame_unavailable selector=99 frames=20 reason=scene-entry', contents)
+
+    def test_rt14_the_original_scripted_s5900_run_is_unaffected(self):
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
+        self.assertNotIn('scene_a36_', contents)
+        self.assertNotIn('scene_a17_', contents)
+        self.assertNotIn('scene_a0b_', contents)
+        self.assertIn('live_session_end scene=4808 ', contents)
 
     def test_rand_seed_option_is_logged_and_replayable(self):
         contents = self.run_live('--rand-seed', '12345')
