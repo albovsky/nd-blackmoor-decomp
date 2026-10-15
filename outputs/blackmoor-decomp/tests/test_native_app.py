@@ -683,8 +683,9 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertNotIn('scene_session_blocked', contents)
 
     def test_rt15_the_hotspot_only_becomes_live_after_its_dependency_gate_opens(self):
-        # Row 6 carries three dependency records; it registers only when the preceding
-        # narration sound row has run (tick 319 in the offline schedule), not on entry.
+        # Row 6 carries three opcode-17 dependency records (sound channels 13, 12 and 8 idle);
+        # the row registers only after the S6401 narration finished (tick 319 in the offline
+        # schedule), not on entry.
         contents = self.tutorial('--live-scene-row', '6400:17', '--test-selector', '6401:4')
         entry = contents.index('scene_transition_applied source=6400 target=6401')
         register = contents.index('scene_a17_register row=6 ')
