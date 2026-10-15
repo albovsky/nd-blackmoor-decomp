@@ -91,6 +91,7 @@ class Scratch:
         self.tmp = tempfile.TemporaryDirectory(prefix="fl1-", dir=SCRATCH_PARENT)
         self.root = Path(self.tmp.name) / "fx"
         shutil.copytree(FIXTURE, self.root)
+        (self.root / "function-ledger.json").unlink()      # scratch trees start without a committed ledger
 
     def cleanup(self):
         self.tmp.cleanup()
@@ -100,8 +101,8 @@ class Scratch:
 
     def edit(self, rel, fn):
         data = json.loads(self.path(rel).read_text())
-        out = fn(data)
-        self.path(rel).write_text(json.dumps(data if out is None else out, indent=1) + "\n")
+        fn(data)
+        self.path(rel).write_text(json.dumps(data, indent=1) + "\n")
 
     def text(self, rel, fn):
         p = self.path(rel)
@@ -304,6 +305,7 @@ class MissingInputsTests(ScratchCase):
 
     def test_adding_the_inputs_later_makes_the_empty_ledger_stale(self):
         self.s.path("function-evidence.json").unlink()
+        self.s.path("function-ledger-overrides.json").unlink()
         empty = self.s.derive()
         (self.s.root / "function-ledger.json").write_text(FL.render(empty))
         FL.check(self.s.root, self.s.root / "function-ledger.json", expected_functions=FIXTURE_FUNCTIONS)
@@ -343,8 +345,8 @@ class UniverseTests(ScratchCase):
         self.assertIn("function", str(ctx.exception))
 
     def test_duplicate_index_start(self):
-        self.s.edit("function-index.json", lambda d: d["functions"].append(copy.deepcopy(d["functions"][3])))
-        self.fails()
+        self.s.edit("function-index.json", lambda d: d["functions"][3].update(address=d["functions"][2]["address"]))
+        self.fails("duplicate start")
 
     def test_index_must_describe_pinned_original(self):
         self.s.edit("function-index.json", lambda d: d.update(original_sha256="0" * 64))
@@ -432,6 +434,11 @@ class SchemaTests(ScratchCase):
         self.s.edit("function-evidence.json", lambda d: d["functions"].append(copy.deepcopy(d["functions"][0])))
         self.fails()
 
+    def test_va_size_window_on_a_pending_function_never_reaches_the_ledger(self):
+        # (va, size) read as end_exclusive < start; the extractor's shape bug must fail, not be carried along.
+        self.s.ev(0x4014c0, lambda f: f["evidence"][1].update(window=["0x4014c0", "0x130"]))
+        self.fails("end after start")
+
     def test_unsorted_evidence_is_rejected(self):
         self.s.edit("function-evidence.json", lambda d: d["functions"].reverse())
         self.fails("sorted")
@@ -449,7 +456,7 @@ class SchemaTests(ScratchCase):
             "part is the start": lambda f: f.update(derived_parts=["0x401000"]),
             "part is the next start": lambda f: f.update(derived_parts=["0x401100"]),
             "bad caller": lambda f: f.update(callers=["main"]),
-            "caller outside text": lambda f: f.update(callers=["0x500000000"]),
+            "caller outside text": lambda f: f.update(callers=["0x800000"]),
             "bad import": lambda f: f.update(imports=["bad name"]),
             "data_ref not bool": lambda f: f.update(data_ref=1),
             "eh parent non-index": lambda f: f.update(eh_parent="0x401001", eh_kind="unwind"),
@@ -778,8 +785,10 @@ class NotNeededTests(ScratchCase):
             s.derive()
 
     def test_not_needed_needs_xrefs_to_prove_its_precondition(self):
+        # keep only the acceptances that need no body size, then remove the xrefs
+        self.s.ov(lambda d: d.update(port_acceptances=[a for a in d["port_acceptances"] if a["class"] != "native_oracle_verified"]))
         self.s.path("function-xrefs.json").unlink()
-        self.fails()
+        self.fails("xrefs")
 
     def test_win32_plumbing_import_must_be_allowlisted(self):
         self.s.xr(0x401d00, lambda f: f.update(imports=["CreateFileA"]))
@@ -836,6 +845,16 @@ class NotNeededTests(ScratchCase):
         self.add_entry(0x407000, "library_internal_unreached_by_game", s=s)   # reaches game code
         with self.assertRaises(FL.LedgerError):
             s.derive()
+
+    def test_unsplit_span_and_fall_through_fragment_stay_pending_for_not_needed_too(self):
+        for va, fragment in ((0x407a00, "unsplit"), (0x401e00, "fragment")):
+            with self.subTest(va=hex(va)):
+                s = self.fresh()
+                s.xr(va, lambda f: f.update(callers=[]))          # a precondition that would otherwise hold
+                self.add_entry(va, "unreachable_no_refs", s=s)
+                with self.assertRaises(FL.LedgerError) as ctx:
+                    s.derive()
+                self.assertIn(fragment, str(ctx.exception))
 
     def test_vorbis_stays_pending_for_not_needed_too(self):
         self.add_entry(0x404800, "unreachable_no_refs")
@@ -1213,9 +1232,12 @@ class ValidatorTests(unittest.TestCase):
         self.rejects(lambda d: self.entry(d, 0x401100)["x86_match"].update(extra=1))
         self.rejects(lambda d: self.entry(d, 0x401100)["x86_match"].update(manifest="/abs/batch.json"))
         # An x86 match neither promotes nor demotes a function.
-        self.rejects(lambda d: (self.entry(d, 0x401800).update(
-            x86_match={"provenance": "tool_assisted_reconstructed_assembly", "complete": True,
-                       "manifest": "asm/batch-001.json"}), self.entry(d, 0x401800).update(status="ported")))
+        def promote(d):
+            e = self.entry(d, 0x401800)
+            e["x86_match"] = {"provenance": "tool_assisted_reconstructed_assembly", "complete": True,
+                              "manifest": "asm/batch-001.json"}
+            e["status"] = "ported"
+        self.rejects(promote)
         data = copy.deepcopy(self.good)
         self.entry(data, 0x401800)["x86_match"] = {"provenance": "tool_assisted_reconstructed_assembly",
                                                    "complete": True, "manifest": "asm/batch-001.json"}
