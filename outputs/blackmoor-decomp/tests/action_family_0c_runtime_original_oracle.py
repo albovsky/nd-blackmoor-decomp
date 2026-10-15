@@ -557,63 +557,71 @@ def run_kernel_cases(lib, original, corpus, counters):
     """C. Dispatcher against the kernel directly."""
     cases = 0
     mode = lib.scene_conditions_gate_mode_for_type(0x0c)
+    # Every corpus body first, with every frame of its records as the selector (and one miss),
+    # then random bodies with a random selector.
     for index in range(180):
         rng = random.Random(0x42b2e4 + index)
-        body = rng.choice(corpus) if index % 3 == 0 else random_body(rng)
+        if index < len(corpus):
+            body = corpus[index]
+        else:
+            body = rng.choice(corpus) if index % 3 == 0 else random_body(rng)
         obj, _, _, _ = original.run_loader_0c(body, 0, rng)
         frames = body_frames(body)
-        for phase in (0, 1, 2, 3, 5, 0x10000):
-            for gate in (True, False):
-                selector = wrap_s16(rng.choice(frames + frames + [0, 1, -1, 0x100, 0x4000,
-                                                                    5, 5 ^ 0x8000]))
-                world = dict(start_flag=rng.choice((0, 0x5a5a5a5a)), mode=3,
-                             **{n: 1000 + i for i, n in enumerate(XFER)})
-                rows = [dict(type=0x0c, obj=obj, done=False, subtype=rng.choice((0, 1, 2, 3, 255)))]
-                original.load_scene(rows, rng, world)
-                original.false_rows = set() if gate else {0}
-                original.put(SELECTOR_CELL, 2, selector)
-                original.put(row_va(0, 0x4f), 4, phase)
-                seed_cells = [rng.randrange(-30000, 30000) for _ in range(4)]
-                for off, value in zip((0x47, 0x49, 0x4b, 0x4d), seed_cells):
-                    original.put(row_va(0, off), 2, value)
-                original.put(row_va(0, 0x43), 4, rng.choice((0, 1, 7)))
-                got = original.run_dispatcher(rng)
-                log = [('w', 'request', 0, 0), ('gate', 0, mode)]
-                slot = native.Slot(request=0, left=seed_cells[0], top=seed_cells[1],
-                                   right=seed_cells[2], bottom=seed_cells[3], done=0)
-                w = native.World(selector=selector, start_flag_5bb1ca=world['start_flag'],
-                                 mode_583999=3, **{k: world[k] for k in XFER})
-                case = native.Case(lib, body, phase & 0xffffffff, slot=slot, world=w)
-                if gate:
-                    status, result, why = case.run()
-                    if status != native.OK:
-                        raise OracleError(('native kernel rejected a parity case', status, why))
-                    world_names = {n for n, _ in WORLD_CELLS.values()}
-                    log += [('w', n, -1 if n in world_names else 0, v) for n, v in case.log]
-                expected = insert_handler_marks(got['events'])
-                if log != expected:
-                    raise OracleError(('kernel stream mismatch', phase, gate, log, expected))
-                counters['events_compared'] = counters.get('events_compared', 0) + len(log)
-                o = dict(zip([n for _, (n, _) in sorted(ROW_CELLS.items())], got['rows'][0]))
-                nat_state = case.state()
-                if gate and ((o['request'], o['left'], o['top'], o['right'], o['bottom'], o['done']) !=
-                             nat_state[0]):
-                    raise OracleError(('kernel cell mismatch', phase, nat_state, o))
-                if not gate and o['request'] != 0:
-                    raise OracleError('false gate left the request set')
-                if got['world']['start_flag'] != (case.world.start_flag_5bb1ca if gate else world['start_flag']):
-                    raise OracleError(('start flag mismatch', phase))
-                if gate and got['world']['mode'] != case.world.mode_583999:
-                    raise OracleError(('mode mismatch', phase))
-                if gate and phase == 2:
-                    for name, native_value in zip(XFER, nat_state[1][2:]):
-                        if got['world'][name] != native_value:
-                            raise OracleError(('scene-change cell mismatch', name))
-                if gate and phase in (0, 1):
-                    counters['kernel_hits'] = counters.get('kernel_hits', 0) + (1 if result.requested else 0)
-                cases += 1
-                for name in got['classes']:
-                    counters['footprint'][name] = counters['footprint'].get(name, 0) + 1
+        sweep = sorted(set(frames)) + [0x2222] if index < len(corpus) else [None]
+        plan = [(p, g, s) for s in sweep for p in (0, 1, 2, 3, 5, 0x10000) for g in (True, False)]
+        for phase, gate, forced in plan:
+            selector = wrap_s16(rng.choice(frames + frames + [0, 1, -1, 0x100, 0x4000, 5, 5 ^ 0x8000])
+                                if forced is None else forced)
+            world = dict(start_flag=rng.choice((0, 0x5a5a5a5a)), mode=3,
+                         **{n: 1000 + i for i, n in enumerate(XFER)})
+            rows = [dict(type=0x0c, obj=obj, done=False, subtype=rng.choice((0, 1, 2, 3, 255)))]
+            original.load_scene(rows, rng, world)
+            original.false_rows = set() if gate else {0}
+            original.put(SELECTOR_CELL, 2, selector)
+            original.put(row_va(0, 0x4f), 4, phase)
+            seed_cells = [rng.randrange(-30000, 30000) for _ in range(4)]
+            for off, value in zip((0x47, 0x49, 0x4b, 0x4d), seed_cells):
+                original.put(row_va(0, off), 2, value)
+            original.put(row_va(0, 0x43), 4, rng.choice((0, 1, 7)))
+            got = original.run_dispatcher(rng)
+            log = [('w', 'request', 0, 0), ('gate', 0, mode)]
+            slot = native.Slot(request=0, left=seed_cells[0], top=seed_cells[1],
+                               right=seed_cells[2], bottom=seed_cells[3], done=0)
+            w = native.World(selector=selector, start_flag_5bb1ca=world['start_flag'],
+                             mode_583999=3, **{k: world[k] for k in XFER})
+            case = native.Case(lib, body, phase & 0xffffffff, slot=slot, world=w)
+            if gate:
+                status, result, why = case.run()
+                if status != native.OK:
+                    raise OracleError(('native kernel rejected a parity case', status, why))
+                world_names = {n for n, _ in WORLD_CELLS.values()}
+                log += [('w', n, -1 if n in world_names else 0, v) for n, v in case.log]
+            expected = insert_handler_marks(got['events'])
+            if log != expected:
+                raise OracleError(('kernel stream mismatch', phase, gate, log, expected))
+            counters['events_compared'] = counters.get('events_compared', 0) + len(log)
+            o = dict(zip([n for _, (n, _) in sorted(ROW_CELLS.items())], got['rows'][0]))
+            nat_state = case.state()
+            if gate and ((o['request'], o['left'], o['top'], o['right'], o['bottom'], o['done']) !=
+                         nat_state[0]):
+                raise OracleError(('kernel cell mismatch', phase, nat_state, o))
+            if not gate and o['request'] != 0:
+                raise OracleError('false gate left the request set')
+            if got['world']['start_flag'] != (case.world.start_flag_5bb1ca if gate else world['start_flag']):
+                raise OracleError(('start flag mismatch', phase))
+            if gate and got['world']['mode'] != case.world.mode_583999:
+                raise OracleError(('mode mismatch', phase))
+            if gate and phase == 2:
+                for name, native_value in zip(XFER, nat_state[1][2:]):
+                    if got['world'][name] != native_value:
+                        raise OracleError(('scene-change cell mismatch', name))
+            if gate and phase in (0, 1):
+                counters['kernel_hits'] = counters.get('kernel_hits', 0) + (1 if result.requested else 0)
+            if index < len(corpus):
+                counters['kernel_corpus_cases'] = counters.get('kernel_corpus_cases', 0) + 1
+            cases += 1
+            for name in got['classes']:
+                counters['footprint'][name] = counters['footprint'].get(name, 0) + 1
     return cases
 
 
@@ -793,6 +801,9 @@ def main(*, library=None, report_path=REPORT, sequences=1500, cascade_cases=1500
         session_sequences=sequences, session_passes=passes, session_scene_changes=finished,
         session_0c_scene_changes=counters.get('finish_0c', 0),
         kernel_dispatcher_cases=kernel_cases, kernel_visits_with_a_frame_hit=counters.get('kernel_hits', 0),
+        kernel_corpus_cases=counters.get('kernel_corpus_cases', 0),
+        corpus_rows_with_dependency_records=sum(1 for r in corpus_doc['records'] if r['dependency_count']),
+        corpus_scenes=len({r['resource_index'] for r in corpus_doc['records']}),
         events_compared=counters.get('events_compared', 0),
         row_cells_compared=counters.get('row_cells_compared', 0),
         world_cells_compared=counters.get('world_cells_compared', 0),

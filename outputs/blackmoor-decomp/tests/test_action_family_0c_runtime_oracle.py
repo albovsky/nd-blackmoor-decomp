@@ -34,7 +34,10 @@ class OriginalOracleTests(unittest.TestCase):
         self.assertEqual(report['corpus_bodies'], 43)
         self.assertEqual(report['loader_cases'], 1554)
         self.assertEqual(report['session_sequences'], 1500)
-        self.assertEqual(report['kernel_dispatcher_cases'], 2160)
+        self.assertEqual(report['kernel_dispatcher_cases'], 4776)
+        self.assertEqual(report['kernel_corpus_cases'], 3132)   # all 43 corpus bodies, every frame
+        self.assertEqual(report['corpus_scenes'], 7)
+        self.assertEqual(report['corpus_rows_with_dependency_records'], 16)
         self.assertGreater(report['session_0c_scene_changes'], 400)
         self.assertGreater(report['events_compared'], 40000)
         self.assertGreater(report['cascade']['family_hits'], 100)
