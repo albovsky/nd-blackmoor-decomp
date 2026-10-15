@@ -69,8 +69,8 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(p["reached_scenes"], recorded["reached_scenes"])
         self.assertEqual(p["reached_scenes"][:10], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
         self.assertEqual(p["stop"], recorded["stop"])
-        self.assertEqual(p["stop"]["action_type"], "0x83")
-        self.assertEqual(p["stop"]["row"], 6)
+        self.assertEqual(p["stop"]["action_type"], "0x0c")
+        self.assertEqual(p["stop"]["row"], 5)
         self.assertEqual(p["tests"], {"discovered": 1269, "passed": 1264, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
@@ -95,8 +95,9 @@ class RepoEvidenceTests(unittest.TestCase):
             "external": {"0x0b": "session_a0b_handler", "0x16": "session_a17_handler", "0x17": "session_a17_handler",
                          "0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x36": "session_a36_handler",
                          "0x51": "session_a51_handler", "0x62": "session_a62_handler", "0x79": "session_a79_handler",
+                         "0x83": "native_a83_handler",
                          "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
-        self.assertEqual(a["handled"]["type_count"], 21)
+        self.assertEqual(a["handled"]["type_count"], 22)
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
         derived.pop("scene_total")
         self.assertEqual(a, derived)
