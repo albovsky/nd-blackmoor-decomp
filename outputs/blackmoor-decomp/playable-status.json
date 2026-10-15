@@ -21,22 +21,23 @@
     "S4804",
     "S4805",
     "S4806",
-    "S4807"
+    "S4807",
+    "S4808"
   ],
   "stop": {
-    "kind": "scene_transition_error",
-    "scene": "S4807",
-    "target_scene": "S4808",
+    "kind": "scene_session_blocked",
+    "scene": "S4808",
+    "target_scene": null,
     "row": 6,
     "action_type": "0x83",
-    "provider": "scene-resource",
-    "reason": "session-replace"
+    "provider": "action-kernel",
+    "reason": "provider-blocked"
   },
-  "ticks": 2185,
+  "ticks": 2186,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "74cfeca279d9a59f2e4577ae687b25d0bc368804",
-    "native_sha256": "08ed0b7590a54f287f3132ed7b2eb1e0932648f7e5b2f46c7aba6a83dd545e7a",
+    "source_ref": "a06b4087fa05a534ea9474805aebef5b629fcc0c",
+    "native_sha256": "6938754987596e6f6bbf58bc5931b88ac39d44b5d7ef507c70ed7b09ac2abacb",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -114,6 +115,10 @@
         "sha256": "3717678ad51b2b1087c2d2cec21057996a8f48477a7dadd36d2660686f884af3"
       },
       {
+        "path": "src/action_family_4b.h",
+        "sha256": "85d4125e14b2d408b87c8202117772d92fed8112ff30cea48a3178dd1793bf9b"
+      },
+      {
         "path": "src/action_family_4e.h",
         "sha256": "24f7592cf73482504468c09b39b22272c0e3b3cfd770cb3fda1b89ac71e4f7c2"
       },
@@ -138,6 +143,10 @@
         "sha256": "94e6d1e8c8bd7c2446e3a7d3d1fc9355c8852f0335b2c272a38b0cd77220edd3"
       },
       {
+        "path": "src/action_family_68.h",
+        "sha256": "51e9694fa23ac8ec3c488ca25f182a6916a1388ab0cea0c9559a9f22f1ea4262"
+      },
+      {
         "path": "src/action_family_6e.h",
         "sha256": "856c40aa7bba2195288e5b50d4449cdd71258057ff0e994e6079f21a53e84cbe"
       },
@@ -148,6 +157,10 @@
       {
         "path": "src/action_family_79.h",
         "sha256": "1c52b3cc5373b9c93a479135d6b1a524489a0efa6ab230c8b86b5ec0ba1220dd"
+      },
+      {
+        "path": "src/action_family_83.h",
+        "sha256": "50189aed9bced8fbc9664d739c81edf2722aa6e66f71394203f1534144a1ce11"
       },
       {
         "path": "src/action_family_94.h",
@@ -295,7 +308,7 @@
       },
       {
         "path": "src/scene_resource.c",
-        "sha256": "ad516e35c0eb6a31e82e2ce6a283c000e9b4e31626a2fb5059bd3700b83dfaf9"
+        "sha256": "c14a096de7ad0d14f7b8690bc4b0a0ff1b84813169bb4f231574e183b9e53985"
       },
       {
         "path": "src/scene_resource.h",
@@ -378,5 +391,5 @@
     "skipped": 5,
     "source_field": "current_integration.full_suite"
   },
-  "next_blocker": "S4808 load: opaque action 0x83 at row 6 (scene-resource)."
+  "next_blocker": "S4808: action 0x83 at row 6 (action-kernel)."
 }
