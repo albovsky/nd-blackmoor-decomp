@@ -602,6 +602,46 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     return 1;
 }
 
+/* Dependency-tail content checks the original runs before building the tree
+ * (0x424cb0..0x424e98, A-TAIL.2): opcode 0x12 opens and 0x13 closes a group.
+ * The original logs a message and aborts the load for an open immediately
+ * followed by a close, for an open, one leaf and a close, for an adjacent
+ * 0x0b pair whose first record has a zero word at +6, and for unbalanced
+ * open/close counts. Opcodes are signed 16-bit words at the start of each
+ * 16-byte record; the first failure in scan order is final. Ordering of
+ * opens and closes is not checked at this stage. */
+static int dependency_prescan_ok(const uint8_t *records, size_t count)
+{
+    size_t row;
+    size_t opens = 0u;
+    size_t closes = 0u;
+
+    for (row = 0u; row < count; ++row) {
+        int16_t opcode = read_i16le(records + row * SCENE_RESOURCE_DEPENDENCY_BYTES);
+
+        if (opcode == 0x12) {
+            ++opens;
+            if (row + 1u < count &&
+                read_i16le(records + (row + 1u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x13) {
+                return 0;
+            }
+            if (row + 2u < count &&
+                read_i16le(records + (row + 2u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x13) {
+                return 0;
+            }
+        } else if (opcode == 0x13) {
+            ++closes;
+        } else if (opcode == 0x0b) {
+            if (row + 1u < count &&
+                read_i16le(records + (row + 1u) * SCENE_RESOURCE_DEPENDENCY_BYTES) == 0x0b &&
+                read_i16le(records + row * SCENE_RESOURCE_DEPENDENCY_BYTES + 6u) == 0) {
+                return 0;
+            }
+        }
+    }
+    return opens == closes;
+}
+
 static int parse_action(SceneAction *action, const uint8_t *payload, size_t length)
 {
     size_t typed_length;
@@ -638,7 +678,9 @@ static int parse_action(SceneAction *action, const uint8_t *payload, size_t leng
         return 0;
     }
     remaining = action->info.raw_body_length - typed_length;
-    if (remaining % SCENE_RESOURCE_DEPENDENCY_BYTES != 0u) {
+    if (remaining % SCENE_RESOURCE_DEPENDENCY_BYTES != 0u ||
+        !dependency_prescan_ok(action->info.raw_body + typed_length,
+                               remaining / SCENE_RESOURCE_DEPENDENCY_BYTES)) {
         return 0;
     }
     action->info.payload_kind = kind;

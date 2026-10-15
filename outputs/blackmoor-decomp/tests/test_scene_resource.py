@@ -456,6 +456,35 @@ class SceneResourceTests(unittest.TestCase):
         self.assertIsNone(scene)
         self.assertTrue(error)
 
+    def test_dependency_prescan_rejects_what_the_original_aborts_on(self):
+        description = b"prescan action".ljust(48, b"\0")
+
+        def row(opcode, word6=1):
+            record = bytearray(16)
+            record[0:2] = opcode.to_bytes(2, "little", signed=True)
+            record[6:8] = word6.to_bytes(2, "little", signed=True)
+            return bytes(record)
+
+        def opens(rows):
+            body = description + bytes((0x79, 1)) + bytes(2) + b"".join(rows)
+            scene, _ = self.open_bytes(self.resource(body))
+            if scene:
+                self.lib.scene_resource_close(scene)
+            return scene is not None
+
+        leaf = row(2)
+        self.assertTrue(opens([]))
+        self.assertTrue(opens([leaf, leaf]))
+        self.assertTrue(opens([row(0x12), leaf, leaf, row(0x13)]))
+        self.assertTrue(opens([row(0x13), row(0x12)]), "ordering is not checked here")
+        self.assertTrue(opens([row(0x0B, 1), row(0x0B, 1)]))
+        self.assertTrue(opens([row(0x0B, 0), leaf]))
+        self.assertFalse(opens([row(0x12), row(0x13)]), "empty group")
+        self.assertFalse(opens([row(0x12), leaf, row(0x13)]), "one-leaf group")
+        self.assertFalse(opens([row(0x12), leaf, leaf]), "unclosed group")
+        self.assertFalse(opens([row(0x13)]), "unopened close")
+        self.assertFalse(opens([row(0x0B, 0), row(0x0B, 1)]), "adjacent 0x0b pair, zero word")
+
     def test_0c_and_17_count_boundaries_and_rejections(self):
         description = b"variable action".ljust(48, b"\0")
         dependency = bytes(range(16))

@@ -1091,7 +1091,7 @@
       "id": "A-TAIL.2",
       "title": "Extend the shared dependency-tail oracle (later decoders, pre-scan exits)",
       "packet": "tasks/A-TAIL.2-tail-oracle-extension.md",
-      "status": "READY Codex gpt-6.1-sol xhigh; test hardening only",
+      "status": "MERGED reviewed; tail oracle for 15 decoders plus pre-scan model",
       "depends_on": [
         "A-TAIL.1"
       ],

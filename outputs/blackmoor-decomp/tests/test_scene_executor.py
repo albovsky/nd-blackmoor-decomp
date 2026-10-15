@@ -1149,8 +1149,11 @@ class SceneExecutorTests(unittest.TestCase):
         self.lib.scene_resource_close(scene)
 
     def test_invalid_dependency_tree_fails_creation_and_cleans_partial_state(self):
-        # A close record without an opener is a malformed condition encoding.
-        malformed = action(0x4D, 1, bytes((0, 1)) + i16(3), (condition(0x13),))
+        # A close before its opener is a malformed condition encoding. The
+        # scene parser's pre-scan (A-TAIL.2) rejects unbalanced counts earlier, as
+        # the original does, so the counts here balance and only the order is wrong.
+        malformed = action(0x4D, 1, bytes((0, 1)) + i16(3),
+                           (condition(0x13), condition(0x12)))
         scene, _storage = self.open_scene([malformed])
         world, _flags = self.world()
         status, executor, failed_index = self.create_executor(scene, world)
