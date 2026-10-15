@@ -36,8 +36,8 @@
   "ticks": 2186,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "e3785cb8444b2bf360c9ea9082aa7927fce1ec15",
-    "native_sha256": "9e6e63f98cb67b57910f981417fd6e2b10480d6f1777bd9658027dab89b220be",
+    "source_ref": "c09cd887b0b30d7abe365a71d6b5982acd07244c",
+    "native_sha256": "a7b925857d1a434066348835a56180ea9c532d788b8b88e7a1779e386b1afdbf",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -69,6 +69,10 @@
       {
         "path": "src/action_family_17.h",
         "sha256": "6a38099e99b40ebdd3df2b2d097c2b3d2fc0298e5539a70cfcf237f32cab4284"
+      },
+      {
+        "path": "src/action_family_17_runtime.h",
+        "sha256": "f8d39feb1e4c4e8c349e62238ad497101219cd0f8b8b644c0492021944dd716e"
       },
       {
         "path": "src/action_family_1b.h",
@@ -272,7 +276,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "afeea17017038ed2be0194d81ee8625f4bc981404c7ab0839a74036fa8753226"
+        "sha256": "edb5176ad98ca4c81e93ea3c4aaa1a5ce260afb41cc8b4574bb207b5a91b45da"
       },
       {
         "path": "src/caption_compositor.h",
@@ -377,6 +381,14 @@
       {
         "path": "src/scene_session.h",
         "sha256": "d5ecad179bd85416e3ade7d9b01faaabdaf7d26ae4ce03dd0c3c20fadb2be2ba"
+      },
+      {
+        "path": "src/session_bindings_a17.c",
+        "sha256": "afe87c84f30aa8e8b8bc92a3b6745d81a9ecdcfb3d7413fcab2b7c59e5b04643"
+      },
+      {
+        "path": "src/session_bindings_a17.h",
+        "sha256": "29839bb44343316d12f7da9d0b0f37aa1eac3a4797b96f23b1cf858a338041f9"
       },
       {
         "path": "src/session_bindings_a28.c",
