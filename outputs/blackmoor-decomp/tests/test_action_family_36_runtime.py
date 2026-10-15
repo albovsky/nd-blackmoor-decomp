@@ -968,7 +968,7 @@ class Fixture:
     """Real scene executor + session + the A36 binding."""
 
     def __init__(self, test, lib, actions, *, selector=0, event_count=2048, phases_from_session=True,
-                 transition=True, tick=5000):
+                 transition=True, tick=5000, binding_types=(0x36,)):
         self.lib = lib
         self.test = test
         self.scene, self.owner = session.open_scene(lib, actions)
@@ -1046,10 +1046,12 @@ class Fixture:
         def media(*_): return 0
 
         handler = session.ActionFn(('session_a36_handler', lib))
-        self.bindings = (session.Binding * 1)(session.Binding(0x36, 11, handler, self.binding))
+        # RT-18: the same handler also serves raw 0x37 rows (binding_types=(0x36, 0x37)).
+        self.bindings = (session.Binding * len(binding_types))(
+            *[session.Binding(raw_type, 11, handler, self.binding) for raw_type in binding_types])
         self.config = session.SessionConfig(scene=self.scene, scene_id=6400,
             action_core_world=c.pointer(self.core), conditions=c.pointer(self.conditions),
-            action_bindings=self.bindings, action_binding_count=1,
+            action_bindings=self.bindings, action_binding_count=len(binding_types),
             prepare_tick=prepare, advance_media_one=media)
         test.assertEqual(lib.scene_session_create(c.byref(self.config), c.byref(self.session),
                           c.byref(session.SceneSessionFailure())), 0)

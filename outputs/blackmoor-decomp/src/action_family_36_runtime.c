@@ -275,6 +275,12 @@ int overlay36_step(Overlay36Manager *manager, const Overlay36Rows *rows, int32_t
         if (plan.mode == 2 && host->load_surface == NULL) {
             return reject(why, "surface provider (0x4c2790)", OVERLAY36_ERR_UNSUPPORTED);
         }
+        if (plan.mode == 1 && plan.surface == 0u) {
+            /* RT-18: the surface globals 0x5d0397/9b/9f belong to the AUTOTEXT subsystem,
+             * which the host has not provided: refuse instead of drawing from nothing. */
+            return reject(why, "AUTOTEXT surface global (0x5d0397/0x5d039b/0x5d039f) is not provided",
+                          OVERLAY36_ERR_UNSUPPORTED);
+        }
     }
     if (phase <= 1u) {
         const int16_t event_index = rds16(image, OV36_EVENT_INDEX);

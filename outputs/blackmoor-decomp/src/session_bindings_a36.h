@@ -10,6 +10,13 @@ extern "C" {
 #endif
 
 #define SESSION_A36_TYPE OVERLAY36_RAW_TYPE
+/* RT-18: raw 0x37 ("Static overlay") rows. The loader arm 0x40c446 builds the
+ * image with the constructor 0x4895cc (A-37.2) and then stores the RUNTIME
+ * type 0x36 (0x40c47b), so the same dispatcher arm, gate (mode 1) and
+ * COverlay::Process serve them. The executor still sees the raw type, so the
+ * session registers the same handler for 0x37. Raw 0x38 (arm 0x40c404,
+ * constructor 0x48905b, also runtime 0x36) is NOT bound here. */
+#define SESSION_A37_TYPE UINT8_C(0x37)
 
 typedef struct SessionA36Binding SessionA36Binding;
 
@@ -34,14 +41,24 @@ typedef struct SessionA36Host {
 SessionA36Binding *session_a36_create(const SessionA36Host *);
 void session_a36_destroy(SessionA36Binding *);
 
-/* Replaces the per-row overlay images (the A-36.1 constructor builds the
- * 0xABA-byte image from each raw 0x36 row; bytes the constructor does not
- * write start as zero, the original leaves them uninitialised) and resets the
- * overlay manager (scene clear 0x488e54 / 0x4d3992). A malformed 0x36 row
+/* The loader-time image of one row: the A-36.1 constructor (0x488e9c) for raw
+ * 0x36 (bytes it does not write start as zero, the original leaves them
+ * uninitialised) or the A-37.2 constructor (0x4895cc over 0x48945b, which
+ * zeroes the whole allocation first) for raw 0x37. Any other raw type, a
+ * malformed body or a NULL argument returns an Overlay36Status other than
+ * OVERLAY36_OK and leaves `image` unchanged. */
+int session_a36_build_image(uint8_t raw_type, const uint8_t *raw_body, size_t raw_body_length,
+                            uint8_t image[OVERLAY36_IMAGE_BYTES]);
+
+/* Replaces the per-row overlay images (see session_a36_build_image for raw
+ * 0x36 and raw 0x37 rows; raw 0x38 rows get none) and resets the overlay
+ * manager (scene clear 0x488e54 / 0x4d3992). A malformed 0x36 or 0x37 row
  * fails the whole scene. Returns OVERLAY36_OK or an Overlay36Status. */
 int session_a36_begin_scene(SessionA36Binding *, const SceneResource *);
 
-/* Executor handler for runtime type 0x36. Called only after the executor's
+/* Executor handler for rows whose runtime type is 0x36 (raw 0x36 and raw
+ * 0x37; the action's raw type must be the one the row's image was built
+ * from). Called only after the executor's
  * mode-1 dependency gate (0x423f57) was true and the row was not completed.
  * Phase 0 registers and continues into phase 1 in the same call (PENDING,
  * phase 1 or 2); a visit at phase 2 returns COMPLETED with phase 0 (the
@@ -67,6 +84,8 @@ int session_a36_render(SessionA36Binding *, int32_t layer_lo, int32_t layer_hi, 
 size_t session_a36_registered(const SessionA36Binding *);
 const char *session_a36_row_name(const SessionA36Binding *, size_t row);
 const uint8_t *session_a36_image(const SessionA36Binding *, size_t row);
+/* The raw type (0x36 or 0x37) the row's image was built from, 0 for none. */
+uint8_t session_a36_row_raw_type(const SessionA36Binding *, size_t row);
 const Overlay36Manager *session_a36_manager(const SessionA36Binding *);
 
 #ifdef __cplusplus

@@ -844,13 +844,14 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertNotIn('scene_a0b_finish', contents)
         self.assertNotIn('scene_session_blocked', contents)
 
-    def test_rt16_the_tutorial_chain_reaches_the_next_missing_family_in_s6452(self):
+    CHAIN_TO_6452 = CHAIN_TO_6403 + ('--live-scene-row', '6403:2', '--live-scene-row', '6404:3',
+                                     '--live-scene-row', '6451:0', '--test-selector', '6404:16')
+
+    def test_rt16_the_tutorial_chain_reaches_s6452_whose_raw_0x37_overlay_no_longer_blocks(self):
         # S6404 row 3 (raw 0x17, frames 15..18) needs the navigation selector: the test hook
         # supplies frame 16. S6451 row 0 is another raw 0x0b; S6452 row 0 is raw 0x37, loaded by
-        # 0x4895cc into the runtime-0x36 overlay type: the next stop.
-        contents = self.tutorial(*self.CHAIN_TO_6403, '--live-scene-row', '6403:2',
-                                 '--live-scene-row', '6404:3', '--live-scene-row', '6451:0',
-                                 '--test-selector', '6404:16')
+        # 0x4895cc into the runtime-0x36 overlay type (RT-18 binds it: this was the RT-16 stop).
+        contents = self.tutorial(*self.CHAIN_TO_6452)
         self.assert_in_order(contents, (
             'scene_a0b_transition target=6404 opaque_words=4,0,1 ',
             'test_selector_applied scene=6404 frame=16 ',
@@ -860,7 +861,61 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_transition_applied source=6404 target=6451',
             'scene_a0b_finish row=0 completion_byte=1 ',
             'scene_transition_applied source=6451 target=6452',
-            'scene_session_blocked stage=3 provider=action-kernel action=0 type=0x37 detail=1'))
+            'live_session_end scene=6452 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('scene_session_blocked', contents)
+
+    # ---- RT-18: raw 0x37 static overlays (ctor 0x4895cc, runtime type 0x36) ---------------
+    def test_rt18_s6452_row_0_registers_draws_and_waits_forever(self):
+        contents = self.tutorial(*self.CHAIN_TO_6452)
+        self.assert_in_order(contents, (
+            'scene_a37_construct row=0 name=BLU_ToBedSideB_OVL layer=10 plain_blit=1 '
+            'rect=312,216,367,258 geometry=1,1,56,43 hot=2 never_completes=1 ',
+            'scene_transition_applied source=6451 target=6452',
+            'scene_a36_register row=0 list_index=0 ',
+            'scene_a36_surface_load cache_slot=0 ',
+            'scene_a36_render_entry slot=24 layer=10 callback=0x48a3db',
+            'scene_a36_phase new_phase=1',
+            'scene_a36_blit row=0 slot=24 kind=plain '))
+        # the picture is the geometry rectangle blitted to the body rectangle + the view origin
+        blit = next(line for line in contents.splitlines() if line.startswith('scene_a36_blit row=0 '))
+        self.assertIn('src=1,1,56,43 dst=322,226,377,268 ', blit)
+        # registered once, never finished, never a hover/hot hit (hot word 2). The earlier
+        # tutorial scenes (RT-14's raw 0x36 overlays) do finish and are hot: look only at S6452.
+        scene = contents[contents.index('scene_transition_applied source=6451 target=6452'):]
+        self.assertEqual(scene.count('scene_a36_register row=0 '), 1)
+        self.assertNotIn('scene_a36_finish', scene)
+        self.assertNotIn('scene_a36_hot_hit', scene)
+        self.assertNotIn('scene_a36_hot_rows', scene)
+
+    def test_rt18_clicking_the_s6452_hotspot_enters_s6405_with_five_static_overlays(self):
+        contents = self.tutorial(*self.CHAIN_TO_6452, '--live-scene-row', '6452:1')
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=6451 target=6452',
+            'scene_a0b_finish row=1 completion_byte=1 ',
+            'scene_transition_applied source=6452 target=6405',
+            'scene_a36_register row=1 list_index=0 ',
+            'scene_a36_register row=2 list_index=1 ',
+            'scene_a36_surface_reuse cache_slot=1 ',          # rows 3..5 share row 2's picture
+            'scene_a36_register row=5 list_index=4 ',
+            'live_session_end scene=6405 ticks=3000 status=0 provider=none '))
+        scene = contents[contents.index('scene_transition_applied source=6452 target=6405'):]
+        for row in range(1, 6):
+            self.assertEqual(scene.count(f'scene_a36_register row={row} '), 1)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt18_the_tutorial_chain_follows_the_next_button_to_s6453_and_stops_at_raw_0x78(self):
+        # S6405 row 7 is the 0x62 Next hotspot (RT-3); the raw 0x37 TUT_Next_OVL rows are only
+        # pictures. S6453 row 1 is another raw 0x37 (one dependency record); row 3 is its 0x62
+        # hotspot and row 4 raw 0x78 "Add Inventory Item, No Hot Spot" is the next missing family.
+        contents = self.tutorial(*self.CHAIN_TO_6452, '--live-scene-row', '6452:1',
+                                 '--live-scene-row', '6405:7', '--live-scene-row', '6453:3')
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=6452 target=6405',
+            'scene_a37_construct row=1 name=BLU_ToBedSideB_OVL ',
+            'scene_transition_applied source=6405 target=6453',
+            'scene_a36_register row=1 list_index=0 ',
+            'scene_session_blocked stage=3 provider=action-kernel action=4 type=0x78 detail=1 '))
+        self.assertNotIn('scene_a36_blocker', contents)
 
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):
