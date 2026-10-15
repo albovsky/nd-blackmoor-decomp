@@ -255,6 +255,12 @@ class Rig:
         self.world.cursor_surface_held = 0x2222
         self.log = []
         self.fx = []
+        # One ordered trace of provider calls and kernel effects (the oracle
+        # compares it with the original's ordered effects). `snapshotter`, when
+        # set, is called at every provider call.
+        self.trace = []
+        self.snapshotter = None
+        self.surface_fn = None
         self.phases = dict(phases or {})
         self.ticks = list(ticks)
         self.playing = playing
@@ -262,11 +268,18 @@ class Rig:
         self.load_status = 0
         self.blit_status = 0
 
+        def note(*entry):
+            self.trace.append(('hook',) + entry + (self.snapshotter() if self.snapshotter else None,))
+
         @LoadFn
         def load(_ctx, name, out):
             self.log.append(('load', name))
+            note('load', name)
             if self.load_status:
                 return self.load_status
+            if self.surface_fn is not None:
+                out[0] = self.surface_fn(name)
+                return 0
             out[0] = self.next_surface
             self.next_surface += 1
             return 0
@@ -274,17 +287,20 @@ class Rig:
         @SoundStartFn
         def sound_start(_ctx, record, word):
             self.log.append(('sound_start', bytes(record[:9]), word))
+            note('sound_start', bytes(record[:9]), word)
             return 0
 
         @SoundPlayingFn
         def sound_playing(_ctx, word, out):
             self.log.append(('sound_playing', word))
             out[0] = 1 if self.playing is None else self.playing
+            note('sound_playing', word)
             return 0
 
         @SoundStopFn
         def sound_stop(_ctx, record):
             self.log.append(('sound_stop', bytes(record[:9])))
+            note('sound_stop', bytes(record[:9]))
             return 0
 
         @TickFn
@@ -292,6 +308,7 @@ class Rig:
             value = self.ticks.pop(0) if len(self.ticks) > 1 else self.ticks[0]
             self.log.append(('tick', value))
             out[0] = value
+            note('tick', value)
             return 0
 
         @PhaseFn
@@ -304,11 +321,13 @@ class Rig:
             o = op[0]
             self.log.append(('blit', o.kind, o.row, o.slot, o.source_surface, tuple(o.src),
                              tuple(o.dst), o.label))
+            note('blit', o.kind, o.source_surface, tuple(o.src), tuple(o.dst), o.label)
             return self.blit_status
 
         @ObserveFn
         def observe(_ctx, effect, a, b):
             self.fx.append((FX_NAMES[effect], a, b))
+            self.trace.append(('fx', FX_NAMES[effect], a, b))
 
         self.keep = (load, sound_start, sound_playing, sound_stop, tick, phase, blit, observe)
         self.host = Host(None, load, sound_start, sound_playing, sound_stop, tick, phase, blit,
@@ -612,8 +631,8 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn(('anim_init', 66, 5066), rig.fx)
 
     def test_marker2_interval_is_truncated_1000_over_fps_in_the_original_float_order(self):
-        for fps, interval in ((1, 1000), (8, 125), (25, 40), (30, 33), (3, 333), (1000, 1), (2000, 0),
-                              (0, -2147483648), (-4, -250)):
+        for fps, interval in ((1, 1000), (8, 125), (25, 40), (30, 33), (3, 333), (1000, 1), (2000, 0), (-1, -1000),
+                              (0, 0), (-4, -250)):
             with self.subTest(fps=fps):
                 rig = Rig(self.lib, [self.anim_image(fps=fps)], ticks=[10])
                 rig.step(0, 0)

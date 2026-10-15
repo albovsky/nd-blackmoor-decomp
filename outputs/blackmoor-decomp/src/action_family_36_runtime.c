@@ -130,13 +130,18 @@ static int sound_named(const uint8_t *image)
     return memcmp(image + OV36_SOUND, NO_SOUND, sizeof(NO_SOUND)) != 0;
 }
 
-/* x87 FIST-truncation as 0x50ce04 returns it: out of range / NaN -> 0x80000000. */
+/* 0x50ce04 is the CRT float-to-integer helper: FISTP to a 64-bit integer with
+ * truncation, EAX = low dword. Values outside +-2^63, infinities and NaN store
+ * the "integer indefinite" 0x8000000000000000, whose low dword is zero; finite
+ * values beyond 32 bits wrap to their low 32 bits. */
 static int32_t ftol(double value)
 {
-    if (!(value > -2147483649.0 && value < 2147483648.0)) {
-        return INT32_MIN;
+    int64_t whole;
+    if (!(value > -9223372036854775809.0 && value < 9223372036854775808.0)) {
+        return 0;
     }
-    return (int32_t)value;
+    whole = (int64_t)value;
+    return (int32_t)(uint32_t)((uint64_t)whole & UINT32_MAX);
 }
 
 typedef struct {
