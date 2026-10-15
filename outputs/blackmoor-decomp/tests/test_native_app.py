@@ -1006,8 +1006,8 @@ class NativeCaptionTransferTests(unittest.TestCase):
     def test_rt21_with_item_23_held_the_chain_runs_through_s6410_s6411_s6433_to_the_next_family(self):
         # --test-held-at stands in for the unbound inventory selection (dependency opcode 11).
         # S6410 row 2 then changes to S6411 once the narration has finished (channel 13); S6411 row 2
-        # and S6433 row 1 are raw 0x0b hotspots (RT-16, scripted clicks); S6434 row 1 is raw 0x0c,
-        # the next missing family (another packet).
+        # and S6433 row 1 are raw 0x0b hotspots (RT-16, scripted clicks); S6434 row 1 is raw 0x0c
+        # (RT-20 runtime).
         contents = self.tutorial(*self.CHAIN_TO_6453, '--test-held-at', '6410:23',
                                  '--live-scene-row', '6411:2', '--live-scene-row', '6433:1')
         self.assert_in_order(contents, (
@@ -1020,8 +1020,11 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_transition_applied source=6410 target=6411',
             'scene_transition_applied source=6411 target=6433',
             'scene_transition_applied source=6433 target=6434',
-            'scene_session_blocked stage=3 provider=action-kernel action=1 type=0x0c detail=1 '))
-        self.assertEqual(contents.count('scene_session_blocked'), 1)
+            'scene_a0c_register row=1 start_flag_5bb1ca=1',
+            'live_session_end scene=6434 ticks='))
+        # RT-20 gave raw 0x0c a runtime: S6434 row 1 registers and the run no longer stops there.
+        self.assertIn('scene_a0c_construct row=1 target=6435 ', contents)
+        self.assertNotIn('scene_session_blocked', contents)
 
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):
