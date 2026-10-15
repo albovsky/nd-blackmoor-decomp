@@ -59,7 +59,12 @@ typedef struct SessionInputContext {
      * geometry_ready includes the original screen-to-logical adapter, cursor
      * polling/warp/size/clamp/render lifecycle and selected hot-point source.
      * priority_clear means 4f0059's earlier UI/puzzle/navigation paths are
-     * proved to fall through to its generic action scan for THIS tick. */
+     * proved to fall through to its generic action scan for THIS tick.
+     * RT-14: that includes the overlay hit test. 0x4897cd is called at
+     * 0x4f104f, AFTER roughly twenty earlier cascade members that are not
+     * modelled individually; with priority rows the claim is "every member
+     * before 0x4f104f missed" (only the RT-6 guard cells are evidence for it),
+     * and the overlay rows then win over the generic rows. */
     uint32_t geometry_ready;
     uint32_t priority_clear;
     int32_t excluded_0, excluded_1; /* 0x5b4e89 / 0x5b5100; -1 or 0..239. */

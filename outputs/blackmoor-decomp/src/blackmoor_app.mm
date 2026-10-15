@@ -288,6 +288,8 @@ struct NativeApp {
     SessionInputState input_state{};
     ProvisionalCursorProvider cursor_provider{};
     int32_t logged_candidate = -2;
+    /* RT-14: the overlay hot-rectangle failure is logged once per scene. */
+    bool a36_hot_rects_failure_logged = false;
     bool primary_down = false;
     bool primary_pressed = false, primary_released = false;
     bool failure = false;
@@ -2951,6 +2953,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
         return false;
     }
     app->a36_blit_signature.fill(0u);
+    app->a36_hot_rects_failure_logged = false;
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         const char *name = session_a36_row_name(app->a36, row);
         const uint8_t *image = session_a36_image(app->a36, row);
@@ -3036,8 +3039,12 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
     if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u &&
         session_a36_priority_rows(app->a36, overlay_rows.data(), overlay_rows.size(),
                                   &overlay_count) != OVERLAY36_OK) {
-        record(app, "scene_a36_hot_rects_unavailable detail=%s (overlay hit test skipped)",
-               session_a36_failure(app->a36));
+        if (!app->a36_hot_rects_failure_logged) {
+            app->a36_hot_rects_failure_logged = true;
+            record(app, "scene_a36_hot_rects_unavailable detail=%s (overlay hit test skipped "
+                   "on every tick that fails; logged once per scene)",
+                   session_a36_failure(app->a36));
+        }
         overlay_count = 0u;
     }
     const int status = session_input_scan_priority(&app->input_state, &input, overlay_rows.data(),
