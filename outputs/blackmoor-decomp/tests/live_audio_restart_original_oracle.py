@@ -321,6 +321,11 @@ def scenarios() -> list[tuple[str, list[tuple]]]:
         out.append((f"{stem}-stopped-then-completes-in-one-pump", [
             ("load", 5, 0, stem), ("flags", 5, 0), ("play", 5), ("stop", 5),
             ("complete", 5), ("pump", 100)]))
+    # RT-11.1 review P2: an armed delayed repeat on a channel that was then
+    # explicitly stopped must not fire (the repeat pass gates on slot+0x287)
+    out.append(("armed-repeat-then-stop-gates-repeat", [
+        ("load", 4, 0, "Tone"), ("flags", 4, 0x10), ("rand", 700), ("play", 4),
+        ("complete", 4), ("pump", 1000), ("stop", 4), ("pump", 5000)]))
     # several channels complete in one pump: ascending order, one drain
     out.append(("ordering", [
         ("load", 9, 0, "Tone"), ("flags", 9, 0), ("load", 2, 0, "Tone"), ("flags", 2, 0),

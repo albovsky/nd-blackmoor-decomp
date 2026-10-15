@@ -24,8 +24,9 @@
  *
  * What it still refuses to answer: a channel whose update live_audio refused
  * (raw flag 0x20 fade stages, or a flag-0x10 repeat without a random source).
- * Scene sounds carry flags 0, so those states are only reachable through
- * live_audio_set_channel_flags.
+ * Runtime-0x9f scene sounds carry flags 0, so those states are only reachable
+ * through live_audio_set_channel_flags (runtime types 0x98/0x99 write other
+ * flags and have no native producer yet; see live_audio.h).
  *
  * `audio_context` is the LiveAudio*. Main thread only (live_audio's rule). */
 

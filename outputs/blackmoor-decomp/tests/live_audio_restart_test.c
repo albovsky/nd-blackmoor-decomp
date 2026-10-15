@@ -398,6 +398,24 @@ static void t_flag_0x10_arms_the_random_delay_then_plays_after_the_due_tick(Ctx 
     rig_close(&rig);
 }
 
+static void t_armed_repeat_then_explicit_stop_never_fires(Ctx *ctx)
+{
+    /* The 0x4f7207 repeat pass gates on slot+0x287, which Stop sets. */
+    Rig rig; LiveAudioServiceStats s; uint32_t slot;
+    if (!rig_open(ctx, &rig, 1)) return;
+    CHECK(ctx, start(&rig, "Tone", 4, 0));
+    slot = slot_of(&rig, 4);
+    CHECK(ctx, live_audio_set_channel_flags(rig.audio, 4, 0x10u) == LIVE_AUDIO_OK);
+    g_random_value = 700u;
+    finish(&rig, 4);
+    s = service(&rig, 1000u);
+    CHECK(ctx, s.repeats_armed == 1u && info_of(&rig, 4).repeat_marker == 1u);
+    CHECK(ctx, live_audio_stop_channel(rig.audio, 4) == LIVE_AUDIO_OK);
+    s = service(&rig, 5000u);
+    CHECK(ctx, s.repeats_fired == 0u && g_host->slots[slot].plays == 1);
+    rig_close(&rig);
+}
+
 static void t_flag_0x10_tick_wrap_uses_the_unsigned_compare(Ctx *ctx)
 {
     Rig rig; LiveAudioServiceStats s; LiveAudioChannelInfo info;
@@ -612,6 +630,7 @@ static const Test tests[] = {
     {"flag_one_and_0x100_choose_the_host_loop", t_flag_one_and_0x100_choose_the_host_loop},
     {"flag_0x10_arms_the_random_delay_then_plays_after_the_due_tick",
      t_flag_0x10_arms_the_random_delay_then_plays_after_the_due_tick},
+    {"armed_repeat_then_explicit_stop_never_fires", t_armed_repeat_then_explicit_stop_never_fires},
     {"flag_0x10_tick_wrap_uses_the_unsigned_compare", t_flag_0x10_tick_wrap_uses_the_unsigned_compare},
     {"flag_0x10_without_a_random_source_is_refused_state_neutral",
      t_flag_0x10_without_a_random_source_is_refused_state_neutral},

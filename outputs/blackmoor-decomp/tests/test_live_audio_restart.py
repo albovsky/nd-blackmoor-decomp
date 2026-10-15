@@ -25,6 +25,7 @@ PROVIDER = PROJECT / "src/live_audio.c"
 ADAPTER = PROJECT / "src/session_bindings_conditions_audio.c"
 
 EXPECTED = [
+    "armed_repeat_then_explicit_stop_never_fires",
     "control_zero_nonstream_restarts_after_completion",
     "control_one_never_restarts",
     "other_control_words_never_restart",
@@ -184,6 +185,11 @@ MUTATIONS: list[tuple[str, str, str, str, list[str], str | None]] = [
      "channel->stream_class != 0u ? 1",
      ["control_one_stream_plays_once_and_is_not_restarted", "flag_matrix_decision_table"],
      "Big-c0x1-f0x0"),
+    ("repeat_pass_ignores_the_stop_gate", "provider",
+     "    if (!channel->loaded || channel->update_gate_287 != 0u) return;\n    if (channel->repeat_marker == 0u",
+     "    if (!channel->loaded) return;\n    if (channel->repeat_marker == 0u",
+     ["armed_repeat_then_explicit_stop_never_fires"],
+     "armed-repeat-then-stop-gates-repeat"),
     ("repeat_compare_not_strict", "provider",
      "tick <= channel->repeat_due_tick",
      "tick < channel->repeat_due_tick",

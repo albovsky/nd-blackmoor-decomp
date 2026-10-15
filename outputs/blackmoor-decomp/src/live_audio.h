@@ -255,9 +255,14 @@ int live_audio_stop_channel(LiveAudio *audio, uint16_t channel);
  * original's stream filler (0x4f594d / 0x4f5b50) rewinds the file at EOF
  * and keeps filling the looping ring, so the host plays it looped.
  *
- * Every scene sound (0x9f record, runtime flags word +0x25) has raw flags 0,
- * so the 0x10 and 0x20 branches are unreachable from scene data;
- * live_audio_set_channel_flags exists to exercise them. Flag 0x20 (fade
+ * Every runtime-0x9f scene sound (record flags word +0x25, never written by
+ * 0x410f99) has raw flags 0, so the 0x10 and 0x20 branches are unreachable
+ * from the sounds native code loads today. UNVERIFIED: the runtime types 0x98
+ * and 0x99 load sounds through other handlers that write the flags word
+ * (0x42995d writes 0x7, 0x42bd85 writes 0x1); native has no producer for
+ * them and the load command carries no flags field, so a future producer
+ * must pass the flags through. live_audio_set_channel_flags exists to
+ * exercise the branches in tests. Flag 0x20 (fade
  * stages 0x4f9f92/0x4f8f94/0x4f9040, unrecovered) is refused.
  * `stats` may be NULL. */
 int live_audio_service(LiveAudio *audio, uint32_t tick_ms,

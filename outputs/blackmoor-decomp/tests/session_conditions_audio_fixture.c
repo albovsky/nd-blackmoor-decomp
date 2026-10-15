@@ -173,7 +173,7 @@ static void t_control_zero_after_completion_is_idle_then_restarted_by_the_pump(C
     CHECK(ctx, query(&rig, 6, 0, &answer) == SCENE_CONDITION_OK && answer == 1);
     CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &after) == SESSION_CONDITIONS_OK);
     CHECK(ctx, after.error_3c2 == 0x3e8u && after.host_result_3ca == 0);
-    (void)before;
+    CHECK(ctx, memcmp(&before, &after, sizeof(before)) == 0);   /* nothing committed */
     /* ... and the pump (0x4f52a9 -> 0x4f55d5) restarts the raw-control-0 channel. */
     CHECK(ctx, live_audio_service(rig.audio, 1000u, NULL) == LIVE_AUDIO_OK);
     CHECK(ctx, query(&rig, 6, 1, &answer) == SCENE_CONDITION_OK && answer == 1);
@@ -196,7 +196,16 @@ static void t_control_zero_after_completion_is_idle_then_restarted_by_the_pump(C
         }
         CHECK(ctx, is_playing == 0);
         CHECK(ctx, live_audio_service(rig.audio, 2000u, NULL) == LIVE_AUDIO_OK);
-        CHECK(ctx, query(&rig, 7, 0, &answer) == SCENE_CONDITION_ERR_HOST_UNAVAILABLE);
+        {
+            SessionConditionsSoundManager refused_before, refused_after;
+            CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &refused_before) ==
+                       SESSION_CONDITIONS_OK);
+            answer = -1;
+            CHECK(ctx, query(&rig, 7, 0, &answer) == SCENE_CONDITION_ERR_HOST_UNAVAILABLE);
+            CHECK(ctx, session_conditions_get_sound_manager(rig.binding, &refused_after) ==
+                       SESSION_CONDITIONS_OK);
+            CHECK(ctx, memcmp(&refused_before, &refused_after, sizeof(refused_before)) == 0);
+        }
     }
     rig_close(&rig);
 }
