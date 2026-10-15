@@ -126,6 +126,16 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0xf6: fixed_length = 4934u; break; /* 0x45ddd0 copies 4,934 bytes (A-F6.1) */
     case 0xea: fixed_length = 3847u; break; /* 0x484110 copies 3,847 bytes (A-EA.1) */
     case 0xf5: fixed_length = 1390u; break; /* 0x4b80d9 copies 1,390 bytes (A-F5.1) */
+    case 0xd3: fixed_length = 855u; break; /* 0x461903 copies 855 bytes (A-D3.1) */
+    case 0xe0:
+        /* 0x470e8e (flag 1) copies 294 bytes (A-E0.1). Scene S2705 (resource
+         * 1737) has a 292-byte body, two short of the copy: the original
+         * aborts in the dependency stage there, so that record stays opaque. */
+        if (length < 294u) {
+            return 0;
+        }
+        fixed_length = 294u;
+        break;
     case 0x7d: fixed_length = 1u;  break; /* 0x40e61e copies one byte (A-7D.1) */
     case 0x69: fixed_length = 1u;  break; /* 0x40d428 copies one byte (A-69.1) */
     case 0x65: fixed_length = 1u;  break; /* 0x40d116 copies one byte (A-65.1) */
@@ -259,6 +269,43 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
         } else {
             return -1;
         }
+        *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
+        return 1;
+    }
+    case 0x2d: {
+        int16_t entries;
+        int16_t groups;
+        size_t cursor = 39u;
+        size_t entry;
+
+        /* 0x4cd243 (A-2D.1): 39-byte header with signed words at +0x23
+         * (entries) and +0x25 (34-byte records); each entry is 49 bytes plus
+         * 35 bytes times the signed word at entry+0x2f; then 34 bytes per
+         * record. Nothing is NUL-scanned. Negative counts are unsafe in the
+         * original (>2 GiB allocation) and rejected here. */
+        if (length < cursor) {
+            return -1;
+        }
+        entries = read_i16le(body + 0x23u);
+        groups = read_i16le(body + 0x25u);
+        if (entries < 0 || groups < 0) {
+            return -1;
+        }
+        for (entry = 0u; entry < (size_t)entries; ++entry) {
+            int16_t records;
+            if (length - cursor < 49u) {
+                return -1;
+            }
+            records = read_i16le(body + cursor + 0x2fu);
+            if (records < 0 || length - cursor - 49u < 35u * (size_t)records) {
+                return -1;
+            }
+            cursor += 49u + 35u * (size_t)records;
+        }
+        if (length - cursor < 34u * (size_t)groups) {
+            return -1;
+        }
+        *body_length = cursor + 34u * (size_t)groups;
         *kind = SCENE_ACTION_PAYLOAD_VARIABLE;
         return 1;
     }

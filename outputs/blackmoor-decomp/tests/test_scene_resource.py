@@ -1066,8 +1066,10 @@ class SceneResourceTests(unittest.TestCase):
         # shares the 0x17 layout for its 2 raw 0x16 records.
         # A-1B.1 adds 4 raw 0x1b, A-7D.1 4 raw 0x7d and A-33.1 3 raw 0x33 bodies.
         # A-F6.1 adds 6 raw 0xf6, A-EA.1 6 raw 0xea and A-F5.1 4 raw 0xf5 fixed bodies.
-        self.assertEqual(typed_actions, 19578)
-        self.assertEqual(opaque_actions, 34)
+        # A-D3.1 adds 3 raw 0xd3 fixed bodies, A-2D.1 3 count-driven raw 0x2d bodies and
+        # A-E0.1 2 of 3 raw 0xe0 bodies (S2705's 292-byte record stays opaque).
+        self.assertEqual(typed_actions, 19586)
+        self.assertEqual(opaque_actions, 26)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
