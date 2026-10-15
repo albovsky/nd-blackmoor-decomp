@@ -83,9 +83,9 @@
   "native_scene_resource_parser": {
     "scenes_parsed": 2078,
     "action_records": 19612,
-    "typed_actions": 19586,
-    "opaque_actions": 26,
-    "known_dependency_records": 26376,
+    "typed_actions": 19592,
+    "opaque_actions": 20,
+    "known_dependency_records": 26380,
     "targeted_tests": 18,
     "action_execution": false,
     "resources_attempted": 2267,
@@ -149,8 +149,8 @@
     "caption_renderer": true
   },
   "next_action_recovery": {
-    "typed_actions": 19586,
-    "opaque_actions": 26,
+    "typed_actions": 19592,
+    "opaque_actions": 20,
     "next_body_candidates": [
       "0x62",
       "0x35",
@@ -164,7 +164,7 @@
       "remaining control code1 and NLS paths",
       "timed video and remaining scene handlers"
     ],
-    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1, A-94.1, A-D1.1, A-2E.1, A-0C.1, A-4E.1, A-17.1, A-68.1, A-83.1, A-4B.1, A-69.1, A-65.1, A-16.1, A-1B.1, A-7D.1, A-33.1, A-F6.1, A-EA.1, A-F5.1, A-D3.1, A-2D.1, A-E0.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44, 0x36, 0x94, 0xd1, 0x2e, 0x0c, 0x4e, 0x17, 0x68, 0x83, 0x4b, 0x69, 0x65, 0x16, 0x1b, 0x7d, 0x33, 0xf6, 0xea, 0xf5, 0xd3, 0x2d and 0xe0 are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x2d (3), 0xe0 (3), 0xd3 (3), then types with one or two records (34 records in 18 types)."
+    "superseded_note": "Counts refreshed 2026-10-14 (after A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-67.1, A-6F.1, A-43.1, A-45.1, A-44.1, A-36.1, A-94.1, A-D1.1, A-2E.1, A-0C.1, A-4E.1, A-17.1, A-68.1, A-83.1, A-4B.1, A-69.1, A-65.1, A-16.1, A-1B.1, A-7D.1, A-33.1, A-F6.1, A-EA.1, A-F5.1, A-D3.1, A-2D.1, A-E0.1, A-EE.1, A-DA.1, A-77.1) to match native_scene_resource_parser. next_body_candidates is a historical list: 0x35, 0x38, 0x3f, 0x3e, 0x6e, 0x79, 0x67, 0x6f, 0x43, 0x45, 0x44, 0x36, 0x94, 0xd1, 0x2e, 0x0c, 0x4e, 0x17, 0x68, 0x83, 0x4b, 0x69, 0x65, 0x16, 0x1b, 0x7d, 0x33, 0xf6, 0xea, 0xf5, 0xd3, 0x2d, 0xe0, 0xee, 0xda and 0x77 are now registered along with 0x37, 0x62, 0x97 and 0xa1. Largest remaining opaque families: 0x2d (3), 0xe0 (3), 0xd3 (3), then types with one or two records (34 records in 18 types)."
   },
   "native_conditions": {
     "supported_opcodes": [
