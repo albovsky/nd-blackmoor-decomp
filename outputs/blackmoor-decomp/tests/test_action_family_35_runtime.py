@@ -5,15 +5,17 @@ import os
 from pathlib import Path
 import struct
 import subprocess
+import sys
 import unittest
 
 PROJECT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 
 def body(branch=1, mode=2, direction=1, events=(), views=(0,), effect=5,
-         final=(-1, 0), policy=2):
+         final=(-1, 0), policy=2, first=0, last=2):
     b = bytearray(b'fixture\0' + bytes(25))
-    b += struct.pack('<13h', branch, policy, effect, mode, direction, 0, 2,
+    b += struct.pack('<13h', branch, policy, effect, mode, direction, first, last,
                      4710, 7, 8, 1, *final)
     b += struct.pack('<h', len(events))
     for event in events:
@@ -104,6 +106,22 @@ class MovieRuntimeTests(unittest.TestCase):
         v = n.values()
         self.assertEqual((v['visible'], v['shown'], v['decoded']), (0, 3, 0))
 
+    def test_view_stops_matching_after_presentation_then_returns_not_due(self):
+        n = self.make()
+        self.assertEqual(n.step(0), 0)
+        self.assertEqual(n.step(1), 0)
+        v = n.values()
+        self.assertEqual(tuple(v[k] for k in ('shown', 'matched', 'dirty', 'visible')),
+                         (2, 1, 1, 1))
+        self.assertEqual(n.step(1, view=99), 0)
+        v = n.values()
+        self.assertEqual(tuple(v[k] for k in ('shown', 'matched', 'dirty', 'visible', 'record')),
+                         (3, 0, 0, 0, -1))
+        self.assertEqual(n.step(1, due=0), 0)
+        v = n.values()
+        self.assertEqual(tuple(v[k] for k in ('shown', 'matched', 'dirty', 'visible', 'decoded')),
+                         (3, 1, 0, 1, 1))
+
     def test_not_due_keeps_first_frame_state(self):
         n = self.make()
         n.step(0)
@@ -120,6 +138,12 @@ class MovieRuntimeTests(unittest.TestCase):
         self.assertEqual((v['dirty'], v['shown'], v['substate'], v['flag21a']), (1, 2, 4, 1))
         self.assertEqual(tuple(v[x] for x in ('source_l', 'source_t', 'source_r', 'source_b')), (0, 0, 3, 2))
         self.assertEqual(tuple(v[x] for x in ('dest_l', 'dest_t', 'dest_r', 'dest_b')), (11, 22, 14, 24))
+
+    def test_same_frame_duplicate_event_id_uses_last_value(self):
+        n = self.make(events=((0, 1001, -3), (0, 1001, 7)))
+        self.assertEqual(n.step(0), 0)
+        self.assertEqual(n.step(1), 0)
+        self.assertEqual(n.flag(1001), 7)
 
     def test_end_of_bink_moves_to_finishing_then_completes(self):
         n = self.make(final=(1007, 4))
@@ -186,16 +210,17 @@ class MovieRuntimeTests(unittest.TestCase):
 
     def test_avf_sequential_reader_render_ack_and_finish(self):
         from test_avf_decoder import build_avf
-        data = build_avf(4, 3, [(0, bytes([i, 0] * 12), None) for i in range(3)])
-        for mode in (0, 1):
+        data = build_avf(4, 3, [(0, bytes([i, 0] * 12), None) for i in range(5)])
+        for mode in (0, 1, 2):
             for direction in (1, 2):
                 with self.subTest(mode=mode, direction=direction):
                     n = self.make(branch=0, mode=mode, direction=direction,
-                                  events=((0, 1001, 1), (2, 1002, 2)))
+                                  first=1, last=3,
+                                  events=((1, 1001, 1), (3, 1002, 2)))
                     storage = C.create_string_buffer(data)
                     self.assertEqual(self.lib.rt35_avf(n.handle, storage, len(data)), 0)
                     self.assertEqual(n.step(0), 0)
-                    for i, frame in enumerate(range(3) if direction == 1 else (2, 1, 0)):
+                    for i, frame in enumerate((1, 2, 3) if direction == 1 else (3, 2, 1)):
                         self.lib.rt35_now(n.handle, (i + 1) * 1000)
                         self.assertEqual(self.lib.rt35_poll(n.handle), 0)
                         self.assertEqual(n.step(1), 0)
@@ -206,6 +231,25 @@ class MovieRuntimeTests(unittest.TestCase):
                     self.assertEqual(n.values()['phase'], 2)
                     self.assertEqual(n.step(2), 0)
                     self.assertEqual((n.values()['finish'], n.flag(1001), n.flag(1002)), (1, 1, 2))
+
+    def test_avf_finish_waits_for_reader_ready(self):
+        from test_avf_decoder import build_avf
+        data = build_avf(4, 3, [(0, bytes([i, 0] * 12), None) for i in range(3)])
+        n = self.make(branch=0, final=(1007, -9))
+        storage = C.create_string_buffer(data)
+        self.assertEqual(self.lib.rt35_avf(n.handle, storage, len(data)), 0)
+        self.assertEqual(n.step(0), 0)
+        self.assertEqual(n.step(2), 0)
+        v = n.values()
+        self.assertEqual(tuple(v[k] for k in ('phase', 'finish', 'active', 'closed', 'transition')),
+                         (2, 0, 1, 0, 0))
+        self.assertEqual(n.flag(1007), 0)
+        self.assertEqual(self.lib.rt35_poll(n.handle), 0)
+        self.assertEqual(n.step(2), 0)
+        v = n.values()
+        self.assertEqual(tuple(v[k] for k in ('phase', 'finish', 'active', 'closed', 'transition')),
+                         (0, 1, 0, 1, 1))
+        self.assertEqual(n.flag(1007), -9)
 
     def test_real_session_binding_preserves_pending_and_completes_by_subtype(self):
         self.session_case(missing=0, subtype=1)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RT-7: original 0x4bf9bb/0x4c04e3/0x4c0774 versus lifecycle C.
+"""RT-7: original 0x4bf9bb/0x4c0205/0x4c04e3/0x4c0774 versus lifecycle C.
 
 Executes session effects (UI stores, event table, geometry, scene request,
 completion) unhooked. Bink DLL calls are controlled codec boundaries, not
@@ -8,6 +8,7 @@ are host boundaries inherited from S03-2. No game process/device is opened.
 """
 import argparse
 from collections import Counter
+import ctypes as C
 import hashlib
 import json
 from pathlib import Path
@@ -44,7 +45,9 @@ class Original(avf.PlayerOriginal):
             self.uc.hook_add(UC_HOOK_CODE, self._codec, begin=stub, end=stub)
 
     def _helper(self, uc, address, size, user):
-        if address not in (0x449D90, 0x4C2C3A, 0x4C2DFB):
+        if address not in (0x449D90, 0x4C2C3A, 0x4C2DFB, 0x4497A0,
+                           0x449BFF, 0x449A94, 0x4C5377, self.delete_stub,
+                           avf.AFX_END_THREAD):
             # All other inherited helper entries are passive observations:
             # execute the original session/UI/geometry/codec-wrapper code.
             return
@@ -101,6 +104,12 @@ class Original(avf.PlayerOriginal):
         self.due = due
         self.run(0x4BF9BB, [ROW], OBJ)
 
+    def poll(self):
+        self.run(0x4C0C7D, [self.u32(OBJ + 0x1D6) + 0x3E], 0, worker=True)
+
+    def ack(self):
+        self.run(0x4C0D3F, [], OBJ)
+
     def snapshot(self):
         i32 = lambda a: struct.unpack('<i', self.r(a, 4))[0]
         i16 = lambda a: struct.unpack('<h', self.r(a, 2))[0]
@@ -120,14 +129,22 @@ class Original(avf.PlayerOriginal):
             dest_r=i32(OBJ+0x1f6),dest_b=i32(OBJ+0x1fa))
 
 
-def compare(o, n, phase, view=0, due=1, ending=False):
+def compare_snapshot(o, n, operation):
+    a, b = o.snapshot(), n.values()
+    differences = {k: (v, b[k]) for k, v in a.items() if v != b[k]}
+    assert not differences, (operation, differences)
+    original_flags = struct.unpack('<3000i', o.r(0x585801, 3000*4))
+    flag_differences = {i: (value, native) for i, value in enumerate(original_flags)
+                        if value != (native := n.flag(i))}
+    assert not flag_differences, (operation, 'event flags', flag_differences)
+    return b
+
+
+def compare(o, n, phase, view=0, due=1):
     frame = o.u32(o.bink + 12) - 1 if phase == 1 else 0
     o.step(phase, view, due)
     assert n.step(phase, view, due, frame, -1) == 0
-    a, b = o.snapshot(), n.values()
-    differences = {k: (v, b[k]) for k, v in a.items() if v != b[k]}
-    assert not differences, (phase, view, due, differences)
-    assert bytes(o.r(0x585801, 3000*4)) == struct.pack('<3000i', *(n.flag(i) for i in range(3000)))
+    b = compare_snapshot(o, n, (phase, view, due))
     if phase == 2 and b['finish']:
         expected_transition = struct.unpack('<h', o.r(o.rec+0x25,2))[0] == 5
         assert b['transition'] == expected_transition
@@ -138,6 +155,74 @@ def compare(o, n, phase, view=0, due=1, ending=False):
                     ('dword0',0x5bb59b,'i'),('dword1',0x5bb59f,'i'),
                     ('dword2',0x5bb5a3,'i'),('engine',0x583999,'i')]:
                 assert struct.unpack('<'+fmt, o.r(addr,struct.calcsize(fmt)))[0] == b[key], key
+    return b
+
+
+def compare_avf(lib, hooks):
+    """Exercise the lifecycle's actual AVF config and ready-gated finish.
+
+    A five-frame file with bounds 1..3 distinguishes both configured bounds
+    from physical endpoints. Poll/ack run original worker/render code, with
+    only the inherited thread/surface/OS boundaries controlled. Every poll,
+    ack and handler visit compares lifecycle/world state and all event flags.
+    """
+    from test_avf_decoder import build_avf
+    media = build_avf(4, 3, [(0, bytes([i, 0] * 12), None) for i in range(5)])
+    cases, steps = 0, 0
+    for mode in (0, 1, 2):
+        for direction in (1, 2):
+            data = body(branch=0, mode=mode, direction=direction, first=1, last=3,
+                        events=((1,1001,-3),(1,1001,7),(3,1002,9)), final=(1007,-9))
+            o, n = Original(), Native(lib, data)
+            try:
+                o.setup(data)
+                o.open_view(media)
+                o.slot_fields = (OBJ + 0x182, OBJ + 0x186)
+                storage = C.create_string_buffer(media)
+                assert lib.rt35_avf(n.handle, storage, len(media)) == 0
+                compare(o, n, 0)
+                steps += 1
+                # Ready starts at zero: phase 2 must leave the clip active,
+                # with no final flag, scene request, close or completion.
+                assert avf.i16(o, OBJ + 0x1D4) == 0
+                v = compare(o, n, 2)
+                assert (v['phase'], v['finish'], v['active'], v['closed'],
+                        v['transition'], n.flag(1007)) == (2, 0, 1, 0, 0, 0)
+                steps += 1
+                frames = (1, 2, 3) if direction == 1 else (3, 2, 1)
+                for i, frame in enumerate(frames):
+                    o.now = (i + 1) * 1000
+                    lib.rt35_now(n.handle, o.now)
+                    o.poll()
+                    assert lib.rt35_poll(n.handle) == 0
+                    compare_snapshot(o, n, 'poll')
+                    v = compare(o, n, 1)
+                    assert v['presented'] == frame, (mode, direction, frame, v)
+                    o.ack()
+                    assert lib.rt35_ack(n.handle) == 0
+                    compare_snapshot(o, n, 'ack')
+                    steps += 3
+                    if i == 0:
+                        compare(o, n, 1, view=99)
+                        compare(o, n, 1)  # back before the next decode/deadline
+                        steps += 2
+                o.now = 4000
+                lib.rt35_now(n.handle, o.now)
+                assert compare(o, n, 1)['phase'] == 2
+                # The final render ack retains ready when done is set.
+                assert avf.i16(o, OBJ + 0x1D4) == 1
+                v = compare(o, n, 2)
+                assert (v['phase'], v['finish'], v['active'], v['closed'],
+                        n.flag(1007)) == (0, 1, 0, 1, -9)
+                steps += 2
+                cases += 1
+            except Exception as e:
+                raise RuntimeError(f'AVF mode={mode} direction={direction}') from e
+            finally:
+                hooks.update(o.hooks)
+                n.close()
+    return dict(cases=cases, steps=steps, bounds=[1, 3], physical_frames=5,
+                modes=[0, 1, 2], directions=[1, 2], ready_gate=[0, 1], mismatches=0)
 
 
 def main():
@@ -151,6 +236,10 @@ def main():
                    policy=policy, events=((0,1001,1),(1,-1,7),(2,1001,-3)), final=(1007,-9)))
              for mode in (0,1,2) for direction in (1,2) for views in ((0,),(1,),(0,0))
              for effect in (5,6) for policy in (1,2)]
+    cases.extend([
+        ('same-frame-two-events', body(events=((0,1001,-3),(0,1002,7)))),
+        ('same-frame-duplicate-id', body(events=((0,1001,-3),(0,1001,7)))),
+    ])
     corpus = json.loads((ROOT/'work/analysis/slices/A-35.1.corpus.json').read_text())
     for r in corpus['records']:
         p = ROOT / f"work/analysis/hiff-resources/{r['resource_index']:04d}.bin"
@@ -163,7 +252,8 @@ def main():
         o, n = Original(), Native(lib, data)
         try:
             o.setup(data)
-            for phase, view, due in [(0,0,1), (1,99,1), (1,0,0), (1,0,1), (1,0,1), (1,0,1), (2,0,1), (0,0,1)]:
+            for phase, view, due in [(0,0,1), (1,0,1), (1,99,1), (1,0,0),
+                                     (1,0,1), (1,0,1), (1,0,1), (2,0,1), (0,0,1)]:
                 # Force finish in a synthetic fixture whose view never matches;
                 # the completion branch itself has no view dependency.
                 compare(o,n,phase,view,due)
@@ -173,11 +263,14 @@ def main():
         finally:
             hooks.update(o.hooks)
             n.close()
+    avf_result = compare_avf(lib, hooks)
     pe = avf.PEImage.parse_and_map(avf.DEFAULT_EXE)
     windows = {'controller':(0x4bf9bb,0x4c0205),'avf_update':(0x4c0205,0x4c04e3),
         'bink_update':(0x4c04e3,0x4c0774),'finish':(0x4c0774,0x4c08d3),
         'rect':(0x4c08d3,0x4c09fe),'triggers':(0x4c0ab1,0x4c0b97)}
-    report = dict(cases=len(cases), steps=steps, mismatches=0,
+    report = dict(cases=len(cases) + avf_result['cases'],
+        steps=steps + avf_result['steps'], mismatches=0,
+        bink=dict(cases=len(cases), steps=steps), avf=avf_result,
         original_exe_sha256=hashlib.sha256(pe.data).hexdigest(),
         code_sha256={k:hashlib.sha256(pe.image[a-pe.image_base:b-pe.image_base]).hexdigest()
                      for k,(a,b) in windows.items()},
