@@ -556,6 +556,17 @@ class BindingTests(unittest.TestCase):
         self.assertEqual(self.lib.session_a79_handler(None, 1, c.byref(action),
                           c.byref(before), c.byref(out)), 2)
 
+    def test_handler_returns_direct_completion_and_the_phase_word_unchanged(self):
+        f = Fixture(self, self.lib, [session.action(0x79, 2, word(6))], held=-1)
+        action = session.SceneActionInfo()
+        self.assertEqual(self.lib.scene_resource_action_at(f.scene, 0, c.byref(action)), 0)
+        for phase in (0, 1, 2, 5, 0xffffffff):
+            before, out = session.RuntimeState(0, phase), session.HandlerResult(123, 456)
+            self.assertEqual(self.lib.session_a79_handler(f.binding, 0, c.byref(action),
+                              c.byref(before), c.byref(out)), 0)
+            self.assertEqual((out.disposition, out.phase),
+                             (session.HANDLER_DIRECT_COMPLETED, phase))
+
     def test_scene_reload_replaces_rows_and_a_new_scene_without_rows_is_valid(self):
         f = Fixture(self, self.lib, [session.action(0x79, 1, word(4))])
         other, owner = session.open_scene(self.lib, [session.action(0x79, 1, word(8)),
