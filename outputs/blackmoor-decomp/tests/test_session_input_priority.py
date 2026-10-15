@@ -16,7 +16,8 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 
 def load():
-    lib = base.load_api(PROJECT / 'build/libsession_input.dylib')
+    import os
+    lib = base.load_api(Path(os.environ.get('SESSION_INPUT_LIBRARY', PROJECT / 'build/libsession_input.dylib')))
     lib.session_input_scan_priority.argtypes = [
         c.POINTER(base.State), c.POINTER(base.Context), c.POINTER(base.Hotspot), c.c_size_t,
         c.POINTER(base.Hotspot), c.c_size_t]
@@ -31,8 +32,10 @@ def spot(index, left, top, right, bottom, active=1):
 class PriorityScanTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        subprocess.run([str(PROJECT / 'scripts/build_session_input.sh')], check=True,
-                       capture_output=True)
+        import os
+        if 'SESSION_INPUT_LIBRARY' not in os.environ:
+            subprocess.run([str(PROJECT / 'scripts/build_session_input.sh')], check=True,
+                           capture_output=True)
         cls.api = load()
 
     def setUp(self):

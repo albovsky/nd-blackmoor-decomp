@@ -717,6 +717,14 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(rig.hit(10, 20)[1], 0)
         self.assertEqual(rig.manager.current_row, 0)
 
+    def test_hit_test_skips_an_overlay_whose_enabled_dword_is_zero(self):
+        rig = Rig(self.lib, [simple_image()], selector=0)
+        rig.step(0, 0)
+        self.assertEqual(rig.hit(15, 25)[1], 1)
+        rig.buffers[0][0xab2:0xab6] = bytes(4)
+        self.assertEqual(rig.hit(15, 25)[1:3], (0, -1))
+        self.assertEqual(rig.hot(0), (OK, []))
+
     def test_hit_test_prefers_list_order_not_row_order(self):
         both = [simple_image(b'LATE'), simple_image(b'EARLY')]
         rig = Rig(self.lib, both, selector=0)
@@ -886,6 +894,8 @@ class Fixture:
         self.selector = selector
         self.transitions = []
         self.stores = 0
+        self.start_flag = None
+        self.last_world = None
         self.log = []
         self.loaded = []
         self.next_surface = 0x100

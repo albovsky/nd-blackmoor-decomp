@@ -1103,7 +1103,7 @@ def valid_images(rng, count):
     return [random_image(rng) for _ in range(count)]
 
 
-def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True):
+def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True, mutation=False):
     started = time.monotonic()
     lib = native.bind(native.build_library() if library is None else native.library_path())
     pe = PEImage.parse_and_map(ROOT / 'work/original/GAME.EXE')
@@ -1135,7 +1135,7 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True):
 
     # F1: random single and multiple overlays
     f = family('random-overlays')
-    for seed in range(6 if quick else 160):
+    for seed in range(6 if quick else 70 if mutation else 160):
         r = random.Random(seed * 7919 + 1)
         count = r.choice((1, 1, 2, 3, 5))
         images = valid_images(r, count)
@@ -1159,7 +1159,7 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True):
         for action, image, subtype in rows:
             images[action] = image
             subtypes[action] = subtype
-        for selector in (0, 1, 2, 3, 16, 17):
+        for selector in ((0, 3, 16) if mutation else (0, 1, 2, 3, 16, 17)):
             r = random.Random(resource * 100 + selector)
             case = base_case(resource * 100 + selector, images, subtypes=subtypes, selector=selector,
                              rng=r, tick=r.randrange(2 ** 32))
@@ -1237,7 +1237,7 @@ def main(*, library=None, report_path=REPORT, quick=False, fps_sweep=True):
     # F5: interval sweep (0x50ce04 x87 path) over the 16-bit fps domain
     sweep = {}
     if fps_sweep:
-        sweep = fps_interval_sweep(pe, lib, quick)
+        sweep = fps_interval_sweep(pe, lib, quick or mutation)
 
     totals = dict(scripts=sum(f['scripts'] for f in families.values()),
                   steps=sum(f['steps'] for f in families.values()),
@@ -1341,5 +1341,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--quick', action='store_true')
     parser.add_argument('--no-sweep', action='store_true')
+    parser.add_argument('--mutation', action='store_true', help='reduced but meaningful run for mutation checks')
+    parser.add_argument('--report', default=str(REPORT))
     args = parser.parse_args()
-    main(quick=args.quick, fps_sweep=not args.no_sweep)
+    main(quick=args.quick, fps_sweep=not args.no_sweep, mutation=args.mutation,
+         report_path=Path(args.report))
