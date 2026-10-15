@@ -21,6 +21,7 @@
 #include "session_bindings_a62.h"
 #include "session_bindings_a51.h"
 #include "session_bindings_a35.h"
+#include "session_bindings_a35_bink.h"
 #include "session_bindings_a97.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -205,8 +206,16 @@ struct NativeApp {
     SessionA35Binding *a35 = nullptr;
     SessionA97Binding *a97 = nullptr;
     A35World movie_world{};
-    BinkPlayer *movie_video = nullptr;
+    /* Process globals mirrored by the controller, alongside the owning
+     * caption module's cursor_layer_enabled (0x5d1639). Phase 2 restores
+     * modal state only; it does not restore cleared layer words. */
+    int32_t layer_5d16cd = 0, layer_5d1683 = 0, movie_visible_5d19fb = 0;
+    SessionA35Bink *movie_bink = nullptr;
+    BinkPlayerFrame movie_frame{};
     std::vector<uint8_t> movie_surface;
+    A35Rect movie_source{}, movie_destination{};
+    uint64_t movie_generation = 0, movie_composed = 0;
+    uint32_t movie_mix_captures = 0;
     /* RT-4 dependency leaves 11..21. */
     SessionConditions *conditions_binding = nullptr;
     SessionConditionsCrtRand condition_rand{};
@@ -708,6 +717,8 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
 /* Build the host's persistent RGB555/565 destination from the actual saved
  * Frame surface, then overlay only the decoded Bink scene viewport. The Frame
  * is a CIFTREE taskbar image; it is not treated as a captured scene frame. */
+static bool native_a35_compose(NativeApp *app);
+
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
     if (app == nullptr || !app->captions.initialized || !app->has_scene_frame ||
@@ -768,6 +779,7 @@ static bool seed_native_caption_backbuffer(NativeApp *app)
                                           destination_offset)) return false;
         }
     }
+    if (!native_a35_compose(app)) return false;
     captions.backbuffer_ready = true;
     ++captions.backbuffer_seed_count;
     record(app, "caption_backbuffer_seeded width=640 height=480 format=%s pitch=1280 "
@@ -2277,15 +2289,113 @@ static bool create_native_conditions_binding(NativeApp *app)
 }
 
 /* Builds both bindings and loads their per-scene tables for app->scene. */
-/* RT-7: opening a Bink stream allocates its video surface but does not run
- * BinkDoFrame. The video-only S02 adapter ignores embedded audio; leave its
- * decode provider unbound so a playing visit fails before any frame effects.
- * No silent cinematic or synthesized audio completion is presented as play. */
+/* RT-9: the existing timed player supplies codec frames, while RT-7 owns
+ * tick ordering, event stores and completion. Offline media clock shares the
+ * mixer render clock; no output device is opened by inspection mode. */
+static uint64_t native_a35_clock(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    uint32_t rate = 0, channels = 0;
+    if (app->offline_audio_frames_per_update != 0 && app->live_audio != nullptr &&
+        live_audio_offline_format(app->live_audio, &rate, &channels) == LIVE_AUDIO_OK && rate != 0)
+        return live_audio_offline_frames_rendered(app->live_audio) * 1000000000ull / rate;
+    return monotonic_now_ns();
+}
+
+static int native_a35_audio_start(void *context, const BinkAudio *audio)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int status = live_audio_movie_start(app->live_audio, audio->pcm, audio->frame_count,
+                                               audio->channels, audio->sample_rate);
+    record(app, "scene_a35_audio_start status=%d clock_ns=%llu", status,
+           (unsigned long long)native_a35_clock(app));
+    return status;
+}
+
+static void native_a35_audio_stop(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int status = live_audio_movie_stop(app->live_audio);
+    record(app, "scene_a35_audio_stop status=%d clock_ns=%llu last_frame=%d", status,
+           (unsigned long long)native_a35_clock(app), app->movie_frame.current_frame);
+    if (status != LIVE_AUDIO_OK) app->failure = true;
+}
+
+static int native_a35_present(void *context, const BinkPlayerFrame *frame,
+                               const A35Rect *src, const A35Rect *dst)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (dst->left < 0 || dst->top < 0 || dst->right >= 640 || dst->bottom >= 480 ||
+        frame->rgba == nullptr || frame->stride == 0 || static_cast<size_t>(frame->width) > SIZE_MAX / 4u ||
+        frame->height > SIZE_MAX / frame->stride ||
+        frame->rgba_bytes < (size_t)frame->height * frame->stride) return 1;
+    try { app->movie_surface.assign(frame->rgba, frame->rgba + frame->rgba_bytes); }
+    catch (...) { return 1; }
+    app->movie_frame = *frame;
+    app->movie_frame.rgba = app->movie_surface.data();
+    app->movie_source = *src;
+    app->movie_destination = *dst;
+    ++app->movie_generation;
+    return 0;
+}
+
+static bool native_a35_compose(NativeApp *app)
+{
+    if (!app->movie_visible_5d19fb || app->movie_frame.rgba == nullptr) return true;
+    const A35Rect &src = app->movie_source, &dst = app->movie_destination;
+    NativeCaptionRuntime &captions = app->captions;
+    for (int32_t y = 0; y <= src.bottom - src.top; ++y) {
+        for (int32_t x = 0; x <= src.right - src.left; ++x) {
+            const size_t at = (size_t)(src.top + y) * app->movie_frame.stride +
+                              (size_t)(src.left + x) * 4u;
+            const size_t to = ((size_t)(dst.top + y) * 640u + (size_t)(dst.left + x)) * 2u;
+            if (!native_caption_pack_rgba(captions, app->movie_frame.rgba + at,
+                                          captions.backbuffer_pixels.data() + to)) return false;
+        }
+    }
+    if (app->movie_composed != app->movie_generation) {
+        SessionA35BinkStats stats{};
+        if (session_a35_bink_stats(app->movie_bink, &stats) != 0) return false;
+        app->movie_composed = app->movie_generation;
+        /* Hash the composed destination viewport, row by row, independently
+         * of the source-frame SHA. Includes background where the crop leaves
+         * pixels untouched. This is software presentation evidence only. */
+        uint64_t viewport_hash = UINT64_C(14695981039346656037);
+        for (int32_t y = app->scene_destination.top; y <= app->scene_destination.bottom; ++y) {
+            for (int32_t x = app->scene_destination.left * 2;
+                 x < (app->scene_destination.right + 1) * 2; ++x) {
+                viewport_hash ^= captions.backbuffer_pixels[(size_t)y * 1280u + (size_t)x];
+                viewport_hash *= UINT64_C(1099511628211);
+            }
+        }
+        record(app, "scene_a35_frame_presented frame=%d count=%llu rgba_sha256=%s "
+               "src=%d,%d,%d,%d dst=%d,%d,%d,%d surface=scene-viewport-RGB555 "
+               "viewport_fnv1a64=%016llx clock_ns=%llu origin_ns=%llu pts_ns=%lld "
+               "codec-parity=unverified", stats.frame, (unsigned long long)stats.presented,
+               stats.rgba_sha256, src.left, src.top, src.right, src.bottom,
+               dst.left, dst.top, dst.right, dst.bottom, (unsigned long long)viewport_hash,
+               (unsigned long long)stats.clock_ns, (unsigned long long)stats.origin_ns,
+               (long long)stats.pts_ns);
+    }
+    return true;
+}
+
 static void native_a35_close(void *context)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (app->movie_video != nullptr) bink_player_close(app->movie_video);
-    app->movie_video = nullptr;
+    if (app->movie_bink != nullptr) {
+        SessionA35BinkStats stats{};
+        session_a35_bink_stats(app->movie_bink, &stats);
+        record(app, "scene_a35_close decoded=%llu presented=%llu last_frame=%d "
+               "pcm_sha256=%s audio_frames=%llu rate=%u channels=%u not_due=%llu clock_ns=%llu",
+               (unsigned long long)stats.decoded, (unsigned long long)stats.presented,
+               stats.frame, stats.pcm_sha256, (unsigned long long)stats.audio_frames,
+               stats.audio_rate, stats.audio_channels, (unsigned long long)stats.not_due,
+               (unsigned long long)native_a35_clock(app));
+        session_a35_bink_close(app->movie_bink);
+    }
+    app->movie_bink = nullptr;
+    app->movie_frame = {};
     app->movie_surface.clear();
 }
 
@@ -2298,11 +2408,17 @@ static int native_a35_open(void *context, const ActionFamily35Decoded *body,
         record(app, "scene_a35_open branch=AVF status=unsupported detail=AVF-surface-host-unbound");
         return A35_RUNTIME_UNSUPPORTED;
     }
+    const auto reject = [&](const char *detail) {
+        record(app, "scene_a35_open branch=Bink name=%s status=%d detail=%s",
+               body->name, A35_RUNTIME_UNSUPPORTED, detail);
+        return A35_RUNTIME_UNSUPPORTED;
+    };
+    if (app->movie_bink != nullptr) return A35_RUNTIME_HOST;
     const std::string wanted = std::string(reinterpret_cast<const char *>(body->name)) + ".bik";
-    if (wanted.find_first_of("/\\") != std::string::npos) return A35_RUNTIME_UNSUPPORTED;
+    if (wanted.find_first_of("/\\") != std::string::npos) return reject("invalid-asset-name");
     const std::string directory_name = app->game_directory + "/CDVideo";
     DIR *directory = opendir(directory_name.c_str());
-    if (directory == nullptr) return A35_RUNTIME_UNSUPPORTED;
+    if (directory == nullptr) return reject("CDVideo-directory-unavailable");
     std::string path;
     unsigned matches = 0;
     while (dirent *entry = readdir(directory)) {
@@ -2319,25 +2435,66 @@ static int native_a35_open(void *context, const ActionFamily35Decoded *body,
         if (same) { ++matches; path = directory_name + "/" + candidate; }
     }
     closedir(directory);
-    if (matches != 1u) return A35_RUNTIME_UNSUPPORTED;
+    if (matches != 1u) return reject(matches == 0u ? "missing-file" : "ambiguous-file");
     BinkPlayerInfo info{};
+    SessionA35BinkHost host{app, native_a35_clock, native_a35_audio_start,
+                             native_a35_audio_stop, native_a35_present};
     char error[256] = {};
-    int status = bink_player_open(path.c_str(), &app->movie_video, &info, error, sizeof(error));
-    if (status == BINK_PLAYER_OK) status = bink_player_set_mode(app->movie_video,
-        body->words[4] == 2u ? 1 : 0, monotonic_now_ns(), error, sizeof(error));
-    if (status == BINK_PLAYER_OK && info.width <= SIZE_MAX / 4u / info.height) {
-        try { app->movie_surface.resize(static_cast<size_t>(info.width) * info.height * 4u); }
-        catch (...) { status = BINK_PLAYER_ERR_MEMORY; }
-    } else if (status == BINK_PLAYER_OK) status = BINK_PLAYER_ERR_BOUNDS;
+    app->movie_mix_captures = 0;
+    const int status = session_a35_bink_open(path.c_str(), body->words[4] == 2u ? 1 : 0,
+        &host, &app->movie_bink, &info, error, sizeof(error));
+    SessionA35BinkStats stats{};
+    if (app->movie_bink) session_a35_bink_stats(app->movie_bink, &stats);
     record(app, "scene_a35_open branch=Bink name=%s status=%d width=%u height=%u frames=%u "
-           "surface_bytes=%zu video-adapter=FFmpeg embedded-audio=unbound-before-DoFrame "
-           "frame-presented=0", body->name, status, info.width, info.height,
-           info.total_frames, app->movie_surface.size());
-    if (status != BINK_PLAYER_OK) {
-        native_a35_close(app);
-        return A35_RUNTIME_UNSUPPORTED;
+           "video-adapter=FFmpeg embedded-audio=single-track-native "
+           "audio_frames=%llu rate=%u channels=%u pcm_sha256=%s detail=%s",
+           body->name, status, info.width, info.height, info.total_frames,
+           (unsigned long long)stats.audio_frames, stats.audio_rate, stats.audio_channels,
+           stats.pcm_sha256, error);
+    return status;
+}
+
+static int native_a35_due(void *context, int *due)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int status = session_a35_bink_due(app->movie_bink, due);
+    if (status == 0 && !*due) {
+        SessionA35BinkStats stats{}; session_a35_bink_stats(app->movie_bink, &stats);
+        record(app, "scene_a35_not_due frame=%d clock_ns=%llu origin_ns=%llu",
+               stats.frame, (unsigned long long)stats.clock_ns, (unsigned long long)stats.origin_ns);
     }
-    return A35_RUNTIME_OK;
+    return status;
+}
+static int native_a35_decode(void *context, int16_t *frame)
+{ return session_a35_bink_decode(static_cast<NativeApp *>(context)->movie_bink, frame); }
+static int native_a35_next(void *context, int *more)
+{ return session_a35_bink_next(static_cast<NativeApp *>(context)->movie_bink, more); }
+static int native_a35_rect(void *context, const A35Rect *src, const A35Rect *dst)
+{ return session_a35_bink_rect(static_cast<NativeApp *>(context)->movie_bink, src, dst); }
+
+/* Observe committed event values without replacing the recovered kernel's
+ * ordered stores. Duplicate same-frame writes are checked by the x86 oracle. */
+static int native_a35_handler(void *context, size_t row, const SceneActionInfo *a,
+    const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    std::vector<int32_t> previous;
+    try { previous.assign(app->movie_world.event_flags,
+                          app->movie_world.event_flags + app->movie_world.event_flag_count); }
+    catch (...) { return SCENE_ACTION_HANDLER_ERROR; }
+    const int status = session_a35_handler(app->a35, row, a, before, out);
+    SessionA35BinkStats stats{};
+    stats.frame = -1;
+    if (app->movie_bink) session_a35_bink_stats(app->movie_bink, &stats);
+    for (size_t i = 0; i < previous.size(); ++i) {
+        if (previous[i] != app->movie_world.event_flags[i])
+            record(app, "scene_a35_event row=%zu phase=%u id=%zu before=%d value=%d frame=%d",
+                   row, before->phase, i, previous[i], app->movie_world.event_flags[i], stats.frame);
+    }
+    if (status == SCENE_ACTION_HANDLER_OK && before->phase == 2u &&
+        out->disposition == SCENE_ACTION_HANDLER_COMPLETED)
+        record(app, "scene_a35_finished row=%zu phase=2 next_phase=%u", row, out->phase);
+    return status;
 }
 
 static int native_a35_input(void *context, A35Input *input)
@@ -2356,6 +2513,9 @@ static void native_a35_load_world(void *context, A35World *world)
     world->modal = app->captions.lifecycle.g.modal_input;
     world->start = app->start_flag_5bb1ca;
     world->layers[0] = app->captions.lifecycle.g.cursor_layer_enabled;
+    world->layers[1] = app->layer_5d16cd;
+    world->layers[2] = app->layer_5d1683;
+    world->visible = app->movie_visible_5d19fb;
     world->redraw = app->exit_state.g.redraw_request;
     world->cursor = app->exit_state.g.redraw_counter;
 }
@@ -2367,6 +2527,9 @@ static void native_a35_store_world(void *context, const A35World *world)
     app->captions.lifecycle.g.modal_input = world->modal;
     app->start_flag_5bb1ca = world->start;
     app->captions.lifecycle.g.cursor_layer_enabled = world->layers[0];
+    app->layer_5d16cd = world->layers[1];
+    app->layer_5d1683 = world->layers[2];
+    app->movie_visible_5d19fb = world->visible;
     app->exit_state.g.redraw_request = world->redraw;
     app->exit_state.g.redraw_counter = static_cast<uint16_t>(world->cursor);
     record(app, "scene_a35_world active=%d modal=%d start=%d visible=%d redraw=%d cursor=%d",
@@ -2460,6 +2623,10 @@ static bool create_native_session_bindings(NativeApp *app)
     a35_host.movie.context = app;
     a35_host.movie.open = native_a35_open;
     a35_host.movie.close = native_a35_close;
+    a35_host.movie.bink_due = native_a35_due;
+    a35_host.movie.bink_decode = native_a35_decode;
+    a35_host.movie.bink_next = native_a35_next;
+    a35_host.movie.rect = native_a35_rect;
     a35_host.input = native_a35_input;
     a35_host.load_world = native_a35_load_world;
     a35_host.store_world = native_a35_store_world;
@@ -2723,8 +2890,8 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[3].context = app->a28;
     bindings[4].type = SESSION_A35_TYPE;
     bindings[4].provider = SCENE_SESSION_PROVIDER_A35;
-    bindings[4].callback = session_a35_handler;
-    bindings[4].context = app->a35;
+    bindings[4].callback = native_a35_handler;
+    bindings[4].context = app;
     bindings[5].type = SESSION_A97_TYPE;
     bindings[5].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
     bindings[5].callback = session_a97_handler;
@@ -3629,13 +3796,35 @@ static void update(NativeApp *app, uint32_t now)
             return;
         }
         SceneSessionTickResult session_result{};
-        if (app->live_audio != nullptr && app->offline_audio_frames_per_update != 0u &&
-            live_audio_advance_offline(app->live_audio, app->offline_audio_frames_per_update,
-                                       nullptr, nullptr, 0) != LIVE_AUDIO_OK) {
-            app->failure = true;
-            record(app, "live_audio_offline_advance_failed");
-            if (app->platform) blackmoor_macos_stop(app->platform);
-            return;
+        if (app->live_audio != nullptr && app->offline_audio_frames_per_update != 0u) {
+            const bool capture_movie = app->movie_bink != nullptr &&
+                app->movie_frame.rgba != nullptr && app->movie_mix_captures < 3u;
+            std::array<float, LIVE_AUDIO_RENDER_CHUNK_FRAMES * 2u> pcm{};
+            LiveAudioOfflineStats stats{};
+            if (live_audio_advance_offline(app->live_audio, app->offline_audio_frames_per_update,
+                    &stats, capture_movie ? pcm.data() : nullptr,
+                    capture_movie ? LIVE_AUDIO_RENDER_CHUNK_FRAMES : 0u) != LIVE_AUDIO_OK) {
+                app->failure = true;
+                record(app, "live_audio_offline_advance_failed");
+                if (app->platform) blackmoor_macos_stop(app->platform);
+                return;
+            }
+            if (capture_movie) {
+                uint32_t rate = 0, channels = 0;
+                live_audio_offline_format(app->live_audio, &rate, &channels);
+                const size_t count = std::min<size_t>(stats.frames, LIVE_AUDIO_RENDER_CHUNK_FRAMES) * channels;
+                const uint8_t *bytes = reinterpret_cast<const uint8_t *>(pcm.data());
+                uint64_t hash = UINT64_C(14695981039346656037);
+                for (size_t i = 0; i < count * sizeof(float); ++i) {
+                    hash ^= bytes[i]; hash *= UINT64_C(1099511628211);
+                }
+                record(app, "scene_a35_mix_capture index=%u frames=%llu rate=%u channels=%u "
+                       "nonzero=%llu peak=%.8f nonfinite=%llu pcm_fnv1a64=%016llx "
+                       "scope=native-mixer-including-scene-sounds output-device=none",
+                       app->movie_mix_captures++, (unsigned long long)stats.frames, rate, channels,
+                       (unsigned long long)stats.nonzero_samples, stats.peak,
+                       (unsigned long long)stats.nonfinite_samples, (unsigned long long)hash);
+            }
         }
         if (exit_tick == ExitTick::Consumed) {
             if (app->platform && !blackmoor_macos_present(app->platform,
@@ -3660,7 +3849,8 @@ static void update(NativeApp *app, uint32_t now)
                    session_result.executor.actions_applied,
                    session_result.dispatch_attempted);
             if (session_result.failure.provider == SCENE_SESSION_PROVIDER_A35)
-                record(app, "scene_a35_blocker detail=%s", session_a35_failure(app->a35));
+                record(app, "scene_a35_blocker detail=%s %s", session_a35_failure(app->a35),
+                       session_a35_bink_failure(app->movie_bink));
             if (session_result.failure.action_type == SESSION_A97_TYPE)
                 record(app, "scene_a97_blocker detail=%s", session_a97_failure(app->a97));
             SceneConditionFailure condition_failure{};
@@ -4095,7 +4285,8 @@ int main(int argc, char **argv)
         bool inspect_session_boundary = false;
         bool inspect_live_session = false;
         bool inspect_condition_providers = false;
-        uint32_t live_ticks = 600;
+        uint32_t live_ticks = 600, live_tick_ms = 85;
+        bool live_tick_ms_set = false;
         long live_click_row = -1;
         bool live_double_click = false, live_hover_only = false;
         long live_scene = -1, live_scene_row = -1;
@@ -4169,6 +4360,12 @@ int main(int argc, char **argv)
                 if (!*value || *end || seed > UINT32_MAX) return 2;
                 app.condition_rand_seed = static_cast<uint32_t>(seed);
                 app.condition_rand_seed_set = true;
+            } else if (argument == "--live-tick-ms") {
+                char *end = nullptr;
+                const unsigned long duration = std::strtoul(value, &end, 10);
+                if (!*value || *end || duration == 0 || duration > 1000) return 2;
+                live_tick_ms = (uint32_t)duration;
+                live_tick_ms_set = true;
             } else if (argument == "--live-ticks") {
                 char *end = nullptr;
                 const unsigned long count = std::strtoul(value, &end, 10);
@@ -4203,6 +4400,10 @@ int main(int argc, char **argv)
             return 2;
         }
 #endif
+        if (live_tick_ms_set && !inspect_live_session) {
+            std::fprintf(stderr, "--live-tick-ms requires --inspect-live-session\n");
+            return 2;
+        }
         app.scene_runtime_enabled = !inspect_only || inspect_session_boundary || inspect_live_session ||
                                     inspect_condition_providers;
         if (log_path.empty()) {
@@ -4256,7 +4457,8 @@ int main(int argc, char **argv)
                 audio_config.log_context = &app;
                 if (live_audio_create(&audio_config, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK)
                     throw std::runtime_error(error);
-                if (inspect_only) app.offline_audio_frames_per_update = 4096u;
+                if (inspect_only) app.offline_audio_frames_per_update = live_tick_ms_set
+                    ? live_tick_ms * (LIVE_AUDIO_DEFAULT_OFFLINE_SAMPLE_RATE / 1000u) : 4096u;
             }
             StartupMenuConfig config{};
             config.disabled_button_mask = (1u << 3) | (1u << 4); // Fresh session, no save restoration implemented.
@@ -4318,9 +4520,11 @@ int main(int argc, char **argv)
                 }
                 if (inspect_live_session) {
                     if (!app.session) throw std::runtime_error("Persistent scene session was not created");
-                    /* Scripted headless play: advance in fixed 85 ms steps (one
-                     * offline audio render chunk each), click the first active
-                     * hotspot once it appears, and report where the session stops. */
+                    /* Inspection-only cadence control. Explicit tick lengths
+                     * advance both the session and offline mixer by that duration;
+                     * default retains the historical 85ms/4096-frame probe. */
+                    record(&app, "live_session_cadence tick_ms=%u audio_frames_per_tick=%u",
+                           live_tick_ms, app.offline_audio_frames_per_update);
                     uint32_t clock = app.started + 8006u;
                     int scripted_clicks = 0;
                     uint32_t clicked_at = 0;
@@ -4328,7 +4532,7 @@ int main(int argc, char **argv)
                     uint32_t stalled = 0;
                     uint64_t last_progress_tick = 0;
                     for (uint32_t step = 0; step < live_ticks && !app.failure; ++step) {
-                        clock += 85u;
+                        clock += live_tick_ms;
                         update(&app, clock);
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
                         synthetic_a62_accept(&app);
@@ -4382,9 +4586,9 @@ int main(int argc, char **argv)
                                     scripted_clicks = 2;
                                 } else {
                                     pointer(&app, BLACKMOOR_POINTER_DOWN, app.pointer_x, app.pointer_y, 0);
-                                    clock += 85u; update(&app, clock);
+                                    clock += live_tick_ms; update(&app, clock);
                                     pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
-                                    clock += 85u; update(&app, clock);
+                                    clock += live_tick_ms; update(&app, clock);
                                     record(&app, "live_session_click row=%zu", row);
                                     if (live_double_click) {
                                         /* Windows delivers DBLCLK instead of the second DOWN:
@@ -4398,7 +4602,7 @@ int main(int argc, char **argv)
                                         pointer(&app, BLACKMOOR_POINTER_UP, app.pointer_x, app.pointer_y, 0);
                                         const unsigned edge_after_second_up = app.input_state.latch[0];
                                         const int32_t candidate_at_second_up = app.input_state.candidate;
-                                        clock += 85u; update(&app, clock);
+                                        clock += live_tick_ms; update(&app, clock);
                                         SceneSessionPointerResult second{};
                                         if (app.session != nullptr)
                                             scene_session_get_pointer_result(app.session, &second);

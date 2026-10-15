@@ -56,6 +56,11 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 | RT-4 | [Dependency leaves](tasks/RT-4-dependency-leaf-integration.md) | Collected |
 | RT-5 | [Scene exit handler and 0x28 effect](tasks/RT-5-scene-exit-handler-and-a28-effect.md) | Collected |
 | RT-6 | [Pointer integration](tasks/RT-6-pointer-integration.md) | Collected |
+| RT-7 | [0x35 MOVIE controller](tasks/RT-7-0x35-movie-runtime.md) | Collected (PR 15) |
+| RT-8 | [Raw 0x97 runtime](tasks/RT-8-a97-runtime.md) | Collected (PR 18) |
+| RT-9 | [Bink playback for 0x35](tasks/RT-9-bink-movie-playback.md) | Collected (PR 20) |
+| RT-10 | [Edge/arrow cascade 0x4f0059](tasks/RT-10-edge-cascade.md) | In flight (branch `codex/rt-10-edge-cascade`) |
+| RT-11 | [Sound persistence across scenes](tasks/RT-11-sound-persistence.md) | In flight (branch `codex/rt-11-sound-persistence`) |
 
 Opaque action decoders (A-35.1, A-38.1, A-3F.1, A-3E.1, A-6E.1, A-79.1, A-97.1, A-A1.1 merged) are driven by the opaque-action thread, Codex implementers and one independent reviewer per packet.
 

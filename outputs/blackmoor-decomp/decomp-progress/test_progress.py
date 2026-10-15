@@ -65,10 +65,13 @@ class RepoEvidenceTests(unittest.TestCase):
         committed = json.loads((HERE / "progress.json").read_text())["playable"]
         self.assertEqual(p, committed, "Refresh progress after changes to live registrations or evidence")
         self.assertEqual(p["scene_total"], 2078)
-        self.assertEqual(p["reached_scenes"], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
-        self.assertEqual(p["stop"]["action_type"], "0x35")
-        self.assertEqual(p["stop"]["row"], 3)
-        self.assertEqual(p["tests"], {"discovered": 1204, "passed": 1199, "skipped": 5,
+        recorded = json.loads((EVIDENCE / "playable-status.json").read_text())
+        self.assertEqual(p["reached_scenes"], recorded["reached_scenes"])
+        self.assertEqual(p["reached_scenes"][:10], ["S0", "S5900", "S5907", *[f"S{i}" for i in range(5901, 5907)], "S4700"])
+        self.assertEqual(p["stop"], recorded["stop"])
+        self.assertEqual(p["stop"]["action_type"], "0x83")
+        self.assertEqual(p["stop"]["row"], 6)
+        self.assertEqual(p["tests"], {"discovered": 1269, "passed": 1264, "skipped": 5,
                                      "source_field": "current_integration.full_suite"})
 
     def test_action_body_counts_use_current_source_and_census_records(self):
@@ -89,7 +92,7 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(a["registrations"], {
             "executor": ["0x0a", "0x15", "0x4d", "0x61", "0x64", "0x6a", "0x6b", "0x71"],
             "session_ui": ["0x1d", "0x82"],
-            "external": {"0x28": "session_a28_handler", "0x35": "session_a35_handler", "0x51": "session_a51_handler",
+            "external": {"0x28": "session_a28_handler", "0x35": "native_a35_handler", "0x51": "session_a51_handler",
                          "0x62": "session_a62_handler", "0x97": "session_a97_handler", "0x9f": "native_action_sound_handler"}})
         self.assertEqual(a["handled"]["type_count"], 16)
         derived = GEN.PLAYABLE.derive_actions(EVIDENCE)
@@ -146,9 +149,9 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertIn('$("nextBlocker").textContent=P.next_blocker', html)
         report = (self.out / "REPORT.md").read_text()
         self.assertLess(report.index("## Playable build"), report.index("## x86 matching"))
-        self.assertIn("S5906 → S4700", report)
-        self.assertIn("provider action-family-35", report)
-        self.assertIn("1,204 discovered; 1,199 passed; 5 skipped", report)
+        self.assertIn("S5906 → S4700 → S4710", report)
+        self.assertIn("provider scene-resource", report)
+        self.assertIn("1,269 discovered; 1,264 passed; 5 skipped", report)
 
     def test_audited_code_is_added_to_the_legacy_status_baseline(self):
         t = self.model["totals"]

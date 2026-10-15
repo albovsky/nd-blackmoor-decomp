@@ -330,16 +330,18 @@
   "current_slice": {
     "status": "in_progress",
     "name": "Runtime path: live S0 audio, scene transitions, 0x62/0x51/0x28 bindings, dependency opcodes, scene exit handler",
-    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906; S4700 parses, loads and ticks; the row-3 0x35 MOVIE controller initializes (RT-7) and raw 0x97 rows 11-13 run (RT-8); stops at the row-3 0x35 phase-1 Bink providers (frames, audio, rectangle); no movie frame is presented",
+    "success_boundary": "scripted headless run S0 -> S5900 -> S5907 -> S5901..S5906 -> S4700 (0x35 Bink movie plays all 504 frames with its embedded audio, 0x97 rows run) -> S4710 ... -> S4807; stops at the S4808 load, row 6 raw 0x83 (no body layout); headless only: no window, no audio device, A/V sync unproven",
     "game_complete": false
   },
   "next_scene_blockers": {
-    "scene": "S4700",
-    "opaque_raw_types": [],
+    "scene": "S4808",
+    "opaque_raw_types": [
+      "0x83"
+    ],
     "unsupported_typed_raw_types": [],
     "execution_blockers": [
-      "0x35 phase-1 Bink frame/audio/rectangle providers (init only after RT-7; no frame presented)",
-      "dropped movie globals (layers 1-2, visible) are not mirrored out of the controller world (RT-7 review)",
+      "S4808 row 6: raw 0x83 has no body layout (opaque family A-83, other thread)",
+      "Bink audio/video sync is a free-run rule not proven against the original (RT-9 review)",
       "edge/arrow cascade of 0x4f0059 (priority_clear unproven near viewport edges)",
       "whether the original keeps sounds across continuation transitions (unverified)",
       "0x28 nested state-3 tick and bit-exact x87 curve",
@@ -348,11 +350,11 @@
     "full_original_playback_parity": false
   },
   "current_integration": {
-    "source_ref": "432abfd02def38da2befb8f433b60e19c1098075 (branch codex/rt-8-a97-runtime; RT-8 raw 0x97 runtime)",
+    "source_ref": "495c5ed1ea2baefcf3b44b196fd546b0342a7814 (branch codex/rt-9-bink-movie; RT-9 Bink movie playback)",
     "native_build_passed": true,
     "full_suite": {
-      "discovered": 1204,
-      "passed": 1199,
+      "discovered": 1269,
+      "passed": 1264,
       "skipped": 5,
       "interpreter": "work/tools/oracle-python/bin/python after scripts/build_*.sh"
     },
@@ -370,9 +372,21 @@
         "S5904",
         "S5905",
         "S5906",
-        "S4700"
+        "S4700",
+        "S4710",
+        "S4701",
+        "S4711",
+        "S4800",
+        "S4801",
+        "S4802",
+        "S4712",
+        "S4803",
+        "S4804",
+        "S4805",
+        "S4806",
+        "S4807"
       ],
-      "stop": "S4700 loads; row 3 (0x35 Bink) initializes, rows 11-13 (0x97) run; row 3 phase 1 blocks on the unbound Bink frame/audio/rectangle providers: scene_session_blocked provider=action-family-35 action=3",
+      "stop": "S4700 movie completes (504 frames); the run proceeds through S4710 ... S4807 and stops loading S4808: scene_transition_error provider=scene-resource action=6 type=0x83",
       "child_complete": false
     }
   },

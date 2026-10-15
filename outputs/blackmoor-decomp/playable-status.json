@@ -9,22 +9,34 @@
     "S5904",
     "S5905",
     "S5906",
-    "S4700"
+    "S4700",
+    "S4710",
+    "S4701",
+    "S4711",
+    "S4800",
+    "S4801",
+    "S4802",
+    "S4712",
+    "S4803",
+    "S4804",
+    "S4805",
+    "S4806",
+    "S4807"
   ],
   "stop": {
-    "kind": "scene_session_blocked",
-    "scene": "S4700",
-    "target_scene": null,
-    "row": 3,
-    "action_type": "0x35",
-    "provider": "action-family-35",
-    "reason": "provider-blocked"
+    "kind": "scene_transition_error",
+    "scene": "S4807",
+    "target_scene": "S4808",
+    "row": 6,
+    "action_type": "0x83",
+    "provider": "scene-resource",
+    "reason": "session-replace"
   },
-  "ticks": 676,
+  "ticks": 2185,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "942e14b807b9b710119b7ad91991d69a4d2c5e9a",
-    "native_sha256": "b0be56fe90a9de9c23e161ce8d391919fde648ff6834d7da77169dde3643075b",
+    "source_ref": "74cfeca279d9a59f2e4577ae687b25d0bc368804",
+    "native_sha256": "08ed0b7590a54f287f3132ed7b2eb1e0932648f7e5b2f46c7aba6a83dd545e7a",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -102,10 +114,6 @@
         "sha256": "3717678ad51b2b1087c2d2cec21057996a8f48477a7dadd36d2660686f884af3"
       },
       {
-        "path": "src/action_family_4b.h",
-        "sha256": "85d4125e14b2d408b87c8202117772d92fed8112ff30cea48a3178dd1793bf9b"
-      },
-      {
         "path": "src/action_family_4e.h",
         "sha256": "24f7592cf73482504468c09b39b22272c0e3b3cfd770cb3fda1b89ac71e4f7c2"
       },
@@ -130,10 +138,6 @@
         "sha256": "94e6d1e8c8bd7c2446e3a7d3d1fc9355c8852f0335b2c272a38b0cd77220edd3"
       },
       {
-        "path": "src/action_family_68.h",
-        "sha256": "51e9694fa23ac8ec3c488ca25f182a6916a1388ab0cea0c9559a9f22f1ea4262"
-      },
-      {
         "path": "src/action_family_6e.h",
         "sha256": "856c40aa7bba2195288e5b50d4449cdd71258057ff0e994e6079f21a53e84cbe"
       },
@@ -144,10 +148,6 @@
       {
         "path": "src/action_family_79.h",
         "sha256": "1c52b3cc5373b9c93a479135d6b1a524489a0efa6ab230c8b86b5ec0ba1220dd"
-      },
-      {
-        "path": "src/action_family_83.h",
-        "sha256": "50189aed9bced8fbc9664d739c81edf2722aa6e66f71394203f1534144a1ce11"
       },
       {
         "path": "src/action_family_94.h",
@@ -194,12 +194,16 @@
         "sha256": "2a0bd183a71a4dede8c72734c593be09ad6f48ba0d4084d4283ec8b056fb23ff"
       },
       {
+        "path": "src/bink_audio.h",
+        "sha256": "b12994c6cc36b1c42da20abafb27193395fe05aea3b99fbfcb00dd7ede236a00"
+      },
+      {
         "path": "src/bink_player.h",
         "sha256": "3aa0f45b0d45a6956b7d426a98005168ba29d75de2717e8d1c56675a475fec3d"
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "035000554dfc089c0f854cfb4d7fc95e968d5f46df8b7bfd3c5f1b32b4008246"
+        "sha256": "d78aa4ef5bbfcf52c3e77d543ca719f225b170fab11bbf193dc42470c13c037d"
       },
       {
         "path": "src/caption_compositor.h",
@@ -259,7 +263,7 @@
       },
       {
         "path": "src/live_audio.h",
-        "sha256": "89671575a8c4141c6f2cd9027599189556a77ea36294620dc66624e491c1774b"
+        "sha256": "488b8fc170e9e9c4abe130c7867e0477d88a842760434b5e6cf320920e8cd518"
       },
       {
         "path": "src/macos_audio.h",
@@ -291,7 +295,7 @@
       },
       {
         "path": "src/scene_resource.c",
-        "sha256": "c14a096de7ad0d14f7b8690bc4b0a0ff1b84813169bb4f231574e183b9e53985"
+        "sha256": "ad516e35c0eb6a31e82e2ce6a283c000e9b4e31626a2fb5059bd3700b83dfaf9"
       },
       {
         "path": "src/scene_resource.h",
@@ -320,6 +324,14 @@
       {
         "path": "src/session_bindings_a35.h",
         "sha256": "baab2efd76ac550be184b3a72e896feb7846ab11f497fd9478a7820834b284c2"
+      },
+      {
+        "path": "src/session_bindings_a35_bink.c",
+        "sha256": "7b6d8bc3640c08dd87f1bbfc676106d3b5e933e4cde9b1207273ac9dddd0ca5c"
+      },
+      {
+        "path": "src/session_bindings_a35_bink.h",
+        "sha256": "4e3ded5584730b8d6b55ee2ae5a62f3527e29b3e821f5030d3c559692eb1b62d"
       },
       {
         "path": "src/session_bindings_a51.c",
@@ -361,10 +373,10 @@
   },
   "schema": "blackmoor-playable-status/2",
   "tests": {
-    "discovered": 1204,
-    "passed": 1199,
+    "discovered": 1269,
+    "passed": 1264,
     "skipped": 5,
     "source_field": "current_integration.full_suite"
   },
-  "next_blocker": "S4700: action 0x35 at row 3 (action-family-35)."
+  "next_blocker": "S4808 load: opaque action 0x83 at row 6 (scene-resource)."
 }
