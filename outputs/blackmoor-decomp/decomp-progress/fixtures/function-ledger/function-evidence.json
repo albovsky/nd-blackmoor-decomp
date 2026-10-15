@@ -1,243 +1,32 @@
 {
- "schema": "blackmoor-function-evidence/1",
- "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
- "counts": {
-  "unresolved": 0,
-  "mentions": 1
- },
- "functions": [
-  {
-   "va": "0x401000",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_entry",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    },
-    {
-     "kind": "test",
-     "path": "tests/fixture_core_tests.py",
-     "test_id": "test_entry",
-     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
-    },
-    {
-     "kind": "oracle",
-     "path": "tests/fixture_core_oracle.py",
-     "window": [
-      "0x401000",
-      "0x401100"
-     ],
-     "window_sha256": "29e2b0493826a643d25dc06258047af6c711c4f00123f88b6d904c71f56baae9",
-     "use": "entry",
-     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
-    },
-    {
-     "kind": "receipt",
-     "slice": "FIX-1",
-     "path": "analysis/slices/FIX-1.handoff.json",
-     "sha256": "c081b1e04208f4ea6897a816be0d609af9eb56e89bd8992956350a527e083acc",
-     "review": "accepted"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  },
-  {
-   "va": "0x401100",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_tests_only",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    },
-    {
-     "kind": "test",
-     "path": "tests/fixture_core_tests.py",
-     "test_id": "test_tests_only",
-     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  },
-  {
-   "va": "0x401340",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_with_parts",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    },
-    {
-     "kind": "test",
-     "path": "tests/fixture_core_tests.py",
-     "test_id": "test_with_parts",
-     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
-    },
-    {
-     "kind": "oracle",
-     "path": "tests/fixture_core_oracle.py",
-     "window": [
-      "0x401340",
-      "0x4014c0"
-     ],
-     "window_sha256": "4523f4da7c1414f5d27bb95ed39bb1ee3f72333692c1299cec2bb8990c97764f",
-     "use": "callee",
-     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  },
-  {
-   "va": "0x4014c0",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_candidate_e",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    },
-    {
-     "kind": "oracle",
-     "path": "tests/fixture_core_oracle.py",
-     "window": [
-      "0x4014c0",
-      "0x401600"
-     ],
-     "window_sha256": "57a1c29c6f8b1784abb6ecce97ce2254fbe641f2d4071b1f98d9257bbadccfcb",
-     "use": "mapped",
-     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  },
-  {
-   "va": "0x401600",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_partial",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  },
-  {
-   "va": "0x401700",
-   "evidence": [
-    {
-     "kind": "mention",
-     "path": "src/fixture_core.c",
-     "symbol": null
-    },
-    {
-     "kind": "receipt",
-     "slice": "FIX-2",
-     "path": "analysis/slices/FIX-2.handoff.json",
-     "sha256": "6838235421dac65acaa292015d818d68f15fe2b0be15c3477d676c4dde5a3b28",
-     "review": "none"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  },
-  {
-   "va": "0x401900",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_candidate_i",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    },
-    {
-     "kind": "oracle",
-     "path": "tests/fixture_core_oracle.py",
-     "window": [
-      "0x401900",
-      "0x4019f8"
-     ],
-     "window_sha256": "d8eec97f34d6bc53c0242162bb574c8cb6a5a309d64fbb81c23ee807b3a2357c",
-     "use": "entry",
-     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
-    }
-   ],
-   "blockers": [
-    {
-     "address": "0x401950",
-     "id": "U1",
-     "text": "interior branch unverified"
-    }
-   ],
-   "divergences": []
-  },
-  {
-   "va": "0x401a00",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_core.c",
-     "symbol": "fixture_rejects",
-     "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"
-    },
-    {
-     "kind": "test",
-     "path": "tests/fixture_core_tests.py",
-     "test_id": "test_rejects",
-     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
-    },
-    {
-     "kind": "oracle",
-     "path": "tests/fixture_core_oracle.py",
-     "window": [
-      "0x401a00",
-      "0x401af0"
-     ],
-     "window_sha256": "f4315000a8f6ea62bd2aaccca9cc1c67a1b27a2dafe54f8e9045b0816990752a",
-     "use": "entry",
-     "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"
-    }
-   ],
-   "blockers": [
-    {
-     "address": "0x401a40",
-     "id": "U2",
-     "text": "overrun path in the original"
-    }
-   ],
-   "divergences": [
-    {
-     "id": "U2",
-     "text": "native rejects the overrun input explicitly",
-     "safety_rejection": true
-    }
-   ]
-  },
-  {
-   "va": "0x406000",
-   "evidence": [
-    {
-     "kind": "native_source",
-     "path": "src/fixture_rand.c",
-     "symbol": "fixture_rand",
-     "sha256": "da9290bd59fd8a2ab0d0726729bfa3ba05e6ec8d2dc26e290c93535c3df59850"
-    },
-    {
-     "kind": "test",
-     "path": "tests/fixture_core_tests.py",
-     "test_id": "test_rand_adapter",
-     "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"
-    }
-   ],
-   "blockers": [],
-   "divergences": []
-  }
- ]
+"schema": "blackmoor-function-evidence/1",
+"original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+"text_range": [
+  "0x401000",
+  "0x409000"
+],
+"function_index": {"functions":30,"path":"outputs/blackmoor-decomp/function-index.json","sha256":"730a1b50011030bace502fb987c2051c8f378dd19c7dbf07713c0a4588549975"},
+"sources": [
+  {"path":"outputs/blackmoor-decomp/src/fixture_core.c","role":"native_source","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4"},
+  {"path":"outputs/blackmoor-decomp/src/fixture_rand.c","role":"native_source","sha256":"da9290bd59fd8a2ab0d0726729bfa3ba05e6ec8d2dc26e290c93535c3df59850"},
+  {"path":"outputs/blackmoor-decomp/tests/fixture_core_oracle.py","role":"oracle_source","sha256":"6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae"},
+  {"path":"outputs/blackmoor-decomp/tests/fixture_core_tests.py","role":"test","sha256":"fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936"}
+],
+"receipts": [
+  {"divergence_items":0,"files":["outputs/blackmoor-decomp/src/fixture_core.c"],"hook_addresses":0,"kind":"handoff","path":"analysis/slices/FIX-1.handoff.json","review":{"reviewer_recorded":true,"state":"reviewer_recorded"},"sha256":"a36ba187ace910f7b0d10246af59f6f23d662c7466eb336ec3f583c863a54e96","slice":"FIX-1","unverified":{"items":1,"located":1},"windows":{"declared":1,"hashed":1,"verified":1}},
+  {"divergence_items":0,"files":["outputs/blackmoor-decomp/src/fixture_core.c"],"hook_addresses":0,"kind":"handoff","path":"analysis/slices/FIX-2.handoff.json","review":{"reviewer_recorded":false,"state":"none"},"sha256":"dc15353d37edd3da45c81ab00cac2889ee4f3eac7188cf8658553c412fd27234","slice":"FIX-2","unverified":{"items":1,"located":1},"windows":{"declared":1,"hashed":1,"verified":1}}
+],
+"functions": [
+  {"blockers":[],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_entry"},{"kind":"test","path":"outputs/blackmoor-decomp/tests/fixture_core_tests.py","sha256":"fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936","test_id":"test_entry"},{"declared_in":["outputs/blackmoor-decomp/tests/fixture_core_oracle.py"],"kind":"oracle","path":"outputs/blackmoor-decomp/tests/fixture_core_oracle.py","reading":"end_exclusive","sha256":"6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae","tail_gap":0,"use":"entry","use_basis":"window_start","verified":"recorded_hash","window":["0x401000","0x401100"],"window_sha256":"ddc679f5248d5b6b5170523de603fe72060a3e6dd6492365a432c38edd3992c2"},{"hook":null,"kind":"receipt","path":"analysis/slices/FIX-1.handoff.json","review":{"reviewer_recorded":true,"state":"reviewer_recorded"},"sha256":"a36ba187ace910f7b0d10246af59f6f23d662c7466eb336ec3f583c863a54e96","slice":"FIX-1","unlocated_unverified":0,"via":["window"]}],"va":"0x401000"},
+  {"blockers":[],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_tests_only"},{"kind":"test","path":"outputs/blackmoor-decomp/tests/fixture_core_tests.py","sha256":"fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936","test_id":"test_tests_only"}],"va":"0x401100"},
+  {"blockers":[],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_with_parts"},{"kind":"test","path":"outputs/blackmoor-decomp/tests/fixture_core_tests.py","sha256":"fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936","test_id":"test_with_parts"},{"declared_in":["outputs/blackmoor-decomp/tests/fixture_core_oracle.py"],"kind":"oracle","path":"outputs/blackmoor-decomp/tests/fixture_core_oracle.py","reading":"end_exclusive","sha256":"6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae","tail_gap":0,"use":"callee","use_basis":"observed_hook","verified":"recorded_hash","window":["0x401340","0x4014c0"],"window_sha256":"bc46b4ed1ea86f46a5a89ad39fbed425f7f8e64e80af60d6285d03ade08dd4a2"}],"va":"0x401340"},
+  {"blockers":[],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_candidate_e"},{"declared_in":["outputs/blackmoor-decomp/tests/fixture_core_oracle.py"],"kind":"oracle","path":"outputs/blackmoor-decomp/tests/fixture_core_oracle.py","reading":"end_exclusive","sha256":"6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae","tail_gap":0,"use":"mapped","use_basis":"static_scope","verified":"recorded_hash","window":["0x4014c0","0x401600"],"window_sha256":"08e98974945fa15f5730530d258b7688efab3b21a341cb1e0385782b9a400966"}],"va":"0x4014c0"},
+  {"blockers":[],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_partial"},{"declared_in":["analysis/slices/FIX-1.handoff.json"],"kind":"oracle","path":null,"reading":"end_exclusive","sha256":null,"tail_gap":0,"use":"mapped","use_basis":"unhashed","verified":"declared_only","window":["0x401600","0x4016f0"],"window_sha256":"57026a11b205b0906977bef494d8226d5a8d243f0b8b887af1538af7127f7ff3"}],"va":"0x401600"},
+  {"blockers":[],"divergences":[],"evidence":[{"hook":null,"kind":"receipt","path":"analysis/slices/FIX-2.handoff.json","review":{"reviewer_recorded":false,"state":"none"},"sha256":"dc15353d37edd3da45c81ab00cac2889ee4f3eac7188cf8658553c412fd27234","slice":"FIX-2","unlocated_unverified":0,"via":["blocker"]},{"addresses":["0x401704"],"kind":"mention","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":null,"via":"citation"}],"va":"0x401700"},
+  {"blockers":[{"address":"0x401950","field":"unverified_branches","index":0,"interior":true,"path":"analysis/slices/FIX-1.handoff.json","slice":"FIX-1","text_sha256":"f381759ca0825402259d3fd12b1daca81c80466f6dcd9fd17c9f318280b59720"}],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_candidate_i"},{"declared_in":["outputs/blackmoor-decomp/tests/fixture_core_oracle.py"],"kind":"oracle","path":"outputs/blackmoor-decomp/tests/fixture_core_oracle.py","reading":"end_exclusive","sha256":"6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae","tail_gap":0,"use":"entry","use_basis":"window_start","verified":"recorded_hash","window":["0x401900","0x4019f8"],"window_sha256":"6bc2153b8498ecb94cb3c6e8b229c77a3ec522ce550a34760086369786d29ff6"}],"va":"0x401900"},
+  {"blockers":[{"address":"0x401a40","field":"unverified_branches","index":1,"interior":true,"path":"analysis/slices/FIX-1.handoff.json","slice":"FIX-1","text_sha256":"34501278dd22b64d5b5ca821dc1cf6d45ed99fabcfd493dc3ad87c983a33e18b"}],"divergences":[{"address":"0x401a40","field":"deliberate_safety_rejections","index":0,"interior":true,"path":"analysis/slices/FIX-1.handoff.json","slice":"FIX-1","text_sha256":"34501278dd22b64d5b5ca821dc1cf6d45ed99fabcfd493dc3ad87c983a33e18b"}],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_core.c","sha256":"33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4","symbol":"fixture_rejects"},{"kind":"test","path":"outputs/blackmoor-decomp/tests/fixture_core_tests.py","sha256":"fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936","test_id":"test_rejects"},{"declared_in":["outputs/blackmoor-decomp/tests/fixture_core_oracle.py"],"kind":"oracle","path":"outputs/blackmoor-decomp/tests/fixture_core_oracle.py","reading":"end_exclusive","sha256":"6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae","tail_gap":0,"use":"entry","use_basis":"window_start","verified":"recorded_hash","window":["0x401a00","0x401af0"],"window_sha256":"826c47802395fe53d9ebcef07eb724eb247e20327ed5d515b8dbe9423205d54f"}],"va":"0x401a00"},
+  {"blockers":[],"divergences":[],"evidence":[{"kind":"native_source","path":"outputs/blackmoor-decomp/src/fixture_rand.c","sha256":"da9290bd59fd8a2ab0d0726729bfa3ba05e6ec8d2dc26e290c93535c3df59850","symbol":"fixture_rand"},{"kind":"test","path":"outputs/blackmoor-decomp/tests/fixture_core_tests.py","sha256":"fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936","test_id":"test_rand_adapter"}],"va":"0x406000"}
+],
+"unresolved": [],
+"counts": {"functions_total":30,"functions_with_evidence":9}
 }

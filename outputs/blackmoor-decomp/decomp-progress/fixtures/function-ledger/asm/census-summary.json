@@ -1,5 +1,5 @@
 {
- "derived_functions": 2,
+ "derived_functions": 3,
  "functions_total": 32,
  "fall_through_fragments": [
   "0x00401e80"

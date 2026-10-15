@@ -4,6 +4,10 @@
     build_function_ledger.py --write   derive the ledger from the pinned inputs and write it
     build_function_ledger.py --check   validate the committed ledger and prove it equals a fresh derivation
 
+--check verifies the pinned hashes of the committed extractor outputs and re-derives the ledger from
+them; it does not re-run the extractors, and pins on private inputs (GAME.EXE, the Ghidra dump,
+private receipts) are reported as notes, never as a pass.
+
 Derivation and validation live in decomp-progress/function_ledger.py (standard
 library only). A failed derivation writes nothing, so the previous ledger stays
 intact. This is the function ledger, not the whole-file range ledger that
@@ -43,8 +47,9 @@ def main(argv=None):
     args = parse(argv)
     root = args.root.resolve()
     path = (args.out or root / "function-ledger.json").resolve()
+    notes = []
     kwargs = {"expected_functions": args.expected_functions, "work_dir": args.work_dir,
-              "verify_private": args.verify_private}
+              "verify_private": args.verify_private, "notes": notes}
     try:
         if args.write:
             ledger = FL.derive(root, **kwargs)
@@ -60,6 +65,8 @@ def main(argv=None):
     c = ledger["counts"]
     print(f"{action} {path.name}: {c['total']} functions "
           f"(ported {c['status']['ported']}, not_needed {c['status']['not_needed']}, pending {c['status']['pending']})")
+    for note in notes:                  # facts this run could not re-check; never a pass
+        print(f"note: {note}")
     return 0
 
 

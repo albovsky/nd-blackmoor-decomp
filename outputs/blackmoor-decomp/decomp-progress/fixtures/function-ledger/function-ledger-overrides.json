@@ -1,5 +1,7 @@
 {
  "schema": "blackmoor-function-ledger-overrides/1",
+ "status": "fixture",
+ "note": "Synthetic fixture overrides in the FL-3 draft shape; the rules are accepted here to exercise them.",
  "port_acceptances": [
   {
    "va": "0x401000",
@@ -164,48 +166,73 @@
  ],
  "not_needed_rules": [
   {
-   "id": "R-LIB-INTERNAL",
-   "predicate": "R-LIB-INTERNAL",
-   "reason": "library_internal_unreached_by_game",
-   "rationale": "library function with no path from or to game code",
+   "id": "R-EH",
+   "predicate": "R-EH",
    "accepted": true,
-   "reviewer": "fixture-reviewer",
-   "date": "2026-10-15",
-   "sample_review": {
-    "sample_sha256": "b629b02295ece272f761f0f18910cc27351cbd88da70ae45b35858882e09cb08",
+   "reason_code": "compiler_eh_funclet",
+   "rationale": "unwind funclet of a natively ported parent",
+   "parameters": {
+    "eh_parent_regions": [
+     "crt_mfc",
+     "vorbis",
+     "game"
+    ]
+   },
+   "review": {
+    "reviewer": "fixture-reviewer",
+    "date": "2026-10-15",
     "n": 59,
-    "defects": 0
+    "defects": 0,
+    "sample_sha256": "146af450bf1c43799c28776f685260b6b5cca1517f8f3263d4fcd05a6c1ce95f"
    }
   },
   {
-   "id": "R-EH",
-   "predicate": "R-EH",
-   "reason": "compiler_eh_funclet",
-   "rationale": "unwind funclet of a natively ported parent",
+   "id": "R-LIB-INTERNAL",
+   "predicate": "R-LIB-INTERNAL",
    "accepted": true,
-   "reviewer": "fixture-reviewer",
-   "date": "2026-10-15",
-   "sample_review": {
-    "sample_sha256": "146af450bf1c43799c28776f685260b6b5cca1517f8f3263d4fcd05a6c1ce95f",
+   "reason_code": "library_internal_unreached_by_game",
+   "rationale": "library function with no path from or to game code",
+   "parameters": {},
+   "review": {
+    "reviewer": "fixture-reviewer",
+    "date": "2026-10-15",
     "n": 59,
-    "defects": 0
-   },
-   "parents_without_native_exception_path": []
+    "defects": 0,
+    "sample_sha256": "b629b02295ece272f761f0f18910cc27351cbd88da70ae45b35858882e09cb08"
+   }
   }
  ],
  "semantics_sensitive": [
   {
-   "va": "0x406000",
-   "why": "CRT rand: exact generator semantics"
+   "id": "SS-RAND",
+   "category": "rand",
+   "basis": "fixture",
+   "propagate": "none",
+   "exclusion_only": true,
+   "selectors": [
+    {
+     "kind": "fingerprint",
+     "value": "lcg_rand"
+    }
+   ]
   },
   {
-   "va": "0x407900",
-   "why": "printf-style float formatting"
+   "id": "SS-FTOL",
+   "category": "float_to_int",
+   "basis": "fixture",
+   "propagate": "none",
+   "exclusion_only": true,
+   "selectors": [
+    {
+     "kind": "fingerprint",
+     "value": "x87_ftol"
+    }
+   ]
   }
  ],
  "win32_import_allowlist": {
   "names": [
-   "GetCurrentThreadId"
+   "KERNEL32.dll!GetCurrentThreadId"
   ],
   "reviewer": "fixture-reviewer",
   "date": "2026-10-15"
