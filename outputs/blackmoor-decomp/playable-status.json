@@ -37,8 +37,8 @@
   "ticks": 2947,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "5fd79b70a1a85a256560609fd22e3c7af3bbe0b0",
-    "native_sha256": "61b0917a3950094be3bdb406a9ecbc0c48be4d7e3c0d12ef9bd2ce44d8c32dac",
+    "source_ref": "4b6c64abb7fed2fb904896affd3d391f0b583841",
+    "native_sha256": "9a1e7ec88e56671ee757053e09dc55bfe728d66112b8ac89fac1db098eeeb5f1",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -357,7 +357,7 @@
       },
       {
         "path": "src/blackmoor_app.mm",
-        "sha256": "efe35c40aeeef25fc8bb24bd749f5043fca35112d9a45f1be0736b746d5bdfc2"
+        "sha256": "56daf613a4ba69c23548568ab920425da2b949a35753d8008fec86427a4205ea"
       },
       {
         "path": "src/caption_compositor.h",
@@ -417,7 +417,7 @@
       },
       {
         "path": "src/live_audio.h",
-        "sha256": "488b8fc170e9e9c4abe130c7867e0477d88a842760434b5e6cf320920e8cd518"
+        "sha256": "7aad02300ceb91b2de2a5288a2afd1023c71337d46713c003e4e784bc076f952"
       },
       {
         "path": "src/macos_audio.h",
@@ -581,7 +581,7 @@
       },
       {
         "path": "src/session_bindings_conditions_audio.c",
-        "sha256": "1e1b4ed489a51b100a0f3a695350702ab1b5345f560c10cd0575237afa2ac831"
+        "sha256": "0499ea84fa17e223a6700d8c9bd0c6293dfacb2c51c55ccac80ce75c7a0ab95f"
       },
       {
         "path": "action-census-current.json",
