@@ -114,6 +114,15 @@ int session_input_tick(SessionInputState *state, const SessionInputContext *cont
 int session_input_scan(SessionInputState *state, const SessionInputContext *context,
                        const SessionInputHotspot *hotspots, size_t count);
 
+/* RT-14: scan with ordered priority rows tried before the generic rows (the
+ * overlay hit test 0x4897cd runs inside the 0x4f0059 cascade, before its
+ * generic loop). Priority rows may repeat an index and need not ascend; they
+ * are never excluded-slot hand-offs. session_input_scan is this function
+ * without priority rows. All rows are validated before any mutation. */
+int session_input_scan_priority(SessionInputState *state, const SessionInputContext *context,
+                                const SessionInputHotspot *priority, size_t priority_count,
+                                const SessionInputHotspot *hotspots, size_t count);
+
 /* Alternative to scan when an independently recovered cursor/UI provider
  * supplies the exact raw global (including special event IDs). Never publish
  * a freshly re-hit-tested release position here: WM_LBUTTONUP ignores it. */

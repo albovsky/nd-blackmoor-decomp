@@ -148,8 +148,33 @@ int session_input_tick(SessionInputState *state, const SessionInputContext *cont
     return SESSION_INPUT_OK;
 }
 
-int session_input_scan(SessionInputState *state, const SessionInputContext *context,
-                       const SessionInputHotspot *hotspots, size_t count)
+static int hotspot_domain_ok(const SessionInputHotspot *spot)
+{
+    return spot->index >= 0 && spot->index < 240 &&
+        spot->rectangle.left >= INT16_MIN && spot->rectangle.left <= INT16_MAX &&
+        spot->rectangle.top >= INT16_MIN && spot->rectangle.top <= INT16_MAX &&
+        spot->rectangle.right >= INT16_MIN && spot->rectangle.right <= INT16_MAX &&
+        spot->rectangle.bottom >= INT16_MIN && spot->rectangle.bottom <= INT16_MAX;
+}
+
+static int spot_contains(const SessionInputHotspot *spot, const SceneExecutorFrameInput *projected)
+{
+    return spot->active != 0 &&
+        spot->rectangle.left <= projected->pointer_x &&
+        projected->pointer_x <= spot->rectangle.right &&
+        spot->rectangle.top <= projected->pointer_y &&
+        projected->pointer_y <= spot->rectangle.bottom;
+}
+
+/* RT-14: 0x4f0059 calls the overlay manager's hit test (0x4f104f -> 0x4897cd)
+ * inside its UI cascade and returns at the first hit; the generic row loop is
+ * only reached when every cascade member missed. The overlay rows therefore
+ * come as a separate, ordered list: they may repeat a row index (one row, many
+ * hot records), are not ordered by index, and the generic loop's excluded-slot
+ * hand-off does not apply to them. */
+int session_input_scan_priority(SessionInputState *state, const SessionInputContext *context,
+                                const SessionInputHotspot *priority, size_t priority_count,
+                                const SessionInputHotspot *hotspots, size_t count)
 {
     SessionInputContext snapshot;
     SceneExecutorFrameInput projected = {0};
@@ -157,7 +182,8 @@ int session_input_scan(SessionInputState *state, const SessionInputContext *cont
     int32_t previous = -1;
     size_t i;
     int status;
-    if (state == NULL || context == NULL || count > 240 || (count != 0 && hotspots == NULL))
+    if (state == NULL || context == NULL || count > 240 || priority_count > 4096 ||
+        (count != 0 && hotspots == NULL) || (priority_count != 0 && priority == NULL))
         return SESSION_INPUT_INVALID_ARGUMENT;
     snapshot = *context;
     if (snapshot.excluded_0 < -1 || snapshot.excluded_0 >= 240 ||
@@ -165,35 +191,39 @@ int session_input_scan(SessionInputState *state, const SessionInputContext *cont
         return SESSION_INPUT_INVALID_ARGUMENT;
     for (i = 0; i < count; ++i) {
         const SessionInputHotspot *spot = &hotspots[i];
-        if (spot->index <= previous || spot->index >= 240 ||
-            spot->rectangle.left < INT16_MIN || spot->rectangle.left > INT16_MAX ||
-            spot->rectangle.top < INT16_MIN || spot->rectangle.top > INT16_MAX ||
-            spot->rectangle.right < INT16_MIN || spot->rectangle.right > INT16_MAX ||
-            spot->rectangle.bottom < INT16_MIN || spot->rectangle.bottom > INT16_MAX)
+        if (spot->index <= previous || !hotspot_domain_ok(spot))
             return SESSION_INPUT_INVALID_ARGUMENT;
         previous = spot->index;
+    }
+    for (i = 0; i < priority_count; ++i) {
+        if (!hotspot_domain_ok(&priority[i])) return SESSION_INPUT_INVALID_ARGUMENT;
     }
     status = project(&snapshot, &projected);
     if (status != SESSION_INPUT_OK) return status;
     if (projected.pointer_valid && projected.cursor_context_allowed) {
-        for (i = 0; i < count; ++i) {
+        for (i = 0; i < priority_count && candidate < 0; ++i) {
+            if (spot_contains(&priority[i], &projected)) candidate = priority[i].index;
+        }
+        for (i = 0; i < count && candidate < 0; ++i) {
             const SessionInputHotspot *spot = &hotspots[i];
-            if (spot->active != 0 &&
-                spot->rectangle.left <= projected.pointer_x &&
-                projected.pointer_x <= spot->rectangle.right &&
-                spot->rectangle.top <= projected.pointer_y &&
-                projected.pointer_y <= spot->rectangle.bottom) {
+            if (spot_contains(spot, &projected)) {
                 /* The same original loop routes these hits to specialized
                  * handlers at 4f2395, before advancing to the next row. */
                 if (spot->index == snapshot.excluded_0 || spot->index == snapshot.excluded_1)
                     return SESSION_INPUT_LIMIT_PRIORITY_PATH;
                 candidate = spot->index;
-                break; /* 4f2305..4f2390 returns on the FIRST generic hit. */
+                /* 4f2305..4f2390 returns on the FIRST generic hit. */
             }
         }
     }
     state->candidate = candidate;
     return SESSION_INPUT_OK;
+}
+
+int session_input_scan(SessionInputState *state, const SessionInputContext *context,
+                       const SessionInputHotspot *hotspots, size_t count)
+{
+    return session_input_scan_priority(state, context, NULL, 0, hotspots, count);
 }
 
 int session_input_publish_candidate(SessionInputState *state, int32_t candidate)
