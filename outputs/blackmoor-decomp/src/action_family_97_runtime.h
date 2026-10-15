@@ -43,6 +43,32 @@ int action97_runtime_step(const uint8_t *payload, size_t payload_length,
                           const A97Input *, ActionSoundBackend *, A97Result *,
                           const char **failure);
 
+/* RT-21: the same visit for an object built by the raw-0xa1 loader (0x40f069/0x410f99),
+ * whose event word +0xa5 and value byte +0xa7 come from the body (+0x2e, +0x30) instead
+ * of the raw-97 constructor default (-1, 0). Additional original behaviour, verified in
+ * 0x432d1a: with +0xa5 != -1 phase 0 stores dword [0x585801 + id*4] := byte +0xa7 after
+ * the caption and before the load/play, and the direct completion of 0x4334e1..0x43351d
+ * needs event == -1 as well as scene 9999 and control 0. events is the host's view of
+ * 0x585801; it is required (and bounds-checked before any effect of the visit) only when
+ * the event id is not -1. Everything else is exactly action97_runtime_step. */
+typedef struct A97EventTable {
+    int32_t *flags;
+    size_t count;
+} A97EventTable;
+
+typedef struct ActionSoundObjectResult {
+    A97Result visit;
+    uint8_t event_stored;
+    int16_t event_id;
+    int32_t event_value;
+    int32_t event_previous;
+} ActionSoundObjectResult;
+
+int action_sound_object_step(const uint8_t *payload, size_t payload_length,
+                             const A97Input *, ActionSoundBackend *,
+                             const A97EventTable *events, ActionSoundObjectResult *,
+                             const char **failure);
+
 #ifdef __cplusplus
 }
 #endif
