@@ -183,7 +183,11 @@ struct NativeNewGameState {
  * by ClearSceneData 0x43dd5e/0x43ddde/0x43ddbe; set only by action types
  * 0x77, 0x76 and 0x75, which have no native handler so the session freezes
  * before they could run) and [0x5a4c18] (reset by 0x4d3073 each update).
- * The ~40 UI hit-test callees of that cascade are NOT individually verified. */
+ * RT-17: result_5a4c18 is no longer an input (the zone tests produce the
+ * state, session_navigation) and priority_clear additionally requires that no
+ * scene row has the runtime type of a cascade member (nav_members_idle); the
+ * ~40 UI hit-test callees are verified to miss on their power-on objects by the
+ * RT-17 oracle, not individually reconstructed. */
 struct ProvisionalCursorProvider {
     int32_t sprite_width = 1, sprite_height = 1;
     int32_t hot_x = 0, hot_y = 0;
@@ -325,6 +329,13 @@ struct NativeApp {
     int32_t logged_nav_state = -1;
     uint64_t nav_steps = 0, nav_selector_moves = 0;
     bool nav_scene_ready = false;
+    /* RT-17: frame-hold presentation of a multi-frame scene. The original shows
+     * frame [0x5bb50b] of the scene movie (0x43ce92..0x43cf12, 0x4f7c36); a
+     * second player seeks to it (BinkGoto equivalent) once navigation or the
+     * scene entry selects a frame. */
+    BinkPlayer *nav_player = nullptr;
+    std::string scene_video_path;
+    int32_t nav_shown_frame = -1;
     /* RT-14: the overlay hot-rectangle failure is logged once per scene. */
     bool a36_hot_rects_failure_logged = false;
     bool primary_down = false;
@@ -1709,6 +1720,8 @@ static void cleanup(NativeApp *app)
     if (app->scene) scene_resource_close(app->scene);
     if (app->retired_scene) scene_resource_close(app->retired_scene);
     if (app->video) bink_player_close(app->video);
+    if (app->nav_player) bink_player_close(app->nav_player);
+    app->nav_player = nullptr;
     if (app->boot) engine_boot_close(app->boot);
     autotext_close(app->captions.auto_text);
     app->captions.auto_text = nullptr;
@@ -2136,11 +2149,11 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
 /* DAT_005bb50b, the signed selector 0x42ea87 compares at 0x42ebb0. Its only
  * stores are 0x439f41 (scene entry: DAT_005bb599, the frame word copied from
  * the scene-change request, guarded by the restore flag 0x5e32b5 == 0) and the
- * navigation block 0x43c2b7..0x43c87f of 0x43a7ca. The navigation commands
- * come from the keyboard path 0x437774 and the edge-scroll block 0x4f197d..
- * 0x4f1dba, neither of which exists in the native app, so after a transition
- * the register still holds the entry frame. The New Game entry scene has no
- * proven entry frame, so it is reported as unavailable. */
+ * navigation block 0x43c2b7..0x43c87f of 0x43a7ca. RT-17 binds the edge-zone
+ * command (cascade 0x4f197d..0x4f1dba, hover) and the tick step; the value
+ * returned here is the live selector (selector_entry_frame mirrors nav.selector
+ * after every step). The keyboard path 0x437774 is still unbound. The New Game
+ * entry scene has no proven entry frame, so it is reported as unavailable. */
 static int native_a62_current_selector(void *context, int16_t *selector)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
@@ -2151,7 +2164,8 @@ static int native_a62_current_selector(void *context, int16_t *selector)
     if (!app->selector_logged) {
         app->selector_logged = true;
         record(app, "scene_a62_selector scene=%d value=%d source=scene-change-frame-word "
-               "(0x439f20..0x439f41 DAT_005bb50b=DAT_005bb599) navigation_producers=unbound",
+               "(0x439f20..0x439f41 DAT_005bb50b=DAT_005bb599) navigation_producers=edge-zone+tick-step"
+               "(RT-17) keyboard=unbound",
                app->current_scene_id, *selector);
     }
     return 0;
@@ -3086,6 +3100,57 @@ static bool nav_read_boot(NativeApp *app)
     return true;
 }
 
+/* Present frame `selector` of the scene movie and stop the background movie
+ * from playing past it. The original keeps the frame set of a scene as loaded
+ * surfaces and shows [0x5bb50b] (0x43ce92: when 0x5bb509 differs from the
+ * selector it points the view at that surface); the movie is never played as a
+ * background. The native background player only exists to fetch frame 0, so
+ * for a multi-frame scene it is stopped and a second player decodes the
+ * requested frame (seek is one-based, BinkGoto-like). Single-frame scenes are
+ * untouched (their EOS handling is a separate, tested path). */
+static bool nav_show_frame(NativeApp *app, int16_t selector, const char *why)
+{
+    if (app->scene_native_frames <= 1) return true;
+    if (selector < 0 || selector >= app->scene_native_frames) {
+        record(app, "nav_frame_unavailable selector=%d frames=%d reason=%s (selector outside the "
+               "movie: the original would fail the frame load, native keeps the shown frame)",
+               selector, app->scene_native_frames, why);
+        return false;
+    }
+    if (app->nav_shown_frame == selector) return true;
+    char error[256] = {};
+    if (app->video != nullptr) {
+        bink_player_close(app->video);
+        app->video = nullptr;
+        record(app, "nav_background_hold scene=%d reason=%s (frame-hold scene: background movie stopped)",
+               app->current_scene_id, why);
+    }
+    if (app->nav_player == nullptr) {
+        BinkPlayerInfo info{};
+        if (bink_player_open(app->scene_video_path.c_str(), &app->nav_player, &info, error,
+                             sizeof(error)) != BINK_PLAYER_OK) {
+            app->nav_player = nullptr;
+            record(app, "nav_frame_error stage=open detail=%s", error);
+            return false;
+        }
+    }
+    const uint64_t now_ns = monotonic_now_ns();
+    BinkPlayerFrame frame{};
+    if (bink_player_seek(app->nav_player, static_cast<uint32_t>(selector) + 1u, now_ns, error,
+                         sizeof(error)) != BINK_PLAYER_OK ||
+        bink_player_advance(app->nav_player, now_ns, &frame, error, sizeof(error)) != BINK_PLAYER_OK ||
+        frame.current_frame != selector || !copy_player_frame(app, frame)) {
+        record(app, "nav_frame_error stage=seek selector=%d detail=%s", selector, error);
+        return false;
+    }
+    app->nav_shown_frame = selector;
+    uint64_t fnv = 1469598103934665603ull;   /* FNV-1a over the decoded RGBA, to tell frames apart */
+    for (const uint8_t byte : app->scene_frame.rgba) fnv = (fnv ^ byte) * 1099511628211ull;
+    record(app, "nav_frame_shown selector=%d frames=%d reason=%s rgba_fnv1a=%016llx", selector,
+           app->scene_native_frames, why, (unsigned long long)fnv);
+    return true;
+}
+
 /* Rebuild the navigation globals the scene setup 0x4381f4 derives. Called at
  * every scene entry (initial scene and each transition) after the entry
  * selector/scroll words are known. Unbound producers are named in the log. */
@@ -3145,6 +3210,7 @@ static void nav_begin_scene(NativeApp *app)
     }
     app->nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
     app->nav_scene_ready = true;
+    (void)nav_show_frame(app, g.selector, "scene-entry");
     record(app, "nav_scene_begin scene=%d selector=%d%s range=%d..%d mode=%d step=%d arrows=%d,%d "
            "delays=%d,%d scroll=%d/%d image_bottom=%d bands=%d,%d,%d,%d auto_move=%d "
            "cascade_members_idle=%d keyboard_producer=unbound",
@@ -3307,6 +3373,9 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                    step.selector_before, app->nav.selector, app->nav.scroll, app->nav.scroll_end,
                    app->nav.gate_deadline, step.view_dirty, app->session_tick_sample,
                    (unsigned long long)app->nav_steps);
+            /* 0x43ce92: the view is pointed at the new selector's frame in the same tick. */
+            if (step.selector_changed != 0u)
+                (void)nav_show_frame(app, app->nav.selector, "navigation");
         }
     }
     if (edge_before != 0u || status != SESSION_INPUT_OK) {
@@ -3656,6 +3725,9 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
     app->scene = nullptr;
     if (app->video) bink_player_close(app->video);
     app->video = nullptr;
+    if (app->nav_player) bink_player_close(app->nav_player);
+    app->nav_player = nullptr;
+    app->nav_shown_frame = -1;
     app->has_scene_frame = false;
     app->scene = scene_resource_open_memory(resource.bytes, resource.length, error, sizeof(error));
     game_resource_bytes_destroy(&resource);
@@ -3725,6 +3797,7 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
     app->video = player.release();
     /* RT-17: the BIK branch of 0x4163b4 (0x416870..0x4169b4) derives the frame
      * range [0, frames-1] and the image extent from the movie header. */
+    app->scene_video_path = path;
     app->scene_native_frames = static_cast<int32_t>(info.total_frames);
     app->scene_native_width = static_cast<int32_t>(info.width);
     app->scene_native_height = static_cast<int32_t>(info.height);
@@ -5543,6 +5616,14 @@ int main(int argc, char **argv)
                                (int)static_cast<int16_t>(inv.selector_words_583a2b.values[0]),
                                (int)*inv.selected_item_candidate, present,
                                (unsigned long long)app.inventory_view_rebuilds);
+                    }
+                    {
+                        /* RT-17: what the window would show at the end of the run (the
+                         * composed 640x480 framebuffer), so a frame change is visible in logs. */
+                        uint64_t fnv = 1469598103934665603ull;
+                        for (const uint8_t byte : app.framebuffer) fnv = (fnv ^ byte) * 1099511628211ull;
+                        record(&app, "live_session_framebuffer bytes=%zu fnv1a=%016llx", app.framebuffer.size(),
+                               (unsigned long long)fnv);
                     }
                     record(&app, "live_session_end scene=%d ticks=%llu status=%d provider=%s "
                            "stage=%d action=%zu type=0x%02x detail=%d applied=%zu",

@@ -705,6 +705,89 @@ class NativeCaptionTransferTests(unittest.TestCase):
             'scene_session_blocked stage=3 provider=action-kernel action=2 type=0x0b detail=1',
             'session_frozen scene=6403 generation=5 row=2 type=0x0b '))
 
+    # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
+    def navigated(self, *extra_args):
+        return self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                             '--live-nav', '6401:left', *extra_args)
+
+    def test_rt17_edge_hover_moves_the_selector_and_row_6_becomes_hot_without_test_hooks(self):
+        # No --test-selector: the selector 1 -> 2 comes from the recovered tick block
+        # (0x43c251 state 1) driven by the cascade's left-band zone (0x4f1a6e).
+        contents = self.navigated()
+        self.assert_in_order(contents, (
+            'nav_scene_begin scene=6401 selector=1 range=0..19 mode=1 step=1 arrows=15,0 '
+            'delays=400,66 scroll=0/374 image_bottom=374 bands=39,44,600,350 auto_move=1 '
+            'cascade_members_idle=1 keyboard_producer=unbound',
+            'live_session_nav_hover scene=6401 side=left ',
+            'nav_zone state=1 claimed=1 ',
+            'nav_step state=1 selector=1->2 ',
+            'nav_frame_shown selector=2 frames=20 reason=navigation',
+            'live_session_nav_moved scene=6401 selector=2 remaining=0',
+            'scene_a17_frame_hit row=6 request=1 rect=4,74,110,310 selector=2 ',
+            'live_session_hover row=6 rect=4,74,110,310',
+            'pointer_candidate candidate=6 ',
+            'scene_a17_finish row=6 completion_byte=1 (0x42b221)',
+            'scene_transition_applied source=6401 target=6402',
+            'live_session_end scene=6402 ticks=3000 status=0 provider=none '))
+        self.assertNotIn('test_selector_applied', contents)
+        self.assertEqual(contents.count('nav_step '), 1)
+        self.assertNotIn('scene_session_blocked', contents)
+
+    def test_rt17_a_zone_hit_returns_before_the_generic_rows_and_leaves_no_candidate(self):
+        contents = self.navigated()
+        zone = contents.index('nav_zone state=1 claimed=1 ')
+        line = contents[zone:contents.index('\n', zone)]
+        self.assertIn('candidate=-1', line)
+        self.assertIn('cascade returned at 0x4f1e78 before the generic loop', line)
+        self.assertIn('cursor_index=14', line)          # left arrow, 0x4f1dd9: [0x5bb2d0] != 0x4d
+        self.assertIn('table_offset=0x1c0', line)       # 0x5b160c + 14*32
+
+    def test_rt17_the_step_waits_for_the_rate_limit_and_the_pointer_must_stay_in_the_zone(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:left:3')
+        steps = [l for l in contents.splitlines() if l.startswith('nav_step ')]
+        self.assertEqual(len(steps), 3)
+        # 0x43c8d6: deadline = tick + [0x5bb2ce] (400 ms); the next step needs tick > deadline.
+        ticks = [int(l.split(' tick=')[1].split()[0]) for l in steps]
+        self.assertTrue(all(b - a > 400 for a, b in zip(ticks, ticks[1:])), ticks)
+        self.assertIn('selector=1->2', steps[0])
+        self.assertIn('selector=3->4', steps[2])
+        # the last step moved the pointer out of the band: no further step follows
+        self.assertEqual(contents.count('nav_step '), 3)
+
+    def test_rt17_right_band_steps_down_and_wraps_at_the_first_frame(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-nav', '6401:right:2')
+        self.assert_in_order(contents, (
+            'nav_zone state=2 claimed=1 ', 'nav_step state=2 selector=1->0 ',
+            'nav_step state=2 selector=0->19 '))                  # mode 1 wraps to the last frame
+
+    def test_rt17_the_tutorial_chain_through_navigation_reaches_the_s6403_stop(self):
+        contents = self.tutorial('--live-scene-row', '6400:17', '--live-scene-row', '6401:6',
+                                 '--live-nav', '6401:left', '--live-scene-row', '6402:3')
+        self.assert_in_order(contents, (
+            'scene_transition_applied source=0 target=6400',
+            'scene_transition_applied source=6400 target=6401',
+            'nav_step state=1 selector=1->2 ',
+            'scene_transition_applied source=6401 target=6402',
+            'scene_transition_applied source=6402 target=6403',
+            'scene_session_blocked stage=3 provider=action-kernel action=2 type=0x0b detail=1'))
+        self.assertNotIn('test_selector_applied', contents)
+
+    def test_rt17_one_frame_scenes_have_no_arrow_zones(self):
+        # S0, S5900 and S4700 are single-frame movies: [0x5bb4e7] == 1 zeroes the horizontal arrows
+        # (0x439f05) and the view equals the image, which zeroes the vertical ones (0x43a4f3).
+        contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
+        self.assertIn('nav_scene_begin scene=0 selector=0(unbound: initial scene) range=0..0 '
+                      'mode=1 step=1 arrows=0,0 ', contents)
+        self.assertNotIn('nav_zone', contents)
+        self.assertNotIn('nav_step', contents)
+
+    def test_rt17_a_selector_outside_the_movie_is_refused_not_displayed(self):
+        # The original indexes its frame surfaces with the selector; native refuses to show a
+        # frame outside [0, frames-1] (an unsafe original read) and keeps the shown frame.
+        contents = self.tutorial('--live-scene-row', '6400:17', '--test-selector', '6401:99')
+        self.assertIn('test_selector_applied scene=6401 frame=99 ', contents)
+        self.assertIn('nav_frame_unavailable selector=99 frames=20 reason=scene-entry', contents)
+
     def test_rt14_the_original_scripted_s5900_run_is_unaffected(self):
         contents = self.run_live('--live-ticks', '3000', '--rand-seed', '1')
         self.assertNotIn('scene_a36_', contents)

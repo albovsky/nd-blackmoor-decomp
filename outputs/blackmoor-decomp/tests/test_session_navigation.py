@@ -390,5 +390,25 @@ class SessionNavigationTests(unittest.TestCase):
         self.assertEqual(self.api.session_navigation_step(None, None, 0, 0, None), 1)
 
 
+class OriginalOracleSmokeTest(unittest.TestCase):
+    """The quick original-x86 comparison (zones, step sequences, cascade pipeline)."""
+
+    def test_quick_oracle_against_the_original_executable(self):
+        original = PROJECT.parents[1] / 'work/original/GAME.EXE'
+        if not original.is_file():
+            self.skipTest('original executable unavailable')
+        try:
+            import unicorn  # noqa: F401
+        except ImportError:
+            self.skipTest('Unicorn unavailable; use work/tools/oracle-python/bin/python')
+        build_library()
+        import sys
+        result = subprocess.run([sys.executable, str(PROJECT / 'tests/session_navigation_original_oracle.py'),
+                                 '--quick', '--no-report'], capture_output=True, text=True, timeout=600,
+                                cwd=str(PROJECT / 'tests'))
+        self.assertEqual(result.returncode, 0, result.stderr[-2000:])
+        self.assertIn('"mismatches": 0', result.stdout)
+
+
 if __name__ == '__main__':
     unittest.main()

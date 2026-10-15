@@ -544,6 +544,8 @@ def compare_cascade(original, api, case, counts, label):
         require(out.claimed_by_zone == 0, f'{label}: native claimed, original did not')
     if exp['path'] == 'cascade' and exp['state'] == 0 and exp['candidate'] == -1 and exp['generic']:
         require(exp['variant'] == cursor.variant == 0, f'{label}: state-0 miss variant differs')
+        require(exp['index'] == cursor.index, f'{label}: state-0 miss cursor index differs '
+                f'original {exp["index"]} native {cursor.index}')
         counts.bump('cascade_generic_miss')
     if exp['path'] == 'cascade' and exp['candidate'] >= 0:
         counts.bump('cascade_overlay_hit' if (ov is not None and priority and exp['candidate'] == ov['row']

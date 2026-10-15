@@ -354,8 +354,8 @@ int session_navigation_step(NavGlobals *globals, const NavKeys *keys, uint32_t t
 
 /* Runtime row types whose handlers enable a pointer-cascade member that runs
  * before the zone tests (the table is derived from 0x4f0059 and the dispatcher
- * 0x427a50 by work/analysis/slices/RT-17.cascade-members.py): the 41 hit-test
- * methods called at 0x4f097e..0x4f102c and 0x4f107c (each object is only
+ * 0x427a50 by work/analysis/slices/RT-17.cascade-members.py): the 43 hit-test
+ * methods called at 0x4f097e..0x4f102c (42) and 0x4f107c (each object is only
  * touched by its own dispatcher arm) plus the six row guards 0x5b5158,
  * 0x5b61af, 0x5b615e, 0x5b51f6, 0x5b51c6, 0x5b51ab, which only the types
  * 0x72..0x77 set. The overlay manager (type 0x36) is not listed: its hit test
@@ -421,6 +421,11 @@ int session_navigation_scan(SessionInputState *input, const SessionInputContext 
     int status;
     if (input == NULL || context == NULL || nav == NULL || bands == NULL || pointer == NULL ||
         cursor == NULL || out == NULL)
+        return SESSION_NAVIGATION_INVALID_ARGUMENT;
+    /* The same bounds session_input enforces, applied up front so a UI-mode or
+     * producer-disabled tick (which reads no row) rejects them identically. */
+    if (row_count > 240 || priority_count > 4096 || (row_count != 0 && rows == NULL) ||
+        (priority_count != 0 && priority == NULL))
         return SESSION_NAVIGATION_INVALID_ARGUMENT;
     snapshot = *context;
     memset(&result, 0, sizeof(result));
