@@ -17,7 +17,7 @@ Goal of the current run: a playable native ARM64 build. The Mac is unlocked, so 
 | RT-9 Bink playback for 0x35: frames, events, embedded audio, completion (Codex) | Reviewed (no P1), findings fixed, merged (PR 20) |
 | RT-10 edge/arrow cascade 0x4f0059; RT-11 sound persistence across scene changes (Codex) | In flight on `codex/rt-10-edge-cascade`, `codex/rt-11-sound-persistence`; not reviewed or merged |
 | A-35.1 / A-38.1 / A-3F.1 / A-97.1 / A-A1.1 opaque decoders | Reviewed, merged; 0x35 and 0x97 runtimes now bound (RT-7/8/9), the rest unimplemented |
-| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 / A-1B.1 / A-7D.1 / A-33.1 / A-F6.1 / A-EA.1 / A-F5.1 / A-D3.1 / A-2D.1 / A-E0.1 / A-EE.1 / A-DA.1 / A-77.1 / A-1C.1 / A-EB.1 / A-D0.1 opaque decoders (Codex, then Claude Sonnet) | Reviewed, merged (typed 19,598 / opaque 14) |
+| A-3E.1 / A-6E.1 / A-79.1 / A-67.1 / A-6F.1 / A-43.1 / A-45.1 / A-44.1 / A-36.1 / A-94.1 / A-D1.1 / A-2E.1 / A-0C.1 / A-4E.1 / A-17.1 / A-68.1 / A-83.1 / A-4B.1 / A-69.1 / A-65.1 / A-16.1 / A-1B.1 / A-7D.1 / A-33.1 / A-F6.1 / A-EA.1 / A-F5.1 / A-D3.1 / A-2D.1 / A-E0.1 / A-EE.1 / A-DA.1 / A-77.1 / A-1C.1 / A-EB.1 / A-D0.1 / A-E4.1 / A-80.1 / A-70.1 opaque decoders (Codex, then Claude Sonnet) | Reviewed, merged (typed 19,604 / opaque 8) |
 | Track M (M02/M03 whole-file match) | Other threads; 398 exact bytes at last report |
 | Whole game / whole-file rebuild | Incomplete |
 
@@ -149,4 +149,10 @@ Merged: raw 0x1c (2 records, fixed 105 bytes: 0x1a DWORDs + 1 BYTE, arm 0x40bc1a
 Process note: this batch's implementers were told to use Edit/Write only (no `sed -i`, `chmod`, `tee`, `cd ... &&` chains or redirection into `work/`) and none stalled; the build and sanitizer scripts are committed with the executable bit via `git update-index --chmod=+x`.
 Unverified: the same set as earlier batches (allocation-failure cleanup, the nonzero diagnostics word 0x63a4cd, action-slot reuse, dependency construction, runtime handlers: 0x1c 0x4cb586 via arm 0x427cc1; 0xeb 0x480e02 via arm 0x42a794; 0xd0 0x48d914 via arm 0x42a0ea; retail reachability of resources 1546, 2169, 1600, 2305, 2146 and 2147).
 Remaining opaque: 14 records (1 in 0xe0 plus 13 in 9 types: 0xe4 2, 0x80 2, 0x70 2, 0x20 2; singles 0xaa, 0xd6, 0x76, 0x9a, 0x6d).
+
+## Handoff: opaque scene actions, fourteenth batch (2026-10-15 PDT)
+
+Merged: raw 0xe4 (2 records, fixed 2,034 bytes, arm 0x4105f0, ctor 0x475964), 0x80 (2, fixed 2 bytes: one WORD, inline arm [0x40e73f,0x40e805)) and 0x70 (2, fixed 1 byte, inline arm [0x40e3d9,0x40e49e)) body boundaries and isolated decoders (A-E4.1, A-80.1, A-70.1; Claude Sonnet (high), one independent reviewer over the batch). Typed 19,604 / opaque 8. The shared tail oracle pins 40 decoders. None examines a body byte, so the registrations are plain fixed cases without `memchr`. The 0x80 oracle compares all 65,536 word values.
+Unverified: the same set as earlier batches (allocation-failure cleanup, the nonzero diagnostics word 0x63a4cd, action-slot reuse, dependency construction, runtime handlers: 0xe4 0x476a25 via arm 0x42a3e9; 0x80 0x4e386e via arm 0x42960b (static reading: signed word compared with 9999, stored to 0x5bb57b/0x5bb57f); 0x70 arm 0x4291f8 (no consumer of the 1-byte cell found); retail reachability of the corpus resources 2295, 2296, 2760, 2762, 2808 and 2853).
+Remaining opaque: 8 records (1 in 0xe0, kept opaque on purpose, plus 0x20 2 and singles 0xaa, 0xd6, 0x76, 0x9a, 0x6d).
 

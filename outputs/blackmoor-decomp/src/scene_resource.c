@@ -133,6 +133,9 @@ static int known_body_length(uint8_t type, const uint8_t *body, size_t length,
     case 0x1c: fixed_length = 105u; break; /* 0x4caff5 copies 105 bytes (A-1C.1) */
     case 0xeb: fixed_length = 2612u; break; /* 0x47e477 copies 2,612 bytes (A-EB.1) */
     case 0xd0: fixed_length = 1979u; break; /* 0x48d12d copies 1,979 bytes (A-D0.1) */
+    case 0xe4: fixed_length = 2034u; break; /* 0x475964 copies 2,034 bytes (A-E4.1) */
+    case 0x80: fixed_length = 2u; break; /* inline arm 0x40e73f copies one WORD (A-80.1) */
+    case 0x70: fixed_length = 1u; break; /* inline arm 0x40e3d9 copies one byte (A-70.1) */
     case 0xe0:
         /* 0x470e8e (flag 1) copies 294 bytes (A-E0.1). Scene S2705 (resource
          * 1737) has a 292-byte body, two short of the copy: the original's
