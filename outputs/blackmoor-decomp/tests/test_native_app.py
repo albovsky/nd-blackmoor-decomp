@@ -860,16 +860,53 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('live_session_inventory count=1 held=9 presence_nonzero=1 '
                       'view_rebuilds_requested=1', contents)
 
-    def test_rt19_the_next_stop_is_raw_0xa1_in_s6408(self):
-        # S6406 and S6407 pass; S6408 row 4 is raw 0xa1 "Sound" (the 0x9f dispatcher arm
-        # 0x4297be, loader arm 0x40f069): the next missing family.
+    # ---- RT-21: raw 0xa1 Sound (loader arm 0x40f069, dispatcher arm 0x4297be -> 0x432d1a) -----
+    def test_rt21_s6408_row_4_raw_0xa1_no_longer_blocks_and_stores_event_1000(self):
+        # S6408 row 4 is raw 0xa1 NSHT14 (channel 13, scene 6409, event 1000 := 1). Its phase 0
+        # plays the narration and stores the event; the scene-change row 3 (dependency: event
+        # 1000 == 1) then fires on the next pass, so the whole sound row is what unlocks S6409.
         contents = self.tutorial(*self.CHAIN_TO_6453)
         self.assert_in_order(contents, (
             'scene_transition_applied source=6453 target=6406',
             'scene_transition_applied source=6406 target=6407',
+            'scene_aa1_construct row=4 stem=NSHT14 channel=13 control-mode=0 scene=6409 '
+            'event=1000 value=1 key_missing=0 runtime=0xa1 (loader 0x40f069)',
             'scene_transition_applied source=6407 target=6408',
-            'scene_session_blocked stage=3 provider=action-kernel action=4 type=0xa1 detail=1 '))
-        self.assertEqual(contents.count('scene_session_blocked'), 1)
+            'live_audio loaded stem=NSHT14 channel=13 ',
+            'scene_aa1_event_write row=4 event=1000 value=1 previous=0 ',
+            'scene_aa1_visit row=4 phase=0 status=0 phase_after=1 disposition=0 ',
+            'scene_session_transition_pending source=6408 target=6409 ',
+            'scene_transition_applied source=6408 target=6409'))
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertNotIn('scene_aa1_blocker', contents)
+        self.assertNotIn('type=0xa1 detail', contents)
+
+    def test_rt21_the_chain_continues_through_s6409_to_s6410_and_the_last_sound_completes(self):
+        contents = self.tutorial(*self.CHAIN_TO_6453)
+        self.assert_in_order(contents, (
+            'scene_aa1_construct row=4 stem=NSHT15 channel=13 control-mode=0 scene=6410 ',
+            'scene_transition_applied source=6408 target=6409',
+            'scene_aa1_event_write row=4 event=1000 value=1 previous=0 ',
+            # S6410 row 1: NSHT16, event -1, scene 9999, control 1: waits for the clip (phase 1)
+            # and completes through 0x42ba3a (disposition 1) without a scene change of its own.
+            'scene_aa1_construct row=1 stem=NSHT16 channel=13 control-mode=0 scene=9999 event=-1 ',
+            'scene_transition_applied source=6409 target=6410',
+            'scene_aa1_visit row=1 phase=0 status=0 phase_after=1 disposition=0 ',
+            'scene_aa1_visit row=1 phase=1 status=0 phase_after=2 disposition=0 ',
+            'scene_aa1_visit row=1 phase=2 status=0 phase_after=0 disposition=1 ',
+            'live_session_end scene=6410 ticks='))
+        self.assertEqual(contents.count('scene_aa1_event_write'), 2)    # rows with event -1 store nothing
+        self.assertNotIn('scene_aa1_transition', contents)             # the gated scene-change rows win
+        self.assertNotIn('scene_session_blocked', contents)
+        self.assertIn(' status=0 provider=none ', contents[contents.index('live_session_end'):])
+
+    def test_rt21_s6410_then_waits_for_item_23_to_be_selected_which_needs_the_inventory_ui(self):
+        # S6410 row 2 (raw 0x0a -> 6411) needs dependency opcode 11 (item 23 selected) next to the
+        # finished channel-13 sound. The app has no inventory view (RT-19 follow-up), so the session
+        # runs on without a stop and without a further transition: not a missing-family stop.
+        contents = self.tutorial(*self.CHAIN_TO_6453)
+        self.assertNotIn('target=6411', contents)
+        self.assertIn('live_session_inventory count=1 held=-1 ', contents)
 
     # ---- RT-17: view navigation (edge/arrow zones, tick step) -------------------------
     def navigated(self, *extra_args):

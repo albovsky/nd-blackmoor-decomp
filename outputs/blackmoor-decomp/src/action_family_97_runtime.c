@@ -176,6 +176,9 @@ int action_sound_object_step(const uint8_t *payload, size_t length, const A97Inp
                              ActionSoundBackend *host, const A97EventTable *events,
                              ActionSoundObjectResult *out, const char **why)
 {
+    /* Unlike the RT-8 entry point, every path leaves *out defined (all zero before a visit
+     * starts), so a caller never reads stale event fields after a rejection. */
+    if (out != NULL) memset(out, 0, sizeof(*out));
     return visit(payload, length, in, host, events, 1, out, why);
 }
 

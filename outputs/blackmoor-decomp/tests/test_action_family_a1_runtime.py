@@ -178,7 +178,9 @@ class ConstructTests(unittest.TestCase):
 
     def test_malformed_bodies_are_rejected_without_writes(self):
         for raw in (b'', bytes(50), a1_body()[:83], a1_body(name=b'x' * 33),
-                    a1_body(text=b'abc')[:-1]):
+                    a1_body(text=b'abc')[:-1], a1_body(key=b'k' * 33),
+                    a1_body(tails=(bytes(16),)),        # the typed body excludes dependency records
+                    a1_body(text=b'abc') + b'x'):
             out = ObjectResult()
             c.memset(c.byref(out), 0x5a, c.sizeof(out))
             before = bytes(out)
@@ -357,12 +359,17 @@ class RowInfo(c.Structure):
 class Fixture:
     def __init__(self, test, lib, actions, *, lookup=None, captions=1, config_status=0,
                  transition=True, transition_result=None, events=True, event_count=16,
-                 observe=True, recorder=None):
+                 observe=True, recorder=None, shared=False):
         self.lib = lib
         self.scene, self.owner = session.open_scene(lib, actions)
         self.flags, self.world, self.conditions = session.make_world()
         self.recorder, self.transitions, self.observed = recorder or rt97.Recorder(), [], []
         self.ev = Events(event_count)
+        if shared:
+            # The app's wiring: the event table the sound row stores into is the vector the
+            # dependency leaves read (0x585801 is one table).
+            self.ev.flags = self.flags
+            self.ev.table = EventTable(c.cast(self.flags, c.POINTER(c.c_int32)), len(self.flags))
         self.config_calls = 0
         self.session = c.c_void_p()
 
@@ -456,6 +463,7 @@ class BindingTests(unittest.TestCase):
         f.recorder.still_playing = 1
         self.assertEqual(f.tick()[0], 0)
         self.assertEqual(f.state(), (0, 1))
+        self.assertEqual(f.config_calls, 1)       # only phase 0 reads the caption flag (0x432db1)
         self.assertEqual((f.ev.flags[3], f.observed), (1, [(0, 3, 1, 0)]))
         self.assertEqual(f.recorder.events, [('caption', b'caption<e>'), ('load', 13), ('play', 13)])
         self.assertEqual(f.tick()[0], 0)                          # still playing
@@ -469,6 +477,7 @@ class BindingTests(unittest.TestCase):
         self.assertEqual(f.transitions, [(6409, [0, 0, 1], [0, 0, 0])])
         self.assertEqual(f.recorder.unloads, [13])
         self.assertEqual(f.observed, [(0, 3, 1, 0)])               # exactly one store
+        self.assertEqual(f.config_calls, 1)                        # phases 1 and 2 never read it
 
     def test_autotext_is_resolved_at_scene_construction_not_per_visit(self):
         lookup = self.lookup()
@@ -552,6 +561,18 @@ class BindingTests(unittest.TestCase):
                 self.assertEqual(f.state(), (0, 0))
                 self.assertEqual((f.recorder.events, f.observed), ([], []))
                 self.assertIn(b'event', self.lib.session_aa1_failure(f.binding))
+
+    def test_the_stored_event_unlocks_a_gated_row_in_the_same_pass_when_the_table_is_shared(self):
+        # S6408's shape: one row stores event N, a later row is gated on it. Row order is
+        # ACT order inside one pass (0x427a50 loops the rows), so the store is seen at once.
+        rows = [session.action(0xa1, 1, a1_body(scene=9999, event=3, event_value=1)),
+                session.action(0xa1, 1, a1_body(scene=9999, event=-1), (session.flag_gate(3),))]
+        for shared, second in ((True, (0, 1)), (False, (0, 0))):
+            with self.subTest(shared=shared):
+                f = Fixture(self, self.lib, rows, lookup=self.lookup(), shared=shared)
+                self.assertEqual(f.tick()[0], 0)
+                self.assertEqual((f.state(0), f.state(1)), ((0, 1), second))
+                self.assertEqual(f.flags[3], 1 if shared else 0)
 
     def test_event_less_row_does_not_need_the_event_provider(self):
         f = self.fixture(events=False, raw=a1_body(scene=9999, event=-1))
