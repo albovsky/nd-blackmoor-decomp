@@ -179,6 +179,23 @@ int session_exit_render_pass(SessionExit *exit_state,
  * DAT_005c39ff is zero, otherwise 3 (0x43815c..0x43818a). */
 int session_exit_begin_load(SessionExit *exit_state);
 
+/* RT-11: 0x438173 selects INTRO only for a zero transition word. No general
+ * sound reset occurs in LoadNewSceneData/ClearSceneData. In INTRO,
+ * 0x4381b5 -> 0x4fb018 unloads the MSND channel (BOOT MSND+0x21, global
+ * 0x5b451f) first, then 0..13. Other channels survive, regardless of volume
+ * category or playback flags. The duplicate is intentional when MSND < 14.
+ * Call after begin_load; apply only in INTRO, after the successor is loaded.
+ * Dialogue-object cleanup (0x4730a6 -> 0x4e1d34) and scene-header playback
+ * (0x4fc341) are separate paths, not represented by this plan. */
+typedef struct session_exit_audio_plan {
+    uint16_t channels[15];
+    size_t count;
+} SessionExitAudioPlan;
+
+int session_exit_plan_audio(const SessionExit *exit_state,
+                             uint16_t menu_sound_channel,
+                             SessionExitAudioPlan *plan);
+
 /* End of the state-2 case (0x4381c4): state := 3. */
 int session_exit_finish_intro(SessionExit *exit_state);
 

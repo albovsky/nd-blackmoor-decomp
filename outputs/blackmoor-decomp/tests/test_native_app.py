@@ -113,6 +113,24 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return log.read_text()
 
+    def test_continuation_keeps_the_traffic_channel_at_scene_load(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'audio-persistence.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--live-ticks', '200',
+                                 '--live-tick-ms', '17', '--rand-seed', '1',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=180)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        contents = log.read_text()
+        self.assertIn('scene_transition_applied source=5900 target=5907', contents)
+        for evidence in (
+                'scene_audio_channel stage=after-load source=5900 target=5907 channel=9 loaded=1',
+                'scene_audio_reset scene=5900 state=2 count=15 menu_channel=',
+                'scene_audio_policy source=5900 target=5907 continuation=1 load_reset=none'):
+            self.assertTrue(evidence in contents, evidence)
+
     def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_presents_movie(self):
         # Stand-in for the RT-2 pointer path: one synthetic accepted event.
         directory = tempfile.TemporaryDirectory()

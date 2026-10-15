@@ -559,6 +559,9 @@ ActionSoundBackendStatus live_audio_play_sound(void *context, uint16_t index)
     channel->started = 1u;
     channel->play_mark = audio->offline_frames_rendered;
     audio->host_played = 1u;
+    logf_line(audio, "live_audio started channel=%u generation=%llu mode=%u category=%u",
+              index, (unsigned long long)channel->generation, channel->mode,
+              channel->volume_category);
     return ACTION_SOUND_BACKEND_OK;
 }
 
@@ -649,6 +652,24 @@ int live_audio_unload_all(LiveAudio *audio)
     for (index = 0u; index < LIVE_AUDIO_CHANNEL_COUNT; ++index)
         if (audio->channels[index].loaded && release_channel(audio, index) != MAC_AUDIO_OK)
             result = LIVE_AUDIO_ERR_HOST;
+    return result;
+}
+
+int live_audio_unload_channels(LiveAudio *audio, const uint16_t *channels,
+                                size_t count)
+{
+    int result = LIVE_AUDIO_OK;
+    if (audio == NULL || (count != 0u && channels == NULL))
+        return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    for (size_t i = 0; i < count; ++i)
+        if (channels[i] >= LIVE_AUDIO_CHANNEL_COUNT) return LIVE_AUDIO_ERR_ARGUMENT;
+    for (size_t i = 0; i < count; ++i) {
+        const uint16_t channel = channels[i];
+        const uint8_t loaded = audio->channels[channel].loaded;
+        if (release_channel(audio, channel) != MAC_AUDIO_OK) result = LIVE_AUDIO_ERR_HOST;
+        logf_line(audio, "live_audio scene_unload channel=%u loaded_before=%u", channel, loaded);
+    }
     return result;
 }
 

@@ -174,9 +174,17 @@ ActionSoundBackendStatus live_audio_is_playing(void *context, uint16_t channel,
 ActionSoundBackendStatus live_audio_unload_sound(void *context,
                                                  uint16_t channel);
 
-/* Unloads every loaded channel (scene clear). The original's treatment of
- * sounds that span scene changes is unverified; callers state that choice. */
+/* Unloads every loaded channel. For host teardown, not ordinary scene loads:
+ * RT-11 proves that continuation loads preserve general channels and fresh
+ * entries reset only the ordered SessionExitAudioPlan in state 2. */
 int live_audio_unload_all(LiveAudio *audio);
+
+/* Apply an ordered recovered reset plan to game channels only; Bink's bus
+ * is owned by its movie controller. Empty plans preserve playback and every
+ * channel field. Validate the entire list before mutation; duplicates are
+ * allowed (the original MSND channel can also be in 0..13). */
+int live_audio_unload_channels(LiveAudio *audio, const uint16_t *channels,
+                                size_t count);
 
 /* RT-9 minimal PCM entry to the SAME mixer: Bink's independent soundtrack
  * bus does not consume/replace a recovered scene sound channel. Host slot

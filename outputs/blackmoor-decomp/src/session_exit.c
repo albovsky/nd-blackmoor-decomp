@@ -293,6 +293,24 @@ int session_exit_begin_load(SessionExit *exit_state)
     return SESSION_EXIT_OK;
 }
 
+int session_exit_plan_audio(const SessionExit *exit_state,
+                             uint16_t menu_sound_channel,
+                             SessionExitAudioPlan *plan)
+{
+    if (plan != NULL) memset(plan, 0, sizeof(*plan));
+    if (exit_state == NULL || plan == NULL || menu_sound_channel >= 32u)
+        return SESSION_EXIT_ERR_ARGUMENT;
+    if (exit_state->g.game_state != SESSION_EXIT_STATE_INTRO &&
+        exit_state->g.game_state != SESSION_EXIT_STATE_RUN)
+        return SESSION_EXIT_ERR_UNSUPPORTED;
+    if (exit_state->g.game_state == SESSION_EXIT_STATE_INTRO) {
+        plan->channels[plan->count++] = menu_sound_channel; /* 0x4fc05d */
+        for (uint16_t channel = 0; channel < 14u; ++channel) /* 0x4fb041..6b */
+            plan->channels[plan->count++] = channel;
+    }
+    return SESSION_EXIT_OK;
+}
+
 int session_exit_finish_intro(SessionExit *exit_state)
 {
     if (exit_state == NULL) {
