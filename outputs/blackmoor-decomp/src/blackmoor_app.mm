@@ -3939,20 +3939,20 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[10].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[10].callback = session_a0b_handler;
     bindings[10].context = app->a0b;
+    bindings[11].type = SESSION_A83_TYPE;
+    bindings[11].provider = SCENE_SESSION_PROVIDER_A83;
+    bindings[11].callback = native_a83_handler;
+    bindings[11].context = app;
     /* RT-18: raw 0x37 rows run through the same COverlay handler (runtime type 0x36). */
-    bindings[11].type = SESSION_A37_TYPE;
-    bindings[11].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[11].callback = session_a36_handler;
-    bindings[11].context = app->a36;
-    /* RT-19: raw 0x78 add inventory item (dispatcher arm 0x42944b, gate mode 0). */
-    bindings[12].type = SESSION_A78_TYPE;
+    bindings[12].type = SESSION_A37_TYPE;
     bindings[12].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[12].callback = session_a78_handler;
-    bindings[12].context = app->a78;
-    bindings[13].type = SESSION_A83_TYPE;
-    bindings[13].provider = SCENE_SESSION_PROVIDER_A83;
-    bindings[13].callback = native_a83_handler;
-    bindings[13].context = app;
+    bindings[12].callback = session_a36_handler;
+    bindings[12].context = app->a36;
+    /* RT-19: raw 0x78 add inventory item (dispatcher arm 0x42944b, gate mode 0). */
+    bindings[13].type = SESSION_A78_TYPE;
+    bindings[13].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[13].callback = session_a78_handler;
+    bindings[13].context = app->a78;
     config.action_binding_count = 14u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);

@@ -1,0 +1,13 @@
+{
+ "description": "Synthetic partial range.",
+ "source": "src/fixture_core.c",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "functions": [
+  {
+   "rva": 4864,
+   "size": 7,
+   "symbol": "_FUN_00401300",
+   "object": "build/fixture.obj"
+  }
+ ]
+}

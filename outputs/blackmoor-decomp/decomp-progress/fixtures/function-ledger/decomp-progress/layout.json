@@ -1,0 +1,45 @@
+{
+ "schema": "blackmoor-image-layout/1",
+ "note": "Synthetic fixture layout for the function-ledger tests; not the real image.",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "file_size": 36864,
+ "image_base": 4194304,
+ "sections": [
+  {
+   "name": "headers",
+   "rva": 0,
+   "raw_off": 0,
+   "raw_size": 4096,
+   "virt_size": 4096
+  },
+  {
+   "name": ".text",
+   "rva": 4096,
+   "raw_off": 4096,
+   "raw_size": 32768,
+   "virt_size": 32768
+  }
+ ],
+ "code_regions": [
+  {
+   "id": "game",
+   "label": "Game code",
+   "start_va": 4198400,
+   "end_va": 4210688
+  },
+  {
+   "id": "vorbis",
+   "label": "libvorbis and libogg",
+   "start_va": 4210688,
+   "end_va": 4218880
+  },
+  {
+   "id": "crt_mfc",
+   "label": "Static CRT and MFC",
+   "start_va": 4218880,
+   "end_va": 4231168
+  }
+ ],
+ "data_pieces": [],
+ "data_groups": []
+}
