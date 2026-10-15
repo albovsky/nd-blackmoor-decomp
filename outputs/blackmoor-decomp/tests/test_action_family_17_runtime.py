@@ -370,9 +370,12 @@ StoreFn = c.CFUNCTYPE(None, c.c_void_p, c.POINTER(World))
 TransitionFn = c.CFUNCTYPE(c.c_int, c.c_void_p, c.POINTER(session.SceneTransitionRequest))
 
 
+ObserveRowFn = c.CFUNCTYPE(None, c.c_void_p, c.c_size_t, c.c_int, c.c_int32)
+
+
 class BindHost(c.Structure):
     _fields_ = [('context', c.c_void_p), ('load_world', LoadFn), ('store_world', StoreFn),
-                ('transition', TransitionFn), ('observe', ObserveFn)]
+                ('transition', TransitionFn), ('observe', ObserveRowFn)]
 
 
 class Hotspot(c.Structure):
@@ -414,9 +417,9 @@ class Rig17:
                 return rig.lib.scene_session_request_transition(rig.session, request)
             return transition_status
 
-        @ObserveFn
-        def observe(_ctx, effect, value):
-            rig.effects.append((EFFECT_NAMES[effect], value))
+        @ObserveRowFn
+        def observe(_ctx, row, effect, value):
+            rig.effects.append((row, EFFECT_NAMES[effect], value))
 
         self.keep = (load_world, store_world, transition_fn, observe)
         self.host = BindHost(None, load_world if load else LoadFn(),

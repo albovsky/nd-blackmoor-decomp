@@ -10,6 +10,7 @@ struct SessionA17Binding {
     uint8_t *types;
     Action17Slot *slots;
     size_t count;
+    size_t current_row;   /* row of the effect stream being reported */
     const char *failure;
 };
 
@@ -49,6 +50,14 @@ void session_a17_destroy(SessionA17Binding *b)
     if (b != NULL) {
         clear_rows(b);
         free(b);
+    }
+}
+
+static void relay_effect(void *context, int effect, int32_t value)
+{
+    SessionA17Binding *b = (SessionA17Binding *)context;
+    if (b != NULL && b->host.observe != NULL) {
+        b->host.observe(b->host.context, b->current_row, effect, value);
     }
 }
 
@@ -154,8 +163,9 @@ int session_a17_handler(void *context, size_t index, const SceneActionInfo *acti
     if (load_world(b, &world) != 0) {
         return SCENE_ACTION_HANDLER_UNSUPPORTED;
     }
-    kernel_host.context = b->host.context;
-    kernel_host.observe = b->host.observe;
+    kernel_host.context = b;
+    kernel_host.observe = relay_effect;
+    b->current_row = index;
     slot = b->slots[index];
     status = action17_step(b->bodies[index], b->lengths[index], before->phase, &slot, &world,
                            &kernel_host, &result, &b->failure);
@@ -200,6 +210,8 @@ void session_a17_pre_gate(void *context, size_t index, const SceneActionInfo *ac
     (void)state;
     if (b != NULL && index < b->count && b->bodies[index] != NULL) {
         b->slots[index].request = 0;
+        b->current_row = index;
+        relay_effect(b, ACTION17_FX_REQUEST, 0);
     }
 }
 

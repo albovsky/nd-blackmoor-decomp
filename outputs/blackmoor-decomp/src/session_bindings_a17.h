@@ -29,8 +29,9 @@ typedef struct SessionA17Host {
      * the native stand-in is a transition request that ends the dispatcher
      * pass. NULL: a visit at phase 2 is UNSUPPORTED before any effect. */
     int (*transition)(void *context, const SceneTransitionRequest *request);
-    /* Optional ordered effect observer (Action17Effect). */
-    void (*observe)(void *context, int effect, int32_t value);
+    /* Optional ordered effect observer (Action17Effect) with the owning row.
+     * The prologue request clear of the pre-gate is reported too. */
+    void (*observe)(void *context, size_t row, int effect, int32_t value);
 } SessionA17Host;
 
 SessionA17Binding *session_a17_create(const SessionA17Host *);

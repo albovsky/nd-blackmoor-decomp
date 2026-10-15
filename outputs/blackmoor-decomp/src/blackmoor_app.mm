@@ -2864,12 +2864,12 @@ static int native_a17_transition(void *context, const SceneTransitionRequest *re
     return 0;
 }
 
-static void native_a17_observe(void *context, int effect, int32_t value)
+static void native_a17_observe(void *context, size_t row, int effect, int32_t value)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     switch (effect) {
     case ACTION17_FX_START_FLAG:
-        record(app, "scene_a17_register start_flag_5bb1ca=%d (0x42b0b2)", value);
+        record(app, "scene_a17_register row=%zu start_flag_5bb1ca=%d (0x42b0b2)", row, value);
         break;
     case ACTION17_FX_REQUEST:
         break;
@@ -2882,13 +2882,13 @@ static void native_a17_observe(void *context, int effect, int32_t value)
                                                   sizeof(app->a17_rect)) != 0) {
             std::memcpy(app->a17_logged_rect, app->a17_rect, sizeof(app->a17_rect));
             app->a17_logged_valid = true;
-            record(app, "scene_a17_frame_hit request=1 rect=%d,%d,%d,%d selector=%d (0x42b14d)",
-                   app->a17_rect[0], app->a17_rect[1], app->a17_rect[2], app->a17_rect[3],
+            record(app, "scene_a17_frame_hit row=%zu request=1 rect=%d,%d,%d,%d selector=%d (0x42b14d)",
+                   row, app->a17_rect[0], app->a17_rect[1], app->a17_rect[2], app->a17_rect[3],
                    static_cast<int>(app->selector_entry_frame));
         }
         break;
     case ACTION17_FX_DONE:
-        record(app, "scene_a17_finish completion_byte=1 (0x42b221)");
+        record(app, "scene_a17_finish row=%zu completion_byte=1 (0x42b221)", row);
         break;
     default:
         break;
@@ -3156,6 +3156,19 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         if (overlay_count != 0u)
             record(app, "scene_a36_hot_rows candidate=%d overlay_hot_rects=%zu", *candidate,
                    overlay_count);
+        if (*candidate >= 0 && app->a17 != nullptr) {
+            /* RT-15: the cascade's hover cursor for a hit on a 0x16/0x17 row (0x4f1ff3 /
+             * 0x4f22ef). The app draws no game cursor yet; the selection is reported. */
+            Action17Cursor cursor{};
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            if (session_a17_hover_cursor(app->a17, static_cast<size_t>(*candidate),
+                                         held != nullptr ? *held : static_cast<int16_t>(-1),
+                                         &cursor) == ACTION17_OK)
+                record(app, "scene_a17_hover_cursor row=%d index=%d variant=%d table_offset=0x%x "
+                       "held_flag=%d surface=%d (cursor sprite not drawn by the app)",
+                       *candidate, cursor.cursor_index, cursor.variant,
+                       static_cast<unsigned>(cursor.table_offset), cursor.held_flag, cursor.surface);
+        }
         if (*candidate >= 0) {
             for (size_t i = 0; i < overlay_count; ++i)
                 if (overlay_rows[i].index == *candidate) {
