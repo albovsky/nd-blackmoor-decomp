@@ -1186,6 +1186,44 @@
       "parent": "A-33",
       "raw_type": "0x33",
       "records": 3
+    },
+    {
+      "id": "FL-1",
+      "title": "Function ledger core: schema, derivation, validator, CLI",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "function_ledger.py, build_function_ledger.py, test_function_ledger.py, function-ledger.json"
+    },
+    {
+      "id": "FL-2",
+      "title": "Function ledger evidence extractor",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "extract_function_evidence.py, function-evidence.json"
+    },
+    {
+      "id": "FL-3",
+      "title": "Function ledger xrefs, library classification and sampler",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [],
+      "parent": "FL-0",
+      "owns": "extract_function_xrefs.py, sample_function_ledger.py, function-xrefs.json, function-ledger-overrides.json"
+    },
+    {
+      "id": "FL-4",
+      "title": "Function ledger progress-map panel",
+      "packet": "tasks/FL-0-function-ledger.md",
+      "status": "READY Claude Sonnet (high) slice-implementer",
+      "depends_on": [
+        "FL-1"
+      ],
+      "parent": "FL-0",
+      "owns": "decomp-progress generate.py, template.html, test_progress.py, README.md"
     }
   ]
 }
