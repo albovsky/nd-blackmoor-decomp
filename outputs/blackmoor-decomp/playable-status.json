@@ -36,8 +36,8 @@
   "ticks": 2186,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "1ff60f34d9f77e7b0e0abc8f18800ce0a60de299",
-    "native_sha256": "524641fb191622fa9f28b28b576b48ddfd9941b9f8f27277bc4476403a8de359",
+    "source_ref": "391fa377bac39742f524e3a331d1cee3fe035217",
+    "native_sha256": "1ee034e47b3fa9a382b9fabeeee87330e11eb0d68ac2897aa20048a945ad72d2",
     "command": [
       "--inspect-live-session",
       "--live-click-row",
@@ -77,6 +77,10 @@
       {
         "path": "src/action_family_28.h",
         "sha256": "6cb86cc3b3cf0f4b8b85a8d80f8f24ea90c5be8c71522e06b08c28b717de503f"
+      },
+      {
+        "path": "src/action_family_2d.h",
+        "sha256": "147e6c223905fc20db314d5ee6c341e78c93df48d0e30809c6cf60f32530026a"
       },
       {
         "path": "src/action_family_2e.h",
@@ -205,6 +209,14 @@
       {
         "path": "src/action_family_d1.h",
         "sha256": "30574bb2b8a69cea9223d760a091fc90fcb8dd0e3c6834303659511f32ebaf4a"
+      },
+      {
+        "path": "src/action_family_d3.h",
+        "sha256": "8ca38f82d34fd1dd65524f8b1deab15d87c8b7313592fc2fb2658c96469380f0"
+      },
+      {
+        "path": "src/action_family_e0.h",
+        "sha256": "7cb4e638ae5ff773303b032205f1fa5cfb81e855dbed906120f07b2b4ace6b8b"
       },
       {
         "path": "src/action_family_ea.h",
@@ -344,7 +356,7 @@
       },
       {
         "path": "src/scene_resource.c",
-        "sha256": "0da1d09a320a44b59e7700d8ff1241b7297ecdcb89df33346ebd0381fae8a578"
+        "sha256": "17edc6f63b317f53220c2759aedd2b391e5e75f552a01cedff5cdad7e428cc30"
       },
       {
         "path": "src/scene_resource.h",
