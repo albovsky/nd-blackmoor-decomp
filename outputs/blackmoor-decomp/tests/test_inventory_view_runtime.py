@@ -291,6 +291,24 @@ class ViewTests(unittest.TestCase):
         f.hover(0, 0)
         self.assertEqual((f.view.hot, f.view.event), (-1, 0x2717))
 
+    def test_hover_resets_the_cursor_variant_before_the_scan(self):
+        # RT-22 oracle finding: 0x4ee2a9 stores variant 0 into 0x5b44f4 on every path
+        # before the hover (or the frame control) looks at the pointer; only a hit sets 1.
+        f = Fixture(self.lib, [23])
+        f.open()
+        f.hover(*f.center(0))
+        self.assertEqual(f.view.cursor_variant, 1)
+        f.hover(0, 0)                                   # a miss: the stale 1 must go
+        self.assertEqual(f.view.cursor_variant, 0)
+        f.hover(*f.center(0))
+        self.assertEqual(f.view.cursor_variant, 1)
+        f.hover(*f.center(0), frame_consumed=1)         # consumed: 0x4ee2a9 ran, scan did not
+        self.assertEqual(f.view.cursor_variant, 0)
+        f.view.cursor_variant = 1
+        f.view.mode = 0                                 # gate closed: 0x4ee2a9 never ran
+        f.hover(0, 0)
+        self.assertEqual(f.view.cursor_variant, 1)
+
     def test_hover_consumed_by_the_frame_changes_nothing(self):
         f = self.opened_one()
         f.view.hot = 77
@@ -419,6 +437,19 @@ class ClickTests(unittest.TestCase):
             'rebuild_call', 'held', 'view_sound', 'view_sound_call'])
         self.assertEqual(f.world.calls('view_sound_call'), [('view_sound_call', 0x14)])
         self.assertEqual(f.world.calls('ui_call'), [])
+
+    def test_put_back_in_view_mode_3_puts_the_item_first_and_animates(self):
+        # The add step reads the live view mode (+0x764c): only mode 2 with +0x7010 set
+        # puts the item last, and only a mode other than 2 requests the UI animation
+        # (found by the RT-22 oracle: the mutation "mode forced to 2" survived the unit tests).
+        f = self.opened([5], held=23)
+        f.view.mode = 3
+        f.hover(*f.center(0))
+        status, r, _ = f.click()
+        self.assertEqual(status, OK)
+        self.assertEqual(list(f.world.snapshot()[2][:3]), [23, 5, 0xffff])
+        self.assertEqual(f.world.calls('ui_call'), [('ui_call', 1, 1, 0)])
+        self.assertEqual(r.tuple(), (1, 1, 0, 1, 0, 1, 0, 1))
 
     def test_put_back_with_slot_flag_zero_puts_the_item_first(self):
         f = self.opened([5], held=23)

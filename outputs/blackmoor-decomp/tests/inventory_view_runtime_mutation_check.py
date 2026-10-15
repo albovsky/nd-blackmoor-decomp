@@ -30,10 +30,28 @@ MUTANTS = [
     ('rebuild page offset', 'base = view->page * 16;', 'base = view->page * 16 + 1;'),
     ('relative origin ignored', 'const int32_t dx = out->relative != 0 ? origin_x : 0;', 'const int32_t dx = 0;'),
     ('restore held on rejection dropped', '*inv->held_item = old_held;           /* rejected before any effect */', ''),
+    # found by the original-x86 oracle (tests/inventory_view_runtime_original_oracle.py)
+    ('cursor variant not reset by the hover', '    view->cursor_variant = 0;\n    if (frame_consumed != 0) {',
+     '    if (frame_consumed != 0) {'),
+    ('hot bottom edge off by one', 'if (py > layout->rect[slot][3] - HOT_MARGIN_Y) return 0;',
+     'if (py > layout->rect[slot][3] - HOT_MARGIN_Y - 1) return 0;'),
+    ('put back ignores the live view mode', 'local.view.mode = view->mode;', 'local.view.mode = 2;'),
+    ('un-highlight dropped for non-hits', '        view->slot_lit[i] = 0;\n    }\n    return INVVIEW_OK;',
+     '    }\n    return INVVIEW_OK;'),
 ]
 
 
-def run(name, old, new, scratch):
+def run_oracle(library, scratch):
+    """The quick matrix of the original-x86 oracle against the mutated library: a
+    mismatch (nonzero exit) kills the mutant."""
+    result = subprocess.run(
+        [sys.executable, str(PROJECT / 'tests/inventory_view_runtime_original_oracle.py'), '--quick',
+         '--library', str(library), '--report', str(scratch / 'oracle.json')],
+        cwd=PROJECT / 'tests', capture_output=True, text=True)
+    return 'oracle-killed' if result.returncode != 0 else 'ORACLE-SURVIVED'
+
+
+def run(name, old, new, scratch, oracle=False):
     if old not in SOURCE:
         return 'NOT-APPLIED'
     source = scratch / 'inventory_view_runtime.c'
@@ -49,18 +67,26 @@ def run(name, old, new, scratch):
     env = dict(os.environ, INVVIEW_RUNTIME_LIBRARY=str(library), A78_RUNTIME_LIBRARY=str(library))
     tests = subprocess.run([sys.executable, '-m', 'unittest', 'test_inventory_view_runtime'],
                            cwd=PROJECT / 'tests', env=env, capture_output=True, text=True)
-    return 'killed' if tests.returncode != 0 else 'SURVIVED'
+    unit = 'killed' if tests.returncode != 0 else 'SURVIVED'
+    if oracle:
+        return unit + ' ' + run_oracle(library, scratch)
+    return unit
 
 
 def main():
+    oracle = '--oracle' in sys.argv[1:]
     results = {}
     with tempfile.TemporaryDirectory() as directory:
         for name, old, new in MUTANTS:
-            results[name] = run(name, old, new, Path(directory))
-            print(f'{results[name]:14s} {name}')
-    killed = sum(1 for v in results.values() if v == 'killed')
+            results[name] = run(name, old, new, Path(directory), oracle)
+            print(f'{results[name]:30s} {name}')
+    killed = sum(1 for v in results.values() if v.startswith('killed'))
     print(f'killed {killed}/{len(MUTANTS)}')
-    return 0 if killed == len(MUTANTS) else 1
+    status = 0 if killed == len(MUTANTS) else 1
+    if oracle:
+        oracle_killed = sum(1 for v in results.values() if v.endswith('oracle-killed'))
+        print(f'oracle killed {oracle_killed}/{len(MUTANTS)} (quick matrix)')
+    return status
 
 
 if __name__ == '__main__':

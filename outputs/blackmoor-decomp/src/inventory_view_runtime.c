@@ -218,8 +218,12 @@ int inventory_view_hover(InventoryView *view, const InventoryViewLayout *layout,
         (view->mode != 2 && view->mode != 3)) {
         return INVVIEW_OK;                            /* 0x4d30xx switch, 0x4e89f5 */
     }
+    /* 0x4e8a12: 0x4ee2a9 runs first and stores variant 0 into 0x5b44f4 on every one of
+     * its paths (0x4ee2c3, 0x4ee2f2, 0x4ee329, 0x4ee365). The RT-22 oracle found the
+     * stale 1 of an earlier hit surviving a miss before this store was modeled. */
+    view->cursor_variant = 0;
     if (frame_consumed != 0) {
-        return INVVIEW_OK;                            /* 0x4e8a12: 0x4ee2a9 != 0, 0x4e8a1b */
+        return INVVIEW_OK;                            /* 0x4e8a17: 0x4ee2a9 != 0, 0x4e8a1b */
     }
     *hover_ran = 1;
     view->hot = -1;                                   /* 0x4e8bbe */
