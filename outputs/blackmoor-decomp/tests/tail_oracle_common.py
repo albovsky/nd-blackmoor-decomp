@@ -65,6 +65,9 @@ FAMILIES = {
     '4b': (9, 'bdcc8ed5f083a583c01b624dcb5721c24c961199e9914469a15bec0dedc8ca20'),
     '69': (7, '831e18116acf939610c743a386609733643fb6099032412b2af2aa79f2c13f3b'),
     '65': (7, 'c4a8a5249b0e253f63263f094f833a810fc65d52d1fa6af554c612375e57f7ae'),
+    '1b': (4, '665db35adf2a335892255588d94d1ac2dde6b5e3b14e4294bbd6865da3649f02'),
+    '7d': (4, '1ce509e19688dcf758393a0fbc38adb789de0b62788c5a8fbe0612c2a85a1eae'),
+    '33': (3, '2c5e6cb31c2617ce74a0b0e6b60c48877bda1f647323f5cb7f3064a9818dbef3'),
 }
 TAIL_LENGTHS = tuple(range(301)) + tuple(range(1023, 1026)) + tuple(range(4079, 4098))
 WIDTH_TAILS = (256 * 16, 65536 * 16, 65537 * 16)
