@@ -14,8 +14,8 @@ S0 → S5900 → S5907 → S5901 → S5902 → S5903 → S5904 → S5905 → S59
 |---|---:|---:|
 | Typed body layouts | 71 | 19,611 |
 | Opaque bodies | 0 | 1 |
-| Typed with native live handler (upper bound) | 23 | 15,730 |
-| Typed without live handler | 48 | 3,881 |
+| Typed with native live handler (upper bound) | 25 | 16,761 |
+| Typed without live handler | 46 | 2,850 |
 
 Counts use current parser registrations and the census's per-type record counts. A registered native handler can still block on an unsupported branch or provider; these counts do not prove every record or scene playable. The handled record count is an upper bound: raw `0x15` is a hotspot only when `typed_body[0] == 0x0d`.
 
@@ -25,13 +25,13 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 
 **Next blocker:** S2010: action 0x0c at row 5 (action-kernel).
 
-- Live handlers: `0x0a`, `0x0b`, `0x15`, `0x16`, `0x17`, `0x1d`, `0x28`, `0x35`, `0x36`, `0x37`, `0x4d`, `0x51`, `0x61`, `0x62`, `0x64`, `0x6a`, `0x6b`, `0x71`, `0x79`, `0x82`, `0x83`, `0x97`, `0x9f`
-- Typed, unsupported: `0x0c`, `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x2e`, `0x33`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4b`, `0x4e`, `0x4f`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6d`, `0x6e`, `0x6f`, `0x70`, `0x76`, `0x77`, `0x78`, `0x7d`, `0x80`, `0x94`, `0x95`, `0x9a`, `0xa1`, `0xaa`, `0xd0`, `0xd1`, `0xd3`, `0xd6`, `0xd9`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
+- Live handlers: `0x0a`, `0x0b`, `0x15`, `0x16`, `0x17`, `0x1d`, `0x28`, `0x35`, `0x36`, `0x37`, `0x4d`, `0x51`, `0x61`, `0x62`, `0x64`, `0x6a`, `0x6b`, `0x71`, `0x78`, `0x79`, `0x82`, `0x83`, `0x97`, `0x9f`, `0xa1`
+- Typed, unsupported: `0x0c`, `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x2e`, `0x33`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4b`, `0x4e`, `0x4f`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6d`, `0x6e`, `0x6f`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x94`, `0x95`, `0x9a`, `0xaa`, `0xd0`, `0xd1`, `0xd3`, `0xd6`, `0xd9`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 - Opaque: 
 
-Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `26b5f00c42875c7b8494972d92f3bcaab7b9fa4a`; native SHA-256 `8d2805a71c414b8a02972d409471d139989e947ef55a858ab46ba098479711c8`; 2,187 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `59f1e2c10a7858cb90b4612b508e9251673bd80c`; native SHA-256 `22fa8ec91e5f52e2e7375000ae0dd12ef9e5da5ed0eaadf1582e47e6a097e22a`; 2,187 session ticks.
 
-`playable-status.json` sha256 `9245a84308650dc2e3fa49d14aec1f01b1d78f62a482d19054abe2258592ddb5`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `706544eb14da75f93d446b271c912962d55d9a6148c7a82910f2e84743591c4c`. Derivation and limits: `README.md`.
 
 ## Function ledger
 
@@ -46,10 +46,10 @@ With 0 ported and 0 not needed, this ledger is the honest baseline: every functi
 | ported | `host_adapter_tested` | 0 |
 | not_needed | `nn_rule` | 0 |
 | not_needed | `nn_reviewed` | 0 |
-| pending | `candidate_port` | 135 |
-| pending | `partial_native` | 266 |
-| pending | `static_navigation_only` | 59 |
-| pending | `none` | 3,728 |
+| pending | `candidate_port` | 139 |
+| pending | `partial_native` | 262 |
+| pending | `static_navigation_only` | 60 |
+| pending | `none` | 3,727 |
 
 | Region | Functions | Ported | Not needed | Pending |
 |---|---:|---:|---:|---:|
@@ -73,7 +73,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `cb2ce53288bb89435b50d3cbc26ef9e8dda33dc941a8a219daaa8faf4c31e3b0`; 605 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `53a16225a3a79e0c305f1ace688efcf27113f38e52b647add0b84fde155bbc7a`; 624 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 
