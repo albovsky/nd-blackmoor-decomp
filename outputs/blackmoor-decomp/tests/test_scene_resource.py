@@ -814,7 +814,7 @@ class SceneResourceTests(unittest.TestCase):
 
     def test_recovered_boundaries_match_every_real_scene_action(self):
         root = Path(__file__).resolve().parents[3] / "work/analysis/hiff-resources"
-        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927, 0x4E: 31, 0x68: 1, 0x83: 74, 0x69: 1, 0x65: 1, 0x7D: 1}
+        expected_fixed = {0x0B: 24, 0x4F: 10, 0x78: 6, 0xD9: 35, 0x47: 39, 0x95: 3, 0x64: 5, 0x28: 21, 0x37: 69, 0x6E: 1, 0x79: 2, 0x67: 1, 0x6F: 1, 0x2E: 15, 0x94: 50, 0xD1: 927, 0x4E: 31, 0x68: 1, 0x83: 74, 0x69: 1, 0x65: 1, 0x7D: 1, 0xF6: 4934, 0xEA: 3847, 0xF5: 1390}
         counts = {action_type: 0 for action_type in
                   (*expected_fixed, 0x9F, 0x51, 0x62, 0x97, 0xA1, 0x35, 0x38, 0x3F, 0x3E, 0x43, 0x45, 0x44, 0x36, 0x0C, 0x17, 0x4B, 0x16, 0x1B, 0x33)}
         scenes = 0
@@ -1065,8 +1065,9 @@ class SceneResourceTests(unittest.TestCase):
         # A-69.1 and A-65.1 add 7 raw 0x69 and 7 raw 0x65 one-byte bodies; A-16.1
         # shares the 0x17 layout for its 2 raw 0x16 records.
         # A-1B.1 adds 4 raw 0x1b, A-7D.1 4 raw 0x7d and A-33.1 3 raw 0x33 bodies.
-        self.assertEqual(typed_actions, 19562)
-        self.assertEqual(opaque_actions, 50)
+        # A-F6.1 adds 6 raw 0xf6, A-EA.1 6 raw 0xea and A-F5.1 4 raw 0xf5 fixed bodies.
+        self.assertEqual(typed_actions, 19578)
+        self.assertEqual(opaque_actions, 34)
         self.assertEqual(len(raw_type_values), 71)
         self.assertEqual(len(raw_type_pairs), 73)
         self.assertEqual(raw_type_counts[0x97], 1958)
@@ -1113,6 +1114,9 @@ class SceneResourceTests(unittest.TestCase):
         self.assertEqual(counts[0x1B], 4)
         self.assertEqual(counts[0x7D], 4)
         self.assertEqual(counts[0x33], 3)
+        self.assertEqual(counts[0xF6], 6)
+        self.assertEqual(counts[0xEA], 6)
+        self.assertEqual(counts[0xF5], 4)
 
     def test_rejects_short_tsum_and_truncated_known_action_body(self):
         scene, error = self.open_bytes(self.resource(tsum_length=125))
