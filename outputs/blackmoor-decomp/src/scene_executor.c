@@ -88,6 +88,12 @@ static int action_runtime_type(const SceneActionInfo *action)
         action->typed_body[0] == SCENE_ACTION_SCENE_HOTSPOT_RUNTIME) {
         return SCENE_ACTION_SCENE_HOTSPOT_RUNTIME;
     }
+    /* RT-18: the raw 0x37 (arm 0x40c446 -> 0x4895cc, type store 0x40c47b) and raw 0x38 (arm
+     * 0x40c404 -> 0x48905b, store 0x40c43a) loaders store the runtime type 0x36, which the
+     * dispatcher gates with 0x423f57 mode 1 (0x4280a0). */
+    if (action->type == 0x37u || action->type == 0x38u) {
+        return 0x36;
+    }
     return action->type;
 }
 

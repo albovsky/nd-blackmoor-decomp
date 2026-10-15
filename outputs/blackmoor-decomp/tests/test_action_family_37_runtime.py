@@ -26,6 +26,7 @@ import test_scene_executor_extension as ext_tests
 
 IMAGE_BYTES = t36.IMAGE_BYTES
 OK = t36.OK
+SESSION_ERR_EXECUTOR = 5      # test_scene_session_extension.py
 
 
 def pad_name(name):
@@ -333,8 +334,10 @@ class BindingTests(unittest.TestCase):
         actions = [overlay37(b'SAME') for _ in range(41)]
         f = self.fixture(actions)
         status, result = f.tick()
+        # a handler ERROR (not UNSUPPORTED) ends the session tick with the executor error
         self.assertEqual((status, result.failure.action_index, result.failure.action_type),
-                         (session.SESSION_BLOCKED, 40, 0x37))
+                         (SESSION_ERR_EXECUTOR, 40, 0x37))
+        self.assertIn(b'overlay list is full', self.lib.session_a36_failure(f.binding))
         self.assertEqual(self.lib.session_a36_registered(f.binding), 40)
 
 
@@ -355,7 +358,7 @@ class GateModeTests(ext_tests.ExecutorExtensionTests):
         body36 = t36.raw_body(t36.prefix(b'A'), [t36.primary_record()], [t36.secondary(0)])
         self.assertEqual(self.modes_for(session.action(0x36, 1, body36, (condition(11, 1),))), [1])
         self.assertEqual(self.modes_for(session.action(0x37, 1, body37(), (condition(11, 1),))), [1])
-        self.assertEqual(self.modes_for(session.action(0x38, 1, t38.body_fixture(),
+        self.assertEqual(self.modes_for(session.action(0x38, 1, t38.body_fixture(tail=0),
                                                        (condition(11, 1),))), [1])
 
 
