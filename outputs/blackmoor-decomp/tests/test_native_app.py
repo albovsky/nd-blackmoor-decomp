@@ -171,6 +171,38 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertTrue(any('live_audio loaded stem=cargo channel=4' in l and 'gain=0.640000' in l
                             for l in window[reset:]), 'gain=0.640000')
 
+    def test_later_continuations_carry_every_loaded_channel_unchanged(self):
+        # RT-11 review P2: the S5906 -> S4700 and S4700 -> S4710 loads are
+        # continuations; every channel loaded before the load must still be
+        # loaded with the same generation after it (no reset, no reload).
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        log = Path(directory.name) / 'audio-later.log'
+        result = subprocess.run([str(self.executable), '--inspect-live-session',
+                                 '--live-click-row', '34', '--live-ticks', '3000',
+                                 '--rand-seed', '1',
+                                 '--game-dir', str(self.game), '--log', str(log)],
+                                capture_output=True, text=True, timeout=300)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = log.read_text().splitlines()
+        for source, target in ((5906, 4700), (4700, 4710)):
+            self.assertTrue(any(l.startswith('scene_audio_policy source=%d target=%d continuation=1 '
+                                             'load_reset=none' % (source, target)) for l in lines),
+                            (source, target))
+
+            def channels(stage):
+                prefix = 'scene_audio_channel stage=%s source=%d target=%d ' % (stage, source, target)
+                found = {}
+                for l in lines:
+                    if l.startswith(prefix):
+                        fields = dict(f.split('=', 1) for f in l[len(prefix):].split())
+                        found[fields['channel']] = fields['generation']
+                return found
+            before, after = channels('before-load'), channels('after-load')
+            self.assertEqual(before, after, (source, target))
+        # S4700 -> S4710 carries the DULCIMER music channel 0.
+        self.assertIn('0', {c for c in before})
+
     def test_synthetic_accepted_click_runs_the_s5900_exit_effect_and_presents_movie(self):
         # Stand-in for the RT-2 pointer path: one synthetic accepted event.
         directory = tempfile.TemporaryDirectory()
@@ -584,11 +616,10 @@ class NativeCaptionTransferTests(unittest.TestCase):
         self.assertIn('scene_clear_latches order=0x5c39ff', contents)
         self.assertNotIn('provider=action-family-62', contents)
         # Row 6 (opcode 17, channel 4 idle) is queried every tick and never
-        # reports an unavailable provider. NOTE: it fires because
-        # perform_session_transition unloads every channel (live_audio_unload_all)
-        # when the scene changes, so channel 4 reads idle after the 5900 -> 5907
-        # transition; whether the original keeps sounds across such transitions
-        # is unverified (root/RT-5 decision, not changed by RT-4).
+        # reports an unavailable provider. Since RT-11 a continuation load keeps
+        # sound channels (0x438173 selects the state-2 reset only for a zero
+        # transition word), so the row stays gated while the carried carstart
+        # sound plays and opens when it completes.
         self.assertIn('status=0 provider=none', contents.split('live_session_end ', 1)[1])
         self.assertNotIn('provider=dependency-provider', contents)
         self.assertNotIn('scene_session_dependency_failure', contents)

@@ -4758,8 +4758,12 @@ static bool reset_fresh_scene_audio(NativeApp *app)
     const uint16_t menu_channel = static_cast<uint16_t>(msnd[0x21u] |
                                         (static_cast<uint16_t>(msnd[0x22u]) << 8));
     SessionExitAudioPlan plan{};
-    if (session_exit_plan_audio(&app->exit_state, menu_channel, &plan) != SESSION_EXIT_OK)
+    const int plan_status = session_exit_plan_audio(&app->exit_state, menu_channel, &plan);
+    if (plan_status != SESSION_EXIT_OK) {
+        record(app, "scene_audio_error detail=reset-plan-rejected menu_channel=%u status=%d",
+               menu_channel, plan_status);
         return false;
+    }
     record_scene_audio(app, "before-intro-reset", app->current_scene_id, app->current_scene_id);
     const int status = app->live_audio != nullptr
         ? live_audio_unload_channels(app->live_audio, plan.channels, plan.count) : LIVE_AUDIO_OK;
