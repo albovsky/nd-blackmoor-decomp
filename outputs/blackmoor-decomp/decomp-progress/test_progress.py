@@ -597,7 +597,7 @@ class AuditedBatchTests(unittest.TestCase):
 
     tearDown = MiniFixture.tearDown
 
-    def create_batch(self, batch, extents):
+    def create_batch(self, batch, extents, derived=()):
         functions, audited = [], []
         for va, size in extents:
             symbol = f"FUN_{va:08x}"
@@ -612,7 +612,9 @@ class AuditedBatchTests(unittest.TestCase):
                     if va == 0x400120 else [])
             functions.append({"function": symbol, "va": f"0x{va:08x}", "source": source,
                               "source_sha256": source_sha, "region": "game",
-                              "evidence_id": "fixture", "code": code, "data_items": data})
+                              "evidence_id": ("derived-entry: found by the span split, not in function-index.json; inside the span of "
+                                            "FUN_00400120 (+0x18)" if va in derived else "fixture"),
+                              "code": code, "data_items": data})
             audited.append({"function": symbol, "va": va, "region": "game", "code": code,
                             "data_items": data, "status": "accepted", "reasons": [],
                             "relocations": 0, "compared_bytes": size + sum(d["size"] for d in data),
@@ -726,6 +728,19 @@ class AuditedBatchTests(unittest.TestCase):
 
     def test_audited_claim_cannot_cross_an_indexed_function_boundary(self):
         self.create_batch("001", [(0x400100, 0x21)])
+        with self.assertRaisesRegex(GEN.ProgressError, "indexed function span"):
+            self.model()
+
+    def test_derived_entry_is_matched_code_of_its_span_but_not_a_function(self):
+        # 0x400138 lies inside the span of 0x400120 and has no index entry: its 4 bytes add to the matched code
+        self.create_batch("002", [(0x400138, 4)], derived=(0x400138,))
+        model = self.model()
+        self.assertEqual(model["totals"]["matched_code"], 60)
+        self.assertEqual(model["totals"]["functions_complete"], 2)
+        self.assertFalse(any(r["va"] == 0x400138 for r in model["matched_ranges"]))
+
+    def test_unlisted_audited_code_without_the_derived_evidence_is_rejected(self):
+        self.create_batch("002", [(0x400138, 4)])
         with self.assertRaisesRegex(GEN.ProgressError, "indexed function span"):
             self.model()
 

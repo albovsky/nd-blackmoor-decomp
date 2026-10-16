@@ -35,6 +35,7 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import gen_hinted_asm as gen  # noqa: E402
+import audit_tool_assisted as auditor  # noqa: E402
 
 PROJECT = gen.PROJECT
 ASM = PROJECT / "asm"
@@ -405,10 +406,35 @@ def selected_vas(image: gen.Image, args: argparse.Namespace) -> list[int]:
     return vas
 
 
+def derived_vas(image: gen.Image, layouts: dict, args: argparse.Namespace) -> list[int]:
+    """Entries the span split found (code reachable only from other code, not in function-index.json)."""
+
+    taken = indexed_in_batches() if args.exclude_manifests else set()
+    return sorted(
+        va for va, layout in layouts.items()
+        if layout.derived and va not in taken and (not args.region or gen.region_of(va) in args.region)
+        and (args.lo is None or va >= args.lo) and (args.hi is None or va < args.hi)
+    )
+
+
+def indexed_in_batches() -> set[int]:
+    taken: set[int] = set()
+    for path in sorted(ASM.glob("batch-[0-9]*.json")):
+        if not path.name.endswith("-report.json"):
+            taken |= {int(f["va"], 0) for f in json.loads(path.read_text(encoding="utf-8"))["functions"]}
+    return taken
+
+
 def cmd_annotate(args: argparse.Namespace) -> int:
     image = gen.load_image(args.original)
-    vas = selected_vas(image, args)
-    layouts, _decoded = gen.analyze_all(image, vas)
+    if args.derived:
+        layouts, _decoded = gen.analyze_all(image)
+        auditor.apply_derived_evidence(image, layouts)
+        vas = derived_vas(image, layouts, args)
+    else:
+        vas = selected_vas(image, args)
+        layouts, _decoded = gen.analyze_all(image, [va for va in vas if va in image.starts])
+        auditor.apply_derived_evidence(image, layouts)
     annotator = Annotator(image)
     args.out.mkdir(parents=True, exist_ok=True)
     written, skipped = [], {}
@@ -461,7 +487,8 @@ def cmd_manifests(args: argparse.Namespace) -> int:
     image = gen.load_image(args.original)
     vas = sorted(int(p.stem.split("_")[1], 16) for p in args.dir.glob("FUN_*.s")
                  if MACHINE_HEADER.search(p.read_text(encoding="utf-8")))
-    layouts, _decoded = gen.analyze_all(image, vas)
+    layouts, _decoded = gen.analyze_all(image, [va for va in vas if va in image.starts])
+    auditor.apply_derived_evidence(image, layouts)
     write_manifests(image, layouts, vas, args.dir, args.batch_size, args.first_batch)
     return 0
 
@@ -478,7 +505,8 @@ def cmd_check(args: argparse.Namespace) -> int:
         picks = [int(i * step) for i in range(args.sample)]
         vas = [vas[i] for i in picks]
         machine = [machine[i] for i in picks]
-    layouts, _decoded = gen.analyze_all(image, vas)
+    layouts, _decoded = gen.analyze_all(image, [va for va in vas if va in image.starts])
+    auditor.apply_derived_evidence(image, layouts)
     annotator = Annotator(image)
     # The track-n line follows the function ledger, which every slice refreshes; it is excluded here and
     # validated by the auditor (the file must exist and define the symbol), so a ledger refresh does not
@@ -501,6 +529,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     run.add_argument("--region", action="append", choices=["game", "vorbis", "crt_mfc"])
     run.add_argument("--lo", type=gen.parse_va)
     run.add_argument("--hi", type=gen.parse_va)
+    run.add_argument("--derived", action="store_true", help="annotate the derived entries (found by the span split) instead of the indexed functions")
     run.add_argument("--exclude-manifests", action="store_true", help="skip functions already in asm/batch-*.json")
     run.add_argument("--batch-size", type=int, default=0, help="also write batch manifests of this many functions")
     run.add_argument("--first-batch", type=int, default=3)

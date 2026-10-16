@@ -368,7 +368,8 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
                 off = text["raw_off"] + rva - text["rva"]
                 rows.append((off, off + size, "reconstructed", name, code["symbol"]))
                 claims.append({"va": va, "size": size, "symbol": code["symbol"], "manifest": name,
-                               "provenance": TOOL_ASSISTED, "audited": True, "data_size": data_size})
+                               "provenance": TOOL_ASSISTED, "audited": True, "data_size": data_size,
+                               "derived": str(fn.get("evidence_id", "")).startswith("derived-entry:")})
                 batch_ranges.append((off, off + size))
                 batch_data += data_size
                 if source not in seen_sources:
@@ -563,6 +564,13 @@ def build_model(layout, index, evidence_rows, evidence_meta, band_bytes, status,
         for claim in evidence_meta["function_claims"]:
             va, size, p = claim["va"], claim["size"], claim["provenance"]
             atom = span_by_va.get(va)
+            if claim.get("derived") and atom is None:
+                # A derived entry is code the span split found inside an indexed span (it has no index entry).
+                # Its bytes are matched code of that span through the evidence rows; it is not a function claim.
+                if not any(a["kind"] == "code" and a["va"] is not None and a["va"] < va and va + size <= a["va"] + a["size"]
+                           for a in atoms):
+                    raise ProgressError(f"{claim['manifest']}: audited derived code is outside every indexed function span")
+                continue
             if claim["audited"] and (atom is None or size > atom["size"]):
                 raise ProgressError(f"{claim['manifest']}: audited code is outside its indexed function span")
             complete = bool(atom and p != "exact_range_compiled_c_partial" and

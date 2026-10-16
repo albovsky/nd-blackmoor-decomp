@@ -193,7 +193,7 @@ class RangeDescriptionTests(unittest.TestCase):
             compose_image.Item(int(r[0]), int(r[1]), "referenced", "referenced", data=b"") for r in desc["ranges"]["ranges"]
         ]
         self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
-        self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 8)
+        self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 9)
         # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.check_coverage(structured + referenced, compose_image.ORIGINAL_SIZE)
@@ -443,15 +443,23 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         progress = report["progress"]
         self.assertEqual(progress["generated_bytes"] + progress["referenced_bytes"], progress["total_bytes"])
         self.assertEqual(progress["missing_bytes"], 0)
-        # 398 baseline bytes plus 4,163 audited tool-assisted functions (1,179,210 bytes); the 13 functions that
-        # overlap the baseline (11 S08 assembly functions, 2 incomplete C ranges) are counted once, in the baseline.
+        # 398 baseline bytes plus 4,717 audited tool-assisted functions (1,199,533 bytes: 4,163 indexed functions in
+        # batches 001-008 and 554 derived entries in batch 009); the 13 functions that overlap the baseline
+        # (11 S08 assembly functions, 2 incomplete C ranges) are counted once, in the baseline.  The audited data
+        # items that no structured group generates are bound in classes of their own and are not code.
         by_provenance = report["reconstructed_by_provenance"]
-        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4163, "bytes": 1179210})
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4717, "bytes": 1199533})
         self.assertEqual(by_provenance["explicit_reconstructed_assembly_source"]["bytes"], 384)
-        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1179608)
-        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1179608)
-        self.assertEqual(progress["code_bytes_reconstructed"], 1179608)
-        self.assertEqual(progress["reconstructed_functions"], 4176)
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_index_table"], {"ranges": 19, "bytes": 1934})
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 201, "bytes": 1464})
+        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1203329)
+        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1203329)
+        self.assertEqual(progress["code_bytes_reconstructed"], 1199931)
+        self.assertEqual(progress["reconstructed_functions"], 4730)
+        self.assertEqual(progress["reconstructed_index_table_bytes"], 1934)
+        self.assertEqual(progress["reconstructed_padding_bytes"], 1464)
+        # what stays referenced in .text: the 12 excluded functions (1,548 bytes) and 10 derived entries of the same kinds (71)
+        self.assertEqual(progress["code_bytes_referenced"], 1619)
         self.assertIn("NOT counted as matched", report["claim"])
         self.assertEqual(sum(r["length"] for r in report["referenced_ranges"]["list"]), progress["referenced_bytes"])
         for region in ("game", "vorbis", "crt_mfc"):
@@ -472,9 +480,11 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
             offset = record["offset"]
             self.assertEqual(hashlib.sha256(self.original[offset : offset + record["length"]]).hexdigest(), record["range_sha256"])
         batches = {r["batch"]: r for r in comp.reconstructed_records if "functions" in r}
-        self.assertEqual(sorted(batches), ["001", "002", "003", "004", "005", "006", "007", "008"])
-        self.assertEqual(sum(r["functions"] for r in batches.values()), 4163)
-        self.assertEqual(sum(r["length"] for r in batches.values()), 1179210)
+        self.assertEqual(sorted(batches), ["001", "002", "003", "004", "005", "006", "007", "008", "009"])
+        self.assertEqual(sum(r["functions"] for r in batches.values()), 4717)
+        self.assertEqual(sum(r["length"] for r in batches.values()), 1199533)
+        self.assertEqual(sum(r["index_table_bytes"] for r in batches.values()), 1934)
+        self.assertEqual(sum(r["padding_bytes"] for r in batches.values()), 1464)
         # the baseline keeps its own class: 11 S08 functions in batch 001 and 2 incomplete C ranges in batch 007
         self.assertEqual(batches["001"]["superseded"], 11)
         self.assertEqual(batches["007"]["superseded"], 2)
@@ -788,6 +798,91 @@ class AsmBatchBindingTests(unittest.TestCase):
         fake.chmod(0o755)
         with self.assertRaisesRegex(compose_image.ComposeError, "pinned assembler"):
             self.bind(self.make_batch("fake"), assembler=fake)
+
+
+@unittest.skipUnless(HAVE_ASSEMBLER, "pinned GNU as not present")
+class AsmDataItemBindingTests(unittest.TestCase):
+    """Index tables and padding of an audited function bind as their own classes; structured ranges are skipped."""
+
+    TABLE_BATCH = ("batch-003", "FUN_0040b34a")  # switch table, index table, switch table
+    PADDING_BATCH = ("batch-009", "FUN_004fcee2")  # derived entry followed by 8 padding bytes
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.layout = compose_image.Layout(load_descriptions()["layout"])
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def make_batch(self, which, name, edit=None):
+        batch, function_name = which
+        directory = Path(self.tmp.name) / name
+        directory.mkdir()
+        manifest = json.loads((PROJECT / "asm" / f"{batch}.json").read_text())
+        report = json.loads((PROJECT / "asm" / f"{batch}-report.json").read_text())
+        manifest["functions"] = [f for f in manifest["functions"] if f["function"] == function_name]
+        report["functions"] = [f for f in report["functions"] if f["function"] == function_name]
+        report["accepted_count"] = 1
+        shutil.copy(PROJECT / "asm" / manifest["functions"][0]["source"], directory / manifest["functions"][0]["source"])
+        if edit:
+            edit(manifest, report)
+        (directory / "batch.json").write_text(json.dumps(manifest))
+        report["manifest_sha256"] = hashlib.sha256((directory / "batch.json").read_bytes()).hexdigest()
+        (directory / "report.json").write_text(json.dumps(report))
+        return [{"manifest": str(directory / "batch.json"), "report": str(directory / "report.json"), "provenance_class": "tool_assisted_reconstructed_assembly"}]
+
+    def structured_for(self, which):
+        report = json.loads((PROJECT / "asm" / f"{which[0]}-report.json").read_text())
+        function = next(f for f in report["functions"] if f["function"] == which[1])
+        return [
+            (self.layout.rva_to_offset(d["rva"]), d["size"]) for d in function["data_items"] if d["kind"] == "switch_table"
+        ]
+
+    def bind(self, batches, structured):
+        return compose_image.bind_asm_batches(self.layout, batches, Path(self.tmp.name) / "build", ASSEMBLER, [], structured)
+
+    def test_index_table_binds_as_reconstructed_data_and_switch_tables_are_left_to_structured(self):
+        items, records = self.bind(self.make_batch(self.TABLE_BATCH, "table"), self.structured_for(self.TABLE_BATCH))
+        by_kind = {i.kind: i for i in items}
+        self.assertEqual(sorted(i.kind for i in items), ["code", "data"])
+        table = by_kind["data"]
+        self.assertEqual((table.name, table.length, table.provenance), ("IDXTAB_00410e9c", 237, compose_image.ASM_INDEX_CLASS))
+        self.assertEqual(records[0]["index_tables"], 1)
+        self.assertEqual(records[0]["index_table_bytes"], 237)
+        self.assertEqual(records[0]["length"], by_kind["code"].length)  # the function length counts code only
+
+    def test_switch_table_that_no_structured_group_generates_is_refused(self):
+        with self.assertRaisesRegex(compose_image.ComposeError, "not generated by a structured group"):
+            self.bind(self.make_batch(self.TABLE_BATCH, "no-structured"), [])
+
+    def test_index_table_that_differs_from_the_audited_original_is_refused(self):
+        def edit(manifest, report):
+            for item in report["functions"][0]["data_items"]:
+                if item["kind"] == "index_table":
+                    item["sha256"] = "0" * 64
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "differs from the audited original index table"):
+            self.bind(self.make_batch(self.TABLE_BATCH, "bad-table", edit), self.structured_for(self.TABLE_BATCH))
+
+    def test_data_items_that_disagree_with_the_manifest_are_refused(self):
+        def edit(manifest, report):
+            report["functions"][0]["data_items"] = report["functions"][0]["data_items"][:-1]
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "audited data items"):
+            self.bind(self.make_batch(self.TABLE_BATCH, "short-items", edit), self.structured_for(self.TABLE_BATCH))
+
+    def test_padding_binds_as_its_own_class_unless_a_structured_group_generates_it(self):
+        items, records = self.bind(self.make_batch(self.PADDING_BATCH, "padding"), [])
+        padding = [i for i in items if i.provenance == compose_image.ASM_PADDING_CLASS]
+        self.assertEqual([(i.name, i.length, i.kind) for i in padding], [("PAD_004fcee8", 8, "data")])
+        self.assertEqual(records[0]["padding_bytes"], 8)
+        offset = padding[0].offset
+        items, _ = self.bind(self.make_batch(self.PADDING_BATCH, "padding-structured"), [(offset - 2, 12)])
+        self.assertEqual([i.kind for i in items], ["code"])
+        with self.assertRaisesRegex(compose_image.ComposeError, "partly overlaps"):
+            self.bind(self.make_batch(self.PADDING_BATCH, "padding-partial"), [(offset + 4, 8)])
 
 
 @needs_toolchain
