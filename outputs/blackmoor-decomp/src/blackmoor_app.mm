@@ -34,6 +34,7 @@
 #include "session_bindings_aa1.h"
 #include "session_bindings_a83.h"
 #include "session_bindings_a3f.h"
+#include "session_bindings_a95.h"
 #include "session_bindings_ad9.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -240,6 +241,8 @@ struct NativeApp {
     uint64_t ad9_blits = 0u;
     uint64_t ad9_plan_signature = 0u;
     bool ad9_render_failure_logged = false;
+    /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41 -> 0x4fca60, gate mode 0). */
+    SessionA95Binding *a95 = nullptr;
     /* Native bounds; not a declaration of original global capacities. */
     uint8_t phone_mail[100][A83_MAIL_BYTES]{};
     uint8_t phone_web[100][A83_WEB_BYTES]{};
@@ -1827,6 +1830,7 @@ static void cleanup(NativeApp *app)
     session_a83_destroy(app->a83);
     session_a3f_destroy(app->a3f);
     session_ad9_destroy(app->ad9);
+    session_a95_destroy(app->a95);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3353,6 +3357,34 @@ static void native_ad9_observe(void *context, int effect, int32_t a, int32_t b)
     }
 }
 
+/* RT-26: raw 0x95 Set Volume. The original 0x4fca60 stores both scalars in the channel slot and
+ * calls DirectSound SetVolume with the first attenuation; here the loaded channel's two gains are
+ * replaced and the host re-gained (live_audio_set_channel_scalars). Loudness follows the adapter's
+ * product-gain contract, not the original dB curve. An unloaded channel is a no-op. */
+static int native_a95_set_channel_scalars(void *context, uint16_t channel, float first, float second)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->live_audio == nullptr) return 1;
+    const int status = live_audio_set_channel_scalars(app->live_audio, channel, first, second);
+    record(app, "scene_a95_volume channel=%u scalar=%.4f status=%d (0x4fca60)", static_cast<unsigned>(channel),
+           static_cast<double>(first), status);
+    /* The original records a SetVolume failure (0x408) and still completes the row, so a host gain
+     * failure is logged above and does not fail the row; only an argument or thread error does. */
+    return (status == LIVE_AUDIO_OK || status == LIVE_AUDIO_ERR_HOST) ? 0 : 1;
+}
+
+static int native_a95_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a95_handler(app->a95, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a95_blocker row=%zu status=%d detail=%s", row, status, session_a95_failure(app->a95));
+    }
+    return status;
+}
+
 static int native_ad9_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -4093,6 +4125,10 @@ static bool create_native_session_bindings(NativeApp *app)
     ad9_host.kernel.view = native_ad9_view;
     ad9_host.kernel.observe = native_ad9_observe;
     app->ad9 = session_ad9_create(&ad9_host);
+    ActionFamily95Host a95_host{};
+    a95_host.context = app;
+    a95_host.set_channel_scalars = native_a95_set_channel_scalars;
+    app->a95 = session_a95_create(&a95_host);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -4126,7 +4162,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -4864,7 +4900,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[19]{};
+    SceneSessionActionBinding bindings[20]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -4949,7 +4985,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[18].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
     bindings[18].callback = native_a3f_handler;
     bindings[18].context = app;
-    config.action_binding_count = 19u;
+    /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41, gate mode 0; completion 0x42ba3a). */
+    bindings[19].type = SESSION_A95_TYPE;
+    bindings[19].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    bindings[19].callback = native_a95_handler;
+    bindings[19].context = app;
+    config.action_binding_count = 20u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {

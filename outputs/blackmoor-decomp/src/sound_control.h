@@ -132,6 +132,25 @@ int sound_control_set_master_absolute(SoundControlState *state,
                                       SoundControlHost *host,
                                       SoundControlMasterResult *result);
 
+/* Original 0x4fca60 followed by 0x4f684a (raw action 0x95, "set volume").
+ * Order as in the original: both scalars are stored, the first and then the
+ * second attenuation are computed from the channel's category master
+ * (scalar * master * 2857.142822265625 - 2857.142857142857, truncated), stored,
+ * and the DirectSound volume setter runs (clamp, then SetVolume with the first
+ * attenuation only; device-not-ready 0x3ea / missing buffer 0x3ef / HRESULT
+ * failure 0x408 are recorded exactly as sound_control_set_master_absolute
+ * does). Scalars are not limited to 1.0 (the byte/100 argument reaches 2.55);
+ * they must be finite, nonnegative and at most 100. The channel's category
+ * must be below SOUND_CONTROL_CATEGORY_COUNT (the original would index the
+ * master table out of bounds); nothing is mutated on an argument error. A missing
+ * host setter (ERR_UNSUPPORTED) is reported after the slot and device fields were
+ * updated, like sound_control_set_master_absolute. */
+int sound_control_set_scalars(SoundControlState *state, uint16_t channel,
+                              float first_scalar, float second_scalar,
+                              uint16_t raw_x87_control_word,
+                              SoundControlHost *host,
+                              SoundControlMasterResult *result);
+
 #ifdef __cplusplus
 }
 #endif
