@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import struct
 import sys
 from pathlib import Path
@@ -557,6 +558,7 @@ def _validated_manifest(manifest: Any, manifest_path: Path) -> tuple[str, str, s
                 "size": size,
                 "symbol": symbol,
                 "object": str(object_path.resolve()),
+                "display_object": os.path.abspath(object_path),
             }
         )
     ranges = sorted(
@@ -586,14 +588,28 @@ def _difference_list(expected: bytes, actual: bytes) -> list[dict[str, int | str
     ]
 
 
+def _display_path(path: Path | str, path_root: Optional[Path]) -> str:
+    """Report spelling of a path: resolved absolute, or relative to path_root.
+
+    The relative form starts from the absolute but unresolved path, so a symlinked
+    directory (such as a worktree's work/) keeps its in-tree spelling.
+    """
+
+    if path_root is None:
+        return str(Path(path).resolve())
+    relative = os.path.relpath(os.path.abspath(path), os.path.abspath(path_root))
+    return relative.replace(os.sep, "/")
+
+
 def _empty_report(
     original_path: Path,
     manifest_path: Path,
     manifest_sha256: Optional[str] = None,
+    path_root: Optional[Path] = None,
 ) -> dict[str, Any]:
     return {
-        "original": str(original_path.resolve()),
-        "manifest": str(manifest_path.resolve()),
+        "original": _display_path(original_path, path_root),
+        "manifest": _display_path(manifest_path, path_root),
         "manifest_original_sha256": manifest_sha256,
         "match_scope": "manifest-selected-byte-range",
         "function_completeness": "unverified",
@@ -611,8 +627,10 @@ def _empty_report(
     }
 
 
-def verify(original_path: Path, manifest_path: Path) -> dict[str, Any]:
-    report = _empty_report(original_path, manifest_path)
+def verify(
+    original_path: Path, manifest_path: Path, path_root: Optional[Path] = None
+) -> dict[str, Any]:
+    report = _empty_report(original_path, manifest_path, path_root=path_root)
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         description, source, expected_sha256, functions = _validated_manifest(manifest, manifest_path)
@@ -640,7 +658,9 @@ def verify(original_path: Path, manifest_path: Path) -> dict[str, Any]:
             "rva": function["rva"],
             "size": function["size"],
             "symbol": function["symbol"],
-            "object": function["object"],
+            "object": function["object"]
+            if path_root is None
+            else _display_path(function["display_object"], path_root),
             "match_scope": "manifest-selected-byte-range",
             "function_completeness": "unverified",
             "status": "rejected",
@@ -719,9 +739,14 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     parser.add_argument("original", type=Path, help="original PE32 i386 executable")
     parser.add_argument("manifest", type=Path, help="JSON match manifest")
     parser.add_argument("--report", type=Path, help="write the JSON report to this path")
+    parser.add_argument(
+        "--path-root",
+        type=Path,
+        help="record original, manifest and object paths in the report relative to this directory",
+    )
     args = parser.parse_args(argv)
 
-    report = verify(args.original, args.manifest)
+    report = verify(args.original, args.manifest, args.path_root)
     encoded = json.dumps(report, indent=2, sort_keys=True)
     if args.report:
         try:

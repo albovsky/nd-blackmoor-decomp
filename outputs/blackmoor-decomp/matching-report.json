@@ -27,7 +27,7 @@
       "exact_byte_range": true,
       "function_completeness": "unverified",
       "match_scope": "manifest-selected-byte-range",
-      "object": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/initial_functions.obj",
+      "object": "outputs/blackmoor-decomp/build/initial_functions.obj",
       "object_offset": 220,
       "object_sha256": "619829cd4f296ce81e5275137505e34628c8e741d1c31c498d2c26ceec0f3241",
       "original_offset": 1167313,
@@ -43,7 +43,7 @@
       "exact_byte_range": true,
       "function_completeness": "unverified",
       "match_scope": "manifest-selected-byte-range",
-      "object": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/build/initial_functions.obj",
+      "object": "outputs/blackmoor-decomp/build/initial_functions.obj",
       "object_offset": 236,
       "object_sha256": "84358b64bfaccfd336ed4b2ce706f45729f875f610a80f96346cc982b5cad304",
       "original_offset": 1194379,
@@ -54,12 +54,12 @@
       "symbol": "_FUN_0052398b"
     }
   ],
-  "manifest": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/outputs/blackmoor-decomp/matches.json",
+  "manifest": "outputs/blackmoor-decomp/matches.json",
   "manifest_original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
   "match_scope": "manifest-selected-byte-range",
   "mismatch_bytes": 0,
   "mismatch_count": 0,
-  "original": "/Users/albovsky/Documents/Codex/2026-10-12/so-there-is-a-new-wave/work/original/GAME.EXE",
+  "original": "work/original/GAME.EXE",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
   "rejected_count": 0,
   "source": "src/initial_functions.c"
