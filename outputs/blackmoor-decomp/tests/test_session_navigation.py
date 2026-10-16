@@ -13,6 +13,7 @@ from pathlib import Path
 import subprocess
 import unittest
 
+import oracle_support
 from test_session_input import Rect, State, Context, Hotspot, load_api
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -438,10 +439,7 @@ class OriginalOracleSmokeTest(unittest.TestCase):
         original = PROJECT.parents[1] / 'work/original/GAME.EXE'
         if not original.is_file():
             self.skipTest('original executable unavailable')
-        try:
-            import unicorn  # noqa: F401
-        except ImportError:
-            self.skipTest('Unicorn unavailable; use work/tools/oracle-python/bin/python')
+        oracle_support.require_unicorn()
         build_library()
         import sys
         result = subprocess.run([sys.executable, str(PROJECT / 'tests/session_navigation_original_oracle.py'),

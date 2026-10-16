@@ -37,7 +37,9 @@ From the permanent project root:
 
 ```bash
 outputs/blackmoor-decomp/scripts/build_native_app.sh
-python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p 'test_*.py'
+script/run_test_suite.sh   # canonical: rebuilds all ignored artifacts, then runs the full suite with the oracle interpreter (BLACKMOOR_REQUIRE_ORACLE=1; add -v, or --no-build to skip the rebuild)
+# direct equivalent (after script/build_all_native_checks.sh):
+BLACKMOOR_REQUIRE_ORACLE=1 work/tools/oracle-python/bin/python -m unittest discover -s outputs/blackmoor-decomp/tests -p 'test_*.py'
 work/tools/oracle-python/bin/python outputs/blackmoor-decomp/tests/phone_init_original_oracle.py
 work/tools/oracle-python/bin/python outputs/blackmoor-decomp/tests/hotspot_original_oracle.py
 ```
