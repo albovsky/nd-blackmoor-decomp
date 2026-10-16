@@ -193,13 +193,14 @@ class RangeDescriptionTests(unittest.TestCase):
             compose_image.Item(int(r[0]), int(r[1]), "referenced", "referenced", data=b"") for r in desc["ranges"]["ranges"]
         ]
         self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
-        # only the 398 reconstructed bytes may be absent; any overlap would raise "overlap" first
+        self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 8)
+        # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.check_coverage(structured + referenced, compose_image.ORIGINAL_SIZE)
         message = str(ctx.exception)
         self.assertIn("missing bytes", message)
         self.assertNotIn("overlap", message)
-        self.assertIn("4 gap(s)", message)  # the four merged reconstructed ranges
+        self.assertIn("gap(s)", message)  # the reconstructed ranges merge into gaps
 
     def test_no_long_hex_blobs_in_committed_descriptions(self):
         """No byte dump may hide in the descriptions: only 64-hex hashes and the standard DOS stub."""
@@ -442,8 +443,15 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         progress = report["progress"]
         self.assertEqual(progress["generated_bytes"] + progress["referenced_bytes"], progress["total_bytes"])
         self.assertEqual(progress["missing_bytes"], 0)
-        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 398)
-        self.assertEqual(progress["code_bytes_reconstructed"], 398)
+        # 398 baseline bytes plus 4,163 audited tool-assisted functions (1,179,210 bytes); the 13 functions that
+        # overlap the baseline (11 S08 assembly functions, 2 incomplete C ranges) are counted once, in the baseline.
+        by_provenance = report["reconstructed_by_provenance"]
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4163, "bytes": 1179210})
+        self.assertEqual(by_provenance["explicit_reconstructed_assembly_source"]["bytes"], 384)
+        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1179608)
+        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1179608)
+        self.assertEqual(progress["code_bytes_reconstructed"], 1179608)
+        self.assertEqual(progress["reconstructed_functions"], 4176)
         self.assertIn("NOT counted as matched", report["claim"])
         self.assertEqual(sum(r["length"] for r in report["referenced_ranges"]["list"]), progress["referenced_bytes"])
         for region in ("game", "vorbis", "crt_mfc"):
@@ -453,16 +461,29 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         markdown = compose_image.render_markdown(report)
         self.assertIn("not matched", markdown)
 
-    def test_reconstructed_bindings_are_the_398_byte_baseline(self):
+    def test_reconstructed_bindings_are_the_baseline_and_the_audited_asm_batches(self):
         comp = compose_image.compose(IMAGE_DIR, ORIGINAL, self.build_dir)
-        bound = [r for r in comp.reconstructed_records if r["status"] == "bound"]
-        self.assertEqual(sum(r["length"] for r in bound), 398)
-        assembly = [r for r in bound if r["provenance_class"] == "explicit_reconstructed_assembly_source"]
+        baseline = [r for r in comp.reconstructed_records if "functions" not in r and r["status"] == "bound"]
+        self.assertEqual(sum(r["length"] for r in baseline), 398)
+        assembly = [r for r in baseline if r["provenance_class"] == "explicit_reconstructed_assembly_source"]
         self.assertEqual(sum(r["length"] for r in assembly), 384)
         self.assertEqual(len(assembly), 11)
-        for record in bound:
+        for record in baseline:
             offset = record["offset"]
             self.assertEqual(hashlib.sha256(self.original[offset : offset + record["length"]]).hexdigest(), record["range_sha256"])
+        batches = {r["batch"]: r for r in comp.reconstructed_records if "functions" in r}
+        self.assertEqual(sorted(batches), ["001", "002", "003", "004", "005", "006", "007", "008"])
+        self.assertEqual(sum(r["functions"] for r in batches.values()), 4163)
+        self.assertEqual(sum(r["length"] for r in batches.values()), 1179210)
+        # the baseline keeps its own class: 11 S08 functions in batch 001 and 2 incomplete C ranges in batch 007
+        self.assertEqual(batches["001"]["superseded"], 11)
+        self.assertEqual(batches["007"]["superseded"], 2)
+        self.assertEqual(sum(r["superseded"] for r in batches.values()), 13)
+        # every reconstructed range, whichever class, is byte-identical to the original: the match claim
+        for item in comp.items:
+            if item.cls == "reconstructed":
+                self.assertEqual(item.data, self.original[item.offset : item.end], item.name)
+                self.assertTrue(item.provenance)
 
     def test_cli_build_succeeds_and_writes_reports(self):
         out = Path(self.tmp.name) / "cli"
@@ -614,6 +635,159 @@ class MutantTests(OriginalMixin, unittest.TestCase):
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.compose(directory, ORIGINAL, self.build_dir)
         self.assertIn("verify_matches", str(ctx.exception))
+
+
+@unittest.skipUnless(HAVE_ASSEMBLER, "pinned GNU as not present")
+class AsmBatchBindingTests(unittest.TestCase):
+    """bind_asm_batches on a three-function copy of batch 002: every guard must trip."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.layout = compose_image.Layout(load_descriptions()["layout"])
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def make_batch(self, name, edit=None):
+        directory = Path(self.tmp.name) / name
+        directory.mkdir()
+        manifest = json.loads((PROJECT / "asm" / "batch-002.json").read_text())
+        report = json.loads((PROJECT / "asm" / "batch-002-report.json").read_text())
+        manifest["functions"] = manifest["functions"][:3]
+        report["functions"] = report["functions"][:3]
+        report["accepted_count"] = 3
+        for function in manifest["functions"]:
+            shutil.copy(PROJECT / "asm" / function["source"], directory / function["source"])
+        if edit:
+            edit(directory, manifest, report)
+        (directory / "batch.json").write_text(json.dumps(manifest))
+        report["manifest_sha256"] = hashlib.sha256((directory / "batch.json").read_bytes()).hexdigest()
+        if edit and getattr(edit, "stale_report", False):
+            report["manifest_sha256"] = "0" * 64
+        (directory / "report.json").write_text(json.dumps(report))
+        return [{"manifest": str(directory / "batch.json"), "report": str(directory / "report.json"), "provenance_class": "tool_assisted_reconstructed_assembly"}]
+
+    def bind(self, batches, taken=None, assembler=ASSEMBLER):
+        return compose_image.bind_asm_batches(self.layout, batches, Path(self.tmp.name) / "build", assembler, [] if taken is None else taken)
+
+    def test_good_batch_binds_every_function_as_tool_assisted_reconstructed(self):
+        items, records = self.bind(self.make_batch("good"))
+        self.assertEqual(len(items), 3)
+        self.assertEqual({i.provenance for i in items}, {"tool_assisted_reconstructed_assembly"})
+        self.assertEqual({i.cls for i in items}, {"reconstructed"})
+        self.assertEqual(records[0]["functions"], 3)
+        self.assertEqual(records[0]["length"], sum(i.length for i in items))
+
+    def test_overlap_with_an_earlier_binding_is_superseded_not_bound_twice(self):
+        batches = self.make_batch("superseded")
+        first = self.bind(batches)[0][0]
+        items, records = self.bind(batches, taken=[(first.offset, first.end, "earlier")])
+        self.assertEqual(len(items), 2)
+        self.assertEqual(records[0]["superseded"], 1)
+
+    def test_stale_audit_report_is_rejected(self):
+        def edit(directory, manifest, report):
+            pass
+
+        edit.stale_report = True
+        with self.assertRaisesRegex(compose_image.ComposeError, "stale"):
+            self.bind(self.make_batch("stale", edit))
+
+    def test_report_that_does_not_accept_every_function_is_rejected(self):
+        def edit(directory, manifest, report):
+            report["all_accepted"] = False
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "did not accept"):
+            self.bind(self.make_batch("unaccepted", edit))
+
+    def test_source_changed_after_the_audit_is_rejected(self):
+        def edit(directory, manifest, report):
+            path = directory / manifest["functions"][0]["source"]
+            path.write_text(path.read_text() + "# edited after the audit\n")
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "differs from the audited hash"):
+            self.bind(self.make_batch("edited", edit))
+
+    def test_source_that_assembles_to_other_bytes_is_rejected_even_with_a_refreshed_hash(self):
+        def edit(directory, manifest, report):
+            for function in manifest["functions"]:
+                path = directory / function["source"]
+                text = path.read_text()
+                changed = text.replace("\n    push ebp ", "\n    push ebx ", 1)
+                if changed != text:
+                    path.write_text(changed)
+                    function["source_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+                    report["functions"][manifest["functions"].index(function)]["source"]["sha256"] = function["source_sha256"]
+                    return
+            self.fail("no push ebp to mutate")
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "differ from the audited original code part"):
+            self.bind(self.make_batch("mutant", edit))
+
+    def test_manifest_for_another_original_or_class_is_rejected(self):
+        def other_original(directory, manifest, report):
+            manifest["original_sha256"] = "0" * 64
+
+        def other_class(directory, manifest, report):
+            manifest["class"] = "explicit_reconstructed_assembly_source"
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "different original"):
+            self.bind(self.make_batch("other-original", other_original))
+        with self.assertRaisesRegex(compose_image.ComposeError, "not a tool_assisted"):
+            self.bind(self.make_batch("other-class", other_class))
+
+    def test_function_missing_from_the_accepted_set_is_rejected(self):
+        def edit(directory, manifest, report):
+            report["functions"][0]["status"] = "rejected"
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "not accepted"):
+            self.bind(self.make_batch("not-accepted", edit))
+
+    def test_report_that_disagrees_with_the_manifest_is_rejected(self):
+        def code(directory, manifest, report):
+            report["functions"][0]["code"] = dict(report["functions"][0]["code"], size=report["functions"][0]["code"]["size"] + 1)
+
+        def source(directory, manifest, report):
+            report["functions"][0]["source"] = dict(report["functions"][0]["source"], sha256="0" * 64)
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "differs from the manifest"):
+            self.bind(self.make_batch("report-code", code))
+        with self.assertRaisesRegex(compose_image.ComposeError, "differs from the manifest"):
+            self.bind(self.make_batch("report-source", source))
+
+    def test_duplicate_function_in_a_manifest_is_rejected(self):
+        def edit(directory, manifest, report):
+            manifest["functions"][1] = manifest["functions"][0]
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "listed twice"):
+            self.bind(self.make_batch("duplicate", edit))
+
+    def test_incbin_source_is_rejected_even_with_refreshed_hashes(self):
+        def edit(directory, manifest, report):
+            function = manifest["functions"][0]
+            path = directory / function["source"]
+            path.write_text(path.read_text() + '\n.incbin "/dev/null"\n')
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            function["source_sha256"] = digest
+            report["functions"][0]["source"]["sha256"] = digest
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "incbin"):
+            self.bind(self.make_batch("incbin", edit))
+
+    def test_overlap_inside_one_batch_is_an_error_not_a_supersession(self):
+        batches = self.make_batch("same-batch")
+        first = self.bind(batches)[0][0]
+        with self.assertRaisesRegex(compose_image.ComposeError, "same batch"):
+            self.bind(batches, taken=[(first.offset, first.end, batches[0]["manifest"] + ":other")])
+
+    def test_a_different_assembler_is_rejected(self):
+        fake = Path(self.tmp.name) / "fake-as"
+        fake.write_text("#!/bin/sh\necho 'GNU assembler (GNU Binutils) 2.42'\n")
+        fake.chmod(0o755)
+        with self.assertRaisesRegex(compose_image.ComposeError, "pinned assembler"):
+            self.bind(self.make_batch("fake"), assembler=fake)
 
 
 @needs_toolchain
