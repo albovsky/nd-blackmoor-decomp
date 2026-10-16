@@ -16,10 +16,10 @@ Owner thread: Claude Sonnet (cloud). Raw 0x43 was the other small family left in
 
 ## Native implementation
 
-* `src/session_bindings_a43.[ch]`: the executor handler. First visit: AUTOTEXT lookup (host), `action_family_43` construction, the text writer, the overlay image (built through the raw 0x37 constructor from the same 69 bytes), `session_a36_adopt_row`, result PENDING phase 0 with `become_overlay36` (RESET_DEPENDENCIES for subtype 2). Later visits: the 0x36 binding, with its COMPLETED mapped to DIRECT_COMPLETED when the raw subtype is not 1 (the original stores subtype 1).
-* `scene_executor`: `SceneActionHandlerResult.become_overlay36` and `SceneActionRuntimeState.runtime_type_36`; the gate then uses mode 1 for that row from the next visit on.
+* `src/session_bindings_a43.[ch]`: the executor handler. First visit: AUTOTEXT lookup (host), `action_family_43` construction, the text writer, the overlay image (built through the raw 0x37 constructor from the same 69 bytes), `session_a36_adopt_row`, result `PENDING_BECOME_OVERLAY36` phase 0 (`RESET_BECOME_OVERLAY36` for subtype 2, which also resets the dependencies). Later visits: the 0x36 binding, with its COMPLETED mapped to DIRECT_COMPLETED when the raw subtype is not 1 (the original stores subtype 1).
+* `scene_executor`: two new handler dispositions (`SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36`, `SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36`) and an executor-private per-row flag (`scene_executor_get_action_overlay36`); no public struct changed. The gate then uses mode 1 for that row from the next visit on (tested with an extension leaf that records the mode).
 * `session_bindings_a36`: `session_a36_adopt_row` and a served-type check that accepts adopted 0x43 rows.
-* `src/blackmoor_app.mm` glue (`bindings[26]`, 27 bindings): AUTOTEXT lookup from the captions' decoded resource, caption fonts/format/font-sheet counts shared with `0x448d11`, host buffers for the AUTOTEXT slots (handles `0xf0000010 + slot`), overlay picture as a CIFTREE image.
+* `src/blackmoor_app.mm` glue (`bindings[26]`, 28 bindings with the RT-33 0x2e binding): AUTOTEXT lookup from the captions' decoded resource, caption fonts/format/font-sheet counts shared with `0x448d11`, host buffers for the AUTOTEXT slots (handles `0xf0000010 + slot`), overlay picture as a CIFTREE image.
 
 ## Verification
 

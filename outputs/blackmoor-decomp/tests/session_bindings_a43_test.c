@@ -19,6 +19,17 @@
     } while (0)
 
 static int32_t g_events[16];
+static int g_modes[16], g_mode_count;
+
+/* Extension opcode 20 leaf: records the evaluation mode the executor gates the row with (0x423f57 stores it). */
+static int leaf(void *c, const SceneConditionLeafRequest *request, int32_t *status, int *provider)
+{
+    (void)c; (void)provider;
+    if (g_mode_count < 16) g_modes[g_mode_count++] = request->evaluation_mode;
+    *status = 1;
+    return SCENE_CONDITION_OK;
+}
+static void pass_started(void *c) { (void)c; }
 static unsigned g_writes, g_blits, g_fail_write;
 static char g_last_text[64];
 
@@ -158,7 +169,8 @@ int main(void)
     g_fail_write = 1;
     EXPECT(scene_executor_step_frame(ex, &state, &handler, 1u, &frame, &info) == SCENE_EXECUTOR_ERR_UNSUPPORTED);
     EXPECT(session_a36_image(a36, 0u) == NULL && g_writes == 0u);
-    EXPECT(scene_executor_get_action_state(ex, 0u, &st) == SCENE_EXECUTOR_OK && !st.runtime_type_36 && st.phase == 0u);
+    EXPECT(scene_executor_get_action_state(ex, 0u, &st) == SCENE_EXECUTOR_OK && st.phase == 0u);
+    { int ov = 1; EXPECT(scene_executor_get_action_overlay36(ex, 0u, &ov) == SCENE_EXECUTOR_OK && !ov); }
     g_fail_write = 0;
 
     /* tick 1 again: row 0 renders and converts (subtype 2: its dependencies reset), row 1 is not visited yet because
@@ -169,8 +181,9 @@ int main(void)
     EXPECT(strcmp(session_a36_row_name(a36, 0u), "USE_AUTOTEXT1") == 0);
     EXPECT(strcmp(session_a36_row_name(a36, 1u), "USE_AUTOTEXT2") == 0);
     EXPECT(session_a36_row_raw_type(a36, 0u) == SESSION_A43_ROW_TYPE);
-    EXPECT(scene_executor_get_action_state(ex, 0u, &st) == SCENE_EXECUTOR_OK && st.runtime_type_36 && st.phase == 0u && st.completed == 0u);
-    EXPECT(scene_executor_get_action_state(ex, 2u, &st) == SCENE_EXECUTOR_OK && !st.runtime_type_36);
+    EXPECT(scene_executor_get_action_state(ex, 0u, &st) == SCENE_EXECUTOR_OK && st.phase == 0u && st.completed == 0u);
+    { int ov = 0; EXPECT(scene_executor_get_action_overlay36(ex, 0u, &ov) == SCENE_EXECUTOR_OK && ov); }
+    { int ov = 1; EXPECT(scene_executor_get_action_overlay36(ex, 2u, &ov) == SCENE_EXECUTOR_OK && !ov); }
     EXPECT(strcmp(session_a43_failure(a43), "AUTOTEXT key not found (original fallback unverified)") == 0);
 
     /* The third row's missing key blocks the pass every tick; the converted rows are served by the overlay binding. */
@@ -188,9 +201,42 @@ int main(void)
     EXPECT(g_writes == 2u);
 
     scene_executor_destroy(ex);
+    scene_resource_close(scene);
+
+    /* A row with a dependency leaf that reads the evaluation mode: gated with mode 0 while it is a raw 0x43 row, and
+     * with mode 1 (the 0x36 arm) on the visit after the handler converted it. */
+    {
+        uint8_t tail[16];
+        SceneConditionExtension extension;
+        memset(bytes, 0, sizeof bytes);
+        memcpy(bytes + 8, "SCEN", 4);
+        at = 12u;
+        at = put_chunk(bytes, at, "TSUM", tsum, sizeof tsum);
+        keyed_body(body, 0, "HELLO");
+        memset(tail, 0, sizeof tail);
+        tail[0] = 20; /* opcode 20: an extension leaf */
+        memcpy(body + 301, tail, sizeof tail);
+        at = put_act(bytes, at, 1u, body, 301u + sizeof tail);
+        memcpy(bytes, "DATA", 4);
+        n = at - 8u;
+        bytes[4] = (uint8_t)(n >> 24); bytes[5] = (uint8_t)(n >> 16); bytes[6] = (uint8_t)(n >> 8); bytes[7] = (uint8_t)n;
+        scene = scene_resource_open_memory(bytes, at, err, sizeof err);
+        EXPECT(scene != NULL);
+        EXPECT(session_a36_begin_scene(a36, scene) == OVERLAY36_OK);
+        memset(&extension, 0, sizeof extension);
+        extension.evaluate_leaf = leaf;
+        extension.pass_started = pass_started;
+        g_mode_count = 0;
+        EXPECT(scene_executor_create(scene, &world, 0u, &ex, &failed) == SCENE_EXECUTOR_OK);
+        EXPECT(scene_executor_set_condition_extension(ex, &extension) == SCENE_EXECUTOR_OK);
+        EXPECT(scene_executor_step_frame(ex, &state, &handler, 1u, &frame, &info) == SCENE_EXECUTOR_OK);
+        EXPECT(scene_executor_step_frame(ex, &state, &handler, 1u, &frame, &info) == SCENE_EXECUTOR_OK);
+        EXPECT(g_mode_count == 2 && g_modes[0] == 0 && g_modes[1] == 1);
+        scene_executor_destroy(ex);
+        scene_resource_close(scene);
+    }
     session_a43_destroy(a43);
     session_a36_destroy(a36);
-    scene_resource_close(scene);
     printf("PASS\n");
     return 0;
 }

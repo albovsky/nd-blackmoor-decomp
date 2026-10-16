@@ -65,8 +65,8 @@ void session_a43_destroy(SessionA43Binding *);
  * the row becomes a runtime-0x36 overlay named USE_AUTOTEXT<index+1> with
  * subtype 1 and phase 0 (the 0xABA image is built like the raw 0x37 one:
  * 0x48945b defaults over the row's rectangle at +0xe9, options at +0 and +0xe7,
- * geometry at +0xf9). The result is PENDING with become_overlay36 set (or
- * RESET_DEPENDENCIES for subtype 2). Later visits are served by the 0x36
+ * geometry at +0xf9). The result is PENDING_BECOME_OVERLAY36 (or
+ * RESET_BECOME_OVERLAY36 for subtype 2). Later visits are served by the 0x36
  * binding; its generic completion uses subtype 1 whatever the raw subtype was.
  * A refused render, a missing key or a missing provider is UNSUPPORTED before
  * any row change. */

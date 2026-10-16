@@ -615,10 +615,10 @@ def run_list(x, nat, scs, stats, fail_fast=False):
 
 # native mutants: each must be caught by the quick scenario set
 MUTANTS = {
-    'no subtype-2 dependency reset': ('out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_DEPENDENCIES\n                                              : SCENE_ACTION_HANDLER_PENDING;', 'out->disposition = SCENE_ACTION_HANDLER_PENDING;', 'session_bindings_a43.c'),
-    'dependency reset for every subtype': ('out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_DEPENDENCIES\n                                              : SCENE_ACTION_HANDLER_PENDING;', 'out->disposition = SCENE_ACTION_HANDLER_RESET_DEPENDENCIES;', 'session_bindings_a43.c'),
-    'phase kept': ('out->phase = 0u;\n    out->become_overlay36 = 1u;', 'out->phase = before->phase;\n    out->become_overlay36 = 1u;', 'session_bindings_a43.c'),
-    'row not converted': ('out->become_overlay36 = 1u;', 'out->become_overlay36 = 0u;', 'session_bindings_a43.c'),
+    'no subtype-2 dependency reset': ('out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36\n                                              : SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36;', 'out->disposition = SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36;', 'session_bindings_a43.c'),
+    'dependency reset for every subtype': ('out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36\n                                              : SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36;', 'out->disposition = SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36;', 'session_bindings_a43.c'),
+    'phase kept': ('out->phase = 0u;\n    return SCENE_ACTION_HANDLER_OK;', 'out->phase = before->phase;\n    return SCENE_ACTION_HANDLER_OK;', 'session_bindings_a43.c'),
+    'row not converted': ('SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36;', 'SCENE_ACTION_HANDLER_PENDING;', 'session_bindings_a43.c'),
     'surface number off by one': ('(int)(int16_t)rd16(object + 2u) + 1;', '(int)(int16_t)rd16(object + 2u) + 0;', 'session_bindings_a43.c'),
     'name prefix': ('"USE_AUTOTEXT%d"', '"USE_AUTOTEXT_%d"', 'session_bindings_a43.c'),
     'first option word offset': ('memcpy(body + 0x21u, object + 0u, 2u);', 'memcpy(body + 0x21u, object + 2u, 2u);', 'session_bindings_a43.c'),

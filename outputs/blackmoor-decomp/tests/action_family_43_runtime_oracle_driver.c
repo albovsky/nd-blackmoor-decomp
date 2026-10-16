@@ -203,7 +203,6 @@ int a43o_visit(Handle *h, unsigned row, int completed_before, uint32_t phase_bef
     before.phase = phase_before;
     out.disposition = SCENE_ACTION_HANDLER_PENDING;
     out.phase = phase_before;
-    out.become_overlay36 = 0u;
     *completed_after = completed_before;
     *reset = 0;
     *phase_after = phase_before;
@@ -211,10 +210,12 @@ int a43o_visit(Handle *h, unsigned row, int completed_before, uint32_t phase_bef
     h->write_calls = 0u;
     status = session_a43_handler(h->a43, row, &info, &before, &out);
     *disposition = (int)out.disposition;
-    *become36 = out.become_overlay36;
+    *become36 = out.disposition == SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36 ||
+                out.disposition == SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36;
     if (status != SCENE_ACTION_HANDLER_OK) return status;
     switch (out.disposition) {
     case SCENE_ACTION_HANDLER_PENDING:
+    case SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36:
         *phase_after = out.phase;
         break;
     case SCENE_ACTION_HANDLER_COMPLETED:
@@ -228,6 +229,7 @@ int a43o_visit(Handle *h, unsigned row, int completed_before, uint32_t phase_bef
         *phase_after = out.phase;
         break;
     case SCENE_ACTION_HANDLER_RESET_DEPENDENCIES:
+    case SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36:
         *phase_after = 0u;
         *reset = 1;
         break;

@@ -52,17 +52,17 @@ typedef enum scene_action_handler_disposition {
     SCENE_ACTION_HANDLER_RESET_DEPENDENCIES = 2,
     /* Used by original handlers that set completion directly, independent of
      * subtype, without calling 0x42ba3a or resetting dependencies. */
-    SCENE_ACTION_HANDLER_DIRECT_COMPLETED = 3
+    SCENE_ACTION_HANDLER_DIRECT_COMPLETED = 3,
+    /* RT-32: PENDING / RESET_DEPENDENCIES, and the handler also turned the row into a runtime-0x36 overlay (the
+     * original 0x411f24 tail stores type 0x36 at 0x5bb5e3). The executor then gates the row with 0x423f57 mode 1 (the
+     * 0x36 arm) from the next visit on. Only the raw 0x43 handler returns these. */
+    SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36 = 4,
+    SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36 = 5
 } SceneActionHandlerDisposition;
 
 typedef struct scene_action_runtime_state {
     uint8_t completed;
     uint32_t phase;
-    /* RT-32: the row's runtime type was rewritten to 0x36 by its own handler
-     * (raw 0x43 AUTOTEXT, 0x411f24 stores type 0x36 at 0x5bb5e3). The executor
-     * then gates the row with 0x423f57 mode 1 (the 0x36 arm) from the next
-     * visit on. Zero for every row until a handler asks for it. */
-    uint8_t runtime_type_36;
 } SceneActionRuntimeState;
 
 typedef struct scene_action_handler_result {
@@ -70,10 +70,6 @@ typedef struct scene_action_handler_result {
     /* Used by PENDING, COMPLETED and DIRECT_COMPLETED.
      * RESET_DEPENDENCIES forces phase to zero. */
     uint32_t phase;
-    /* RT-32: nonzero makes the executor store runtime type 0x36 for this row
-     * (the original 0x411f24 tail: type 0x36, subtype 1, phase 0). Only the
-     * 0x43 handler sets it. The executor clears it before every call. */
-    uint8_t become_overlay36;
 } SceneActionHandlerResult;
 
 /* Values in the scene-change body are retained as signed little-endian words
@@ -316,6 +312,10 @@ int scene_executor_get_selected_item_label(const SceneActionExecutor *executor,
 int scene_executor_get_action_state(const SceneActionExecutor *executor,
                                     size_t action_index,
                                     SceneActionRuntimeState *state);
+
+/* RT-32: nonzero once the row's handler returned a *_BECOME_OVERLAY36 disposition. */
+int scene_executor_get_action_overlay36(const SceneActionExecutor *executor,
+                                        size_t action_index, int *is_overlay36);
 
 int scene_executor_get_hotspot_state(const SceneActionExecutor *executor,
                                      size_t action_index,

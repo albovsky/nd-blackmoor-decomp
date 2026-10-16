@@ -91,10 +91,11 @@ class ExecutorTests(unittest.TestCase):
     def test_mutants_are_detected(self):
         mutations = {
             'completion uses the raw subtype': ('session_bindings_a43.c', 'action->subtype != 1u) {', '0) {'),
-            'row never marked as an overlay': ('scene_executor.c', 'if (handler_result.become_overlay36) {', 'if (0) {'),
+            'row never marked as an overlay': ('scene_executor.c', 'case SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36:\n        executor->overlay36[index] = 1u;', 'case SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36:\n        executor->overlay36[index] = 0u;'),
+            'gate ignores the converted type': ('scene_executor.c', 'executor->overlay36[index]\n                    ? UINT8_C(0x36)', '0\n                    ? UINT8_C(0x36)'),
             'row type not adopted by the overlay binding': ('session_bindings_a36.c', 'b->raw_types[row] = SESSION_A43_ROW_TYPE;', 'b->raw_types[row] = 0;'),
             'failed writer still converts': ('session_bindings_a43.c', 'if (status != AUTOTEXT_WRITE_OK) {', 'if (0) {'),
-            'later visits render again': ('session_bindings_a43.c', 'if (before->runtime_type_36) {', 'if (0) {'),
+            'later visits render again': ('session_bindings_a43.c', 'if (session_a36_row_raw_type(b->a36, index) == SESSION_A43_ROW_TYPE) {', 'if (0) {'),
         }
         for name, (filename, old, new) in mutations.items():
             with self.subTest(name):

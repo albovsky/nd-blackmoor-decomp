@@ -125,15 +125,15 @@ int main(int argc, char **argv)
                 memset(&st, 0, sizeof st);
                 out.disposition = SCENE_ACTION_HANDLER_PENDING;
                 out.phase = 0u;
-                out.become_overlay36 = 0u;
-                if (session_a43_handler(a43, i, &info, &st, &out) != SCENE_ACTION_HANDLER_OK || !out.become_overlay36 ||
+                if (session_a43_handler(a43, i, &info, &st, &out) != SCENE_ACTION_HANDLER_OK || (out.disposition != SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36 &&
+                     out.disposition != SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36) ||
                     out.phase != 0u || session_a36_image(a36, i) == NULL) {
                     printf("ROW_FAIL handler row %zu: %s\n", i, session_a43_failure(a43));
                     ++bad;
                     continue;
                 }
                 ++converted;
-                if (out.disposition == SCENE_ACTION_HANDLER_RESET_DEPENDENCIES) ++resets;
+                if (out.disposition == SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36) ++resets;
                 ++ok;
             }
             scene_resource_close(scene);

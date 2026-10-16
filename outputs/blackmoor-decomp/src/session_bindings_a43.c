@@ -117,7 +117,7 @@ int session_a43_handler(void *context, size_t index, const SceneActionInfo *acti
         return SCENE_ACTION_HANDLER_ERROR;
     }
     b->failure = "none";
-    if (before->runtime_type_36) {
+    if (session_a36_row_raw_type(b->a36, index) == SESSION_A43_ROW_TYPE) {
         /* The row is runtime type 0x36 now. Its generic completion runs with
          * the subtype 0x411f24 stored (1), not the raw one. */
         const int served = session_a36_handler(b->a36, index, action, before, out);
@@ -220,9 +220,8 @@ int session_a43_handler(void *context, size_t index, const SceneActionInfo *acti
     free(object);
     /* 0x42ba3a with the raw subtype; the completion byte is cleared again by the
      * tail of 0x411f24, so only the subtype-2 dependency reset survives. */
-    out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_DEPENDENCIES
-                                              : SCENE_ACTION_HANDLER_PENDING;
+    out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36
+                                              : SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36;
     out->phase = 0u;
-    out->become_overlay36 = 1u;
     return SCENE_ACTION_HANDLER_OK;
 }
