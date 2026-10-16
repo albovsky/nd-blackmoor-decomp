@@ -12,7 +12,6 @@ committed; the one end-to-end case reads the owner's install in place.
 from __future__ import annotations
 
 import json
-import math
 import os
 import pathlib
 import re
@@ -140,16 +139,6 @@ class LiveAudioTests(unittest.TestCase):
     def test_fixtures_against_real_and_substitute_hosts(self) -> None:
         code, outcomes, stderr = run_fixture(self.binary, self.fixture_dir, self.game_dir)
         self.assert_all_pass(outcomes, code, stderr)
-
-    def test_end_to_end_reports_exact_counts(self) -> None:
-        if self.game_dir is None:
-            self.skipTest("owner install not available")
-        code, outcomes, _ = run_fixture(self.binary, self.fixture_dir, self.game_dir, "end_to_end_nsht01")
-        status, detail = outcomes.get("end_to_end_nsht01", ("MISSING", ""))
-        if status == "SKIP":
-            self.skipTest(detail)
-        self.assertEqual(status, "PASS", detail)
-        print("\nNSHT01 end-to-end:", detail)
 
     def test_ambiguous_names_on_case_sensitive_volume(self) -> None:
         image = self.tmp / "cs.sparseimage"

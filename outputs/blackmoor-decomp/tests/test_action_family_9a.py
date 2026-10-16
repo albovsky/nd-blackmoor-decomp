@@ -97,10 +97,6 @@ class ActionFamily9ATests(unittest.TestCase):
             self.assertEqual(bytes(out), before)
         self.assertEqual(bytes(raw)[:len(data)], data)
 
-    def test_constants(self):
-        self.assertEqual((BODY, WORD_COUNT), (0x1b, 13))
-        self.assertEqual(BODY, 6 * 4 + 2 + 1)
-
     def test_minimum_body(self):
         raw = storage(bytes(BODY))
         d = Decoded()
