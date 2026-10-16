@@ -75,6 +75,11 @@
    "manifest": "asm/batch-008.json",
    "report": "asm/batch-008-report.json",
    "provenance_class": "tool_assisted_reconstructed_assembly"
+  },
+  {
+   "manifest": "asm/batch-009.json",
+   "report": "asm/batch-009-report.json",
+   "provenance_class": "tool_assisted_reconstructed_assembly"
   }
  ],
  "not_bound": [

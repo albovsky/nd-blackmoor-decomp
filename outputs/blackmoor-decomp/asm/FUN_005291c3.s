@@ -1,0 +1,38 @@
+# FUN_005291c3
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x005291c3
+# extent:       0x005291c3-0x005291cd (10 code bytes)
+# span:         0x005291c3-0x005291d0 (code 10, tables 0, padding 3)
+# sha256:       3c9597623a3c55d1a9d4b94382f5bb8d3f27daac3a7616407aaf94baf777b0df
+# evidence:     derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005291b9 (+0xa)
+# region:       crt_mfc
+# frame:        none
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_005291c3
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; no ret instruction in the code part; ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
+# locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
+# fields:       none: no register-relative displacement below 0x400000 other than frame slots
+# callees:      calls tail jump FUN_0050c6c6
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+
+# --- external targets -----------------------------------------------
+.set FUN_0050c6c6, .text + (0x0050c6c6 - 0x401000)
+
+.org 0x005291c3 - 0x401000
+.globl FUN_005291c3
+FUN_005291c3:
+    # block 0x005291c3: entry, 2 instruction(s), ends with backward jump to 0x0050c6c6
+    mov eax, 0x5347e8                            # 005291c3
+    jmp.d32 FUN_0050c6c6                         # 005291c8
+
+# --- data items (not part of the function) -------------------------
+.org 0x005291cd - 0x401000
+PAD_005291cd:  # 3 byte(s) of int3 padding
+    .fill 3, 1, 0xcc
+

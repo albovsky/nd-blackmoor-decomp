@@ -27,6 +27,7 @@ function in a batch manifest the auditor
 from __future__ import annotations
 
 import argparse
+import bisect
 import hashlib
 import importlib.util
 import json
@@ -55,6 +56,26 @@ BASELINE_MANIFESTS = (
     "matches_s08_3_x86.json",
     "matches_s08_4_x86.json",
 )
+
+
+
+def derived_evidence(image: Any, va: int) -> str:
+    """Evidence id of a derived entry: code the span split found that function-index.json does not list."""
+
+    parent = image.starts[bisect.bisect_right(image.starts, va) - 1]
+    return (
+        f"derived-entry: found by the span split, not in function-index.json; inside the span of FUN_{parent:08x} "
+        f"(+0x{va - parent:x})"
+    )
+
+
+def apply_derived_evidence(image: Any, layouts: dict) -> None:
+    """Give every derived layout its evidence id (the generator leaves it unfilled)."""
+
+    for va, layout in layouts.items():
+        if layout.derived:
+            image.evidence[va] = derived_evidence(image, va)
+
 
 REQUIRED_FIELDS = (
     "class", "va", "extent", "span", "sha256", "evidence", "region", "frame",
@@ -584,7 +605,9 @@ def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
     image = gen.load_image(config.original, config.index, config.expected_sha256, config.strict_image)
     report["original_sha256"] = config.expected_sha256
     vas = [int(entry["va"], 0) for entry in entries]
-    layouts, _decoded = gen.analyze_all(image, vas)
+    # derived entries (found by the span split, not in the index) are discovered from their parent span
+    layouts, _decoded = gen.analyze_all(image, [va for va in vas if va in image.starts])
+    apply_derived_evidence(image, layouts)
     base_ranges = baseline_ranges(config)
     seen_ranges: list[tuple[int, int, str]] = []
 
