@@ -42,6 +42,20 @@ Not verified: that any name or comment is meaningful, original C++ or compiler p
 
 Next: M-C (`.data`, `.rdata`, resources: waits on Glib's card about counting machine-named data as matched), then renaming by module.
 
+## Handoff: RT-31 raw 0x38 animated overlay runtime (2026-10-16 PDT, cloud thread)
+
+Ranking: 0x38 was the top remaining type by scenes unblocked in `scene-action-coverage.json` (25 scenes, 425 records, 21 scenes where it is the only missing type). Type-level scenes with every row handled: 1,925 to 1,946 of 2,078 (upper bound; the row-level live count needs the Mac). Next in the ranking: 0x43 (13 scenes, 13 records), 0x94, 0xd1, 0x2e, 0x44.
+
+What 0x38 is: loader arm `0x40c404` runs the constructor `0x48905b` (A-38.1) and stores the runtime type 0x36 (`0x40c43a`), so a 0x38 row is a COverlay row exactly like raw 0x36 and 0x37: dispatcher arm `0x4280b4` (gate mode 1, already mapped in `scene_executor.c`) and `COverlay::Process` `0x4899ca`, which RT-14 had ported and verified. The constructor builds an animated image (marker 2, 15 fps, frame table at +0xac, one secondary record with hot word 2 so it is never hit, event index -1 so it never finishes). So this slice was a binding, not a new kernel: the kernel is unchanged. The corpus is 425 rows: 420 four-frame `CON_Grenny...` animations, 4 sixteen-frame and 1 hundred-frame row, plain blit, forward wrap loop.
+
+Merged in this slice: `session_bindings_a36.[ch]` owns raw 0x36/0x37/0x38 (`SESSION_A38_TYPE`; `session_a36_build_image` builds the 0x38 image with `action_family_38_construct`, scene load and handler accept it), registration `bindings[24]` in `blackmoor_app.mm` (count 25), `action_family_38.c` added to the runtime build, the sanitizer script and `build_native_app.sh`, packet `tasks/RT-31-animated-overlay-38-runtime.md`. Two assertions in `test_action_family_37_runtime.py` that recorded "0x38 has no image" were updated (now bound).
+
+Verification: `tests/test_action_family_38_runtime.py` (27 cases incl. the production executor/session, finish with scene-change option 1, event pair 0, gate mode 1) and 12 planted unit mutants all caught. Original-x86 oracle `tests/action_family_38_runtime_original_oracle.py`: the real loader arm `0x40c404` and constructor `0x48905b` run with the allocator returning 0xCD and 0x00; the native image equals the zero-filled original and the two originals differ only outside the constructor's written ranges (3,380 images, 425 corpus rows included); then the real dispatcher/Process/hit-test/draw/finish run 417 scripts (corpus scenes on both fills, random scenes, whole animation cycles, direction and loop options, finish paths, render-table/list/cache exhaustion sinks): 223,307 steps, 220,767 state compares, 139,110 ordered events, 0 mismatches. `tests/action_family_38_runtime_mutation_check.py`: 14 of 16 planted mutants caught by the oracle; the 2 survivors (scene-load skip, handler row-type check) are glue the oracle does not drive and are caught by the unit tests. ASan/UBSan (gcc) pass on the existing 36/37 drivers.
+
+Not verified: the macOS glue (`blackmoor_app.mm`) was not compiled or run (needs the Mac). No corpus row has a nonzero start frame, a sound name or an AUTOTEXT name. The original reads allocator bytes for frame indexes past the table when the start frame is nonzero; native rejects such a draw. The live animation timing (GetTickCount cadence in the running app) is host behaviour. Ledger: no new acceptance (231 ported); evidence pins re-pinned only.
+
+Next: (1) Mac check of the glue and a scripted run of a scene with a 0x38 row. (2) Next family: 0x43 (13 records).
+
 ## Handoff: RT-30 raw 0x67 start-flag runtime (2026-10-16 PDT, cloud thread)
 
 Ranking: 0x67 was the top remaining type by scenes unblocked in `scene-action-coverage.json` (25 scenes, 27 records, 24 scenes where it is the only missing type). Type-level scenes with every row handled: 1,901 to 1,925 of 2,078 (upper bound; the row-level live count needs the Mac). Next in the ranking: 0x38 (25 scenes, 425 records), then 0x43, 0x94, 0xd1.
