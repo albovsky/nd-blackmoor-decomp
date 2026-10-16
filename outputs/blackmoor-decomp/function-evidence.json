@@ -390,7 +390,7 @@
   {"path":"outputs/blackmoor-decomp/tests/action_family_67_runtime_corpus.c","role":"test","sha256":"4117fe73895f2b1602aec247b33d58bb287f429f8e1ebb4570b7e320908db0e4"},
   {"path":"outputs/blackmoor-decomp/tests/action_family_67_runtime_executor.c","role":"test","sha256":"ed839d7a41fb5753a2a9d9a263358a33bc233f1ba81d955a7b3429c4a755c438"},
   {"path":"outputs/blackmoor-decomp/tests/action_family_67_runtime_oracle_driver.c","role":"test","sha256":"a4828edf26b2b8463f6dbebb3e46e19f130d2357269bcd5efb85251390932890"},
-  {"path":"outputs/blackmoor-decomp/tests/action_family_67_runtime_original_oracle.py","role":"oracle_source","sha256":"e15cd35490ceb508f2a2254865a27c0ad17d8f6cb42b16d509c01f2e452d057e"},
+  {"path":"outputs/blackmoor-decomp/tests/action_family_67_runtime_original_oracle.py","role":"oracle_source","sha256":"afa8885d1d7f6cf2bc4d411f575f61fc8690f61f79ce8339024cfd44af07e853"},
   {"path":"outputs/blackmoor-decomp/tests/action_family_67_runtime_test.c","role":"test","sha256":"b40472a10f956fff69848cb2c78ffcaf911c6bdccb12f3742d2b1d0bc7058a40"},
   {"path":"outputs/blackmoor-decomp/tests/action_family_67_sanitizer.c","role":"test","sha256":"a0ea41cb2fd3ed3e539e0423ece8692aa86e466fe22e91ea34e99d59f860ddde"},
   {"path":"outputs/blackmoor-decomp/tests/action_family_68_native_mutation_oracle.py","role":"oracle_source","sha256":"9fa035c3ca3bf754b385f9356993cb7fa5ec358ba2a6e155788bbfc00c529dcf"},

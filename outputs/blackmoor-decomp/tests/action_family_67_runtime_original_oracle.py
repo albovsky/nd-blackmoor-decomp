@@ -214,6 +214,9 @@ class Native:
         lib.a67o_visit.restype = C.c_int
         self.h = lib.a67o_new()
 
+    def sets(self):
+        return self.lib.a67o_sets(self.h)
+
     def close(self):
         self.lib.a67o_free(self.h)
 
@@ -399,6 +402,7 @@ def tick(where, x, nat, rows, first, state, completed, phases, stats):
     if x.finish_entries or x.resets:
         raise Mismatch('%s: the generic completion %s or a dependency reset %s ran for a 0x67 row' % (where, x.finish_entries, x.resets))
     expected_entered, expected = [], []
+    sets_before = nat.sets()
     flags = lambda i: struct.unpack('<i', x.rd(d9.EVENTS_VA + 4 * i, 4))[0]  # noqa: E731  rows never write flags
     if state['mode'] == 3:
         for i in range(first, total):
@@ -422,6 +426,8 @@ def tick(where, x, nat, rows, first, state, completed, phases, stats):
             stats['completions'] += done
             stats['by_subtype'][spec['subtype']] += 1
     stats['gate_model_checks'] += 1
+    if nat.sets() - sets_before != len(x.stores):
+        raise Mismatch('%s: the host sink was called %d times, the original stored the flag %d times' % (where, nat.sets() - sets_before, len(x.stores)))
     stats['rows_entered'] += len(x.entries)
     if x.entries != expected_entered:
         raise Mismatch('%s: the original entered the arm for rows %s, the model expects %s' % (where, x.entries, expected_entered))
@@ -460,6 +466,7 @@ def run_list(x, nat, scs, stats, fail_fast=False):
 MUTANTS = {
     'flag value 0': ('#define SESSION_A67_START_FLAG_VALUE 1', '#define SESSION_A67_START_FLAG_VALUE 0', 'session_bindings_a67.h'),
     'flag value 2': ('#define SESSION_A67_START_FLAG_VALUE 1', '#define SESSION_A67_START_FLAG_VALUE 2', 'session_bindings_a67.h'),
+    'flag reported to the host twice': ('    b->host.set_start_flag(b->host.context, b->start_flag);', '    b->host.set_start_flag(b->host.context, b->start_flag); b->host.set_start_flag(b->host.context, b->start_flag);', 'session_bindings_a67.c'),
     'flag not reported to the host': ('    b->host.set_start_flag(b->host.context, b->start_flag);', '    (void)b->host.set_start_flag;', 'session_bindings_a67.c'),
     'flag set only for subtype 1': ('    b->host.set_start_flag(b->host.context, b->start_flag);', '    if (action->subtype == 1u) b->host.set_start_flag(b->host.context, b->start_flag);', 'session_bindings_a67.c'),
     'flag set only for subtype below 3': ('    b->host.set_start_flag(b->host.context, b->start_flag);', '    if (action->subtype < 3u) b->host.set_start_flag(b->host.context, b->start_flag);', 'session_bindings_a67.c'),
