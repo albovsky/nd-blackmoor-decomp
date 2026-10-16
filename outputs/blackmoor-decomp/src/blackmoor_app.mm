@@ -3945,7 +3945,10 @@ static int native_ad1_clear_item(void *context)
     /* 0x4e8d96 puts the held item back (same effect the 0x3f conversation commits). */
     NativeApp *app = static_cast<NativeApp *>(context);
     int16_t *selected = app != nullptr ? app->new_game.view.inventory.selected_item_candidate : nullptr;
-    if (selected != nullptr) *selected = -1;
+    if (selected == nullptr) return 0;
+    /* 0x4e8d96 = 0x4e9e84(held, 0) then held := -1: the item goes back to the inventory, it is not dropped. */
+    if (*selected != -1 && native_a3f_inventory_add(context, *selected, 0) != 0) return 1;
+    *selected = -1;
     return 0;
 }
 
@@ -5324,20 +5327,30 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
     /* RT-35: the Turning Puzzle. The accepted-release chain runs 0x4b617a on the candidate retained from the
      * previous scan (before this tick's pointer event is handled), then the cascade member 0x4b5d17 hit-tests
      * the pointer; the scan publishes a hit as candidate 0x276c / 0x276d (native_pointer_scan). */
-    if (status == SESSION_INPUT_OK && frame->hotspot_activation_event != 0u && app->ad1 != nullptr &&
-        session_ad1_registered(app->ad1) != 0u && app->session != nullptr) {
+    /* The chain 0x43b287 sits behind the consumed release edge and the normal-mode switch arm only; the 0..239
+     * candidate range of the accept path (0x43bfb6) does not apply, and the puzzle's candidates are 0x276c/0x276d,
+     * so hotspot_activation_event (which carries that range) cannot gate it. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->ad1 != nullptr && session_ad1_registered(app->ad1) != 0u && app->session != nullptr) {
         const D1Object *puzzle = session_ad1_object(app->ad1);
         SceneActionRuntimeState puzzle_state{};
         uint32_t new_phase = 0u;
         if (puzzle != nullptr && puzzle->row >= 0 &&
             scene_session_get_action_state(app->session, static_cast<size_t>(puzzle->row), &puzzle_state) ==
-                SCENE_SESSION_OK &&
-            session_ad1_click(app->ad1, puzzle_state.phase, app->input_state.candidate,
-                              app->start_flag_5bb1ca, &new_phase) == D1_OK &&
-            new_phase == 2u && puzzle_state.phase != 2u) {
-            (void)scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle->row));
-            record(app, "scene_ad1_click row=%d candidate=%d -> phase 2 (0x4b617a)", puzzle->row,
-                   app->input_state.candidate);
+                SCENE_SESSION_OK) {
+            const int click = session_ad1_click(app->ad1, puzzle_state.phase, app->input_state.candidate,
+                                                app->start_flag_5bb1ca, &new_phase);
+            if (click != D1_OK) {
+                record(app, "scene_ad1_click_error row=%d status=%d detail=%s", puzzle->row, click,
+                       session_ad1_failure(app->ad1));
+            } else if (new_phase == 2u && puzzle_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle->row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_ad1_click row=%d candidate=%d -> phase 2 (0x4b617a)", puzzle->row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_ad1_click_error row=%d detail=phase-2-store-refused", puzzle->row);
+            }
         }
     }
     app->ad1_pointer = D1PointerResult{};
