@@ -218,10 +218,10 @@ def item(slice_, field, index, text_sha, address, va):
 def build_evidence():
     fns = {
         0x401000: [p_native("src/fixture_core.c", "fixture_entry"), p_test("test_entry"),
-                   p_oracle(0x401000, 0x401100, "entry"), p_receipt("FIX-1", ["window"])],
+                   p_oracle(0x401000, 0x401100, "entry", "executed"), p_receipt("FIX-1", ["window"])],
         0x401100: [p_native("src/fixture_core.c", "fixture_tests_only"), p_test("test_tests_only")],
         0x401340: [p_native("src/fixture_core.c", "fixture_with_parts"), p_test("test_with_parts"),
-                   p_oracle(0x401340, 0x4014c0, "callee", "observed_hook")],
+                   p_oracle(0x401340, 0x4014c0, "callee", "executed")],
         0x4014c0: [p_native("src/fixture_core.c", "fixture_candidate_e"),
                    p_oracle(0x4014c0, 0x401600, "mapped", "static_scope")],
         0x401600: [p_native("src/fixture_core.c", "fixture_partial"),
@@ -229,7 +229,7 @@ def build_evidence():
         0x401700: [p_mention("src/fixture_core.c", None, [0x401704], "citation"), p_receipt("FIX-2", ["blocker"])],
         0x401900: [p_native("src/fixture_core.c", "fixture_candidate_i"), p_oracle(0x401900, 0x4019f8, "entry")],
         0x401a00: [p_native("src/fixture_core.c", "fixture_rejects"), p_test("test_rejects"),
-                   p_oracle(0x401a00, 0x401af0, "entry")],
+                   p_oracle(0x401a00, 0x401af0, "entry", "executed")],
         0x406000: [p_native("src/fixture_rand.c", "fixture_rand"), p_test("test_rand_adapter")],
     }
     blockers = {0x401900: [item("FIX-1", "unverified_branches", 0, TEXT_U1, 0x401950, 0x401900)],

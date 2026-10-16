@@ -69,6 +69,7 @@ int action0b_load(const uint8_t *body, size_t body_length, Action0bPayload *out,
     return ACTION17_OK;
 }
 
+/* Original GAME.EXE 0x42ae73: the raw 0x0b-family phase handler (phases 0 to 2 and the other-phase path). */
 int action0b_step(const Action0bPayload *payload, uint32_t phase, Action17Slot *slot,
                   Action17World *world, const Action17Host *host, Action17Result *result)
 {

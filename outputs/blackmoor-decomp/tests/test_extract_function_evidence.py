@@ -1057,6 +1057,54 @@ class WindowUseRules(FixtureCase):
         self.assertEqual([p["tail_gap"] for p in w], [0x80])           # span of F0 is 0x100
 
 
+class ExecutedRanges(FixtureCase):
+    """FL-8: function-execution.json turns recorded oracle runs into oracle pointers."""
+    receipts = False
+    ORACLE = "outputs/blackmoor-decomp/tests/alpha_original_oracle.py"
+
+    def write_execution(self, **override):
+        doc = {"schema": "blackmoor-function-execution/1", "original_sha256": sha(make_pe()),
+               "runs": [{"script": self.ORACLE, "script_sha256": sha(oracle_source().encode()), "exit": 0}],
+               "functions": {"0x401000": [0x100, [0, 4, 0x100, 9]],      # whole body executed, entered
+                             "0x401100": [0x100, [0, 1, 0x80, 3]],       # entered, half executed
+                             "0x401200": [0x200, [0, 0, 0x200, 2]]}}     # every byte executed but never entered
+        doc.update(override)
+        (self.fx.out / "function-execution.json").write_text(json.dumps(doc))
+
+    def executed(self, doc, va):
+        return [p for p in pointers(doc, va, "oracle") if p["use_basis"].startswith("executed")]
+
+    def test_full_run_is_an_entry_window_with_the_script_path_and_hash(self):
+        self.write_execution()
+        p, = self.executed(self.fx.derive(), "0x401000")
+        self.assertEqual((p["use"], p["use_basis"], p["verified"]), ("entry", "executed", "recorded_hash"))
+        self.assertEqual((p["path"], p["sha256"]), (self.ORACLE, sha(oracle_source().encode())))
+        self.assertEqual(p["window"], ["0x401000", "0x401100"])
+        self.assertEqual(p["window_sha256"], h(0x401000, 0x401100))
+
+    def test_partial_or_never_entered_run_never_qualifies(self):
+        self.write_execution()
+        doc = self.fx.derive()
+        for va in ("0x401100", "0x401200"):
+            p, = self.executed(doc, va)
+            self.assertEqual((p["use"], p["use_basis"]), ("mapped", "executed_partial"), va)
+
+    def test_run_of_a_changed_script_is_refused(self):
+        self.write_execution(runs=[{"script": self.ORACLE, "script_sha256": "0" * 64, "exit": 0}])
+        with self.assertRaises(fe.EvidenceError) as ctx:
+            self.fx.derive()
+        self.assertIn("does not match the committed script", str(ctx.exception.problems))
+
+    def test_execution_of_another_executable_is_refused(self):
+        self.write_execution(original_sha256="1" * 64)
+        with self.assertRaises(fe.EvidenceError):
+            self.fx.derive()
+
+    def test_no_execution_file_adds_nothing(self):
+        doc = self.fx.derive()
+        self.assertEqual(self.executed(doc, "0x401000"), [])
+
+
 class StartOnlyAndExcludedFiles(FixtureCase):
     receipts = False
 

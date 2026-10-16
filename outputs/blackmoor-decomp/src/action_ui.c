@@ -119,6 +119,7 @@ static void sort_phone_records(ActionUIWorld *world)
     } while (swapped != 0);
 }
 
+/* Original GAME.EXE 0x4e1a7e (control initialiser; function-ledger review FL-8). */
 int action_ui_initialize_controls(ActionUIWorld *world)
 {
     size_t group;
