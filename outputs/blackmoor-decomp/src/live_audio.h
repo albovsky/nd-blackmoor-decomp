@@ -279,6 +279,12 @@ int live_audio_set_channel_flags(LiveAudio *audio, uint16_t channel,
  * and the host is updated for a channel that is playing. */
 int live_audio_set_category_scalar(LiveAudio *audio, uint8_t category,
                                    float scalar);
+/* RT-26 (raw 0x95 Set Volume): replaces a loaded channel's two scalars (kept as given; the final
+ * gain is pinned at full scale), recomputes its gain and re-gains the host for a channel that is
+ * playing. An unloaded channel is a no-op (the next load rewrites both scalars). Loudness follows
+ * this adapter's product-gain contract, not the original's DirectSound dB curve. */
+int live_audio_set_channel_scalars(LiveAudio *audio, uint16_t channel, float first_gain,
+                                   float second_gain);
 int live_audio_get_category_scalar(const LiveAudio *audio, uint8_t category,
                                    float *scalar);
 
