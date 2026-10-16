@@ -12,7 +12,7 @@ mkdir -p "$(dirname "$output")"
 xcrun --sdk macosx clang -arch arm64 -std=c11 \
     -Wall -Wextra -Wpedantic -Werror -O2 -g -fPIC -dynamiclib \
     ${A3F_RUNTIME_CFLAGS:-} \
-    "$source_dir/action_family_3f.c" "$source_dir/action_sound.c" \
+    "$source_dir/action_family_3f.c" "$source_dir/action_family_3e.c" "$source_dir/action_sound.c" \
     "$source_dir/action_family_3f_runtime.c" \
     "$source_dir/session_bindings_a3f.c" "$source_dir/scene_resource.c" \
     "$source_dir/hiff.c" "$source_dir/scene_session.c" \
