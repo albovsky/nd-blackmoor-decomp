@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import oracle_support
+
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT.parents[1]
 WORK = ROOT / "work"
@@ -170,6 +172,7 @@ class InputConsumeNativeTests(unittest.TestCase):
             self.assertLessEqual(base + len(storage), max_address)
 
     def test_original_native_oracle_covers_latch_interleavings(self) -> None:
+        oracle_support.require_oracle_python(ORACLE_PYTHON)
         ORACLE_REPORT.parent.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
             [str(ORACLE_PYTHON), str(ORACLE), "--original", str(WORK / "original/GAME.EXE"),

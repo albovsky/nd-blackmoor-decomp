@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import oracle_support
+
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT.parents[1]
 WORK = ROOT / "work"
@@ -120,9 +122,10 @@ class MatchingS08ThirdX86Tests(unittest.TestCase):
                 auditor.validate_object(obj)
 
     def test_original_and_candidate_match_state_abi_and_mutation_oracles(self) -> None:
+        oracle_python = oracle_support.require_oracle_python(WORK / "tools/oracle-python/bin/python")
         result = subprocess.run(
             [
-                str(WORK / "tools/oracle-python/bin/python"),
+                str(oracle_python),
                 str(ORACLE),
                 "--original", str(ORIGINAL),
                 "--object", str(OBJECT),

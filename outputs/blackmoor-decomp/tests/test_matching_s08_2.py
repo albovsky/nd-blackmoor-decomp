@@ -6,6 +6,8 @@ import subprocess
 import unittest
 from pathlib import Path
 
+import oracle_support
+
 
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT.parents[1]
@@ -73,6 +75,7 @@ class MatchingS08SecondBatchTests(unittest.TestCase):
                 self.assertEqual(variants[name]["exact_byte_range_count"], 0)
 
     def test_original_oracle_matches_native_c_and_rejects_mutants(self) -> None:
+        oracle_support.require_oracle_python(ORACLE_PYTHON)
         result = subprocess.run(
             [str(ORACLE_PYTHON), str(ORACLE), "--original", str(ORIGINAL), "--report", str(ORACLE_REPORT)],
             text=True,
