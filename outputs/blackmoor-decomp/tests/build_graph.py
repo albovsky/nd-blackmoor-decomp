@@ -68,6 +68,7 @@ GAME_ARGUMENT = "work/original/GAME.EXE"
 EXTRA_INVOCATIONS: Dict[str, List[List[str]]] = {
     "build_native_app.sh": [["--test-hooks"]],
     "build_live_audio.sh": [["lib"], ["sanitize"]],
+    "build_live_audio_restart.sh": [["sanitize"]],
     "build_session_conditions.sh": [["fixture"]],
     "build_action_family_35_runtime.sh": [["--test-driver"], ["--sanitize"]],
     "build_scene_executor.sh": [["--test-hooks"]],
