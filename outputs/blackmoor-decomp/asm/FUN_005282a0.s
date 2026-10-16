@@ -1,0 +1,37 @@
+# FUN_005282a0
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x005282a0
+# extent:       0x005282a0-0x005282af (15 code bytes)
+# span:         0x005282a0-0x005282af (code 15, tables 0, padding 0)
+# sha256:       c26da5d2e1317be532b91f134214fe6537fcdffd3b9454fe798935f9e9c2b6a6
+# evidence:     ev_7a152dca5b4d4270e26c3d32ca1ad001d44bfc411ed4e2c4ce09c304a9d9da5d
+# region:       crt_mfc
+# frame:        none
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_005282a0
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
+# locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
+# fields:       [ebp + n] field_minus_10
+# callees:      calls FUN_004e1c83
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 4 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# note:         further_unindexed_code_at:0x005282af
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ field_minus_10, 0x10  # offset -0x10
+
+# --- external targets -----------------------------------------------
+.set FUN_004e1c83, .text + (0x004e1c83 - 0x401000)
+
+.org 0x005282a0 - 0x401000
+.globl FUN_005282a0
+FUN_005282a0:
+    # block 0x005282a0: entry, 4 instruction(s), calls FUN_004e1c83, ends with ret
+    mov ecx, dword ptr [ebp - field_minus_10]    # 005282a0
+    add ecx, 0x1a6                               # 005282a3
+    call FUN_004e1c83                            # 005282a9
+    ret                                          # 005282ae
+

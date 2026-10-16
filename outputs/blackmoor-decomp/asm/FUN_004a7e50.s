@@ -1,0 +1,102 @@
+# FUN_004a7e50
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x004a7e50
+# extent:       0x004a7e50-0x004a7f08 (184 code bytes)
+# span:         0x004a7e50-0x004a7f08 (code 184, tables 0, padding 0)
+# sha256:       73a00d2a6867a7848f5bf555ae0d1ed2e285c012cb704a0590646f1439abc4e4
+# evidence:     ev_f8b80bcdfd5ca2ee198de08d56d1d294d47bc0bea221b480c34a35dbdce25af4
+# region:       game
+# frame:        ebp
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_004a7e50
+# arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
+# locals:       2 ebp-relative slot(s): local_4, local_8
+# fields:       none: no register-relative displacement below 0x400000 other than frame slots
+# callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_0044a2b7
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 56 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ local_4, 0x4  # offset -0x4
+.equ local_8, 0x8  # offset -0x8
+.equ arg_8, 0x8  # offset +0x8
+.equ arg_c, 0xc  # offset +0xc
+.equ arg_10, 0x10  # offset +0x10
+
+# --- external targets -----------------------------------------------
+.set FUN_0042639d, .text + (0x0042639d - 0x401000)
+.set FUN_0044a2b7, .text + (0x0044a2b7 - 0x401000)
+.set FUN_004c97b4, .text + (0x004c97b4 - 0x401000)
+.set FUN_0050ca3e, .text + (0x0050ca3e - 0x401000)
+.set FUN_0051dc43, .text + (0x0051dc43 - 0x401000)
+
+.org 0x004a7e50 - 0x401000
+.globl FUN_004a7e50
+FUN_004a7e50:
+    # block 0x004a7e50: entry, 15 instruction(s), calls FUN_0051dc43, ends with jne to 0x004a7eb7 (forward)
+    push ebp                                     # 004a7e50
+    {load} mov ebp, esp                          # 004a7e51
+    sub esp, 0x8                                 # 004a7e53
+    push esi                                     # 004a7e56
+    push edi                                     # 004a7e57
+    mov dword ptr [ebp - local_8], ecx           # 004a7e58
+    push 0x44c                                   # 004a7e5b
+    call FUN_0051dc43                            # 004a7e60
+    add esp, 0x4                                 # 004a7e65
+    mov dword ptr [ebp - local_4], eax           # 004a7e68
+    mov eax, dword ptr [ebp + arg_8]             # 004a7e6b
+    mov ecx, dword ptr [ebp - local_4]           # 004a7e6e
+    mov dword ptr [eax], ecx                     # 004a7e71
+    cmp dword ptr [ebp - local_4], 0x0           # 004a7e73
+    jne.d8 L_004a7eb7                            # 004a7e77
+    # block 0x004a7e79: entered by fall-through of jne at 0x004a7e77, 14 instruction(s), calls FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, falls into the block at 0x004a7eb7
+    movsx edx, word ptr [0x5c39e3]               # 004a7e79
+    push edx                                     # 004a7e80
+    mov eax, dword ptr [0x5bb57b]                # 004a7e81
+    push eax                                     # 004a7e86
+    push 0x550b2c                                # 004a7e87
+    push 0x63888b                                # 004a7e8c
+    call FUN_0050ca3e                            # 004a7e91
+    add esp, 0x10                                # 004a7e96
+    push 0x63888b                                # 004a7e99
+    push 0x550b58                                # 004a7e9e
+    mov ecx, 0x583979                            # 004a7ea3
+    call FUN_0042639d                            # 004a7ea8
+    mov ecx, 0x5cf659                            # 004a7ead
+    call FUN_004c97b4                            # 004a7eb2
+L_004a7eb7:
+    # block 0x004a7eb7: entered by jne at 0x004a7e77, 19 instruction(s), ends with je to 0x004a7f00 (forward)
+    mov ecx, dword ptr [ebp + arg_c]             # 004a7eb7
+    mov esi, dword ptr [ecx]                     # 004a7eba
+    mov edx, dword ptr [ebp + arg_8]             # 004a7ebc
+    mov edi, dword ptr [edx]                     # 004a7ebf
+    mov ecx, 0x113                               # 004a7ec1
+    rep movsd dword ptr es:[edi], dword ptr [esi] # 004a7ec6
+    mov eax, dword ptr [ebp + arg_10]            # 004a7ec8
+    mov ecx, dword ptr [eax]                     # 004a7ecb
+    add ecx, 0x44c                               # 004a7ecd
+    mov edx, dword ptr [ebp + arg_10]            # 004a7ed3
+    mov dword ptr [edx], ecx                     # 004a7ed6
+    mov eax, dword ptr [ebp + arg_c]             # 004a7ed8
+    mov ecx, dword ptr [eax]                     # 004a7edb
+    add ecx, 0x44c                               # 004a7edd
+    mov edx, dword ptr [ebp + arg_c]             # 004a7ee3
+    mov dword ptr [edx], ecx                     # 004a7ee6
+    movsx eax, word ptr [0x63a4cd]               # 004a7ee8
+    test eax, eax                                # 004a7eef
+    je.d8 L_004a7f00                             # 004a7ef1
+    # block 0x004a7ef3: entered by fall-through of je at 0x004a7ef1, 3 instruction(s), calls FUN_0044a2b7, falls into the block at 0x004a7f00
+    push 0x550b74                                # 004a7ef3
+    call FUN_0044a2b7                            # 004a7ef8
+    add esp, 0x4                                 # 004a7efd
+L_004a7f00:
+    # block 0x004a7f00: entered by je at 0x004a7ef1, 5 instruction(s), ends with ret 0xc
+    pop edi                                      # 004a7f00
+    pop esi                                      # 004a7f01
+    {load} mov esp, ebp                          # 004a7f02
+    pop ebp                                      # 004a7f04
+    ret 0xc                                      # 004a7f05
+

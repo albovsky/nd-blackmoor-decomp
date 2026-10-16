@@ -137,6 +137,58 @@ class RecorderTests(unittest.TestCase):
                 rfe.XREFS, rfe.WORKSPACE = saved
         self.assertEqual(model["functions"]["0x401000"], [8, [0, 1, 8, 1]])
 
+    def symlinked_workspace(self, scratch: Path):
+        """A workspace reached through a symlink created here (not through macOS's /var layout)."""
+        real = scratch / "real"
+        (real / "outputs").mkdir(parents=True)
+        (real / "outputs/x_oracle.py").write_text("pass\n")
+        link = scratch / "link"
+        link.symlink_to(real, target_is_directory=True)
+        traces = scratch / "tr"
+        traces.mkdir()
+        (traces / "runs.json").write_text(json.dumps(
+            [{"script": "outputs/x_oracle.py", "exit": 0, "seconds": 0.1, "tail": ""}]))
+        xrefs = scratch / "xrefs.json"
+        xrefs.write_text(json.dumps({"original_sha256": "0" * 64,
+                                     "entries": [{"va": "0x00401000", "span": 16, "code_size": 11}]}))
+        return real, link, traces, xrefs
+
+    def derive_with(self, xrefs, traces, root):
+        saved = rfe.XREFS
+        rfe.XREFS = xrefs
+        try:
+            return rfe.derive(traces, root)
+        finally:
+            rfe.XREFS = saved
+
+    def test_a_script_reached_through_a_symlinked_workspace_is_still_a_run(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            real, link, traces, xrefs = self.symlinked_workspace(Path(scratch))
+            # the recorder spells the key with os.path.abspath, which keeps the symlink
+            (traces / "1-0.json").write_text(json.dumps({"pid": 1, "argv": [], "outcomes": {}, "traces": {
+                str(link / "outputs/x_oracle.py"): [[0x401000, 5, 2], [0x401005, 5, 2], [0x40100a, 1, 2]]}}))
+            for root in (link, real):
+                model = self.derive_with(xrefs, traces, root)
+                self.assertEqual([r["script"] for r in model["runs"]], ["outputs/x_oracle.py"])
+                self.assertEqual(model["functions"]["0x401000"], [11, [0, 2, 11, 6]])
+
+    def test_two_spellings_of_one_script_are_one_run_with_summed_hits(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            real, link, traces, xrefs = self.symlinked_workspace(Path(scratch))
+            (traces / "1-0.json").write_text(json.dumps({"pid": 1, "argv": [], "outcomes": {}, "traces": {
+                str(link / "outputs/x_oracle.py"): [[0x401000, 5, 2], [0x401005, 5, 2]]}}))
+            (traces / "2-0.json").write_text(json.dumps({"pid": 2, "argv": [], "outcomes": {}, "traces": {
+                str(real / "outputs/x_oracle.py"): [[0x401000, 5, 3], [0x40100a, 1, 3]]}}))
+            model = self.derive_with(xrefs, traces, link)
+        self.assertEqual(len(model["runs"]), 1)
+        self.assertEqual(model["runs"][0]["instructions"], 3)
+        self.assertEqual(model["runs"][0]["hits"], 2 + 2 + 3 + 3)
+        self.assertEqual(model["functions"]["0x401000"], [11, [0, 5, 11, 10]])
+
+    def test_non_absolute_keys_stay_unmatched(self):
+        self.assertEqual(rfe.canonical_key("test_x.Case.test_y"), "test_x.Case.test_y")
+        self.assertEqual(rfe.merge_spellings({"label": {1: [2, 3]}}), {"label": {1: [2, 3]}})
+
     def test_a_failed_run_is_not_evidence(self):
         with tempfile.TemporaryDirectory() as scratch:
             scratch = Path(scratch)

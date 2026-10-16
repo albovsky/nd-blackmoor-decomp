@@ -45,6 +45,7 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 |---|---|---|
 | M02 | [Whole-file skeleton and image composer](tasks/M02-whole-file-skeleton-and-composer.md) | New `image/` sources, composer script, tests, private M02.* evidence |
 | M03 | [Hinted assembly generator and first reviewed batch](tasks/M03-hinted-assembly-generator-and-first-batch.md) | New generator/audit scripts, `asm/` batch sources, tests, private M03.* evidence |
+| M04 | Machine annotation of every remaining indexed function (batches 003-008, `scripts/annotate_machine.py`, auditor `annotation: machine` mode; Glib's ruling of 2026-10-15) | `asm/` batch sources and reports, `scripts/annotate_machine.py`, auditor machine mode |
 
 ## Runtime path (RT) slices, 2026-10-14
 

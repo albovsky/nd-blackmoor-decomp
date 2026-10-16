@@ -134,6 +134,31 @@ def load_traces(trace_dir: Path):
     return merged, outcomes
 
 
+def canonical_key(key: str) -> str:
+    """Spell an absolute trace key with its directory symlinks resolved (the file name is kept).
+
+    The recorder keys a run by os.path.abspath(sys.argv[0]), which keeps symlinks (macOS temporary
+    directories live under the symlink /var -> /private/var, and the worktrees reach work/ through
+    one), while derive() matches keys against a resolved workspace root.  Keys that are not absolute
+    (unittest ids, labels) are returned unchanged and so never match the workspace prefix."""
+    if not os.path.isabs(key):
+        return key
+    head, tail = os.path.split(key)
+    return os.path.join(os.path.realpath(head), tail)
+
+
+def merge_spellings(merged: dict) -> dict:
+    """Merge the tables of keys that name the same script through different spellings (sizes from
+    either, hits summed), so one script stays one run."""
+    result: dict[str, dict[int, list[int]]] = {}
+    for key, table in merged.items():
+        target = result.setdefault(canonical_key(key), {})
+        for address, (size, hits) in table.items():
+            cell = target.setdefault(address, [size, 0])
+            cell[1] += hits
+    return result
+
+
 def canonical_trace_hash(table: dict[int, list[int]]) -> str:
     digest = hashlib.sha256()
     for address in sorted(table):
@@ -156,6 +181,7 @@ def derive(trace_dir: Path, root: Path) -> dict:
     runs_file = trace_dir / "runs.json"
     runs_table = {r["script"]: r for r in json.loads(runs_file.read_text())} if runs_file.exists() else {}
     merged, _ = load_traces(trace_dir)
+    merged = merge_spellings(merged)
     prefix = str(root.resolve()) + os.sep
     runs, per_function = [], {}
     for key in sorted(merged):
