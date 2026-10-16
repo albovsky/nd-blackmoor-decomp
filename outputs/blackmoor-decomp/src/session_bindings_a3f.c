@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "action_family_3e.h"
 #include "action_family_3f.h"
 
 typedef enum { ROW_NONE = 0, ROW_READY, ROW_BAD, ROW_RELEASED } RowState;
@@ -62,12 +63,14 @@ static void clear_rows(SessionA3fBinding *b)
 void session_a3f_destroy(SessionA3fBinding *b)
 {
     if (b != NULL) {
+        (void)convo3f_cel_release_all(&b->manager, &b->host.kernel, &b->failure);
         clear_rows(b);
         free(b);
     }
 }
 
-static void resolve(const SessionA3fBinding *b, const uint8_t *key, ActionFamily3fText *out)
+static void resolve(const SessionA3fBinding *b, const uint8_t *key, const uint8_t **bytes,
+                    size_t *length_out)
 {
     const uint8_t *text = NULL;
     size_t length = 0u;
@@ -75,11 +78,11 @@ static void resolve(const SessionA3fBinding *b, const uint8_t *key, ActionFamily
         b->host.resolve_text(b->host.kernel.context, key, strlen((const char *)key), &text,
                              &length) == 0 &&
         (text != NULL || length == 0u)) {
-        out->bytes = text;
-        out->length = length;
+        *bytes = text;
+        *length_out = length;
     } else {
-        out->bytes = MISSING_TEXT;
-        out->length = sizeof(MISSING_TEXT) - 1u;
+        *bytes = MISSING_TEXT;
+        *length_out = sizeof(MISSING_TEXT) - 1u;
     }
 }
 
@@ -101,11 +104,11 @@ static int build_row(const SessionA3fBinding *b, const SceneActionInfo *info, A3
         row->reason = "text table allocation failed";
         return 0;
     }
-    resolve(b, d.text_key, &texts[0]);
+    resolve(b, d.text_key, &texts[0].bytes, &texts[0].length);
     record = d.primary_records;
     for (i = 0; i < (size_t)d.primary_count; ++i) {
         const size_t conditions = (size_t)record[0] * 5u;
-        resolve(b, record + 2u + conditions, &texts[i + 1u]);
+        resolve(b, record + 2u + conditions, &texts[i + 1u].bytes, &texts[i + 1u].length);
         record += 70u + conditions;
     }
     status = action_family_3f_construct(info->raw_body, info->raw_body_length, texts,
@@ -128,6 +131,59 @@ static int build_row(const SessionA3fBinding *b, const SceneActionInfo *info, A3
                                         row->arena, row->arena_bytes, &built);
     free(texts);
     if (status != ACTION_FAMILY_3F_OK) {
+        free(row->arena);
+        row->arena = NULL;
+        row->reason = "object construction failed";
+        return 0;
+    }
+    return 1;
+}
+
+static int build_row_3e(const SessionA3fBinding *b, const SceneActionInfo *info, A3fRow *row)
+{
+    ActionFamily3eDecoded d;
+    ActionFamily3eText *texts;
+    ActionFamily3eConstructed layout, built;
+    const uint8_t *record;
+    size_t i;
+    int status;
+    status = action_family_3e_decode(info->raw_body, info->raw_body_length, &d);
+    if (status != ACTION_FAMILY_3E_OK) {
+        row->reason = "raw 0x3e body rejected by the typed decoder";
+        return 0;
+    }
+    texts = (ActionFamily3eText *)calloc((size_t)d.primary_count + 1u, sizeof(*texts));
+    if (texts == NULL) {
+        row->reason = "text table allocation failed";
+        return 0;
+    }
+    resolve(b, d.text_key, &texts[0].bytes, &texts[0].length);
+    record = d.primary_records;
+    for (i = 0; i < (size_t)d.primary_count; ++i) {
+        const size_t conditions = (size_t)record[0] * 5u;
+        resolve(b, record + 2u + conditions, &texts[i + 1u].bytes, &texts[i + 1u].length);
+        record += 70u + conditions;
+    }
+    status = action_family_3e_construct(info->raw_body, info->raw_body_length, texts,
+                                        (size_t)d.primary_count + 1u, 0u, ARENA_HANDLE_BASE, NULL,
+                                        0u, &layout);
+    if (status != ACTION_FAMILY_3E_OK) {
+        free(texts);
+        row->reason = "resolved text does not fit its object field (or layout rejected)";
+        return 0;
+    }
+    row->arena = (uint8_t *)calloc(layout.arena_bytes, 1u);
+    if (row->arena == NULL) {
+        free(texts);
+        row->reason = "object arena allocation failed";
+        return 0;
+    }
+    row->arena_bytes = layout.arena_bytes;
+    status = action_family_3e_construct(info->raw_body, info->raw_body_length, texts,
+                                        (size_t)d.primary_count + 1u, 0u, ARENA_HANDLE_BASE,
+                                        row->arena, row->arena_bytes, &built);
+    free(texts);
+    if (status != ACTION_FAMILY_3E_OK) {
         free(row->arena);
         row->arena = NULL;
         row->reason = "object construction failed";
@@ -160,14 +216,24 @@ int session_a3f_begin_scene(SessionA3fBinding *b, const SceneResource *scene)
             b->failure = "0x3f scene row unreadable";
             return CONVO3F_ERR_BOUNDS;
         }
-        if (info.type != SESSION_A3F_TYPE) {
+        if (info.type != SESSION_A3F_TYPE && info.type != SESSION_A3E_TYPE) {
             continue;
         }
-        rows[i].state = build_row(b, &info, &rows[i]) ? ROW_READY : ROW_BAD;
+        rows[i].state = (info.type == SESSION_A3E_TYPE ? build_row_3e(b, &info, &rows[i])
+                                                       : build_row(b, &info, &rows[i]))
+                            ? ROW_READY
+                            : ROW_BAD;
     }
     clear_rows(b);
     b->rows = rows;
     b->count = count;
+    /* Native cleanup: a cel row in flight when the scene is replaced (see convo3f_cel_release_all). */
+    {
+        const int released = convo3f_cel_release_all(&b->manager, &b->host.kernel, &b->failure);
+        if (released != CONVO3F_OK) {
+            return released; /* the old reader, layers or header block are still held: keep the manager state */
+        }
+    }
     convo3f_manager_reset(&b->manager);
     /* Scene replacement drops a conversation in flight: the original loaders and teardown
      * store 0 to [0x5c39e9]/[0x5c39ed] (0x43e3de, 0x4385c4, 0x422867). */
@@ -191,7 +257,8 @@ int session_a3f_handler(void *context, size_t index, const SceneActionInfo *acti
     if (b == NULL) {
         return SCENE_ACTION_HANDLER_ERROR;
     }
-    if (action == NULL || before == NULL || out == NULL || action->type != SESSION_A3F_TYPE ||
+    if (action == NULL || before == NULL || out == NULL ||
+        (action->type != SESSION_A3F_TYPE && action->type != SESSION_A3E_TYPE) ||
         index >= b->count || b->rows[index].state == ROW_NONE) {
         b->failure = "0x3f row not owned";
         return SCENE_ACTION_HANDLER_ERROR;
@@ -221,8 +288,8 @@ int session_a3f_handler(void *context, size_t index, const SceneActionInfo *acti
     object.arena_bytes = row->arena_bytes;
     object.handle_base = ARENA_HANDLE_BASE;
     b->failure = "none";
-    status = convo3f_step(&b->manager, &object, (int32_t)index, before->phase, &b->world,
-                          &b->host.kernel, &result, &b->failure);
+    status = convo3f_step_type(&b->manager, &object, action->type, (int32_t)index, before->phase,
+                               &b->world, &b->host.kernel, &result, &b->failure);
     if (status == CONVO3F_ERR_UNSUPPORTED) {
         return SCENE_ACTION_HANDLER_UNSUPPORTED;
     }
@@ -263,6 +330,46 @@ int session_a3f_handler(void *context, size_t index, const SceneActionInfo *acti
         out->phase = result.phase_after;
     }
     return SCENE_ACTION_HANDLER_OK;
+}
+
+int session_a3f_cel_active(const SessionA3fBinding *b)
+{
+    return b != NULL && b->manager.cel_thread != 0;
+}
+
+int session_a3f_cel_reader_pass(SessionA3fBinding *b, int *ran)
+{
+    if (b == NULL) {
+        return CONVO3F_ERR_ARGUMENT;
+    }
+    return convo3f_cel_reader_iteration(&b->manager, &b->host.kernel, ran, &b->failure);
+}
+
+int session_a3f_cel_render(SessionA3fBinding *b, Convo3fRenderPlan *plan)
+{
+    A3fRow *row;
+    Convo3fObject object;
+    int status;
+    if (b == NULL || plan == NULL) {
+        return -1;
+    }
+    memset(plan, 0, sizeof(*plan));
+    if (b->manager.type != SESSION_A3E_TYPE || b->manager.cel_thread == 0 || b->world.ui_5d191d == 0 ||
+        b->manager.row < 0 || (size_t)b->manager.row >= b->count) {
+        return 0;
+    }
+    row = &b->rows[b->manager.row];
+    if (row->state != ROW_READY || b->host.load_world == NULL ||
+        b->host.load_world(b->host.kernel.context, &b->world) != 0) {
+        b->failure = "cel render: row or world provider unavailable";
+        return -1;
+    }
+    object.arena = row->arena;
+    object.arena_bytes = row->arena_bytes;
+    object.handle_base = ARENA_HANDLE_BASE;
+    b->failure = "none";
+    status = convo3f_cel_render(&b->manager, &object, &b->world, &b->host.kernel, plan, &b->failure);
+    return status == CONVO3F_OK ? 1 : -1;
 }
 
 const char *session_a3f_failure(const SessionA3fBinding *b)

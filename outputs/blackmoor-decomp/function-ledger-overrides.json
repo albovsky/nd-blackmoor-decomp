@@ -461,6 +461,56 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Read branch for branch against the pseudocode. Tests only, no oracle; kind 1 chains in t_condition_chain, kind 2 compares in other tests of that file. Native adds bounds errors and an out-parameter."
+  },
+  {
+   "va": "0x41dfd2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet RT-25, slice-reviewer diff review, root accepted",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_evict_pass"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_reader_rules"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x41dfd2",
+     "0x41e043"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Cel video cache eviction pass. RT-25 oracle runs the original, every byte executed, compared after every effect. Native loop bound is the clamped capacity."
+  },
+  {
+   "va": "0x41e1e4",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet RT-25, slice-reviewer diff review, root accepted",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_find_slot"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_reader_rules"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x41e1e4",
+     "0x41e250"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Cel video cache lookup by frame. RT-25 oracle runs the original, every byte executed, compared after every effect. Native loop bound is the clamped capacity."
   }
  ],
  "not_needed_entries": [

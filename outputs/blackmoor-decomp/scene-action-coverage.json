@@ -1,7 +1,7 @@
 {
   "schema": "blackmoor-scene-action-coverage/1",
   "scenes": 2078,
-  "scenes_all_rows_handled": 1559,
+  "scenes_all_rows_handled": 1729,
   "handled_types": [
     "0x0a",
     "0x0b",
@@ -14,6 +14,7 @@
     "0x35",
     "0x36",
     "0x37",
+    "0x3e",
     "0x3f",
     "0x4d",
     "0x51",
@@ -34,16 +35,10 @@
   ],
   "missing_types": [
     {
-      "type": "0x3e",
-      "scenes": 173,
-      "records": 202,
-      "sole_blocker_scenes": 170
-    },
-    {
       "type": "0x95",
       "scenes": 64,
       "records": 123,
-      "sole_blocker_scenes": 52
+      "sole_blocker_scenes": 55
     },
     {
       "type": "0x4f",
@@ -293,11 +288,6 @@
     }
   ],
   "greedy_order": [
-    {
-      "type": "0x3e",
-      "scenes_unblocked": 170,
-      "scenes_complete": 1729
-    },
     {
       "type": "0x95",
       "scenes_unblocked": 55,
