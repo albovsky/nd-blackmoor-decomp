@@ -357,17 +357,38 @@ class ExtensionTests(unittest.TestCase):
                           self.calls[2]["sample"]), (0, 0, 1234, 45))
         self.lib.scene_conditions_reset_traversal(None)
 
+    class _Node(c.Structure):
+        # mirror of SceneConditionNode / SceneConditionTree in src/scene_conditions.c
+        _fields_ = [("kind", c.c_int), ("parent", c.c_size_t), ("first_child", c.c_size_t),
+                    ("last_child", c.c_size_t), ("next_sibling", c.c_size_t), ("child_count", c.c_size_t),
+                    ("opcode", c.c_int16), ("fields", c.c_int16 * 8), ("or_after", c.c_int16),
+                    ("status", c.c_int32), ("time_value", c.c_int32), ("time_end_value", c.c_int32),
+                    ("source_record", c.c_size_t)]
+
+    @classmethod
+    def _nodes(cls, tree):
+        class Tree(c.Structure):
+            _fields_ = [("nodes", c.POINTER(cls._Node)), ("node_count", c.c_size_t),
+                        ("record_count", c.c_size_t), ("root", c.c_size_t)]
+        t = c.cast(tree, c.POINTER(Tree)).contents
+        return t.nodes, t.node_count, t.root
+
     def test_reset_entry_0x423d33_with_and_without_records(self):
-        """scene_conditions_reset (0x423d33): records present -> traversal; no records -> root status 1 only."""
+        """scene_conditions_reset (0x423d33): records present -> root status 0 and the 0x423da2 traversal;
+        no records -> root status 1 and nothing else."""
         tree = self.build([record(20, 0, 50)])
-        ext = self.extension(lambda r, s: (OK, 1, 0))
-        self.evaluate(tree, ext)
+        nodes, count, root = self._nodes(tree)
+        self.assertEqual(count, 2)
+        for index in range(count):
+            nodes[index].status = 7
         self.lib.scene_conditions_reset(tree)
-        self.evaluate(tree, ext)
-        self.assertEqual(self.calls[1]["preset"], 0)
+        self.assertEqual([nodes[index].status for index in range(count)], [0, 0])
         empty = self.build([])
+        nodes, count, root = self._nodes(empty)
+        self.assertEqual(count, 1)
+        nodes[root].status = 5
         self.lib.scene_conditions_reset(empty)
-        self.assertEqual(self.evaluate(empty, None)[:2], (OK, 1))
+        self.assertEqual(nodes[root].status, 1)
         self.lib.scene_conditions_reset(None)
 
     def test_reset_preserves_the_selected_item_slot(self):

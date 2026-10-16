@@ -786,7 +786,7 @@ static void cel_set_target(Convo3fCel *c)
  * 0x5d191d.  The original takes one unused stack argument (ret 4). */
 static void cel_announce(Convo3fCel *c, Convo3fWorld *w)
 {
-    (void)w; /* only written on a change; the mutation checks drop that store and must still compile */
+    (void)w; /* keeps the mutation checks, which drop the store below, compiling */
     if (c->drawn != c->target) {
         c->drawn = c->target;
         w->ui_5d191d = 1;

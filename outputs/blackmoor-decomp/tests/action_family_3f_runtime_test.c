@@ -711,6 +711,42 @@ static void t_list_overflow_and_retention(void)
     CHECK(step(&f, 0) == CONVO3F_OK && f.m.response_count == 3 && resp_is(&f, 0, "ask about the key"));
     fx_free(&f);
 }
+static void t_list_full_replace_and_remove(void)
+{
+    /* replace_response (0x41fd08) and remove_response (0x42028e) on a full 30-entry list: a found replace
+     * compacts to 29 then appends (30 again, later entries shifted down), a missing replace on a full list
+     * is dropped, and removing the last entry just lowers the count. */
+    Spec sp; Fx f; int i;
+    static char texts[40][24];
+    spec_default(&sp);
+    sp.np = 33;
+    for (i = 0; i < 33; ++i) {
+        snprintf(texts[i], sizeof texts[i], "line %d", i);
+        sp.p[i].text = texts[i]; sp.p[i].scene = (int16_t)(100 + i); sp.p[i].sound = "";
+    }
+    sp.p[30].text = "LINE 5"; sp.p[30].scene = 500;       /* kind 1, found (case-insensitive) */
+    sp.p[31].text = "Brand new";                          /* kind 1, not found, list full: dropped */
+    sp.p[32].text = "line 5";                             /* kind 2: the entry just appended, last */
+    fx_build(&f, &sp);
+    pentry(&f, 30)[C3F_PE_KIND] = 1;
+    pentry(&f, 31)[C3F_PE_KIND] = 1;
+    pentry(&f, 32)[C3F_PE_KIND] = 2;
+    CHECK(step(&f, 0) == CONVO3F_OK);
+    CHECK(f.m.response_count == 29);
+    CHECK(resp_is(&f, 4, "line 4") && resp_is(&f, 5, "line 6") && f.m.responses[5].scene == 106);
+    CHECK(resp_is(&f, 28, "line 29") && f.m.responses[28].scene == 129);
+    CHECK(resp_is(&f, 4, "line 4") && f.m.responses[4].scene == 104);
+    fx_free(&f);
+    /* the same replace without the final removal leaves 30 entries with the new one last */
+    sp.np = 32;
+    fx_build(&f, &sp);
+    pentry(&f, 30)[C3F_PE_KIND] = 1;
+    pentry(&f, 31)[C3F_PE_KIND] = 1;
+    CHECK(step(&f, 0) == CONVO3F_OK);
+    CHECK(f.m.response_count == 30);
+    CHECK(resp_is(&f, 29, "line 5") && f.m.responses[29].scene == 500 && resp_is(&f, 5, "line 6"));
+    fx_free(&f);
+}
 static void t_tier_b_needs_ui(void)
 {
     Spec sp = tierb_spec(); Fx f;
@@ -895,7 +931,7 @@ int main(void)
         T(t_default_transition_and_completion), T(t_no_transition), T(t_pop_paths),
         T(t_secondary_flags), T(t_condition_chain), T(t_tier_c_unsupported),
         T(t_missing_sound_backend), T(t_captions), T(t_bounds_and_ownership),
-        T(t_list_conditions), T(t_list_kinds_and_duplicates), T(t_list_overflow_and_retention),
+        T(t_list_conditions), T(t_list_kinds_and_duplicates), T(t_list_overflow_and_retention), T(t_list_full_replace_and_remove),
         T(t_tier_b_needs_ui), T(t_tier_b_selection_and_response_sound),
         T(t_tier_b_event_write_and_exit), T(t_tier_b_refusals), T(t_row_release_and_rerun),
         T(t_malformed_arena_fuzz)

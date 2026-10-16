@@ -1071,7 +1071,7 @@
      "rationale": "Item concerns generic opcode construction after 0x424c94; 0x423d37 is only its cited gate address, so it does not touch the reset entry accepted here."
     }
    ],
-   "note": "0x423d33 entry only (split from the old combined reset): no records sets root 1, else root 0 then traversal 0x423da2. Debug arm and 0x4234c8 stack clear not modelled; tests-only since oracles execute 73 of 111 bytes."
+   "note": "0x423d33 entry only: no records sets root 1, else root 0 then 0x423da2. Not modelled: debug arm, 0x4234c8 stack clear, 128-deep stack limit. Tests-only: oracles execute 73 of 111 bytes (function-execution.json)."
   },
   {
    "va": "0x423da2",
@@ -1090,7 +1090,7 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Flat pass instead of stack and recursion (same node set): +0x4 and leaf +0x2c zeroed, +0x20/+0x30 kept. Error and debug text not modelled; tests-only since oracles execute at most 269 of 437 bytes."
+   "note": "Flat pass, same node set: +0x4 and leaf +0x2c zeroed, +0x20/+0x30 kept; also zeroes the root (0x423d33 does that). Not modelled: error and debug text, 128-deep stack. Tests-only: oracles run at most 269 of 437 bytes."
   },
   {
    "va": "0x422970",
@@ -1197,11 +1197,15 @@
     {
      "path": "tests/action_family_3f_runtime_test.c",
      "test_id": "t_list_kinds_and_duplicates"
+    },
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_full_replace_and_remove"
     }
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Extracted from build_list case 1 (no behaviour change): remove the same-text entry (compact), then append with the 30-entry limit. Text compares via convo3f_text_equal (0x50d550); the overflow debug line is not modelled. No executed oracle."
+   "note": "Extracted from build_list case 1: drop the same-text entry, then append (30 limit). Static, so the original's other callers are not routed here. Text compare is convo3f_text_equal; no whole-function receipt, so tests-only."
   },
   {
    "va": "0x42028e",
@@ -1216,11 +1220,15 @@
     {
      "path": "tests/action_family_3f_runtime_test.c",
      "test_id": "t_list_kinds_and_duplicates"
+    },
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_full_replace_and_remove"
     }
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Extracted from build_list case 2 (no behaviour change): remove the same-text entry by compaction, count - 1 clamped at 0. Text compares via convo3f_text_equal (0x50d550). No executed oracle."
+   "note": "Extracted from build_list case 2: drop the same-text entry (count - 1, min 0). Static, so the original's other callers are not routed here. Text compare is convo3f_text_equal; no whole-function receipt, so tests-only."
   },
   {
    "va": "0x4dcdd3",
@@ -1235,6 +1243,10 @@
     {
      "path": "tests/test_avf_player.py",
      "test_id": "AvfPlayerTests.test_partner_sound_gate_and_skip"
+    },
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_partner_step_direction_2_without_sound_finishes_at_first"
     }
    ],
    "oracle": null,
@@ -1348,12 +1360,12 @@
    "tests": [
     {
      "path": "tests/test_avf_player.py",
-     "test_id": "AvfPlayerTests.test_movie_step_index_clamps_to_last_in_both_directions"
+     "test_id": "AvfPlayerTests.test_movie_step_index_steps_and_clamps_per_direction"
     }
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Index step clamped to last; the new test covers both directions with first = last. No oracle executes it whole."
+   "note": "Direction 1 steps up and clamps at last; otherwise steps down and clamps at first. The new test covers both clamps with first 0 and last 3. No oracle executes it whole."
   },
   {
    "va": "0x4ce602",
@@ -1372,7 +1384,7 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Matches line by line. Seams: surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted; config.last is fixed at start (original re-reads per record)."
+   "note": "Matches line by line. Seams: surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted; the 0x4cec6c guards (+0x222, +0x226, +0x246) are not mirrored. Tests-only."
   }
  ],
  "not_needed_entries": [

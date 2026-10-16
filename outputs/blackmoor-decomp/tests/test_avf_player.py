@@ -131,16 +131,20 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual(s.tick(1000), STATE)
         self.assertEqual(s.stop(), STATE)
 
-    def test_movie_step_index_clamps_to_last_in_both_directions(self) -> None:
-        """movie_step_index (0x4c09fe): the index never passes config.last."""
-        for direction in (1, 2):
+    def test_movie_step_index_steps_and_clamps_per_direction(self) -> None:
+        """movie_step_index (0x4c09fe): direction 1 steps up and clamps at config.last; any other direction
+        steps down and clamps at config.first."""
+        for direction, start, expected in ((1, 0, [1, 2, 3, 3, 3]), (2, 3, [2, 1, 0, 0, 0])):
             with self.subTest(direction=direction):
                 s = self.session(mode=1)
-                self.assertEqual(s.start(config(MOVIE, mode=1, first=1, last=1, direction=direction)), OK)
-                s.poll()
-                s.tick(1000)
-                self.assertEqual(s.player.index, 1)
-                self.assertEqual(s.player.presented, 1)
+                self.assertEqual(s.start(config(MOVIE, mode=1, first=0, last=3, direction=direction)), OK)
+                self.assertEqual(s.player.index, start)
+                seen = []
+                for i in range(5):
+                    s.poll()
+                    s.tick(1000 + 100 * i)
+                    seen.append(s.player.index)
+                self.assertEqual(seen, expected)
 
     def test_random_step_runs_to_done_then_finishes(self) -> None:
         """random_step (0x4ce602): the last frame sets done; the next due tick finishes."""
@@ -208,6 +212,18 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual(s.player.index, 1)               # no advance while hidden
         s.tick(deadline + 500)                            # visible again: advances at once
         self.assertEqual((s.player.presented, s.player.index), (1, 2))
+
+    def test_partner_step_direction_2_without_sound_finishes_at_first(self) -> None:
+        """partner_step (0x4dcdd3): direction 2 steps down and, with no sound, finishes once the index is first."""
+        s = self.session(mode=0)
+        self.assertEqual(s.start(config(PARTNER, mode=0, first=0, last=3, direction=2, sound=0)), OK)
+        self.assertEqual(s.player.index, 3)
+        seen = []
+        for i in range(4):
+            s.poll()
+            s.tick(1000 + 66 * i)
+            seen.append((s.player.index, s.player.finished))
+        self.assertEqual(seen, [(2, 0), (1, 0), (0, 0), (0, 1)])
 
     def test_movie_hidden_and_multiple_matches(self) -> None:
         """movie_step (0x4c0205): hidden ticks do not step; with several matches the first record steps (select, triggers, rect)."""
