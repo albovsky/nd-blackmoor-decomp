@@ -59,6 +59,15 @@ int session_a36_build_image(uint8_t raw_type, const uint8_t *raw_body, size_t ra
  * whole scene. Returns OVERLAY36_OK or an Overlay36Status. */
 int session_a36_begin_scene(SessionA36Binding *, const SceneResource *);
 
+/* RT-32: raw 0x43 (AUTOTEXT) rows turn into overlay rows at run time: the
+ * handler 0x411f24 builds the 0xABA image, stores runtime type 0x36 and
+ * subtype 1. Installs `image` (OVERLAY36_IMAGE_BYTES bytes, copied) as row
+ * `row`'s overlay and lets session_a36_handler serve that row, whose raw type
+ * must be 0x43 (SESSION_A43_ROW_TYPE). Replaces an earlier adopted image. */
+#define SESSION_A43_ROW_TYPE UINT8_C(0x43)
+int session_a36_adopt_row(SessionA36Binding *, size_t row,
+                          const uint8_t image[OVERLAY36_IMAGE_BYTES]);
+
 /* Executor handler for rows whose runtime type is 0x36 (raw 0x36, raw 0x37
  * and raw 0x38; the action's raw type must be the one the row's image was built
  * from). Called only after the executor's

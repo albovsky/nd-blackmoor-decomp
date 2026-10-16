@@ -58,6 +58,11 @@ typedef enum scene_action_handler_disposition {
 typedef struct scene_action_runtime_state {
     uint8_t completed;
     uint32_t phase;
+    /* RT-32: the row's runtime type was rewritten to 0x36 by its own handler
+     * (raw 0x43 AUTOTEXT, 0x411f24 stores type 0x36 at 0x5bb5e3). The executor
+     * then gates the row with 0x423f57 mode 1 (the 0x36 arm) from the next
+     * visit on. Zero for every row until a handler asks for it. */
+    uint8_t runtime_type_36;
 } SceneActionRuntimeState;
 
 typedef struct scene_action_handler_result {
@@ -65,6 +70,10 @@ typedef struct scene_action_handler_result {
     /* Used by PENDING, COMPLETED and DIRECT_COMPLETED.
      * RESET_DEPENDENCIES forces phase to zero. */
     uint32_t phase;
+    /* RT-32: nonzero makes the executor store runtime type 0x36 for this row
+     * (the original 0x411f24 tail: type 0x36, subtype 1, phase 0). Only the
+     * 0x43 handler sets it. The executor clears it before every call. */
+    uint8_t become_overlay36;
 } SceneActionHandlerResult;
 
 /* Values in the scene-change body are retained as signed little-endian words

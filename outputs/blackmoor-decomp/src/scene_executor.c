@@ -565,6 +565,7 @@ static int apply_external_handler(SceneActionExecutor *executor,
 
     handler_result.disposition = SCENE_ACTION_HANDLER_PENDING;
     handler_result.phase = before.phase;
+    handler_result.become_overlay36 = 0u;
     executor->callback_transition_requested = 0;
     executor->in_external_callback = 1;
     handler_status = handler->callback(handler->context, index, action,
@@ -617,6 +618,10 @@ static int apply_external_handler(SceneActionExecutor *executor,
         executor->callback_transition_requested = 0;
         fill_failure(info, index, action->type, handler_result.disposition);
         return SCENE_EXECUTOR_ERR_EXTERNAL;
+    }
+
+    if (handler_result.become_overlay36) {
+        executor->states[index].runtime_type_36 = 1u;
     }
 
     if (executor->callback_transition_requested) {
@@ -781,7 +786,9 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             executor->conditions[index], &dispatch_state,
             executor->condition_extension,
             scene_conditions_gate_mode_for_type(
-                (uint8_t)action_runtime_type(&action)),
+                runtime_state->runtime_type_36
+                    ? UINT8_C(0x36)
+                    : (uint8_t)action_runtime_type(&action)),
             &eligible, &unsupported_opcode, &executor->condition_failure);
         if (status != SCENE_CONDITION_OK) {
             fill_failure(&local_info, index, action.type, status);

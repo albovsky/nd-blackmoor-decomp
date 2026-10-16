@@ -96,6 +96,31 @@ static int is_overlay_raw_type(uint8_t type)
     return type == SESSION_A36_TYPE || type == SESSION_A37_TYPE || type == SESSION_A38_TYPE;
 }
 
+/* Rows the handler serves: the loader-built overlay types plus raw 0x43 rows
+ * the 0x411f24 handler has converted (their image is adopted, see below). */
+static int is_served_raw_type(uint8_t type)
+{
+    return is_overlay_raw_type(type) || type == SESSION_A43_ROW_TYPE;
+}
+
+int session_a36_adopt_row(SessionA36Binding *b, size_t row,
+                          const uint8_t image[OVERLAY36_IMAGE_BYTES])
+{
+    uint8_t *copy;
+    if (b == NULL || image == NULL || row >= b->count) {
+        return OVERLAY36_ERR_ARGUMENT;
+    }
+    copy = (uint8_t *)malloc(OVERLAY36_IMAGE_BYTES);
+    if (copy == NULL) {
+        return OVERLAY36_ERR_ARGUMENT;
+    }
+    memcpy(copy, image, OVERLAY36_IMAGE_BYTES);
+    free(b->images[row]);
+    b->images[row] = copy;
+    b->raw_types[row] = SESSION_A43_ROW_TYPE;
+    return OVERLAY36_OK;
+}
+
 void session_a36_destroy(SessionA36Binding *b)
 {
     if (b != NULL) {
@@ -203,7 +228,7 @@ int session_a36_handler(void *context, size_t index, const SceneActionInfo *acti
     const uint8_t *image;
     int status;
     if (b == NULL || action == NULL || before == NULL || out == NULL ||
-        !is_overlay_raw_type(action->type) || index >= b->count || b->images[index] == NULL || b->raw_types[index] != action->type) {
+        !is_served_raw_type(action->type) || index >= b->count || b->images[index] == NULL || b->raw_types[index] != action->type) {
         return SCENE_ACTION_HANDLER_ERROR;
     }
     image = b->images[index];
