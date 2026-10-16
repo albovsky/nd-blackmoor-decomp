@@ -360,6 +360,7 @@ def scenario_list(seed=27, corpus=None):
                 elif mode == 2:
                     rows.append(R(B(attr, 2, op, (6, 7, 30, 31, 99), 100 + attr), 0))
                     rows.append(R(B(attr, 2, op, (30, 99, 99, 99, 99), 200 + attr), 0))
+                    rows.append(R(B(attr, 2, op, (99, attr, 99, 99, 99), 300 + attr), 0))
                 else:
                     rows.append(R(B(attr, mode, op, (1, 2, 3, 4, 5), 100 + attr), 0))
             acts = []
@@ -367,7 +368,7 @@ def scenario_list(seed=27, corpus=None):
                 acts += [('values', {4: cur, 6: 10, 7: 11, 1: 3, 2: 9, 10: 4, 29: 12}, {3: f32bits(float(cur)), 0: f32bits(10.0), 1: f32bits(11.0),
                                                                                            2: f32bits(9.5), 9: f32bits(12.0)}),
                          ('tick',), ('clearflags',)]
-            S('grid:m%d_op%d' % (mode, op), rows, acts, group='grid', quick=(mode, op) in ((3, 0), (3, 3), (3, 5), (3, 7), (2, 2), (1, 1), (0, 4), (0, 2), (0, 0), (1, 0), (1, 2), (0, 1)))
+            S('grid:m%d_op%d' % (mode, op), rows, acts, group='grid', quick=(mode, op) in ((3, 0), (3, 3), (3, 5), (3, 7), (2, 2), (1, 1), (0, 4), (0, 2), (0, 0), (1, 0), (1, 2), (0, 1), (2, 0), (2, 4)))
     # percent form: b3 * b4 / 100 against cur, cur one ulp below / equal / above the expected value
     pct_rng = random.Random(seed + 1)
     pairs = [(a, b) for a in (1, 2, 3, 7, 13, 25, 30, 33, 50, 64, 99, 100, 128, 200, 255) for b in (1, 3, 10, 33, 50, 67, 99, 100, 101, 255)]
@@ -595,13 +596,16 @@ def tick(where, x, nat, sc, rows, first, state, completed, phases, stats):
             expected.append(i)
             status_probe = nat.probe(spec['body'])
             stats['native_probes'] += 1
+            must_refuse = expected_refusal(spec['body'], state['shorts'], state['floats'])
+            if (status_probe != 0) != (must_refuse is not None):
+                raise Mismatch('%s: row %d: native kernel status %d but the reference model expects %s' % (where, i, status_probe, must_refuse or 'acceptance'))
             if status_probe != 0:
                 # the native kernel refuses (K1/K2/K3): nothing may change natively; the original's in-range effects are copied over below
                 before = (nat.flags(), nat.values())
                 status, done, reset, phase, disposition = nat.visit(spec['body'], spec['subtype'], completed[i], phases[i])
                 if status == 0 or (nat.flags(), nat.values()) != before:
                     raise Mismatch('%s: native did not refuse row %d cleanly (probe %d, status %d)' % (where, i, status_probe, status))
-                kind = refusal_kind(spec['body'], status_probe)
+                kind = refusal_kind(spec['body'], status_probe, state['shorts'], state['floats'])
                 if kind is None:
                     raise Mismatch('%s: native refused row %d (kernel status %d) outside the declared known differences' % (where, i, status_probe))
                 stats['known_observed'][kind] += 1
@@ -667,15 +671,80 @@ def compare_state(where, x, nat, stats):
         raise Mismatch('%s: action values differ (original %s native %s)' % (where, x.values().hex(), nat.values().hex()))
 
 
-def refusal_kind(body, status):
-    """The declared known difference a native refusal belongs to, or None when the refusal is not one of them."""
+def _slot_f32(shorts, floats, slot):
+    return float(shorts.get(slot, 9999)) if slot < 30 else bits_f32(floats.get(slot - 30, UNSET_BITS))
+
+
+def _holds(op, a, b):
+    c0, c3 = (True, True) if (a != a or b != b) else (a < b, a == b)
+    return [c3, c0, not (c0 or c3), not c0, c0 or c3][op]
+
+
+def reference_model(body, shorts, floats):
+    """Independent re-derivation of 0x44b641 from the disassembly: ('oob', kind) when the original reads outside the 10-byte
+    body or the 40 action values before it can stop, else ('ok', found)."""
     attr, mode, op = body[0], body[1], body[2]
+    if attr >= 40:
+        return ('ok', False)
+    cur = _slot_f32(shorts, floats, attr)
+    unset = lambda v: f32bits(v) == UNSET_BITS  # noqa: E731
+    if unset(cur):
+        return ('ok', False)
+    if mode in (0, 1):
+        for slot in (range(30, 40) if mode == 0 else range(30)):
+            other = _slot_f32(shorts, floats, slot)
+            if unset(other) or slot == attr or op > 4:
+                continue
+            if op >= 3:
+                if 3 + slot >= 10:
+                    return ('oob', 'K1/K2')
+                other = float(body[3 + slot])
+            if _holds(op, cur, other):
+                return ('ok', True)
+        return ('ok', False)
+    if mode == 2:
+        for v in body[3:8]:
+            if v == 99:
+                continue
+            if op > 4:
+                continue
+            if v >= 40:
+                return ('oob', 'K1/K2')
+            other = _slot_f32(shorts, floats, v)
+            if unset(other):
+                continue
+            if _holds(op, cur, other):
+                return ('ok', True)
+        return ('ok', False)
+    if mode == 3:
+        for i, v in enumerate(body[3:8]):
+            if v == 99 or op > 7:
+                continue
+            if op <= 4:
+                if _holds(op, cur, float(v)):
+                    return ('ok', True)
+            elif i == 0:
+                lit = struct.unpack('<f', struct.pack('<f', body[3] * body[4] / 100.0))[0]
+                return ('ok', _holds(op - 5 if op == 5 else (3 if op == 6 else 4), cur, lit))
+        return ('ok', False)
+    return ('ok', False)
+
+
+def expected_refusal(body, shorts, floats):
+    """None when the native kernel must accept the row, else the declared known difference it must refuse with."""
+    kind, detail = reference_model(body, shorts, floats)
+    if kind == 'oob':
+        return detail
     flag = struct.unpack_from('<h', body, 8)[0]
-    if status == 3 and (flag < -1 or flag >= FLAG_COUNT):
+    if detail and flag != -1 and (flag < 0 or flag >= FLAG_COUNT):
         return 'K3'
-    if status == 4 and ((mode in (0, 1) and op in (3, 4)) or (mode == 2 and any(v >= 40 and v != 99 for v in body[3:8]))):
-        return 'K1/K2'
     return None
+
+
+def refusal_kind(body, status, shorts, floats):
+    """The declared known difference a native refusal belongs to (verified against the reference model), else None."""
+    kind = expected_refusal(body, shorts, floats)
+    return kind if status != 0 and kind == {3: 'K3', 4: 'K1/K2'}.get(status) else None
 
 
 def run_list(x, nat, scs, stats, fail_fast=False):
@@ -717,6 +786,13 @@ MUTANTS = {
     'false test clears the flag': ('    local.found = (uint8_t)(found != 0);', '    if (!found && decoded->flag >= 0 && world->event_flags != NULL && (size_t)decoded->flag < world->event_flag_count) world->event_flags[decoded->flag] = 0;\n    local.found = (uint8_t)(found != 0);', 'action_family_4f.c'),
     'flag marker minus one ignored': ('if (found && decoded->flag != -1) {', 'if (found && decoded->flag != -2) {', 'action_family_4f.c'),
     'flag index sign lost': ('out->flag = (int16_t)((uint16_t)body[8] | ((uint16_t)body[9] << 8));', 'out->flag = (int16_t)((uint16_t)body[8] | (((uint16_t)body[9] & 0x7fu) << 8));', 'action_family_4f.c'),
+    'mode 2 excludes the own slot': ('            other = slot_value(world, slot);\n            if (is_sentinel(other)) {',
+                                     '            other = slot_value(world, slot);\n            if (is_sentinel(other) || slot == decoded->attribute) {', 'action_family_4f.c'),
+    'every operator 3/4 read refused': ('if (offset >= ACTION_FAMILY_4F_BODY_BYTES) {', 'if (1) {', 'action_family_4f.c'),
+    'slot 6 read refused': ('if (offset >= ACTION_FAMILY_4F_BODY_BYTES) {', 'if (offset >= ACTION_FAMILY_4F_BODY_BYTES || slot == 6u) {', 'action_family_4f.c'),
+    'operand 40 refused for every operator': ('            if (decoded->op > 4u) {\n                continue; /* the original loads the value, then skips the compare */\n            }\n',
+                                              '', 'action_family_4f.c'),
+    'flag refused even when the test fails': ('    if (found && decoded->flag != -1) {', '    if (decoded->flag != -1 && (found || decoded->flag >= 1600)) {', 'action_family_4f.c'),
     'phase kept': ('out->phase = 0u; /* 0x42ba3a', 'out->phase = before->phase; /* 0x42ba3a', 'session_bindings_a4f.c'),
     'row completed directly': ('out->disposition = SCENE_ACTION_HANDLER_COMPLETED;', 'out->disposition = SCENE_ACTION_HANDLER_DIRECT_COMPLETED;', 'session_bindings_a4f.c'),
 }

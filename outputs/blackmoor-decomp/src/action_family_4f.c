@@ -129,12 +129,15 @@ ActionFamily4FStatus action_family_4f_visit(const ActionFamily4FDecoded *decoded
             if (slot == 99u) {
                 continue;
             }
+            if (decoded->op > 4u) {
+                continue; /* the original loads the value, then skips the compare */
+            }
             if (slot >= ATTRIBUTE_COUNT) {
                 status = ACTION_FAMILY_4F_ERR_UNSUPPORTED;
                 break;
             }
             other = slot_value(world, slot);
-            if (is_sentinel(other) || decoded->op > 4u) {
+            if (is_sentinel(other)) {
                 continue;
             }
             found = compare_holds(decoded->op, current, other);

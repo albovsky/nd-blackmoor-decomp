@@ -279,6 +279,9 @@ static void mode_two_compares_named_slots(void)
     f.flags[7] = 0;
     make(b, 1u, 2u, 1u, v, 7);
     CHECK(run_body(&f, b, &r) == ACTION_FAMILY_4F_ERR_UNSUPPORTED && !flag_set(&f, 7));
+    f.flags[7] = 0;
+    make(b, 1u, 2u, 5u, v, 7); /* operator above 4: the compare is skipped, the row runs as the original does */
+    CHECK(run_body(&f, b, &r) == ACTION_FAMILY_4F_OK && !r.found && !flag_set(&f, 7));
     v[0] = 9u; /* an earlier unset slot is skipped, an earlier match ends the scan before the bad operand */
     v[1] = 1u;
     f.world.short_values[1] = 3;

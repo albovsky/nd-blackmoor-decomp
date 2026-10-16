@@ -21,13 +21,13 @@ Owner thread: Claude Sonnet (cloud). Follows RT-23 to RT-26. Raw 0x4f was the to
 ## Verification
 
 * `tests/action_family_4f_runtime_test.c`: 14 unit cases (ASan/UBSan clean), 17 unit mutants caught (`tests/test_action_family_4f.py`).
-* `tests/action_family_4f_runtime_original_oracle.py` (+ `_oracle_driver.c`): the real dispatcher `0x427a50` runs 0x4f rows under Unicorn against the native binding; 146 scenarios (the 815 real bodies against random worlds, an operator grid for every mode, a percent sweep, NaN/inf/-0.0, edge attributes, gates with a same-tick flag chain, subtypes, 70 random scenarios), compared after every tick: visited rows against a sequential gate model, completion/phase/reset, the first 1,600 event flags and the 40 action values; 23 of 23 native mutants caught.
+* `tests/action_family_4f_runtime_original_oracle.py` (+ `_oracle_driver.c`): the real dispatcher `0x427a50` runs 0x4f rows under Unicorn against the native binding; 146 scenarios (the 815 real bodies against random worlds, an operator grid for every mode, a percent sweep, NaN/inf/-0.0, edge attributes, gates with a same-tick flag chain, subtypes, 70 random scenarios), compared after every tick: visited rows against a sequential gate model, completion/phase/reset, the first 1,600 event flags and the 40 action values; 27 of 27 native mutants caught.
 * `tests/action_family_4f_runtime_corpus.c`: all 815 corpus rows decode and run through the binding.
 
 ## Limits
 
 * The macOS glue (`blackmoor_app.mm`) is not compiled or run in the cloud.
-* Known differences, refused natively before any state change and counted by the oracle, never counted as passes: K1 modes 0/1 with operators 3/4 reading `body[3 + slot]` outside the body, K2 mode 2 with an operand of 40 or more (other than 99) reading past the value tables, K3 a flag index below -1 or beyond the native table (the original writes through it unchecked). No corpus row has any of them.
+* Known differences, refused natively before any state change and counted by the oracle, never counted as passes: K1 modes 0/1 with operators 3/4 reading `body[3 + slot]` outside the body, K2 mode 2 with an operator up to 4 and an operand of 40 or more (other than 99) reading past the value tables (a larger operator skips the compare and runs as the original does), K3 a flag index below -1 or beyond the native table (the original writes through it unchecked). No corpus row has any of them.
 * The debug flag `0x63a4cd` is modelled as 0 (the original logs and aborts on an attribute above 39 or an unset attribute with it set).
 * The oracle builds the 10-byte body in memory (the scene loader `0x40b34a` is not run), and the dependency records of the 68 corpus rows with a tail are not replayed (the gate is shared, verified code).
 * Whether the real game keeps the action values that rows compare (written by 0x4d set-value rows and by the world initializer) in step with `ActionCoreWorld` during play is outside this slice.

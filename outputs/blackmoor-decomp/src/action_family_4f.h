@@ -33,8 +33,8 @@ extern "C" {
  * Differences from the original (all explicit, none reached by the 815 corpus rows, which are all mode 3, operators
  * 0 to 3):
  *  - modes 0 and 1 with operators 3/4 read the comparison literal at body[3 + slot index], which leaves the 10-byte
- *    body for slot 7 of mode 1 and for every slot of mode 0, and mode 2 with an operand above 39 (other than 99) reads
- *    past the value tables: those reads are refused (ERR_UNSUPPORTED) before any state change;
+ *    body for slot 7 of mode 1 and for every slot of mode 0, and mode 2 with an operator up to 4 and an operand above 39
+ *    (other than 99) reads past the value tables (a larger operator skips the compare, so it runs as the original does): those reads are refused (ERR_UNSUPPORTED) before any state change;
  *  - an event flag index below -1 or beyond the caller's table is refused (ERR_BOUNDS) before any state change (the
  *    original writes through the index unchecked);
  *  - with the debug flag 0x63a4cd set the original logs and aborts on an attribute above 39 or an unset attribute; the
