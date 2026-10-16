@@ -37,6 +37,7 @@
 #include "session_bindings_a95.h"
 #include "session_bindings_a4f.h"
 #include "session_bindings_a67.h"
+#include "session_bindings_a94.h"
 #include "session_bindings_a6e.h"
 #include "session_bindings_a6f.h"
 #include "session_bindings_ad9.h"
@@ -69,6 +70,7 @@
 #include <array>
 #include <stdexcept>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <cmath>
 #include <chrono>
@@ -259,6 +261,12 @@ struct NativeApp {
     SessionA6FBinding *a6f = nullptr;
     /* RT-30: raw 0x67 stores 1 in DAT_005bb1ca (arm 0x428692, gate mode 0). Not compiled here. */
     SessionA67Binding *a67 = nullptr;
+    /* RT-32: raw 0x94 (AT_MAKE_SCREEN_FILE, arm 0x429747, handler 0x4c36b2). DAT_005839a9 is the capture flag the
+     * renderer reads; 0x4d36ed requests a full redraw (0x5831c8 := 1). Neither reader is modelled here. Not compiled
+     * here. */
+    SessionA94Binding *a94 = nullptr;
+    int32_t capture_flag_5839a9 = 0;
+    uint32_t refresh_requests_5831c8 = 0;
     SceneStackSlot scene_stack_slot{};
     SceneTransitionRequest loaded_words{};
     bool loaded_words_valid = false;
@@ -1854,6 +1862,7 @@ static void cleanup(NativeApp *app)
     session_a6e_destroy(app->a6e);
     session_a6f_destroy(app->a6f);
     session_a67_destroy(app->a67);
+    session_a94_destroy(app->a94);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3511,6 +3520,96 @@ static int native_a67_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-32: raw 0x94 host effects. The original locks the DirectDraw front buffer (16-bit words), crops it and writes a
+ * 24-bit BMP or a 16-bit TGA beside the game; here the composed 640x480 RGBA frame is packed to 5-6-5 words, which the
+ * module brings to 5-5-5 exactly as 0x4c7481 does, and the files go to ~/Library/Application Support/Blackmoor
+ * Reconstruction/Screenshots/ (a directory the glue creates). The path pieces the original keeps in DAT_00639a9f /
+ * DAT_00639aa2 are an empty drive and that directory with a trailing slash. */
+static std::string native_a94_directory()
+{
+    const char *home = std::getenv("HOME");
+    return std::string(home != nullptr && home[0] != '\0' ? home : ".") +
+           "/Library/Application Support/Blackmoor Reconstruction/Screenshots/";
+}
+
+static void native_a94_set_capture_flag(void *context, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    app->capture_flag_5839a9 = value;
+    record(app, "scene_a94_capture_flag DAT_005839a9=%d", value);
+}
+
+static void native_a94_request_refresh(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    ++app->refresh_requests_5831c8;
+    record(app, "scene_a94_redraw_request writer=0x4d36ed count=%u", app->refresh_requests_5831c8);
+}
+
+static int native_a94_display(void *context, SessionA94Display *out)
+{
+    (void)context;
+    if (out == nullptr) return 1;
+    std::memset(out, 0, sizeof(*out));
+    out->screen.width = 640;
+    out->screen.height = 480;
+    out->screen.bytes_per_pixel = 2;
+    out->screen.bits_per_pixel = 16;
+    out->screen.shifts[0] = 0; out->screen.shifts[1] = 5; out->screen.shifts[2] = 11;
+    out->screen.masks[0] = 0x1f; out->screen.masks[1] = 0x3f; out->screen.masks[2] = 0x1f;
+    out->screen.channel_bits[0] = 5; out->screen.channel_bits[1] = 6; out->screen.channel_bits[2] = 5;
+    const std::string dir = native_a94_directory();
+    if (dir.size() >= sizeof(out->dir)) return 1;
+    std::memcpy(out->dir, dir.c_str(), dir.size() + 1u);
+    return 0;
+}
+
+static int native_a94_capture(void *context, uint8_t *dst, size_t bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || dst == nullptr || bytes != 640u * 480u * 2u ||
+        app->framebuffer.size() != 640u * 480u * 4u) return 1;
+    for (size_t i = 0; i < 640u * 480u; ++i) {
+        const uint8_t *px = app->framebuffer.data() + i * 4u;
+        const uint16_t word = static_cast<uint16_t>(((px[0] >> 3) << 11) | ((px[1] >> 2) << 5) | (px[2] >> 3));
+        dst[2u * i] = static_cast<uint8_t>(word);
+        dst[2u * i + 1u] = static_cast<uint8_t>(word >> 8);
+    }
+    return 0;
+}
+
+static int native_a94_write_file(void *context, const char *path, const uint8_t *bytes, size_t length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    std::string dir = path;
+    for (size_t at = dir.find('/', 1); at != std::string::npos; at = dir.find('/', at + 1)) {
+        mkdir(dir.substr(0, at).c_str(), 0755); /* best effort, the fopen below reports the failure */
+    }
+    FILE *file = std::fopen(path, "wb");
+    if (file == nullptr) {
+        record(app, "scene_a94_file_refused path=%s", path);
+        return 1;
+    }
+    const bool ok = std::fwrite(bytes, 1, length, file) == length;
+    std::fclose(file);
+    record(app, "scene_a94_file path=%s bytes=%zu ok=%d", path, length, ok ? 1 : 0);
+    return ok ? 0 : 1;
+}
+
+static int native_a94_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a94_handler(app->a94, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a94_blocker row=%zu status=%d detail=%s", row, status, session_a94_failure(app->a94));
+    }
+    return status;
+}
+
 static int native_ad9_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -4270,6 +4369,14 @@ static bool create_native_session_bindings(NativeApp *app)
     a67_host.context = app;
     a67_host.set_start_flag = native_a67_set_start_flag;
     app->a67 = session_a67_create(&a67_host);
+    SessionA94Host a94_host{};
+    a94_host.context = app;
+    a94_host.set_capture_flag = native_a94_set_capture_flag;
+    a94_host.request_refresh = native_a94_request_refresh;
+    a94_host.display = native_a94_display;
+    a94_host.capture = native_a94_capture;
+    a94_host.write_file = native_a94_write_file;
+    app->a94 = session_a94_create(&a94_host);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -4303,7 +4410,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a94 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5041,7 +5148,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[25]{};
+    SceneSessionActionBinding bindings[26]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5157,7 +5264,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[24].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[24].callback = session_a36_handler;
     bindings[24].context = app->a36;
-    config.action_binding_count = 25u;
+    /* RT-32: raw 0x94 (dispatcher arm 0x429747, gate mode 0, handler 0x4c36b2: three phases, a screen file). */
+    bindings[25].type = SESSION_A94_TYPE;
+    bindings[25].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[25].callback = native_a94_handler;
+    bindings[25].context = app;
+    config.action_binding_count = 26u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
