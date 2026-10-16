@@ -274,7 +274,7 @@ static void active_mode_0_is_refused_before_any_effect(void)
     session_a2e_destroy(b);
 }
 
-static void active_mode_1_refusals_leave_everything_untouched(void)
+static void active_mode_1_refusals_and_refused_transition(void)
 {
     Rig r;
     SessionA2EBinding *no_start = make(&r, 0, 1), *b;
@@ -295,7 +295,7 @@ static void active_mode_1_refusals_leave_everything_untouched(void)
     /* no scene change in the row: the transition provider is not needed */
     make_body(body, 1, 9999, 3, 4, 5, 6, 7, 8);
     CHECK(visit(no_trans, 9u, 1u, body, 0u, &out) == SCENE_ACTION_HANDLER_OK && r2.flags[6] == 7);
-    /* a refused request: error (stores before it were made, as in the original order, none after) */
+    /* a refused request: error; the stores made before it (row, mode, event flag) are kept, as in the original order, none after */
     make_body(body, 1, 12, 3, 4, 5, 6, 7, 8);
     r3.refuse_transition = 1;
     CHECK(visit(refuse, 9u, 1u, body, 0u, &out) == SCENE_ACTION_HANDLER_ERROR);
@@ -382,7 +382,7 @@ int main(void)
     run("active_mode_2_toggles_state", active_mode_2_toggles_state, &failures);
     run("active_other_modes_do_nothing", active_other_modes_do_nothing, &failures);
     run("active_mode_0_is_refused_before_any_effect", active_mode_0_is_refused_before_any_effect, &failures);
-    run("active_mode_1_refusals_leave_everything_untouched", active_mode_1_refusals_leave_everything_untouched, &failures);
+    run("active_mode_1_refusals_and_refused_transition", active_mode_1_refusals_and_refused_transition, &failures);
     run("argument_failures", argument_failures, &failures);
     return failures;
 }

@@ -24,6 +24,8 @@ Owner thread: Claude Sonnet (cloud). Follows RT-30 to RT-31. Raw 0x2e and 0xd1 w
 * The macOS glue (`blackmoor_app.mm`) is not compiled or run in the cloud.
 * Active mode 0 (`0x4ceb3b`, the movie set release) and everything raw 0x2d does to the object are not modelled; the object stays inactive in the app.
 * The oracle builds rows in memory (the scene loader `0x40b34a` is not run); the 10 corpus rows are replayed without their dependency records (two carry one) and behind a stand-in event record. Frame-step readers of the object (`0x4383ed`, `0x4394fb`) and the readers of the cells the handler writes are host behaviour outside this slice. Debug flag `0x63a4cd` is modelled as 0.
+* An event-flag index outside the flag table is an intentional, uncompared divergence: the original would write outside the table, the native binding refuses the row (ERROR) before any effect.
+* `0x4ceb3b` (active mode 0) itself sets the completion byte of the row held in obj+0x23e (`0x4ceb75..0x4ceb7f`); the future raw 0x2d / mode-0 owner must model that. The `SessionA2EMovie` state also needs a reset hook once raw 0x2d lands.
 
 ## Why not raw 0xd1 in the same slice
 
