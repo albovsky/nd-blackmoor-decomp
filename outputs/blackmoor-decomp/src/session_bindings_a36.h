@@ -14,9 +14,11 @@ extern "C" {
  * image with the constructor 0x4895cc (A-37.2) and then stores the RUNTIME
  * type 0x36 (0x40c47b), so the same dispatcher arm, gate (mode 1) and
  * COverlay::Process serve them. The executor still sees the raw type, so the
- * session registers the same handler for 0x37. Raw 0x38 (arm 0x40c404,
- * constructor 0x48905b, also runtime 0x36) is NOT bound here. */
+ * session registers the same handler for 0x37. RT-31: raw 0x38 (arm 0x40c404,
+ * constructor 0x48905b, type store 0x40c43a, also runtime 0x36; animated, marker 2) is bound
+ * the same way. */
 #define SESSION_A37_TYPE UINT8_C(0x37)
+#define SESSION_A38_TYPE UINT8_C(0x38)
 
 typedef struct SessionA36Binding SessionA36Binding;
 
@@ -42,22 +44,23 @@ SessionA36Binding *session_a36_create(const SessionA36Host *);
 void session_a36_destroy(SessionA36Binding *);
 
 /* The loader-time image of one row: the A-36.1 constructor (0x488e9c) for raw
- * 0x36 (bytes it does not write start as zero, the original leaves them
- * uninitialised) or the A-37.2 constructor (0x4895cc over 0x48945b, which
- * zeroes the whole allocation first) for raw 0x37. Any other raw type, a
+ * 0x36 and the A-38.1 constructor (0x48905b) for raw 0x38 (bytes they do not
+ * write start as zero, the original leaves them uninitialised) or the A-37.2
+ * constructor (0x4895cc over 0x48945b, which zeroes the whole allocation
+ * first) for raw 0x37. Any other raw type, a
  * malformed body or a NULL argument returns an Overlay36Status other than
  * OVERLAY36_OK and leaves `image` unchanged. */
 int session_a36_build_image(uint8_t raw_type, const uint8_t *raw_body, size_t raw_body_length,
                             uint8_t image[OVERLAY36_IMAGE_BYTES]);
 
 /* Replaces the per-row overlay images (see session_a36_build_image for raw
- * 0x36 and raw 0x37 rows; raw 0x38 rows get none) and resets the overlay
- * manager (scene clear 0x488e54 / 0x4d3992). A malformed 0x36 or 0x37 row
- * fails the whole scene. Returns OVERLAY36_OK or an Overlay36Status. */
+ * 0x36, raw 0x37 and raw 0x38 rows) and resets the overlay manager (scene
+ * clear 0x488e54 / 0x4d3992). A malformed 0x36, 0x37 or 0x38 row fails the
+ * whole scene. Returns OVERLAY36_OK or an Overlay36Status. */
 int session_a36_begin_scene(SessionA36Binding *, const SceneResource *);
 
-/* Executor handler for rows whose runtime type is 0x36 (raw 0x36 and raw
- * 0x37; the action's raw type must be the one the row's image was built
+/* Executor handler for rows whose runtime type is 0x36 (raw 0x36, raw 0x37
+ * and raw 0x38; the action's raw type must be the one the row's image was built
  * from). Called only after the executor's
  * mode-1 dependency gate (0x423f57) was true and the row was not completed.
  * Phase 0 registers and continues into phase 1 in the same call (PENDING,
