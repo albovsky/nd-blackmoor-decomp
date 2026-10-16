@@ -26,7 +26,7 @@ typedef struct session_a6e_host {
  * this handler runs for a true gate. The original calls 0x42e560(2), sets the row's completion byte to 1 directly
  * (0x4291aa) and leaves the phase word alone (neither 0x42ba3a nor a dependency reset runs, whatever the subtype),
  * so a visit returns DIRECT_COMPLETED with the phase it was given. The body byte is never read.
- * `slot` is borrowed and shared with the future 0x6f pop. */
+ * `slot` is borrowed and shared with the 0x6f pop (session_bindings_a6f). */
 SessionA6EBinding *session_a6e_create(const SessionA6EHost *host, SceneStackSlot *slot);
 void session_a6e_destroy(SessionA6EBinding *);
 int session_a6e_handler(void *, size_t, const SceneActionInfo *, const SceneActionRuntimeState *,

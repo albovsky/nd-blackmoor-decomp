@@ -5,7 +5,7 @@
  *
  * GAME.EXE keeps three small "return to this scene" records (0x5c3a05, 0x5c3a1b and 0x5c3a31); only the first is
  * written by 0x42e560 and read back by its pair 0x42e493 (raw action 0x6f and two other callers). This module owns
- * the first record and the one function that fills it. The pop 0x42e493 is NOT here (it is the next family, 0x6f).
+ * the first record, the push that fills it and (RT-29) the pop 0x42e493 that reads it back for raw action 0x6f.
  *
  * The record is not a stack: a second push overwrites the first. Words keep the original widths and addresses, but the C struct is padded (sizeof 24, the original record is 22
  * bytes): never memcpy it to or from original memory; a pop must copy field by field. */
@@ -54,6 +54,32 @@ void scene_stack_slot_init_words(SceneStackSlot *slot);
  * The original copies 0x5bb5ab to 0x5c3a13 and then overwrites it with 0x5bb5af (the dword at 0x5c3a17 is not
  * written); both stores are reproduced, so the surviving value is 0x5bb5af. */
 void scene_stack_push(SceneStackSlot *slot, const SceneStackCurrent *current, int32_t type_argument);
+
+/* RT-29: the globals the pop 0x42e493 writes. The pop is a scene change request, not a scene load: it fills the
+ * transition request words that the loader copies at the next load (0x439f20..0x439f64), sets the start flag and puts
+ * the engine into mode 4 (scene change). The scene is read from word [0x5c3a07] for BOTH scene globals (the original
+ * never reads word [0x5c3a05] other than for the empty test). */
+typedef struct scene_stack_pop_result {
+    int32_t scene_5bb57b;  /* movsx word [0x5c3a07] */
+    int32_t scene_5bb57f;  /* movsx word [0x5c3a07] again */
+    int16_t word_5bb599;   /* word [0x5c3a09] */
+    int16_t word_5bb595;   /* word [0x5c3a0b] */
+    int16_t word_5c39ff;   /* := 1 */
+    int32_t dword_5bb59b;  /* dword [0x5c3a0f] */
+    int32_t dword_5bb59f;  /* dword [0x5c3a13] */
+    int32_t dword_5bb5a3;  /* dword [0x5c3a17] */
+    int32_t start_5bb1ca;  /* 0 if the type word [0x5c3a0d] is 1, else 1 */
+    int32_t mode_583999;   /* := 4 */
+} SceneStackPop;
+
+#define SCENE_STACK_POP_OK 0
+#define SCENE_STACK_POP_EMPTY 1    /* word [0x5c3a05] is 9999: the original reports a fatal error; nothing changes here */
+#define SCENE_STACK_POP_ARGUMENT -1
+
+/* 0x42e493 (cdecl, no arguments): fills *out with the values the original stores, then marks the record empty (both
+ * scene words 9999). The words 0x5c3a09..0x5c3a1a are left as they were. On EMPTY or a NULL argument neither *out nor
+ * the slot is touched. */
+int scene_stack_pop(SceneStackSlot *slot, SceneStackPop *out);
 
 #ifdef __cplusplus
 }

@@ -37,6 +37,7 @@
 #include "session_bindings_a95.h"
 #include "session_bindings_a4f.h"
 #include "session_bindings_a6e.h"
+#include "session_bindings_a6f.h"
 #include "session_bindings_ad9.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -252,6 +253,9 @@ struct NativeApp {
      * successful scene load copied into 0x5bb593/0x5bb5a7..0x5bb5af (0x439f20..0x439f64, skipped by the restore flag
      * 0x5e32b5, which the app has no path for); 0x5bb50b is the live selector. */
     SessionA6EBinding *a6e = nullptr;
+    /* RT-29: raw 0x6f returns to the scene 0x6e saved (arm 0x4291b6 -> pop 0x42e493, gate mode 0). Not compiled here.
+     * Pops the same `scene_stack_slot`; the pop is a scene-change request (mode 4) plus the start flag 0x5bb1ca. */
+    SessionA6FBinding *a6f = nullptr;
     SceneStackSlot scene_stack_slot{};
     SceneTransitionRequest loaded_words{};
     bool loaded_words_valid = false;
@@ -1845,6 +1849,7 @@ static void cleanup(NativeApp *app)
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
+    session_a6f_destroy(app->a6f);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3454,6 +3459,33 @@ static int native_a6e_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-29: what the pop 0x42e493 does to the engine, as the app sees it: a scene-change request carrying the saved
+ * scene and the saved transition words (the loader copies them again at the next load, 0x439f20..0x439f64) and the
+ * start flag 0x5bb1ca. Mode 4 is the session's pending transition. */
+static int native_a6f_apply(void *context, const SceneStackPop *pop, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || pop == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    app->start_flag_5bb1ca = pop->start_5bb1ca;
+    record(app, "scene_a6f_pop target=%d words=%d,%d,%d dwords=%d,%d,%d start=%d (mode 4)", request->target_scene,
+           request->opaque_words[0], request->opaque_words[1], request->opaque_words[2], request->opaque_dwords[0],
+           request->opaque_dwords[1], request->opaque_dwords[2], pop->start_5bb1ca);
+    return 0;
+}
+
+static int native_a6f_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a6f_handler(app->a6f, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a6f_blocker row=%zu status=%d detail=%s", row, status, session_a6f_failure(app->a6f));
+    }
+    return status;
+}
+
 static int native_ad9_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -4205,6 +4237,10 @@ static bool create_native_session_bindings(NativeApp *app)
     a6e_host.context = app;
     a6e_host.load_current = native_a6e_load_current;
     app->a6e = session_a6e_create(&a6e_host, &app->scene_stack_slot);
+    SessionA6FHost a6f_host{};
+    a6f_host.context = app;
+    a6f_host.apply = native_a6f_apply;
+    app->a6f = session_a6f_create(&a6f_host, &app->scene_stack_slot);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -4238,7 +4274,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -4976,7 +5012,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[22]{};
+    SceneSessionActionBinding bindings[23]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5076,7 +5112,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[21].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[21].callback = native_a6e_handler;
     bindings[21].context = app;
-    config.action_binding_count = 22u;
+    /* RT-29: raw 0x6f (dispatcher arm 0x4291b6 -> pop 0x42e493, gate mode 0; completion byte set directly). */
+    bindings[22].type = SESSION_A6F_TYPE;
+    bindings[22].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[22].callback = native_a6f_handler;
+    bindings[22].context = app;
+    config.action_binding_count = 23u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
