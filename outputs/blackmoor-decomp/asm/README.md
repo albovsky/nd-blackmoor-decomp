@@ -75,3 +75,34 @@ The auditor reassembles each file with the pinned assembler (pinned by its versi
 Forty game-region leaf functions (no direct calls) of 250 to 700 bytes, largest first, not already in batch 001: 20,790 code bytes in 40 functions, plus 6 data items (four switch tables of 16, 20, 24 and 16 bytes, one 61-byte index table and one 6-byte padding run, 143 bytes) for M02. The audit accepts all 40 (0 mismatching bytes, 0 relocations); no byte overlaps the 398-byte hand-written baseline, so all 20,790 are new. Three independent reviewers found no wrong claim about the bytes; their wording findings (callers, payload-pointer naming, cursor globals, hedged inferences) are applied. Almost none of these functions has a Track N counterpart: `track-n` is `host-adapter: none` except where a partial real counterpart is named, and every class or method name is an annotator label recorded as such under `unverified`.
 
 Batch 001 and 002 together: 86 functions, 33,312 code bytes. Since the 2026-10-14 rulings every register-relative displacement (frame, stack, object field) is a named symbol, jump/index tables may be `.byte` lists only when labeled with their owning function and switch, and the assembler is pinned by version plus a self-test (see `AGENTS.md`).
+
+## Batches 003 to 008: machine annotation of every remaining indexed function
+
+Glib's ruling (2026-10-15, decision card on the planning thread): machine-generated names are valid Track M annotation, so bulk annotation can be scripted and a human renames later without touching the bytes. `scripts/annotate_machine.py annotate` fills the generator's annotation fields from the instruction bytes and `function-ledger.json`, and `scripts/annotate_machine.py manifests` writes the batch manifests (700 functions each, address order). Each file carries `# annotation:  machine`, and only then does `audit_tool_assisted.py` accept the generator's default symbol names (`arg_8`, `local_4`, `field_2c`, `stk_4`) and the function name `fn_<va>`; every other audit rule is unchanged (pinned assembler, no relocation, byte-exact code part and data items, named displacements, a meaningful comment per basic block, filled header fields).
+
+What the script writes, and nothing else:
+
+* `arguments`: the `[ebp+n]` slots referenced, the `ret n` pop size, and whether `ecx` is read in the entry block before it is written (hedged as a probable `this` pointer);
+* `locals`, `fields`: the `[ebp-n]` slots and the register-relative displacements per base register (a base-less scaled index such as `[4*eax + 0x4]` is named too; absolute table bases stay numeric);
+* `callees`: direct call and tail-jump targets as `FUN_<va>`, import-table calls as `DLL!Symbol` from `image/imports.json`, and a count of indirect transfers that are not resolved;
+* `track-n`: the native symbol the ledger records, only for the ledger classes that claim a counterpart (`native_oracle_verified`, `native_tests_only`, `host_adapter_tested`, `candidate_port`), otherwise `host-adapter: none`; the audit checks that the file exists and the symbol is a whole word in it;
+* `unverified`: the machine-only caveat with the instruction, conditional-branch and jump-table counts;
+* one comment per basic block: how it is entered, call targets and how it ends.
+
+No branch condition, argument meaning, field meaning or return value is interpreted. `annotate_machine.py check` regenerates every machine-annotated source from the original and requires identical text apart from the `track-n` line (which follows the ledger and is validated by the auditor instead, so a ledger refresh does not force a re-audit), so a machine header cannot hide a hand edit; the header is matched as loosely as the auditor matches it (a renamed, reviewed function drops the header and goes through the hand-annotation audit instead). `tests/test_audit_tool_assisted.py` covers the machine mode (accepted batch, wrong name, unnamed offset, default names without the header, empty block comment) and regenerates a sample of committed sources.
+
+| Batch | Functions | Code bytes |
+|---|---:|---:|
+| 003 | 700 | 285,792 |
+| 004 | 700 | 281,442 |
+| 005 | 700 | 306,703 |
+| 006 | 700 | 189,707 |
+| 007 | 700 | 72,444 |
+| 008 | 590 | 10,208 |
+| total | 4,090 | 1,146,296 |
+
+By region: game 2,425 functions (991,245 bytes), Vorbis 174 (51,977), CRT/MFC 1,491 (103,074); 42,301 basic blocks; the data items handed to M02 are 151 switch tables (5,472 bytes), 18 index tables (1,873) and 406 padding runs (2,583). With batches 001 and 002 that is 4,176 functions and 1,179,608 code bytes, 78.05% of the 1,511,424-byte file; the rest is `.data`, `.rdata`, resources, headers and the exceptions below. Reassembly is exact for all of it (0 mismatching bytes, 0 relocations, assembler self-test passed).
+
+Exceptions, not hidden (12 indexed functions, left for a later rule; the two unsplit spans alone are 1,642 bytes): `0x0050ed50` and `0x0050fa90` (CRT block copies, jump tables inside the code, unsplit span), `0x00513843` (falls through into the next function), and nine CRT funclets whose code part ends in a `call` with no data after it (`0x0050c5ee`, `0x0050df94`, `0x0050e054`, `0x0050e104`, `0x0050e284`, `0x00516650`, `0x0051b7b1`, `0x0051f8b3`, `0x00521014`); the auditor requires a terminal `ret`/`jmp` or a call followed by data, and a call that never returns is not provable from the bytes. The 515 derived code ranges without a direct reference are not functions in the index and are not in a batch.
+
+Rerun: the commands above, `python3 scripts/annotate_machine.py annotate --out <dir> --region game --lo 0x401000 --hi 0x440000` (and the other regions), `manifests --dir <dir>`, then the audit per batch. Not claimed: original C++ or compiler provenance, and that any name is meaningful.

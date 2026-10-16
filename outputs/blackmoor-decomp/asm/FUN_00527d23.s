@@ -1,0 +1,36 @@
+# FUN_00527d23
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x00527d23
+# extent:       0x00527d23-0x00527d32 (15 code bytes)
+# span:         0x00527d23-0x00527d32 (code 15, tables 0, padding 0)
+# sha256:       e7ade024b393482e02b648053832993136f6b545ed27c23dcbade6adc5f5002d
+# evidence:     ev_630eb8c9c6330d8d8954b0f0603252a92e8f72ed7f378cfbde79d9e20ec97ca4
+# region:       crt_mfc
+# frame:        none
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_00527d23
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
+# locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
+# fields:       [ebp + n] field_minus_10
+# callees:      calls FUN_004cc946
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 4 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ field_minus_10, 0x10  # offset -0x10
+
+# --- external targets -----------------------------------------------
+.set FUN_004cc946, .text + (0x004cc946 - 0x401000)
+
+.org 0x00527d23 - 0x401000
+.globl FUN_00527d23
+FUN_00527d23:
+    # block 0x00527d23: entry, 4 instruction(s), calls FUN_004cc946, ends with ret
+    mov ecx, dword ptr [ebp - field_minus_10]    # 00527d23
+    add ecx, 0xc06f6                             # 00527d26
+    call FUN_004cc946                            # 00527d2c
+    ret                                          # 00527d31
+
