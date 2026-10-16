@@ -17,6 +17,8 @@ extern "C" {
 #define SESSION_A2E_NO_SCENE 9999
 /* Event flag index word that means "no flag" (-1). */
 #define SESSION_A2E_NO_FLAG (-1)
+/* The row a stop retired when the object had none (+0x23e == -1). */
+#define SESSION_A2E_NO_ROW (-1)
 
 /* The fields of the random-movie object at 0x63821d that 0x4ced84 reads or writes (offsets from the object start). The
  * rest of the object belongs to raw 0x2d (0x4cd6ff), which is not bound yet, so `active` stays 0 in the running game. */
@@ -47,7 +49,8 @@ typedef enum session_a2e_effect {
     SESSION_A2E_FX_STATE_1DE = 14,
     SESSION_A2E_FX_FLAG_206 = 15,
     SESSION_A2E_FX_PENDING_25A = 16,
-    SESSION_A2E_FX_DONE = 17         /* completion byte of the row at +0x242 := 1 */
+    SESSION_A2E_FX_DONE = 17,        /* completion byte of the row at +0x242 := 1 */
+    SESSION_A2E_FX_STOP = 18         /* mode 0: 0x4ceb3b ran; `value` is the row the stop retired (-1 none) */
 } SessionA2EEffect;
 
 typedef struct SessionA2EBinding SessionA2EBinding;
@@ -60,6 +63,12 @@ typedef struct session_a2e_host {
      * 0x5bb57b/0x5bb599/0x5bb595/0x5c39ff/0x5bb59b/0x5bb59f/0x5bb5a3 and the engine mode 0x583999 := 4 as one request
      * (the same shape the 0x0a, 0x17 and 0x0c arms use). Nonzero: refused, the visit is an error. */
     int (*transition)(void *context, const SceneTransitionRequest *request);
+    /* RT-36, set by the raw 0x2d owner: the random-movie stop 0x4ceb3b(+0x23e) (teardown, surface release, row erase,
+     * reset, active := 0, 0x5839a9 restored). It must read the object fields (session_a2e_movie), run the stop on them
+     * and write them back (session_a2e_set_movie) before returning; `retire_row` receives the raw 0x2d row it erased
+     * (SESSION_A2E_NO_ROW when none) and the host completes it in the executor (scene_executor_retire_action). Without
+     * it an active mode-0 visit is UNSUPPORTED before any effect. */
+    int (*stop_movie)(void *context, int32_t *retire_row);
     /* Optional ordered effect observer (SessionA2EEffect). */
     void (*observe)(void *context, size_t row, int effect, int32_t value);
 } SessionA2EHost;
@@ -67,8 +76,10 @@ typedef struct session_a2e_host {
 /* Raw 0x2e "random movie" control row (RT-33; dispatcher arm 0x427f62, gate mode 0, handler 0x4ced84 on the object
  * 0x63821d). The executor evaluates the gate; this handler runs for a true gate. It stores the row and the signed body
  * byte (the mode) in the object, and only if the object is active (+0x216 != 0) acts on the mode:
- *   0   0x4ceb3b stops the random movie (releases the movie set through 0x4cd218) and then the arm applies the same
- *       scene/variable/start-flag block as mode 1 below. NOT modelled: the visit is UNSUPPORTED before any effect;
+ *   0   0x4ceb3b stops the random movie (releases the movie set through 0x4cd218), then the arm applies the variable
+ *       store, scene change and start flag of mode 1 below (not the 1de / 206 stores). The stop resets the object, so
+ *       the final completion store lands on row -1: the visit returns PENDING (the row is visited again with the object
+ *       inactive). Needs host.stop_movie, else UNSUPPORTED before any effect;
  *   1   variable store, scene change, start flag, then state 1de := 2 and flag 206 := 0;
  *   2   state 1de := 0 (3 and pending 25a := 0 if 25a was set), flag 206 := 1;
  *   other values do nothing.
