@@ -8,6 +8,7 @@ enum {
     INPUT_LATCH_POINT_BYTES = 8,
     INPUT_LATCH_FIELD_00 = 0x00,
     INPUT_LATCH_FIELD_08 = 0x08,
+    INPUT_LATCH_DBLCLK_STATE_BYTES = 0x0c,
     INPUT_LATCH_FIELD_0C = 0x0c,
     INPUT_LATCH_FIELD_10 = 0x10,
     INPUT_LATCH_MOVE_X = 0x18,
@@ -112,5 +113,22 @@ InputLatchStatus input_latch_up(
         write_word(state->bytes + INPUT_LATCH_FIELD_0C, 2);
     }
     write_word(state->bytes + INPUT_LATCH_FIELD_10, 0);
+    return INPUT_LATCH_OK;
+}
+
+/* 0x4db04f (FUN_004db04f): the whole function is [ecx+8] = 1; both callback arguments are ignored. */
+InputLatchStatus input_latch_dblclk(
+    const InputLatchStateView *state,
+    uint32_t ignored_callback_argument_0,
+    uint32_t ignored_callback_argument_1)
+{
+    InputLatchStatus status = check_state_view(state, INPUT_LATCH_DBLCLK_STATE_BYTES);
+
+    (void)ignored_callback_argument_0;
+    (void)ignored_callback_argument_1;
+    if (status != INPUT_LATCH_OK) {
+        return status;
+    }
+    write_word(state->bytes + INPUT_LATCH_FIELD_08, 1);
     return INPUT_LATCH_OK;
 }

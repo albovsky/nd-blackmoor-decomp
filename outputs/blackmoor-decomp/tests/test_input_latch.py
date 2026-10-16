@@ -61,6 +61,10 @@ class InputLatchTests(unittest.TestCase):
             ctypes.POINTER(StateView), ctypes.c_uint32, ctypes.c_uint32
         ]
         cls.library.input_latch_down.restype = ctypes.c_int
+        cls.library.input_latch_dblclk.argtypes = [
+            ctypes.POINTER(StateView), ctypes.c_uint32, ctypes.c_uint32
+        ]
+        cls.library.input_latch_dblclk.restype = ctypes.c_int
         cls.library.input_latch_up.argtypes = [
             ctypes.POINTER(StateView), ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32
         ]
@@ -146,6 +150,25 @@ class InputLatchTests(unittest.TestCase):
                 put_word(expected, 0x10, 0)
                 self.assertEqual(status, 0)
                 self.assertEqual(bytes_from(state_buffer, len(expected)), bytes(expected))
+
+    def test_dblclk_sets_only_field_08_and_ignores_arguments(self) -> None:
+        """input_latch_dblclk (0x4db04f): [ecx+8] = 1 whatever it held, nothing else changes."""
+        for value in (0, 1, 2, 0x80000000, U32_MAX):
+            with self.subTest(field_08=value):
+                initial = bytearray(pattern(0x40, value & 0xFF))
+                put_word(initial, 0x08, value)
+                state_buffer = buffer_for(initial)
+                status = self.library.input_latch_dblclk(
+                    ctypes.byref(self.state(state_buffer)), U32_MAX, 0xDEADBEEF
+                )
+                expected = bytearray(initial)
+                put_word(expected, 0x08, 1)
+                self.assertEqual(status, 0)
+                self.assertEqual(bytes_from(state_buffer, len(expected)), bytes(expected))
+        short = buffer_for(bytes(0x0B))
+        self.assertEqual(
+            self.library.input_latch_dblclk(ctypes.byref(self.state(short, 0x0B)), 0, 0), 2
+        )
 
     def test_up_truth_table_for_gate_sentinel_and_noncanonical_latches(self) -> None:
         guards = (U32_MAX, 0, 0x80000000)

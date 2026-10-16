@@ -79,6 +79,18 @@ int session_exit_request_transition(SessionExit *exit_state,
     return SESSION_EXIT_OK;
 }
 
+/* 0x4477b2 (FUN_004477b2): the whole function clears the effect object's busy byte (+0x1c). */
+static void effect_clear_busy(SessionExit *x)
+{
+    x->effect.busy = 0u;
+}
+
+/* 0x43dbd5 (FUN_0043dbd5): the whole function is one word store, DAT_005bb1c4 = 1. */
+static void first_render_level_set(SessionExitGlobals *g)
+{
+    g->first_render_level = 1;
+}
+
 /* 0x447418: stage 0. */
 static int controller_setup(SessionExit *x, const SessionExitHost *host,
                             SessionExitStepInfo *info)
@@ -88,7 +100,7 @@ static int controller_setup(SessionExit *x, const SessionExitHost *host,
     x->g.modal_input = 1;                              /* 0x447422 */
     x->g.redraw_request = 1;                           /* 0x4d36f0 (call 0x4d36ed) */
     x->g.redraw_counter = 0;                           /* 0x4d36fa */
-    x->g.first_render_level = 1;                       /* 0x43dbd8 (call 0x43dbd5) */
+    first_render_level_set(&x->g);                     /* 0x43dbd5 */
     x->g.game_state = SESSION_EXIT_STATE_RUN;          /* 0x447436 */
     if (host->nested_scene_tick == NULL ||
         host->nested_scene_tick(host->context) != 0) {
@@ -200,7 +212,7 @@ int session_exit_controller(SessionExit *exit_state,
         status = controller_sequence(exit_state, host, info);
         break;
     case 3u:
-        exit_state->effect.busy = 0u;                  /* 0x4477be */
+        effect_clear_busy(exit_state);                 /* 0x4477b2 */
         break;
     default:
         break;
@@ -332,7 +344,7 @@ int session_exit_clear_latches(SessionExit *exit_state)
     exit_state->g.latch_5c39f5 = 0;           /* 0x43e3fc */
     exit_state->g.latch_5c39f9 = 0;           /* 0x43e406 */
     exit_state->g.input_latch = -1;           /* 0x43e410 */
-    exit_state->g.first_render_level = 1;     /* 0x43e41a, call 0x43dbd5 */
+    first_render_level_set(&exit_state->g);   /* 0x43e41a, call 0x43dbd5 */
     exit_state->g.exit_hold_63a5c0 = 0;       /* 0x43e41f */
     exit_state->g.exit_hold_63a5c4 = 0;       /* 0x43e429 */
     return SESSION_EXIT_OK;

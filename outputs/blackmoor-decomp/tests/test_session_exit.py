@@ -193,6 +193,7 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual((x.effect.sequence_counter, x.g.game_state), (1, STATE_LOAD))
 
     def test_stage3_clears_busy_and_stage_above_3_does_nothing(self):
+        """Stage 3 runs effect_clear_busy (0x4477b2); stages above 3 touch nothing."""
         x = new_exit(self.lib, kind=2, stage=3, state=STATE_RUN)
         host = RecordingHost(self.lib, x)
         info = StepInfo()
@@ -325,6 +326,7 @@ class SessionExitTests(unittest.TestCase):
 
     # --- ClearSceneData blocks -------------------------------------------
     def test_clear_latches_block(self):
+        """Includes first_render_level_set (0x43dbd5): word 5bb1c4 becomes 1 from any prior value."""
         x = new_exit(self.lib)
         for name in ("scene_request_flag", "cursor_override", "latch_5c39ed",
                      "latch_5c39f1", "latch_5c39f5", "latch_5c39f9",

@@ -461,6 +461,496 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Read branch for branch against the pseudocode. Tests only, no oracle; kind 1 chains in t_condition_chain, kind 2 compares in other tests of that file. Native adds bounds errors and an out-parameter."
+  },
+  {
+   "va": "0x4c0ab1",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_35_runtime.c",
+    "symbol": "triggers"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_35_runtime.py",
+     "test_id": "MovieRuntimeTests.test_frame_triggers_and_rectangles"
+    },
+    {
+     "path": "tests/test_action_family_35_runtime.py",
+     "test_id": "MovieRuntimeTests.test_same_frame_duplicate_event_id_uses_last_value"
+    },
+    {
+     "path": "tests/test_action_family_35_runtime.py",
+     "test_id": "MovieRuntimeTests.test_multiple_matches_each_run_the_original_helper"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Static triggers: walks the 6-byte records in body order, event_flags[id] = sign-extended word2 when word0 equals the frame and id != -1 (duplicates apply in order). action_family_35_bink_original_oracle compares the event table and call order with 0 mismatches, but the original's debug-log arm is never run, so the ledger records only partial execution and this stays tests-only. Native takes the frame as a parameter and range-checks ids at decode time."
+  },
+  {
+   "va": "0x4f55d5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/sound_control.c",
+    "symbol": "sound_control_update"
+   },
+   "tests": [
+    {
+     "path": "tests/test_sound_control.py",
+     "test_id": "SoundControlTests.test_update_restart_random_repeat_wrap_and_false_gates"
+    },
+    {
+     "path": "tests/test_sound_control.py",
+     "test_id": "SoundControlTests.test_update_orders_fade_boundaries_before_restart"
+    }
+   ],
+   "oracle": {
+    "path": "tests/sound_control_original_oracle.py",
+    "window": [
+     "0x4f55d5",
+     "0x4f572b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Native is sound_control_update (not the app's update). Oracle original_update_trace now has 15 cases and 0 mismatches, including the 0x16e gate, the 0x172 gate, stream state, control != 0 with flags 0x20 and a random range of exactly 0 (added here; they were the earlier gap). Fade bodies and the Play wrapper are host seams; the fade stage 3 argument is not passed through."
+  },
+  {
+   "va": "0x41c3ba",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_3e.c",
+    "symbol": "action_family_3e_write_defaults"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_3e.py",
+     "test_id": "Family3eTests.test_constructor_defaults_preserve_memory_and_wrap"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_original_oracle.py",
+    "window": [
+     "0x41c3ba",
+     "0x41c509"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from the 3e constructor in this batch (a code move, no behaviour change). The original copies the strings at 0x570378 and 0x57037c into +0x63 and +0x84; both are .bss and GAME.EXE has no other code holding either address than the two copies in this function, so they are always empty and each copy is one NUL. The 3e oracle compares the whole object with 0 mismatches (211 calls)."
+  },
+  {
+   "va": "0x43dbd5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/session_exit.c",
+    "symbol": "first_render_level_set"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_clear_latches_block"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x43dbd5",
+     "0x43dbe3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from controller_setup and session_exit_clear_latches in this batch: the whole original is one word store (5bb1c4 = 1). The session_exit oracle compares that word after the latch window with randomised prior values, 0 mismatches. The caption lifecycle keeps its own inline store of the same word and is not claimed."
+  },
+  {
+   "va": "0x4477b2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/session_exit.c",
+    "symbol": "effect_clear_busy"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage3_clears_busy_and_stage_above_3_does_nothing"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x4477b2",
+     "0x4477d1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from the stage 3 arm of session_exit_controller in this batch: the original clears the effect object's busy byte (+0x1c). The session_exit controller step runs stage 3 against the original and compares all object cells, 0 mismatches."
+  },
+  {
+   "va": "0x4473a9",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_28.c",
+    "symbol": "effect_reset_stage"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_28.py",
+     "test_id": "Action28Tests.test_full_canvas_when_either_dimension_degenerate"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_28_original_oracle.py",
+    "window": [
+     "0x4473a9",
+     "0x4473be"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from action_family28_step phase 0 in this batch: the original stores 0 in the effect stage word (+0x2d). The A-28 dispatcher oracle and the binding oracle compare the world including that word, 0 mismatches; the test seeds the word with 123 and expects 0."
+  },
+  {
+   "va": "0x4db04f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/input_latch.c",
+    "symbol": "input_latch_dblclk"
+   },
+   "tests": [
+    {
+     "path": "tests/test_input_latch.py",
+     "test_id": "InputLatchTests.test_dblclk_sets_only_field_08_and_ignores_arguments"
+    },
+    {
+     "path": "tests/test_session_input.py",
+     "test_id": "SessionInputTests.test_double_click_inhibits_releases_until_down"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x4db04f",
+     "0x4db066"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from the PRIMARY_DBLCLK arm of session_input_feed in this batch: the original is [ecx+8] = 1 with both arguments ignored. The RT-2 oracle drives it through wrapper 0x43ecc0 and compares the latch, 0 mismatches. Native adds a view-length check."
+  },
+  {
+   "va": "0x4daf3f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/input_consume.c",
+    "symbol": "input_consume_field0"
+   },
+   "tests": [
+    {
+     "path": "tests/test_input_consume.py",
+     "test_id": "InputConsumeNativeTests.test_field0_uses_its_16_byte_extent_and_clears_only_after_nonzero"
+    }
+   ],
+   "oracle": {
+    "path": "tests/input_consume_original_oracle.py",
+    "window": [
+     "0x4daf3f",
+     "0x4daf6e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Same branch and store order (+0 then +0xc), returns the pre-clear value. S08-4 oracle: 100 calls, 0 mismatches. Native adds a status code and view checks."
+  },
+  {
+   "va": "0x4daf9f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/input_latch.c",
+    "symbol": "input_latch_move"
+   },
+   "tests": [
+    {
+     "path": "tests/test_input_latch.py",
+     "test_id": "InputLatchTests.test_move_copies_full_unsigned_words_and_preserves_every_other_byte"
+    },
+    {
+     "path": "tests/test_input_latch.py",
+     "test_id": "InputLatchTests.test_move_reads_second_word_after_first_store_when_views_overlap"
+    }
+   ],
+   "oracle": {
+    "path": "tests/input_latch_original_oracle.py",
+    "window": [
+     "0x4daf9f",
+     "0x4dafc3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Writes +0x18 and +0x1c from the point in the original order. S08-3 oracle: 421 steps, 0 mismatches. Native takes a bounded point view and returns a status."
+  },
+  {
+   "va": "0x4dafc3",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/input_latch.c",
+    "symbol": "input_latch_down"
+   },
+   "tests": [
+    {
+     "path": "tests/test_input_latch.py",
+     "test_id": "InputLatchTests.test_down_truth_table_and_untouched_bytes"
+    },
+    {
+     "path": "tests/test_input_latch.py",
+     "test_id": "InputLatchTests.test_down_and_up_do_not_dereference_callback_argument"
+    }
+   ],
+   "oracle": {
+    "path": "tests/input_latch_original_oracle.py",
+    "window": [
+     "0x4dafc3",
+     "0x4db000"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Field for field in the original order. S08-3 oracle 0 mismatches. Native adds view checks and a status."
+  },
+  {
+   "va": "0x4db000",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/input_latch.c",
+    "symbol": "input_latch_up"
+   },
+   "tests": [
+    {
+     "path": "tests/test_input_latch.py",
+     "test_id": "InputLatchTests.test_up_truth_table_for_gate_sentinel_and_noncanonical_latches"
+    }
+   ],
+   "oracle": {
+    "path": "tests/input_latch_original_oracle.py",
+    "window": [
+     "0x4db000",
+     "0x4db04f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "The global 0x5c39e5 is passed in as a parameter (session_input_feed passes the candidate); the +8 inhibit gate is the early return. S08-3 oracle (404 up cases) 0 mismatches."
+  },
+  {
+   "va": "0x4473be",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/session_exit.c",
+    "symbol": "session_exit_controller"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage3_clears_busy_and_stage_above_3_does_nothing"
+    },
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage2_type3_swaps_and_returns_to_stage1_without_completing"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x4473be",
+     "0x447418"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Stage switch 0, 1 (capture then fall into the sequence), 2, 3, above 3 nothing. The oracle calls the original controller for every stage 0-4 and 9, state 1-4, type 0-5 and compares the ordered effect list and touched cells, 0 mismatches. The 0x44753b frame loop runs through host seams. Native stops the fall-through on a host failure; the original has no failure path."
+  },
+  {
+   "va": "0x44aff2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_core.c",
+    "symbol": "action_core_initialize_values"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_core.py",
+     "test_id": "ActionCoreTests.test_initialize_values_writes_all_sentinels_and_preserves_other_state"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_values_init_original_oracle.py",
+    "window": [
+     "0x44aff2",
+     "0x44b05a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "30 words = 9999 and 10 dwords = 9999.0f; the oracle compares all 100 value bytes over seeded worlds and checks that difficulty and event flags stay untouched. Native adds a NULL-world status."
+  },
+  {
+   "va": "0x4e72fb",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_83_runtime.c",
+    "symbol": "action83_runtime_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_83_runtime.py",
+     "test_id": "RuntimeTests.test_mail_insert_newest_first"
+    },
+    {
+     "path": "tests/test_action_family_83_runtime.py",
+     "test_id": "RuntimeTests.test_web_append_update_and_signed_dword"
+    },
+    {
+     "path": "tests/test_action_family_83_runtime.py",
+     "test_id": "RuntimeTests.test_mail_insert_shifts_whole_records_including_read_flags"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_83_runtime_original_oracle.py",
+    "window": [
+     "0x4e72fb",
+     "0x4e7512"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Mail and web branches, record widths and stores match; the oracle runs the original dispatcher with the real 0x4e72fb, 0x4e444d and 0x4e0559 over the corpus and compares list snapshots, selection, refresh order and completion, 0 mismatches. The gate/completed skip and phase pass-through that the original does in its dispatcher 0x427a50 also live in native; refresh is a host callback."
+  },
+  {
+   "va": "0x42b2e4",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_0c_runtime.c",
+    "symbol": "action0c_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_0c_runtime.py",
+     "test_id": "KernelTests.test_phase_zero_starts_then_scans_in_the_same_call"
+    },
+    {
+     "path": "tests/test_action_family_0c_runtime.py",
+     "test_id": "KernelTests.test_finish_phase_stores_in_the_original_order_and_requests_the_scene_change"
+    },
+    {
+     "path": "tests/test_action_family_0c_runtime.py",
+     "test_id": "KernelTests.test_first_of_duplicate_frames_wins_and_scan_stops"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_0c_runtime_original_oracle.py",
+    "window": [
+     "0x42b2e4",
+     "0x42b510"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Phases 0, 1, 2 and other phases match; the oracle runs the original dispatcher with the real gate and handler over 4,776 cases and compares the ordered write stream and all cells, 0 mismatches. Native rejects a negative record count (an unreachable loader case) and takes the phase as input."
+  },
+  {
+   "va": "0x42b07e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_17_runtime.c",
+    "symbol": "action17_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_17_runtime.py",
+     "test_id": "KernelTests.test_phase_zero_starts_then_scans_in_the_same_call"
+    },
+    {
+     "path": "tests/test_action_family_17_runtime.py",
+     "test_id": "KernelTests.test_finish_phase_copies_the_prefix_in_order_and_requests_the_scene_change"
+    },
+    {
+     "path": "tests/test_action_family_17_runtime.py",
+     "test_id": "KernelTests.test_first_of_duplicate_frames_wins_and_scan_stops"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_17_runtime_original_oracle.py",
+    "window": [
+     "0x42b07e",
+     "0x42b2e4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Phases 0, 1, 2 match; the oracle runs the real dispatcher plus 0x42b07e for types 0x16 to 0x19 and compares the ordered write stream and cells, 0 mismatches. Native validates body length and count and takes the phase as input."
+  },
+  {
+   "va": "0x447c36",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/session_exit.c",
+    "symbol": "session_exit_effect_gate"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_gate_truth_table_matches_reviewed_predicate"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x447c36",
+     "0x447cc4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Busy and payload-type gate; the oracle step gate compares return value, events and all cells over the type, stage and state grid, 0 mismatches. Native propagates a controller host failure (the original always returns 1)."
+  },
+  {
+   "va": "0x44c4ab",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-10 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/avf_player.c",
+    "symbol": "release"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_handshake_and_stop_order"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Static release: if (handshake != 2) handshake = 0, plus a lifecycle observer callback. tests/avf_player_original_oracle.py compares the ordered handshake trace against the original but needs the game data and was not run in this cloud batch; the oracle recorded as executing 0x44c4ab (RT-9) does not compare this symbol, so the class stays tests-only."
   }
  ],
  "not_needed_entries": [

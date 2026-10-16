@@ -99,9 +99,7 @@ int session_input_feed(SessionInputState *state, SessionInputEvent event,
     } else {
         /* 43ecc0 -> 4db04f: only +8 is set. UP leaves the entire latch alone
          * while inhibited; only a subsequent DOWN clears this field. */
-        uint32_t inhibited = 1;
-        memcpy(state->latch + 8, &inhibited, sizeof(inhibited));
-        status = INPUT_LATCH_OK;
+        status = input_latch_dblclk(&view, 0, 0);
     }
     if (status != INPUT_LATCH_OK) return SESSION_INPUT_INVALID_ARGUMENT;
     if (tail != NULL) tail(tail_context, event, flags, logical_x, logical_y);
