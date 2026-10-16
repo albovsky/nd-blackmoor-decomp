@@ -1,7 +1,7 @@
 {
   "schema": "blackmoor-scene-action-coverage/1",
   "scenes": 2078,
-  "scenes_all_rows_handled": 2002,
+  "scenes_all_rows_handled": 2016,
   "handled_types": [
     "0x0a",
     "0x0b",
@@ -27,7 +27,10 @@
     "0x61",
     "0x62",
     "0x64",
+    "0x65",
     "0x67",
+    "0x68",
+    "0x69",
     "0x6a",
     "0x6b",
     "0x6e",
@@ -50,25 +53,7 @@
       "type": "0x45",
       "scenes": 9,
       "records": 32,
-      "sole_blocker_scenes": 3
-    },
-    {
-      "type": "0x68",
-      "scenes": 9,
-      "records": 10,
-      "sole_blocker_scenes": 2
-    },
-    {
-      "type": "0x65",
-      "scenes": 7,
-      "records": 7,
       "sole_blocker_scenes": 6
-    },
-    {
-      "type": "0x69",
-      "scenes": 6,
-      "records": 7,
-      "sole_blocker_scenes": 5
     },
     {
       "type": "0x4b",
@@ -80,7 +65,7 @@
       "type": "0x1b",
       "scenes": 4,
       "records": 4,
-      "sole_blocker_scenes": 3
+      "sole_blocker_scenes": 4
     },
     {
       "type": "0x47",
@@ -229,38 +214,23 @@
   ],
   "greedy_order": [
     {
-      "type": "0x65",
+      "type": "0x45",
       "scenes_unblocked": 6,
-      "scenes_complete": 2008
-    },
-    {
-      "type": "0x69",
-      "scenes_unblocked": 5,
-      "scenes_complete": 2013
+      "scenes_complete": 2022
     },
     {
       "type": "0x4b",
       "scenes_unblocked": 5,
-      "scenes_complete": 2018
+      "scenes_complete": 2027
     },
     {
       "type": "0x1b",
       "scenes_unblocked": 4,
-      "scenes_complete": 2022
+      "scenes_complete": 2031
     },
     {
       "type": "0x7d",
       "scenes_unblocked": 4,
-      "scenes_complete": 2026
-    },
-    {
-      "type": "0x45",
-      "scenes_unblocked": 3,
-      "scenes_complete": 2029
-    },
-    {
-      "type": "0x68",
-      "scenes_unblocked": 6,
       "scenes_complete": 2035
     },
     {

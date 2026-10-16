@@ -37,6 +37,7 @@
 #include "session_bindings_a95.h"
 #include "session_bindings_a44.h"
 #include "session_bindings_a4f.h"
+#include "session_bindings_a65_a68_a69.h"
 #include "session_bindings_a67.h"
 #include "session_bindings_a94.h"
 #include "session_bindings_a43.h"
@@ -272,6 +273,11 @@ struct NativeApp {
     SessionA6FBinding *a6f = nullptr;
     /* RT-30: raw 0x67 stores 1 in DAT_005bb1ca (arm 0x428692, gate mode 0). Not compiled here. */
     SessionA67Binding *a67 = nullptr;
+    /* RT-37: raw 0x65 SAVE_CONTINUE (arm 0x4285fd -> save routine 0x4d7a15), raw 0x68 / 0x69 start / clear a timer record
+     * (arms 0x4286d8, 0x42875d; 0x433bd2 on DAT_00585d65 + n * 0x106; all gate mode 0). The timer records are
+     * new_game.view.time_records_585d65; there is no save writer in the port, so the save request is only logged. Not
+     * compiled here. */
+    SessionA65Binding *a65 = nullptr;
     /* RT-32: raw 0x94 (AT_MAKE_SCREEN_FILE, arm 0x429747, handler 0x4c36b2). DAT_005839a9 is the capture flag the
      * renderer reads; 0x4d36ed requests a full redraw (0x5831c8 := 1). Neither reader is modelled here. Not compiled
      * here. */
@@ -1908,6 +1914,7 @@ static void cleanup(NativeApp *app)
     session_a6e_destroy(app->a6e);
     session_a6f_destroy(app->a6f);
     session_a67_destroy(app->a67);
+    session_a65_destroy(app->a65);
     session_a94_destroy(app->a94);
     session_a43_destroy(app->a43);
     session_a2d_destroy(app->a2d);
@@ -3570,6 +3577,62 @@ static int native_a67_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-37: the timer record table DAT_00585d65 (10 records of 0x106 bytes) the world already owns; an index past it is
+ * refused by the binding (the original would write past its table). */
+static uint8_t *native_a65_time_record(void *context, unsigned index)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || index >= WORLD_INIT_TIME_RECORD_COUNT) return nullptr;
+    uint8_t *timers = app->new_game.view.time_records_585d65;
+    if (timers == nullptr || app->new_game.view.time_records_size < WORLD_INIT_TIME_RECORD_BYTES) return nullptr;
+    return timers + static_cast<size_t>(index) * WORLD_INIT_TIME_RECORD_SIZE;
+}
+
+/* RT-37: raw 0x65 calls the save routine 0x4d7a15("SAVE CONTINUE", 0). The port has no save writer yet: the request is
+ * logged and nothing is persisted, so the Continue entry has nothing to load. */
+static void native_a65_save_game(void *context, const char *name, int report_failure)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    record(app, "scene_a65_save_requested name=%s report_failure=%d persisted=0 routine=0x4d7a15", name, report_failure);
+}
+
+static int native_a65_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a65_handler(app->a65, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a65_blocker row=%zu status=%d detail=%s", row, status, session_a65_failure(app->a65));
+    }
+    return status;
+}
+
+static int native_a68_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a68_handler(app->a65, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a68_blocker row=%zu status=%d detail=%s", row, status, session_a65_failure(app->a65));
+    }
+    return status;
+}
+
+static int native_a69_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a69_handler(app->a65, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a69_blocker row=%zu status=%d detail=%s", row, status, session_a65_failure(app->a65));
+    }
+    return status;
+}
+
 /* RT-32: raw 0x94 host effects. The original locks the DirectDraw front buffer (16-bit words), crops it and writes a
  * 24-bit BMP or a 16-bit TGA beside the game; here the composed 640x480 RGBA frame is packed to 5-6-5 words, which the
  * module brings to 5-5-5 exactly as 0x4c7481 does, and the files go to ~/Library/Application Support/Blackmoor
@@ -4936,6 +4999,11 @@ static bool create_native_session_bindings(NativeApp *app)
     a67_host.context = app;
     a67_host.set_start_flag = native_a67_set_start_flag;
     app->a67 = session_a67_create(&a67_host);
+    SessionA65Host a65_host{};
+    a65_host.context = app;
+    a65_host.time_record = native_a65_time_record;
+    a65_host.save_game = native_a65_save_game;
+    app->a65 = session_a65_create(&a65_host);
     SessionA94Host a94_host{};
     a94_host.context = app;
     a94_host.set_capture_flag = native_a94_set_capture_flag;
@@ -5010,7 +5078,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5806,7 +5874,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[31]{};
+    SceneSessionActionBinding bindings[34]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5947,13 +6015,28 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[29].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[29].callback = native_a44_handler;
     bindings[29].context = app;
+    /* RT-37: raw 0x65 SAVE_CONTINUE (arm 0x4285fd, gate mode 0; completion byte set directly). */
+    bindings[30].type = SESSION_A65_TYPE;
+    bindings[30].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[30].callback = native_a65_handler;
+    bindings[30].context = app;
+    /* RT-37: raw 0x68 start timer (arm 0x4286d8: 0x433bd2 then record state := 1, gate mode 0). */
+    bindings[31].type = SESSION_A68_TYPE;
+    bindings[31].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[31].callback = native_a68_handler;
+    bindings[31].context = app;
+    /* RT-37: raw 0x69 clear timer (arm 0x42875d: 0x433bd2, gate mode 0). */
+    bindings[32].type = SESSION_A69_TYPE;
+    bindings[32].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[32].callback = native_a69_handler;
+    bindings[32].context = app;
     /* RT-36: raw 0x2d random-movie set (handler 0x4cd6ff, gate mode 0; phase 0 needs a media backend, see
      * native_a2d_media_available). Raw 0x2e mode 0 stops it through native_a2e_stop_movie. */
-    bindings[30].type = SESSION_A2D_TYPE;
-    bindings[30].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[30].callback = native_a2d_handler;
-    bindings[30].context = app;
-    config.action_binding_count = 31u;
+    bindings[33].type = SESSION_A2D_TYPE;
+    bindings[33].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[33].callback = native_a2d_handler;
+    bindings[33].context = app;
+    config.action_binding_count = 34u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
