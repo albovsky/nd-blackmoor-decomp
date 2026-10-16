@@ -1349,6 +1349,10 @@ class NotNeededTests(ScratchCase):
         self.s.rule("R-EH", lambda r: r["parameters"].update(excluded=["0x407300"]))
         self.assertEqual(self.status(0x407300)[0], "pending")
 
+    def test_eh_rule_excluded_must_be_a_candidate(self):
+        self.s.rule("R-EH", lambda r: r["parameters"].update(excluded=["0x401000"]))   # indexed, but not a funclet
+        self.fails("not a candidate")
+
     def test_eh_rule_excluded_must_be_a_plain_index_address(self):
         for bad in (["0x407301"], ["0x0407300"], ["0x407300", "0x407300"], "0x407300"):
             with self.subTest(bad=bad):

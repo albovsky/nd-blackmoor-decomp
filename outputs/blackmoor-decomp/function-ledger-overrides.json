@@ -765,9 +765,10 @@
     "sample_sha256": "5fb2e5b19c4a6170eb7a3a84ad52b591e7c5291f81bcea31d124de6e1424eb82"
    },
    "caveats": [
-    "FL-7 review read all 73 candidates once the predicate refused funclets that jump into virtual-dispatch thunks (a first 59-entry sample found 4 defects of that kind and the predicate was tightened, 79 to 73 candidates). One defect remains and is excluded by parameter: 0x528f50 restores a routing-frame field through 0x50c1de and the save half could not be confirmed. n is the 72 funclets read as clean; sample_sha256 hashes their addresses.",
+    "FL-7 review read all 73 candidates. A first 59-entry sample found 4 defects (funclets that jump into a virtual-dispatch thunk), so the predicate now refuses those and the review was redone on the remaining set; one defect remains and is excluded by parameter: 0x528f50 restores a routing-frame field through 0x50c1de and the save half could not be confirmed. review.n and sample_sha256 describe the 72 funclets read as clean; the excluded one is outside the covered set.",
     "Four funclets (0x528ba0, 0x528ba8, 0x528bb0, 0x528bc4) destroy a temporary CDC or CWnd that borrows a message handle; on the exception path that would delete the borrowed handle. Accepted because they run only while a library function unwinds an exception, which the native port has no counterpart for; the next candidates to exclude if the rule is read more strictly.",
-    "Game-parent funclets (460) stay out: eh_parent_regions does not list game. Add it, with a fresh review of those funclets, once their parents are ported."
+    "Game-parent funclets (460) stay out: eh_parent_regions does not list game. Add it, with a fresh review of those funclets, once their parents are ported.",
+    "Default ruling for Glib to overturn: 18 covered funclets call a destructor-like library function that itself makes a virtual call. The readers read each of them and found plain cleanup, but a virtual call inside a callee could reach an override; refusing that would drop the covered set to 54, below the sample minimum. The four borrowed-handle funclets above and these 18 are accepted on the argument that they run only while a library function unwinds an exception, which the native port has no counterpart for."
    ]
   },
   {

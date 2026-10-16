@@ -1431,6 +1431,10 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
         regions = list(next((eh_regions(r) for r in ov["rules"] if r["id"] == "R-EH"), DEFAULT_EH_PARENT_REGIONS))
         candidates = xrefs_module().rule_candidates(xrefs["doc"], ov["specs"], regions)
         for rule in accepted:
+            known = {parse_va(t, "rule candidate") for t in candidates[rule["id"]]}
+            for text in rule["parameters"].get("excluded", ()):
+                if parse_va(text, "excluded") not in known:
+                    fail(f"rule {rule['id']}: excluded {text} is not a candidate of the rule")
             for text in candidates[rule["id"]]:
                 va = parse_va(text, "rule candidate")
                 if not rule_applies(rule, va, facts[va], uni, floor(va), parent_decided):
