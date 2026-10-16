@@ -67,6 +67,7 @@ class Action28Tests(unittest.TestCase):
             self.assertEqual(self.lib.action_family28_decode(buffer(payload()),n,c.byref(d),c.byref(consumed)),BODY)
             self.assertEqual((bytes(d),consumed.value),(before,777))
     def test_full_canvas_when_either_dimension_degenerate(self):
+        """Also effect_reset_stage (0x4473a9): the stage word 123 in the world becomes 0."""
         for rect in [(0,0,0,0),(2,3,2,9),(2,3,8,3)]:
             r=self.step(payload(rect=rect))
             self.assertEqual((r.applied,r.job_started,r.phase,r.world.busy,r.world.sequence_counter),(1,1,2,1,0))

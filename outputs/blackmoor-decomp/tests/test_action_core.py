@@ -99,6 +99,7 @@ class ActionCoreTests(unittest.TestCase):
         return world, flags
 
     def test_initialize_values_writes_all_sentinels_and_preserves_other_state(self):
+        """Covers action_core_initialize_values (0x44aff2)."""
         world, flags = self.world(8)
         world.short_values[:] = [index - 15 for index in range(30)]
         world.float_values[:] = [float(index) + 0.25 for index in range(10)]

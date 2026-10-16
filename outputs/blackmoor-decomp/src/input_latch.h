@@ -40,6 +40,10 @@ InputLatchStatus input_latch_up(
     uint32_t ignored_callback_argument_0,
     uint32_t ignored_callback_argument_1,
     uint32_t raw_global_5c39e5);
+InputLatchStatus input_latch_dblclk(
+    const InputLatchStateView *state,
+    uint32_t ignored_callback_argument_0,
+    uint32_t ignored_callback_argument_1);
 
 #ifdef __cplusplus
 }
