@@ -18,7 +18,7 @@ Owner thread: Claude Sonnet (cloud). Follows RT-23 to RT-31. Raw 0x94 was second
 
 ## Verification
 
-* `tests/action_family_94_runtime_test.c`: 9 unit cases (ASan/UBSan clean with gcc) and 19 unit mutants caught (`tests/test_action_family_94_runtime.py`); an executor-level test (production `scene_executor`, gated row, three phases, completion) with one executor mutant caught; the corpus driver runs all 12 rows through the binding.
+* `tests/action_family_94_runtime_test.c`: 9 unit cases (ASan/UBSan clean with gcc) and 18 unit mutants caught (`tests/test_action_family_94_runtime.py`); an executor-level test (production `scene_executor`, gated row, three phases, completion) with one executor mutant caught; the corpus driver runs all 12 rows through the binding.
 * `tests/action_family_94_runtime_original_oracle.py`: the real dispatcher `0x427a50` (arm `0x429747`, real loader `0x424aa8`, gate `0x423f57`, handler `0x4c36b2`, lock/unlock in the original's memory back-buffer mode, `0x43f04b`, `0x4c334f`, `0x4c7481`, `_makepath`, completion `0x42ba3a`) runs under Unicorn against the native binding; compared per tick: handler entries against the gate model, completion byte and phase of every row, dependency resets, and the ordered effects (flag stores, redraw requests, every file the CRT was asked to open: path, mode, bytes with the BMP padding masked). 27 native mutants caught.
 
 ## Limits
