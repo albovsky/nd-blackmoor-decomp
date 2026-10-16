@@ -130,6 +130,7 @@ class MovieRuntimeTests(unittest.TestCase):
         self.assertEqual((v['substate'], v['dirty'], v['decoded']), (0, 0, 0))
 
     def test_frame_triggers_and_rectangles(self):
+        """Covers triggers (0x4c0ab1)."""
         n = self.make(events=((0, 1001, -3), (0, 1002, 1)))
         n.step(0)
         n.step(1, frame=0)
@@ -140,6 +141,7 @@ class MovieRuntimeTests(unittest.TestCase):
         self.assertEqual(tuple(v[x] for x in ('dest_l', 'dest_t', 'dest_r', 'dest_b')), (11, 22, 14, 24))
 
     def test_same_frame_duplicate_event_id_uses_last_value(self):
+        """Covers triggers (0x4c0ab1)."""
         n = self.make(events=((0, 1001, -3), (0, 1001, 7)))
         self.assertEqual(n.step(0), 0)
         self.assertEqual(n.step(1), 0)
@@ -163,6 +165,7 @@ class MovieRuntimeTests(unittest.TestCase):
         self.assertEqual((n.values()['transition'], n.values()['start']), (0, 0))
 
     def test_multiple_matches_each_run_the_original_helper(self):
+        """Covers triggers (0x4c0ab1)."""
         n = self.make(views=(0, 0))
         n.step(0)
         n.step(1)

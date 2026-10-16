@@ -384,6 +384,12 @@ int action_family28_decode(const uint8_t *body,
     return ACTION_FAMILY28_OK;
 }
 
+/* 0x4473a9 (FUN_004473a9): the whole function stores 0 in the effect object's stage word (+0x2d). */
+static void effect_reset_stage(ActionFamily28World *world)
+{
+    world->sequence_counter = 0u;
+}
+
 int action_family28_step(const ActionFamily28Input *input,
                          const ActionFamily28World *world,
                          ActionFamily28Result *out_result)
@@ -427,7 +433,7 @@ int action_family28_step(const ActionFamily28Input *input,
         result.job_started = 1u;
         result.phase = 2u;
         result.world.busy = 1u;
-        result.world.sequence_counter = 0u;
+        effect_reset_stage(&result.world);
         memcpy(result.world.active_payload, decoded.source_bytes,
                ACTION_FAMILY_28_BODY_BYTES);
         if (decoded.rect.right == decoded.rect.left ||

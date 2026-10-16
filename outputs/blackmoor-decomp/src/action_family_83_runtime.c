@@ -71,6 +71,7 @@ int action83_initialize(A83World *world, const uint8_t *uicl, size_t length)
     return A83_OK;
 }
 
+/* 0x4e72fb (FUN_004e72fb): raw 0x83 mail/web list step. */
 int action83_runtime_step(const uint8_t *body, size_t length,
                           const A83Input *input, A83World *world,
                           const A83Backend *backend, A83Result *out,

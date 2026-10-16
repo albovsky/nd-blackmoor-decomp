@@ -188,6 +188,7 @@ class SessionInputTests(unittest.TestCase):
         self.assertEqual(self.state.candidate, -1)
 
     def test_double_click_inhibits_releases_until_down(self):
+        """Covers input_latch_dblclk (0x4db04f)."""
         self.arm(); self.feed(1); self.feed(2)
         self.assertEqual(self.tick().hotspot_activation_event, 1)
         self.feed(3)

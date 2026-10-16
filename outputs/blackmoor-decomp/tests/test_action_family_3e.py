@@ -169,6 +169,7 @@ class Family3eTests(unittest.TestCase):
         self.assertNotEqual(self.lib.action_family_3e_body_length(arena,180,C.cast(arena,C.POINTER(C.c_size_t))),0)
 
     def test_constructor_defaults_preserve_memory_and_wrap(self):
+        """action_family_3e_write_defaults (0x41c3ba): every default store lands, untouched bytes stay 0xcd."""
         src=storage(fixture());rows,keep=texts([b'caption']);out=Constructed()
         arena=storage(b'\xcd'*1957)
         self.assertEqual(self.lib.action_family_3e_construct(src,len(src),rows,1,0xfffffff0,0x21000000,
@@ -181,6 +182,14 @@ class Family3eTests(unittest.TestCase):
             self.assertEqual(struct.unpack_from('<H',bytes(arena),offset)[0],0x8123)
         self.assertEqual(struct.unpack_from('<HH',bytes(arena),0x793),(0,0))
         self.assertEqual(bytes(arena[0x747:0x74d]),b'dummy\0')
+        raw=bytes(arena)
+        self.assertEqual((raw[0x63],raw[0x84]),(0,0))
+        self.assertEqual(tuple(raw[0xa5:0xa8]),(1,2,3))
+        self.assertEqual((struct.unpack_from('<H',raw,0xa8)[0],)+struct.unpack_from('<HHH',raw,0xac),(0,1,2,3))
+        self.assertEqual(tuple(raw[0xb2:0xb6]),(1,0,2,3))
+        self.assertEqual(struct.unpack_from('<I',raw,0xb6)[0],0x01010101)
+        self.assertEqual((raw[0xba:0xfa],raw[0xfa:0x13a]),(bytes(64),bytes(64)))
+        self.assertEqual(struct.unpack_from('<HHHHI',raw,0x15b),(12,2,1,1,1))
 
     def test_constructor_plan_and_all_allocations(self):
         src=storage(fixture((1,0),(2,)));rows,keep=texts([b'main',b'one',b'two']);out=Constructed()

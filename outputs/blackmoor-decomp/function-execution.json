@@ -98,7 +98,7 @@
 {"exit": 0, "hits": 127162, "instructions": 637, "script": "outputs/blackmoor-decomp/tests/session_exit_original_oracle.py", "script_sha256": "0172907c9bdb74cd5df63836546ddf2bd6f490e1b0dfbc35ad731318d9778385", "trace_sha256": "5825c8784b2db6dc0ad5e397de7417ff70189510d40df2b9c2214250f989a408"},
 {"exit": 0, "hits": 761115, "instructions": 2603, "script": "outputs/blackmoor-decomp/tests/session_input_original_oracle.py", "script_sha256": "2b5ceb58d754691e8a993c59c21dcd4143fce4b26388f226351a068b935bc72e", "trace_sha256": "fcf03e14480dfd371b11757a63ef8a221b567500905a97f9d3c62eef27fb767f"},
 {"exit": 0, "hits": 7329573, "instructions": 2304, "script": "outputs/blackmoor-decomp/tests/session_navigation_original_oracle.py", "script_sha256": "8dd95fffa5dab3ed3af7ea2b5e7abc9d32d156dd721c4266ecdb6b34d27ce459", "trace_sha256": "b53114d30c8d8099ca81f68a2177b5ba1c5e7dab7ac1c25aaeefcf76d33f0a09"},
-{"exit": 0, "hits": 7181, "instructions": 552, "script": "outputs/blackmoor-decomp/tests/sound_control_original_oracle.py", "script_sha256": "81f86d1a5ea3f27bd97f35f58d8b53764ef3cfe87064e500c253dd9af6ddd842", "trace_sha256": "c3a6c8b49d40a950c18a66b262b1efc423785afca6f8f629afe50b55681d1c75"},
+{"exit": 0, "hits": 7391, "instructions": 552, "script": "outputs/blackmoor-decomp/tests/sound_control_original_oracle.py", "script_sha256": "1ca597c8335dd921d92d848e1e61fe46613c1d1587fb441ab84775c92666a956", "trace_sha256": "6f11aa29300bbc66f1e09ca949119f3a07fae128054e3b1d05010cbf1135c505"},
 {"exit": 0, "hits": 241323, "instructions": 249, "script": "outputs/blackmoor-decomp/tests/sound_persistence_original_oracle.py", "script_sha256": "93727234f24421cdbd0a0755ef8d7ead0cb16ec702aec9d55e1ed6469ef89894", "trace_sha256": "e69b97c38177429f2caa14ce47c5e783090da48f0fdb51e8f078bab5e60d5c3a"},
 {"exit": 0, "hits": 4227, "instructions": 555, "script": "outputs/blackmoor-decomp/tests/world_clock_original_oracle.py", "script_sha256": "cd2528143dd56c672da5f36ff1672d920c3e5ba7a7aeeadfd9738860c2fd2390", "trace_sha256": "5224c18ba4bb903b0e5f7aee24e88e2ab0e9a70e690f1167ccfed680860a1346"}
 ],
@@ -407,7 +407,7 @@
 "0x4ee69e": [41, [43, 1128, 25, 12408], [45, 691, 25, 7601], [85, 846, 25, 9306]],
 "0x4f0059": [9507, [1, 0, 738, 230839], [3, 0, 884, 231391], [6, 0, 595, 230445], [91, 822, 2967, 497137], [92, 1437, 4019, 3260162]],
 "0x4f356e": [558, [52, 1902, 255, 125532], [55, 1107, 255, 73062], [69, 1, 255, 66], [94, 1440, 267, 88862]],
-"0x4f55d5": [342, [93, 10, 342, 520]],
+"0x4f55d5": [342, [93, 15, 342, 730]],
 "0x4f6059": [398, [52, 2108, 230, 118336], [55, 1268, 230, 72022], [69, 1, 211, 56], [93, 15, 356, 718]],
 "0x4f61e7": [333, [94, 692, 176, 31832]],
 "0x4f6334": [312, [52, 5802, 182, 290100], [55, 3353, 182, 167650], [69, 3, 182, 150], [76, 55488, 312, 2279312], [94, 943, 217, 44282]],

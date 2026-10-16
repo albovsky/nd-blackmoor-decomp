@@ -167,6 +167,7 @@ class KernelTests(unittest.TestCase):
         cls.lib = bind()
 
     def test_phase_zero_starts_then_scans_in_the_same_call(self):
+        """Covers action17_step (0x42b07e)."""
         case = Case(self.lib, body(records=GALLERY), 0, selector=4)
         status, result, _ = case.run()
         self.assertEqual(status, OK)
@@ -203,6 +204,7 @@ class KernelTests(unittest.TestCase):
                 self.assertEqual((result.matched_record, result.requested), (-1, 0))
 
     def test_first_of_duplicate_frames_wins_and_scan_stops(self):
+        """Covers action17_step (0x42b07e)."""
         records = [(5, 1, 2, 3, 4), (5, 10, 20, 30, 40), (5, 100, 200, 300, 400)]
         case = Case(self.lib, body(records=records), 1, selector=5)
         status, result, _ = case.run()
@@ -232,6 +234,7 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(case.state()[0][1:5], (s16(0x12345), s16(-70000), -32768, -1))
 
     def test_finish_phase_copies_the_prefix_in_order_and_requests_the_scene_change(self):
+        """Covers action17_step (0x42b07e)."""
         data = body(target=6402, words=(-3, 4, 5), dwords=(70000, -2, 1), records=GALLERY)
         case = Case(self.lib, data, 2, selector=4,
                     slot=Slot(request=1, left=1, top=2, right=3, bottom=4, done=0))
