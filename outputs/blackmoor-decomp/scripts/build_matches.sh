@@ -5,9 +5,11 @@ if [[ $# -ne 1 ]]; then
     exit 2
 fi
 project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+workspace="$(cd "$project_dir/../.." && pwd)"
 mkdir -p "$project_dir/build"
 xcrun clang -target i686-pc-windows-msvc -O2 -fomit-frame-pointer \
     -fno-stack-protector -c "$project_dir/src/initial_functions.c" \
     -o "$project_dir/build/initial_functions.obj"
 exec python3 "$project_dir/scripts/verify_matches.py" "$1" \
-    "$project_dir/matches.json" --report "$project_dir/matching-report.json"
+    "$project_dir/matches.json" --report "$project_dir/matching-report.json" \
+    --path-root "$workspace"
