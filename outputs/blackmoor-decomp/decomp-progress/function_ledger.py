@@ -108,6 +108,10 @@ CLASSES = PORTED_CLASSES + NOT_NEEDED_CLASSES + PENDING_CLASSES
 CLASS_STATUS = {**{c: "ported" for c in PORTED_CLASSES}, **{c: "not_needed" for c in NOT_NEEDED_CLASSES},
                 **{c: "pending" for c in PENDING_CLASSES}}
 REGIONS = ("game", "vorbis", "crt_mfc")
+VORBIS_RULE_ID = "V-PCM-LSB1"
+VORBIS_RULE_KEYS = "id ruling criterion evidence limits reviewer date".split()
+VORBIS_EVIDENCE_KEYS = ("harness harness_sha256 pr files byte_equal within_one_lsb beyond_one_lsb "
+                        "native_failures original_failures").split()
 ORIGINS = ("game", "library", "compiler_eh", "import_thunk", "unknown")
 USES = ("entry", "callee", "mapped")
 QUALIFYING_USES = ("entry", "callee")
@@ -239,6 +243,36 @@ def rel_path(value, what):
             or any(seg in ("", ".", "..") for seg in value.split("/"))):
         fail(f"{what}: invalid relative path {value!r}")
     return value
+
+
+def vorbis_rule_value(rule, what):
+    """FL-12: the owner-ruled PCM parity rule that lets the statically linked Vorbis functions leave pending."""
+    exact_keys(rule, VORBIS_RULE_KEYS, (), what)
+    if rule["id"] != VORBIS_RULE_ID:
+        fail(f"{what}: the rule id must be {VORBIS_RULE_ID}")
+    exact_keys(rule["ruling"], "by date text".split(), (), what)
+    text_value(rule["ruling"]["by"], what, 80)
+    date_value(rule["ruling"]["date"], what)
+    text_value(rule["ruling"]["text"], what, 1200)
+    text_value(rule["criterion"], what, 1200)
+    ev = rule["evidence"]
+    exact_keys(ev, VORBIS_EVIDENCE_KEYS, (), what)
+    rel_path(ev["harness"], what)
+    sha_value(ev["harness_sha256"], what)
+    for key in VORBIS_EVIDENCE_KEYS[2:]:
+        if not is_int(ev[key]) or ev[key] < 0:
+            fail(f"{what}: evidence {key} must be a non-negative integer")
+    if ev["files"] < 1 or ev["byte_equal"] + ev["within_one_lsb"] + ev["beyond_one_lsb"] != ev["files"]:
+        fail(f"{what}: byte_equal + within_one_lsb + beyond_one_lsb must equal files")
+    if ev["beyond_one_lsb"] or ev["native_failures"] or ev["original_failures"]:
+        fail(f"{what}: the rule holds only when no file differs by more than 1 LSB and no decode failed")
+    if not isinstance(rule["limits"], list) or not rule["limits"]:
+        fail(f"{what}: limits must list what the parity does not show")
+    for item in rule["limits"]:
+        text_value(item, what, 1200)
+    text_value(rule["reviewer"], what, 80)
+    date_value(rule["date"], what)
+    return rule
 
 
 def name_list(value, pattern, what):
@@ -671,8 +705,8 @@ def validate_entry(e, index):
     if [d["id"] for d in e["divergences"]] != sorted(d["id"] for d in e["divergences"]):
         fail(f"{what}: divergences are not sorted")
     # region/status rules that hold for every entry
-    if e["region"] == "vorbis" and e["status"] != "pending":
-        fail(f"{what}: vorbis functions stay pending until PCM parity is proven")
+    if e["region"] == "vorbis" and e["status"] != "pending" and (e["status"], e["class"]) != ("ported", "host_adapter_tested"):
+        fail(f"{what}: vorbis functions stay pending unless ported as host_adapter_tested under the PCM parity rule")
     if e["status"] != "pending" and any(b["id"].startswith("census_") for b in e["blockers"]):
         fail(f"{what}: census fall-through fragments and unsplit spans stay pending")
     if e["status"] != "pending" and e["origin"] == "unknown":
@@ -720,7 +754,7 @@ def validate_entry(e, index):
 
 def validate(ledger):
     """Strict schema and invariant check of a ledger; reads no other file."""
-    exact_keys(ledger, "schema original_sha256 inputs counts entries".split(), (), "ledger")
+    exact_keys(ledger, "schema original_sha256 inputs counts entries".split(), ["vorbis_parity_rule"], "ledger")
     if ledger["schema"] != SCHEMA:
         fail(f"ledger schema must be {SCHEMA}")
     if ledger["original_sha256"] != PINNED_SHA:
@@ -742,6 +776,10 @@ def validate(ledger):
     entries = ledger["entries"]
     if not isinstance(entries, list) or not entries:
         fail("entries: expected a non-empty list")
+    if "vorbis_parity_rule" in ledger:
+        vorbis_rule_value(ledger["vorbis_parity_rule"], "ledger vorbis_parity_rule")
+    elif any(isinstance(e, dict) and e.get("region") == "vorbis" and e.get("status") != "pending" for e in entries):
+        fail("vorbis functions stay pending until PCM parity is proven (the ledger carries no vorbis_parity_rule)")
     prev, order = None, {r: i for i, r in enumerate(REGIONS)}
     for i, e in enumerate(entries):
         validate_entry(e, i)
@@ -765,7 +803,10 @@ def render(ledger):
     lines = ["{", f'"schema": {dump(ledger["schema"])},', f'"original_sha256": {dump(ledger["original_sha256"])},',
              '"inputs": [']
     lines += [dump(i) + ("," if k + 1 < len(ledger["inputs"]) else "") for k, i in enumerate(ledger["inputs"])]
-    lines += ["],", f'"counts": {dump(ledger["counts"])},', '"entries": [']
+    lines += ["],", f'"counts": {dump(ledger["counts"])},']
+    if "vorbis_parity_rule" in ledger:
+        lines.append(f'"vorbis_parity_rule": {dump(ledger["vorbis_parity_rule"])},')
+    lines.append('"entries": [')
     lines += [dump({k: e[k] for k in ENTRY_KEYS}) + ("," if k + 1 < len(ledger["entries"]) else "")
               for k, e in enumerate(ledger["entries"])]
     lines += ["]", "}"]
@@ -1130,7 +1171,7 @@ def load_overrides(inputs, uni, xrefs):
     raw = inputs.add("function-ledger-overrides.json", "overrides")
     doc = read_json_bytes(raw, "function-ledger-overrides.json")
     exact_keys(doc, ["schema", "port_acceptances", "not_needed_entries", "not_needed_rules", "semantics_sensitive"],
-               ["original_sha256", "status", "note", "win32_import_allowlist"], "overrides")
+               ["original_sha256", "status", "note", "win32_import_allowlist", "vorbis_parity_rule"], "overrides")
     if doc["schema"] != OVERRIDES_SCHEMA:
         fail(f"overrides schema must be {OVERRIDES_SCHEMA}")
     if doc.get("original_sha256", PINNED_SHA) != PINNED_SHA:
@@ -1148,6 +1189,14 @@ def load_overrides(inputs, uni, xrefs):
             fail(f"{what}: {fmt(va)} is not an indexed function start")
         return va
 
+    vorbis_rule = None
+    if "vorbis_parity_rule" in doc:
+        vorbis_rule = vorbis_rule_value(doc["vorbis_parity_rule"], "overrides vorbis_parity_rule")
+        ev = vorbis_rule["evidence"]
+        harness = inputs.add(ev["harness"], "evidence-oracle")
+        if sha256_bytes(harness) != ev["harness_sha256"]:
+            fail("overrides vorbis_parity_rule: the parity harness changed since the recorded run; "
+                 "rerun it on the Mac and update the rule")
     acceptances = {}
     for a in doc["port_acceptances"]:
         exact_keys(a, "va class reviewer date native_source tests oracle parts_accounted".split(),
@@ -1280,7 +1329,7 @@ def load_overrides(inputs, uni, xrefs):
         date_value(a["date"], "win32_import_allowlist")
         allowlist = set(name_list(a["names"], IMPORT_NAME, "win32_import_allowlist"))
     return {"acceptances": acceptances, "entries": entries, "rules": rules, "specs": specs, "sensitive": sensitive,
-            "allowlist": allowlist}
+            "allowlist": allowlist, "vorbis_rule": vorbis_rule}
 
 
 # --------------------------------------------------------- input: x86 ----
@@ -1370,9 +1419,10 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
         notes.extend(inputs.notes)
     xf, ev = xrefs["entries"], evidence["functions"]
 
-    def floor(va):
-        """Why a function can never leave pending (census facts, vorbis, unknown origin)."""
-        if uni.regions[va] == "vorbis":
+    def floor(va, port=False):
+        """Why a function can never leave pending (census facts, vorbis, unknown origin).  Only a port acceptance
+        under the PCM parity rule (FL-12) may take a vorbis function; not_needed rules and entries never do."""
+        if uni.regions[va] == "vorbis" and not (port and ov["vorbis_rule"] is not None):
             return "vorbis functions stay pending until PCM parity is proven"
         if va in census["unsplit"]:
             return "the census left this span unsplit"
@@ -1409,7 +1459,7 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
     # ---- rule 3: port acceptances ----
     ported = {}
     for va, a in sorted(ov["acceptances"].items()):
-        ported[va] = check_acceptance(va, a, facts[va], root, uni, xrefs, floor(va))
+        ported[va] = check_acceptance(va, a, facts[va], root, uni, xrefs, floor(va, port=True))
     # ---- rule 4: per-function not_needed entries ----
     for va in sorted(ov["entries"]):
         if va in ported:
@@ -1478,6 +1528,8 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
         out.append({k: e[k] for k in ENTRY_KEYS})
     ledger = {"schema": SCHEMA, "original_sha256": PINNED_SHA, "inputs": inputs.listing(),
               "counts": count_entries(out), "entries": out}
+    if ov["vorbis_rule"] is not None:
+        ledger["vorbis_parity_rule"] = ov["vorbis_rule"]
     return validate(ledger)
 
 
@@ -1506,6 +1558,8 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
     if floor:
         fail(f"{what}: {floor}")
     pointers = f["pointers"]
+    if uni.regions[va] == "vorbis" and a["class"] != "host_adapter_tested":
+        fail(f"{what}: a vorbis function is accepted only as host_adapter_tested under the PCM parity rule")
     path, symbol = a["symbol"]
     if not any(p["kind"] == "native_source" and p["path"] == path and p["symbol"] == symbol for p in pointers):
         fail(f"{what}: native_source {path}:{symbol} is not in the evidence for this function")

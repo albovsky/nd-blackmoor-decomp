@@ -126,6 +126,19 @@ def add_pending_evidence(scratch, blockers):
     scratch.edit("function-evidence.json", go)
 
 
+def parity_rule(**evidence):
+    """FL-12: a valid Vorbis PCM parity rule, pinned to a file the fixture tree has."""
+    harness = "src/fixture_core.c"
+    ev = {"harness": harness, "pr": 81, "files": 10, "byte_equal": 2, "within_one_lsb": 8, "beyond_one_lsb": 0,
+          "native_failures": 0, "original_failures": 0,
+          "harness_sha256": hashlib.sha256((FIXTURE / harness).read_bytes()).hexdigest()}
+    ev.update(evidence)
+    return {"id": "V-PCM-LSB1",
+            "ruling": {"by": "Glib", "date": "2026-10-16", "text": "within 1 LSB with equal length is parity"},
+            "criterion": "same length and every sample equal or off by 1 LSB", "evidence": ev,
+            "limits": ["output parity only"], "reviewer": "r", "date": "2026-10-16"}
+
+
 class Scratch:
     """A mutable copy of the fixture tree."""
 
@@ -807,6 +820,7 @@ class SchemaTests(ScratchCase):
         # The committed overrides (rule shapes, allowlist, spec-shaped semantics_sensitive) must load.
         draft = json.loads((OUT / "function-ledger-overrides.json").read_text())
         draft["port_acceptances"] = []              # the real decisions name real functions, not the fixture's
+        draft.pop("vorbis_parity_rule")             # it pins a harness file the fixture tree does not have
         draft["not_needed_entries"] = []
         for rule in draft["not_needed_rules"]:
             rule["accepted"] = False
@@ -1107,6 +1121,33 @@ class PortAcceptanceTests(ScratchCase):
         self.add_acceptance(0x404800)
         self.fails("vorbis")
 
+    def with_parity_rule(self, mutate=None):
+        rule = parity_rule()
+        if mutate:
+            mutate(rule)
+        self.s.ov(lambda d: d.update(vorbis_parity_rule=rule))
+
+    def test_vorbis_acceptance_under_the_rule_must_be_host_adapter_tested(self):
+        self.with_parity_rule()
+        self.add_acceptance(0x404800)               # a copy of a native_tests_only acceptance
+        self.fails("host_adapter_tested")
+
+    def test_parity_rule_is_pinned_to_the_harness_it_was_recorded_with(self):
+        self.with_parity_rule(lambda r: r["evidence"].update(harness_sha256="0" * 64))
+        self.fails("harness changed")
+
+    def test_parity_rule_holds_only_without_a_file_beyond_one_lsb_or_a_failed_decode(self):
+        for key in ("beyond_one_lsb", "native_failures", "original_failures"):
+            with self.subTest(key=key):
+                s = self.fresh()
+                self.s = s
+                self.with_parity_rule(lambda r: r["evidence"].update(
+                    {key: 1, "byte_equal": 1 if key == "beyond_one_lsb" else 2,
+                     "within_one_lsb": 8}))
+                with self.assertRaises(FL.LedgerError) as ctx:
+                    s.derive()
+                self.assertIn("more than 1 LSB", str(ctx.exception))
+
     def test_unsplit_span_and_fall_through_fragment_stay_pending(self):
         for va in (0x407a00, 0x401e00):
             with self.subTest(va=hex(va)):
@@ -1260,6 +1301,11 @@ class NotNeededTests(ScratchCase):
     def test_vorbis_stays_pending_for_not_needed_too(self):
         self.add_entry(0x404800, "unreachable_no_refs")
         self.fails("vorbis")
+
+    def test_parity_rule_never_lets_not_needed_take_vorbis(self):
+        self.s.ov(lambda d: d.update(vorbis_parity_rule=parity_rule()))
+        self.add_entry(0x404800, "unreachable_no_refs")
+        self.fails("until PCM parity is proven")      # the floor, not only the later entry check
 
     def test_unknown_origin_seam_functions_stay_pending_for_not_needed_too(self):
         self.s.xr(0x407900, lambda f: f.update(origin="unknown", origin_basis="seam_unresolved", reach="unknown_origin"))
@@ -1689,6 +1735,32 @@ class ValidatorTests(unittest.TestCase):
             e["class"] = "native_tests_only"
         self.rejects(go, "vorbis")
 
+    def test_vorbis_entries_stay_ported_adapter_tested_even_with_the_rule(self):
+        for label, status, cls in (("tests only", "ported", "native_tests_only"),
+                                   ("not needed", "not_needed", "nn_rule")):
+            with self.subTest(label):
+                def go(d):
+                    d["vorbis_parity_rule"] = parity_rule()
+                    e = self.entry(d, 0x404800)
+                    e["status"], e["class"] = status, cls
+                self.rejects(go, "vorbis functions stay pending unless ported as host_adapter_tested")
+
+    def test_parity_rule_id_and_file_counts_are_checked(self):
+        def wrong_id(d):
+            d["vorbis_parity_rule"] = {**parity_rule(), "id": "V-OTHER"}
+        self.rejects(wrong_id, "rule id")
+
+        def wrong_sum(d):
+            d["vorbis_parity_rule"] = parity_rule(files=11)
+        self.rejects(wrong_sum, "must equal files")
+
+    def test_vorbis_ported_needs_the_parity_rule_in_the_ledger(self):
+        def go(d):
+            e = self.entry(d, 0x404800)
+            e["status"] = "ported"
+            e["class"] = "host_adapter_tested"
+        self.rejects(go, "vorbis_parity_rule")
+
     def test_unknown_origin_never_leaves_pending(self):
         def go(d):
             e = self.entry(d, 0x407800)
@@ -1810,8 +1882,10 @@ class RepositoryLedgerTests(unittest.TestCase):
         self.assertNotIn("/Users/", text)
         self.assertNotRegex(text, r'"path": "(?:/|[A-Za-z]:)')
 
-    def test_vorbis_all_pending(self):
-        self.assertEqual({e["status"] for e in self.data["entries"] if e["region"] == "vorbis"}, {"pending"})
+    def test_vorbis_all_ported_as_adapter_tested_under_the_parity_rule(self):
+        self.assertEqual({(e["status"], e["class"]) for e in self.data["entries"] if e["region"] == "vorbis"},
+                         {("ported", "host_adapter_tested")})
+        self.assertEqual(self.data["vorbis_parity_rule"]["id"], "V-PCM-LSB1")
 
     def test_origin_seam_and_parts_follow_the_real_xrefs(self):
         xrefs = json.loads((OUT / "function-xrefs.json").read_text())
