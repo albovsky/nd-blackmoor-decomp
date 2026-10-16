@@ -73,7 +73,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `f0f94b614e1901ecd01631c73ac6aeaa334bbe5612cc3f6a434b459ac1532e13`; 655 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `f013c3505830b3dd6ca1d4e1b9a724a9a20e4f72996b1175314ceca286446fe0`; 655 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 
