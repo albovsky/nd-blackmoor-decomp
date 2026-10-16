@@ -379,7 +379,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Static sort_phone_records. Oracle compares the real 12 BOOT rows byte for byte (0 mismatches). Only ASCII normalization is ported; native rejects names without a terminator in 20 bytes, the original overruns its buffer."
+   "note": "Static sort_phone_records. Oracle compares the 12 real BOOT rows (4 distinct ASCII names) byte for byte; prefix, high-bit and case ties are native-test only. ASCII normalization only; native rejects unterminated names."
   },
   {
    "va": "0x447418",
@@ -460,7 +460,7 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Read branch for branch against the pseudocode (clear loop, kind 1/2 compare, chain fixpoint, final test). Tests only, no oracle. Native adds bounds errors and an out-parameter result."
+   "note": "Read branch for branch against the pseudocode. Tests only, no oracle; kind 1 chains in t_condition_chain, kind 2 compares in other tests of that file. Native adds bounds errors and an out-parameter."
   }
  ],
  "not_needed_entries": [

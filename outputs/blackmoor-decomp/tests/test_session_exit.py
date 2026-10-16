@@ -161,14 +161,17 @@ class SessionExitTests(unittest.TestCase):
 
     def test_stage1_for_types_other_than_2_and_3_captures_nothing(self):
         """controller_capture_destination (original 0x4474cf) neither captures nor rewrites the
-        payload type for type 1: the first host event is the sequence, not a capture."""
-        x = new_exit(self.lib, kind=1, stage=1, state=STATE_RUN)
-        host = RecordingHost(self.lib, x)
-        info = StepInfo()
-        self.assertEqual(self.lib.session_exit_controller(
-            c.byref(x), c.byref(host.host()), c.byref(info)), OK)
-        self.assertNotIn(("capture", CAPTURE_DESTINATION, STATE_RUN), host.events)
-        self.assertEqual(x.effect.active_payload[0], 1)
+        payload type for types 0, 1 and 5: the first host event is the sequence, not a capture."""
+        for kind in (0, 1, 5):
+            with self.subTest(kind=kind):
+                x = new_exit(self.lib, kind=kind, stage=1, state=STATE_RUN)
+                host = RecordingHost(self.lib, x)
+                info = StepInfo()
+                self.assertEqual(self.lib.session_exit_controller(
+                    c.byref(x), c.byref(host.host()), c.byref(info)), OK)
+                self.assertEqual(host.events[0][0], "run_sequence")
+                self.assertNotIn(("capture", CAPTURE_DESTINATION, STATE_RUN), host.events)
+                self.assertEqual(x.effect.active_payload[0], kind)
 
     def test_stage2_type3_swaps_and_returns_to_stage1_without_completing(self):
         x = new_exit(self.lib, kind=3, stage=2, state=STATE_RUN, pause=0)

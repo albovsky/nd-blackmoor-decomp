@@ -111,8 +111,9 @@ static void sort_phone_records(ActionUIWorld *world)
                 memcpy(world->phone_records[row + 1u], temporary,
                        ACTION_UI_PHONE_RECORD_SIZE);
                 swapped = 1;
-                /* Original 0x4e3ade stops comparing after the first swap in
-                 * each pass, then restarts from row zero. */
+                /* Original 0x4e3ade keeps walking the pass after a swap but
+                 * cannot swap again (its flag is set); stopping here and
+                 * restarting from row zero gives the same final order. */
                 break;
             }
         }
