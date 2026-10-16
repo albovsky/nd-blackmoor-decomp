@@ -14,7 +14,10 @@ by exactly one of them:
     Assembled from reviewed reconstruction sources already in the repository
     (the S08-2/3/4 mnemonic assembly objects, assembled with the pinned GNU
     ``as``, plus the two incomplete 7-byte C ranges) and re-verified through
-    ``verify_matches.py`` before their bytes are used.
+    ``verify_matches.py`` before their bytes are used; plus the audited
+    tool-assisted assembly batches of packet M03 (``asm_batches``), reassembled
+    with the pinned GNU ``as`` and checked against the code hashes in their
+    manifests.  Provenance classes are reported separately.
 ``referenced``
     Copied at build time from the owner's local ``GAME.EXE`` by offset, length
     and SHA-256 (``image/ranges.json``).  A referenced range is a placeholder
@@ -42,9 +45,12 @@ import hashlib
 import importlib.util
 import json
 import re
+import shutil
 import struct
 import subprocess
 import sys
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Optional
@@ -177,6 +183,7 @@ class Item:
     data: Optional[bytes] = None
     sha256: str = ""  # expected SHA-256 for referenced ranges
     stage_referenced: bool = False  # structured item served from the original in a staged build
+    provenance: str = ""  # reconstructed items: the provenance class of the source that produced the bytes
 
     @property
     def end(self) -> int:
@@ -568,9 +575,10 @@ def build_recipe_object(binding: dict[str, Any], build_dir: Path, assembler: Pat
             )
         command = [str(assembler), "--32", "-o", str(object_path), str(source)]
     elif tool == "clang-c":
+        # Apple clang through xcrun on the Mac; any clang on PATH elsewhere (verify_matches decides whether the bytes are right).
+        launcher = ["xcrun", "clang"] if shutil.which("xcrun") else [shutil.which("clang") or "clang"]
         command = [
-            "xcrun",
-            "clang",
+            *launcher,
             "-target",
             "i686-pc-windows-msvc",
             "-O2",
@@ -643,6 +651,7 @@ def bind_reconstructed(
                     "code",
                     layout.code_region(rva + layout.image_base),
                     data=data,
+                    provenance=binding["provenance_class"],
                 )
             )
             records.append(
@@ -660,6 +669,155 @@ def bind_reconstructed(
                     "status": "bound",
                 }
             )
+    asm_items, asm_records = bind_asm_batches(layout, reconstructed.get("asm_batches", []), build_dir, assembler, taken)
+    return items + asm_items, records + asm_records
+
+
+ASM_CLASS = "tool_assisted_reconstructed_assembly"
+ASM_WORKERS = 4
+
+
+def load_auditor() -> Any:
+    """Import ``audit_tool_assisted.py`` (read-only) for its pinned-assembler check."""
+    path = SCRIPT_DIR / "audit_tool_assisted.py"
+    spec = importlib.util.spec_from_file_location("audit_tool_assisted", path)
+    if spec is None or spec.loader is None:
+        raise ComposeError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("audit_tool_assisted", module)
+    spec.loader.exec_module(module)
+    return module
+
+
+def assemble_function_bytes(verifier: Any, assembler: Path, source: Path, symbol: str, size: int) -> bytes:
+    """Assemble one audited ``.s`` and return the bytes of its code symbol.
+
+    The object is discarded after reading.  A relocation or a symbol outside
+    ``.text`` is an error: every target must resolve at assembly time.
+    """
+    with tempfile.TemporaryDirectory(prefix="m02-asm-") as tmp:
+        object_path = Path(tmp) / "function.obj"
+        completed = subprocess.run(
+            [str(assembler), "--32", "-o", str(object_path), str(source)], capture_output=True, text=True, check=False
+        )
+        if completed.returncode != 0:
+            raise ComposeError(f"{source.name}: pinned GNU as rejected the source: {' '.join(completed.stderr.split())[:300]}")
+        candidate = verifier._parse_coff_object(object_path.read_bytes())
+    if any(section.relocation_count for section in candidate.sections):
+        raise ComposeError(f"{source.name}: the object carries relocations")
+    data, _, _ = candidate.symbol_bytes(symbol, size)
+    return data
+
+
+def bind_asm_batches(
+    layout: Layout,
+    batches: list[dict[str, Any]],
+    build_dir: Path,
+    assembler: Path,
+    taken: list[tuple[int, int, str]],
+) -> tuple[list[Item], list[dict[str, Any]]]:
+    """Bind audited tool-assisted assembly batches (packet M03) as reconstructed ranges.
+
+    Each function's ``.s`` is reassembled with the pinned GNU as; the symbol's
+    bytes must equal the SHA-256 the batch manifest records for the original
+    code part (a comparison of hashes, no original byte is read here) and the
+    batch must carry an all-accepted audit report whose manifest hash matches.
+    The bytes come from the assembled object.  A function that overlaps a range
+    bound earlier (the hand-written baseline) is reported as superseded.  Data
+    items (switch tables, index tables, padding) are not bound here.
+    """
+    if not batches:
+        return [], []
+    verifier = load_verifier()
+    problem, assembler_info = load_auditor().check_assembler(assembler)
+    if problem:
+        raise ComposeError(f"asm batches need the pinned assembler: {problem}")
+    items: list[Item] = []
+    records: list[dict[str, Any]] = []
+    for batch in batches:
+        manifest_path = PROJECT_DIR / batch["manifest"]
+        report_path = PROJECT_DIR / batch["report"]
+        manifest = load_json(manifest_path)
+        report = load_json(report_path)
+        if batch.get("provenance_class", ASM_CLASS) != ASM_CLASS or manifest.get("class") != ASM_CLASS:
+            raise ComposeError(f"{batch['manifest']}: not a {ASM_CLASS} batch")
+        if manifest.get("original_sha256") != ORIGINAL_SHA256:
+            raise ComposeError(f"{batch['manifest']}: describes a different original")
+        if report.get("manifest_sha256") != file_sha256(manifest_path):
+            raise ComposeError(f"{batch['report']}: audit report is stale (manifest hash differs)")
+        if not report.get("all_accepted") or report.get("errors") or report.get("accepted_count") != len(manifest["functions"]):
+            raise ComposeError(f"{batch['report']}: the audit did not accept every function in the batch")
+        accepted = {f["function"] for f in report["functions"] if f.get("status") == "accepted"}
+        functions = manifest["functions"]
+        for function in functions:
+            if function["function"] not in accepted:
+                raise ComposeError(f"{batch['report']}: {function['function']} is not accepted")
+            source = manifest_path.parent / function["source"]
+            if file_sha256(source) != function["source_sha256"]:
+                raise ComposeError(f"{function['source']}: source differs from the audited hash")
+
+        def assemble(function: dict[str, Any]) -> bytes:
+            code = function["code"]
+            data = assemble_function_bytes(verifier, assembler, manifest_path.parent / function["source"], code["symbol"], num(code["size"]))
+            if sha256(data) != code["sha256"]:
+                raise ComposeError(f"{function['source']}: assembled bytes differ from the audited original code part")
+            return data
+
+        with ThreadPoolExecutor(max_workers=ASM_WORKERS) as pool:
+            assembled = list(pool.map(assemble, functions))
+
+        bound = superseded = bound_bytes = 0
+        superseded_names: list[str] = []
+        source_hashes: list[str] = []
+        range_hashes: list[str] = []
+        for function, data in zip(functions, assembled):
+            code = function["code"]
+            rva, size = num(code["rva"]), num(code["size"])
+            offset = layout.rva_to_offset(rva)
+            conflict = [t for t in taken if offset < t[1] and t[0] < offset + size]
+            if conflict:
+                superseded += 1
+                superseded_names.append(f"{code['symbol']} by {conflict[0][2]}")
+                continue
+            taken.append((offset, offset + size, f"{batch['manifest']}:{code['symbol']}"))
+            items.append(
+                Item(
+                    offset,
+                    size,
+                    CLS_RECONSTRUCTED,
+                    "reconstructed",
+                    code["symbol"],
+                    ".text",
+                    "code",
+                    layout.code_region(rva + layout.image_base),
+                    data=data,
+                    provenance=ASM_CLASS,
+                )
+            )
+            bound += 1
+            bound_bytes += size
+            source_hashes.append(function["source_sha256"])
+            range_hashes.append(sha256(data))
+        records.append(
+            {
+                "manifest": batch["manifest"],
+                "symbol": batch["manifest"],
+                "batch": manifest["batch"],
+                "offset": 0,
+                "length": bound_bytes,
+                "source_kind": "tool_assisted_assembly",
+                "provenance_class": ASM_CLASS,
+                "status": "bound",
+                "functions": bound,
+                "superseded": superseded,
+                "superseded_list": superseded_names,
+                "manifest_sha256": file_sha256(manifest_path),
+                "report_sha256": file_sha256(report_path),
+                "sources_sha256": sha256("\n".join(source_hashes).encode()),
+                "range_sha256": sha256("\n".join(range_hashes).encode()),
+                "assembler_version_line": assembler_info.get("version_line"),
+            }
+        )
     return items, records
 
 
@@ -865,6 +1023,13 @@ def coverage_report(comp: Composition) -> dict[str, Any]:
         group = by_group.setdefault(item.group if item.cls != CLS_REFERENCED or item.stage_referenced else "referenced", {"bytes": 0, "items": 0})
         group["bytes"] += item.length
         group["items"] += 1
+    # Reconstructed code by the provenance class of the source that produced it; classes are reported separately.
+    by_provenance: dict[str, dict[str, int]] = {}
+    for item in items:
+        if item.cls == CLS_RECONSTRUCTED:
+            entry = by_provenance.setdefault(item.provenance or "unspecified", {"ranges": 0, "bytes": 0})
+            entry["ranges"] += 1
+            entry["bytes"] += item.length
     referenced = [i for i in items if i.cls == CLS_REFERENCED and not i.stage_referenced]
     staged = [i for i in items if i.stage_referenced]
     total = len(comp.data)
@@ -895,8 +1060,10 @@ def coverage_report(comp: Composition) -> dict[str, Any]:
             "code_bytes_reconstructed": code_recon,
             "code_bytes_referenced": code_ref,
             "code_bytes_reconstructed_fraction": round(code_recon / code_total, 6) if code_total else 0,
+            "reconstructed_functions": sum(entry["ranges"] for entry in by_provenance.values()),
         },
         "by_class": by_class,
+        "reconstructed_by_provenance": by_provenance,
         "by_section": by_section,
         "by_code_region": by_region,
         "by_group": by_group,
@@ -937,7 +1104,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Generated (structured + reconstructed): {p['generated_bytes']:,} bytes ({p['generated_fraction'] * 100:.2f}%)",
         f"- Referenced from the local original (not matched): {p['referenced_bytes']:,} bytes in {report['referenced_ranges']['count']:,} described ranges",
         f"- Missing: {p['missing_bytes']:,} bytes",
-        f"- Code bytes: {p['code_bytes']:,}; reconstructed {p['code_bytes_reconstructed']:,}; still referenced {p['code_bytes_referenced']:,}",
+        f"- Code bytes: {p['code_bytes']:,}; reconstructed {p['code_bytes_reconstructed']:,} ({p['code_bytes_reconstructed_fraction'] * 100:.2f}%); still referenced {p['code_bytes_referenced']:,}",
+        f"- Reconstructed functions bound (separate classes below): {p['reconstructed_functions']:,}",
         "",
         "## By class",
         "",
@@ -949,6 +1117,9 @@ def render_markdown(report: dict[str, Any]) -> str:
     for cls in CLASSES:
         entry = report["by_class"][cls]
         lines.append(f"| {cls} | {entry['bytes']:,} | {entry['ranges']:,} |")
+    lines += ["", "## Reconstructed by provenance class", "", "| Class | Functions or ranges | Bytes |", "|---|---:|---:|"]
+    for name, entry in report["reconstructed_by_provenance"].items():
+        lines.append(f"| {name} | {entry['ranges']:,} | {entry['bytes']:,} |")
     lines += ["", "## By section", "", "| Section | structured | reconstructed | referenced |", "|---|---:|---:|---:|"]
     for name, entry in report["by_section"].items():
         lines.append(f"| {name} | {entry[CLS_STRUCTURED]:,} | {entry[CLS_RECONSTRUCTED]:,} | {entry[CLS_REFERENCED]:,} |")
@@ -960,6 +1131,11 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"| {name} | {entry['bytes']:,} | {entry['items']:,} |")
     lines += ["", "## Reconstructed ranges", "", "| Symbol | Offset | Length | Source kind | Status |", "|---|---:|---:|---|---|"]
     for record in report["reconstructed"]:
+        if "functions" in record:
+            lines.append(
+                f"| `{record['manifest']}` ({record['functions']:,} functions, {record['superseded']} superseded by earlier bindings) | - | {record['length']:,} | {record.get('source_kind', '-')} | {record['status']} |"
+            )
+            continue
         lines.append(
             f"| `{record['symbol']}` | {hx(record['offset'])} | {record['length']} | {record.get('source_kind', '-')} | {record['status']} |"
         )

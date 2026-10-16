@@ -113,7 +113,7 @@ A ledger is a claim, not proof. Pass `--verify-image COMPOSED.EXE` (the composer
 
 Accounting: `reconstructed` and `structured` bytes are matched, in the bar for their `kind`; `referenced` bytes are not done. Totals and unit denominators then come from the ledger itself, so code and data denominators become exact and the matched-data bar starts moving. Units stay the same bands and pieces, so the treemap does not change shape.
 
-An explicitly supplied ledger remains authoritative; M03 manifests are not overlaid onto it. This follow-up changes only `decomp-progress/`: `compose_image.py` and `report_image_coverage.py` still describe the sources actually composed by M02 and are unchanged. Their 398 reconstructed code bytes are a composition snapshot, separate from this report's additional audited-source coverage.
+An explicitly supplied ledger remains authoritative; M03 manifests are not overlaid onto it. This follow-up changes only `decomp-progress/`: `compose_image.py` and `report_image_coverage.py` still describe the sources actually composed by M02 and are unchanged. Since the Track M slice 2 binding they report the audited M03 batches as reconstructed code as well (reported by provenance class); this report's coverage figures are computed from the ledger and are separate.
 
 ## Not covered
 
