@@ -1196,7 +1196,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Referenced from the local original (not matched): {p['referenced_bytes']:,} bytes in {report['referenced_ranges']['count']:,} described ranges",
         f"- Missing: {p['missing_bytes']:,} bytes",
         f"- Code bytes: {p['code_bytes']:,}; reconstructed {p['code_bytes_reconstructed']:,} ({p['code_bytes_reconstructed_fraction'] * 100:.2f}%); still referenced {p['code_bytes_referenced']:,}",
-        f"- Reconstructed functions bound (separate classes below): {p['reconstructed_functions']:,}",
+        f"- Reconstructed functions and derived code entries bound (separate classes below): {p['reconstructed_functions']:,}",
         "",
         "## By class",
         "",

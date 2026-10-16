@@ -10,7 +10,7 @@ Referenced ranges are copied from the local original at build time and are NOT c
 - Referenced from the local original (not matched): 276,595 bytes in 134 described ranges
 - Missing: 0 bytes
 - Code bytes: 1,201,550; reconstructed 1,199,931 (99.87%); still referenced 1,619
-- Reconstructed functions bound (separate classes below): 4,730
+- Reconstructed functions and derived code entries bound (separate classes below): 4,730
 
 ## By class
 
