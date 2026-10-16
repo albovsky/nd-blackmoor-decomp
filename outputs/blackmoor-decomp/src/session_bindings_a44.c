@@ -137,6 +137,8 @@ int session_a44_begin_scene(SessionA44Binding *b, const SceneResource *scene)
     rows = count == 0u ? NULL : (A44Row *)calloc(count, sizeof(*rows));
     if (count != 0u && rows == NULL) {
         b->failure = "0x44-row-allocation";
+        if (b->kernel.release_surface != NULL && b->kernel.release_slot != NULL) (void)d8_cleanup(&b->object, &b->kernel);
+        free_rows(b);
         return D8_ERR_HOST;
     }
     for (size_t i = 0u; i < count; ++i) {
@@ -174,6 +176,9 @@ int session_a44_begin_scene(SessionA44Binding *b, const SceneResource *scene)
     reject:
         for (size_t j = 0u; j < count; ++j) free(rows[j].bytes);
         free(rows);
+        /* The scene changed even though its rows could not be built: none of the previous scene's rows or its view may stay. */
+        if (b->kernel.release_surface != NULL && b->kernel.release_slot != NULL) (void)d8_cleanup(&b->object, &b->kernel);
+        free_rows(b);
         b->failure = why;
         return D8_ERR_BODY;
     }
@@ -183,6 +188,7 @@ int session_a44_begin_scene(SessionA44Binding *b, const SceneResource *scene)
         for (size_t j = 0u; j < count; ++j) free(rows[j].bytes);
         free(rows);
         b->failure = "0xd8-scene-clear";
+        free_rows(b);
         return D8_ERR_HOST;
     }
     free_rows(b);
@@ -281,8 +287,9 @@ int session_a44_hit_test(SessionA44Binding *b, int16_t x, int16_t y, const D8Hit
 
 int session_a44_click(SessionA44Binding *b, int32_t candidate, D8ClickOutput *out)
 {
-    const A44Row *row = active_row(b);
+    const A44Row *row;
     if (b == NULL || out == NULL) return D8_ERR_ARGUMENT;
+    row = active_row(b);
     return d8_click(&b->object, row == NULL ? NULL : row->bytes, row == NULL ? 0u : row->length, candidate, out);
 }
 

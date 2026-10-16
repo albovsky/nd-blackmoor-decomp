@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     D8HitOutput hit;
     D8ClickOutput click;
 
-    if (argc != 2 || (f = fopen(argv[1], "rb")) == NULL) return 2;
+    if (argc != 3 || (f = fopen(argv[1], "rb")) == NULL) return 2;
     fseek(f, 0, SEEK_END);
     n = ftell(f);
     fseek(f, 0, SEEK_SET);
@@ -153,14 +153,54 @@ int main(int argc, char **argv)
     /* the gated subtype-2 row has not run */
     EXPECT(scene_executor_get_action_state(ex, 1u, &st1) == SCENE_EXECUTOR_OK && st1.completed == 0u && rig.texts == 1u);
 
-    /* the subtype-2 row's first visit reports the dependency reset (0x42ba3a subtype 2) with phase 0 */
+    /* flag 3 opens the gate: the subtype-2 row walks the same path (first visit, init, click, finish) and completes with
+     * phase 0; its dependency reset happens only on the first visit (the record stores subtype 1) */
+    flags[3] = 1;
+    EXPECT(scene_executor_step_frame(ex, &state, &handler, 1u, &frame, &info) == SCENE_EXECUTOR_OK && rig.texts == 2u);
+    EXPECT(scene_executor_get_action_state(ex, 1u, &st1) == SCENE_EXECUTOR_OK && st1.completed == 0u && st1.phase == 0u);
+    EXPECT(scene_executor_step_frame(ex, &state, &handler, 1u, &frame, &info) == SCENE_EXECUTOR_OK);
+    EXPECT(session_a44_active_row(binding) == 1);
+    EXPECT(scene_executor_get_action_state(ex, 1u, &st1) == SCENE_EXECUTOR_OK && st1.completed == 0u && st1.phase == 1u);
+    EXPECT(session_a44_hit_test(binding, 120, 20, &in, &hit) == D8_OK && hit.hit == 1u);
+    EXPECT(session_a44_click(binding, hit.candidate_5c39e5, &click) == D8_OK);
+    EXPECT(scene_executor_accept_action_candidate(ex, 1u) == SCENE_EXECUTOR_OK);
+    EXPECT(scene_executor_step_frame(ex, &state, &handler, 1u, &frame, &info) == SCENE_EXECUTOR_OK);
+    EXPECT(rig.changes == 2u && rig.request.target_scene == 72 && session_a44_active_row(binding) == -1);
+    EXPECT(scene_executor_get_action_state(ex, 1u, &st1) == SCENE_EXECUTOR_OK && st1.completed == 1u && st1.phase == 0u);
+
+    /* row 2 (subtype 2, gate never opens) is only visited directly: the first visit reports the dependency reset, phase 0 */
     {
+        SceneActionInfo info3;
+        SceneActionRuntimeState before3 = {0u, 0u};
+        SceneActionHandlerResult out3 = {SCENE_ACTION_HANDLER_PENDING, 9u};
+        EXPECT(scene_resource_action_at(scene, 2u, &info3) == SCENE_RESOURCE_OK);
+        EXPECT(session_a44_handler(binding, 2u, &info3, &before3, &out3) == SCENE_ACTION_HANDLER_OK);
+        EXPECT(out3.disposition == SCENE_ACTION_HANDLER_RESET_DEPENDENCIES && out3.phase == 0u && rig.texts == 3u);
+    }
+
+    /* a scene whose rows cannot be built (keyed row, no text resolver) leaves no row of the previous scene owned */
+    {
+        FILE *g = fopen(argv[2], "rb");
+        unsigned char *bad;
+        long bad_n;
+        SceneResource *scene2;
         SceneActionInfo info2;
         SceneActionRuntimeState before = {0u, 0u};
         SceneActionHandlerResult out = {SCENE_ACTION_HANDLER_PENDING, 9u};
-        EXPECT(scene_resource_action_at(scene, 1u, &info2) == SCENE_RESOURCE_OK);
-        EXPECT(session_a44_handler(binding, 1u, &info2, &before, &out) == SCENE_ACTION_HANDLER_OK);
-        EXPECT(out.disposition == SCENE_ACTION_HANDLER_RESET_DEPENDENCIES && out.phase == 0u && rig.texts == 2u);
+        EXPECT(g != NULL);
+        fseek(g, 0, SEEK_END);
+        bad_n = ftell(g);
+        fseek(g, 0, SEEK_SET);
+        bad = malloc((size_t)bad_n);
+        EXPECT(bad != NULL && fread(bad, 1, (size_t)bad_n, g) == (size_t)bad_n);
+        fclose(g);
+        scene2 = scene_resource_open_memory(bad, (size_t)bad_n, err, sizeof err);
+        EXPECT(scene2 != NULL);
+        EXPECT(session_a44_begin_scene(binding, scene2) != D8_OK);
+        EXPECT(scene_resource_action_at(scene2, 0u, &info2) == SCENE_RESOURCE_OK);
+        EXPECT(session_a44_handler(binding, 0u, &info2, &before, &out) == SCENE_ACTION_HANDLER_UNSUPPORTED && rig.texts == 3u);
+        scene_resource_close(scene2);
+        free(bad);
     }
 
     scene_executor_destroy(ex);

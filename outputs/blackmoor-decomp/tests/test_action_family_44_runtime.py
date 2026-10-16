@@ -80,9 +80,14 @@ def scene_file(path):
         h[0x1eb] = 20
         struct.pack_into('<H', h, 526, 4)
         return bytes(h) + b'abc\0'
+    keyed = bytearray(body())
+    keyed[0x1ec] = 1
+    keyed[493:496] = b'KEY'
+    Path(str(path) + '.bad').write_bytes(base.scene_bytes([base.action(0x44, 1, bytes(keyed[:528]))]))
     ungated = base.action(0x44, 1, body())
     gated = base.action(0x44, 2, body(), (base.condition(2, 3, 1),))
-    Path(path).write_bytes(base.scene_bytes([ungated, gated]))
+    never = base.action(0x44, 2, body(), (base.condition(2, 7, 1),))
+    Path(path).write_bytes(base.scene_bytes([ungated, gated, never]))
 
 
 class UnitTests(unittest.TestCase):
@@ -185,7 +190,7 @@ class ExecutorTests(unittest.TestCase):
         binary = Path(self.tmp.name) / name
         built = compile_c(binary, EXECUTOR_C, EXECUTOR_SOURCES, src_dir=src_dir)
         self.assertEqual(built.returncode, 0, built.stderr[-600:])
-        return subprocess.run([str(binary), str(self.scene)], capture_output=True, text=True)
+        return subprocess.run([str(binary), str(self.scene), str(self.scene) + '.bad'], capture_output=True, text=True)
 
     def test_executor_runs_the_row_to_a_scene_change(self):
         done = self.run_executor()
@@ -199,6 +204,8 @@ class ExecutorTests(unittest.TestCase):
             'first visit phase kept': (c, '        out->phase = 0u;\n        out->disposition = action->subtype', '        out->phase = before->phase + 1u;\n        out->disposition = action->subtype'),
             'record not replaced': (c, '        row->is_object = 0u;\n        row->is_record = 1u;', '        row->is_object = 1u;\n        row->is_record = 0u;'),
             'writer failure ignored': (c, 'if (b->host.write_text(USER(b), row->bytes, row->length, text) != 0) {', 'if (0) {'),
+            'finish uses the raw subtype': (c, 'result.finished != 0u ? SCENE_ACTION_HANDLER_DIRECT_COMPLETED : SCENE_ACTION_HANDLER_PENDING', 'result.finished != 0u ? (action->subtype == 2u ? SCENE_ACTION_HANDLER_RESET_DEPENDENCIES : SCENE_ACTION_HANDLER_DIRECT_COMPLETED) : SCENE_ACTION_HANDLER_PENDING'),
+            'failed scene keeps old rows': (c, '        free_rows(b);\n        b->failure = why;\n        return D8_ERR_BODY;', '        b->failure = why;\n        return D8_ERR_BODY;'),
             'scene words dropped': (c, 'request.target_scene = change->scene;', 'request.target_scene = 0;'),
         }
         for name, (filename, old, new) in mutations.items():
