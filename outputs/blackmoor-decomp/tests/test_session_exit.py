@@ -86,6 +86,7 @@ class SessionExitTests(unittest.TestCase):
 
     # --- controller stages ----------------------------------------------
     def test_stage0_type2_captures_source_then_hands_state_to_the_loader(self):
+        """controller_setup (original 0x447418), type 2: capture the source, stage 1, state 4 -> 1."""
         x = new_exit(self.lib, kind=2, stage=0, state=STATE_EXIT)
         host = RecordingHost(self.lib, x)
         status, info = self.gate(x, host)
@@ -103,6 +104,7 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual(x.effect.busy, 1)
 
     def test_stage0_type1_and_type3_clear_destination_and_enter_stage2(self):
+        """controller_setup (original 0x447418), types 1 and 3: clear the destination capture, stage 2."""
         for kind in (1, 3):
             with self.subTest(kind=kind):
                 x = new_exit(self.lib, kind=kind, stage=0, state=STATE_EXIT)
@@ -115,6 +117,7 @@ class SessionExitTests(unittest.TestCase):
                 self.assertEqual((x.effect.sequence_counter, x.g.game_state), (2, STATE_EXIT))
 
     def test_stage0_for_a_type_outside_the_switch_leaves_stage_unchanged(self):
+        """controller_setup (original 0x447418), any other type: only the shared prelude runs."""
         x = new_exit(self.lib, kind=7, stage=0, state=STATE_EXIT)
         host = RecordingHost(self.lib, x)
         info = StepInfo()
@@ -125,6 +128,7 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual((x.effect.sequence_counter, x.g.game_state), (0, STATE_EXIT))
 
     def test_stage1_type2_captures_destination_then_runs_the_sequence(self):
+        """controller_capture_destination (original 0x4474cf), type 2: capture, then stage 2."""
         x = new_exit(self.lib, kind=2, stage=1, state=STATE_RUN, budget=4, pause=7,
                      rect=(10, 20, 11, 20))
         x.g.modal_input, x.g.cursor_layer = 1, 0
@@ -145,6 +149,7 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual(x.effect.sequence_counter, 2)
 
     def test_stage1_type3_is_rewritten_to_type2_before_the_capture(self):
+        """controller_capture_destination (original 0x4474cf), type 3: rewritten to 2, then captured."""
         x = new_exit(self.lib, kind=3, stage=1, state=STATE_RUN)
         host = RecordingHost(self.lib, x)
         status, _ = self.gate(x, host)
@@ -153,6 +158,17 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual(host.events[:2], [("capture", CAPTURE_DESTINATION, STATE_RUN),
                                            ("run_sequence", 2, 2, STATE_RUN)])
         self.assertEqual(x.effect.busy, 0)
+
+    def test_stage1_for_types_other_than_2_and_3_captures_nothing(self):
+        """controller_capture_destination (original 0x4474cf) neither captures nor rewrites the
+        payload type for type 1: the first host event is the sequence, not a capture."""
+        x = new_exit(self.lib, kind=1, stage=1, state=STATE_RUN)
+        host = RecordingHost(self.lib, x)
+        info = StepInfo()
+        self.assertEqual(self.lib.session_exit_controller(
+            c.byref(x), c.byref(host.host()), c.byref(info)), OK)
+        self.assertNotIn(("capture", CAPTURE_DESTINATION, STATE_RUN), host.events)
+        self.assertEqual(x.effect.active_payload[0], 1)
 
     def test_stage2_type3_swaps_and_returns_to_stage1_without_completing(self):
         x = new_exit(self.lib, kind=3, stage=2, state=STATE_RUN, pause=0)

@@ -330,6 +330,118 @@
     }
    ],
    "note": "Native is action_ui_initialize_controls (writes every field the original does; checked by hand on a 0xAA-filled world). Oracle compares it only indirectly, through handler output over 13 cases."
+  },
+  {
+   "va": "0x4e8d96",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-9 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_78_runtime.c",
+    "symbol": "put_back"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_78_runtime.py",
+     "test_id": "RuntimeTests.test_swap_returns_the_held_item_then_takes_the_new_one"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_78_runtime_original_oracle.py",
+    "window": [
+     "0x4e8d96",
+     "0x4e8dc8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Static put_back. RT-19 oracle: 3,646 cases, ordered effect log incl. putback and all modeled cells, 0 mismatches. Native adds bounds failures (full list, id past presence array) that the original lacks."
+  },
+  {
+   "va": "0x4e3ade",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-9 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_ui.c",
+    "symbol": "sort_phone_records"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_ui.py",
+     "test_id": "ActionUITests.test_phone_initialization_preserves_rows_and_controls_while_sorting"
+    }
+   ],
+   "oracle": {
+    "path": "tests/phone_init_original_oracle.py",
+    "window": [
+     "0x4e3ade",
+     "0x4e3cd7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Static sort_phone_records. Oracle compares the real 12 BOOT rows byte for byte (0 mismatches). Only ASCII normalization is ported; native rejects names without a terminator in 20 bytes, the original overruns its buffer."
+  },
+  {
+   "va": "0x447418",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-9 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/session_exit.c",
+    "symbol": "controller_setup"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage0_type2_captures_source_then_hands_state_to_the_loader"
+    },
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage0_type1_and_type3_clear_destination_and_enter_stage2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x447418",
+     "0x4474cf"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Static controller_setup, parent granularity: 178-case RT-5 oracle compares the ordered boundary calls and stores. Callees 0x43a7ca (nested tick), 0x447ac7 (capture) and the buffer clear are host seams (RT-5 divergence)."
+  },
+  {
+   "va": "0x4474cf",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-9 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/session_exit.c",
+    "symbol": "controller_capture_destination"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage1_type2_captures_destination_then_runs_the_sequence"
+    },
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage1_type3_is_rewritten_to_type2_before_the_capture"
+    },
+    {
+     "path": "tests/test_session_exit.py",
+     "test_id": "SessionExitTests.test_stage1_for_types_other_than_2_and_3_captures_nothing"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x4474cf",
+     "0x44753b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Static controller_capture_destination, parent granularity: same RT-5 oracle, window executed in full, 0 mismatches. Capture callee 0x447ac7 is a host seam; host failure statuses have no original counterpart."
   }
  ],
  "not_needed_entries": [
