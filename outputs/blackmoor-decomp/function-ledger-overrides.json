@@ -1091,6 +1091,98 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Flat pass instead of stack and recursion (same node set): +0x4 and leaf +0x2c zeroed, +0x20/+0x30 kept. Error and debug text not modelled; tests-only since oracles execute at most 269 of 437 bytes."
+  },
+  {
+   "va": "0x422970",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_set_target"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_frame_choice"
+    },
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_finish_and_fast_convo"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x422970",
+     "0x4229b5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from cel_advance and phase1 (no behaviour change): target = frame, final_seen = 1 once last <= target. RT-25 oracle (878 scenarios, 0 mismatches) compares both; unused stack arg dropped."
+  },
+  {
+   "va": "0x4229b5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_announce"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_frame_choice"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4229b5",
+     "0x4229fa"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from cel_advance's tail (no behaviour change): drawn != target sets drawn = target and flag 0x5d191d = 1. RT-25 oracle (878 scenarios, 0 mismatches) compares both; unused stack arg dropped."
+  },
+  {
+   "va": "0x4c2e5b",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_free_layer_header"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_reader_rules"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from cel_free_slot_layers (no behaviour change): non-null header freed via host callback (original 0x51dc6c, a seam) and cleared. Tests-only: no oracle executes it whole; t_reader_rules checks the frees."
+  },
+  {
+   "va": "0x433bd2",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/world_clock.c",
+    "symbol": "reset_completed_record"
+   },
+   "tests": [
+    {
+     "path": "tests/test_world_clock.py",
+     "test_id": "WorldClockTests.test_status5_and_status6_completion_order_flags_sound_caption_reset"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Pure stores: 0x106 bytes zeroed, ten -1 words at +0xde step 4, NO SOUND at +0x28; the test compares the whole record. The original's NULL no-op is not mirrored (callers never pass NULL). No oracle."
   }
  ],
  "not_needed_entries": [

@@ -458,18 +458,29 @@ static int is_cel_type(uint8_t type)
     return type == CONVO3E_RUNTIME_TYPE;
 }
 
-/* 0x4c2e5b on the four header objects of a slot (and the unused +0x1e pointer,
- * which no code ever sets). `layer.loaded` is "*header != 0". */
+/* 0x4c2e5b on one header object (and the unused +0x1e pointer, which no code ever
+ * sets): when it is non-null, free it through the host (original: 0x51dc6c) and
+ * clear it. `layer.loaded` is "*header != 0". */
+static int cel_free_layer_header(const Convo3fHost *h, Convo3fCelSlot *slot, int16_t i, int l, const char **why)
+{
+    if (slot->layer[l].loaded != 0u) {
+        HOST_CALL(h->cel_free_layer(h->context, i, l, slot->layer[l].surface),
+                  "cel_free_layer failed");
+        slot->layer[l].loaded = 0u;
+        slot->layer[l].surface = 0u;
+    }
+    return CONVO3F_OK;
+}
+
+/* The slot's four header objects, each through 0x4c2e5b. */
 static int cel_free_slot_layers(Convo3fManager *m, const Convo3fHost *h, int16_t i, const char **why)
 {
     Convo3fCelSlot *slot = &m->cel.slots[i];
     int l;
     for (l = 0; l < CONVO3F_CEL_SLOT_LAYERS; ++l) {
-        if (slot->layer[l].loaded != 0u) {
-            HOST_CALL(h->cel_free_layer(h->context, i, l, slot->layer[l].surface),
-                      "cel_free_layer failed");
-            slot->layer[l].loaded = 0u;
-            slot->layer[l].surface = 0u;
+        int status = cel_free_layer_header(h, slot, i, l, why);
+        if (status != CONVO3F_OK) {
+            return status;
         }
     }
     return CONVO3F_OK;
@@ -748,6 +759,28 @@ static int cel_sync_frame(Convo3fManager *m, const Convo3fHost *h, int32_t *resu
     return CONVO3F_OK;
 }
 
+/* 0x422970: the displayed frame follows the wanted frame; reaching the last
+ * frame marks the cel's final frame as seen.  The original takes one unused
+ * stack argument (ret 4). */
+static void cel_set_target(Convo3fCel *c)
+{
+    c->target = c->frame;
+    if (c->last <= c->target) {
+        c->final_seen = 1;
+    }
+}
+
+/* 0x4229b5: announce a changed displayed frame by raising the redraw flag
+ * 0x5d191d.  The original takes one unused stack argument (ret 4). */
+static void cel_announce(Convo3fCel *c, Convo3fWorld *w)
+{
+    (void)w; /* only written on a change; the mutation checks drop that store and must still compile */
+    if (c->drawn != c->target) {
+        c->drawn = c->target;
+        w->ui_5d191d = 1;
+    }
+}
+
 static int cel_advance(Convo3fManager *m, const Convo3fHost *h, Convo3fWorld *w, const char **why)
 {
     Convo3fCel *c = &m->cel;
@@ -805,15 +838,9 @@ static int cel_advance(Convo3fManager *m, const Convo3fHost *h, Convo3fWorld *w,
             c->lock = 0;
         }
         c->slot = slot;
-        c->target = c->frame; /* 0x422970 */
-        if (c->last <= c->target) {
-            c->final_seen = 1;
-        }
+        cel_set_target(c);
     }
-    if (c->drawn != c->target) { /* 0x4229b5 */
-        c->drawn = c->target;
-        w->ui_5d191d = 1;
-    }
+    cel_announce(c, w);
     return CONVO3F_OK;
 }
 
@@ -1336,10 +1363,7 @@ static int phase1(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
             const int16_t slot = cel_find_slot(c, c->frame);
             if (slot != -1) {
                 c->slot = slot;
-                c->target = c->frame; /* 0x422970 */
-                if (c->last <= c->target) {
-                    c->final_seen = 1;
-                }
+                cel_set_target(c);
                 HOST_CALL(h->sound_sync_init(h->context, CONVO3F_CEL_SOUND_CHANNEL,
                                              (uint16_t)((int)c->last - (int)c->first + 1),
                                              c->sync_param),
