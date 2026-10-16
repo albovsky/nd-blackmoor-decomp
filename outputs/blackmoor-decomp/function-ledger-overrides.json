@@ -487,7 +487,7 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Static triggers matches branch for branch (6-byte records, id != -1, last duplicate wins). Bink oracle compares event table and order, 0 mismatches, but the debug-log arm never runs, so tests-only. Frame is a parameter."
+   "note": "Static triggers matches branch for branch. The Bink oracle (action_family_35_bink) compares event table and order, 0 mismatches, but the debug-log arm never runs, so tests-only. Frame is a parameter."
   },
   {
    "va": "0x4f55d5",
@@ -516,7 +516,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Native is sound_control_update. Oracle update trace has 15 cases, 0 mismatches, now including 0x16e, 0x172, stream state, flags 0x20 with control 1 and range 0. Fade bodies and Play are host seams.",
+   "note": "Native is sound_control_update. Oracle update trace: 15 cases, 0 mismatches, incl. 0x16e, 0x172, stream state, flags 0x20 with control 1, range 0. Fade bodies and Play are host seams; fade stage 3 gets no slot+0x2a3.",
    "blockers_reviewed": [
     {
      "id": "RT-21:5413c9995fd1e041",
@@ -686,7 +686,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Same branch and store order (+0 then +0xc), returns the pre-clear value. S08-4 oracle: 100 calls, 0 mismatches. Native adds a status code and view checks."
+   "note": "Same branch and store order (+0 then +0xc); returns 1 if +0 was nonzero, else 0. S08-4 oracle: 100 calls, 0 mismatches. Native adds a status code and view checks."
   },
   {
    "va": "0x4daf9f",

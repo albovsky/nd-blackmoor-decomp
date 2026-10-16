@@ -79,7 +79,7 @@ int session_exit_request_transition(SessionExit *exit_state,
     return SESSION_EXIT_OK;
 }
 
-/* 0x4477b2 (FUN_004477b2): the whole function clears the effect object's busy byte (+0x1c). */
+/* 0x4477b2 (FUN_004477b2): its only effect is clearing the effect object's busy byte (+0x1c). */
 static void effect_clear_busy(SessionExit *x)
 {
     x->effect.busy = 0u;

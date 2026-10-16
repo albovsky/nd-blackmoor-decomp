@@ -89,7 +89,7 @@ static void write_u32_le(uint8_t *bytes, uint32_t value)
     bytes[3] = (uint8_t)(value >> 24);
 }
 
-/* 0x4daf3f (FUN_004daf3f): [ecx+0] consume: clears +0 and +0xc when +0 was nonzero, returns the pre-clear value. */
+/* 0x4daf3f (FUN_004daf3f): [ecx+0] consume: when +0 is nonzero clears +0 and +0xc; returns 1 if +0 was nonzero, else 0. */
 InputConsumeStatus input_consume_field0(
     const InputLatchStateView *state,
     uint32_t *out_raw_return)
