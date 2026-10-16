@@ -142,7 +142,9 @@ int sound_control_set_master_absolute(SoundControlState *state,
  * does). Scalars are not limited to 1.0 (the byte/100 argument reaches 2.55);
  * they must be finite, nonnegative and at most 100. The channel's category
  * must be below SOUND_CONTROL_CATEGORY_COUNT (the original would index the
- * master table out of bounds); nothing is mutated on an argument error. */
+ * master table out of bounds); nothing is mutated on an argument error. A missing
+ * host setter (ERR_UNSUPPORTED) is reported after the slot and device fields were
+ * updated, like sound_control_set_master_absolute. */
 int sound_control_set_scalars(SoundControlState *state, uint16_t channel,
                               float first_scalar, float second_scalar,
                               uint16_t raw_x87_control_word,

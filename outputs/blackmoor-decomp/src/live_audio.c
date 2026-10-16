@@ -276,7 +276,7 @@ static float compose_gain(float first, float second, float category_scalar)
 {
     volatile float product = first * second;
     volatile float final_gain = product * category_scalar;
-    return final_gain;
+    return final_gain > 1.0f ? 1.0f : final_gain;
 }
 
 static void refresh_gain(const LiveAudio *audio, Channel *channel)
@@ -966,13 +966,13 @@ int live_audio_set_channel_scalars(LiveAudio *audio, uint16_t channel, float fir
         return LIVE_AUDIO_ERR_ARGUMENT;
     if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
     slot = &audio->channels[channel];
-    /* An unloaded channel keeps nothing observable: every load (0x432d1a)
-     * rewrites both scalars before 0x4fadc4 reads them. */
+    /* An unloaded channel keeps nothing observable: every load rewrites both scalars. */
     if (!slot->loaded) return LIVE_AUDIO_OK;
-    /* The original's attenuation clamp (0x4f684a) pins anything above full
-     * scale at 0 dB, i.e. a gain of 1.0. */
-    slot->first_gain = first_gain > 1.0f ? 1.0f : first_gain;
-    slot->second_gain = second_gain > 1.0f ? 1.0f : second_gain;
+    /* Kept unclamped (a volume byte above 100 gives a scalar above 1.0); compose_gain pins the
+     * final gain at full scale, which is what the original's attenuation clamp does after the
+     * product with the category master. */
+    slot->first_gain = first_gain;
+    slot->second_gain = second_gain;
     refresh_gain(audio, slot);
     if (slot->started && !slot->finished) {
         int status = audio->ops.set_gain(audio->host, slot->host_slot, slot->final_gain, error,

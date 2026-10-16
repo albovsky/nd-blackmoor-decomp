@@ -234,8 +234,6 @@ struct NativeApp {
     /* RT-24: raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> handler 0x47d788, render
      * callback 0x47df57). The slot table stands in for the generic Z entries 0x18..0x3f; the
      * background is the saved scene frame (0x5d15e3), snapshotted from the seeded back buffer. */
-    /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41 -> 0x4fca60, gate mode 0). */
-    SessionA95Binding *a95 = nullptr;
     SessionAd9Binding *ad9 = nullptr;
     std::array<bool, 0x40> ad9_slot_used{};
     std::vector<uint8_t> ad9_background;
@@ -243,6 +241,8 @@ struct NativeApp {
     uint64_t ad9_blits = 0u;
     uint64_t ad9_plan_signature = 0u;
     bool ad9_render_failure_logged = false;
+    /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41 -> 0x4fca60, gate mode 0). */
+    SessionA95Binding *a95 = nullptr;
     /* Native bounds; not a declaration of original global capacities. */
     uint8_t phone_mail[100][A83_MAIL_BYTES]{};
     uint8_t phone_web[100][A83_WEB_BYTES]{};
@@ -3368,7 +3368,9 @@ static int native_a95_set_channel_scalars(void *context, uint16_t channel, float
     const int status = live_audio_set_channel_scalars(app->live_audio, channel, first, second);
     record(app, "scene_a95_volume channel=%u scalar=%.4f status=%d (0x4fca60)", static_cast<unsigned>(channel),
            static_cast<double>(first), status);
-    return status == LIVE_AUDIO_OK ? 0 : 1;
+    /* The original records a SetVolume failure (0x408) and still completes the row, so a host gain
+     * failure is logged above and does not fail the row; only an argument or thread error does. */
+    return (status == LIVE_AUDIO_OK || status == LIVE_AUDIO_ERR_HOST) ? 0 : 1;
 }
 
 static int native_a95_handler(void *context, size_t row, const SceneActionInfo *action,

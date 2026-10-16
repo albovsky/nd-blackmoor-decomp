@@ -28,6 +28,18 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
+## Handoff: RT-26 raw 0x95 Set Volume runtime (2026-10-16 PDT, cloud thread)
+
+Ranking: 0x95 was the top remaining type in `scene-action-coverage.json` (64 scenes, 123 rows, 55 scenes where it is the only missing type). Type-level scenes with every row handled: 1,729 to 1,784 (upper bound; the row-level live count needs the Mac). Next in the ranking: 0x4f (57 scenes, 815 records), 0x6e (48), 0x38, 0x67, 0x6f.
+
+Merged in this slice: `src/action_family_95.[ch]` (decoder: u16 channel + volume byte, scalar `(float)((double)byte/100.0)`), `src/session_bindings_a95.[ch]` (executor handler, COMPLETED with phase 0 = 0x42ba3a), `sound_control_set_scalars` (original 0x4fca60 + 0x4f684a on the recovered channel state), `live_audio_set_channel_scalars` (adapter), registration `bindings[19]` in `blackmoor_app.mm`, packet `tasks/RT-26-set-volume-95-runtime.md`.
+
+Verification: 12 C unit cases (ASan/UBSan), 13 unit mutants and 8 oracle mutants all caught; original-x86 oracle `tests/action_family_95_runtime_original_oracle.py` runs the real dispatcher 0x427a50 (arm 0x429e41, real loader 0x424aa8 and gate 0x423f57, real setter, `_ftol`, volume helper and 0x42ba3a) over 101 scenarios: 1,727 row visits, 169,216 channel-field comparisons, 1,643 SetVolume calls, 0 mismatches; corpus run: 123 of 123 rows. Full suite on the cloud box: 2,650 tests with 14 failures and 20 errors, the identical set as `origin/main` (2,643 tests), all Mac-bound; the 7 new tests pass. One Sonnet diff review: no P1; fixed the live-audio clamp point, the host-failure contract, comments and counts.
+
+Not verified: the macOS glue and `live_audio_set_channel_scalars` were not compiled or run (no fixture case; needs the Mac). App loudness follows the adapter's product-gain model, not the original dB curve. The oracle maps the disposition with a copy of the executor's switch, not the real executor. A channel outside 0..31 is refused natively (original aliases the slot array); no corpus row has one. Ledger: no new acceptance (231 ported); 0x4fca60 is oracle-verified and could be accepted in a ledger batch.
+
+Next: (1) Mac check of the glue and a scripted run of a 0x95 scene. (2) Next family: 0x4f (57 scenes) or 0x6e (48).
+
 ## Handoff: FL-12 Vorbis parity rule, 178 functions ported (2026-10-16, Pacific)
 
 Ledger: **231 ported, 128 not needed, 3,829 pending** (was 53 / 128 / 4,007). All 178 `vorbis`-region functions are now `ported` as `host_adapter_tested`. Glib's ruling (option A on the decision card, answered 7:43 AM PDT 2026-10-16, relayed by the coordinator session): decoded audio equal in length and within 1 LSB of the original counts as parity. Parity numbers from the PR 81 harness run on the Mac: 2,406 Ogg-bearing HIS files, 25 byte-equal, 2,381 within exactly 1 LSB, 0 beyond, 0 native failures, 0 original failures.
