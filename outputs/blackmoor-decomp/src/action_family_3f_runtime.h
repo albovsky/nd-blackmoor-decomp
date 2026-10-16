@@ -21,7 +21,9 @@ extern "C" {
  *             (0x5bb632 + row*0x8d): 0 init, 1 running, 2 finish. Phase 0 does
  *             NOT fall through into phase 1. Runtime type 0x3f selects the
  *             "sound only" arms (same as 0x3a and 0x3c); 0x39/0x3b/0x3e select
- *             the cel-video arms, which this module does not implement.
+ *             the cel-video arms. RT-25 implements the 0x3e cel arm (frame
+ *             cache, reader loop, sound-synced frame choice, render plan of
+ *             0x422a0a); raw 0x39/0x3b are not in the corpus and are rejected.
  *   0x4205c1  response list build, 0x420737 condition tree, 0x4209e8 secondary
  *             table, 0x41fa11/0x41fd08/0x42028e response add/replace/remove,
  *             0x41db40 object release.
@@ -49,6 +51,7 @@ extern "C" {
  * Captions (world.captions_5bb202 != 0) need layout_text_box as well. */
 
 #define CONVO3F_RUNTIME_TYPE UINT8_C(0x3f)
+#define CONVO3E_RUNTIME_TYPE UINT8_C(0x3e) /* cel video conversation (RT-25) */
 #define CONVO3F_IMAGE_BYTES 0x7a5u
 #define CONVO3F_MAX_RESPONSES 30
 #define CONVO3F_TEXT_BYTES 400u
@@ -136,6 +139,83 @@ typedef struct {
     uint32_t handle_base; /* logical handle of arena[0] (never 0) */
 } Convo3fObject;
 
+
+/* ---- cel video arm (raw 0x3e, RT-25) ----
+ * Object image offsets of the 0x3e constructor (action_family_3e.c). The sound
+ * descriptor of a 0x3e row sits at +0x13a (the first 0x21 bytes name the CIFTREE
+ * cel header file, +0x21/+0x42 name the layers). */
+#define CONVO3F_CEL_SLOTS 0x4b
+#define CONVO3F_CEL_SLOT_LAYERS 4          /* header objects per cache slot */
+#define CONVO3F_CEL_MAX_LAYERS 2           /* names at object +0x21 and +0x42 */
+#define CONVO3F_CEL_HEADER_BYTES 0x2a      /* copied from the CIFTREE file at +0xf77 */
+#define CONVO3F_CEL_FRAME_STRIDE 0x8c      /* names: block + 0x2a + frame*0x8c + layer*0x21 */
+#define CONVO3F_CEL_MIN_SLOTS 4
+#define CONVO3F_CEL_NO_FRAME (-10)         /* [0x77e]/[0x782] after phase 0 (0xfff6) */
+#define CONVO3F_CEL_SOUND_CHANNEL 0x0c
+#define CONVO3F_CEL_MAX_BLITS 16
+enum {
+    C3E_STEP_TABLE = 0x0a5, /* u8[3]: frame step per [0x786] (constructor 1,2,3) */
+    C3E_LAYER_NAME = 0x021, /* layer image names, 0x21 bytes each (two) */
+    C3E_FIRST = 0x0a8,      /* s16 first frame (constructor 0) */
+    C3E_LAST = 0x0aa,       /* s16 last frame (body word 0x63) */
+    C3E_PERCENT = 0x0ac,    /* s16[3]: cache percent per [0x786] (constructor 1,2,3) */
+    C3E_PRIORITY = 0x0b2,   /* u8[4]: draw order of the layers (constructor 1,0,2,3) */
+    C3E_MODE = 0x0b6,       /* u8[4]: 2 selects object rectangles (constructor 1) */
+    C3E_RECT_SRC = 0x0ba,   /* 4 x 16 bytes (constructor 0) */
+    C3E_RECT_DST = 0x0fa,   /* 4 x 16 bytes (constructor 0) */
+    C3E_SOUND = 0x13a       /* sound descriptor, channel word at +0x15b (12) */
+};
+
+/* One header object of the frame cache (0x417b04 fills it; field offsets are
+ * those of the original 0x55-byte header). `surface` is the host handle of the
+ * decoded image (the original stores the data pointer in the first dword);
+ * loaded means that dword is nonzero. */
+typedef struct {
+    uint8_t loaded;
+    uint32_t surface;
+    int16_t key_2f;     /* +0x2f, passed to the blit */
+    int32_t src[4];     /* +0x35..+0x41 */
+    int32_t dst[4];     /* +0x45..+0x51 */
+} Convo3fCelLayer;
+
+typedef struct {
+    int16_t frame;      /* +0x1c, -1 empty */
+    Convo3fCelLayer layer[CONVO3F_CEL_SLOT_LAYERS];
+} Convo3fCelSlot;
+
+/* Manager fields of the cel arm (0x6177e8 + offset in the comments). */
+typedef struct {
+    int16_t loaded;     /* +0x68e frames in the cache */
+    int16_t slot;       /* +0x690 slot shown, -1 none */
+    int16_t next;       /* +0x692 next frame the reader loads */
+    int16_t forced;     /* +0x694 frame the reader jumps to, -1 none */
+    int16_t capacity;   /* +0x696 usable slots (4..0x4b) */
+    int32_t lock;       /* +0x698 0 free, 1 held, 2 closing */
+    int16_t frame;      /* +0x69c current frame from the sound sync */
+    uint32_t sync_param;/* +0x69e header dword +0x26 */
+    int16_t first, last;/* +0x6a2, +0x6a4 */
+    uint8_t step_table[4]; /* +0x6a6 -> object +0xa5 (read through the pointer) */
+    int32_t sound_offset; /* +0x6aa as an offset into the object (0x13a), 0 for 0x3f */
+    int16_t drawn;      /* +0x77e frame last announced to the renderer */
+    int16_t target;     /* +0x782 frame to draw */
+    int16_t final_seen; /* +0x784 */
+    int16_t index_786;  /* +0x786, never written: 0 */
+    int16_t stall;      /* +0x788 */
+    int16_t relax;      /* +0x78a */
+    int16_t boost;      /* +0x78c */
+    int16_t layer_count;/* header +0x24 -> +0xf9b */
+    int16_t layer_tree[CONVO3F_CEL_MAX_LAYERS]; /* +0xfb5 CIFTREE index per layer */
+    uint8_t header[CONVO3F_CEL_HEADER_BYTES];  /* +0xf77 */
+    const uint8_t *block;     /* +0xfa5 CIFTREE file image (host owned), NULL none */
+    size_t block_bytes;
+    int32_t saved_src[CONVO3F_CEL_SLOT_LAYERS][4]; /* +0x6da + layer*0x10 */
+    int32_t saved_dst[CONVO3F_CEL_SLOT_LAYERS][4]; /* +0x71a + layer*0x10 */
+    int32_t sync_count; /* channel state +0x17a */
+    int32_t sync_last;  /* channel state +0x182 */
+    uint8_t sound_loaded;
+    Convo3fCelSlot slots[CONVO3F_CEL_SLOTS];
+} Convo3fCel;
+
 /* One response list entry: the 0x3a-byte record at manager +0x7d9 + i*0x3a
  * plus the CString pool slot i that holds its text (0x41fa11). */
 typedef struct {
@@ -149,17 +229,18 @@ typedef struct {
     uint8_t text[CONVO3F_TEXT_BYTES]; /* pool string, compared case-insensitively */
 } Convo3fResponse;
 
-/* The conversation manager 0x6177e8, only the fields modelled here. Fields of
- * the cel-video arms (0x39/0x3b/0x3e) are NOT modelled. */
+/* The conversation manager 0x6177e8, only the fields modelled here. `cel` holds
+ * the fields of the 0x3e cel arm; it stays zero for raw 0x3f. */
 typedef struct {
     int16_t row;            /* +0x75b, -1 none */
     uint8_t type;           /* +0x75a runtime type of the row in progress */
     uint32_t sub_state;     /* +0x6b6: 4 running, 5 stop first sound, 6 response sound */
     int16_t response_count; /* +0xf21 */
     int16_t textbox_slot[2];/* +0xf73 normal, +0xf75 hilite; -1 none */
-    int32_t cel_thread;     /* +0x6b2: nonzero only after a cel-video row (unsupported) */
+    int32_t cel_thread;     /* +0x6b2: reader thread exists (cel arm only) */
     uint8_t display_name[CONVO3F_NAME_BYTES]; /* +0x75d, '_' shown as ' ' */
     Convo3fResponse responses[CONVO3F_MAX_RESPONSES];
+    Convo3fCel cel;
 } Convo3fManager;
 
 /* Process globals read or written by 0x420c17 (address in the name). The host
@@ -186,6 +267,8 @@ typedef struct {
     int16_t selected_570374;  /* chosen response index, 0x1f none */
     int32_t chosen_5839b1[CONVO3F_MAX_RESPONSES]; /* set to 1 by the pointer path 0x4e78c2 */
     int32_t start_5bb1ca;
+    int16_t stall_limit_5b028e; /* cel arm: stalled ticks before the reader is pushed ahead */
+    int32_t view_x_583186, view_y_58318a; /* view origin added to the cel blits */
     /* scene change words written by the finish branches / 0x42e493 */
     int32_t xfer_5bb57b;
     int16_t xfer_5bb599, xfer_5bb595, xfer_5c39ff;
@@ -260,6 +343,42 @@ typedef struct {
     int (*release_ui_hook)(void *context, int32_t value);
     /* OPTIONAL. host part of 0x4e7757 (engine mode word := 1, 0x4e76ed). */
     int (*engine_restore)(void *context);
+    /* ---- cel arm (raw 0x3e). All REQUIRED for a 0x3e visit; a missing one is
+     * ERR_UNSUPPORTED before any effect. Nonzero return = host failure. ---- */
+    /* 0x418e52("CIFTREE", name, &size): the CIFTREE file image of the cel header
+     * (0x2a-byte header, then frames of 0x8c bytes). `name` is the 33-byte field at
+     * object +0x00. The block stays valid until cel_release_header. NULL block or
+     * a size below 0x2a is the original's fatal failure. */
+    int (*cel_load_header)(void *context, const uint8_t *name, const uint8_t **block,
+                           size_t *size);
+    /* 0x41a216(name): CIFTREE directory index of a layer image file (33-byte name),
+     * -1 when absent (the original logs and aborts). */
+    int (*cel_tree_index)(void *context, const uint8_t *name, int16_t *index);
+    /* Bytes 0x5d34ef/0x5d34f0 of the directory record `index`: layer kind (0,1,3 or 2)
+     * and transparency (1 colour key, 2 opaque), read by the render callback. */
+    int (*cel_tree_info)(void *context, int16_t index, uint8_t *kind, uint8_t *transparency);
+    /* 0x417b04(tree_index, name, header): decode one layer image of one frame and fill
+     * the header object (loaded := 1). */
+    int (*cel_load_layer)(void *context, int16_t tree_index, const uint8_t *name,
+                          Convo3fCelLayer *layer);
+    /* 0x4c2e5b: release the decoded data of a loaded layer header. */
+    int (*cel_free_layer)(void *context, int16_t slot, int layer, uint32_t surface);
+    /* 0x51dc6c of the header block, only when a block is held. */
+    int (*cel_release_header)(void *context);
+    /* 0x51dc43(0x46) + 0x4497a0(0x422e4a, ...): create the SUSPENDED reader thread. The
+     * host may schedule convo3f_cel_reader_iteration however it likes. */
+    int (*cel_reader_create)(void *context);
+    /* 0x449bff: resume the reader. */
+    int (*cel_reader_resume)(void *context);
+    /* 0x449a94 plus the virtual delete of the thread object. */
+    int (*cel_reader_destroy)(void *context);
+    /* 0x4f6cdc(channel, frames, param): start the sound with frame sync. Nonzero is the
+     * original's 0 return (fatal). */
+    int (*sound_sync_init)(void *context, uint16_t channel, uint16_t frames, uint32_t param);
+    /* 0x4f6334 and 0x4f81fa plus the ftol of 0x4f6ef4: *playing is the is-playing
+     * answer; when playing, *raw_frame is the unclamped frame (>= 0) or -1 when
+     * the position cannot be read. The kernel applies the monotonic clamp. */
+    int (*sound_sync_frame)(void *context, uint16_t channel, int *playing, int32_t *raw_frame);
 } Convo3fHost;
 
 /* Bits of Convo3fStepResult.skipped_optional. */
@@ -297,6 +416,48 @@ int convo3f_text_equal(const uint8_t *a, const uint8_t *b);
 
 void convo3f_manager_reset(Convo3fManager *manager);
 
+typedef enum {
+    CONVO3F_BLIT_RESTORE = 1,     /* 0x4c5377: saved frame -> back buffer */
+    CONVO3F_BLIT_TRANSPARENT = 2, /* 0x4c609b: colour keyed layer */
+    CONVO3F_BLIT_OPAQUE = 3       /* 0x4c5770: opaque layer */
+} Convo3fBlitKind;
+
+/* One call of the render callback 0x422a0a. RESTORE copies `src` of the saved scene
+ * frame [0x5d15e3] to `dst` of the back buffer [0x5cf665]; the other kinds draw
+ * `surface` (rectangle `src`) to `dst` with `key`. All rectangles are
+ * {left, top, right, bottom} as the original stores them (x at +0, y at +4). */
+typedef struct {
+    uint8_t kind;
+    uint32_t surface;
+    int16_t key;
+    int32_t src[4];
+    int32_t dst[4];
+} Convo3fBlit;
+
+typedef struct {
+    size_t count;
+    Convo3fBlit blits[CONVO3F_CEL_MAX_BLITS];
+} Convo3fRenderPlan;
+
+/* The Z entry callback 0x422a0a (entry flag world->ui_5d191d set by 0x4229b5):
+ * builds the blit list of the current cache slot and clears the flag. Updates the
+ * saved rectangles of the independent layers. Needs host->cel_tree_info. */
+int convo3f_cel_render(Convo3fManager *manager, const Convo3fObject *object, Convo3fWorld *world,
+                       const Convo3fHost *host, Convo3fRenderPlan *plan, const char **why);
+
+/* Native-only cleanup for a scene replaced while a cel row is in flight: destroys the
+ * reader, frees every cached layer and the header block (the original's scene clear
+ * runs only the cache reset 0x41de29 and leaves the thread to the process). */
+int convo3f_cel_release_all(Convo3fManager *manager, const Convo3fHost *host, const char **why);
+
+/* One pass of the reader thread loop 0x422e4a (without its Sleep): the cache
+ * eviction pass 0x41dfd2, then at most one frame load 0x41e0b4 and the advance
+ * of the next frame. `ran` reports whether the pass did the load/advance branch.
+ * The host calls it while a conversation with a cel reader is active
+ * (manager->cel_thread != 0); it does nothing while the lock reads 2. */
+int convo3f_cel_reader_iteration(Convo3fManager *manager, const Convo3fHost *host, int *ran,
+                                 const char **why);
+
 /* One visit of row `row` of runtime type 0x3f (dispatcher arm 0x427a50 after the
  * dependency gate was true and the row was not completed). `phase` is the row's
  * phase dword at entry. Returns a Convo3fStatus; *why names the first reason on
@@ -304,6 +465,12 @@ void convo3f_manager_reset(Convo3fManager *manager);
 int convo3f_step(Convo3fManager *manager, const Convo3fObject *object, int32_t row,
                  uint32_t phase, Convo3fWorld *world, const Convo3fHost *host,
                  Convo3fStepResult *result, const char **why);
+
+/* Same visit for a given runtime type: 0x3f (sound arm) or 0x3e (cel arm). At
+ * phase 1 and 2 `type` must equal the type stored at phase 0 (manager->type). */
+int convo3f_step_type(Convo3fManager *manager, const Convo3fObject *object, uint8_t type,
+                      int32_t row, uint32_t phase, Convo3fWorld *world, const Convo3fHost *host,
+                      Convo3fStepResult *result, const char **why);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 #include "action_family_3f_runtime.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 /* RT-23: raw 0x3f conversation runtime. Every offset, width, comparison and
@@ -156,10 +157,14 @@ void convo3f_manager_reset(Convo3fManager *m)
     if (m == NULL) {
         return;
     }
+    int i;
     memset(m, 0, sizeof(*m));
     m->row = -1;
     m->textbox_slot[0] = -1;
     m->textbox_slot[1] = -1;
+    for (i = 0; i < CONVO3F_CEL_SLOTS; ++i) {
+        m->cel.slots[i].frame = -1; /* 0x41bf4d */
+    }
 }
 
 /* Evaluates the condition handle/count pair of one table entry. `limit` is the
@@ -443,12 +448,564 @@ static int16_t low16_layout(const Convo3fWorld *w)
     return (int16_t)(low <= 0x7fffu ? (int32_t)low : (int32_t)low - 0x10000);
 }
 
+
+/* ---- cel video arm (raw 0x3e, RT-25) ---- */
+
+#define CEL_NAME_BYTES 0x21u
+
+static int is_cel_type(uint8_t type)
+{
+    return type == CONVO3E_RUNTIME_TYPE;
+}
+
+/* 0x4c2e5b on the four header objects of a slot (and the unused +0x1e pointer,
+ * which no code ever sets). `layer.loaded` is "*header != 0". */
+static int cel_free_slot_layers(Convo3fManager *m, const Convo3fHost *h, int16_t i, const char **why)
+{
+    Convo3fCelSlot *slot = &m->cel.slots[i];
+    int l;
+    for (l = 0; l < CONVO3F_CEL_SLOT_LAYERS; ++l) {
+        if (slot->layer[l].loaded != 0u) {
+            HOST_CALL(h->cel_free_layer(h->context, i, l, slot->layer[l].surface),
+                      "cel_free_layer failed");
+            slot->layer[l].loaded = 0u;
+            slot->layer[l].surface = 0u;
+        }
+    }
+    return CONVO3F_OK;
+}
+
+/* 0x41de29: cache reset. */
+static int cel_clear_cache(Convo3fManager *m, const Convo3fHost *h, const char **why)
+{
+    int16_t i;
+    int status;
+    m->cel.loaded = 0;
+    m->cel.forced = -1;
+    for (i = 0; i < CONVO3F_CEL_SLOTS; ++i) {
+        m->cel.slots[i].frame = -1;
+        status = cel_free_slot_layers(m, h, i, why);
+        if (status != CONVO3F_OK) {
+            return status;
+        }
+    }
+    return CONVO3F_OK;
+}
+
+/* 0x41e250(slot). */
+static int cel_evict(Convo3fManager *m, const Convo3fHost *h, int16_t i, const char **why)
+{
+    int status;
+    if (m->cel.slots[i].frame == -1) {
+        return CONVO3F_OK;
+    }
+    m->cel.slots[i].frame = -1;
+    status = cel_free_slot_layers(m, h, i, why);
+    if (status != CONVO3F_OK) {
+        return status;
+    }
+    --m->cel.loaded;
+    if (m->cel.loaded < 0) {
+        m->cel.loaded = 0;
+    }
+    return CONVO3F_OK;
+}
+
+/* 0x41dfd2. The capacity is the original loop bound (<= 0x4b by the clamp at phase 0). */
+static int cel_evict_pass(Convo3fManager *m, const Convo3fHost *h, const char **why)
+{
+    int16_t i;
+    for (i = 0; i < m->cel.capacity; ++i) {
+        if (m->cel.slots[i].frame < m->cel.frame && i != m->cel.slot) {
+            const int status = cel_evict(m, h, i, why);
+            if (status != CONVO3F_OK) {
+                return status;
+            }
+        }
+    }
+    return CONVO3F_OK;
+}
+
+/* 0x41e1e4. */
+static int16_t cel_find_slot(const Convo3fCel *c, int16_t frame)
+{
+    int16_t i;
+    if (c->loaded != 0) {
+        for (i = 0; i < c->capacity; ++i) {
+            if (c->slots[i].frame == frame) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+/* 0x41e043. */
+static int16_t cel_first_free(const Convo3fCel *c)
+{
+    int16_t i;
+    if (c->loaded < c->capacity) {
+        for (i = 0; i < c->capacity; ++i) {
+            if (c->slots[i].frame == -1) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+/* Name of one layer image of one frame inside the header block (bounds checked;
+ * the original reads block + 0x2a + frame*0x8c + layer*0x21 unchecked). */
+static const uint8_t *cel_layer_name(const Convo3fCel *c, int16_t frame, int layer)
+{
+    size_t offset;
+    if (c->block == NULL || frame < 0) {
+        return NULL;
+    }
+    offset = (size_t)CONVO3F_CEL_HEADER_BYTES + (size_t)frame * CONVO3F_CEL_FRAME_STRIDE +
+             (size_t)layer * CEL_NAME_BYTES;
+    if (offset > c->block_bytes || CEL_NAME_BYTES > c->block_bytes - offset ||
+        memchr(c->block + offset, 0, CEL_NAME_BYTES) == NULL) {
+        return NULL;
+    }
+    return c->block + offset;
+}
+
+/* 0x41e0b4(slot, frame). */
+static int cel_load_slot(Convo3fManager *m, const Convo3fHost *h, int16_t slot, int16_t frame,
+                         const char **why)
+{
+    Convo3fCel *c = &m->cel;
+    const uint8_t *names[CONVO3F_CEL_MAX_LAYERS];
+    int l;
+    if (slot < 0 || slot >= CONVO3F_CEL_SLOTS || c->capacity <= c->loaded ||
+        c->slots[slot].frame != -1) {
+        return fail(why, "LoadCacheSlot: invalid convo cache slot (the original aborts)"),
+               CONVO3F_ERR_BOUNDS;
+    }
+    if (!is_cel_type(m->type)) {
+        return fail(why, "LoadCacheSlot: invalid convo action type (the original aborts)"),
+               CONVO3F_ERR_BOUNDS;
+    }
+    if (c->layer_count < 0 || c->layer_count > CONVO3F_CEL_MAX_LAYERS) {
+        return fail(why, "cel layer count outside 0..2"), CONVO3F_ERR_BOUNDS;
+    }
+    for (l = 0; l < c->layer_count; ++l) {
+        names[l] = cel_layer_name(c, frame, l);
+        if (names[l] == NULL) {
+            return fail(why, "cel frame name outside the CIFTREE header block"), CONVO3F_ERR_BOUNDS;
+        }
+    }
+    for (l = 0; l < c->layer_count; ++l) {
+        const int failed = h->cel_load_layer(h->context, c->layer_tree[l], names[l],
+                                             &c->slots[slot].layer[l]) != 0;
+        if (failed || c->slots[slot].layer[l].loaded == 0u) {
+            (void)cel_free_slot_layers(m, h, slot, why); /* no half-loaded slot stays behind */
+            return fail(why, failed ? "cel_load_layer failed" : "cel_load_layer returned an unloaded layer"),
+                   CONVO3F_ERR_HOST;
+        }
+    }
+    c->slots[slot].frame = frame;
+    ++c->loaded;
+    return CONVO3F_OK;
+}
+
+static int cel_reader_ready(const Convo3fHost *h)
+{
+    return h->cel_free_layer != NULL && h->cel_load_layer != NULL;
+}
+
+int convo3f_cel_reader_iteration(Convo3fManager *m, const Convo3fHost *h, int *ran, const char **why)
+{
+    Convo3fCel *c;
+    int status = CONVO3F_OK;
+    if (ran != NULL) {
+        *ran = 0;
+    }
+    if (why != NULL) {
+        *why = "none";
+    }
+    if (m == NULL || h == NULL) {
+        return fail(why, "null argument"), CONVO3F_ERR_ARGUMENT;
+    }
+    c = &m->cel;
+    if (m->cel_thread == 0 || c->lock == 2) {
+        return CONVO3F_OK;
+    }
+    if (!cel_reader_ready(h)) {
+        return fail(why, "reader needs cel_free_layer and cel_load_layer"), CONVO3F_ERR_UNSUPPORTED;
+    }
+    if (c->capacity < 0 || c->capacity > CONVO3F_CEL_SLOTS || c->index_786 < 0 || c->index_786 > 2) {
+        return fail(why, "cel capacity or step index outside the tables"), CONVO3F_ERR_BOUNDS;
+    }
+    c->lock = 1; /* 0x44c479 */
+    status = cel_evict_pass(m, h, why);
+    if (status == CONVO3F_OK && c->loaded < c->capacity && c->next <= c->last) {
+        int16_t slot = cel_find_slot(c, c->next);
+        int proceed = 1;
+        if (slot == -1) {
+            slot = cel_first_free(c);
+            if (slot == -1) {
+                proceed = 0; /* 0x422eee: the advance is skipped */
+            } else {
+                status = cel_load_slot(m, h, slot, c->next, why);
+            }
+        }
+        if (status == CONVO3F_OK && proceed) {
+            if (c->forced == -1) {
+                c->next = (int16_t)(c->next + (int16_t)((uint16_t)c->step_table[c->index_786] +
+                                                         (uint16_t)c->boost));
+            } else {
+                c->next = c->forced;
+                c->forced = -1;
+            }
+            if (c->next > c->last) {
+                c->next = c->last;
+            }
+            if (ran != NULL) {
+                *ran = 1;
+            }
+        }
+    }
+    if (c->lock != 2) { /* 0x44c4ab */
+        c->lock = 0;
+    }
+    return status;
+}
+
+int convo3f_cel_release_all(Convo3fManager *m, const Convo3fHost *h, const char **why)
+{
+    int status;
+    if (why != NULL) {
+        *why = "none";
+    }
+    if (m == NULL || h == NULL) {
+        return fail(why, "null argument"), CONVO3F_ERR_ARGUMENT;
+    }
+    if (m->cel_thread != 0) {
+        if (h->cel_reader_destroy == NULL) {
+            return fail(why, "cel reader thread active but cel_reader_destroy missing"),
+                   CONVO3F_ERR_UNSUPPORTED;
+        }
+        m->cel.lock = 2;
+        HOST_CALL(h->cel_reader_destroy(h->context), "cel_reader_destroy failed");
+        m->cel_thread = 0;
+        m->cel.lock = 0;
+    }
+    {
+        int16_t i;
+        int l;
+        for (i = 0; i < CONVO3F_CEL_SLOTS; ++i) {
+            for (l = 0; l < CONVO3F_CEL_SLOT_LAYERS; ++l) {
+                if (m->cel.slots[i].layer[l].loaded != 0u && h->cel_free_layer == NULL) {
+                    return fail(why, "cached cel layers need cel_free_layer"), CONVO3F_ERR_UNSUPPORTED;
+                }
+            }
+        }
+    }
+    status = cel_clear_cache(m, h, why);
+    if (status != CONVO3F_OK) {
+        return status;
+    }
+    if (m->cel.block != NULL) {
+        if (h->cel_release_header == NULL) {
+            return fail(why, "cel header block held but cel_release_header missing"),
+                   CONVO3F_ERR_UNSUPPORTED;
+        }
+        HOST_CALL(h->cel_release_header(h->context), "cel_release_header failed");
+        m->cel.block = NULL;
+        m->cel.block_bytes = 0u;
+    }
+    return CONVO3F_OK;
+}
+
+/* Frame choice of the running cel row: 0x4f6ef4 with the host position, then the
+ * cache lookups of state 4 (0x420c17 case 4, cel branch). */
+static int cel_sync_frame(Convo3fManager *m, const Convo3fHost *h, int32_t *result, const char **why)
+{
+    Convo3fCel *c = &m->cel;
+    int playing = 0;
+    int32_t raw = -1, v;
+    HOST_CALL(h->sound_sync_frame(h->context, CONVO3F_CEL_SOUND_CHANNEL, &playing, &raw),
+              "sound_sync_frame failed");
+    if (playing != 0 && raw < -1) {
+        return fail(why, "sound_sync_frame returned a frame below -1"), CONVO3F_ERR_HOST;
+    }
+    if (playing == 0) {
+        *result = -1;
+        return CONVO3F_OK;
+    }
+    if (raw == -1) {
+        *result = -1; /* 0x4f81fa failed: the original returns -1 with a log */
+        return CONVO3F_OK;
+    }
+    v = raw > c->sync_last ? raw : c->sync_last;
+    if (c->sync_count - 1 < v) {
+        v = c->sync_count - 1;
+    }
+    c->sync_last = v;
+    *result = v;
+    return CONVO3F_OK;
+}
+
+static int cel_advance(Convo3fManager *m, const Convo3fHost *h, Convo3fWorld *w, const char **why)
+{
+    Convo3fCel *c = &m->cel;
+    int32_t pos = -1;
+    int16_t slot;
+    int status = cel_sync_frame(m, h, &pos, why);
+    if (status != CONVO3F_OK) {
+        return status;
+    }
+    c->lock = 1;
+    c->frame = (int16_t)pos;
+    if (c->frame == -1 || c->last < c->frame) {
+        c->frame = c->last;
+    }
+    if (c->lock != 2) {
+        c->lock = 0;
+    }
+    slot = cel_find_slot(c, c->frame);
+    if (slot == -1 || c->drawn == c->last) {
+        if (slot == -1 && c->drawn != c->last) {
+            c->lock = 1;
+            ++c->stall;
+            if (w->stall_limit_5b028e <= c->stall) {
+                ++c->boost;
+                if (c->boost > 5) {
+                    c->boost = 5;
+                }
+                c->relax = 0;
+                c->stall = 0;
+            }
+            c->forced = (int16_t)(c->frame + c->boost);
+            if (c->last < c->forced) {
+                c->forced = c->last;
+            }
+            if (c->lock != 2) {
+                c->lock = 0;
+            }
+        } else if (c->frame < c->next && c->frame == c->last) {
+            c->final_seen = 1;
+        }
+    } else {
+        c->lock = 1;
+        if (c->boost > 0) {
+            ++c->relax;
+            if (w->stall_limit_5b028e <= c->relax) {
+                --c->boost;
+                if (c->boost < 0) {
+                    c->boost = 0;
+                }
+                c->relax = 0;
+                c->stall = 0;
+            }
+        }
+        if (c->lock != 2) {
+            c->lock = 0;
+        }
+        c->slot = slot;
+        c->target = c->frame; /* 0x422970 */
+        if (c->last <= c->target) {
+            c->final_seen = 1;
+        }
+    }
+    if (c->drawn != c->target) { /* 0x4229b5 */
+        c->drawn = c->target;
+        w->ui_5d191d = 1;
+    }
+    return CONVO3F_OK;
+}
+
+/* 0x422a0a */
+static void blit_add(Convo3fRenderPlan *plan, uint8_t kind, uint32_t surface, int16_t key,
+                     const int32_t src[4], const int32_t dst[4])
+{
+    Convo3fBlit *b = &plan->blits[plan->count++];
+    b->kind = kind;
+    b->surface = surface;
+    b->key = key;
+    memcpy(b->src, src, sizeof(b->src));
+    memcpy(b->dst, dst, sizeof(b->dst));
+}
+
+int convo3f_cel_render(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w,
+                       const Convo3fHost *h, Convo3fRenderPlan *plan, const char **why)
+{
+    Convo3fCel *c;
+    const uint8_t *img;
+    int order, layer;
+    if (why != NULL) {
+        *why = "none";
+    }
+    if (m == NULL || o == NULL || o->arena == NULL || w == NULL || h == NULL || plan == NULL) {
+        return fail(why, "null argument"), CONVO3F_ERR_ARGUMENT;
+    }
+    memset(plan, 0, sizeof(*plan));
+    c = &m->cel;
+    img = o->arena;
+    if (!is_cel_type(m->type)) {
+        w->ui_5d191d = 0; /* 0x422a0a clears the flag on every path */
+        return CONVO3F_OK;
+    }
+    if (h->cel_tree_info == NULL) {
+        return fail(why, "render needs cel_tree_info"), CONVO3F_ERR_UNSUPPORTED;
+    }
+    if (o->arena_bytes < CONVO3F_IMAGE_BYTES || c->layer_count > CONVO3F_CEL_MAX_LAYERS ||
+        (c->layer_count > 0 && (c->slot < 0 || c->slot >= CONVO3F_CEL_SLOTS))) {
+        return fail(why, "render state outside the tables (slot or layer count)"), CONVO3F_ERR_BOUNDS;
+    }
+    for (order = 0; order < c->layer_count; ++order) {
+        for (layer = 0; layer < c->layer_count; ++layer) {
+            uint8_t kind = 0, transp = 0;
+            const Convo3fCelLayer *hdr = &c->slots[c->slot].layer[layer];
+            int32_t src[4], dst[4], restore[4];
+            int k;
+            if (img[C3E_PRIORITY + layer] != (uint8_t)order) {
+                continue;
+            }
+            HOST_CALL(h->cel_tree_info(h->context, c->layer_tree[layer], &kind, &transp),
+                      "cel_tree_info failed");
+            if (kind == 0u || kind == 1u || kind == 3u) {
+                if (img[C3E_MODE + layer] == 2u) {
+                    for (k = 0; k < 4; ++k) {
+                        src[k] = rd_s32(img + C3E_RECT_SRC + layer * 16 + k * 4);
+                        restore[k] = rd_s32(img + C3E_RECT_DST + layer * 16 + k * 4);
+                        dst[k] = restore[k];
+                    }
+                } else {
+                    for (k = 0; k < 4; ++k) {
+                        src[k] = hdr->src[k];
+                        restore[k] = hdr->dst[k];
+                        dst[k] = hdr->dst[k];
+                    }
+                }
+                dst[0] = (int32_t)((uint32_t)dst[0] + (uint32_t)w->view_x_583186);
+                dst[1] = (int32_t)((uint32_t)dst[1] + (uint32_t)w->view_y_58318a);
+                dst[2] = (int32_t)((uint32_t)dst[2] + (uint32_t)w->view_x_583186);
+                dst[3] = (int32_t)((uint32_t)dst[3] + (uint32_t)w->view_y_58318a);
+                if (plan->count + 2u > CONVO3F_CEL_MAX_BLITS) {
+                    return fail(why, "render plan overflow"), CONVO3F_ERR_BOUNDS;
+                }
+                if (transp == 1u) {
+                    blit_add(plan, CONVO3F_BLIT_RESTORE, 0u, 0, restore, dst);
+                    blit_add(plan, CONVO3F_BLIT_TRANSPARENT, hdr->surface, hdr->key_2f, src, dst);
+                } else if (transp == 2u) {
+                    blit_add(plan, CONVO3F_BLIT_OPAQUE, hdr->surface, hdr->key_2f, src, dst);
+                }
+            } else if (kind == 2u) {
+                int32_t saved_src[4], saved_dst[4];
+                dst[0] = (int32_t)((uint32_t)hdr->dst[0] + (uint32_t)w->view_x_583186);
+                dst[1] = (int32_t)((uint32_t)hdr->dst[1] + (uint32_t)w->view_y_58318a);
+                dst[2] = (int32_t)((uint32_t)hdr->dst[2] + (uint32_t)w->view_x_583186);
+                dst[3] = (int32_t)((uint32_t)hdr->dst[3] + (uint32_t)w->view_y_58318a);
+                if (plan->count + 2u > CONVO3F_CEL_MAX_BLITS) {
+                    return fail(why, "render plan overflow"), CONVO3F_ERR_BOUNDS;
+                }
+                memcpy(saved_src, c->saved_src[layer], sizeof(saved_src));
+                memcpy(saved_dst, c->saved_dst[layer], sizeof(saved_dst));
+                blit_add(plan, CONVO3F_BLIT_RESTORE, 0u, 0, saved_src, saved_dst);
+                if (transp == 1u) {
+                    blit_add(plan, CONVO3F_BLIT_TRANSPARENT, hdr->surface, hdr->key_2f, hdr->src, dst);
+                } else if (transp == 2u) {
+                    blit_add(plan, CONVO3F_BLIT_OPAQUE, hdr->surface, hdr->key_2f, hdr->src, dst);
+                }
+                memcpy(c->saved_src[layer], hdr->dst, sizeof(hdr->dst));
+                memcpy(c->saved_dst[layer], dst, sizeof(dst));
+            }
+            break; /* 0x422e20: the scan moves on to the next order value after one layer */
+        }
+    }
+    w->ui_5d191d = 0;
+    return CONVO3F_OK;
+}
+
 /* ---- phase 0 ---- */
 
-static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3fWorld *w,
-                  const Convo3fHost *h, Convo3fStepResult *r, const char **why)
+/* Phase 0, cel arm: the tail of 0x420c17 case 0x39/0x3b/0x3e (everything before it is
+ * shared with the sound arm). Failures of the original here are fatal (log + abort):
+ * they are ERR_HOST / ERR_BOUNDS after effects were committed. */
+static int phase0_cel(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3fWorld *w,
+                      const Convo3fHost *h, const ActionSoundAudioCommand *cmd,
+                      Convo3fStepResult *r, const char **why)
+{
+    const uint8_t *img = o->arena;
+    Convo3fCel *c = &m->cel;
+    const uint8_t *block = NULL;
+    size_t block_bytes = 0u;
+    ActionSoundBackendStatus ss;
+    int16_t pct, l;
+    int i;
+    (void)row;
+    (void)w;
+    c->sound_offset = C3E_SOUND; /* 0x6aa */
+    ss = h->sound->load_sound(h->sound->context, cmd); /* 0x4fb77a */
+    if (ss != ACTION_SOUND_BACKEND_OK && ss != ACTION_SOUND_BACKEND_NO_RESOURCE) {
+        return fail(why, "sound backend load failed"), CONVO3F_ERR_HOST;
+    }
+    c->sound_loaded = ss == ACTION_SOUND_BACKEND_OK ? 1u : 0u;
+    for (i = 0; i < (int)CONVO3F_NAME_BYTES; ++i) {
+        m->display_name[i] = img[i] == (uint8_t)'_' ? (uint8_t)' ' : img[i];
+    }
+    pct = rd_s16(img + C3E_PERCENT + (int)c->index_786 * 2);
+    if (pct > 0) { /* 0x42141x: ftol((float)(last - first + 1) * ((float)pct / 100.0)) */
+        const int32_t n = (int32_t)rd_s16(img + C3E_LAST) - (int32_t)rd_s16(img + C3E_FIRST) + 1;
+        const float fn = (float)n;
+        const float fp = (float)(int32_t)pct;
+        const double v = (double)fn * ((double)fp / 100.0);
+        c->capacity = (int16_t)(int32_t)v;
+    }
+    if (c->capacity > CONVO3F_CEL_SLOTS) {
+        c->capacity = CONVO3F_CEL_SLOTS;
+    }
+    if (c->capacity < CONVO3F_CEL_MIN_SLOTS) {
+        c->capacity = CONVO3F_CEL_MIN_SLOTS;
+    }
+    HOST_CALL(h->cel_load_header(h->context, img, &block, &block_bytes), "cel_load_header failed");
+    if (block == NULL || block_bytes < CONVO3F_CEL_HEADER_BYTES) {
+        return fail(why, "CIFTREE cel header missing or shorter than 0x2a bytes (the original aborts)"),
+               CONVO3F_ERR_HOST;
+    }
+    c->block = block;
+    c->block_bytes = block_bytes;
+    memcpy(c->header, block, CONVO3F_CEL_HEADER_BYTES);
+    c->sync_param = rd_u32(c->header + 0x26);
+    c->last = rd_s16(img + C3E_LAST);
+    c->first = rd_s16(img + C3E_FIRST);
+    memcpy(c->step_table, img + C3E_STEP_TABLE, 4u);
+    c->layer_count = rd_s16(c->header + 0x24);
+    if (c->layer_count > CONVO3F_CEL_MAX_LAYERS) {
+        return fail(why, "cel layer count above 2 (names exist for two layers only)"),
+               CONVO3F_ERR_BOUNDS;
+    }
+    for (l = 0; l < c->layer_count; ++l) {
+        HOST_CALL(h->cel_tree_index(h->context, img + C3E_LAYER_NAME + (size_t)l * CONVO3F_NAME_BYTES,
+                                    &c->layer_tree[l]),
+                  "cel_tree_index failed");
+        if (c->layer_tree[l] == -1) {
+            return fail(why, "cel layer image is not in the CIFTREE directory (the original aborts)"),
+                   CONVO3F_ERR_HOST;
+        }
+    }
+    HOST_CALL(h->cel_reader_create(h->context), "cel_reader_create failed");
+    m->cel_thread = 1;
+    c->target = CONVO3F_CEL_NO_FRAME;
+    c->drawn = CONVO3F_CEL_NO_FRAME;
+    c->frame = c->first;
+    c->next = c->frame;
+    m->sub_state = 1u;
+    c->final_seen = 0;
+    HOST_CALL(h->cel_reader_resume(h->context), "cel_reader_resume failed");
+    r->phase_after = 1u;
+    return CONVO3F_OK;
+}
+
+
+static int phase0(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32_t row,
+                  Convo3fWorld *w, const Convo3fHost *h, Convo3fStepResult *r, const char **why)
 {
     uint8_t *img = o->arena;
+    const int cel = is_cel_type(type);
     ActionSoundAudioCommand cmd;
     Convo3fManager built;
     int status, need_ui, i;
@@ -458,7 +1015,7 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3
     if (w->mode_583999 != 3) {
         /* The original has already stored its row/object/type fields. */
         m->row = (int16_t)row;
-        m->type = CONVO3F_RUNTIME_TYPE;
+        m->type = type;
         r->ran = 1u;
         return CONVO3F_OK;
     }
@@ -468,13 +1025,47 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3
                          "recovered"),
                CONVO3F_ERR_UNSUPPORTED;
     }
-    if (m->cel_thread != 0) {
-        return fail(why, "cel reader thread active (raw 0x39/0x3b/0x3e state)"), CONVO3F_ERR_UNSUPPORTED;
+    if (!cel && m->cel_thread != 0) {
+        return fail(why, "cel reader thread active during a raw 0x3f row"), CONVO3F_ERR_UNSUPPORTED;
     }
-    if (!sound_ready(h, 1, 0, 0)) {
-        return fail(why, "sound backend (load_sound/play_sound)"), CONVO3F_ERR_UNSUPPORTED;
+    if (!cel && type != CONVO3F_RUNTIME_TYPE) {
+        return fail(why, "runtime type not modelled (raw 0x39/0x3b are not in the corpus)"),
+               CONVO3F_ERR_UNSUPPORTED;
     }
-    status = sound_command(img + C3F_SOUND, &cmd, why);
+    if (!sound_ready(h, cel ? 0 : 1, 0, 0)) {
+        return fail(why, cel ? "sound backend (load_sound)" : "sound backend (load_sound/play_sound)"),
+               CONVO3F_ERR_UNSUPPORTED;
+    }
+    {
+        int16_t li;
+        for (li = 0; li < CONVO3F_CEL_SLOTS; ++li) {
+            int lk;
+            for (lk = 0; lk < CONVO3F_CEL_SLOT_LAYERS; ++lk) {
+                if (m->cel.slots[li].layer[lk].loaded != 0u && h->cel_free_layer == NULL) {
+                    return fail(why, "cached cel layers need cel_free_layer"), CONVO3F_ERR_UNSUPPORTED;
+                }
+            }
+        }
+    }
+    if (cel) {
+        if (h->cel_load_header == NULL || h->cel_tree_index == NULL || h->cel_tree_info == NULL ||
+            h->cel_load_layer == NULL || h->cel_free_layer == NULL || h->cel_release_header == NULL ||
+            h->cel_reader_create == NULL || h->cel_reader_resume == NULL ||
+            h->cel_reader_destroy == NULL || h->sound_sync_init == NULL ||
+            h->sound_sync_frame == NULL) {
+            return fail(why, "cel arm needs every cel_* callback and sound_sync_init/sound_sync_frame"),
+                   CONVO3F_ERR_UNSUPPORTED;
+        }
+        if (memchr(img, 0, CONVO3F_NAME_BYTES) == NULL ||
+            memchr(img + C3E_LAYER_NAME, 0, CONVO3F_NAME_BYTES) == NULL ||
+            memchr(img + C3E_LAYER_NAME + CONVO3F_NAME_BYTES, 0, CONVO3F_NAME_BYTES) == NULL) {
+            return fail(why, "cel file or layer name is not NUL terminated"), CONVO3F_ERR_BOUNDS;
+        }
+        if (rd_s16(img + C3E_FIRST) < 0 || rd_s16(img + C3E_LAST) < rd_s16(img + C3E_FIRST)) {
+            return fail(why, "cel frame range is empty or negative"), CONVO3F_ERR_BOUNDS;
+        }
+    }
+    status = sound_command(img + (cel ? C3E_SOUND : C3F_SOUND), &cmd, why);
     if (status != CONVO3F_OK) {
         return status;
     }
@@ -501,7 +1092,7 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3
     r->ran = 1u;
     r->started = 1u;
     m->row = (int16_t)row;
-    m->type = CONVO3F_RUNTIME_TYPE;
+    m->type = type;
     w->flag_5c39e9 = 1;
     w->flag_5c39ed = 1;
     if (w->engine_583204 == 4 || w->engine_583204 == 3) {
@@ -548,6 +1139,26 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3
         w->held_item = -1;
     }
     w->ui_5d191d = 0;
+    if (m->cel_thread != 0) { /* 0x420e... reader teardown: lock := 2, 0x449a94, delete, lock := 0 */
+        m->cel.lock = 2;
+        HOST_CALL(h->cel_reader_destroy(h->context), "cel_reader_destroy failed");
+        m->cel_thread = 0;
+        m->cel.lock = 0;
+    }
+    {   /* saved layer rectangles: {0,0,1,1} and the same shifted by the view origin */
+        int k;
+        const int32_t vx = w->view_x_583186, vy = w->view_y_58318a;
+        for (k = 0; k < CONVO3F_CEL_SLOT_LAYERS; ++k) {
+            m->cel.saved_src[k][0] = 0;
+            m->cel.saved_src[k][1] = 0;
+            m->cel.saved_src[k][2] = 1;
+            m->cel.saved_src[k][3] = 1;
+            m->cel.saved_dst[k][0] = (int32_t)((uint32_t)vx);
+            m->cel.saved_dst[k][1] = (int32_t)((uint32_t)vy);
+            m->cel.saved_dst[k][2] = (int32_t)((uint32_t)1 + (uint32_t)vx);
+            m->cel.saved_dst[k][3] = (int32_t)((uint32_t)1 + (uint32_t)vy);
+        }
+    }
     if (h->acquire_surface != NULL) {
         HOST_CALL(h->acquire_surface(h->context, CONVO3F_SURFACE_NORMAL_NAME, w->ui_5b0a74,
                                      w->ui_5b0a76, &m->textbox_slot[0]),
@@ -559,13 +1170,27 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3
         r->skipped_optional |= CONVO3F_SKIP_SURFACES;
     }
     w->ui_5b15da = 0;
+    m->cel.relax = 0;
+    m->cel.stall = 0;
+    m->cel.boost = 0;
+    m->cel.slot = -1;
+    m->cel.capacity = 0;
+    status = cel_clear_cache(m, h, why); /* 0x41de29 */
+    if (status != CONVO3F_OK) {
+        return status;
+    }
     m->sub_state = 0u;
     /* 0x4205c1: commit the list built during validation. */
     {
         int16_t slot0 = m->textbox_slot[0], slot1 = m->textbox_slot[1];
+        const int32_t thread = m->cel_thread;
+        const Convo3fCel keep = m->cel;
         memcpy(m, &built, sizeof(*m));
+        m->cel = keep;
+        m->cel.sound_offset = 0; /* 0x6aa: only the cel arm sets it (phase0_cel) */
+        m->cel_thread = thread;
         m->row = (int16_t)row;
-        m->type = CONVO3F_RUNTIME_TYPE;
+        m->type = type;
         m->textbox_slot[0] = slot0;
         m->textbox_slot[1] = slot1;
         memset(m->display_name, 0, sizeof(m->display_name));
@@ -594,6 +1219,9 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, int32_t row, Convo3
         req.slot_hilite = m->textbox_slot[1];
         HOST_CALL(h->layout_text_box(h->context, &req, w), "layout_text_box failed");
     }
+    if (cel) {
+        return phase0_cel(m, o, row, w, h, &cmd, r, why);
+    }
     status = sound_start(h, &cmd, CONVO3F_SOUND_CHANNEL, why);
     if (status != CONVO3F_OK) {
         return status;
@@ -612,6 +1240,8 @@ static int phase1(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
                   Convo3fStepResult *r, const char **why)
 {
     uint8_t *img = o->arena;
+    const int cel = is_cel_type(m->type);
+    const size_t snd = (size_t)m->cel.sound_offset; /* 0x6aa: 0 for 0x3f, 0x13a for 0x3e */
     int status, playing = 0;
     r->ran = 1u;
     r->phase_after = 1u;
@@ -622,9 +1252,29 @@ static int phase1(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
     }
     switch (m->sub_state) {
     case 1u:
-        return fail(why, "cel start sub-state (raw 0x39/0x3b/0x3e)"), CONVO3F_ERR_UNSUPPORTED;
+        if (!cel) {
+            return fail(why, "cel start sub-state in a sound row"), CONVO3F_ERR_BOUNDS;
+        }
+        if (h->sound_sync_init == NULL) {
+            return fail(why, "cel start needs sound_sync_init"), CONVO3F_ERR_UNSUPPORTED;
+        }
+        if (m->cel.sound_loaded == 0u) {
+            return fail(why, "sound failed to load: 0x4f6cdc fails and the original aborts"),
+                   CONVO3F_ERR_HOST;
+        }
+        if (m->cel.slot < -1 || m->cel.capacity < 0 || m->cel.capacity > CONVO3F_CEL_SLOTS) {
+            return fail(why, "cel state outside the tables"), CONVO3F_ERR_BOUNDS;
+        }
+        break;
     case 4u:
-        if (!sound_ready(h, 0, 1, 0)) {
+        if (cel) {
+            if (h->sound_sync_frame == NULL) {
+                return fail(why, "cel running state needs sound_sync_frame"), CONVO3F_ERR_UNSUPPORTED;
+            }
+            if (m->cel.capacity < 0 || m->cel.capacity > CONVO3F_CEL_SLOTS) {
+                return fail(why, "cel capacity outside the tables"), CONVO3F_ERR_BOUNDS;
+            }
+        } else if (!sound_ready(h, 0, 1, 0)) {
             return fail(why, "sound backend is_playing"), CONVO3F_ERR_UNSUPPORTED;
         }
         break;
@@ -635,7 +1285,7 @@ static int phase1(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
         if (w->selected_570374 < 0 || w->selected_570374 >= CONVO3F_UI_SOUND_ROWS) {
             return fail(why, "selected response index outside table 0x5b0a9a"), CONVO3F_ERR_BOUNDS;
         }
-        if (rd_u16(img + C3F_SOUND + C3F_SND_CHANNEL) >= ACTION_SOUND_CHANNEL_COUNT) {
+        if (rd_u16(img + snd + C3F_SND_CHANNEL) >= ACTION_SOUND_CHANNEL_COUNT) {
             return fail(why, "sound channel outside the 32 channel states"), CONVO3F_ERR_BOUNDS;
         }
         if (rd_u16(img + C3F_SOUND2 + C3F_SND_CHANNEL) >= ACTION_SOUND_CHANNEL_COUNT) {
@@ -680,11 +1330,36 @@ static int phase1(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
         r->skipped_optional |= CONVO3F_SKIP_KEYS;
     }
     switch (m->sub_state) {
+    case 1u: { /* cel start: wait for the first frame in the cache */
+        Convo3fCel *c = &m->cel;
+        if ((c->loaded == c->capacity || c->last <= c->loaded)) {
+            const int16_t slot = cel_find_slot(c, c->frame);
+            if (slot != -1) {
+                c->slot = slot;
+                c->target = c->frame; /* 0x422970 */
+                if (c->last <= c->target) {
+                    c->final_seen = 1;
+                }
+                HOST_CALL(h->sound_sync_init(h->context, CONVO3F_CEL_SOUND_CHANNEL,
+                                             (uint16_t)((int)c->last - (int)c->first + 1),
+                                             c->sync_param),
+                          "sound_sync_init failed (the original aborts)");
+                c->sync_count = (int32_t)(uint16_t)((int)c->last - (int)c->first + 1);
+                c->sync_last = 0;
+                m->sub_state = 4u;
+            }
+        }
+        break;
+    }
     case 4u:
         w->start_5bb1ca = 1;
-        status = sound_playing(h, CONVO3F_SOUND_CHANNEL, &playing, why);
-        if (status != CONVO3F_OK) {
-            return status;
+        if (cel) {
+            playing = m->cel.drawn != m->cel.last; /* the cel row ends when [0x77e] == [0x6a4] */
+        } else {
+            status = sound_playing(h, CONVO3F_SOUND_CHANNEL, &playing, why);
+            if (status != CONVO3F_OK) {
+                return status;
+            }
         }
         if (playing == 0 || w->fast_convo_58322a != 0) {
             const int16_t count = m->response_count;
@@ -709,10 +1384,16 @@ static int phase1(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
                 }
             }
         }
+        if (cel && m->sub_state == 4u) {
+            status = cel_advance(m, h, w, why);
+            if (status != CONVO3F_OK) {
+                return status;
+            }
+        }
         break;
     case 5u: {
         const uint8_t *name = w->ui_sound_names[w->selected_570374];
-        status = sound_stop(h, rd_u16(img + C3F_SOUND + C3F_SND_CHANNEL), why);
+        status = sound_stop(h, rd_u16(img + snd + C3F_SND_CHANNEL), why);
         if (status != CONVO3F_OK) {
             return status;
         }
@@ -792,8 +1473,24 @@ static int phase2(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
     r->ran = 1u;
     r->phase_after = 2u;
     /* ---- validation ---- */
-    if (m->cel_thread != 0) {
-        return fail(why, "cel reader thread active (raw 0x39/0x3b/0x3e state)"), CONVO3F_ERR_UNSUPPORTED;
+    if (m->cel_thread != 0 && h->cel_reader_destroy == NULL) {
+        return fail(why, "cel reader thread active but cel_reader_destroy missing"),
+               CONVO3F_ERR_UNSUPPORTED;
+    }
+    {
+        int16_t li;
+        for (li = 0; li < CONVO3F_CEL_SLOTS; ++li) {
+            int lk;
+            for (lk = 0; lk < CONVO3F_CEL_SLOT_LAYERS; ++lk) {
+                if (m->cel.slots[li].layer[lk].loaded != 0u && h->cel_free_layer == NULL) {
+                    return fail(why, "cached cel layers need cel_free_layer"), CONVO3F_ERR_UNSUPPORTED;
+                }
+            }
+        }
+    }
+    if (m->cel.block != NULL && h->cel_release_header == NULL) {
+        return fail(why, "cel header block held but cel_release_header missing"),
+               CONVO3F_ERR_UNSUPPORTED;
     }
     if (use_response && (sel < 0 || sel >= CONVO3F_MAX_RESPONSES)) {
         return fail(why, "selected response index outside the 30 list records"), CONVO3F_ERR_BOUNDS;
@@ -877,6 +1574,16 @@ static int phase2(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
         return fail(why, "scene stack pop (0x42e493) needs scene_stack_pop"), CONVO3F_ERR_UNSUPPORTED;
     }
     /* ---- effects, in the order of 0x420c17 ---- */
+    if (m->cel_thread != 0) { /* lock := 2, 0x449a94, virtual delete, lock := 0 */
+        m->cel.lock = 2;
+        HOST_CALL(h->cel_reader_destroy(h->context), "cel_reader_destroy failed");
+        m->cel_thread = 0;
+        m->cel.lock = 0;
+    }
+    status = cel_clear_cache(m, h, why); /* 0x41de29 */
+    if (status != CONVO3F_OK) {
+        return status;
+    }
     if (m->textbox_slot[0] != -1) {
         HOST_CALL(h->release_surface(h->context, m->textbox_slot[0]), "release_surface failed");
         m->textbox_slot[0] = -1;
@@ -886,6 +1593,13 @@ static int phase2(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
         m->textbox_slot[1] = -1;
     }
     w->ui_5b15da = 0;
+    if (m->cel.block != NULL) { /* 0x51dc6c of +0xfa5, then +0xf77 zeroed and +0xfa9 := 0 */
+        HOST_CALL(h->cel_release_header(h->context), "cel_release_header failed");
+        m->cel.block = NULL;
+        m->cel.block_bytes = 0u;
+    }
+    memset(m->cel.header, 0, sizeof(m->cel.header));
+    m->cel.layer_count = 0; /* +0xf9b is part of the zeroed header copy */
     for (k = 0; k < plan_count; ++k) { /* 0x4209e8 */
         {
             const uint8_t *entry = arena_at(o, rd_u32(img + C3F_SECONDARY_TABLE) +
@@ -975,6 +1689,13 @@ static int phase2(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *w, co
 int convo3f_step(Convo3fManager *m, const Convo3fObject *o, int32_t row, uint32_t phase,
                  Convo3fWorld *w, const Convo3fHost *h, Convo3fStepResult *r, const char **why)
 {
+    return convo3f_step_type(m, o, CONVO3F_RUNTIME_TYPE, row, phase, w, h, r, why);
+}
+
+int convo3f_step_type(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32_t row,
+                      uint32_t phase, Convo3fWorld *w, const Convo3fHost *h, Convo3fStepResult *r,
+                      const char **why)
+{
     if (r != NULL) {
         memset(r, 0, sizeof(*r));
         r->phase_after = phase;
@@ -989,13 +1710,16 @@ int convo3f_step(Convo3fManager *m, const Convo3fObject *o, int32_t row, uint32_
     if (o->arena_bytes < CONVO3F_IMAGE_BYTES) {
         return fail(why, "object arena smaller than the 0x7a5-byte image"), CONVO3F_ERR_BOUNDS;
     }
+    if (type != CONVO3F_RUNTIME_TYPE && type != CONVO3E_RUNTIME_TYPE) {
+        return fail(why, "runtime type not modelled (0x3f and 0x3e only)"), CONVO3F_ERR_UNSUPPORTED;
+    }
     if (phase == 0u) {
-        return phase0(m, o, row, w, h, r, why);
+        return phase0(m, o, type, row, w, h, r, why);
     }
     if (phase != 1u && phase != 2u) {
         return CONVO3F_OK; /* the original's switch has no arm: no effect */
     }
-    if (m->row != (int16_t)row || m->type != CONVO3F_RUNTIME_TYPE) {
+    if (m->row != (int16_t)row || m->type != type) {
         return fail(why, "visit of a row that does not own the conversation manager"),
                CONVO3F_ERR_BOUNDS;
     }
