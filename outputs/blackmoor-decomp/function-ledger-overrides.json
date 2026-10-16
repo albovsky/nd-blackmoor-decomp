@@ -1385,6 +1385,4139 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Matches line by line. Seams: surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted; the 0x4cec6c guards (+0x222, +0x226, +0x246) are not mirrored. Tests-only."
+  },
+  {
+   "va": "0x4fcef0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fcff0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd040",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd160",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd2b0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd370",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd3e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd430",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd530",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd650",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd690",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fd8b0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fdb90",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x4fdbe0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fdc00",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fdc70",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fdf40",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fdf80",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fdfd0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe290",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe2d0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe630",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe640",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe660",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe6d0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe700",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe870",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe970",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fe9a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fea80",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4feb60",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fede0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fee30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4feea0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fef10",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4fef70",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ff2f0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ff310",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ff560",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ff590",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ff9a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ffa00",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ffa30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ffb90",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ffc10",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ffc30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4ffc50",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5001a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x500920",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x500950",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x500980",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5009a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x500a60",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x500ac0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x500bb0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5011b0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501250",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501330",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501400",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501540",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5016a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501730",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501880",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501950",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5019e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x501b40"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501b70",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501c40",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501e90",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x501eb0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5022a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502370",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5023e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5023f0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502440",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5025c0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502630",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502820",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5028f0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502910",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502970",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5029d0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502da0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x502e00"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x502e20",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503060",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5030a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5031d0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x5033d0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503760",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5038e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503aa0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503b80",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503ba0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503c00",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503c30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503de0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x503fa0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x504410",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x504fc0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x505000",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x505020",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5051b0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5051f0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x505260",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5053a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x505580",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5055c0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x505ad0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x505fd0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506060",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506180",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506600",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506640",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506650",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506670",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x5067c0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x506990",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507310",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507340",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507700",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507720",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x5077a0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507890",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x5078b0",
+    "0x5079f0",
+    "0x507bd0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507c30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x507e50",
+    "0x507f70"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x507fd0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x508180",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x5083f0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x508450",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x508680"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5086e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x508720",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x5088c0",
+    "0x508a20"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x508bc0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x508be0",
+    "0x508c00",
+    "0x508dc0",
+    "0x508ff0",
+    "0x509210"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509230",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x5096c0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509710",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509910",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509940",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509b40",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509d70",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509da0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x509e50",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50a440",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50a450",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x50a4e0",
+    "0x50a7d0"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50a8e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50a9a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50a9c0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [
+    "0x50aa30",
+    "0x50aaf0",
+    "0x50ab90"
+   ],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50acd0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50ad50",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50aeb0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b030",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b080",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b0d0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b0e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b140",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b150",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b160",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b170",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b180",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b260",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b290",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b2c0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b330",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b380",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b430",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b460",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b4b0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b4d0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b500",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b580",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b5a0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b6f0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50b9e0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50ba00",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50ba50",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50ba70",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50ba90",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bbc0",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bc00",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bc20",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bc50",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bc80",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bd80",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50be30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50be60",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x50bf30",
+   "class": "host_adapter_tested",
+   "reviewer": "Claude Sonnet FL-12 (Vorbis parity rule), diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/his_audio.c",
+    "symbol": "his_audio_decode_memory"
+   },
+   "tests": [
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_adapter_comment_cites_every_vorbis_function_and_part"
+    },
+    {
+     "path": "tests/test_vorbis_parity_rule.py",
+     "test_id": "VorbisParityRuleTests.test_comment_and_ledger_record_the_same_parity_numbers"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
   }
  ],
  "not_needed_entries": [
@@ -2120,6 +6253,36 @@
    "USER32.dll!SetRectEmpty"
   ],
   "reviewer": "FL-7 root, default ruling: queries, sync, TLS, resources, GDI state",
+  "date": "2026-10-16"
+ },
+ "vorbis_parity_rule": {
+  "id": "V-PCM-LSB1",
+  "ruling": {
+   "by": "Glib",
+   "date": "2026-10-16",
+   "text": "Decision card answered with option A, Within 1 step: Vorbis decoded audio that matches the original within 1 LSB with equal length counts as parity, so the 178 statically linked Vorbis functions count as ported. Relayed by the project coordinator session (the card was answered at 7:43 AM PDT, 2026-10-16). This supersedes the stricter 2026-10-15 9:59 PM PDT rule of byte-equal PCM."
+  },
+  "criterion": "On the Ogg payload of every Ogg-bearing CDSound HIS file, the PCM from the native adapter (his_audio_decode_memory, then his_pcm_quantize_planar) equals the PCM the original libvorbisfile code in GAME.EXE returns under Unicorn (ov_open_callbacks 0x4fcff0, ov_read 0x4fe2d0 until the header's decoded byte count): same length (both sides are capped at the header's decoded byte count, so equality of length holds by construction for files that decode longer) and every sample equal or off by exactly 1 LSB.",
+  "evidence": {
+   "harness": "tests/his_vorbis_decoder_original_oracle.py",
+   "harness_sha256": "4caf36ce531625d7027f09b14d451ab7ec1fed4245ee684f9163b6b98dd1a31d",
+   "pr": 81,
+   "files": 2406,
+   "byte_equal": 25,
+   "within_one_lsb": 2381,
+   "beyond_one_lsb": 0,
+   "native_failures": 0,
+   "original_failures": 0
+  },
+  "limits": [
+   "The per-file report (work/analysis/FL-9/all-after-fix.json) is derived from game audio, lives only on the owner's Mac and is not committed; the numbers are those the Mac session recorded in the FL-9 handoff (PR 81, COORDINATION-STATUS.md). The cloud cannot rerun the harness (it needs the 2,406 CDSound files); the recorded harness hash must still match, so a changed harness invalidates the rule.",
+   "The native decoder is FFmpeg's, not a port of the original libvorbis code. The 178 functions are credited as one class on output parity; the harness records no per-function executed ranges, so some of them (for example seek, encoder-side or error paths) were not necessarily run.",
+   "The x87 control word of the original run was 0x027f, an assumption; two files rerun at 0x037f gave identical results. The 1-LSB differences are the float-level gap between FFmpeg's native Vorbis decoder and libvorbis, not a quantizer defect.",
+   "About 74 files decode longer than their HIS header and are truncated at the header count, as the original's read loop does; 20 short streams needed the his_audio.c final-granule fix (PR 81) to load at all.",
+   "The numbers are bound only to the harness script hash, not to the code that produced them: any change to the decode path in src/his_audio.c, to src/his_pcm_quantize.c or to the FFmpeg build needs a Mac rerun of the harness and a new rule entry; re-pinning source hashes with the evidence extractor does not renew this proof.",
+   "The tests the 178 acceptances cite (tests/test_vorbis_parity_rule.py) only keep the adapter's citation, the recorded numbers and the ledger in step; they do not decode audio. The decoding contract tests are tests/test_his_audio.py and tests/test_his_pcm_quantize.py, which the extractor cannot attach to these functions. The acceptance rests on the owner ruling and the Mac harness run, not on those tests."
+  ],
+  "reviewer": "Claude Sonnet FL-12; diff reviewed by a Sonnet slice-reviewer, 2026-10-16",
   "date": "2026-10-16"
  }
 }
