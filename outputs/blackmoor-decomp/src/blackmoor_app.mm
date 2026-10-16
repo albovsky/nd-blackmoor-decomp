@@ -3175,6 +3175,9 @@ static int native_a3f_load_world(void *context, Convo3fWorld *world)
     world->fast_convo_58322a = 0; /* setting not modelled */
     world->exit_58322b = 0;       /* meaning unverified (RT-23 handoff) */
     world->start_5bb1ca = app->start_flag_5bb1ca;
+    world->stall_limit_5b028e = 0; /* BSS, never written (RT-25) */
+    world->view_x_583186 = app->scene_destination.left;
+    world->view_y_58318a = app->scene_destination.top;
     return 0;
 }
 
@@ -4861,7 +4864,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[18]{};
+    SceneSessionActionBinding bindings[19]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -4938,7 +4941,15 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[17].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[17].callback = native_ad9_handler;
     bindings[17].context = app;
-    config.action_binding_count = 18u;
+    /* RT-25: raw 0x3e cel-video conversation (same dispatcher arm 0x427a50 -> 0x420c17, cel arms).
+     * The kernel and binding are verified; the host providers for the CIFTREE cel header, the
+     * layer images and the audio frame sync (cel_* / sound_sync_* in a3f_host) are NOT
+     * implemented here, so the kernel refuses every 0x3e visit as UNSUPPORTED before any effect. */
+    bindings[18].type = SESSION_A3E_TYPE;
+    bindings[18].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    bindings[18].callback = native_a3f_handler;
+    bindings[18].context = app;
+    config.action_binding_count = 19u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {

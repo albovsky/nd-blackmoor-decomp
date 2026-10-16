@@ -14,6 +14,9 @@ extern "C" {
  * rows. The finish branch completes the row DIRECTLY (completion byte := 1,
  * phase := 0, no dependency reset). */
 #define SESSION_A3F_TYPE UINT8_C(0x3f)
+/* RT-25: raw 0x3e cel-video rows run through the same binding (runtime type 0x3e,
+ * same dispatcher arm and handler; the kernel selects the cel arm). */
+#define SESSION_A3E_TYPE UINT8_C(0x3e)
 
 typedef struct SessionA3fBinding SessionA3fBinding;
 
@@ -73,6 +76,16 @@ int session_a3f_choose_response(SessionA3fBinding *, int index);
  * the next visit), NULL when out of range. */
 int session_a3f_response_count(const SessionA3fBinding *);
 const uint8_t *session_a3f_response_text(const SessionA3fBinding *, int index);
+
+/* RT-25 cel arm. The reader thread of the original (0x422e4a) is replaced by explicit
+ * passes: the host calls session_a3f_cel_reader_pass often while a cel row runs
+ * (session_a3f_cel_active() != 0), e.g. several times per tick. 0 on success. */
+int session_a3f_cel_active(const SessionA3fBinding *);
+int session_a3f_cel_reader_pass(SessionA3fBinding *, int *ran);
+/* The render callback 0x422a0a. Returns 1 and fills `plan` when the entry flag
+ * [0x5d191d] was set (the flag is cleared), 0 when nothing is due or no cel row runs,
+ * a negative value on failure (see session_a3f_failure). */
+int session_a3f_cel_render(SessionA3fBinding *, Convo3fRenderPlan *plan);
 
 /* Most recent kernel result (diagnostics); NULL before the first visit. */
 const Convo3fStepResult *session_a3f_last_result(const SessionA3fBinding *);
