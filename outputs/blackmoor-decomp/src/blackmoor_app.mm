@@ -3333,8 +3333,8 @@ static int native_ad9_view(void *context, D9View *view)
     view->origin_x = app->scene_destination.left;  /* 0x583186 */
     view->origin_y = app->scene_destination.top;   /* 0x58318a */
     view->bottom = app->scene_destination.bottom;  /* 0x583192 */
-    view->max_x = app->scene_source.right;         /* 0x5831ae */
-    view->max_y = app->scene_source.bottom;        /* 0x5831b2 */
+    view->max_x = app->view_words[10];             /* 0x5831ae, third VIEW rect right */
+    view->max_y = app->view_words[11];             /* 0x5831b2, third VIEW rect bottom */
     return 0;
 }
 

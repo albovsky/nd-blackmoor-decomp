@@ -58,8 +58,8 @@ typedef struct D9View {
     int32_t origin_x; /* 0x583186 */
     int32_t origin_y; /* 0x58318a */
     int32_t bottom;   /* 0x583192 */
-    int32_t max_x;    /* 0x5831ae: right edge of the scene source rectangle */
-    int32_t max_y;    /* 0x5831b2: bottom edge of the scene source rectangle */
+    int32_t max_x;    /* 0x5831ae: right edge of the third VIEW rectangle */
+    int32_t max_y;    /* 0x5831b2: bottom edge of the third VIEW rectangle */
 } D9View;
 
 /* The process globals phase 0 writes. */
