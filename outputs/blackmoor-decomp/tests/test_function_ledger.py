@@ -806,6 +806,7 @@ class SchemaTests(ScratchCase):
     def test_the_fl3_draft_overrides_shape_is_accepted_as_is(self):
         # The committed FL-3 draft (rules accepted:false, no allowlist, spec-shaped semantics_sensitive) must load.
         draft = json.loads((OUT / "function-ledger-overrides.json").read_text())
+        draft["port_acceptances"] = []              # the real acceptances name real functions, not the fixture's
         self.s.path("function-ledger-overrides.json").write_text(json.dumps(draft, indent=1))
         ledger = self.s.derive()
         self.assertEqual(ledger["counts"]["status"]["ported"], 0)
@@ -985,6 +986,53 @@ class PortAcceptanceTests(ScratchCase):
         self.s.ev(0x401a00, lambda f: f["divergences"].append(
             item_record(0x401a00, 0x401a40, text_sha=TEXT_U2, field="deliberate_divergences", index=1)))
         self.fails("blocker")
+
+    REASON = "the unverified branch is a fatal path the oracle never reaches for this function"
+
+    def review_open_blocker(self, rationale=REASON, blocker_id=BLOCKER_U1):
+        """An open receipt blocker on 0x401000 plus an acceptance that reviews ``blocker_id``."""
+        self.s.ev(0x401000, lambda f: f["blockers"].append(item_record(0x401000, 0x401040)))
+        self.acceptance(0x401000, lambda a: a.update(blockers_reviewed=[{"id": blocker_id, "rationale": rationale}]))
+
+    def test_a_reviewed_blocker_clears_and_stays_listed_with_its_review(self):
+        self.review_open_blocker()
+        e = by_va(self.s.derive())[0x401000]
+        self.assertEqual(e["status"], "ported")
+        (blocker,) = e["blockers"]
+        self.assertEqual(blocker["id"], BLOCKER_U1)
+        self.assertEqual(blocker["review"], {"reviewer": "fixture-reviewer", "date": "2026-10-15", "rationale": self.REASON})
+
+    def test_a_blocker_review_needs_a_real_rationale(self):
+        self.review_open_blocker(rationale="fine")
+        self.fails("rationale")
+
+    def test_a_blocker_review_must_name_a_blocker_the_function_has(self):
+        self.review_open_blocker(blocker_id=BLOCKER_U2)
+        self.fails(BLOCKER_U2)
+
+    def test_reviewing_one_blocker_does_not_clear_another(self):
+        self.review_open_blocker()
+        self.s.ev(0x401000, lambda f: f["blockers"].append(
+            item_record(0x401000, 0x401080, text_sha=sha("another statement"), index=1)))
+        self.fails("blocker")
+
+    def test_a_recorded_safety_rejection_needs_no_review(self):
+        self.acceptance(0x401a00, lambda a: a.update(blockers_reviewed=[{"id": BLOCKER_U2, "rationale": self.REASON}]))
+        self.fails("safety rejection")
+
+    def test_a_blocker_review_is_carried_by_ported_entries_only(self):
+        ledger = self.s.derive()
+        pending = next(e for e in ledger["entries"] if e["va"] == "0x401900")
+        pending["blockers"][0]["review"] = {"reviewer": "r", "date": "2026-10-15", "rationale": self.REASON}
+        with self.assertRaises(FL.LedgerError) as ctx:
+            FL.validate(ledger)
+        self.assertIn("reviewed blocker", str(ctx.exception))
+
+    def test_the_receipt_pointer_carries_the_unlocated_unverified_count(self):
+        receipt = pointer(by_va(self.s.derive())[0x401000], "receipt")
+        self.assertIsInstance(receipt["unlocated_unverified"], int)
+        self.s.ev(0x401000, lambda f: pointer(f, "receipt").pop("unlocated_unverified"))
+        self.fails("unlocated_unverified")
 
     def test_derived_part_must_be_accounted(self):
         self.acceptance(0x401340, lambda a: a.update(parts_accounted=["0x401380"]))

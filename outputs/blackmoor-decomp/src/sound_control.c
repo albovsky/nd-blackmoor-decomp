@@ -139,6 +139,9 @@ static int play_internal(SoundControlState *state, uint16_t channel,
     return SOUND_CONTROL_OK;
 }
 
+/* The Play wrapper, original 0x4f6059 (398 bytes): error words 1000/0x3ea/0x3ef,
+ * the loop-flag rule, the 0x287 gate clear and the host Play call. Compared with
+ * the original by tests/sound_control_original_oracle.py (original_play_trace). */
 int sound_control_play(SoundControlState *state, uint16_t channel,
                        SoundControlHost *host, SoundControlResult *result)
 {
@@ -149,6 +152,9 @@ int sound_control_play(SoundControlState *state, uint16_t channel,
     return play_internal(state, channel, host, result);
 }
 
+/* The per-channel update, original 0x4f55d5: gate checks, the three fade stages,
+ * the random repeat delay and the restart through the Play wrapper. Compared with
+ * the original by tests/sound_control_original_oracle.py (original_update_trace). */
 int sound_control_update(SoundControlState *state, uint16_t channel,
                          SoundControlHost *host, SoundControlResult *result)
 {

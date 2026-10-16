@@ -58,7 +58,15 @@ function-ledger-overrides.json (FL-3 draft shape plus the FL-1 sections)
     original_sha256.
       port_acceptances: [{va, class, reviewer, date, native_source: {path,
           symbol}, tests: [{path, test_id}], oracle: null|{path, window},
-          parts_accounted: [va], note (optional)}]  (paths root-relative)
+          parts_accounted: [va], note (optional), blockers_reviewed (optional):
+          [{id, rationale}]}]  (paths root-relative).  A receipt blocker that
+          is not a recorded safety rejection clears only through
+          blockers_reviewed: the id must be one of this function's blockers and
+          the rationale (at least 40 characters) says why the unverified branch
+          does not touch what the acceptance claims.  The ledger entry keeps the
+          blocker, now carrying {reviewer, date, rationale}.  Unlocated
+          unverified items of a receipt (no address) are carried as a count on
+          the receipt pointer; they never block.
       not_needed_entries: [{va, reason, text, reviewer, date}]
       not_needed_rules: [{id, predicate, accepted, reason_code, rationale,
           parameters, review: {reviewer, date, n, defects, sample_sha256},
@@ -90,6 +98,7 @@ PINNED_SHA = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 EXPECTED_FUNCTIONS = 4188
 STALE_MESSAGE = "function ledger stale; rerun scripts/build_function_ledger.py --write"
 SAMPLE_MIN = 59
+BLOCKER_RATIONALE_MIN = 40      # a blocker review is a written reason, not a tick box
 
 STATUSES = ("ported", "not_needed", "pending")
 PORTED_CLASSES = ("native_oracle_verified", "native_tests_only", "host_adapter_tested")
@@ -383,7 +392,7 @@ def test_area(text, test_id, path):
 #   test          {path, test_id|null, sha256}
 #   oracle        {path|null, window: [start, end_exclusive], window_sha256|null,
 #                  use, use_basis, verified, sha256|null}
-#   receipt       {slice, path (work-relative), sha256, review: state}
+#   receipt       {slice, path (work-relative), sha256, review: state, unlocated_unverified}
 #   mention       {path, symbol|null, via}
 # Paths are root-relative, except receipt (and rare receipt-path mention) paths,
 # which are work-relative and private.
@@ -438,7 +447,9 @@ def validate_pointer(p, what):
             fail(f"{what}: only a hash-verified window can be used as entry or callee")
         return {**p, "window": [fmt(start), fmt(end)]}
     if kind == "receipt":
-        exact_keys(p, "kind slice path sha256 review".split(), (), what)
+        exact_keys(p, "kind slice path sha256 review".split(), ["unlocated_unverified"], what)
+        if "unlocated_unverified" in p and (not is_int(p["unlocated_unverified"]) or p["unlocated_unverified"] < 0):
+            fail(f"{what}: invalid unlocated_unverified count")
         if not isinstance(p["slice"], str) or not ITEM_ID.fullmatch(p["slice"]):
             fail(f"{what}: invalid slice")
         rel_path(p["path"], what)
@@ -495,7 +506,9 @@ def classify_pending(entry):
 
 
 def cleared(blocker, divergences):
-    return any(d["id"] == blocker["id"] and d["safety_rejection"] is True for d in divergences)
+    """A blocker is cleared by the very same statement recorded as a deliberate safety rejection, or (ported
+    entries only) by a written review carried on the blocker itself."""
+    return "review" in blocker or any(d["id"] == blocker["id"] and d["safety_rejection"] is True for d in divergences)
 
 
 def check_ported_evidence(entry, what):
@@ -518,7 +531,8 @@ def check_ported_evidence(entry, what):
             fail(f"{what}: no oracle window used as entry or callee covers the whole body")
     for blocker in entry["blockers"]:
         if not cleared(blocker, entry["divergences"]):
-            fail(f"{what}: blocker {blocker['id']} remains and is not a recorded deliberate safety rejection")
+            fail(f"{what}: blocker {blocker['id']} remains; it is neither a recorded deliberate safety rejection "
+                 "nor reviewed in the acceptance (blockers_reviewed)")
 
 
 # ------------------------------------------------------------ ledger shape --
@@ -615,7 +629,16 @@ def validate_entry(e, index):
         fail(f"{what}: blockers and divergences must be lists")
     seen = set()
     for b in e["blockers"]:
-        exact_keys(b, "address id text".split(), (), what)
+        exact_keys(b, "address id text".split(), ["review"], what)
+        if "review" in b:
+            if e["status"] != "ported":
+                fail(f"{what}: only a ported entry can carry a reviewed blocker")
+            exact_keys(b["review"], "reviewer date rationale".split(), (), what)
+            text_value(b["review"]["reviewer"], what, 80)
+            date_value(b["review"]["date"], what)
+            text_value(b["review"]["rationale"], what, 600)
+            if len(b["review"]["rationale"]) < BLOCKER_RATIONALE_MIN:
+                fail(f"{what}: a blocker review needs a rationale of at least {BLOCKER_RATIONALE_MIN} characters")
         addr = parse_va(b["address"], what)
         if b["address"] != fmt(addr) or not va <= addr < va + span:
             fail(f"{what}: blocker address is not inside the function span")
@@ -978,7 +1001,7 @@ def convert_pointer(p, what, ctx):
                 or row["review"]["state"] != p["review"]["state"]):
             fail(f"{what}: receipt pointer {p['path']} disagrees with the receipts table")
         return {"kind": kind, "slice": p["slice"], "path": p["path"], "sha256": p["sha256"],
-                "review": p["review"]["state"]}
+                "review": p["review"]["state"], "unlocated_unverified": p["unlocated_unverified"]}
     exact_keys(p, "kind path sha256 symbol addresses via".split(), (), what)
     sha_value(p["sha256"], what)
     if isinstance(p["path"], str) and p["path"].startswith(PRIVATE_PREFIX):
@@ -1120,7 +1143,8 @@ def load_overrides(inputs, uni, xrefs):
 
     acceptances = {}
     for a in doc["port_acceptances"]:
-        exact_keys(a, "va class reviewer date native_source tests oracle parts_accounted".split(), ["note"], "acceptance")
+        exact_keys(a, "va class reviewer date native_source tests oracle parts_accounted".split(),
+                   ["note", "blockers_reviewed"], "acceptance")
         va = index_va(a["va"], "acceptance")
         what = f"acceptance {fmt(va)}"
         if va in acceptances:
@@ -1131,6 +1155,16 @@ def load_overrides(inputs, uni, xrefs):
         date_value(a["date"], what)
         if "note" in a:
             text_value(a["note"], what)
+        reviewed = {}
+        for r in a.get("blockers_reviewed", []):
+            exact_keys(r, ["id", "rationale"], (), what)
+            if not isinstance(r["id"], str) or not ITEM_ID.fullmatch(r["id"]):
+                fail(f"{what}: invalid blockers_reviewed id")
+            if r["id"] in reviewed:
+                fail(f"{what}: blockers_reviewed names {r['id']} twice")
+            reviewed[r["id"]] = text_value(r["rationale"], what, 600)
+            if len(reviewed[r["id"]]) < BLOCKER_RATIONALE_MIN:
+                fail(f"{what}: a blocker review needs a rationale of at least {BLOCKER_RATIONALE_MIN} characters")
         exact_keys(a["native_source"], ["path", "symbol"], (), what)
         rel_path(a["native_source"]["path"], what)
         if not isinstance(a["native_source"]["symbol"], str) or not IDENT.fullmatch(a["native_source"]["symbol"]):
@@ -1158,7 +1192,7 @@ def load_overrides(inputs, uni, xrefs):
             fail(f"{what}: only native_oracle_verified names an oracle")
         acceptances[va] = {"va": va, "class": a["class"], "reviewer": a["reviewer"], "date": a["date"],
                            "symbol": (a["native_source"]["path"], a["native_source"]["symbol"]),
-                           "tests": tests, "oracle": oracle,
+                           "tests": tests, "oracle": oracle, "reviewed": reviewed,
                            "parts": set(va_list(a["parts_accounted"], what))}
     entries = {}
     for e in doc["not_needed_entries"]:
@@ -1405,6 +1439,9 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
             a = ported[va]
             e.update(status="ported", review={"reviewer": a["reviewer"], "date": a["date"], "sample": None})
             e["class"] = a["class"]
+            e["blockers"] = [
+                {**b, "review": {"reviewer": a["reviewer"], "date": a["date"], "rationale": a["reviewed"][b["id"]]}}
+                if b["id"] in a["reviewed"] else b for b in f["blockers"]]
         elif va in entries_nn:
             n = entries_nn[va]
             e.update(status="not_needed", reason={"code": n["reason"], "text": n["text"], "rule": None},
@@ -1484,10 +1521,19 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
         if not covers(good[0], va, body_size):
             fail(f"{what}: oracle window [{start}, {end}) does not cover the body "
                  f"[{fmt(va)}, {fmt(va + body_size)})")
-    # (d) blockers
+    # (d) blockers: a deliberate safety rejection, or a written review in this acceptance (blockers_reviewed);
+    # a review must name a blocker the function really has and may not duplicate a safety rejection
+    open_ids = {b["id"] for b in f["blockers"]}
+    for rid in sorted(a["reviewed"]):
+        if rid not in open_ids:
+            fail(f"{what}: blockers_reviewed names {rid}, which is not a blocker of this function")
     for b in f["blockers"]:
-        if not cleared(b, f["divergences"]):
-            fail(f"{what}: blocker {b['id']} at {b['address']} remains and is not a deliberate safety rejection")
+        safety = any(d["id"] == b["id"] and d["safety_rejection"] is True for d in f["divergences"])
+        if safety and b["id"] in a["reviewed"]:
+            fail(f"{what}: blocker {b['id']} is already a recorded safety rejection; it needs no review")
+        if not safety and b["id"] not in a["reviewed"]:
+            fail(f"{what}: blocker {b['id']} at {b['address']} remains; it is neither a deliberate safety "
+                 "rejection nor reviewed in blockers_reviewed")
     # (e) derived parts (thunks and EH stubs included) are all accounted for
     needed = set(f["parts"])
     if a["parts"] != needed:
