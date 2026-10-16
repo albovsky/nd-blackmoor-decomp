@@ -22,6 +22,15 @@ function in a batch manifest the auditor
   frame offsets and basic blocks without a real comment;
 * records source, object, assembler and original-extent hashes (never original
   byte values) in the report.
+
+Two endings other than a terminal ``ret``/``jmp`` are accepted under the owner ruling of 2026-10-16 (a fragment counts
+as matched when it reassembles byte for byte, either as a function ending in a never-returning call or bound together
+with the range it falls through into): a code part whose last instruction is a ``call`` with no data after it
+(``# ending: call-end``) and a code part that runs into the next range (``# ending: fall-through into <va>``).  A callee
+that never returns cannot be proven from the bytes (six of the thirteen call-ends call a helper that does return), so
+both are counted as the second option of the ruling, bound together with the range that follows them.  The auditor
+derives the ending from the original and requires the header and the manifest to declare exactly that; the composer then
+requires the following range to be bound as code as well.
 """
 
 from __future__ import annotations
@@ -133,7 +142,11 @@ def load_module(name: str, path: Path) -> Any:
     return module
 
 
-gen = load_module("gen_hinted_asm_for_audit", SCRIPTS / "gen_hinted_asm.py")
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+import gen_fragments  # noqa: E402
+
+gen = gen_fragments.extend(load_module("gen_hinted_asm_for_audit", SCRIPTS / "gen_hinted_asm.py"))
 verifier = load_module("verify_matches_for_audit", SCRIPTS / "verify_matches.py")
 
 
@@ -430,7 +443,15 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
     facts["labels"] = sorted(labels)
 
     # code part must end at a terminal instruction or tail into data
-    if last_code_mnemonic and last_code_mnemonic not in _TERMINAL:
+    ending = header_expect.get("ending", "")
+    ending_kind = ending.split(" ")[0]
+    if "ending" in header and not ending:
+        reasons.append("header declares an ending that the original code part does not have")
+    if ending_kind == "call-end" and last_code_mnemonic != "call":
+        reasons.append(f"ending call-end needs a call as the last instruction, not {last_code_mnemonic!r}")
+    elif ending_kind == "fall-through" and last_code_mnemonic in _TERMINAL:
+        reasons.append(f"ending fall-through but the last instruction is the terminal {last_code_mnemonic!r}")
+    elif last_code_mnemonic and last_code_mnemonic not in _TERMINAL and not ending_kind:
         data_follows = any(
             _LABEL.match(l.code) and _LABEL.match(l.code).group(1).startswith(("SWTAB_", "IDXTAB_", "PAD_"))
             for l in lines
@@ -715,10 +736,9 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
         return result
     if layout.exceptions:
         reasons.append(f"generator cannot split this span: {layout.exceptions[:3]}")
-    if getattr(layout, "falls_through", False):
-        reasons.append("code part falls through into the next function; not a terminal ret/jmp")
-    if layout.exceptions or getattr(layout, "falls_through", False):
+    if layout.exceptions:
         return result
+    ending = getattr(layout, "ending", "")
     expected_code = {"rva": va - config.image_base, "size": layout.code_size}
     expected_items = [
         {"kind": item.kind, "rva": item.va - config.image_base, "size": item.size}
@@ -754,6 +774,11 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
         ),
         "evidence": entry.get("evidence_id", ""),
     }
+    if ending:
+        header_expect["ending"] = gen_fragments.ending_text(layout)
+        result["ending"] = ending
+    if (entry.get("ending") or "") != ending:
+        reasons.append(f"manifest ending {entry.get('ending')!r} differs from the original's {ending!r}")
     if entry.get("evidence_id") != image.evidence.get(va):
         reasons.append("evidence_id in the manifest differs from function-index.json")
     index_owners = {f"IDXTAB_{i.va:08x}": i.owner_jmp for i in layout.data if i.kind == "index_table"}
@@ -804,7 +829,7 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
             reasons.append("object bytes over the whole span differ from the original")
         if any(text_bytes[: va - base]):
             reasons.append("object has non-zero bytes before the function")
-        decode_problem = decode_code_part(object_path, va - base, layout.code_size)
+        decode_problem = decode_code_part(object_path, va - base, layout.code_size, ending)
         if decode_problem:
             reasons.append(decode_problem)
         if relocations:
@@ -869,7 +894,7 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     return result
 
 
-def decode_code_part(object_path: Path, offset: int, size: int) -> Optional[str]:
+def decode_code_part(object_path: Path, offset: int, size: int, ending: str = "") -> Optional[str]:
     """Independent plausibility check: the assembled code part decodes linearly to its last byte."""
 
     try:
@@ -896,7 +921,7 @@ def decode_code_part(object_path: Path, offset: int, size: int) -> Optional[str]
         last = mnem
     if cursor != offset + size:
         return "code part does not decode to its last byte"
-    if last not in _TERMINAL and last != "call":
+    if last not in _TERMINAL and last != "call" and ending != "fall-through":
         return f"code part decodes to a last instruction {last!r}, not a terminal ret/jmp"
     return None
 
