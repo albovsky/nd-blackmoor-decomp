@@ -792,11 +792,20 @@ class SamplerTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Draft overrides
+# Live overrides
 # ---------------------------------------------------------------------------
 
 
-class DraftOverridesTests(unittest.TestCase):
+def _load_function_ledger():
+    spec = importlib.util.spec_from_file_location("function_ledger", PROJECT / "decomp-progress/function_ledger.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["function_ledger"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class LiveOverridesTests(unittest.TestCase):
     path = PROJECT / "function-ledger-overrides.json"
 
     def test_committed_overrides_record_reviews_for_every_acceptance(self) -> None:
@@ -815,6 +824,21 @@ class DraftOverridesTests(unittest.TestCase):
         for entry_ in doc["not_needed_entries"] + doc["port_acceptances"]:
             self.assertTrue(entry_["reviewer"])
             self.assertTrue(entry_["date"])
+
+        self.assertTrue(doc["port_acceptances"])
+        xrefs_doc = json.loads((PROJECT / "function-xrefs.json").read_text(encoding="utf-8"))
+        xref_starts = {int(e["va"], 16) for e in xrefs_doc["entries"]}
+        for acceptance in doc["port_acceptances"]:
+            self.assertIn(int(acceptance["va"], 16), xref_starts, acceptance["va"])
+        self.assertEqual(len({a["va"] for a in doc["port_acceptances"]}), len(doc["port_acceptances"]))
+
+        fl = _load_function_ledger()
+        inputs = fl.Inputs(PROJECT)
+        universe = fl.load_universe(PROJECT, inputs, None)
+        xrefs = fl.load_xrefs(inputs, universe, fl.load_census(PROJECT, inputs, universe))
+        loaded = fl.load_overrides(inputs, universe, xrefs)          # raises LedgerError on any invalid item
+        self.assertEqual({hex(va) for va in loaded["acceptances"]},
+                         {hex(int(a["va"], 16)) for a in doc["port_acceptances"]})
 
     def test_semantics_sensitive_spec_covers_the_plan_categories(self) -> None:
         doc = json.loads(self.path.read_text(encoding="utf-8"))

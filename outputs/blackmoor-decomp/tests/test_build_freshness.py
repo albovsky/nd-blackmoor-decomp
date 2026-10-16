@@ -14,6 +14,7 @@ Missing artifacts are not this test's concern; the owning tests skip.
 
 from __future__ import annotations
 
+import fnmatch
 import os
 import stat
 import tempfile
@@ -74,6 +75,41 @@ KNOWN_UNTRACKED_OUTPUTS = {
         "debug-symbol bundle of live_audio_movie_test (clang -g link)",
     "libactionfamily28_x87_division_fixture.dylib.dSYM/*":
         "debug-symbol bundle of the directly compiled division fixture",
+    "action_family_0c_runtime_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_0c_runtime_sanitizers.sh:12 "
+        "(a sanitizer test script, not a build_*.sh), invoked from tests/test_action_family_0c_runtime_oracle.py:58",
+    "action_family_0c_runtime_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_0c_runtime_sanitize",
+    "session_bindings_a0c_stub_scene":
+        "ASan/UBSan stub-scene binary compiled and run by scripts/test_action_family_0c_runtime_sanitizers.sh:20, "
+        "invoked from tests/test_action_family_0c_runtime_oracle.py:58",
+    "session_bindings_a0c_stub_scene.dSYM/*":
+        "debug-symbol bundle of session_bindings_a0c_stub_scene",
+    "session_bindings_a0c_stub_scene_plain":
+        "stub-scene check binary compiled directly by tests/test_action_family_0c_runtime.py:794 "
+        "(output path at :789; StubSceneTests), no build script",
+    "session_bindings_a0c_stub_scene_plain.dSYM/*":
+        "debug-symbol bundle of session_bindings_a0c_stub_scene_plain",
+    "action_family_37_runtime_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_37_runtime_sanitizers.sh:14 "
+        "(a sanitizer test script, not a build_*.sh), invoked from tests/test_action_family_37_runtime.py:415-416",
+    "action_family_37_runtime_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_37_runtime_sanitize",
+    "action_family_78_runtime_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_78_runtime_sanitizers.sh:12 "
+        "(a sanitizer test script, not a build_*.sh), invoked from tests/test_action_family_78_runtime_oracle.py:66",
+    "action_family_78_runtime_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_78_runtime_sanitize",
+    "action_family_78_binding_stub_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_78_runtime_sanitizers.sh:22 "
+        "(stub-scene variant), invoked from tests/test_action_family_78_runtime_oracle.py:66",
+    "action_family_78_binding_stub_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_78_binding_stub_sanitize",
+    "action_family_a1_runtime_sanitize":
+        "ASan/UBSan binary compiled and run by scripts/test_action_family_a1_runtime_sanitizers.sh:14 "
+        "(a sanitizer test script, not a build_*.sh), invoked from tests/test_action_family_a1_runtime_oracle.py:60",
+    "action_family_a1_runtime_sanitize.dSYM/*":
+        "debug-symbol bundle of action_family_a1_runtime_sanitize",
 }
 
 
@@ -235,6 +271,35 @@ class BuildGraphDerivationTests(unittest.TestCase):
         self.assertEqual({a.path.name for a in extra.artifacts}, {"liba.dylib", "fixture"})
         self.assertEqual({a.path.name: a.on_demand for a in extra.artifacts},
                          {"liba.dylib": False, "fixture": True})
+
+    def test_extra_mode_that_links_a_glob_of_objects_in_a_subdirectory_is_derived(self) -> None:
+        # The shape of build_live_audio_restart.sh sanitize: objects in build/<dir>/, linked as "$dir"/*.o.
+        write_source(self.project, "src/a.c", '#include "a.h"\n')
+        write_source(self.project, "src/a.h")
+        write_source(self.project, "src/b.c")
+        write_script(self.project, "build_glob.sh", textwrap.dedent("""\
+            #!/bin/sh
+            set -eu
+            project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+            mkdir -p "$project_dir/build"
+            case "${1:-lib}" in
+                lib) xcrun clang -dynamiclib "$project_dir/src/a.c" -o "$project_dir/build/liba.dylib" ;;
+                sanitize)
+                    dir="$project_dir/build/sub"
+                    mkdir -p "$dir"
+                    xcrun clang -c "$project_dir/src/a.c" -I"$project_dir/src" -o "$dir/a.o"
+                    xcrun clang -c "$project_dir/src/b.c" -o "$dir/b.o"
+                    xcrun clang "$dir"/*.o -o "$dir/tool" ;;
+                *) echo usage >&2; exit 2 ;;
+            esac
+            """))
+        result = self.derive(variants={"build_glob.sh": [["sanitize"]]}).scripts["build_glob.sh"]
+        self.assertTrue(result.ok, result.error)
+        by_name = {a.path.relative_to(self.project / "build").as_posix(): a for a in result.artifacts}
+        self.assertEqual(sorted(by_name), ["liba.dylib", "sub/a.o", "sub/b.o", "sub/tool"])
+        self.assertTrue(all(by_name[name].on_demand for name in ("sub/a.o", "sub/b.o", "sub/tool")))
+        self.assertEqual(by_name["sub/tool"].inputs,
+                         {self.project / "src/a.c", self.project / "src/a.h", self.project / "src/b.c"})
 
     def test_nested_script_artifacts_belong_to_the_inner_script(self) -> None:
         write_source(self.project, "src/inner.c")
@@ -510,6 +575,22 @@ class ProjectBuildFreshnessTests(unittest.TestCase):
                 self.fail(
                     f"build/{relative} is neither derived from a scripts/build_*.sh nor listed in "
                     "KNOWN_UNTRACKED_OUTPUTS (with a reason); find out what writes it")
+
+    def test_live_audio_restart_sanitize_outputs_are_derived(self) -> None:
+        # QA-3: build/sanitize-restart/* is written by build_live_audio_restart.sh sanitize, which
+        # test_live_audio_restart.py runs; it is derived (on demand) rather than listed as untracked.
+        by_path = {a.path: a for r in self.graph.scripts.values() for a in r.artifacts}
+        directory = PROJECT / "build/sanitize-restart"
+        for name in ("adapter.o", "his_audio.o", "live_audio.o", "macos_audio.o", "sound_control.o",
+                     "test.o", "live_audio_restart_test"):
+            with self.subTest(output=name):
+                artifact = by_path[directory / name]
+                self.assertEqual(artifact.script.name, "build_live_audio_restart.sh")
+                self.assertTrue(artifact.on_demand)
+        self.assertIn(PROJECT / "src/live_audio.c", by_path[directory / "live_audio_restart_test"].inputs)
+        self.assertIn(PROJECT / "tests/live_audio_restart_test.c",
+                      by_path[directory / "live_audio_restart_test"].inputs)
+        self.assertFalse(any(fnmatch.fnmatchcase("sanitize-restart/x.o", p) for p in KNOWN_UNTRACKED_OUTPUTS))
 
     def test_known_untracked_entries_have_reasons(self) -> None:
         for pattern, reason in KNOWN_UNTRACKED_OUTPUTS.items():
