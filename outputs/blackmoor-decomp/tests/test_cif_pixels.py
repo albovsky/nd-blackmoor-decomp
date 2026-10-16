@@ -105,6 +105,14 @@ class PixelConversionTests(unittest.TestCase):
         # Bit 15 is outside RGB555 and is discarded by the original extraction.
         self.assertEqual(actual[0x8000 * 2 : 0x8000 * 2 + 2], b"\0\0")
 
+    def test_cif_pixels_convert_555_converts_a_buffer_in_place_like_the_scalar_reference(self) -> None:
+        # 0x4c7314 converts the words in place; the pixel oracle covers all 65536 words and the odd tail
+        raw = b"".join(value.to_bytes(2, "little") for value in (0x0000, 0x7FFF, 0x8000, 0x1234, 0xFFFF))
+        fmt = make_format(shifts=(0, 5, 10), channel_bits=(5, 5, 5))
+        storage = (ctypes.c_uint8 * len(raw)).from_buffer_copy(raw)
+        self.library.cif_pixels_convert_555(storage, len(raw), ctypes.byref(fmt))
+        self.assertEqual(bytes(storage), reference_transform(raw, fmt))
+
     def test_rgb565_format_matches_scalar_reference_for_all_words(self) -> None:
         raw = b"".join(value.to_bytes(2, "little") for value in range(1 << 16))
         fmt = make_format(shifts=(0, 5, 11), channel_bits=(5, 6, 5))

@@ -143,9 +143,10 @@ KIND_ORDER = {"native_source": 0, "test": 1, "oracle": 2, "receipt": 3, "mention
 READINGS = ("end_exclusive", "end_inclusive", "size")
 USES = {"entry", "callee", "mapped"}
 USE_BASES = {"window_start", "observed_hook", "replaced_by_hook", "hook_unclassified",
-             "static_scope", "containment_only", "unhashed"}
+             "static_scope", "containment_only", "unhashed", "executed", "executed_partial"}
 BASIS_PRIORITY = ["observed_hook", "window_start", "replaced_by_hook", "hook_unclassified", "static_scope",
                   "containment_only", "unhashed"]
+EXECUTION_FILE = "function-execution.json"     # FL-8: scripts/record_function_execution.py
 MENTION_VIAS = {"citation", "window_start"}
 RECEIPT_VIAS = {"window", "blocker", "divergence", "hook"}
 UNRESOLVED_KINDS = {"citation", "window_start", "blocker", "divergence", "hook"}
@@ -1130,9 +1131,12 @@ def _original_path(cfg: Config) -> Path:
         return Path(cfg.exe)
     try:
         info = json.loads(cfg.game_source.read_text(encoding="utf-8"))
-        return Path(info["game_dir"]) / "GAME.EXE"
+        recorded = Path(info["game_dir"]) / "GAME.EXE"
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise EvidenceError(f"cannot locate the original through {cfg.game_source.name}: {exc}") from exc
+    # A cloud checkout has the owner's GAME.EXE only as a private copy under work/original (same pinned hash).
+    private_copy = (cfg.work_dir or cfg.repo / "work") / "original" / "GAME.EXE"
+    return recorded if recorded.is_file() or not private_copy.is_file() else private_copy
 
 
 def _receipt_files(cfg: Config) -> list:
@@ -1458,6 +1462,54 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
                     "tail_gap": max(0, fm.span_end(f) - e), "declared_in": declared,
                 }
                 put(f, ptr)
+
+    # ---- executed ranges (FL-8): which oracle script really ran how much of each function
+    execution_stats = {"runs": 0, "functions": 0, "full": 0, "partial": 0}
+    execution_file = cfg.outputs / EXECUTION_FILE
+    if execution_file.is_file():
+        try:
+            execution = json.loads(execution_file.read_text(encoding="utf-8"))
+            if execution["schema"] != "blackmoor-function-execution/1" or execution["original_sha256"] != exe_sha:
+                raise ValueError("schema or original hash differs")
+            xrefs_file = cfg.outputs / "function-xrefs.json"
+            if xrefs_file.is_file() and execution["inputs"]["function_xrefs_sha256"] != sha256_bytes(xrefs_file.read_bytes()):
+                raise ValueError("it was recorded against another function-xrefs.json; rerun record_function_execution.py collect --write")
+            run_paths = []
+            for run in execution["runs"]:
+                rel = "outputs/blackmoor-decomp/" + run["script"].split("outputs/blackmoor-decomp/", 1)[-1]
+                if rel not in file_sha or file_sha[rel] != run["script_sha256"]:
+                    problems.append(f"{EXECUTION_FILE}: the recorded run of {run['script']} does not match the committed "
+                                    "script; rerun scripts/record_function_execution.py")
+                run_paths.append(rel)
+            execution_stats["runs"] = len(run_paths)
+            for va_text, record in execution["functions"].items():
+                start = int(va_text, 16)
+                if fm.classify(start)[0] != "exact":
+                    problems.append(f"{EXECUTION_FILE}: {va_text} is not a function start")
+                    continue
+                code = record[0]
+                end = start + fm.span(start)
+                data = pe.read_va(start, end - start)
+                if data is None:
+                    problems.append(f"{EXECUTION_FILE}: {va_text} is not file-backed")
+                    continue
+                window_sha = sha256_bytes(data)
+                execution_stats["functions"] += 1
+                for run_index, entry_hits, executed_bytes, _hits in record[1:]:
+                    path = run_paths[run_index]
+                    full = bool(entry_hits) and code is not None and executed_bytes >= code
+                    execution_stats["full" if full else "partial"] += 1
+                    put(start, {
+                        "kind": "oracle", "path": path, "sha256": file_sha[path],
+                        "window": [hx(start), hx(end)], "window_sha256": window_sha, "reading": "end_exclusive",
+                        "verified": "recorded_hash",
+                        "use": "entry" if full else "mapped",
+                        "use_basis": "executed" if full else "executed_partial",
+                        "tail_gap": 0, "declared_in": []})
+        except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
+            problems.append(f"{EXECUTION_FILE}: unreadable or inconsistent: {exc}")
+        if problems:
+            raise EvidenceError(sorted(set(problems)))
 
     # ---- receipt blockers, divergences, hooks
     for wrel, info in sorted(rec.items()):

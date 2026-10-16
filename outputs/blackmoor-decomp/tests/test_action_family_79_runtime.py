@@ -119,6 +119,8 @@ def bind(path=None):
     lib.action79_visit.argtypes = [c.c_uint16, c.POINTER(Model), c.POINTER(Host),
                                    c.POINTER(Result), c.POINTER(c.c_char_p)]
     lib.action79_visit.restype = c.c_int
+    lib.action79_remove_item.argtypes = lib.action79_visit.argtypes
+    lib.action79_remove_item.restype = c.c_int
     return lib
 
 
@@ -140,6 +142,19 @@ class RuntimeTests(unittest.TestCase):
     def setUpClass(cls):
         build_library()
         cls.lib = bind()
+
+    def test_remove_item_step_alone_compacts_and_rebuilds_without_completing(self):
+        # RT-19: 0x4ea06c on its own leaves the held item and the completion untouched
+        w = World([4, 6, 8], presence=[4, 6, 8])
+        result, failure = Result(), c.c_char_p()
+        status = self.lib.action79_remove_item(6, c.byref(w.model), c.byref(w.host), c.byref(result),
+                                               c.byref(failure))
+        self.assertEqual(status, OK)
+        self.assertEqual((result.found, result.rebuild_called, result.held_cleared, result.completed,
+                          result.found_index), (1, 1, 0, 0, 1))
+        held, count, words, presence = w.snapshot()
+        self.assertEqual((count, list(words[:2]), presence[6], presence[4], presence[8]), (2, [4, 8], 0, 1, 1))
+        self.assertTrue(w.guards_intact())
 
     def test_absent_item_has_no_list_presence_or_rebuild_effect(self):
         w = World([3, 7, 9])
