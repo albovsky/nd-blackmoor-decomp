@@ -199,6 +199,7 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual(s.player.ready, 1)
 
     def test_partner_sound_gate_and_skip(self) -> None:
+        """partner_step (0x4dcdd3): the finish waits for the last frame and for sound_busy to drop."""
         s = self.session(mode=0)
         cfg = config(PARTNER, mode=0, sound=1, sound_id=5)
         self.assertEqual(s.start(cfg), OK)

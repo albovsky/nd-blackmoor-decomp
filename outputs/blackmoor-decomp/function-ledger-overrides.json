@@ -1183,6 +1183,63 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Pure stores: 0x106 bytes zeroed, ten -1 words at +0xde step 4, NO SOUND at +0x28; the test compares the whole record. The original's NULL no-op is not mirrored (callers never pass NULL). No oracle."
+  },
+  {
+   "va": "0x41fd08",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "replace_response"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_kinds_and_duplicates"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from build_list case 1 (no behaviour change): remove the same-text entry (compact), then append with the 30-entry limit. Text compares via convo3f_text_equal (0x50d550); the overflow debug line is not modelled. No executed oracle."
+  },
+  {
+   "va": "0x42028e",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "remove_response"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_kinds_and_duplicates"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from build_list case 2 (no behaviour change): remove the same-text entry by compaction, count - 1 clamped at 0. Text compares via convo3f_text_equal (0x50d550). No executed oracle."
+  },
+  {
+   "va": "0x4dcdd3",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_player.c",
+    "symbol": "partner_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_partner_sound_gate_and_skip"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Substates 0 and 4 match branch for branch. Seams: debug lines omitted; finish = +0x1c 3 plus the 0x4dad60 reset (caller does it); 0x4f6334 is gate.sound_busy; 0x4fb2e3 is the sound event. Oracle window is not executed whole."
   }
  ],
  "not_needed_entries": [

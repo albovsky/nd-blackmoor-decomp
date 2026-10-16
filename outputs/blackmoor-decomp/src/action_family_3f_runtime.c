@@ -262,6 +262,27 @@ static void compact_from(Convo3fManager *m, int found)
     }
 }
 
+/* 0x41fd08 (response kind 1): drop the entry with the same text, then append the
+ * entry (the append keeps the 30-entry limit).  The original builds its text
+ * compares in temporaries (0x51ea75); its debug line on overflow is not modelled. */
+static void replace_response(Convo3fManager *m, const uint8_t *entry)
+{
+    const int found = find_response(m, entry);
+    if (found >= 0) {
+        compact_from(m, found);
+    }
+    add_response(m, entry);
+}
+
+/* 0x42028e (response kind 2): drop the entry with the same text, if any. */
+static void remove_response(Convo3fManager *m, const uint8_t *entry)
+{
+    const int found = find_response(m, entry);
+    if (found >= 0) {
+        compact_from(m, found);
+    }
+}
+
 static int build_list(Convo3fManager *m, const Convo3fObject *o, const Convo3fWorld *w,
                       const char **why)
 {
@@ -297,21 +318,12 @@ static int build_list(Convo3fManager *m, const Convo3fObject *o, const Convo3fWo
                 add_response(m, entry);
             }
             break;
-        case 1u: {
-            const int found = find_response(m, entry);
-            if (found >= 0) {
-                compact_from(m, found);
-            }
-            add_response(m, entry);
+        case 1u:
+            replace_response(m, entry);
             break;
-        }
-        case 2u: {
-            const int found = find_response(m, entry);
-            if (found >= 0) {
-                compact_from(m, found);
-            }
+        case 2u:
+            remove_response(m, entry);
             break;
-        }
         default:
             break;
         }

@@ -628,6 +628,9 @@ static AvfPlayerStatus partner_select(AvfPlayer *p)
     return AVF_PLAYER_OK;
 }
 
+/* 0x4dcdd3 ProcessSecondaryMovieSequence: substate 0 starts the first frame, substate 4 steps on
+ * the deadline or finishes. The debug log lines are not modelled; the finish stands for
+ * +0x1c = 3 plus the 0x4dad60 input reset, which the caller performs. */
 static AvfPlayerStatus partner_step(AvfPlayer *p, const AvfPlayerGate *g)
 {
     if (p->substate == 0) {

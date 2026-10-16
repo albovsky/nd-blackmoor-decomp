@@ -660,6 +660,7 @@ static int resp_is(const Fx *f, int i, const char *text)
 
 static void t_list_kinds_and_duplicates(void)
 {
+    /* replace_response (0x41fd08, kind 1) and remove_response (0x42028e, kind 2) of src/action_family_3f_runtime.c. */
     Spec sp = tierb_spec(); Fx f;
     sp.np = 6;
     sp.p[3] = sp.p[0]; sp.p[3].text = "ASK ABOUT THE KEY";   /* kind 0, duplicate (case-insensitive): not added */
