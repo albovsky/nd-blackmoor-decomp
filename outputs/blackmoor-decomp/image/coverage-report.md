@@ -11,6 +11,7 @@ Referenced ranges are copied from the local original at build time and are NOT c
 - Missing: 0 bytes
 - Code bytes: 1,201,488; reconstructed 1,201,488 (100.00%); still referenced 0
 - Reconstructed functions and derived code entries bound (separate classes below): 4,786
+- Caveat: 20 of those entries end in a call or fall through into the next range, so they count only bound together with the range that follows (owner ruling of 2026-10-16); that no call-end callee is proven never to return is not claimed.
 
 ## By class
 

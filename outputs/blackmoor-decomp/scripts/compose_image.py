@@ -1218,6 +1218,13 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Missing: {p['missing_bytes']:,} bytes",
         f"- Code bytes: {p['code_bytes']:,}; reconstructed {p['code_bytes_reconstructed']:,} ({p['code_bytes_reconstructed_fraction'] * 100:.2f}%); still referenced {p['code_bytes_referenced']:,}",
         f"- Reconstructed functions and derived code entries bound (separate classes below): {p['reconstructed_functions']:,}",
+    ]
+    dependent = sum(r.get("call_end_fragments", 0) + r.get("fall_through_fragments", 0) for r in report["reconstructed"])
+    if dependent:
+        lines.append(
+            f"- Caveat: {dependent} of those entries end in a call or fall through into the next range, so they count only bound together with the range that follows (owner ruling of 2026-10-16); that no call-end callee is proven never to return is not claimed."
+        )
+    lines += [
         "",
         "## By class",
         "",

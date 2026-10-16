@@ -140,7 +140,7 @@ def extend(gen: Any) -> Any:
 
     def register_table(image, start, *rest):
         if in_cut_span(image, start):
-            return  # an indirect jump through a table outside this entry: no switch to size here
+            return  # an entry of a cut span: its table jump stays a plain indirect jump, there is no switch to size here
         return original["register_table"](image, start, *rest)
 
     def header_lines(image, layout, rendered):
