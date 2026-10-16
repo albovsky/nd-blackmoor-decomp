@@ -26,6 +26,9 @@ CORPUS_C = PROJECT / 'tests/action_family_6e_runtime_corpus.c'
 KERNEL_SOURCES = ['scene_stack.c', 'session_bindings_a6e.c']
 CORPUS_SOURCES = ['scene_stack.c', 'session_bindings_a6e.c', 'action_core.c', 'scene_resource.c', 'hiff.c']
 RESOURCES = ROOT / 'work/analysis/hiff-resources'
+EXECUTOR_C = PROJECT / 'tests/action_family_6e_runtime_executor.c'
+EXECUTOR_SOURCES = ['scene_stack.c', 'session_bindings_a6e.c', 'action_core.c', 'scene_resource.c', 'hiff.c', 'scene_executor.c',
+                    'scene_conditions.c', 'scene_dependencies.c', 'action_family_64.c']
 EXPECTED_UNIT_TESTS = 8
 
 
@@ -123,6 +126,53 @@ class UnitTests(unittest.TestCase):
                 self.assertEqual(built.returncode, 0, built.stderr)
                 code, _ = run_unit(binary)
                 self.assertNotEqual(code, 0, 'mutant survived: ' + name)
+
+
+class ExecutorTests(unittest.TestCase):
+    """The production executor drives synthetic 0x6e rows (gate, DIRECT_COMPLETED bookkeeping, registration of the handler)."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(PROJECT / 'tests'))
+        import test_scene_executor as base
+        cls.tmp = tempfile.TemporaryDirectory()
+        gated = base.action(0x6e, 1, b'\0', (base.condition(2, 3, 1),))
+        plain = base.action(0x6e, 2, b'\0')
+        cls.scene = Path(cls.tmp.name) / 'scene6e.bin'
+        cls.scene.write_bytes(base.scene_bytes([gated, plain]))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def run_executor(self, src_dir=SRC, name='exec6e'):
+        binary = Path(self.tmp.name) / name
+        built = compile_c(binary, EXECUTOR_C, EXECUTOR_SOURCES, src_dir=src_dir)
+        self.assertEqual(built.returncode, 0, built.stderr[-600:])
+        return subprocess.run([str(binary), str(self.scene)], capture_output=True, text=True)
+
+    def test_executor_gates_and_completes_the_rows(self):
+        done = self.run_executor()
+        self.assertEqual((done.returncode, done.stdout.strip()), (0, 'PASS'), done.stdout)
+
+    def test_executor_mutants_are_detected(self):
+        mutations = {
+            'direct completion leaves the row open': ('scene_executor.c', 'executor->states[index].completed = 1u;\n        executor->states[index].phase = handler_result.phase;\n        break;\n    case SCENE_ACTION_HANDLER_RESET_DEPENDENCIES:',
+                                                       'executor->states[index].completed = 0u;\n        executor->states[index].phase = handler_result.phase;\n        break;\n    case SCENE_ACTION_HANDLER_RESET_DEPENDENCIES:'),
+        }
+        for name, (filename, old, new) in mutations.items():
+            with self.subTest(name):
+                original = (SRC / filename).read_text()
+                self.assertEqual(original.count(old), 1, 'mutation anchor drifted')
+                work = Path(self.tmp.name) / 'mut_exec'
+                shutil.rmtree(work, ignore_errors=True)
+                work.mkdir()
+                for item in SRC.iterdir():
+                    if item.suffix in ('.c', '.h'):
+                        shutil.copy(item, work / item.name)
+                (work / filename).write_text(original.replace(old, new, 1))
+                done = self.run_executor(work, 'exec6e_mut')
+                self.assertNotEqual(done.returncode, 0, 'mutant survived: ' + name)
 
 
 class BuildAndCorpus(unittest.TestCase):

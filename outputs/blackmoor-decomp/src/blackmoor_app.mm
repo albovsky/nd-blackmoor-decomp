@@ -249,7 +249,8 @@ struct NativeApp {
     SessionA4FBinding *a4f = nullptr;
     /* RT-28: raw 0x6e saves the running scene (arm 0x42916f -> 0x42e560, gate mode 0). Not compiled here.
      * The record at 0x5c3a05 is shared with the future 0x6f pop; `loaded_words` are the transition words the last
-     * successful scene load copied into 0x5bb50b/0x5bb593/0x5bb5a7..0x5bb5af (0x439f20..0x439f64). */
+     * successful scene load copied into 0x5bb593/0x5bb5a7..0x5bb5af (0x439f20..0x439f64, skipped by the restore flag
+     * 0x5e32b5, which the app has no path for); 0x5bb50b is the live selector. */
     SessionA6EBinding *a6e = nullptr;
     SceneStackSlot scene_stack_slot{};
     SceneTransitionRequest loaded_words{};
@@ -3423,7 +3424,10 @@ static int native_a6e_load_current(void *context, SceneStackCurrent *current)
     const SceneTransitionRequest words = app->loaded_words_valid ? app->loaded_words : SceneTransitionRequest{};
     current->scene_5bb57b = app->current_scene_id;
     current->scene_5bb57f = app->current_scene_id;
-    current->word_5bb50b = words.opaque_words[0];
+    /* 0x5bb50b is the live view selector (scene entry copies the request's frame word, then the navigation block
+     * 0x43c2b7..0x43c87f changes it), so it comes from the mirror of nav.selector, not from the load-time request. */
+    current->word_5bb50b = app->selector_entry_valid ? static_cast<int16_t>(app->selector_entry_frame)
+                                                     : words.opaque_words[0];
     current->word_5bb593 = words.opaque_words[1];
     current->dword_5bb5a7 = words.opaque_dwords[0];
     current->dword_5bb5ab = words.opaque_dwords[1];
@@ -5968,7 +5972,7 @@ static bool perform_session_transition(NativeApp *app,
                failure.action_type, failure.detail_status);
         return false;
     }
-    app->loaded_words = transition;       /* 0x439f20..0x439f64 copies the request words at load */
+    app->loaded_words = transition;       /* after replace: 0x439f20..0x439f64 copies the request words at load */
     app->loaded_words_valid = true;
     if (app->retired_scene != nullptr) {
         scene_resource_close(app->retired_scene);

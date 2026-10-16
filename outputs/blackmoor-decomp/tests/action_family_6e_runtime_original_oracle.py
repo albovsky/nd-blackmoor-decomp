@@ -306,10 +306,16 @@ def scenario_list(seed=28, corpus=None):
                 acts += [('sources', rand_sources(random.Random(seed * 100 + start + rep))), ('slot', rand_slot(rng)), ('tick',),
                          ('rearm',)]
             S('corpus:%d' % (start // 20), [R(st, b'', body) for st, body in chunk], acts, group='corpus', quick=start == 0)
+            # the same rows behind the dependency record the real rows carry (event flags 1000..1013 == 1): half the flags set
+            tails = [R(st, event_tail(1000 + k % 14, 1), body) for k, (st, body) in enumerate(chunk)]
+            acts = [('sources', rand_sources(rng)), ('slot', rand_slot(rng)), ('tick',), ('events', {1000 + k: 1 for k in range(0, 14, 2)}),
+                    ('tick',), ('rearm',), ('events', {1000 + k: 1 for k in range(14)}), ('tick',)]
+            S('corpus_gated:%d' % (start // 20), tails, acts, group='corpus', quick=start == 0)
     for subtype in (0, 1, 2, 3, 4, 255):
         S('subtype:%d' % subtype, [R(subtype), R(subtype)], [('setphase', 0, 5), ('setphase', 1, 9), ('tick',), ('tick',), ('setphase', 0, 3),
                                                               ('rearm',), ('tick',)], group='subtype', quick=subtype in (0, 1, 2))
-    S('body:values', [R(1, b'', bytes([v])) for v in (0, 1, 2, 0x80, 0xFF)], [('tick',)], group='body', quick=True)
+    S('body:values', [R(1, event_tail(1003, 1) if v & 1 else b'', bytes([v])) for v in (0, 1, 2, 0x80, 0xFF)],
+      [('events', {1003: 1}), ('tick',)], group='body', quick=True)
     S('gate:event_false_then_true', [R(1, event_tail(40, 1)), R(1)], [('tick',), ('tick',), ('events', {40: 1}), ('tick',), ('tick',)],
       group='gate', events={40: 7}, quick=True)
     S('gate:subtype2_behind_event', [R(2, event_tail(42, 5))], [('events', {42: 5}), ('tick',), ('tick',)], group='gate', events={42: 1})

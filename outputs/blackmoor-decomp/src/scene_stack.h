@@ -7,7 +7,8 @@
  * written by 0x42e560 and read back by its pair 0x42e493 (raw action 0x6f and two other callers). This module owns
  * the first record and the one function that fills it. The pop 0x42e493 is NOT here (it is the next family, 0x6f).
  *
- * The record is not a stack: a second push overwrites the first. Words keep the original widths and addresses. */
+ * The record is not a stack: a second push overwrites the first. Words keep the original widths and addresses, but the C struct is padded (sizeof 24, the original record is 22
+ * bytes): never memcpy it to or from original memory; a pop must copy field by field. */
 
 #include <stdint.h>
 
