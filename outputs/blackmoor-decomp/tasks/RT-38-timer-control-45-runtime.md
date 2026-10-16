@@ -1,0 +1,32 @@
+# RT-38: raw 0x45 timer control
+
+Owner thread: Claude Sonnet (cloud). Follows RT-37. After PR 100, 2,013 of 2,078 scenes had every action type handled. Raw 0x45 (9 scenes, 32 records) operates on the same timer record table as raw 0x68/0x69; it unblocks 6 scenes (the other 3 also need other types), 2,013 to 2,019. 0x4b, 0x1b and 0x7d were not folded in: each calls an object method (0x448d11, 0x414947, 0x4eb5f2, 285 bytes of cursor state) and is its own slice.
+
+## The original (GAME.EXE, SHA-256 afd337a2...5c45)
+
+* Loader arm `0x40d4ed` (A-45.1; `src/action_family_45.c`, `src/scene_resource.c`): a 196-byte prefix with the signed entry count at +194 and `count` four-byte entries (count at most 10), then the dependency tail. The typed body is the raw body.
+* Dispatcher `0x427a50`, arm `0x4287cc`, gate mode 0 (`0x423f57(deps, 0)`). With `r = 0x585d65 + (signed word body[0]) * 0x106` (the world's `time_records_585d65`) and the signed word `mode = body[2]`, an unsigned compare against 6 and the jump table `0x42ac91` (`0x428842`) select:
+  * 0 (`0x428849`): `0x433bd2(r)` (the same clear raw 0x68/0x69 use), completion byte := 1.
+  * 1, 2 (`0x428871`, `0x428896`): state dword `r+0` := mode, completion byte := 1.
+  * 3, 4 (`0x4288bb`, `0x4289c2`): only for `r.state` in {1, 2, 5, 6}: hours (`r+0x10`), minutes (`r+0xc`), seconds (`r+8`) change by the signed words `body[4]`, `body[6]`, `body[8]` (add for 3, subtract for 4); a seconds word at or above 5000 (signed compare) uses the loader word table `word[0x5adb81 + 2 * value]` instead (`0x428928..0x42894f`); mode 4 then clamps each of the three at zero when negative; `r+4 := hours * 3600000 + minutes * 60000 + seconds * 1000` (32-bit wrapping); completion byte := 1. Any other state: nothing, the row stays open and is visited again.
+  * 5, 6 (`0x428b15`, shared): only for `r.state == 1`: `r+0x24/0x20/0x1c` := body hours/minutes/seconds (table word for a seconds word >= 5000), `r+0x18` := the same sum, 49 bytes `body+0xc` to `r+0x28`, 33 bytes `body+0x3d` to `r+0x59`, 100 bytes `body+0x5e` to `r+0x7a`, the word at `r+0xde+4k` := 0xffff for k < 10 (words only), `count` dwords `body+0xc4` over `r+0xde+4k`, `r+0x14 := 0`, `r+0 := mode`, completion byte := 1. Otherwise nothing, row stays open.
+  * Any other mode (7 and up, every negative): nothing, row stays open.
+  * The generic completion `0x42ba3a` and the dependency reset `0x423d33` never run and the phase word is never written: DIRECT_COMPLETED with the phase it was given, or PENDING with the phase it was given.
+* Corpus (decoded scene resources): 9 scenes, 32 rows, all subtype 1: 4 x mode 0 (timer 1, 2, 5, 8), 6 x mode 5 and 22 x mode 6 (timers 1, 2, 5, 6, 8, "silence" and `JPG73*` sound names, 1 to 4 entries), 3 rows with a seconds word of 5000, 5001, 5004 (table words).
+
+## Native implementation
+
+`src/session_bindings_a45.[ch]`: one binding object and the executor handler `session_a45_handler`. Reuses the clear kernel `session_timer_record_clear` of RT-37. Host callbacks: `time_record(index)` (REQUIRED; the app passes `new_game.view.time_records_585d65`, the same function raw 0x65/0x68/0x69 use; NULL, hence UNSUPPORTED before any effect, for an index below 0 or past the 10 records) and `variable_word(index)` (the app's BSUM-backed table, `native_cond_variable_word`; optional while no row needs a seconds word >= 5000; a missing or refusing hook is UNSUPPORTED before any effect, hours and minutes included). Registration `bindings[34]` in `src/blackmoor_app.mm` (count 35, 33 is raw 0x2d, provider ACTION_KERNEL), `scripts/build_action_family_45_runtime.sh`, module added to `scripts/build_native_app.sh`.
+
+## Verification
+
+* `tests/action_family_45_runtime_test.c`: 5 unit cases (ASan/UBSan clean); `tests/test_action_family_45_runtime.py` runs them plainly, under sanitizers and under 24 source mutants.
+* `tests/action_family_45_runtime_original_oracle.py` (+ `_oracle_driver.c`): the real dispatcher `0x427a50` runs the rows under Unicorn against the native binding (248 scenarios, 544 dispatcher calls, 3,130 row visits of 4,042 arm entries: the 32 real rows with and without a stand-in dependency record and with random states, every mode from -1 to 8 against ten records holding the states 0 to 8 and 0xffffffff, add and subtract over extreme hour/minute/second words and record values, every seconds form around 5000 and 17685, configure with 0 to 10 entries, ordering and re-visits of open rows on one record, gates behind event records, a false gate, world mode 4, offset rows, indexes outside the port, 60 random scenarios). Compared after every tick: which rows entered the arm and which ran `0x433bd2` against the gate/sub-case model; every byte of the original's first ten timer records against the native host's; completion byte and phase of every row; that `0x42ba3a` and `0x423d33` never ran; the native host calls (record handed to the binding, table words asked for exactly where the original completed a mode 3..6 row with a seconds word >= 5000). 0 mismatches, 61 of 61 native mutants caught. The result JSON is private (`work/analysis/slices/RT-38.oracle-result.json`).
+* `tests/action_family_45_runtime_corpus.c`: all 32 corpus rows run through the binding. `tests/action_family_45_runtime_executor.c` (run by the Python test): the production scene executor drives synthetic rows (an open row revisited after another row starts the timer, a gated clear) with the real binding; one executor mutant caught.
+
+## Limits
+
+* The macOS glue (`blackmoor_app.mm`) is not compiled or run in the cloud.
+* Native safety differences from the original: a timer index outside 0..9 (the original indexes with a signed word and writes wherever that lands) and a seconds word the word table host cannot source are refused UNSUPPORTED before any effect. The app's table covers the indexes 4809..5009 (BSUM), which includes the real corpus values 5000, 5001 and 5004; the oracle sources the table words 5000..17685 and does not test beyond (the original reads the row array there).
+* Readers of the timer table (condition leaves, the clock, the task list UI, the sound the record's text fields name) belong to other slices; this slice writes the records they read.
+* The oracle builds the rows in memory (the scene loader `0x40b34a` is not run); the dependency tails of the corpus rows are replayed behind stand-in records. Debug flag `0x63a4cd` is modelled as 0.
