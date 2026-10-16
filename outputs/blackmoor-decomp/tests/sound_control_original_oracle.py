@@ -349,6 +349,15 @@ def original_update_trace(oracle: OriginalSoundControlOracle,
         {"name": "false-gate-prevents-restart", "control": 0, "flags": 0x30,
          "gate_287": 1},
         {"name": "fade-hooks-before-restart", "control": 0, "flags": 0x20},
+        {"name": "gate-16e-prevents-restart", "control": 0, "flags": 0x30,
+         "gate_16e": 1},
+        {"name": "gate-172-prevents-restart", "control": 0, "flags": 0x30,
+         "gate_172": 1},
+        {"name": "stream-state-prevents-restart", "control": 0, "flags": 0x30,
+         "stream": 1},
+        {"name": "control-one-fade-without-restart", "control": 1, "flags": 0x20},
+        {"name": "random-range-exactly-zero", "control": 0, "flags": 0x10,
+         "minimum": 7, "maximum": 7, "tick": 100, "random": 5},
         {"name": "restart-device-not-ready", "control": 0, "flags": 0,
          "device_ready": 0},
         {"name": "restart-resource-not-ready", "control": 0, "flags": 0,
@@ -372,6 +381,9 @@ def original_update_trace(oracle: OriginalSoundControlOracle,
                          resource_ready=case.get("resource", 1),
                          buffer=case.get("buffer", True),
                          gate_287=case.get("gate_287", 0),
+                         gate_16e=case.get("gate_16e", 0),
+                         gate_172=case.get("gate_172", 0),
+                         stream=case.get("stream", 0),
                          repeat_min=case.get("minimum", 0),
                          repeat_max=case.get("maximum", 0))
         oracle.call_this(0x4F55D5, CDIRECTSOUND, (13,))
@@ -398,6 +410,9 @@ def original_update_trace(oracle: OriginalSoundControlOracle,
         native_slot.raw_control = case["control"]
         native_slot.raw_flags = case["flags"]
         native_slot.update_gate_287 = case.get("gate_287", 0)
+        native_slot.update_gate_16e = case.get("gate_16e", 0)
+        native_slot.update_gate_172 = case.get("gate_172", 0)
+        native_slot.stream_state = case.get("stream", 0)
         native_slot.repeat_min = case.get("minimum", 0)
         native_slot.repeat_max = case.get("maximum", 0)
         native_slot.resource_ready = case.get("resource", 1)

@@ -55,6 +55,7 @@ int action17_validate_body(const uint8_t *body, size_t body_length, const char *
     return ACTION17_OK;
 }
 
+/* 0x42b07e (FUN_0042b07e): action 0x16-0x19 step. */
 int action17_step(const uint8_t *body, size_t body_length, uint32_t phase, Action17Slot *slot,
                   Action17World *world, const Action17Host *host, Action17Result *result,
                   const char **failure)

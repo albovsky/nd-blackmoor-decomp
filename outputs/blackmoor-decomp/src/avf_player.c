@@ -72,6 +72,7 @@ static int acquire(AvfPlayer *p)
     return 1;
 }
 
+/* 0x44c4ab (FUN_0044c4ab): handshake release. */
 static void release(AvfPlayer *p)
 {
     if (p->handshake != 2) {

@@ -33,6 +33,7 @@ static int16_t wrap_i16_add(int16_t left, int16_t right)
     return (int16_t)value;
 }
 
+/* 0x44aff2 (FUN_0044aff2): sentinel value initializer. */
 int action_core_initialize_values(ActionCoreWorld *world)
 {
     size_t index;

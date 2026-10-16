@@ -148,6 +148,23 @@ static void copy_text(uint8_t *to, const ActionFamily3eText *text)
     to[n] = 0u;
 }
 
+/* 0x41c3ba (FUN_0041c3ba): the object default initializer. The original copies the strings at 0x570378
+ * and 0x57037c into +0x63 and +0x84; both are .bss and the only code bytes in GAME.EXE that hold
+ * either address are the two copies inside 0x41c3ba itself, so they are always the empty string and
+ * the copy is a single NUL each. Every other byte of the object is left as it was. */
+static void action_family_3e_write_defaults(uint8_t *arena)
+{
+    arena[0x63u] = 0u; arena[0x84u] = 0u;
+    arena[0xa5u] = 1u; arena[0xa6u] = 2u; arena[0xa7u] = 3u;
+    put16(arena + 0xa8u, 0u);
+    put16(arena + 0xacu, 1u); put16(arena + 0xaeu, 2u); put16(arena + 0xb0u, 3u);
+    arena[0xb2u] = 1u; arena[0xb3u] = 0u; arena[0xb4u] = 2u; arena[0xb5u] = 3u;
+    put32(arena + 0xb6u, UINT32_C(0x01010101));
+    memset(arena + 0xfau, 0, 64u); memset(arena + 0xbau, 0, 64u);
+    put16(arena + 0x15bu, 12u); put16(arena + 0x15du, 2u);
+    put16(arena + 0x15fu, 1u); put16(arena + 0x161u, 1u); put32(arena + 0x163u, 1u);
+}
+
 ActionFamily3eStatus action_family_3e_construct(
     const uint8_t *raw_body, size_t raw_body_length,
     const ActionFamily3eText *resolved_text, size_t resolved_text_count,
@@ -218,17 +235,7 @@ ActionFamily3eStatus action_family_3e_construct(
     value.payload_offset_after = payload_offset_before + (uint32_t)d.body_bytes;
     value.result_slot_handle = arena_handle;
     if (arena != NULL) {
-        /* 0x41c3ba defaults; pinned initial globals are empty strings.
-         * Preserve every byte the original leaves untouched. */
-        arena[0x63u] = 0u; arena[0x84u] = 0u;
-        arena[0xa5u] = 1u; arena[0xa6u] = 2u; arena[0xa7u] = 3u;
-        put16(arena + 0xa8u, 0u);
-        put16(arena + 0xacu, 1u); put16(arena + 0xaeu, 2u); put16(arena + 0xb0u, 3u);
-        arena[0xb2u] = 1u; arena[0xb3u] = 0u; arena[0xb4u] = 2u; arena[0xb5u] = 3u;
-        put32(arena + 0xb6u, UINT32_C(0x01010101));
-        memset(arena + 0xfau, 0, 64u); memset(arena + 0xbau, 0, 64u);
-        put16(arena + 0x15bu, 12u); put16(arena + 0x15du, 2u);
-        put16(arena + 0x15fu, 1u); put16(arena + 0x161u, 1u); put32(arena + 0x163u, 1u);
+        action_family_3e_write_defaults(arena);
         copy_name(arena, d.name);
         copy_name(arena + 0x21u, d.name_21); copy_name(arena + 0x42u, d.name_42);
         put16(arena + 0xaau, d.word_63); copy_name(arena + 0x13au, d.name_65);

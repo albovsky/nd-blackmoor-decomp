@@ -97,6 +97,7 @@ class KernelTests(unittest.TestCase):
         cls.lib = bind()
 
     def test_phase_zero_starts_then_scans_in_the_same_call(self):
+        """Covers action0c_step (0x42b2e4)."""
         case = Case(self.lib, S2010_ROW5, 0, selector=5)
         status, result, _ = case.run()
         self.assertEqual(status, OK)
@@ -133,6 +134,7 @@ class KernelTests(unittest.TestCase):
                 self.assertEqual((result.matched_record, result.requested), (-1, 0))
 
     def test_first_of_duplicate_frames_wins_and_scan_stops(self):
+        """Covers action0c_step (0x42b2e4)."""
         records = [(5, 1, 2, 3, 4), (5, 10, 20, 30, 40), (5, 100, 200, 300, 400)]
         case = Case(self.lib, body(records=records), 1, selector=5)
         status, result, _ = case.run()
@@ -158,6 +160,7 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(case.state()[0][1:5], (t17.s16(0x12345), t17.s16(-70000), -32768, -1))
 
     def test_finish_phase_stores_in_the_original_order_and_requests_the_scene_change(self):
+        """Covers action0c_step (0x42b2e4)."""
         # 0x42b47d..: done byte, 5bb57b := sext(+2), 5bb599 := +4, 5c39ff := +6, then the constants
         # 5bb595 := 0, 5bb59b := 0, 5bb59f := 0, 5bb5a3 := 1 and the mode.
         data = body(cursor=3, target=2008, entry=-4, word6=7)

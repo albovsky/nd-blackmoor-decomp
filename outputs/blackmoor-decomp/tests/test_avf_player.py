@@ -113,6 +113,7 @@ class AvfPlayerTests(unittest.TestCase):
 
     # -- handshake, lifecycle, generations -------------------------------------------
     def test_handshake_and_stop_order(self) -> None:
+        """Covers release (0x44c4ab)."""
         s = self.session()
         self.assertEqual(s.start(config(RANDOM, surface=8)), OK)
         self.assertEqual(s.trace, [("resume",)])

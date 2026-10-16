@@ -119,6 +119,7 @@ class RuntimeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls): cls.lib = build()
     def test_mail_insert_newest_first(self):
+        """Covers action83_runtime_step (0x4e72fb)."""
         n = Native(self.lib)
         for key in (b'first', b'second'):
             st, out, _ = n.step(raw(key=key))
@@ -135,6 +136,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(bytes(n.mail[1])[33:41], b'changed\0')
         self.assertEqual(struct.unpack_from('<hhI', bytes(n.mail[1]), 66), (-3, -2, 0))
     def test_web_append_update_and_signed_dword(self):
+        """Covers action83_runtime_step (0x4e72fb)."""
         n = Native(self.lib)
         for key in (b'A', b'B'): n.step(raw(1, key=key, field=-32768))
         st, out, _ = n.step(raw(-1, key=b'A', field=-7, word_a=-2, word_b=-3))
@@ -269,6 +271,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(n.step(raw(value))[1].list, 1 if value else 0)
             self.assertEqual((n.world.mail_count, n.world.web_count), (0, 1) if value else (1, 0))
     def test_mail_insert_shifts_whole_records_including_read_flags(self):
+        """Covers action83_runtime_step (0x4e72fb)."""
         n = Native(self.lib, fill=0x5A)
         for i, key in enumerate((b'a', b'b', b'c')):
             n.mail[i][:] = bytes([0x30 + i]) * 74; n.mail[i][:len(key) + 1] = key + b'\0'

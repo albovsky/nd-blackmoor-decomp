@@ -61,6 +61,10 @@ class InputLatchTests(unittest.TestCase):
             ctypes.POINTER(StateView), ctypes.c_uint32, ctypes.c_uint32
         ]
         cls.library.input_latch_down.restype = ctypes.c_int
+        cls.library.input_latch_dblclk.argtypes = [
+            ctypes.POINTER(StateView), ctypes.c_uint32, ctypes.c_uint32
+        ]
+        cls.library.input_latch_dblclk.restype = ctypes.c_int
         cls.library.input_latch_up.argtypes = [
             ctypes.POINTER(StateView), ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32
         ]
@@ -70,6 +74,7 @@ class InputLatchTests(unittest.TestCase):
         return StateView(pointer_at(buffer), len(buffer) if length is None else length)
 
     def test_move_copies_full_unsigned_words_and_preserves_every_other_byte(self) -> None:
+        """Covers input_latch_move (0x4daf9f)."""
         initial = bytearray(pattern(0x40, 1))
         point_data = buffer_for(b"\x00\x00\x00\x80\xff\xff\xff\xff")
         point = PointView(pointer_at(point_data), 8)
@@ -84,6 +89,7 @@ class InputLatchTests(unittest.TestCase):
         self.assertEqual(bytes_from(state_buffer, len(expected)), bytes(expected))
 
     def test_move_reads_second_word_after_first_store_when_views_overlap(self) -> None:
+        """Covers input_latch_move (0x4daf9f)."""
         initial = bytearray(pattern(0x40, 2))
         first = word(initial, 0x14)
         state_buffer = buffer_for(initial)
@@ -127,6 +133,7 @@ class InputLatchTests(unittest.TestCase):
         self.assertEqual(bytes_from(state_buffer, len(initial)), initial)
 
     def test_down_truth_table_and_untouched_bytes(self) -> None:
+        """Covers input_latch_down (0x4dafc3)."""
         for value in (0, 1, 2, 0x80000000, U32_MAX):
             with self.subTest(field_0c=value):
                 initial = bytearray(pattern(0x40, value & 0xFF))
@@ -147,7 +154,27 @@ class InputLatchTests(unittest.TestCase):
                 self.assertEqual(status, 0)
                 self.assertEqual(bytes_from(state_buffer, len(expected)), bytes(expected))
 
+    def test_dblclk_sets_only_field_08_and_ignores_arguments(self) -> None:
+        """input_latch_dblclk (0x4db04f): [ecx+8] = 1 whatever it held, nothing else changes."""
+        for value in (0, 1, 2, 0x80000000, U32_MAX):
+            with self.subTest(field_08=value):
+                initial = bytearray(pattern(0x40, value & 0xFF))
+                put_word(initial, 0x08, value)
+                state_buffer = buffer_for(initial)
+                status = self.library.input_latch_dblclk(
+                    ctypes.byref(self.state(state_buffer)), U32_MAX, 0xDEADBEEF
+                )
+                expected = bytearray(initial)
+                put_word(expected, 0x08, 1)
+                self.assertEqual(status, 0)
+                self.assertEqual(bytes_from(state_buffer, len(expected)), bytes(expected))
+        short = buffer_for(bytes(0x0B))
+        self.assertEqual(
+            self.library.input_latch_dblclk(ctypes.byref(self.state(short, 0x0B)), 0, 0), 2
+        )
+
     def test_up_truth_table_for_gate_sentinel_and_noncanonical_latches(self) -> None:
+        """Covers input_latch_up (0x4db000)."""
         guards = (U32_MAX, 0, 0x80000000)
         latch_values = (0, 1, 2, 0x80000000, U32_MAX)
         blocked_values = (0, 1, 0x80000000, U32_MAX)
@@ -188,6 +215,7 @@ class InputLatchTests(unittest.TestCase):
                 self.assertEqual(bytes_from(state_buffer, len(initial)), initial)
 
     def test_down_and_up_do_not_dereference_callback_argument(self) -> None:
+        """Covers input_latch_down (0x4dafc3)."""
         state_buffer = buffer_for(pattern(0x20, 6))
         state = self.state(state_buffer)
         self.assertEqual(
