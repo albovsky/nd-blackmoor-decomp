@@ -33,6 +33,7 @@
 #include "session_bindings_a97.h"
 #include "session_bindings_aa1.h"
 #include "session_bindings_a83.h"
+#include "session_bindings_a3f.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -224,6 +225,10 @@ struct NativeApp {
     /* RT-21: raw 0xa1 "Sound" (loader arm 0x40f069, dispatcher arm 0x4297be). */
     SessionAa1Binding *aa1 = nullptr;
     SessionA83Binding *a83 = nullptr;
+    /* RT-23: raw 0x3f sound conversation (dispatcher arm 0x427a50 -> handler 0x420c17). The kernel
+     * keeps a pointer to a3f_sound, so it lives as long as the binding. */
+    SessionA3fBinding *a3f = nullptr;
+    ActionSoundBackend a3f_sound{};
     /* Native bounds; not a declaration of original global capacities. */
     uint8_t phone_mail[100][A83_MAIL_BYTES]{};
     uint8_t phone_web[100][A83_WEB_BYTES]{};
@@ -1803,6 +1808,7 @@ static void cleanup(NativeApp *app)
     session_a97_destroy(app->a97);
     session_aa1_destroy(app->aa1);
     session_a83_destroy(app->a83);
+    session_a3f_destroy(app->a3f);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3131,6 +3137,98 @@ static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t
                "'held item == N' reads it)", (int)*inventory.selected_item_candidate);
 }
 
+/* ---- RT-23: raw 0x3f sound conversation (handler 0x420c17) ----------------
+ * Tier A (sound line, secondary event flags, default scene change) runs on the live audio
+ * backend of raw 0x9f. Text-box rows (response lists, captions) stay UNSUPPORTED because
+ * acquire_surface/layout_text_box are left NULL; hook-builder rows (tier C) are refused by the
+ * kernel. The CONVO text table has no native lookup yet, so resolve_text is NULL. */
+static int native_a3f_load_world(void *context, Convo3fWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr || app->new_game.action_core.event_flags == nullptr) return 1;
+    const WorldInitInventory &inventory = app->new_game.view.inventory;
+    world->events = app->new_game.action_core.event_flags;
+    world->event_count = app->new_game.action_core.event_flag_count;
+    world->presence = inventory.presence_583bd5.values;
+    world->presence_count = inventory.presence_583bd5.count;
+    world->held_item = inventory.selected_item_candidate != nullptr ? *inventory.selected_item_candidate : -1;
+    world->mode_583999 = 3;
+    world->captions_5bb202 = app->world_clock_session.captions_enabled_5bb202;
+    world->fast_convo_58322a = 0; /* setting not modelled */
+    world->exit_58322b = 0;       /* meaning unverified (RT-23 handoff) */
+    world->start_5bb1ca = app->start_flag_5bb1ca;
+    return 0;
+}
+
+static void native_a3f_store_world(void *context, const Convo3fWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_5bb1ca;
+}
+
+static int native_a3f_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a3f_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1],
+           request->opaque_dwords[2]);
+    return 0;
+}
+
+/* 0x4e9e84(item, flag): put the held item back / secondary kind 2 value 1 (the corpus has none). */
+static int native_a3f_inventory_add(void *context, int16_t item, int flag)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    Action78Model model{};
+    model.inventory = inventory_model(app);
+    Action78Host host{};
+    host.inventory.rebuild_view = native_a79_rebuild_view;
+    host.inventory.context = app;
+    host.request_sound = native_a78_request_sound;
+    host.request_ui_animation = native_a78_request_ui_animation;
+    host.context = app;
+    Action78Result result{};
+    const char *why = "none";
+    return action78_add_item(item, flag, &model, &host, &result, &why) == 0 ? 0 : 1;
+}
+
+/* 0x4ea06c(item): secondary kind 2 with a value other than 1 (the corpus has none). */
+static int native_a3f_inventory_remove(void *context, int16_t item)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    const Action79Model model = inventory_model(app);
+    Action79Host host{};
+    host.rebuild_view = native_a79_rebuild_view;
+    host.context = app;
+    Action79Result result{};
+    const char *why = "none";
+    return action79_remove_item(static_cast<uint16_t>(item), &model, &host, &result, &why) == 0 ? 0 : 1;
+}
+
+static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const uint32_t phase_before = before->phase;
+    const int status = session_a3f_handler(app->a3f, row, action, before, out);
+    const Convo3fStepResult *last = session_a3f_last_result(app->a3f);
+    if (status == SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a3f_visit row=%zu phase=%u phase_after=%u disposition=%d skipped_optional=0x%x "
+               "(0x427a50 -> 0x420c17)", row, phase_before, out->phase, (int)out->disposition,
+               last != nullptr ? last->skipped_optional : 0u);
+    } else {
+        record(app, "scene_a3f_blocker row=%zu status=%d detail=%s", row, status, session_a3f_failure(app->a3f));
+    }
+    return status;
+}
+
 /* ---- RT-22 follow-up: the task bar (0x570508) and its inventory button ----
  * See inventory_button_runtime.h for the recovered addresses. The bar runs while the
  * screen state 0x583204 is 0 (0x43cf9c); its button 1 raises byte 0x583232, which the next
@@ -3761,6 +3859,20 @@ static bool create_native_session_bindings(NativeApp *app)
     a78_host.view.request_sound = native_a78_request_sound;
     a78_host.view.request_ui_animation = native_a78_request_ui_animation;
     app->a78 = session_a78_create(&a78_host);
+    app->a3f_sound.context = app;
+    app->a3f_sound.load_sound = native_action_sound_load;
+    app->a3f_sound.play_sound = native_action_sound_play;
+    app->a3f_sound.is_playing = native_action_sound_is_playing;
+    app->a3f_sound.unload_sound = native_action_sound_unload;
+    SessionA3fHost a3f_host{};
+    a3f_host.kernel.context = app;
+    a3f_host.kernel.sound = &app->a3f_sound;
+    a3f_host.kernel.inventory_add = native_a3f_inventory_add;
+    a3f_host.kernel.inventory_remove = native_a3f_inventory_remove;
+    a3f_host.load_world = native_a3f_load_world;
+    a3f_host.store_world = native_a3f_store_world;
+    a3f_host.transition = native_a3f_transition;
+    app->a3f = session_a3f_create(&a3f_host);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -3794,7 +3906,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -4031,6 +4143,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_a83_failure(app->a83));
         return false;
     }
+    if (session_a3f_begin_scene(app->a3f, app->scene) != CONVO3F_OK) {
+        record(app, "scene_session_create_error provider=action-family-3f detail=%s",
+               session_a3f_failure(app->a3f));
+        return false;
+    }
     if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_a97_failure(app->a97));
@@ -4205,6 +4322,7 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     const CaptionLifecycleGlobals &g = app->captions.lifecycle.g;
     out->cursor_mode = g.overlay_ui;            /* 0x583204 */
     out->modal_event = (uint32_t)g.cursor_override; /* 0x5c39e9 */
+    if (session_a3f_modal_active(app->a3f) != 0) out->modal_event = 1u; /* RT-23: conversation active */
     out->producer_disabled = (uint32_t)g.modal_input; /* 0x5839a9 */
     /* No pointer has moved yet: there is no composed sprite to project. */
     out->geometry_ready = (app->pointer_x >= 0 && app->pointer_y >= 0) ? 1u : 0u;
@@ -4510,7 +4628,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[16]{};
+    SceneSessionActionBinding bindings[17]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -4576,7 +4694,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[15].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
     bindings[15].callback = native_aa1_handler;
     bindings[15].context = app;
-    config.action_binding_count = 16u;
+    /* RT-23: raw 0x3f sound conversation (dispatcher arm 0x427a50 -> 0x420c17, gate mode 0). */
+    bindings[16].type = SESSION_A3F_TYPE;
+    bindings[16].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
+    bindings[16].callback = native_a3f_handler;
+    bindings[16].context = app;
+    config.action_binding_count = 17u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {

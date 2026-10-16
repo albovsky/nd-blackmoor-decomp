@@ -1,0 +1,523 @@
+{
+  "schema": "blackmoor-scene-action-coverage/1",
+  "scenes": 2078,
+  "scenes_all_rows_handled": 1353,
+  "handled_types": [
+    "0x0a",
+    "0x0b",
+    "0x0c",
+    "0x15",
+    "0x16",
+    "0x17",
+    "0x1d",
+    "0x28",
+    "0x35",
+    "0x36",
+    "0x37",
+    "0x3f",
+    "0x4d",
+    "0x51",
+    "0x61",
+    "0x62",
+    "0x64",
+    "0x6a",
+    "0x6b",
+    "0x71",
+    "0x78",
+    "0x79",
+    "0x82",
+    "0x83",
+    "0x97",
+    "0x9f",
+    "0xa1"
+  ],
+  "missing_types": [
+    {
+      "type": "0xd9",
+      "scenes": 245,
+      "records": 274,
+      "sole_blocker_scenes": 206
+    },
+    {
+      "type": "0x3e",
+      "scenes": 173,
+      "records": 202,
+      "sole_blocker_scenes": 170
+    },
+    {
+      "type": "0x95",
+      "scenes": 64,
+      "records": 123,
+      "sole_blocker_scenes": 45
+    },
+    {
+      "type": "0x4f",
+      "scenes": 57,
+      "records": 815,
+      "sole_blocker_scenes": 50
+    },
+    {
+      "type": "0x6e",
+      "scenes": 48,
+      "records": 68,
+      "sole_blocker_scenes": 20
+    },
+    {
+      "type": "0x38",
+      "scenes": 25,
+      "records": 425,
+      "sole_blocker_scenes": 19
+    },
+    {
+      "type": "0x67",
+      "scenes": 25,
+      "records": 27,
+      "sole_blocker_scenes": 24
+    },
+    {
+      "type": "0x6f",
+      "scenes": 24,
+      "records": 25,
+      "sole_blocker_scenes": 11
+    },
+    {
+      "type": "0x43",
+      "scenes": 13,
+      "records": 13,
+      "sole_blocker_scenes": 12
+    },
+    {
+      "type": "0x94",
+      "scenes": 12,
+      "records": 12,
+      "sole_blocker_scenes": 12
+    },
+    {
+      "type": "0xd1",
+      "scenes": 11,
+      "records": 11,
+      "sole_blocker_scenes": 11
+    },
+    {
+      "type": "0x2e",
+      "scenes": 10,
+      "records": 10,
+      "sole_blocker_scenes": 8
+    },
+    {
+      "type": "0x44",
+      "scenes": 10,
+      "records": 27,
+      "sole_blocker_scenes": 10
+    },
+    {
+      "type": "0x45",
+      "scenes": 9,
+      "records": 32,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x68",
+      "scenes": 9,
+      "records": 10,
+      "sole_blocker_scenes": 0
+    },
+    {
+      "type": "0x65",
+      "scenes": 7,
+      "records": 7,
+      "sole_blocker_scenes": 3
+    },
+    {
+      "type": "0x69",
+      "scenes": 6,
+      "records": 7,
+      "sole_blocker_scenes": 4
+    },
+    {
+      "type": "0x4b",
+      "scenes": 5,
+      "records": 9,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0x1b",
+      "scenes": 4,
+      "records": 4,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x47",
+      "scenes": 4,
+      "records": 139,
+      "sole_blocker_scenes": 3
+    },
+    {
+      "type": "0x7d",
+      "scenes": 4,
+      "records": 4,
+      "sole_blocker_scenes": 4
+    },
+    {
+      "type": "0x2d",
+      "scenes": 3,
+      "records": 3,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0x33",
+      "scenes": 3,
+      "records": 3,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x4e",
+      "scenes": 3,
+      "records": 18,
+      "sole_blocker_scenes": 0
+    },
+    {
+      "type": "0xea",
+      "scenes": 3,
+      "records": 6,
+      "sole_blocker_scenes": 0
+    },
+    {
+      "type": "0xf6",
+      "scenes": 3,
+      "records": 6,
+      "sole_blocker_scenes": 3
+    },
+    {
+      "type": "0x1c",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x20",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0x70",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x77",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x80",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0xd0",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0xd3",
+      "scenes": 2,
+      "records": 3,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0xe0",
+      "scenes": 2,
+      "records": 3,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0xe4",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0xeb",
+      "scenes": 2,
+      "records": 2,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0xf5",
+      "scenes": 2,
+      "records": 4,
+      "sole_blocker_scenes": 2
+    },
+    {
+      "type": "0x6d",
+      "scenes": 1,
+      "records": 1,
+      "sole_blocker_scenes": 0
+    },
+    {
+      "type": "0x76",
+      "scenes": 1,
+      "records": 1,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0x9a",
+      "scenes": 1,
+      "records": 1,
+      "sole_blocker_scenes": 0
+    },
+    {
+      "type": "0xaa",
+      "scenes": 1,
+      "records": 1,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0xd6",
+      "scenes": 1,
+      "records": 1,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0xda",
+      "scenes": 1,
+      "records": 2,
+      "sole_blocker_scenes": 1
+    },
+    {
+      "type": "0xee",
+      "scenes": 1,
+      "records": 2,
+      "sole_blocker_scenes": 1
+    }
+  ],
+  "greedy_order": [
+    {
+      "type": "0xd9",
+      "scenes_unblocked": 206,
+      "scenes_complete": 1559
+    },
+    {
+      "type": "0x3e",
+      "scenes_unblocked": 170,
+      "scenes_complete": 1729
+    },
+    {
+      "type": "0x95",
+      "scenes_unblocked": 55,
+      "scenes_complete": 1784
+    },
+    {
+      "type": "0x4f",
+      "scenes_unblocked": 50,
+      "scenes_complete": 1834
+    },
+    {
+      "type": "0x6e",
+      "scenes_unblocked": 46,
+      "scenes_complete": 1880
+    },
+    {
+      "type": "0x67",
+      "scenes_unblocked": 24,
+      "scenes_complete": 1904
+    },
+    {
+      "type": "0x38",
+      "scenes_unblocked": 21,
+      "scenes_complete": 1925
+    },
+    {
+      "type": "0x6f",
+      "scenes_unblocked": 21,
+      "scenes_complete": 1946
+    },
+    {
+      "type": "0x43",
+      "scenes_unblocked": 12,
+      "scenes_complete": 1958
+    },
+    {
+      "type": "0x94",
+      "scenes_unblocked": 12,
+      "scenes_complete": 1970
+    },
+    {
+      "type": "0xd1",
+      "scenes_unblocked": 11,
+      "scenes_complete": 1981
+    },
+    {
+      "type": "0x44",
+      "scenes_unblocked": 10,
+      "scenes_complete": 1991
+    },
+    {
+      "type": "0x2e",
+      "scenes_unblocked": 8,
+      "scenes_complete": 1999
+    },
+    {
+      "type": "0x65",
+      "scenes_unblocked": 6,
+      "scenes_complete": 2005
+    },
+    {
+      "type": "0x69",
+      "scenes_unblocked": 5,
+      "scenes_complete": 2010
+    },
+    {
+      "type": "0x4b",
+      "scenes_unblocked": 5,
+      "scenes_complete": 2015
+    },
+    {
+      "type": "0x1b",
+      "scenes_unblocked": 4,
+      "scenes_complete": 2019
+    },
+    {
+      "type": "0x7d",
+      "scenes_unblocked": 4,
+      "scenes_complete": 2023
+    },
+    {
+      "type": "0x45",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2026
+    },
+    {
+      "type": "0x68",
+      "scenes_unblocked": 6,
+      "scenes_complete": 2032
+    },
+    {
+      "type": "0x47",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2035
+    },
+    {
+      "type": "0x2d",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2038
+    },
+    {
+      "type": "0x33",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2041
+    },
+    {
+      "type": "0x4e",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2044
+    },
+    {
+      "type": "0xea",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2047
+    },
+    {
+      "type": "0xf6",
+      "scenes_unblocked": 3,
+      "scenes_complete": 2050
+    },
+    {
+      "type": "0x1c",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2052
+    },
+    {
+      "type": "0x20",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2054
+    },
+    {
+      "type": "0x70",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2056
+    },
+    {
+      "type": "0x77",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2058
+    },
+    {
+      "type": "0x80",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2060
+    },
+    {
+      "type": "0xd0",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2062
+    },
+    {
+      "type": "0xd3",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2064
+    },
+    {
+      "type": "0xe0",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2066
+    },
+    {
+      "type": "0xe4",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2068
+    },
+    {
+      "type": "0xeb",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2070
+    },
+    {
+      "type": "0xf5",
+      "scenes_unblocked": 2,
+      "scenes_complete": 2072
+    },
+    {
+      "type": "0x76",
+      "scenes_unblocked": 1,
+      "scenes_complete": 2073
+    },
+    {
+      "type": "0xaa",
+      "scenes_unblocked": 1,
+      "scenes_complete": 2074
+    },
+    {
+      "type": "0xd6",
+      "scenes_unblocked": 1,
+      "scenes_complete": 2075
+    },
+    {
+      "type": "0xda",
+      "scenes_unblocked": 1,
+      "scenes_complete": 2076
+    },
+    {
+      "type": "0xee",
+      "scenes_unblocked": 1,
+      "scenes_complete": 2077
+    },
+    {
+      "type": "0x6d",
+      "scenes_unblocked": 0,
+      "scenes_complete": 2077
+    },
+    {
+      "type": "0x9a",
+      "scenes_unblocked": 1,
+      "scenes_complete": 2078
+    }
+  ],
+  "note": "Static: a scene counts when every row type has a registered live handler. A handler can still refuse a branch at run time, so this is an upper bound, not a played-through count."
+}
