@@ -31,6 +31,8 @@ struct SceneActionExecutor {
     size_t action_count;
     SceneConditionTree **conditions;
     SceneActionRuntimeState *states;
+    /* RT-32: rows whose handler turned them into runtime-0x36 overlays (gate mode 1 from then on). */
+    uint8_t *overlay36;
     SceneExecutorHotspotState *hotspots;
     int in_external_callback;
     int callback_transition_requested;
@@ -175,8 +177,9 @@ int scene_executor_create(const SceneResource *scene,
             action_count, sizeof(*executor->states));
         executor->hotspots = (SceneExecutorHotspotState *)calloc(
             action_count, sizeof(*executor->hotspots));
+        executor->overlay36 = (uint8_t *)calloc(action_count, 1u);
         if (executor->conditions == NULL || executor->states == NULL ||
-            executor->hotspots == NULL) {
+            executor->hotspots == NULL || executor->overlay36 == NULL) {
             scene_executor_destroy(executor);
             return SCENE_EXECUTOR_ERR_MEMORY;
         }
@@ -270,6 +273,7 @@ void scene_executor_destroy(SceneActionExecutor *executor)
     }
     free(executor->conditions);
     free(executor->states);
+    free(executor->overlay36);
     free(executor->hotspots);
     free(executor);
 }
@@ -582,6 +586,15 @@ static int apply_external_handler(SceneActionExecutor *executor,
     }
 
     switch (handler_result.disposition) {
+    case SCENE_ACTION_HANDLER_PENDING_BECOME_OVERLAY36:
+        executor->overlay36[index] = 1u;
+        executor->states[index].phase = handler_result.phase;
+        break;
+    case SCENE_ACTION_HANDLER_RESET_BECOME_OVERLAY36:
+        executor->overlay36[index] = 1u;
+        executor->states[index].phase = 0u;
+        scene_conditions_reset(executor->conditions[index]);
+        break;
     case SCENE_ACTION_HANDLER_PENDING:
         executor->states[index].phase = handler_result.phase;
         break;
@@ -781,7 +794,9 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
             executor->conditions[index], &dispatch_state,
             executor->condition_extension,
             scene_conditions_gate_mode_for_type(
-                (uint8_t)action_runtime_type(&action)),
+                executor->overlay36[index]
+                    ? UINT8_C(0x36)
+                    : (uint8_t)action_runtime_type(&action)),
             &eligible, &unsupported_opcode, &executor->condition_failure);
         if (status != SCENE_CONDITION_OK) {
             fill_failure(&local_info, index, action.type, status);
@@ -1032,6 +1047,16 @@ int scene_executor_get_action_state(const SceneActionExecutor *executor,
         return SCENE_EXECUTOR_ERR_ARGUMENT;
     }
     *state = executor->states[action_index];
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_get_action_overlay36(const SceneActionExecutor *executor,
+                                        size_t action_index, int *is_overlay36)
+{
+    if (executor == NULL || is_overlay36 == NULL || action_index >= executor->action_count) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    *is_overlay36 = executor->overlay36[action_index] != 0u;
     return SCENE_EXECUTOR_OK;
 }
 

@@ -35,10 +35,12 @@
 #include "session_bindings_a83.h"
 #include "session_bindings_a3f.h"
 #include "session_bindings_a95.h"
-#include "session_bindings_a2e.h"
 #include "session_bindings_a44.h"
 #include "session_bindings_a4f.h"
 #include "session_bindings_a67.h"
+#include "session_bindings_a94.h"
+#include "session_bindings_a43.h"
+#include "session_bindings_a2e.h"
 #include "session_bindings_a6e.h"
 #include "session_bindings_a6f.h"
 #include "session_bindings_ad9.h"
@@ -71,6 +73,7 @@
 #include <array>
 #include <stdexcept>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <cmath>
 #include <chrono>
@@ -261,6 +264,15 @@ struct NativeApp {
     SessionA6FBinding *a6f = nullptr;
     /* RT-30: raw 0x67 stores 1 in DAT_005bb1ca (arm 0x428692, gate mode 0). Not compiled here. */
     SessionA67Binding *a67 = nullptr;
+    /* RT-32: raw 0x94 (AT_MAKE_SCREEN_FILE, arm 0x429747, handler 0x4c36b2). DAT_005839a9 is the capture flag the
+     * renderer reads; 0x4d36ed requests a full redraw (0x5831c8 := 1). Neither reader is modelled here. Not compiled
+     * here. */
+    SessionA94Binding *a94 = nullptr;
+    /* RT-32: raw 0x43 (AUTOTEXT text overlay, arm 0x428465, handler 0x411f24). The text writer's surfaces (the slots of
+     * 0x5d0397) live in these buffers; the overlay binding blits them under the handles 0xf0000010 + slot. Not compiled
+     * here. */
+    SessionA43Binding *a43 = nullptr;
+    std::vector<std::vector<uint8_t>> a43_buffers;
     /* RT-33: raw 0x2e random-movie control (arm 0x427f62, handler 0x4ced84 on the object 0x63821d). The object stays inactive
      * until raw 0x2d is bound, so only the row/mode stores and the completion run. Not compiled here. */
     SessionA2EBinding *a2e = nullptr;
@@ -269,6 +281,8 @@ struct NativeApp {
      * text writer 0x413187 (RT-32's port) and the render/input hooks of the kernel are not, so the handler reports the
      * blocker. Not compiled here. */
     SessionA44Binding *a44 = nullptr;
+    int32_t capture_flag_5839a9 = 0;
+    uint32_t refresh_requests_5831c8 = 0;
     SceneStackSlot scene_stack_slot{};
     SceneTransitionRequest loaded_words{};
     bool loaded_words_valid = false;
@@ -774,6 +788,9 @@ static NativeRaw555Image *load_native_raw555_image(NativeApp *app,
     return &inserted.first->second;
 }
 
+/* RT-32: handle of AUTOTEXT surface slot k (globals 0x5d0397 + 4k) in the caption view lookup. */
+static constexpr uint32_t NATIVE_A43_SLOT_HANDLE = UINT32_C(0xf0000010);
+
 static uint32_t native_caption_load_image(void *context, const char *name,
                                          const char *purpose)
 {
@@ -881,6 +898,18 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
         view->width = captions.framed_surface.width;
         view->height = captions.framed_surface.height;
         view->pitch_bytes = captions.framed_surface.pitch;
+        view->format = captions.compositor_format;
+        return true;
+    }
+    if (handle >= NATIVE_A43_SLOT_HANDLE && handle < NATIVE_A43_SLOT_HANDLE + 6u) {
+        const CaptionSurface *slot = session_a43_slot(app->a43, handle - NATIVE_A43_SLOT_HANDLE);
+        if (slot == nullptr || slot->pixels == nullptr || slot->width <= 0 || slot->height <= 0 ||
+            slot->pitch <= 0) return false;
+        view->pixels = slot->pixels;
+        view->byte_capacity = static_cast<size_t>(slot->pitch) * static_cast<size_t>(slot->height);
+        view->width = slot->width;
+        view->height = slot->height;
+        view->pitch_bytes = slot->pitch;
         view->format = captions.compositor_format;
         return true;
     }
@@ -1864,6 +1893,8 @@ static void cleanup(NativeApp *app)
     session_a6e_destroy(app->a6e);
     session_a6f_destroy(app->a6f);
     session_a67_destroy(app->a67);
+    session_a94_destroy(app->a94);
+    session_a43_destroy(app->a43);
     session_a2e_destroy(app->a2e);
     session_a44_destroy(app->a44);
     session_a79_destroy(app->a79);
@@ -3523,6 +3554,188 @@ static int native_a67_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-32: raw 0x94 host effects. The original locks the DirectDraw front buffer (16-bit words), crops it and writes a
+ * 24-bit BMP or a 16-bit TGA beside the game; here the composed 640x480 RGBA frame is packed to 5-6-5 words, which the
+ * module brings to 5-5-5 exactly as 0x4c7481 does, and the files go to ~/Library/Application Support/Blackmoor
+ * Reconstruction/Screenshots/ (a directory the glue creates). The path pieces the original keeps in DAT_00639a9f /
+ * DAT_00639aa2 are an empty drive and that directory with a trailing slash. */
+static std::string native_a94_directory()
+{
+    const char *home = std::getenv("HOME");
+    return std::string(home != nullptr && home[0] != '\0' ? home : ".") +
+           "/Library/Application Support/Blackmoor Reconstruction/Screenshots/";
+}
+
+static void native_a94_set_capture_flag(void *context, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    app->capture_flag_5839a9 = value;
+    record(app, "scene_a94_capture_flag DAT_005839a9=%d", value);
+}
+
+static void native_a94_request_refresh(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    ++app->refresh_requests_5831c8;
+    record(app, "scene_a94_redraw_request writer=0x4d36ed count=%u", app->refresh_requests_5831c8);
+}
+
+static int native_a94_display(void *context, SessionA94Display *out)
+{
+    (void)context;
+    if (out == nullptr) return 1;
+    std::memset(out, 0, sizeof(*out));
+    out->screen.width = 640;
+    out->screen.height = 480;
+    out->screen.bytes_per_pixel = 2;
+    out->screen.bits_per_pixel = 16;
+    out->screen.shifts[0] = 0; out->screen.shifts[1] = 5; out->screen.shifts[2] = 11;
+    out->screen.masks[0] = 0x1f; out->screen.masks[1] = 0x3f; out->screen.masks[2] = 0x1f;
+    out->screen.channel_bits[0] = 5; out->screen.channel_bits[1] = 6; out->screen.channel_bits[2] = 5;
+    const std::string dir = native_a94_directory();
+    if (dir.size() >= sizeof(out->dir)) return 1;
+    std::memcpy(out->dir, dir.c_str(), dir.size() + 1u);
+    return 0;
+}
+
+static int native_a94_capture(void *context, uint8_t *dst, size_t bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || dst == nullptr || bytes != 640u * 480u * 2u ||
+        app->framebuffer.size() != 640u * 480u * 4u) return 1;
+    for (size_t i = 0; i < 640u * 480u; ++i) {
+        const uint8_t *px = app->framebuffer.data() + i * 4u;
+        const uint16_t word = static_cast<uint16_t>(((px[0] >> 3) << 11) | ((px[1] >> 2) << 5) | (px[2] >> 3));
+        dst[2u * i] = static_cast<uint8_t>(word);
+        dst[2u * i + 1u] = static_cast<uint8_t>(word >> 8);
+    }
+    return 0;
+}
+
+static int native_a94_write_file(void *context, const char *path, const uint8_t *bytes, size_t length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    std::string dir = path;
+    for (size_t at = dir.find('/', 1); at != std::string::npos; at = dir.find('/', at + 1)) {
+        mkdir(dir.substr(0, at).c_str(), 0755); /* best effort, the fopen below reports the failure */
+    }
+    FILE *file = std::fopen(path, "wb");
+    if (file == nullptr) {
+        record(app, "scene_a94_file_refused path=%s", path);
+        return 1;
+    }
+    const bool ok = std::fwrite(bytes, 1, length, file) == length;
+    std::fclose(file);
+    record(app, "scene_a94_file path=%s bytes=%zu ok=%d", path, length, ok ? 1 : 0);
+    return ok ? 0 : 1;
+}
+
+static int native_a94_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a94_handler(app->a94, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a94_blocker row=%zu status=%d detail=%s", row, status, session_a94_failure(app->a94));
+    }
+    return status;
+}
+
+/* RT-32: raw 0x43 host providers. The AUTOTEXT strings come from the decoded AUTOTEXT resource the captions already
+ * hold, the fonts, pixel format and font-sheet reference counts are the caption writer's own (0x448d11 shares them with
+ * 0x413187), the AUTOTEXT surfaces are 16-bit buffers of the host and the optional overlay picture is a CIFTREE image
+ * like a font sheet. Entry marks (the 0x5d0377 sheet) and the debug log are not modelled: a text that needs them is
+ * refused before any effect (writer pass 1). */
+static int native_a43_lookup(void *context, const uint8_t *key, size_t key_length, const uint8_t **text,
+                             size_t *length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    size_t raw_length = 0u;
+    if (app == nullptr || app->captions.auto_text == nullptr) return 1;
+    const int status = autotext_lookup(app->captions.auto_text, key, key_length, text, &raw_length, length);
+    record(app, "scene_a43_autotext_lookup status=%d key_bytes=%zu text_bytes=%zu", status, key_length,
+           status == AUTOTEXT_OK ? *length : static_cast<size_t>(0));
+    return status == AUTOTEXT_OK ? 0 : 1;
+}
+
+static int native_a43_render_inputs(void *context, SessionA43RenderInputs *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || out == nullptr || !app->captions.initialized) return 1;
+    out->fonts = &app->captions.fonts;
+    out->format = app->captions.pixel_format;
+    out->font_state = &app->captions.writer_globals;
+    return 0;
+}
+
+static AutotextBackendStatus native_a43_create_surface(void *context, int16_t width, int16_t height,
+                                                       const char *name, CaptionSurface *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || out == nullptr || width <= 0 || height <= 0) return AUTOTEXT_BACKEND_ERROR;
+    app->a43_buffers.emplace_back(static_cast<size_t>(width) * 2u * static_cast<size_t>(height), uint8_t{0});
+    out->pixels = app->a43_buffers.back().data();
+    out->width = width;
+    out->height = height;
+    out->pitch = static_cast<int16_t>(width * 2);
+    record(app, "scene_a43_surface_created name=%s width=%d height=%d format=RGB555", name != nullptr ? name : "",
+           width, height);
+    return AUTOTEXT_BACKEND_OK;
+}
+
+static void native_a43_free_surface(void *context, int index, CaptionSurface *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || surface == nullptr) return;
+    for (auto it = app->a43_buffers.begin(); it != app->a43_buffers.end(); ++it) {
+        if (it->data() == surface->pixels) {
+            app->a43_buffers.erase(it);
+            break;
+        }
+    }
+    record(app, "scene_a43_surface_freed slot=%d", index);
+    std::memset(surface, 0, sizeof(*surface));
+}
+
+static AutotextBackendStatus native_a43_load_overlay(void *context, const char *name, CaptionSurface *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *image = app != nullptr ? load_native_raw555_image(app, name) : nullptr;
+    if (image == nullptr || out == nullptr || image->width > INT16_MAX || image->height > INT16_MAX ||
+        image->pitch > INT16_MAX) return AUTOTEXT_BACKEND_ERROR;
+    out->pixels = image->pixels.data();
+    out->width = static_cast<int16_t>(image->width);
+    out->height = static_cast<int16_t>(image->height);
+    out->pitch = static_cast<int16_t>(image->pitch);
+    return AUTOTEXT_BACKEND_OK;
+}
+
+static void native_a43_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    if (effect == SESSION_A43_FX_RENDERED) {
+        record(app, "scene_a43_rendered surface_index=%d text_bytes=%d writer=0x413187", a, b);
+    } else if (effect == SESSION_A43_FX_CONVERTED) {
+        record(app, "scene_a43_converted row=%d surface_index=%d (0x411f24 tail: runtime type 0x36, subtype 1)", a, b);
+    }
+}
+
+static int native_a43_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a43_handler(app->a43, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a43_blocker row=%zu status=%d detail=%s", row, status, session_a43_failure(app->a43));
+    }
+    return status;
+}
+
 /* RT-33: raw 0x2e, active object only (mode 1): the start flag DAT_005bb1ca := (word 13 != 1) at 0x4cef8d..0x4cefac. */
 static void native_a2e_set_start_flag(void *context, int32_t value)
 {
@@ -4024,9 +4237,14 @@ static int native_a36_load_world(void *context, Overlay36World *world)
     /* 0x583186 / 0x58318a: left/top of the VIEW destination rectangle. */
     world->view_x_583186 = app->scene_destination.left;
     world->view_y_58318a = app->scene_destination.top;
-    /* 0x5d15e3 (saved background of the transparent-restore blit) and the
-     * AUTOTEXT surface globals are not modeled: a blit that needs them fails
-     * explicitly (surface 0). */
+    /* 0x5d15e3 (saved background of the transparent-restore blit) is not modeled:
+     * a blit that needs it fails explicitly (surface 0). The AUTOTEXT surface
+     * globals 0x5d0397.. are the slots the raw 0x43 text writer fills (RT-32). */
+    for (size_t k = 0; k < 3u; ++k) {
+        const CaptionSurface *slot = session_a43_slot(app->a43, k);
+        world->autotext_surface[k] =
+            slot != nullptr && slot->pixels != nullptr ? NATIVE_A43_SLOT_HANDLE + static_cast<uint32_t>(k) : 0u;
+    }
     return 0;
 }
 
@@ -4363,6 +4581,14 @@ static bool create_native_session_bindings(NativeApp *app)
     a67_host.context = app;
     a67_host.set_start_flag = native_a67_set_start_flag;
     app->a67 = session_a67_create(&a67_host);
+    SessionA94Host a94_host{};
+    a94_host.context = app;
+    a94_host.set_capture_flag = native_a94_set_capture_flag;
+    a94_host.request_refresh = native_a94_request_refresh;
+    a94_host.display = native_a94_display;
+    a94_host.capture = native_a94_capture;
+    a94_host.write_file = native_a94_write_file;
+    app->a94 = session_a94_create(&a94_host);
     SessionA2EHost a2e_host{};
     a2e_host.context = app;
     a2e_host.set_start_flag = native_a2e_set_start_flag;
@@ -4385,6 +4611,18 @@ static bool create_native_session_bindings(NativeApp *app)
     a36_host.store_world = native_a36_store_world;
     a36_host.transition = native_a36_transition;
     app->a36 = session_a36_create(&a36_host);
+    SessionA43Host a43_host{};
+    a43_host.context = app;
+    a43_host.lookup = native_a43_lookup;
+    a43_host.render_inputs = native_a43_render_inputs;
+    a43_host.backend.context = app;
+    a43_host.backend.create_surface = native_a43_create_surface;
+    a43_host.backend.free_surface = native_a43_free_surface;
+    a43_host.backend.load_overlay = native_a43_load_overlay;
+    a43_host.backend.load_font_sheet = native_caption_load_font_sheet;
+    a43_host.backend.release_font_sheet = native_caption_release_font_sheet;
+    a43_host.observe = native_a43_observe;
+    app->a43 = app->a36 != nullptr ? session_a43_create(&a43_host, app->a36) : nullptr;
     SessionA17Host a17_host{};
     a17_host.context = app;
     a17_host.load_world = native_a17_load_world;
@@ -4407,7 +4645,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a2e == nullptr || app->a44 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a2e == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5150,7 +5388,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[27]{};
+    SceneSessionActionBinding bindings[29]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5266,17 +5504,26 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[24].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[24].callback = session_a36_handler;
     bindings[24].context = app->a36;
-    /* RT-33: raw 0x2e (dispatcher arm 0x427f62, gate mode 0, handler 0x4ced84; completion byte set directly). */
-    bindings[25].type = SESSION_A2E_TYPE;
+    /* RT-32: raw 0x94 (dispatcher arm 0x429747, gate mode 0, handler 0x4c36b2: three phases, a screen file). */
+    bindings[25].type = SESSION_A94_TYPE;
     bindings[25].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[25].callback = native_a2e_handler;
+    bindings[25].callback = native_a94_handler;
     bindings[25].context = app;
-    /* RT-34: raw 0x44 (dispatcher arm 0x44, gate mode 0, 0x4121b8 then 0x48c1c0 on the replaced record). */
-    bindings[26].type = SESSION_A44_TYPE;
+    bindings[26].type = SESSION_A43_TYPE;
     bindings[26].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[26].callback = native_a44_handler;
+    bindings[26].callback = native_a43_handler;
     bindings[26].context = app;
-    config.action_binding_count = 27u;
+    /* RT-33: raw 0x2e (dispatcher arm 0x427f62, gate mode 0, handler 0x4ced84; completion byte set directly). */
+    bindings[27].type = SESSION_A2E_TYPE;
+    bindings[27].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[27].callback = native_a2e_handler;
+    bindings[27].context = app;
+    /* RT-34: raw 0x44 (dispatcher arm 0x44, gate mode 0, 0x4121b8 then 0x48c1c0 on the replaced record). */
+    bindings[28].type = SESSION_A44_TYPE;
+    bindings[28].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[28].callback = native_a44_handler;
+    bindings[28].context = app;
+    config.action_binding_count = 29u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
