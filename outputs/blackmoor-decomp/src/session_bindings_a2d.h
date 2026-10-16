@@ -16,8 +16,8 @@ typedef struct SessionA2dBinding SessionA2dBinding;
 
 typedef struct SessionA2dHost {
     D2Host kernel;
-    /* Called before every kernel call: fills the process globals the original reads or owns (D2World, all fields: the
-     * host keeps the 0x5bb1ca start flag, 0x5839a9 and the other globals and the inputs scene_key, view origin,
+    /* Called before every kernel call: fills the process globals the original reads or owns (D2World, all fields the
+     * host owns; a host that maps only some leaves the rest at their world-init values: the host keeps the 0x5bb1ca start flag, 0x5839a9 and the other globals and the inputs scene_key, view origin,
      * thread_arg, back_buffer). */
     void (*load_world)(void *context, D2World *world);
     /* Called after every kernel call that ran: the globals the kernel wrote. */
@@ -39,8 +39,10 @@ SessionA2dBinding *session_a2d_create(const SessionA2dHost *host);
 void session_a2d_destroy(SessionA2dBinding *);
 /* The raw 0x2e binding whose SessionA2EMovie mirrors the object (may be NULL; call once, right after creating both). */
 void session_a2d_attach_a2e(SessionA2dBinding *, SessionA2EBinding *a2e);
-/* The scene clear (0x4383ed -> 0x4cd218) of the previous scene, the parse of the new scene's rows, then the render entry
- * registration (0x4cecf7). */
+/* Parses the new scene's raw 0x2d row (at most one: the object is a singleton) and drops the previous scene's tables. The
+ * object is destroyed and its render entry registered once, by the creation (the original does both at world init 0x4381f4,
+ * not at a scene load). A scene load while the movie is active is refused with D2_ERR_UNSUPPORTED before any effect (what the
+ * original does to a live movie's tables is not recovered); a failed parse leaves the new rows unowned. */
 int session_a2d_begin_scene(SessionA2dBinding *, const SceneResource *scene);
 int session_a2d_handler(void *context, size_t row, const SceneActionInfo *action,
                         const SceneActionRuntimeState *before, SceneActionHandlerResult *out);

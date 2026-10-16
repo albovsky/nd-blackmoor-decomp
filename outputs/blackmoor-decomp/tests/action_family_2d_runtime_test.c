@@ -624,6 +624,18 @@ static void test_2e_stop_through_the_binding_pair(void)
     out.disposition = SCENE_ACTION_HANDLER_PENDING;
     CHECK(session_a2e_handler(p.a2e, 6, &info, &before, &out) == SCENE_ACTION_HANDLER_OK);
     CHECK(out.disposition == SCENE_ACTION_HANDLER_DIRECT_COMPLETED);
+    /* the render plan sees the shared words raw 0x2e wrote in the same pass (one memory word in the original) */
+    {
+        D2RenderPlan plan;
+        movie = *session_a2e_movie(p.a2e);
+        movie.active = 1;
+        movie.flag_206 = 1;
+        session_a2e_set_movie(p.a2e, &movie);
+        CHECK(session_a2d_render_plan(p.a2d, &plan) == D2_OK && plan.valid == 1);
+        movie.flag_206 = 0;
+        session_a2e_set_movie(p.a2e, &movie);
+        CHECK(session_a2d_render_plan(p.a2d, &plan) == D2_OK && plan.valid == 0);
+    }
     session_a2e_destroy(p.a2e);
     session_a2d_destroy(p.a2d);
     d2_set_free(&p.fix.set);

@@ -115,6 +115,7 @@ class UnitTests(unittest.TestCase):
             'single entry still rolls': (k, 'if (set->entry_count == 1) {\n            o->clip_246 = 0;', 'if (set->entry_count == -1) {\n            o->clip_246 = 0;'),
             'lookup by prefix': (k, 'if (name_equal(name, set->entries[i].name)) {', 'if (strncmp(name, set->entries[i].name, 1) == 0) {'),
             'name compare case sensitive': (k, 'ca += 0x20;', 'ca += 0;'),
+            'render plan reads a stale copy': ('session_bindings_a2d.c', '    load_state(b); /* flag 0x206', '    /* flag 0x206'),
             'ring flag inverted': (k, 'if (set->mode_word == 1) {\n        w->g_5839a9 = 0;', 'if (set->mode_word != 1) {\n        w->g_5839a9 = 0;'),
             'start flag not set': (k, '    w->start_flag = 1;\n    w->g_5831c8 = 1; /* 0x4d36ed */', '    w->g_5831c8 = 1; /* 0x4d36ed */'),
             'active not set': (k, '    o->movie.active = 1;\n    o->buffer_192 = 0;', '    o->buffer_192 = 0;'),
@@ -206,17 +207,23 @@ class BuildAndCorpus(unittest.TestCase):
         self.assertEqual((summary['scenes'], summary['rows'], summary['ok'], summary['error']), (3, 3, 3, 0))
         self.assertEqual((summary['sub1'], summary['sub_other'], summary['ring']), (3, 0, 3))
 
-    def test_corpus_detects_a_dropped_media_gate(self):
+    def test_corpus_detects_binding_mutants(self):
         if not RESOURCES.exists():
             self.skipTest('local corpus evidence (work/) is not present')
-        with tempfile.TemporaryDirectory() as tmp:
-            work = mutate(tmp, 'session_bindings_a2d.c', 'if (before->phase == 0u && (b->host.media_available == NULL ||',
-                          'if (0 && before->phase == 0u && (b->host.media_available == NULL ||', 'mut_corpus')
-            binary = work / 'a2d_corpus_mut'
-            built = compile_c(binary, CORPUS_C, CORPUS_SOURCES, src_dir=work)
-            self.assertEqual(built.returncode, 0, built.stderr)
-            done = subprocess.run([str(binary), *map(str, sorted(RESOURCES.glob('*.bin')))], capture_output=True, text=True)
-        self.assertNotEqual(done.returncode, 0, 'mutant survived: media gate dropped')
+        mutations = {
+            'media gate dropped': ('if (before->phase == 0u && (b->host.media_available == NULL ||',
+                                   'if (0 && before->phase == 0u && (b->host.media_available == NULL ||'),
+            'scene load with an active movie accepted': ('if (b->object.movie.active != 0) {\n        b->failure = "0x2d: a scene load',
+                                                         'if (0) {\n        b->failure = "0x2d: a scene load'),
+        }
+        for name, (old, new) in mutations.items():
+            with self.subTest(name), tempfile.TemporaryDirectory() as tmp:
+                work = mutate(tmp, 'session_bindings_a2d.c', old, new, 'mut_corpus')
+                binary = work / 'a2d_corpus_mut'
+                built = compile_c(binary, CORPUS_C, CORPUS_SOURCES, src_dir=work)
+                self.assertEqual(built.returncode, 0, built.stderr)
+                done = subprocess.run([str(binary), *map(str, sorted(RESOURCES.glob('*.bin')))], capture_output=True, text=True)
+                self.assertNotEqual(done.returncode, 0, 'mutant survived: ' + name)
 
 
 if __name__ == '__main__':

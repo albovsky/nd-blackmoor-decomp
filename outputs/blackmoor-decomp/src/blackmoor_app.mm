@@ -3784,15 +3784,18 @@ static int native_a2e_stop_movie(void *context, int32_t *retire_row)
         record(app, "scene_a2d_stop_blocker detail=%s", session_a2d_failure(app->a2d));
         return 1;
     }
-    if (*retire_row != SESSION_A2E_NO_ROW && app->session != nullptr &&
-        scene_session_retire_action(app->session, static_cast<size_t>(*retire_row)) != SCENE_EXECUTOR_OK) {
+    if (*retire_row != SESSION_A2E_NO_ROW &&
+        (app->session == nullptr ||
+         scene_session_retire_action(app->session, static_cast<size_t>(*retire_row)) != SCENE_EXECUTOR_OK)) {
         return 1;
     }
     record(app, "scene_a2d_stop retired_row=%d (0x4ceb3b via raw 0x2e mode 0)", *retire_row);
     return 0;
 }
 
-/* RT-36: raw 0x2d process globals the app owns: the start flag 0x5bb1ca (the other globals have no app counterpart yet). */
+/* RT-36: raw 0x2d process globals the app owns: the start flag 0x5bb1ca. The other kernel inputs and globals (scene key word
+ * 0x5bb50b, view origin, decode thread argument, back buffer, 0x5839a9, 0x5d16cd, 0x5d1683, 0x5d1639, 0x5d1a39, 0x5d1a45) have
+ * no app counterpart yet: they must be mapped here before native_a2d_media_available can return 1. */
 static void native_a2d_load_world(void *context, D2World *world)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
@@ -5379,8 +5382,8 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     if (session_a44_begin_scene(app->a44, app->scene) != 0) {
         record(app, "scene_a44_begin_blocker detail=%s", session_a44_failure(app->a44));
     }
-    /* RT-36: scene clear of the random-movie object (0x4383ed -> 0x4cd218), parse of the scene's raw 0x2d row, render entry
-     * registration. A failure leaves the 0x2d row unowned (it reports the blocker). */
+    /* RT-36: parse of the scene's raw 0x2d row (the object is destroyed and its render entry registered once, at creation,
+     * as the original does at world init). A failure leaves the 0x2d row unowned (it reports the blocker). */
     if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
         record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
     }

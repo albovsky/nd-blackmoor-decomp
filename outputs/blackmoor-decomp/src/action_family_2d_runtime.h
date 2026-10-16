@@ -41,7 +41,7 @@ extern "C" {
  *             stream reset 0x44c4c1, surface size check, then per kind the surface create, the Bink open/prepare
  *             (0x4bef11 / 0x4bf19a on the Bink player 0x6201f9) or the AVF decode thread (0x4497a0, proc 0x4cf687).
  *   0x4ceb8c  group rectangles; 0x4cec6c frame advance; 0x4cecf7 render entry (fixed Z slot 16 at 0x5d1a31, type 0xb,
- *             callback 0x4cf749 = one 0x4c5377 blit of the movie surface); the scene clear (0x4383ed) runs 0x4cd218.
+ *             callback 0x4cf749 = one 0x4c5377 blit of the movie surface); the world init 0x4381f4 runs 0x4cd218 (0x4383f2) and 0x4cecf7 (0x439500) once; a scene load does neither.
  *
  * Every engine, media and OS call whose body lies outside this slice is one D2Op of D2Host in the original order.
  * The AVF decode thread (0x4cf687) is host behaviour: it owns the stream sub-object fields (+0x24, +0x172, +0x182,
@@ -221,7 +221,7 @@ int d2_step(D2Object *object, const D2Set *set, int16_t row, uint32_t phase, D2W
  * (the object's +0x23e before the reset), D2_NO_ROW when none; the caller completes it. */
 int d2_stop(D2Object *object, D2World *world, const D2Host *host, int32_t *retire_row);
 
-/* 0x4cd218: teardown, surface release, row erase, reset (the scene clear 0x4383ed runs it). */
+/* 0x4cd218: teardown, surface release, row erase, reset (world init 0x4381f4 and the stop run it, not a scene load). */
 int d2_destruct(D2Object *object, const D2Host *host, int32_t *erased_row);
 
 /* 0x4cecf7: register the render entry in Z slot 16. */

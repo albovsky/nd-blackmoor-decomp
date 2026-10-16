@@ -86,7 +86,16 @@ int main(int argc, char **argv)
                     unsigned long ops;
                     const int bound = session_a2d_begin_scene(binding, scene) == D2_OK;
                     ops = g_ops;
-                    if (bound &&
+                    /* a scene load with an active movie is refused before any effect and leaves the object alone */
+                    D2Object *live = (D2Object *)session_a2d_object(binding);
+                    int refused = 0;
+                    if (bound) {
+                        live->movie.active = 1;
+                        refused = session_a2d_begin_scene(binding, scene) == D2_ERR_UNSUPPORTED && live->movie.active == 1;
+                        live->movie.active = 0;
+                        ops = g_ops;
+                    }
+                    if (bound && refused &&
                         session_a2d_handler(binding, i, &info, &before, &out) == SCENE_ACTION_HANDLER_UNSUPPORTED &&
                         g_ops == ops && session_a2d_object(binding)->movie.active == 0) {
                         ++ok;

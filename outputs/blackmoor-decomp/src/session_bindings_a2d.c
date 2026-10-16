@@ -26,6 +26,7 @@ SessionA2dBinding *session_a2d_create(const SessionA2dHost *host)
         d2_object_reset(&b->object);
         d2_world_init(&b->world);
         b->failure = "none";
+        d2_register_entry(&b->object, &b->world); /* world init: 0x4cecf7 at 0x439500 */
     }
     return b;
 }
@@ -99,9 +100,17 @@ int session_a2d_begin_scene(SessionA2dBinding *b, const SceneResource *scene)
     uint8_t *present = NULL;
     size_t count;
     size_t rows_2d = 0u;
-    int32_t erased;
     if (b == NULL || scene == NULL) {
         return D2_ERR_ARGUMENT;
+    }
+    /* The original destroys and registers the object once, at world init (0x4381f4: 0x4cd218 at 0x4383f2, 0x4cecf7 at
+     * 0x439500), not at a scene load, and its handlers keep the object across scene loads. What happens to a live movie's
+     * tables when the scene's rows are replaced is not recovered, so a scene load with an active movie is refused before any
+     * effect and the old tables stay. */
+    load_state(b);
+    if (b->object.movie.active != 0) {
+        b->failure = "0x2d: a scene load while the random movie is active is not modelled";
+        return D2_ERR_UNSUPPORTED;
     }
     count = scene_resource_action_count(scene);
     if (count != 0u) {
@@ -134,25 +143,16 @@ int session_a2d_begin_scene(SessionA2dBinding *b, const SceneResource *scene)
         }
         present[i] = 1u;
     }
-    /* The previous scene's clear (0x4383ed -> 0x4cd218). */
-    load_state(b);
-    if (d2_destruct(&b->object, &b->host.kernel, &erased) != D2_OK) {
-        b->failure = "0x2d-scene-clear";
-        store_state(b);
-        goto bad;
-    }
-    store_state(b);
+    /* The inactive object owns no tables (its stop erased them), so the old ones are dropped with the old scene. */
     free_sets(b);
     b->sets = sets;
     b->present = present;
     b->count = count;
-    d2_register_entry(&b->object, &b->world);
-    if (b->host.store_world != NULL) {
-        b->host.store_world(b->host.kernel.context, &b->world);
-    }
     b->failure = "none";
     return D2_OK;
 bad:
+    /* A failed build leaves the new scene's rows unowned: the old scene's tables must not answer for them. */
+    free_sets(b);
     for (size_t i = 0u; i < count; ++i) {
         if (present != NULL && present[i] != 0u) {
             d2_set_free(&sets[i]);
@@ -217,6 +217,7 @@ int session_a2d_render_plan(SessionA2dBinding *b, D2RenderPlan *plan)
     if (b == NULL) {
         return D2_ERR_ARGUMENT;
     }
+    load_state(b); /* flag 0x206 and the active word are shared with raw 0x2e, which may have run in this pass */
     return d2_render_plan(&b->object, &b->world, plan);
 }
 
