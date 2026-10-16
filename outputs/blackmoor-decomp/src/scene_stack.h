@@ -73,7 +73,7 @@ typedef struct scene_stack_pop_result {
 } SceneStackPop;
 
 #define SCENE_STACK_POP_OK 0
-#define SCENE_STACK_POP_EMPTY 1    /* word [0x5c3a05] is 9999: the original reports a fatal error; nothing changes here */
+#define SCENE_STACK_POP_EMPTY 1    /* word [0x5c3a05] is 9999: the original shows a message box and requests quit (0x52139c, 0x4c97b4), the tail after that is not modelled; nothing changes here */
 #define SCENE_STACK_POP_ARGUMENT -1
 
 /* 0x42e493 (cdecl, no arguments): fills *out with the values the original stores, then marks the record empty (both

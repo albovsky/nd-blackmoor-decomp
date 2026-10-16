@@ -28,7 +28,7 @@ typedef struct session_a6f_host {
  * 1 directly (0x4291ec) and leaves the phase word alone (neither 0x42ba3a nor a dependency reset runs, whatever the
  * subtype), so a visit returns DIRECT_COMPLETED with the phase it was given. The pop puts the engine into mode 4, so the
  * dispatcher visits no further row (its loop head needs mode 3, 0x427a8e): the host's transition request makes the
- * executor stop the pass the same way. The body byte is never read. An empty record (0x5c3a05 == 9999) is a fatal error
+ * executor stop the pass the same way. The body byte is never read. An empty record (0x5c3a05 == 9999) is an error path (message box and quit request, tail not modelled)
  * in the original; here it is HANDLER_ERROR before any effect (a 0x6e must run first).
  * `slot` is borrowed and shared with the 0x6e push. */
 SessionA6FBinding *session_a6f_create(const SessionA6FHost *host, SceneStackSlot *slot);
