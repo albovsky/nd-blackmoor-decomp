@@ -300,6 +300,9 @@ class BindingTests(unittest.TestCase):
         f.tick()
         self.assertEqual(self.lib.session_a36_registered(f.binding), 4)
         self.assertEqual(f.loaded, [b'A', b'B', b'C', b'D'])
+        # the pointer must not be truncated to an int (64-bit hosts)
+        self.lib.session_a36_manager.argtypes = [c.c_void_p]
+        self.lib.session_a36_manager.restype = c.c_void_p
         manager = t36.Manager.from_address(self.lib.session_a36_manager(f.binding))
         self.assertEqual(list(manager.list[:4]), [0, 1, 2, 3])
 
@@ -387,13 +390,7 @@ class BindingTests(unittest.TestCase):
         self.assertEqual((f.flags[12], f.state()), (3, (1, 0)))
 
 
-class GateModeTests(t37.GateModeTests):
-    """Raw 0x38 is gated with mode 1 as well (0x428083); inherited from RT-18 for the three types."""
-
-
-for _name in list(vars(t37.GateModeTests)):
-    if _name.startswith('test_') and _name not in vars(GateModeTests):
-        setattr(GateModeTests, _name, None)
+# The gate mode (1) for raw 0x38 is checked by test_action_family_37_runtime.GateModeTests (RT-18).
 
 
 # ---- planted mutants of the 0x38 glue and of the constructor fields the runtime depends on -----
@@ -436,7 +433,19 @@ class MutantTests(unittest.TestCase):
             self.skipTest('running inside a mutant check')
         sources = source_files_of_the_build_script()
         self.assertIn('action_family_38.c', sources)
+        command = [sys.executable, '-m', 'unittest', 'test_action_family_38_runtime.ConstructionTests',
+                   'test_action_family_38_runtime.BindingTests']
         with tempfile.TemporaryDirectory() as tmp:
+            # control: the same command on the unmutated sources must pass, so a nonzero exit
+            # below means a failing test and not a broken environment
+            control = Path(tmp) / 'control.dylib'
+            built = subprocess.run([compiler(), '-std=c11', '-O1', '-fPIC', '-shared', '-I', str(SRC)] +
+                                   [str(SRC / s) for s in sources] + ['-o', str(control)],
+                                   capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stderr[-500:])
+            done = subprocess.run(command, cwd=str(PROJECT / 'tests'), capture_output=True, text=True,
+                                  env=dict(os.environ, A36_RUNTIME_LIBRARY=str(control), RT31_NO_MUTANTS='1'))
+            self.assertEqual(done.returncode, 0, done.stderr[-500:])
             for name, (filename, old, new) in MUTANTS.items():
                 with self.subTest(name):
                     work = Path(tmp) / 'src'
@@ -455,11 +464,10 @@ class MutantTests(unittest.TestCase):
                         capture_output=True, text=True)
                     self.assertEqual(built.returncode, 0, built.stderr[-500:])
                     env = dict(os.environ, A36_RUNTIME_LIBRARY=str(library), RT31_NO_MUTANTS='1')
-                    done = subprocess.run(
-                        [sys.executable, '-m', 'unittest', 'test_action_family_38_runtime.ConstructionTests',
-                         'test_action_family_38_runtime.BindingTests'],
-                        cwd=str(PROJECT / 'tests'), env=env, capture_output=True, text=True)
+                    done = subprocess.run(command, cwd=str(PROJECT / 'tests'), env=env,
+                                          capture_output=True, text=True)
                     self.assertNotEqual(done.returncode, 0, 'mutant survived: ' + name)
+                    self.assertRegex(done.stderr, r'FAIL(ED|:)|ERROR:', name)
 
 
 if __name__ == '__main__':
