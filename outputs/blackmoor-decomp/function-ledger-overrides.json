@@ -1,16 +1,22 @@
 {
  "schema": "blackmoor-function-ledger-overrides/1",
- "status": "draft",
- "note": "FL-3 draft. No function is accepted as ported or not needed here: port_acceptances and not_needed_entries are empty and every rule has accepted=false until a reviewer records a zero-defect sample. Machine preconditions live in scripts/extract_function_xrefs.py (RULE_PREDICATES, rule_candidates, semantics_sensitive_set); the sampler is scripts/sample_function_ledger.py.",
+ "status": "reviewed",
+ "note": "FL-3 shape, FL-6 acceptances and FL-7 library decisions. port_acceptances are individually reviewed; R-EH is accepted for library-parent funclets (see its caveats and review); not_needed_entries are per-function reviews by a Sonnet reader and an independent second reader, gated again by the ledger (reason preconditions, semantics_sensitive, census floor); win32_import_allowlist is the FL-7 default ruling. Machine preconditions live in scripts/extract_function_xrefs.py (RULE_PREDICATES, rule_candidates, semantics_sensitive_set); the sampler is scripts/sample_function_ledger.py.",
  "port_acceptances": [
   {
    "va": "0x40b2d0",
    "class": "native_tests_only",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
-   "native_source": {"path": "src/action_family_17_runtime.c", "symbol": "action17_cursor_index_for_type"},
+   "native_source": {
+    "path": "src/action_family_17_runtime.c",
+    "symbol": "action17_cursor_index_for_type"
+   },
    "tests": [
-    {"path": "tests/test_action_family_17_runtime.py", "test_id": "CursorTests.test_cursor_index_map_covers_every_byte"}
+    {
+     "path": "tests/test_action_family_17_runtime.py",
+     "test_id": "CursorTests.test_cursor_index_map_covers_every_byte"
+    }
    ],
    "oracle": null,
    "parts_accounted": [],
@@ -21,11 +27,23 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
-   "native_source": {"path": "src/action_core.c", "symbol": "action_core_finish_action"},
+   "native_source": {
+    "path": "src/action_core.c",
+    "symbol": "action_core_finish_action"
+   },
    "tests": [
-    {"path": "tests/test_action_core.py", "test_id": "ActionCoreTests.test_post_completion_subtypes"}
+    {
+     "path": "tests/test_action_core.py",
+     "test_id": "ActionCoreTests.test_post_completion_subtypes"
+    }
    ],
-   "oracle": {"path": "tests/action_core_original_oracle.py", "window": ["0x42ba3a", "0x42babf"]},
+   "oracle": {
+    "path": "tests/action_core_original_oracle.py",
+    "window": [
+     "0x42ba3a",
+     "0x42babf"
+    ]
+   },
    "parts_accounted": [],
    "note": "Matches the pseudocode; the 0x423d33 dependency reset is only reported. Upgraded by FL-8: action_core_original_oracle.py, rerun and recorded executing every byte, compares it via the dispatcher."
   },
@@ -34,10 +52,19 @@
    "class": "native_tests_only",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
-   "native_source": {"path": "src/sound_control.c", "symbol": "sound_control_play"},
+   "native_source": {
+    "path": "src/sound_control.c",
+    "symbol": "sound_control_play"
+   },
    "tests": [
-    {"path": "tests/test_sound_control.py", "test_id": "SoundControlTests.test_play_errors_preserve_original_codes_and_ordered_state"},
-    {"path": "tests/test_sound_control.py", "test_id": "SoundControlTests.test_play_flags_keep_raw_control_stream_state_and_flags_separate"}
+    {
+     "path": "tests/test_sound_control.py",
+     "test_id": "SoundControlTests.test_play_errors_preserve_original_codes_and_ordered_state"
+    },
+    {
+     "path": "tests/test_sound_control.py",
+     "test_id": "SoundControlTests.test_play_flags_keep_raw_control_stream_state_and_flags_separate"
+    }
    ],
    "oracle": null,
    "parts_accounted": [],
@@ -48,16 +75,31 @@
    "class": "native_tests_only",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
-   "native_source": {"path": "src/session_bindings_conditions.c", "symbol": "session_conditions_query_channel_record"},
+   "native_source": {
+    "path": "src/session_bindings_conditions.c",
+    "symbol": "session_conditions_query_channel_record"
+   },
    "tests": [
-    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_query_channel_record_helper_is_the_pure_decision"},
-    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_sound_query_manager_mutations_follow_the_original"},
-    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_sound_query_repeat_marker_branch_uses_the_pause_gates"}
+    {
+     "path": "tests/test_session_bindings_conditions.py",
+     "test_id": "SessionConditionsTests.test_query_channel_record_helper_is_the_pure_decision"
+    },
+    {
+     "path": "tests/test_session_bindings_conditions.py",
+     "test_id": "SessionConditionsTests.test_sound_query_manager_mutations_follow_the_original"
+    },
+    {
+     "path": "tests/test_session_bindings_conditions.py",
+     "test_id": "SessionConditionsTests.test_sound_query_repeat_marker_branch_uses_the_pause_gates"
+    }
    ],
    "oracle": null,
    "parts_accounted": [],
    "blockers_reviewed": [
-    {"id": "RT-14:724f0d1d3a66e4b3", "rationale": "RT-14 says an overlay that names a sound blocks because the native app has no sound provider; that concerns the overlay runtime, not the pure decision of this query, which is unchanged by it."}
+    {
+     "id": "RT-14:724f0d1d3a66e4b3",
+     "rationale": "RT-14 says an overlay that names a sound blocks because the native app has no sound provider; that concerns the overlay runtime, not the pure decision of this query, which is unchanged by it."
+    }
    ],
    "note": "Decision order, error words and status bit match the pseudocode; the DirectSound GetStatus call is a host value in the record. Test passed on macOS arm64, 2026-10-15."
   },
@@ -66,10 +108,19 @@
    "class": "host_adapter_tested",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
-   "native_source": {"path": "src/session_bindings_conditions.c", "symbol": "session_conditions_crt_rand"},
+   "native_source": {
+    "path": "src/session_bindings_conditions.c",
+    "symbol": "session_conditions_crt_rand"
+   },
    "tests": [
-    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_crt_rand_follows_the_original_lcg_for_other_seeds"},
-    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_crt_rand_matches_the_msvc_sequence_for_seed_one"}
+    {
+     "path": "tests/test_session_bindings_conditions.py",
+     "test_id": "SessionConditionsTests.test_crt_rand_follows_the_original_lcg_for_other_seeds"
+    },
+    {
+     "path": "tests/test_session_bindings_conditions.py",
+     "test_id": "SessionConditionsTests.test_crt_rand_matches_the_msvc_sequence_for_seed_one"
+    }
    ],
    "oracle": null,
    "parts_accounted": [],
@@ -80,11 +131,23 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/action_family_0b_runtime.c", "symbol": "action0b_step"},
+   "native_source": {
+    "path": "src/action_family_0b_runtime.c",
+    "symbol": "action0b_step"
+   },
    "tests": [
-    {"path": "tests/test_action_family_0b_runtime.py", "test_id": "KernelTests.test_null_arguments_are_rejected_and_the_observer_is_optional"}
+    {
+     "path": "tests/test_action_family_0b_runtime.py",
+     "test_id": "KernelTests.test_null_arguments_are_rejected_and_the_observer_is_optional"
+    }
    ],
-   "oracle": {"path": "tests/action_family_0b_runtime_original_oracle.py", "window": ["0x42ae73", "0x42b07e"]},
+   "oracle": {
+    "path": "tests/action_family_0b_runtime_original_oracle.py",
+    "window": [
+     "0x42ae73",
+     "0x42b07e"
+    ]
+   },
    "parts_accounted": [],
    "note": "Native is action0b_step (phases 0-2 and other). RT-16 oracle: 4320 kernel cases, 0 mismatches. Gaps: payload/row pointers are structs; native adds null-argument rejects."
   },
@@ -93,14 +156,29 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/input_consume.c", "symbol": "input_consume_field4"},
+   "native_source": {
+    "path": "src/input_consume.c",
+    "symbol": "input_consume_field4"
+   },
    "tests": [
-    {"path": "tests/test_input_consume.py", "test_id": "InputConsumeNativeTests.test_field4_requires_20_bytes_and_clears_only_after_nonzero"}
+    {
+     "path": "tests/test_input_consume.py",
+     "test_id": "InputConsumeNativeTests.test_field4_requires_20_bytes_and_clears_only_after_nonzero"
+    }
    ],
-   "oracle": {"path": "tests/input_consume_original_oracle.py", "window": ["0x4daf6e", "0x4daf9f"]},
+   "oracle": {
+    "path": "tests/input_consume_original_oracle.py",
+    "window": [
+     "0x4daf6e",
+     "0x4daf9f"
+    ]
+   },
    "parts_accounted": [],
    "blockers_reviewed": [
-    {"id": "RT-17:3031df558d9c77db", "rationale": "The item is a caller-side assumption (the native app has no right button, so the tick treats the secondary consumer as returning 0); it does not alter whether input_consume_field4 matches the original method. It does mean the function is not wired into the native game loop."}
+    {
+     "id": "RT-17:3031df558d9c77db",
+     "rationale": "The item is a caller-side assumption (the native app has no right button, so the tick treats the secondary consumer as returning 0); it does not alter whether input_consume_field4 matches the original method. It does mean the function is not wired into the native game loop."
+    }
    ],
    "note": "Native is input_consume_field4. Oracle: 100 calls, 0 mismatches. Native app does not call it yet (function-level only). Caller-side RT-17 item reviewed."
   },
@@ -109,11 +187,23 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/action_family_78_runtime.c", "symbol": "action78_visit"},
+   "native_source": {
+    "path": "src/action_family_78_runtime.c",
+    "symbol": "action78_visit"
+   },
    "tests": [
-    {"path": "tests/test_action_family_78_runtime.py", "test_id": "RuntimeTests.test_null_arguments_and_model_pointers"}
+    {
+     "path": "tests/test_action_family_78_runtime.py",
+     "test_id": "RuntimeTests.test_null_arguments_and_model_pointers"
+    }
    ],
-   "oracle": {"path": "tests/action_family_78_runtime_original_oracle.py", "window": ["0x4eaadc", "0x4eac4c"]},
+   "oracle": {
+    "path": "tests/action_family_78_runtime_original_oracle.py",
+    "window": [
+     "0x4eaadc",
+     "0x4eac4c"
+    ]
+   },
    "parts_accounted": [],
    "note": "Native is action78_visit; every branch matches. RT-19 oracle compares effect log and model per case, 0 mismatches. The named test covers null arguments only; behaviour evidence is the oracle."
   },
@@ -122,14 +212,29 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/action_family_78_runtime.c", "symbol": "action78_add_item"},
+   "native_source": {
+    "path": "src/action_family_78_runtime.c",
+    "symbol": "action78_add_item"
+   },
    "tests": [
-    {"path": "tests/test_action_family_78_runtime.py", "test_id": "RuntimeTests.test_add_item_step_alone_puts_the_item_first_without_sound_ui_or_completion"}
+    {
+     "path": "tests/test_action_family_78_runtime.py",
+     "test_id": "RuntimeTests.test_add_item_step_alone_puts_the_item_first_without_sound_ui_or_completion"
+    }
    ],
-   "oracle": {"path": "tests/action_family_78_runtime_original_oracle.py", "window": ["0x4e9e84", "0x4ea06c"]},
+   "oracle": {
+    "path": "tests/action_family_78_runtime_original_oracle.py",
+    "window": [
+     "0x4e9e84",
+     "0x4ea06c"
+    ]
+   },
    "parts_accounted": [],
    "blockers_reviewed": [
-    {"id": "RT-19:0739013e7028fc5b", "rationale": "The text is about play reachability (nothing in the native app writes view byte +0x7010, so the item-last layout is not reached in play), not about native/original equivalence; the oracle draws (mode 2, slot flag 1) from VIEW_MODES and RT-22 put-back click tests run the append branch against the original."}
+    {
+     "id": "RT-19:0739013e7028fc5b",
+     "rationale": "The text is about play reachability (nothing in the native app writes view byte +0x7010, so the item-last layout is not reached in play), not about native/original equivalence; the oracle draws (mode 2, slot flag 1) from VIEW_MODES and RT-22 put-back click tests run the append branch against the original."
+    }
    ],
    "note": "Native is action78_add_item (add step alone). RT-19 oracle: 3646 cases, 0 mismatches. Gaps: 361 out-of-model cases rejected natively; the add is driven through parent chains."
   },
@@ -138,14 +243,29 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/action_family_79_runtime.c", "symbol": "action79_remove_item"},
+   "native_source": {
+    "path": "src/action_family_79_runtime.c",
+    "symbol": "action79_remove_item"
+   },
    "tests": [
-    {"path": "tests/test_action_family_79_runtime.py", "test_id": "RuntimeTests.test_remove_item_step_alone_compacts_and_rebuilds_without_completing"}
+    {
+     "path": "tests/test_action_family_79_runtime.py",
+     "test_id": "RuntimeTests.test_remove_item_step_alone_compacts_and_rebuilds_without_completing"
+    }
    ],
-   "oracle": {"path": "tests/action_family_79_runtime_original_oracle.py", "window": ["0x4ea06c", "0x4ea1cb"]},
+   "oracle": {
+    "path": "tests/action_family_79_runtime_original_oracle.py",
+    "window": [
+     "0x4ea06c",
+     "0x4ea1cb"
+    ]
+   },
    "parts_accounted": [],
    "blockers_reviewed": [
-    {"id": "A-79.1:03c75098d941819f", "rationale": "A-79.1 was the static decode slice; the later RT-13 oracle (1554 cases) plus RT-19 (3646) and RT-22 execute 0x4ea06c for found first/middle/last, missing, duplicate and held-item paths, signed words and ordered effects. Only out-of-model counts and ids remain native-rejected (listed under gaps)."}
+    {
+     "id": "A-79.1:03c75098d941819f",
+     "rationale": "A-79.1 was the static decode slice; the later RT-13 oracle (1554 cases) plus RT-19 (3646) and RT-22 execute 0x4ea06c for found first/middle/last, missing, duplicate and held-item paths, signed words and ordered effects. Only out-of-model counts and ids remain native-rejected (listed under gaps)."
+    }
    ],
    "note": "Native is action79_remove_item. RT-13 oracle 1554 and RT-19 3646 cases, 0 mismatches. Gaps: out-of-model inputs rejected natively."
   },
@@ -154,14 +274,29 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/cif_pixels.c", "symbol": "cif_pixels_convert_555"},
+   "native_source": {
+    "path": "src/cif_pixels.c",
+    "symbol": "cif_pixels_convert_555"
+   },
    "tests": [
-    {"path": "tests/test_cif_pixels.py", "test_id": "PixelConversionTests.test_cif_pixels_convert_555_converts_a_buffer_in_place_like_the_scalar_reference"}
+    {
+     "path": "tests/test_cif_pixels.py",
+     "test_id": "PixelConversionTests.test_cif_pixels_convert_555_converts_a_buffer_in_place_like_the_scalar_reference"
+    }
    ],
-   "oracle": {"path": "tests/pixel_original_oracle.py", "window": ["0x4c7314", "0x4c7481"]},
+   "oracle": {
+    "path": "tests/pixel_original_oracle.py",
+    "window": [
+     "0x4c7314",
+     "0x4c7481"
+    ]
+   },
    "parts_accounted": [],
    "blockers_reviewed": [
-    {"id": "S03-1:71a0b83787925355", "rationale": "The item limits the AVF decoder tests to 5/5/5 and 5/6/5 display formats and says 0x4c7314 itself is exhaustively validated by the pixel oracle; that oracle compares 11 format cases times all 65536 words against the original and matched."}
+    {
+     "id": "S03-1:71a0b83787925355",
+     "rationale": "The item limits the AVF decoder tests to 5/5/5 and 5/6/5 display formats and says 0x4c7314 itself is exhaustively validated by the pixel oracle; that oracle compares 11 format cases times all 65536 words against the original and matched."
+    }
    ],
    "note": "Native is cif_pixels_convert_555. Pixel oracle covers all 65536 words in 11 format cases, 0 mismatches. Note: this is the in-place renderer conversion, not host RGBA expansion."
   },
@@ -170,30 +305,441 @@
    "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
    "date": "2026-10-16",
-   "native_source": {"path": "src/action_ui.c", "symbol": "action_ui_initialize_controls"},
+   "native_source": {
+    "path": "src/action_ui.c",
+    "symbol": "action_ui_initialize_controls"
+   },
    "tests": [
-    {"path": "tests/test_action_ui.py", "test_id": "ActionUITests.test_action_ui_initialize_controls_resets_every_field_of_a_dirty_world"}
+    {
+     "path": "tests/test_action_ui.py",
+     "test_id": "ActionUITests.test_action_ui_initialize_controls_resets_every_field_of_a_dirty_world"
+    }
    ],
-   "oracle": {"path": "tests/action_ui_original_oracle.py", "window": ["0x4e1a7e", "0x4e1b79"]},
+   "oracle": {
+    "path": "tests/action_ui_original_oracle.py",
+    "window": [
+     "0x4e1a7e",
+     "0x4e1b79"
+    ]
+   },
    "parts_accounted": [],
    "blockers_reviewed": [
-    {"id": "RT-22:dac30393f20994a9", "rationale": "The item says taskbar_init (inventory_button_runtime.c, the rejected pairing) skips +0x194, +0x198.. and the dword := 0xd fields; action_ui_initialize_controls writes all of them (availability, flags[3], codes 13) and the oracle compares the whole 5*0x1a4 control array."}
+    {
+     "id": "RT-22:dac30393f20994a9",
+     "rationale": "The item says taskbar_init (inventory_button_runtime.c, the rejected pairing) skips +0x194, +0x198.. and the dword := 0xd fields; action_ui_initialize_controls writes all of them (availability, flags[3], codes 13) and the oracle compares the whole 5*0x1a4 control array."
+    }
    ],
    "note": "Native is action_ui_initialize_controls (writes every field the original does; checked by hand on a 0xAA-filled world). Oracle compares it only indirectly, through handler output over 13 cases."
   }
  ],
- "not_needed_entries": [],
+ "not_needed_entries": [
+  {
+   "va": "0x50c17c",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CWnd::GetOwner: returns owner HWND or GetParent, maps handle via FUN_0051abe4; window bookkeeping only, no game data",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50c5ee",
+   "reason": "compiler_eh_funclet",
+   "text": "[2nd reader agrees] Catch@ handler of a library parent: Leaves critical section, rethrows (CxxThrow 0,0): library lock release then rethrow; tail is spilled code of another fn. Parent (free-list alloc) lets it propagate",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50d7e3",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] exit(): calls doexit(code,0,0); only caller is entry, not game reached, no game callers",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50d8e0",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] empty needle returns haystack; single-char and multi-char scans return first match pointer or NULL; word-at-a-time NUL detection only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50d960",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] copies up to count bytes, pads remainder with NULs, returns dest; word-optimised",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50da60",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] bounded unsigned-byte compare returning -1/0/1; no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50db50",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] computes length including NUL then scans backward for char, returns pointer or NULL; no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50e7e5",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] entry: GetVersion, heap/io/cmdline/env init, _cinit, GetStartupInfo, calls WinMain wrapper, exit; no callers, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50e912",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] fatal runtime error exit during startup: writes message then ExitProcess(0xff); only caller entry, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50f830",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] returns pointer to first byte equal to value within count bytes or NULL; word-at-a-time scan, no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50f920",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] fills size bytes with low byte of value, returns dest; word-fill optimisation only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x50f9e0",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] unsigned byte compare returning -1/0/1; no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x510d6c",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] _mtinit: TlsAlloc and main-thread data setup; only caller entry, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5119ed",
+   "reason": "library_internal_unreached_by_game",
+   "text": "[2nd reader agrees] No caller, no address taken: Calls __local_unwind2 with fields at param_1+0x18/+0x1c: SEH unwind thunk, pure CRT exception plumbing, no game-visible role",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x511f30",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] scans for NUL byte word-at-a-time and returns length; no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5120d4",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] _lock_file: EnterCriticalSection on stream lock or _lock; synchronization only, returns nothing",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x512103",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] _lock_file2: _lock or EnterCriticalSection; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x512126",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] _unlock_file: LeaveCriticalSection or _unlock; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x512155",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] _unlock_file2: _unlock or LeaveCriticalSection; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5128b0",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] copies bytes through terminating NUL and returns dest; word-at-a-time optimisation only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5128c0",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] finds end of dest then copies src including NUL; returns dest",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x512bef",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] InitializeCriticalSection for four CRT locks; only caller _mtinit, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x512c18",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] _lock(n): lazily mallocs and initialises critical section then EnterCriticalSection; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x512c79",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] _unlock(n): LeaveCriticalSection on lock table entry; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x513030",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] returns pointer to first byte equal to char (including NUL search) or NULL; word-at-a-time scan, no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5130f0",
+   "reason": "host_libc_standard_contract",
+   "text": "[2nd reader agrees] unsigned byte compare to first difference or NUL, returns -1/0/1; no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5148cd",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] skips program name in command line to build WinMain lpCmdLine; only caller entry, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x514925",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] copies environment strings into environ table; only caller entry, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5149de",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] GetModuleFileName and argv construction; only caller entry, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x514a77",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] parse_cmdline helper for _setargv; only caller _setargv, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x514c2b",
+   "reason": "crt_startup_termination",
+   "text": "[2nd reader agrees] GetEnvironmentStrings copy for environment setup; only caller entry, not game reached",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x515d30",
+   "reason": "library_internal_unreached_by_game",
+   "text": "[2nd reader agrees] No caller, no address taken: strpbrk-style: builds 256-bit set from param_2, returns first param_1 char in set or NULL; pure string scan, no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x515d70",
+   "reason": "library_internal_unreached_by_game",
+   "text": "[2nd reader agrees] No caller, no address taken: __strrev: finds NUL, swaps characters in place from both ends, returns the string; ordinary string routine",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x515da0",
+   "reason": "library_internal_unreached_by_game",
+   "text": "[2nd reader agrees] No caller, no address taken: strspn-style: builds bit set from param_2, returns count of leading param_1 chars in the set; pure string scan",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x515de0",
+   "reason": "library_internal_unreached_by_game",
+   "text": "[2nd reader agrees] No caller, no address taken: strcspn-style: builds bit set from param_2, returns count of leading param_1 chars not in the set; pure string scan",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51771b",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] lazily initialises per-fd critical section then EnterCriticalSection; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51777a",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] LeaveCriticalSection on per-fd lock; synchronization only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51b7b1",
+   "reason": "compiler_eh_funclet",
+   "text": "[2nd reader agrees] Catch@ handler of a library parent: AfxRegisterClass catch: unlocks global critical section (FUN_0052606a) and rethrows; tail is spilled AfxRegisterWndClass code. Parent just propagates",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51c107",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] AfxGetParentOwner: GetWindowLong/GetParent/GetWindow owner lookup; window handle plumbing only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51c47f",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CalcWindowRect: AdjustWindowRectEx with style getters; window geometry only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51f8b3",
+   "reason": "compiler_eh_funclet",
+   "text": "[2nd reader agrees] Catch@ handler of a library parent: Runs FUN_0051dc31 (restores saved alloc-failure hook) and rethrows; tail is spilled map-cleanup code of another fn. Parent has no recovery path",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51fa94",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CMenu::DestroyMenu: Detach then DestroyMenu on handle; menu handle plumbing only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x51fc5c",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] frees owned HGLOBAL if non-null (GlobalFree); no other effect",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x520b14",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CDC::~CDC: Detach then DeleteDC when handle non-null; GDI handle cleanup only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x520ffe",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CGdiObject::DeleteObject: Detach then DeleteObject if handle non-null; GDI cleanup only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x52116f",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] DeleteObject on handle if non-null then zero it; GDI handle cleanup",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x5211ff",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] AfxGlobalFree-style: GlobalFlags, unlock loop, GlobalFree on global memory handle",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x521bcb",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] GetParent/GetDlgItem then IsWindowEnabled query; result unused",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x52570f",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CThreadSlotData ctor: zero fields, TlsAlloc, InitializeCriticalSection; TLS and sync setup only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x525751",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CThreadSlotData dtor: TlsFree, free slot lists, GlobalFree, DeleteCriticalSection; TLS and sync cleanup",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x525ab6",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CThreadSlotData::DeleteValues(slot,all): critical section and TlsGetValue loops calling helper; TLS cleanup only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x525b86",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] CThreadLocalObject::GetDataNA: TlsGetValue slot lookup returning pointer or 0; no side effects",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x525c1c",
+   "reason": "compiler_eh_funclet",
+   "text": "[2nd reader agrees] Catch@ handler of a library parent: Unlocks global critical section FUN_0052606a(0x10) and rethrows; tail is spilled delete-object code of another fn. Parent (locked lazy init) just propagates",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x525f67",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] AfxCriticalInit: GetVersion platform test then InitializeCriticalSection on global lock; sync setup only",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x52606a",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] AfxUnlockGlobals: LeaveCriticalSection on indexed global lock when locking active",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  },
+  {
+   "va": "0x526195",
+   "reason": "win32_plumbing_no_observable_effect",
+   "text": "[2nd reader agrees] destructor setting vtable and GlobalFree of owned global memory handle",
+   "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+   "date": "2026-10-16"
+  }
+ ],
  "not_needed_rules": [
   {
    "id": "R-EH",
    "predicate": "R-EH",
-   "accepted": false,
+   "accepted": true,
    "reason_code": "compiler_eh_funclet",
    "rationale": "Compiler-generated unwind funclet: its address appears only as an unwind-map action of a FuncInfo (magic 0x19930520) that an __ehhandler stub names, and the stub is referenced by exactly one parent function. The funclet runs only while its parent unwinds a C++ exception; it has no behaviour of its own.",
    "parameters": {
     "eh_parent_regions": [
      "crt_mfc",
      "vorbis"
+    ],
+    "excluded": [
+     "0x528f50"
     ]
    },
    "deferred_decisions": [
@@ -212,12 +758,18 @@
     "accepted sample review recorded in review"
    ],
    "review": {
-    "reviewer": null,
-    "date": null,
-    "n": null,
-    "defects": null,
-    "sample_sha256": null
-   }
+    "reviewer": "FL-7 Sonnet reader plus independent Sonnet second reader; root accepted",
+    "date": "2026-10-16",
+    "n": 72,
+    "defects": 0,
+    "sample_sha256": "5fb2e5b19c4a6170eb7a3a84ad52b591e7c5291f81bcea31d124de6e1424eb82"
+   },
+   "caveats": [
+    "FL-7 review read all 73 candidates. A first 59-entry sample found 4 defects (funclets that jump into a virtual-dispatch thunk), so the predicate now refuses those and the review was redone on the remaining set; one defect remains and is excluded by parameter: 0x528f50 restores a routing-frame field through 0x50c1de and the save half could not be confirmed. review.n and sample_sha256 describe the 72 funclets read as clean; the excluded one is outside the covered set.",
+    "Four funclets (0x528ba0, 0x528ba8, 0x528bb0, 0x528bc4) destroy a temporary CDC or CWnd that borrows a message handle; on the exception path that would delete the borrowed handle. Accepted because they run only while a library function unwinds an exception, which the native port has no counterpart for; the next candidates to exclude if the rule is read more strictly.",
+    "Game-parent funclets (460) stay out: eh_parent_regions does not list game. Add it, with a fresh review of those funclets, once their parents are ported.",
+    "Default ruling for Glib to overturn: 18 covered funclets call a destructor-like library function that itself makes a virtual call. The readers read each of them and found plain cleanup, but a virtual call inside a callee could reach an override; refusing that would drop the covered set to 54, below the sample minimum. The four borrowed-handle funclets above and these 18 are accepted on the argument that they run only while a library function unwinds an exception, which the native port has no counterpart for."
+   ]
   },
   {
    "id": "R-LIB-INTERNAL",
@@ -234,7 +786,8 @@
    ],
    "caveats": [
     "Edges out of derived code parts that nothing references are counted as live (over-approximation), so the candidate set can only shrink.",
-    "Indirect calls through registers or vtables are covered only by address_taken roots; code that computes a target at run time without an immediate or data pointer is not modelled."
+    "Indirect calls through registers or vtables are covered only by address_taken roots; code that computes a target at run time without an immediate or data pointer is not modelled.",
+    "Universe of 10 is below the 59-entry sample minimum, so the rule stays unaccepted; its functions are decided as per-function not_needed_entries instead, each read by two readers. Five of the ten were refused (x87 helpers that pass ST0 to a math routine)."
    ],
    "ledger_preconditions": [
     "no src mention",
@@ -405,5 +958,113 @@
    "propagate": "none",
    "exclusion_only": true
   }
- ]
+ ],
+ "win32_import_allowlist": {
+  "names": [
+   "GDI32.dll!CreateBitmap",
+   "GDI32.dll!CreateSolidBrush",
+   "GDI32.dll!DeleteDC",
+   "GDI32.dll!DeleteObject",
+   "GDI32.dll!GetClipBox",
+   "GDI32.dll!GetDeviceCaps",
+   "GDI32.dll!GetObjectA",
+   "GDI32.dll!GetStockObject",
+   "GDI32.dll!OffsetViewportOrgEx",
+   "GDI32.dll!PtVisible",
+   "GDI32.dll!RectVisible",
+   "GDI32.dll!RestoreDC",
+   "GDI32.dll!SaveDC",
+   "GDI32.dll!ScaleViewportExtEx",
+   "GDI32.dll!ScaleWindowExtEx",
+   "GDI32.dll!SelectObject",
+   "GDI32.dll!SetBkColor",
+   "GDI32.dll!SetMapMode",
+   "GDI32.dll!SetTextColor",
+   "GDI32.dll!SetViewportExtEx",
+   "GDI32.dll!SetViewportOrgEx",
+   "GDI32.dll!SetWindowExtEx",
+   "KERNEL32.dll!DeleteCriticalSection",
+   "KERNEL32.dll!EnterCriticalSection",
+   "KERNEL32.dll!FindResourceA",
+   "KERNEL32.dll!GetCurrentProcess",
+   "KERNEL32.dll!GetCurrentThread",
+   "KERNEL32.dll!GetCurrentThreadId",
+   "KERNEL32.dll!GetLastError",
+   "KERNEL32.dll!GetModuleFileNameA",
+   "KERNEL32.dll!GetModuleHandleA",
+   "KERNEL32.dll!GetVersion",
+   "KERNEL32.dll!GlobalAddAtomA",
+   "KERNEL32.dll!GlobalAlloc",
+   "KERNEL32.dll!GlobalDeleteAtom",
+   "KERNEL32.dll!GlobalFindAtomA",
+   "KERNEL32.dll!GlobalFlags",
+   "KERNEL32.dll!GlobalFree",
+   "KERNEL32.dll!GlobalGetAtomNameA",
+   "KERNEL32.dll!GlobalHandle",
+   "KERNEL32.dll!GlobalLock",
+   "KERNEL32.dll!GlobalReAlloc",
+   "KERNEL32.dll!GlobalUnlock",
+   "KERNEL32.dll!InitializeCriticalSection",
+   "KERNEL32.dll!InterlockedDecrement",
+   "KERNEL32.dll!InterlockedIncrement",
+   "KERNEL32.dll!LeaveCriticalSection",
+   "KERNEL32.dll!LoadResource",
+   "KERNEL32.dll!LocalAlloc",
+   "KERNEL32.dll!LocalFree",
+   "KERNEL32.dll!LocalReAlloc",
+   "KERNEL32.dll!LockResource",
+   "KERNEL32.dll!SetLastError",
+   "KERNEL32.dll!TlsAlloc",
+   "KERNEL32.dll!TlsFree",
+   "KERNEL32.dll!TlsGetValue",
+   "KERNEL32.dll!TlsSetValue",
+   "USER32.dll!AdjustWindowRectEx",
+   "USER32.dll!ClientToScreen",
+   "USER32.dll!CopyRect",
+   "USER32.dll!DestroyMenu",
+   "USER32.dll!EqualRect",
+   "USER32.dll!GetActiveWindow",
+   "USER32.dll!GetCapture",
+   "USER32.dll!GetClassInfoA",
+   "USER32.dll!GetClassLongA",
+   "USER32.dll!GetClassNameA",
+   "USER32.dll!GetClientRect",
+   "USER32.dll!GetDC",
+   "USER32.dll!GetDesktopWindow",
+   "USER32.dll!GetDlgCtrlID",
+   "USER32.dll!GetDlgItem",
+   "USER32.dll!GetFocus",
+   "USER32.dll!GetForegroundWindow",
+   "USER32.dll!GetLastActivePopup",
+   "USER32.dll!GetMenu",
+   "USER32.dll!GetMenuCheckMarkDimensions",
+   "USER32.dll!GetMenuItemCount",
+   "USER32.dll!GetMenuItemID",
+   "USER32.dll!GetMenuState",
+   "USER32.dll!GetNextDlgTabItem",
+   "USER32.dll!GetParent",
+   "USER32.dll!GetPropA",
+   "USER32.dll!GetSubMenu",
+   "USER32.dll!GetSysColor",
+   "USER32.dll!GetSysColorBrush",
+   "USER32.dll!GetSystemMetrics",
+   "USER32.dll!GetTopWindow",
+   "USER32.dll!GetWindow",
+   "USER32.dll!GetWindowLongA",
+   "USER32.dll!GetWindowPlacement",
+   "USER32.dll!GetWindowRect",
+   "USER32.dll!IsIconic",
+   "USER32.dll!IsWindow",
+   "USER32.dll!IsWindowEnabled",
+   "USER32.dll!IsWindowVisible",
+   "USER32.dll!MapDialogRect",
+   "USER32.dll!MapWindowPoints",
+   "USER32.dll!PtInRect",
+   "USER32.dll!ReleaseDC",
+   "USER32.dll!ScreenToClient",
+   "USER32.dll!SetRectEmpty"
+  ],
+  "reviewer": "FL-7 root, default ruling: queries, sync, TLS, resources, GDI state",
+  "date": "2026-10-16"
+ }
 }
