@@ -35,6 +35,7 @@
 #include "session_bindings_a83.h"
 #include "session_bindings_a3f.h"
 #include "session_bindings_a95.h"
+#include "session_bindings_a2e.h"
 #include "session_bindings_a4f.h"
 #include "session_bindings_a67.h"
 #include "session_bindings_a6e.h"
@@ -259,6 +260,9 @@ struct NativeApp {
     SessionA6FBinding *a6f = nullptr;
     /* RT-30: raw 0x67 stores 1 in DAT_005bb1ca (arm 0x428692, gate mode 0). Not compiled here. */
     SessionA67Binding *a67 = nullptr;
+    /* RT-33: raw 0x2e random-movie control (arm 0x427f62, handler 0x4ced84 on the object 0x63821d). The object stays inactive
+     * until raw 0x2d is bound, so only the row/mode stores and the completion run. Not compiled here. */
+    SessionA2EBinding *a2e = nullptr;
     SceneStackSlot scene_stack_slot{};
     SceneTransitionRequest loaded_words{};
     bool loaded_words_valid = false;
@@ -1854,6 +1858,7 @@ static void cleanup(NativeApp *app)
     session_a6e_destroy(app->a6e);
     session_a6f_destroy(app->a6f);
     session_a67_destroy(app->a67);
+    session_a2e_destroy(app->a2e);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3511,6 +3516,39 @@ static int native_a67_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-33: raw 0x2e, active object only (mode 1): the start flag DAT_005bb1ca := (word 13 != 1) at 0x4cef8d..0x4cefac. */
+static void native_a2e_set_start_flag(void *context, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return;
+    app->start_flag_5bb1ca = value;
+    record(app, "scene_a2e_start_flag DAT_005bb1ca=%d writer=0x4ced84", value);
+}
+
+/* RT-33: raw 0x2e, active object only (mode 1, scene word != 9999): the scene-change cells and engine mode 4. */
+static int native_a2e_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a2e_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d (0x4cee78 scene-change cells, mode 0x583999 := 4)",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1], request->opaque_words[2],
+           request->opaque_dwords[0], request->opaque_dwords[1], request->opaque_dwords[2]);
+    return 0;
+}
+
+static int native_a2e_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a2e_handler(app->a2e, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a2e_blocker row=%zu status=%d detail=%s", row, status, session_a2e_failure(app->a2e));
+    }
+    return status;
+}
+
 static int native_ad9_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -4270,6 +4308,11 @@ static bool create_native_session_bindings(NativeApp *app)
     a67_host.context = app;
     a67_host.set_start_flag = native_a67_set_start_flag;
     app->a67 = session_a67_create(&a67_host);
+    SessionA2EHost a2e_host{};
+    a2e_host.context = app;
+    a2e_host.set_start_flag = native_a2e_set_start_flag;
+    a2e_host.transition = native_a2e_transition;
+    app->a2e = session_a2e_create(&a2e_host, &app->new_game.action_core);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -4303,7 +4346,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a2e == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5041,7 +5084,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[25]{};
+    SceneSessionActionBinding bindings[26]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5157,7 +5200,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[24].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[24].callback = session_a36_handler;
     bindings[24].context = app->a36;
-    config.action_binding_count = 25u;
+    /* RT-33: raw 0x2e (dispatcher arm 0x427f62, gate mode 0, handler 0x4ced84; completion byte set directly). */
+    bindings[25].type = SESSION_A2E_TYPE;
+    bindings[25].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[25].callback = native_a2e_handler;
+    bindings[25].context = app;
+    config.action_binding_count = 26u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
