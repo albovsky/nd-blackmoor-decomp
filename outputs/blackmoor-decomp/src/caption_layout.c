@@ -1,4 +1,5 @@
 #include "caption_layout.h"
+#include "caption_layout_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -1194,4 +1195,207 @@ const char *caption_status_string(int status)
     case CAPTION_ERR_TOO_LONG: return "framed text too long";
     default: return "unknown caption status";
     }
+}
+
+/* ---- shared primitives for the AUTOTEXT writer (0x413187) ---------------
+ * Wrappers over the static functions above; the caption path does not call
+ * them, so caption behaviour is unchanged. */
+
+static Engine *internal_engine(const CaptionFonts *fonts)
+{
+    Engine *e = (Engine *)calloc(1u, sizeof(*e));
+
+    if (e != NULL) {
+        e->fonts = fonts;
+    }
+    return e;
+}
+
+int caption_internal_text_width(const CaptionFonts *fonts, int16_t font,
+                                const char *text, int16_t *width)
+{
+    Engine *e;
+    int status;
+
+    if (fonts == NULL || text == NULL || width == NULL) {
+        return CAPTION_ERR_ARGUMENT;
+    }
+    if (font < 0 || font >= fonts->count) {
+        return CAPTION_ERR_FONT;
+    }
+    e = internal_engine(fonts);
+    if (e == NULL) {
+        return CAPTION_ERR_LIMIT;
+    }
+    e->font = font;
+    status = text_width(e, text, width);
+    free(e);
+    return status;
+}
+
+int caption_internal_draw_text(const CaptionFonts *fonts,
+                               const CaptionPixelFormat *format, int16_t font,
+                               const CaptionSurface *sheet, CaptionSurface *dst,
+                               const char *text, int16_t left, int16_t bottom,
+                               int16_t color, int underline,
+                               uint16_t underline_color, uint32_t *glyphs_drawn,
+                               uint32_t *underline_fills)
+{
+    Engine *e;
+    CaptionTextBox box;
+    CaptionGlobals *globals;
+    int status;
+
+    if (fonts == NULL || format == NULL || text == NULL || glyphs_drawn == NULL ||
+        underline_fills == NULL) {
+        return CAPTION_ERR_ARGUMENT;
+    }
+    if (font < 0 || font >= fonts->count) {
+        return CAPTION_ERR_FONT;
+    }
+    e = internal_engine(fonts);
+    globals = (CaptionGlobals *)calloc(1u, sizeof(*globals));
+    if (e == NULL || globals == NULL) {
+        free(e);
+        free(globals);
+        return CAPTION_ERR_LIMIT;
+    }
+    memset(&box, 0, sizeof(box));
+    box.underline = underline != 0 ? 1 : 0;
+    box.underline_color = underline_color;
+    if (sheet != NULL) {
+        globals->sheets[font] = *sheet;
+    }
+    e->format = format;
+    e->font = font;
+    e->color = color;
+    e->x = left;
+    e->y = bottom;
+    e->box = &box;
+    e->globals = globals;
+    e->simulate = dst == NULL;
+    if (dst != NULL) {
+        e->canvas = *dst;
+    }
+    status = draw_line(e, text);
+    *glyphs_drawn += e->result.glyphs_drawn;
+    *underline_fills += e->result.underline_fills;
+    free(globals);
+    free(e);
+    return status;
+}
+
+int caption_internal_scan_color(const CaptionPixelFormat *format,
+                                const CaptionSurface *sheet, int32_t left,
+                                int32_t top, int32_t right, int32_t bottom,
+                                uint16_t *color)
+{
+    Engine *e;
+    int status;
+
+    if (format == NULL || color == NULL) {
+        return CAPTION_ERR_ARGUMENT;
+    }
+    e = internal_engine(NULL);
+    if (e == NULL) {
+        return CAPTION_ERR_LIMIT;
+    }
+    e->format = format;
+    status = scan_color(e, sheet, left, top, right, bottom, color);
+    free(e);
+    return status;
+}
+
+void caption_internal_clear_surface(const CaptionPixelFormat *format,
+                                    CaptionSurface *surface, uint8_t red,
+                                    uint8_t green, uint8_t blue)
+{
+    Engine *e;
+
+    if (format == NULL || surface == NULL || surface->pixels == NULL) {
+        return;
+    }
+    e = internal_engine(NULL);
+    if (e == NULL) {
+        return;
+    }
+    e->format = format;
+    clear_surface(e, surface, red, green, blue);
+    free(e);
+}
+
+int caption_internal_acquire_font(const CaptionFonts *fonts,
+                                  CaptionGlobals *globals,
+                                  const CaptionBackend *backend, int16_t font,
+                                  int simulate)
+{
+    Engine *e;
+    int status;
+
+    if (fonts == NULL || globals == NULL || backend == NULL) {
+        return CAPTION_ERR_ARGUMENT;
+    }
+    e = internal_engine(fonts);
+    if (e == NULL) {
+        return CAPTION_ERR_LIMIT;
+    }
+    e->globals = globals;
+    e->backend = backend;
+    e->simulate = simulate != 0;
+    status = acquire_font(e, font);
+    free(e);
+    return status;
+}
+
+int caption_internal_release_font(const CaptionFonts *fonts,
+                                  CaptionGlobals *globals,
+                                  const CaptionBackend *backend, int16_t font,
+                                  int simulate)
+{
+    Engine *e;
+
+    if (fonts == NULL || globals == NULL || backend == NULL) {
+        return CAPTION_ERR_ARGUMENT;
+    }
+    if (font < 0 || font >= fonts->count) {
+        return CAPTION_ERR_FONT;
+    }
+    e = internal_engine(fonts);
+    if (e == NULL) {
+        return CAPTION_ERR_LIMIT;
+    }
+    e->globals = globals;
+    e->backend = backend;
+    e->simulate = simulate != 0;
+    release_font(e, font);
+    free(e);
+    return CAPTION_OK;
+}
+
+int caption_internal_color_offsets(const CaptionFonts *fonts, int16_t font,
+                                   int16_t color, int32_t *dx, int32_t *dy)
+{
+    Engine *e;
+    int status;
+
+    if (fonts == NULL || dx == NULL || dy == NULL) {
+        return CAPTION_ERR_ARGUMENT;
+    }
+    if (font < 0 || font >= fonts->count) {
+        return CAPTION_ERR_FONT;
+    }
+    e = internal_engine(fonts);
+    if (e == NULL) {
+        return CAPTION_ERR_LIMIT;
+    }
+    e->font = font;
+    e->color = color;
+    status = color_offsets(e, dx, dy);
+    free(e);
+    return status;
+}
+
+int32_t caption_internal_atoi(const char *text)
+{
+    return text == NULL ? 0 : original_atoi(text);
 }
