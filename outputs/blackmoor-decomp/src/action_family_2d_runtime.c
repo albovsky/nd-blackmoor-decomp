@@ -299,11 +299,33 @@ static int rand_mod(const D2Host *h, int32_t count, int32_t *out, const char **w
     return D2_OK;
 }
 
-/* 0x4cf026: strcmp over the entry names; -1 when none. */
+/* 0x516530 is the CRT's _stricmp, not strcmp (RT-36 oracle): ASCII letters compare without regard to case (C locale path,
+ * [0x63cb14 + 8] == 0; the locale-aware path is not modelled). Equal names are equal up to and including the NUL. */
+static int name_equal(const char *a, const char *b)
+{
+    for (;; ++a, ++b) {
+        int ca = (unsigned char)*a;
+        int cb = (unsigned char)*b;
+        if (ca >= 'A' && ca <= 'Z') {
+            ca += 0x20;
+        }
+        if (cb >= 'A' && cb <= 'Z') {
+            cb += 0x20;
+        }
+        if (ca != cb) {
+            return 0;
+        }
+        if (ca == 0) {
+            return 1;
+        }
+    }
+}
+
+/* 0x4cf026: _stricmp over the entry names; -1 when none. */
 static int32_t lookup_entry(const D2Set *set, const char *name)
 {
     for (int i = 0; i < set->entry_count; ++i) {
-        if (strcmp(name, set->entries[i].name) == 0) {
+        if (name_equal(name, set->entries[i].name)) {
             return i;
         }
     }
@@ -635,7 +657,7 @@ static int phase0(D2Object *o, const D2Set *set, D2World *w, const D2Host *h, D2
     }
     o->clip_246 = -1;
     o->movie.pending_25a = 0;
-    if (strcmp(set->name, RANDOM_SET_NAME) == 0) {
+    if (name_equal(set->name, RANDOM_SET_NAME)) {
         if (set->entry_count <= 0) {
             *why = "0x2d: random set without entries (fatal 0x4c97b4)";
             return D2_ERR_FATAL;

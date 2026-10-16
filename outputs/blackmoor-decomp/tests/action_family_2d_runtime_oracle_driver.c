@@ -64,7 +64,7 @@ typedef struct {
     int is_signed;
 } Field;
 
-#define FIELD(label, member, type) {label, offsetof(D2Object, member), sizeof(((D2Object *)0)->member), ((type)-1) < 0}
+#define FIELD(label, member, type) {label, offsetof(D2Object, member), sizeof(((D2Object *)0)->member), _Generic((type)0, int32_t: 1, int16_t: 1, default: 0)}
 static const Field OBJ_FIELDS[] = {
     FIELD("active", movie.active, int32_t),
     FIELD("mode", movie.mode, int32_t),
@@ -78,7 +78,7 @@ static const Field OBJ_FIELDS[] = {
     FIELD("buffers_182_0", buffers_182[0], uint32_t),
     FIELD("buffers_182_1", buffers_182[1], uint32_t),
     FIELD("buffers_182_2", buffers_182[2], uint32_t),
-    FIELD("single_17a", single_17a, int32_t),
+    FIELD("ring_17a", ring_17a, int32_t),
     FIELD("kind_17e", kind_17e, int32_t),
     FIELD("bink_id_18e", bink_id_18e, int32_t),
     FIELD("buffer_192", buffer_192, int16_t),
@@ -118,7 +118,7 @@ static const Field OBJ_FIELDS[] = {
 };
 
 #undef FIELD
-#define WFIELD(label, member, type) {label, offsetof(D2World, member), sizeof(((D2World *)0)->member), ((type)-1) < 0}
+#define WFIELD(label, member, type) {label, offsetof(D2World, member), sizeof(((D2World *)0)->member), _Generic((type)0, int32_t: 1, int16_t: 1, default: 0)}
 static const Field WORLD_FIELDS[] = {
     WFIELD("start_flag", start_flag, int32_t),
     WFIELD("g_5839a9", g_5839a9, int32_t),

@@ -245,6 +245,9 @@ int scene_session_request_transition(SceneSession *session,
 int scene_session_get_action_state(const SceneSession *session,
                                    size_t action_index,
                                    SceneActionRuntimeState *state);
+/* RT-36: retire an action row (completed, phase 0, dependencies reset), as the random-movie stop does to the raw 0x2d row
+ * (scene_executor_retire_action). Legal from inside a handler. */
+int scene_session_retire_action(SceneSession *session, size_t action_index);
 int scene_session_get_hotspot_state(const SceneSession *session,
                                     size_t action_index,
                                     SceneExecutorHotspotState *state);

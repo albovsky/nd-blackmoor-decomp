@@ -111,9 +111,10 @@ class UnitTests(unittest.TestCase):
         k = 'action_family_2d_runtime.c'
         mutations = {
             'rand modulus dropped': (k, '*out = (int32_t)((int64_t)r % (int64_t)count);', '*out = r;'),
-            'random set name wrong': (k, '#define RANDOM_SET_NAME "RandomMovie"', '#define RANDOM_SET_NAME "randommovie"'),
+            'random set name wrong': (k, '#define RANDOM_SET_NAME "RandomMovie"', '#define RANDOM_SET_NAME "RandomMovies"'),
             'single entry still rolls': (k, 'if (set->entry_count == 1) {\n            o->clip_246 = 0;', 'if (set->entry_count == -1) {\n            o->clip_246 = 0;'),
-            'lookup by prefix': (k, 'if (strcmp(name, set->entries[i].name) == 0) {', 'if (strncmp(name, set->entries[i].name, 1) == 0) {'),
+            'lookup by prefix': (k, 'if (name_equal(name, set->entries[i].name)) {', 'if (strncmp(name, set->entries[i].name, 1) == 0) {'),
+            'name compare case sensitive': (k, 'ca += 0x20;', 'ca += 0;'),
             'ring flag inverted': (k, 'if (set->mode_word == 1) {\n        w->g_5839a9 = 0;', 'if (set->mode_word != 1) {\n        w->g_5839a9 = 0;'),
             'start flag not set': (k, '    w->start_flag = 1;\n    w->g_5831c8 = 1; /* 0x4d36ed */', '    w->g_5831c8 = 1; /* 0x4d36ed */'),
             'active not set': (k, '    o->movie.active = 1;\n    o->buffer_192 = 0;', '    o->buffer_192 = 0;'),

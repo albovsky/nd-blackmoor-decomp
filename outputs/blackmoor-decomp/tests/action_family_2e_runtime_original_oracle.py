@@ -787,7 +787,7 @@ MUTANTS = {
     'subtype 2 resets': ('out->disposition = SCENE_ACTION_HANDLER_DIRECT_COMPLETED;', 'out->disposition = action->subtype == 2u ? SCENE_ACTION_HANDLER_COMPLETED : SCENE_ACTION_HANDLER_DIRECT_COMPLETED;', C_),
     'dependency reset requested': ('out->disposition = SCENE_ACTION_HANDLER_DIRECT_COMPLETED;', 'out->disposition = SCENE_ACTION_HANDLER_RESET_DEPENDENCIES;', C_),
     'row and mode stores swapped': ('    b->movie.row = (int32_t)(int16_t)index;                                  /* 0x4ced94 */\n    fx(b, index, SESSION_A2E_FX_ROW, b->movie.row);\n    b->movie.mode = mode;                                                    /* 0x4cedbb */\n    fx(b, index, SESSION_A2E_FX_MODE, mode);', '    b->movie.mode = mode;\n    fx(b, index, SESSION_A2E_FX_MODE, mode);\n    b->movie.row = (int32_t)(int16_t)index;\n    fx(b, index, SESSION_A2E_FX_ROW, b->movie.row);', C_),
-    'state stores before start flag': ('            {\n                const int32_t start = (int16_t)body.word[6] != 1 ? 1 : 0;   /* 0x4cef8d..0x4cefac */\n                b->host.set_start_flag(b->host.context, start);\n                fx(b, index, SESSION_A2E_FX_START_FLAG, start);\n            }\n            b->movie.state_1de = 2;', '            b->movie.state_1de = 2;', C_),
+    'state stores before start flag': ('            {\n                const int32_t start = (int16_t)body.word[6] != 1 ? 1 : 0;   /* 0x4cef8d..0x4cefac */\n                b->host.set_start_flag(b->host.context, start);\n                fx(b, index, SESSION_A2E_FX_START_FLAG, start);\n            }\n            if (mode == 0) {\n', '            if (mode == 0) {\n', C_),
 }
 
 

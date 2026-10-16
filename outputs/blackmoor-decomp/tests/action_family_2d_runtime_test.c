@@ -307,6 +307,17 @@ static void test_random_set(void)
     f.rig.rand_queue[0] = 7; /* 7 % 2 entries = 1 */
     CHECK(step(&f, 0, 0, &res) == D2_OK && f.obj.clip_246 == 1);
     CHECK(count_op(&f.rig, D2_OP_RAND) == 1);
+    /* 0x516530 is _stricmp: the set name and the entry lookup ignore ASCII case (RT-36 oracle) */
+    fix_init(&f);
+    sample(&f, "rANDOMmOVIE", 1);
+    f.rig.exists[0] = 1;
+    f.rig.rand_n = 1;
+    f.rig.rand_queue[0] = 7;
+    CHECK(step(&f, 0, 0, &res) == D2_OK && f.obj.clip_246 == 1 && count_op(&f.rig, D2_OP_RAND) == 1);
+    fix_init(&f);
+    sample(&f, "clipa", 1);
+    f.rig.exists[2] = 1;
+    CHECK(step(&f, 2, 0, &res) == D2_OK && f.obj.clip_246 >= 0 && count_op(&f.rig, D2_OP_RAND) == 0);
     /* one entry: no rand */
     fix_init(&f);
     header(&f.body, "RandomMovie", 1, 1, 0);
