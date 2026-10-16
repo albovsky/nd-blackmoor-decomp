@@ -11,7 +11,7 @@ Owner thread: Claude Sonnet (cloud). Follows RT-23 to RT-28. Raw 0x67 was the to
 
 ## Native implementation
 
-`src/session_bindings_a67.[ch]` (executor handler: `DIRECT_COMPLETED`, phase unchanged; the flag sink is a required host callback, `UNSUPPORTED` before any effect without it), registration `bindings[22]` in `src/blackmoor_app.mm` (count 23, provider ACTION_KERNEL; the gate mode is the default 0; the host callback writes `app->start_flag_5bb1ca`, the same variable the 0x62 callback writes), `scripts/build_action_family_67_runtime.sh`, module added to `scripts/build_native_app.sh`.
+`src/session_bindings_a67.[ch]` (executor handler: `DIRECT_COMPLETED`, phase unchanged; the flag sink is a required host callback, `UNSUPPORTED` before any effect without it), registration `bindings[23]` in `src/blackmoor_app.mm` (count 24, provider ACTION_KERNEL; the gate mode is the default 0; the host callback writes `app->start_flag_5bb1ca`, the same variable the 0x62 callback writes), `scripts/build_action_family_67_runtime.sh`, module added to `scripts/build_native_app.sh`.
 
 ## Verification
 
