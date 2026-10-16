@@ -110,6 +110,23 @@ KNOWN_UNTRACKED_OUTPUTS = {
         "(a sanitizer test script, not a build_*.sh), invoked from tests/test_action_family_a1_runtime_oracle.py:60",
     "action_family_a1_runtime_sanitize.dSYM/*":
         "debug-symbol bundle of action_family_a1_runtime_sanitize",
+    "image/GAME.composed.exe":
+        "image composed by scripts/compose_image.py:1521 (DEFAULT_BUILD_DIR = build/image, set at :60) "
+        "when run by hand; no build_*.sh writes it and test_compose_image.py composes into a temporary directory",
+    "image/coverage-report.json":
+        "composer coverage report written by scripts/compose_image.py:1522 and, with its own build dir, "
+        "scripts/report_image_coverage.py:125; run by hand, not by a build script or the suite",
+    "image/coverage-report.md":
+        "markdown form of the coverage report, written by scripts/compose_image.py:1523 and "
+        "scripts/report_image_coverage.py:126; run by hand",
+    "image/stage-report.json":
+        "per-stage report written by `scripts/compose_image.py stages` at :1563; run by hand",
+    "image/objects/*.obj":
+        "matching objects staged by scripts/compose_image.py:561 into build/image/objects, a directory the "
+        "composer owns; the set grows with every matching slice bound into the image, so it is a pattern",
+    "image/objects/*.manifest.json":
+        "match manifests staged by scripts/compose_image.py:615 into build/image/objects (composer-owned "
+        "directory; one per bound matching slice, so the set grows), hence a pattern",
 }
 
 
