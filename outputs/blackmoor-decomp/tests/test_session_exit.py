@@ -60,6 +60,7 @@ class SessionExitTests(unittest.TestCase):
 
     # --- gate (0x447c36) -------------------------------------------------
     def test_gate_truth_table_matches_reviewed_predicate(self):
+        """Covers session_exit_effect_gate (0x447c36)."""
         for kind in range(0, 6):
             for state in (1, 2, 3, 4):
                 for stage in range(0, 4):
@@ -174,6 +175,7 @@ class SessionExitTests(unittest.TestCase):
                 self.assertEqual(x.effect.active_payload[0], kind)
 
     def test_stage2_type3_swaps_and_returns_to_stage1_without_completing(self):
+        """Covers session_exit_controller (0x4473be)."""
         x = new_exit(self.lib, kind=3, stage=2, state=STATE_RUN, pause=0)
         x.g.modal_input, x.g.cursor_layer = 1, 0
         host = RecordingHost(self.lib, x, ticks=(100, 102, 102, 103, 104))
@@ -193,7 +195,7 @@ class SessionExitTests(unittest.TestCase):
         self.assertEqual((x.effect.sequence_counter, x.g.game_state), (1, STATE_LOAD))
 
     def test_stage3_clears_busy_and_stage_above_3_does_nothing(self):
-        """Stage 3 runs effect_clear_busy (0x4477b2); stages above 3 touch nothing."""
+        """Covers effect_clear_busy (0x4477b2) and session_exit_controller (0x4473be): stage 3 clears busy, stages above 3 touch nothing."""
         x = new_exit(self.lib, kind=2, stage=3, state=STATE_RUN)
         host = RecordingHost(self.lib, x)
         info = StepInfo()

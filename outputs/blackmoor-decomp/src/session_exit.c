@@ -186,6 +186,7 @@ static int controller_sequence(SessionExit *x, const SessionExitHost *host,
     return SESSION_EXIT_OK;
 }
 
+/* 0x4473be (FUN_004473be): effect controller stage switch. */
 int session_exit_controller(SessionExit *exit_state,
                             const SessionExitHost *host,
                             SessionExitStepInfo *info)
@@ -220,6 +221,7 @@ int session_exit_controller(SessionExit *exit_state,
     return status;
 }
 
+/* 0x447c36 (FUN_00447c36): effect render gate. */
 int session_exit_effect_gate(SessionExit *exit_state,
                              const SessionExitHost *host,
                              SessionExitStepInfo *info)

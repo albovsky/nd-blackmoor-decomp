@@ -487,7 +487,7 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Static triggers: walks the 6-byte records in body order, event_flags[id] = sign-extended word2 when word0 equals the frame and id != -1 (duplicates apply in order). action_family_35_bink_original_oracle compares the event table and call order with 0 mismatches, but the original's debug-log arm is never run, so the ledger records only partial execution and this stays tests-only. Native takes the frame as a parameter and range-checks ids at decode time."
+   "note": "Static triggers matches branch for branch (6-byte records, id != -1, last duplicate wins). Bink oracle compares event table and order, 0 mismatches, but the debug-log arm never runs, so tests-only. Frame is a parameter."
   },
   {
    "va": "0x4f55d5",
@@ -516,7 +516,17 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Native is sound_control_update (not the app's update). Oracle original_update_trace now has 15 cases and 0 mismatches, including the 0x16e gate, the 0x172 gate, stream state, control != 0 with flags 0x20 and a random range of exactly 0 (added here; they were the earlier gap). Fade bodies and the Play wrapper are host seams; the fade stage 3 argument is not passed through."
+   "note": "Native is sound_control_update. Oracle update trace has 15 cases, 0 mismatches, now including 0x16e, 0x172, stream state, flags 0x20 with control 1 and range 0. Fade bodies and Play are host seams.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-21:5413c9995fd1e041",
+     "rationale": "Concerns constructor-default channel fields (0x432d1a) and the rand arm 0x4f5651..0x4f56d8 as RT-8 residual. The rand/min/max arm is now compared against the original by original_update_trace (modulo, non-positive range, range zero); the constructor defaults belong to another function."
+    },
+    {
+     "id": "RT-8:fa51bd00b7b71b7c",
+     "rationale": "About constructor-default parity of 0x432d1a and shared-RNG consumption by callers. This function's own rand arm is compared with the original in sound_control_original_oracle; what callers store in +0x1aa/+0x1ae is outside this function."
+    }
+   ]
   },
   {
    "va": "0x41c3ba",
@@ -541,7 +551,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Extracted from the 3e constructor in this batch (a code move, no behaviour change). The original copies the strings at 0x570378 and 0x57037c into +0x63 and +0x84; both are .bss and GAME.EXE has no other code holding either address than the two copies in this function, so they are always empty and each copy is one NUL. The 3e oracle compares the whole object with 0 mismatches (211 calls)."
+   "note": "Extracted from the 3e constructor here (code move). The two copied globals 0x570378/0x57037c are .bss, referenced by no other code, so always empty. 3e oracle compares the whole object, 0 mismatches."
   },
   {
    "va": "0x43dbd5",
@@ -566,7 +576,13 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Extracted from controller_setup and session_exit_clear_latches in this batch: the whole original is one word store (5bb1c4 = 1). The session_exit oracle compares that word after the latch window with randomised prior values, 0 mismatches. The caption lifecycle keeps its own inline store of the same word and is not claimed."
+   "note": "Extracted here: the original is one word store (5bb1c4 = 1). The session_exit oracle compares that word after the latch window from random prior values, 0 mismatches. Caption code keeps its own inline store, not claimed.",
+   "blockers_reviewed": [
+    {
+     "id": "A-70.1:2550fd40524a43ce",
+     "rationale": "Names the 0x4291f8 dispatcher arm's effects, of which 0x43dbd5 is one callee, as static navigation. 0x43dbd5 itself is a one-word store compared by session_exit_original_oracle; the arm and its other effects are the caller's, not claimed here."
+    }
+   ]
   },
   {
    "va": "0x4477b2",
@@ -591,7 +607,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Extracted from the stage 3 arm of session_exit_controller in this batch: the original clears the effect object's busy byte (+0x1c). The session_exit controller step runs stage 3 against the original and compares all object cells, 0 mismatches."
+   "note": "Extracted from stage 3 of session_exit_controller here: clears effect busy (+0x1c). The session_exit controller step runs stage 3 against the original and compares all cells, 0 mismatches."
   },
   {
    "va": "0x4473a9",
@@ -616,7 +632,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Extracted from action_family28_step phase 0 in this batch: the original stores 0 in the effect stage word (+0x2d). The A-28 dispatcher oracle and the binding oracle compare the world including that word, 0 mismatches; the test seeds the word with 123 and expects 0."
+   "note": "Extracted from action_family28_step phase 0 here: stores 0 in the stage word (+0x2d). A-28 dispatcher and binding oracles compare the world, 0 mismatches; test seeds 123 and expects 0."
   },
   {
    "va": "0x4db04f",
@@ -645,7 +661,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Extracted from the PRIMARY_DBLCLK arm of session_input_feed in this batch: the original is [ecx+8] = 1 with both arguments ignored. The RT-2 oracle drives it through wrapper 0x43ecc0 and compares the latch, 0 mismatches. Native adds a view-length check."
+   "note": "Extracted from the DBLCLK arm of session_input_feed here: [ecx+8] = 1, arguments ignored. RT-2 oracle drives it through wrapper 0x43ecc0 and compares the latch, 0 mismatches. Native adds a view-length check."
   },
   {
    "va": "0x4daf3f",
@@ -699,7 +715,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Writes +0x18 and +0x1c from the point in the original order. S08-3 oracle: 421 steps, 0 mismatches. Native takes a bounded point view and returns a status."
+   "note": "Writes +0x18 and +0x1c in the original order. S08-3 oracle: 421 steps, 0 mismatches. Native takes a bounded point view and returns a status."
   },
   {
    "va": "0x4dafc3",
@@ -753,7 +769,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "The global 0x5c39e5 is passed in as a parameter (session_input_feed passes the candidate); the +8 inhibit gate is the early return. S08-3 oracle (404 up cases) 0 mismatches."
+   "note": "Global 0x5c39e5 comes in as a parameter (caller passes the candidate); +8 gate is the early return. S08-3 oracle, 404 up cases, 0 mismatches."
   },
   {
    "va": "0x4473be",
@@ -782,7 +798,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Stage switch 0, 1 (capture then fall into the sequence), 2, 3, above 3 nothing. The oracle calls the original controller for every stage 0-4 and 9, state 1-4, type 0-5 and compares the ordered effect list and touched cells, 0 mismatches. The 0x44753b frame loop runs through host seams. Native stops the fall-through on a host failure; the original has no failure path."
+   "note": "Stages 0 to 3 and above-3 match. Oracle calls the original for stages 0-4 and 9, states 1-4, types 0-5 and compares effects and cells, 0 mismatches. 0x44753b loop is a host seam; native stops on host failure."
   },
   {
    "va": "0x44aff2",
@@ -807,7 +823,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "30 words = 9999 and 10 dwords = 9999.0f; the oracle compares all 100 value bytes over seeded worlds and checks that difficulty and event flags stay untouched. Native adds a NULL-world status."
+   "note": "30 words = 9999 and 10 dwords = 9999.0f. The oracle compares all 100 bytes over seeded worlds and checks that difficulty and event flags stay untouched. Native adds a NULL-world status."
   },
   {
    "va": "0x4e72fb",
@@ -840,7 +856,13 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Mail and web branches, record widths and stores match; the oracle runs the original dispatcher with the real 0x4e72fb, 0x4e444d and 0x4e0559 over the corpus and compares list snapshots, selection, refresh order and completion, 0 mismatches. The gate/completed skip and phase pass-through that the original does in its dispatcher 0x427a50 also live in native; refresh is a host callback."
+   "note": "Mail and web branches, widths and stores match. Oracle runs the original dispatcher with the real 0x4e72fb over the corpus, 0 mismatches. Gate skip and phase pass-through are native extras; refresh is a callback.",
+   "blockers_reviewed": [
+    {
+     "id": "A-83.1:f8cb510255f8d3f2",
+     "rationale": "Decode-stage note that runtime 0x4e72fb, lookup 0x4e444d and host effect 0x4e0559 were unverified. Since RT-12 the action_family_83_runtime oracle runs the original 0x4e72fb over the corpus and compares native with 0 mismatches; 0x4e444d and 0x4e0559 are separate functions and host callbacks."
+    }
+   ]
   },
   {
    "va": "0x42b2e4",
@@ -873,7 +895,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Phases 0, 1, 2 and other phases match; the oracle runs the original dispatcher with the real gate and handler over 4,776 cases and compares the ordered write stream and all cells, 0 mismatches. Native rejects a negative record count (an unreachable loader case) and takes the phase as input."
+   "note": "Phases 0, 1, 2 and others match. Oracle runs the original dispatcher with the real gate and handler over 4,776 cases, 0 mismatches. Native rejects a negative record count and takes the phase as input."
   },
   {
    "va": "0x42b07e",
@@ -906,7 +928,17 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Phases 0, 1, 2 match; the oracle runs the real dispatcher plus 0x42b07e for types 0x16 to 0x19 and compares the ordered write stream and cells, 0 mismatches. Native validates body length and count and takes the phase as input."
+   "note": "Phases 0, 1, 2 match. Oracle runs the real dispatcher with 0x42b07e for types 0x16-0x19, 0 mismatches. Native validates body length and count, and takes the phase as input.",
+   "blockers_reviewed": [
+    {
+     "id": "A-16.1:0a18fcffb930af84",
+     "rationale": "Decode-stage note that runtime 0x42b07e, the dependency reducer 0x423f57 and host scene effects were unverified. RT-15's oracle now runs the original 0x42b07e through its dispatcher and compares the ordered writes and cells, 0 mismatches; the reducer and host effects are other functions."
+    },
+    {
+     "id": "A-17.1:4c4e433ead1d5b04",
+     "rationale": "Same decode-stage note as A-16.1 (runtime 0x42b07e, reducer 0x423f57, rendering and host effects unverified). The runtime step is compared with the original by the RT-15 oracle; the reducer and rendering are not part of this function."
+    }
+   ]
   },
   {
    "va": "0x447c36",
@@ -931,7 +963,13 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Busy and payload-type gate; the oracle step gate compares return value, events and all cells over the type, stage and state grid, 0 mismatches. Native propagates a controller host failure (the original always returns 1)."
+   "note": "Busy and payload-type gate. Oracle gate step compares return, events and cells over the type, stage and state grid, 0 mismatches. Native propagates a controller host failure; the original always returns 1.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-3:26fcf15da9450d55",
+     "rationale": "Says row 0x28 is not bound and lists x87 control word, curve exactness and frame pairing as open. Those belong to the binding and to 0x44753b and the blend; the gate 0x447c36 is a pure predicate compared with the original by session_exit_original_oracle's gate step."
+    }
+   ]
   },
   {
    "va": "0x44c4ab",
@@ -950,7 +988,7 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "Static release: if (handshake != 2) handshake = 0, plus a lifecycle observer callback. tests/avf_player_original_oracle.py compares the ordered handshake trace against the original but needs the game data and was not run in this cloud batch; the oracle recorded as executing 0x44c4ab (RT-9) does not compare this symbol, so the class stays tests-only."
+   "note": "Static release: if (handshake != 2) handshake = 0, plus an observer callback. avf_player_original_oracle compares it but needs game data, not run here; the RT-9 execution oracle does not compare it, so tests-only."
   }
  ],
  "not_needed_entries": [

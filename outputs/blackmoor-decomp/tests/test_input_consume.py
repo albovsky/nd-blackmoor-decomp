@@ -66,6 +66,7 @@ class InputConsumeNativeTests(unittest.TestCase):
         return status, int(output.value), bytes(storage.raw)
 
     def test_field0_uses_its_16_byte_extent_and_clears_only_after_nonzero(self) -> None:
+        """Covers input_consume_field0 (0x4daf3f)."""
         zero_data = bytearray(range(16))
         zero_data[0:4] = b"\x00" * 4
         zero = bytes(zero_data)

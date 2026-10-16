@@ -45,6 +45,7 @@ int action0c_validate_body(const uint8_t *body, size_t body_length, const char *
     return ACTION17_OK;
 }
 
+/* 0x42b2e4 (FUN_0042b2e4): raw 0x0c step. */
 int action0c_step(const uint8_t *body, size_t body_length, uint32_t phase, Action17Slot *slot,
                   Action17World *world, const Action17Host *host, Action17Result *result,
                   const char **failure)

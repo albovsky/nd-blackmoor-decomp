@@ -40,6 +40,7 @@ static void write_word(uint8_t *address, uint32_t value)
     memcpy(address, &value, sizeof(value));
 }
 
+/* 0x4daf9f (FUN_004daf9f): mouse move latch store (+0x18, +0x1c). */
 InputLatchStatus input_latch_move(
     const InputLatchStateView *state,
     uint32_t ignored_callback_argument,
@@ -66,6 +67,7 @@ InputLatchStatus input_latch_move(
     return INPUT_LATCH_OK;
 }
 
+/* 0x4dafc3 (FUN_004dafc3): button down latch. */
 InputLatchStatus input_latch_down(
     const InputLatchStateView *state,
     uint32_t ignored_callback_argument_0,
@@ -88,6 +90,7 @@ InputLatchStatus input_latch_down(
     return INPUT_LATCH_OK;
 }
 
+/* 0x4db000 (FUN_004db000): button up latch. */
 InputLatchStatus input_latch_up(
     const InputLatchStateView *state,
     uint32_t ignored_callback_argument_0,
