@@ -38,6 +38,7 @@
 #include "session_bindings_a44.h"
 #include "session_bindings_a4f.h"
 #include "session_bindings_a65_a68_a69.h"
+#include "session_bindings_a45.h"
 #include "session_bindings_a67.h"
 #include "session_bindings_a94.h"
 #include "session_bindings_a43.h"
@@ -278,6 +279,9 @@ struct NativeApp {
      * new_game.view.time_records_585d65; there is no save writer in the port, so the save request is only logged. Not
      * compiled here. */
     SessionA65Binding *a65 = nullptr;
+    /* RT-38: raw 0x45 timer control (arm 0x4287cc, gate mode 0): seven sub-cases on the same timer records, a seconds word
+     * >= 5000 reads the loader word table 0x5adb81 (BSUM-backed here, like the condition leaves). Not compiled here. */
+    SessionA45Binding *a45 = nullptr;
     /* RT-32: raw 0x94 (AT_MAKE_SCREEN_FILE, arm 0x429747, handler 0x4c36b2). DAT_005839a9 is the capture flag the
      * renderer reads; 0x4d36ed requests a full redraw (0x5831c8 := 1). Neither reader is modelled here. Not compiled
      * here. */
@@ -1915,6 +1919,7 @@ static void cleanup(NativeApp *app)
     session_a6f_destroy(app->a6f);
     session_a67_destroy(app->a67);
     session_a65_destroy(app->a65);
+    session_a45_destroy(app->a45);
     session_a94_destroy(app->a94);
     session_a43_destroy(app->a43);
     session_a2d_destroy(app->a2d);
@@ -2574,7 +2579,8 @@ static ConditionExtraHostStatus native_cond_context_58c94f(void *context, int16_
 /* Loader table word 0x5adb81 + 2*idx for opcode 13/14 leaves whose
  * fields[6] >= 5000. The BOOT loader copies the 402-byte BSUM payload over
  * 0x5b0113..0x5b02a4 (0x4356eb..0x4356fc), so the words for indexes
- * 5000..5003 (0x5b0291..0x5b0297) are BSUM[382..389] = 300, 180, 1500, 60;
+ * 5000..5003 (0x5b0291..0x5b0297) are BSUM[382..389] = 300, 180, 1500, 60 (the raw 0x45
+ * rows also read 5004, BSUM[390..391], through the same table, unscanned for later writes);
  * no instruction writes them afterwards (scan of every .text operand). */
 static int native_cond_variable_word(void *context, int16_t index, int16_t *value)
 {
@@ -3629,6 +3635,19 @@ static int native_a69_handler(void *context, size_t row, const SceneActionInfo *
     const int status = session_a69_handler(app->a65, row, action, before, out);
     if (status != SCENE_ACTION_HANDLER_OK) {
         record(app, "scene_a69_blocker row=%zu status=%d detail=%s", row, status, session_a65_failure(app->a65));
+    }
+    return status;
+}
+
+/* RT-38: raw 0x45 timer control. The records and the word table are the ones raw 0x65/0x68/0x69 and the condition leaves use. */
+static int native_a45_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a45_handler(app->a45, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a45_blocker row=%zu status=%d detail=%s", row, status, session_a45_failure(app->a45));
     }
     return status;
 }
@@ -5004,6 +5023,11 @@ static bool create_native_session_bindings(NativeApp *app)
     a65_host.time_record = native_a65_time_record;
     a65_host.save_game = native_a65_save_game;
     app->a65 = session_a65_create(&a65_host);
+    SessionA45Host a45_host{};
+    a45_host.context = app;
+    a45_host.time_record = native_a65_time_record;
+    a45_host.variable_word = native_cond_variable_word;
+    app->a45 = session_a45_create(&a45_host);
     SessionA94Host a94_host{};
     a94_host.context = app;
     a94_host.set_capture_flag = native_a94_set_capture_flag;
@@ -5078,7 +5102,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5874,7 +5898,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[34]{};
+    SceneSessionActionBinding bindings[35]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6030,13 +6054,18 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[32].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[32].callback = native_a69_handler;
     bindings[32].context = app;
+    /* RT-38: raw 0x45 timer control (arm 0x4287cc, gate mode 0; completion byte set directly, or the row stays open). */
+    bindings[34].type = SESSION_A45_TYPE;
+    bindings[34].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[34].callback = native_a45_handler;
+    bindings[34].context = app;
     /* RT-36: raw 0x2d random-movie set (handler 0x4cd6ff, gate mode 0; phase 0 needs a media backend, see
      * native_a2d_media_available). Raw 0x2e mode 0 stops it through native_a2e_stop_movie. */
     bindings[33].type = SESSION_A2D_TYPE;
     bindings[33].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[33].callback = native_a2d_handler;
     bindings[33].context = app;
-    config.action_binding_count = 34u;
+    config.action_binding_count = 35u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
