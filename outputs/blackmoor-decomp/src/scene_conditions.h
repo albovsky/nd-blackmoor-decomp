@@ -130,9 +130,12 @@ int scene_conditions_build(const SceneDependencyInfo *records,
 void scene_conditions_destroy(SceneConditionTree *tree);
 
 /* Clear retained branch/leaf results as original 0x423d33/0x423da2 do when
- * an action lifecycle requests a dependency reset.
+ * an action lifecycle requests a dependency reset.  scene_conditions_reset is
+ * the entry 0x423d33; scene_conditions_reset_traversal is 0x423da2, the walk
+ * that zeroes every node state and each leaf's evaluated flag.
  */
 void scene_conditions_reset(SceneConditionTree *tree);
+void scene_conditions_reset_traversal(SceneConditionTree *tree);
 
 /* Evaluate supported opcodes 0 through 6 and 9 and reduce each branch independently.
  * A nonzero return identifies malformed input, out-of-range state indices, or

@@ -1039,6 +1039,58 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Static release: if (handshake != 2) handshake = 0, plus an observer callback. avf_player_original_oracle compares it but needs game data, not run here; the RT-9 execution oracle does not compare it, so tests-only."
+  },
+  {
+   "va": "0x423d33",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/scene_conditions.c",
+    "symbol": "scene_conditions_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/test_scene_conditions_extension.py",
+     "test_id": "ExtensionTests.test_reset_entry_0x423d33_with_and_without_records"
+    },
+    {
+     "path": "tests/test_scene_conditions_extension.py",
+     "test_id": "ExtensionTests.test_reset_preserves_the_selected_item_slot"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-D3.1:636d244e80ae60e2",
+     "rationale": "Item concerns generic opcode construction after 0x424c94; 0x423d37 is only its cited gate address, so it does not touch the reset entry accepted here."
+    },
+    {
+     "id": "A-EB.1:7017105ad8d3c77d",
+     "rationale": "Item concerns generic opcode construction after 0x424c94; 0x423d37 is only its cited gate address, so it does not touch the reset entry accepted here."
+    }
+   ],
+   "note": "0x423d33 entry only (split from the old combined reset): no records sets root 1, else root 0 then traversal 0x423da2. Debug arm and 0x4234c8 stack clear not modelled; tests-only since oracles execute 73 of 111 bytes."
+  },
+  {
+   "va": "0x423da2",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/scene_conditions.c",
+    "symbol": "scene_conditions_reset_traversal"
+   },
+   "tests": [
+    {
+     "path": "tests/test_scene_conditions_extension.py",
+     "test_id": "ExtensionTests.test_reset_traversal_0x423da2_zeroes_node_status_and_leaf_valid_flag"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Flat pass instead of stack and recursion (same node set): +0x4 and leaf +0x2c zeroed, +0x20/+0x30 kept. Error and debug text not modelled; tests-only since oracles execute at most 269 of 437 bytes."
   }
  ],
  "not_needed_entries": [
