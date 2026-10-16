@@ -34,6 +34,7 @@
 #include "session_bindings_aa1.h"
 #include "session_bindings_a83.h"
 #include "session_bindings_a3f.h"
+#include "session_bindings_ad9.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -229,6 +230,16 @@ struct NativeApp {
      * keeps a pointer to a3f_sound, so it lives as long as the binding. */
     SessionA3fBinding *a3f = nullptr;
     ActionSoundBackend a3f_sound{};
+    /* RT-24: raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> handler 0x47d788, render
+     * callback 0x47df57). The slot table stands in for the generic Z entries 0x18..0x3f; the
+     * background is the saved scene frame (0x5d15e3), snapshotted from the seeded back buffer. */
+    SessionAd9Binding *ad9 = nullptr;
+    std::array<bool, 0x40> ad9_slot_used{};
+    std::vector<uint8_t> ad9_background;
+    uint64_t ad9_background_seed = UINT64_MAX;
+    uint64_t ad9_blits = 0u;
+    uint64_t ad9_plan_signature = 0u;
+    bool ad9_render_failure_logged = false;
     /* Native bounds; not a declaration of original global capacities. */
     uint8_t phone_mail[100][A83_MAIL_BYTES]{};
     uint8_t phone_web[100][A83_WEB_BYTES]{};
@@ -859,6 +870,7 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
  * Frame surface, then overlay only the decoded Bink scene viewport. The Frame
  * is a CIFTREE taskbar image; it is not treated as a captured scene frame. */
 static bool native_a35_compose(NativeApp *app);
+static bool native_ad9_render(NativeApp *app);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -1228,6 +1240,11 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
             captions.transfer_failed_sticky = true;
             return false;
         }
+    }
+    if (app->ad9 != nullptr && session_ad9_registered(app->ad9) != 0u) {
+        /* RT-24: generic Z entries above the overlay layers (slots 0x18..0x3f). A refused blit is
+         * logged once and skipped; it does not stop the caption composition. */
+        (void)native_ad9_render(app);
     }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
@@ -1809,6 +1826,7 @@ static void cleanup(NativeApp *app)
     session_aa1_destroy(app->aa1);
     session_a83_destroy(app->a83);
     session_a3f_destroy(app->a3f);
+    session_ad9_destroy(app->ad9);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3236,6 +3254,186 @@ static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* ---- RT-24: raw 0xd9 Mouselight puzzle host providers ---------------------
+ * The kernel (action_family_d9_runtime.c) is the recovered 0x47d788 state machine; the host
+ * supplies the generic Z entry table (0x4d39f9 / 0x4d3992), the CIFTREE image (0x4c2790) and the
+ * engine rectangles. The render callback 0x47df57 runs from the app tick (native_ad9_render). */
+static int native_ad9_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        if (!app->ad9_slot_used[static_cast<size_t>(i)]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_ad9_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_ad9_register_slot(void *context, int16_t slot, uint32_t surface, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->ad9_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_ad9_register slot=%d surface=%u label=%s (type 10 entry, callback 0x47df57)",
+           slot, surface, label);
+    return 0;
+}
+
+static int native_ad9_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "mouselight");
+    if (handle == 0u) {
+        record(app, "scene_ad9_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_ad9_surface_load name=%s surface=%u source=CIFTREE (0x4c2790)", name, handle);
+    return 0;
+}
+
+static int native_ad9_set_slot_surface(void *context, int16_t slot, uint32_t surface)
+{
+    (void)context;
+    (void)slot;
+    (void)surface;
+    return 0;
+}
+
+static int native_ad9_release_surface(void *context, uint32_t surface)
+{
+    (void)context;
+    (void)surface; /* images stay cached by name, as for the other families */
+    return 0;
+}
+
+static int native_ad9_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->ad9_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_ad9_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass draws every tick */
+    return 0;
+}
+
+static int native_ad9_view(void *context, D9View *view)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || view == nullptr) return 1;
+    view->origin_x = app->scene_destination.left;  /* 0x583186 */
+    view->origin_y = app->scene_destination.top;   /* 0x58318a */
+    view->bottom = app->scene_destination.bottom;  /* 0x583192 */
+    view->max_x = app->view_words[10];             /* 0x5831ae, third VIEW rect right */
+    view->max_y = app->view_words[11];             /* 0x5831b2, third VIEW rect bottom */
+    return 0;
+}
+
+static void native_ad9_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == D9_FX_PHASE) {
+        record(app, "scene_ad9_phase new_phase=%d (0x47d788 phase 0 finished)", a);
+    } else if (effect == D9_FX_RELEASE_SLOT) {
+        record(app, "scene_ad9_release slot=%d (scene clear 0x47d59b)", a);
+    }
+}
+
+static int native_ad9_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_ad9_handler(app->ad9, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_ad9_blocker row=%zu status=%d detail=%s", row, status, session_ad9_failure(app->ad9));
+    }
+    return status;
+}
+
+/* 0x47df57: restore the previous window from the saved scene frame, then blit the current one
+ * (mask 0x4c6929 or alpha 0x4c62f0) into the persistent back buffer. */
+static bool native_ad9_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    D9RenderPlan plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_ad9_render_plan(app->ad9, &plan) != D9_OK) {
+        if (!app->ad9_render_failure_logged) {
+            app->ad9_render_failure_logged = true;
+            record(app, "scene_ad9_render_error detail=plan-unavailable");
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    if (app->ad9_background_seed != captions.backbuffer_seed_count ||
+        app->ad9_background.size() != captions.backbuffer_pixels.size()) {
+        app->ad9_background = captions.backbuffer_pixels;
+        app->ad9_background_seed = captions.backbuffer_seed_count;
+    }
+    CaptionCompositorView puzzle_view{};
+    const D9Object *object = session_ad9_object(app->ad9);
+    D9PixelFormat format{};
+    if (captions.compositor_format == CAPTION_COMPOSITOR_RGB565_LE) {
+        format = D9PixelFormat{{11, 5, 0}, {0x1f, 0x3f, 0x1f}};
+    } else {
+        format = D9PixelFormat{{10, 5, 0}, {0x1f, 0x1f, 0x1f}};
+    }
+    D9Surface back{captions.backbuffer_pixels.data(), captions.backbuffer_pixels.size(), 1280};
+    D9Surface saved{app->ad9_background.data(), app->ad9_background.size(), 1280};
+    int status = D9_OK;
+    if (object == nullptr || !native_caption_view_for_handle(app, plan.surface, &puzzle_view)) {
+        status = D9_ERR_HOST;
+    } else {
+        const size_t cells = 4u * static_cast<size_t>(object->radius) * static_cast<size_t>(object->radius);
+        D9Surface puzzle{puzzle_view.pixels, puzzle_view.byte_capacity, puzzle_view.pitch_bytes};
+        /* The saved frame and the back buffer share screen coordinates here, so the restore source is
+         * the destination window of the previous frame. */
+        status = d9_blit_copy(&saved, &back, plan.restore_dst, plan.restore_dst);
+        if (status == D9_OK && plan.kind == D9_BLIT_ALPHA) {
+            status = d9_blit_alpha(&puzzle, &saved, &back, object->alpha, cells, plan.src, plan.dst,
+                                   plan.dst, plan.map, &format);
+        } else if (status == D9_OK) {
+            status = d9_blit_mask(&puzzle, &back, object->mask, cells, plan.src, plan.dst, plan.map);
+        }
+    }
+    if (status != D9_OK) {
+        if (!app->ad9_render_failure_logged) {
+            app->ad9_render_failure_logged = true;
+            record(app, "scene_ad9_render_error status=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                   "(blit refused; no pixels written)", status, plan.src[0], plan.src[1], plan.src[2],
+                   plan.src[3], plan.dst[0], plan.dst[1], plan.dst[2], plan.dst[3]);
+        }
+        return false;
+    }
+    ++app->ad9_blits;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    for (int value : {static_cast<int>(plan.kind), plan.dst[0], plan.dst[1], plan.dst[2], plan.dst[3]}) {
+        signature ^= static_cast<uint32_t>(value);
+        signature *= UINT64_C(1099511628211);
+    }
+    if (signature != app->ad9_plan_signature) {
+        app->ad9_plan_signature = signature;
+        record(app, "scene_ad9_blit kind=%s surface=%u src=%d,%d,%d,%d dst=%d,%d,%d,%d map=%d,%d,%d,%d "
+               "composed=back-buffer scope=host-adapter (layer order vs UI unverified)",
+               plan.kind == D9_BLIT_ALPHA ? "alpha" : "mask", plan.surface, plan.src[0], plan.src[1],
+               plan.src[2], plan.src[3], plan.dst[0], plan.dst[1], plan.dst[2], plan.dst[3], plan.map[0],
+               plan.map[1], plan.map[2], plan.map[3]);
+    }
+    return true;
+}
+
 /* ---- RT-22 follow-up: the task bar (0x570508) and its inventory button ----
  * See inventory_button_runtime.h for the recovered addresses. The bar runs while the
  * screen state 0x583204 is 0 (0x43cf9c); its button 1 raises byte 0x583232, which the next
@@ -3880,6 +4078,18 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.store_world = native_a3f_store_world;
     a3f_host.transition = native_a3f_transition;
     app->a3f = session_a3f_create(&a3f_host);
+    SessionAd9Host ad9_host{};
+    ad9_host.kernel.context = app;
+    ad9_host.kernel.alloc_slot = native_ad9_alloc_slot;
+    ad9_host.kernel.register_slot = native_ad9_register_slot;
+    ad9_host.kernel.load_surface = native_ad9_load_surface;
+    ad9_host.kernel.set_slot_surface = native_ad9_set_slot_surface;
+    ad9_host.kernel.release_surface = native_ad9_release_surface;
+    ad9_host.kernel.release_slot = native_ad9_release_slot;
+    ad9_host.kernel.mark_dirty = native_ad9_mark_dirty;
+    ad9_host.kernel.view = native_ad9_view;
+    ad9_host.kernel.observe = native_ad9_observe;
+    app->ad9 = session_ad9_create(&ad9_host);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -3913,7 +4123,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -4155,6 +4365,15 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_a3f_failure(app->a3f));
         return false;
     }
+    if (session_ad9_begin_scene(app->ad9, app->scene) != D9_OK) {
+        record(app, "scene_session_create_error provider=action-family-d9 detail=%s",
+               session_ad9_failure(app->ad9));
+        return false;
+    }
+    app->ad9_slot_used.fill(false);
+    app->ad9_background_seed = UINT64_MAX;
+    app->ad9_plan_signature = 0u;
+    app->ad9_render_failure_logged = false;
     if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_a97_failure(app->a97));
@@ -4352,6 +4571,13 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
     native_pointer_context(app, &input);
     const uint8_t edge_before = app->input_state.latch[0];
     const int status = session_input_tick(&app->input_state, &input, frame);
+    /* 0x4f0059 -> 0x4f0fdc: Mouselight receives the guarded projection (normal cursor
+     * mode, producer enabled, sprite overlapping the viewport), the same hot spot the
+     * hotspot scan uses (x = [ptr+0x5e], y = [ptr+0x5a]). */
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad9 != nullptr &&
+        session_ad9_registered(app->ad9) != 0u)
+        (void)session_ad9_pointer_move(app->ad9, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y));
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
@@ -4635,7 +4861,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[17]{};
+    SceneSessionActionBinding bindings[18]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -4706,7 +4932,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[16].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
     bindings[16].callback = native_a3f_handler;
     bindings[16].context = app;
-    config.action_binding_count = 17u;
+    /* RT-24: raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> 0x47d788, gate mode 0). The
+     * row never completes; the render callback 0x47df57 runs from the app tick. */
+    bindings[17].type = SESSION_AD9_TYPE;
+    bindings[17].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[17].callback = native_ad9_handler;
+    bindings[17].context = app;
+    config.action_binding_count = 18u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
