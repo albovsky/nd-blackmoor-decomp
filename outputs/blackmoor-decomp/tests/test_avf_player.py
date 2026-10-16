@@ -131,6 +131,33 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual(s.tick(1000), STATE)
         self.assertEqual(s.stop(), STATE)
 
+    def test_movie_step_index_clamps_to_last_in_both_directions(self) -> None:
+        """movie_step_index (0x4c09fe): the index never passes config.last."""
+        for direction in (1, 2):
+            with self.subTest(direction=direction):
+                s = self.session(mode=1)
+                self.assertEqual(s.start(config(MOVIE, mode=1, first=1, last=1, direction=direction)), OK)
+                s.poll()
+                s.tick(1000)
+                self.assertEqual(s.player.index, 1)
+                self.assertEqual(s.player.presented, 1)
+
+    def test_random_step_runs_to_done_then_finishes(self) -> None:
+        """random_step (0x4ce602): the last frame sets done; the next due tick finishes."""
+        for mode in (0, 1):
+            with self.subTest(mode=mode):
+                s = self.session(mode=mode)
+                self.assertEqual(s.start(config(RANDOM, mode=mode, first=0, last=1, surface=8)), OK)
+                s.poll()
+                s.tick(1000)
+                p = s.player
+                self.assertEqual((p.presented, p.index, p.ready, p.substate, p.done), (0, 1, 0, 4, 0))
+                s.poll()
+                s.tick(p.deadline)
+                self.assertEqual((p.presented, p.index, p.ready, p.done, p.finished), (1, 1, 1, 1, 0))
+                s.tick(p.deadline)
+                self.assertEqual(p.finished, 1)
+
     def test_generation_tokens(self) -> None:
         s = self.session()
         self.assertEqual(s.start(config(MOVIE)), OK)
@@ -183,6 +210,7 @@ class AvfPlayerTests(unittest.TestCase):
         self.assertEqual((s.player.presented, s.player.index), (1, 2))
 
     def test_movie_hidden_and_multiple_matches(self) -> None:
+        """movie_step (0x4c0205): hidden ticks do not step; with several matches the first record steps (select, triggers, rect)."""
         s = self.session()
         s.start(config(MOVIE))
         s.poll()

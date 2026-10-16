@@ -409,6 +409,7 @@ static void random_step_index(AvfPlayer *p)
     }
 }
 
+/* 0x4ce602 (the surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted). */
 static AvfPlayerStatus random_step(AvfPlayer *p)
 {
     if (p->substate == 0) {
@@ -504,6 +505,8 @@ static AvfPlayerStatus movie_select(AvfPlayer *p)
     return AVF_PLAYER_OK;
 }
 
+/* 0x4c0205 (0x4c0ab1 and 0x4c08d3 are host events, the surface select is the host present call,
+ * debug logs omitted, the slot-state store of 2 is p->finished). */
 static AvfPlayerStatus movie_step(AvfPlayer *p)
 {
     if (p->substate == 0) {
