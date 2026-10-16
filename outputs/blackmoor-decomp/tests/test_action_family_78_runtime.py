@@ -322,6 +322,8 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual(w.held.value, 4)
 
     def test_swap_returns_the_held_item_then_takes_the_new_one(self):
+        """put_back (original 0x4e8d96): the held item is added back silently (add(held, 0)),
+        then held becomes -1, before the new item leaves the list."""
         w = World78([4, 6], held=9, presence=[4, 6])
         status, r, _ = visit(self.lib, 6, 1, 1, w)
         self.assertEqual(status, OK)
@@ -542,6 +544,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(r.completed, 0)
 
     def test_failure_in_the_swap_put_back_leaves_held_untouched(self):
+        """put_back (original 0x4e8d96) stops before `held = -1` when its add fails."""
         w = World78([4, 6], held=9, rebuild_status=1)
         status, r, _ = visit(self.lib, 6, 1, 1, w)
         self.assertEqual(status, HOST)

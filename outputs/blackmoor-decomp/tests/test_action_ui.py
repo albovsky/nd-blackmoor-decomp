@@ -136,6 +136,8 @@ class ActionUITests(unittest.TestCase):
             self.assertEqual(list(group.codes), [13] * 50)
 
     def test_phone_initialization_preserves_rows_and_controls_while_sorting(self):
+        """sort_phone_records (original 0x4e3ade) orders the rows by the normalized name and
+        keeps equal-key rows distinct; the original oracle compares the real BOOT rows."""
         world, rows = self.world()
         entries = [phone(b"x" * 11, "Zulu"), phone(b"x" * 11, "alice"),
                    phone(b"x" * 11, "Alice", tail=b"\x11" * 8)]
