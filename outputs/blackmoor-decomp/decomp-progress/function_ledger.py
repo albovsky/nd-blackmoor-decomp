@@ -1237,12 +1237,19 @@ def load_overrides(inputs, uni, xrefs):
         params = r.get("parameters", {})
         if not isinstance(params, dict):
             fail(f"{what}: parameters must be an object")
-        allowed = ["eh_parent_regions"] if r["id"] == "R-EH" else []
+        allowed = ["eh_parent_regions", "excluded"] if r["id"] == "R-EH" else []
         exact_keys(params, (), allowed, what)
         if "eh_parent_regions" in params:
             regions = params["eh_parent_regions"]
             if not isinstance(regions, list) or any(x not in REGIONS for x in regions) or len(set(regions)) != len(regions):
                 fail(f"{what}: eh_parent_regions must list distinct regions")
+        if "excluded" in params:
+            excluded = params["excluded"]
+            if not isinstance(excluded, list) or len(set(excluded)) != len(excluded):
+                fail(f"{what}: excluded must list distinct addresses")
+            for text in excluded:
+                if fmt(index_va(text, f"{what} excluded")) != text:
+                    fail(f"{what}: excluded addresses must be written as {fmt(index_va(text, what))}")
         review = r.get("review", {"reviewer": None, "date": None, "n": None, "defects": None, "sample_sha256": None})
         exact_keys(review, "reviewer date n defects sample_sha256".split(), (), what)
         if r["accepted"]:
@@ -1412,6 +1419,7 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
         """A game-region parent that is itself ported or per-function not_needed."""
         return parent in ported or parent in ov["entries"]
 
+    ov["game_reached"] = game_reached(xf, uni)
     entries_nn = {}
     for va, e in sorted(ov["entries"].items()):
         check_not_needed_entry(va, e, facts[va], uni, ov, parent_decided, floor(va))
@@ -1588,6 +1596,8 @@ def check_not_needed_entry(va, e, f, uni, ov, parent_decided, floor):
             fail(f"{what}: needs a library function in the crt_mfc region")
         if any(uni.regions.get(c) == "game" for c in callers):
             fail(f"{what}: a game-region function calls it")
+        if va in ov["game_reached"]:
+            fail(f"{what}: game code reaches it through direct calls, so it serves play and is not startup-only")
     elif reason == "host_libc_standard_contract":
         if region != "crt_mfc" or origin != "library":
             fail(f"{what}: needs a library function in the crt_mfc region")
@@ -1602,12 +1612,27 @@ def check_not_needed_entry(va, e, f, uni, ov, parent_decided, floor):
             fail(f"{what}: the game-region parent {x['eh_parent']} is neither ported nor not_needed")
 
 
+def game_reached(xf, uni):
+    """Every start that game-region code reaches through direct call or tail-jump edges, transitively."""
+    seen, stack = set(), [va for va in xf if uni.regions[va] == "game"]
+    while stack:
+        e = xf[stack.pop()]
+        for text in list(e["callees"]) + list(e["tail_callees"]):
+            callee = parse_va(text, "xrefs edge")
+            if callee in xf and callee not in seen:
+                seen.add(callee)
+                stack.append(callee)
+    return seen
+
+
 def rule_applies(rule, va, f, uni, floor, parent_decided):
     """Ledger-side conditions on top of FL-3's machine predicate. Never true for game code."""
     if floor or uni.regions[va] != "crt_mfc" or f["x"]["seam"] or f["pointers"] or f["blockers"]:
         return False
     if rule["id"] == "R-EH":
         x = f["x"]
+        if fmt(va) in rule["parameters"].get("excluded", ()):
+            return False                                   # a reviewed defect: the funclet stays pending
         if x["eh_kind"] != "unwind":
             return False                                   # Catch@ funclets are reviewed one by one
         if x["eh_parent_region"] == "game" and not parent_decided(parse_va(x["eh_parent"], "xrefs")):

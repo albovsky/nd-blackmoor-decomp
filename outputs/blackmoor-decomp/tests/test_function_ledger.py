@@ -804,9 +804,13 @@ class SchemaTests(ScratchCase):
         self.assertEqual((by[0x406800]["status"], by[0x407300]["status"]), ("pending", "pending"))
 
     def test_the_fl3_draft_overrides_shape_is_accepted_as_is(self):
-        # The committed FL-3 draft (rules accepted:false, no allowlist, spec-shaped semantics_sensitive) must load.
+        # The committed overrides (rule shapes, allowlist, spec-shaped semantics_sensitive) must load.
         draft = json.loads((OUT / "function-ledger-overrides.json").read_text())
-        draft["port_acceptances"] = []              # the real acceptances name real functions, not the fixture's
+        draft["port_acceptances"] = []              # the real decisions name real functions, not the fixture's
+        draft["not_needed_entries"] = []
+        for rule in draft["not_needed_rules"]:
+            rule["accepted"] = False
+            rule["parameters"].pop("excluded", None)
         self.s.path("function-ledger-overrides.json").write_text(json.dumps(draft, indent=1))
         ledger = self.s.derive()
         self.assertEqual(ledger["counts"]["status"]["ported"], 0)
@@ -1223,6 +1227,11 @@ class NotNeededTests(ScratchCase):
         with self.assertRaises(FL.LedgerError):
             s.derive()
 
+    def test_crt_startup_is_not_for_code_game_reaches_through_a_library_caller(self):
+        self.s.edge(0x401000, 0x407800)           # game -> library -> the startup entry
+        self.s.edge(0x407800, 0x407700)
+        self.fails("not startup-only")
+
     def test_host_libc_needs_library_origin_in_crt_region(self):
         self.s.xr(0x407800, lambda f: f.update(origin="game", origin_basis="band_game"))
         self.fails("host_libc_standard_contract")
@@ -1335,6 +1344,18 @@ class NotNeededTests(ScratchCase):
     def test_eh_rule_needs_a_decided_game_parent(self):
         self.assertEqual(self.status(0x407300)[0], "not_needed")      # parent 0x401000 is ported
         self.assertEqual(self.status(0x407400)[0], "pending")         # parent 0x401800 is pending
+
+    def test_eh_rule_excluded_funclet_stays_pending(self):
+        self.s.rule("R-EH", lambda r: r["parameters"].update(excluded=["0x407300"]))
+        self.assertEqual(self.status(0x407300)[0], "pending")
+
+    def test_eh_rule_excluded_must_be_a_plain_index_address(self):
+        for bad in (["0x407301"], ["0x0407300"], ["0x407300", "0x407300"], "0x407300"):
+            with self.subTest(bad=bad):
+                s = self.fresh()
+                s.rule("R-EH", lambda r: r["parameters"].update(excluded=bad))
+                with self.assertRaises(FL.LedgerError):
+                    s.derive()
 
     def test_eh_rule_accepts_a_parent_that_is_not_needed(self):
         self.s.funclet(0x407400, 0x401b00)                            # 0x401b00 is a per-function not_needed entry

@@ -950,9 +950,12 @@ def rule_r_eh(
     sensitive: dict[str, list[str]],
     parent_regions: Optional[list[str]] = None,
     parent_entry: Optional[dict[str, Any]] = None,
+    callee_entries: Optional[list[dict[str, Any]]] = None,
 ) -> tuple[bool, str]:
     """Unwind funclet with exactly one known, non-seam parent.  Catch funclets are never rule-covered.
 
+    A funclet that hands control to code holding an indirect jump (a virtual-dispatch thunk) is refused: the
+    target is an override the funclet cannot be shown to resolve to plain cleanup (FL-7 review, six funclets).
     A funclet whose parent is library code is refused when it has a path back into game code."""
 
     if entry["origin"] != "compiler_eh" or entry["eh_kind"] != "unwind":
@@ -971,6 +974,10 @@ def rule_r_eh(
         return False, "parent is a seam function"
     if entry["eh_parent_region"] != "game" and entry["reaches_game"]:
         return False, "library-parent funclet with a path back into game code"
+    if entry["indirect_calls"] or entry["indirect_jumps"]:
+        return False, "funclet dispatches indirectly"
+    if any(c["indirect_jumps"] for c in callee_entries or ()):
+        return False, "funclet jumps into code that dispatches indirectly (virtual thunk)"
     return True, "unwind funclet with a single FuncInfo parent"
 
 
@@ -1006,7 +1013,8 @@ def rule_candidates(
     out: dict[str, list[str]] = {name: [] for name in RULE_PREDICATES}
     by_va = {e["va"]: e for e in doc["entries"]}
     for e in doc["entries"]:
-        if rule_r_eh(e, sensitive, eh_parent_regions, by_va.get(e["eh_parent"]))[0]:
+        callees = [by_va[c] for c in list(e["callees"]) + list(e["tail_callees"]) if c in by_va]
+        if rule_r_eh(e, sensitive, eh_parent_regions, by_va.get(e["eh_parent"]), callees)[0]:
             out["R-EH"].append(e["va"])
         if rule_r_lib_internal(e, sensitive)[0]:
             out["R-LIB-INTERNAL"].append(e["va"])

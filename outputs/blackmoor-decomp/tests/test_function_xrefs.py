@@ -560,6 +560,20 @@ class ReachabilityAndRuleTests(Base):
         self.assertIn("seam", why)
         self.assertTrue(xr.rule_r_eh(funclet, {}, None, {"seam": False})[0])
 
+    def test_r_eh_refuses_funclet_that_dispatches_indirectly(self) -> None:
+        funclet = copy.deepcopy(entry(self.doc, F1))
+        funclet["indirect_calls"] = 1
+        ok, why = xr.rule_r_eh(funclet, {})
+        self.assertFalse(ok)
+        self.assertIn("indirectly", why)
+
+    def test_r_eh_refuses_funclet_that_jumps_into_a_virtual_thunk(self) -> None:
+        funclet = copy.deepcopy(entry(self.doc, F1))
+        self.assertTrue(xr.rule_r_eh(funclet, {}, None, None, [{"indirect_jumps": 0}])[0])
+        ok, why = xr.rule_r_eh(funclet, {}, None, None, [{"indirect_jumps": 0}, {"indirect_jumps": 2}])
+        self.assertFalse(ok)
+        self.assertIn("virtual thunk", why)
+
     def test_semantics_sensitive_closure_propagates_to_callers(self) -> None:
         def add_caller(text: bytearray) -> None:
             put(text, L3, b"\x55\x8b\xec\xe8" + rel(L3 + 8, L4) + b"\x5d\xc3")
@@ -785,17 +799,22 @@ class SamplerTests(unittest.TestCase):
 class DraftOverridesTests(unittest.TestCase):
     path = PROJECT / "function-ledger-overrides.json"
 
-    def test_draft_is_conservative(self) -> None:
+    def test_committed_overrides_record_reviews_for_every_acceptance(self) -> None:
         doc = json.loads(self.path.read_text(encoding="utf-8"))
         self.assertEqual(doc["schema"], "blackmoor-function-ledger-overrides/1")
-        self.assertEqual(doc["port_acceptances"], [])
-        self.assertEqual(doc["not_needed_entries"], [])
-        self.assertTrue(doc["not_needed_rules"])
-        for rule in doc["not_needed_rules"]:
-            self.assertIs(rule["accepted"], False)
-            self.assertIn(rule["predicate"], xr.RULE_PREDICATES)
-            self.assertIsNone(rule["review"]["sample_sha256"])
         self.assertEqual({r["id"] for r in doc["not_needed_rules"]}, {"R-EH", "R-LIB-INTERNAL"})
+        for rule in doc["not_needed_rules"]:
+            self.assertIn(rule["predicate"], xr.RULE_PREDICATES)
+            if rule["accepted"]:
+                review = rule["review"]
+                self.assertGreaterEqual(review["n"], 59)
+                self.assertEqual(review["defects"], 0)
+                self.assertRegex(review["sample_sha256"], r"^[0-9a-f]{64}$")
+            else:
+                self.assertIsNone(rule["review"]["sample_sha256"])
+        for entry_ in doc["not_needed_entries"] + doc["port_acceptances"]:
+            self.assertTrue(entry_["reviewer"])
+            self.assertTrue(entry_["date"])
 
     def test_semantics_sensitive_spec_covers_the_plan_categories(self) -> None:
         doc = json.loads(self.path.read_text(encoding="utf-8"))
