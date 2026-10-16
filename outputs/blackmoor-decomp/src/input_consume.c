@@ -112,6 +112,7 @@ InputConsumeStatus input_consume_field0(
     return INPUT_CONSUME_OK;
 }
 
+/* Original GAME.EXE 0x4daf6e (input consume, field 4; function-ledger review FL-8). */
 InputConsumeStatus input_consume_field4(
     const InputLatchStateView *state,
     uint32_t *out_raw_return)

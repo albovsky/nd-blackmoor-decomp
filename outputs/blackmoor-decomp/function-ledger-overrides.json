@@ -18,16 +18,16 @@
   },
   {
    "va": "0x42ba3a",
-   "class": "native_tests_only",
+   "class": "native_oracle_verified",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
    "native_source": {"path": "src/action_core.c", "symbol": "action_core_finish_action"},
    "tests": [
     {"path": "tests/test_action_core.py", "test_id": "ActionCoreTests.test_post_completion_subtypes"}
    ],
-   "oracle": null,
+   "oracle": {"path": "tests/action_core_original_oracle.py", "window": ["0x42ba3a", "0x42babf"]},
    "parts_accounted": [],
-   "note": "Matches the pseudocode; the 0x423d33 dependency reset is only reported. action_core_original_oracle.py compares it via the dispatcher (not rerun here). Test passed on macOS arm64, 2026-10-15."
+   "note": "Matches the pseudocode; the 0x423d33 dependency reset is only reported. Upgraded by FL-8: action_core_original_oracle.py, rerun and recorded executing every byte, compares it via the dispatcher."
   },
   {
    "va": "0x4f6059",
@@ -74,6 +74,112 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Same LCG and 15-bit result as the pseudocode; the per-thread seed cell is a struct field. No oracle calls this symbol. Test passed on macOS arm64, 2026-10-15."
+  },
+  {
+   "va": "0x42ae73",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/action_family_0b_runtime.c", "symbol": "action0b_step"},
+   "tests": [
+    {"path": "tests/test_action_family_0b_runtime.py", "test_id": "KernelTests.test_null_arguments_are_rejected_and_the_observer_is_optional"}
+   ],
+   "oracle": {"path": "tests/action_family_0b_runtime_original_oracle.py", "window": ["0x42ae73", "0x42b07e"]},
+   "parts_accounted": [],
+   "note": "Native is action0b_step (phases 0-2 and other). RT-16 oracle: 4320 kernel cases, 0 mismatches. Gaps: payload/row pointers are structs; native adds null-argument rejects."
+  },
+  {
+   "va": "0x4daf6e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/input_consume.c", "symbol": "input_consume_field4"},
+   "tests": [
+    {"path": "tests/test_input_consume.py", "test_id": "InputConsumeNativeTests.test_field4_requires_20_bytes_and_clears_only_after_nonzero"}
+   ],
+   "oracle": {"path": "tests/input_consume_original_oracle.py", "window": ["0x4daf6e", "0x4daf9f"]},
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {"id": "RT-17:3031df558d9c77db", "rationale": "The item is a caller-side assumption (the native app has no right button, so the tick treats the secondary consumer as returning 0); it does not alter whether input_consume_field4 matches the original method. It does mean the function is not wired into the native game loop."}
+   ],
+   "note": "Native is input_consume_field4. Oracle: 100 calls, 0 mismatches. Native app does not call it yet (function-level only). Caller-side RT-17 item reviewed."
+  },
+  {
+   "va": "0x4eaadc",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/action_family_78_runtime.c", "symbol": "action78_visit"},
+   "tests": [
+    {"path": "tests/test_action_family_78_runtime.py", "test_id": "RuntimeTests.test_null_arguments_and_model_pointers"}
+   ],
+   "oracle": {"path": "tests/action_family_78_runtime_original_oracle.py", "window": ["0x4eaadc", "0x4eac4c"]},
+   "parts_accounted": [],
+   "note": "Native is action78_visit; every branch matches. RT-19 oracle compares effect log and model per case, 0 mismatches. The named test covers null arguments only; behaviour evidence is the oracle."
+  },
+  {
+   "va": "0x4e9e84",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/action_family_78_runtime.c", "symbol": "action78_add_item"},
+   "tests": [
+    {"path": "tests/test_action_family_78_runtime.py", "test_id": "RuntimeTests.test_add_item_step_alone_puts_the_item_first_without_sound_ui_or_completion"}
+   ],
+   "oracle": {"path": "tests/action_family_78_runtime_original_oracle.py", "window": ["0x4e9e84", "0x4ea06c"]},
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {"id": "RT-19:0739013e7028fc5b", "rationale": "The text is about play reachability (nothing in the native app writes view byte +0x7010, so the item-last layout is not reached in play), not about native/original equivalence; the oracle draws (mode 2, slot flag 1) from VIEW_MODES and RT-22 put-back click tests run the append branch against the original."}
+   ],
+   "note": "Native is action78_add_item (add step alone). RT-19 oracle: 3646 cases, 0 mismatches. Gaps: 361 out-of-model cases rejected natively; the add is driven through parent chains."
+  },
+  {
+   "va": "0x4ea06c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/action_family_79_runtime.c", "symbol": "action79_remove_item"},
+   "tests": [
+    {"path": "tests/test_action_family_79_runtime.py", "test_id": "RuntimeTests.test_remove_item_step_alone_compacts_and_rebuilds_without_completing"}
+   ],
+   "oracle": {"path": "tests/action_family_79_runtime_original_oracle.py", "window": ["0x4ea06c", "0x4ea1cb"]},
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {"id": "A-79.1:03c75098d941819f", "rationale": "A-79.1 was the static decode slice; the later RT-13 oracle (1554 cases) plus RT-19 (3646) and RT-22 execute 0x4ea06c for found first/middle/last, missing, duplicate and held-item paths, signed words and ordered effects. Only out-of-model counts and ids remain native-rejected (listed under gaps)."}
+   ],
+   "note": "Native is action79_remove_item. RT-13 oracle 1554 and RT-19 3646 cases, 0 mismatches. Gaps: out-of-model inputs rejected natively."
+  },
+  {
+   "va": "0x4c7314",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/cif_pixels.c", "symbol": "cif_pixels_convert_555"},
+   "tests": [
+    {"path": "tests/test_cif_pixels.py", "test_id": "PixelConversionTests.test_cif_pixels_convert_555_converts_a_buffer_in_place_like_the_scalar_reference"}
+   ],
+   "oracle": {"path": "tests/pixel_original_oracle.py", "window": ["0x4c7314", "0x4c7481"]},
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {"id": "S03-1:71a0b83787925355", "rationale": "The item limits the AVF decoder tests to 5/5/5 and 5/6/5 display formats and says 0x4c7314 itself is exhaustively validated by the pixel oracle; that oracle compares 11 format cases times all 65536 words against the original and matched."}
+   ],
+   "note": "Native is cif_pixels_convert_555. Pixel oracle covers all 65536 words in 11 format cases, 0 mismatches. Note: this is the in-place renderer conversion, not host RGBA expansion."
+  },
+  {
+   "va": "0x4e1a7e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-8 helper, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {"path": "src/action_ui.c", "symbol": "action_ui_initialize_controls"},
+   "tests": [
+    {"path": "tests/test_action_ui.py", "test_id": "ActionUITests.test_action_ui_initialize_controls_resets_every_field_of_a_dirty_world"}
+   ],
+   "oracle": {"path": "tests/action_ui_original_oracle.py", "window": ["0x4e1a7e", "0x4e1b79"]},
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {"id": "RT-22:dac30393f20994a9", "rationale": "The item says taskbar_init (inventory_button_runtime.c, the rejected pairing) skips +0x194, +0x198.. and the dword := 0xd fields; action_ui_initialize_controls writes all of them (availability, flags[3], codes 13) and the oracle compares the whole 5*0x1a4 control array."}
+   ],
+   "note": "Native is action_ui_initialize_controls (writes every field the original does; checked by hand on a 0xAA-filled world). Oracle compares it only indirectly, through handler output over 13 cases."
   }
  ],
  "not_needed_entries": [],

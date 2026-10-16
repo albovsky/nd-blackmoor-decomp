@@ -122,6 +122,19 @@ class ActionUITests(unittest.TestCase):
             self.assertEqual(list(group.ends), [9999] * 50)
             self.assertEqual(list(group.codes), [13] * 50)
 
+    def test_action_ui_initialize_controls_resets_every_field_of_a_dirty_world(self):
+        # 0x4e1a7e: a world pre-filled with 0xAA bytes must come back fully initialised
+        world = ActionUIWorld()
+        c.memset(c.byref(world), 0xAA, c.sizeof(world))
+        world.phone_records = None
+        world.phone_capacity = 0
+        self.assertEqual(self.lib.action_ui_initialize_controls(c.byref(world)), OK)
+        for group in world.controls:
+            self.assertEqual((group.state, group.availability, list(group.flags)), (0, 0, [0, 0, 0]))
+            self.assertEqual(list(group.starts), [9999] * 50)
+            self.assertEqual(list(group.ends), [9999] * 50)
+            self.assertEqual(list(group.codes), [13] * 50)
+
     def test_phone_initialization_preserves_rows_and_controls_while_sorting(self):
         world, rows = self.world()
         entries = [phone(b"x" * 11, "Zulu"), phone(b"x" * 11, "alice"),

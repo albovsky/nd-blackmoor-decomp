@@ -13,6 +13,7 @@ static void write_u16_le(uint8_t *bytes, uint16_t value)
     bytes[1] = (uint8_t)(value >> 8);
 }
 
+/* Original GAME.EXE 0x4c7314 (555 pixel conversion; function-ledger review FL-8). */
 void cif_pixels_convert_555(uint8_t *pixels,
                             uint32_t byte_count,
                             const cif_pixel_format *format)

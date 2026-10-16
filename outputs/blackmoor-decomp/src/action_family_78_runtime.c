@@ -319,6 +319,8 @@ static int run_with_shadow(const Action78Object *object, int add_only, int16_t a
     return status;
 }
 
+/* Original GAME.EXE 0x4eaadc: the 0x78 visit (take / swap / plain add); its callees are 0x4e9e84 add_item,
+ * 0x4ea06c remove_item and the 0x4e8d96 put_back helper. */
 int action78_visit(const Action78Object *object, const Action78Model *model,
                    const Action78Host *host, Action78Result *result, const char **why)
 {

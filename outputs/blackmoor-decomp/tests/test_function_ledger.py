@@ -331,7 +331,7 @@ class FixtureDerivationTests(unittest.TestCase):
         self.assertEqual(kinds(0x401800), [])
         oracle = pointer(self.by_va[0x401000], "oracle")
         self.assertEqual(oracle["window"], ["0x401000", "0x401100"])
-        self.assertEqual((oracle["use"], oracle["use_basis"], oracle["verified"]), ("entry", "window_start", "recorded_hash"))
+        self.assertEqual((oracle["use"], oracle["use_basis"], oracle["verified"]), ("entry", "executed", "recorded_hash"))
         self.assertEqual(oracle["path"], "tests/fixture_core_oracle.py")          # root-relative, not repo-relative
         self.assertEqual(oracle["sha256"], sha_file(FIXTURE / "tests/fixture_core_oracle.py"))
         self.assertEqual(pointer(self.by_va[0x401000], "receipt")["review"], "reviewer_recorded")
@@ -922,6 +922,22 @@ class PortAcceptanceTests(ScratchCase):
     def test_mapped_only_window_never_qualifies(self):
         self.s.ev(0x401340, lambda f: f["evidence"][2].update(use="mapped"))
         self.fails("mapped")
+
+    def test_structural_window_start_does_not_support_the_oracle_class(self):
+        # FL-8: only a recorded run that executed the whole function counts; a window start or hook list does not
+        self.s.ev(0x401000, lambda f: f["evidence"][2].update(use_basis="window_start"))
+        self.fails("structural")
+
+    def test_observed_hook_basis_does_not_support_the_oracle_class(self):
+        self.s.ev(0x401340, lambda f: f["evidence"][2].update(use_basis="observed_hook"))
+        self.fails("structural")
+
+    def test_partly_executed_window_is_not_a_full_window_for_a_candidate(self):
+        self.s.ev(0x401900, lambda f: f["evidence"][1].update(use="mapped", use_basis="executed_partial"))
+        self.assertEqual(self.status(0x401900), ("pending", "partial_native"))
+
+    def test_structural_full_window_still_makes_a_candidate(self):
+        self.assertEqual(self.status(0x401900)[1], "candidate_port")
 
     def test_declared_only_window_never_qualifies(self):
         self.s.ev(0x401340, lambda f: f["evidence"][2].update(use="mapped", verified="declared_only", use_basis="unhashed"))

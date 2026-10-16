@@ -14,3 +14,6 @@ outputs/**/*.app/
 
 # Local agent session state (e.g. superpowers SDD ledgers).
 .superpowers/
+
+# objdiff progress objects and report (script/upload-bytematch.sh)
+/build/

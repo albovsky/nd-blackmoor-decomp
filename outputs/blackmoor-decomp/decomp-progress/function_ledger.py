@@ -112,7 +112,10 @@ ORIGINS = ("game", "library", "compiler_eh", "import_thunk", "unknown")
 USES = ("entry", "callee", "mapped")
 QUALIFYING_USES = ("entry", "callee")
 USE_BASES = ("window_start", "observed_hook", "replaced_by_hook", "hook_unclassified", "static_scope",
-             "containment_only", "unhashed")
+             "containment_only", "unhashed", "executed", "executed_partial")
+# FL-8: an oracle pointer proves an original function ran only when the oracle script was recorded executing every
+# code byte of it (scripts/record_function_execution.py).  A declared window start or a hook list is structural.
+EXECUTED_BASIS = "executed"
 VERIFIED = ("recorded_hash", "declared_only")
 REVIEW_STATES = ("absent", "findings_addressed", "none", "pending", "reviewer_recorded")
 MENTION_VIAS = ("citation", "window_start")
@@ -488,14 +491,17 @@ def covers(p, va, body_size):
 
 
 def qualifies(p):
-    """An oracle pointer that can support a native_oracle_verified claim."""
-    return p["kind"] == "oracle" and p["use"] in QUALIFYING_USES and p["verified"] == "recorded_hash"
+    """An oracle pointer that can support a native_oracle_verified claim: a hash-verified window in which the
+    recorded oracle run executed the whole function (FL-8)."""
+    return (p["kind"] == "oracle" and p["use"] in QUALIFYING_USES and p["verified"] == "recorded_hash"
+            and p["use_basis"] == EXECUTED_BASIS and p["path"] is not None)
 
 
 def classify_pending(entry):
     evidence, va, body = entry["evidence"], int(entry["va"], 16), entry["body_size"]
     kinds = {p["kind"] for p in evidence}
-    full = any(p["kind"] == "oracle" and p["verified"] == "recorded_hash" and covers(p, va, body) for p in evidence)
+    full = any(p["kind"] == "oracle" and p["verified"] == "recorded_hash" and p["use_basis"] != "executed_partial"
+               and covers(p, va, body) for p in evidence)     # a partly executed function is not a full window
     if "native_source" in kinds and full:
         return "candidate_port"
     if kinds & {"native_source", "test", "oracle"}:
@@ -526,7 +532,8 @@ def check_ported_evidence(entry, what):
             fail(f"{what}: oracle windows used only as 'mapped' never qualify (needs entry or callee)")
         good = [p for p in oracles if qualifies(p)]
         if not good:
-            fail(f"{what}: oracle windows without a recorded hash never qualify")
+            fail(f"{what}: no oracle pointer qualifies (it needs a hash-verified window whose oracle run "
+                 "executed the whole function: use_basis 'executed' and a script path)")
         if not any(covers(p, va, entry["body_size"]) for p in good):
             fail(f"{what}: no oracle window used as entry or callee covers the whole body")
     for blocker in entry["blockers"]:
@@ -1516,6 +1523,10 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
             fail(f"{what}: oracle window used as {match[0]['use']!r} never qualifies (needs entry or callee)")
         if not any(p["verified"] == "recorded_hash" for p in good):
             fail(f"{what}: oracle window without a recorded hash never qualifies")
+        good = [p for p in good if p["use_basis"] == EXECUTED_BASIS]
+        if not good:
+            fail(f"{what}: oracle window is structural (use_basis {match[0]['use_basis']!r}); "
+                 "native_oracle_verified needs a recorded run that executed the whole function (use_basis 'executed')")
         if body_size is None:
             fail(f"{what}: body_size from xrefs is needed to check oracle coverage")
         if not covers(good[0], va, body_size):

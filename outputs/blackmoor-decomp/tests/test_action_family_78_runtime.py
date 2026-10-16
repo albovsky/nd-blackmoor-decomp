@@ -156,6 +156,9 @@ def bind(path=None):
     lib.action78_visit.restype = c.c_int
     lib.action78_object_from_body.argtypes = [c.c_char_p, c.c_size_t, c.POINTER(Object78)]
     lib.action78_object_from_body.restype = c.c_int
+    lib.action78_add_item.argtypes = [c.c_int16, c.c_int, c.POINTER(Model78), c.POINTER(Host78),
+                                      c.POINTER(Result78), c.POINTER(c.c_char_p)]
+    lib.action78_add_item.restype = c.c_int
     return lib
 
 
@@ -195,6 +198,20 @@ class RuntimeTests(unittest.TestCase):
             ('rebuild_call', 5, (-1, 3, padded([5, 3, 7]), tuple(w.presence[:CAPACITY]))),
             ('ui', 1), ('ui_call', 1, 1, 0), ('complete', 1)])
         self.assertEqual(r.tuple(), (0, 0, 0, 1, 0, 1, 1, 0, 1))
+        self.assertTrue(w.guards_intact())
+
+    def test_add_item_step_alone_puts_the_item_first_without_sound_ui_or_completion(self):
+        # RT-22: 0x4e9e84 on its own (flag 0): list, count, presence and rebuild only; held and completion untouched
+        w = World78([3, 7])
+        result, failure = Result78(), c.c_char_p()
+        status = self.lib.action78_add_item(5, 0, c.byref(w.model), c.byref(w.host), c.byref(result),
+                                            c.byref(failure))
+        self.assertEqual(status, OK)
+        held, count, words, presence = w.snapshot()
+        self.assertEqual((held, count, list(words[:4])), (-1, 3, [5, 3, 7, 0xffff]))
+        self.assertEqual((presence[5], presence[3], presence[7]), (1, 1, 1))
+        self.assertEqual([entry[0] for entry in w.log],
+                         ['add', 'count', 'list', 'presence', 'rebuild', 'rebuild_call'])
         self.assertTrue(w.guards_intact())
 
     def test_add_to_an_empty_inventory(self):

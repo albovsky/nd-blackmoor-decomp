@@ -35,25 +35,25 @@ Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; sour
 
 ## Function ledger
 
-**4,188 functions:** 5 ported, 0 not needed, 4,183 pending (99.88%).
+**4,188 functions:** 12 ported, 0 not needed, 4,176 pending (99.71%).
 
 More than 80% of functions are still pending at this publication.
 
 | Status | Class | Functions |
 |---|---|---:|
-| ported | `native_oracle_verified` | 0 |
-| ported | `native_tests_only` | 4 |
+| ported | `native_oracle_verified` | 8 |
+| ported | `native_tests_only` | 3 |
 | ported | `host_adapter_tested` | 1 |
 | not_needed | `nn_rule` | 0 |
 | not_needed | `nn_reviewed` | 0 |
-| pending | `candidate_port` | 146 |
-| pending | `partial_native` | 279 |
-| pending | `static_navigation_only` | 57 |
-| pending | `none` | 3,701 |
+| pending | `candidate_port` | 156 |
+| pending | `partial_native` | 380 |
+| pending | `static_navigation_only` | 52 |
+| pending | `none` | 3,588 |
 
 | Region | Functions | Ported | Not needed | Pending |
 |---|---:|---:|---:|---:|
-| game | 2,507 | 4 | 0 | 2,503 |
+| game | 2,507 | 11 | 0 | 2,496 |
 | vorbis | 178 | 0 | 0 | 178 |
 | crt_mfc | 1,503 | 1 | 0 | 1,502 |
 
@@ -61,19 +61,19 @@ Not needed, by reason: none accepted yet.
 
 | x86 match vs native port | Ported | Not needed | Pending |
 |---|---:|---:|---:|
-| x86 complete function match | 1 | 0 | 85 |
+| x86 complete function match | 4 | 0 | 82 |
 | x86 partial range | 0 | 0 | 2 |
-| no x86 match | 4 | 0 | 4,096 |
+| no x86 match | 8 | 0 | 4,092 |
 
 Caveats:
 
 - Ported is a reviewed claim, not an x86 match: native code or a test covers the function, and the x86 match stays a separate, orthogonal track.
-- Tests-only is weaker evidence than oracle-verified (a test names the function, but no original-x86 oracle window proves it); adapter-tested covers Win32 or library behaviour replaced by a tested adapter. The three ported classes are reported separately.
+- Tests-only is weaker evidence than oracle-verified (a test names the function, but no original-x86 oracle run executed it); oracle-verified needs a recorded Unicorn run (function-execution.json) that executed every code byte of the original function, never just a declared window. Adapter-tested covers Win32 or library behaviour replaced by a tested adapter. The three ported classes are reported separately.
 - Spans include tables, padding and thunks: a span runs from a function start to the next indexed start, and the Ghidra body size can be smaller.
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `e3089c7e33303d34f1ef9dfbed923ce1de16ac7622fdd6408983204ad3b6b557`; 659 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `7a8b40541c5b2bce54d333baa0b45c29f4a89b2f96ca07a90f19b39003f68f71`; 660 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 

@@ -867,8 +867,9 @@ LEDGER_CAVEATS = (
     "Ported is a reviewed claim, not an x86 match: native code or a test covers the function, and the x86 "
     "match stays a separate, orthogonal track.",
     "Tests-only is weaker evidence than oracle-verified (a test names the function, but no original-x86 "
-    "oracle window proves it); adapter-tested covers Win32 or library behaviour replaced by a tested "
-    "adapter. The three ported classes are reported separately.",
+    "oracle run executed it); oracle-verified needs a recorded Unicorn run (function-execution.json) that "
+    "executed every code byte of the original function, never just a declared window. Adapter-tested covers "
+    "Win32 or library behaviour replaced by a tested adapter. The three ported classes are reported separately.",
     "Spans include tables, padding and thunks: a span runs from a function start to the next indexed "
     "start, and the Ghidra body size can be smaller.",
     "Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.",
