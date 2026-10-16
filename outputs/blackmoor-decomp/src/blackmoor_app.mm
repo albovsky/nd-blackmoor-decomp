@@ -36,6 +36,7 @@
 #include "session_bindings_a3f.h"
 #include "session_bindings_a95.h"
 #include "session_bindings_a4f.h"
+#include "session_bindings_a6e.h"
 #include "session_bindings_ad9.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -246,6 +247,13 @@ struct NativeApp {
     SessionA95Binding *a95 = nullptr;
     /* RT-27: raw 0x4f compare-and-set-event-flag (arm 0x428133 -> 0x44b641, gate mode 1). Not compiled here. */
     SessionA4FBinding *a4f = nullptr;
+    /* RT-28: raw 0x6e saves the running scene (arm 0x42916f -> 0x42e560, gate mode 0). Not compiled here.
+     * The record at 0x5c3a05 is shared with the future 0x6f pop; `loaded_words` are the transition words the last
+     * successful scene load copied into 0x5bb50b/0x5bb593/0x5bb5a7..0x5bb5af (0x439f20..0x439f64). */
+    SessionA6EBinding *a6e = nullptr;
+    SceneStackSlot scene_stack_slot{};
+    SceneTransitionRequest loaded_words{};
+    bool loaded_words_valid = false;
     /* Native bounds; not a declaration of original global capacities. */
     uint8_t phone_mail[100][A83_MAIL_BYTES]{};
     uint8_t phone_web[100][A83_WEB_BYTES]{};
@@ -1835,6 +1843,7 @@ static void cleanup(NativeApp *app)
     session_ad9_destroy(app->ad9);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
+    session_a6e_destroy(app->a6e);
     session_a79_destroy(app->a79);
     session_a78_destroy(app->a78);
     session_a36_destroy(app->a36);
@@ -3403,6 +3412,44 @@ static int native_a4f_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-28: the running scene's words for 0x42e560. After a load 0x5bb57b and 0x5bb57f both hold the scene
+ * (0x439ec4); the other five are the transition words the loader copied (0x439f20..0x439f64), with the loader's
+ * rule that three zero dwords become 0x5bb5af = 1 (0x439f73..0x439f8e). A scene entered without a transition
+ * (the first one) has no request: zero words, which is an assumption (the boot path is not recovered). */
+static int native_a6e_load_current(void *context, SceneStackCurrent *current)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || current == nullptr) return 1;
+    const SceneTransitionRequest words = app->loaded_words_valid ? app->loaded_words : SceneTransitionRequest{};
+    current->scene_5bb57b = app->current_scene_id;
+    current->scene_5bb57f = app->current_scene_id;
+    current->word_5bb50b = words.opaque_words[0];
+    current->word_5bb593 = words.opaque_words[1];
+    current->dword_5bb5a7 = words.opaque_dwords[0];
+    current->dword_5bb5ab = words.opaque_dwords[1];
+    current->dword_5bb5af = words.opaque_dwords[2];
+    if (current->dword_5bb5a7 == 0 && current->dword_5bb5ab == 0 && current->dword_5bb5af == 0) {
+        current->dword_5bb5af = 1;
+    }
+    return 0;
+}
+
+static int native_a6e_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a6e_handler(app->a6e, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a6e_blocker row=%zu status=%d detail=%s", row, status, session_a6e_failure(app->a6e));
+    } else {
+        record(app, "scene_a6e_saved row=%zu scene=%d saved=%d,%d words=%d,%d,%d type=%d", row, app->current_scene_id,
+               app->scene_stack_slot.scene_5c3a05, app->scene_stack_slot.scene_5c3a07, app->scene_stack_slot.word_5c3a09,
+               app->scene_stack_slot.word_5c3a0b, app->scene_stack_slot.dword_5c3a0f, app->scene_stack_slot.word_5c3a0d);
+    }
+    return status;
+}
+
 static int native_ad9_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -4148,6 +4195,12 @@ static bool create_native_session_bindings(NativeApp *app)
     a95_host.set_channel_scalars = native_a95_set_channel_scalars;
     app->a95 = session_a95_create(&a95_host);
     app->a4f = session_a4f_create(&app->new_game.action_core);
+    scene_stack_slot_clear(&app->scene_stack_slot);
+    scene_stack_slot_init_words(&app->scene_stack_slot); /* game initializer 0x436fe4..0x437008 */
+    SessionA6EHost a6e_host{};
+    a6e_host.context = app;
+    a6e_host.load_current = native_a6e_load_current;
+    app->a6e = session_a6e_create(&a6e_host, &app->scene_stack_slot);
     SessionA36Host a36_host{};
     a36_host.kernel.context = app;
     a36_host.kernel.load_surface = native_a36_load_surface;
@@ -4181,7 +4234,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -4919,7 +4972,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[21]{};
+    SceneSessionActionBinding bindings[22]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5014,7 +5067,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[20].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[20].callback = native_a4f_handler;
     bindings[20].context = app;
-    config.action_binding_count = 21u;
+    /* RT-28: raw 0x6e (dispatcher arm 0x42916f -> 0x42e560(2), gate mode 0; completion byte set directly). */
+    bindings[21].type = SESSION_A6E_TYPE;
+    bindings[21].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[21].callback = native_a6e_handler;
+    bindings[21].context = app;
+    config.action_binding_count = 22u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -5910,6 +5968,8 @@ static bool perform_session_transition(NativeApp *app,
                failure.action_type, failure.detail_status);
         return false;
     }
+    app->loaded_words = transition;       /* 0x439f20..0x439f64 copies the request words at load */
+    app->loaded_words_valid = true;
     if (app->retired_scene != nullptr) {
         scene_resource_close(app->retired_scene);
         app->retired_scene = nullptr;
