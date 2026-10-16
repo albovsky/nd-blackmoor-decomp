@@ -187,6 +187,7 @@ class SequenceTests(unittest.TestCase):
         return status, report
 
     def test_first_frame_count_then_later_frame_and_pump_order(self):
+        """action_family28_run_sequence (original 0x44753b): tick, blend and pump order, final state."""
         state, _first, _second = fixture_state()
         harness = Harness([100, 102])
         status, report = self.run_sequence(state, harness, CW_DOUBLE)
@@ -242,6 +243,7 @@ class SequenceTests(unittest.TestCase):
         self.assertEqual(unchanged.value, 42.0)
 
     def test_subtype3_pause_swap_and_conditional_scene_transition(self):
+        """action_family28_run_sequence (original 0x44753b): subtype 3 pause, capture swap, scene state."""
         state, first, second = fixture_state(subtype=3, budget=4, pause=2)
         original_source = c.cast(state.source_capture.data, c.c_void_p).value
         original_destination = c.cast(state.destination_capture.data, c.c_void_p).value
@@ -272,6 +274,7 @@ class SequenceTests(unittest.TestCase):
         self.assertEqual(report.completion_committed, 1)
 
     def test_zero_elapsed_and_negative_wrapped_elapsed_preserve_original_count_rules(self):
+        """action_family28_run_sequence (original 0x44753b): the frame-count rule for zero and wrapped elapsed."""
         state, _, _ = fixture_state(budget=4)
         harness = Harness([77, 77])
         status, report = self.run_sequence(state, harness)
@@ -288,6 +291,7 @@ class SequenceTests(unittest.TestCase):
                          (0xFFFFFFFD, -1, 1, 1))
 
     def test_signed_negative_pause_uses_wrapped_unsigned_deadline(self):
+        """action_family28_run_sequence (original 0x44753b): a negative pause is an unsigned deadline."""
         state, _, _ = fixture_state(subtype=1, budget=4, pause=-2)
         harness = Harness([100, 102, 102, 102])
         status, report = self.run_sequence(state, harness)

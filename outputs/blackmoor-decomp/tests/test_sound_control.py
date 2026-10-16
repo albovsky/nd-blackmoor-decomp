@@ -218,11 +218,13 @@ class SoundControlTests(unittest.TestCase):
             math.nan, 1.0, 0x023F, C.byref(first)), ERR_ARGUMENT)
 
     def test_play_flags_keep_raw_control_stream_state_and_flags_separate(self):
+        """sound_control_play, the Play wrapper (original 0x4f6059): loop flag and gate clear."""
         cases = [
             (1, 0, 0, 0),
             (0, 1, 0, 1),
             (0, 0, 0, 0),
             (1, 0x100, 0, 1),
+            (1, 1, 0, 0),           # flag bit 0 loops only when the raw control is 0
             (1, 0, 1, 1),
             (0, 0x100, 1, 1),
         ]
@@ -239,9 +241,11 @@ class SoundControlTests(unittest.TestCase):
                 self.assertEqual(result.play_flags, expected)
                 self.assertEqual(result.played, 1)
                 self.assertEqual(channel.update_gate_287, 0)
+                self.assertEqual((state.device_state, state.device_error), (1, 0x3E8))
                 self.assertEqual(recorder.events[-1], ("play", 13, expected))
 
     def test_play_errors_preserve_original_codes_and_ordered_state(self):
+        """sound_control_play (original 0x4f6059): error words 0x3ea, 0x3ef, 0x403 and their state."""
         state, recorder = self.state(), Recorder()
         state.device_ready = 0
         status, result = self.play(state, 13, recorder)
@@ -268,6 +272,7 @@ class SoundControlTests(unittest.TestCase):
         self.assertEqual(recorder.events, [("play", 13, 0)])
 
     def test_update_restart_random_repeat_wrap_and_false_gates(self):
+        """sound_control_update, the channel update (original 0x4f55d5): restart, random repeat, gates."""
         state, recorder = self.state(), Recorder()
         ch = state.channels[13]
         ch.raw_control = 0
@@ -323,6 +328,7 @@ class SoundControlTests(unittest.TestCase):
                 self.assertEqual(recorder.events, [("tick", 0)])
 
     def test_update_restart_result_fields_cover_original_failures(self):
+        """sound_control_update (original 0x4f55d5): the restart's failure words through the Play wrapper."""
         cases = (
             ("device-not-ready", "device", 0x3EA, 0, 0),
             ("resource-not-ready", "resource", 0x3EF, 0, 0),
@@ -377,6 +383,7 @@ class SoundControlTests(unittest.TestCase):
         self.assertEqual(recorder.events, [("tick", 0), ("play", 13, 0)])
 
     def test_update_orders_fade_boundaries_before_restart(self):
+        """sound_control_update (original 0x4f55d5): the three fade stages run before the restart."""
         state, recorder = self.state(), Recorder()
         state.channels[13].raw_control = 0
         state.channels[13].raw_flags = 0x20

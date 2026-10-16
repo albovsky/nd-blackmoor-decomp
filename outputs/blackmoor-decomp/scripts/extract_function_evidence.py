@@ -57,6 +57,12 @@ Evidence pointers (``evidence``; sorted by kind then content)::
   test          {kind, path, test_id|null, sha256}
       exact start as a hex literal/comment in tests/test_*.py (test_id =
       Class.method or function) or in a tests/*.c|mm harness (test_id = function).
+      Also one pointer per test case that mentions the symbol of one of the function's
+      native_source pointers: a ``test*`` function or method of a tests/test_*.py file
+      (identifiers in its body, plus string literals that are one bare identifier), or any
+      function of a tests/*.c|mm harness (comments and strings blanked).  Lexical, like
+      every pointer here: it names the test case a reviewer should read, not proof that
+      the test exercises the function.
   oracle        {kind, path|null, sha256|null, window[start,end_excl],
                  window_sha256, reading, verified, use, use_basis, tail_gap,
                  declared_in[]}
@@ -430,8 +436,12 @@ def _func_name(header: str, objc: bool) -> Optional[str]:
         return None if name in ("if", "for", "while", "switch", "return", "sizeof") else name
 
 
-def scan_c_source(text: str, filename: str = "x.c") -> list:
-    """Address citations in a C/ObjC source with their enclosing symbol."""
+def _c_structure(text: str, filename: str):
+    """Mask a C/ObjC source and find its top-level items.
+
+    Returns ``(vis, code, comments, pp, gap, st, items)``: ``vis`` has strings blanked and comments kept,
+    ``code`` has both blanked, ``items`` is ``(first_nonspace, open, close, name)`` per function body or
+    prototype (a prototype has open == close)."""
     objc = filename.endswith(".mm")
     n = len(text)
     vis = list(text)        # strings blanked, comments kept
@@ -517,6 +527,24 @@ def scan_c_source(text: str, filename: str = "x.c") -> list:
                 items.append((first_nonspace(hs, idx), idx, idx, name))
             hs = idx + 1
     items.sort()
+    return vis, code, comments, pp, gap, st, items
+
+
+def scan_c_functions(text: str, filename: str = "x.c") -> dict:
+    """Function definitions of a C/ObjC source: name -> body with comments and strings blanked.
+
+    Used to find which test function mentions a native symbol; a name defined twice keeps its first body."""
+    _vis, code, _comments, _pp, _gap, st, items = _c_structure(text, filename)
+    out = {}
+    for _first, op, cl, name in items:
+        if name and cl > op and name not in out:
+            out[name] = "".join(code[op:cl + 1])
+    return out
+
+
+def scan_c_source(text: str, filename: str = "x.c") -> list:
+    """Address citations in a C/ObjC source with their enclosing symbol."""
+    vis, code, comments, pp, gap, st, items = _c_structure(text, filename)
 
     def symbol_at(p: int, comment_end: Optional[int]):
         for first, op, cl, name in items:
@@ -617,6 +645,56 @@ def scan_python_source(text: str, name: str = "x.py") -> list:
                     if is_va(v):
                         out.add(Citation(v, _scope_at(scopes, line + tok.string.count("\n", 0, m.start()))))
     return sorted(out, key=lambda c: (c.va, c.symbol or ""))
+
+
+_IDENT_RE = re.compile(r"[A-Za-z_]\w*")
+
+
+def scan_python_tests(text: str, name: str = "x.py") -> dict:
+    """Test functions of a Python source: ``Class.method`` / ``function`` -> identifiers they mention.
+
+    A test is a function or method whose name starts with ``test``.  The identifiers are the NAME tokens
+    in its line range, string literals that are one bare identifier (``lib["sym"]``, ``getattr(lib,
+    "sym")``) and the words of its docstring (a test may say which function it covers when it reaches the
+    function through a helper).  Comments are not references."""
+    tree = _py_parse(text, name)
+    tests = []                                         # (first line, last line, test_id)
+    docs = {}                                          # test_id -> identifiers in its docstring
+
+    def visit(node, quals):
+        for ch in ast.iter_child_nodes(node):
+            if isinstance(ch, ast.ClassDef):
+                visit(ch, quals + [ch.name])
+            elif isinstance(ch, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if ch.name.startswith("test"):
+                    test_id = ".".join(quals + [ch.name])
+                    tests.append((ch.lineno, ch.end_lineno or ch.lineno, test_id))
+                    docs[test_id] = set(_IDENT_RE.findall(ast.get_docstring(ch) or ""))
+            else:
+                visit(ch, quals)
+
+    visit(tree, [])
+    out = {test_id: set(docs[test_id]) for _a, _b, test_id in tests}
+    if not tests:
+        return out
+    for tok in _py_tokens(text, name):
+        line = tok.start[0]
+        if tok.type == tokenize.NAME:
+            word = tok.string
+        elif tok.type == tokenize.STRING:
+            try:
+                value = ast.literal_eval(tok.string)
+            except (ValueError, SyntaxError):
+                continue
+            if not isinstance(value, str) or not _IDENT_RE.fullmatch(value):
+                continue
+            word = value
+        else:
+            continue
+        for first, last, test_id in tests:
+            if first <= line <= last:
+                out[test_id].add(word)
+    return out
 
 
 # ------------------------------------------------------------------ window candidates
@@ -1026,15 +1104,17 @@ class Config:
     exe_sha256: Optional[str] = PINNED_EXE_SHA256
     text_start: int = TEXT_START
     text_end: int = TEXT_END
+    work_dir: Optional[Path] = None             # private tree; default <repo>/work (a worktree has none)
 
     @classmethod
     def for_repo(cls, repo, **kw) -> "Config":
         repo = Path(repo)
         out = repo / "outputs" / "blackmoor-decomp"
+        work = Path(kw.pop("work_dir", None) or repo / "work")
         base = dict(repo=repo, outputs=out, index=out / "function-index.json", src_dir=out / "src",
-                    tests_dir=out / "tests", slices_dir=repo / "work" / "analysis" / "slices",
-                    game_source=repo / "work" / "analysis" / "game-source.json",
-                    output=out / "function-evidence.json")
+                    tests_dir=out / "tests", slices_dir=work / "analysis" / "slices",
+                    game_source=work / "analysis" / "game-source.json",
+                    output=out / "function-evidence.json", work_dir=work)
         base.update(kw)
         return cls(**base)
 
@@ -1042,7 +1122,7 @@ class Config:
         return path.relative_to(self.repo).as_posix()
 
     def work_rel(self, path: Path) -> str:
-        return path.relative_to(self.repo / "work").as_posix()
+        return path.relative_to(self.work_dir or self.repo / "work").as_posix()
 
 
 def _original_path(cfg: Config) -> Path:
@@ -1102,7 +1182,7 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
     rec_touch = {}                          # (start, receipt path) -> {"via": set, "hook": kind|None}
     unresolved = {}                         # address -> {reason, refs, sources:set, kinds:set}
     stats = {"citations": {"native_source_exact": 0, "native_source_interior": 0, "test_exact": 0,
-                           "test_interior": 0}}
+                           "test_interior": 0, "test_case_by_symbol": 0}}
 
     def add_unresolved(va, reason, kind, source):
         u = unresolved.setdefault(va, {"reason": reason, "refs": 0, "sources": set(), "kinds": set()})
@@ -1120,6 +1200,7 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
     sources = []
     cands: list = []
     file_sha = {}
+    test_units = {}         # test source path -> (sha256, {test_id: identifiers it mentions})
 
     def scan_files(directory: Path, suffixes, is_src: bool):
         if not directory.is_dir():
@@ -1145,6 +1226,7 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
                     role, kind = "test", "test"
                     try:
                         cites = scan_python_source(text, rel)
+                        test_units[rel] = (digest, scan_python_tests(text, rel))
                     except EvidenceError as exc:
                         problems.extend(exc.problems)
                         continue
@@ -1153,6 +1235,8 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
             else:
                 role, kind = "test", "test"
                 cites = scan_c_source(text, p.name)
+                test_units[rel] = (digest, {name: set(_IDENT_RE.findall(body))
+                                            for name, body in scan_c_functions(text, p.name).items()})
             sources.append({"path": rel, "sha256": digest, "role": role})
             for c in cites:
                 k, x = fm.classify(c.va)
@@ -1172,6 +1256,19 @@ def derive(cfg: Config, *, receipts: bool = True) -> dict:
 
     scan_files(cfg.src_dir, {".c", ".h", ".mm"}, True)
     scan_files(cfg.tests_dir, {".py", ".c", ".mm"}, False)
+
+    # ---- the test cases that mention a cited native symbol (lexical, like every pointer here)
+    for start in list(pointers):
+        symbols = {p["symbol"] for p in list(pointers[start].values()) if p["kind"] == "native_source" and p["symbol"]}
+        if not symbols:
+            continue
+        for rel, (digest, units) in sorted(test_units.items()):
+            for test_id, words in sorted(units.items()):
+                if symbols & words:
+                    ptr = {"kind": "test", "path": rel, "test_id": test_id, "sha256": digest}
+                    if json.dumps(ptr, sort_keys=True) not in pointers[start]:
+                        stats["citations"]["test_case_by_symbol"] += 1
+                    put(start, ptr)
 
     # ---- receipts
     receipt_rows = []
@@ -1713,6 +1810,8 @@ def main(argv=None) -> int:
                     help="repository root (contains outputs/ and work/)")
     ap.add_argument("--write", action="store_true", help="write function-evidence.json")
     ap.add_argument("--check", action="store_true", help="re-derive and diff against the committed file")
+    ap.add_argument("--work", help="private work tree holding analysis/slices and game-source.json "
+                                   "(default <repo>/work; a git worktree has none, point this at the main checkout's)")
     ap.add_argument("--output", help="evidence file (default outputs/blackmoor-decomp/function-evidence.json)")
     ap.add_argument("--exe", help="override the original executable path (read-only)")
     ap.add_argument("--text-end", help="end of .text (default 0x52925a); for fixtures")
@@ -1721,6 +1820,8 @@ def main(argv=None) -> int:
     kw = {}
     if args.output:
         kw["output"] = Path(args.output)
+    if args.work:
+        kw["work_dir"] = Path(args.work)
     if args.exe:
         kw["exe"] = Path(args.exe)
     if args.text_end:

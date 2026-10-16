@@ -403,6 +403,76 @@ class MalformedInputs(unittest.TestCase):
             fx.derive()
 
 
+PY_BETA_TEST = '''\
+import unittest
+
+
+def helper(lib):
+    return lib.alpha_two()
+
+
+class BetaTests(unittest.TestCase):
+    def test_calls_symbol(self):
+        self.assertEqual(lib.alpha_one(3), 3)
+
+    def test_via_string(self):
+        self.assertTrue(getattr(lib, "alpha_three"))
+
+    def test_comment_only(self):
+        # alpha_one is not exercised here
+        return 1
+
+    def test_helper_only(self):
+        return helper(lib)
+
+    def test_docstring_names_it(self):
+        """alpha_two is covered here, reached through the helper."""
+        return helper(lib)
+'''
+
+C_BETA = '''\
+#include <stdio.h>
+int check_alpha_three(void) { return alpha_three(1); /* alpha_one in a comment */ }
+int main(void) { const char *s = "alpha_two"; return check_alpha_three(); }
+'''
+
+
+class TestCaseNaming(FixtureCase):
+    """A function whose native symbol a test case mentions gets a test pointer naming that case."""
+    receipts = False
+
+    def setUp(self):
+        super().setUp()
+        (self.fx.out / "tests" / "test_beta.py").write_text(PY_BETA_TEST)
+        (self.fx.out / "tests" / "beta_harness.c").write_text(C_BETA)
+
+    def cases(self, va):
+        doc = self.fx.derive()
+        return sorted((p["path"].rsplit("/", 1)[1], p["test_id"]) for p in pointers(doc, va, "test"))
+
+    def test_python_test_that_calls_the_symbol(self):
+        self.assertEqual(self.cases("0x401100"), [("test_beta.py", "BetaTests.test_calls_symbol")])
+
+    def test_string_name_and_c_harness_function_count_but_comments_and_strings_do_not(self):
+        self.assertEqual(self.cases("0x401200"), [("beta_harness.c", "check_alpha_three"),
+                                                  ("test_beta.py", "BetaTests.test_via_string")])
+
+    def test_helpers_and_string_only_mentions_are_not_test_cases_but_a_docstring_is_a_claim(self):
+        self.assertEqual(self.cases("0x401800"), [("test_beta.py", "BetaTests.test_docstring_names_it")])
+
+    def test_a_function_without_a_native_symbol_gets_none(self):
+        self.assertEqual(self.cases("0x402000"), [])
+
+    def test_work_tree_can_live_outside_the_repo(self):
+        alt = self.fx.tmp / "elsewhere"
+        (alt / "analysis" / "slices").mkdir(parents=True)
+        (alt / "analysis" / "game-source.json").write_text(
+            json.dumps({"bundle": "x", "game_dir": str(self.fx.root / "game")}))
+        (alt / "analysis" / "slices" / "B-1.handoff.json").write_text(json.dumps(receipt_two()))
+        doc = self.fx.derive(work_dir=alt)
+        self.assertEqual([r["path"] for r in doc["receipts"]], ["analysis/slices/B-1.handoff.json"])
+
+
 class FunctionMapping(unittest.TestCase):
     def setUp(self):
         self.fm = fe.FunctionMap(STARTS, text_start=TEXT_VA, text_end=TEXT_END)

@@ -165,6 +165,9 @@ int action_core_apply_difficulty(ActionCoreWorld *world,
     return ACTION_CORE_OK;
 }
 
+/* The common completion routine, original 0x42ba3a: subtype 1 completes the
+ * action, subtype 2 clears completion and resets its dependencies (0x423d33,
+ * reported as reset_dependencies), then the phase word is zeroed. */
 int action_core_finish_action(uint8_t subtype,
                               uint8_t completed_before,
                               ActionCoreActionResult *result)

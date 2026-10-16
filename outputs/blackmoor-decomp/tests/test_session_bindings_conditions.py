@@ -433,6 +433,7 @@ class SessionConditionsTests(unittest.TestCase):
             self.assertEqual(f.evaluate(f.tree([record(17, 4, expected)]))[:2], (OK, 0))
 
     def test_sound_query_manager_mutations_follow_the_original(self):
+        """session_conditions_query_channel_record (original 0x4f6334) through an opcode-17 leaf: error words."""
         f = Fixture(self)
         tree = f.tree([record(17, 3, 0)])
         f.channel.device_ready_1a0 = 0
@@ -452,6 +453,7 @@ class SessionConditionsTests(unittest.TestCase):
         self.assertEqual(f.manager(), (0, 0x40A, -2147467259))
 
     def test_sound_query_repeat_marker_branch_uses_the_pause_gates(self):
+        """session_conditions_query_channel_record (original 0x4f6334): the repeat-marker branch."""
         f = Fixture(self)
         tree = f.tree([record(17, 1, 1)])
         f.channel.repeat_marker_19e = 1
