@@ -327,3 +327,61 @@ int sound_control_set_master_absolute(SoundControlState *state,
     }
     return SOUND_CONTROL_OK;
 }
+
+static int32_t attenuation_unchecked(float scalar, float master)
+{
+    volatile double product1;
+    volatile double product2;
+    volatile double expression;
+
+    product1 = (double)scalar * (double)master;
+    product2 = product1 * 2857.142822265625;
+    expression = product2 - 2857.142857142857;
+    return (int32_t)expression;
+}
+
+int sound_control_set_scalars(SoundControlState *state, uint16_t channel,
+                              float first_scalar, float second_scalar,
+                              uint16_t raw_x87_control_word,
+                              SoundControlHost *host,
+                              SoundControlMasterResult *result)
+{
+    SoundControlChannel *slot;
+    float master;
+    uint32_t channel_error = 0u;
+    int status;
+
+    if (result == NULL) return SOUND_CONTROL_ERR_ARGUMENT;
+    memset(result, 0, sizeof(*result));
+    if (state == NULL || channel >= SOUND_CONTROL_CHANNEL_COUNT ||
+        !isfinite(first_scalar) || first_scalar < 0.0f || first_scalar > 100.0f ||
+        !isfinite(second_scalar) || second_scalar < 0.0f || second_scalar > 100.0f) {
+        return SOUND_CONTROL_ERR_ARGUMENT;
+    }
+    slot = &state->channels[channel];
+    if (slot->volume_category >= SOUND_CONTROL_CATEGORY_COUNT)
+        return SOUND_CONTROL_ERR_ARGUMENT;
+    master = state->master[slot->volume_category];
+    if (!isfinite(master) || master < 0.0f || master > 1.0f)
+        return SOUND_CONTROL_ERR_ARGUMENT;
+    if ((raw_x87_control_word & UINT16_C(0x0F00)) != UINT16_C(0x0200))
+        return SOUND_CONTROL_ERR_UNSUPPORTED;
+
+    slot->first_scalar = first_scalar;
+    slot->second_scalar = second_scalar;
+    slot->first_attenuation = attenuation_unchecked(first_scalar, master);
+    slot->second_attenuation = attenuation_unchecked(second_scalar, master);
+    status = apply_volume(state, channel, host, &channel_error);
+    if (status != SOUND_CONTROL_OK) return status;
+    if (host != NULL && host->set_first_attenuation != NULL &&
+        state->device_ready != 0u && slot->buffer_available != 0u) {
+        ++result->volume_calls;
+    }
+    result->updated_channels = 1u;
+    if (channel_error != 0u) {
+        result->has_failed_channel = 1u;
+        result->failed_channel = channel;
+        result->original_error = channel_error;
+    }
+    return SOUND_CONTROL_OK;
+}

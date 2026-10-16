@@ -276,7 +276,7 @@ static float compose_gain(float first, float second, float category_scalar)
 {
     volatile float product = first * second;
     volatile float final_gain = product * category_scalar;
-    return final_gain;
+    return final_gain > 1.0f ? 1.0f : final_gain;
 }
 
 static void refresh_gain(const LiveAudio *audio, Channel *channel)
@@ -953,6 +953,37 @@ int live_audio_set_category_scalar(LiveAudio *audio, uint8_t category, float sca
         }
     }
     return result;
+}
+
+int live_audio_set_channel_scalars(LiveAudio *audio, uint16_t channel, float first_gain,
+                                   float second_gain)
+{
+    Channel *slot;
+    char error[256] = "";
+
+    if (audio == NULL || channel >= LIVE_AUDIO_CHANNEL_COUNT || !isfinite(first_gain) ||
+        first_gain < 0.0f || !isfinite(second_gain) || second_gain < 0.0f)
+        return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    slot = &audio->channels[channel];
+    /* An unloaded channel keeps nothing observable: every load rewrites both scalars. */
+    if (!slot->loaded) return LIVE_AUDIO_OK;
+    /* Kept unclamped (a volume byte above 100 gives a scalar above 1.0); compose_gain pins the
+     * final gain at full scale, which is what the original's attenuation clamp does after the
+     * product with the category master. */
+    slot->first_gain = first_gain;
+    slot->second_gain = second_gain;
+    refresh_gain(audio, slot);
+    if (slot->started && !slot->finished) {
+        int status = audio->ops.set_gain(audio->host, slot->host_slot, slot->final_gain, error,
+                                         sizeof(error));
+        if (status != MAC_AUDIO_OK) {
+            logf_line(audio, "live_audio set_gain_failed channel=%u status=%d detail=%s",
+                      (unsigned)channel, status, error);
+            return LIVE_AUDIO_ERR_HOST;
+        }
+    }
+    return LIVE_AUDIO_OK;
 }
 
 int live_audio_get_category_scalar(const LiveAudio *audio, uint8_t category, float *scalar)
