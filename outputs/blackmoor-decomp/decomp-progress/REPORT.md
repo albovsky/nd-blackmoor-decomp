@@ -29,41 +29,41 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 - Typed, unsupported: `0x1b`, `0x1c`, `0x20`, `0x2d`, `0x2e`, `0x33`, `0x38`, `0x3e`, `0x3f`, `0x43`, `0x44`, `0x45`, `0x47`, `0x4b`, `0x4e`, `0x4f`, `0x65`, `0x67`, `0x68`, `0x69`, `0x6d`, `0x6e`, `0x6f`, `0x70`, `0x76`, `0x77`, `0x7d`, `0x80`, `0x94`, `0x95`, `0x9a`, `0xaa`, `0xd0`, `0xd1`, `0xd3`, `0xd6`, `0xd9`, `0xda`, `0xe0`, `0xe4`, `0xea`, `0xeb`, `0xee`, `0xf5`, `0xf6`
 - Opaque: 
 
-Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `2030d4802988f4cf15777eb135677fcc4f8cb909`; native SHA-256 `a73f3c22ddf9ac12d58f9e334d6ad067959412e955243404c96e8816a26ce42f`; 2,947 session ticks.
+Playable evidence: `blackmoor-playable-status/2` / `scripted_live_session`; source `60f055481d5f39d922b7bdf2f65632670f60ea24`; native SHA-256 `a73f3c22ddf9ac12d58f9e334d6ad067959412e955243404c96e8816a26ce42f`; 2,947 session ticks.
 
-`playable-status.json` sha256 `4aef8b77a3d66226fda904f59df495589bdfde7b4282f9fa9f3feb7f89e1d778`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `49c236466ff9eabbf19d6c62eb0e19ad0f80bdf6147c6675cc1c7a703228bc7f`. Derivation and limits: `README.md`.
 
 ## Function ledger
 
-**4,188 functions:** 0 ported, 0 not needed, 4,188 pending (100.00%).
+**4,188 functions:** 5 ported, 0 not needed, 4,183 pending (99.88%).
 
-With 0 ported and 0 not needed, this ledger is the honest baseline: every function is pending until a reviewed acceptance says otherwise. The pending subclasses are leads, not progress.
+More than 80% of functions are still pending at this publication.
 
 | Status | Class | Functions |
 |---|---|---:|
 | ported | `native_oracle_verified` | 0 |
-| ported | `native_tests_only` | 0 |
-| ported | `host_adapter_tested` | 0 |
+| ported | `native_tests_only` | 4 |
+| ported | `host_adapter_tested` | 1 |
 | not_needed | `nn_rule` | 0 |
 | not_needed | `nn_reviewed` | 0 |
-| pending | `candidate_port` | 151 |
+| pending | `candidate_port` | 146 |
 | pending | `partial_native` | 279 |
 | pending | `static_navigation_only` | 57 |
 | pending | `none` | 3,701 |
 
 | Region | Functions | Ported | Not needed | Pending |
 |---|---:|---:|---:|---:|
-| game | 2,507 | 0 | 0 | 2,507 |
+| game | 2,507 | 4 | 0 | 2,503 |
 | vorbis | 178 | 0 | 0 | 178 |
-| crt_mfc | 1,503 | 0 | 0 | 1,503 |
+| crt_mfc | 1,503 | 1 | 0 | 1,502 |
 
 Not needed, by reason: none accepted yet.
 
 | x86 match vs native port | Ported | Not needed | Pending |
 |---|---:|---:|---:|
-| x86 complete function match | 0 | 0 | 86 |
+| x86 complete function match | 1 | 0 | 85 |
 | x86 partial range | 0 | 0 | 2 |
-| no x86 match | 0 | 0 | 4,100 |
+| no x86 match | 4 | 0 | 4,096 |
 
 Caveats:
 
@@ -73,7 +73,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `f013c3505830b3dd6ca1d4e1b9a724a9a20e4f72996b1175314ceca286446fe0`; 655 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `f32a6387bdac53a42b65a43595755dd062228f3ab6c24fe41ae45c91593c0777`; 655 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 

@@ -6,7 +6,7 @@
   {
    "va": "0x40b2d0",
    "class": "native_tests_only",
-   "reviewer": "Claude Sonnet, FL-6 batch 1",
+   "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
    "native_source": {"path": "src/action_family_17_runtime.c", "symbol": "action17_cursor_index_for_type"},
    "tests": [
@@ -19,7 +19,7 @@
   {
    "va": "0x42ba3a",
    "class": "native_tests_only",
-   "reviewer": "Claude Sonnet, FL-6 batch 1",
+   "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
    "native_source": {"path": "src/action_core.c", "symbol": "action_core_finish_action"},
    "tests": [
@@ -30,25 +30,9 @@
    "note": "Matches the pseudocode; the 0x423d33 dependency reset is only reported. action_core_original_oracle.py compares it via the dispatcher (not rerun here). Test passed on macOS arm64, 2026-10-15."
   },
   {
-   "va": "0x44753b",
-   "class": "native_tests_only",
-   "reviewer": "Claude Sonnet, FL-6 batch 1",
-   "date": "2026-10-15",
-   "native_source": {"path": "src/action_family_28.c", "symbol": "action_family28_run_sequence"},
-   "tests": [
-    {"path": "tests/test_action_family_28_sequence.py", "test_id": "SequenceTests.test_first_frame_count_then_later_frame_and_pump_order"},
-    {"path": "tests/test_action_family_28_sequence.py", "test_id": "SequenceTests.test_subtype3_pause_swap_and_conditional_scene_transition"},
-    {"path": "tests/test_action_family_28_sequence.py", "test_id": "SequenceTests.test_zero_elapsed_and_negative_wrapped_elapsed_preserve_original_count_rules"},
-    {"path": "tests/test_action_family_28_sequence.py", "test_id": "SequenceTests.test_signed_negative_pause_uses_wrapped_unsigned_deadline"}
-   ],
-   "oracle": null,
-   "parts_accounted": [],
-   "note": "CSpecialEffect::RunSequence. action_family_28_original_oracle.py runs the original at this address (not rerun here). Gaps: curve weights use libm exp (ulp differences recorded by the oracle), debug log, host callbacks."
-  },
-  {
    "va": "0x4f6059",
    "class": "native_tests_only",
-   "reviewer": "Claude Sonnet, FL-6 batch 1",
+   "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
    "native_source": {"path": "src/sound_control.c", "symbol": "sound_control_play"},
    "tests": [
@@ -57,16 +41,18 @@
    ],
    "oracle": null,
    "parts_accounted": [],
-   "note": "The kernel, not the live_audio.c adapter. sound_control_original_oracle.py compares it (windows unhashed, so tests-only; not rerun here). Gaps: debug log, host Play is a callback. Test passed on macOS arm64, 2026-10-15."
+   "note": "The kernel, not the live_audio.c adapter. sound_control_original_oracle.py compares it (no recorded window hash; not rerun). Gaps: debug log, host Play is a callback. Test passed on macOS arm64, 2026-10-15."
   },
   {
    "va": "0x4f6334",
    "class": "native_tests_only",
-   "reviewer": "Claude Sonnet, FL-6 batch 1",
+   "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
    "native_source": {"path": "src/session_bindings_conditions.c", "symbol": "session_conditions_query_channel_record"},
    "tests": [
-    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_query_channel_record_helper_is_the_pure_decision"}
+    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_query_channel_record_helper_is_the_pure_decision"},
+    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_sound_query_manager_mutations_follow_the_original"},
+    {"path": "tests/test_session_bindings_conditions.py", "test_id": "SessionConditionsTests.test_sound_query_repeat_marker_branch_uses_the_pause_gates"}
    ],
    "oracle": null,
    "parts_accounted": [],
@@ -78,7 +64,7 @@
   {
    "va": "0x50cd50",
    "class": "host_adapter_tested",
-   "reviewer": "Claude Sonnet, FL-6 batch 1",
+   "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
    "date": "2026-10-15",
    "native_source": {"path": "src/session_bindings_conditions.c", "symbol": "session_conditions_crt_rand"},
    "tests": [

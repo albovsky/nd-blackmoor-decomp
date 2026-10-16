@@ -37,7 +37,7 @@
   "ticks": 2947,
   "evidence": {
     "kind": "scripted_live_session",
-    "source_ref": "2030d4802988f4cf15777eb135677fcc4f8cb909",
+    "source_ref": "60f055481d5f39d922b7bdf2f65632670f60ea24",
     "native_sha256": "a73f3c22ddf9ac12d58f9e334d6ad067959412e955243404c96e8816a26ce42f",
     "command": [
       "--inspect-live-session",
@@ -49,7 +49,7 @@
     "registration_sources": [
       {
         "path": "src/action_core.c",
-        "sha256": "26ae1d0d9ad4e13f3c427527db514b2c01305748011147de3242ccaa2eb8bb09"
+        "sha256": "4a0b8704278914c1a2a4119174efa890683ff01a92fd6c825eeb80765fdb26ee"
       },
       {
         "path": "src/action_core.h",

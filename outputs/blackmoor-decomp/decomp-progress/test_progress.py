@@ -1055,13 +1055,15 @@ class FunctionLedgerTests(unittest.TestCase):
             self.assertEqual(sum(cross["complete"].values()), ledger["counts"]["x86"]["complete"])
             self.assertEqual(cross["complete"]["ported"], ledger["counts"]["x86"]["complete_ported"])
 
-    def test_real_ledger_is_the_honest_baseline(self):
+    def test_real_ledger_counts_reach_the_report(self):
         c = self.real["function_ledger"]["counts"]
-        self.assertEqual(c["status"], {"ported": 0, "not_needed": 0, "pending": 4188})
+        self.assertEqual(c["total"], 4188)
+        self.assertEqual(sum(c["status"].values()), 4188)
         self.assertGreater(c["status"]["pending"] * 5, c["total"] * 4)
         report = (self.real_out / "REPORT.md").read_text()
-        self.assertIn("honest baseline", report)
-        self.assertIn("0 ported and 0 not needed", report)
+        s = c["status"]
+        self.assertIn(f"{s['ported']:,} ported, {s['not_needed']:,} not needed, {s['pending']:,} pending", report)
+        self.assertIn("More than 80% of functions", report)
 
     def test_rows_are_compact_and_match_the_ledger_entries(self):
         for panel, ledger in ((self.real["function_ledger"], self.real_ledger),
@@ -1363,8 +1365,8 @@ class FunctionLedgerTests(unittest.TestCase):
                            "a few hundred bytes", "not re-hashed at build time"):
                 self.assertIn(phrase, dom)
         base = dom_text(dump_dom(self.real_out / "index.html"), "lgBaseline")
-        self.assertIn("honest baseline", base)
-        self.assertIn("0 ported and 0 not needed", base)
+        self.assertIn("are still pending", base)
+        self.assertIn("More than 80% of functions", base)
 
     @unittest.skipUnless(BROWSER.is_file(), "headless browser not installed")
     def test_rendered_table_filters_pages_and_links(self):

@@ -224,6 +224,7 @@ class SoundControlTests(unittest.TestCase):
             (0, 1, 0, 1),
             (0, 0, 0, 0),
             (1, 0x100, 0, 1),
+            (1, 1, 0, 0),           # flag bit 0 loops only when the raw control is 0
             (1, 0, 1, 1),
             (0, 0x100, 1, 1),
         ]
@@ -240,6 +241,7 @@ class SoundControlTests(unittest.TestCase):
                 self.assertEqual(result.play_flags, expected)
                 self.assertEqual(result.played, 1)
                 self.assertEqual(channel.update_gate_287, 0)
+                self.assertEqual((state.device_state, state.device_error), (1, 0x3E8))
                 self.assertEqual(recorder.events[-1], ("play", 13, expected))
 
     def test_play_errors_preserve_original_codes_and_ordered_state(self):
