@@ -480,7 +480,12 @@ def cmd_check(args: argparse.Namespace) -> int:
         machine = [machine[i] for i in picks]
     layouts, _decoded = gen.analyze_all(image, vas)
     annotator = Annotator(image)
-    bad = [p.name for p, va in zip(machine, vas) if annotator.render(layouts[va]) + "\n" != p.read_text(encoding="utf-8")]
+    # The track-n line follows the function ledger, which every slice refreshes; it is excluded here and
+    # validated by the auditor (the file must exist and define the symbol), so a ledger refresh does not
+    # force a re-annotation and re-audit of thousands of sources.
+    track = re.compile(r"^# track-n:.*$", re.M)
+    bad = [p.name for p, va in zip(machine, vas)
+           if track.sub("# track-n:", annotator.render(layouts[va]) + "\n") != track.sub("# track-n:", p.read_text(encoding="utf-8"))]
     print(f"checked {len(vas)} machine-annotated source(s) of {len(files)}; differing: {len(bad)}")
     for name in bad[:20]:
         print("  differs:", name)

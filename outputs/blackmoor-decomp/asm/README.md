@@ -89,7 +89,7 @@ What the script writes, and nothing else:
 * `unverified`: the machine-only caveat with the instruction, conditional-branch and jump-table counts;
 * one comment per basic block: how it is entered, call targets and how it ends.
 
-No branch condition, argument meaning, field meaning or return value is interpreted. `annotate_machine.py check` regenerates every machine-annotated source from the original and requires identical text, so a machine header cannot hide a hand edit (a renamed, reviewed function drops the header and goes through the hand-annotation audit instead). `tests/test_audit_tool_assisted.py` covers the machine mode (accepted batch, wrong name, unnamed offset, default names without the header, empty block comment) and regenerates a sample of committed sources.
+No branch condition, argument meaning, field meaning or return value is interpreted. `annotate_machine.py check` regenerates every machine-annotated source from the original and requires identical text apart from the `track-n` line (which follows the ledger and is validated by the auditor instead, so a ledger refresh does not force a re-audit), so a machine header cannot hide a hand edit; the header is matched as loosely as the auditor matches it (a renamed, reviewed function drops the header and goes through the hand-annotation audit instead). `tests/test_audit_tool_assisted.py` covers the machine mode (accepted batch, wrong name, unnamed offset, default names without the header, empty block comment) and regenerates a sample of committed sources.
 
 | Batch | Functions | Code bytes |
 |---|---:|---:|
