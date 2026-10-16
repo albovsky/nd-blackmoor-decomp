@@ -26,7 +26,7 @@ Owner thread: Claude Sonnet (cloud). Follows RT-34/RT-35. After PR 99, 1,999 of 
 ## Limits
 
 * The macOS glue (`blackmoor_app.mm`) is not compiled or run in the cloud; the new functions were only syntax-checked on a mock.
-* The save routine `0x4d7a15` (the game state it writes, the file naming) is NOT ported: the app's save callback logs the request and persists nothing, so the Continue entry has no file to load. The oracle replaces `0x4d7a15` by a recorder.
+* The save routine `0x4d7a15` is NOT ported, and it has in-memory effects the native stub drops besides the file: for the name "SAVE CONTINUE" it zeroes 0xa6c4 dwords and a word at `obj+0x98b0` of the game object `0x5e2e70` (`0x4d7a5f..0x4d7a71`), copies the string at `obj+0x29b` to `obj+0x333c2` (`0x4d7a84..0x4d7ab6`), formats the file name and opens it. So the 6 scenes where 0x65 was the only missing type count as handled at the type level, but their save does nothing: the app's save callback logs the request and persists nothing, so the Continue entry has no file to load. The oracle replaces `0x4d7a15` by a recorder.
 * One native safety difference: a 0x68/0x69 body byte of 10 or more indexes a record past the port's table; the original clears that record anyway (the oracle checks it against the model over 8 such indexes), the native binding refuses UNSUPPORTED before any effect. The corpus uses 1..8.
 * Readers of the timer table (condition leaves, the clock, the task list UI) belong to other slices; this slice only writes the records they read. The oracle builds the rows in memory (the scene loader `0x40b34a` is not run); the 3 corpus 0x68 rows with a dependency tail are replayed behind stand-in records.
 * Debug flag `0x63a4cd` is modelled as 0.

@@ -41,7 +41,7 @@ typedef struct session_a65_host {
     void (*save_game)(void *context, const char *name, int report_failure);
 } SessionA65Host;
 
-/* Raw 0x65 (SAVE_CONTINUE, RT-37; dispatcher arm 0x4285fd of 0x427a50, gate mode 0), raw 0x68 (arm 0x4286ee, timer start) and
+/* Raw 0x65 (SAVE_CONTINUE, RT-37; dispatcher arm 0x4285fd of 0x427a50, gate mode 0), raw 0x68 (arm 0x4286d8, timer start) and
  * raw 0x69 (arm 0x42875d, timer clear). The executor evaluates the gate; these handlers run for a true gate.
  *   0x65: 0x4d7a15(&0x5e2e70, "SAVE CONTINUE", 0), then the completion byte := 1 (0x42863f).
  *   0x68: the timer record n = (unsigned byte) body[0] is cleared by 0x433bd2, then its state dword := 1 (0x428744), then the

@@ -1,7 +1,7 @@
 """RT-37: raw 0x65 "SAVE_CONTINUE", raw 0x68 "start timer" and raw 0x69 "clear timer" (src/session_bindings_a65_a68_a69.c).
 
 Facts under test (original GAME.EXE; loader arms 0x40d116, 0x40d364 and 0x40d428 copy one byte, dispatcher arms 0x4285fd,
-0x4286ee and 0x42875d of 0x427a50, all gate mode 0):
+0x4286d8 and 0x42875d of 0x427a50, all gate mode 0):
  * 0x65 calls the save routine 0x4d7a15 with the game object 0x5e2e70, the name "SAVE CONTINUE" and 0, then sets the completion
    byte itself; the body byte is never read;
  * 0x68 and 0x69 clear the timer record (byte body[0]) * 0x106 + 0x585d65 with 0x433bd2; 0x68 then stores the dword 1 at record+0;
@@ -223,6 +223,7 @@ class OriginalOracle(unittest.TestCase):
                                '--fail-fast'], capture_output=True, text=True, cwd=str(PROJECT / 'tests'))
         self.assertEqual(done.returncode, 0, done.stdout[-600:] + done.stderr[-600:])
         self.assertIn('"mismatches": 0', done.stdout)
+        self.assertIn('"corpus_rows": 24', done.stdout)  # a missing corpus would silently drop its scenarios
 
 
 if __name__ == '__main__':
