@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "note": "Reviewed matching objects bound as reconstructed ranges, in precedence order. Each manifest is built from its committed source (pinned GNU as 2.43.1 for assembly, Apple clang for the two incomplete C ranges), re-verified through verify_matches.py semantics against the local original, and its bytes are taken from the assembled object, never from the original. asm_batches binds the audited tool-assisted assembly batches of packet M03: every function's .s is reassembled with the pinned GNU as 2.43.1 at build time and must reproduce the SHA-256 of the original code part recorded in the batch manifest; bindings above take precedence on overlap.",
+ "note": "Reviewed matching objects bound as reconstructed ranges, in precedence order. Each manifest is built from its committed source (pinned GNU as 2.43.1 for assembly, clang (Apple clang through xcrun on the Mac, any clang elsewhere; verify_matches decides) for the two incomplete C ranges), re-verified through verify_matches.py semantics against the local original, and its bytes are taken from the assembled object, never from the original. asm_batches binds the audited tool-assisted assembly batches of packet M03: every function's .s is reassembled with the pinned GNU as 2.43.1 at build time and must reproduce the SHA-256 of the original code part recorded in the batch manifest; bindings above take precedence on overlap.",
  "bindings": [
   {
    "manifest": "matches_s08_4_x86.json",

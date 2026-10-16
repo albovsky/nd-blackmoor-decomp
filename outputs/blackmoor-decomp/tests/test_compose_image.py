@@ -719,11 +719,68 @@ class AsmBatchBindingTests(unittest.TestCase):
                 if changed != text:
                     path.write_text(changed)
                     function["source_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+                    report["functions"][manifest["functions"].index(function)]["source"]["sha256"] = function["source_sha256"]
                     return
             self.fail("no push ebp to mutate")
 
         with self.assertRaisesRegex(compose_image.ComposeError, "differ from the audited original code part"):
             self.bind(self.make_batch("mutant", edit))
+
+    def test_manifest_for_another_original_or_class_is_rejected(self):
+        def other_original(directory, manifest, report):
+            manifest["original_sha256"] = "0" * 64
+
+        def other_class(directory, manifest, report):
+            manifest["class"] = "explicit_reconstructed_assembly_source"
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "different original"):
+            self.bind(self.make_batch("other-original", other_original))
+        with self.assertRaisesRegex(compose_image.ComposeError, "not a tool_assisted"):
+            self.bind(self.make_batch("other-class", other_class))
+
+    def test_function_missing_from_the_accepted_set_is_rejected(self):
+        def edit(directory, manifest, report):
+            report["functions"][0]["status"] = "rejected"
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "not accepted"):
+            self.bind(self.make_batch("not-accepted", edit))
+
+    def test_report_that_disagrees_with_the_manifest_is_rejected(self):
+        def code(directory, manifest, report):
+            report["functions"][0]["code"] = dict(report["functions"][0]["code"], size=report["functions"][0]["code"]["size"] + 1)
+
+        def source(directory, manifest, report):
+            report["functions"][0]["source"] = dict(report["functions"][0]["source"], sha256="0" * 64)
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "differs from the manifest"):
+            self.bind(self.make_batch("report-code", code))
+        with self.assertRaisesRegex(compose_image.ComposeError, "differs from the manifest"):
+            self.bind(self.make_batch("report-source", source))
+
+    def test_duplicate_function_in_a_manifest_is_rejected(self):
+        def edit(directory, manifest, report):
+            manifest["functions"][1] = manifest["functions"][0]
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "listed twice"):
+            self.bind(self.make_batch("duplicate", edit))
+
+    def test_incbin_source_is_rejected_even_with_refreshed_hashes(self):
+        def edit(directory, manifest, report):
+            function = manifest["functions"][0]
+            path = directory / function["source"]
+            path.write_text(path.read_text() + '\n.incbin "/dev/null"\n')
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            function["source_sha256"] = digest
+            report["functions"][0]["source"]["sha256"] = digest
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "incbin"):
+            self.bind(self.make_batch("incbin", edit))
+
+    def test_overlap_inside_one_batch_is_an_error_not_a_supersession(self):
+        batches = self.make_batch("same-batch")
+        first = self.bind(batches)[0][0]
+        with self.assertRaisesRegex(compose_image.ComposeError, "same batch"):
+            self.bind(batches, taken=[(first.offset, first.end, batches[0]["manifest"] + ":other")])
 
     def test_a_different_assembler_is_rejected(self):
         fake = Path(self.tmp.name) / "fake-as"

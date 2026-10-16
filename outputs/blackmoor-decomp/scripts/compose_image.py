@@ -747,14 +747,22 @@ def bind_asm_batches(
             raise ComposeError(f"{batch['report']}: audit report is stale (manifest hash differs)")
         if not report.get("all_accepted") or report.get("errors") or report.get("accepted_count") != len(manifest["functions"]):
             raise ComposeError(f"{batch['report']}: the audit did not accept every function in the batch")
-        accepted = {f["function"] for f in report["functions"] if f.get("status") == "accepted"}
+        accepted = {f["function"]: f for f in report["functions"] if f.get("status") == "accepted"}
         functions = manifest["functions"]
+        names = [f["function"] for f in functions]
+        if len(set(names)) != len(names):
+            raise ComposeError(f"{batch['manifest']}: a function is listed twice")
         for function in functions:
-            if function["function"] not in accepted:
+            audited = accepted.get(function["function"])
+            if audited is None:
                 raise ComposeError(f"{batch['report']}: {function['function']} is not accepted")
+            if audited.get("source", {}).get("sha256") != function["source_sha256"] or audited.get("code") != function["code"]:
+                raise ComposeError(f"{batch['report']}: the audited source or code part of {function['function']} differs from the manifest")
             source = manifest_path.parent / function["source"]
             if file_sha256(source) != function["source_sha256"]:
                 raise ComposeError(f"{function['source']}: source differs from the audited hash")
+            if re.search(r"^\s*\.(incbin|include)\b", source.read_text(encoding="utf-8", errors="replace"), re.MULTILINE):
+                raise ComposeError(f"{function['source']}: .incbin and .include are not permitted in reconstructed assembly")
 
         def assemble(function: dict[str, Any]) -> bytes:
             code = function["code"]
@@ -776,6 +784,8 @@ def bind_asm_batches(
             offset = layout.rva_to_offset(rva)
             conflict = [t for t in taken if offset < t[1] and t[0] < offset + size]
             if conflict:
+                if any(t[2].startswith(f"{batch['manifest']}:") for t in conflict):
+                    raise ComposeError(f"{batch['manifest']}: {code['symbol']} overlaps another function of the same batch")
                 superseded += 1
                 superseded_names.append(f"{code['symbol']} by {conflict[0][2]}")
                 continue
@@ -962,6 +972,10 @@ def compose(
     reconstructed_items, records = bind_reconstructed(layout, desc["reconstructed"], original_path, build_dir, assembler)
     items += reconstructed_items
     items += referenced_items(layout, desc["ranges"], original)
+
+    for item in items:
+        if item.cls == CLS_RECONSTRUCTED and item.data != original[item.offset : item.end]:
+            raise ComposeError(f"reconstructed range {item.name} at {hx(item.offset)}+{item.length} differs from the original bytes")
 
     ordered = check_coverage(items, ORIGINAL_SIZE)
     image = b"".join(item.data for item in ordered if item.data is not None)
