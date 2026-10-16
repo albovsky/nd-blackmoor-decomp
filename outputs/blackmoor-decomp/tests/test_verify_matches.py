@@ -411,6 +411,41 @@ class VerifyMatchesTests(unittest.TestCase):
                 json.loads(report_path.read_text(encoding="utf-8"))["all_byte_ranges_exact"], True
             )
 
+    def test_path_root_records_relative_symlink_preserving_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "root"
+            real = Path(temporary) / "real_work"
+            (root / "build").mkdir(parents=True)
+            (real / "original").mkdir(parents=True)
+            (root / "work").symlink_to(real)
+            original = root / "work" / "original" / "GAME.EXE"
+            candidate = root / "build" / "candidate.obj"
+            original.write_bytes(make_pe(b"ABCD"))
+            candidate.write_bytes(make_coff(b"ABCD", "_blackmoor"))
+            manifest = write_manifest(root / "build", original, candidate)
+
+            with contextlib.redirect_stdout(io.StringIO()):
+                absolute = verify_matches.verify(original, manifest)
+                relative = verify_matches.verify(original, manifest, root)
+                cli_report = root / "report.json"
+                verify_matches.main(
+                    [str(original), str(manifest), "--report", str(cli_report), "--path-root", str(root)]
+                )
+
+            self.assertEqual(absolute["original"], str(real.resolve() / "original" / "GAME.EXE"))
+            self.assertEqual(absolute["manifest"], str(manifest.resolve()))
+            self.assertEqual(absolute["functions"][0]["object"], str(candidate.resolve()))
+            self.assertEqual(relative["original"], "work/original/GAME.EXE")
+            self.assertEqual(relative["manifest"], f"build/{manifest.name}")
+            self.assertEqual(relative["functions"][0]["object"], "build/candidate.obj")
+            self.assertEqual(json.loads(cli_report.read_text(encoding="utf-8")), relative)
+            for key in ("original", "manifest"):
+                absolute.pop(key)
+                relative.pop(key)
+            absolute["functions"][0].pop("object")
+            relative["functions"][0].pop("object")
+            self.assertEqual(absolute, relative)
+
 
 if __name__ == "__main__":
     unittest.main()
