@@ -193,7 +193,7 @@ class RangeDescriptionTests(unittest.TestCase):
             compose_image.Item(int(r[0]), int(r[1]), "referenced", "referenced", data=b"") for r in desc["ranges"]["ranges"]
         ]
         self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
-        self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 9)
+        self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 10)
         # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.check_coverage(structured + referenced, compose_image.ORIGINAL_SIZE)
@@ -443,23 +443,25 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         progress = report["progress"]
         self.assertEqual(progress["generated_bytes"] + progress["referenced_bytes"], progress["total_bytes"])
         self.assertEqual(progress["missing_bytes"], 0)
-        # 398 baseline bytes plus 4,717 audited tool-assisted functions (1,199,533 bytes: 4,163 indexed functions in
-        # batches 001-008 and 554 derived entries in batch 009); the 13 functions that overlap the baseline
-        # (11 S08 assembly functions, 2 incomplete C ranges) are counted once, in the baseline.  The audited data
-        # items that no structured group generates are bound in classes of their own and are not code.
+        # 398 baseline bytes plus 4,773 audited tool-assisted functions (1,201,090 bytes: 4,163 indexed functions in
+        # batches 001-008, 554 derived entries in batch 009 and the 56 fragment entries of batch 010); the 13 functions
+        # that overlap the baseline (11 S08 assembly functions, 2 incomplete C ranges) are counted once, in the
+        # baseline.  The audited data items that no structured group generates are bound in classes of their own and
+        # are not code.
         by_provenance = report["reconstructed_by_provenance"]
-        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4717, "bytes": 1199533})
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4773, "bytes": 1201090})
         self.assertEqual(by_provenance["explicit_reconstructed_assembly_source"]["bytes"], 384)
         self.assertEqual(by_provenance["tool_assisted_reconstructed_index_table"], {"ranges": 19, "bytes": 1934})
-        self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 201, "bytes": 1464})
-        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1203329)
-        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1203329)
-        self.assertEqual(progress["code_bytes_reconstructed"], 1199931)
-        self.assertEqual(progress["reconstructed_functions"], 4730)
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 235, "bytes": 1526})
+        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1204948)
+        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1204948)
+        self.assertEqual(progress["code_bytes_reconstructed"], 1201488)
+        self.assertEqual(progress["reconstructed_functions"], 4786)
         self.assertEqual(progress["reconstructed_index_table_bytes"], 1934)
-        self.assertEqual(progress["reconstructed_padding_bytes"], 1464)
-        # what stays referenced in .text: the 12 excluded functions (1,548 bytes) and 10 derived entries of the same kinds (71)
-        self.assertEqual(progress["code_bytes_referenced"], 1619)
+        self.assertEqual(progress["reconstructed_padding_bytes"], 1526)
+        # every code byte is reconstructed: the last 22 fragments (1,619 bytes) are bound by batch 010
+        self.assertEqual(progress["code_bytes_referenced"], 0)
+        self.assertEqual(progress["code_bytes_reconstructed_fraction"], 1.0)
         self.assertIn("NOT counted as matched", report["claim"])
         self.assertEqual(sum(r["length"] for r in report["referenced_ranges"]["list"]), progress["referenced_bytes"])
         for region in ("game", "vorbis", "crt_mfc"):
@@ -480,11 +482,11 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
             offset = record["offset"]
             self.assertEqual(hashlib.sha256(self.original[offset : offset + record["length"]]).hexdigest(), record["range_sha256"])
         batches = {r["batch"]: r for r in comp.reconstructed_records if "functions" in r}
-        self.assertEqual(sorted(batches), ["001", "002", "003", "004", "005", "006", "007", "008", "009"])
-        self.assertEqual(sum(r["functions"] for r in batches.values()), 4717)
-        self.assertEqual(sum(r["length"] for r in batches.values()), 1199533)
+        self.assertEqual(sorted(batches), ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010"])
+        self.assertEqual(sum(r["functions"] for r in batches.values()), 4773)
+        self.assertEqual(sum(r["length"] for r in batches.values()), 1201090)
         self.assertEqual(sum(r["index_table_bytes"] for r in batches.values()), 1934)
-        self.assertEqual(sum(r["padding_bytes"] for r in batches.values()), 1464)
+        self.assertEqual(sum(r["padding_bytes"] for r in batches.values()), 1526)
         # the baseline keeps its own class: 11 S08 functions in batch 001 and 2 incomplete C ranges in batch 007
         self.assertEqual(batches["001"]["superseded"], 11)
         self.assertEqual(batches["007"]["superseded"], 2)
@@ -608,7 +610,7 @@ class MutantTests(OriginalMixin, unittest.TestCase):
         def edit(directory):
             path = directory / "ranges.json"
             lines = path.read_text().splitlines()
-            index = next(i for i, line in enumerate(lines) if line.startswith("  [") and '"code"' in line)
+            index = next(i for i, line in enumerate(lines) if line.startswith("  [") and '"data"' in line)
             del lines[index]
             if lines[index - 1].endswith(",") and lines[index].strip() == "]":
                 lines[index - 1] = lines[index - 1].rstrip(",")
@@ -791,6 +793,60 @@ class AsmBatchBindingTests(unittest.TestCase):
         first = self.bind(batches)[0][0]
         with self.assertRaisesRegex(compose_image.ComposeError, "same batch"):
             self.bind(batches, taken=[(first.offset, first.end, batches[0]["manifest"] + ":other")])
+
+    def make_fragment_batch(self, name, vas, edit=None):
+        """A copy of the given batch-010 entries (call endings, fall-through fragments) with a matching report."""
+
+        directory = Path(self.tmp.name) / name
+        directory.mkdir()
+        manifest = json.loads((PROJECT / "asm" / "batch-010.json").read_text())
+        report = json.loads((PROJECT / "asm" / "batch-010-report.json").read_text())
+        keep = [i for i, f in enumerate(manifest["functions"]) if int(f["va"], 16) in vas]
+        manifest["functions"] = [manifest["functions"][i] for i in keep]
+        report["functions"] = [report["functions"][i] for i in keep]
+        report["accepted_count"] = len(keep)
+        for function in manifest["functions"]:
+            shutil.copy(PROJECT / "asm" / function["source"], directory / function["source"])
+        if edit:
+            edit(directory, manifest, report)
+        (directory / "batch.json").write_text(json.dumps(manifest))
+        report["manifest_sha256"] = hashlib.sha256((directory / "batch.json").read_bytes()).hexdigest()
+        (directory / "report.json").write_text(json.dumps(report))
+        return [{"manifest": str(directory / "batch.json"), "report": str(directory / "report.json"), "provenance_class": "tool_assisted_reconstructed_assembly"}]
+
+    def test_fall_through_fragment_counts_only_with_its_successor_bound(self):
+        """Owner ruling of 2026-10-16: a fragment that falls through is matched only bound together with the range it runs into."""
+
+        batches = self.make_fragment_batch("fall-through", {0x510A4B})
+        with self.assertRaisesRegex(compose_image.ComposeError, "not bound as code"):
+            self.bind(batches)
+        successor = self.layout.rva_to_offset(0x510A51 - 0x400000)
+        items, records = self.bind(batches, taken=[(successor, successor + 4, "earlier.json:FUN_00510a51")])
+        self.assertEqual(len(items), 1)
+        self.assertEqual(records[0]["fall_through_fragments"], 1)
+        # padding or a table at the successor address is not code
+        with self.assertRaisesRegex(compose_image.ComposeError, "not bound as code"):
+            self.bind(batches, taken=[(successor, successor + 4, "earlier.json:PAD_00510a51")])
+
+    def test_call_ending_is_counted_and_its_audited_ending_must_match_the_manifest(self):
+        batches = self.make_fragment_batch("call-ending", {0x50E8E2})
+        with self.assertRaisesRegex(compose_image.ComposeError, "not bound as code"):
+            self.bind(batches)  # a call-end is bound together with the range that follows it, like a fall-through
+        following = self.layout.rva_to_offset(0x50E8ED - 0x400000)
+        items, records = self.bind(batches, taken=[(following, following + 4, "earlier.json:FUN_0050e8ed")])
+        self.assertEqual((len(items), records[0]["call_end_fragments"], records[0]["fall_through_fragments"]), (1, 1, 0))
+
+        def edit(directory, manifest, report):
+            del manifest["functions"][0]["ending"]
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "audited ending"):
+            self.bind(self.make_fragment_batch("call-ending-dropped", {0x50E8E2}, edit), taken=[(following, following + 4, "earlier.json:FUN_0050e8ed")])
+
+        def unknown(directory, manifest, report):
+            manifest["functions"][0]["ending"] = report["functions"][0]["ending"] = "returns-later"
+
+        with self.assertRaisesRegex(compose_image.ComposeError, "unknown ending"):
+            self.bind(self.make_fragment_batch("call-ending-unknown", {0x50E8E2}, unknown), taken=[(following, following + 4, "earlier.json:FUN_0050e8ed")])
 
     def test_a_different_assembler_is_rejected(self):
         fake = Path(self.tmp.name) / "fake-as"

@@ -172,7 +172,7 @@ FIXTURE_TESTS = re.compile(
     r"(?:test_(?:extract_function_evidence|(?:extract_)?function_xrefs|function_ledger|sample_function_ledger)\.py$"
     # asm-track tooling and x86-match tests: they prove the x86 match, not the native port, and
     # cite addresses as fixtures (for example BASE = 0x401000)
-    r"|test_(?:audit_tool_assisted|compose_image|gen_hinted_asm|verify_matches)\.py$"
+    r"|test_(?:audit_tool_assisted|compose_image|gen_fragments|gen_hinted_asm|verify_matches)\.py$"
     r"|(?:test_)?matching_s08[A-Za-z0-9_]*\.py$)")
 LEDGER_RECEIPT = re.compile(r"FL-\d")       # the function-ledger packets' own receipts carry no original-code evidence
 FILE_KEYS = ("files", "owned_files", "owned_distributable_files", "changed_tracked_files",
