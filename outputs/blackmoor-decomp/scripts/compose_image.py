@@ -685,6 +685,10 @@ ASM_INDEX_CLASS = "tool_assisted_reconstructed_index_table"
 # the structured ``int3_padding`` group does not already generate; it is not a function and is reported apart.
 ASM_PADDING_CLASS = "tool_assisted_reconstructed_padding"
 ASM_DATA_CLASSES = (ASM_INDEX_CLASS, ASM_PADDING_CLASS)
+# Endings other than a terminal ret/jmp (owner ruling of 2026-10-16): a code part that ends in a call with no
+# instruction after it (whether the callee returns is not provable from the bytes) and a fragment that falls
+# through; both count only bound together with the range that follows them.
+ASM_ENDINGS = ("call-end", "fall-through")
 ASM_WORKERS = 4
 
 
@@ -751,6 +755,7 @@ def bind_asm_batches(
         raise ComposeError(f"asm batches need the pinned assembler: {problem}")
     items: list[Item] = []
     records: list[dict[str, Any]] = []
+    following: list[tuple[int, str]] = []
     for batch in batches:
         manifest_path = PROJECT_DIR / batch["manifest"]
         report_path = PROJECT_DIR / batch["report"]
@@ -775,6 +780,10 @@ def bind_asm_batches(
                 raise ComposeError(f"{batch['report']}: {function['function']} is not accepted")
             if audited.get("source", {}).get("sha256") != function["source_sha256"] or audited.get("code") != function["code"]:
                 raise ComposeError(f"{batch['report']}: the audited source or code part of {function['function']} differs from the manifest")
+            if (audited.get("ending") or "") != (function.get("ending") or ""):
+                raise ComposeError(f"{batch['report']}: the audited ending of {function['function']} differs from the manifest")
+            if function.get("ending") and function["ending"] not in ASM_ENDINGS:
+                raise ComposeError(f"{batch['manifest']}: {function['function']} has an unknown ending {function['ending']!r}")
             source = manifest_path.parent / function["source"]
             if file_sha256(source) != function["source_sha256"]:
                 raise ComposeError(f"{function['source']}: source differs from the audited hash")
@@ -820,6 +829,7 @@ def bind_asm_batches(
             assembled = list(pool.map(assemble, functions))
 
         bound = superseded = bound_bytes = 0
+        ends: dict[str, int] = {}
         data_bytes: dict[str, int] = {}
         data_count: dict[str, int] = {}
         superseded_names: list[str] = []
@@ -873,6 +883,9 @@ def bind_asm_batches(
                 data_bytes[table["kind"]] = data_bytes.get(table["kind"], 0) + table_size
                 data_count[table["kind"]] = data_count.get(table["kind"], 0) + 1
                 range_hashes.append(sha256(table_data))
+            if function.get("ending"):
+                ends[function["ending"]] = ends.get(function["ending"], 0) + 1
+                following.append((offset + size, code["symbol"]))
             bound += 1
             bound_bytes += size
             source_hashes.append(function["source_sha256"])
@@ -892,6 +905,8 @@ def bind_asm_batches(
                 "index_table_bytes": data_bytes.get("index_table", 0),
                 "padding_items": data_count.get("padding", 0),
                 "padding_bytes": data_bytes.get("padding", 0),
+                "call_end_fragments": ends.get("call-end", 0),
+                "fall_through_fragments": ends.get("fall-through", 0),
                 "superseded": superseded,
                 "superseded_list": superseded_names,
                 "manifest_sha256": file_sha256(manifest_path),
@@ -901,6 +916,12 @@ def bind_asm_batches(
                 "assembler_version_line": assembler_info.get("version_line"),
             }
         )
+    # a fragment that ends in a call or falls through counts only bound together with the range that follows it
+    # (owner ruling of 2026-10-16)
+    code_starts = {t[0] for t in taken if not t[2].rsplit(":", 1)[-1].startswith(("PAD_", "IDXTAB_", "SWTAB_"))}
+    for end, symbol in following:
+        if end not in code_starts:
+            raise ComposeError(f"{symbol}: is followed by file offset {hx(end)}, which is not bound as code")
     return items, records
 
 
