@@ -18,6 +18,8 @@
 {"path": "asm/batch-007.json", "sha256": "083aba80e0fdf247f115513fd4bdb3c65907c202886e3c3ba65585a43e73eee9", "role": "x86-manifest"},
 {"path": "asm/batch-008-report.json", "sha256": "46cda903fc3812361e615677af112bb1d0eaaf778b0d680611799d47ace6852e", "role": "x86-audit"},
 {"path": "asm/batch-008.json", "sha256": "3a749f3b2bf638dfde76dfefda0441c1f1394e602680b5042143a9d8a8c27f2a", "role": "x86-manifest"},
+{"path": "asm/batch-009-report.json", "sha256": "e21223c46736c7145404597039746f6d8cbdcfa0f165c799d591869d4ccb9482", "role": "x86-audit"},
+{"path": "asm/batch-009.json", "sha256": "a4c8940a62b5cb9c3770332729edb87ab4cd4332ee73fc8eb127fe8706112f7b", "role": "x86-manifest"},
 {"path": "asm/census-summary.json", "sha256": "633641e4b17246e62a50fb742f093dfe8240040fc743529b098b801b88d10d5f", "role": "census"},
 {"path": "decomp-progress/layout.json", "sha256": "a7c946e8775e208df70741e9350db2213ed9df20601f8df04b856d697c46dfff", "role": "layout"},
 {"path": "function-evidence.json", "sha256": "d9073f8bed3d0a3ce8801378e77f59f33d3a6d41d62baa2df94632bf967e0271", "role": "evidence"},

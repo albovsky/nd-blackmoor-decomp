@@ -674,6 +674,22 @@ class CommittedBatch(unittest.TestCase):
         dispatcher = next(f for f in report["functions"] if f["function"] == "FUN_00438150")
         self.assertEqual([i["kind"] for i in dispatcher["data_items"]], ["switch_table"])
 
+    def test_batch_009_derived_entries_are_not_indexed_and_name_their_parent_span(self) -> None:
+        if not gen.ORIGINAL_DEFAULT.is_file():
+            self.skipTest("local GAME.EXE not available")
+        image = gen.load_image(gen.ORIGINAL_DEFAULT)
+        manifest = json.loads((TESTS.parent / "asm" / "batch-009.json").read_text(encoding="utf-8"))
+        report = json.loads((TESTS.parent / "asm" / "batch-009-report.json").read_text(encoding="utf-8"))
+        self.assertTrue(report["all_accepted"])
+        self.assertEqual(report["errors"], [])
+        for function in manifest["functions"]:
+            va = int(function["va"], 16)
+            self.assertNotIn(va, image.starts)
+            self.assertEqual(function["evidence_id"], audit.derived_evidence(image, va))
+        first = manifest["functions"][0]
+        parent = max(v for v in image.starts if v <= int(first["va"], 16))
+        self.assertIn(f"inside the span of FUN_{parent:08x}", first["evidence_id"])
+
 
 if __name__ == "__main__":
     unittest.main()
