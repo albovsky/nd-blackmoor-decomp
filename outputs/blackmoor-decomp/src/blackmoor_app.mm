@@ -5041,7 +5041,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[24]{};
+    SceneSessionActionBinding bindings[25]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5151,7 +5151,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[23].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[23].callback = native_a67_handler;
     bindings[23].context = app;
-    config.action_binding_count = 24u;
+    /* RT-31: raw 0x38 animated overlay rows run through the same COverlay handler (loader arm
+     * 0x40c404, constructor 0x48905b, runtime type 0x36). */
+    bindings[24].type = SESSION_A38_TYPE;
+    bindings[24].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[24].callback = session_a36_handler;
+    bindings[24].context = app->a36;
+    config.action_binding_count = 25u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -6105,7 +6111,8 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
     else if (r.failure.action_type == SESSION_A97_TYPE) detail = session_a97_failure(app->a97);
     else if (r.failure.action_type == SESSION_AA1_TYPE) detail = session_aa1_failure(app->aa1);
     else if (r.failure.action_type == SESSION_A36_TYPE ||
-             r.failure.action_type == SESSION_A37_TYPE) detail = session_a36_failure(app->a36);
+             r.failure.action_type == SESSION_A37_TYPE ||
+             r.failure.action_type == SESSION_A38_TYPE) detail = session_a36_failure(app->a36);
     else if (r.failure.action_type == SESSION_A17_TYPE ||
              r.failure.action_type == SESSION_A16_TYPE) detail = session_a17_failure(app->a17);
     else if (r.failure.action_type == SESSION_A0B_TYPE) detail = session_a0b_failure(app->a0b);
@@ -6264,7 +6271,8 @@ static void update(NativeApp *app, uint32_t now)
             if (session_result.failure.action_type == SESSION_A78_TYPE)
                 record(app, "scene_a78_blocker detail=%s", session_a78_failure(app->a78));
             if (session_result.failure.action_type == SESSION_A36_TYPE ||
-                session_result.failure.action_type == SESSION_A37_TYPE)
+                session_result.failure.action_type == SESSION_A37_TYPE ||
+                session_result.failure.action_type == SESSION_A38_TYPE)
                 record(app, "scene_a36_blocker detail=%s", session_a36_failure(app->a36));
             if (session_result.failure.action_type == SESSION_A17_TYPE ||
                 session_result.failure.action_type == SESSION_A16_TYPE)

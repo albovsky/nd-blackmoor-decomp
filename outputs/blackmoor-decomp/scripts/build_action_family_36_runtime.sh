@@ -13,6 +13,7 @@ xcrun --sdk macosx clang -arch arm64 -std=c11 \
     -Wall -Wextra -Wpedantic -Werror -O2 -g -fPIC -dynamiclib \
     ${A36_RUNTIME_CFLAGS:-} \
     "$source_dir/action_family_36.c" "$source_dir/action_family_37.c" \
+    "$source_dir/action_family_38.c" \
     "$source_dir/action_family_36_runtime.c" \
     "$source_dir/session_bindings_a36.c" "$source_dir/scene_resource.c" \
     "$source_dir/hiff.c" "$source_dir/scene_session.c" \

@@ -1,0 +1,28 @@
+# RT-31: raw 0x38 animated overlay runtime
+
+Owner thread: Claude Sonnet (cloud). Follows RT-23 to RT-30. Raw 0x38 was the top remaining type in `scene-action-coverage.json` after RT-30 by scenes unblocked: 25 scenes, 425 records, 21 scenes where it is the only missing type.
+
+## The original (GAME.EXE, SHA-256 afd337a2...5c45)
+
+* Loader arm `0x40c404` of `0x40b34a` (A-38.1): constructor `0x48905b` over the 71-byte prefix plus `16 * (end - start + 1)` frame bytes, then the row type store `0x36` (`0x40c43a`) and the dependency tail. This is the same shape as raw 0x37 (arm `0x40c446`, constructor `0x4895cc`, type store `0x40c47b`) and raw 0x36.
+* The row therefore reaches dispatcher arm `0x4280b4` (gate `0x423f57` mode 1, already mapped for 0x38 in `scene_executor.c`, RT-18) and `COverlay::Process` `0x4899ca`, which RT-14 ported and verified (`src/action_family_36_runtime.[ch]`). Nothing in that function is specific to the raw type; RT-14 and RT-18 already noted that 0x37/0x38 share it.
+* The constructor clears only the first `0xac` bytes of the `0xABA` allocation and writes: name, options `+0x21/+0x23/+0x25/+0x27` (from body `0x21..0x27`), marker `+0x29 = 2` (animated), direction `+0x2d` and loop `+0x2f` (from body `0x29`/`0x2b`), frame range `+0x33/+0x35`, fps `+0x37 = 15`, event index `+0x39 = -1`, `+0x3d` (body `0x2d`), `+0x43 = 1`, dword `+0x4d = 1`, event pair 0 `+0x51/+0x53` (body `0x2f`/`0x31`), nine pairs -1, sound `NO SOUND`, secondary count `+0xaa = 1`, the frame table at `+0xac`, and one secondary record at `+0x6ec` (frame 0, primary 0, hot word 2, source offsets 0, 0, width, height, destination = the body rectangle).
+* Hot word 2: `0x4897cd` never hits the row. Event index -1: phase 1 never completes by event; the row animates until the scene ends (or until the pointer cascade accepts the candidate, which no 0x38 row offers). Marker 2: the primary record drawn is the current frame; the plain blit (`+0x23 == 1`, all 425 corpus rows) copies it to the rectangle.
+* Corpus (decoded scene resources): 25 scenes, 425 rows. 420 rows are `CON_GrennyANIM_OVL` style animations of 4 frames (0..3), 4 rows have 16 frames (0..15), 1 row has 100 frames (0..99); options are uniform (flag 2, plain 1, action 2, layer 10 or 11, direction 1 forward, loop 2 wrap, scene word 9999, event index 0xffff, value 0); 421 rows carry one dependency record, 4 none.
+
+## Native implementation
+
+`src/session_bindings_a36.[ch]` now owns the three overlay raw types: `session_a36_build_image` builds the raw 0x38 image with the existing A-38.1 `action_family_38_construct` (bytes the constructor leaves alone start as zeros, like raw 0x36), `session_a36_begin_scene` and `session_a36_handler` accept raw 0x38 (`SESSION_A38_TYPE`), registration `bindings[24]` in `blackmoor_app.mm` (count 25, the same handler and context as 0x36/0x37), `action_family_38.c` added to the runtime build, the sanitizer script and `build_native_app.sh`. The kernel (`action_family_36_runtime.c`) is unchanged.
+
+## Verification
+
+* `tests/test_action_family_38_runtime.py`: construction against an independent model of the constructor, rejection cases, scene images per raw type, registration and the animation start (frame 0, interval 66 ms), never-completes, no hot rectangle, plain and keyed blits, layers, dependency gate, shared surface cache across raw types, registration order, handler type check, finish with scene-change option 1 and event pair 0, scene rebuild, render-table exhaustion, gate mode 1 for 0x38. 12 planted unit mutants (binding glue and the constructor fields the runtime reads) are all caught.
+* `tests/action_family_38_runtime_original_oracle.py` (+ `_corpus_dump.c`): the real loader arm `0x40c404` and constructor `0x48905b` run under Unicorn with the allocator returning 0xCD and 0x00 bytes; the native image must equal the zero-filled original image and the two original images may differ only outside the ranges the constructor writes; then the RT-14 comparison machinery (real dispatcher arm, gate, `0x4899ca`, `0x4897cd`, `0x48a3db`, `0x42ba3a`) runs the corpus scenes, random scenes, whole animation cycles, direction/loop options and finish paths on both fills. Full run: 417 scripts, 223,307 steps, 220,767 state compares, 139,110 ordered events, 3,380 constructor images (9.3 MB) compared, 0 mismatches. `tests/action_family_38_runtime_mutation_check.py` plants 16 mutants (12 unit + 4 animation) and requires the oracle to catch every one it can see: 14 caught; the 2 survivors (scene-load skip, handler row-type check) are glue the oracle does not drive and are caught by the unit tests. (An interval mutant `* 1001` was equivalent at 15 fps, 66 ms either way, and was replaced by `* 1100`.)
+* Existing RT-14/RT-18 suites for 0x36/0x37 run unchanged except two assertions in `test_action_family_37_runtime.py` that recorded "0x38 has no image" (now bound).
+
+## Limits
+
+* The macOS glue (`blackmoor_app.mm`) is not compiled or run in the cloud.
+* No corpus row has a nonzero start frame, a sound name or an AUTOTEXT name; the oracle covers the native refusals only for synthetic bodies.
+* The original reads allocator bytes for frame indexes past the table when the start frame is nonzero; native rejects such a draw (outside the valid-input domain).
+* The oracle builds rows in memory (the scene loader `0x40b34a` is not run beyond the loader arm); the dependency tree runs empty (dependencies are covered by the executor/session unit tests).

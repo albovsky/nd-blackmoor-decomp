@@ -136,7 +136,9 @@ class ConstructionTests(unittest.TestCase):
             self.assertNotEqual(status, 0, len(data))
             self.assertEqual(image, b'\xa5' * IMAGE_BYTES)
 
-    def test_0x38_and_other_raw_types_have_no_image(self):
+    def test_a_0x37_body_is_not_a_0x38_body_and_other_raw_types_have_no_image(self):
+        # RT-31 binds raw 0x38 (tests/test_action_family_38_runtime.py); a 69-byte raw 0x37 body is
+        # shorter than the 71-byte 0x38 prefix and is refused under that type.
         for raw_type in (0x38, 0x35, 0x39, 0):
             status, image = self.build(raw_type, body37())
             self.assertNotEqual(status, 0, raw_type)
@@ -170,11 +172,14 @@ class BindingTests(unittest.TestCase):
         self.assertEqual(self.lib.session_a36_row_name(f.binding, 0), b'A37')
         self.assertIsNone(f.image(2))
 
-    def test_raw_0x38_rows_get_no_image_and_the_scene_still_loads(self):
+    def test_raw_0x38_rows_are_outside_a_fixture_that_binds_only_0x36_and_0x37(self):
+        # RT-31: the binding builds 0x38 images (it owns every overlay raw type); the executor
+        # only calls the handler for the raw types the session registered, so a fixture that
+        # registers 0x36/0x37 alone never runs the 0x38 row. The scene still loads.
         data = t38.body_fixture()
         f = self.fixture([overlay37(b'A37'), session.action(0x38, 1, data, ())])
-        self.assertIsNone(f.image(1))
-        self.assertEqual(self.lib.session_a36_row_raw_type(f.binding, 1), 0)
+        self.assertIsNotNone(f.image(1))
+        self.assertEqual(self.lib.session_a36_row_raw_type(f.binding, 1), 0x38)
 
     def test_first_tick_registers_and_the_row_stays_pending_in_phase_one(self):
         f = self.fixture([overlay37(b'TUT_Next_OVL')])
