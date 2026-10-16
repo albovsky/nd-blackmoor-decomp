@@ -16,7 +16,7 @@ Owner thread: Claude Sonnet (cloud). Follows RT-37. After PR 100, 2,013 of 2,078
 
 ## Native implementation
 
-`src/session_bindings_a45.[ch]`: one binding object and the executor handler `session_a45_handler`. Reuses the clear kernel `session_timer_record_clear` of RT-37. Host callbacks: `time_record(index)` (REQUIRED; the app passes `new_game.view.time_records_585d65`, the same function raw 0x65/0x68/0x69 use; NULL, hence UNSUPPORTED before any effect, for an index below 0 or past the 10 records) and `variable_word(index)` (the app's BSUM-backed table, `native_cond_variable_word`; optional while no row needs a seconds word >= 5000; a missing or refusing hook is UNSUPPORTED before any effect, hours and minutes included). Registration `bindings[33]` in `src/blackmoor_app.mm` (count 34, provider ACTION_KERNEL), `scripts/build_action_family_45_runtime.sh`, module added to `scripts/build_native_app.sh`.
+`src/session_bindings_a45.[ch]`: one binding object and the executor handler `session_a45_handler`. Reuses the clear kernel `session_timer_record_clear` of RT-37. Host callbacks: `time_record(index)` (REQUIRED; the app passes `new_game.view.time_records_585d65`, the same function raw 0x65/0x68/0x69 use; NULL, hence UNSUPPORTED before any effect, for an index below 0 or past the 10 records) and `variable_word(index)` (the app's BSUM-backed table, `native_cond_variable_word`; optional while no row needs a seconds word >= 5000; a missing or refusing hook is UNSUPPORTED before any effect, hours and minutes included). Registration `bindings[34]` in `src/blackmoor_app.mm` (count 35, 33 is raw 0x2d, provider ACTION_KERNEL), `scripts/build_action_family_45_runtime.sh`, module added to `scripts/build_native_app.sh`.
 
 ## Verification
 

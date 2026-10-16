@@ -2576,7 +2576,8 @@ static ConditionExtraHostStatus native_cond_context_58c94f(void *context, int16_
 /* Loader table word 0x5adb81 + 2*idx for opcode 13/14 leaves whose
  * fields[6] >= 5000. The BOOT loader copies the 402-byte BSUM payload over
  * 0x5b0113..0x5b02a4 (0x4356eb..0x4356fc), so the words for indexes
- * 5000..5003 (0x5b0291..0x5b0297) are BSUM[382..389] = 300, 180, 1500, 60;
+ * 5000..5003 (0x5b0291..0x5b0297) are BSUM[382..389] = 300, 180, 1500, 60 (the raw 0x45
+ * rows also read 5004, BSUM[390..391], through the same table, unscanned for later writes);
  * no instruction writes them afterwards (scan of every .text operand). */
 static int native_cond_variable_word(void *context, int16_t index, int16_t *value)
 {
@@ -5804,7 +5805,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[34]{};
+    SceneSessionActionBinding bindings[35]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5961,11 +5962,11 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[32].callback = native_a69_handler;
     bindings[32].context = app;
     /* RT-38: raw 0x45 timer control (arm 0x4287cc, gate mode 0; completion byte set directly, or the row stays open). */
-    bindings[33].type = SESSION_A45_TYPE;
-    bindings[33].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[33].callback = native_a45_handler;
-    bindings[33].context = app;
-    config.action_binding_count = 34u;
+    bindings[34].type = SESSION_A45_TYPE;
+    bindings[34].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[34].callback = native_a45_handler;
+    bindings[34].context = app;
+    config.action_binding_count = 35u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
