@@ -118,6 +118,7 @@ class ExtensionTests(unittest.TestCase):
         lib.scene_conditions_build.restype = c.c_int
         lib.scene_conditions_destroy.argtypes = [c.c_void_p]
         lib.scene_conditions_reset.argtypes = [c.c_void_p]
+        lib.scene_conditions_reset_traversal.argtypes = [c.c_void_p]
         lib.scene_conditions_evaluate_ex.argtypes = [
             c.c_void_p, c.POINTER(SceneConditionState), c.POINTER(Extension),
             c.c_int32, c.POINTER(c.c_int), c.POINTER(c.c_uint16),
@@ -334,6 +335,61 @@ class ExtensionTests(unittest.TestCase):
         self.assertEqual((self.calls[2]["threshold"], self.calls[2]["valid"],
                           self.calls[2]["sample"]), (1234, 0, 45))
         self.assertEqual(self.calls[2]["preset"], 0)
+
+    def test_reset_traversal_0x423da2_zeroes_node_status_and_leaf_valid_flag(self):
+        """scene_conditions_reset_traversal (0x423da2): status and +0x2c cleared, threshold and sample kept."""
+        tree = self.build([record(20, 0, 50)])
+
+        def behaviour(req, snap):
+            rt = req.runtime.contents
+            rt.runtime_threshold_20 = 1234
+            rt.random_cache_valid_2c = 1
+            rt.random_sample_30 = 45
+            return OK, 1, 0
+
+        ext = self.extension(behaviour)
+        self.evaluate(tree, ext)
+        self.evaluate(tree, ext)
+        self.assertEqual((self.calls[1]["preset"], self.calls[1]["valid"]), (1, 1))
+        self.lib.scene_conditions_reset_traversal(tree)
+        self.evaluate(tree, ext)
+        self.assertEqual((self.calls[2]["preset"], self.calls[2]["valid"], self.calls[2]["threshold"],
+                          self.calls[2]["sample"]), (0, 0, 1234, 45))
+        self.lib.scene_conditions_reset_traversal(None)
+
+    class _Node(c.Structure):
+        # mirror of SceneConditionNode / SceneConditionTree in src/scene_conditions.c
+        _fields_ = [("kind", c.c_int), ("parent", c.c_size_t), ("first_child", c.c_size_t),
+                    ("last_child", c.c_size_t), ("next_sibling", c.c_size_t), ("child_count", c.c_size_t),
+                    ("opcode", c.c_int16), ("fields", c.c_int16 * 8), ("or_after", c.c_int16),
+                    ("status", c.c_int32), ("time_value", c.c_int32), ("time_end_value", c.c_int32),
+                    ("source_record", c.c_size_t)]
+
+    @classmethod
+    def _nodes(cls, tree):
+        class Tree(c.Structure):
+            _fields_ = [("nodes", c.POINTER(cls._Node)), ("node_count", c.c_size_t),
+                        ("record_count", c.c_size_t), ("root", c.c_size_t)]
+        t = c.cast(tree, c.POINTER(Tree)).contents
+        return t.nodes, t.node_count, t.root
+
+    def test_reset_entry_0x423d33_with_and_without_records(self):
+        """scene_conditions_reset (0x423d33): records present -> root status 0 and the 0x423da2 traversal;
+        no records -> root status 1 and nothing else."""
+        tree = self.build([record(20, 0, 50)])
+        nodes, count, root = self._nodes(tree)
+        self.assertEqual(count, 2)
+        for index in range(count):
+            nodes[index].status = 7
+        self.lib.scene_conditions_reset(tree)
+        self.assertEqual([nodes[index].status for index in range(count)], [0, 0])
+        empty = self.build([])
+        nodes, count, root = self._nodes(empty)
+        self.assertEqual(count, 1)
+        nodes[root].status = 5
+        self.lib.scene_conditions_reset(empty)
+        self.assertEqual(nodes[root].status, 1)
+        self.lib.scene_conditions_reset(None)
 
     def test_reset_preserves_the_selected_item_slot(self):
         tree = self.build([record(11, 9)])

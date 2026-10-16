@@ -374,6 +374,7 @@ class WorldClockTests(unittest.TestCase):
         self.assertEqual(second.continuation_va, CONTINUE_NORMAL_POST_CLOCK)
 
     def test_status5_and_status6_completion_order_flags_sound_caption_reset(self):
+        """Status 5 completion runs reset_completed_record (0x433bd2) on the whole record, byte for byte."""
         fixture = Fixture()
         fixture.put_record(
             0, status=5, elapsed=0, target=100, done=0, sound=b"NO SOUND",

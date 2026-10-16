@@ -1039,6 +1039,352 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Static release: if (handshake != 2) handshake = 0, plus an observer callback. avf_player_original_oracle compares it but needs game data, not run here; the RT-9 execution oracle does not compare it, so tests-only."
+  },
+  {
+   "va": "0x423d33",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/scene_conditions.c",
+    "symbol": "scene_conditions_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/test_scene_conditions_extension.py",
+     "test_id": "ExtensionTests.test_reset_entry_0x423d33_with_and_without_records"
+    },
+    {
+     "path": "tests/test_scene_conditions_extension.py",
+     "test_id": "ExtensionTests.test_reset_preserves_the_selected_item_slot"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-D3.1:636d244e80ae60e2",
+     "rationale": "Item concerns generic opcode construction after 0x424c94; 0x423d37 is only its cited gate address, so it does not touch the reset entry accepted here."
+    },
+    {
+     "id": "A-EB.1:7017105ad8d3c77d",
+     "rationale": "Item concerns generic opcode construction after 0x424c94; 0x423d37 is only its cited gate address, so it does not touch the reset entry accepted here."
+    }
+   ],
+   "note": "0x423d33 entry only: no records sets root 1, else root 0 then 0x423da2. Not modelled: debug arm, 0x4234c8 stack clear, 128-deep stack limit. Tests-only: oracles execute 73 of 111 bytes (function-execution.json)."
+  },
+  {
+   "va": "0x423da2",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/scene_conditions.c",
+    "symbol": "scene_conditions_reset_traversal"
+   },
+   "tests": [
+    {
+     "path": "tests/test_scene_conditions_extension.py",
+     "test_id": "ExtensionTests.test_reset_traversal_0x423da2_zeroes_node_status_and_leaf_valid_flag"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Flat pass, same node set: +0x4 and leaf +0x2c zeroed, +0x20/+0x30 kept; also zeroes the root (0x423d33 does that). Not modelled: error and debug text, 128-deep stack. Tests-only: oracles run at most 269 of 437 bytes."
+  },
+  {
+   "va": "0x422970",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_set_target"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_frame_choice"
+    },
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_finish_and_fast_convo"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x422970",
+     "0x4229b5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from cel_advance and phase1 (no behaviour change): target = frame, final_seen = 1 once last <= target. RT-25 oracle (878 scenarios, 0 mismatches) compares both; unused stack arg dropped."
+  },
+  {
+   "va": "0x4229b5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_announce"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_frame_choice"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4229b5",
+     "0x4229fa"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Extracted from cel_advance's tail (no behaviour change): drawn != target sets drawn = target and flag 0x5d191d = 1. RT-25 oracle (878 scenarios, 0 mismatches) compares both; unused stack arg dropped."
+  },
+  {
+   "va": "0x4c2e5b",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "cel_free_layer_header"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3e_runtime_test.c",
+     "test_id": "t_reader_rules"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from cel_free_slot_layers (no behaviour change): non-null header freed via host callback (original 0x51dc6c, a seam) and cleared. Tests-only: no oracle executes it whole; t_reader_rules checks the frees."
+  },
+  {
+   "va": "0x433bd2",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/world_clock.c",
+    "symbol": "reset_completed_record"
+   },
+   "tests": [
+    {
+     "path": "tests/test_world_clock.py",
+     "test_id": "WorldClockTests.test_status5_and_status6_completion_order_flags_sound_caption_reset"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Pure stores: 0x106 bytes zeroed, ten -1 words at +0xde step 4, NO SOUND at +0x28; the test compares the whole record. The original's NULL no-op is not mirrored (callers never pass NULL). No oracle."
+  },
+  {
+   "va": "0x41fd08",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "replace_response"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_kinds_and_duplicates"
+    },
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_full_replace_and_remove"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from build_list case 1: drop the same-text entry, then append (30 limit). Static, so the original's other callers are not routed here. Text compare is convo3f_text_equal; no whole-function receipt, so tests-only."
+  },
+  {
+   "va": "0x42028e",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "remove_response"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_kinds_and_duplicates"
+    },
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_list_full_replace_and_remove"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from build_list case 2: drop the same-text entry (count - 1, min 0). Static, so the original's other callers are not routed here. Text compare is convo3f_text_equal; no whole-function receipt, so tests-only."
+  },
+  {
+   "va": "0x4dcdd3",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_player.c",
+    "symbol": "partner_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_partner_sound_gate_and_skip"
+    },
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_partner_step_direction_2_without_sound_finishes_at_first"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Substates 0 and 4 match branch for branch. Seams: debug lines omitted; finish = +0x1c 3 plus the 0x4dad60 reset (caller does it); 0x4f6334 is gate.sound_busy; 0x4fb2e3 is the sound event. Oracle window is not executed whole."
+  },
+  {
+   "va": "0x415176",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_decoder.c",
+    "symbol": "avf_get_chunk"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_decoder.py",
+     "test_id": "AvfDecoderTests.test_get_chunk_sequence"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Chunk fetch (key, then deltas). Fatal paths are status returns, buffers passed in, 0x4c7314 is the convert hook, extra native rejections of truncated input. Oracle not run whole."
+  },
+  {
+   "va": "0x41546f",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_decoder.c",
+    "symbol": "avf_decode_single"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_decoder.py",
+     "test_id": "AvfDecoderTests.test_key_frame_single"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Single-buffer decode, all record types. Fatal paths are status returns, buffers passed in, 0x4c7314 is the convert hook, extra native rejections of truncated input. Oracle not run whole."
+  },
+  {
+   "va": "0x4156ea",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_decoder.c",
+    "symbol": "avf_decode_double"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_decoder.py",
+     "test_id": "AvfDecoderTests.test_double_buffer_toggle_and_predecessor"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Double-buffer decode; toggles on non-empty success. Fatal paths are status returns, buffers passed in, 0x4c7314 is the convert hook, extra native rejections of truncated input. Oracle not run whole."
+  },
+  {
+   "va": "0x43ef77",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_decoder.c",
+    "symbol": "fill16"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_decoder.py",
+     "test_id": "AvfDecoderTests.test_negative_fill_count"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Extracted from run_commands (no behaviour change): count signed 16-bit word stores, nothing for count <= 0. No oracle executes it whole (game data)."
+  },
+  {
+   "va": "0x4c0205",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_player.c",
+    "symbol": "movie_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_movie_hidden_and_multiple_matches"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "States 0 and 4 match in order. Seams: 0x4c0ab1 and 0x4c08d3 are host events, surface select is the host present call, debug logs omitted, slot store 2 is p->finished."
+  },
+  {
+   "va": "0x4c09fe",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_player.c",
+    "symbol": "movie_step_index"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_movie_step_index_steps_and_clamps_per_direction"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Direction 1 steps up and clamps at last; otherwise steps down and clamps at first. The new test covers both clamps with first 0 and last 3. No oracle executes it whole."
+  },
+  {
+   "va": "0x4ce602",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-11 batch, diff slice-reviewer",
+   "date": "2026-10-16",
+   "native_source": {
+    "path": "src/avf_player.c",
+    "symbol": "random_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_avf_player.py",
+     "test_id": "AvfPlayerTests.test_random_step_runs_to_done_then_finishes"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Matches line by line. Seams: surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted; the 0x4cec6c guards (+0x222, +0x226, +0x246) are not mirrored. Tests-only."
   }
  ],
  "not_needed_entries": [
