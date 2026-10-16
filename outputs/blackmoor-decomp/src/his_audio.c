@@ -316,11 +316,33 @@ static int append_decoded_frame(HisDecodeState *state,
     uint64_t frames_to_copy;
     size_t copy_bytes;
 
+    int input_samples;
+    int skip_start = 0;
+    const uint8_t *shifted_planes[AV_NUM_DATA_POINTERS];
+    const AVFrameSideData *skip_data;
+
     if (frame->nb_samples <= 0 || frame->nb_samples > 1048576) {
         set_error(error, error_capacity, "Vorbis frame sample count is outside the adapter limit");
         return HIS_AUDIO_ERR_BOUNDS;
     }
-    max_output_frames = swr_get_out_samples(resampler, frame->nb_samples);
+    /* Apply only the leading skip FFmpeg reports (decoder start-up delay), never the
+     * trailing one: libvorbisfile returns the samples after the final granule. */
+    skip_data = av_frame_get_side_data(frame, AV_FRAME_DATA_SKIP_SAMPLES);
+    if (skip_data != NULL && skip_data->size >= 4u) {
+        skip_start = (int)read_u32le(skip_data->data);
+        if (skip_start < 0) {
+            skip_start = 0;
+        } else if (skip_start > frame->nb_samples) {
+            /* Every shipped file skips exactly its first 128-sample frame; a larger
+             * skip would need carrying into the next frame, which is not modelled. */
+            skip_start = frame->nb_samples;
+        }
+    }
+    input_samples = frame->nb_samples - skip_start;
+    if (input_samples == 0) {
+        return HIS_AUDIO_OK;
+    }
+    max_output_frames = swr_get_out_samples(resampler, input_samples);
     if (max_output_frames < 0 || max_output_frames > 1048576) {
         set_error(error, error_capacity, "resampled Vorbis frame exceeds the adapter limit");
         return HIS_AUDIO_ERR_BOUNDS;
@@ -341,9 +363,25 @@ static int append_decoded_frame(HisDecodeState *state,
     }
 
     output_planes[0] = (uint8_t *)temporary;
-    input_planes = (const uint8_t **)frame->extended_data;
+    if (frame->ch_layout.nb_channels < 1 || frame->ch_layout.nb_channels > 2) {
+        set_error(error, error_capacity, "Vorbis frame channel count is outside the adapter limit");
+        free(temporary);
+        return HIS_AUDIO_ERR_BOUNDS;
+    }
+    {
+        int bytes_per_sample = av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
+        int plane_count = av_sample_fmt_is_planar((enum AVSampleFormat)frame->format)
+                              ? frame->ch_layout.nb_channels : 1;
+        size_t stride = (size_t)bytes_per_sample *
+                        (plane_count == 1 && !av_sample_fmt_is_planar((enum AVSampleFormat)frame->format)
+                             ? (size_t)frame->ch_layout.nb_channels : 1u);
+        for (int plane = 0; plane < plane_count; ++plane) {
+            shifted_planes[plane] = frame->extended_data[plane] + (size_t)skip_start * stride;
+        }
+    }
+    input_planes = shifted_planes;
     output_frames = swr_convert(resampler, output_planes, max_output_frames,
-                                input_planes, frame->nb_samples);
+                                input_planes, input_samples);
     if (output_frames < 0) {
         char av_error[AV_ERROR_MAX_STRING_SIZE];
         set_error(error, error_capacity, "cannot convert Vorbis frame to float PCM: %s",
@@ -549,6 +587,12 @@ static int decode_vorbis(const uint8_t *payload,
         status = HIS_AUDIO_ERR_FORMAT;
         goto cleanup;
     }
+    /* The original libvorbisfile reader returns every decoded sample and the HIS
+     * header declares that count; FFmpeg would otherwise drop the samples past the
+     * final Ogg granule position (128 frames in 20 shipped files), leaving the
+     * stream shorter than the header. Keep them; the length check below still
+     * enforces the declared frame count. */
+    codec->flags2 |= AV_CODEC_FLAG2_SKIP_MANUAL;
     result = avcodec_open2(codec, decoder, NULL);
     if (result < 0) {
         set_error(error, error_capacity, "cannot start FFmpeg Vorbis decoder: %s",

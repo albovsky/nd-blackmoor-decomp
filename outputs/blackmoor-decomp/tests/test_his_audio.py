@@ -161,6 +161,37 @@ class HisAudioTests(unittest.TestCase):
                 finally:
                     self.destroy(ctypes.byref(audio))
 
+    def test_ogg_streams_shorter_than_the_header_by_the_final_granule_still_decode(self) -> None:
+        # FL-9: in 20 shipped files the last Ogg granule position is 128 frames short of the
+        # HIS header's decoded length; libvorbisfile (the original) still returns every
+        # sample, so the adapter must too instead of failing the whole file.
+        for name in ("CLICK.HIS", "Key_Turn_Open.HIS", "TilePutDown.HIS"):
+            with self.subTest(name=name):
+                directory = self.game_dir / "CDSound"
+                path = directory / name
+                if not directory.is_dir() or not FFMPEG.is_file():
+                    self.skipTest("supplied Blackmoor HIS assets or FFmpeg CLI are unavailable")
+                if not path.is_file():
+                    path = next((c for c in directory.iterdir()
+                                 if c.name.lower() == name.lower()), path)
+                if not path.is_file():
+                    self.skipTest("supplied Blackmoor HIS asset is unavailable")
+                wrapper = path.read_bytes()
+                sample_rate = struct.unpack_from("<I", wrapper, 12)[0]
+                channels = struct.unpack_from("<H", wrapper, 10)[0]
+                expected_bytes = struct.unpack_from("<I", wrapper, 24)[0]
+                bytes_per_frame = struct.unpack_from("<H", wrapper, 20)[0]
+                status, audio, error, decoded = self.decode_bytes(wrapper)
+                self.assertEqual(status, 0, error)
+                try:
+                    self.assertEqual(audio.frame_count, expected_bytes // bytes_per_frame)
+                    cli = self.ffmpeg_pcm(wrapper, sample_rate, channels)
+                    # The CLI trims the end by exactly the frames the header declares extra.
+                    self.assertEqual(len(decoded) - len(cli), 128 * channels * 4)
+                    self.assertEqual(decoded[: len(cli)], cli)
+                finally:
+                    self.destroy(ctypes.byref(audio))
+
     def test_real_pcm_his_formats_decode_to_interleaved_float(self) -> None:
         cases = ("CardFlip05.HIS", "ComputerGameBeep01.HIS", "Pot02.HIS")
         for name in cases:
