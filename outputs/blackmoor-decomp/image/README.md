@@ -8,11 +8,11 @@ Sources for the M02 whole-file composer (`scripts/compose_image.py`). Nothing he
 | `imports.json` | 13 DLLs, 326 symbols with hints and RVAs | structured: `import_directory`, `iat` |
 | `resources.json` | ID-only resource directory tree (38 leaves), leaf RVA/size/codepage, zero fill | structured: `resource_tree`; leaf payloads are `referenced` |
 | `text_data.json` | switch jump tables (code addresses), 0xCC span padding; byte index tables by extent only | structured: `jump_tables`, `int3_padding`; index table bytes stay `referenced` |
-| `reconstructed.json` | reviewed matching manifests bound as reconstructed ranges | reconstructed |
+| `reconstructed.json` | reviewed matching manifests (`bindings`) and the audited tool-assisted assembly batches of M03 (`asm_batches`) bound as reconstructed ranges | reconstructed (provenance classes reported separately) |
 | `ranges.json` | every remaining range: offset, length, SHA-256, kind, region, name | referenced |
 | `coverage-report.{json,md}` | snapshot of the composer's report | |
 
-`ranges.json`, `text_data.json`, `layout.json`, `imports.json` and `resources.json` are produced by `compose_image.py derive` from the local original and `function-index.json`; `reconstructed.json` is hand-written. A test re-runs `derive` and requires byte-identical output.
+`ranges.json`, `text_data.json`, `layout.json`, `imports.json` and `resources.json` are produced by `compose_image.py derive` from the local original and `function-index.json`; `reconstructed.json` is hand-written; `ranges.json` is re-derived after any change to it. A test re-runs `derive` and requires byte-identical output.
 
 ## Commands
 
@@ -24,6 +24,10 @@ python3 -m unittest outputs/blackmoor-decomp/tests/test_compose_image.py
 ```
 
 The composed file and the full report are written under `outputs/blackmoor-decomp/build/image/` (git-ignored).
+
+## Tool-assisted assembly batches (`asm_batches`)
+
+Each entry names an `asm/batch-NNN.json` manifest and its audit report. At build time the composer requires the report to be all-accepted for exactly that manifest (hash match), reassembles every function's `.s` with the pinned `i686-w64-mingw32-as` 2.43.1 (version line plus the self-test of `audit_tool_assisted.py`), requires zero relocations, and requires the symbol's bytes to hash to the code SHA-256 the manifest records for the original code part. The bytes placed in the image are the assembled bytes. Bindings listed under `bindings` win on overlap, so the 11 S08 functions and the 2 incomplete C ranges stay in their own classes and are reported as superseded. Data items of these functions are not bound by this step: switch tables and `int 3` padding are already `structured`, switch index tables stay `referenced`. The 12 functions the audit excludes (CRT block copies, fall-through, noreturn funclets) and the derived ranges that no batch contains stay `referenced`.
 
 ## Replacing a referenced range
 
