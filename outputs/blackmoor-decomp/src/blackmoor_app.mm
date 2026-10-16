@@ -3165,6 +3165,10 @@ static void native_a3f_store_world(void *context, const Convo3fWorld *world)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || world == nullptr) return;
     app->start_flag_5bb1ca = world->start_5bb1ca;
+    /* 0x4e8d96 stores 0xffff to [0x583a29] after putting the held item back (0x4e8dbb); the
+     * kernel clears only its private copy, so mirror it into the live cursor state here. */
+    int16_t *selected = app->new_game.view.inventory.selected_item_candidate;
+    if (selected != nullptr && world->held_item == -1) *selected = -1;
 }
 
 static int native_a3f_transition(void *context, const SceneTransitionRequest *request)
@@ -3186,6 +3190,8 @@ static int native_a3f_inventory_add(void *context, int16_t item, int flag)
     if (app == nullptr) return 1;
     Action78Model model{};
     model.inventory = inventory_model(app);
+    model.view.mode = app->inv_view.mode;
+    model.view.slot_flag = app->inv_layout.slot_flag;
     Action78Host host{};
     host.inventory.rebuild_view = native_a79_rebuild_view;
     host.inventory.context = app;
@@ -3219,11 +3225,12 @@ static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *
     const uint32_t phase_before = before->phase;
     const int status = session_a3f_handler(app->a3f, row, action, before, out);
     const Convo3fStepResult *last = session_a3f_last_result(app->a3f);
-    if (status == SCENE_ACTION_HANDLER_OK) {
+    if (status == SCENE_ACTION_HANDLER_OK && (phase_before != out->phase ||
+                                              out->disposition == SCENE_ACTION_HANDLER_DIRECT_COMPLETED)) {
         record(app, "scene_a3f_visit row=%zu phase=%u phase_after=%u disposition=%d skipped_optional=0x%x "
                "(0x427a50 -> 0x420c17)", row, phase_before, out->phase, (int)out->disposition,
                last != nullptr ? last->skipped_optional : 0u);
-    } else {
+    } else if (status != SCENE_ACTION_HANDLER_OK) {
         record(app, "scene_a3f_blocker row=%zu status=%d detail=%s", row, status, session_a3f_failure(app->a3f));
     }
     return status;

@@ -169,6 +169,12 @@ int session_a3f_begin_scene(SessionA3fBinding *b, const SceneResource *scene)
     b->rows = rows;
     b->count = count;
     convo3f_manager_reset(&b->manager);
+    /* Scene replacement drops a conversation in flight: the original loaders and teardown
+     * store 0 to [0x5c39e9]/[0x5c39ed] (0x43e3de, 0x4385c4, 0x422867). */
+    b->world.flag_5c39e9 = 0;
+    b->world.flag_5c39ed = 0;
+    b->world.selected_570374 = CONVO3F_NO_SELECTION;
+    memset(b->world.chosen_5839b1, 0, sizeof(b->world.chosen_5839b1));
     b->has_last = 0;
     b->failure = "none";
     return CONVO3F_OK;
