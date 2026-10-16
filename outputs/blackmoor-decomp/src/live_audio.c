@@ -955,6 +955,37 @@ int live_audio_set_category_scalar(LiveAudio *audio, uint8_t category, float sca
     return result;
 }
 
+int live_audio_set_channel_scalars(LiveAudio *audio, uint16_t channel, float first_gain,
+                                   float second_gain)
+{
+    Channel *slot;
+    char error[256] = "";
+
+    if (audio == NULL || channel >= LIVE_AUDIO_CHANNEL_COUNT || !isfinite(first_gain) ||
+        first_gain < 0.0f || !isfinite(second_gain) || second_gain < 0.0f)
+        return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    slot = &audio->channels[channel];
+    /* An unloaded channel keeps nothing observable: every load (0x432d1a)
+     * rewrites both scalars before 0x4fadc4 reads them. */
+    if (!slot->loaded) return LIVE_AUDIO_OK;
+    /* The original's attenuation clamp (0x4f684a) pins anything above full
+     * scale at 0 dB, i.e. a gain of 1.0. */
+    slot->first_gain = first_gain > 1.0f ? 1.0f : first_gain;
+    slot->second_gain = second_gain > 1.0f ? 1.0f : second_gain;
+    refresh_gain(audio, slot);
+    if (slot->started && !slot->finished) {
+        int status = audio->ops.set_gain(audio->host, slot->host_slot, slot->final_gain, error,
+                                         sizeof(error));
+        if (status != MAC_AUDIO_OK) {
+            logf_line(audio, "live_audio set_gain_failed channel=%u status=%d detail=%s",
+                      (unsigned)channel, status, error);
+            return LIVE_AUDIO_ERR_HOST;
+        }
+    }
+    return LIVE_AUDIO_OK;
+}
+
 int live_audio_get_category_scalar(const LiveAudio *audio, uint8_t category, float *scalar)
 {
     if (audio == NULL || scalar == NULL || category >= LIVE_AUDIO_CATEGORY_COUNT)
