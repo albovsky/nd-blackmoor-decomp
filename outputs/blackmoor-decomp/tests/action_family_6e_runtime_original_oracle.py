@@ -548,7 +548,7 @@ MUTANTS = {
     'dword 0f taken from 0x5bb5ab': ('slot->dword_5c3a0f = current->dword_5bb5a7;', 'slot->dword_5c3a0f = current->dword_5bb5ab;', 'scene_stack.c'),
     'dword 13 keeps 0x5bb5ab': ('slot->dword_5c3a13 = current->dword_5bb5af;            /* 0x42e5b8', '/* mutant */            /* 0x42e5b8', 'scene_stack.c'),
     'dword 17 written': ('slot->dword_5c3a13 = current->dword_5bb5af;            /* 0x42e5b8', 'slot->dword_5c3a17 = current->dword_5bb5af; slot->dword_5c3a13 = current->dword_5bb5af;            /* 0x42e5b8', 'scene_stack.c'),
-    'init marker 0x270e': ('slot->scene_5c3a07 = SCENE_STACK_EMPTY_MARKER;', 'slot->scene_5c3a07 = SCENE_STACK_EMPTY_MARKER - 1;', 'scene_stack.c'),
+    'init marker 0x270e': ('slot->scene_5c3a07 = SCENE_STACK_EMPTY_MARKER;\n    slot->word_5c3a09 = 0;', 'slot->scene_5c3a07 = SCENE_STACK_EMPTY_MARKER - 1;\n    slot->word_5c3a09 = 0;', 'scene_stack.c'),
     'init type word 1': ('slot->word_5c3a0d = 2;\n}', 'slot->word_5c3a0d = 1;\n}', 'scene_stack.c'),
     'init clears the dwords': ('slot->word_5c3a0d = 2;\n}', 'slot->word_5c3a0d = 2;\n    slot->dword_5c3a0f = 0;\n}', 'scene_stack.c'),
     'push argument 1': ('#define SESSION_A6E_PUSH_ARGUMENT 2', '#define SESSION_A6E_PUSH_ARGUMENT 1', 'session_bindings_a6e.h'),

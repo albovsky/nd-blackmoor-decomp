@@ -100,7 +100,7 @@ class UnitTests(unittest.TestCase):
             'dword 13 keeps the first store': ('scene_stack.c', 'slot->dword_5c3a13 = current->dword_5bb5af;', 'slot->dword_5c3a13 = current->dword_5bb5ab;'),
             'dword 17 written': ('scene_stack.c', 'slot->dword_5c3a13 = current->dword_5bb5af;',
                                   'slot->dword_5c3a17 = current->dword_5bb5af; slot->dword_5c3a13 = current->dword_5bb5af;'),
-            'init marker': ('scene_stack.c', 'slot->scene_5c3a05 = SCENE_STACK_EMPTY_MARKER;', 'slot->scene_5c3a05 = 0;'),
+            'init marker': ('scene_stack.c', 'slot->scene_5c3a05 = SCENE_STACK_EMPTY_MARKER;\n    slot->scene_5c3a07', 'slot->scene_5c3a05 = 0;\n    slot->scene_5c3a07'),
             'init clears the dwords': ('scene_stack.c', 'slot->word_5c3a0d = 2;\n}', 'slot->word_5c3a0d = 2;\n    slot->dword_5c3a17 = 0;\n}'),
             'push argument': ('session_bindings_a6e.h', '#define SESSION_A6E_PUSH_ARGUMENT 2', '#define SESSION_A6E_PUSH_ARGUMENT 3'),
             'phase cleared': ('session_bindings_a6e.c', 'out->phase = before->phase;', 'out->phase = 0u;'),
