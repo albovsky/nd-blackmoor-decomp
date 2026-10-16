@@ -9,7 +9,7 @@ Facts under test (original GAME.EXE, handler 0x420c17 cel arms, reader thread 0x
  * the render callback orders layers by priority, restores the old rectangle before a keyed blit, and updates the
    saved rectangles of independent (kind 2) layers.
 The cases live in tests/action_family_3e_runtime_test.c (synthetic bodies through the A-3E.1 constructor and a
-fake CIFTREE host); the original-x86 oracle for the same arm is tests/test_action_family_3e_oracle.py.
+fake CIFTREE host); the original-x86 oracle for the same arm is tests/action_family_3e_runtime_original_oracle.py.
 """
 import json
 import os
@@ -23,7 +23,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
 TEST_C = PROJECT / 'tests/action_family_3e_runtime_test.c'
 KERNEL_SOURCES = ['action_family_3f.c', 'action_family_3e.c', 'action_family_3f_runtime.c']
-EXPECTED_UNIT_TESTS = 13
+EXPECTED_UNIT_TESTS = 15
 ROOT = PROJECT.parents[1]
 CORPUS_C = PROJECT / 'tests/action_family_3e_runtime_corpus.c'
 BINDING_SOURCES = KERNEL_SOURCES + ['session_bindings_a3f.c', 'scene_resource.c', 'hiff.c']
@@ -119,6 +119,8 @@ class CelUnitTests(unittest.TestCase):
             'priority order ignored': ('if (img[C3E_PRIORITY + layer] != (uint8_t)order) {', 'if (0) {'),
             'layer scan continues after a draw': ('break; /* 0x422e20', '(void)0; /* 0x422e20'),
             'layer count kept in phase 2': ('m->cel.layer_count = 0; /* +0xf9b', '(void)0; /* +0xf9b'),
+            'sound offset stays after a cel row': ('m->cel.sound_offset = 0; /* 0x6aa', '(void)0; /* 0x6aa'),
+            'half-loaded slot kept': ('(void)cel_free_slot_layers(m, h, slot, why); /* no half-loaded', '(void)0; /* no half-loaded'),
             'saved rects not updated': ('memcpy(c->saved_src[layer], hdr->dst, sizeof(hdr->dst));', ''),
         }
         original = (SRC / 'action_family_3f_runtime.c').read_text()

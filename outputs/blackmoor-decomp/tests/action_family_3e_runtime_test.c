@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "action_family_3e.h"
+#include "action_family_3f.h"
 #include "action_family_3f_runtime.h"
 
 static const char *g_name;
@@ -46,7 +47,7 @@ typedef struct Fx {
     uint8_t block[HDR_BYTES + MAX_FRAMES * CONVO3F_CEL_FRAME_STRIDE];
     size_t block_bytes;
     int load_status;
-    int fail_header, fail_layer_index, fail_sync_init, fail_load_layer_at;
+    int fail_header, fail_layer_index, fail_sync_init, fail_load_layer_at, layer_unloaded;
     int tree_kind[8], tree_transp[8];
     int sync_playing;
     int32_t sync_raw;
@@ -159,7 +160,10 @@ static int cb_load_layer(void *c, int16_t tree, const uint8_t *name, Convo3fCelL
     Fx *f = c;
     f->loads++;
     logf_(f, "ld(%d,%s)", (int)tree, (const char *)name);
-    layer->loaded = 1u;
+    if (f->fail_load_layer_at != 0 && f->loads == f->fail_load_layer_at) {
+        return 1;
+    }
+    layer->loaded = f->layer_unloaded ? 0u : 1u;
     layer->surface = (uint32_t)(tree * 1000 + f->loads);
     layer->key_2f = (int16_t)(tree + 7);
     layer->src[0] = 0; layer->src[1] = 0; layer->src[2] = 63; layer->src[3] = 47;
@@ -634,6 +638,65 @@ static void t_release_all_and_type(void)
     fx_free(&f);
 }
 
+static void t_layer_load_failures(void)
+{
+    Fx f;
+    /* the second layer of the first frame fails: the first layer is released, no half-loaded slot stays */
+    fx_build(&f, 120, 2);
+    CHECK(step(&f, 0) == CONVO3F_OK);
+    f.fail_load_layer_at = 2;
+    CHECK(pass(&f, 1) == CONVO3F_ERR_HOST);
+    CHECK(strstr(f.log, "fr(0,0,") != NULL);
+    CHECK(f.m.cel.loaded == 0 && f.m.cel.slots[0].frame == -1 && f.m.cel.slots[0].layer[0].loaded == 0u);
+    fx_free(&f);
+    /* a host that reports success but leaves the layer unloaded is refused */
+    fx_build(&f, 120, 2);
+    CHECK(step(&f, 0) == CONVO3F_OK);
+    f.layer_unloaded = 1;
+    CHECK(pass(&f, 1) == CONVO3F_ERR_HOST);
+    CHECK(f.m.cel.loaded == 0 && f.m.cel.slots[0].frame == -1);
+    fx_free(&f);
+}
+
+/* A raw 0x3f row after a finished 0x3e row must not inherit the cel sound descriptor offset. */
+static void t_sound_offset_resets(void)
+{
+    Fx f;
+    uint8_t body[80];
+    ActionFamily3fText text;
+    ActionFamily3fConstructed layout;
+    Convo3fObject obj3f;
+    uint8_t *arena;
+    int status;
+    start_running(&f, 3);
+    f.sync_raw = 3;
+    CHECK(step(&f, 1) == CONVO3F_OK && step(&f, 1) == CONVO3F_OK && step(&f, 1) == CONVO3F_OK);
+    CHECK(step(&f, 2) == CONVO3F_OK && f.m.cel.sound_offset == C3E_SOUND);
+    /* a minimal raw 0x3f body: 77-byte prefix, no primary entries, no secondary entries */
+    memset(body, 0, sizeof body);
+    put_name(body, "hello_world");
+    body[33] = 85;
+    put_name(body + 35, "K");
+    body[68] = body[69] = CONVO3F_NO_HOOK;
+    body[70] = 1;
+    body[71] = 0x1c; body[72] = 0x04;
+    text.bytes = (const uint8_t *)"caption";
+    text.length = 7u;
+    CHECK(action_family_3f_construct(body, 79u, &text, 1u, 0u, 1u, NULL, 0u, &layout) == 0);
+    arena = calloc(layout.arena_bytes, 1u);
+    CHECK(action_family_3f_construct(body, 79u, &text, 1u, 0u, 1u, arena, layout.arena_bytes, &layout) == 0);
+    obj3f.arena = arena;
+    obj3f.arena_bytes = layout.arena_bytes;
+    obj3f.handle_base = 1u;
+    f.w.flag_5c39e9 = f.w.flag_5c39ed = 0;
+    f.w.mode_583999 = 3;
+    status = convo3f_step_type(&f.m, &obj3f, CONVO3F_RUNTIME_TYPE, 4, 0, &f.w, &f.host, &f.r, &f.why);
+    CHECK(status == CONVO3F_OK && f.m.type == CONVO3F_RUNTIME_TYPE);
+    CHECK(f.m.cel.sound_offset == 0);
+    free(arena);
+    fx_free(&f);
+}
+
 typedef void (*TestFn)(void);
 static const struct { const char *name; TestFn fn; } TESTS[] = {
     {"capacity_formula", t_capacity},
@@ -649,6 +712,8 @@ static const struct { const char *name; TestFn fn; } TESTS[] = {
     {"render_plan", t_render},
     {"phase2_cleanup", t_finish},
     {"release_all_and_type_guard", t_release_all_and_type},
+    {"layer_load_failures", t_layer_load_failures},
+    {"sound_offset_resets_for_0x3f", t_sound_offset_resets},
 };
 
 int main(void)

@@ -597,8 +597,13 @@ static int cel_load_slot(Convo3fManager *m, const Convo3fHost *h, int16_t slot, 
         }
     }
     for (l = 0; l < c->layer_count; ++l) {
-        HOST_CALL(h->cel_load_layer(h->context, c->layer_tree[l], names[l], &c->slots[slot].layer[l]),
-                  "cel_load_layer failed");
+        const int failed = h->cel_load_layer(h->context, c->layer_tree[l], names[l],
+                                             &c->slots[slot].layer[l]) != 0;
+        if (failed || c->slots[slot].layer[l].loaded == 0u) {
+            (void)cel_free_slot_layers(m, h, slot, why); /* no half-loaded slot stays behind */
+            return fail(why, failed ? "cel_load_layer failed" : "cel_load_layer returned an unloaded layer"),
+                   CONVO3F_ERR_HOST;
+        }
     }
     c->slots[slot].frame = frame;
     ++c->loaded;
@@ -1179,14 +1184,10 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32
     {
         int16_t slot0 = m->textbox_slot[0], slot1 = m->textbox_slot[1];
         const int32_t thread = m->cel_thread;
-        Convo3fCel *keep = (Convo3fCel *)malloc(sizeof(*keep));
-        if (keep == NULL) {
-            return fail(why, "out of memory"), CONVO3F_ERR_HOST;
-        }
-        memcpy(keep, &m->cel, sizeof(*keep));
+        const Convo3fCel keep = m->cel;
         memcpy(m, &built, sizeof(*m));
-        memcpy(&m->cel, keep, sizeof(*keep));
-        free(keep);
+        m->cel = keep;
+        m->cel.sound_offset = 0; /* 0x6aa: only the cel arm sets it (phase0_cel) */
         m->cel_thread = thread;
         m->row = (int16_t)row;
         m->type = type;

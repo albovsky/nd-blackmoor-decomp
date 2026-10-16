@@ -465,7 +465,7 @@
   {
    "va": "0x41dfd2",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet RT-25 thread, Sonnet slice-reviewer diff review at merge",
+   "reviewer": "Claude Sonnet RT-25, slice-reviewer diff review, root accepted",
    "date": "2026-10-16",
    "native_source": {
     "path": "src/action_family_3f_runtime.c",
@@ -490,7 +490,7 @@
   {
    "va": "0x41e1e4",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet RT-25 thread, Sonnet slice-reviewer diff review at merge",
+   "reviewer": "Claude Sonnet RT-25, slice-reviewer diff review, root accepted",
    "date": "2026-10-16",
    "native_source": {
     "path": "src/action_family_3f_runtime.c",

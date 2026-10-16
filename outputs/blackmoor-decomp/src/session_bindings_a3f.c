@@ -228,7 +228,12 @@ int session_a3f_begin_scene(SessionA3fBinding *b, const SceneResource *scene)
     b->rows = rows;
     b->count = count;
     /* Native cleanup: a cel row in flight when the scene is replaced (see convo3f_cel_release_all). */
-    (void)convo3f_cel_release_all(&b->manager, &b->host.kernel, &b->failure);
+    {
+        const int released = convo3f_cel_release_all(&b->manager, &b->host.kernel, &b->failure);
+        if (released != CONVO3F_OK) {
+            return released; /* the old reader, layers or header block are still held: keep the manager state */
+        }
+    }
     convo3f_manager_reset(&b->manager);
     /* Scene replacement drops a conversation in flight: the original loaders and teardown
      * store 0 to [0x5c39e9]/[0x5c39ed] (0x43e3de, 0x4385c4, 0x422867). */
