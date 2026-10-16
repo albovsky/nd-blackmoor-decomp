@@ -36,3 +36,7 @@ If the oracle shows the kernel differs from the original, you may fix `src/actio
 ## Rules
 
 Edit/Write tools for source; shell only for builds and runs. Batch reads. No sleep polling. No rm, rm -rf or `git worktree remove` cleanups (the container is ephemeral). Stop and report at about 120 tool calls with what is done and what is missing. Do not commit, push or merge; do not call any `mcp__hearthbot__` tool. Do not print or commit original executable or resource bytes or decoded strings; derived counts and hashes are fine. Use the host `cc`/`clang`. Keep new code portable C11 (`-Wall -Wextra -Wpedantic -Werror`).
+
+## Result (2026-10-16 PDT)
+
+Oracle: 640 scenarios, 24,935 steps, 0 mismatches, 62 of 62 mutants caught (`work/analysis/slices/RT-36.oracle-result.json`, private). Kernel fix from the oracle: `0x516530` is `_stricmp`, not `strcmp`. The 2e oracle re-ran clean (0 mismatches, 36 of 36). Unverified: app glue not compiled; no media backend in the app, so phase 0 is refused as UNSUPPORTED.
