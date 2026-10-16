@@ -73,7 +73,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `f32a6387bdac53a42b65a43595755dd062228f3ab6c24fe41ae45c91593c0777`; 655 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `e3089c7e33303d34f1ef9dfbed923ce1de16ac7622fdd6408983204ad3b6b557`; 659 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 
@@ -367,4 +367,4 @@ Cross-check of **legacy manifests only** against `status.json` unique_matched_by
 - `asm/batch-002-report.json` sha256 `3a7c16f30fa9b3e39758504baaaf6d875d9ca748871da221ff128109d7547426` (audit)
 - `matches_s08.json` sha256 `5acacab59d7475c63df26ffb49adba7a7ac565609f8bf44417a0ce8f6e6d703c` (excluded)
 - `matches_s08_2.json` sha256 `a173f7c06607d87e3e630a937d7d786037dc83202609f524eece7b146b6ba41c` (excluded)
-- `status.json` sha256 `52de0770a6dc464f910e3cd9bf5b361a320342eca0ccb5874f39ec40563f66ec` (crosscheck)
+- `status.json` sha256 `2c77302604731a2070dc66d9b6a6688e63968aaec1e0b7ac12ba0d2407565229` (crosscheck)
