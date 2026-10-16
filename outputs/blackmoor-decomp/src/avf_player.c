@@ -409,6 +409,7 @@ static void random_step_index(AvfPlayer *p)
     }
 }
 
+/* 0x4ce602 (the surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted). */
 static AvfPlayerStatus random_step(AvfPlayer *p)
 {
     if (p->substate == 0) {
@@ -504,6 +505,8 @@ static AvfPlayerStatus movie_select(AvfPlayer *p)
     return AVF_PLAYER_OK;
 }
 
+/* 0x4c0205 (0x4c0ab1 and 0x4c08d3 are host events, the surface select is the host present call,
+ * debug logs omitted, the slot-state store of 2 is p->finished). */
 static AvfPlayerStatus movie_step(AvfPlayer *p)
 {
     if (p->substate == 0) {
@@ -628,6 +631,9 @@ static AvfPlayerStatus partner_select(AvfPlayer *p)
     return AVF_PLAYER_OK;
 }
 
+/* 0x4dcdd3 ProcessSecondaryMovieSequence: substate 0 starts the first frame, substate 4 steps on
+ * the deadline or finishes. The debug log lines are not modelled; the finish stands for
+ * +0x1c = 3 plus the 0x4dad60 input reset, which the caller performs. */
 static AvfPlayerStatus partner_step(AvfPlayer *p, const AvfPlayerGate *g)
 {
     if (p->substate == 0) {

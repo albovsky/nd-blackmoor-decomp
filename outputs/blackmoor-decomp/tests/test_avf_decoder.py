@@ -484,6 +484,7 @@ class AvfDecoderTests(unittest.TestCase):
 
     # -- type 0 ------------------------------------------------------------------
     def test_key_frame_single(self) -> None:
+        """avf_decode_single (0x41546f): key frames decode into the single buffer."""
         pixels = [frame_pixels(4, 2, k) for k in range(2)]
         data = build_avf(4, 2, [(0, pixels[0], None), (0, pixels[1], None)])
         s = Session(self.lib, data, convert=True)
@@ -679,6 +680,7 @@ class AvfDecoderTests(unittest.TestCase):
 
     # -- double buffer -----------------------------------------------------------
     def test_double_buffer_toggle_and_predecessor(self) -> None:
+        """avf_decode_double (0x4156ea): the buffer toggles only on a non-empty success."""
         key = frame_pixels(2, 2, 8)
         data = build_avf(2, 2, [(0, key, None), (2, cmd_fill(0x1234, 3, 1), None),
                                 (2, None, None), (2, cmd_fill(0x4321, 0, 1), None),
@@ -701,6 +703,7 @@ class AvfDecoderTests(unittest.TestCase):
 
     # -- random access chunk -----------------------------------------------------
     def test_get_chunk_sequence(self) -> None:
+        """avf_get_chunk (0x415176): key frame, then deltas after their predecessor."""
         key = frame_pixels(2, 2, 9)
         data = build_avf(2, 2, [(0, key, None), (2, cmd_fill(1, 2, 2), None), (2, None, None),
                                 (1, cmd_copy(0, [8, 8]), None)])
@@ -762,6 +765,7 @@ class AvfDecoderTests(unittest.TestCase):
                     self.assertEqual(words(s.buffer(0)), expected)
 
     def test_negative_fill_count(self) -> None:
+        """fill16 (0x43ef77) stores nothing for a zero or negative signed count."""
         key = bytes(8)
         # Type 1 ignores it; type 2 converts (count & 0x7fffffff) pixels, which
         # 0x4c7314 skips when conversion is disabled (no hook).

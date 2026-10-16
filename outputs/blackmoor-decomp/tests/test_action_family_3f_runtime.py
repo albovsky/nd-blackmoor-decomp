@@ -31,7 +31,7 @@ KERNEL_SOURCES = ['action_family_3f.c', 'action_family_3f_runtime.c']
 BINDING_SOURCES = KERNEL_SOURCES + ['action_family_3e.c', 'session_bindings_a3f.c', 'scene_resource.c', 'hiff.c']
 CORPUS_JSON = ROOT / 'work/analysis/slices/A-3F.1.corpus.json'
 RESOURCES = ROOT / 'work/analysis/hiff-resources'
-EXPECTED_UNIT_TESTS = 26
+EXPECTED_UNIT_TESTS = 27
 
 
 def compiler():

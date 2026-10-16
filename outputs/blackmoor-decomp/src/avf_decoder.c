@@ -242,6 +242,15 @@ static int span_fits(uint32_t offset, uint64_t bytes, uint32_t frame_bytes)
     return bytes == 0 || (uint64_t)offset + bytes <= frame_bytes;
 }
 
+/* 0x43ef77: store `count` 16-bit words of `value` (a signed count; zero or negative stores nothing). */
+static void fill16(uint8_t *dst, uint16_t value, int32_t count)
+{
+    int32_t k;
+    for (k = 0; k < count; ++k) {
+        wr16(dst + (uint64_t)k * 2u, value);
+    }
+}
+
 /*
  * One traversal shared by validation (apply == 0, dst unused) and output.
  * Type 2 converts every written span; type 1 converts nothing here.
@@ -299,10 +308,7 @@ static AvfStatus run_commands(const AvfStream *stream, const uint8_t *cmd, uint3
                 return AVF_ERR_CORRUPT;
             }
             if (apply) {
-                uint64_t k;
-                for (k = 0; k < fill_bytes; k += 2u) {
-                    wr16(dst + offset + k, value);
-                }
+                fill16(dst + offset, value, count);
                 if (convert_bytes >= 2u) {
                     convert_span(stream, dst + offset, convert_bytes);
                 }
@@ -532,6 +538,7 @@ static int follows(int32_t last_index, int16_t index)
     return last_index != -1 && last_index == (int32_t)index - 1;
 }
 
+/* 0x41546f: single-buffer record decode (type 0 key, 1 and 2 command streams, empty record). */
 AvfStatus avf_decode_single(AvfStream *stream, int16_t index, AvfLzssState *lzss)
 {
     AvfRecord record;
@@ -565,6 +572,7 @@ AvfStatus avf_decode_single(AvfStream *stream, int16_t index, AvfLzssState *lzss
     return AVF_OK;
 }
 
+/* 0x4156ea: double-buffer record decode; the buffer toggles only on a non-empty success. */
 AvfStatus avf_decode_double(AvfStream *stream, int16_t index, int *written,
                             AvfLzssState *lzss)
 {
@@ -614,6 +622,7 @@ AvfStatus avf_decode_double(AvfStream *stream, int16_t index, int *written,
     return AVF_OK;
 }
 
+/* 0x415176: chunk fetch (key frame, or delta after its predecessor). */
 AvfStatus avf_get_chunk(AvfStream *stream, int16_t index,
                         uint8_t *out, size_t out_capacity,
                         const uint8_t *override_previous, size_t override_previous_bytes,

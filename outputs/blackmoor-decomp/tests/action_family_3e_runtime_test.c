@@ -437,6 +437,8 @@ static void start_running(Fx *f, uint16_t last)
 
 static void t_frame_choice(void)
 {
+    /* cel_set_target (0x422970): target follows the frame; cel_announce (0x4229b5):
+     * drawn follows target and the flag rises only on a change (checks below). */
     Fx f;
     start_running(&f, 120);
     f.m.cel.next = 120; /* keep the reader from moving: loaded slots hold frames 0..3 */
@@ -493,6 +495,7 @@ static void t_stall_boost_decay(void)
 
 static void t_finish_and_fast_convo(void)
 {
+    /* cel_set_target (0x422970) marks final_seen once the frame reaches last. */
     Fx f;
     start_running(&f, 3); /* frames 0..3, capacity 4: all cached after the passes */
     f.sync_raw = 3;
@@ -518,7 +521,8 @@ static void t_finish_and_fast_convo(void)
 static void t_reader_rules(void)
 {
     /* cel_evict_pass (0x41dfd2) and cel_find_slot (0x41e1e4) of src/action_family_3f_runtime.c, observed through
-     * convo3f_cel_reader_iteration: eviction below the shown frame (not the shown slot), slot lookup by frame. */
+     * convo3f_cel_reader_iteration: eviction below the shown frame (not the shown slot), slot lookup by frame;
+     * the eviction frees each loaded layer through cel_free_layer_header (0x4c2e5b), the fr(...) log entries. */
     Fx f;
     fx_build(&f, 120, 2);
     CHECK(step(&f, 0) == CONVO3F_OK);

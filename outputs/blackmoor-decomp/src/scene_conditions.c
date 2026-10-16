@@ -293,7 +293,16 @@ void scene_conditions_resolve_thresholds(SceneConditionTree *tree,
     }
 }
 
-void scene_conditions_reset(SceneConditionTree *tree)
+/* Original 0x423da2 (CDependency::reset_branch_recursive): walk the whole tree
+ * and zero every node's state word (+0x4); each leaf also loses its evaluated
+ * flag (+0x2c).  The threshold (+0x20), the cached sample (+0x30) and the
+ * opcode-11 slot are not touched.  The original walks with an explicit stack
+ * and recursion over branch objects; every node is reachable from the root, so
+ * one flat pass visits the same set.  Not modelled: the empty-stack error text
+ * and the debug log line (both only run on a corrupted stack or with the debug
+ * flag word 0x63a4cd set).
+ */
+void scene_conditions_reset_traversal(SceneConditionTree *tree)
 {
     size_t index;
     if (tree == NULL) {
@@ -301,16 +310,30 @@ void scene_conditions_reset(SceneConditionTree *tree)
     }
     for (index = 0u; index < tree->node_count; ++index) {
         tree->nodes[index].status = 0;
-        /* 0x423da2 clears the evaluated flag (+0x2c) of every leaf; the
-         * threshold (+0x20), the cached sample (+0x30) and the opcode-11 slot
-         * are not touched. */
         if (tree->nodes[index].kind == SCENE_CONDITION_LEAF) {
             tree->runtime[index].random_cache_valid_2c = 0u;
         }
     }
+}
+
+/* Original 0x423d33 (CDependency::reset_all): a tree built from no records
+ * only gets its root result set to 1 and nothing else is touched (its flat
+ * node list is the root alone); otherwise the root result is cleared and the
+ * traversal 0x423da2 resets every node.  Not modelled: the evaluation-stack
+ * depth clear (0x4234c8; the native evaluator keeps no such stack) and the
+ * debug log line.
+ */
+void scene_conditions_reset(SceneConditionTree *tree)
+{
+    if (tree == NULL) {
+        return;
+    }
     if (tree->record_count == 0u) {
         tree->nodes[tree->root].status = 1;
+        return;
     }
+    tree->nodes[tree->root].status = 0;
+    scene_conditions_reset_traversal(tree);
 }
 
 typedef struct scene_condition_eval_context {
