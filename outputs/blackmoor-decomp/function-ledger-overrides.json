@@ -442,6 +442,25 @@
    },
    "parts_accounted": [],
    "note": "Static controller_capture_destination, parent granularity: same RT-5 oracle, window executed in full, 0 mismatches. Capture callee 0x447ac7 is a host seam; host failure statuses have no original counterpart."
+  },
+  {
+   "va": "0x420737",
+   "class": "native_tests_only",
+   "reviewer": "Claude Sonnet FL-9 batch, diff slice-reviewer",
+   "date": "2026-10-15",
+   "native_source": {
+    "path": "src/action_family_3f_runtime.c",
+    "symbol": "convo3f_condition_tree"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_3f_runtime_test.c",
+     "test_id": "t_condition_chain"
+    }
+   ],
+   "oracle": null,
+   "parts_accounted": [],
+   "note": "Read branch for branch against the pseudocode (clear loop, kind 1/2 compare, chain fixpoint, final test). Tests only, no oracle. Native adds bounds errors and an out-parameter result."
   }
  ],
  "not_needed_entries": [
