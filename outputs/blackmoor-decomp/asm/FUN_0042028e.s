@@ -13,7 +13,7 @@
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_7d9, field_7fc, field_800, field_80a, field_80e, field_ea5, field_f21; [ecx + n] field_7fe, field_802, field_810, field_ea5, field_f21; [edx + n] field_7fa, field_806, field_811, field_ea5, field_f21; [esi + n] field_7fa, field_7fc, field_7fe, field_800, field_802, field_806, field_80a, field_80e, field_810, field_811
 # callees:      calls FUN_0051ea75, FUN_0050d550, FUN_0051eac4
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:copy_name_cstr (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:copy_name_cstr (function ledger class native_tests_only; also remove_response; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 207 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

@@ -9,11 +9,11 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0042ba3a
-# arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_00423d33
-# track-n:      outputs/blackmoor-decomp/src/action_core.c:action_core_dispatch (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_core.c:action_core_dispatch (function ledger class native_oracle_verified; also action_core_finish_action; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 32 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

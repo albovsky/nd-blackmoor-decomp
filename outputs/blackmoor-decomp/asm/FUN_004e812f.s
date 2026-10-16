@@ -13,7 +13,7 @@
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_77e, field_7fae, field_822e, field_8252, field_825a, field_825e; [ecx + n] field_7fae, field_822e, field_8232, field_8252, field_825a, field_825e; [edx + n] field_7fae, field_822e, field_8232, field_825a, field_8262
 # callees:      calls FUN_004ee69e, FUN_0050ce04
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:initialize_new_game (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:initialize_new_game (function ledger class candidate_port; also inventory_view_sync, native_a78_rebuild_view, native_a79_rebuild_view; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 284 instruction(s), 25 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

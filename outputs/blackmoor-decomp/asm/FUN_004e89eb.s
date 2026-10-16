@@ -13,7 +13,7 @@
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_764c, field_822e, field_823e, field_8242, field_824a, field_minus_1; [ecx + n] field_7012, field_764c, field_822e, field_823a, field_8246, field_minus_1; [edx + n] field_7654, field_822e, field_823a, field_823e, field_8242, field_8246, field_824e
 # callees:      calls FUN_004ee2a9, FUN_004e22fd, FUN_004e8bb4
-# track-n:      outputs/blackmoor-decomp/src/inventory_view_runtime.h:inventory_view_cursor_choice (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/inventory_view_runtime.h:inventory_view_cursor_choice (function ledger class candidate_port; also inventory_view_hover; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 103 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

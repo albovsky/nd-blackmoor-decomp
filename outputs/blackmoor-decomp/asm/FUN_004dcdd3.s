@@ -13,7 +13,7 @@
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_4a, field_ee, field_102, field_172, field_1cc; [ecx + n] field_1c, field_4a, field_b7, field_de, field_ee, field_102, field_17a, field_18c, field_18e, field_1be, field_1c2; [edx + n] field_1c, field_de, field_ee, field_172, field_17a, field_1be, field_1cc
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004dd28d, KERNEL32.dll!GetTickCount, FUN_004fb2e3, FUN_004f6334, FUN_004dad60
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:partner_step (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:partner_step (function ledger class native_tests_only; also partner_step_index; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 151 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

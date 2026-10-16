@@ -13,7 +13,7 @@
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0051dc6c
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_free_layer_header (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_free_layer_header (function ledger class native_tests_only; also cel_free_slot_layers; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 22 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

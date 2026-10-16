@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0052088a
-# arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is not read in the entry block before being written
+# arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_208, local_410, local_618
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!lstrcmpiA, USER32.dll!GetSystemMetrics, KERNEL32.dll!GetThreadLocale, FUN_0050ffdd; plus 5 indirect transfer(s) whose target is not resolved

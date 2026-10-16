@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_004348b0
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       11 ebp-relative slot(s): local_64, local_68, local_6c, local_70, local_74, local_78, local_7c, local_80, local_84, local_88, local_8c
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050d0a9, FUN_0050ca3e, FUN_0052139c, FUN_0050cee4, KERNEL32.dll!GetPrivateProfileStringA, FUN_0050da60, FUN_0050d960, FUN_00434d56, FUN_0050cd72, KERNEL32.dll!GetPrivateProfileIntA

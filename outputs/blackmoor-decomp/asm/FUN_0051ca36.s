@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0051ca36
-# arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is not read in the entry block before being written
+# arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_8, local_c
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0052102d, GDI32.dll!GetObjectA, GDI32.dll!SetBkColor, USER32.dll!GetSysColor, GDI32.dll!SetTextColor

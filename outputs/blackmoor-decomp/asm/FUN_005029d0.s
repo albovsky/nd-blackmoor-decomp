@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_005029d0
-# arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_20
 # fields:       [ebx + n] field_1; [edi + n] field_4, field_8; [esi + n] field_4, field_8, field_10, field_14, field_18, field_1c, field_20, field_24, field_28
 # callees:      calls FUN_00502440, FUN_0050c920, FUN_00502910, FUN_00502da0, FUN_0050f085, FUN_0050ea90, FUN_0050e936, FUN_00502630, FUN_005023e0, FUN_0050e97e

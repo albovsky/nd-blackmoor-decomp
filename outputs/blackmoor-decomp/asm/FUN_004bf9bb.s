@@ -13,7 +13,7 @@
 # locals:       15 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 3 more
 # fields:       [eax + n] field_21, field_29, field_2b, field_17a, field_17e, field_182, field_192, field_1ba, field_1be, field_1d6, field_1da, field_21e and 7 more; [ecx + n] field_27, field_2d, field_3b, field_17a, field_1b2, field_1b6, field_1ba, field_1be, field_1ca, field_1cc, field_1d4, field_1d6 and 11 more; [edx + n] field_2, field_4, field_21, field_27, field_17e, field_18e, field_1b2, field_1b6, field_1ca, field_1ce, field_1d6, field_21a and 8 more
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004d36ed, FUN_004bede7, FUN_0041632b, FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_00415011, FUN_004c2dfb, FUN_0044c4c1, FUN_004c2c3a, FUN_004161d1, FUN_0051dc43, FUN_004497a0 and 9 more; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; also movie_step_index, movie_tick; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 492 instruction(s), 26 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32

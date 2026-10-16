@@ -13,7 +13,7 @@
 # locals:       13 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 1 more
 # fields:       [eax + n] field_1, field_5, field_7, field_a; [ecx + n] field_2, field_3, field_5, field_7; [edx + n] field_1, field_2, field_3, field_5, field_7, field_e
 # callees:      calls FUN_0043ef77, FUN_004c7314
-# track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:convert_span (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:convert_span (function ledger class candidate_port; also decode_commands; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 295 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

@@ -9,11 +9,11 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0042d215
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4c, field_52, field_56; [ecx + n] field_4c, field_4e, field_52, field_56
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:secondary_step_index (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:secondary_step_index (function ledger class candidate_port; also secondary_swap; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 66 instruction(s), 7 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

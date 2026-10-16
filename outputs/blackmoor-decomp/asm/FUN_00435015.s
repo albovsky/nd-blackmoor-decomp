@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00435015
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       64 ebp-relative slot(s): local_4, local_c, local_110, local_213, local_214, local_318, local_31c, local_320, local_324, local_5164, local_5170, local_6290 and 52 more
 # fields:       [ecx + n] field_1, field_minus_1; [edi + n] field_4; [edx + n] field_minus_1
 # callees:      calls FUN_0050c920, FUN_0050db77, FUN_0050cd43, KERNEL32.dll!GetModuleFileNameA, FUN_0050d1f0, FUN_0050cd72, FUN_0050db50, SHELL32.dll!SHGetSpecialFolderPathA, KERNEL32.dll!CreateDirectoryA, SHLWAPI.dll!PathAppendA, FUN_0050d0a9, FUN_0050cee4, KERNEL32.dll!CopyFileA, FUN_0044ad41, FUN_004348b0, FUN_00419dab and 33 more

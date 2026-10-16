@@ -13,7 +13,7 @@
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_614; [edx + n] field_4
 # callees:      calls FUN_004234c8, FUN_00424201
-# track-n:      outputs/blackmoor-decomp/src/scene_conditions.h:scene_conditions_evaluate_ex (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/scene_conditions.h:scene_conditions_evaluate_ex (function ledger class candidate_port; also scene_conditions_gate_mode_for_type; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 33 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

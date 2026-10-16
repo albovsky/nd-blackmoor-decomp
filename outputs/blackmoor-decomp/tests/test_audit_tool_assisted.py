@@ -251,6 +251,24 @@ class AuditorMutants(unittest.TestCase):
         self.assertIn("[8*esi + 0x500000]", named)  # an absolute table base stays numeric
         self.assertIn(".equ field_minus_4, 0x4  # offset -0x4", named)
 
+    def test_machine_header_spelling_cannot_dodge_check_or_the_auditor(self) -> None:
+        for header in ("# annotation:  machine (x)", "# annotation: machine (x)", "#annotation:\tmachine"):
+            self.assertIsNotNone(machine.MACHINE_HEADER.search(header + "\n"), header)
+        self.assertIsNone(machine.MACHINE_HEADER.search("# annotation:  hand reviewed\n"))
+        self.assertIsNone(machine.MACHINE_HEADER.search("# annotation:  machinery\n"))
+
+    def test_placeholder_words_must_stand_alone(self) -> None:
+        for fine in ("calls KERNEL32.dll!FileTimeToDosDateTime", "tail jump to the todos table"):
+            self.assertIsNone(audit.PLACEHOLDER_RE.search(fine), fine)
+        for bad in ("TODO later", "todo", "name tbd", "FIXME: names", "todo2"):
+            self.assertIsNotNone(audit.PLACEHOLDER_RE.search(bad), bad)
+
+    def test_indirect_jumps_out_of_a_function_are_not_called_switches(self) -> None:
+        jmp = lambda ops: gen.Insn(0x1000, b"\xff\xe0", "jmp", ops)  # noqa: E731
+        self.assertTrue(machine.is_table_jump(jmp("dword ptr [4*eax + 0x401234]")))
+        self.assertFalse(machine.is_table_jump(jmp("eax")))
+        self.assertFalse(machine.is_table_jump(jmp("dword ptr [ebx]")))
+
     def test_ecx_read_first_tells_a_read_from_a_write(self) -> None:
         def insns(*lines: str) -> list:
             out, addr = [], 0x1000
@@ -636,7 +654,7 @@ class CommittedBatch(unittest.TestCase):
     def test_committed_machine_sources_regenerate_identically(self) -> None:
         if not gen.ORIGINAL_DEFAULT.is_file():
             self.skipTest("local GAME.EXE not available")
-        args = machine.argparse.Namespace(original=gen.ORIGINAL_DEFAULT, dir=TESTS.parent / "asm", sample=25)
+        args = machine.argparse.Namespace(original=gen.ORIGINAL_DEFAULT, dir=TESTS.parent / "asm", sample=0)
         self.assertEqual(machine.cmd_check(args), 0)
 
     def test_batch_001_is_accepted_and_matches_the_committed_report(self) -> None:

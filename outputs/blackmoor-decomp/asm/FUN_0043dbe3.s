@@ -9,11 +9,11 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0043dbe3
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0044a2b7, KERNEL32.dll!GetTickCount, FUN_004c9428, FUN_004c94ec, FUN_004c2dfb, FUN_00468f19, FUN_004b3d4d, FUN_00459b87, FUN_004a3884, FUN_0048a7e5, FUN_00488e54, FUN_0041114f, FUN_004a1cb1, FUN_0048e2f5, FUN_0048d09c, FUN_004a63dc and 56 more
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:begin_native_session_bindings_scene (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:begin_native_session_bindings_scene (function ledger class candidate_port; also clear_before_scene_entry, perform_session_transition; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 378 instruction(s), 11 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

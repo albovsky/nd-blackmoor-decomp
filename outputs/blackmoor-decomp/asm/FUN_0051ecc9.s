@@ -9,7 +9,7 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0051ecc9
-# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_8, field_14; [esi + n] field_14, field_30
 # callees:      calls FUN_00525371, FUN_0052513f, KERNEL32.dll!GetCurrentThreadId, USER32.dll!SetWindowsHookExA, FUN_00525bd1, FUN_00525b0f; plus 1 indirect transfer(s) whose target is not resolved

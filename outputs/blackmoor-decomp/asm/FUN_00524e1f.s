@@ -9,7 +9,7 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00524e1f
-# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_4, field_10, field_14; [ebp + n] field_minus_4, field_minus_c, field_minus_10; [esi + n] field_28, field_78, field_7c, field_80, field_88, field_8c, field_90, field_94, field_98, field_a8, field_ac, field_b0 and 1 more
 # callees:      calls FUN_0050f978, FUN_00525371, FUN_005211ff, FUN_0050e936, FUN_005268fc; plus 7 indirect transfer(s) whose target is not resolved

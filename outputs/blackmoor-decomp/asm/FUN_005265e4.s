@@ -9,7 +9,7 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_005265e4
-# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x4 (callee pops 4 bytes); ecx is not read in the entry block before being written
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x4 (callee pops 4 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_8, field_c; [ebp + n] field_8, field_b, field_minus_4, field_minus_c, field_minus_10, field_minus_14, field_minus_18, field_minus_60, field_minus_bc, field_minus_104, field_minus_160; [edi + n] field_94, field_98; [esi + n] field_2, field_4, field_6
 # callees:      calls FUN_0050f978, KERNEL32.dll!GlobalLock, FUN_00519cdf, FUN_00519f30, FUN_005211ff, FUN_00519e77, FUN_00519eb4, FUN_0051e7ba, FUN_00519ef2, FUN_0051de13; plus 3 indirect transfer(s) whose target is not resolved

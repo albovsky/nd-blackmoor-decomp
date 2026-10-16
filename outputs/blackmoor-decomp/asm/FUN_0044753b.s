@@ -13,7 +13,7 @@
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_1c, local_24, local_28, local_2c, local_30, local_34, local_3c and 2 more
 # fields:       [eax + n] field_1d, field_29, field_31, field_35, field_49, field_4a; [ecx + n] field_21, field_2d, field_35, field_49, field_4a, field_4c; [edx + n] field_1c, field_25, field_31, field_35, field_49
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_0050de00, FUN_004477d1, FUN_004f52a9, FUN_004d36ed, FUN_0050ca3e, FUN_0044a2b7
-# track-n:      outputs/blackmoor-decomp/src/action_family_28.c:action_family28_run_sequence (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_28.c:action_family28_run_sequence (function ledger class candidate_port; also action_family28_sequence_weight_for_cw; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 183 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

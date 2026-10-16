@@ -9,7 +9,7 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0051dff7
-# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0xc (callee pops 12 bytes); ecx is not read in the entry block before being written
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0xc (callee pops 12 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_14, field_a4, field_b4; [ebp + n] field_minus_4, field_minus_c, field_minus_14, field_minus_18, field_minus_34; [esi + n] field_24
 # callees:      calls FUN_0051b0e3, USER32.dll!DestroyWindow, KERNEL32.dll!GlobalUnlock, KERNEL32.dll!GlobalFree; plus 3 indirect transfer(s) whose target is not resolved

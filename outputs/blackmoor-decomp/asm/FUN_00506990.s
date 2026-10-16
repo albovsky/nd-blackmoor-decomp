@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00506990
-# arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       28 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 16 more
 # fields:       [eax + n] field_4, field_c, field_30, field_34, field_38, field_64, field_1f4, field_220, field_404, field_484; [ebx + n] field_4, field_8, field_520, field_b34; [ecx + n] field_1, field_4, field_14, field_1c, field_30, field_34, field_38, field_320, field_404, field_484; [edi + n] field_4, field_1c; [edx + n] field_4, field_18, field_1c, field_2c, field_30, field_404; [esi + n] field_4, field_18, field_1c, field_20, field_24, field_28, field_40, field_68
 # callees:      calls FUN_0050c920, FUN_004fee30, FUN_00507310, FUN_00505260, FUN_00506180, FUN_00503c00, FUN_00500ac0, FUN_005011b0, FUN_005016a0, FUN_00509230, FUN_00503b80, FUN_00509da0, FUN_00501730, FUN_005019e0, FUN_00501b70, FUN_0050bc80 and 6 more; plus 2 indirect transfer(s) whose target is not resolved

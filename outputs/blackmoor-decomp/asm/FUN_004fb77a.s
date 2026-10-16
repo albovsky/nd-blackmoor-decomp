@@ -13,7 +13,7 @@
 # locals:       18 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 6 more
 # fields:       [eax + n] field_21, field_23, field_25, field_2d, field_130, field_132, field_138; [ecx + n] field_2f, field_134, field_13c, field_16a; [edx + n] field_29, field_132, field_138, field_13c
 # callees:      calls FUN_004fba69, FUN_004fc62d
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase0_cel (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase0_cel (function ledger class candidate_port; also sound_command, sound_start; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 180 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

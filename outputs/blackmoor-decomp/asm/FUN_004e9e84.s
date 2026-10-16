@@ -13,7 +13,7 @@
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_764c, field_822e, field_828a; [ecx + n] field_7010, field_764c, field_822e, field_828a; [edx + n] field_822e, field_828a, field_828c
 # callees:      calls FUN_004fb2e3, FUN_004e812f, FUN_004e0559
-# track-n:      outputs/blackmoor-decomp/src/action_family_78_runtime.c:action78_add_item (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_78_runtime.c:action78_add_item (function ledger class native_oracle_verified; also action78_visit, add_item; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 120 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

@@ -13,7 +13,7 @@
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_1d6; [ecx + n] field_1d6; [edx + n] field_4
 # callees:      calls FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_00415011, FUN_0041632b, FUN_004bedfa; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_restart (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_restart (function ledger class candidate_port; also avf_player_stop; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 59 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32

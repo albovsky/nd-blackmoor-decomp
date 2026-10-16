@@ -54,6 +54,8 @@ _SYMBOL_OPERAND = re.compile(
     r"(?P<sym>(?:arg|local|field|field_minus|stk|stk_minus)_[0-9a-f]+)\]"
 )
 _SCALED_DISP = re.compile(r"\[(?P<scaled>[248]\*e[a-z]{2}) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]")
+# tolerant like the auditor's header parser, so a one-space variant cannot dodge `check`
+MACHINE_HEADER = re.compile(r"^#\s*annotation:\s*machine\b", re.M)
 _ECX = re.compile(r"\b(?:ecx|cx|cl|ch)\b")
 _BLOCK_LINE = re.compile(r"^    # block 0x([0-9a-f]{8}): " + re.escape(gen.UNFILLED) + r"$")
 _IMPORT_CALL = re.compile(r"^(?:call|jmp) dword ptr \[0x([0-9a-f]+)\]$")
@@ -80,22 +82,37 @@ def ledger_links() -> dict[int, dict[str, Any]]:
     return {int(e["va"], 16): e for e in entries}
 
 
-def counterpart(entry: Optional[dict[str, Any]]) -> Optional[tuple[str, str, str]]:
-    """(repo path, symbol, ledger class) of the ledger's native source for a function, if it claims a counterpart."""
+def counterpart(entry: Optional[dict[str, Any]]) -> Optional[tuple[str, list[str], str]]:
+    """(repo path, symbols, ledger class) of the ledger's native source for a function, if it claims a counterpart.
+
+    A symbol counts only when the file defines it (a line that starts a declaration and names it before an
+    opening parenthesis), not when it merely occurs in a comment; every such symbol of the first source is listed.
+    """
 
     if not entry or entry.get("class") not in COUNTERPART_CLASSES:
         return None
+    by_path: dict[str, list[str]] = {}
     for item in entry.get("evidence", []):
-        symbol = item.get("symbol")
-        path = item.get("path")
-        if item.get("kind") != "native_source" or not symbol or not path or len(symbol) < 6:
-            continue
+        symbol, path = item.get("symbol"), item.get("path")
+        if item.get("kind") == "native_source" and symbol and path and len(symbol) >= 6:
+            by_path.setdefault(path, []).append(symbol)
+    for path, symbols in by_path.items():
         repo_path = f"outputs/blackmoor-decomp/{path}"
         target = REPOSITORY / repo_path
-        if target.is_file() and re.search(r"(?<![\w])" + re.escape(symbol) + r"(?![\w])",
-                                          target.read_text(encoding="utf-8", errors="replace")):
-            return repo_path, symbol, entry["class"]
+        if not target.is_file():
+            continue
+        text = target.read_text(encoding="utf-8", errors="replace")
+        defined = [s for s in dict.fromkeys(symbols)
+                   if re.search(r"^[A-Za-z_][\w \t\*]*[ \t\*]" + re.escape(s) + r"[ \t]*\(", text, re.M)]
+        if defined:
+            return repo_path, defined, entry["class"]
     return None
+
+
+def is_table_jump(ins: gen.Insn) -> bool:
+    """``jmp dword ptr [4*reg + table]``: a switch dispatch, not a transfer out of the function."""
+
+    return ins.mnem == "jmp" and gen._TABLE_JUMP.match(ins.ops) is not None
 
 
 def split_ops(ops: str) -> list[str]:
@@ -245,7 +262,7 @@ class Annotator:
             returns.append(f"ret {ops} (callee pops {int(ops, 0)} bytes)" if ops else "plain ret (caller pops any stack arguments)")
         first_block = next(iter(self.blocks(layout).values()))
         this_hint = "ecx is read before it is written, a probable this pointer in the thiscall style" if ecx_read_first(
-            first_block["insns"]) else "ecx is not read in the entry block before being written"
+            first_block["insns"]) else "ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)"
         if frame:
             arg_text = (f"{len(set(args))} ebp-relative stack slot(s) referenced: {describe_symbols(args)}"
                         if args else "no [ebp+n] stack argument slot referenced")
@@ -268,6 +285,12 @@ class Annotator:
                         callees.append(("tail jump " if ins.mnem == "jmp" else "") + name)
                     elif target is None:
                         indirect.append(f"{ins.mnem} {ins.ops}")
+                elif target is None and not is_table_jump(ins):
+                    # an indirect or import jump out of the function: a tail transfer, not a switch
+                    if name:
+                        callees.append("tail jump " + name)
+                    else:
+                        indirect.append(f"{ins.mnem} {ins.ops}")
         unique = list(dict.fromkeys(callees))
         shown = ", ".join(unique[:16]) + (f" and {len(unique) - 16} more" if len(unique) > 16 else "")
         if unique and indirect:
@@ -281,7 +304,9 @@ class Annotator:
         entry = self.ledger.get(va)
         link = counterpart(entry)
         if link:
-            track = f"{link[0]}:{link[1]} (function ledger class {link[2]}; this machine pass does not re-verify the equivalence)"
+            more = f"; also {', '.join(link[1][1:])}" if len(link[1]) > 1 else ""
+            track = (f"{link[0]}:{link[1][0]} (function ledger class {link[2]}{more}; "
+                     "this machine pass does not re-verify the equivalence)")
         else:
             track = "host-adapter: none"
         conditional = sum(1 for ins in insns if gen.is_cond_jump(ins))
@@ -397,7 +422,11 @@ def cmd_annotate(args: argparse.Namespace) -> int:
             # the auditor refuses a code part that does not end in a terminal instruction (open question for the owner)
             skipped[f"0x{va:08x}"] = [f"code part ends in {last.mnem}, not a terminal ret/jmp"]
             continue
-        (args.out / f"FUN_{va:08x}.s").write_text(annotator.render(layout) + "\n", encoding="utf-8")
+        target = args.out / f"FUN_{va:08x}.s"
+        if target.is_file() and not MACHINE_HEADER.search(target.read_text(encoding="utf-8")):
+            skipped[f"0x{va:08x}"] = ["existing hand-annotated source is never overwritten"]
+            continue
+        target.write_text(annotator.render(layout) + "\n", encoding="utf-8")
         written.append(va)
     print(f"annotated {len(written)} function(s) into {args.out}; skipped {len(skipped)}")
     for va, why in skipped.items():
@@ -417,7 +446,7 @@ def write_manifests(image: gen.Image, layouts: dict, vas: list[int], out: Path, 
             f"Machine-annotated tool-assisted assembly: {len(chunk)} functions ({mix}) from 0x{chunk[0]:08x} to "
             f"0x{chunk[-1]:08x}. Generated by scripts/gen_hinted_asm.py and "
             "filled by scripts/annotate_machine.py (machine names, valid under the owner ruling of 2026-10-15); "
-            "audited and sample-reviewed; no claim about original C++ or compiler provenance."
+            "audited by scripts/audit_tool_assisted.py; no claim about original C++ or compiler provenance."
         )
         manifest = gen.build_manifest(image, layouts, chunk, out, f"{number:03d}", description, manifest_dir=out.resolve())
         path = out / f"batch-{number:03d}.json"
@@ -431,7 +460,7 @@ def cmd_manifests(args: argparse.Namespace) -> int:
 
     image = gen.load_image(args.original)
     vas = sorted(int(p.stem.split("_")[1], 16) for p in args.dir.glob("FUN_*.s")
-                 if re.search(r"^# annotation:  machine", p.read_text(encoding="utf-8"), re.M))
+                 if MACHINE_HEADER.search(p.read_text(encoding="utf-8")))
     layouts, _decoded = gen.analyze_all(image, vas)
     write_manifests(image, layouts, vas, args.dir, args.batch_size, args.first_batch)
     return 0
@@ -442,7 +471,7 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     image = gen.load_image(args.original)
     files = sorted(args.dir.glob("FUN_*.s"))
-    machine = [p for p in files if re.search(r"^# annotation:  machine", p.read_text(encoding="utf-8"), re.M)]
+    machine = [p for p in files if MACHINE_HEADER.search(p.read_text(encoding="utf-8"))]
     vas = [int(p.stem.split("_")[1], 16) for p in machine]
     if args.sample and len(vas) > args.sample:
         step = len(vas) / args.sample

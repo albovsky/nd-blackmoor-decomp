@@ -9,7 +9,7 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_005174bb
-# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_4, field_5, field_8, field_480; [esi + n] field_4, field_8, field_c, field_480; [esp + n] stk_10, stk_14
 # callees:      calls FUN_00512c18, KERNEL32.dll!InitializeCriticalSection, FUN_00512c79, KERNEL32.dll!EnterCriticalSection, KERNEL32.dll!LeaveCriticalSection, FUN_0050ea90, FUN_0051771b

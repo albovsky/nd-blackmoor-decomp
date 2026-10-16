@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0051aea1
-# arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is not read in the entry block before being written
+# arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_10
 # fields:       [eax + n] field_14, field_28, field_2c, field_50, field_80; [edi + n] field_20, field_23, field_28; [esi + n] field_14, field_2c
 # callees:      calls FUN_00525b0f, USER32.dll!CallNextHookEx, FUN_00525371, USER32.dll!GetClassLongA, KERNEL32.dll!GlobalGetAtomNameA, KERNEL32.dll!lstrcmpiA, FUN_0051ac29, FUN_0051aa23, FUN_0051acc0, USER32.dll!GetWindowLongA, USER32.dll!SetWindowLongA, USER32.dll!SetPropA, KERNEL32.dll!GlobalAddAtomA, USER32.dll!UnhookWindowsHookEx; plus 5 indirect transfer(s) whose target is not resolved

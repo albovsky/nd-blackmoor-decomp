@@ -13,7 +13,7 @@
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_6, field_1e, field_68e; [ecx + n] field_1e, field_694; [edx + n] field_1c
 # callees:      calls FUN_0051dc6c, FUN_004c2e5b
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_clear_cache (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_clear_cache (function ledger class candidate_port; also phase0, phase2; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 60 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

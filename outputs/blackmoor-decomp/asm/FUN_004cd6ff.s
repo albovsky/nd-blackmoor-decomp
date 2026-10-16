@@ -13,7 +13,7 @@
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_23, field_25, field_31, field_1de, field_216, field_21a, field_222, field_226, field_22e, field_23e, field_246, field_24a and 2 more; [ebx + n] field_246; [ecx + n] field_23, field_25, field_29, field_17a, field_192, field_1de, field_212, field_222, field_226, field_22a, field_22e, field_236 and 6 more; [edi + n] field_25; [edx + n] field_21, field_23, field_25, field_17a, field_1de, field_202, field_222, field_226, field_22e, field_236, field_23e, field_246 and 3 more; [esi + n] field_29, field_226
 # callees:      calls FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4, FUN_004ccef1, FUN_004ccfbd, FUN_004d36ed, FUN_00516530, FUN_004cf0a9, FUN_004cf026, FUN_004cdfd3, FUN_004ce602, FUN_004ce8ea, FUN_004cf0ce, FUN_0050cd50, KERNEL32.dll!GetTickCount and 1 more
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_restart (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_restart (function ledger class candidate_port; also avf_player_start, random_present, random_tick; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 530 instruction(s), 34 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

@@ -9,11 +9,11 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00422a0a
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       21 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 9 more
 # fields:       [eax + n] field_4, field_6, field_8, field_c, field_2f, field_49, field_4d, field_51, field_b2, field_b6, field_ba; [ecx + n] field_4, field_8, field_c, field_1f, field_2f, field_45, field_49, field_4d; [edx + n] field_4, field_8, field_c, field_1e, field_1f, field_2f, field_45, field_51, field_fa, field_fe, field_102, field_106
 # callees:      calls FUN_004c5377, FUN_004c609b, FUN_004c5770
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:blit_add (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:blit_add (function ledger class candidate_port; also convo3f_cel_render; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 303 instruction(s), 12 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

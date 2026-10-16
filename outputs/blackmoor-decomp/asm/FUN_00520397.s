@@ -9,7 +9,7 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00520397
-# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x4 (callee pops 4 bytes); ecx is not read in the entry block before being written
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x4 (callee pops 4 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_1, field_4, field_c, field_minus_8; [ebp + n] field_8, field_b, field_minus_4, field_minus_c, field_minus_10, field_minus_14, field_minus_18, field_minus_1c, field_minus_20, field_minus_2c, field_minus_12f, field_minus_130; [ebx + n] field_minus_8; [ecx + n] field_1, field_4, field_minus_8; [edi + n] field_4, field_8, field_14, field_1c; [esi + n] field_4, field_8, field_c, field_18, field_20
 # callees:      calls FUN_0050f978, FUN_0051ea75, USER32.dll!GetMenuStringA, FUN_0051eac4, USER32.dll!DeleteMenu, KERNEL32.dll!GetCurrentDirectoryA, KERNEL32.dll!lstrlenA, FUN_00520291, USER32.dll!wsprintfA, FUN_0051e828, FUN_0051e95c, USER32.dll!InsertMenuA, FUN_0051e7ba, USER32.dll!GetMenuItemCount; plus 2 indirect transfer(s) whose target is not resolved

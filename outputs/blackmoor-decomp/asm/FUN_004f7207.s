@@ -13,7 +13,7 @@
 # locals:       19 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_40, local_44, local_48, local_4c and 7 more
 # fields:       [eax + n] field_40, field_44, field_48, field_4c, field_54, field_58, field_60, field_64, field_68, field_6c, field_84, field_8c and 10 more; [ecx + n] field_38, field_44, field_48, field_4c, field_50, field_54, field_58, field_5c, field_64, field_68, field_7c, field_88 and 6 more; [edx + n] field_4, field_8, field_3c, field_40, field_44, field_50, field_58, field_60, field_64, field_74, field_84, field_8c and 4 more
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004f6059, FUN_0050ca3e, FUN_0044a2b7, FUN_004f8f94, FUN_004f9040, FUN_004fa127, FUN_0050df94, FUN_004f61e7, FUN_004ccacf, FUN_004ccb50, FUN_004ccbd0, FUN_004ccc81
-# track-n:      outputs/blackmoor-decomp/src/live_audio.c:live_audio_set_channel_flags (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/live_audio.c:live_audio_set_channel_flags (function ledger class candidate_port; also run_repeat_pass; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 569 instruction(s), 29 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

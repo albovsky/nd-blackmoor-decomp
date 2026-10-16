@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00515f95
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_3, field_3f
 # callees:      calls FUN_00512c18, FUN_00518999, FUN_00512c79, KERNEL32.dll!GetTimeZoneInformation, FUN_005130f0, FUN_0050e936, FUN_00511f30, FUN_0050ea90, FUN_005128b0, FUN_0050d960, FUN_0050ca90; plus 2 indirect transfer(s) whose target is not resolved

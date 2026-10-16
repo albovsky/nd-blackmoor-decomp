@@ -13,7 +13,7 @@
 # locals:       12 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34
 # fields:       [eax + n] field_1c, field_24, field_2a, field_2e, field_36, field_3a, field_3d, field_3e, field_46, field_4a, field_6f, field_b1 and 17 more; [ecx + n] field_20, field_24, field_26, field_2a, field_36, field_3a, field_3e, field_42, field_46, field_4a, field_4e, field_b1 and 17 more; [edx + n] field_1c, field_32, field_36, field_3a, field_41, field_42, field_46, field_4a, field_90, field_b1, field_b3, field_b7 and 18 more
 # callees:      calls FUN_0044a2b7, FUN_004dad60, FUN_004c2790, FUN_004c2a8d, FUN_004c46d1, FUN_004bede7, FUN_0041632b, FUN_0044c4c1, FUN_004c2c3a, FUN_004161d1, FUN_0051dc43, FUN_004497a0, FUN_0042639d, FUN_004c97b4, FUN_00449bff, FUN_004bef11 and 21 more
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; also check_config, partner_step_index; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 748 instruction(s), 60 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

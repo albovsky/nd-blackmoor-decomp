@@ -9,7 +9,7 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_00524a01
-# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_90
 # fields:       [ebx + n] field_f, field_minus_4; [edx + n] field_1
 # callees:      calls USER32.dll!GetMenuCheckMarkDimensions, FUN_0050f920, GDI32.dll!CreateBitmap, USER32.dll!LoadBitmapA

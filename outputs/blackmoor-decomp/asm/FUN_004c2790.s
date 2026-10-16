@@ -13,7 +13,7 @@
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_21, field_55; [ecx + n] field_4, field_33; [edx + n] field_18
 # callees:      calls FUN_0051dc43, FUN_0042639d, FUN_004c97b4, FUN_004181c6
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:load_native_raw555_image (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:load_native_raw555_image (function ledger class candidate_port; also native_a36_load_surface, native_ad9_alloc_slot; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 91 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

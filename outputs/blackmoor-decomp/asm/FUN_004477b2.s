@@ -13,7 +13,7 @@
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_1c; [ecx + n] field_49
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/session_exit.c:effect_clear_busy (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/session_exit.c:effect_clear_busy (function ledger class native_oracle_verified; also session_exit_controller; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 13 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

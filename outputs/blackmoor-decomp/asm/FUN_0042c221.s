@@ -9,11 +9,11 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         fn_0042c221
-# arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       19 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 7 more
 # fields:       [eax + n] field_44, field_54, field_58, field_5e, field_68, field_6f, field_71; [ecx + n] field_42, field_4a, field_4c, field_5c, field_64, field_6c, field_6d, field_6f; [edx + n] field_46, field_48, field_5a, field_60, field_6d
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_0051dc6c, FUN_00415011, FUN_004c2dfb, FUN_0044c4c1, FUN_0044c2e0, FUN_004c2c3a, FUN_0051dc43, FUN_004497a0, FUN_0042639d, FUN_00449bff and 7 more; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; also avf_player_stop, check_config, secondary_swap; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 470 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
