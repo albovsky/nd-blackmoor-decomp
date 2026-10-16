@@ -25,8 +25,8 @@
 .equ field_1, 0x1  # offset +0x1
 .equ field_4, 0x4  # offset +0x4
 .equ arg_8, 0x8  # offset +0x8
-.equ field_8, 0x8  # offset +0x8
 .equ arg_c, 0xc  # offset +0xc
+.equ field_8, 0x8  # offset +0x8
 
 # --- external targets -----------------------------------------------
 .set FUN_0050e936, .text + (0x0050e936 - 0x401000)

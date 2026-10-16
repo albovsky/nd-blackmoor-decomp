@@ -53,6 +53,7 @@ _SYMBOL_OPERAND = re.compile(
     r"\[(?:(?P<base>e[a-d]x|e[sd]i|esp|ebp)(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?)|[248]\*e[a-z]{2}) (?P<sign>[+-]) "
     r"(?P<sym>(?:arg|local|field|field_minus|stk|stk_minus)_[0-9a-f]+)\]"
 )
+_SCALED_DISP = re.compile(r"\[(?P<scaled>[248]\*e[a-z]{2}) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]")
 _ECX = re.compile(r"\b(?:ecx|cx|cl|ch)\b")
 _BLOCK_LINE = re.compile(r"^    # block 0x([0-9a-f]{8}): " + re.escape(gen.UNFILLED) + r"$")
 _IMPORT_CALL = re.compile(r"^(?:call|jmp) dword ptr \[0x([0-9a-f]+)\]$")
@@ -299,10 +300,45 @@ class Annotator:
 
     # -- file --------------------------------------------------------------
 
+    @staticmethod
+    def name_scaled_displacements(text: str) -> str:
+        """Name base-less scaled-index displacements (``[4*eax + 0x4]``) the generator leaves numeric.
+
+        Absolute table bases (0x400000 and up) stay numeric, as everywhere else.
+        """
+
+        lines = text.split("\n")
+        start = next(i for i, line in enumerate(lines) if re.match(r"^FUN_[0-9a-f]{8}:$", line))
+        end = next((i for i in range(start, len(lines)) if lines[i].startswith(".org ")), len(lines))
+        names: dict[str, tuple[str, int]] = {}
+
+        def repl(m: re.Match) -> str:
+            mag = int(m.group("mag"), 16)
+            if mag >= 0x400000:
+                return m.group(0)
+            name = gen.field_symbol("idx", m.group("sign"), mag)
+            names[name] = (m.group("sign"), mag)
+            return f"[{m.group('scaled')} {m.group('sign')} {name}]"
+
+        for i in range(start, end):
+            code, hash_, comment = lines[i].partition("#")
+            if code.strip().startswith(".") and not code.strip().startswith(".insn"):
+                continue
+            renamed = _SCALED_DISP.sub(repl, code)
+            if renamed != code:  # keep the generator's comment column
+                renamed = "    " + renamed.strip().ljust(44) + " "
+            lines[i] = renamed + hash_ + comment
+        existing = {m.group(1) for line in lines if (m := re.match(r"^\.equ (\w+),", line))}
+        equs = [f".equ {n}, 0x{mag:x}  # offset {sign}0x{mag:x}" for n, (sign, mag) in sorted(names.items(), key=lambda kv: kv[1][1])
+                if n not in existing]
+        if equs:
+            anchor = next(i for i, line in enumerate(lines) if line.startswith("# --- external targets"))
+            lines[anchor - 1 : anchor - 1] = equs
+        return "\n".join(lines)
+
     def render(self, layout: gen.Layout) -> str:
-        text = gen.render_file(self.image, layout)
-        rendered = gen.render_function(self.image, layout)
-        fields = self.fields(layout, rendered.text, gen.has_standard_frame(layout))
+        text = self.name_scaled_displacements(gen.render_file(self.image, layout))
+        fields = self.fields(layout, text, gen.has_standard_frame(layout))
         blocks = self.blocks(layout)
         out: list[str] = []
         for line in text.split("\n"):

@@ -13,7 +13,7 @@
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_4, field_8, field_c; [ebx + n] field_4, field_18, field_34, field_48, field_4c, field_58, field_5c, field_74, field_2ae; [esp + n] stk_c, stk_14, stk_18, stk_20, stk_24, stk_2c, stk_30
 # callees:      calls FUN_0050b4b0, FUN_0050b500, FUN_0050b580, FUN_0050e97e, FUN_0050b2c0, FUN_004fd160, FUN_004fcef0; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/his_audio.c:his_audio_decode_memory (function ledger class host_adapter_tested; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 108 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32

@@ -236,6 +236,21 @@ class AuditorMutants(unittest.TestCase):
         va = BASE + fixture.F_SWITCH
         self.assertEqual(annotator.render(self.layouts[va]), annotator.render(self.layouts[va]))
 
+    def test_scaled_index_displacements_are_named_but_table_bases_are_not(self) -> None:
+        source = "\n".join([
+            ".equ local_4, 0x4  # offset -0x4",
+            "",
+            "# --- external targets ---",
+            "FUN_00401000:",
+            "    lea ecx, [4*eax - 0x4]                       # 00401000",
+            "    mov edx, dword ptr [8*esi + 0x500000]        # 00401004",
+            ".org 0x500000 - 0x401000",
+        ])
+        named = machine.Annotator.name_scaled_displacements(source)
+        self.assertIn("lea ecx, [4*eax - field_minus_4]", named)
+        self.assertIn("[8*esi + 0x500000]", named)  # an absolute table base stays numeric
+        self.assertIn(".equ field_minus_4, 0x4  # offset -0x4", named)
+
     def test_ecx_read_first_tells_a_read_from_a_write(self) -> None:
         def insns(*lines: str) -> list:
             out, addr = [], 0x1000
@@ -617,6 +632,12 @@ class CommittedBatch(unittest.TestCase):
     """The committed batch against the owner's local GAME.EXE (skipped when absent)."""
 
     MANIFEST = TESTS.parent / "asm" / "batch-001.json"
+
+    def test_committed_machine_sources_regenerate_identically(self) -> None:
+        if not gen.ORIGINAL_DEFAULT.is_file():
+            self.skipTest("local GAME.EXE not available")
+        args = machine.argparse.Namespace(original=gen.ORIGINAL_DEFAULT, dir=TESTS.parent / "asm", sample=25)
+        self.assertEqual(machine.cmd_check(args), 0)
 
     def test_batch_001_is_accepted_and_matches_the_committed_report(self) -> None:
         if not gen.ORIGINAL_DEFAULT.is_file():

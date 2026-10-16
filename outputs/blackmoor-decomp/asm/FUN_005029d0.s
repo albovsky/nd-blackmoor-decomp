@@ -13,7 +13,7 @@
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_20
 # fields:       [ebx + n] field_1; [edi + n] field_4, field_8; [esi + n] field_4, field_8, field_10, field_14, field_18, field_1c, field_20, field_24, field_28
 # callees:      calls FUN_00502440, FUN_0050c920, FUN_00502910, FUN_00502da0, FUN_0050f085, FUN_0050ea90, FUN_0050e936, FUN_00502630, FUN_005023e0, FUN_0050e97e
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/his_audio.c:his_audio_decode_memory (function ledger class host_adapter_tested; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 362 instruction(s), 35 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

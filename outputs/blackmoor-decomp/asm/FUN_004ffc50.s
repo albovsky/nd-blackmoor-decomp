@@ -13,8 +13,8 @@
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_1, field_18, field_1c, field_74, field_78, field_7c; [ecx + n] field_minus_4; [edi + n] field_70; [edx + n] field_minus_4; [esi + n] field_4, field_8, field_c, field_10, field_14, field_18, field_1c, field_20, field_24, field_28, field_2c; [esp + n] stk_10, stk_14, stk_18, stk_1c, stk_20, stk_24, stk_2c, stk_34, stk_38, stk_3c, stk_40, stk_44 and 4 more; [scaled index + n] field_88
 # callees:      calls FUN_0050e19e, FUN_0050ce04, FUN_0050ea90, FUN_005001a0
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 414 instruction(s), 21 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/his_audio.c:his_audio_decode_memory (function ledger class host_adapter_tested; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 414 instruction(s), 21 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

@@ -13,7 +13,7 @@
 # locals:       15 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 3 more
 # fields:       [eax + n] field_minus_4; [ecx + n] field_minus_4; [edx + n] field_minus_4; [scaled index + n] field_4
 # callees:      calls FUN_0050c920
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/his_audio.c:his_audio_decode_memory (function ledger class host_adapter_tested; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 537 instruction(s), 25 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
@@ -36,13 +36,13 @@
 .equ local_34, 0x34  # offset -0x34
 .equ local_38, 0x38  # offset -0x38
 .equ local_44, 0x44  # offset -0x44
-.equ field_4, 0x4  # offset +0x4
 .equ arg_8, 0x8  # offset +0x8
 .equ arg_c, 0xc  # offset +0xc
 .equ arg_10, 0x10  # offset +0x10
 .equ arg_14, 0x14  # offset +0x14
 .equ arg_18, 0x18  # offset +0x18
 .equ arg_1c, 0x1c  # offset +0x1c
+.equ field_4, 0x4  # offset +0x4
 
 # --- external targets -----------------------------------------------
 .set FUN_0050c920, .text + (0x0050c920 - 0x401000)

@@ -21,7 +21,6 @@
 
 # --- frame symbols ---------------------------------------------------
 .equ local_4, 0x4  # offset -0x4
-.equ field_minus_4, 0x4  # offset -0x4
 .equ local_8, 0x8  # offset -0x8
 .equ local_c, 0xc  # offset -0xc
 .equ local_10, 0x10  # offset -0x10
@@ -50,6 +49,7 @@
 .equ field_16a, 0x16a  # offset +0x16a
 .equ field_16c, 0x16c  # offset +0x16c
 .equ field_7e0, 0x7e0  # offset +0x7e0
+.equ field_minus_4, 0x4  # offset -0x4
 
 # --- external targets -----------------------------------------------
 .set FUN_00455a0e, .text + (0x00455a0e - 0x401000)

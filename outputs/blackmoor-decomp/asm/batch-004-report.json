@@ -4843,7 +4843,7 @@
       "data_items": [],
       "function": "FUN_0045565f",
       "object": {
-        "sha256": "0052245df77b60f7ffb3f139da6d103606bdc0b97a8a5a45feafe7d37e06b4ff",
+        "sha256": "88dd88f64d93fc77b95c388f76c81fc281c07dbf950318147301d1f5ed0dfaf7",
         "size": 347728
       },
       "reasons": [],
@@ -4851,7 +4851,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0045565f.s",
-        "sha256": "d813dbba457cc6f3b0eff1fa6c85b35058a129cd8f6247ba0e48141c9275fc5a"
+        "sha256": "7496be0f31a7b8c5b97c710867d19073ba0939c4f6d0335f90e26fee2edb3854"
       },
       "status": "accepted",
       "va": 4544095
@@ -20780,7 +20780,7 @@
       "va": 4790079
     }
   ],
-  "manifest_sha256": "6b03506a8d3b669f6e11e7d4b10f58f1e5890a07eddfd0c839e0555899878123",
+  "manifest_sha256": "64c804326cc20d48c87d428a0dfc18441e876440b2199d1731b753d02cfd7e74",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
