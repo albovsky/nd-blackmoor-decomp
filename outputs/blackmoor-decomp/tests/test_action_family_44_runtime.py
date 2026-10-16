@@ -126,14 +126,14 @@ class UnitTests(unittest.TestCase):
         d = 'action_family_d8_runtime.c'
         b = 'action_family_44_runtime.c'
         mutations = {
-            'limit y max uses top': (d, 'o->limit_4c = (int16_t)(rds32(record + REC_50) - rds32(record + REC_SRC + 12));', 'o->limit_4c = (int16_t)(rds32(record + REC_50) - rds32(record + REC_SRC + 4));'),
-            'limit x min wrong': (d, 'o->limit_4a = (int16_t)(rds32(record + REC_44) - rds32(record + REC_SRC));', 'o->limit_4a = (int16_t)(rds32(record + REC_44) - rds32(record + REC_SRC + 8));'),
+            'limit y max uses top': (d, '(uint32_t)rds32(record + REC_50) - (uint32_t)rds32(record + REC_SRC + 12)', '(uint32_t)rds32(record + REC_50) - (uint32_t)rds32(record + REC_SRC + 4)'),
+            'limit x min wrong': (d, '(uint32_t)rds32(record + REC_44) - (uint32_t)rds32(record + REC_SRC)', '(uint32_t)rds32(record + REC_44) - (uint32_t)rds32(record + REC_SRC + 8)'),
             'empty rect test off by one': (d, 'return r[2] <= r[0] || r[3] <= r[1];', 'return r[2] < r[0] || r[3] < r[1];'),
             'case-sensitive name2': (d, 'if (x >= \'A\' && x <= \'Z\') x = (unsigned char)(x + 0x20);', ''),
             'autotext index shifted': (d, '*index = name[12] - \'1\';', '*index = name[12] - \'0\';'),
-            'listpage base wrong': (d, '*index = 2 + crt_atoi(rest);', '*index = 1 + crt_atoi(rest);'),
+            'listpage base wrong': (d, '*index = (int32_t)(2u + (uint32_t)crt_atoi(rest));', '*index = (int32_t)(1u + (uint32_t)crt_atoi(rest));'),
             'text page bound dropped': (d, 'if (text_index < 0 || (unsigned)text_index >= D8_TEXT_SURFACES) {', 'if (0) {'),
-            'text limit not height based': (d, 'o->limit_4c = (int16_t)(text_height - rds32(record + REC_SRC + 12));', 'o->limit_4c = (int16_t)(text_height);'),
+            'text limit not height based': (d, 'o->limit_4c = (int16_t)((uint32_t)text_height - (uint32_t)rds32(record + REC_SRC + 12));', 'o->limit_4c = (int16_t)(text_height);'),
             'period inverted': (d, 'period = (uint32_t)(1000 / (int)fps);', 'period = (uint32_t)((int)fps);'),
             'fps zero tolerated': (d, 'if (fps == 0u) {', 'if (0) {'),
             'scroll before period': (d, 'if (now - o->tick < period) return D8_OK;', 'if (now - o->tick < period / 2u) return D8_OK;'),

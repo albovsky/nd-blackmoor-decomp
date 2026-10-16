@@ -138,7 +138,7 @@ static NameKind classify_name(const char *name, int32_t *index)
         char rest[D8_NAME_BYTES];
         memset(rest, 0, sizeof(rest));
         memcpy(rest, name + listpage_len, length - listpage_len);
-        *index = 2 + crt_atoi(rest);
+        *index = (int32_t)(2u + (uint32_t)crt_atoi(rest)); /* 32-bit wrap as the original add */
         return NAME_LISTPAGE;
     }
     return NAME_FILE;
@@ -207,10 +207,10 @@ static int init_phase(D8Object *o, const uint8_t *record, int16_t row, const D8H
     fx(host, D8_FX_ROW, row, 0);
     o->exit_clicked = 0u;
     o->target_scene = D8_NO_SCENE;
-    o->limit_4c = (int16_t)(rds32(record + REC_50) - rds32(record + REC_SRC + 12));
-    o->limit_4e = (int16_t)(rds32(record + REC_48) - rds32(record + REC_SRC + 4));
-    o->limit_48 = (int16_t)(rds32(record + REC_4C) - rds32(record + REC_SRC + 8));
-    o->limit_4a = (int16_t)(rds32(record + REC_44) - rds32(record + REC_SRC));
+    o->limit_4c = (int16_t)((uint32_t)rds32(record + REC_50) - (uint32_t)rds32(record + REC_SRC + 12));
+    o->limit_4e = (int16_t)((uint32_t)rds32(record + REC_48) - (uint32_t)rds32(record + REC_SRC + 4));
+    o->limit_48 = (int16_t)((uint32_t)rds32(record + REC_4C) - (uint32_t)rds32(record + REC_SRC + 8));
+    o->limit_4a = (int16_t)((uint32_t)rds32(record + REC_44) - (uint32_t)rds32(record + REC_SRC));
     for (unsigned i = 0u; i < 4u; ++i) {
         int32_t rect[4];
         record_rect(record, REC_INACTIVE + 16u * i, rect);
@@ -240,7 +240,7 @@ static int init_phase(D8Object *o, const uint8_t *record, int16_t row, const D8H
                 return fail(failure, "0xd8 text surface provider failed");
             o->surface1 = text_surface;
             o->borrowed = 1u;
-            o->limit_4c = (int16_t)(text_height - rds32(record + REC_SRC + 12));
+            o->limit_4c = (int16_t)((uint32_t)text_height - (uint32_t)rds32(record + REC_SRC + 12));
             fx(host, D8_FX_TEXT_SURFACE, (int32_t)text_surface, text_index);
         }
     }
