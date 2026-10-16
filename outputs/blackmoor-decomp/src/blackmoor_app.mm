@@ -43,6 +43,7 @@
 #include "session_bindings_a6e.h"
 #include "session_bindings_a6f.h"
 #include "session_bindings_ad9.h"
+#include "session_bindings_ad1.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -249,6 +250,12 @@ struct NativeApp {
     uint64_t ad9_blits = 0u;
     uint64_t ad9_plan_signature = 0u;
     bool ad9_render_failure_logged = false;
+    /* RT-35: raw 0xd1 Turning Puzzle. */
+    SessionAd1Binding *ad1 = nullptr;
+    std::array<bool, 0x40> ad1_slot_used{};
+    D1PointerResult ad1_pointer{};
+    uint64_t ad1_plan_signature = 0u;
+    bool ad1_render_failure_logged = false;
     /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41 -> 0x4fca60, gate mode 0). */
     SessionA95Binding *a95 = nullptr;
     /* RT-27: raw 0x4f compare-and-set-event-flag (arm 0x428133 -> 0x44b641, gate mode 1). Not compiled here. */
@@ -926,6 +933,7 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
  * is a CIFTREE taskbar image; it is not treated as a captured scene frame. */
 static bool native_a35_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
+static bool native_ad1_render(NativeApp *app);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -1300,6 +1308,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
         /* RT-24: generic Z entries above the overlay layers (slots 0x18..0x3f). A refused blit is
          * logged once and skipped; it does not stop the caption composition. */
         (void)native_ad9_render(app);
+    }
+    if (app->ad1 != nullptr && session_ad1_registered(app->ad1) != 0u) {
+        /* RT-35: the Turning Puzzle's render entry (type 10, callback 0x4b7051), same slot range. */
+        (void)native_ad1_render(app);
     }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
@@ -1882,6 +1894,7 @@ static void cleanup(NativeApp *app)
     session_a83_destroy(app->a83);
     session_a3f_destroy(app->a3f);
     session_ad9_destroy(app->ad9);
+    session_ad1_destroy(app->ad1);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
@@ -3846,6 +3859,248 @@ static bool native_ad9_render(NativeApp *app)
     return true;
 }
 
+/* ---- RT-35: raw 0xd1 Turning Puzzle host providers ------------------------
+ * The kernel (action_family_d1_runtime.c) is the recovered 0x4b64a9 state machine. The host supplies the generic Z
+ * entry table (0x4d39f9 / 0x4d3992), the CIFTREE image (0x4c2790), the tick (GetTickCount), the finish block's scene
+ * change and event flag, and the sound engine calls. Sound is NOT wired: the four sound calls are logged and
+ * report "not busy", so the puzzle runs silently (the Mac sound backend is not available in the cloud). */
+static int native_ad1_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        if (!app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_ad1_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_ad1_register_slot(void *context, int16_t slot, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->ad1_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_ad1_register slot=%d label=%s (type 10 entry, callback 0x4b7051)", slot, label);
+    return 0;
+}
+
+static int native_ad1_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "turning-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_ad1_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_ad1_surface_load name=%s surface=%u source=CIFTREE (0x4c2790)", name, handle);
+    return 0;
+}
+
+static int native_ad1_set_slot_surface(void *context, int16_t slot, uint32_t surface)
+{
+    (void)context;
+    (void)slot;
+    (void)surface;
+    return 0;
+}
+
+static int native_ad1_release_surface(void *context, uint32_t surface)
+{
+    (void)context;
+    (void)surface; /* images stay cached by name, as for the other families */
+    return 0;
+}
+
+static int native_ad1_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->ad1_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_ad1_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass draws every tick */
+    return 0;
+}
+
+static int native_ad1_view_origin(void *context, int32_t *x, int32_t *y)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || x == nullptr || y == nullptr) return 1;
+    *x = app->scene_destination.left; /* 0x583186 */
+    *y = app->scene_destination.top;  /* 0x58318a */
+    return 0;
+}
+
+static int native_ad1_clear_item(void *context)
+{
+    /* 0x4e8d96 puts the held item back (same effect the 0x3f conversation commits). */
+    NativeApp *app = static_cast<NativeApp *>(context);
+    int16_t *selected = app != nullptr ? app->new_game.view.inventory.selected_item_candidate : nullptr;
+    if (selected == nullptr) return 0;
+    /* 0x4e8d96 = 0x4e9e84(held, 0) then held := -1: the item goes back to the inventory, it is not dropped. */
+    if (*selected != -1 && native_a3f_inventory_add(context, *selected, 0) != 0) return 1;
+    *selected = -1;
+    return 0;
+}
+
+static int native_ad1_sound_prepare(void *context, int record_index, const uint8_t *bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)bytes;
+    record(app, "scene_ad1_sound record=%d call=0x4fb77a NOT PLAYED (no effect backend)", record_index);
+    return 0;
+}
+
+static int native_ad1_sound_stop(void *context, int record_index, const uint8_t *bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)bytes;
+    record(app, "scene_ad1_sound record=%d call=0x4fba69 NOT PLAYED (no effect backend)", record_index);
+    return 0;
+}
+
+static int native_ad1_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_ad1_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_ad1_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    return 0;
+}
+
+static uint32_t native_ad1_tick(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr ? app->session_tick_sample : 0u; /* GetTickCount */
+}
+
+static int native_ad1_event_flag_invalid(void *context, int16_t index)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app == nullptr || app->new_game.action_core.event_flags == nullptr || index < 0 ||
+           static_cast<size_t>(index) >= app->new_game.action_core.event_flag_count;
+}
+
+static int native_ad1_store_event_flag(void *context, int16_t index, uint32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (native_ad1_event_flag_invalid(context, index)) return 1;
+    app->new_game.action_core.event_flags[index] = static_cast<int32_t>(value); /* [0x585801 + 4 * index] */
+    return 0;
+}
+
+static int native_ad1_transition(void *context, const D1Transition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_ad1_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene,
+           t->word[0], t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+static void native_ad1_store_world(void *context, const D1World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static void native_ad1_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == D1_FX_PHASE) {
+        record(app, "scene_ad1_phase new_phase=%d (0x4b64a9)", a);
+    } else if (effect == D1_FX_COMPLETE) {
+        record(app, "scene_ad1_complete row=%d (0x42ba3a)", a);
+    }
+}
+
+static int native_ad1_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_ad1_handler(app->ad1, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_ad1_blocker row=%zu status=%d detail=%s", row, status, session_ad1_failure(app->ad1));
+    }
+    return status;
+}
+
+/* 0x4b7051: one opaque copy (0x4c5377) per tile from the puzzle image into the back buffer. */
+static bool native_ad1_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    D1RenderPlan plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_ad1_render_plan(app->ad1, &plan) != D1_OK) {
+        if (!app->ad1_render_failure_logged) {
+            app->ad1_render_failure_logged = true;
+            record(app, "scene_ad1_render_error detail=plan-unavailable");
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    CaptionCompositorView puzzle_view{};
+    if (!native_caption_view_for_handle(app, plan.surface, &puzzle_view)) {
+        if (!app->ad1_render_failure_logged) {
+            app->ad1_render_failure_logged = true;
+            record(app, "scene_ad1_render_error detail=puzzle-surface-unavailable surface=%u", plan.surface);
+        }
+        return false;
+    }
+    D9Surface puzzle{puzzle_view.pixels, puzzle_view.byte_capacity, puzzle_view.pitch_bytes};
+    D9Surface back{captions.backbuffer_pixels.data(), captions.backbuffer_pixels.size(), 1280};
+    uint64_t signature = UINT64_C(14695981039346656037);
+    for (int32_t i = 0; i < plan.count; ++i) {
+        const int status = d9_blit_copy(&puzzle, &back, plan.src[i], plan.dst[i]);
+        if (status != D9_OK) {
+            if (!app->ad1_render_failure_logged) {
+                app->ad1_render_failure_logged = true;
+                record(app, "scene_ad1_render_error status=%d tile=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; no pixels written)", status, i, plan.src[i][0], plan.src[i][1],
+                       plan.src[i][2], plan.src[i][3], plan.dst[i][0], plan.dst[i][1], plan.dst[i][2],
+                       plan.dst[i][3]);
+            }
+            return false;
+        }
+        for (int k = 0; k < 4; ++k) {
+            signature ^= static_cast<uint32_t>(plan.src[i][k]);
+            signature *= UINT64_C(1099511628211);
+        }
+    }
+    if (signature != app->ad1_plan_signature) {
+        app->ad1_plan_signature = signature;
+        record(app, "scene_ad1_blit tiles=%d surface=%u composed=back-buffer scope=host-adapter "
+               "(layer order vs UI unverified)", plan.count, plan.surface);
+    }
+    return true;
+}
+
 /* ---- RT-22 follow-up: the task bar (0x570508) and its inventory button ----
  * See inventory_button_runtime.h for the recovered addresses. The bar runs while the
  * screen state 0x583204 is 0 (0x43cf9c); its button 1 raises byte 0x583232, which the next
@@ -4507,6 +4762,28 @@ static bool create_native_session_bindings(NativeApp *app)
     ad9_host.kernel.view = native_ad9_view;
     ad9_host.kernel.observe = native_ad9_observe;
     app->ad9 = session_ad9_create(&ad9_host);
+    SessionAd1Host ad1_host{};
+    ad1_host.kernel.context = app;
+    ad1_host.kernel.alloc_slot = native_ad1_alloc_slot;
+    ad1_host.kernel.register_slot = native_ad1_register_slot;
+    ad1_host.kernel.load_surface = native_ad1_load_surface;
+    ad1_host.kernel.set_slot_surface = native_ad1_set_slot_surface;
+    ad1_host.kernel.release_surface = native_ad1_release_surface;
+    ad1_host.kernel.release_slot = native_ad1_release_slot;
+    ad1_host.kernel.mark_dirty = native_ad1_mark_dirty;
+    ad1_host.kernel.view_origin = native_ad1_view_origin;
+    ad1_host.kernel.clear_pending_item = native_ad1_clear_item;
+    ad1_host.kernel.sound_prepare = native_ad1_sound_prepare;
+    ad1_host.kernel.sound_stop = native_ad1_sound_stop;
+    ad1_host.kernel.sound_play = native_ad1_sound_play;
+    ad1_host.kernel.sound_busy = native_ad1_sound_busy;
+    ad1_host.kernel.tick = native_ad1_tick;
+    ad1_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    ad1_host.kernel.transition = native_ad1_transition;
+    ad1_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    ad1_host.kernel.observe = native_ad1_observe;
+    ad1_host.store_world = native_ad1_store_world;
+    app->ad1 = session_ad1_create(&ad1_host);
     ActionFamily95Host a95_host{};
     a95_host.context = app;
     a95_host.set_channel_scalars = native_a95_set_channel_scalars;
@@ -4584,7 +4861,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a2e == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a2e == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -4831,6 +5108,14 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_ad9_failure(app->ad9));
         return false;
     }
+    if (session_ad1_begin_scene(app->ad1, app->scene) != D1_OK) {
+        record(app, "scene_session_create_error provider=action-family-d1 detail=%s",
+               session_ad1_failure(app->ad1));
+        return false;
+    }
+    app->ad1_slot_used.fill(false);
+    app->ad1_plan_signature = 0u;
+    app->ad1_render_failure_logged = false;
     app->ad9_slot_used.fill(false);
     app->ad9_background_seed = UINT64_MAX;
     app->ad9_plan_signature = 0u;
@@ -5039,6 +5324,41 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_ad9_registered(app->ad9) != 0u)
         (void)session_ad9_pointer_move(app->ad9, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y));
+    /* RT-35: the Turning Puzzle. The accepted-release chain runs 0x4b617a on the candidate retained from the
+     * previous scan (before this tick's pointer event is handled), then the cascade member 0x4b5d17 hit-tests
+     * the pointer; the scan publishes a hit as candidate 0x276c / 0x276d (native_pointer_scan). */
+    /* The chain 0x43b287 sits behind the consumed release edge and the normal-mode switch arm only; the 0..239
+     * candidate range of the accept path (0x43bfb6) does not apply, and the puzzle's candidates are 0x276c/0x276d,
+     * so hotspot_activation_event (which carries that range) cannot gate it. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->ad1 != nullptr && session_ad1_registered(app->ad1) != 0u && app->session != nullptr) {
+        const D1Object *puzzle = session_ad1_object(app->ad1);
+        SceneActionRuntimeState puzzle_state{};
+        uint32_t new_phase = 0u;
+        if (puzzle != nullptr && puzzle->row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(puzzle->row), &puzzle_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_ad1_click(app->ad1, puzzle_state.phase, app->input_state.candidate,
+                                                app->start_flag_5bb1ca, &new_phase);
+            if (click != D1_OK) {
+                record(app, "scene_ad1_click_error row=%d status=%d detail=%s", puzzle->row, click,
+                       session_ad1_failure(app->ad1));
+            } else if (new_phase == 2u && puzzle_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle->row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_ad1_click row=%d candidate=%d -> phase 2 (0x4b617a)", puzzle->row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_ad1_click_error row=%d detail=phase-2-store-refused", puzzle->row);
+            }
+        }
+    }
+    app->ad1_pointer = D1PointerResult{};
+    app->ad1_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad1 != nullptr &&
+        session_ad1_registered(app->ad1) != 0u)
+        (void)session_ad1_pointer_move(app->ad1, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y), &app->ad1_pointer);
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
@@ -5135,6 +5455,11 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* No navigation globals yet (no scene entered): the plain scan. */
         status = session_input_scan_priority(&app->input_state, &input, overlay_rows.data(),
                                              overlay_count, rows, count);
+    }
+    if (status == SESSION_INPUT_OK && app->ad1_pointer.hit != 0u) {
+        /* 0x4f0b1e: the Turning Puzzle's hit test returns before the generic row loop (0x4b6097 writes the
+         * candidate). The cursor index it also writes is not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->ad1_pointer.candidate);
     }
     *candidate = app->input_state.candidate;
     if (status == SESSION_INPUT_OK && app->nav_scene_ready) {
@@ -5322,7 +5647,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[28]{};
+    SceneSessionActionBinding bindings[29]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -5452,7 +5777,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[27].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[27].callback = native_a2e_handler;
     bindings[27].context = app;
-    config.action_binding_count = 28u;
+    /* RT-35: raw 0xd1 Turning Puzzle (dispatcher arm 0x42a175 -> 0x4b64a9, gate mode 0; phase 2 completes
+     * through 0x42ba3a). The render callback 0x4b7051 runs from the app tick (native_ad1_render). */
+    bindings[28].type = SESSION_AD1_TYPE;
+    bindings[28].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[28].callback = native_ad1_handler;
+    bindings[28].context = app;
+    config.action_binding_count = 29u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
