@@ -1,0 +1,41 @@
+# FUN_0051dfda
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x0051dfda
+# extent:       0x0051dfda-0x0051dfef (21 code bytes)
+# span:         0x0051dfda-0x0051dfef (code 21, tables 0, padding 0)
+# sha256:       7065e280f76a3f69997bf4584a218b4c06c1dae09b74d77d636fb3d18b9f2eee
+# evidence:     ev_d600326f1458d8c8d5fec5204c0799b9a1ca52f1bb674b8356a1738515f4e4f7
+# region:       crt_mfc
+# frame:        none
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_0051dfda
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
+# fields:       [eax + n] field_2c; [ebp + n] field_minus_24, field_minus_2c
+# callees:      calls FUN_0051f636
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 6 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# note:         further_unindexed_code_at:0x0051dfef
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ field_minus_24, 0x24  # offset -0x24
+.equ field_minus_2c, 0x2c  # offset -0x2c
+.equ field_2c, 0x2c  # offset +0x2c
+
+# --- external targets -----------------------------------------------
+.set FUN_0051f636, .text + (0x0051f636 - 0x401000)
+
+.org 0x0051dfda - 0x401000
+.globl FUN_0051dfda
+FUN_0051dfda:
+    # block 0x0051dfda: entry, 6 instruction(s), calls FUN_0051f636, ends with ret
+    mov ecx, dword ptr [ebp - field_minus_2c]    # 0051dfda
+    call FUN_0051f636                            # 0051dfdd
+    mov eax, dword ptr [ebp - field_minus_24]    # 0051dfe2
+    or dword ptr [eax + field_2c], -0x1          # 0051dfe5
+    mov eax, 0x51dfef                            # 0051dfe9
+    ret                                          # 0051dfee
+

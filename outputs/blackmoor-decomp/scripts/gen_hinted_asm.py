@@ -834,6 +834,7 @@ def _decode_shape(raw: bytes):
 _FIELD_DISP = re.compile(
     r"\[(?P<base>e[a-d]x|e[sd]i|esp|ebp)(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]"
 )
+_SCALED_DISP = re.compile(r"\[(?P<scaled>[248]\*e[a-z]{2}) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]")
 _EBP_DISP = re.compile(r"\[ebp(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?) (?P<sign>[+-]) 0x(?P<mag>[0-9a-f]+)\]")
 
 
@@ -962,6 +963,17 @@ def render_instruction(image: Image, layout: Layout, ins: Insn, tables: dict[int
         return f"[{m.group('base')}{m.group('index')} {m.group('sign')} {name}]"
 
     rendered = _FIELD_DISP.sub(field_repl, rendered)
+
+    # scaled-index operands without a base register ([4*eax + 0x4]) are table-element displacements
+    def scaled_repl(m: re.Match) -> str:
+        mag = int(m.group("mag"), 16)
+        if mag >= 0x400000:
+            return m.group(0)
+        name = field_symbol("idx", m.group("sign"), mag)
+        frame[name] = (m.group("sign"), mag)
+        return f"[{m.group('scaled')} {m.group('sign')} {name}]"
+
+    rendered = _SCALED_DISP.sub(scaled_repl, rendered)
     return rendered
 
 

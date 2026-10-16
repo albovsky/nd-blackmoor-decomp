@@ -40,6 +40,7 @@ def load(name: str, path: Path):
 
 
 audit = load("audit_tool_assisted_under_test", SCRIPTS / "audit_tool_assisted.py")
+machine = load("annotate_machine_under_test", SCRIPTS / "annotate_machine.py")
 
 BASE = fixture.BASE
 FUNCTIONS = [fixture.F_FRAME, fixture.F_SWITCH, fixture.F_LEAF]
@@ -168,6 +169,87 @@ class AuditorMutants(unittest.TestCase):
         kinds = [item["kind"] for item in switch["data_items"]]
         self.assertEqual(kinds[:2], ["switch_table", "index_table"])
         self.assertGreater(len(report["data_items_for_m02"]), 0)
+
+    # ------------------------------------------------------------------ machine annotation
+
+    def machine_batch(self, mutate=None):
+        """Annotate the fixture functions with ``annotate_machine`` (no ledger, no imports) and audit them."""
+
+        annotator = machine.Annotator(self.image, ledger={}, imports={})
+        work = Path(tempfile.mkdtemp(dir=self.tmp.name))
+        vas = [BASE + off for off in FUNCTIONS]
+        for va in vas:
+            (work / f"FUN_{va:08x}.s").write_text(annotator.render(self.layouts[va]) + "\n", encoding="utf-8")
+        if mutate:
+            mutate(work)
+        manifest = gen.build_manifest(self.image, self.layouts, vas, work, "test", "fixture", original_sha256=self.pe_sha)
+        path = work / "batch.json"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        return audit.audit_manifest(path, self.config()), work
+
+    def test_machine_annotated_batch_is_accepted_and_reported_as_machine(self) -> None:
+        report, work = self.machine_batch()
+        self.assertEqual([f["reasons"] for f in report["functions"]], [[], [], []])
+        self.assertEqual({f["annotation"] for f in report["functions"]}, {"machine"})
+        text = (work / f"FUN_{BASE + fixture.F_FRAME:08x}.s").read_text(encoding="utf-8")
+        self.assertIn("# annotation:  machine", text)
+        self.assertIn("[ebp - local_4]", text)  # the generator's default names stay
+        self.assertRegex(text, r"# arguments:    1 ebp-relative stack slot\(s\) referenced: arg_8; ret 0x4 \(callee pops 4 bytes\)")
+
+    def test_machine_header_needs_the_function_own_address_in_the_name(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _w = self.machine_batch(lambda w: self.edit(w, va, f"fn_{va:08x}", "fn_00000000"))
+        self.rejected(report, va, "machine-annotated function name")
+
+    def test_machine_header_does_not_excuse_an_unnamed_offset(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _w = self.machine_batch(lambda w: self.edit(w, va, "[ebp - local_4]", "[ebp - 4]"))
+        self.rejected(report, va, "unnamed register-relative offset")
+
+    def test_default_names_without_the_machine_header_are_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+
+        def strip(work: Path) -> None:
+            path = work / f"FUN_{va:08x}.s"
+            kept = [line for line in path.read_text(encoding="utf-8").split("\n") if not line.startswith("# annotation:")]
+            path.write_text("\n".join(kept), encoding="utf-8")
+
+        report, _w = self.machine_batch(strip)
+        self.assertTrue(any(r["status"] == "rejected" for r in report["functions"]))
+        by_name = {f["function"]: f for f in report["functions"]}
+        reasons = by_name[f"FUN_{va:08x}"]["reasons"]
+        self.assertTrue(any("default name" in r or "not a real name" in r for r in reasons), reasons)
+
+    def test_machine_blocks_still_need_a_meaningful_comment(self) -> None:
+        va = BASE + fixture.F_FRAME
+
+        def blank(work: Path) -> None:
+            path = work / f"FUN_{va:08x}.s"
+            text = re.sub(r"(    # block 0x[0-9a-f]+): [^\n]+", r"\1: x", path.read_text(encoding="utf-8"))
+            path.write_text(text, encoding="utf-8")
+
+        report, _w = self.machine_batch(blank)
+        self.rejected(report, va, "has no comment")
+
+    def test_machine_annotation_is_deterministic(self) -> None:
+        annotator = machine.Annotator(self.image, ledger={}, imports={})
+        va = BASE + fixture.F_SWITCH
+        self.assertEqual(annotator.render(self.layouts[va]), annotator.render(self.layouts[va]))
+
+    def test_ecx_read_first_tells_a_read_from_a_write(self) -> None:
+        def insns(*lines: str) -> list:
+            out, addr = [], 0x1000
+            for line in lines:
+                mnem, _, ops = line.partition(" ")
+                out.append(gen.Insn(addr, b"\x90", mnem, ops))
+                addr += 1
+            return out
+
+        self.assertTrue(machine.ecx_read_first(insns("push ebp", "mov ebp, esp", "mov dword ptr [ebp - 0x4], ecx")))
+        self.assertTrue(machine.ecx_read_first(insns("mov eax, dword ptr [ecx + 0x8]")))
+        self.assertFalse(machine.ecx_read_first(insns("xor ecx, ecx", "mov eax, ecx")))
+        self.assertFalse(machine.ecx_read_first(insns("mov ecx, 0x4", "mov eax, ecx")))
+        self.assertFalse(machine.ecx_read_first(insns("push ecx", "call 0x2000", "mov eax, ecx")))
 
     def test_unannotated_generator_output_is_rejected(self) -> None:
         def revert(work: Path) -> None:

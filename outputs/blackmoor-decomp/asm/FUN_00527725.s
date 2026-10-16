@@ -1,0 +1,36 @@
+# FUN_00527725
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x00527725
+# extent:       0x00527725-0x00527734 (15 code bytes)
+# span:         0x00527725-0x00527734 (code 15, tables 0, padding 0)
+# sha256:       bdeb78f355f005a70c3f7822a2466c2e2d129a159f829434cf6175c691b56eec
+# evidence:     ev_450eb38fa601afc4b84de6969079191c21baf0f40898d00aa11d7f75d3380ee5
+# region:       crt_mfc
+# frame:        none
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_00527725
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
+# fields:       [ebp + n] field_minus_10
+# callees:      calls FUN_00470d5e
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 4 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ field_minus_10, 0x10  # offset -0x10
+
+# --- external targets -----------------------------------------------
+.set FUN_00470d5e, .text + (0x00470d5e - 0x401000)
+
+.org 0x00527725 - 0x401000
+.globl FUN_00527725
+FUN_00527725:
+    # block 0x00527725: entry, 4 instruction(s), calls FUN_00470d5e, ends with ret
+    mov ecx, dword ptr [ebp - field_minus_10]    # 00527725
+    add ecx, 0xb34f4                             # 00527728
+    call FUN_00470d5e                            # 0052772e
+    ret                                          # 00527733
+

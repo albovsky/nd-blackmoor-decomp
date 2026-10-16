@@ -1,0 +1,45 @@
+# FUN_0050e912
+# class:        tool_assisted_reconstructed_assembly (candidate; counts only after audit and review)
+# va:           0x0050e912
+# extent:       0x0050e912-0x0050e936 (36 code bytes)
+# span:         0x0050e912-0x0050e936 (code 36, tables 0, padding 0)
+# sha256:       1cae4bc73106e10ec20502953e4b9056c49d42d47bfeaccd607c295b53f64c65
+# evidence:     ev_4431af068a3f4ca776e521e2b82a00887220c1221c914635cfd4305c8866eb9e
+# region:       crt_mfc
+# frame:        none
+# annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
+# name:         fn_0050e912
+# arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read in the entry block before being written
+# locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
+# fields:       [esp + n] stk_4
+# callees:      calls FUN_00514d99, FUN_00514dd2, KERNEL32.dll!ExitProcess
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 9 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
+.intel_syntax noprefix
+.code32
+.text
+
+# --- frame symbols ---------------------------------------------------
+.equ stk_4, 0x4  # offset +0x4
+
+# --- external targets -----------------------------------------------
+.set FUN_00514d99, .text + (0x00514d99 - 0x401000)
+.set FUN_00514dd2, .text + (0x00514dd2 - 0x401000)
+
+.org 0x0050e912 - 0x401000
+.globl FUN_0050e912
+FUN_0050e912:
+    # block 0x0050e912: entry, 2 instruction(s), ends with jne to 0x0050e920 (forward)
+    cmp dword ptr [0x63ca70], 0x1                # 0050e912
+    jne.d8 L_0050e920                            # 0050e919
+    # block 0x0050e91b: entered by fall-through of jne at 0x0050e919, 1 instruction(s), calls FUN_00514d99, falls into the block at 0x0050e920
+    call FUN_00514d99                            # 0050e91b
+L_0050e920:
+    # block 0x0050e920: entered by jne at 0x0050e919, 6 instruction(s), calls FUN_00514dd2, KERNEL32.dll!ExitProcess, ends with ret
+    push dword ptr [esp + stk_4]                 # 0050e920
+    call FUN_00514dd2                            # 0050e924
+    pop ecx                                      # 0050e929
+    push 0xff                                    # 0050e92a
+    call dword ptr [0x52a130]                    # 0050e92f
+    ret                                          # 0050e935
+

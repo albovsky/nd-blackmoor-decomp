@@ -60,8 +60,10 @@ REQUIRED_FIELDS = (
     "class", "va", "extent", "span", "sha256", "evidence", "region", "frame",
     "name", "arguments", "locals", "fields", "callees", "track-n", "unverified",
 )
+MACHINE_ANNOTATION = "machine"
 ANNOTATION_FIELDS = ("name", "arguments", "locals", "fields", "callees", "track-n", "unverified")
-PLACEHOLDER_RE = re.compile(r"todo|tbd|fixme|xxx+|<\s*unfilled\s*>|placeholder|lorem|n/a|none yet|to be (?:filled|determined|written)", re.I)
+# todo/tbd/fixme must stand alone: an import name such as FileTimeToDosDateTime is not a placeholder
+PLACEHOLDER_RE = re.compile(r"(?<![a-z])(?:todo|tbd|fixme)(?![a-z])|xxx+|<\s*unfilled\s*>|placeholder|lorem|n/a|none yet|to be (?:filled|determined|written)", re.I)
 # The assembler is pinned by its version line and by a self-test: a fixed source that exercises every encoding hint
 # must assemble to exactly these bytes.  This works on any machine that built the pinned binutils.
 SELF_TEST_SOURCE = """.intel_syntax noprefix
@@ -222,8 +224,16 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             reasons.append(f"header field {key!r} is too short to describe anything")
         elif key == "unverified" and value.strip().lower() != "none" and len(words) < 3 and not value.lower().startswith("none"):
             reasons.append("header field 'unverified' must be 'none' or say what is unverified")
+    # Machine-generated names are valid Track M annotation (owner ruling recorded in the project plan, 2026-10-15).
+    # Only a file that declares ``annotation: machine`` may keep the generator's default symbol names, and its
+    # function name must then be exactly ``fn_`` plus the function's own address.
+    machine = header.get("annotation", "").split(" ")[0] == MACHINE_ANNOTATION
+    facts["annotation"] = "machine" if machine else "hand"
     name = header.get("name", "")
-    if name and (
+    if machine:
+        if name != "fn_" + code_symbol[4:]:
+            reasons.append(f"machine-annotated function name {name!r} is not fn_<va> of {code_symbol}")
+    elif name and (
         not re.match(r"^[A-Za-z_][A-Za-z0-9_:.]*$", name)
         or re.match(r"^FUN_[0-9a-f]{8}$", name)
         or _SYNTHETIC_FUNCTION_NAME.match(name)
@@ -266,7 +276,7 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
                         reasons.append(f"line {number}: unnamed register-relative offset in [{operand}]")
                         break
             for token in re.findall(r"[A-Za-z_]\w*", operand):
-                if _DEFAULT_FRAME_NAME.match(token) and token not in placeholder_frame_names:
+                if not machine and _DEFAULT_FRAME_NAME.match(token) and token not in placeholder_frame_names:
                     placeholder_frame_names.add(token)
                     reasons.append(f"line {number}: offset uses placeholder name {token}")
 
@@ -312,7 +322,8 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
             if _EQU.match(code):
                 equ = _EQU.match(code).group(1)
                 if _DEFAULT_FRAME_NAME.match(equ):
-                    reasons.append(f"line {line.number}: frame symbol {equ} still has the generator's default name")
+                    if not machine:
+                        reasons.append(f"line {line.number}: frame symbol {equ} still has the generator's default name")
                 elif _WEAK_NAME.match(equ):
                     reasons.append(f"line {line.number}: frame symbol {equ} is too short to be a name")
                 continue
@@ -726,6 +737,7 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base, index_owners)
     reasons += lexical
     result["basic_blocks"] = facts.get("basic_blocks")
+    result["annotation"] = facts.get("annotation", "hand")
     track = facts["header"].get("track-n", "")
     if config.repository and track and track != "host-adapter: none":
         match = re.match(r"^([\w./+-]+):([\w:~]+)", track)
