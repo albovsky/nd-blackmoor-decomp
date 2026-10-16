@@ -4569,16 +4569,15 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
     NativeApp *app = static_cast<NativeApp *>(context);
     SessionInputContext input{};
     native_pointer_context(app, &input);
-    if (app->ad9 != nullptr && session_ad9_registered(app->ad9) != 0u && input.geometry_ready != 0u &&
-        app->pointer_x >= input.viewport.left && app->pointer_x <= input.viewport.right &&
-        app->pointer_y >= input.viewport.top && app->pointer_y <= input.viewport.bottom) {
-        /* 0x4f0059 -> 0x4f0fdc: the view-relative hot spot (x = [ptr+0x5e], y = [ptr+0x5a]). */
-        const int32_t hx = app->pointer_x - input.viewport.left + input.hot_x;
-        const int32_t hy = app->pointer_y - input.viewport.top + input.scroll_y + input.hot_y;
-        (void)session_ad9_pointer_move(app->ad9, static_cast<int16_t>(hx), static_cast<int16_t>(hy));
-    }
     const uint8_t edge_before = app->input_state.latch[0];
     const int status = session_input_tick(&app->input_state, &input, frame);
+    /* 0x4f0059 -> 0x4f0fdc: Mouselight receives the guarded projection (normal cursor
+     * mode, producer enabled, sprite overlapping the viewport), the same hot spot the
+     * hotspot scan uses (x = [ptr+0x5e], y = [ptr+0x5a]). */
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad9 != nullptr &&
+        session_ad9_registered(app->ad9) != 0u)
+        (void)session_ad9_pointer_move(app->ad9, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y));
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
