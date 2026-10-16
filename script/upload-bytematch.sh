@@ -42,8 +42,12 @@ EOF
 
 [[ "${1:-}" == "--no-upload" ]] && exit 0
 
-if [[ -n "$(git status --porcelain -- objdiff.json outputs/blackmoor-decomp/asm)" ]]; then
-  echo "objdiff.json or asm/ has uncommitted changes; commit them so the report matches the commit" >&2
+# Every tracked input of the report must be committed: the generator, the
+# auditor it imports, the unit list and the sources and census summary in asm/.
+# The private census is checked against asm/census-summary.json by the generator.
+if [[ -n "$(git status --porcelain -- objdiff.json script/objdiff_units.py \
+    outputs/blackmoor-decomp/scripts outputs/blackmoor-decomp/asm)" ]]; then
+  echo "report inputs have uncommitted changes; commit them so the report matches the commit" >&2
   exit 1
 fi
 

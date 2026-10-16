@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import re
 import struct
@@ -45,9 +46,10 @@ PROJECT = ROOT / "outputs" / "blackmoor-decomp"
 ORIGINAL = ROOT / "work" / "original" / "GAME.EXE"
 ORIGINAL_SHA256 = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 CENSUS = ROOT / "work" / "analysis" / "slices" / "M03-census" / "census.json"
+CENSUS_SUMMARY = PROJECT / "asm" / "census-summary.json"
+AUDITOR = PROJECT / "scripts" / "audit_tool_assisted.py"
 ASM_DIR = PROJECT / "asm"
 ASSEMBLER = ROOT / "work" / "tools" / "s08-binutils-2.43.1" / "prefix" / "bin" / "i686-w64-mingw32-as"
-ASSEMBLER_VERSION_LINE = "GNU assembler (GNU Binutils) 2.43.1"
 OUT = ROOT / "build" / "objdiff"
 CONFIG = ROOT / "objdiff.json"
 
@@ -136,6 +138,32 @@ def relabel_data_items(obj: bytes) -> bytes:
     return bytes(data)
 
 
+def check_census(census: dict) -> None:
+    """The private census must be the one summarised in the committed census-summary.json."""
+    summary = json.loads(CENSUS_SUMMARY.read_text())
+    for key in ("source_sha256", "object_sha256", "functions_total", "totals", "by_region"):
+        if census[key] != summary[key]:
+            raise SystemExit(f"{CENSUS} differs from {CENSUS_SUMMARY} in {key}; regenerate the census")
+    if len(census["ranges"]) + len(census["unsplit_spans"]) != summary["functions_total"]:
+        raise SystemExit(f"{CENSUS} ranges do not cover functions_total")
+    sizes: dict[str, int] = {}
+    for item in census["ranges"]:
+        sizes[region_of(item["va"])] = sizes.get(region_of(item["va"]), 0) + item["code_size"]
+    if sizes != {region: v["code_bytes"] for region, v in summary["by_region"].items()}:
+        raise SystemExit(f"{CENSUS} function sizes do not add up to the summary's code bytes")
+
+
+def check_assembler() -> None:
+    """Version line plus the auditor's fixed-source byte self-test (AGENTS.md, Track M ruling 3)."""
+    spec = importlib.util.spec_from_file_location("audit_tool_assisted", AUDITOR)
+    auditor = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = auditor  # its dataclasses resolve types through sys.modules
+    spec.loader.exec_module(auditor)
+    problem, _info = auditor.check_assembler(ASSEMBLER)
+    if problem:
+        raise SystemExit(f"pinned assembler check failed: {problem}")
+
+
 def accepted_functions() -> dict[str, dict]:
     """Functions accepted by an audited batch whose committed source is unchanged."""
     accepted: dict[str, dict] = {}
@@ -164,6 +192,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     census = json.loads(CENSUS.read_text())
+    check_census(census)
     accepted = accepted_functions()
 
     functions = [(r["va"], r["function"], r["code_size"], r["code_sha256"]) for r in census["ranges"]]
@@ -201,9 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     exe = ORIGINAL.read_bytes()
     if sha256(exe) != ORIGINAL_SHA256:
         raise SystemExit(f"{ORIGINAL} is not the recorded original")
-    version = subprocess.run([str(ASSEMBLER), "--version"], capture_output=True, text=True, check=True).stdout
-    if version.splitlines()[0] != ASSEMBLER_VERSION_LINE:
-        raise SystemExit(f"assembler is not {ASSEMBLER_VERSION_LINE}")
+    check_assembler()
     read = text_reader(exe)
 
     total = matched_candidates = 0
