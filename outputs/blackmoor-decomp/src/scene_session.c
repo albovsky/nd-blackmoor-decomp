@@ -793,6 +793,12 @@ int scene_session_get_action_state(const SceneSession *session,
     return scene_executor_get_action_state(session->executor, action_index, state);
 }
 
+int scene_session_retire_action(SceneSession *session, size_t action_index)
+{
+    if (session == NULL) return SCENE_EXECUTOR_ERR_ARGUMENT;
+    return scene_executor_retire_action(session->executor, action_index);
+}
+
 int scene_session_get_hotspot_state(const SceneSession *session,
                                     size_t action_index,
                                     SceneExecutorHotspotState *state)

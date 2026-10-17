@@ -329,6 +329,12 @@ int scene_executor_get_hotspot_state(const SceneActionExecutor *executor,
 int scene_executor_request_transition(SceneActionExecutor *executor,
                                       const SceneTransitionRequest *request);
 
+/* RT-36: retire an action row the way the original's random-movie stop does (0x4ccff5 erases the raw 0x2d row, then
+ * 0x4ceb75 stores its completion byte; 0x423b51 resets its dependencies). The row becomes completed with phase 0 and
+ * a reset dependency state, so the pass skips it from now on. Raw 0x2e mode 0 (RT-36) asks for this through its host
+ * while the 0x2e handler runs. An index outside the scene is rejected. */
+int scene_executor_retire_action(SceneActionExecutor *executor, size_t action_index);
+
 const char *scene_executor_status_string(int status);
 
 #ifdef SCENE_EXECUTOR_TEST_HOOKS

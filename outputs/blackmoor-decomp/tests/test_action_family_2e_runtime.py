@@ -109,8 +109,8 @@ class UnitTests(unittest.TestCase):
         c = 'session_bindings_a2e.c'
         mutations = {
             'mode zero-extended': (c, 'mode = (int32_t)(int8_t)body.option_00;', 'mode = (int32_t)body.option_00;'),
-            'active test inverted': (c, '    if (b->movie.active != 0) {\n        if (mode == 1) {', '    if (b->movie.active == 0) {\n        if (mode == 1) {'),
-            'mode 0 not refused': (c, '        if (mode == 0) {\n            b->failure = "random movie stop', '        if (mode == 0 && 0) {\n            b->failure = "random movie stop'),
+            'active test inverted': (c, '    if (b->movie.active != 0) {\n        if (mode == 0) {', '    if (b->movie.active == 0) {\n        if (mode == 0) {'),
+            'mode 0 not refused': (c, 'is not modelled";\n            return SCENE_ACTION_HANDLER_UNSUPPORTED;', 'is not modelled";\n            mode = 3;'),
             'flag sign dropped': (c, 'b->world->event_flags[flag] = (int32_t)(int16_t)body.word[5];', 'b->world->event_flags[flag] = (int32_t)body.word[5];'),
             'flag index 0 skipped': (c, 'if (flag != SESSION_A2E_NO_FLAG) {\n                b->world->event_flags[flag]', 'if (flag > 0) {\n                b->world->event_flags[flag]'),
             'scene sentinel moved': ('session_bindings_a2e.h', '#define SESSION_A2E_NO_SCENE 9999', '#define SESSION_A2E_NO_SCENE 9998'),

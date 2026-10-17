@@ -44,6 +44,7 @@
 #include "session_bindings_a94.h"
 #include "session_bindings_a43.h"
 #include "session_bindings_a2e.h"
+#include "session_bindings_a2d.h"
 #include "session_bindings_a6e.h"
 #include "session_bindings_a6f.h"
 #include "session_bindings_ad9.h"
@@ -298,6 +299,7 @@ struct NativeApp {
     /* RT-33: raw 0x2e random-movie control (arm 0x427f62, handler 0x4ced84 on the object 0x63821d). The object stays inactive
      * until raw 0x2d is bound, so only the row/mode stores and the completion run. Not compiled here. */
     SessionA2EBinding *a2e = nullptr;
+    SessionA2dBinding *a2d = nullptr;
     /* RT-34: raw 0x44 scroll list entry (arm 0x4121b8) and the runtime 0xd8 Peephole view it turns into (arm 0x42a354,
      * handler 0x48c1c0). Only the scene hooks, the AUTOTEXT lookup, the transition and the start flag are wired here; the
      * text writer 0x413187 (RT-32's port) and the render/input hooks of the kernel are not, so the handler reports the
@@ -1926,6 +1928,7 @@ static void cleanup(NativeApp *app)
     session_a4b_destroy(app->a4b);
     session_a94_destroy(app->a94);
     session_a43_destroy(app->a43);
+    session_a2d_destroy(app->a2d);
     session_a2e_destroy(app->a2e);
     session_a44_destroy(app->a44);
     session_a79_destroy(app->a79);
@@ -3881,6 +3884,81 @@ static int native_a2e_transition(void *context, const SceneTransitionRequest *re
     return 0;
 }
 
+/* RT-36: raw 0x2e mode 0 stops the random movie (0x4ceb3b). The kernel erases the raw 0x2d row and resets the object; the
+ * executor completes that row (0x4ceb75). The app never has an active random movie yet (media_available is 0), so this only
+ * runs once a media backend exists. */
+static int native_a2e_stop_movie(void *context, int32_t *retire_row)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->a2d == nullptr || retire_row == nullptr) return 1;
+    if (session_a2d_stop(app->a2d, retire_row) != 0) {
+        record(app, "scene_a2d_stop_blocker detail=%s", session_a2d_failure(app->a2d));
+        return 1;
+    }
+    if (*retire_row != SESSION_A2E_NO_ROW &&
+        (app->session == nullptr ||
+         scene_session_retire_action(app->session, static_cast<size_t>(*retire_row)) != SCENE_EXECUTOR_OK)) {
+        return 1;
+    }
+    record(app, "scene_a2d_stop retired_row=%d (0x4ceb3b via raw 0x2e mode 0)", *retire_row);
+    return 0;
+}
+
+/* RT-36: raw 0x2d process globals the app owns: the start flag 0x5bb1ca. The other kernel inputs and globals (scene key word
+ * 0x5bb50b, view origin, decode thread argument, back buffer, 0x5839a9, 0x5d16cd, 0x5d1683, 0x5d1639, 0x5d1a39, 0x5d1a45) have
+ * no app counterpart yet: they must be mapped here before native_a2d_media_available can return 1. */
+static void native_a2d_load_world(void *context, D2World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    world->start_flag = app->start_flag_5bb1ca;
+}
+
+static void native_a2d_store_world(void *context, const D2World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_flag;
+}
+
+/* RT-36: there is no media backend yet (no AVF decode thread, no Bink player binding, no clip file probes), so phase 0 of
+ * raw 0x2d reports UNSUPPORTED before any effect. */
+static int native_a2d_media_available(void *context)
+{
+    (void)context;
+    return 0;
+}
+
+/* RT-36: engine calls of the random-movie kernel. Only the three the scene clear makes on an object that never loaded a clip
+ * (Z unregister of the object's two entries, Bink release of id 0) are answered, as no-ops because the app never registered
+ * them; any other call means a media op ran without a backend and fails the visit (the original has no recovery either). */
+static int native_a2d_op(void *context, int op, const D2OpArgs *args, int32_t *ret)
+{
+    (void)context;
+    (void)args;
+    *ret = 0;
+    switch (op) {
+    case D2_OP_Z_UNREGISTER_A:
+    case D2_OP_Z_UNREGISTER_B:
+    case D2_OP_BINK_RELEASE:
+        return 0;
+    default:
+        return 1;
+    }
+}
+
+static int native_a2d_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a2d_handler(app->a2d, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a2d_blocker row=%zu status=%d detail=%s", row, status, session_a2d_failure(app->a2d));
+    }
+    return status;
+}
+
 static int native_a2e_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -4997,7 +5075,17 @@ static bool create_native_session_bindings(NativeApp *app)
     a2e_host.context = app;
     a2e_host.set_start_flag = native_a2e_set_start_flag;
     a2e_host.transition = native_a2e_transition;
+    a2e_host.stop_movie = native_a2e_stop_movie;
     app->a2e = session_a2e_create(&a2e_host, &app->new_game.action_core);
+    SessionA2dHost a2d_host{};
+    a2d_host.kernel.context = app;
+    a2d_host.kernel.op = native_a2d_op;
+    a2d_host.load_world = native_a2d_load_world;
+    a2d_host.store_world = native_a2d_store_world;
+    a2d_host.media_available = native_a2d_media_available;
+    a2d_host.kernel.surface_dims = nullptr;
+    app->a2d = session_a2d_create(&a2d_host);
+    session_a2d_attach_a2e(app->a2d, app->a2e);
     SessionA44Host a44_host{};
     a44_host.context = app;
     a44_host.resolve_text = native_a44_resolve_text;
@@ -5049,7 +5137,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5426,6 +5514,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
      * rows unowned (they report the blocker) and does not stop the scene. */
     if (session_a44_begin_scene(app->a44, app->scene) != 0) {
         record(app, "scene_a44_begin_blocker detail=%s", session_a44_failure(app->a44));
+    }
+    /* RT-36: parse of the scene's raw 0x2d row (the object is destroyed and its render entry registered once, at creation,
+     * as the original does at world init). A failure leaves the 0x2d row unowned (it reports the blocker). */
+    if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
+        record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
     }
     app->a36_blit_signature.fill(0u);
     app->a36_hot_rects_failure_logged = false;
@@ -6012,6 +6105,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[35].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[35].callback = native_a4b_handler;
     bindings[35].context = app;
+    /* RT-36: raw 0x2d random-movie set (handler 0x4cd6ff, gate mode 0; phase 0 needs a media backend, see
+     * native_a2d_media_available). Raw 0x2e mode 0 stops it through native_a2e_stop_movie. */
+    bindings[33].type = SESSION_A2D_TYPE;
+    bindings[33].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[33].callback = native_a2d_handler;
+    bindings[33].context = app;
     config.action_binding_count = 36u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
