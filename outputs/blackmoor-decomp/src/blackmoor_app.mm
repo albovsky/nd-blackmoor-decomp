@@ -55,6 +55,7 @@
 #include "session_bindings_a7d.h"
 #include "session_bindings_ad9.h"
 #include "session_bindings_ad1.h"
+#include "session_bindings_aea.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -267,6 +268,15 @@ struct NativeApp {
     D1PointerResult ad1_pointer{};
     uint64_t ad1_plan_signature = 0u;
     bool ad1_render_failure_logged = false;
+    /* RT-45: raw 0xea Onebuild (jigsaw) puzzle. aea_surfaces holds the handles of the puzzle's own piece surfaces
+     * (0x4c2a8d), which the kernel releases through 0x4c2dfb; loaded images stay cached by name. */
+    SessionAeaBinding *aea = nullptr;
+    std::array<bool, 0x40> aea_slot_used{};
+    EaPointerResult aea_pointer{};
+    uint64_t aea_plan_signature = 0u;
+    bool aea_render_failure_logged = false;
+    std::map<uint32_t, bool> aea_surfaces;
+    std::string aea_text;
     /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41 -> 0x4fca60, gate mode 0). */
     SessionA95Binding *a95 = nullptr;
     /* RT-27: raw 0x4f compare-and-set-event-flag (arm 0x428133 -> 0x44b641, gate mode 1). Not compiled here. */
@@ -990,6 +1000,7 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
 static bool native_a35_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
+static bool native_aea_render(NativeApp *app);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -1368,6 +1379,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->ad1 != nullptr && session_ad1_registered(app->ad1) != 0u) {
         /* RT-35: the Turning Puzzle's render entry (type 10, callback 0x4b7051), same slot range. */
         (void)native_ad1_render(app);
+    }
+    if (app->aea != nullptr && session_aea_registered(app->aea) != 0u) {
+        /* RT-45: the Onebuild puzzle's render entry (type 10, callback 0x4876ed), same slot range. */
+        (void)native_aea_render(app);
     }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
@@ -1951,6 +1966,7 @@ static void cleanup(NativeApp *app)
     session_a3f_destroy(app->a3f);
     session_ad9_destroy(app->ad9);
     session_ad1_destroy(app->ad1);
+    session_aea_destroy(app->aea);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
@@ -3451,7 +3467,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || slot == nullptr) return 1;
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
-        if (!app->ad9_slot_used[static_cast<size_t>(i)]) {
+        if (!app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4368,7 +4384,8 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || slot == nullptr) return 1;
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
-        if (!app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)]) {
+        if (!app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
+            !app->aea_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4596,6 +4613,375 @@ static bool native_ad1_render(NativeApp *app)
         app->ad1_plan_signature = signature;
         record(app, "scene_ad1_blit tiles=%d surface=%u composed=back-buffer scope=host-adapter "
                "(layer order vs UI unverified)", plan.count, plan.surface);
+    }
+    return true;
+}
+
+/* ---- RT-45: raw 0xea Onebuild (jigsaw) puzzle host providers ---------------
+ * The kernel (action_family_ea_runtime.c) is the recovered 0x4867bd state machine with its pointer, click, rotate
+ * and render callbacks. The host supplies the generic Z entry table (0x4d39f9 / 0x4d3992), the CIFTREE images
+ * (0x4c2790), the piece surfaces (0x4c2a8d, 0x4c51a5, the inline copy and 0x4c7070 as plain 16-bit buffers in the
+ * caption image store), the tick, the finish block's scene change and event flag, the caption writer for the
+ * feedback captions and the sound engine calls. Sound is NOT wired: the sound calls are logged and report "not
+ * busy". The clip rectangle 0x583196.. is the second VIEW rectangle, which the loader fills from scene_source. The
+ * pointer rectangle (ptr+0x4a) is the provisional 1 x 1 cursor sprite rectangle projected as 0x4f0059 does. There is
+ * no second-button source in the app (the platform maps the right button onto the left one), so the rotate key
+ * 0x484ac0 is never raised: a piece that starts rotated cannot be turned and every drop of it is a bad drop. */
+static NativeRaw555Image *native_aea_image(NativeApp *app, uint32_t handle)
+{
+    if (app == nullptr) return nullptr;
+    const auto found = app->captions.raw_images.find(handle);
+    return found == app->captions.raw_images.end() ? nullptr : &found->second;
+}
+
+static int native_aea_view(void *context, EaView *view)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || view == nullptr) return 1;
+    view->origin_x = app->scene_destination.left; /* 0x583186 */
+    view->origin_y = app->scene_destination.top;  /* 0x58318a */
+    view->clip[0] = app->scene_source.left; /* 0x583196: the second VIEW rectangle, loaded as scene_source */
+    view->clip[1] = app->scene_source.top;
+    view->clip[2] = app->scene_source.right;
+    view->clip[3] = app->scene_source.bottom;
+    return 0;
+}
+
+static int native_aea_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        if (!app->aea_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
+            !app->ad9_slot_used[static_cast<size_t>(i)]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_aea_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_aea_register_slot(void *context, int16_t slot, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->aea_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_aea_register slot=%d label=%s (type 10 entry, callback 0x4876ed)", slot, label);
+    return 0;
+}
+
+static int native_aea_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->aea_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_aea_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass draws every tick */
+    return 0;
+}
+
+static int native_aea_load_surface(void *context, const char *name, const char *tag, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "onebuild-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_aea_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_aea_surface_load name=%s surface=%u tag=%s source=CIFTREE (0x4c2790)", name, handle,
+           tag != nullptr ? tag : "");
+    return 0;
+}
+
+/* 0x4c2a8d: a new 16-bit surface of w x h pixels, cleared. */
+static int native_aea_create_surface(void *context, int16_t w, int16_t h, const char *tag, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)tag;
+    if (app == nullptr || surface == nullptr || w <= 0 || h <= 0) return 1;
+    if (app->captions.next_image_handle == 0u || app->captions.next_image_handle >= UINT32_C(0xf0000000)) {
+        record(app, "scene_aea_surface_error detail=handle-space-exhausted");
+        return 1;
+    }
+    NativeRaw555Image raw;
+    raw.width = static_cast<uint32_t>(w);
+    raw.height = static_cast<uint32_t>(h);
+    raw.pitch = raw.width * 2u;
+    raw.pixels.assign(static_cast<size_t>(raw.pitch) * raw.height, 0u);
+    const uint32_t handle = app->captions.next_image_handle++;
+    app->captions.raw_images.emplace(handle, std::move(raw));
+    app->aea_surfaces[handle] = true;
+    *surface = handle;
+    return 0;
+}
+
+/* 0x4c51a5: copy between two surfaces (equally sized rectangles, inclusive edges). */
+static int native_aea_blit(void *context, uint32_t src, uint32_t dst, const int32_t src_rect[4],
+                           const int32_t dst_rect[4])
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    CaptionCompositorView source{};
+    CaptionCompositorView destination{};
+    if (!native_caption_view_for_handle(app, src, &source) || !native_caption_view_for_handle(app, dst, &destination)) {
+        record(app, "scene_aea_surface_error detail=blit-surface-unavailable src=%u dst=%u", src, dst);
+        return 1;
+    }
+    const CaptionRect s{src_rect[0], src_rect[1], src_rect[2], src_rect[3]};
+    const CaptionRect d{dst_rect[0], dst_rect[1], dst_rect[2], dst_rect[3]};
+    const int status = caption_compositor_blit(&source, &destination, CAPTION_BLIT_OPAQUE, &s, &d,
+                                               app->captions.pixel_format.color_key);
+    if (status != CAPTION_COMPOSITOR_OK) {
+        record(app, "scene_aea_surface_error detail=blit-refused status=%d", status);
+        return 1;
+    }
+    return 0;
+}
+
+/* The inline copy (rep movsd) of the rotated entries: every pixel of the source into the equally sized target. */
+static int native_aea_copy_surface(void *context, uint32_t dst, uint32_t src)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *to = native_aea_image(app, dst);
+    const NativeRaw555Image *from = native_aea_image(app, src);
+    if (to == nullptr || from == nullptr || to->pixels.size() != from->pixels.size()) return 1;
+    to->width = from->width;
+    to->height = from->height;
+    to->pitch = from->pitch;
+    to->pixels = from->pixels;
+    return 0;
+}
+
+/* 0x4c7070: a quarter turn clockwise in place. Width and height swap, the new pitch is the old height * 2, and
+ * pixel (x, y) of the old image lands at column H - 1 - y of row x (the loops at 0x4c7150..0x4c71b1). */
+static int native_aea_rotate_surface(void *context, uint32_t surface, int16_t *w, int16_t *h)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *image = native_aea_image(app, surface);
+    if (image == nullptr || w == nullptr || h == nullptr || image->width == 0u || image->height == 0u ||
+        image->width > INT16_MAX || image->height > INT16_MAX) return 1;
+    const size_t old_w = image->width, old_h = image->height, old_pitch = image->pitch;
+    if (image->pixels.size() < (old_h - 1u) * old_pitch + old_w * 2u) return 1;
+    std::vector<uint8_t> rotated(old_w * old_h * 2u, 0u);
+    for (size_t x = 0; x < old_w; ++x) {
+        for (size_t y = 0; y < old_h; ++y) {
+            const uint8_t *from = image->pixels.data() + y * old_pitch + x * 2u;
+            uint8_t *to = rotated.data() + (x * old_h + (old_h - 1u - y)) * 2u;
+            to[0] = from[0];
+            to[1] = from[1];
+        }
+    }
+    image->width = static_cast<uint32_t>(old_h);
+    image->height = static_cast<uint32_t>(old_w);
+    image->pitch = static_cast<uint32_t>(old_h * 2u);
+    image->pixels = std::move(rotated);
+    *w = static_cast<int16_t>(image->width);
+    *h = static_cast<int16_t>(image->height);
+    return 0;
+}
+
+static int native_aea_release_surface(void *context, uint32_t surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    if (app->aea_surfaces.erase(surface) != 0u) app->captions.raw_images.erase(surface); /* loaded images stay cached */
+    return 0;
+}
+
+static int native_aea_sound_prepare(void *context, uint32_t id, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_aea_sound id=0x%x call=0x4fb77a NOT PLAYED (no effect backend)", id);
+    return 0;
+}
+
+static int native_aea_sound_stop(void *context, uint32_t id, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_aea_sound id=0x%x call=0x4fba69 NOT PLAYED (no effect backend)", id);
+    return 0;
+}
+
+static int native_aea_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_aea_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_aea_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    return 0;
+}
+
+static uint32_t native_aea_tick(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr ? app->session_tick_sample : 0u; /* GetTickCount */
+}
+
+static int native_aea_rand(void *context, int32_t *value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    uint32_t raw = 0u;
+    if (app == nullptr || value == nullptr ||
+        session_conditions_crt_rand_host(&app->condition_rand, &raw) != CONDITION_EXTRA_HOST_OK) return 1;
+    *value = static_cast<int32_t>(raw & 0x7fffu); /* _rand() is 0..32767 */
+    return 0;
+}
+
+static int native_aea_captions_enabled(void *context, int32_t *enabled)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || enabled == nullptr) return 1;
+    *enabled = app->world_clock_session.captions_enabled_5bb202; /* [0x5bb202] */
+    return 0;
+}
+
+/* 0x423259: the AUTOTEXT string of `key`, or none. The kernel wants a NUL-terminated copy. */
+static int native_aea_autotext(void *context, const char *key, const char **text)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || key == nullptr || text == nullptr) return 1;
+    *text = nullptr;
+    if (app->captions.auto_text == nullptr) return 0; /* nothing loaded: the same as "not found" */
+    const uint8_t *found = nullptr;
+    size_t raw_length = 0u, length = 0u;
+    const int status = autotext_lookup(app->captions.auto_text, reinterpret_cast<const uint8_t *>(key), std::strlen(key),
+                                       &found, &raw_length, &length);
+    if (status == AUTOTEXT_ERR_NOT_FOUND) return 0;
+    if (status != AUTOTEXT_OK) return 1;
+    app->aea_text.assign(reinterpret_cast<const char *>(found), length);
+    *text = app->aea_text.c_str();
+    return 0;
+}
+
+/* 0x448d11: the caption writer. A refused write is recorded and skipped; the original has no failure path here and a
+ * missing caption must not end the puzzle. */
+static int native_aea_caption(void *context, const char *text)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr) return 1;
+    const ActionFamily51BackendStatus status =
+        native_a51_write_caption(app, reinterpret_cast<const uint8_t *>(text), std::strlen(text));
+    if (status != ACTION_FAMILY_51_BACKEND_OK) record(app, "scene_aea_caption_error status=%d (caption not shown)", static_cast<int>(status));
+    return 0;
+}
+
+static int native_aea_transition(void *context, const EaTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_aea_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+static int native_aea_complete(void *context, int16_t row)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_aea_complete row=%d (0x42ba3a)", row);
+    return 0;
+}
+
+static void native_aea_store_world(void *context, const EaWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_aea_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_aea_handler(app->aea, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_aea_blocker row=%zu status=%d detail=%s", row, status, session_aea_failure(app->aea));
+    }
+    return status;
+}
+
+/* 0x4876ed: the blits of one render pass onto the back buffer. The restore blits (source 0x5d15e3, the saved
+ * background) are skipped: the back buffer is recomposed from the scene every tick. */
+static bool native_aea_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    EaRenderPlan plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_aea_render_plan(app->aea, &plan) != EA_OK) {
+        if (!app->aea_render_failure_logged) {
+            app->aea_render_failure_logged = true;
+            record(app, "scene_aea_render_error detail=plan-unavailable");
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    CaptionCompositorView destination{};
+    destination.pixels = captions.backbuffer_pixels.data();
+    destination.byte_capacity = captions.backbuffer_pixels.size();
+    destination.width = 640;
+    destination.height = 480;
+    destination.pitch_bytes = 1280;
+    destination.format = captions.compositor_format;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    int32_t drawn = 0;
+    for (int32_t i = 0; i < plan.count; ++i) {
+        const EaBlit &blit = plan.blit[i];
+        if (blit.src_kind == 0u) continue;
+        CaptionCompositorView source{};
+        if (!native_caption_view_for_handle(app, blit.src_surface, &source)) {
+            if (!app->aea_render_failure_logged) {
+                app->aea_render_failure_logged = true;
+                record(app, "scene_aea_render_error detail=surface-unavailable surface=%u", blit.src_surface);
+            }
+            return false;
+        }
+        const CaptionRect src{blit.src[0], blit.src[1], blit.src[2], blit.src[3]};
+        const CaptionRect dst{blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]};
+        const int status = caption_compositor_blit(&source, &destination,
+                                                   blit.kind == 0u ? CAPTION_BLIT_OPAQUE : CAPTION_BLIT_KEYED, &src, &dst,
+                                                   captions.pixel_format.color_key);
+        if (status != CAPTION_COMPOSITOR_OK) {
+            if (!app->aea_render_failure_logged) {
+                app->aea_render_failure_logged = true;
+                record(app, "scene_aea_render_error status=%d blit=%d kind=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; no pixels written)", status, i, blit.kind, blit.src[0], blit.src[1],
+                       blit.src[2], blit.src[3], blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]);
+            }
+            return false;
+        }
+        ++drawn;
+        for (int k = 0; k < 4; ++k) {
+            signature ^= static_cast<uint32_t>(blit.dst[k]);
+            signature *= UINT64_C(1099511628211);
+        }
+    }
+    if (signature != app->aea_plan_signature) {
+        app->aea_plan_signature = signature;
+        record(app, "scene_aea_blit blits=%d composed=back-buffer scope=host-adapter (layer order vs UI unverified)",
+               drawn);
     }
     return true;
 }
@@ -5353,6 +5739,35 @@ static bool create_native_session_bindings(NativeApp *app)
     ad1_host.kernel.observe = native_ad1_observe;
     ad1_host.store_world = native_ad1_store_world;
     app->ad1 = session_ad1_create(&ad1_host);
+    SessionAeaHost aea_host{};
+    aea_host.kernel.context = app;
+    aea_host.kernel.view = native_aea_view;
+    aea_host.kernel.alloc_slot = native_aea_alloc_slot;
+    aea_host.kernel.register_slot = native_aea_register_slot;
+    aea_host.kernel.release_slot = native_aea_release_slot;
+    aea_host.kernel.mark_dirty = native_aea_mark_dirty;
+    aea_host.kernel.load_surface = native_aea_load_surface;
+    aea_host.kernel.create_surface = native_aea_create_surface;
+    aea_host.kernel.blit = native_aea_blit;
+    aea_host.kernel.copy_surface = native_aea_copy_surface;
+    aea_host.kernel.rotate_surface = native_aea_rotate_surface;
+    aea_host.kernel.release_surface = native_aea_release_surface;
+    aea_host.kernel.clear_pending_item = native_ad1_clear_item;
+    aea_host.kernel.sound_prepare = native_aea_sound_prepare;
+    aea_host.kernel.sound_stop = native_aea_sound_stop;
+    aea_host.kernel.sound_play = native_aea_sound_play;
+    aea_host.kernel.sound_busy = native_aea_sound_busy;
+    aea_host.kernel.tick = native_aea_tick;
+    aea_host.kernel.rand_value = native_aea_rand;
+    aea_host.kernel.captions_enabled = native_aea_captions_enabled;
+    aea_host.kernel.autotext_lookup = native_aea_autotext;
+    aea_host.kernel.caption_show = native_aea_caption;
+    aea_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    aea_host.kernel.transition = native_aea_transition;
+    aea_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    aea_host.kernel.complete = native_aea_complete;
+    aea_host.store_world = native_aea_store_world;
+    app->aea = session_aea_create(&aea_host);
     ActionFamily95Host a95_host{};
     a95_host.context = app;
     a95_host.set_channel_scalars = native_a95_set_channel_scalars;
@@ -5492,7 +5907,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->aea == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5753,6 +6168,13 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad1_slot_used.fill(false);
     app->ad1_plan_signature = 0u;
     app->ad1_render_failure_logged = false;
+    if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
+        record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
+        return false;
+    }
+    app->aea_slot_used.fill(false);
+    app->aea_plan_signature = 0u;
+    app->aea_render_failure_logged = false;
     app->ad9_slot_used.fill(false);
     app->ad9_background_seed = UINT64_MAX;
     app->ad9_plan_signature = 0u;
@@ -6018,6 +6440,45 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
+    /* RT-45: the Onebuild puzzle's accepted-release chain (0x43b327 -> 0x48569e), same gate and candidate source. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->aea != nullptr && session_aea_registered(app->aea) != 0u && app->session != nullptr) {
+        const EaObject *puzzle = session_aea_object(app->aea);
+        SceneActionRuntimeState puzzle_state{};
+        uint32_t new_phase = 0u;
+        const int16_t puzzle_row = puzzle != nullptr ? ea_object_row(puzzle) : static_cast<int16_t>(-1);
+        if (puzzle_row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(puzzle_row), &puzzle_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_aea_click(app->aea, puzzle_state.phase, app->input_state.candidate, &new_phase);
+            if (click != EA_OK) {
+                record(app, "scene_aea_click_error row=%d status=%d detail=%s", puzzle_row, click,
+                       session_aea_failure(app->aea));
+            } else if (new_phase == 2u && puzzle_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle_row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_aea_click row=%d candidate=%d -> phase 2 (0x48569e)", puzzle_row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_aea_click_error row=%d detail=phase-2-store-refused", puzzle_row);
+            }
+        }
+    }
+    app->aea_pointer = EaPointerResult{};
+    app->aea_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aea != nullptr &&
+        session_aea_registered(app->aea) != 0u) {
+        /* ptr+0x4a: the cursor sprite rectangle relative to the viewport (+ the 0x5bb587 scroll on y), as 0x4f0059
+         * builds it; the sprite model is still the provisional 1 x 1 cursor (see ProvisionalCursorProvider). */
+        SessionInputContext hot_input{};
+        native_pointer_context(app, &hot_input);
+        const int32_t hot[4] = {hot_input.cursor.left - hot_input.viewport.left,
+                                hot_input.cursor.top - hot_input.viewport.top + hot_input.scroll_y,
+                                hot_input.cursor.right - hot_input.viewport.left,
+                                hot_input.cursor.bottom - hot_input.viewport.top + hot_input.scroll_y};
+        (void)session_aea_pointer_move(app->aea, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y), hot, &app->aea_pointer);
+    }
     app->ad1_pointer = D1PointerResult{};
     app->ad1_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad1 != nullptr &&
@@ -6125,6 +6586,11 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* 0x4f0b1e: the Turning Puzzle's hit test returns before the generic row loop (0x4b6097 writes the
          * candidate). The cursor index it also writes is not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->ad1_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->aea_pointer.hit != 0u) {
+        /* 0x4f0d61: the Onebuild puzzle's receiver 0x484f42 returns before the generic row loop and has written
+         * the candidate (0x2777..0x277c). The cursor index it also writes is not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->aea_pointer.candidate);
     }
     *candidate = app->input_state.candidate;
     if (status == SESSION_INPUT_OK && app->nav_scene_ready) {
@@ -6323,7 +6789,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[41]{};
+    SceneSessionActionBinding bindings[42]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6517,12 +6983,19 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[39].callback = native_a4e_handler;
     bindings[39].context = app;
     /* RT-46: raw 0x33 secondary video with hotspots (handler 0x42c221, gate mode 1; phase 0 needs a media backend, see
-     * native_a33_media_available). Slot 39 is raw 0x4e (RT-44). */
+     * native_a33_media_available). Slot 40 is raw 0x33 (RT-46). */
     bindings[40].type = SESSION_A33_TYPE;
     bindings[40].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[40].callback = native_a33_handler;
     bindings[40].context = app;
-    config.action_binding_count = 41u;
+    /* RT-45: raw 0xea Onebuild puzzle (dispatcher arm 0x42a759 -> 0x4867bd, gate mode 0; phase 2 completes through
+     * 0x42ba3a). Slot 41 follows raw 0x33 (RT-46). The render callback 0x4876ed runs from the app tick
+     * (native_aea_render). */
+    bindings[41].type = SESSION_AEA_TYPE;
+    bindings[41].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[41].callback = native_aea_handler;
+    bindings[41].context = app;
+    config.action_binding_count = 42u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
