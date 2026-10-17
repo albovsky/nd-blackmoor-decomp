@@ -641,7 +641,7 @@ class Registration(unittest.TestCase):
     def test_every_generic_entry_allocator_excludes_the_multibuild_puzzle(self):
         """The allocators of the shared z entry range 0x18..0x3f all skip the Multibuild puzzle's slots, and its own skips theirs."""
         app = (SRC / 'blackmoor_app.mm').read_text()
-        puzzle = {'ad9', 'ad1', 'aea', 'af6', 'ad0', 'aaa', 'ae0', 'ad3', 'ae4'}
+        puzzle = {'ad9', 'ad1', 'aea', 'af6', 'ad0', 'aaa', 'ae0', 'ad3', 'ae4', 'af5'}
         bodies = {}
         for name in puzzle | {'aeb'}:
             start = app.index(f'static int native_{name}_alloc_slot(')
