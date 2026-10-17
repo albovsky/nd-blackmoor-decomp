@@ -344,7 +344,6 @@ struct NativeApp {
     uint8_t ae4_cursor_logged = 0u;   /* bit 0: cursor 9 (exit button) logged once; bit 1: cursor 0x16 (piece, shuffle) */
     uint32_t ae4_plan_logged = 0u;    /* distinct render plan shapes logged (capped) */
     bool ae4_text_logged = false;     /* "MATCH PUZZLE TEXT NOT DRAWN" logged once */
-    bool ae4_score_surface_logged = false;
     /* RT-45: raw 0xea Onebuild (jigsaw) puzzle. aea_surfaces holds the handles of the puzzle's own piece surfaces
      * (0x4c2a8d), which the kernel releases through 0x4c2dfb; loaded images stay cached by name. */
     SessionAeaBinding *aea = nullptr;
