@@ -188,8 +188,8 @@ typedef struct EbResult {
     uint8_t completed;   /* phase 2 ran 0x42ba3a: the executor applies the generic completion for the subtype */
 } EbResult;
 
-/* 0x47e3f7: the saved puzzle state of the world (flag 0, scene 9999, everything else zero). The start flag and the
- * current scene are not touched. */
+/* 0x47e3f7: the saved puzzle state of the world (flag 0, scene 9999, counters and instances zero). The start flag, the
+ * current scene and the saved count and total words are not touched (the original does not write them). */
 void eb_world_reset(EbWorld *world);
 
 /* A power-on object: zeroed storage plus 0x47e25a (row -1, slot -1, inactive). */

@@ -220,8 +220,8 @@ void eb_world_reset(EbWorld *world)
     world->saved_scene = EB_NO_SCENE;
     memset(world->saved_counts, 0, sizeof world->saved_counts);
     memset(world->saved_pieces, 0, sizeof world->saved_pieces);
-    world->saved_count = 0;
-    world->saved_total = 0;
+    /* 0x47e3f7 writes the flag, the scene word, the 20 counters (0x5a0563..0x5a0576) and the 80 instances only: the count
+     * (0x5a1107) and the total (0x5a1109) words keep their values (verified against the original by the RT-56 oracle). */
 }
 
 int16_t eb_object_slot(const EbObject *object) { return rd_s16(object->b, O_SLOT); }
