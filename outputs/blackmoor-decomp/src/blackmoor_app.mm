@@ -40,6 +40,7 @@
 #include "session_bindings_a4f.h"
 #include "session_bindings_a65_a68_a69.h"
 #include "session_bindings_a45.h"
+#include "session_bindings_a47.h"
 #include "session_bindings_a4b.h"
 #include "session_bindings_a67.h"
 #include "session_bindings_a94.h"
@@ -288,6 +289,10 @@ struct NativeApp {
      * built per scene by begin_native_session_bindings_scene) goes to the caption writer 0x448d11, the same one raw 0x51
      * uses, then the generic completion. Not compiled here. */
     SessionA4bBinding *a4b = nullptr;
+    /* RT-42: raw 0x47 journal entry add (arm 0x428515, gate mode 0, appender 0x412787): the binding owns the three journal
+     * tables (names, codes, link values, counts) and the page-2 "new entry" flags; the AUTOTEXT lookup is raw 0x51's. The
+     * text writer's link table (RT-34, table 0) is not wired to these tables yet. Not compiled here. */
+    SessionA47Binding *a47 = nullptr;
     /* RT-32: raw 0x94 (AT_MAKE_SCREEN_FILE, arm 0x429747, handler 0x4c36b2). DAT_005839a9 is the capture flag the
      * renderer reads; 0x4d36ed requests a full redraw (0x5831c8 := 1). Neither reader is modelled here. Not compiled
      * here. */
@@ -1932,6 +1937,7 @@ static void cleanup(NativeApp *app)
     session_a65_destroy(app->a65);
     session_a45_destroy(app->a45);
     session_a4b_destroy(app->a4b);
+    session_a47_destroy(app->a47);
     session_a94_destroy(app->a94);
     session_a43_destroy(app->a43);
     session_a2d_destroy(app->a2d);
@@ -3688,6 +3694,24 @@ static int native_a4b_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* RT-42: raw 0x47. The tables live in the binding; a visit that needs the AUTOTEXT lookup while the AUTOTEXT table is not loaded
+ * leaves the row untouched (UNSUPPORTED). */
+static int native_a47_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a47_handler(app->a47, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a47_blocker row=%zu status=%d detail=%s", row, status, session_a47_failure(app->a47));
+    } else {
+        const A47Outcome *outcome = session_a47_last_outcome(app->a47);
+        record(app, "scene_a47_visit row=%zu table=%d appended=%d duplicate=%d lookup_miss=%d index=%d", row, (int)outcome->table,
+               (int)outcome->appended, (int)outcome->duplicate, (int)outcome->lookup_miss, (int)outcome->index);
+    }
+    return status;
+}
+
 /* RT-32: raw 0x94 host effects. The original locks the DirectDraw front buffer (16-bit words), crops it and writes a
  * 24-bit BMP or a 16-bit TGA beside the game; here the composed 640x480 RGBA frame is packed to 5-6-5 words, which the
  * module brings to 5-5-5 exactly as 0x4c7481 does, and the files go to ~/Library/Application Support/Blackmoor
@@ -5140,6 +5164,10 @@ static bool create_native_session_bindings(NativeApp *app)
     a4b_host.lookup_context = app;
     a4b_host.write_caption = native_a4b_write_caption;
     app->a4b = session_a4b_create(&a4b_host);
+    SessionA47Host a47_host{};
+    a47_host.lookup = app->captions.auto_text != nullptr ? native_a51_autotext_lookup : nullptr;
+    a47_host.lookup_context = app;
+    app->a47 = session_a47_create(&a47_host);
     SessionA94Host a94_host{};
     a94_host.context = app;
     a94_host.set_capture_flag = native_a94_set_capture_flag;
@@ -5221,7 +5249,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a1b == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a1b == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -6045,7 +6073,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[37]{};
+    SceneSessionActionBinding bindings[39]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6222,7 +6250,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[36].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[36].callback = session_a1b_handler;
     bindings[36].context = app->a1b;
-    config.action_binding_count = 37u;
+    /* RT-42: raw 0x47 journal entry add (arm 0x428515, gate mode 0, generic completion). Slot 37 is reserved for raw 0x7d (RT-41). */
+    bindings[38].type = SESSION_A47_TYPE;
+    bindings[38].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[38].callback = native_a47_handler;
+    bindings[38].context = app;
+    config.action_binding_count = 39u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
