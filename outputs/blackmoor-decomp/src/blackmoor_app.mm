@@ -59,6 +59,7 @@
 #include "session_bindings_a77.h"
 #include "session_bindings_ad0.h"
 #include "session_bindings_aaa.h"
+#include "session_bindings_ad3.h"
 #include "session_bindings_aea.h"
 #include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_conditions.h"
@@ -313,6 +314,15 @@ struct NativeApp {
     AlcPointerResult aaa_pointer{};
     uint64_t aaa_plan_signature = 0u;
     bool aaa_render_failure_logged = false;
+    /* RT-53: raw 0xd3 Collision Puzzle (dispatcher arm 0x42a210 -> handler 0x463392, render callback 0x463b10 of a dynamic generic Z
+     * entry). The back buffer is reseeded every tick, so the kernel's overlay and piece blits are drawn every tick and the
+     * background restore (kind 5) is implicit. The persistent grid is owned by the binding. Not compiled in the cloud (no macOS
+     * toolchain). */
+    SessionAd3Binding *ad3 = nullptr;
+    std::array<bool, 0x40> ad3_slot_used{};
+    CpzPointerResult ad3_pointer{};
+    uint64_t ad3_plan_signature = 0u;
+    bool ad3_render_failure_logged = false;
     /* RT-45: raw 0xea Onebuild (jigsaw) puzzle. aea_surfaces holds the handles of the puzzle's own piece surfaces
      * (0x4c2a8d), which the kernel releases through 0x4c2dfb; loaded images stay cached by name. */
     SessionAeaBinding *aea = nullptr;
@@ -1061,6 +1071,7 @@ static bool native_ad1_render(NativeApp *app);
 static bool native_a77_render(NativeApp *app);
 static bool native_ad0_render(NativeApp *app);
 static bool native_aaa_render(NativeApp *app);
+static bool native_ad3_render(NativeApp *app);
 static bool native_aea_render(NativeApp *app);
 static bool native_af6_render(NativeApp *app);
 
@@ -1453,6 +1464,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->aaa != nullptr && session_aaa_registered(app->aaa) != 0u) {
         /* RT-52: the Alarm Clock's render entry (type 10, callback 0x44e035), same slot range. */
         (void)native_aaa_render(app);
+    }
+    if (app->ad3 != nullptr && session_ad3_registered(app->ad3) != 0u) {
+        /* RT-53: the Collision Puzzle's render entry (type 10, callback 0x463b10), same slot range. */
+        (void)native_ad3_render(app);
     }
     if (app->aea != nullptr && session_aea_registered(app->aea) != 0u) {
         /* RT-45: the Onebuild puzzle's render entry (type 10, callback 0x4876ed), same slot range. */
@@ -2048,6 +2063,7 @@ static void cleanup(NativeApp *app)
     session_a77_destroy(app->a77);
     session_ad0_destroy(app->ad0);
     session_aaa_destroy(app->aaa);
+    session_ad3_destroy(app->ad3);
     session_aea_destroy(app->aea);
     session_a20_destroy(app->a20);
     session_a70_destroy(app->a70);
@@ -3554,7 +3570,8 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->af6_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
-            !app->aaa_slot_used[static_cast<size_t>(i)]) {
+            !app->aaa_slot_used[static_cast<size_t>(i)] &&
+            !app->ad3_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4639,7 +4656,8 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
-            !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)]) {
+            !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
+            !app->ad3_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5071,7 +5089,8 @@ static int native_aea_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->aea_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
-            !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)]) {
+            !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
+            !app->ad3_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5417,7 +5436,8 @@ static int native_af6_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->af6_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
-            !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)]) {
+            !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
+            !app->ad3_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5730,7 +5750,8 @@ static int native_ad0_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         const size_t index = static_cast<size_t>(i);
         if (!app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
-            !app->aea_slot_used[index] && !app->af6_slot_used[index] && !app->aaa_slot_used[index]) {
+            !app->aea_slot_used[index] && !app->af6_slot_used[index] && !app->aaa_slot_used[index] &&
+            !app->ad3_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -5961,7 +5982,8 @@ static int native_aaa_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         const size_t index = static_cast<size_t>(i);
         if (!app->aaa_slot_used[index] && !app->ad0_slot_used[index] && !app->ad1_slot_used[index] &&
-            !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index]) {
+            !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index] &&
+            !app->ad3_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6178,6 +6200,222 @@ static bool native_aaa_render(NativeApp *app)
         app->aaa_plan_signature = signature;
         record(app, "scene_aaa_blit blits=%d composed=back-buffer scope=host-adapter (layer order vs UI unverified; "
                "restores 13..18 implicit)", static_cast<int>(result.count));
+    }
+    return true;
+}
+
+/* ---- RT-53: raw 0xd3 Collision Puzzle host providers ----------------------------------------------------------
+ * The kernel (action_family_d3_runtime.c) is the recovered 0x463392 phase machine with the pointer 0x462c39 / 0x4630a3, the click
+ * 0x4631d1, the move check 0x4619be, the animation step 0x461d82, the solved scan 0x4632bf, the grid setup 0x462577 and the render
+ * callback 0x463b10; the binding (session_bindings_ad3.c) owns the object at 0x61d779 and the persistent grid (0x594db3..). The
+ * host supplies the generic Z entry table (0x4d39f9 / 0x4d3992), the CIFTREE image (0x4c2790), the view origin (0x583186 /
+ * 0x58318a), the held item commit (0x4e8d96), the tick, the scene change and event flag of the finish blocks and the sound engine
+ * calls. Sound is NOT wired: the sound calls are logged "NOT PLAYED (no effect backend)" and report "not busy", so the final
+ * sound step completes at once. The view origin, tick, event flag and held item providers are the Turning Puzzle's (0xd1: same
+ * signatures, same cells). Slot 49, count 50. */
+
+static int native_ad3_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        const size_t index = static_cast<size_t>(i);
+        if (!app->ad3_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
+            !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
+            !app->af6_slot_used[index]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_ad3_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_ad3_register_slot(void *context, int16_t slot, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->ad3_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_ad3_register slot=%d label=%s (type 10 entry, callback 0x463b10)", slot, label);
+    return 0;
+}
+
+static int native_ad3_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "collision-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_ad3_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_ad3_surface_load name=%s surface=%u source=CIFTREE (0x4c2790)", name, handle);
+    return 0;
+}
+
+static int native_ad3_set_slot_surface(void *context, int16_t slot, uint32_t surface)
+{
+    (void)context;
+    (void)slot;
+    (void)surface;
+    return 0;
+}
+
+static int native_ad3_release_surface(void *context, uint32_t surface)
+{
+    (void)context;
+    (void)surface; /* images stay cached by name, as for the other families */
+    return 0;
+}
+
+static int native_ad3_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->ad3_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_ad3_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass runs every tick */
+    return 0;
+}
+
+static int native_ad3_sound_prepare(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_ad3_sound call=0x4fb77a NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_ad3_sound_stop(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_ad3_sound call=0x4fba69 NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_ad3_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_ad3_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_ad3_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here, so the final sound step completes at once */
+    return 0;
+}
+
+static int native_ad3_transition(void *context, const CpzTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_ad3_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+/* The start flag 0x5bb1ca the handler wrote in phase 0 and phase 2 (the persistent grid stays in the binding). */
+static void native_ad3_store_world(void *context, const CpzWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static void native_ad3_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == CPZ_FX_PHASE) {
+        record(app, "scene_ad3_phase new_phase=%d (0x463392)", a);
+    } else if (effect == CPZ_FX_COMPLETE) {
+        record(app, "scene_ad3_complete row=%d (0x42ba3a)", a);
+    } else if (effect == CPZ_FX_GRID_SETUP) {
+        record(app, "scene_ad3_grid_setup ran=%d (0x462577; once per game unless the persist byte is 0)", a);
+    } else if (effect == CPZ_FX_GRID_RESET) {
+        record(app, "scene_ad3_grid_reset (0x4618df, persist byte 0)");
+    }
+}
+
+static int native_ad3_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_ad3_handler(app->ad3, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_ad3_blocker row=%zu status=%d detail=%s", row, status, session_ad3_failure(app->ad3));
+    }
+    return status;
+}
+
+/* 0x463b10: one opaque copy (0x4c5377) per drawn part: the target, arrow and wall overlays of every visible cell, the background
+ * restore over the rectangle a piece just left (kind 5) and the pieces. The original draws into a persistent surface; the app's
+ * back buffer is reseeded from the decoded scene frame on every tick (advance_native_session_media_one) before the overlays are
+ * drawn, so the restore is implicit and every other part is drawn again on every tick. Layer order against the UI is
+ * unverified, as is whether the original blit keys a transparent colour. */
+static bool native_ad3_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    CpzRenderResult result{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_ad3_render(app->ad3, &result) != CPZ_OK) {
+        if (!app->ad3_render_failure_logged) {
+            app->ad3_render_failure_logged = true;
+            record(app, "scene_ad3_render_error detail=render-refused (%s)", session_ad3_failure(app->ad3));
+        }
+        return false;
+    }
+    if (result.valid == 0u) return true;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    for (uint16_t i = 0; i < result.count; ++i) {
+        const CpzBlit &blit = result.blit[i];
+        signature ^= static_cast<uint32_t>(blit.kind);
+        signature *= UINT64_C(1099511628211);
+        if (blit.kind == CPZ_BLIT_RESTORE) continue; /* restore from the saved scene frame: the back buffer already holds it */
+        CaptionCompositorView puzzle_view{};
+        if (!native_caption_view_for_handle(app, blit.src_surface, &puzzle_view)) {
+            if (!app->ad3_render_failure_logged) {
+                app->ad3_render_failure_logged = true;
+                record(app, "scene_ad3_render_error detail=puzzle-surface-unavailable surface=%u", blit.src_surface);
+            }
+            return false;
+        }
+        D9Surface puzzle{puzzle_view.pixels, puzzle_view.byte_capacity, puzzle_view.pitch_bytes};
+        D9Surface back{captions.backbuffer_pixels.data(), captions.backbuffer_pixels.size(), 1280};
+        const int status = d9_blit_copy(&puzzle, &back, blit.src, blit.dst);
+        if (status != D9_OK) {
+            if (!app->ad3_render_failure_logged) {
+                app->ad3_render_failure_logged = true;
+                record(app, "scene_ad3_render_error status=%d kind=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; no pixels written)", status, blit.kind, blit.src[0], blit.src[1], blit.src[2],
+                       blit.src[3], blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]);
+            }
+            return false;
+        }
+    }
+    if (signature != app->ad3_plan_signature) {
+        app->ad3_plan_signature = signature;
+        record(app, "scene_ad3_blit blits=%d composed=back-buffer scope=host-adapter (layer order vs UI unverified; "
+               "restore implicit)", static_cast<int>(result.count));
     }
     return true;
 }
@@ -7023,6 +7261,28 @@ static bool create_native_session_bindings(NativeApp *app)
     aaa_host.load_world = native_aaa_load_world;
     aaa_host.store_world = native_aaa_store_world;
     app->aaa = session_aaa_create(&aaa_host);
+    SessionAd3Host ad3_host{};   /* RT-53 */
+    ad3_host.kernel.context = app;
+    ad3_host.kernel.alloc_slot = native_ad3_alloc_slot;
+    ad3_host.kernel.register_slot = native_ad3_register_slot;
+    ad3_host.kernel.load_surface = native_ad3_load_surface;
+    ad3_host.kernel.set_slot_surface = native_ad3_set_slot_surface;
+    ad3_host.kernel.release_surface = native_ad3_release_surface;
+    ad3_host.kernel.release_slot = native_ad3_release_slot;
+    ad3_host.kernel.mark_dirty = native_ad3_mark_dirty;
+    ad3_host.kernel.view_origin = native_ad1_view_origin;
+    ad3_host.kernel.clear_pending_item = native_ad1_clear_item;
+    ad3_host.kernel.sound_prepare = native_ad3_sound_prepare;
+    ad3_host.kernel.sound_stop = native_ad3_sound_stop;
+    ad3_host.kernel.sound_play = native_ad3_sound_play;
+    ad3_host.kernel.sound_busy = native_ad3_sound_busy;
+    ad3_host.kernel.tick = native_ad1_tick;
+    ad3_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    ad3_host.kernel.transition = native_ad3_transition;
+    ad3_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    ad3_host.kernel.observe = native_ad3_observe;
+    ad3_host.store_world = native_ad3_store_world;
+    app->ad3 = session_ad3_create(&ad3_host);
     SessionAeaHost aea_host{};
     aea_host.kernel.context = app;
     aea_host.kernel.view = native_aea_view;
@@ -7211,7 +7471,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -7503,6 +7763,13 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->aaa_slot_used.fill(false);
     app->aaa_plan_signature = 0u;
     app->aaa_render_failure_logged = false;
+    if (session_ad3_begin_scene(app->ad3, app->scene) != CPZ_OK) {
+        record(app, "scene_session_create_error provider=action-family-d3 detail=%s", session_ad3_failure(app->ad3));
+        return false;
+    }
+    app->ad3_slot_used.fill(false);
+    app->ad3_plan_signature = 0u;
+    app->ad3_render_failure_logged = false;
     if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
         record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
         return false;
@@ -7875,6 +8142,35 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
+    /* RT-53: the Collision Puzzle's click method 0x4631d1 (accepted-release chain, same gate): a slide start (candidates
+     * 0x2780..0x2783) or the cancel (0x277f, row phase := 2), gated on active, not solved, state IDLE and row phase 1 inside the
+     * kernel. The retained candidate is the one the pointer hit test wrote. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->ad3 != nullptr && session_ad3_object(app->ad3)->active != 0 && app->session != nullptr) {
+        const CpzObject *puzzle = session_ad3_object(app->ad3);
+        SceneActionRuntimeState puzzle_state{};
+        CpzClickResult click_result{};
+        if (puzzle->row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(puzzle->row), &puzzle_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_ad3_click(app->ad3, puzzle_state.phase, app->input_state.candidate,
+                                                app->start_flag_5bb1ca, &click_result);
+            if (click != CPZ_OK) {
+                record(app, "scene_ad3_click_error row=%d status=%d detail=%s", puzzle->row, click,
+                       session_ad3_failure(app->ad3));
+            } else if (click_result.new_phase == 2u && puzzle_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle->row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_ad3_click row=%d candidate=%d -> phase 2 (0x4631d1)", puzzle->row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_ad3_click_error row=%d detail=phase-2-store-refused", puzzle->row);
+            } else if (click_result.move_started != 0u) {
+                record(app, "scene_ad3_move row=%d dir=%d piece=%d sound=%s (0x4631d1)", puzzle->row, puzzle->dir,
+                       puzzle->piece, click_result.sound_played != 0u ? "issued" : "none");
+            }
+        }
+    }
     /* RT-45: the Onebuild puzzle's accepted-release chain (0x43b327 -> 0x48569e), same gate and candidate source. */
     if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
         app->aea != nullptr && session_aea_registered(app->aea) != 0u && app->session != nullptr) {
@@ -7945,6 +8241,12 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_aaa_object(app->aaa)->active != 0)
         (void)session_aaa_pointer_move(app->aaa, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->aaa_pointer);
+    app->ad3_pointer = CpzPointerResult{};
+    app->ad3_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad3 != nullptr &&
+        session_ad3_object(app->ad3)->active != 0)
+        (void)session_ad3_pointer_move(app->ad3, static_cast<int32_t>(frame->pointer_x),
+                                       static_cast<int32_t>(frame->pointer_y), &app->ad3_pointer);
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
@@ -8061,6 +8363,12 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* 0x44d28c (cascade 0x4f0059 at 0x4f1004): the Alarm Clock's hit test returns before the generic row loop and has written
          * the candidate (0x276e). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->aaa_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->ad3_pointer.hit != 0u) {
+        /* 0x462c39 (cascade 0x4f0059): the Collision Puzzle's hit test returns before the generic row loop and has written the
+         * candidate (0x277f cancel, 0x2780..0x2783 slide). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by
+         * the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->ad3_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->aea_pointer.hit != 0u) {
         /* 0x4f0d61: the Onebuild puzzle's receiver 0x484f42 returns before the generic row loop and has written
@@ -8276,7 +8584,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[49]{};
+    SceneSessionActionBinding bindings[50]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -8517,7 +8825,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[48].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[48].callback = native_aaa_handler;
     bindings[48].context = app;
-    config.action_binding_count = 49u;
+    /* RT-53: raw 0xd3 Collision Puzzle (dispatcher arm 0x42a210 -> 0x463392, gate mode 0; phase 2 completes through 0x42ba3a). The
+     * render callback 0x463b10 runs from the app tick (native_ad3_render). Slot 49, count 50 (RT-52 (0xaa) holds 48). */
+    bindings[49].type = SESSION_AD3_TYPE;
+    bindings[49].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[49].callback = native_ad3_handler;
+    bindings[49].context = app;
+    config.action_binding_count = 50u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -8991,6 +9305,8 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
         record(app, "world_init_error new-game status=%d", status);
         return false;
     }
+    /* RT-53: the new-game reset 0x438471 calls 0x4618df, which clears the Collision Puzzle's one-time setup flag and its grid. */
+    if (app->ad3 != nullptr) session_ad3_grid_reset(app->ad3);
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
     if (!app->test_inventory.empty() || app->test_held != -2) {
         WorldInitInventory &inv = app->new_game.view.inventory;
