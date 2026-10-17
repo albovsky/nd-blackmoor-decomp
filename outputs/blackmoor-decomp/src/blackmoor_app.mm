@@ -9645,6 +9645,15 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->af5_plan_signature = 0u;
     app->af5_render_failure_logged = false;
     app->af5_text_stub_logged = false;
+    if (session_a76_begin_scene(app->a76, app->scene) != PWD_OK) {
+        record(app, "scene_session_create_error provider=action-family-76 detail=%s", session_a76_failure(app->a76));
+        return false;
+    }
+    app->a76_plan_signature = 0u;
+    app->a76_render_failure_logged = false;
+    app->a76_text_logged = false;
+    app->a76_width_stub_logged = false;
+    app->a76_background_seed = UINT64_MAX;
     /* RT-57: raw 0x1c starts every scene from a power-on object. */
     app->a1c_slot_used.fill(false);
     app->a1c_wait_logged = false;
@@ -9659,15 +9668,6 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
             return false;
         }
     }
-    if (session_a76_begin_scene(app->a76, app->scene) != PWD_OK) {
-        record(app, "scene_session_create_error provider=action-family-76 detail=%s", session_a76_failure(app->a76));
-        return false;
-    }
-    app->a76_plan_signature = 0u;
-    app->a76_render_failure_logged = false;
-    app->a76_text_logged = false;
-    app->a76_width_stub_logged = false;
-    app->a76_background_seed = UINT64_MAX;
     if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
         record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
         return false;
