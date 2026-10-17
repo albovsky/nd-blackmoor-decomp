@@ -112,7 +112,7 @@ m('e0-rounds', 'constant', 'o->rounds = 1;\n        o->round = 0;', 'o->rounds =
 m('e0-scene', 'constant', 'o->scene = rd_s16(b, B_ROUNDS);', 'o->scene = E0_NO_SCENE;')
 m('e0-col-gap', 'rect', '(uint32_t)(int32_t)rd_s16(b, B_KEY_W) + (uint32_t)(int32_t)rd_s16(b, B_XGAP));',
   '(uint32_t)(int32_t)rd_s16(b, B_KEY_W) + (uint32_t)(int32_t)rd_s16(b, B_YGAP));')
-m('e0-row-floor', 'rect', 'const int16_t qi = (int16_t)(int32_t)q;', 'const int16_t qi = (int16_t)((int32_t)i / (int32_t)cols);')
+m('e0-row-floor', 'rect', 'const int16_t qi = (int16_t)(int32_t)q;', 'const int16_t qi = (int16_t)(cols != 0 ? (int32_t)i / (int32_t)cols : (int32_t)q);')
 # ---- pointer
 m('pointer-exit-area-edge', 'compare', 'x <= rd_s32(b, B_EXIT_AREA + 8)) {', 'x < rd_s32(b, B_EXIT_AREA + 8)) {')
 m('pointer-key-edge', 'compare', 'x <= o->rect_b[i][2]) {', 'x < o->rect_b[i][2]) {')
@@ -151,7 +151,14 @@ m('render-light-empty', 'predicate', 'rd_rect(b, d, dst);\n            if (dst[3
 
 # Mutants proved equivalent by reading the code: they cannot change any observable behaviour, so a surviving run is the
 # expected result. They are reported separately and never count as killed.
-EQUIVALENT = {}
+EQUIVALENT = {
+    'click-shift-bound': 'the extra iteration i == code_len - 1 copies player[code_len] into player[code_len - 1], which the next '
+                         'statement overwrites with the hover index; for code_len <= 0 neither loop runs',
+    'click-typed-clamp': 'when typed == N the clamp assigns N to typed, which already is N: `>` and `>=` give the same value',
+    'click-code-clamp': 'when typed == code_len the clamp assigns code_len to typed, which already is code_len',
+    'invalidate-active': 'slot != -1 implies active != 0: phase 0 sets active before it takes a slot, phase 2 clears both in the '
+                         'same visit (the cleanup sets slot -1) and no poke touches active or slot',
+}
 
 
 def apply(text, old, new, count, which):

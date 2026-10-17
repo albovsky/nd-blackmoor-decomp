@@ -287,7 +287,8 @@ def grid_rects(n, x0, y0, w, h, gx, gy, cols):
 
 def make_body(rng, flag, N=6, ordered=0, exit_btn=True, rec=None, snd_a=NO_SOUND, snd_b=NO_SOUND, click_ch=2, ch_b=3, delay=1,
               fail=None, xblock=None, xrect=(500, 10, 560, 40), R=2, layout=None, blink=0, rounds=None, sets=(), allb=None,
-              name=b'KEYPAD SHEET', exit_pr=(600, 5, 640, 30), exit_rect=(300, 400, 360, 440), garbage=False):
+              name=b'KEYPAD SHEET', exit_pr=(600, 5, 640, 30), exit_rect=(300, 400, 360, 440), garbage=False, light_dst=None,
+              active_dst=None):
     """A synthetic typed body (1,733 bytes for flag 0, 294 for flag 1). `rec` = (K, ordered_byte, code); `rounds` = the four
     extra records of raw 0xd6; `sets` = up to five code sets (1-based key numbers)."""
     b = bytearray(rng.randbytes(BODY_LEN[0])) if garbage else bytearray(BODY_LEN[0])
@@ -319,6 +320,10 @@ def make_body(rng, flag, N=6, ordered=0, exit_btn=True, rec=None, snd_a=NO_SOUND
         b[B_D6_LIGHT_DST + 16 * i:B_D6_LIGHT_DST + 16 * i + 16] = rect(10 + 12 * i, 340, 20 + 12 * i, 352)
         b[B_D6_ACT_SRC + 16 * i:B_D6_ACT_SRC + 16 * i + 16] = rect(110 + 12 * i, 300, 120 + 12 * i, 312)
         b[B_D6_ACT_DST + 16 * i:B_D6_ACT_DST + 16 * i + 16] = rect(110 + 12 * i, 340, 120 + 12 * i, 352)
+    for i, rc in (light_dst or {}).items():
+        b[B_D6_LIGHT_DST + 16 * i:B_D6_LIGHT_DST + 16 * i + 16] = rect(*rc)
+    for i, rc in (active_dst or {}).items():
+        b[B_D6_ACT_DST + 16 * i:B_D6_ACT_DST + 16 * i + 16] = rect(*rc)
     b[B_D6_BLINK] = blink
     for j, r_ in enumerate(rounds or []):
         b[B_D6_REC1 + 33 * j:B_D6_REC1 + 33 * j + 33] = record(*r_)
@@ -952,7 +957,11 @@ def build_driver(src_dir, out, kernel_sources=('action_family_e0_runtime.c',)):
            f'-I{src_dir}', str(PROJECT / 'tests/action_family_e0_runtime_oracle_driver.c'),
            *[str(Path(src_dir) / k) for k in kernel_sources], '-o', str(out)]
     if os.environ.get('E0_SANITIZE'):
-        cmd[1:1] = ['-fsanitize=undefined', '-fno-sanitize-recover=undefined', '-fno-omit-frame-pointer']
+        # E0_SANITIZE=1: UBSan; E0_SANITIZE=asan: ASan + UBSan (run python with LD_PRELOAD=$(cc -print-file-name=libasan.so)
+        # and ASAN_OPTIONS=detect_leaks=0); E0_SANITIZE_SKIP=<check>[,<check>] leaves one UBSan check out
+        san = 'address,undefined' if os.environ['E0_SANITIZE'] == 'asan' else 'undefined'
+        extra = ['-fno-sanitize=' + os.environ['E0_SANITIZE_SKIP']] if os.environ.get('E0_SANITIZE_SKIP') else []
+        cmd[1:1] = ['-fsanitize=' + san, '-fno-sanitize-recover=undefined', '-fno-omit-frame-pointer'] + extra
     done = subprocess.run(cmd, capture_output=True, text=True)
     if done.returncode != 0:
         raise OracleError('driver build failed: ' + done.stderr[-1200:])
@@ -1780,6 +1789,9 @@ def fuzz_pokes(ctx):
         for i in range(N):
             lit[i] = int(r.random() < 0.3)
         p[0xc9c] = bytes(lit)
+    if r.random() < 0.3:
+        # typed keys beyond the code length: unreachable in play, they reveal the shift loop bounds
+        p[0xd4a] = b''.join(pk16(r.choice([-1, -1, r.randrange(max(N, 1))])) for _ in range(30))
     if r.random() < 0.4:
         p[0xd30] = pk16(r.choice([0, 0, 1, 2, max(N - 1, 0)]))
     for off in (0xd40, 0xd44, 0xe00):
@@ -1835,10 +1847,13 @@ def pointer_target(ctx, style):
     exit_rect = struct.unpack_from('<4i', body, B_XRECT)
     exit_btn = struct.unpack_from('<4i', body, B_EXIT_RECT)
     roll = r.random()
+    def edge(rc):
+        l, t, rr, b = rc
+        return clamp16(r.choice([l, rr, l - 1, rr + 1, (l + rr) // 2])), clamp16(r.choice([t, b, t - 1, b + 1, (t + b) // 2]))
     if roll < style.get('exit_p', 0.02):
-        return center(exit_rect)
+        return center(exit_rect) if r.random() < 0.6 else edge(exit_rect)
     if roll < style.get('exit_p', 0.02) + style.get('btn_p', 0.03):
-        return center(exit_btn)
+        return center(exit_btn) if r.random() < 0.6 else edge(exit_btn)
     if roll < 0.9 and N > 0:
         goal = style.get('goal', 'code')
         if goal == 'set' and flag == 0:
@@ -2190,7 +2205,11 @@ def random_body(rng, flag):
                      delay=rng.choice([0, 1, 2, 3, 30, -1, 32000]), fail=rng.choice(blocks), xblock=rng.choice(blocks),
                      R=rng.choice([0, 1, 2, 3, 4]) if flag == 0 else rng.choice([9999, 0, 4377, 1234, 3]),
                      layout=lay, blink=rng.randrange(2), rounds=rounds, sets=sets, allb=rng.choice(blocks),
-                     exit_rect=rng.choice([(300, 400, 360, 440), (0, 0, 0, 0), (-10, -10, 10, 10)]))
+                     exit_rect=rng.choice([(300, 400, 360, 440), (0, 0, 0, 0), (-10, -10, 10, 10)]),
+                     light_dst={i: rng.choice([(10, 340, 20, 340), (10, 340, 10, 352), (0, 0, 0, 0), (10, 340, 20, 352)])
+                                for i in range(5) if rng.random() < 0.35} if flag == 0 else None,
+                     active_dst={i: rng.choice([(110, 340, 120, 340), (110, 340, 110, 352), (0, 0, 0, 0)])
+                                 for i in range(5) if rng.random() < 0.35} if flag == 0 else None)
 
 
 def scenario_list(seed=51, n_random=220):
@@ -2362,6 +2381,16 @@ def scenario_list(seed=51, n_random=220):
                              ('fuzz',) if k % 2 else ('tick', CLK), ('tick', CLKR), ('tick', CLKR)]
                 S(scs, 'state:%d_f%d_p%d' % (st, flag, pl), [R(flag, body)], acts + [('play', 150, dict(PL, fuzz=False, until='never'))], 'state',
                   seed=st * 4 + flag * 2 + pl, quick=(st, flag, pl) in ((1, 0, 0), (3, 1, 1), (4, 0, 1)))
+    # the exit button hover (0x28) with and without the button, a click on it, with the start cell 0 and 1
+    for flag in (0, 1):
+        for has_exit in (False, True):
+            for sf in (0, 1):
+                body = make_body(rng, flag, N=6, exit_btn=has_exit, rec=(3, 0, [0, 1, 2]), snd_a=b'CLICK SND', R=2 if flag == 0 else 9999,
+                                 rounds=[(3, 0, [2, 3, 4])] * 4 if flag == 0 else None)
+                S(scs, 'state:hover28_f%d_x%d_s%d' % (flag, has_exit, sf), [R(flag, body)],
+                  [('tick', CLK), ('tick', CLK), ('poke', {0xd2a: pk16(0x28)}), ('click', 0x27a6, None, sf), ('tick', CLKR), ('tick', CLKR),
+                   ('poke', {0xd2a: pk16(0x28)}), ('click', 0x27ad, None, sf), ('tick', CLKR), ('tick', CLKR), ('render', 1)],
+                  'state', seed=flag * 4 + has_exit * 2 + sf, quick=(flag, has_exit, sf) == (0, False, 1))
     for k in range(24):
         flag = k % 2
         body = random_body(rng, flag)
