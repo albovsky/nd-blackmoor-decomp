@@ -271,7 +271,7 @@ static int place_balloon(TqzObject *o, const uint8_t *body, const TqzHost *host,
     TqzBalloon *b = &o->balloon[k];
     int32_t view[4], local[4], r;
     int16_t pos, variant;
-    uint8_t ch;
+    uint8_t ch = 0;
     uint32_t t;
     HOST(host->view_rects(host->context, view, local));
     CHECK(pick_position(o, body, host, view[0], view[1], &pos));

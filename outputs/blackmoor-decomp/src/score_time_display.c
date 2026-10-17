@@ -131,6 +131,14 @@ int std_init_clock(StdDisplay *d, const int32_t block[0x32], const StdHost *host
     return STD_OK;
 }
 
+/* The original copies the string up to and including its NUL; the bytes after it keep their old values. */
+static void copy_string(char *dst, const char *src)
+{
+    size_t n = 0;
+    while (n < STD_STRING_BYTES - 1 && src[n] != 0) ++n;
+    memcpy(dst, src, n + 1);
+}
+
 static int digit_of(char ch)
 {
     return (ch >= '0' && ch <= '9') ? ch - '0' : -1;
@@ -212,7 +220,7 @@ int std_render_score(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out
                              (uint32_t)d->score_block[43], STD_BLIT_SCORE_DIGIT, out, capacity, count);
         if (rc != STD_OK) return rc;
     }
-    memcpy(d->prev_score_str, d->score_str, STD_STRING_BYTES);
+    copy_string(d->prev_score_str, d->score_str);
     return STD_OK;
 }
 
@@ -260,7 +268,7 @@ int std_render_clock(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out
     rc = draw_string(d->seconds_str, d->clock_w, d->clock_h, d->clock_block, gap, &cx, y, surface, STD_BLIT_CLOCK_SEC, out,
                      capacity, count);
     if (rc != STD_OK) return rc;
-    memcpy(d->prev_minutes_str, d->minutes_str, STD_STRING_BYTES);
-    memcpy(d->prev_seconds_str, d->seconds_str, STD_STRING_BYTES);
+    copy_string(d->prev_minutes_str, d->minutes_str);
+    copy_string(d->prev_seconds_str, d->seconds_str);
     return STD_OK;
 }
