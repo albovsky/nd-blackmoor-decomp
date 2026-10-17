@@ -5579,6 +5579,8 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                payload.rect[1], payload.rect[2], payload.rect[3], cursor.cursor_index);
     }
     app->a1b_logged_valid = false;
+    std::memset(app->a1b_rect, 0, sizeof(app->a1b_rect));
+    app->a1b_finish_row = 0;
     if (session_a1b_begin_scene(app->a1b, app->scene) != 0) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s", session_a1b_failure(app->a1b));
         return false;

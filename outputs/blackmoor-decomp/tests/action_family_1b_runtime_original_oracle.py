@@ -104,6 +104,7 @@ CURSOR_CELLS = {'cursor_index': (0x5B44F0, 4), 'cursor_variant': (0x5B44F4, 4), 
 CURSOR_INPUT = {'held_item': (HELD_CELL, 2), 'surface_default': (0x5D0377, 4), 'surface_held': (0x571AD3, 4),
                 'excluded_0': (0x5B4E89, 2), 'excluded_1': (0x5B5100, 2)}
 CURSOR_TABLE_BASE = 0x5B160C
+# Marker values (not the cell contents 0x5D0377 / 0x571AD3): the surface identities are only compared against each other.
 SURFACE_DEFAULT, SURFACE_HELD = 0x0D0377, 0x571AD3A
 
 # Executed original code, as function spans (SHA-256 of the unmodified image bytes), verified at start-up.
