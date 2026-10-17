@@ -1,7 +1,7 @@
 {
   "schema": "blackmoor-scene-action-coverage/1",
   "scenes": 2078,
-  "scenes_all_rows_handled": 2058,
+  "scenes_all_rows_handled": 2061,
   "handled_types": [
     "0x0a",
     "0x0b",
@@ -56,6 +56,8 @@
     "0x97",
     "0x9f",
     "0xa1",
+    "0xaa",
+    "0xd0",
     "0xd1",
     "0xd9",
     "0xea",
@@ -64,12 +66,6 @@
   "missing_types": [
     {
       "type": "0x1c",
-      "scenes": 2,
-      "records": 2,
-      "sole_blocker_scenes": 2
-    },
-    {
-      "type": "0xd0",
       "scenes": 2,
       "records": 2,
       "sole_blocker_scenes": 2
@@ -123,12 +119,6 @@
       "sole_blocker_scenes": 0
     },
     {
-      "type": "0xaa",
-      "scenes": 1,
-      "records": 1,
-      "sole_blocker_scenes": 1
-    },
-    {
       "type": "0xd6",
       "scenes": 1,
       "records": 1,
@@ -151,45 +141,35 @@
     {
       "type": "0x1c",
       "scenes_unblocked": 2,
-      "scenes_complete": 2060
-    },
-    {
-      "type": "0xd0",
-      "scenes_unblocked": 2,
-      "scenes_complete": 2062
+      "scenes_complete": 2063
     },
     {
       "type": "0xd3",
       "scenes_unblocked": 2,
-      "scenes_complete": 2064
+      "scenes_complete": 2065
     },
     {
       "type": "0xe0",
       "scenes_unblocked": 2,
-      "scenes_complete": 2066
+      "scenes_complete": 2067
     },
     {
       "type": "0xe4",
       "scenes_unblocked": 2,
-      "scenes_complete": 2068
+      "scenes_complete": 2069
     },
     {
       "type": "0xeb",
       "scenes_unblocked": 2,
-      "scenes_complete": 2070
+      "scenes_complete": 2071
     },
     {
       "type": "0xf5",
       "scenes_unblocked": 2,
-      "scenes_complete": 2072
-    },
-    {
-      "type": "0x76",
-      "scenes_unblocked": 1,
       "scenes_complete": 2073
     },
     {
-      "type": "0xaa",
+      "type": "0x76",
       "scenes_unblocked": 1,
       "scenes_complete": 2074
     },
