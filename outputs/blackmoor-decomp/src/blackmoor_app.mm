@@ -68,6 +68,7 @@
 #include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_a6d_a9a.h"
 #include "session_bindings_a1c.h"
+#include "session_bindings_ada.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -397,6 +398,19 @@ struct NativeApp {
     std::array<bool, 0x40> a1c_slot_used{};
     bool a1c_wait_logged = false;
     bool a1c_fills_logged = false;
+    /* RT-59: raw 0xda Bul puzzle (arm 0x42a424 -> 0x45c18f, object 0x624734). The binding is recreated at every scene start; the
+     * backdrop (Z entry 1, 0x5d15e3) is a snapshot of the seeded back buffer as for 0xe0 / 0xe4; sounds are not played, the caption
+     * text goes through the AUTOTEXT lookup and the boxed caption writer of the Onebuild puzzle. */
+    SessionAdaBinding *ada = nullptr;
+    std::array<bool, 0x40> ada_slot_used{};
+    BulPointerResult ada_pointer{};
+    uint64_t ada_plan_signature = 0u;
+    uint32_t ada_plan_logged = 0u;
+    bool ada_render_failure_logged = false;
+    std::vector<uint8_t> ada_background;
+    uint64_t ada_background_seed = UINT64_MAX;
+    uint8_t ada_cursor_logged = 0u;   /* bit 0: cursor 9 (finish rectangle); bit 1: cursor 0x16 (a button) */
+    std::string ada_text;
     int32_t a20_view_cell_63aa10 = 0;
     int16_t a20_word_5c3a4f = 0;
     Action70World a70_world{};
@@ -1137,6 +1151,7 @@ static bool native_aaa_render(NativeApp *app);
 static bool native_ad3_render(NativeApp *app);
 static bool native_af5_render(NativeApp *app);
 static bool native_a1c_render(NativeApp *app);
+static bool native_ada_render(NativeApp *app);
 static bool native_aea_render(NativeApp *app);
 static bool native_af6_render(NativeApp *app);
 static bool native_ae0_render(NativeApp *app);
@@ -1545,6 +1560,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
         /* RT-57: the interactive video's hotspot render entry (type 15, callback 0x4cc79a), registered only after the movie player
          * reports state 2, which the app never does: the call is a no-op until a player is wired. */
         (void)native_a1c_render(app);
+    }
+    if (app->ada != nullptr && session_ada_registered(app->ada) != 0u) {
+        /* RT-59: the Bul puzzle's render entry (type 10, callback 0x45d2c6), same slot range. */
+        (void)native_ada_render(app);
     }
     if (app->aea != nullptr && session_aea_registered(app->aea) != 0u) {
         /* RT-45: the Onebuild puzzle's render entry (type 10, callback 0x4876ed), same slot range. */
@@ -2178,6 +2197,7 @@ static void cleanup(NativeApp *app)
     session_a6d_destroy(app->a6d);
     session_a9a_destroy(app->a9a);
     session_a1c_destroy(app->a1c);
+    session_ada_destroy(app->ada);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
@@ -3682,7 +3702,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
             !app->af6_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)] && !app->ada_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4197,7 +4217,8 @@ static int native_a1c_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->a1c_slot_used[index] && !app->af5_slot_used[index] && !app->ad3_slot_used[index] && !app->aaa_slot_used[index] &&
             !app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index] &&
+            !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -5077,7 +5098,7 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)] && !app->ada_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5511,7 +5532,7 @@ static int native_aea_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)] && !app->ada_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5859,7 +5880,7 @@ static int native_af6_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)] && !app->ada_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6174,7 +6195,7 @@ static int native_ad0_alloc_slot(void *context, int16_t *slot)
         if (!app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
             !app->aea_slot_used[index] && !app->af6_slot_used[index] && !app->aaa_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[index]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[index] && !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6407,7 +6428,7 @@ static int native_aaa_alloc_slot(void *context, int16_t *slot)
         if (!app->aaa_slot_used[index] && !app->ad0_slot_used[index] && !app->ad1_slot_used[index] &&
             !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[index]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[index] && !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6644,7 +6665,7 @@ static int native_ae0_alloc_slot(void *context, int16_t *slot)
             !app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)] && !app->ada_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6895,7 +6916,7 @@ static int native_ad3_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index] && !app->a1c_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index] && !app->a1c_slot_used[index] && !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -7109,7 +7130,7 @@ static int native_ae4_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->ae4_slot_used[index] && !app->ae0_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->ad0_slot_used[index] && !app->aaa_slot_used[index] && !app->ad3_slot_used[index] && !app->aeb_slot_used[index] && !app->af5_slot_used[index] && !app->a1c_slot_used[index]) {
+            !app->ad0_slot_used[index] && !app->aaa_slot_used[index] && !app->ad3_slot_used[index] && !app->aeb_slot_used[index] && !app->af5_slot_used[index] && !app->a1c_slot_used[index] && !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -7436,7 +7457,7 @@ static int native_aeb_alloc_slot(void *context, int16_t *slot)
         if (!app->aeb_slot_used[index] && !app->ae4_slot_used[index] && !app->ae0_slot_used[index] &&
             !app->af6_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
             !app->aea_slot_used[index] && !app->ad0_slot_used[index] && !app->aaa_slot_used[index] &&
-            !app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->a1c_slot_used[index]) {
+            !app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->a1c_slot_used[index] && !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -7647,7 +7668,7 @@ static int native_af5_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->af5_slot_used[index] && !app->ad3_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index] && !app->a1c_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index] && !app->a1c_slot_used[index] && !app->ada_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -7884,6 +7905,311 @@ static bool native_af5_render(NativeApp *app)
         record(app, "scene_af5_blit blits=%d,%d,%d composed=back-buffer scope=host-adapter (layer order vs UI unverified; erase "
                "implicit; balloon text stubbed)", static_cast<int>(quiz.count), static_cast<int>(score.count),
                static_cast<int>(clock.count));
+    }
+    return true;
+}
+
+/* ---- RT-59: raw 0xda Bul puzzle host providers ------------------------------------------------------------------
+ * The kernel (action_family_da_runtime.c) is the recovered handler 0x45c18f (dispatcher arm 0x42a424), the pointer receiver
+ * 0x45b5bb with the candidate writer 0x45b7a8, the accepted-release click 0x45b872 (call at 0x43b2f5), the cleanup 0x45b42e and
+ * the render callback 0x45d2c6 of the generic Z entry "BUL PUZZLE OVERLAYS"; the binding (session_bindings_ada.c) owns the object
+ * at 0x624734 and one copy of the 2,958-byte body per row. The host supplies the generic Z entry table (0x4d39f9 / 0x4d3992), the
+ * CIFTREE image "Bul_Puzzle_Surface" (0x4c2790), the view origin, the held item commit (0x4e8d96), the tick, the CRT rand (the card
+ * puzzle's), the scene change and event flag of the finish blocks and the sound engine calls. Sound is NOT wired: the three sound
+ * calls are logged "NOT PLAYED (no effect backend)" and the busy query reports "not busy", so every caption wait ends at once and
+ * the puzzle runs silently. The caption text (0x423259 + 0x448d11) goes through the AUTOTEXT lookup and the boxed caption writer
+ * the Onebuild puzzle uses; the original draws it through the same writer with the suffix dword the kernel appends. Whether the
+ * boxed writer is the right layout for these captions, and the layer order against the UI, are unverified. Not compiled in the
+ * cloud container (no macOS toolchain); syntax-checked against stand-in types. Slot 59, count 60. */
+static int native_ada_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        const size_t index = static_cast<size_t>(i);
+        if (!app->ada_slot_used[index] && !app->af5_slot_used[index] && !app->ad3_slot_used[index] &&
+            !app->aaa_slot_used[index] && !app->ad0_slot_used[index] && !app->ad1_slot_used[index] &&
+            !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index] &&
+            !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index] &&
+            !app->a1c_slot_used[index]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_ada_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_ada_register_slot(void *context, int16_t slot, int32_t type, int callback, uint32_t surface, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)surface;
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->ada_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_ada_register slot=%d type=%d callback=%d label=%s", slot, type, callback, label);
+    return 0;
+}
+
+static int native_ada_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "bul-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_ada_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_ada_surface_load name=%s surface=%u source=CIFTREE (0x4c2790)", name, handle);
+    return 0;
+}
+
+static int native_ada_set_slot_surface(void *context, int16_t slot, uint32_t surface)
+{
+    (void)context;
+    (void)slot;
+    (void)surface;
+    return 0;
+}
+
+static int native_ada_release_surface(void *context, uint32_t surface)
+{
+    (void)context;
+    (void)surface; /* images stay cached by name, as for the other families */
+    return 0;
+}
+
+static int native_ada_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->ada_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_ada_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass draws every tick */
+    return 0;
+}
+
+static int native_ada_sound_prepare(void *context, const uint8_t *name)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)name; /* the sound name is not printed */
+    record(app, "scene_ada_sound call=0x4fb77a NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_ada_sound_stop(void *context, const uint8_t *name)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)name;
+    record(app, "scene_ada_sound call=0x4fba69 NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_ada_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_ada_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_ada_sound_busy(void *context, int16_t channel)
+{
+    (void)context;
+    (void)channel;
+    return 0; /* 0x4f6334: nothing is ever playing here */
+}
+
+/* 0x423259: the AUTOTEXT string of the sound name, or NULL. The kernel needs the copy to stay valid until the next call. */
+static const char *native_ada_caption_text(void *context, const char *name)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || app->captions.auto_text == nullptr) return nullptr;
+    const uint8_t *found = nullptr;
+    size_t raw_length = 0u, length = 0u;
+    const int status = autotext_lookup(app->captions.auto_text, reinterpret_cast<const uint8_t *>(name), std::strlen(name),
+                                       &found, &raw_length, &length);
+    if (status != AUTOTEXT_OK) return nullptr;
+    app->ada_text.assign(reinterpret_cast<const char *>(found), length);
+    return app->ada_text.c_str();
+}
+
+/* 0x448d11: the caption writer. A refused write is recorded and skipped; the original has no failure path here and a missing
+ * caption must not end the puzzle. */
+static int native_ada_caption_show(void *context, const char *text)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr) return 1;
+    const ActionFamily51BackendStatus status =
+        native_a51_write_caption(app, reinterpret_cast<const uint8_t *>(text), std::strlen(text));
+    if (status != ACTION_FAMILY_51_BACKEND_OK)
+        record(app, "scene_ada_caption_error status=%d (caption not shown)", static_cast<int>(status));
+    return 0;
+}
+
+static int native_ada_transition(void *context, const BulTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_ada_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+/* The finish block's last store: engine mode 0x583999 := 4. The transition request above already carries the scene change; the
+ * exit-state machine hand-over is not wired here (logged, unverified). */
+static int native_ada_engine_mode(void *context, int32_t mode)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_ada_engine_mode mode=%d (0x583999 := %d; exit-state hand-over not wired)", mode, mode);
+    return 0;
+}
+
+static void native_ada_store_world(void *context, const BulWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static void native_ada_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == BUL_FX_ROW_PHASE) {
+        record(app, "scene_ada_phase new_phase=%d (0x45c18f)", a);
+    } else if (effect == BUL_FX_COMPLETE) {
+        record(app, "scene_ada_complete row=%d (0x42ba3a)", a);
+    }
+}
+
+static void native_ada_fill_host(NativeApp *app, SessionAdaHost *host)
+{
+    host->kernel.context = app;
+    host->kernel.alloc_slot = native_ada_alloc_slot;
+    host->kernel.register_slot = native_ada_register_slot;
+    host->kernel.load_surface = native_ada_load_surface;
+    host->kernel.set_slot_surface = native_ada_set_slot_surface;
+    host->kernel.release_surface = native_ada_release_surface;
+    host->kernel.release_slot = native_ada_release_slot;
+    host->kernel.mark_dirty = native_ada_mark_dirty;
+    host->kernel.view_origin = native_ad1_view_origin;
+    host->kernel.clear_pending_item = native_ad1_clear_item;
+    host->kernel.sound_prepare = native_ada_sound_prepare;
+    host->kernel.sound_stop = native_ada_sound_stop;
+    host->kernel.sound_busy = native_ada_sound_busy;
+    host->kernel.sound_play = native_ada_sound_play;
+    host->kernel.caption_text = native_ada_caption_text;
+    host->kernel.caption_show = native_ada_caption_show;
+    host->kernel.tick = native_ad1_tick;
+    host->kernel.random = native_af6_random;
+    host->kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    host->kernel.transition = native_ada_transition;
+    host->kernel.store_event_flag = native_ad1_store_event_flag;
+    host->kernel.engine_mode = native_ada_engine_mode;
+    host->kernel.observe = native_ada_observe;
+    host->store_world = native_ada_store_world;
+}
+
+static int native_ada_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->ada == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_ada_handler(app->ada, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_ada_blocker row=%zu status=%d detail=%s", row, status, session_ada_failure(app->ada));
+    }
+    return status;
+}
+
+/* 0x45d2c6: opaque restores (0x4c5377) of the puzzle sheet and of the saved scene frame (Z entry 1, 0x5d15e3) and one colour-keyed
+ * draw (0x4c5d4b, the pressed button) into the back buffer. As for 0xe0 / 0xe4 the saved frame is a snapshot of the seeded back
+ * buffer; a backdrop source rectangle is view relative (the original adds the view origin to the destination only), so it is
+ * shifted by the view origin into the screen-sized snapshot. */
+static bool native_ada_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    BulRenderResult plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_ada_render(app->ada, &plan) != BUL_OK) {
+        if (!app->ada_render_failure_logged) {
+            app->ada_render_failure_logged = true;
+            record(app, "scene_ada_render_error detail=render-refused (%s)", session_ada_failure(app->ada));
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    if (app->ada_background_seed != captions.backbuffer_seed_count ||
+        app->ada_background.size() != captions.backbuffer_pixels.size()) {
+        app->ada_background = captions.backbuffer_pixels;
+        app->ada_background_seed = captions.backbuffer_seed_count;
+    }
+    const BulObject *puzzle = session_ada_object(app->ada);
+    CaptionCompositorView sheet{};
+    if (puzzle == nullptr || !native_caption_view_for_handle(app, puzzle->surface, &sheet)) {
+        if (!app->ada_render_failure_logged) {
+            app->ada_render_failure_logged = true;
+            record(app, "scene_ada_render_error detail=puzzle-surface-unavailable surface=%u",
+                   puzzle != nullptr ? puzzle->surface : 0u);
+        }
+        return false;
+    }
+    CaptionCompositorView back{};
+    back.pixels = captions.backbuffer_pixels.data();
+    back.byte_capacity = captions.backbuffer_pixels.size();
+    back.width = 640;
+    back.height = 480;
+    back.pitch_bytes = 1280;
+    back.format = captions.compositor_format;
+    CaptionCompositorView saved = back;
+    saved.pixels = app->ada_background.data();
+    saved.byte_capacity = app->ada_background.size();
+    const int32_t view_x = app->scene_destination.left;
+    const int32_t view_y = app->scene_destination.top;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    int32_t keyed = 0;
+    for (uint16_t i = 0; i < plan.count; ++i) {
+        const BulBlit &blit = plan.blit[i];
+        const bool from_saved = blit.backdrop != 0;
+        const bool is_keyed = blit.kind == BUL_BLIT_BUTTON_DOWN;
+        const CaptionRect src{blit.src.left + (from_saved ? view_x : 0), blit.src.top + (from_saved ? view_y : 0),
+                              blit.src.right + (from_saved ? view_x : 0), blit.src.bottom + (from_saved ? view_y : 0)};
+        const CaptionRect dst{blit.dst.left, blit.dst.top, blit.dst.right, blit.dst.bottom};
+        const int status = caption_compositor_blit(from_saved ? &saved : &sheet, &back,
+                                                   is_keyed ? CAPTION_BLIT_KEYED : CAPTION_BLIT_OPAQUE, &src, &dst,
+                                                   captions.pixel_format.color_key);
+        if (status != CAPTION_COMPOSITOR_OK) {
+            if (!app->ada_render_failure_logged) {
+                app->ada_render_failure_logged = true;
+                record(app, "scene_ada_render_error status=%d blit=%u kind=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; later blits skipped)", status, static_cast<unsigned>(i), static_cast<int>(blit.kind),
+                       src.left, src.top, src.right, src.bottom, dst.left, dst.top, dst.right, dst.bottom);
+            }
+            return false;
+        }
+        keyed += is_keyed ? 1 : 0;
+        signature ^= static_cast<uint64_t>(blit.kind) | (static_cast<uint64_t>(blit.backdrop != 0) << 8);
+        signature *= UINT64_C(1099511628211);
+    }
+    /* One line per distinct plan shape (kinds in order), at most 32 lines. */
+    if (signature != app->ada_plan_signature && app->ada_plan_logged < 32u) {
+        app->ada_plan_signature = signature;
+        ++app->ada_plan_logged;
+        record(app, "scene_ada_blit blits=%d keyed=%d surface=%u composed=back-buffer scope=host-adapter "
+               "(restore source is a back-buffer snapshot, layer order vs UI unverified)", static_cast<int>(plan.count),
+               keyed, puzzle->surface);
     }
     return true;
 }
@@ -8927,6 +9253,9 @@ static bool create_native_session_bindings(NativeApp *app)
     C1cHost a1c_host{};
     native_a1c_fill_host(app, &a1c_host);
     app->a1c = session_a1c_create(&a1c_host);
+    SessionAdaHost ada_host{};   /* RT-59: raw 0xda Bul puzzle; sound is not wired (no effect backend) */
+    native_ada_fill_host(app, &ada_host);
+    app->ada = session_ada_create(&ada_host);
     scene_stack_slot_clear(&app->scene_stack_slot);
     scene_stack_slot_init_words(&app->scene_stack_slot); /* game initializer 0x436fe4..0x437008 */
     SessionA6EHost a6e_host{};
@@ -9060,7 +9389,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ae4 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr || app->a6d == nullptr || app->a9a == nullptr || app->a1c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ae4 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr || app->a6d == nullptr || app->a9a == nullptr || app->a1c == nullptr || app->ada == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -9406,6 +9735,15 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
             return false;
         }
     }
+    if (session_ada_begin_scene(app->ada, app->scene) != BUL_OK) {
+        record(app, "scene_session_create_error provider=action-family-da detail=%s", session_ada_failure(app->ada));
+        return false;
+    }
+    app->ada_slot_used.fill(false);
+    app->ada_background_seed = UINT64_MAX;
+    app->ada_plan_signature = 0u;
+    app->ada_plan_logged = 0u;
+    app->ada_render_failure_logged = false;
     if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
         record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
         return false;
@@ -9880,6 +10218,32 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                 record(app, "scene_af5_click_error row=%d detail=phase-2-store-refused", quiz->row);
         }
     }
+    /* RT-59: the Bul puzzle's click method 0x45b872 sits in the same accepted-release chain (call at 0x43b2f5). The original calls
+     * it on every accepted release and the method guards itself (active, not won, state IDLE, row phase 1); the app has no other
+     * source of accepted releases for this object, so it is called only when the retained candidate is one the pointer hit test
+     * wrote (0x27ba a button, 0x27bb the finish rectangle). The finish rectangle may end the game (row phase := 2). */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->ada != nullptr && session_ada_registered(app->ada) != 0u && app->session != nullptr &&
+        (app->input_state.candidate == BUL_CANDIDATE_BUTTON || app->input_state.candidate == BUL_CANDIDATE_FINISH)) {
+        const int16_t bul_row = session_ada_object(app->ada)->row;
+        SceneActionRuntimeState bul_state{};
+        BulClickResult click_result{};
+        if (bul_row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(bul_row), &bul_state) == SCENE_SESSION_OK) {
+            const int click = session_ada_click(app->ada, bul_state.phase, app->input_state.candidate, &click_result);
+            if (click != BUL_OK) {
+                record(app, "scene_ada_click_error row=%d status=%d detail=%s", bul_row, click, session_ada_failure(app->ada));
+            } else if (click_result.new_phase == 2u && bul_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(bul_row)) == SCENE_SESSION_OK)
+                    record(app, "scene_ada_click row=%d candidate=%d -> phase 2 (0x45b872)", bul_row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_ada_click_error row=%d detail=phase-2-store-refused", bul_row);
+            } else if (click_result.handled != 0u) {
+                record(app, "scene_ada_click row=%d candidate=%d accepted (0x45b872)", bul_row, app->input_state.candidate);
+            }
+        }
+    }
     /* RT-45: the Onebuild puzzle's accepted-release chain (0x43b327 -> 0x48569e), same gate and candidate source. */
     if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
         app->aea != nullptr && session_aea_registered(app->aea) != 0u && app->session != nullptr) {
@@ -9984,6 +10348,13 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_ae4_registered(app->ae4) != 0u)
         (void)session_ae4_pointer_move(app->ae4, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->ae4_pointer);
+    app->ada_pointer = BulPointerResult{};
+    app->ada_pointer.candidate = -1;
+    app->ada_pointer.button = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ada != nullptr &&
+        session_ada_registered(app->ada) != 0u)
+        (void)session_ada_pointer_move(app->ada, static_cast<int32_t>(frame->pointer_x),
+                                       static_cast<int32_t>(frame->pointer_y), &app->ada_pointer);
     app->a77_pointer = A77PointerResult{};
     app->a77_pointer.candidate = -1;
     app->a77_pointer.hover = -1;
@@ -10138,6 +10509,19 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
             app->ae4_cursor_logged = static_cast<uint8_t>(app->ae4_cursor_logged | cursor_bit);
             record(app, "scene_ae4_pointer candidate=%d cursor=%d (cursor sprite not drawn by the app)",
                    app->ae4_pointer.candidate, cursor);
+        }
+    }
+    if (status == SESSION_INPUT_OK && app->ada_pointer.hit != 0u) {
+        /* 0x45b5bb (cascade 0x4f0059 at 0x4f0c63) returns before the generic row loop and 0x45b7a8 has written the candidate
+         * (0x27ba a button, 0x27bb the finish rectangle) and the cursor cells (0x5b44f0 = 0x16 button, 9 finish rectangle;
+         * 0x5b44f4 = 1). The cursor cells are not drawn by the app; logged once per cursor kind. */
+        (void)session_input_publish_candidate(&app->input_state, app->ada_pointer.candidate);
+        const int32_t cursor = app->ada_pointer.cursor_kind;
+        const uint8_t cursor_bit = cursor == 9 ? 1u : (cursor == 0x16 ? 2u : 0u);
+        if (cursor_bit != 0u && (app->ada_cursor_logged & cursor_bit) == 0u) {
+            app->ada_cursor_logged = static_cast<uint8_t>(app->ada_cursor_logged | cursor_bit);
+            record(app, "scene_ada_pointer candidate=%d cursor=%d (cursor sprite not drawn by the app)",
+                   app->ada_pointer.candidate, cursor);
         }
     }
     if (status == SESSION_INPUT_OK && app->aaa_pointer.hit != 0u) {
@@ -10393,7 +10777,7 @@ static bool create_native_scene_session(NativeApp *app)
      * RT-47 (0xf6, slot 46), RT-50 (0xd0, slot 47) and RT-52 (0xaa, slot 48). Slots must be gap-free because scene_session_create
      * rejects an entry without a callback. The map script
      * (decomp-progress/playable.py) needs numeric slot literals. */
-    SceneSessionActionBinding bindings[58]{};
+    SceneSessionActionBinding bindings[60]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -10687,7 +11071,14 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[57].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[57].callback = native_a1c_handler;
     bindings[57].context = app;
-    config.action_binding_count = 58u;
+    /* RT-59: raw 0xda (Bul puzzle, arm 0x42a424, gate mode 0). Slot 59, declared count 60. Slot 58 is RT-58's (raw 0x76): the
+     * slots must stay gap-free (scene_session_create rejects an entry without a callback), so RT-59 does not stand alone until
+     * RT-58 is merged; if RT-59 merges first, move this block to slot 58 and declare 59. */
+    bindings[59].type = SESSION_ADA_TYPE;
+    bindings[59].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[59].callback = native_ada_handler;
+    bindings[59].context = app;
+    config.action_binding_count = 60u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
