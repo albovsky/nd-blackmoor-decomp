@@ -13,7 +13,7 @@ Owner thread: Claude Sonnet (cloud). Follows RT-42 (PR 106). After PR 106, 2,038
 
 * `src/action_family_4e_runtime.[ch]`: the kernel (`action_family_4e_runtime_visit` over `ActionCoreWorld`, using the A-4E.1 decoder).
 * `src/session_bindings_a4e.[ch]`: the binding (COMPLETED with phase 0 for every outcome, including an out-of-range target; a body the decoder rejects is a handler error).
-* `src/blackmoor_app.mm`: `bindings[40]`, declared count 41 (slot 39 is held by RT-43), handler with logging; module trio in `scripts/build_native_app.sh`; `scripts/build_action_family_4e_runtime.sh`.
+* `src/blackmoor_app.mm`: `bindings[39]`, declared count 40 (slot 38 is raw 0x47, RT-42), handler with logging; module trio in `scripts/build_native_app.sh`; `scripts/build_action_family_4e_runtime.sh`.
 
 ## Verification
 
@@ -27,4 +27,5 @@ Owner thread: Claude Sonnet (cloud). Follows RT-42 (PR 106). After PR 106, 2,038
 * The macOS glue is not compiled or run in the cloud.
 * The debug flag `0x63a4cd` is modelled as 0.
 * The scene loader `0x40b34a` is not run (rows are built in memory around the original `0x44b102`); the corpus rows' real dependency records are replayed behind the stand-in event record (the gate is shared verified code).
+* An invalid-operation NaN (for example 0 * infinity) has the x87 sign (0xFFC00000) on the Intel host the oracle runs on; on arm64 C produces 0x7FC00000. Only a bit-exact later reader could see it, and finite game data never gets there.
 * The report 0x52139c is a modal error in the original; the app logs it.
