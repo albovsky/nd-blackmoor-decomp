@@ -410,6 +410,8 @@ static void t_validate(void)
         build_body(b);
         memset(b + fields[k].off, 'X', fields[k].span);
         CK(eb_validate_body(b, EB_BODY_BYTES, &why) == EB_ERR_BODY && strcmp(why, "0xeb-unterminated-field") == 0);
+        b[fields[k].off + fields[k].span] = 0; /* a zero right behind the span does not terminate the field */
+        CK(eb_validate_body(b, EB_BODY_BYTES, &why) == EB_ERR_BODY && strcmp(why, "0xeb-unterminated-field") == 0);
         b[fields[k].off + fields[k].span - 1u] = 0;
         CK(eb_validate_body(b, EB_BODY_BYTES, NULL) == EB_OK); /* the last byte of the span is a valid terminator */
     }
@@ -1515,6 +1517,19 @@ static void t_click_pick_spawn(void)
     CK(rect_is(f.o.b, PI(3) + P_RECT2, 310, 220, 349, 249));
     CK(od16(&f, PI(3) + P_Z) == 1); /* above the piece it overlaps */
     CK(od32(&f, O_LIFT) == 1 && od32(&f, O_DRAG) == 1);
+    /* the copy starts from a clean instance: the leftovers of its slot (z, stamp, orientation of the new piece) do not survive */
+    fx_init(&f);
+    f.body[TY(0) + BT_SPAWN] = 1;
+    CK(start(&f) == EB_OK && ptr(&f, 310, 210) == EB_OK);
+    set16(&f, PI(3) + P_Z, 55);
+    f.o.b[PI(3) + P_STAMP] = 1;
+    CK(click(&f, EB_CANDIDATE_PICK) == EB_OK && od16(&f, O_COUNT) == 4);
+    CK(od16(&f, PI(3) + P_Z) == 1 && ob(&f, PI(3) + P_STAMP) == 0);
+    /* no piece under the pointer and no multi source: the refusal leaves the hand as it was */
+    fx_init(&f);
+    CK(start(&f) == EB_OK && ptr(&f, 10, 10) == EB_OK);
+    set16(&f, O_HAND, 5);
+    CK(click(&f, EB_CANDIDATE_PICK) == EB_ERR_BOUNDS && od16(&f, O_HAND) == 5);
     /* copies are made up to the 80th instance */
     for (int c = 78; c <= 81; ++c) {
         fx_init(&f);
@@ -1821,6 +1836,10 @@ static void t_layers(void)
         /* the overlap's near edge is the second rectangle's (left, top) or the first's: -1 there too */
         {{-5, 0, 5, 5}, {-1, 0, 5, 5}, 0, 5, 1},         {{0, -5, 5, 5}, {0, -1, 5, 5}, 0, 5, 1},
         {{-1, 0, 5, 5}, {-5, 0, 5, 5}, 0, 5, 1},         {{0, -1, 5, 5}, {0, -5, 5, 5}, 0, 5, 1},
+        /* equal near edges with an inverted rectangle (right < left): the first rectangle is only tested against the second's
+         * near edge when it starts to the left of it, the second against the first's otherwise */
+        {{10, 10, 5, 20}, {10, 10, 20, 20}, 0, 5, 6},     {{10, 10, 20, 20}, {10, 10, 5, 20}, 0, 5, 1},
+        {{10, 10, 20, 5}, {10, 10, 20, 20}, 0, 5, 6},     {{10, 10, 20, 20}, {10, 10, 20, 5}, 0, 5, 1},
     };
     for (size_t i = 0; i < sizeof cases / sizeof cases[0]; ++i) {
         const int got = layer_after_drop(cases[i].a, cases[i].b, cases[i].z0, cases[i].z1);
@@ -3099,6 +3118,92 @@ static void t_binding_argument_checks_with_live_binding(void)
     free(r);
 }
 
+/* The entry rectangles are rebuilt from zero whatever the object held before (piece builder 0x47e582: left and top are written 0,
+ * right and bottom are size - 1), for the first entry and for the three rotations. */
+static void t_phase0_entry_rects(void)
+{
+    Fx f;
+    fx_init(&f);
+    f.body[B_ROT] = 1;
+    for (int t = 0; t < 3; ++t)
+        for (int k = 0; k < 4; ++k)
+            for (int r = 0; r < 4; ++r) set32(&f, EN(t, k) + 4u + (size_t)r * 4u, 0x01020304);
+    CK(start(&f) == EB_OK);
+    for (int t = 0; t < 3; ++t)
+        for (int k = 0; k < 4; ++k) {
+            const int w = (k % 2) ? 30 : 40, h = (k % 2) ? 40 : 30; /* every rotation swaps width and height */
+            CK(rect_is(f.o.b, EN(t, k) + 4u, 0, 0, w - 1, h - 1));
+            CK(od16(&f, EN(t, k) + 0x14u) == w && od16(&f, EN(t, k) + 0x16u) == h);
+        }
+}
+
+/* A multi pick with a placement whose size does not fit 16 bits (the D rectangle is not size checked): the clamp keeps the 16-bit
+ * size of the piece, so an edge that is exactly on the clip rectangle must not be rewritten (0x47f19d tests with < and <=
+ * differently: only a strict comparison leaves the 32-bit rectangle alone). */
+static void t_clamp_wrapped_sizes(void)
+{
+    for (int edge = 0; edge < 4; ++edge) {
+        Fx f;
+        int32_t want[4] = {-34680, -34785, 35320, 35215}; /* (300 + 20) - 35000, (200 + 15) - 35000, then + 70000 */
+        fx_init(&f);
+        put_name(f.body, B_MULTI, "MULTI", 0x21);
+        put_rect(f.body, TY(0) + BT_D, 0, 0, 70000, 70000);
+        f.clip[0] = f.clip[1] = -100000;
+        f.clip[2] = f.clip[3] = 100000;
+        f.clip[edge] = want[edge]; /* the left, top, right or bottom edge lies on the clip edge */
+        CK(start(&f) == EB_OK && ptr(&f, 310, 210) == EB_OK);
+        CK(click(&f, EB_CANDIDATE_PICK) == EB_OK && ob(&f, O_MULTI_HAND) == 1);
+        CK(rect_is(f.o.b, PI(0) + P_RECT, want[0], want[1], want[2], want[3]));
+    }
+}
+
+/* Guards against an object the kernel itself cannot produce (native safety, not in the original). */
+static void t_tampered_object_guards(void)
+{
+    Fx f;
+    EbResult res;
+    /* a later phase without init, no failure text wanted */
+    fx_init(&f);
+    CK(eb_step(&f.o, f.body, EB_BODY_BYTES, 2, 1, &f.w, &f.host, &res, NULL) == EB_ERR_UNSUPPORTED);
+    /* a pick list that holds -1 is an empty answer, not an invalid instance */
+    fx_init(&f);
+    f.body[B_ROT] = 1;
+    CK(start(&f) == EB_OK);
+    set16(&f, O_COUNT1, 1);
+    set16(&f, O_LIST1, -1);
+    fx_clear(&f);
+    CK(rkey(&f) == EB_OK && od32(&f, O_DRAG) == 0 && f.log[0] == '\0');
+    /* the hand must be below both the instance limit and the count (a count above the limit is refused by the other guards) */
+    fx_init(&f);
+    CK(start(&f) == EB_OK);
+    set16(&f, O_COUNT, 90);
+    set32(&f, O_DRAG, 1);
+    set16(&f, O_HAND, 80);
+    CK(click(&f, EB_CANDIDATE_DROP) == EB_ERR_BOUNDS && od32(&f, O_DRAG) == 1);
+    /* the layer search stops at the 80th instance: instance 80 would be the drag word and its neighbours (a rectangle at 65536) */
+    fx_init(&f);
+    CK(start(&f) == EB_OK);
+    set16(&f, O_COUNT, 81);
+    set16(&f, PI(1) + P_Z, -7);
+    set32(&f, O_DRAG, 1);
+    set16(&f, O_HAND, 1);
+    set32(&f, O_HIT, 0);
+    set32(&f, O_LIFT, 0);
+    put_rect(f.o.b, O_PREV, 65536, 0, 65600, 50);
+    CK(click(&f, EB_CANDIDATE_DROP) == EB_OK && od16(&f, PI(1) + P_Z) == -6);
+    /* the first move of a drag is told by the previous top and bottom words alone (not by bytes of the neighbouring words) */
+    for (int variant = 0; variant < 2; ++variant) {
+        fx_init(&f);
+        CK(start(&f) == EB_OK);
+        set32(&f, O_DRAG, 1);
+        set16(&f, O_HAND, 0);
+        if (variant == 0) put_rect(f.o.b, O_MOVE, 0x01000000, 0, 5, 0);
+        else put_rect(f.o.b, O_MOVE, 0, 0, 0x01000000, 0);
+        CK(ptr(&f, 310, 210) == EB_OK);
+        CK(memcmp(f.o.b + O_PREV, f.o.b + O_MOVE, 16) == 0 && rect_is(f.o.b, O_MOVE, 310, 210, 310, 210));
+    }
+}
+
 static void run(const char *name, void (*fn)(void))
 {
     g_failed = 0;
@@ -3147,6 +3252,9 @@ int main(void)
     run("phase2", t_phase2);
     run("cleanup_invalidate", t_cleanup_invalidate);
     run("render", t_render);
+    run("phase0_entry_rects", t_phase0_entry_rects);
+    run("clamp_wrapped_sizes", t_clamp_wrapped_sizes);
+    run("tampered_object_guards", t_tampered_object_guards);
     run("binding_flow", t_binding_flow);
     run("binding_rows_and_persistence", t_binding_rows_and_persistence);
     run("binding_errors", t_binding_errors);

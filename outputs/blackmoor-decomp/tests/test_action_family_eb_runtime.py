@@ -17,7 +17,9 @@ oracle is a separate script (tests/test_action_family_eb_runtime_oracle.py; it n
 The mutation sweep is generated from the current source: every comparison, logical, arithmetic and bitwise operator, every integer
 literal, every `if`/`while` condition (forced true and forced false) and every simple statement of the kernel and the binding is
 mutated once, and the unit cases must fail on each. A mutant that survives must be listed in EQUIVALENT_RULES with the reason it cannot
-change observable behaviour.
+change observable behaviour, or in ORACLE_KILLED when the original-x86 oracle (tests/action_family_eb_runtime_original_oracle.py)
+reports a mismatch for it (the oracle is a separate, slower check: a mutated copy of the kernel is rebuilt into the driver library and
+compared with the unmodified GAME.EXE image over all scenarios).
 """
 import concurrent.futures
 import hashlib
@@ -40,7 +42,7 @@ BINDING = 'session_bindings_aeb.c'
 SOURCES = [KERNEL, BINDING, 'scene_resource.c', 'hiff.c']
 MUTATED_FILES = [KERNEL, BINDING]
 ORACLE = PROJECT / 'tests/action_family_eb_runtime_original_oracle.py'
-EXPECTED_UNIT_TESTS = 36
+EXPECTED_UNIT_TESTS = 39
 RESOURCES = PROJECT.parents[1] / 'work/analysis/hiff-resources'
 SANITIZE = ['-fsanitize=address,undefined', '-fno-sanitize-recover=undefined']
 
@@ -201,8 +203,119 @@ def _lit(line):
     return re.escape(line)
 
 
+def _k(line, op=r'[^|]+', occ=r'\d+', ordinal=r'\d+', filename=KERNEL):
+    """A regular expression for the keys of one source line (any operator, occurrence and ordinal unless given)."""
+    return rf'^{re.escape(filename)}\|{re.escape(line)}\|#{ordinal}\|{op}\|{occ}$'
+
+
+def _any(*patterns):
+    return '(?:' + '|'.join(patterns) + ')'
+
+
+MINUS = r'op \+ -> - '
+LIT = r'lit \d+->\d+'
+ARRAY_PARAMETER = ('a C array parameter is a pointer: the size in the declarator is ignored')
+LOCAL_ARRAY = ('the declared size is larger than the four (three, eight) elements the function indexes: a bigger local array holds them all')
+HOST_OUT = ('the initial value of an out-parameter that the host call assigns whenever it returns 0; a failing host call returns before the '
+            'value is read')
+EQUAL_VALUES = ('when the two compared values are equal the conditional expression yields the same value from either side')
+PIECE_ENTRY = ('the entry rectangle is written (left and top 0, right and bottom size - 1) from the zeroes just stored, so a misaligned '
+               'read of the top word still reads the zero written one statement before')
+
 EQUIVALENT_RULES = [
-    # (filled from the sweep below)
+    # --- offsets that are zero: `x + CONST` and `x - CONST` are the same address
+    (_any(_k('if (rd_s16(obj, P + P_Z) == layer) {', MINUS),
+          _k('if (rd_s16(obj, piece_off(best) + P_Z) < rd_s16(obj, piece_off(cand) + P_Z)) best = cand;', MINUS),
+          _k('int16_t z = rd_s16(obj, piece_off(i) + P_Z);', MINUS),
+          _k('const int16_t zj = rd_s16(obj, piece_off(found[k]) + P_Z);', MINUS),
+          _k('wr_16(obj, P + P_Z, 0);', MINUS),
+          _k('wr_16(obj, piece_off(i) + P_Z, z);', MINUS),
+          _k('wr_16(obj, piece_off(i) + P_Z, (int16_t)(rd_s16(obj, piece_off(i) + P_Z) + 1));', MINUS, occ='[01]')),
+     'P_Z (the z word of a piece instance) is offset 0, so `P + P_Z` and `P - P_Z` are the same address'),
+    (_any(_k('wr_32(obj, E0 + ENT_SURF, (int32_t)surf);', MINUS),
+          _k('wr_32(obj, ent + ENT_SURF, (int32_t)s2);', MINUS),
+          _k('if (rd_s32(obj, e + ENT_SURF) != 0) {', MINUS),
+          _k('wr_32(obj, e + ENT_SURF, 0);', MINUS),
+          _k('HOST(host->release_surface(host->context, (uint32_t)rd_s32(obj, e + ENT_SURF)));', MINUS),
+          _k('HOST(host->copy_surface(host->context, s2, (uint32_t)rd_s32(obj, prev + ENT_SURF)));', MINUS),
+          _k('plan_blit(plan, 1, 4, (uint32_t)rd_s32(obj, ent + ENT_SURF), src, dst);', MINUS),
+          _k('for (unsigned k = 0; k < 4; ++k) wr_32(obj, entry_off(t, k) + ENT_SURF, 0);', MINUS)),
+     'ENT_SURF (the surface handle of an entry) is offset 0, so `entry + ENT_SURF` and `entry - ENT_SURF` are the same address'),
+    (_any(_k('rect_at(body, T + BT_A, src);', MINUS),
+          _k('if (rect_valid(body, T + BT_A)) {', MINUS),
+          _k('for (int k = 0; k < 4; ++k) src_rect[k] = rd_s32(body, T + BT_A + (size_t)k * 4u);', MINUS, occ='0')),
+     'BT_A (the source rectangle of a type) is offset 0, so `T + BT_A` and `T - BT_A` are the same address'),
+    (_k('HOST(host->load_surface(host->context, (const char *)body + B_NAME, TAG_PIECE_SRC, &s));', MINUS),
+     'B_NAME (the source image name) is offset 0 of the body'),
+    # --- array declarators
+    (_any(_k('const int32_t dst[4])', LIT), _k('const int32_t rect[4], const EbHost *host, EbPointerResult *out)', LIT),
+          _k('static void plan_blit(EbRenderPlan *plan, uint8_t kind, uint8_t src_kind, uint32_t surface, const int32_t src[4],', LIT),
+          _k('static void rect_at(const uint8_t *b, size_t off, int32_t out[4])', LIT),
+          _k('static void xlate(const EbView *v, const int32_t in[4], int32_t out[4])', LIT),
+          _k('int session_aeb_pointer_move(SessionAebBinding *binding, int16_t x, int16_t y, const int32_t rect[4], EbPointerResult *out)',
+             LIT, filename=BINDING)),
+     ARRAY_PARAMETER),
+    (_any(_k('int32_t src[4], dst[4], moved[4];', 'lit 4->5'), _k('int32_t src[4];', 'lit 4->5'),
+          _k('int32_t src_rect[4], dst_rect[4];', 'lit 4->5'), _k('char buf[208];', 'lit 208->209'),
+          _k('static const size_t order[4] = {B_SND_PICK, B_SND_GOOD, B_SND_BAD, B_SND_ROT};', 'lit 4->5'),
+          _k('static const size_t order[4] = {B_SND_PICK, B_SND_GOOD, B_SND_ROT, B_SND_BAD};', 'lit 4->5'),
+          _k('static const size_t surfaces[3] = {O_SRC, O_MULTI, O_ANIM};', 'lit 3->4')),
+     LOCAL_ARRAY + ' (the caption buffer needs at most 208 bytes: show_caption refuses text that does not fit its local_bytes <= 208)'),
+    # --- initial values and flag values
+    (_any(_k('uint32_t s = 0;', 'lit 0->1'), _k('uint32_t s2 = 0;', 'lit 0->1'), _k('uint32_t surf = 0;', 'lit 0->1'),
+          _k('int16_t rw = 0, rh = 0;', 'lit 0->1'), _k('int32_t busy = 0;', 'lit 0->1'), _k('int32_t enabled = 0;', 'lit 0->1')),
+     HOST_OUT),
+    (_any(_k('int at_home = 1;', 'lit 1->2'), _k('x_hit = 1;', 'lit 1->2'), _k('y_hit = 1;', 'lit 1->2'), _k('return 1;', 'lit 1->2'),
+          _k('CHECK(piece_init(obj, body, world, count, obj[P + P_TYPE], 1, host));', 'lit 1->2')),
+     'a flag only tested against zero (the boolean results of instances_sane and near_unplaced, the hit flags, the forced argument): 1 and 2 behave the same'),
+    # --- equal operands
+    (_any(_k('bo = bb < ab ? bb : ab;', 'op <-><='), _k('r = br < ar ? br : ar;', 'op <-><='), _k('z = zj < z ? z : zj;', 'op <-><=')), EQUAL_VALUES),
+    # --- stores that are overwritten or repeated
+    (_any(_k('wr_16(obj, O_TOTAL, 0);', _any('lit 0->1', 'statement removed'))),
+     'dead store: save_and_check overwrites O_TOTAL with the computed total before it can return or be read'),
+    (_any(_k('wr_32(obj, O_DRAG, 0);', _any('lit 0->1', 'statement removed'), ordinal='2'),
+          _k('wr_32(obj, O_DRAG, 0);', 'statement removed', ordinal='3')),
+     'phase 0 stores O_DRAG = 0 twice with only the O_HAND store between them: either store alone gives the same state (the first with 1 is overwritten by the second)'),
+    (_k('out->cursor_flag = 0;', 'statement removed'),
+     'write_candidate is only called after eb_pointer_move cleared the whole result, so the flag is already 0'),
+    (_k('memset(obj + O_COUNTS, 0, 20);', 'lit 20->21'),
+     'the 21st byte is the first byte of the instance array, which the memset on the line before already cleared'),
+    (_k('j = rd_s16(obj, O_COUNT);', 'statement removed'),
+     'the early exit of the overlap scan: after the first overlapping piece O_HIT is 0 and the remaining iterations can only store 0 again'),
+    (_k('for (size_t k = 0; k < 40u; k += 4u) wr_32(obj, O_LIST1 + k, 0);', 'lit 40->39'), 'k takes the values 0..36 for both limits'),
+    (_k('for (size_t k = 0; k < sizeof fields / sizeof fields[0] && why == NULL; ++k)', 'lit 0->1', occ='1'),
+     'sizeof of the element: fields[1] has the same size as fields[0]'),
+    (_k('for (size_t off = O_PREV; off < O_PREV + 0x40u; off += 4u) wr_32(obj, off, 0);', 'lit 0x40->0x3f'), 'off takes the values 0..0x3c for both limits'),
+    (_any(_k('for (size_t off = O_PTR_RECT; off < O_PTR_RECT + 16u; off += 4u) wr_32(obj, off, 0);', 'lit 16->15'),
+          _k('for (size_t off = O_PTR_RECT; off < O_PTR_RECT + 16u; off += 4u) wr_32(obj, off, 0);', 'lit 16->17'),
+          _k('for (size_t off = O_PTR_RECT; off < O_PTR_RECT + 16u; off += 4u) wr_32(obj, off, 0);', 'lit 4->3', occ='1'),
+          _k('for (size_t off = O_PTR_RECT; off < O_PTR_RECT + 16u; off += 4u) wr_32(obj, off, 0);', 'op <-><=')),
+     'the pointer rectangle is 16 bytes; the extra store (limit 17, <=, or a 3 byte step) only reaches the O_HIT word, which phase 0 cleared at its start'),
+    (_any(_k('for (int16_t t = 0; t < EB_MAX_TYPES; ++t)', 'op <-><=', ordinal='1'),
+          _k('for (unsigned k = 0; k < 4; ++k) wr_32(obj, entry_off(t, k) + ENT_SURF, 0);', _any('lit 4->5', 'op <-><=')),),
+     'one more entry row or column only clears the handle of the next entry or of the word at O_COUNTS; phase 0 clears or restores the counters and instances right after'),
+    (_any(_k('wr_32(obj, E0 + ENT_RECT + 12, add32(sub32(rd_s32(obj, E0 + ENT_RECT + 4), 1), h));', 'lit 4->3', occ='1'),
+          _k('wr_32(obj, ent + ENT_RECT + 12, add32(sub32(rd_s32(obj, ent + ENT_RECT + 4), 1), rh));', 'lit 4->3', occ='1')), PIECE_ENTRY),
+    (_k('for (int32_t k = 1; k < n; ++k) {', 'lit 1->0'), 'comparing the first list entry with itself never replaces the best piece (strict <)'),
+    (_any(_k('if (count < 0 || count >= EB_MAX_INSTANCES) return EB_ERR_BOUNDS;', 'lit 0->1'),
+          _k('if (count < 0 || count >= EB_MAX_INSTANCES) return EB_ERR_BOUNDS;', 'op <-><=')),
+     'count is O_COUNT and the hand was validated by instance_valid just before (hand < O_COUNT), so count >= 1 and neither `count < 1` nor `count <= 0` can be true'),
+    (_k('if (drawn == want) break;', 'cond forced 0'),
+     'every piece of the plan but the hand is drawn exactly once, so drawn reaches want only after the last piece: nothing is left to scan in this layer and the outer test ends the loop'),
+    (_k('if (plan->count >= EB_MAX_BLITS - 4) return EB_ERR_BOUNDS;'),
+     'a plan has at most 2 restore blits + 80 pieces + the hand + the animation = 84 blits, below the 96 of the guard (EB_MAX_BLITS is 100): the guard is unreachable'),
+    # --- the session binding (src/session_bindings_aeb.c)
+    (_k('binding = (SessionAebBinding *)calloc(1u, sizeof(*binding));', 'lit 1->2', filename=BINDING), 'a count of two allocates twice the struct'),
+    (_any(_k('binding->failure = "0xeb-row-allocation";', 'statement removed', filename=BINDING),
+          _k('if (count != 0u && rows == NULL) {', 'cond forced 0', filename=BINDING),
+          _k('if (binding != NULL) {', 'cond forced 1', filename=BINDING)),
+     'allocation failure of calloc is not reachable without a failing allocator'),
+    (_any(_k('binding->failure = "0xeb-scene-row";', 'statement removed', filename=BINDING),
+          _k('free(rows);', 'statement removed', ordinal='0', filename=BINDING)),
+     'scene_resource_action_at cannot fail for an index below scene_resource_action_count, so the branch is not reachable'),
+    (_k('binding->rows[index].present == 0u || index > (size_t)INT16_MAX) {', 'op >->>=', filename=BINDING),
+     'index 32767 needs a scene of 32768 rows (the row number is a 16 bit word); the other operands are covered by the foreign-index cases'),
+    (_k('rows[i].present = 1u;', 'lit 1->2', filename=BINDING), 'a flag only tested against zero'),
 ]
 EQUIVALENT_MARK = '(rule)'
 
@@ -215,6 +328,93 @@ def equivalent_reason(key):
 
 
 EQUIVALENT = {}  # exact keys, when a rule would be too broad
+
+# Mutants the original-x86 oracle kills. tests/action_family_eb_runtime_original_oracle.py rebuilds the driver library from a mutated copy
+# of the kernel (--src) and compares it, scenario by scenario, with the unmodified GAME.EXE image; these mutants make it report a
+# mismatch, so the unit cases do not need to repeat them. The list is produced by `python3 tests/test_action_family_eb_runtime.py
+# --oracle-classify KEYS_FILE OUT.json` (all surviving kernel mutants, quick stage then the full 565 scenarios), one key per line
+# without the file name (the kernel, as in the sweep). ORACLE_RUN records what the list was produced from; test_oracle_run_is_current
+# fails if the oracle script changed since, because the claim then needs a new run.
+ORACLE_RUN = {
+    'oracle_script_sha256': 'e37077c6a4169002e72937e0fcdba759fb44f9def6a92f65c9c791a2a568cea6',
+    'kernel_sha256': '9dce917fb970294a9fe119cf425739d8ced1567bb05b2e475494fccf3002933a',
+    'scenarios': 565,
+}
+ORACLE_KILLED_KEYS = """
+((uint32_t)b[off + 3] << 24));|#0|lit 3->2|0
+(uint8_t)(obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] - 1);|#0|op + -> - |0
+(uint8_t)(obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] - 1);|#0|op + -> - |1
+CHECK(piece_init(obj, body, world, count, obj[P + P_TYPE], 1, host));|#0|lit 1->0|0
+CHECK(piece_init(obj, body, world, count, obj[P + P_TYPE], 1, host));|#0|op + -> - |0
+T = type_off(obj[P + P_TYPE]);|#1|op + -> - |0
+T = type_off(obj[piece_off(piece) + P_TYPE]);|#0|op + -> - |0
+b[off + 2] = (uint8_t)((u >> 16) & 0xff);|#0|lit 16->15|1
+b[off + 2] = (uint8_t)((u >> 16) & 0xff);|#0|lit 16->17|1
+b[off + 3] = (uint8_t)((u >> 24) & 0xff);|#0|lit 24->23|1
+bo = bb < ab ? bb : ab;|#1|statement removed|0
+const int16_t type = obj[P + P_TYPE];|#0|op + -> - |0
+const int16_t type = obj[P + P_TYPE];|#1|op + -> - |0
+const int32_t dl = rd_s32(body, T + BT_D), dt = rd_s32(body, T + BT_D + 4);|#0|lit 4->3|0
+const int32_t dl = rd_s32(body, T + BT_D), dt = rd_s32(body, T + BT_D + 4);|#0|op + -> - |0
+const int32_t dl = rd_s32(body, T + BT_D), dt = rd_s32(body, T + BT_D + 4);|#0|op + -> - |1
+const int32_t dl = rd_s32(body, T + BT_D), dt = rd_s32(body, T + BT_D + 4);|#0|op + -> - |2
+const size_t T = type_off(obj[P + P_TYPE]);|#0|op + -> - |0
+const size_t ent = entry_off(obj[P + P_TYPE], obj[P + P_ORIENT] & 3u);|#0|lit 3->2|0
+const size_t ent = entry_off(obj[P + P_TYPE], obj[P + P_ORIENT] & 3u);|#0|lit 3->4|0
+for (int k = 0; k < 4; ++k) dst_rect[k] = rd_s32(obj, E0 + ENT_RECT + (size_t)k * 4u);|#0|lit 0->1|0
+for (int16_t j = 0; j < count && j < EB_MAX_INSTANCES; ++j)|#0|lit 0->1|0
+for (int16_t j = 0; j < n; ++j)|#0|lit 0->1|0
+for (int16_t j = 0; j < ntypes; ++j) {|#0|op <-><=|0
+for (int16_t j = 0; j < rd_s16(obj, O_COUNT); ++j) {|#1|lit 0->1|0
+for (int16_t k = 0; k < nfound; ++k) {|#0|op <-><=|0
+for (int16_t t = 0; t < n && why == NULL; ++t) {|#0|op <-><=|0
+for (unsigned k = 0; k < 4; ++k) {|#0|lit 4->5|1
+for (unsigned k = 0; k < 4; ++k) {|#0|op <-><=|0
+if (index == type) {|#0|cond forced 1|0
+if (obj[O_COUNTS + obj[P + P_TYPE]] != 0 && body[T + BT_SPAWN] == 0)|#0|op + -> - |0
+if (obj[O_COUNTS + obj[P + P_TYPE]] != 0 && body[T + BT_SPAWN] == 0)|#0|op + -> - |1
+if (obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] != 0 && body[T + BT_SPAWN] == 0)|#0|lit 0->1|0
+if (obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] != 0 && body[T + BT_SPAWN] == 0)|#0|op + -> - |0
+if (obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] != 0 && body[T + BT_SPAWN] == 0)|#0|op + -> - |1
+if (pl < rd_s32(obj, P + 2))|#0|op <-><=|0
+if (rd_s32(obj, off) < v.clip[0]) {|#0|lit 0->1|0
+if (x_hit && pt < rd_s32(obj, P + 6))|#0|op <-><=|1
+int16_t nfound = 0;|#0|lit 0->1|0
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |0
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |1
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |2
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |3
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#1|op + -> - |0
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#1|op + -> - |1
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#1|op + -> - |2
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#1|op + -> - |3
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] - 1);|#0|op + -> - |0
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] - 1);|#0|op + -> - |1
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] - 1);|#0|op + -> - |2
+obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] - 1);|#0|op + -> - |3
+obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] =|#0|op + -> - |0
+obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] =|#0|op + -> - |1
+piece = rd_s16(obj, O_HAND);|#0|statement removed|0
+r = br < ar ? br : ar;|#0|op <->>=|0
+r = br < ar ? br : ar;|#1|op <->>=|0
+r = br < ar ? br : ar;|#1|statement removed|0
+return (int32_t)((uint32_t)b[off] | ((uint32_t)b[off + 1] << 8) | ((uint32_t)b[off + 2] << 16) ||#0|lit 2->3|2
+static const uint8_t k[8] = {'N', 'O', '_', 'F', 'I', 'L', 'E', 0};|#0|lit 8->9|0
+static const uint8_t k[9] = {'N', 'O', ' ', 'S', 'O', 'U', 'N', 'D', 0};|#0|lit 9->10|0
+t = bt;|#0|statement removed|0
+wr_32(obj, E0 + ENT_RECT + 12, add32(sub32(rd_s32(obj, E0 + ENT_RECT + 4), 1), h));|#0|lit 4->5|1
+wr_32(obj, O_PREV_T + 12, rd_s32(obj, O_MOVE_T + 12));|#0|op + -> - |0
+wr_32(obj, O_PREV_T + 12, rd_s32(obj, O_MOVE_T + 12));|#0|statement removed|0
+wr_32(obj, O_PREV_T + 4, rd_s32(obj, O_MOVE_T + 4));|#0|op + -> - |0
+wr_32(obj, O_PREV_T + 4, rd_s32(obj, O_MOVE_T + 4));|#0|statement removed|0
+wr_32(obj, O_PREV_T + 8, rd_s32(obj, O_MOVE_T + 8));|#0|op + -> - |0
+wr_32(obj, O_PREV_T + 8, rd_s32(obj, O_MOVE_T + 8));|#0|op + -> - |1
+wr_32(obj, O_PREV_T + 8, rd_s32(obj, O_MOVE_T + 8));|#0|statement removed|0
+wr_32(obj, O_PREV_T, rd_s32(obj, O_MOVE_T));|#0|statement removed|0
+wr_32(obj, ent + ENT_RECT + 12, add32(sub32(rd_s32(obj, ent + ENT_RECT + 4), 1), rh));|#0|lit 4->5|1
+"""
+ORACLE_KILLED = frozenset(f'{KERNEL}|{line}' for line in ORACLE_KILLED_KEYS.strip().split('\n'))
+
 
 # Extra mutants the line generator cannot reach (preprocessor lines).
 DEFINE_MUTANTS = [
@@ -283,6 +483,20 @@ class Mutation(unittest.TestCase):
                 self.assertIn(key, keys, 'stale EQUIVALENT entry (the source line changed)')
                 self.assertTrue(EQUIVALENT[key].strip())
 
+    def test_oracle_killed_entries_name_real_mutants(self):
+        keys = {key for key, _, _, _ in all_mutants()}
+        stale = sorted(key for key in ORACLE_KILLED if key not in keys)
+        self.assertEqual(stale, [], 'stale ORACLE_KILLED entries (the source line changed): regenerate with --oracle-classify')
+        for key in ORACLE_KILLED:
+            self.assertFalse(equivalent_reason(key) and key in EQUIVALENT, key)
+
+    def test_oracle_run_is_current(self):
+        """The recorded oracle verdicts hold for this oracle script and this kernel; a changed script or kernel needs a new run."""
+        self.assertEqual(hashlib.sha256(ORACLE.read_bytes()).hexdigest(), ORACLE_RUN['oracle_script_sha256'],
+                         'the oracle script changed: rerun --oracle-classify and refresh ORACLE_KILLED and ORACLE_RUN')
+        self.assertEqual(hashlib.sha256((SRC / KERNEL).read_bytes()).hexdigest(), ORACLE_RUN['kernel_sha256'],
+                         'the kernel changed: rerun --oracle-classify and refresh ORACLE_KILLED and ORACLE_RUN')
+
     def test_define_anchors(self):
         for name, filename, old, new in DEFINE_MUTANTS:
             with self.subTest(name):
@@ -291,11 +505,15 @@ class Mutation(unittest.TestCase):
     def test_mutations_are_detected(self):
         """The unit cases must fail when any operator, literal, condition or statement of the kernel or binding is broken."""
         results = run_sweep()
-        survivors = sorted(key for key, verdict in results.items() if verdict == 'survived' and key not in EQUIVALENT and equivalent_reason(key) is None)
+        survivors = sorted(key for key, verdict in results.items() if verdict == 'survived' and key not in EQUIVALENT
+                           and key not in ORACLE_KILLED and equivalent_reason(key) is None)
         killed = sum(1 for verdict in results.values() if verdict == 'killed')
         invalid = sum(1 for verdict in results.values() if verdict == 'invalid')
-        excused = sum(1 for key, verdict in results.items() if verdict == 'survived' and (key in EQUIVALENT or equivalent_reason(key)))
-        print(f'mutants: {len(results)} generated, {killed} killed, {excused} survive as recorded equivalents, {invalid} do not compile')
+        by_oracle = sum(1 for key, verdict in results.items() if verdict == 'survived' and key in ORACLE_KILLED)
+        excused = sum(1 for key, verdict in results.items() if verdict == 'survived' and key not in ORACLE_KILLED
+                      and (key in EQUIVALENT or equivalent_reason(key)))
+        print(f'mutants: {len(results)} generated, {killed} killed by the unit cases, {by_oracle} killed by the original-x86 oracle, '
+              f'{excused} survive as recorded equivalents, {invalid} do not compile')
         self.assertEqual(survivors, [], f'{len(survivors)} surviving mutants')
 
 
@@ -439,8 +657,53 @@ class Registration(unittest.TestCase):
             self.assertRegex(header, rf'#define EB_CANDIDATE_{name}\s+{value}')
 
 
+def oracle_classify(keys_file, out_file, jobs=4):
+    """Run the kernel mutants listed in keys_file (one key per line, first line ignored as in --survivors output) through the
+    original-x86 oracle: a quick pass (--quick-only), then the full scenario set for those that survive it. Writes {key: verdict}."""
+    keys = [line.rstrip('\n') for line in Path(keys_file).read_text().splitlines()[1:] if line.strip()]
+    mutants = {key: (number, new_line) for key, filename, number, new_line in all_mutants() if filename == KERNEL}
+    text = (SRC / KERNEL).read_text().split('\n')
+    work = Path(tempfile.mkdtemp(prefix='eb_oracle_'))
+    results = {}
+
+    def run(directory, quick):
+        cmd = [sys.executable, str(ORACLE), '--src', str(directory), '--workers', '1', '--result', str(directory / 'r.json'), '--fail-fast',
+               '--lenient-build', '--mutation-run'] + (['--quick-only'] if quick else [])
+        done = subprocess.run(cmd, capture_output=True, text=True, cwd=str(ORACLE.parent), timeout=3000)
+        if 'driver build failed' in done.stderr + done.stdout:
+            return 'INVALID'
+        if done.returncode == 0:
+            return 'SURVIVED'
+        return 'KILLED' if any(line.startswith('FIRST') for line in done.stdout.splitlines()) else 'ERROR'
+
+    def one(item):
+        index, key = item
+        number, new_line = mutants[key]
+        directory = work / f'm{index}'
+        directory.mkdir()
+        for header in SRC.glob('action_family_eb_runtime*.h'):
+            shutil.copy(header, directory / header.name)
+        lines = list(text)
+        lines[number - 1] = new_line
+        (directory / KERNEL).write_text('\n'.join(lines))
+        verdict = run(directory, True)
+        if verdict == 'SURVIVED':
+            verdict = run(directory, False)
+        shutil.rmtree(directory, ignore_errors=True)
+        return key, verdict
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+        for key, verdict in pool.map(one, enumerate(keys)):
+            results[key] = verdict
+            Path(out_file).write_text(json.dumps(results, indent=0, sort_keys=True))
+    shutil.rmtree(work, ignore_errors=True)
+    print('oracle:', {v: list(results.values()).count(v) for v in sorted(set(results.values()))})
+
+
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == '--survivors':
+    if len(sys.argv) > 3 and sys.argv[1] == '--oracle-classify':
+        oracle_classify(sys.argv[2], sys.argv[3])
+    elif len(sys.argv) > 1 and sys.argv[1] == '--survivors':
         keys = None
         if len(sys.argv) > 2:  # re-run only the mutants listed (one key per line) in the file given
             keys = {line.rstrip('\n') for line in Path(sys.argv[2]).read_text().splitlines()[1:] if line}
