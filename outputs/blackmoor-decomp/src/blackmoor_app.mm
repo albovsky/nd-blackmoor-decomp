@@ -65,6 +65,8 @@
 #include "session_bindings_af5.h"
 #include "session_bindings_aea.h"
 #include "session_bindings_a20_a70_a80.h"
+#include "session_bindings_a6d_a9a.h"
+#include "session_bindings_a1c.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -374,6 +376,18 @@ struct NativeApp {
     SessionA20Binding *a20 = nullptr;
     SessionA70Binding *a70 = nullptr;
     SessionA80Binding *a80 = nullptr;
+    /* RT-57: raw 0x6d (popup close, scene sound unload, outer state 6) and raw 0x9a (stop sound channels, optional scene
+     * change). a6d_world keeps the cells the last visit wrote (the app has no outer state machine: logged only). */
+    SessionA6dBinding *a6d = nullptr;
+    SessionA9aBinding *a9a = nullptr;
+    Action6DWorld a6d_world{};
+    /* RT-57: raw 0x1c interactive video (arm 0x427cc3 -> 0x4cb586 on the singleton 0x63847b). The movie player 0x637fcf is not wired
+     * (scene movies play through Bink on their own path): the handler waits in phase 0. The binding is recreated at every scene
+     * start (a power-on object, as the other members). */
+    SessionA1cBinding *a1c = nullptr;
+    std::array<bool, 0x40> a1c_slot_used{};
+    bool a1c_wait_logged = false;
+    bool a1c_fills_logged = false;
     int32_t a20_view_cell_63aa10 = 0;
     int16_t a20_word_5c3a4f = 0;
     Action70World a70_world{};
@@ -1113,6 +1127,7 @@ static bool native_ad0_render(NativeApp *app);
 static bool native_aaa_render(NativeApp *app);
 static bool native_ad3_render(NativeApp *app);
 static bool native_af5_render(NativeApp *app);
+static bool native_a1c_render(NativeApp *app);
 static bool native_aea_render(NativeApp *app);
 static bool native_af6_render(NativeApp *app);
 static bool native_ae0_render(NativeApp *app);
@@ -1515,6 +1530,11 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->af5 != nullptr && session_af5_registered(app->af5) != 0u) {
         /* RT-55: the Typing Quiz's render entries (type 10, callbacks 0x4b9a88 / 0x446688 / 0x4468fe), same slot range. */
         (void)native_af5_render(app);
+    }
+    if (app->a1c != nullptr) {
+        /* RT-57: the interactive video's hotspot render entry (type 15, callback 0x4cc79a), registered only after the movie player
+         * reports state 2, which the app never does: the call is a no-op until a player is wired. */
+        (void)native_a1c_render(app);
     }
     if (app->aea != nullptr && session_aea_registered(app->aea) != 0u) {
         /* RT-45: the Onebuild puzzle's render entry (type 10, callback 0x4876ed), same slot range. */
@@ -2140,6 +2160,9 @@ static void cleanup(NativeApp *app)
     session_a20_destroy(app->a20);
     session_a70_destroy(app->a70);
     session_a80_destroy(app->a80);
+    session_a6d_destroy(app->a6d);
+    session_a9a_destroy(app->a9a);
+    session_a1c_destroy(app->a1c);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
@@ -3644,7 +3667,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
             !app->af6_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -3937,6 +3960,308 @@ static int native_a80_handler(void *context, size_t row, const SceneActionInfo *
         record(app, "scene_a80_blocker row=%zu status=%d detail=%s", row, status, session_a80_failure(app->a80));
     }
     return status;
+}
+
+/* Raw 0x6d (RT-57): close the popup screen, unload the scene sound object, outer state 6. The cells the arm reads, 0x583204 and
+ * 0x5bb22a, are the same mirrors raw 0x80 reads (overlay_ui and load_game_flag); nothing in the app writes a popup mode, so they
+ * stay 0 and only the tail of the arm runs. There is no teardown host: a visit that would need one (the cells nonzero) is refused
+ * (UNSUPPORTED, logged as a blocker) instead of being silently skipped. The outer-state cells the tail stores (0x583981 := 6,
+ * 0x5839a1, 0x583999 := 0, 0x5bb1e2) have no owner in the app (no outer state machine, as for raw 0x70): they are logged. */
+static int native_a6d_load_world(void *context, Action6DWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    *world = Action6DWorld{};
+    world->popup_mode_583204 = app->captions.lifecycle.g.overlay_ui;
+    world->overlay_flag_5bb22a = app->exit_state.g.load_game_flag;
+    return 0;
+}
+
+static void native_a6d_store_world(void *context, const Action6DWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->a6d_world = *world;
+    app->captions.lifecycle.g.overlay_ui = world->popup_mode_583204;
+    app->exit_state.g.load_game_flag = world->overlay_flag_5bb22a;
+}
+
+static int native_a6d_unload(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr && unload_scene_sound_object(app) ? 0 : 1;
+}
+
+static int native_a6d_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a6d_handler(app->a6d, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a6d_blocker row=%zu status=%d detail=%s", row, status, session_a6d_failure(app->a6d));
+    } else {
+        record(app, "scene_a6d_close row=%zu teardown=none (the cells 0x583204/0x5bb22a are 0: no popup screen to tear down) "
+               "scene_sound_unloaded=1 outer_state=%d cell_5839a1=%d cell_5bb1e2=%d (original engine mode 0x583999 := "
+               "0; outer state 6 is not modelled, the session keeps running)", row,
+               app->a6d_world.outer_state_583981, app->a6d_world.cell_5839a1, app->a6d_world.cell_5bb1e2);
+    }
+    return status;
+}
+
+/* Raw 0x9a (RT-57): stop sound channels (logged as NOT PLAYED like the other families: no effect backend), then an optional
+ * scene change (one SceneTransitionRequest, same cells as raw 0x0a/0x80) and an optional event flag store. The start flag
+ * 0x5bb1ca goes to app->start_flag_5bb1ca. */
+static int native_a9a_load_world(void *context, Action9AWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    *world = Action9AWorld{};
+    world->start_flag_5bb1ca = app->start_flag_5bb1ca;
+    world->engine_mode_583999 = static_cast<int32_t>(app->exit_state.g.game_state);
+    return 0;
+}
+
+static void native_a9a_store_world(void *context, const Action9AWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_flag_5bb1ca; /* the engine mode 0x583999 := 4 is the transition request */
+}
+
+static int native_a9a_stop_channel(void *context, uint16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_a9a_sound_stop channel=%u call=0x4fc878 NOT PLAYED (no effect backend)", static_cast<unsigned>(channel));
+    return 0;
+}
+
+static int native_a9a_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a9a_transition_refused target=%d (completion byte not committed)", request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a9a_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d start_flag=%d (0x4336ad scene-change "
+           "cells, mode 0x583999 := 4)", request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1], request->opaque_dwords[2],
+           app->start_flag_5bb1ca);
+    return 0;
+}
+
+static int native_a9a_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a9a_handler(app->a9a, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a9a_blocker row=%zu status=%d detail=%s", row, status, session_a9a_failure(app->a9a));
+    }
+    return status;
+}
+
+/* Raw 0x1c (RT-57): the interactive video, handler 0x4cb586 on the singleton 0x63847b (kernel action_family_1c_runtime.c, binding
+ * session_bindings_a1c.c). The movie player at 0x637fcf is not wired: the app plays scene movies through Bink on its own path, so the
+ * player getters report state 0 and the row waits in phase 0 (one log line per scene). The ".IV" file is read from the CifTree
+ * directory: the loader 0x4cbba9 builds "<directory string 0x639db1><name>.IV", and 0x639db1 is the "CifTreePath" setting
+ * (default "\Ciftree\", read at 0x4348b0), the same directory game_resources_open uses; the lookup follows Windows ASCII case folding
+ * like the Bink and HIS lookups. The z entry (type 15, callback 0x4cc79a, label "INTERACTIVE VIDEO DIAGS") shares the 0x18..0x3f range.
+ * The original paints each hotspot rectangle in a unique colour into a hidden hit map; the app has none, so the fills are counted and
+ * logged once per scene, not drawn. */
+static int native_a1c_player_state(void *context, int32_t *state)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || state == nullptr) return 1;
+    *state = 0;
+    if (!app->a1c_wait_logged) {
+        app->a1c_wait_logged = true;
+        record(app, "scene_a1c_wait detail=interactive video waits for a movie player (0x637fcf state 2); no movie backend is wired, "
+               "so the row stays in phase 0");
+    }
+    return 0;
+}
+
+static int native_a1c_player_name(void *context, uint8_t name[C1C_NAME_BYTES])
+{
+    (void)context;
+    if (name == nullptr) return 1;
+    std::memset(name, 0, C1C_NAME_BYTES);
+    return 0;
+}
+
+static int native_a1c_player_hotspot(void *context, int16_t *index)
+{
+    (void)context;
+    if (index == nullptr) return 1;
+    *index = -1;
+    return 0;
+}
+
+static int native_a1c_player_origin(void *context, int *present, int32_t *dx, int32_t *dy)
+{
+    (void)context;
+    if (present == nullptr || dx == nullptr || dy == nullptr) return 1;
+    *present = 0;
+    *dx = 0;
+    *dy = 0;
+    return 0;
+}
+
+static int native_a1c_open_iv(void *context, const char *name, void **file)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || file == nullptr) return 1;
+    const std::string wanted = std::string(name) + ".IV";
+    if (wanted.size() > 37 || wanted.find_first_of("/\\") != std::string::npos) {
+        record(app, "scene_a1c_open_error name=%s detail=invalid-asset-name", name);
+        return 1;
+    }
+    const std::string directory_path = app->game_directory + "/Ciftree";
+    DIR *directory = opendir(directory_path.c_str());
+    if (directory == nullptr) {
+        record(app, "scene_a1c_open_error name=%s detail=Ciftree-directory-unavailable", name);
+        return 1;
+    }
+    std::string path;
+    unsigned matches = 0;
+    while (dirent *entry = readdir(directory)) {
+        const std::string candidate = entry->d_name;
+        if (candidate.size() != wanted.size()) continue;
+        bool same = true;
+        for (size_t i = 0; i < wanted.size(); ++i) {
+            unsigned char a = static_cast<unsigned char>(candidate[i]);
+            unsigned char b = static_cast<unsigned char>(wanted[i]);
+            if (a >= 'a' && a <= 'z') a -= 'a' - 'A';
+            if (b >= 'a' && b <= 'z') b -= 'a' - 'A';
+            if (a != b) { same = false; break; }
+        }
+        if (same) { ++matches; path = directory_path + "/" + candidate; }
+    }
+    closedir(directory);
+    if (matches != 1u) {
+        record(app, "scene_a1c_open_error name=%s detail=%s", name, matches == 0u ? "missing-file" : "ambiguous-file");
+        return 1;
+    }
+    FILE *stream = std::fopen(path.c_str(), "rb");
+    if (stream == nullptr) {
+        record(app, "scene_a1c_open_error name=%s detail=fopen-failed", name);
+        return 1;
+    }
+    *file = stream;
+    record(app, "scene_a1c_open name=%s source=Ciftree (0x4cbba9 LoadIVFile)", name);
+    return 0;
+}
+
+static size_t native_a1c_read(void *context, void *file, void *buffer, size_t size)
+{
+    (void)context;
+    if (file == nullptr || buffer == nullptr) return 0u;
+    return std::fread(buffer, 1u, size, static_cast<FILE *>(file));
+}
+
+static void native_a1c_close(void *context, void *file)
+{
+    (void)context;
+    if (file != nullptr) std::fclose(static_cast<FILE *>(file));
+}
+
+static int native_a1c_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        const size_t index = static_cast<size_t>(i);
+        if (!app->a1c_slot_used[index] && !app->af5_slot_used[index] && !app->ad3_slot_used[index] && !app->aaa_slot_used[index] &&
+            !app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_a1c_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_a1c_register_slot(void *context, int16_t slot, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->a1c_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_a1c_register slot=%d type=15 callback=0x4cc79a label=%s", slot, label);
+    return 0;
+}
+
+static int native_a1c_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->a1c_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+/* The word cell 0x583a29 is the held inventory item (-1 none), the same word raw 0x79 and the inventory view use. */
+static int native_a1c_cell_583a29(void *context, int16_t *value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || value == nullptr) return 1;
+    const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+    *value = held != nullptr ? *held : static_cast<int16_t>(-1);
+    return 0;
+}
+
+static void native_a1c_fill_host(NativeApp *app, C1cHost *host)
+{
+    host->context = app;
+    host->player_state = native_a1c_player_state;
+    host->player_name = native_a1c_player_name;
+    host->player_hotspot = native_a1c_player_hotspot;
+    host->player_origin = native_a1c_player_origin;
+    host->open_iv = native_a1c_open_iv;
+    host->read = native_a1c_read;
+    host->close = native_a1c_close;
+    host->alloc_slot = native_a1c_alloc_slot;
+    host->register_slot = native_a1c_register_slot;
+    host->release_slot = native_a1c_release_slot;
+    host->cell_583a29 = native_a1c_cell_583a29;
+}
+
+static int native_a1c_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->a1c == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a1c_handler(app->a1c, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a1c_blocker row=%zu status=%d detail=%s", row, status, session_a1c_failure(app->a1c));
+    } else if (out->phase != before->phase || out->disposition != SCENE_ACTION_HANDLER_PENDING) {
+        record(app, "scene_a1c_phase row=%zu phase=%u->%u disposition=%d", row, static_cast<unsigned>(before->phase),
+               static_cast<unsigned>(out->phase), static_cast<int>(out->disposition));
+    }
+    return status;
+}
+
+/* The z entry callback 0x4cc79a, called from the app tick while the entry is registered and a hotspot change is pending. */
+static bool native_a1c_render(NativeApp *app)
+{
+    const C1cObject *object = session_a1c_object(app->a1c);
+    if (object == nullptr || object->armed == 0 || object->slot == -1 || object->changed == 0) return true;
+    C1cFill fills[64];
+    size_t count = 0;
+    const int status = session_a1c_render(app->a1c, app->scene_destination.left, app->scene_destination.top, fills,
+                                          sizeof(fills) / sizeof(fills[0]), &count);
+    if (status != C1C_OK) {
+        record(app, "scene_a1c_render_error status=%d", status);
+        return false;
+    }
+    if (!app->a1c_fills_logged) {
+        app->a1c_fills_logged = true;
+        record(app, "scene_a1c_render fills=%zu hotspot fills not drawn (the original paints each rectangle in a unique colour into a "
+               "hidden hit map; the app has none)", count);
+    }
+    return true;
 }
 
 /* RT-44: raw 0x4e recomputes one float action value from percentages of other values and literals
@@ -4731,7 +5056,7 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5165,7 +5490,7 @@ static int native_aea_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5513,7 +5838,7 @@ static int native_af6_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5828,7 +6153,7 @@ static int native_ad0_alloc_slot(void *context, int16_t *slot)
         if (!app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
             !app->aea_slot_used[index] && !app->af6_slot_used[index] && !app->aaa_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6061,7 +6386,7 @@ static int native_aaa_alloc_slot(void *context, int16_t *slot)
         if (!app->aaa_slot_used[index] && !app->ad0_slot_used[index] && !app->ad1_slot_used[index] &&
             !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6298,7 +6623,7 @@ static int native_ae0_alloc_slot(void *context, int16_t *slot)
             !app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6549,7 +6874,7 @@ static int native_ad3_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->a1c_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6763,7 +7088,7 @@ static int native_ae4_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->ae4_slot_used[index] && !app->ae0_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->ad0_slot_used[index] && !app->aaa_slot_used[index] && !app->ad3_slot_used[index] && !app->af5_slot_used[index]) {
+            !app->ad0_slot_used[index] && !app->aaa_slot_used[index] && !app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->a1c_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -7072,7 +7397,7 @@ static int native_af5_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->af5_slot_used[index] && !app->ad3_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->a1c_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -8303,6 +8628,26 @@ static bool create_native_session_bindings(NativeApp *app)
     a80_host.store_world = native_a80_store_world;
     a80_host.transition = native_a80_transition;
     app->a80 = session_a80_create(&a80_host);
+    /* RT-57: raw 0x6d and raw 0x9a (gate mode 0, direct completion). */
+    SessionA6dHost a6d_host{};
+    a6d_host.context = app;
+    a6d_host.load_world = native_a6d_load_world;
+    a6d_host.store_world = native_a6d_store_world;
+    a6d_host.unload_scene_sound = native_a6d_unload;
+    /* a6d_host.teardown stays null: the app has no popup screens, so a visit that selects a teardown is refused (UNSUPPORTED). */
+    app->a6d = session_a6d_create(&a6d_host);
+    SessionA9aHost a9a_host{};
+    a9a_host.context = app;
+    a9a_host.load_world = native_a9a_load_world;
+    a9a_host.store_world = native_a9a_store_world;
+    a9a_host.stop_channel = native_a9a_stop_channel;
+    a9a_host.event_flag_invalid = native_ad1_event_flag_invalid;
+    a9a_host.store_event_flag = native_ad1_store_event_flag;
+    a9a_host.transition = native_a9a_transition;
+    app->a9a = session_a9a_create(&a9a_host);
+    C1cHost a1c_host{};
+    native_a1c_fill_host(app, &a1c_host);
+    app->a1c = session_a1c_create(&a1c_host);
     scene_stack_slot_clear(&app->scene_stack_slot);
     scene_stack_slot_init_words(&app->scene_stack_slot); /* game initializer 0x436fe4..0x437008 */
     SessionA6EHost a6e_host{};
@@ -8436,7 +8781,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ae4 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ae4 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr || app->a6d == nullptr || app->a9a == nullptr || app->a1c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -8761,6 +9106,20 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->af5_plan_signature = 0u;
     app->af5_render_failure_logged = false;
     app->af5_text_stub_logged = false;
+    /* RT-57: raw 0x1c starts every scene from a power-on object. */
+    app->a1c_slot_used.fill(false);
+    app->a1c_wait_logged = false;
+    app->a1c_fills_logged = false;
+    {
+        C1cHost a1c_host{};
+        native_a1c_fill_host(app, &a1c_host);
+        session_a1c_destroy(app->a1c);
+        app->a1c = session_a1c_create(&a1c_host);
+        if (app->a1c == nullptr) {
+            record(app, "scene_session_create_error provider=action-family-1c detail=binding allocation");
+            return false;
+        }
+    }
     if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
         record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
         return false;
@@ -9702,7 +10061,7 @@ static bool create_native_scene_session(NativeApp *app)
      * RT-47 (0xf6, slot 46), RT-50 (0xd0, slot 47) and RT-52 (0xaa, slot 48). Slots must be gap-free because scene_session_create
      * rejects an entry without a callback. The map script
      * (decomp-progress/playable.py) needs numeric slot literals. */
-    SceneSessionActionBinding bindings[54]{};
+    SceneSessionActionBinding bindings[57]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -9974,7 +10333,24 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[53].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[53].callback = native_af5_handler;
     bindings[53].context = app;
-    config.action_binding_count = 54u;
+    /* RT-57: raw 0x6d (arm 0x4290c0) and raw 0x9a (arm 0x429d34), both gate mode 0 with a direct completion byte store. Slots 54
+     * and 55 here (the owner packet numbers them 55 and 56 with RT-56 on slot 54; whichever merges second renumbers: the slots
+     * must stay gap-free, so the array and declared count are 56 until raw 0x1c (slot 57 in the packet) and RT-56 land). */
+    bindings[54].type = SESSION_A6D_TYPE;
+    bindings[54].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[54].callback = native_a6d_handler;
+    bindings[54].context = app;
+    bindings[55].type = SESSION_A9A_TYPE;
+    bindings[55].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[55].callback = native_a9a_handler;
+    bindings[55].context = app;
+    /* RT-57: raw 0x1c (interactive video, arm 0x427cc3, gate mode 1). Slot 56, count 57 (the owner packet numbers it 57 with RT-56 on
+     * slot 54; whichever merges second renumbers). */
+    bindings[56].type = SESSION_A1C_TYPE;
+    bindings[56].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[56].callback = native_a1c_handler;
+    bindings[56].context = app;
+    config.action_binding_count = 57u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {

@@ -43,7 +43,7 @@ static int32_t le32(const uint8_t *p)
 /* 0x4cbba9 LoadIVFile. On any refusal nothing stays loaded. */
 static int load_iv(C1cObject *object, const uint8_t *body, const C1cHost *host)
 {
-    char name[C1C_NAME_BYTES + 1];
+    char name[C1C_BODY_BYTES];
     void *file = NULL;
     C1cIv *iv;
     uint8_t raw[C1C_RECT_BYTES];
@@ -160,6 +160,7 @@ int c1c_visit(C1cObject *object, const uint8_t body[C1C_BODY_BYTES], uint32_t ph
     }
     outcome->phase = phase;
     outcome->disposition = SCENE_ACTION_HANDLER_PENDING;
+    object->body = body;                                                 /* 0x4cb5a4: stored on every visit */
     if (phase > 2u) {                                                    /* 0x4cb5c4: any other state does nothing */
         return C1C_OK;
     }
@@ -178,12 +179,12 @@ int c1c_visit(C1cObject *object, const uint8_t body[C1C_BODY_BYTES], uint32_t ph
         object->dword_158 = 0;
         object->last_index = -1;
         object->origin_present = 0;
+        outcome->phase = 0u;                                             /* 0x42ba3a leaves the phase word 0 */
         outcome->disposition = SCENE_ACTION_HANDLER_COMPLETED;           /* 0x42ba3a */
         return C1C_OK;
     }
     if (phase == 0u) {
         uint8_t name[C1C_NAME_BYTES];
-        object->body = body;                                             /* 0x4cb5a4 */
         if (object->iv == NULL) {
             status = load_iv(object, body, host);                        /* 0x4cb5ec */
             if (status != C1C_OK) return status;

@@ -71,7 +71,11 @@ int session_a1c_handler(void *context, size_t index, const SceneActionInfo *acti
     b->failure = "none";
     ++b->visits;
     out->phase = outcome.phase;
-    out->disposition = outcome.disposition;
+    /* The original sets the completion byte directly before the generic completion 0x42ba3a; the executor's COMPLETED would leave
+     * it to the subtype, so every subtype but 2 is a direct completion (oracle D2). */
+    out->disposition = outcome.disposition == SCENE_ACTION_HANDLER_COMPLETED && action->subtype != 2u
+                           ? SCENE_ACTION_HANDLER_DIRECT_COMPLETED
+                           : outcome.disposition;
     return SCENE_ACTION_HANDLER_OK;
 }
 
