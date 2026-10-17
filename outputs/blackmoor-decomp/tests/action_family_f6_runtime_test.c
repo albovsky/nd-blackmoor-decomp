@@ -488,7 +488,8 @@ static void t_finish_blocks(Fx *f)
     f->obj.outcome_2a9 = 0;
     CHECK(run(f, 2, 0) == F6_OK);
     CHECK(f->last_scene == 2000 && f->event_flags[3] == 1 && f->event_flags[4] == 0);
-    /* a draw uses the second scene and the second flag */
+    /* +0x2a9 selects the second scene block, the flag index follows +0x2a8 (the dead compare at 0x45df30 is the only
+     * writer of +0x2a9 besides init, so the game never reaches this path; the oracle drives it directly) */
     fx_init(f);
     CHECK(run(f, 0, 0) == F6_OK);
     f->obj.finished = 1;

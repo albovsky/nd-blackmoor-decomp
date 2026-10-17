@@ -1006,7 +1006,6 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
         return true;
     }
     if (handle >= NATIVE_A43_SLOT_HANDLE && handle < NATIVE_A43_SLOT_HANDLE + 6u) {
-static bool native_af6_render(NativeApp *app);
         const CaptionSurface *slot = session_a43_slot(app->a43, handle - NATIVE_A43_SLOT_HANDLE);
         if (slot == nullptr || slot->pixels == nullptr || slot->width <= 0 || slot->height <= 0 ||
             slot->pitch <= 0) return false;
@@ -1040,6 +1039,7 @@ static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
 static bool native_a77_render(NativeApp *app);
 static bool native_aea_render(NativeApp *app);
+static bool native_af6_render(NativeApp *app);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -6850,16 +6850,6 @@ static void nav_begin_scene(NativeApp *app)
     std::vector<uint8_t> types;
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         SceneActionInfo info{};
-    if (session_af6_begin_scene(app->af6, app->scene) != F6_OK) {
-        record(app, "scene_session_create_error provider=action-family-f6 detail=%s",
-               session_af6_failure(app->af6));
-        return false;
-    }
-    app->af6_slot_used.fill(false);
-    app->af6_background_seed = UINT64_MAX;
-    app->af6_plan_signature = 0u;
-    app->af6_plan_logged = 0u;
-    app->af6_render_failure_logged = false;
         if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK)
             types.push_back(info.type);
     }
@@ -6926,6 +6916,16 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad1_slot_used.fill(false);
     app->ad1_plan_signature = 0u;
     app->ad1_render_failure_logged = false;
+    if (session_af6_begin_scene(app->af6, app->scene) != F6_OK) {
+        record(app, "scene_session_create_error provider=action-family-f6 detail=%s",
+               session_af6_failure(app->af6));
+        return false;
+    }
+    app->af6_slot_used.fill(false);
+    app->af6_background_seed = UINT64_MAX;
+    app->af6_plan_signature = 0u;
+    app->af6_plan_logged = 0u;
+    app->af6_render_failure_logged = false;
     if (session_a77_begin_scene(app->a77, app->scene) != A77_OK) {
         record(app, "scene_session_create_error provider=action-family-77 detail=%s", session_a77_failure(app->a77));
         return false;
@@ -7131,36 +7131,6 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     const ProvisionalCursorProvider &cursor = app->cursor_provider;
     out->viewport.left = app->scene_destination.left;
     out->viewport.top = app->scene_destination.top;
-    /* RT-47: the card puzzle. Same chain as the Turning Puzzle above (accepted release -> 0x45e587 on the retained
-     * candidate 0x27ec / 0x27ed / 0x27ef, then the cascade member 0x45e1ca hit-tests the pointer). */
-    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
-        app->af6 != nullptr && session_af6_registered(app->af6) != 0u && app->session != nullptr) {
-        const F6Object *cards = session_af6_object(app->af6);
-        SceneActionRuntimeState cards_state{};
-        uint32_t new_phase = 0u;
-        if (cards != nullptr && cards->row >= 0 &&
-            scene_session_get_action_state(app->session, static_cast<size_t>(cards->row), &cards_state) ==
-                SCENE_SESSION_OK) {
-            const int click = session_af6_click(app->af6, cards_state.phase, app->input_state.candidate, &new_phase);
-            if (click != F6_OK) {
-                record(app, "scene_af6_click_error row=%d status=%d detail=%s", cards->row, click,
-                       session_af6_failure(app->af6));
-            } else if (new_phase == 2u && cards_state.phase != 2u) {
-                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(cards->row)) ==
-                    SCENE_SESSION_OK)
-                    record(app, "scene_af6_click row=%d candidate=%d -> phase 2 (0x45e587)", cards->row,
-                           app->input_state.candidate);
-                else
-                    record(app, "scene_af6_click_error row=%d detail=phase-2-store-refused", cards->row);
-            }
-        }
-    }
-    app->af6_pointer = F6PointerResult{};
-    app->af6_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af6 != nullptr &&
-        session_af6_registered(app->af6) != 0u)
-        (void)session_af6_pointer_move(app->af6, static_cast<int16_t>(frame->pointer_x),
-                                       static_cast<int16_t>(frame->pointer_y), &app->af6_pointer);
     out->viewport.right = app->scene_destination.right;
     out->viewport.bottom = app->scene_destination.bottom;
     out->cursor.left = app->pointer_x;
@@ -7234,6 +7204,30 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
+    /* RT-47: the card puzzle. Same chain as the Turning Puzzle above (accepted release -> 0x45e587 on the retained
+     * candidate 0x27ec / 0x27ed / 0x27ef, then the cascade member 0x45e1ca hit-tests the pointer). */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->af6 != nullptr && session_af6_registered(app->af6) != 0u && app->session != nullptr) {
+        const F6Object *cards = session_af6_object(app->af6);
+        SceneActionRuntimeState cards_state{};
+        uint32_t new_phase = 0u;
+        if (cards != nullptr && cards->row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(cards->row), &cards_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_af6_click(app->af6, cards_state.phase, app->input_state.candidate, &new_phase);
+            if (click != F6_OK) {
+                record(app, "scene_af6_click_error row=%d status=%d detail=%s", cards->row, click,
+                       session_af6_failure(app->af6));
+            } else if (new_phase == 2u && cards_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(cards->row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_af6_click row=%d candidate=%d -> phase 2 (0x45e587)", cards->row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_af6_click_error row=%d detail=phase-2-store-refused", cards->row);
+            }
+        }
+    }
     /* RT-49: the Ordering Puzzle's click block 0x43b3d6..0x43b5d3 sits in the same accepted-release chain: it toggles the hovered
      * button (candidate 0x2719) or asks for the exit (0x271a, row phase := 2) while [0x5b5158] is set. */
     if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
@@ -7304,6 +7298,12 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_ad1_registered(app->ad1) != 0u)
         (void)session_ad1_pointer_move(app->ad1, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y), &app->ad1_pointer);
+    app->af6_pointer = F6PointerResult{};
+    app->af6_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af6 != nullptr &&
+        session_af6_registered(app->af6) != 0u)
+        (void)session_af6_pointer_move(app->af6, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y), &app->af6_pointer);
     app->a77_pointer = A77PointerResult{};
     app->a77_pointer.candidate = -1;
     app->a77_pointer.hover = -1;
