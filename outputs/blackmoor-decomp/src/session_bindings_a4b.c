@@ -22,7 +22,7 @@ struct SessionA4bBinding {
 SessionA4bBinding *session_a4b_create(const SessionA4bHost *host)
 {
     SessionA4bBinding *binding;
-    if (host == NULL) {
+    if (host == NULL || host->write_caption == NULL) {
         return NULL;
     }
     binding = (SessionA4bBinding *)calloc(1u, sizeof(*binding));
@@ -172,6 +172,7 @@ int session_a4b_begin_scene(SessionA4bBinding *binding, const SceneResource *sce
         }
         free(rows);
         free(scratch);
+        release_rows(binding);   /* the previous scene's objects must not answer for this scene's rows */
         if (failed_row != NULL) {
             *failed_row = index;
         }

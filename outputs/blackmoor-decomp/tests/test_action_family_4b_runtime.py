@@ -145,6 +145,7 @@ class UnitTests(unittest.TestCase):
             'table value not cut at the NUL': ('resolved_bytes = bounded_strlen(resolved, resolved_bytes);', '(void)bounded_strlen;'),
             'missing key not formatted': ('int written = snprintf(missing, sizeof(missing), ACTION_FAMILY_51_MISSING_FORMAT, (const char *)decoded.text_key);',
                                           'int written = snprintf(missing, sizeof(missing), "%s", (const char *)decoded.text_key);'),
+            'failed scene keeps the previous objects': ('        free(scratch);\n        release_rows(binding);   /* the previous scene\'s objects must not answer for this scene\'s rows */\n', '        free(scratch);\n'),
             'phase not cleared': ('    result->phase = 0u;\n    return SCENE_ACTION_HANDLER_OK;', '    result->phase = state_before->phase;\n    return SCENE_ACTION_HANDLER_OK;'),
             'row index off by one': ('    row = &binding->rows[action_index];\n    if (row->state == SESSION_A4B_ROW_UNSUPPORTED) {',
                                      '    row = &binding->rows[action_index ? action_index - 1u : 0u];\n    if (row->state == SESSION_A4B_ROW_UNSUPPORTED) {'),

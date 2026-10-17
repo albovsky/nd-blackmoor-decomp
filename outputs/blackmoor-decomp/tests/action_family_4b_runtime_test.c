@@ -211,6 +211,31 @@ static void lookup_cases(void)
     CHECK(session_a4b_row_state(b, 0u) == SESSION_A4B_ROW_NOT_A4B);
     session_a4b_destroy(b);
 
+    /* a failing scene after a good one leaves no objects of the good one behind */
+    memset(&h, 0, sizeof h);
+    b = make(&h, 1);
+    CHECK(session_a4b_begin_scene(b, scene, &bad, &kernel) == SESSION_A4B_OK);
+    CHECK(session_a4b_row_state(b, 0u) == SESSION_A4B_ROW_READY);
+    h.lookup_mode = 1;
+    CHECK(session_a4b_begin_scene(b, scene, &bad, &kernel) == SESSION_A4B_ERR_SCENE && bad == 1u);
+    CHECK(session_a4b_row_state(b, 0u) == SESSION_A4B_ROW_NOT_A4B && session_a4b_row_text(b, 0u, &length) == NULL);
+    {
+        SceneActionInfo info;
+        SceneActionRuntimeState before = {0u, 0u};
+        SceneActionHandlerResult out = {SCENE_ACTION_HANDLER_PENDING, 0u};
+        const unsigned attempts = h.writes;
+        CHECK(scene_resource_action_at(scene, 0u, &info) == SCENE_RESOURCE_OK);
+        CHECK(session_a4b_handler(b, 0u, &info, &before, &out) == SCENE_ACTION_HANDLER_ERROR && h.writes == attempts);
+    }
+    session_a4b_destroy(b);
+
+    /* the writer is required */
+    {
+        SessionA4bHost no_writer;
+        memset(&no_writer, 0, sizeof no_writer);
+        CHECK(session_a4b_create(&no_writer) == NULL);
+    }
+
     /* the table value is a C string: it ends at the first NUL */
     memset(&h, 0, sizeof h);
     h.lookup_mode = 2;
