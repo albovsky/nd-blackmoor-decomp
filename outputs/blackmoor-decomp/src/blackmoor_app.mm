@@ -4177,7 +4177,7 @@ static int native_a33_op(void *context, int op, const A33OpArgs *args, int32_t *
         return 0;
     }
     case A33_OP_TICK:
-        *ret = static_cast<int32_t>(blackmoor_macos_monotonic_ms());
+        *ret = static_cast<int32_t>(app->session_tick_sample); /* GetTickCount, as native_ad1_tick */
         return 0;
     case A33_OP_LOG:
         record(app, "scene_a33_log id=%d b=%d (0x42c221 diagnostic)", args->a, args->b);
@@ -5888,7 +5888,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
         record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
     }
-    /* RT-46: parse of the scene's raw 0x33 rows; the scene clear zeroes the running latch 0x5c39f1. A failure leaves the
+    /* RT-46: the 0x33 part of the scene clear (latch 0x5c39f1, row/kind words, surfaces) and the parse of the scene's raw 0x33 rows. A failure leaves the
      * 0x33 rows unowned (they report the blocker). */
     if (session_a33_begin_scene(app->a33, app->scene) != 0) {
         record(app, "scene_a33_begin_blocker detail=%s", session_a33_failure(app->a33));

@@ -38,9 +38,9 @@ typedef struct SessionA33Host {
 SessionA33Binding *session_a33_create(const SessionA33Host *host);
 void session_a33_destroy(SessionA33Binding *binding);
 
-/* Parses the new scene's raw 0x33 rows and drops the previous scene's tables. The scene clear zeroes the running latch
- * 0x5c39f1 (ClearSceneData 0x43e3f2). A body the parser rejects fails the whole scene (nonzero return, reason in
- * session_a33_failure) and keeps the previous scene's rows. */
+/* Runs the 0x33 part of the scene clear (a33_scene_clear: latch 0x5c39f1, row/kind words, surfaces; the reader thread stays
+ * for the next phase 0), then parses the new scene's raw 0x33 rows and drops the previous scene's tables. A body the parser
+ * rejects fails the whole scene (nonzero return, reason in session_a33_failure) and leaves no 0x33 row owned. */
 int session_a33_begin_scene(SessionA33Binding *binding, const SceneResource *scene);
 
 int session_a33_handler(void *context, size_t row, const SceneActionInfo *action, const SceneActionRuntimeState *before,

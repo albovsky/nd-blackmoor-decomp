@@ -16,7 +16,7 @@ Recovered from the disassembly (`llvm-objdump -d -M intel`); the full map of the
 
 * `src/action_family_33_runtime.[ch]`: parser, `A33State` (the process globals), `a33_step` (phases 0, 1, 2 and the callees).
 * `src/session_bindings_a33.[ch]`: binding (PENDING with the kernel's phase; phase 2 requests the scene change, then COMPLETED), the pre-gate request clear, the pointer-cascade row (request dword + rectangle words).
-* `src/blackmoor_app.mm`: `bindings[41]`, declared count 42; module trio in `scripts/build_native_app.sh`; `scripts/build_action_family_33_runtime.sh`.
+* `src/blackmoor_app.mm`: `bindings[40]`, declared count 41 (renumbered at merge if RT-45 lands first); module trio in `scripts/build_native_app.sh`; `scripts/build_action_family_33_runtime.sh`.
 
 ## Verification
 

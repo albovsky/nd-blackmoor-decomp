@@ -100,6 +100,8 @@ KERNEL_MUTANTS = {
                                             'status = page_flip(st, host);\n                if (status != A33_OK) {\n                    return status;\n                }\n                status = event_flags(st, set, host);'),
     'finish without a frame': ('    if (st->ready_5b4e0a == 0) {\n        return A33_OK;\n    }\n    st->row_5b4e89', '    st->row_5b4e89'),
     'init writes the wrong frame for hold': ('st->frame_5b4e00 = set->w54;', 'st->frame_5b4e00 = set->w4c;'),
+    'clear keeps the row word': ('    state->row_5b4e89 = (int16_t)-1;   /* 0x43e016 */\n', ''),
+    'clear keeps the surface': ('    state->surface_5d03bf = 0u;\n    return A33_OK;', '    return A33_OK;'),
     'thread failure not fatal': ('        if (st->thread_5b4e0c == 0u) {\n            OP(host, A33_OP_LOG, A33_LOG_THREAD_MEMORY, 0, NULL);\n            return A33_ERR_FATAL;\n        }', ''),
     'missing hotspots not fatal': ('if (set->hotspot_count < 1) {', 'if (set->hotspot_count < 0) {'),
 }
@@ -109,7 +111,8 @@ BINDING_MUTANTS = {
                                  '        out->disposition = SCENE_ACTION_HANDLER_COMPLETED;\n        out->phase = before->phase;'),
     'completion without a request': ('if (b->host.transition == NULL || b->host.transition(b->host.kernel.context, &request) != 0) {', 'if (b->host.transition == NULL || (b->host.transition(b->host.kernel.context, &request) != 0 && 0)) {'),
     'swapped request words': ('request.opaque_words[0] = b->state.w_5bb599;', 'request.opaque_words[0] = b->state.w_5bb595;'),
-    'latch kept across scenes': ('    b->state.active_5c39f1 = 0; /* ClearSceneData 0x43e3f2 */\n', ''),
+    'scene clear skipped': ('    if (a33_scene_clear(&b->state, &b->host.kernel) != A33_OK) {', '    if (0) {'),
+    'failed build keeps rows': ('    free_rows(b); /* a failed build leaves', '    /* a failed build leaves'),
     'pre-gate keeps the request': ('        b->cells[index].request = 0;\n', ''),
     'idle row offered to the pointer': ('    if (cells->request == 0) {\n        return 0;\n    }\n', ''),
     'wrong type accepted': ('action->type != SESSION_A33_TYPE || index >= b->count', 'index >= b->count'),

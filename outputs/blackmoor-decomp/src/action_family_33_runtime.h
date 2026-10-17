@@ -45,10 +45,14 @@ extern "C" {
  *   0x42d215  frame advance on 0x5b4e14: 0 loop (+1, > body +0x4e wraps to +0x4c), 1 hold (+1, > +0x52 stays at +0x52),
  *             2 reverse (-1, < +0x4c snaps to +0x4c and state 0), 3 end (+1, > +0x56 stays); afterwards state 1 with
  *             0x5c39e5 != row word becomes 2.
- *   0x42caa8  hotspot rectangles (source / destination, clipped against the 4-word rect 0x5bb583..0x5bb58f, view origin
- *             0x583186 / 0x58318a added), the request cells of the row (kind 2), 0x42cecd the same for the second
- *             rectangle pair (kind 2 sets 0x5b4e8d := 1).
+ *   0x42caa8  hotspot rectangles (source / destination, clipped against the 4-dword rect 0x5bb583..0x5bb58f, view origin
+ *             0x583186 / 0x58318a added), the request cells of the row (when the word 0x5b4ea3, body +0x4a, is 2), 0x42cecd the
+ *             same for the second rectangle pair (kind 0x5b4e8b == 2; it sets 0x5b4e8d := 1).
  *   0x42e560  the saved-scene push (src/scene_stack.[ch], host op A33_OP_PUSH_SCENE here).
+ *   0x43dbe3  the scene clear (ClearSceneData): row word 0x5b4e89 := 0xffff, kind 0x5b4e8b := 1, 0x5d1967 := 0, 0x5b4e8d := 0,
+ *             candidate 0x5c39e5 := -1, latch 0x5c39f1 := 0, and 0x44c384 releases the surfaces 0x5d03c7 then 0x5d03bf (and three
+ *             that belong to other objects). It does not stop the reader thread or free the decode buffers (the next phase 0
+ *             does). Modelled by a33_scene_clear; read from the disassembly, not run in the oracle.
  *   0x44cde2  the reader thread proc: host behaviour (it owns the buffers 0x5b4db8 / 0x5b4dbc, sets the ready word
  *             0x5b4e0a and the delay 0x5b4c5a; see src/avf_player.[ch], SECONDARY_VIDEO).
  *
@@ -208,6 +212,9 @@ typedef struct A33StepResult {
 
 /* Power-on state of the globals (all zero except nothing: the image holds zeros there). */
 void a33_state_init(A33State *state);
+
+/* The 0x33 part of the scene clear 0x43dbe3 (see above). Host ops: SURFACE_RELEASE for a nonzero 0x5d03c7, then 0x5d03bf. */
+int a33_scene_clear(A33State *state, const A33Host *host);
 
 /* One true-gate visit of 0x42c221 (row = the word argument, phase = the row's phase dword). `set` is the visiting row's
  * parsed body, `row_cells` the row's request cells. `failure` is optional. A host or fatal failure after effects leaves the

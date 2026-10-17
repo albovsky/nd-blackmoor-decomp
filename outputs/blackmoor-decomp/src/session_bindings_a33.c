@@ -62,6 +62,11 @@ int session_a33_begin_scene(SessionA33Binding *b, const SceneResource *scene)
     if (b == NULL || scene == NULL) {
         return A33_ERR_ARGUMENT;
     }
+    /* The scene clear runs first, whatever the new scene holds (and even when its parse fails). */
+    if (a33_scene_clear(&b->state, &b->host.kernel) != A33_OK) {
+        b->failure = "0x33: the scene clear could not release the surfaces";
+        return A33_ERR_HOST;
+    }
     count = scene_resource_action_count(scene);
     if (count != 0u) {
         sets = (A33Set *)calloc(count, sizeof(*sets));
@@ -96,10 +101,10 @@ int session_a33_begin_scene(SessionA33Binding *b, const SceneResource *scene)
     b->cells = cells;
     b->present = present;
     b->count = count;
-    b->state.active_5c39f1 = 0; /* ClearSceneData 0x43e3f2 */
     b->failure = "none";
     return A33_OK;
 bad:
+    free_rows(b); /* a failed build leaves the 0x33 rows unowned: the old scene's bodies must not answer for the new rows */
     for (size_t i = 0u; i < count; ++i) {
         if (present != NULL && present[i] != 0u) {
             a33_set_free(&sets[i]);

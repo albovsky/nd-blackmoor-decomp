@@ -504,6 +504,28 @@ static int phase_finish(A33State *st, const A33Set *set, const A33Host *host, A3
     return A33_OK;
 }
 
+int a33_scene_clear(A33State *state, const A33Host *host)
+{
+    if (state == NULL || host == NULL || host->op == NULL) {
+        return A33_ERR_ARGUMENT;
+    }
+    state->row_5b4e89 = (int16_t)-1;   /* 0x43e016 */
+    state->kind_5b4e8b = 1;            /* 0x43e028 */
+    state->latch_5d1967 = 0;           /* 0x43e053 */
+    state->flag_5b4e8d = 0;            /* 0x43e071 */
+    state->latch_5c39e5 = -1;          /* 0x43e410 */
+    state->active_5c39f1 = 0;          /* 0x43e3f2 */
+    if (state->surface_5d03c7 != 0u) { /* 0x44c384 */
+        OP(host, A33_OP_SURFACE_RELEASE, (int32_t)state->surface_5d03c7, 1, NULL);
+    }
+    state->surface_5d03c7 = 0u;
+    if (state->surface_5d03bf != 0u) {
+        OP(host, A33_OP_SURFACE_RELEASE, (int32_t)state->surface_5d03bf, 0, NULL);
+    }
+    state->surface_5d03bf = 0u;
+    return A33_OK;
+}
+
 int a33_step(A33State *state, const A33Set *set, int16_t row, A33Row *row_cells, uint32_t phase, const A33Host *host,
              A33StepResult *result, const char **failure)
 {

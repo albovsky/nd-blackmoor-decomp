@@ -113,9 +113,16 @@ int main(int argc, char **argv)
     EXPECT(ctx.loads == 1 && ctx.stores == 1);
     EXPECT(session_a33_state(b)->active_5c39f1 == 1 && session_a33_state(b)->thread_5b4e0c == 0x100u);
 
-    /* a scene load clears the latch (the video is torn down by the next phase 0, not here) */
+    /* a scene load runs the scene clear: latch, row/kind words and the surface go, the reader thread stays for the next phase 0 */
+    EXPECT(session_a33_state(b)->surface_5d03bf == 0x100u);
     EXPECT(session_a33_begin_scene(b, scene) == A33_OK && session_a33_state(b)->active_5c39f1 == 0);
-    EXPECT(session_a33_state(b)->thread_5b4e0c == 0x100u);
+    EXPECT(session_a33_state(b)->thread_5b4e0c == 0x100u && session_a33_state(b)->surface_5d03bf == 0u);
+    EXPECT(session_a33_state(b)->row_5b4e89 == -1 && session_a33_state(b)->kind_5b4e8b == 1 && session_a33_state(b)->latch_5c39e5 == -1);
+
+    /* the executor restarts the action at phase 0 on the new scene */
+    before.phase = 0u;
+    ctx.ready = 0;
+    EXPECT(session_a33_handler(b, 0u, &info, &before, &out) == SCENE_ACTION_HANDLER_OK && out.phase == 1u);
 
     /* a flagged frame with a matching hotspot: the first pass runs the rectangles (kind 2 request cells) */
     before.phase = 1u;
@@ -149,6 +156,20 @@ int main(int argc, char **argv)
     info.type = 0x34;
     EXPECT(session_a33_handler(b, 0u, &info, &before, &out) == SCENE_ACTION_HANDLER_ERROR);
     info.type = SESSION_A33_TYPE;
+
+    /* a failed parse leaves no row owned */
+    bytes[0x1f + 6] = 0;
+    EXPECT(session_a33_begin_scene(b, scene) == A33_OK && session_a33_row_count(b) == 1u);
+    for (size_t i = 0; i < (size_t)n - 33u; ++i) {
+        if (memcmp(bytes + i, "CLIP01", 6) == 0) { memset(bytes + i, 'x', 33); break; }
+    }
+    {
+        char err2[128] = {0};
+        SceneResource *bad = scene_resource_open_memory(bytes, (size_t)n, err2, sizeof err2);
+        EXPECT(bad != NULL);
+        EXPECT(session_a33_begin_scene(b, bad) != A33_OK && session_a33_row_count(b) == 0u && session_a33_row(b, 0u) == NULL);
+        scene_resource_close(bad);
+    }
 
     session_a33_destroy(b);
     scene_resource_close(scene);

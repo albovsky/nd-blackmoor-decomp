@@ -631,6 +631,35 @@ static void test_clip_cuts(void)
                               r.st.rel_dst1_5b4e58[1] == -6);
 }
 
+static void test_scene_clear(void)
+{
+    BodySpec s;
+    Rig r;
+    A33StepResult res;
+    base_spec(&s);
+    s.hotspots = 1;
+    inside_hotspot(&s, 0, 3);
+    CHECK("clear", rig_init(&r, &s) == 0);
+    r.st.active_5c39f1 = 1;
+    r.st.row_5b4e89 = 0;
+    r.st.kind_5b4e8b = 2;
+    r.st.latch_5d1967 = 1;
+    r.st.flag_5b4e8d = 1;
+    r.st.latch_5c39e5 = 4;
+    r.st.surface_5d03c7 = 0x42u;
+    r.st.thread_5b4e0c = 0x77u;
+    CHECK("clear", a33_scene_clear(&r.st, &r.host) == A33_OK);
+    CHECK("clear-ops", r.script.count == 2 && r.script.log[0].op == A33_OP_SURFACE_RELEASE && r.script.log[0].a == 0x42 &&
+                           r.script.log[0].b == 1 && r.script.log[1].a == 0x1000 && r.script.log[1].b == 0);
+    CHECK("clear-state", r.st.active_5c39f1 == 0 && r.st.row_5b4e89 == -1 && r.st.kind_5b4e8b == 1 && r.st.latch_5d1967 == 0 &&
+                             r.st.flag_5b4e8d == 0 && r.st.latch_5c39e5 == -1 && r.st.surface_5d03c7 == 0u &&
+                             r.st.surface_5d03bf == 0u);
+    CHECK("clear-thread-stays", r.st.thread_5b4e0c == 0x77u);
+    /* a phase 0 after the clear releases nothing twice */
+    r.script.count = 0;
+    CHECK("clear-then-init", step(&r, 0u, &res) == A33_OK && !has_op(&r.script, A33_OP_SURFACE_RELEASE));
+}
+
 int main(void)
 {
     test_parse();
@@ -644,6 +673,7 @@ int main(void)
     test_advance();
     test_pages_and_deadline();
     test_clip_cuts();
+    test_scene_clear();
     (void)has_op;
     printf(failures == 0 ? "ALL PASS\n" : "FAILURES\n");
     return failures == 0 ? 0 : 1;
