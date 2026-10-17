@@ -1,6 +1,6 @@
 # RT-42: raw 0x47 journal entry add
 
-Owner thread: Claude Sonnet (cloud). Follows RT-40 (PR 104). After PR 104, 2,031 of 2,078 scenes had every action type handled. Raw 0x7d is RT-41 (binding slot 37). By `scene-action-coverage.json` the top unhandled type left was raw 0x47 (4 scenes, 139 rows, sole blocker in 3 scenes), which takes the count to 2,034.
+Owner thread: Claude Sonnet (cloud). Follows RT-40 (PR 104). After PR 104, 2,031 of 2,078 scenes had every action type handled. Raw 0x7d is RT-41 (binding slot 37). By `scene-action-coverage.json` the top unhandled type left was raw 0x47 (4 scenes, 139 rows, sole blocker in 3 scenes), which takes the count to 2,038 on top of RT-41's 2,035.
 
 ## The original (GAME.EXE, SHA-256 afd337a2...5c45)
 
@@ -13,7 +13,7 @@ Owner thread: Claude Sonnet (cloud). Follows RT-40 (PR 104). After PR 104, 2,031
 
 * `src/action_family_47_runtime.[ch]`: the kernel (`a47_decode`, `a47_step` over `A47Tables`). Nothing changes unless the visit returns OK (the lookup runs before any store). Native safety differences: a kind outside 3..5 (the original indexes memory outside the tables), a name without a NUL inside its 33 bytes and a full table (the original overruns) are errors that change nothing.
 * `src/session_bindings_a47.[ch]`: the binding (owns the tables and the page-2 flags, lookup through the host, handler returns COMPLETED with phase 0 for every outcome; a visit that needs the lookup while none is bound is UNSUPPORTED before any effect; `session_a47_reset` empties the tables).
-* `src/blackmoor_app.mm`: `bindings[37]`, declared count 38, handler with logging, host lookup (raw 0x51's AUTOTEXT lookup); `scripts/build_native_app.sh` module pair; `scripts/build_action_family_47_runtime.sh`. RT-41 (raw 0x7d) was assigned slot 37 but had not merged; leaving 37 empty makes `scene_session_create` fail (null callback) and breaks the map script, so this slice fills 37 and RT-41 takes 38 (count 39) when it merges.
+* `src/blackmoor_app.mm`: `bindings[38]`, declared count 39, handler with logging, host lookup (raw 0x51's AUTOTEXT lookup); `scripts/build_native_app.sh` module pair; `scripts/build_action_family_47_runtime.sh`. Slot 37 is raw 0x7d (RT-41, merged first).
 
 ## Verification
 
