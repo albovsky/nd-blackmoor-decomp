@@ -1089,6 +1089,17 @@ int scene_executor_request_transition(SceneActionExecutor *executor,
     return SCENE_EXECUTOR_OK;
 }
 
+int scene_executor_retire_action(SceneActionExecutor *executor, size_t action_index)
+{
+    if (executor == NULL || action_index >= executor->action_count) {
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    }
+    executor->states[action_index].completed = 1u;
+    executor->states[action_index].phase = 0u;
+    scene_conditions_reset(executor->conditions[action_index]);
+    return SCENE_EXECUTOR_OK;
+}
+
 const char *scene_executor_status_string(int status)
 {
     switch (status) {

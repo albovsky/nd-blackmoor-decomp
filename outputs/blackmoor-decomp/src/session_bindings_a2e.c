@@ -57,11 +57,11 @@ int session_a2e_handler(void *context, size_t index, const SceneActionInfo *acti
     mode = (int32_t)(int8_t)body.option_00;                                  /* 0x4cedb5 movsx byte */
     if (b->movie.active != 0) {
         /* Refuse before any effect, so a refused visit leaves the object untouched. */
-        if (mode == 0) {
+        if (mode == 0 && b->host.stop_movie == NULL) {
             b->failure = "random movie stop (0x4ceb3b release of the movie set) is not modelled";
             return SCENE_ACTION_HANDLER_UNSUPPORTED;
         }
-        if (mode == 1) {
+        if (mode == 0 || mode == 1) {
             const int16_t flag = (int16_t)body.word[4];
             if (b->host.set_start_flag == NULL) {
                 b->failure = "start flag sink (0x4ced84 stores DAT_005bb1ca)";
@@ -83,7 +83,17 @@ int session_a2e_handler(void *context, size_t index, const SceneActionInfo *acti
     b->movie.mode = mode;                                                    /* 0x4cedbb */
     fx(b, index, SESSION_A2E_FX_MODE, mode);
     if (b->movie.active != 0) {
-        if (mode == 1) {                                                     /* 0x4ceefd */
+        if (mode == 0) {                                                     /* 0x4cedfc */
+            /* 0x4ceb3b(word +0x23e) erases and completes the raw 0x2d row and resets the object (the host retires the
+             * row in the executor and writes the reset fields back through session_a2e_set_movie). */
+            int32_t retire = SESSION_A2E_NO_ROW;
+            if (b->host.stop_movie(b->host.context, &retire) != 0) {
+                b->failure = "random movie stop failed";
+                return SCENE_ACTION_HANDLER_ERROR;
+            }
+            fx(b, index, SESSION_A2E_FX_STOP, retire);
+        }
+        if (mode == 0 || mode == 1) {                                        /* 0x4cee49 / 0x4ceefd */
             const int16_t flag = (int16_t)body.word[4];
             const int16_t scene = (int16_t)body.word[0];
             if (flag != SESSION_A2E_NO_FLAG) {
@@ -118,6 +128,13 @@ int session_a2e_handler(void *context, size_t index, const SceneActionInfo *acti
                 const int32_t start = (int16_t)body.word[6] != 1 ? 1 : 0;   /* 0x4cef8d..0x4cefac */
                 b->host.set_start_flag(b->host.context, start);
                 fx(b, index, SESSION_A2E_FX_START_FLAG, start);
+            }
+            if (mode == 0) {
+                /* 0x4ceef8 jumps to the final store (0x4cf00a): no 1de / 206 stores. The stop reset the row (+0x242) to
+                 * -1, so the completion byte lands on row -1 (0x5bb598) and this row is visited again later. */
+                ++b->visits;
+                *out = (SceneActionHandlerResult){SCENE_ACTION_HANDLER_PENDING, before->phase};
+                return SCENE_ACTION_HANDLER_OK;
             }
             b->movie.state_1de = 2;                                          /* 0x4cefaf */
             fx(b, index, SESSION_A2E_FX_STATE_1DE, 2);
