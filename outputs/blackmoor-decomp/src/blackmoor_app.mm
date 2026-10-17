@@ -3617,13 +3617,13 @@ static int native_a4f_handler(void *context, size_t row, const SceneActionInfo *
 static bool unload_scene_sound_object(NativeApp *app);
 
 /* Raw 0x20: [0x5bb57b] := [0x5bb57f] is a no-op in the app (after a load both hold the running scene, 0x439ec4, and a
- * transition request stops the pass before any later row); the view cell 0x55cd94 is the exit handler's popup flag. */
+ * transition request stops the pass before any later row); the view cell 0x55cd94 is the exit handler's popup flag and the caption lifecycle's popup gate (read from the live gate, written to both). */
 static int native_a20_load_world(void *context, Action20World *world)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || world == nullptr) return 1;
     world->view_cell_63aa10 = app->a20_view_cell_63aa10;
-    world->view_cell_55cd94 = app->exit_state.g.popup_flag;
+    world->view_cell_55cd94 = app->captions.lifecycle.g.popup_gate;
     world->scene_5bb57b = app->current_scene_id;
     world->scene_5bb57f = app->current_scene_id;
     world->word_5c3a4f = app->a20_word_5c3a4f;
@@ -3635,7 +3635,9 @@ static void native_a20_store_world(void *context, const Action20World *world)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || world == nullptr) return;
     app->a20_view_cell_63aa10 = world->view_cell_63aa10;
+    /* 0x55cd94 is mirrored by the exit handler's popup flag and the caption lifecycle's popup gate: write both. */
     app->exit_state.g.popup_flag = world->view_cell_55cd94;
+    app->captions.lifecycle.g.popup_gate = world->view_cell_55cd94;
     app->a20_word_5c3a4f = world->word_5c3a4f;
 }
 
