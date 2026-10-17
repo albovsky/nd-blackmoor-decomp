@@ -6488,7 +6488,7 @@ static bool native_ae0_render(NativeApp *app)
  * 0x58318a), the held item commit (0x4e8d96), the tick, the scene change and event flag of the finish blocks and the sound engine
  * calls. Sound is NOT wired: the sound calls are logged "NOT PLAYED (no effect backend)" and report "not busy", so the final
  * sound step completes at once. The view origin, tick, event flag and held item providers are the Turning Puzzle's (0xd1: same
- * signatures, same cells). Slot 49, count 50. */
+ * signatures, same cells). Slot 51, count 52. */
 
 static int native_ad3_alloc_slot(void *context, int16_t *slot)
 {
@@ -10190,6 +10190,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
     else if (r.failure.action_type == SESSION_AF6_TYPE) detail = session_af6_failure(app->af6);
     else if (r.failure.action_type == SESSION_AE0_TYPE_D6 ||
              r.failure.action_type == SESSION_AE0_TYPE_E0) detail = session_ae0_failure(app->ae0);
+    else if (r.failure.action_type == SESSION_AD3_TYPE) detail = session_ad3_failure(app->ad3);
     if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
         r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
         (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
