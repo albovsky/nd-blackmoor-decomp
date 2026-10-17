@@ -32,7 +32,7 @@ KERNEL = 'action_family_f5_runtime.c'
 STD = 'score_time_display.c'
 BINDING = 'session_bindings_af5.c'
 SOURCES = [STD, KERNEL, BINDING, 'scene_resource.c', 'hiff.c']
-EXPECTED_UNIT_TESTS = 35
+EXPECTED_UNIT_TESTS = 41
 CORPUS_C = PROJECT / 'tests/action_family_f5_runtime_corpus.c'
 RESOURCES = PROJECT.parents[1] / 'work/analysis/hiff-resources'
 CORPUS_ROWS = ('1053.bin', '1054.bin')
@@ -49,7 +49,9 @@ def gcc_only_flags():
     return ('-Wno-maybe-uninitialized',) if 'clang' not in version else ()
 
 
-SANITIZE = ['-fsanitize=address,undefined', '-fno-sanitize-recover=undefined']
+# float-cast-overflow: an out-of-range double -> int64 conversion gives INT64_MIN on x86 but saturates on ARM64, so only the
+# sanitizer can tell the guard of ftol64 from the raw cast on the machine that runs the tests.
+SANITIZE = ['-fsanitize=address,undefined,float-cast-overflow', '-fno-sanitize-recover=undefined,float-cast-overflow']
 
 
 def compile_c(output, main_c, sources, src_dir=SRC, extra=(), optimize='-O1', cc=None):
@@ -312,8 +314,8 @@ d('score draw gap', 'd->score_h, d->score_block, d->score_block[42], &cx, y,', '
 d('score draw surface', '(uint32_t)d->score_block[43], STD_BLIT_SCORE_DIGIT', '0u, STD_BLIT_SCORE_DIGIT')
 d('score draw start', '        int32_t cx = x;\n        int rc = draw_string', '        int32_t cx = y;\n        int rc = draw_string')
 d('score erase start', '        int32_t cx = x;\n        int rc = erase_string', '        int32_t cx = y;\n        int rc = erase_string')
-d('score previous not saved', 'memcpy(d->prev_score_str, d->score_str, STD_STRING_BYTES);', '(void)0;')
-d('score previous saved short', 'memcpy(d->prev_score_str, d->score_str, STD_STRING_BYTES);', 'memcpy(d->prev_score_str, d->score_str, STD_STRING_BYTES - 1);')
+d('score previous not saved', 'copy_string(d->prev_score_str, d->score_str);', '(void)0;')
+d('score previous saved without its NUL', 'copy_string(d->prev_score_str, d->score_str);', 'memcpy(d->prev_score_str, d->score_str, strlen(d->score_str));')
 # clock render
 d('clock render count not reset', '    *count = 0;\n    if (d->clock_enabled == 0 || d->clock_ready == 0) return STD_OK;', '    if (d->clock_enabled == 0 || d->clock_ready == 0) return STD_OK;')
 d('clock render ignores enabled', 'if (d->clock_enabled == 0 || d->clock_ready == 0) return STD_OK;', 'if (d->clock_ready == 0) return STD_OK;')
@@ -368,10 +370,11 @@ d('clock colon draw surface', 'STD_BLIT_CLOCK_COLON, surface,', 'STD_BLIT_CLOCK_
 d('clock colon draw capacity ignored', 'if (push(out, capacity, count, STD_BLIT_CLOCK_COLON, surface, &d->clock_block[40], dst, 0) != STD_OK) {\n        return STD_ERR_BOUNDS;\n    }', '(void)push(out, capacity, count, STD_BLIT_CLOCK_COLON, surface, &d->clock_block[40], dst, 0);')
 d('clock colon draw advance without gap', '    cx = add32(add32(cx, d->colon_w), gap);\n    rc = draw_string(d->seconds_str', '    cx = add32(cx, d->colon_w);\n    rc = draw_string(d->seconds_str')
 d('clock colon draw advance without width', '    cx = add32(add32(cx, d->colon_w), gap);\n    rc = draw_string(d->seconds_str', '    cx = add32(cx, gap);\n    rc = draw_string(d->seconds_str')
-d('clock previous minutes not saved', 'memcpy(d->prev_minutes_str, d->minutes_str, STD_STRING_BYTES);', '(void)0;')
-d('clock previous seconds not saved', 'memcpy(d->prev_seconds_str, d->seconds_str, STD_STRING_BYTES);', '(void)0;')
-d('clock previous minutes saved from the seconds', 'memcpy(d->prev_minutes_str, d->minutes_str, STD_STRING_BYTES);', 'memcpy(d->prev_minutes_str, d->seconds_str, STD_STRING_BYTES);')
-d('clock previous seconds saved short', 'memcpy(d->prev_seconds_str, d->seconds_str, STD_STRING_BYTES);', 'memcpy(d->prev_seconds_str, d->seconds_str, STD_STRING_BYTES - 1);')
+d('clock previous minutes not saved', 'copy_string(d->prev_minutes_str, d->minutes_str);', '(void)0;')
+d('clock previous seconds not saved', 'copy_string(d->prev_seconds_str, d->seconds_str);', '(void)0;')
+d('clock previous minutes saved from the seconds', 'copy_string(d->prev_minutes_str, d->minutes_str);', 'copy_string(d->prev_minutes_str, d->seconds_str);')
+d('clock previous seconds saved without its NUL', 'copy_string(d->prev_seconds_str, d->seconds_str);', 'memcpy(d->prev_seconds_str, d->seconds_str, strlen(d->seconds_str));')
+d('string copy drops the NUL', '    memcpy(dst, src, n + 1);', '    memcpy(dst, src, n);')
 
 # =====================================================================================================================
 # The quiz kernel (src/action_family_f5_runtime.c)
@@ -585,41 +588,39 @@ EQUIVALENT = {
         'At equality the assignment stores the value the target already has.',
     'auto if (!(v >= -9223372036854775808.0 && v < 9223372036854775808.0)) return INT64_MIN; #0 >=':
         'At exactly -2^63 the conversion yields INT64_MIN, the same value the guard returns.',
+    'display clock previous seconds saved without its NUL':
+        'The seconds string is always exactly two characters (std_set_clock formats "%02d" of 0..99), so the NUL the full copy writes at index 2 is already there: the display is zero-initialised and nothing else writes that byte.',
+    'auto for (int i = 0; i < 40; ++i) o->score_block[i] = rd_s32(body, B_SCORE_DIGITS + (size_t)i * 4u); #0 <':
+        'Index 40 would read body offset B_SCORE_DIGITS + 160 = B_CLOCK_DIGITS into score_block[40], and the next statement assigns score_block[40] from B_SCORE_X before anything reads it.',
+    'auto for (int i = 0; i < 40; ++i) o->clock_block[i] = rd_s32(body, B_CLOCK_DIGITS + (size_t)i * 4u); #0 <':
+        'Index 40 would read B_CLOCK_DIGITS + 160 = B_COLON, which is what the colon loop right after stores into clock_block[40].',
+    'auto for (int i = 0; i < 4; ++i) o->clock_block[40 + i] = rd_s32(body, B_COLON + (size_t)i * 4u); #0 <':
+        'Index 4 would store clock_block[44] from B_COLON + 16 = B_SCORE_X, and the next statement assigns clock_block[44] from B_CLOCK_X before anything reads it.',
+    "auto if (body[B_CASE_SENSITIVE] == 0 && (uint32_t)b->ch != (uint32_t)sch && '@' < sch) { #4 <":
+        "Only sch == '@' differs; then the first branch needs b->ch >= 0x61 and b->ch == 0x60 (impossible) and the inner test needs '`' < '@' (false), so the block does nothing.",
+    'auto if (!(v >= -9223372036854775808.0 && v < 9223372036854775808.0)) return INT64_MIN; #2 <':
+        'Only v == 2^63 differs. The only caller passes (float)(hits / (factor * seconds) * 60) with hits <= 2^32-1, |factor| >= 1 or factor 0 (then +infinity) and seconds >= 1, so v is +infinity or below 2.7e11 in magnitude and never exactly 2^63.',
+    'auto if (out->count >= TQZ_MAX_BLITS) return TQZ_ERR_BOUNDS; #0 >=':
+        'This is the display_blits guard. out->count starts at 0 and n is at most STD_MAX_BLITS (64, the capacity std_render_* is given), far below TQZ_MAX_BLITS (192), so count never reaches the limit. (The guard in emit has the same argument: at most 20 balloons x 2 blits + 1 in tqz_render.)',
+    'auto if (rd_s16(body, B_PASSED + SB_SCENE) != TQZ_NO_SCENE) CHECK(apply_block(body + B_PASSED, 1, world, host)); #0 +':
+        'SB_SCENE is 0, so B_PASSED + SB_SCENE and B_PASSED - SB_SCENE are the same offset.',
 }
 
-# Mutants the unit cases do not kill yet (found by the generated operator flips and the clause list). They are NOT
-# claimed as covered: test_known_gaps_are_exactly_the_survivors keeps this list honest in both directions.
-KNOWN_GAPS = (
-    'auto binding->failure = status == TQZ_OK ? "none" : "0xf5-render"; #0 ==',
-    'auto binding->failure = status == TQZ_OK ? "none" : "0xf5-render-clock"; #0 ==',
-    'auto binding->failure = status == TQZ_OK ? "none" : "0xf5-render-score"; #0 ==',
-    'auto for (int i = 0; i < 40; ++i) o->clock_block[i] = rd_s32(body, B_CLOCK_DIGITS + (size_t)i * 4u); #0 <',
-    'auto for (int i = 0; i < 40; ++i) o->score_block[i] = rd_s32(body, B_SCORE_DIGITS + (size_t)i * 4u); #0 <',
+# Mutants the unit cases do not kill yet. Empty: every generated mutant is either killed or recorded as equivalent above.
+# test_known_gaps_are_exactly_the_survivors keeps this list honest in both directions.
+KNOWN_GAPS = ()
+
+# Generated mutants that only the sanitizer build can see (an out-of-bounds write or read, or an out-of-range float cast, that
+# plain x86 hardware turns into a harmless value); they are skipped when no compiler here has the ASan/UBSan runtime.
+SANITIZED.update((
     'auto for (int i = 0; i < 4; ++i) b->dst[i] = rd_s32(body, B_POSITION_RECT + (size_t)pos * 16u + (size_t)i * 4u); #0 <',
-    'auto for (int i = 0; i < 4; ++i) o->clock_block[40 + i] = rd_s32(body, B_COLON + (size_t)i * 4u); #0 <',
     'auto for (int i = 0; i < 4; ++i) pop[i] = rd_s32(body, B_POP_RECT + (size_t)i * 4u); #0 <',
     'auto for (int i = 0; i < 4; ++i) src[i] = rd_s32(body, B_PASSED_RECT + (size_t)i * 4u); #0 <',
-    'auto for (int16_t k = 0; k < n; ++k) { #0 <',
-    'auto for (int16_t k = 0; k < rd_s16(body, B_POSITIONS); ++k) { #0 <',
-    'auto fresh = (int16_t)(fresh - 1); #0 -',
     'auto if (!(v >= -9223372036854775808.0 && v < 9223372036854775808.0)) return INT64_MIN; #1 &&',
-    'auto if (!(v >= -9223372036854775808.0 && v < 9223372036854775808.0)) return INT64_MIN; #2 <',
-    "auto if ('`' < sch && (uint32_t)b->ch == (uint32_t)sch - 0x20u) o->key_char = (uint8_t)(o->key_char - 0x20); #0 <",
-    'auto if (action == NULL || before == NULL || out == NULL || action->type != SESSION_AF5_TYPE || #5 ||',
-    'auto if (add32(o->count, n) < lo) { #0 <',
-    "auto if (body[B_CASE_SENSITIVE] == 0 && (uint32_t)b->ch != (uint32_t)sch && '@' < sch) { #4 <",
-    'auto if (count != 0u && rows == NULL) { #0 !=',
-    'auto if (failure != NULL) *failure = NULL; #0 !=',
-    'auto if (out->count >= TQZ_MAX_BLITS) return TQZ_ERR_BOUNDS; #0 >=',
-    'auto if (rd_s16(body, B_PASSED + SB_SCENE) != TQZ_NO_SCENE) CHECK(apply_block(body + B_PASSED, 1, world, host)); #0 +',
-    'auto if (row < 0 || (size_t)row >= binding->count || binding->rows[row].present == 0u) return NULL; #0 <',
     'auto if (row < 0 || (size_t)row >= binding->count || binding->rows[row].present == 0u) return NULL; #1 ||',
     'auto if (row < 0 || (size_t)row >= binding->count || binding->rows[row].present == 0u) return NULL; #2 >=',
-    'auto if (row < 0 || (size_t)row >= binding->count || binding->rows[row].present == 0u) return NULL; #3 ||',
-    'auto if (row < 0) { #0 <',
     'auto index >= binding->count || binding->rows[index].present == 0u) { #0 >=',
-    'sound channel low byte',
-)
+))
 
 
 def mutated_copy(root, key, filename, old, new):
@@ -671,7 +672,7 @@ class UnitTests(unittest.TestCase):
             if cc is None:
                 continue
             out = Path(self.tmp.name) / 'f5_test_san'
-            cmd = [cc, '-std=c11', '-g', '-O1', '-fsanitize=address,undefined', '-fno-sanitize-recover=undefined',
+            cmd = [cc, '-std=c11', '-g', '-O1', *SANITIZE,
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
@@ -692,7 +693,7 @@ class UnitTests(unittest.TestCase):
 
     def test_known_gaps_are_exactly_the_survivors(self):
         names = {name for table in MUTANTS.values() for name in table}
-        for name in tuple(EQUIVALENT) + KNOWN_GAPS:
+        for name in tuple(EQUIVALENT) + KNOWN_GAPS + tuple(SANITIZED):
             self.assertIn(name, names, f'stale entry: {name}')
 
     def test_mutations_are_detected(self):
@@ -703,6 +704,8 @@ class UnitTests(unittest.TestCase):
                 if name not in EQUIVALENT and name not in KNOWN_GAPS:
                     jobs.append((filename, name, old, new))
         san_cc = sanitizer_compiler(self.tmp.name)
+        if san_cc is None:
+            jobs = [job for job in jobs if job[1] not in SANITIZED]
         env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
 
         def build_and_run(index_job):

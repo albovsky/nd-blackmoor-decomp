@@ -1534,6 +1534,8 @@ static void t_expire_refill(void)
     memcpy(f.o.balloon[3].dst, want, sizeof want);
     memcpy(f.o.balloon[10].dst, want, sizeof want);
     f.o.balloon[10].state = TQZ_BALLOON_FLYING;
+    memcpy(f.o.balloon[4].dst, want, sizeof want); /* entry 4 is the first one past the four positions */
+    f.o.balloon[4].state = TQZ_BALLOON_FLYING;
     f.o.balloon[2].lifetime = 1;
     rand_set(&f, 5, 1, 1, 0, 17, 0);
     visit(&f, 1000000u + 2000u);
@@ -2125,6 +2127,7 @@ static void t_render_quiz(void)
           r.blit[3].kind == TQZ_BLIT_BALLOON_ERASE && r.blit[3].a == 2);
     /* only the first N entries are drawn */
     f.o.balloon[10].state = TQZ_BALLOON_FLYING;
+    f.o.balloon[4].state = TQZ_BALLOON_FLYING; /* the first entry past the four positions */
     CHECK(tqz_render(&f.o, &f.w, f.body, TQZ_BODY_BYTES, &f.host, &r) == TQZ_OK && r.count == 3);
 
     /* the end: the background is erased once, then the message is centred in the view */
@@ -2764,6 +2767,185 @@ static void t_binding_host_error(void)
     bind_close(&x);
 }
 
+/* ---- cases that pin edges the generated operator flips found open (RT-55 follow-up) ------------------------------------------ */
+
+/* the refill: exactly `minimum` balloons after the expiry is not "too few", and only `fresh` entries are filled */
+static void t_refill_edges(void)
+{
+    Fx f;
+    fx_init(&f);
+    start_quiz(&f);
+    /* count 2, entries 1 and 3 free, balloon 2 expires: count 1, one fresh balloon (r = 1) goes to the first free entry only */
+    f.o.balloon[1].state = TQZ_BALLOON_FREE;
+    f.o.count = 2;
+    f.o.balloon[2].lifetime = 1;
+    rand_set(&f, 5, 1, 1, 0, 17, 0);
+    visit(&f, 1000000u + 2000u);
+    CHECK(f.i_rand == 5 && f.o.count == 2 && f.o.balloon[2].state == TQZ_BALLOON_GONE);
+    CHECK(f.o.balloon[1].state == TQZ_BALLOON_FLYING && f.o.balloon[3].state == TQZ_BALLOON_FREE);
+    /* count 1, balloon 1 expires: 0 + 2 equals the minimum 2, so the count is drawn (r = 2), not lifted without a draw */
+    fx_init(&f);
+    start_quiz(&f);
+    f.o.count = 1;
+    f.o.balloon[1].lifetime = 1;
+    rand_set(&f, 5, 2, 1, 0, 17, 0);
+    visit(&f, 1000000u + 2000u);
+    CHECK(f.i_rand == 5 && f.o.count == 2 && f.o.balloon[1].state == TQZ_BALLOON_GONE);
+    CHECK(f.o.balloon[3].state == TQZ_BALLOON_FLYING);
+}
+
+/* the case folding of a typed character stops at '`': '`' itself is never folded onto '@' (the filter keeps '`' out of
+ * tqz_key, so the character is placed in the object directly) */
+static void t_key_fold_bounds(void)
+{
+    Fx f;
+    fx_init(&f);
+    body_quiet(f.body);
+    start_quiz(&f);
+    f.o.balloon[0].ch = '@';
+    f.o.key_char = '`';
+    f.o.key_pending = 1;
+    visit(&f, 1000000u + 10u);
+    CHECK(f.o.hits == 0 && f.n_play == 1 && f.play_hist[0] == 12 && f.o.balloon[0].state == TQZ_BALLOON_FLYING);
+    CHECK(f.o.key_char == '`');
+}
+
+/* sound channels are 16-bit values, not bytes */
+static void t_sound_channels(void)
+{
+    Fx f;
+    fx_init(&f);
+    put16(f.body, O_CHIT, 0x1234);
+    put16(f.body, O_CMISS, -300);
+    put16(f.body, O_CTIME, 0x0203);
+    start_quiz(&f);
+    CHECK(tqz_key(&f.o, 1u, 'a') == 1);
+    visit(&f, 1000000u + 10u);
+    CHECK(f.n_play == 1 && f.play_hist[0] == 0x1234);
+    CHECK(tqz_key(&f.o, 1u, 'z') == 1);
+    visit(&f, 1000000u + 20u);
+    CHECK(f.n_play == 2 && f.play_hist[1] == -300);
+    f.o.balloon[2].lifetime = 1;
+    rand_set(&f, 1, 0);
+    visit(&f, 1000000u + 2000u);
+    CHECK(f.n_play == 3 && f.play_hist[2] == 0x0203);
+    fx_init(&f);
+    body_nolife(f.body);
+    put16(f.body, O_CD, 0x0304);
+    start_quiz(&f);
+    f.o.score = 12;
+    visit(&f, 1000000u + 125000u);
+    visit(&f, 2000000u);
+    CHECK(f.o.passed == 1 && f.n_play == 1 && f.play_hist[0] == 0x0304);
+}
+
+/* the failure text is cleared by every call, and row 0 is a valid row */
+static void t_step_failure_and_row_zero(void)
+{
+    Fx f;
+    const char *failure = "stale";
+    fx_init(&f);
+    script_wave(&f);
+    CHECK(tqz_step(&f.o, f.body, TQZ_BODY_BYTES, 0, 0u, &f.w, &f.host, &f.result, &failure) == TQZ_OK);
+    CHECK(failure == NULL && f.o.row == 0 && f.o.active == 1 && f.result.initialized == 1u);
+    CHECK(tqz_step(&f.o, f.body, TQZ_BODY_BYTES, 0, 1u, &f.w, &f.host, &f.result, NULL) == TQZ_OK);
+    CHECK(tqz_step(&f.o, f.body, TQZ_BODY_BYTES, -1, 0u, &f.w, &f.host, &f.result, &failure) == TQZ_ERR_ARGUMENT);
+    CHECK(failure != NULL && strcmp(failure, "0xf5-row") == 0);
+}
+
+/* the binding's row lookup and its failure texts */
+static void t_binding_lookup_edges(void)
+{
+    Bind x;
+    uint8_t other[8192];
+    const int types[2] = {0xf5, 0x70};
+    const uint8_t one = 0;
+    const uint8_t *bodies[2];
+    size_t lengths[2] = {TQZ_BODY_BYTES, 1};
+    char err[128] = {0};
+    SceneResource *two;
+    SceneActionInfo info;
+    SceneActionRuntimeState st;
+    SceneActionHandlerResult out;
+    TqzPointerResult pr;
+    TqzRenderResult r;
+    TqzObject *o;
+    size_t n;
+    CHECK(bind_open(&x, 0));
+    bodies[0] = x.body_a;
+    bodies[1] = &one;
+    n = build_scene(other, 2, types, bodies, lengths);
+    two = scene_resource_open_memory(other, n, err, sizeof err);
+    CHECK(two != NULL);
+    if (two == NULL) {
+        bind_close(&x);
+        return;
+    }
+    CHECK(session_af5_begin_scene(x.b, two) == TQZ_OK);
+    memset(&st, 0, sizeof st);
+    memset(&out, 0, sizeof out);
+    CHECK(scene_resource_action_at(two, 0, &info) == SCENE_RESOURCE_OK);
+    script_wave(&x.f);
+    CHECK(session_af5_handler(x.b, 0, &info, &st, &out) == SCENE_ACTION_HANDLER_OK && out.phase == 1u);
+    o = (TqzObject *)session_af5_object(x.b);
+    /* the quiz runs on row 0: its body is found */
+    CHECK(o->row == 0 && o->active == 1);
+    CHECK(session_af5_pointer_move(x.b, 70, 60, &pr) == TQZ_OK && pr.hit == 1);
+    CHECK(session_af5_render(x.b, &r) == TQZ_OK && r.count == 6);
+    /* an object row that is a row of another type, or one past the table, has no body */
+    o->row = 1;
+    CHECK(session_af5_pointer_move(x.b, 70, 60, &pr) == TQZ_ERR_ARGUMENT);
+    CHECK(session_af5_render(x.b, &r) == TQZ_ERR_ARGUMENT);
+    o->row = 2;
+    CHECK(session_af5_pointer_move(x.b, 70, 60, &pr) == TQZ_ERR_ARGUMENT);
+    CHECK(session_af5_render(x.b, &r) == TQZ_ERR_ARGUMENT);
+    o->row = 0;
+    /* the failure text follows the last render call */
+    CHECK(session_af5_render(x.b, &r) == TQZ_OK && strcmp(session_af5_failure(x.b), "none") == 0);
+    o->finishing = 1; /* the finish draw asks the host for the view first */
+    x.f.fail_call = x.f.calls + 1;
+    CHECK(session_af5_render(x.b, &r) == TQZ_ERR_HOST && strcmp(session_af5_failure(x.b), "0xf5-render") == 0);
+    CHECK(session_af5_render(x.b, &r) == TQZ_OK && strcmp(session_af5_failure(x.b), "none") == 0);
+    x.f.fail_call = x.f.calls + 1;
+    CHECK(session_af5_render_score(x.b, &r) == TQZ_ERR_HOST && strcmp(session_af5_failure(x.b), "0xf5-render-score") == 0);
+    CHECK(session_af5_render_score(x.b, &r) == TQZ_OK && strcmp(session_af5_failure(x.b), "none") == 0);
+    x.f.fail_call = x.f.calls + 1;
+    CHECK(session_af5_render_clock(x.b, &r) == TQZ_ERR_HOST && strcmp(session_af5_failure(x.b), "0xf5-render-clock") == 0);
+    CHECK(session_af5_render_clock(x.b, &r) == TQZ_OK && strcmp(session_af5_failure(x.b), "none") == 0);
+    x.f.fail_call = 0;
+    o->finishing = 0;
+    scene_resource_close(two);
+    bind_close(&x);
+}
+
+/* a scene without rows loads; a handler call without a result cell is refused before it does anything */
+static void t_binding_empty_scene_and_null_out(void)
+{
+    Bind x;
+    uint8_t other[256];
+    char err[128] = {0};
+    size_t n;
+    SceneResource *empty;
+    SceneActionInfo info;
+    SceneActionRuntimeState st;
+    CHECK(bind_open(&x, 0));
+    n = build_scene(other, 0, NULL, NULL, NULL);
+    empty = scene_resource_open_memory(other, n, err, sizeof err);
+    CHECK(empty != NULL);
+    if (empty != NULL) {
+        CHECK(session_af5_begin_scene(x.b, empty) == TQZ_OK && strcmp(session_af5_failure(x.b), "none") == 0);
+        scene_resource_close(empty);
+    }
+    CHECK(session_af5_begin_scene(x.b, x.scene) == TQZ_OK);
+    memset(&st, 0, sizeof st);
+    CHECK(scene_resource_action_at(x.scene, 1, &info) == SCENE_RESOURCE_OK);
+    script_wave(&x.f);
+    CHECK(session_af5_handler(x.b, 1, &info, &st, NULL) == SCENE_ACTION_HANDLER_ERROR);
+    CHECK(strcmp(session_af5_failure(x.b), "0xf5-row-not-owned") == 0);
+    CHECK(session_af5_object(x.b)->active == 0 && x.f.n_alloc == 0);
+    bind_close(&x);
+}
+
 /* ---- main ---------------------------------------------------------------------------------------------------------------- */
 int main(void)
 {
@@ -2802,6 +2984,12 @@ int main(void)
     run("binding_without_hooks_and_args", t_binding_without_hooks_and_args);
     run("binding_refuses_bad_body", t_binding_refuses_bad_body);
     run("binding_host_error", t_binding_host_error);
+    run("refill_edges", t_refill_edges);
+    run("key_fold_bounds", t_key_fold_bounds);
+    run("sound_channel_values", t_sound_channels);
+    run("step_failure_and_row_zero", t_step_failure_and_row_zero);
+    run("binding_lookup_edges", t_binding_lookup_edges);
+    run("binding_empty_scene_and_null_out", t_binding_empty_scene_and_null_out);
     printf("TOTAL %d FAILED %d\n", g_total, g_failures);
     return g_failures;
 }
