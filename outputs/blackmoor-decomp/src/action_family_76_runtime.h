@@ -172,8 +172,8 @@ void pwd_new_game(PwdState *state);
 
 /* Native safety check of a typed body. Not an original check: the original trusts the loader. Rejects a short or long body, a
  * font index outside 0..17, a count outside 0..5, an accepted word that is not NUL-terminated within its 0x21 bytes, a sound
- * record name without NUL, and a text field rectangle so narrow that no character could ever be typed is NOT rejected (the
- * original accepts it). `failure` is optional. */
+ * record name without NUL. A text field rectangle too narrow for any character is not rejected (the original accepts it).
+ * `failure` is optional. */
 int pwd_validate_body(const uint8_t *body, size_t length, const char **failure);
 
 /* One true-gate visit of 0x42fc70. Validation precedes the first effect. A host failure after effects returns PWD_ERR_HOST (the

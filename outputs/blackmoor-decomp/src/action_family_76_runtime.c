@@ -263,7 +263,7 @@ static int step_typing(PwdState *state, const uint8_t *body, const PwdHost *host
                 int32_t limit;
                 if (host->text_width(host->context, font, (const char *)field, &width) != 0) return PWD_ERR_HOST;
                 observe(host, PWD_FX_TEXT_WIDTH, width, 0);
-                limit = (int32_t)(rd32u(body, rect + 8) - rd32u(body, rect)) - 0x14;
+                limit = (int32_t)(rd32u(body, rect + 8) - rd32u(body, rect) - 0x14u);
                 if ((int32_t)width < limit) field[len] = key;
             }
         }
