@@ -46,7 +46,7 @@ binding always returns phase 0 (`known_divergences`).
 HOOKS (everything else is original code): O = observed, R = replaced.
   O arm entries 0x429373 / 0x4291f8 / 0x42960b / 0x428692 (the row is the signed word at [ebp-0x11c]), the post-gate points
     0x42939b / 0x42921b / 0x42962f / 0x4286b5, method 0x4e386e (ECX must be 0x57975c), 0x43e96c, 0x43e8b8, 0x423b51 (reset of an
-    erased row), 0x42ba3a and 0x423d33 (must not run), every store to the data region 0x4f0000..0x680000
+    erased row), 0x42ba3a and 0x423d33 (must not run), every store to the process data region (from 0x4f0000 up to 0x680000)
   R 0x4fb018 scene sound unload (recorded, its own effects are host behaviour), 0x51dc6c free (recorded: pointer)
   R 0x51dc43 malloc (bump arena) for the dependency loader
   G 0x4c97b4 0x42639d 0x50ca3e 0x52139c 0x44a2b7: fatal and logging paths, reaching one fails the run
@@ -104,7 +104,7 @@ SOUND, SOUND_THIS = 0x4FB018, 0x5C3A67
 FREE = 0x51DC6C
 ERASE, RECOUNT, ERASE_RESET = 0x43E96C, 0x43E8B8, 0x423B51
 OBJ, OBJ_BYTES = 0x57975C, 0x6700
-WRITE_LO, WRITE_HI = 0x4F0000, 0x680000
+DATA_BASE, DATA_LIMIT = 0x4F0000, 0x680000
 EVENTS_VA = d9.EVENTS_VA
 
 # modelled cells: name -> (address, size)
@@ -204,7 +204,7 @@ class Oracle(d9.X86):
             table[a] = self._raise
         for a, fn in table.items():
             uc.hook_add(UC_HOOK_CODE, self._guard(fn), begin=a, end=a)
-        uc.hook_add(UC_HOOK_MEM_WRITE, self._on_write, begin=WRITE_LO, end=WRITE_HI)
+        uc.hook_add(UC_HOOK_MEM_WRITE, self._on_write, begin=DATA_BASE, end=DATA_LIMIT)
 
     def _mk_event(self, kind, typ):
         def run(uc, address, size, user):
