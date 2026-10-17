@@ -7054,6 +7054,10 @@ static bool native_ae4_render(NativeApp *app)
         ++app->ae4_plan_logged;
         record(app, "scene_ae4_blit blits=%d texts=%d puzzle_surface=%u composed=back-buffer scope=host-adapter "
                "(restore source is a back-buffer snapshot, layer order vs UI unverified)", blits, texts, puzzle_handle);
+    }
+    return true;
+}
+
 /* ---- RT-55: raw 0xf5 Typing Quiz Puzzle host providers ---------------------------------------------------------
  * Dispatcher arm -> handler 0x4b8e92 (kernel action_family_f5_runtime.c, shared score / time widget score_time_display.c, the
  * binding session_bindings_af5.c owns the object at 0x61ee6e and the widget at 0x638603). The three render entries (type 10,
@@ -9964,8 +9968,8 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[52].callback = native_ae4_handler;
     bindings[52].context = app;
     /* RT-55: raw 0xf5 Typing Quiz Puzzle (handler 0x4b8e92; phase 2 completes through 0x42ba3a). The render callbacks run from
-     * the app tick (native_af5_render). Slot 53, count 54: slot 52 is reserved for RT-54 and must be filled before the app can
-     * start (scene_session_create rejects an empty binding). */
+     * the app tick (native_af5_render). Slot 53, count 54 (slot 52 is RT-54's 0xe4; the slots must stay gap-free: scene_session_create
+     * rejects an empty binding). */
     bindings[53].type = SESSION_AF5_TYPE;
     bindings[53].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[53].callback = native_af5_handler;
