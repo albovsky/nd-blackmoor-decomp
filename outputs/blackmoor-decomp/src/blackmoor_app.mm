@@ -56,6 +56,7 @@
 #include "session_bindings_ad9.h"
 #include "session_bindings_ad1.h"
 #include "session_bindings_aea.h"
+#include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -271,6 +272,19 @@ struct NativeApp {
     /* RT-45: raw 0xea Onebuild (jigsaw) puzzle. aea_surfaces holds the handles of the puzzle's own piece surfaces
      * (0x4c2a8d), which the kernel releases through 0x4c2dfb; loaded images stay cached by name. */
     SessionAeaBinding *aea = nullptr;
+    /* RT-48: raw 0x20 (arm 0x429373), 0x70 (0x4291f8) and 0x80 (0x42960b -> 0x4e386e), gate mode 0, direct completion. The
+     * mirrors hold the process cells the three arms write that nothing else in the app reads yet: 0x63aa10 and word 0x5c3a4f
+     * (raw 0x20), the outer-state cells 0x583981/0x583985/0x583991/0x5bb1e2 (raw 0x70: the app has no outer state machine,
+     * it logs the request and keeps the session running) and the overlay object 0x57975c with its stored return tuple (raw
+     * 0x80: nothing in the app writes the tuple, so a row whose body word is 9999 is refused). Not compiled here. */
+    SessionA20Binding *a20 = nullptr;
+    SessionA70Binding *a70 = nullptr;
+    SessionA80Binding *a80 = nullptr;
+    int32_t a20_view_cell_63aa10 = 0;
+    int16_t a20_word_5c3a4f = 0;
+    Action70World a70_world{};
+    Action80Object a80_object{};
+    bool a80_object_valid = false;
     std::array<bool, 0x40> aea_slot_used{};
     EaPointerResult aea_pointer{};
     uint64_t aea_plan_signature = 0u;
@@ -1967,6 +1981,9 @@ static void cleanup(NativeApp *app)
     session_ad9_destroy(app->ad9);
     session_ad1_destroy(app->ad1);
     session_aea_destroy(app->aea);
+    session_a20_destroy(app->a20);
+    session_a70_destroy(app->a70);
+    session_a80_destroy(app->a80);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
@@ -3592,6 +3609,166 @@ static int native_a4f_handler(void *context, size_t row, const SceneActionInfo *
     const int status = session_a4f_handler(app->a4f, row, action, before, out);
     if (status != SCENE_ACTION_HANDLER_OK) {
         record(app, "scene_a4f_blocker row=%zu status=%d detail=%s", row, status, session_a4f_failure(app->a4f));
+    }
+    return status;
+}
+
+/* ---- RT-48: raw 0x20, 0x70 and 0x80 (gate mode 0, direct completion) --------------------------------------------------- */
+static bool unload_scene_sound_object(NativeApp *app);
+
+/* Raw 0x20: [0x5bb57b] := [0x5bb57f] is a no-op in the app (after a load both hold the running scene, 0x439ec4, and a
+ * transition request stops the pass before any later row); the view cell 0x55cd94 is the exit handler's popup flag. */
+static int native_a20_load_world(void *context, Action20World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    world->view_cell_63aa10 = app->a20_view_cell_63aa10;
+    world->view_cell_55cd94 = app->exit_state.g.popup_flag;
+    world->scene_5bb57b = app->current_scene_id;
+    world->scene_5bb57f = app->current_scene_id;
+    world->word_5c3a4f = app->a20_word_5c3a4f;
+    return 0;
+}
+
+static void native_a20_store_world(void *context, const Action20World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->a20_view_cell_63aa10 = world->view_cell_63aa10;
+    app->exit_state.g.popup_flag = world->view_cell_55cd94;
+    app->a20_word_5c3a4f = world->word_5c3a4f;
+}
+
+/* 0x43e96c + 0x43e8b8: every loaded row is erased and the high-water count falls to 0. The executor keeps the rows, so each
+ * becomes a retired row (completed, phase 0, dependencies reset), which the dispatcher skips like the original's unloaded
+ * rows. Hotspot requests the other bindings hold for those rows are not cleared (the original zeroes 0x5bb626). */
+static int native_a20_erase_rows(void *context, uint32_t *rows_erased)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || app->scene == nullptr || rows_erased == nullptr) return 1;
+    const size_t count = scene_resource_action_count(app->scene);
+    for (size_t row = 0; row < count; ++row) {
+        if (scene_session_retire_action(app->session, row) != SCENE_EXECUTOR_OK) return 1;
+    }
+    *rows_erased = static_cast<uint32_t>(count);
+    return 0;
+}
+
+static int native_a20_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a20_handler(app->a20, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a20_blocker row=%zu status=%d detail=%s", row, status, session_a20_failure(app->a20));
+    } else {
+        record(app, "scene_a20_erase row=%zu rows_erased=%u view_cells=%d,%d (0x43e96c erased every loaded row; the overlay view "
+               "object that reads 0x63aa10/0x55cd94 is not ported)", row, session_a20_last_outcome(app->a20)->rows_erased,
+               app->a20_view_cell_63aa10, app->exit_state.g.popup_flag);
+    }
+    return status;
+}
+
+/* Raw 0x70: the app has no outer state machine (0x426148 switches 0x583981); the request is mirrored and logged, the engine
+ * mode 0x583999 is left alone (the session keeps running, there is nothing to take over), and the scene sound object is
+ * unloaded like the intro reset does. */
+static int native_a70_load_world(void *context, Action70World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    *world = app->a70_world;
+    world->engine_mode_583999 = static_cast<int32_t>(app->exit_state.g.game_state);
+    world->first_render_5bb1c4 = app->exit_state.g.first_render_level;
+    return 0;
+}
+
+static void native_a70_store_world(void *context, const Action70World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->a70_world = *world;
+    app->exit_state.g.first_render_level = world->first_render_5bb1c4;
+}
+
+static int native_a70_unload(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr && unload_scene_sound_object(app) ? 0 : 1;
+}
+
+static int native_a70_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a70_handler(app->a70, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a70_blocker row=%zu status=%d detail=%s", row, status, session_a70_failure(app->a70));
+    } else {
+        record(app, "scene_a70_outer_state row=%zu state=%d next=%d cell_583991=%d first_render=%d (original engine mode 0x583999 := 0; "
+               "outer states 5 then 6 are not modelled, the session keeps running)", row, app->a70_world.outer_state_583981,
+               app->a70_world.next_state_583985, app->a70_world.cell_583991, app->a70_world.first_render_5bb1c4);
+    }
+    return status;
+}
+
+/* Raw 0x80: the overlay object 0x57975c is not ported. A row that names a literal scene runs against the object's current
+ * (empty, zeroed) tuple; a row whose body word is 9999 needs the stored return tuple, which nothing writes yet, so it is refused. */
+static int native_a80_load_object(void *context, int uses_stored_scene, Action80Object *object)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || object == nullptr) return 1;
+    if (uses_stored_scene != 0 && !app->a80_object_valid) return 1;
+    *object = app->a80_object;
+    return 0;
+}
+
+static void native_a80_store_object(void *context, const Action80Object *object)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && object != nullptr) app->a80_object = *object;
+}
+
+static int native_a80_load_world(void *context, Action80World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    world->cell_583204 = app->captions.lifecycle.g.overlay_ui;
+    world->cell_5bb22a = app->exit_state.g.load_game_flag;
+    return 0;
+}
+
+static void native_a80_store_world(void *context, const Action80World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->captions.lifecycle.g.overlay_ui = world->cell_583204;
+    app->exit_state.g.load_game_flag = world->cell_5bb22a;
+}
+
+static int native_a80_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a80_transition_refused target=%d (completion byte not committed)", request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a80_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d (0x4e386e scene-change cells, mode "
+           "0x583999 := 4)", request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1], request->opaque_dwords[2]);
+    return 0;
+}
+
+static int native_a80_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a80_handler(app->a80, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a80_blocker row=%zu status=%d detail=%s", row, status, session_a80_failure(app->a80));
     }
     return status;
 }
@@ -5774,6 +5951,26 @@ static bool create_native_session_bindings(NativeApp *app)
     app->a95 = session_a95_create(&a95_host);
     app->a4f = session_a4f_create(&app->new_game.action_core);
     app->a4e = session_a4e_create(&app->new_game.action_core);
+    SessionA20Host a20_host{};   /* RT-48 */
+    a20_host.context = app;
+    a20_host.load_world = native_a20_load_world;
+    a20_host.store_world = native_a20_store_world;
+    a20_host.erase_rows = native_a20_erase_rows;
+    app->a20 = session_a20_create(&a20_host);
+    SessionA70Host a70_host{};
+    a70_host.context = app;
+    a70_host.load_world = native_a70_load_world;
+    a70_host.store_world = native_a70_store_world;
+    a70_host.unload_scene_sound = native_a70_unload;
+    app->a70 = session_a70_create(&a70_host);
+    SessionA80Host a80_host{};
+    a80_host.context = app;
+    a80_host.load_object = native_a80_load_object;
+    a80_host.load_world = native_a80_load_world;
+    a80_host.store_object = native_a80_store_object;
+    a80_host.store_world = native_a80_store_world;
+    a80_host.transition = native_a80_transition;
+    app->a80 = session_a80_create(&a80_host);
     scene_stack_slot_clear(&app->scene_stack_slot);
     scene_stack_slot_init_words(&app->scene_stack_slot); /* game initializer 0x436fe4..0x437008 */
     SessionA6EHost a6e_host{};
@@ -5907,7 +6104,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->aea == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -6789,7 +6986,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[42]{};
+    SceneSessionActionBinding bindings[45]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6995,7 +7192,20 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[41].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[41].callback = native_aea_handler;
     bindings[41].context = app;
-    config.action_binding_count = 42u;
+    /* RT-48: raw 0x20, 0x70 and 0x80 (gate mode 0, direct completion). Slots 42-44 follow raw 0xea (RT-45). */
+    bindings[42].type = SESSION_A20_TYPE;
+    bindings[42].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[42].callback = native_a20_handler;
+    bindings[42].context = app;
+    bindings[43].type = SESSION_A70_TYPE;
+    bindings[43].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[43].callback = native_a70_handler;
+    bindings[43].context = app;
+    bindings[44].type = SESSION_A80_TYPE;
+    bindings[44].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[44].callback = native_a80_handler;
+    bindings[44].context = app;
+    config.action_binding_count = 45u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -7820,6 +8030,26 @@ static bool reset_fresh_scene_audio(NativeApp *app)
            "original=0x4381b5->0x4fb018 order=MSND,0..13 fade=none",
            app->current_scene_id, app->exit_state.g.game_state, plan.count, menu_channel, status);
     record_scene_audio(app, "after-intro-reset", app->current_scene_id, app->current_scene_id);
+    return status == LIVE_AUDIO_OK;
+}
+
+/* RT-48: 0x4fb018 on the scene sound object 0x5c3a67 for raw 0x70: the MSND channel, then sound channels 0..13, the same
+ * unload as the intro reset (session_exit_plan_audio only plans it in state 2, so the list is built here). */
+static bool unload_scene_sound_object(NativeApp *app)
+{
+    const uint8_t *msnd = nullptr;
+    size_t length = 0;
+    if (!find_boot_payload(app, "MSND", &msnd, &length) || length < 0x23u) {
+        record(app, "scene_audio_error detail=missing-BOOT-MSND-channel");
+        return false;
+    }
+    SessionExitAudioPlan plan{};
+    plan.channels[plan.count++] = static_cast<uint16_t>(msnd[0x21u] | (static_cast<uint16_t>(msnd[0x22u]) << 8));
+    for (uint16_t channel = 0; channel < 14u; ++channel) plan.channels[plan.count++] = channel;
+    const int status = app->live_audio != nullptr
+        ? live_audio_unload_channels(app->live_audio, plan.channels, plan.count) : LIVE_AUDIO_OK;
+    record(app, "scene_audio_reset scene=%d count=%zu status=%d original=0x429220->0x4fb018 order=MSND,0..13 fade=none",
+           app->current_scene_id, plan.count, status);
     return status == LIVE_AUDIO_OK;
 }
 

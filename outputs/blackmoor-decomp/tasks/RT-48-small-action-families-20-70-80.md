@@ -1,0 +1,33 @@
+# RT-48: raw 0x20, 0x70 and 0x80 (three small action families)
+
+Owner thread: Claude Sonnet (cloud). Follows RT-45 (PR 111). After PR 111, 2,047 of 2,078 scenes had every action type handled. With raw 0xf6 taken by RT-47, the ranking in `scene-action-coverage.json` is eleven families that unblock two scenes each (0x1c, 0x20, 0x70, 0x77, 0x80, 0xd0, 0xd3, 0xe0, 0xe4, 0xeb, 0xf5), each the only missing type in both scenes. Tie broken by size (disassembly lines reachable from the dispatcher arm, library helpers excluded): 0x20 (an inline arm of about 40 instructions plus the two small row-table helpers 0x43e96c and 0x43e8b8), 0x70 (an inline arm of about 15 instructions plus the 14-iteration sound unload 0x4fb018) and 0x80 (a 107-instruction method) are far below the next ones (0x1c about 214 instructions plus a sound object, 0x77 about 400, the 0xd0 to 0xf5 group 340 to 1,150 each and a UI object each). The three small ones share one slice: 6 scenes (2760, 2762, 2808, 2811, 2853, 2877).
+
+## The original (GAME.EXE, SHA-256 afd337a2...5c45)
+
+All three are arms of the dispatcher `0x427a50`, gate `0x423f57` mode 0 (the default), and all three finish by storing the row's completion byte directly (no generic completion `0x42ba3a`, no dependency reset).
+
+* **Raw 0x20**, arm `0x429373`, loader arm `0x40bd12` (two body dwords). For a true gate: `[0x63aa10] := dword +0`, `[0x55cd94] := dword +4`, completion byte := 1, then `0x43e96c` erases every row below the high-water count `0x5c39e3` whose loaded dword (`+0x59`, `0x5bb63c`) is nonzero (frees the body, clears completion byte, request dword, phase, sets `0x5bb636 := 0xffff`, `0x5bb638 := 1` "not loaded", `0x5bb63c := 0`, dependency reset `0x423b51`); the 0x20 row is among them, so its own completion byte is cleared again. `0x43e8b8` then sets the count to the start of the trailing run of unloaded rows (0 when everything was erased). Finally `[0x5bb57b] := [0x5bb57f]` and word `[0x5c3a4f] :=` its low word. Corpus: dword pairs (4, 1) in scene 2811 and (3, 1) in scene 2877. `0x55cd94` is the exit handler's popup flag (`session_exit` `popup_flag`, image value 1); `0x63aa10` and `0x55cd94` are also read by the overlay view object (`0x4ee572` and friends), which is not ported.
+* **Raw 0x70**, arm `0x4291f8`, loader arm `0x40e3d9` (one body byte, never read). For a true gate: `0x4fb018` on the scene sound object `0x5c3a67` (unload the MSND channel and channels 0..13), `[0x583985] := 6`, `[0x583981] := 5`, `[0x583991] := 0`, `0x43dbd5` (word `[0x5bb1c4] := 1`), `[0x583999] := 0` (engine mode), `[0x5bb1e2] := 0`, completion byte := 1. The same triple (state 5, next 6) is what the startup menu's first command stores (`0x4da9c6..0x4daa02`); outer states are switched by `0x426148`. Corpus: scene 2853 (no dependency) and scene 2808 (one dependency record).
+* **Raw 0x80**, arm `0x42960b`, loader arm `0x40e73f` (one body word), method `0x4e386e` on the overlay object `0x57975c`. A signed body word other than 9999 is the scene; 9999 takes the object's stored scene word (`+0x6ba`). Both scene cells `0x5bb57b`/`0x5bb57f` get it. The transition words always come from the object (`0x5bb599 := +0x6bc`, `0x5bb595 := +0x6be`, `0x5bb59b := +0x6c2`, `0x5bb59f := +0x6c6`, `0x5bb5a3 := +0x6ca`), `0x5c39ff := 1`, engine mode `0x583999 := 4` (scene change). If the object's state dword `+0x4528` is 2 or 3: `0x583204 := 5`, `0x5bb22a := 0`, object `+0x4530 := 0` and, when the object word `+0x6b2` is not 9999, it becomes 9999 and a nonzero `+0x6b4` is cleared with `+0x65d2 := 1`. Corpus: body word 6301 (scene 2760) and 9999 (scene 2762).
+
+## Native implementation
+
+* `src/action_family_20_runtime.[ch]`, `src/action_family_70_runtime.[ch]`, `src/action_family_80_runtime.[ch]`: the three kernels over small world structs and host callbacks (row erase, scene sound unload).
+* `src/session_bindings_a20_a70_a80.[ch]`: the three bindings. 0x20 returns DIRECT_COMPLETED with phase 0 (the erase clears the phase dword); 0x70 and 0x80 return DIRECT_COMPLETED with the phase the row was given. 0x80 builds the scene-change request from the cells (target, three words, three dwords) and hands it to the host; a refused request is an error with nothing committed.
+* `src/blackmoor_app.mm`: `bindings[42]`, `bindings[43]`, `bindings[44]` (declared count 45; slot 41 is raw 0xea, RT-45). Host: 0x20 retires every row of the scene through `scene_session_retire_action` (the executor keeps the rows; a retired row is skipped like an unloaded one) and keeps the view cells; 0x70 unloads the MSND channel and channels 0..13 like the intro reset and logs the outer-state request without acting on it; 0x80 requests the scene change through the session and refuses a 9999 row because nothing in the app writes the object's stored return tuple.
+* `scripts/build_native_app.sh` (modules), `scripts/build_action_family_20_70_80_runtime.sh`.
+
+## Verification
+
+* `tests/action_family_20_70_80_runtime_test.c` (15 unit cases, ASan/UBSan clean) and `tests/test_action_family_20_70_80_runtime.py` (plain, sanitizers, 48 source mutants on kernels and bindings, executor driver with 3 executor mutants, corpus driver over the 6 real rows).
+* `tests/action_family_20_70_80_runtime_executor.c`: the production executor (gate mode 0): the 0x20 row erases every row so a later open 0x70 row in the same pass is skipped; 0x80 reports a TRANSITION; 0x70 completes directly and is not visited again.
+* `tests/action_family_20_70_80_runtime_original_oracle.py`: the real dispatcher `0x427a50` runs rows of the three types under Unicorn against the native bindings (see the handoff in `COORDINATION-STATUS.md` for the final counts).
+
+## Limits
+
+* The macOS glue is not compiled or run in the cloud (the new block was syntax-checked against stand-in types only).
+* The app has no outer state machine: raw 0x70 logs state 5 / next 6 and leaves the engine mode alone, so the two scenes keep running after the row (the original idles the dispatcher at mode 0 and the outer loop takes over; what outer states 5 and 6 do is unrecovered).
+* The overlay object `0x57975c` is not ported: a 0x80 row with a literal scene runs against a zeroed tuple; the 9999 row (scene 2762) is refused until something writes the stored return tuple.
+* The overlay view object that reads `0x63aa10`/`0x55cd94` is not ported; hotspot requests other bindings hold for rows the 0x20 erase retires are not cleared.
+* The debug flag `0x63a4cd` is modelled as 0 (the original logs on several paths when it is set).
+* The scene loader `0x40b34a` is not run in the oracle (rows are built in memory); the corpus rows' dependency records are replayed behind a stand-in event record (the gate is shared verified code).
