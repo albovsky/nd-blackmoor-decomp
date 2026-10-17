@@ -56,6 +56,9 @@
 #include "session_bindings_ad9.h"
 #include "session_bindings_ad1.h"
 #include "session_bindings_af6.h"
+#include "session_bindings_a77.h"
+#include "session_bindings_aea.h"
+#include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
 #include "session_bindings_a28.h"
@@ -265,9 +268,6 @@ struct NativeApp {
     /* RT-35: raw 0xd1 Turning Puzzle. */
     SessionAd1Binding *ad1 = nullptr;
     std::array<bool, 0x40> ad1_slot_used{};
-    D1PointerResult ad1_pointer{};
-    uint64_t ad1_plan_signature = 0u;
-    bool ad1_render_failure_logged = false;
     /* RT-47: raw 0xf6 card puzzle (arm 0x42a92b -> 0x45f0e6, gate mode 0). Shares the generic Z entry range 0x18..0x3f
      * with 0xd9 / 0xd1 (native_*_alloc_slot). The restore blit copies from a snapshot of the seeded back buffer, the
      * stand-in of the saved scene frame (Z entry 1, 0x5d15e3), as for 0xd9. */
@@ -283,6 +283,37 @@ struct NativeApp {
     uint32_t af6_rand_state = 0u;     /* MSVC rand state (the _rand 0x50cd50 stand-in) */
     bool af6_rand_seeded = false;
     std::string af6_text;             /* NUL-terminated copy of the last AUTOTEXT value handed to the kernel */
+    D1PointerResult ad1_pointer{};
+    uint64_t ad1_plan_signature = 0u;
+    bool ad1_render_failure_logged = false;
+    /* RT-49: raw 0x77 Ordering Puzzle (dispatcher arm 0x428f11 -> handler 0x42ed54, render callback 0x4d00f4 of the static
+     * generic Z entry 0x5d1a7b). Not compiled in the cloud (no macOS toolchain). */
+    SessionA77Binding *a77 = nullptr;
+    A77PointerResult a77_pointer{};
+    uint64_t a77_plan_signature = 0u;
+    bool a77_render_failure_logged = false;
+    /* RT-45: raw 0xea Onebuild (jigsaw) puzzle. aea_surfaces holds the handles of the puzzle's own piece surfaces
+     * (0x4c2a8d), which the kernel releases through 0x4c2dfb; loaded images stay cached by name. */
+    SessionAeaBinding *aea = nullptr;
+    /* RT-48: raw 0x20 (arm 0x429373), 0x70 (0x4291f8) and 0x80 (0x42960b -> 0x4e386e), gate mode 0, direct completion. The
+     * mirrors hold the process cells the three arms write that nothing else in the app reads yet: 0x63aa10 and word 0x5c3a4f
+     * (raw 0x20), the outer-state cells 0x583981/0x583985/0x583991/0x5bb1e2 (raw 0x70: the app has no outer state machine,
+     * it logs the request and keeps the session running) and the overlay object 0x57975c with its stored return tuple (raw
+     * 0x80: nothing in the app writes the tuple, so a row whose body word is 9999 is refused). Not compiled here. */
+    SessionA20Binding *a20 = nullptr;
+    SessionA70Binding *a70 = nullptr;
+    SessionA80Binding *a80 = nullptr;
+    int32_t a20_view_cell_63aa10 = 0;
+    int16_t a20_word_5c3a4f = 0;
+    Action70World a70_world{};
+    Action80Object a80_object{};
+    bool a80_object_valid = false;
+    std::array<bool, 0x40> aea_slot_used{};
+    EaPointerResult aea_pointer{};
+    uint64_t aea_plan_signature = 0u;
+    bool aea_render_failure_logged = false;
+    std::map<uint32_t, bool> aea_surfaces;
+    std::string aea_text;
     /* RT-26: raw 0x95 Set Volume (dispatcher arm 0x429e41 -> 0x4fca60, gate mode 0). */
     SessionA95Binding *a95 = nullptr;
     /* RT-27: raw 0x4f compare-and-set-event-flag (arm 0x428133 -> 0x44b641, gate mode 1). Not compiled here. */
@@ -975,6 +1006,7 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
         return true;
     }
     if (handle >= NATIVE_A43_SLOT_HANDLE && handle < NATIVE_A43_SLOT_HANDLE + 6u) {
+static bool native_af6_render(NativeApp *app);
         const CaptionSurface *slot = session_a43_slot(app->a43, handle - NATIVE_A43_SLOT_HANDLE);
         if (slot == nullptr || slot->pixels == nullptr || slot->width <= 0 || slot->height <= 0 ||
             slot->pitch <= 0) return false;
@@ -1006,7 +1038,8 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
 static bool native_a35_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
-static bool native_af6_render(NativeApp *app);
+static bool native_a77_render(NativeApp *app);
+static bool native_aea_render(NativeApp *app);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -1385,6 +1418,14 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->ad1 != nullptr && session_ad1_registered(app->ad1) != 0u) {
         /* RT-35: the Turning Puzzle's render entry (type 10, callback 0x4b7051), same slot range. */
         (void)native_ad1_render(app);
+    }
+    if (app->a77 != nullptr && session_a77_registered(app->a77) != 0u) {
+        /* RT-49: the Ordering Puzzle's static generic entry 0x5d1a7b (callback 0x4d00f4), drawn while 0x5d1a8f is set. */
+        (void)native_a77_render(app);
+    }
+    if (app->aea != nullptr && session_aea_registered(app->aea) != 0u) {
+        /* RT-45: the Onebuild puzzle's render entry (type 10, callback 0x4876ed), same slot range. */
+        (void)native_aea_render(app);
     }
     if (app->af6 != nullptr && session_af6_registered(app->af6) != 0u) {
         /* RT-47: the card puzzle's render entry (type 10, callback 0x460f26), same slot range. */
@@ -1973,6 +2014,11 @@ static void cleanup(NativeApp *app)
     session_ad9_destroy(app->ad9);
     session_ad1_destroy(app->ad1);
     session_af6_destroy(app->af6);
+    session_a77_destroy(app->a77);
+    session_aea_destroy(app->aea);
+    session_a20_destroy(app->a20);
+    session_a70_destroy(app->a70);
+    session_a80_destroy(app->a80);
     session_a95_destroy(app->a95);
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
@@ -3473,7 +3519,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || slot == nullptr) return 1;
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
-        if (!app->ad9_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
+        if (!app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->af6_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
@@ -3599,6 +3645,172 @@ static int native_a4f_handler(void *context, size_t row, const SceneActionInfo *
     const int status = session_a4f_handler(app->a4f, row, action, before, out);
     if (status != SCENE_ACTION_HANDLER_OK) {
         record(app, "scene_a4f_blocker row=%zu status=%d detail=%s", row, status, session_a4f_failure(app->a4f));
+    }
+    return status;
+}
+
+/* ---- RT-48: raw 0x20, 0x70 and 0x80 (gate mode 0, direct completion) --------------------------------------------------- */
+static bool unload_scene_sound_object(NativeApp *app);
+
+/* Raw 0x20: [0x5bb57b] := [0x5bb57f] is a no-op in the app (after a load both hold the running scene, 0x439ec4, and a
+ * transition request stops the pass before any later row); the view cell 0x55cd94 is the exit handler's popup flag and the caption lifecycle's popup gate (read from the live gate, written to both). */
+static int native_a20_load_world(void *context, Action20World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    world->view_cell_63aa10 = app->a20_view_cell_63aa10;
+    world->view_cell_55cd94 = app->captions.lifecycle.g.popup_gate;
+    world->scene_5bb57b = app->current_scene_id;
+    world->scene_5bb57f = app->current_scene_id;
+    world->word_5c3a4f = app->a20_word_5c3a4f;
+    return 0;
+}
+
+static void native_a20_store_world(void *context, const Action20World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->a20_view_cell_63aa10 = world->view_cell_63aa10;
+    /* 0x55cd94 is mirrored by the exit handler's popup flag and the caption lifecycle's popup gate: write both. */
+    app->exit_state.g.popup_flag = world->view_cell_55cd94;
+    app->captions.lifecycle.g.popup_gate = world->view_cell_55cd94;
+    app->a20_word_5c3a4f = world->word_5c3a4f;
+}
+
+/* App approximation: the original erases only rows whose loaded dword (0x5bb63c) is nonzero, which the loader sets only for
+ * POPUP_PREP_SCENE scenes ([0x5c3a01] == 2); the app does not keep the scene name tag, so every row is retired. Harmless for the
+ * two corpus scenes (2811 NO_ART has no other row; 2877 is a popup scene) but wrong for a 0x20 row beside other rows in a plain scene. */
+/* 0x43e96c + 0x43e8b8: every loaded row is erased and the high-water count falls to 0. The executor keeps the rows, so each
+ * becomes a retired row (completed, phase 0, dependencies reset), which the dispatcher skips like the original's unloaded
+ * rows. Hotspot requests the other bindings hold for those rows are not cleared (the original zeroes 0x5bb626). */
+static int native_a20_erase_rows(void *context, uint32_t *rows_erased)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || app->scene == nullptr || rows_erased == nullptr) return 1;
+    const size_t count = scene_resource_action_count(app->scene);
+    for (size_t row = 0; row < count; ++row) {
+        if (scene_session_retire_action(app->session, row) != SCENE_EXECUTOR_OK) return 1;
+    }
+    *rows_erased = static_cast<uint32_t>(count);
+    return 0;
+}
+
+static int native_a20_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a20_handler(app->a20, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a20_blocker row=%zu status=%d detail=%s", row, status, session_a20_failure(app->a20));
+    } else {
+        record(app, "scene_a20_erase row=%zu rows_erased=%u view_cells=%d,%d (0x43e96c erased every loaded row; the overlay view "
+               "object that reads 0x63aa10/0x55cd94 is not ported)", row, session_a20_last_outcome(app->a20)->rows_erased,
+               app->a20_view_cell_63aa10, app->exit_state.g.popup_flag);
+    }
+    return status;
+}
+
+/* Raw 0x70: the app has no outer state machine (0x426148 switches 0x583981); the request is mirrored and logged, the engine
+ * mode 0x583999 is left alone (the session keeps running, there is nothing to take over), and the scene sound object is
+ * unloaded like the intro reset does. */
+static int native_a70_load_world(void *context, Action70World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    *world = app->a70_world;
+    world->engine_mode_583999 = static_cast<int32_t>(app->exit_state.g.game_state);
+    world->first_render_5bb1c4 = app->exit_state.g.first_render_level;
+    return 0;
+}
+
+static void native_a70_store_world(void *context, const Action70World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->a70_world = *world;
+    app->exit_state.g.first_render_level = world->first_render_5bb1c4;
+    app->captions.lifecycle.g.first_render_level = static_cast<int16_t>(world->first_render_5bb1c4);
+}
+
+static int native_a70_unload(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr && unload_scene_sound_object(app) ? 0 : 1;
+}
+
+static int native_a70_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a70_handler(app->a70, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a70_blocker row=%zu status=%d detail=%s", row, status, session_a70_failure(app->a70));
+    } else {
+        record(app, "scene_a70_outer_state row=%zu state=%d next=%d cell_583991=%d first_render=%d (original engine mode 0x583999 := 0; "
+               "outer states 5 then 6 are not modelled, the session keeps running)", row, app->a70_world.outer_state_583981,
+               app->a70_world.next_state_583985, app->a70_world.cell_583991, app->a70_world.first_render_5bb1c4);
+    }
+    return status;
+}
+
+/* Raw 0x80: the overlay object 0x57975c is not ported. A row that names a literal scene runs against the object's current
+ * (empty, zeroed) tuple; a row whose body word is 9999 needs the stored return tuple, which nothing writes yet, so it is refused. */
+static int native_a80_load_object(void *context, int uses_stored_scene, Action80Object *object)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || object == nullptr) return 1;
+    if (uses_stored_scene != 0 && !app->a80_object_valid) return 1;
+    *object = app->a80_object;
+    return 0;
+}
+
+static void native_a80_store_object(void *context, const Action80Object *object)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && object != nullptr) app->a80_object = *object;
+}
+
+static int native_a80_load_world(void *context, Action80World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return 1;
+    world->cell_583204 = app->captions.lifecycle.g.overlay_ui;
+    world->cell_5bb22a = app->exit_state.g.load_game_flag;
+    return 0;
+}
+
+static void native_a80_store_world(void *context, const Action80World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->captions.lifecycle.g.overlay_ui = world->cell_583204;
+    app->exit_state.g.load_game_flag = world->cell_5bb22a;
+}
+
+static int native_a80_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a80_transition_refused target=%d (completion byte not committed)", request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a80_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d (0x4e386e scene-change cells, mode "
+           "0x583999 := 4)", request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1], request->opaque_dwords[2]);
+    return 0;
+}
+
+static int native_a80_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a80_handler(app->a80, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a80_blocker row=%zu status=%d detail=%s", row, status, session_a80_failure(app->a80));
     }
     return status;
 }
@@ -4392,7 +4604,7 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
     if (app == nullptr || slot == nullptr) return 1;
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
-            !app->af6_slot_used[static_cast<size_t>(i)]) {
+            !app->aea_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4624,6 +4836,538 @@ static bool native_ad1_render(NativeApp *app)
     return true;
 }
 
+/* ---- RT-49: raw 0x77 Ordering Puzzle host providers ------------------------
+ * The kernel (action_family_77_runtime.c) is the recovered 0x42ed54 phase machine with the pointer case 0x4f0270, the click
+ * block 0x43b3d6 and the render callback 0x4d00f4. The host supplies the CRT _rand (0x50cd50), the CIFTREE image (0x4c2790), the
+ * tick, the finish block's scene change and event flag, and the sound engine calls. Sound is NOT wired: the four sound calls are
+ * logged "NOT PLAYED (no effect backend)" and report "not busy", so the puzzle runs silently. The event flag, release and view
+ * origin providers are the ones the Turning Puzzle (0xd1) uses (same signatures, same cells). */
+static int32_t native_a77_random(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    uint32_t raw = 0u;
+    if (app == nullptr || session_conditions_crt_rand_host(&app->condition_rand, &raw) != CONDITION_EXTRA_HOST_OK) return 0;
+    return static_cast<int32_t>(raw & 0x7fffu); /* _rand() is 0..32767 */
+}
+
+static int native_a77_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "ordering-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_a77_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_a77_surface_load name=%s surface=%u source=CIFTREE (0x4c2790)", name, handle);
+    return 0;
+}
+
+static int native_a77_sound_prepare(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_a77_sound call=0x4fb77a NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_a77_sound_stop(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_a77_sound call=0x4fba69 NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_a77_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_a77_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_a77_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here, so the win sound step completes at once */
+    return 0;
+}
+
+static int native_a77_transition(void *context, const A77Transition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a77_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+static void native_a77_store_world(void *context, const A77World *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static void native_a77_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == A77_FX_PHASE) {
+        record(app, "scene_a77_phase new_phase=%d (0x42ed54)", a);
+    } else if (effect == A77_FX_COMPLETE) {
+        record(app, "scene_a77_complete row=%d (0x42ba3a)", a);
+    }
+}
+
+static int native_a77_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a77_handler(app->a77, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a77_blocker row=%zu status=%d detail=%s", row, status, session_a77_failure(app->a77));
+    }
+    return status;
+}
+
+/* 0x4d00f4: one opaque copy (0x4c5377) per button into the back buffer. A selected button copies its selected-state rectangle
+ * from the puzzle image to the button rectangle. An unselected button copies the scene background (generic entry 1, 0x5d15e3)
+ * over its own rectangle; the app needs no blit for that, because advance_native_session_media_one reseeds the back buffer from
+ * the decoded scene frame on every tick before the overlays are drawn, so the unselected buttons already show the background.
+ * Layer order against the UI is unverified. */
+static bool native_a77_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    A77RenderPlan plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_a77_render_plan(app->a77, &plan) != A77_OK) {
+        if (!app->a77_render_failure_logged) {
+            app->a77_render_failure_logged = true;
+            record(app, "scene_a77_render_error detail=plan-unavailable");
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    CaptionCompositorView puzzle_view{};
+    if (!native_caption_view_for_handle(app, plan.surface, &puzzle_view)) {
+        if (!app->a77_render_failure_logged) {
+            app->a77_render_failure_logged = true;
+            record(app, "scene_a77_render_error detail=puzzle-surface-unavailable surface=%u", plan.surface);
+        }
+        return false;
+    }
+    D9Surface puzzle{puzzle_view.pixels, puzzle_view.byte_capacity, puzzle_view.pitch_bytes};
+    D9Surface back{captions.backbuffer_pixels.data(), captions.backbuffer_pixels.size(), 1280};
+    uint64_t signature = UINT64_C(14695981039346656037);
+    int selected = 0;
+    for (int32_t i = 0; i < plan.count; ++i) {
+        const A77RenderBlit &blit = plan.blit[i];
+        if (blit.selected == 0u) continue; /* the background is already composed (see above) */
+        const int status = d9_blit_copy(&puzzle, &back, blit.src, blit.dst);
+        if (status != D9_OK) {
+            if (!app->a77_render_failure_logged) {
+                app->a77_render_failure_logged = true;
+                record(app, "scene_a77_render_error status=%d button=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; no pixels written)", status, i, blit.src[0], blit.src[1], blit.src[2], blit.src[3],
+                       blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]);
+            }
+            return false;
+        }
+        ++selected;
+        for (int k = 0; k < 4; ++k) {
+            signature ^= static_cast<uint32_t>(blit.src[k]);
+            signature *= UINT64_C(1099511628211);
+        }
+    }
+    if (signature != app->a77_plan_signature) {
+        app->a77_plan_signature = signature;
+        record(app, "scene_a77_blit buttons=%d selected=%d surface=%u composed=back-buffer scope=host-adapter "
+               "(layer order vs UI unverified)", plan.count, selected, plan.surface);
+    }
+    return true;
+}
+
+/* ---- RT-45: raw 0xea Onebuild (jigsaw) puzzle host providers ---------------
+ * The kernel (action_family_ea_runtime.c) is the recovered 0x4867bd state machine with its pointer, click, rotate
+ * and render callbacks. The host supplies the generic Z entry table (0x4d39f9 / 0x4d3992), the CIFTREE images
+ * (0x4c2790), the piece surfaces (0x4c2a8d, 0x4c51a5, the inline copy and 0x4c7070 as plain 16-bit buffers in the
+ * caption image store), the tick, the finish block's scene change and event flag, the caption writer for the
+ * feedback captions and the sound engine calls. Sound is NOT wired: the sound calls are logged and report "not
+ * busy". The clip rectangle 0x583196.. is the second VIEW rectangle, which the loader fills from scene_source. The
+ * pointer rectangle (ptr+0x4a) is the provisional 1 x 1 cursor sprite rectangle projected as 0x4f0059 does. There is
+ * no second-button source in the app (the platform maps the right button onto the left one), so the rotate key
+ * 0x484ac0 is never raised: a piece that starts rotated cannot be turned and every drop of it is a bad drop. */
+static NativeRaw555Image *native_aea_image(NativeApp *app, uint32_t handle)
+{
+    if (app == nullptr) return nullptr;
+    const auto found = app->captions.raw_images.find(handle);
+    return found == app->captions.raw_images.end() ? nullptr : &found->second;
+}
+
+static int native_aea_view(void *context, EaView *view)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || view == nullptr) return 1;
+    view->origin_x = app->scene_destination.left; /* 0x583186 */
+    view->origin_y = app->scene_destination.top;  /* 0x58318a */
+    view->clip[0] = app->scene_source.left; /* 0x583196: the second VIEW rectangle, loaded as scene_source */
+    view->clip[1] = app->scene_source.top;
+    view->clip[2] = app->scene_source.right;
+    view->clip[3] = app->scene_source.bottom;
+    return 0;
+}
+
+static int native_aea_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        if (!app->aea_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
+            !app->ad9_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_aea_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_aea_register_slot(void *context, int16_t slot, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->aea_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_aea_register slot=%d label=%s (type 10 entry, callback 0x4876ed)", slot, label);
+    return 0;
+}
+
+static int native_aea_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->aea_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_aea_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass draws every tick */
+    return 0;
+}
+
+static int native_aea_load_surface(void *context, const char *name, const char *tag, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "onebuild-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_aea_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_aea_surface_load name=%s surface=%u tag=%s source=CIFTREE (0x4c2790)", name, handle,
+           tag != nullptr ? tag : "");
+    return 0;
+}
+
+/* 0x4c2a8d: a new 16-bit surface of w x h pixels, cleared. */
+static int native_aea_create_surface(void *context, int16_t w, int16_t h, const char *tag, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)tag;
+    if (app == nullptr || surface == nullptr || w <= 0 || h <= 0) return 1;
+    if (app->captions.next_image_handle == 0u || app->captions.next_image_handle >= UINT32_C(0xf0000000)) {
+        record(app, "scene_aea_surface_error detail=handle-space-exhausted");
+        return 1;
+    }
+    NativeRaw555Image raw;
+    raw.width = static_cast<uint32_t>(w);
+    raw.height = static_cast<uint32_t>(h);
+    raw.pitch = raw.width * 2u;
+    raw.pixels.assign(static_cast<size_t>(raw.pitch) * raw.height, 0u);
+    const uint32_t handle = app->captions.next_image_handle++;
+    app->captions.raw_images.emplace(handle, std::move(raw));
+    app->aea_surfaces[handle] = true;
+    *surface = handle;
+    return 0;
+}
+
+/* 0x4c51a5: copy between two surfaces (equally sized rectangles, inclusive edges). */
+static int native_aea_blit(void *context, uint32_t src, uint32_t dst, const int32_t src_rect[4],
+                           const int32_t dst_rect[4])
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    CaptionCompositorView source{};
+    CaptionCompositorView destination{};
+    if (!native_caption_view_for_handle(app, src, &source) || !native_caption_view_for_handle(app, dst, &destination)) {
+        record(app, "scene_aea_surface_error detail=blit-surface-unavailable src=%u dst=%u", src, dst);
+        return 1;
+    }
+    const CaptionRect s{src_rect[0], src_rect[1], src_rect[2], src_rect[3]};
+    const CaptionRect d{dst_rect[0], dst_rect[1], dst_rect[2], dst_rect[3]};
+    const int status = caption_compositor_blit(&source, &destination, CAPTION_BLIT_OPAQUE, &s, &d,
+                                               app->captions.pixel_format.color_key);
+    if (status != CAPTION_COMPOSITOR_OK) {
+        record(app, "scene_aea_surface_error detail=blit-refused status=%d", status);
+        return 1;
+    }
+    return 0;
+}
+
+/* The inline copy (rep movsd) of the rotated entries: every pixel of the source into the equally sized target. */
+static int native_aea_copy_surface(void *context, uint32_t dst, uint32_t src)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *to = native_aea_image(app, dst);
+    const NativeRaw555Image *from = native_aea_image(app, src);
+    if (to == nullptr || from == nullptr || to->pixels.size() != from->pixels.size()) return 1;
+    to->width = from->width;
+    to->height = from->height;
+    to->pitch = from->pitch;
+    to->pixels = from->pixels;
+    return 0;
+}
+
+/* 0x4c7070: a quarter turn clockwise in place. Width and height swap, the new pitch is the old height * 2, and
+ * pixel (x, y) of the old image lands at column H - 1 - y of row x (the loops at 0x4c7150..0x4c71b1). */
+static int native_aea_rotate_surface(void *context, uint32_t surface, int16_t *w, int16_t *h)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    NativeRaw555Image *image = native_aea_image(app, surface);
+    if (image == nullptr || w == nullptr || h == nullptr || image->width == 0u || image->height == 0u ||
+        image->width > INT16_MAX || image->height > INT16_MAX) return 1;
+    const size_t old_w = image->width, old_h = image->height, old_pitch = image->pitch;
+    if (image->pixels.size() < (old_h - 1u) * old_pitch + old_w * 2u) return 1;
+    std::vector<uint8_t> rotated(old_w * old_h * 2u, 0u);
+    for (size_t x = 0; x < old_w; ++x) {
+        for (size_t y = 0; y < old_h; ++y) {
+            const uint8_t *from = image->pixels.data() + y * old_pitch + x * 2u;
+            uint8_t *to = rotated.data() + (x * old_h + (old_h - 1u - y)) * 2u;
+            to[0] = from[0];
+            to[1] = from[1];
+        }
+    }
+    image->width = static_cast<uint32_t>(old_h);
+    image->height = static_cast<uint32_t>(old_w);
+    image->pitch = static_cast<uint32_t>(old_h * 2u);
+    image->pixels = std::move(rotated);
+    *w = static_cast<int16_t>(image->width);
+    *h = static_cast<int16_t>(image->height);
+    return 0;
+}
+
+static int native_aea_release_surface(void *context, uint32_t surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    if (app->aea_surfaces.erase(surface) != 0u) app->captions.raw_images.erase(surface); /* loaded images stay cached */
+    return 0;
+}
+
+static int native_aea_sound_prepare(void *context, uint32_t id, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_aea_sound id=0x%x call=0x4fb77a NOT PLAYED (no effect backend)", id);
+    return 0;
+}
+
+static int native_aea_sound_stop(void *context, uint32_t id, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_aea_sound id=0x%x call=0x4fba69 NOT PLAYED (no effect backend)", id);
+    return 0;
+}
+
+static int native_aea_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_aea_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_aea_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    return 0;
+}
+
+static uint32_t native_aea_tick(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr ? app->session_tick_sample : 0u; /* GetTickCount */
+}
+
+static int native_aea_rand(void *context, int32_t *value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    uint32_t raw = 0u;
+    if (app == nullptr || value == nullptr ||
+        session_conditions_crt_rand_host(&app->condition_rand, &raw) != CONDITION_EXTRA_HOST_OK) return 1;
+    *value = static_cast<int32_t>(raw & 0x7fffu); /* _rand() is 0..32767 */
+    return 0;
+}
+
+static int native_aea_captions_enabled(void *context, int32_t *enabled)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || enabled == nullptr) return 1;
+    *enabled = app->world_clock_session.captions_enabled_5bb202; /* [0x5bb202] */
+    return 0;
+}
+
+/* 0x423259: the AUTOTEXT string of `key`, or none. The kernel wants a NUL-terminated copy. */
+static int native_aea_autotext(void *context, const char *key, const char **text)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || key == nullptr || text == nullptr) return 1;
+    *text = nullptr;
+    if (app->captions.auto_text == nullptr) return 0; /* nothing loaded: the same as "not found" */
+    const uint8_t *found = nullptr;
+    size_t raw_length = 0u, length = 0u;
+    const int status = autotext_lookup(app->captions.auto_text, reinterpret_cast<const uint8_t *>(key), std::strlen(key),
+                                       &found, &raw_length, &length);
+    if (status == AUTOTEXT_ERR_NOT_FOUND) return 0;
+    if (status != AUTOTEXT_OK) return 1;
+    app->aea_text.assign(reinterpret_cast<const char *>(found), length);
+    *text = app->aea_text.c_str();
+    return 0;
+}
+
+/* 0x448d11: the caption writer. A refused write is recorded and skipped; the original has no failure path here and a
+ * missing caption must not end the puzzle. */
+static int native_aea_caption(void *context, const char *text)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr) return 1;
+    const ActionFamily51BackendStatus status =
+        native_a51_write_caption(app, reinterpret_cast<const uint8_t *>(text), std::strlen(text));
+    if (status != ACTION_FAMILY_51_BACKEND_OK) record(app, "scene_aea_caption_error status=%d (caption not shown)", static_cast<int>(status));
+    return 0;
+}
+
+static int native_aea_transition(void *context, const EaTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_aea_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+static int native_aea_complete(void *context, int16_t row)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_aea_complete row=%d (0x42ba3a)", row);
+    return 0;
+}
+
+static void native_aea_store_world(void *context, const EaWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_aea_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_aea_handler(app->aea, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_aea_blocker row=%zu status=%d detail=%s", row, status, session_aea_failure(app->aea));
+    }
+    return status;
+}
+
+/* 0x4876ed: the blits of one render pass onto the back buffer. The restore blits (source 0x5d15e3, the saved
+ * background) are skipped: the back buffer is recomposed from the scene every tick. */
+static bool native_aea_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    EaRenderPlan plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_aea_render_plan(app->aea, &plan) != EA_OK) {
+        if (!app->aea_render_failure_logged) {
+            app->aea_render_failure_logged = true;
+            record(app, "scene_aea_render_error detail=plan-unavailable");
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    CaptionCompositorView destination{};
+    destination.pixels = captions.backbuffer_pixels.data();
+    destination.byte_capacity = captions.backbuffer_pixels.size();
+    destination.width = 640;
+    destination.height = 480;
+    destination.pitch_bytes = 1280;
+    destination.format = captions.compositor_format;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    int32_t drawn = 0;
+    for (int32_t i = 0; i < plan.count; ++i) {
+        const EaBlit &blit = plan.blit[i];
+        if (blit.src_kind == 0u) continue;
+        CaptionCompositorView source{};
+        if (!native_caption_view_for_handle(app, blit.src_surface, &source)) {
+            if (!app->aea_render_failure_logged) {
+                app->aea_render_failure_logged = true;
+                record(app, "scene_aea_render_error detail=surface-unavailable surface=%u", blit.src_surface);
+            }
+            return false;
+        }
+        const CaptionRect src{blit.src[0], blit.src[1], blit.src[2], blit.src[3]};
+        const CaptionRect dst{blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]};
+        const int status = caption_compositor_blit(&source, &destination,
+                                                   blit.kind == 0u ? CAPTION_BLIT_OPAQUE : CAPTION_BLIT_KEYED, &src, &dst,
+                                                   captions.pixel_format.color_key);
+        if (status != CAPTION_COMPOSITOR_OK) {
+            if (!app->aea_render_failure_logged) {
+                app->aea_render_failure_logged = true;
+                record(app, "scene_aea_render_error status=%d blit=%d kind=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; no pixels written)", status, i, blit.kind, blit.src[0], blit.src[1],
+                       blit.src[2], blit.src[3], blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]);
+            }
+            return false;
+        }
+        ++drawn;
+        for (int k = 0; k < 4; ++k) {
+            signature ^= static_cast<uint32_t>(blit.dst[k]);
+            signature *= UINT64_C(1099511628211);
+        }
+    }
+    if (signature != app->aea_plan_signature) {
+        app->aea_plan_signature = signature;
+        record(app, "scene_aea_blit blits=%d composed=back-buffer scope=host-adapter (layer order vs UI unverified)",
+               drawn);
+    }
+    return true;
+}
+
 /* ---- RT-47: raw 0xf6 card puzzle host providers --------------------------
  * The kernel (action_family_f6_runtime.c) is the recovered 0x45f0e6 state machine. The host supplies the generic Z
  * entry table (0x4d39f9 / 0x4d3992, shared with 0xd9 / 0xd1), the CIFTREE image (0x4c2790), the tick (GetTickCount), the
@@ -4636,7 +5380,7 @@ static int native_af6_alloc_slot(void *context, int16_t *slot)
     if (app == nullptr || slot == nullptr) return 1;
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->af6_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
-            !app->ad9_slot_used[static_cast<size_t>(i)]) {
+            !app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5706,12 +6450,78 @@ static bool create_native_session_bindings(NativeApp *app)
     af6_host.kernel.observe = native_af6_observe;
     af6_host.store_world = native_af6_store_world;
     app->af6 = session_af6_create(&af6_host);
+    SessionA77Host a77_host{};   /* RT-49 */
+    a77_host.kernel.context = app;
+    a77_host.kernel.random = native_a77_random;
+    a77_host.kernel.load_surface = native_a77_load_surface;
+    a77_host.kernel.release_surface = native_ad1_release_surface;
+    a77_host.kernel.sound_prepare = native_a77_sound_prepare;
+    a77_host.kernel.sound_stop = native_a77_sound_stop;
+    a77_host.kernel.sound_play = native_a77_sound_play;
+    a77_host.kernel.sound_busy = native_a77_sound_busy;
+    a77_host.kernel.tick = native_ad1_tick;
+    a77_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    a77_host.kernel.transition = native_a77_transition;
+    a77_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    a77_host.kernel.view_origin = native_ad1_view_origin;
+    a77_host.kernel.observe = native_a77_observe;
+    a77_host.store_world = native_a77_store_world;
+    app->a77 = session_a77_create(&a77_host);
+    SessionAeaHost aea_host{};
+    aea_host.kernel.context = app;
+    aea_host.kernel.view = native_aea_view;
+    aea_host.kernel.alloc_slot = native_aea_alloc_slot;
+    aea_host.kernel.register_slot = native_aea_register_slot;
+    aea_host.kernel.release_slot = native_aea_release_slot;
+    aea_host.kernel.mark_dirty = native_aea_mark_dirty;
+    aea_host.kernel.load_surface = native_aea_load_surface;
+    aea_host.kernel.create_surface = native_aea_create_surface;
+    aea_host.kernel.blit = native_aea_blit;
+    aea_host.kernel.copy_surface = native_aea_copy_surface;
+    aea_host.kernel.rotate_surface = native_aea_rotate_surface;
+    aea_host.kernel.release_surface = native_aea_release_surface;
+    aea_host.kernel.clear_pending_item = native_ad1_clear_item;
+    aea_host.kernel.sound_prepare = native_aea_sound_prepare;
+    aea_host.kernel.sound_stop = native_aea_sound_stop;
+    aea_host.kernel.sound_play = native_aea_sound_play;
+    aea_host.kernel.sound_busy = native_aea_sound_busy;
+    aea_host.kernel.tick = native_aea_tick;
+    aea_host.kernel.rand_value = native_aea_rand;
+    aea_host.kernel.captions_enabled = native_aea_captions_enabled;
+    aea_host.kernel.autotext_lookup = native_aea_autotext;
+    aea_host.kernel.caption_show = native_aea_caption;
+    aea_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    aea_host.kernel.transition = native_aea_transition;
+    aea_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    aea_host.kernel.complete = native_aea_complete;
+    aea_host.store_world = native_aea_store_world;
+    app->aea = session_aea_create(&aea_host);
     ActionFamily95Host a95_host{};
     a95_host.context = app;
     a95_host.set_channel_scalars = native_a95_set_channel_scalars;
     app->a95 = session_a95_create(&a95_host);
     app->a4f = session_a4f_create(&app->new_game.action_core);
     app->a4e = session_a4e_create(&app->new_game.action_core);
+    SessionA20Host a20_host{};   /* RT-48 */
+    a20_host.context = app;
+    a20_host.load_world = native_a20_load_world;
+    a20_host.store_world = native_a20_store_world;
+    a20_host.erase_rows = native_a20_erase_rows;
+    app->a20 = session_a20_create(&a20_host);
+    SessionA70Host a70_host{};
+    a70_host.context = app;
+    a70_host.load_world = native_a70_load_world;
+    a70_host.store_world = native_a70_store_world;
+    a70_host.unload_scene_sound = native_a70_unload;
+    app->a70 = session_a70_create(&a70_host);
+    SessionA80Host a80_host{};
+    a80_host.context = app;
+    a80_host.load_object = native_a80_load_object;
+    a80_host.load_world = native_a80_load_world;
+    a80_host.store_object = native_a80_store_object;
+    a80_host.store_world = native_a80_store_world;
+    a80_host.transition = native_a80_transition;
+    app->a80 = session_a80_create(&a80_host);
     scene_stack_slot_clear(&app->scene_stack_slot);
     scene_stack_slot_init_words(&app->scene_stack_slot); /* game initializer 0x436fe4..0x437008 */
     SessionA6EHost a6e_host{};
@@ -5845,7 +6655,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -6040,6 +6850,16 @@ static void nav_begin_scene(NativeApp *app)
     std::vector<uint8_t> types;
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
         SceneActionInfo info{};
+    if (session_af6_begin_scene(app->af6, app->scene) != F6_OK) {
+        record(app, "scene_session_create_error provider=action-family-f6 detail=%s",
+               session_af6_failure(app->af6));
+        return false;
+    }
+    app->af6_slot_used.fill(false);
+    app->af6_background_seed = UINT64_MAX;
+    app->af6_plan_signature = 0u;
+    app->af6_plan_logged = 0u;
+    app->af6_render_failure_logged = false;
         if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK)
             types.push_back(info.type);
     }
@@ -6106,16 +6926,19 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad1_slot_used.fill(false);
     app->ad1_plan_signature = 0u;
     app->ad1_render_failure_logged = false;
-    if (session_af6_begin_scene(app->af6, app->scene) != F6_OK) {
-        record(app, "scene_session_create_error provider=action-family-f6 detail=%s",
-               session_af6_failure(app->af6));
+    if (session_a77_begin_scene(app->a77, app->scene) != A77_OK) {
+        record(app, "scene_session_create_error provider=action-family-77 detail=%s", session_a77_failure(app->a77));
         return false;
     }
-    app->af6_slot_used.fill(false);
-    app->af6_background_seed = UINT64_MAX;
-    app->af6_plan_signature = 0u;
-    app->af6_plan_logged = 0u;
-    app->af6_render_failure_logged = false;
+    app->a77_plan_signature = 0u;
+    app->a77_render_failure_logged = false;
+    if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
+        record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
+        return false;
+    }
+    app->aea_slot_used.fill(false);
+    app->aea_plan_signature = 0u;
+    app->aea_render_failure_logged = false;
     app->ad9_slot_used.fill(false);
     app->ad9_background_seed = UINT64_MAX;
     app->ad9_plan_signature = 0u;
@@ -6308,6 +7131,36 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     const ProvisionalCursorProvider &cursor = app->cursor_provider;
     out->viewport.left = app->scene_destination.left;
     out->viewport.top = app->scene_destination.top;
+    /* RT-47: the card puzzle. Same chain as the Turning Puzzle above (accepted release -> 0x45e587 on the retained
+     * candidate 0x27ec / 0x27ed / 0x27ef, then the cascade member 0x45e1ca hit-tests the pointer). */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->af6 != nullptr && session_af6_registered(app->af6) != 0u && app->session != nullptr) {
+        const F6Object *cards = session_af6_object(app->af6);
+        SceneActionRuntimeState cards_state{};
+        uint32_t new_phase = 0u;
+        if (cards != nullptr && cards->row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(cards->row), &cards_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_af6_click(app->af6, cards_state.phase, app->input_state.candidate, &new_phase);
+            if (click != F6_OK) {
+                record(app, "scene_af6_click_error row=%d status=%d detail=%s", cards->row, click,
+                       session_af6_failure(app->af6));
+            } else if (new_phase == 2u && cards_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(cards->row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_af6_click row=%d candidate=%d -> phase 2 (0x45e587)", cards->row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_af6_click_error row=%d detail=phase-2-store-refused", cards->row);
+            }
+        }
+    }
+    app->af6_pointer = F6PointerResult{};
+    app->af6_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af6 != nullptr &&
+        session_af6_registered(app->af6) != 0u)
+        (void)session_af6_pointer_move(app->af6, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y), &app->af6_pointer);
     out->viewport.right = app->scene_destination.right;
     out->viewport.bottom = app->scene_destination.bottom;
     out->cursor.left = app->pointer_x;
@@ -6381,42 +7234,83 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
+    /* RT-49: the Ordering Puzzle's click block 0x43b3d6..0x43b5d3 sits in the same accepted-release chain: it toggles the hovered
+     * button (candidate 0x2719) or asks for the exit (0x271a, row phase := 2) while [0x5b5158] is set. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->a77 != nullptr && session_a77_state(app->a77)->active != 0u && app->session != nullptr) {
+        const A77State *puzzle = session_a77_state(app->a77);
+        SceneActionRuntimeState puzzle_state{};
+        uint32_t new_phase = 0u;
+        if (puzzle->row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(puzzle->row), &puzzle_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_a77_click(app->a77, puzzle_state.phase, app->input_state.candidate,
+                                                app->start_flag_5bb1ca, &new_phase);
+            if (click != A77_OK) {
+                record(app, "scene_a77_click_error row=%d status=%d detail=%s", puzzle->row, click,
+                       session_a77_failure(app->a77));
+            } else if (new_phase == 2u && puzzle_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle->row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_a77_click row=%d candidate=%d -> phase 2 (0x43b5b5)", puzzle->row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_a77_click_error row=%d detail=phase-2-store-refused", puzzle->row);
+            }
+        }
+    }
+    /* RT-45: the Onebuild puzzle's accepted-release chain (0x43b327 -> 0x48569e), same gate and candidate source. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->aea != nullptr && session_aea_registered(app->aea) != 0u && app->session != nullptr) {
+        const EaObject *puzzle = session_aea_object(app->aea);
+        SceneActionRuntimeState puzzle_state{};
+        uint32_t new_phase = 0u;
+        const int16_t puzzle_row = puzzle != nullptr ? ea_object_row(puzzle) : static_cast<int16_t>(-1);
+        if (puzzle_row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(puzzle_row), &puzzle_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_aea_click(app->aea, puzzle_state.phase, app->input_state.candidate, &new_phase);
+            if (click != EA_OK) {
+                record(app, "scene_aea_click_error row=%d status=%d detail=%s", puzzle_row, click,
+                       session_aea_failure(app->aea));
+            } else if (new_phase == 2u && puzzle_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle_row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_aea_click row=%d candidate=%d -> phase 2 (0x48569e)", puzzle_row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_aea_click_error row=%d detail=phase-2-store-refused", puzzle_row);
+            }
+        }
+    }
+    app->aea_pointer = EaPointerResult{};
+    app->aea_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aea != nullptr &&
+        session_aea_registered(app->aea) != 0u) {
+        /* ptr+0x4a: the cursor sprite rectangle relative to the viewport (+ the 0x5bb587 scroll on y), as 0x4f0059
+         * builds it; the sprite model is still the provisional 1 x 1 cursor (see ProvisionalCursorProvider). */
+        SessionInputContext hot_input{};
+        native_pointer_context(app, &hot_input);
+        const int32_t hot[4] = {hot_input.cursor.left - hot_input.viewport.left,
+                                hot_input.cursor.top - hot_input.viewport.top + hot_input.scroll_y,
+                                hot_input.cursor.right - hot_input.viewport.left,
+                                hot_input.cursor.bottom - hot_input.viewport.top + hot_input.scroll_y};
+        (void)session_aea_pointer_move(app->aea, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y), hot, &app->aea_pointer);
+    }
     app->ad1_pointer = D1PointerResult{};
     app->ad1_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad1 != nullptr &&
         session_ad1_registered(app->ad1) != 0u)
         (void)session_ad1_pointer_move(app->ad1, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y), &app->ad1_pointer);
-    /* RT-47: the card puzzle. Same chain as the Turning Puzzle above (accepted release -> 0x45e587 on the retained
-     * candidate 0x27ec / 0x27ed / 0x27ef, then the cascade member 0x45e1ca hit-tests the pointer). */
-    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
-        app->af6 != nullptr && session_af6_registered(app->af6) != 0u && app->session != nullptr) {
-        const F6Object *cards = session_af6_object(app->af6);
-        SceneActionRuntimeState cards_state{};
-        uint32_t new_phase = 0u;
-        if (cards != nullptr && cards->row >= 0 &&
-            scene_session_get_action_state(app->session, static_cast<size_t>(cards->row), &cards_state) ==
-                SCENE_SESSION_OK) {
-            const int click = session_af6_click(app->af6, cards_state.phase, app->input_state.candidate, &new_phase);
-            if (click != F6_OK) {
-                record(app, "scene_af6_click_error row=%d status=%d detail=%s", cards->row, click,
-                       session_af6_failure(app->af6));
-            } else if (new_phase == 2u && cards_state.phase != 2u) {
-                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(cards->row)) ==
-                    SCENE_SESSION_OK)
-                    record(app, "scene_af6_click row=%d candidate=%d -> phase 2 (0x45e587)", cards->row,
-                           app->input_state.candidate);
-                else
-                    record(app, "scene_af6_click_error row=%d detail=phase-2-store-refused", cards->row);
-            }
-        }
-    }
-    app->af6_pointer = F6PointerResult{};
-    app->af6_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af6 != nullptr &&
-        session_af6_registered(app->af6) != 0u)
-        (void)session_af6_pointer_move(app->af6, static_cast<int16_t>(frame->pointer_x),
-                                       static_cast<int16_t>(frame->pointer_y), &app->af6_pointer);
+    app->a77_pointer = A77PointerResult{};
+    app->a77_pointer.candidate = -1;
+    app->a77_pointer.hover = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->a77 != nullptr &&
+        session_a77_state(app->a77)->active != 0u)
+        (void)session_a77_pointer_move(app->a77, static_cast<int32_t>(frame->pointer_x),
+                                       static_cast<int32_t>(frame->pointer_y), &app->a77_pointer);
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
@@ -6518,6 +7412,16 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* 0x4f0b1e: the Turning Puzzle's hit test returns before the generic row loop (0x4b6097 writes the
          * candidate). The cursor index it also writes is not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->ad1_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->a77_pointer.hit != 0u) {
+        /* 0x4f0270..0x4f04b6: the Ordering Puzzle's case returns 1 before the generic row loop and has written the candidate
+         * (0x2719 button, 0x271a exit). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->a77_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->aea_pointer.hit != 0u) {
+        /* 0x4f0d61: the Onebuild puzzle's receiver 0x484f42 returns before the generic row loop and has written
+         * the candidate (0x2777..0x277c). The cursor index it also writes is not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->aea_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->af6_pointer.hit != 0u) {
         /* 0x45e1ca returns before the generic row loop and 0x45e4d4 writes the candidate (0x27ec / 0x27ed / 0x27ef)
@@ -6728,7 +7632,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[42]{};
+    SceneSessionActionBinding bindings[47]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6922,20 +7826,42 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[39].callback = native_a4e_handler;
     bindings[39].context = app;
     /* RT-46: raw 0x33 secondary video with hotspots (handler 0x42c221, gate mode 1; phase 0 needs a media backend, see
-     * native_a33_media_available). Slot 39 is raw 0x4e (RT-44). */
+     * native_a33_media_available). Slot 40 is raw 0x33 (RT-46). */
     bindings[40].type = SESSION_A33_TYPE;
     bindings[40].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[40].callback = native_a33_handler;
     bindings[40].context = app;
-    /* Slot 41 is reserved for another thread and left EMPTY in this tree (scene_session_create rejects a NULL callback,
-     * so root renumbers or fills it at merge). */
+    /* RT-45: raw 0xea Onebuild puzzle (dispatcher arm 0x42a759 -> 0x4867bd, gate mode 0; phase 2 completes through
+     * 0x42ba3a). Slot 41 follows raw 0x33 (RT-46). The render callback 0x4876ed runs from the app tick
+     * (native_aea_render). */
+    bindings[41].type = SESSION_AEA_TYPE;
+    bindings[41].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[41].callback = native_aea_handler;
+    bindings[41].context = app;
+    /* RT-48: raw 0x20, 0x70 and 0x80 (gate mode 0, direct completion). Slots 42-44 follow raw 0xea (RT-45). */
+    bindings[42].type = SESSION_A20_TYPE;
+    bindings[42].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[42].callback = native_a20_handler;
+    bindings[42].context = app;
+    bindings[43].type = SESSION_A70_TYPE;
+    bindings[43].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[43].callback = native_a70_handler;
+    bindings[43].context = app;
+    bindings[44].type = SESSION_A80_TYPE;
+    bindings[44].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[44].callback = native_a80_handler;
+    bindings[44].context = app;
+    bindings[45].type = SESSION_A77_TYPE; /* RT-49: slot 45 (declared count 46); RT-47 (0xf6) renumbers if it merges later */
+    bindings[45].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[45].callback = native_a77_handler;
+    bindings[45].context = app;
     /* RT-47: raw 0xf6 card puzzle (dispatcher arm 0x42a92b -> 0x45f0e6, gate mode 0; phase 2 completes through
      * 0x42ba3a). The render callback 0x460f26 runs from the app tick (native_af6_render). */
-    bindings[41].type = SESSION_AF6_TYPE;
-    bindings[41].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[41].callback = native_af6_handler;
-    bindings[41].context = app;
-    config.action_binding_count = 42u;
+    bindings[46].type = SESSION_AF6_TYPE;
+    bindings[46].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[46].callback = native_af6_handler;
+    bindings[46].context = app;
+    config.action_binding_count = 47u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -7761,6 +8687,27 @@ static bool reset_fresh_scene_audio(NativeApp *app)
            app->current_scene_id, app->exit_state.g.game_state, plan.count, menu_channel, status);
     record_scene_audio(app, "after-intro-reset", app->current_scene_id, app->current_scene_id);
     return status == LIVE_AUDIO_OK;
+}
+
+/* RT-48: 0x4fb018 on the scene sound object 0x5c3a67 for raw 0x70: the MSND channel, then sound channels 0..13, the same
+ * unload as the intro reset (session_exit_plan_audio only plans it in state 2, so the list is built here). */
+static bool unload_scene_sound_object(NativeApp *app)
+{
+    const uint8_t *msnd = nullptr;
+    size_t length = 0;
+    if (!find_boot_payload(app, "MSND", &msnd, &length) || length < 0x23u) {
+        record(app, "scene_audio_error detail=missing-BOOT-MSND-channel");
+        return false;
+    }
+    SessionExitAudioPlan plan{};
+    plan.channels[plan.count++] = static_cast<uint16_t>(msnd[0x21u] | (static_cast<uint16_t>(msnd[0x22u]) << 8));
+    for (uint16_t channel = 0; channel < 14u; ++channel) plan.channels[plan.count++] = channel;
+    const int status = app->live_audio != nullptr
+        ? live_audio_unload_channels(app->live_audio, plan.channels, plan.count) : LIVE_AUDIO_OK;
+    record(app, "scene_audio_reset scene=%d count=%zu status=%d original=0x429220->0x4fb018 order=MSND,0..13 fade=none",
+           app->current_scene_id, plan.count, status);
+    /* The original loop of 0x4fb018 ignores each unload failure; a backend Stop refusal is logged above and not fatal. */
+    return status == LIVE_AUDIO_OK || status == LIVE_AUDIO_ERR_HOST;
 }
 
 /* LoadNewSceneData (0x439822) for a pending scene change, run from state 1.
