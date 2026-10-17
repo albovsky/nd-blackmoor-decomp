@@ -60,7 +60,7 @@ class ItemData(c.Structure):
 
 class ViewHost(c.Structure):
     _fields_ = [('inventory', Host78), ('request_sound', SoundFn), ('close_view', CloseFn),
-                ('context', c.c_void_p)]
+                ('context', c.c_void_p), ('examine', c.c_void_p)]   # RT-43: NULL keeps the UNMODELED read branch
 
 
 class ClickResult(c.Structure):
