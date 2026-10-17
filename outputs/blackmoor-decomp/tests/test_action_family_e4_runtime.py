@@ -449,10 +449,10 @@ class Registration(unittest.TestCase):
         build = (PROJECT / 'scripts/build_native_app.sh').read_text()
         self.assertIn(' action_family_e4_runtime session_bindings_ae4', build)
 
-    def test_app_glue_uses_slot_51_and_numeric_literals(self):
+    def test_app_glue_uses_slot_52_and_numeric_literals(self):
         app = (SRC / 'blackmoor_app.mm').read_text()
-        for line in ('bindings[51].type = SESSION_AE4_TYPE;', 'bindings[51].callback = native_ae4_handler;',
-                     'bindings[51].context = app;', 'SceneSessionActionBinding bindings[52]{};', 'config.action_binding_count = 52u;'):
+        for line in ('bindings[52].type = SESSION_AE4_TYPE;', 'bindings[52].callback = native_ae4_handler;',
+                     'bindings[52].context = app;', 'SceneSessionActionBinding bindings[53]{};', 'config.action_binding_count = 53u;'):
             self.assertEqual(app.count(line), 1, line)
 
     def test_every_generic_entry_allocator_excludes_the_match_puzzle(self):
