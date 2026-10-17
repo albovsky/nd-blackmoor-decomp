@@ -450,7 +450,7 @@ int d0_click(D0Object *object, uint8_t *body, size_t body_length, uint32_t row_p
         if (text != NULL) {
             const size_t len = strlen(text);
             if (len <= D0_TEXT_MAX) {
-                char buf[D0_TEXT_LIMIT + 4u + 1u];
+                char buf[D0_TEXT_LIMIT + 4u + 1u]; /* 217 bytes: the original's 216-byte buffer plus the terminator */
                 if (len > D0_TEXT_LIMIT) return D0_ERR_BOUNDS;
                 memcpy(buf, text, len);
                 memcpy(buf + len, "<e>", 4); /* [0x54e898] is the dword "<e>\0", written over the terminator */

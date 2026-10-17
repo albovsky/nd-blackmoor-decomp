@@ -68,7 +68,7 @@ actions the kernel refuses (counted in stats.skipped_native_refusal) instead of 
   K2 phase 1 / 2 on an object phase 0 did not initialise for the row -> D0_ERR_UNSUPPORTED, no effect.
   K3 phase 2 with an event flag index outside the host window -> D0_ERR_BOUNDS before the first effect.
   K4 a key press (click) or a render blit whose hover / last key is outside 0..N-1 -> D0_ERR_BOUNDS, no effect.
-  K5 a looked-up text longer than 199 characters (and not over 0x9c40: the original overflows its 203-byte stack buffer) -> D0_ERR_BOUNDS
+  K5 a looked-up text longer than 212 characters (and not over 0x9c40: the original's text reaches the saved ebp of its 216-byte stack buffer) -> D0_ERR_BOUNDS
      after the sound effects, nothing shown; longer than 0x9c40 characters is skipped by the original and by the kernel (compared).
   K6 host failures -> D0_ERR_HOST, allocator exhaustion (the original reaches the fatal path 0x52139c) -> D0_ERR_HOST.
   K7 render with the slot -1 while a redraw is requested and a surface exists: native does nothing (valid = 0), the original would index the
@@ -1363,7 +1363,7 @@ def do_click(where, x, nat, run, stats, queues):
     for t in queues['text'][:1]:
         if key_pressed:
             stats['texts']['null' if t is None else 'len0' if len(t) == 0 else 'over_limit_skipped' if len(t) > 0x9C40 else
-                           'len199' if len(t) == 199 else 'short'] += 1
+                           'len212' if len(t) == 212 else 'len199' if len(t) == 199 else 'short'] += 1
     r['body'] = new_body
     if exit_asked:
         r['phase'] = new_phase & M32
@@ -1374,7 +1374,7 @@ def do_click(where, x, nat, run, stats, queues):
     compare_all(where, x, nat, stats, run)
 
 
-D0_TEXT_LIMIT = 199
+D0_TEXT_LIMIT = 212
 
 
 def render_refused(body, img):
@@ -1623,7 +1623,7 @@ def do_action(x, nat, run, stats, rng, sc, ai, act, depth=0):
 # ---------------------------------------------------------------------------------------------
 # macros and the random player (they read the live object, so they steer by deadlines and states)
 # ---------------------------------------------------------------------------------------------
-TEXTS = (b'Hello', b'', None, b'x' * 197, b'y' * 198, b'z' * 199, bytes(range(1, 128)) + bytes(range(129, 200)), b'A<e>B', b'Ola\xe9\xff',
+TEXTS = (b'Hello', b'', None, b'x' * 197, b'y' * 198, b'z' * 199, b'u' * 200, b'v' * 205, b'p' * 212, bytes(range(1, 128)) + bytes(range(129, 200)), b'A<e>B', b'Ola\xe9\xff',
          b'long ' * 30, b'w' * 0x9C41)
 
 
@@ -1926,7 +1926,7 @@ def scenario_list(seed=0xD050):
                                                            ('set', dict(pressed=1, hover=0, dirty=0)), ('pointer', 8, 10), ('pointer', 39, 41), ('click',)], 'pointer', quick=n == 5)
 
     # ---- clicks: key names, texts, start flag, busy answers, candidates ------------------------------------------------------------
-    text_cases = [None, b'', b'a', b'ab', b'x' * 100, b'y' * 196, b'z' * 197, b'q' * 198, b'r' * 199, bytes(range(1, 255)) * 0 + bytes(range(1, 200)), b'A<e>B',
+    text_cases = [None, b'', b'a', b'ab', b'x' * 100, b'y' * 196, b'z' * 197, b'q' * 198, b'r' * 199, b'r' * 200, b'r' * 211, b'r' * 212, bytes(range(1, 255)) * 0 + bytes(range(1, 200)), b'A<e>B',
                   b'w' * 0x9C41, b'tail\xff\x80', b'\x01' * 199]
     for ti, text in enumerate(text_cases):
         for variant in range(2):
@@ -2157,19 +2157,19 @@ def refusal_checks(nat, stats):
     for st in (dict(pressed=1, hover=-1), dict(pressed=0, check=1, last=-1), dict(pressed=0, check=0, last=7), dict(dirty=0, pressed=1, hover=9)):
         fresh(active=1, row=0, slot=0x18, **{'dirty': 1, 'has_surface': 1, **st})
         expect('K4 no refusal %r' % (st,), nat.render(base)['status'], OK)
-    # K5: texts longer than 199 characters, up to 0x9c40 (refused after the sound effects), 0x9c41 (skipped like the original)
-    for ln in (200, 203, 5000, 0x9C40):
+    # K5: texts longer than 212 characters, up to 0x9c40 (refused after the sound effects), 0x9c41 (skipped like the original)
+    for ln in (213, 220, 5000, 0x9C40):
         fresh(active=1, row=0, state=1, hover=1)
         nat.set_queues({**DEFAULT_Q, 'text': [b'k' * ln], 'busy': [0]})
         nat.set_extra([1])
         expect('K5 text %d' % ln, nat.click(base, 1, CAND_KEY, 1)[0][0], ERR_BOUNDS)
         expect('K5 nothing shown', nat.nstrs(2), 0)
         expect('K5 sound effects happened first', [e[0] for e in nat.log(0)][:4], [FX['PHASE'] * 0 + FX['SOUND_BUSY'], FX['SOUND_PREPARE'], FX['SOUND_PLAY'], FX['TICK']])
-    for ln in (199, 0x9C41):
+    for ln in (212, 0x9C41):
         fresh(active=1, row=0, state=1, hover=1)
         nat.set_queues({**DEFAULT_Q, 'text': [b'k' * ln], 'busy': [0]})
         expect('K5 text %d is accepted' % ln, nat.click(base, 1, CAND_KEY, 1)[0][0], OK)
-        expect('K5 shown iff <= 199', nat.nstrs(2), 1 if ln == 199 else 0)
+        expect('K5 shown iff <= 212', nat.nstrs(2), 1 if ln == 212 else 0)
     # K6: host failures, in every host call the kernel makes
     cases = [('phase0 clear', F_CLEAR, 0, {}), ('phase0 alloc', F_ALLOC, 0, {}), ('phase0 register', F_REGISTER, 0, {}), ('phase0 load', F_LOAD, 0, {}),
              ('phase0 set surface', F_SETSURF, 0, {}), ('state0 stop', F_STOP, 1, dict(state=0, deadline=0)), ('state2 tick-free', 0, 1, dict(state=2)),
@@ -2235,8 +2235,7 @@ def refusal_checks(nat, stats):
 # ---------------------------------------------------------------------------------------------
 K = 'action_family_d0_runtime.c'
 MUTANTS = {}
-# Equivalent against the original: the order of the transition host call relative to the observer calls that report it is invisible in
-# the original (a bundle of plain stores), so it is not asserted and the mutant is not counted.
+# Equivalent against the original (not counted): the one entry below is invisible to every compared observable.
 EQUIVALENT_MUTANTS = {
     'click: order shifted one too far': 'the extra move writes order[l-1], which the following store of the played key overwrites; for l == 15 it reads one word '
                                         'past the array (undefined in C, no original behaviour): invisible against the original',

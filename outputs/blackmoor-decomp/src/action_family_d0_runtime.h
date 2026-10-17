@@ -57,7 +57,7 @@ extern "C" {
 #define D0_CANDIDATE_KEY 0x2765  /* 0x48d3cb: a key is under the pointer */
 #define D0_CANDIDATE_EXIT 0x2766 /* 0x48d3cb: the exit rectangle is under the pointer */
 #define D0_CURSOR_EXIT 9
-#define D0_TEXT_LIMIT 199u       /* longest text the original's 203-byte stack buffer holds with the 4-byte suffix */
+#define D0_TEXT_LIMIT 212u       /* longest text the original's 216-byte stack buffer (ebp-0xd8..ebp-1) holds with the 4-byte suffix; longer ones reach the saved ebp */
 #define D0_SOUND_RECORD_BYTES 0x21u
 #define D0_TEXT_MAX 0x9c40u      /* 0x48d83c: longer texts are skipped by the original */
 

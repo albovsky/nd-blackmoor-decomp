@@ -1249,17 +1249,17 @@ static void t_click_text_limits(void)
 {
     Fx f;
     D0ClickResult c;
-    /* 199 characters fit the original's buffer with the suffix; 200 overflow it (native refusal, after the sound) */
+    /* 212 characters fit the original's 216-byte buffer with the suffix; 213 reach its saved ebp (native refusal, after the sound) */
     fx_init(&f);
     start(&f);
-    f.long_len = 199u;
+    f.long_len = 212u;
     set_str(f.body, 0x337 + 0x42u * 3u, "KS3");
-    CHECK(press(&f, 3, 1, &c) == D0_OK && c.text_shown == 1u && f.shown_len == 202u && f.shown_calls == 1);
-    CHECK(strcmp(f.shown + 199, "<e>") == 0);
-    CHECK(strstr(f.log, "tshow:202:0") != NULL);
+    CHECK(press(&f, 3, 1, &c) == D0_OK && c.text_shown == 1u && f.shown_len == 215u && f.shown_calls == 1);
+    CHECK(strcmp(f.shown + 212, "<e>") == 0);
+    CHECK(strstr(f.log, "tshow:215:0") != NULL);
     fx_init(&f);
     start(&f);
-    f.long_len = 200u;
+    f.long_len = 213u;
     set_str(f.body, 0x337 + 0x42u * 3u, "KS3");
     CHECK(press(&f, 3, 1, &c) == D0_ERR_BOUNDS && f.shown_calls == 0 && c.text_shown == 0u);
     CHECK_LOG(&f, "busy:5:0,prep:1813:0,play:5:0,tick:1000:0,tlookup:3:1");

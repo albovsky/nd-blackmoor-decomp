@@ -29,6 +29,8 @@ KERNEL = 'action_family_d0_runtime.c'
 BINDING = 'session_bindings_ad0.c'
 SOURCES = [KERNEL, BINDING, 'scene_resource.c', 'hiff.c']
 EXPECTED_UNIT_TESTS = 35
+CORPUS_C = PROJECT / 'tests/action_family_d0_runtime_corpus.c'
+RESOURCES = PROJECT.parents[1] / 'work/analysis/hiff-resources'
 
 
 def compiler():
@@ -520,6 +522,29 @@ class UnitTests(unittest.TestCase):
             with self.subTest(name):
                 self.assertEqual(verdict, 'killed', f'mutant {verdict}: {name} {detail}')
         print(f'mutants killed: {killed} of {len(jobs)} ({len(EQUIVALENT)} recorded equivalent, not run)')
+
+
+class Corpus(unittest.TestCase):
+    def test_real_rows_validate_and_play_through_the_binding(self):
+        """The two real raw 0xd0 rows pass the native body validation and are solved by pressing their solution keys, and
+        left through the exit rectangle (derived counts only; the decoded resources stay in work/)."""
+        if not RESOURCES.exists():
+            self.skipTest('local corpus evidence (work/) is not present')
+        files = sorted(RESOURCES.glob('*.bin'))
+        with tempfile.TemporaryDirectory() as tmp:
+            binary = Path(tmp) / 'd0_corpus'
+            built = compile_c(binary, CORPUS_C, SOURCES, extra=('-Wno-error=type-limits',))
+            self.assertEqual(built.returncode, 0, built.stderr)
+            done = subprocess.run([str(binary), *map(str, files)], capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stdout[-400:])
+        summary = {}
+        for line in done.stdout.splitlines():
+            if line.startswith('SUMMARY'):
+                summary = {k: int(v) for k, v in (item.split('=') for item in line.split()[1:])}
+        self.assertEqual((summary['scenes'], summary['rows'], summary['solved'], summary['exited'], summary['error']),
+                         (2, 2, 2, 2, 0))
+        self.assertEqual(summary['loads'], summary['releases'])
+        self.assertEqual(done.stdout.count('SCENE_FAIL') + done.stdout.count('ROW_FAIL'), 0)
 
 
 class BuildScript(unittest.TestCase):
