@@ -8629,10 +8629,9 @@ static bool create_native_scene_session(NativeApp *app)
     if (!create_native_session_bindings(app)) return false;
     /* RT-51: the keypad puzzle takes two consecutive binding slots, raw 0xd6 then raw 0xe0, both on the same binding. They follow
      * RT-47 (0xf6, slot 46), RT-50 (0xd0, slot 47) and RT-52 (0xaa, slot 48). Slots must be gap-free because scene_session_create
-     * rejects an entry without a callback. */
-    constexpr size_t kAe0FirstBindingSlot = 49u;
-    constexpr size_t kBindingCount = kAe0FirstBindingSlot + 2u;
-    SceneSessionActionBinding bindings[kBindingCount]{};
+     * rejects an entry without a callback. The map script
+     * (decomp-progress/playable.py) needs numeric slot literals. */
+    SceneSessionActionBinding bindings[51]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -8876,15 +8875,15 @@ static bool create_native_scene_session(NativeApp *app)
     /* RT-51: raw 0xd6 and raw 0xe0 keypad puzzle (arms 0x42a2c0 / 0x42a2fc -> 0x471722, gate mode 0; phase 2 completes through
      * 0x42ba3a). Both raw types reach the same binding. The render callback 0x472a5c runs from the app tick
      * (native_ae0_render). */
-    bindings[kAe0FirstBindingSlot].type = SESSION_AE0_TYPE_D6;
-    bindings[kAe0FirstBindingSlot].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[kAe0FirstBindingSlot].callback = native_ae0_handler;
-    bindings[kAe0FirstBindingSlot].context = app;
-    bindings[kAe0FirstBindingSlot + 1u].type = SESSION_AE0_TYPE_E0;
-    bindings[kAe0FirstBindingSlot + 1u].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[kAe0FirstBindingSlot + 1u].callback = native_ae0_handler;
-    bindings[kAe0FirstBindingSlot + 1u].context = app;
-    config.action_binding_count = kBindingCount;
+    bindings[49].type = SESSION_AE0_TYPE_D6;
+    bindings[49].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[49].callback = native_ae0_handler;
+    bindings[49].context = app;
+    bindings[50].type = SESSION_AE0_TYPE_E0;
+    bindings[50].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[50].callback = native_ae0_handler;
+    bindings[50].context = app;
+    config.action_binding_count = 51u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
