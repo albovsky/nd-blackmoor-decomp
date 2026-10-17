@@ -3641,6 +3641,9 @@ static void native_a20_store_world(void *context, const Action20World *world)
     app->a20_word_5c3a4f = world->word_5c3a4f;
 }
 
+/* App approximation: the original erases only rows whose loaded dword (0x5bb63c) is nonzero, which the loader sets only for
+ * POPUP_PREP_SCENE scenes ([0x5c3a01] == 2); the app does not keep the scene name tag, so every row is retired. Harmless for the
+ * two corpus scenes (2811 NO_ART has no other row; 2877 is a popup scene) but wrong for a 0x20 row beside other rows in a plain scene. */
 /* 0x43e96c + 0x43e8b8: every loaded row is erased and the high-water count falls to 0. The executor keeps the rows, so each
  * becomes a retired row (completed, phase 0, dependencies reset), which the dispatcher skips like the original's unloaded
  * rows. Hotspot requests the other bindings hold for those rows are not cleared (the original zeroes 0x5bb626). */
@@ -3691,6 +3694,7 @@ static void native_a70_store_world(void *context, const Action70World *world)
     if (app == nullptr || world == nullptr) return;
     app->a70_world = *world;
     app->exit_state.g.first_render_level = world->first_render_5bb1c4;
+    app->captions.lifecycle.g.first_render_level = static_cast<int16_t>(world->first_render_5bb1c4);
 }
 
 static int native_a70_unload(void *context)

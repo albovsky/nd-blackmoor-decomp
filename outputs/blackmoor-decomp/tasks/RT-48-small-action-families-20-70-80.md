@@ -31,3 +31,5 @@ All three are arms of the dispatcher `0x427a50`, gate `0x423f57` mode 0 (the def
 * The overlay view object that reads `0x63aa10`/`0x55cd94` is not ported; hotspot requests other bindings hold for rows the 0x20 erase retires are not cleared.
 * The debug flag `0x63a4cd` is modelled as 0 (the original logs on several paths when it is set).
 * The scene loader `0x40b34a` is not run in the oracle (rows are built in memory); the corpus rows' dependency records are replayed behind a stand-in event record (the gate is shared verified code).
+* The app retires every row for raw 0x20; the original erases only rows with a nonzero loaded dword (set only in POPUP_PREP_SCENE scenes, `[0x5c3a01] == 2`). Scene 2811 (NO_ART) has no other row and 2877 is a popup scene, so the corpus is unaffected; the app does not keep the scene name tag.
+* Scene 2762 (raw 0x80 with body word 9999) is counted as handled at type level but is refused in the app until something writes the stored return tuple (`a80_object_valid` is never set).
