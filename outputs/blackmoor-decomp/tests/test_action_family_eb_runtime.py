@@ -635,8 +635,11 @@ class Registration(unittest.TestCase):
         for line in ('bindings[54].type = SESSION_AEB_TYPE;', 'bindings[54].callback = native_aeb_handler;',
                      'bindings[54].context = app;', 'bindings[54].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;'):
             self.assertEqual(app.count(line), 1, line)
-        self.assertEqual(app.count('SceneSessionActionBinding bindings[55]{};'), 1)
-        self.assertEqual(app.count('config.action_binding_count = 55u;'), 1)
+        # later slices raise the array and the declared count (gap-free slots); the shape is checked here, the exact number by
+        # test_native_app.NativeAppBindingRegistrationTests
+        count = int(re.search(r'config\.action_binding_count = (\d+)u;', app).group(1))
+        self.assertGreaterEqual(count, 55)
+        self.assertEqual(app.count('SceneSessionActionBinding bindings[%d]{};' % count), 1)
 
     def test_every_generic_entry_allocator_excludes_the_multibuild_puzzle(self):
         """The allocators of the shared z entry range 0x18..0x3f all skip the Multibuild puzzle's slots, and its own skips theirs."""
