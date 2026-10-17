@@ -1,6 +1,6 @@
 # RT-41: raw 0x7d return from the examined item's scene
 
-Owner thread: Claude Sonnet (cloud). Follows RT-39 and RT-36. After PR 102, 2,027 of 2,078 scenes had every action type handled. Raw 0x7d (4 rows, 4 scenes) was the next on the ranked list after 0x1b (RT-40, another thread) and unblocks all 4 (2,027 to 2,031). It was left out of RT-39 because it calls an object method (`0x4eb5f2`).
+Owner thread: Claude Sonnet (cloud). Follows RT-39 and RT-36. After PR 104, 2,031 of 2,078 scenes had every action type handled. Raw 0x7d (4 rows, 4 scenes) was the next on the ranked list after 0x1b (RT-40, another thread) and unblocks all 4 (2,031 to 2,035). It was left out of RT-39 because it calls an object method (`0x4eb5f2`).
 
 ## The original (GAME.EXE, SHA-256 afd337a2...5c45)
 
