@@ -1015,6 +1015,8 @@ def setup(sc, x, nat, rng_seed=None):
     # garbage: the player image outside the getters' fields, the object's scratch bytes, the z table
     x.wr(PLAYER, bytes(rng.randrange(256) for _ in range(PLAYER_LEN)))
     x.wr(OBJ + SCRATCH_LO, bytes(rng.randrange(256) for _ in range(SCRATCH_HI - SCRATCH_LO)))
+    x.wr(OBJ + 0xC, struct.pack('<H', 0xFFFF))                          # the constructor 0x4caed0 -> 0x4caf03: slot -1,
+    x.w32(OBJ + 0x14A, 0xFFFFFFFF)                                      # last index -1 (the other fields stay 0)
     z = bytearray(rng.randrange(256) for _ in range(NENT * STRIDE))
     for slot in range(0x18, 0x40):
         struct.pack_into('<I', z, slot * STRIDE + 0x18, 1 if slot in sc['busy'] else 0)

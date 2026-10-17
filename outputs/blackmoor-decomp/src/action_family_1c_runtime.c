@@ -7,6 +7,8 @@ void c1c_object_reset(C1cObject *object)
 {
     if (object != NULL) {
         memset(object, 0, sizeof(*object));
+        object->slot = -1;                                                /* constructor 0x4caed0 -> 0x4caf03 */
+        object->last_index = -1;
     }
 }
 

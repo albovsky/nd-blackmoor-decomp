@@ -133,7 +133,7 @@ typedef struct {
     uint16_t color;
 } C1cFill;
 
-/* A power-on object: all zero fields. */
+/* A power-on object: the state the constructor 0x4caed0 leaves through 0x4caf03 (slot -1, last index -1, everything else 0). */
 void c1c_object_reset(C1cObject *object);
 /* Free the loaded file, if any (0x4cbb00). */
 void c1c_free_iv(C1cObject *object);
