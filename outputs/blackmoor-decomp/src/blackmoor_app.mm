@@ -3680,7 +3680,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         if (!app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->af6_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
-            !app->aaa_slot_used[static_cast<size_t>(i)] &&
+            !app->aaa_slot_used[static_cast<size_t>(i)] && !app->ad1_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
             !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)] && !app->a1c_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
