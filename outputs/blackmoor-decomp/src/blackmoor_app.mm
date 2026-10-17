@@ -29,6 +29,7 @@
 #include "session_bindings_a36.h"
 #include "session_bindings_a17.h"
 #include "session_bindings_a0b.h"
+#include "session_bindings_a1b.h"
 #include "session_bindings_a0c.h"
 #include "session_bindings_a97.h"
 #include "session_bindings_aa1.h"
@@ -326,6 +327,11 @@ struct NativeApp {
     int32_t a0b_logged_rect[4]{};
     bool a0b_logged_valid = false;
     size_t a0b_finish_row = 0;      /* row of the visit that reached the finish effect */
+    SessionA1bBinding *a1b = nullptr;   /* RT-40 */
+    int32_t a1b_rect[4]{};
+    int32_t a1b_logged_rect[4]{};
+    bool a1b_logged_valid = false;
+    size_t a1b_finish_row = 0;
     /* RT-20: raw 0x0c multi-frame scene-change hotspots (handler 0x42b2e4); the host is RT-15's. */
     SessionA0cBinding *a0c = nullptr;
     int32_t a0c_rect[4]{};
@@ -1933,6 +1939,7 @@ static void cleanup(NativeApp *app)
     session_a36_destroy(app->a36);
     session_a17_destroy(app->a17);
     session_a0b_destroy(app->a0b);
+    session_a1b_destroy(app->a1b);
     session_a0c_destroy(app->a0c);
     session_conditions_destroy(app->conditions_binding);
     session_a28_destroy(app->a28);
@@ -4748,6 +4755,76 @@ static void native_a0b_observe(void *context, size_t row, int effect, int32_t va
     }
 }
 
+/* ---- RT-40: raw 0x1b two-table scene-change hotspot (handler 0x414947) ----- */
+static int native_a1b_load_world(void *context, Action1bWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const int16_t *held = nullptr;
+    if (app == nullptr || world == nullptr || !app->selector_entry_valid ||
+        app->selector_entry_frame < INT16_MIN || app->selector_entry_frame > INT16_MAX) return 1;
+    /* DAT_005bb50b (selector) and DAT_00583a29 (held item, -1 when nothing is held). */
+    held = app->new_game.view.inventory.selected_item_candidate;
+    world->selector = static_cast<int16_t>(app->selector_entry_frame);
+    world->held_item = held != nullptr ? *held : static_cast<int16_t>(-1);
+    world->start_flag_5bb1ca = app->start_flag_5bb1ca;
+    world->mode_583999 = 3;
+    return 0;
+}
+
+static void native_a1b_store_world(void *context, const Action1bWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || world == nullptr) return;
+    app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_a1b_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a1b_transition_refused row=%zu target=%d (completion byte not committed)",
+               app->a1b_finish_row, request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a1b_finish row=%zu completion_byte=1 (0x414947 finish branch)", app->a1b_finish_row);
+    record(app, "scene_a1b_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d "
+           "(0x414947 scene-change cells, mode 0x583999 := 4)",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1],
+           request->opaque_words[2], request->opaque_dwords[0], request->opaque_dwords[1],
+           request->opaque_dwords[2]);
+    return 0;
+}
+
+static void native_a1b_observe(void *context, size_t row, int effect, int32_t value)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    switch (effect) {
+    case ACTION17_FX_START_FLAG:
+        record(app, "scene_a1b_register row=%zu start_flag_5bb1ca=%d (0x414947 phase 0)", row, value);
+        break;
+    case ACTION17_FX_LEFT: app->a1b_rect[0] = value; break;
+    case ACTION17_FX_TOP: app->a1b_rect[1] = value; break;
+    case ACTION17_FX_RIGHT: app->a1b_rect[2] = value; break;
+    case ACTION17_FX_BOTTOM:
+        app->a1b_rect[3] = value;
+        if (!app->a1b_logged_valid || std::memcmp(app->a1b_rect, app->a1b_logged_rect,
+                                                  sizeof(app->a1b_rect)) != 0) {
+            std::memcpy(app->a1b_logged_rect, app->a1b_rect, sizeof(app->a1b_rect));
+            app->a1b_logged_valid = true;
+            record(app, "scene_a1b_rect row=%zu rect=%d,%d,%d,%d (0x414947 phase 1 hit)", row,
+                   app->a1b_rect[0], app->a1b_rect[1], app->a1b_rect[2], app->a1b_rect[3]);
+        }
+        break;
+    case ACTION17_FX_DONE:
+        /* Reported by native_a1b_transition once the scene-change request was accepted. */
+        app->a1b_finish_row = row;
+        break;
+    default:
+        break;
+    }
+}
+
 /* ---- RT-20: raw 0x0c multi-frame scene-change hotspot (handler 0x42b2e4) ----- */
 static int native_a0c_load_world(void *context, Action17World *world)
 {
@@ -5038,6 +5115,13 @@ static bool create_native_session_bindings(NativeApp *app)
     a0b_host.observe = native_a0b_observe;
     a0b_host.transition = native_a0b_transition;
     app->a0b = session_a0b_create(&a0b_host);
+    SessionA1bHost a1b_host{};   /* RT-40: selector + held item + start flag, scene-change request */
+    a1b_host.context = app;
+    a1b_host.load_world = native_a1b_load_world;
+    a1b_host.store_world = native_a1b_store_world;
+    a1b_host.transition = native_a1b_transition;
+    a1b_host.observe = native_a1b_observe;
+    app->a1b = session_a1b_create(&a1b_host);
     SessionA0cHost a0c_host = a17_host;   /* RT-20: same selector, start flag and scene-change request */
     a0c_host.load_world = native_a0c_load_world;
     a0c_host.observe = native_a0c_observe;
@@ -5049,7 +5133,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a1b == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5406,6 +5490,17 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                row, payload.target, payload.word_04, payload.word_08, payload.rect[0],
                payload.rect[1], payload.rect[2], payload.rect[3], cursor.cursor_index);
     }
+    app->a1b_logged_valid = false;
+    if (session_a1b_begin_scene(app->a1b, app->scene) != 0) {
+        record(app, "scene_session_create_error provider=action-kernel detail=%s", session_a1b_failure(app->a1b));
+        return false;
+    }
+    for (size_t row = 0; row < session_a1b_row_count(app->a1b); ++row) {
+        Action17Cursor cursor{};
+        if (session_a1b_hover_cursor(app->a1b, row, -1, &cursor) != ACTION17_OK) continue;
+        record(app, "scene_a1b_construct row=%zu hover_cursor_index=%d (two-table hotspot, loader 0x414692, handler 0x414947)",
+               row, cursor.cursor_index);
+    }
     app->a0c_logged_valid.assign(scene_resource_action_count(app->scene), 0u);
     app->a0c_logged_rects.assign(scene_resource_action_count(app->scene) * 4u, 0);
     if (session_a0c_begin_scene(app->a0c, app->scene) != ACTION17_OK) {
@@ -5704,6 +5799,13 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
                        "held_flag=%d surface=%d (0x4f221e; cursor sprite not drawn by the app)",
                        *candidate, cursor.cursor_index, cursor.variant,
                        static_cast<unsigned>(cursor.table_offset), cursor.held_flag, cursor.surface);
+            else if (session_a1b_hover_cursor(app->a1b, static_cast<size_t>(*candidate),
+                                              held != nullptr ? *held : static_cast<int16_t>(-1),
+                                              &cursor) == 0)
+                record(app, "scene_a1b_hover_cursor row=%d index=%d variant=%d table_offset=0x%x "
+                       "held_flag=%d surface=%d (0x4f22ad; cursor sprite not drawn by the app)",
+                       *candidate, cursor.cursor_index, cursor.variant,
+                       static_cast<unsigned>(cursor.table_offset), cursor.held_flag, cursor.surface);
             else if (session_a0c_hover_cursor(app->a0c, static_cast<size_t>(*candidate),
                                               held != nullptr ? *held : static_cast<int16_t>(-1),
                                               &cursor) == ACTION17_OK)
@@ -5752,6 +5854,8 @@ static int native_pointer_external_row(void *context, size_t action_index,
     if (session_a0b_pointer_row(app->a0b, action_index, row) == 1) return 1;
     /* RT-20: a raw 0x0c row whose frame record matched the selector (same cells). */
     if (session_a0c_pointer_row(app->a0c, action_index, row) == 1) return 1;
+    /* RT-40: a raw 0x1b row whose method matched the selector (same cells). */
+    if (session_a1b_pointer_row(app->a1b, action_index, row) == 1) return 1;
     if (app->a62 == nullptr ||
         session_a62_get_target(app->a62, action_index, &target) != SESSION_A62_OK ||
         target.request_pending == 0u) return 0;
@@ -5846,7 +5950,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[36]{};
+    SceneSessionActionBinding bindings[37]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6012,7 +6116,11 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[35].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[35].callback = native_a4b_handler;
     bindings[35].context = app;
-    config.action_binding_count = 36u;
+    bindings[36].type = SESSION_A1B_TYPE;
+    bindings[36].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[36].callback = session_a1b_handler;
+    bindings[36].context = app->a1b;
+    config.action_binding_count = 37u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -6031,6 +6139,8 @@ static bool create_native_scene_session(NativeApp *app)
                                    app->a0b) != SCENE_SESSION_OK ||
         scene_session_set_pre_gate(app->session, SESSION_A0C_TYPE, session_a0c_pre_gate,
                                    app->a0c) != SCENE_SESSION_OK ||
+        scene_session_set_pre_gate(app->session, SESSION_A1B_TYPE, session_a1b_pre_gate,
+                                   app->a1b) != SCENE_SESSION_OK ||
         scene_session_set_condition_extension(
             app->session, session_conditions_extension(app->conditions_binding)) !=
             SCENE_SESSION_OK ||
@@ -6972,6 +7082,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
              r.failure.action_type == SESSION_A16_TYPE) detail = session_a17_failure(app->a17);
     else if (r.failure.action_type == SESSION_A0B_TYPE) detail = session_a0b_failure(app->a0b);
     else if (r.failure.action_type == SESSION_A0C_TYPE) detail = session_a0c_failure(app->a0c);
+    else if (r.failure.action_type == SESSION_A1B_TYPE) detail = session_a1b_failure(app->a1b);
     if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
         r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
         (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
@@ -7136,6 +7247,8 @@ static void update(NativeApp *app, uint32_t now)
                 record(app, "scene_a0b_blocker detail=%s", session_a0b_failure(app->a0b));
             if (session_result.failure.action_type == SESSION_A0C_TYPE)
                 record(app, "scene_a0c_blocker detail=%s", session_a0c_failure(app->a0c));
+            if (session_result.failure.action_type == SESSION_A1B_TYPE)
+                record(app, "scene_a1b_blocker detail=%s", session_a1b_failure(app->a1b));
             SceneConditionFailure condition_failure{};
             if (scene_session_get_condition_failure(app->session, &condition_failure) ==
                     SCENE_SESSION_OK && condition_failure.opcode != 0u) {
@@ -8103,6 +8216,7 @@ int main(int argc, char **argv)
                                 SessionInputHotspot a17_row{};
                                 SessionInputHotspot a0b_row{};
                                 SessionInputHotspot a0c_row{};
+                                SessionInputHotspot a1b_row{};
                                 if (scene_session_get_hotspot_state(app.session, row, &hotspot) ==
                                         SCENE_EXECUTOR_OK && hotspot.active && hotspot.rectangle_valid) {
                                     left = hotspot.left; top = hotspot.top;
@@ -8121,6 +8235,11 @@ int main(int argc, char **argv)
                                     /* RT-20: raw 0x0c multi-frame scene-change hotspot. */
                                     left = a0c_row.rectangle.left; top = a0c_row.rectangle.top;
                                     right = a0c_row.rectangle.right; bottom = a0c_row.rectangle.bottom;
+                                    found = true;
+                                } else if (session_a1b_pointer_row(app.a1b, row, &a1b_row) == 1) {
+                                    /* RT-40: raw 0x1b two-table scene-change hotspot. */
+                                    left = a1b_row.rectangle.left; top = a1b_row.rectangle.top;
+                                    right = a1b_row.rectangle.right; bottom = a1b_row.rectangle.bottom;
                                     found = true;
                                 } else if (session_a62_get_target(app.a62, row, &target) == SESSION_A62_OK &&
                                            target.request_pending != 0u) {
