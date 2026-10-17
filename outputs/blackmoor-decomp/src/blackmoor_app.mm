@@ -64,6 +64,7 @@
 #include "session_bindings_aaa.h"
 #include "session_bindings_ad3.h"
 #include "session_bindings_af5.h"
+#include "session_bindings_a76.h"
 #include "session_bindings_aea.h"
 #include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_a6d_a9a.h"
@@ -76,6 +77,7 @@
 #include "session_input.h"
 #include "session_navigation.h"
 #include "caption_layout.h"
+#include "caption_layout_internal.h"
 #include "caption_lifecycle.h"
 #include "caption_compositor.h"
 #include "cif_pixels.h"
@@ -338,6 +340,16 @@ struct NativeApp {
     uint64_t af5_plan_signature = 0u;
     bool af5_render_failure_logged = false;
     bool af5_text_stub_logged = false;
+    /* RT-58: raw 0x76 PASSWORD puzzle (dispatcher arm 0x42902c -> handler 0x42fc70, gate mode 0; render callback 0x4d07e7 of the
+     * STATIC generic z entry 22, flag 0x5d1c01, so no slot is allocated). */
+    SessionA76Binding *a76 = nullptr;
+    PwdPointerResult a76_pointer{};
+    uint64_t a76_plan_signature = 0u;
+    bool a76_render_failure_logged = false;
+    bool a76_text_logged = false;          /* "PASSWORD TEXT NOT DRAWN" logged once */
+    bool a76_width_stub_logged = false;    /* the 8 pixels per character stand-in for 0x4d3836 logged once */
+    std::vector<uint8_t> a76_background;
+    uint64_t a76_background_seed = UINT64_MAX;
     /* RT-51: raw 0xd6 / 0xe0 keypad puzzle (arms 0x42a2c0 / 0x42a2fc -> 0x471722, gate mode 0; one binding serves both raw
      * types). Shares the generic Z entry range 0x18..0x3f (native_*_alloc_slot). The BG blits copy from a snapshot of the
      * seeded back buffer, the stand-in of the saved scene frame (Z entry 1, 0x5d15e3), as for 0xf6. Not compiled in the
@@ -1157,6 +1169,8 @@ static bool native_af6_render(NativeApp *app);
 static bool native_ae0_render(NativeApp *app);
 static bool native_ae4_render(NativeApp *app);
 static bool native_aeb_render(NativeApp *app);
+static bool native_a76_render(NativeApp *app);
+static void native_a76_character(NativeApp *app, int8_t ch);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -1584,6 +1598,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->aeb != nullptr && session_aeb_registered(app->aeb) != 0u) {
         /* RT-56: the Multibuild puzzle's render entry (type 10, callback 0x481cb9), same slot range. */
         (void)native_aeb_render(app);
+    }
+    if (app->a76 != nullptr && session_a76_registered(app->a76) != 0u) {
+        /* RT-58: the PASSWORD puzzle's static generic entry 22 (callback 0x4d07e7), drawn while its flag 0x5d1c01 is set. */
+        (void)native_a76_render(app);
     }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
@@ -2148,6 +2166,7 @@ static void pointer(void *context, BlackmoorPointerKind kind,
 static void character(void *context, int8_t ch)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr) native_a76_character(app, ch); /* RT-58: the PASSWORD puzzle's 0x437dcd part, gated on its active flag */
     if (app == nullptr || app->af5 == nullptr || app->session == nullptr) return;
     const TqzObject *quiz = session_af5_object(app->af5);
     if (quiz == nullptr || quiz->active == 0 || quiz->row < 0) return;
@@ -2190,6 +2209,7 @@ static void cleanup(NativeApp *app)
     session_aaa_destroy(app->aaa);
     session_ad3_destroy(app->ad3);
     session_af5_destroy(app->af5);
+    session_a76_destroy(app->a76);
     session_aea_destroy(app->aea);
     session_a20_destroy(app->a20);
     session_a70_destroy(app->a70);
@@ -7909,6 +7929,222 @@ static bool native_af5_render(NativeApp *app)
     return true;
 }
 
+/* ---- RT-58: raw 0x76 PASSWORD puzzle host providers ----------------------------------------------------------------
+ * Dispatcher arm 0x42902c (gate mode 0) -> handler 0x42fc70 (kernel action_family_76_runtime.c, binding session_bindings_a76.c).
+ * The render callback 0x4d07e7 belongs to the static generic z entry 22 (flag 0x5d1c01), so the binding allocates no slot and the
+ * app tick draws it while the flag is set. The typed text (0x4d2c20, text surface and colours are the host's) is a documented
+ * stub: it is logged once and not drawn. The text width (0x4d3836) uses caption_internal_text_width on the BOOT fonts when the
+ * font exists, else 8 pixels per character (logged once). Sounds are logged NOT PLAYED (no effect backend) and report not busy.
+ * The cancel-strip cursor cells (0x5b44f0 := 9 and the cursor table) are not drawn by the app. Not compiled in the cloud
+ * container (no macOS toolchain). */
+static int native_a76_view_origin(void *context, int32_t *x, int32_t *y)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || x == nullptr || y == nullptr) return 1;
+    *x = app->scene_destination.left;  /* 0x583186 */
+    *y = app->scene_destination.top;   /* 0x58318a */
+    return 0;
+}
+
+/* 0x4c924d / 0x4c92c5: the font surface count. The puzzle text is a stub, so there is nothing to hold. */
+static int native_a76_font_acquire(void *context, int16_t font)
+{
+    (void)context;
+    (void)font;
+    return 0;
+}
+
+static int native_a76_font_release(void *context, int16_t font)
+{
+    (void)context;
+    (void)font;
+    return 0;
+}
+
+static int native_a76_text_width(void *context, int16_t font, const char *text, int16_t *width)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || text == nullptr || width == nullptr) return 1;
+    if (font >= 0 && font < app->captions.fonts.count &&
+        caption_internal_text_width(&app->captions.fonts, font, text, width) == CAPTION_OK)
+        return 0;
+    if (!app->a76_width_stub_logged) {
+        app->a76_width_stub_logged = true;
+        record(app, "scene_a76_text_width STAND-IN font=%d (0x4d3836 needs the BOOT font; 8 pixels per character used)", font);
+    }
+    *width = static_cast<int16_t>(std::strlen(text) * 8u);
+    return 0;
+}
+
+static int native_a76_sound_prepare(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_a76_sound call=0x4fb77a NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_a76_sound_stop(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_a76_sound call=0x4fba69 NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_a76_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_a76_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_a76_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    return 0;
+}
+
+static int native_a76_transition(void *context, const PwdTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_a76_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0], t->word[1],
+           t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+static void native_a76_store_world(void *context, int32_t start_flag)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr) app->start_flag_5bb1ca = start_flag;
+}
+
+static void native_a76_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == PWD_FX_PHASE) {
+        record(app, "scene_a76_phase new_phase=%d (0x42fc70)", a);
+    } else if (effect == PWD_FX_COMPLETE) {
+        record(app, "scene_a76_complete row=%d (0x42ba3a)", a);
+    } else if (effect == PWD_FX_ENGINE_MODE) {
+        /* The finish block's last store: engine mode 0x583999 := 4. The transition request already carries the scene change; the
+         * exit-state machine hand-over is not wired here (unverified). */
+        record(app, "scene_a76_engine_mode mode=%d (0x583999 := %d; exit-state hand-over not wired)", a, a);
+    }
+}
+
+static int native_a76_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a76_handler(app->a76, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a76_blocker row=%zu status=%d detail=%s", row, status, session_a76_failure(app->a76));
+    }
+    return status;
+}
+
+/* 0x437dcd: a typed character reaches the puzzle only while it is active (the binding gates on that). */
+static void native_a76_character(NativeApp *app, int8_t ch)
+{
+    if (app == nullptr || app->a76 == nullptr) return;
+    if (session_a76_key(app->a76, ch) == 1)
+        record(app, "scene_a76_key char=0x%02x stored (0x437dcd)", static_cast<unsigned>(static_cast<uint8_t>(ch)));
+}
+
+/* 0x4d07e7: the background restore (0x4c5377 from the saved scene frame, entry 1 / 0x5d15e3) over the field area, then the two
+ * field texts (0x4d2c20, not drawn). As for the Match Puzzle the saved frame is a snapshot of the seeded back buffer; the source
+ * rectangle is view relative (the original adds the view origin to the destination only), so it is shifted by the view origin
+ * into the screen-sized snapshot. Layer order against the UI is unverified. */
+static bool native_a76_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    PwdRenderResult plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_a76_render(app->a76, &plan) != PWD_OK) {
+        if (!app->a76_render_failure_logged) {
+            app->a76_render_failure_logged = true;
+            record(app, "scene_a76_render_error detail=render-refused (%s)", session_a76_failure(app->a76));
+        }
+        return false;
+    }
+    if (plan.count == 0u) return true;
+    if (app->a76_background_seed != captions.backbuffer_seed_count ||
+        app->a76_background.size() != captions.backbuffer_pixels.size()) {
+        app->a76_background = captions.backbuffer_pixels;
+        app->a76_background_seed = captions.backbuffer_seed_count;
+    }
+    CaptionCompositorView back{};
+    back.pixels = captions.backbuffer_pixels.data();
+    back.byte_capacity = captions.backbuffer_pixels.size();
+    back.width = 640;
+    back.height = 480;
+    back.pitch_bytes = 1280;
+    back.format = captions.compositor_format;
+    CaptionCompositorView saved = back;
+    saved.pixels = app->a76_background.data();
+    saved.byte_capacity = app->a76_background.size();
+    const int32_t view_x = app->scene_destination.left;
+    const int32_t view_y = app->scene_destination.top;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    int32_t blits = 0;
+    int32_t texts = 0;
+    int32_t text_font = 0;
+    for (uint16_t i = 0; i < plan.count; ++i) {
+        const PwdOp &op = plan.op[i];
+        if (op.kind == PWD_OP_TEXT) {
+            if (texts == 0) text_font = op.font;
+            ++texts;
+            signature ^= static_cast<uint64_t>(op.kind);
+            signature *= UINT64_C(1099511628211);
+            continue;
+        }
+        const CaptionRect dst{op.dst[0], op.dst[1], op.dst[2], op.dst[3]};
+        const CaptionRect src{op.src[0] + view_x, op.src[1] + view_y, op.src[2] + view_x, op.src[3] + view_y};
+        const int status = caption_compositor_blit(&saved, &back, CAPTION_BLIT_OPAQUE, &src, &dst,
+                                                   captions.pixel_format.color_key);
+        if (status != CAPTION_COMPOSITOR_OK) {
+            if (!app->a76_render_failure_logged) {
+                app->a76_render_failure_logged = true;
+                record(app, "scene_a76_render_error status=%d op=%u src=%d,%d,%d,%d dst=%d,%d,%d,%d (blit refused; later ops skipped)",
+                       status, static_cast<unsigned>(i), src.left, src.top, src.right, src.bottom, dst.left, dst.top, dst.right,
+                       dst.bottom);
+            }
+            return false;
+        }
+        ++blits;
+        for (int k = 0; k < 4; ++k) {
+            signature ^= static_cast<uint32_t>(op.dst[k]);
+            signature *= UINT64_C(1099511628211);
+        }
+    }
+    if (texts > 0 && !app->a76_text_logged) {
+        app->a76_text_logged = true;
+        record(app, "scene_a76_text PASSWORD TEXT NOT DRAWN ops=%d font=%d (0x4c924d + 0x4d2c20 have no native text path; the typed "
+               "word and the cursor are absent from the picture)", texts, text_font);
+    }
+    if (signature != app->a76_plan_signature) {
+        app->a76_plan_signature = signature;
+        record(app, "scene_a76_blit blits=%d texts=%d composed=back-buffer scope=host-adapter (restore source is a back-buffer "
+               "snapshot, layer order vs UI unverified)", blits, texts);
+    }
+    return true;
+}
+
 /* ---- RT-59: raw 0xda Bul puzzle host providers ------------------------------------------------------------------
  * The kernel (action_family_da_runtime.c) is the recovered handler 0x45c18f (dispatcher arm 0x42a424), the pointer receiver
  * 0x45b5bb with the candidate writer 0x45b7a8, the accepted-release click 0x45b872 (call at 0x43b2f5), the cleanup 0x45b42e and
@@ -9178,6 +9414,23 @@ static bool create_native_session_bindings(NativeApp *app)
     af5_host.kernel.observe = native_af5_observe;
     af5_host.store_world = native_af5_store_world;
     app->af5 = session_af5_create(&af5_host);
+    SessionA76Host a76_host{};   /* RT-58: raw 0x76 PASSWORD puzzle; sound is not wired (no effect backend), text is not drawn */
+    a76_host.kernel.context = app;
+    a76_host.kernel.view_origin = native_a76_view_origin;
+    a76_host.kernel.font_acquire = native_a76_font_acquire;
+    a76_host.kernel.font_release = native_a76_font_release;
+    a76_host.kernel.text_width = native_a76_text_width;
+    a76_host.kernel.tick = native_ad1_tick;
+    a76_host.kernel.sound_prepare = native_a76_sound_prepare;
+    a76_host.kernel.sound_stop = native_a76_sound_stop;
+    a76_host.kernel.sound_play = native_a76_sound_play;
+    a76_host.kernel.sound_busy = native_a76_sound_busy;
+    a76_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    a76_host.kernel.transition = native_a76_transition;
+    a76_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    a76_host.kernel.observe = native_a76_observe;
+    a76_host.store_world = native_a76_store_world;
+    app->a76 = session_a76_create(&a76_host);
     SessionAeaHost aea_host{};
     aea_host.kernel.context = app;
     aea_host.kernel.view = native_aea_view;
@@ -9389,7 +9642,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ae4 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr || app->a6d == nullptr || app->a9a == nullptr || app->a1c == nullptr || app->ada == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ae4 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr || app->a6d == nullptr || app->a9a == nullptr || app->a1c == nullptr || app->a76 == nullptr || app->ada == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -9721,6 +9974,15 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->af5_plan_signature = 0u;
     app->af5_render_failure_logged = false;
     app->af5_text_stub_logged = false;
+    if (session_a76_begin_scene(app->a76, app->scene) != PWD_OK) {
+        record(app, "scene_session_create_error provider=action-family-76 detail=%s", session_a76_failure(app->a76));
+        return false;
+    }
+    app->a76_plan_signature = 0u;
+    app->a76_render_failure_logged = false;
+    app->a76_text_logged = false;
+    app->a76_width_stub_logged = false;
+    app->a76_background_seed = UINT64_MAX;
     /* RT-57: raw 0x1c starts every scene from a power-on object. */
     app->a1c_slot_used.fill(false);
     app->a1c_wait_logged = false;
@@ -10218,6 +10480,20 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                 record(app, "scene_af5_click_error row=%d detail=phase-2-store-refused", quiz->row);
         }
     }
+    /* RT-58: the PASSWORD puzzle's click block 0x43a7ca (accepted-release chain, same gate): the cancel strip (candidate 0x2724)
+     * ends the run while the answer is not yet correct; the kernel looks at its own active and correct flags, not at the row
+     * phase. The host stores phase 2 for the row. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->a76 != nullptr && session_a76_state(app->a76)->b[PWD_S_ACTIVE] != 0 && app->session != nullptr) {
+        PwdClickResult click_result{};
+        if (session_a76_click(app->a76, app->input_state.candidate, &click_result) == PWD_OK && click_result.fired != 0u) {
+            if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(click_result.row)) == SCENE_SESSION_OK)
+                record(app, "scene_a76_click row=%d candidate=%d -> phase 2 (0x43a7ca)", click_result.row,
+                       app->input_state.candidate);
+            else
+                record(app, "scene_a76_click_error row=%d detail=phase-2-store-refused", click_result.row);
+        }
+    }
     /* RT-59: the Bul puzzle's click method 0x45b872 sits in the same accepted-release chain (call at 0x43b2f5). The original calls
      * it on every accepted release and the method guards itself (active, not won, state IDLE, row phase 1); the app has no other
      * source of accepted releases for this object, so it is called only when the retained candidate is one the pointer hit test
@@ -10386,6 +10662,13 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_af5_object(app->af5)->active != 0)
         (void)session_af5_pointer_move(app->af5, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->af5_pointer);
+    app->a76_pointer = PwdPointerResult{};
+    app->a76_pointer.candidate = -1;
+    app->a76_pointer.cursor_kind = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->a76 != nullptr &&
+        session_a76_state(app->a76)->b[PWD_S_ACTIVE] != 0)
+        (void)session_a76_pointer_move(app->a76, static_cast<int32_t>(frame->pointer_x),
+                                       static_cast<int32_t>(frame->pointer_y), &app->a76_pointer);
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
@@ -10539,6 +10822,12 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* The Typing Quiz's hit test (click rectangle, body +0x55e) returns before the generic row loop and has written the
          * candidate (0x27eb). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->af5_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->a76_pointer.hit != 0u) {
+        /* The PASSWORD puzzle's pointer block 0x4f04b6..0x4f05a3 (cancel strip, not view relative) returns before the generic row
+         * loop and has written the candidate (0x2724). The cursor cells (0x5b44f0 := 9, 0x5d162d, 0x5d1631, 0x5d1639) it also
+         * writes are not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->a76_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->aea_pointer.hit != 0u) {
         /* 0x4f0d61: the Onebuild puzzle's receiver 0x484f42 returns before the generic row loop and has written
@@ -11071,9 +11360,15 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[57].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[57].callback = native_a1c_handler;
     bindings[57].context = app;
-    /* RT-59: raw 0xda (Bul puzzle, arm 0x42a424, gate mode 0). Slot 59, declared count 60. Slot 58 is RT-58's (raw 0x76): the
-     * slots must stay gap-free (scene_session_create rejects an entry without a callback), so RT-59 does not stand alone until
-     * RT-58 is merged; if RT-59 merges first, move this block to slot 58 and declare 59. */
+    /* RT-58: raw 0x76 PASSWORD puzzle (dispatcher arm 0x42902c -> handler 0x42fc70, gate mode 0; phase 2 completes through
+     * 0x42ba3a). The render callback 0x4d07e7 runs from the app tick (native_a76_render) from a static entry. Slot 58, count 59
+     * (the slots must stay gap-free because scene_session_create rejects an empty binding; whichever PR merges second renumbers). */
+    bindings[58].type = SESSION_A76_TYPE;
+    bindings[58].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[58].callback = native_a76_handler;
+    bindings[58].context = app;
+    /* RT-59: raw 0xda (Bul puzzle, arm 0x42a424, gate mode 0). Slot 59, declared count 60 (slot 58 is RT-58's raw 0x76). The
+     * slots must stay gap-free (scene_session_create rejects an entry without a callback); whichever PR merges second renumbers. */
     bindings[59].type = SESSION_ADA_TYPE;
     bindings[59].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[59].callback = native_ada_handler;
@@ -11558,6 +11853,8 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
     if (app->aeb != nullptr) session_aeb_world_reset(app->aeb);
     /* RT-55: the new-game reset 0x4b8087 clears the played flag 0x5a4c0a and the best score 0x5a4c0e. */
     if (app->af5 != nullptr) session_af5_new_game(app->af5);
+    /* RT-58: the new-game reset 0x435015 clears the PASSWORD puzzle's active flag 0x5b61af. */
+    if (app->a76 != nullptr) session_a76_new_game(app->a76);
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
     if (!app->test_inventory.empty() || app->test_held != -2) {
         WorldInitInventory &inv = app->new_game.view.inventory;
