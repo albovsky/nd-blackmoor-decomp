@@ -18,15 +18,19 @@ extern "C" {
  *               [0x63aa10] := dword at body+0, [0x55cd94] := dword at body+4 (0x4293b4..0x4293cb),
  *               the row's completion byte := 1 (0x4293dd; erased again by the next step for this row),
  *               0x43e96c: every row below the high-water count 0x5c39e3 whose loaded dword (+0x59, 0x5bb63c) is nonzero is
- *                         erased (body freed, completion byte, request dword, phase, rectangle word 0x5bb636 := -1,
+ *                         erased (body freed when non-null and the pointer cleared, type byte := 0 (0x43e9f6), completion byte,
+ *                         request dword, phase, rectangle word 0x5bb636 := -1,
  *                         0x5bb638 := 1 "not loaded", 0x5bb63c := 0, dependency reset 0x423b51),
  *               0x43e8b8: the high-water count becomes the start of the trailing run of unloaded rows (0 when every row was
  *                         erased),
  *               [0x5bb57b] := [0x5bb57f] (0x4293ee..0x4293f4), word [0x5c3a4f] := low word of [0x5bb57b] (0x4293fa..0x429401).
  *             With the debug flag 0x63a4cd set the arm then logs through 0x50ca3e/0x44a2b7; the native module models the flag
  *             as 0.
- *             There is no generic completion call: the row itself is among the erased ones, so after the arm it is unloaded
- *             with its completion byte and phase cleared.
+ *             There is no generic completion call. The row itself is among the erased ones only when its loaded dword is
+ *             nonzero (the loader sets it to 1 only when [0x5c3a01] == 2, 0x410ad7/0x410af0); otherwise the original leaves
+ *             completion = 1 and the phase unchanged, while the native binding always returns phase 0 (the one recorded
+ *             native/original difference; the dispatcher skips completed rows either way). The recount leaves the count
+ *             unchanged when there is no trailing unloaded run.
  * The cells 0x63aa10 and 0x55cd94 are read by the overlay view object (0x4ee572 and friends) and by the exit handler 0x43d227
  * (0x55cd94 != 0 skips the next-scene summary check); who consumes them in the app is host behaviour.
  * Nothing here claims original source structure. */

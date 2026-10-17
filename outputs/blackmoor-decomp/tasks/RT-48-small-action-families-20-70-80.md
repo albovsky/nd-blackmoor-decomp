@@ -21,7 +21,7 @@ All three are arms of the dispatcher `0x427a50`, gate `0x423f57` mode 0 (the def
 
 * `tests/action_family_20_70_80_runtime_test.c` (15 unit cases, ASan/UBSan clean) and `tests/test_action_family_20_70_80_runtime.py` (plain, sanitizers, 48 source mutants on kernels and bindings, executor driver with 3 executor mutants, corpus driver over the 6 real rows).
 * `tests/action_family_20_70_80_runtime_executor.c`: the production executor (gate mode 0): the 0x20 row erases every row so a later open 0x70 row in the same pass is skipped; 0x80 reports a TRANSITION; 0x70 completes directly and is not visited again.
-* `tests/action_family_20_70_80_runtime_original_oracle.py`: the real dispatcher `0x427a50` runs rows of the three types under Unicorn against the native bindings (see the handoff in `COORDINATION-STATUS.md` for the final counts).
+* `tests/action_family_20_70_80_runtime_original_oracle.py`: the real dispatcher `0x427a50` runs rows of the three types under Unicorn against the native bindings with `--quick-only` in the Python wrapper. Full run (`--mutations`): 274 scenarios, 678 ticks, 35,692 compared fields, 0 mismatches, 55 of 55 planted mutants killed; it compares the event sequence, 20 cells, 11 object fields, every row byte, the erase set/freed pointers/recount, the scene-change request and the dispatcher loop's mode and count re-reads. One recorded native/original difference (`known_divergences`, failed only with `--strict-known`): a 0x20 row whose loaded dword is 0 is not erased in the original and keeps its phase, the native binding returns phase 0.
 
 ## Limits
 
