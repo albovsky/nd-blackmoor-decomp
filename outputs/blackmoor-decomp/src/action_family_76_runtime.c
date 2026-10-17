@@ -186,8 +186,12 @@ static int check_words(const uint8_t *body, const uint8_t *field, size_t words_o
         upper(word);
         if (contains(typed, word)) {
             matched = 1;
-            state->b[PWD_S_CORRECT] = 1;
-            wr32(state->b, PWD_S_STATE, (!second && pwd_rd16(body, B_COUNT_B) != 0) ? PWD_STATE_FIELD2 : PWD_STATE_SUCCESS_SOUND);
+            if (!second && pwd_rd16(body, B_COUNT_B) != 0) {
+                wr32(state->b, PWD_S_STATE, PWD_STATE_FIELD2); /* 0x430137: a hit in field 1 with a second field only moves on to field 2 */
+            } else {
+                state->b[PWD_S_CORRECT] = 1;
+                wr32(state->b, PWD_S_STATE, PWD_STATE_SUCCESS_SOUND);
+            }
             break;
         }
         if (second) {

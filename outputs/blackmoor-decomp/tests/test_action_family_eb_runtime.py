@@ -635,8 +635,11 @@ class Registration(unittest.TestCase):
         for line in ('bindings[54].type = SESSION_AEB_TYPE;', 'bindings[54].callback = native_aeb_handler;',
                      'bindings[54].context = app;', 'bindings[54].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;'):
             self.assertEqual(app.count(line), 1, line)
-        self.assertEqual(app.count('SceneSessionActionBinding bindings[55]{};'), 1)
-        self.assertEqual(app.count('config.action_binding_count = 55u;'), 1)
+        # Later puzzles (RT-58 and up) raise the declared count; it must cover slot 54 and match the configured count.
+        declared = int(re.search(r'SceneSessionActionBinding bindings\[(\d+)\]\{\};', app).group(1))
+        counted = int(re.search(r'config\.action_binding_count = (\d+)u;', app).group(1))
+        self.assertEqual(declared, counted)
+        self.assertGreaterEqual(counted, 55)
 
     def test_every_generic_entry_allocator_excludes_the_multibuild_puzzle(self):
         """The allocators of the shared z entry range 0x18..0x3f all skip the Multibuild puzzle's slots, and its own skips theirs."""
