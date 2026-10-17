@@ -13,7 +13,7 @@ Facts under test (original GAME.EXE, read from the disassembly of 0x42ed54, 0x4f
    or asks for the exit, the render callback blits the selected-state rectangle of every chosen button.
 The unit cases live in tests/action_family_77_runtime_test.c (synthetic bodies); the two real rows of the decoded scenes are
 exercised by a private scratch driver. The original-x86 oracle is tests/action_family_77_runtime_original_oracle.py (needs the
-private work/ evidence and Unicorn; written separately).
+private work/ evidence and Unicorn; in tests/action_family_77_runtime_original_oracle.py).
 """
 import concurrent.futures
 import os
