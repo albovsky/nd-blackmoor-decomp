@@ -257,8 +257,8 @@ int ea_validate_body(const uint8_t *body, size_t length, const char **failure)
         for (int16_t i = 0; i < n && why == NULL; ++i) {
             const size_t p = bpiece_off(i);
             const size_t r = rect_valid(body, p + BP_RECT_B) ? p + BP_RECT_B : p + BP_RECT_A;
-            const int32_t w = (int16_t)(rd_s32(body, r + 8) - rd_s32(body, r)) + 1;
-            const int32_t h = (int16_t)(rd_s32(body, r + 12) - rd_s32(body, r + 4)) + 1;
+            const int32_t w = (int16_t)sub32(rd_s32(body, r + 8), rd_s32(body, r)) + 1;
+            const int32_t h = (int16_t)sub32(rd_s32(body, r + 12), rd_s32(body, r + 4)) + 1;
             if (w < 1 || w > 4096 || h < 1 || h > 4096) why = "0xea-piece-size";
         }
     }
