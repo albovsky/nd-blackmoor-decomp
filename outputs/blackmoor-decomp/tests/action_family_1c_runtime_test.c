@@ -748,6 +748,16 @@ static void test_phase0_match(void)
     CHECK(n, r.registered_slot == 0x2a && strcmp(r.label, C1C_LABEL) == 0 && r.allocs == 1 && r.registers == 1);
     CHECK(n, events_are(&r, expected, (int)(sizeof expected / sizeof expected[0])));
     c1c_free_iv(&o);
+    /* stale slot and last index left by a scene that was abandoned mid-way: a row without the render word still clears both */
+    rig_init(&r, "M", &f);
+    h = host_of(&r);
+    make_body(body, "X", 0);
+    c1c_object_reset(&o);
+    o.slot = 7;
+    o.last_index = 9;
+    CHECK(n, c1c_visit(&o, body, 0u, &h, &out) == C1C_OK);
+    CHECK(n, o.slot == -1 && o.last_index == -1 && r.allocs == 0);
+    c1c_free_iv(&o);
     free(f.p);
     PASS(n);
 }

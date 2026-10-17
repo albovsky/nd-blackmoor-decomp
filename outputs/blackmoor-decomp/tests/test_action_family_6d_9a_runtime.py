@@ -512,8 +512,8 @@ class AppGlue(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr[-1500:])
 
     def test_registration_uses_numeric_literals_and_gap_free_slots(self):
-        for line in ('bindings[54].type = SESSION_A6D_TYPE;', 'bindings[54].callback = native_a6d_handler;', 'bindings[54].context = app;',
-                     'bindings[55].type = SESSION_A9A_TYPE;', 'bindings[55].callback = native_a9a_handler;', 'bindings[55].context = app;'):
+        for line in ('bindings[55].type = SESSION_A6D_TYPE;', 'bindings[55].callback = native_a6d_handler;', 'bindings[55].context = app;',
+                     'bindings[56].type = SESSION_A9A_TYPE;', 'bindings[56].callback = native_a9a_handler;', 'bindings[56].context = app;'):
             self.assertEqual(self.app.count(line), 1, line)
         indices = sorted({int(n) for n in re.findall(r'\n    bindings\[(\d+)\]\.type', self.app)})
         self.assertEqual(indices, list(range(1, len(indices) + 1)))

@@ -647,7 +647,7 @@ struct NativeApp {
     std::string game_directory; StandInRect scene_destination; StandInNewGame new_game;
     SessionA1cBinding *a1c = nullptr; std::array<bool, 0x40> a1c_slot_used{}; bool a1c_wait_logged = false; bool a1c_fills_logged = false;
     std::array<bool, 0x40> ad1_slot_used{}, ad3_slot_used{}, ad9_slot_used{}, aaa_slot_used{}, ad0_slot_used{}, aea_slot_used{},
-        af6_slot_used{}, ae0_slot_used{}, ae4_slot_used{}, af5_slot_used{};
+        af6_slot_used{}, ae0_slot_used{}, ae4_slot_used{}, af5_slot_used{}, aeb_slot_used{};
 };
 static void record(NativeApp *, const char *, ...) __attribute__((format(printf, 2, 3)));
 static void record(NativeApp *, const char *, ...) {}
@@ -688,14 +688,14 @@ class AppGlue(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr[-1500:])
 
     def test_registration_uses_numeric_literals_and_gap_free_slots(self):
-        for line in ('bindings[56].type = SESSION_A1C_TYPE;', 'bindings[56].callback = native_a1c_handler;', 'bindings[56].context = app;'):
+        for line in ('bindings[57].type = SESSION_A1C_TYPE;', 'bindings[57].callback = native_a1c_handler;', 'bindings[57].context = app;'):
             self.assertEqual(self.app.count(line), 1, line)
         indices = sorted({int(n) for n in re.findall(r'\n    bindings\[(\d+)\]\.type', self.app)})
         self.assertEqual(indices, list(range(1, len(indices) + 1)))
         count = len(indices) + 1
         self.assertIn(f'SceneSessionActionBinding bindings[{count}]{{}};', self.app)
         self.assertIn(f'config.action_binding_count = {count}u;', self.app)
-        self.assertGreaterEqual(count, 57)
+        self.assertGreaterEqual(count, 58)
 
     def test_binding_is_created_checked_recreated_and_destroyed(self):
         self.assertEqual(self.app.count('session_a1c_destroy(app->a1c);'), 2)  # cleanup, and the per-scene recreate
