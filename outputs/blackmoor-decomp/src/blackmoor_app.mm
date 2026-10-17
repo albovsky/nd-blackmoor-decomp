@@ -48,6 +48,7 @@
 #include "session_bindings_a2d.h"
 #include "session_bindings_a6e.h"
 #include "session_bindings_a6f.h"
+#include "session_bindings_a7d.h"
 #include "session_bindings_ad9.h"
 #include "session_bindings_ad1.h"
 #include "session_bindings_conditions.h"
@@ -274,6 +275,14 @@ struct NativeApp {
     /* RT-29: raw 0x6f returns to the scene 0x6e saved (arm 0x4291b6 -> pop 0x42e493, gate mode 0). Not compiled here.
      * Pops the same `scene_stack_slot`; the pop is a scene-change request (mode 4) plus the start flag 0x5bb1ca. */
     SessionA6FBinding *a6f = nullptr;
+    /* RT-41: raw 0x7d returns from the examined item's scene (arm 0x42950b -> view method 0x4eb5f2, gate mode 0). Pops the second
+     * saved-scene record `scene_restore_slot` (0x5c3a1b; the inventory examine branch 0x4ea269 that fills it is not ported, so an
+     * unfilled record makes the row report a blocker), re-adds the item named by the selector word 0x583f1d
+     * (new_game.opaque_selector) through the raw 0x78 add step, requests the UI animation and the inventory screen (byte
+     * 0x583232). `a7d_inventory` is refreshed before every visit. Not compiled here. */
+    SessionA7DBinding *a7d = nullptr;
+    SceneRestoreSlot scene_restore_slot{};
+    Action78Model a7d_inventory{};
     /* RT-30: raw 0x67 stores 1 in DAT_005bb1ca (arm 0x428692, gate mode 0). Not compiled here. */
     SessionA67Binding *a67 = nullptr;
     /* RT-37: raw 0x65 SAVE_CONTINUE (arm 0x4285fd -> save routine 0x4d7a15), raw 0x68 / 0x69 start / clear a timer record
@@ -1928,6 +1937,7 @@ static void cleanup(NativeApp *app)
     session_a4f_destroy(app->a4f);
     session_a6e_destroy(app->a6e);
     session_a6f_destroy(app->a6f);
+    session_a7d_destroy(app->a7d);
     session_a67_destroy(app->a67);
     session_a65_destroy(app->a65);
     session_a45_destroy(app->a45);
@@ -3575,6 +3585,54 @@ static int native_a6f_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* ---- RT-41: raw 0x7d return from the examined item's scene (arm 0x42950b -> 0x4eb5f2) ----
+ * The scene change is the same request a raw 0x6f pop makes (the second saved-scene record, mode 4, start flag 0x5bb1ca). The
+ * inventory request is byte 0x583232 (the task bar inventory flag, consumed by taskbar_pre_tick at the next tick). The view bytes
+ * +0x7010/+0x7011 come from the UIIV boot chunk, so the layout is loaded before the visit; without the boot data the row reports
+ * a blocker. The re-add and the UI animation reuse the raw 0x78 providers (the rebuild and the animation are only recorded). */
+static int native_a7d_apply(void *context, const SceneStackPop *pop, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || pop == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) return 1;
+    app->start_flag_5bb1ca = pop->start_5bb1ca;
+    record(app, "scene_a7d_restore target=%d words=%d,%d,%d dwords=%d,%d,%d start=%d (mode 4)", request->target_scene,
+           request->opaque_words[0], request->opaque_words[1], request->opaque_words[2], request->opaque_dwords[0],
+           request->opaque_dwords[1], request->opaque_dwords[2], pop->start_5bb1ca);
+    return 0;
+}
+
+static int native_a7d_open_inventory(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr) return 1;
+    app->bar.flag[TASKBAR_BUTTON_INVENTORY] = 1;   /* 0x4eb704: byte 0x583232 := 1 */
+    record(app, "scene_a7d_inventory_flag byte=0x583232 (the inventory screen opens at the next tick)");
+    return 0;
+}
+
+static int native_a7d_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    inventory_view_ensure(app);
+    if (!app->inv_data_ready ||
+        inventory_view_layout_from_uiiv(app->inv_uiiv.data(), app->inv_uiiv.size(), app->scene_destination.left,
+                                        app->scene_destination.top, &app->inv_layout) != INVVIEW_OK) {
+        record(app, "scene_a7d_blocker row=%zu detail=inventory view data (BOOT chunk UIIV) unavailable", row);
+        return SCENE_ACTION_HANDLER_UNSUPPORTED;
+    }
+    app->a7d_inventory.inventory = inventory_model(app);
+    app->a7d_inventory.view.mode = app->inv_view.mode;
+    app->a7d_inventory.view.slot_flag = app->inv_layout.slot_flag;
+    const int status = session_a7d_handler(app->a7d, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a7d_blocker row=%zu status=%d detail=%s", row, status, session_a7d_failure(app->a7d));
+    }
+    return status;
+}
+
 /* RT-30: the start flag DAT_005bb1ca; the original's arm 0x428692 stores 1 there at 0x4286b5. */
 static void native_a67_set_start_flag(void *context, int32_t value)
 {
@@ -5120,6 +5178,16 @@ static bool create_native_session_bindings(NativeApp *app)
     a6f_host.context = app;
     a6f_host.apply = native_a6f_apply;
     app->a6f = session_a6f_create(&a6f_host, &app->scene_stack_slot);
+    scene_restore_slot_clear(&app->scene_restore_slot);
+    scene_restore_slot_init_words(&app->scene_restore_slot); /* game initializer 0x437011..0x43703b */
+    SessionA7DHost a7d_host{};
+    a7d_host.context = app;
+    a7d_host.apply = native_a7d_apply;
+    a7d_host.open_inventory = native_a7d_open_inventory;
+    a7d_host.rebuild_view = native_a78_rebuild_view;
+    a7d_host.request_ui_animation = native_a78_request_ui_animation;
+    app->a7d = session_a7d_create(&a7d_host, &app->scene_restore_slot, &app->new_game.opaque_selector,
+                                  &app->a7d_inventory, &app->inv_layout.close_flag);
     SessionA67Host a67_host{};
     a67_host.context = app;
     a67_host.set_start_flag = native_a67_set_start_flag;
@@ -5221,7 +5289,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a1b == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -6045,7 +6113,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[37]{};
+    SceneSessionActionBinding bindings[38]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6222,7 +6290,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[36].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[36].callback = session_a1b_handler;
     bindings[36].context = app->a1b;
-    config.action_binding_count = 37u;
+    /* RT-41: raw 0x7d returns from the examined item's scene (arm 0x42950b -> 0x4eb5f2, gate mode 0). Slots 30-36 are filled by RT-37 to RT-40. */
+    bindings[37].type = SESSION_A7D_TYPE;
+    bindings[37].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[37].callback = native_a7d_handler;
+    bindings[37].context = app;
+    config.action_binding_count = 38u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
