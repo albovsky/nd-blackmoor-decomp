@@ -5375,8 +5375,6 @@ static bool native_aea_render(NativeApp *app)
 /* The action binding table of create_native_session_bindings's caller: one entry per handled raw type. The Piano Puzzle takes the
  * slot after the last one main fills (45); RT-47 (0xf6) had planned 46 and renumbers to 47 if it merges later. A gap makes scene_session_create refuse the table (null
  * callback), so the slot and the count move together at merge. */
-static constexpr size_t kAd0BindingSlot = 46u;
-static constexpr size_t kActionBindingCount = kAd0BindingSlot + 1u;
 
 static int native_ad0_alloc_slot(void *context, int16_t *slot)
 {
@@ -7551,7 +7549,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[kActionBindingCount]{};
+    SceneSessionActionBinding bindings[47]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -7775,13 +7773,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[45].callback = native_a77_handler;
     bindings[45].context = app;
     /* RT-50: raw 0xd0 Piano Puzzle (dispatcher arm 0x42a0ea -> 0x48d914, gate mode 0; phase 2 completes through 0x42ba3a). The
-     * render callback 0x48ded7 runs from the app tick (native_ad0_render). Slot and count are kAd0BindingSlot / kActionBindingCount
+     * render callback 0x48ded7 runs from the app tick (native_ad0_render). Slot and count are the literals 46 / 47
      * (slot 46, count 47; RT-47 (0xf6) renumbers to 47 if it merges after this). */
-    bindings[kAd0BindingSlot].type = SESSION_AD0_TYPE;
-    bindings[kAd0BindingSlot].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[kAd0BindingSlot].callback = native_ad0_handler;
-    bindings[kAd0BindingSlot].context = app;
-    config.action_binding_count = static_cast<size_t>(kActionBindingCount);
+    bindings[46].type = SESSION_AD0_TYPE;
+    bindings[46].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[46].callback = native_ad0_handler;
+    bindings[46].context = app;
+    config.action_binding_count = 47u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
