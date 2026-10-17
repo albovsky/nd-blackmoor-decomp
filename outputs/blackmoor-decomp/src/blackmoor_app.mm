@@ -25,6 +25,7 @@
 #include "session_bindings_a79.h"
 #include "session_bindings_a78.h"
 #include "inventory_view_runtime.h"
+#include "inventory_examine_runtime.h"
 #include "inventory_button_runtime.h"
 #include "session_bindings_a36.h"
 #include "session_bindings_a17.h"
@@ -278,8 +279,8 @@ struct NativeApp {
      * Pops the same `scene_stack_slot`; the pop is a scene-change request (mode 4) plus the start flag 0x5bb1ca. */
     SessionA6FBinding *a6f = nullptr;
     /* RT-41: raw 0x7d returns from the examined item's scene (arm 0x42950b -> view method 0x4eb5f2, gate mode 0). Pops the second
-     * saved-scene record `scene_restore_slot` (0x5c3a1b; the inventory examine branch 0x4ea269 that fills it is not ported, so an
-     * unfilled record makes the row report a blocker), re-adds the item named by the selector word 0x583f1d
+     * saved-scene record `scene_restore_slot` (0x5c3a1b; the inventory examine branch 0x4ea269 (RT-43) fills it; an unfilled record still
+     * makes the row report a blocker), re-adds the item named by the selector word 0x583f1d
      * (new_game.opaque_selector) through the raw 0x78 add step, requests the UI animation and the inventory screen (byte
      * 0x583232). `a7d_inventory` is refreshed before every visit. Not compiled here. */
     SessionA7DBinding *a7d = nullptr;
@@ -377,6 +378,11 @@ struct NativeApp {
     InventoryViewLayout inv_layout{};
     bool inv_view_initialized = false;
     int16_t inv_kind[INVVIEW_ITEMS]{}, inv_text[INVVIEW_ITEMS]{};
+    /* RT-43: the examine branch 0x4e8f0e -> 0x4ea269 (item record words +0x32 scene = inv_text, +0x34 = inv_flag782). It saves the
+     * running scene's words into `scene_restore_slot` (the record raw 0x7d pops), selects the item in the selector word 0x583f1d, and
+     * requests the item's scene (engine mode 4) outside the tick through scene_session_request_external_transition. Not compiled here. */
+    int16_t inv_flag782[INVVIEW_ITEMS]{};
+    InventoryExamine inv_examine{};
     std::vector<uint8_t> inv_uiiv, inv_curs;
     bool inv_data_ready = false;
     uint64_t inv_view_sounds = 0u;
@@ -3161,7 +3167,8 @@ static void inventory_view_ensure(NativeApp *app)
     if (!find_boot_payload(app, "UIIV", &uiiv, &uiiv_size) ||
         !find_boot_payload(app, "INV", &inv, &inv_size) ||
         !find_boot_payload(app, "CURS", &curs, &curs_size) ||
-        inventory_view_items_from_inv(inv, inv_size, app->inv_kind, app->inv_text) != INVVIEW_OK) {
+        inventory_view_items_from_inv(inv, inv_size, app->inv_kind, app->inv_text) != INVVIEW_OK ||
+        inventory_examine_words_from_inv(inv, inv_size, app->inv_flag782) != INVVIEW_OK) {
         record(app, "inventory_view_data_missing (BOOT chunks UIIV/INV/CURS)");
         return;
     }
@@ -3240,6 +3247,29 @@ static bool inventory_view_open_request(NativeApp *app, const char *source)
     return opened != 0;
 }
 
+static int native_a6e_load_current(void *context, SceneStackCurrent *current);
+
+/* RT-43: what 0x4ea269 leaves for the engine, as the app sees it: the item's scene as a pending scene change (mode 4). The words are the
+ * ones the loader copies at the next load (0x439f20..0x439f64); the start flag 0x5bb1ca is not touched by this step. */
+static int native_examine_scene_change(void *context, const InventoryExamineRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    SceneTransitionRequest transition{};
+    transition.target_scene = static_cast<int16_t>(request->scene_5bb57b);
+    transition.opaque_words[0] = request->word_5bb599;
+    transition.opaque_words[1] = request->word_5bb595;
+    transition.opaque_words[2] = request->word_5c39ff;
+    transition.opaque_dwords[0] = request->dword_5bb59b;
+    transition.opaque_dwords[1] = request->dword_5bb59f;
+    transition.opaque_dwords[2] = request->dword_5bb5a3;
+    if (scene_session_request_external_transition(app->session, &transition) != SCENE_SESSION_OK) return 1;
+    record(app, "inventory_examine_scene target=%d words=%d,%d,%d dwords=%d,%d,%d (mode 4; saved-scene record for raw 0x7d "
+           "filled by 0x4eb70f)", transition.target_scene, transition.opaque_words[0], transition.opaque_words[1],
+           transition.opaque_words[2], transition.opaque_dwords[0], transition.opaque_dwords[1], transition.opaque_dwords[2]);
+    return 0;
+}
+
 static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t x, int32_t y)
 {
     (void)x; (void)y;
@@ -3271,6 +3301,20 @@ static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t
     host.request_sound = native_inv_view_sound;
     host.close_view = native_inv_view_close;
     host.context = app;
+    app->inv_examine.selector = &app->new_game.opaque_selector;      /* word 0x583f1d */
+    app->inv_examine.slot = &app->scene_restore_slot;                /* record 0x5c3a1b */
+    app->inv_examine.flag_word = app->inv_flag782;
+    app->inv_examine.host.context = app;
+    app->inv_examine.host.load_current = native_a6e_load_current;
+    app->inv_examine.host.scene_change = native_examine_scene_change;
+    /* The scene-change request is the last effect that can fail after the item has moved, so the step is offered
+     * only when the session can take it now (not blocked or frozen, no transition pending, exit state running);
+     * otherwise the click reports UNMODELED with no effect. */
+    SceneTransitionRequest pending_transition{};
+    const bool examine_ready = app->session != nullptr && !app->session_block_reported &&
+                               scene_session_get_pending_transition(app->session, &pending_transition) == 0 &&
+                               app->exit_state.g.game_state == SESSION_EXIT_STATE_RUN;
+    host.examine = examine_ready ? &app->inv_examine : nullptr;
     InventoryViewClickResult result{};
     const char *why = "none";
     const int32_t hot = app->inv_view.hot;
@@ -3281,6 +3325,10 @@ static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t
            result.handled, result.picked, result.put_back, result.closed,
            (int)*inventory.selected_item_candidate,
            (int)static_cast<int16_t>(inventory.selector_words_583a2b.values[0]), why);
+    if (result.handled && result.closed && !result.picked)
+        record(app, "inventory_examine item=%d selector=%d saved_record=%d,%d type=%d (0x4ea269; text page not rendered)", (int)hot,
+               (int)app->new_game.opaque_selector, (int)app->scene_restore_slot.marker_5c3a1b,
+               (int)app->scene_restore_slot.scene_5c3a1d, (int)app->scene_restore_slot.word_5c3a23);
     if (result.picked)
         record(app, "inventory_view_held_item_set item=%d (word 0x583a29; the scene dependency opcode 11 "
                "'held item == N' reads it)", (int)*inventory.selected_item_candidate);

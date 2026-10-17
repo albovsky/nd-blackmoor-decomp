@@ -19,7 +19,7 @@ extern "C" {
  * 0x42ba3a and the dependency reset 0x423d33 never run, whatever the subtype, and the phase word is untouched. The
  * loader arm (A-7D.1) copies one body byte that is never read again.
  *
- * 0x4eb5f2 is the pop that pairs with 0x4eb70f (the inventory examine branch 0x4ea269 saves into it): the second of
+ * 0x4eb5f2 is the pop that pairs with 0x4eb70f (the inventory examine step 0x4ea269, RT-43, saves into it): the second of
  * the three "return to this scene" records, 0x5c3a1b..0x5c3a2f. In order:
  *   1. if movsx word [0x5c3a1b] == 9999 the record is empty: with the debug flag 0x63a4cd set it logs through
  *      0x52139c, then it stores 0 into [0x5c3a1b] and CARRIES ON with the (empty) values;
