@@ -452,8 +452,13 @@ class Registration(unittest.TestCase):
     def test_app_glue_uses_slot_52_and_numeric_literals(self):
         app = (SRC / 'blackmoor_app.mm').read_text()
         for line in ('bindings[52].type = SESSION_AE4_TYPE;', 'bindings[52].callback = native_ae4_handler;',
-                     'bindings[52].context = app;', 'SceneSessionActionBinding bindings[53]{};', 'config.action_binding_count = 53u;'):
+                     'bindings[52].context = app;'):
             self.assertEqual(app.count(line), 1, line)
+        # Later puzzles (RT-56 and up) raise the declared count; it must cover slot 52.
+        declared = int(re.search(r'SceneSessionActionBinding bindings\[(\d+)\]\{\};', app).group(1))
+        counted = int(re.search(r'config\.action_binding_count = (\d+)u;', app).group(1))
+        self.assertEqual(declared, counted)
+        self.assertGreaterEqual(counted, 53)
 
     def test_every_generic_entry_allocator_excludes_the_match_puzzle(self):
         """The allocators of the shared z entry range 0x18..0x3f all skip the Match Puzzle's slots, and its own skips theirs."""

@@ -58,6 +58,7 @@
 #include "session_bindings_af6.h"
 #include "session_bindings_ae0.h"
 #include "session_bindings_ae4.h"
+#include "session_bindings_aeb.h"
 #include "session_bindings_a77.h"
 #include "session_bindings_ad0.h"
 #include "session_bindings_aaa.h"
@@ -363,6 +364,14 @@ struct NativeApp {
     uint8_t ae4_cursor_logged = 0u;   /* bit 0: cursor 9 (exit button) logged once; bit 1: cursor 0x16 (piece, shuffle) */
     uint32_t ae4_plan_logged = 0u;    /* distinct render plan shapes logged (capped) */
     bool ae4_text_logged = false;     /* "MATCH PUZZLE TEXT NOT DRAWN" logged once */
+    /* RT-56: raw 0xeb Multibuild puzzle. Its piece surfaces (0x4c2a8d) are the Onebuild puzzle's host calls and are tracked in
+     * aea_surfaces; the saved puzzle state (0x5a055d..) lives in the binding and is reset by the new-game reset. */
+    SessionAebBinding *aeb = nullptr;
+    std::array<bool, 0x40> aeb_slot_used{};
+    EbPointerResult aeb_pointer{};
+    uint64_t aeb_plan_signature = 0u;
+    bool aeb_render_failure_logged = false;
+    bool aeb_second_button_logged = false;
     /* RT-45: raw 0xea Onebuild (jigsaw) puzzle. aea_surfaces holds the handles of the puzzle's own piece surfaces
      * (0x4c2a8d), which the kernel releases through 0x4c2dfb; loaded images stay cached by name. */
     SessionAeaBinding *aea = nullptr;
@@ -1117,6 +1126,7 @@ static bool native_aea_render(NativeApp *app);
 static bool native_af6_render(NativeApp *app);
 static bool native_ae0_render(NativeApp *app);
 static bool native_ae4_render(NativeApp *app);
+static bool native_aeb_render(NativeApp *app);
 
 static bool seed_native_caption_backbuffer(NativeApp *app)
 {
@@ -1531,6 +1541,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->ae4 != nullptr && session_ae4_registered(app->ae4) != 0u) {
         /* RT-54: the Match Puzzle's render entry (type 10, callback 0x4778df), same slot range. */
         (void)native_ae4_render(app);
+    }
+    if (app->aeb != nullptr && session_aeb_registered(app->aeb) != 0u) {
+        /* RT-56: the Multibuild puzzle's render entry (type 10, callback 0x481cb9), same slot range. */
+        (void)native_aeb_render(app);
     }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
@@ -2131,6 +2145,7 @@ static void cleanup(NativeApp *app)
     session_af6_destroy(app->af6);
     session_ae0_destroy(app->ae0);
     session_ae4_destroy(app->ae4);
+    session_aeb_destroy(app->aeb);
     session_a77_destroy(app->a77);
     session_ad0_destroy(app->ad0);
     session_aaa_destroy(app->aaa);
@@ -3644,7 +3659,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
             !app->af6_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4731,7 +4746,7 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5165,7 +5180,7 @@ static int native_aea_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5513,7 +5528,7 @@ static int native_af6_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5828,7 +5843,7 @@ static int native_ad0_alloc_slot(void *context, int16_t *slot)
         if (!app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
             !app->aea_slot_used[index] && !app->af6_slot_used[index] && !app->aaa_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6061,7 +6076,7 @@ static int native_aaa_alloc_slot(void *context, int16_t *slot)
         if (!app->aaa_slot_used[index] && !app->ad0_slot_used[index] && !app->ad1_slot_used[index] &&
             !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6298,7 +6313,7 @@ static int native_ae0_alloc_slot(void *context, int16_t *slot)
             !app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->ae4_slot_used[static_cast<size_t>(i)] && !app->aeb_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6549,7 +6564,7 @@ static int native_ad3_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] && !app->aeb_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -6763,7 +6778,8 @@ static int native_ae4_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->ae4_slot_used[index] && !app->ae0_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->ad0_slot_used[index] && !app->aaa_slot_used[index] && !app->ad3_slot_used[index] && !app->af5_slot_used[index]) {
+            !app->ad0_slot_used[index] && !app->aaa_slot_used[index] && !app->ad3_slot_used[index] &&
+            !app->aeb_slot_used[index] && !app->af5_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -7058,6 +7074,235 @@ static bool native_ae4_render(NativeApp *app)
     return true;
 }
 
+/* ---- RT-56: raw 0xeb Multibuild puzzle host providers ----------------------
+ * The kernel (action_family_eb_runtime.c) is the recovered 0x480e02 handler, the pointer receiver 0x47f421, the accepted-release
+ * click 0x47ff0e and the render callback 0x481cb9. The host supplies the generic Z entry table (0x4d39f9 / 0x4d3992, shared with
+ * the other puzzles), the CIFTREE image (0x4c2790), the surface create / blit / copy / rotate / release calls and the tick, the
+ * caption and AUTOTEXT providers of the Onebuild puzzle (the same engine calls), the finish block's scene change and event
+ * flags, and the sound engine calls. Sound is NOT wired: the sound calls are logged "NOT PLAYED (no effect backend)" and report
+ * "not busy". There is no second-button source in the app (the platform maps the right button onto the left one), so the
+ * second-button event 0x47ef0f is never raised and a piece is turned only through its rotate zone (candidate 0x278e); this is
+ * logged once per puzzle as SECOND BUTTON NOT AVAILABLE. Not compiled in the cloud container (no macOS toolchain). */
+/* 0x583186 / 0x58318a and the clip rectangle 0x583196.. (the second VIEW rectangle, which the loader fills from scene_source). */
+static int native_aeb_view(void *context, EbView *view)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || view == nullptr) return 1;
+    view->origin_x = app->scene_destination.left;
+    view->origin_y = app->scene_destination.top;
+    view->clip[0] = app->scene_source.left;
+    view->clip[1] = app->scene_source.top;
+    view->clip[2] = app->scene_source.right;
+    view->clip[3] = app->scene_source.bottom;
+    return 0;
+}
+
+static int native_aeb_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        const size_t index = static_cast<size_t>(i);
+        if (!app->aeb_slot_used[index] && !app->ae4_slot_used[index] && !app->ae0_slot_used[index] &&
+            !app->af6_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
+            !app->aea_slot_used[index] && !app->ad0_slot_used[index] && !app->aaa_slot_used[index] &&
+            !app->ad3_slot_used[index] && !app->af5_slot_used[index]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_aeb_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_aeb_register_slot(void *context, int16_t slot, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->aeb_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_aeb_register slot=%d label=%s (type 10 entry, callback 0x481cb9)", slot, label);
+    if (!app->aeb_second_button_logged) {
+        app->aeb_second_button_logged = true;
+        record(app, "scene_aeb_input SECOND BUTTON NOT AVAILABLE (0x47ef0f is never raised; pieces turn through the rotate zone only)");
+    }
+    return 0;
+}
+
+static int native_aeb_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->aeb_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_aeb_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass draws every tick */
+    return 0;
+}
+
+static int native_aeb_load_surface(void *context, const char *name, const char *tag, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "multibuild-puzzle");
+    if (handle == 0u) {
+        record(app, "scene_aeb_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_aeb_surface_load name=%s surface=%u tag=%s source=CIFTREE (0x4c2790)", name, handle,
+           tag != nullptr ? tag : "");
+    return 0;
+}
+
+static int native_aeb_sound_prepare(void *context, uint32_t id, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_aeb_sound id=0x%x call=0x4fb77a NOT PLAYED (no effect backend)", id);
+    return 0;
+}
+
+static int native_aeb_sound_stop(void *context, uint32_t id, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_aeb_sound id=0x%x call=0x4fba69 NOT PLAYED (no effect backend)", id);
+    return 0;
+}
+
+static int native_aeb_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_aeb_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_aeb_sound_busy(void *context, int16_t channel, int32_t *result)
+{
+    (void)context;
+    (void)channel;
+    if (result == nullptr) return 1;
+    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    return 0;
+}
+
+/* The process dword 0x5bb57b as the app holds it: the running scene (after a load 0x439ec4 stores it). */
+static int32_t native_aeb_scene_cell(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app != nullptr ? static_cast<int32_t>(app->current_scene_id) : 9999;
+}
+
+static int native_aeb_transition(void *context, const EbTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_aeb_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+static int native_aeb_complete(void *context, int16_t row)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_aeb_complete row=%d (0x42ba3a)", row);
+    return 0;
+}
+
+/* Publishes 0x5bb1ca. The dword 0x5bb57b also written by the finish block reaches the engine through the scene change request
+ * above (target_scene), not through a second store; the saved puzzle state stays in the binding. */
+static void native_aeb_store_world(void *context, const EbWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static int native_aeb_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_aeb_handler(app->aeb, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_aeb_blocker row=%zu status=%d detail=%s", row, status, session_aeb_failure(app->aeb));
+    }
+    return status;
+}
+
+/* 0x481cb9: the blits of one render pass onto the back buffer. The restore blits (source 0x5d15e3, the saved background, plan
+ * source kind 0) are skipped: the back buffer is recomposed from the scene every tick. */
+static bool native_aeb_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    EbRenderPlan plan{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_aeb_render_plan(app->aeb, &plan) != EB_OK) {
+        if (!app->aeb_render_failure_logged) {
+            app->aeb_render_failure_logged = true;
+            record(app, "scene_aeb_render_error detail=plan-unavailable (%s)", session_aeb_failure(app->aeb));
+        }
+        return false;
+    }
+    if (plan.valid == 0u) return true;
+    CaptionCompositorView destination{};
+    destination.pixels = captions.backbuffer_pixels.data();
+    destination.byte_capacity = captions.backbuffer_pixels.size();
+    destination.width = 640;
+    destination.height = 480;
+    destination.pitch_bytes = 1280;
+    destination.format = captions.compositor_format;
+    uint64_t signature = UINT64_C(14695981039346656037);
+    int32_t drawn = 0;
+    for (int32_t i = 0; i < plan.count; ++i) {
+        const EbBlit &blit = plan.blit[i];
+        if (blit.src_kind == 0u) continue;
+        CaptionCompositorView source{};
+        if (!native_caption_view_for_handle(app, blit.src_surface, &source)) {
+            if (!app->aeb_render_failure_logged) {
+                app->aeb_render_failure_logged = true;
+                record(app, "scene_aeb_render_error detail=surface-unavailable surface=%u kind=%u", blit.src_surface,
+                       static_cast<unsigned>(blit.src_kind));
+            }
+            return false;
+        }
+        const CaptionRect src{blit.src[0], blit.src[1], blit.src[2], blit.src[3]};
+        const CaptionRect dst{blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]};
+        const int status = caption_compositor_blit(&source, &destination,
+                                                   blit.kind == 0u ? CAPTION_BLIT_OPAQUE : CAPTION_BLIT_KEYED, &src, &dst,
+                                                   captions.pixel_format.color_key);
+        if (status != CAPTION_COMPOSITOR_OK) {
+            if (!app->aeb_render_failure_logged) {
+                app->aeb_render_failure_logged = true;
+                record(app, "scene_aeb_render_error status=%d blit=%d kind=%d src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+                       "(blit refused; no pixels written)", status, i, blit.kind, blit.src[0], blit.src[1],
+                       blit.src[2], blit.src[3], blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]);
+            }
+            return false;
+        }
+        ++drawn;
+        for (int k = 0; k < 4; ++k) {
+            signature ^= static_cast<uint32_t>(blit.dst[k]);
+            signature *= UINT64_C(1099511628211);
+        }
+    }
+    if (signature != app->aeb_plan_signature) {
+        app->aeb_plan_signature = signature;
+        record(app, "scene_aeb_blit blits=%d composed=back-buffer scope=host-adapter (layer order vs UI unverified)", drawn);
+    }
+    return true;
+}
+
 /* ---- RT-55: raw 0xf5 Typing Quiz Puzzle host providers ---------------------------------------------------------
  * Dispatcher arm -> handler 0x4b8e92 (kernel action_family_f5_runtime.c, shared score / time widget score_time_display.c, the
  * binding session_bindings_af5.c owns the object at 0x61ee6e and the widget at 0x638603). The three render entries (type 10,
@@ -7072,7 +7317,8 @@ static int native_af5_alloc_slot(void *context, int16_t *slot)
         const size_t index = static_cast<size_t>(i);
         if (!app->af5_slot_used[index] && !app->ad3_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
-            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index]) {
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index] && !app->ae4_slot_used[index] &&
+            !app->aeb_slot_used[index]) {
             *slot = i;
             return 0;
         }
@@ -8137,6 +8383,35 @@ static bool create_native_session_bindings(NativeApp *app)
     ae4_host.kernel.observe = native_ae4_observe;
     ae4_host.store_world = native_ae4_store_world;
     app->ae4 = session_ae4_create(&ae4_host);
+    SessionAebHost aeb_host{};   /* RT-56: raw 0xeb Multibuild puzzle; sound is not wired (no effect backend), no second button */
+    aeb_host.kernel.context = app;
+    aeb_host.kernel.view = native_aeb_view;
+    aeb_host.kernel.alloc_slot = native_aeb_alloc_slot;
+    aeb_host.kernel.register_slot = native_aeb_register_slot;
+    aeb_host.kernel.release_slot = native_aeb_release_slot;
+    aeb_host.kernel.mark_dirty = native_aeb_mark_dirty;
+    aeb_host.kernel.load_surface = native_aeb_load_surface;
+    aeb_host.kernel.create_surface = native_aea_create_surface;   /* 0x4c2a8d, as the Onebuild puzzle */
+    aeb_host.kernel.blit = native_aea_blit;                       /* 0x4c51a5 */
+    aeb_host.kernel.copy_surface = native_aea_copy_surface;
+    aeb_host.kernel.rotate_surface = native_aea_rotate_surface;   /* 0x4c7070 */
+    aeb_host.kernel.release_surface = native_aea_release_surface; /* 0x4c2dfb */
+    aeb_host.kernel.clear_pending_item = native_ad1_clear_item;
+    aeb_host.kernel.sound_prepare = native_aeb_sound_prepare;
+    aeb_host.kernel.sound_stop = native_aeb_sound_stop;
+    aeb_host.kernel.sound_play = native_aeb_sound_play;
+    aeb_host.kernel.sound_busy = native_aeb_sound_busy;
+    aeb_host.kernel.tick = native_aea_tick;                       /* GetTickCount */
+    aeb_host.kernel.captions_enabled = native_aea_captions_enabled;
+    aeb_host.kernel.autotext_lookup = native_aea_autotext;        /* 0x423259 */
+    aeb_host.kernel.caption_show = native_aea_caption;            /* 0x448d11 */
+    aeb_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    aeb_host.kernel.transition = native_aeb_transition;
+    aeb_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    aeb_host.kernel.complete = native_aeb_complete;
+    aeb_host.scene_cell = native_aeb_scene_cell;
+    aeb_host.store_world = native_aeb_store_world;
+    app->aeb = session_aeb_create(&aeb_host);
     SessionA77Host a77_host{};   /* RT-49 */
     a77_host.kernel.context = app;
     a77_host.kernel.random = native_a77_random;
@@ -8725,6 +9000,13 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ae4_plan_signature = 0u;
     app->ae4_plan_logged = 0u;
     app->ae4_render_failure_logged = false;
+    if (session_aeb_begin_scene(app->aeb, app->scene) != EB_OK) {
+        record(app, "scene_session_create_error provider=action-family-eb detail=%s", session_aeb_failure(app->aeb));
+        return false;
+    }
+    app->aeb_slot_used.fill(false);
+    app->aeb_plan_signature = 0u;
+    app->aeb_render_failure_logged = false;
     if (session_a77_begin_scene(app->a77, app->scene) != A77_OK) {
         record(app, "scene_session_create_error provider=action-family-77 detail=%s", session_a77_failure(app->a77));
         return false;
@@ -9259,6 +9541,32 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
+    /* RT-56: the Multibuild puzzle's accepted-release chain (0x43b331 -> 0x47ff0e, after the Onebuild click 0x48569e). It acts on
+     * the retained candidate (0x278d..0x2791, or any value: a multi-piece drag in hand picks on every release), so the candidate
+     * is not range-gated here. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->aeb != nullptr && session_aeb_registered(app->aeb) != 0u && app->session != nullptr) {
+        const EbObject *multibuild = session_aeb_object(app->aeb);
+        SceneActionRuntimeState multibuild_state{};
+        uint32_t new_phase = 0u;
+        const int16_t multibuild_row = multibuild != nullptr ? eb_object_row(multibuild) : static_cast<int16_t>(-1);
+        if (multibuild_row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(multibuild_row), &multibuild_state) ==
+                SCENE_SESSION_OK) {
+            const int click = session_aeb_click(app->aeb, multibuild_state.phase, app->input_state.candidate, &new_phase);
+            if (click != EB_OK) {
+                record(app, "scene_aeb_click_error row=%d status=%d detail=%s", multibuild_row, click,
+                       session_aeb_failure(app->aeb));
+            } else if (new_phase == 2u && multibuild_state.phase != 2u) {
+                if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(multibuild_row)) ==
+                    SCENE_SESSION_OK)
+                    record(app, "scene_aeb_click row=%d candidate=%d -> phase 2 (0x47ff0e)", multibuild_row,
+                           app->input_state.candidate);
+                else
+                    record(app, "scene_aeb_click_error row=%d detail=phase-2-store-refused", multibuild_row);
+            }
+        }
+    }
     app->aea_pointer = EaPointerResult{};
     app->aea_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aea != nullptr &&
@@ -9273,6 +9581,21 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                                 hot_input.cursor.bottom - hot_input.viewport.top + hot_input.scroll_y};
         (void)session_aea_pointer_move(app->aea, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y), hot, &app->aea_pointer);
+    }
+    app->aeb_pointer = EbPointerResult{};
+    app->aeb_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aea_pointer.hit == 0u && app->aeb != nullptr &&
+        session_aeb_registered(app->aeb) != 0u) {
+        /* 0x47f421 runs in the cascade 0x4f0059 right after the Onebuild receiver 0x484f42 returned 0 (ptr+0x4a: the same hot
+         * rectangle as above). */
+        SessionInputContext hot_input{};
+        native_pointer_context(app, &hot_input);
+        const int32_t hot[4] = {hot_input.cursor.left - hot_input.viewport.left,
+                                hot_input.cursor.top - hot_input.viewport.top + hot_input.scroll_y,
+                                hot_input.cursor.right - hot_input.viewport.left,
+                                hot_input.cursor.bottom - hot_input.viewport.top + hot_input.scroll_y};
+        (void)session_aeb_pointer_move(app->aeb, static_cast<int16_t>(frame->pointer_x),
+                                       static_cast<int16_t>(frame->pointer_y), hot, &app->aeb_pointer);
     }
     app->ad1_pointer = D1PointerResult{};
     app->ad1_pointer.candidate = -1;
@@ -9474,6 +9797,11 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* 0x4f0d61: the Onebuild puzzle's receiver 0x484f42 returns before the generic row loop and has written
          * the candidate (0x2777..0x277c). The cursor index it also writes is not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->aea_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->aeb_pointer.hit != 0u) {
+        /* 0x4f0d90: the Multibuild puzzle's receiver 0x47f421 returns before the generic row loop and has written the candidate
+         * (0x278d..0x2791). The cursor cells it also writes are not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->aeb_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->af6_pointer.hit != 0u) {
         /* 0x45e1ca returns before the generic row loop and 0x45e4d4 writes the candidate (0x27ec / 0x27ed / 0x27ef)
@@ -9702,7 +10030,7 @@ static bool create_native_scene_session(NativeApp *app)
      * RT-47 (0xf6, slot 46), RT-50 (0xd0, slot 47) and RT-52 (0xaa, slot 48). Slots must be gap-free because scene_session_create
      * rejects an entry without a callback. The map script
      * (decomp-progress/playable.py) needs numeric slot literals. */
-    SceneSessionActionBinding bindings[54]{};
+    SceneSessionActionBinding bindings[55]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -9967,6 +10295,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[52].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[52].callback = native_ae4_handler;
     bindings[52].context = app;
+    /* RT-56: raw 0xeb Multibuild puzzle (dispatcher arm 0x42a794 -> 0x480e02, gate mode 0; phase 2 completes through 0x42ba3a). The
+     * render callback 0x481cb9 runs from the app tick (native_aeb_render). Slot 54, count 55: slot 53 is RT-55's (slots must be
+     * gap-free, so the session is created only once both threads are merged). */
+    bindings[54].type = SESSION_AEB_TYPE;
+    bindings[54].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[54].callback = native_aeb_handler;
+    bindings[54].context = app;
     /* RT-55: raw 0xf5 Typing Quiz Puzzle (handler 0x4b8e92; phase 2 completes through 0x42ba3a). The render callbacks run from
      * the app tick (native_af5_render). Slot 53, count 54 (slot 52 is RT-54's 0xe4; the slots must stay gap-free: scene_session_create
      * rejects an empty binding). */
@@ -9974,7 +10309,7 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[53].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[53].callback = native_af5_handler;
     bindings[53].context = app;
-    config.action_binding_count = 54u;
+    config.action_binding_count = 55u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -10450,6 +10785,8 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
     }
     /* RT-53: the new-game reset 0x438471 calls 0x4618df, which clears the Collision Puzzle's one-time setup flag and its grid. */
     if (app->ad3 != nullptr) session_ad3_grid_reset(app->ad3);
+    /* RT-56: the new-game reset 0x4384f8 calls 0x47e3f7, which clears the Multibuild puzzle's saved state (0x5a055d..0x5a1109). */
+    if (app->aeb != nullptr) session_aeb_world_reset(app->aeb);
     /* RT-55: the new-game reset 0x4b8087 clears the played flag 0x5a4c0a and the best score 0x5a4c0e. */
     if (app->af5 != nullptr) session_af5_new_game(app->af5);
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
@@ -10970,6 +11307,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
              r.failure.action_type == SESSION_AE0_TYPE_E0) detail = session_ae0_failure(app->ae0);
     else if (r.failure.action_type == SESSION_AD3_TYPE) detail = session_ad3_failure(app->ad3);
     else if (r.failure.action_type == SESSION_AE4_TYPE) detail = session_ae4_failure(app->ae4);
+    else if (r.failure.action_type == SESSION_AEB_TYPE) detail = session_aeb_failure(app->aeb);
     if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
         r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
         (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
