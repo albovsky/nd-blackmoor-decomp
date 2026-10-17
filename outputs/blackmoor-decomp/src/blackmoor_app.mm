@@ -8052,7 +8052,8 @@ static bool unload_scene_sound_object(NativeApp *app)
         ? live_audio_unload_channels(app->live_audio, plan.channels, plan.count) : LIVE_AUDIO_OK;
     record(app, "scene_audio_reset scene=%d count=%zu status=%d original=0x429220->0x4fb018 order=MSND,0..13 fade=none",
            app->current_scene_id, plan.count, status);
-    return status == LIVE_AUDIO_OK;
+    /* The original loop of 0x4fb018 ignores each unload failure; a backend Stop refusal is logged above and not fatal. */
+    return status == LIVE_AUDIO_OK || status == LIVE_AUDIO_ERR_HOST;
 }
 
 /* LoadNewSceneData (0x439822) for a pending scene change, run from state 1.
