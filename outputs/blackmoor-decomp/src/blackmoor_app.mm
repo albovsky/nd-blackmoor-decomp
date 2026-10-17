@@ -410,7 +410,7 @@ struct NativeApp {
     std::array<bool, 0x40> a1c_slot_used{};
     bool a1c_wait_logged = false;
     bool a1c_fills_logged = false;
-    /* RT-59: raw 0xda Bul puzzle (arm 0x42a424 -> 0x45c18f, object 0x624734). The binding is recreated at every scene start; the
+    /* RT-59: raw 0xda Bul puzzle (arm 0x42a424 -> 0x45c18f, object 0x624734). The binding persists and is reset at every scene start; the
      * backdrop (Z entry 1, 0x5d15e3) is a snapshot of the seeded back buffer as for 0xe0 / 0xe4; sounds are not played, the caption
      * text goes through the AUTOTEXT lookup and the boxed caption writer of the Onebuild puzzle. */
     SessionAdaBinding *ada = nullptr;
