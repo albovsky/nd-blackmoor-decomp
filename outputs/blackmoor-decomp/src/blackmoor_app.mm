@@ -61,6 +61,7 @@
 #include "session_bindings_ad0.h"
 #include "session_bindings_aaa.h"
 #include "session_bindings_ad3.h"
+#include "session_bindings_af5.h"
 #include "session_bindings_aea.h"
 #include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_conditions.h"
@@ -324,6 +325,14 @@ struct NativeApp {
     CpzPointerResult ad3_pointer{};
     uint64_t ad3_plan_signature = 0u;
     bool ad3_render_failure_logged = false;
+    /* RT-55: raw 0xf5 Typing Quiz Puzzle (dispatcher arm -> handler 0x4b8e92, render callbacks 0x4b9a88 / 0x446688 / 0x4468fe of
+     * three dynamic generic Z entries). */
+    SessionAf5Binding *af5 = nullptr;
+    std::array<bool, 0x40> af5_slot_used{};
+    TqzPointerResult af5_pointer{};
+    uint64_t af5_plan_signature = 0u;
+    bool af5_render_failure_logged = false;
+    bool af5_text_stub_logged = false;
     /* RT-51: raw 0xd6 / 0xe0 keypad puzzle (arms 0x42a2c0 / 0x42a2fc -> 0x471722, gate mode 0; one binding serves both raw
      * types). Shares the generic Z entry range 0x18..0x3f (native_*_alloc_slot). The BG blits copy from a snapshot of the
      * seeded back buffer, the stand-in of the saved scene frame (Z entry 1, 0x5d15e3), as for 0xf6. Not compiled in the
@@ -1087,6 +1096,7 @@ static bool native_a77_render(NativeApp *app);
 static bool native_ad0_render(NativeApp *app);
 static bool native_aaa_render(NativeApp *app);
 static bool native_ad3_render(NativeApp *app);
+static bool native_af5_render(NativeApp *app);
 static bool native_aea_render(NativeApp *app);
 static bool native_af6_render(NativeApp *app);
 static bool native_ae0_render(NativeApp *app);
@@ -1484,6 +1494,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->ad3 != nullptr && session_ad3_registered(app->ad3) != 0u) {
         /* RT-53: the Collision Puzzle's render entry (type 10, callback 0x463b10), same slot range. */
         (void)native_ad3_render(app);
+    }
+    if (app->af5 != nullptr && session_af5_registered(app->af5) != 0u) {
+        /* RT-55: the Typing Quiz's render entries (type 10, callbacks 0x4b9a88 / 0x446688 / 0x4468fe), same slot range. */
+        (void)native_af5_render(app);
     }
     if (app->aea != nullptr && session_aea_registered(app->aea) != 0u) {
         /* RT-45: the Onebuild puzzle's render entry (type 10, callback 0x4876ed), same slot range. */
@@ -2055,6 +2069,20 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     }
 }
 
+/* RT-55: typed characters (WM_CHAR level). The quiz is the only consumer; the key method gates on an active quiz, the playing
+ * state and row phase 1 itself, so a character is only forwarded here while the quiz is active. */
+static void character(void *context, int8_t ch)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->af5 == nullptr || app->session == nullptr) return;
+    const TqzObject *quiz = session_af5_object(app->af5);
+    if (quiz == nullptr || quiz->active == 0 || quiz->row < 0) return;
+    SceneActionRuntimeState quiz_state{};
+    if (scene_session_get_action_state(app->session, static_cast<size_t>(quiz->row), &quiz_state) != SCENE_SESSION_OK) return;
+    if (session_af5_key(app->af5, quiz_state.phase, ch) != 0)
+        record(app, "scene_af5_key row=%d char=0x%02x stored (0x4b8193)", quiz->row, static_cast<unsigned>(static_cast<uint8_t>(ch)));
+}
+
 static void key(void *context, unsigned virtual_key, int down, int repeat)
 {
     (void)repeat;
@@ -2085,6 +2113,7 @@ static void cleanup(NativeApp *app)
     session_ad0_destroy(app->ad0);
     session_aaa_destroy(app->aaa);
     session_ad3_destroy(app->ad3);
+    session_af5_destroy(app->af5);
     session_aea_destroy(app->aea);
     session_a20_destroy(app->a20);
     session_a70_destroy(app->a70);
@@ -3593,7 +3622,7 @@ static int native_ad9_alloc_slot(void *context, int16_t *slot)
             !app->af6_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -4680,7 +4709,7 @@ static int native_ad1_alloc_slot(void *context, int16_t *slot)
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5114,7 +5143,7 @@ static int native_aea_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->af6_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5462,7 +5491,7 @@ static int native_af6_alloc_slot(void *context, int16_t *slot)
             !app->ad9_slot_used[static_cast<size_t>(i)] && !app->aea_slot_used[static_cast<size_t>(i)] &&
             !app->ad0_slot_used[static_cast<size_t>(i)] && !app->aaa_slot_used[static_cast<size_t>(i)] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -5777,7 +5806,7 @@ static int native_ad0_alloc_slot(void *context, int16_t *slot)
         if (!app->ad0_slot_used[index] && !app->ad1_slot_used[index] && !app->ad9_slot_used[index] &&
             !app->aea_slot_used[index] && !app->af6_slot_used[index] && !app->aaa_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6010,7 +6039,7 @@ static int native_aaa_alloc_slot(void *context, int16_t *slot)
         if (!app->aaa_slot_used[index] && !app->ad0_slot_used[index] && !app->ad1_slot_used[index] &&
             !app->ad9_slot_used[index] && !app->aea_slot_used[index] && !app->af6_slot_used[index] &&
             !app->ae0_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6247,7 +6276,7 @@ static int native_ae0_alloc_slot(void *context, int16_t *slot)
             !app->ad1_slot_used[static_cast<size_t>(i)] && !app->ad9_slot_used[static_cast<size_t>(i)] &&
             !app->aea_slot_used[static_cast<size_t>(i)] && !app->ad0_slot_used[static_cast<size_t>(i)] &&
             !app->aaa_slot_used[static_cast<size_t>(i)] &&
-            !app->ad3_slot_used[static_cast<size_t>(i)]) {
+            !app->ad3_slot_used[static_cast<size_t>(i)] && !app->af5_slot_used[static_cast<size_t>(i)]) {
             *slot = i;
             return 0;
         }
@@ -6496,7 +6525,7 @@ static int native_ad3_alloc_slot(void *context, int16_t *slot)
     if (app == nullptr || slot == nullptr) return 1;
     for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
         const size_t index = static_cast<size_t>(i);
-        if (!app->ad3_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
+        if (!app->ad3_slot_used[index] && !app->af5_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
             !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
             !app->af6_slot_used[index] && !app->ae0_slot_used[index]) {
             *slot = i;
@@ -6692,6 +6721,261 @@ static bool native_ad3_render(NativeApp *app)
         app->ad3_plan_signature = signature;
         record(app, "scene_ad3_blit blits=%d composed=back-buffer scope=host-adapter (layer order vs UI unverified; "
                "restore implicit)", static_cast<int>(result.count));
+    }
+    return true;
+}
+
+/* ---- RT-55: raw 0xf5 Typing Quiz Puzzle host providers ---------------------------------------------------------
+ * Dispatcher arm -> handler 0x4b8e92 (kernel action_family_f5_runtime.c, shared score / time widget score_time_display.c, the
+ * binding session_bindings_af5.c owns the object at 0x61ee6e and the widget at 0x638603). The three render entries (type 10,
+ * callbacks 0x4b9a88, 0x446688, 0x4468fe) run from the app tick. Sounds are logged NOT PLAYED (no effect backend). The balloon
+ * character text (0x4d2c20, text surface and colours are the host's) is a documented stub: it is logged once per character
+ * instead of drawn. Layer order against the UI, the balloon pop rectangle sizes and the font are unverified. */
+static int native_af5_alloc_slot(void *context, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot == nullptr) return 1;
+    for (int16_t i = D9_SLOT_FIRST; i <= D9_SLOT_LAST; ++i) {
+        const size_t index = static_cast<size_t>(i);
+        if (!app->af5_slot_used[index] && !app->ad3_slot_used[index] && !app->aaa_slot_used[index] && !app->ad0_slot_used[index] &&
+            !app->ad1_slot_used[index] && !app->ad9_slot_used[index] && !app->aea_slot_used[index] &&
+            !app->af6_slot_used[index] && !app->ae0_slot_used[index]) {
+            *slot = i;
+            return 0;
+        }
+    }
+    record(app, "scene_af5_slot_error detail=no-free-render-entry (0x4d39f9 searches 0x18..0x3f)");
+    return 1;
+}
+
+static int native_af5_register_slot(void *context, int16_t slot, int32_t type, int callback, uint32_t surface, const char *label)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)surface;
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST || label == nullptr) return 1;
+    app->af5_slot_used[static_cast<size_t>(slot)] = true;
+    record(app, "scene_af5_register slot=%d type=%d callback=%d label=%s", slot, type, callback, label);
+    return 0;
+}
+
+static int native_af5_load_surface(void *context, const char *name, uint32_t *surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr || surface == nullptr) return 1;
+    const uint32_t handle = native_caption_load_image(app, name, "typing-quiz");
+    if (handle == 0u) {
+        record(app, "scene_af5_surface_error name=%s detail=CIFTREE-image-unavailable", name);
+        return 1;
+    }
+    *surface = handle;
+    record(app, "scene_af5_surface_load name=%s surface=%u source=CIFTREE (0x4c2790)", name, handle);
+    return 0;
+}
+
+static int native_af5_set_slot_surface(void *context, int16_t slot, uint32_t surface)
+{
+    (void)context;
+    (void)slot;
+    (void)surface;
+    return 0;
+}
+
+static int native_af5_release_surface(void *context, uint32_t surface)
+{
+    (void)context;
+    (void)surface; /* images stay cached by name, as for the other families */
+    return 0;
+}
+
+static int native_af5_release_slot(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || slot < D9_SLOT_FIRST || slot > D9_SLOT_LAST) return 1;
+    app->af5_slot_used[static_cast<size_t>(slot)] = false;
+    return 0;
+}
+
+static int native_af5_mark_dirty(void *context, int16_t slot)
+{
+    (void)context;
+    (void)slot; /* the render pass runs every tick */
+    return 0;
+}
+
+/* 0x583186 (absolute view rectangle) and 0x583196 (the same rectangle relative to the view): the scene frame is 640 x 480. */
+static int native_af5_view_rects(void *context, int32_t absolute[4], int32_t local[4])
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || absolute == nullptr || local == nullptr) return 1;
+    absolute[0] = app->scene_destination.left;
+    absolute[1] = app->scene_destination.top;
+    absolute[2] = app->scene_destination.left + 640;
+    absolute[3] = app->scene_destination.top + 480;
+    local[0] = 0;
+    local[1] = 0;
+    local[2] = 640;
+    local[3] = 480;
+    return 0;
+}
+
+/* 0x4c924d(10) / 0x4c92c5(10): the font surface count. The balloon text is a stub, so there is nothing to hold. */
+static int native_af5_font_acquire(void *context)
+{
+    (void)context;
+    return 0;
+}
+
+static int native_af5_font_release(void *context)
+{
+    (void)context;
+    return 0;
+}
+
+static int native_af5_sound_prepare(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_af5_sound call=0x4fb77a NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_af5_sound_stop(void *context, const uint8_t *record_bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)record_bytes;
+    record(app, "scene_af5_sound call=0x4fba69 NOT PLAYED (no effect backend)");
+    return 0;
+}
+
+static int native_af5_sound_play(void *context, int16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_af5_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
+    return 0;
+}
+
+static int native_af5_transition(void *context, const TqzTransition *t)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || t == nullptr) return 1;
+    SceneTransitionRequest request{};
+    request.target_scene = t->scene;
+    for (int i = 0; i < 3; ++i) {
+        request.opaque_words[i] = t->word[i];
+        request.opaque_dwords[i] = t->dword[i];
+    }
+    if (scene_session_request_transition(app->session, &request) != SCENE_SESSION_OK) return 1;
+    record(app, "scene_af5_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d", t->scene, t->word[0],
+           t->word[1], t->word[2], t->dword[0], t->dword[1], t->dword[2]);
+    return 0;
+}
+
+/* The finish block's last store: engine mode 0x583999 := 4. The transition request above already carries the scene change;
+ * the exit-state machine hand-over is not wired here (logged, unverified). */
+static int native_af5_engine_mode(void *context, int32_t mode)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    record(app, "scene_af5_engine_mode mode=%d (0x583999 := %d; exit-state hand-over not wired)", mode, mode);
+    return 0;
+}
+
+static void native_af5_store_world(void *context, const TqzWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app != nullptr && world != nullptr) app->start_flag_5bb1ca = world->start_flag_5bb1ca;
+}
+
+static void native_af5_observe(void *context, int effect, int32_t a, int32_t b)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    (void)b;
+    if (app == nullptr) return;
+    if (effect == TQZ_FX_PHASE) {
+        record(app, "scene_af5_phase new_phase=%d (0x4b8e92)", a);
+    } else if (effect == TQZ_FX_COMPLETE) {
+        record(app, "scene_af5_complete row=%d (0x42ba3a)", a);
+    } else if (effect == TQZ_FX_STATE) {
+        record(app, "scene_af5_state state=%d", a);
+    }
+}
+
+static int native_af5_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_af5_handler(app->af5, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_af5_blocker row=%zu status=%d detail=%s", row, status, session_af5_failure(app->af5));
+    }
+    return status;
+}
+
+/* 0x4b9a88 / 0x446688 / 0x4468fe: one opaque copy per drawn part (erases are implicit: the back buffer is reseeded from the
+ * decoded scene frame on every tick). The balloon character (kind TQZ_BLIT_TEXT) is the documented stub. */
+static bool native_af5_draw(NativeApp *app, const TqzRenderResult &result, uint64_t *signature)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    for (uint16_t i = 0; i < result.count; ++i) {
+        const StdBlit &blit = result.blit[i];
+        *signature ^= static_cast<uint32_t>(blit.kind);
+        *signature *= UINT64_C(1099511628211);
+        if (blit.kind == TQZ_BLIT_TEXT) {
+            if (!app->af5_text_stub_logged) {
+                app->af5_text_stub_logged = true;
+                record(app, "scene_af5_text_stub char=0x%02x at=%d,%d (0x4d2c20 balloon text is not drawn: font and colours "
+                       "unrecovered)", static_cast<unsigned>(blit.a) & 0xffu, blit.b, blit.c);
+            }
+            continue;
+        }
+        if (blit.kind == TQZ_BLIT_BALLOON_ERASE || blit.kind == TQZ_BLIT_BACKGROUND_ERASE ||
+            blit.kind == STD_BLIT_SCORE_ERASE || blit.kind == STD_BLIT_CLOCK_ERASE_MIN ||
+            blit.kind == STD_BLIT_CLOCK_ERASE_COLON || blit.kind == STD_BLIT_CLOCK_ERASE_SEC)
+            continue;
+        CaptionCompositorView source_view{};
+        if (!native_caption_view_for_handle(app, blit.surface, &source_view)) {
+            if (!app->af5_render_failure_logged) {
+                app->af5_render_failure_logged = true;
+                record(app, "scene_af5_render_error detail=quiz-surface-unavailable surface=%u kind=%d", blit.surface, blit.kind);
+            }
+            return false;
+        }
+        D9Surface source{source_view.pixels, source_view.byte_capacity, source_view.pitch_bytes};
+        D9Surface back{captions.backbuffer_pixels.data(), captions.backbuffer_pixels.size(), 1280};
+        const int status = d9_blit_copy(&source, &back, blit.src, blit.dst);
+        if (status != D9_OK) {
+            if (!app->af5_render_failure_logged) {
+                app->af5_render_failure_logged = true;
+                record(app, "scene_af5_render_error status=%d kind=%d (blit refused; no pixels written)", status, blit.kind);
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool native_af5_render(NativeApp *app)
+{
+    NativeCaptionRuntime &captions = app->captions;
+    TqzRenderResult quiz{}, score{}, clock{};
+    if (!captions.backbuffer_ready) return true;
+    if (session_af5_render(app->af5, &quiz) != TQZ_OK || session_af5_render_score(app->af5, &score) != TQZ_OK ||
+        session_af5_render_clock(app->af5, &clock) != TQZ_OK) {
+        if (!app->af5_render_failure_logged) {
+            app->af5_render_failure_logged = true;
+            record(app, "scene_af5_render_error detail=render-refused (%s)", session_af5_failure(app->af5));
+        }
+        return false;
+    }
+    uint64_t signature = UINT64_C(14695981039346656037);
+    if (!native_af5_draw(app, quiz, &signature) || !native_af5_draw(app, score, &signature) ||
+        !native_af5_draw(app, clock, &signature))
+        return false;
+    if (signature != app->af5_plan_signature) {
+        app->af5_plan_signature = signature;
+        record(app, "scene_af5_blit blits=%d,%d,%d composed=back-buffer scope=host-adapter (layer order vs UI unverified; erase "
+               "implicit; balloon text stubbed)", static_cast<int>(quiz.count), static_cast<int>(score.count),
+               static_cast<int>(clock.count));
     }
     return true;
 }
@@ -7581,6 +7865,31 @@ static bool create_native_session_bindings(NativeApp *app)
     ad3_host.kernel.observe = native_ad3_observe;
     ad3_host.store_world = native_ad3_store_world;
     app->ad3 = session_ad3_create(&ad3_host);
+    SessionAf5Host af5_host{};   /* RT-55 */
+    af5_host.kernel.context = app;
+    af5_host.kernel.alloc_slot = native_af5_alloc_slot;
+    af5_host.kernel.register_slot = native_af5_register_slot;
+    af5_host.kernel.load_surface = native_af5_load_surface;
+    af5_host.kernel.set_slot_surface = native_af5_set_slot_surface;
+    af5_host.kernel.release_surface = native_af5_release_surface;
+    af5_host.kernel.release_slot = native_af5_release_slot;
+    af5_host.kernel.mark_dirty = native_af5_mark_dirty;
+    af5_host.kernel.view_rects = native_af5_view_rects;
+    af5_host.kernel.clear_pending_item = native_ad1_clear_item;
+    af5_host.kernel.font_acquire = native_af5_font_acquire;
+    af5_host.kernel.font_release = native_af5_font_release;
+    af5_host.kernel.sound_prepare = native_af5_sound_prepare;
+    af5_host.kernel.sound_stop = native_af5_sound_stop;
+    af5_host.kernel.sound_play = native_af5_sound_play;
+    af5_host.kernel.tick = native_ad1_tick;
+    af5_host.kernel.random = native_af6_random;
+    af5_host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
+    af5_host.kernel.transition = native_af5_transition;
+    af5_host.kernel.store_event_flag = native_ad1_store_event_flag;
+    af5_host.kernel.engine_mode = native_af5_engine_mode;
+    af5_host.kernel.observe = native_af5_observe;
+    af5_host.store_world = native_af5_store_world;
+    app->af5 = session_af5_create(&af5_host);
     SessionAeaHost aea_host{};
     aea_host.kernel.context = app;
     aea_host.kernel.view = native_aea_view;
@@ -7769,7 +8078,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->af6 == nullptr || app->ae0 == nullptr || app->ad0 == nullptr || app->aaa == nullptr || app->ad3 == nullptr || app->af5 == nullptr || app->a77 == nullptr || app->aea == nullptr || app->a20 == nullptr || app->a70 == nullptr || app->a80 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -8077,6 +8386,14 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad3_slot_used.fill(false);
     app->ad3_plan_signature = 0u;
     app->ad3_render_failure_logged = false;
+    if (session_af5_begin_scene(app->af5, app->scene) != TQZ_OK) {
+        record(app, "scene_session_create_error provider=action-family-f5 detail=%s", session_af5_failure(app->af5));
+        return false;
+    }
+    app->af5_slot_used.fill(false);
+    app->af5_plan_signature = 0u;
+    app->af5_render_failure_logged = false;
+    app->af5_text_stub_logged = false;
     if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
         record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
         return false;
@@ -8503,6 +8820,23 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
+    /* RT-55: the Typing Quiz's click method (accepted-release chain, same gate): the click rectangle ends the run (row phase :=
+     * 2), gated on active, not finishing, state PLAYING and row phase 1 inside the kernel. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
+        app->af5 != nullptr && session_af5_object(app->af5)->active != 0 && app->session != nullptr) {
+        const TqzObject *quiz = session_af5_object(app->af5);
+        SceneActionRuntimeState quiz_state{};
+        uint32_t quiz_new_phase = 0u;
+        if (quiz->row >= 0 &&
+            scene_session_get_action_state(app->session, static_cast<size_t>(quiz->row), &quiz_state) == SCENE_SESSION_OK &&
+            session_af5_click(app->af5, quiz_state.phase, app->input_state.candidate, &quiz_new_phase) != 0 &&
+            quiz_new_phase == 2u && quiz_state.phase != 2u) {
+            if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(quiz->row)) == SCENE_SESSION_OK)
+                record(app, "scene_af5_click row=%d candidate=%d -> phase 2", quiz->row, app->input_state.candidate);
+            else
+                record(app, "scene_af5_click_error row=%d detail=phase-2-store-refused", quiz->row);
+        }
+    }
     /* RT-45: the Onebuild puzzle's accepted-release chain (0x43b327 -> 0x48569e), same gate and candidate source. */
     if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
         app->aea != nullptr && session_aea_registered(app->aea) != 0u && app->session != nullptr) {
@@ -8585,6 +8919,12 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_ad3_object(app->ad3)->active != 0)
         (void)session_ad3_pointer_move(app->ad3, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->ad3_pointer);
+    app->af5_pointer = TqzPointerResult{};
+    app->af5_pointer.candidate = -1;
+    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af5 != nullptr &&
+        session_af5_object(app->af5)->active != 0)
+        (void)session_af5_pointer_move(app->af5, static_cast<int32_t>(frame->pointer_x),
+                                       static_cast<int32_t>(frame->pointer_y), &app->af5_pointer);
     *candidate = app->input_state.candidate;
     /* RT-17: 0x43b199 found no primary edge, the secondary consumer 0x4daf6e is
      * absent (no right button), so the tick reaches the navigation block
@@ -8707,6 +9047,11 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
          * candidate (0x277f cancel, 0x2780..0x2783 slide). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by
          * the app. */
         (void)session_input_publish_candidate(&app->input_state, app->ad3_pointer.candidate);
+    }
+    if (status == SESSION_INPUT_OK && app->af5_pointer.hit != 0u) {
+        /* The Typing Quiz's hit test (click rectangle, body +0x55e) returns before the generic row loop and has written the
+         * candidate (0x27eb). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
+        (void)session_input_publish_candidate(&app->input_state, app->af5_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->aea_pointer.hit != 0u) {
         /* 0x4f0d61: the Onebuild puzzle's receiver 0x484f42 returns before the generic row loop and has written
@@ -8940,7 +9285,7 @@ static bool create_native_scene_session(NativeApp *app)
      * RT-47 (0xf6, slot 46), RT-50 (0xd0, slot 47) and RT-52 (0xaa, slot 48). Slots must be gap-free because scene_session_create
      * rejects an entry without a callback. The map script
      * (decomp-progress/playable.py) needs numeric slot literals. */
-    SceneSessionActionBinding bindings[52]{};
+    SceneSessionActionBinding bindings[54]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -9198,7 +9543,14 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[51].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[51].callback = native_ad3_handler;
     bindings[51].context = app;
-    config.action_binding_count = 52u;
+    /* RT-55: raw 0xf5 Typing Quiz Puzzle (handler 0x4b8e92; phase 2 completes through 0x42ba3a). The render callbacks run from
+     * the app tick (native_af5_render). Slot 53, count 54: slot 52 is reserved for RT-54 and must be filled before the app can
+     * start (scene_session_create rejects an empty binding). */
+    bindings[53].type = SESSION_AF5_TYPE;
+    bindings[53].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[53].callback = native_af5_handler;
+    bindings[53].context = app;
+    config.action_binding_count = 54u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -9674,6 +10026,8 @@ static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
     }
     /* RT-53: the new-game reset 0x438471 calls 0x4618df, which clears the Collision Puzzle's one-time setup flag and its grid. */
     if (app->ad3 != nullptr) session_ad3_grid_reset(app->ad3);
+    /* RT-55: the new-game reset 0x4b8087 clears the played flag 0x5a4c0a and the best score 0x5a4c0e. */
+    if (app->af5 != nullptr) session_af5_new_game(app->af5);
 #ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
     if (!app->test_inventory.empty() || app->test_held != -2) {
         WorldInitInventory &inv = app->new_game.view.inventory;
@@ -11561,7 +11915,7 @@ int main(int argc, char **argv)
             } else {
                 BlackmoorPlatformCallbacks callbacks{};
                 callbacks.tick = tick; callbacks.pointer = pointer;
-                callbacks.key = key; callbacks.closed = closed;
+                callbacks.key = key; callbacks.character = character; callbacks.closed = closed;
                 app.platform = blackmoor_macos_open("Blackmoor reconstruction — startup; gameplay incomplete",
                     640, 480, &callbacks, &app, error, sizeof(error));
                 if (!app.platform) throw std::runtime_error(error);

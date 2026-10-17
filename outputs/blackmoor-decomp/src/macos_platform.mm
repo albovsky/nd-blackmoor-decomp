@@ -121,6 +121,15 @@ static unsigned virtual_key(NSEvent *event)
 {
     if (self.platform && self.platform->callbacks.key)
         self.platform->callbacks.key(self.platform->context, virtual_key(e), 1, e.isARepeat);
+    if (self.platform && self.platform->callbacks.character &&
+        !(e.modifierFlags & (NSEventModifierFlagCommand | NSEventModifierFlagControl))) {
+        NSString *typed = e.characters;
+        for (NSUInteger i = 0; typed != nil && i < typed.length; ++i) {
+            unichar c = [typed characterAtIndex:i];
+            if (c == 0x7f) c = 8; /* Backspace reaches WM_CHAR as 8 */
+            if (c <= 0xff) self.platform->callbacks.character(self.platform->context, (int8_t)(uint8_t)c);
+        }
+    }
 }
 - (void)keyUp:(NSEvent *)e
 {
