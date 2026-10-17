@@ -4527,10 +4527,10 @@ static bool native_ad1_render(NativeApp *app)
  * (0x4c2790), the piece surfaces (0x4c2a8d, 0x4c51a5, the inline copy and 0x4c7070 as plain 16-bit buffers in the
  * caption image store), the tick, the finish block's scene change and event flag, the caption writer for the
  * feedback captions and the sound engine calls. Sound is NOT wired: the sound calls are logged and report "not
- * busy". The clip rectangle 0x583196.. is taken as the view-relative scene rectangle (an assumption, not yet
- * proven against a running original). The pointer rectangle is degenerate at the hot spot (the cursor sprite
- * rectangle 0x4f0059 passes is not modelled). There is no second-button source in the app, so the rotate key
- * 0x484ac0 is never raised. */
+ * busy". The clip rectangle 0x583196.. is the second VIEW rectangle, which the loader fills from scene_source. The
+ * pointer rectangle (ptr+0x4a) is the provisional 1 x 1 cursor sprite rectangle projected as 0x4f0059 does. There is
+ * no second-button source in the app (the platform maps the right button onto the left one), so the rotate key
+ * 0x484ac0 is never raised: a piece that starts rotated cannot be turned and every drop of it is a bad drop. */
 static NativeRaw555Image *native_aea_image(NativeApp *app, uint32_t handle)
 {
     if (app == nullptr) return nullptr;
@@ -4544,10 +4544,10 @@ static int native_aea_view(void *context, EaView *view)
     if (app == nullptr || view == nullptr) return 1;
     view->origin_x = app->scene_destination.left; /* 0x583186 */
     view->origin_y = app->scene_destination.top;  /* 0x58318a */
-    view->clip[0] = 0;
-    view->clip[1] = 0;
-    view->clip[2] = app->scene_destination.right - app->scene_destination.left;
-    view->clip[3] = app->scene_destination.bottom - app->scene_destination.top;
+    view->clip[0] = app->scene_source.left; /* 0x583196: the second VIEW rectangle, loaded as scene_source */
+    view->clip[1] = app->scene_source.top;
+    view->clip[2] = app->scene_source.right;
+    view->clip[3] = app->scene_source.bottom;
     return 0;
 }
 
@@ -4782,7 +4782,7 @@ static int native_aea_caption(void *context, const char *text)
     if (app == nullptr || text == nullptr) return 1;
     const ActionFamily51BackendStatus status =
         native_a51_write_caption(app, reinterpret_cast<const uint8_t *>(text), std::strlen(text));
-    if (status != ACTION_FAMILY_51_BACKEND_OK) record(app, "scene_aea_caption_error status=%d (caption not shown)", status);
+    if (status != ACTION_FAMILY_51_BACKEND_OK) record(app, "scene_aea_caption_error status=%d (caption not shown)", static_cast<int>(status));
     return 0;
 }
 
@@ -6359,7 +6359,14 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
     app->aea_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aea != nullptr &&
         session_aea_registered(app->aea) != 0u) {
-        const int32_t hot[4] = {frame->pointer_x, frame->pointer_y, frame->pointer_x, frame->pointer_y};
+        /* ptr+0x4a: the cursor sprite rectangle relative to the viewport (+ the 0x5bb587 scroll on y), as 0x4f0059
+         * builds it; the sprite model is still the provisional 1 x 1 cursor (see ProvisionalCursorProvider). */
+        SessionInputContext hot_input{};
+        native_pointer_context(app, &hot_input);
+        const int32_t hot[4] = {hot_input.cursor.left - hot_input.viewport.left,
+                                hot_input.cursor.top - hot_input.viewport.top + hot_input.scroll_y,
+                                hot_input.cursor.right - hot_input.viewport.left,
+                                hot_input.cursor.bottom - hot_input.viewport.top + hot_input.scroll_y};
         (void)session_aea_pointer_move(app->aea, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y), hot, &app->aea_pointer);
     }

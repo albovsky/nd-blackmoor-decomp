@@ -32,7 +32,7 @@ static int alloc_slot(void *c, int16_t *s) { (void)c; *s = 0x18; return 0; }
 static int register_slot(void *c, int16_t s, const char *label)
 {
     (void)c; (void)s;
-    return strcmp(label, "ONEBUILD_PUZZLE_OVERLAYS") != 0;
+    return strcmp(label, "ONEBUILD PUZZLE OVERLAYS") != 0;
 }
 static int release_slot(void *c, int16_t s) { (void)c; (void)s; return 0; }
 static int mark_dirty(void *c, int16_t s) { (void)c; (void)s; return 0; }

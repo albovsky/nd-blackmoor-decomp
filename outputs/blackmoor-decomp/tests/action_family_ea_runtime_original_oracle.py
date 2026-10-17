@@ -171,7 +171,7 @@ TAG_SRC = b'DF Piece Source Surface'
 TAG_MULTI = b'Multi Anim Surface'
 TAG_PIECE = b'pDFSurface for Onebuild Puzzle Piece'  # prefix; the original appends ", Orientation ..." texts
 # the kernel's host tags are identifier-like stand-ins (underscores, a shorter piece tag): compared by class (E7)
-NATIVE_TAG_CLASS = {b'DF_Piece_Source_Surface': b'SRC', b'Multi_Anim_Surface': b'MULTI'}
+NATIVE_TAG_CLASS = {b'DF Piece Source Surface': b'SRC', b'Multi Anim Surface': b'MULTI'}
 
 # hooked functions: address -> (scan span, `ret N` immediate), checked against the unmodified image at start-up
 HOOK_RETS = {0x4c2790: (0x108, 0x10), 0x4c2dfb: (0x60, 4), 0x4e8d96: (0x80, 0), 0x4fb77a: (0x300, 4),

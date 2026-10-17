@@ -322,8 +322,8 @@ static void t_phase0(void)
     CHECK(f.world.start_flag_5bb1ca == 1);
     CHECK(get32(f.obj.b, O_ACTIVE) == 1 && get16(f.obj.b, O_ROW) == 2 && get16(f.obj.b, O_HAND) == -1);
     CHECK(get16(f.obj.b, O_SLOT) == 0x18);
-    CHECK_HAS(&f, "clr,load:PIECES:DF_Piece_Source_Surface,create:40x30=100,blit:5>100:1,1,40,30>0,0,39,29");
-    CHECK_HAS(&f, "reg:24:ONEBUILD_PUZZLE_OVERLAYS");
+    CHECK_HAS(&f, "clr,load:PIECES:DF Piece Source Surface,create:40x30=100,blit:5>100:1,1,40,30>0,0,39,29");
+    CHECK_HAS(&f, "reg:24:ONEBUILD PUZZLE OVERLAYS");
     /* piece 1: start rect D plus the view origin (10, 20); entry 0 is 40 x 30 and rect A is the source */
     CHECK(get32(f.obj.b, O_PIECES + 0x85 + P_RECT) == 310 && get32(f.obj.b, O_PIECES + 0x85 + P_RECT + 4) == 200);
     CHECK(get32(f.obj.b, O_PIECES + 0x85 + P_RECT2) == 320 && get32(f.obj.b, O_PIECES + 0x85 + P_RECT2 + 4) == 220);
@@ -377,6 +377,11 @@ static void t_validation(void)
     build_body(b);
     rect32(b, 0x7f, 1, 1, 1 + 5000, 30);
     CHECK(ea_validate_body(b, EA_BODY_BYTES, &why) == EA_ERR_BODY && strcmp(why, "0xea-piece-size") == 0);
+    build_body(b);
+    b[0x7f + 0x42 + 0x40] = 4; /* a start orientation names one of four entries */
+    CHECK(ea_validate_body(b, EA_BODY_BYTES, &why) == EA_ERR_BODY && strcmp(why, "0xea-piece-orientation") == 0);
+    b[0x7f + 0x42 + 0x40] = 3;
+    CHECK(ea_validate_body(b, EA_BODY_BYTES, NULL) == EA_OK);
 }
 
 static void t_host_failures(void)
@@ -785,7 +790,7 @@ static void t_animation(void)
     f.ticks[0] = 100u;
     CHECK(init_puzzle(&f) == EA_OK);
     CHECK(get32(f.obj.b, O_HAS_ANIM) == 1 && get32(f.obj.b, O_MULTI) == 5);
-    CHECK_HAS(&f, "load:Anim:Multi_Anim_Surface");
+    CHECK_HAS(&f, "load:Anim:Multi Anim Surface");
     CHECK(click(&f, 0x277c) == EA_OK);
     f.ticks[0] = 200u;
     CHECK(step(&f, 2) == EA_OK && get32(f.obj.b, O_STATE) == 3 && get32(f.obj.b, O_DEADLINE2) == 300);

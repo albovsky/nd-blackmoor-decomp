@@ -137,9 +137,9 @@ enum {
 /* Scene block offsets. */
 enum { SB_SCENE = 0, SB_W1 = 2, SB_W2 = 4, SB_W3 = 6, SB_D1 = 8, SB_D2 = 12, SB_D3 = 16, SB_START = 20, SB_FLAG = 22, SB_VALUE = 24 };
 
-#define TAG_PIECE_SRC "DF_Piece_Source_Surface"
-#define TAG_MULTI "Multi_Anim_Surface"
-#define LABEL_SLOT "ONEBUILD_PUZZLE_OVERLAYS"
+#define TAG_PIECE_SRC "DF Piece Source Surface"
+#define TAG_MULTI "Multi Anim Surface"
+#define LABEL_SLOT "ONEBUILD PUZZLE OVERLAYS"
 #define CANDIDATE_NONE (-1)
 
 static int16_t rd_s16(const uint8_t *b, size_t off)
@@ -260,6 +260,7 @@ int ea_validate_body(const uint8_t *body, size_t length, const char **failure)
             const int32_t w = (int16_t)sub32(rd_s32(body, r + 8), rd_s32(body, r)) + 1;
             const int32_t h = (int16_t)sub32(rd_s32(body, r + 12), rd_s32(body, r + 4)) + 1;
             if (w < 1 || w > 4096 || h < 1 || h > 4096) why = "0xea-piece-size";
+            else if (body[p + BP_ORIENT] > 3) why = "0xea-piece-orientation";
         }
     }
     if (why != NULL) {

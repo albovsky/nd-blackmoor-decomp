@@ -143,6 +143,7 @@ class UnitTests(unittest.TestCase):
             'busy win sound ignored': ('HOST(host->sound_busy(host->context, rd_s16(body, B_CHAN_WIN), &busy));\n        if (busy != 0) return EA_OK;',
                                        'HOST(host->sound_busy(host->context, rd_s16(body, B_CHAN_WIN), &busy));\n        if (0) return EA_OK;'),
             'alternate sound never re-rolled': ('if (no_sound(body + alt2)) {\n                    HOST(rand3(host, r));', 'if (no_sound(body + alt2)) {\n                    done = 1;'),
+            'orientation unchecked': ('else if (body[p + BP_ORIENT] > 3) why = "0xea-piece-orientation";', ''),
             'cleanup keeps the slot': ('if (rd_s16(obj, O_SLOT) != -1) HOST(host->release_slot(host->context, rd_s16(obj, O_SLOT)));', '(void)0;'),
             'second surface leaks': ('wr_32(obj, O_SRC, 0);\n    }\n    for (int16_t i = 0; i < 20; ++i)', 'wr_32(obj, O_SRC, 0);\n    }\n    for (int16_t i = 0; i < 0; ++i)'),
         }

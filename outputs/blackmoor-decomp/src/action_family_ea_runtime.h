@@ -123,7 +123,7 @@ typedef struct EaHost {
     /* 0x4d39f9: first free generic Z entry in 0x18..0x3f. Zero on success. */
     int (*alloc_slot)(void *, int16_t *slot);
     /* Entry stores 0x5d1591..0x5d15b3: type 10, callback 0x4876ed, surface 0, flags 0, 0, 1, 1, word 0 and the label
-     * "ONEBUILD_PUZZLE_OVERLAYS". */
+     * "ONEBUILD PUZZLE OVERLAYS". */
     int (*register_slot)(void *, int16_t slot, const char *label);
     /* 0x4d3992: entry flags +0x14 and +0x18 := 0. */
     int (*release_slot)(void *, int16_t slot);
@@ -179,7 +179,7 @@ typedef struct EaResult {
 void ea_object_reset(EaObject *object);
 
 /* Native safety check of a typed body. Not an original check: the original trusts the loader. Rejects a short body,
- * a piece count outside 0..20, a piece surface that would not be 1..4096 square, an unterminated name or text field
+ * a piece count outside 0..20, a piece surface that would not be 1..4096 square, a start orientation above 3, an unterminated name or text field
  * and an animation grid with a zero column count. */
 int ea_validate_body(const uint8_t *body, size_t length, const char **failure);
 
