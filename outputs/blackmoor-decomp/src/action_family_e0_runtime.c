@@ -852,10 +852,10 @@ static int add_blit(E0RenderPlan *plan, int kind, int role, const int32_t src[4]
     bl->kind = (uint8_t)kind;
     bl->role = (uint8_t)role;
     for (int k = 0; k < 4; ++k) bl->src[k] = src[k];
-    bl->dst[0] = dst_raw[0] + vx;
-    bl->dst[1] = dst_raw[1] + vy;
-    bl->dst[2] = dst_raw[2] + vx;
-    bl->dst[3] = dst_raw[3] + vy;
+    bl->dst[0] = (int32_t)((uint32_t)dst_raw[0] + (uint32_t)vx); /* wraps like the original add */
+    bl->dst[1] = (int32_t)((uint32_t)dst_raw[1] + (uint32_t)vy); /* wraps like the original add */
+    bl->dst[2] = (int32_t)((uint32_t)dst_raw[2] + (uint32_t)vx); /* wraps like the original add */
+    bl->dst[3] = (int32_t)((uint32_t)dst_raw[3] + (uint32_t)vy); /* wraps like the original add */
     return E0_OK;
 }
 

@@ -138,7 +138,7 @@ m('set-hit-sense', 'predicate', 'if (flagm) {\n                        o->solved
 m('exit-keep-recorded', 'missing-effect', 'o->recorded = 0;\n            clear_typed = 1;', 'clear_typed = 1;')
 # ---- render
 m('render-key-src', 'rect', 'E0_ROLE_KEY_DOWN, o->rect_a[i], vx, vy, o->rect_b[i]);', 'E0_ROLE_KEY_DOWN, o->rect_b[i], vx, vy, o->rect_b[i]);')
-m('render-view-y', 'rect', 'bl->dst[1] = dst_raw[1] + vy;', 'bl->dst[1] = dst_raw[1] + vx;')
+m('render-view-y', 'rect', 'bl->dst[1] = (int32_t)((uint32_t)dst_raw[1] + (uint32_t)vy);', 'bl->dst[1] = (int32_t)((uint32_t)dst_raw[1] + (uint32_t)vx);')
 m('render-blink-sense', 'predicate', 'if (o->blink != 0u) {\n                    rc = add_blit(plan, E0_BLIT_BG_KEYED',
   'if (o->blink == 0u) {\n                    rc = add_blit(plan, E0_BLIT_BG_KEYED')
 m('render-exit-waiting', 'missing-effect', 'E0_ROLE_EXIT_DOWN, src, vx, vy, dst);\n            o->waiting = 1u;',
