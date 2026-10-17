@@ -43,9 +43,11 @@ extern "C" {
  *             held := -1 (0x4e9485), sound 0x4fb2e3(0x14). Otherwise the click is
  *             ignored (0x4e94a1).
  *
- * Branches (a) and (b) are recovered as conditions only; their effects (text boxes,
- * sounds) are not implemented and the native click reports
- * INVVIEW_ERR_UNMODELED without any effect. The tab lists 0x65/0x66 (derived lists
+ * Branch (b) is recovered as a condition only; its effects (text boxes, sounds) are
+ * not implemented and the native click reports INVVIEW_ERR_UNMODELED without any
+ * effect. Branch (a), the read/examine step 0x4ea269, is implemented by RT-43
+ * (inventory_examine_runtime.h) when InventoryViewHost.examine is set; without it
+ * the click reports UNMODELED as before. The tab lists 0x65/0x66 (derived lists
  * 0x583abd/0x583b49) and page scrolling are not modelled: the rebuild fills the
  * slots from the full list only (tab -1 or 0x64), page 0.
  */
@@ -155,6 +157,8 @@ typedef struct {
     size_t aux_count;
 } InventoryViewItemData;
 
+struct InventoryExamine;           /* inventory_examine_runtime.h */
+
 typedef struct {
     Action78Host inventory;        /* rebuild_view, observe, sound 0x17, UI request (add step) */
     /* 0x4fb2e3(slot) made by the view itself (pick up 0x17, put back 0x14). */
@@ -162,6 +166,10 @@ typedef struct {
     /* 0x4e7d04 host part: UI teardown 0x4edb97 and 0x4d36ed. */
     int (*close_view)(void *context);
     void *context;
+    /* RT-43: the examine branch 0x4e8f0e -> 0x4ea269. NULL keeps the RT-22 behaviour: the branch is recovered as a
+     * condition only and the click reports INVVIEW_ERR_UNMODELED without any effect. Appended last: the layout of the
+     * fields above did not change. */
+    const struct InventoryExamine *examine;
 } InventoryViewHost;
 
 typedef struct {

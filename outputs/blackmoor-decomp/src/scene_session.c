@@ -822,6 +822,22 @@ int scene_session_mark_ui_dirty(SceneSession *session, int16_t group, int16_t ch
     return SCENE_SESSION_OK;
 }
 
+int scene_session_request_external_transition(SceneSession *session,
+                                              const SceneTransitionRequest *request)
+{
+    if (session == NULL || request == NULL) {
+        return SCENE_SESSION_ERR_ARGUMENT;
+    }
+    if (session->frozen || session->transition_pending) {
+        return SCENE_SESSION_ERR_STATE;
+    }
+    session->transition = *request;
+    session->transition_pending = 1;
+    session->last_result.status = SCENE_SESSION_TRANSITION_PENDING;
+    session->last_result.failure.provider = SCENE_SESSION_PROVIDER_NONE;
+    return SCENE_SESSION_OK;
+}
+
 int scene_session_get_pending_transition(const SceneSession *session,
                                          SceneTransitionRequest *transition)
 {

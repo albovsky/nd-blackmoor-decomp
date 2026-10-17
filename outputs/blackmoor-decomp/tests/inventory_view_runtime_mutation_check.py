@@ -61,7 +61,8 @@ def run(name, old, new, scratch, oracle=False):
     compile_ = subprocess.run(
         ['xcrun', '--sdk', 'macosx', 'clang', '-arch', 'arm64', '-std=c11', '-O1', '-fPIC', '-dynamiclib',
          '-I', str(src), str(source), str(src / 'action_family_78_runtime.c'),
-         str(src / 'action_family_79_runtime.c'), '-o', str(library)], capture_output=True, text=True)
+         str(src / 'action_family_79_runtime.c'), str(src / 'inventory_examine_runtime.c'),
+         str(src / 'action_family_7d_runtime.c'), '-o', str(library)], capture_output=True, text=True)
     if compile_.returncode != 0:
         return 'COMPILE-ERROR'
     env = dict(os.environ, INVVIEW_RUNTIME_LIBRARY=str(library), A78_RUNTIME_LIBRARY=str(library))

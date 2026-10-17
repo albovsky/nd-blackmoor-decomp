@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "inventory_examine_runtime.h"
+
 #define UIIV_RELATIVE_OFFSET 0x67u        /* view +0x6b87 - 0x6b20 */
 #define UIIV_RECT_OFFSET 0x3f0u           /* view +0x6f10 - 0x6b20 */
 #define UIIV_SLOT_FLAG_OFFSET 0x4f0u      /* view +0x7010 - 0x6b20 */
@@ -308,6 +310,28 @@ int inventory_view_click(InventoryView *view, const InventoryViewLayout *layout,
         /* 0x4e8e97..0x4e8f0c: read/examine branch. */
         if (data->kind[hot] == KIND_TEXT && data->text[hot] != 0 &&
             data->text[hot] != TEXT_NONE_NORMAL && data->aux_a[hot] == 0u) {
+            if (host->examine != NULL) {
+                /* 0x4e8f0e: 0x4ea269(hot item word, 1, 1), then 0x4e8e78 returns 1. */
+                InventoryExamineResult examined = {0};
+                Action78Model local = *model;
+                const char *why = "none";
+                local.view.mode = view->mode;             /* the add step reads the live view */
+                local.view.slot_flag = layout->slot_flag;
+                status = inventory_examine(view, data, &local, host, host->examine, (int16_t)hot, 1, 1,
+                                           &examined, &why);
+                result->removed = examined.removed;
+                result->added = examined.added;
+                result->sound_requests = (uint8_t)(result->sound_requests + examined.sound_requested);
+                result->closed = examined.closed;
+                if (failure != NULL) {
+                    *failure = why;
+                }
+                if (status != INVVIEW_OK) {
+                    return status;
+                }
+                result->handled = 1u;
+                return INVVIEW_OK;
+            }
             if (failure != NULL) {
                 *failure = "read/examine branch 0x4e8f0e (0x4ea269) is not implemented";
             }

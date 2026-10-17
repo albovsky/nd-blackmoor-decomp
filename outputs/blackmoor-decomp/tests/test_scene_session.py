@@ -819,6 +819,60 @@ class SceneSessionTests(unittest.TestCase):
             self.lib.scene_resource_close(target_scene)
             self.assertTrue(owner and target_owner)
 
+    def test_external_transition_becomes_the_pending_transition_without_a_tick(self):
+        """RT-43: the host's own input path (the inventory examine click) requests a scene change between ticks."""
+        scene, owner = self.open_scene([])
+        _flags, world, conditions = self.make_world()
+        calls = {"prepare": 0}
+
+        @PrepareFn
+        def prepare(_context, _conditions, _frame, _failure):
+            calls["prepare"] += 1
+            return CALLBACK_OK
+
+        @MediaFn
+        def media(_context, _frame, _failure):
+            return CALLBACK_OK
+
+        session, _initial, _bindings = self.create_session(
+            scene, world, conditions, prepare=prepare, media=media)
+        lib = self.lib
+        lib.scene_session_request_external_transition.argtypes = [c.c_void_p, c.POINTER(SceneTransitionRequest)]
+        lib.scene_session_request_external_transition.restype = c.c_int
+        target_scene, target_owner = self.open_scene([])
+        try:
+            request = SceneTransitionRequest()
+            request.target_scene = 6205
+            request.opaque_words[:] = [0, 0, 1]
+            request.opaque_dwords[:] = [0, 0, 1]
+            ticked = SceneSessionTickResult()
+            self.assertEqual(lib.scene_session_tick(session, c.byref(ticked)), SESSION_OK)
+            self.assertEqual(calls["prepare"], 1)
+            self.assertEqual(lib.scene_session_request_external_transition(session, c.byref(request)), 0)
+            # a second request while one is pending is refused and changes nothing
+            other = SceneTransitionRequest()
+            other.target_scene = 1
+            self.assertNotEqual(lib.scene_session_request_external_transition(session, c.byref(other)), 0)
+            self.assertNotEqual(lib.scene_session_request_external_transition(session, None), 0)
+            result = SceneSessionTickResult()
+            self.assertEqual(lib.scene_session_tick(session, c.byref(result)), SESSION_TRANSITION)
+            self.assertEqual(calls["prepare"], 1)           # the frozen tick runs nothing
+            pending = SceneTransitionRequest()
+            self.assertEqual(lib.scene_session_get_pending_transition(session, c.byref(pending)), 1)
+            self.assertEqual((pending.target_scene, list(pending.opaque_words), list(pending.opaque_dwords)),
+                             (6205, [0, 0, 1], [0, 0, 1]))
+            failure = SceneSessionFailure()
+            self.assertEqual(lib.scene_session_replace_scene(session, target_scene, 6204, c.byref(failure)), 3)
+            self.assertEqual(lib.scene_session_replace_scene(session, target_scene, 6205, c.byref(failure)), 0)
+            self.assertEqual(lib.scene_session_get_pending_transition(session, c.byref(pending)), 0)
+            # after the new scene is in, a fresh request is accepted again
+            self.assertEqual(lib.scene_session_request_external_transition(session, c.byref(other)), 0)
+        finally:
+            lib.scene_session_destroy(session)
+            lib.scene_resource_close(scene)
+            lib.scene_resource_close(target_scene)
+            self.assertTrue(owner and target_owner)
+
     # ---- RT-3: type-0x62 pre-gate request clear and candidate accept -------
 
     @staticmethod

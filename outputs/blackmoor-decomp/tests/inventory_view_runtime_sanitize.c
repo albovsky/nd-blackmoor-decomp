@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../src/inventory_examine_runtime.h"
 #include "../src/inventory_view_runtime.h"
 
 static unsigned long long state = 0x9e3779b97f4a7c15ull;
@@ -18,6 +19,15 @@ static int rebuild(void *c, int16_t item) { (void)c; (void)item; return (int)(rn
 static int sound(void *c, uint16_t s) { (void)c; (void)s; return (int)(rnd() % 13u == 0u); }
 static int ui(void *c, int16_t a, int32_t b, int16_t d) { (void)c; (void)a; (void)b; (void)d; return 0; }
 static int closev(void *c) { (void)c; return (int)(rnd() % 17u == 0u); }
+static int load_current(void *c, SceneStackCurrent *cur)
+{
+    (void)c;
+    cur->scene_5bb57b = (int32_t)rnd(); cur->scene_5bb57f = (int32_t)rnd();
+    cur->word_5bb50b = (int16_t)rnd(); cur->word_5bb593 = (int16_t)rnd();
+    cur->dword_5bb5a7 = (int32_t)rnd(); cur->dword_5bb5ab = (int32_t)rnd(); cur->dword_5bb5af = (int32_t)rnd();
+    return (int)(rnd() % 19u == 0u);
+}
+static int scene_change(void *c, const InventoryExamineRequest *r) { (void)c; (void)r; return (int)(rnd() % 19u == 0u); }
 
 int main(void)
 {
@@ -62,6 +72,9 @@ int main(void)
         InventoryViewItemData data;
         InventoryViewHost host;
         InventoryViewClickResult result;
+        InventoryExamine examine;
+        SceneRestoreSlot slot;
+        int16_t selector, flags[INVVIEW_ITEMS];
         const char *why = NULL;
         int opened, ran, status;
 
@@ -93,6 +106,15 @@ int main(void)
         host.close_view = closev;
         data.kind = kind; data.text = text; data.aux_a = aux_a; data.aux_b = aux_b;
         data.aux_count = CAP;
+        /* RT-43: the examine branch, with a hot item forced into the read condition in a third of the rounds */
+        for (i = 0; i < INVVIEW_ITEMS; ++i) flags[i] = (int16_t)rnd();
+        selector = (int16_t)((rnd() % 3u == 0u) ? -1 : (int)(rnd() % 90u) - 10);
+        scene_restore_slot_clear(&slot);
+        memset(&examine, 0, sizeof(examine));
+        examine.selector = &selector; examine.slot = &slot; examine.flag_word = flags;
+        examine.host.load_current = (rnd() % 9u) ? load_current : NULL;
+        examine.host.scene_change = (rnd() % 9u) ? scene_change : NULL;
+        host.examine = (rnd() % 4u) ? &examine : NULL;
         inventory_view_init(&view);
         view.tab = (rnd() % 5u == 0u) ? (int32_t)(0x60 + rnd() % 14u) : -1;
         status = inventory_view_rebuild(&view, &model.inventory, &why);
@@ -106,6 +128,10 @@ int main(void)
                                    held, (int)(rnd() % 8u == 0u), &ran);
         if (rnd() % 5u == 0u) view.hot = (int32_t)(rnd() % 100u) - 20;
         view.event = (rnd() % 2u) ? INVVIEW_EVENT_PICK : INVVIEW_EVENT_PUT;
+        if (rnd() % 3u == 0u && view.hot >= 0 && view.hot < (int32_t)INVVIEW_ITEMS) {
+            kind[view.hot] = 3; text[view.hot] = (int16_t)(rnd() % 3u ? 6200 + (int)(rnd() % 80u) : -(int)(rnd() % 400u) - 1);
+            aux_a[view.hot] = 0;
+        }
         model.view.mode = view.mode;
         model.view.slot_flag = layout.slot_flag;
         status = inventory_view_click(&view, &layout, &data, &model, &host, (int)(rnd() % 10u == 0u),

@@ -242,6 +242,13 @@ int scene_session_accept_action_candidate(SceneSession *session,
  * Any call outside a handler, or a second request, is ERR_STATE. */
 int scene_session_request_transition(SceneSession *session,
                                      const SceneTransitionRequest *request);
+/* RT-43: a scene change requested OUTSIDE the tick, by the host's own input path (the inventory examine click 0x4e8f0e ->
+ * 0x4ea269 stores the scene words and engine mode 4 from the main loop, not from a scene action). Stores the request as the
+ * pending transition exactly as a handler's request does after the tick: the next tick returns SCENE_SESSION_TRANSITION_PENDING
+ * without running anything, scene_session_get_pending_transition returns it, and scene_session_replace_scene accepts only its
+ * target. ERR_ARGUMENT for NULLs, ERR_STATE when the session is frozen or a transition is already pending. */
+int scene_session_request_external_transition(SceneSession *session,
+                                              const SceneTransitionRequest *request);
 int scene_session_get_action_state(const SceneSession *session,
                                    size_t action_index,
                                    SceneActionRuntimeState *state);
