@@ -6073,7 +6073,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[39]{};
+    SceneSessionActionBinding bindings[38]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6250,12 +6250,12 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[36].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[36].callback = session_a1b_handler;
     bindings[36].context = app->a1b;
-    /* RT-42: raw 0x47 journal entry add (arm 0x428515, gate mode 0, generic completion). Slot 37 is reserved for raw 0x7d (RT-41). */
-    bindings[38].type = SESSION_A47_TYPE;
-    bindings[38].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
-    bindings[38].callback = native_a47_handler;
-    bindings[38].context = app;
-    config.action_binding_count = 39u;
+    /* RT-42: raw 0x47 journal entry add (arm 0x428515, gate mode 0, generic completion). RT-41 (raw 0x7d) takes the next free slot (38) when it merges. */
+    bindings[37].type = SESSION_A47_TYPE;
+    bindings[37].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[37].callback = native_a47_handler;
+    bindings[37].context = app;
+    config.action_binding_count = 38u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
