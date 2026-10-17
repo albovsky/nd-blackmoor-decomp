@@ -375,7 +375,7 @@ static int deal(MpObject *o, const uint8_t *body, const MpHost *host)
 {
     uint8_t *b = o->b;
     const int32_t total = rd_s32(b, O_TOTAL), per_page = rd_s32(b, O_PER_PAGE), pages = rd_s32(body, B_PAGES);
-    int32_t v;
+    int32_t v = 0;
     wr_32(b, O_FIRST, 0);
     wr_32(b, O_SECOND, 0);
     wr_32(b, O_CELLS, (int32_t)MP_GUEST_CELLS);
