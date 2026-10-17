@@ -579,3 +579,122 @@ void d3o_render(void *h, const uint8_t *body, int len, int32_t *out)
     }
     d->body = NULL;
 }
+
+#ifdef D3O_FUZZ_MAIN
+/* Bounded malformed-input run for ASan/UBSan (build: -DD3O_FUZZ_MAIN, see the oracle's --sanitize-fuzz). Not an oracle: it only requires that the
+ * kernel returns (an error code is fine) without any out-of-bounds access, signed overflow or other undefined behaviour. Inputs are heap blocks of
+ * exactly the stated length so that a read past the end is caught. */
+#include <stdio.h>
+static uint64_t fz_state = 0x9E3779B97F4A7C15ull;
+static uint32_t fz(void)
+{
+    fz_state ^= fz_state << 13;
+    fz_state ^= fz_state >> 7;
+    fz_state ^= fz_state << 17;
+    return (uint32_t)(fz_state >> 16);
+}
+static int32_t fz_pick(const int32_t *v, int n) { return v[fz() % (uint32_t)n]; }
+static void fzput16(uint8_t *b, size_t off, int32_t v) { b[off] = (uint8_t)v; b[off + 1] = (uint8_t)(v >> 8); }
+
+static uint8_t *fz_body(int *len_out)
+{
+    static const int32_t lens[] = {855, 855, 855, 855, 855, 855, 855, 854, 856, 0, 1, 33, 600};
+    static const int32_t small[] = {0, 1, 2, 3, 4, 7, 8, 9, 10, 11, -1, -8, 32767, -32768, 100};
+    const int len = fz_pick(lens, 13);
+    uint8_t *b = (uint8_t *)malloc(len > 0 ? (size_t)len : 1u);
+    const int kind = (int)(fz() % 4u);
+    if (b == NULL) exit(2);
+    memset(b, 0, (size_t)len);
+    if (kind == 0) {
+        for (int i = 0; i < len; ++i) b[i] = (uint8_t)fz();
+    } else {
+        for (int k = 0; k < 60; ++k)
+            if (len > 0) b[fz() % (uint32_t)len] = (uint8_t)fz();
+        if (len >= 855) {
+            fzput16(b, 0x22, kind == 1 ? (int32_t)(fz() % 9u) : fz_pick(small, 15));
+            fzput16(b, 0x24, kind == 1 ? (int32_t)(fz() % 9u) : fz_pick(small, 15));
+            fzput16(b, 0x26, kind == 1 ? (int32_t)(fz() % 12u) : fz_pick(small, 15));
+            fzput16(b, 0x24a, kind == 3 ? fz_pick(small, 15) : (int32_t)(1u + fz() % 7u));
+            b[0x20] = 0;
+            for (int s = 0; s < 4; ++s) {
+                static const size_t snd[4] = {0x24f, 0x280, 0x2b1, 0x2fd};
+                if (fz() % 4u != 0) memset(b + snd[s], 0, 0x21);
+            }
+        }
+    }
+    *len_out = len;
+    return b;
+}
+
+int main(int argc, char **argv)
+{
+    const long iterations = argc > 1 ? atol(argv[1]) : 20000;
+    const int corrupt = argc > 3 ? atoi(argv[3]) : 0; /* 1: also objects no kernel call can produce (index fields outside the board) */
+    long counts[8] = {0};
+    void *h = d3o_new();
+    static int32_t out[3 + 11 * 192 + 8];
+    if (h == NULL) return 2;
+    if (argc > 2) fz_state ^= (uint64_t)atoll(argv[2]) * 0x2545F4914F6CDD1Dull;
+    for (long it = 0; it < iterations; ++it) {
+        int len = 0;
+        uint8_t *body = fz_body(&len);
+        uint8_t obj[0x5f], world[6 + 64 * 40];
+        static const int32_t extreme[] = {0, 1, -1, 0x7fffffff, -0x7fffffff - 1, 0x40000000, 12345, -777, 0x10000, 0xffff, 64, 5};
+        for (int i = 0; i < 0x5f; ++i) obj[i] = (uint8_t)(fz() % 5u == 0 ? fz() : 0);
+        fzput16(obj, 0x1c, fz() % 3u == 0 ? (int32_t)(fz() % 0x60u) - 2 : -1);
+        fzput16(obj, 0x1e, (int32_t)(fz() % 6u) - 1);
+        obj[0x24] = (uint8_t)(fz() % 7u);
+        obj[0x3f] = (uint8_t)(fz() % 2u);
+        if (!corrupt) { /* only objects the kernel itself can leave behind: not mid-move, indices inside the 8 x 8 array */
+            static const uint8_t st[] = {0, 1, 3, 4, 5, 9};
+            obj[0x24] = st[fz() % 6u];
+            obj[0x25] = obj[0x26] = obj[0x27] = 0;
+        }
+        fzput16(obj, 0x57, fz() % 3u ? (int32_t)(0x10u + fz() % 4u) : (int32_t)fz());
+        if (!corrupt) {
+            fzput16(obj, 0x57, 0);
+            fzput16(obj, 0x5b, (int32_t)(fz() % 8u));
+            fzput16(obj, 0x5d, (int32_t)(fz() % 8u));
+        }
+        fzput16(obj, 0x59, fz() % 4u ? (int32_t)(fz() % 8u) : (int32_t)fz());
+        fzput16(obj, 0x5b, fz() % 4u ? (int32_t)(fz() % 8u) : (int32_t)fz());
+        fzput16(obj, 0x5d, fz() % 4u ? (int32_t)(fz() % 8u) : (int32_t)fz());
+        if (fz() % 2u) {
+            const int32_t cw = fz_pick(extreme, 12), ch = fz_pick(extreme, 12);
+            memcpy(obj + 0x4f, &cw, 4);
+            memcpy(obj + 0x53, &ch, 4);
+        }
+        for (int i = 0; i < 6 + 64 * 40; ++i) world[i] = (uint8_t)(fz() % 6u == 0 ? fz() : 0);
+        if (fz() % 2u) {
+            for (int c = 0; c < 64; ++c) {
+                fzput16(world, 6 + (size_t)c * 40 + 36, fz() % 3u ? (int32_t)(fz() % 0x18u) : (int32_t)fz());
+                fzput16(world, 6 + (size_t)c * 40 + 38, (int32_t)(fz() % 12u));
+            }
+        }
+        d3o_reset(h);
+        d3o_obj_set(h, obj);
+        d3o_world_set(h, world);
+        d3o_set_fail(h, fz() % 3u == 0 ? (int)(1u << (fz() % 10u)) : 0);
+        d3o_set_origin(h, fz_pick(extreme, 12), fz_pick(extreme, 12));
+        for (int call = 0; call < 6; ++call) {
+            int32_t r = 0;
+            switch (fz() % 9u) {
+            case 0: case 1: d3o_step(h, body, len, (int)(fz() % 6u) - 1, fz() % 4u, out); r = out[0]; break;
+            case 2: d3o_pointer(h, body, len, fz_pick(extreme, 12), fz_pick(extreme, 12), out); r = out[0]; break;
+            case 3: d3o_click(h, body, len, fz() % 4u, fz() % 3u ? (int32_t)(0x277Fu + fz() % 6u) : fz_pick(extreme, 12), out); r = out[0]; break;
+            case 4: d3o_render(h, body, len, out); r = out[0]; break;
+            case 5: r = d3o_invalidate(h); break;
+            case 6: r = d3o_cleanup(h); break;
+            case 7: d3o_grid_reset(h); break;
+            default: r = d3o_validate(body, len); break;
+            }
+            counts[r == 0 ? 0 : 1]++;
+            d3o_clear_logs(h);
+        }
+        free(body);
+    }
+    printf("fuzz iterations %ld calls ok %ld refused %ld\n", iterations, counts[0], counts[1]);
+    d3o_free(h);
+    return 0;
+}
+#endif

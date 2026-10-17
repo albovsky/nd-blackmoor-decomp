@@ -209,6 +209,8 @@ m('p0-cell-height-swapped', 'operand', 'o->cell_h = sub32(rd_s32(body, B_PIECE_S
 m('p0-cell-height-field', 'field', 'o->cell_h = sub32(rd_s32(body, B_PIECE_SRC + 12), rd_s32(body, B_PIECE_SRC + 4));', 'o->cell_h = sub32(rd_s32(body, B_PIECE_SRC + 8), rd_s32(body, B_PIECE_SRC));')
 m('p0-cell-size-after-setup', 'order', 'o->cell_w = sub32(rd_s32(body, B_PIECE_SRC + 8), rd_s32(body, B_PIECE_SRC));\n    o->cell_h = sub32(rd_s32(body, B_PIECE_SRC + 12), rd_s32(body, B_PIECE_SRC + 4));\n    HOST(host->view_origin(host->context, &view_x, &view_y));',
   'HOST(host->view_origin(host->context, &view_x, &view_y));\n    o->cell_w = sub32(rd_s32(body, B_PIECE_SRC + 8), rd_s32(body, B_PIECE_SRC));\n    o->cell_h = sub32(rd_s32(body, B_PIECE_SRC + 12), rd_s32(body, B_PIECE_SRC + 4));')
+m('p0-setup-before-cell-size', 'order', 'o->cell_w = sub32(rd_s32(body, B_PIECE_SRC + 8), rd_s32(body, B_PIECE_SRC));\n    o->cell_h = sub32(rd_s32(body, B_PIECE_SRC + 12), rd_s32(body, B_PIECE_SRC + 4));\n    HOST(host->view_origin(host->context, &view_x, &view_y));\n    {\n        const int ran = world->grid_ready == 0;\n        grid_setup(o, body, world, view_x, view_y);',
+  'HOST(host->view_origin(host->context, &view_x, &view_y));\n    {\n        const int ran = world->grid_ready == 0;\n        grid_setup(o, body, world, view_x, view_y);\n        o->cell_w = sub32(rd_s32(body, B_PIECE_SRC + 8), rd_s32(body, B_PIECE_SRC));\n        o->cell_h = sub32(rd_s32(body, B_PIECE_SRC + 12), rd_s32(body, B_PIECE_SRC + 4));')
 m('p0-setup-effect-flag-inverted', 'predicate', 'const int ran = world->grid_ready == 0;', 'const int ran = world->grid_ready != 0;')
 m('p0-setup-effect-missing', 'missing-effect', 'fx(host, CPZ_FX_GRID_SETUP, ran, 0);', ';')
 m('p0-clear-item-missing', 'missing-effect', 'HOST(host->clear_pending_item(host->context));\n    fx(host, CPZ_FX_CLEAR_ITEM, 0, 0);', 'fx(host, CPZ_FX_CLEAR_ITEM, 0, 0);')
@@ -467,7 +469,13 @@ EQUIVALENT = {
                        'until the 16-bit counter wraps)',
     'step-unknown-dir-continues': 'the direction is one of 0x10..0x13 whenever a move runs (the pointer stores only those through the move check); with another '
                                   'value the original and the kernel both leave the step function in the switch default before counting',
-    'can-result-inverted': 'checked below: a killed mutant (kept here only if the marker text is not found)',
+    'p0-cell-size-after-setup': 'moves only the read of the view origin (a pure host query that is neither an effect nor a write) above the two field stores; '
+                                'the order of a read-only host call against two object stores is not observable (the setup that uses the cell size still runs after both); '
+                                'the stronger order mutant p0-setup-before-cell-size is killed',
+    'ptr-quarter-shift': 'differs from the kernel only for a negative cell width; for every width from -80 to 0 and every pointer x in -200..99 the three x-tests '
+                         '(up/down centre band, right strip, left strip) give the same truth values for both quarters (exhaustive check, 0 differences): a negative width '
+                         'makes every x-interval empty',
+    'ptr-quarter-trunc': 'same exhaustive check as ptr-quarter-shift (width -80..0, x -200..99, 0 differences)',
 }
 
 

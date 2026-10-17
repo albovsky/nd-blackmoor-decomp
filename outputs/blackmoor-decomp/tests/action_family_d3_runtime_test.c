@@ -3041,6 +3041,15 @@ static void t_arrow_negative_extents(void)
     CHECK(f.world.cell[0][1].base[0] == f.world.cell[0][1].rect[2] + 2 + 8);
     CHECK(f.world.cell[0][2].base[1] == f.world.cell[0][2].rect[1] - 2 + 8 && f.world.cell[0][2].base[3] == f.world.cell[0][2].base[1] - 17);
     CHECK(f.world.cell[0][3].base[1] == f.world.cell[0][3].rect[3] + 2 + 8);
+    /* an arrow wider than the cell by an odd amount: the centering offset (30 - 41) / 2 is -5, not -6 */
+    fx_init(&f);
+    put16(f.body, O_ROWS, 1);
+    put16(f.body, O_COLS, 1);
+    put16(f.body, O_PIECES, 0);
+    put_rect(f.body, O_AV, 3100, 10, 3141, 26);
+    set_type(f.body, 0, 0, 0x12);
+    CHECK(visit(&f, ROW, 0u) == CPZ_OK && cells_match(&f));
+    CHECK(f.world.cell[0][0].base[0] == f.world.cell[0][0].rect[0] - 5 && f.world.cell[0][0].base[2] == f.world.cell[0][0].rect[2] + 5);
 }
 
 /* The cell a piece leaves is hidden only when its type is 0: any other type (negative, large, an overlay) keeps being drawn. */
@@ -3108,6 +3117,29 @@ static void run(const char *name, TestFn fn)
     }
 }
 
+/* ---- a corrupted object position is refused (native safety) ---------------------------------------------------------------- */
+
+static void t_moving_position_bounds(void)
+{
+    Fx f;
+    CpzResult r;
+    const char *why = NULL;
+    fx_init(&f);
+    CHECK(cpz_step(&f.o, f.body, CPZ_BODY_BYTES, ROW, 0u, &f.world, &f.host, &r, &why) == CPZ_OK);
+    f.o.state = CPZ_STATE_MOVING;
+    f.o.dir = CPZ_DIR_LEFT;
+    f.o.at_row = CPZ_GRID_MAX;
+    CHECK(cpz_step(&f.o, f.body, CPZ_BODY_BYTES, ROW, 1u, &f.world, &f.host, &r, &why) == CPZ_ERR_BOUNDS);
+    f.o.at_row = 0;
+    f.o.at_col = -1;
+    CHECK(cpz_step(&f.o, f.body, CPZ_BODY_BYTES, ROW, 1u, &f.world, &f.host, &r, &why) == CPZ_ERR_BOUNDS);
+    f.o.at_col = CPZ_GRID_MAX;
+    CHECK(cpz_step(&f.o, f.body, CPZ_BODY_BYTES, ROW, 1u, &f.world, &f.host, &r, &why) == CPZ_ERR_BOUNDS);
+    f.o.at_row = -1;
+    f.o.at_col = 0;
+    CHECK(cpz_step(&f.o, f.body, CPZ_BODY_BYTES, ROW, 1u, &f.world, &f.host, &r, &why) == CPZ_ERR_BOUNDS);
+}
+
 int main(void)
 {
     run("validate_body", t_validate);
@@ -3123,6 +3155,7 @@ int main(void)
     run("animation", t_animation);
     run("slide_chain", t_slide_chain);
     run("moving_without_direction", t_moving_without_direction);
+    run("moving_position_bounds", t_moving_position_bounds);
     run("stop_sounds", t_stop_sounds);
     run("solved_scan", t_solved_scan);
     run("state_delay_and_sound", t_state_delay_and_sound);

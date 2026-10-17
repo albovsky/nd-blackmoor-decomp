@@ -419,6 +419,9 @@ static int phase1(CpzObject *o, const uint8_t *body, CpzWorld *world, uint32_t *
     }
     case CPZ_STATE_MOVING: {
         int32_t view_x = 0, view_y = 0;
+        /* Native safety: the original indexes the grid with these words unchecked; they are always in range unless the
+         * object was corrupted from outside. */
+        if (o->at_row < 0 || o->at_row >= CPZ_GRID_MAX || o->at_col < 0 || o->at_col >= CPZ_GRID_MAX) return CPZ_ERR_BOUNDS;
         HOST(host->view_origin(host->context, &view_x, &view_y));
         if (move_step(o, body, world, view_x, view_y) != 0 && can_move(o, world, body, o->dir) == 0) {
             const int rests = type_is(world, o->piece, o->at_row, o->at_col);

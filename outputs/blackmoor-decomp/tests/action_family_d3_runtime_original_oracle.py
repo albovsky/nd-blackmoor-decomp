@@ -2321,6 +2321,52 @@ def scenario_list(seed=0xD353):
             rows = [R67()] + rows + [R67(loaded=3)]
         S('random:%d' % case, rows, [tk(handle=[HANDLES[case % 5]]), ('bot', 60, rng.choice(('play', 'chaos', 'chaos', 'win')))], 'bot',
           init=dict(start=rng.choice((1, 1, 0, 5)), origin=rng.choice(ORIGINS), grid='garbage' if case % 7 == 6 else 'zero'), quick=case < 3)
+    # ---- targeted additions (a separate random stream so the groups above keep their boards) ------------------------------------------------
+    rng = random.Random(seed ^ 0x5A5A5A)
+    # ---- negative and odd rectangles: truncating halves, the quarter, the stale step of a refused check, every non-moving state ----------------------
+    for case in range(24):
+        body = mk(odd=True, R=rng.randint(2, 5), C=rng.randint(2, 5), P=rng.randint(2, 4), gap=rng.choice((-6, -3, 0, 1, 4)))
+        cw = rng.choice((-1, -2, -3, -5, 1, 2, 3, 5, 8, 12, 33))
+        chh = rng.choice((-1, -2, -3, -5, 1, 3, 9, 30, 0))
+        body = patch(body, B_PIECE_SRC, struct.pack('<4i', 0, 0, cw, chh) if case % 3 else struct.pack('<4i', 4, 6, 4 + cw, 6 + chh))
+        body = patch(body, B_ARROW_H, struct.pack('<4i', rng.randint(0, 5), rng.randint(0, 5), rng.choice((-1, -3, -5, -9, 4, 9, 11)) + rng.randint(0, 5),
+                                                  rng.choice((-1, -3, -5, -9, 4, 9, 11)) + rng.randint(0, 5)))
+        body = patch(body, B_ARROW_V, struct.pack('<4i', rng.randint(0, 5), rng.randint(0, 5), rng.choice((-1, -3, -5, -9, 4, 9, 11)) + rng.randint(0, 5),
+                                                  rng.choice((-1, -3, -5, -9, 4, 9, 11)) + rng.randint(0, 5)))
+        acts = [tk(), ('render', 0, 0), ('pieceprobes', 4, 6, False), ('set', dict(step=3, dir=0x11)), ('pieceprobes', 2, 0, False), ('set', dict(step=0, dir=0)),
+                ('bot', 6, 'play')]
+        for st in (1, 3, 4, 5, 9, 0x80000000, M32):
+            acts += [('set', dict(state=st)), ('pieceprobes', 2, 0, False)]
+        acts += [('set', dict(state=0)), ('cleanup',)]
+        S('negrect:%d' % case, [R_D3(body)], acts, 'pointer', init=dict(origin=rng.choice(ORIGINS)), quick=case < 2)
+    for case in range(16):                               # idle with the solved flag set, the start flag cleared before phase 2
+        body = mk(solved=pick_block(rng), cancel=pick_block(rng), solved_flag=rng.choice(FLAGS), cancel_flag=rng.choice(FLAGS),
+                  snd_kinds=[rng.choice(SK), rng.choice(SK), rng.choice(SK), rng.choice(SK)], delay=rng.choice((0, 1, 2)))
+        flags = [dict(canceled=1, solved=0), dict(canceled=0, solved=1), dict(canceled=0, solved=0)][case % 3]
+        S('idle_solved:%d' % case, [R_D3(body, subtype=rng.choice((1, 2)))],
+          [tk(), ('set', dict(state=0, solved=1)), tk(), tk(tick=[1000] * 3), tk(tick=[1000 + 1000 * 3] * 3), tk(busy=[0]), tk(), ('rearm',), tk(),
+           ('set', dict(start=0, **flags)), ('setphase', 0, 2), tk(), ('rearm',), tk(), ('set', dict(start=0, **flags)), ('setphase', 0, 2), tk()], 'finish',
+          quick=case < 2)
+
+    for case in range(12):                               # every arrow type with negative odd arrow rectangles (truncating halves of the arrow size)
+        t = [[0] * 8 for _ in range(8)]
+        t[0][1], t[1][0], t[1][2], t[2][1] = 0x10, 0x11, 0x12, 0x13
+        t[0][3] = 0x10 + case % 4
+        body = mk(R=3, C=4, P=2, types=t, starts=[(1, 1), (3, 2)], odd=True, gap=rng.choice((-3, 0, 5)))
+        al = rng.choice((9, 14, 5)); at = rng.choice((9, 14, 5))
+        aw = rng.choice((-1, -3, -5, -7, -9, 3, 6)); ah = rng.choice((-1, -3, -5, -7, -9, 3, 6))
+        bw = rng.choice((-1, -3, -5, -7, -9, 3, 6)); bh = rng.choice((-1, -3, -5, -7, -9, 3, 6))
+        body = patch(body, B_ARROW_H, struct.pack('<4i', al, at, al + aw, at + ah))
+        body = patch(body, B_ARROW_V, struct.pack('<4i', at, al, at + bw, al + bh))
+        S('negarrow:%d' % case, [R_D3(body)], [tk(), ('render', 0, 0), ('pieceprobes', 2, 0, False), ('cleanup',)], 'geom', quick=case < 1)
+    for case in range(8):                                # the click on an object that is not active
+        body = mk(snd_kinds=['real', 'none', 'none', 'none'], ch=[1, 1, 2, 3])
+        acts = [tk()]
+        for cand in (0x277F, 0x2780, 0x2783, 0x2781):
+            for cond in (dict(state=0, solved=0, dir=0x11, active=0), dict(state=0, solved=0, dir=0, active=0), dict(state=0, solved=0, dir=0x11, active=1)):
+                acts += [('set', dict(cand=cand, start=1, canceled=0, **cond)), ('setphase', 0, 1), ('click', {}), ('set', dict(state=0, solved=0, dir=0, active=1)),
+                         ('setphase', 0, 1)]
+        S('click_inactive:%d' % case, [R_D3(body)], acts, 'click', quick=case < 1)
     return scs
 
 
@@ -2547,8 +2593,35 @@ def to_plain(stats):
     return {k: (dict(v) if isinstance(v, Counter) else v) for k, v in stats.items()}
 
 
+def sanitize_fuzz(args):
+    """ASan + UBSan run of the kernel on bounded malformed inputs (random bodies of exact heap length, random worlds, kernel-reachable objects).
+    --fuzz-corrupt also feeds objects no kernel call can produce (index fields outside the board); the kernel does not guard those (open item)."""
+    cc = os.environ.get('CC') or shutil.which('gcc') or shutil.which('clang')
+    exe = Path(tempfile.mkdtemp(prefix='d3_fuzz_')) / 'fuzz'
+    build = [cc, '-std=c11', '-Wall', '-Wextra', '-Werror', '-O1', '-g', '-fsanitize=address,undefined', '-fno-sanitize-recover=undefined',
+             '-fno-omit-frame-pointer', '-DD3O_FUZZ_MAIN', f'-I{args.src}', str(PROJECT / 'tests/action_family_d3_runtime_oracle_driver.c'),
+             *[str(Path(args.src) / x) for x in SOURCES], '-o', str(exe)]
+    done = subprocess.run(build, capture_output=True, text=True)
+    if done.returncode != 0:
+        print('fuzz build failed', done.stderr[-600:])
+        return 1
+    env = dict(os.environ, ASAN_OPTIONS='detect_leaks=0')
+    total = 0
+    for seed in range(1, 5):
+        run = subprocess.run([str(exe), str(args.fuzz), str(seed), '1' if args.fuzz_corrupt else '0'], capture_output=True, text=True, env=env, timeout=1800)
+        line = (run.stdout.strip().splitlines() or [''])[-1]
+        print('seed', seed, 'rc', run.returncode, line, (run.stderr.strip().splitlines() or [''])[0][:200])
+        if run.returncode != 0:
+            return 1
+        total += args.fuzz
+    print('fuzz clean: %d inputs under ASan/UBSan' % total)
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--fuzz', type=int, default=0, help='run the ASan/UBSan malformed-input harness with N inputs per seed (4 seeds) and exit')
+    ap.add_argument('--fuzz-corrupt', action='store_true')
     ap.add_argument('--result', type=Path)
     ap.add_argument('--src', type=Path, default=PROJECT / 'src')
     ap.add_argument('--native-library', type=Path)
@@ -2561,6 +2634,8 @@ def main():
     ap.add_argument('--quick-only', action='store_true')
     ap.add_argument('--lenient-build', action='store_true', help='build the driver without -Werror (mutants)')
     args = ap.parse_args()
+    if args.fuzz:
+        return sanitize_fuzz(args)
     started = time.monotonic()
     PRIVATE.mkdir(parents=True, exist_ok=True)
     tmp = tempfile.TemporaryDirectory(prefix='RT-53.oracle-', dir=PRIVATE)
