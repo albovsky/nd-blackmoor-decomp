@@ -1815,6 +1815,12 @@ static void t_layers(void)
         {{10, 10, 20, 20}, {20, 20, 40, 40}, 0, 7, 8},    {{10, 10, 20, 20}, {21, 20, 40, 40}, 0, 7, 1},
         {{10, 10, 20, 20}, {20, 21, 40, 40}, 0, 7, 1},    {{10, 10, 20, 20}, {5, 5, 10, 10}, 0, 7, 8},
         {{10, 10, 20, 20}, {5, 5, 9, 10}, 0, 7, 1},       {{10, 10, 20, 20}, {5, 5, 10, 9}, 0, 7, 1},
+        /* a -1 edge of the overlap that only one of the two candidate edges has (the smaller one is taken: -1 means no overlap) */
+        {{-5, 0, -1, 5}, {-3, 0, 5, 5}, 0, 5, 1},         {{-3, 0, 5, 5}, {-5, 0, -1, 5}, 0, 5, 1},
+        {{0, -5, 5, -1}, {0, -3, 5, 5}, 0, 5, 1},         {{0, -3, 5, 5}, {0, -5, 5, -1}, 0, 5, 1},
+        /* the overlap's near edge is the second rectangle's (left, top) or the first's: -1 there too */
+        {{-5, 0, 5, 5}, {-1, 0, 5, 5}, 0, 5, 1},         {{0, -5, 5, 5}, {0, -1, 5, 5}, 0, 5, 1},
+        {{-1, 0, 5, 5}, {-5, 0, 5, 5}, 0, 5, 1},         {{0, -1, 5, 5}, {0, -5, 5, 5}, 0, 5, 1},
     };
     for (size_t i = 0; i < sizeof cases / sizeof cases[0]; ++i) {
         const int got = layer_after_drop(cases[i].a, cases[i].b, cases[i].z0, cases[i].z1);
@@ -2787,7 +2793,8 @@ static void t_binding_flow(void)
     CK(session_aeb_begin_scene(x.b, x.scene) == EB_OK && strcmp(session_aeb_failure(x.b), "none") == 0);
     CK(session_aeb_registered(x.b) == 0u && !eb_object_active(session_aeb_object(x.b)) && eb_object_row(session_aeb_object(x.b)) == -1);
     CK(session_aeb_world(x.b)->saved_flag == 0 && session_aeb_world(x.b)->saved_scene == 9999);
-    /* nothing active: every entry point is a no-op that succeeds */
+    /* nothing active: every entry point is a no-op that succeeds (and clears the result it is given) */
+    memset(&p, 0xff, sizeof p);
     CK(session_aeb_pointer_move(x.b, 310, 210, (const int32_t[4]){302, 202, 318, 218}, &p) == EB_OK && p.hit == 0u && p.candidate == -1 &&
        p.wrote_cursor == 0u);
     CK(session_aeb_click(x.b, 1u, EB_CANDIDATE_PICK, &np) == EB_OK && np == 1u);
@@ -2831,6 +2838,12 @@ static void t_binding_flow(void)
        p.candidate == EB_CANDIDATE_PICK);
     CK(session_aeb_pointer_move(x.b, 620, 460, (const int32_t[4]){612, 452, 628, 468}, &p) == EB_OK && p.candidate == EB_CANDIDATE_EXIT_A);
     CK(session_aeb_click(x.b, 2u, EB_CANDIDATE_EXIT_A, &np) == EB_OK && np == 2u && ob_of(session_aeb_object(x.b), O_EXIT) == 0); /* wrong row phase */
+    {   /* a click reads the running scene cell again (the world mirrors the engine's 0x5bb57b before the kernel runs) */
+        const int calls = g_cell_calls;
+        g_cell = 61;
+        CK(session_aeb_click(x.b, 2u, EB_CANDIDATE_EXIT_A, &np) == EB_OK && g_cell_calls == calls + 1 &&
+           session_aeb_world(x.b)->scene_5bb57b == 61);
+    }
     CK(session_aeb_click(x.b, 1u, EB_CANDIDATE_EXIT_A, &np) == EB_OK && np == 2u && ob_of(session_aeb_object(x.b), O_EXIT) == 1);
     CK(session_aeb_world(x.b)->saved_flag == 1);
     CK(session_aeb_click(x.b, 1u, 0, NULL) == EB_ERR_ARGUMENT);
@@ -2912,7 +2925,18 @@ static void t_binding_rows_and_persistence(void)
     CK(session_aeb_begin_scene(x.b, x.scene) == EB_ERR_HOST && strcmp(session_aeb_failure(x.b), "0xeb-scene-clear") == 0);
     x.f.fail_call = 0;
     CK(session_aeb_registered(x.b) == 1u && eb_object_row(session_aeb_object(x.b)) == 1);
-    CK(session_aeb_begin_scene(x.b, x.scene) == EB_OK);
+    CK(session_aeb_begin_scene(x.b, x.scene) == EB_OK && strcmp(session_aeb_failure(x.b), "none") == 0); /* a good scene resets the text */
+    /* a scene without actions is fine and leaves no rows */
+    {
+        uint8_t bytes[256];
+        SceneResource *scene = scene_resource_open_memory(bytes, build_scene(bytes, 0, NULL, NULL, NULL), (char[128]){0}, 128);
+        CK(scene != NULL);
+        if (scene != NULL) {
+            CK(session_aeb_begin_scene(x.b, scene) == EB_OK && strcmp(session_aeb_failure(x.b), "none") == 0);
+            scene_resource_close(scene);
+            CK(session_aeb_begin_scene(x.b, x.scene) == EB_OK);
+        }
+    }
     /* destroy cleans up an active object */
     CK(b_visit(&x, 1, 0u, &ph, &done) == SCENE_ACTION_HANDLER_OK);
     fx_clear(&x.f);
@@ -2954,7 +2978,11 @@ static void t_binding_errors(void)
     x.f.fail_call = 0;
     CK(session_aeb_render_plan(x.b, r) == EB_OK && strcmp(session_aeb_failure(x.b), "none") == 0);
     ((EbObject *)session_aeb_object(x.b))->b[O_ACTIVE] = 1;
-    CK(session_aeb_click(x.b, 1u, 0, &np) == EB_OK && strcmp(session_aeb_failure(x.b), "none") == 0);
+    fx_clear(&x.f);
+    x.f.fail_call = 1;
+    CK(session_aeb_render_plan(x.b, r) == EB_ERR_HOST && strcmp(session_aeb_failure(x.b), "0xeb-render") == 0);
+    x.f.fail_call = 0;
+    CK(session_aeb_click(x.b, 1u, 0, &np) == EB_OK && strcmp(session_aeb_failure(x.b), "none") == 0); /* the text of the failed render is replaced */
     bind_close(&x);
     /* rotation allowed, and no hooks at all */
     {
@@ -3037,11 +3065,20 @@ static void t_binding_argument_checks_with_live_binding(void)
     /* an active object whose row is not in the binding (a foreign row number) is refused */
     ((EbObject *)session_aeb_object(x.b))->b[O_ACTIVE] = 1;
     ((EbObject *)session_aeb_object(x.b))->b[O_ROW] = 9;
+    ((EbObject *)session_aeb_object(x.b))->b[O_ROW + 1] = 0; /* the row word is 9, not 0xff09 */
     ((EbObject *)session_aeb_object(x.b))->b[O_SLOT] = 0x18;
+    CK(session_aeb_pointer_move(x.b, 1, 1, hot, &p) == EB_ERR_ARGUMENT && strcmp(session_aeb_failure(x.b), "none") == 0);
+    CK(session_aeb_click(x.b, 1u, 0, &np) == EB_ERR_ARGUMENT && strcmp(session_aeb_failure(x.b), "none") == 0);
+    CK(session_aeb_rotate_key(x.b, 1u) == EB_ERR_ARGUMENT && strcmp(session_aeb_failure(x.b), "none") == 0);
+    r->valid = 1;
+    r->count = 4;
+    CK(session_aeb_render_plan(x.b, r) == EB_ERR_ARGUMENT && r->valid == 0u && r->count == 0 && strcmp(session_aeb_failure(x.b), "none") == 0);
+    /* the row number equal to the row count is one past the end (three rows in the scene) */
+    ((EbObject *)session_aeb_object(x.b))->b[O_ROW] = 3;
     CK(session_aeb_pointer_move(x.b, 1, 1, hot, &p) == EB_ERR_ARGUMENT);
     CK(session_aeb_click(x.b, 1u, 0, &np) == EB_ERR_ARGUMENT);
     CK(session_aeb_rotate_key(x.b, 1u) == EB_ERR_ARGUMENT);
-    CK(session_aeb_render_plan(x.b, r) == EB_ERR_ARGUMENT && r->valid == 0u && r->count == 0);
+    CK(session_aeb_render_plan(x.b, r) == EB_ERR_ARGUMENT);
     ((EbObject *)session_aeb_object(x.b))->b[O_ROW] = 0; /* row 0 is the foreign 0x70 row */
     CK(session_aeb_pointer_move(x.b, 1, 1, hot, &p) == EB_ERR_ARGUMENT);
     CK(session_aeb_render_plan(x.b, r) == EB_ERR_ARGUMENT);
@@ -3049,6 +3086,15 @@ static void t_binding_argument_checks_with_live_binding(void)
     ((EbObject *)session_aeb_object(x.b))->b[O_ROW + 1] = 0xff;
     CK(session_aeb_rotate_key(x.b, 1u) == EB_ERR_ARGUMENT);
     ((EbObject *)session_aeb_object(x.b))->b[O_ACTIVE] = 0;
+    /* a failing kernel step is an error of the handler, not a pending row */
+    {
+        uint32_t ph = 0;
+        int done = 0;
+        fx_clear(&x.f);
+        x.f.fail_call = 1;
+        CK(b_visit(&x, 1, 0u, &ph, &done) == SCENE_ACTION_HANDLER_ERROR);
+        x.f.fail_call = 0;
+    }
     bind_close(&x);
     free(r);
 }

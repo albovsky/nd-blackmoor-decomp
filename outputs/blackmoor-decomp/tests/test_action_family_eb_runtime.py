@@ -20,6 +20,8 @@ mutated once, and the unit cases must fail on each. A mutant that survives must 
 change observable behaviour.
 """
 import concurrent.futures
+import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -37,6 +39,7 @@ KERNEL = 'action_family_eb_runtime.c'
 BINDING = 'session_bindings_aeb.c'
 SOURCES = [KERNEL, BINDING, 'scene_resource.c', 'hiff.c']
 MUTATED_FILES = [KERNEL, BINDING]
+ORACLE = PROJECT / 'tests/action_family_eb_runtime_original_oracle.py'
 EXPECTED_UNIT_TESTS = 36
 RESOURCES = PROJECT.parents[1] / 'work/analysis/hiff-resources'
 SANITIZE = ['-fsanitize=address,undefined', '-fno-sanitize-recover=undefined']
@@ -215,8 +218,8 @@ EQUIVALENT = {}  # exact keys, when a rule would be too broad
 
 # Extra mutants the line generator cannot reach (preprocessor lines).
 DEFINE_MUTANTS = [
-    ('fill retry limit lower', KERNEL, '#define FILL_RETRY_LIMIT 1000000', '#define FILL_RETRY_LIMIT 999999'),
-    ('fill retry limit higher', KERNEL, '#define FILL_RETRY_LIMIT 1000000', '#define FILL_RETRY_LIMIT 1000001'),
+    ('no-candidate value zero', KERNEL, '#define CANDIDATE_NONE (-1)', '#define CANDIDATE_NONE (0)'),
+    ('no-candidate value minus two', KERNEL, '#define CANDIDATE_NONE (-1)', '#define CANDIDATE_NONE (-2)'),
 ]
 
 

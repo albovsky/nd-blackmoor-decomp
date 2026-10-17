@@ -23,6 +23,9 @@ typedef struct blackmoor_platform_callbacks {
                     int32_t x, int32_t y, unsigned button);
     /* Windows-style virtual-key values at the recovered engine boundary. */
     void (*key)(void *context, unsigned virtual_key, int down, int repeat);
+    /* Typed ANSI characters (the WM_CHAR level): one call per character of the key event, high-bit characters as negative
+     * values. Optional (may be NULL). */
+    void (*character)(void *context, int8_t ch);
     void (*closed)(void *context);
 } BlackmoorPlatformCallbacks;
 
