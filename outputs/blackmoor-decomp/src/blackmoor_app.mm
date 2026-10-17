@@ -49,6 +49,7 @@
 #include "session_bindings_a43.h"
 #include "session_bindings_a2e.h"
 #include "session_bindings_a2d.h"
+#include "session_bindings_a33.h"
 #include "session_bindings_a6e.h"
 #include "session_bindings_a6f.h"
 #include "session_bindings_a7d.h"
@@ -318,6 +319,10 @@ struct NativeApp {
      * until raw 0x2d is bound, so only the row/mode stores and the completion run. Not compiled here. */
     SessionA2EBinding *a2e = nullptr;
     SessionA2dBinding *a2d = nullptr;
+    /* RT-46: raw 0x33 secondary video with hotspots (handler 0x42c221, gate mode 1). The kernel and binding are ported and
+     * oracle-tested against the original; the app has no media backend (reader thread, surfaces, stream), so phase 0 is
+     * refused as UNSUPPORTED (see native_a33_media_available). Not compiled here. */
+    SessionA33Binding *a33 = nullptr;
     /* RT-34: raw 0x44 scroll list entry (arm 0x4121b8) and the runtime 0xd8 Peephole view it turns into (arm 0x42a354,
      * handler 0x48c1c0). Only the scene hooks, the AUTOTEXT lookup, the transition and the start flag are wired here; the
      * text writer 0x413187 (RT-32's port) and the render/input hooks of the kernel are not, so the handler reports the
@@ -1960,6 +1965,7 @@ static void cleanup(NativeApp *app)
     session_a94_destroy(app->a94);
     session_a43_destroy(app->a43);
     session_a2d_destroy(app->a2d);
+    session_a33_destroy(app->a33);
     session_a2e_destroy(app->a2e);
     session_a44_destroy(app->a44);
     session_a79_destroy(app->a79);
@@ -4118,6 +4124,96 @@ static int native_a2d_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
+/* ---- RT-46: raw 0x33 secondary video with hotspots (handler 0x42c221) ----------------------------------------------- */
+/* The process globals the app owns: the selector word 0x5bb50b, the start flag 0x5bb1ca, the running scene dword 0x5bb57b and
+ * the view origin 0x583186 / 0x58318a. The clip rectangle 0x5bb583.., the video rectangle 0x5b4de8.., the thread argument
+ * 0x5b016f, the candidate 0x5c39e5 and the reader-thread fields (ready word 0x5b4e0a, delay 0x5b4c5a, buffers 0x5b4db8 /
+ * 0x5b4dbc) have no app counterpart yet: they belong to the media backend that native_a33_media_available gates. */
+static void native_a33_load_world(void *context, A33State *state)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || state == nullptr) return;
+    if (app->selector_entry_valid && app->selector_entry_frame >= INT16_MIN && app->selector_entry_frame <= INT16_MAX) {
+        state->selector_5bb50b = static_cast<int16_t>(app->selector_entry_frame);
+    }
+    state->start_5bb1ca = app->start_flag_5bb1ca;
+    state->scene_5bb57b = app->current_scene_id;
+    state->view_x_583186 = app->scene_destination.left;
+    state->view_y_58318a = app->scene_destination.top;
+}
+
+static void native_a33_store_world(void *context, const A33State *state)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || state == nullptr) return;
+    app->start_flag_5bb1ca = state->start_5bb1ca;
+}
+
+/* RT-46: there is no media backend yet (no secondary-video reader thread, no surface create for "SEC_0_VIDEO_0", no stream
+ * reset), so phase 0 of raw 0x33 reports UNSUPPORTED before any effect. */
+static int native_a33_media_available(void *context)
+{
+    (void)context;
+    return 0;
+}
+
+/* RT-46: the engine calls of the kernel that the app can answer: the event flag store of 0x42ca22, the saved-scene push
+ * 0x42e560 (scene_stack_push) and GetTickCount. Every media call fails the visit (the original has no recovery either). */
+static int native_a33_op(void *context, int op, const A33OpArgs *args, int32_t *ret)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    *ret = 0;
+    if (app == nullptr) return 1;
+    switch (op) {
+    case A33_OP_EVENT_FLAG:
+        if (app->new_game.action_core.event_flags == nullptr || args->a < 0 ||
+            static_cast<size_t>(args->a) >= app->new_game.action_core.event_flag_count) return 1;
+        app->new_game.action_core.event_flags[args->a] = args->b;
+        return 0;
+    case A33_OP_PUSH_SCENE: {
+        SceneStackCurrent current{};
+        if (native_a6e_load_current(app, &current) != 0) return 1;
+        scene_stack_push(&app->scene_stack_slot, &current, args->a);
+        return 0;
+    }
+    case A33_OP_TICK:
+        *ret = static_cast<int32_t>(app->session_tick_sample); /* GetTickCount, as native_ad1_tick */
+        return 0;
+    case A33_OP_LOG:
+        record(app, "scene_a33_log id=%d b=%d (0x42c221 diagnostic)", args->a, args->b);
+        return 0;
+    default:
+        return 1;
+    }
+}
+
+/* The finish branch's scene-change request (the original stores the 0x0a-shaped cells and the engine mode 4, then 0x42ba3a). */
+static int native_a33_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || app->session == nullptr || request == nullptr) return 1;
+    if (scene_session_request_transition(app->session, request) != SCENE_SESSION_OK) {
+        record(app, "scene_a33_transition_refused target=%d (completion not committed)", request->target_scene);
+        return 1;
+    }
+    record(app, "scene_a33_transition target=%d opaque_words=%d,%d,%d opaque_dwords=%d,%d,%d (0x42c221 finish, mode 0x583999 := 4)",
+           request->target_scene, request->opaque_words[0], request->opaque_words[1], request->opaque_words[2],
+           request->opaque_dwords[0], request->opaque_dwords[1], request->opaque_dwords[2]);
+    return 0;
+}
+
+static int native_a33_handler(void *context, size_t row, const SceneActionInfo *action,
+                              const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const int status = session_a33_handler(app->a33, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK) {
+        record(app, "scene_a33_blocker row=%zu status=%d detail=%s", row, status, session_a33_failure(app->a33));
+    }
+    return status;
+}
+
 static int native_a2e_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
@@ -5329,6 +5425,14 @@ static bool create_native_session_bindings(NativeApp *app)
     a2d_host.media_available = native_a2d_media_available;
     a2d_host.kernel.surface_dims = nullptr;
     app->a2d = session_a2d_create(&a2d_host);
+    SessionA33Host a33_host{};   /* RT-46: raw 0x33 secondary video; media calls are not answered (no backend) */
+    a33_host.kernel.context = app;
+    a33_host.kernel.op = native_a33_op;
+    a33_host.load_world = native_a33_load_world;
+    a33_host.store_world = native_a33_store_world;
+    a33_host.transition = native_a33_transition;
+    a33_host.media_available = native_a33_media_available;
+    app->a33 = session_a33_create(&a33_host);
     session_a2d_attach_a2e(app->a2d, app->a2e);
     SessionA44Host a44_host{};
     a44_host.context = app;
@@ -5388,7 +5492,7 @@ static bool create_native_session_bindings(NativeApp *app)
         session_exit_init(&app->exit_state, &view);
         app->a28 = session_a28_create(&app->exit_state);
     }
-    if (app->a62 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
+    if (app->a62 == nullptr || app->a33 == nullptr || app->a1b == nullptr || app->a7d == nullptr || app->a51 == nullptr || app->a28 == nullptr || app->a35 == nullptr || app->a97 == nullptr || app->aa1 == nullptr || app->a83 == nullptr || app->a3f == nullptr || app->ad9 == nullptr || app->ad1 == nullptr || app->a95 == nullptr || app->a4f == nullptr || app->a6e == nullptr || app->a6f == nullptr || app->a67 == nullptr || app->a65 == nullptr || app->a45 == nullptr || app->a4b == nullptr || app->a47 == nullptr || app->a4e == nullptr || app->a2e == nullptr || app->a2d == nullptr || app->a44 == nullptr || app->a94 == nullptr || app->a43 == nullptr || app->a79 == nullptr || app->a78 == nullptr || app->a36 == nullptr || app->a17 == nullptr || app->a0b == nullptr || app->a0c == nullptr ||
         app->conditions_binding == nullptr) {
         record(app, "scene_session_create_error provider=host detail=binding allocation");
         return false;
@@ -5784,6 +5888,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
         record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
     }
+    /* RT-46: the 0x33 part of the scene clear (latch 0x5c39f1, row/kind words, surfaces) and the parse of the scene's raw 0x33 rows. A failure leaves the
+     * 0x33 rows unowned (they report the blocker). */
+    if (session_a33_begin_scene(app->a33, app->scene) != 0) {
+        record(app, "scene_a33_begin_blocker detail=%s", session_a33_failure(app->a33));
+    }
     app->a36_blit_signature.fill(0u);
     app->a36_hot_rects_failure_logged = false;
     for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
@@ -6118,6 +6227,8 @@ static int native_pointer_external_row(void *context, size_t action_index,
     if (session_a0c_pointer_row(app->a0c, action_index, row) == 1) return 1;
     /* RT-40: a raw 0x1b row whose method matched the selector (same cells). */
     if (session_a1b_pointer_row(app->a1b, action_index, row) == 1) return 1;
+    /* RT-46: a raw 0x33 row whose hotspot matched the selector (kind 2: the request dword and rectangle words 0x42caa8 sets). */
+    if (session_a33_pointer_row(app->a33, action_index, row) == 1) return 1;
     if (app->a62 == nullptr ||
         session_a62_get_target(app->a62, action_index, &target) != SESSION_A62_OK ||
         target.request_pending == 0u) return 0;
@@ -6212,7 +6323,7 @@ static bool create_native_scene_session(NativeApp *app)
     action_sound_binding.callback = native_action_sound_handler;
     action_sound_binding.context = app;
     if (!create_native_session_bindings(app)) return false;
-    SceneSessionActionBinding bindings[40]{};
+    SceneSessionActionBinding bindings[41]{};
     bindings[0] = action_sound_binding;
     bindings[1].type = SESSION_A62_TYPE;
     bindings[1].provider = SCENE_SESSION_PROVIDER_A62;
@@ -6405,7 +6516,13 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[39].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[39].callback = native_a4e_handler;
     bindings[39].context = app;
-    config.action_binding_count = 40u;
+    /* RT-46: raw 0x33 secondary video with hotspots (handler 0x42c221, gate mode 1; phase 0 needs a media backend, see
+     * native_a33_media_available). Slot 39 is raw 0x4e (RT-44). */
+    bindings[40].type = SESSION_A33_TYPE;
+    bindings[40].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
+    bindings[40].callback = native_a33_handler;
+    bindings[40].context = app;
+    config.action_binding_count = 41u;
     SceneSessionFailure failure{};
     const int status = scene_session_create(&config, &app->session, &failure);
     if (status != SCENE_SESSION_OK) {
@@ -6426,6 +6543,8 @@ static bool create_native_scene_session(NativeApp *app)
                                    app->a0c) != SCENE_SESSION_OK ||
         scene_session_set_pre_gate(app->session, SESSION_A1B_TYPE, session_a1b_pre_gate,
                                    app->a1b) != SCENE_SESSION_OK ||
+        scene_session_set_pre_gate(app->session, SESSION_A33_TYPE, session_a33_pre_gate,
+                                   app->a33) != SCENE_SESSION_OK ||
         scene_session_set_condition_extension(
             app->session, session_conditions_extension(app->conditions_binding)) !=
             SCENE_SESSION_OK ||
@@ -7368,6 +7487,7 @@ static void describe_session_block(const NativeApp *app, const SceneSessionTickR
     else if (r.failure.action_type == SESSION_A0B_TYPE) detail = session_a0b_failure(app->a0b);
     else if (r.failure.action_type == SESSION_A0C_TYPE) detail = session_a0c_failure(app->a0c);
     else if (r.failure.action_type == SESSION_A1B_TYPE) detail = session_a1b_failure(app->a1b);
+    else if (r.failure.action_type == SESSION_A33_TYPE) detail = session_a33_failure(app->a33);
     if (r.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
         r.failure.detail_status == SCENE_ACTION_HANDLER_UNSUPPORTED &&
         (detail[0] == '\0' || std::strcmp(detail, "none") == 0))
