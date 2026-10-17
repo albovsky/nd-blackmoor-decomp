@@ -464,6 +464,7 @@ GLUE_PRELUDE = r'''
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include "live_audio.h"
 #include "scene_session.h"
 #include "session_bindings_a6d_a9a.h"
 struct StandInGlobals { int32_t overlay_ui = 0; int32_t load_game_flag = 0; uint32_t game_state = 0; };
@@ -472,7 +473,7 @@ struct StandInCaptions { StandInLifecycle lifecycle; };
 struct StandInExit { StandInGlobals g; };
 struct NativeApp {
     StandInCaptions captions; StandInExit exit_state; SceneSession *session = nullptr; int32_t start_flag_5bb1ca = 0;
-    SessionA6dBinding *a6d = nullptr; SessionA9aBinding *a9a = nullptr; Action6DWorld a6d_world{};
+    SessionA6dBinding *a6d = nullptr; SessionA9aBinding *a9a = nullptr; Action6DWorld a6d_world{}; LiveAudio *live_audio = nullptr;
 };
 static void record(NativeApp *, const char *, ...) {}
 static bool unload_scene_sound_object(NativeApp *) { return true; }

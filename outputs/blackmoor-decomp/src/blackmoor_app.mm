@@ -4047,7 +4047,13 @@ static void native_a9a_store_world(void *context, const Action9AWorld *world)
 static int native_a9a_stop_channel(void *context, uint16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_a9a_sound_stop channel=%u call=0x4fc878 NOT PLAYED (no effect backend)", static_cast<unsigned>(channel));
+    if (app != nullptr && app->live_audio != nullptr && channel < LIVE_AUDIO_CHANNEL_COUNT) {
+        const int status = live_audio_stop_channel(app->live_audio, channel); /* 0x4fc878: stop, keep loaded */
+        record(app, "scene_a9a_sound_stop channel=%u call=0x4fc878 live_audio status=%d", static_cast<unsigned>(channel), status);
+        return status == LIVE_AUDIO_OK ? 0 : 1;
+    }
+    record(app, "scene_a9a_sound_stop channel=%u call=0x4fc878 NOT STOPPED (no live audio or channel outside the table)",
+           static_cast<unsigned>(channel));
     return 0;
 }
 
