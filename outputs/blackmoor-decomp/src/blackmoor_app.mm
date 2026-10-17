@@ -5373,9 +5373,9 @@ static bool native_aea_render(NativeApp *app)
  * (0xd1) uses (same signatures, same cells). */
 
 /* The action binding table of create_native_session_bindings's caller: one entry per handled raw type. The Piano Puzzle takes the
- * slot after the last one main fills (45); RT-47 (0xf6) takes 46. A gap makes scene_session_create refuse the table (null
+ * slot after the last one main fills (45); RT-47 (0xf6) had planned 46 and renumbers to 47 if it merges later. A gap makes scene_session_create refuse the table (null
  * callback), so the slot and the count move together at merge. */
-static constexpr size_t kAd0BindingSlot = 47u;
+static constexpr size_t kAd0BindingSlot = 46u;
 static constexpr size_t kActionBindingCount = kAd0BindingSlot + 1u;
 
 static int native_ad0_alloc_slot(void *context, int16_t *slot)
@@ -7776,7 +7776,7 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[45].context = app;
     /* RT-50: raw 0xd0 Piano Puzzle (dispatcher arm 0x42a0ea -> 0x48d914, gate mode 0; phase 2 completes through 0x42ba3a). The
      * render callback 0x48ded7 runs from the app tick (native_ad0_render). Slot and count are kAd0BindingSlot / kActionBindingCount
-     * (renumber there at merge; slot 46 is RT-47's). */
+     * (slot 46, count 47; RT-47 (0xf6) renumbers to 47 if it merges after this). */
     bindings[kAd0BindingSlot].type = SESSION_AD0_TYPE;
     bindings[kAd0BindingSlot].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[kAd0BindingSlot].callback = native_ad0_handler;
