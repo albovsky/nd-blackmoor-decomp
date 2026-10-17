@@ -10599,10 +10599,8 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[53].callback = native_af5_handler;
     bindings[53].context = app;
     /* RT-58: raw 0x76 PASSWORD puzzle (dispatcher arm 0x42902c -> handler 0x42fc70, gate mode 0; phase 2 completes through
-     * 0x42ba3a). The render callback 0x4d07e7 runs from the app tick (native_a76_render) from a static entry. Slot 55, count 56:
-     * slots 55..57 are RT-57's three missing action types and 54 is RT-56's 0xeb. The slots must stay gap-free
-     * (scene_session_create rejects an empty binding), so until RT-57 is merged the app does not start; whichever of the two
-     * PRs merges second renumbers. */
+     * 0x42ba3a). The render callback 0x4d07e7 runs from the app tick (native_a76_render) from a static entry. Slot 55, count 56 (54 is RT-56's 0xeb; the slots must stay gap-free
+     * because scene_session_create rejects an empty binding; RT-57's three types renumber behind this one when they merge). */
     bindings[55].type = SESSION_A76_TYPE;
     bindings[55].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[55].callback = native_a76_handler;
