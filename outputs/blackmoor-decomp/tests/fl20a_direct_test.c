@@ -69,6 +69,7 @@ typedef struct Call {
     int n;
     uintptr_t a[8];
     uint8_t snap[32];       /* the bytes behind args[snap_arg] of the callee snap_callee, when asked for */
+    uint8_t probe[64];      /* the bytes at the host addresses of probe_ptr[] (concatenated) at the call of probe_callee */
 } Call;
 
 typedef struct Region {
@@ -90,6 +91,9 @@ static struct {
     int ret_count[8], ret_used[8];
     uint32_t snap_callee;
     int snap_arg, snap_len;
+    uint32_t probe_callee;
+    const uint8_t *probe_ptr[4];
+    int probe_len[4], nprobe;
     OutWrite w[16];
     int nw;
     int calls_of[16];       /* per callee slot: how many calls were made (for OutWrite.call) */
@@ -143,6 +147,13 @@ static uint32_t h_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uin
         c->n = nargs;
         for (k = 0; k < nargs && k < 8; k++) c->a[k] = args[k];
         if (callee == L.snap_callee && L.snap_len > 0) memcpy(c->snap, (const void *)args[L.snap_arg], (size_t)L.snap_len);
+        if (callee == L.probe_callee && L.nprobe > 0) {
+            int at = 0;
+            for (k = 0; k < L.nprobe; k++) {
+                memcpy(c->probe + at, L.probe_ptr[k], (size_t)L.probe_len[k]);
+                at += L.probe_len[k];
+            }
+        }
     }
     L.n++;
     for (i = 0; i < L.nw; i++) {
@@ -475,7 +486,13 @@ static void test_m483fb5_release_all(void)
     set32(g_obj, 0x4c + 4 * 0x18, 0x7777);        /* j = 4 of row 0: not in the loop */
     set32(g_obj, 0x4c + 20 * 0x85, 0x8888);       /* i = 20: not in the loop */
     memcpy(g_exp, g_obj, OBJ);
+    L.snap_callee = 0x4c2dfb;   /* the dword behind the pointer, at the time of the call: the store of 0 comes after the call */
+    L.snap_arg = 0;
+    L.snap_len = 4;
     m483fb5_release_all(g_obj, &h);
+    CK(get32(L.c[0].snap, 0) == 0x1111 && get32(L.c[1].snap, 0) == 0x2222);
+    CK(get32(L.c[2].snap, 0) == 0x100 && get32(L.c[3].snap, 0) == 0x101 && get32(L.c[4].snap, 0) == 0x102);
+    CK(get32(L.c[5].snap, 0) == 0x104 && get32(L.c[6].snap, 0) == 0x103);   /* call order: cells 0, 1, 2, 4, 3 */
     set32(g_exp, 0x1e, 0);
     set32(g_exp, 0x22, 0);
     for (k = 0; k < 5; k++) set32(g_exp, (size_t)cells[k], 0);
@@ -611,7 +628,14 @@ static void test_m44727a_start_record(void)
         set32(self, 0x29, 0x5678);
         memcpy(g_exp, self, OBJ);
         memcpy(expect_table, rec_table, sizeof rec_table);
+        L.probe_callee = 0x4473a9;   /* at the call: state still 0, rectangle already computed, and the copy is in place */
+        L.probe_ptr[0] = rec_table + REC + 2 * REC + 0x4d;
+        L.probe_len[0] = 4;
+        L.probe_ptr[1] = self + 0x1d;
+        L.probe_len[1] = 16;
+        L.nprobe = 2;
         m44727a_start_record(self, 2, &w, &h);
+        CK(get32(L.c[0].probe, 0) == 0);
         g_exp[0x1c] = 1;
         memcpy(g_exp + 0x49, src, 0x15);
         if (zero_x || zero_y) {
@@ -626,6 +650,7 @@ static void test_m44727a_start_record(void)
             set32(g_exp, 0x25, 7 + 0x11);
         }
         set32(expect_table, REC + 2 * REC + 0x4d, 2);
+        CK(memcmp(L.c[0].probe + 4, g_exp + 0x1d, 16) == 0);   /* the rectangle was final before the call */
         CK(memcmp(self, g_exp, OBJ) == 0);
         CK(memcmp(rec_table, expect_table, sizeof rec_table) == 0);
         CK(L.n == 1 && is_call(0, 0x4473a9, (uintptr_t)self, 0));

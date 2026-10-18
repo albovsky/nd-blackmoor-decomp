@@ -20,6 +20,7 @@ typedef struct ShimCall {
     uint64_t this_ptr;
     uint64_t arg[8];
     uint8_t data[32];     /* bytes behind a pointer argument that the test asked to see (shim_script_deref) */
+    uint8_t probe[64];    /* bytes at the probed host addresses (shim_script_probe), concatenated, read at the call */
 } ShimCall;
 
 typedef struct ShimWrite {
@@ -32,6 +33,8 @@ typedef struct ShimScript {
     uint32_t results[512];
     int nresults, used;
     int deref_arg, deref_bytes;
+    const uint8_t *probe_ptr[4];
+    int probe_len[4], nprobe;
     ShimWrite writes[16];
     int nwrites;
 } ShimScript;
@@ -90,6 +93,15 @@ void shim_script_deref(uint32_t callee, int arg, int bytes)
     s->deref_bytes = bytes;
 }
 
+/* the bytes at the host address `p` (`bytes` of them) are copied into every logged call of `callee`, as they are at the call */
+void shim_script_probe(uint32_t callee, const uint8_t *p, int bytes)
+{
+    ShimScript *s = script_for(callee);
+    s->probe_ptr[s->nprobe] = p;
+    s->probe_len[s->nprobe] = bytes;
+    s->nprobe++;
+}
+
 /* the call number `call` (0 based) of `callee` stores `size` bytes (2 or 4) of `value` at args[arg] + offset (a host pointer) */
 void shim_script_write(uint32_t callee, int call, int arg, int offset, int size, uint32_t value)
 {
@@ -125,6 +137,13 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     c->this_ptr = this_ptr;
     for (i = 0; i < nargs && i < 8; i++) c->arg[i] = args[i];
     if (s->deref_arg > 0) memcpy(c->data, (const void *)args[s->deref_arg - 1], (size_t)s->deref_bytes);
+    {
+        int at = 0;
+        for (i = 0; i < s->nprobe; i++) {
+            memcpy(c->probe + at, s->probe_ptr[i], (size_t)s->probe_len[i]);
+            at += s->probe_len[i];
+        }
+    }
     for (i = 0; i < s->nwrites; i++) {
         const ShimWrite *w = &s->writes[i];
         if (w->call == s->used) {
