@@ -6905,6 +6905,392 @@
    },
    "parts_accounted": [],
    "note": "1:1 with pick_record. Native reads the clip index from o->clip_246 (parameter in the original; same at its one call site); null-set and clip checks native-only."
+  },
+  {
+   "va": "0x4846c2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "top_piece_unplaced"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_ea_direct_test.c",
+     "test_id": "t_top_piece_unplaced"
+    },
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_top_piece_unplaced_0x4846c2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4846c2",
+     "0x484762"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with top_piece_unplaced (list +0xbd1, count +0xbf9, twin of 0x484622). Body/obj are parameters; host callbacks; oracle aggregate."
+  },
+  {
+   "va": "0x485ca1",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "pick_sound"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_ea_direct_test.c",
+     "test_id": "t_pick_sound"
+    },
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_pick_sound_0x485ca1"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x485ca1",
+     "0x485d52"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with pick_sound (record +0x6a7: NO SOUND test, copy, prepare, play, state 1, deadline tick+300). Body is a parameter; tick/sound are host callbacks; oracle aggregate."
+  },
+  {
+   "va": "0x485f12",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "rotate_sound"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_ea_direct_test.c",
+     "test_id": "t_rotate_sound"
+    },
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_rotate_sound_0x485f12"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x485f12",
+     "0x485fb6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with rotate_sound (record +0x676: no state store, deadline tick+300, flag 0). Body is a parameter; tick/sound are host callbacks; oracle aggregate."
+  },
+  {
+   "va": "0x485d52",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "drop_sound"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_ea_direct_test.c",
+     "test_id": "t_drop_sound"
+    },
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_drop_sound_0x485d52"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x485d52",
+     "0x485f12"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with drop_sound (record +0x6d8, rand()%3 alternate loop, state 1, deadline tick+300, flag 1). Body is a parameter; negative rand returns EA_ERR_BOUNDS; oracle aggregate."
+  },
+  {
+   "va": "0x45bda7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "score_check"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_da_direct_test.c",
+     "test_id": "test_score_check"
+    },
+    {
+     "path": "tests/test_fl13_da_direct.py",
+     "test_id": "FlThirteenDaDirectTest.test_score_check"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45bda7",
+     "0x45be3f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with score_check (returns 1 on a win with won/state/finish_kind stores, else 0 and no store). Field-model object; count from the body word +0x23; oracle aggregate."
+  },
+  {
+   "va": "0x47e8fe",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "top_piece_47e8fe"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_eb_direct_test.c",
+     "test_id": "test_top_piece_47e8fe"
+    },
+    {
+     "path": "tests/test_fl13_eb_direct.py",
+     "test_id": "FlThirteenEbDirectTest.test_top_piece_47e8fe"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e8fe",
+     "0x47e99e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with top_piece_47e8fe (list +0x1419, count +0x1441, strict less keeps the first, -1 if empty). No bounds guard on list entries, as in the original."
+  },
+  {
+   "va": "0x4809a7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "sound_pick_4809a7"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_eb_direct_test.c",
+     "test_id": "test_sound_pick_4809a7"
+    },
+    {
+     "path": "tests/test_fl13_eb_direct.py",
+     "test_id": "FlThirteenEbDirectTest.test_sound_pick_4809a7"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x4809a7",
+     "0x480a1d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with sound_pick_4809a7 (record +0x746, channel +0x767, deadline tick+300, state 1). Body is a parameter; sound_play/tick are host callbacks; oracle aggregate."
+  },
+  {
+   "va": "0x480abe",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "sound_rotate_480abe"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_eb_direct_test.c",
+     "test_id": "test_sound_rotate_480abe"
+    },
+    {
+     "path": "tests/test_fl13_eb_direct.py",
+     "test_id": "FlThirteenEbDirectTest.test_sound_rotate_480abe"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x480abe",
+     "0x480b34"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with sound_rotate_480abe (record +0x715, channel +0x736, delay 0x15e, state 1). Body is a parameter; sound_play/tick are host callbacks; oracle aggregate."
+  },
+  {
+   "va": "0x480a1d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "sound_good"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_eb_direct_test.c",
+     "test_id": "test_sound_good_480a1d"
+    },
+    {
+     "path": "tests/test_fl13_eb_direct.py",
+     "test_id": "FlThirteenEbDirectTest.test_sound_good_480a1d"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x480a1d",
+     "0x480abe"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with sound_good (record +0x777, then save_and_check, state 4, deadline2 tick+100). Row phase and world are parameters; host callbacks. save_and_check (0x480b34) is credited separately (FL-10)."
+  },
+  {
+   "va": "0x485fb6",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "bad_drop_feedback"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_bad_drop_feedback_0x485fb6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x485fb6",
+     "0x48633c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with bad_drop_feedback (record +0xa79, AUTOTEXT caption, state 2, deadline tick+2000). Native errors where the original overruns its 204-byte caption buffer; untested."
+  },
+  {
+   "va": "0x48633c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "good_drop_feedback"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_good_drop_feedback_0x48633c"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x48633c",
+     "0x4866b4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with good_drop_feedback (feedback +0x74b; always sets the caption flag). Native errors where the original overruns its 204-byte caption buffer; untested range."
+  },
+  {
+   "va": "0x48945b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_37.c",
+    "symbol": "initialize_original_defaults"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl13_37_direct.py",
+     "test_id": "Fl13Af37Direct.test_initialize_original_defaults_0x48945b"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_37_runtime_original_oracle.py",
+    "window": [
+     "0x48945b",
+     "0x4895cc"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with initialize_original_defaults (28 stores; whole 0xaba-byte image compared). Owner (ECX) is only the +0x20 link cell; handle is an output handle; oracle aggregate."
+  },
+  {
+   "va": "0x4b642d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d1_runtime.c",
+    "symbol": "solved_check"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl13_d1_direct.py",
+     "test_id": "Fl13D1Direct.test_solved_check_0x4b642d"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b642d",
+     "0x4b64a9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with solved_check (count body +0x21, frame +0x254 vs body +0x30a, match sets +0x22a and +0x274). Body is a parameter; D1_FX_STATE observer call is native-only."
+  },
+  {
+   "va": "0x4cb944",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-13 implementer, independent reader and diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_1c_runtime.c",
+    "symbol": "find_entry"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl13_1c_direct.py",
+     "test_id": "Fl13OneCDirect.test_find_entry_0x4cb944"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4cb944",
+     "0x4cb9d1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with find_entry (no file: NULL; else +0x136 reset and counted per miss; sign-extended id, first match). Returns a C1cEntry pointer; oracle does not compare +0x136."
   }
  ],
  "not_needed_entries": [

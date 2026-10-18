@@ -175,8 +175,11 @@ ActionFamily37Status action_family_37_decode(
     return ACTION_FAMILY_37_OK;
 }
 
+/* 0x48945b FUN_0048945b(param_1 = object, param_2 = fixed rectangle); the owner (ECX) is modelled by its +0x20 link cell. */
 static void initialize_original_defaults(uint8_t *object,
-                                        const ActionFamily37Decoded *decoded)
+                                        const ActionFamily37Decoded *decoded,
+                                        uint32_t object_handle,
+                                        uint32_t *owner_slot_20_handle)
 {
     static const uint8_t no_sound[9] = {
         'N', 'O', ' ', 'S', 'O', 'U', 'N', 'D', 0u
@@ -188,6 +191,7 @@ static void initialize_original_defaults(uint8_t *object,
     uint32_t bottom = (uint32_t)decoded->fixed_rect[3];
 
     /* FUN_0048945b's writes, including the rectangle-derived DWORDs. */
+    *owner_slot_20_handle = object_handle;                              /* owner+0x20 := param_1, the first store */
     write_u16_le(object + 0x21u, 2u);
     write_u16_le(object + 0x25u, 2u);
     write_u16_le(object + 0x29u, 1u);
@@ -241,7 +245,8 @@ ActionFamily37Status action_family_37_construct(
 
     memset(&constructed, 0, sizeof(constructed));
     /* Original allocates and zeroes exactly 0xABA bytes before initializing. */
-    initialize_original_defaults(constructed.object_bytes, &decoded);
+    initialize_original_defaults(constructed.object_bytes, &decoded, output_handle,
+                                 &constructed.owner_links.owner_slot_20_handle);
 
     while (name_bytes < sizeof(decoded.name) && decoded.name[name_bytes] != '\0') {
         ++name_bytes;
@@ -266,7 +271,6 @@ ActionFamily37Status action_family_37_construct(
     constructed.owner_links.output_handle = output_handle;
     constructed.owner_links.result_slot_handle = output_handle;
     constructed.owner_links.owner_slot_1c_handle = output_handle;
-    constructed.owner_links.owner_slot_20_handle = output_handle;
     constructed.owner_links.output_allocation_bytes =
         ACTION_FAMILY_37_OBJECT_BYTES;
 

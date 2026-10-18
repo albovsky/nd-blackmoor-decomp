@@ -407,8 +407,9 @@ static int piece_init(uint8_t *obj, const uint8_t *body, const EbWorld *world, i
     return EB_OK;
 }
 
-/* 0x47e8fe / 0x47e9d3: the piece of the list with the greatest z (the first one on a tie), -1 for an empty list. */
-static int16_t top_piece(const uint8_t *obj, size_t list, size_t count)
+/* Shared body of 0x47e8fe and 0x47e9d3 (two identical originals over two lists): the piece of the list with the greatest z
+ * (the first one on a tie), -1 for an empty list. Each original has its own thin wrapper below. */
+static int16_t top_piece_of_list(const uint8_t *obj, size_t list, size_t count)
 {
     int16_t best;
     int16_t n = rd_s16(obj, count);
@@ -419,6 +420,18 @@ static int16_t top_piece(const uint8_t *obj, size_t list, size_t count)
         if (rd_s16(obj, piece_off(best) + P_Z) < rd_s16(obj, piece_off(cand) + P_Z)) best = cand;
     }
     return best;
+}
+
+/* 0x47e8fe: top piece of the list at +0x1419 (count word +0x1441), used by the rotate click. */
+static int16_t top_piece_47e8fe(const uint8_t *obj)
+{
+    return top_piece_of_list(obj, O_LIST2, O_COUNT2);
+}
+
+/* 0x47e9d3: top piece of the list at +0x13ef (count word +0x1417), used by the pick and the rotate key. */
+static int16_t top_piece_47e9d3(const uint8_t *obj)
+{
+    return top_piece_of_list(obj, O_LIST1, O_COUNT1);
 }
 
 /* 0x47ea73: the two piece rectangles overlap (and the overlap contains no -1 edge). */
@@ -720,7 +733,8 @@ static int caption_block(const uint8_t *body, size_t key, size_t text, size_t lo
     return EB_OK;
 }
 
-/* 0x4809a7 (pick), 0x480a1d (good drop), 0x480abe (rotate): the sound blocks. */
+/* Shared body of 0x4809a7 (pick) and 0x480abe (rotate): the sound block (play, deadline := tick + delay, state := 1) unless
+ * the record reads "NO SOUND". The good drop 0x480a1d is a different function (sound_good below). */
 static int sound_blip(uint8_t *obj, const uint8_t *body, size_t rec, size_t chan, uint32_t delay, const EbHost *host)
 {
     if (!no_sound(body + rec)) {
@@ -728,6 +742,20 @@ static int sound_blip(uint8_t *obj, const uint8_t *body, size_t rec, size_t chan
         wr_32(obj, O_DEADLINE, (int32_t)(host->tick(host->context) + delay));
         wr_32(obj, O_STATE, 1);
     }
+    return EB_OK;
+}
+
+/* 0x4809a7: pick sound (record +0x746, channel word +0x767, delay 300). */
+static int sound_pick_4809a7(uint8_t *obj, const uint8_t *body, const EbHost *host)
+{
+    CHECK(sound_blip(obj, body, B_SND_PICK, B_CHAN_PICK, 300, host));
+    return EB_OK;
+}
+
+/* 0x480abe: rotate sound (record +0x715, channel word +0x736, delay 0x15e). */
+static int sound_rotate_480abe(uint8_t *obj, const uint8_t *body, const EbHost *host)
+{
+    CHECK(sound_blip(obj, body, B_SND_ROT, B_CHAN_ROT, 0x15e, host));
     return EB_OK;
 }
 
@@ -778,6 +806,7 @@ static int save_and_check(uint8_t *obj, const uint8_t *body, EbWorld *world, uin
     return EB_OK;
 }
 
+/* 0x480a1d: the good-drop sound block (it calls 0x480b34, save_and_check, between the sound and the state change). */
 static int sound_good(uint8_t *obj, const uint8_t *body, EbWorld *world, uint32_t row_phase, const EbHost *host)
 {
     if (no_sound(body + B_SND_GOOD)) {
@@ -824,11 +853,11 @@ int eb_click(EbObject *object, const uint8_t *body, size_t body_length, EbWorld 
         return EB_OK;
     }
     if (candidate == EB_CANDIDATE_ROTATE) {
-        const int16_t top = top_piece(obj, O_LIST2, O_COUNT2);
+        const int16_t top = top_piece_47e8fe(obj);
         if (top == -1) return EB_OK;
         if (!instance_valid(obj, top)) return EB_ERR_BOUNDS;
         CHECK(rotate_piece(obj, top, host));
-        CHECK(sound_blip(obj, body, B_SND_ROT, B_CHAN_ROT, 0x15e, host));
+        CHECK(sound_rotate_480abe(obj, body, host));
         wr_32(obj, O_DRAG, 1);
         wr_16(obj, O_HAND, top);
         hand_size(obj, top);
@@ -840,7 +869,7 @@ int eb_click(EbObject *object, const uint8_t *body, size_t body_length, EbWorld 
         size_t P, T;
         wr_32(obj, O_DRAG, 1);
         if (obj[O_HAS_MULTI] != 0 && obj[O_MULTI_HAND] == 0) {
-            hand = top_piece(obj, O_LIST1, O_COUNT1);
+            hand = top_piece_47e9d3(obj);
             if (!instance_valid(obj, hand)) return EB_ERR_BOUNDS;
             wr_16(obj, O_HAND, hand);
             CHECK(multi_pick(obj, body, hand, host));
@@ -848,7 +877,7 @@ int eb_click(EbObject *object, const uint8_t *body, size_t body_length, EbWorld 
             return EB_OK;
         }
         if (obj[O_HAS_MULTI] == 0) {
-            hand = top_piece(obj, O_LIST1, O_COUNT1);
+            hand = top_piece_47e9d3(obj);
             if (!instance_valid(obj, hand)) return EB_ERR_BOUNDS;
             wr_16(obj, O_HAND, hand);
         }
@@ -871,7 +900,7 @@ int eb_click(EbObject *object, const uint8_t *body, size_t body_length, EbWorld 
         hand_size(obj, hand);
         if (obj[O_COUNTS + obj[P + P_TYPE]] != 0 && body[T + BT_SPAWN] == 0)
             obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] - 1);
-        CHECK(sound_blip(obj, body, B_SND_PICK, B_CHAN_PICK, 300, host));
+        CHECK(sound_pick_4809a7(obj, body, host));
         return EB_OK;
     }
     if (candidate != EB_CANDIDATE_DROP) return EB_OK;
@@ -925,7 +954,7 @@ int eb_rotate_key(EbObject *object, const uint8_t *body, size_t body_length, uin
         return EB_OK;
     if (rd_s32(obj, O_DRAG) == 0) {
         size_t T;
-        piece = top_piece(obj, O_LIST1, O_COUNT1);
+        piece = top_piece_47e9d3(obj);
         if (piece == -1) return EB_OK;
         if (!instance_valid(obj, piece)) return EB_ERR_BOUNDS;
         CHECK(rotate_piece(obj, piece, host));
@@ -942,7 +971,7 @@ int eb_rotate_key(EbObject *object, const uint8_t *body, size_t body_length, uin
         CHECK(rotate_piece(obj, piece, host));
         hand_size(obj, piece);
     }
-    CHECK(sound_blip(obj, body, B_SND_ROT, B_CHAN_ROT, 0x15e, host));
+    CHECK(sound_rotate_480abe(obj, body, host));
     set_layer(obj, piece);
     return EB_OK;
 }

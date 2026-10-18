@@ -366,8 +366,8 @@ static int pick_moves(Ctx *c, int16_t set, int16_t *moves)
     return BUL_OK;
 }
 
-/* 0x45bda7: win / lose check. */
-static void score_check(Ctx *c)
+/* 0x45bda7: win / lose check; returns 1 when the game is decided (win or lose), else 0, like the original. */
+static int score_check(Ctx *c)
 {
     BulObject *o = c->o;
     const int16_t n = rd_s16(c->body, BUL_B_PIECES);
@@ -378,7 +378,10 @@ static void score_check(Ctx *c)
     } else if (o->score_computer == n) {
         o->state = BUL_STATE_LOSE;
         o->finish_kind = 1;
+    } else {
+        return 0;
     }
+    return 1;
 }
 
 /* 0x45bcc1: one step check (the two position words equal). */
