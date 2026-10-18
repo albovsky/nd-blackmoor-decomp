@@ -156,3 +156,59 @@ void m446688_draw_digits(Fl20bWorld *world, const Fl18Host *host)
     }
     copy_string(BLOCK(world, 0x63887d), BLOCK(world, 0x63885f));
 }
+
+/* original GAME.EXE 0x48d5f4 (FUN_0048d5f4), this = self (no stack argument, plain ret): rec = the dword of the 0x5bb5e5-based record at
+ * the signed word [self+0x1e] (stride 0x8d), read once. Nothing unless the dword [self+0x33] is non-zero, the dword [self+0x2b] is 1 and
+ * the dword at record +0x4d is 1. Then, when the dword 0x5c39e5 is 0x2766: byte [self+0x37] := 1 and the dword at record +0x4d := 2. When
+ * it is 0x2765: byte [self+0x26] := 1 if the dword [self+0x2f] is non-zero; word [self+0x29] := word [self+0x27]; for i = 0, 1, ... while
+ * i < the signed word [rec+0x317] - 1: word [self + i*2 + 0x3d] := word [self + i*2 + 0x3f]; word [self + (the signed word [rec+0x317])*2
+ * + 0x3b] := word [self+0x27]; the string at rec + (the signed word [self+0x27])*0x42 + 0x337 is copied to rec + 0x715 (strlen + 1
+ * bytes). When the dword 0x5bb1ca is non-zero and the nine bytes at rec + 0x715 differ from those at 0x54e88c: n = the signed word
+ * [rec+0x736]; when 0x4f6334 on 0x5cf1eb with n returns 0: 0x4fb77a on 0x5c3a67 with rec + 0x715, 0x4fb2e3 on 0x5c3a67 with the word
+ * [rec+0x736], byte [self+0x24] := 1 and dword [self+0x39] := GetTickCount + 0x1f4. Finally (also when none of that happened) s = 0x423259
+ * on 0x619a6b with rec + (the signed word [self+0x27])*0x42 + 0x358, which returns the address of a string (or 0): when s is not 0 and
+ * strlen(s) <= 0x9c40, a local buffer receives the string and the dword 0x54e898 is stored at its terminator (an inlined strcat of 4
+ * bytes), and 0x448d11 on 0x619a05 is called with (dword 0x5d03b3, buffer, 0xffffffff, 0). (The original's buffer is a 0xc0-odd-byte
+ * stack local that a longer string overruns; here it is large enough for every string that passes the 0x9c40 test.) */
+void m48d5f4_confirm_pick(uint8_t *self, Fl20bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d);
+    uint8_t *rec;
+    int32_t i;
+    if (rd32(self, 0x33) == 0) return;
+    if (rd32(self, 0x2b) != 1) return;
+    if (rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d) != 1) return;
+    if (world->value_5c39e5 == 0x2766) {
+        self[0x37] = 1;
+        wr32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d, 2);
+        return;
+    }
+    if (world->value_5c39e5 != 0x2765) return;
+    rec = (uint8_t *)host->resolve(host->context, rec_va);
+    if (rd32(self, 0x2f) != 0) self[0x26] = 1;
+    wr16(self, 0x29, rd16(self, 0x27));
+    for (i = 0; i < rds16(rec, 0x317) - 1; i++) wr16(self, (ptrdiff_t)i * 2 + 0x3d, rd16(self, (ptrdiff_t)i * 2 + 0x3f));
+    wr16(self, (ptrdiff_t)rds16(rec, 0x317) * 2 + 0x3b, rd16(self, 0x27));
+    copy_string(rec + 0x715, rec + (ptrdiff_t)rds16(self, 0x27) * 0x42 + 0x337);
+    if (world->value_5bb1ca != 0 && memcmp(rec + 0x715, world->bytes_54e88c, 9) != 0) {
+        if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(rec, 0x736)) == 0) {
+            call1(host, 0x4fb77a, 0x5c3a67, rec_va + 0x715u);
+            call1(host, 0x4fb2e3, 0x5c3a67, rd16(rec, 0x736));
+            self[0x24] = 1;
+            wr32(self, 0x39, (host->tick != NULL ? host->tick(host->context) : 0) + 0x1f4u);
+        }
+    }
+    {
+        uint32_t text_va = call1(host, 0x423259, 0x619a6b,
+                                 rec_va + (uint32_t)((int32_t)rds16(self, 0x27) * 0x42) + 0x358u);
+        if (text_va != 0) {
+            const uint8_t *text = host->resolve(host->context, text_va);
+            if (strlen((const char *)text) <= 0x9c40) {
+                uint8_t buffer[0x9c50];
+                copy_string(buffer, text);
+                wr32(buffer, (ptrdiff_t)strlen((const char *)buffer), world->value_54e898);
+                call4(host, 0x448d11, 0x619a05, world->value_5d03b3, (uintptr_t)buffer, 0xffffffffu, 0);
+            }
+        }
+    }
+}

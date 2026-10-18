@@ -347,6 +347,61 @@ class Fl20bDifferential(DiffBase):
                       pointers={'block_638600': ('block', bs), 'table_5d1599': ('table', tslack)})
         self.finish(0x446688, size, executed)
 
+    # ---- 0x48d5f4 ----
+    def test_48d5f4_confirm_pick(self):
+        """FL-20b: differential test of m48d5f4_confirm_pick (original 0x48d5f4)"""
+        rng = random.Random(0x48d5f4)
+        executed = set()
+        size = 0x48d89e - 0x48d5f4
+        text_len = 0x9d00
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
+            struct.pack_into('<h', this.data, 0x1e, index)
+            struct.pack_into('<I', this.data, 0x33, rng.choice([1, 1, 1, 1, 0, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x2b, rng.choice([1, 1, 1, 1, 1, 0, 2]))
+            struct.pack_into('<I', this.data, 0x2f, rng.choice([0, 1, 0xff00]))
+            pick = rng.choice([0, 1, 2, 3, 4, -1, -2])
+            struct.pack_into('<h', this.data, 0x27, pick)
+            records, slack = self.records_area(rng, nrec=4)
+            rec_va = od.region_va(1) + 0x100
+            struct.pack_into('<I', records.data, slack + index * 0x8d, rec_va)
+            struct.pack_into('<I', records.data, slack + index * 0x8d + 0x4d, rng.choice([1, 1, 1, 1, 1, 0, 2]))
+            rec = bytearray(rng.randbytes(0x1100))
+            for k in range(-2, 6):   # the strings of the picks: terminated within their 0x42-byte slot
+                text = bytes(rng.choice(b'abcXYZ ') for _ in range(rng.randrange(0, 14))) + b'\x00'
+                rec[0x100 + 0x337 + k * 0x42:0x100 + 0x337 + k * 0x42 + len(text)] = text
+            struct.pack_into('<h', rec, 0x100 + 0x317, rng.choice([-2, -1, 0, 1, 2, 3, 5, 4]))
+            struct.pack_into('<h', rec, 0x100 + 0x736, rng.choice([0, 1, -1, 5, -16, 0x7fff, rng.randrange(-32768, 32768)]))
+            # the string that ends up at rec + 0x715, and the nine bytes it is compared with
+            first = bytes(rec[0x100 + 0x337 + pick * 0x42:0x100 + 0x337 + pick * 0x42 + 15]).split(b'\x00')[0] + b'\x00'
+            after = bytearray(rec[0x100 + 0x715:0x100 + 0x715 + 16])
+            after[:len(first)] = first
+            pattern = bytearray(after[:9]) if rng.random() < 0.35 else bytearray(rng.randbytes(9))
+            if rng.random() < 0.3:
+                pattern[rng.choice([8, 8, rng.randrange(9)])] ^= 1
+            pat = Area('pat', 0x54e88c, pattern, compare=False)
+            kind = rng.choice(['short', 'short', 'short', 'empty', 'null', 'long'])
+            body = bytes(rng.choice(b'hello wrld0123') for _ in range(rng.randrange(1, 40)))
+            text = {'short': body, 'empty': b'', 'null': b'', 'long': b'x' * 0x9c41}[kind]
+            text_area = Area('text', od.region_va(2), bytearray(text + b'\x00' + bytes(text_len - len(text) - 1)), image=False, compare=False)
+            rec_area = Area('rec', od.region_va(1), rec, image=False)
+            g = {'value_5c39e5': rng.choice([0x2765, 0x2765, 0x2765, 0x2766, 0x2764, 0]), 'value_5bb1ca': rng.choice([0, 1, 1, 1, 0x100]),
+                 'value_54e898': rng.choice([0x00212121, 0x00002e2e, rng.randrange(1 << 32)]),
+                 'value_5d03b3': rng.randrange(1 << 32)}
+            deref = (1, min(len(text) + 4, 32))
+            now = rng.choice([1000, 0xfffffe00, rng.randrange(1 << 32)])
+            stubs = {0x4f6334: od.Stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 1])]),
+                     0x4fb77a: od.Stub(0x4fb77a, args=1, this=True, cleanup=4),
+                     0x4fb2e3: od.Stub(0x4fb2e3, args=1, this=True, cleanup=4),
+                     0x423259: od.Stub(0x423259, args=1, this=True, cleanup=4, results=[0 if kind == 'null' else od.region_va(2)]),
+                     0x448d11: od.Stub(0x448d11, args=4, this=True, cleanup=16, deref=deref)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
+            self.pair(2, 0x48d5f4, size, [this, records, rec_area, text_area, pat], stubs, g, ecx=od.region_va(0), iat=iat, tick=now,
+                      self_name='self', executed=executed, word_args={0x4fb2e3: {0}},
+                      pointers={'records_5bb5e5': ('records', slack), 'bytes_54e88c': ('pat', 0)})
+        self.finish(0x48d5f4, size, executed)
+
     # DIFF-END
 
 

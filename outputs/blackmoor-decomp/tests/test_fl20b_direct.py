@@ -16,6 +16,7 @@ TEST_C = PROJECT / 'tests/fl20b_direct_test.c'
 KERNELS = ['original_methods_fl20b.c']
 EXPECTED = [
     'test_m446688_draw_digits',
+    'test_m48d5f4_confirm_pick',
     # EXPECTED-END
 ]
 
@@ -64,6 +65,10 @@ class Fl20bDirect(unittest.TestCase):
     def test_draw_digits_446688(self):
         """FL-20b: direct test of m446688_draw_digits (original 0x446688)"""
         self.check('test_m446688_draw_digits')
+
+    def test_confirm_pick_48d5f4(self):
+        """FL-20b: direct test of m48d5f4_confirm_pick (original 0x48d5f4)"""
+        self.check('test_m48d5f4_confirm_pick')
 
     # TESTS-END
 

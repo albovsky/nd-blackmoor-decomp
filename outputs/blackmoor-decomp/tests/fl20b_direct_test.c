@@ -2,6 +2,8 @@
  * the exit status is the failure count. Fixtures are synthetic (no original bytes). Expected values come from the disassembly of
  * GAME.EXE, not from running the native code; tests/test_fl20b_differential.py additionally runs the original bytes on random fixtures.
  *   0x446688  gates dwords 0x638607 / 0x63860f; strings new 0x63885f vs old 0x63887d: when they differ the old digits are drawn with 0x4c5377 (0x5d15e3, 0x5cf665, &p, &q, 0x548288); then the new digits with 0x4c5d4b (table dword, 0x5cf665, 0x6386bf + d*16, &q, 0x5482b4); strcpy(old, new)
+ *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
+ *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
  */
 #include "../src/original_methods_fl20b.h"
 
@@ -328,12 +330,157 @@ static void test_m446688_draw_digits(void)
     CK(L.n == 34 + 4);  /* the old string (4 characters, as seen through the overlap) and the 34 new ones */
 }
 
+static void test_m48d5f4_confirm_pick(void)
+{
+    static uint8_t region[0xe00], region_exp[0xe00], text[0x9d00], old[OBJ];
+    static const uint8_t pattern[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+    const uint32_t rec_va = 0x00c20100u, text_va = 0x00c40000u;
+    uint8_t *rec = region + 0x100;
+    uint8_t *rec_exp = region_exp + 0x100;
+    Fl20bWorld w;
+    Fl18Host h = host();
+    int i;
+    memset(&w, 0, sizeof w);
+    memset(g_records, 0, sizeof g_records);
+    fill(g_obj, OBJ, 21);
+    fill(region, sizeof region, 99);
+    strcpy((char *)rec + 0x337 + 2 * 0x42, "pick two");
+    strcpy((char *)rec + 0x337 - 0x42, "pick minus");
+    strcpy((char *)text, "Hi");
+    set16(g_obj, 0x1e, 3);
+    set32(g_records, 3 * REC, rec_va);
+    set32(g_records, 3 * REC + 0x4d, 1);
+    set32(g_obj, 0x33, 7);
+    set32(g_obj, 0x2b, 1);
+    set32(g_obj, 0x2f, 0);
+    set16(g_obj, 0x27, 2);
+    set16(rec, 0x317, 4);
+    set16(rec, 0x736, 0xfff0);
+    add_region(rec_va, rec, 0xd00);
+    add_region(text_va, text, sizeof text);
+    w.records_5bb5e5 = g_records;
+    w.bytes_54e88c = pattern;
+    w.value_5bb1ca = 1;
+    w.value_54e898 = 0x00212121u;
+    w.value_5d03b3 = 0x600d0001u;
+    w.value_5c39e5 = 0x2765;
+    L.tick = 5000;
+    L.snap_callee = 0x448d11;
+    L.snap_arg = 1;
+    L.snap_arg2 = 0;
+    L.snap_len = 16;
+    /* gates: each failing alone changes nothing and calls nothing */
+    for (i = 0; i < 3; i++) {
+        uint8_t saved_obj[OBJ], saved_records[sizeof g_records];
+        memcpy(saved_obj, g_obj, OBJ);
+        memcpy(saved_records, g_records, sizeof g_records);
+        if (i == 0) set32(g_obj, 0x33, 0);
+        if (i == 1) set32(g_obj, 0x2b, 2);
+        if (i == 2) set32(g_records, 3 * REC + 0x4d, 2);
+        memcpy(old, g_obj, OBJ);
+        memcpy(region_exp, region, sizeof region);
+        memcpy(g_exp, g_records, sizeof g_records);
+        m48d5f4_confirm_pick(g_obj, &w, &h);
+        CK(memcmp(g_obj, old, OBJ) == 0 && memcmp(g_records, g_exp, sizeof g_records) == 0);
+        CK(memcmp(region, region_exp, sizeof region) == 0 && L.n == 0 && L.ticks == 0);
+        memcpy(g_obj, saved_obj, OBJ);
+        memcpy(g_records, saved_records, sizeof g_records);
+    }
+    /* selector 0x2766: only the flag byte and the record dword; any other selector: nothing */
+    w.value_5c39e5 = 0x2766;
+    memcpy(g_exp, g_obj, OBJ);
+    memcpy(region_exp, region, sizeof region);
+    m48d5f4_confirm_pick(g_obj, &w, &h);
+    g_exp[0x37] = 1;
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(region, region_exp, sizeof region) == 0 && L.n == 0 && L.ticks == 0);
+    CK(get32(g_records, 3 * REC + 0x4d) == 2);
+    set32(g_records, 3 * REC + 0x4d, 1);
+    w.value_5c39e5 = 0x2767;
+    m48d5f4_confirm_pick(g_obj, &w, &h);
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && get32(g_records, 3 * REC + 0x4d) == 1 && L.n == 0);
+    /* selector 0x2765, the whole path: 3 words shifted (the record's count 4 gives i = 0..2), the pick appended at word index 4, the
+     * string copied, 0x4f6334 returns 0 so the message calls and the timer are made, then the text is fetched and shown */
+    w.value_5c39e5 = 0x2765;
+    set32(g_obj, 0x2f, 9);
+    memcpy(old, g_obj, OBJ);
+    memcpy(g_exp, g_obj, OBJ);
+    memcpy(region_exp, region, sizeof region);
+    queue_return(0x423259, text_va);
+    m48d5f4_confirm_pick(g_obj, &w, &h);
+    g_exp[0x26] = 1;
+    set16(g_exp, 0x29, 2);
+    for (i = 0; i < 3; i++) set16(g_exp, 0x3d + 2 * i, get16(old, 0x3f + 2 * i));
+    set16(g_exp, 0x3b + 4 * 2, 2);
+    g_exp[0x24] = 1;
+    set32(g_exp, 0x39, 5000 + 0x1f4);
+    strcpy((char *)rec_exp + 0x715, "pick two");
+    CK(memcmp(g_obj, g_exp, OBJ) == 0);
+    CK(memcmp(region, region_exp, sizeof region) == 0);
+    CK(L.ticks == 1 && L.n == 5);
+    CK(is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == 0xfffffff0u);
+    CK(is_call(1, 0x4fb77a, 0x5c3a67, 1) && L.c[1].a[0] == rec_va + 0x715);
+    CK(is_call(2, 0x4fb2e3, 0x5c3a67, 1) && (L.c[2].a[0] & 0xffff) == 0xfff0);
+    CK(is_call(3, 0x423259, 0x619a6b, 1) && L.c[3].a[0] == rec_va + 2 * 0x42 + 0x358);
+    CK(is_call(4, 0x448d11, 0x619a05, 4) && L.c[4].a[0] == 0x600d0001u && L.c[4].a[2] == 0xffffffffu && L.c[4].a[3] == 0);
+    CK(memcmp(L.c[4].snap, "Hi!!!", 6) == 0);  /* "Hi" with the dword 0x00212121 stored at its terminator */
+    /* the same with a negative pick index (the string 0x42 below the table), a record count of 0 (no shifting, the pick goes to
+     * word index 0), 0x4f6334 returning non-zero (no message, no timer) and a text of exactly 0x9c40 characters (still shown) */
+    reset_log();
+    L.tick = 77;
+    set16(g_obj, 0x27, 0xffff);
+    set16(rec, 0x317, 0);
+    set32(g_obj, 0x2f, 0);
+    set32(g_obj, 0x39, 0x11111111u);
+    g_obj[0x24] = 0;
+    memset(text, 'x', 0x9c40);
+    text[0x9c40] = 0;
+    queue_return(0x4f6334, 1);
+    queue_return(0x423259, text_va);
+    add_region(rec_va, rec, 0xd00);
+    add_region(text_va, text, sizeof text);
+    L.snap_callee = 0x448d11;
+    L.snap_arg = 1;
+    L.snap_arg2 = 0;
+    L.snap_len = 16;
+    memcpy(old, g_obj, OBJ);
+    memcpy(g_exp, g_obj, OBJ);
+    memcpy(region_exp, region, sizeof region);
+    m48d5f4_confirm_pick(g_obj, &w, &h);
+    set16(g_exp, 0x29, 0xffff);
+    set16(g_exp, 0x3b, 0xffff);
+    strcpy((char *)rec_exp + 0x715, "pick minus");
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(region, region_exp, sizeof region) == 0);
+    CK(L.ticks == 0 && L.n == 3 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && is_call(1, 0x423259, 0x619a6b, 1) &&
+       L.c[1].a[0] == rec_va - 0x42 + 0x358);
+    CK(is_call(2, 0x448d11, 0x619a05, 4) && memcmp(L.c[2].snap, "xxxxxxxxxxxxxxxx", 16) == 0);
+    /* the other outcomes (flag 0x5bb1ca, the nine bytes, the result of 0x4f6334, the length of the text); the pick is still index -1 */
+    for (i = 0; i < 4; i++) {
+        reset_log();
+        add_region(rec_va, rec, 0xd00);
+        add_region(text_va, text, sizeof text);
+        L.tick = 77;
+        text[0x9c40] = 'x';  /* 0x9c41 characters */
+        text[0x9c41] = 0;
+        w.value_5bb1ca = (i == 2) ? 0 : 1;
+        if (i == 3) memcpy(rec + 0x337 - 0x42, pattern, 10);  /* the copy is {1..9} (+ terminator): equal to the nine bytes */
+        if (i == 0) queue_return(0x423259, text_va);  /* too long: not shown */
+        m48d5f4_confirm_pick(g_obj, &w, &h);
+        if (i == 0) CK(L.n == 4 && L.ticks == 1 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && is_call(1, 0x4fb77a, 0x5c3a67, 1) &&
+                       is_call(2, 0x4fb2e3, 0x5c3a67, 1) && is_call(3, 0x423259, 0x619a6b, 1));
+        if (i == 1) CK(L.n == 4 && L.ticks == 1 && is_call(3, 0x423259, 0x619a6b, 1));  /* the null result: not shown */
+        if (i >= 2) CK(L.n == 1 && L.ticks == 0 && is_call(0, 0x423259, 0x619a6b, 1));
+        if (i < 2) CK(get32(g_obj, 0x39) == 77u + 0x1f4u);
+    }
+    w.value_5bb1ca = 1;
+}
+
 /* TESTS-END */
 
 int main(void)
 {
     int failures = 0;
     RUN(test_m446688_draw_digits);
+    RUN(test_m48d5f4_confirm_pick);
     /* RUN-END */
     return failures;
 }
