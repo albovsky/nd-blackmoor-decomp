@@ -111,14 +111,17 @@ class Original20(od.Original):
         if getattr(stub, 'ftol', False):
             return self._ftol(uc, address, stub)
         derefs = getattr(stub, 'derefs', None)
+        probe = getattr(stub, 'probe_addr', None)
+        before = len(self.calls)
+        data = ()
         if derefs:   # several pointer arguments to look behind: appended to the logged entry in order
             esp = uc.reg_read(self._r['ESP'])
             data = tuple(bytes(uc.mem_read(struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0], n)) for arg, n in derefs)
-            before = len(self.calls)
-            self._stub_hook_writes(uc, address, size, user, stub)
-            self.calls[before] = self.calls[before] + data
-            return
+        if probe:    # the memory at the probed addresses as it is at the call (read before the stub stores anything), appended last
+            data += (b''.join(bytes(uc.mem_read(a, n)) for a, n in probe),)
         self._stub_hook_writes(uc, address, size, user, stub)
+        if data:
+            self.calls[before] = self.calls[before] + data
 
     def _stub_hook_writes(self, uc, address, size, user, stub):
         writes = getattr(stub, 'writes', None)
@@ -134,10 +137,13 @@ class Original20(od.Original):
 
 def stub(callee, **kw):
     """A recording stub; writes=[[(arg, offset, size, value), ...] per call]; derefs=[(arg, nbytes), ...] (at most two) log the bytes behind
-    those pointer arguments."""
+    those pointer arguments; probe=[(area name or 'g:<world field>', offset, nbytes), ...] (at most four) log the bytes at those places as
+    they are at the call (call-time state), after the deref bytes."""
     writes = kw.pop('writes', None)
     derefs = kw.pop('derefs', None)
+    probe = kw.pop('probe', None)
     s = od.Stub(callee, **kw)
+    s.probe = probe
     s.writes = writes
     s.derefs = derefs
     return s
@@ -145,7 +151,7 @@ def stub(callee, **kw):
 
 class ShimCall20(ctypes.Structure):
     _fields_ = [('id', ctypes.c_uint32), ('nargs', ctypes.c_int32), ('this_ptr', ctypes.c_uint64), ('arg', ctypes.c_uint64 * 8),
-                ('data', ctypes.c_uint8 * 64)]
+                ('data', ctypes.c_uint8 * 64), ('probe', ctypes.c_uint8 * 64)]
 
 
 def sword(v):
@@ -162,11 +168,12 @@ class Fl20bDifferential(DiffBase):
         super().setUpClass()
         cls.lib.shim_calls.restype = ctypes.POINTER(ShimCall20)
         cls.lib.shim_world_size.restype = ctypes.c_size_t
+        cls.lib.shim_script_probe.argtypes = [ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
         cls.lib.shim_fl20b.argtypes = [ctypes.c_int, ctypes.c_void_p] + [ctypes.c_uint64] * 4 + [ctypes.c_void_p, ctypes.c_void_p]
         assert cls.lib.shim_world_size() == ctypes.sizeof(World), 'the World mirror does not match Fl20bWorld'
 
-    def native_calls20(self, areas, deref_len=None):
-        """The shim's call log as comparable tuples: [callee, this, *args, *data]."""
+    def native_calls20(self, areas, deref_len=None, probe_len=None):
+        """The shim's call log as comparable tuples: [callee, this, *args, *data, probe]; GetTickCount is ['tick', 0]."""
         spans = [(ctypes.addressof(arr), len(arr), a.va) for a, arr in areas]
 
         def va_of(value):
@@ -179,9 +186,12 @@ class Fl20bDifferential(DiffBase):
         for i in range(self.lib.shim_call_count()):
             c = calls[i]
             # (0x50ce04 takes the bits of a double, not an address)
-            entry = [c.id, va_of(c.this_ptr), *[c.arg[k] if c.id == 0x50ce04 else va_of(c.arg[k]) for k in range(c.nargs)]]
+            entry = ['tick' if c.id == TICK_SLOT else c.id, va_of(c.this_ptr),
+                     *[c.arg[k] if c.id == 0x50ce04 else va_of(c.arg[k]) for k in range(c.nargs)]]
             for slot, length in enumerate((deref_len or {}).get(c.id, ())):
                 entry.append(bytes(c.data)[32 * slot:32 * slot + length])
+            if c.id in (probe_len or {}):
+                entry.append(bytes(c.probe)[:probe_len[c.id]])
             out.append(entry)
         return out
 
@@ -192,6 +202,7 @@ class Fl20bDifferential(DiffBase):
             s = by_name[call[0]]
             entry = [call[0], call[1] if s.this else 0]
             rest = list(call[2 if s.this else 1:])
+            probe = rest.pop() if getattr(s, 'probe_addr', None) else None
             ndata = len(getattr(s, 'derefs', None) or ()) or (1 if s.deref is not None else 0)
             data = [rest.pop() for _ in range(ndata)][::-1]
             wa = (word_args or {}).get(call[0], ())
@@ -201,6 +212,8 @@ class Fl20bDifferential(DiffBase):
                 else:
                     entry.append(LOCAL if od.STACK_BASE <= v < od.STACK_BASE + od.STACK_SIZE else v)
             entry.extend(data)
+            if probe is not None:
+                entry.append(probe)
             out.append(entry)
         return out
 
@@ -218,6 +231,10 @@ class Fl20bDifferential(DiffBase):
         read = {a.name: (a.va, len(a.data)) for a in areas if a.compare}
         for field in g:
             read['g:' + field] = GLOBALS[field]
+        probed = [x for x in [*stubs.values(), *iat.values()] if getattr(x, 'probe', None)]
+        for x in probed:   # x.probe = [(area name | 'g:<field>', offset, length)]: the original addresses
+            x.probe_addr = [((GLOBALS[n[2:]][0] if n.startswith('g:') else next(a.va for a in areas if a.name == n)) + off, ln)
+                            for n, off, ln in x.probe]
         orig = Original20(image_patches, regions, stubs, iat).run(va, size, ecx=ecx, stack_args=stack, read=read)
         self.assertEqual(orig.cleanup, cleanup)
         # native
@@ -245,6 +262,10 @@ class Fl20bDifferential(DiffBase):
                 self.lib.shim_script_deref(s.name, s.deref[0], s.deref[1])
             for slot, (arg, nbytes) in enumerate(getattr(s, 'derefs', None) or ()):
                 (self.lib.shim_script_deref if slot == 0 else self.lib.shim_script_deref2)(s.name, arg, nbytes)
+            for n, off, ln in (getattr(s, 'probe', None) or ()):
+                host = (ctypes.addressof(sw) + getattr(World, n[2:]).offset + off) if n.startswith('g:') else \
+                    ctypes.cast(ctypes.byref(by_name[n], off), ctypes.c_void_p).value
+                self.lib.shim_script_probe(s.name, host, ln)
             for callno, lst in enumerate(getattr(s, 'writes', None) or ()):
                 for arg, off, sz, value in lst:
                     self.lib.shim_script_write(s.name, callno, arg, off, sz, value & 0xffffffff)
@@ -271,7 +292,8 @@ class Fl20bDifferential(DiffBase):
             self.assertEqual(result.value & ret_mask, orig.eax & ret_mask, 'return value')
         expected = self.normalize_original(orig.calls, stubs, iat, word_args)
         actual = self.native_calls20(arrays, {x.name: [x.deref[1]] if x.deref else [n for _, n in x.derefs] for x in [*stubs.values(), *iat.values()]
-                                          if x.deref or getattr(x, 'derefs', None)})
+                                          if x.deref or getattr(x, 'derefs', None)},
+                                     {x.name: sum(ln for _, _, ln in x.probe) for x in probed})
         for calls in (expected, actual):
             for entry in calls:
                 wa = (word_args or {}).get(entry[0], ())
@@ -396,7 +418,7 @@ class Fl20bDifferential(DiffBase):
                      0x4fb2e3: od.Stub(0x4fb2e3, args=1, this=True, cleanup=4),
                      0x423259: od.Stub(0x423259, args=1, this=True, cleanup=4, results=[0 if kind == 'null' else od.region_va(2)]),
                      0x448d11: od.Stub(0x448d11, args=4, this=True, cleanup=16, deref=deref)}
-            iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
             self.pair(2, 0x48d5f4, size, [this, records, rec_area, text_area, pat], stubs, g, ecx=od.region_va(0), iat=iat, tick=now,
                       self_name='self', executed=executed, word_args={0x4fb2e3: {0}},
                       pointers={'records_5bb5e5': ('records', slack), 'bytes_54e88c': ('pat', 0)})
@@ -462,9 +484,12 @@ class Fl20bDifferential(DiffBase):
             g = {**self.globals_(rng, 'value_5cf665', 'value_5d15e3', 'value_6252cf', 'value_6252cb'), 'word_6252d3': index,
                  'word_625d4b': sel, **flags}
             writes = [[(1, 4 * q, 4, rng.randrange(1 << 32)) for q in range(4)] for _ in range(2)]
-            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(3, 16)]),
+            # call-time state: each of the three flags is cleared after its own draw, so the draws see them in a fixed pattern
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(3, 16)],
+                                    probe=[('g:value_625d43', 0, 4), ('g:value_625d47', 0, 4), ('g:value_625e3c', 0, 4)]),
                      0x4c5d4b: od.Stub(0x4c5d4b, args=5, this=True, cleanup=20),
-                     0x4841cb: stub(0x4841cb, args=2, this=True, cleanup=8, writes=writes)}
+                     0x4841cb: stub(0x4841cb, args=2, this=True, cleanup=8, writes=writes,
+                                    probe=[('g:value_625d47', 0, 4), ('g:value_625e3c', 0, 4)])}
             self.pair(4, 0x4876ed, size, [rec_area, records, items_area, glob], stubs, g, executed=executed,
                       pointers={'records_5bb5e5': ('records', slack), 'items_6252d5': ('items', 0)})
         self.finish(0x4876ed, size, executed)
@@ -546,9 +571,11 @@ class Fl20bDifferential(DiffBase):
             sel = rng.choice([0x27d5, 0x27d5, 0x27d5, 0x27d6, 0x27d7, 0x27d7, 0x27d4, 0])
             g = {'value_5c39e5': sel}
             now = rng.choice([1000, 0xffffff00, rng.randrange(1 << 32)])
-            stubs = {0x4f6334: od.Stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 1])]),
-                     0x4fb2e3: od.Stub(0x4fb2e3, args=1, this=True, cleanup=4)}
-            iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
+            # call-time state: the flag, the cursor and its copies, and the byte [self+0x8d8] (all stored after or before the calls as in the original)
+            probe = [('self', 0x8b6, 4), ('self', 0x8aa, 4), ('self', 0x8b2, 4), ('self', 0x8d8, 1)]
+            stubs = {0x4f6334: stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 1])], probe=probe),
+                     0x4fb2e3: stub(0x4fb2e3, args=1, this=True, cleanup=4, probe=probe)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
             self.pair(6, 0x47608e, size, [this, records, obj, *pats], stubs, g, ecx=od.region_va(0), iat=iat, tick=now, self_name='self',
                       executed=executed, word_args={0x4fb2e3: {0}},
                       pointers={'records_5bb5e5': ('records', 0), 'bytes_54c844': ('p844', 0), 'bytes_54c850': ('p850', 0),
@@ -591,11 +618,13 @@ class Fl20bDifferential(DiffBase):
             # draws: random values, one of them accepted by the range test within the first four; every draw is in 0 .. 32767
             draws = [rng.randrange(0, 0x8000) for _ in range(12)]
             draws[rng.randrange(0, 4)] = valid + (step + 1) * rng.randrange(0, 3)
+            # call-time state: the busy dwords of the four slots (a slot is marked after its own 0x4b866e)
             stubs = {0x50cd50: od.Stub(0x50cd50, results=draws),
-                     0x4b866e: od.Stub(0x4b866e, this=True, results=[rng.choice([0, 1, 2, 3, 0x10002, -1 & 0xffffffff]) for _ in range(4)]),
+                     0x4b866e: stub(0x4b866e, this=True, results=[rng.choice([0, 1, 2, 3, 0x10002, -1 & 0xffffffff]) for _ in range(4)],
+                                    probe=[('self', k * 0x37 + 0x7d, 4) for k in range(4)]),
                      0x4b85f6: od.Stub(0x4b85f6, this=True, results=[rng.randrange(1 << 32) for _ in range(4)])}
             now = rng.choice([1000, 0xfffffff0, rng.randrange(1 << 32)])
-            iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
             obj_area = Area('obj', od.region_va(1), obj, image=False, compare=False)
             g = self.globals_(rng, 'origin_x_583186', 'origin_y_58318a')
             hi_word = rng.randrange(1 << 16) << 16

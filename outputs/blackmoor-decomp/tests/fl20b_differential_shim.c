@@ -8,6 +8,8 @@
 
 #include "original_methods_fl20b.h"
 
+#define SHIM_TICK_ID 0x52a23cu   /* the import slot of GetTickCount in the original */
+
 typedef struct ShimRegion {
     uint32_t va;
     uint8_t *ptr;
@@ -20,6 +22,7 @@ typedef struct ShimCall {
     uint64_t this_ptr;
     uint64_t arg[8];
     uint8_t data[64];     /* bytes behind pointer arguments that the test asked to see: [0..32) shim_script_deref, [32..64) shim_script_deref2 */
+    uint8_t probe[64];    /* bytes at the probed host addresses (shim_script_probe), concatenated, read at the call */
 } ShimCall;
 
 typedef struct ShimWrite {
@@ -32,6 +35,8 @@ typedef struct ShimScript {
     uint32_t results[512];
     int nresults, used;
     int deref_arg, deref_bytes, deref_arg2, deref_bytes2;
+    const uint8_t *probe_ptr[4];
+    int probe_len[4], nprobe;
     ShimWrite writes[16];
     int nwrites;
 } ShimScript;
@@ -97,6 +102,15 @@ void shim_script_deref(uint32_t callee, int arg, int bytes)
     s->deref_bytes = bytes;
 }
 
+/* the bytes at the host address `p` (`bytes` of them) are copied into every logged call of `callee`, as they are at the call */
+void shim_script_probe(uint32_t callee, const uint8_t *p, int bytes)
+{
+    ShimScript *s = script_for(callee);
+    s->probe_ptr[s->nprobe] = p;
+    s->probe_len[s->nprobe] = bytes;
+    s->nprobe++;
+}
+
 /* the call number `call` (0 based) of `callee` stores `size` bytes (2 or 4) of `value` at args[arg] + offset (a host pointer) */
 void shim_script_write(uint32_t callee, int call, int arg, int offset, int size, uint32_t value)
 {
@@ -139,6 +153,13 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     /* a pointer argument is a host pointer (a local of the function) or an original address inside a fixture region */
     if (s->deref_arg > 0) memcpy(c->data, deref_ptr(args[s->deref_arg - 1]), (size_t)s->deref_bytes);
     if (s->deref_arg2 > 0) memcpy(c->data + 32, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
+    {
+        int at = 0;
+        for (i = 0; i < s->nprobe; i++) {
+            memcpy(c->probe + at, s->probe_ptr[i], (size_t)s->probe_len[i]);
+            at += s->probe_len[i];
+        }
+    }
     for (i = 0; i < s->nwrites; i++) {
         const ShimWrite *w = &s->writes[i];
         if (w->call == s->used) {
@@ -156,9 +177,14 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
+/* GetTickCount is an ordered event of the call log (id = its import slot, no arguments), so that a read before or after a neighbouring
+ * call is seen as a different sequence; the test names it 'tick' on both sides */
 static uint32_t host_tick(void *context)
 {
+    ShimCall *c = &g_calls[g_call_count++];
     (void)context;
+    memset(c, 0, sizeof *c);
+    c->id = SHIM_TICK_ID;
     g_tick_count++;
     return g_tick;
 }

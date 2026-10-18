@@ -20,6 +20,7 @@ extern "C" {
  * original hands to a callee are host pointers. An address that the original keeps in an object or a record is a 32-bit original
  * address: Fl18Host.resolve turns it into host memory where the function reads through it.
  *
+ * The Fl20bWorld globals are snapshots taken before the call: a function that clears one of them does so in the struct it was given.
  * Nothing here claims original source structure. */
 
 /* The globals and tables of the original that the batch touches (named by their address). A table pointer points at the byte that the

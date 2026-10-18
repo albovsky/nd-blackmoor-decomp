@@ -2,12 +2,6 @@
 
 #include <string.h>
 
-/* 0x4fca60 is ported with C double arithmetic that must round like the x87 at 53 bits: no fused multiply-add. Build this file with
- * -ffp-contract=off (the tests do); clang also gets the pragma. */
-#if defined(__clang__)
-#pragma STDC FP_CONTRACT OFF
-#endif
-
 #if defined(__GNUC__) || defined(__clang__)
 #define UNUSED_OK __attribute__((unused))
 #else
@@ -536,6 +530,7 @@ void m4b8a27_spawn_slots(uint8_t *self, int16_t n, const Fl20bWorld *world, cons
         const uint8_t *obj0;
         const uint8_t *src;
         int16_t k, j;
+        int32_t draw;
         uint32_t half;
         if (rd32(self, slot + 0x7d) != 0) continue;
         obj0 = owner_object(self, host);
@@ -553,7 +548,8 @@ void m4b8a27_spawn_slots(uint8_t *self, int16_t n, const Fl20bWorld *world, cons
         wr32(self, slot + 0x6f, rd32(self, slot + 0x66) - half + 6u);
         half = half_toward_zero(rd32(self, slot + 0x62) - rd32(self, slot + 0x5a));
         wr32(self, slot + 0x6b, rd32(self, slot + 0x62) - half - 8u);
-        j = (int16_t)((int32_t)call0(host, 0x50cd50, 0) % rds16(owner_object(self, host), 0x21));
+        draw = (int32_t)call0(host, 0x50cd50, 0);
+        j = (int16_t)(draw % rds16(owner_object(self, host), 0x21));
         src = owner_object(self, host) + (ptrdiff_t)j * 16 + 0x23;
         wr32(self, slot + 0x4a, rd32(src, 0));
         wr32(self, slot + 0x4e, rd32(src, 4));
@@ -562,11 +558,11 @@ void m4b8a27_spawn_slots(uint8_t *self, int16_t n, const Fl20bWorld *world, cons
         wr32(self, slot + 0x7d, 1);
         self[slot + 0x6a] = (uint8_t)call0(host, 0x4b85f6, (uintptr_t)self);
         wr32(self, slot + 0x77, host->tick != NULL ? host->tick(host->context) : 0);
+        draw = (int32_t)call0(host, 0x50cd50, 0);   /* the draw first, then the two bounds are read (the original order) */
         {
             const uint8_t *o = owner_object(self, host);
             int32_t span = rds16(o, 0x454) + 1 - rds16(o, 0x452);
-            int32_t rem = (int32_t)call0(host, 0x50cd50, 0) % span;
-            wr16(self, slot + 0x7b, (uint16_t)(rem + rds16(owner_object(self, host), 0x452)));
+            wr16(self, slot + 0x7b, (uint16_t)(draw % span + rds16(o, 0x452)));
         }
         r = (int16_t)(r - 1);
     }

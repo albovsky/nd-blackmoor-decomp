@@ -8,7 +8,8 @@
  *   0x4b8a27  word [this+0x48] moved by a random step (0x50cd50 % (n + 1)) within the words [obj+0x456] .. [obj+0x458]; then per free slot (stride 0x37) while r > 0: template copies from obj+k*16+0x175 (k from 0x4b866e) and obj+j*16+0x23, origin offsets, halved extents, byte from 0x4b85f6, tick, a random word
  *   0x446688  gates dwords 0x638607 / 0x63860f; strings new 0x63885f vs old 0x63887d: when they differ the old digits are drawn with 0x4c5377 (0x5d15e3, 0x5cf665, &p, &q, 0x548288); then the new digits with 0x4c5d4b (table dword, 0x5cf665, 0x6386bf + d*16, &q, 0x5482b4); strcpy(old, new)
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
- *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
+ * The Fl20bWorld globals are snapshots taken before the call: the tests read them (and the probes below read them) from the struct the
+ * function was given, at the time of each call out.
  */
 #include "../src/original_methods_fl20b.h"
 
@@ -67,6 +68,7 @@ typedef struct Call {
     uint8_t snap[32];       /* the bytes behind args[snap_arg] of the callee snap_callee, when asked for */
     uint8_t snap2[32];      /* ... and behind args[snap_arg2] (when snap_arg2 >= 0) */
     uint8_t pd[5][16];      /* the 16 bytes behind each of args[0..4] that is a host pointer (a value above 32 bits), for every call */
+    uint8_t probe[64];      /* the bytes at the host addresses of the probe set of this callee (concatenated), read at the call */
 } Call;
 
 typedef struct Region {
@@ -88,6 +90,13 @@ static struct {
     int ret_count[8], ret_used[8];
     uint32_t snap_callee;
     int snap_arg, snap_arg2, snap_len;
+    struct {
+        uint32_t callee;
+        const uint8_t *ptr[4];
+        int len[4], n;
+    } probes[4];            /* call-time state: per callee, host addresses whose bytes are copied into Call.probe at every call of it */
+    int nprobes;
+    int tick_at[8];         /* L.n (the calls made so far) at each GetTickCount: the tick is an ordered event between the calls */
     OutWrite w[16];
     int nw;
     int calls_of[16];       /* per callee slot: how many calls were made (for OutWrite.call) */
@@ -110,6 +119,17 @@ UNUSED_OK static void queue_return(uint32_t callee, uint32_t v)
             return;
         }
     }
+}
+
+/* at every call of `callee`, `len` bytes at the host address `ptr` are copied into that call's probe (after those of earlier add_probe calls) */
+UNUSED_OK static void add_probe(uint32_t callee, const void *ptr, int len)
+{
+    int i;
+    for (i = 0; i < L.nprobes; i++)
+        if (L.probes[i].callee == callee) break;
+    if (i == L.nprobes) L.probes[L.nprobes++].callee = callee;
+    L.probes[i].ptr[L.probes[i].n] = (const uint8_t *)ptr;
+    L.probes[i].len[L.probes[i].n++] = len;
 }
 
 UNUSED_OK static void queue_write(uint32_t callee, int call, int arg, int off, int size, uint32_t value)
@@ -142,6 +162,15 @@ static uint32_t h_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uin
         for (k = 0; k < nargs && k < 8; k++) c->a[k] = args[k];
         for (k = 0; k < nargs && k < 5; k++)
             if ((uint64_t)args[k] > 0xffffffffu) memcpy(c->pd[k], (const void *)args[k], 16);
+        for (i = 0; i < L.nprobes; i++) {
+            if (L.probes[i].callee == callee) {
+                int at = 0;
+                for (k = 0; k < L.probes[i].n; k++) {
+                    memcpy(c->probe + at, L.probes[i].ptr[k], (size_t)L.probes[i].len[k]);
+                    at += L.probes[i].len[k];
+                }
+            }
+        }
         if (callee == L.snap_callee && L.snap_len > 0) {
             memcpy(c->snap, (const void *)args[L.snap_arg], (size_t)L.snap_len);
             if (L.snap_arg2 > 0) memcpy(c->snap2, (const void *)args[L.snap_arg2], (size_t)L.snap_len);
@@ -181,6 +210,7 @@ static const uint8_t *h_resolve(void *ctx, uint32_t va)
 static uint32_t h_tick(void *ctx)
 {
     (void)ctx;
+    if (L.ticks < 8) L.tick_at[L.ticks] = L.n;
     L.ticks++;
     return L.tick;
 }
@@ -628,6 +658,11 @@ static void test_m4876ed_redraw_items(void)
     queue_write(0x4841cb, 1, 1, 4, 4, 22);
     queue_write(0x4841cb, 1, 1, 8, 4, 23);
     queue_write(0x4841cb, 1, 1, 12, 4, 24);
+    add_probe(0x4c5377, &w.value_625d43, 4);   /* call-time state: the flags A, C, E (each is cleared after its own draw, not before) */
+    add_probe(0x4c5377, &w.value_625d47, 4);
+    add_probe(0x4c5377, &w.value_625e3c, 4);
+    add_probe(0x4841cb, &w.value_625d47, 4);
+    add_probe(0x4841cb, &w.value_625e3c, 4);
     m4876ed_redraw_items(&w, &h);
     CK(w.value_625d43 == 0 && w.value_625d47 == 0 && w.value_625e3c == 0 && w.value_625d3f == 0 && w.value_625e40 == 0);
     CK(L.n == 8);
@@ -646,6 +681,12 @@ static void test_m4876ed_redraw_items(void)
     CK(is_call(6, 0x4841cb, 0x6252ad, 2) && L.c[6].a[0] == rec_va + 0x5e8);
     CK(is_call(7, 0x4c5377, 0x5cf659, 5) && L.c[7].a[0] == 0xc0de0003u && L.c[7].a[2] == rec_va + 0x5e8 && L.c[7].a[4] == 0x54dd50);
     CK(get32(L.c[7].pd[3], 0) == 21 && get32(L.c[7].pd[3], 12) == 24);
+    /* at the calls: first 4c5377 sees A, C, E all set; the second sees A cleared, C still set; the last sees only E set */
+    CK(get32(L.c[0].probe, 0) == 1 && get32(L.c[0].probe, 4) == 1 && get32(L.c[0].probe, 8) == 1);
+    CK(get32(L.c[2].probe, 0) == 0 && get32(L.c[2].probe, 4) == 1 && get32(L.c[2].probe, 8) == 1);
+    CK(get32(L.c[7].probe, 0) == 0 && get32(L.c[7].probe, 4) == 0 && get32(L.c[7].probe, 8) == 1);
+    CK(get32(L.c[1].probe, 0) == 1 && get32(L.c[1].probe, 4) == 1);   /* 4841cb: C and E still set */
+    CK(get32(L.c[6].probe, 0) == 0 && get32(L.c[6].probe, 4) == 1);   /* ... E not yet cleared at its own 4841cb */
     /* B set (A clear), the selected item 1 skipped so m = 2: items 0 and 2 drawn, then the selected item, then D (E stays set) */
     reset_log();
     add_region(rec_va, rec, sizeof rec);
@@ -900,6 +941,7 @@ static void test_m47608e_step_swap(void)
     set32(expect, 0x2c, 3);
     CK(memcmp(self, expect, sizeof self) == 0 && L.n == 2 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == 0x44 &&
        is_call(1, 0x4fb2e3, 0x5c3a67, 1) && (L.c[1].a[0] & 0xffff) == 0x44);
+    CK(L.ticks == 1 && L.tick_at[0] == 2);   /* the timer is read after both calls */
     set32(self, 0x2c, 0);
     reset_log();
     add_region(rec_va, rec, sizeof rec);
@@ -925,15 +967,24 @@ static void test_m47608e_step_swap(void)
     set32(expect, 0x8b6, 0);
     CK(memcmp(self, expect, sizeof self) == 0 && L.n == 0);
     set32(self, 0x8b6, 1);
+    set32(self, 0x8aa, 0x77);        /* the old cursor again (it was just overwritten by the previous call) */
+    set32(self, 0x8a6, 0x88);
     memcpy(rec + 0x74c, pat_b, 9);   /* differs from pattern a */
     reset_log();
     add_region(rec_va, rec, sizeof rec);
     memcpy(expect, self, sizeof self);
+    for (round = 0; round < 2; round++) {   /* at both calls: the flag and the cursor are still the old ones (stores come after the calls) */
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8b6, 4);
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8aa, 4);
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8a6, 4);
+    }
     m47608e_step_swap(self, &w, &h);
     set32(expect, 0x8aa, 3);
     set32(expect, 0x8a6, 1);
     set32(expect, 0x8b6, 0);
     CK(memcmp(self, expect, sizeof self) == 0 && L.n == 2 && L.c[0].a[0] == 0xfffffff3u && (L.c[1].a[0] & 0xffff) == 0xfff3);
+    for (round = 0; round < 2; round++)
+        CK(get32(L.c[round].probe, 0) == 1 && get32(L.c[round].probe, 4) == 0x77 && get32(L.c[round].probe, 8) == 0x88);
     /* 0x27d5 with the dword [self+0x8b6] clear: flag := 1, nine bytes against pattern b (rec + 0x74c), the words of the cells (a=1, b=2) and
      * (c=3, d=1) exchanged, the cursor copied, both bytes set */
     set32(self, 0x8b6, 0);
@@ -961,10 +1012,23 @@ static void test_m47608e_step_swap(void)
     set32(self, 0x8b6, 0);
     memcpy(rec + 0x74c, pat_b, 9);
     rec[0x74c + 8] ^= 1;             /* only the ninth byte differs: still the calls */
+    set32(self, 0x8be, 5);
+    set32(self, 0x8ba, 6);
+    set32(self, 0x8b2, 0x1234);
+    set32(self, 0x8ae, 0x5678);
     reset_log();
     add_region(rec_va, rec, sizeof rec);
+    for (round = 0; round < 2; round++) {   /* at both calls: the flag is already 1, the exchange and its bookkeeping have not happened */
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8b6, 4);
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8b2, 4);
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8ae, 4);
+        add_probe(round == 0 ? 0x4f6334 : 0x4fb2e3, self + 0x8d8, 1);
+    }
     m47608e_step_swap(self, &w, &h);
     CK(L.n == 2 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && is_call(1, 0x4fb2e3, 0x5c3a67, 1));
+    for (round = 0; round < 2; round++)
+        CK(get32(L.c[round].probe, 0) == 1 && get32(L.c[round].probe, 4) == 0x1234 && get32(L.c[round].probe, 8) == 0x5678 && L.c[round].probe[12] == 0);
+    CK(get32(self, 0x8b2) == 5 && get32(self, 0x8ae) == 6 && self[0x8d8] == 1);
     self[0x8d8] = 0;
     self[0x8d9] = 0;
     set32(self, 0x8b6, 1);
@@ -1024,6 +1088,9 @@ static void test_m4b8a27_spawn_slots(void)
     queue_return(0x4b85f6, 0x1ab);
     queue_return(0x4b85f6, 0x242);
     memcpy(expect, self, sizeof self);
+    add_probe(0x4b866e, self + 0 * 0x37 + 0x7d, 4);   /* call-time state: the busy dwords of the three slots; a slot is marked after its own 0x4b866e */
+    add_probe(0x4b866e, self + 1 * 0x37 + 0x7d, 4);
+    add_probe(0x4b866e, self + 2 * 0x37 + 0x7d, 4);
     m4b8a27_spawn_slots(self, 5, &w, &h);
     set16(expect, 0x48, 12);
     /* slot 0 */
@@ -1046,6 +1113,9 @@ static void test_m4b8a27_spawn_slots(void)
     set16(expect, 2 * 0x37 + 0x7b, 9);
     CK(memcmp(self, expect, sizeof self) == 0);
     CK(L.n == 9 && L.ticks == 2);
+    CK(get32(L.c[1].probe, 0) == 0 && get32(L.c[1].probe, 4) == 1 && get32(L.c[1].probe, 8) == 0);   /* slot 0 free, slot 1 busy, slot 2 free */
+    CK(get32(L.c[5].probe, 0) == 1 && get32(L.c[5].probe, 4) == 1 && get32(L.c[5].probe, 8) == 0);   /* slot 0 now marked */
+    CK(L.tick_at[0] == 4 && L.tick_at[1] == 8);   /* the tick is read right after each 0x4b85f6 (calls 3 and 7), not before it */
     CK(is_call(0, 0x50cd50, 0, 0));
     CK(is_call(1, 0x4b866e, (uintptr_t)self, 0) && is_call(2, 0x50cd50, 0, 0) && is_call(3, 0x4b85f6, (uintptr_t)self, 0) && is_call(4, 0x50cd50, 0, 0));
     CK(is_call(5, 0x4b866e, (uintptr_t)self, 0) && is_call(6, 0x50cd50, 0, 0) && is_call(7, 0x4b85f6, (uintptr_t)self, 0) && is_call(8, 0x50cd50, 0, 0));
