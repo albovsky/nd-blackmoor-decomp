@@ -595,7 +595,6 @@ static void cursor_write(CpzObject *o, int candidate, CpzPointerResult *out)
     }
 }
 
-/* FL-12: original FUN_00462c39 is this function (function ledger acceptance). */
 int cpz_pointer(CpzObject *object, const CpzWorld *world, const uint8_t *body, size_t body_length, int32_t x, int32_t y,
                 int32_t view_x, int32_t view_y, CpzPointerResult *out)
 {
@@ -732,7 +731,6 @@ static void add_blit(CpzRenderResult *out, int kind, int32_t piece, uint32_t sur
     fx(host, CPZ_FX_BLIT, kind, piece);
 }
 
-/* FL-12: original FUN_00463b10 is this function (function ledger acceptance). */
 int cpz_render(const CpzObject *object, const CpzWorld *world, const uint8_t *body, size_t body_length,
                const CpzHost *host, CpzRenderResult *out)
 {

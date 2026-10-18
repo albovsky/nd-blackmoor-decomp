@@ -403,7 +403,6 @@ static void press(AlcObject *o, const uint8_t *body, int32_t button, AlcPointerR
     o->button = button;
 }
 
-/* FL-12: original FUN_0044d28c is this function (function ledger acceptance). */
 int alc_pointer(AlcObject *object, const uint8_t *body, size_t body_length, int32_t x, int32_t y, AlcPointerResult *out)
 {
     if (object == NULL || body == NULL || out == NULL || alc_validate_body(body, body_length, NULL) != ALC_OK)
@@ -530,7 +529,6 @@ static void add_blit(AlcRenderResult *out, int kind, uint32_t surface, const uin
     b->dst[3] = (int32_t)((uint32_t)rd_s32(body, dst + 12) + (uint32_t)vy);
 }
 
-/* FL-12: original FUN_0044e035 is this function (function ledger acceptance). */
 int alc_render(AlcObject *object, const uint8_t *body, size_t body_length, const AlcHost *host, AlcRenderResult *out)
 {
     int32_t vx = 0, vy = 0;

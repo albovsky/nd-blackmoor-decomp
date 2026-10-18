@@ -476,7 +476,6 @@ static uint32_t cursor_table(int32_t cursor, int32_t flag)
     return (uint32_t)(0x5b160c + (int64_t)cursor * 0x20 + (int64_t)flag * 0x10);
 }
 
-/* FL-12: original FUN_0048bd91 is this function (function ledger acceptance). */
 int d8_hit_test(D8Object *o, const uint8_t *record, size_t length, int16_t x, int16_t y, const D8HitInput *in,
                 D8HitOutput *out)
 {
@@ -544,7 +543,6 @@ int d8_hit_test(D8Object *o, const uint8_t *record, size_t length, int16_t x, in
     return D8_OK;
 }
 
-/* FL-12: original FUN_0048c0ac is this function (function ledger acceptance). */
 int d8_click(D8Object *o, const uint8_t *record, size_t length, int32_t candidate, D8ClickOutput *out)
 {
     if (o == NULL || out == NULL) return D8_ERR_ARGUMENT;
@@ -566,7 +564,6 @@ int d8_click(D8Object *o, const uint8_t *record, size_t length, int32_t candidat
     return D8_OK;
 }
 
-/* FL-12: original FUN_0048c148 is this function (function ledger acceptance). */
 int d8_press(D8Object *o, uint32_t row_phase, int32_t candidate, const D8Host *host)
 {
     if (o == NULL) return D8_ERR_ARGUMENT;
@@ -602,7 +599,6 @@ static void add_blit(D8RenderPlan *plan, D8BlitKind kind, D8Source source, const
     b->label = label;
 }
 
-/* FL-12: original FUN_0048cc70 is this function (function ledger acceptance). */
 int d8_render_plan(const D8Object *o, const uint8_t *record, size_t length, const D8View *view, D8RenderPlan *plan)
 {
     int32_t src[4];

@@ -471,7 +471,6 @@ void pwd_cleanup(PwdState *state)
     if (state != NULL) state->b[PWD_S_ACTIVE] = 0;
 }
 
-/* FL-12: original FUN_004d07e7 is this function (function ledger acceptance). */
 int pwd_render(const PwdState *state, const uint8_t *body, size_t body_length, PwdRenderResult *out)
 {
     PwdOp *op;

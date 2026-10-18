@@ -207,7 +207,6 @@ static int draw_string(const char *cur, const int32_t *wd, const int32_t *ht, co
     return STD_OK;
 }
 
-/* FL-12: original FUN_00446688 is this function (function ledger acceptance). */
 int std_render_score(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out, size_t capacity, size_t *count)
 {
     int32_t x, y;
@@ -231,7 +230,6 @@ int std_render_score(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out
     return STD_OK;
 }
 
-/* FL-12: original FUN_004468fe is this function (function ledger acceptance). */
 int std_render_clock(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out, size_t capacity, size_t *count)
 {
     const int32_t x = d->clock_block[44], y = d->clock_block[45], gap = d->clock_block[46];

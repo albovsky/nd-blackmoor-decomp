@@ -1045,7 +1045,6 @@ static int follow_pointer(uint8_t *obj, const EaHost *host)
     return translate(obj, O_MOVE, O_MOVE_T, host);
 }
 
-/* FL-12: original FUN_00484f42 is this function (function ledger acceptance). */
 int ea_pointer_move(EaObject *object, uint8_t *body, size_t body_length, int16_t x, int16_t y, const int32_t rect[4],
                     const EaHost *host, EaPointerResult *out)
 {
