@@ -7165,7 +7165,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "1:1 with sound_good (record +0x777, then save_and_check, state 4, deadline2 tick+100). Row phase and world are parameters; host callbacks. save_and_check (0x480b34) not credited."
+   "note": "1:1 with sound_good (record +0x777, then save_and_check, state 4, deadline2 tick+100). Row phase and world are parameters; host callbacks. save_and_check (0x480b34) is credited separately (FL-10)."
   },
   {
    "va": "0x485fb6",
