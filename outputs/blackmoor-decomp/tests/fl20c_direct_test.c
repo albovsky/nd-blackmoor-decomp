@@ -336,12 +336,126 @@ static void test_m4b9a88_draw_slots(void)
     CK(rect_word(L.c[0].pd[3], 0) == 6 && rect_word(L.c[0].pd[3], 1) == 2 && rect_word(L.c[0].pd[3], 2) == 1 && rect_word(L.c[0].pd[3], 3) == 5);
 }
 
+/* ---- 0x4619be ---- */
+
+typedef struct DirCase {
+    int dir, row, col;
+    int mr, mc, off, val;   /* one cell word set before the call (off 0x24 = T, 0x26 = U); off 0: none */
+    int ok;
+} DirCase;
+
+static void test_m4619be_check_direction(void)
+{
+    static uint8_t obj[0x100], cells[0x4000];
+    static uint8_t self[0x100];
+    const uint32_t obj_va = 0x00d40000u;
+    /* the object has 4 rows ([obj+0x22]) and 5 columns ([obj+0x24]); the cursor is at row 2, column 3 unless a case says otherwise */
+    static const DirCase cases[] = {
+        /* 0x10: left, looks at (r, c) and (r, c-1) */
+        {0x10, 2, 3, 0, 0, 0, 0, 1},
+        {0x10, 2, 0, 0, 0, 0, 0, 0},
+        {0x10, 2, 3, 2, 3, 0x24, 0x10, 0},
+        {0x10, 2, 3, 2, 2, 0x24, 0x13, 0},
+        {0x10, 2, 3, 2, 2, 0x26, -1, 0},
+        {0x10, 2, 3, 2, 2, 0x26, 0x100, 0},
+        {0x10, 2, 3, 2, 2, 0x24, 0x14, 0},
+        {0x10, 2, 3, 2, 4, 0x24, 0x10, 1},
+        {0x10, 2, 3, 2, 2, 0x24, 0x10, 1},
+        {0x10, 2, 3, 2, 3, 0x24, 0x13, 1},
+        {0x10, 2, 3, 1, 2, 0x24, 0x13, 1},
+        {0x10, 2, 3, 2, 3, 0x26, 1, 1},
+        {0x10, 2, 3, 2, 2, 0x24, 0x11, 1},
+        /* 0x11: up, looks at (r, c) and (r-1, c) */
+        {0x11, 2, 3, 0, 0, 0, 0, 1},
+        {0x11, 0, 3, 0, 0, 0, 0, 0},
+        {0x11, 2, 3, 2, 3, 0x24, 0x11, 0},
+        {0x11, 2, 3, 1, 3, 0x24, 0x12, 0},
+        {0x11, 2, 3, 1, 3, 0x26, 7, 0},
+        {0x11, 2, 3, 1, 3, 0x24, 0x14, 0},
+        {0x11, 2, 3, 3, 3, 0x24, 0x11, 1},
+        {0x11, 2, 3, 1, 3, 0x24, 0x11, 1},
+        {0x11, 2, 3, 2, 3, 0x26, 1, 1},
+        {0x11, 2, 3, 2, 2, 0x24, 0x12, 1},
+        /* 0x12: down, looks at (r, c) and (r+1, c); the last row is [obj+0x22] - 1 = 3 */
+        {0x12, 2, 3, 0, 0, 0, 0, 1},
+        {0x12, 3, 3, 0, 0, 0, 0, 0},
+        {0x12, 2, 3, 2, 3, 0x24, 0x12, 0},
+        {0x12, 2, 3, 3, 3, 0x24, 0x11, 0},
+        {0x12, 2, 3, 3, 3, 0x26, 2, 0},
+        {0x12, 2, 3, 3, 3, 0x24, 0x14, 0},
+        {0x12, 2, 3, 1, 3, 0x24, 0x11, 1},
+        {0x12, 2, 3, 3, 3, 0x24, 0x12, 1},
+        {0x12, 2, 3, 2, 3, 0x26, 1, 1},
+        {0x12, 1, 3, 0, 0, 0, 0, 1},
+        /* 0x13: right, looks at (r, c) and (r, c+1); the last column is [obj+0x24] - 1 = 4 */
+        {0x13, 2, 3, 0, 0, 0, 0, 1},
+        {0x13, 2, 4, 0, 0, 0, 0, 0},
+        {0x13, 2, 3, 2, 3, 0x24, 0x13, 0},
+        {0x13, 2, 3, 2, 4, 0x24, 0x10, 0},
+        {0x13, 2, 3, 2, 4, 0x26, 0x4000, 0},
+        {0x13, 2, 3, 2, 4, 0x24, 0x14, 0},
+        {0x13, 2, 3, 2, 2, 0x24, 0x10, 1},
+        {0x13, 2, 3, 2, 4, 0x24, 0x13, 1},
+        {0x13, 2, 3, 2, 3, 0x26, 1, 1},
+        {0x13, 2, 2, 0, 0, 0, 0, 1},
+        /* other directions never fail (the unsigned compare of the switch), whatever the cells hold */
+        {0x0f, 2, 3, 2, 3, 0x24, 0x10, 1},
+        {0x14, 2, 0, 2, 3, 0x24, 0x10, 1},
+        {0, 0, 0, 0, 0, 0, 0, 1},
+        {-1, 3, 4, 0, 0, 0, 0, 1},
+        {0x30, 3, 4, 0, 0, 0, 0, 1},
+        {-32768, 3, 4, 0, 0, 0, 0, 1},
+    };
+    size_t i;
+    Fl20cWorld w;
+    Fl18Host h = host();
+    memset(&w, 0, sizeof w);
+    w.records_5bb5e5 = g_records;
+    w.cells_594db5 = cells + 0x2000;
+    for (i = 0; i < sizeof cases / sizeof cases[0]; i++) {
+        const DirCase *c = &cases[i];
+        int32_t ok;
+        uint8_t before[sizeof self];
+        reset_log();
+        add_region(obj_va, obj, sizeof obj);
+        memset(g_records, 0, sizeof g_records);
+        set32(g_records, 2 * REC, obj_va);
+        memset(obj, 0x33, sizeof obj);
+        set16(obj, 0x22, 4);
+        set16(obj, 0x24, 5);
+        memset(cells, 0, sizeof cells);
+        memset(self, 0x77, sizeof self);
+        set16(self, 0x1e, 2);
+        set16(self, 0x5b, (uint16_t)c->row);
+        set16(self, 0x5d, (uint16_t)c->col);
+        if (c->off != 0) set16(cells, 0x2000 + (size_t)((ptrdiff_t)c->mr * 0x140 + (ptrdiff_t)c->mc * 0x28 + c->off), (uint16_t)c->val);
+        memcpy(before, self, sizeof self);
+        ok = m4619be_check_direction(self, (int16_t)c->dir, &w, &h);
+        CK(ok == c->ok);
+        CK(L.n == 0);
+        if (c->ok) {
+            set16(before, 0x57, (uint16_t)c->dir);
+        } else {
+            set16(before, 0x39, 0);
+            set16(before, 0x57, 0);
+            set16(before, 0x59, 0);
+        }
+        if (memcmp(self, before, sizeof self) != 0 && !g_failed) {
+            g_failed = 1;
+            snprintf(g_msg, sizeof g_msg, "case %d (dir 0x%x): object differs", (int)i, c->dir);
+        }
+        if (g_failed && g_msg[0] == 0) snprintf(g_msg, sizeof g_msg, "case %d", (int)i);
+        if (g_failed) return;
+    }
+}
+
 /* TESTS-END */
 
 int main(void)
 {
     int failures = 0;
     RUN(test_m4b9a88_draw_slots);
+    RUN(test_m4619be_check_direction);
     /* RUN-END */
     return failures;
 }

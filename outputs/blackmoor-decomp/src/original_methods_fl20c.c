@@ -199,3 +199,79 @@ void m4b9a88_draw_slots(Fl20cWorld *world, const Fl18Host *host)
               0x551ec0);
     }
 }
+
+/* the signed word at +off of cell (row, col) of the table at 0x594db5 (cell + 0x24 is the word at 0x594dd9, cell + 0x26 the word at 0x594ddb) */
+UNUSED_OK static int32_t cell_word(const Fl20cWorld *world, int32_t row, int32_t col, ptrdiff_t off)
+{
+    return rds16(world->cells_594db5, (ptrdiff_t)row * 0x140 + (ptrdiff_t)col * 0x28 + off);
+}
+
+/* original GAME.EXE 0x4619be (FUN_004619be), this = self, stack argument direction (word, ret 4): rec = the dword of the 0x5bb5e5-based
+ * record at the signed word [self+0x1e] (stride 0x8d, read first); ok = 1; the word [self+0x57] := direction. With row = the signed word
+ * [self+0x5b], col = the signed word [self+0x5d], T(r, c) = the signed word at 0x594dd9 + r * 0x140 + c * 0x28 and U(r, c) = the signed
+ * word at 0x594ddb + r * 0x140 + c * 0x28, a switch on the signed word [self+0x57] - 0x10 (an unsigned compare, so anything outside
+ * 0x10 .. 0x13 keeps ok = 1) sets ok := 0 when
+ *   0x10: col == 0, or T(row, col) == 0x10, or T(row, col-1) == 0x13, or U(row, col-1) != 0, or T(row, col-1) == 0x14;
+ *   0x11: row == 0, or T(row, col) == 0x11, or T(row-1, col) == 0x12, or U(row-1, col) != 0, or T(row-1, col) == 0x14;
+ *   0x12: row == the signed word [obj+0x22] - 1 (obj = the object of rec), or T(row, col) == 0x12, or T(row+1, col) == 0x11, or
+ *         U(row+1, col) != 0, or T(row+1, col) == 0x14;
+ *   0x13: col == the signed word [obj+0x24] - 1, or T(row, col) == 0x13, or T(row, col+1) == 0x10, or U(row, col+1) != 0, or
+ *         T(row, col+1) == 0x14.
+ * When ok is 0 the words [self+0x39], [self+0x57] and [self+0x59] are cleared. Returns ok. */
+int32_t m4619be_check_direction(uint8_t *self, int16_t direction, const Fl20cWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d);
+    int32_t ok = 1;
+    int32_t row, col;
+    wr16(self, 0x57, (uint16_t)direction);
+    switch ((uint32_t)(rds16(self, 0x57) - 0x10)) {
+    case 0:
+        col = rds16(self, 0x5d);
+        row = rds16(self, 0x5b);
+        if (col == 0) {
+            ok = 0;
+        } else if (cell_word(world, row, col, 0x24) == 0x10 || cell_word(world, row, col - 1, 0x24) == 0x13 ||
+                   cell_word(world, row, col - 1, 0x26) != 0 || cell_word(world, row, col - 1, 0x24) == 0x14) {
+            ok = 0;
+        }
+        break;
+    case 1:
+        row = rds16(self, 0x5b);
+        col = rds16(self, 0x5d);
+        if (row == 0) {
+            ok = 0;
+        } else if (cell_word(world, row, col, 0x24) == 0x11 || cell_word(world, row - 1, col, 0x24) == 0x12 ||
+                   cell_word(world, row - 1, col, 0x26) != 0 || cell_word(world, row - 1, col, 0x24) == 0x14) {
+            ok = 0;
+        }
+        break;
+    case 2:
+        row = rds16(self, 0x5b);
+        col = rds16(self, 0x5d);
+        if (row == rds16(object_at(host, rec_va), 0x22) - 1) {
+            ok = 0;
+        } else if (cell_word(world, row, col, 0x24) == 0x12 || cell_word(world, row + 1, col, 0x24) == 0x11 ||
+                   cell_word(world, row + 1, col, 0x26) != 0 || cell_word(world, row + 1, col, 0x24) == 0x14) {
+            ok = 0;
+        }
+        break;
+    case 3:
+        row = rds16(self, 0x5b);
+        col = rds16(self, 0x5d);
+        if (col == rds16(object_at(host, rec_va), 0x24) - 1) {
+            ok = 0;
+        } else if (cell_word(world, row, col, 0x24) == 0x13 || cell_word(world, row, col + 1, 0x24) == 0x10 ||
+                   cell_word(world, row, col + 1, 0x26) != 0 || cell_word(world, row, col + 1, 0x24) == 0x14) {
+            ok = 0;
+        }
+        break;
+    default:
+        break;
+    }
+    if (ok == 0) {
+        wr16(self, 0x39, 0);
+        wr16(self, 0x57, 0);
+        wr16(self, 0x59, 0);
+    }
+    return ok;
+}

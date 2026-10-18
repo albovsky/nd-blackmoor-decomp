@@ -26,6 +26,8 @@ extern "C" {
 /* The globals and tables of the original that the batch touches (named by their address). A table pointer points at the byte that the
  * original address names; for a table that a signed index addresses the caller leaves slack below it. */
 typedef struct Fl20cWorld {
+    uint8_t *records_5bb5e5;       /* dwords of stride 0x8d: the address of the object of record n (n = a signed word) */
+    uint8_t *cells_594db5;         /* 0x4619be, 0x463b10: cells of stride 0x28 in rows of 0x140 bytes, cell(r, c) = this + r * 0x140 + c * 0x28 (signed indices; the caller leaves slack) */
     const uint8_t *table_5d1599;   /* records of stride 0x4a, the dword at +0 is used (indexed by a signed word) */
     uint8_t *slots_61eeb8;         /* 0x4b9a88: slots of stride 0x37 (the slot array of the singleton at 0x61ee6e: its slot n is at +0x4a + n * 0x37) */
     int32_t origin_x_583186, origin_y_58318a, origin_x2_58318e, origin_y2_583192;
@@ -35,6 +37,7 @@ typedef struct Fl20cWorld {
 } Fl20cWorld;
 
 void m4b9a88_draw_slots(Fl20cWorld *world, const Fl18Host *host);
+int32_t m4619be_check_direction(uint8_t *self, int16_t direction, const Fl20cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

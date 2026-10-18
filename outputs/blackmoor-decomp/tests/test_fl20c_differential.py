@@ -335,6 +335,39 @@ class Fl20cDifferential(DiffBase):
                       pointers={'slots_61eeb8': ('slots', 0), 'table_5d1599': ('table', tslack)})
         self.finish(0x4b9a88, size, executed)
 
+    # ---- 0x4619be ----
+    def test_4619be_check_direction(self):
+        """FL-20c: differential test of m4619be_check_direction (original 0x4619be)"""
+        rng = random.Random(0x4619be)
+        executed = set()
+        size = 0x461d3b - 0x4619be
+        cslack = 4 * 0x140 + 4 * 0x28
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 4])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
+            struct.pack_into('<h', this.data, 0x1e, index)
+            row, col = rng.choice([-1, 0, 0, 1, 2, 3, 4]), rng.choice([-1, 0, 0, 1, 2, 3, 4])
+            struct.pack_into('<h', this.data, 0x5b, row)
+            struct.pack_into('<h', this.data, 0x5d, col)
+            records, slack = self.records_area(rng, nrec=5)
+            struct.pack_into('<I', records.data, slack + index * 0x8d, od.region_va(1))
+            obj = bytearray(rng.randbytes(0x100))
+            struct.pack_into('<h', obj, 0x22, rng.choice([row + 1, row + 1, 0, 1, 2, 5, rng.randrange(-4, 8)]))
+            struct.pack_into('<h', obj, 0x24, rng.choice([col + 1, col + 1, 0, 1, 2, 5, rng.randrange(-4, 8)]))
+            cells = bytearray(rng.randbytes(cslack + 8 * 0x140 + 0x40))
+            for r in range(-3, 6):
+                for c in range(-3, 8):
+                    struct.pack_into('<h', cells, cslack + r * 0x140 + c * 0x28 + 0x24,
+                                     rng.choice([0x10, 0x11, 0x12, 0x13, 0x14, 0, 5, -1, 0x15, 0x0f, 0x2, 0x3, 0x4, 0x5]))
+                    struct.pack_into('<h', cells, cslack + r * 0x140 + c * 0x28 + 0x26, rng.choice([0, 0, 0, 0, 1, -1, 0x100, -32768]))
+            direction = rng.choice([0x10, 0x11, 0x12, 0x13, 0x10, 0x11, 0x12, 0x13, 0x0f, 0x14, 0, -1, 0x30, rng.randrange(-32768, 32768)])
+            high = rng.randrange(0x10000) << 16
+            self.pair(2, 0x4619be, size, [this, records, Area('obj', od.region_va(1), obj, image=False, compare=False),
+                                          Area('cells', 0x594db5 - cslack, cells, compare=False)], {}, {}, ecx=od.region_va(0),
+                      stack=[high | (direction & 0xffff)], cleanup=4, args=(direction,), self_name='self', executed=executed, ret_mask=0xffffffff,
+                      pointers={'records_5bb5e5': ('records', slack), 'cells_594db5': ('cells', cslack)})
+        self.finish(0x4619be, size, executed)
+
     # TESTS-END
 
 
