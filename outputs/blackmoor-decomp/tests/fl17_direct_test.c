@@ -409,8 +409,10 @@ static int test_m4e303b_close(void)
     l.watch = g_obj;
     m4e303b_close(g_obj, &w, &h);
     CK(l.n == 3);
-    CK(l.id[0] == C_EDB97 && l.p[0] == g_obj && l.snap[0][0] == 0x70000001u && l.snap[0][2] == 0x70000004u);
-    CK(l.id[1] == C_E2FAA && l.p[1] == g_obj && l.snap[1][0] == 0x70000001u && l.snap[1][2] == 0x70000004u);
+    CK(l.id[0] == C_EDB97 && l.p[0] == g_obj && l.snap[0][0] == 0x70000001u && l.snap[0][1] == 0x70000002u && l.snap[0][2] == 0x70000004u);
+    CK(l.id[1] == C_E2FAA && l.p[1] == g_obj && l.snap[1][0] == 0x70000001u && l.snap[1][1] == 0x70000002u && l.snap[1][2] == 0x70000004u);
+    /* neither callee sees the word +0x6b2 stored yet */
+    CK(l.snap[0][3] == get16(g_exp, 0x6b2) && l.snap[1][3] == get16(g_exp, 0x6b2));
     /* the release is last: the stores before it are visible to it, and it sees the slot value still set */
     CK(l.id[2] == C_RELEASE && l.p[2] == (void *)&w.slot_5d039f && l.seen_slot[2] == 0x6789u);
     CK(l.snap[2][0] == 0 && l.snap[2][1] == 1 && l.snap[2][2] == 0 && l.snap[2][3] == 0x270fu);
@@ -466,10 +468,11 @@ static int test_m4eb96e_close(void)
     fill(g_obj, 9);
     memcpy(g_exp, g_obj, OBJ);
     l.world = &w;
+    l.watch = g_obj;
     m4eb96e_close(g_obj, &w, &h);
     CK(l.n == 4);
-    CK(l.id[0] == C_EDB97 && l.p[0] == g_obj && l.snap[0][0] == 0x70000001u);
-    CK(l.id[1] == C_EBA54 && l.p[1] == g_obj && l.snap[1][0] == 0x70000001u);
+    CK(l.id[0] == C_EDB97 && l.p[0] == g_obj && l.snap[0][0] == 0x70000001u && l.snap[0][1] == 0x70000002u && l.snap[0][3] == get16(g_exp, 0x6b2));
+    CK(l.id[1] == C_EBA54 && l.p[1] == g_obj && l.snap[1][0] == 0x70000001u && l.snap[1][1] == 0x70000002u && l.snap[1][3] == get16(g_exp, 0x6b2));
     CK(l.id[2] == C_RELEASE && l.p[2] == (void *)&w.slot_5d03a3 && l.seen_slot[2] == 0x1111u && l.snap[2][0] == 0 && l.snap[2][1] == 1);
     CK(l.id[3] == C_RELEASE && l.p[3] == (void *)&w.slot_5d03a7 && l.seen_slot[3] == 0x2222u);
     want.value_583204 = 0;
@@ -528,21 +531,21 @@ static int test_m4cf749_notify(void)
     Fl17World w, before;
     host_init(&h, &h16, &l);
     memset(&w, 0x21, sizeof w);
-    w.value_638433 = 1;
-    w.value_638423 = 2;
-    w.value_5d1a39 = 0xa1;
-    w.value_5cf665 = 0xa2;
-    w.value_5d1a3d = 0xa3;
-    w.value_5d1a41 = 0xa4;
+    w.value_638433 = 0x10000u;
+    w.value_638423 = 0x20000u;
+    w.value_5d1a39 = 0xa1000001u;
+    w.value_5cf665 = 0xa2000002u;
+    w.value_5d1a3d = 0xa3000003u;
+    w.value_5d1a41 = 0xa4000004u;
     before = w;
     m4cf749_notify(&w, &h);
-    CK(l.n == 1 && l.id[0] == C_C5377 && l.a[0] == 0xa1 && l.b[0] == 0xa2 && l.c[0] == 0xa3 && l.d[0] == 0xa4 && l.e[0] == 0x559d94u);
+    CK(l.n == 1 && l.id[0] == C_C5377 && l.a[0] == 0xa1000001u && l.b[0] == 0xa2000002u && l.c[0] == 0xa3000003u && l.d[0] == 0xa4000004u && l.e[0] == 0x559d94u);
     CK(memcmp(&w, &before, sizeof w) == 0);
     host_init(&h, &h16, &l);
     w.value_638423 = 0;
     m4cf749_notify(&w, &h);
     CK(l.n == 0);
-    w.value_638423 = 2;
+    w.value_638423 = 0x20000u;
     w.value_638433 = 0;
     m4cf749_notify(&w, &h);
     CK(l.n == 0);
@@ -558,12 +561,14 @@ static int test_m48c0ac_accept_piece(void)
     Fl16Host h16;
     Log l;
     Fl17World w;
-    static uint8_t records[R * 8], records_exp[R * 8];
+    /* the records start two slots into the buffer, so the reset index -1 (word 0xffff) reaches a valid slot below them */
+    static uint8_t store[R * 10], store_exp[R * 10];
+    uint8_t *records = store + 2 * R;
     uint8_t source[0x400];
     host_init(&h, &h16, &l);
     memset(&w, 0, sizeof w);
     fill(g_obj, 11);
-    memset(records, 0x3c, sizeof records);
+    memset(store, 0x3c, sizeof store);
     memset(source, 0xc3, sizeof source);
     w.records_5bb5e5 = records;
     l.resolve_result = source;
@@ -572,42 +577,68 @@ static int test_m48c0ac_accept_piece(void)
     set16(g_obj, 0x28, 3);
     set32(records, 2 * R, 0x00400000u);
     memcpy(g_exp, g_obj, OBJ);
-    memcpy(records_exp, records, sizeof records);
+    memcpy(store_exp, store, sizeof store);
     w.value_5c39e5 = 0x27a9;
     m48c0ac_accept_piece(g_obj, &w, &h);
     g_exp[0x47] = 1;
     g_exp[0x1c] = 0xff;
     g_exp[0x40] = 0;
-    set32(records_exp, 2 * R + 0x4d, 2);
-    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(records, records_exp, sizeof records) == 0 && l.resolve_calls == 0);
+    set32(store_exp, 4 * R + 0x4d, 2);
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(store, store_exp, sizeof store) == 0 && l.resolve_calls == 0);
     /* 0x27a8: word +0x54 := word at object + 3 * 0x12 + 0x160 */
-    memcpy(records_exp, records, sizeof records);
     fill(g_obj, 12);
     set16(g_obj, 0x26, 5);
     set16(g_obj, 0x28, 3);
     set32(records, 5 * R, 0x00500000u);
     set16(source, 0x160 + 3 * 0x12, 0xabcd);
     memcpy(g_exp, g_obj, OBJ);
-    memcpy(records_exp, records, sizeof records);
+    memcpy(store_exp, store, sizeof store);
     w.value_5c39e5 = 0x27a8;
     m48c0ac_accept_piece(g_obj, &w, &h);
     set16(g_exp, 0x54, 0xabcd);
     g_exp[0x1c] = 0xff;
     g_exp[0x40] = 0;
-    set32(records_exp, 5 * R + 0x4d, 2);
-    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(records, records_exp, sizeof records) == 0);
+    set32(store_exp, 7 * R + 0x4d, 2);
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(store, store_exp, sizeof store) == 0);
     CK(l.resolve_calls == 1 && l.resolve_address == 0x00500000u);
-    /* any other value: only the always-stores */
+    /* both word indexes are signed: record -1 (word 0xffff) and a negative item index -2 (word 0xfffe) */
+    fill(g_obj, 14);
+    set16(g_obj, 0x26, 0xffff);
+    set16(g_obj, 0x28, 0xfffe);
+    set32(records, -R, 0x00510000u);
+    set16(source, 0x160 - 2 * 0x12, 0x5a5b);
+    memcpy(g_exp, g_obj, OBJ);
+    memcpy(store_exp, store, sizeof store);
+    l.resolve_calls = 0;
+    m48c0ac_accept_piece(g_obj, &w, &h);
+    set16(g_exp, 0x54, 0x5a5b);
+    g_exp[0x1c] = 0xff;
+    g_exp[0x40] = 0;
+    set32(store_exp, 1 * R + 0x4d, 2);
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(store, store_exp, sizeof store) == 0);
+    CK(l.resolve_calls == 1 && l.resolve_address == 0x00510000u);
+    /* any other value, including one that equals 0x27a9 only in its low word: only the always-stores */
+    for (l.n = 0; l.n < 2; l.n++) {
+        fill(g_obj, 13);
+        set16(g_obj, 0x26, 1);
+        memcpy(g_exp, g_obj, OBJ);
+        memcpy(store_exp, store, sizeof store);
+        w.value_5c39e5 = l.n == 0 ? 0x27aau : 0x000127a9u;
+        l.resolve_calls = 0;
+        m48c0ac_accept_piece(g_obj, &w, &h);
+        g_exp[0x1c] = 0xff;
+        g_exp[0x40] = 0;
+        CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(store, store_exp, sizeof store) == 0 && l.resolve_calls == 0);
+    }
+    w.value_5c39e5 = 0x000127a8u;
     fill(g_obj, 13);
     set16(g_obj, 0x26, 1);
-    memcpy(g_exp, g_obj, OBJ);
-    memcpy(records_exp, records, sizeof records);
-    w.value_5c39e5 = 0x27aa;
     l.resolve_calls = 0;
+    memcpy(g_exp, g_obj, OBJ);
     m48c0ac_accept_piece(g_obj, &w, &h);
     g_exp[0x1c] = 0xff;
     g_exp[0x40] = 0;
-    CK(memcmp(g_obj, g_exp, OBJ) == 0 && memcmp(records, records_exp, sizeof records) == 0 && l.resolve_calls == 0);
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && l.resolve_calls == 0);
     return g_failed;
 }
 
@@ -615,21 +646,23 @@ static int test_m48c0ac_accept_piece(void)
 
 static int test_m415011_close_handles(void)
 {
+    static const struct { size_t off; int kind; } fields[] = {{0x21, C_FREE}, {0x2d, C_UNMAP}, {0x29, C_CLOSE}, {0x25, C_CLOSE}};
+    static const uint32_t values[] = {0x000000a5u, 0x0000a500u, 0x00a50000u, 0xa5000000u, 0x8123abcdu};
     Fl17Host h;
     Fl16Host h16;
     Log l;
+    size_t f, v;
     host_init(&h, &h16, &l);
     fill(g_arg, 14);
-    memcpy(g_arg_exp, g_arg, OBJ);
-    set32(g_arg, 0x21, 0x1001);
-    set32(g_arg, 0x2d, 0x1002);
-    set32(g_arg, 0x29, 0x1003);
-    set32(g_arg, 0x25, 0x1004);
+    set32(g_arg, 0x21, 0x81230001u);
+    set32(g_arg, 0x2d, 0x82340002u);
+    set32(g_arg, 0x29, 0x83450003u);
+    set32(g_arg, 0x25, 0x84560004u);
     memcpy(g_arg_exp, g_arg, OBJ);
     m415011_close_handles(g_arg, &h);
     CK(l.n == 4);
-    CK(l.id[0] == C_FREE && l.a[0] == 0x1001 && l.id[1] == C_UNMAP && l.a[1] == 0x1002 && l.id[2] == C_CLOSE && l.a[2] == 0x1003 &&
-       l.id[3] == C_CLOSE && l.a[3] == 0x1004);
+    CK(l.id[0] == C_FREE && l.a[0] == 0x81230001u && l.id[1] == C_UNMAP && l.a[1] == 0x82340002u && l.id[2] == C_CLOSE &&
+       l.a[2] == 0x83450003u && l.id[3] == C_CLOSE && l.a[3] == 0x84560004u);
     set32(g_arg_exp, 0x21, 0);
     set32(g_arg_exp, 0x2d, 0);
     set32(g_arg_exp, 0x29, 0);
@@ -647,35 +680,34 @@ static int test_m415011_close_handles(void)
     g_arg_exp[0x4d] = 0;
     m415011_close_handles(g_arg, &h);
     CK(l.n == 0 && memcmp(g_arg, g_arg_exp, OBJ) == 0);
-    /* each handle on its own */
-    host_init(&h, &h16, &l);
-    set32(g_arg, 0x29, 0x77);
-    memcpy(g_arg_exp, g_arg, OBJ);
-    set32(g_arg_exp, 0x29, 0);
-    m415011_close_handles(g_arg, &h);
-    CK(l.n == 1 && l.id[0] == C_CLOSE && l.a[0] == 0x77 && memcmp(g_arg, g_arg_exp, OBJ) == 0);
-    host_init(&h, &h16, &l);
-    set32(g_arg, 0x2d, 0x88);
-    memcpy(g_arg_exp, g_arg, OBJ);
-    set32(g_arg_exp, 0x2d, 0);
-    m415011_close_handles(g_arg, &h);
-    CK(l.n == 1 && l.id[0] == C_UNMAP && l.a[0] == 0x88 && memcmp(g_arg, g_arg_exp, OBJ) == 0);
-    host_init(&h, &h16, &l);
-    set32(g_arg, 0x25, 0x99);
-    memcpy(g_arg_exp, g_arg, OBJ);
-    set32(g_arg_exp, 0x25, 0);
-    m415011_close_handles(g_arg, &h);
-    CK(l.n == 1 && l.id[0] == C_CLOSE && l.a[0] == 0x99 && memcmp(g_arg, g_arg_exp, OBJ) == 0);
-    host_init(&h, &h16, &l);
-    set32(g_arg, 0x21, 0x55);
-    memcpy(g_arg_exp, g_arg, OBJ);
-    set32(g_arg_exp, 0x21, 0);
-    m415011_close_handles(g_arg, &h);
-    CK(l.n == 1 && l.id[0] == C_FREE && l.a[0] == 0x55 && memcmp(g_arg, g_arg_exp, OBJ) == 0);
+    /* each handle on its own, with the value in every single byte lane and the four dwords around it zero */
+    for (f = 0; f < 4; f++) {
+        for (v = 0; v < sizeof values / sizeof values[0]; v++) {
+            host_init(&h, &h16, &l);
+            fill(g_arg, 16);
+            memset(g_arg + 0x20, 0, 0x14); /* bytes 0x20..0x33 */
+            set32(g_arg, fields[f].off, values[v]);
+            memcpy(g_arg_exp, g_arg, OBJ);
+            set32(g_arg_exp, fields[f].off, 0);
+            g_arg_exp[0x4d] = 0;
+            m415011_close_handles(g_arg, &h);
+            CK(l.n == 1 && l.id[0] == fields[f].kind && l.a[0] == values[v] && memcmp(g_arg, g_arg_exp, OBJ) == 0);
+        }
+    }
     return g_failed;
 }
 
 /* ---- 0x4eac4c --------------------------------------------------------------------------------------------------------------- */
+
+/* the 0x4ea06c stand-in sees the state at call time and may change the selected-item global, as the original callee could */
+static Fl17World *g_probe_world;
+static const uint8_t *g_probe_rec40;
+static int32_t g_probe_set; /* -2: leave the global alone */
+static void h_ea06c_probe(void *c, uint8_t *s, uint16_t v)
+{
+    note(L(c), C_EA06C, s, v, (uint32_t)(uint16_t)g_probe_world->value_583a29, *g_probe_rec40, 0, 0);
+    if (g_probe_set != -2) g_probe_world->value_583a29 = (int16_t)g_probe_set;
+}
 
 static int test_m4eac4c_use_item(void)
 {
@@ -684,38 +716,69 @@ static int test_m4eac4c_use_item(void)
     Fl16Host h16;
     Log l;
     Fl17World w;
-    static uint8_t records[R * 8], records_exp[R * 8];
+    static uint8_t store[R * 10], store_exp[R * 10];
+    uint8_t *records = store + 2 * R; /* slack below the records for index -1 */
     uint8_t source[0x20];
     host_init(&h, &h16, &l);
     memset(&w, 0, sizeof w);
     fill(g_obj, 16);
     memcpy(g_exp, g_obj, OBJ);
-    memset(records, 0x2b, sizeof records);
+    memset(store, 0x2b, sizeof store);
     memset(source, 0x9d, sizeof source);
     w.records_5bb5e5 = records;
     l.resolve_result = source;
+    h.call_4ea06c = h_ea06c_probe;
+    g_probe_world = &w;
+    g_probe_set = -2;
     set32(records, 3 * R, 0x00600000u);
     set16(source, 0, 0x8765);
-    memcpy(records_exp, records, sizeof records);
+    memcpy(store_exp, store, sizeof store);
+    g_probe_rec40 = records + 3 * R + 0x40;
     w.value_583a29 = 0x1234; /* differs: kept */
     m4eac4c_use_item(g_obj, 3, &w, &h);
-    records_exp[3 * R + 0x40] = 1;
+    store_exp[5 * R + 0x40] = 1;
     CK(l.resolve_calls == 1 && l.resolve_address == 0x00600000u);
-    CK(l.n == 1 && l.id[0] == C_EA06C && l.p[0] == g_obj && l.a[0] == 0x8765u);
-    CK(w.value_583a29 == 0x1234 && memcmp(records, records_exp, sizeof records) == 0 && memcmp(g_obj, g_exp, OBJ) == 0);
-    /* equal as signed words: reset to -1 */
+    /* the callee sees the global and the record byte as they were before the call */
+    CK(l.n == 1 && l.id[0] == C_EA06C && l.p[0] == g_obj && l.a[0] == 0x8765u && l.b[0] == 0x1234u && l.c[0] == 0x2bu);
+    CK(w.value_583a29 == 0x1234 && memcmp(store, store_exp, sizeof store) == 0 && memcmp(g_obj, g_exp, OBJ) == 0);
+    /* equal as signed words: reset to -1, but only after the call (the callee still sees 0x8765) */
     host_init(&h, &h16, &l);
     l.resolve_result = source;
+    h.call_4ea06c = h_ea06c_probe;
+    store[5 * R + 0x40] = 0x2b;
     w.value_583a29 = (int16_t)0x8765;
     m4eac4c_use_item(g_obj, 3, &w, &h);
-    CK(w.value_583a29 == -1 && l.n == 1);
+    CK(w.value_583a29 == -1 && l.n == 1 && l.b[0] == 0x8765u && l.c[0] == 0x2bu);
     /* the compare is made after the call: a callee that changes the global is seen */
     host_init(&h, &h16, &l);
     l.resolve_result = source;
-    w.value_583a29 = 0x4321;
+    h.call_4ea06c = h_ea06c_probe;
+    w.value_583a29 = 0x1111;
     set16(source, 0, 0x4321);
+    g_probe_set = 0x4321;
     m4eac4c_use_item(g_obj, 3, &w, &h);
-    CK(w.value_583a29 == -1);
+    CK(l.b[0] == 0x1111u && w.value_583a29 == -1);
+    /* a callee that moves it away from the word leaves it alone */
+    host_init(&h, &h16, &l);
+    l.resolve_result = source;
+    h.call_4ea06c = h_ea06c_probe;
+    w.value_583a29 = 0x4321;
+    g_probe_set = 0x0777;
+    m4eac4c_use_item(g_obj, 3, &w, &h);
+    CK(l.b[0] == 0x4321u && w.value_583a29 == 0x0777);
+    /* the index is a signed word: -1 (0xffff) reaches the record below the first */
+    host_init(&h, &h16, &l);
+    l.resolve_result = source;
+    h.call_4ea06c = h_ea06c_probe;
+    g_probe_set = -2;
+    g_probe_rec40 = records - R + 0x40;
+    set32(records, -R, 0x00610000u);
+    set16(source, 0, 0x0042);
+    w.value_583a29 = 0x0042;
+    memcpy(store_exp, store, sizeof store);
+    m4eac4c_use_item(g_obj, -1, &w, &h);
+    store_exp[1 * R + 0x40] = 1;
+    CK(l.resolve_address == 0x00610000u && l.a[0] == 0x42u && w.value_583a29 == -1 && memcmp(store, store_exp, sizeof store) == 0);
     return g_failed;
 }
 
@@ -810,6 +873,19 @@ static int test_m44d107_cleanup(void)
     m44d107_cleanup(g_obj, &w, &h);
     CK(check_edits(EDITS(e)));
     CK(l.n == 1 && l.id[0] == C_TICK && get32(shared, 0x456) == 995u);
+    /* any non-zero dword stamps: only the high bit, or only bit 8 */
+    set32(shared, 0x1c, 0x80000000u);
+    set32(shared, 0x456, 0);
+    host_init(&h, &h16, &l);
+    l.tick = 7;
+    m44d107_cleanup(g_obj, &w, &h);
+    CK(l.n == 1 && get32(shared, 0x456) == 2u);
+    set32(shared, 0x1c, 0x100u);
+    set32(shared, 0x456, 0);
+    host_init(&h, &h16, &l);
+    l.tick = 9;
+    m44d107_cleanup(g_obj, &w, &h);
+    CK(l.n == 1 && get32(shared, 0x456) == 4u);
     /* zero: nothing else happens */
     host_init(&h, &h16, &l);
     set32(shared, 0x1c, 0);
@@ -835,11 +911,11 @@ static int check_begin(BeginFn fn, const Edit *edits, int count)
     host_init(&h, &h16, &l);
     /* both the slot and the word set */
     fill(g_obj, 24);
-    set32(g_obj, 0x20, 0x4141);
+    set32(g_obj, 0x20, 0x00410000u);
     set16(g_obj, 0x1c, 0x0017);
     memcpy(g_exp, g_obj, OBJ);
     fn(g_obj, &h);
-    CK(l.n == 2 && l.id[0] == C_RELEASE && l.p[0] == g_obj + 0x20 && l.seen_slot[0] == 0x4141u);
+    CK(l.n == 2 && l.id[0] == C_RELEASE && l.p[0] == g_obj + 0x20 && l.seen_slot[0] == 0x00410000u);
     CK(l.id[1] == C_D3992 && l.a[1] == 0x17);
     CK(check_edits(edits, count)); /* the word at +0x1c was read before the cleanup reset it */
     /* slot 0, word -1: no calls */

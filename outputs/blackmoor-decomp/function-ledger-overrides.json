@@ -9207,7 +9207,7 @@
   {
    "va": "0x424035",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9246,7 +9246,7 @@
   {
    "va": "0x42405a",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9285,7 +9285,7 @@
   {
    "va": "0x42ca22",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9312,7 +9312,7 @@
    "blockers_reviewed": [
     {
      "id": "A-33.1:35de5dfe55ad70d2",
-     "rationale": "A-33.1 leaves the handler 0x42c221, the siblings 0x42caa8/0x42d215 and gate 0x423f57 unverified; 0x42ca22 is a self-contained table loop whose 134 bytes are all executed in the recorded window, and the direct test covers each skip and store branch, so those callers and siblings do not touch this claim."
+     "rationale": "A-33.1 names 0x42ca22 among the unverified descendants of handler 0x42c221, but the later execution census shows all 134 bytes executed in the recorded 0x42ca22 window, and the direct test covers every skip and store branch; the handler, 0x42caa8/0x42d215 and gate 0x423f57 are not claimed here."
     }
    ],
    "note": "1:1 with m42ca22_apply_event_flags; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 134 bytes."
@@ -9320,7 +9320,7 @@
   {
    "va": "0x4d36ed",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9349,7 +9349,7 @@
   {
    "va": "0x4cd218",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9376,7 +9376,7 @@
    "blockers_reviewed": [
     {
      "id": "A-2D.1:22590774b0a37409",
-     "rationale": "A-2D.1 lists the runtime consumers of owner object 0x63821d (0x4cd218 among them) and dispatcher arms as unverified, which is about how callers use the object; the body (four calls, 0x4ccfbd being the FL-16 port) is executed completely in the recorded window and its call order is checked by the direct test."
+     "rationale": "A-2D.1 lists 0x4cd218 among the runtime consumers of owner object 0x63821d, meaning how the object is used by its callers; the body here (four calls) is executed completely in the recorded window, its call order is checked by the direct test, and the three callees other than the FL-16 port are host callbacks that are not claimed."
     }
    ],
    "note": "1:1 with m4cd218_destruct; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 43 bytes."
@@ -9384,7 +9384,7 @@
   {
    "va": "0x4fba69",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9419,7 +9419,7 @@
   {
    "va": "0x4fc05d",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9454,7 +9454,7 @@
   {
    "va": "0x4e303b",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9481,7 +9481,7 @@
    "blockers_reviewed": [
     {
      "id": "A-6D.1:489443acb9dc6613",
-     "rationale": "A-6D.1 marks dispatcher arm 0x4290c0 and its callees as static only; since then the execution census shows every byte of this callee executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores, so the unverified dispatcher arm is the caller's concern."
+     "rationale": "A-6D.1 marked dispatcher arm 0x4290c0 and its callees static only; the later execution census supersedes that for this callee, showing every byte executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores in order; the arm itself and the other callees are not claimed."
     }
    ],
    "note": "1:1 with m4e303b_close; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 88 bytes."
@@ -9489,7 +9489,7 @@
   {
    "va": "0x4e7d04",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9516,7 +9516,7 @@
    "blockers_reviewed": [
     {
      "id": "A-6D.1:489443acb9dc6613",
-     "rationale": "A-6D.1 marks dispatcher arm 0x4290c0 and its callees as static only; since then the execution census shows every byte of this callee executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores, so the unverified dispatcher arm is the caller's concern."
+     "rationale": "A-6D.1 marked dispatcher arm 0x4290c0 and its callees static only; the later execution census supersedes that for this callee, showing every byte executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores in order; the arm itself and the other callees are not claimed."
     }
    ],
    "note": "1:1 with m4e7d04_close; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 42 bytes."
@@ -9524,7 +9524,7 @@
   {
    "va": "0x4eb96e",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9551,7 +9551,7 @@
    "blockers_reviewed": [
     {
      "id": "A-6D.1:489443acb9dc6613",
-     "rationale": "A-6D.1 marks dispatcher arm 0x4290c0 and its callees as static only; since then the execution census shows every byte of this callee executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores, so the unverified dispatcher arm is the caller's concern."
+     "rationale": "A-6D.1 marked dispatcher arm 0x4290c0 and its callees static only; the later execution census supersedes that for this callee, showing every byte executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores in order; the arm itself and the other callees are not claimed."
     }
    ],
    "note": "1:1 with m4eb96e_close; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 90 bytes."
@@ -9559,7 +9559,7 @@
   {
    "va": "0x4caf8a",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9588,7 +9588,7 @@
   {
    "va": "0x4cf749",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9617,7 +9617,7 @@
   {
    "va": "0x48c0ac",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9646,7 +9646,7 @@
   {
    "va": "0x415011",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9675,7 +9675,7 @@
   {
    "va": "0x4eac4c",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9702,7 +9702,7 @@
    "blockers_reviewed": [
     {
      "id": "A-79.1:03c75098d941819f",
-     "rationale": "A-79.1 leaves the signed index/count bounds, duplicate/missing paths and effect order of the inventory unverified; this function does no bounds check, all 92 bytes (both outcomes of the selected-item compare) are executed in the recorded window, and the effects of 0x4ea06c are a callback here, not claimed."
+     "rationale": "A-79.1 leaves signed index/count bounds, duplicate/missing paths and effect order of the inventory unverified; this function does no bounds check, all 92 bytes (both outcomes of the selected-item compare) are executed in the recorded window, the direct test checks the call, global-compare and record-flag order and the signed index, and 0x4ea06c is a callback not claimed."
     }
    ],
    "note": "1:1 with m4eac4c_use_item; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 92 bytes."
@@ -9710,7 +9710,7 @@
   {
    "va": "0x48d067",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9739,7 +9739,7 @@
   {
    "va": "0x461827",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9768,7 +9768,7 @@
   {
    "va": "0x4b5b8a",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9797,7 +9797,7 @@
   {
    "va": "0x45b3ea",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9826,7 +9826,7 @@
   {
    "va": "0x483f6a",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9855,7 +9855,7 @@
   {
    "va": "0x44d107",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9884,7 +9884,7 @@
   {
    "va": "0x44d154",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9913,7 +9913,7 @@
   {
    "va": "0x45b42e",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9942,7 +9942,7 @@
   {
    "va": "0x461862",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -9971,7 +9971,7 @@
   {
    "va": "0x48d09c",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -10000,7 +10000,7 @@
   {
    "va": "0x4b5bc8",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",
@@ -10029,7 +10029,7 @@
   {
    "va": "0x47591f",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-17 implementer",
+   "reviewer": "Claude Sonnet FL-17 implementer, slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl17.c",

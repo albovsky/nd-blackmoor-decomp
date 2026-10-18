@@ -22,6 +22,11 @@ extern "C" {
  *  - Other calls into original code that is not ported yet, the heap and Windows calls (UnmapViewOfFile, CloseHandle) and the
  *    surface manager go through Fl17Host callbacks, so the tests can see them in order.
  *
+ *  - Required host fields: `fl16` (0x4cd218, 0x44d107, 0x44d154) and `resolve` (0x424035, 0x48c0ac, 0x4eac4c) must be set when those
+ *    functions run; they are dereferenced without a check. The other callbacks follow the NULL-is-a-no-op convention.
+ *  - World memory is separate from the object images, so an index that is negative in the original (0x48c0ac and 0x4eac4c take
+ *    record -1 after a reset; 0x42ca22 may index the table at 0x585801 below its start) needs slack before the array in the buffer
+ *    the caller supplies; a negative index in the original can also land on another global, which this model does not mirror.
  * Nothing here claims original source structure. */
 
 /* The original globals the ported methods touch (named by their address). */
