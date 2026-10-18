@@ -25,7 +25,8 @@ extern "C" {
  *    0x570508, 0x5a4c24 + n * 0x7f3, ...). The return value is eax. A NULL `call` returns 0.
  *  - A dword inside an object or record that holds an address of the original is read as a dword; Fl18Host.resolve turns it
  *    into host memory when the function has to read through it.
- *  - Functions of FL-17 that these ones call (0x4b7f3b) are called directly.
+ *  - 0x4b7f3b (an FL-18 port in this module) is called directly. 0x4c0774 reaches 0x4d36ed (FL-17, m4d36ed_set_flags)
+ *    through Fl18Host.call, so its stores to 0x5831c8 and 0x5831c6 are the host's to supply.
  *
  * Nothing here claims original source structure. */
 

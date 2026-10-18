@@ -249,7 +249,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "1:1 with m44d9b5_shift_rect. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 83 bytes."
+   "note": "1:1 with m44d9b5_shift_rect. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 83 bytes. Two rectangle copies shift."
   },
   {
    "va": "0x45b568",
@@ -282,7 +282,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "1:1 with m45b568_shift_rect. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 83 bytes."
+   "note": "1:1 with m45b568_shift_rect. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 83 bytes. Two rectangle copies shift."
   },
   {
    "va": "0x47d77d",
@@ -402,7 +402,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "1:1 with m4b8e42_expire_slot. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 80 bytes."
+   "note": "1:1 with m4b8e42_expire_slot. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 80 bytes. Direct test covers slot -1."
   },
   {
    "va": "0x4bedb5",
@@ -10098,7 +10098,7 @@
   {
    "va": "0x4c924d",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10131,7 +10131,7 @@
   {
    "va": "0x4121b8",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10164,7 +10164,7 @@
   {
    "va": "0x4e7bf3",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10197,7 +10197,7 @@
   {
    "va": "0x4b7051",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10230,7 +10230,7 @@
   {
    "va": "0x4b7f3b",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10263,7 +10263,7 @@
   {
    "va": "0x4b7ff4",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10296,7 +10296,7 @@
   {
    "va": "0x4e7253",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10329,7 +10329,7 @@
   {
    "va": "0x4e8dc8",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10362,7 +10362,7 @@
   {
    "va": "0x45b7a8",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10395,7 +10395,7 @@
   {
    "va": "0x4b81ff",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10428,7 +10428,7 @@
   {
    "va": "0x423b51",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10461,7 +10461,7 @@
   {
    "va": "0x4cc79a",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10494,7 +10494,7 @@
   {
    "va": "0x4b6097",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10527,7 +10527,7 @@
   {
    "va": "0x4b8d5e",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10560,7 +10560,7 @@
   {
    "va": "0x410f99",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10593,7 +10593,7 @@
   {
    "va": "0x44d624",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10626,7 +10626,7 @@
   {
    "va": "0x4631d1",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10659,7 +10659,7 @@
   {
    "va": "0x41632b",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10692,7 +10692,7 @@
   {
    "va": "0x4c08d3",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10725,7 +10725,7 @@
   {
    "va": "0x4c0774",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",
@@ -10758,7 +10758,7 @@
   {
    "va": "0x4d07e7",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-18 implementer, slice-reviewer",
+   "reviewer": "Claude Sonnet FL-18 implementer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl18.c",

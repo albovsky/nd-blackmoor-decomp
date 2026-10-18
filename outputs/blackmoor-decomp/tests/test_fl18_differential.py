@@ -378,8 +378,9 @@ class Fl18Differential(DiffBase):
             if rng.random() < 0.2:
                 struct.pack_into('<I', this, 0x14, 0)
             areas = [Area('self', od.region_va(0), this, image=False), Area('obj', od.region_va(1), obj, image=False)]
-            x = rng.choice([left - 1, left, left + 1, left + 15, left + 31, rng.randrange(-40, 60)])
-            y = rng.choice([top - 1, top, top + 1, top + 15, top + 31, rng.randrange(-40, 60)])
+            right, bottom = struct.unpack_from('<ii', obj, 0x566)[0], struct.unpack_from('<i', obj, 0x56a)[0]
+            x = rng.choice([left - 1, left, left + 1, right - 1, right, right + 1, left + 15, rng.randrange(-40, 60)])
+            y = rng.choice([top - 1, top, top + 1, bottom - 1, bottom, bottom + 1, top + 15, rng.randrange(-40, 60)])
             stack = [(rng.randrange(0x10000) << 16) | (x & 0xffff), (rng.randrange(0x10000) << 16) | (y & 0xffff)]
             orig, sw = self.pair(10, 0x4b81ff, 206, areas, {}, self.hotspot_globals(rng), ecx=od.region_va(0), stack=stack,
                                  cleanup=8, native_args=(x, y), executed=executed)
@@ -440,7 +441,7 @@ class Fl18Differential(DiffBase):
             for k in range(4):
                 struct.pack_into('<I', data, k * 0x37 + 0x7d, rng.choice([1, 1, 1, 0, 2, 3]))
                 struct.pack_into('<h', data, k * 0x37 + 0x7b, rng.choice([0, 1, 3, 20, -1, 100]))
-                struct.pack_into('<I', data, k * 0x37 + 0x77, (now - rng.choice([0, 500, 1000, 3999, 4000, 5000, 20000, 200000])) & 0xffffffff)
+                struct.pack_into('<I', data, k * 0x37 + 0x77, (now - rng.choice([0, 500, 1000, 3999, 4000, 5000, 20000, 200000, 70000000, 100000000])) & 0xffffffff)
             areas = [Area('self', od.region_va(0), data, image=False), Area('obj', od.region_va(1), obj, image=False)]
             stubs = {0x4fb2e3: od.Stub(0x4fb2e3, args=1, this=True, cleanup=4), 0x4b8a27: od.Stub(0x4b8a27, args=1, this=True, cleanup=4)}
             iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
