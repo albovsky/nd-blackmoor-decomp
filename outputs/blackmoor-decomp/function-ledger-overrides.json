@@ -5546,7 +5546,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Disassembly and c1c_free_iv agree: return if iv is NULL, free each entry's rects in entry order, then entries, then iv, then iv:=NULL (native also clears the record pointer, already 0 on every reachable path)."
+   "note": "Free order, strides and rect frees match the original. The native also nulls the record pointer, which the original leaves dangling (deliberate safe deviation; callers null it too). The 1c oracle compares live allocations and free order."
   },
   {
    "va": "0x430b9a",
@@ -5571,46 +5571,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Original cursor blink (phase 0 append '-', phase 1 strip trailing '-', two GetTickCount reads, deadline <= now toggles and re-arms by body word +2) matches native blink statement by statement."
-  },
-  {
-   "va": "0x44d597",
-   "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
-   "date": "2026-10-17",
-   "native_source": {
-    "path": "src/action_family_aa_runtime.c",
-    "symbol": "press"
-   },
-   "tests": [
-    {
-     "path": "tests/action_family_aa_runtime_corpus.c",
-     "test_id": "main"
-    },
-    {
-     "path": "tests/action_family_aa_runtime_test.c",
-     "test_id": "expect_none"
-    },
-    {
-     "path": "tests/action_family_da_runtime_corpus.c",
-     "test_id": "main"
-    }
-   ],
-   "oracle": {
-    "path": "tests/action_family_aa_runtime_original_oracle.py",
-    "window": [
-     "0x44d597",
-     "0x44d624"
-    ]
-   },
-   "parts_accounted": [],
-   "blockers_reviewed": [
-    {
-     "id": "RT-6:ec9b5de9db0bd0a3",
-     "rationale": "RT-6 unverified item 3 says the candidate writers 0x44d604/0x4574cd between consume and activation are unmodelled in the RT-6 click executor; this function own candidate store (0x5c39e5=0x276e at 0x44d604) is compared against the origina..."
-    }
-   ],
-   "note": "Disassembly (cursor kind from body+0x263, sub 1, candidate 0x276e, dirty byte, button arg) matches press(); RT-52 oracle runs 0x44d28c/0x44d597 under Unicorn and compares candidate and cursor cells 0x5c39e5/0x5b44f0/0x5b44f4 and the 0x5d..."
+   "note": "Cursor blink matches statement by statement. The cited test is a summary corpus; the differential evidence is action_family_76_runtime_original_oracle.py, which runs 0x430b9a and compares the state image and tick sequence."
   },
   {
    "va": "0x44d711",
@@ -5718,7 +5679,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "d1_geometry reproduces the four-word rectangle (x from origin, frame*w*substeps, step*w; y with row flag * tile*h; -2+w and -2+h), 32-bit wrapping; the oracle compares the 256-byte src rectangle array of the object image and the render b..."
+   "note": "d1_geometry reproduces the four-word rectangle (x from origin, frame*w*substeps, step*w; y with row flag * tile*h; -2+w and -2+h), 32-bit wrapping;"
   },
   {
    "va": "0x48bb17",
@@ -5747,7 +5708,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "reset_fields stores exactly the 12 fields of the original (+0x26/+0x2e/+0x30 = -1, +0x1c = 0xff, +0x41/+0x43, bytes +0x40/+0x45/+0x46/+0x47, dwords +0x1e/+0x22); the oracle runs 0x48bb17 as original code (constructor and cleanup) and com..."
+   "note": "reset_fields stores exactly the 12 fields of the original (+0x26/+0x2e/+0x30 = -1, +0x1c = 0xff, +0x41/+0x43, bytes +0x40/+0x45/+0x46/+0x47, dwords +0x1e/+0x22);"
   },
   {
    "va": "0x475a1e",
@@ -5776,7 +5737,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "fill matches the original loops (rows body+0x42, cols +0x44), the all/single-cell gate, the rand % (kinds-1) retry against upper then left neighbour, kind/rect/present/matched stores and the call to the cell rect; oracle compares object..."
+   "note": "fill matches the original loops (rows body+0x42, cols +0x44), the all/single-cell gate, the rand % (kinds-1) retry against upper then left neighbour, kind/rect/present/matched stores and the call to the cell rect;"
   },
   {
    "va": "0x475bef",
@@ -5801,7 +5762,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "cell_rect matches: w/h from body rect words (+0x58/+0x60, +0x5c/+0x64), x/y = index*size + view + offset + gap*index with 0x660/0x666 and 0x662/0x664, stores order left, right, top, bottom; exercised through fill and compared via the obj..."
+   "note": "cell_rect matches: w/h from body rect words (+0x58/+0x60, +0x5c/+0x64), x/y = index*size + view + offset + gap*index with 0x660/0x666 and 0x662/0x664, stores order left, right, top, bottom;"
   },
   {
    "va": "0x475cc4",
@@ -5826,7 +5787,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "add_text matches: skip on empty string, x = (int16)(rect.left + view x), y = (int16)(rect.bottom + view y), font body+0x23a and parameter +0x23c; the oracle hooks the 0x4c924d/0x4d2c20 text draws and compares string, x, y, font, paramete..."
+   "note": "add_text matches: skip on empty string, x = (int16)(rect.left + view x), y = (int16)(rect.bottom + view y), font body+0x23a and parameter +0x23c;"
   },
   {
    "va": "0x475fb1",
@@ -5851,7 +5812,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "write_cursor matches the two branches (0x27d6 with state != 6 -> kind 9 sub 1; 0x27d5/0x27d7 -> kind 0x16 sub 1) and the no-write fallthrough; the e4 oracle compares the candidate and cursor cells (and the 0x5d162d/31/39 composition) aga..."
+   "note": "write_cursor matches the two branches (0x27d6 with state != 6 -> kind 9 sub 1; 0x27d5/0x27d7 -> kind 0x16 sub 1) and the no-write fallthrough;"
   },
   {
    "va": "0x4854fb",
@@ -5880,7 +5841,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "write_candidate matches all four paths (0x2778 -> kind 0x14 sub 0, 0x277c -> 0x16/1, 0x2779 -> body+0xda9, others -> body+0xda7, record = 0x5b160c+(kind<<5)+(sub<<4)); the ea oracle compares candidate, cursor cells and the native cursor_..."
+   "note": "Candidate writer constants, cursor offsets and record addresses match the original on all paths. Cells composed host-side are compared by the oracle against their documented composition."
   },
   {
    "va": "0x47e3f7",
@@ -5938,7 +5899,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Compared the original piece_init instruction by instruction with the native: persistence/scene skip test, field stores and rect translate, valid-rect choice of source rect, surface create, entry rect, blit, and the three-step rotation ch..."
+   "note": "Compared the original piece_init instruction by instruction with the native: persistence/scene skip test, field stores and rect translate, valid-rect choice of source rect, surface create, entry rect, blit, and the three-step rotation."
   },
   {
    "va": "0x47ea73",
@@ -6042,7 +6003,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Compared the original candidate writer (rotate zone, exit A/B, pick/drop branches: cursor index, flag, cursor record address, [0x5d162d] copy, candidate store) with write_candidate; identical values."
+   "note": "Candidate writer constants, cursor offsets and record addresses match the original on all paths. Cells composed host-side are compared by the oracle against their documented composition."
   },
   {
    "va": "0x480b34",
@@ -6067,7 +6028,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Compared the original save_and_check (saved flag, 2960-byte piece and 20-byte counter copies, saved count, total counting with spawn/mode test, target comparison, exit/win flag writes, forbidden/required checks, win-sound state/done) wit..."
+   "note": "Compared the original save_and_check (saved flag, 2960-byte piece and 20-byte counter copies, saved count, total counting with spawn/mode test, target comparison, exit/win flag writes, forbidden/required checks, win-sound state/done)."
   }
  ],
  "not_needed_entries": [

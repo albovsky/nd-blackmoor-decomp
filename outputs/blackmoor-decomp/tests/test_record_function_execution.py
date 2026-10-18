@@ -192,9 +192,9 @@ class RecorderTests(unittest.TestCase):
     def test_merge_extends_the_committed_file_and_replaces_a_changed_script(self):
         def run(name, sha):
             return {"script": name, "script_sha256": sha, "exit": 0, "instructions": 1, "hits": 1, "trace_sha256": "t"}
-        existing = {"schema": "s", "runs": [run("a.py", "1"), run("b.py", "1")],
+        existing = {"schema": "s", "inputs": {"x": "1"}, "original_sha256": "0", "runs": [run("a.py", "1"), run("b.py", "1")],
                     "functions": {"0x401000": [10, [0, 1, 10, 1], [1, 1, 10, 1]], "0x401100": [4, [0, 1, 4, 1]]}}
-        fresh = {"runs": [run("a.py", "1"), run("b.py", "2"), run("c.py", "1")],
+        fresh = {"inputs": {"x": "1"}, "original_sha256": "0", "runs": [run("a.py", "1"), run("b.py", "2"), run("c.py", "1")],
                  "functions": {"0x401000": [10, [1, 2, 10, 2]], "0x401200": [8, [2, 1, 8, 1]]}}
         merged = rfe.merge_runs(existing, fresh)
         self.assertEqual([r["script"] for r in merged["runs"]], ["a.py", "b.py", "c.py"])
@@ -202,6 +202,8 @@ class RecorderTests(unittest.TestCase):
         self.assertEqual(merged["functions"]["0x401000"], [10, [0, 1, 10, 1], [1, 2, 10, 2]])
         self.assertEqual(merged["functions"]["0x401200"], [8, [2, 1, 8, 1]])
         self.assertEqual(merged["counts"], {"runs": 3, "functions_executed": 3, "functions_entered": 3})
+        with self.assertRaises(SystemExit):
+            rfe.merge_runs(existing, {**fresh, "inputs": {"x": "2"}})
 
     def test_a_failed_run_is_not_evidence(self):
         with tempfile.TemporaryDirectory() as scratch:

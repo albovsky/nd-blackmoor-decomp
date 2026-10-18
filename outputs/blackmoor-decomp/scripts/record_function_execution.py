@@ -259,6 +259,9 @@ def merge_runs(existing: dict, fresh: dict) -> dict:
     script hash keeps its committed row; a script recorded with another hash is replaced.  Used when the traces
     of the earlier runs are not at hand (another machine recorded them), so a partial trace directory extends
     function-execution.json instead of replacing it."""
+    if existing["inputs"] != fresh["inputs"] or existing["original_sha256"] != fresh["original_sha256"]:
+        raise SystemExit("--merge: the committed file and the new traces were derived against different "
+                         "function-xrefs.json or GAME.EXE inputs; rerun all oracles and collect without --merge")
     held = {r["script"]: r for r in existing["runs"]}
     drop = {i for i, r in enumerate(existing["runs"])
             if r["script"] in {f["script"] for f in fresh["runs"] if f["script_sha256"] != r["script_sha256"]}}
