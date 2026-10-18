@@ -9203,6 +9203,857 @@
    },
    "parts_accounted": [],
    "note": "1:1 with top_piece_47e9d3 (list +0x13ef, count +0x1417; -1 if empty). The empty list is unreachable by click (K3), so a new oracle calls the original on forced lists; native results come from the direct test."
+  },
+  {
+   "va": "0x424035",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m424035_selected_slot"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m424035_selected_slot"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_selected_slot_424035"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_62_interaction_original_oracle.py",
+    "window": [
+     "0x424035",
+     "0x42405a"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "RT-16:6659a8e806c9774d",
+     "rationale": "RT-16 P2-2 is about the caller 0x43bfb6 (click acceptance, gate 0x423f57, failure path 0x43c074) on non-empty dependency trees; this method is only the leaf accessor, all of whose bytes the recorded window executes, so the unverified caller logic is outside this claim."
+    },
+    {
+     "id": "RT-4:f6ab4e757efaab2f",
+     "rationale": "RT-4 says the opcode-11 leaf chain and a native consumer of the +0x24 slot are missing; this accessor (null slot gives -1, else the signed word at +0x12 of the addressed object) is reproduced exactly and checked by the direct test, and the missing consumer is not part of it."
+    }
+   ],
+   "note": "1:1 with m424035_selected_slot; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 37 bytes."
+  },
+  {
+   "va": "0x42405a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m42405a_get_control"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m42405a_get_control"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_get_control_42405a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_62_interaction_original_oracle.py",
+    "window": [
+     "0x42405a",
+     "0x42406d"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "RT-16:6659a8e806c9774d",
+     "rationale": "RT-16 P2-2 is about the caller 0x43bfb6 (click acceptance, gate 0x423f57, failure path 0x43c074) on non-empty dependency trees; this method is only the leaf accessor, all of whose bytes the recorded window executes, so the unverified caller logic is outside this claim."
+    },
+    {
+     "id": "RT-3:3af162c6a288bf15",
+     "rationale": "RT-3 lists the missing native producer of the control word and the unexercised check branches of 0x43bfb6..0x43c09c; 0x42405a only returns the dword at +0x30, which the recorded window executes completely and the direct test checks, so producers and callers are outside it."
+    }
+   ],
+   "note": "1:1 with m42405a_get_control; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 19 bytes."
+  },
+  {
+   "va": "0x42ca22",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m42ca22_apply_event_flags"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m42ca22_apply_event_flags"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_apply_event_flags_42ca22"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_33_runtime_original_oracle.py",
+    "window": [
+     "0x42ca22",
+     "0x42caa8"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-33.1:35de5dfe55ad70d2",
+     "rationale": "A-33.1 leaves the handler 0x42c221, the siblings 0x42caa8/0x42d215 and gate 0x423f57 unverified; 0x42ca22 is a self-contained table loop whose 134 bytes are all executed in the recorded window, and the direct test covers each skip and store branch, so those callers and siblings do not touch this claim."
+    }
+   ],
+   "note": "1:1 with m42ca22_apply_event_flags; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 134 bytes."
+  },
+  {
+   "va": "0x4d36ed",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4d36ed_set_flags"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4d36ed_set_flags"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_set_flags_4d36ed"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_28_original_oracle.py",
+    "window": [
+     "0x4d36ed",
+     "0x4d3705"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4d36ed_set_flags; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 24 bytes."
+  },
+  {
+   "va": "0x4cd218",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4cd218_destruct"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4cd218_destruct"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_destruct_4cd218"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_2d_runtime_original_oracle.py",
+    "window": [
+     "0x4cd218",
+     "0x4cd243"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-2D.1:22590774b0a37409",
+     "rationale": "A-2D.1 lists the runtime consumers of owner object 0x63821d (0x4cd218 among them) and dispatcher arms as unverified, which is about how callers use the object; the body (four calls, 0x4ccfbd being the FL-16 port) is executed completely in the recorded window and its call order is checked by the direct test."
+    }
+   ],
+   "note": "1:1 with m4cd218_destruct; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 43 bytes."
+  },
+  {
+   "va": "0x4fba69",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4fba69_forward_word"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4fba69_forward_word"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_forward_word_4fba69"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_97_runtime_original_oracle.py",
+    "window": [
+     "0x4fba69",
+     "0x4fba86"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "RT-14:724f0d1d3a66e4b3",
+     "rationale": "RT-14 says sound start/stop/query are compared with scripted hooks because the native app has no sound provider; 0x4fba69 only forwards the word at +0x21 to 0x4fc808 (a callback here, not claimed), and its 29 bytes are fully executed in the recorded windows."
+    }
+   ],
+   "note": "1:1 with m4fba69_forward_word; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 29 bytes."
+  },
+  {
+   "va": "0x4fc05d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4fc05d_forward_global"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4fc05d_forward_global"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_forward_global_4fc05d"
+    }
+   ],
+   "oracle": {
+    "path": "tests/sound_persistence_original_oracle.py",
+    "window": [
+     "0x4fc05d",
+     "0x4fc077"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "RT-11:bbd107b5f000b7dd",
+     "rationale": "RT-11 lists other callers of 0x4fc05d that are not scene transitions and are not modelled; that concerns who calls it, not its body (forward the word at 0x5b451f to 0x4fc808), which the sound-persistence window executes completely and the direct test checks."
+    }
+   ],
+   "note": "1:1 with m4fc05d_forward_global; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 26 bytes."
+  },
+  {
+   "va": "0x4e303b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4e303b_close"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4e303b_close"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_close_4e303b"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_6d_9a_runtime_original_oracle.py",
+    "window": [
+     "0x4e303b",
+     "0x4e3093"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-6D.1:489443acb9dc6613",
+     "rationale": "A-6D.1 marks dispatcher arm 0x4290c0 and its callees as static only; since then the execution census shows every byte of this callee executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores, so the unverified dispatcher arm is the caller's concern."
+    }
+   ],
+   "note": "1:1 with m4e303b_close; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 88 bytes."
+  },
+  {
+   "va": "0x4e7d04",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4e7d04_close"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4e7d04_close"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_close_4e7d04"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_6d_9a_runtime_original_oracle.py",
+    "window": [
+     "0x4e7d04",
+     "0x4e7d2e"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-6D.1:489443acb9dc6613",
+     "rationale": "A-6D.1 marks dispatcher arm 0x4290c0 and its callees as static only; since then the execution census shows every byte of this callee executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores, so the unverified dispatcher arm is the caller's concern."
+    }
+   ],
+   "note": "1:1 with m4e7d04_close; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 42 bytes."
+  },
+  {
+   "va": "0x4eb96e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4eb96e_close"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4eb96e_close"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_close_4eb96e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_6d_9a_runtime_original_oracle.py",
+    "window": [
+     "0x4eb96e",
+     "0x4eb9c8"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-6D.1:489443acb9dc6613",
+     "rationale": "A-6D.1 marks dispatcher arm 0x4290c0 and its callees as static only; since then the execution census shows every byte of this callee executed in the recorded 6d/9a oracle run, and the direct test checks its calls and stores, so the unverified dispatcher arm is the caller's concern."
+    }
+   ],
+   "note": "1:1 with m4eb96e_close; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 90 bytes."
+  },
+  {
+   "va": "0x4caf8a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4caf8a_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4caf8a_reset"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_reset_4caf8a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4caf8a",
+     "0x4cafc1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4caf8a_reset; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 55 bytes."
+  },
+  {
+   "va": "0x4cf749",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4cf749_notify"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4cf749_notify"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_notify_4cf749"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_2d_runtime_original_oracle.py",
+    "window": [
+     "0x4cf749",
+     "0x4cf7b0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4cf749_notify; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 99 bytes."
+  },
+  {
+   "va": "0x48c0ac",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m48c0ac_accept_piece"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m48c0ac_accept_piece"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_accept_piece_48c0ac"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48c0ac",
+     "0x48c148"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48c0ac_accept_piece; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 156 bytes."
+  },
+  {
+   "va": "0x415011",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m415011_close_handles"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m415011_close_handles"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_close_handles_415011"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_35_runtime_original_oracle.py",
+    "window": [
+     "0x415011",
+     "0x4150af"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m415011_close_handles; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 158 bytes."
+  },
+  {
+   "va": "0x4eac4c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4eac4c_use_item"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4eac4c_use_item"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_use_item_4eac4c"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_79_runtime_original_oracle.py",
+    "window": [
+     "0x4eac4c",
+     "0x4eaca8"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-79.1:03c75098d941819f",
+     "rationale": "A-79.1 leaves the signed index/count bounds, duplicate/missing paths and effect order of the inventory unverified; this function does no bounds check, all 92 bytes (both outcomes of the selected-item compare) are executed in the recorded window, and the effects of 0x4ea06c are a callback here, not claimed."
+    }
+   ],
+   "note": "1:1 with m4eac4c_use_item; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 92 bytes."
+  },
+  {
+   "va": "0x48d067",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m48d067_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m48d067_cleanup"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_cleanup_48d067"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d067",
+     "0x48d09c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48d067_cleanup; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 53 bytes."
+  },
+  {
+   "va": "0x461827",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m461827_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m461827_cleanup"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_cleanup_461827"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x461827",
+     "0x461862"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m461827_cleanup; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 59 bytes."
+  },
+  {
+   "va": "0x4b5b8a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4b5b8a_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4b5b8a_cleanup"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_cleanup_4b5b8a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b5b8a",
+     "0x4b5bc8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4b5b8a_cleanup; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 62 bytes."
+  },
+  {
+   "va": "0x45b3ea",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m45b3ea_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m45b3ea_cleanup"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_cleanup_45b3ea"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b3ea",
+     "0x45b42e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m45b3ea_cleanup; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 68 bytes."
+  },
+  {
+   "va": "0x483f6a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m483f6a_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m483f6a_cleanup"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_cleanup_483f6a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x483f6a",
+     "0x483fb5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m483f6a_cleanup; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 75 bytes."
+  },
+  {
+   "va": "0x44d107",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m44d107_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m44d107_cleanup"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_cleanup_44d107"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d107",
+     "0x44d154"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44d107_cleanup; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 77 bytes."
+  },
+  {
+   "va": "0x44d154",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m44d154_begin_scene"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m44d154_begin_scene"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_begin_scene_44d154"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d154",
+     "0x44d19d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44d154_begin_scene; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 73 bytes."
+  },
+  {
+   "va": "0x45b42e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m45b42e_begin_scene"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m45b42e_begin_scene"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_begin_scene_45b42e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b42e",
+     "0x45b477"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m45b42e_begin_scene; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 73 bytes."
+  },
+  {
+   "va": "0x461862",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m461862_begin_scene"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m461862_begin_scene"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_begin_scene_461862"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x461862",
+     "0x4618ab"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m461862_begin_scene; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 73 bytes."
+  },
+  {
+   "va": "0x48d09c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m48d09c_begin_scene"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m48d09c_begin_scene"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_begin_scene_48d09c"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d09c",
+     "0x48d0e5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48d09c_begin_scene; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 73 bytes."
+  },
+  {
+   "va": "0x4b5bc8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m4b5bc8_begin_scene"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m4b5bc8_begin_scene"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_begin_scene_4b5bc8"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b5bc8",
+     "0x4b5c11"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4b5bc8_begin_scene; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 73 bytes."
+  },
+  {
+   "va": "0x47591f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-17 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl17.c",
+    "symbol": "m47591f_clear_block"
+   },
+   "tests": [
+    {
+     "path": "tests/fl17_direct_test.c",
+     "test_id": "test_m47591f_clear_block"
+    },
+    {
+     "path": "tests/test_fl17_direct.py",
+     "test_id": "Fl17Direct.test_clear_block_47591f"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x47591f",
+     "0x475964"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m47591f_clear_block; see its leading comment for the stores and calls. Direct test compares the whole object and the ordered host calls; the recorded oracle window executes all 69 bytes."
   }
  ],
  "not_needed_entries": [
