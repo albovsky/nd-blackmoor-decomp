@@ -538,6 +538,7 @@ int d1_click(D1Object *object, const uint8_t *body, size_t body_length, uint32_t
     return D1_OK;
 }
 
+/* FL-12: original FUN_004b5c11 is this function (function ledger acceptance). */
 int d1_invalidate(D1Object *object, const D1Host *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return D1_ERR_ARGUMENT;
@@ -545,6 +546,7 @@ int d1_invalidate(D1Object *object, const D1Host *host)
     return D1_OK;
 }
 
+/* FL-12: original FUN_004b5bc8 is this function (function ledger acceptance). */
 int d1_cleanup(D1Object *object, const D1Host *host)
 {
     if (object == NULL || host == NULL || host->release_surface == NULL || host->release_slot == NULL)

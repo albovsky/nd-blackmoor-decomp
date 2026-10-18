@@ -67,7 +67,7 @@ HEADER_LINE = (
     "function ledger, not from recovered intent)"
 )
 # Ledger classes whose native source is a counterpart claim rather than "native code touches this".
-COUNTERPART_CLASSES = {"native_oracle_verified", "native_tests_only", "host_adapter_tested", "candidate_port"}
+COUNTERPART_CLASSES = {"native_oracle_verified", "native_oracle_verified_inlined", "native_tests_only", "host_adapter_tested", "candidate_port"}
 
 _SYMBOL_OPERAND = re.compile(
     r"\[(?:(?P<base>e[a-d]x|e[sd]i|esp|ebp)(?P<index>(?: \+ (?:[248]\*)?e[a-z]{2})?)|[248]\*e[a-z]{2}) (?P<sign>[+-]) "

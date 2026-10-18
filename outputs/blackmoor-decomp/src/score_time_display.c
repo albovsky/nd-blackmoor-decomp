@@ -25,6 +25,7 @@ static void fx(const StdHost *host, int effect, int32_t a, int32_t b)
     if (host != NULL && host->observe != NULL) host->observe(host->context, effect, a, b);
 }
 
+/* FL-12: original FUN_00445f53 is this function (function ledger acceptance). */
 void std_reset_score(StdDisplay *d)
 {
     d->score_enabled = 0;
@@ -37,6 +38,7 @@ void std_reset_score(StdDisplay *d)
     memset(d->score_block, 0, sizeof d->score_block);
 }
 
+/* FL-12: original FUN_00445fc5 is this function (function ledger acceptance). */
 void std_reset_clock(StdDisplay *d)
 {
     d->clock_enabled = 0;
@@ -54,16 +56,19 @@ void std_reset_clock(StdDisplay *d)
     memset(d->clock_block, 0, sizeof d->clock_block);
 }
 
+/* FL-12: original FUN_00446532 is this function (function ledger acceptance). */
 void std_enable_score(StdDisplay *d, int32_t value)
 {
     d->score_enabled = value;
 }
 
+/* FL-12: original FUN_00446548 is this function (function ledger acceptance). */
 void std_enable_clock(StdDisplay *d, int32_t value)
 {
     d->clock_enabled = value;
 }
 
+/* FL-12: original FUN_0044655e is this function (function ledger acceptance). */
 int std_set_score(StdDisplay *d, int32_t score)
 {
     if (score < 0 || score > 99999999) return STD_ERR_BOUNDS;
@@ -72,6 +77,7 @@ int std_set_score(StdDisplay *d, int32_t score)
     return STD_OK;
 }
 
+/* FL-12: original FUN_00446598 is this function (function ledger acceptance). */
 int std_set_clock(StdDisplay *d, int32_t minutes, int32_t seconds)
 {
     if (minutes < 0 || minutes > 99 || seconds < 0 || seconds > 99) return STD_ERR_BOUNDS;
@@ -201,6 +207,7 @@ static int draw_string(const char *cur, const int32_t *wd, const int32_t *ht, co
     return STD_OK;
 }
 
+/* FL-12: original FUN_00446688 is this function (function ledger acceptance). */
 int std_render_score(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out, size_t capacity, size_t *count)
 {
     int32_t x, y;
@@ -224,6 +231,7 @@ int std_render_score(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out
     return STD_OK;
 }
 
+/* FL-12: original FUN_004468fe is this function (function ledger acceptance). */
 int std_render_clock(StdDisplay *d, int32_t view_x, int32_t view_y, StdBlit *out, size_t capacity, size_t *count)
 {
     const int32_t x = d->clock_block[44], y = d->clock_block[45], gap = d->clock_block[46];

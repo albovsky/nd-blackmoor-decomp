@@ -21,6 +21,7 @@ void scene_restore_slot_init_words(SceneRestoreSlot *slot)
     slot->word_5c3a23 = 2;                              /* 0x437035 */
 }
 
+/* FL-12: original FUN_004eb70f is this function (function ledger acceptance). */
 void scene_restore_slot_save(SceneRestoreSlot *slot, const SceneStackCurrent *current, int32_t type_argument)
 {
     if (slot == NULL || current == NULL) {

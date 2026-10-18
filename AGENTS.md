@@ -22,6 +22,13 @@ Track M production method (owner ruling, 2026-10-14; evidence in `outputs/blackm
 
 Slice completion requires the packet's exact acceptance checks, pinned executable/code/native hashes, an independent review, and an explicit list of unverified branches. The integrator reruns meaningful combined checks before updating completion status. Do not mark the complete game done until both native gameplay and whole-file x86 matching pass.
 
+## Function ledger
+
+`outputs/blackmoor-decomp/function-ledger.json` gives every GAME.EXE function one status. `ported` is a reviewed claim, never an x86 match, and only a reviewed `port_acceptances` entry in `function-ledger-overrides.json` grants it; the ledger re-checks each entry mechanically. Library, CRT, MFC and Vorbis rule functions never count as ported (Vorbis only as `host_adapter_tested` under its parity rule).
+
+- `native_oracle_verified`: one native symbol is the original function, a recorded oracle run executed every byte of it and compared the symbol, and a named test references the symbol.
+- `native_oracle_verified_inlined` (rule FL-12, 2026-10-18; owner ruling on whether it counts as ported is pending): an original game function whose logic is inlined into a larger named native symbol. It counts only when all three hold: (1) a recorded oracle run executed every byte of the original and the oracle script drives the enclosing native symbol (or its module) and compares its effects; (2) that named symbol contains the function's logic, cites its address in the symbol's body or leading comment, and omits none of its observable behaviour; (3) an independent reviewer confirmed this for that function against the original, and the acceptance `note` (80+ characters) says where in the symbol the logic sits. The class is for game-region functions of game origin only. Counts report it as its own class next to `native_oracle_verified`.
+
 ## Testing
 
 Keep testing proportional to risk. Do not turn small changes into testing projects.

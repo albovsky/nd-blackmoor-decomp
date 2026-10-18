@@ -403,6 +403,7 @@ static void press(AlcObject *o, const uint8_t *body, int32_t button, AlcPointerR
     o->button = button;
 }
 
+/* FL-12: original FUN_0044d28c is this function (function ledger acceptance). */
 int alc_pointer(AlcObject *object, const uint8_t *body, size_t body_length, int32_t x, int32_t y, AlcPointerResult *out)
 {
     if (object == NULL || body == NULL || out == NULL || alc_validate_body(body, body_length, NULL) != ALC_OK)
@@ -480,6 +481,7 @@ int alc_click(AlcObject *object, const uint8_t *body, size_t body_length, uint32
     return ALC_OK;
 }
 
+/* FL-12: original FUN_0044d19d is this function (function ledger acceptance). */
 int alc_invalidate(AlcObject *object, const AlcHost *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return ALC_ERR_ARGUMENT;
@@ -487,6 +489,7 @@ int alc_invalidate(AlcObject *object, const AlcHost *host)
     return ALC_OK;
 }
 
+/* FL-12: original FUN_0044d154 is this function (function ledger acceptance). */
 int alc_cleanup(AlcObject *object, const AlcHost *host)
 {
     if (object == NULL || host == NULL || host->release_surface == NULL || host->release_slot == NULL ||
@@ -513,6 +516,7 @@ int alc_cleanup(AlcObject *object, const AlcHost *host)
     return ALC_OK;
 }
 
+/* FL-12: original FUN_0044d9b5 is inlined in this function (function ledger acceptance). */
 static void add_blit(AlcRenderResult *out, int kind, uint32_t surface, const uint8_t *body, size_t src, size_t dst,
                      int32_t vx, int32_t vy)
 {
@@ -526,6 +530,7 @@ static void add_blit(AlcRenderResult *out, int kind, uint32_t surface, const uin
     b->dst[3] = (int32_t)((uint32_t)rd_s32(body, dst + 12) + (uint32_t)vy);
 }
 
+/* FL-12: original FUN_0044e035 is this function (function ledger acceptance). */
 int alc_render(AlcObject *object, const uint8_t *body, size_t body_length, const AlcHost *host, AlcRenderResult *out)
 {
     int32_t vx = 0, vy = 0;

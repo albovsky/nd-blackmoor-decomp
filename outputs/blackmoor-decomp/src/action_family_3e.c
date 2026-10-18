@@ -165,6 +165,7 @@ static void action_family_3e_write_defaults(uint8_t *arena)
     put16(arena + 0x15fu, 1u); put16(arena + 0x161u, 1u); put32(arena + 0x163u, 1u);
 }
 
+/* FL-12: original FUN_0041c770 is inlined in this function (function ledger acceptance). */
 ActionFamily3eStatus action_family_3e_construct(
     const uint8_t *raw_body, size_t raw_body_length,
     const ActionFamily3eText *resolved_text, size_t resolved_text_count,

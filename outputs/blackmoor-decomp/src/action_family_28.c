@@ -390,6 +390,7 @@ static void effect_reset_stage(ActionFamily28World *world)
     world->sequence_counter = 0u;
 }
 
+/* FL-12: original FUN_0044727a is inlined in this function (function ledger acceptance). */
 int action_family28_step(const ActionFamily28Input *input,
                          const ActionFamily28World *world,
                          ActionFamily28Result *out_result)
@@ -783,6 +784,7 @@ static int sequence_system_audio_pump(
     return ACTION_FAMILY28_OK;
 }
 
+/* FL-12: original FUN_004d36ed is inlined in this function (function ledger acceptance). */
 int action_family28_run_sequence(ActionFamily28SequenceState *state,
     const ActionFamily28SequenceCallbacks *callbacks,
     uint16_t x87_control_word, ActionFamily28SequenceReport *out_report)

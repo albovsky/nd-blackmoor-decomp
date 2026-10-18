@@ -6029,6 +6029,2198 @@
    },
    "parts_accounted": [],
    "note": "Compared the original save_and_check (saved flag, 2960-byte piece and 20-byte counter copies, saved count, total counting with spawn/mode test, target comparison, exit/win flag writes, forbidden/required checks, win-sound state/done)."
+  },
+  {
+   "va": "0x44d107",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "alc_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_cleanup"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_new"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d107",
+     "0x44d154"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "alc_cleanup tail: row=-1, slot=-1, active/canceled/set=0, then host touch_idle_timer (0x4d3c31/0x4d3d20). Oracle drives alc_cleanup via 0x44d154 and compares object image and idle timer."
+  },
+  {
+   "va": "0x44d154",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "alc_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_cleanup"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "sc_cleanup"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d154",
+     "0x44d19d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "alc_cleanup: surface release if nonzero, slot release if != -1, then 0x44d107 stores inlined. Oracle aao_cleanup calls alc_cleanup; object image, Z table, release order compared."
+  },
+  {
+   "va": "0x44d19d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "alc_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_invalidate"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "sc_invalidate"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d19d",
+     "0x44d1d1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "alc_invalidate: if active && slot != -1 mark_dirty(slot) (Z entry flag 0x5d15a5). Oracle aao_invalidate calls it; Z entry table and host-call log compared."
+  },
+  {
+   "va": "0x44d28c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "alc_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_pointer"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "expect_none"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "pointer"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d28c",
+     "0x44d597"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "alc_pointer (press 0x44d597 inlined): active gate, bounds, over, per-state hit order, dst rects, dirty. Row body lookup is the caller. Oracle aao_pointer compares retval, object image, candidate."
+  },
+  {
+   "va": "0x44e035",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "alc_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "aao_render"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_oracle_driver.c",
+     "test_id": "h_register"
+    },
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "rect_v"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44e035",
+     "0x44e650"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "alc_render: time/alarm mode choice, AM/PM, light, hour, minute, pressed button blits, six up blits with restore, dirty=0. Oracle aao_render compares all blits and object bytes."
+  },
+  {
+   "va": "0x461827",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_new"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x461827",
+     "0x461862"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cpz_cleanup tail: slot=-1,row=-1,active=0,canceled=0,solved=0 (+0x3f/+0x43/+0x47). Oracle d3o_cleanup runs it via 0x461862; object image compared."
+  },
+  {
+   "va": "0x461862",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "sc_cleanup"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x461862",
+     "0x4618ab"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cpz_cleanup: surface release if nonzero, slot release if != -1, then 0x461827 stores. Oracle d3o_cleanup calls cpz_cleanup; object image and Z table compared."
+  },
+  {
+   "va": "0x4618ab",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_invalidate"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "sc_invalidate"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x4618ab",
+     "0x4618df"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cpz_invalidate: if active (+0x3f) && slot != -1 mark_dirty(slot). Oracle d3o_invalidate calls it; Z entry table compared."
+  },
+  {
+   "va": "0x4618df",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_grid_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_grid_reset"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "t_binding_second_row"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "t_fuzz_bodies"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x4618df",
+     "0x461903"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cpz_grid_reset: grid_ready=0 and all 64 cells (2560 bytes) zeroed. Oracle d3o_grid_reset calls it; setup word and 2560 grid bytes compared (word vs byte noted K5, only 0/1 seeded)."
+  },
+  {
+   "va": "0x462c39",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_pointer"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "ptr"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x462c39",
+     "0x4630a3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cpz_pointer (cursor writer 0x4630a3 inlined): active/moving gate, grid scan with up/right/down/left zones, can_move, dir reset, cancel rect. Oracle compares retval, candidate, cursor, object image."
+  },
+  {
+   "va": "0x463b10",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "d3o_render"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_oracle_driver.c",
+     "test_id": "h_register"
+    },
+    {
+     "path": "tests/action_family_d3_runtime_test.c",
+     "test_id": "render"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x463b10",
+     "0x463f00"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cpz_render: per visible cell target/arrow/wall blit, restore blit with view-origin shift, piece blit. Oracle d3o_render compares every blit (surface, src, dst, label)."
+  },
+  {
+   "va": "0x48d067",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "d0_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_new"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d067",
+     "0x48d09c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d0_cleanup tail: slot=-1,row=-1,active=0,exit_taken=0,solved=0. Oracle d0o_cleanup runs it via 0x48d09c; object image compared."
+  },
+  {
+   "va": "0x48d09c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "d0_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d09c",
+     "0x48d0e5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d0_cleanup: surface release if nonzero, slot release if != -1, then 0x48d067 stores. Oracle d0o_cleanup calls d0_cleanup; object image and Z table compared."
+  },
+  {
+   "va": "0x48d0e5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "d0_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_invalidate"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "sc_invalidate"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d0e5",
+     "0x48d119"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d0_invalidate: if active (+0x33) && slot != -1 mark_dirty(slot). Oracle d0o_invalidate calls it; Z entry table compared."
+  },
+  {
+   "va": "0x48d1e8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "d0_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_pointer"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "pointer"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d1e8",
+     "0x48d3cb"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d0_pointer (cursor writer 0x48d3cb inlined): active gate, exit rect when not pressed, hit rect scan, pressed key rect with hover sets dirty. Oracle d0o_pointer compares retval, candidate, object."
+  },
+  {
+   "va": "0x48ded7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "d0_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_render"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "h_register"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "render"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48ded7",
+     "0x48e170"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d0_render: dirty/has_surface gates, pressed-key blit with state=0, else released-key background blit then solved check 0x48d89e, dirty=0. Oracle d0o_render compares blit and object bytes."
+  },
+  {
+   "va": "0x4b5b8a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d1_runtime.c",
+    "symbol": "d1_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d1_runtime_oracle_driver.c",
+     "test_id": "d1o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d1_runtime_oracle_driver.c",
+     "test_id": "d1o_new"
+    },
+    {
+     "path": "tests/action_family_d1_runtime_test.c",
+     "test_id": "fx_init"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b5b8a",
+     "0x4b5bc8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d1_cleanup tail: slot=-1,row=-1,active=0,exit_taken=0,solved=0. Oracle d1 cleanup runs it via 0x4b5bc8; object image compared."
+  },
+  {
+   "va": "0x4b5bc8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d1_runtime.c",
+    "symbol": "d1_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d1_runtime_oracle_driver.c",
+     "test_id": "d1o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d1_runtime_test.c",
+     "test_id": "t_render_plan_and_cleanup"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b5bc8",
+     "0x4b5c11"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d1_cleanup: surface release if nonzero, slot release if != -1, then 0x4b5b8a stores. Oracle d1 driver calls d1_cleanup; object image and Z table compared."
+  },
+  {
+   "va": "0x4b5c11",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d1_runtime.c",
+    "symbol": "d1_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d1_runtime_oracle_driver.c",
+     "test_id": "d1o_invalidate"
+    },
+    {
+     "path": "tests/action_family_d1_runtime_test.c",
+     "test_id": "t_render_plan_and_cleanup"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b5c11",
+     "0x4b5c48"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d1_invalidate: if active (+0x225) && slot != -1 mark_dirty(slot). Oracle d1 driver calls d1_invalidate; Z entry table compared."
+  },
+  {
+   "va": "0x45b3ea",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_cleanup"
+    },
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_new"
+    },
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b3ea",
+     "0x45b42e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Tail of bul_cleanup (row=-1, slot=-1, active=0, won=0, finish_kind=0 = +0x1e,+0x1c,+0x166,+0x16a,+0x162); oracle runs 0x45b42e->0x45b3ea and compares the whole object image after e4o/buo_cleanup."
+  },
+  {
+   "va": "0x45b42e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_cleanup"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_empty_scene"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b42e",
+     "0x45b477"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "bul_cleanup: release surface (+0x20, zeroed), release slot (+0x1c != -1), then reset; oracle do_cleanup compares ordered effects, host calls and object image. Not the session wrapper."
+  },
+  {
+   "va": "0x45b477",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_invalidate"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "scenario"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b477",
+     "0x45b4ae"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "bul_invalidate: if active(+0x166) and slot(+0x1c) != -1 request redraw of the entry (host mark_dirty = entry+0x5d15a5 store); do_invalidate compares effect and Z table."
+  },
+  {
+   "va": "0x45b5bb",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_pointer"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_empty_scene"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b5bb",
+     "0x45b7a8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "bul_pointer: active/anim gates, two-player/mode test, button 0/1/2 and finish rects with exact +-5/+-10 margins, return value; row-to-body lookup is done by the caller (binding). do_pointer compares r"
+  },
+  {
+   "va": "0x45b7a8",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_pointer"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_empty_scene"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b7a8",
+     "0x45b872"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Candidate writer inlined in bul_pointer hit branches: 0x27ba (cursor 0x16, sub 1, obj+0x172=kind) / 0x27bb (cursor 9); cursor_link flags the 0x5d162d/0x5d1639 stores the host composes; compared in do_"
+  },
+  {
+   "va": "0x45b872",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_click"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_click"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "scenario"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "t_binding_empty_scene"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b872",
+     "0x45ba0b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "bul_click: gates (active,won,state,row phase==1); finish -> caption_pick(0x7e9,4) then state 0xb+tick+800 or phase 2; button -> anim fields, tick+250, sound if start flag; do_click compares effects, p"
+  },
+  {
+   "va": "0x45d2c6",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "buo_render"
+    },
+    {
+     "path": "tests/action_family_da_runtime_oracle_driver.c",
+     "test_id": "h_register"
+    },
+    {
+     "path": "tests/action_family_da_runtime_test.c",
+     "test_id": "render"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45d2c6",
+     "0x45db70"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "bul_render builds the full blit list (rolls, pieces, erase, lights, pass, button, pieces, moving, clears) with the object zeroing stores; do_render compares each recorded blit kind/src/dst/surface plu"
+  },
+  {
+   "va": "0x4757da",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "e4r_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_oracle_driver.c",
+     "test_id": "e4o_cleanup"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_oracle_driver.c",
+     "test_id": "e4o_new"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_oracle_driver.c",
+     "test_id": "e4o_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x4757da",
+     "0x475885"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Tail of e4r_cleanup after the 0x4757da marker: row/slot=-1, active, exit, won=0 and the 2000-byte cell area memset; do_cleanup compares the object image after original 0x475885."
+  },
+  {
+   "va": "0x475885",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "e4r_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_oracle_driver.c",
+     "test_id": "e4o_cleanup"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x475885",
+     "0x4758e8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "e4r_cleanup: release surface +0x24, score surface +0x28, slot +0x20 in order, then reset; oracle runs M_CLEANUP (0x475885) and compares effects, host calls, object image. Not session_ae4_begin_scene."
+  },
+  {
+   "va": "0x4758e8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "e4r_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_oracle_driver.c",
+     "test_id": "e4o_invalidate"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_binding_flow"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_invalidate"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x4758e8",
+     "0x47591f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "e4r_invalidate: active(+0x89a) and slot(+0x20) != -1 -> mark_dirty(slot) (entry+0x5d15a5 := 1); oracle M_INVALIDATE compares effect and Z table."
+  },
+  {
+   "va": "0x47591f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "e4r_scene_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_oracle_driver.c",
+     "test_id": "e4o_scene_reset"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_binding_flow"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x47591f",
+     "0x475964"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "e4r_scene_reset: marker 0x5a0545=0 and five dwords 0x5a0549..=0; do_scene_reset runs M_SCENE_RESET and compares the high score cells. Oracle drives it directly (e4o_scene_reset)."
+  },
+  {
+   "va": "0x48bb86",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_cleanup_rules"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48bb86",
+     "0x48bc38"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d8_cleanup: release surface2 if != surface1, surface1 unless borrowed (borrowed==1 just cleared), slot_a, slot_b, then reset_fields (=0x48bb17, verified); run_mode('cleanup') compares effects and obje"
+  },
+  {
+   "va": "0x48bc38",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_mark_dirty"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_dirty"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_dirty_and_host_failure"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48bc38",
+     "0x48bc9b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d8_mark_dirty: if active(+0x46), mark slot_a and slot_b (!= -1) dirty, each guarded separately; run_mode('dirty') compares entry cells."
+  },
+  {
+   "va": "0x48bd91",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_hit_test"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_hit"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_finish"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_hit_cursor"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48bd91",
+     "0x48c0ac"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d8_hit_test: exit rect 0x27a9, 4 button rects (item/flag cursor rules, hot=i) 0x27a7, link entries (+dst origin) 0x27a8, hot=-1 resets, cursor cells; run_mode('hit') compares return and cells."
+  },
+  {
+   "va": "0x48c0ac",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_click"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_click"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_finish"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48c0ac",
+     "0x48c148"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d8_click: 0x27a9 -> exit_clicked=1, phase 2; 0x27a8 -> target_scene from entry[hot], phase 2; always dir=0xff, pressed=0; run_mode('click') compares. Native-only guard for invalid hot (S4)."
+  },
+  {
+   "va": "0x48c148",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_press"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_press"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_hit_cursor"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_scroll"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48c148",
+     "0x48c1c0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d8_press: active, phase==1, candidate 0x27a7, can_move[hot]; tick stored only when not already pressed, dir=hot, pressed=1; run_mode('press') compares object and GetTickCount use."
+  },
+  {
+   "va": "0x48cc70",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_render_plan"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_plan"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "h_register_slot"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_render"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48cc70",
+     "0x48cf50"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d8_render_plan: visible gate, src/dst rect shifts, mode 2 restore+trans vs copy, 4 button blits (inactive/down/refresh) with labels; oracle compares kind, surface, rects, label per blit."
+  },
+  {
+   "va": "0x47e25a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_cleanup"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_new"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "fx_init"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e25a",
+     "0x47e2a5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Tail of eb_cleanup (marked /* 0x47e25a */): row=-1, slot=-1, active=0, exit=0, done=0, drag=0, same six fields only. Oracle do_cleanup compares whole object image vs ebo_cleanup."
+  },
+  {
+   "va": "0x47e2a5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_cleanup"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "bind_open"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_binding_argument_checks_with_live_binding"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e2a5",
+     "0x47e3f7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "eb_cleanup: release src/multi/anim surfaces (0x13a4/a8/ac) then 20x4 entries, release slot if !=-1, then reset (0x47e25a inlined). Order, zeroing checked; oracle do_cleanup compares host log+object."
+  },
+  {
+   "va": "0x47f421",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_pointer_move"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_pointer"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "ptr"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "record_of"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47f421",
+     "0x47fa11"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "eb_pointer_move: inactive->0, ptr rect store, drag branch (follow, area/near_unplaced test, overlap scan, hit, 0x2791), list build, 0x278e/278d/278f/2790. Oracle compares result+globals+object; body i"
+  },
+  {
+   "va": "0x47ff0e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_click"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_click"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "click"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_binding_argument_checks_with_live_binding"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47ff0e",
+     "0x4809a7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "eb_click: gate (active,!done,state 0,phase 1), exit->phase2+save_and_check, rotate, pick (multi/spawn/counts), drop good/bad/mode2 incl. bad sound+caption, hand=-1. Oracle drives ebo_click, compares p"
+  },
+  {
+   "va": "0x481cb9",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_render_plan"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_plan"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "h_register_slot"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "plan_alloc"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x481cb9",
+     "0x482060"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "eb_render_plan: prev/saved blits (clears drop/lift), layered piece blits (stamp/BT_A), drag piece (multi or entry), anim blit/rest (clears anim_rest). Oracle compares recorded 0x4c5377/0x4c5d4b blits "
+  },
+  {
+   "va": "0x483f6a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "ea_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_ea_runtime_oracle_driver.c",
+     "test_id": "eao_cleanup"
+    },
+    {
+     "path": "tests/action_family_ea_runtime_oracle_driver.c",
+     "test_id": "eao_new"
+    },
+    {
+     "path": "tests/action_family_ea_runtime_test.c",
+     "test_id": "fx_init"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x483f6a",
+     "0x483fb5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Tail of ea_cleanup (marked /* 0x483f6a */): row(0x26)=-1, slot(0x1c)=-1, active=0, exit=0, done=0, drag=0, only those. Oracle do_cleanup compares object image after 0x483fb5 vs eao_cleanup."
+  },
+  {
+   "va": "0x483fb5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "ea_cleanup"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_ea_runtime_oracle_driver.c",
+     "test_id": "eao_cleanup"
+    },
+    {
+     "path": "tests/action_family_ea_runtime_test.c",
+     "test_id": "t_invalidate_and_cleanup"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x483fb5",
+     "0x4840d9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "ea_cleanup: release multi(0x1e), src(0x22), 20x4 piece entries (0x85 stride, +0x24), release slot if !=-1, then reset (0x483f6a inlined). Oracle do_cleanup compares host log+object."
+  },
+  {
+   "va": "0x484f42",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "ea_pointer_move"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_ea_runtime_oracle_driver.c",
+     "test_id": "eao_pointer"
+    },
+    {
+     "path": "tests/action_family_ea_runtime_oracle_driver.c",
+     "test_id": "eao_step"
+    },
+    {
+     "path": "tests/action_family_ea_runtime_test.c",
+     "test_id": "ptr"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484f42",
+     "0x4853b0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "ea_pointer_move: inactive->0, ptr rect store, drag (follow, drop-area ok, tolerance clear, rectC test, 0x277a/b), lists, 0x2778/2777/277c/2779. Oracle drives eao ptr, compares result+object+body."
+  },
+  {
+   "va": "0x4d07e7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_76_runtime.c",
+    "symbol": "pwd_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_76_runtime_oracle_driver.c",
+     "test_id": "p76o_null_checks"
+    },
+    {
+     "path": "tests/action_family_76_runtime_oracle_driver.c",
+     "test_id": "p76o_render"
+    },
+    {
+     "path": "tests/action_family_76_runtime_test.c",
+     "test_id": "t_binding_bad_scene"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_76_runtime_original_oracle.py",
+    "window": [
+     "0x4d07e7",
+     "0x4d0952"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "pwd_render: op0 bg blit (body+0x24 -> state rect), op1 field1 text at rect x/+12 y, op2 field2 only if non-empty. Oracle do_render compares blits, strings, font, x/y per op vs original."
+  },
+  {
+   "va": "0x445f53",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_reset_score"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x445f53",
+     "0x445fc5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Whole body: zeroes +4,+0xc,+0x23c, score/prev string byte 0, widths, heights, 0x2e score block dwords; oracle compares the 0x288 widget image after every handler pass (reset runs in phase 1)."
+  },
+  {
+   "va": "0x445fc5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_reset_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x445fc5",
+     "0x446075"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Whole body: zeroes +8,+0x10,+0xb4,+0xb8,+0x240,+0x244, the four string bytes, clock widths/heights and 0x32 clock block dwords; widget image compared after every action."
+  },
+  {
+   "va": "0x446532",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_enable_score"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_set"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446532",
+     "0x446548"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Single store score_enabled(+4) := value; widget image compared after phase 0 and phase 2."
+  },
+  {
+   "va": "0x446548",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_enable_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_set"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446548",
+     "0x44655e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Single store clock_enabled(+8) := value; widget image compared after phase 0 and phase 2."
+  },
+  {
+   "va": "0x44655e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_set_score"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_set"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x44655e",
+     "0x446598"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Stores score (+0x23c) and formats %d into +0x25c (snprintf for 0x50ca3e); out-of-range refusal is a documented unreachable guard (K4). Widget image compared."
+  },
+  {
+   "va": "0x446598",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_set_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_set"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446598",
+     "0x4465fd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Stores minutes/seconds (+0x240/+0x244) and formats %02d into +0x248/+0x252; out-of-range guard unreachable (K4). Widget image compared after every action."
+  },
+  {
+   "va": "0x446688",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_render_score"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_render_score"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446688",
+     "0x4468fe"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Gate on +4/+0xc, strcmp-gated erase of prev string, digit draws, prev:=current copy; oracle compares every recorded 0x4c5377/0x4c5d4b blit (rects, label) from f5o_render_score."
+  },
+  {
+   "va": "0x4468fe",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_render_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_std_render_clock"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4468fe",
+     "0x446ed0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Gate on +8/+0x10, min-or-sec change erase incl. colon, minutes/colon/seconds draws, both prev copies; oracle compares every recorded blit from f5o_render_clock."
+  },
+  {
+   "va": "0x4b8087",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_world_new_game"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8087",
+     "0x4b80a5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "played_5a4c0a := 0 and best_5a4c0e := 0, exactly the two stores; oracle runs original 0x4b8087 and compares both cells via f5o_new_game."
+  },
+  {
+   "va": "0x4b8193",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_key"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_key_gate"
+    },
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_keys"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8193",
+     "0x4b81ff"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Gate active, state==0, pending==0, row_phase==1, filter; stores key_char(+0x636) and pending(+0x637); row phase passed as parameter. Oracle compares object image after f5o_key."
+  },
+  {
+   "va": "0x4b8e42",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_render_quiz"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8e42",
+     "0x4b8e92"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "POPPING branch of tqz_render (lines ~880-889): tick >= deadline -> state GONE, count-1, more_balloons(2). Oracle compares ticks, random draws and blits from original 0x4b9a88."
+  },
+  {
+   "va": "0x4b9a88",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_render"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_f5_runtime_test.c",
+     "test_id": "t_render_quiz"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b9a88",
+     "0x4b9dd0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "tqz_render holds the whole callback: balloon/text, pop, erase, finishing-branch background erase and passed message; oracle drives it via f5o_render and compares every blit and text draw."
+  },
+  {
+   "va": "0x4eb70f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_7d_runtime.c",
+    "symbol": "scene_restore_slot_save"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_7d_runtime_test.c",
+     "test_id": "save_then_pop_round_trip"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_7d_runtime_original_oracle.py",
+    "window": [
+     "0x4eb70f",
+     "0x4eb77d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "All seven stores in order incl. the 0x5c3a29 overwrite and the arg low word to 0x5c3a23; oracle compares the real saver to scene_restore_slot_save on random sources (a7do_save_direct)."
+  },
+  {
+   "va": "0x4caf03",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_1c_runtime.c",
+    "symbol": "c1c_visit"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_accessors_null"
+    },
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_free_iv_record"
+    },
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_kernel_null"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4caf03",
+     "0x4caf8a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Phase==2 block of c1c_visit: body/record/armed/changed/14e/154/158/origin:=0, slot=last_index=-1, iv NULL via c1c_free_iv; 0x152 untouched. Oracle compares all object fields after the 4caf8a visit."
+  },
+  {
+   "va": "0x4caf8a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_1c_runtime.c",
+    "symbol": "c1c_visit"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_kernel_null"
+    },
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_kernel_omit"
+    },
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_kernel_unterminated"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4caf8a",
+     "0x4cafc1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Phase==2 block of c1c_visit: c1c_free_iv, release_slot host call if slot!=-1, field reset. Oracle compares object, z table, host call sequence (release) and heap frees after the phase 2 visit."
+  },
+  {
+   "va": "0x44727a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_28.c",
+    "symbol": "action_family28_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_28.py",
+     "test_id": "Action28Tests.test_invalid_start_and_wrong_type_are_atomic"
+    },
+    {
+     "path": "tests/test_action_family_28.py",
+     "test_id": "Action28Tests.test_invalid_step_preserves_result"
+    },
+    {
+     "path": "tests/test_action_family_28.py",
+     "test_id": "Action28Tests.test_phase_two_does_not_read_payload"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_28_original_oracle.py",
+    "window": [
+     "0x44727a",
+     "0x4473a9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "action_family28_step l.393-473: busy gate, busy:=1, 21B payload, rect (full canvas or relative), stage:=0 (0x4473a9), phase 2; phase 2 completion. Oracle compares world, row phase and completion byte with original"
+  },
+  {
+   "va": "0x4d36ed",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_28.c",
+    "symbol": "action_family28_run_sequence"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_28_sequence.py",
+     "test_id": "SequenceTests.test_first_frame_count_then_later_frame_and_pump_order"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_28_original_oracle.py",
+    "window": [
+     "0x4d36ed",
+     "0x4d3705"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "l.936-939 sets finalizer_global_5831c8=1 and 5831c6=0 where 0x44753b calls 0x4d36ed; the 28 oracle compares both globals native vs original; unit test starts them at 99/77"
+  },
+  {
+   "va": "0x41c509",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_3f.c",
+    "symbol": "action_family_3f_construct"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_3f.py",
+     "test_id": "Family3fTests.test_constructor_defaults_preserve_memory_and_wrap"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3f_original_oracle.py",
+    "window": [
+     "0x41c509",
+     "0x41c544"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Lines 214-215: +0x21=12,+0x23=2,+0x25=1,+0x27=1 words, +0x29 dword 1. 3f oracle compares every original allocation image with the native arena byte for byte."
+  },
+  {
+   "va": "0x41c770",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_3e.c",
+    "symbol": "action_family_3e_construct"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_3e.py",
+     "test_id": "Family3eTests.test_constructor_plan_and_all_allocations"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_original_oracle.py",
+    "window": [
+     "0x41c770",
+     "0x41c7f4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Primary-object loop lines 269-272 writes +0x1b7..+0x1cf exactly as the original (0,0,0,1,0,0,1,0xffff,1,2). 3e oracle compares all allocation images byte for byte."
+  },
+  {
+   "va": "0x42b87a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_64.c",
+    "symbol": "action_family64_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_failed_second_tick_read_does_not_commit_partial_clock_or_controller_writes"
+    },
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_false_eligibility_preserves_world_and_lifecycle_without_tick_call"
+    },
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_malformed_body_is_rejected_before_clock_backend_or_world_change"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x42b87a",
+     "0x42ba3a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Lines 92-141: 6-way mode switch, clock hour/min words, total=h*60+m, deadline=tick+int16 offset, then 0x42ba3a completion/phase. 64 oracle compares world, completed, phase, reset, tick calls."
+  },
+  {
+   "va": "0x4d3c5f",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_64.c",
+    "symbol": "action_family64_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_failed_second_tick_read_does_not_commit_partial_clock_or_controller_writes"
+    },
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_false_eligibility_preserves_world_and_lifecycle_without_tick_call"
+    },
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_malformed_body_is_rejected_before_clock_backend_or_world_change"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x4d3c5f",
+     "0x4d3c88"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Case 3 (lines 103-112): if [+0x1c] then tick_0456=GetTickCount-5 (4d3c31/4d3d20 inlined), flag +0x326 := 1. Oracle compares world and tick-call count."
+  },
+  {
+   "va": "0x4d3c88",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_64.c",
+    "symbol": "action_family64_step"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_failed_second_tick_read_does_not_commit_partial_clock_or_controller_writes"
+    },
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_false_eligibility_preserves_world_and_lifecycle_without_tick_call"
+    },
+    {
+     "path": "tests/test_action_family_64.py",
+     "test_id": "ActionFamily64Tests.test_malformed_body_is_rejected_before_clock_backend_or_world_change"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x4d3c88",
+     "0x4d3c9a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Cases 4/5/6 store flag_0326_0061c6ad := 0 (lines 113-127), the 0x61c6ad store of the original; oracle compares the world flag."
+  },
+  {
+   "va": "0x4343a2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/hiff.c",
+    "symbol": "hiff_select_chunk"
+   },
+   "tests": [
+    {
+     "path": "tests/test_hiff.py",
+     "test_id": "HiffTests.test_selection_state_is_independent_and_misses_preserve_selections"
+    },
+    {
+     "path": "tests/test_hiff.py",
+     "test_id": "HiffTests.test_case_sensitive_short_nul_fourcc"
+    }
+   ],
+   "oracle": {
+    "path": "tests/hiff_original_oracle.py",
+    "window": [
+     "0x4343a2",
+     "0x4344bf"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "hiff_select_chunk: first chunk whose copy_fourcc name strcmp-equals id becomes the selection (payload/len/name); miss leaves selection unchanged. hiff oracle compares found flag and selected state."
+  },
+  {
+   "va": "0x43ec4a",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/session_input.c",
+    "symbol": "session_input_feed"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_input.py",
+     "test_id": "SessionInputTests.test_malformed_arguments_and_rectangles"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ec4a",
+     "0x43ec85"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "session_input_feed PRIMARY_UP branch (input_latch_up then tail callback) is the 0x43ec4a wrapper (latch call 0x4db000 then default tail); oracle drives kind 2 and compares ordered tail event + latch s"
+  },
+  {
+   "va": "0x43ec85",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/session_input.c",
+    "symbol": "session_input_feed"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_input.py",
+     "test_id": "SessionInputTests.test_malformed_arguments_and_rectangles"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ec85",
+     "0x43ecc0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "session_input_feed PRIMARY_DOWN branch (input_latch_down then tail) is the 0x43ec85 wrapper (0x4dafc3 then default tail); oracle drives kind 1 and compares ordered tail event + latch snapshot."
+  },
+  {
+   "va": "0x43ecc0",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/session_input.c",
+    "symbol": "session_input_feed"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_input.py",
+     "test_id": "SessionInputTests.test_malformed_arguments_and_rectangles"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ecc0",
+     "0x43ecfb"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "session_input_feed PRIMARY_DBLCLK branch (input_latch_dblclk then tail) is the 0x43ecc0 wrapper (0x4db04f then tail); oracle drives kind 3 and compares ordered tail event + latch snapshot."
+  },
+  {
+   "va": "0x43ed71",
+   "class": "native_oracle_verified_inlined",
+   "reviewer": "Claude Sonnet FL-12 inlined-function review, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/session_input.c",
+    "symbol": "session_input_feed"
+   },
+   "tests": [
+    {
+     "path": "tests/test_session_input.py",
+     "test_id": "SessionInputTests.test_malformed_arguments_and_rectangles"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ed71",
+     "0x43edac"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "session_input_feed MOVE branch (input_latch_move with x,y then tail) is the 0x43ed71 wrapper (0x4daf9f then tail); oracle drives kind 0 and compares ordered tail event + latch snapshot."
   }
  ],
  "not_needed_entries": [

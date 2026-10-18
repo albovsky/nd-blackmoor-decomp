@@ -53,6 +53,9 @@ int action_family64_decode(const uint8_t *body, size_t body_length,
     return ACTION_FAMILY64_OK;
 }
 
+/* FL-12: original FUN_0042b87a is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_004d3c5f is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_004d3c88 is inlined in this function (function ledger acceptance). */
 int action_family64_step(const ActionFamily64Input *action,
                          const ActionFamily64World *world,
                          ActionFamily64Backend *backend,

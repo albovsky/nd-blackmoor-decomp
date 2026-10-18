@@ -146,6 +146,8 @@ static int names_equal(const uint8_t *a, const uint8_t *b)               /* 0x4c
     return 1;
 }
 
+/* FL-12: original FUN_004caf03 is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_004caf8a is inlined in this function (function ledger acceptance). */
 int c1c_visit(C1cObject *object, const uint8_t body[C1C_BODY_BYTES], uint32_t phase, const C1cHost *host, C1cOutcome *outcome)
 {
     int32_t state, index32;

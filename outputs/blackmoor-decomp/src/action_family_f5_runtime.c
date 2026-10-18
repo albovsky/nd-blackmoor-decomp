@@ -151,6 +151,7 @@ void tqz_object_reset(TqzObject *object)
     object->clock_block[48] = -1;
 }
 
+/* FL-12: original FUN_004b8087 is this function (function ledger acceptance). */
 void tqz_world_new_game(TqzWorld *world)
 {
     world->played_5a4c0a = 0;
@@ -752,6 +753,7 @@ int tqz_step(TqzObject *object, const uint8_t *body, size_t body_length, int16_t
     return rc;
 }
 
+/* FL-12: original FUN_004b8193 is this function (function ledger acceptance). */
 int tqz_key(TqzObject *object, uint32_t row_phase, int8_t ch)
 {
     if (object->active != 0 && object->state == 0 && object->key_pending == 0 && row_phase == 1u && tqz_key_filter(ch)) {
@@ -859,6 +861,8 @@ static int emit(TqzRenderResult *out, int32_t kind, uint32_t surface, const int3
     return TQZ_OK;
 }
 
+/* FL-12: original FUN_004b8e42 is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_004b9a88 is this function (function ledger acceptance). */
 int tqz_render(TqzObject *object, TqzWorld *world, const uint8_t *body, size_t body_length, const TqzHost *host,
                TqzRenderResult *out)
 {

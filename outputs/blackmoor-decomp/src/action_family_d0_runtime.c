@@ -364,6 +364,7 @@ static void cursor_write(D0Object *o, const uint8_t *body, int candidate, int16_
     }
 }
 
+/* FL-12: original FUN_0048d1e8 is this function (function ledger acceptance). */
 int d0_pointer(D0Object *object, const uint8_t *body, size_t body_length, int32_t x, int32_t y, D0PointerResult *out)
 {
     int16_t n;
@@ -463,6 +464,7 @@ int d0_click(D0Object *object, uint8_t *body, size_t body_length, uint32_t row_p
     return D0_OK;
 }
 
+/* FL-12: original FUN_0048d0e5 is this function (function ledger acceptance). */
 int d0_invalidate(D0Object *object, const D0Host *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return D0_ERR_ARGUMENT;
@@ -470,6 +472,7 @@ int d0_invalidate(D0Object *object, const D0Host *host)
     return D0_OK;
 }
 
+/* FL-12: original FUN_0048d09c is this function (function ledger acceptance). */
 int d0_cleanup(D0Object *object, const D0Host *host)
 {
     if (object == NULL || host == NULL || host->release_surface == NULL || host->release_slot == NULL)
@@ -493,6 +496,7 @@ int d0_cleanup(D0Object *object, const D0Host *host)
     return D0_OK;
 }
 
+/* FL-12: original FUN_0048ded7 is this function (function ledger acceptance). */
 int d0_render(D0Object *object, const uint8_t *body, size_t body_length, const D0Host *host, D0RenderResult *out)
 {
     int32_t vx = 0, vy = 0;

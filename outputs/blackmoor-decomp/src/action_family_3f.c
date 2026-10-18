@@ -140,6 +140,7 @@ static void copy_text(uint8_t *to, const ActionFamily3fText *text)
     to[n] = 0u;
 }
 
+/* FL-12: original FUN_0041c509 is inlined in this function (function ledger acceptance). */
 ActionFamily3fStatus action_family_3f_construct(
     const uint8_t *raw_body, size_t raw_body_length,
     const ActionFamily3fText *resolved_text, size_t resolved_text_count,

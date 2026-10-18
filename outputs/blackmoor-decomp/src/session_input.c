@@ -78,6 +78,10 @@ int session_input_init(SessionInputState *state)
     return SESSION_INPUT_OK;
 }
 
+/* FL-12: original FUN_0043ec4a is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_0043ec85 is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_0043ecc0 is inlined in this function (function ledger acceptance). */
+/* FL-12: original FUN_0043ed71 is inlined in this function (function ledger acceptance). */
 int session_input_feed(SessionInputState *state, SessionInputEvent event,
                        uint32_t flags, int32_t logical_x, int32_t logical_y,
                        SessionInputMessageTail tail, void *tail_context)

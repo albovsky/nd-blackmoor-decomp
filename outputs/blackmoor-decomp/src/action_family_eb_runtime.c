@@ -584,6 +584,7 @@ static void write_candidate(const uint8_t *obj, const uint8_t *body, int32_t cod
     }
 }
 
+/* FL-12: original FUN_0047f421 is this function (function ledger acceptance). */
 int eb_pointer_move(EbObject *object, const uint8_t *body, size_t body_length, int16_t x, int16_t y,
                     const int32_t rect[4], const EbHost *host, EbPointerResult *out)
 {
@@ -804,6 +805,7 @@ static int block_valid_hand(const uint8_t *obj)
     return instance_valid(obj, rd_s16(obj, O_HAND));
 }
 
+/* FL-12: original FUN_0047ff0e is this function (function ledger acceptance). */
 int eb_click(EbObject *object, const uint8_t *body, size_t body_length, EbWorld *world, uint32_t row_phase,
              int32_t candidate, const EbHost *host, uint32_t *new_phase)
 {
@@ -955,6 +957,7 @@ int eb_invalidate(EbObject *object, const EbHost *host)
     return EB_OK;
 }
 
+/* FL-12: original FUN_0047e2a5 is this function (function ledger acceptance). */
 int eb_cleanup(EbObject *object, const EbHost *host)
 {
     uint8_t *obj;
@@ -1235,6 +1238,7 @@ static void xlate(const EbView *v, const int32_t in[4], int32_t out[4])
     out[2] = add32(in[2], v->origin_x);
 }
 
+/* FL-12: original FUN_00481cb9 is this function (function ledger acceptance). */
 int eb_render_plan(EbObject *object, const uint8_t *body, size_t body_length, const EbHost *host,
                    EbRenderPlan *plan)
 {

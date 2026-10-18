@@ -84,6 +84,7 @@ void cpz_object_reset(CpzObject *object)
     object->row = -1;
 }
 
+/* FL-12: original FUN_004618df is this function (function ledger acceptance). */
 void cpz_grid_reset(CpzWorld *world)
 {
     world->grid_ready = 0;
@@ -594,6 +595,7 @@ static void cursor_write(CpzObject *o, int candidate, CpzPointerResult *out)
     }
 }
 
+/* FL-12: original FUN_00462c39 is this function (function ledger acceptance). */
 int cpz_pointer(CpzObject *object, const CpzWorld *world, const uint8_t *body, size_t body_length, int32_t x, int32_t y,
                 int32_t view_x, int32_t view_y, CpzPointerResult *out)
 {
@@ -684,6 +686,7 @@ int cpz_click(CpzObject *object, const uint8_t *body, size_t body_length, uint32
     return CPZ_OK;
 }
 
+/* FL-12: original FUN_004618ab is this function (function ledger acceptance). */
 int cpz_invalidate(CpzObject *object, const CpzHost *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return CPZ_ERR_ARGUMENT;
@@ -691,6 +694,7 @@ int cpz_invalidate(CpzObject *object, const CpzHost *host)
     return CPZ_OK;
 }
 
+/* FL-12: original FUN_00461862 is this function (function ledger acceptance). */
 int cpz_cleanup(CpzObject *object, const CpzHost *host)
 {
     if (object == NULL || host == NULL || host->release_surface == NULL || host->release_slot == NULL)
@@ -728,6 +732,7 @@ static void add_blit(CpzRenderResult *out, int kind, int32_t piece, uint32_t sur
     fx(host, CPZ_FX_BLIT, kind, piece);
 }
 
+/* FL-12: original FUN_00463b10 is this function (function ledger acceptance). */
 int cpz_render(const CpzObject *object, const CpzWorld *world, const uint8_t *body, size_t body_length,
                const CpzHost *host, CpzRenderResult *out)
 {

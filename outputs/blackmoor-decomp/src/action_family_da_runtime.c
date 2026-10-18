@@ -875,6 +875,7 @@ int bul_step(BulObject *object, const uint8_t *body, size_t body_length, int16_t
     return rc;
 }
 
+/* FL-12: original FUN_0045b5bb is this function (function ledger acceptance). */
 int bul_pointer(BulObject *object, const uint8_t *body, size_t body_length, int32_t x, int32_t y, BulPointerResult *out)
 {
     int16_t px, py;
@@ -927,6 +928,7 @@ int bul_pointer(BulObject *object, const uint8_t *body, size_t body_length, int3
     return BUL_OK;
 }
 
+/* FL-12: original FUN_0045b872 is this function (function ledger acceptance). */
 int bul_click(BulObject *object, const uint8_t *body, size_t body_length, const BulWorld *world, const BulHost *host,
               uint32_t row_phase, int32_t candidate, BulClickResult *out)
 {
@@ -974,6 +976,7 @@ int bul_click(BulObject *object, const uint8_t *body, size_t body_length, const 
     return BUL_OK;
 }
 
+/* FL-12: original FUN_0045b477 is this function (function ledger acceptance). */
 int bul_invalidate(const BulObject *object, const BulHost *host)
 {
     if (object == NULL || !host_complete(host)) return BUL_ERR_ARGUMENT;
@@ -984,6 +987,7 @@ int bul_invalidate(const BulObject *object, const BulHost *host)
     return BUL_OK;
 }
 
+/* FL-12: original FUN_0045b42e is this function (function ledger acceptance). */
 int bul_cleanup(BulObject *object, const BulHost *host)
 {
     if (object == NULL || !host_complete(host)) return BUL_ERR_ARGUMENT;
@@ -1052,6 +1056,7 @@ static int emit_erase(Ctx *c, BulRenderResult *out, int kind, const BulRect *r, 
     return emit_pair(c, out, kind, 0, 1, r, r, vx, vy);
 }
 
+/* FL-12: original FUN_0045d2c6 is this function (function ledger acceptance). */
 int bul_render(BulObject *object, const uint8_t *body, size_t body_length, const BulHost *host, BulRenderResult *out)
 {
     BulWorld none;

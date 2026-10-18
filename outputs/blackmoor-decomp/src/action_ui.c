@@ -173,6 +173,7 @@ int action_ui_initialize_phone(ActionUIWorld *world,
     return ACTION_UI_OK;
 }
 
+/* FL-12: original FUN_004e7253 is inlined in this function (function ledger acceptance). */
 int action_ui_apply_phone(ActionUIWorld *world,
                           const uint8_t *body,
                           size_t body_length)

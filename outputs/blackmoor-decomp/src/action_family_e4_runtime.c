@@ -144,6 +144,7 @@ void e4r_object_reset(E4rObject *object)
     ob16(object, E4R_O_ROW, -1);
 }
 
+/* FL-12: original FUN_0047591f is this function (function ledger acceptance). */
 void e4r_scene_reset(E4rWorld *world)
 {
     int i;
@@ -651,6 +652,7 @@ static int phase1(E4rObject *o, const uint8_t *body, E4rWorld *world, const E4rH
     return E4R_OK;
 }
 
+/* FL-12: original FUN_00475885 is this function (function ledger acceptance). */
 int e4r_cleanup(E4rObject *object, const E4rHost *host)
 {
     uint32_t surface, score_surface;
@@ -916,6 +918,7 @@ int e4r_click(E4rObject *o, const uint8_t *body, size_t body_length, uint32_t ro
     return E4R_OK;
 }
 
+/* FL-12: original FUN_004758e8 is this function (function ledger acceptance). */
 int e4r_invalidate(E4rObject *object, const E4rHost *host)
 {
     int16_t slot;
