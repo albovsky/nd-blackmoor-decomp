@@ -58,6 +58,7 @@ typedef struct Call {
     uintptr_t a[12];
     uint8_t snap[32];       /* the bytes behind args[snap_arg] of the callee snap_callee, when asked for */
     uint8_t snap2[32];      /* ... and behind args[snap_arg2] (when snap_arg2 >= 0) */
+    uint8_t probe[64];      /* the bytes at the host addresses probe_ptr[] (concatenated), as they are at the call (every callee, or only probe_callee) */
     uint8_t pd[5][16];      /* the 16 bytes behind each of args[0..4] that is a host pointer (a value above 32 bits), for every call */
 } Call;
 
@@ -80,6 +81,9 @@ static struct {
     int ret_count[8], ret_used[8];
     uint32_t snap_callee;
     int snap_arg, snap_arg2, snap_len;
+    uint32_t probe_callee;   /* 0: probe at every call */
+    const uint8_t *probe_ptr[8];
+    int probe_len[8], nprobe;
     OutWrite w[16];
     int nw;
     int calls_of[16];       /* per callee slot: how many calls were made (for OutWrite.call) */
@@ -133,7 +137,16 @@ static uint32_t h_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uin
         c->n = nargs;
         for (k = 0; k < nargs && k < 12; k++) c->a[k] = args[k];
         for (k = 0; k < nargs && k < 5; k++)
-            if ((uint64_t)args[k] > 0xffffffffu) memcpy(c->pd[k], (const void *)args[k], 16);
+            if ((uint64_t)args[k] > 0xffffffffu)
+                /* (the string local of 0x4d2c20 is two bytes long) */
+                memcpy(c->pd[k], (const void *)args[k], callee == 0x4d2c20 && k == 0 ? 2u : 16u);
+        if (L.nprobe > 0 && (L.probe_callee == 0 || L.probe_callee == callee)) {
+            int at = 0;
+            for (k = 0; k < L.nprobe; k++) {
+                memcpy(c->probe + at, L.probe_ptr[k], (size_t)L.probe_len[k]);
+                at += L.probe_len[k];
+            }
+        }
         if (callee == L.snap_callee && L.snap_len > 0) {
             memcpy(c->snap, (const void *)args[L.snap_arg], (size_t)L.snap_len);
             if (L.snap_arg2 > 0) memcpy(c->snap2, (const void *)args[L.snap_arg2], (size_t)L.snap_len);
@@ -262,8 +275,16 @@ static void test_m4b9a88_draw_slots(void)
     memcpy(before, slots, sizeof before);
     reset_log();
     add_region(obj_va, obj, sizeof obj);
+    w.value_61eea2 = 0x77;
+    L.probe_callee = 0x4c5377;   /* at the call: the state of slot 2 is still 3 (the store of 0 comes after it) and 0x61eea2 is untouched */
+    L.probe_ptr[0] = slots + 2 * 0x37 + 0x33;
+    L.probe_len[0] = 4;
+    L.probe_ptr[1] = (const uint8_t *)&w.value_61eea2;
+    L.probe_len[1] = 4;
+    L.nprobe = 2;
     m4b9a88_draw_slots(&w, &h);
     CK(L.n == 5);
+    CK(get32(L.c[4].probe, 0) == 3 && get32(L.c[4].probe, 4) == 0x77);
     /* slot 0: 0x4c5d4b (table[1], 0x5cf665, slot, slot+0x10, 0x551e54), then 0x4d2c20 with the string "Q" and the leftover halves */
     CK(is_call(0, 0x4c5d4b, 0x5cf659, 5) && L.c[0].a[0] == 0xaaa00001u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == 0x61eeb8u &&
        L.c[0].a[3] == 0x61eec8u && L.c[0].a[4] == 0x551e54);
@@ -312,7 +333,12 @@ static void test_m4b9a88_draw_slots(void)
     set32(obj, 0x425, 140);
     set32(obj, 0x421, 50);
     set32(obj, 0x429, 111);
+    L.probe_callee = 0x4c5377;   /* at the call: the dword 0x61eea2 is still 1 (cleared after the call) */
+    L.probe_ptr[0] = (const uint8_t *)&w.value_61eea2;
+    L.probe_len[0] = 4;
+    L.nprobe = 1;
     m4b9a88_draw_slots(&w, &h);
+    CK(get32(L.c[0].probe, 0) == 1);
     CK(L.n == 2 && w.value_61eea2 == 0);
     CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[0] == 0xaaa00001u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == 0x583196 &&
        L.c[0].a[3] == 0x583186 && L.c[0].a[4] == 0x551ea0);
@@ -503,8 +529,19 @@ static void test_m481cb9_draw_cells(void)
     queue_write(0x47e52f, 0, 1, 8, 4, 0x33333333u);
     queue_write(0x47e52f, 0, 1, 12, 4, 0x44444444u);
     queue_write(0x47e52f, 1, 1, 0, 4, 0x55555555u);
+    L.probe_ptr[0] = (const uint8_t *)&w.value_627230;   /* at every call: the flags that are cleared after the calls */
+    L.probe_len[0] = 4;
+    L.probe_ptr[1] = (const uint8_t *)&w.value_627234;
+    L.probe_len[1] = 4;
+    L.probe_ptr[2] = &w.byte_62729b;
+    L.probe_len[2] = 1;
+    L.nprobe = 3;
     m481cb9_draw_cells(&w, &h);
     CK(L.n == 9);
+    CK(get32(L.c[0].probe, 0) == 1 && get32(L.c[0].probe, 4) == 1 && L.c[0].probe[8] == 1);   /* 0x627230 is cleared after the call at 0x481d08 */
+    CK(get32(L.c[1].probe, 0) == 0 && get32(L.c[1].probe, 4) == 1);                           /* 0x627234 still set at 0x481d2e */
+    CK(get32(L.c[2].probe, 0) == 0 && get32(L.c[2].probe, 4) == 1);                           /* ... and at 0x481d53 */
+    CK(get32(L.c[8].probe, 4) == 0 && L.c[8].probe[8] == 1);
     CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[0] == 0xaaa00003u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == 0x62723a && L.c[0].a[3] == 0x62725a &&
        L.c[0].a[4] == 0x54d6e8);
     CK(w.value_627230 == 0 && w.value_627234 == 0 && w.byte_62729b == 1);
@@ -540,7 +577,11 @@ static void test_m481cb9_draw_cells(void)
     w.byte_627299 = 1;
     reset_log();
     queue_return(0x47e99e, 1);
+    L.probe_ptr[0] = &w.byte_62729b;   /* at the last call (0x482044) the byte 0x62729b is still 1: it is cleared after the call */
+    L.probe_len[0] = 1;
+    L.nprobe = 1;
     m481cb9_draw_cells(&w, &h);
+    CK(L.c[6].probe[0] == 1);
     q3 = rec_va + 3u * 0x53 + 0x99;
     CK(L.n == 7);
     CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[2] == 0x62723a && L.c[0].a[3] == 0x62725a && L.c[0].a[4] == 0x54d6e8);
@@ -649,8 +690,8 @@ static void test_m463b10_draw_grid(void)
     w.value_61d7ae = 4000;
     /* pass 1: a skipped cell (dword 0 with a table type and a marker), the two A types, both B types, the C type and two markers */
     set_grid(cells, 0, 0, 0, 4, 1);
-    set_grid(cells, 0, 1, 1, 0x10, 0);
-    set_grid(cells, 0, 2, 1, 0x13, 2);
+    set_grid(cells, 0, 1, 0x10000, 0x10, 0);
+    set_grid(cells, 0, 2, 0x80000000u, 0x13, 2);
     set_grid(cells, 1, 0, 1, 0x11, 0);
     set_grid(cells, 1, 1, 1, 0x12, 3);
     set_grid(cells, 1, 2, 1, 0x14, 0);

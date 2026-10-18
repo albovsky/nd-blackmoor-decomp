@@ -2,60 +2,43 @@
 
 #include <string.h>
 
-/* 0x4fca60 is ported with C double arithmetic that must round like the x87 at 53 bits: no fused multiply-add. Build this file with
- * -ffp-contract=off (the tests do); clang also gets the pragma. */
-#if defined(__clang__)
-#pragma STDC FP_CONTRACT OFF
-#endif
-
-#if defined(__GNUC__) || defined(__clang__)
-#define UNUSED_OK __attribute__((unused))
-#else
-#define UNUSED_OK
-#endif
-
-UNUSED_OK static uint32_t rd32(const uint8_t *base, ptrdiff_t off)
+static uint32_t rd32(const uint8_t *base, ptrdiff_t off)
 {
     uint32_t v;
     memcpy(&v, base + off, sizeof v);
     return v;
 }
 
-UNUSED_OK static void wr32(uint8_t *base, ptrdiff_t off, uint32_t v)
+static void wr32(uint8_t *base, ptrdiff_t off, uint32_t v)
 {
     memcpy(base + off, &v, sizeof v);
 }
 
-UNUSED_OK static uint16_t rd16(const uint8_t *base, ptrdiff_t off)
+static uint16_t rd16(const uint8_t *base, ptrdiff_t off)
 {
     uint16_t v;
     memcpy(&v, base + off, sizeof v);
     return v;
 }
 
-UNUSED_OK static void wr16(uint8_t *base, ptrdiff_t off, uint16_t v)
+static void wr16(uint8_t *base, ptrdiff_t off, uint16_t v)
 {
     memcpy(base + off, &v, sizeof v);
 }
 
-UNUSED_OK static int32_t rds16(const uint8_t *base, ptrdiff_t off)
+static int32_t rds16(const uint8_t *base, ptrdiff_t off)
 {
     return (int16_t)rd16(base, off);
 }
 
-UNUSED_OK static uint32_t call0(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr)
-{
-    return host->call != NULL ? host->call(host->context, callee, this_ptr, NULL, 0) : 0;
-}
-
-UNUSED_OK static uint32_t call1(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0)
+static uint32_t call1(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0)
 {
     uintptr_t args[1];
     args[0] = a0;
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 1) : 0;
 }
 
-UNUSED_OK static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1)
+static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1)
 {
     uintptr_t args[2];
     args[0] = a0;
@@ -63,7 +46,7 @@ UNUSED_OK static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 2) : 0;
 }
 
-UNUSED_OK static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2)
+static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2)
 {
     uintptr_t args[3];
     args[0] = a0;
@@ -72,18 +55,7 @@ UNUSED_OK static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 3) : 0;
 }
 
-UNUSED_OK static uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2,
-                      uintptr_t a3)
-{
-    uintptr_t args[4];
-    args[0] = a0;
-    args[1] = a1;
-    args[2] = a2;
-    args[3] = a3;
-    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 4) : 0;
-}
-
-UNUSED_OK static uint32_t call5(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2,
+static uint32_t call5(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2,
                       uintptr_t a3, uintptr_t a4)
 {
     uintptr_t args[5];
@@ -95,27 +67,21 @@ UNUSED_OK static uint32_t call5(const Fl18Host *host, uint32_t callee, uintptr_t
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 5) : 0;
 }
 
-/* host memory behind the dword at `off` of `base` (an original address); the dword of a record of the 0x5bb5e5 table */
-UNUSED_OK static uint8_t *record_object(const Fl18Host *host, const uint8_t *records, int32_t index)
-{
-    return (uint8_t *)host->resolve(host->context, rd32(records, (ptrdiff_t)index * 0x8d));
-}
-
 /* the object of the owner address (an original address), as host memory */
-UNUSED_OK static const uint8_t *object_at(const Fl18Host *host, uint32_t address)
+static const uint8_t *object_at(const Fl18Host *host, uint32_t address)
 {
     return host->resolve(host->context, address);
 }
 
 /* the signed 32-bit quotient-by-two of the original (cdq; sub eax, edx; sar eax, 1): rounds toward zero */
-UNUSED_OK static uint32_t half_toward_zero(uint32_t value)
+static uint32_t half_toward_zero(uint32_t value)
 {
     int32_t d = (int32_t)value;
     int32_t sign = d < 0 ? -1 : 0;
     return (uint32_t)((int32_t)((uint32_t)d - (uint32_t)sign) >> 1);
 }
 
-UNUSED_OK static uint32_t call8(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args8)
+static uint32_t call8(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args8)
 {
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args8, 8) : 0;
 }
@@ -201,7 +167,7 @@ void m4b9a88_draw_slots(Fl20cWorld *world, const Fl18Host *host)
 }
 
 /* the signed word at +off of cell (row, col) of the table at 0x594db5 (cell + 0x24 is the word at 0x594dd9, cell + 0x26 the word at 0x594ddb) */
-UNUSED_OK static int32_t cell_word(const Fl20cWorld *world, int32_t row, int32_t col, ptrdiff_t off)
+static int32_t cell_word(const Fl20cWorld *world, int32_t row, int32_t col, ptrdiff_t off)
 {
     return rds16(world->cells_594db5, (ptrdiff_t)row * 0x140 + (ptrdiff_t)col * 0x28 + off);
 }
@@ -482,7 +448,8 @@ void m412db8_wrap_text(uint8_t *self, uint8_t *text, int16_t font, uint8_t *flag
         }
         if (strlen((const char *)text) == 0) break;
         for (;;) {
-            int32_t sum = rds16(y, 0) + (int16_t)call3(host, 0x4d3836, 0, (uintptr_t)buf, table_va, font_va);
+            int32_t y_now = rds16(y, 0);   /* (read before the call, as the original loads it into esi first) */
+            int32_t sum = y_now + (int16_t)call3(host, 0x4d3836, 0, (uintptr_t)buf, table_va, font_va);
             if (sum >= (int32_t)limit_f) break;
             if ((int8_t)text[(int32_t)src] == 0) break;
             buf[(int32_t)dst] = text[(int32_t)src];
@@ -515,7 +482,8 @@ void m412db8_wrap_text(uint8_t *self, uint8_t *text, int16_t font, uint8_t *flag
             args[8] = rd32(self, 0x2938);
             args[9] = rd16(self, 0x293c);
             host->call(host->context, 0x4d270b, 0, args, 10);
-            wr16(y, 0, (uint16_t)(rd16(y, 0) + (uint16_t)call3(host, 0x4d3836, 0, (uintptr_t)buf, table_va, font_va)));
+            uint16_t y_before = rd16(y, 0);
+            wr16(y, 0, (uint16_t)(y_before + (uint16_t)call3(host, 0x4d3836, 0, (uintptr_t)buf, table_va, font_va)));
         }
         if (wrapped != 0) {
             wrapped = 0;
