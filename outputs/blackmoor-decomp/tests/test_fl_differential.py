@@ -57,13 +57,16 @@ CALL_NAMES = {1: 'free', 2: 'unmap', 3: 'close', 4: '4ea06c'}
 
 
 class DiffBase(unittest.TestCase):
+    SHIM = SHIM          # a later batch (FL-19) points these at its own shim and kernels
+    KERNELS = KERNELS
+
     @classmethod
     def setUpClass(cls):
         cls.directory = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.directory.cleanup)
         lib = Path(cls.directory.name) / 'fl_differential.so'
-        cmd = [*compiler(), '-std=c11', '-O1', '-g', '-shared', '-fPIC', f'-I{SRC}', str(SHIM),
-               *[str(SRC / name) for name in KERNELS], '-o', str(lib)]
+        cmd = [*compiler(), '-std=c11', '-O1', '-g', '-shared', '-fPIC', f'-I{SRC}', str(cls.SHIM),
+               *[str(SRC / name) for name in cls.KERNELS], '-o', str(lib)]
         built = subprocess.run(cmd, capture_output=True, text=True)
         if built.returncode != 0:
             raise AssertionError(built.stderr)
