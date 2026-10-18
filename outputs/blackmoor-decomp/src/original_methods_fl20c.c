@@ -421,3 +421,112 @@ void m463b10_draw_grid(Fl20cWorld *world, const Fl18Host *host)
         }
     }
 }
+
+/* original GAME.EXE 0x412db8 (FUN_00412db8), this = self, ten stack arguments (ret 0x28), in the order of the stack: text (a buffer,
+ * [ebp+8]), font (word, [ebp+0xc]), flag (pointer to a dword, [ebp+0x10]), x (pointer to a word, [ebp+0x14]), limit_e (word,
+ * [ebp+0x18]), limit_f (word, [ebp+0x1c]), y (pointer to a word, [ebp+0x20]), arg8 ([ebp+0x24], dword, only ever incremented: never
+ * seen by anything), arg9 (word, [ebp+0x28]), arg10 (dword, [ebp+0x2c]). The prologue calls the CRT stack probe 0x50c920 for the
+ * 0x1398-byte frame (no effect on anything the port can see). buf is a local of 5000 bytes, zeroed; src and dst are signed words (0);
+ * wrapped = 0. rec = the font record 0x5adb3a + font * 0x1d0 and w = the signed word at rec+2.
+ * Repeat:
+ *  1. When the dword *flag is non-zero: *x := *x + w (16-bit) when the dword [self+0x293e] is non-zero; otherwise, when the dword
+ *     [self+0x2942] is non-zero, *x := *x + (w + w / 9) / 2 (16-bit; both divisions signed, the second rounds toward zero) and the
+ *     dword [self+0x2942] := 0; otherwise *x := *x + w + w / 9 (16-bit). Then, when *x (signed) >= limit_e: when the signed word
+ *     0x63a4cd is non-zero, 0x50ca3e (cdecl) with (0x63888b, 0x54167c) and 0x4264e8 on 0x583979 with (0x63888b); the function then
+ *     goes to the end. Otherwise *flag := 0.
+ *  2. A text that is empty (strlen == 0) goes to the end.
+ *  3. Copy: while *y + (signed word result of 0x4d3836 (cdecl) with (buf, 0x5a4c24 + font * 0x7f3, rec)) < limit_f (signed) and the
+ *     byte text[src] (signed) is non-zero: buf[dst] := text[src]; dst++; src++ (16-bit counters).
+ *  4. When text[src] is still non-zero (the line is full): dst--, src--, buf[dst] := 0, and while dst >= 0 and buf[dst] != 0x20: dst--,
+ *     src-- (dst reaches -1 when the line has no space; the original then reads and writes the byte below buf, the top byte of its
+ *     saved this pointer, which is 0 for every this below 0x1000000, so nothing is done here); then dst++, src++, buf[dst] := 0 and
+ *     wrapped := 1.
+ *  5. When strlen(buf) != 0: 0x4d270b (cdecl, 10 stack arguments: args[0] .. args[9]) with (buf, 0x5a4c24 + font * 0x7f3, rec,
+ *     y_arg, x_arg, dword 0x5d032f[font], arg10, arg9, dword [self+0x2938], word [self+0x293c]) where x_arg and y_arg are *x and *y
+ *     pushed from 16-bit registers: x_arg keeps the upper half of the sign extension of font, y_arg the upper half of the POINTER x
+ *     (the port cannot reproduce that: only its low 16 bits are meaningful); arg9 and the last argument are zero-extended. Then
+ *     *y := *y + (the word result of 0x4d3836 with (buf, 0x5a4c24 + font * 0x7f3, rec)).
+ *  6. When wrapped: wrapped := 0, *y := the word [self+0x292e], *flag := 1, arg8 += 2 (not observable).
+ *  7. buf is cleared again, dst := 0; when text[src] (signed byte) is zero the function goes to the end, otherwise repeat.
+ * End: the 0x2710 dwords (40000 bytes) at text are cleared. */
+void m412db8_wrap_text(uint8_t *self, uint8_t *text, int16_t font, uint8_t *flag, uint8_t *x, int16_t limit_e, int16_t limit_f, uint8_t *y,
+                       uint32_t arg8, int16_t arg9, uint32_t arg10, const Fl20cWorld *world, const Fl18Host *host)
+{
+    uint8_t buf[5000];
+    int16_t src = 0, dst = 0;
+    uint32_t wrapped = 0;
+    uint32_t font_va = 0x5adb3au + (uint32_t)((int32_t)font * 0x1d0);
+    uint32_t table_va = 0x5a4c24u + (uint32_t)((int32_t)font * 0x7f3);
+    int32_t w = rds16(world->records_5adb3a, (ptrdiff_t)font * 0x1d0 + 2);
+    memset(buf, 0, sizeof buf);
+    for (;;) {
+        if (rd32(flag, 0) != 0) {
+            if (rd32(self, 0x293e) != 0) {
+                wr16(x, 0, (uint16_t)(rd16(x, 0) + (uint16_t)w));
+            } else if (rd32(self, 0x2942) != 0) {
+                int32_t sum = w / 9 + w;
+                uint32_t half = half_toward_zero((uint32_t)sum);
+                wr16(x, 0, (uint16_t)(rd16(x, 0) + (uint16_t)half));
+                wr32(self, 0x2942, 0);
+            } else {
+                wr16(x, 0, (uint16_t)(rd16(x, 0) + (uint16_t)(w + w / 9)));
+            }
+            if (rds16(x, 0) >= (int32_t)limit_e) {
+                if (world->word_63a4cd != 0) {
+                    call2(host, 0x50ca3e, 0, 0x63888b, 0x54167c);
+                    call1(host, 0x4264e8, 0x583979, 0x63888b);
+                }
+                break;
+            }
+            wr32(flag, 0, 0);
+        }
+        if (strlen((const char *)text) == 0) break;
+        for (;;) {
+            int32_t sum = rds16(y, 0) + (int16_t)call3(host, 0x4d3836, 0, (uintptr_t)buf, table_va, font_va);
+            if (sum >= (int32_t)limit_f) break;
+            if ((int8_t)text[(int32_t)src] == 0) break;
+            buf[(int32_t)dst] = text[(int32_t)src];
+            dst = (int16_t)(dst + 1);
+            src = (int16_t)(src + 1);
+        }
+        if ((int8_t)text[(int32_t)src] != 0) {
+            dst = (int16_t)(dst - 1);
+            src = (int16_t)(src - 1);
+            if (dst >= 0) buf[(int32_t)dst] = 0;
+            while ((int32_t)dst >= 0 && buf[(int32_t)dst] != 0x20) {
+                dst = (int16_t)(dst - 1);
+                src = (int16_t)(src - 1);
+            }
+            dst = (int16_t)(dst + 1);
+            src = (int16_t)(src + 1);
+            buf[(int32_t)dst] = 0;
+            wrapped = 1;
+        }
+        if (strlen((const char *)buf) != 0) {
+            uintptr_t args[10];
+            args[0] = (uintptr_t)buf;
+            args[1] = table_va;
+            args[2] = font_va;
+            args[3] = rd16(y, 0);
+            args[4] = (font < 0 ? 0xffff0000u : 0u) | rd16(x, 0);
+            args[5] = rd32(world->dwords_5d032f, (ptrdiff_t)font * 4);
+            args[6] = arg10;
+            args[7] = (uint16_t)arg9;
+            args[8] = rd32(self, 0x2938);
+            args[9] = rd16(self, 0x293c);
+            host->call(host->context, 0x4d270b, 0, args, 10);
+            wr16(y, 0, (uint16_t)(rd16(y, 0) + (uint16_t)call3(host, 0x4d3836, 0, (uintptr_t)buf, table_va, font_va)));
+        }
+        if (wrapped != 0) {
+            wrapped = 0;
+            wr16(y, 0, rd16(self, 0x292e));
+            wr32(flag, 0, 1);
+            arg8 += 2;
+        }
+        memset(buf, 0, sizeof buf);
+        dst = 0;
+        if ((int8_t)text[(int32_t)src] == 0) break;
+    }
+    (void)arg8;
+    memset(text, 0, 40000);
+}

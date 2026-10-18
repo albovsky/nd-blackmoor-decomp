@@ -41,10 +41,15 @@ typedef struct Fl20cWorld {
     int16_t word_61d797, word_61d795, word_61d7b2;   /* 0x463b10: record index, index of the dword table at 0x5d1599, the selected marker */
     uint32_t value_61d79d, value_61d7b4;             /* 0x463b10: two mode flags */
     uint32_t value_61d7a2, value_61d7a6, value_61d7aa, value_61d7ae;  /* 0x463b10: the rectangle of the marker (x0, y0, x1, y1) */
+    const uint8_t *records_5adb3a; /* 0x412db8: font records of stride 0x1d0 (indexed by a signed word; the word at +2 is read) */
+    const uint8_t *dwords_5d032f;  /* 0x412db8: dwords indexed by a signed word */
+    int16_t word_63a4cd;           /* 0x412db8: a flag word */
     int16_t word_61ee72;           /* 0x4b9a88: index of the dword table at 0x5d1599 */
 } Fl20cWorld;
 
 void m4b9a88_draw_slots(Fl20cWorld *world, const Fl18Host *host);
+void m412db8_wrap_text(uint8_t *self, uint8_t *text, int16_t font, uint8_t *flag, uint8_t *x, int16_t limit_e, int16_t limit_f, uint8_t *y,
+                       uint32_t arg8, int16_t arg9, uint32_t arg10, const Fl20cWorld *world, const Fl18Host *host);
 void m463b10_draw_grid(Fl20cWorld *world, const Fl18Host *host);
 void m481cb9_draw_cells(Fl20cWorld *world, const Fl18Host *host);
 int32_t m4619be_check_direction(uint8_t *self, int16_t direction, const Fl20cWorld *world, const Fl18Host *host);

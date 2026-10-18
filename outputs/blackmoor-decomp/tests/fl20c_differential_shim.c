@@ -163,7 +163,7 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F20C_4B9A88 = 1, F20C_4619BE, F20C_481CB9, F20C_463B10 };
+enum { F20C_4B9A88 = 1, F20C_4619BE, F20C_481CB9, F20C_463B10, F20C_412DB8 };
 
 /* Runs one port. `self` is the object (this); a, b, c, d are the stack arguments / buffers as each function documents; the result
  * of a function that returns a value comes back in *result. */
@@ -182,6 +182,12 @@ void shim_fl20c(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     case F20C_4B9A88: m4b9a88_draw_slots(w, &host); break;
     case F20C_481CB9: m481cb9_draw_cells(w, &host); break;
     case F20C_463B10: m463b10_draw_grid(w, &host); break;
+    case F20C_412DB8: {
+        const uintptr_t *p = (const uintptr_t *)a;   /* the ten stack arguments in the order of the stack */
+        m412db8_wrap_text(self, (uint8_t *)p[0], (int16_t)p[1], (uint8_t *)p[2], (uint8_t *)p[3], (int16_t)p[4], (int16_t)p[5], (uint8_t *)p[6],
+                          (uint32_t)p[7], (int16_t)p[8], (uint32_t)p[9], w, &host);
+        break;
+    }
     case F20C_4619BE: *result = m4619be_check_direction(self, (int16_t)a, w, &host); break;
     default: break;
     }

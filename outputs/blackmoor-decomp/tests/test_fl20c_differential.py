@@ -205,7 +205,7 @@ class Fl20cDifferential(DiffBase):
         return out
 
     def pair(self, fn, va, size, areas, stubs, g, *, ecx=0, stack=(), iat=None, cleanup=0, word_args=None, args=(0, 0, 0, 0),
-             self_name=None, tick=None, executed=None, pointers=None, ret_mask=None, scalars=None):
+             self_name=None, tick=None, executed=None, pointers=None, ret_mask=None, scalars=None, limit=200000, arg_array=None):
         """Run the original and the native function on one fixture and compare. `g` maps scalar world fields to initial values
         (written to the image; read back and compared); `pointers` maps world pointer fields to (area name, offset); `args` are the
         native a, b, c, d (an int, or ('ptr', area name, offset) for a host pointer into an area)."""
@@ -218,7 +218,7 @@ class Fl20cDifferential(DiffBase):
         read = {a.name: (a.va, len(a.data)) for a in areas if a.compare}
         for field in g:
             read['g:' + field] = GLOBALS[field]
-        orig = Original20(image_patches, regions, stubs, iat).run(va, size, ecx=ecx, stack_args=stack, read=read)
+        orig = Original20(image_patches, regions, stubs, iat).run(va, size, ecx=ecx, stack_args=stack, read=read, limit=limit)
         self.assertEqual(orig.cleanup, cleanup)
         # native
         self.lib.shim_reset()
@@ -257,6 +257,10 @@ class Fl20cDifferential(DiffBase):
             else:
                 native_args.append(item & 0xffffffffffffffff)
         native_args += [0] * (4 - len(native_args))
+        if arg_array is not None:   # a function of more than four stack arguments: `a` is the address of an array of them
+            array = (ctypes.c_uint64 * len(arg_array))(*[ctypes.cast(ctypes.byref(by_name[i[1]], i[2]), ctypes.c_void_p).value if isinstance(i, tuple)
+                                                         else i & 0xffffffffffffffff for i in arg_array])
+            native_args[0] = ctypes.addressof(array)
         self_ptr = ptr(by_name[self_name]) if self_name else None
         result = ctypes.c_int32(0)
         self.lib.shim_fl20c(fn, self_ptr, *native_args, ctypes.byref(sw), ctypes.byref(result))
@@ -460,6 +464,77 @@ class Fl20cDifferential(DiffBase):
             self.pair(4, 0x463b10, size, [rec_area, records, Area('cells', 0x594db5, cells, compare=False), table], stubs, g, executed=executed,
                       pointers={'records_5bb5e5': ('records', rslack), 'cells_594db5': ('cells', 0), 'table_5d1599': ('table', tslack)})
         self.finish(0x463b10, size, executed)
+
+    # ---- 0x412db8 ----
+    def make_text(self, rng):
+        kind = rng.choice(['words', 'words', 'words', 'long', 'empty', 'spaces'])
+        if kind == 'empty':
+            return b''
+        if kind == 'long':
+            return bytes(rng.choice(b'abcdefgh') for _ in range(rng.randrange(8, 30)))
+        text = b' ' * rng.randrange(0, 3) if kind == 'spaces' else b''
+        for _ in range(rng.randrange(1, 7)):
+            text += bytes(rng.choice(b'abcdefgh') for _ in range(rng.randrange(1, 8))) + b' ' * rng.randrange(1, 3)
+        return text[:rng.randrange(1, 31)]
+
+    def test_412db8_wrap_text(self):
+        """FL-20c: differential test of m412db8_wrap_text (original 0x412db8)"""
+        rng = random.Random(0x412db8)
+        executed = set()
+        size = 0x413185 - 0x412db8
+        fslack = 0x1d0
+        for n in range(SCENARIOS):
+            kind = rng.choice(['safe', 'wrap', 'wrap', 'wrap', 'exit'])
+            font = rng.choice([-1, 0, 1, 2, 3])
+            text = self.make_text(rng)
+            text_area = bytearray(text + b'\0' + rng.randbytes(40000 - len(text) - 1 + 16))
+            this = bytearray(rng.randbytes(0x3000))
+            struct.pack_into('<h', this, 0x292e, rng.choice([0, 5, -7, 1000, rng.randrange(-32768, 32768)]))
+            struct.pack_into('<I', this, 0x2938, rng.randrange(1 << 32))
+            struct.pack_into('<h', this, 0x293c, rng.choice([0, 1, -1, 0x7fff, rng.randrange(-32768, 32768)]))
+            struct.pack_into('<I', this, 0x293e, rng.choice([0, 0, 1, 0xffff0000]))
+            struct.pack_into('<I', this, 0x2942, rng.choice([0, 1, 5, 0x80000000]))
+            records = bytearray(rng.randbytes(fslack + 5 * 0x1d0))
+            if kind == 'safe':
+                wvalue = rng.choice([0, 1, 2, 5, 9, 17, 18, 19, -1, -2, -9, -10, -17, 100, -100, 32767, -32768, rng.randrange(-32768, 32768)])
+            else:
+                wvalue = rng.choice([1, 2, 3, 8, 9, 10, 17, 19, 30])
+            for f in range(-1, 4):
+                struct.pack_into('<h', records, fslack + f * 0x1d0 + 2, wvalue if f == font else rng.randrange(-100, 100))
+            dwords = bytearray(rng.randbytes(8 + 6 * 4))
+            args = bytearray(rng.randbytes(0x40))
+            flag = rng.choice([0, 0, 1, 1, 0x80000000, 0xffffffff]) if kind != 'wrap' else rng.choice([0, 1, 1])
+            struct.pack_into('<I', args, 0, flag)
+            limit_e = rng.randrange(-300, 300)
+            x0 = limit_e - rng.randrange(1, 40) if kind != 'exit' else limit_e + rng.randrange(0, 4)
+            if kind == 'safe' and rng.random() < 0.3:
+                x0 = rng.randrange(-32768, 32768)
+            struct.pack_into('<h', args, 8, sword(x0))
+            y0 = rng.randrange(-30, 50)
+            struct.pack_into('<h', args, 0x10, y0)
+            if kind == 'safe':
+                limit_f = 0x7000
+                widths = [rng.choice([0, 1, 3, 6, 6, 0x10000 + 4, 0xabcd0005]) for _ in range(rng.randrange(1, 40))]
+            else:
+                limit_f = rng.randrange(y0 + 1, y0 + 60)
+                widths = [rng.choice([0, 2, 3, 5, 8, 13, 40, 90, 0x10000 + 7]) for _ in range(rng.randrange(1, 60))]
+            tv, av = od.region_va(1), od.region_va(2)
+            g = {'word_63a4cd': rng.choice([0, 1, -1, 0x4000])}
+            stubs = {0x4d3836: stub(0x4d3836, args=3, derefs=[(0, 32)], results=widths),
+                     0x4d270b: stub(0x4d270b, args=10, derefs=[(0, 32)]),
+                     0x50ca3e: od.Stub(0x50ca3e, args=2),
+                     0x4264e8: od.Stub(0x4264e8, args=1, this=True, cleanup=4)}
+            font_word = (rng.randrange(0x10000) << 16) | (font & 0xffff)
+            stack = [tv, font_word, av, av + 8, (rng.randrange(0x10000) << 16) | (limit_e & 0xffff), (rng.randrange(0x10000) << 16) | (limit_f & 0xffff),
+                     av + 0x10, rng.randrange(1 << 32), (rng.randrange(0x10000) << 16) | rng.randrange(0x10000), rng.randrange(1 << 32)]
+            native = [('ptr', 'text', 0), sword(font_word), ('ptr', 'args', 0), ('ptr', 'args', 8), sword(limit_e), sword(limit_f), ('ptr', 'args', 0x10),
+                      stack[7], sword(stack[8]), stack[9]]
+            self.pair(5, 0x412db8, size, [Area('self', 0x00c00000, this, image=False, compare=False), Area('text', tv, text_area, image=False),
+                                          Area('args', av, args, image=False), Area('fonts', 0x5adb3a - fslack, records, compare=False),
+                                          Area('dw', 0x5d032f - 8, dwords, compare=False)], stubs, g, ecx=0x00c00000, stack=stack, cleanup=0x28,
+                      self_name='self', executed=executed, word_args={0x4d270b: (3,)}, limit=400000, arg_array=native,
+                      pointers={'records_5adb3a': ('fonts', fslack), 'dwords_5d032f': ('dw', 8)})
+        self.finish(0x412db8, size, executed)
 
     # TESTS-END
 

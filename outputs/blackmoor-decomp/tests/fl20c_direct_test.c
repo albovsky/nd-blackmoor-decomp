@@ -55,7 +55,7 @@ typedef struct Call {
     uint32_t callee;
     uintptr_t this_ptr;
     int n;
-    uintptr_t a[8];
+    uintptr_t a[12];
     uint8_t snap[32];       /* the bytes behind args[snap_arg] of the callee snap_callee, when asked for */
     uint8_t snap2[32];      /* ... and behind args[snap_arg2] (when snap_arg2 >= 0) */
     uint8_t pd[5][16];      /* the 16 bytes behind each of args[0..4] that is a host pointer (a value above 32 bits), for every call */
@@ -131,7 +131,7 @@ static uint32_t h_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uin
         c->callee = callee;
         c->this_ptr = this_ptr;
         c->n = nargs;
-        for (k = 0; k < nargs && k < 8; k++) c->a[k] = args[k];
+        for (k = 0; k < nargs && k < 12; k++) c->a[k] = args[k];
         for (k = 0; k < nargs && k < 5; k++)
             if ((uint64_t)args[k] > 0xffffffffu) memcpy(c->pd[k], (const void *)args[k], 16);
         if (callee == L.snap_callee && L.snap_len > 0) {
@@ -722,6 +722,168 @@ static void test_m463b10_draw_grid(void)
     m463b10_draw_grid(&w, &h);
     CK(L.n == 1 && is_call(0, 0x4c5d4b, 0x5cf659, 5) && L.c[0].a[2] == rec_va + 0xb0 && L.c[0].a[3] == GRID_VA(0, 0) + 0x14);
 }
+/* ---- 0x412db8 ---- */
+
+static uint8_t wr_self[0x3000], wr_text[40100], wr_args[0x20], wr_fonts[0x1d0 * 5], wr_dwords[32];
+
+/* one call of the port; text is copied to a zeroed 40100-byte buffer (the last 100 bytes are 0xee and must survive the clearing of 40000) */
+static void wrap_run(Fl20cWorld *w, const char *text, int16_t font, uint32_t flag, int16_t x, int16_t limit_e, int16_t limit_f, int16_t y, int16_t arg9,
+                     uint32_t arg10)
+{
+    Fl18Host h = host();
+    memset(wr_text, 0, 40000);
+    memset(wr_text + 40000, 0xee, 100);
+    strcpy((char *)wr_text, text);
+    set32(wr_args, 0, flag);
+    set16(wr_args, 8, (uint16_t)x);
+    set16(wr_args, 0x10, (uint16_t)y);
+    m412db8_wrap_text(wr_self, wr_text, font, wr_args, wr_args + 8, limit_e, limit_f, wr_args + 0x10, 0x1234, arg9, arg10, w, &h);
+}
+
+static int text_cleared(void)
+{
+    size_t i;
+    for (i = 0; i < 40000; i++)
+        if (wr_text[i] != 0) return 0;
+    for (i = 40000; i < 40100; i++)
+        if (wr_text[i] != 0xee) return 0;
+    return 1;
+}
+
+static void test_m412db8_wrap_text(void)
+{
+    Fl20cWorld w;
+    int i, k;
+    memset(&w, 0, sizeof w);
+    memset(wr_fonts, 0, sizeof wr_fonts);
+    memset(wr_dwords, 0, sizeof wr_dwords);
+    memset(wr_self, 0x55, sizeof wr_self);
+    w.records_5adb3a = wr_fonts + 0x1d0;     /* one record of slack below font 0 */
+    w.dwords_5d032f = wr_dwords + 8;
+    w.word_63a4cd = 0;
+    set16(wr_fonts, 0x1d0 + 1 * 0x1d0 + 2, 10);      /* font 1: w = 10 */
+    set16(wr_fonts, 0x1d0 + 2, 33);                  /* font 0 */
+    set16(wr_fonts, 0 * 0x1d0 + 2, 0x4321);          /* font -1 */
+    set32(wr_dwords, 8 + 4, 0xd0d0d001u);            /* [1] */
+    set32(wr_dwords, 8 - 4, 0xd0d0ffffu);            /* [-1] */
+    set16(wr_self, 0x292e, 0);
+    set32(wr_self, 0x2938, 0xabcd1234u);
+    set16(wr_self, 0x293c, 0x3456);
+    set32(wr_self, 0x293e, 0);
+    set32(wr_self, 0x2942, 0);
+    /* 1. one line, flag set: x += w + w / 9 = 11; buf = "ab cd" is drawn with the arguments in the order of the stack; y += the width after the draw */
+    reset_log();
+    for (k = 0; k < 6; k++) queue_return(0x4d3836, (uint32_t)k);
+    queue_return(0x4d3836, 7);
+    wrap_run(&w, "ab cd", 1, 1, 100, 1000, 100, 5, -2, 0x77665544u);
+    CK(L.n == 8);
+    for (k = 0; k < 6; k++) CK(is_call(k, 0x4d3836, 0, 3) && L.c[k].a[1] == 0x5a4c24u + 0x7f3 && L.c[k].a[2] == 0x5adb3au + 0x1d0);
+    CK(L.c[0].pd[0][0] == 0 && L.c[1].pd[0][0] == 'a' && L.c[1].pd[0][1] == 0 && memcmp(L.c[5].pd[0], "ab cd", 6) == 0);
+    CK(is_call(6, 0x4d270b, 0, 10) && memcmp(L.c[6].pd[0], "ab cd", 6) == 0 && L.c[6].a[1] == 0x5a4c24u + 0x7f3 && L.c[6].a[2] == 0x5adb3au + 0x1d0 &&
+       (L.c[6].a[3] & 0xffff) == 5 && L.c[6].a[4] == 111 && L.c[6].a[5] == 0xd0d0d001u && L.c[6].a[6] == 0x77665544u && L.c[6].a[7] == 0xfffe &&
+       L.c[6].a[8] == 0xabcd1234u && L.c[6].a[9] == 0x3456);
+    CK(is_call(7, 0x4d3836, 0, 3) && memcmp(L.c[7].pd[0], "ab cd", 6) == 0);
+    CK(get32(wr_args, 0) == 0);
+    CK((int16_t)get16(wr_args, 8) == 111);
+    CK((int16_t)get16(wr_args, 0x10) == 12);
+    CK(text_cleared());
+    /* 2. a line break at a space: the first line "aaa bbb " (limit_f 10), y := [self+0x292e] and flag := 1, then x += 11 and "ccc" */
+    set16(wr_self, 0x292e, 0);
+    reset_log();
+    for (k = 0; k <= 10; k++) queue_return(0x4d3836, (uint32_t)k);
+    queue_return(0x4d3836, 77);
+    for (k = 0; k < 4; k++) queue_return(0x4d3836, (uint32_t)k);
+    queue_return(0x4d3836, 5);
+    wrap_run(&w, "aaa bbb ccc", 1, 0, 20, 1000, 10, 0, 1, 2);
+    CK(L.n == 19);
+    CK(is_call(11, 0x4d270b, 0, 10) && memcmp(L.c[11].pd[0], "aaa bbb ", 9) == 0 && (L.c[11].a[3] & 0xffff) == 0 && L.c[11].a[4] == 20);
+    CK(is_call(12, 0x4d3836, 0, 3) && memcmp(L.c[12].pd[0], "aaa bbb ", 9) == 0);
+    CK(is_call(17, 0x4d270b, 0, 10) && memcmp(L.c[17].pd[0], "ccc", 4) == 0 && (L.c[17].a[3] & 0xffff) == 0 && L.c[17].a[4] == 31);
+    CK(get32(wr_args, 0) == 0 && (int16_t)get16(wr_args, 8) == 31 && (int16_t)get16(wr_args, 0x10) == 5 && text_cleared());
+    /* 3. a word without a space is not broken: the line is empty, nothing is drawn, y := 100 and flag := 1 every time, x grows by 11 until it reaches limit_e
+     * (33 >= 30): then (word 0x63a4cd non-zero) 0x50ca3e and 0x4264e8 are called and the flag stays set */
+    set16(wr_self, 0x292e, 100);
+    w.word_63a4cd = 1;
+    reset_log();
+    for (k = 0; k < 6; k++) queue_return(0x4d3836, (uint32_t)k);
+    queue_return(0x4d3836, 9);
+    queue_return(0x4d3836, 9);
+    wrap_run(&w, "abcdefghijkl", 1, 0, 0, 30, 5, 0, 0, 0);
+    CK(L.n == 10);
+    for (k = 0; k < 8; k++) CK(is_call(k, 0x4d3836, 0, 3) && L.c[k].a[1] == 0x5a4c24u + 0x7f3 && L.c[k].a[2] == 0x5adb3au + 0x1d0);
+    CK(is_call(8, 0x50ca3e, 0, 2) && L.c[8].a[0] == 0x63888b && L.c[8].a[1] == 0x54167c);
+    CK(is_call(9, 0x4264e8, 0x583979, 1) && L.c[9].a[0] == 0x63888b);
+    CK(get32(wr_args, 0) == 1 && (int16_t)get16(wr_args, 8) == 33 && (int16_t)get16(wr_args, 0x10) == 100 && text_cleared());
+    /* the same with the word 0x63a4cd clear: the calls are not made */
+    w.word_63a4cd = 0;
+    reset_log();
+    for (k = 0; k < 6; k++) queue_return(0x4d3836, (uint32_t)k);
+    queue_return(0x4d3836, 9);
+    queue_return(0x4d3836, 9);
+    wrap_run(&w, "abcdefghijkl", 1, 0, 0, 30, 5, 0, 0, 0);
+    CK(L.n == 8 && get32(wr_args, 0) == 1);
+    /* 4. the three updates of x (text empty: nothing but the block at the top): [self+0x293e] adds w; [self+0x2942] adds (w + w / 9) / 2 rounded toward zero and
+     * is cleared; otherwise w + w / 9. limit_e is compared as signed words, x + delta == limit_e leaves (the flag stays), one below does not */
+    {
+        static const struct {
+            int16_t w;
+            uint32_t f293e, f2942;
+            int16_t x, limit, expect;
+            int exits;
+        } t[] = {
+            {10, 1, 0, 100, 1000, 110, 0},     {10, 0, 0, 100, 1000, 111, 0},   {10, 0, 3, 100, 1000, 105, 0},     {-5, 0, 3, 100, 1000, 98, 0},
+            {-5, 0, 0, 100, 1000, 95, 0},      {-20, 0, 0, 100, 1000, 78, 0},   {-5, 1, 0, 100, 1000, 95, 0},      {-19, 0, 5, 100, 1000, 90, 0},
+            {18, 0, 7, 100, 1000, 110, 0},     {7, 0, 0, 100, 107, 107, 1},     {7, 0, 0, 100, 108, 107, 0},       {7, 0, 0, 100, 106, 107, 1},
+            {7, 0, 0, -50, -43, -43, 1},       {7, 0, 0, -50, -42, -43, 0},     {7, 0, 0, 32765, -32768, (int16_t)(32765 + 7), 1},
+        };
+        for (i = 0; i < (int)(sizeof t / sizeof t[0]); i++) {
+            set16(wr_fonts, 0x1d0 + 1 * 0x1d0 + 2, (uint16_t)t[i].w);
+            set32(wr_self, 0x293e, t[i].f293e);
+            set32(wr_self, 0x2942, t[i].f2942);
+            reset_log();
+            wrap_run(&w, "", 1, 1, t[i].x, t[i].limit, 50, 0, 0, 0);
+            CK(L.n == 0);
+            CK((int16_t)get16(wr_args, 8) == t[i].expect);
+            CK(get32(wr_args, 0) == (t[i].exits ? 1u : 0u));
+            CK(get32(wr_self, 0x2942) == (t[i].f293e ? t[i].f2942 : 0));
+            CK(text_cleared());
+            if (g_failed) {
+                char old[256];
+                memcpy(old, g_msg, sizeof old);
+                snprintf(g_msg, sizeof g_msg, "x-update row %d: %.200s", i, old);
+                return;
+            }
+        }
+        /* a clear flag does nothing at all (x unchanged, [self+0x2942] kept) */
+        set32(wr_self, 0x293e, 0);
+        set32(wr_self, 0x2942, 9);
+        reset_log();
+        wrap_run(&w, "", 1, 0, 100, 0, 50, 0, 0, 0);
+        CK(L.n == 0 && (int16_t)get16(wr_args, 8) == 100 && get32(wr_self, 0x2942) == 9 && text_cleared());
+    }
+    /* 5. a negative font: the sign extension of the word shows in the upper half of x_arg; records / tables are addressed below font 0 */
+    set32(wr_self, 0x2942, 0);
+    set16(wr_self, 0x292e, 0);
+    reset_log();
+    queue_return(0x4d3836, 0);
+    queue_return(0x4d3836, 0);
+    queue_return(0x4d3836, 0x10004);
+    wrap_run(&w, "a", -1, 0, 7, 0, 50, 3, 5, 6);
+    CK(L.n == 4 && is_call(2, 0x4d270b, 0, 10) && L.c[2].a[1] == 0x5a4c24u - 0x7f3 && L.c[2].a[2] == 0x5adb3au - 0x1d0 && (L.c[2].a[3] & 0xffff) == 3 &&
+       L.c[2].a[4] == 0xffff0007u && L.c[2].a[5] == 0xd0d0ffffu && L.c[2].a[6] == 6 && L.c[2].a[7] == 5);
+    CK((int16_t)get16(wr_args, 0x10) == 7 && text_cleared());   /* y += (signed word) 4 of the result 0x10004 */
+    /* the break is the last space: "ab cd" with limit_f 4 and widths 0, 1, 2, 3, 4 copies "ab c" (the 5th call: 4 >= 4), falls back to "ab " and draws it;
+     * y := [self+0x292e] = 0 and the flag is set; the next turn adds w + w / 9 = 36 (font 0: 33) to x, which reaches limit_e = 10: the end */
+    reset_log();
+    for (k = 0; k < 6; k++) queue_return(0x4d3836, (uint32_t)k);
+    queue_return(0x4d3836, 1);
+    queue_return(0x4d3836, 1);
+    queue_return(0x4d3836, 1);
+    queue_return(0x4d3836, 1);
+    wrap_run(&w, "ab cd", 0, 0, 0, 10, 4, 0, 0, 0);
+    CK(is_call(5, 0x4d270b, 0, 10) && memcmp(L.c[5].pd[0], "ab ", 4) == 0);
+    CK(L.n == 7 && get32(wr_args, 0) == 1 && (int16_t)get16(wr_args, 8) == 36 && (int16_t)get16(wr_args, 0x10) == 0 && text_cleared());
+}
 
 /* TESTS-END */
 
@@ -732,6 +894,7 @@ int main(void)
     RUN(test_m4619be_check_direction);
     RUN(test_m481cb9_draw_cells);
     RUN(test_m463b10_draw_grid);
+    RUN(test_m412db8_wrap_text);
     /* RUN-END */
     return failures;
 }
