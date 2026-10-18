@@ -955,7 +955,6 @@ int eb_invalidate(EbObject *object, const EbHost *host)
     return EB_OK;
 }
 
-/* FL-12: original FUN_0047e2a5 is this function (function ledger acceptance). */
 int eb_cleanup(EbObject *object, const EbHost *host)
 {
     uint8_t *obj;

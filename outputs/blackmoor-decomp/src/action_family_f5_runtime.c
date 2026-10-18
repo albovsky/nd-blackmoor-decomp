@@ -151,9 +151,9 @@ void tqz_object_reset(TqzObject *object)
     object->clock_block[48] = -1;
 }
 
-/* FL-12: original FUN_004b8087 is this function (function ledger acceptance). */
 void tqz_world_new_game(TqzWorld *world)
 {
+    /* FL-12: original FUN_004b8087 is this function (function ledger acceptance). */
     world->played_5a4c0a = 0;
     world->best_5a4c0e = 0;
 }
