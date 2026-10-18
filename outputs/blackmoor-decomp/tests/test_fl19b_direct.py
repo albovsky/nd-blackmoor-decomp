@@ -43,7 +43,7 @@ def compiler():
 
 
 def build(output, test_c=TEST_C, src_dir=SRC, extra=()):
-    cmd = [*compiler(), '-std=c11', '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2', '-g', *extra, f'-I{src_dir}', str(test_c),
+    cmd = [*compiler(), '-std=c11', '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2', '-ffp-contract=off', '-g', *extra, f'-I{src_dir}', str(test_c),
            *[str(src_dir / name) for name in KERNELS], '-lm', '-o', str(output)]
     return subprocess.run(cmd, capture_output=True, text=True)
 

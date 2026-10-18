@@ -226,12 +226,13 @@ void m47e2a5_release_surfaces(uint8_t *self, const Fl18Host *host)
 }
 
 /* original GAME.EXE 0x423259 (FUN_00423259), this = self, stack argument name (a zero-terminated string): index := 0x423368 on self with
- * name; node := the dword [self + index * 4]. While node is non-zero: the two locals (0x24 bytes each, as in the original) get copies of
- * name and of the string at [node+4]; 0x50d0bc (cdecl) is called on the first and then on the second; when the locals compare equal the
+ * name; node := the dword [self + index * 4]. While node is non-zero: the two locals (one 0x4c byte frame: the second at ebp-0x4c, the first at ebp-0x28 so that
+ * a long copy runs on into its neighbour, as in the original) get copies of name and of the string at [node+4]; 0x50d0bc (cdecl) is called on the first and then on the second; when the locals compare equal the
  * result is the dword [node], else node := the dword [node+0x25]. The result is 0 when the chain ends. */
 uint32_t m423259_find_by_name(uint8_t *self, const uint8_t *name, const Fl18Host *host)
 {
-    uint8_t first[0x24], second[0x24];
+    uint8_t frame[0x48];
+    uint8_t *second = frame, *first = frame + 0x24;
     uint32_t index = call1(host, 0x423368, (uintptr_t)self, (uintptr_t)name);
     uint32_t node = rd32(self, (ptrdiff_t)(int32_t)index * 4);
     while (node != 0) {
@@ -315,7 +316,7 @@ uint32_t m4e444d_find_name(int16_t kind, uint8_t *out, const uint8_t *name, cons
 void m4b617a_arm_piece(uint8_t *self, Fl19aWorld *world, const Fl18Host *host)
 {
     ptrdiff_t recno = (ptrdiff_t)rds16(self, 0x1e) * 0x8d;
-    const uint8_t *rec = at(host, rd32(world->records_5bb5e5, recno));
+    const uint8_t *rec;
     int32_t i;
     if (rd32(self, 0x225) == 0) return;
     if (self[0x22a] != 0) return;
@@ -327,6 +328,7 @@ void m4b617a_arm_piece(uint8_t *self, Fl19aWorld *world, const Fl18Host *host)
         return;
     }
     if (world->value_5c39e5 != 0x276c) return;
+    rec = at(host, rd32(world->records_5bb5e5, recno));
     if (call1(host, 0x4f6334, 0x5cf1eb, (uint32_t)rds16(rec, 0x2fa)) != 0) return;
     wr32(self, 0x274, 2);
     for (i = 0; i < rds16(rec, 0x21); i++) {
@@ -537,9 +539,10 @@ uint32_t m4ee2a9_hit_slots(uint8_t *self, Fl19aWorld *world, const Fl18Host *hos
  * 0x5b44f4 := 0 / 1, 0x5d1631, 0x5d1639 := 1, 0x5c39e5 := 0x27a8, word [self+0x28] := i, result 1. Otherwise 0. */
 uint32_t m48bd91_hit_test(uint8_t *self, int16_t x, int16_t y, Fl19aWorld *world, const Fl18Host *host)
 {
-    const uint8_t *rec = at(host, rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x26) * 0x8d));
+    const uint8_t *rec;
     int16_t i;
     if (self[0x46] == 0) return 0;
+    rec = at(host, rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x26) * 0x8d));
     if (y >= (int32_t)rd32(rec, 0x152) && y <= (int32_t)rd32(rec, 0x15a) && x >= (int32_t)rd32(rec, 0x14e) &&
         x <= (int32_t)rd32(rec, 0x156)) {
         world->value_5b44f0 = 9;

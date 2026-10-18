@@ -2,6 +2,12 @@
 
 #include <string.h>
 
+/* 0x4fca60 is ported with C double arithmetic that must round like the x87 at 53 bits: no fused multiply-add. Build this file with
+ * -ffp-contract=off (the tests do); clang also gets the pragma. */
+#if defined(__clang__)
+#pragma STDC FP_CONTRACT OFF
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define UNUSED_OK __attribute__((unused))
 #else
@@ -244,7 +250,11 @@ int32_t m434630_find_name(uint8_t *self, const uint8_t *name, const Fl18Host *ho
             wr32(self, 0x112c, call1(host, 0x4347b8, (uintptr_t)self, rec));
             rec += 4;
             wr32(self, 0x1120, rec);
-            memcpy(self + 0x1130, s, strlen((const char *)s) + 1);
+            {   /* a forward byte copy like the original's rep movs, defined even when s overlaps the buffer */
+                uint8_t *dst = self + 0x1130;
+                const uint8_t *src = s;
+                do { *dst++ = *src; } while (*src++ != 0);
+            }
             return 1;
         }
     }

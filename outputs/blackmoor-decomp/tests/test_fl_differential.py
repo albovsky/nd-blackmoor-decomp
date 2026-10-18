@@ -65,7 +65,7 @@ class DiffBase(unittest.TestCase):
         cls.directory = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.directory.cleanup)
         lib = Path(cls.directory.name) / 'fl_differential.so'
-        cmd = [*compiler(), '-std=c11', '-O1', '-g', '-shared', '-fPIC', f'-I{SRC}', str(cls.SHIM),
+        cmd = [*compiler(), '-std=c11', '-O1', '-ffp-contract=off', '-g', '-shared', '-fPIC', f'-I{SRC}', str(cls.SHIM),
                *[str(SRC / name) for name in cls.KERNELS], '-o', str(lib)]
         built = subprocess.run(cmd, capture_output=True, text=True)
         if built.returncode != 0:

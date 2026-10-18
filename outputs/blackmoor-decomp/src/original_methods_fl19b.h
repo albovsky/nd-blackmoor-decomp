@@ -23,7 +23,9 @@ extern "C" {
  *
  * The x87 code of 0x4fca60 is ported with C double arithmetic (the original runs with the 53-bit precision control of the Microsoft
  * runtime, so every x87 operation rounds like an IEEE double), and its calls of the truncating float-to-int routine 0x50ce04 (which
- * takes st0) go through Fl18Host.call with args[0] = the bit pattern of that double (a 64-bit uintptr_t is required).
+ * takes st0) go through Fl18Host.call with args[0] = the bit pattern of that double (a 64-bit uintptr_t is required). The host's
+ * 0x50ce04 must act like fistp qword and return the low dword of the int64 truncation (out of range, NaN and Inf give 0, 2^31..2^63
+ * wraps to the low 32 bits); a saturating (int32_t) cast is wrong. Build original_methods_fl19b.c with -ffp-contract=off.
  *
  * Nothing here claims original source structure. */
 

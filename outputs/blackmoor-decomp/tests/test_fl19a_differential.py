@@ -310,7 +310,7 @@ class Fl19aDifferential(DiffBase):
         rng = random.Random(0x423259)
         executed = set()
         for n in range(SCENARIOS):
-            name = cstring(rng, 8, 15)
+            name = cstring(rng, 8, 15) if rng.random() < 0.6 else cstring(rng, 30, 38)   # up to 39 bytes, the 0x28 of the original frame
             this = bytearray(rng.randbytes(0x100))
             nodes = [Area('n%d' % k, od.region_va(2 + k), bytearray(rng.randbytes(0x80)), image=False) for k in range(3)]
             index = rng.choice([0, 1, 2, 5, 0x3f])
@@ -320,7 +320,7 @@ class Fl19aDifferential(DiffBase):
                 if rng.random() < 0.6:
                     text[rng.randrange(len(text) - 1)] = rng.choice(b'abAB')
                 if rng.random() < 0.3:
-                    text = bytearray(cstring(rng, 8, 15))
+                    text = bytearray(cstring(rng, 8, 15) if rng.random() < 0.6 else cstring(rng, 30, 38))
                 node.data[4:4 + len(text)] = text
                 struct.pack_into('<I', node.data, 0x25, nodes[k + 1].va if k < 2 and rng.random() < 0.85 else 0)
             areas = [Area('self', od.region_va(0), this, image=False), Area('name', od.region_va(1), bytearray(name), image=False), *nodes]
