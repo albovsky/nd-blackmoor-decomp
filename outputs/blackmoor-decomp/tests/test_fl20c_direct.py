@@ -17,6 +17,7 @@ KERNELS = ['original_methods_fl20c.c']
 EXPECTED = [
     'test_m4b9a88_draw_slots',
     'test_m4619be_check_direction',
+    'test_m481cb9_draw_cells',
     # EXPECTED-END
 ]
 
@@ -69,6 +70,10 @@ class Fl20cDirect(unittest.TestCase):
     def test_check_direction_4619be(self):
         """FL-20c: direct test of m4619be_check_direction (original 0x4619be)"""
         self.check('test_m4619be_check_direction')
+
+    def test_draw_cells_481cb9(self):
+        """FL-20c: direct test of m481cb9_draw_cells (original 0x481cb9)"""
+        self.check('test_m481cb9_draw_cells')
 
     # TESTS-END
 

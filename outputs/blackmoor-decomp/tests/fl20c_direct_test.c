@@ -449,6 +449,164 @@ static void test_m4619be_check_direction(void)
     }
 }
 
+/* ---- 0x481cb9 ---- */
+
+#define CELL_VA(m) (0x62669cu + (uint32_t)(m) * 0x25u)
+
+static void set_cell(uint8_t *slots, int m, int16_t word, uint8_t b22, uint8_t b23, uint8_t b24)
+{
+    uint8_t *c = slots + (size_t)(m + 1) * 0x25;   /* the buffer holds one cell below cell 0 */
+    set16(c, 0, (uint16_t)word);
+    c[0x22] = b22;
+    c[0x23] = b23;
+    c[0x24] = b24;
+}
+
+static void test_m481cb9_draw_cells(void)
+{
+    static uint8_t slots[0x25 * 6], table[0x200];
+    const uint32_t rec_va = 0x00e50000u;
+    Fl20cWorld w;
+    Fl18Host h = host();
+    uint32_t q1, q2, q3;
+    size_t k;
+    memset(&w, 0, sizeof w);
+    memset(table, 0, sizeof table);
+    for (k = 0; k < sizeof table; k += 4) set32(table, k, 0x7a000000u + (uint32_t)k);
+    memset(g_records, 0, sizeof g_records);
+    set32(g_records, 1 * REC, rec_va);
+    w.records_5bb5e5 = g_records;
+    w.slots_62669c = slots + 0x25;
+    w.table_625f08 = table;
+    w.word_625f06 = 1;
+    w.value_5cf665 = 0xc0de0001u;
+    w.value_5d15e3 = 0xaaa00003u;
+    w.value_62728c = 0x5a5a0001u;
+    w.value_627290 = 0x5a5a0002u;
+    w.value_627294 = 0x5a5a0003u;
+    /* A: 3 cells drawn in the order of their words (cell 1, cell 2, cell 0); the three flags 0x627230, 0x627234 and 0x62729a */
+    memset(slots, 0x66, sizeof slots);
+    set_cell(slots, 0, 2, 3, 2, 0);   /* word 2: i = 2; no table entry; 0x47e99e says no */
+    set_cell(slots, 1, 0, 2, 1, 1);   /* word 0: i = 0; table: idx = 1 * 0x60 + 2 * 0x18 = 0x90 */
+    set_cell(slots, 2, 1, 0, 3, 0);   /* word 1: i = 1; 0x47e99e says yes */
+    w.word_62728a = 3;
+    w.value_627230 = 1;
+    w.value_62722c = 0;
+    w.value_627234 = 1;
+    w.byte_62729a = 1;
+    w.byte_62729b = 1;
+    reset_log();
+    queue_return(0x47e99e, 1);
+    queue_return(0x47e99e, 0);
+    queue_write(0x47e52f, 0, 1, 0, 4, 0x11111111u);
+    queue_write(0x47e52f, 0, 1, 4, 4, 0x22222222u);
+    queue_write(0x47e52f, 0, 1, 8, 4, 0x33333333u);
+    queue_write(0x47e52f, 0, 1, 12, 4, 0x44444444u);
+    queue_write(0x47e52f, 1, 1, 0, 4, 0x55555555u);
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 9);
+    CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[0] == 0xaaa00003u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == 0x62723a && L.c[0].a[3] == 0x62725a &&
+       L.c[0].a[4] == 0x54d6e8);
+    CK(w.value_627230 == 0 && w.value_627234 == 0 && w.byte_62729b == 1);
+    CK(is_call(1, 0x47e52f, 0x625ee8, 2) && L.c[1].a[0] == 0x62727a && L.c[1].a[1] > 0xffffffffu);
+    CK(is_call(2, 0x4c5377, 0x5cf659, 5) && L.c[2].a[0] == 0xaaa00003u && L.c[2].a[1] == 0xc0de0001u && L.c[2].a[2] == 0x62727a && L.c[2].a[3] == L.c[1].a[1] &&
+       L.c[2].a[4] == 0x54d720);
+    CK(rect_word(L.c[2].pd[3], 0) == 0x11111111u && rect_word(L.c[2].pd[3], 1) == 0x22222222u && rect_word(L.c[2].pd[3], 2) == 0x33333333u &&
+       rect_word(L.c[2].pd[3], 3) == 0x44444444u);
+    CK(is_call(3, 0x4c5d4b, 0x5cf659, 5) && L.c[3].a[0] == get32(table, 0x90) && L.c[3].a[1] == 0xc0de0001u && L.c[3].a[2] == 0x625f0cu + 0x90 &&
+       L.c[3].a[3] == CELL_VA(1) + 0x12 && L.c[3].a[4] == 0x54d750);
+    q2 = rec_va + 3u * 0x53 + 0x99;
+    CK(is_call(4, 0x47e99e, 0x625ee8, 1) && L.c[4].a[0] == q2);
+    CK(is_call(5, 0x4c5d4b, 0x5cf659, 5) && L.c[5].a[0] == 0x5a5a0001u && L.c[5].a[1] == 0xc0de0001u && L.c[5].a[2] == q2 && L.c[5].a[3] == CELL_VA(2) + 0x12 &&
+       L.c[5].a[4] == 0x54d774);
+    q1 = rec_va + 2u * 0x53 + 0x99;
+    CK(is_call(6, 0x47e99e, 0x625ee8, 1) && L.c[6].a[0] == q1);
+    CK(is_call(7, 0x47e52f, 0x625ee8, 2) && L.c[7].a[0] == rec_va + 0x81 && L.c[7].a[1] > 0xffffffffu);
+    CK(is_call(8, 0x4c5377, 0x5cf659, 5) && L.c[8].a[0] == 0x5a5a0003u && L.c[8].a[1] == 0xc0de0001u && L.c[8].a[2] == 0x62729d && L.c[8].a[3] == L.c[7].a[1] &&
+       L.c[8].a[4] == 0x54d7e8);
+    CK(rect_word(L.c[8].pd[3], 0) == 0x55555555u);
+    /* B: flag 0x62722c: cell 1 (the selected one) is skipped, the scan ends after count - 1 = 2 draws; then the selected cell and the 0x62729b flag */
+    memset(slots, 0x66, sizeof slots);
+    set_cell(slots, 0, 0, 1, 1, 1);   /* i = 0: table idx = 0x60 + 0x18 = 0x78 */
+    set_cell(slots, 1, 1, 2, 2, 0);   /* the selected cell: skipped by the scan, its word matches i = 1 */
+    set_cell(slots, 2, 2, 0, 3, 0);   /* i = 2 */
+    w.word_62728a = 3;
+    w.word_627238 = 1;
+    w.value_627230 = 0;
+    w.value_62722c = 1;
+    w.value_627234 = 0;
+    w.byte_62729a = 0;
+    w.byte_62729b = 1;
+    w.byte_627299 = 1;
+    reset_log();
+    queue_return(0x47e99e, 1);
+    m481cb9_draw_cells(&w, &h);
+    q3 = rec_va + 3u * 0x53 + 0x99;
+    CK(L.n == 7);
+    CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[2] == 0x62723a && L.c[0].a[3] == 0x62725a && L.c[0].a[4] == 0x54d6e8);
+    CK(is_call(1, 0x4c5d4b, 0x5cf659, 5) && L.c[1].a[0] == get32(table, 0x78) && L.c[1].a[2] == 0x625f0cu + 0x78 && L.c[1].a[3] == CELL_VA(0) + 0x12 &&
+       L.c[1].a[4] == 0x54d750);
+    CK(is_call(2, 0x47e99e, 0x625ee8, 1) && L.c[2].a[0] == q3);
+    CK(is_call(3, 0x4c5d4b, 0x5cf659, 5) && L.c[3].a[0] == 0x5a5a0001u && L.c[3].a[2] == q3 && L.c[3].a[3] == CELL_VA(2) + 0x12 && L.c[3].a[4] == 0x54d774);
+    /* step 4: the selected cell, byte 0x627299 set: rec + byte [cell+0x23] * 0x53 + 0xc9 */
+    CK(is_call(4, 0x4c5d4b, 0x5cf659, 5) && L.c[4].a[0] == 0x5a5a0002u && L.c[4].a[1] == 0xc0de0001u && L.c[4].a[2] == rec_va + 2u * 0x53 + 0xc9 &&
+       L.c[4].a[3] == CELL_VA(1) + 0x12 && L.c[4].a[4] == 0x54d798);
+    CK(is_call(5, 0x47e52f, 0x625ee8, 2) && L.c[5].a[0] == rec_va + 0x81);
+    CK(is_call(6, 0x4c5377, 0x5cf659, 5) && L.c[6].a[0] == 0xaaa00003u && L.c[6].a[1] == 0xc0de0001u && L.c[6].a[2] == rec_va + 0x81 && L.c[6].a[3] == L.c[5].a[1] &&
+       L.c[6].a[4] == 0x54d808);
+    CK(w.byte_62729b == 0 && w.value_62722c == 1);
+    /* C: count 1 with flag 0x62722c: count - 1 = 0, no scan; byte 0x627299 clear: table entry of the selected cell 0 (idx = 2 * 0x60 + 1 * 0x18) */
+    memset(slots, 0x66, sizeof slots);
+    set_cell(slots, 0, 5, 1, 2, 1);
+    w.word_62728a = 1;
+    w.word_627238 = 0;
+    w.byte_627299 = 0;
+    w.byte_62729b = 0;
+    reset_log();
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 2);
+    CK(is_call(1, 0x4c5d4b, 0x5cf659, 5) && L.c[1].a[0] == get32(table, 0xd8) && L.c[1].a[1] == 0xc0de0001u && L.c[1].a[2] == 0x625f0cu + 0xd8 &&
+       L.c[1].a[3] == 0x62726a && L.c[1].a[4] == 0x54d7bc);
+    /* D: the selected word is signed: -1 addresses the cell below cell 0 */
+    set_cell(slots, -1, 9, 3, 1, 0);   /* idx = 0x60 + 3 * 0x18 = 0xa8 */
+    w.word_627238 = -1;
+    reset_log();
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 2 && L.c[1].a[0] == get32(table, 0xa8) && L.c[1].a[2] == 0x625f0cu + 0xa8);
+    /* E: nothing set: no call at all; 0x62729a wins over 0x62729b */
+    w.value_62722c = 0;
+    w.word_62728a = 0;
+    w.byte_62729a = 0;
+    w.byte_62729b = 0;
+    reset_log();
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 0);
+    w.byte_62729a = 1;
+    w.byte_62729b = 1;
+    reset_log();
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 2 && L.c[1].a[2] == 0x62729d && w.byte_62729b == 1);
+    /* F: two cells with the same word and flag 0x62722c: count - 1 = 1, so the scan ends after the first of them (j == count); the selected cell 3 is out of the scan */
+    memset(slots, 0x66, sizeof slots);
+    set_cell(slots, 0, 0, 1, 1, 1);
+    set_cell(slots, 1, 0, 2, 1, 1);
+    set_cell(slots, 3, 7, 1, 2, 1);
+    w.value_62722c = 1;
+    w.word_62728a = 2;
+    w.word_627238 = 3;
+    w.byte_627299 = 0;
+    w.byte_62729a = 0;
+    w.byte_62729b = 0;
+    reset_log();
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 3 && is_call(1, 0x4c5d4b, 0x5cf659, 5) && L.c[1].a[3] == CELL_VA(0) + 0x12 && is_call(2, 0x4c5d4b, 0x5cf659, 5) && L.c[2].a[3] == 0x62726a);
+    /* the same two cells without the flag: both are drawn in the same scan (count = 2) */
+    w.value_62722c = 0;
+    reset_log();
+    m481cb9_draw_cells(&w, &h);
+    CK(L.n == 2 && L.c[0].a[3] == CELL_VA(0) + 0x12 && L.c[1].a[3] == CELL_VA(1) + 0x12);
+}
+
 /* TESTS-END */
 
 int main(void)
@@ -456,6 +614,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4b9a88_draw_slots);
     RUN(test_m4619be_check_direction);
+    RUN(test_m481cb9_draw_cells);
     /* RUN-END */
     return failures;
 }

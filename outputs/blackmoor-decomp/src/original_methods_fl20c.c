@@ -275,3 +275,82 @@ int32_t m4619be_check_direction(uint8_t *self, int16_t direction, const Fl20cWor
     }
     return ok;
 }
+
+/* original GAME.EXE 0x481cb9 (FUN_00481cb9, no this, no stack argument, plain ret): rec = the dword of the 0x5bb5e5-based record at the
+ * signed word 0x625f06 (stride 0x8d; only used as an address). The singleton at 0x625ee8 is called as the object of 0x47e52f and
+ * 0x47e99e; text is a local of 0x28 bytes that 0x47e52f fills.
+ * 1. When the dword 0x627230 or the dword 0x62722c is non-zero: 0x4c5377 on 0x5cf659 with (dword 0x5d15e3, dword 0x5cf665, 0x62723a,
+ *    0x62725a, 0x54d6e8); the dword 0x627230 := 0.
+ * 2. When the dword 0x627234 is non-zero: 0x47e52f on 0x625ee8 with (0x62727a, &text), 0x4c5377 on 0x5cf659 with (dword 0x5d15e3,
+ *    dword 0x5cf665, 0x62727a, &text, 0x54d720); the dword 0x627234 := 0.
+ * 3. count = the word 0x62728a, less one (16-bit) when the dword 0x62722c is non-zero. For i = 0, 1, ... (a signed word) while the
+ *    word j (starting at 0) differs from count (a signed compare of the words): for m = 0, 1, ... (a signed word) while m < the signed
+ *    word 0x62728a: not for m equal to the signed word 0x627238 when the dword 0x62722c is non-zero; cell = 0x62669c + m * 0x25 is
+ *    handled when its signed word at +0 equals i: with idx = byte [cell+0x23] * 0x60 + byte [cell+0x22] * 0x18 (zero-extended), when
+ *    the byte [cell+0x24] is non-zero 0x4c5d4b on 0x5cf659 with (dword 0x625f08 + idx, dword 0x5cf665, 0x625f0c + idx, cell + 0x12,
+ *    0x54d750); otherwise q = rec + byte [cell+0x23] * 0x53 + 0x99 and, when 0x47e99e on 0x625ee8 with q returns non-zero, 0x4c5d4b on
+ *    0x5cf659 with (dword 0x62728c, dword 0x5cf665, q, cell + 0x12, 0x54d774); then j := j + 1 (16-bit) and, when j equals count,
+ *    the scan of this i ends (and the whole loop with it).
+ * 4. When the dword 0x62722c is non-zero: cell = 0x62669c + (the signed word 0x627238) * 0x25; when the byte 0x627299 is non-zero
+ *    0x4c5d4b on 0x5cf659 with (dword 0x627290, dword 0x5cf665, rec + byte [cell+0x23] * 0x53 + 0xc9, cell + 0x12, 0x54d798),
+ *    otherwise (idx as above) 0x4c5d4b with (dword 0x625f08 + idx, dword 0x5cf665, 0x625f0c + idx, 0x62726a, 0x54d7bc).
+ * 5. When the byte 0x62729a is non-zero: 0x47e52f on 0x625ee8 with (rec + 0x81, &text), 0x4c5377 on 0x5cf659 with (dword 0x627294,
+ *    dword 0x5cf665, 0x62729d, &text, 0x54d7e8); otherwise, when the byte 0x62729b is non-zero: 0x47e52f (rec + 0x81, &text), 0x4c5377
+ *    with (dword 0x5d15e3, dword 0x5cf665, rec + 0x81, &text, 0x54d808), the byte 0x62729b := 0.
+ * (A scan that never finds the cells it looks for does not terminate in the original either.) */
+void m481cb9_draw_cells(Fl20cWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)world->word_625f06 * 0x8d);
+    uint8_t text[0x28];
+    int16_t count, i, j, m;
+    memset(text, 0, sizeof text);
+    if (world->value_627230 != 0 || world->value_62722c != 0) {
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, 0x62723a, 0x62725a, 0x54d6e8);
+        world->value_627230 = 0;
+    }
+    if (world->value_627234 != 0) {
+        call2(host, 0x47e52f, 0x625ee8, 0x62727a, (uintptr_t)text);
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, 0x62727a, (uintptr_t)text, 0x54d720);
+        world->value_627234 = 0;
+    }
+    count = world->word_62728a;
+    if (world->value_62722c != 0) count = (int16_t)(count - 1);
+    j = 0;
+    for (i = 0; (int32_t)j != (int32_t)count; i = (int16_t)(i + 1)) {
+        for (m = 0; (int32_t)m < world->word_62728a; m = (int16_t)(m + 1)) {
+            const uint8_t *cell;
+            uint32_t cell_va, idx, q;
+            if (world->value_62722c != 0 && (int32_t)world->word_627238 == (int32_t)m) continue;
+            cell = world->slots_62669c + (ptrdiff_t)m * 0x25;
+            cell_va = 0x62669cu + (uint32_t)((int32_t)m * 0x25);
+            if (rds16(cell, 0) != (int32_t)i) continue;
+            idx = (uint32_t)cell[0x23] * 0x60u + (uint32_t)cell[0x22] * 0x18u;
+            if (cell[0x24] != 0) {
+                call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_625f08, (ptrdiff_t)idx), world->value_5cf665, 0x625f0cu + idx, cell_va + 0x12u, 0x54d750);
+            } else {
+                q = rec_va + (uint32_t)cell[0x23] * 0x53u + 0x99u;
+                if (call1(host, 0x47e99e, 0x625ee8, q) != 0)
+                    call5(host, 0x4c5d4b, 0x5cf659, world->value_62728c, world->value_5cf665, q, cell_va + 0x12u, 0x54d774);
+            }
+            j = (int16_t)(j + 1);
+            if ((int32_t)j == (int32_t)count) break;
+        }
+    }
+    if (world->value_62722c != 0) {
+        const uint8_t *cell = world->slots_62669c + (ptrdiff_t)world->word_627238 * 0x25;
+        uint32_t cell_va = 0x62669cu + (uint32_t)((int32_t)world->word_627238 * 0x25);
+        uint32_t idx = (uint32_t)cell[0x23] * 0x60u + (uint32_t)cell[0x22] * 0x18u;
+        if (world->byte_627299 != 0)
+            call5(host, 0x4c5d4b, 0x5cf659, world->value_627290, world->value_5cf665, rec_va + (uint32_t)cell[0x23] * 0x53u + 0xc9u, cell_va + 0x12u, 0x54d798);
+        else
+            call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_625f08, (ptrdiff_t)idx), world->value_5cf665, 0x625f0cu + idx, 0x62726a, 0x54d7bc);
+    }
+    if (world->byte_62729a != 0) {
+        call2(host, 0x47e52f, 0x625ee8, rec_va + 0x81u, (uintptr_t)text);
+        call5(host, 0x4c5377, 0x5cf659, world->value_627294, world->value_5cf665, 0x62729d, (uintptr_t)text, 0x54d7e8);
+    } else if (world->byte_62729b != 0) {
+        call2(host, 0x47e52f, 0x625ee8, rec_va + 0x81u, (uintptr_t)text);
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x81u, (uintptr_t)text, 0x54d808);
+        world->byte_62729b = 0;
+    }
+}

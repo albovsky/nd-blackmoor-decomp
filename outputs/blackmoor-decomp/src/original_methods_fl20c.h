@@ -33,10 +33,16 @@ typedef struct Fl20cWorld {
     int32_t origin_x_583186, origin_y_58318a, origin_x2_58318e, origin_y2_583192;
     uint32_t value_5cf665, value_5d15e3, value_5d0357;
     uint32_t value_61ee82, value_61ee8e, value_61eea2, value_61ee76;  /* 0x4b9a88: two flags, a flag that is cleared, the address of the owner object */
+    const uint8_t *slots_62669c;   /* 0x481cb9: slots of stride 0x25 (indexed by a signed word; the caller leaves slack below) */
+    const uint8_t *table_625f08;   /* 0x481cb9: the dword table at 0x625f08 (entries 0x18 apart in groups of 0x60) */
+    int16_t word_625f06, word_62728a, word_627238;   /* 0x481cb9: record index, number of cells, the selected cell */
+    uint32_t value_627230, value_62722c, value_627234, value_62728c, value_627290, value_627294;  /* 0x481cb9: flags and three draw arguments */
+    uint8_t byte_627299, byte_62729a, byte_62729b;   /* 0x481cb9: flags */
     int16_t word_61ee72;           /* 0x4b9a88: index of the dword table at 0x5d1599 */
 } Fl20cWorld;
 
 void m4b9a88_draw_slots(Fl20cWorld *world, const Fl18Host *host);
+void m481cb9_draw_cells(Fl20cWorld *world, const Fl18Host *host);
 int32_t m4619be_check_direction(uint8_t *self, int16_t direction, const Fl20cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus

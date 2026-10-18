@@ -368,6 +368,57 @@ class Fl20cDifferential(DiffBase):
                       pointers={'records_5bb5e5': ('records', slack), 'cells_594db5': ('cells', cslack)})
         self.finish(0x4619be, size, executed)
 
+    # ---- 0x481cb9 ----
+    def test_481cb9_draw_cells(self):
+        """FL-20c: differential test of m481cb9_draw_cells (original 0x481cb9)"""
+        rng = random.Random(0x481cb9)
+        executed = set()
+        size = 0x482054 - 0x481cb9
+        sslack = 2
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 3])
+            records, rslack = self.records_area(rng, nrec=4)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, rng.choice([od.region_va(0), 0x40000000, 0xfffff000, rng.randrange(1 << 32)]))
+            flag_b = rng.choice([0, 0, 1, 0x80000000])
+            count = rng.choice([1, 2, 3, 4, 5, 6]) if flag_b == 0 else rng.choice([1, 2, 3, 4, 6])
+            if flag_b == 0 and rng.random() < 0.1:
+                count = 0
+            selected = rng.choice([-1, 0, 1, 2, 3, count - 1, count, 5, 6])
+            nslots = 8
+            g_b99 = rng.choice([0, 1, 1, 0x80])
+            slots = bytearray(rng.randbytes((sslack + nslots) * 0x25))
+            order = list(range(count))
+            rng.shuffle(order)
+            if rng.random() < 0.5:   # any words 0 .. 11: every cell is visited once in the end, several in one scan when words repeat
+                order = [rng.randrange(12) for _ in range(count)]
+            for m in range(sslack + nslots):
+                base = m * 0x25
+                slots[base + 0x22] = rng.choice([0, 1, 2, 3])           # (the table at 0x625f08 is 0x74a bytes in this fixture)
+                slots[base + 0x24] = rng.choice([0, 0, 1, 2, 0xff])
+                # byte +0x23 is also a plain factor (0x53) where the dword table is not read: any value is possible there
+                free = slots[base + 0x24] == 0 and m - sslack != selected
+                slots[base + 0x23] = rng.choice([0, 1, 2, 3, 18, 0x80, 0xff] if free else [0, 1, 2, 3, 18])
+                if m >= sslack and m - sslack < count:
+                    struct.pack_into('<h', slots, base, order[m - sslack])
+                else:
+                    struct.pack_into('<h', slots, base, rng.choice([-1, 0, 1, 2, 7, 0x4000]))
+            table = Area('table', 0x625f08, bytearray(rng.randbytes(0x74a)), compare=False)
+            r2 = Area('r2', 0x62725a, bytearray(rng.randbytes(16)), compare=False)
+            r3 = Area('r3', 0x62726a, bytearray(rng.randbytes(16)), compare=False)
+            g = {**self.globals_(rng, 'value_5cf665', 'value_5d15e3', 'value_627290', 'value_62728c', 'value_627294'),
+                 'word_625f06': index, 'word_62728a': count, 'word_627238': selected,
+                 'value_627230': rng.choice([0, 0, 1, 0x80000000]), 'value_62722c': flag_b, 'value_627234': rng.choice([0, 1, 1, 0xffff0000]),
+                 'byte_627299': g_b99, 'byte_62729a': rng.choice([0, 0, 1, 0xff]), 'byte_62729b': rng.choice([0, 1, 1, 0x80])}
+            texts = [[(1, 4 * q, 4, rng.randrange(1 << 32)) for q in range(4)] for _ in range(2)]
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(3, 16)]),
+                     0x4c5d4b: stub(0x4c5d4b, args=5, this=True, cleanup=20, derefs=[(3, 16)]),
+                     0x47e52f: stub(0x47e52f, args=2, this=True, cleanup=8, writes=texts),
+                     0x47e99e: od.Stub(0x47e99e, args=1, this=True, cleanup=4, results=[rng.choice([0, 1, 5, 0x80000000]) for _ in range(8)])}
+            self.pair(3, 0x481cb9, size, [records, Area('slots', 0x62669c - sslack * 0x25, slots, compare=False), table, r2, r3], stubs, g,
+                      executed=executed,
+                      pointers={'records_5bb5e5': ('records', rslack), 'slots_62669c': ('slots', sslack * 0x25), 'table_625f08': ('table', 0)})
+        self.finish(0x481cb9, size, executed)
+
     # TESTS-END
 
 
