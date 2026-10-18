@@ -119,6 +119,11 @@ static const uint8_t *shim_resolve(void *context, uint32_t address)
     return NULL;
 }
 
+static const void *deref_ptr(uintptr_t value)
+{
+    return value > 0xffffffffu ? (const void *)value : (const void *)shim_resolve(NULL, (uint32_t)value);
+}
+
 static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
     ShimCall *c = &g_calls[g_call_count++];
@@ -131,8 +136,9 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     c->nargs = nargs;
     c->this_ptr = this_ptr;
     for (i = 0; i < nargs && i < 8; i++) c->arg[i] = args[i];
-    if (s->deref_arg > 0) memcpy(c->data, (const void *)args[s->deref_arg - 1], (size_t)s->deref_bytes);
-    if (s->deref_arg2 > 0) memcpy(c->data + 32, (const void *)args[s->deref_arg2 - 1], (size_t)s->deref_bytes2);
+    /* a pointer argument is a host pointer (a local of the function) or an original address inside a fixture region */
+    if (s->deref_arg > 0) memcpy(c->data, deref_ptr(args[s->deref_arg - 1]), (size_t)s->deref_bytes);
+    if (s->deref_arg2 > 0) memcpy(c->data + 32, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
     for (i = 0; i < s->nwrites; i++) {
         const ShimWrite *w = &s->writes[i];
         if (w->call == s->used) {
@@ -157,7 +163,7 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F20B_446688 = 1, F20B_48D5F4 };
+enum { F20B_446688 = 1, F20B_48D5F4, F20B_48CC70 };
 
 /* Runs one port. `self` is the object (this); a, b, c, d are the stack arguments / buffers as each function documents; the result
  * of a function that returns a value comes back in *result. */
@@ -175,6 +181,7 @@ void shim_fl20b(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     host.tick = host_tick;
     switch (fn) {
     case F20B_446688: m446688_draw_digits(w, &host); break;
+    case F20B_48CC70: m48cc70_draw_slots(w, &host); break;
     case F20B_48D5F4: m48d5f4_confirm_pick(self, w, &host); break;
     default: break;
     }

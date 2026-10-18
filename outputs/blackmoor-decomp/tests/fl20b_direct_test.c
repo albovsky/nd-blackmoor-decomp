@@ -1,6 +1,7 @@
 /* FL-20 (batch b) direct tests of the functions of GAME.EXE in src/original_methods_fl20b.c. Prints "PASS <name>" / "FAIL <name>: <msg>";
  * the exit status is the failure count. Fixtures are synthetic (no original bytes). Expected values come from the disassembly of
  * GAME.EXE, not from running the native code; tests/test_fl20b_differential.py additionally runs the original bytes on random fixtures.
+ *   0x48cc70  rec = record word 0x6246ac; byte 0x6246a3 gate; kind byte [rec+0x42] == 2 -> 0x4c5377 (0x5d15e3, 0x5cf665, rec+0x64, &b, 0x54e760) + 0x4c5d4b (table[0x6246b4], 0x5cf665, &a, &b, 0x54e778) else 0x4c5377 (table[0x6246b4], ..., &a, &b, 0x54e794); per k < 4 the rectangle at rec+k*16+0x74 (+ origin): flags 0x6246be/ba -> 0x4c5d4b (table[0x6246b6], rec+k*16+0xf4, 0x54e7b0); byte 0x6246c6 / 0x6246c2[k] / k == byte 0x6246a2 -> 0x4c5d4b (rec+k*16+0xb4, 0x54e7cc); else 0x4c5377 (0x5d15e3, rec+k*16+0x74, 0x54e7e4)
  *   0x446688  gates dwords 0x638607 / 0x63860f; strings new 0x63885f vs old 0x63887d: when they differ the old digits are drawn with 0x4c5377 (0x5d15e3, 0x5cf665, &p, &q, 0x548288); then the new digits with 0x4c5d4b (table dword, 0x5cf665, 0x6386bf + d*16, &q, 0x5482b4); strcpy(old, new)
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
@@ -61,6 +62,7 @@ typedef struct Call {
     uintptr_t a[8];
     uint8_t snap[32];       /* the bytes behind args[snap_arg] of the callee snap_callee, when asked for */
     uint8_t snap2[32];      /* ... and behind args[snap_arg2] (when snap_arg2 >= 0) */
+    uint8_t pd[5][16];      /* the 16 bytes behind each of args[0..4] that is a host pointer (a value above 32 bits), for every call */
 } Call;
 
 typedef struct Region {
@@ -134,6 +136,8 @@ static uint32_t h_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uin
         c->this_ptr = this_ptr;
         c->n = nargs;
         for (k = 0; k < nargs && k < 8; k++) c->a[k] = args[k];
+        for (k = 0; k < nargs && k < 5; k++)
+            if ((uint64_t)args[k] > 0xffffffffu) memcpy(c->pd[k], (const void *)args[k], 16);
         if (callee == L.snap_callee && L.snap_len > 0) {
             memcpy(c->snap, (const void *)args[L.snap_arg], (size_t)L.snap_len);
             if (L.snap_arg2 > 0) memcpy(c->snap2, (const void *)args[L.snap_arg2], (size_t)L.snap_len);
@@ -474,6 +478,112 @@ static void test_m48d5f4_confirm_pick(void)
     w.value_5bb1ca = 1;
 }
 
+static uint32_t rect_word(const uint8_t *snap, int i) { return get32(snap, (size_t)i * 4); }
+
+static void test_m48cc70_draw_slots(void)
+{
+    static uint8_t rec[0x200], table[0x4a * 4];
+    static const uint8_t be[4] = {1, 1, 0, 0}, ba[4] = {0, 5, 0, 0}, c2[4] = {0, 0, 1, 1};
+    const uint32_t rec_va = 0x00c30000u;
+    int k, round;
+    Fl20bWorld w;
+    Fl18Host h = host();
+    memset(&w, 0, sizeof w);
+    memset(g_records, 0, sizeof g_records);
+    memset(rec, 0x5a, sizeof rec);
+    memset(table, 0, sizeof table);
+    set32(table, 0, 0xaaa00000u);
+    set32(table, 0x4a, 0xaaa00001u);
+    set32(table, 0x94, 0xbbb00002u);
+    set32(g_records, 2 * REC, rec_va);
+    rec[0x42] = 2;
+    set32(rec, 0x54, 1000); set32(rec, 0x58, 2000); set32(rec, 0x5c, 3000); set32(rec, 0x60, 4000);
+    set32(rec, 0x64, 100); set32(rec, 0x68, 200); set32(rec, 0x6c, 300); set32(rec, 0x70, 400);
+    for (k = 0; k < 4; k++) {
+        set32(rec, 0x74 + (size_t)k * 16, 5000 + 100 * (uint32_t)k + 1);
+        set32(rec, 0x78 + (size_t)k * 16, 5000 + 100 * (uint32_t)k + 2);
+        set32(rec, 0x7c + (size_t)k * 16, 5000 + 100 * (uint32_t)k + 3);
+        set32(rec, 0x80 + (size_t)k * 16, 5000 + 100 * (uint32_t)k + 4);
+    }
+    add_region(rec_va, rec, sizeof rec);
+    w.records_5bb5e5 = g_records;
+    w.table_5d1599 = table;
+    w.word_6246ac = 2;
+    w.word_6246b4 = 1;
+    w.word_6246b6 = 2;
+    w.word_6246c7 = -3;
+    w.word_6246c9 = 11;
+    w.byte_6246a3 = 1;
+    w.byte_6246c6 = 1;
+    w.byte_6246a2 = 2;
+    w.bytes_6246be = be;
+    w.bytes_6246ba = ba;
+    w.bytes_6246c2 = c2;
+    w.origin_x_583186 = 7;
+    w.origin_y_58318a = -9;
+    w.value_5cf665 = 0xc0de0001u;
+    w.value_5d15e3 = 0xaaa00001u;
+    for (round = 0; round < 4; round++) {
+        uint8_t before[sizeof rec];
+        int n0 = 0;
+        reset_log();
+        add_region(rec_va, rec, sizeof rec);
+        rec[0x42] = (round == 0) ? 2 : (round == 1) ? 1 : (round == 2) ? 0 : 2;
+        memcpy(before, rec, sizeof rec);
+        w.byte_6246c6 = (round == 2) ? 0 : 1;
+        w.byte_6246a2 = (round == 3) ? 3 : 2;
+        w.byte_6246a3 = (round == 3) ? 0 : 1;
+        m48cc70_draw_slots(&w, &h);
+        CK(memcmp(rec, before, sizeof rec) == 0);
+        if (round == 3) {
+            CK(L.n == 0);
+            continue;
+        }
+        if (rec[0x42] == 2) {
+            CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[0] == 0xaaa00001u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == rec_va + 0x64 &&
+               L.c[0].a[4] == 0x54e760);
+            CK(rect_word(L.c[0].pd[3], 0) == 107 && rect_word(L.c[0].pd[3], 1) == 191 && rect_word(L.c[0].pd[3], 2) == 307 &&
+               rect_word(L.c[0].pd[3], 3) == 391);
+            CK(is_call(1, 0x4c5d4b, 0x5cf659, 5) && L.c[1].a[0] == 0xaaa00001u && L.c[1].a[1] == 0xc0de0001u && L.c[1].a[4] == 0x54e778);
+            CK(rect_word(L.c[1].pd[2], 0) == 997 && rect_word(L.c[1].pd[2], 1) == 2011 && rect_word(L.c[1].pd[2], 2) == 2997 &&
+               rect_word(L.c[1].pd[2], 3) == 4011);
+            CK(rect_word(L.c[1].pd[3], 0) == 107 && rect_word(L.c[1].pd[3], 3) == 391);
+            n0 = 2;
+        } else {
+            CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[0] == 0xaaa00001u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[4] == 0x54e794);
+            CK(rect_word(L.c[0].pd[2], 0) == 997 && rect_word(L.c[0].pd[2], 1) == 2011 && rect_word(L.c[0].pd[2], 2) == 2997 &&
+               rect_word(L.c[0].pd[2], 3) == 4011);
+            CK(rect_word(L.c[0].pd[3], 0) == 107 && rect_word(L.c[0].pd[3], 1) == 191 && rect_word(L.c[0].pd[3], 2) == 307 &&
+               rect_word(L.c[0].pd[3], 3) == 391);
+            n0 = 1;
+        }
+        CK(L.n == n0 + 4);
+        for (k = 0; k < 4; k++) {
+            const Call *c = &L.c[n0 + k];
+            uint32_t base = 5000 + 100 * (uint32_t)k;
+            int which = 0;   /* 1: 0x4c5d4b with +0xf4, 2: 0x4c5d4b with +0xb4, 0: 0x4c5377 */
+            if (k == 0) which = 1;
+            if (k == 2 && round != 2) which = 2;
+            CK(c->callee == (which ? 0x4c5d4bu : 0x4c5377u) && c->this_ptr == 0x5cf659 && c->n == 5);
+            CK(c->a[0] == (which ? 0xbbb00002u : 0xaaa00001u) && c->a[1] == 0xc0de0001u);
+            CK(c->a[2] == rec_va + (uint32_t)k * 16 + (which == 1 ? 0xf4u : which == 2 ? 0xb4u : 0x74u));
+            CK(c->a[4] == (which == 1 ? 0x54e7b0u : which == 2 ? 0x54e7ccu : 0x54e7e4u));
+            CK(rect_word(c->pd[3], 0) == base + 1 + 7 && rect_word(c->pd[3], 1) == base + 2 - 9 && rect_word(c->pd[3], 2) == base + 3 + 7 &&
+               rect_word(c->pd[3], 3) == base + 4 - 9);
+        }
+    }
+    /* the highlighted slot is 3 and the flag byte is set: the 0xb4 variant for k = 3 */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    rec[0x42] = 1;
+    w.byte_6246c6 = 1;
+    w.byte_6246a2 = 3;
+    w.byte_6246a3 = 1;
+    m48cc70_draw_slots(&w, &h);
+    CK(L.n == 5 && L.c[1 + 3].callee == 0x4c5d4b && L.c[1 + 3].a[2] == rec_va + 3 * 16 + 0xb4 && L.c[1 + 3].a[4] == 0x54e7cc);
+    CK(L.c[1 + 2].callee == 0x4c5377 && L.c[1 + 2].a[4] == 0x54e7e4);
+}
+
 /* TESTS-END */
 
 int main(void)
@@ -481,6 +591,7 @@ int main(void)
     int failures = 0;
     RUN(test_m446688_draw_digits);
     RUN(test_m48d5f4_confirm_pick);
+    RUN(test_m48cc70_draw_slots);
     /* RUN-END */
     return failures;
 }

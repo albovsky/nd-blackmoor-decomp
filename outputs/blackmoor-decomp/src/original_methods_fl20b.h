@@ -32,9 +32,13 @@ typedef struct Fl20bWorld {
     uint8_t *records_5bb5e5;        /* 0x48d5f4: dwords of stride 0x8d (the address of the object of record n; record +0x4d is also used in place) */
     uint32_t value_5c39e5, value_5bb1ca, value_54e898, value_5d03b3;  /* 0x48d5f4: the selector, a flag, the 4 bytes appended to the message, the first argument of the message call */
     const uint8_t *bytes_54e88c;    /* 0x48d5f4: the nine bytes that a record field is compared with */
+    int16_t word_6246ac, word_6246b4, word_6246b6, word_6246c7, word_6246c9;  /* 0x48cc70: record index, two table indices, two offsets */
+    uint8_t byte_6246a2, byte_6246a3, byte_6246c6;                           /* 0x48cc70: selected slot, gate, flag */
+    const uint8_t *bytes_6246ba, *bytes_6246be, *bytes_6246c2;               /* 0x48cc70: four flag bytes each, indexed by the slot */
 } Fl20bWorld;
 
 void m446688_draw_digits(Fl20bWorld *world, const Fl18Host *host);
+void m48cc70_draw_slots(const Fl20bWorld *world, const Fl18Host *host);
 void m48d5f4_confirm_pick(uint8_t *self, Fl20bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus

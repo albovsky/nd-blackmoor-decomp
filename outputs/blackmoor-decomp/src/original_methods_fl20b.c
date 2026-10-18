@@ -212,3 +212,59 @@ void m48d5f4_confirm_pick(uint8_t *self, Fl20bWorld *world, const Fl18Host *host
         }
     }
 }
+
+/* original GAME.EXE 0x48cc70 (FUN_0048cc70, no this, no stack argument, plain ret): rec = the dword of the 0x5bb5e5-based record at the
+ * signed word 0x6246ac (stride 0x8d; an original address) and kind = the byte [rec+0x42] (both read first). Nothing more unless the
+ * byte 0x6246a3 is non-zero. a = { dword [rec+0x54] + signed word 0x6246c7, dword [rec+0x58] + signed word 0x6246c9, dword [rec+0x5c] +
+ * word 0x6246c7, dword [rec+0x60] + word 0x6246c9 } and b = { dword [rec+0x64] + origin_x 0x583186, dword [rec+0x68] + origin_y
+ * 0x58318a, dword [rec+0x6c] + origin_x, dword [rec+0x70] + origin_y } (locals). When kind is 2: 0x4c5377 on 0x5cf659 with (dword
+ * 0x5d15e3, dword 0x5cf665, rec + 0x64, &b, 0x54e760), then 0x4c5d4b on 0x5cf659 with (the dword at 0x5d1599 + signed word 0x6246b4 *
+ * 0x4a, dword 0x5cf665, &a, &b, 0x54e778); otherwise 0x4c5377 with (the dword at 0x5d1599 + word 0x6246b4 * 0x4a, dword 0x5cf665, &a,
+ * &b, 0x54e794). Then for k = 0 .. 3 (a signed word): b := { dword [rec + k*16 + 0x74] + origin_x, dword [rec + k*16 + 0x78] + origin_y,
+ * dword [rec + k*16 + 0x7c] + origin_x, dword [rec + k*16 + 0x80] + origin_y }; when the byte 0x6246be[k] is non-zero and the byte
+ * 0x6246ba[k] is 0: 0x4c5d4b with (the dword at 0x5d1599 + signed word 0x6246b6 * 0x4a, dword 0x5cf665, rec + k*16 + 0xf4, &b,
+ * 0x54e7b0); otherwise, when the byte 0x6246c6 and the byte 0x6246c2[k] are non-zero and k equals the byte 0x6246a2: 0x4c5d4b with (the
+ * same table dword, dword 0x5cf665, rec + k*16 + 0xb4, &b, 0x54e7cc); otherwise 0x4c5377 with (dword 0x5d15e3, dword 0x5cf665, rec +
+ * k*16 + 0x74, &b, 0x54e7e4). */
+void m48cc70_draw_slots(const Fl20bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)world->word_6246ac * 0x8d);
+    const uint8_t *rec = host->resolve(host->context, rec_va);
+    uint8_t kind = rec[0x42];
+    uint32_t a[4], b[4];
+    int16_t k;
+    if (world->byte_6246a3 == 0) return;
+    a[1] = rd32(rec, 0x58) + (uint32_t)(int32_t)world->word_6246c9;
+    a[3] = rd32(rec, 0x60) + (uint32_t)(int32_t)world->word_6246c9;
+    a[0] = rd32(rec, 0x54) + (uint32_t)(int32_t)world->word_6246c7;
+    a[2] = rd32(rec, 0x5c) + (uint32_t)(int32_t)world->word_6246c7;
+    b[1] = rd32(rec, 0x68) + (uint32_t)world->origin_y_58318a;
+    b[3] = rd32(rec, 0x70) + (uint32_t)world->origin_y_58318a;
+    b[0] = rd32(rec, 0x64) + (uint32_t)world->origin_x_583186;
+    b[2] = rd32(rec, 0x6c) + (uint32_t)world->origin_x_583186;
+    if (kind == 2) {
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x64u, (uintptr_t)b, 0x54e760);
+        call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_6246b4 * 0x4a), world->value_5cf665,
+              (uintptr_t)a, (uintptr_t)b, 0x54e778);
+    } else {
+        call5(host, 0x4c5377, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_6246b4 * 0x4a), world->value_5cf665,
+              (uintptr_t)a, (uintptr_t)b, 0x54e794);
+    }
+    for (k = 0; k < 4; k++) {
+        ptrdiff_t line = (ptrdiff_t)k * 16;
+        b[1] = rd32(rec, line + 0x78) + (uint32_t)world->origin_y_58318a;
+        b[3] = rd32(rec, line + 0x80) + (uint32_t)world->origin_y_58318a;
+        b[0] = rd32(rec, line + 0x74) + (uint32_t)world->origin_x_583186;
+        b[2] = rd32(rec, line + 0x7c) + (uint32_t)world->origin_x_583186;
+        if (world->bytes_6246be[k] != 0 && world->bytes_6246ba[k] == 0) {
+            call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_6246b6 * 0x4a), world->value_5cf665,
+                  rec_va + (uint32_t)line + 0xf4u, (uintptr_t)b, 0x54e7b0);
+        } else if (world->byte_6246c6 != 0 && world->bytes_6246c2[k] != 0 && (int32_t)k == (int32_t)world->byte_6246a2) {
+            call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_6246b6 * 0x4a), world->value_5cf665,
+                  rec_va + (uint32_t)line + 0xb4u, (uintptr_t)b, 0x54e7cc);
+        } else {
+            call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + (uint32_t)line + 0x74u, (uintptr_t)b,
+                  0x54e7e4);
+        }
+    }
+}

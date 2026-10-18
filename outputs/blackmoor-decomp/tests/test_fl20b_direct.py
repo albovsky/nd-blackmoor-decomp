@@ -17,6 +17,7 @@ KERNELS = ['original_methods_fl20b.c']
 EXPECTED = [
     'test_m446688_draw_digits',
     'test_m48d5f4_confirm_pick',
+    'test_m48cc70_draw_slots',
     # EXPECTED-END
 ]
 
@@ -69,6 +70,10 @@ class Fl20bDirect(unittest.TestCase):
     def test_confirm_pick_48d5f4(self):
         """FL-20b: direct test of m48d5f4_confirm_pick (original 0x48d5f4)"""
         self.check('test_m48d5f4_confirm_pick')
+
+    def test_draw_slots_48cc70(self):
+        """FL-20b: direct test of m48cc70_draw_slots (original 0x48cc70)"""
+        self.check('test_m48cc70_draw_slots')
 
     # TESTS-END
 

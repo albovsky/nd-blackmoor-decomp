@@ -402,6 +402,38 @@ class Fl20bDifferential(DiffBase):
                       pointers={'records_5bb5e5': ('records', slack), 'bytes_54e88c': ('pat', 0)})
         self.finish(0x48d5f4, size, executed)
 
+    # ---- 0x48cc70 ----
+    def test_48cc70_draw_slots(self):
+        """FL-20b: differential test of m48cc70_draw_slots (original 0x48cc70)"""
+        rng = random.Random(0x48cc70)
+        executed = set()
+        size = 0x48cf43 - 0x48cc70
+        tslack = 0x4a
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 3])
+            records, slack = self.records_area(rng, nrec=4)
+            struct.pack_into('<I', records.data, slack + index * 0x8d, od.region_va(0))
+            rec = bytearray(rng.randbytes(0x200))
+            rec[0x42] = rng.choice([2, 2, 0, 1, 3, 0x82])
+            for off in (0x54, 0x58, 0x5c, 0x60, 0x64, 0x68, 0x6c, 0x70, *[0x74 + 4 * j for j in range(16)]):
+                struct.pack_into('<I', rec, off, rng.choice([0, 1, 100, 0xffffffff, 0x7fffffff, 0x80000000, rng.randrange(1 << 32)]))
+            rec_area = Area('rec', od.region_va(0), rec, image=False, compare=False)
+            table = Area('table', 0x5d1599 - tslack, bytearray(rng.randbytes(tslack + 5 * 0x4a)), compare=False)
+            flags = Area('flags', 0x6246ba, bytearray(rng.choice([0, 0, 1, 5, 0xff]) for _ in range(12)), compare=False)
+            g = {**self.globals_(rng, 'origin_x_583186', 'origin_y_58318a', 'value_5cf665', 'value_5d15e3'),
+                 'word_6246ac': index, 'word_6246b4': rng.choice([-1, 0, 1, 2, 3]), 'word_6246b6': rng.choice([-1, 0, 1, 2, 3]),
+                 'word_6246c7': rng.choice([0, 1, -1, 5, -32768, 32767, rng.randrange(-32768, 32768)]),
+                 'word_6246c9': rng.choice([0, 1, -1, 5, -32768, 32767, rng.randrange(-32768, 32768)]),
+                 'byte_6246a2': rng.choice([0, 1, 2, 3, 3, 4, 0x80, 0xff]), 'byte_6246a3': rng.choice([0, 1, 1, 1, 0x80]),
+                 'byte_6246c6': rng.choice([0, 1, 1, 7])}
+            struct.pack_into('<I', table.data, tslack + 0x4a, g['value_5d15e3'])  # 0x5d15e3 = the dword of record 1
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(2, 16), (3, 16)]),
+                     0x4c5d4b: stub(0x4c5d4b, args=5, this=True, cleanup=20, derefs=[(2, 16), (3, 16)])}
+            self.pair(3, 0x48cc70, size, [rec_area, records, table, flags], stubs, g, executed=executed,
+                      pointers={'records_5bb5e5': ('records', slack), 'table_5d1599': ('table', tslack), 'bytes_6246ba': ('flags', 0),
+                                'bytes_6246be': ('flags', 4), 'bytes_6246c2': ('flags', 8)})
+        self.finish(0x48cc70, size, executed)
+
     # DIFF-END
 
 
