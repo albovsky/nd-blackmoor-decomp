@@ -132,6 +132,15 @@ static void top_cases(TopFn fn, size_t list, size_t count, size_t dlist, size_t 
         p16(obj, count, 4);
         EXPECT_EQ(fn(obj), 3);
     }
+    /* layers are signed words: -1 is below 5, so the second entry wins (an unsigned compare would keep the first). */
+    {
+        p16(obj, list, 0);
+        p16(obj, list + 2u, 1);
+        p16(obj, XP(0), (int16_t)-1);
+        p16(obj, XP(1), 5);
+        p16(obj, count, 2);
+        EXPECT_EQ(fn(obj), 1);
+    }
     /* the greatest layer is the first entry: it stays. */
     {
         for (int k = 0; k < 4; ++k) {
