@@ -163,7 +163,7 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F20B_446688 = 1, F20B_48D5F4, F20B_48CC70, F20B_4876ED, F20B_44D28C };
+enum { F20B_446688 = 1, F20B_48D5F4, F20B_48CC70, F20B_4876ED, F20B_44D28C, F20B_47608E, F20B_4B8A27 };
 
 /* Runs one port. `self` is the object (this); a, b, c, d are the stack arguments / buffers as each function documents; the result
  * of a function that returns a value comes back in *result. */
@@ -182,6 +182,8 @@ void shim_fl20b(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     case F20B_48CC70: m48cc70_draw_slots(w, &host); break;
     case F20B_4876ED: m4876ed_redraw_items(w, &host); break;
     case F20B_44D28C: *result = m44d28c_click(self, (int16_t)a, (int16_t)b, w, &host); break;
+    case F20B_47608E: m47608e_step_swap(self, w, &host); break;
+    case F20B_4B8A27: m4b8a27_spawn_slots(self, (int16_t)a, w, &host); break;
     case F20B_48D5F4: m48d5f4_confirm_pick(self, w, &host); break;
     default: break;
     }

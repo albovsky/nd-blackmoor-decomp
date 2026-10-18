@@ -414,3 +414,160 @@ int32_t m44d28c_click(uint8_t *self, int16_t x, int16_t y, const Fl20bWorld *wor
     self[0x24] = 0;
     return 0;
 }
+
+/* the byte of the cell (a, b) of the 0x30-based table of the object self: self + a * 0xc8 + 0x30 + b * 0x14 + 2 (32-bit products) */
+UNUSED_OK static uint8_t *swap_cell(uint8_t *self, uint32_t a, uint32_t b)
+{
+    return self + (ptrdiff_t)(int32_t)(a * 0xc8u) + 0x30 + (ptrdiff_t)(int32_t)(b * 0x14u) + 2;
+}
+
+/* original GAME.EXE 0x47608e (FUN_0047608e), this = self (no stack argument, plain ret): rec = the dword of the 0x5bb5e5-based record at
+ * the signed word [self+0x22] (stride 0x8d; an original address). Nothing unless the dword [self+0x89a] is non-zero, the dwords
+ * [self+0x1c] and [self+0x2c] are 0, the bytes [self+0x8d8] and [self+0x8d9] are 0 and the dword at record +0x4d is 1. Then by the
+ * dword 0x5c39e5: 0x27d6: dword [self+0x89e] := 1 and the dword at record +0x4d := 2. 0x27d5: when the dword [self+0x8b6] is non-zero:
+ * (when the nine bytes at rec + 0x74c differ from those at 0x54c844 and 0x4f6334 on 0x5cf1eb with the signed word [rec+0x76d]
+ * returns 0: 0x4fb2e3 on 0x5c3a67 with that word,) then dword [self+0x8aa] := dword [self+0x8be], dword [self+0x8a6] := dword
+ * [self+0x8ba], dword [self+0x8b6] := 0; otherwise dword [self+0x8b6] := 1, the same compare / calls against the nine bytes at
+ * 0x54c850, then the words at self + dword[0x8aa] * 0xc8 + 0x30 + dword[0x8a6] * 0x14 + 2 and at self + dword[0x8be] * 0xc8 + 0x30 +
+ * dword[0x8ba] * 0x14 + 2 are exchanged, dword [self+0x8b2] := dword [self+0x8be], dword [self+0x8ae] := dword [self+0x8ba], bytes
+ * [self+0x8d8] and [self+0x8d9] := 1. 0x27d7: the compare of the nine bytes at rec + 0x71b with those at 0x54c85c and (when different) the
+ * same 0x4f6334 / 0x4fb2e3 calls with the signed word [rec+0x73c]; dword [self+0x8ca] := GetTickCount + 0xfa; byte [self+0x898] := 1;
+ * dword [self+0x2c] := 3. */
+void m47608e_step_swap(uint8_t *self, Fl20bWorld *world, const Fl18Host *host)
+{
+    ptrdiff_t slot = (ptrdiff_t)rds16(self, 0x22) * 0x8d;
+    uint8_t *rec;
+    if (rd32(self, 0x89a) == 0) return;
+    if (rd32(self, 0x1c) != 0) return;
+    if (rd32(self, 0x2c) != 0) return;
+    if (self[0x8d8] != 0) return;
+    if (self[0x8d9] != 0) return;
+    if (rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x22) * 0x8d + 0x4d) != 1) return;
+    if (world->value_5c39e5 == 0x27d6) {
+        wr32(self, 0x89e, 1);
+        wr32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x22) * 0x8d + 0x4d, 2);
+        return;
+    }
+    if (world->value_5c39e5 == 0x27d5) {
+        rec = (uint8_t *)host->resolve(host->context, rd32(world->records_5bb5e5, slot));
+        if (rd32(self, 0x8b6) != 0) {
+            if (memcmp(rec + 0x74c, world->bytes_54c844, 9) != 0) {
+                if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(rec, 0x76d)) == 0)
+                    call1(host, 0x4fb2e3, 0x5c3a67, rd16(rec, 0x76d));
+            }
+            wr32(self, 0x8aa, rd32(self, 0x8be));
+            wr32(self, 0x8a6, rd32(self, 0x8ba));
+            wr32(self, 0x8b6, 0);
+        } else {
+            uint16_t keep, moved;
+            wr32(self, 0x8b6, 1);
+            if (memcmp(rec + 0x74c, world->bytes_54c850, 9) != 0) {
+                if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(rec, 0x76d)) == 0)
+                    call1(host, 0x4fb2e3, 0x5c3a67, rd16(rec, 0x76d));
+            }
+            keep = rd16(swap_cell(self, rd32(self, 0x8aa), rd32(self, 0x8a6)), 0);
+            moved = rd16(swap_cell(self, rd32(self, 0x8be), rd32(self, 0x8ba)), 0);
+            wr16(swap_cell(self, rd32(self, 0x8aa), rd32(self, 0x8a6)), 0, moved);
+            wr16(swap_cell(self, rd32(self, 0x8be), rd32(self, 0x8ba)), 0, keep);
+            wr32(self, 0x8b2, rd32(self, 0x8be));
+            wr32(self, 0x8ae, rd32(self, 0x8ba));
+            self[0x8d8] = 1;
+            self[0x8d9] = 1;
+        }
+    } else if (world->value_5c39e5 == 0x27d7) {
+        rec = (uint8_t *)host->resolve(host->context, rd32(world->records_5bb5e5, slot));
+        if (memcmp(rec + 0x71b, world->bytes_54c85c, 9) != 0) {
+            if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(rec, 0x73c)) == 0)
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(rec, 0x73c));
+        }
+        wr32(self, 0x8ca, (host->tick != NULL ? host->tick(host->context) : 0) + 0xfau);
+        self[0x898] = 1;
+        wr32(self, 0x2c, 3);
+    }
+}
+
+/* the object of the dword [self+8] (an original address), as host memory */
+UNUSED_OK static uint8_t *owner_object(const uint8_t *self, const Fl18Host *host)
+{
+    return (uint8_t *)host->resolve(host->context, rd32(self, 8));
+}
+
+/* the signed 32-bit quotient-by-two of the original (cdq; sub eax, edx; sar eax, 1): rounds toward zero */
+UNUSED_OK static uint32_t half_toward_zero(uint32_t value)
+{
+    int32_t d = (int32_t)value;
+    int32_t sign = d < 0 ? -1 : 0;
+    return (uint32_t)((int32_t)((uint32_t)d - (uint32_t)sign) >> 1);
+}
+
+/* original GAME.EXE 0x4b8a27 (FUN_004b8a27), this = self, stack argument n (word, sign-extended; ret 4). rand is 0x50cd50 (cdecl, no
+ * argument, result in eax) and every division is the signed 32-bit idiv of the original (a zero divisor would fault there: the callers
+ * never produce one, and nothing here guards it). obj = the dword [self+8] (an original address, re-read at each use). When the signed
+ * word [self+0x48] + n < the signed word [obj+0x456]: word [self+0x48] := word [obj+0x456] (the local r that the loop below tests is
+ * then uninitialised in the original; here it is 0, and the tests only run this path with no slots). Otherwise r = the low word of
+ * rand() % (n + 1), drawn again until the signed word [self+0x48] + r lies within the signed words [obj+0x456] .. [obj+0x458], and the
+ * word [self+0x48] := its low 16 bits + r. Then for s = 0, 1, ... (a signed word) while s < the signed word [obj+0x173] and r > 0, with
+ * slot = self + s * 0x37: skipped when the dword [slot+0x7d] is non-zero; otherwise obj0 = the dword [self+8] (taken before the call),
+ * k = the signed word returned by 0x4b866e on self, the four dwords at obj0 + k * 16 + 0x175 are copied to slot + 0x5a; dword [slot+0x5e]
+ * and [slot+0x66] += origin_y 0x58318a, [slot+0x5a] and [slot+0x62] += origin_x 0x583186; dword [slot+0x6f] := [slot+0x66] - h + 6 with
+ * h = ([slot+0x66] - [slot+0x5e]) / 2 rounded toward zero, dword [slot+0x6b] := [slot+0x62] - w - 8 with w = ([slot+0x62] - [slot+0x5a])
+ * / 2 rounded toward zero; j = the low word of rand() % (the signed word [obj+0x21]) and the four dwords at obj + j * 16 + 0x23 are
+ * copied to slot + 0x4a; dword [slot+0x7d] := 1; byte [slot+0x6a] := the low byte returned by 0x4b85f6 on self; dword [slot+0x77] :=
+ * GetTickCount; word [slot+0x7b] := the low word of rand() % ([obj+0x454] + 1 - [obj+0x452]) + [obj+0x452] (signed words); r := r - 1. */
+void m4b8a27_spawn_slots(uint8_t *self, int16_t n, const Fl20bWorld *world, const Fl18Host *host)
+{
+    int16_t r = 0;   /* uninitialised in the original on the first path */
+    int16_t s;
+    if ((int32_t)rds16(self, 0x48) + (int32_t)n < rds16(owner_object(self, host), 0x456)) {
+        wr16(self, 0x48, rd16(owner_object(self, host), 0x456));
+    } else {
+        r = (int16_t)((int32_t)call0(host, 0x50cd50, 0) % ((int32_t)n + 1));
+        for (;;) {
+            int32_t sum = rds16(self, 0x48) + (int32_t)r;
+            if (!(sum < rds16(owner_object(self, host), 0x456))) {
+                if (!(rds16(self, 0x48) + (int32_t)r > rds16(owner_object(self, host), 0x458))) break;
+            }
+            r = (int16_t)((int32_t)call0(host, 0x50cd50, 0) % ((int32_t)n + 1));
+        }
+        wr16(self, 0x48, (uint16_t)(rd16(self, 0x48) + (uint16_t)r));
+    }
+    for (s = 0; (int32_t)s < rds16(owner_object(self, host), 0x173) && r > 0; s = (int16_t)(s + 1)) {
+        ptrdiff_t slot = (ptrdiff_t)s * 0x37;
+        const uint8_t *obj0;
+        const uint8_t *src;
+        int16_t k, j;
+        uint32_t half;
+        if (rd32(self, slot + 0x7d) != 0) continue;
+        obj0 = owner_object(self, host);
+        k = (int16_t)call0(host, 0x4b866e, (uintptr_t)self);
+        src = obj0 + (ptrdiff_t)k * 16 + 0x175;
+        wr32(self, slot + 0x5a, rd32(src, 0));
+        wr32(self, slot + 0x5e, rd32(src, 4));
+        wr32(self, slot + 0x62, rd32(src, 8));
+        wr32(self, slot + 0x66, rd32(src, 12));
+        wr32(self, slot + 0x5e, rd32(self, slot + 0x5e) + (uint32_t)world->origin_y_58318a);
+        wr32(self, slot + 0x66, rd32(self, slot + 0x66) + (uint32_t)world->origin_y_58318a);
+        wr32(self, slot + 0x5a, rd32(self, slot + 0x5a) + (uint32_t)world->origin_x_583186);
+        wr32(self, slot + 0x62, rd32(self, slot + 0x62) + (uint32_t)world->origin_x_583186);
+        half = half_toward_zero(rd32(self, slot + 0x66) - rd32(self, slot + 0x5e));
+        wr32(self, slot + 0x6f, rd32(self, slot + 0x66) - half + 6u);
+        half = half_toward_zero(rd32(self, slot + 0x62) - rd32(self, slot + 0x5a));
+        wr32(self, slot + 0x6b, rd32(self, slot + 0x62) - half - 8u);
+        j = (int16_t)((int32_t)call0(host, 0x50cd50, 0) % rds16(owner_object(self, host), 0x21));
+        src = owner_object(self, host) + (ptrdiff_t)j * 16 + 0x23;
+        wr32(self, slot + 0x4a, rd32(src, 0));
+        wr32(self, slot + 0x4e, rd32(src, 4));
+        wr32(self, slot + 0x52, rd32(src, 8));
+        wr32(self, slot + 0x56, rd32(src, 12));
+        wr32(self, slot + 0x7d, 1);
+        self[slot + 0x6a] = (uint8_t)call0(host, 0x4b85f6, (uintptr_t)self);
+        wr32(self, slot + 0x77, host->tick != NULL ? host->tick(host->context) : 0);
+        {
+            const uint8_t *o = owner_object(self, host);
+            int32_t span = rds16(o, 0x454) + 1 - rds16(o, 0x452);
+            int32_t rem = (int32_t)call0(host, 0x50cd50, 0) % span;
+            wr16(self, slot + 0x7b, (uint16_t)(rem + rds16(owner_object(self, host), 0x452)));
+        }
+        r = (int16_t)(r - 1);
+    }
+}

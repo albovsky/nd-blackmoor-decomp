@@ -20,6 +20,8 @@ EXPECTED = [
     'test_m48cc70_draw_slots',
     'test_m4876ed_redraw_items',
     'test_m44d28c_click',
+    'test_m47608e_step_swap',
+    'test_m4b8a27_spawn_slots',
     # EXPECTED-END
 ]
 
@@ -84,6 +86,14 @@ class Fl20bDirect(unittest.TestCase):
     def test_click_44d28c(self):
         """FL-20b: direct test of m44d28c_click (original 0x44d28c)"""
         self.check('test_m44d28c_click')
+
+    def test_step_swap_47608e(self):
+        """FL-20b: direct test of m47608e_step_swap (original 0x47608e)"""
+        self.check('test_m47608e_step_swap')
+
+    def test_spawn_slots_4b8a27(self):
+        """FL-20b: direct test of m4b8a27_spawn_slots (original 0x4b8a27)"""
+        self.check('test_m4b8a27_spawn_slots')
 
     # TESTS-END
 

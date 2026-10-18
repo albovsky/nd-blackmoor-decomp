@@ -510,6 +510,99 @@ class Fl20bDifferential(DiffBase):
                       executed=executed, ret_mask=0xffffffff, pointers={'records_5bb5e5': ('records', 0)})
         self.finish(0x44d28c, size, executed)
 
+    # ---- 0x47608e ----
+    def test_47608e_step_swap(self):
+        """FL-20b: differential test of m47608e_step_swap (original 0x47608e)"""
+        rng = random.Random(0x47608e)
+        executed = set()
+        size = 0x4763b3 - 0x47608e
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x900)), image=False)
+            struct.pack_into('<h', this.data, 0x22, index)
+            struct.pack_into('<I', this.data, 0x89a, rng.choice([1, 1, 1, 1, 1, 0, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x1c, rng.choice([0, 0, 0, 0, 0, 1, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x2c, rng.choice([0, 0, 0, 0, 0, 3, 0x80000000]))
+            this.data[0x8d8] = rng.choice([0, 0, 0, 0, 0, 1, 0xff])
+            this.data[0x8d9] = rng.choice([0, 0, 0, 0, 0, 1, 0x80])
+            struct.pack_into('<I', this.data, 0x8b6, rng.choice([0, 1, 1, 0, 0x100]))
+            for off in (0x8aa, 0x8a6, 0x8be, 0x8ba):
+                struct.pack_into('<I', this.data, off, rng.choice([0, 1, 2, 3]) if off in (0x8aa, 0x8be) else rng.choice([0, 1, 2, 3, 4, 5]))
+            records, slack = self.records_area(rng, nrec=4, slack=0)
+            struct.pack_into('<I', records.data, index * 0x8d, od.region_va(1))
+            struct.pack_into('<I', records.data, index * 0x8d + 0x4d, rng.choice([1] * 8 + [0, 2]))
+            rec = bytearray(rng.randbytes(0x800))
+            struct.pack_into('<h', rec, 0x76d, rng.choice([0, 1, -1, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            struct.pack_into('<h', rec, 0x73c, rng.choice([0, 1, -1, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            pats = []
+            for name, off in (('p844', 0x74c), ('p850', 0x74c), ('p85c', 0x71b)):
+                pat = bytearray(rng.randbytes(9))
+                if rng.random() < 0.4:
+                    pat = bytearray(rec[off:off + 9])
+                    if rng.random() < 0.6:
+                        pat[rng.choice([8, 8, 8, rng.randrange(9)])] ^= rng.randrange(1, 256)
+                pats.append(Area(name, {'p844': 0x54c844, 'p850': 0x54c850, 'p85c': 0x54c85c}[name], pat, compare=False))
+            obj = Area('obj', od.region_va(1), rec, image=False, compare=False)
+            sel = rng.choice([0x27d5, 0x27d5, 0x27d5, 0x27d6, 0x27d7, 0x27d7, 0x27d4, 0])
+            g = {'value_5c39e5': sel}
+            now = rng.choice([1000, 0xffffff00, rng.randrange(1 << 32)])
+            stubs = {0x4f6334: od.Stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 1])]),
+                     0x4fb2e3: od.Stub(0x4fb2e3, args=1, this=True, cleanup=4)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
+            self.pair(6, 0x47608e, size, [this, records, obj, *pats], stubs, g, ecx=od.region_va(0), iat=iat, tick=now, self_name='self',
+                      executed=executed, word_args={0x4fb2e3: {0}},
+                      pointers={'records_5bb5e5': ('records', 0), 'bytes_54c844': ('p844', 0), 'bytes_54c850': ('p850', 0),
+                                'bytes_54c85c': ('p85c', 0)})
+        self.finish(0x47608e, size, executed)
+
+    # ---- 0x4b8a27 ----
+    def test_4b8a27_spawn_slots(self):
+        """FL-20b: differential test of m4b8a27_spawn_slots (original 0x4b8a27)"""
+        rng = random.Random(0x4b8a27)
+        executed = set()
+        size = 0x4b8d5c - 0x4b8a27
+        for n in range(SCENARIOS):
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x300)), image=False)
+            struct.pack_into('<I', this.data, 8, od.region_va(1))
+            obj = bytearray(rng.randbytes(0x800))
+            count = rng.choice([0, 1, 2, 3, 4, 4, -1])
+            slots_wanted = count > 0
+            struct.pack_into('<h', obj, 0x173, count)
+            struct.pack_into('<h', obj, 0x21, rng.choice([1, 2, 3, -2, 5]))
+            low = rng.choice([a for a in (0, 10, -5, 100)])
+            step = rng.choice([0, 1, 2, 3, 5, 6])
+            struct.pack_into('<h', this.data, 0x48, rng.choice([0, 1, -3, 8, 100, -30000, 32000]))
+            cur = struct.unpack_from('<h', this.data, 0x48)[0]
+            struct.pack_into('<h', obj, 0x456, max(-32768, min(32767, cur + rng.choice([-4, -1, 0, 1, 3, 8]))))
+            lo = struct.unpack_from('<h', obj, 0x456)[0]
+            valid = rng.randrange(max(0, min(step, lo - cur)), step + 1)   # a draw that the range test accepts (when the clamp path is not taken)
+            struct.pack_into('<h', obj, 0x458, max(-32768, min(32767, max(lo, cur + valid) + rng.choice([0, 0, 1, 4]))))
+            if rng.random() < 0.15:   # cur + n below the lowest value: the clamp path (no slots: its local is uninitialised in the original)
+                struct.pack_into('<h', obj, 0x456, min(32767, cur + step + rng.choice([1, 5])))
+                struct.pack_into('<h', obj, 0x173, rng.choice([0, 0, -2]))
+            if cur + step < struct.unpack_from('<h', obj, 0x456)[0]:   # the clamp path leaves the loop's local uninitialised in the original: no slots
+                struct.pack_into('<h', obj, 0x173, rng.choice([0, 0, -2]))
+            span = rng.choice([1, 2, 6, 9, -3])
+            base = rng.choice([4, 0, -2, 100])
+            struct.pack_into('<h', obj, 0x452, base)
+            struct.pack_into('<h', obj, 0x454, base + span - 1)
+            for k in range(4):
+                struct.pack_into('<I', this.data, k * 0x37 + 0x7d, rng.choice([0, 0, 0, 1, 0x80000000]))
+            # draws: random values, one of them accepted by the range test within the first four; every draw is in 0 .. 32767
+            draws = [rng.randrange(0, 0x8000) for _ in range(12)]
+            draws[rng.randrange(0, 4)] = valid + (step + 1) * rng.randrange(0, 3)
+            stubs = {0x50cd50: od.Stub(0x50cd50, results=draws),
+                     0x4b866e: od.Stub(0x4b866e, this=True, results=[rng.choice([0, 1, 2, 3, 0x10002, -1 & 0xffffffff]) for _ in range(4)]),
+                     0x4b85f6: od.Stub(0x4b85f6, this=True, results=[rng.randrange(1 << 32) for _ in range(4)])}
+            now = rng.choice([1000, 0xfffffff0, rng.randrange(1 << 32)])
+            iat = {TICK_SLOT: od.Stub('tick', result=now, silent=True)}
+            obj_area = Area('obj', od.region_va(1), obj, image=False, compare=False)
+            g = self.globals_(rng, 'origin_x_583186', 'origin_y_58318a')
+            hi_word = rng.randrange(1 << 16) << 16
+            self.pair(7, 0x4b8a27, size, [this, obj_area], stubs, g, ecx=od.region_va(0), iat=iat, tick=now, self_name='self',
+                      executed=executed, stack=[hi_word | (step & 0xffff)], cleanup=4, args=(step,))
+        self.finish(0x4b8a27, size, executed)
+
     # DIFF-END
 
 

@@ -4,6 +4,8 @@
  *   0x48cc70  rec = record word 0x6246ac; byte 0x6246a3 gate; kind byte [rec+0x42] == 2 -> 0x4c5377 (0x5d15e3, 0x5cf665, rec+0x64, &b, 0x54e760) + 0x4c5d4b (table[0x6246b4], 0x5cf665, &a, &b, 0x54e778) else 0x4c5377 (table[0x6246b4], ..., &a, &b, 0x54e794); per k < 4 the rectangle at rec+k*16+0x74 (+ origin): flags 0x6246be/ba -> 0x4c5d4b (table[0x6246b6], rec+k*16+0xf4, 0x54e7b0); byte 0x6246c6 / 0x6246c2[k] / k == byte 0x6246a2 -> 0x4c5d4b (rec+k*16+0xb4, 0x54e7cc); else 0x4c5377 (0x5d15e3, rec+k*16+0x74, 0x54e7e4)
  *   0x4876ed  rec = record word 0x6252d3; dwords 0x625d43 / 0x625d3f -> 0x4c5377 (0x625d4d, 0x625d6d, 0x54dc64), 0x625d43 := 0; 0x625d47 -> 0x4841cb + 0x4c5377 (0x625d8d, &r, 0x54dc98), cleared; items (stride 0x85 at 0x6252d5, word +0 = order) drawn by 0x4c5d4b for n = word [rec+0x21] (minus the selected one when 0x625d3f), then the selected one (0x54dd0c), then 0x625e40 / 0x625e3c with 0x4841cb + 0x4c5377 (0x54dd34 / 0x54dd50)
  *   0x44d28c  gate dword [this+0x25]; region limits (x <= [rec+0x99], y <= [rec+0x8d], x >= [rec+0x51]); boxes A (dword [this+0x2d] == 0 -> 0x44d597(1)), B, C, D, E ([this+0x2d] == 1 -> 0x44d597(0, 3, 4, 6)), F (0x44d597(8)), G / H / I (byte [this+0x24] := 1), else byte [this+0x24] := 0; returns 1 after a press
+ *   0x47608e  gates on dwords [this+0x89a] / [this+0x1c] / [this+0x2c], bytes [this+0x8d8] / [this+0x8d9], record +0x4d == 1; 0x5c39e5: 0x27d6 -> [this+0x89e] := 1, record +0x4d := 2; 0x27d5 -> cursor copy or word swap of the cells [this + a*0xc8 + 0x30 + b*0x14 + 2] with 0x4f6334 / 0x4fb2e3 on the nine-byte compare; 0x27d7 -> compare, timer, [this+0x898], [this+0x2c] := 3
+ *   0x4b8a27  word [this+0x48] moved by a random step (0x50cd50 % (n + 1)) within the words [obj+0x456] .. [obj+0x458]; then per free slot (stride 0x37) while r > 0: template copies from obj+k*16+0x175 (k from 0x4b866e) and obj+j*16+0x23, origin offsets, halved extents, byte from 0x4b85f6, tick, a random word
  *   0x446688  gates dwords 0x638607 / 0x63860f; strings new 0x63885f vs old 0x63887d: when they differ the old digits are drawn with 0x4c5377 (0x5d15e3, 0x5cf665, &p, &q, 0x548288); then the new digits with 0x4c5d4b (table dword, 0x5cf665, 0x6386bf + d*16, &q, 0x5482b4); strcpy(old, new)
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
@@ -815,6 +817,284 @@ static void test_m44d28c_click(void)
     CK(m44d28c_click(g_obj, (int16_t)0xffff, (int16_t)-15, &w, &h) == 0 && get32(g_obj, 0x29) == 0 && L.n == 0);  /* x = -1 > [rec+0x99] = -50 */
 }
 
+static void test_m47608e_step_swap(void)
+{
+    static uint8_t self[0x900], expect[0x900], rec[0x800], rec_exp[0x800];
+    static const uint8_t pat_a[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9}, pat_b[9] = {9, 8, 7, 6, 5, 4, 3, 2, 1}, pat_c[9] = {5, 5, 5, 5, 5, 5, 5, 5, 5};
+    const uint32_t rec_va = 0x00c70000u;
+    int round;
+    Fl20bWorld w;
+    Fl18Host h = host();
+    memset(&w, 0, sizeof w);
+    memset(g_records, 0, sizeof g_records);
+    fill(self, sizeof self, 41);
+    fill(rec, sizeof rec, 17);
+    set16(self, 0x22, 2);
+    set32(g_records, 2 * REC, rec_va);
+    set32(g_records, 2 * REC + 0x4d, 1);
+    add_region(rec_va, rec, sizeof rec);
+    w.records_5bb5e5 = g_records;
+    w.bytes_54c844 = pat_a;
+    w.bytes_54c850 = pat_b;
+    w.bytes_54c85c = pat_c;
+    set32(self, 0x89a, 1);
+    set32(self, 0x1c, 0);
+    set32(self, 0x2c, 0);
+    self[0x8d8] = 0;
+    self[0x8d9] = 0;
+    set16(rec, 0x76d, 0xfff3);
+    set16(rec, 0x73c, 0x0044);
+    L.tick = 9000;
+    /* each of the six gates failing alone: no change at all, no calls */
+    for (round = 0; round < 6; round++) {
+        memcpy(expect, self, sizeof self);
+        w.value_5c39e5 = 0x27d7;
+        if (round == 0) set32(self, 0x89a, 0);
+        if (round == 1) set32(self, 0x1c, 1);
+        if (round == 2) set32(self, 0x2c, 4);
+        if (round == 3) self[0x8d8] = 2;
+        if (round == 4) self[0x8d9] = 3;
+        if (round == 5) set32(g_records, 2 * REC + 0x4d, 2);
+        {
+            uint8_t before[sizeof self], rbefore[sizeof g_records];
+            memcpy(before, self, sizeof self);
+            memcpy(rbefore, g_records, sizeof g_records);
+            m47608e_step_swap(self, &w, &h);
+            CK(memcmp(self, before, sizeof self) == 0 && memcmp(g_records, rbefore, sizeof g_records) == 0 && L.n == 0 && L.ticks == 0);
+        }
+        memcpy(self, expect, sizeof self);
+        set32(g_records, 2 * REC + 0x4d, 1);
+    }
+    /* another selector: nothing */
+    w.value_5c39e5 = 0x27d8;
+    memcpy(expect, self, sizeof self);
+    m47608e_step_swap(self, &w, &h);
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 0 && get32(g_records, 2 * REC + 0x4d) == 1);
+    /* 0x27d6 */
+    w.value_5c39e5 = 0x27d6;
+    set32(expect, 0x89e, 1);
+    m47608e_step_swap(self, &w, &h);
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 0 && get32(g_records, 2 * REC + 0x4d) == 2);
+    set32(g_records, 2 * REC + 0x4d, 1);
+    /* 0x27d7: the nine bytes at rec + 0x71b differ from the pattern -> 0x4f6334 (0 -> 0x4fb2e3), timer, byte, state 3 */
+    w.value_5c39e5 = 0x27d7;
+    memcpy(expect, self, sizeof self);
+    memcpy(rec + 0x71b, pat_c, 9);   /* equal: no calls */
+    reset_log();
+    L.tick = 9000;
+    add_region(rec_va, rec, sizeof rec);
+    m47608e_step_swap(self, &w, &h);
+    set32(expect, 0x8ca, 9000 + 0xfa);
+    expect[0x898] = 1;
+    set32(expect, 0x2c, 3);
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 0 && L.ticks == 1);
+    set32(self, 0x2c, 0);
+    memcpy(expect, self, sizeof self);
+    rec[0x71b + 8] ^= 0x40;          /* one byte differs */
+    reset_log();
+    L.tick = 0xffffff00u;
+    add_region(rec_va, rec, sizeof rec);
+    m47608e_step_swap(self, &w, &h);
+    set32(expect, 0x8ca, 0xffffff00u + 0xfau);
+    expect[0x898] = 1;
+    set32(expect, 0x2c, 3);
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 2 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == 0x44 &&
+       is_call(1, 0x4fb2e3, 0x5c3a67, 1) && (L.c[1].a[0] & 0xffff) == 0x44);
+    set32(self, 0x2c, 0);
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    queue_return(0x4f6334, 1);       /* non-zero: 0x4fb2e3 is not called */
+    m47608e_step_swap(self, &w, &h);
+    CK(L.n == 1 && is_call(0, 0x4f6334, 0x5cf1eb, 1));
+    set32(self, 0x2c, 0);
+    self[0x898] = 0;
+    /* 0x27d5 with the dword [self+0x8b6] set: nine bytes against pattern a (rec + 0x74c), the cursor moves, no swap */
+    w.value_5c39e5 = 0x27d5;
+    set32(self, 0x8b6, 1);
+    set32(self, 0x8be, 3);
+    set32(self, 0x8ba, 1);
+    set32(self, 0x8aa, 0x77);
+    set32(self, 0x8a6, 0x88);
+    memcpy(rec + 0x74c, pat_a, 9);
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    memcpy(expect, self, sizeof self);
+    m47608e_step_swap(self, &w, &h);
+    set32(expect, 0x8aa, 3);
+    set32(expect, 0x8a6, 1);
+    set32(expect, 0x8b6, 0);
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 0);
+    set32(self, 0x8b6, 1);
+    memcpy(rec + 0x74c, pat_b, 9);   /* differs from pattern a */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    memcpy(expect, self, sizeof self);
+    m47608e_step_swap(self, &w, &h);
+    set32(expect, 0x8aa, 3);
+    set32(expect, 0x8a6, 1);
+    set32(expect, 0x8b6, 0);
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 2 && L.c[0].a[0] == 0xfffffff3u && (L.c[1].a[0] & 0xffff) == 0xfff3);
+    /* 0x27d5 with the dword [self+0x8b6] clear: flag := 1, nine bytes against pattern b (rec + 0x74c), the words of the cells (a=1, b=2) and
+     * (c=3, d=1) exchanged, the cursor copied, both bytes set */
+    set32(self, 0x8b6, 0);
+    set32(self, 0x8aa, 1);
+    set32(self, 0x8a6, 2);
+    set32(self, 0x8be, 3);
+    set32(self, 0x8ba, 1);
+    set16(self, 1 * 0xc8 + 0x30 + 2 * 0x14 + 2, 0x1111);
+    set16(self, 3 * 0xc8 + 0x30 + 1 * 0x14 + 2, 0x2222);
+    memcpy(rec + 0x74c, pat_b, 9);   /* equal to pattern b: no calls */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    memcpy(expect, self, sizeof self);
+    m47608e_step_swap(self, &w, &h);
+    set32(expect, 0x8b6, 1);
+    set16(expect, 1 * 0xc8 + 0x30 + 2 * 0x14 + 2, 0x2222);
+    set16(expect, 3 * 0xc8 + 0x30 + 1 * 0x14 + 2, 0x1111);
+    set32(expect, 0x8b2, 3);
+    set32(expect, 0x8ae, 1);
+    expect[0x8d8] = 1;
+    expect[0x8d9] = 1;
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 0);
+    self[0x8d8] = 0;
+    self[0x8d9] = 0;
+    set32(self, 0x8b6, 0);
+    memcpy(rec + 0x74c, pat_b, 9);
+    rec[0x74c + 8] ^= 1;             /* only the ninth byte differs: still the calls */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m47608e_step_swap(self, &w, &h);
+    CK(L.n == 2 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && is_call(1, 0x4fb2e3, 0x5c3a67, 1));
+    self[0x8d8] = 0;
+    self[0x8d9] = 0;
+    set32(self, 0x8b6, 1);
+    memcpy(rec + 0x74c, pat_a, 9);
+    rec[0x74c + 8] ^= 1;             /* the same for pattern a (the dword [self+0x8b6] set) */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m47608e_step_swap(self, &w, &h);
+    CK(L.n == 2);
+    set32(self, 0x8b6, 0);
+    self[0x8d8] = 0;
+    self[0x8d9] = 0;
+    memcpy(rec + 0x74c, pat_a, 9);   /* differs from pattern b: the calls */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m47608e_step_swap(self, &w, &h);
+    CK(L.n == 2 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && is_call(1, 0x4fb2e3, 0x5c3a67, 1) && self[0x8d8] == 1 && self[0x8d9] == 1);
+    (void)rec_exp;
+}
+
+static void test_m4b8a27_spawn_slots(void)
+{
+    static uint8_t self[0x300], expect[0x300], obj[0x800];
+    const uint32_t obj_va = 0x00c80000u;
+    Fl20bWorld w;
+    Fl18Host h = host();
+    memset(&w, 0, sizeof w);
+    memset(self, 0x11, sizeof self);
+    memset(obj, 0x22, sizeof obj);
+    set32(self, 8, obj_va);
+    set16(self, 0x48, 8);
+    set16(obj, 0x456, 10);     /* lowest allowed value */
+    set16(obj, 0x458, 20);     /* highest allowed value */
+    set16(obj, 0x173, 3);      /* three slots */
+    set16(obj, 0x21, 2);
+    set16(obj, 0x454, 9);
+    set16(obj, 0x452, 4);      /* span 9 + 1 - 4 = 6 */
+    set32(obj, 0x185, 100); set32(obj, 0x189, 200); set32(obj, 0x18d, 303); set32(obj, 0x191, 401);   /* template k = 1 (0x175 + 16) */
+    set32(obj, 0x195, 50); set32(obj, 0x199, 60); set32(obj, 0x19d, 45); set32(obj, 0x1a1, 55);       /* template k = 2 */
+    set32(obj, 0x23, 1); set32(obj, 0x27, 2); set32(obj, 0x2b, 3); set32(obj, 0x2f, 4);              /* second template j = 0 */
+    set32(obj, 0x33, 5); set32(obj, 0x37, 6); set32(obj, 0x3b, 7); set32(obj, 0x3f, 8);              /* j = 1 */
+    set32(self, 0 * 0x37 + 0x7d, 0);
+    set32(self, 1 * 0x37 + 0x7d, 1);   /* busy: skipped */
+    set32(self, 2 * 0x37 + 0x7d, 0);
+    add_region(obj_va, obj, sizeof obj);
+    w.origin_x_583186 = 7;
+    w.origin_y_58318a = -9;
+    L.tick = 5555;
+    /* n = 5: r = 100 % 6 = 4, 8 + 4 = 12 is in range; two slots take 4 and 3 more draws, r runs 4 -> 3 -> 2 */
+    queue_return(0x50cd50, 100);
+    queue_return(0x50cd50, 7);      /* slot 0: j = 7 % 2 = 1 */
+    queue_return(0x50cd50, 100);    /* slot 0: 100 % 6 = 4 -> word 4 + 4 */
+    queue_return(0x50cd50, 8);      /* slot 2: j = 0 */
+    queue_return(0x50cd50, 5);      /* slot 2: 5 % 6 -> word 5 + 4 */
+    queue_return(0x4b866e, 1);
+    queue_return(0x4b866e, 0x10002);   /* only the low word counts */
+    queue_return(0x4b85f6, 0x1ab);
+    queue_return(0x4b85f6, 0x242);
+    memcpy(expect, self, sizeof self);
+    m4b8a27_spawn_slots(self, 5, &w, &h);
+    set16(expect, 0x48, 12);
+    /* slot 0 */
+    set32(expect, 0x5a, 107); set32(expect, 0x5e, 191); set32(expect, 0x62, 310); set32(expect, 0x66, 392);
+    set32(expect, 0x6f, 392 - 100 + 6);      /* (392 - 191) / 2 = 100 */
+    set32(expect, 0x6b, 310 - 101 - 8);      /* (310 - 107) / 2 = 101 */
+    set32(expect, 0x4a, 5); set32(expect, 0x4e, 6); set32(expect, 0x52, 7); set32(expect, 0x56, 8);
+    set32(expect, 0x7d, 1);
+    expect[0x6a] = 0xab;
+    set32(expect, 0x77, 5555);
+    set16(expect, 0x7b, 8);
+    /* slot 2 (0x6e): the negative extents are halved toward zero */
+    set32(expect, 2 * 0x37 + 0x5a, 57); set32(expect, 2 * 0x37 + 0x5e, 51); set32(expect, 2 * 0x37 + 0x62, 52); set32(expect, 2 * 0x37 + 0x66, 46);
+    set32(expect, 2 * 0x37 + 0x6f, 46 + 2 + 6);   /* (46 - 51) / 2 = -2 */
+    set32(expect, 2 * 0x37 + 0x6b, 52 + 2 - 8);   /* (52 - 57) / 2 = -2 */
+    set32(expect, 2 * 0x37 + 0x4a, 1); set32(expect, 2 * 0x37 + 0x4e, 2); set32(expect, 2 * 0x37 + 0x52, 3); set32(expect, 2 * 0x37 + 0x56, 4);
+    set32(expect, 2 * 0x37 + 0x7d, 1);
+    expect[2 * 0x37 + 0x6a] = 0x42;
+    set32(expect, 2 * 0x37 + 0x77, 5555);
+    set16(expect, 2 * 0x37 + 0x7b, 9);
+    CK(memcmp(self, expect, sizeof self) == 0);
+    CK(L.n == 9 && L.ticks == 2);
+    CK(is_call(0, 0x50cd50, 0, 0));
+    CK(is_call(1, 0x4b866e, (uintptr_t)self, 0) && is_call(2, 0x50cd50, 0, 0) && is_call(3, 0x4b85f6, (uintptr_t)self, 0) && is_call(4, 0x50cd50, 0, 0));
+    CK(is_call(5, 0x4b866e, (uintptr_t)self, 0) && is_call(6, 0x50cd50, 0, 0) && is_call(7, 0x4b85f6, (uintptr_t)self, 0) && is_call(8, 0x50cd50, 0, 0));
+    /* redraws: r too small (n = 0: r = 0, the loop is not entered) and r = 1 (one slot only) */
+    reset_log();
+    add_region(obj_va, obj, sizeof obj);
+    memset(self, 0x11, sizeof self);
+    set32(self, 8, obj_va);
+    set16(self, 0x48, 8);
+    set32(self, 0x7d, 1);              /* slot 0 busy */
+    set32(self, 1 * 0x37 + 0x7d, 0);
+    set32(self, 2 * 0x37 + 0x7d, 0);
+    queue_return(0x50cd50, 1000);
+    queue_return(0x4b866e, 1);
+    set16(self, 0x48, 10);     /* cur + n == lo: the draw is made */
+    memcpy(expect, self, sizeof self);
+    m4b8a27_spawn_slots(self, 0, &w, &h);
+    set16(expect, 0x48, 10);   /* r = 1000 % 1 = 0 */
+    CK(memcmp(self, expect, sizeof self) == 0 && L.n == 1);
+    /* rejected draws: lo = 10, hi = 11, cur = 8, n = 5: 100 % 6 = 4 -> 12 > 11; 0 -> 8 < 10; 1 -> 9 < 10; 2 -> 10 is accepted */
+    reset_log();
+    add_region(obj_va, obj, sizeof obj);
+    set16(obj, 0x458, 11);
+    set16(obj, 0x173, 0);      /* no slots */
+    set16(self, 0x48, 8);
+    queue_return(0x50cd50, 100);
+    queue_return(0x50cd50, 0);
+    queue_return(0x50cd50, 1);
+    queue_return(0x50cd50, 2);
+    m4b8a27_spawn_slots(self, 5, &w, &h);
+    CK((int16_t)get16(self, 0x48) == 10 && L.n == 4 && L.ticks == 0);
+    /* a range check that fails from the start: 2 + 3 < lo, the word is set to lo and nothing is drawn (r is 0 in this port) */
+    reset_log();
+    add_region(obj_va, obj, sizeof obj);
+    set16(self, 0x48, 2);
+    m4b8a27_spawn_slots(self, 3, &w, &h);
+    CK((int16_t)get16(self, 0x48) == 10 && L.n == 0);
+    /* the sum is a signed 32-bit value: -30000 + 5 stays below lo; a sum of exactly lo is accepted without a draw of a larger value */
+    set16(self, 0x48, (uint16_t)-30000);
+    m4b8a27_spawn_slots(self, 5, &w, &h);
+    CK((int16_t)get16(self, 0x48) == 10 && L.n == 0);
+    reset_log();
+    add_region(obj_va, obj, sizeof obj);
+    set16(self, 0x48, 5);
+    queue_return(0x50cd50, 5);     /* 5 % 6 = 5: 5 + 5 = 10 == lo is accepted */
+    m4b8a27_spawn_slots(self, 5, &w, &h);
+    CK((int16_t)get16(self, 0x48) == 10 && L.n == 1);
+}
+
 /* TESTS-END */
 
 int main(void)
@@ -825,6 +1105,8 @@ int main(void)
     RUN(test_m48cc70_draw_slots);
     RUN(test_m4876ed_redraw_items);
     RUN(test_m44d28c_click);
+    RUN(test_m47608e_step_swap);
+    RUN(test_m4b8a27_spawn_slots);
     /* RUN-END */
     return failures;
 }

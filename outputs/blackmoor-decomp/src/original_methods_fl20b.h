@@ -35,6 +35,7 @@ typedef struct Fl20bWorld {
     int16_t word_6246ac, word_6246b4, word_6246b6, word_6246c7, word_6246c9;  /* 0x48cc70: record index, two table indices, two offsets */
     uint8_t byte_6246a2, byte_6246a3, byte_6246c6;                           /* 0x48cc70: selected slot, gate, flag */
     const uint8_t *bytes_6246ba, *bytes_6246be, *bytes_6246c2;               /* 0x48cc70: four flag bytes each, indexed by the slot */
+    const uint8_t *bytes_54c844, *bytes_54c850, *bytes_54c85c;  /* 0x47608e: the nine bytes that a record field is compared with (three variants) */
     const uint8_t *items_6252d5;    /* 0x4876ed: items of stride 0x85 (indexed by a signed word; the caller leaves slack below) */
     int16_t word_6252d3, word_625d4b;                                        /* 0x4876ed: record index, the selected item */
     uint32_t value_625d43, value_625d3f, value_625d47, value_625e40, value_625e3c, value_6252cf, value_6252cb;  /* 0x4876ed: flags and two draw arguments */
@@ -42,6 +43,8 @@ typedef struct Fl20bWorld {
 
 void m446688_draw_digits(Fl20bWorld *world, const Fl18Host *host);
 void m4876ed_redraw_items(Fl20bWorld *world, const Fl18Host *host);
+void m47608e_step_swap(uint8_t *self, Fl20bWorld *world, const Fl18Host *host);
+void m4b8a27_spawn_slots(uint8_t *self, int16_t n, const Fl20bWorld *world, const Fl18Host *host);
 int32_t m44d28c_click(uint8_t *self, int16_t x, int16_t y, const Fl20bWorld *world, const Fl18Host *host);
 void m48cc70_draw_slots(const Fl20bWorld *world, const Fl18Host *host);
 void m48d5f4_confirm_pick(uint8_t *self, Fl20bWorld *world, const Fl18Host *host);
