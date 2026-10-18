@@ -6029,6 +6029,950 @@
    },
    "parts_accounted": [],
    "note": "Compared the original save_and_check (saved flag, 2960-byte piece and 20-byte counter copies, saved count, total counting with spawn/mode test, target comparison, exit/win flag writes, forbidden/required checks, win-sound state/done)."
+  },
+  {
+   "va": "0x414947",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_1b_runtime.c",
+    "symbol": "action1b_step"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_1b_direct_test.c",
+     "test_id": "test_action1b_step"
+    },
+    {
+     "path": "tests/test_fl11_1b_direct.py",
+     "test_id": "FlElevenAction1bDirectTest.test_action1b_step"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1b_runtime_original_oracle.py",
+    "window": [
+     "0x414947",
+     "0x414c6d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Phases 0/1/2 (start flag, phase:=1 fall-through, request clear + first secondary-record match writing the 4 rect words, completion byte + first primary-record match or fixed block into the 7 transfer cells, mode:=4) and the no-effect ph...",
+   "blockers_reviewed": [
+    {
+     "id": "A-1B.1:852ed72cb0abacd9",
+     "rationale": "The A-1B.1 note lists the runtime phases of 0x414947 as unverified at decode time; the raw 0x1b runtime oracle now runs 0x414947 unhooked and compares the ordered store stream with action1b_step."
+    }
+   ]
+  },
+  {
+   "va": "0x42cecd",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_33_runtime.c",
+    "symbol": "second_rects"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_33_direct_test.c",
+     "test_id": "test_second_rects"
+    },
+    {
+     "path": "tests/test_fl11_33_direct.py",
+     "test_id": "FlElevenA33DirectTest.test_second_rects"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_33_runtime_original_oracle.py",
+    "window": [
+     "0x42cecd",
+     "0x42d215"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Second rectangle pair: clip against rect[1]/rect[3], full/partial/outside cases, working src2/dst2 (0x5b4e38/48), flag 0x5b4e8d and relative dst2 (0x5b4e93..) all match; shared clip_rect helper reproduces the original branches exactly (..."
+  },
+  {
+   "va": "0x42d215",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_33_runtime.c",
+    "symbol": "frame_advance"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_33_direct_test.c",
+     "test_id": "adv"
+    },
+    {
+     "path": "tests/test_fl11_33_direct.py",
+     "test_id": "FlElevenA33DirectTest.test_frame_advance"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_33_runtime_original_oracle.py",
+    "window": [
+     "0x42d215",
+     "0x42d35a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "All four jump-table cases (wrap, clamp, reverse to state 0, clamp), default fall-through and the final state1->2 candidate test (latch != row word, 32-bit vs sign-extended word as in the disassembly cmp dword [0x5c39e5], edx) match. Lim...",
+   "blockers_reviewed": [
+    {
+     "id": "A-33.1:35de5dfe55ad70d2",
+     "rationale": "The A-33.1 note lists the runtime handler descendants 0x42d215 as unverified at decode time; the raw 0x33 runtime oracle now runs 0x42d215 unhooked and compares the ordered A33 op log with frame_advance."
+    }
+   ]
+  },
+  {
+   "va": "0x44d946",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "write_alarm"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_aa_direct_test.c",
+     "test_id": "t_run"
+    },
+    {
+     "path": "tests/fl11_aa_direct_test.c",
+     "test_id": "test_write_alarm"
+    },
+    {
+     "path": "tests/test_fl11_aa_direct.py",
+     "test_id": "FlElevenAaDirectTest.test_write_alarm"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d946",
+     "0x44d9b5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Hour word 0x585d51 from alarm hour/AM flag (11 -> 12 or 0, else +13/+1) then minute word 0x585d4f := 0, in that store order, exactly as the disassembly (word stores). Limits: Indirect through phase 2; takes AlcObject instead of this-poi..."
+  },
+  {
+   "va": "0x45ba0b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "reset_work"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_da_direct_test.c",
+     "test_id": "test_reset_work"
+    },
+    {
+     "path": "tests/test_fl11_da_direct.py",
+     "test_id": "FlElevenDaDirectTest.test_reset_work"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45ba0b",
+     "0x45bbd8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Copies the 4 work rectangles into both roll sets (body+0x36d + i*0x20, 16 bytes), start positions (0x29/0x2b), mode:=0, current rects from body+0xad+(pos-1)*16, the two marker images (0x3ed..), and clears anim_active/button_kind/deadlin..."
+  },
+  {
+   "va": "0x45bcc1",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "step_check"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_da_direct_test.c",
+     "test_id": "test_step_check"
+    },
+    {
+     "path": "tests/test_fl11_da_direct.py",
+     "test_id": "FlElevenDaDirectTest.test_step_check"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45bcc1",
+     "0x45bda7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Compares the two position words; on equality picks the caption (names at 0x6e1+side*0x2dc, 4 names, entry=side), state:=6, deadline:=GetTickCount+0x4b0, copies the 16-byte marker image from body+0x40d+side*16, increments the side's scor..."
+  },
+  {
+   "va": "0x45be7f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "caption_pick"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_da_direct_test.c",
+     "test_id": "test_caption_pick"
+    },
+    {
+     "path": "tests/test_fl11_da_direct.py",
+     "test_id": "FlElevenDaDirectTest.test_caption_pick"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45be7f",
+     "0x45c18f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Fills the caption descriptor fields, picks the sound name (single name, or random draw with 'NO SOUND' tracking until a real name or all tried), copies it to +0x184, then prepare, play on channel, AUTOTEXT lookup, appends '<e>' and show..."
+  },
+  {
+   "va": "0x461d4b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "type_is"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_d3_direct_test.c",
+     "test_id": "test_type_is"
+    },
+    {
+     "path": "tests/test_fl11_d3_direct.py",
+     "test_id": "FlElevenD3DirectTest.test_type_is"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x461d4b",
+     "0x461d82"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Returns cell[a][b].type == piece, same as word at 0x594dd9 + b*0x28 + a*0x140 compared to piece. Limits: Result observable only indirectly (no hook on its return)."
+  },
+  {
+   "va": "0x462577",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "grid_setup"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_d3_direct_test.c",
+     "test_id": "test_grid_setup"
+    },
+    {
+     "path": "tests/test_fl11_d3_direct.py",
+     "test_id": "FlElevenD3DirectTest.test_grid_setup"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x462577",
+     "0x462b84"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "One-time setup guarded by flag: zero each 0x28-byte cell, type from body+0x28+a*16+b*2, base and rect via cell_rect, arrow cell adjustments (0x10/0x13 horizontal, 0x11/0x12 vertical, gap/2 and size/2 integer divides), piece number and v..."
+  },
+  {
+   "va": "0x462b84",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cell_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_d3_direct_test.c",
+     "test_id": "test_cell_rect"
+    },
+    {
+     "path": "tests/test_fl11_d3_direct.py",
+     "test_id": "FlElevenD3DirectTest.test_cell_rect"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x462b84",
+     "0x462c39"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Cell rectangle: x = gap*b + view_x + origin_x + b*cell_w, right = x + cell_w, y likewise with a/cell_h; identical to pseudocode, view origin supplied as parameters instead of globals 0x583186/0x58318a. Limits: Takes view_x/view_y as arg..."
+  },
+  {
+   "va": "0x4632bf",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "solved_scan"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_d3_direct_test.c",
+     "test_id": "test_solved_scan"
+    },
+    {
+     "path": "tests/test_fl11_d3_direct.py",
+     "test_id": "FlElevenD3DirectTest.test_solved_scan"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x4632bf",
+     "0x463392"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Scans rows x cols, returns silently at the first occupied cell whose type != piece number; otherwise solved:=1 and state:=1 with a state observer effect. Matches pseudocode (+0x47, +0x24). Limits: Takes a CpzHost for the observer; indir..."
+  },
+  {
+   "va": "0x47e52f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "translate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_eb_direct_test.c",
+     "test_id": "test_translate"
+    },
+    {
+     "path": "tests/test_fl11_eb_direct.py",
+     "test_id": "FlElevenEbDirectTest.test_translate"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e52f",
+     "0x47e582"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Rectangle + view origin (x += origin_x, y += origin_y) from one object offset to another; identical to the four stores of the pseudocode; origin via host->view seam instead of globals 0x583186/0x58318a. Limits: Offsets in the object ima..."
+  },
+  {
+   "va": "0x47f275",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "follow_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_eb_direct_test.c",
+     "test_id": "test_follow_pointer"
+    },
+    {
+     "path": "tests/test_fl11_eb_direct.py",
+     "test_id": "FlElevenEbDirectTest.test_follow_pointer"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47f275",
+     "0x47f421"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Copies move/move_t into prev/prev_t, recenters the moving rect on the pointer rect centre (using hw/hh halves), clamps (0x47f19d), translates, and if prev y edges were zero seeds prev from move; all offsets (0x1352..0x138e, 0x13cf..0x13..."
+  },
+  {
+   "va": "0x47fa11",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "rotate_piece"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_eb_direct_test.c",
+     "test_id": "test_rotate_piece"
+    },
+    {
+     "path": "tests/test_fl11_eb_direct.py",
+     "test_id": "FlElevenEbDirectTest.test_rotate_piece"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47fa11",
+     "0x47fb76"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "lift:=1, saves rect, orientation+1 mod 4, recentres with old/new entry widths/heights (16-bit truncations and /2 as in pseudocode), new right/bottom from entry rect, clamp, translate; matches. Limits: Indirect aggregate comparison; retu..."
+  },
+  {
+   "va": "0x47fb76",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "multi_pick"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_eb_direct_test.c",
+     "test_id": "test_multi_pick"
+    },
+    {
+     "path": "tests/test_fl11_eb_direct.py",
+     "test_id": "FlElevenEbDirectTest.test_multi_pick"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47fb76",
+     "0x47fd65"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "lift:=1, saves rect; if the type's E rectangle is invalid recentres on the D rectangle (16-bit truncated centre, dr-dl, db-dt), clamps, translates; else copies E and translates (no clamp). Matches pseudocode including the 0x47e99e test..."
+  },
+  {
+   "va": "0x4841cb",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "translate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_piece_init"
+    },
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_translate"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_translate_0x4841cb"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4841cb",
+     "0x48421e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Same rectangle+view-origin translator as 0x47e52f in the 0xea object (separate original, separate native copy); four stores identical to pseudocode. Limits: Offsets in the object image; host->view seam.",
+   "blockers_reviewed": [
+    {
+     "id": "A-EA.1:c0fcb108283c8976",
+     "rationale": "The A-EA.1 note lists the 0xea runtime object methods as unverified at decode time; the raw 0xea runtime oracle now runs 0x4841cb unhooked and compares the object image and host log with translate."
+    }
+   ]
+  },
+  {
+   "va": "0x48421e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "piece_init"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_piece_init"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_piece_init_0x48421e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x48421e",
+     "0x484622"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Builds piece i exactly as the original: z:=0, orientation/loose flags from body+0x40/0x41, rect from D (loose=0) or C (loose=1, orientation:=0, layer lookup sets z), src rect A/B by rect test and flag at +0x84, create surface, entry rec..."
+  },
+  {
+   "va": "0x484935",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "set_layer"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "layer_run"
+    },
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_set_layer"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_set_layer_0x484935"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484935",
+     "0x484ac0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "set_layer(obj, body, i) does all of FUN_00484935: layer-table branch (body+0x56 != 0 sets Z to the matching index), else collects overlapping pieces via 0x484762 and sets Z = max(Z, others) + 1. Same fields (piece Z word), same short wr..."
+  },
+  {
+   "va": "0x484caf",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "clamp_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "clamp_case"
+    },
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_clamp_rect"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_clamp_rect_0x484caf"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484caf",
+     "0x484d87"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "clamp_rect(obj, off, host) is FUN_00484caf 1:1: size kept as 16-bit width/height, then top, bottom, left, right clamps against the four clip globals (host->view supplies them); signed compares verified (jge/jle) in the disassembly. Rect..."
+  },
+  {
+   "va": "0x484d87",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "follow_pointer"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "follow_setup"
+    },
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_follow_pointer"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_follow_pointer_0x484d87"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484d87",
+     "0x484f0d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "follow_pointer(obj, host) reproduces FUN_00484d87: copy +0xab0 rect to +0xaa0 and +0xad0 rect to +0xac0, recentre the moving rect on the pointer rect (signed /2 centre arithmetic, PW/PH shorts), then clamp (0x484caf) and translate (0x48..."
+  },
+  {
+   "va": "0x4853b0",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "rotate_piece"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "t_rotate_piece"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_rotate_piece_0x4853b0"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4853b0",
+     "0x4854fb"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "rotate_piece(obj, i, host) is FUN_004853b0 1:1: lift flag, save rect to +0xae0, remember centre with the old orientation entry, orientation+1 wrapping at 4, new rect around the centre, clamp, translate. All operand widths (short centre,..."
+  },
+  {
+   "va": "0x4866b4",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "inside_area"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "inside_run"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_inside_area_0x4866b4"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4866b4",
+     "0x486725"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "inside_area(obj, body, off) is FUN_004866b4: rect inside the body area rectangle (body+0x5a7..0x5b3), returns 0/1 with the same four compares. The original takes a rect pointer; native takes an offset inside obj, which matches its only..."
+  },
+  {
+   "va": "0x486725",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "check_solved"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "solved_fixture"
+    },
+    {
+     "path": "tests/fl11_ea_direct_test.c",
+     "test_id": "solved_run"
+    },
+    {
+     "path": "tests/test_fl11_ea_direct.py",
+     "test_id": "Fl11EaDirect.test_check_solved_0x486725"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x486725",
+     "0x4867bd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "check_solved(obj, body) is FUN_00486725: every unplaced piece must have zero C-rect top and bottom in the body, otherwise return; if all pass, state := 6 (EA_STATE_DONE) and done byte +0xbb0 := 1. Offsets verified (+0x4b piece placed by..."
+  },
+  {
+   "va": "0x4b832c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "clock_update"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "clock_run"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_clock_update"
+    },
+    {
+     "path": "tests/test_fl11_f5_direct.py",
+     "test_id": "FlElevenF5DirectTest.test_clock_update"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b832c",
+     "0x4b844d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "clock_update(o, body, world, host) is FUN_004b832c: elapsed = tick - start (stored at +0x632), remaining = limit - elapsed/1000 (unsigned div, signed idiv by 60 and signed 0x3b clamps verified in the disassembly), conditional store of m..."
+  },
+  {
+   "va": "0x4b844d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "score_update"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "score_run"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_score_update"
+    },
+    {
+     "path": "tests/test_fl11_f5_direct.py",
+     "test_id": "FlElevenF5DirectTest.test_score_update"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b844d",
+     "0x4b8520"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "score_update is FUN_004b844d: secs = elapsed/1000; if secs>0 and hits!=0 score = (short)__ftol(float(hits)/(float(factor)*float(secs))*60.0f) with the x87 float/double staging reproduced; set_score (0x44655e) when score != prev; state :..."
+  },
+  {
+   "va": "0x4b85f6",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "pick_char"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "pc_run"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_first_wave"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_pick_char"
+    },
+    {
+     "path": "tests/test_fl11_f5_direct.py",
+     "test_id": "FlElevenF5DirectTest.test_pick_char"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b85f6",
+     "0x4b866e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "pick_char(o, body, host, out) is FUN_004b85f6: loop of _rand() % (max_char - base) + base (base 0x30 when body+0x432 digits flag else 0x41; max_char is obj+0x63b as a short) until 0x4b8520 (char_allowed) accepts; returns the char (AL)...."
+  },
+  {
+   "va": "0x4b866e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "pick_position"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "pp_run"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "pp_setup"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_first_wave"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_pick_position"
+    },
+    {
+     "path": "tests/test_fl11_f5_direct.py",
+     "test_id": "FlElevenF5DirectTest.test_pick_position"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b866e",
+     "0x4b8783"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "pick_position(o, body, host, view_x, view_y, out) is FUN_004b866e: draw _rand, c = r % N, rescan balloons (state != 0 and screen rect minus view origin equal to position rect c) and redraw until free; returns c (AX). View origin supplie..."
+  },
+  {
+   "va": "0x4b8783",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "first_wave"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "fw_setup"
+    },
+    {
+     "path": "tests/fl11_f5_direct_test.c",
+     "test_id": "test_first_wave"
+    },
+    {
+     "path": "tests/test_fl11_f5_direct.py",
+     "test_id": "FlElevenF5DirectTest.test_first_wave"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8783",
+     "0x4b8a27"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "first_wave is FUN_004b8783: count = rand % (max-min+1) + min, clear all 20 balloon records (0x113 dwords), then for each balloon the position/rect/variant/char/tick/lifetime sequence in the original draw order (via the shared helper pla..."
+  },
+  {
+   "va": "0x4cf0a9",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_2d_runtime.c",
+    "symbol": "rand_mod"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_2d_direct_test.c",
+     "test_id": "test_rand_mod"
+    },
+    {
+     "path": "tests/test_fl11_2d_direct.py",
+     "test_id": "FlEleven2DDirectTest.test_rand_mod"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_2d_runtime_original_oracle.py",
+    "window": [
+     "0x4cf0a9",
+     "0x4cf0ce"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "rand_mod(h, count, out, why) is FUN_004cf0a9: one _rand; raw value for -1, else signed r % count. The zero divisor (original idiv fault) yields D2_ERR_BODY after the draw, same order. Limits: Static. Also called by native code that corr..."
+  },
+  {
+   "va": "0x4cf0ce",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_2d_runtime.c",
+    "symbol": "pick_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl11_2d_direct_test.c",
+     "test_id": "test_pick_record"
+    },
+    {
+     "path": "tests/test_fl11_2d_direct.py",
+     "test_id": "FlEleven2DDirectTest.test_pick_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_2d_runtime_original_oracle.py",
+    "window": [
+     "0x4cf0ce",
+     "0x4cf1e4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "pick_record(o, h, out, why) is FUN_004cf0ce: total = clip weight + sum of record weights (short, sign-extended), r = rand_mod(total), clip weight window [0, w) returns -1, then cumulative record windows return the record index, else -1...."
   }
  ],
  "not_needed_entries": [
