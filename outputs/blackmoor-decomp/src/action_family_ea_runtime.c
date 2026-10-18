@@ -222,7 +222,8 @@ int16_t ea_object_row(const EaObject *object) { return rd_s16(object->b, O_ROW);
 int ea_object_active(const EaObject *object) { return rd_s32(object->b, O_ACTIVE) != 0; }
 uint32_t ea_object_state(const EaObject *object) { return (uint32_t)rd_s32(object->b, O_STATE); }
 
-/* 0x484f0d: nonzero when the rectangle has a nonzero width and height edge pair. */
+/* original GAME.EXE 0x484f0d (FUN_00484f0d): nonzero when the rectangle has a nonzero width and height edge pair. The
+ * original takes a pointer to the rectangle; native takes the body and the rectangle offset. */
 static int rect_valid(const uint8_t *body, size_t off)
 {
     return !(rd_s32(body, off + 12) == rd_s32(body, off + 4) || rd_s32(body, off + 8) == rd_s32(body, off));
@@ -1298,6 +1299,9 @@ int ea_rotate_key(EaObject *object, uint8_t *body, size_t body_length, uint32_t 
     return EA_OK;
 }
 
+/* original GAME.EXE 0x4840d9 (FUN_004840d9): if the dword at object+0xba7 (active) is nonzero and the word at object+0x1c
+ * (slot) is not -1, store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that
+ * global store. Native only: NULL arguments return EA_ERR_ARGUMENT, a nonzero host result EA_ERR_HOST. */
 int ea_invalidate(EaObject *object, const EaHost *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return EA_ERR_ARGUMENT;

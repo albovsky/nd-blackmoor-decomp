@@ -112,7 +112,7 @@ static int no_sound(const uint8_t *name)
     return memcmp(name, k, sizeof k) == 0;
 }
 
-/* 0x45be3f: a real sound name is not "NO SOUND" and not empty. */
+/* original GAME.EXE 0x45be3f (FUN_0045be3f): a real sound name is not "NO SOUND" and not empty. */
 static int real_name(const uint8_t *name)
 {
     return !no_sound(name) && name[0] != 0;
@@ -977,6 +977,9 @@ int bul_click(BulObject *object, const uint8_t *body, size_t body_length, const 
     return BUL_OK;
 }
 
+/* original GAME.EXE 0x45b477 (FUN_0045b477): if object+0x166 (active) is nonzero and the word at object+0x1c (slot) is not -1,
+ * store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that global store. Native
+ * only: NULL arguments or an incomplete host return BUL_ERR_ARGUMENT, a nonzero host result BUL_ERR_HOST. */
 int bul_invalidate(const BulObject *object, const BulHost *host)
 {
     if (object == NULL || !host_complete(host)) return BUL_ERR_ARGUMENT;

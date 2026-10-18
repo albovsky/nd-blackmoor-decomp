@@ -7291,6 +7291,636 @@
    },
    "parts_accounted": [],
    "note": "1:1 with find_entry (no file: NULL; else +0x136 reset and counted per miss; sign-extended id, first match). Returns a C1cEntry pointer; oracle does not compare +0x136."
+  },
+  {
+   "va": "0x445f53",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_reset_score"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_std_reset_score"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_std_reset_score_445f53"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x445f53",
+     "0x445fc5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with std_reset_score (zeroes +4, +0xc, +0x23c, string first bytes +0x25c/+0x27a, digit tables +0x14/+0x3c, block +0xbc). StdDisplay is a field-per-offset model starting at object offset 4; offsets asserted in the test."
+  },
+  {
+   "va": "0x445fc5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_reset_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_std_reset_clock"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_std_reset_clock_445fc5"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x445fc5",
+     "0x446075"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with std_reset_clock (zeroes +8, +0x10, +0xb4/+0xb8, +0x240/+0x244, string first bytes, tables +0x64/+0x8c, block +0x174). Field-per-offset model."
+  },
+  {
+   "va": "0x446532",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_enable_score"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_std_enable_score_446532"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446532",
+     "0x446548"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with std_enable_score (stores the argument into +4 and nothing else). Field-per-offset model."
+  },
+  {
+   "va": "0x446548",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_enable_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_std_enable_clock_446548"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446548",
+     "0x44655e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with std_enable_clock (stores the argument into +8 and nothing else). Field-per-offset model."
+  },
+  {
+   "va": "0x44655e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_set_score"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_std_set_score"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_std_set_score_44655e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x44655e",
+     "0x446598"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with std_set_score (store +0x23c, sprintf \"%d\" into +0x25c). Native-only: STD_ERR_BOUNDS and no store for a score below 0 or above 99999999 (original has no guard); returns int where the original is void."
+  },
+  {
+   "va": "0x446598",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/score_time_display.c",
+    "symbol": "std_set_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_std_set_clock"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_std_set_clock_446598"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446598",
+     "0x4465fd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with std_set_clock (stores +0x240/+0x244, sprintf \"%02d\" into +0x248/+0x252). Native-only: STD_ERR_BOUNDS and no store when a value is outside 0..99 (original has no guard); returns int where the original is void."
+  },
+  {
+   "va": "0x4b8087",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_world_new_game"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_tqz_world_new_game"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_tqz_world_new_game_4b8087"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8087",
+     "0x4b80a5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with tqz_world_new_game (dword [0x5a4c0a] := 0, word [0x5a4c0e] := 0; widths read from the disassembly). The two process cells are fields of a TqzWorld parameter instead of absolute addresses."
+  },
+  {
+   "va": "0x4b80a5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_tqz_invalidate"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_tqz_invalidate_4b80a5"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b80a5",
+     "0x4b80d9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with tqz_invalidate (active +0x14 != 0 and slot +4 != -1, then redraw dword := 1). The store is the host mark_dirty callback, called once with the slot; TQZ_OK/TQZ_ERR_HOST where the original is void."
+  },
+  {
+   "va": "0x4b8193",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_key"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_tqz_key"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_tqz_key_4b8193"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8193",
+     "0x4b81ff"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with tqz_key (active, state 0, no pending key, row phase 1, filter, then key_char and key_pending := 1). Row phase is a parameter; the filter is native copy tqz_key_filter, tested equal to 0x437ea1 on all 256 bytes; returns 1/0."
+  },
+  {
+   "va": "0x4b82cd",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "tqz_click"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_tqz_click"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_tqz_click_4b82cd"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b82cd",
+     "0x4b832c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with tqz_click (active, not finishing, state 0, row phase 1, candidate 0x27eb, then phase := 2). Row phase and candidate are parameters; the phase store is returned via *new_phase; returns 1/0 where the original is void."
+  },
+  {
+   "va": "0x4eb70f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_7d_runtime.c",
+    "symbol": "scene_restore_slot_save"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_scene_restore_slot_save"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_scene_restore_slot_save_4eb70f"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_7d_runtime_original_oracle.py",
+    "window": [
+     "0x4eb70f",
+     "0x4eb77d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with scene_restore_slot_save (five word stores, low word of the stack argument, dwords at +0x5c3a25/+0x5c3a29; the 0x5bb5ab store is overwritten by 0x5bb5af). Record and globals are struct parameters; NULL args ignored (native-only)."
+  },
+  {
+   "va": "0x4b5c11",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d1_runtime.c",
+    "symbol": "d1_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_d1_invalidate"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_d1_invalidate_4b5c11"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b5c11",
+     "0x4b5c48"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with d1_invalidate (active +0x225 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> D1_ERR_ARGUMENT, host error -> D1_ERR_HOST."
+  },
+  {
+   "va": "0x48d0e5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "d0_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_d0_invalidate"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_d0_invalidate_48d0e5"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d0e5",
+     "0x48d119"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with d0_invalidate (active +0x33 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> D0_ERR_ARGUMENT, host error -> D0_ERR_HOST."
+  },
+  {
+   "va": "0x45b477",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "bul_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_da_direct_test.c",
+     "test_id": "test_bul_invalidate_45b477"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_bul_invalidate_45b477"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b477",
+     "0x45b4ae"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with bul_invalidate (active +0x166 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> BUL_ERR_ARGUMENT, host error -> BUL_ERR_HOST."
+  },
+  {
+   "va": "0x4618ab",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_d3_direct_test.c",
+     "test_id": "test_cpz_invalidate_4618ab"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_cpz_invalidate_4618ab"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x4618ab",
+     "0x4618df"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with cpz_invalidate (active +0x3f != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> CPZ_ERR_ARGUMENT, host error -> CPZ_ERR_HOST."
+  },
+  {
+   "va": "0x4618df",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d3_runtime.c",
+    "symbol": "cpz_grid_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_d3_direct_test.c",
+     "test_id": "test_cpz_grid_reset_4618df"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_cpz_grid_reset_4618df"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x4618df",
+     "0x461903"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with cpz_grid_reset (flag byte 0x594db3 := 0, then 0x280 dwords from 0x594db5 := 0). The grid lives in a CpzWorld struct, so the unused byte at 0x594db4 is not modelled; 0x5bb1ca untouched; no NULL check."
+  },
+  {
+   "va": "0x4758e8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "e4r_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_e4_direct_test.c",
+     "test_id": "test_e4r_invalidate_4758e8"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_e4r_invalidate_4758e8"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x4758e8",
+     "0x47591f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with e4r_invalidate (active +0x89a != 0 and slot +0x20 != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> E4R_ERR_ARGUMENT, host error -> E4R_ERR_HOST (observer too)."
+  },
+  {
+   "va": "0x47e440",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_eb_direct_test.c",
+     "test_id": "test_eb_invalidate_47e440"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_eb_invalidate_47e440"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e440",
+     "0x47e477"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with eb_invalidate (active +0x13c5 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> EB_ERR_ARGUMENT, host error -> EB_ERR_HOST."
+  },
+  {
+   "va": "0x4840d9",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "ea_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_ea_direct_test.c",
+     "test_id": "test_ea_invalidate_4840d9"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_ea_invalidate_4840d9"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4840d9",
+     "0x484110"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with ea_invalidate (active +0xba7 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> EA_ERR_ARGUMENT, host error -> EA_ERR_HOST."
+  },
+  {
+   "va": "0x48bc38",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_mark_dirty"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_d8_direct_test.c",
+     "test_id": "test_d8_mark_dirty_48bc38"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_d8_mark_dirty_48bc38"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48bc38",
+     "0x48bc9b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with d8_mark_dirty (active +0x46 != 0: slot_a +0x2e != -1 then slot_b +0x30 != -1, each marks the entry). Stores are host mark_dirty callbacks. Native-only: NULL args -> D8_ERR_ARGUMENT, host error -> D8_ERR_HOST, no mark_dirty skipped."
+  },
+  {
+   "va": "0x48c148",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "d8_press"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_d8_direct_test.c",
+     "test_id": "test_d8_press_48c148"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_d8_press_48c148"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48c148",
+     "0x48c1c0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with d8_press (active, row phase 1, candidate 0x27a7, can_move[hot]: first press stores GetTickCount in +0x50, then dir := hot, pressed := 1). Phase and candidate are parameters, tick a host callback; hot outside 0..3 skipped."
+  },
+  {
+   "va": "0x44d19d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-14 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "alc_invalidate"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_aa_direct_test.c",
+     "test_id": "test_alc_invalidate_44d19d"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_alc_invalidate_44d19d"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d19d",
+     "0x44d1d1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with alc_invalidate (active +0x25 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> ALC_ERR_ARGUMENT, host error -> ALC_ERR_HOST."
   }
  ],
  "not_needed_entries": [

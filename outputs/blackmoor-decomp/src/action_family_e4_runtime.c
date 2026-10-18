@@ -916,6 +916,10 @@ int e4r_click(E4rObject *o, const uint8_t *body, size_t body_length, uint32_t ro
     return E4R_OK;
 }
 
+/* original GAME.EXE 0x4758e8 (FUN_004758e8): if the dword at object+0x89a (active) is nonzero and the word at object+0x20
+ * (slot) is not -1, store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that global
+ * store. Native only: NULL arguments return E4R_ERR_ARGUMENT, a nonzero host result E4R_ERR_HOST; the observer also records
+ * the call. */
 int e4r_invalidate(E4rObject *object, const E4rHost *host)
 {
     int16_t slot;

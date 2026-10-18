@@ -25,6 +25,7 @@ static void fx(const StdHost *host, int effect, int32_t a, int32_t b)
     if (host != NULL && host->observe != NULL) host->observe(host->context, effect, a, b);
 }
 
+/* original GAME.EXE 0x445f53 (FUN_00445f53): reset of the score half; zeroes enabled (+4), ready (+0xc), score (+0x23c), the strings (+0x25c, +0x27a first byte), the digit tables (+0x14, +0x3c) and the block (+0xbc, 0x2e dwords). */
 void std_reset_score(StdDisplay *d)
 {
     d->score_enabled = 0;
@@ -37,6 +38,7 @@ void std_reset_score(StdDisplay *d)
     memset(d->score_block, 0, sizeof d->score_block);
 }
 
+/* original GAME.EXE 0x445fc5 (FUN_00445fc5): reset of the clock half; zeroes enabled (+8), ready (+0x10), colon size (+0xb4, +0xb8), minutes and seconds (+0x240, +0x244), the four strings' first bytes, the digit tables (+0x64, +0x8c) and the block (+0x174, 0x32 dwords). */
 void std_reset_clock(StdDisplay *d)
 {
     d->clock_enabled = 0;
@@ -54,16 +56,19 @@ void std_reset_clock(StdDisplay *d)
     memset(d->clock_block, 0, sizeof d->clock_block);
 }
 
+/* original GAME.EXE 0x446532 (FUN_00446532): store the argument into +4. */
 void std_enable_score(StdDisplay *d, int32_t value)
 {
     d->score_enabled = value;
 }
 
+/* original GAME.EXE 0x446548 (FUN_00446548): store the argument into +8. */
 void std_enable_clock(StdDisplay *d, int32_t value)
 {
     d->clock_enabled = value;
 }
 
+/* original GAME.EXE 0x44655e (FUN_0044655e): store the score (+0x23c) and sprintf "%d" into +0x25c. The native adds a STD_ERR_BOUNDS guard (score < 0 or > 99999999) that the original lacks; it refuses before any store. */
 int std_set_score(StdDisplay *d, int32_t score)
 {
     if (score < 0 || score > 99999999) return STD_ERR_BOUNDS;
@@ -72,6 +77,7 @@ int std_set_score(StdDisplay *d, int32_t score)
     return STD_OK;
 }
 
+/* original GAME.EXE 0x446598 (FUN_00446598): store minutes (+0x240) and seconds (+0x244) and sprintf "%02d" into +0x248 / +0x252. The native adds a STD_ERR_BOUNDS guard (either value outside 0..99) that the original lacks; it refuses before any store. */
 int std_set_clock(StdDisplay *d, int32_t minutes, int32_t seconds)
 {
     if (minutes < 0 || minutes > 99 || seconds < 0 || seconds > 99) return STD_ERR_BOUNDS;
