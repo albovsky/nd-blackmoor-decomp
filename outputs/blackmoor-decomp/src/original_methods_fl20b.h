@@ -42,6 +42,7 @@ typedef struct Fl20bWorld {
 
 void m446688_draw_digits(Fl20bWorld *world, const Fl18Host *host);
 void m4876ed_redraw_items(Fl20bWorld *world, const Fl18Host *host);
+int32_t m44d28c_click(uint8_t *self, int16_t x, int16_t y, const Fl20bWorld *world, const Fl18Host *host);
 void m48cc70_draw_slots(const Fl20bWorld *world, const Fl18Host *host);
 void m48d5f4_confirm_pick(uint8_t *self, Fl20bWorld *world, const Fl18Host *host);
 

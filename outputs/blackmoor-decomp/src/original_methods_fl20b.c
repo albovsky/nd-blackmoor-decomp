@@ -345,3 +345,72 @@ void m4876ed_redraw_items(Fl20bWorld *world, const Fl18Host *host)
         world->value_625e3c = 0;
     }
 }
+
+/* the point (x, y) lies on or inside the box of the object rec whose dword edges are at the given offsets (signed compares) */
+UNUSED_OK static int in_box(const uint8_t *rec, int32_t x, int32_t y, ptrdiff_t xlo, ptrdiff_t xhi, ptrdiff_t ylo, ptrdiff_t yhi)
+{
+    return y >= (int32_t)rd32(rec, ylo) && y <= (int32_t)rd32(rec, yhi) && x >= (int32_t)rd32(rec, xlo) && x <= (int32_t)rd32(rec, xhi);
+}
+
+/* original GAME.EXE 0x44d28c (FUN_0044d28c), this = self, stack arguments x and y (words, sign-extended; ret 8); returns 1 or 0. When
+ * the dword [self+0x25] is 0: byte [self+0x24] := 0, returns 0. Otherwise byte [self+0x24] := 1; rec = the dword of the 0x5bb5e5-based
+ * record at the signed word [self+0x1e] (stride 0x8d; host memory through resolve). When x > dword [rec+0x99], or y > dword [rec+0x8d],
+ * or x < dword [rec+0x51]: dword [self+0x29] := 0, returns 0. Otherwise dword [self+0x29] := 1 and the first box (signed compares,
+ * edges inclusive; fields are x low, x high, y low, y high) that holds the point decides: when the dword [self+0x2d] is 0, box
+ * [rec+0x61, 0x69, 0x65, 0x6d]: 0x44d597 on self with 1, returns 1; when it is 1, in this order, [0x51, 0x59, 0x55, 0x5d]: 0x44d597 with
+ * 0; [0x91, 0x99, 0x95, 0x9d]: with 3; [0xa1, 0xa9, 0xa5, 0xad]: with 4; [0x71, 0x79, 0x75, 0x7d]: with 6 (each then returns 1); for any
+ * value [0x81, 0x89, 0x85, 0x8d]: 0x44d597 with 8, returns 1; [0x21, 0x29, 0x25, 0x2d], [0x31, 0x39, 0x35, 0x3d] or [0xb1, 0xb9, 0xb5,
+ * 0xbd]: byte [self+0x24] := 1, returns 0; none: byte [self+0x24] := 0, returns 0. (0x44d597 is also ported, as m44d597_press in FL-19;
+ * here it goes through the host.) */
+int32_t m44d28c_click(uint8_t *self, int16_t x, int16_t y, const Fl20bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *rec;
+    int32_t px = x, py = y;
+    if (rd32(self, 0x25) == 0) {
+        self[0x24] = 0;
+        return 0;
+    }
+    self[0x24] = 1;
+    rec = host->resolve(host->context, rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d));
+    if (px > (int32_t)rd32(rec, 0x99) || py > (int32_t)rd32(rec, 0x8d) || px < (int32_t)rd32(rec, 0x51)) {
+        wr32(self, 0x29, 0);
+        return 0;
+    }
+    wr32(self, 0x29, 1);
+    if (rd32(self, 0x2d) == 0 && in_box(rec, px, py, 0x61, 0x69, 0x65, 0x6d)) {
+        call1(host, 0x44d597, (uintptr_t)self, 1);
+        return 1;
+    }
+    if (rd32(self, 0x2d) == 1) {
+        if (in_box(rec, px, py, 0x51, 0x59, 0x55, 0x5d)) {
+            call1(host, 0x44d597, (uintptr_t)self, 0);
+            return 1;
+        }
+        if (in_box(rec, px, py, 0x91, 0x99, 0x95, 0x9d)) {
+            call1(host, 0x44d597, (uintptr_t)self, 3);
+            return 1;
+        }
+        if (in_box(rec, px, py, 0xa1, 0xa9, 0xa5, 0xad)) {
+            call1(host, 0x44d597, (uintptr_t)self, 4);
+            return 1;
+        }
+        if (in_box(rec, px, py, 0x71, 0x79, 0x75, 0x7d)) {
+            call1(host, 0x44d597, (uintptr_t)self, 6);
+            return 1;
+        }
+    }
+    if (in_box(rec, px, py, 0x81, 0x89, 0x85, 0x8d)) {
+        call1(host, 0x44d597, (uintptr_t)self, 8);
+        return 1;
+    }
+    if (in_box(rec, px, py, 0x21, 0x29, 0x25, 0x2d) || in_box(rec, px, py, 0x31, 0x39, 0x35, 0x3d)) {
+        self[0x24] = 1;
+        return 0;
+    }
+    if (in_box(rec, px, py, 0xb1, 0xb9, 0xb5, 0xbd)) {
+        self[0x24] = 1;
+        return 0;
+    }
+    self[0x24] = 0;
+    return 0;
+}

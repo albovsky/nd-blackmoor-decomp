@@ -469,6 +469,47 @@ class Fl20bDifferential(DiffBase):
                       pointers={'records_5bb5e5': ('records', slack), 'items_6252d5': ('items', 0)})
         self.finish(0x4876ed, size, executed)
 
+    # ---- 0x44d28c ----
+    def test_44d28c_click(self):
+        """FL-20b: differential test of m44d28c_click (original 0x44d28c)"""
+        rng = random.Random(0x44d28c)
+        executed = set()
+        size = 0x44d597 - 0x44d28c
+        boxes = [(0x61, 0x69, 0x65, 0x6d), (0x51, 0x59, 0x55, 0x5d), (0x91, 0x99, 0x95, 0x9d), (0xa1, 0xa9, 0xa5, 0xad), (0x71, 0x79, 0x75, 0x7d),
+                 (0x81, 0x89, 0x85, 0x8d), (0x21, 0x29, 0x25, 0x2d), (0x31, 0x39, 0x35, 0x3d), (0xb1, 0xb9, 0xb5, 0xbd)]
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
+            struct.pack_into('<h', this.data, 0x1e, index)
+            struct.pack_into('<I', this.data, 0x25, rng.choice([0, 1, 1, 1, 1, 1, 1, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x2d, rng.choice([0, 1, 1, 0, 1, 2, 0xffffffff]))
+            records, slack = self.records_area(rng, nrec=4, slack=0)
+            struct.pack_into('<I', records.data, index * 0x8d, od.region_va(1))
+            rec = bytearray(rng.randbytes(0x100))
+            x, y = rng.randrange(-30, 30), rng.randrange(-30, 30)
+            if rng.random() < 0.15:
+                x, y = rng.choice([-32768, 32767, -1, 0]), rng.choice([-32768, 32767, -1, 0])
+            for (xl, xh, yl, yh) in boxes:
+                inside = rng.random() < 0.5
+                deltas = [0, 1, -1, 1, -1, 50, -50, rng.randrange(-60, 60)]
+                if inside:   # the point lies inside, on or one unit off the edges
+                    vals = [x - rng.choice([0, 0, 1, 2, 7]), x + rng.choice([0, 0, 1, 2, 7]), y - rng.choice([0, 0, 1, 2, 7]), y + rng.choice([0, 0, 1, 2, 7])]
+                else:
+                    vals = [x + rng.choice(deltas), x + rng.choice(deltas), y + rng.choice(deltas), y + rng.choice(deltas)]
+                for off, v in zip((xl, xh, yl, yh), vals):
+                    struct.pack_into('<i', rec, off, max(-1 << 31, min((1 << 31) - 1, v)))
+            if rng.random() < 0.8:   # the region limits let the point through
+                struct.pack_into('<i', rec, 0x51, max(-1 << 31, x - rng.choice([0, 0, 1, 5])))
+                struct.pack_into('<i', rec, 0x99, min((1 << 31) - 1, x + rng.choice([0, 0, 1, 5])))
+                struct.pack_into('<i', rec, 0x8d, min((1 << 31) - 1, y + rng.choice([0, 0, 1, 5])))
+            obj = Area('obj', od.region_va(1), rec, image=False, compare=False)
+            stubs = {0x44d597: od.Stub(0x44d597, args=1, this=True, cleanup=4)}
+            hx, hy = rng.randrange(1 << 16) << 16, rng.randrange(1 << 16) << 16
+            self.pair(5, 0x44d28c, size, [this, records, obj], stubs, {}, ecx=od.region_va(0),
+                      stack=[hx | (x & 0xffff), hy | (y & 0xffff)], cleanup=8, args=(x & 0xffff, y & 0xffff), self_name='self',
+                      executed=executed, ret_mask=0xffffffff, pointers={'records_5bb5e5': ('records', 0)})
+        self.finish(0x44d28c, size, executed)
+
     # DIFF-END
 
 

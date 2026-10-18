@@ -3,6 +3,7 @@
  * GAME.EXE, not from running the native code; tests/test_fl20b_differential.py additionally runs the original bytes on random fixtures.
  *   0x48cc70  rec = record word 0x6246ac; byte 0x6246a3 gate; kind byte [rec+0x42] == 2 -> 0x4c5377 (0x5d15e3, 0x5cf665, rec+0x64, &b, 0x54e760) + 0x4c5d4b (table[0x6246b4], 0x5cf665, &a, &b, 0x54e778) else 0x4c5377 (table[0x6246b4], ..., &a, &b, 0x54e794); per k < 4 the rectangle at rec+k*16+0x74 (+ origin): flags 0x6246be/ba -> 0x4c5d4b (table[0x6246b6], rec+k*16+0xf4, 0x54e7b0); byte 0x6246c6 / 0x6246c2[k] / k == byte 0x6246a2 -> 0x4c5d4b (rec+k*16+0xb4, 0x54e7cc); else 0x4c5377 (0x5d15e3, rec+k*16+0x74, 0x54e7e4)
  *   0x4876ed  rec = record word 0x6252d3; dwords 0x625d43 / 0x625d3f -> 0x4c5377 (0x625d4d, 0x625d6d, 0x54dc64), 0x625d43 := 0; 0x625d47 -> 0x4841cb + 0x4c5377 (0x625d8d, &r, 0x54dc98), cleared; items (stride 0x85 at 0x6252d5, word +0 = order) drawn by 0x4c5d4b for n = word [rec+0x21] (minus the selected one when 0x625d3f), then the selected one (0x54dd0c), then 0x625e40 / 0x625e3c with 0x4841cb + 0x4c5377 (0x54dd34 / 0x54dd50)
+ *   0x44d28c  gate dword [this+0x25]; region limits (x <= [rec+0x99], y <= [rec+0x8d], x >= [rec+0x51]); boxes A (dword [this+0x2d] == 0 -> 0x44d597(1)), B, C, D, E ([this+0x2d] == 1 -> 0x44d597(0, 3, 4, 6)), F (0x44d597(8)), G / H / I (byte [this+0x24] := 1), else byte [this+0x24] := 0; returns 1 after a press
  *   0x446688  gates dwords 0x638607 / 0x63860f; strings new 0x63885f vs old 0x63887d: when they differ the old digits are drawn with 0x4c5377 (0x5d15e3, 0x5cf665, &p, &q, 0x548288); then the new digits with 0x4c5d4b (table dword, 0x5cf665, 0x6386bf + d*16, &q, 0x5482b4); strcpy(old, new)
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
@@ -681,6 +682,139 @@ static void test_m4876ed_redraw_items(void)
     for (k = 0; k < 2; k++) CK(L.c[k].callee == 0x4c5d4b);
 }
 
+/* the nine boxes of the record of 0x44d28c: byte offsets of x low, x high, y low, y high */
+typedef struct BoxOff { uint32_t xlo, xhi, ylo, yhi; } BoxOff;
+enum { BA, BB, BC, BD, BE, BF, BG, BH, BI, NBOX };
+static const BoxOff k_boxes[NBOX] = {{0x61, 0x69, 0x65, 0x6d}, {0x51, 0x59, 0x55, 0x5d}, {0x91, 0x99, 0x95, 0x9d},
+                                     {0xa1, 0xa9, 0xa5, 0xad}, {0x71, 0x79, 0x75, 0x7d}, {0x81, 0x89, 0x85, 0x8d},
+                                     {0x21, 0x29, 0x25, 0x2d}, {0x31, 0x39, 0x35, 0x3d}, {0xb1, 0xb9, 0xb5, 0xbd}};
+static const int k_press[NBOX] = {1, 0, 3, 4, 6, 8, -1, -1, -1};  /* the argument of 0x44d597, or none */
+
+static void box_set(uint8_t *rec, int b, int32_t xlo, int32_t xhi, int32_t ylo, int32_t yhi)
+{
+    set32(rec, k_boxes[b].xlo, (uint32_t)xlo);
+    set32(rec, k_boxes[b].xhi, (uint32_t)xhi);
+    set32(rec, k_boxes[b].ylo, (uint32_t)ylo);
+    set32(rec, k_boxes[b].yhi, (uint32_t)yhi);
+}
+
+static void test_m44d28c_click(void)
+{
+    static uint8_t rec[0x100];
+    const uint32_t rec_va = 0x00c60000u;
+    Fl20bWorld w;
+    Fl18Host h = host();
+    int b, v, c, k;
+    memset(&w, 0, sizeof w);
+    memset(g_records, 0, sizeof g_records);
+    set32(g_records, 1 * REC, rec_va);
+    w.records_5bb5e5 = g_records;
+    fill(g_obj, OBJ, 3);
+    set16(g_obj, 0x1e, 1);
+    /* the dword [this+0x25] is zero: byte [this+0x24] := 0 and nothing else */
+    set32(g_obj, 0x25, 0);
+    g_obj[0x24] = 7;
+    memcpy(g_exp, g_obj, OBJ);
+    add_region(rec_va, rec, sizeof rec);
+    CK(m44d28c_click(g_obj, 40, 50, &w, &h) == 0);
+    g_exp[0x24] = 0;
+    CK(memcmp(g_obj, g_exp, OBJ) == 0 && L.n == 0);
+    set32(g_obj, 0x25, 5);
+    /* each box alone around the point (40, 50): interior, each edge exactly on the point, and each edge one unit short; the other boxes
+     * are far away; the region limits x >= [rec+0x51], x <= [rec+0x99], y <= [rec+0x8d] belong to boxes B, C, F */
+    for (b = 0; b < NBOX; b++) {
+        for (c = 0; c < 3; c++) {          /* [this+0x2d] */
+            for (v = 0; v < 9; v++) {      /* 0 interior, 1..4 the low x, high x, low y, high y edge on the point, 5..8 one unit short */
+                int32_t lo_x = 30, hi_x = 50, lo_y = 20, hi_y = 80;
+                int active = (b == BA) ? (c == 0) : (b >= BB && b <= BE) ? (c == 1) : 1;
+                int outer = 0, hit;
+                int32_t r;
+                if (v == 1) lo_x = 40;
+                if (v == 2) hi_x = 40;
+                if (v == 3) lo_y = 50;
+                if (v == 4) hi_y = 50;
+                if (v == 5) lo_x = 41;
+                if (v == 6) hi_x = 39;
+                if (v == 7) lo_y = 51;
+                if (v == 8) hi_y = 49;
+                memset(rec, 0, sizeof rec);
+                for (k = 0; k < NBOX; k++) box_set(rec, k, 1000, 1010, 1000, 1010);
+                box_set(rec, BB, 0, 1010, 1000, 1010);  /* x >= 0 */
+                box_set(rec, BC, 1000, 2000, 1000, 1010);
+                box_set(rec, BF, 1000, 1010, 1000, 2000);
+                box_set(rec, b, lo_x, hi_x, lo_y, hi_y);
+                if (b == BB && v == 5) outer = 1;   /* x < [rec+0x51] */
+                if (b == BC && v == 6) outer = 1;   /* x > [rec+0x99] */
+                if (b == BF && v == 8) outer = 1;   /* y > [rec+0x8d] */
+                hit = !outer && v <= 4 && active;
+                reset_log();
+                add_region(rec_va, rec, sizeof rec);
+                g_obj[0x24] = 0;
+                set32(g_obj, 0x29, 0xdead);
+                set32(g_obj, 0x2d, (uint32_t)c);
+                memcpy(g_exp, g_obj, OBJ);
+                r = m44d28c_click(g_obj, 40, 50, &w, &h);
+                if (outer) {
+                    g_exp[0x24] = 1;
+                    set32(g_exp, 0x29, 0);
+                    CK(r == 0 && L.n == 0);
+                } else if (hit && k_press[b] >= 0) {
+                    g_exp[0x24] = 1;
+                    set32(g_exp, 0x29, 1);
+                    CK(r == 1 && L.n == 1 && is_call(0, 0x44d597, (uintptr_t)g_obj, 1) && L.c[0].a[0] == (uint32_t)k_press[b]);
+                } else if (hit) {   /* boxes G, H, I */
+                    g_exp[0x24] = 1;
+                    set32(g_exp, 0x29, 1);
+                    CK(r == 0 && L.n == 0);
+                } else {            /* inside the region but no box holds the point */
+                    g_exp[0x24] = 0;
+                    set32(g_exp, 0x29, 1);
+                    CK(r == 0 && L.n == 0);
+                }
+                CK(memcmp(g_obj, g_exp, OBJ) == 0);
+            }
+        }
+    }
+    /* the order of the boxes when all of them hold the point: A (only for 0), then B, C, D, E (only for 1), F, and G / H / I last */
+    for (c = 0; c < 2; c++) {
+        static const int order1[] = {BB, BC, BD, BE, BF};
+        int n;
+        memset(rec, 0, sizeof rec);
+        for (k = 0; k < NBOX; k++) box_set(rec, k, 30, 50, 20, 80);
+        set32(g_obj, 0x2d, (uint32_t)c);
+        if (c == 0) {
+            reset_log();
+            add_region(rec_va, rec, sizeof rec);
+            CK(m44d28c_click(g_obj, 40, 50, &w, &h) == 1 && L.n == 1 && L.c[0].a[0] == 1);
+            box_set(rec, BA, 1000, 1010, 1000, 1010);
+            reset_log();
+            add_region(rec_va, rec, sizeof rec);
+            CK(m44d28c_click(g_obj, 40, 50, &w, &h) == 1 && L.n == 1 && L.c[0].a[0] == 8);  /* A gone: F (B..E need 1) */
+        } else {
+            for (n = 0; n < 5; n++) {
+                reset_log();
+                add_region(rec_va, rec, sizeof rec);
+                CK(m44d28c_click(g_obj, 40, 50, &w, &h) == 1 && L.n == 1 && L.c[0].a[0] == (uint32_t)k_press[order1[n]]);
+                if (order1[n] == BB) box_set(rec, BB, 0, 1010, 1000, 1010);  /* (B holds the region limit: keep x >= [rec+0x51]) */
+                else if (order1[n] == BC) box_set(rec, BC, 1000, 2000, 1000, 1010);
+                else if (order1[n] == BF) box_set(rec, BF, 1000, 1010, 1000, 2000);
+                else box_set(rec, order1[n], 1000, 1010, 1000, 1010);
+            }
+        }
+    }
+    /* the point's coordinates are signed words: -1 (0xffff) is below every box that starts at 0, and sign-extends for the limits */
+    memset(rec, 0, sizeof rec);
+    for (k = 0; k < NBOX; k++) box_set(rec, k, -100, -50, -20, -10);
+    box_set(rec, BB, -200, -50, -20, -10);
+    set32(g_obj, 0x2d, 1);
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    CK(m44d28c_click(g_obj, (int16_t)-60, (int16_t)-15, &w, &h) == 1 && L.n == 1 && L.c[0].a[0] == 0);
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    CK(m44d28c_click(g_obj, (int16_t)0xffff, (int16_t)-15, &w, &h) == 0 && get32(g_obj, 0x29) == 0 && L.n == 0);  /* x = -1 > [rec+0x99] = -50 */
+}
+
 /* TESTS-END */
 
 int main(void)
@@ -690,6 +824,7 @@ int main(void)
     RUN(test_m48d5f4_confirm_pick);
     RUN(test_m48cc70_draw_slots);
     RUN(test_m4876ed_redraw_items);
+    RUN(test_m44d28c_click);
     /* RUN-END */
     return failures;
 }

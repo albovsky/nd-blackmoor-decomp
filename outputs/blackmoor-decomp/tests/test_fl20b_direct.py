@@ -19,6 +19,7 @@ EXPECTED = [
     'test_m48d5f4_confirm_pick',
     'test_m48cc70_draw_slots',
     'test_m4876ed_redraw_items',
+    'test_m44d28c_click',
     # EXPECTED-END
 ]
 
@@ -79,6 +80,10 @@ class Fl20bDirect(unittest.TestCase):
     def test_redraw_items_4876ed(self):
         """FL-20b: direct test of m4876ed_redraw_items (original 0x4876ed)"""
         self.check('test_m4876ed_redraw_items')
+
+    def test_click_44d28c(self):
+        """FL-20b: direct test of m44d28c_click (original 0x44d28c)"""
+        self.check('test_m44d28c_click')
 
     # TESTS-END
 
