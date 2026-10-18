@@ -754,6 +754,7 @@ static void test_m412db8_wrap_text(void)
 {
     Fl20cWorld w;
     int i, k;
+    CK(m412db8_wrap_text != NULL);   /* (the port is called through wrap_run below) */
     memset(&w, 0, sizeof w);
     memset(wr_fonts, 0, sizeof wr_fonts);
     memset(wr_dwords, 0, sizeof wr_dwords);
