@@ -463,6 +463,7 @@ int d0_click(D0Object *object, uint8_t *body, size_t body_length, uint32_t row_p
     return D0_OK;
 }
 
+/* original GAME.EXE 0x48d0e5 (FUN_0048d0e5): invalidate; with active (+0x33) != 0 and slot (+0x1c) != -1 the entry's redraw dword (0x5d15a5 + slot * 0x4a) := 1 (the host's mark_dirty). */
 int d0_invalidate(D0Object *object, const D0Host *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return D0_ERR_ARGUMENT;

@@ -229,7 +229,8 @@ int16_t eb_object_row(const EbObject *object) { return rd_s16(object->b, O_ROW);
 int eb_object_active(const EbObject *object) { return rd_s32(object->b, O_ACTIVE) != 0; }
 uint32_t eb_object_state(const EbObject *object) { return (uint32_t)rd_s32(object->b, O_STATE); }
 
-/* 0x47e99e: nonzero when the rectangle has a nonzero width and height edge pair. */
+/* original GAME.EXE 0x47e99e (FUN_0047e99e): nonzero when the rectangle has a nonzero width and height edge pair. The
+ * original takes a pointer to the rectangle; native takes the buffer and the rectangle offset. */
 static int rect_valid(const uint8_t *b, size_t off)
 {
     return !(rd_s32(b, off + 12) == rd_s32(b, off + 4) || rd_s32(b, off + 8) == rd_s32(b, off));
@@ -553,7 +554,9 @@ static int follow_pointer(uint8_t *obj, const EbHost *host)
     return EB_OK;
 }
 
-/* 0x47ec06: with the multi-piece in hand, a piece away from home lies under the dragged piece's lower middle. */
+/* original GAME.EXE 0x47ec06 (FUN_0047ec06): with the multi-piece in hand, a piece away from home lies under the dragged
+ * piece's lower middle. The original resolves the type table through *(0x5bb5e5 + row * 0x8d); native takes that body as a
+ * parameter. */
 static int near_unplaced(const uint8_t *obj, const uint8_t *body, int16_t x, int16_t y)
 {
     const int16_t hand = rd_s16(obj, O_HAND);
@@ -976,6 +979,9 @@ int eb_rotate_key(EbObject *object, const uint8_t *body, size_t body_length, uin
     return EB_OK;
 }
 
+/* original GAME.EXE 0x47e440 (FUN_0047e440): if the dword at object+0x13c5 (active) is nonzero and the word at object+0x1c
+ * (slot) is not -1, store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that
+ * global store. Native only: NULL arguments return EB_ERR_ARGUMENT, a nonzero host result EB_ERR_HOST. */
 int eb_invalidate(EbObject *object, const EbHost *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return EB_ERR_ARGUMENT;

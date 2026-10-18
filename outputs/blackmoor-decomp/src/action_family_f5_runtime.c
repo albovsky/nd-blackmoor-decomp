@@ -153,6 +153,7 @@ void tqz_object_reset(TqzObject *object)
 
 void tqz_world_new_game(TqzWorld *world)
 {
+    /* original GAME.EXE 0x4b8087 (FUN_004b8087): new-game reset, dword 0x5a4c0a := 0 and word 0x5a4c0e := 0 (the world's played / best cells). */
     world->played_5a4c0a = 0;
     world->best_5a4c0e = 0;
 }
@@ -197,6 +198,7 @@ int tqz_validate_body(const uint8_t *body, size_t length, const char **failure)
     return why == NULL ? TQZ_OK : TQZ_ERR_BODY;
 }
 
+/* original GAME.EXE 0x4b8520 (FUN_004b8520): letters, digits when the body's digits flag (+0x432) is set, or one of the 30 extra characters (+0x434, only when the first is nonzero); `body` stands for the typed body that the original reads through obj + 8. */
 /* 0x4b8520: may this character appear on a balloon? */
 static int char_allowed(const uint8_t *body, uint8_t ch)
 {
@@ -752,6 +754,7 @@ int tqz_step(TqzObject *object, const uint8_t *body, size_t body_length, int16_t
     return rc;
 }
 
+/* original GAME.EXE 0x4b8193 (FUN_004b8193): key method; needs active (+0x14), state (+0x10) == 0, no pending key (+0x637) and row phase == 1 (dword at 0x5bb632 + row * 0x8d, passed as a parameter), then a filtered character is stored at +0x636 and +0x637 := 1. */
 int tqz_key(TqzObject *object, uint32_t row_phase, int8_t ch)
 {
     if (object->active != 0 && object->state == 0 && object->key_pending == 0 && row_phase == 1u && tqz_key_filter(ch)) {
@@ -782,6 +785,7 @@ int tqz_pointer(const TqzObject *object, const uint8_t *body, size_t body_length
     return TQZ_OK;
 }
 
+/* original GAME.EXE 0x4b82cd (FUN_004b82cd): click method; with active (+0x14), finishing (+0x20) == 0, state (+0x10) == 0, row phase == 1 and the retained candidate 0x5c39e5 == 0x27eb the row phase becomes 2 (returned through *new_phase). */
 int tqz_click(const TqzObject *object, uint32_t row_phase, int32_t candidate, uint32_t *new_phase)
 {
     if (object->active != 0 && object->finishing == 0 && object->state == 0 && row_phase == 1u &&
@@ -793,6 +797,7 @@ int tqz_click(const TqzObject *object, uint32_t row_phase, int32_t candidate, ui
     return 0;
 }
 
+/* original GAME.EXE 0x4b80a5 (FUN_004b80a5): invalidate; with active (+0x14) != 0 and slot (+4) != -1 the entry's redraw dword (0x5d15a5 + slot * 0x4a) := 1 (the host's mark_dirty). */
 int tqz_invalidate(const TqzObject *object, const TqzHost *host)
 {
     if (object->active != 0 && object->slot != TQZ_NO_SLOT) HOST(host->mark_dirty(host->context, object->slot));

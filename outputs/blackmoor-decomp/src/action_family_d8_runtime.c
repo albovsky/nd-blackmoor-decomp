@@ -457,6 +457,10 @@ int d8_cleanup(D8Object *o, const D8Host *host)
     return D8_OK;
 }
 
+/* original GAME.EXE 0x48bc38 (FUN_0048bc38): two guarded stores, each requiring the active byte (+0x46) nonzero: slot_a
+ * (word +0x2e) when it is not -1, then slot_b (word +0x30) when it is not -1, each setting the generic z entry's +0x14 := 1.
+ * The host mark_dirty callback replaces that global store. Native only: NULL object or host return D8_ERR_ARGUMENT, a
+ * nonzero host result D8_ERR_HOST, and a host without mark_dirty is skipped silently. */
 int d8_mark_dirty(D8Object *o, const D8Host *host)
 {
     if (o == NULL || host == NULL) return D8_ERR_ARGUMENT;
@@ -562,6 +566,11 @@ int d8_click(D8Object *o, const uint8_t *record, size_t length, int32_t candidat
     return D8_OK;
 }
 
+/* original GAME.EXE 0x48c148 (FUN_0048c148): when active (+0x46), the row phase (the dword at 0x5bb632 + row * 0x8d) is 1,
+ * the candidate 0x5c39e5 is 0x27a7 and the can_move byte at +0x34 + hot is nonzero: if pressed (+0x40) is 0 store
+ * GetTickCount in +0x50; then dir (+0x1c) := hot and pressed := 1. Native takes the row phase and the candidate as
+ * parameters, and skips a `hot` outside 0..3 where the original would index out of range; a missing tick host callback on
+ * the first press returns D8_ERR_UNSUPPORTED. */
 int d8_press(D8Object *o, uint32_t row_phase, int32_t candidate, const D8Host *host)
 {
     if (o == NULL) return D8_ERR_ARGUMENT;

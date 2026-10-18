@@ -337,7 +337,7 @@ EQUIVALENT = {}  # exact keys, when a rule would be too broad
 # fails if the oracle script changed since, because the claim then needs a new run.
 ORACLE_RUN = {
     'oracle_script_sha256': 'e37077c6a4169002e72937e0fcdba759fb44f9def6a92f65c9c791a2a568cea6',
-    'kernel_sha256': 'b7c4a7cc2b71c3f1511513745d9d4ab50f255ea51e243fe03e3062825dc21668',
+    'kernel_sha256': '9f8fc22dbf910489047033ff219f22a238bdec53e166b9758b44129d443a5694',
     'scenarios': 565,
 }
 ORACLE_KILLED_KEYS = """

@@ -480,6 +480,9 @@ int alc_click(AlcObject *object, const uint8_t *body, size_t body_length, uint32
     return ALC_OK;
 }
 
+/* original GAME.EXE 0x44d19d (FUN_0044d19d): if the dword at object+0x25 (active) is nonzero and the word at object+0x1c
+ * (slot) is not -1, store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that
+ * global store. Native only: NULL arguments return ALC_ERR_ARGUMENT, a nonzero host result ALC_ERR_HOST. */
 int alc_invalidate(AlcObject *object, const AlcHost *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return ALC_ERR_ARGUMENT;
