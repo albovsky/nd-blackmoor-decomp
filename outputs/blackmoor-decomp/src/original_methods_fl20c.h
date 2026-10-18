@@ -21,6 +21,10 @@ extern "C" {
  * original pushes). The locals the original hands to a callee are host pointers. An address that the original keeps in an object or
  * a record is a 32-bit original address: Fl18Host.resolve turns it into host memory where the function reads through it.
  *
+ * Fl20cWorld holds by-value snapshots of the original's globals and records: a ported function reads and writes them in the same order
+ * as the original, but an integration host that backs a callee with real original code must resync the world from the original's
+ * memory after each Fl18Host.call (for example the real 0x4b8e42 writes slot state 3, which 0x4b9a88 re-reads in a later turn).
+ *
  * Nothing here claims original source structure. */
 
 /* The globals and tables of the original that the batch touches (named by their address). A table pointer points at the byte that the
