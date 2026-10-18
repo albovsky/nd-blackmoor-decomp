@@ -354,3 +354,70 @@ void m481cb9_draw_cells(Fl20cWorld *world, const Fl18Host *host)
         world->byte_62729b = 0;
     }
 }
+
+/* original GAME.EXE 0x463b10 (FUN_00463b10, no this, no stack argument, plain ret): rec = the object of the dword of the 0x5bb5e5-based
+ * record at the signed word 0x61d797 (stride 0x8d); table = the dword of the 0x5d1599 record at the signed word 0x61d795 (stride 0x4a),
+ * re-read for every call. For r = 0, 1, ... (a signed word) while r < the signed word [rec+0x22], then c = 0, 1, ... while c < the
+ * signed word [rec+0x24]: cell = 0x594db5 + r * 0x140 + c * 0x28, handled unless its dword at +0 is 0. With t = the signed word at
+ * cell+0x24 (0x594dd9 + ...), a switch on t - 1 (unsigned compare, a byte index table and five jump targets) does:
+ *   t = 0x10, 0x13: 0x4c5d4b on 0x5cf659 with (table, dword 0x5cf665, rec + 0x210, cell + 4, 0x54b210);
+ *   t = 0x11, 0x12: 0x4c5d4b with (table, dword 0x5cf665, rec + 0x220, cell + 4, 0x54b22c);
+ *   t = 0x14: when the dword [rec+0x238] differs from the dword [rec+0x230]: 0x4c5d4b with (table, dword 0x5cf665, rec + 0x230, cell + 4,
+ *             0x54b248);
+ *   t = 1 .. 10: with u = (t - 1) * 16, when the dword [rec+u+0x178] differs from the dword [rec+u+0x170]: 0x4c5d4b with (table, dword
+ *             0x5cf665, rec + u + 0x170, cell + 4, 0x54b264);
+ *   anything else: nothing.
+ * Then, with s = the signed word at cell+0x26 (0x594ddb + ...), when s is non-zero: when the dword 0x61d79d is 2 or the dword 0x61d7b4
+ * is 1, and the signed word 0x61d7b2 equals s: the local rectangle { dword 0x61d7a2 - 0x583186, dword 0x61d7a6 - 0x58318a, dword
+ * 0x61d7aa - 0x583186, dword 0x61d7ae - 0x58318a } (32-bit wrap) goes to 0x4c5377 on 0x5cf659 with (dword 0x5d15e3, dword 0x5cf665,
+ * &rectangle, 0x61d7a2, 0x54b284); and in every case 0x4c5d4b with (table, dword 0x5cf665, rec + (s - 1) * 16 + 0xd0, cell + 0x14,
+ * 0x54b298). Cell addresses handed to the callees are the original addresses (0x594db5 + ...). */
+void m463b10_draw_grid(Fl20cWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)world->word_61d797 * 0x8d);
+    int16_t r, c;
+    for (r = 0; (int32_t)r < rds16(object_at(host, rec_va), 0x22); r = (int16_t)(r + 1)) {
+        for (c = 0; (int32_t)c < rds16(object_at(host, rec_va), 0x24); c = (int16_t)(c + 1)) {
+            ptrdiff_t cell_off = (ptrdiff_t)r * 0x140 + (ptrdiff_t)c * 0x28;
+            uint32_t cell_va = 0x594db5u + (uint32_t)((int32_t)r * 0x140 + (int32_t)c * 0x28);
+            uint32_t e;
+            int32_t s;
+            if (rd32(world->cells_594db5, cell_off) == 0) continue;
+            e = (uint32_t)(rds16(world->cells_594db5, cell_off + 0x24) - 1);
+            if (e <= 0x13) {
+                const uint8_t *rec = object_at(host, rec_va);
+                if (e == 15 || e == 18) {
+                    call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_61d795 * 0x4a), world->value_5cf665, rec_va + 0x210u,
+                          cell_va + 4u, 0x54b210);
+                } else if (e == 16 || e == 17) {
+                    call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_61d795 * 0x4a), world->value_5cf665, rec_va + 0x220u,
+                          cell_va + 4u, 0x54b22c);
+                } else if (e == 19) {
+                    if (rd32(rec, 0x238) - rd32(rec, 0x230) != 0)
+                        call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_61d795 * 0x4a), world->value_5cf665,
+                              rec_va + 0x230u, cell_va + 4u, 0x54b248);
+                } else if (e <= 9) {
+                    uint32_t u = e << 4;
+                    if (rd32(rec, (ptrdiff_t)u + 0x178) - rd32(rec, (ptrdiff_t)u + 0x170) != 0)
+                        call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_61d795 * 0x4a), world->value_5cf665,
+                              rec_va + u + 0x170u, cell_va + 4u, 0x54b264);
+                }
+            }
+            s = rds16(world->cells_594db5, cell_off + 0x26);
+            if (s != 0) {
+                if (world->value_61d79d == 2 || world->value_61d7b4 == 1) {
+                    if ((int32_t)world->word_61d7b2 == s) {
+                        uint32_t rect[4];
+                        rect[1] = world->value_61d7a6 - (uint32_t)world->origin_y_58318a;
+                        rect[3] = world->value_61d7ae - (uint32_t)world->origin_y_58318a;
+                        rect[0] = world->value_61d7a2 - (uint32_t)world->origin_x_583186;
+                        rect[2] = world->value_61d7aa - (uint32_t)world->origin_x_583186;
+                        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, (uintptr_t)rect, 0x61d7a2, 0x54b284);
+                    }
+                }
+                call5(host, 0x4c5d4b, 0x5cf659, rd32(world->table_5d1599, (ptrdiff_t)world->word_61d795 * 0x4a), world->value_5cf665,
+                      rec_va + ((uint32_t)(s - 1) << 4) + 0xd0u, cell_va + 0x14u, 0x54b298);
+            }
+        }
+    }
+}

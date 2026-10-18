@@ -38,10 +38,14 @@ typedef struct Fl20cWorld {
     int16_t word_625f06, word_62728a, word_627238;   /* 0x481cb9: record index, number of cells, the selected cell */
     uint32_t value_627230, value_62722c, value_627234, value_62728c, value_627290, value_627294;  /* 0x481cb9: flags and three draw arguments */
     uint8_t byte_627299, byte_62729a, byte_62729b;   /* 0x481cb9: flags */
+    int16_t word_61d797, word_61d795, word_61d7b2;   /* 0x463b10: record index, index of the dword table at 0x5d1599, the selected marker */
+    uint32_t value_61d79d, value_61d7b4;             /* 0x463b10: two mode flags */
+    uint32_t value_61d7a2, value_61d7a6, value_61d7aa, value_61d7ae;  /* 0x463b10: the rectangle of the marker (x0, y0, x1, y1) */
     int16_t word_61ee72;           /* 0x4b9a88: index of the dword table at 0x5d1599 */
 } Fl20cWorld;
 
 void m4b9a88_draw_slots(Fl20cWorld *world, const Fl18Host *host);
+void m463b10_draw_grid(Fl20cWorld *world, const Fl18Host *host);
 void m481cb9_draw_cells(Fl20cWorld *world, const Fl18Host *host);
 int32_t m4619be_check_direction(uint8_t *self, int16_t direction, const Fl20cWorld *world, const Fl18Host *host);
 

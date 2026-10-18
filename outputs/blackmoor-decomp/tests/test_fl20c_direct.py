@@ -18,6 +18,7 @@ EXPECTED = [
     'test_m4b9a88_draw_slots',
     'test_m4619be_check_direction',
     'test_m481cb9_draw_cells',
+    'test_m463b10_draw_grid',
     # EXPECTED-END
 ]
 
@@ -74,6 +75,10 @@ class Fl20cDirect(unittest.TestCase):
     def test_draw_cells_481cb9(self):
         """FL-20c: direct test of m481cb9_draw_cells (original 0x481cb9)"""
         self.check('test_m481cb9_draw_cells')
+
+    def test_draw_grid_463b10(self):
+        """FL-20c: direct test of m463b10_draw_grid (original 0x463b10)"""
+        self.check('test_m463b10_draw_grid')
 
     # TESTS-END
 

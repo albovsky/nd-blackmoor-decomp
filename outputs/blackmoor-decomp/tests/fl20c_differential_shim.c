@@ -163,7 +163,7 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F20C_4B9A88 = 1, F20C_4619BE, F20C_481CB9 };
+enum { F20C_4B9A88 = 1, F20C_4619BE, F20C_481CB9, F20C_463B10 };
 
 /* Runs one port. `self` is the object (this); a, b, c, d are the stack arguments / buffers as each function documents; the result
  * of a function that returns a value comes back in *result. */
@@ -181,6 +181,7 @@ void shim_fl20c(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     switch (fn) {
     case F20C_4B9A88: m4b9a88_draw_slots(w, &host); break;
     case F20C_481CB9: m481cb9_draw_cells(w, &host); break;
+    case F20C_463B10: m463b10_draw_grid(w, &host); break;
     case F20C_4619BE: *result = m4619be_check_direction(self, (int16_t)a, w, &host); break;
     default: break;
     }

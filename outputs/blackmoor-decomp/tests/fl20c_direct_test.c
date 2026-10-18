@@ -606,6 +606,122 @@ static void test_m481cb9_draw_cells(void)
     m481cb9_draw_cells(&w, &h);
     CK(L.n == 2 && L.c[0].a[3] == CELL_VA(0) + 0x12 && L.c[1].a[3] == CELL_VA(1) + 0x12);
 }
+/* ---- 0x463b10 ---- */
+
+#define GRID_VA(r, c) (0x594db5u + (uint32_t)(r) * 0x140u + (uint32_t)(c) * 0x28u)
+
+static void set_grid(uint8_t *cells, int r, int c, uint32_t first, int16_t t, int16_t u)
+{
+    size_t base = (size_t)r * 0x140 + (size_t)c * 0x28;
+    set32(cells, base, first);
+    set16(cells, base + 0x24, (uint16_t)t);
+    set16(cells, base + 0x26, (uint16_t)u);
+}
+
+static void test_m463b10_draw_grid(void)
+{
+    static uint8_t rec[0x300], cells[4 * 0x140 + 0x40], table[0x4a * 3];
+    const uint32_t rec_va = 0x00f60000u;
+    const uint32_t tbl = 0xaaa00001u;
+    Fl20cWorld w;
+    Fl18Host h = host();
+    memset(&w, 0, sizeof w);
+    memset(rec, 0x33, sizeof rec);
+    memset(cells, 0, sizeof cells);
+    memset(table, 0, sizeof table);
+    set32(table, 0x4a, tbl);
+    memset(g_records, 0, sizeof g_records);
+    set32(g_records, 3 * REC, rec_va);
+    set16(rec, 0x22, 2);   /* rows */
+    set16(rec, 0x24, 3);   /* columns */
+    w.records_5bb5e5 = g_records;
+    w.cells_594db5 = cells;
+    w.table_5d1599 = table;
+    w.word_61d797 = 3;
+    w.word_61d795 = 1;
+    w.value_5cf665 = 0xc0de0001u;
+    w.value_5d15e3 = 0xaaa00003u;
+    w.origin_x_583186 = 7;
+    w.origin_y_58318a = -9;
+    w.value_61d7a2 = 1000;
+    w.value_61d7a6 = 2000;
+    w.value_61d7aa = 3000;
+    w.value_61d7ae = 4000;
+    /* pass 1: a skipped cell (dword 0 with a table type and a marker), the two A types, both B types, the C type and two markers */
+    set_grid(cells, 0, 0, 0, 4, 1);
+    set_grid(cells, 0, 1, 1, 0x10, 0);
+    set_grid(cells, 0, 2, 1, 0x13, 2);
+    set_grid(cells, 1, 0, 1, 0x11, 0);
+    set_grid(cells, 1, 1, 1, 0x12, 3);
+    set_grid(cells, 1, 2, 1, 0x14, 0);
+    set32(rec, 0x230, 5);
+    set32(rec, 0x238, 9);
+    w.value_61d79d = 2;
+    w.value_61d7b4 = 0;
+    w.word_61d7b2 = 3;
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m463b10_draw_grid(&w, &h);
+    CK(L.n == 8);
+    CK(is_call(0, 0x4c5d4b, 0x5cf659, 5) && L.c[0].a[0] == tbl && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == rec_va + 0x210 && L.c[0].a[3] == GRID_VA(0, 1) + 4 &&
+       L.c[0].a[4] == 0x54b210);
+    CK(is_call(1, 0x4c5d4b, 0x5cf659, 5) && L.c[1].a[0] == tbl && L.c[1].a[2] == rec_va + 0x210 && L.c[1].a[3] == GRID_VA(0, 2) + 4 && L.c[1].a[4] == 0x54b210);
+    CK(is_call(2, 0x4c5d4b, 0x5cf659, 5) && L.c[2].a[0] == tbl && L.c[2].a[1] == 0xc0de0001u && L.c[2].a[2] == rec_va + 0xe0 && L.c[2].a[3] == GRID_VA(0, 2) + 0x14 &&
+       L.c[2].a[4] == 0x54b298);
+    CK(is_call(3, 0x4c5d4b, 0x5cf659, 5) && L.c[3].a[2] == rec_va + 0x220 && L.c[3].a[3] == GRID_VA(1, 0) + 4 && L.c[3].a[4] == 0x54b22c);
+    CK(is_call(4, 0x4c5d4b, 0x5cf659, 5) && L.c[4].a[2] == rec_va + 0x220 && L.c[4].a[3] == GRID_VA(1, 1) + 4 && L.c[4].a[4] == 0x54b22c);
+    CK(is_call(5, 0x4c5377, 0x5cf659, 5) && L.c[5].a[0] == 0xaaa00003u && L.c[5].a[1] == 0xc0de0001u && L.c[5].a[3] == 0x61d7a2 && L.c[5].a[4] == 0x54b284);
+    CK(rect_word(L.c[5].pd[2], 0) == 993 && rect_word(L.c[5].pd[2], 1) == 2009 && rect_word(L.c[5].pd[2], 2) == 2993 && rect_word(L.c[5].pd[2], 3) == 4009);
+    CK(is_call(6, 0x4c5d4b, 0x5cf659, 5) && L.c[6].a[0] == tbl && L.c[6].a[2] == rec_va + 0xf0 && L.c[6].a[3] == GRID_VA(1, 1) + 0x14 && L.c[6].a[4] == 0x54b298);
+    CK(is_call(7, 0x4c5d4b, 0x5cf659, 5) && L.c[7].a[2] == rec_va + 0x230 && L.c[7].a[3] == GRID_VA(1, 2) + 4 && L.c[7].a[4] == 0x54b248);
+    /* pass 2: the D type (t = 4: entry 3, t = 10: entry 9), no draw for equal dwords, the types that do nothing, a negative marker with the flag 0x61d7b4 */
+    set_grid(cells, 0, 0, 1, 4, 0);
+    set_grid(cells, 0, 1, 1, 11, -1);
+    set_grid(cells, 0, 2, 1, 0x0f, 0);
+    set_grid(cells, 1, 0, 1, 1, 0);
+    set_grid(cells, 1, 1, 1, 10, 0);
+    set_grid(cells, 1, 2, 1, 0x15, 0);
+    set32(rec, 0x170 + 3 * 16, 100);
+    set32(rec, 0x178 + 3 * 16, 101);
+    set32(rec, 0x170 + 0, 77);
+    set32(rec, 0x178 + 0, 77);
+    set32(rec, 0x170 + 9 * 16, 0xfffffff0u);
+    set32(rec, 0x178 + 9 * 16, 3);
+    set32(rec, 0x238, 5);   /* equal to 0x230: nothing for type 0x14 */
+    w.value_61d79d = 0;
+    w.value_61d7b4 = 1;
+    w.word_61d7b2 = -1;
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m463b10_draw_grid(&w, &h);
+    CK(L.n == 4);
+    CK(is_call(0, 0x4c5d4b, 0x5cf659, 5) && L.c[0].a[0] == tbl && L.c[0].a[2] == rec_va + 0x170 + 0x30 && L.c[0].a[3] == GRID_VA(0, 0) + 4 && L.c[0].a[4] == 0x54b264);
+    CK(is_call(1, 0x4c5377, 0x5cf659, 5) && L.c[1].a[3] == 0x61d7a2 && rect_word(L.c[1].pd[2], 0) == 993 && rect_word(L.c[1].pd[2], 3) == 4009);
+    CK(is_call(2, 0x4c5d4b, 0x5cf659, 5) && L.c[2].a[2] == rec_va + 0xb0 && L.c[2].a[3] == GRID_VA(0, 1) + 0x14 && L.c[2].a[4] == 0x54b298);
+    CK(is_call(3, 0x4c5d4b, 0x5cf659, 5) && L.c[3].a[2] == rec_va + 0x170 + 0x90 && L.c[3].a[3] == GRID_VA(1, 1) + 4 && L.c[3].a[4] == 0x54b264);
+    /* pass 3: neither flag: the marker of cell (0, 1) is drawn without the rectangle; the types t = 0 and t = -1 are not in the table */
+    set_grid(cells, 0, 0, 1, 0, 0);
+    set_grid(cells, 1, 1, 1, -1, 0);
+    w.value_61d79d = 1;
+    w.value_61d7b4 = 0;
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m463b10_draw_grid(&w, &h);
+    CK(L.n == 1 && is_call(0, 0x4c5d4b, 0x5cf659, 5) && L.c[0].a[2] == rec_va + 0xb0);
+    /* pass 4: an empty grid (zero rows) and a grid of one column */
+    set16(rec, 0x22, 0);
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m463b10_draw_grid(&w, &h);
+    CK(L.n == 0);
+    set16(rec, 0x22, 2);
+    set16(rec, 0x24, 1);
+    set_grid(cells, 0, 0, 1, 0, -1);
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    m463b10_draw_grid(&w, &h);
+    CK(L.n == 1 && is_call(0, 0x4c5d4b, 0x5cf659, 5) && L.c[0].a[2] == rec_va + 0xb0 && L.c[0].a[3] == GRID_VA(0, 0) + 0x14);
+}
 
 /* TESTS-END */
 
@@ -615,6 +731,7 @@ int main(void)
     RUN(test_m4b9a88_draw_slots);
     RUN(test_m4619be_check_direction);
     RUN(test_m481cb9_draw_cells);
+    RUN(test_m463b10_draw_grid);
     /* RUN-END */
     return failures;
 }

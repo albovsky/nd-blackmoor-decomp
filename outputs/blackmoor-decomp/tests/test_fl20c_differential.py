@@ -419,6 +419,48 @@ class Fl20cDifferential(DiffBase):
                       pointers={'records_5bb5e5': ('records', rslack), 'slots_62669c': ('slots', sslack * 0x25), 'table_625f08': ('table', 0)})
         self.finish(0x481cb9, size, executed)
 
+    # ---- 0x463b10 ----
+    def test_463b10_draw_grid(self):
+        """FL-20c: differential test of m463b10_draw_grid (original 0x463b10)"""
+        rng = random.Random(0x463b10)
+        executed = set()
+        size = 0x463ed0 - 0x463b10
+        tslack = 0x4a
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 3])
+            records, rslack = self.records_area(rng, nrec=4)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(0))
+            rows, cols = rng.choice([0, 1, 2, 3, -1]), rng.choice([0, 1, 2, 3, 4, 7, -2])
+            rec = bytearray(rng.randbytes(0x300))
+            struct.pack_into('<h', rec, 0x22, rows)
+            struct.pack_into('<h', rec, 0x24, cols)
+            for u in range(10):   # entries of 16 bytes: the dwords at +0x170 and +0x178 are often equal
+                if rng.random() < 0.4:
+                    struct.pack_into('<I', rec, 0x178 + u * 16, struct.unpack_from('<I', rec, 0x170 + u * 16)[0])
+            if rng.random() < 0.4:
+                struct.pack_into('<I', rec, 0x238, struct.unpack_from('<I', rec, 0x230)[0])
+            cells = bytearray(rng.randbytes(4 * 0x140 + 0x80))
+            markers = [0, 1, 2, 3, -1, -5, 7]
+            for r in range(4):
+                for c in range(8):
+                    base = r * 0x140 + c * 0x28
+                    struct.pack_into('<I', cells, base, rng.choice([0, 0, 1, 5, 0xffffffff, 0x100]))
+                    struct.pack_into('<h', cells, base + 0x24, rng.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 0, -1, 0x7fff, -32768,
+                                                                            0x10, 0x11, 0x12, 0x13, 0x14, 1, 10]))
+                    struct.pack_into('<h', cells, base + 0x26, rng.choice(markers))
+            rec_area = Area('rec', od.region_va(0), rec, image=False, compare=False)
+            table = Area('table', 0x5d1599 - tslack, bytearray(rng.randbytes(tslack + 5 * 0x4a)), compare=False)
+            g = {**self.globals_(rng, 'origin_x_583186', 'origin_y_58318a', 'value_5cf665', 'value_5d15e3', 'value_61d7a2', 'value_61d7a6',
+                                 'value_61d7aa', 'value_61d7ae'),
+                 'word_61d797': index, 'word_61d795': rng.choice([-1, 0, 1, 2, 3]), 'value_61d79d': rng.choice([2, 2, 0, 1, 7]),
+                 'value_61d7b4': rng.choice([1, 0, 1, 2, 0x80000001]), 'word_61d7b2': rng.choice(markers)}
+            struct.pack_into('<I', table.data, tslack + 0x4a, g['value_5d15e3'])  # 0x5d15e3 = the dword of record 1
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(2, 16)]),
+                     0x4c5d4b: stub(0x4c5d4b, args=5, this=True, cleanup=20, derefs=[(3, 16)])}
+            self.pair(4, 0x463b10, size, [rec_area, records, Area('cells', 0x594db5, cells, compare=False), table], stubs, g, executed=executed,
+                      pointers={'records_5bb5e5': ('records', rslack), 'cells_594db5': ('cells', 0), 'table_5d1599': ('table', tslack)})
+        self.finish(0x463b10, size, executed)
+
     # TESTS-END
 
 
