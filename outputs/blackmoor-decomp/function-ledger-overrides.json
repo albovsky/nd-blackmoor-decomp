@@ -4,6 +4,1050 @@
  "note": "FL-3 shape, FL-6 acceptances and FL-7 library decisions. port_acceptances are individually reviewed; R-EH is accepted for library-parent funclets (see its caveats and review); not_needed_entries are per-function reviews by a Sonnet reader and an independent second reader, gated again by the ledger (reason preconditions, semantics_sensitive, census floor); win32_import_allowlist is the FL-7 default ruling. Machine preconditions live in scripts/extract_function_xrefs.py (RULE_PREDICATES, rule_candidates, semantics_sensitive_set); the sampler is scripts/sample_function_ledger.py.",
  "port_acceptances": [
   {
+   "va": "0x423000",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m423000_init_pair"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m423000_init_pair"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_init_pair_423000"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_original_oracle.py",
+    "window": [
+     "0x423000",
+     "0x423021"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m423000_init_pair ([this] := 0, [this+0x25] := 0, returns this)."
+  },
+  {
+   "va": "0x423097",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m423097_clear_table"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m423097_clear_table"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_clear_table_423097"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_original_oracle.py",
+    "window": [
+     "0x423097",
+     "0x4230d1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m423097_clear_table (0x400 dwords zeroed, returns this)."
+  },
+  {
+   "va": "0x4234c8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4234c8_depth_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4234c8_depth_reset"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_depth_reset_4234c8"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_0b_runtime_original_oracle.py",
+    "window": [
+     "0x4234c8",
+     "0x4234dd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4234c8_depth_reset ([this+4] := 0)."
+  },
+  {
+   "va": "0x42e560",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m42e560_save_block"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m42e560_save_block"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_save_block_42e560"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_6e_runtime_original_oracle.py",
+    "window": [
+     "0x42e560",
+     "0x42e5c6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m42e560_save_block; the 7 source globals are Fl16World fields, the target is a 0x12-byte block (0x5c3a05). The dword at 0x5c3a13 is stored twice (0x5bb5ab, then 0x5bb5af wins); native keeps both stores."
+  },
+  {
+   "va": "0x434773",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m434773_is_data_tag"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m434773_is_data_tag"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_is_data_tag_434773"
+    }
+   ],
+   "oracle": {
+    "path": "tests/hiff_original_oracle.py",
+    "window": [
+     "0x434773",
+     "0x4347b8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m434773_is_data_tag (four signed-char compares with 'D','A','T','A')."
+  },
+  {
+   "va": "0x4347b8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4347b8_read_be32"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4347b8_read_be32"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_read_be32_4347b8"
+    }
+   ],
+   "oracle": {
+    "path": "tests/hiff_original_oracle.py",
+    "window": [
+     "0x4347b8",
+     "0x434814"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4347b8_read_be32 (four bytes as a big-endian dword)."
+  },
+  {
+   "va": "0x43f04b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m43f04b_copy_rows"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m43f04b_copy_rows"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_copy_rows_43f04b"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_94_runtime_original_oracle.py",
+    "window": [
+     "0x43f04b",
+     "0x43f0a3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m43f04b_copy_rows (signed row count; dwords then the byte tail, forward; src advances by the stride, dst by the row size). Pointers are caller-owned and unchecked, as in the original."
+  },
+  {
+   "va": "0x44d9b5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m44d9b5_shift_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m44d9b5_shift_rect"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_shift_rect_44d9b5"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d9b5",
+     "0x44da08"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44d9b5_shift_rect; the view origin globals 0x583186 / 0x58318a are Fl16World fields. Its own thin symbol because the original has two copies (see 0x45b568)."
+  },
+  {
+   "va": "0x45b568",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m45b568_shift_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m45b568_shift_rect"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_shift_rect_45b568"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45b568",
+     "0x45b5bb"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m45b568_shift_rect, the second copy of the rectangle shift (shares a static helper with 0x44d9b5). FL-11's reading of this row as emit_pair was a different native function."
+  },
+  {
+   "va": "0x47d77d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m47d77d_noop"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m47d77d_noop"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_noop_47d77d"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x47d77d",
+     "0x47d788"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m47d77d_noop (an empty method)."
+  },
+  {
+   "va": "0x47e25a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m47e25a_reset_fields"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m47e25a_reset_fields"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_reset_fields_47e25a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e25a",
+     "0x47e2a5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m47e25a_reset_fields (words +0x1e/+0x1c := 0xffff, dword +0x13c5, bytes +0x13c9/+0x13ce, dword +0x1344 := 0)."
+  },
+  {
+   "va": "0x493a47",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m493a47_zero"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m493a47_zero"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_zero_493a47"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_navigation_original_oracle.py",
+    "window": [
+     "0x493a47",
+     "0x493a54"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m493a47_zero (returns 0)."
+  },
+  {
+   "va": "0x4b8e42",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4b8e42_expire_slot"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4b8e42_expire_slot"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_expire_slot_4b8e42"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8e42",
+     "0x4b8e92"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4b8e42_expire_slot (unsigned tick >= deadline at 0x61eee1 + slot*0x37, then slot dword, word decrement, call 0x4b8a27 via Fl16Host). For slot -1 the dword store covers the decremented word, as in the original."
+  },
+  {
+   "va": "0x4bedb5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4bedb5_clear_state"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4bedb5_clear_state"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_clear_state_4bedb5"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_35_bink_original_oracle.py",
+    "window": [
+     "0x4bedb5",
+     "0x4bede7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4bedb5_clear_state (dwords +0xbc, +0x2c0, +0x2c4 := 0)."
+  },
+  {
+   "va": "0x4bede7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4bede7_clear_state"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4bede7_clear_state"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_clear_state_4bede7"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_35_bink_original_oracle.py",
+    "window": [
+     "0x4bede7",
+     "0x4bedfa"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4bede7_clear_state (calls 0x4bedb5 on this; direct call to the ported symbol)."
+  },
+  {
+   "va": "0x4bedfa",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4bedfa_close_and_clear"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4bedfa_close_and_clear"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_close_and_clear_4bedfa"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_35_bink_original_oracle.py",
+    "window": [
+     "0x4bedfa",
+     "0x4bee2c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4bedfa_close_and_clear; BinkClose (import 0x52a504) is the Fl16Host bink_close callback, then 0x4bedb5 is a direct call."
+  },
+  {
+   "va": "0x4bf38c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4bf38c_clear_2c0"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4bf38c_clear_2c0"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_clear_2c0_4bf38c"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_35_bink_original_oracle.py",
+    "window": [
+     "0x4bf38c",
+     "0x4bf3a4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4bf38c_clear_2c0 (dword +0x2c0 := 0)."
+  },
+  {
+   "va": "0x4c0c18",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4c0c18_get_22a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4c0c18_get_22a"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_22a_4c0c18"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4c0c18",
+     "0x4c0c2c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4c0c18_get_22a (returns dword [this+0x22a])."
+  },
+  {
+   "va": "0x4c0c2c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4c0c2c_get_240"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4c0c2c_get_240"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_240_4c0c2c"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4c0c2c",
+     "0x4c0c40"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4c0c2c_get_240 (returns dword [this+0x240])."
+  },
+  {
+   "va": "0x4c0c54",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4c0c54_get_244"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4c0c54_get_244"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_244_4c0c54"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4c0c54",
+     "0x4c0c69"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4c0c54_get_244 (signed word [this+0x244] sign-extended)."
+  },
+  {
+   "va": "0x4c0c69",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4c0c69_get_24a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4c0c69_get_24a"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_24a_4c0c69"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4c0c69",
+     "0x4c0c7d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4c0c69_get_24a (returns dword [this+0x24a])."
+  },
+  {
+   "va": "0x4ccd70",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4ccd70_construct"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4ccd70_construct"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_construct_4ccd70"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_2d_runtime_original_oracle.py",
+    "window": [
+     "0x4ccd70",
+     "0x4ccd8f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4ccd70_construct (vtable pointer 0x52e2d0 stored, 0x4ccdab called via the Fl16Host callback, returns this)."
+  },
+  {
+   "va": "0x4ccfbd",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4ccfbd_release_surface"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4ccfbd_release_surface"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_release_surface_4ccfbd"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_2d_runtime_original_oracle.py",
+    "window": [
+     "0x4ccfbd",
+     "0x4ccff5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4ccfbd_release_surface (dword +0x212 released through 0x4c2dfb via the Fl16Host callback, then := 0). The older release_surface in action_family_2d_runtime.c works on a typed struct and is not the credited symbol."
+  },
+  {
+   "va": "0x4d3c31",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4d3c31_get_1c"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4d3c31_get_1c"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_1c_4d3c31"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x4d3c31",
+     "0x4d3c42"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4d3c31_get_1c (returns dword [this+0x1c])."
+  },
+  {
+   "va": "0x4d3c42",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4d3c42_set_flag"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4d3c42_set_flag"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_set_flag_4d3c42"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x4d3c42",
+     "0x4d3c5f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4d3c42_set_flag ([this+0x1c] := 1, then 0x4d3bef on this via the Fl16Host callback)."
+  },
+  {
+   "va": "0x4d3d20",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4d3d20_stamp_tick"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4d3d20_stamp_tick"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_stamp_tick_4d3d20"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x4d3d20",
+     "0x4d3d3d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4d3d20_stamp_tick ([this+0x456] := GetTickCount() - 5, 32-bit wrap); GetTickCount (import 0x52a23c) is the Fl16Host tick callback."
+  },
+  {
+   "va": "0x4e76d5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4e76d5_clear_991"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4e76d5_clear_991"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_clear_991_4e76d5"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4e76d5",
+     "0x4e76ed"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4e76d5_clear_991 ([this+0x991] := 0)."
+  },
+  {
+   "va": "0x4e76ed",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4e76ed_clear_991"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4e76ed_clear_991"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_clear_991_4e76ed"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4e76ed",
+     "0x4e7700"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4e76ed_clear_991 (calls 0x4e76d5 on this; direct call)."
+  },
+  {
+   "va": "0x4e7728",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4e7728_open"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4e7728_open"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_open_4e7728"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4e7728",
+     "0x4e7757"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4e7728_open (0x43dbd5, 0x4d36ed via Fl16Host callbacks, [this+0x991] := value, then 0x4edf96 as a direct call)."
+  },
+  {
+   "va": "0x4e7757",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4e7757_close"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4e7757_close"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_close_4e7757"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4e7757",
+     "0x4e7786"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4e7757_close ([this+0x991] := 1, 0x4e76ed direct call clears it again, 0x4d36ed via Fl16Host, then global 0x583204 := 0 as Fl16World.value_583204)."
+  },
+  {
+   "va": "0x4e7786",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4e7786_forward"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4e7786_forward"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_forward_4e7786"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4e7786",
+     "0x4e779f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4e7786_forward (calls 0x4edfaf on this with the argument via the Fl16Host callback)."
+  },
+  {
+   "va": "0x4e7ba7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4e7ba7_view_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4e7ba7_view_reset"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_view_reset_4e7ba7"
+    }
+   ],
+   "oracle": {
+    "path": "tests/inventory_examine_runtime_original_oracle.py",
+    "window": [
+     "0x4e7ba7",
+     "0x4e7bf3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4e7ba7_view_reset (dwords +0x764c, +0x7650, +0x8232, +0x8236, +0x8252; the middle two get 0xffffffff)."
+  },
+  {
+   "va": "0x4edf96",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4edf96_set_value"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4edf96_set_value"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_set_value_4edf96"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4edf96",
+     "0x4edfaf"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4edf96_set_value ([this+0x4b3] := arg)."
+  },
+  {
+   "va": "0x4ee5cd",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4ee5cd_get_global"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4ee5cd_get_global"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_global_4ee5cd"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_exit_original_oracle.py",
+    "window": [
+     "0x4ee5cd",
+     "0x4ee5dd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4ee5cd_get_global; the global dword 0x55cd94 is Fl16World.value_55cd94."
+  },
+  {
+   "va": "0x4f709c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4f709c_get_ready"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4f709c_get_ready"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_get_ready_4f709c"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_runtime_original_oracle.py",
+    "window": [
+     "0x4f709c",
+     "0x4f70b0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4f709c_get_ready (returns dword [this+0x1a0])."
+  },
+  {
+   "va": "0x4faf98",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl16.c",
+    "symbol": "m4faf98_visit"
+   },
+   "tests": [
+    {
+     "path": "tests/fl16_direct_test.c",
+     "test_id": "test_m4faf98_visit"
+    },
+    {
+     "path": "tests/test_fl16_direct.py",
+     "test_id": "Fl16Direct.test_visit_4faf98"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_97_runtime_original_oracle.py",
+    "window": [
+     "0x4faf98",
+     "0x4fafc7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4faf98_visit (0x4fadc4, then 0x4fb2e3 when it returns non-zero; both are Fl16Host callbacks, the word argument passed as 16 bits)."
+  },
+  {
    "va": "0x40b2d0",
    "class": "native_tests_only",
    "reviewer": "Claude Sonnet FL-6 batch 1, slice-reviewer checked",
