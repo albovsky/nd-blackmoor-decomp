@@ -1252,9 +1252,10 @@ def load_overrides(inputs, uni, xrefs):
             fail(f"{what}: {a['class']} needs an oracle")
         if a["class"] not in ORACLE_CLASSES and oracle is not None:
             fail(f"{what}: only the oracle classes name an oracle")
-        if a["class"] == INLINED_CLASS and len(a.get("note", "")) < INLINED_NOTE_MIN:
-            fail(f"{what}: {INLINED_CLASS} needs a note of at least {INLINED_NOTE_MIN} characters saying where in "
-                 "the native symbol the original's logic sits")
+        if a["class"] == INLINED_CLASS and (len(a.get("note", "")) < INLINED_NOTE_MIN or not re.search(
+                r"\b" + re.escape(a["native_source"]["symbol"]) + r"\b", a.get("note", ""))):
+            fail(f"{what}: {INLINED_CLASS} needs a note of at least {INLINED_NOTE_MIN} characters that names the "
+                 "native symbol and says where in it the original's logic sits")
         acceptances[va] = {"va": va, "class": a["class"], "reviewer": a["reviewer"], "date": a["date"],
                            "symbol": (a["native_source"]["path"], a["native_source"]["symbol"]),
                            "tests": tests, "oracle": oracle, "reviewed": reviewed,
@@ -1603,7 +1604,7 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
         good = [p for p in good if p["use_basis"] == EXECUTED_BASIS]
         if not good:
             fail(f"{what}: oracle window is structural (use_basis {match[0]['use_basis']!r}); "
-                 "native_oracle_verified needs a recorded run that executed the whole function (use_basis 'executed')")
+                 f"{a['class']} needs a recorded run that executed the whole function (use_basis 'executed')")
         if body_size is None:
             fail(f"{what}: body_size from xrefs is needed to check oracle coverage")
         if not covers(good[0], va, body_size):
@@ -1611,10 +1612,17 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
                  f"[{fmt(va)}, {fmt(va + body_size)})")
         if a["class"] == INLINED_CLASS:
             # the run must have compared the enclosing native handler: the oracle script names its symbol or module
+            # (the symbol itself, not just the module's file name: a docstring naming the source file proves nothing)
+            word = re.compile(r"\b" + re.escape(symbol) + r"\b")
             otext = read_text_input(root, opath, what)
-            if not re.search(r"\b" + re.escape(symbol) + r"\b", otext) and not re.search(r"\b" + re.escape(module) + r"\b", otext):
-                fail(f"{what}: oracle {opath} does not reference {symbol} or module {module}; it did not drive the "
-                     "enclosing native symbol")
+            driven = bool(word.search(otext))
+            if not driven:                  # or a test driver source the oracle names, pinned as this function's evidence
+                named = set(re.findall(r"([A-Za-z0-9_]+\.(?:c|h|mm))\b", otext))
+                driven = any(Path(p["path"]).name in named and word.search(read_text_input(root, p["path"], what))
+                             for p in pointers if p["kind"] == "test")
+            if not driven:
+                fail(f"{what}: oracle {opath} and the driver sources it names do not reference {symbol}; it did "
+                     "not drive the enclosing native symbol")
     # (d) blockers: a deliberate safety rejection, or a written review in this acceptance (blockers_reviewed);
     # a review must name a blocker the function really has and may not duplicate a safety rejection
     open_ids = {b["id"] for b in f["blockers"]}

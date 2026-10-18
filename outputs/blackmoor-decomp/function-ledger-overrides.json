@@ -8066,7 +8066,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "l.936-939 sets finalizer_global_5831c8=1 and 5831c6=0 where 0x44753b calls 0x4d36ed; the 28 oracle compares both globals native vs original; unit test starts them at 99/77"
+   "note": "In action_family28_run_sequence: l.936-939 sets finalizer_global_5831c8=1 and 5831c6=0 where 0x44753b calls 0x4d36ed; the 28 oracle compares both globals native vs original; unit test starts them at 99/77"
   },
   {
    "va": "0x41c509",
@@ -8091,7 +8091,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Lines 214-215: +0x21=12,+0x23=2,+0x25=1,+0x27=1 words, +0x29 dword 1. 3f oracle compares every original allocation image with the native arena byte for byte."
+   "note": "In action_family_3f_construct: Lines 214-215: +0x21=12,+0x23=2,+0x25=1,+0x27=1 words, +0x29 dword 1. 3f oracle compares every original allocation image with the native arena byte for byte."
   },
   {
    "va": "0x41c770",
@@ -8116,7 +8116,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Primary-object loop lines 269-272 writes +0x1b7..+0x1cf exactly as the original (0,0,0,1,0,0,1,0xffff,1,2). 3e oracle compares all allocation images byte for byte."
+   "note": "In action_family_3e_construct: Primary-object loop lines 269-272 writes +0x1b7..+0x1cf exactly as the original (0,0,0,1,0,0,1,0xffff,1,2). 3e oracle compares all allocation images byte for byte."
   },
   {
    "va": "0x42b87a",
@@ -8149,7 +8149,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Lines 92-141: 6-way mode switch, clock hour/min words, total=h*60+m, deadline=tick+int16 offset, then 0x42ba3a completion/phase. 64 oracle compares world, completed, phase, reset, tick calls."
+   "note": "In action_family64_step: Lines 92-141: 6-way mode switch, clock hour/min words, total=h*60+m, deadline=tick+int16 offset, then 0x42ba3a completion/phase. 64 oracle compares world, completed, phase, reset, tick calls."
   },
   {
    "va": "0x4d3c5f",
@@ -8182,7 +8182,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Case 3 (lines 103-112): if [+0x1c] then tick_0456=GetTickCount-5 (4d3c31/4d3d20 inlined), flag +0x326 := 1. Oracle compares world and tick-call count."
+   "note": "In action_family64_step: Case 3 (lines 103-112): if [+0x1c] then tick_0456=GetTickCount-5 (4d3c31/4d3d20 inlined), flag +0x326 := 1. Oracle compares world and tick-call count."
   },
   {
    "va": "0x4d3c88",
@@ -8215,7 +8215,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Cases 4/5/6 store flag_0326_0061c6ad := 0 (lines 113-127), the 0x61c6ad store of the original; oracle compares the world flag."
+   "note": "In action_family64_step: Cases 4/5/6 store flag_0326_0061c6ad := 0 (lines 113-127), the 0x61c6ad store of the original; oracle compares the world flag."
   },
   {
    "va": "0x4343a2",

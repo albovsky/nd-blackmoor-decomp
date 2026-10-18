@@ -515,7 +515,6 @@ int alc_cleanup(AlcObject *object, const AlcHost *host)
     return ALC_OK;
 }
 
-/* FL-12: original FUN_0044d9b5 is inlined in this function (function ledger acceptance). */
 static void add_blit(AlcRenderResult *out, int kind, uint32_t surface, const uint8_t *body, size_t src, size_t dst,
                      int32_t vx, int32_t vy)
 {

@@ -45,7 +45,6 @@ static void set_error(char *error, size_t capacity, const char *format, ...)
     va_end(arguments);
 }
 
-/* FL-12: original FUN_004347b8 is this function (function ledger acceptance). */
 static uint32_t read_be32(const uint8_t *bytes)
 {
     return ((uint32_t)bytes[0] << 24) |
@@ -90,7 +89,6 @@ static size_t find_data_at(const Hiff *hiff, size_t offset)
     return SIZE_MAX;
 }
 
-/* FL-12: original FUN_00434773 is inlined in this function (function ledger acceptance). */
 static int scan_data_records(Hiff *hiff, char *error, size_t error_capacity)
 {
     size_t offset = 0u;
@@ -366,7 +364,6 @@ int hiff_select_data(Hiff *hiff, const char *type)
     return HIFF_ERR_NOT_FOUND;
 }
 
-/* FL-12: original FUN_00434630 is inlined in this function (function ledger acceptance). */
 static int select_chunk_index(Hiff *hiff, const char *id, int require_unused)
 {
     size_t index;

@@ -903,9 +903,19 @@ class PortAcceptanceTests(ScratchCase):
         self.as_inlined(0x401000, driven=False)
         self.fails("enclosing")
 
+    def test_inlined_class_note_must_name_the_symbol(self):
+        self.as_inlined(0x401000, note="x" * 90)
+        self.fails("names the native symbol")
+
+    def test_inlined_class_module_file_name_in_the_oracle_is_not_enough(self):
+        self.as_inlined(0x401000, driven=False)
+        self.s.text("tests/fixture_core_oracle.py", lambda t: t + "# see src/fixture_core.c\n")
+        self.s.resync_evidence_hashes()
+        self.fails("do not reference fixture_entry")
+
     def test_inlined_class_never_takes_library_region_functions(self):
         self.acceptance(0x406000, lambda a: a.update(**{"class": "native_oracle_verified_inlined"},
-                                                     note=self.INLINED_NOTE,
+                                                     note=self.INLINED_NOTE + " (fixture_rand)",
                                                      oracle={"path": "tests/fixture_core_oracle.py",
                                                              "window": ["0x406000", "0x406040"]}))
         self.fails("library rules never count")
