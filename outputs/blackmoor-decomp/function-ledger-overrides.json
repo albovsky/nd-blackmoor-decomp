@@ -6,7 +6,7 @@
   {
    "va": "0x423000",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -35,7 +35,7 @@
   {
    "va": "0x423097",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -64,7 +64,7 @@
   {
    "va": "0x4234c8",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -93,7 +93,7 @@
   {
    "va": "0x42e560",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -122,7 +122,7 @@
   {
    "va": "0x434773",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -151,7 +151,7 @@
   {
    "va": "0x4347b8",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -180,7 +180,7 @@
   {
    "va": "0x43f04b",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -209,7 +209,7 @@
   {
    "va": "0x44d9b5",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -238,7 +238,7 @@
   {
    "va": "0x45b568",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -267,7 +267,7 @@
   {
    "va": "0x47d77d",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -296,7 +296,7 @@
   {
    "va": "0x47e25a",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -325,7 +325,7 @@
   {
    "va": "0x493a47",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -354,7 +354,7 @@
   {
    "va": "0x4b8e42",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -383,7 +383,7 @@
   {
    "va": "0x4bedb5",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -412,7 +412,7 @@
   {
    "va": "0x4bede7",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -441,7 +441,7 @@
   {
    "va": "0x4bedfa",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -470,7 +470,7 @@
   {
    "va": "0x4bf38c",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -499,7 +499,7 @@
   {
    "va": "0x4c0c18",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -528,7 +528,7 @@
   {
    "va": "0x4c0c2c",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -557,7 +557,7 @@
   {
    "va": "0x4c0c54",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -586,7 +586,7 @@
   {
    "va": "0x4c0c69",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -615,7 +615,7 @@
   {
    "va": "0x4ccd70",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -644,7 +644,7 @@
   {
    "va": "0x4ccfbd",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -673,7 +673,7 @@
   {
    "va": "0x4d3c31",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -702,7 +702,7 @@
   {
    "va": "0x4d3c42",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -731,7 +731,7 @@
   {
    "va": "0x4d3d20",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -760,7 +760,7 @@
   {
    "va": "0x4e76d5",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -789,7 +789,7 @@
   {
    "va": "0x4e76ed",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -818,7 +818,7 @@
   {
    "va": "0x4e7728",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -847,7 +847,7 @@
   {
    "va": "0x4e7757",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -876,7 +876,7 @@
   {
    "va": "0x4e7786",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -905,7 +905,7 @@
   {
    "va": "0x4e7ba7",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -934,7 +934,7 @@
   {
    "va": "0x4edf96",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -963,7 +963,7 @@
   {
    "va": "0x4ee5cd",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -992,7 +992,7 @@
   {
    "va": "0x4f709c",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
@@ -1021,7 +1021,7 @@
   {
    "va": "0x4faf98",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-16 implementer, independent Sonnet slice-reviewer (disassembly and mutants) and diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-16 implementer, slice-reviewer, diff slice-reviewer",
    "date": "2026-10-18",
    "native_source": {
     "path": "src/original_methods_fl16.c",
