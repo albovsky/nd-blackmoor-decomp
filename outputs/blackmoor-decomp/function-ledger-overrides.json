@@ -7921,6 +7921,244 @@
    },
    "parts_accounted": [],
    "note": "1:1 with alc_invalidate (active +0x25 != 0 and slot +0x1c != -1, then redraw dword := 1). The store is the host mark_dirty callback. Native-only: NULL args -> ALC_ERR_ARGUMENT, host error -> ALC_ERR_HOST."
+  },
+  {
+   "va": "0x437ea1",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_76_runtime.c",
+    "symbol": "pwd_char_accepted"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_pwd_char_accepted"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_pwd_char_accepted_437ea1"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_76_runtime_original_oracle.py",
+    "window": [
+     "0x437ea1",
+     "0x438120"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with pwd_char_accepted (message-handler character filter: letters, digits, \\b \\r, space, 17 punctuation marks, 27 Latin-1 bytes as signed chars). Direct test sweeps all 256 values; tqz_key_filter is a second native copy."
+  },
+  {
+   "va": "0x4b8520",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_f5_runtime.c",
+    "symbol": "char_allowed"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_x_direct_test.c",
+     "test_id": "test_char_allowed"
+    },
+    {
+     "path": "tests/test_fl14_x_direct.py",
+     "test_id": "Fl14XDirect.test_char_allowed_4b8520"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8520",
+     "0x4b85f6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with char_allowed (letters, digits if the body's digits flag is set, or one of the body's extra characters). The typed body is a parameter, not the pointer the original reads through obj + 8."
+  },
+  {
+   "va": "0x45be3f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_da_runtime.c",
+    "symbol": "real_name"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_da_direct_test.c",
+     "test_id": "test_real_name_45be3f"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_real_name_45be3f"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_da_runtime_original_oracle.py",
+    "window": [
+     "0x45be3f",
+     "0x45be7f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with real_name (a sound name that is neither 'NO SOUND' nor empty). Takes the name bytes as a pointer, as the original does."
+  },
+  {
+   "va": "0x47e99e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "rect_valid"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_eb_direct_test.c",
+     "test_id": "test_rect_valid_47e99e"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_rect_valid_47e99e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e99e",
+     "0x47e9d3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with rect_valid (nonzero when both edge pairs differ). Native takes the body and a rectangle offset where the original takes a pointer."
+  },
+  {
+   "va": "0x47ec06",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "near_unplaced"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_eb_direct_test.c",
+     "test_id": "test_near_unplaced_47ec06"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_near_unplaced_47ec06"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47ec06",
+     "0x47ed96"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with near_unplaced (multi-piece in hand: is a piece away from home under the dragged piece's lower middle). Object and type-table body are parameters; the original resolves the table via *(0x5bb5e5 + row * 0x8d)."
+  },
+  {
+   "va": "0x484f0d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "rect_valid"
+   },
+   "tests": [
+    {
+     "path": "tests/fl14_y_ea_direct_test.c",
+     "test_id": "test_rect_valid_484f0d"
+    },
+    {
+     "path": "tests/test_fl14_y_direct.py",
+     "test_id": "Fl14YDirect.test_rect_valid_484f0d"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484f0d",
+     "0x484f42"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with rect_valid (nonzero when both edge pairs differ). Native takes the body and a rectangle offset where the original takes a pointer.",
+   "blockers_reviewed": [
+    {
+     "id": "A-EA.1:c0fcb108283c8976",
+     "rationale": "The unverified item is about host effects of the runtime handler 0x4867bd and the object methods; this is a 53-byte pure predicate over four dwords of the rectangle it is given and calls nothing."
+    }
+   ]
+  },
+  {
+   "va": "0x484622",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "top_piece_placed"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_ea_direct_test.c",
+     "test_id": "t_top_piece_placed"
+    },
+    {
+     "path": "tests/test_fl13_ea_direct.py",
+     "test_id": "Fl13EaDirect.test_top_piece_placed_0x484622"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484622",
+     "0x4846c2"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with top_piece_placed (greatest layer in the rotate-zone list, first on ties, -1 if empty). FL-15's rotate:placed* oracle scenarios run all 160 bytes; the return value is checked by the direct test."
+  },
+  {
+   "va": "0x47e9d3",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-15 implementer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "top_piece_47e9d3"
+   },
+   "tests": [
+    {
+     "path": "tests/fl13_eb_direct_test.c",
+     "test_id": "test_top_piece_47e9d3"
+    },
+    {
+     "path": "tests/test_fl13_eb_direct.py",
+     "test_id": "FlThirteenEbDirectTest.test_top_piece_47e9d3"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_top_piece_oracle.py",
+    "window": [
+     "0x47e9d3",
+     "0x47ea73"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with top_piece_47e9d3 (list +0x13ef, count +0x1417; -1 if empty). The empty list is unreachable by click (K3), so a new oracle calls the original on forced lists; native results come from the direct test."
   }
  ],
  "not_needed_entries": [

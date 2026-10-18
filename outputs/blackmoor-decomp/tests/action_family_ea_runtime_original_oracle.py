@@ -2424,6 +2424,17 @@ def scenario_list(seed=45):
     S(scs, 'known:K5', [R(good)], [('k5',)], 'known', seed=19)
     S(scs, 'known:K6', [R(good_body(rng, n=3, texts={'good': [txt(rng, 199)] * 3, 'bad': [b''] * 3, 'win': [b'']}))],
       [('tick', CLK), ('k6', txt(rng, 260))], 'known', seed=20)
+    # FL-15: the pointer lists every piece whose rotate zone holds it, and a rotate click calls the original 0x484622 (top piece of
+    # that list). Pre-placed (loose) overlapping pieces take their layer from the body's table. Scenarios 0 and 3 make the loop
+    # replace the best piece; the others keep the first entry (a smaller layer, or all layers equal).
+    for k, lay in enumerate(([1, 2, 3], [3, 2, 1], [2, 3, 1], [1, 3, 2], None, [2, 1, 3])):
+        pcs = [dict(A=(10 + 60 * i, 10, 59 + 60 * i, 59), B=(0, 0, 0, 0), C=(100 + 3 * i, 100 + 2 * i, 149 + 3 * i, 149 + 2 * i),
+                    D=(300 + 80 * i, 300, 349 + 80 * i, 349), orient=0, loose=int(k != 5 or i < 2)) for i in range(3)]
+        body = good_body(rng, n=3, pieces=pcs, tol=(0, 0), layer=None if lay is None else lay + [0] * 17, drop=(0, 0, 639, 479), rot=1,
+                         rotlock=1, area=(0, 0, 639, 479), zone=(10, 12))
+        S(scs, 'rotate:placed%d' % k, [R(body)],
+          [('tick', CLK), ('ptr', 106, 106), ('click',), ('tick', CLK), ('play', 10, dict(solve=1.0, cycle=0.0)), ('ptr', 104, 104),
+           ('click',), ('play', 10, dict(solve=1.0, cycle=0.0))], 'rotate', seed=900 + k)
     return scs
 
 
