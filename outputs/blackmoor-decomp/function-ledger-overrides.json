@@ -6033,7 +6033,7 @@
   {
    "va": "0x414947",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_1b_runtime.c",
@@ -6057,7 +6057,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Phases 0/1/2 (start flag, phase:=1 fall-through, request clear + first secondary-record match writing the 4 rect words, completion byte + first primary-record match or fixed block into the 7 transfer cells, mode:=4) and the no-effect ph...",
+   "note": "1:1 with action1b_step (phases 0/1/2, first-match scan). Native: decoded row view passed in; +0x1c/+0x20/+0x24 scratch stores not modelled; NULL args refused.",
    "blockers_reviewed": [
     {
      "id": "A-1B.1:852ed72cb0abacd9",
@@ -6068,7 +6068,7 @@
   {
    "va": "0x42cecd",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_33_runtime.c",
@@ -6092,22 +6092,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Second rectangle pair: clip against rect[1]/rect[3], full/partial/outside cases, working src2/dst2 (0x5b4e38/48), flag 0x5b4e8d and relative dst2 (0x5b4e93..) all match; shared clip_rect helper reproduces the original branches exactly (..."
+   "note": "1:1 with second_rects (clip and relative rect). Native: takes the decoded hotspot, not the raw 0x42-byte record; oracle compares aggregate op log."
   },
   {
    "va": "0x42d215",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_33_runtime.c",
     "symbol": "frame_advance"
    },
    "tests": [
-    {
-     "path": "tests/fl11_33_direct_test.c",
-     "test_id": "adv"
-    },
     {
      "path": "tests/test_fl11_33_direct.py",
      "test_id": "FlElevenA33DirectTest.test_frame_advance"
@@ -6121,7 +6117,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "All four jump-table cases (wrap, clamp, reverse to state 0, clamp), default fall-through and the final state1->2 candidate test (latch != row word, 32-bit vs sign-extended word as in the disassembly cmp dword [0x5c39e5], edx) match. Lim...",
+   "note": "1:1 with frame_advance (modes 0-3 clamp/wrap, latch compare). Native: reads w4c/w4e/w52/w56 from the parsed set, not DAT_005b4ead; oracle is aggregate.",
    "blockers_reviewed": [
     {
      "id": "A-33.1:35de5dfe55ad70d2",
@@ -6132,17 +6128,13 @@
   {
    "va": "0x44d946",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_aa_runtime.c",
     "symbol": "write_alarm"
    },
    "tests": [
-    {
-     "path": "tests/fl11_aa_direct_test.c",
-     "test_id": "t_run"
-    },
     {
      "path": "tests/fl11_aa_direct_test.c",
      "test_id": "test_write_alarm"
@@ -6160,12 +6152,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Hour word 0x585d51 from alarm hour/AM flag (11 -> 12 or 0, else +13/+1) then minute word 0x585d4f := 0, in that store order, exactly as the disassembly (word stores). Limits: Indirect through phase 2; takes AlcObject instead of this-poi..."
+   "note": "1:1 with write_alarm (hour/AM store pair). Native: takes the AlcObject, not a this-pointer; reached by the oracle only through phase 2."
   },
   {
    "va": "0x45ba0b",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_da_runtime.c",
@@ -6189,12 +6181,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Copies the 4 work rectangles into both roll sets (body+0x36d + i*0x20, 16 bytes), start positions (0x29/0x2b), mode:=0, current rects from body+0xad+(pos-1)*16, the two marker images (0x3ed..), and clears anim_active/button_kind/deadlin..."
+   "note": "1:1 with reset_work (rolls, rects, markers, mode). Native-only: BUL_ERR_BOUNDS for start positions outside 1..15; original reads past its table (unreachable)."
   },
   {
    "va": "0x45bcc1",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_da_runtime.c",
@@ -6218,12 +6210,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Compares the two position words; on equality picks the caption (names at 0x6e1+side*0x2dc, 4 names, entry=side), state:=6, deadline:=GetTickCount+0x4b0, copies the 16-byte marker image from body+0x40d+side*16, increments the side's scor..."
+   "note": "1:1 with step_check (position match, caption, score, state 6). Native: result via *matched plus status; caption_pick guard errors propagate (native-only)."
   },
   {
    "va": "0x45be7f",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_da_runtime.c",
@@ -6247,12 +6239,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Fills the caption descriptor fields, picks the sound name (single name, or random draw with 'NO SOUND' tracking until a real name or all tried), copies it to +0x184, then prepare, play on channel, AUTOTEXT lookup, appends '<e>' and show..."
+   "note": "1:1 with caption_pick (draw until real name). Native-only guards: entry 0..1, count<=10, text 201..0x9c40 -> BUL_ERR_BOUNDS, stuck draw -> BUL_ERR_STUCK."
   },
   {
    "va": "0x461d4b",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_d3_runtime.c",
@@ -6276,12 +6268,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Returns cell[a][b].type == piece, same as word at 0x594dd9 + b*0x28 + a*0x140 compared to piece. Limits: Result observable only indirectly (no hook on its return)."
+   "note": "1:1 with type_is (cell type compare). Result is visible to the oracle only through the parent's effects (solved scan, move checks)."
   },
   {
    "va": "0x462577",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_d3_runtime.c",
@@ -6305,12 +6297,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "One-time setup guarded by flag: zero each 0x28-byte cell, type from body+0x28+a*16+b*2, base and rect via cell_rect, arrow cell adjustments (0x10/0x13 horizontal, 0x11/0x12 vertical, gap/2 and size/2 integer divides), piece number and v..."
+   "note": "1:1 with grid_setup (64-cell grid, arrows, start table). Native: setup flag is a byte (original word, only 0/1 stored); view origin passed in."
   },
   {
    "va": "0x462b84",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_d3_runtime.c",
@@ -6334,12 +6326,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Cell rectangle: x = gap*b + view_x + origin_x + b*cell_w, right = x + cell_w, y likewise with a/cell_h; identical to pseudocode, view origin supplied as parameters instead of globals 0x583186/0x58318a. Limits: Takes view_x/view_y as arg..."
+   "note": "1:1 with cell_rect (cell base/rect from gap, origin, view). Native takes view_x/view_y as arguments; oracle compares the resulting grid cells."
   },
   {
    "va": "0x4632bf",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_d3_runtime.c",
@@ -6363,12 +6355,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Scans rows x cols, returns silently at the first occupied cell whose type != piece number; otherwise solved:=1 and state:=1 with a state observer effect. Matches pseudocode (+0x47, +0x24). Limits: Takes a CpzHost for the observer; indir..."
+   "note": "1:1 with solved_scan (all cells vs target types, one state store). Native takes a CpzHost for the observer; oracle is aggregate (object image, effect)."
   },
   {
    "va": "0x47e52f",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_eb_runtime.c",
@@ -6392,12 +6384,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Rectangle + view origin (x += origin_x, y += origin_y) from one object offset to another; identical to the four stores of the pseudocode; origin via host->view seam instead of globals 0x583186/0x58318a. Limits: Offsets in the object ima..."
+   "note": "1:1 with translate (rect plus view origin). Native: offsets inside the object image; returns a status on host view failure (no original path)."
   },
   {
    "va": "0x47f275",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_eb_runtime.c",
@@ -6421,12 +6413,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Copies move/move_t into prev/prev_t, recenters the moving rect on the pointer rect centre (using hw/hh halves), clamps (0x47f19d), translates, and if prev y edges were zero seeds prev from move; all offsets (0x1352..0x138e, 0x13cf..0x13..."
+   "note": "1:1 with follow_pointer (prev copy, centre by half hand size, clamp). Native: host view seam can fail (EB_ERR_HOST); oracle is aggregate."
   },
   {
    "va": "0x47fa11",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_eb_runtime.c",
@@ -6450,12 +6442,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "lift:=1, saves rect, orientation+1 mod 4, recentres with old/new entry widths/heights (16-bit truncations and /2 as in pseudocode), new right/bottom from entry rect, clamp, translate; matches. Limits: Indirect aggregate comparison; retu..."
+   "note": "1:1 with rotate_piece (orientation wrap, centre, clamp, saved rect). Native returns a status on host view failure; oracle is aggregate."
   },
   {
    "va": "0x47fb76",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_eb_runtime.c",
@@ -6479,22 +6471,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "lift:=1, saves rect; if the type's E rectangle is invalid recentres on the D rectangle (16-bit truncated centre, dr-dl, db-dt), clamps, translates; else copies E and translates (no clamp). Matches pseudocode including the 0x47e99e test..."
+   "note": "1:1 with multi_pick (E rect valid or D-rect recentre, clamp). Oracle compares aggregate object image and host log; native returns a host-failure status."
   },
   {
    "va": "0x4841cb",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
     "symbol": "translate"
    },
    "tests": [
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "t_piece_init"
-    },
     {
      "path": "tests/fl11_ea_direct_test.c",
      "test_id": "t_translate"
@@ -6512,7 +6500,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Same rectangle+view-origin translator as 0x47e52f in the 0xea object (separate original, separate native copy); four stores identical to pseudocode. Limits: Offsets in the object image; host->view seam.",
+   "note": "1:1 with translate (rect plus view origin). Native: offsets in the object image; host view seam (EA_ERR_HOST on failure, no original path). Oracle aggregate.",
    "blockers_reviewed": [
     {
      "id": "A-EA.1:c0fcb108283c8976",
@@ -6523,7 +6511,7 @@
   {
    "va": "0x48421e",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
@@ -6547,22 +6535,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Builds piece i exactly as the original: z:=0, orientation/loose flags from body+0x40/0x41, rect from D (loose=0) or C (loose=1, orientation:=0, layer lookup sets z), src rect A/B by rect test and flag at +0x84, create surface, entry rec..."
+   "note": "1:1 with piece_init (placed/loose pieces, surface build, rotate). Surface create/blit/copy/rotate go through EaHost seams; oracle aggregate with host log."
   },
   {
    "va": "0x484935",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
     "symbol": "set_layer"
    },
    "tests": [
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "layer_run"
-    },
     {
      "path": "tests/fl11_ea_direct_test.c",
      "test_id": "t_set_layer"
@@ -6580,22 +6564,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "set_layer(obj, body, i) does all of FUN_00484935: layer-table branch (body+0x56 != 0 sets Z to the matching index), else collects overlapping pieces via 0x484762 and sets Z = max(Z, others) + 1. Same fields (piece Z word), same short wr..."
+   "note": "1:1 with set_layer (last-match-wins layer table). Native hits[20] overflows like the original beyond 20 pieces; body validation prevents it (K2, unreachable)."
   },
   {
    "va": "0x484caf",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
     "symbol": "clamp_rect"
    },
    "tests": [
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "clamp_case"
-    },
     {
      "path": "tests/fl11_ea_direct_test.c",
      "test_id": "t_clamp_rect"
@@ -6613,22 +6593,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "clamp_rect(obj, off, host) is FUN_00484caf 1:1: size kept as 16-bit width/height, then top, bottom, left, right clamps against the four clip globals (host->view supplies them); signed compares verified (jge/jle) in the disassembly. Rect..."
+   "note": "1:1 with clamp_rect (clip to view bounds). Native reads clip globals through the host view seam (not logged against the original); oracle aggregate."
   },
   {
    "va": "0x484d87",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
     "symbol": "follow_pointer"
    },
    "tests": [
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "follow_setup"
-    },
     {
      "path": "tests/fl11_ea_direct_test.c",
      "test_id": "t_follow_pointer"
@@ -6646,12 +6622,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "follow_pointer(obj, host) reproduces FUN_00484d87: copy +0xab0 rect to +0xaa0 and +0xad0 rect to +0xac0, recentre the moving rect on the pointer rect (signed /2 centre arithmetic, PW/PH shorts), then clamp (0x484caf) and translate (0x48..."
+   "note": "1:1 with follow_pointer (prev copy, centre, clamp). Native returns EA_ERR_HOST on seam failure (no original path); effects are all in the compared image."
   },
   {
    "va": "0x4853b0",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
@@ -6675,22 +6651,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "rotate_piece(obj, i, host) is FUN_004853b0 1:1: lift flag, save rect to +0xae0, remember centre with the old orientation entry, orientation+1 wrapping at 4, new rect around the centre, clamp, translate. All operand widths (short centre,..."
+   "note": "1:1 with rotate_piece (orientation wrap, centre, clamp). Aggregate-state oracle: all effects land in the compared object image."
   },
   {
    "va": "0x4866b4",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
     "symbol": "inside_area"
    },
    "tests": [
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "inside_run"
-    },
     {
      "path": "tests/test_fl11_ea_direct.py",
      "test_id": "Fl11EaDirect.test_inside_area_0x4866b4"
@@ -6704,26 +6676,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "inside_area(obj, body, off) is FUN_004866b4: rect inside the body area rectangle (body+0x5a7..0x5b3), returns 0/1 with the same four compares. The original takes a rect pointer; native takes an offset inside obj, which matches its only..."
+   "note": "1:1 with inside_area (point in rect, strict edges). Native takes the row body as a parameter; return value is visible only via the parent's effects."
   },
   {
    "va": "0x486725",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_ea_runtime.c",
     "symbol": "check_solved"
    },
    "tests": [
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "solved_fixture"
-    },
-    {
-     "path": "tests/fl11_ea_direct_test.c",
-     "test_id": "solved_run"
-    },
     {
      "path": "tests/test_fl11_ea_direct.py",
      "test_id": "Fl11EaDirect.test_check_solved_0x486725"
@@ -6737,22 +6701,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "check_solved(obj, body) is FUN_00486725: every unplaced piece must have zero C-rect top and bottom in the body, otherwise return; if all pass, state := 6 (EA_STATE_DONE) and done byte +0xbb0 := 1. Offsets verified (+0x4b piece placed by..."
+   "note": "1:1 with check_solved (placed pieces inside target area). Native takes the row body as a parameter; aggregate-state oracle only."
   },
   {
    "va": "0x4b832c",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_f5_runtime.c",
     "symbol": "clock_update"
    },
    "tests": [
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "clock_run"
-    },
     {
      "path": "tests/fl11_f5_direct_test.c",
      "test_id": "test_clock_update"
@@ -6770,22 +6730,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "clock_update(o, body, world, host) is FUN_004b832c: elapsed = tick - start (stored at +0x632), remaining = limit - elapsed/1000 (unsigned div, signed idiv by 60 and signed 0x3b clamps verified in the disassembly), conditional store of m..."
+   "note": "1:1 with clock_update (ms to m:ss, unsigned/signed divides, clamps). Aggregate-state oracle with ordered clock effects."
   },
   {
    "va": "0x4b844d",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_f5_runtime.c",
     "symbol": "score_update"
    },
    "tests": [
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "score_run"
-    },
     {
      "path": "tests/fl11_f5_direct_test.c",
      "test_id": "test_score_update"
@@ -6803,26 +6759,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "score_update is FUN_004b844d: secs = elapsed/1000; if secs>0 and hits!=0 score = (short)__ftol(float(hits)/(float(factor)*float(secs))*60.0f) with the x87 float/double staging reproduced; set_score (0x44655e) when score != prev; state :..."
+   "note": "1:1 with score_update (float scale, __ftol low word, time-up). 53-bit x87 emulation is verified only by the oracle; native uses host double arithmetic."
   },
   {
    "va": "0x4b85f6",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_f5_runtime.c",
     "symbol": "pick_char"
    },
    "tests": [
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "pc_run"
-    },
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "test_first_wave"
-    },
     {
      "path": "tests/fl11_f5_direct_test.c",
      "test_id": "test_pick_char"
@@ -6840,30 +6788,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "pick_char(o, body, host, out) is FUN_004b85f6: loop of _rand() % (max_char - base) + base (base 0x30 when body+0x432 digits flag else 0x41; max_char is obj+0x63b as a short) until 0x4b8520 (char_allowed) accepts; returns the char (AL)...."
+   "note": "1:1 with pick_char. Native-only: retry loop bounded (TQZ_PICK_LIMIT -> TQZ_ERR_STUCK) and zero divisor refused; the original loops forever or faults."
   },
   {
    "va": "0x4b866e",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_f5_runtime.c",
     "symbol": "pick_position"
    },
    "tests": [
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "pp_run"
-    },
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "pp_setup"
-    },
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "test_first_wave"
-    },
     {
      "path": "tests/fl11_f5_direct_test.c",
      "test_id": "test_pick_position"
@@ -6881,22 +6817,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "pick_position(o, body, host, view_x, view_y, out) is FUN_004b866e: draw _rand, c = r % N, rescan balloons (state != 0 and screen rect minus view origin equal to position rect c) and redraw until free; returns c (AX). View origin supplie..."
+   "note": "1:1 with pick_position. Native-only: retry loop bounded (TQZ_ERR_STUCK); the original can loop forever. Oracle aggregate with ordered rand log."
   },
   {
    "va": "0x4b8783",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_f5_runtime.c",
     "symbol": "first_wave"
    },
    "tests": [
-    {
-     "path": "tests/fl11_f5_direct_test.c",
-     "test_id": "fw_setup"
-    },
     {
      "path": "tests/fl11_f5_direct_test.c",
      "test_id": "test_first_wave"
@@ -6914,12 +6846,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "first_wave is FUN_004b8783: count = rand % (max-min+1) + min, clear all 20 balloon records (0x113 dwords), then for each balloon the position/rect/variant/char/tick/lifetime sequence in the original draw order (via the shared helper pla..."
+   "note": "1:1 with first_wave (count, clear, per-balloon draws, text centring). Shares place_balloon with more_balloons (not credited here). Aggregate oracle."
   },
   {
    "va": "0x4cf0a9",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_2d_runtime.c",
@@ -6943,12 +6875,12 @@
     ]
    },
    "parts_accounted": [],
-   "note": "rand_mod(h, count, out, why) is FUN_004cf0a9: one _rand; raw value for -1, else signed r % count. The zero divisor (original idiv fault) yields D2_ERR_BODY after the draw, same order. Limits: Static. Also called by native code that corr..."
+   "note": "1:1 with rand_mod (-1 raw, else remainder). Divide by zero returns an error natively, the original faults (oracle expected difference E1)."
   },
   {
    "va": "0x4cf0ce",
    "class": "native_oracle_verified",
-   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader + diff slice-reviewer",
+   "reviewer": "Claude Sonnet FL-11 direct-test batch, reader and diff slice-reviewer",
    "date": "2026-10-17",
    "native_source": {
     "path": "src/action_family_2d_runtime.c",
@@ -6972,7 +6904,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "pick_record(o, h, out, why) is FUN_004cf0ce: total = clip weight + sum of record weights (short, sign-extended), r = rand_mod(total), clip weight window [0, w) returns -1, then cumulative record windows return the record index, else -1...."
+   "note": "1:1 with pick_record. Native reads the clip index from o->clip_246 (parameter in the original; same at its one call site); null-set and clip checks native-only."
   }
  ],
  "not_needed_entries": [

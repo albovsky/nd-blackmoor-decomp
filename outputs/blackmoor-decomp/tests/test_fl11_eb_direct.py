@@ -35,7 +35,7 @@ class FlElevenEbDirectTest(unittest.TestCase):
         built = subprocess.run(cmd, capture_output=True, text=True)
         if built.returncode != 0:
             raise AssertionError(built.stderr)
-        done = subprocess.run([str(binary)], capture_output=True, text=True)
+        done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60)
         cls.returncode = done.returncode
         cls.results = {}
         for line in done.stdout.splitlines():
