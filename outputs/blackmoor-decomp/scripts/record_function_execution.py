@@ -254,8 +254,45 @@ def render(model: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def merge_runs(existing: dict, fresh: dict) -> dict:
+    """Add the runs of ``fresh`` to ``existing`` (the committed file).  A script already recorded with the same
+    script hash keeps its committed row; a script recorded with another hash is replaced.  Used when the traces
+    of the earlier runs are not at hand (another machine recorded them), so a partial trace directory extends
+    function-execution.json instead of replacing it."""
+    held = {r["script"]: r for r in existing["runs"]}
+    drop = {i for i, r in enumerate(existing["runs"])
+            if r["script"] in {f["script"] for f in fresh["runs"] if f["script_sha256"] != r["script_sha256"]}}
+    keep = [i for i in range(len(existing["runs"])) if i not in drop]
+    remap = {old: new for new, old in enumerate(keep)}
+    runs = [existing["runs"][i] for i in keep]
+    functions = {}
+    for key, record in existing["functions"].items():
+        cells = [[remap[c[0]], *c[1:]] for c in record[1:] if c[0] in remap]
+        if cells:
+            functions[key] = [record[0], *cells]
+    added = {}
+    for index, run in enumerate(fresh["runs"]):
+        if run["script"] in held and held[run["script"]]["script_sha256"] == run["script_sha256"]:
+            continue
+        added[index] = len(runs)
+        runs.append(run)
+    for key, record in fresh["functions"].items():
+        cells = [[added[c[0]], *c[1:]] for c in record[1:] if c[0] in added]
+        if cells:
+            functions.setdefault(key, [record[0]]).extend(cells)
+    functions = {k: functions[k] for k in sorted(functions)}
+    return {**existing, "runs": runs, "functions": functions,
+            "counts": {"runs": len(runs), "functions_executed": len(functions),
+                       "functions_entered": sum(1 for rec in functions.values() if any(c[1] for c in rec[1:]))}}
+
+
 def command_collect(args) -> int:
     model = derive(Path(args.trace_dir).resolve(), Path(args.root).resolve())
+    if args.merge:
+        if not args.write:
+            print("--merge needs --write", file=sys.stderr)
+            return 2
+        model = merge_runs(json.loads(OUTPUT.read_text()), model)
     text = render(model)
     if args.write:
         OUTPUT.write_text(text)
@@ -284,6 +321,8 @@ def main() -> int:
         sp.add_argument("--root", default=str(WORKSPACE))
         sp.add_argument("--trace-dir", default=str(DEFAULT_TRACE_DIR))
         sp.add_argument("--write", action="store_true")
+        sp.add_argument("--merge", action="store_true",
+                        help="extend the committed file with the runs in the trace directory (needs --write)")
         sp.set_defaults(func=command_collect)
     args = parser.parse_args()
     return args.func(args)
