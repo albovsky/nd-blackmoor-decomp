@@ -5518,6 +5518,517 @@
    "oracle": null,
    "parts_accounted": [],
    "note": "Rule V-PCM-LSB1 (vorbis_parity_rule): PCM parity with the original decoder within 1 LSB on all CDSound Ogg files. Output parity only; no per-function port or execution claim."
+  },
+  {
+   "va": "0x4cbb00",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_1c_runtime.c",
+    "symbol": "c1c_free_iv"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_1c_runtime_oracle_driver.c",
+     "test_id": "a1co_free_iv_record"
+    },
+    {
+     "path": "tests/action_family_1c_runtime_test.c",
+     "test_id": "test_phase2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4cbb00",
+     "0x4cbba9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Free order, strides and rect frees match the original. The native also nulls the record pointer, which the original leaves dangling (deliberate safe deviation; callers null it too). The 1c oracle compares live allocations and free order."
+  },
+  {
+   "va": "0x430b9a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_76_runtime.c",
+    "symbol": "blink"
+   },
+   "tests": [
+    {
+     "path": "tests/test_action_family_76_runtime.py",
+     "test_id": "Corpus.test_real_row_validates_and_plays_through_the_binding"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_76_runtime_original_oracle.py",
+    "window": [
+     "0x430b9a",
+     "0x430ca0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Cursor blink matches statement by statement. The cited test is a summary corpus; the differential evidence is action_family_76_runtime_original_oracle.py, which runs 0x430b9a and compares the state image and tick sequence."
+  },
+  {
+   "va": "0x44d711",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "read_time"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "t_time_reader"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d711",
+     "0x44d8ad"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "read_time matches the original branch for branch (hour 0/24/12/<12/>12, quarter ranges, alarm copy and the +1 mod 12 AM flip); the aa oracle runs the real handler and compares the whole 0x53-byte object image after each step."
+  },
+  {
+   "va": "0x44d8ad",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_aa_runtime.c",
+    "symbol": "step_hour"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_aa_runtime_test.c",
+     "test_id": "t_time_reader"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d8ad",
+     "0x44d946"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "step_hour matches increase (+1 mod 12, flip AM at 0xb) and decrease (0 -> 0xb, else -1 mod 12, flip AM at 0xa); object image compared against the original after each handler step."
+  },
+  {
+   "va": "0x48d89e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d0_runtime.c",
+    "symbol": "solved_check"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d0_runtime_oracle_driver.c",
+     "test_id": "d0o_render"
+    },
+    {
+     "path": "tests/action_family_d0_runtime_test.c",
+     "test_id": "t_render"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d89e",
+     "0x48d914"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "solved_check compares order[i] with body+0x319 for body+0x317 entries, sets state 2 and solved byte +0x38 on full match, as the original; oracle compares the object image (+0x2b, +0x38) and the entry effect."
+  },
+  {
+   "va": "0x4b6355",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d1_runtime.c",
+    "symbol": "d1_geometry"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d1_runtime_oracle_driver.c",
+     "test_id": "d1o_geometry"
+    },
+    {
+     "path": "tests/action_family_d1_runtime_test.c",
+     "test_id": "t_geometry"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d1_runtime_original_oracle.py",
+    "window": [
+     "0x4b6355",
+     "0x4b642d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "d1_geometry reproduces the four-word rectangle (x from origin, frame*w*substeps, step*w; y with row flag * tile*h; -2+w and -2+h), 32-bit wrapping;"
+  },
+  {
+   "va": "0x48bb17",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_d8_runtime.c",
+    "symbol": "reset_fields"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_d8_runtime_oracle_driver.c",
+     "test_id": "d8o_cleanup"
+    },
+    {
+     "path": "tests/action_family_d8_runtime_test.c",
+     "test_id": "test_cleanup_rules"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48bb17",
+     "0x48bb86"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "reset_fields stores exactly the 12 fields of the original (+0x26/+0x2e/+0x30 = -1, +0x1c = 0xff, +0x41/+0x43, bytes +0x40/+0x45/+0x46/+0x47, dwords +0x1e/+0x22);"
+  },
+  {
+   "va": "0x475a1e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "fill"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_fill_retry_limit"
+    },
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_phase0"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x475a1e",
+     "0x475bef"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "fill matches the original loops (rows body+0x42, cols +0x44), the all/single-cell gate, the rand % (kinds-1) retry against upper then left neighbour, kind/rect/present/matched stores and the call to the cell rect;"
+  },
+  {
+   "va": "0x475bef",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "cell_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_phase0"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x475bef",
+     "0x475cc4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "cell_rect matches: w/h from body rect words (+0x58/+0x60, +0x5c/+0x64), x/y = index*size + view + offset + gap*index with 0x660/0x666 and 0x662/0x664, stores order left, right, top, bottom;"
+  },
+  {
+   "va": "0x475cc4",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "add_text"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "render"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x475cc4",
+     "0x475da4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "add_text matches: skip on empty string, x = (int16)(rect.left + view x), y = (int16)(rect.bottom + view y), font body+0x23a and parameter +0x23c;"
+  },
+  {
+   "va": "0x475fb1",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_e4_runtime.c",
+    "symbol": "write_cursor"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_e4_runtime_test.c",
+     "test_id": "t_pointer"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x475fb1",
+     "0x47608e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "write_cursor matches the two branches (0x27d6 with state != 6 -> kind 9 sub 1; 0x27d5/0x27d7 -> kind 0x16 sub 1) and the no-write fallthrough;"
+  },
+  {
+   "va": "0x4854fb",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_ea_runtime.c",
+    "symbol": "write_candidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_ea_runtime_oracle_driver.c",
+     "test_id": "eao_pointer"
+    },
+    {
+     "path": "tests/action_family_ea_runtime_test.c",
+     "test_id": "ptr"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4854fb",
+     "0x48569e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Candidate writer constants, cursor offsets and record addresses match the original on all paths. Cells composed host-side are compared by the oracle against their documented composition."
+  },
+  {
+   "va": "0x47e3f7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "eb_world_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_world_reset"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e3f7",
+     "0x47e440"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Disassembled 0x47e3f7: clears saved flag, sets saved scene word 9999, zeroes 20 counter bytes and 80x37 piece bytes, leaves count/total words; eb_world_reset does exactly these stores."
+  },
+  {
+   "va": "0x47e582",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "piece_init"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_phase0"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_phase0_entry_rects"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47e582",
+     "0x47e8fe"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Compared the original piece_init instruction by instruction with the native: persistence/scene skip test, field stores and rect translate, valid-rect choice of source rect, surface create, entry rect, blit, and the three-step rotation."
+  },
+  {
+   "va": "0x47ea73",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "pieces_overlap"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "layer_after_drop"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47ea73",
+     "0x47ec06"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Compared the original rect-overlap branches (left/right and top/bottom min/max, the early zero returns, final -1 edge rejection) with pieces_overlap; identical decisions."
+  },
+  {
+   "va": "0x47ed96",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "set_layer"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "layer_after_drop"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47ed96",
+     "0x47ef0f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Compared the original set_layer (collect overlapping pieces except itself in index order, take running max z into the piece word, add one) with the native set_layer; same call arguments and stores."
+  },
+  {
+   "va": "0x47f19d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "clamp_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_clamp_wrapped_sizes"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47f19d",
+     "0x47f275"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Compared the original clamp (16-bit width/height, top then bottom then left then right clamps against the four clip globals with the same signed comparisons and resizes) with clamp_rect; identical."
+  },
+  {
+   "va": "0x47fd65",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "write_candidate"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_oracle_driver.c",
+     "test_id": "ebo_pointer"
+    },
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_pointer_args_and_bounds"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47fd65",
+     "0x47ff0e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Candidate writer constants, cursor offsets and record addresses match the original on all paths. Cells composed host-side are compared by the oracle against their documented composition."
+  },
+  {
+   "va": "0x480b34",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-10 runtime oracle batch, diff slice-reviewer",
+   "date": "2026-10-17",
+   "native_source": {
+    "path": "src/action_family_eb_runtime.c",
+    "symbol": "save_and_check"
+   },
+   "tests": [
+    {
+     "path": "tests/action_family_eb_runtime_test.c",
+     "test_id": "t_exit_and_save"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x480b34",
+     "0x480e02"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Compared the original save_and_check (saved flag, 2960-byte piece and 20-byte counter copies, saved count, total counting with spawn/mode test, target comparison, exit/win flag writes, forbidden/required checks, win-sound state/done)."
   }
  ],
  "not_needed_entries": [
