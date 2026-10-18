@@ -647,7 +647,7 @@ struct NativeApp {
     std::string game_directory; StandInRect scene_destination; StandInNewGame new_game;
     SessionA1cBinding *a1c = nullptr; std::array<bool, 0x40> a1c_slot_used{}; bool a1c_wait_logged = false; bool a1c_fills_logged = false;
     std::array<bool, 0x40> ad1_slot_used{}, ad3_slot_used{}, ad9_slot_used{}, aaa_slot_used{}, ad0_slot_used{}, aea_slot_used{},
-        af6_slot_used{}, ae0_slot_used{}, ae4_slot_used{}, af5_slot_used{}, aeb_slot_used{}, ada_slot_used{};
+        af6_slot_used{}, ae0_slot_used{}, ae4_slot_used{}, af5_slot_used{}, aeb_slot_used{}, ada_slot_used{}, aee_slot_used{};
 };
 static void record(NativeApp *, const char *, ...) __attribute__((format(printf, 2, 3)));
 static void record(NativeApp *, const char *, ...) {}

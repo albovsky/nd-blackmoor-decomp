@@ -610,8 +610,13 @@ class Registration(unittest.TestCase):
         slot = re.search(r'bindings\[(\d+)\]\.type = SESSION_ADA_TYPE;', app)
         self.assertIsNotNone(slot)
         self.assertEqual(slot.group(1), '59')
-        self.assertIn('SceneSessionActionBinding bindings[60]{};', app)
-        self.assertIn('config.action_binding_count = 60u;', app)
+        declared = re.search(r'SceneSessionActionBinding bindings\[(\d+)\]\{\};', app)
+        count = re.search(r'config\.action_binding_count = (\d+)u;', app)
+        self.assertIsNotNone(declared)
+        self.assertIsNotNone(count)
+        # Later families (RT-60 takes slot 60) raise the count; the declared size and the literal must agree.
+        self.assertEqual(declared.group(1), count.group(1))
+        self.assertGreaterEqual(int(count.group(1)), 60)
 
     def test_progress_map_sees_the_live_handler(self):
         """decomp-progress/playable.py needs gap-free slots 0..count-1; with slot 59 declared and slot 58 (RT-58, raw 0x76) not
