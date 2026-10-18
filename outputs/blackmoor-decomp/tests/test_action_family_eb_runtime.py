@@ -337,21 +337,17 @@ EQUIVALENT = {}  # exact keys, when a rule would be too broad
 # fails if the oracle script changed since, because the claim then needs a new run.
 ORACLE_RUN = {
     'oracle_script_sha256': 'e37077c6a4169002e72937e0fcdba759fb44f9def6a92f65c9c791a2a568cea6',
-    'kernel_sha256': '9dce917fb970294a9fe119cf425739d8ced1567bb05b2e475494fccf3002933a',
+    'kernel_sha256': 'b7c4a7cc2b71c3f1511513745d9d4ab50f255ea51e243fe03e3062825dc21668',
     'scenarios': 565,
 }
 ORACLE_KILLED_KEYS = """
-((uint32_t)b[off + 3] << 24));|#0|lit 3->2|0
 (uint8_t)(obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] - 1);|#0|op + -> - |0
 (uint8_t)(obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] - 1);|#0|op + -> - |1
 CHECK(piece_init(obj, body, world, count, obj[P + P_TYPE], 1, host));|#0|lit 1->0|0
 CHECK(piece_init(obj, body, world, count, obj[P + P_TYPE], 1, host));|#0|op + -> - |0
 T = type_off(obj[P + P_TYPE]);|#1|op + -> - |0
 T = type_off(obj[piece_off(piece) + P_TYPE]);|#0|op + -> - |0
-b[off + 2] = (uint8_t)((u >> 16) & 0xff);|#0|lit 16->15|1
-b[off + 2] = (uint8_t)((u >> 16) & 0xff);|#0|lit 16->17|1
 b[off + 3] = (uint8_t)((u >> 24) & 0xff);|#0|lit 24->23|1
-bo = bb < ab ? bb : ab;|#1|statement removed|0
 const int16_t type = obj[P + P_TYPE];|#0|op + -> - |0
 const int16_t type = obj[P + P_TYPE];|#1|op + -> - |0
 const int32_t dl = rd_s32(body, T + BT_D), dt = rd_s32(body, T + BT_D + 4);|#0|lit 4->3|0
@@ -366,7 +362,6 @@ for (int16_t j = 0; j < count && j < EB_MAX_INSTANCES; ++j)|#0|lit 0->1|0
 for (int16_t j = 0; j < n; ++j)|#0|lit 0->1|0
 for (int16_t j = 0; j < ntypes; ++j) {|#0|op <-><=|0
 for (int16_t j = 0; j < rd_s16(obj, O_COUNT); ++j) {|#1|lit 0->1|0
-for (int16_t k = 0; k < nfound; ++k) {|#0|op <-><=|0
 for (int16_t t = 0; t < n && why == NULL; ++t) {|#0|op <-><=|0
 for (unsigned k = 0; k < 4; ++k) {|#0|lit 4->5|1
 for (unsigned k = 0; k < 4; ++k) {|#0|op <-><=|0
@@ -379,7 +374,6 @@ if (obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] != 0 && body[T + BT_SPAWN] ==
 if (pl < rd_s32(obj, P + 2))|#0|op <-><=|0
 if (rd_s32(obj, off) < v.clip[0]) {|#0|lit 0->1|0
 if (x_hit && pt < rd_s32(obj, P + 6))|#0|op <-><=|1
-int16_t nfound = 0;|#0|lit 0->1|0
 obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |0
 obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |1
 obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] + 1);|#0|op + -> - |2
@@ -395,14 +389,8 @@ obj[O_COUNTS + obj[P + P_TYPE]] = (uint8_t)(obj[O_COUNTS + obj[P + P_TYPE]] - 1)
 obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] =|#0|op + -> - |0
 obj[O_COUNTS + obj[piece_off(piece) + P_TYPE]] =|#0|op + -> - |1
 piece = rd_s16(obj, O_HAND);|#0|statement removed|0
-r = br < ar ? br : ar;|#0|op <->>=|0
-r = br < ar ? br : ar;|#1|op <->>=|0
-r = br < ar ? br : ar;|#1|statement removed|0
-return (int32_t)((uint32_t)b[off] | ((uint32_t)b[off + 1] << 8) | ((uint32_t)b[off + 2] << 16) ||#0|lit 2->3|2
 static const uint8_t k[8] = {'N', 'O', '_', 'F', 'I', 'L', 'E', 0};|#0|lit 8->9|0
 static const uint8_t k[9] = {'N', 'O', ' ', 'S', 'O', 'U', 'N', 'D', 0};|#0|lit 9->10|0
-t = bt;|#0|statement removed|0
-wr_32(obj, E0 + ENT_RECT + 12, add32(sub32(rd_s32(obj, E0 + ENT_RECT + 4), 1), h));|#0|lit 4->5|1
 wr_32(obj, O_PREV_T + 12, rd_s32(obj, O_MOVE_T + 12));|#0|op + -> - |0
 wr_32(obj, O_PREV_T + 12, rd_s32(obj, O_MOVE_T + 12));|#0|statement removed|0
 wr_32(obj, O_PREV_T + 4, rd_s32(obj, O_MOVE_T + 4));|#0|op + -> - |0
@@ -411,7 +399,6 @@ wr_32(obj, O_PREV_T + 8, rd_s32(obj, O_MOVE_T + 8));|#0|op + -> - |0
 wr_32(obj, O_PREV_T + 8, rd_s32(obj, O_MOVE_T + 8));|#0|op + -> - |1
 wr_32(obj, O_PREV_T + 8, rd_s32(obj, O_MOVE_T + 8));|#0|statement removed|0
 wr_32(obj, O_PREV_T, rd_s32(obj, O_MOVE_T));|#0|statement removed|0
-wr_32(obj, ent + ENT_RECT + 12, add32(sub32(rd_s32(obj, ent + ENT_RECT + 4), 1), rh));|#0|lit 4->5|1
 """
 ORACLE_KILLED = frozenset(f'{KERNEL}|{line}' for line in ORACLE_KILLED_KEYS.strip().split('\n'))
 

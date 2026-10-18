@@ -259,20 +259,26 @@ static void moving_step(D1Object *o, const uint8_t *body, int16_t n, int *any)
     }
 }
 
+/* 0x4b642d: the idle state's solved check. The original reads the tile count from the row body; the row body is `body`. */
+static void solved_check(D1Object *o, const uint8_t *body, const D1Host *host)
+{
+    const int16_t n = rd_s16(body, B_COUNT);
+    int16_t i = 0;
+    while (i < n && o->frame[i] == rd_s16(body, B_TARGET + (size_t)i * 2u)) ++i;
+    if (i >= n) {
+        o->solved = 1;
+        o->state = D1_STATE_START_SOLVED;
+        fx(host, D1_FX_STATE, o->state, 0);
+    }
+}
+
 static int phase1(D1Object *o, const uint8_t *body, uint32_t *row_phase, const D1Host *host)
 {
     const int16_t n = rd_s16(body, B_COUNT);
     switch (o->state) {
     case D1_STATE_IDLE:
         if (o->solved == 0) {
-            /* 0x4b642d */
-            int16_t i = 0;
-            while (i < n && o->frame[i] == rd_s16(body, B_TARGET + (size_t)i * 2u)) ++i;
-            if (i >= n) {
-                o->solved = 1;
-                o->state = D1_STATE_START_SOLVED;
-                fx(host, D1_FX_STATE, o->state, 0);
-            }
+            solved_check(o, body, host);
         } else {
             o->state = D1_STATE_AUTO;
             fx(host, D1_FX_STATE, o->state, 0);

@@ -426,7 +426,8 @@ static int rotate_piece(uint8_t *obj, int16_t i, const EaHost *host)
     return translate(obj, P + P_RECT, P + P_RECT2, host);
 }
 
-/* 0x484622 / 0x4846c2: the piece of a list with the greatest layer (the first on ties), or -1. */
+/* The piece of a list with the greatest layer (the first on ties), or -1: the body shared by the two originals
+ * 0x484622 (placed list) and 0x4846c2 (unplaced list), which differ only in the two list offsets. */
 static int16_t top_piece(const uint8_t *obj, size_t list, size_t count)
 {
     int16_t best;
@@ -440,6 +441,12 @@ static int16_t top_piece(const uint8_t *obj, size_t list, size_t count)
     }
     return best;
 }
+
+/* 0x484622: the top piece of the placed list (list at +0xbfb, count at +0xc23). */
+static int16_t top_piece_placed(const uint8_t *obj) { return top_piece(obj, 0xbfbu, 0xc23u); }
+
+/* 0x4846c2: the top piece of the unplaced list (list at +0xbd1, count at +0xbf9). */
+static int16_t top_piece_unplaced(const uint8_t *obj) { return top_piece(obj, 0xbd1u, 0xbf9u); }
 
 /* 0x484762: do the rectangles of pieces a and b overlap. */
 static int pieces_overlap(const uint8_t *obj, int16_t a, int16_t b)
@@ -610,7 +617,8 @@ static int caption_block(uint8_t *obj, const uint8_t *body, size_t key, size_t t
     return EA_OK;
 }
 
-/* 0x48633c (good drop) and 0x485fb6 (bad drop). */
+/* The body shared by the two originals 0x48633c (good drop) and 0x485fb6 (bad drop); the wrappers below are the
+ * one-to-one native counterparts. */
 static int feedback_sound(uint8_t *obj, const uint8_t *body, int good, const EaHost *host)
 {
     const size_t rec = good ? B_SND_GOOD : B_SND_BAD;
@@ -637,7 +645,20 @@ static int feedback_sound(uint8_t *obj, const uint8_t *body, int good, const EaH
     return EA_OK;
 }
 
-/* 0x485ca1 (pick), 0x485f12 (rotate) and 0x485d52 (drop) sound helpers. */
+/* 0x48633c: the good-drop feedback (sound record at body +0x74b, state 2, caption flag always set). */
+static int good_drop_feedback(uint8_t *obj, const uint8_t *body, const EaHost *host)
+{
+    return feedback_sound(obj, body, 1, host);
+}
+
+/* 0x485fb6: the bad-drop feedback (sound record at body +0xa79, state 2, caption flag only when a caption showed). */
+static int bad_drop_feedback(uint8_t *obj, const uint8_t *body, const EaHost *host)
+{
+    return feedback_sound(obj, body, 0, host);
+}
+
+/* The body shared by the three originals 0x485ca1 (pick), 0x485f12 (rotate) and 0x485d52 (drop); the wrappers below
+ * are the one-to-one native counterparts. */
 static int piece_sound(uint8_t *obj, const uint8_t *body, size_t rec, int is_pick, int is_drop, const EaHost *host)
 {
     if (no_sound(body + rec)) return EA_OK;
@@ -652,6 +673,25 @@ static int piece_sound(uint8_t *obj, const uint8_t *body, size_t rec, int is_pic
     wr_32(obj, O_DEADLINE, (int32_t)(now(host) + 300u));
     wr_32(obj, O_DROP_SND, is_drop ? 1 : 0);
     return EA_OK;
+}
+
+/* 0x485ca1: the pick sound (record at body +0x6a7, state 1, +0xb87 := 0). */
+static int pick_sound(uint8_t *obj, const uint8_t *body, const EaHost *host)
+{
+    return piece_sound(obj, body, 0x6a7u, 1, 0, host);
+}
+
+/* 0x485f12: the rotate sound (record at body +0x676, no state store, +0xb87 := 0). */
+static int rotate_sound(uint8_t *obj, const uint8_t *body, const EaHost *host)
+{
+    return piece_sound(obj, body, 0x676u, 0, 0, host);
+}
+
+/* 0x485d52: the drop sound (record at body +0x6d8 with the random alternates at +0x709 / +0x72a, state 1,
+ * +0xb87 := 1). */
+static int drop_sound(uint8_t *obj, const uint8_t *body, const EaHost *host)
+{
+    return piece_sound(obj, body, 0x6d8u, 0, 1, host);
 }
 
 static void piece_size(uint8_t *obj, int16_t i)
@@ -817,13 +857,13 @@ static int phase1(uint8_t *obj, const uint8_t *body, uint32_t *row_phase, const 
         if (now(host) < (uint32_t)rd_s32(obj, O_DEADLINE)) return EA_OK;
         HOST(host->sound_stop(host->context, EA_SOUND_OBJECT_ID + O_SND_B, obj + O_SND_B));
         if (rd_s32(obj, O_DROP_SND) != 0 && rd_s32(obj, O_PLACED_OK) != 0) {
-            int rc = feedback_sound(obj, body, 1, host);
+            int rc = good_drop_feedback(obj, body, host);
             if (rc != EA_OK) return rc;
             if (rd_s32(obj, O_EXIT_AREA) != 0) return EA_OK;
             check_solved(obj, body);
             return EA_OK;
         }
-        if (rd_s32(obj, O_DROP_SND) != 0 && !inside_area(obj, body, O_MOVE)) return feedback_sound(obj, body, 0, host);
+        if (rd_s32(obj, O_DROP_SND) != 0 && !inside_area(obj, body, O_MOVE)) return bad_drop_feedback(obj, body, host);
         wr_32(obj, O_STATE, EA_STATE_IDLE);
         return EA_OK;
     case EA_STATE_FEEDBACK: {
@@ -1161,19 +1201,19 @@ int ea_click(EaObject *object, uint8_t *body, size_t body_length, uint32_t row_p
     } else if (candidate == EA_CANDIDATE_ANIM) {
         wr_32(obj, O_CLICK_ANIM, 1);
     } else if (candidate == EA_CANDIDATE_ROTATE) {
-        const int16_t s = top_piece(obj, O_LIST_PLACED, O_COUNT_PLACED);
+        const int16_t s = top_piece_placed(obj);
         if (s != -1) {
             if (s < 0 || s >= rd_s16(body, B_COUNT)) return EA_ERR_BOUNDS;
             HOST(rotate_piece(obj, s, host));
-            HOST(piece_sound(obj, body, B_SND_ROT, 0, 0, host));
+            HOST(rotate_sound(obj, body, host));
             wr_32(obj, O_DRAG, 1);
             wr_16(obj, O_HAND, s);
             piece_size(obj, s);
         }
     } else if (rd_s32(obj, O_DRAG) == 0 && candidate == EA_CANDIDATE_PICK) {
         int16_t s;
-        HOST(piece_sound(obj, body, B_SND_PICK, 1, 0, host));
-        s = top_piece(obj, O_LIST_UNPLACED, O_COUNT_UNPLACED);
+        HOST(pick_sound(obj, body, host));
+        s = top_piece_unplaced(obj);
         if (s != -1) {
             const size_t P = piece_off(s);
             if (s < 0 || s >= rd_s16(body, B_COUNT)) return EA_ERR_BOUNDS;
@@ -1197,7 +1237,7 @@ int ea_click(EaObject *object, uint8_t *body, size_t body_length, uint32_t row_p
                 (placed < 0 || (size_t)B_ORDER + (size_t)placed * 2u + 2u > EA_BODY_BYTES))
                 return EA_ERR_BOUNDS;
         }
-        HOST(piece_sound(obj, body, B_SND_DROP, 0, 1, host));
+        HOST(drop_sound(obj, body, host));
         wr_32(obj, O_DRAG, 0);
         wr_32(obj, O_DROP, 1);
         if (candidate == EA_CANDIDATE_DROP_GOOD &&
@@ -1240,7 +1280,7 @@ int ea_rotate_key(EaObject *object, uint8_t *body, size_t body_length, uint32_t 
           rd_s32(obj, O_STATE) == 0 && row_phase == 1u && rd_s16(obj, O_COUNT_UNPLACED) != 0))
         return EA_OK;
     if (rd_s32(obj, O_DRAG) == 0) {
-        s = top_piece(obj, O_LIST_UNPLACED, O_COUNT_UNPLACED);
+        s = top_piece_unplaced(obj);
         if (s == -1) return EA_OK;
         if (s < 0 || s >= rd_s16(body, B_COUNT)) return EA_ERR_BOUNDS;
         HOST(rotate_piece(obj, s, host));
@@ -1253,7 +1293,7 @@ int ea_rotate_key(EaObject *object, uint8_t *body, size_t body_length, uint32_t 
         HOST(rotate_piece(obj, s, host));
         piece_size(obj, s);
     }
-    HOST(piece_sound(obj, body, B_SND_ROT, 0, 0, host));
+    HOST(rotate_sound(obj, body, host));
     set_layer(obj, body, s);
     return EA_OK;
 }
