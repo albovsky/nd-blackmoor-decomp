@@ -447,6 +447,7 @@ class Fl20aDifferential(DiffBase):
             results = []
             for i in range(6):
                 struct.pack_into('<I', this.data, 0x20e4 + 4 * i, rng.randrange(1 << 32))
+                struct.pack_into('<I', this.data, 0x4fc4 + 4 * i, rng.choice([0, 1, 1, 2, 0x100]))   # the flag dword of 0x434630 is not looked at here
                 kind = rng.choice(['same', 'diff', 'diff', 'longer', 'shorter', 'other'])
                 text = bytearray(name[:-1])
                 if kind == 'diff' and text:
