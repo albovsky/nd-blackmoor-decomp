@@ -280,7 +280,7 @@ void m4e7786_forward(uint8_t *self, uint32_t arg, const Fl16Host *host)
 
 /* original GAME.EXE 0x4faf98 (FUN_004faf98): calls 0x4fadc4 on self with arg1 and the word arg2; when it returns non-zero calls
  * 0x4fb2e3 on self with the word arg2. */
-void m4faf98_visit(uint8_t *self, uint32_t arg1, uint16_t arg2, const Fl16Host *host)
+void m4faf98_visit(uint8_t *self, uintptr_t arg1, uint16_t arg2, const Fl16Host *host)
 {
     int32_t found = host->call_4fadc4 != NULL ? host->call_4fadc4(host->context, self, arg1, arg2) : 0;
     if (found != 0 && host->call_4fb2e3 != NULL) host->call_4fb2e3(host->context, self, arg2);

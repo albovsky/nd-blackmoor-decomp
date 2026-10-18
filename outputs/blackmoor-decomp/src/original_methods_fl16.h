@@ -52,7 +52,7 @@ typedef struct Fl16Host {
     void (*call_4edfaf)(void *context, uint8_t *self, uint32_t arg); /* 0x4edfaf, this = self */
     /* 0x4c2dfb on the surface manager object 0x5cf659; `slot` points at the dword the caller owns (self + 0x212). */
     void (*release_surface)(void *context, uint8_t *slot);
-    int32_t (*call_4fadc4)(void *context, uint8_t *self, uint32_t arg1, uint16_t arg2); /* 0x4fadc4, this = self */
+    int32_t (*call_4fadc4)(void *context, uint8_t *self, uintptr_t arg1, uint16_t arg2); /* 0x4fadc4, this = self; arg1 is a char pointer in the original */
     void (*call_4fb2e3)(void *context, uint8_t *self, uint16_t arg);                  /* 0x4fb2e3, this = self */
 } Fl16Host;
 
@@ -90,7 +90,7 @@ void m4d3d20_stamp_tick(uint8_t *self, const Fl16Host *host);
 void m4b8e42_expire_slot(uint8_t *self, int16_t slot, const Fl16World *world, const Fl16Host *host);
 void m4d3c42_set_flag(uint8_t *self, const Fl16Host *host);
 void m4e7786_forward(uint8_t *self, uint32_t arg, const Fl16Host *host);
-void m4faf98_visit(uint8_t *self, uint32_t arg1, uint16_t arg2, const Fl16Host *host);
+void m4faf98_visit(uint8_t *self, uintptr_t arg1, uint16_t arg2, const Fl16Host *host);
 void m4ccfbd_release_surface(uint8_t *self, const Fl16Host *host);
 uint8_t *m4ccd70_construct(uint8_t *self, const Fl16Host *host);
 void m4e7728_open(uint8_t *self, uint32_t value, const Fl16Host *host);

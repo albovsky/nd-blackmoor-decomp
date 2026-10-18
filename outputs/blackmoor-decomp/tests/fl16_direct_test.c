@@ -85,6 +85,9 @@ typedef struct Log {
     uint32_t tick;
     int32_t ret_4fadc4;
     uint32_t seen_212; /* the dword at the slot when release_surface ran */
+    uint32_t snap[16]; /* per call: the object/global state the callee should already see (see each test) */
+    const uint32_t *watch32; /* dword read at every callback into snap[] (NULL: 0) */
+    const uint8_t *watch_self_off; /* a byte pointer whose dword is read at every callback into snap[] */
 } Log;
 
 enum { C_BINK = 1, C_43DBD5, C_4D36ED, C_4D3BEF, C_4B8A27, C_4CCDAB, C_4EDFAF, C_RELEASE, C_4FADC4, C_4FB2E3 };
@@ -92,6 +95,7 @@ enum { C_BINK = 1, C_43DBD5, C_4D36ED, C_4D3BEF, C_4B8A27, C_4CCDAB, C_4EDFAF, C
 static void note(Log *l, int id, const uint8_t *self, uint32_t a, uint32_t b)
 {
     if (l->n < 16) {
+        l->snap[l->n] = l->watch32 != NULL ? *l->watch32 : l->watch_self_off != NULL ? get32(l->watch_self_off, 0) : 0;
         l->id[l->n] = id;
         l->self[l->n] = self;
         l->a[l->n] = a;
@@ -113,9 +117,9 @@ static void h_release(void *c, uint8_t *slot)
     ((Log *)c)->seen_212 = get32(slot, 0);
     note(c, C_RELEASE, slot, 0, 0);
 }
-static int32_t h_4fadc4(void *c, uint8_t *s, uint32_t a1, uint16_t a2)
+static int32_t h_4fadc4(void *c, uint8_t *s, uintptr_t a1, uint16_t a2)
 {
-    note(c, C_4FADC4, s, a1, a2);
+    note(c, C_4FADC4, s, (uint32_t)a1, a2);
     return ((Log *)c)->ret_4fadc4;
 }
 static void h_4fb2e3(void *c, uint8_t *s, uint16_t a) { note(c, C_4FB2E3, s, a, 0); }
@@ -396,6 +400,8 @@ static int test_m4347b8_read_be32(void)
 {
     static const uint8_t a[] = {0x12, 0x34, 0x56, 0x78, 0x9a};
     static const uint8_t b[] = {0xff, 0x00, 0x80, 0x01};
+    static const uint8_t e[] = {0x01, 0x80, 0x00, 0x02};
+    static const uint8_t f[] = {0x01, 0x02, 0x80, 0x82};
     static const uint8_t c[] = {0, 0, 0, 0};
     static const uint8_t d[] = {0x80, 0, 0, 0};
     CK(m4347b8_read_be32(a) == 0x12345678u);
@@ -403,6 +409,8 @@ static int test_m4347b8_read_be32(void)
     CK(m4347b8_read_be32(b) == 0xff008001u);
     CK(m4347b8_read_be32(c) == 0);
     CK(m4347b8_read_be32(d) == 0x80000000u);
+    CK(m4347b8_read_be32(e) == 0x01800002u); /* zero-extended bytes */
+    CK(m4347b8_read_be32(f) == 0x01028082u);
     return g_failed;
 }
 
@@ -429,6 +437,14 @@ static int test_m43f04b_copy_rows(void)
                 CK(memcmp(dst, want, sizeof dst) == 0);
             }
         }
+    }
+    {   /* overlapping copy: rep movsd / movsb go forward, so a source byte already overwritten is read again */
+        uint8_t buf[16];
+        static const uint8_t want[9] = {0, 0, 1, 2, 3, 3, 5, 6, 7};
+        size_t i;
+        for (i = 0; i < sizeof buf; i++) buf[i] = (uint8_t)i;
+        m43f04b_copy_rows(buf + 1, buf, 1, 8, 0);
+        CK(memcmp(buf, want, sizeof want) == 0);
     }
     return g_failed;
 }
@@ -474,6 +490,30 @@ static int test_m4bedfa_close_and_clear(void)
     Fl16Host h;
     Log l;
     uint32_t handle = 0x1234;
+    static const uint32_t big[] = {0x100u, 0x10000u, 0x01000000u, 0x80000000u};
+    size_t k;
+    for (k = 0; k < sizeof big / sizeof big[0]; k++) { /* a non-zero handle whose low byte / half is zero is still closed */
+        host_init(&h, &l);
+        fill(g_obj, 18);
+        handle = big[k];
+        m4bedfa_close_and_clear(g_obj, &handle, &h);
+        CK(l.n == 1 && l.id[0] == C_BINK && l.a[0] == big[k] && handle == 0);
+    }
+    /* BinkClose runs while the handle is still set and before the state is cleared */
+    handle = 0x1234;
+    host_init(&h, &l);
+    l.watch32 = &handle;
+    fill(g_obj, 18);
+    m4bedfa_close_and_clear(g_obj, &handle, &h);
+    CK(l.n == 1 && l.snap[0] == 0x1234);
+    handle = 0x1234;
+    host_init(&h, &l);
+    fill(g_obj, 18);
+    set32(g_obj, 0xbc, 0xb0b0b0b0u);
+    l.watch_self_off = g_obj + 0xbc;
+    m4bedfa_close_and_clear(g_obj, &handle, &h);
+    CK(l.n == 1 && l.snap[0] == 0xb0b0b0b0u);
+    handle = 0x1234;
     host_init(&h, &l);
     fill(g_obj, 18);
     memcpy(g_exp, g_obj, OBJ);
@@ -559,6 +599,57 @@ static int test_m4b8e42_expire_slot(void)
             }
         }
     }
+    {   /* the slot is a full signed word: 200, 300 and -200 are not truncated to a byte */
+        static const int16_t far_slots[] = {200, 300, -200, 340};
+        static uint8_t big_table[0x37 * 700];
+        size_t k;
+        for (k = 0; k < sizeof far_slots / sizeof far_slots[0]; k++) {
+            Fl16Host h;
+            Log l;
+            Fl16World w;
+            uint32_t dl = 5000u;
+            const uint8_t *base = big_table + 0x37 * 350;
+            static uint8_t obj[0x37 * 700 + 0x200];
+            uint8_t *self = obj + 0x37 * 350;
+            memset(&w, 0, sizeof w);
+            w.deadlines_61eee1 = base;
+            memset(big_table, 0, sizeof big_table);
+            memset(obj, 0x3c, sizeof obj);
+            memcpy(big_table + 0x37 * 350 + (ptrdiff_t)far_slots[k] * 0x37, &dl, 4);
+            host_init(&h, &l);
+            l.tick = 4999u;
+            m4b8e42_expire_slot(self, far_slots[k], &w, &h);
+            CK(l.n == 0 && get32(self, 0x7d + (ptrdiff_t)far_slots[k] * 0x37) == 0x3c3c3c3cu);
+            l.tick = 5000u;
+            m4b8e42_expire_slot(self, far_slots[k], &w, &h);
+            CK(l.n == 1 && get32(self, 0x7d + (ptrdiff_t)far_slots[k] * 0x37) == 3);
+        }
+    }
+    {   /* the stores happen before the call: the callee sees the slot dword and the decremented word */
+        Fl16Host h;
+        Log l;
+        Fl16World w;
+        uint8_t table[0x37 * 3];
+        uint32_t dl = 10;
+        memset(&w, 0, sizeof w);
+        memset(table, 0, sizeof table);
+        memcpy(table + 0x37, &dl, 4);
+        w.deadlines_61eee1 = table;
+        fill(g_obj, 21);
+        set32(g_obj, 0x48, 0x00050009u);
+        host_init(&h, &l);
+        l.tick = 10;
+        l.watch_self_off = g_obj + 0x7d + 0x37;
+        m4b8e42_expire_slot(g_obj, 1, &w, &h);
+        CK(l.n == 1 && l.snap[0] == 3);
+        fill(g_obj, 21);
+        set32(g_obj, 0x48, 0x00050009u);
+        host_init(&h, &l);
+        l.tick = 10;
+        l.watch_self_off = g_obj + 0x48;
+        m4b8e42_expire_slot(g_obj, 1, &w, &h);
+        CK(l.n == 1 && l.snap[0] == 0x00050008u);
+    }
     return g_failed;
 }
 
@@ -567,10 +658,12 @@ static int test_m4d3c42_set_flag(void)
     Fl16Host h;
     Log l;
     host_init(&h, &l);
+    l.watch_self_off = g_obj + 0x1c;
     fill(g_obj, 22);
     memcpy(g_exp, g_obj, OBJ);
     set32(g_exp, 0x1c, 1);
     m4d3c42_set_flag(g_obj, &h);
+    CK(l.snap[0] == 1); /* the flag is set before the call */
     CK(memcmp(g_obj, g_exp, OBJ) == 0);
     CK(l.n == 1 && l.id[0] == C_4D3BEF && l.self[0] == g_obj);
     return g_failed;
@@ -605,6 +698,16 @@ static int test_m4faf98_visit(void)
     l.ret_4fadc4 = -1; /* any non-zero result */
     m4faf98_visit(g_obj, 5, 6, &h);
     CK(l.n == 2 && l.id[1] == C_4FB2E3 && l.a[1] == 6);
+    {
+        static const int32_t rets[] = {0x100, 0x10000, 0x01000000, (int32_t)0x80000000u};
+        size_t k;
+        for (k = 0; k < sizeof rets / sizeof rets[0]; k++) { /* any non-zero eax, even with a zero low byte / half */
+            l.n = 0;
+            l.ret_4fadc4 = rets[k];
+            m4faf98_visit(g_obj, 5, 6, &h);
+            CK(l.n == 2 && l.id[1] == C_4FB2E3);
+        }
+    }
     l.n = 0;
     l.ret_4fadc4 = 0;
     m4faf98_visit(g_obj, 7, 0x8001u, &h);
@@ -626,6 +729,18 @@ static int test_m4ccfbd_release_surface(void)
     CK(l.n == 1 && l.id[0] == C_RELEASE && l.self[0] == g_obj + 0x212);
     CK(l.seen_212 == 0x00c0ffeeu); /* the slot still holds the surface while it is released */
     CK(memcmp(g_obj, g_exp, OBJ) == 0);
+    /* a surface whose low byte / half is zero is still released */
+    {
+        static const uint32_t big[] = {0x100u, 0x10000u, 0x01000000u, 0x80000000u};
+        size_t k;
+        for (k = 0; k < sizeof big / sizeof big[0]; k++) {
+            host_init(&h, &l);
+            fill(g_obj, 25);
+            set32(g_obj, 0x212, big[k]);
+            m4ccfbd_release_surface(g_obj, &h);
+            CK(l.n == 1 && l.seen_212 == big[k] && get32(g_obj, 0x212) == 0);
+        }
+    }
     /* nothing to release */
     host_init(&h, &l);
     fill(g_obj, 26);
@@ -642,10 +757,12 @@ static int test_m4ccd70_construct(void)
     Fl16Host h;
     Log l;
     host_init(&h, &l);
+    l.watch_self_off = g_obj;
     fill(g_obj, 27);
     memcpy(g_exp, g_obj, OBJ);
     set32(g_exp, 0, 0x0052e2d0u);
     CK(m4ccd70_construct(g_obj, &h) == g_obj);
+    CK(l.snap[0] == 0x0052e2d0u); /* the vtable pointer is stored before 0x4ccdab runs */
     CK(memcmp(g_obj, g_exp, OBJ) == 0);
     CK(l.n == 1 && l.id[0] == C_4CCDAB && l.self[0] == g_obj);
     return g_failed;
@@ -655,14 +772,18 @@ static int test_m4e7728_open(void)
 {
     Fl16Host h;
     Log l;
+    uint32_t before;
     host_init(&h, &l);
+    l.watch_self_off = g_obj + 0x991;
     fill(g_obj, 28);
+    before = get32(g_obj, 0x991);
     memcpy(g_exp, g_obj, OBJ);
     set32(g_exp, 0x991, 0x600dbeefu);
     set32(g_exp, 0x4b3, 0x600dbeefu);
     m4e7728_open(g_obj, 0x600dbeefu, &h);
     CK(memcmp(g_obj, g_exp, OBJ) == 0);
     CK(l.n == 2 && l.id[0] == C_43DBD5 && l.id[1] == C_4D36ED); /* in this order */
+    CK(l.snap[0] == before && l.snap[1] == before); /* both calls run before the store to +0x991 */
     return g_failed;
 }
 
@@ -675,13 +796,21 @@ static int test_m4e7757_close(void)
     memset(&w, 0, sizeof w);
     w.value_583204 = 9;
     w.value_55cd94 = 4;
+    l.watch_self_off = g_obj + 0x991;
     fill(g_obj, 29);
     memcpy(g_exp, g_obj, OBJ);
     set32(g_exp, 0x991, 0); /* set to 1 and then cleared by 0x4e76ed */
     m4e7757_close(g_obj, &h, &w);
     CK(memcmp(g_obj, g_exp, OBJ) == 0);
     CK(l.n == 1 && l.id[0] == C_4D36ED);
+    CK(l.snap[0] == 0); /* +0x991 was already cleared again when 0x4d36ed ran */
     CK(w.value_583204 == 0 && w.value_55cd94 == 4);
+    /* the global is cleared after 0x4d36ed */
+    host_init(&h, &l);
+    w.value_583204 = 9;
+    l.watch32 = &w.value_583204;
+    m4e7757_close(g_obj, &h, &w);
+    CK(l.n == 1 && l.snap[0] == 9 && w.value_583204 == 0);
     return g_failed;
 }
 
@@ -690,8 +819,8 @@ static int test_m42e560_save_block(void)
     Fl16World w;
     uint8_t exp[0x12];
     memset(&w, 0, sizeof w);
-    w.src_5bb57b = 0x1111;
-    w.src_5bb57f = 0x2222;
+    w.src_5bb57b = (int16_t)0x9111;
+    w.src_5bb57f = (int16_t)0xa222;
     w.src_5bb50b = (int16_t)0x8003;
     w.src_5bb593 = -2;
     w.src_5bb5a7 = 0xa7a7a7a7u;
@@ -699,8 +828,8 @@ static int test_m42e560_save_block(void)
     w.src_5bb5af = 0xafafafafu;
     memset(w.block_5c3a05, 0x77, sizeof w.block_5c3a05);
     memset(exp, 0x77, sizeof exp);
-    set16(exp, 0, 0x1111);
-    set16(exp, 2, 0x2222);
+    set16(exp, 0, 0x9111);
+    set16(exp, 2, 0xa222);
     set16(exp, 4, 0x8003);
     set16(exp, 6, 0xfffe);
     set16(exp, 8, 0x4321);
@@ -708,7 +837,7 @@ static int test_m42e560_save_block(void)
     set32(exp, 0xe, 0xafafafafu); /* 0x5bb5ab is stored first and overwritten by 0x5bb5af */
     m42e560_save_block(&w, 0x4321);
     CK(memcmp(w.block_5c3a05, exp, sizeof exp) == 0);
-    CK(w.src_5bb57b == 0x1111 && w.src_5bb5a7 == 0xa7a7a7a7u && w.src_5bb5ab == 0xababababu);
+    CK(w.src_5bb57b == (int16_t)0x9111 && w.src_5bb5a7 == 0xa7a7a7a7u && w.src_5bb5ab == 0xababababu && w.src_5bb5af == 0xafafafafu);
     return g_failed;
 }
 
