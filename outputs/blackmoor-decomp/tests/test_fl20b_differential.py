@@ -434,6 +434,41 @@ class Fl20bDifferential(DiffBase):
                                 'bytes_6246be': ('flags', 4), 'bytes_6246c2': ('flags', 8)})
         self.finish(0x48cc70, size, executed)
 
+    # ---- 0x4876ed ----
+    def test_4876ed_redraw_items(self):
+        """FL-20b: differential test of m4876ed_redraw_items (original 0x4876ed)"""
+        rng = random.Random(0x4876ed)
+        executed = set()
+        size = 0x4879f7 - 0x4876ed
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            records, slack = self.records_area(rng, nrec=4)
+            struct.pack_into('<I', records.data, slack + index * 0x8d, od.region_va(0))
+            count = rng.choice([0, 1, 2, 3, 3, 4, 4])
+            rec = bytearray(rng.randbytes(0x700))
+            struct.pack_into('<h', rec, 0x21, count)
+            sel = rng.choice([0, 1, 2, 3, 4, 5])
+            flags = {name: rng.choice([0, 1, 1, 0x80000000]) for name in ('value_625d43', 'value_625d3f', 'value_625d47', 'value_625e40', 'value_625e3c')}
+            if count == 0:
+                flags['value_625d3f'] = 0   # (a negative target count would never be reached)
+            items = bytearray(rng.randbytes(7 * 0x85 + 0x40))
+            for k in range(7):
+                struct.pack_into('<h', items, k * 0x85, rng.choice([0, 1, 2, 3]))
+                items[k * 0x85 + 0x22] = rng.choice([0, 1, 2])
+                items[k * 0x85 + 0x84] = rng.choice([0, 0, 1, 7])
+            rec_area = Area('rec', od.region_va(0), rec, image=False, compare=False)
+            items_area = Area('items', 0x6252d5, items, compare=False)
+            glob = Area('glob', 0x625d6d, bytearray(rng.randbytes(16)), compare=False)
+            g = {**self.globals_(rng, 'value_5cf665', 'value_5d15e3', 'value_6252cf', 'value_6252cb'), 'word_6252d3': index,
+                 'word_625d4b': sel, **flags}
+            writes = [[(1, 4 * q, 4, rng.randrange(1 << 32)) for q in range(4)] for _ in range(2)]
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(3, 16)]),
+                     0x4c5d4b: od.Stub(0x4c5d4b, args=5, this=True, cleanup=20),
+                     0x4841cb: stub(0x4841cb, args=2, this=True, cleanup=8, writes=writes)}
+            self.pair(4, 0x4876ed, size, [rec_area, records, items_area, glob], stubs, g, executed=executed,
+                      pointers={'records_5bb5e5': ('records', slack), 'items_6252d5': ('items', 0)})
+        self.finish(0x4876ed, size, executed)
+
     # DIFF-END
 
 

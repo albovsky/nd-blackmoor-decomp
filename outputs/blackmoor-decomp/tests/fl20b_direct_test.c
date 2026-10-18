@@ -2,6 +2,7 @@
  * the exit status is the failure count. Fixtures are synthetic (no original bytes). Expected values come from the disassembly of
  * GAME.EXE, not from running the native code; tests/test_fl20b_differential.py additionally runs the original bytes on random fixtures.
  *   0x48cc70  rec = record word 0x6246ac; byte 0x6246a3 gate; kind byte [rec+0x42] == 2 -> 0x4c5377 (0x5d15e3, 0x5cf665, rec+0x64, &b, 0x54e760) + 0x4c5d4b (table[0x6246b4], 0x5cf665, &a, &b, 0x54e778) else 0x4c5377 (table[0x6246b4], ..., &a, &b, 0x54e794); per k < 4 the rectangle at rec+k*16+0x74 (+ origin): flags 0x6246be/ba -> 0x4c5d4b (table[0x6246b6], rec+k*16+0xf4, 0x54e7b0); byte 0x6246c6 / 0x6246c2[k] / k == byte 0x6246a2 -> 0x4c5d4b (rec+k*16+0xb4, 0x54e7cc); else 0x4c5377 (0x5d15e3, rec+k*16+0x74, 0x54e7e4)
+ *   0x4876ed  rec = record word 0x6252d3; dwords 0x625d43 / 0x625d3f -> 0x4c5377 (0x625d4d, 0x625d6d, 0x54dc64), 0x625d43 := 0; 0x625d47 -> 0x4841cb + 0x4c5377 (0x625d8d, &r, 0x54dc98), cleared; items (stride 0x85 at 0x6252d5, word +0 = order) drawn by 0x4c5d4b for n = word [rec+0x21] (minus the selected one when 0x625d3f), then the selected one (0x54dd0c), then 0x625e40 / 0x625e3c with 0x4841cb + 0x4c5377 (0x54dd34 / 0x54dd50)
  *   0x446688  gates dwords 0x638607 / 0x63860f; strings new 0x63885f vs old 0x63887d: when they differ the old digits are drawn with 0x4c5377 (0x5d15e3, 0x5cf665, &p, &q, 0x548288); then the new digits with 0x4c5d4b (table dword, 0x5cf665, 0x6386bf + d*16, &q, 0x5482b4); strcpy(old, new)
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
  *   0x48d5f4  gates dword [this+0x33], dword [this+0x2b] == 1, record +0x4d == 1; 0x5c39e5 == 0x2766 -> byte [this+0x37] := 1, record +0x4d := 2; == 0x2765 -> word shifts of [this+0x3d..], strcpy rec+0x715 from rec+word[this+0x27]*0x42+0x337, 0x4f6334 / 0x4fb77a / 0x4fb2e3 / tick, then 0x423259 -> string + dword 0x54e898 -> 0x448d11
@@ -584,6 +585,102 @@ static void test_m48cc70_draw_slots(void)
     CK(L.c[1 + 2].callee == 0x4c5377 && L.c[1 + 2].a[4] == 0x54e7e4);
 }
 
+static void test_m4876ed_redraw_items(void)
+{
+    static uint8_t rec[0x100], items[0x85 * 4 + 0x100];
+    const uint32_t rec_va = 0x00c50000u;
+    const uint32_t item_va = 0x6252d5u;
+    int k;
+    Fl20bWorld w;
+    Fl18Host h = host();
+    memset(&w, 0, sizeof w);
+    memset(g_records, 0, sizeof g_records);
+    memset(rec, 0x33, sizeof rec);
+    memset(items, 0, sizeof items);
+    set32(g_records, 1 * REC, rec_va);
+    set16(rec, 0x21, 3);
+    /* item s: word +0 = the order i it is drawn at, byte +0x22 = b, byte +0x84 = flag, dword at +b*0x18+0x24 */
+    set16(items, 0 * 0x85, 0); items[0 * 0x85 + 0x22] = 1; items[0 * 0x85 + 0x84] = 1; set32(items, 0 * 0x85 + 0x18 + 0x24, 0x1110);
+    set16(items, 1 * 0x85, 1); items[1 * 0x85 + 0x22] = 0; items[1 * 0x85 + 0x84] = 7; set32(items, 1 * 0x85 + 0x24, 0x2220);
+    set16(items, 2 * 0x85, 0); items[2 * 0x85 + 0x22] = 2; items[2 * 0x85 + 0x84] = 0; set32(items, 2 * 0x85 + 0x30 + 0x24, 0x3330);
+    set16(items, 3 * 0x85, 0); items[3 * 0x85 + 0x22] = 0; items[3 * 0x85 + 0x84] = 0;
+    add_region(rec_va, rec, sizeof rec);
+    w.records_5bb5e5 = g_records;
+    w.items_6252d5 = items;
+    w.word_6252d3 = 1;
+    w.value_5cf665 = 0xc0de0001u;
+    w.value_5d15e3 = 0xc0de0003u;
+    w.value_6252cf = 0xc0de0004u;
+    w.value_6252cb = 0xc0de0005u;
+    w.word_625d4b = 1;
+    /* A, C and E set: three draws of the items in order (i = 0: items 0 and 2, i = 1: item 1), the m = n = 3 items done */
+    w.value_625d43 = 1;
+    w.value_625d47 = 1;
+    w.value_625e3c = 1;
+    queue_write(0x4841cb, 0, 1, 0, 4, 11);
+    queue_write(0x4841cb, 0, 1, 4, 4, 12);
+    queue_write(0x4841cb, 0, 1, 8, 4, 13);
+    queue_write(0x4841cb, 0, 1, 12, 4, 14);
+    queue_write(0x4841cb, 1, 1, 0, 4, 21);
+    queue_write(0x4841cb, 1, 1, 4, 4, 22);
+    queue_write(0x4841cb, 1, 1, 8, 4, 23);
+    queue_write(0x4841cb, 1, 1, 12, 4, 24);
+    m4876ed_redraw_items(&w, &h);
+    CK(w.value_625d43 == 0 && w.value_625d47 == 0 && w.value_625e3c == 0 && w.value_625d3f == 0 && w.value_625e40 == 0);
+    CK(L.n == 8);
+    CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[0] == 0xc0de0003u && L.c[0].a[1] == 0xc0de0001u && L.c[0].a[2] == 0x625d4d &&
+       L.c[0].a[3] == 0x625d6d && L.c[0].a[4] == 0x54dc64);
+    CK(is_call(1, 0x4841cb, 0x6252ad, 2) && L.c[1].a[0] == 0x625d8d);
+    CK(is_call(2, 0x4c5377, 0x5cf659, 5) && L.c[2].a[0] == 0xc0de0003u && L.c[2].a[1] == 0xc0de0001u && L.c[2].a[2] == 0x625d8d &&
+       L.c[2].a[4] == 0x54dc98);
+    CK(get32(L.c[2].pd[3], 0) == 11 && get32(L.c[2].pd[3], 4) == 12 && get32(L.c[2].pd[3], 8) == 13 && get32(L.c[2].pd[3], 12) == 14);
+    CK(is_call(3, 0x4c5d4b, 0x5cf659, 5) && L.c[3].a[0] == 0x1110 && L.c[3].a[1] == 0xc0de0001u && L.c[3].a[2] == item_va + 0x18 + 0x28 &&
+       L.c[3].a[3] == item_va + 0x12 && L.c[3].a[4] == 0x54dcc8);
+    CK(is_call(4, 0x4c5d4b, 0x5cf659, 5) && L.c[4].a[0] == 0xc0de0004u && L.c[4].a[1] == 0xc0de0001u && L.c[4].a[2] == rec_va + 2 * 0x42 + 0x7f &&
+       L.c[4].a[3] == item_va + 2 * 0x85 + 0x12 && L.c[4].a[4] == 0x54dce8);
+    CK(is_call(5, 0x4c5d4b, 0x5cf659, 5) && L.c[5].a[0] == 0x2220 && L.c[5].a[2] == item_va + 0x85 + 0x28 && L.c[5].a[3] == item_va + 0x85 + 0x12 &&
+       L.c[5].a[4] == 0x54dcc8);
+    CK(is_call(6, 0x4841cb, 0x6252ad, 2) && L.c[6].a[0] == rec_va + 0x5e8);
+    CK(is_call(7, 0x4c5377, 0x5cf659, 5) && L.c[7].a[0] == 0xc0de0003u && L.c[7].a[2] == rec_va + 0x5e8 && L.c[7].a[4] == 0x54dd50);
+    CK(get32(L.c[7].pd[3], 0) == 21 && get32(L.c[7].pd[3], 12) == 24);
+    /* B set (A clear), the selected item 1 skipped so m = 2: items 0 and 2 drawn, then the selected item, then D (E stays set) */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    w.value_625d43 = 0;
+    w.value_625d47 = 0;
+    w.value_625d3f = 5;
+    w.value_625e40 = 9;
+    w.value_625e3c = 1;
+    queue_write(0x4841cb, 0, 1, 0, 4, 31);
+    queue_write(0x4841cb, 0, 1, 12, 4, 34);
+    m4876ed_redraw_items(&w, &h);
+    CK(w.value_625e3c == 1 && w.value_625d3f == 5 && w.value_625e40 == 9 && L.n == 1 + 2 + 1 + 2);
+    CK(is_call(0, 0x4c5377, 0x5cf659, 5) && L.c[0].a[2] == 0x625d4d && L.c[0].a[3] == 0x625d6d && L.c[0].a[4] == 0x54dc64);
+    CK(is_call(1, 0x4c5d4b, 0x5cf659, 5) && L.c[1].a[0] == 0x1110 && L.c[1].a[4] == 0x54dcc8);
+    CK(is_call(2, 0x4c5d4b, 0x5cf659, 5) && L.c[2].a[0] == 0xc0de0004u && L.c[2].a[2] == rec_va + 2 * 0x42 + 0x7f && L.c[2].a[4] == 0x54dce8);
+    CK(is_call(3, 0x4c5d4b, 0x5cf659, 5) && L.c[3].a[0] == 0x2220 && L.c[3].a[1] == 0xc0de0001u && L.c[3].a[2] == item_va + 0x85 + 0x28 &&
+       L.c[3].a[3] == 0x625d7d && L.c[3].a[4] == 0x54dd0c);
+    CK(is_call(4, 0x4841cb, 0x6252ad, 2) && L.c[4].a[0] == rec_va + 0x5e8);
+    CK(is_call(5, 0x4c5377, 0x5cf659, 5) && L.c[5].a[0] == 0xc0de0005u && L.c[5].a[1] == 0xc0de0001u && L.c[5].a[2] == 0x625e44 &&
+       L.c[5].a[4] == 0x54dd34);
+    CK(get32(L.c[5].pd[3], 0) == 31 && get32(L.c[5].pd[3], 12) == 34);
+    /* nothing to draw in the loop (n = 0) and no flags: no calls at all; items whose order comes later are found by later passes */
+    reset_log();
+    add_region(rec_va, rec, sizeof rec);
+    w.value_625d3f = 0;
+    w.value_625e40 = 0;
+    w.value_625e3c = 0;
+    set16(rec, 0x21, 0);
+    m4876ed_redraw_items(&w, &h);
+    CK(L.n == 0);
+    set16(rec, 0x21, 2);
+    set16(items, 0, 2);
+    set16(items, 0x85, 2);
+    m4876ed_redraw_items(&w, &h);
+    CK(L.n == 2 && L.c[0].a[3] == item_va + 0x12 && L.c[1].a[3] == item_va + 0x85 + 0x12);
+    for (k = 0; k < 2; k++) CK(L.c[k].callee == 0x4c5d4b);
+}
+
 /* TESTS-END */
 
 int main(void)
@@ -592,6 +689,7 @@ int main(void)
     RUN(test_m446688_draw_digits);
     RUN(test_m48d5f4_confirm_pick);
     RUN(test_m48cc70_draw_slots);
+    RUN(test_m4876ed_redraw_items);
     /* RUN-END */
     return failures;
 }

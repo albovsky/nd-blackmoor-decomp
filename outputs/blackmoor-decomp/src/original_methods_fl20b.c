@@ -268,3 +268,80 @@ void m48cc70_draw_slots(const Fl20bWorld *world, const Fl18Host *host)
         }
     }
 }
+
+/* original GAME.EXE 0x4876ed (FUN_004876ed, no this, no stack argument, plain ret): rec = the dword of the 0x5bb5e5-based record at the
+ * signed word 0x6252d3 (stride 0x8d; an original address). When the dword 0x625d43 or the dword 0x625d3f is non-zero: 0x4c5377 on
+ * 0x5cf659 with (dword 0x5d15e3, dword 0x5cf665, 0x625d4d, 0x625d6d, 0x54dc64) and dword 0x625d43 := 0. When the dword 0x625d47 is
+ * non-zero: 0x4841cb on 0x6252ad with (0x625d8d, &r) (r a local rectangle that it fills), 0x4c5377 on 0x5cf659 with (dword 0x5d15e3,
+ * dword 0x5cf665, 0x625d8d, &r, 0x54dc98) and dword 0x625d47 := 0. Then n = the signed word [rec+0x21] and m = n (minus 1, 16 bits,
+ * when the dword 0x625d3f is non-zero); i := 0, j := 0 (signed words); while j != m: for s = 0, 1, ... while s < n: (skipping s when the
+ * dword 0x625d3f is non-zero and s equals the signed word 0x625d4b) the item is at 0x6252d5 + s * 0x85 (the 0x6252d5-based table);
+ * when its signed word at +0 equals i: with b = its byte +0x22, when its byte +0x84 is non-zero 0x4c5d4b on 0x5cf659 with (the dword
+ * item + b*0x18 + 0x24, dword 0x5cf665, item + b*0x18 + 0x28, item + 0x12, 0x54dcc8), otherwise with (dword 0x6252cf, dword 0x5cf665,
+ * rec + s*0x42 + 0x7f, item + 0x12, 0x54dce8); then j++ and, when j == m, the scan of this i stops; after each i (whole scan or
+ * stopped) i++ (16-bit). Then, when the dword 0x625d3f is non-zero: the item of the signed word 0x625d4b (b as above): 0x4c5d4b with
+ * (the dword item + b*0x18 + 0x24, dword 0x5cf665, item + b*0x18 + 0x28, 0x625d7d, 0x54dd0c). Finally, when the dword 0x625e40 is
+ * non-zero: 0x4841cb on 0x6252ad with (rec + 0x5e8, &r) and 0x4c5377 on 0x5cf659 with (dword 0x6252cb, dword 0x5cf665, 0x625e44, &r,
+ * 0x54dd34); otherwise, when the dword 0x625e3c is non-zero: 0x4841cb with (rec + 0x5e8, &r), 0x4c5377 with (dword 0x5d15e3, dword
+ * 0x5cf665, rec + 0x5e8, &r, 0x54dd50) and dword 0x625e3c := 0. (The addresses 0x625d.. and the item addresses are original globals
+ * that only the callees read; item addresses are 0x6252d5 + the offsets above.) */
+void m4876ed_redraw_items(Fl20bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)world->word_6252d3 * 0x8d);
+    const uint8_t *rec;
+    uint32_t r[4];
+    int16_t n, m, i, j, s;
+    memset(r, 0, sizeof r);
+    if (world->value_625d43 != 0 || world->value_625d3f != 0) {
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, 0x625d4d, 0x625d6d, 0x54dc64);
+        world->value_625d43 = 0;
+    }
+    if (world->value_625d47 != 0) {
+        call2(host, 0x4841cb, 0x6252ad, 0x625d8d, (uintptr_t)r);
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, 0x625d8d, (uintptr_t)r, 0x54dc98);
+        world->value_625d47 = 0;
+    }
+    rec = host->resolve(host->context, rec_va);
+    n = (int16_t)rd16(rec, 0x21);
+    m = n;
+    if (world->value_625d3f != 0) m = (int16_t)(m - 1);
+    i = 0;
+    j = 0;
+    while (j != m) {
+        for (s = 0; s < n; s = (int16_t)(s + 1)) {
+            ptrdiff_t item;
+            uint32_t item_va;
+            if (world->value_625d3f != 0 && world->word_625d4b == s) continue;
+            item = (ptrdiff_t)s * 0x85;
+            item_va = 0x6252d5u + (uint32_t)(int32_t)((int32_t)s * 0x85);
+            if ((int16_t)rd16(world->items_6252d5, item) != i) continue;
+            {
+                ptrdiff_t entry = (ptrdiff_t)world->items_6252d5[item + 0x22] * 0x18;
+                if (world->items_6252d5[item + 0x84] != 0)
+                    call5(host, 0x4c5d4b, 0x5cf659, rd32(world->items_6252d5, item + entry + 0x24), world->value_5cf665,
+                          item_va + (uint32_t)entry + 0x28u, item_va + 0x12u, 0x54dcc8);
+                else
+                    call5(host, 0x4c5d4b, 0x5cf659, world->value_6252cf, world->value_5cf665,
+                          rec_va + (uint32_t)((int32_t)s * 0x42) + 0x7fu, item_va + 0x12u, 0x54dce8);
+            }
+            j = (int16_t)(j + 1);
+            if (j == m) break;
+        }
+        i = (int16_t)(i + 1);
+    }
+    if (world->value_625d3f != 0) {
+        ptrdiff_t item = (ptrdiff_t)world->word_625d4b * 0x85;
+        uint32_t item_va = 0x6252d5u + (uint32_t)((int32_t)world->word_625d4b * 0x85);
+        ptrdiff_t entry = (ptrdiff_t)world->items_6252d5[item + 0x22] * 0x18;
+        call5(host, 0x4c5d4b, 0x5cf659, rd32(world->items_6252d5, item + entry + 0x24), world->value_5cf665,
+              item_va + (uint32_t)entry + 0x28u, 0x625d7d, 0x54dd0c);
+    }
+    if (world->value_625e40 != 0) {
+        call2(host, 0x4841cb, 0x6252ad, rec_va + 0x5e8u, (uintptr_t)r);
+        call5(host, 0x4c5377, 0x5cf659, world->value_6252cb, world->value_5cf665, 0x625e44, (uintptr_t)r, 0x54dd34);
+    } else if (world->value_625e3c != 0) {
+        call2(host, 0x4841cb, 0x6252ad, rec_va + 0x5e8u, (uintptr_t)r);
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x5e8u, (uintptr_t)r, 0x54dd50);
+        world->value_625e3c = 0;
+    }
+}
