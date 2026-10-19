@@ -95,7 +95,9 @@ class Original27(od.Original):
         deref_data = ()
         esp = uc.reg_read(self._r['ESP'])
         if derefs:
-            deref_data = tuple(bytes(uc.mem_read(struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0], n)) for arg, n in derefs)
+            pointers = [(struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0], n) for arg, n in derefs]
+            # only a pointer to a local of the function under test (the stack) is read; any other value is logged by the arguments alone
+            deref_data = tuple(bytes(uc.mem_read(at, n)) if od.STACK_BASE <= at < od.STACK_BASE + od.STACK_SIZE else b'' for at, n in pointers)
         for call, arg, offset, size_, value in getattr(stub, 'writes', ()):
             if call == number:
                 at = offset if arg < 0 else struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0] + offset
@@ -115,11 +117,12 @@ WORD_ARGS = {}
 DBG_VALUES = (0, 1, 0x8000, 0x100, 0xffff)      # the debug word 0x63a4cd: every non-zero value is on
 
 
-def stub(callee, shape, probe=None, results=None, writes=None):
+def stub(callee, shape, probe=None, results=None, writes=None, derefs=None):
     nargs, this, cleanup = shape
     s = od.Stub(callee, args=nargs, this=this, cleanup=cleanup, results=results)
     s.probe = probe
     s.writes = writes or []
+    s.derefs = derefs or []
     return s
 
 
@@ -376,10 +379,132 @@ def gen_4161d1(rng, n):
     return make('4161d1', [Area('arg', od.region_va(1), a, image=False)], stubs, g, [od.region_va(1)], (od.region_va(1),), (kind, *rest))
 
 
+DIMS = [0, 1, 2, 3, 9, 100, 0x7fff, -1, -2, -32768, 0x1234]
+
+
+def profiles_4c2c3a():
+    profiles = [('nomem',)]
+    profiles += [('nobuf', n) for n in (0, 5, 0x19)]
+    profiles += [('main', f, n) for f in (0, 1, 2, 3, 0x100, 0x101, 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff) for n in (0, 1, 0x17, 0x18, 0x19, 0x1a, 0x40)]
+    return profiles
+
+
+def gen_4c2c3a(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4c2c3a())
+    a, b = rng.choice(DIMS), rng.choice(DIMS)
+    w895, w893 = rng.choice([0, 1, 2, 3, -1, 0x7fff, -32768, 0x100]), rng.randrange(-32768, 32768)
+    flags = {'nomem': rng.randrange(1 << 32), 'nobuf': rng.choice([0, 2, 0x100]), 'main': rest[0] if kind == 'main' else 0}[kind]
+    length = rest[-1] if kind != 'nomem' else rng.randrange(0, 40)
+    name = bytearray(rng.randrange(1, 256) for _ in range(0x80))
+    name[length] = 0
+    rec = bytearray(rng.randbytes(0x80))
+    buf = rng.choice([od.region_va(3), 0x1234, 0xffffffff, 0x80000000])
+    results = [0] if kind == 'nomem' else [od.region_va(1), 0] if kind == 'nobuf' else [od.region_va(1), buf]
+    probe = [('obj', 0, 0x80), ('name', 0, 0x80)]
+    stubs = {0x51dc43: stub(0x51dc43, CDECL(1), probe, results=results), 0x42639d: stub(0x42639d, THISCALL(2), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe)}
+    g = {'word_639895': w895, 'word_639893': w893}
+    nbr = [Area('nbr1', 0x639891, bytearray(rng.randbytes(2)), compare=False), Area('nbr2', 0x639897, bytearray(rng.randbytes(2)), compare=False)]
+    areas = [Area('self', od.region_va(0), bytearray(rng.randbytes(0x40)), image=False), Area('obj', od.region_va(1), rec, image=False),
+             Area('name', od.region_va(2), name, image=False), *nbr]
+    # the name is at region 2; the second allocation (never dereferenced) is any value
+    stack = [(rng.randrange(1 << 16) << 16) | (a & 0xffff), (rng.randrange(1 << 16) << 16) | (b & 0xffff), rng.randrange(1 << 32), flags, od.region_va(2)]
+    return make('4c2c3a', areas, stubs, g, stack, (a, b, stack[2], flags, od.region_va(2)), (kind, *rest))
+
+
+def wrap32(v):
+    return ((v + (1 << 31)) % (1 << 32)) - (1 << 31)
+
+
+def rect_pair(rng, mode):
+    """Rectangles D and C as [x0, y0, x1, y1] signed values: `mode` 'hit' (random overlap), ('miss', k, delta) (condition k of the four rejections fails by delta; delta 0 still overlaps),
+    ('pick', mask) (each of the four max / min choices goes the way of a bit of the mask, with strict differences)."""
+    big = [0, 1, -1, 5, 100, -100, 0x7fffff00, -0x7fffff00, 0x7fffffff, -0x80000000, 0x12345678]
+    c0, c1 = rng.choice(big), rng.choice(big)
+    c = [c0, c1, c0 + rng.choice([0, 1, 10, 300]), c1 + rng.choice([0, 1, 10, 300])]
+    if isinstance(mode, tuple) and mode[0] == 'pick':
+        mask = mode[1]
+        c[2], c[3] = c[0] + 100, c[1] + 100
+        d = [c[0] + (-3 if mask & 1 else 3), c[1] + (-2 if mask & 2 else 2), c[2] + (-3 if mask & 4 else 3), c[3] + (-2 if mask & 8 else 2)]
+    elif isinstance(mode, tuple) and mode[0] == 'miss':
+        k, delta = mode[1], mode[2]
+        c[2], c[3] = c[0] + 50, c[1] + 50
+        d = [c[0] + 10, c[1] + 10, c[0] + 20, c[1] + 20]
+        if k == 0:        # D.x0 > C.x1
+            d[0] = c[2] + delta
+            d[2] = d[0] + 5
+        elif k == 1:      # D.x1 < C.x0
+            d[2] = c[0] - delta
+            d[0] = d[2] - 5
+        elif k == 2:      # D.y0 > C.y1
+            d[1] = c[3] + delta
+            d[3] = d[1] + 5
+        else:             # D.y1 < C.y0
+            d[3] = c[1] - delta
+            d[1] = d[3] - 5
+    else:
+        d = [c[0] + rng.choice([-5, 0, 5, 20]), c[1] + rng.choice([-5, 0, 5, 20]), 0, 0]
+        d[2] = d[0] + rng.choice([0, 1, 30, 200])
+        d[3] = d[1] + rng.choice([0, 1, 30, 200])
+    return [wrap32(v) for v in d], [wrap32(v) for v in c]
+
+
+def profiles_4c0d3f():
+    profiles = [('none', f) for f in (0, 1)]
+    profiles += [('first', f1, f3) for f1 in (1, 0x100, 0x10000, 0x01000000, 0xffffffff) for f3 in (0, 1, 0x100, 0xffffffff)]
+    profiles += [('cond', a176, a172) for a176 in (0, 1, 2, 0x100, 0xffffffff) for a172 in (0, 1, 2, 0x100, 0xffffffff)]
+    profiles += [('miss', k, delta) for k in range(4) for delta in (0, 1, 2, 1000)]
+    profiles += [('pick', m) for m in range(16)]
+    profiles += [('hit', 0)]
+    return profiles
+
+
+def gen_4c0d3f(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4c0d3f())
+    player = bytearray(rng.randbytes(0x220))
+    f1, f2, f3 = 0, rng.choice([1, 0x100, 0x10000, 0x01000000, 0xffffffff]), rng.choice([0, 0, 1, 0x100, 0xffffffff])
+    a176, a172 = rng.choice([0, 1]), rng.choice([0, 1])
+    mode = 'hit'
+    if kind == 'none':
+        f2 = 0 if rest[0] == 0 else rng.choice([0, 0])
+        a176, a172 = rng.choice([(1, 0), (0, 1)])
+    elif kind == 'first':
+        f1, f3 = rest
+        f2 = rng.choice([0, 1])
+    elif kind == 'cond':
+        a176, a172 = rest
+    elif kind == 'miss':
+        a176, a172 = 1, rng.choice([0, 5])
+        mode = ('miss', rest[0], rest[1])
+    elif kind == 'pick':
+        a176, a172 = rng.choice([(1, 0), (0, 1), (1, 1)])
+        mode = ('pick', rest[0])
+    elif kind == 'hit':
+        a176, a172 = 0, 1
+    put32(player, 0x20e, f1)
+    put32(player, 0x212, f2)
+    put32(player, 0x216, f3)
+    put32(player, 0x176, a176)
+    put32(player, 0x172, a172)
+    d, c = rect_pair(rng, mode)
+    for i in range(4):
+        struct.pack_into('<i', player, 0x1e6 + 4 * i, c[i])
+    struct.pack_into('<ii', player, 0x1d6, rng.choice([0, 7, -50, 0x7fffffff, -0x80000000]), rng.choice([0, 3, -9, 0x7fffffff]))
+    rectd = bytearray(rng.randbytes(0x20))
+    for i in range(4):
+        struct.pack_into('<i', rectd, 4 * i, d[i])
+    g = {k: rng.randrange(1 << 32) for k in ('value_5d19f7', 'value_5d19f3', 'value_5cf665', 'value_5d19ef')}
+    probe = [('player', 0x1c0, 0x60)]
+    stubs = {0x4c5377: stub(0x4c5377, THISCALL(5), probe, derefs=[(2, 16), (3, 16)])}
+    areas = [Area('player', 0x637fd7, player), Area('rectd', 0x583122, rectd)]
+    return make('4c0d3f', areas, stubs, g, [], (), (kind, *rest), pointers={'player_637fd7': ('player', 0), 'rect_583122': ('rectd', 0)})
+
+
 SPECS = {
     '449bff': dict(id=1, va=0x449bff, size=253, gen=gen_449bff, cleanup=0, n=len(profiles_449bff()) * 3),
     '449a94': dict(id=2, va=0x449a94, size=273, gen=gen_449a94, cleanup=0, n=len(profiles_449a94()) * 3),
     '4bf773': dict(id=3, va=0x4bf773, size=308, gen=gen_4bf773, cleanup=0, n=len(profiles_4bf773()) * 2),
+    '4c2c3a': dict(id=5, va=0x4c2c3a, size=449, gen=gen_4c2c3a, ret=True, cleanup=0x14, n=len(profiles_4c2c3a()) * 4),
+    '4c0d3f': dict(id=6, va=0x4c0d3f, size=497, code=483, gen=gen_4c0d3f, cleanup=0, n=len(profiles_4c0d3f()) * 4),
     '4161d1': dict(id=4, va=0x4161d1, size=346, gen=gen_4161d1, cleanup=4, n=len(profiles_4161d1()) * 4),
 }
 KEYS = list(SPECS)

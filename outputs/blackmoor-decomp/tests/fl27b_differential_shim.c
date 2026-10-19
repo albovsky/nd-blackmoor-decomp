@@ -145,8 +145,9 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     c->this_ptr = this_ptr;
     for (i = 0; i < nargs && i < 12; i++) c->arg[i] = args[i];
     /* a pointer argument is a host pointer (a local of the function) or an original address inside a fixture region */
-    if (s->deref_arg > 0) memcpy(c->data, deref_ptr(args[s->deref_arg - 1]), (size_t)s->deref_bytes);
-    if (s->deref_arg2 > 0) memcpy(c->data + 32, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
+    /* only a host pointer (a local of the function under test) is read; any other value is an original address or a constant and is logged as such */
+    if (s->deref_arg > 0 && args[s->deref_arg - 1] > 0xffffffffu) memcpy(c->data, (const void *)args[s->deref_arg - 1], (size_t)s->deref_bytes);
+    if (s->deref_arg2 > 0 && args[s->deref_arg2 - 1] > 0xffffffffu) memcpy(c->data + 32, (const void *)args[s->deref_arg2 - 1], (size_t)s->deref_bytes2);
     {
         int at = 0;
         for (i = 0; i < s->nprobe; i++) {
@@ -171,7 +172,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F27B_449BFF = 1, F27B_449A94, F27B_4BF773, F27B_4161D1 /*ENUM*/ };
+enum { F27B_449BFF = 1, F27B_449A94, F27B_4BF773, F27B_4161D1, F27B_4C2C3A, F27B_4C0D3F /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values (original addresses of pointers into a fixture region,
  * 32-bit values otherwise). `result` is the return value of the ports that have one. The world is the host context, so that each logged call keeps a snapshot
@@ -191,6 +192,8 @@ void shim_fl27b(int fn, uint8_t *self, const uintptr_t *a, Fl27bWorld *w, int32_
     case F27B_449A94: *result = m449a94_stop_thread(self, w, &host); break;
     case F27B_4BF773: m4bf773_release_player(self, w, &host); break;
     case F27B_4161D1: m4161d1_alloc_buffers((uint8_t *)shim_resolve(NULL, (uint32_t)a[0]), w, &host); break;
+    case F27B_4C2C3A: *result = (int32_t)m4c2c3a_make_record(self, (int16_t)a[0], (int16_t)a[1], (uint32_t)a[2], (uint32_t)a[3], (uint32_t)a[4], w, &host); break;
+    case F27B_4C0D3F: m4c0d3f_present_rect(w, &host); break;
     /*CASES*/
     default: break;
     }

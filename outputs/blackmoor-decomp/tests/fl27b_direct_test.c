@@ -25,6 +25,7 @@ static char g_msg[256];
 #define OBJ_SZ 0x80
 #define OBJ_VA 0x20010000u
 #define VT_VA 0x20020000u
+#define NAME_VA 0x20040000u
 #define OBJ2_VA 0x20030000u
 #define VT_STUB_A 0x7e000900u
 #define VT_STUB_B 0x7e000a00u
@@ -39,11 +40,11 @@ static uint32_t get32(const uint8_t *o, size_t off)
 }
 
 static struct {
-    uint8_t self[SELF_SZ], obj[OBJ_SZ], obj2[OBJ_SZ], vt[0x100];
+    uint8_t self[SELF_SZ], obj[OBJ_SZ], obj2[OBJ_SZ], vt[0x100], name[0x100], player[0x220], rectd[0x20];
     Fl27bWorld w;
     Fl18Host host;
 } fx;
-static uint8_t exp_self[SELF_SZ], exp_obj[OBJ_SZ], exp_obj2[OBJ_SZ];
+static uint8_t exp_self[SELF_SZ], exp_obj[OBJ_SZ], exp_obj2[OBJ_SZ], exp_name[0x100], exp_player[0x220], exp_rectd[0x20];
 
 #define MAXCALL 64
 static struct {
@@ -56,6 +57,9 @@ static struct {
         uint8_t snap_self[SNAP];
         uint8_t snap_obj[OBJ_SZ];
         uint32_t w_value;      /* Fl27bWorld.value_63a58a at the call */
+        uint8_t snap_player[0x220];
+        int has_loc;           /* a call with two host pointers (locals): their 16 bytes at the call */
+        int32_t out[4], isect[4];
     } c[MAXCALL];
 } L;
 
@@ -91,6 +95,13 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         memcpy(L.c[i].snap_self, fx.self, SNAP);
         memcpy(L.c[i].snap_obj, fx.obj, OBJ_SZ);
         L.c[i].w_value = fx.w.value_63a58a;
+        memcpy(L.c[i].snap_player, fx.player, sizeof fx.player);
+        L.c[i].has_loc = 0;
+        if (callee == 0x4c5377 && nargs == 5 && args[2] > 0xffffffffu && args[3] > 0xffffffffu) {
+            memcpy(L.c[i].out, (const void *)args[2], 16);
+            memcpy(L.c[i].isect, (const void *)args[3], 16);
+            L.c[i].has_loc = 1;
+        }
     }
     L.n++;
     for (k = 0; k < g_nscript; k++)
@@ -108,6 +119,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     if (a >= OBJ_VA && a < OBJ_VA + OBJ_SZ) return fx.obj + (a - OBJ_VA);
     if (a >= OBJ2_VA && a < OBJ2_VA + OBJ_SZ) return fx.obj2 + (a - OBJ2_VA);
     if (a >= VT_VA && a < VT_VA + 0x100) return fx.vt + (a - VT_VA);
+    if (a >= NAME_VA && a < NAME_VA + 0x100) return fx.name + (a - NAME_VA);
     return NULL;
 }
 
@@ -120,6 +132,7 @@ static void setup(void)
         fx.obj2[b] = (uint8_t)(b * 5 + 9);
     }
     memset(fx.vt, 0x33, sizeof fx.vt);
+    memset(fx.name, 0x44, sizeof fx.name);
     memset(&fx.w, 0, sizeof fx.w);
     memset(&fx.host, 0, sizeof fx.host);
     fx.host.call = host_call;
@@ -134,11 +147,12 @@ static void expect_begin(void)
     memcpy(exp_self, fx.self, sizeof exp_self);
     memcpy(exp_obj, fx.obj, sizeof exp_obj);
     memcpy(exp_obj2, fx.obj2, sizeof exp_obj2);
+    memcpy(exp_name, fx.name, sizeof exp_name);
 }
 
 static void expect_end_at(int line)
 {
-    if (!g_failed && (memcmp(exp_self, fx.self, sizeof exp_self) != 0 || memcmp(exp_obj, fx.obj, sizeof exp_obj) != 0 || memcmp(exp_obj2, fx.obj2, sizeof exp_obj2) != 0)) {
+    if (!g_failed && (memcmp(exp_self, fx.self, sizeof exp_self) != 0 || memcmp(exp_obj, fx.obj, sizeof exp_obj) != 0 || memcmp(exp_obj2, fx.obj2, sizeof exp_obj2) != 0 || memcmp(exp_name, fx.name, sizeof exp_name) != 0)) {
         g_failed = 1;
         snprintf(g_msg, sizeof g_msg, "line %d: an object differs from the expected copy", line);
     }
@@ -772,6 +786,373 @@ static void test_m4161d1_alloc_buffers(void)
     }
 }
 
+/* ---- 0x4c2c3a -------------------------------------------------------------------------------------------------------------------- */
+
+static void set16(uint8_t *o, size_t off, uint16_t v) { memcpy(o + off, &v, 2); }
+
+static void setup_make(const char *name)
+{
+    setup();
+    memset(fx.name, 0, sizeof fx.name);
+    memcpy(fx.name, name, strlen(name) + 1);
+    memset(fx.name + strlen(name) + 1, 0x7e, 8);
+    fx.w.word_639895 = 3;
+    fx.w.word_639893 = 0x77;
+}
+
+/* the record bytes of the success path, as hand-derived from the stores of the disassembly: size = a * w895 * b */
+static void expect_record(uint32_t size, int16_t a, int16_t b, int32_t w895, uint32_t v10, uint32_t flags, uint32_t buffer, const char *name)
+{
+    size_t n = strlen(name);
+    memset(exp_obj, 0, 0x59);
+    set32(exp_obj, 0, buffer);
+    set32(exp_obj, 4, v10);
+    memcpy(exp_obj + 8, name, n + 1);
+    set16(exp_obj, 0x21, 0x59);
+    set32(exp_obj, 0x23, size);
+    set32(exp_obj, 0x27, size + 0x59);
+    set16(exp_obj, 0x2b, (uint16_t)a);
+    set16(exp_obj, 0x2d, (uint16_t)b);
+    set16(exp_obj, 0x2f, (uint16_t)((int32_t)a * w895));
+    set16(exp_obj, 0x31, (uint16_t)b);
+    set16(exp_obj, 0x33, 0x77);
+    set32(exp_obj, 0x3d, (uint32_t)((int32_t)a - 1));
+    set32(exp_obj, 0x41, (uint32_t)((int32_t)b - 1));
+    set32(exp_obj, 0x55, flags);
+}
+
+static void test_m4c2c3a_make_record(void)
+{
+    uint32_t none[1] = {0}, two[2] = {OBJ_VA, 0x2222}, one[1] = {OBJ_VA}, nobuf[2] = {OBJ_VA, 0};
+    uint32_t r;
+    /* the first allocation fails: the error call with the name, then 0x4c97b4(this self); 0 is returned and nothing else is touched */
+    setup_make("movie");
+    script(0x51dc43, 1, none);
+    expect_begin();
+    r = m4c2c3a_make_record(fx.self, 16, 32, 0xabcd, 3, NAME_VA, &fx.w, &fx.host);
+    CK(r == 0);
+    CKN(3);
+    CKC(0, 0x51dc43, 0, 0x59);
+    CKC(1, 0x42639d, 0x583979, 0x553e68, NAME_VA);
+    CKC0(2, 0x4c97b4, SELFP);
+    expect_end();
+    /* success with bit 0 of the flags set: one allocation, [rec] = 0, no second allocation; the record is zeroed, then filled */
+    setup_make("abc");
+    script(0x51dc43, 1, one);
+    expect_begin();
+    r = m4c2c3a_make_record(fx.self, 16, 32, 0xabcd, 3, NAME_VA, &fx.w, &fx.host);
+    CK(r == OBJ_VA);
+    expect_record(16 * 3 * 32, 16, 32, 3, 0xabcd, 3, 0, "abc");
+    CKN(1);
+    CKC(0, 0x51dc43, 0, 0x59);
+    expect_end();
+    /* bit 0 clear: the second allocation of `size` bytes comes after the zeroing, its result is stored at [rec] */
+    {
+        static const uint32_t clear_flags[] = {0, 2, 0x100, 0xfffffffeu, 0x10000};
+        unsigned k;
+        for (k = 0; k < sizeof clear_flags / sizeof clear_flags[0]; k++) {
+            setup_make("abc");
+            script(0x51dc43, 2, two);
+            expect_begin();
+            r = m4c2c3a_make_record(fx.self, 16, 32, 0xabcd, clear_flags[k], NAME_VA, &fx.w, &fx.host);
+            CK(r == OBJ_VA);
+            expect_record(0x600, 16, 32, 3, 0xabcd, clear_flags[k], 0x2222, "abc");
+            CKN(2);
+            CKC(1, 0x51dc43, 0, 0x600);
+            CK(L.c[1].snap_obj[0x30] == 0 && L.c[1].snap_obj[0] == 0 && L.c[1].snap_obj[0x58] == 0);     /* zeroed before the second allocation */
+            expect_end();
+        }
+    }
+    /* the flags test is on bit 0 only: every odd value skips the second allocation */
+    {
+        static const uint32_t odd[] = {1, 3, 0x101, 0x80000001u, 0xffffffffu};
+        unsigned k;
+        for (k = 0; k < sizeof odd / sizeof odd[0]; k++) {
+            setup_make("abc");
+            script(0x51dc43, 1, one);
+            expect_begin();
+            r = m4c2c3a_make_record(fx.self, 1, 1, 5, odd[k], NAME_VA, &fx.w, &fx.host);
+            CK(r == OBJ_VA);
+            expect_record(3, 1, 1, 3, 5, odd[k], 0, "abc");
+            CKN(1);
+            expect_end();
+        }
+    }
+    /* the second allocation fails: [rec] = 0 stored, the record zeroed and nothing else filled; error call with 0x553ec0, 0x4c97b4; returns 0 */
+    setup_make("abc");
+    script(0x51dc43, 2, nobuf);
+    expect_begin();
+    r = m4c2c3a_make_record(fx.self, 16, 32, 0xabcd, 0, NAME_VA, &fx.w, &fx.host);
+    CK(r == 0);
+    memset(exp_obj, 0, 0x59);
+    CKN(4);
+    CKC(1, 0x51dc43, 0, 0x600);
+    CKC(2, 0x42639d, 0x583979, 0x553ec0, NAME_VA);
+    CKC0(3, 0x4c97b4, SELFP);
+    expect_end();
+    /* the name: up to 0x18 characters are copied whole; 0x19 or more are cut at 0x18 in the caller's string (and the copy has 0x19 bytes) */
+    {
+        static const char *names[] = {"", "a", "123456789012345678901234", "1234567890123456789012345", "12345678901234567890123456", "1234567890123456789012345678901234567890123456789012345678901234"};
+        unsigned k;
+        for (k = 0; k < sizeof names / sizeof names[0]; k++) {
+            char cut[0x20];
+            size_t n = strlen(names[k]);
+            setup_make(names[k]);
+            script(0x51dc43, 1, one);
+            expect_begin();
+            r = m4c2c3a_make_record(fx.self, 2, 2, 0, 1, NAME_VA, &fx.w, &fx.host);
+            CK(r == OBJ_VA);
+            memcpy(cut, names[k], n < 0x18 ? n + 1 : 0x18);
+            cut[n < 0x18 ? n + 1 : 0x18] = 0;
+            if (n >= 0x19) exp_name[0x18] = 0;
+            expect_record(12, 2, 2, 3, 0, 1, 0, n >= 0x19 ? cut : names[k]);
+            expect_end();
+        }
+    }
+    /* signed and wrapping arithmetic: a = b = -1, w = 3 and w = -32768; a = b = w = 0x7fff wraps in 32 bits; a = 0 */
+    setup_make("abc");
+    script(0x51dc43, 1, one);
+    fx.w.word_639895 = -32768;
+    expect_begin();
+    r = m4c2c3a_make_record(fx.self, -1, -1, 1, 1, NAME_VA, &fx.w, &fx.host);
+    CK(r == OBJ_VA);
+    expect_record(0xffff8000u, -1, -1, -32768, 1, 1, 0, "abc");
+    CK(get32(fx.obj, 0x3d) == 0xfffffffeu && get32(fx.obj, 0x23) == 0xffff8000u && get32(fx.obj, 0x27) == 0xffff8059u);
+    expect_end();
+    setup_make("abc");
+    script(0x51dc43, 1, one);
+    fx.w.word_639895 = 0x7fff;
+    expect_begin();
+    r = m4c2c3a_make_record(fx.self, 0x7fff, 0x7fff, 1, 1, NAME_VA, &fx.w, &fx.host);
+    CK(r == OBJ_VA);
+    expect_record(0x40017fffu, 0x7fff, 0x7fff, 0x7fff, 1, 1, 0, "abc");
+    CK(get32(fx.obj, 0x23) == 0x40017fffu && get32(fx.obj, 0x27) == 0x40018058u && (uint16_t)get32(fx.obj, 0x2f) == 0x7fff * 0x7fff % 0x10000);
+    expect_end();
+}
+
+/* ---- 0x4c0d3f -------------------------------------------------------------------------------------------------------------------- */
+
+#define PLAYER_SZ 0x220
+
+static void setup_rect(void)
+{
+    size_t b;
+    setup();
+    for (b = 0; b < PLAYER_SZ; b++) fx.player[b] = (uint8_t)(b * 3 + 1);
+    memset(fx.rectd, 0x66, sizeof fx.rectd);
+    fx.w.player_637fd7 = fx.player;
+    fx.w.rect_583122 = fx.rectd;
+    fx.w.value_5d19ef = 0x1111;
+    fx.w.value_5cf665 = 0x2222;
+    fx.w.value_5d19f3 = 0x3333;
+    fx.w.value_5d19f7 = 0x4444;
+    set32(fx.player, 0x20e, 0);
+    set32(fx.player, 0x212, 1);
+    set32(fx.player, 0x216, 0);
+    set32(fx.player, 0x176, 1);
+    set32(fx.player, 0x172, 0);
+}
+
+static void set_rects(const int32_t *c, const int32_t *d, int32_t bx, int32_t by)
+{
+    int i;
+    for (i = 0; i < 4; i++) {
+        set32(fx.player, 0x1e6 + 4 * (size_t)i, (uint32_t)c[i]);
+        set32(fx.rectd, 4 * (size_t)i, (uint32_t)d[i]);
+    }
+    set32(fx.player, 0x1d6, (uint32_t)bx);
+    set32(fx.player, 0x1d6 + 4, (uint32_t)by);
+}
+
+static void expect_player_begin(void)
+{
+    expect_begin();
+    memcpy(exp_player, fx.player, sizeof exp_player);
+    memcpy(exp_rectd, fx.rectd, sizeof exp_rectd);
+}
+
+static void expect_player_end_at(int line)
+{
+    if (!g_failed && (memcmp(exp_player, fx.player, sizeof exp_player) != 0 || memcmp(exp_rectd, fx.rectd, sizeof exp_rectd) != 0)) {
+        g_failed = 1;
+        snprintf(g_msg, sizeof g_msg, "line %d: the player object or the rectangle differs from the expected copy", line);
+    }
+}
+
+#define expect_player_end() expect_player_end_at(__LINE__)
+
+static void effect_set_216(int i, uint32_t callee, const uintptr_t *args)
+{
+    (void)i;
+    (void)args;
+    if (callee == 0x4c5377) set32(fx.player, 0x216, 7);
+}
+
+/* runs the function on the current setup and checks that a rectangle call with these four out values and these four intersection values was made (or none) */
+static void ck_rect_call(const int32_t *out, const int32_t *isect)
+{
+    CKN(1);
+    CKC(0, 0x4c5377, 0x5cf659, 0x1111, 0x2222, L.c[0].a[2], L.c[0].a[3], 0x552b90);
+    CK(L.c[0].a[2] > 0xffffffffu && L.c[0].a[3] > 0xffffffffu && L.c[0].has_loc);
+    CK(memcmp(L.c[0].out, out, 16) == 0);
+    CK(memcmp(L.c[0].isect, isect, 16) == 0);
+}
+
+static void test_m4c0d3f_present_rect(void)
+{
+    static const int32_t C0[4] = {10, 20, 100, 200};
+    unsigned k;
+    /* neither flag: nothing at all (both dwords tested whole: the low word is zero in the first, the high word in the second) */
+    setup_rect();
+    set32(fx.player, 0x212, 0);
+    set_rects(C0, C0, 0, 0);
+    expect_player_begin();
+    m4c0d3f_present_rect(&fx.w, &fx.host);
+    CKN(0);
+    expect_player_end();
+    /* the first flag [0x6381e5] (any non-zero dword): cleared, then 0x4c5377(this 0x5cf659, [0x5d19ef], [0x5cf665], [0x5d19f3], [0x5d19f7], 0x552b7c); [0x6381ed] clear: the word at +0x1cc is cleared */
+    {
+        static const uint32_t firsts[] = {1, 0x100, 0x10000, 0x01000000, 0xffffffffu};
+        for (k = 0; k < sizeof firsts / sizeof firsts[0]; k++) {
+            setup_rect();
+            set32(fx.player, 0x20e, firsts[k]);
+            set32(fx.player, 0x212, k & 1);
+            expect_player_begin();
+            m4c0d3f_present_rect(&fx.w, &fx.host);
+            set32(exp_player, 0x20e, 0);
+            exp_player[0x1cc] = exp_player[0x1cd] = 0;
+            CKN(1);
+            CKC(0, 0x4c5377, 0x5cf659, 0x1111, 0x2222, 0x3333, 0x4444, 0x552b7c);
+            CK(get32(L.c[0].snap_player, 0x20e) == 0);
+            expect_player_end();
+        }
+    }
+    /* [0x6381ed] is a dword: 1, 0x100, 0x10000 and 0x01000000 all keep the word */
+    {
+        static const uint32_t thirds[] = {1, 0x100, 0x10000, 0x01000000, 0xffffffffu};
+        for (k = 0; k < sizeof thirds / sizeof thirds[0]; k++) {
+            setup_rect();
+            set32(fx.player, 0x20e, 1);
+            set32(fx.player, 0x216, thirds[k]);
+            expect_player_begin();
+            m4c0d3f_present_rect(&fx.w, &fx.host);
+            set32(exp_player, 0x20e, 0);
+            CKN(1);
+            expect_player_end();
+        }
+    }
+    /* the flag is read after the call: a callee that sets it keeps the word */
+    setup_rect();
+    set32(fx.player, 0x20e, 1);
+    g_effect = effect_set_216;
+    expect_player_begin();
+    m4c0d3f_present_rect(&fx.w, &fx.host);
+    set32(exp_player, 0x20e, 0);
+    set32(exp_player, 0x216, 7);
+    CKN(1);
+    expect_player_end();
+    /* the second branch: the rectangle D (50,60,150,250) against C (10,20,100,200) with B = (1000, 2000): isect (50,60,100,200), out (1040, 2040, 1090, 2180) */
+    {
+        static const int32_t D1[4] = {50, 60, 150, 250}, I1[4] = {50, 60, 100, 200}, O1[4] = {1040, 2040, 1090, 2180};
+        setup_rect();
+        set_rects(C0, D1, 1000, 2000);
+        expect_player_begin();
+        m4c0d3f_present_rect(&fx.w, &fx.host);
+        ck_rect_call(O1, I1);
+        expect_player_end();
+    }
+    /* D inside C on the low side: isect (10, 20, 60, 60) -> out (1000, 2000, 1050, 2040); D inside C entirely: isect = D */
+    {
+        static const int32_t D2[4] = {0, 0, 60, 60}, I2[4] = {10, 20, 60, 60}, O2[4] = {1000, 2000, 1050, 2040};
+        static const int32_t D3[4] = {20, 30, 90, 150}, O3[4] = {1010, 2010, 1080, 2130};
+        setup_rect();
+        set_rects(C0, D2, 1000, 2000);
+        expect_player_begin();
+        m4c0d3f_present_rect(&fx.w, &fx.host);
+        ck_rect_call(O2, I2);
+        expect_player_end();
+        L.n = 0;
+        setup_rect();
+        set_rects(C0, D3, 1000, 2000);
+        expect_player_begin();
+        m4c0d3f_present_rect(&fx.w, &fx.host);
+        ck_rect_call(O3, D3);
+        expect_player_end();
+    }
+    /* the four rejections, each at its boundary: D.x0 = 100 (= C.x1) still overlaps, 101 does not; D.x1 = 10 overlaps, 9 does not; D.y0 = 200 overlaps, 201 not; D.y1 = 20 overlaps, 19 not */
+    {
+        static const int32_t miss[4][4] = {{101, 30, 110, 40}, {0, 30, 9, 40}, {20, 201, 30, 210}, {20, 0, 30, 19}};
+        static const int32_t touch[4][4] = {{100, 30, 110, 40}, {0, 30, 10, 40}, {20, 200, 30, 210}, {20, 0, 30, 20}};
+        int32_t isect[4], out[4];
+        for (k = 0; k < 4; k++) {
+            setup_rect();
+            set_rects(C0, miss[k], 7, 9);
+            expect_player_begin();
+            m4c0d3f_present_rect(&fx.w, &fx.host);
+            CKN(0);
+            expect_player_end();
+            L.n = 0;
+            setup_rect();
+            set_rects(C0, touch[k], 7, 9);
+            expect_player_begin();
+            m4c0d3f_present_rect(&fx.w, &fx.host);
+            isect[0] = touch[k][0] < 10 ? 10 : touch[k][0];
+            isect[1] = touch[k][1] < 20 ? 20 : touch[k][1];
+            isect[2] = touch[k][2] > 100 ? 100 : touch[k][2];
+            isect[3] = touch[k][3] > 200 ? 200 : touch[k][3];
+            out[0] = isect[0] - 10 + 7;
+            out[1] = isect[1] - 20 + 9;
+            out[2] = isect[2] - 10 + 7;
+            out[3] = isect[3] - 20 + 9;
+            ck_rect_call(out, isect);
+            expect_player_end();
+        }
+    }
+    /* signed compares: negative rectangles overlap (unsigned compares would reject them) */
+    {
+        static const int32_t Cn[4] = {-100, -100, -50, -50}, Dn[4] = {-60, -60, 0, 0}, In[4] = {-60, -60, -50, -50}, On[4] = {-60 + 100 + 3, -60 + 100 + 4, -50 + 100 + 3, -50 + 100 + 4};
+        setup_rect();
+        set_rects(Cn, Dn, 3, 4);
+        expect_player_begin();
+        m4c0d3f_present_rect(&fx.w, &fx.host);
+        ck_rect_call(On, In);
+        expect_player_end();
+    }
+    /* 32-bit wrap of the sums: C = D = (INT_MIN, 0, INT_MAX, 10), B = (5, 7): out = (5, 7, 4, 17) */
+    {
+        static const int32_t Cw[4] = {(int32_t)0x80000000u, 0, 0x7fffffff, 10}, Ow[4] = {5, 7, 4, 17};
+        setup_rect();
+        set_rects(Cw, Cw, 5, 7);
+        expect_player_begin();
+        m4c0d3f_present_rect(&fx.w, &fx.host);
+        ck_rect_call(Ow, Cw);
+        expect_player_end();
+    }
+    /* the second branch's own gates: [0x6381e9] clear, and the pair of dwords: (+0x176, +0x172) = (0, 1) and (1, any) pass; (0, 0), (0, 2), (2, x), (0x100, x), (0xffffffff, x) and (0, 0x100) do not */
+    {
+        static const uint32_t pairs[][2] = {{0, 1}, {1, 0}, {1, 1}, {1, 7}, {1, 0xffffffffu}, {0, 0}, {0, 2}, {0, 0x100}, {0, 0xffffffffu}, {2, 1}, {2, 0}, {0x100, 1}, {0x100, 0}, {0xffffffffu, 1}, {0x10000, 1}};
+        static const int pass[] = {1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        static const int32_t D1[4] = {50, 60, 150, 250};
+        for (k = 0; k < sizeof pass / sizeof pass[0]; k++) {
+            setup_rect();
+            set32(fx.player, 0x176, pairs[k][0]);
+            set32(fx.player, 0x172, pairs[k][1]);
+            set_rects(C0, D1, 0, 0);
+            expect_player_begin();
+            m4c0d3f_present_rect(&fx.w, &fx.host);
+            CKN(pass[k]);
+            expect_player_end();
+        }
+        setup_rect();
+        set32(fx.player, 0x212, 0);
+        set_rects(C0, D1, 0, 0);
+        expect_player_begin();
+        m4c0d3f_present_rect(&fx.w, &fx.host);
+        CKN(0);
+        expect_player_end();
+    }
+}
+
 /* ---- sweep (for the sanitiser builds) -------------------------------------------------------------------------------------------- */
 
 static uint32_t g_rng = 12345;
@@ -821,6 +1202,27 @@ static void test_sweep_bounded(void)
         script(0x51dc43, 2, seq);
         set32(fx.self, 0x172, rnd() & 3);
         m4161d1_alloc_buffers(fx.self, &fx.w, &fx.host);
+        /* 0x4c2c3a: a random terminated name, random dimensions */
+        L.n = 0;
+        g_nscript = 0;
+        for (k = 0; k < 0x80; k++) fx.name[k] = (uint8_t)(1 + rnd() % 255);
+        fx.name[rnd() % 0x40] = 0;
+        fx.name[0x7f] = 0;
+        seq[0] = (rnd() & 3) ? OBJ_VA : 0;
+        seq[1] = (rnd() & 3) ? 0x5555 : 0;
+        script(0x51dc43, 2, seq);
+        fx.w.word_639895 = (int16_t)rnd();
+        (void)m4c2c3a_make_record(fx.self, (int16_t)rnd(), (int16_t)rnd(), rnd(), rnd(), NAME_VA, &fx.w, &fx.host);
+        /* 0x4c0d3f: random player object and rectangles */
+        L.n = 0;
+        g_nscript = 0;
+        for (k = 0; k < 0x220; k++) fx.player[k] = (uint8_t)rnd();
+        for (k = 0; k < 0x20; k++) fx.rectd[k] = (uint8_t)rnd();
+        fx.w.player_637fd7 = fx.player;
+        fx.w.rect_583122 = fx.rectd;
+        if (rnd() & 1) set32(fx.player, 0x20e, 0);
+        set32(fx.player, 0x176, rnd() & 1);
+        m4c0d3f_present_rect(&fx.w, &fx.host);
     }
 }
 
@@ -844,6 +1246,8 @@ int main(void)
     RUN(test_m449a94_stop_thread);
     RUN(test_m4bf773_release_player);
     RUN(test_m4161d1_alloc_buffers);
+    RUN(test_m4c2c3a_make_record);
+    RUN(test_m4c0d3f_present_rect);
     /* TESTS-END */
     RUN(test_sweep_bounded);
     return failures;

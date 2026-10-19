@@ -59,8 +59,8 @@ class Fl27bDifferential(DiffBase):
         for i in range(self.lib.shim_call_count()):
             c = calls[i]
             entry = [c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(c.nargs)]]
-            if c.id in deref_len:
-                entry.append(bytes(c.data)[:deref_len[c.id]])
+            for index, (arg, nbytes) in enumerate(deref_len.get(c.id, ())):       # the bytes behind pointer arguments that are host pointers (locals of the function)
+                entry.append(bytes(c.data)[32 * index:32 * index + nbytes] if c.arg[arg] >= 1 << 32 else b'')
             if c.id in probe_spec:       # one blob, in the order of the stub's probe list: fixture bytes (from the shim's probe buffer) and globals (from the world snapshot)
                 snap, mem, at, parts = bytes(c.world), bytes(c.probe), 0, []
                 for part in probe_spec[c.id]:
@@ -100,9 +100,9 @@ class Fl27bDifferential(DiffBase):
                 else:
                     probe_spec.setdefault(s.name, []).append(('p', ln))
                     self.lib.shim_script_probe(s.name, ctypes.cast(ctypes.byref(by_name[name], off), ctypes.c_void_p).value, ln)
-            for arg, nbytes in getattr(s, 'derefs', None) or ():
-                self.lib.shim_script_deref(s.name, arg, nbytes)
-                deref_len[s.name] = nbytes
+            for index, (arg, nbytes) in enumerate(getattr(s, 'derefs', None) or ()):
+                (self.lib.shim_script_deref if index == 0 else self.lib.shim_script_deref2)(s.name, arg, nbytes)
+                deref_len.setdefault(s.name, []).append((arg, nbytes))
         result = ctypes.c_int32(0)
         self_ptr = ptr(by_name['self']) if 'self' in by_name else None
         stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
@@ -152,6 +152,14 @@ class Fl27bDifferential(DiffBase):
     def test_4161d1_alloc_buffers(self):
         """FL-27b: differential test of m4161d1_alloc_buffers (original 0x4161d1)"""
         self.run_key('4161d1')
+
+    def test_4c2c3a_make_record(self):
+        """FL-27b: differential test of m4c2c3a_make_record (original 0x4c2c3a)"""
+        self.run_key('4c2c3a')
+
+    def test_4c0d3f_present_rect(self):
+        """FL-27b: differential test of m4c0d3f_present_rect (original 0x4c0d3f)"""
+        self.run_key('4c0d3f')
 
     # CASES-END
 

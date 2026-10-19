@@ -33,6 +33,10 @@ extern "C" {
 typedef struct Fl27bWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output (sprintf into 0x63888b, then 0x44a2b7) */
     uint32_t value_63a58a;     /* 0x4161d1: set to 4 on an allocation failure */
+    int16_t word_639895, word_639893;   /* 0x4c2c3a: the bytes per pixel factor (read as signed) and the word copied to [+0x33] */
+    uint8_t *player_637fd7;    /* the movie player object at 0x637fd7: 0x4c0d3f reads the flags at +0x20e (0x6381e5), +0x212 (0x6381e9), +0x216 (0x6381ed), the dwords +0x172 / +0x176, the rectangle at +0x1d6 (0x6381ad) and +0x1e6 (0x6381bd), and clears the word +0x1cc */
+    uint8_t *rect_583122;      /* the rectangle of four dwords at 0x583122 */
+    uint32_t value_5d19f7, value_5d19f3, value_5cf665, value_5d19ef;   /* 0x4c0d3f: the dwords passed on to 0x4c5377 */
 } Fl27bWorld;
 
 /* 0x449bff, plain ret, `self` = this: returns 0; with the object address [+0x36] clear nothing happens. Otherwise calls the import slot 0x52a284 (stdcall, one
@@ -62,6 +66,23 @@ void m4bf773_release_player(uint8_t *self, const Fl27bWorld *world, const Fl18Ho
  * format) with the format 0x541e7c (kind 0), 0x541ed4 (kind 1, first buffer) or 0x541f2c (kind 1, second buffer), 0x52139c(0x63888b, 0, 0) (stdcall), [0x63a58a] = 4 and 0x4c97b4
  * (this 0x5cf659); the flow then continues (the kind 1 second allocation is attempted even after a failed first one). Finally the words [arg+0x182] and [arg+0x184] are cleared. */
 void m4161d1_alloc_buffers(uint8_t *arg, Fl27bWorld *world, const Fl18Host *host);
+
+/* 0x4c2c3a, thiscall (`self` = ecx, only forwarded to 0x4c97b4), `ret 0x14`: the stack arguments a, b (words, sign-extended), v10, flags (dwords) and name (the original address of a
+ * zero-terminated string). Allocates the 0x59-byte record with 0x51dc43(0x59); a result of 0: 0x42639d(this 0x583979, 0x553e68, name), 0x4c97b4(this self), returns 0. Otherwise
+ * zeroes the 0x59 bytes and computes size = a * (signed word 0x639895) * b in 32 bits; with bit 0 of flags clear [rec] = 0x51dc43(size) (a result of 0: 0x42639d(this 0x583979, 0x553ec0, name),
+ * 0x4c97b4(this self), returns 0), else [rec] = 0. A name of 0x19 or more characters is truncated IN PLACE (name[0x18] = 0); the string (with its terminator) is copied to rec+8. Then
+ * [+4] = v10, word [+0x21] = 0x59, [+0x23] = size, [+0x27] = size + 0x59, words [+0x2b] = a, [+0x2d] = b, [+0x2f] = low 16 bits of a * 0x639895, [+0x31] = b, [+0x33] = word 0x639893,
+ * [+0x55] = flags, [+0x35] = [+0x39] = 0, [+0x3d] = a - 1, [+0x41] = b - 1 (sign-extended), the dwords at +0x45 .. +0x54 = 0. Returns the record's original address (rec).
+ * Caller-validated: the string must be terminated (an unterminated one overruns, like the original). */
+uint32_t m4c2c3a_make_record(uint8_t *self, int16_t a, int16_t b, uint32_t v10, uint32_t flags, uint32_t name, const Fl27bWorld *world, const Fl18Host *host);
+
+/* 0x4c0d3f, plain ret (no this, no stack arguments; its callee takes the constant ecx 0x5cf659): with the dword 0x6381e5 (player + 0x20e) non-zero: it is cleared, then 0x4c5377(this 0x5cf659,
+ * [0x5d19ef], [0x5cf665], [0x5d19f3], [0x5d19f7], 0x552b7c) is called (stdcall `ret 0x14`) and, with the dword 0x6381ed (player + 0x216) clear, the word at player + 0x1cc (0x6381a3) is cleared; return.
+ * Else, with the dword 0x6381e9 (player + 0x212) non-zero and ((dword player + 0x176 == 0 and dword player + 0x172 == 1) or dword player + 0x176 == 1): the rectangle D (0x583122) is intersected with the
+ * rectangle C (0x6381bd) (four signed dwords: x0, y0, x1, y1, offsets 0, 4, 8, 0xc): nothing happens when D.x0 > C.x1, D.x1 < C.x0, D.y0 > C.y1 or D.y1 < C.y0 (signed); else isect = (max(D.x0, C.x0), max(D.y0, C.y0),
+ * min(D.x1, C.x1), min(D.y1, C.y1)) and out = (isect.x0 - C.x0 + B.x0, isect.y0 - C.y0 + B.y0, isect.x1 - C.x0 + B.x0, isect.y1 - C.y0 + B.y0) with B = (dwords 0 and 4 at 0x6381ad), all in 32 bits;
+ * 0x4c5377(this 0x5cf659, [0x5d19ef], [0x5cf665], &out, &isect, 0x552b90) with host pointers to the two local arrays of four int32. The callee may change the player object (the port re-reads it). */
+void m4c0d3f_present_rect(Fl27bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

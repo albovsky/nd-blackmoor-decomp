@@ -30,6 +30,11 @@ static uint32_t calln(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr,
     return host->call != NULL ? host->call(host->context, callee, this_ptr, n > 0 ? args : NULL, n) : 0;
 }
 
+static int32_t rds32(const uint8_t *base, ptrdiff_t off)
+{
+    return (int32_t)rd32(base, off);
+}
+
 static uint32_t call0(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr)
 {
     return calln(host, callee, this_ptr, 0, 0, 0, 0, 0, 0);
@@ -195,4 +200,96 @@ void m4161d1_alloc_buffers(uint8_t *arg, Fl27bWorld *world, const Fl18Host *host
     }
     wr16(arg, 0x182, 0);
     wr16(arg, 0x184, 0);
+}
+
+/* ---- 0x4c2c3a ------------------------------------------------------------------------------------------------------------------ */
+
+static uint32_t strlen_at(const uint8_t *s)
+{
+    uint32_t n = 0;
+    while (s[n] != 0) n++;
+    return n;
+}
+
+/* 0x4c2c3a, `ret 0x14`: see the header. [ebp-0xc] / [ebp-8] hold the record address, [ebp-4] the size (the 32-bit `imul` chain a * w * b of sign-extended words), [ebp-0x10] the second allocation,
+ * [ebp-0x14] the `this`. The two `repne scasb` give the string length (`not ecx; add ecx, -1`), the compare with 0x19 is unsigned (`jb`). The copy is `rep movsd` + `rep movsb` of length + 1 bytes. */
+uint32_t m4c2c3a_make_record(uint8_t *self, int16_t a, int16_t b, uint32_t v10, uint32_t flags, uint32_t name, const Fl27bWorld *world, const Fl18Host *host)
+{
+    uint32_t p = call1(host, 0x51dc43, 0, 0x59);
+    uint32_t size, len;
+    uint8_t *rec, *str;
+    if (p == 0) {
+        call2(host, 0x42639d, 0x583979, 0x553e68, name);
+        call0(host, 0x4c97b4, (uintptr_t)self);
+        return 0;
+    }
+    rec = object_at(host, p);
+    memset(rec, 0, 0x59);
+    size = (uint32_t)(int32_t)a * (uint32_t)(int32_t)world->word_639895 * (uint32_t)(int32_t)b;
+    if ((flags & 1u) == 0) {
+        uint32_t q = call1(host, 0x51dc43, 0, size);
+        wr32(rec, 0, q);
+        if (q == 0) {
+            call2(host, 0x42639d, 0x583979, 0x553ec0, name);
+            call0(host, 0x4c97b4, (uintptr_t)self);
+            return 0;
+        }
+    } else {
+        wr32(rec, 0, 0);
+    }
+    str = object_at(host, name);
+    len = strlen_at(str);
+    if (len >= 0x19u) str[0x18] = 0;
+    memcpy(rec + 8, str, strlen_at(str) + 1u);
+    wr32(rec, 4, v10);
+    wr16(rec, 0x21, 0x59);
+    wr32(rec, 0x23, size);
+    wr32(rec, 0x27, size + 0x59u);
+    wr16(rec, 0x2b, (uint16_t)a);
+    wr16(rec, 0x2d, (uint16_t)b);
+    wr16(rec, 0x2f, (uint16_t)((uint32_t)(int32_t)a * (uint32_t)(int32_t)world->word_639895));
+    wr16(rec, 0x31, (uint16_t)b);
+    wr16(rec, 0x33, (uint16_t)world->word_639893);
+    wr32(rec, 0x55, flags);
+    wr32(rec, 0x35, 0);
+    wr32(rec, 0x39, 0);
+    wr32(rec, 0x3d, (uint32_t)(int32_t)a - 1u);
+    wr32(rec, 0x41, (uint32_t)(int32_t)b - 1u);
+    wr32(rec, 0x45, 0);
+    wr32(rec, 0x49, 0);
+    wr32(rec, 0x4d, 0);
+    wr32(rec, 0x51, 0);
+    return p;
+}
+
+/* ---- 0x4c0d3f ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4c0d3f, plain ret: see the header. [ebp-4] = 0x637fd7 (the player object), [ebp-8] = 0x6381ad (B, player + 0x1d6), [ebp-0x20] = 0x6381bd (C, player + 0x1e6), [ebp-0x1c] = 0x583122 (D). The
+ * four locals [ebp-0x30 .. -0x24] are the intersection (x0, y0, x1, y1), the four at [ebp-0x18 .. -0xc] the translated rectangle; every compare of the rectangles is signed (`jg`, `jl`, `jge`, `jle`), the sums wrap. */
+void m4c0d3f_present_rect(Fl27bWorld *world, const Fl18Host *host)
+{
+    uint8_t *player = world->player_637fd7;
+    const uint8_t *bb = player + 0x1d6, *cc = player + 0x1e6, *dd = world->rect_583122;
+    int32_t isect[4], out[4];
+    if (rd32(player, 0x20e) != 0) {
+        wr32(player, 0x20e, 0);
+        calln(host, 0x4c5377, 0x5cf659, 5, world->value_5d19ef, world->value_5cf665, world->value_5d19f3, world->value_5d19f7, 0x552b7c);
+        if (rd32(player, 0x216) == 0) wr16(player, 0x1cc, 0);
+        return;
+    }
+    if (rd32(player, 0x212) == 0) return;
+    if (!((rd32(player, 0x176) == 0 && rd32(player, 0x172) == 1) || rd32(player, 0x176) == 1)) return;
+    if (rds32(dd, 0) > rds32(cc, 8)) return;
+    if (rds32(dd, 8) < rds32(cc, 0)) return;
+    if (rds32(dd, 4) > rds32(cc, 0xc)) return;
+    if (rds32(dd, 0xc) < rds32(cc, 4)) return;
+    isect[0] = rds32(dd, 0) < rds32(cc, 0) ? rds32(cc, 0) : rds32(dd, 0);
+    isect[2] = rds32(dd, 8) > rds32(cc, 8) ? rds32(cc, 8) : rds32(dd, 8);
+    isect[1] = rds32(dd, 4) < rds32(cc, 4) ? rds32(cc, 4) : rds32(dd, 4);
+    isect[3] = rds32(dd, 0xc) > rds32(cc, 0xc) ? rds32(cc, 0xc) : rds32(dd, 0xc);
+    out[0] = (int32_t)((uint32_t)isect[0] - rd32(cc, 0) + rd32(bb, 0));
+    out[2] = (int32_t)((uint32_t)isect[2] - rd32(cc, 0) + rd32(bb, 0));
+    out[1] = (int32_t)((uint32_t)isect[1] - rd32(cc, 4) + rd32(bb, 4));
+    out[3] = (int32_t)((uint32_t)isect[3] - rd32(cc, 4) + rd32(bb, 4));
+    calln(host, 0x4c5377, 0x5cf659, 5, world->value_5d19ef, world->value_5cf665, (uintptr_t)out, (uintptr_t)isect, 0x552b90);
 }

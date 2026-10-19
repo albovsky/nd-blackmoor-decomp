@@ -22,6 +22,8 @@ EXPECTED = [
     'test_m449a94_stop_thread',
     'test_m4bf773_release_player',
     'test_m4161d1_alloc_buffers',
+    'test_m4c2c3a_make_record',
+    'test_m4c0d3f_present_rect',
     'test_sweep_bounded',
 ]
 
@@ -82,6 +84,14 @@ class Fl27bDirect(unittest.TestCase):
     def test_4161d1_alloc_buffers(self):
         """FL-27b: direct test of m4161d1_alloc_buffers"""
         self.check('test_m4161d1_alloc_buffers')
+
+    def test_4c2c3a_make_record(self):
+        """FL-27b: direct test of m4c2c3a_make_record"""
+        self.check('test_m4c2c3a_make_record')
+
+    def test_4c0d3f_present_rect(self):
+        """FL-27b: direct test of m4c0d3f_present_rect"""
+        self.check('test_m4c0d3f_present_rect')
 
     # CASES-END
 
