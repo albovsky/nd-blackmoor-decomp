@@ -47,6 +47,8 @@ int32_t m467740_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world,
 void m4b7563_click_27bf_27c1(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* 0x459e49: event 0x2742 (marks a slot, counts up to 4 and announces through 0x4f6334 / 0x4fb2e3) */
 void m459e49_click_2742(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x482359 (ret 8): hit test of the point (x, y) against up to word [ro+0xfc] rectangles of the record's object, then its outer rectangle */
+int32_t m482359_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

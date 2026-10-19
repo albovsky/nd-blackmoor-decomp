@@ -773,6 +773,150 @@ static int test_m459e49_click_2742(void)
     return g_failed;
 }
 
+/* 0x482359: byte [+0xa8] gate; up to the signed word ro[+0xfc] entries (+0x23e x lo, +0x242 y lo, +0x246 x hi, +0x24a y hi, stride 16) of the
+ * object of the record of the word [+0x1e]; skips by ro[+0x3a2] with [+0x92] / [+0x91], by ro[+0x39e], ro[+0x3a0] with ro[+0x87c] == 1; the outer
+ * rectangle +0x86c x lo, +0x870 y lo, +0x874 x hi, +0x878 y hi. */
+static void ent_482359(int i, int32_t xlo, int32_t ylo, int32_t xhi, int32_t yhi)
+{
+    set32(fx.obj, (size_t)i * 16 + 0x23e, (uint32_t)xlo);
+    set32(fx.obj, (size_t)i * 16 + 0x242, (uint32_t)ylo);
+    set32(fx.obj, (size_t)i * 16 + 0x246, (uint32_t)xhi);
+    set32(fx.obj, (size_t)i * 16 + 0x24a, (uint32_t)yhi);
+}
+static void setup_482359(int idx, int count)
+{
+    int i;
+    base(0x2711, idx, 0x1e);
+    fx.self[0xa8] = 0x80;
+    set16(fx.self, 0x92, 0);
+    fx.self[0x91] = 0;
+    set16(fx.obj, 0xfc, (uint16_t)count);
+    set16(fx.obj, 0x3a2, 0xffff);
+    set16(fx.obj, 0x39e, 0xffff);
+    set16(fx.obj, 0x3a0, 0xffff);
+    set16(fx.obj, 0x87c, 0);
+    for (i = 0; i < 12; i++) ent_482359(i, 6, 6, 6, 6);               /* (5, 5) misses them */
+    set32(fx.obj, 0x86c, 1000);
+    set32(fx.obj, 0x870, 1000);
+    set32(fx.obj, 0x874, 2000);
+    set32(fx.obj, 0x878, 2000);
+    fx.w.value_5d0377 = 0xabcdef01u;
+    fx.w.value_5d162d = 0x11111111u;
+    fx.w.value_5d1631 = 0x22222222u;
+    fx.w.value_5d1639 = 0x33333333u;
+    fx.w.value_5b44f0 = 0x44444444u;
+    fx.w.value_5b44f4 = 0x55555555u;
+}
+static void expect_arm_482359(uint32_t a, uint32_t event)
+{
+    CK(fx.w.value_5b44f0 == a && fx.w.value_5b44f4 == 1 && fx.w.value_5d162d == 0xabcdef01u && fx.w.value_5d1639 == 1);
+    CK(fx.w.value_5d1631 == (a << 5) + 16 + 0x5b160c && fx.w.value_5c39e5 == event);
+}
+/* runs (5, 5) and checks a hit at entry `hit` (-1: miss, nothing armed) */
+static void run_482359(int idx, int hit, int arg_x, int arg_y)
+{
+    int32_t r;
+    begin();
+    if (hit >= 0) {
+        X16(0xad, (uint16_t)hit);
+    }
+    r = m482359_hit_test(fx.self, (int16_t)arg_x, (int16_t)arg_y, &fx.w, &fx.host);
+    check_mem();
+    (void)idx;
+    if (hit >= 0) {
+        CK(r == 1);
+        expect_arm_482359(0x16, 0x27b5);
+    } else {
+        CK(r == 0);
+        CK(fx.w.value_5b44f0 == 0x44444444u && fx.w.value_5c39e5 == 0x2711 && fx.w.value_5d1639 == 0x33333333u);
+    }
+}
+
+static int test_m482359_hit_test(void)
+{
+    static const int idxs[2] = {2, -1};
+    int ii, k, i, v;
+    int32_t r;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        /* the byte gate (only the low byte is tested: the neighbour is non-zero) */
+        setup_482359(idx, 3);
+        fx.self[0xa8] = 0;
+        fx.self[0xa9] = 0xff;
+        ent_482359(0, 0, 0, 9, 9);
+        run_482359(idx, -1, 5, 5);
+        /* the outer rectangle (count 0 and a negative count run no entry): hit on the bounds, miss one short of each */
+        for (v = 0; v < 2; v++)
+            for (k = 0; k < 5; k++) {
+                setup_482359(idx, v ? -1 : 0);
+                ent_482359(0, 0, 0, 9, 9);
+                set32(fx.obj, 0x86c, k == 2 ? 6 : 5);
+                set32(fx.obj, 0x870, k == 1 ? 6 : 5);
+                set32(fx.obj, 0x874, k == 4 ? 4 : 5);
+                set32(fx.obj, 0x878, k == 3 ? 4 : 5);
+                if (k == 0) { set32(fx.obj, 0x86c, 5); }
+                begin();
+                r = m482359_hit_test(fx.self, 5, 5, &fx.w, &fx.host);
+                check_mem();
+                if (k == 0) { CK(r == 1); expect_arm_482359(9, 0x27b6); }
+                else { CK(r == 0); CK(fx.w.value_5c39e5 == 0x2711); }
+            }
+        /* entries: the first that fails each of its four comparisons by one, then a hit at index 4; the later hit at 6 is not reached */
+        for (k = 0; k < 4; k++) {
+            setup_482359(idx, 8);
+            ent_482359(0, k == 2 ? 6 : 5, k == 0 ? 6 : 5, k == 3 ? 4 : 5, k == 1 ? 4 : 5);
+            ent_482359(4, -0x80000000, -0x80000000, 0x7fffffff, 0x7fffffff);
+            ent_482359(6, 0, 0, 9, 9);
+            run_482359(idx, 4, 5, 5);
+        }
+        /* a hit past the count is not seen; a hit at entry count-1 is */
+        setup_482359(idx, 3);
+        ent_482359(3, 0, 0, 9, 9);
+        run_482359(idx, -1, 5, 5);
+        setup_482359(idx, 4);
+        ent_482359(3, 0, 0, 9, 9);
+        run_482359(idx, 3, 5, 5);
+        /* the skips: entry 2 is hit; ro[+0x3a2] == 2 with [+0x92] == 0 and [+0x91] == 0 skips it (the hit then is entry 5),
+         * a non-zero word [+0x92] (0x100: its low byte is zero) or byte [+0x91] does not */
+        for (v = 0; v < 4; v++) {
+            setup_482359(idx, 8);
+            ent_482359(2, 0, 0, 9, 9);
+            ent_482359(5, 0, 0, 9, 9);
+            set16(fx.obj, 0x3a2, 2);
+            if (v == 1) set16(fx.self, 0x92, 0x100);
+            if (v == 2) fx.self[0x91] = 0x80;
+            if (v == 3) set16(fx.obj, 0x3a2, 3);
+            run_482359(idx, v == 0 ? 5 : 2, 5, 5);
+        }
+        /* ro[+0x39e] and ro[+0x3a0]: with ro[+0x87c] == 1 the entry is skipped, with 0, 2, 0x101, -1 it is not */
+        for (k = 0; k < 2; k++)
+            for (v = 0; v < 5; v++) {
+                int16_t w87c = (int16_t[]){1, 0, 2, 0x101, -1}[v];
+                setup_482359(idx, 8);
+                ent_482359(1, 0, 0, 9, 9);
+                ent_482359(7, 0, 0, 9, 9);
+                set16(fx.obj, k ? 0x3a0 : 0x39e, 1);
+                set16(fx.obj, 0x87c, (uint16_t)w87c);
+                run_482359(idx, w87c == 1 ? 7 : 1, 5, 5);
+            }
+        /* word arguments: -1 and -32768 against signed bounds; an entry hit at entry 0 with x = -32768 */
+        setup_482359(idx, 1);
+        ent_482359(0, -32768, -1, -32768, -1);
+        begin();
+        X16(0xad, 0);
+        r = m482359_hit_test(fx.self, (int16_t)0x8000, (int16_t)0xffff, &fx.w, &fx.host);
+        CK(r == 1);
+        check_mem();
+        expect_arm_482359(0x16, 0x27b5);
+        (void)i;
+    }
+    if (g_failed) printf("FAIL test_m482359_hit_test: %s\n", g_msg);
+    else printf("PASS test_m482359_hit_test\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -783,6 +927,7 @@ int main(void)
     failures += test_m467740_hit_test();
     failures += test_m4b7563_click_27bf_27c1();
     failures += test_m459e49_click_2742();
+    failures += test_m482359_hit_test();
     /* FL24B-MAIN-END */
     return failures;
 }

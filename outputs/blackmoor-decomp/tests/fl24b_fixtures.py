@@ -116,6 +116,7 @@ SPECS.update({
                    callees=[0x4fb2e3], post=lambda c: post_4b7563(c), scen=440, probes=[(0, 0x40)]),
     '459e49': dict(id=5, va=0x459e49, size=562, selfsz=0x100, idx=0x1c, gates=[('nz8', 0xd6), ('z8', 0xe1), ('z32', 0xdb)], sels=[0x2742],
                    callees=[0x4f6334, 0x4fb2e3], post=lambda c: post_459e49(c), scen=480, probes=[(0, 0x100)]),
+    '482359': dict(id=6, va=0x482359, size=572, selfsz=0x100, ret='eax', callee_pops=True, scen=480),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
@@ -329,6 +330,59 @@ def post_459e49(c):
     nine_const(c, 0x54a7c4, 0x1b5, obj, a_arm)
     nine_const(c, 0x54a7d0, 0x1e6, obj, c.sel == 0x2742 and not a_arm)
     c.stubs_results[0x4f6334] = [0 if (v // 8) % 3 != 2 else rng.choice([1, 0x100, 0x80000000])]
+
+
+def build_482359(sp, rng, n):
+    prof = n % 8
+    d = bytearray(rng.randbytes(sp['selfsz']))
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    struct.pack_into('<h', d, 0x1e, idx)
+    d[0xa8] = 0 if prof == 0 else rng.choice([1, 0x80, 0xff])
+    x = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    y = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    obj = bytearray(rng.randbytes(0x1000))
+    count = rng.choice([0, 1, 2, 3, 5, 8, 12, -1, -0x8000]) if prof not in (1, 2) else 0
+    if prof in (3, 4, 5, 6, 7) and count <= 0:
+        count = rng.choice([1, 2, 3, 5, 8, 12])
+    struct.pack_into('<h', obj, 0xfc, count)
+    fail = None if prof in (0, 1, 3) else ['ylo', 'yhi', 'xlo', 'xhi'][rng.randrange(4)]
+    ylo, yhi = span(rng, y, 'lo' if fail == 'ylo' else 'hi' if fail == 'yhi' else None)
+    xlo, xhi = span(rng, x, 'lo' if fail == 'xlo' else 'hi' if fail == 'xhi' else None)
+    if rng.random() < 0.2:
+        ylo, yhi, xlo, xhi = y & 0xffffffff, y & 0xffffffff, x & 0xffffffff, x & 0xffffffff
+    struct.pack_into('<IIII', obj, 0x86c, xlo, ylo, xhi, yhi)
+    hit_prob = 0.0 if prof == 3 else 0.35
+    ncount = max(count, 0)
+    hits = []
+    for i in range(12):
+        mode = None if rng.random() < hit_prob else rng.choice(['ylo', 'yhi', 'xlo', 'xhi'])
+        if prof == 4 and i == min(ncount - 1, 3):
+            mode = None
+        ilo_y, ihi_y = span(rng, y, 'lo' if mode == 'ylo' else 'hi' if mode == 'yhi' else None)
+        ilo_x, ihi_x = span(rng, x, 'lo' if mode == 'xlo' else 'hi' if mode == 'xhi' else None)
+        struct.pack_into('<IIII', obj, i * 16 + 0x23e, ilo_x, ilo_y, ihi_x, ihi_y)
+        if mode is None:
+            hits.append(i)
+    pick = lambda: rng.choice(hits) if hits and rng.random() < 0.7 else rng.choice([-1, 0, 1, 2, 3, 20])
+    w3a2, w39e, w3a0 = pick(), pick(), pick()
+    if prof == 5:     # skipped by the first special case
+        w92, b91 = 0, 0
+    elif prof == 6:   # the first special case does not skip
+        w92, b91 = rng.choice([(0, 1), (1, 0), (0x100, 0x80), (0x8000, 0)])
+    else:
+        w92, b91 = rng.choice([(0, 0), (0, 1), (5, 0), (0, 0x80)])
+    struct.pack_into('<hhh', obj, 0x39e, w39e, w3a0, w3a2)
+    struct.pack_into('<H', d, 0x92, w92)
+    d[0x91] = b91
+    struct.pack_into('<h', obj, 0x87c, rng.choice([1, 1, 0, 2, 0x101, -1, 0x8001 - 0x10000]) if prof != 7 else 1)
+    rec = bytearray(rng.randbytes(6 * 0x8d))
+    for i in range(-1, 5):
+        struct.pack_into('<I', rec, (i + 1) * 0x8d, od.region_va(1) if i == idx else od.region_va(4))
+    areas = [Area('self', od.region_va(0), d, image=False), Area('records', RECORDS_VA - 0x8d, rec), Area('obj', od.region_va(1), obj, image=False),
+             Area('decoy', od.region_va(4), bytearray(rng.randbytes(0x1000)), image=False, compare=False)]
+    g = {f: rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]) for f in ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639', 'value_5c39e5')}
+    junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
+    return mk_scenario(sp, '482359', rng, areas=areas, g=g, pointers={'records_5bb5e5': ('records', 0x8d)}, stack_args=[junk(x), junk(y)], profile=('x', prof))
 
 
 # BUILDERS-END

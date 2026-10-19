@@ -337,4 +337,41 @@ void m459e49_click_2742(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
     }
 }
 
+/* ---- 0x482359 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x482359, thiscall, `ret 8`, arguments x then y as words (movsx); eax = 1 on a hit, else 0. Returns 0 at once when the byte [+0xa8] is
+ * zero. `ro` is the object of the record of the word [+0x1e]. A word counter i runs from 0 while it is below the signed word ro[+0xfc]
+ * (the count is not bounded, as in the original); entry i is the 16-byte rectangle at ro + 0x23e + 16 * i (x low, y low, x high, y high,
+ * signed dwords, inclusive). A hit is skipped when i == the word ro[+0x3a2] and the word [+0x92] and the byte [+0x91] are both zero, and
+ * when i is the word ro[+0x39e] or ro[+0x3a0] and the word ro[+0x87c] == 1; otherwise the globals are armed (0x16, event 0x27b5), the
+ * word [+0xad] = i and 1 is returned. After the loop the outer rectangle ro[+0x86c .. +0x878] arms (9, event 0x27b6). */
+int32_t m482359_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *ro;
+    uint32_t ro_addr = record_object_address(world, self, 0x1e);
+    int16_t i;
+    if (self[0xa8] == 0) return 0;
+    ro = object_at(host, ro_addr);
+    for (i = 0; (int32_t)i < rds16(ro, 0xfc); i = (int16_t)(i + 1)) {
+        ptrdiff_t e = (ptrdiff_t)((int32_t)i * 16);
+        if ((int32_t)y < (int32_t)rd32(ro, e + 0x242)) continue;
+        if ((int32_t)y > (int32_t)rd32(ro, e + 0x24a)) continue;
+        if ((int32_t)x < (int32_t)rd32(ro, e + 0x23e)) continue;
+        if ((int32_t)x > (int32_t)rd32(ro, e + 0x246)) continue;
+        if ((int32_t)i == rds16(ro, 0x3a2) && rds16(self, 0x92) == 0 && self[0x91] == 0) continue;
+        if ((int32_t)i == rds16(ro, 0x39e) || (int32_t)i == rds16(ro, 0x3a0)) {
+            if (rds16(ro, 0x87c) == 1) continue;
+        }
+        arm_467740(world, 0x16, 0x27b5);
+        wr16(self, 0xad, (uint16_t)i);
+        return 1;
+    }
+    if ((int32_t)y >= (int32_t)rd32(ro, 0x870) && (int32_t)y <= (int32_t)rd32(ro, 0x878) && (int32_t)x >= (int32_t)rd32(ro, 0x86c) &&
+        (int32_t)x <= (int32_t)rd32(ro, 0x874)) {
+        arm_467740(world, 9, 0x27b6);
+        return 1;
+    }
+    return 0;
+}
+
 /* FL24B-END */
