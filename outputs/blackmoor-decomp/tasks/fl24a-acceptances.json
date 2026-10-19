@@ -1,0 +1,398 @@
+[
+ {
+  "va": "0x4d3bef",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m4d3bef_reset_flags"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m4d3bef_reset_flags"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_4d3bef_reset_flags"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_4d3bef_reset_flags"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x4d3bef",
+    "0x4d3c1d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4d3bef_reset_flags (clears [+0x462], sets [+0x1c] on the byte at 0x61c6ae). Direct, Unicorn differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x44edfb",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m44edfb_click_2785_2787"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m44edfb_click_2785_2787"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_44edfb_click_2785_2787"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_44edfb_click_2785_2787"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x44edfb",
+    "0x44efcd"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m44edfb_click_2785_2787 (guards, record state, events 2785/2786/2787, 49-byte copies, nine-byte announce via 4f6334/4fb2e3/tick). Differential and oracle: every instruction reached."
+ },
+ {
+  "va": "0x4cb3ab",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m4cb3ab_store_flag"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m4cb3ab_store_flag"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_4cb3ab_store_flag"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_4cb3ab_store_flag"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x4cb3ab",
+    "0x4cb586"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4cb3ab_store_flag (two arms, flag-table store, cdecl 50ca3e and 44a2b7). Unicorn differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x44eab1",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m44eab1_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m44eab1_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_44eab1_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_44eab1_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x44eab1",
+    "0x44ecaf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m44eab1_hit_test (item loop and four fixed rectangles, calls 44ecaf, ret 8). Unicorn differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x46ebff",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m46ebff_click_27c2_27c3"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m46ebff_click_27c2_27c3"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_46ebff_click_27c2_27c3"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_46ebff_click_27c2_27c3"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x46ebff",
+    "0x46ee20"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m46ebff_click_27c2_27c3 (events 27c2/27c3, tick, 4f6334/4fb2e3, 4709bb/4709de loop, 448d11). Differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x4571e1",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m4571e1_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m4571e1_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_4571e1_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_4571e1_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x4571e1",
+    "0x45741d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4571e1_hit_test (margins wrap in 32 bits, item loop, calls 45741d, ret 8). Unicorn differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x47b4aa",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m47b4aa_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m47b4aa_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_47b4aa_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_47b4aa_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x47b4aa",
+    "0x47b709"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m47b4aa_hit_test (signed-byte gate, two row tables, 12-byte entries, stores 27c/2b4, calls 47b709). Differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x4a6574",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m4a6574_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m4a6574_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_4a6574_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_4a6574_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x4a6574",
+    "0x4a67f3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4a6574_hit_test (five rectangles, tail; the uninitialised-slot path of the original is rejected, see handoff). Differential and oracle: every instruction reached."
+ },
+ {
+  "va": "0x465c99",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m465c99_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m465c99_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_465c99_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_465c99_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x465c99",
+    "0x465f8e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m465c99_hit_test (row split at (hi-lo)/2, three rectangles, last, calls 465f8e, ret 8). Differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x482724",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m482724_click_27b5_27b6"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m482724_click_27b5_27b6"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_482724_click_27b5_27b6"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_482724_click_27b5_27b6"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x482724",
+    "0x482a08"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m482724_click_27b5_27b6 (events 27b5/27b6, word compares against the record object, 482595 byte result, tail stores). Differential and oracle: every instruction reached."
+ },
+ {
+  "va": "0x470ffe",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m470ffe_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m470ffe_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_470ffe_hit_test"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_470ffe_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x470ffe",
+    "0x4712b0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m470ffe_hit_test (rectangles, announcement globals, ret 8). Unicorn differential and oracle: every instruction reached. See tasks/fl24a-handoff.md."
+ },
+ {
+  "va": "0x4a6946",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24a.c",
+   "symbol": "m4a6946_click_276f_2770"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24a_direct_test.c",
+    "test_id": "test_m4a6946_click_276f_2770"
+   },
+   {
+    "path": "tests/test_fl24a_direct.py",
+    "test_id": "Fl24aDirect.test_4a6946_click_276f_2770"
+   },
+   {
+    "path": "tests/test_fl24a_differential.py",
+    "test_id": "Fl24aDifferential.test_4a6946_click_276f_2770"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24a_original_oracle.py",
+   "window": [
+    "0x4a6946",
+    "0x4a6bde"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4a6946_click_276f_2770 (jump-table switch, string copies, announce); an unbounded copy is rejected beyond 40 bytes. Oracle covers the 648 code bytes (the table is data)."
+ }
+]
