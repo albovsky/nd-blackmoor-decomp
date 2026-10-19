@@ -45,7 +45,7 @@ class Fl25cDifferential(DiffBase):
         cls.lib.shim_fl25c.argtypes = [ctypes.c_int, ctypes.c_void_p] + [ctypes.c_uint64] * 4 + [ctypes.c_void_p, ctypes.c_void_p]
         assert cls.lib.shim_world_size() == ctypes.sizeof(fx.World), 'the World mirror does not match Fl25cWorld'
 
-    def native_calls(self, arrays, probe_len):
+    def native_calls(self, arrays, probe_len, deref_len=None):
         """The shim's call log as comparable lists: [callee, this, *args, probe]; GetTickCount is ['tick', 0]."""
         spans = [(ctypes.addressof(arr), len(arr), a.va) for a, arr in arrays]
 
@@ -59,6 +59,8 @@ class Fl25cDifferential(DiffBase):
         for i in range(self.lib.shim_call_count()):
             c = calls[i]
             entry = ['tick' if c.id == fx.TICK_SLOT else c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(c.nargs)]]
+            if deref_len and c.id in deref_len:
+                entry.append(bytes(c.data)[:deref_len[c.id]])
             if c.id in probe_len:
                 entry.append(bytes(c.probe)[:probe_len[c.id]])
             out.append(entry)
@@ -79,7 +81,7 @@ class Fl25cDifferential(DiffBase):
             setattr(sw, field, value & ((1 << (8 * fx.GLOBALS[field][1])) - 1))
         for field, (name, offset) in sc.pointers.items():
             setattr(sw, field, ctypes.cast(ctypes.byref(by_name[name], offset), ctypes.c_void_p).value)
-        probe_len = {}
+        probe_len, deref_len = {}, {}
         for s in [*sc.stubs.values(), *[x for x in sc.iat.values() if x.name != 'tick']]:
             for r in (s.results or ([s.result] if s.result else [])):
                 self.lib.shim_script_return(s.name, r)
@@ -89,6 +91,9 @@ class Fl25cDifferential(DiffBase):
                 self.lib.shim_script_write(s.name, 0, 0, 0, 4, s.out)
             if getattr(s, 'probe', None):
                 probe_len[s.name] = sum(ln for _, _, ln in s.probe)
+            if s.deref is not None:
+                self.lib.shim_script_deref(s.name, s.deref[0], s.deref[1])
+                deref_len[s.name] = s.deref[1]
         if sc.tick is not None:
             self.lib.shim_set_tick(sc.tick)
         result = ctypes.c_int32(0)
@@ -105,7 +110,7 @@ class Fl25cDifferential(DiffBase):
         for field in sc.g:
             size = fx.GLOBALS[field][1]
             self.assertEqual(struct.pack(fx.FMT[size], getattr(sw, field) & ((1 << (8 * size)) - 1)), orig.memory['g:' + field], field)
-        actual = self.native_calls(arrays, probe_len)
+        actual = self.native_calls(arrays, probe_len, deref_len)
         for entry in actual:
             for index in sc.word_args.get(entry[0], ()):
                 entry[2 + index] &= 0xffff
@@ -132,6 +137,10 @@ class Fl25cDifferential(DiffBase):
     def test_4a8818_click_2798_279a(self):
         """FL-25c: differential test of m4a8818_click_2798_279a (original 0x4a8818)"""
         self.run_key('4a8818')
+
+    def test_4aa3d2_click_276f_2771(self):
+        """FL-25c: differential test of m4aa3d2_click_276f_2771 (original 0x4aa3d2)"""
+        self.run_key('4aa3d2')
 
     # DIFF-TESTS-END
 

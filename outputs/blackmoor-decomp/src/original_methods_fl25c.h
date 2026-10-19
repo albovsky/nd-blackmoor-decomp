@@ -23,6 +23,9 @@ typedef struct Fl25cWorld {
     uint8_t *records_5bb5e5;   /* records of stride 0x8d: the dword at +0 is the address of the object of record n, the dword at +0x4d its state */
     uint32_t value_5c39e5;     /* the selector (the event) that the handler dispatches on */
     /* FL25C-WORLD-FIELDS */
+    uint32_t value_5bb202, value_5d03b3, value_550e50;   /* 0x4aa3d2: a flag dword, the first argument of 0x448d11, the dword stored after a copied string */
+    uint8_t *buf_630a60;                                  /* 0x4aa3d2: the byte array at that address (host memory) */
+    const uint8_t *bytes_550e2c, *bytes_550e38, *bytes_550e44;   /* 0x4aa3d2: nine-byte constants */
     uint32_t value_5bb1ca;     /* 0x4a8818: a flag dword (non-zero: the nine-byte compares and the callee calls are made) */
     uint8_t *buf_5a110f;       /* 0x4a8818: the 0x1e6-byte buffer at that address (host memory), a copy of self + 0xa40 */
     const uint8_t *bytes_550bac, *bytes_550bb8;   /* 0x4a8818: nine-byte constants */
@@ -32,6 +35,9 @@ typedef struct Fl25cWorld {
 /* 0x4a8818: events 0x279a, 0x2798 and 0x2799 (record state, a 6-byte cell of the object, two nine-byte compares, calls 0x4f6334, 0x4fb2e3
  * and 0x4a8bf2, a 0x1e6-byte copy to the buffer at 0x5a110f and a loop over its cells) */
 void m4a8818_click_2798_279a(uint8_t *self, Fl25cWorld *world, const Fl18Host *host);
+/* 0x4aa3d2: events 0x276f, 0x2770 and 0x2771 (a record state, nine-byte compares against three constants, strlen and a copy into a local
+ * buffer; calls 0x4fb2e3, 0x4fb77a, 0x423259 and 0x448d11). Rejects instead of overrunning its 0xcc-byte buffer (see the .c file). */
+void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *host);
 /* FL25C-PROTOS-END */
 
 #ifdef __cplusplus

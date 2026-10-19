@@ -67,6 +67,16 @@ FL25C_UNUSED static uint32_t call3(const Fl18Host *host, uint32_t callee, uintpt
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 3) : 0;
 }
 
+FL25C_UNUSED static uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3)
+{
+    uintptr_t args[4];
+    args[0] = a0;
+    args[1] = a1;
+    args[2] = a2;
+    args[3] = a3;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 4) : 0;
+}
+
 /* the object of an original address (an address that a record keeps), as host memory */
 FL25C_UNUSED static const uint8_t *object_at(const Fl18Host *host, uint32_t address)
 {
@@ -198,6 +208,108 @@ void m4a8818_click_2798_279a(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
             ptrdiff_t cell = (ptrdiff_t)i * 0x36 + (ptrdiff_t)j * 6;
             if (rds16(world->buf_5a110f, cell) == -10) copy_cell(world->buf_5a110f, cell, self, 0xe10);
         }
+    }
+}
+
+/* ---- 0x4aa3d2 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4aa3d2, thiscall, plain `ret`: the handler of events 0x276f / 0x2770 / 0x2771. `r` is the object of the record of the word [+0x21].
+ * Returns at once when the BYTE [+0x45] is zero or the record state (dword [n * 0x8d + 0x5bb632]) is not 1. Then:
+ *   byte [+0x47] == 0 and 0x276f: [+0x42] = [+0x23] (words); k = the word [+0x42]. When the word r[k * 0x15c + 0x233] equals the word [+0x40]
+ *     and the byte [+0x2c + k] is zero: the word [+0x48] += 1, the byte [+0x2c + k] = 1, [+0x25] = 1 and 0x4fb2e3(this 0x5c3a67, word r[+0x73])
+ *     when the nine bytes r[+0x52] differ from the constant at 0x550e2c, else [+0x25] = 0. Otherwise: when the byte r[+0x83] is non-zero the
+ *     byte [+0x44] = 1, the word [+0x48] = 0 and the bytes at 0x630a60 + i are cleared for i = 0 while i < the word r[+0xf7] (a word counter);
+ *     then the nine bytes r[+0x21] against 0x550e38: differ gives 0x4fb2e3(this 0x5c3a67, word r[+0x42]) and [+0x25] = 1, else [+0x25] = 0.
+ *     Then the byte [+0x2b] = 0;
+ *   else 0x2770 (reached with the byte [+0x47] non-zero too): [+0x42] = [+0x23], [+0x40] = the word r[k * 0x15c + 0x233] with k = the
+ *     word [+0x23]; the nine bytes r[k * 0x15c + 0x119] against 0x550e44: when they differ, 0x4fb77a(this 0x5c3a67, the guest address of
+ *     those bytes) and 0x4fb2e3(this 0x5c3a67, word r[k * 0x15c + 0x13a]) run, then, when the dword 0x5bb202 is non-zero and the string at
+ *     r[k * 0x15c + 0x14a] is not empty, S = 0x423259(this 0x619a6b, its guest address); when S is non-zero and strlen(S) <= 0x9c40 the string
+ *     is copied into a local buffer, its terminating zero is overwritten with the dword at 0x550e50 and 0x448d11(this 0x619a05, [0x5d03b3],
+ *     the local buffer, -1, 0) runs; a longer S counts as zero. When S is still zero (also when the first string is empty or 0x423259
+ *     returned 0) and the string at r[k * 0x15c + 0x16b] is not empty, 0x448d11(this 0x619a05, [0x5d03b3], its guest address,
+ *     -1, 0) runs. Whenever the nine bytes were equal or the calls are done: the byte [+0x2b] = 0 and [+0x25] = 2;
+ *   the selector 0x2771 (the check follows both of the above, which cannot match it): the byte [+0x46] = 1 and the record state = 2.
+ * Unsafe original behaviour with a native rejection: the local buffer is 0xcc bytes (ebp - 0xd8 up to the local S) and the original copies
+ * strlen(S) + 1 bytes and then stores a dword at its end without any bound; the port returns at once (no call, no further store) when
+ * strlen(S) is in 201 .. 0x9c40 (the original overruns its frame), and when the guest address S cannot be resolved. A callee that changes
+ * self is not exercised. */
+void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *host)
+{
+    uint32_t r_addr = record_object_address(world, self, 0x21);
+    const uint8_t *r;
+    uint32_t selector;
+    if (self[0x45] == 0) return;
+    if (!record_state_is_1(world, self, 0x21)) return;
+    selector = world->value_5c39e5;
+    r = object_at(host, r_addr);
+    if (self[0x47] == 0 && selector == 0x276f) {
+        ptrdiff_t k;
+        wr16(self, 0x42, rd16(self, 0x23));
+        k = rds16(self, 0x42);
+        if (rds16(r, k * 0x15c + 0x233) == rds16(self, 0x40) && self[k + 0x2c] == 0) {
+            wr16(self, 0x48, (uint16_t)(rd16(self, 0x48) + 1));
+            self[rds16(self, 0x42) + 0x2c] = 1;
+            if (!nine_bytes_equal(r + 0x52, world->bytes_550e2c)) {
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(r, 0x73));
+                wr32(self, 0x25, 1);
+            } else {
+                wr32(self, 0x25, 0);
+            }
+        } else {
+            if (r[0x83] != 0) {
+                int16_t i;
+                self[0x44] = 1;
+                wr16(self, 0x48, 0);
+                for (i = 0; i < rds16(r, 0xf7); i = (int16_t)(i + 1)) world->buf_630a60[i] = 0;
+            }
+            if (!nine_bytes_equal(r + 0x21, world->bytes_550e38)) {
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(r, 0x42));
+                wr32(self, 0x25, 1);
+            } else {
+                wr32(self, 0x25, 0);
+            }
+        }
+        self[0x2b] = 0;
+    } else if (selector == 0x2770) {
+        ptrdiff_t e;
+        wr16(self, 0x42, rd16(self, 0x23));
+        e = (ptrdiff_t)(rds16(self, 0x23) * 0x15c);
+        wr16(self, 0x40, rd16(r, e + 0x233));
+        if (!nine_bytes_equal(r + e + 0x119, world->bytes_550e44)) {
+            call1(host, 0x4fb77a, 0x5c3a67, r_addr + (uint32_t)e + 0x119);
+            call1(host, 0x4fb2e3, 0x5c3a67, rd16(r, e + 0x13a));
+            if (world->value_5bb202 != 0) {
+                uint32_t s = 0;
+                if (strlen((const char *)(r + e + 0x14a)) != 0) {
+                    s = call1(host, 0x423259, 0x619a6b, r_addr + (uint32_t)e + 0x14a);
+                    if (s != 0) {
+                        const uint8_t *sp = object_at(host, s);
+                        size_t len;
+                        uint8_t local[0xcc];
+                        if (sp == NULL) return;
+                        len = strlen((const char *)sp);
+                        if (len > 0x9c40) {
+                            s = 0;
+                        } else {
+                            if (len > 200) return;      /* the original overruns its 0xcc-byte buffer */
+                            memcpy(local, sp, len + 1);
+                            wr32(local, (ptrdiff_t)len, world->value_550e50);
+                            call4(host, 0x448d11, 0x619a05, world->value_5d03b3, (uintptr_t)local, 0xffffffffu, 0);
+                        }
+                    }
+                }
+                if (s == 0 && strlen((const char *)(r + e + 0x16b)) != 0) {
+                    call4(host, 0x448d11, 0x619a05, world->value_5d03b3, r_addr + (uint32_t)e + 0x16b, 0xffffffffu, 0);
+                }
+            }
+        }
+        self[0x2b] = 0;
+        wr32(self, 0x25, 2);
+    }
+    if (selector == 0x2771) {
+        self[0x46] = 1;
+        set_record_state_2(world, self, 0x21);
     }
 }
 

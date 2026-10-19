@@ -158,12 +158,15 @@ SPECS = {
     '4a8818': dict(id=1, va=0x4a8818, size=986, selfsz=0xf00, idx=0x1e, gates=[('nz32', 0xe72), ('z8', 0xe83), ('z32', 0xe7f)],
                    sels=[0x279a, 0x2798, 0x2799], callees=[0x4f6334, 0x4fb2e3, 0x4a8bf2], post=lambda c: post_4a8818(c), scen=1000,
                    probes=[(0xa40, 0x1ea), (0xe00, 0x90)]),
+    '4aa3d2': dict(id=2, va=0x4aa3d2, size=1100, selfsz=0x80, idx=0x21, gates=[('nz8', 0x45)], sels=[0x276f, 0x2770, 0x2771],
+                   callees=[0x4fb2e3, 0x4fb77a, 0x423259, 0x448d11], post=lambda c: post_4aa3d2(c), scen=1800, probes=[(0, 0x80)]),
     # SPECS-END
 }
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
 STUB_SHAPE = {
     0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4a8bf2: dict(args=0, this=True, cleanup=0),
+    0x423259: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4), 0x448d11: dict(args=4, this=True, cleanup=16),
     # STUBS-END
 }
 WORD_ARGS = {0x4fb2e3: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
@@ -229,7 +232,7 @@ def chain_build(key, rng, n):
         struct.pack_into('<I', rec, base + 0x4d, (bad if state_fail else 1) if i == idx else (1 if state_fail else 0))
     obj = bytearray(rng.randbytes(0x1000))
     c = SimpleNamespace(d=d, obj=obj, rng=rng, n=n, variant=variant, sel=sel, passing=kind == 'pass', failing=failing, idx=idx, now=now,
-                        areas=[], g={}, pointers={}, consts={}, stack_args=[], stubs_results={}, iat={})
+                        areas=[], g={}, pointers={}, consts={}, stack_args=[], stubs_results={}, iat={}, stub_kw={})
     if sp.get('post'):
         sp['post'](c)
     pad = sp.get('pad', 0)
@@ -247,6 +250,7 @@ def chain_build(key, rng, n):
         kw = dict(STUB_SHAPE[callee], probe=probes)
         if callee in c.stubs_results:
             kw['results'] = c.stubs_results[callee]
+        kw.update(c.stub_kw.get(callee, {}))
         stubs[callee] = stub(callee, **kw)
     iat = dict(c.iat)
     if sp.get('tick'):
@@ -343,6 +347,65 @@ def post_4a8818(c):
     c.pointers['buf_5a110f'] = ('b5a110f', 0)
 
 
+SLENS = [1, 2, 3, 4, 5, 7, 8, 11, 12, 15, 16, 24, 27, 28]
+
+
+def post_4aa3d2(c):
+    d, obj, rng, v, sel = c.d, c.obj, c.rng, c.variant, c.sel
+    if c.passing and sel == 0x276f:
+        d[0x47] = 0 if v % 5 != 4 else rng.choice([1, 0x80, 0xff])
+    else:
+        d[0x47] = rng.choice([0, 0, 1, 0xff])
+    arm1 = c.passing and sel == 0x276f and d[0x47] == 0
+    arm2 = c.passing and sel == 0x2770
+    k = rng.choice([0, 1, 2, 3, 5, 9]) if arm2 else rng.choice([-1, 0, 1, 2, 3, 5, 9])
+    struct.pack_into('<h', d, 0x23, k)
+    nine = (v % 11) - 1
+    sub = (v // 3) % 4                       # arm 1: 0 words equal and flag byte zero (the counting arm), 1 words differ, 2 flag byte set, 3 both
+    word = struct.unpack_from('<H', obj, k * 0x15c + 0x233)[0]
+    if arm1:
+        struct.pack_into('<H', d, 0x40, word if sub in (0, 2) else different_word(rng, word))
+        d[k + 0x2c] = 0 if sub in (0, 1) else rng.choice([1, 0x80, 0xff])
+        if (v // 12) % 2:
+            obj[0x83] = rng.choice([1, 0x80, 0xff])
+        else:
+            obj[0x83] = 0
+            obj[0x84:0x87] = bytes(rng.randrange(1, 256) for _ in range(3))
+        struct.pack_into('<h', obj, 0xf7, rng.choice([-2, 0, 1, 3, 7, 20, 40, -0x8000]))
+    nine_const(c, 0x550e2c, 0x52, obj, arm1 and sub == 0, nine=nine)
+    nine_const(c, 0x550e38, 0x21, obj, arm1 and sub != 0, nine=nine)
+    e = k * 0x15c
+    nine_const(c, 0x550e44, e + 0x119, obj, arm2, nine=nine)
+    g_nz = rng.random() < 0.8
+    c.g['value_5bb202'] = rng.choice([1, 0x100, 0x80000000, 0xffffffff]) if g_nz else 0
+    c.g['value_5d03b3'] = rng.randrange(1 << 32)
+    c.g['value_550e50'] = rng.randrange(1 << 32)
+    c.areas.append(Area('b630a60', 0x630a60, bytearray(rng.randbytes(0x60))))
+    c.pointers['buf_630a60'] = ('b630a60', 0)
+    if arm2:
+        len1 = 0 if rng.random() < 0.2 else rng.choice(SLENS)
+        len2 = 0 if rng.random() < 0.3 else rng.choice(SLENS)
+        obj[e + 0x14a:e + 0x14a + len1 + 1] = bytes(rng.randrange(1, 256) for _ in range(len1)) + b'\0'
+        obj[e + 0x16b:e + 0x16b + len2 + 1] = bytes(rng.randrange(1, 256) for _ in range(len2)) + b'\0'
+        smode = (v // 11) % 5                # the result of 0x423259: 0, a short string, an empty string, a string longer than 0x9c40, a short one
+        slen = SLENS[(v // 55) % len(SLENS)]
+        off = rng.choice([0, 1, 2, 3, 5, 0x100])
+        sbuf = bytearray(rng.randbytes(0xa000))
+        if smode in (1, 4):
+            sbuf[off:off + slen + 1] = bytes(rng.randrange(1, 256) for _ in range(slen)) + b'\0'
+        elif smode == 2:
+            sbuf[off] = 0
+        elif smode == 3:
+            sbuf[off:off + 0x9c42] = b'Q' * 0x9c41 + b'\0'
+        c.areas.append(Area('sbuf', od.region_va(6), sbuf, image=False, compare=False))
+        c.stubs_results[0x423259] = [od.region_va(6) + off if smode else 0]
+        local = g_nz and 0 <= nine <= 8 and len1 != 0 and smode in (1, 2, 4)
+        n = (slen if smode in (1, 4) else 0) if local else len2
+        c.stub_kw[0x448d11] = dict(deref=(1, n + 4))
+    else:
+        c.stub_kw[0x448d11] = dict(deref=(1, 4))
+
+
 # BUILDERS-END
 BUILDERS = {k: (globals()['build_' + k] if 'build_' + k in globals() else (lambda sp, rng, n, _k=k: chain_build(_k, rng, n))) for k in KEYS}
 
@@ -362,7 +425,9 @@ def normalize_original(calls, stubs, iat, word_args=None):
         probe = rest.pop() if getattr(s, 'probe_addr', None) else None
         wa = (word_args or {}).get(call[0], ())
         for position, v in enumerate(rest):
-            if position in wa:
+            if isinstance(v, bytes):
+                entry.append(v)
+            elif position in wa:
                 entry.append(v & 0xffff)
             else:
                 entry.append(LOCAL if od.STACK_BASE <= v < od.STACK_BASE + od.STACK_SIZE else v)

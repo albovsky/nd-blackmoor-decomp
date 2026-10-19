@@ -63,12 +63,14 @@ static struct {
         uintptr_t this_ptr;
         int nargs;
         uintptr_t a[4];
-        uint8_t snap_self[BIG], snap_obj[0x100];
+        uint8_t snap_self[BIG], snap_obj[0x100], snap_str[224];
     } c[24];
 } L;
 static uint32_t g_tick, g_out_4aec35;
+static int g_snap_n;                       /* 0x448d11: how many bytes behind its second argument the host call copies */
 static struct { uint32_t callee, value; } g_ret_by[4];
 
+static const uint8_t *host_resolve(void *ctx, uint32_t a);
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
     int i, k = L.n;
@@ -79,6 +81,10 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     for (i = 0; i < nargs && i < 4; i++) L.c[k].a[i] = args[i];
     memcpy(L.c[k].snap_self, fx.self, BIG);
     memcpy(L.c[k].snap_obj, fx.obj, 0x100);
+    if (callee == 0x448d11 && nargs == 4 && g_snap_n > 0) {
+        const uint8_t *sp = args[1] > 0xffffffffu ? (const uint8_t *)args[1] : host_resolve(NULL, (uint32_t)args[1]);
+        if (sp != NULL) memcpy(L.c[k].snap_str, sp, (size_t)g_snap_n);
+    }
     L.n++;
     if (callee == 0x4aec35 && nargs == 1) memcpy((void *)args[0], &g_out_4aec35, 4);
     for (i = 0; i < 4; i++)
@@ -418,12 +424,358 @@ static int test_m4a8818_click_2798_279a(void)
     return g_failed;
 }
 
+/* 0x4aa3d2 (plain ret): record n = word [+0x21]; R = OBJ_VA. Here k = the word [+0x23] = 2, so the entry offset is E = k * 0x15c = 0x2b8:
+ * the word R[E + 0x233] (0x4eb), the nine bytes R[E + 0x119] (0x3d1), the word R[E + 0x13a] (0x3f2), the strings R[E + 0x14a] (0x402) and
+ * R[E + 0x16b] (0x423). Arm 1 uses R[+0x52], R[+0x73], R[+0x83], R[+0xf7], R[+0x21], R[+0x42]. The constants 0x550e2c / 0x550e38 / 0x550e44
+ * are consts[0..2], the byte array at 0x630a60 is `b630`, the string S returned by 0x423259 lives in obj2 (or in the big mask). */
+#define E4B 0x2b8
+static uint8_t b630[0x80], x630[0x80];
+static void setup_4aa3d2(uint32_t sel, int idx)
+{
+    base(sel, idx, 0x21);
+    memset(b630, 0x99, sizeof b630);
+    fx.w.buf_630a60 = b630;
+    fx.w.bytes_550e2c = consts[0];
+    fx.w.bytes_550e38 = consts[1];
+    fx.w.bytes_550e44 = consts[2];
+    memcpy(consts[0], NINE, 9);
+    memcpy(consts[1], NINE, 9);
+    memcpy(consts[2], NINE, 9);
+    fx.w.value_5bb202 = 0x100;
+    fx.w.value_5d03b3 = 0xa1b2c3d4u;
+    fx.w.value_550e50 = 0x3c653e00u;
+    g_snap_n = 0;
+    fx.self[0x45] = 1;
+    fx.self[0x46] = 0;
+    fx.self[0x47] = 0;
+    set16(fx.self, 0x23, 2);
+    set16(fx.self, 0x40, 0x1234);
+    set16(fx.self, 0x42, 0x2222);
+    set16(fx.self, 0x48, 0x0010);
+    set32(fx.self, 0x25, 0x77);
+    fx.self[0x2b] = 0x55;
+    memset(fx.self + 0x2c, 0, 0x10);
+    set16(fx.obj, E4B + 0x233, 0x1234);
+    set16(fx.obj, E4B + 0x13a, 0x8123);
+    set16(fx.obj, 0x73, 0x8456);
+    set16(fx.obj, 0x42, 0x8789);
+    set16(fx.obj, 0xf7, 0);
+    fx.obj[0x83] = 0;
+    memcpy(fx.obj + 0x52, NINE, 9);
+    memcpy(fx.obj + 0x21, NINE, 9);
+    memcpy(fx.obj + E4B + 0x119, NINE, 9);
+    fx.obj[E4B + 0x14a] = 0;
+    fx.obj[E4B + 0x16b] = 0;
+}
+static void run_4aa3d2(void)
+{
+    begin();
+    memcpy(x630, b630, sizeof x630);
+    m4aa3d2_click_276f_2771(fx.self, &fx.w, &fx.host);
+}
+static void finish_4aa3d2(void)
+{
+    check_mem();
+    CK(memcmp(b630, x630, sizeof x630) == 0);
+}
+static void set_str(size_t off, size_t n, uint8_t first)
+{
+    size_t i;
+    for (i = 0; i < n; i++) fx.obj[off + i] = (uint8_t)(first + i % 7);
+    fx.obj[off + n] = 0;
+}
+/* the nine bytes of the object at `off` differ in byte m (0..8) or only in the tenth (9) */
+static void nine_diff2(size_t off, int m)
+{
+    if (m >= 0 && m <= 8) fx.obj[off + (size_t)m] ^= 0x20;
+    if (m == 9) fx.obj[off + 9] ^= 0x40;
+}
+
+static int test_m4aa3d2_click_276f_2771(void)
+{
+    static const int idxs[2] = {1, -1};
+    static const uint32_t sels[4] = {0x276f, 0x2770, 0x2771, 0x2710};
+    static const int lens[12] = {0, 1, 2, 3, 4, 5, 7, 8, 11, 27, 200, 28};
+    int ii, s, g, m, res, k, i;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        g_phase = ii;
+        /* guards: the byte [+0x45] (the bytes after it do not count) and the record state 1; nothing stored, no call */
+        for (s = 0; s < 4; s++) {
+            for (g = 0; g < 5; g++) {
+                setup_4aa3d2(sels[s], idx);
+                if (g == 0) fx.self[0x45] = 0;
+                if (g == 0) set32(fx.self, 0x46, 0xffffffffu);
+                if (g == 1) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, 0);
+                if (g == 2) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, 2);
+                if (g == 3) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, 0xffffffffu);
+                if (g == 4) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, 0x100);
+                run_4aa3d2();
+                finish_4aa3d2();
+                CK(L.n == 0);
+            }
+        }
+        /* [+0x45] is a byte: a non-zero byte with zero bytes after it passes (the handler acts: event 0x2771 here) */
+        setup_4aa3d2(0x2771, idx);
+        fx.self[0x46] = 0;
+        fx.self[0x47] = 0;
+        fx.self[0x48] = 0;
+        run_4aa3d2();
+        X8(0x46, 1);
+        rec_state(idx, 2);
+        finish_4aa3d2();
+        CK(L.n == 0);
+        /* event 0x2771: the byte [+0x46] = 1 and the state 2, whatever the byte [+0x47] is; nothing else changes */
+        for (k = 0; k < 3; k++) {
+            setup_4aa3d2(0x2771, idx);
+            fx.self[0x47] = (uint8_t)(k == 0 ? 0 : k == 1 ? 1 : 0xff);
+            run_4aa3d2();
+            X8(0x46, 1);
+            rec_state(idx, 2);
+            finish_4aa3d2();
+            CK(L.n == 0);
+        }
+        /* 0x276f with the byte [+0x47] non-zero acts as an unrelated event (nothing), and an unrelated event does nothing */
+        for (k = 0; k < 2; k++) {
+            setup_4aa3d2(k ? 0x2710 : 0x276f, idx);
+            fx.self[0x47] = 1;
+            run_4aa3d2();
+            finish_4aa3d2();
+            CK(L.n == 0);
+        }
+        /* arm 1a (0x276f): the word r[k * 0x15c + 0x233] equals the word [+0x40] and the byte [+0x2c + k] is zero: the word [+0x48] += 1 (wraps),
+         * the byte [+0x2c + k] = 1, [+0x25] = 1 and 0x4fb2e3(word r[+0x73]) when the nine bytes r[+0x52] differ from consts[0], else [+0x25] = 0;
+         * the byte [+0x2b] = 0. k = 2, then k = -1 (the flag byte is [+0x2b] itself) */
+        for (k = 0; k < 2; k++) {
+            for (m = -1; m <= 9; m++) {
+                for (res = 0; res < 2; res++) {
+                    int kk = k ? -1 : 2, differs = m >= 0 && m <= 8;
+                    setup_4aa3d2(0x276f, idx);
+                    set16(fx.self, 0x23, (uint16_t)(int16_t)kk);
+                    if (kk == -1) fx.self[0x2b] = 0;
+                    set16(fx.obj, (size_t)(kk * 0x15c + 0x233), 0x4321);
+                    set16(fx.self, 0x40, 0x4321);
+                    set32(fx.self, 0x40, 0xabcd4321u);           /* (the dword above the word is junk: a word compare) */
+                    set16(fx.self, 0x48, res ? 0xffff : 0x0010);
+                    nine_diff2(0x52, m);
+                    run_4aa3d2();
+                    X16(0x42, (uint16_t)(int16_t)kk);
+                    X16(0x48, res ? 0 : 0x0011);
+                    X8(0x2c + kk, 1);
+                    X32(0x25, differs ? 1u : 0u);
+                    X8(0x2b, 0);
+                    finish_4aa3d2();
+                    CK(L.n == (differs ? 1 : 0));
+                    if (differs) {
+                        check_call(0, 0x4fb2e3, 0x5c3a67u, 1);
+                        check_arg(0, 0, 0x8456, 0xffffu);
+                        CK(get32(L.c[0].snap_self, 0x25) == 0x77 && L.c[0].snap_self[0x2c + kk] == 1);
+                    }
+                }
+            }
+        }
+        /* arm 1b: the words differ, or the flag byte is set (or both): when the byte r[+0x83] is non-zero the byte [+0x44] = 1, the word [+0x48] = 0
+         * and the first (word r[+0xf7]) bytes at 0x630a60 are cleared; the nine bytes r[+0x21] against consts[1]: differ gives
+         * 0x4fb2e3(word r[+0x42]) and [+0x25] = 1, else 0; [+0x2b] = 0 */
+        for (k = 0; k < 4; k++) {
+            for (m = -1; m <= 9; m++) {
+                for (res = 0; res < 6; res++) {
+                    static const int16_t cnts[6] = {0, 3, 1, -1, -0x8000, 0x40};
+                    int differs = m >= 0 && m <= 8, flag = res != 0 ? 1 : 0, cnt = cnts[res];
+                    setup_4aa3d2(0x276f, idx);
+                    if (k == 0 || k == 2) set16(fx.self, 0x40, 0x1235);          /* the words differ by one */
+                    if (k == 1 || k == 2) fx.self[0x2c + 2] = (uint8_t)(k == 1 ? 1 : 0x80);
+                    if (k == 3) {
+                        set16(fx.self, 0x40, 0x9234);                              /* (only the top bit differs) */
+                        fx.self[0x2c + 2] = 0xff;
+                    }
+                    fx.obj[0x83] = (uint8_t)(flag ? (k == 0 ? 1 : 0x80) : 0);
+                    fx.obj[0x84] = 0xff;
+                    set16(fx.obj, 0xf7, (uint16_t)cnt);
+                    nine_diff2(0x21, m);
+                    run_4aa3d2();
+                    X16(0x42, 2);
+                    if (flag) {
+                        X8(0x44, 1);
+                        X16(0x48, 0);
+                        for (i = 0; i < cnt && i < 0x80; i++) x630[i] = 0;
+                    }
+                    X32(0x25, differs ? 1u : 0u);
+                    X8(0x2b, 0);
+                    finish_4aa3d2();
+                    CK(L.n == (differs ? 1 : 0));
+                    if (differs) {
+                        check_call(0, 0x4fb2e3, 0x5c3a67u, 1);
+                        check_arg(0, 0, 0x8789, 0xffffu);
+                    }
+                }
+            }
+        }
+        /* arm 2 (0x2770), the nine bytes at R[E + 0x119] against consts[2]: equal (also when only the tenth differs) skips every call; the
+         * stores [+0x42] = [+0x23], [+0x40] = the word r[E + 0x233], [+0x2b] = 0, [+0x25] = 2 are made in all cases (also with the byte [+0x47] set) */
+        for (m = -1; m <= 9; m++) {
+            for (k = 0; k < 2; k++) {
+                int differs = m >= 0 && m <= 8;
+                setup_4aa3d2(0x2770, idx);
+                fx.self[0x47] = (uint8_t)(k ? 0x80 : 0);
+                set16(fx.obj, E4B + 0x233, 0xbeef);
+                nine_diff2(E4B + 0x119, m);
+                fx.w.value_5bb202 = 0;
+                run_4aa3d2();
+                X16(0x42, 2);
+                X16(0x40, 0xbeef);
+                X8(0x2b, 0);
+                X32(0x25, 2);
+                finish_4aa3d2();
+                CK(L.n == (differs ? 2 : 0));
+                if (differs) {
+                    check_call(0, 0x4fb77a, 0x5c3a67u, 1);
+                    check_arg(0, 0, OBJ_VA + E4B + 0x119, 0xffffffffu);
+                    check_call(1, 0x4fb2e3, 0x5c3a67u, 1);
+                    check_arg(1, 0, 0x8123, 0xffffu);
+                    CK(get16x(L.c[0].snap_self, 0x40) == 0xbeef && get16x(L.c[0].snap_self, 0x42) == 2 && get32(L.c[0].snap_self, 0x25) == 0x77);
+                }
+            }
+        }
+        /* arm 2 with the flag dword 0x5bb202 non-zero (any bit): the strings. string 1 empty: only string 2 is looked at (empty: no call; else
+         * 0x448d11(this 0x619a05, [0x5d03b3], its address, -1, 0)) */
+        for (g = 0; g < 4; g++) {
+            static const uint32_t flags[4] = {1, 0x100, 0x80000000u, 0xffffffffu};
+            for (k = 0; k < 3; k++) {
+                static const int l2[3] = {0, 1, 28};
+                setup_4aa3d2(0x2770, idx);
+                nine_diff2(E4B + 0x119, 0);
+                fx.w.value_5bb202 = flags[g];
+                set_str(E4B + 0x16b, (size_t)l2[k], 0x41);
+                g_snap_n = l2[k] + 4;
+                run_4aa3d2();
+                X16(0x42, 2);
+                X16(0x40, 0x1234);
+                X8(0x2b, 0);
+                X32(0x25, 2);
+                finish_4aa3d2();
+                CK(L.n == 2 + (l2[k] != 0 ? 1 : 0));
+                if (l2[k] != 0) {
+                    check_call(2, 0x448d11, 0x619a05u, 4);
+                    check_arg(2, 0, 0xa1b2c3d4u, 0xffffffffu);
+                    check_arg(2, 1, OBJ_VA + E4B + 0x16b, 0xffffffffu);
+                    check_arg(2, 2, 0xffffffffu, 0xffffffffu);
+                    check_arg(2, 3, 0, 0xffffffffu);
+                    CK(memcmp(L.c[2].snap_str, fx.obj + E4B + 0x16b, (size_t)l2[k] + 1) == 0);
+                    CK(get32(L.c[2].snap_self, 0x25) == 0x77);
+                }
+            }
+        }
+        /* string 1 non-empty: 0x423259(this 0x619a6b, the address of string 1) gives S. S = 0: string 2 as above. S a string of n <= 200 bytes
+         * (any alignment of its length): copied with its zero into the local buffer, the dword 0x550e50 stored at the zero, and
+         * 0x448d11(this 0x619a05, [0x5d03b3], the local buffer, -1, 0) runs; string 2 is then NOT looked at. */
+        for (s = 0; s < 12; s++) {
+            for (k = 0; k < 2; k++) {
+                int n = lens[s], j, calls;
+                uint8_t want[224];
+                setup_4aa3d2(0x2770, idx);
+                nine_diff2(E4B + 0x119, 8);
+                set_str(E4B + 0x14a, 5, 0x61);
+                set_str(E4B + 0x16b, k ? 3 : 0, 0x51);
+                memset(fx.obj2, 0x44, 0x1000);
+                for (j = 0; j < n; j++) fx.obj2[0x10 + j] = (uint8_t)(0x21 + j % 90);
+                fx.obj2[0x10 + n] = 0;
+                memset(want, 0xee, sizeof want);
+                memcpy(want, fx.obj2 + 0x10, (size_t)n);
+                want[n] = 0x00;
+                want[n + 1] = 0x3e;
+                want[n + 2] = 0x65;
+                want[n + 3] = 0x3c;
+                g_ret_by[0].callee = 0x423259;
+                g_ret_by[0].value = OBJ2_VA + 0x10;
+                g_snap_n = n + 4;
+                g_phase2 = n;
+                run_4aa3d2();
+                X16(0x42, 2);
+                X16(0x40, 0x1234);
+                X8(0x2b, 0);
+                X32(0x25, 2);
+                finish_4aa3d2();
+                calls = 3 + 1;
+                CK(L.n == calls);
+                check_call(2, 0x423259, 0x619a6bu, 1);
+                check_arg(2, 0, OBJ_VA + E4B + 0x14a, 0xffffffffu);
+                check_call(3, 0x448d11, 0x619a05u, 4);
+                check_arg(3, 0, 0xa1b2c3d4u, 0xffffffffu);
+                check_arg(3, 2, 0xffffffffu, 0xffffffffu);
+                check_arg(3, 3, 0, 0xffffffffu);
+                CK(memcmp(L.c[3].snap_str, want, (size_t)n + 4) == 0);
+            }
+        }
+        /* S = 0 with string 1 non-empty: string 2 (non-empty or empty); S longer than 0x9c40 counts as 0 as well */
+        for (s = 0; s < 4; s++) {
+            static const int mode[4] = {0, 1, 0, 1};
+            static const int l2[4] = {3, 3, 0, 0};
+            setup_4aa3d2(0x2770, idx);
+            nine_diff2(E4B + 0x119, 3);
+            set_str(E4B + 0x14a, 2, 0x61);
+            set_str(E4B + 0x16b, (size_t)l2[s], 0x51);
+            if (mode[s]) {
+                memset(fx.mask, 'Z', 0x9c41);
+                fx.mask[0x9c41] = 0;
+                g_ret_by[0].value = MASK_VA;
+            } else {
+                g_ret_by[0].value = 0;
+            }
+            g_ret_by[0].callee = 0x423259;
+            g_snap_n = l2[s] + 4;
+            run_4aa3d2();
+            X16(0x42, 2);
+            X16(0x40, 0x1234);
+            X8(0x2b, 0);
+            X32(0x25, 2);
+            finish_4aa3d2();
+            CK(L.n == 3 + (l2[s] != 0 ? 1 : 0));
+            check_call(2, 0x423259, 0x619a6bu, 1);
+            if (l2[s] != 0) {
+                check_call(3, 0x448d11, 0x619a05u, 4);
+                check_arg(3, 1, OBJ_VA + E4B + 0x16b, 0xffffffffu);
+            }
+        }
+        /* unsafe original behaviour, rejected by the port (no further call or store): S of 201 .. 0x9c40 bytes would overrun the 0xcc-byte
+         * frame buffer; S that is not a resolvable address. The stores made before the call (the words [+0x42] and [+0x40]) remain. */
+        for (s = 0; s < 4; s++) {
+            static const size_t bad[4] = {201, 0x9c40, 1000, 0};
+            setup_4aa3d2(0x2770, idx);
+            nine_diff2(E4B + 0x119, 1);
+            set_str(E4B + 0x14a, 2, 0x61);
+            set_str(E4B + 0x16b, 3, 0x51);
+            g_ret_by[0].callee = 0x423259;
+            if (s == 3) {
+                g_ret_by[0].value = 0x30000000u;
+            } else {
+                memset(fx.mask, 'Y', bad[s]);
+                fx.mask[bad[s]] = 0;
+                g_ret_by[0].value = MASK_VA;
+            }
+            g_snap_n = 8;
+            run_4aa3d2();
+            X16(0x42, 2);
+            X16(0x40, 0x1234);
+            finish_4aa3d2();
+            CK(L.n == 3);
+            CK(get32(fx.self, 0x25) == 0x77 && fx.self[0x2b] == 0x55);
+        }
+    }
+    if (g_failed) printf("FAIL test_m4aa3d2_click_276f_2771: %s\n", g_msg);
+    else printf("PASS test_m4aa3d2_click_276f_2771\n");
+    return g_failed;
+}
+
 /* FL25C-TESTS-END */
 
 int main(void)
 {
     int failures = 0;
     failures += test_m4a8818_click_2798_279a();
+    failures += test_m4aa3d2_click_276f_2771();
     /* FL25C-MAIN-END */
     return failures;
 }
