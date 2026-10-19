@@ -453,7 +453,8 @@ typedef struct ClipCase {
     uint32_t e2c, e34, e1c, e24;   /* the expected results of a clipped / inside run (before the final subtraction of the origin) */
 } ClipCase;
 
-static void b_run(Fl21aWorld *w, int16_t index, int32_t y0, int32_t y1, int32_t c4, int32_t c12, uint32_t ox, uint32_t oy)
+static void b_run_modes(Fl21aWorld *w, int16_t index, int32_t y0, int32_t y1, int32_t c4, int32_t c12, uint32_t ox, uint32_t oy, int16_t ea3,
+                        int16_t e8b)
 {
     Fl18Host h = host();
     uint8_t *e = b_ent + 2 * 0x42 + (ptrdiff_t)index * 0x42;
@@ -481,7 +482,14 @@ static void b_run(Fl21aWorld *w, int16_t index, int32_t y0, int32_t y1, int32_t 
     w->value_5b4e34 = 0xb0b0b0b0u;
     w->value_5b4e28 = 0xc0c0c0c0u;
     w->value_5b4e30 = 0xd0d0d0d0u;
+    w->word_5b4ea3 = ea3;      /* (the record index word 0x5b4e89 stays 0) */
+    w->word_5b4e8b = e8b;
     m42caa8_clip_rect(index, b_clip, w, &h);
+}
+
+static void b_run(Fl21aWorld *w, int16_t index, int32_t y0, int32_t y1, int32_t c4, int32_t c12, uint32_t ox, uint32_t oy)
+{
+    b_run_modes(w, index, y0, y1, c4, c12, ox, oy, 0, 0);
 }
 
 static void test_m42caa8_clip_rect(void)
@@ -525,6 +533,25 @@ static void test_m42caa8_clip_rect(void)
      * unchanged) and y1 < c4 is false: clipped to y0 = 50 and y1 = c12 = 10 */
     b_run(&w, 3, 50, 60, 50, 10, 100, 1000);
     CK(w.value_5d1967 == 1 && w.value_5b4e2c == 1000 && w.value_5b4e34 == 960 && w.value_5b4e1c == 0x22 && w.value_5b4e24 == 0x44 - 50);
+    /* an inverted clip c4 = 10 > c12 = 5 with y0 = 3 < c4 and y1 = c12 = 5: y1 > c12 is false and y0 < c4 is true, so it goes on to the edge
+     * tests, where y0 > c12 is false and y1 >= c12 is TRUE (a strict > would fall through to the c4 edge test, whose y1 < c4 leaves the
+     * entry unchanged): clipped, y0 < c4 -> 0x5b4e2c := c4, y1 not above c12 -> 0x5b4e34 := y1. Both mode words 0 (no record store, no call)
+     * and both 2 (the record store and the call). */
+    {
+        int pass;
+        for (pass = 0; pass < 2; pass++) {
+            b_run_modes(&w, 3, 3, 5, 10, 5, 100, 1000, pass ? 2 : 0, pass ? 2 : 0);
+            CK(w.value_5d1967 == 1 && w.value_5b4e18 == 0x11 && w.value_5b4e20 == 0x33 && w.value_5b4e28 == 0x55 + 100 && w.value_5b4e30 == 0x66 + 100);
+            CK(w.value_5b4e1c == 0x22 + (10 - 3) && w.value_5b4e24 == 0x44 && w.value_5b4e2c == 1000 && w.value_5b4e34 == 1000 - 10 + 5);
+            CK(w.value_5b4e5c == 0 && w.value_5b4e64 == (uint32_t)(1000 - 10 + 5 - 1000) && w.value_5b4e58 == 0x55 && w.value_5b4e60 == 0x66);
+            if (pass) {
+                CK(L.n == 1 && is_call(0, 0x42cecd, 0, 2) && L.c[0].a[0] == 3u && L.c[0].a[1] == (uintptr_t)b_clip);
+                CK(get32(b_rec + 0x8d, 0x41) == 1);   /* (the record 0 of the table: 0x5b4e89 = 0) */
+            } else {
+                CK(L.n == 0 && get32(b_rec + 0x8d, 0x41) == 0x44444444u);
+            }
+        }
+    }
     /* the entry index is a signed word (here -2: the lowest slack entry) and the entry fields are the ones of that entry */
     b_run(&w, -2, 20, 40, 10, 50, 100, 1000);
     CK(w.value_5b4e18 == 0x11 && w.value_5b4e2c == 1010 && w.value_5b4e34 == 1030);
@@ -773,6 +800,49 @@ static void test_m462c39_pointer_move(void)
         }
         (void)xs;
     }
+    /* [self+0x4f] and [self+0x53] are read where the original reads them (once per direction test), not once before the loops: 0x4619be
+     * (which answers 0 every time) stores new values through `this`. The cell (1, 2): B = 10, A = 20, C = 30, D = 40; the outer box is far.
+     * pass 0: x = 20, y = 30, q = 2 and half = 100 at first. 0x11 holds -> the call 0 stores q = 20 ([self+0x4f] = 80) and half = 5 ([self+0x53] = 10);
+     * 0x13 then holds only with the new q (C - q = 10 < 20; the old gives 28), 0x12 holds with neither mix, 0x10 holds with the new q (20 < B + q = 30).
+     * The call 1 stores the dwords [self+0x3f] := 0 and [self+0x24] := 2, the two gates of the entry, which are not looked at again.
+     * pass 1: x = 29, y = 38, q = 2 and half = 1 at first. 0x13 holds -> the call 0 stores q = 0 and half = 50 ([self+0x53] = 100); 0x12 holds
+     * (D - half = -10 <= 38, 10 < 29 < 30) only with BOTH new values (the old half gives 39, the old q gives px < 28). */
+    {
+        int pass;
+        for (pass = 0; pass < 2; pass++) {
+            int result, n;
+            c_prepare(&w, 2, 3);
+            c_cell(1, 2, 0x1234, 10, 20, 30, 40);
+            set32(c_rec, 0x34b, 200);
+            set32(c_rec, 0x353, 300);
+            set32(c_self, 0x4f, 8);
+            set32(c_self, 0x53, pass ? 2 : 200);
+            queue_write(0x4619be, 0, -1, 0x4f, 4, pass ? 0 : 80);
+            queue_write(0x4619be, 0, -1, 0x53, 4, pass ? 100 : 10);
+            if (!pass) {
+                queue_write(0x4619be, 1, -1, 0x3f, 4, 0);
+                queue_write(0x4619be, 1, -1, 0x24, 4, 2);
+            }
+            memcpy(c_exp, c_self, sizeof c_exp);
+            result = c_run(&w, pass ? 29 : 20, pass ? 38 : 30);
+            set32(c_exp, 0x4f, pass ? 0u : 80u);
+            set32(c_exp, 0x53, pass ? 100u : 10u);
+            if (!pass) {
+                set32(c_exp, 0x3f, 0);
+                set32(c_exp, 0x24, 2);
+            }
+            set16(c_exp, 0x39, 0x1234);
+            set16(c_exp, 0x5b, 1);
+            set16(c_exp, 0x5d, 2);
+            set16(c_exp, 0x57, 0);
+            CK(result == 0);
+            CK(L.n == (pass ? 2 : 3));
+            for (n = 0; n < L.n && n < 3; n++) CK(is_call(n, 0x4619be, (uintptr_t)c_self, 1));
+            if (pass) CK(L.c[0].a[0] == 0x13 && L.c[1].a[0] == 0x12);
+            else CK(L.c[0].a[0] == 0x11 && L.c[1].a[0] == 0x13 && L.c[2].a[0] == 0x10);
+            CK(memcmp(c_self, c_exp, sizeof c_self) == 0);
+        }
+    }
 }
 
 /* ---- 0x484f42 ---- */
@@ -838,6 +908,53 @@ static void d_slot(int i, int32_t left, int32_t top, int32_t right, int32_t bott
     set32(s, 0xe, (uint32_t)bottom);
     s[0x23] = flag23;
     s[0x22] = flag22;
+}
+
+/* The mode [self+0xa92] != 0 with a 0x484d87 that STORES: the call 0 sets the slot word [self+0xa9e] := 1 and the four extents
+ * [self+0xaa4], [self+0xaac], [self+0xaa0], [self+0xaa8] (before it, [self+0xa9e] = 0 and the extents fail every compare), so the extents
+ * and the entry offset e are read after the call, while slot0 (the byte +0x22 of the slot of the OLD [self+0xa9e]) was computed before it.
+ * The entry 0 of the record fails every compare, the entry 1 (e = 0x42) is {+0xa3 = 100, +0xab = 200, +0x9f = 50, +0xa7 = 80}; the box accepts.
+ * flag_a / flag_b = the byte +0x22 of the slots 0 / 1; b2a = the byte [rec+0x2a]; t = the word [rec+0x2b]; delta moves [self+0xaa4] */
+static void d_scripted(Fl21aWorld *w, uint8_t flag_a, uint8_t flag_b, uint8_t b2a, int16_t t, int32_t delta, uint16_t expect)
+{
+    const int32_t te = b2a != 0 ? (int32_t)t : 0;   /* [rec+0x2a] = 0 clears the word first */
+    int result;
+    d_prepare(w, 0x100);
+    set32(d_rec, 0x5b7, 10);
+    set32(d_rec, 0x5bf, 10);
+    d_rec[0x2a] = b2a;
+    set16(d_rec, 0x2b, (uint16_t)t);
+    set32(d_rec, 0xa3, 7000);
+    set32(d_rec, 0xab, (uint32_t)-7000);
+    set32(d_rec, 0x9f, 7000);
+    set32(d_rec, 0xa7, (uint32_t)-7000);
+    set32(d_rec, 0x42 + 0xa3, 100);
+    set32(d_rec, 0x42 + 0xab, 200);
+    set32(d_rec, 0x42 + 0x9f, 50);
+    set32(d_rec, 0x42 + 0xa7, 80);
+    set16(d_self, 0xa9e, 0);
+    d_self[0x28 + 0x22] = flag_a;
+    d_self[0x28 + 0x85 + 0x22] = flag_b;
+    set32(d_self, 0xaa4, (uint32_t)-9999);
+    set32(d_self, 0xaac, 9999);
+    set32(d_self, 0xaa0, (uint32_t)-9999);
+    set32(d_self, 0xaa8, 9999);
+    queue_write(0x484d87, 0, -1, 0xa9e, 2, 1);
+    queue_write(0x484d87, 0, -1, 0xaa4, 4, (uint32_t)(100 - te + delta));
+    queue_write(0x484d87, 0, -1, 0xaac, 4, (uint32_t)(200 + te));
+    queue_write(0x484d87, 0, -1, 0xaa0, 4, (uint32_t)(50 - te));
+    queue_write(0x484d87, 0, -1, 0xaa8, 4, (uint32_t)(80 + te));
+    memcpy(d_exp, d_self, sizeof d_exp);
+    result = d_run(w, 3, 4);
+    d_rect_copies(d_exp);
+    set16(d_exp, 0xa9e, 1);
+    set32(d_exp, 0xaa4, (uint32_t)(100 - te + delta));
+    set32(d_exp, 0xaac, (uint32_t)(200 + te));
+    set32(d_exp, 0xaa0, (uint32_t)(50 - te));
+    set32(d_exp, 0xaa8, (uint32_t)(80 + te));
+    CK(result == 1 && L.n == 2 && is_call(0, 0x484d87, (uintptr_t)d_self, 0) && is_call(1, 0x4854fb, (uintptr_t)d_self, 1) && L.c[1].a[0] == expect);
+    CK(memcmp(d_self, d_exp, sizeof d_self) == 0);
+    CK(get16(d_rec, 0x2b) == (uint16_t)te);
 }
 
 static void test_m484f42_pointer_move(void)
@@ -1020,6 +1137,39 @@ static void test_m484f42_pointer_move(void)
     set32(d_rec, 0xf03, (uint32_t)-1);
     CK(d_run(&w, -5, -7) == 1 && L.n == 1 && L.c[0].a[0] == 0x2779);
     CK(d_run(&w, -11, -7) == 0 && L.n == 1);
+    /* 0x484d87 that stores (see d_scripted): slot0 comes from the slot word as it was BEFORE the call (slot 0; flag_b is the byte of the slot
+     * the call moves to, which must not be used), the extents and the entry offset from the values AFTER it. The byte flags are tested as non-zero (2, 0xff), the
+     * word [rec+0x2b] as a SIGNED word: t = -3 raises the limit to a3 + 3 (aa4 = 102 fails, 103 passes) where an unsigned word would lower it */
+    d_scripted(&w, 0, 2, 1, 0, 0, 0x277b);
+    d_scripted(&w, 2, 0, 1, 0, 0, 0x277a);
+    d_scripted(&w, 0xff, 0, 1, 0, 0, 0x277a);
+    d_scripted(&w, 0, 0, 2, -3, 0, 0x277b);
+    d_scripted(&w, 0, 0, 2, -3, -1, 0x277a);
+    d_scripted(&w, 0, 0, 2, 3, 0, 0x277b);
+    d_scripted(&w, 0, 0, 2, 3, -1, 0x277a);
+    d_scripted(&w, 0, 0, 0xff, -3, -1, 0x277a);
+    d_scripted(&w, 0, 0, 0, 5, 0, 0x277b);   /* [rec+0x2a] = 0: the word is cleared, t = 0 */
+    /* byte flags 2 in the list mode: [rec+0x24] and [rec+0x25] each alone as 2 (the other 1) take the first test; the slot byte +0x23 = 2 skips
+     * the second test (a flag byte is a non-zero test, not bit 0) */
+    {
+        int pass;
+        for (pass = 0; pass < 3; pass++) {
+            d_prepare(&w, 0);
+            set16(d_rec, 0x21, 1);
+            d_rec[0x24] = pass == 0 ? 2 : pass == 1 ? 1 : 0;
+            d_rec[0x25] = pass == 0 ? 1 : pass == 1 ? 2 : 0;
+            set16(d_rec, 0x26, 5);
+            set16(d_rec, 0x28, 6);
+            d_slot(0, 10, 20, 50, 60, pass == 2 ? 2 : 0, 0);
+            result = d_run(&w, pass == 2 ? 40 : 12, pass == 2 ? 50 : 22);
+            if (pass < 2) {
+                CK(result == 1 && L.n == 1 && is_call(0, 0x4854fb, (uintptr_t)d_self, 1) && L.c[0].a[0] == 0x2778);
+                CK(get16(d_self, 0xc23) == 1 && get16(d_self, 0xbf9) == 0 && get16(d_self, 0xbfb) == 0);
+            } else {
+                CK(result == 0 && L.n == 0 && get16(d_self, 0xc23) == 0 && get16(d_self, 0xbf9) == 0);
+            }
+        }
+    }
 }
 
 /* ---- 0x48d914 ---- */
@@ -1272,6 +1422,48 @@ static void test_m48d914_step_scene(void)
         }
         CK(ok);
     }
+    /* v = 4 and v = 3 (equal bytes) change the state of the record of the word [self+0x1e] (3 here), not of the record `index` (2) */
+    for (k = 0; k < 2; k++) {
+        e_prepare(&w, 1);
+        set32(e_self, 0x2b, k == 0 ? 4 : 3);
+        set32(e_self, 0x39, 0);
+        set16(e_self, 0x1e, 3);
+        set16(e_rec, 0x782, 5);
+        set32(w.records_5bb5e5 + 3 * 0x8d, 0x4d, 0x77);
+        L.tick = 5;
+        queue_return(0x4f6334, 0);
+        e_run(&w, 2);
+        CK(get32(w.records_5bb5e5 + 3 * 0x8d, 0x4d) == 2);
+        e_record_state(&w, 1, &ok);
+        CK(ok);
+        CK(k == 0 ? (L.n == 2 && is_call(1, 0x4fba69, 0x5c3a67, 1) && L.c[1].a[0] == E_REC_VA + 0x761) : L.n == 0);
+    }
+    /* the nine bytes are compared as nine bytes, not as strings: an embedded zero at the position 2 of both, a difference behind it (position 3 or
+     * 8) is a difference (0x4fb77a, 0x4fb2e3, [self+0x2b] := 4); equal bytes with the zero are equal (the record := 2) */
+    for (k = 0; k < 3; k++) {
+        static const uint8_t z9[9] = {'a', 'b', 0, 'd', 'e', 'f', 'g', 'h', 'i'};
+        e_prepare(&w, 1);
+        w.bytes_54e8d4 = z9;
+        memcpy(e_rec + 0x761, z9, 9);
+        if (k == 0) e_rec[0x761 + 3] = 'X';
+        if (k == 1) e_rec[0x761 + 8] = 'Y';
+        set32(e_self, 0x2b, 3);
+        set32(e_self, 0x39, 1000);
+        set16(e_rec, 0x782, 0x1234);
+        L.tick = 1000;
+        memcpy(e_exp, e_self, sizeof e_exp);
+        e_run(&w, 2);
+        if (k < 2) {
+            CK(L.n == 2 && is_call(0, 0x4fb77a, 0x5c3a67, 1) && is_call(1, 0x4fb2e3, 0x5c3a67, 1));
+            set32(e_exp, 0x2b, 4);
+            CK(memcmp(e_self, e_exp, sizeof e_self) == 0);
+            e_record_state(&w, 1, &ok);
+        } else {
+            CK(L.n == 0 && memcmp(e_self, e_exp, sizeof e_self) == 0);
+            e_record_state(&w, 2, &ok);
+        }
+        CK(ok);
+    }
     /* v = 5, 0xffffffff (unsigned > 4): nothing; an unknown record state (3): nothing */
     for (k = 0; k < 3; k++) {
         e_prepare(&w, k == 2 ? 3 : 1);
@@ -1290,6 +1482,9 @@ static void test_m48d914_step_scene(void)
         } cases[] = {
             {0xff, 0, 0x792, 5, 1, -1},  {1, 0, 0x792, 0x270f, 1, 9}, {0, 1, 0x746, -5, 2, -3}, {0, 1, 0x746, 0x270f, 1, 15},
             {1, 1, 0x792, 7, 1, 0},      {0, 0, 0, 0, 0, 0},          {0, 0xff, 0x746, 8, 1, -16}, {1, 0, 0x792, -32768, 3, -1},
+            /* the flag bytes are tested as non-zero (2 is a yes), and the 0x270f check is on the whole word (0x260f and 0x2710 are not it) */
+            {2, 0, 0x792, 5, 1, -1},     {0, 2, 0x746, 6, 1, 3},      {2, 2, 0x792, 4, 1, 2},      {1, 0, 0x792, 0x260f, 1, 9},
+            {1, 0, 0x792, 0x2710, 1, 9}, {0, 1, 0x746, 0x260f, 2, -3}, {0, 1, 0x746, 0x2710, 1, 2}, {0, 2, 0x746, 0x270f, 1, 5},
         };
         for (k = 0; k < sizeof cases / sizeof cases[0]; k++) {
             const int b = cases[k].base != 0 ? cases[k].base : 0x792;

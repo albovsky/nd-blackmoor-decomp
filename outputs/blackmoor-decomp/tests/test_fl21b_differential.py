@@ -401,7 +401,16 @@ class Fl21bDifferential(DiffBase):
     # ---- 0x47f421 ----
     def test_47f421_pointer_hit(self):
         """FL-21b: differential test of m47f421_pointer_hit (original 0x47f421)"""
-        rng = random.Random(0x47f421)
+        self.run_47f421(0x47f421, False)
+
+    def test_47f421_targeted(self):
+        """FL-21b: differential test of m47f421_pointer_hit with item boxes that straddle the dragged rectangle ([0x1352] == x0, right == x0 + 3,
+        left == x1 - 3, and the y side), negative words [rec+0x4a] / [rec+0x4c], and a current item with a negative odd height / width whose
+        half sizes sit on the bounds of the record"""
+        self.run_47f421(0x47f422, True)
+
+    def run_47f421(self, seed, targeted):
+        rng = random.Random(seed)
         executed = set()
         size = 1520
         for n in range(SCENARIOS):
@@ -480,6 +489,65 @@ class Fl21bDifferential(DiffBase):
                 rput32(offset + 4, y0)
                 rput32(offset + 8, x1)
                 rput32(offset + 12, y1)
+            if targeted:
+                kind = rng.choice(['pivot', 'pivot', 'pivot', 'neg_rec', 'neg_half', 'neg_half'])
+                count = rng.choice([3, 4, 6])
+                put16(0x13a2, count)
+                d[0x13b1] = 0
+                trunc_half = lambda v: -((-v) // 2) if v < 0 else v // 2
+                if kind == 'neg_rec':   # pick mode, items around the point, a negative word as the extent of the wider test
+                    put32(0x1344, 0)
+                    rec[0x48] = rec[0x49] = 1
+                    struct.pack_into('<h', rec, 0x4a, rng.choice([-1, -2, -3, -5, 3, 15]))
+                    struct.pack_into('<h', rec, 0x4c, rng.choice([-1, -2, -3, -5, 3, 15]))
+                    for slot in range(count):
+                        base = 0x7b4 + 0x25 * slot
+                        put32(base + 2, x - rng.randrange(0, 6))
+                        put32(base + 6, y - rng.randrange(0, 6))
+                        put32(base + 0xa, x + rng.randrange(0, 12))
+                        put32(base + 0xe, y + rng.randrange(0, 12))
+                        d[base + 0x24] = 0
+                else:   # drag mode with the loop (rec[0x5e] == 0, rec[0x5f] != 0)
+                    put32(0x1344, 1)
+                    rec[0x5e], rec[0x5f] = 0, 1
+                    cur = rng.choice([0, 1, 2])
+                    put16(0x1350, cur)
+                    if kind == 'pivot':
+                        for offset, value in ((0x4e, -2000), (0x56, 2000), (0x52, -2000), (0x5a, 2000)):
+                            rput32(offset, value)
+                        dl, dt = rng.randrange(0, 60), rng.randrange(0, 60)
+                        dr, db = dl + rng.choice([2, 3, 3, 4, 12, 30]), dt + rng.choice([2, 3, 3, 4, 12, 30])
+                        for offset, value in ((0x1352, dl), (0x1356, dt), (0x135a, dr), (0x135e, db)):
+                            put32(offset, value)
+                        for slot in range(count):
+                            base = 0x7b4 + 0x25 * slot
+                            for lo, hi, left, right in ((2, 0xa, dl, dr), (6, 0xe, dt, db)):
+                                way = rng.choice([0, 1, 2])
+                                if way == 0:     # the dragged left edge at the item's low edge
+                                    lo_v = left + rng.choice([-1, 0, 0, 0, 1])
+                                    hi_v = lo_v + rng.choice([3, 3, 4, 12, 20])
+                                elif way == 1:   # the dragged right edge at low + 3
+                                    lo_v = right - 3 + rng.choice([-1, 0, 0, 1])
+                                    hi_v = lo_v + rng.choice([0, 3, 12])
+                                else:            # the dragged left edge at high - 3
+                                    hi_v = left + 3 + rng.choice([-1, 0, 0, 1])
+                                    lo_v = hi_v - rng.choice([3, 5, 12, 20])
+                                put32(base + lo, lo_v)
+                                put32(base + hi, hi_v)
+                    else:   # neg_half: the current item has a negative odd extent and the bounds of the record sit at x -/+ half_w, y -/+ half_h
+                        base = 0x7b4 + 0x25 * cur
+                        x0, y0 = rng.randrange(0, 60), rng.randrange(0, 60)
+                        x1 = x0 + rng.choice([-1, -3, -3, -5, -9, 3, -2])
+                        y1 = y0 + rng.choice([-1, -3, -3, -5, -9, 3, -2])
+                        put32(base + 2, x0)
+                        put32(base + 0xa, x1)
+                        put32(base + 6, y0)
+                        put32(base + 0xe, y1)
+                        half_w, half_h = trunc_half(x1 - x0), trunc_half(y1 - y0)
+                        rput32(0x4e, x - half_w + rng.choice([-1, 0, 0, 1]))
+                        rput32(0x56, x + half_w + rng.choice([-1, 0, 0, 1]))
+                        rput32(0x52, y - half_h + rng.choice([-1, 0, 0, 1]))
+                        rput32(0x5a, y + half_h + rng.choice([-1, 0, 0, 1]))
             rect = Area('rect', od.region_va(2), bytearray(rng.randbytes(16)), image=False, compare=False)
             probe = [('self', 0x13cf, 0x75)]   # the dragged-over box dwords, 0x13df, the two lists and their counts, as they are at each call
             stubs = {0x47f275: stub(0x47f275, args=0, this=True, probe=probe),
@@ -489,12 +557,21 @@ class Fl21bDifferential(DiffBase):
             self.pair(2, 0x47f421, size, [this, records, rect, Area('rec', od.region_va(1), rec, image=False, compare=False)], stubs, {}, ecx=od.region_va(0),
                       stack=stack, cleanup=0xc, args=(x, y, ('ptr', 'rect', 0)), self_name='self', executed=executed, ret_mask=0xffffffff,
                       word_args={0x47ec06: (0, 1)}, pointers={'records_5bb5e5': ('records', slack)})
-        self.finish(0x47f421, size, executed)
+        if not targeted:
+            self.finish(0x47f421, size, executed)
 
     # ---- 0x48569e ----
     def test_48569e_handle_key(self):
         """FL-21b: differential test of m48569e_handle_key (original 0x48569e)"""
-        rng = random.Random(0x48569e)
+        self.run_48569e(0x48569e, False)
+
+    def test_48569e_negative_index(self):
+        """FL-21b: differential test of m48569e_handle_key with the selector 0x277b, open gates and a negative signed word [self+0xc25] as the index
+        of the words at rec + 0x2e (no wild access: the word is read inside the record object)"""
+        self.run_48569e(0x48569f, True)
+
+    def run_48569e(self, seed, targeted):
+        rng = random.Random(seed)
         executed = set()
         size = 1539
         for n in range(SCENARIOS):
@@ -517,7 +594,16 @@ class Fl21bDifferential(DiffBase):
             slot = struct.unpack_from('<h', d, 0xa9e)[0]
             for j in range(0, 6):
                 struct.pack_into('<h', rec, 0x2e + 2 * j, rng.choice([slot + 1, slot + 1, rng.randrange(-3, 8), 0x7fff]))
-            key = rng.choice([0x2779, 0x277c, 0x2778, 0x2778, 0x2777, 0x2777, 0x2777, 0x277b, 0x277b, 0x277b, 0x277a, 0x277a, 0, 0x2776, 0x2780])
+            key = 0x277b if targeted else rng.choice([0x2779, 0x277c, 0x2778, 0x2778, 0x2777, 0x2777, 0x2777, 0x277b, 0x277b, 0x277b, 0x277a, 0x277a, 0, 0x2776, 0x2780])
+            if targeted:
+                struct.pack_into('<I', d, 0xba7, 1)
+                d[0xbb0] = 0
+                struct.pack_into('<I', d, 0xbac, 0)
+                struct.pack_into('<I', records.data, slack + index * 0x8d + 0x4d, 1)
+                c25 = rng.choice([-2, -2, -1, -3, 0, 1])
+                struct.pack_into('<h', d, 0xc25, c25)
+                rec[0x2d] = 1
+                struct.pack_into('<h', rec, 0x2e + 2 * c25, rng.choice([slot + 1, slot + 1, 7]))
             word = lambda v: (rng.randrange(0x10000) << 16) | (v & 0xffff)
             probe = [('self', 0, 0xc30), ('records', 0, len(records.data))]
             pick = lambda: rng.choice([0, 1, 2, 3, 4, 5, 19, -1, -1])
@@ -533,7 +619,8 @@ class Fl21bDifferential(DiffBase):
             self.pair(3, 0x48569e, size, [this, records, Area('rec', od.region_va(1), rec, image=False, compare=False)], stubs, {'value_5c39e5': key},
                       ecx=od.region_va(0), self_name='self', executed=executed, word_args={0x4853b0: (0,), 0x484935: (0,)},
                       pointers={'records_5bb5e5': ('records', slack)})
-        self.finish(0x48569e, size, executed)
+        if not targeted:
+            self.finish(0x48569e, size, executed)
 
     # ---- 0x44e035 ----
     def test_44e035_draw_panel(self):

@@ -369,6 +369,23 @@ static void test_m4468fe_draw_clock(void)
     CK(L.n == 2);
     CK(check_draw(0, 0xabc00002u, 0x638777u - 16, 0x548348, 0xfffffff0u, 200, 0xfffffff0u + 9 - 1, 200 + 19 - 1));
     CK(check_draw(1, 0xabc00002u, 0x638817u, 0x548358, 0xfffffff0u + 9 + 3, 205, 0xfffffff0u + 9 + 3 + 6, 213));
+    /* characters with the high bit set are SIGNED bytes: d = (signed byte) - 0x30. New s1 = "\xe0" (d = -80), s2 = "\xe1" (-79), old o1 = "\xe2" (-78),
+     * o2 = "\xe3" (-77), with the widths W[d] = 31 .. 34 and the heights H[d] = 41 .. 44 stored at their (negative) indices; the erase part walks
+     * o1, the separator, o2 and the draw part s1, the separator, s2 */
+    clock_setup("\xe0", "\xe1", "\xe2", "\xe3");
+    for (i = 0; i < 4; i++) {
+        set32(g_clock, B(0x638667) + (size_t)((-80 + i) * 4), (uint32_t)(31 + i));
+        set32(g_clock, B(0x63868f) + (size_t)((-80 + i) * 4), (uint32_t)(41 + i));
+    }
+    reset_log();
+    m4468fe_draw_clock(&w, &h);
+    CK(L.n == 6);
+    CK(check_erase(0, 0x5482c4, 100, 200, 132, 242));              /* '\xe2': W = 33, H = 43 */
+    CK(check_erase(1, 0x5482f0, 136, 205, 142, 213));
+    CK(check_erase(2, 0x54831c, 146, 200, 179, 243));              /* '\xe3': W = 34, H = 44 */
+    CK(check_draw(3, 0xabc00001u, 0x638777u - 80 * 16, 0x548348, 100, 200, 130, 240));   /* '\xe0': W = 31, H = 41 */
+    CK(check_draw(4, 0xabc00001u, 0x638817u, 0x548358, 134, 205, 140, 213));
+    CK(check_draw(5, 0xabc00001u, 0x638777u - 79 * 16, 0x548368, 144, 200, 175, 241));   /* '\xe1': W = 32, H = 42 */
     /* a first string longer than 0x1e overlaps its copy: the copy runs forward in dwords (rep movsd) then bytes (rep movsb) */
     clock_setup("", "", "", "");
     for (i = 0; i < 34; i++) g_clock[B(0x63884b) + (size_t)i] = (uint8_t)('0' + i % 10);
@@ -749,6 +766,65 @@ static void test_m47f421_pointer_hit(void)
         CK(r == hit[k]);
         CK(L.n == hit[k] && (!hit[k] || L.c[0].a[0] == 0x2790));
     }
+    /* the pivots of the loop of the drag mode, at their equalities. Item 0 is (10,10)-(30,30); item 1 is the current one, the flag byte of item 2
+     * is 0. On the x side: when [0x1352] < x0 (strict) u = ([0x135a] >= x0 + 3), else u = ([0x1352] <= x1 - 3); the y side likewise with [0x1356],
+     * [0x135e] and y0, y1. One side is held at "yes" while the other is varied; meets = the flag [0x13df] ends 0 */
+    {
+        static const struct { int32_t l, t, r, b; int meets; } piv[] = {
+            /* x side, v forced (top 5 < y0, bottom 50 >= y0 + 3) */
+            {10, 5, 12, 50, 1},     /* [0x1352] == x0, right < x0 + 3: the else branch gives u (a `<=` would test the right edge: no) */
+            {10, 5, 40, 50, 1},     {9, 5, 12, 50, 0},   /* [0x1352] < x0 and right < x0 + 3: no u */
+            {5, 5, 13, 50, 1},      /* right == x0 + 3: u (a `<` for >= would lose it) */
+            {5, 5, 12, 50, 0},      {27, 5, 40, 50, 1},  {28, 5, 40, 50, 0},   /* left == x1 - 3: u; one more: no */
+            /* y side, u forced (left 5, right 50) */
+            {5, 10, 50, 12, 1},     /* [0x1356] == y0, bottom < y0 + 3: the else branch gives v */
+            {5, 10, 50, 40, 1},     {5, 9, 50, 12, 0},   {5, 5, 50, 13, 1},     {5, 5, 50, 12, 0},     {5, 27, 50, 40, 1},    {5, 28, 50, 40, 0},
+        };
+        for (k = 0; k < (int)(sizeof piv / sizeof piv[0]); k++) {
+            hit_setup(&w);
+            g_self[0x7a2] = 0;
+            set32(g_self, 0x1352, (uint32_t)piv[k].l);
+            set32(g_self, 0x1356, (uint32_t)piv[k].t);
+            set32(g_self, 0x135a, (uint32_t)piv[k].r);
+            set32(g_self, 0x135e, (uint32_t)piv[k].b);
+            r = hit_run(&w, 100, 100);
+            CK(r == 1 && get32(g_self, 0x13df) == (piv[k].meets ? 0u : 1u));
+        }
+    }
+    /* the words [rec+0x4a] and [rec+0x4c] are signed: a negative extent makes the wider test of the pick mode empty (the item falls through to
+     * the first list); the point (45, 60) is only in item 1 (40,50)-(60,90) */
+    for (k = 0; k < 2; k++) {
+        hit_setup(&w);
+        set32(g_self, 0x1344, 0);
+        set16(g_rec, 0x4a, (uint16_t)(k == 0 ? -3 : 15));
+        set16(g_rec, 0x4c, (uint16_t)(k == 0 ? 15 : -3));
+        r = hit_run(&w, 45, 60);
+        CK(r == 1 && L.n == 1 && L.c[0].a[0] == 0x278d);
+        CK(get16(g_self, 0x1417) == 1 && get16(g_self, 0x13ef) == 1 && get16(g_self, 0x1441) == 0);
+    }
+    /* the half sizes of a current item with a NEGATIVE ODD extent round toward zero: x0 = 40, x1 = 37 (width -3, half_w = -1) and y0 = 50, y1 = 47
+     * (half_h = -1, a floor would give -2). The point (100, 100): y - half_h = 101 > top, y + half_h = 99 < bottom, x - half_w = 101 > left,
+     * x + half_w = 99 < right; the dragged rectangle meets nothing */
+    {
+        static const struct { size_t field; uint32_t value; int inside; } e2[] = {
+            {0x52, 101, 0}, {0x52, 100, 1}, {0x5a, 99, 0}, {0x5a, 100, 1}, {0x4e, 101, 0}, {0x4e, 100, 1}, {0x56, 99, 0}, {0x56, 100, 1},
+        };
+        for (k = 0; k < (int)(sizeof e2 / sizeof e2[0]); k++) {
+            hit_setup(&w);
+            set32(g_self, IT(1) + 2, 40);
+            set32(g_self, IT(1) + 0xa, 37);
+            set32(g_self, IT(1) + 6, 50);
+            set32(g_self, IT(1) + 0xe, 47);
+            set32(g_self, 0x1352, 100);
+            set32(g_self, 0x1356, 100);
+            set32(g_self, 0x135a, 101);
+            set32(g_self, 0x135e, 101);
+            g_self[0x7a2] = 0;
+            set32(g_rec, e2[k].field, e2[k].value);
+            r = hit_run(&w, 100, 100);
+            CK(r == 1 && L.n == 2 && get32(g_self, 0x13df) == (uint32_t)e2[k].inside);
+        }
+    }
 }
 
 /* ---- 0x48569e ---------------------------------------------------------------------------------------------------------------- */
@@ -905,12 +981,14 @@ static void test_m48569e_handle_key(void)
     /* 0x277b: the branch A, selector 0x277b with rec[0x2d] == 0 */
     {
         int variant;
-        for (variant = 0; variant < 7; variant++) {
+        for (variant = 0; variant < 9; variant++) {
             /* 0: 0x277b, rec[0x2d] == 0 -> A. 1: 0x277b, rec[0x2d] != 0 and the word matches (c25 = 2, word at rec + 0x2e + 4 == 2) -> A.
              * 2: 0x277b, mismatch (word 3), rec[0x23] != 0 -> B. 3: 0x277b, mismatch, rec[0x23] == 0 -> C. 4: 0x277a, rec[0x2d] == 0,
-             * rec[0x23] != 0 -> B (the selector 0x277a never takes A). 5: 0x277a, rec[0x23] == 0 -> C. 6: A with c25 = 0xffff (the word wraps to 0). */
+             * rec[0x23] != 0 -> B (the selector 0x277a never takes A). 5: 0x277a, rec[0x23] == 0 -> C. 6: A with c25 = 0xffff (the word wraps to 0).
+             * 7: c25 = 0xfffe = -2 is a SIGNED index: the word read is the one at rec + 0x2e - 4 = rec + 0x2a (it equals 2) -> A. 8: the same with the
+             * word at rec + 0x2a not 2 -> B (an unsigned index would read 128 KB behind the record). */
             uint32_t sel = (variant == 4 || variant == 5) ? 0x277a : 0x277b;
-            int a_branch = variant == 0 || variant == 1 || variant == 6;
+            int a_branch = variant == 0 || variant == 1 || variant == 6 || variant == 7;
             key_setup(&w, sel);
             set32(g_self, 0xa92, 7);
             set32(g_self, 0xb83, 0x55);
@@ -922,6 +1000,10 @@ static void test_m48569e_handle_key(void)
                 set16(g_rec, 0x2e + 4, variant == 1 ? 2 : 3);
             }
             if (variant == 6) set16(g_self, 0xc25, 0xffff);
+            if (variant == 7 || variant == 8) {
+                set16(g_self, 0xc25, 0xfffe);
+                set16(g_rec, 0x2a, variant == 7 ? 2 : 3);
+            }
             add_probe(g_self + 0xa90, 0x10);
             add_probe(g_self + SL(1), 0x84);
             add_probe(g_self + 0xb83, 4);
