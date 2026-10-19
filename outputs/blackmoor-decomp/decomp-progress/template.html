@@ -264,7 +264,7 @@ if(D.function_ledger){
   const L=D.function_ledger, C=L.counts, N=L.total, ST=L.statuses, RG=L.regions, CL=L.classes;
   const stLabel={ported:"Ported",not_needed:"Not needed",pending:"Pending"};
   const rgLabel={game:"Game",vorbis:"Vorbis and Ogg",crt_mfc:"CRT and MFC"};
-  const clLabel={native_oracle_verified:"oracle-verified",native_tests_only:"tests-only",host_adapter_tested:"adapter",nn_rule:"by rule",nn_reviewed:"per function",candidate_port:"candidate port",partial_native:"partial native",static_navigation_only:"static navigation only",none:"no evidence"};
+  const clLabel={native_oracle_verified:"oracle-verified",native_oracle_verified_inlined:"oracle-verified, inlined",native_tests_only:"tests-only",host_adapter_tested:"adapter",nn_rule:"by rule",nn_reviewed:"per function",candidate_port:"candidate port",partial_native:"partial native",static_navigation_only:"static navigation only",none:"no evidence"};
   const words=s=>s.replace(/_/g," ");
   const sw=st=>`<i class="sw s-${st}"></i>`;
   const split=(keys,sep)=>keys.map(k=>`${fmt(C.class[k])} ${clLabel[k]}`).join(sep||" · ");
@@ -272,7 +272,7 @@ if(D.function_ledger){
   $("ledger").hidden=false;
   $("ledgerScope").textContent=`${fmt(N)} functions in GAME.EXE · one status each · ${fmt(L.input_count)} pinned inputs · sha256 ${L.ledger_sha256.slice(0,12)}`;
   $("lgPorted").innerHTML=`${fmt(S.ported)} <small>of ${fmt(N)}</small>`;
-  $("lgPortedSplit").textContent="Oracle-verified "+fmt(C.class.native_oracle_verified)+" · tests-only "+fmt(C.class.native_tests_only)+" · adapter "+fmt(C.class.host_adapter_tested);
+  $("lgPortedSplit").textContent="Oracle-verified "+fmt(C.class.native_oracle_verified)+" · inlined "+fmt(C.class.native_oracle_verified_inlined||0)+" · tests-only "+fmt(C.class.native_tests_only)+" · adapter "+fmt(C.class.host_adapter_tested);
   $("lgNotNeeded").innerHTML=`${fmt(S.not_needed)} <small>of ${fmt(N)}</small>`;
   const reasons=Object.entries(C.reason).filter(e=>e[1]);
   $("lgNotNeededSplit").textContent=reasons.length ? "By reason: "+reasons.map(e=>`${words(e[0])} ${fmt(e[1])}`).join(" · ") : "By reason: none accepted yet";
