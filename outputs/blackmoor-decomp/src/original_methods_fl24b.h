@@ -31,6 +31,8 @@ typedef struct Fl24bWorld {
     const uint8_t *bytes_54b54c;   /* the nine bytes at 0x54b54c (0x466073) */
     uint32_t value_5b44f0, value_5b44f4, value_5d0377, value_5d162d, value_5d1631, value_5d1639;   /* 0x467740 */
     const uint8_t *bytes_551c54, *bytes_551c60;   /* 0x4b7563 */
+    int16_t value_583a29;      /* 0x459e49: compared with the word 0x217 of the record object */
+    const uint8_t *bytes_54a7c4, *bytes_54a7d0;   /* 0x459e49 */
     /* FL24B-WORLD-END */
 } Fl24bWorld;
 
@@ -43,6 +45,8 @@ void m466073_click_27d2_27d3(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
 int32_t m467740_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
 /* 0x4b7563: events 0x27bf, 0x27c0 (step a word counter of the object up or down and maybe announce) and 0x27c1 */
 void m4b7563_click_27bf_27c1(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x459e49: event 0x2742 (marks a slot, counts up to 4 and announces through 0x4f6334 / 0x4fb2e3) */
+void m459e49_click_2742(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

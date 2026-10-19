@@ -114,6 +114,8 @@ SPECS.update({
     '467740': dict(id=3, va=0x467740, size=506, selfsz=0x1c0, ret='eax', callee_pops=True, scen=480, callees=[0x467b9e]),
     '4b7563': dict(id=4, va=0x4b7563, size=538, selfsz=0x40, idx=0x21, gates=[('nz8', 0x35), ('z8', 0x3b), ('z32', 0x25)], sels=[0x27bf, 0x27c0, 0x27c1],
                    callees=[0x4fb2e3], post=lambda c: post_4b7563(c), scen=440, probes=[(0, 0x40)]),
+    '459e49': dict(id=5, va=0x459e49, size=562, selfsz=0x100, idx=0x1c, gates=[('nz8', 0xd6), ('z8', 0xe1), ('z32', 0xdb)], sels=[0x2742],
+                   callees=[0x4f6334, 0x4fb2e3], post=lambda c: post_459e49(c), scen=480, probes=[(0, 0x100)]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
@@ -306,6 +308,27 @@ def post_4b7563(c):
     nine_const(c, 0x551c54, 0x2ef, obj, c.sel == 0x27bf)
     nine_const(c, 0x551c60, 0x320, obj, c.sel == 0x27c0)
     c.stubs_results[0x4fb2e3] = [0]
+
+
+def post_459e49(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    mode = v % 4
+    t = rng.choice([0, 1, 5, 0x7fff, 0x8000, 0xffff, 0x01ff, 0x00fe, rng.randrange(0x10000)])
+    if mode == 0:
+        t = 0xff
+    g = t if mode == 1 else (t ^ rng.choice([1, 0x100, 0x8000])) if mode == 3 else rng.randrange(0x10000)
+    if mode == 2 and g == t:
+        g ^= 1
+    struct.pack_into('<H', obj, 0x217, t)
+    c.g['value_583a29'] = g
+    struct.pack_into('<h', d, 0xcc, rng.choice([0, 1, 0x40, 0xa0, 0xb8, 0xc3, 0xae, 0xe1, 0x20, -0x1e + 2]))
+    struct.pack_into('<h', d, 0xdf, rng.choice([-100, -3, -1, 0, 1, 2, 3, 4, 5, 6, 0x7fff, 0x7ffe, 0xffff if False else -2]))
+    flag = (v // 4) & 1
+    c.g['value_5bb1ca'] = 0 if flag == 0 else rng.choice([1, 0x100, 0xffffffff])
+    a_arm = c.sel == 0x2742 and (t == 0xff or g == t)
+    nine_const(c, 0x54a7c4, 0x1b5, obj, a_arm)
+    nine_const(c, 0x54a7d0, 0x1e6, obj, c.sel == 0x2742 and not a_arm)
+    c.stubs_results[0x4f6334] = [0 if (v // 8) % 3 != 2 else rng.choice([1, 0x100, 0x80000000])]
 
 
 # BUILDERS-END

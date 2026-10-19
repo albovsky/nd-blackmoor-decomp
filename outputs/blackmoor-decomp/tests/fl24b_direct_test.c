@@ -644,6 +644,135 @@ static int test_m4b7563_click_27bf_27c1(void)
     return g_failed;
 }
 
+/* 0x459e49: gates byte [+0xd6] != 0, byte [+0xe1] == 0, dword [+0xdb] == 0, record state of the word [+0x1c]; event 0x2742. */
+static void setup_459e49(int idx, int arm_a)
+{
+    base(0x2742, idx, 0x1c);
+    fx.self[0xd6] = 0x80;
+    fx.self[0xe1] = 0;
+    set32(fx.self, 0xdb, 0);
+    set16(fx.self, 0xcc, 0x40);
+    set16(fx.self, 0xdf, 1);
+    fx.w.value_5bb1ca = 0;
+    fx.w.value_583a29 = 0x1234;
+    set16(fx.obj, 0x217, arm_a ? 0x00ff : 0x4321);
+    fx.w.bytes_54a7c4 = consts[0];
+    fx.w.bytes_54a7d0 = consts[1];
+    memcpy(consts[0], "ABCDEFGHI", 9);
+    memcpy(consts[1], "JKLMNOPQR", 9);
+}
+
+static int test_m459e49_click_2742(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const int16_t cnts[] = {-3, 0, 1, 2, 3, 4, 5, 0x7fff, -1};
+    int ii, k, v, s, c, d, r, a;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (s = 0; s < 2; s++)
+            for (k = 0; k < 4; k++)
+                for (v = 0; v < 6; v++) {
+                    setup_459e49(idx, 1);
+                    if (s) fx.w.value_5c39e5 = 0x2741;
+                    if (k == 0) fx.self[0xd6] = 0;
+                    if (k == 1) fx.self[0xe1] = (uint8_t[]){1, 0x80, 0xff, 0x7f, 2, 0x55}[v];
+                    if (k == 2) set32(fx.self, 0xdb, (uint32_t[]){1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 3}[v]);
+                    if (k == 3) {
+                        int i;
+                        for (i = -1; i <= 4; i++)
+                            set32(fx.tab, (size_t)(i + 1) * REC + 0x4d, i == idx ? (uint32_t[]){0, 2, 3, 0xffffffffu, 0x101, 0x10001}[v] : 1u);
+                    }
+                    fx.w.value_5bb1ca = 1;
+                    begin();
+                    m459e49_click_2742(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    CK(L.n == 0);
+                }
+        /* the first arm: t == 0xff (any global), or t == the global (word compare, so 0x1234 vs 0x11234 is not equal) */
+        for (a = 0; a < 3; a++)
+            for (c = 0; c < 9; c++) {
+                int16_t cnt = cnts[c];
+                int32_t after;
+                setup_459e49(idx, a == 0);
+                if (a == 1) set16(fx.obj, 0x217, 0x1234);
+                if (a == 2) set16(fx.obj, 0x217, 0x8000), fx.w.value_583a29 = (int16_t)0x8000;
+                set16(fx.self, 0xdf, (uint16_t)cnt);
+                set16(fx.self, 0xcc, 0x30 + (uint16_t)c);
+                begin();
+                X8(0x30 + c + 0x1e, 1);
+                if (cnt <= 3) X16((size_t)(cnt * 2 + 0xce), (uint16_t)(0x30 + c));
+                after = (int16_t)(uint16_t)(cnt + 1);
+                if (after > 4) after = 4;
+                X16(0xdf, (uint16_t)after);
+                m459e49_click_2742(fx.self, &fx.w, &fx.host);
+                check_mem();
+                CK(L.n == 0);
+            }
+        /* t = 0x01ff and a global that differs in the upper byte only: second arm; nothing without the flag */
+        setup_459e49(idx, 0);
+        set16(fx.obj, 0x217, 0x01ff);
+        begin();
+        m459e49_click_2742(fx.self, &fx.w, &fx.host);
+        check_mem();
+        CK(L.n == 0);
+        /* p hits the word [+0xcc] itself: the byte store comes first, the word copy re-reads it */
+        setup_459e49(idx, 1);
+        set16(fx.self, 0xcc, 0xae);
+        set16(fx.self, 0xdf, 0);
+        begin();
+        X8(0xcc, 1);
+        X16(0xce, 0x0001);
+        X16(0xdf, 1);
+        m459e49_click_2742(fx.self, &fx.w, &fx.host);
+        check_mem();
+        /* the announcements of both arms: nine bytes differing at every position or equal, 0x4f6334 answering 0 or non-zero */
+        for (a = 0; a < 2; a++)
+            for (d = -1; d < 10; d++)
+                for (r = 0; r < 2; r++) {
+                    size_t nine = a == 0 ? 0x1b5 : 0x1e6, arg = a == 0 ? 0x1d6 : 0x207;
+                    setup_459e49(idx, a == 0);
+                    fx.w.value_5bb1ca = 0x100;
+                    memcpy(fx.obj + nine, a == 0 ? "ABCDEFGHI" : "JKLMNOPQR", 9);
+                    fx.obj[nine + 9] = 0x5c;
+                    if (d >= 0) fx.obj[nine + (size_t)d] ^= 0x40;
+                    set16(fx.obj, arg, 0x8001);          /* negative as a word: the first callee gets 0xffff8001 */
+                    g_ret_by[0].callee = 0x4f6334;
+                    g_ret_by[0].value = r ? 0x100u : 0;
+                    set16(fx.self, 0xdf, 7);
+                    begin();
+                    if (a == 0) {
+                        X8(0x40 + 0x1e, 1);
+                        X16(0xdf, 4);
+                    }
+                    m459e49_click_2742(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    if (d >= 0 && d < 9) {
+                        CK(L.n == (r ? 1 : 2));
+                        check_call(0, 0x4f6334, 0x5cf1eb, 1);
+                        check_arg(0, 0, 0xffff8001u, 0xffffffffu);
+                        if (!r) {
+                            check_call(1, 0x4fb2e3, 0x5c3a67, 1);
+                            check_arg(1, 0, 0x8001, 0xffff);
+                        }
+                    } else {
+                        CK(L.n == 0);
+                    }
+                }
+        /* the first arm: the counter and the slot are stored before the callees run */
+        setup_459e49(idx, 1);
+        fx.w.value_5bb1ca = 1;
+        set16(fx.self, 0xdf, 2);
+        memset(fx.obj + 0x1b5, 'x', 9);
+        m459e49_click_2742(fx.self, &fx.w, &fx.host);
+        CK(L.n == 2 && L.c[0].snap_self[0x40 + 0x1e] == 1 && L.c[0].snap_self[0xdf] == 3 && L.c[0].snap_self[2 * 2 + 0xce] == 0x40);
+    }
+    if (g_failed) printf("FAIL test_m459e49_click_2742: %s\n", g_msg);
+    else printf("PASS test_m459e49_click_2742\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -653,6 +782,7 @@ int main(void)
     failures += test_m466073_click_27d2_27d3();
     failures += test_m467740_hit_test();
     failures += test_m4b7563_click_27bf_27c1();
+    failures += test_m459e49_click_2742();
     /* FL24B-MAIN-END */
     return failures;
 }

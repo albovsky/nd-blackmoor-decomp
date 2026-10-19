@@ -287,4 +287,54 @@ void m4b7563_click_27bf_27c1(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
     }
 }
 
+/* ---- 0x459e49 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x459e49, thiscall, plain `ret`: guards byte [+0xd6] != 0, byte [+0xe1] == 0, dword [+0xdb] == 0, the record state of the word [+0x1c];
+ * only event 0x2742. With t = the word at +0x217 of the record object: if t == 0xff or t equals the word 0x583a29 (both movsx), the byte
+ * [+ p + 0x1e] is set (p = the signed word [+0xcc]), the word [+0xcc] is stored at [+ n * 2 + 0xce] while the signed word n = [+0xdf] is at
+ * most 3, n is incremented (as a word) and clamped to 4 when above, and with the flag 0x5bb1ca the nine bytes at +0x1b5 of the record
+ * object are compared with 0x54a7c4: when they differ and 0x4f6334 (this 0x5cf1eb, the sign-extended word +0x1d6) returns 0, the word
+ * +0x1d6 is announced through 0x4fb2e3 (this 0x5c3a67). Otherwise only the flag arm runs: +0x1e6 against 0x54a7d0 and the word +0x207.
+ * The indexes p and n are not bounds-checked, as in the original. The record object is re-resolved at every use. */
+void m459e49_click_2742(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *ro;
+    int16_t t;
+    ptrdiff_t p, n;
+    if (self[0xd6] == 0) return;
+    if (self[0xe1] != 0) return;
+    if (rd32(self, 0xdb) != 0) return;
+    if (!record_state_is_1(world, self, 0x1c)) return;
+    if (world->value_5c39e5 != 0x2742) return;
+    ro = object_at(host, record_object_address(world, self, 0x1c));
+    t = (int16_t)rd16(ro, 0x217);
+    if (t == 0xff || world->value_583a29 == t) {
+        p = rds16(self, 0xcc);
+        self[p + 0x1e] = 1;
+        n = rds16(self, 0xdf);
+        if (n <= 3) wr16(self, n * 2 + 0xce, rd16(self, 0xcc));
+        wr16(self, 0xdf, (uint16_t)(rd16(self, 0xdf) + 1));
+        if (rds16(self, 0xdf) > 4) wr16(self, 0xdf, 4);
+        if (world->value_5bb1ca != 0) {
+            ro = object_at(host, record_object_address(world, self, 0x1c));
+            if (!nine_bytes_equal(ro + 0x1b5, world->bytes_54a7c4)) {
+                ro = object_at(host, record_object_address(world, self, 0x1c));
+                if (call1(host, 0x4f6334, 0x5cf1eb, (uint32_t)rds16(ro, 0x1d6)) == 0) {
+                    ro = object_at(host, record_object_address(world, self, 0x1c));
+                    call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x1d6));
+                }
+            }
+        }
+    } else if (world->value_5bb1ca != 0) {
+        ro = object_at(host, record_object_address(world, self, 0x1c));
+        if (!nine_bytes_equal(ro + 0x1e6, world->bytes_54a7d0)) {
+            ro = object_at(host, record_object_address(world, self, 0x1c));
+            if (call1(host, 0x4f6334, 0x5cf1eb, (uint32_t)rds16(ro, 0x207)) == 0) {
+                ro = object_at(host, record_object_address(world, self, 0x1c));
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x207));
+            }
+        }
+    }
+}
+
 /* FL24B-END */
