@@ -74,6 +74,17 @@ void m4fb2e3_start_slot(uint8_t *self, uint32_t slot, const Fl28aWorld *world, c
  * 0x50cb1b(name + i) (i sign-extended), returned. After the loop h (zero there) is replaced by (int16)(signed byte) name[0] and returned. */
 int32_t m423368_hash_name(uint32_t name, const Fl18Host *host);
 
+/* 0x4f356e: thiscall, `ret 4`, argument `idx` (a dword; the record is idx * 0x5bb bytes on): [self + 0x3c2] = 0x3e8; rec = [self + 0x3ce] + idx * 0x5bb (an
+ * original address, 32-bit wrap; the record is read and written through resolve, 0x2f5 bytes); 0x4f709c (this = self) zero: returns 1. Then, when the
+ * dwords [rec + 0x162], [rec + 0x29b], [rec + 0x28f], [rec + 0x28b] are all non-zero and the unsigned dword [self + 0x3d6] is non-zero: [self + 0x3d6] -= 1 and
+ * [rec + 0x28b] = 0. [rec + 0x28f] non-zero: 0x4f6334 (this = self, idx) non-zero: 0x4f61e7 (this = self, idx). [rec + 0x293] non-zero: its vtable entry +8 is
+ * called with the object (Release) and the dword is cleared. [rec + 0x297] non-zero: 0x51dc6c (the dword; both arms of the test of [rec + 0x166] make
+ * the same call) and the dword is cleared. [rec + 0x29b] and then [rec + 0x28f], re-read after the callees, non-zero: Release through the vtable and cleared.
+ * [rec + 0x2f1] non-zero: 0x4fcef0 (rec + 0x2f1, an original address) and cleared. [rec + 0x156] non-zero: 0x50cee4 (the dword) and cleared. Finally
+ * [rec + 0x162] = 0, [rec + 0x152] = 0; returns 1. Every field is re-read where the original reads it again (callees may change them); the record, the
+ * objects and their vtables (12 bytes) are caller-validated. */
+uint32_t m4f356e_unload(uint8_t *self, uint32_t idx, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

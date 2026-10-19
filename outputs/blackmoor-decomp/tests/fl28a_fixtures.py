@@ -474,6 +474,48 @@ def gen_423368(rng, n):
     return sc
 
 
+# 0x4f356e ---------------------------------------------------------------------------------------------------------------------------
+
+FLAGS = (1, 0x100, 0x10000, 0x80000000, 0xffffffff)
+VT_REL = od.STUB_BASE + 0xb00
+FIELDS_4F356E = (0x162, 0x29b, 0x28f, 0x28b, 0x293, 0x297, 0x166, 0x2f1, 0x156)
+
+
+def gen_4f356e(rng, n):
+    early = n < 8
+    combo = 0 if early else (n - 8) % 512
+    on = {f: bool(combo >> i & 1) for i, f in enumerate(FIELDS_4F356E)}
+    idx = rng.choice([0, 1, 0xffffffff])
+    base = od.region_va(1) + 0x800
+    rec_va = (base + idx * 0x5bb) & 0xffffffff
+    rec_off = rec_va - od.region_va(1)
+    rec = junk(rng, 0x1400)
+    objs = junk(rng, 0xc0)
+    for k in range(3):
+        put32(objs, 0x40 * k, od.region_va(3))
+    vt = junk(rng, 0x100)
+    put32(vt, 8, VT_REL)
+    objaddr = {0x293: od.region_va(2), 0x29b: od.region_va(2) + 0x40, 0x28f: od.region_va(2) + 0x80}
+    for f in FIELDS_4F356E:
+        value = 0 if not on[f] else (objaddr[f] if f in objaddr else rng.choice(FLAGS))
+        put32(rec, rec_off + f, value)
+    selfd = junk(rng, 0x400)
+    put32(selfd, 0x3ce, base)
+    put32(selfd, 0x3d6, rng.choice([0, 1, 2, 0x80000000, 0xffffffff]))
+    r709 = 0 if early else rng.choice([1, 0x100, 0xffffffff])
+    r6334 = rng.choice([0, 1, 0xffffffff, 0x100])
+    probe = [('self', 0, 0x400), ('rec', 0, 0x1400)]
+    w61e7 = [(0, -1, rec_va + 0x28f, 4, 0)] if rng.random() < 0.3 else []
+    wrel = [(0, -1, rec_va + 0x28f, 4, 0)] if rng.random() < 0.2 else []
+    stubs = {0x4f709c: stub(0x4f709c, THISCALL(0), probe, results=[r709]), 0x4f6334: stub(0x4f6334, THISCALL(1), probe, results=[r6334]),
+             0x4f61e7: stub(0x4f61e7, THISCALL(1), probe, results=[rng.randrange(1 << 32)], writes=w61e7), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe),
+             0x4fcef0: stub(0x4fcef0, CDECL(1), probe), 0x50cee4: stub(0x50cee4, CDECL(1), probe),
+             VT_REL: stub(VT_REL, STDCALL(1), probe, results=[rng.randrange(1 << 32)], writes=wrel)}
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('rec', od.region_va(1), rec, image=False), Area('objs', od.region_va(2), objs, image=False),
+             Area('vtbl', od.region_va(3), vt, image=False)]
+    return make('4f356e', areas, stubs, {}, [idx], (idx,), (early, combo))
+
+
 def _count(key):
     return {'423368': len(profiles_423368()) * 2}.get(key)
 
@@ -486,6 +528,7 @@ SPECS = {
     '4f80d3': dict(id=5, va=0x4f80d3, size=132, gen=gen_4f80d3, cleanup=8, ret=0xffffffff, n=72),
     '42356d': dict(id=6, va=0x42356d, size=144, gen=gen_42356d, cleanup=8, n=60),
     '4fb2e3': dict(id=7, va=0x4fb2e3, size=180, gen=gen_4fb2e3, cleanup=4, n=160),
+    '4f356e': dict(id=9, va=0x4f356e, size=558, gen=gen_4f356e, cleanup=4, ret=0xffffffff, n=8 + 512 * 2),
     '423368': dict(id=8, va=0x423368, size=232, code=218, gen=gen_423368, cleanup=4, ret=0xffffffff, n=len(profiles_423368()) * 2),
 }
 # 0x42342a `jne 0x423437`: the word [ebp-0xc] is zero at that point (the same word was tested non-zero at 0x4233be, and the loop leaves it unchanged

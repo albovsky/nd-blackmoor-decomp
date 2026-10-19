@@ -447,6 +447,110 @@ static void test_m423368_hash_name(void)
     CK(r == 0 && L.n == 1);
 }
 
+#define REL 0x7e000b00u
+
+/* a record at VA_B with the nine fields of 0x4f356e set to `on` (bit i = field i of the list) and three objects in fx.a (vtable fx.v, entry +8 = REL) */
+static const uint32_t F356E[9] = {0x162, 0x29b, 0x28f, 0x28b, 0x293, 0x297, 0x166, 0x2f1, 0x156};
+
+static void setup_4f356e(uint32_t on, uint32_t idx, uint32_t unload_count)
+{
+    int i;
+    reset(30 + on);
+    set32(SELF, 0x3ce, VA_B + 0x100 - idx * 0x5bbu);
+    set32(SELF, 0x3d6, unload_count);
+    set32(fx.a, 0, VA_V);
+    set32(fx.a, 0x40, VA_V);
+    set32(fx.a, 0x80, VA_V);
+    set32(fx.v, 8, REL);
+    for (i = 0; i < 9; i++) {
+        uint32_t f = F356E[i], v = (on >> i & 1) ? 0x77000000u + f : 0;
+        if (on >> i & 1) {
+            if (f == 0x293) v = VA_A;
+            if (f == 0x29b) v = VA_A + 0x40;
+            if (f == 0x28f) v = VA_A + 0x80;
+        }
+        set32(fx.b, 0x100 + f, v);
+    }
+    script_ret(0x4f709c, 1, 1);
+    script_ret(0x4f6334, 1, 1);
+}
+
+static void test_m4f356e_unload(void)
+{
+    uint8_t exp[SELF_SZ], expb[A_SZ];
+    uint32_t r;
+    /* everything set: the counter drops, the callees run in the order of the original, the fields are cleared */
+    setup_4f356e(0x1ff, 1, 5);
+    memcpy(exp, fx.self, sizeof exp);
+    memcpy(expb, fx.b, sizeof expb);
+    r = m4f356e_unload(SELF, 1, &fx.host);
+    CK(r == 1);
+    set32(exp, SELF_OFF + 0x3c2, 0x3e8);
+    set32(exp, SELF_OFF + 0x3d6, 4);
+    CK(memcmp(exp, fx.self, sizeof exp) == 0);
+    /* the record after: [0x28b], [0x293], [0x297], [0x29b], [0x28f], [0x2f1], [0x156], [0x162] and [0x152] cleared */
+    {
+        static const uint32_t cleared[] = {0x28b, 0x293, 0x297, 0x29b, 0x28f, 0x2f1, 0x156, 0x162, 0x152};
+        unsigned k;
+        for (k = 0; k < sizeof cleared / sizeof cleared[0]; k++) set32(expb, 0x100 + cleared[k], 0);
+        CK(memcmp(expb, fx.b, sizeof expb) == 0);
+    }
+    CK(L.n == 9);
+    CK(call_is(0, 0x4f709c, (uintptr_t)SELF, 0, 0, 0, 0, 0));
+    CK(call_is(1, 0x4f6334, (uintptr_t)SELF, 1, 1, 0, 0, 0));
+    CK(call_is(2, 0x4f61e7, (uintptr_t)SELF, 1, 1, 0, 0, 0));
+    CK(call_is(3, REL, 0, 1, VA_A, 0, 0, 0));
+    CK(call_is(4, 0x51dc6c, 0, 1, 0x77000297u, 0, 0, 0));
+    CK(call_is(5, REL, 0, 1, VA_A + 0x40, 0, 0, 0));
+    CK(call_is(6, REL, 0, 1, VA_A + 0x80, 0, 0, 0));
+    CK(call_is(7, 0x4fcef0, 0, 1, VA_B + 0x100 + 0x2f1, 0, 0, 0));
+    CK(call_is(8, 0x50cee4, 0, 1, 0x77000156u, 0, 0, 0));
+    /* 0x4f709c answers zero: only the stamp [self + 0x3c2] is stored */
+    setup_4f356e(0x1ff, 0, 5);
+    script_ret(0x4f709c, 0, 0);
+    memcpy(exp, fx.self, sizeof exp);
+    memcpy(expb, fx.b, sizeof expb);
+    r = m4f356e_unload(SELF, 0, &fx.host);
+    set32(exp, SELF_OFF + 0x3c2, 0x3e8);
+    CK(r == 1 && memcmp(exp, fx.self, sizeof exp) == 0 && memcmp(expb, fx.b, sizeof expb) == 0 && L.n == 1);
+    /* the counter is unsigned: 0 leaves it and [0x28b] alone; 0x80000000 counts down */
+    setup_4f356e(0x1ff, 0, 0);
+    (void)m4f356e_unload(SELF, 0, &fx.host);
+    CK(get32(SELF, 0x3d6) == 0);
+    setup_4f356e(0x1ff, 0, 0x80000000u);
+    (void)m4f356e_unload(SELF, 0, &fx.host);
+    CK(get32(SELF, 0x3d6) == 0x7fffffffu);
+    /* each of the four guards of the counter in turn: nothing counted down, the record fields still cleared by the later steps */
+    {
+        static const unsigned off_bits[4] = {0, 1, 2, 3};
+        unsigned k;
+        for (k = 0; k < 4; k++) {
+            setup_4f356e(0x1ff & ~(1u << off_bits[k]), 0, 5);
+            (void)m4f356e_unload(SELF, 0, &fx.host);
+            CK(get32(SELF, 0x3d6) == 5);
+        }
+    }
+    /* 0x4f6334 answers zero: 0x4f61e7 is not called */
+    setup_4f356e(0x1ff, 0, 5);
+    script_ret(0x4f6334, 0, 0);
+    (void)m4f356e_unload(SELF, 0, &fx.host);
+    CK(L.n == 8 && L.c[2].callee == REL);
+    /* [0x28f] zero: no 0x4f6334, no last Release; the neighbouring flag [0x28b] has a high bit only (a dword test) */
+    setup_4f356e(0x1ff & ~(1u << 2), 0, 5);
+    (void)m4f356e_unload(SELF, 0, &fx.host);
+    CK(L.n == 6 && L.c[1].callee == REL);
+    setup_4f356e(0x1ff, 0, 5);
+    set32(fx.b, 0x100 + 0x28b, 0x80000000u);
+    (void)m4f356e_unload(SELF, 0, &fx.host);
+    CK(get32(SELF, 0x3d6) == 4 && get32(fx.b, 0x100 + 0x28b) == 0);
+    /* nothing set: no call besides 0x4f709c; [0x152] is cleared (the other nine fields are already zero) */
+    setup_4f356e(0, 2, 5);
+    memcpy(expb, fx.b, sizeof expb);
+    (void)m4f356e_unload(SELF, 2, &fx.host);
+    set32(expb, 0x100 + 0x152, 0);
+    CK(L.n == 1 && memcmp(expb, fx.b, sizeof expb) == 0);
+}
+
 static void test_sweep_bounded(void)
 {
     unsigned s;
@@ -471,6 +575,8 @@ static void test_sweep_bounded(void)
         script_ret(0x50cb1b, k, k);
         fx.a[A_SZ - 1] = 0;
         (void)m423368_hash_name(VA_A + (s % 8), &fx.host);
+        setup_4f356e(s % 512, s % 3 == 0 ? 0 : 1, s % 4);
+        (void)m4f356e_unload(SELF, s % 3 == 0 ? 0 : 1, &fx.host);
     }
 }
 
@@ -498,6 +604,7 @@ int main(void)
     RUN(test_m42356d_push);
     RUN(test_m4fb2e3_start_slot);
     RUN(test_m423368_hash_name);
+    RUN(test_m4f356e_unload);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

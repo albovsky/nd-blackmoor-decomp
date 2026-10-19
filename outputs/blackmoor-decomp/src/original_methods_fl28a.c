@@ -234,4 +234,67 @@ int32_t m423368_hash_name(uint32_t name, const Fl18Host *host)
     return h;
 }
 
+/* ---- 0x4f356e ------------------------------------------------------------------------------------------------------------------ */
+
+/* the Release of the object that the dword [rec + field] holds: `mov edx,[rec+f]; mov ecx,[rec+f]; mov eax,[ecx]; push edx; call [eax+8]` */
+static void release_field(const Fl18Host *host, const uint8_t *rec, ptrdiff_t field)
+{
+    uintptr_t args[1];
+    uint32_t obj = rd32(rec, field);
+    uint32_t vtable = rd32(mem_at(host, obj), 0);
+    uint32_t entry = rd32(mem_at(host, vtable), 8);
+    args[0] = obj;
+    host->call(host->context, entry, 0, args, 1);
+}
+
+/* 0x4f356e, thiscall, `ret 4`: see the header. [ebp-0x10] is `self`, [ebp-4] the record; [ebp-8] / [ebp-0xc] hold the dword [rec + 0x297]. */
+uint32_t m4f356e_unload(uint8_t *self, uint32_t idx, const Fl18Host *host)
+{
+    uint8_t *rec;
+    wr32(self, 0x3c2, 0x3e8);
+    rec = NULL;
+    {
+        uint32_t rec_va = rd32(self, 0x3ce) + idx * 0x5bbu;
+        if (call0(host, 0x4f709c, (uintptr_t)self) == 0) return 1;
+        rec = mem_at(host, rec_va);
+        if (rd32(rec, 0x162) != 0 && rd32(rec, 0x29b) != 0 && rd32(rec, 0x28f) != 0 && rd32(rec, 0x28b) != 0 && rd32(self, 0x3d6) > 0) {
+            wr32(self, 0x3d6, rd32(self, 0x3d6) - 1u);
+            wr32(rec, 0x28b, 0);
+        }
+        if (rd32(rec, 0x28f) != 0) {
+            if (call1(host, 0x4f6334, (uintptr_t)self, idx) != 0) call1(host, 0x4f61e7, (uintptr_t)self, idx);
+        }
+        if (rd32(rec, 0x293) != 0) {
+            release_field(host, rec, 0x293);
+            wr32(rec, 0x293, 0);
+        }
+        if (rd32(rec, 0x297) != 0) {
+            if (rd32(rec, 0x166) != 0)
+                call1(host, 0x51dc6c, 0, rd32(rec, 0x297));
+            else
+                call1(host, 0x51dc6c, 0, rd32(rec, 0x297));
+            wr32(rec, 0x297, 0);
+        }
+        if (rd32(rec, 0x29b) != 0) {
+            release_field(host, rec, 0x29b);
+            wr32(rec, 0x29b, 0);
+        }
+        if (rd32(rec, 0x28f) != 0) {
+            release_field(host, rec, 0x28f);
+            wr32(rec, 0x28f, 0);
+        }
+        if (rd32(rec, 0x2f1) != 0) {
+            call1(host, 0x4fcef0, 0, rec_va + 0x2f1u);
+            wr32(rec, 0x2f1, 0);
+        }
+        if (rd32(rec, 0x156) != 0) {
+            call1(host, 0x50cee4, 0, rd32(rec, 0x156));
+            wr32(rec, 0x156, 0);
+        }
+        wr32(rec, 0x162, 0);
+        wr32(rec, 0x152, 0);
+    }
+    return 1;
+}
+
 /*NEXT*/
