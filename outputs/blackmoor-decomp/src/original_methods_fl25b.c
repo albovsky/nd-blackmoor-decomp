@@ -262,3 +262,70 @@ int32_t m4cb058_hit_test(uint8_t *self, int16_t x, int16_t y, Fl25bWorld *world,
     return 1;
 }
 
+/* ---- 0x4a3f40 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4a3f40, thiscall, `ret 0xc`: arguments x, y as words (movsx) and a pointer to four dwords; eax = 1 on a hit, else 0. Returns 0 at once
+ * when the dword [+0x26e] is zero. `ro` is the object of the record of the word [+0x1e]. Stores the words [+0x278] = [+0x276] = 0xffff and
+ * the block (dwords 0..3) to [+0x280], [+0x284], [+0x288], [+0x28c]. A cell is a rectangle of four signed dwords (x low, y low +4, x high
+ * +8, y high +0xc, inclusive). The scan runs a = 0 while a < the signed byte ro[+0x22] and, inside it, b = 0 while b < the signed byte
+ * ro[+0x21]; the cell of (a, b) is at self + 0x60 * a + 16 * b + base. With [+0x260] != 0: 0x4a3beb runs (this = self), the base is
+ * 0x650 and a hit runs 0x4a42c0(0x274d, b, a) and returns 1; the scan ends with 0. With [+0x260] == 0, for every (a, b): when the word
+ * ro[+0x413] is non-zero the cell at base 0x290 runs 0x4a42c0(0x274e, b, a) and returns 1; then the cell at base 0x470 runs
+ * 0x4a42c0(0x274c, b, a) and returns 1. After the scan the rectangle ro[+0x6af] (x low), +0x6b3 (y low), +0x6b7 (x high), +0x6bb (y high)
+ * runs 0x4a42c0(0x274f, 0, 0) and returns 1, else 0. The counts are not bounded (as in the original). A callee that changes self is not
+ * exercised. */
+int32_t m4a3f40_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *block, const Fl25bWorld *world, const Fl18Host *host)
+{
+    uint32_t ro_addr;
+    const uint8_t *ro;
+    int32_t a, b;
+    if (rd32(self, 0x26e) == 0) return 0;
+    ro_addr = record_object_address(world, self, 0x1e);
+    ro = object_at(host, ro_addr);
+    wr16(self, 0x278, 0xffff);
+    wr16(self, 0x276, 0xffff);
+    wr32(self, 0x284, rd32(block, 4));
+    wr32(self, 0x28c, rd32(block, 0xc));
+    wr32(self, 0x280, rd32(block, 0));
+    wr32(self, 0x288, rd32(block, 8));
+    if (rd32(self, 0x260) != 0) {
+        call0(host, 0x4a3beb, (uintptr_t)self);
+        for (a = 0; a < (int8_t)ro[0x22]; a++) {
+            for (b = 0; b < (int8_t)ro[0x21]; b++) {
+                ptrdiff_t c = (ptrdiff_t)(a * 0x60) + 0x650 + (ptrdiff_t)(b << 4);
+                if ((int32_t)y >= (int32_t)rd32(self, c + 4) && (int32_t)y <= (int32_t)rd32(self, c + 0xc) &&
+                    (int32_t)x >= (int32_t)rd32(self, c) && (int32_t)x <= (int32_t)rd32(self, c + 8)) {
+                    call3(host, 0x4a42c0, (uintptr_t)self, 0x274d, (uint32_t)b, (uint32_t)a);
+                    return 1;
+                }
+            }
+        }
+        return 0;
+    }
+    for (a = 0; a < (int8_t)ro[0x22]; a++) {
+        for (b = 0; b < (int8_t)ro[0x21]; b++) {
+            ptrdiff_t c;
+            if (rds16(ro, 0x413) != 0) {
+                c = (ptrdiff_t)(a * 0x60) + 0x290 + (ptrdiff_t)(b << 4);
+                if ((int32_t)y >= (int32_t)rd32(self, c + 4) && (int32_t)y <= (int32_t)rd32(self, c + 0xc) &&
+                    (int32_t)x >= (int32_t)rd32(self, c) && (int32_t)x <= (int32_t)rd32(self, c + 8)) {
+                    call3(host, 0x4a42c0, (uintptr_t)self, 0x274e, (uint32_t)b, (uint32_t)a);
+                    return 1;
+                }
+            }
+            c = (ptrdiff_t)(a * 0x60) + 0x470 + (ptrdiff_t)(b << 4);
+            if ((int32_t)y >= (int32_t)rd32(self, c + 4) && (int32_t)y <= (int32_t)rd32(self, c + 0xc) &&
+                (int32_t)x >= (int32_t)rd32(self, c) && (int32_t)x <= (int32_t)rd32(self, c + 8)) {
+                call3(host, 0x4a42c0, (uintptr_t)self, 0x274c, (uint32_t)b, (uint32_t)a);
+                return 1;
+            }
+        }
+    }
+    if ((int32_t)y >= (int32_t)rd32(ro, 0x6b3) && (int32_t)y <= (int32_t)rd32(ro, 0x6bb) && (int32_t)x >= (int32_t)rd32(ro, 0x6af) &&
+        (int32_t)x <= (int32_t)rd32(ro, 0x6b7)) {
+        call3(host, 0x4a42c0, (uintptr_t)self, 0x274f, 0, 0);
+        return 1;
+    }
+    return 0;
+}
+

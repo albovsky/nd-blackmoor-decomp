@@ -35,6 +35,10 @@ int32_t m455180_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *blo
 /* 0x4cb058 (ret 8): hit test of the point (x, y) (two words) against the entries of the list object at [+0x12] (addresses kept in the
  * object), then its outer rectangle; arms the globals 0x5b44f0.. and 0x5c39e5 (0x27b0 / 0x27b2); returns 1 or 0 */
 int32_t m4cb058_hit_test(uint8_t *self, int16_t x, int16_t y, Fl25bWorld *world, const Fl18Host *host);
+/* 0x4a3f40 (ret 0xc): hit test of the point (x, y) (two words) with a block of four dwords: stores the block, then scans cells of
+ * 16 bytes at three bases of the object (rows of 0x60 bytes, counts from the record's object) and its outer rectangle; calls 0x4a3beb
+ * and 0x4a42c0 with this = self; returns 1 or 0 */
+int32_t m4a3f40_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *block, const Fl25bWorld *world, const Fl18Host *host);
 /* FL25B-PROTOS-END */
 
 #ifdef __cplusplus

@@ -701,6 +701,211 @@ static int test_m4cb058_hit_test(void)
     return g_failed;
 }
 
+/* 0x4a3f40 (ret 0xc): the object of the record is OBJ_VA. Point (5, 5). The cells live in the object under test at base + 0x60 * a + 16 * b
+ * (base 0x650 when [+0x260] != 0, else 0x290 and 0x470), x low +0, y low +4, x high +8, y high +0xc; the counts are the signed bytes
+ * ro[+0x22] (a) and ro[+0x21] (b); the outer rectangle ro[+0x6af] (x low), +0x6b3, +0x6b7, +0x6bb. */
+#define CELL(base, a, b, m) rectb(fx.self, (base) + (size_t)(a) * 0x60 + (size_t)(b) * 16, (base) + (size_t)(a) * 0x60 + (size_t)(b) * 16 + 4, (base) + (size_t)(a) * 0x60 + (size_t)(b) * 16 + 8, (base) + (size_t)(a) * 0x60 + (size_t)(b) * 16 + 0xc, m)
+#define OUTER(m) rectb(fx.obj, 0x6af, 0x6b3, 0x6b7, 0x6bb, m)
+static void setup_4a3f40(int idx, int mode_a, int cnt_a, int cnt_b)
+{
+    int a, b;
+    base(0x2711, idx, 0x1e);
+    set32(fx.self, 0x26e, 0x01000000u);
+    set32(fx.self, 0x260, mode_a ? 0x100u : 0);
+    fx.obj[0x22] = (uint8_t)cnt_a;
+    fx.obj[0x21] = (uint8_t)cnt_b;
+    set16(fx.obj, 0x413, 1);
+    for (a = 0; a < 4; a++)
+        for (b = 0; b < 6; b++) {
+            CELL(0x650, a, b, 0);
+            CELL(0x290, a, b, 0);
+            CELL(0x470, a, b, 0);
+        }
+    OUTER(0);
+    set32(blk, 0, 0x11111111u);
+    set32(blk, 4, 0x22222222u);
+    set32(blk, 8, 0x33333333u);
+    set32(blk, 12, 0x44444444u);
+}
+static int32_t run_4a3f40(int16_t x, int16_t y)
+{
+    begin();
+    if (get32(fx.self, 0x26e) != 0) {
+        X16(0x278, 0xffff);
+        X16(0x276, 0xffff);
+        X32(0x280, get32(blk, 0));
+        X32(0x284, get32(blk, 4));
+        X32(0x288, get32(blk, 8));
+        X32(0x28c, get32(blk, 12));
+    }
+    return m4a3f40_hit_test(fx.self, x, y, blk, &fx.w, &fx.host);
+}
+/* `pre` = 1 when 0x4a3beb ran first; then, when `event` is non-zero, one call 0x4a42c0(event, b, a) */
+static void expect_calls_4a3f40(int pre, uint32_t event, uint32_t b, uint32_t a)
+{
+    CK(L.n == pre + (event != 0 ? 1 : 0));
+    if (pre) {
+        check_call(0, 0x4a3beb, (uintptr_t)fx.self, 0);
+        CK(get16x(L.c[0].snap_self, 0x278) == 0xffff && get32(L.c[0].snap_self, 0x280) == 0x11111111u && get32(L.c[0].snap_self, 0x28c) == 0x44444444u);
+    }
+    if (event != 0) {
+        check_call(pre, 0x4a42c0, (uintptr_t)fx.self, 3);
+        check_arg(pre, 0, event, 0xffffffffu);
+        check_arg(pre, 1, b, 0xffffffffu);
+        check_arg(pre, 2, a, 0xffffffffu);
+        CK(get16x(L.c[pre].snap_self, 0x276) == 0xffff && get32(L.c[pre].snap_self, 0x288) == 0x33333333u);
+    }
+}
+
+static int test_m4a3f40_hit_test(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const uint32_t gates[4] = {0, 0x100, 0x80000000u, 0xff};
+    static const int edges[3] = {0, -1, -128};
+    int ii, k, v;
+    int32_t r;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        /* the gate is the whole dword [+0x26e]: zero returns 0 at once (nothing stored, no call) */
+        for (v = 0; v < 4; v++) {
+            setup_4a3f40(idx, 1, 4, 6);
+            CELL(0x650, 0, 0, -1);
+            set32(fx.self, 0x26e, gates[v]);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == (v != 0 ? 1 : 0));
+            if (v == 0) CK(L.n == 0);
+            else expect_calls_4a3f40(1, 0x274d, 0, 0);
+        }
+        /* [+0x260] != 0: the cell (a, b) of base 0x650, each side one short misses (the scan ends with 0), the others miss too */
+        for (k = -1; k < 4; k++) {
+            setup_4a3f40(idx, 1, 3, 4);
+            CELL(0x650, 2, 3, k);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == (k == -1 ? 1 : 0));
+            expect_calls_4a3f40(1, k == -1 ? 0x274d : 0, 3, 2);
+        }
+        /* the dword [+0x260] is tested whole; the regions 0x290 and 0x470 are not looked at in this mode */
+        setup_4a3f40(idx, 1, 4, 6);
+        set32(fx.self, 0x260, 0x01000000u);
+        CELL(0x290, 0, 0, -1);
+        CELL(0x470, 0, 0, -1);
+        OUTER(-1);
+        r = run_4a3f40(5, 5);
+        check_mem();
+        CK(r == 0);
+        expect_calls_4a3f40(1, 0, 0, 0);
+        /* the counts limit the scan (a < ro[+0x22], b < ro[+0x21]); signed bytes: 0, -1, -128 scan nothing; order: a is the outer loop */
+        for (v = 0; v < 4; v++) {
+            static const int ca[4] = {2, 3, 4, 4}, cb[4] = {6, 6, 3, 4}, ea[4] = {2, 2, 3, 3}, eb[4] = {1, 1, 3, 3};
+            int ok = v == 1 || v == 3;
+            setup_4a3f40(idx, 1, ca[v], cb[v]);
+            CELL(0x650, ea[v], eb[v], -1);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == (ok ? 1 : 0));
+            expect_calls_4a3f40(1, ok ? 0x274d : 0, (uint32_t)eb[v], (uint32_t)ea[v]);
+        }
+        for (v = 0; v < 6; v++) {
+            setup_4a3f40(idx, 1, v < 3 ? edges[v] : 4, v < 3 ? 6 : edges[v - 3]);
+            CELL(0x650, 0, 0, -1);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == 0);
+            expect_calls_4a3f40(1, 0, 0, 0);
+        }
+        /* the first cell in scan order wins: (0, 5) before (1, 0); (1, 0) before (1, 2) */
+        setup_4a3f40(idx, 1, 4, 6);
+        CELL(0x650, 1, 0, -1);
+        CELL(0x650, 0, 5, -1);
+        r = run_4a3f40(5, 5);
+        check_mem();
+        CK(r == 1);
+        expect_calls_4a3f40(1, 0x274d, 5, 0);
+        /* [+0x260] == 0: the outer rectangle after an empty scan (each side one short misses; inside gives 0x4a42c0(0x274f, 0, 0)) */
+        for (k = -1; k < 4; k++) {
+            setup_4a3f40(idx, 0, 4, 6);
+            OUTER(k);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == (k == -1 ? 1 : 0));
+            expect_calls_4a3f40(0, k == -1 ? 0x274f : 0, 0, 0);
+        }
+        /* the cell of base 0x290 needs the word ro[+0x413] != 0 (also with the low byte zero), the cell of base 0x470 does not; at one (a, b) 0x290
+         * comes first; an earlier (a, b) of base 0x470 beats a later 0x290; each side one short misses */
+        for (v = 0; v < 4; v++) {
+            static const uint16_t w413[4] = {1, 0x8000, 0x100, 0};
+            setup_4a3f40(idx, 0, 4, 6);
+            set16(fx.obj, 0x413, w413[v]);
+            set16(fx.obj, 0x415, 0xffff);
+            CELL(0x290, 1, 2, -1);
+            CELL(0x470, 1, 2, -1);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == 1);
+            expect_calls_4a3f40(0, v == 3 ? 0x274c : 0x274e, 2, 1);
+        }
+        setup_4a3f40(idx, 0, 4, 6);
+        CELL(0x470, 1, 1, -1);
+        CELL(0x290, 1, 2, -1);
+        r = run_4a3f40(5, 5);
+        check_mem();
+        CK(r == 1);
+        expect_calls_4a3f40(0, 0x274c, 1, 1);
+        for (k = 0; k < 8; k++) {
+            setup_4a3f40(idx, 0, 4, 6);
+            if (k < 4) CELL(0x290, 3, 5, k);
+            else CELL(0x470, 3, 5, k - 4);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == 0);
+            expect_calls_4a3f40(0, 0, 0, 0);
+        }
+        for (k = 0; k < 2; k++) {              /* the last cell (3, 5) hits in either region */
+            setup_4a3f40(idx, 0, 4, 6);
+            CELL(k ? 0x470 : 0x290, 3, 5, -1);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == 1);
+            expect_calls_4a3f40(0, k ? 0x274c : 0x274e, 5, 3);
+        }
+        /* the counts also limit the 0x290/0x470 scan, and the outer rectangle is then tried: counts 0, -1, -128 */
+        for (v = 0; v < 6; v++) {
+            setup_4a3f40(idx, 0, v < 3 ? edges[v] : 4, v < 3 ? 6 : edges[v - 3]);
+            CELL(0x290, 0, 0, -1);
+            CELL(0x470, 0, 0, -1);
+            OUTER(-1);
+            r = run_4a3f40(5, 5);
+            check_mem();
+            CK(r == 1);
+            expect_calls_4a3f40(0, 0x274f, 0, 0);
+        }
+        /* signed compares: the point (-32768, -1) in a cell given as signed dwords */
+        setup_4a3f40(idx, 1, 1, 1);
+        set32(fx.self, 0x650, 0xffff8000u);
+        set32(fx.self, 0x650 + 4, 0xffffffffu);
+        set32(fx.self, 0x650 + 8, 0xffff8000u);
+        set32(fx.self, 0x650 + 12, 0xffffffffu);
+        begin();
+        X16(0x278, 0xffff);
+        X16(0x276, 0xffff);
+        X32(0x280, get32(blk, 0));
+        X32(0x284, get32(blk, 4));
+        X32(0x288, get32(blk, 8));
+        X32(0x28c, get32(blk, 12));
+        r = m4a3f40_hit_test(fx.self, (int16_t)0x8000, (int16_t)0xffff, blk, &fx.w, &fx.host);
+        check_mem();
+        CK(r == 1);
+        expect_calls_4a3f40(1, 0x274d, 0, 0);
+    }
+    if (g_failed) printf("FAIL test_m4a3f40_hit_test: %s\n", g_msg);
+    else printf("PASS test_m4a3f40_hit_test\n");
+    return g_failed;
+}
+
 /* FL25B-TESTS-END */
 
 int main(void)
@@ -708,6 +913,7 @@ int main(void)
     int failures = 0;
     failures += test_m455180_hit_test();
     failures += test_m4cb058_hit_test();
+    failures += test_m4a3f40_hit_test();
     /* FL25B-MAIN-END */
     return failures;
 }

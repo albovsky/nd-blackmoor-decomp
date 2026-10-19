@@ -20,6 +20,7 @@ KERNELS = ['original_methods_fl25b.c']
 EXPECTED = [
     'test_m455180_hit_test',
     'test_m4cb058_hit_test',
+    'test_m4a3f40_hit_test',
     # EXPECTED-END
 ]
 
@@ -73,6 +74,10 @@ class Fl25bDirect(unittest.TestCase):
     def test_4cb058_hit_test(self):
         """FL-25b: direct test of m4cb058_hit_test"""
         self.check('test_m4cb058_hit_test')
+
+    def test_4a3f40_hit_test(self):
+        """FL-25b: direct test of m4a3f40_hit_test"""
+        self.check('test_m4a3f40_hit_test')
 
     # DIRECT-TESTS-END
 

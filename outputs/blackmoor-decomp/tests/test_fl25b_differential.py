@@ -137,6 +137,10 @@ class Fl25bDifferential(DiffBase):
         """FL-25b: differential test of m4cb058_hit_test (original 0x4cb058)"""
         self.run_key('4cb058')
 
+    def test_4a3f40_hit_test(self):
+        """FL-25b: differential test of m4a3f40_hit_test (original 0x4a3f40)"""
+        self.run_key('4a3f40')
+
     # DIFF-TESTS-END
 
 

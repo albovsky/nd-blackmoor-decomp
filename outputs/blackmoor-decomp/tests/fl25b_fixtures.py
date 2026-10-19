@@ -159,12 +159,13 @@ def mk_scenario(sp, key, rng, *, areas, g=None, stubs=None, iat=None, pointers=N
 SPECS = {
     '455180': dict(id=1, va=0x455180, size=827, selfsz=0x180, ret='eax', callee_pops=True, scen=640),
     '4cb058': dict(id=2, va=0x4cb058, size=851, selfsz=0x170, ret='eax', callee_pops=True, scen=720),
+    '4a3f40': dict(id=3, va=0x4a3f40, size=896, selfsz=0x900, ret='eax', callee_pops=True, scen=720),
     # SPECS-END
 }
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
 STUB_SHAPE = {0x45504b: dict(args=0, this=True, cleanup=0), 0x4554bb: dict(args=2, this=True, cleanup=8),
-              0x4ea06c: dict(args=1, this=True, cleanup=4)}
+              0x4ea06c: dict(args=1, this=True, cleanup=4), 0x4a3beb: dict(args=0, this=True, cleanup=0), 0x4a42c0: dict(args=3, this=True, cleanup=12)}
 WORD_ARGS = {0x4554bb: (1,), 0x4ea06c: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
 
@@ -535,6 +536,60 @@ def build_4cb058(sp, rng, n):
     stubs = {0x4ea06c: stub(0x4ea06c, probe=probes, **STUB_SHAPE[0x4ea06c])}
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '4cb058', rng, areas=areas, g=g, stubs=stubs, stack_args=[junk(x), junk(y)], profile=('x', prof))
+
+
+def build_4a3f40(sp, rng, n):
+    prof = n % 20
+    var = n // 20
+    d = bytearray(rng.randbytes(sp['selfsz']))
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    struct.pack_into('<h', d, 0x1e, idx)
+    struct.pack_into('<I', d, 0x26e, 0 if prof == 0 else rng.choice([1, 0x100, 0x01000000, 0x80000000, rng.randrange(1, 1 << 32)]))
+    mode_a = prof in (1, 2, 3, 4) or (prof == 0 and var % 2 == 0) or (prof >= 16 and var % 2 == 0)
+    struct.pack_into('<I', d, 0x260, rng.choice([1, 0x100, 0x01000000, 0x80000000, 0xffffffff]) if mode_a else 0)
+    x = rng.choice(COORDS)
+    y = rng.choice(COORDS)
+    cnt_a = rng.choice([1, 2, 3, 4])
+    cnt_b = rng.choice([1, 2, 3, 4, 5, 6])
+    edge = rng.choice([0, -1, -128, 0, -5])
+    if prof == 3 or (prof in (14, 15) and var % 3 == 0):
+        cnt_a = edge
+    if prof == 4 or (prof in (14, 15) and var % 3 == 1):
+        cnt_b = edge
+    # per profile: (inside probability of a cell in the regions 0x650, 0x290, 0x470, the word [ro+0x413] non-zero, the outer rectangle)
+    P = {1: (0, 0, 0, 1, 'x'), 2: (.3, 0, 0, 1, 'x'), 3: (1, 0, 0, 1, 'x'), 4: (1, 0, 0, 1, 'x'),
+         5: (0, 0, 0, 1, 'ylo'), 6: (0, 0, 0, 0, 'yhi'), 7: (0, 0, 0, 1, 'xlo'), 8: (0, 0, 0, 0, 'xhi'), 9: (0, 0, 0, 1, None),
+         10: (0, .3, .3, 1, 'x'), 11: (0, 1, .3, 0, 'x'), 12: (0, 0, .3, 1, 'x'), 13: (0, .3, 0, 1, 'x'), 14: (0, 0, 0, 1, None),
+         15: (0, 1, 0, 0, 'x')}.get(prof, (.3, .3, .3, rng.random() < .6, 'x'))
+    p650, p290, p470, w413nz, outer = P
+    obj = bytearray(rng.randbytes(0x1000))
+    struct.pack_into('<b', obj, 0x22, cnt_a)
+    struct.pack_into('<b', obj, 0x21, cnt_b)
+    if w413nz:
+        struct.pack_into('<H', obj, 0x413, rng.choice([1, 0x8000, 0x100, 0xffff, 0x7fff]))
+    else:
+        struct.pack_into('<H', obj, 0x413, 0)
+        obj[0x415] = rng.randrange(1, 256)
+        obj[0x416] = rng.randrange(1, 256)
+    for base, p in ((0x650, p650), (0x290, p290), (0x470, p470)):
+        for a in range(4):
+            for b in range(6):
+                mode = None if rng.random() < p else rng.choice(MODES)
+                put_rect(d, base + a * 0x60 + b * 16, (4, 0xc, 0, 8), x, y, rng, mode)
+    if outer == 'x':
+        outer = rng.choice([None, None, *MODES])
+    put_rect(obj, 0, (0x6b3, 0x6bb, 0x6af, 0x6b7), x, y, rng, outer)
+    rec = bytearray(rng.randbytes(6 * 0x8d))
+    for i in range(-1, 5):
+        struct.pack_into('<I', rec, (i + 1) * 0x8d, od.region_va(1) if i == idx else od.region_va(4))
+    block = bytearray(rng.randbytes(16))
+    areas = [Area('self', od.region_va(0), d, image=False), Area('records', RECORDS_VA - 0x8d, rec), Area('obj', od.region_va(1), obj, image=False),
+             Area('decoy', od.region_va(4), bytearray(rng.randbytes(0x1000)), image=False, compare=False),
+             Area('block', od.region_va(5), block, image=False, compare=False)]
+    stubs = {c: stub(c, probe=[('self', 0, 0x900)], **STUB_SHAPE[c]) for c in (0x4a3beb, 0x4a42c0)}
+    junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
+    return mk_scenario(sp, '4a3f40', rng, areas=areas, stubs=stubs, pointers={'records_5bb5e5': ('records', 0x8d)},
+                       stack_args=[junk(x), junk(y), od.region_va(5)], ptr_args={2: 'block'}, profile=('x', prof))
 
 
 # BUILDERS-END
