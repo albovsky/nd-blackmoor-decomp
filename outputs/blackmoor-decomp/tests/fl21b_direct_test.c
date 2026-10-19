@@ -750,6 +750,782 @@ static void test_m47f421_pointer_hit(void)
     }
 }
 
+/* ---- 0x48569e ---------------------------------------------------------------------------------------------------------------- */
+
+#define SL(k) ((size_t)(0x2a + 0x85 * (k)))   /* the slot k of the item array: 16 bytes at +0, 16 bytes at +0x10 */
+
+/* record 1 (the word [self+0x26]) is the object g_rec, its state dword is 1, the gates are open, the slot word [self+0xa9e] is 1; self and the
+ * record object are filled with a byte pattern so that every copy can be told from its source */
+static void key_setup(Fl21bWorld *w, uint32_t selector)
+{
+    size_t i;
+    for (i = 0; i < sizeof g_self; i++) g_self[i] = (uint8_t)(i * 13 + 5);
+    for (i = 0; i < sizeof g_rec; i++) g_rec[i] = (uint8_t)(i * 7 + 3);
+    memset(g_records, 0, sizeof g_records);
+    set32(g_records, 1 * REC, REC_VA);
+    set32(g_records, 1 * REC + 0x4d, 1);
+    memset(w, 0, sizeof *w);
+    w->records_5bb5e5 = g_records;
+    w->value_5c39e5 = selector;
+    set16(g_self, 0x26, 1);
+    set32(g_self, 0xba7, 1);
+    g_self[0xbb0] = 0;
+    set32(g_self, 0xbac, 0);
+    set32(g_self, 0xa92, 0);
+    set32(g_self, 0xa96, 9);
+    set32(g_self, 0xa9a, 8);
+    set16(g_self, 0xa9e, 1);
+    reset_log();
+    add_region(REC_VA, g_rec, sizeof g_rec);
+}
+
+static void key_run(Fl21bWorld *w)
+{
+    Fl18Host h = host();
+    m48569e_handle_key(g_self, w, &h);
+}
+
+static void test_m48569e_handle_key(void)
+{
+    Fl21bWorld w;
+    size_t k;
+    static const uint32_t selectors[] = {0x2779, 0x277c, 0x2778, 0x2777, 0x277b, 0x277a, 0x2776, 0, 0x2780};
+    /* each of the four gates alone stops everything: no call, nothing stored (every selector) */
+    for (k = 0; k < sizeof selectors / sizeof selectors[0]; k++) {
+        int gate;
+        for (gate = 0; gate < 5; gate++) {
+            key_setup(&w, selectors[k]);
+            if (gate == 0) set32(g_self, 0xba7, 0);
+            if (gate == 1) g_self[0xbb0] = 1;
+            if (gate == 2) set32(g_self, 0xbac, 0x100);   /* a non-zero dword with a zero low byte and word */
+            if (gate == 3) set32(g_records, REC + 0x4d, 0);
+            if (gate == 4) set32(g_records, REC + 0x4d, 2);
+            memcpy(g_exp, g_self, sizeof g_self);
+            key_run(&w);
+            CK(L.n == 0 && memcmp(g_self, g_exp, sizeof g_self) == 0);
+            CK(get32(g_records, REC + 0x4d) == (gate == 3 ? 0u : gate == 4 ? 2u : 1u));
+        }
+    }
+    /* the dword [self+0xba7] is tested as a whole: a value with a zero low byte still passes; and an unknown selector does nothing */
+    key_setup(&w, 0x2779);
+    set32(g_self, 0xba7, 0x01000000);
+    key_run(&w);
+    CK(g_self[0xbab] == 1 && get32(g_records, REC + 0x4d) == 2);
+    key_setup(&w, 0x2776);
+    memcpy(g_exp, g_self, sizeof g_self);
+    key_run(&w);
+    CK(L.n == 0 && memcmp(g_self, g_exp, sizeof g_self) == 0 && get32(g_records, REC + 0x4d) == 1);
+    /* 0x2779: byte [self+0xbab] := 1 and the state := 2, no call */
+    key_setup(&w, 0x2779);
+    g_self[0xbab] = 0;
+    memcpy(g_exp, g_self, sizeof g_self);
+    g_exp[0xbab] = 1;
+    key_run(&w);
+    CK(L.n == 0 && memcmp(g_self, g_exp, sizeof g_self) == 0 && get32(g_records, REC + 0x4d) == 2);
+    /* 0x277c: dword [self+0xc2b] := 1 (a dword store), nothing else */
+    key_setup(&w, 0x277c);
+    memcpy(g_exp, g_self, sizeof g_self);
+    set32(g_exp, 0xc2b, 1);
+    key_run(&w);
+    CK(L.n == 0 && memcmp(g_self, g_exp, sizeof g_self) == 0 && get32(g_records, REC + 0x4d) == 1);
+    /* 0x2778 with 0x484622 answering -1 in the low word (the high word is junk): the call only */
+    key_setup(&w, 0x2778);
+    queue_return(0x484622, 0x1ffff);
+    memcpy(g_exp, g_self, sizeof g_self);
+    key_run(&w);
+    CK(L.n == 1 && is_call(0, 0x484622, (uintptr_t)g_self, 0) && memcmp(g_self, g_exp, sizeof g_self) == 0);
+    /* 0x2778 with slot 2 (the high word junk): 0x484622, 0x4853b0 with the word 2, 0x485f12, then [0xa92] := 1, [0xa9e] := 2 and the extent words */
+    key_setup(&w, 0x2778);
+    queue_return(0x484622, 0x7777u << 16 | 2u);
+    set32(g_self, SL(2) + 0, 10);
+    set32(g_self, SL(2) + 4, 7);
+    set32(g_self, SL(2) + 8, 50);
+    set32(g_self, SL(2) + 0xc, 100);
+    add_probe(g_self + 0xa90, 0x10);
+    memcpy(g_exp, g_self, sizeof g_self);
+    set32(g_exp, 0xa92, 1);
+    set16(g_exp, 0xa9e, 2);
+    set16(g_exp, 0xbc5, 40);
+    set16(g_exp, 0xbc7, 93);
+    key_run(&w);
+    CK(L.n == 3 && is_call(0, 0x484622, (uintptr_t)g_self, 0) && is_call(1, 0x4853b0, (uintptr_t)g_self, 1) && (L.c[1].a[0] & 0xffff) == 2 &&
+       is_call(2, 0x485f12, (uintptr_t)g_self, 0));
+    CK(get16(L.c[2].probe, 0xe) == 1 && get32(L.c[2].probe, 2) == 0);   /* nothing is stored yet at the calls: slot still 1, [0xa92] still 0 */
+    CK(memcmp(g_self, g_exp, sizeof g_self) == 0);
+    /* the extent words are the low 16 bits of the dword differences */
+    key_setup(&w, 0x2778);
+    queue_return(0x484622, 0);
+    set32(g_self, SL(0) + 0, 5);
+    set32(g_self, SL(0) + 4, 0xfffffff0u);
+    set32(g_self, SL(0) + 8, 0x12345u + 5u);
+    set32(g_self, SL(0) + 0xc, 0x10);
+    key_run(&w);
+    CK(get16(g_self, 0xbc5) == 0x2345 && get16(g_self, 0xbc7) == 0x20 && get16(g_self, 0xa9e) == 0 && get32(g_self, 0xa92) == 1);
+    /* 0x2777 with the dword [self+0xa92] non-zero: not this branch, and 0x2777 is none of the others: nothing */
+    key_setup(&w, 0x2777);
+    set32(g_self, 0xa92, 1);
+    memcpy(g_exp, g_self, sizeof g_self);
+    key_run(&w);
+    CK(L.n == 0 && memcmp(g_self, g_exp, sizeof g_self) == 0);
+    /* 0x2777 with 0x4846c2 answering -1: the two calls only */
+    key_setup(&w, 0x2777);
+    queue_return(0x4846c2, 0x2ffff);
+    memcpy(g_exp, g_self, sizeof g_self);
+    key_run(&w);
+    CK(L.n == 2 && is_call(0, 0x485ca1, (uintptr_t)g_self, 0) && is_call(1, 0x4846c2, (uintptr_t)g_self, 0) && memcmp(g_self, g_exp, sizeof g_self) == 0);
+    /* 0x2777 with slot 1 and 0x484f0d answering 0: the slot is copied to [0xae0] before the call, the call gets rec + 1 * 0x42 + 0x8f, the
+     * slot stays, the extent words come from the slot, [0xa92] := 1 */
+    {
+        int result;
+        for (result = 0; result < 3; result++) {
+            key_setup(&w, 0x2777);
+            queue_return(0x4846c2, 0x5555u << 16 | 1u);
+            queue_return(0x484f0d, result == 0 ? 0u : result == 1 ? 1u : 0x10000u);   /* a dword test: 0x10000 is non-zero */
+            add_probe(g_self + 0xa90, 0x10);
+            add_probe(g_self + 0xae0, 0x10);
+            add_probe(g_self + SL(1), 0x10);
+            memcpy(g_exp, g_self, sizeof g_self);
+            set16(g_exp, 0xa9e, 1);
+            set32(g_exp, 0xa9a, 1);
+            memcpy(g_exp + 0xae0, g_self + SL(1), 16);
+            if (result != 0) memcpy(g_exp + SL(1), g_rec + 0x42 + 0x8f, 16);
+            set16(g_exp, 0xbc5, (uint16_t)(get32(g_exp, SL(1) + 8) - get32(g_exp, SL(1) + 0)));
+            set16(g_exp, 0xbc7, (uint16_t)(get32(g_exp, SL(1) + 0xc) - get32(g_exp, SL(1) + 4)));
+            set32(g_exp, 0xa92, 1);
+            key_run(&w);
+            CK(L.n == 3 && is_call(0, 0x485ca1, (uintptr_t)g_self, 0) && is_call(1, 0x4846c2, (uintptr_t)g_self, 0) && is_call(2, 0x484f0d, (uintptr_t)g_self, 1));
+            CK(L.c[2].a[0] == REC_VA + 0x42 + 0x8f);
+            CK(get16(L.c[2].probe, 0xe) == 1 && get32(L.c[2].probe, 0xa) == 1);              /* [0xa9e], [0xa9a] are set at the call */
+            CK(memcmp(L.c[2].probe + 0x10, g_self + 0, 0) == 0 && memcmp(L.c[2].probe + 0x10, L.c[2].probe + 0x20, 16) == 0);   /* [0xae0] = the slot */
+            CK(memcmp(g_self, g_exp, sizeof g_self) == 0);
+        }
+    }
+    /* 0x277b: the branch A, selector 0x277b with rec[0x2d] == 0 */
+    {
+        int variant;
+        for (variant = 0; variant < 7; variant++) {
+            /* 0: 0x277b, rec[0x2d] == 0 -> A. 1: 0x277b, rec[0x2d] != 0 and the word matches (c25 = 2, word at rec + 0x2e + 4 == 2) -> A.
+             * 2: 0x277b, mismatch (word 3), rec[0x23] != 0 -> B. 3: 0x277b, mismatch, rec[0x23] == 0 -> C. 4: 0x277a, rec[0x2d] == 0,
+             * rec[0x23] != 0 -> B (the selector 0x277a never takes A). 5: 0x277a, rec[0x23] == 0 -> C. 6: A with c25 = 0xffff (the word wraps to 0). */
+            uint32_t sel = (variant == 4 || variant == 5) ? 0x277a : 0x277b;
+            int a_branch = variant == 0 || variant == 1 || variant == 6;
+            key_setup(&w, sel);
+            set32(g_self, 0xa92, 7);
+            set32(g_self, 0xb83, 0x55);
+            set16(g_self, 0xc25, 0);
+            g_rec[0x2d] = (variant == 0 || variant == 4 || variant == 5 || variant == 6) ? 0 : 1;
+            g_rec[0x23] = (variant == 3 || variant == 5) ? 0 : 1;
+            if (variant == 1 || variant == 2 || variant == 3) {
+                set16(g_self, 0xc25, 2);
+                set16(g_rec, 0x2e + 4, variant == 1 ? 2 : 3);
+            }
+            if (variant == 6) set16(g_self, 0xc25, 0xffff);
+            add_probe(g_self + 0xa90, 0x10);
+            add_probe(g_self + SL(1), 0x84);
+            add_probe(g_self + 0xb83, 4);
+            add_probe(g_self + 0xc25, 2);
+            memcpy(g_exp, g_self, sizeof g_self);
+            set32(g_exp, 0xa92, 0);
+            set32(g_exp, 0xa96, 1);
+            if (a_branch) {
+                memcpy(g_exp + SL(1), g_rec + 0x42 + 0x9f, 16);
+                g_exp[SL(1) + 0x21] = 1;
+                g_exp[SL(1) + 0x82] = 1;
+                set32(g_exp, 0xb83, 1);
+                set16(g_exp, 0xc25, (uint16_t)(get16(g_self, 0xc25) + 1u));
+            } else if (g_rec[0x23] != 0) {
+                memcpy(g_exp + SL(1), g_rec + 0x42 + 0xaf, 16);
+                g_exp[SL(1) + 0x20] = g_rec[0x42 + 0xbf];
+                g_exp[SL(1) + 0x82] = 0;
+                set32(g_exp, 0xb83, 0);
+            } else {
+                memcpy(g_exp + SL(1), g_self + 0xaa0, 16);
+                memcpy(g_exp + SL(1) + 0x10, g_self + 0xac0, 16);
+                g_exp[SL(1) + 0x82] = 1;
+                set32(g_exp, 0xb83, 0);
+            }
+            set16(g_exp, 0xa9e, 0xffff);
+            key_run(&w);
+            CK(L.n == (a_branch || g_rec[0x23] != 0 ? 3 : 2));
+            CK(is_call(0, 0x485d52, (uintptr_t)g_self, 0));
+            /* at 0x485d52 nothing has changed yet */
+            CK(get32(L.c[0].probe, 2) == 7 && get32(L.c[0].probe, 6) == 9);
+            if (L.n == 3) {
+                CK(is_call(1, 0x4841cb, (uintptr_t)g_self, 2) && L.c[1].a[0] == (uintptr_t)(g_self + SL(1)) && L.c[1].a[1] == (uintptr_t)(g_self + SL(1) + 0x10));
+                CK(is_call(2, 0x484935, (uintptr_t)g_self, 1) && (L.c[2].a[0] & 0xffff) == 1);
+                /* at 0x4841cb: the flags are reset, the slot is already copied; the slot bytes +0x21/+0x20 and +0x82 and [0xb83] are still the old ones */
+                CK(get32(L.c[1].probe, 2) == 0 && get32(L.c[1].probe, 6) == 1 && get16(L.c[1].probe, 0xe) == 1);
+                CK(memcmp(L.c[1].probe + 0x10, g_exp + SL(1), 16) == 0);
+                CK(L.c[1].probe[0x10 + 0x21] == (uint8_t)((SL(1) + 0x21) * 13 + 5) && L.c[1].probe[0x10 + 0x82] == (uint8_t)((SL(1) + 0x82) * 13 + 5));
+                CK(get32(L.c[1].probe, 0x94) == 0x55);
+                /* at 0x484935 everything is stored but the slot word, which is cleared afterwards */
+                CK(get16(L.c[2].probe, 0xe) == 1 && memcmp(L.c[2].probe + 0x10, g_exp + SL(1), 0x84) == 0 && get32(L.c[2].probe, 0x94) == get32(g_exp, 0xb83) &&
+                   get16(L.c[2].probe, 0x98) == get16(g_exp, 0xc25));
+            } else {
+                CK(is_call(1, 0x484935, (uintptr_t)g_self, 1) && (L.c[1].a[0] & 0xffff) == 1 && get16(L.c[1].probe, 0xe) == 1);
+            }
+            CK(memcmp(g_self, g_exp, sizeof g_self) == 0);
+        }
+    }
+    /* the high bits of a9e are not part of the argument: the argument is the word, zero-extended */
+    key_setup(&w, 0x277a);
+    g_rec[0x23] = 0;
+    set16(g_self, 0xa9e, 0);
+    key_run(&w);
+    CK(L.n == 2 && (L.c[1].a[0] & 0xffff0000u) == 0 && (L.c[1].a[0] & 0xffff) == 0 && get16(g_self, 0xa9e) == 0xffff);
+}
+
+/* ---- 0x44e035 ---------------------------------------------------------------------------------------------------------------- */
+
+typedef struct Pair {
+    uint32_t src, dst, konst;
+    uint32_t t;              /* the first argument of 0x4c5377 when it is not the table dword (the outline loop) */
+} Pair;
+
+static uint8_t g_table[0x4a * 4 + 0x20];
+
+#define TDW 0xaaaa0002u    /* the dword of the table record 2 */
+#define V665 0xc0de0665u
+#define V5E3 0xc0de15e3u
+
+static void panel_setup(Fl21bWorld *w, uint32_t mode, uint32_t sub)
+{
+    int i;
+    memset(w, 0, sizeof *w);
+    memset(g_records, 0, sizeof g_records);
+    memset(g_table, 0x11, sizeof g_table);
+    set32(g_records, 2 * REC, REC_VA);
+    set32(g_table, 0x4a * 1, 0xaaaa0001u);
+    set32(g_table, 0x4a * 2, TDW);
+    w->records_5bb5e5 = g_records;
+    w->table_5d1599 = g_table;
+    w->word_624cdd = 2;
+    w->word_624cdb = 2;
+    w->value_5cf665 = V665;
+    w->value_5d15e3 = V5E3;
+    w->value_624cec = mode;
+    w->value_624cf0 = sub;
+    w->word_624cf4 = 3;
+    w->word_624cf6 = 2;
+    w->value_624cf8 = 1;
+    w->word_624cfc = 5;
+    w->word_624cfe = 4;
+    w->value_624d00 = 0;
+    w->value_624d04 = 0;
+    w->byte_624ce3 = 0x77;
+    reset_log();
+    /* 0x44d9b5 writes the first and the fourth dword of the rectangle through its second argument, a different value in every call */
+    for (i = 0; i < 10; i++) {
+        queue_write(0x44d9b5, i, 1, 0, 4, 0x1000u + (uint32_t)i);
+        queue_write(0x44d9b5, i, 1, 12, 4, 0x2000u + (uint32_t)i);
+    }
+}
+
+/* the calls 2k (0x44d9b5) and 2k + 1 (0x4c5377) of every pair, in order */
+static int check_pairs(const Pair *p, int n)
+{
+    int k;
+    uintptr_t rp = 0;
+    if (L.n != 2 * n) return 0;
+    for (k = 0; k < n; k++) {
+        const Call *a = &L.c[2 * k], *b = &L.c[2 * k + 1];
+        uint32_t prev0 = k == 0 ? 0u : 0x1000u + (uint32_t)(k - 1), prev3 = k == 0 ? 0u : 0x2000u + (uint32_t)(k - 1);
+        if (!is_call(2 * k, 0x44d9b5, 0x624cbf, 2) || !is_call(2 * k + 1, 0x4c5377, 0x5cf659, 5)) return 0;
+        if (a->a[0] != (uintptr_t)(REC_VA + p[k].src)) return 0;
+        if (rp == 0) rp = a->a[1];
+        if (a->a[1] != rp || b->a[3] != rp || rp < 0x100000000ull) return 0;
+        /* the rectangle as the first callee receives it (the previous pair's) and as the second callee sees it */
+        if (get32(a->pd[1], 0) != prev0 || get32(a->pd[1], 4) != 0 || get32(a->pd[1], 8) != 0 || get32(a->pd[1], 12) != prev3) return 0;
+        if (get32(b->pd[3], 0) != 0x1000u + (uint32_t)k || get32(b->pd[3], 4) != 0 || get32(b->pd[3], 8) != 0 || get32(b->pd[3], 12) != 0x2000u + (uint32_t)k) return 0;
+        if (b->a[0] != (p[k].t != 0 ? p[k].t : TDW) || b->a[1] != V665 || b->a[2] != (uintptr_t)(REC_VA + p[k].dst) || b->a[4] != p[k].konst) return 0;
+    }
+    return 1;
+}
+
+static void panel_run(Fl21bWorld *w)
+{
+    Fl18Host h = host();
+    m44e035_draw_panel(w, &h);
+}
+
+static void test_m44e035_draw_panel(void)
+{
+    Fl21bWorld w;
+    int k;
+    /* plain (mode 0), flag set: the four standard parts; a = 3, b = 2 -> 0x131 and 0xe1 */
+    panel_setup(&w, 0, 0);
+    {
+        static const Pair p[] = {{0x41, 0x1c1, 0x549614, 0}, {0xb1, 0x241, 0x54962c, 0}, {0x31, 0x131, 0x549660, 0}, {0x21, 0xe1, 0x54967c, 0}};
+        add_probe(&w.value_624d04, 4);
+        add_probe(&w.byte_624ce3, 1);
+        panel_run(&w);
+        CK(check_pairs(p, 4));
+        CK(w.byte_624ce3 == 0 && w.value_624d04 == 0);
+        CK(L.c[0].probe[4] == 0x77 && L.c[7].probe[4] == 0x77);   /* the byte is cleared last */
+    }
+    /* plain, flag clear: the other pair of the first part */
+    panel_setup(&w, 0, 0);
+    w.value_624cf8 = 0;
+    {
+        static const Pair p[] = {{0x41, 0x1d1, 0x549620, 0}, {0xb1, 0x241, 0x54962c, 0}, {0x31, 0x131, 0x549660, 0}, {0x21, 0xe1, 0x54967c, 0}};
+        panel_run(&w);
+        CK(check_pairs(p, 4) && w.byte_624ce3 == 0);
+    }
+    /* mode 8 is plain as well; the flag is a dword: a value with a zero low word still counts */
+    panel_setup(&w, 8, 0);
+    w.value_624cf8 = 0x10000;
+    {
+        static const Pair p[] = {{0x41, 0x1c1, 0x549614, 0}, {0xb1, 0x241, 0x54962c, 0}, {0x31, 0x131, 0x549660, 0}, {0x21, 0xe1, 0x54967c, 0}};
+        panel_run(&w);
+        CK(check_pairs(p, 4));
+    }
+    /* mode 1, 3, 7, 9 and 0x80000000 are not plain: the second selector pair (cfc, cfe) and flag (d00), and the other part-2 record */
+    {
+        static const uint32_t modes[] = {1, 3, 7, 9, 0x80000000u, 0x100};
+        for (k = 0; k < 6; k++) {
+            int flag;
+            for (flag = 0; flag < 2; flag++) {
+                panel_setup(&w, modes[k], 8);   /* (the sub-mode only matters for mode 2) */
+                w.value_624d00 = flag ? 0x20000u : 0;
+                w.value_624cf8 = flag ? 0 : 1;
+                {
+                    Pair p[4];
+                    p[0].src = 0x41; p[0].dst = flag ? 0x1c1 : 0x1d1; p[0].konst = flag ? 0x549614 : 0x549620; p[0].t = 0;
+                    p[1].src = 0xb1; p[1].dst = 0x251; p[1].konst = 0x549644; p[1].t = 0;
+                    p[2].src = 0x31; p[2].dst = 0x151; p[2].konst = 0x549660; p[2].t = 0;    /* 5 * 16 + 0x101 */
+                    p[3].src = 0x21; p[3].dst = 0x101; p[3].konst = 0x54967c; p[3].t = 0;    /* 4 * 16 + 0xc1 */
+                    panel_run(&w);
+                    CK(check_pairs(p, 4) && w.byte_624ce3 == 0);
+                }
+            }
+        }
+    }
+    /* mode 2: plain only when the sub-mode is 8 (then the extra pair 0x81 / 0x211 follows); otherwise the switch on the sub-mode */
+    {
+        static const uint32_t subs[] = {8, 1, 0, 6, 3, 4, 2, 5, 7, 9, 0x100, 0x80000008u, 0xffffffffu};
+        for (k = 0; k < 13; k++) {
+            Pair p[5];
+            int n = 4;
+            int plain = subs[k] == 8;
+            panel_setup(&w, 2, subs[k]);
+            w.value_624d04 = 5;   /* never touched in mode 2 */
+            p[0].src = 0x41; p[0].dst = 0x1c1; p[0].konst = 0x549614; p[0].t = 0;
+            p[1].src = 0xb1; p[1].dst = plain ? 0x241 : 0x251; p[1].konst = plain ? 0x54962c : 0x549644; p[1].t = 0;
+            p[2].src = 0x31; p[2].dst = plain ? 0x131 : 0x151; p[2].konst = 0x549660; p[2].t = 0;
+            p[3].src = 0x21; p[3].dst = plain ? 0xe1 : 0x101; p[3].konst = 0x54967c; p[3].t = 0;
+            if (!plain) {
+                w.value_624d00 = 0;    /* flag from d00: clear -> 0x1d1 */
+                p[0].dst = 0x1d1;
+                p[0].konst = 0x549620;
+            }
+            switch (subs[k]) {
+            case 8: p[4].src = 0x81; p[4].dst = 0x211; p[4].konst = 0x54969c; n = 5; break;
+            case 1: p[4].src = 0x61; p[4].dst = 0x1f1; p[4].konst = 0x5496b0; n = 5; break;
+            case 0: p[4].src = 0x51; p[4].dst = 0x1e1; p[4].konst = 0x5496c8; n = 5; break;
+            case 6: p[4].src = 0x71; p[4].dst = 0x201; p[4].konst = 0x5496e0; n = 5; break;
+            case 3: p[4].src = 0x91; p[4].dst = 0x221; p[4].konst = 0x5496f8; n = 5; break;
+            case 4: p[4].src = 0xa1; p[4].dst = 0x231; p[4].konst = 0x549714; n = 5; break;
+            default: break;
+            }
+            p[4].t = 0;
+            panel_run(&w);
+            CK(check_pairs(p, n));
+            CK(w.value_624d04 == 5 && w.byte_624ce3 == 0);
+        }
+    }
+    /* mode not 2 and the redraw flag set: the six outline pairs with the dword 0x5d15e3, then the flag is cleared (it is still set at every call) */
+    {
+        static const uint32_t modes[] = {0, 1, 8, 4};
+        for (k = 0; k < 4; k++) {
+            Pair p[10];
+            static const uint32_t offs[6] = {0x81, 0x61, 0x51, 0x71, 0x91, 0xa1};
+            static const uint32_t konsts[6] = {0x549730, 0x54973c, 0x54974c, 0x54975c, 0x54976c, 0x549780};
+            int plain = modes[k] == 0 || modes[k] == 8, j;
+            panel_setup(&w, modes[k], 0);
+            w.value_624d04 = 0x30000;
+            add_probe(&w.value_624d04, 4);
+            w.value_624d00 = 1;
+            p[0].src = 0x41; p[0].dst = plain ? 0x1c1 : 0x1c1; p[0].konst = 0x549614; p[0].t = 0;
+            p[1].src = 0xb1; p[1].dst = plain ? 0x241 : 0x251; p[1].konst = plain ? 0x54962c : 0x549644; p[1].t = 0;
+            p[2].src = 0x31; p[2].dst = plain ? 0x131 : 0x151; p[2].konst = 0x549660; p[2].t = 0;
+            p[3].src = 0x21; p[3].dst = plain ? 0xe1 : 0x101; p[3].konst = 0x54967c; p[3].t = 0;
+            for (j = 0; j < 6; j++) {
+                p[4 + j].src = offs[j];
+                p[4 + j].dst = offs[j];
+                p[4 + j].konst = konsts[j];
+                p[4 + j].t = V5E3;
+            }
+            panel_run(&w);
+            CK(check_pairs(p, 10));
+            CK(w.value_624d04 == 0 && w.byte_624ce3 == 0);
+            for (j = 0; j < L.n; j++) CK(get32(L.c[j].probe, 0) == 0x30000u);
+        }
+    }
+    /* the selectors are signed words: a = 0xfffe is -2, b = 0x8000 is -32768 (the shift and the add wrap in 32 bits) */
+    panel_setup(&w, 0, 0);
+    w.word_624cf4 = 0xfffe;
+    w.word_624cf6 = 0x8000;
+    {
+        Pair p[4];
+        p[0].src = 0x41; p[0].dst = 0x1c1; p[0].konst = 0x549614; p[0].t = 0;
+        p[1].src = 0xb1; p[1].dst = 0x241; p[1].konst = 0x54962c; p[1].t = 0;
+        p[2].src = 0x31; p[2].dst = 0xe1; p[2].konst = 0x549660; p[2].t = 0;
+        p[3].src = 0x21; p[3].dst = 0xfff800c1u; p[3].konst = 0x54967c; p[3].t = 0;
+        panel_run(&w);
+        CK(check_pairs(p, 4));
+    }
+    /* other record and table indices: record 1's address and table record 1 */
+    panel_setup(&w, 0, 0);
+    set32(g_records, 1 * REC, 0x00ee0000u);
+    w.word_624cdd = 1;
+    w.word_624cdb = 1;
+    panel_run(&w);
+    CK(L.n == 8 && L.c[0].a[0] == 0x00ee0000u + 0x41 && L.c[1].a[0] == 0xaaaa0001u && L.c[1].a[2] == 0x00ee0000u + 0x1c1);
+}
+
+/* ---- 0x44da08 ---------------------------------------------------------------------------------------------------------------- */
+
+static uint8_t g_tab[0x20 + 0x4a * 4 + 0x80], g_exptab[sizeof g_tab], g_flags[0x100], g_expfl[0x100], g_consts[0x60];
+#define TAB(n) ((size_t)0x20 + (size_t)(n) * 0x4a)   /* offset of the entry n in g_tab (0x20 bytes of slack below) */
+
+/* record `index` is the object g_rec in the given state; self, the record object, the table and the flag table are filled with byte patterns so
+ * that every copy can be told from its source; the world globals hold recognisable values. The nine-byte constants are "ABCDEFGHI" (0x5495f0),
+ * "JKLMNOPQR" (0x5495fc) and "STUVWXYZ0" (0x549608); the string at 0x5495bc is "hello". */
+static void run_setup(Fl21bWorld *w, int16_t index, uint32_t state)
+{
+    size_t i;
+    for (i = 0; i < sizeof g_self; i++) g_self[i] = (uint8_t)(i * 13 + 5);
+    for (i = 0; i < sizeof g_rec; i++) g_rec[i] = (uint8_t)(i * 7 + 3);
+    for (i = 0; i < sizeof g_tab; i++) g_tab[i] = (uint8_t)(i * 3 + 1);
+    for (i = 0; i < sizeof g_flags; i++) g_flags[i] = (uint8_t)(i * 5 + 2);
+    memset(g_consts, 0, sizeof g_consts);
+    strcpy((char *)g_consts, "hello");
+    memcpy(g_consts + 0x34, "ABCDEFGHI", 9);
+    memcpy(g_consts + 0x40, "JKLMNOPQR", 9);
+    memcpy(g_consts + 0x4c, "STUVWXYZ0", 9);
+    memset(g_records, 0, sizeof g_records);
+    set32(g_records, (size_t)index * REC, REC_VA);
+    set32(g_records, (size_t)index * REC + 0x4d, state);
+    memset(w, 0, sizeof *w);
+    w->records_5bb5e5 = g_records;
+    w->table_5d1599 = g_tab + 0x20;
+    w->flags_585801 = g_flags + 0x40;
+    w->bytes_5495bc = g_consts;
+    w->bytes_5495f0 = g_consts + 0x34;
+    w->bytes_5495fc = g_consts + 0x40;
+    w->bytes_549608 = g_consts + 0x4c;
+    w->value_5bb1ca = 0x55;
+    w->value_5bb57b = 0x5557;
+    w->value_5bb59b = 0x559b;
+    w->value_5bb59f = 0x559f;
+    w->value_5bb5a3 = 0x55a3;
+    w->value_583999 = 0x5599;
+    w->word_5bb599 = 0x1111;
+    w->word_5bb595 = 0x2222;
+    w->word_5c39ff = 0x3333;
+    set16(g_self, 0x1e, index);
+    reset_log();
+    add_region(REC_VA, g_rec, sizeof g_rec);
+}
+
+static void snap(void)
+{
+    memcpy(g_exp, g_self, sizeof g_self);
+    memcpy(g_exptab, g_tab, sizeof g_tab);
+    memcpy(g_expfl, g_flags, sizeof g_flags);
+}
+
+static int same(void)
+{
+    return memcmp(g_self, g_exp, sizeof g_self) == 0 && memcmp(g_tab, g_exptab, sizeof g_tab) == 0 && memcmp(g_flags, g_expfl, sizeof g_flags) == 0;
+}
+
+static void state_run(Fl21bWorld *w, int16_t index)
+{
+    Fl18Host h = host();
+    m44da08_run_state(g_self, index, w, &h);
+}
+
+static void test_m44da08_run_state(void)
+{
+    Fl21bWorld w;
+    int k, pos;
+    /* ---- state 0 (the entry table[2] is the one that 0x4d39f9 names) ---- */
+    for (k = 0; k < 2; k++) {
+        for (pos = 0; pos <= 9; pos++) {
+            int differs = pos < 9;
+            size_t e = TAB(2);
+            int calls = 2 + (k == 0 ? 1 : 0) + (differs ? 1 : 0), n = 0;
+            uint32_t slot20 = k == 0 ? 0u : 0x13572468u, result20 = k == 0 ? 0xdeadbeefu : 0x13572468u;
+            run_setup(&w, 1, 0);
+            set16(g_self, 0x1e, 0x7f7f);
+            set32(g_self, 0x20, slot20);
+            memcpy(g_consts + 0x34, g_rec + 0x265, 9);
+            if (differs) g_consts[0x34 + pos] ^= 0x40;
+            queue_return(0x4d39f9, 0x31230002u);   /* the word 2 with a junk high word */
+            queue_return(0x4c2790, 0xdeadbeefu);
+            add_probe(g_self + 0x1c, 0x34);            /* +0x1c .. +0x4f */
+            add_probe(&w.value_5bb1ca, 4);             /* at 0x34 */
+            add_probe(g_tab + e - 8, 0x30);            /* at 0x38; the entry starts at 0x40 */
+            add_probe(g_records + REC + 0x4d, 4);      /* at 0x68 */
+            snap();
+            set16(g_exp, 0x1e, 1);
+            set32(g_exp, 0x25, 1);
+            g_exp[0x24] = 1;
+            set32(g_exp, 0x45, 0);
+            set32(g_exp, 0x2d, 0);
+            set32(g_exp, 0x29, 0);
+            set16(g_exp, 0x1c, 2);
+            set32(g_exp, 0x20, result20);
+            g_exp[0x4a] = 0;
+            g_exp[0x49] = 0;
+            set32(g_exptab, e - 8, 0xa);
+            set32(g_exptab, e - 4, 0x44e035);
+            set32(g_exptab, e + 0, result20);
+            set32(g_exptab, e + 4, 0);
+            set32(g_exptab, e + 8, 0);
+            set32(g_exptab, e + 0xc, 1);
+            set32(g_exptab, e + 0x10, 1);
+            set16(g_exptab, e + 0x14, 0);
+            memcpy(g_exptab + e + 0x1a, "hello", 6);
+            state_run(&w, 1);
+            CK(L.n == calls);
+            CK(is_call(n, 0x44d711, (uintptr_t)g_self, 0));
+            /* at 0x44d711: the index, [0x25] set, the rest still as it was */
+            CK(get16(L.c[n].probe, 2) == 1 && get32(L.c[n].probe, 9) == 1 && L.c[n].probe[8] == (uint8_t)(0x24 * 13 + 5) && get32(L.c[n].probe, 0x34) == 0x55);
+            n++;
+            CK(is_call(n, 0x4d39f9, 0, 0));
+            CK(L.c[n].probe[8] == 1 && get32(L.c[n].probe, 0x34) == 1 && get32(L.c[n].probe, 0x11) == 0 && get32(L.c[n].probe, 0x29) == 0 && get32(L.c[n].probe, 0xd) == 0);
+            CK(L.c[n].probe[0] == (uint8_t)(0x1c * 13 + 5) && L.c[n].probe[1] == (uint8_t)(0x1d * 13 + 5));   /* the table word is not stored yet */
+            n++;
+            if (k == 0) {
+                CK(is_call(n, 0x4c2790, 0x5cf659, 4));
+                CK(L.c[n].a[0] == 0x5495e8 && L.c[n].a[1] == REC_VA && L.c[n].a[2] == 6 && L.c[n].a[3] == 0x5495d4);
+                CK(get16(L.c[n].probe, 0) == 2 && get32(L.c[n].probe, 4) == 0);   /* [0x1c] stored, [0x20] still 0 */
+                CK(memcmp(L.c[n].probe + 0x38, g_exptab + e - 8, 8) == 0 && get32(L.c[n].probe, 0x40) == 0);   /* the entry is set up, E+0 is 0 */
+                CK(memcmp(L.c[n].probe + 0x38 + 8 + 0x1a, "hello", 6) == 0 && get32(L.c[n].probe, 0x38 + 8 + 0xc) == 1);
+                n++;
+            }
+            if (differs) {
+                CK(is_call(n, 0x4fb77a, 0x5c3a67, 1) && L.c[n].a[0] == REC_VA + 0x265);
+                CK(get32(L.c[n].probe, 0x40) == result20 && get32(L.c[n].probe, 4) == result20);   /* E+0 and [0x20] are stored */
+                CK(get32(L.c[n].probe, 0x68) == 0 && L.c[n].probe[0x2d] == (uint8_t)(0x49 * 13 + 5));   /* the state and [0x49] are written after */
+            }
+            CK(same());
+            CK(get32(g_records, REC + 0x4d) == 1);
+            CK(w.value_5bb1ca == 1);
+        }
+    }
+    /* state 0 for the record 0 (another record), index 0: the same stores through the word index */
+    run_setup(&w, 0, 0);
+    set32(g_self, 0x20, 5);
+    memcpy(g_consts + 0x34, g_rec + 0x265, 9);
+    queue_return(0x4d39f9, 0);
+    state_run(&w, 0);
+    CK(L.n == 2 && get16(g_self, 0x1e) == 0 && get32(g_records, 0x4d) == 1 && get32(g_tab, TAB(0) + 0) == 5 && get32(g_tab, TAB(0) - 8) == 0xa);
+    /* ---- state 1, the dword [self+0x2d] ---- */
+    for (k = 0; k < 2; k++) {   /* 0 and 1 */
+        run_setup(&w, 1, 1);
+        set32(g_self, 0x2d, (uint32_t)k);
+        g_self[0x24] = 0;
+        snap();
+        g_exp[0x24] = 1;
+        state_run(&w, 1);
+        CK(L.n == 0 && same() && get32(g_records, REC + 0x4d) == 1);
+    }
+    {   /* 2: tick >= [0x4b] (unsigned) */
+        static const uint32_t tv[][3] = {{1000, 1000, 1}, {999, 1000, 0}, {1001, 1000, 1}, {0x80000000u, 0x7fffffffu, 1}, {1, 0xffffffffu, 0}, {0, 0, 1}, {0xffffffffu, 0x80000000u, 1}};
+        for (k = 0; k < 7; k++) {
+            run_setup(&w, 1, 1);
+            set32(g_self, 0x2d, 2);
+            set32(g_self, 0x4b, tv[k][1]);
+            set32(g_self, 0x31, 0x9abcdef0u);
+            L.tick = tv[k][0];
+            snap();
+            if (tv[k][2]) {
+                set32(g_exp, 0x2d, 0x9abcdef0u);
+                set32(g_exp, 0x45, 1);
+            }
+            state_run(&w, 1);
+            CK(L.n == 1 && is_tick(0) && same() && get32(g_records, REC + 0x4d) == 1);
+        }
+    }
+    for (k = 3; k <= 4; k++) {   /* 3 and 4: 0x44d8ad on self with 1 / 0, then [0x24] := 1, [0x2d] := 1 */
+        run_setup(&w, 1, 1);
+        set32(g_self, 0x2d, (uint32_t)k);
+        g_self[0x24] = 0;
+        add_probe(g_self + 0x24, 1);
+        add_probe(g_self + 0x2d, 4);
+        snap();
+        g_exp[0x24] = 1;
+        set32(g_exp, 0x2d, 1);
+        state_run(&w, 1);
+        CK(L.n == 1 && is_call(0, 0x44d8ad, (uintptr_t)g_self, 1) && L.c[0].a[0] == (k == 3 ? 1u : 0u));
+        CK(L.c[0].probe[0] == 0 && get32(L.c[0].probe, 1) == (uint32_t)k && same());
+    }
+    {   /* 5: tick >= [0x4f]; the nine bytes at rec+0x2b1 against "JKLMNOPQR" */
+        static const uint32_t tv[][3] = {{50, 50, 1}, {49, 50, 0}, {0x80000000u, 0x7fffffffu, 1}, {2, 0xfffffff0u, 0}};
+        int diff;
+        for (k = 0; k < 4; k++) {
+            for (diff = 0; diff <= 9; diff++) {
+                run_setup(&w, 1, 1);
+                set32(g_self, 0x2d, 5);
+                set32(g_self, 0x4f, tv[k][1]);
+                L.tick = tv[k][0];
+                memcpy(g_consts + 0x40, g_rec + 0x2b1, 9);
+                if (diff < 9) g_consts[0x40 + diff] ^= 1;
+                set16(g_rec, 0x2d2, 0xfff9);
+                add_probe(g_self + 0x2d, 4);
+                snap();
+                if (tv[k][2]) {
+                    if (diff < 9) set32(g_exp, 0x2d, 7);
+                }
+                state_run(&w, 1);
+                if (!tv[k][2]) {
+                    CK(L.n == 1 && is_tick(0) && same() && get32(g_records, REC + 0x4d) == 1);
+                } else if (diff < 9) {
+                    CK(L.n == 3 && is_tick(0) && is_call(1, 0x4fb77a, 0x5c3a67, 1) && L.c[1].a[0] == REC_VA + 0x2b1);
+                    CK(is_call(2, 0x4fb2e3, 0x5c3a67, 1) && (L.c[2].a[0] & 0xffff) == 0xfff9 && get32(L.c[1].probe, 0) == 5);
+                    CK(same() && get32(g_records, REC + 0x4d) == 1);
+                } else {
+                    CK(L.n == 1 && is_tick(0) && same() && get32(g_records, REC + 0x4d) == 2);
+                }
+            }
+        }
+    }
+    {   /* 6: [0x4f] := tick + (signed word [rec+0x2af]) * 1000, [0x4a] := 1, [0x2d] := 5 */
+        static const uint16_t words[] = {5, 0xfffd, 0x7fff, 0x8000, 0};
+        for (k = 0; k < 5; k++) {
+            run_setup(&w, 1, 1);
+            set32(g_self, 0x2d, 6);
+            g_self[0x4a] = 0;
+            L.tick = 0xfffffc00u;
+            set16(g_rec, 0x2af, words[k]);
+            snap();
+            set32(g_exp, 0x4f, 0xfffffc00u + (uint32_t)((int32_t)(int16_t)words[k] * 1000));
+            g_exp[0x4a] = 1;
+            set32(g_exp, 0x2d, 5);
+            state_run(&w, 1);
+            CK(L.n == 1 && is_tick(0) && same() && get32(g_records, REC + 0x4d) == 1);
+        }
+    }
+    {   /* 7: 0x4f6334 on 0x5cf1eb with the sign-extended word [rec+0x2d2]; a zero result: 0x4fba69, state := 2 */
+        static const uint32_t results[] = {0, 1, 0x10000, 0x80000000u};
+        static const uint16_t words[] = {0xfffd, 7, 0x8000};
+        int j;
+        for (k = 0; k < 4; k++) {
+            for (j = 0; j < 3; j++) {
+                run_setup(&w, 1, 1);
+                set32(g_self, 0x2d, 7);
+                set16(g_rec, 0x2d2, words[j]);
+                queue_return(0x4f6334, results[k]);
+                snap();
+                state_run(&w, 1);
+                if (results[k] == 0) {
+                    CK(L.n == 2 && is_call(1, 0x4fba69, 0x5c3a67, 1) && L.c[1].a[0] == REC_VA + 0x2b1 && get32(g_records, REC + 0x4d) == 2);
+                } else {
+                    CK(L.n == 1 && get32(g_records, REC + 0x4d) == 1);
+                }
+                CK(is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == (uint32_t)(int32_t)(int16_t)words[j] && same());
+            }
+        }
+    }
+    run_setup(&w, 1, 1);   /* 8: [0x49] := 1, state := 2 */
+    set32(g_self, 0x2d, 8);
+    g_self[0x49] = 0;
+    snap();
+    g_exp[0x49] = 1;
+    state_run(&w, 1);
+    CK(L.n == 0 && same() && get32(g_records, REC + 0x4d) == 2);
+    {   /* anything above 8 does nothing */
+        static const uint32_t others[] = {9, 0x10, 0x100, 0xffffffffu, 0x80000000u, 0x12};
+        for (k = 0; k < 6; k++) {
+            run_setup(&w, 1, 1);
+            set32(g_self, 0x2d, others[k]);
+            snap();
+            state_run(&w, 1);
+            CK(L.n == 0 && same() && get32(g_records, REC + 0x4d) == 1 && w.value_5bb1ca == 0x55);
+        }
+    }
+    /* any other state does nothing: 3, 4, 0xffffffff, 0x80000000, 0x100 */
+    {
+        static const uint32_t states[] = {3, 4, 0xffffffffu, 0x80000000u, 0x100};
+        for (k = 0; k < 5; k++) {
+            run_setup(&w, 1, states[k]);
+            set32(g_self, 0x2d, 2);
+            snap();
+            state_run(&w, 1);
+            CK(L.n == 0 && same() && get32(g_records, REC + 0x4d) == states[k] && w.value_5bb1ca == 0x55);
+        }
+    }
+    /* ---- state 2 ---- */
+    {
+        int v49, v4a, equal, selv, flagw, idxv;
+        static const int16_t sels[] = {0x270f, -5};
+        static const int16_t flagws[] = {1, 0};
+        static const int16_t idxs[] = {-1, 3, -3};
+        for (v49 = 0; v49 < 2; v49++)
+            for (v4a = 0; v4a < 2; v4a++)
+                for (equal = 0; equal < 2; equal++)
+                    for (selv = 0; selv < 2; selv++)
+                        for (flagw = 0; flagw < 2; flagw++)
+                            for (idxv = 0; idxv < 3; idxv++) {
+                                size_t base = v49 ? 0x2e2 : 0x296;
+                                int assigned = (v49 || v4a) && sels[selv] != 0x270f;
+                                int n = 0;
+                                Fl21bWorld w0;
+                                run_setup(&w, 1, 2);
+                                g_self[0x49] = (uint8_t)v49;
+                                g_self[0x4a] = (uint8_t)v4a;
+                                if (equal) memcpy(g_consts + 0x4c, g_rec + 0x265, 9);
+                                set16(g_rec, 0x2e2, (uint16_t)sels[selv]);
+                                set16(g_rec, 0x296, (uint16_t)sels[selv]);
+                                set16(g_rec, 0x2f6, (uint16_t)flagws[flagw]);
+                                set16(g_rec, 0x2aa, (uint16_t)flagws[flagw]);
+                                set16(g_rec, 0x2f8, (uint16_t)idxs[idxv]);
+                                set16(g_rec, 0x2ac, (uint16_t)idxs[idxv]);
+                                add_probe(&w.value_5bb1ca, 4);
+                                add_probe(&w.value_583999, 4);
+                                w0 = w;
+                                snap();
+                                if ((v49 || v4a) && idxs[idxv] != -1) set32(g_expfl, 0x40 + (size_t)(idxs[idxv] * 4), g_rec[base + 0x18]);
+                                state_run(&w, 1);
+                                if (!equal) {
+                                    CK(is_call(n, 0x4fba69, 0x5c3a67, 1) && L.c[n].a[0] == REC_VA + 0x265 && get32(L.c[n].probe, 0) == 1 && get32(L.c[n].probe, 4) == 0x5599);
+                                    n++;
+                                }
+                                if (!v49 && v4a) {
+                                    CK(is_call(n, 0x44d946, (uintptr_t)g_self, 0) && get32(L.c[n].probe, 0) == 1 && get32(L.c[n].probe, 4) == 0x5599);
+                                    n++;
+                                }
+                                CK(is_call(n, 0x42ba3a, 0, 1) && (L.c[n].a[0] & 0xffff) == 1);
+                                CK(get32(L.c[n].probe, 0) == (assigned ? (get16(g_rec, base + 0x14) == 1 ? 0u : 1u) : 1u) && get32(L.c[n].probe, 4) == (assigned ? 4u : 0x5599u));
+                                n++;
+                                CK(is_call(n, 0x44d154, (uintptr_t)g_self, 0));
+                                n++;
+                                CK(L.n == n);
+                                CK(same());
+                                CK(w.value_5bb1ca == (assigned ? (get16(g_rec, base + 0x14) == 1 ? 0u : 1u) : 1u));
+                                CK(w.value_583999 == (assigned ? 4u : 0x5599u));
+                                CK(w.value_5bb57b == (assigned ? (uint32_t)(int32_t)(int16_t)get16(g_rec, base) : w0.value_5bb57b));
+                                CK(w.word_5bb599 == (assigned ? get16(g_rec, base + 2) : w0.word_5bb599));
+                                CK(w.word_5bb595 == (assigned ? get16(g_rec, base + 4) : w0.word_5bb595));
+                                CK(w.word_5c39ff == (assigned ? get16(g_rec, base + 6) : w0.word_5c39ff));
+                                CK(w.value_5bb59b == (assigned ? get32(g_rec, base + 8) : w0.value_5bb59b));
+                                CK(w.value_5bb59f == (assigned ? get32(g_rec, base + 0xc) : w0.value_5bb59f));
+                                CK(w.value_5bb5a3 == (assigned ? get32(g_rec, base + 0x10) : w0.value_5bb5a3));
+                                CK(get32(g_records, REC + 0x4d) == 2);
+                            }
+    }
+    /* the word argument of 0x42ba3a is the word [self+0x1e], a different value from the argument index: the stores use the word, the call too */
+    run_setup(&w, 1, 2);
+    set16(g_self, 0x1e, 0xfffe);
+    set16(g_rec, 0x2f8, 0xffff);   /* no flag-table store (the patterned index would address far outside the table) */
+    memcpy(g_consts + 0x4c, g_rec + 0x265, 9);
+    state_run(&w, 1);
+    CK(L.n == 2 && (L.c[0].a[0] & 0xffff) == 0xfffe);
+}
+
 /* TESTS-CONTINUE */
 
 int main(void)
@@ -757,6 +1533,9 @@ int main(void)
     int failures = 0;
     RUN(test_m4468fe_draw_clock);
     RUN(test_m47f421_pointer_hit);
+    RUN(test_m48569e_handle_key);
+    RUN(test_m44e035_draw_panel);
+    RUN(test_m44da08_run_state);
     /* RUN-END */
     return failures;
 }

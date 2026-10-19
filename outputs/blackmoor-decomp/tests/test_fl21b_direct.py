@@ -3,8 +3,8 @@
 tests/fl21b_direct_test.c links src/original_methods_fl21b.c and prints one PASS/FAIL line per case; every test below checks one of
 them. Expected values come from the original's disassembly, not from the native code.
 
-Direct cases written so far: 0x4468fe and 0x47f421. The cases for 0x48569e, 0x44e035 and 0x44da08 are NOT written yet (see
-tasks/fl21b-handoff.md); those three functions are covered by tests/test_fl21b_differential.py only.
+One direct case per function (0x4468fe, 0x47f421, 0x48569e, 0x44e035, 0x44da08); the Unicorn comparison against the original bytes is in
+tests/test_fl21b_differential.py.
 """
 import os
 from pathlib import Path
@@ -20,6 +20,9 @@ KERNELS = ['original_methods_fl21b.c']
 EXPECTED = [
     'test_m4468fe_draw_clock',
     'test_m47f421_pointer_hit',
+    'test_m48569e_handle_key',
+    'test_m44e035_draw_panel',
+    'test_m44da08_run_state',
     # EXPECTED-END
 ]
 
@@ -72,6 +75,18 @@ class Fl21bDirect(unittest.TestCase):
     def test_pointer_hit_47f421(self):
         """FL-21b: direct test of m47f421_pointer_hit (original 0x47f421)"""
         self.check('test_m47f421_pointer_hit')
+
+    def test_handle_key_48569e(self):
+        """FL-21b: direct test of m48569e_handle_key (original 0x48569e)"""
+        self.check('test_m48569e_handle_key')
+
+    def test_draw_panel_44e035(self):
+        """FL-21b: direct test of m44e035_draw_panel (original 0x44e035)"""
+        self.check('test_m44e035_draw_panel')
+
+    def test_run_state_44da08(self):
+        """FL-21b: direct test of m44da08_run_state (original 0x44da08)"""
+        self.check('test_m44da08_run_state')
 
     # TESTS-END
 

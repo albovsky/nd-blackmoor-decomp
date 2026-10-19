@@ -64,5 +64,110 @@
   },
   "parts_accounted": [],
   "note": "1:1 with m47f421_pointer_hit. Direct test: gate, rectangle copy, drag-mode bound edges, 0x47ec06 fallback, item-loop overlap cases, pick lists, record boxes. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1520 bytes."
+ },
+ {
+  "va": "0x48569e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21b.c",
+   "symbol": "m48569e_handle_key"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21b_direct_test.c",
+    "test_id": "test_m48569e_handle_key"
+   },
+   {
+    "path": "tests/test_fl21b_direct.py",
+    "test_id": "Fl21bDirect.test_handle_key_48569e"
+   },
+   {
+    "path": "tests/test_fl21b_differential.py",
+    "test_id": "Fl21bDifferential.test_48569e_handle_key"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_f5_runtime_original_oracle.py",
+   "window": [
+    "0x48569e",
+    "0x485ca1"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m48569e_handle_key. Direct test: the four gates, every selector (0x2779, 0x277c, 0x2778, 0x2777, 0x277b, 0x277a, unknown), the -1 exits, branches A, B and C of the 0x277b/0x277a tail with call-time probes of every stored field, word wrap of the counters. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1539 bytes."
+ },
+ {
+  "va": "0x44e035",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21b.c",
+   "symbol": "m44e035_draw_panel"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21b_direct_test.c",
+    "test_id": "test_m44e035_draw_panel"
+   },
+   {
+    "path": "tests/test_fl21b_direct.py",
+    "test_id": "Fl21bDirect.test_draw_panel_44e035"
+   },
+   {
+    "path": "tests/test_fl21b_differential.py",
+    "test_id": "Fl21bDifferential.test_44e035_draw_panel"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_f5_runtime_original_oracle.py",
+   "window": [
+    "0x44e035",
+    "0x44e650"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m44e035_draw_panel. Direct test: plain and non-plain modes, both flags, mode 2 with every sub-mode of the switch (including the no-op values), the six outline pairs and the clearing of the redraw flag (still set at every call), signed selector words, record and table indices, ordered 0x44d9b5/0x4c5377 pairs with the rectangle seen by each callee. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1519 body bytes."
+ },
+ {
+  "va": "0x44da08",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21b.c",
+   "symbol": "m44da08_run_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21b_direct_test.c",
+    "test_id": "test_m44da08_run_state"
+   },
+   {
+    "path": "tests/test_fl21b_direct.py",
+    "test_id": "Fl21bDirect.test_run_state_44da08"
+   },
+   {
+    "path": "tests/test_fl21b_differential.py",
+    "test_id": "Fl21bDifferential.test_44da08_run_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_f5_runtime_original_oracle.py",
+   "window": [
+    "0x44da08",
+    "0x44e025"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m44da08_run_state. Direct test: state 0 (entry setup, string copy, the 0x20 gate, nine-byte compare at every position, call-time probes), state 1 for every [self+0x2d] case with tick events and unsigned comparisons, state 2 over the product of both flag bytes, the nine-byte compare, the 0x270f selector and the flag-table index (-1, positive, negative), other states and values do nothing. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1529 body bytes.",
+  "blockers_reviewed": [
+   {
+    "id": "A-AA.1:3ee7bd6086aa9352",
+    "rationale": "The A-AA.1 receipt lists the handler 0x44da08, reached from the 0xaa arm 0x42a66e, as an unverified branch. This port is that handler (one word argument, ret 4); direct and Unicorn differential tests cover all of its states. The arm and its gate 0x423f57 are not part of this port and stay with the dispatcher slice."
+   }
+  ]
  }
 ]

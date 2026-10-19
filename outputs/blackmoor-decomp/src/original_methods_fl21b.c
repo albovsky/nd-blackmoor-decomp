@@ -543,8 +543,8 @@ void m44e035_draw_panel(Fl21bWorld *world, const Fl18Host *host)
         panel_part(world, host, rec_va, r, 0xb1, 0x241, 0x54962c);
     else
         panel_part(world, host, rec_va, r, 0xb1, 0x251, 0x549644);
-    panel_part(world, host, rec_va, r, 0x31, (uint32_t)((int32_t)(int16_t)a << 4) + 0x101u, 0x549660);
-    panel_part(world, host, rec_va, r, 0x21, (uint32_t)((int32_t)(int16_t)b << 4) + 0xc1u, 0x54967c);
+    panel_part(world, host, rec_va, r, 0x31, ((uint32_t)(int32_t)(int16_t)a << 4) + 0x101u, 0x549660);
+    panel_part(world, host, rec_va, r, 0x21, ((uint32_t)(int32_t)(int16_t)b << 4) + 0xc1u, 0x54967c);
     if (world->value_624cec == 2) {
         switch (world->value_624cf0) {
         case 8: panel_part(world, host, rec_va, r, 0x81, 0x211, 0x54969c); break;
