@@ -85,7 +85,7 @@ class Original20(od.Original):
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
 SHAPES = {0x4fb2e3: (1, True, 4), 0x4f6334: (1, True, 4), 0x44ecaf: (2, True, 8), 0x50ca3e: (6, False, 0), 0x44a2b7: (1, False, 0),
           0x4709bb: (1, True, 4), 0x4709de: (2, True, 8), 0x448d11: (4, True, 16),
-          0x45741d: (2, True, 8), 0x47b709: (1, True, 4)}
+          0x45741d: (2, True, 8), 0x47b709: (1, True, 4), 0x4a67f3: (2, True, 8)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
 WORD_ARGS = {0x4fb2e3: (0,), 0x44ecaf: (1,), 0x45741d: (1,)}
 RECORDS_VA = 0x5bb5e5
@@ -454,6 +454,47 @@ def gen_47b4aa(rng, n):
 
 
 
+def gen_4a6574(rng, n):
+    profiles = [('gate',), ('r1', 'b'), ('r1', 'w'), ('r1', 'skip'), ('r2', 'b'), ('r2', 'w'), ('r2', 'skip'), ('r3',), ('r4',), ('r5',), ('tail_in',),
+                ('tail_6',), ('tail_out',)]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x100))
+    set_gate(d, 'nz32', 0x86, kind == 'gate', rng)
+    d[0x29] = 0
+    d[0x20] = rng.choice([0, 1, 0x80, rng.randrange(256)])
+    put16(d, 0x1e, idx)
+    obj = bytearray(rng.randbytes(0x400))
+    b65 = rng.choice([1, 0x80, 0xff]) if rest and rest[0] == 'b' else 0
+    obj[0x65] = b65
+    w63 = rng.choice([-5, 0, 1, 2, 3, 100, 0x7fff, -0x8000])
+    struct.pack_into('<h', obj, 0x63, w63)
+    # the word [+0x2e] against w63 - 1 (arm r1) and 0 (arm r2): 'w' passes the test, 'skip' fails it
+    if kind == 'r1':
+        w2e = w63 - 2 - rng.randrange(3) if rest[0] == 'w' else w63 - 1 + rng.randrange(3)
+        w2e = max(-0x8000, min(0x7fff, w2e))
+        if rest[0] == 'w' and not w2e < w63 - 1:
+            w63, w2e = 5, 2
+            struct.pack_into('<h', obj, 0x63, w63)
+        if rest[0] == 'skip' and w2e < w63 - 1:
+            w63, w2e = 5, 9
+            struct.pack_into('<h', obj, 0x63, w63)
+    elif kind == 'r2':
+        w2e = rng.choice([1, 2, 0x7fff]) if rest[0] == 'w' else rng.choice([0, -1, -0x8000])
+    else:
+        w2e = rng.choice([-0x8000, -1, 0, 1, 5, 0x7fff])
+    struct.pack_into('<h', d, 0x2e, w2e)
+    rects = {'r1': (0x2b2, 0x2ba, 0x2ae, 0x2b6), 'r2': (0x2c2, 0x2ca, 0x2be, 0x2c6), 'r3': (0x1ba, 0x1c2, 0x1b6, 0x1be),
+             'r4': (0x1da, 0x1e2, 0x1d6, 0x1de), 'r5': (0x3cb, 0x3d3, 0x3c7, 0x3cf), 'tail': (0x6a, 0x72, 0x66, 0x6e)}
+    for name, offs in rects.items():
+        hit = kind == name or (name == 'tail' and kind == 'tail_in')
+        rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), hit)
+    g61 = 6 if kind in ('tail_6',) or (kind != 'tail_out' and variant % 3 == 0) else rng.choice([0, 5, 7, 0x106, 0x80000006, 0xffffffff])
+    stubs = {0x4a67f3: stub(0x4a67f3, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=[rng.randrange(1 << 32)])}
+    return common('4a6574', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest), stack=stack, args=(x, y), g={'value_61d3c2': g61})
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -464,6 +505,7 @@ SPECS = {
     '46ebff': dict(id=5, va=0x46ebff, size=545, gen=gen_46ebff, tick=True, probes=[(0, 0x100)], n=16 * 44),
     '4571e1': dict(id=6, va=0x4571e1, size=572, gen=gen_4571e1, ret=True, cleanup=8, n=13 * 40),
     '47b4aa': dict(id=7, va=0x47b4aa, size=607, gen=gen_47b4aa, ret=True, cleanup=8, n=17 * 40),
+    '4a6574': dict(id=8, va=0x4a6574, size=639, gen=gen_4a6574, ret=True, cleanup=8, n=13 * 40),
 }
 KEYS = list(SPECS)
 

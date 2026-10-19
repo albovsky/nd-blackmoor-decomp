@@ -1119,6 +1119,166 @@ static void test_m47b4aa(void)
     CK(run_47b4aa(4, 4) == 1 && L.n == 1);
 }
 
+/* ---- 0x4a6574 ----------------------------------------------------------------------------------------------------------------- */
+
+static void setup_4a6574(int idx, int w2e, int w63, int b65)
+{
+    setup(idx, 0);
+    set32(fx.self, 0x86, 0x01000000);
+    fx.self[0x29] = 0;
+    set16(fx.self, 0x2e, (uint16_t)w2e);
+    memset(fx.obj, 0x80, 0x400);
+    set16(fx.obj, 0x63, (uint16_t)w63);
+    fx.obj[0x65] = (uint8_t)b65;
+    fx.w.value_61d3c2 = 0;
+}
+
+static int32_t run_4a6574(int x, int y)
+{
+    L.n = 0;
+    return m4a6574_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
+}
+
+static void test_m4a6574(void)
+{
+    static const int idxs[] = {2, -1};
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
+    static const size_t R[6][4] = {{0x2b2, 0x2ba, 0x2ae, 0x2b6}, {0x2c2, 0x2ca, 0x2be, 0x2c6}, {0x1ba, 0x1c2, 0x1b6, 0x1be},
+                                   {0x1da, 0x1e2, 0x1d6, 0x1de}, {0x3cb, 0x3d3, 0x3c7, 0x3cf}, {0x6a, 0x72, 0x66, 0x6e}};
+    static const int ZERO[4] = {0, 0, 0, 0};
+    static const uint32_t SEL[5] = {0x2772, 0x2771, 0x276f, 0x276f, 0x2770};
+    static const uint32_t ARG[5] = {3, 2, 1, 4, 0};
+    static const uint32_t g6_other[] = {0, 5, 7, 0x106, 0x80000006u, 0xffffffffu};
+    size_t ii, pi, k;
+    int r, e;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (pi = 0; pi < 6; pi++) {
+            int x = pts[pi][0], y = pts[pi][1];
+            /* [+0x86] clear (a dword; the high byte alone counts as set): the tail returns 0 and stores nothing, even with 0x61d3c2 = 6 */
+            for (k = 0; k < 2; k++) {
+                setup_4a6574(idx, 0, 0, 1);
+                eff_rect(R[0], ZERO, x, y);
+                eff_rect(R[5], ZERO, x, y);
+                set32(fx.self, 0x86, 0);
+                fx.w.value_61d3c2 = k ? 6u : 0u;
+                expect_begin();
+                CK(run_4a6574(x, y) == 0 && L.n == 0);
+                expect_end();
+            }
+            /* the byte [+0x29] set with [+0x86] set: the original reads an uninitialised slot; rejected: 0, no call, no store */
+            for (k = 0; k < 3; k++) {
+                static const int b29[] = {1, 0x80, 0xff};
+                setup_4a6574(idx, 0, 0, 1);
+                eff_rect(R[0], ZERO, x, y);
+                eff_rect(R[5], ZERO, x, y);
+                fx.self[0x29] = (uint8_t)b29[k];
+                fx.w.value_61d3c2 = 6;
+                expect_begin();
+                CK(run_4a6574(x, y) == 0 && L.n == 0);
+                expect_end();
+            }
+            /* the five rectangles: a hit calls 0x4a67f3 (this = self, selector, argument) and returns 1; [+0x20] = 1 only for the 4th and 5th */
+            for (r = 0; r < 5; r++) {
+                setup_4a6574(idx, 0, 0, 1);
+                eff_rect(R[r], ZERO, x, y);
+                expect_begin();
+                if (r >= 3) exp_self[0x20] = 1;
+                CK(run_4a6574(x, y) == 1);
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x4a67f3, (uintptr_t)fx.self, 2, 0, SEL[r], ARG[r], 0, 0, 0, 0);
+                CK(r < 3 || L.c[0].snap_self[0x20] == 0xA5);        /* the byte is stored after the call */
+                /* each edge one outside misses: return 0, no call; with 0x61d3c2 = 6 the tail sets the byte */
+                for (e = 0; e < 4; e++) {
+                    setup_4a6574(idx, 0, 0, 1);
+                    eff_rect(R[r], ZERO, x, y);
+                    edge_out(R[r], e);
+                    expect_begin();
+                    CK(run_4a6574(x, y) == 0 && L.n == 0);
+                    expect_end();
+                    fx.w.value_61d3c2 = 6;
+                    exp_self[0x20] = 1;
+                    CK(run_4a6574(x, y) == 0 && L.n == 0);
+                    expect_end();
+                }
+            }
+            /* the order: rectangle 1 before 2 before 3 before 4 before 5 */
+            for (r = 0; r < 4; r++) {
+                int q;
+                setup_4a6574(idx, 0, 0, 1);
+                for (q = r; q < 5; q++) eff_rect(R[q], ZERO, x, y);
+                CK(run_4a6574(x, y) == 1 && L.n == 1);
+                ck_call(0, 0x4a67f3, (uintptr_t)fx.self, 2, 0, SEL[r], ARG[r], 0, 0, 0, 0);
+            }
+            /* the first rectangle with the byte [obj + 0x65] clear: it needs [+0x2e] < [obj + 0x63] - 1 (signed words, 32-bit subtraction) */
+            {
+                static const int w2e[] = {3, 4, 5, -2, -32768, -32768, 0x7fff, 0x7ffd};
+                static const int w63[] = {5, 5, 5, 0, -32767, -32768, 0x7fff, 0x7fff};
+                static const int pass[] = {1, 0, 0, 1, 0, 0, 0, 1};
+                for (k = 0; k < 8; k++) {
+                    setup_4a6574(idx, w2e[k], w63[k], 0);
+                    eff_rect(R[0], ZERO, x, y);
+                    CK(run_4a6574(x, y) == (pass[k] ? 1 : 0));
+                    CK(L.n == (pass[k] ? 1 : 0));
+                    if (pass[k]) ck_call(0, 0x4a67f3, (uintptr_t)fx.self, 2, 0, 0x2772, 3, 0, 0, 0, 0);
+                }
+            }
+            /* a skipped first rectangle falls through to the second, which holds the point with the byte clear and [+0x2e] above 0 */
+            setup_4a6574(idx, 9, 5, 0);
+            eff_rect(R[0], ZERO, x, y);
+            eff_rect(R[1], ZERO, x, y);
+            CK(run_4a6574(x, y) == 1 && L.n == 1);
+            ck_call(0, 0x4a67f3, (uintptr_t)fx.self, 2, 0, 0x2771, 2, 0, 0, 0, 0);
+            /* the second rectangle with the byte clear: [+0x2e] > 0 as a signed word */
+            {
+                static const int w2e[] = {1, 0x7fff, 0, -1, -32768, 0x8000};
+                static const int pass[] = {1, 1, 0, 0, 0, 0};
+                for (k = 0; k < 6; k++) {
+                    setup_4a6574(idx, w2e[k], 5, 0);
+                    eff_rect(R[1], ZERO, x, y);
+                    CK(run_4a6574(x, y) == (pass[k] ? 1 : 0));
+                    CK(L.n == (pass[k] ? 1 : 0));
+                    if (pass[k]) ck_call(0, 0x4a67f3, (uintptr_t)fx.self, 2, 0, 0x2771, 2, 0, 0, 0, 0);
+                }
+            }
+            /* the byte [obj + 0x65] is a byte: any non-zero value passes (0x80, 0xff, 1) while its word neighbour is irrelevant */
+            for (k = 0; k < 3; k++) {
+                static const int b65[] = {1, 0x80, 0xff};
+                setup_4a6574(idx, -5, 0, b65[k]);
+                eff_rect(R[1], ZERO, x, y);
+                CK(run_4a6574(x, y) == 1 && L.n == 1);
+            }
+            /* the tail: inside its rectangle the byte is set; outside only when 0x61d3c2 is exactly 6; always returns 0 */
+            setup_4a6574(idx, 0, 0, 1);
+            eff_rect(R[5], ZERO, x, y);
+            expect_begin();
+            exp_self[0x20] = 1;
+            CK(run_4a6574(x, y) == 0 && L.n == 0);
+            expect_end();
+            for (e = 0; e < 4; e++) {
+                for (k = 0; k < 6; k++) {
+                    setup_4a6574(idx, 0, 0, 1);
+                    eff_rect(R[5], ZERO, x, y);
+                    edge_out(R[5], e);
+                    fx.w.value_61d3c2 = g6_other[k];
+                    expect_begin();
+                    CK(run_4a6574(x, y) == 0 && L.n == 0);
+                    expect_end();
+                }
+                setup_4a6574(idx, 0, 0, 1);
+                eff_rect(R[5], ZERO, x, y);
+                edge_out(R[5], e);
+                fx.w.value_61d3c2 = 6;
+                expect_begin();
+                exp_self[0x20] = 1;
+                CK(run_4a6574(x, y) == 0 && L.n == 0);
+                expect_end();
+            }
+        }
+    }
+}
+
 /* ---- the table of cases ------------------------------------------------------------------------------------------------------- */
 
 static const struct {
@@ -1132,6 +1292,7 @@ static const struct {
     {"test_m46ebff_click_27c2_27c3", test_m46ebff},
     {"test_m4571e1_hit_test", test_m4571e1},
     {"test_m47b4aa_hit_test", test_m47b4aa},
+    {"test_m4a6574_hit_test", test_m4a6574},
 };
 
 int main(void)

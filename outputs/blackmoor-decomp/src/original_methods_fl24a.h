@@ -34,6 +34,7 @@ typedef struct Fl24aWorld {
     uint8_t *flags_585801;     /* the dword table at 0x585801, indexed by a signed word (0x4cb3ab); the caller leaves slack on both sides */
     int16_t word_63a4cd;       /* 0x4cb3ab: tested as a signed word */
     uint32_t value_5d03b3;     /* 0x46ebff: the dword passed to 0x448d11 */
+    uint32_t value_61d3c2;     /* 0x4a6574: the tail compares it with 6 */
 } Fl24aWorld;
 
 /* 0x4d3bef: clears [+0x462]; sets [+0x1c] when the byte at 0x61c6ae is non-zero */
@@ -52,6 +53,8 @@ int32_t m4571e1_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
 /* 0x47b4aa: hit test (ret 8) over the three rows behind the signed byte [object + 0x35b] and the item rows; stores [+0x27c], [+0x2b4];
  * calls 0x47b709 and returns 1, else 0 */
 int32_t m47b4aa_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
+/* 0x4a6574: hit test (ret 8) over five rectangles of the record object (calls 0x4a67f3) and a tail that sets the byte [+0x20]; returns 1 on a hit, else 0 */
+int32_t m4a6574_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

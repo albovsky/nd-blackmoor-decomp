@@ -406,3 +406,51 @@ int32_t m47b4aa_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
     }
     return 0;
 }
+
+/* ---- 0x4a6574 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4a6574, thiscall, `ret 8`: x is the word at [esp+4], y the word at [esp+8]. With the dword [+0x86] clear the original reaches the
+ * tail that tests the same dword again and returns 0 without a store. With the byte [+0x29] set and [+0x86] set the original jumps to
+ * that tail BEFORE the record object has been stored in its local [ebp-4], so the tail reads rectangle edges through an uninitialised
+ * stack slot: unsafe, rejected here (returns 0, no call, no store). Otherwise the record object holds the rectangles (y low/high, x
+ * low/high): +0x2b2/+0x2ba/+0x2ae/+0x2b6 -> (0x2772, 3), only when the byte [obj + 0x65] is set or the signed word [+0x2e] is below the
+ * signed word [obj + 0x63] minus 1; +0x2c2/+0x2ca/+0x2be/+0x2c6 -> (0x2771, 2), only when the byte [obj + 0x65] is set or the signed word
+ * [+0x2e] is above 0; +0x1ba/+0x1c2/+0x1b6/+0x1be -> (0x276f, 1); +0x1da/+0x1e2/+0x1d6/+0x1de -> (0x276f, 4) and byte [+0x20] = 1;
+ * +0x3cb/+0x3d3/+0x3c7/+0x3cf -> (0x2770, 0) and byte [+0x20] = 1. A hit calls 0x4a67f3 and returns 1. With no hit the tail sets the byte
+ * [+0x20] when the point is inside the rectangle +0x6a/+0x72/+0x66/+0x6e or the dword at 0x61d3c2 is 6, and returns 0. */
+int32_t m4a6574_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host)
+{
+    const uint8_t *obj;
+    if (rd32(self, 0x86) == 0) return 0;
+    if (self[0x29] != 0) return 0;
+    obj = object_at(host, record_object_address(world, self, 0x1e));
+    if (in_range(y, rds32(obj, 0x2b2), rds32(obj, 0x2ba)) && in_range(x, rds32(obj, 0x2ae), rds32(obj, 0x2b6))) {
+        if (obj[0x65] != 0 || rds16(self, 0x2e) < rds16(obj, 0x63) - 1) {
+            call2(host, 0x4a67f3, (uintptr_t)self, 0x2772, 3);
+            return 1;
+        }
+    }
+    if (in_range(y, rds32(obj, 0x2c2), rds32(obj, 0x2ca)) && in_range(x, rds32(obj, 0x2be), rds32(obj, 0x2c6))) {
+        if (obj[0x65] != 0 || rds16(self, 0x2e) > 0) {
+            call2(host, 0x4a67f3, (uintptr_t)self, 0x2771, 2);
+            return 1;
+        }
+    }
+    if (in_range(y, rds32(obj, 0x1ba), rds32(obj, 0x1c2)) && in_range(x, rds32(obj, 0x1b6), rds32(obj, 0x1be))) {
+        call2(host, 0x4a67f3, (uintptr_t)self, 0x276f, 1);
+        return 1;
+    }
+    if (in_range(y, rds32(obj, 0x1da), rds32(obj, 0x1e2)) && in_range(x, rds32(obj, 0x1d6), rds32(obj, 0x1de))) {
+        call2(host, 0x4a67f3, (uintptr_t)self, 0x276f, 4);
+        self[0x20] = 1;
+        return 1;
+    }
+    if (in_range(y, rds32(obj, 0x3cb), rds32(obj, 0x3d3)) && in_range(x, rds32(obj, 0x3c7), rds32(obj, 0x3cf))) {
+        call2(host, 0x4a67f3, (uintptr_t)self, 0x2770, 0);
+        self[0x20] = 1;
+        return 1;
+    }
+    if (in_range(y, rds32(obj, 0x6a), rds32(obj, 0x72)) && in_range(x, rds32(obj, 0x66), rds32(obj, 0x6e))) self[0x20] = 1;
+    else if (world->value_61d3c2 == 6) self[0x20] = 1;
+    return 0;
+}
