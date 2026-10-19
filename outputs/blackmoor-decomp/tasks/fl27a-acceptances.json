@@ -1,0 +1,540 @@
+[
+ {
+  "va": "0x4de214",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4de214_clear_flags_thunk"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4de214_clear_flags_thunk"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4de214_clear_flags_thunk"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4de214_clear_flags_thunk"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4de214",
+    "0x4de227"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4de214_clear_flags_thunk: every instruction of the 19 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4de1f5",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4de1f5_clear_flags"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4de1f5_clear_flags"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4de1f5_clear_flags"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4de1f5_clear_flags"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4de1f5",
+    "0x4de214"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4de1f5_clear_flags: every instruction of the 31 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x44c479",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m44c479_wait_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m44c479_wait_state"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_44c479_wait_state"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_44c479_wait_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x44c479",
+    "0x44c4ab"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m44c479_wait_state: every instruction of the 50 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md. Waits (Sleep import) while the state dword is 1; the other thread is modelled by a poke at the n-th Sleep call. Native rejection after native_spin_limit Sleep calls."
+ },
+ {
+  "va": "0x4bee2c",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bee2c_get_field"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bee2c_get_field"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bee2c_get_field"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bee2c_get_field"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bee2c",
+    "0x4bee5f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bee2c_get_field: every instruction of the 51 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x449d90",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m449d90_file_exists"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m449d90_file_exists"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_449d90_file_exists"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_449d90_file_exists"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x449d90",
+    "0x449dc7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m449d90_file_exists: every instruction of the 55 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4bef85",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bef85_bink_wait"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bef85_bink_wait"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bef85_bink_wait"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bef85_bink_wait"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bef85",
+    "0x4befc8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bef85_bink_wait: every instruction of the 67 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4de2d8",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4de2d8_reset_caption"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4de2d8_reset_caption"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4de2d8_reset_caption"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4de2d8_reset_caption"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4de2d8",
+    "0x4de322"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4de2d8_reset_caption: every instruction of the 74 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "A-51:29188def10ea4702",
+    "rationale": "The item concerns the renderer callbacks (0x4de24f and the callees of 0x4de2d8, 0x4e053f and 0x4e1113), whose own writes to 0x5b1602 and 0x5b1606 and to caption-object state A-51 stubbed. This port covers only the 74 bytes of 0x4de2d8 (18 of 18 instructions in the original-only oracle, callees as recording stubs with call-time probes of self+0x991, 0x5b15d6, 0x5d17f5 and 0x5a161f); the callees' own writes are not modelled here and stay open."
+   },
+   {
+    "id": "A-51:c6f8b288bc870891",
+    "rationale": "The item asks that the frame text box and caption layout backends are not guessed. This port guesses none: 0x4de2d8 stores only what its own bytes store ([self+0x991], 0x5b15d6, 0x5d17f5 and, through 0x4de214, 0x5a161f) and hands the calls of 0x4e053f and 0x4e1113 to the host; the S05/UI backend behind them stays open."
+   }
+  ]
+ },
+ {
+  "va": "0x4bee5f",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bee5f_bink_summary"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bee5f_bink_summary"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bee5f_bink_summary"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bee5f_bink_summary"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bee5f",
+    "0x4beeb3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bee5f_bink_summary: every instruction of the 84 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4befc8",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4befc8_bink_do_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4befc8_bink_do_frame"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4befc8_bink_do_frame"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4befc8_bink_do_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4befc8",
+    "0x4bf024"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4befc8_bink_do_frame: every instruction of the 92 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4c2dfb",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4c2dfb_free_pair"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4c2dfb_free_pair"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4c2dfb_free_pair"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4c2dfb_free_pair"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4c2dfb",
+    "0x4c2e5b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4c2dfb_free_pair: every instruction of the 96 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4bef11",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bef11_bink_goto"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bef11_bink_goto"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bef11_bink_goto"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bef11_bink_goto"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bef11",
+    "0x4bef85"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bef11_bink_goto: every instruction of the 116 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4bf098",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bf098_bink_copy_to_buffer"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bf098_bink_copy_to_buffer"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bf098_bink_copy_to_buffer"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bf098_bink_copy_to_buffer"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bf098",
+    "0x4bf10f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bf098_bink_copy_to_buffer: every instruction of the 119 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4bf315",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bf315_bink_open"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bf315_bink_open"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bf315_bink_open"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bf315_bink_open"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bf315",
+    "0x4bf38c"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bf315_bink_open: every instruction of the 119 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4159db",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4159db_dispatch_piece"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4159db_dispatch_piece"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4159db_dispatch_piece"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4159db_dispatch_piece"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4159db",
+    "0x415a61"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4159db_dispatch_piece: every instruction of the 134 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4bf10f",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4bf10f_bink_next"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4bf10f_bink_next"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4bf10f_bink_next"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4bf10f_bink_next"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4bf10f",
+    "0x4bf19a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4bf10f_bink_next: every instruction of the 139 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md."
+ },
+ {
+  "va": "0x4c0c7d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-27a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl27a.c",
+   "symbol": "m4c0c7d_movie_thread"
+  },
+  "tests": [
+   {
+    "path": "tests/fl27a_direct_test.c",
+    "test_id": "test_m4c0c7d_movie_thread"
+   },
+   {
+    "path": "tests/test_fl27a_direct.py",
+    "test_id": "Fl27aDirect.test_4c0c7d_movie_thread"
+   },
+   {
+    "path": "tests/test_fl27a_differential.py",
+    "test_id": "Fl27aDifferential.test_4c0c7d_movie_thread"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl27a_original_oracle.py",
+   "window": [
+    "0x4c0c7d",
+    "0x4c0d3f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4c0c7d_movie_thread: every instruction of the 194 bytes and every conditional-jump direction (except where the handoff lists an allowlisted one) runs in the original-only oracle; the Unicorn differential and the direct test compare the port. See tasks/fl27a-handoff.md. The loop condition is the constant 1 (mov ecx, 1; test ecx, ecx; je 0x4c0d32), so that one jump direction is never taken (allowlisted in fl27a_fixtures.UNTAKEN_ALLOWED); the instruction at its target is reached by the jmp at 0x4c0ca5, so every instruction runs. The original never returns (AfxEndThread); the oracle stops the run at the call of 0x51ec84."
+ }
+]
