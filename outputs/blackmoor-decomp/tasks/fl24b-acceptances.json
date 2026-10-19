@@ -2,7 +2,7 @@
  {
   "va": "0x4dad60",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -35,7 +35,7 @@
  {
   "va": "0x466073",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -68,7 +68,7 @@
  {
   "va": "0x467740",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -101,7 +101,7 @@
  {
   "va": "0x4b7563",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -134,7 +134,7 @@
  {
   "va": "0x459e49",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -167,7 +167,7 @@
  {
   "va": "0x482359",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -200,7 +200,7 @@
  {
   "va": "0x46793a",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -233,7 +233,7 @@
  {
   "va": "0x4ad310",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -266,7 +266,7 @@
  {
   "va": "0x4acf45",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -299,7 +299,7 @@
  {
   "va": "0x4aa0f0",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -332,7 +332,7 @@
  {
   "va": "0x487ed5",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",
@@ -365,7 +365,7 @@
  {
   "va": "0x464c59",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24b implementer; independent review pending",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24b.c",

@@ -2,7 +2,7 @@
  {
   "va": "0x4d3bef",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -35,7 +35,7 @@
  {
   "va": "0x44edfb",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -68,7 +68,7 @@
  {
   "va": "0x4cb3ab",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -101,7 +101,7 @@
  {
   "va": "0x44eab1",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -134,7 +134,7 @@
  {
   "va": "0x46ebff",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -167,7 +167,7 @@
  {
   "va": "0x4571e1",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -200,7 +200,7 @@
  {
   "va": "0x47b4aa",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -233,7 +233,7 @@
  {
   "va": "0x4a6574",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -266,7 +266,7 @@
  {
   "va": "0x465c99",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -299,7 +299,7 @@
  {
   "va": "0x482724",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -332,7 +332,7 @@
  {
   "va": "0x470ffe",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
@@ -365,7 +365,7 @@
  {
   "va": "0x4a6946",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-24a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-24a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl24a.c",
