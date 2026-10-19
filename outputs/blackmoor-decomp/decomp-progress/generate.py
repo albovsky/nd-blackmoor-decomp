@@ -78,6 +78,8 @@ PROVENANCE_RE = r"^[a-z][a-z0-9_]*$"
 LEDGER_CLASSES = {"structured", "reconstructed", "referenced"}
 LEDGER_KINDS = {"code", "data"}
 TOOL_ASSISTED = "tool_assisted_reconstructed_assembly"
+TOOL_ASSISTED_DATA = "tool_assisted_reconstructed_data"
+DATA_ASM_SCHEMA = "blackmoor-data-asm/1"
 # Same pin as scripts/audit_tool_assisted.py. Only audit metadata is read here;
 # neither the assembler, objects nor GAME.EXE are needed for normal generation.
 M03_ASSEMBLER_VERSION = "GNU assembler (GNU Binutils) 2.43.1"
@@ -391,6 +393,72 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
     return rows, claims, inputs, batches
 
 
+def audited_data_evidence(layout: dict, out_dir: Path):
+    """Validate committed data sources (``asm_data/data-NNN.json``, packet M-C) against their audit reports.
+
+    Same contract as the M03 code batches: the report must accept every byte of exactly this manifest, the
+    pinned assembler must have passed its self-test, and the committed source must still be the audited one.
+    Each range is matched data (kind ``data``); nothing here reads the assembler or the original.
+    """
+    rows, inputs, batches, claimed = [], [], [], []
+    sections = {s["name"]: s for s in layout["sections"]}
+    for path in sorted((out_dir / "asm_data").glob("data-*.json")):
+        if not re.fullmatch(r"data-[0-9]+\.json", path.name):
+            continue  # report files are not manifests
+        name = path.relative_to(out_dir).as_posix()
+        report_path = path.with_name(path.stem + "-report.json")
+        man, report = load_json(path), load_json(report_path)
+
+        def require(ok, reason):
+            if not ok:
+                raise ProgressError(f"{name}: {reason}")
+
+        try:
+            require(man["schema"] == DATA_ASM_SCHEMA and man["class"] == report["class_requested"] == TOOL_ASSISTED_DATA,
+                    "wrong data source schema or provenance class")
+            require(man["original_sha256"] == report["original_sha256"] == layout["original_sha256"],
+                    "audit/manifest does not describe the pinned GAME.EXE")
+            require(report["manifest_sha256"] == sha256_file(path), "manifest hash differs from audit")
+            require(man["batch"] == report["batch"] == path.stem.removeprefix("data-"),
+                    "batch identity differs from its audit")
+            total = sum(r["length"] for r in man["ranges"])
+            require(report["all_accepted"] is True and report["errors"] == [] and report["relocations"] == 0 and
+                    report["compared_bytes"] == report["bytes_total"] == total and report["labels_checked"] > 0,
+                    "data audit not accepted")
+            assembler = report["assembler"]
+            require(assembler.get("self_test") == "passed" and assembler["version_line"] == M03_ASSEMBLER_VERSION,
+                    "audit assembler is not pinned")
+            source = (path.parent / man["source"]).resolve()
+            require(source.parent == path.parent.resolve() and source.suffix == ".s", "bad source path")
+            require(report["source"]["path"] == man["source"] and
+                    report["source"]["sha256"] == man["source_sha256"] == sha256_file(source),
+                    "source hash differs from audit")
+            require(report["ranges"] == man["ranges"], "audited ranges differ from the manifest")
+            for r in man["ranges"]:
+                off, size = int(r["offset"], 16), r["length"]
+                sec = sections[r["section"]]
+                require(type(size) is int and size > 0 and r["section"] != ".text" and
+                        sec["raw_off"] <= off and off + size <= sec["raw_off"] + sec["raw_size"],
+                        "data range is outside its section's raw data")
+                require(int(r["va"], 16) == layout["image_base"] + sec["rva"] + off - sec["raw_off"],
+                        "data range VA/offset disagree")
+                require(not overlap(claimed, off, off + size), "data ranges overlap")
+                claimed = merge_intervals([tuple(c) for c in claimed] + [(off, off + size)])
+                rows.append((off, off + size, "reconstructed", name, r["va"]))
+            batches.append({"manifest": name, "audit": report_path.relative_to(out_dir).as_posix(),
+                            "ranges": len(man["ranges"]), "bytes": total,
+                            "labels_checked": report["labels_checked"],
+                            "assembler_sha256": assembler["sha256"], "assembler_version": assembler["version_line"]})
+            inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
+                           {"path": report_path.relative_to(out_dir).as_posix(),
+                            "sha256": sha256_file(report_path), "role": "audit"},
+                           {"path": source.relative_to(out_dir.resolve()).as_posix(),
+                            "sha256": man["source_sha256"], "role": "audited-source"}])
+        except (KeyError, TypeError, ValueError, OSError) as exc:
+            raise ProgressError(f"{name}: malformed or unavailable audited evidence: {exc}") from exc
+    return rows, inputs, batches
+
+
 def subtract_interval(s, e, claimed):
     """Parts of [s,e) not already owned by sorted, merged intervals."""
     pieces, pos = [], s
@@ -436,6 +504,10 @@ def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
     ivs.extend(audited)
     inputs.extend(audited_inputs)
     claims.extend(audited_claims)
+    data_rows, data_inputs, data_batches = audited_data_evidence(layout, out_dir)
+    ivs.extend(data_rows)
+    inputs.extend(data_inputs)
+    prov.extend((s, e, TOOL_ASSISTED_DATA) for s, e, *_ in data_rows)
     for name, why in sorted(EXCLUDED_MANIFESTS.items()):
         path = out_dir / name
         if path.exists():
@@ -443,6 +515,7 @@ def baseline_evidence(layout: dict, out_dir: Path) -> tuple[list[tuple], dict]:
                            "reason": why})
     return ivs, {"mode": "baseline", "inputs": inputs, "provenance_ranges": prov,
                  "function_claims": claims, "tool_assisted_batches": batches,
+                 "tool_assisted_data_batches": data_batches,
                  "legacy_matched_code": sum(e - s for s, e in legacy)}
 
 
@@ -698,6 +771,9 @@ def matched_meaning(model: dict) -> str:
             how += (", plus audited M03 code extents bound to the committed source hashes. "
                     "M03 byte comparison and root acceptance of independent annotation review "
                     "are prior evidence, not rerun here")
+        if ev.get("tool_assisted_data_batches"):
+            how += (", plus audited data sources (initialized data and resource payloads as labeled "
+                    "data directives, owner ruling of 2026-10-19), likewise bound to the committed source hashes")
     elif ver.get("run") and ver.get("kind") == "composed image hash":
         how = ("composer ledger ranges classed `reconstructed` or `structured`; the composed "
                "image hash was checked in this run, the classes are the composer's declaration")
@@ -779,8 +855,9 @@ def write_report(model, path: Path):
             "(about 10.9 KB in all, M0 report section 3), so baseline code is slightly "
             "overstated and baseline data slightly understated until the M02 ledger splits them.",
             "- M03 tables and padding are excluded from matched code; their data items are "
-            "handed to M02. Baseline mode does not ingest composer data evidence; use a ledger "
-            "to count structured/reconstructed data."]
+            "handed to M02. Baseline mode counts the audited data sources (`asm_data/data-*.json`) as "
+            "matched data; the composer's `structured` data (PE headers, import tables, resource "
+            "directory, section padding) is not counted here, use a ledger for it."]
     else:
         notes += [
             "- Code and data totals come from the composer ledger, where every classified byte has "
@@ -818,6 +895,15 @@ def write_report(model, path: Path):
                   "separate data items. The assembler and original executable are not read by "
                   "this metadata check. Publication relies on root's accepted independent review "
                   "of each batch; an audit alone is not review acceptance."]
+    if ev.get("tool_assisted_data_batches"):
+        lines += ["", "## Audited data batches", "",
+                  "| Manifest | Ranges | Matched data bytes | Labels checked |", "|---|---:|---:|---:|"]
+        for b in ev["tool_assisted_data_batches"]:
+            lines += [f"| {b['manifest']} | {b['ranges']} | {b['bytes']:,} | {b['labels_checked']:,} |"]
+        lines += ["", "Each source is reassembled by `scripts/data_asm.py audit` with the pinned GNU assembler: "
+                  "no relocation, every range identical to the original, every label at the address in its "
+                  "name. This metadata check re-reads manifests, audit reports and source hashes only. "
+                  "Machine names state the kind found by the generator, not what a datum means."]
     ck = ev.get("crosscheck")
     if ck:
         lines += ["", f"Cross-check of **legacy manifests only** against `status.json` unique_matched_bytes "

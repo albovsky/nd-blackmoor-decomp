@@ -1,0 +1,2672 @@
+# annotation:  machine
+# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by
+# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of
+# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the
+# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.
+# original-sha256: afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45
+# image-base: 0x00400000
+# pointers: not detected (resource payloads)
+# origin-va: 0x0063f000
+# ranges: 0x0063f820-0x0063fc52 (.rsrc) 0x0063fc58-0x00640ade (.rsrc) 0x00640ae0-0x0064111a (.rsrc) 0x00641120-0x00641cae (.rsrc) 0x00641cb0-0x00641faa (.rsrc) 0x00641fb0-0x006429b2 (.rsrc) 0x006429b8-0x006436aa (.rsrc) 0x006436b0-0x00643f8a (.rsrc) 0x00643f90-0x0064401a (.rsrc) 0x00644020-0x0064450c (.rsrc) 0x00644510-0x00644524 (.rsrc) 0x00644528-0x0064465c (.rsrc) 0x00644660-0x00644674 (.rsrc) 0x00644678-0x00644714 (.rsrc) 0x00644718-0x0064474a (.rsrc) 0x00644750-0x00644796 (.rsrc) 0x00644798-0x00644a2c (.rsrc) 0x00644a30-0x00644af2 (.rsrc) 0x00644af8-0x00644c82 (.rsrc) 0x00644c88-0x006450e6 (.rsrc) 0x006450e8-0x00645366 (.rsrc) 0x00645368-0x006456da (.rsrc)
+# classification: strings are printable ASCII runs of 4 or more bytes ended by a NUL (wide strings: the same in UTF-16LE); pointers are aligned dwords
+# that point into a mapped section (a target in these ranges is resolved from its label, any other target is a named
+# absolute constant); aligned zero runs are .fill; every other aligned dword is numeric; leftovers are bytes.
+# Not claimed: original C provenance, that any value is a pointer or a string in the original program, or an x86
+# match of the PE headers, import tables and resources (they are not in this source).
+.intel_syntax noprefix
+.data
+IMG:
+.org 0x820
+DAT_0063f820:
+.long 0x28, 0x20, 0x40, 0x40001
+.fill 4, 1, 0
+.long 0x200
+.fill 20, 1, 0
+.long 0x800000, 0x8000, 0x808000, 0x80
+.long 0x800080, 0x8080, 0x808080, 0xc0c0c0
+.long 0xff0000, 0xff00, 0xffff00, 0xff
+.long 0xff00ff, 0xffff, 0xffffff
+.fill 17, 1, 0
+STR_0063f899:
+.asciz "ffffffffffffff"
+DAT_0063f8a8:
+.long 0x66666606, 0x6066, 0x66666666, 0x60666666
+.long 0x66666606, 0x66, 0x66660600, 0x60666666
+.long 0x66666606, 0x60, 0x60060000
+STR_0063f8d4:
+.asciz "fff`"
+STR_0063f8d9:
+.asciz "fff`"
+DAT_0063f8de:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.long 0x60666606, 0x66666600, 0x66000000
+.fill 4, 1, 0
+.long 0x60666606, 0x66660600, 0x66060000, 0x6666
+.long 0x60666600, 0x60060000, 0x66060000, 0x606666
+.long 0x60666606, 0x60000, 0x66060000, 0x6666666
+.long 0x60060000
+.fill 6, 1, 0
+STR_0063f92e:
+.asciz "ffffff`f"
+DAT_0063f937:
+.byte 0x60
+.fill 6, 1, 0
+STR_0063f93e:
+.asciz "ffffff`f``"
+DAT_0063f949:
+.fill 3, 1, 0
+.long 0x66660000, 0x66666666, 0x60600660
+.fill 6, 1, 0
+STR_0063f95e:
+.asciz "fffffff"
+DAT_0063f966:
+.byte 0x06, 0x60
+.fill 6, 1, 0
+STR_0063f96e:
+.asciz "fffffffff`"
+DAT_0063f979:
+.fill 3, 1, 0
+.long 0x66660600
+STR_0063f980:
+.asciz "fffffff`"
+DAT_0063f989:
+.fill 3, 1, 0
+.long 0x660600
+STR_0063f990:
+.asciz "fffffff`"
+DAT_0063f999:
+.fill 3, 1, 0
+.long 0x600000, 0x66666606
+STR_0063f9a4:
+.asciz "fff`"
+DAT_0063f9a9:
+.fill 3, 1, 0
+.fill 4, 1, 0
+.long 0x66660600
+STR_0063f9b4:
+.asciz "fff`"
+DAT_0063f9b9:
+.fill 3, 1, 0
+.fill 4, 1, 0
+.long 0x66660600
+STR_0063f9c4:
+.asciz "fff`"
+DAT_0063f9c9:
+.fill 9, 1, 0
+STR_0063f9d2:
+.asciz "fffff`"
+DAT_0063f9d9:
+.fill 3, 1, 0
+.fill 4, 1, 0
+.long 0x66060000
+STR_0063f9e4:
+.asciz "fff`"
+DAT_0063f9e9:
+.fill 3, 1, 0
+.fill 4, 1, 0
+.long 0x6000000
+STR_0063f9f4:
+.asciz "fff`"
+DAT_0063f9f9:
+.fill 1, 1, 0
+.byte 0x66, 0x00
+.fill 4, 1, 0
+.long 0x6000000
+STR_0063fa04:
+.asciz "fff`"
+DAT_0063fa09:
+.byte 0x66, 0x66, 0x00
+.fill 4, 1, 0
+.long 0x66000000, 0x60666666, 0x60666606, 0x6000
+.long 0x66060000, 0x60666666, 0x66666606, 0x6066
+.long 0x66060000, 0x60666666, 0x66666606, 0x6066
+.long 0x66060000, 0x60666666, 0x66666606, 0x6666
+.long 0x66660000, 0x60666666, 0x66666606, 0x606666
+.long 0x66660600
+STR_0063fa64:
+.asciz "fff`"
+STR_0063fa69:
+.asciz "ffffffffffffff"
+DAT_0063fa78:
+.fill 144, 1, 0
+.long 0x28, 0x10, 0x20, 0x40001
+.fill 4, 1, 0
+.long 0x80
+.fill 20, 1, 0
+.long 0x800000, 0x8000, 0x808000, 0x80
+.long 0x800080, 0x8080, 0xc0c0c0, 0x808080
+.long 0xff0000, 0xff00, 0xffff00, 0xff
+.long 0xff00ff, 0xffff, 0xffffff
+.fill 9, 1, 0
+STR_0063fb79:
+.asciz "ffffff"
+DAT_0063fb80:
+.long 0x606606, 0x60666606, 0x6600, 0x60660600
+.long 0x6000000, 0x60060060
+.fill 3, 1, 0
+STR_0063fb9b:
+.asciz "ff```"
+DAT_0063fba1:
+.fill 2, 1, 0
+.byte 0x66
+.long 0x60006666, 0x60000000, 0x60666606
+.fill 4, 1, 0
+.long 0x60666600
+.fill 4, 1, 0
+.long 0x60666600, 0x6000, 0x60660000, 0x606606
+.long 0x60660600, 0x606606, 0x60660600, 0x666606
+.long 0x60666600
+.fill 1, 1, 0
+STR_0063fbe1:
+.asciz "ffffff"
+DAT_0063fbe8:
+.fill 8, 1, 0
+.long 0x60660000
+.fill 4, 1, 0
+.long 0x66660000, 0x66660000, 0x60660000
+.fill 4, 1, 0
+.long 0x660000, 0x66660000, 0x60660000
+.fill 4, 1, 0
+.long 0x600000, 0x66660000, 0x60660000
+.fill 8, 1, 0
+.long 0x66660000, 0x10000, 0x20200002, 0x10010
+.long 0x2e80004, 0x10000, 0x101010, 0x40001
+.long 0x128
+.byte 0x02, 0x00
+.org 0xc58
+DAT_0063fc58:
+.long 0x28, 0x30, 0xf, 0x40001
+.fill 4, 1, 0
+.long 0x168
+.fill 20, 1, 0
+.long 0x800000, 0x8000, 0x808000, 0x80
+.long 0x800080, 0x8080, 0x808080, 0xc0c0c0
+.long 0xff0000, 0xff00, 0xffff00, 0xff
+.long 0xff00ff, 0xffff, 0xffffff, 0x88888888
+.long 0x88888888, 0x88888888, 0x88888888, 0x88888888
+.long 0x88888888, 0x88888888, 0x88888888, 0x88888888
+.long 0x88888888, 0x88, 0x8000000, 0x8088
+.long 0x88000000, 0x80, 0x88880000, 0x3380
+.long 0x8038800, 0xffff8088, 0x88f0ffff, 0x33330380
+.long 0x88083333, 0x3380, 0x8038800, 0xffff8088
+.long 0x88f0ffff, 0x3333f080, 0x88303333, 0x3380
+.long 0x8038800, 0xffff8088, 0x88f0ffff, 0x3303bf80
+.long 0x8333333, 0x3380, 0x8030000, 0xffff8088
+.long 0x88f0ffff, 0x33f0fb80, 0x30333333, 0x33333380
+.long 0x8333333, 0xffff8088, 0x88f0ffff, 0xbfbf80
+.fill 4, 1, 0
+.long 0x3380, 0x8330000, 0xffff8088, 0x88f0ffff
+.long 0xfbfbfb80, 0x8888f0fb, 0x88883080, 0x8038888
+.long 0xffff8088, 0x88f0ffff, 0xbfbfbf80, 0x8888b0bf
+.long 0x88883080, 0x8038888, 0xffff8088, 0x88f0ffff
+.long 0xf0fb80, 0x88880000, 0x88883080, 0x8038888
+.long 0xffff8088, 0x880000ff, 0x88080088, 0x808888
+.long 0x88883080, 0x8038888, 0xffff8088, 0x88080fff
+.long 0x88888888, 0x888888, 0x88883080, 0x8008888
+.long 0xffff8088, 0x888800ff, 0x88888888, 0x80808880
+.long 0x88883080, 0x8088888, 0x8088, 0x88880800
+.long 0x88888888, 0x88080088, 0x80, 0x8000000
+.long 0x28, 0x30, 0x30, 0x40001
+.fill 4, 1, 0
+.long 0x480
+.fill 20, 1, 0
+.long 0x800000, 0x8000, 0x808000, 0x80
+.long 0x800080, 0x8080, 0xc0c0c0, 0x808080
+.long 0xff0000, 0xff00, 0xffff00, 0xff
+.long 0xff00ff, 0xffff, 0xffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0x28
+.long 0x30, 0x30, 0x40001
+.fill 4, 1, 0
+.long 0x480
+.fill 20, 1, 0
+.long 0x800000, 0x8000, 0x808000, 0x80
+.long 0x800080, 0x8080, 0xc0c0c0, 0x808080
+.long 0xff0000, 0xff00, 0xffff00, 0xff
+.long 0xff00ff, 0xffff, 0xffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff
+.fill 4, 1, 0
+.long 0x260010
+WSTR_00640800:
+.string16 "Game"
+DAT_0064080a:
+.fill 2, 1, 0
+.long 0x268004
+WSTR_00640810:
+.string16 "New Game\tCtrl+N"
+DAT_00640830:
+.long 0x80050000
+WSTR_00640834:
+.string16 "&Load Saved Game..\tCtrl+L"
+DAT_00640868:
+.long 0x80060000
+WSTR_0064086c:
+.string16 "&Save Your Game\tCtrl+S"
+DAT_0064089a:
+.fill 2, 1, 0
+.long 0x538008
+WSTR_006408a0:
+.string16 "ave Your Game &As..\tCtrl+A"
+DAT_006408d6:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.long 0x800a0008
+WSTR_006408e0:
+.string16 "Save &Game Status"
+DAT_00640904:
+.fill 4, 1, 0
+.long 0x800000, 0x458003
+WSTR_00640910:
+.string16 "&xit\tCtrl+X"
+DAT_00640928:
+.long 0x260090
+WSTR_0064092c:
+.string16 "Help"
+DAT_00640936:
+.byte 0x80, 0x00
+.long 0x26e140
+WSTR_0064093c:
+.string16 "About GAME..."
+DAT_00640958:
+.long 0x790003, 0x8003, 0x58008b, 0x8003
+.long 0x260082, 0x800d, 0x80c800c0
+.fill 4, 1, 0
+.long 0x220004, 0xd90016, 0x42
+.fill 2, 1, 0
+WSTR_00640986:
+.string16 "About Her Interactive and Nancy Drew"
+DAT_006409d0:
+.long 0x4d0008
+WSTR_006409d4:
+.string16 "S Sans Serif"
+DAT_006409ee:
+.fill 2, 1, 0
+.long 0x50000003
+.fill 4, 1, 0
+.long 0x16000b, 0x140014, 0xffffffff, 0xffff0082
+.long 0x80, 0x50020001
+.fill 4, 1, 0
+.long 0xa002f, 0x140073, 0xffffffff, 0x200082
+WSTR_00640a24:
+.string16 "    Nancy Drew - The Curse of Blackmoor Manor"
+DAT_00640a80:
+.fill 4, 1, 0
+.long 0x50020001
+.fill 4, 1, 0
+.long 0x2d002f, 0x80073, 0xffffffff, 0x430082
+.long 0x70006f, 0x720079, 0x670069, 0x740068
+.long 0xa90020
+WSTR_00640ab0:
+.string16 " 2004"
+DAT_00640abc:
+.fill 4, 1, 0
+.long 0x50030001
+.fill 4, 1, 0
+.long 0x600b0, 0xe0020, 0xffff0001, 0x4f0080
+.long 0x4b
+.byte 0x00, 0x00
+.org 0x1ae0
+DAT_00640ae0:
+.long 0x50c00040
+.fill 4, 1, 0
+.long 0x2d, 0x1900000, 0xea
+.fill 2, 1, 0
+WSTR_00640af6:
+.string16 "Slider Puzzle"
+DAT_00640b12:
+.byte 0x07, 0x00
+WSTR_00640b14:
+.string16 "Small Fonts"
+DAT_00640b2c:
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x190095, 0xa0064, 0xffff04b7, 0x500080
+WSTR_00640b44:
+.string16 "layer Has Tried Puzzle"
+DAT_00640b72:
+.fill 2, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x550079, 0xc000f, 0xffff04b8, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x550096, 0xc000f, 0xffff04b9, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x5500b5, 0xc000f, 0xffff04ba, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x5500d2, 0xc000f, 0xffff04bb, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x5500f1, 0xc000f, 0xffff04bc, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x550114, 0xc000f, 0xffff04bd, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x690079, 0xc000f, 0xffff04be, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x690096, 0xc000f, 0xffff04bf, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6900b5, 0xc000f, 0xffff04c0, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6900d2, 0xc000f, 0xffff04c1, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6900f1, 0xc000f, 0xffff04c2, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x690114, 0xc000f, 0xffff04c3, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7d0079, 0xc000f, 0xffff04c4, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7d0096, 0xc000f, 0xffff04c5, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7d00b5, 0xc000f, 0xffff04c6, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7d00d2, 0xc000f, 0xffff04c7, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7d00f1, 0xc000f, 0xffff04c8, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7d0114, 0xc000f, 0xffff04c9, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x910079, 0xc000f, 0xffff04d0, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x910096, 0xc000f, 0xffff04d1, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x9100b5, 0xc000f, 0xffff04d2, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x9100d2, 0xc000f, 0xffff04d3, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x9100f1, 0xc000f, 0xffff04d4, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x910114, 0xc000f, 0xffff04d5, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa50079, 0xc000f, 0xffff04d6, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa50096, 0xc000f, 0xffff04d7, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa500b5, 0xc000f, 0xffff04d8, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa500d2, 0xc000f, 0xffff04d9, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa500f1, 0xc000f, 0xffff04da, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa50114, 0xc000f, 0xffff04db, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xb90079, 0xc000f, 0xffff04dc, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xb90096, 0xc000f, 0xffff04dd, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xb900b5, 0xc000f, 0xffff04de, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xb900d2, 0xc000f, 0xffff04df, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xb900f1, 0xc000f, 0xffff04e0, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xb90114, 0xc000f, 0xffff04e1, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x410079, 0xa00aa, 0xffffffff, 0x300082
+WSTR_00640f7c:
+.string16 "              1                 2                 3                 4                    5"
+DAT_00641032:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x55005f, 0xa000f, 0xffffffff, 0x300082
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x69005f, 0xa000f, 0xffffffff, 0x310082
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x7d005f, 0xa000f, 0xffffffff, 0x320082
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x91005f, 0xa000f, 0xffffffff, 0x330082
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xa5005f, 0xa000f, 0xffffffff, 0x340082
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xb9005f, 0xa000f, 0xffffffff, 0x350082
+.fill 4, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x320046, 0xa500ff, 0xffffffff, 0x500080
+WSTR_006410f4:
+.string16 "uzzle Tile Values"
+DAT_00641118:
+.byte 0x00, 0x00
+.org 0x2120
+DAT_00641120:
+.long 0x58c00040
+.fill 4, 1, 0
+.long 0x32, 0x1980000, 0xee
+.fill 2, 1, 0
+WSTR_00641136:
+.string16 "Events"
+DAT_00641144:
+.long 0x530007
+WSTR_00641148:
+.string16 "mall Fonts"
+DAT_0064115e:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x10001, 0xf005f, 0xffff0564, 0x450080
+WSTR_00641178:
+.string16 "vents 0 -> 23"
+DAT_00641194:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x150001, 0xf005f, 0xffff0565, 0x450080
+WSTR_006411b0:
+.string16 "vents 24 -> 47"
+DAT_006411ce:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x290001, 0xf005f, 0xffff0566, 0x450080
+WSTR_006411e8:
+.string16 "vents 48 -> 71"
+DAT_00641206:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x3d0001, 0xf005f, 0xffff0567, 0x450080
+WSTR_00641220:
+.string16 "vents 72 -> 95"
+DAT_0064123e:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x510001, 0xf005f, 0xffff0568, 0x450080
+WSTR_00641258:
+.string16 "vents 96 -> 119"
+DAT_00641278:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x650001, 0xf005f, 0xffff0569, 0x450080
+WSTR_00641294:
+.string16 "vents 120 -> 143"
+DAT_006412b6:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x790001, 0xf005f, 0xffff056a, 0x450080
+WSTR_006412d0:
+.string16 "vents 144 -> 167"
+DAT_006412f2:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x8d0001, 0xf005f, 0xffff056b, 0x450080
+WSTR_0064130c:
+.string16 "vents 168 -> 191"
+DAT_0064132e:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xa10001, 0xf005f, 0xffff056c, 0x450080
+WSTR_00641348:
+.string16 "vents 192 -> 215"
+DAT_0064136a:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xb50001, 0xf005f, 0xffff056d, 0x450080
+WSTR_00641384:
+.string16 "vents 216 -> 239"
+DAT_006413a6:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xc90003, 0xf005f, 0xffff0579, 0x450080
+WSTR_006413c0:
+.string16 "vents 240 -> 263"
+DAT_006413e2:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xdd0001, 0xf005f, 0xffff057a, 0x450080
+WSTR_006413fc:
+.string16 "vents 264 -> 287"
+DAT_0064141e:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x1006a, 0xf005f, 0xffff057b, 0x450080
+WSTR_00641438:
+.string16 "vents 288 -> 311"
+DAT_0064145a:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x15006a, 0xf005f, 0xffff057c, 0x450080
+WSTR_00641474:
+.string16 "vents 312 -> 335"
+DAT_00641496:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x29006a, 0xf005f, 0xffff057d, 0x450080
+WSTR_006414b0:
+.string16 "vents 336 -> 359"
+DAT_006414d2:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x3d006a, 0xf005f, 0xffff057e, 0x450080
+WSTR_006414ec:
+.string16 "vents 360 -> 383"
+DAT_0064150e:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x51006a, 0xf005f, 0xffff057f, 0x450080
+WSTR_00641528:
+.string16 "vents 384 -> 407"
+DAT_0064154a:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x65006a, 0xf005f, 0xffff0580, 0x450080
+WSTR_00641564:
+.string16 "vents 408->431"
+DAT_00641582:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x79006a, 0xf005f, 0xffff0581, 0x450080
+WSTR_0064159c:
+.string16 "vents 432->455"
+DAT_006415ba:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x8d006a, 0xf005f, 0xffff0582, 0x450080
+WSTR_006415d4:
+.string16 "vents 456>479"
+DAT_006415f0:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xa1006a, 0xf005f, 0xffff0583, 0x450080
+WSTR_0064160c:
+.string16 "vents 480->503"
+DAT_0064162a:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xb5006a, 0xf005f, 0xffff0584, 0x450080
+WSTR_00641644:
+.string16 "vents 504-> 527"
+DAT_00641664:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xc9006a, 0xf005f, 0xffff0585, 0x450080
+WSTR_00641680:
+.string16 "vents 528-> 551"
+DAT_006416a0:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xdd006a, 0xf005f, 0xffff0586, 0x450080
+WSTR_006416bc:
+.string16 "vents 552->575"
+DAT_006416da:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x100cf, 0xf005f, 0xffff0587, 0x450080
+WSTR_006416f4:
+.string16 "vents 576->599"
+DAT_00641712:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x1500cf, 0xf005f, 0xffff0588, 0x450080
+WSTR_0064172c:
+.string16 "vents 600 > 623"
+DAT_0064174c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x2900cf, 0xf005f, 0xffff0589, 0x450080
+WSTR_00641768:
+.string16 "vents 624> 647"
+DAT_00641786:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x3d00cf, 0xf005f, 0xffff058a, 0x450080
+WSTR_006417a0:
+.string16 "vents 648->671"
+DAT_006417be:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x5100cf, 0xf005f, 0xffff058b, 0x450080
+WSTR_006417d8:
+.string16 "vents 672>695"
+DAT_006417f4:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x6500cf, 0xf005f, 0xffff058c, 0x450080
+WSTR_00641810:
+.string16 "vents 696>719"
+DAT_0064182c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x7900cf, 0xf005f, 0xffff058d, 0x450080
+WSTR_00641848:
+.string16 "vents 720>743"
+DAT_00641864:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x8d00cf, 0xf005f, 0xffff058e, 0x450080
+WSTR_00641880:
+.string16 "vents 744>767"
+DAT_0064189c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xa100cf, 0xf005f, 0xffff058f, 0x450080
+WSTR_006418b8:
+.string16 "vents 768>791"
+DAT_006418d4:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xb500cf, 0xf005f, 0xffff0590, 0x450080
+WSTR_006418f0:
+.string16 "vents 792>815"
+DAT_0064190c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xc900cf, 0xf005f, 0xffff0591, 0x450080
+WSTR_00641928:
+.string16 "vents 816>839"
+DAT_00641944:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xdd00cf, 0xf005f, 0xffff0592, 0x450080
+WSTR_00641960:
+.string16 "vents 840>863"
+DAT_0064197c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x10135, 0xf005f, 0xffff0593, 0x450080
+WSTR_00641998:
+.string16 "vents 864>887"
+DAT_006419b4:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x120135, 0xf005f, 0xffff0594, 0x450080
+WSTR_006419d0:
+.string16 "vents 888>911"
+DAT_006419ec:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x230135, 0xf005f, 0xffff0595, 0x450080
+WSTR_00641a08:
+.string16 "vents 912>935"
+DAT_00641a24:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x890135, 0xf005f, 0xffff0596, 0x450080
+WSTR_00641a40:
+.string16 "vents 1056>1079"
+DAT_00641a60:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xab0135, 0xf005f, 0xffff0597, 0x450080
+WSTR_00641a7c:
+.string16 "vents 1104>1127"
+DAT_00641a9c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x560135, 0xf005f, 0xffff0598, 0x450080
+WSTR_00641ab8:
+.string16 "vents 984>1007"
+DAT_00641ad6:
+.fill 2, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x670135, 0xf005f, 0xffff0599, 0x450080
+WSTR_00641af0:
+.string16 "vents 1008>1031"
+DAT_00641b10:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x780135, 0xf005f, 0xffff059a, 0x450080
+WSTR_00641b2c:
+.string16 "vents 1032>1055"
+DAT_00641b4c:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x340135, 0xf005f, 0xffff059b, 0x450080
+WSTR_00641b68:
+.string16 "vents 936>959"
+DAT_00641b84:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x9a0135, 0xf005f, 0xffff059c, 0x450080
+WSTR_00641ba0:
+.string16 "vents 1080>1103"
+DAT_00641bc0:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x450135, 0xf005f, 0xffff059d, 0x450080
+WSTR_00641bdc:
+.string16 "vents 960>983"
+DAT_00641bf8:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xbc0135, 0xf005f, 0xffff059e, 0x450080
+WSTR_00641c14:
+.string16 "vents 1128>1151"
+DAT_00641c34:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xcd0135, 0xf005f, 0xffff05a0, 0x450080
+WSTR_00641c50:
+.string16 "vents 1152>1175"
+DAT_00641c70:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xde0135, 0xf005f, 0xffff05a1, 0x450080
+WSTR_00641c8c:
+.string16 "vents 1176>1199"
+DAT_00641cac:
+.byte 0x00, 0x00
+.org 0x2cb0
+DAT_00641cb0:
+.long 0x80c008c7
+.fill 4, 1, 0
+.long 0x19, 0x19c0000, 0xfa
+.fill 4, 1, 0
+.long 0x4d0008
+WSTR_00641ccc:
+.string16 "S Sans Serif"
+DAT_00641ce6:
+.fill 2, 1, 0
+.long 0x50010001
+.fill 4, 1, 0
+.long 0xde015b, 0xe0032, 0xffff0001, 0x440080
+.long 0x6e006f, 0x65
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xf0019, 0x90096, 0xffff03fc, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x1e0019, 0x90096, 0xffff03fd, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x2e0019, 0x90096, 0xffff03fe, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x400019, 0x90096, 0xffff03ff, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x500019, 0x90096, 0xffff0400, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x620019, 0x90096, 0xffff0401, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x740019, 0x90096, 0xffff0402, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x840019, 0x90096, 0xffff0403, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x940019, 0x90096, 0xffff040e, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xa60019, 0x90096, 0xffff040d, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xb60019, 0x90096, 0xffff040c, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc70019, 0x90096, 0xffff040b, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xf00e1, 0x90096, 0xffff0404, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x1e00e1, 0x90096, 0xffff0405, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x2e00e1, 0x90096, 0xffff0406, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x4000e1, 0x90096, 0xffff0407, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x5000e1, 0x90096, 0xffff0408, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x6200e1, 0x90096, 0xffff0409, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x7200e1, 0x90096, 0xffff040a, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x8200e1, 0x90096, 0xffff040f, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x9400e1, 0x90096, 0xffff0410, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xa400e1, 0x90096, 0xffff0411, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xb600e1, 0x90096, 0xffff0412, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc600e1, 0x90096, 0xffff0413, 0x80
+.byte 0x00, 0x00
+.org 0x2fb0
+DAT_00641fb0:
+.long 0x90c800c0
+.fill 4, 1, 0
+.long 0x3, 0xb60000, 0x5a
+.fill 2, 1, 0
+WSTR_00641fc6:
+.string16 "Nancy Drew"
+DAT_00641fdc:
+.long 0x4d0008
+WSTR_00641fe0:
+.string16 "S Sans Serif"
+DAT_00641ffa:
+.fill 2, 1, 0
+.long 0x50010001
+.fill 4, 1, 0
+.long 0x3c001e, 0xe0032, 0xffff0001, 0x4f0080
+.long 0x4b
+.fill 4, 1, 0
+.long 0x50020001
+.fill 4, 1, 0
+.long 0xf000f, 0x1e0096, 0xffffffff, 0x500082
+WSTR_00642034:
+.string16 "lease insert The Curse of Blackmoor Manor CD.  Press OK after the CD has been inserted.  Press EXIT GAME if you want to quit instead."
+DAT_00642140:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x3c0064, 0xe0032, 0xffff0002, 0x450080
+WSTR_0064215c:
+.string16 "XIT GAME"
+DAT_0064216e:
+.fill 2, 1, 0
+.long 0x50c00040
+.fill 4, 1, 0
+.long 0x48, 0x1960000, 0xe3
+.fill 2, 1, 0
+WSTR_00642186:
+.string16 "Inventory"
+DAT_0064219a:
+.byte 0x06, 0x00
+WSTR_0064219c:
+.string16 "Small Fonts"
+DAT_006421b4:
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x10003, 0xa0060, 0xffff03e9, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc0003, 0xa0060, 0xffff03ea, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x170003, 0xa0060, 0xffff03eb, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x220003, 0xa0060, 0xffff03ec, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x2d0003, 0xa0060, 0xffff03ed, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x380003, 0xa0060, 0xffff03ee, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x430003, 0xa0060, 0xffff03ef, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x4e0003, 0xa0060, 0xffff03f0, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x590003, 0xa0060, 0xffff03f1, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x640003, 0xa0060, 0xffff03f2, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x6f0003, 0xa0060, 0xffff03f3, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x7a0003, 0xa0060, 0xffff03f4, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x850003, 0xa0060, 0xffff03f5, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x900003, 0xa0060, 0xffff03f6, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x9b0003, 0xa0060, 0xffff03f7, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xa60002, 0xa0060, 0xffff03f8, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xb10002, 0xa0060, 0xffff03f9, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xbc0002, 0xa0060, 0xffff03fa, 0x80
+.fill 4, 1, 0
+.long 0x50020001
+.fill 4, 1, 0
+.long 0x10137, 0x90036, 0xffffffff, 0x490082
+WSTR_006423c4:
+.string16 "nventory Cursor"
+DAT_006423e4:
+.fill 4, 1, 0
+.long 0x50a10101
+.fill 4, 1, 0
+.long 0xc0134, 0x69005f, 0xffff0563, 0x83
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc70002, 0xa0060, 0xffff03fb, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xd20002, 0xa0060, 0xffff03fc, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x10066, 0xa0060, 0xffff03fd, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc0066, 0xa0060, 0xffff03fe, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x170066, 0xa0060, 0xffff03ff, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x220066, 0xa0060, 0xffff0400, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x2d0066, 0xa0060, 0xffff0401, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x380066, 0xa0060, 0xffff0402, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x430066, 0xa0060, 0xffff0403, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x4e0066, 0xa0060, 0xffff0404, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x590066, 0xa0060, 0xffff0405, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x640066, 0xa0060, 0xffff0406, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x6f0066, 0xa0060, 0xffff0407, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x7a0066, 0xa0060, 0xffff0408, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x900066, 0xa0060, 0xffff040b, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x9b0066, 0xa0060, 0xffff040c, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x850066, 0xa0060, 0xffff0409, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xb10066, 0xa0060, 0xffff040d, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xa60066, 0xa0060, 0xffff040e, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xbc0066, 0xa0060, 0xffff040f, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc70066, 0xa0060, 0xffff0410, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xd20066, 0xa0060, 0xffff0411, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x100cc, 0xa0060, 0xffff0412, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc00cc, 0xa0060, 0xffff0413, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x1700cc, 0xa0060, 0xffff0414, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x2200cc, 0xa0060, 0xffff0415, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x2d00cc, 0xa0060, 0xffff0416, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x3800cc, 0xa0060, 0xffff0417, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x4300cc, 0xa0060, 0xffff0418, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x4e00cc, 0xa0060, 0xffff0419, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x5900cc, 0xa0060, 0xffff041a, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x6f00cc, 0xa0060, 0xffff041b, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x6400cc, 0xa0060, 0xffff0425, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x7a00cc, 0xa0060, 0xffff0426, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x8500cc, 0xa0060, 0xffff0427, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x9000cc, 0xa0060, 0xffff0428, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x9b00cc, 0xa0060, 0xffff0429, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xa600cc, 0xa0060, 0xffff042a, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xb100cc, 0xa0060, 0xffff042b, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xbc00cc, 0xa0060, 0xffff042c, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc700cc, 0xa0060, 0xffff042d, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xd200cc, 0xa0060, 0xffff042e, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x760133, 0xa0060, 0xffff044d, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x810133, 0xa0060, 0xffff044e, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x8c0133, 0xa0060, 0xffff044f, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0x970133, 0xa0060, 0xffff0450, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xa20133, 0xa0060, 0xffff0451, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xad0133, 0xa0060, 0xffff0452, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xb80133, 0xa0060, 0xffff0453, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xc30133, 0xa0060, 0xffff0454, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xce0133, 0xa0060, 0xffff0455, 0x80
+.fill 4, 1, 0
+.long 0x50000004
+.fill 4, 1, 0
+.long 0xd90133, 0xa0060, 0xffff0456, 0x80
+.byte 0x00, 0x00
+.org 0x39b8
+DAT_006429b8:
+.long 0x50c00040
+.fill 4, 1, 0
+.long 0x52, 0x1480000, 0xc4
+.fill 2, 1, 0
+WSTR_006429ce:
+.string16 "Variable Table"
+DAT_006429ec:
+.long 0x4d0008
+WSTR_006429f0:
+.string16 "S Sans Serif"
+DAT_00642a0a:
+.fill 2, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x11000d, 0xc0011, 0xffff0567, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x22000e, 0xc0011, 0xffff03f0, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x33000e, 0xc0011, 0xffff03ef, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x44000e, 0xc0011, 0xffff03f1, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x55000e, 0xc0011, 0xffff03f3, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x66000e, 0xc0011, 0xffff03f5, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x77000e, 0xc0011, 0xffff03f4, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x88000e, 0xc0011, 0xffff03f6, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x99000e, 0xc0011, 0xffff03ff, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xaa000e, 0xc0011, 0xffff0400, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x120057, 0xc0011, 0xffff040d, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x230057, 0xc0011, 0xffff040f, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x340057, 0xc0011, 0xffff040e, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x450057, 0xc0011, 0xffff0410, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x560057, 0xc0011, 0xffff0411, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x670057, 0xc0011, 0xffff0413, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x780057, 0xc0011, 0xffff0412, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x890057, 0xc0011, 0xffff0414, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x9a0057, 0xc0011, 0xffff0415, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xab0057, 0xc0011, 0xffff0416, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x140021, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642c54:
+.string16 "ableIndex1"
+DAT_00642c6a:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x250022, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642c84:
+.string16 "ableIndex2"
+DAT_00642c9a:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x360022, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642cb4:
+.string16 "ableIndex3"
+DAT_00642cca:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x470022, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642ce4:
+.string16 "ableIndex4"
+DAT_00642cfa:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x580022, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642d14:
+.string16 "ableIndex5"
+DAT_00642d2a:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x7a0021, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642d44:
+.string16 "ableIndex7"
+DAT_00642d5a:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x690020, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642d74:
+.string16 "ableIndex6"
+DAT_00642d8a:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x8b0021, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642da4:
+.string16 "ableIndex8"
+DAT_00642dba:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x9c0021, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642dd4:
+.string16 "ableIndex9"
+DAT_00642dea:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xad0021, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642e04:
+.string16 "ableIndex10"
+DAT_00642e1c:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x17006e, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642e38:
+.string16 "ableIndex11"
+DAT_00642e50:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x36006d, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642e6c:
+.string16 "ableIndex13"
+DAT_00642e84:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x26006d, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642ea0:
+.string16 "ableIndex12"
+DAT_00642eb8:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x49006e, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642ed4:
+.string16 "ableIndex14"
+DAT_00642eec:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x59006e, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642f08:
+.string16 "ableIndex15"
+DAT_00642f20:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x7a006d, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642f3c:
+.string16 "ableIndex17"
+DAT_00642f54:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x6a006e, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642f70:
+.string16 "ableIndex16"
+DAT_00642f88:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x8c006d, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642fa4:
+.string16 "ableIndex18"
+DAT_00642fbc:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x9c006e, 0x8002c, 0xffffffff, 0x540082
+WSTR_00642fd8:
+.string16 "ableIndex19"
+DAT_00642ff0:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xad006d, 0x8002c, 0xffffffff, 0x540082
+WSTR_0064300c:
+.string16 "ableIndex20"
+DAT_00643024:
+.fill 4, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x70007, 0xb400e3, 0xffffffff, 0x530080
+WSTR_00643040:
+.string16 "ingle Values"
+DAT_0064305a:
+.fill 2, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x1100f5, 0xc0017, 0xffff0417, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x2200f5, 0xc0017, 0xffff0418, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x3300f5, 0xc0017, 0xffff0419, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x4400f5, 0xc0017, 0xffff041a, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x5600f5, 0xc0017, 0xffff041b, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6600f5, 0xc0017, 0xffff041c, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7700f5, 0xc0017, 0xffff041d, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8900f5, 0xc0017, 0xffff041e, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x9900f5, 0xc0017, 0xffff041f, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xaa00f5, 0xc0017, 0xffff0420, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x16010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_0064318c:
+.string16 "omboIndex1"
+DAT_006431a2:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x28010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_006431bc:
+.string16 "omboIndex2"
+DAT_006431d2:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x38010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_006431ec:
+.string16 "omboIndex3"
+DAT_00643202:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x48010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_0064321c:
+.string16 "omboIndex4"
+DAT_00643232:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x58010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_0064324c:
+.string16 "omboIndex5"
+DAT_00643262:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x7b010f, 0x8002c, 0xffffffff, 0x430082
+WSTR_0064327c:
+.string16 "omboIndex7"
+DAT_00643292:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x6a010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_006432ac:
+.string16 "omboIndex6"
+DAT_006432c2:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x8b010f, 0x8002c, 0xffffffff, 0x430082
+WSTR_006432dc:
+.string16 "omboIndex8"
+DAT_006432f2:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x9b010d, 0x8002c, 0xffffffff, 0x430082
+WSTR_0064330c:
+.string16 "omboIndex9"
+DAT_00643322:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xab010f, 0x80031, 0xffffffff, 0x430082
+WSTR_0064333c:
+.string16 "omboIndex10"
+DAT_00643354:
+.fill 4, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x700ed, 0xb40054, 0xffffffff, 0x430080
+WSTR_00643370:
+.string16 "ombo Values"
+DAT_00643388:
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x1200a2, 0xc0011, 0xffff0421, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x2300a2, 0xc0011, 0xffff0422, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x3400a2, 0xc0011, 0xffff0423, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x4500a2, 0xc0011, 0xffff0424, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x5600a2, 0xc0011, 0xffff0425, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6700a2, 0xc0011, 0xffff0426, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x7800a2, 0xc0011, 0xffff0427, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8900a2, 0xc0011, 0xffff0428, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x9a00a2, 0xc0011, 0xffff0429, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x1700b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_006434a0:
+.string16 "ableIndex21"
+DAT_006434b8:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x3700b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_006434d4:
+.string16 "ableIndex23"
+DAT_006434ec:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x2600b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_00643508:
+.string16 "ableIndex22"
+DAT_00643520:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x4900b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_0064353c:
+.string16 "ableIndex24"
+DAT_00643554:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x5900b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_00643570:
+.string16 "ableIndex25"
+DAT_00643588:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x7900b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_006435a4:
+.string16 "ableIndex27"
+DAT_006435bc:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x6a00b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_006435d8:
+.string16 "ableIndex26"
+DAT_006435f0:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x8b00b8, 0x8002c, 0xffffffff, 0x540082
+WSTR_0064360c:
+.string16 "ableIndex28"
+DAT_00643624:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x9c00b9, 0x8002c, 0xffffffff, 0x540082
+WSTR_00643640:
+.string16 "ableIndex29"
+DAT_00643658:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xad00b8, 0x80032, 0xffffffff, 0x320082
+WSTR_00643674:
+.string16 "nd ChanceCnt"
+DAT_0064368e:
+.fill 2, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0xa900a2, 0xc0011, 0xffff042a, 0x81
+.byte 0x00, 0x00
+.org 0x46b0
+DAT_006436b0:
+.long 0x58c00040
+.fill 4, 1, 0
+.long 0x33, 0x18b0000, 0xda
+.fill 2, 1, 0
+WSTR_006436c6:
+.string16 "General"
+DAT_006436d6:
+.byte 0x07, 0x00
+WSTR_006436d8:
+.string16 "Small Fonts"
+DAT_006436f0:
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xa60079, 0x19005a, 0xffff03ea, 0x520080
+WSTR_00643708:
+.string16 "eload &Current Settings"
+DAT_00643738:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xa60015, 0x19005a, 0xffff03eb, 0x260080
+WSTR_00643754:
+.string16 "Load Cheat File"
+DAT_00643774:
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0xa600dc, 0x19005a, 0xffff03ec, 0x260080
+WSTR_00643790:
+.string16 "Save Cheat Settings"
+DAT_006437b8:
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x3c0027, 0xc0014, 0xffff03ee, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x4b0027, 0xc0014, 0xffff03ef, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x5a0027, 0xc0014, 0xffff03f0, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x3c003f, 0x8003c, 0xffffffff, 0x530082
+WSTR_00643828:
+.string16 "cene Number"
+DAT_00643840:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x1d013e, 0x8001e, 0xffffffff, 0x4d0082
+WSTR_0064385c:
+.string16 "inutes"
+DAT_0064386a:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x5a003f, 0x80046, 0xffffffff, 0x420082
+WSTR_00643884:
+.string16 "ackground Top (Y)"
+DAT_006438a8:
+.fill 4, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0xa0019, 0x640078, 0xffffffff, 0x530080
+WSTR_006438c4:
+.string16 "cene Data"
+DAT_006438d8:
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x1d0125, 0xc0014, 0xffff03f2, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x1d00ee, 0xc0014, 0xffff03f3, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x1d00bc, 0xc0014, 0xffff03f4, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x4b003f, 0x8003c, 0xffffffff, 0x460082
+WSTR_00643948:
+.string16 "rame Number"
+DAT_00643960:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x1d0108, 0x80019, 0xffffffff, 0x480082
+WSTR_0064397c:
+.string16 "ours"
+DAT_00643986:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x1d00d5, 0x80014, 0xffffffff, 0x440082
+.long 0x790061, 0x73
+.fill 4, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x300ad, 0x3e00be, 0xffffffff, 0x500080
+WSTR_006439c4:
+.string16 "layer Data"
+DAT_006439da:
+.fill 2, 1, 0
+.long 0x50000009
+.fill 4, 1, 0
+.long 0x1e0027, 0xa0055, 0xffff0411, 0x520080
+WSTR_006439f4:
+.string16 "estart the Scene"
+DAT_00643a16:
+.fill 2, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x320022, 0x10064, 0xffffffff, 0x82
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x650113, 0x8001e, 0xffffffff, 0x4d0082
+WSTR_00643a4c:
+.string16 "inutes"
+DAT_00643a5a:
+.fill 2, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6300fb, 0xc0014, 0xffff03f5, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x6300c3, 0xc0014, 0xffff03f6, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x630136, 0xc0014, 0xffff03f7, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x6400de, 0x80019, 0xffffffff, 0x480082
+WSTR_00643ac8:
+.string16 "ours"
+DAT_00643ad2:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x65014f, 0x8001e, 0xffffffff, 0x530082
+WSTR_00643aec:
+.string16 "econds"
+DAT_00643afa:
+.fill 2, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x4600ad, 0x5a00d7, 0xffff0568, 0x6e0080
+.long 0x6e006f, 0x65
+.fill 4, 1, 0
+.long 0x50000009
+.fill 4, 1, 0
+.long 0x7500b1, 0x100ce, 0xffffffff, 0x82
+.fill 4, 1, 0
+.long 0x50000009
+.fill 4, 1, 0
+.long 0x5200de, 0xa001d, 0xffff0475, 0x520080
+.long 0x6e0075
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x3000bc, 0xc0014, 0xffff03f8, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x3000d5, 0xa0050, 0xffffffff, 0x500082
+WSTR_00643b90:
+.string16 "layer Difficulty Level"
+DAT_00643bbe:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0xf00bc, 0x80037, 0xffffffff, 0x500082
+WSTR_00643bd8:
+.string16 "layer Time:"
+DAT_00643bf0:
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8c0032, 0xc0014, 0xffff03f9, 0x81
+.fill 4, 1, 0
+.long 0x50020001
+.fill 4, 1, 0
+.long 0x7d002d, 0xa0019, 0xffffffff, 0x450082
+.long 0x730061, 0x79
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8c0056, 0xc0014, 0xffff03fa, 0x81
+.fill 4, 1, 0
+.long 0x50020001
+.fill 4, 1, 0
+.long 0x7d0050, 0xa001e, 0xffffffff, 0x4d0082
+WSTR_00643c68:
+.string16 "edium"
+DAT_00643c74:
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8c0079, 0xc0014, 0xffff03fb, 0x81
+.fill 4, 1, 0
+.long 0x50020001
+.fill 4, 1, 0
+.long 0x7d0073, 0xa0019, 0xffffffff, 0x480082
+.long 0x720061, 0x64
+.fill 4, 1, 0
+.long 0x50000007
+.fill 4, 1, 0
+.long 0x730014, 0x2d0091, 0xffffffff, 0x480080
+WSTR_00643cd0:
+.string16 "ints Remaining"
+DAT_00643cee:
+.fill 2, 1, 0
+.long 0x50000040
+.fill 4, 1, 0
+.long 0xa20154, 0xd0030, 0x6d0569
+WSTR_00643d04:
+.string16 "sctls_updown32"
+WSTR_00643d22:
+.string16 "Spin1"
+DAT_00643d2e:
+.fill 2, 1, 0
+.long 0x50000009
+.fill 4, 1, 0
+.long 0x5200b8, 0xa001f, 0xffff0476, 0x530080
+.long 0x6f0074, 0x70
+.fill 4, 1, 0
+.long 0x50000009
+.fill 4, 1, 0
+.long 0x520102, 0xa0026, 0xffff0477, 0x500080
+WSTR_00643d6c:
+.string16 "ause"
+DAT_00643d76:
+.fill 2, 1, 0
+.long 0x50002009
+.fill 4, 1, 0
+.long 0x50012b, 0xf0029, 0xffff0478, 0x530080
+WSTR_00643d90:
+.string16 "ound Stop"
+DAT_00643da4:
+.fill 4, 1, 0
+.long 0x50002009
+.fill 4, 1, 0
+.long 0x510158, 0xf0029, 0xffff0479, 0x530080
+WSTR_00643dc0:
+.string16 "ound Cont"
+DAT_00643dd4:
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x910113, 0x8001e, 0xffffffff, 0x4d0082
+WSTR_00643df0:
+.string16 "inutes"
+DAT_00643dfe:
+.fill 2, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8e00fb, 0xc0014, 0xffff03fc, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8e00c3, 0xc0014, 0xffff03fd, 0x81
+.fill 4, 1, 0
+.long 0x50810080
+.fill 4, 1, 0
+.long 0x8e0136, 0xc0014, 0xffff03fe, 0x81
+.fill 4, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x8f00de, 0x80019, 0xffffffff, 0x480082
+WSTR_00643e6c:
+.string16 "ours"
+DAT_00643e76:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x91014f, 0x8001e, 0xffffffff, 0x530082
+WSTR_00643e90:
+.string16 "econds"
+DAT_00643e9e:
+.fill 2, 1, 0
+.long 0x50000009
+.fill 4, 1, 0
+.long 0x7b0112, 0xa0032, 0xffff047a, 0x540080
+WSTR_00643eb8:
+.string16 "riggered"
+DAT_00643eca:
+.fill 2, 1, 0
+.long 0x50020000
+.fill 4, 1, 0
+.long 0x7b00b4, 0xa003c, 0xffffffff, 0x540082
+WSTR_00643ee4:
+.string16 "rigger Data:"
+DAT_00643efe:
+.fill 2, 1, 0
+.long 0x80c800c0
+.fill 4, 1, 0
+.long 0x2, 0xba0000, 0x5e
+.fill 2, 1, 0
+WSTR_00643f16:
+.string16 "Dialog"
+DAT_00643f24:
+.long 0x4d0008
+WSTR_00643f28:
+.string16 "S Sans Serif"
+DAT_00643f42:
+.fill 2, 1, 0
+.long 0x50010001
+.fill 4, 1, 0
+.long 0x70081, 0xe0032, 0xffff0001, 0x4f0080
+.long 0x4b
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x180081, 0xe0032, 0xffff0002, 0x430080
+WSTR_00643f7c:
+.string16 "ancel"
+DAT_00643f88:
+.byte 0x00, 0x00
+.org 0x4f90
+DAT_00643f90:
+.long 0x80c800c0
+.fill 4, 1, 0
+.long 0x2, 0xba0000, 0x5f
+.fill 2, 1, 0
+WSTR_00643fa6:
+.string16 "Dialog"
+DAT_00643fb4:
+.long 0x4d0008
+WSTR_00643fb8:
+.string16 "S Sans Serif"
+DAT_00643fd2:
+.fill 2, 1, 0
+.long 0x50010001
+.fill 4, 1, 0
+.long 0x70081, 0xe0032, 0xffff0001, 0x4f0080
+.long 0x4b
+.fill 4, 1, 0
+.long 0x50010000
+.fill 4, 1, 0
+.long 0x180081, 0xe0032, 0xffff0002, 0x430080
+WSTR_0064400c:
+.string16 "ancel"
+DAT_00644018:
+.byte 0x00, 0x00
+.org 0x5020
+DAT_00644020:
+.long 0x3403b8
+.fill 2, 1, 0
+WSTR_00644026:
+.string16 "VS_VERSION_INFO"
+DAT_00644046:
+.fill 2, 1, 0
+.long 0xfeef04bd, 0x10000, 0x50000, 0x460000
+.fill 8, 1, 0
+.long 0x3f, 0x8, 0x4, 0x1
+.fill 12, 1, 0
+.long 0x318, 0x530001
+WSTR_00644084:
+.string16 "tringFileInfo"
+DAT_006440a0:
+.long 0x2f4, 0x300001
+WSTR_006440a8:
+.string16 "40904b0"
+DAT_006440b8:
+.long 0x1a004c, 0x430001
+WSTR_006440c0:
+.string16 "omments"
+WSTR_006440d0:
+.string16 "Nancy Drew Engine Partner"
+DAT_00644104:
+.long 0x100040, 0x430001
+WSTR_0064410c:
+.string16 "ompanyName"
+DAT_00644122:
+.fill 2, 1, 0
+WSTR_00644124:
+.string16 "Her Interactive"
+DAT_00644144:
+.long 0x12004c, 0x460001
+WSTR_0064414c:
+.string16 "ileDescription"
+DAT_0064416a:
+.fill 2, 1, 0
+WSTR_0064416c:
+.string16 "Nancy Drew engine"
+DAT_00644190:
+.long 0xc0038, 0x460001
+WSTR_00644198:
+.string16 "ileVersion"
+DAT_006441ae:
+.fill 2, 1, 0
+WSTR_006441b0:
+.string16 "5, 0, 70, 0"
+DAT_006441c8:
+.long 0xb0036, 0x490001
+WSTR_006441d0:
+.string16 "nternalName"
+WSTR_006441e8:
+.string16 "Nancy Drew"
+DAT_006441fe:
+.fill 2, 1, 0
+.long 0x110046, 0x4c0001
+WSTR_00644208:
+.string16 "egalCopyright"
+DAT_00644224:
+.long 0x6f0043, 0x790070, 0x690072, 0x680067
+.long 0x200074, 0x2000a9
+WSTR_0064423c:
+.string16 "2004"
+DAT_00644246:
+.fill 2, 1, 0
+.long 0x28, 0x4c0001
+WSTR_00644250:
+.string16 "egalTrademarks"
+DAT_0064426e:
+.fill 2, 1, 0
+.long 0x9003a, 0x4f0001
+WSTR_00644278:
+.string16 "riginalFilename"
+WSTR_00644298:
+.string16 "GAME.EXE"
+DAT_006442aa:
+.fill 2, 1, 0
+.long 0x1a0054, 0x500001
+WSTR_006442b4:
+.string16 "rivateBuild"
+WSTR_006442cc:
+.string16 "Wayne Sikes, Sheri Hargus"
+DAT_00644300:
+.long 0xb0036, 0x500001
+WSTR_00644308:
+.string16 "roductName"
+DAT_0064431e:
+.fill 2, 1, 0
+WSTR_00644320:
+.string16 "Nancy Drew"
+DAT_00644336:
+.fill 2, 1, 0
+.long 0xb003a, 0x500001
+WSTR_00644340:
+.string16 "roductVersion"
+WSTR_0064435c:
+.string16 "0, 0, 0, 0"
+DAT_00644372:
+.fill 2, 1, 0
+.long 0x20, 0x530001
+WSTR_0064437c:
+.string16 "pecialBuild"
+DAT_00644394:
+.long 0x44, 0x560001
+WSTR_0064439c:
+.string16 "arFileInfo"
+DAT_006443b2:
+.fill 2, 1, 0
+.long 0x40024
+.fill 2, 1, 0
+WSTR_006443ba:
+.string16 "Translation"
+DAT_006443d2:
+.fill 2, 1, 0
+.long 0x4b00409
+.fill 4, 1, 0
+.long 0x28, 0x20, 0x40, 0x10001
+.fill 4, 1, 0
+.long 0x80
+.fill 20, 1, 0
+.long 0xffffff
+.fill 128, 1, 0
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.org 0x5510
+DAT_00644510:
+.long 0x20000, 0x200001, 0x10040, 0x1340001
+.long 0x30000
+.org 0x5528
+DAT_00644528:
+.fill 4, 1, 0
+.long 0x28, 0x20, 0x40, 0x10001
+.fill 4, 1, 0
+.long 0x80
+.fill 20, 1, 0
+.long 0xffffff
+.fill 128, 1, 0
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.long 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+.org 0x5660
+DAT_00644660:
+.long 0x20000, 0x200001, 0x10040, 0x1340001
+.long 0x40000
+.org 0x5678
+WSTR_00644678:
+.string16 ">GAME\n\nGAME\nGAME Files (*.dat)\n.DAT\nGAME.Document\nGAME Document"
+DAT_006446f8:
+.fill 28, 1, 0
+.org 0x5718
+DAT_00644718:
+.long 0x470004, 0x4d0041, 0x50045
+WSTR_00644724:
+.string16 "Ready"
+DAT_00644730:
+.fill 24, 1, 0
+.byte 0x00, 0x00
+.org 0x5750
+DAT_00644750:
+.long 0x450003, 0x540058, 0x430003, 0x500041
+.long 0x4e0003, 0x4d0055, 0x530004, 0x520043
+.long 0x3004c, 0x56004f, 0x30052, 0x450052
+.long 0x43
+.fill 16, 1, 0
+.byte 0x00, 0x00
+.org 0x5798
+DAT_00644798:
+.long 0x430019, 0x650072, 0x740061, 0x200065
+.long 0x200061, 0x65006e, 0x200077, 0x6f0064
+.long 0x750063, 0x65006d, 0x74006e, 0x4e000a
+.long 0x770065, 0x4c001d, 0x61006f, 0x200064
+.long 0x200061, 0x720050, 0x760065, 0x6f0069
+.long 0x730075, 0x79006c, 0x530020, 0x760061
+.long 0x640065, 0x470020, 0x6d0061, 0x2e0065
+.long 0x43001f, 0x6f006c, 0x650073, 0x740020
+.long 0x650068, 0x610020, 0x740063, 0x760069
+.long 0x200065, 0x6f0064, 0x750063, 0x65006d
+.long 0x74006e, 0x43000a, 0x6f006c, 0x650073
+.long 0x53001d, 0x760061, 0x200065, 0x680074
+.long 0x200065, 0x630061, 0x690074, 0x650076
+.long 0x640020, 0x63006f, 0x6d0075, 0x6e0065
+.long 0xa0074, 0x610053, 0x650076, 0x530030
+.long 0x760061, 0x200065, 0x680074, 0x200065
+.long 0x630061, 0x690074, 0x650076, 0x640020
+.long 0x63006f, 0x6d0075, 0x6e0065, 0x200074
+.long 0x690077, 0x680074, 0x610020, 0x6e0020
+.long 0x770065, 0x6e0020, 0x6d0061, 0xa0065
+.long 0x610053, 0x650076, 0x410020, 0x260073
+.long 0x680043, 0x6e0061, 0x650067, 0x740020
+.long 0x650068, 0x700020, 0x690072, 0x74006e
+.long 0x6e0069, 0x200067, 0x70006f, 0x690074
+.long 0x6e006f, 0xa0073, 0x610050, 0x650067
+.long 0x530020, 0x740065, 0x700075, 0x430033
+.long 0x610068, 0x67006e, 0x200065, 0x680074
+.long 0x200065, 0x720070, 0x6e0069, 0x650074
+.long 0x200072, 0x6e0061, 0x200064, 0x720070
+.long 0x6e0069, 0x690074, 0x67006e, 0x6f0020
+.long 0x740070, 0x6f0069, 0x73006e, 0x50000a
+.long 0x690072, 0x74006e, 0x530020, 0x740065
+.long 0x700075, 0x50001f
+WSTR_006449a0:
+.string16 "rint the active document\nPrint"
+WSTR_006449de:
+.string16 " Display full pages\nPrint Preview"
+DAT_00644a22:
+.fill 2, 1, 0
+.fill 8, 1, 0
+.org 0x5a30
+DAT_00644a30:
+.long 0x44003f, 0x730069, 0x6c0070, 0x790061
+.long 0x700020, 0x6f0072, 0x720067, 0x6d0061
+.long 0x690020, 0x66006e, 0x72006f, 0x61006d
+.long 0x690074, 0x6e006f, 0x20002c, 0x650076
+.long 0x730072, 0x6f0069, 0x20006e, 0x75006e
+.long 0x62006d, 0x720065, 0x610020, 0x64006e
+.long 0x630020, 0x70006f, 0x720079, 0x670069
+.long 0x740068, 0x41000a, 0x6f0062, 0x740075
+.long 0x510012
+WSTR_00644ab4:
+.string16 "uit the game\nExit"
+DAT_00644ad8:
+.fill 24, 1, 0
+.byte 0x00, 0x00
+.org 0x5af8
+DAT_00644af8:
+.long 0x4f0012, 0x650070, 0x20006e, 0x680074
+.long 0x730069, 0x640020, 0x63006f, 0x6d0075
+.long 0x6e0065, 0x120074, 0x70004f, 0x6e0065
+.long 0x740020, 0x690068, 0x200073, 0x6f0064
+.long 0x750063, 0x65006d, 0x74006e, 0x4f0012
+.long 0x650070, 0x20006e, 0x680074, 0x730069
+.long 0x640020, 0x63006f, 0x6d0075, 0x6e0065
+.long 0x120074
+WSTR_00644b6c:
+.string16 "Open this document"
+DAT_00644b92:
+.fill 22, 1, 0
+WSTR_00644ba8:
+.string16 "(Switch to the next window pane\nNext Pane5Switch back to the previous window pane\nPrevious Pane"
+DAT_00644c68:
+.fill 24, 1, 0
+.byte 0x00, 0x00
+.org 0x5c88
+DAT_00644c88:
+.fill 10, 1, 0
+WSTR_00644c92:
+.string16 "(Split the active window into panes\nSplit"
+DAT_00644ce6:
+.fill 2, 1, 0
+.fill 16, 1, 0
+.long 0x450019, 0x610072, 0x650073, 0x740020
+.long 0x650068, 0x730020, 0x6c0065, 0x630065
+.long 0x690074, 0x6e006f, 0x45000a, 0x610072
+.long 0x650073, 0x45001a, 0x610072, 0x650073
+.long 0x650020, 0x650076, 0x790072, 0x680074
+.long 0x6e0069, 0xa0067, 0x720045, 0x730061
+.long 0x200065, 0x6c0041, 0x33006c, 0x6f0043
+.long 0x790070, 0x740020, 0x650068, 0x730020
+.long 0x6c0065, 0x630065, 0x690074, 0x6e006f
+.long 0x610020, 0x64006e, 0x700020, 0x740075
+.long 0x690020, 0x200074, 0x6e006f, 0x740020
+.long 0x650068, 0x430020, 0x69006c, 0x620070
+.long 0x61006f, 0x640072, 0x43000a, 0x70006f
+.long 0x310079, 0x750043, 0x200074, 0x680074
+.long 0x200065, 0x650073, 0x65006c, 0x740063
+.long 0x6f0069, 0x20006e, 0x6e0061, 0x200064
+.long 0x750070, 0x200074, 0x740069, 0x6f0020
+.long 0x20006e, 0x680074, 0x200065, 0x6c0043
+.long 0x700069, 0x6f0062, 0x720061, 0xa0064
+.long 0x750043, 0x1c0074, 0x690046, 0x64006e
+.long 0x740020, 0x650068, 0x730020, 0x650070
+.long 0x690063, 0x690066, 0x640065, 0x740020
+.long 0x780065, 0xa0074, 0x690046, 0x64006e
+.long 0x49001f
+WSTR_00644e6c:
+.string16 "nsert Clipboard contents\nPaste"
+DAT_00644eaa:
+.fill 2, 1, 0
+.long 0x52001d, 0x700065, 0x610065, 0x200074
+.long 0x680074, 0x200065, 0x61006c, 0x740073
+.long 0x610020, 0x740063, 0x6f0069, 0xa006e
+.long 0x650052, 0x650070, 0x740061, 0x520031
+.long 0x700065, 0x61006c, 0x650063, 0x730020
+.long 0x650070, 0x690063, 0x690066, 0x200063
+.long 0x650074, 0x740078, 0x770020, 0x740069
+.long 0x200068, 0x690064, 0x660066, 0x720065
+.long 0x6e0065, 0x200074, 0x650074, 0x740078
+.long 0x52000a, 0x700065, 0x61006c, 0x650063
+.long 0x530025, 0x6c0065, 0x630065, 0x200074
+.long 0x680074, 0x200065, 0x6e0065, 0x690074
+.long 0x650072, 0x640020, 0x63006f, 0x6d0075
+.long 0x6e0065, 0xa0074, 0x650053, 0x65006c
+.long 0x740063, 0x410020, 0x6c006c, 0x550019
+WSTR_00644f9c:
+.string16 "ndo the last action\nUndo&Redo the previously undone action\nRedo"
+DAT_0064501c:
+.fill 4, 1, 0
+WSTR_00645020:
+.string16 "'Show or hide the toolbar\nToggle ToolBar,Show or hide the status bar\nToggle StatusBar"
+DAT_006450cc:
+.fill 24, 1, 0
+.byte 0x00, 0x00
+.org 0x60e8
+DAT_006450e8:
+.long 0x430016, 0x610068, 0x67006e, 0x200065
+.long 0x680074, 0x200065, 0x690077, 0x64006e
+.long 0x77006f, 0x730020, 0x7a0069, 0x1a0065
+.long 0x680043, 0x6e0061, 0x650067, 0x740020
+.long 0x650068, 0x770020, 0x6e0069, 0x6f0064
+.long 0x200077, 0x6f0070, 0x690073, 0x690074
+.long 0x6e006f, 0x52001c, 0x640065, 0x630075
+.long 0x200065, 0x680074, 0x200065, 0x690077
+.long 0x64006e, 0x77006f, 0x740020, 0x20006f
+.long 0x6e0061, 0x690020, 0x6f0063, 0x1f006e
+WSTR_00645188:
+.string16 "Enlarge the window to full size\"Switch to the next document window&Switch to the previous document window9Close the active window and prompts to save the documents"
+DAT_006452d0:
+.fill 20, 1, 0
+.long 0x520021, 0x730065, 0x6f0074, 0x650072
+.long 0x740020, 0x650068, 0x770020, 0x6e0069
+.long 0x6f0064, 0x200077, 0x6f0074, 0x6e0020
+.long 0x72006f, 0x61006d, 0x20006c, 0x690073
+.long 0x65007a, 0x410012
+WSTR_0064532c:
+.string16 "ctivate Task List"
+DAT_00645350:
+.fill 20, 1, 0
+.byte 0x00, 0x00
+.org 0x6368
+DAT_00645368:
+.fill 8, 1, 0
+.long 0x270000, 0x6c0043, 0x73006f, 0x200065
+.long 0x720070, 0x6e0069, 0x200074, 0x720070
+.long 0x760065, 0x650069, 0x200077, 0x6f006d
+.long 0x650064, 0x43000a, 0x6e0061, 0x650063
+.long 0x20006c, 0x720050, 0x760065, 0x650069
+.long 0x1f0077, 0x65004d, 0x730073, 0x670061
+.long 0x200065, 0x6f0066, 0x200072, 0x6f0062
+.long 0x74006f, 0x6e0069, 0x200067, 0x610067
+.long 0x65006d, 0x650020, 0x67006e, 0x6e0069
+.long 0x240065, 0x65004d, 0x730073, 0x670061
+.long 0x200065, 0x690073, 0x6e0067, 0x6c0061
+.long 0x6e0069, 0x200067, 0x200061, 0x690064
+.long 0x670061, 0x6f006e, 0x740073, 0x630069
+.long 0x200073, 0x6e0069, 0x740069, 0x4d0031
+.long 0x730065, 0x610073, 0x650067, 0x740020
+.long 0x20006f, 0x6f0063, 0x6d006d, 0x6e0061
+.long 0x200064, 0x690064, 0x670061, 0x6f006e
+.long 0x740073, 0x630069, 0x640020, 0x610069
+.long 0x6f006c, 0x200067, 0x650064, 0x740073
+.long 0x750072, 0x740063, 0x6f0069, 0x2e006e
+.long 0x4b0011
+WSTR_006454b4:
+.string16 "ill the app NOW."
+DAT_006454d6:
+.fill 2, 1, 0
+.fill 12, 1, 0
+.long 0x130000, 0x780045, 0x740069, 0x740020
+.long 0x650068, 0x470020, 0x6d0061, 0x2e0065
+.long 0x45000a, 0x690078, 0x150074, 0x740053
+.long 0x720061, 0x200074, 0x200061, 0x65004e
+.long 0x200077, 0x610047, 0x65006d, 0xa002e
+.long 0x65004e, 0x220077, 0x6f004c, 0x640061
+.long 0x610020, 0x500020, 0x650072, 0x690076
+.long 0x75006f, 0x6c0073, 0x200079, 0x610053
+.long 0x650076, 0x200064, 0x610047, 0x65006d
+.long 0xa002e, 0x6f004c, 0x640061, 0x530014
+WSTR_00645584:
+.string16 "ave Your Game.\nSave\"Load a Previously Saved Game.\nLoad%Specify Path During Your Save.\nSaveAs'Toggle Diagnostic readouts.\nDiagnostics!Save Game Status to INI File.\nINI"
+DAT_006456d2:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.byte 0x00, 0x00

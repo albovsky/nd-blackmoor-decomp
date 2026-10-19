@@ -6,9 +6,9 @@ Sources for the M02 whole-file composer (`scripts/compose_image.py`). Nothing he
 |---|---|---|
 | `layout.json` | DOS header, Rich tuples (key recomputed, not stored), PE/optional header, data directories, section table, code regions, zero fill | structured: `dos_header`, `rich_header`, `pe_headers`, `section_table`, `header_padding`, `section_padding` |
 | `imports.json` | 13 DLLs, 326 symbols with hints and RVAs | structured: `import_directory`, `iat` |
-| `resources.json` | ID-only resource directory tree (38 leaves), leaf RVA/size/codepage, zero fill | structured: `resource_tree`; leaf payloads are `referenced` |
+| `resources.json` | ID-only resource directory tree (38 leaves), leaf RVA/size/codepage, zero fill | structured: `resource_tree`; leaf payloads are bound from the audited data source `data-002` (`data_batches`) |
 | `text_data.json` | switch jump tables (code addresses), 0xCC span padding; byte index tables by extent only | structured: `jump_tables`, `int3_padding`; index table bytes are bound from the audited `.s` data items (reconstructed data) |
-| `reconstructed.json` | reviewed matching manifests (`bindings`) and the audited tool-assisted assembly batches of M03 (`asm_batches`) bound as reconstructed ranges | reconstructed (provenance classes reported separately) |
+| `reconstructed.json` | reviewed matching manifests (`bindings`), the audited tool-assisted assembly batches of M03 (`asm_batches`) and the audited data sources of packet M-C (`data_batches`) bound as reconstructed ranges | reconstructed (provenance classes reported separately) |
 | `ranges.json` | every remaining range: offset, length, SHA-256, kind, region, name | referenced |
 | `coverage-report.{json,md}` | snapshot of the composer's report | |
 
@@ -36,3 +36,7 @@ Each entry names an `asm/batch-NNN.json` manifest and its audit report. At build
 3. `compose_image.py build` must still print the original SHA-256; `report_image_coverage.py` shows the new generated/referenced split.
 
 The composer rejects overlapping ranges (a function and a data item claiming one byte), missing bytes, and a referenced range whose SHA-256 differs from the description.
+
+## Data batches (`data_batches`, packet M-C)
+
+Each entry names an `asm_data/data-NNN.json` manifest and its audit report (`scripts/data_asm.py`, owner ruling of 2026-10-19). At build time the composer requires the report to be all-accepted for exactly that manifest (hash match), reassembles the source with the pinned `i686-w64-mingw32-as` 2.43.1 (version line plus self-test), requires zero relocations, and requires every range's assembled bytes to hash to the SHA-256 the manifest records for the original range. The bytes placed in the image are the assembled bytes, in the provenance class `tool_assisted_reconstructed_data` (reported apart from code, functions, index tables and padding). `data-001` binds `.rdata` 0x12a54c-0x134910 and `.data` 0x137000-0x16a000 (250,820 bytes), `data-002` the 22 resource payload runs (24,156 bytes). `ranges.json` is empty after the re-derive: no range is referenced any more, and a range that is both bound and referenced fails the overlap check. The 23,430 bytes the structured groups generate (PE headers, import directory, IAT, resource tree, padding) are unchanged.
