@@ -1,0 +1,36 @@
+[
+ {
+  "va": "0x424346",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26c implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26c.c",
+   "symbol": "m424346_node_condition"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26c_direct_test.c",
+    "test_id": "test_sweep"
+   },
+   {
+    "path": "tests/test_fl26c_direct.py",
+    "test_id": "Fl26cDirect.test_kind_0_unused_and_out_of_range"
+   },
+   {
+    "path": "tests/test_fl26c_differential.py",
+    "test_id": "Fl26cDifferential.test_424346_node_condition"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26c_original_oracle.py",
+   "window": [
+    "0x424346",
+    "0x424aa8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m424346_node_condition: every kind arm and both jump tables, 451/451 instructions, 116/116 jump directions, 2292 scenarios. Native rejections listed in tasks/fl26c-handoff.md.",
+  "blockers_reviewed": []
+ }
+]

@@ -1,0 +1,158 @@
+[
+ {
+  "va": "0x4d3073",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26a implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26a.c",
+   "symbol": "m4d3073_session_tick"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26a_direct_test.c",
+    "test_id": "test_m4d3073_session_tick"
+   },
+   {
+    "path": "tests/test_fl26a_direct.py",
+    "test_id": "Fl26aDirect.test_4d3073_session_tick"
+   },
+   {
+    "path": "tests/test_fl26a_differential.py",
+    "test_id": "Fl26aDifferential.test_4d3073_session_tick"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26a_original_oracle.py",
+   "window": [
+    "0x4d3073",
+    "0x4d3137"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4d3073_session_tick: all 44 instructions of the 180 code bytes, both jumps both ways, four switch arms plus default. Jump table 0x4d3127 is data. See tasks/fl26a-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-6:1f418027007cea4a",
+    "rationale": "The located item (0x4d3081) is the reset [0x5a4c18] = 0 right after the call to 0x4db38a; the original and the port both store it before the call to 0x4e8d72 (call-time probes of [0x5a4c18], [0x5c39e5], [0x5b44f8] in the oracle, the Unicorn differential and the direct test). The unverified part of the item (priority_clear, the no-handler action types, save-game restore) is not a property of this function and stays open."
+   }
+  ]
+ },
+ {
+  "va": "0x469057",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26a implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26a.c",
+   "symbol": "m469057_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26a_direct_test.c",
+    "test_id": "test_sweep"
+   },
+   {
+    "path": "tests/test_fl26a_direct.py",
+    "test_id": "Fl26aDirect.test_469057_hit_test"
+   },
+   {
+    "path": "tests/test_fl26a_differential.py",
+    "test_id": "Fl26aDifferential.test_469057_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26a_original_oracle.py",
+   "window": [
+    "0x469057",
+    "0x4691ee"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m469057_hit_test. Oracle window runs all 111 instructions of the 407 bytes, 20/20 jcc directions, six rows, the record-object rectangle and the 32-bit wrap of the widened edges. See tasks/fl26a-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-6:1f418027007cea4a",
+    "rationale": "The item says the ~40 hit-test callees of the 0x4f0059 cascade, 0x469057 among them, are not individually verified. This function is now ported one to one and its whole body runs in the original-only oracle (111/111 instructions, 20/20 conditional-jump directions, 294 scenarios) and in the differential against the native port; the cascade, priority_clear and save-game restore parts of the item stay outside this function and open."
+   }
+  ]
+ },
+ {
+  "va": "0x4b42d3",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26a implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26a.c",
+   "symbol": "m4b42d3_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26a_direct_test.c",
+    "test_id": "test_sweep"
+   },
+   {
+    "path": "tests/test_fl26a_direct.py",
+    "test_id": "Fl26aDirect.test_4b42d3_hit_test"
+   },
+   {
+    "path": "tests/test_fl26a_differential.py",
+    "test_id": "Fl26aDifferential.test_4b42d3_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26a_original_oracle.py",
+   "window": [
+    "0x4b42d3",
+    "0x4b450f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b42d3_hit_test. Oracle window runs all 129 instructions of the 572 bytes, 22/22 jcc directions, the rectangle copy, three rows and the tail rectangle behind the word [+0x750]. See tasks/fl26a-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-6:1f418027007cea4a",
+    "rationale": "The item says the ~40 hit-test callees of the 0x4f0059 cascade, 0x4b42d3 among them, are not individually verified. This function is now ported one to one and its whole body runs in the original-only oracle (129/129 instructions, 22/22 conditional-jump directions, 180 scenarios) and in the differential against the native port; the cascade, priority_clear and save-game restore parts of the item stay outside this function and open."
+   }
+  ]
+ },
+ {
+  "va": "0x4897cd",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26a implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26a.c",
+   "symbol": "m4897cd_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26a_direct_test.c",
+    "test_id": "test_sweep"
+   },
+   {
+    "path": "tests/test_fl26a_direct.py",
+    "test_id": "Fl26aDirect.test_4897cd_hit_test"
+   },
+   {
+    "path": "tests/test_fl26a_differential.py",
+    "test_id": "Fl26aDifferential.test_4897cd_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26a_original_oracle.py",
+   "window": [
+    "0x4897cd",
+    "0x4899ca"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4897cd_hit_test. Oracle window runs all 125 instructions of the 509 bytes, 30/30 jcc directions, announcement globals for every combination of [0x583a29] and [0x5b44f8]. See tasks/fl26a-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-14:24b263357f7586e3",
+    "rationale": "The item says the cursor stores of 0x4897cd (0x5b44f0, 0x5b44f4, 0x5d162d, 0x5d1631, 0x5d1639) are compared against the kernel hit test but not applied in the app. The port writes exactly these five globals (plus 0x5c39e5) in the original branch structure and the differential compares them with the original memory for every combination of the word 0x583a29 and the dword 0x5b44f8; applying them as a hover cursor in the app is outside this function and stays open."
+   }
+  ]
+ }
+]
