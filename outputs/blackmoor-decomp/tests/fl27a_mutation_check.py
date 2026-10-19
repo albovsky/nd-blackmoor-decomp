@@ -37,6 +37,7 @@ FUNCS = {'4de1f5': 'test_4de1f5_clear_flags',
          '4de214': 'test_4de214_clear_flags_thunk',
          '4de2d8': 'test_4de2d8_reset_caption',
          '449d90': 'test_449d90_file_exists',
+         '44c479': 'test_44c479_wait_state',
          # FUNCS-END
          }
 

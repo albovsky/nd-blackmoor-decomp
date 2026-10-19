@@ -157,6 +157,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m449d90_file_exists (original 0x449d90)"""
         self.run_key('449d90')
 
+    def test_44c479_wait_state(self):
+        """FL-27a: differential test of m44c479_wait_state (original 0x44c479)"""
+        self.run_key('44c479')
+
     # CASES-END
 
 

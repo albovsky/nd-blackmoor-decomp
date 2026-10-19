@@ -60,6 +60,11 @@ void m4de2d8_reset_caption(uint8_t *self, Fl27aWorld *world, const Fl18Host *hos
  * otherwise calls 0x50cee4(file) and returns 1. Both callees are host calls (their stack is cleaned by the caller in the original). */
 int32_t m449d90_file_exists(uint32_t path, const Fl18Host *host);
 
+/* 0x44c479: cdecl, one argument `state` (the original address of a state dword, odd in the program: 0x637fd3): while it is 1, Sleep(1) (import
+ * 0x52a2b0) and read it again; then returns 2 when it is 2, otherwise stores 1 into it and returns 1 (the original sets only ax). Native
+ * rejection: FL27A_REJECTED after Fl27aWorld.native_spin_limit (0 = FL27A_SPIN_LIMIT) Sleep calls with the dword still 1. */
+int32_t m44c479_wait_state(uint32_t state, const Fl27aWorld *world, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

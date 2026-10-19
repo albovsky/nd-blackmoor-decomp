@@ -329,6 +329,32 @@ def gen_449d90(rng, n):
 
 SPECS['449d90'] = dict(id=4, va=0x449d90, size=55, gen=gen_449d90, ret=0xffffffff, cleanup=0, n=21)
 
+def gen_44c479(rng, n):
+    """The state dword (at an odd address, junk beside it): not 1 and not 2 -> stored 1 and returned 1; 2 -> returned 2 untouched; 1 -> Sleep(1)
+    until a poke of the other thread (at the k-th Sleep) changes it, then the same two outcomes."""
+    profiles = [('init', v) for v in (0, 3, 4, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff, 2)]
+    profiles += [('wait', k, v) for k in (0, 1, 2, 4) for v in (0, 2, 3, 0x101, 0xffffffff, 0x100)]
+    profiles += [('wait', 0, 2), ('relapse', 2, 2), ('relapse', 3, 0)]       # (relapse: the state goes 1 -> 5 -> 1 again before it ends)
+    (kind, *rest), variant = prof(n, profiles)
+    off = rng.choice([1, 3, 5, 0x11])
+    flag_va = od.region_va(1) + off
+    area = bytearray(rng.randbytes(0x40))
+    # junk beside the dword: its neighbours must stay
+    state = rest[0] if kind == 'init' else 1
+    put32(area, off, state)
+    pokes = {}
+    if kind == 'wait':
+        pokes[rest[0]] = [(flag_va, 4, rest[1])]
+    elif kind == 'relapse':
+        pokes[0] = [(flag_va, 4, 5)]
+        pokes[1] = [(flag_va, 4, 1)]
+        pokes[rest[0]] = [(flag_va, 4, rest[1])]
+    stubs = {0x52a2b0: stub(0x52a2b0, probe=[('flag', 0, 0x40)], pokes=pokes or None)}
+    return make('44c479', [Area('flag', od.region_va(1), area, image=False)], stubs, {}, [flag_va], (flag_va,), (kind, *rest))
+
+
+SPECS['44c479'] = dict(id=5, va=0x44c479, size=50, gen=gen_44c479, ret=0xffff, cleanup=0, n=60)
+
 KEYS = list(SPECS)
 
 

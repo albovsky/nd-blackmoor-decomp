@@ -305,6 +305,70 @@ static void test_m449d90_file_exists(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x44c479: while *state == 1: Sleep(1); then 2 -> return 2, else *state = 1, return 1 (a dword at an odd address) */
+
+#define STATE_VA (VA_C + 1u)
+
+static void test_m44c479_wait_state(void)
+{
+    static const uint32_t OTHERS[] = {0, 3, 4, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu, 0x201};
+    size_t i;
+    int32_t r;
+    int k;
+    for (i = 0; i < sizeof OTHERS / sizeof OTHERS[0]; i++) {            /* not 1 and not 2: no wait, stored 1 */
+        setup();
+        set32(fx.c, 1, OTHERS[i]);
+        expect_begin();
+        r = m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
+        CK(r == 1 && L.n == 0);
+        set32(exp_c, 1, 1);                                              /* the dword only, at an odd offset: its neighbours stay */
+        expect_end();
+    }
+    setup();                                                            /* 2: returned as it is, nothing stored */
+    set32(fx.c, 1, 2);
+    expect_begin();
+    r = m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
+    CK(r == 2 && L.n == 0);
+    expect_end();
+    for (k = 0; k < 4; k++) {                                            /* 1: Sleep(1) per read, until the other thread sets the value */
+        static const uint32_t ENDS[] = {2, 0, 7, 0x101};
+        size_t e;
+        for (e = 0; e < 4; e++) {
+            int j;
+            setup();
+            set32(fx.c, 1, 1);
+            script_poke(0x52a2b0, k, fx.c + 1, 4, ENDS[e]);
+            expect_begin();
+            r = m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
+            CK(r == (ENDS[e] == 2 ? 2 : 1));
+            CK(L.n == k + 1);
+            for (j = 0; j < L.n && j < 64; j++) {
+                ck_call(j, 0x52a2b0, 0, 1);
+                ck_arg(j, 0, 1);
+                CK(get32(L.c[j].snap_c, 1) == 1);                        /* the dword is still 1 at every Sleep (before the store of the other thread) */
+            }
+            set32(exp_c, 1, ENDS[e] == 2 ? 2 : 1);
+            expect_end();
+        }
+    }
+    /* native rejection: the dword never leaves 1 */
+    setup();
+    set32(fx.c, 1, 1);
+    fx.w.native_spin_limit = 5;
+    r = m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
+    CK(r == FL27A_REJECTED && L.n == 5 && get32(fx.c, 1) == 1);
+    setup();
+    set32(fx.c, 1, 1);
+    r = m44c479_wait_state(STATE_VA, &fx.w, &fx.host);                   /* the default bound */
+    CK(r == FL27A_REJECTED && L.n == (int)FL27A_SPIN_LIMIT);
+    setup();                                                            /* a limit of 1 stops at the first Sleep, but a wait that ends first is not rejected */
+    set32(fx.c, 1, 1);
+    fx.w.native_spin_limit = 2;
+    script_poke(0x52a2b0, 0, fx.c + 1, 4, 2);
+    CK(m44c479_wait_state(STATE_VA, &fx.w, &fx.host) == 2 && L.n == 1);
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -334,6 +398,9 @@ static void test_sweep(void)
         m4de214_clear_flags_thunk(fx.self, &fx.w);
         m4de2d8_reset_caption(fx.self, &fx.w, &fx.host);
         (void)m449d90_file_exists(VA_A + (rnd() % 64), &fx.host);
+        fx.w.native_spin_limit = 3;
+        set32(fx.c, 1, rnd() % 4);
+        (void)m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -347,6 +414,7 @@ static const struct {
     {"test_m4de214_clear_flags_thunk", test_m4de214_clear_flags_thunk},
     {"test_m4de2d8_reset_caption", test_m4de2d8_reset_caption},
     {"test_m449d90_file_exists", test_m449d90_file_exists},
+    {"test_m44c479_wait_state", test_m44c479_wait_state},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

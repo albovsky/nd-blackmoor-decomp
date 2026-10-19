@@ -99,4 +99,33 @@ int32_t m449d90_file_exists(uint32_t path, const Fl18Host *host)
     return 1;
 }
 
+/* ---- 0x44c479 ------------------------------------------------------------------------------------------------------------------ */
+
+/* a dword read that the compiler may not hoist out of a waiting loop (another thread changes it); it may sit at an odd address */
+static uint32_t rd32_volatile(const uint8_t *p)
+{
+    const volatile uint8_t *v = p;
+    return (uint32_t)v[0] | (uint32_t)v[1] << 8 | (uint32_t)v[2] << 16 | (uint32_t)v[3] << 24;
+}
+
+/* 0x44c479, cdecl, plain `ret`, one argument: the address of a state dword (0x637fd3 in the program; an odd address). While the dword is 1
+ * the function calls Sleep(1) (import 0x52a2b0) and reads it again (another thread ends the wait); then, reading it once more, it returns
+ * 2 when the dword is 2, otherwise stores 1 and returns 1. Only `ax` is set by the original (the upper half of eax is the upper half of the
+ * address); the port returns 1 or 2. Native rejection: after Fl27aWorld.native_spin_limit (0 = FL27A_SPIN_LIMIT) Sleep calls without the
+ * dword leaving 1 the port returns FL27A_REJECTED (the original would spin without end). The state dword is read and written through
+ * Fl18Host.resolve (4 writable bytes). */
+int32_t m44c479_wait_state(uint32_t state, const Fl27aWorld *world, const Fl18Host *host)
+{
+    uint8_t *p = mem_at(host, state);
+    uint32_t limit = world->native_spin_limit != 0 ? world->native_spin_limit : FL27A_SPIN_LIMIT;
+    uint32_t spins = 0;
+    while (rd32_volatile(p) == 1) {
+        call1(host, 0x52a2b0, 0, 1);
+        if (++spins >= limit) return FL27A_REJECTED;
+    }
+    if (rd32_volatile(p) == 2) return 2;
+    wr32(p, 0, 1);
+    return 1;
+}
+
 /*NEXT*/
