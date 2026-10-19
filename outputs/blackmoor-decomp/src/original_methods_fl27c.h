@@ -27,6 +27,7 @@ extern "C" {
 
 typedef struct Fl27cWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
+    uint32_t value_63a58a;     /* 0x414ceb: set to 4 on every failure report */
 } Fl27cWorld;
 
 /* 0x4497a0, constructor of the thread wrapper, `ret 0x10`, `self` = this (ecx): the stack arguments are `arg8` (a dword passed on to 0x524aff), `name` (the original address of a
@@ -43,6 +44,20 @@ typedef struct Fl27cWorld {
  * Native rejection (not in the original, which would fault on address 0x24 / 0x28 / 0): returns NULL when [self+0x36] is zero at one of its re-reads after a callee ran (the host's
  * callee cleared it). Caller-validated: the string must be terminated and `self` must have room for it. */
 uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t timeout, uint32_t flags, const Fl27cWorld *world, const Fl18Host *host);
+
+/* 0x414ceb, thiscall (`self` = ecx, only forwarded to 0x415011), `ret 4`: the stack argument `arg` is the chunk-streamer record (a host pointer here); a failure report is the sequence 0x42639d(this
+ * 0x583979, message, text) (thiscall, 2 stack arguments), [0x63a58a] = 4, 0x4c97b4(this 0x5cf659), and every report except the ones inside the first four steps ends the function.
+ * 1. [arg+0x21] non-zero: report (0x5418d0, arg+0x151), and the function goes on. 2. The dwords [+0x21], [+0x31], [+0x35], [+0x39], [+0x3d], [+0x41], [+0x25], [+0x29], [+0x2d], [+0x49] = 0 and [+0x45] =
+ * 0xffffffff. 3. The string at arg+0x4d empty: report (0x541900, arg+0x151) and the function goes on. 4. h = the import 0x52a2bc(arg+0x4d, 0x80000000, 0, 0, 3, 0x8000000, 0) (stdcall, 7 arguments), [+0x25] = h;
+ * [+0x25] == 0xffffffff (re-read): report (0x541924, arg+0x4d), end. 5. m = the import 0x52a2c0([+0x25], 0, 2, 0, 0, 0) (6 arguments), [+0x29] = m; zero: report (0x54193c, arg+0x4d), end. 6. v = the
+ * import 0x52a2c4([+0x29], 4, 0, 0, 0) (5 arguments), [+0x2d] = v; zero: report (0x54195c, arg+0x4d), end. 7. The 0x21 bytes at the original address v are copied to arg (`rep movsd` of 8 dwords, then one byte);
+ * the 15 bytes at arg are compared with the signature at 0x541978 and the words [+0x10] == 2 and [+0x12] == 0 are required; otherwise 0x415011(this self, arg) and the report (0x541988, arg+0x4d), end.
+ * 8. n = (signed word [+0x15]) * 0x13 in 32 bits; [+0x21] = a = 0x51dc43(n); a == 0: 0x415011(this self, arg), the report (0x5419ec, 0x5419dc), end. 9. n bytes are copied from [+0x2d] + 0x21 to a (dwords first, then
+ * bytes, forward) and [+0x41] = (signed word [+0x17]) * (signed word [+0x19]) * (byte [+0x1b] >> 3), all in 32 bits. Returns 0.
+ * Native rejection (not in the original, whose copy would run for 4 GB): when n is above 0x7fffffff as an unsigned count (a negative word) and the allocation succeeded, the function returns 1 after the store of [+0x21]
+ * and before the copy. Caller-validated: the string at arg+0x4d must be terminated inside the record, `arg` must hold the record (0x151 bytes plus the text), and Fl18Host.resolve must give memory valid for the 0x21 header
+ * bytes at v, the n bytes after them and the n bytes at a (it is called unchecked). The callees are host calls and are not exercised for effects on `arg` (the scripted writes of the oracle model a mapped file). */
+int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

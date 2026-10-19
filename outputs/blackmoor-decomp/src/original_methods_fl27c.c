@@ -9,6 +9,18 @@ static uint32_t rd32(const uint8_t *base, ptrdiff_t off)
     return v;
 }
 
+static uint16_t rd16(const uint8_t *base, ptrdiff_t off)
+{
+    uint16_t v;
+    memcpy(&v, base + off, sizeof v);
+    return v;
+}
+
+static int32_t rds16(const uint8_t *base, ptrdiff_t off)
+{
+    return (int16_t)rd16(base, off);
+}
+
 static void wr32(uint8_t *base, ptrdiff_t off, uint32_t v)
 {
     memcpy(base + off, &v, sizeof v);
@@ -60,14 +72,26 @@ static int debug_on(const Fl27cWorld *world)
     return world->word_63a4cd != 0;
 }
 
-/* `repne scasb` (length + 1 with the terminator), then `rep movsd` of n / 4 dwords and `rep movsb` of n % 4 bytes, forward */
-static void copy_string(uint8_t *dst, const uint8_t *src)
+/* `rep movsd` of n / 4 dwords, then `rep movsb` of n % 4 bytes, forward */
+static void copy_bytes(uint8_t *dst, const uint8_t *src, size_t n)
 {
-    size_t n = 0, i;
-    while (src[n] != 0) n++;
-    n++;
+    size_t i;
     for (i = 0; i + 4 <= n; i += 4) wr32(dst, (ptrdiff_t)i, rd32(src, (ptrdiff_t)i));
     for (; i < n; i++) dst[i] = src[i];
+}
+
+/* `repne scasb` for the terminator: the length without it */
+static size_t string_length(const uint8_t *s)
+{
+    size_t n = 0;
+    while (s[n] != 0) n++;
+    return n;
+}
+
+/* the string with its terminator */
+static void copy_string(uint8_t *dst, const uint8_t *src)
+{
+    copy_bytes(dst, src, string_length(src) + 1);
 }
 
 /* ---- 0x4497a0 ------------------------------------------------------------------------------------------------------------------ */
@@ -141,4 +165,89 @@ uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t
         call1(host, 0x44a2b7, 0, (uintptr_t)text);
     }
     return self;
+}
+
+/* ---- 0x414ceb ------------------------------------------------------------------------------------------------------------------ */
+
+/* a failure report: 0x42639d(this 0x583979, message, text), [0x63a58a] = 4, 0x4c97b4(this 0x5cf659) */
+static void report(const Fl18Host *host, Fl27cWorld *world, uint32_t message, uintptr_t text)
+{
+    call2(host, 0x42639d, 0x583979, message, text);
+    world->value_63a58a = 4;
+    call0(host, 0x4c97b4, 0x5cf659);
+}
+
+/* 0x414ceb, `ret 4`: see the header. [ebp-8] is `self` (ecx), [ebp-4] the allocation. The signature of 0x541978 (15 bytes with the terminator) is the file magic that the header must start with. */
+int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const Fl18Host *host)
+{
+    static const uint8_t signature[15] = {'A', 'V', 'F', ' ', 'W', 'a', 'y', 'n', 'e', 'S', 'i', 'k', 'e', 's', 0};
+    uint32_t n, a;
+    const uintptr_t name = (uintptr_t)(arg + 0x4d);
+    const uintptr_t path = (uintptr_t)(arg + 0x151);
+    uintptr_t open_args[7], map_args[6], view_args[5];
+    if (rd32(arg, 0x21) != 0) report(host, world, 0x5418d0, path);
+    wr32(arg, 0x21, 0);
+    wr32(arg, 0x31, 0);
+    wr32(arg, 0x35, 0);
+    wr32(arg, 0x39, 0);
+    wr32(arg, 0x3d, 0);
+    wr32(arg, 0x41, 0);
+    wr32(arg, 0x25, 0);
+    wr32(arg, 0x29, 0);
+    wr32(arg, 0x2d, 0);
+    wr32(arg, 0x49, 0);
+    wr32(arg, 0x45, 0xffffffffu);
+    if (string_length(arg + 0x4d) == 0) report(host, world, 0x541900, path);
+    open_args[0] = name;
+    open_args[1] = 0x80000000u;
+    open_args[2] = 0;
+    open_args[3] = 0;
+    open_args[4] = 3;
+    open_args[5] = 0x8000000u;
+    open_args[6] = 0;
+    wr32(arg, 0x25, callv(host, 0x52a2bc, 0, open_args, 7));
+    if (rd32(arg, 0x25) == 0xffffffffu) {
+        report(host, world, 0x541924, name);
+        return 0;
+    }
+    map_args[0] = rd32(arg, 0x25);
+    map_args[1] = 0;
+    map_args[2] = 2;
+    map_args[3] = 0;
+    map_args[4] = 0;
+    map_args[5] = 0;
+    wr32(arg, 0x29, callv(host, 0x52a2c0, 0, map_args, 6));
+    if (rd32(arg, 0x29) == 0) {
+        report(host, world, 0x54193c, name);
+        return 0;
+    }
+    view_args[0] = rd32(arg, 0x29);
+    view_args[1] = 4;
+    view_args[2] = 0;
+    view_args[3] = 0;
+    view_args[4] = 0;
+    wr32(arg, 0x2d, callv(host, 0x52a2c4, 0, view_args, 5));
+    if (rd32(arg, 0x2d) == 0) {
+        report(host, world, 0x54195c, name);
+        return 0;
+    }
+    copy_bytes(arg, object_at(host, rd32(arg, 0x2d)), 0x21);
+    if (memcmp(arg, signature, sizeof signature) != 0 || rd16(arg, 0x10) != 2 || rd16(arg, 0x12) != 0) {
+        call1(host, 0x415011, (uintptr_t)self, (uintptr_t)arg);
+        report(host, world, 0x541988, name);
+        return 0;
+    }
+    n = (uint32_t)rds16(arg, 0x15) * 0x13u;
+    a = call1(host, 0x51dc43, 0, n);
+    wr32(arg, 0x21, a);
+    if (a == 0) {
+        call1(host, 0x415011, (uintptr_t)self, (uintptr_t)arg);
+        report(host, world, 0x5419ec, 0x5419dc);
+        return 0;
+    }
+    /* native rejection: a negative word makes n a count of about 4 GB (the original copies it) */
+    if (n > 0x7fffffffu) return 1;
+    copy_bytes(object_at(host, rd32(arg, 0x21)), object_at(host, rd32(arg, 0x2d) + 0x21), n);
+    wr32(arg, 0x41, (uint32_t)rds16(arg, 0x17) * (uint32_t)rds16(arg, 0x19) * (uint32_t)(arg[0x1b] >> 3));
+    return 0;
 }

@@ -19,6 +19,7 @@ TEST_C = PROJECT / 'tests/fl27c_direct_test.c'
 KERNELS = ['original_methods_fl27c.c']
 EXPECTED = [
     'test_m4497a0_construct',
+    'test_m414ceb_open_map',
     'test_sweep_bounded',
 ]
 
@@ -67,6 +68,10 @@ class Fl27cDirect(unittest.TestCase):
     def test_4497a0_construct(self):
         """FL-27c: direct test of m4497a0_construct"""
         self.check('test_m4497a0_construct')
+
+    def test_414ceb_open_map(self):
+        """FL-27c: direct test of m414ceb_open_map"""
+        self.check('test_m414ceb_open_map')
 
     # CASES-END
 

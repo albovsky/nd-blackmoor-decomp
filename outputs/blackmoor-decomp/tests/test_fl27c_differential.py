@@ -147,6 +147,10 @@ class Fl27cDifferential(DiffBase):
         """FL-27c: differential test of m4497a0_construct (original 0x4497a0)"""
         self.run_key('4497a0')
 
+    def test_414ceb_open_map(self):
+        """FL-27c: differential test of m414ceb_open_map (original 0x414ceb)"""
+        self.run_key('414ceb')
+
     # CASES-END
 
 

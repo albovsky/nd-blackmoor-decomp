@@ -352,7 +352,69 @@ def gen_4497a0(rng, n):
     return sc
 
 
+AVF_SIGNATURE = b'AVF WayneSikes\x00'      # the 15 bytes that 0x414ceb compares the header with (at 0x541978)
+
+
+def profiles_414ceb():
+    profiles = [(kind, pre, empty) for kind in ('open_fail', 'map_fail', 'view_fail') for pre in (0, 1) for empty in (0, 1)]
+    profiles += [('sig', i) for i in range(15)]
+    profiles += [('w10', v) for v in (0, 1, 3, 0x100, 0x102, 0xffff)]
+    profiles += [('w12', v) for v in (1, 0x100, 0x101, 0xffff)]
+    profiles += [('alloc_fail', w) for w in (0, 1, 2, -1, 0x7fff, -0x8000)]
+    shapes = [(0, 0, 0), (1, 1, 8), (1, 0x7fff, 0xff), (-1, -1, 0x1f), (-0x8000, -0x8000, 0xff), (3, -2, 7), (0x1234, 0x10, 0x28)]
+    profiles += [('ok', w15, *shape) for w15 in (0, 1, 2, 3, 4, 5, 16) for shape in shapes]
+    return profiles
+
+
+def gen_414ceb(rng, n):
+    (kind, *rest), variant = prof(n, profiles_414ceb())
+    pre = rest[0] if kind in ('open_fail', 'map_fail', 'view_fail') else rng.choice([0, 0, 1, 0x100, 0x80000000, 0xffffffff])
+    empty = rest[1] if kind in ('open_fail', 'map_fail', 'view_fail') else 0
+    arg = bytearray(rng.randbytes(0x200))
+    put32(arg, 0x21, pre)
+    length = 0 if empty else rng.choice([1, 2, 3, 4, 5, 0x10, 0x20])
+    arg[0x4d:0x4d + 0x40] = zstring(rng, length, 0x40)
+    arg[0x151:0x151 + 0x20] = zstring(rng, rng.choice([0, 3, 0x10]), 0x20)
+    delta = rng.choice([0, 3, 0x10])
+    file = bytearray(rng.randbytes(0x400))
+    header = bytearray(rng.randbytes(0x21))
+    header[0:15] = AVF_SIGNATURE
+    put16(header, 0x10, 2)
+    put16(header, 0x12, 0)
+    w15, w17, w19, b1b = 1, rng.choice([1, 2, 0x7fff, -3]), rng.choice([1, 5, 0x8000]), rng.randrange(256)
+    if kind == 'sig':
+        header[rest[0]] ^= rng.choice([1, 0x80, 0xff, 0x20])
+    elif kind == 'w10':
+        put16(header, 0x10, rest[0])
+    elif kind == 'w12':
+        put16(header, 0x12, rest[0])
+    elif kind == 'alloc_fail':
+        w15 = rest[0]
+    elif kind == 'ok':
+        w15, w17, w19, b1b = rest
+    put16(header, 0x15, w15)
+    put16(header, 0x17, w17)
+    put16(header, 0x19, w19)
+    header[0x1b] = b1b
+    file[delta:delta + 0x21] = header
+    dest = bytearray(rng.randbytes(0x400))
+    h = 0xffffffff if kind == 'open_fail' else rng.choice([1, 0x1234, 0x80000000, 0xfffffffe])
+    m = 0 if kind == 'map_fail' else rng.choice([1, 0x5678, 0xffffffff, 0x80000000])
+    v = 0 if kind == 'view_fail' else od.region_va(2) + delta
+    a = 0 if kind == 'alloc_fail' else od.region_va(3)
+    probe = [('arg', 0, 0x200), ('g:value_63a58a', 0, 4)]
+    stubs = {0x42639d: stub(0x42639d, THISCALL(2), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe), 0x415011: stub(0x415011, THISCALL(1), probe),
+             0x51dc43: stub(0x51dc43, CDECL(1), probe, results=[a])}
+    iat = {0x52a2bc: stub(0x52a2bc, STDCALL(7), probe, results=[h]), 0x52a2c0: stub(0x52a2c0, STDCALL(6), probe, results=[m]),
+           0x52a2c4: stub(0x52a2c4, STDCALL(5), probe, results=[v])}
+    g = {'value_63a58a': rng.choice([0, 4, 1, rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), bytearray(rng.randbytes(0x40)), image=False), Area('arg', od.region_va(1), arg, image=False),
+             Area('file', od.region_va(2), file, image=False), Area('dest', od.region_va(3), dest, image=False)]
+    return make('414ceb', areas, stubs, g, [od.region_va(1)], (od.region_va(1),), (kind, *rest), iat=iat)
+
+
 SPECS = {
+    '414ceb': dict(id=2, va=0x414ceb, size=806, gen=gen_414ceb, cleanup=4, n=len(profiles_414ceb()) * 3),
     '4497a0': dict(id=1, va=0x4497a0, size=728, gen=gen_4497a0, cleanup=0x10, retself=True, n=len(profiles_4497a0()) * 3),
 }
 KEYS = list(SPECS)
