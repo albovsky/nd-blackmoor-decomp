@@ -21,7 +21,7 @@ typedef struct ShimCall {
     int32_t nargs;
     uint64_t this_ptr;
     uint64_t arg[12];
-    uint8_t data[64];     /* bytes behind pointer arguments that the test asked to see: [0..32) shim_script_deref, [32..64) shim_script_deref2 */
+    uint8_t data[128];    /* bytes behind pointer arguments that the test asked to see: [0..64) shim_script_deref, [64..128) shim_script_deref2 */
     uint8_t probe[4096];  /* bytes at the probed host addresses (shim_script_probe), concatenated, read at the call */
 } ShimCall;
 
@@ -152,7 +152,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     for (i = 0; i < nargs && i < 12; i++) c->arg[i] = args[i];
     /* a pointer argument is a host pointer (a local of the function) or an original address inside a fixture region */
     if (s->deref_arg > 0) memcpy(c->data, deref_ptr(args[s->deref_arg - 1]), (size_t)s->deref_bytes);
-    if (s->deref_arg2 > 0) memcpy(c->data + 32, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
+    if (s->deref_arg2 > 0) memcpy(c->data + 64, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
     {
         int at = 0;
         for (i = 0; i < s->nprobe; i++) {
@@ -192,7 +192,7 @@ static uint32_t host_tick(void *context)
 static int32_t g_reject;
 int32_t shim_reject(void) { return g_reject; }
 
-enum { F26B_423FBB = 1, F26B_4EB107, F26B_42406D, F26B_424201, F26B_42EA87 /*ENUM*/ };
+enum { F26B_423FBB = 1, F26B_4EB107, F26B_42406D, F26B_424201, F26B_42EA87, F26B_4EB184 /*ENUM*/ };
 
 /* Runs one port on `self` (this); x, y, z are the arguments of the call (a node address, a dword, an index word). `result` is the return value of the ports that have one. */
 void shim_fl26b(int fn, uint8_t *self, uintptr_t x, uintptr_t y, uintptr_t z, Fl26bWorld *w, int32_t *result)
@@ -213,6 +213,7 @@ void shim_fl26b(int fn, uint8_t *self, uintptr_t x, uintptr_t y, uintptr_t z, Fl
     case F26B_42406D: m42406d_propagate((uint32_t)x, &host, &g_reject); break;
     case F26B_424201: m424201_walk(self, (uint32_t)x, w, &host, &g_reject); break;
     case F26B_42EA87: m42ea87_record_state((int16_t)x, w, &host, &g_reject); break;
+    case F26B_4EB184: m4eb184_use_feedback(self, (int32_t)(uint32_t)x, w, &host, &g_reject); break;
     /*CASES*/
     default: break;
     }

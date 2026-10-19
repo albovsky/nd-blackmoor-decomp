@@ -34,7 +34,7 @@ import test_fl26b_direct as direct
 
 SRC = HERE.parent / 'src'
 FUNCS = {'423fbb': 'test_423fbb_leaf_word', '4eb107': 'test_4eb107_item_use_feedback', '42406d': 'test_42406d_propagate', '424201': 'test_424201_walk',
-         '42ea87': 'test_42ea87_record_state'}
+         '42ea87': 'test_42ea87_record_state', '4eb184': 'test_4eb184_use_feedback'}
 
 
 # the differential test of one function against the mutated copy in sys.argv[1], in a child process (exit 0 = passed)

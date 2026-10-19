@@ -59,10 +59,12 @@ static struct {
         uintptr_t this_ptr;
         int nargs;
         uintptr_t a[4];
+        uint8_t snap[0x40];     /* the bytes behind the pointer argument of 0x4fb77a (arg 0) / 0x448d11 (arg 1) at the call */
     } c[16];
 } L;
 static uint32_t g_ret_4235fd[4];
 static int g_n_4235fd;
+static uint32_t g_ret_50cd50, g_ret_4f6334, g_ret_423259;
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
@@ -73,7 +75,13 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     L.c[L.n].this_ptr = this_ptr;
     L.c[L.n].nargs = nargs;
     for (i = 0; i < nargs && i < 4; i++) L.c[L.n].a[i] = args[i];
+    memset(L.c[L.n].snap, 0, sizeof L.c[L.n].snap);
+    if ((callee == 0x4fb77a && nargs >= 1 && args[0] > 0xffffffffu) || (callee == 0x448d11 && nargs >= 2))
+        memcpy(L.c[L.n].snap, (const void *)args[callee == 0x448d11], callee == 0x448d11 ? 0x3c : 0x34);
     L.n++;
+    if (callee == 0x50cd50) return g_ret_50cd50;
+    if (callee == 0x4f6334) return g_ret_4f6334;
+    if (callee == 0x423259) return g_ret_423259;
     if (callee == 0x4235fd) {
         uint32_t r = g_ret_4235fd[g_n_4235fd < 3 ? g_n_4235fd : 3];
         g_n_4235fd++;
@@ -159,7 +167,7 @@ static void test_m4eb107_item_use_feedback(void)
     static const struct {
         int16_t item;
         uint32_t ecx;     /* args[0] of 0x4e9e84: item * 0x16d with its low word replaced by the item */
-    } T[] = {{2, 2}, {0, 0}, {300, 0x1012c}, {-1, 0xffffffffu}, {-5, 0xfffffffbu}, {172, 0x0000ac}, {1, 1}};
+    } T[] = {{2, 2}, {0, 0}, {300, 0x1012c}, {359, 0x10167}, {-1, 0xffffffffu}, {-5, 0xfffffffbu}, {172, 0x0000ac}, {1, 1}};
     size_t i;
     int j;
     setup();
@@ -489,6 +497,175 @@ static void test_m42ea87_record_state(void)
     CK(rej == FL26B_REJECT_UNRESOLVED && get32(RECP(1), 0x4d) == 0 && L.n == 0);
 }
 
+/* ---- 0x4eb184 ------------------------------------------------------------------------------------------------------------- */
+
+static uint8_t recs_tab[0x300], consts_tab[0x30], c2_tab[8];
+
+static void setup4(void)
+{
+    setup();
+    memset(recs_tab, 0x33, sizeof recs_tab);
+    memset(consts_tab, 0x44, sizeof consts_tab);
+    memset(c2_tab, 0x55, sizeof c2_tab);
+    memset(consts_tab, 0xA1, 9);
+    memset(consts_tab + 0xc, 0xB2, 9);
+    memset(consts_tab + 0x18, 0xC3, 9);
+    c2_tab[0] = 0xD4;
+    c2_tab[4] = 0xE5;
+    world.records_583f1f = recs_tab;
+    world.bytes_55cba0 = consts_tab;
+    world.bytes_55cbac = consts_tab + 0xc;
+    world.bytes_55cbb8 = consts_tab + 0x18;
+    world.bytes_63aa00 = c2_tab;
+    world.bytes_63aa04 = c2_tab + 4;
+    g_ret_50cd50 = g_ret_4f6334 = g_ret_423259 = 0;
+}
+
+#define ROW(n, j) ((size_t)((n) * 0x16d + 0x74e + (j) * 0x5d + 0x56))
+static void put_str(uint8_t *p, const char *s) { memcpy(p, s, strlen(s) + 1); }
+
+static void test_m4eb184_use_feedback(void)
+{
+    int32_t rej = -1;
+    int n = 1, j;
+    /* a negative record: nothing at all */
+    setup4();
+    m4eb184_use_feedback(self_buf, -1, &world, &host, &rej);
+    CK(rej == 0 && L.n == 0);
+    m4eb184_use_feedback(self_buf, (int32_t)0x80000000u, &world, &host, &rej);
+    CK(L.n == 0);
+    /* flag byte 0, row 1 equals the nine-byte constant: j = 1, idx = rand % 1 = 0; 0x4f6334 non-zero ends the call after the two calls */
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    memset(self_buf + ROW(n, 1), 0xA1, 9);
+    g_ret_50cd50 = 7;
+    g_ret_4f6334 = 0x10000;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == 0 && L.n == 2 && call_is(0, 0x50cd50, 0, 0) && call_is(1, 0x4f6334, 0x5cf1eb, 1) && L.c[1].a[0] == 0x11);
+    /* rows 1 and 2 do not match (row 2 only by its first byte = the one-byte constant... which does match: j = 2); rand -5 % 2 = -1 -> row -1 is the record text; the
+     * nine bytes and the first byte differ from the constants: the structure is copied and announced, no text shown (0x5bb202 == 0); then 0x4fb2e3 */
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    for (j = -2; j <= 3; j++) memset(self_buf + ROW(n, j), 'x', 0x5d);
+    self_buf[ROW(n, 2)] = 0xD4;
+    put_str(self_buf + ROW(n, -1), "hello world, row minus one");
+    put_str(self_buf + ROW(n, -1) + 0x21, "t1");        /* (the original copies the string at row + 0x21 into the buffer even when it shows nothing) */
+    g_ret_50cd50 = (uint32_t)-5;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == 0 && L.n == 4 && call_is(0, 0x50cd50, 0, 0) && call_is(1, 0x4f6334, 0x5cf1eb, 1) && call_is(2, 0x4fb77a, 0x5c3a67, 1) && call_is(3, 0x4fb2e3, 0x5c3a67, 1));
+    {
+        const uint8_t *loc = L.c[2].snap;
+        CK(memcmp(loc, "hello world, row minus one", 27) == 0);
+        CK(get16(loc, 0x21) == 0x11 && get16(loc, 0x23) == 1 && get16(loc, 0x25) == 1 && get16(loc, 0x27) == 1 && get32(loc, 0x29) == 1 && get16(loc, 0x2d) == 0x55 && get16(loc, 0x2f) == 0x55);
+    }
+    /* no row matches: j = 3, rand -5 % 3 = -2: row -2 */
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    for (j = -2; j <= 3; j++) memset(self_buf + ROW(n, j), 'x', 0x5d);
+    put_str(self_buf + ROW(n, -2), "row minus two");
+    put_str(self_buf + ROW(n, -2) + 0x21, "t2");
+    g_ret_50cd50 = (uint32_t)-5;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(L.n == 4 && memcmp(L.c[2].snap, "row minus two", 14) == 0);
+    /* the same with 0x5bb202 set (high half only) and a translated text: 0x423259(this 0x619a6b, the row), the buffer holds the text with the dword appended,
+     * [self + 0x8256] = 1, [self + 0x8286] = [0x585d37] + signed word [self + 0x69d], then 0x4fb2e3 */
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    for (j = -2; j <= 3; j++) memset(self_buf + ROW(n, j), 'x', 0x5d);
+    put_str(self_buf + ROW(n, 0), "row zero text, a long one");
+    world.value_5bb202 = 0x10000;
+    world.value_55cbc4 = 0x00444342u;
+    world.value_5d03b3 = 0xabcdef01u;
+    world.value_585d37 = 100;
+    set16(self_buf, 0x69d, (uint16_t)-3);
+    put_str(arena + 0x300, "text");
+    g_ret_423259 = VA(0x300);
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == 0 && L.n == 6 && call_is(2, 0x4fb77a, 0x5c3a67, 1) && call_is(3, 0x423259, 0x619a6b, 1) && L.c[3].a[0] == (uintptr_t)(self_buf + ROW(n, 0)));
+    CK(call_is(4, 0x448d11, 0x619a05, 4) && L.c[4].a[0] == 0xabcdef01u && L.c[4].a[2] == 0xffffffffu && L.c[4].a[3] == 0 && memcmp(L.c[4].snap, "textBCD", 8) == 0);
+    CK(call_is(5, 0x4fb2e3, 0x5c3a67, 1) && L.c[5].a[0] == 0x11 && get32(self_buf, 0x8256) == 1 && get32(self_buf, 0x8286) == 97);
+    /* 0x423259 returns 0: the string at row + 0x21 is shown; a text longer than 0x3c characters: the same fallback */
+    for (j = 0; j < 2; j++) {
+        setup4();
+        recs_tab[n * 0x6e] = 0;
+        memset(self_buf + ROW(n, 0), 'x', 0x5d);
+        put_str(self_buf + ROW(n, 0), "short local name");
+        put_str(self_buf + ROW(n, 0) + 0x21, "tail");
+        world.value_5bb202 = 1;
+        if (j == 1) {
+            memset(arena + 0x300, 'y', 0x50);
+            arena[0x300 + 0x3d] = 0;
+            g_ret_423259 = VA(0x300);
+        }
+        m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+        CK(rej == 0 && L.n == 6 && memcmp(L.c[4].snap, "tail", 5) == 0 && get32(self_buf, 0x8256) == 1);
+    }
+    /* the row equals the nine-byte constant C, or its first byte the constant d: nothing is announced (flag 0), the call ends after 0x4f6334 */
+    for (j = 0; j < 2; j++) {
+        setup4();
+        recs_tab[n * 0x6e] = 0;
+        memset(self_buf + ROW(n, 0), 'x', 0x5d);
+        g_ret_50cd50 = 3;
+        if (j == 0) memset(self_buf + ROW(n, 0), 0xC3, 9);
+        else self_buf[ROW(n, 0)] = 0xE5;
+        memset(self_buf + ROW(n, 1), 0xA1, 9);       /* j = 1, idx = 3 % 1 = 0 */
+        m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+        CK(rej == 0 && L.n == 2 && call_is(1, 0x4f6334, 0x5cf1eb, 1));
+    }
+    /* flag byte non-zero: the record text 0x583f5c + n * 0x6e is announced with its original address; equal to the constant B: nothing */
+    setup4();
+    recs_tab[n * 0x6e] = 0x80;
+    put_str(recs_tab + n * 0x6e + 0x3d, "record text");
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == 0 && L.n == 3 && call_is(0, 0x4f6334, 0x5cf1eb, 1) && call_is(1, 0x4fb77a, 0x5c3a67, 1) && L.c[1].a[0] == 0x583f5c + 0x6e && call_is(2, 0x4fb2e3, 0x5c3a67, 1));
+    memset(recs_tab + n * 0x6e + 0x3d, 0xB2, 9);
+    recs_tab[n * 0x6e + 0x3d + 9] = 0;
+    L.n = 0;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(L.n == 1 && call_is(0, 0x4f6334, 0x5cf1eb, 1));
+    /* with the text flag and a zero translation: the record text is shown (0x423259 gets the original address of it) */
+    setup4();
+    recs_tab[n * 0x6e] = 1;
+    put_str(recs_tab + n * 0x6e + 0x3d, "abc");
+    world.value_5bb202 = 1;
+    world.value_55cbc4 = 0x00323130u;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(L.n == 5 && call_is(2, 0x423259, 0x619a6b, 1) && L.c[2].a[0] == 0x583f5c + 0x6e && memcmp(L.c[3].snap, "abc012", 7) == 0);
+    /* native rejections: a translated text of exactly 0x3c characters (the original overruns the 60-byte buffer by one), a record text whose append does not fit,
+     * a structure copy without a NUL in 0x34 bytes (the stores of the fields are made first), an unresolved translation */
+    setup4();
+    recs_tab[n * 0x6e] = 1;
+    put_str(recs_tab + n * 0x6e + 0x3d, "abc");
+    world.value_5bb202 = 1;
+    memset(arena + 0x300, 'z', 0x3c);
+    arena[0x300 + 0x3c] = 0;
+    g_ret_423259 = VA(0x300);
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == FL26B_REJECT_OVERRUN && L.n == 3);
+    setup4();
+    recs_tab[n * 0x6e] = 1;
+    memset(recs_tab + n * 0x6e + 0x3d, 'r', 0x39);
+    recs_tab[n * 0x6e + 0x3d + 0x39] = 0;
+    world.value_5bb202 = 0;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == 0 && L.n == 3);
+    world.value_5bb202 = 1;
+    L.n = 0;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == FL26B_REJECT_OVERRUN && L.n == 3 && call_is(2, 0x423259, 0x619a6b, 1));
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    memset(self_buf + ROW(n, 0), 'x', 0x5d);
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == FL26B_REJECT_OVERRUN && L.n == 2);
+    setup4();
+    recs_tab[n * 0x6e] = 1;
+    world.value_5bb202 = 1;
+    g_ret_423259 = 0x30000000u;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == FL26B_REJECT_UNRESOLVED);
+}
+
 /* ---- a bounded random sweep (meant for the sanitiser builds) ---------------------------------------------------------------- */
 
 static uint32_t rng_state = 12345;
@@ -507,7 +684,7 @@ static void test_sweep(void)
         setup();
         for (q = 0; q < 0x3000; q++) arena[q] = (uint8_t)rnd();
         for (q = 0; q < 0x400; q++) self_buf[0x3000 + q] = (uint8_t)rnd();
-        switch (round % 5) {
+        switch (round % 6) {
         case 0:
             set32(arena, 0x1c, rnd() & 1 ? VA(0x100) : (rnd() & 1 ? 0u : rnd()));
             m423fbb_leaf_word(VA(0), &host, &rej);
@@ -543,6 +720,19 @@ static void test_sweep(void)
             m424201_walk(self_buf, VA(0), &world, &host, &rej);
             break;
         }
+        case 5: {
+            int nn = (int)(rnd() % 3) - 1;
+            setup4();
+            for (q = 0; q < sizeof recs_tab; q++) recs_tab[q] = (uint8_t)(rnd() % 4 ? 'a' + rnd() % 20 : rnd());
+            for (q = 0; q < 0x3000; q++) self_buf[q] = (uint8_t)(rnd() % 3 ? 'a' + rnd() % 20 : rnd() % 3 ? 0 : rnd());
+            recs_tab[(nn < 0 ? 0 : nn) * 0x6e] = (uint8_t)(rnd() & 1);
+            world.value_5bb202 = rnd() & 1;
+            g_ret_50cd50 = rnd();
+            g_ret_4f6334 = rnd() % 8 == 0;
+            g_ret_423259 = rnd() % 3 == 0 ? VA(0x300) : 0;
+            m4eb184_use_feedback(self_buf, nn, &world, &host, &rej);
+            break;
+        }
         default: {
             int i = (int)(rnd() % 6) - 1;      /* the records -1 .. 4 */
             uint8_t kind = rnd() & 1 ? 0x63 : 0x62;
@@ -567,6 +757,7 @@ static const struct {
     {"test_m42406d_propagate", test_m42406d_propagate},
     {"test_m424201_walk", test_m424201_walk},
     {"test_m42ea87_record_state", test_m42ea87_record_state},
+    {"test_m4eb184_use_feedback", test_m4eb184_use_feedback},
     {"test_sweep_bounded", test_sweep},
 };
 

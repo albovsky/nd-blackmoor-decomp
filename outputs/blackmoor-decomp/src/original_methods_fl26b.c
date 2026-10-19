@@ -335,3 +335,129 @@ void m42ea87_record_state(int16_t index, Fl26bWorld *world, const Fl18Host *host
     }
     finish(&c, reject);
 }
+
+/* ---- 0x4eb184 -------------------------------------------------------------------------------------------------------------- */
+
+#define BUF_SZ 0x3c      /* the local buffer at ebp-0x80 up to the word at ebp-0x44 */
+#define LOCAL_SZ 0x34    /* the local structure at ebp-0x38 up to the flag at ebp-4 */
+
+/* strlen(s) + 1 when it is at most `limit`, else 0 (no NUL within `limit` bytes: the original's copy would not fit) */
+static size_t fits(const uint8_t *s, size_t limit)
+{
+    size_t i;
+    for (i = 0; i < limit; i++)
+        if (s[i] == 0) return i + 1;
+    return 0;
+}
+
+/* `repne scasb` + `rep movsd` + `rep movsb`: copies the string with its NUL into buf; 0 (nothing copied) when it does not fit */
+static int copy_string(uint8_t *dst, size_t limit, const uint8_t *src)
+{
+    size_t n = fits(src, limit);
+    if (n == 0) return 0;
+    memcpy(dst, src, n);
+    return 1;
+}
+
+/* 0x4eb184, thiscall, `ret 4`: n is [ebp+8] (a signed compare with 0), this = [ebp-0x84]. The original keeps idx (the word at ebp-0x44) uninitialised on
+ * the arm that does not set it; it is not read there. */
+void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl18Host *host, int32_t *reject)
+{
+    uint8_t buf[BUF_SZ];
+    uint8_t local[LOCAL_SZ];
+    const uint8_t *rec_str;
+    uint8_t *rec = NULL;
+    uint32_t str;
+    int32_t idx = 0;
+    int flag = 0;
+    int ok = 1;
+    const uint8_t *table = world->records_583f1f + (ptrdiff_t)n * 0x6e;
+    uint32_t rec_va = 0x583f5c + (uint32_t)n * 0x6e;
+    memset(buf, 0, sizeof buf);
+    memset(local, 0, sizeof local);
+    if (reject != NULL) *reject = 0;
+    if (n < 0) return;
+    if (table[0] == 0) {
+        int16_t j;
+        for (j = 1; (int32_t)j <= 2; j++) {
+            const uint8_t *row = self + (ptrdiff_t)n * 0x16d + 0x74e + (ptrdiff_t)j * 0x5d + 0x56;
+            if (memcmp(row, world->bytes_55cba0, 9) == 0) break;
+            if (row[0] == world->bytes_63aa00[0]) break;
+        }
+        idx = (int32_t)(int16_t)((int32_t)call0(host, 0x50cd50, 0) % (int32_t)j);
+    }
+    if (call1(host, 0x4f6334, 0x5cf1eb, 0x11) != 0) return;
+    rec_str = table + 0x3d;
+    if (table[0] != 0) {
+        if (memcmp(rec_str, world->bytes_55cbac, 9) != 0) {
+            call1(host, 0x4fb77a, 0x5c3a67, rec_va);
+            flag = 1;
+            str = 0;
+            if (world->value_5bb202 != 0) str = call1(host, 0x423259, 0x619a6b, rec_va);
+            if (str != 0) {
+                const uint8_t *t = host->resolve(host->context, str);
+                if (t == NULL) {
+                    if (reject != NULL) *reject = FL26B_REJECT_UNRESOLVED;
+                    return;
+                }
+                if (fits(t, BUF_SZ + 1) != 0 && fits(t, BUF_SZ + 1) <= BUF_SZ + 1) ok = copy_string(buf, BUF_SZ, t);
+                else ok = copy_string(buf, BUF_SZ, rec_str);
+            } else {
+                ok = copy_string(buf, BUF_SZ, rec_str);
+            }
+        }
+    } else {
+        rec = self + (ptrdiff_t)n * 0x16d + 0x74e + (ptrdiff_t)idx * 0x5d + 0x56;
+        if (memcmp(rec, world->bytes_55cbb8, 9) != 0 && rec[0] != world->bytes_63aa04[0]) {
+            if (!copy_string(local, LOCAL_SZ, rec)) ok = 0;
+            wr16(local, 0x21, 0x11);
+            wr16(local, 0x23, 1);
+            wr16(local, 0x25, 1);
+            wr16(local, 0x27, 1);
+            wr32(local, 0x29, 1);
+            wr16(local, 0x2d, 0x55);
+            wr16(local, 0x2f, 0x55);
+            if (!ok) {
+                if (reject != NULL) *reject = FL26B_REJECT_OVERRUN;
+                return;
+            }
+            call1(host, 0x4fb77a, 0x5c3a67, (uintptr_t)local);
+            flag = 1;
+            str = 0;
+            if (world->value_5bb202 != 0) str = call1(host, 0x423259, 0x619a6b, (uintptr_t)rec);
+            if (str != 0) {
+                const uint8_t *t = host->resolve(host->context, str);
+                if (t == NULL) {
+                    if (reject != NULL) *reject = FL26B_REJECT_UNRESOLVED;
+                    return;
+                }
+                if (fits(t, BUF_SZ + 1) != 0) ok = copy_string(buf, BUF_SZ, t);
+                else ok = copy_string(buf, BUF_SZ, rec + 0x21);
+            } else {
+                ok = copy_string(buf, BUF_SZ, rec + 0x21);
+            }
+        }
+    }
+    if (flag == 0) return;
+    if (!ok) {
+        if (reject != NULL) *reject = FL26B_REJECT_OVERRUN;
+        return;
+    }
+    if (world->value_5bb202 != 0) {
+        uintptr_t args[4];
+        size_t len = fits(buf, BUF_SZ) - 1;
+        if (len + 4 > BUF_SZ) {
+            if (reject != NULL) *reject = FL26B_REJECT_OVERRUN;
+            return;
+        }
+        wr32(buf, (ptrdiff_t)len, world->value_55cbc4);
+        args[0] = world->value_5d03b3;
+        args[1] = (uintptr_t)buf;
+        args[2] = 0xffffffffu;
+        args[3] = 0;
+        if (host->call != NULL) host->call(host->context, 0x448d11, 0x619a05, args, 4);
+        wr32(self, 0x8256, 1);
+        wr32(self, 0x8286, world->value_585d37 + (uint32_t)rds16(self, 0x69d));
+    }
+    call1(host, 0x4fb2e3, 0x5c3a67, 0x11);
+}

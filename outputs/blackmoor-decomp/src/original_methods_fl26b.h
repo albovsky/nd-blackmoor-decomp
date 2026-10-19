@@ -29,6 +29,7 @@ extern "C" {
 
 #define FL26B_REJECT_UNRESOLVED 1   /* Fl18Host.resolve returned NULL for an address the original dereferences */
 #define FL26B_REJECT_ENDLESS 2      /* the original would never return (unknown kind, cycle) */
+#define FL26B_REJECT_OVERRUN 3      /* the original would write past a local buffer (a string that does not fit) */
 
 typedef struct Fl26bWorld {
     uint8_t *records_5bb5e5;   /* records of stride 0x8d (the byte at -2 of record n is its kind); the dword at +0 is the address of the object of the record */
@@ -37,6 +38,10 @@ typedef struct Fl26bWorld {
     int16_t word_5bb50b;       /* 0x42ea87: the key that the list entries are compared with */
     int16_t word_583a29;       /* 0x4eb107: the current item (a signed word), written -1 */
     int16_t word_63a4cd;       /* 0x424201: tested as a signed word on the error path */
+    uint8_t *records_583f1f;   /* 0x4eb184: records of stride 0x6e: the byte at +0 is a flag, the string at +0x3d (original address 0x583f5c + n * 0x6e) */
+    const uint8_t *bytes_55cba0, *bytes_55cbac, *bytes_55cbb8;   /* 0x4eb184: the nine-byte constants that the strings are compared with */
+    const uint8_t *bytes_63aa00, *bytes_63aa04;                   /* 0x4eb184: the one-byte constants */
+    uint32_t value_5bb202, value_55cbc4, value_5d03b3, value_585d37;   /* 0x4eb184: the text flag, the dword appended to the text, two dwords of the display call */
 } Fl26bWorld;
 
 /* 0x423fbb (thiscall, `ret 4`, ecx unused): accessor of the leaf behind the dword [node + 0x1c]. When it is 0: dword [node + 0x20] = 0, returns -1.
@@ -61,6 +66,15 @@ void m424201_walk(uint8_t *self, uint32_t node, const Fl26bWorld *world, const F
 
 /* 0x42ea87 (cdecl, plain `ret`): record state machine for the record `index` (a signed word, rec = 0x5bb5e5 + index * 0x8d). */
 void m42ea87_record_state(int16_t index, Fl26bWorld *world, const Fl18Host *host, int32_t *reject);
+
+/* 0x4eb184 (thiscall, `ret 4`): item-use feedback for the record n (a signed dword, negative returns). Record byte 0x583f1f + n * 0x6e == 0: picks a row
+ * j (1..3) of the strings of self + n * 0x16d + 0x74e + j * 0x5d + 0x56 (9-byte compare with 0x55cba0, one byte with 0x63aa00), idx = rand() % j via 0x50cd50.
+ * Then 0x4f6334(this = 0x5cf1eb, 0x11) != 0 returns. A text is chosen (record string at 0x583f5c + n * 0x6e, or the row idx of self, which is announced
+ * through 0x4fb77a(this = 0x5c3a67) with a local structure) and, when 0x5bb202 is set, translated through 0x423259(this = 0x619a6b) into a buffer of 0x3c bytes
+ * that is shown with 0x448d11(this = 0x619a05; [0x5d03b3], buffer, -1, 0) after the dword [0x55cbc4] is appended; [self + 0x8256] = 1 and
+ * [self + 0x8286] = [0x585d37] + the signed word [self + 0x69d]; finally 0x4fb2e3(this = 0x5c3a67, 0x11). Rejected explicitly: a string that does not fit the
+ * local buffer of the original (60 bytes; the structure copy: 52 bytes; the append needs 4 more bytes). */
+void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl18Host *host, int32_t *reject);
 
 #ifdef __cplusplus
 }

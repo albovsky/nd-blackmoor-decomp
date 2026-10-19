@@ -105,7 +105,8 @@ class Original20(od.Original):
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
 SHAPES = {0x4e9e84: (2, True, 8), 0x4d36ed: (0, False, 0), 0x424346: (1, True, 4), 0x42406d: (1, True, 4), 0x42356d: (2, True, 8),
           0x424201: (1, True, 4), 0x4235fd: (0, True, 0), 0x50ca3e: (2, False, 0), 0x52139c: (3, False, 12), 0x44a2b7: (1, False, 0),
-          0x4c97b4: (0, True, 0), 0x42ba3a: (1, False, 0)}
+          0x4c97b4: (0, True, 0), 0x42ba3a: (1, False, 0), 0x50cd50: (0, False, 0), 0x4f6334: (1, True, 4), 0x4fb77a: (1, True, 4), 0x423259: (1, True, 4),
+          0x448d11: (4, True, 0x10), 0x4fb2e3: (1, True, 4)}
 WORD_ARGS = {}
 RECORDS_VA = 0x5bb5e5
 REC = 0x8d
@@ -239,7 +240,7 @@ def normalize(calls, stubs, iat, word_args):
                 entry.append(v & 0xffff)
             else:
                 entry.append(LOCAL if od.STACK_BASE <= v < od.STACK_BASE + od.STACK_SIZE else v)
-        entry.extend(derefs)
+        entry.extend(bytes(0 if b == 0x71 else b for b in d) for d in derefs)      # (the native locals are zero, the original's stack is filled with 0x71)
         if probe is not None:
             entry.append(probe)
         out.append(entry)
@@ -272,7 +273,7 @@ def gen_423fbb(rng, n):
     return common26('423fbb', areas, {}, [('node', 0, 0x40)], stack=[node_va], args=(node_va,), profile=(kind, *rest))
 
 
-ITEMS = [-5, -1, 0, 1, 2, 3, 172, 300]
+ITEMS = [-5, -1, 0, 1, 2, 3, 172, 300, 359]
 WORD_OTHERS = [1, 3, -1, 0x7fff, -32768, 0x102, 0x100, 0x5]
 
 
@@ -280,7 +281,7 @@ def gen_4eb107(rng, n):
     profiles = [('miss', how) for how in ('low', 'high', 'sign', 'off1')] + [('w0',), ('w2',)] + [('wo', v) for v in WORD_OTHERS]
     (kind, *rest), variant = prof(n, profiles)
     item = ITEMS[(variant + n) % len(ITEMS)]
-    self_ = bytearray(rng.randbytes(0x20000))
+    self_ = bytearray(rng.randbytes(0x40000))
     at = item * 0x16d + 0x77e
     arg = item & 0xffffffff
     if kind == 'miss':
@@ -430,7 +431,7 @@ def gen_424201(rng, n):
         put32(nd, base + 0x38, nxt[i])
         put32(nd, base + 0x44, rng.choice([0, nodes_va + 8, rng.randrange(1 << 32)]))
     put32(arg, 4, na(first))
-    stubs = {c: stub(c, None) for c in SHAPES if c not in (0x4e9e84, 0x4d36ed, 0x42ba3a)}
+    stubs = {c: stub(c, None) for c in (0x424346, 0x42406d, 0x42356d, 0x424201, 0x50ca3e, 0x52139c, 0x44a2b7, 0x4c97b4)}
     stubs[0x4235fd] = stub(0x4235fd, None, results=results or [0])
     areas = [Area('self', arg_va, arg, image=False), Area('nodes', nodes_va, nd, image=False), Area('qs', qs_va, qs, image=False)]
     return common26('424201', areas, stubs, [('self', 0, 0x40), ('nodes', 0, NODE * NODES), ('qs', 0, 0x80)], g={'word_63a4cd': word63}, stack=[arg_va],
@@ -502,6 +503,141 @@ def gen_42ea87(rng, n):
                     profile=(kind, *rest))
 
 
+LETTERS = b'abcdefghijklmnoprstuvwxyz0123456789'      # no 0x71 ('q'): the harness maps the stack fill 0x71 of the original to 0 when it compares
+
+
+def letters(rng, n):
+    return bytes(rng.choice(LETTERS) for _ in range(n))
+
+
+def hi_bytes(rng, n):
+    return bytes(rng.randrange(0x80, 0x100) for _ in range(n))
+
+
+def gen_4eb184(rng, n):
+    s5s = [(0, '-'), (1, 'none'), (1, 'short'), (1, 'long')]
+    profiles = [('neg', v) for v in (-1, -5, -2147483648)] + [('busy', f) for f in (0, 1)]
+    profiles += [('f0', jm, arm, s5, sm) for jm in ('j1_9', 'j1_1', 'j2_9', 'j2_1', 'j3') for arm in ('r9', 'r1') for s5, sm in s5s[:1]]
+    profiles += [('f0', jm, 'copy', s5, sm) for jm in ('j1_9', 'j1_1', 'j2_9', 'j2_1', 'j3') for s5, sm in s5s]
+    profiles += [('f1', 'b9')] + [('f1', 'copy', s5, sm) for s5, sm in s5s]
+    (kind, *rest), variant = prof(n, profiles)
+    nn = -1 if kind == 'neg' else rng.choice([0, 1, 2, 3])
+    if kind == 'neg':
+        nn = rest[0]
+    rn = max(nn, 0)
+    flag0 = kind == 'busy' and rest[0] == 0 or kind == 'f0' or kind == 'neg' and rng.random() < 0.5
+    flag1 = kind == 'f1' or kind == 'busy' and rest[0] == 1
+    self_ = bytearray(rng.randbytes(0x9000))
+    recs = bytearray(rng.randbytes(5 * 0x6e + 0x80))
+    consts = bytearray(rng.randbytes(0x30))
+    A, B, C = hi_bytes(rng, 9), hi_bytes(rng, 9), hi_bytes(rng, 9)
+    c1, d = hi_bytes(rng, 1), hi_bytes(rng, 1)
+    while d == c1:
+        d = hi_bytes(rng, 1)
+    consts[0:9], consts[0xc:0x15], consts[0x18:0x21] = A, B, C
+    consts2 = bytearray(rng.randbytes(8))
+    consts2[0:1], consts2[4:5] = c1, d
+    recs[rn * 0x6e] = 0 if flag0 else rng.choice([1, 0x80, 0xff])
+    strarea = bytearray(rng.randbytes(0x200))
+
+    def row(j):
+        return rn * 0x16d + 0x74e + j * 0x5d + 0x56
+
+    # the structured rows -2 .. 3: a string of 9 .. 0x33 characters; the string at +0x21 ends L2 characters after it
+    for j in range(-2, 4):
+        o = row(j)
+        len0 = rng.choice([9, 12, 0x20, 0x21, 0x25, 0x33])
+        self_[o:o + 0x5d] = letters(rng, 0x5d)
+        self_[o + len0] = 0
+        if len0 <= 0x20:
+            self_[o + 0x21 + rng.choice([0, 1, 7, 0x20, 0x38])] = 0
+
+    def mismatch(o, const, first):
+        """The first nine bytes of the row at o are not `const` (and its first byte is not `first`), differing at byte k and equal before."""
+        k = rng.randrange(9)
+        self_[o:o + k] = const[:k]
+        self_[o + k] = rng.choice(LETTERS)
+        if k == 0:
+            pass
+
+    for j in (-2, -1, 0, 3):
+        pass
+    j_final = 3
+    idx = 0
+    if flag0:
+        jm = rest[0] if kind == 'f0' else 'j1_9'
+        m = {'j1_9': 1, 'j1_1': 1, 'j2_9': 2, 'j2_1': 2, 'j3': None}[jm]
+        for j in (1, 2):
+            o = row(j)
+            if m is not None and j == m:
+                if jm.endswith('9'):
+                    self_[o:o + 9] = A
+                else:
+                    mismatch(o, A, c1)
+                    self_[o] = c1[0]
+                    self_[o + 1] = rng.choice(LETTERS)      # (the nine bytes cannot all be equal: A[1] is not a letter)
+            elif m is None or j < m:
+                mismatch(o, A, c1)
+                if self_[o] == c1[0]:
+                    self_[o] = rng.choice(LETTERS)
+        j_final = m if m is not None else 3
+        arm = rest[1] if kind == 'f0' else 'copy'
+        want = 0 if arm in ('r9', 'r1') else rng.randrange(j_final)
+        sign = -1 if (variant % 3 == 2 and kind == 'f0') else 1
+        r = sign * (want + j_final * rng.randrange(0, 4))
+        idx = (sign * want)
+        orow = row(idx)
+        if arm == 'r9':
+            self_[orow:orow + 9] = C
+        elif arm == 'r1':
+            self_[orow] = d[0]
+            self_[orow + 1] = rng.choice(LETTERS)
+        else:
+            # the first nine bytes differ from C and the first byte from d
+            if idx not in (1, 2):
+                mismatch(orow, C, d)
+                if self_[orow] == d[0]:
+                    self_[orow] = rng.choice(LETTERS)
+        rand_result = r
+    else:
+        rand_result = 0
+        arm = 'copy'
+    s5, sm = (rest[2], rest[3]) if kind == 'f0' and rest[1] == 'copy' else (rest[1], rest[2]) if kind == 'f1' and rest[0] == 'copy' else (rng.choice([0, 1]), rng.choice(['none', 'short', 'long']))
+    # the record string (flag set): nothing of the first nine bytes equal to B (b9: equal)
+    L = rng.choice([0, 1, 5, 8, 9, 20, 0x30, 0x38])
+    so = rn * 0x6e + 0x3d
+    recs[so:so + L + 1] = letters(rng, L) + b'\0'
+    if kind == 'f1' and rest[0] == 'b9':
+        recs[so:so + 9] = B
+        recs[so + 9] = 0
+    # the translated text of 0x423259
+    result_423259 = 0
+    if sm == 'short':
+        t = letters(rng, rng.choice([0, 1, 7, 0x20, 0x38]))
+        strarea[0:len(t) + 1] = t + b'\0'
+        result_423259 = od.region_va(2)
+    elif sm == 'long':
+        t = letters(rng, 0x3d + rng.choice([0, 1, 9, 0x40]))
+        strarea[0:len(t) + 1] = t + b'\0'
+        result_423259 = od.region_va(2)
+    busy = kind == 'busy'
+    res_4f6334 = rng.choice([1, 0x100, 0xffffffff, 0x10000]) if busy else 0
+    s_nz = rng.choice([1, 0x100, 0xffffffff, 0x10000]) if s5 else 0
+    self_[0x69d:0x69f] = struct.pack('<h', rng.choice([0, 1, -1, 0x7fff, -32768, 300]))
+    appended = struct.unpack('<I', letters(rng, 3) + b'\0')[0] if rng.random() < 0.7 else struct.unpack('<I', letters(rng, 4))[0]
+    g = {'value_5bb202': s_nz, 'value_55cbc4': appended, 'value_5d03b3': rng.randrange(1 << 32), 'value_585d37': rng.choice([0, 5, 0xffffff00, rng.randrange(1 << 32)])}
+    stubs = {0x50cd50: stub(0x50cd50, None, results=[rand_result & 0xffffffff]), 0x4f6334: stub(0x4f6334, None, results=[res_4f6334]),
+             0x4fb77a: stub(0x4fb77a, None), 0x423259: stub(0x423259, None, results=[result_423259]), 0x448d11: stub(0x448d11, None), 0x4fb2e3: stub(0x4fb2e3, None)}
+    stubs[0x4fb77a].derefs = [(0, 0x34)]
+    stubs[0x448d11].derefs = [(1, 0x3c)]
+    areas = [Area('self', od.region_va(0), self_, image=False), Area('recs', 0x583f1f, recs), Area('consts', 0x55cba0, consts, compare=False),
+             Area('c2', 0x63aa00, consts2, compare=False), Area('str', od.region_va(2), strarea, image=False, compare=False)]
+    ptrs = {'records_583f1f': ('recs', 0), 'bytes_55cba0': ('consts', 0), 'bytes_55cbac': ('consts', 0xc), 'bytes_55cbb8': ('consts', 0x18),
+            'bytes_63aa00': ('c2', 0), 'bytes_63aa04': ('c2', 4)}
+    return common26('4eb184', areas, stubs, [('self', 0x8250, 0x40), ('self', 0x690, 0x20)], g=g, pointers=ptrs, stack=[nn & 0xffffffff], args=(nn & 0xffffffff,),
+                    profile=(kind, *rest))
+
+
 # the functions: id (the shim number), va, size from the ledger, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
     '423fbb': dict(id=1, va=0x423fbb, size=62, gen=gen_423fbb, ret=True, cleanup=4, n=10 * 10),
@@ -509,6 +645,7 @@ SPECS = {
     '42406d': dict(id=3, va=0x42406d, size=404, gen=gen_42406d, cleanup=4, n=4 * 150),
     '424201': dict(id=4, va=0x424201, size=325, gen=gen_424201, cleanup=4, n=27 * 12),
     '42ea87': dict(id=5, va=0x42ea87, size=717, gen=gen_42ea87, cleanup=0, n=0),
+    '4eb184': dict(id=6, va=0x4eb184, size=1134, gen=gen_4eb184, cleanup=4, n=40 * 12),
 }
 KEYS = list(SPECS)
 SPECS['42ea87']['n'] = (7 * 4 + 2 * 2 * 8 + 2 * 8 * 2) * 6

@@ -23,6 +23,7 @@ EXPECTED = [
     'test_m42406d_propagate',
     'test_m424201_walk',
     'test_m42ea87_record_state',
+    'test_m4eb184_use_feedback',
     'test_sweep_bounded',
 ]
 
@@ -87,6 +88,10 @@ class Fl26bDirect(unittest.TestCase):
     def test_42ea87_record_state(self):
         """FL-26b: direct test of m42ea87_record_state"""
         self.check('test_m42ea87_record_state')
+
+    def test_4eb184_use_feedback(self):
+        """FL-26b: direct test of m4eb184_use_feedback"""
+        self.check('test_m4eb184_use_feedback')
 
     # CASES-END
 

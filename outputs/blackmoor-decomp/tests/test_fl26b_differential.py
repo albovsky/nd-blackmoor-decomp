@@ -27,7 +27,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 class ShimCall24(ctypes.Structure):
     _fields_ = [('id', ctypes.c_uint32), ('nargs', ctypes.c_int32), ('this_ptr', ctypes.c_uint64), ('arg', ctypes.c_uint64 * 12),
-                ('data', ctypes.c_uint8 * 64), ('probe', ctypes.c_uint8 * 4096)]
+                ('data', ctypes.c_uint8 * 128), ('probe', ctypes.c_uint8 * 4096)]
 
 
 @unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
@@ -60,7 +60,7 @@ class Fl26bDifferential(DiffBase):
             c = calls[i]
             entry = ['tick' if c.id == fx.TICK_SLOT else c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(c.nargs)]]
             if c.id in deref_len:
-                entry.append(bytes(c.data)[:deref_len[c.id]])
+                entry.append(bytes(0 if b == 0x71 else b for b in bytes(c.data)[:deref_len[c.id]]))
             if c.id in probe_len:
                 entry.append(bytes(c.probe)[:probe_len[c.id]])
             out.append(entry)
@@ -146,6 +146,10 @@ class Fl26bDifferential(DiffBase):
     def test_42ea87_record_state(self):
         """FL-26b: differential test of m42ea87_record_state (original 0x42ea87)"""
         self.run_key('42ea87')
+
+    def test_4eb184_use_feedback(self):
+        """FL-26b: differential test of m4eb184_use_feedback (original 0x4eb184)"""
+        self.run_key('4eb184')
 
     def test_unsafe_loops_never_return_in_the_original(self):
         """The two endless loops that the port rejects (a node of kind 3 in 0x424201, a cycle of the [+0x38] chain in 0x42406d) are real: the original
