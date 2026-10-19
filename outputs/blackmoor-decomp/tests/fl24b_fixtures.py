@@ -112,6 +112,8 @@ SPECS.update({
     '466073': dict(id=2, va=0x466073, size=468, code=0x1c4, selfsz=0x100, idx=0x1e, gates=[('nz32', 0x49), ('z8', 0x4e)], sels=[0x27d3, 0x27d2],
                    callees=[0x4fb2e3], post=lambda c: post_466073(c), scen=396, probes=[(0, 0x100)]),
     '467740': dict(id=3, va=0x467740, size=506, selfsz=0x1c0, ret='eax', callee_pops=True, scen=480, callees=[0x467b9e]),
+    '4b7563': dict(id=4, va=0x4b7563, size=538, selfsz=0x40, idx=0x21, gates=[('nz8', 0x35), ('z8', 0x3b), ('z32', 0x25)], sels=[0x27bf, 0x27c0, 0x27c1],
+                   callees=[0x4fb2e3], post=lambda c: post_4b7563(c), scen=440, probes=[(0, 0x40)]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
@@ -288,6 +290,22 @@ def build_467740(sp, rng, n):
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '467740', rng, areas=areas, g=g, stubs=stubs, pointers={'records_5bb5e5': ('records', 0x8d)},
                        stack_args=[junk(x), junk(y)], profile=('x', prof))
+
+
+def post_4b7563(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    for flag_off, count_off, counter_off in ((0x25, 0x21, 0x31), (0x26, 0x23, 0x33)):
+        obj[flag_off] = rng.choice([0, 1, 0x80, 0xff]) if rng.random() < 0.7 else 0
+        row = rng.choice([0, 1, 2, 3, 4, -32768, 32767, -1, 0x100, 5])
+        struct.pack_into('<h', obj, count_off, row)
+        mode = rng.randrange(4)
+        sw = [row - 1, row - 2, row, rng.choice([0, 1, 2, -1, -32768, 32767, 7])][mode]
+        struct.pack_into('<H', d, counter_off, sw & 0xffff)
+    flag = v & 1
+    c.g['value_5bb1ca'] = 0 if flag == 0 else rng.choice([1, 0x100, 0xffffffff])
+    nine_const(c, 0x551c54, 0x2ef, obj, c.sel == 0x27bf)
+    nine_const(c, 0x551c60, 0x320, obj, c.sel == 0x27c0)
+    c.stubs_results[0x4fb2e3] = [0]
 
 
 # BUILDERS-END

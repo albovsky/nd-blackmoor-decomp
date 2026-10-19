@@ -239,4 +239,52 @@ int32_t m467740_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world,
     return 0;
 }
 
+/* ---- 0x4b7563 ------------------------------------------------------------------------------------------------------------------ */
+
+/* The common step of the arms 0x27bf (counter word [+0x31], record object flag byte +0x25, count word +0x21) and 0x27c0 ([+0x33], +0x26,
+ * +0x23): with the flag set the counter counts down while its sign-extended value is above 0 and otherwise takes (count - 1) truncated to
+ * a word; with the flag clear it counts up while it is below count - 1 (sign-extended, no wrap) and otherwise wraps to 0. */
+static void step_4b7563(uint8_t *self, const uint8_t *ro, ptrdiff_t counter, ptrdiff_t flag, ptrdiff_t count)
+{
+    if (ro[flag] != 0) {
+        if (rds16(self, counter) > 0) wr16(self, counter, (uint16_t)(rd16(self, counter) - 1));
+        else wr16(self, counter, (uint16_t)(rds16(ro, count) - 1));
+    } else {
+        if (rds16(self, counter) < rds16(ro, count) - 1) wr16(self, counter, (uint16_t)(rd16(self, counter) + 1));
+        else wr16(self, counter, 0);
+    }
+}
+
+/* 0x4b7563, thiscall, plain `ret`: guards byte [+0x35] != 0, byte [+0x3b] == 0, dword [+0x25] == 0 and the state of the record of the word
+ * [+0x21] == 1; then 0x27bf and 0x27c0 step their counter, compare nine bytes of the record object (+0x2ef against 0x551c54, +0x320
+ * against 0x551c60) when the flag 0x5bb1ca is set and announce the word at +0x310 / +0x341 through 0x4fb2e3 (this 0x5c3a67) when they
+ * differ, and set [+0x25] = 2; 0x27c1 sets the byte [+0x36] and the record state 2. */
+void m4b7563_click_27bf_27c1(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
+{
+    uint32_t ro_addr = record_object_address(world, self, 0x21);
+    const uint8_t *ro;
+    if (self[0x35] == 0) return;
+    if (self[0x3b] != 0) return;
+    if (rd32(self, 0x25) != 0) return;
+    if (!record_state_is_1(world, self, 0x21)) return;
+    if (world->value_5c39e5 == 0x27bf) {
+        ro = object_at(host, ro_addr);
+        step_4b7563(self, ro, 0x31, 0x25, 0x21);
+        if (world->value_5bb1ca != 0 && !nine_bytes_equal(ro + 0x2ef, world->bytes_551c54))
+            call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x310));
+        wr32(self, 0x25, 2);
+    }
+    if (world->value_5c39e5 == 0x27c0) {
+        ro = object_at(host, ro_addr);
+        step_4b7563(self, ro, 0x33, 0x26, 0x23);
+        if (world->value_5bb1ca != 0 && !nine_bytes_equal(ro + 0x320, world->bytes_551c60))
+            call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x341));
+        wr32(self, 0x25, 2);
+    }
+    if (world->value_5c39e5 == 0x27c1) {
+        self[0x36] = 1;
+        set_record_state_2(world, self, 0x21);
+    }
+}
+
 /* FL24B-END */

@@ -501,6 +501,149 @@ static int test_m467740_hit_test(void)
     return g_failed;
 }
 
+/* 0x4b7563: gates byte [+0x35] != 0, byte [+0x3b] == 0, dword [+0x25] == 0, record state (word [+0x21]); the arms 0x27bf / 0x27c0 step the
+ * counter word ([+0x31] / [+0x33]) by the flag byte (+0x25 / +0x26) of the record object and its count word (+0x21 / +0x23). */
+static void setup_4b7563(uint32_t sel, int idx)
+{
+    base(sel, idx, 0x21);
+    fx.self[0x35] = 0x80;
+    fx.self[0x3b] = 0;
+    set32(fx.self, 0x25, 0);
+    fx.w.value_5bb1ca = 0;
+    fx.w.bytes_551c54 = consts[0];
+    fx.w.bytes_551c60 = consts[1];
+    memcpy(consts[0], "ABCDEFGHI", 9);
+    memcpy(consts[1], "JKLMNOPQR", 9);
+}
+
+static int test_m4b7563_click_27bf_27c1(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const uint32_t sels[] = {0x27bf, 0x27c0, 0x27c1, 0x2711};
+    static const struct { uint32_t sel; size_t counter, flag, count, nine, arg; const char *k; } A[2] = {
+        {0x27bf, 0x31, 0x25, 0x21, 0x2ef, 0x310, "ABCDEFGHI"}, {0x27c0, 0x33, 0x26, 0x23, 0x320, 0x341, "JKLMNOPQR"}};
+    static const int16_t counters[] = {0, 1, 2, 3, 4, -1, -32768, 32767};
+    static const int16_t counts[] = {0, 1, 2, 3, 4, 5, -1, -32768, 32767};
+    int ii, k, v, s, a, c, n, flag, d;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (s = 0; s < 4; s++)
+            for (k = 0; k < 4; k++)
+                for (v = 0; v < 6; v++) {
+                    setup_4b7563(sels[s], idx);
+                    if (k == 0) fx.self[0x35] = 0;
+                    if (k == 1) fx.self[0x3b] = (uint8_t[]){1, 0x80, 0xff, 0x7f, 2, 0x55}[v];
+                    if (k == 2) set32(fx.self, 0x25, (uint32_t[]){1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 3}[v]);
+                    if (k == 3) {
+                        int i;
+                        for (i = -1; i <= 4; i++)
+                            set32(fx.tab, (size_t)(i + 1) * REC + 0x4d, i == idx ? (uint32_t[]){0, 2, 3, 0xffffffffu, 0x101, 0x10001}[v] : 1u);
+                    }
+                    fx.w.value_5bb1ca = 1;
+                    begin();
+                    m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    CK(L.n == 0);
+                }
+        /* neighbours of the byte gates: bytes next to [+0x35] and [+0x3b] do not matter */
+        setup_4b7563(0x2711, idx);
+        fx.self[0x36] = 0;
+        fx.self[0x3c] = 0xff;
+        begin();
+        m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+        check_mem();
+        /* 0x27c1 and an unrelated selector */
+        setup_4b7563(0x27c1, idx);
+        begin();
+        X8(0x36, 1);
+        set32(xt, (size_t)(idx + 1) * REC + 0x4d, 2);
+        m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+        check_mem();
+        CK(L.n == 0);
+        /* the two counter arms */
+        for (a = 0; a < 2; a++)
+            for (flag = 0; flag < 3; flag++)         /* 0: record flag byte 0, 1: 1, 2: 0x80 */
+                for (c = 0; c < 8; c++)
+                    for (n = 0; n < 9; n++) {
+                        int32_t cnt = counts[n], cur = counters[c], expected;
+                        setup_4b7563(A[a].sel, idx);
+                        fx.obj[A[a].flag] = (uint8_t[]){0, 1, 0x80}[flag];
+                        set16(fx.obj, A[a].count, (uint16_t)cnt);
+                        set16(fx.self, A[a].counter, (uint16_t)cur);
+                        begin();
+                        if (flag != 0) expected = cur > 0 ? cur - 1 : cnt - 1;
+                        else expected = cur < cnt - 1 ? cur + 1 : 0;
+                        X16(A[a].counter, (uint16_t)expected);
+                        X32(0x25, 2);
+                        m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+                        check_mem();
+                        CK(L.n == 0);
+                    }
+        /* spot values: 0 > count - 1 = -32769 stays 0 with the flag clear; with the flag set and the counter 0, count -32768 wraps to 0x7fff */
+        setup_4b7563(0x27bf, idx);
+        fx.obj[0x25] = 0;
+        set16(fx.obj, 0x21, 0x8000);
+        set16(fx.self, 0x31, 0xffff);
+        begin();
+        X16(0x31, 0);
+        X32(0x25, 2);
+        m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+        check_mem();
+        setup_4b7563(0x27bf, idx);
+        fx.obj[0x25] = 1;
+        set16(fx.obj, 0x21, 0x8000);
+        set16(fx.self, 0x31, 0);
+        begin();
+        X16(0x31, 0x7fff);
+        X32(0x25, 2);
+        m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+        check_mem();
+        /* the announcement: flag set, the nine bytes differing at each position or equal; the word of the record object is the argument,
+         * announced after the counter and before [+0x25] is set */
+        for (a = 0; a < 2; a++)
+            for (d = -1; d < 10; d++) {
+                setup_4b7563(A[a].sel, idx);
+                fx.w.value_5bb1ca = 0x100;
+                fx.obj[A[a].flag] = 1;
+                set16(fx.obj, A[a].count, 5);
+                set16(fx.self, A[a].counter, 3);
+                memcpy(fx.obj + A[a].nine, A[a].k, 9);
+                fx.obj[A[a].nine + 9] = 0x5c;
+                if (d >= 0) fx.obj[A[a].nine + (size_t)d] ^= 0x40;
+                fx.obj[A[a].arg] = 0x21;
+                fx.obj[A[a].arg + 1] = 0x43;
+                fx.obj[A[a].arg + 2] = 0x65;
+                begin();
+                X16(A[a].counter, 2);
+                X32(0x25, 2);
+                m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+                check_mem();
+                if (d >= 0 && d < 9) {
+                    CK(L.n == 1);
+                    check_call(0, 0x4fb2e3, 0x5c3a67, 1);
+                    check_arg(0, 0, 0x4321, 0xffff);
+                    CK(get32(L.c[0].snap_self, 0x25) == 0 && L.c[0].snap_self[A[a].counter] == 2);
+                } else {
+                    CK(L.n == 0);
+                }
+                /* the flag clear: no compare at all */
+                fx.w.value_5bb1ca = 0;
+                L.n = 0;
+                fx.w.bytes_551c54 = consts[2];
+                fx.w.bytes_551c60 = consts[2];
+                set16(fx.self, A[a].counter, 3);
+                set32(fx.self, 0x25, 0);
+                m4b7563_click_27bf_27c1(fx.self, &fx.w, &fx.host);
+                CK(L.n == 0);
+            }
+    }
+    if (g_failed) printf("FAIL test_m4b7563_click_27bf_27c1: %s\n", g_msg);
+    else printf("PASS test_m4b7563_click_27bf_27c1\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -509,6 +652,7 @@ int main(void)
     failures += test_m4dad60_init_swap_buttons();
     failures += test_m466073_click_27d2_27d3();
     failures += test_m467740_hit_test();
+    failures += test_m4b7563_click_27bf_27c1();
     /* FL24B-MAIN-END */
     return failures;
 }
