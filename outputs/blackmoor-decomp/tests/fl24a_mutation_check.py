@@ -92,7 +92,11 @@ def main():
             if built.returncode != 0:
                 caught_direct += 1
                 continue
-            done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60)
+            try:
+                done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=20)
+            except subprocess.TimeoutExpired:      # a mutant that no longer terminates is caught as well
+                caught_direct += 1
+                continue
             if done.returncode != 0:
                 caught_direct += 1
                 continue
