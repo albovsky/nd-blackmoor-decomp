@@ -142,4 +142,18 @@ int32_t m4bee2c_get_field(uint8_t *self, uint32_t handle, const Fl18Host *host)
     return (int32_t)rd32(mem_at(host, handle), 0xc);
 }
 
+/* ---- 0x4bef85 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bef85, thiscall, `ret 4`: calls 0x4bf38c (this = self); with a zero argument stores [self + 0x2c0] = 0xfffffffd and returns 0,
+ * otherwise calls _BinkWait@4 (import 0x52a52c, the handle) and returns 0 when its result is non-zero, else 1. */
+int32_t m4bef85_bink_wait(uint8_t *self, uint32_t handle, const Fl18Host *host)
+{
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    if (handle == 0) {
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return 0;
+    }
+    return call1(host, 0x52a52c, 0, handle) != 0 ? 0 : 1;
+}
+
 /*NEXT*/

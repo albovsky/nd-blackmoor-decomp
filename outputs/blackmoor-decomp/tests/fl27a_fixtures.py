@@ -376,6 +376,19 @@ def gen_4bee2c(rng, n):
 
 SPECS['4bee2c'] = dict(id=6, va=0x4bee2c, size=51, gen=gen_4bee2c, ret=0xffffffff, cleanup=4, n=27)
 
+def gen_4bef85(rng, n):
+    """null handle -> error code; else _BinkWait answers zero (return 1) or non-zero (return 0)."""
+    profiles = [('null',)] + [('wait', v) for v in (0, 1, 2, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff)]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    handle = 0 if kind == 'null' else od.region_va(1) + rng.choice([0, 8, 0x30])
+    stubs = {0x4bf38c: stub(0x4bf38c, results=[rng.randrange(1 << 32)]), 0x52a52c: stub(0x52a52c, results=[rest[0] if rest else 0])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('bink', od.region_va(1), bink_area(rng), image=False)]
+    return make('4bef85', areas, stubs, {}, [handle], (handle,), (kind, *rest), probes=[('self', 0, 0x300)])
+
+
+SPECS['4bef85'] = dict(id=7, va=0x4bef85, size=67, gen=gen_4bef85, ret=0xffffffff, cleanup=4, n=27)
+
 KEYS = list(SPECS)
 
 

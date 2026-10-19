@@ -398,6 +398,41 @@ static void test_m4bee2c_get_field(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bef85: 0x4bf38c(self); handle 0 -> [self+0x2c0] = -3, return 0; else _BinkWait(handle): non-zero -> 0, zero -> 1 */
+
+static void test_m4bef85_bink_wait(void)
+{
+    static const uint32_t WAITS[] = {1, 2, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    size_t i;
+    setup();
+    script_ret(0x52a52c, 7);                                             /* never called */
+    expect_begin();
+    CK(m4bef85_bink_wait(fx.self, 0, &fx.host) == 0);
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    setup();
+    expect_begin();
+    CK(m4bef85_bink_wait(fx.self, VA_A + 0x40, &fx.host) == 1);          /* the import answers 0 */
+    CK(L.n == 2);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    ck_call(1, 0x52a52c, 0, 1);
+    ck_arg(1, 0, VA_A + 0x40);
+    expect_end();
+    for (i = 0; i < sizeof WAITS / sizeof WAITS[0]; i++) {
+        setup();
+        script_ret(0x52a52c, WAITS[i]);
+        expect_begin();
+        CK(m4bef85_bink_wait(fx.self, 0x1234, &fx.host) == 0);
+        CK(L.n == 2);
+        ck_call(1, 0x52a52c, 0, 1);
+        ck_arg(1, 0, 0x1234);
+        expect_end();
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -431,6 +466,7 @@ static void test_sweep(void)
         set32(fx.c, 1, rnd() % 4);
         (void)m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
         (void)m4bee2c_get_field(fx.self, rnd() % 2 ? VA_A + (rnd() % 64) : 0, &fx.host);
+        (void)m4bef85_bink_wait(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -446,6 +482,7 @@ static const struct {
     {"test_m449d90_file_exists", test_m449d90_file_exists},
     {"test_m44c479_wait_state", test_m44c479_wait_state},
     {"test_m4bee2c_get_field", test_m4bee2c_get_field},
+    {"test_m4bef85_bink_wait", test_m4bef85_bink_wait},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };
