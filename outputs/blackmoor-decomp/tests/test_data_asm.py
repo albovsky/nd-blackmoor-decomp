@@ -218,11 +218,29 @@ class LayoutTests(unittest.TestCase):
             "# header", "IMG:", "STR_00537000:", ".asciz [10]", ".string16 [4]", ".fill 12, 1, 0", ".long [3]",
             ".long STR_00537000 - IMG + 0x537000", ".long FUN_00401000", ".byte [2]",
         ])
-        self.assertEqual(data_asm.audit_layout(data_asm.layout_of(text)), [])
+        self.assertEqual(len(data_asm.audit_layout(data_asm.layout_of(text))), 1)  # only the made-up "# header" comment
 
     def test_a_layout_carrying_a_value_is_rejected(self):
-        for line in ('.asciz "Hello"', '.string16 "Hi there"', ".long 0x12345678", "  .byte 0x41"):
+        for line in (
+            '.asciz "Hello"', '.string16 "Hi there"', ".long 0x12345678", "  .byte 0x41", ".long  0x41424344", ".long\t0x41",
+            ".byte 65", '.ascii "ABCD"', '.string "AB"', ".word 0x4142", ".quad 5", ".long 0x1, 0x2",
+        ):
             self.assertTrue(data_asm.audit_layout(f"IMG:\n{line}\n"), line)
+
+    def test_a_generated_layout_is_accepted_and_only_generator_shapes_pass(self):
+        generated = data_asm.layout_of(
+            "\n".join(data_asm.header_lines(((LO, HI),), data_asm.load_sections(), (BASE + LO) & ~0xFFF, BASE, True) + [
+                ".intel_syntax noprefix", ".data", f".set FUN_{FAKE_ENTRY:08x}, 0x{FAKE_ENTRY:x}", "IMG:", f"STR_{BASE + LO:08x}:", '.asciz "x"',
+                ".fill 4, 1, 0", f".long STR_{BASE + LO:08x} - IMG + 0x{(BASE + LO) & ~0xFFF:x}", f".long FUN_{FAKE_ENTRY:08x}", ".long 0x5", ".org 0x20",
+            ]) + "\n"
+        )
+        self.assertEqual(data_asm.audit_layout(generated), [])
+        self.assertTrue(data_asm.audit_layout(generated + "# a comment that is not a header line\n"))
+
+    def test_manifest_names_must_be_plain_files(self):
+        self.assertTrue(data_asm.safe_batch_names({"source": "data-001.s", "layout": "data-001.layout"}))
+        for bad in ({"source": "../data-001.s", "layout": "data-001.layout"}, {"source": "data-001.s", "layout": "x/data-001.layout"}, {"source": "data-001.s"}):
+            self.assertFalse(data_asm.safe_batch_names(bad), bad)
 
 
 class CommittedBatchTests(unittest.TestCase):

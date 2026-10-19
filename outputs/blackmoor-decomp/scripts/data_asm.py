@@ -27,7 +27,7 @@ output, not a committed file (owner decision of 2026-10-19: "extract at build"):
 local ``GAME.EXE`` into ``work/asm_data/`` whenever it is audited or composed, and the repository keeps only the
 generator, the manifest (ranges, hashes) and the layout.  The layout (``asm_data/data-NNN.layout``) is that source
 with every string, numeric dword and byte list masked as ``[length]``: labels, offsets, zero runs, pointer
-expressions and named constants remain, no value does.  The manifest pins the SHA-256 of the full source and of the
+expressions and the named address constants of pointer targets remain (structure, not a string or number value).  The manifest pins the SHA-256 of the full source and of the
 layout, so a build from any other bytes is refused.  Nothing here claims original C provenance, and the PE headers,
 import tables and the resource directory tree are not part of this source.
 """
@@ -435,7 +435,27 @@ LAYOUT_HEADER = (
 _MASK_STRING = re.compile(r'^\.(asciz|string16) "(.*)"$')
 _MASK_LONG = re.compile(r"^\.long 0x[0-9a-f]{1,8}(?:, 0x[0-9a-f]{1,8})*$")
 _MASK_BYTE = re.compile(r"^\.byte 0x[0-9a-f]{2}(?:, 0x[0-9a-f]{2})*$")
-_PAYLOAD_LINE = re.compile(r'^\s*\.(?:asciz|string16) "|^\s*\.(?:long|byte) 0x')
+# Every line shape a layout may carry (an allowlist: anything else, including any value directive, is rejected).
+_LAYOUT_LINES = tuple(
+    re.compile(pattern)
+    for pattern in (
+        r"^\.intel_syntax noprefix$",
+        r"^\.data$",
+        r"^IMG:$",
+        r"^(?:DAT|STR|WSTR)_[0-9a-f]{8}:$",
+        r"^\.set (?:FUN|CODE|BSS|IAT|RSRC|OUT)_[0-9a-f]{8}, 0x[0-9a-f]+$",
+        r"^\.org 0x[0-9a-f]+$",
+        r"^\.fill [0-9]+, 1, 0$",
+        r"^\.long (?:DAT|STR|WSTR)_[0-9a-f]{8} - IMG \+ 0x[0-9a-f]+$",
+        r"^\.long (?:FUN|CODE|BSS|IAT|RSRC|OUT)_[0-9a-f]{8}$",
+        r"^\.(?:asciz|string16|long|byte) \[[0-9]+\]$",
+        r"^# original-sha256: [0-9a-f]{64}$",
+        r"^# image-base: 0x[0-9a-f]{8}$",
+        r"^# pointers: (?:detected|not detected \(resource payloads\))$",
+        r"^# origin-va: 0x[0-9a-f]{8}$",
+        r"^# ranges: (?:0x[0-9a-f]{8}-0x[0-9a-f]{8} \((?:\.[a-z]+|\?)\)(?: |$))+$",
+    )
+)
 
 
 def _unescaped_length(body: str) -> int:
@@ -459,9 +479,25 @@ def layout_of(text: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _fixed_comments() -> frozenset[str]:
+    """The constant prose lines of the layout and source headers (the variable header lines have their own patterns)."""
+    return frozenset(LAYOUT_HEADER) | frozenset(l for l in header_lines(((0, 0),), [], 0, 0, True) if not re.match(r"# (?:original-sha256|image-base|pointers|origin-va|ranges):", l))
+
+
 def audit_layout(text: str) -> list[str]:
-    """Problems in a layout file: it must carry no string, numeric dword or byte value."""
-    return [f"line {number}: payload value in the layout: {line[:60]}" for number, line in enumerate(text.splitlines(), 1) if _PAYLOAD_LINE.match(line)]
+    """Problems in a layout file: every line must be a shape the generator's layout can carry, so a string, a numeric
+    dword, a byte list (in any spelling) or any other directive is rejected as a payload value."""
+    fixed = _fixed_comments()
+    return [
+        f"line {number}: payload value or unexpected line in the layout: {line[:60]}"
+        for number, line in enumerate(text.splitlines(), 1)
+        if line not in fixed and not any(pattern.match(line) for pattern in _LAYOUT_LINES)
+    ]
+
+
+def safe_batch_names(manifest: dict[str, Any]) -> bool:
+    """The manifest's source and layout names must be plain ``data-NNN`` files (no path)."""
+    return re.fullmatch(r"data-[0-9]+\.s", str(manifest.get("source"))) is not None and re.fullmatch(r"data-[0-9]+\.layout", str(manifest.get("layout"))) is not None
 
 
 # --------------------------------------------------------------------------
@@ -674,7 +710,11 @@ def write_build_source(manifest: dict[str, Any], text: str, build_dir: Path) -> 
 
 def layout_problems(manifest: dict[str, Any], manifest_dir: Path, text: str) -> tuple[list[str], str]:
     """Problems of the committed layout against a source text; the second value is the layout file's SHA-256."""
+    if not safe_batch_names(manifest):
+        raise DataAsmError("the manifest's source and layout must be plain data-NNN.s and data-NNN.layout names")
     layout_path = manifest_dir / manifest["layout"]
+    if not layout_path.is_file():
+        raise DataAsmError(f"{manifest['layout']}: the layout file is missing")
     have = layout_path.read_text(encoding="utf-8")
     problems = [f"layout: {p}" for p in audit_layout(have)]
     if sha256(have.encode("utf-8")) != manifest["layout_sha256"]:
@@ -690,6 +730,8 @@ def audit_manifest(
     """Audit one batch.  The source is regenerated from the original (and written to ``build_dir`` when given) unless
     ``source_path`` names a source to audit instead (the mutant tests do)."""
     manifest = load_json(manifest_path)
+    if not safe_batch_names(manifest):
+        raise DataAsmError("the manifest's source and layout must be plain data-NNN.s and data-NNN.layout names")
     problems: list[str] = []
     original = original_path.read_bytes()
     if manifest.get("schema") != SCHEMA or manifest.get("class") != DATA_CLASS:

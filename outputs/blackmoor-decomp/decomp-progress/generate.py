@@ -80,6 +80,10 @@ LEDGER_KINDS = {"code", "data"}
 TOOL_ASSISTED = "tool_assisted_reconstructed_assembly"
 TOOL_ASSISTED_DATA = "tool_assisted_reconstructed_data"
 DATA_ASM_SCHEMA = "blackmoor-data-asm/1"
+_DATA_ASM_SPEC = importlib.util.spec_from_file_location("blackmoor_data_asm_layout", HERE.parent / "scripts" / "data_asm.py")
+DATA_ASM = importlib.util.module_from_spec(_DATA_ASM_SPEC)
+sys.modules[_DATA_ASM_SPEC.name] = DATA_ASM  # dataclasses need the module registered before it runs
+_DATA_ASM_SPEC.loader.exec_module(DATA_ASM)
 # Same pin as scripts/audit_tool_assisted.py. Only audit metadata is read here;
 # neither the assembler, objects nor GAME.EXE are needed for normal generation.
 M03_ASSEMBLER_VERSION = "GNU assembler (GNU Binutils) 2.43.1"
@@ -430,16 +434,16 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             assembler = report["assembler"]
             require(assembler.get("self_test") == "passed" and assembler["version_line"] == M03_ASSEMBLER_VERSION,
                     "audit assembler is not pinned")
-            require(re.fullmatch(r"data-[0-9]+\.s", man["source"]) is not None and
+            require(DATA_ASM.safe_batch_names(man) and
                     report["source"]["path"] == man["source"] and report["source"]["sha256"] == man["source_sha256"],
                     "source hash differs from audit")
-            layout = (path.parent / man["layout"]).resolve()
-            require(layout.parent == path.parent.resolve() and layout.suffix == ".layout", "bad layout path")
+            layout_file = (path.parent / man["layout"]).resolve()
+            require(layout_file.parent == path.parent.resolve() and layout_file.suffix == ".layout", "bad layout path")
             require(report["layout"]["path"] == man["layout"] and
-                    report["layout"]["sha256"] == man["layout_sha256"] == sha256_file(layout),
+                    report["layout"]["sha256"] == man["layout_sha256"] == sha256_file(layout_file),
                     "layout hash differs from audit")
-            require(not re.search(r'(?m)^\s*\.(?:asciz|string16) "|^\s*\.(?:long|byte) 0x', layout.read_text(encoding="utf-8")),
-                    "the layout carries payload values")
+            require(not DATA_ASM.audit_layout(layout_file.read_text(encoding="utf-8")),
+                    "the layout carries payload values or lines the generator does not write")
             require(report["ranges"] == man["ranges"], "audited ranges differ from the manifest")
             for r in man["ranges"]:
                 off, size = int(r["offset"], 16), r["length"]
@@ -459,7 +463,7 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
                            {"path": report_path.relative_to(out_dir).as_posix(),
                             "sha256": sha256_file(report_path), "role": "audit"},
-                           {"path": layout.relative_to(out_dir.resolve()).as_posix(),
+                           {"path": layout_file.relative_to(out_dir.resolve()).as_posix(),
                             "sha256": man["layout_sha256"], "role": "audited-layout"}])
         except (KeyError, TypeError, ValueError, OSError) as exc:
             raise ProgressError(f"{name}: malformed or unavailable audited evidence: {exc}") from exc

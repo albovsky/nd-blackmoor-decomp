@@ -651,7 +651,7 @@ class AuditedBatchTests(unittest.TestCase):
         out = self.dir / "asm_data"
         out.mkdir(exist_ok=True)
         layout = out / "data-001.layout"
-        layout.write_text("# synthetic data layout fixture\n.asciz [5]\n")
+        layout.write_text("IMG:\nSTR_00400140:\n.asciz [5]\n")
         entries = [{"offset": hex(off), "length": size, "va": f"0x{0x400000 + off:08x}", "section": ".data",
                     "sha256": hashlib_sha(f"data{off}")} for off, size in ranges]
         manifest = {"schema": GEN.DATA_ASM_SCHEMA, "batch": "001", "class": "tool_assisted_reconstructed_data",

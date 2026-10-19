@@ -746,13 +746,20 @@ def bind_data_batches(
             raise ComposeError(f"{batch['report']}: audit report is stale (manifest hash differs)")
         if not report.get("all_accepted") or report.get("errors") or report.get("compared_bytes") != sum(r["length"] for r in manifest["ranges"]):
             raise ComposeError(f"{batch['report']}: the audit did not accept every byte of the batch")
+        if not data_asm.safe_batch_names(manifest):
+            raise ComposeError(f"{batch['manifest']}: source and layout must be plain data-NNN.s and data-NNN.layout names")
         source_text = data_asm.regenerate_source(manifest, original_bytes)
         if sha256(source_text.encode("utf-8")) != manifest["source_sha256"] or report.get("source", {}).get("sha256") != manifest["source_sha256"]:
             raise ComposeError(f"{manifest['source']}: the source regenerated from the original differs from the audited hash")
         layout_path = manifest_path.parent / manifest["layout"]
+        if not layout_path.is_file():
+            raise ComposeError(f"{manifest['layout']}: the layout file is missing")
         if report.get("layout", {}).get("sha256") != manifest["layout_sha256"]:
             raise ComposeError(f"{manifest['layout']}: layout differs from the audited hash")
-        layout_issues, _layout_sha = data_asm.layout_problems(manifest, manifest_path.parent, source_text)
+        try:
+            layout_issues, _layout_sha = data_asm.layout_problems(manifest, manifest_path.parent, source_text)
+        except data_asm.DataAsmError as exc:
+            raise ComposeError(f"{batch['manifest']}: {exc}") from exc
         if layout_issues:
             raise ComposeError(f"{manifest['layout']}: {layout_issues[0]}")
         lexical, _counts = data_asm.audit_source(source_text, data_asm.source_expectation(manifest, data_asm.load_sections()))

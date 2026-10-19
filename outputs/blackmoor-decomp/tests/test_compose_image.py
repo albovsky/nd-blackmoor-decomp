@@ -719,7 +719,7 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             (d / "data-002.layout").write_text((d / "data-002.layout").read_text() + '.asciz "GAME.EXE"\n')
             self.rehash(d)
 
-        self.assert_data_batch_rejected(edit, "payload value in the layout")
+        self.assert_data_batch_rejected(edit, "unexpected line in the layout")
 
     def test_data_layout_that_is_not_the_generators_output_is_rejected(self):
         def edit(d):
