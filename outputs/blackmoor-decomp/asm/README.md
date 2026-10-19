@@ -133,3 +133,29 @@ Owner ruling of 2026-10-16 (decision card "Count the last 22 code fragments as m
 
 Not claimed: that any name is meaningful, original C++ or compiler provenance, that a call-end callee returns or does not, and an x86 match of `.data`, `.rdata`, resources or headers.
 
+
+## Data sources: `.rdata`, `.data` and resource payloads (Track M data slice, packet M-C)
+
+Owner ruling of 2026-10-19 (decision card "Count rebuilt data and resources as matched when they reassemble byte for byte?", answered Yes; recorded in `AGENTS.md`): initialized data and resource payloads count as matched when they are rebuilt as labeled assembler data directives with machine-generated names and reassemble byte for byte with the pinned assembler. `scripts/data_asm.py` does for data what `gen_hinted_asm.py` and `audit_tool_assisted.py` do for code; the sources live in `outputs/blackmoor-decomp/asm_data/` (not in `asm/`, whose `batch-*.json` manifests are code batches).
+
+```sh
+python3 outputs/blackmoor-decomp/scripts/data_asm.py gen --out outputs/blackmoor-decomp/asm_data --batch 001   # .rdata + .data
+python3 outputs/blackmoor-decomp/scripts/data_asm.py gen --out outputs/blackmoor-decomp/asm_data --batch 002 --resources
+python3 outputs/blackmoor-decomp/scripts/data_asm.py audit outputs/blackmoor-decomp/asm_data/data-001.json   # writes data-001-report.json
+python3 outputs/blackmoor-decomp/scripts/data_asm.py check outputs/blackmoor-decomp/asm_data/data-001.json   # regenerate, require identical text
+cd outputs/blackmoor-decomp/tests && python3 -m unittest test_data_asm
+```
+
+| Batch | Ranges | Bytes | Source | Contents |
+|---|---:|---:|---|---|
+| `data-001` | 2 | 250,820 | `data-001.s` (32,352 lines, 10,181 labels) | `.rdata` 0x0052a54c-0x00534910 (41,924) and `.data` 0x00537000-0x0056a000 (208,896); 5,309 strings, 2,371 pointers resolved from labels, 3,308 pointers to named constants (1,517 `.set`), 5,550 zero runs, 11,112 numeric dwords, 1 byte line |
+| `data-002` | 22 | 24,156 | `data-002.s` (2,672 lines, 454 labels) | the 22 resource payload runs of the 38 resource leaves (icons, bitmaps, dialogs, string tables, version info), no pointers detected |
+| total | 24 | 274,976 | | every byte of `.rdata`, `.data` and `.rsrc` that the composer's structured groups do not generate |
+
+**What the generator does, and nothing else** (no datum is interpreted): a run of 4 or more printable ASCII bytes ended by a NUL is a string (`.asciz`, label `STR_<va>`), the same in UTF-16LE a wide string (`.string16`, `WSTR_<va>`); an aligned all-zero run is `.fill n, 1, 0`; an aligned dword whose value lies inside a mapped section is a pointer, written `<label> - IMG + <origin>` when the target is in the source (the assembler resolves it from the real label position, so a misplaced label changes the bytes) and as a named absolute constant otherwise (`FUN_<va>` for a function entry of `function-index.json`, `CODE_<va>`, `BSS_<va>` past the end of the raw `.data`, `IAT_<va>`, `RSRC_<va>`, `OUT_<va>`); every other aligned dword is `.long 0x...`; leftover bytes are `.byte`. A code address whose four bytes are all printable and that is not a function entry stays numeric (it is far likelier text), and a pointer into the interior of a string or a dword stays numeric. Labels (`DAT_<va>` for everything that is not a string) sit at string starts, at the start of each run and at every pointer target in the source. All of this is a heuristic split of the bytes, not knowledge of the original program.
+
+**What the auditor proves** (`data_asm.py audit`): the pinned assembler (version line plus the self-test of `audit_tool_assisted.py`), a source whose lines are only the directive forms above (no `.incbin`, `.include`, macro or other directive; the machine header must match the manifest), zero relocations, every range of the assembled `.data` identical to the original, every `DAT_`/`STR_`/`WSTR_` label at the address in its name, and every `.set` constant equal to the address in its name. `data_asm.py check` regenerates the source from the original and requires identical text, so the machine header cannot hide a hand edit. The composer binds each batch only with an all-accepted report for exactly that manifest hash and reassembles the source itself (`compose_image.bind_data_batches`); the map generator re-reads manifest, report and source hashes (`audited_data_evidence`). Both report the class `tool_assisted_reconstructed_data`, apart from code, functions, index tables and padding.
+
+**Result.** `compose_image.py derive` re-derived `image/ranges.json` with 0 referenced ranges: the composer builds all 1,511,424 bytes from committed sources (structured groups plus reconstructed code and data) and the whole-file SHA-256 equals the original. `report_image_coverage.py` reports 0 referenced bytes. The map generator counts matched data 274,976 of 298,406 (the other 23,430 bytes are the composer's `structured` data: PE headers, import directory and IAT, resource directory tree and section padding).
+
+**Not claimed.** An x86 match of the whole file (this slice does not make that claim; the composer's hash equality is the evidence it produces), that any name or classification is meaningful (a value classified as a pointer or a string may be neither in the original program), original C provenance, and the uninitialized tail of `.data` (virtual size 0x10713c, raw size 0x33000: the 0x...-0x63e13c part is not in the file). The sources contain the program's strings and tables in textual form, as the code sources contain its instructions; that is what the ruling allows. Resource payloads are numeric runs and wide strings, not decoded dialogs or bitmaps, and the generator does not detect pointers in them.

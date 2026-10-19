@@ -1,0 +1,50 @@
+{
+ "schema": "blackmoor-data-asm/1/report",
+ "batch": "001",
+ "class_requested": "tool_assisted_reconstructed_data",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "manifest_sha256": "cac2ac0f6b05a4c15014cf86dacddcf232b4aefdb7957baa9e9ea91bf2e919c6",
+ "source": {
+  "path": "data-001.s",
+  "sha256": "74048dd7a288c2b8d5e337ffab81381f30693c25155db716fac3f5b447b5cca4"
+ },
+ "assembler": {
+  "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+  "version_line": "GNU assembler (GNU Binutils) 2.43.1",
+  "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
+  "self_test": "passed",
+  "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824"
+ },
+ "ranges": [
+  {
+   "offset": "0x12a54c",
+   "length": 41924,
+   "va": "0x0052a54c",
+   "section": ".rdata",
+   "sha256": "eafa44440e2a8a6186ad1a8eda3549f81067c28c0fac1b83b8f04f8085ff42b0"
+  },
+  {
+   "offset": "0x137000",
+   "length": 208896,
+   "va": "0x00537000",
+   "section": ".data",
+   "sha256": "ea5c1a685c6f100ee20bd41bcca62dca22ac189b86c5837f9a0af790e85dff93"
+  }
+ ],
+ "bytes_total": 250820,
+ "compared_bytes": 250820,
+ "relocations": 0,
+ "labels_checked": 10181,
+ "directives": {
+  "strings": 5309,
+  "pointers": 2371,
+  "external_pointers": 3308,
+  "zero_runs": 5550,
+  "numeric_dwords": 11112,
+  "byte_lines": 1,
+  "labels": 10181,
+  "constants": 1517
+ },
+ "errors": [],
+ "all_accepted": true
+}

@@ -194,6 +194,7 @@ class RangeDescriptionTests(unittest.TestCase):
         ]
         self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
         self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 10)
+        self.assertEqual(len(desc["reconstructed"]["data_batches"]), 2)
         # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.check_coverage(structured + referenced, compose_image.ORIGINAL_SIZE)
@@ -453,8 +454,13 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         self.assertEqual(by_provenance["explicit_reconstructed_assembly_source"]["bytes"], 384)
         self.assertEqual(by_provenance["tool_assisted_reconstructed_index_table"], {"ranges": 19, "bytes": 1934})
         self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 235, "bytes": 1526})
-        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1204948)
-        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1204948)
+        # .rdata, .data and the resource payloads (274,976 bytes) are bound as labeled data directives (owner ruling of
+        # 2026-10-19), a class of their own: no function and no code byte
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_data"], {"ranges": 24, "bytes": 274976})
+        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1479924)
+        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1479924)
+        self.assertEqual(progress["reconstructed_data_bytes"], 274976)
+        self.assertEqual(progress["referenced_bytes"], 0)
         self.assertEqual(progress["code_bytes_reconstructed"], 1201488)
         self.assertEqual(progress["reconstructed_functions"], 4786)
         self.assertEqual(progress["reconstructed_index_table_bytes"], 1934)
@@ -473,7 +479,13 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
 
     def test_reconstructed_bindings_are_the_baseline_and_the_audited_asm_batches(self):
         comp = compose_image.compose(IMAGE_DIR, ORIGINAL, self.build_dir)
-        baseline = [r for r in comp.reconstructed_records if "functions" not in r and r["status"] == "bound"]
+        baseline = [
+            r for r in comp.reconstructed_records
+            if "functions" not in r and r["status"] == "bound" and r["provenance_class"] != "tool_assisted_reconstructed_data"
+        ]
+        data_batches = [r for r in comp.reconstructed_records if r["provenance_class"] == "tool_assisted_reconstructed_data"]
+        self.assertEqual([r["batch"] for r in data_batches], ["001", "002"])
+        self.assertEqual(sum(r["length"] for r in data_batches), 274976)
         self.assertEqual(sum(r["length"] for r in baseline), 398)
         assembly = [r for r in baseline if r["provenance_class"] == "explicit_reconstructed_assembly_source"]
         self.assertEqual(sum(r["length"] for r in assembly), 384)
@@ -517,6 +529,22 @@ class MutantTests(OriginalMixin, unittest.TestCase):
         shutil.copytree(IMAGE_DIR, directory, dirs_exist_ok=True)
         edit(directory)
         return directory
+
+    def referenced_dir(self, edit):
+        """An image directory where the resource payloads (data batch 002) are referenced again instead of bound."""
+
+        def prepare(directory):
+            recon = json.loads((directory / "reconstructed.json").read_text())
+            batch = recon["data_batches"].pop()
+            manifest = json.loads((PROJECT / batch["manifest"]).read_text())
+            rows = [[int(e["offset"], 16), e["length"], e["sha256"], "data", "", f"resource {e['va']}"] for e in manifest["ranges"]]
+            (directory / "reconstructed.json").write_text(json.dumps(recon))
+            ranges = json.loads((directory / "ranges.json").read_text())
+            head = {k: v for k, v in ranges.items() if k != "ranges"}
+            compose_image.write_json_rows(directory / "ranges.json", head, "ranges", rows)
+            edit(directory)
+
+        return self.mutated_dir(prepare)
 
     def assert_mutant_fails(self, edit, group=None):
         directory = self.mutated_dir(edit)
@@ -601,7 +629,7 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             lines[index] = re.sub(r'"[0-9a-f]{64}"', '"' + "0" * 64 + '"', lines[index], count=1)
             path.write_text("\n".join(lines) + "\n")
 
-        directory = self.mutated_dir(edit)
+        directory = self.referenced_dir(edit)
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.compose(directory, ORIGINAL, self.build_dir)
         self.assertIn("does not match", str(ctx.exception))
@@ -616,14 +644,14 @@ class MutantTests(OriginalMixin, unittest.TestCase):
                 lines[index - 1] = lines[index - 1].rstrip(",")
             path.write_text("\n".join(lines) + "\n")
 
-        directory = self.mutated_dir(edit)
+        directory = self.referenced_dir(edit)
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.compose(directory, ORIGINAL, self.build_dir)
         self.assertIn("missing bytes", str(ctx.exception))
 
     def test_overlapping_function_and_data_item_is_rejected(self):
         def edit(directory):
-            # claim bytes of the first referenced function piece again as a jump table
+            # claim bytes of the first referenced range again as a jump table
             path = directory / "text_data.json"
             value = json.loads(path.read_text())
             ranges = json.loads((directory / "ranges.json").read_text())
@@ -631,7 +659,7 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             value["jump_tables"].append({"offset": hex(offset), "kind": "dword", "entries": ["0x401000"]})
             path.write_text(json.dumps(value))
 
-        directory = self.mutated_dir(edit)
+        directory = self.referenced_dir(edit)
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.compose(directory, ORIGINAL, self.build_dir)
         self.assertIn("overlap", str(ctx.exception))
