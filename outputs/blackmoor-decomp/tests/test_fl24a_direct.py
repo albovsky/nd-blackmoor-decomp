@@ -29,6 +29,8 @@ EXPECTED = [
     'test_m465c99_hit_test',
     'test_m482724_click_27b5_27b6',
     'test_m470ffe_hit_test',
+    'test_m4a6946_click_276f_2770',
+    'test_sweep_bounded',
 ]
 
 
@@ -121,6 +123,16 @@ class Fl24aDirect(unittest.TestCase):
     def test_470ffe_hit_test(self):
         """FL-24a: direct test of m470ffe_hit_test"""
         self.check('test_m470ffe_hit_test')
+
+
+    def test_4a6946_click_276f_2770(self):
+        """FL-24a: direct test of m4a6946_click_276f_2770"""
+        self.check('test_m4a6946_click_276f_2770')
+
+
+    def test_sweep_bounded(self):
+        """FL-24a: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
+        self.check('test_sweep_bounded')
 
 
 if __name__ == '__main__':

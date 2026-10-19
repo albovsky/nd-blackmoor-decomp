@@ -626,3 +626,73 @@ int32_t m470ffe_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24aWorld *world,
     wr16(self, 0xd2a, 0xffff);
     return 0;
 }
+
+/* ---- 0x4a6946 ------------------------------------------------------------------------------------------------------------------ */
+
+/* `repne scasb` + `rep movsd` + `rep movsb`: copies the zero-terminated string at src, terminator included, into the 40 bytes that the
+ * original has between its local buffer [ebp-0x2c] and its saved record pointer [ebp-4]. The original does not bound the copy; a string
+ * that does not fit (no terminator within 40 bytes) would overwrite [ebp-4] and is rejected here: returns 0 and copies nothing. */
+static int copy_string(uint8_t *buf, const uint8_t *src)
+{
+    size_t n;
+    for (n = 0; n < 40; n++)
+        if (src[n] == 0) break;
+    if (n == 40) return 0;
+    memcpy(buf, src, n + 1);
+    return 1;
+}
+
+/* 0x4a6946, thiscall, plain `ret`. The record object address is read at entry. Guards: dword [+0x86] set, byte [+0x8b] clear, dword
+ * [+0x21] clear, record state 1. Event 0x2770: byte [+0x8a] = 1, state 2. Event 0x276f: [+0x21] = [+0x25], byte [+0x20] = 1, then a switch
+ * on [+0x25] - 1 (unsigned, 0..3; anything else skips to the announcement):
+ *   3: n = signed word [obj + 0x298]; for i below n - 1 (signed word counter) word [+0x94 + 2i] = word [+0x96 + 2i]; word [+0x92 + 2n] =
+ *      word [+0x2e]; the string at obj + 0x300 and the word [obj + 0x321] are kept, [+0x90] = tick + 0x1f4;
+ *   1, 2: the string at obj + 0x2cf and the word [obj + 0x2f0] are kept, [+0x90] = tick + 0x12c, word [+0x80] = 1;
+ *   0: the string at obj + 0x300 and the word [obj + 0x321] are kept, [+0x90] = tick + 0x1f4.
+ * Announcement: with the flag at 0x5bb1ca set and the first nine bytes of the kept string different from the constant at 0x550964,
+ * 0x4f6334 is asked about the sign-extended kept word and, when it answers zero, 0x4fb2e3 is called with the word. The kept string and
+ * word are uninitialised locals when the switch took no arm (zero here; the original reads stack garbage); not fixtured. */
+void m4a6946_click_276f_2770(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host)
+{
+    uint32_t record = record_object_address(world, self, 0x1e);
+    const uint8_t *obj;
+    uint8_t buf[40];
+    uint16_t kept = 0;
+    uint32_t t;
+    memset(buf, 0, sizeof buf);
+    if (rd32(self, 0x86) == 0) return;
+    if (self[0x8b] != 0) return;
+    if (rd32(self, 0x21) != 0) return;
+    if (!record_state_is_1(world, self, 0x1e)) return;
+    if (world->value_5c39e5 == 0x2770) {
+        self[0x8a] = 1;
+        set_record_state_2(world, self, 0x1e);
+        return;
+    }
+    if (world->value_5c39e5 != 0x276f) return;
+    wr32(self, 0x21, rd32(self, 0x25));
+    self[0x20] = 1;
+    obj = object_at(host, record);
+    t = rd32(self, 0x25) - 1;
+    if (t == 3) {
+        int16_t i;
+        for (i = 0; (int32_t)i < rds16(obj, 0x298) - 1; i++) wr16(self, 0x94 + 2 * (ptrdiff_t)i, rd16(self, 0x96 + 2 * (ptrdiff_t)i));
+        wr16(self, 0x92 + 2 * (ptrdiff_t)rds16(obj, 0x298), rd16(self, 0x2e));
+        if (!copy_string(buf, obj + 0x300)) return;
+        kept = rd16(obj, 0x321);
+        wr32(self, 0x90, host->tick(host->context) + 0x1f4);
+    } else if (t == 1 || t == 2) {
+        if (!copy_string(buf, obj + 0x2cf)) return;
+        kept = rd16(obj, 0x2f0);
+        wr32(self, 0x90, host->tick(host->context) + 0x12c);
+        wr16(self, 0x80, 1);
+    } else if (t == 0) {
+        if (!copy_string(buf, obj + 0x300)) return;
+        kept = rd16(obj, 0x321);
+        wr32(self, 0x90, host->tick(host->context) + 0x1f4);
+    }
+    if (world->value_5bb1ca == 0) return;
+    if (nine_bytes_equal(buf, world->bytes_550964)) return;
+    if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)(int32_t)(int16_t)kept) != 0) return;
+    call1(host, 0x4fb2e3, 0x5c3a67, kept);
+}

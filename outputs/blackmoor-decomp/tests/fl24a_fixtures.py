@@ -611,6 +611,43 @@ def gen_470ffe(rng, n):
                   args=(x, y), g=g)
 
 
+def gen_4a6946(rng, n):
+    profiles = [('fail', 0), ('fail', 1), ('fail', 2), ('fail', 3), ('s70',), ('other',), ('sw', 4), ('sw', 3), ('sw', 2), ('sw', 1), ('sw', 0), ('sw', 5),
+                ('sw', 0x80000001), ('sw', 4)]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    now = rng.choice([1000, 0x7fffffff, 0xffffff40, rng.randrange(1 << 32)])
+    failing = rest[0] if kind == 'fail' else None
+    sel = {'s70': 0x2770}.get(kind, rng.choice([0x2000, 0x276e, 0x2771, 0, 0xffffffff]) if kind == 'other' else 0x276f)
+    if kind == 'fail':
+        sel = rng.choice([0x2770, 0x276f])
+    d = bytearray(rng.randbytes(0x100))
+    set_gate(d, 'nz32', 0x86, failing == 0, rng)
+    set_gate(d, 'z8', 0x8b, failing == 1, rng)
+    set_gate(d, 'z32', 0x21, failing == 2, rng)
+    put16(d, 0x1e, idx)
+    put32(d, 0x25, rest[0] if kind == 'sw' else rng.choice([0, 1, 2, 3, 4]))
+    obj = bytearray(rng.randbytes(0x400))
+    count = rng.choice([-2, 0, 1, 2, 3, 5, 8])
+    struct.pack_into('<h', obj, 0x298, count)
+    # the two strings: 8..30 characters (at least nine bytes with the terminator), then the terminator
+    s300 = bytes(rng.randrange(1, 256) for _ in range(rng.randrange(8, 31))) + b'\x00'
+    s2cf = bytes(rng.randrange(1, 256) for _ in range(rng.randrange(8, 31))) + b'\x00'
+    obj[0x300:0x300 + len(s300)] = s300
+    obj[0x2cf:0x2cf + len(s2cf)] = s2cf
+    t = (rest[0] - 1) & 0xffffffff if kind == 'sw' else None
+    shown = s2cf if t in (1, 2) else s300
+    const = bytearray(shown[:9])
+    position = ((variant >> 1) % 11) - 1
+    if 0 <= position <= 8:
+        const[position] ^= rng.choice([1, 0x40, 0x80, 0xff])
+    flag = 0 if variant & 1 == 0 else rng.choice([1, 0x100, 0xffffffff])
+    if t is None or t > 3:
+        flag = 0                     # (the kept string and word are uninitialised locals there: not fixtured)
+    stubs = {c: stub(c, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=results(rng, variant, 5) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
+    return common('4a6946', rng, d, obj, idx, sel, failing == 3, flag, stubs, consts=[(0x550964, bytes(const))], now=now, profile=(kind, *rest))
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -625,6 +662,7 @@ SPECS = {
     '465c99': dict(id=9, va=0x465c99, size=757, gen=gen_465c99, ret=True, cleanup=8, n=14 * 81),
     '482724': dict(id=10, va=0x482724, size=740, gen=gen_482724, probes=[(0, 0x100)], n=10 * 64),
     '470ffe': dict(id=11, va=0x470ffe, size=690, gen=gen_470ffe, ret=True, cleanup=8, n=12 * 40),
+    '4a6946': dict(id=12, va=0x4a6946, size=664, gen=gen_4a6946, code=648, tick=True, probes=[(0, 0x100)], n=14 * 44),
 }
 KEYS = list(SPECS)
 

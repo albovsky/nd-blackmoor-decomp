@@ -1844,6 +1844,352 @@ static void test_m470ffe(void)
     }
 }
 
+/* ---- 0x4a6946 ----------------------------------------------------------------------------------------------------------------- */
+
+static const uint8_t CONST_550964[9] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'};
+
+static void setup_4a6946(int idx, uint32_t sel, uint32_t t25, int n)
+{
+    int k;
+    setup(idx, sel);
+    set32(fx.self, 0x86, 0x01000000);
+    fx.self[0x8b] = 0;
+    set32(fx.self, 0x21, 0);
+    set32(fx.self, 0x25, t25);
+    set16(fx.self, 0x2e, 0x1234);
+    for (k = 0; k < 12; k++) set16(fx.self, 0x92 + 2 * (size_t)k, (uint16_t)(0x1000 + k));
+    set32(fx.self, 0x90, 0x90909090u);
+    memset(fx.obj, 0x5c, 0x400);
+    set16(fx.obj, 0x298, (uint16_t)n);
+    memcpy(fx.obj + 0x300, "ABCDEFGHIJKLMNO", 16);       /* with its terminator */
+    memcpy(fx.obj + 0x2cf, "abcdefghijklmnop", 17);
+    set16(fx.obj, 0x321, 0x8001);
+    set16(fx.obj, 0x2f0, 0x7ff0);
+    fx.w.bytes_550964 = CONST_550964;
+    fx.w.value_5bb1ca = 0;
+    g_tick = 0xfffffff0u;
+}
+
+static void run_4a6946(void)
+{
+    L.n = 0;
+    m4a6946_click_276f_2770(fx.self, &fx.w, &fx.host);
+}
+
+static void test_m4a6946(void)
+{
+    static const int idxs[] = {2, -1};
+    static const uint32_t sels[] = {0x2770, 0x276f};
+    static const int ns[] = {-2, 0, 1, 2, 3};
+    size_t ii, si, k;
+    int d, ni, ret;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        size_t rec = (size_t)(idx + 1) * REC + 0x4d;
+        for (si = 0; si < 2; si++) {
+            setup_4a6946(idx, sels[si], 1, 2);
+            set32(fx.self, 0x86, 0);
+            expect_begin();
+            run_4a6946();
+            expect_end();
+            CK(L.n == 0);
+            for (k = 0; k < 3; k++) {
+                static const int b8b[] = {1, 0x80, 0xff};
+                setup_4a6946(idx, sels[si], 1, 2);
+                fx.self[0x8b] = (uint8_t)b8b[k];
+                expect_begin();
+                run_4a6946();
+                expect_end();
+                CK(L.n == 0);
+            }
+            for (k = 0; k < 5; k++) {
+                setup_4a6946(idx, sels[si], 1, 2);
+                set32(fx.self, 0x21, z32_fail[k]);
+                expect_begin();
+                run_4a6946();
+                expect_end();
+                CK(L.n == 0);
+            }
+            for (k = 0; k < 6; k++) {
+                setup_4a6946(idx, sels[si], 1, 2);
+                set32(fx.tab, rec, bad_state[k]);
+                expect_begin();
+                run_4a6946();
+                expect_end();
+                CK(L.n == 0);
+            }
+        }
+        /* event 0x2770: byte [+0x8a] = 1, state 2; any other event: nothing */
+        setup_4a6946(idx, 0x2770, 1, 2);
+        expect_begin();
+        exp_self[0x8a] = 1;
+        set32(exp_tab, rec, 2);
+        run_4a6946();
+        expect_end();
+        CK(L.n == 0);
+        for (k = 0; k < 3; k++) {
+            static const uint32_t others[] = {0x276e, 0x2771, 0};
+            setup_4a6946(idx, others[k], 1, 2);
+            expect_begin();
+            run_4a6946();
+            expect_end();
+            CK(L.n == 0);
+        }
+        /* [+0x25] = 1 (switch 0): [+0x21] = 1, byte [+0x20] = 1, [+0x90] = tick + 0x1f4 */
+        setup_4a6946(idx, 0x276f, 1, 2);
+        expect_begin();
+        set32(exp_self, 0x21, 1);
+        exp_self[0x20] = 1;
+        set32(exp_self, 0x90, 0xfffffff0u + 0x1f4);
+        run_4a6946();
+        expect_end();
+        CK(L.n == 1 && L.c[0].callee == TICK_ID && get32(L.c[0].snap_self, 0x21) == 1 && get32(L.c[0].snap_self, 0x90) == 0x90909090u);
+        /* [+0x25] = 2 and 3 (switch 1 and 2): the same arm, [+0x90] = tick + 0x12c and word [+0x80] = 1 */
+        for (k = 2; k <= 3; k++) {
+            setup_4a6946(idx, 0x276f, (uint32_t)k, 2);
+            expect_begin();
+            set32(exp_self, 0x21, (uint32_t)k);
+            exp_self[0x20] = 1;
+            set32(exp_self, 0x90, 0xfffffff0u + 0x12c);
+            set16(exp_self, 0x80, 1);
+            run_4a6946();
+            expect_end();
+            CK(L.n == 1);
+        }
+        /* [+0x25] = 4 (switch 3): the words from +0x92 shift down (word[i+1] = word[i+2] for i < n - 1), word[n] = word [+0x2e], then the tick;
+         * the dword [+0x90] overlaps the word at +0x92 and is stored last */
+        for (ni = 0; ni < 5; ni++) {
+            int n = ns[ni], i;
+            setup_4a6946(idx, 0x276f, 4, n);
+            expect_begin();
+            set32(exp_self, 0x21, 4);
+            exp_self[0x20] = 1;
+            for (i = 0; i < n - 1; i++) set16(exp_self, 0x94 + 2 * (size_t)i, (uint16_t)(0x1000 + i + 2));   /* the sources are not yet overwritten: i + 2 > i + 1 */
+            set16(exp_self, (size_t)(0x92 + 2 * n), 0x1234);
+            set32(exp_self, 0x90, 0xfffffff0u + 0x1f4);
+            run_4a6946();
+            expect_end();
+            CK(L.n == 1);
+        }
+        /* the other values of [+0x25] (0, 5, 0x80000001, 0xffffffff, 0x100000000 is not a dword) skip the switch: no tick */
+        for (k = 0; k < 4; k++) {
+            static const uint32_t vals[] = {0, 5, 0x80000001u, 0xffffffffu};
+            setup_4a6946(idx, 0x276f, vals[k], 2);
+            expect_begin();
+            set32(exp_self, 0x21, vals[k]);
+            exp_self[0x20] = 1;
+            run_4a6946();
+            expect_end();
+            CK(L.n == 0);
+        }
+        /* the announcement: [+0x25] = 1 and 4 keep the string at +0x300 and the word 0x8001, 2 and 3 the string at +0x2cf and 0x7ff0 */
+        for (k = 1; k <= 4; k++) {
+            for (d = -1; d <= 9; d++) {
+                for (ret = 0; ret < 2; ret++) {
+                    static uint8_t cbuf[9];
+                    memcpy(cbuf, (k == 2 || k == 3) ? "abcdefghi" : "ABCDEFGHI", 9);
+                    setup_4a6946(idx, 0x276f, (uint32_t)k, 2);
+                    fx.w.value_5bb1ca = 0x100;
+                    fx.w.bytes_550964 = cbuf;
+                    if (d >= 0 && d <= 8) cbuf[d] ^= 0x20;
+                    if (d == 9) { /* the tenth byte of the string differs from nothing: it is not compared */ }
+                    g_ret_4f6334 = ret ? 3u : 0;
+                    run_4a6946();
+                    {
+                        uint32_t want_word = (k == 2 || k == 3) ? 0x7ff0u : 0xffff8001u;
+                        if (d == -1 || d == 9) {
+                            CK(L.n == 1);
+                        } else if (ret) {
+                            CK(L.n == 2);
+                            ck_call(1, 0x4f6334, 0x5cf1eb, 1, 0, want_word, 0, 0, 0, 0, 0);
+                        } else {
+                            CK(L.n == 3);
+                            ck_call(1, 0x4f6334, 0x5cf1eb, 1, 0, want_word, 0, 0, 0, 0, 0);
+                            ck_call(2, 0x4fb2e3, 0x5c3a67, 1, 1, want_word, 0, 0, 0, 0, 0);
+                            CK(get32(L.c[1].snap_self, 0x90) == 0xfffffff0u + ((k == 2 || k == 3) ? 0x12c : 0x1f4));   /* the tick is stored first */
+                        }
+                    }
+                }
+            }
+        }
+        /* a string that does not fit in the 40 bytes of the original's buffer (no terminator within them) is rejected: the effects before the
+         * copy stay ([+0x21], [+0x20], the shift of switch 3), but no tick, no store of [+0x90], no calls */
+        setup_4a6946(idx, 0x276f, 1, 2);
+        memset(fx.obj + 0x300, 'Z', 40);
+        fx.obj[0x300 + 40] = 0;
+        fx.w.value_5bb1ca = 0x100;
+        expect_begin();
+        set32(exp_self, 0x21, 1);
+        exp_self[0x20] = 1;
+        run_4a6946();
+        expect_end();
+        CK(L.n == 0);
+        /* 39 characters and the terminator (40 bytes) still fit */
+        setup_4a6946(idx, 0x276f, 1, 2);
+        memset(fx.obj + 0x300, 'Z', 39);
+        fx.obj[0x300 + 39] = 0;
+        run_4a6946();
+        CK(L.n == 1 && get32(fx.self, 0x90) == 0xfffffff0u + 0x1f4);
+    }
+}
+
+/* ---- bounded random sweep ------------------------------------------------------------------------------------------------------- */
+
+static uint32_t g_seed = 0x2468ace1u;
+
+static uint32_t rnd(void)
+{
+    g_seed ^= g_seed << 13;
+    g_seed ^= g_seed >> 17;
+    g_seed ^= g_seed << 5;
+    return g_seed;
+}
+
+static int rr(int lo, int hi)
+{
+    return lo + (int)(rnd() % (uint32_t)(hi - lo + 1));
+}
+
+static void rand_fill(uint8_t *p, size_t n)
+{
+    size_t i;
+    for (i = 0; i < n; i++) p[i] = (uint8_t)rnd();
+}
+
+/* Random objects, record tables, selectors and flags for every port, with the indexes and counts that the originals do not bound kept inside
+ * the fixture (as the callers of the originals do). It checks no value: it runs under ASan / UBSan to show that nothing reads or writes
+ * outside the buffers, whatever the guards and the data are. */
+static void test_sweep(void)
+{
+    static const uint32_t sels[] = {0x2785, 0x2786, 0x2787, 0x27c2, 0x27c3, 0x27b5, 0x27b6, 0x276f, 0x2770, 0};
+    int f, iter, i;
+    for (f = 0; f < 13; f++) {
+        for (iter = 0; iter < 2500; iter++) {
+            int idx = rr(-1, 4);
+            setup(idx, sels[rnd() % 10]);
+            rand_fill(fx.self, 0x1000);
+            rand_fill(fx.obj, 0x1000);
+            rand_fill(fx.decoy, 0x1000);
+            rand_fill(fx.a154, sizeof fx.a154);
+            rand_fill(fx.a12, sizeof fx.a12);
+            fx.w.value_5bb1ca = rnd();
+            fx.w.byte_61c6ae = (uint8_t)rnd();
+            fx.w.word_63a4cd = (int16_t)rnd();
+            fx.w.value_61d3c2 = rr(0, 1) ? 6u : rnd();
+            g_ret_4f6334 = rnd();
+            g_ret_482595 = rnd();
+            g_tick = rnd();
+            for (i = 0; i < 16; i++) {
+                g_ret_4709bb[i] = rnd();
+                g_ret_4709de[i] = rnd();
+            }
+            for (i = 0; i < 6; i++) {
+                set32(fx.tab, (size_t)i * REC, OBJ_VA);
+                set32(fx.tab, (size_t)i * REC + 0x4d, (uint32_t)rr(0, 3) == 1 ? 1u : (uint32_t)rr(0, 3));
+            }
+            switch (f) {
+            case 0: m4d3bef_reset_flags(fx.self, &fx.w); break;
+            case 1:
+                set16(fx.self, 0x1e, (uint16_t)idx);
+                set32(fx.self, 0x6b, rnd() & 3 ? 1u : 0u);
+                set32(fx.self, 0x2c, rnd() & 3 ? 0u : rnd());
+                m44edfb_click_2785_2787(fx.self, &fx.w, &fx.host);
+                break;
+            case 2:
+                set32(fx.self, 0x12, A12_VA);
+                set32(fx.self, 0x16, TBL_VA + 0x100);
+                set32(fx.self, 0x154, rnd() & 1 ? A154_VA : 0);
+                {
+                    /* the entry of the third table is a flag index (kept inside the flag table) and a value */
+                    int w = rr(-3, 40);
+                    size_t q = 0x100 + 0x23 + (size_t)(ptrdiff_t)w * 4;
+                    set16(fx.a154, 0x14, (uint16_t)(int16_t)w);
+                    set16(fx.a12, 5, (uint16_t)(int16_t)w);
+                    set16(fx.tbl, q, (uint16_t)(int16_t)rr(-20, 30));
+                    set16(fx.tbl, q + 2, (uint16_t)rnd());
+                }
+                m4cb3ab_store_flag(fx.self, &fx.w, &fx.host);
+                break;
+            case 3:
+            case 4:
+            case 6:
+            case 7:
+            case 11:
+            case 12: {
+                /* the hit tests: small rectangles around the point, counts and indexes in range */
+                int16_t x = (int16_t)rr(-40, 40), y = (int16_t)rr(-40, 40);
+                size_t o;
+                set16(fx.self, 0x1e, (uint16_t)idx);
+                set16(fx.self, 0xd28, (uint16_t)idx);
+                set32(fx.self, 0x6b, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x3e, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x49, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x24, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x86, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x28, 0);
+                set32(fx.self, 0x2c, rnd() & 3 ? 0u : rnd());
+                fx.self[0xd3e] = (uint8_t)(rnd() & 7 ? 1 : 0);
+                fx.self[0x29] = 0;
+                fx.self[0xd3b] = (uint8_t)(rnd() & 3 ? 0 : 1);
+                set16(fx.self, 0x2a, (uint16_t)(int16_t)rr(-4, 9));
+                set32(fx.self, 0xc, OBJ_VA);
+                set32(fx.self, 0x14, DECOY_VA);
+                set32(fx.self, 0x28c, (uint32_t)rr(0, 3));
+                set32(fx.self, 0x280, (uint32_t)rr(-2, 5));
+                set16(fx.obj, 0x25, (uint16_t)(int16_t)rr(-3, 6));
+                set16(fx.obj, 0x21, (uint16_t)(int16_t)rr(-3, 6));
+                set16(fx.obj, 0x63, (uint16_t)(int16_t)rr(-3, 6));
+                for (o = 0; o < 0x600; o += 4) {
+                    uint32_t v = (uint32_t)(int32_t)(rr(-3, 3) + (rnd() & 1 ? x : y) + (int)(rnd() % 5) - 2);
+                    if (rnd() & 1) set32(fx.obj, o, v);
+                }
+                if (f == 3) m44eab1_hit_test(fx.self, x, y, &fx.w, &fx.host);
+                if (f == 4) m46ebff_click_27c2_27c3(fx.self, &fx.w, &fx.host);
+                if (f == 6) m4571e1_hit_test(fx.self, x, y, &fx.w, &fx.host);
+                if (f == 7) m47b4aa_hit_test(fx.self, x, y, &fx.w, &fx.host);
+                if (f == 11) m4a6574_hit_test(fx.self, x, y, &fx.w, &fx.host);
+                if (f == 12) m465c99_hit_test(fx.self, x, y, &fx.w, &fx.host);
+                break;
+            }
+            case 5:
+                /* 0x46ebff reads up to 246 rows of 0x95 bytes behind the record object */
+                set16(fx.self, 0x1e, (uint16_t)idx);
+                set32(fx.self, 0x46, 1);
+                set32(fx.self, 0x5f, 0);
+                set32(fx.self, 0x28, 0);
+                set16(fx.obj, 0x21, (uint16_t)(int16_t)rr(-3, 13));
+                m46ebff_click_27c2_27c3(fx.self, &fx.w, &fx.host);
+                break;
+            case 8:
+                set16(fx.self, 0x1e, (uint16_t)idx);
+                fx.self[0xa8] = 1;
+                set16(fx.self, 0xa9, 0xffff);
+                set32(fx.self, 0x78, (uint32_t)rr(0, 2));
+                set16(fx.self, 0xad, (uint16_t)(int16_t)rr(-2, 13));
+                set16(fx.self, 0x92, (uint16_t)(int16_t)rr(-3, 8));
+                m482724_click_27b5_27b6(fx.self, &fx.w, &fx.host);
+                break;
+            case 9:
+                set16(fx.self, 0x1e, (uint16_t)idx);
+                set32(fx.self, 0x86, 1);
+                fx.self[0x8b] = 0;
+                set32(fx.self, 0x21, 0);
+                set32(fx.self, 0x25, (uint32_t)rr(0, 5));
+                set16(fx.obj, 0x298, (uint16_t)(int16_t)rr(-2, 8));
+                fx.w.bytes_550964 = T[0];
+                m4a6946_click_276f_2770(fx.self, &fx.w, &fx.host);
+                break;
+            default:
+                set16(fx.self, 0xd28, (uint16_t)idx);
+                fx.self[0xd3e] = 1;
+                set16(fx.obj, 0x21, (uint16_t)(int16_t)rr(-3, 6));
+                m470ffe_hit_test(fx.self, (int16_t)rr(-9, 9), (int16_t)rr(-9, 9), &fx.w, &fx.host);
+                break;
+            }
+        }
+    }
+}
+
 /* ---- the table of cases ------------------------------------------------------------------------------------------------------- */
 
 static const struct {
@@ -1861,6 +2207,8 @@ static const struct {
     {"test_m465c99_hit_test", test_m465c99},
     {"test_m482724_click_27b5_27b6", test_m482724},
     {"test_m470ffe_hit_test", test_m470ffe},
+    {"test_m4a6946_click_276f_2770", test_m4a6946},
+    {"test_sweep_bounded", test_sweep},
 };
 
 int main(void)

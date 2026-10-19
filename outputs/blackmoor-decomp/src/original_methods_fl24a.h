@@ -36,6 +36,7 @@ typedef struct Fl24aWorld {
     uint32_t value_5d03b3;     /* 0x46ebff: the dword passed to 0x448d11 */
     uint32_t value_61d3c2;     /* 0x4a6574: the tail compares it with 6 */
     uint32_t value_5b44f0, value_5b44f4, value_5d0377, value_5d162d, value_5d1631, value_5d1639;   /* 0x470ffe: the announcement globals */
+    const uint8_t *bytes_550964;   /* 0x4a6946: the nine bytes that the kept string is compared with */
 } Fl24aWorld;
 
 /* 0x4d3bef: clears [+0x462]; sets [+0x1c] when the byte at 0x61c6ae is non-zero */
@@ -62,6 +63,8 @@ int32_t m465c99_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
 void m482724_click_27b5_27b6(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host);
 /* 0x470ffe: hit test (ret 8) over the rectangles of the record object and of the object itself; a hit announces through the globals 0x5b44f0, 0x5b44f4, 0x5d162d, 0x5d1631, 0x5d1639 and 0x5c39e5 (the world is written) */
 int32_t m470ffe_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24aWorld *world, const Fl18Host *host);
+/* 0x4a6946: events 0x2770 and 0x276f (a four-way switch on [+0x25] - 1 with a jump table inside the span; strings copied into a local buffer, then the announcement through 0x4f6334 and 0x4fb2e3) */
+void m4a6946_click_276f_2770(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

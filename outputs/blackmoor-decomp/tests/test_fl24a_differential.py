@@ -107,7 +107,7 @@ class Fl24aDifferential(DiffBase):
     def run_key(self, key):
         rng = random.Random(int(key, 16))
         executed = set()
-        va, size = fx.SPECS[key]['va'], fx.SPECS[key]['size']
+        va, size = fx.SPECS[key]['va'], fx.SPECS[key].get('code', fx.SPECS[key]['size'])
         for n in range(fx.scenarios(key)):
             self.pair(fx.build(key, rng, n), executed)
         missing = sorted(od.instruction_addresses(va, size) - executed)
@@ -161,6 +161,11 @@ class Fl24aDifferential(DiffBase):
     def test_470ffe_hit_test(self):
         """FL-24a: differential test of m470ffe_hit_test (original 0x470ffe)"""
         self.run_key('470ffe')
+
+
+    def test_4a6946_click_276f_2770(self):
+        """FL-24a: differential test of m4a6946_click_276f_2770 (original 0x4a6946)"""
+        self.run_key('4a6946')
 
 
 if __name__ == '__main__':
