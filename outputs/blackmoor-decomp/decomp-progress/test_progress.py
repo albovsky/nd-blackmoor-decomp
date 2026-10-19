@@ -47,6 +47,12 @@ class RepoEvidenceTests(unittest.TestCase):
         for name in GEN.COUNTED_MANIFESTS:
             for fn in json.loads((EVIDENCE / name).read_text())["functions"]:
                 cls.legacy_bytes.update(range(fn["rva"], fn["rva"] + fn["size"]))
+        # audited data sources (asm_data/data-NNN.json): initialized data and resource payloads
+        cls.data_bytes = set()
+        for path in sorted((EVIDENCE / "asm_data").glob("data-[0-9][0-9][0-9].json")):
+            for r in json.loads(path.read_text())["ranges"]:
+                off = int(r["offset"], 16)
+                cls.data_bytes.update(range(off, off + r["length"]))
 
     @classmethod
     def tearDownClass(cls):
@@ -184,7 +190,7 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertTrue(self.audited_vas)
         self.assertEqual(len(self.legacy_bytes), 398)
         self.assertEqual(t["matched_code"], len(self.legacy_bytes | self.audited_bytes))
-        self.assertEqual(t["matched_data"], 0)
+        self.assertEqual(t["matched_data"], len(self.data_bytes))
         self.assertTrue(self.model["evidence"]["crosscheck"]["agrees"])
         self.assertEqual(self.model["evidence"]["crosscheck"]["computed_legacy_matched_code"], 398)
         self.assertEqual(t["functions_complete"], len(self.audited_vas))
@@ -193,12 +199,13 @@ class RepoEvidenceTests(unittest.TestCase):
         bp = self.model["totals"]["by_provenance"]
         self.assertEqual(bp, {"exact_range_compiled_c_partial": 14,
                               "explicit_reconstructed_assembly_source": 384,
-                              "tool_assisted_reconstructed_assembly": len(self.audited_bytes - self.legacy_bytes)})
+                              "tool_assisted_reconstructed_assembly": len(self.audited_bytes - self.legacy_bytes),
+                              "tool_assisted_reconstructed_data": len(self.data_bytes)})
         self.assertEqual(self.model["totals"]["functions_by_provenance"], {
             "exact_range_compiled_c_partial": 0,
             "explicit_reconstructed_assembly_source": 11,
             "tool_assisted_reconstructed_assembly": len(self.audited_vas)})
-        self.assertEqual(sum(bp.values()), self.model["totals"]["matched_code"])
+        self.assertEqual(sum(bp.values()), self.model["totals"]["matched_code"] + self.model["totals"]["matched_data"])
         self.assertIn("exact_range_compiled_c_partial", (self.out / "REPORT.md").read_text())
 
     def test_committed_x86_outputs_have_not_drifted(self):
@@ -637,6 +644,71 @@ class AuditedBatchTests(unittest.TestCase):
         rows, meta = GEN.baseline_evidence(self.layout, self.dir)
         return GEN.build_model(self.layout, self.index, rows, meta, 0x4000,
                                {"unique_matched_bytes": 36}, [])
+
+    def create_data_batch(self, ranges=((0x140, 0x40),), mutate=None):
+        """A data source claiming ranges of the fixture's trailing 0xc0 data bytes (a ``.data`` section)."""
+        self.layout["sections"].append({"name": ".data", "rva": 0x140, "raw_off": 0x140, "raw_size": 0xc0, "virt_size": 0xc0})
+        out = self.dir / "asm_data"
+        out.mkdir(exist_ok=True)
+        source = out / "data-001.s"
+        source.write_text("# synthetic data source fixture\n")
+        entries = [{"offset": hex(off), "length": size, "va": f"0x{0x400000 + off:08x}", "section": ".data",
+                    "sha256": hashlib_sha(f"data{off}")} for off, size in ranges]
+        manifest = {"schema": GEN.DATA_ASM_SCHEMA, "batch": "001", "class": "tool_assisted_reconstructed_data",
+                    "original_sha256": SHA, "source": "data-001.s",
+                    "source_sha256": GEN.sha256_file(source), "ranges": entries}
+        write(out / "data-001.json", manifest)
+        total = sum(size for _, size in ranges)
+        report = {"batch": "001", "class_requested": "tool_assisted_reconstructed_data", "original_sha256": SHA,
+                  "manifest_sha256": GEN.sha256_file(out / "data-001.json"),
+                  "source": {"path": "data-001.s", "sha256": manifest["source_sha256"]},
+                  "assembler": {"version_line": "GNU assembler (GNU Binutils) 2.43.1", "self_test": "passed",
+                                "sha256": "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"},
+                  "ranges": entries, "bytes_total": total, "compared_bytes": total, "relocations": 0,
+                  "labels_checked": 3, "errors": [], "all_accepted": True}
+        if mutate:
+            mutate(report)
+        write(out / "data-001-report.json", report)
+
+    def test_audited_data_is_matched_data_in_its_own_provenance_class(self):
+        self.create_data_batch()
+        model = self.model()
+        t = model["totals"]
+        self.assertEqual((t["matched_code"], t["matched_data"]), (56, 0x40))
+        self.assertEqual(t["by_provenance"]["tool_assisted_reconstructed_data"], 0x40)
+        self.assertEqual(t["functions_complete"], 2)  # data is not a function claim
+        self.assertEqual(model["evidence"]["tool_assisted_data_batches"][0]["bytes"], 0x40)
+        tail = next(u for u in model["units"] if u["id"] == "tail")
+        self.assertEqual(tail["matched_data"], 0x40)
+
+    def test_changed_data_source_is_not_counted(self):
+        self.create_data_batch()
+        (self.dir / "asm_data" / "data-001.s").write_text("# edited after audit\n")
+        with self.assertRaisesRegex(GEN.ProgressError, "source hash"):
+            self.model()
+
+    def test_unaccepted_or_partial_data_audit_is_not_counted(self):
+        for change, why in ((lambda r: r.update(all_accepted=False), "audit not accepted"),
+                            (lambda r: r.update(compared_bytes=0x3f), "audit not accepted"),
+                            (lambda r: r.update(relocations=2), "audit not accepted"),
+                            (lambda r: r["assembler"].update(self_test="failed"), "not pinned"),
+                            (lambda r: r.update(ranges=[]), "audited ranges differ")):
+            with self.subTest(why=why):
+                self.setUp()
+                self.create_data_batch(mutate=change)
+                with self.assertRaisesRegex(GEN.ProgressError, why):
+                    self.model()
+                self.tearDown()
+
+    def test_data_outside_its_section_or_overlapping_is_rejected(self):
+        self.create_data_batch(ranges=((0x140, 0x40), (0x170, 0x20)))
+        with self.assertRaisesRegex(GEN.ProgressError, "overlap"):
+            self.model()
+        self.tearDown()
+        self.setUp()
+        self.create_data_batch(ranges=((0x1f0, 0x20),))
+        with self.assertRaisesRegex(GEN.ProgressError, "outside its section"):
+            self.model()
 
     def mutate_report(self, change):
         path = self.asm / "batch-001-report.json"

@@ -1,0 +1,29 @@
+{
+ "schema": "blackmoor-data-asm/1",
+ "batch": "001",
+ "class": "tool_assisted_reconstructed_data",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "description": "initialized .rdata and .data as labeled data directives (owner ruling of 2026-10-19)",
+ "image_base": "0x00400000",
+ "va_bias": "0x00400000",
+ "pointers": true,
+ "origin_va": "0x0052a000",
+ "source": "data-001.s",
+ "source_sha256": "74048dd7a288c2b8d5e337ffab81381f30693c25155db716fac3f5b447b5cca4",
+ "ranges": [
+  {
+   "offset": "0x12a54c",
+   "length": 41924,
+   "va": "0x0052a54c",
+   "section": ".rdata",
+   "sha256": "eafa44440e2a8a6186ad1a8eda3549f81067c28c0fac1b83b8f04f8085ff42b0"
+  },
+  {
+   "offset": "0x137000",
+   "length": 208896,
+   "va": "0x00537000",
+   "section": ".data",
+   "sha256": "ea5c1a685c6f100ee20bd41bcca62dca22ac189b86c5837f9a0af790e85dff93"
+  }
+ ]
+}

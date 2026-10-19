@@ -674,7 +674,8 @@ def bind_reconstructed(
                 }
             )
     asm_items, asm_records = bind_asm_batches(layout, reconstructed.get("asm_batches", []), build_dir, assembler, taken, None if structured is None else list(structured))
-    return items + asm_items, records + asm_records
+    data_items, data_records = bind_data_batches(layout, reconstructed.get("data_batches", []), assembler, taken, original_path)
+    return items + asm_items + data_items, records + asm_records + data_records
 
 
 ASM_CLASS = "tool_assisted_reconstructed_assembly"
@@ -684,12 +685,118 @@ ASM_INDEX_CLASS = "tool_assisted_reconstructed_index_table"
 # Alignment padding (nop-equivalent instructions or ``.fill``) that the generator splits off a function span and
 # the structured ``int3_padding`` group does not already generate; it is not a function and is reported apart.
 ASM_PADDING_CLASS = "tool_assisted_reconstructed_padding"
-ASM_DATA_CLASSES = (ASM_INDEX_CLASS, ASM_PADDING_CLASS)
+# Initialized data and resource payloads rebuilt as labeled data directives (owner ruling of 2026-10-19, packet M-C).
+DATA_ASM_CLASS = "tool_assisted_reconstructed_data"
+ASM_DATA_CLASSES = (ASM_INDEX_CLASS, ASM_PADDING_CLASS, DATA_ASM_CLASS)
 # Endings other than a terminal ret/jmp (owner ruling of 2026-10-16): a code part that ends in a call with no
 # instruction after it (whether the callee returns is not provable from the bytes) and a fragment that falls
 # through; both count only bound together with the range that follows them.
 ASM_ENDINGS = ("call-end", "fall-through")
 ASM_WORKERS = 4
+
+
+def load_data_asm() -> Any:
+    """Import ``data_asm.py`` (the data-source generator and auditor) for its assembler and COFF helpers."""
+    path = SCRIPT_DIR / "data_asm.py"
+    spec = importlib.util.spec_from_file_location("data_asm", path)
+    if spec is None or spec.loader is None:
+        raise ComposeError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("data_asm", module)
+    spec.loader.exec_module(module)
+    return module
+
+
+def bind_data_batches(
+    layout: Layout,
+    batches: list[dict[str, Any]],
+    assembler: Path,
+    taken: list[tuple[int, int, str]],
+    original_path: Path,
+) -> tuple[list[Item], list[dict[str, Any]]]:
+    """Bind audited data sources (``asm_data/data-NNN.json``, ``data_asm.py``) as reconstructed data ranges.
+
+    Each batch needs an all-accepted audit report for exactly that manifest.  The source is reassembled with the
+    pinned GNU as (version line plus the self-test), must carry no relocation, and every range's assembled bytes
+    must hash to the SHA-256 the manifest records for the original range (a hash comparison; the original is not
+    read for the hash comparison).  The composer also re-runs the lexical audit (only the directive forms the
+    generator writes) and requires the source to equal the generator's output for the manifest ranges
+    (``data_asm.py check``), so a hand edit cannot ride on a stale report.  The image takes the assembled bytes.
+    """
+    if not batches:
+        return [], []
+    data_asm = load_data_asm()
+    original_bytes = original_path.read_bytes()
+    problem, assembler_info = data_asm.check_assembler(assembler)
+    if problem:
+        raise ComposeError(f"data batches need the pinned assembler: {problem}")
+    items: list[Item] = []
+    records: list[dict[str, Any]] = []
+    for batch in batches:
+        manifest_path = PROJECT_DIR / batch["manifest"]
+        report_path = PROJECT_DIR / batch["report"]
+        manifest = load_json(manifest_path)
+        report = load_json(report_path)
+        if manifest.get("class") != DATA_ASM_CLASS or batch.get("provenance_class", DATA_ASM_CLASS) != DATA_ASM_CLASS:
+            raise ComposeError(f"{batch['manifest']}: not a {DATA_ASM_CLASS} batch")
+        if manifest.get("original_sha256") != ORIGINAL_SHA256:
+            raise ComposeError(f"{batch['manifest']}: describes a different original")
+        if report.get("manifest_sha256") != file_sha256(manifest_path):
+            raise ComposeError(f"{batch['report']}: audit report is stale (manifest hash differs)")
+        if not report.get("all_accepted") or report.get("errors") or report.get("compared_bytes") != sum(r["length"] for r in manifest["ranges"]):
+            raise ComposeError(f"{batch['report']}: the audit did not accept every byte of the batch")
+        source = manifest_path.parent / manifest["source"]
+        if file_sha256(source) != manifest["source_sha256"] or report.get("source", {}).get("sha256") != manifest["source_sha256"]:
+            raise ComposeError(f"{manifest['source']}: source differs from the audited hash")
+        source_text = source.read_text(encoding="utf-8")
+        lexical, _counts = data_asm.audit_source(source_text, data_asm.source_expectation(manifest, data_asm.load_sections()))
+        if lexical:
+            raise ComposeError(f"{manifest['source']}: {lexical[0]}")
+        regenerated, _analysis, _origin = data_asm.generate(
+            original_bytes, data_asm.manifest_ranges(manifest), pointers=bool(manifest["pointers"])
+        )
+        if regenerated != source_text:
+            raise ComposeError(f"{manifest['source']}: differs from the generator's output for its ranges (data_asm.py check)")
+        assembled, relocations, _symbols = data_asm.assemble(assembler, source)
+        if relocations:
+            raise ComposeError(f"{manifest['source']}: the assembled object carries {relocations} relocations")
+        origin = num(manifest["origin_va"])
+        bound_bytes = 0
+        range_hashes: list[str] = []
+        for entry in manifest["ranges"]:
+            offset, length = num(entry["offset"]), num(entry["length"])
+            va = num(entry["va"])
+            data = assembled[va - origin : va - origin + length]
+            if len(data) != length or sha256(data) != entry["sha256"]:
+                raise ComposeError(f"{manifest['source']}: assembled bytes of {entry['va']} differ from the audited original range")
+            if any(offset < t[1] and t[0] < offset + length for t in taken):
+                raise ComposeError(f"{batch['manifest']}: range {entry['va']} overlaps another bound range")
+            name = f"{manifest['source']}:{entry['va']}"
+            taken.append((offset, offset + length, name))
+            items.append(
+                Item(offset, length, CLS_RECONSTRUCTED, "reconstructed", name, entry["section"], "data", data=data, provenance=DATA_ASM_CLASS)
+            )
+            bound_bytes += length
+            range_hashes.append(sha256(data))
+        records.append(
+            {
+                "manifest": batch["manifest"],
+                "symbol": batch["manifest"],
+                "batch": manifest["batch"],
+                "offset": num(manifest["ranges"][0]["offset"]),
+                "length": bound_bytes,
+                "source_kind": "tool_assisted_data_directives",
+                "provenance_class": DATA_ASM_CLASS,
+                "status": "bound",
+                "data_ranges": len(manifest["ranges"]),
+                "manifest_sha256": file_sha256(manifest_path),
+                "report_sha256": file_sha256(report_path),
+                "source_sha256": manifest["source_sha256"],
+                "range_sha256": sha256("\n".join(range_hashes).encode()),
+                "assembler_version_line": assembler_info.get("version_line"),
+            }
+        )
+    return items, records
 
 
 def load_auditor() -> Any:
@@ -1173,6 +1280,7 @@ def coverage_report(comp: Composition) -> dict[str, Any]:
             "reconstructed_functions": sum(entry["ranges"] for name, entry in by_provenance.items() if name not in ASM_DATA_CLASSES),
             "reconstructed_index_table_bytes": by_provenance.get(ASM_INDEX_CLASS, {}).get("bytes", 0),
             "reconstructed_padding_bytes": by_provenance.get(ASM_PADDING_CLASS, {}).get("bytes", 0),
+            "reconstructed_data_bytes": by_provenance.get(DATA_ASM_CLASS, {}).get("bytes", 0),
         },
         "by_class": by_class,
         "reconstructed_by_provenance": by_provenance,
@@ -1739,7 +1847,10 @@ class Derivation:
         rsrc = layout.sections[3]
         for entry in sorted(resources["data_entries"], key=lambda e: num(e["rva"])):
             lo = layout.rva_to_offset(num(entry["rva"]))
-            if any(claimed[lo : lo + entry["size"]]):
+            covered = sum(claimed[lo : lo + entry["size"]])
+            if covered == entry["size"] and any(a <= lo and lo + entry["size"] <= a + n for a, n in reconstructed):
+                continue  # the payload is bound as reconstructed data (audited data source), not referenced
+            if covered:
                 raise ComposeError(f"resource payload {entry['path']} overlaps a structured item")
             emit(lo, lo + entry["size"], f"resource {entry['path']}", "data", "", ".rsrc")
             claimed[lo : lo + entry["size"]] = b"\x01" * entry["size"]

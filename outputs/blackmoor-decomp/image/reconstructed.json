@@ -87,6 +87,18 @@
    "provenance_class": "tool_assisted_reconstructed_assembly"
   }
  ],
+ "data_batches": [
+  {
+   "manifest": "asm_data/data-001.json",
+   "report": "asm_data/data-001-report.json",
+   "provenance_class": "tool_assisted_reconstructed_data"
+  },
+  {
+   "manifest": "asm_data/data-002.json",
+   "report": "asm_data/data-002-report.json",
+   "provenance_class": "tool_assisted_reconstructed_data"
+  }
+ ],
  "not_bound": [
   {
    "manifest": "matches_s08.json",
