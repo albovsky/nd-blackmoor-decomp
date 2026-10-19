@@ -381,6 +381,9 @@ static void test_m459cc9_hit_test(void)
     /* the gate byte off: 0, and the word +0xcc is not stored */
     CK(m459cc9_hit_test(S, 5, 5, &W, &H) == 0);
     CK(L.n == 0 && get16(S, 0xcc) == 0x1234);
+    S[0xd7] = 1;   /* the gate is the byte +0xd6 alone */
+    CK(m459cc9_hit_test(S, 5, 5, &W, &H) == 0 && L.n == 0 && get16(S, 0xcc) == 0x1234);
+    S[0xd7] = 0;
     /* on (bit 7 only): the word +0xcc is set to 0xffff BEFORE the call; item 2 hit (the record is selected by the word +0x1c, stride 0x8d) */
     S[0xd6] = 0x80;
     add_probe(S + 0xcc, 2);

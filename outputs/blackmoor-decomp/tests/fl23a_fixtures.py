@@ -165,6 +165,9 @@ def rect(rng, d, base, offs, x, y, mode, pad=0):
     m = lambda: rng.choice([0, 0, 0, 1, 2, 7, rng.randrange(0, 100000)])
     if mode == 'rand':
         vals = {k: rand32(rng) for k in names}
+    elif mode == 'wrap':   # edges near the 32-bit limits: +pad / -pad wraps around and the rectangle then holds every point (pad > 0)
+        vals = {'ylo': 0x7ffffff6 + rng.randrange(10), 'yhi': -0x80000000 + rng.randrange(10), 'xlo': 0x7ffffff6 + rng.randrange(10),
+                'xhi': -0x80000000 + rng.randrange(10)}
     else:
         vals = {'ylo': y - pad - m(), 'yhi': y + pad + m(), 'xlo': x - pad - m(), 'xhi': x + pad + m()}
         if mode == 'out':
@@ -254,9 +257,12 @@ def gen_459cc9(rng, n):
     put16(d, 0x1c, idx)
     records, obj, pointers = records_and_obj(rng, idx, 0x100)
     for i in range(4):
-        rect(rng, obj.data, 16 * i, (0x65, 0x6d, 0x61, 0x69), x, y, 'rand' if h is not None and i > h else ('in' if i == h else 'out'))
+        later = 'in' if (skip == 1 and h is not None and i == h + 1) else 'rand'   # a disabled hit must not fall through to an enabled later item
+        rect(rng, obj.data, 16 * i, (0x65, 0x6d, 0x61, 0x69), x, y, later if h is not None and i > h else ('in' if i == h else 'out'))
     if h is not None:
         d[0x1e + h] = 0 if skip == 0 else rng.choice([1, 0xff, 0x80])
+        if h < 3 and skip == 1:
+            d[0x1f + h] = 0
     stubs = {0x459ddc: callee_stub(0x459ddc, 1, 4, probe=[('self', 0xcc, 2)])}
     return make_scenario(rng, 4, 0x459cc9, 275, d, x, y, [records, obj], stubs, word_args={0x459ddc: (0,)}, pointers=pointers)
 
@@ -353,7 +359,7 @@ def gen_479deb(rng, n):
     records, obj, pointers = records_and_obj(rng, idx, 0x400)
     for i in range(5):
         hot = h is not None and (i == h or (ret == 'notone_one' and i == h + 1))
-        rect(rng, obj.data, 16 * i, (0x174, 0x17c, 0x170, 0x178), x, y, 'in' if hot else ('out' if h is None or i < h else 'rand'), pad=10)
+        rect(rng, obj.data, 16 * i, (0x174, 0x17c, 0x170, 0x178), x, y, (rng.choice(['in', 'in', 'wrap']) if hot else ('out' if h is None or i < h else 'rand')), pad=10)
     rect(rng, obj.data, 0, (0x28f, 0x297, 0x28b, 0x293), x, y, final)
     notone = rng.choice([0, 2, 0xffffffff, 0x80000001])
     results = {'one': [1], 'notone': [notone], 'notone_one': [notone, 1]}[ret]
