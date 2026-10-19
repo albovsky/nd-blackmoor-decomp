@@ -1,0 +1,398 @@
+[
+ {
+  "va": "0x4dad60",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m4dad60_init_swap_buttons"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m4dad60_init_swap_buttons"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_4dad60_init_swap_buttons"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_4dad60_init_swap_buttons"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x4dad60",
+    "0x4dadff"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4dad60_init_swap_buttons (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 224 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x466073",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m466073_click_27d2_27d3"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m466073_click_27d2_27d3"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_466073_click_27d2_27d3"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_466073_click_27d2_27d3"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x466073",
+    "0x466247"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m466073_click_27d2_27d3 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 396 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x467740",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m467740_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m467740_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_467740_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_467740_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x467740",
+    "0x46793a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m467740_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 480 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x4b7563",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m4b7563_click_27bf_27c1"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m4b7563_click_27bf_27c1"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_4b7563_click_27bf_27c1"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_4b7563_click_27bf_27c1"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x4b7563",
+    "0x4b777d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b7563_click_27bf_27c1 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 440 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x459e49",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m459e49_click_2742"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m459e49_click_2742"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_459e49_click_2742"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_459e49_click_2742"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x459e49",
+    "0x45a07b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m459e49_click_2742 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 480 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x482359",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m482359_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m482359_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_482359_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_482359_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x482359",
+    "0x482595"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m482359_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 480 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x46793a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m46793a_click_27ab_27ac"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m46793a_click_27ab_27ac"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_46793a_click_27ab_27ac"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_46793a_click_27ab_27ac"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x46793a",
+    "0x467b9e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m46793a_click_27ab_27ac (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 630 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x4ad310",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m4ad310_click_2774_2776"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m4ad310_click_2774_2776"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_4ad310_click_2774_2776"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_4ad310_click_2774_2776"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x4ad310",
+    "0x4ad590"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4ad310_click_2774_2776 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 640 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x4acf45",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m4acf45_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m4acf45_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_4acf45_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_4acf45_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x4acf45",
+    "0x4ad1e5"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4acf45_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 640 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x4aa0f0",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m4aa0f0_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m4aa0f0_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_4aa0f0_hit_test"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_4aa0f0_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x4aa0f0",
+    "0x4aa3d2"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4aa0f0_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 640 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x487ed5",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m487ed5_click_2788_2789"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m487ed5_click_2788_2789"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_487ed5_click_2788_2789"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_487ed5_click_2788_2789"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x487ed5",
+    "0x4881c9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m487ed5_click_2788_2789 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 600 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ },
+ {
+  "va": "0x464c59",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-24b implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl24b.c",
+   "symbol": "m464c59_click_27c9_27cd"
+  },
+  "tests": [
+   {
+    "path": "tests/fl24b_direct_test.c",
+    "test_id": "test_m464c59_click_27c9_27cd"
+   },
+   {
+    "path": "tests/test_fl24b_direct.py",
+    "test_id": "Fl24bDirect.test_464c59_click_27c9_27cd"
+   },
+   {
+    "path": "tests/test_fl24b_differential.py",
+    "test_id": "Fl24bDifferential.test_464c59_click_27c9_27cd"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl24b_original_oracle.py",
+   "window": [
+    "0x464c59",
+    "0x464f55"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m464c59_click_27c9_27cd (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 600 fixtures, every code instruction reached. See tasks/fl24b-handoff.md."
+ }
+]

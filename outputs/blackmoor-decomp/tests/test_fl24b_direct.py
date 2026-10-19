@@ -1,0 +1,129 @@
+"""FL-24 (batch b): direct C tests of the GAME.EXE functions in src/original_methods_fl24b.c.
+
+tests/fl24b_direct_test.c links src/original_methods_fl24b.c and prints one PASS/FAIL line per case; every test below checks one of
+them. Expected values come from the original's disassembly, not from the native code.
+
+One direct case per function (the handlers of batch b); the Unicorn comparison against the original bytes is in
+tests/test_fl24b_differential.py.
+"""
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+PROJECT = Path(__file__).resolve().parents[1]
+SRC = PROJECT / 'src'
+TEST_C = PROJECT / 'tests/fl24b_direct_test.c'
+KERNELS = ['original_methods_fl24b.c']
+EXPECTED = [
+    'test_m4dad60_init_swap_buttons',
+    'test_m466073_click_27d2_27d3',
+    'test_m467740_hit_test',
+    'test_m4b7563_click_27bf_27c1',
+    'test_m459e49_click_2742',
+    'test_m482359_hit_test',
+    'test_m46793a_click_27ab_27ac',
+    'test_m4ad310_click_2774_2776',
+    'test_m4acf45_hit_test',
+    'test_m4aa0f0_hit_test',
+    'test_m487ed5_click_2788_2789',
+    'test_m464c59_click_27c9_27cd',
+    # EXPECTED-END
+]
+
+
+def compiler():
+    # The repo scripts call `xcrun --sdk macosx clang` on macOS; where xcrun is absent use clang, cc or gcc.
+    if os.environ.get('CC'):
+        return [os.environ['CC']]
+    if shutil.which('xcrun'):
+        return ['xcrun', '--sdk', 'macosx', 'clang']
+    return [shutil.which('clang') or shutil.which('cc') or shutil.which('gcc')]
+
+
+def build(output, test_c=TEST_C, src_dir=SRC, extra=()):
+    cmd = [*compiler(), '-std=c11', '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2', '-ffp-contract=off', '-g', *extra, f'-I{src_dir}', str(test_c),
+           *[str(src_dir / name) for name in KERNELS], '-lm', '-o', str(output)]
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+class Fl24bDirect(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.directory = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.directory.cleanup)
+        binary = Path(cls.directory.name) / 'fl24b_direct_test'
+        built = build(binary)
+        if built.returncode != 0:
+            raise AssertionError(built.stderr)
+        done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60)
+        cls.returncode = done.returncode
+        cls.results = {}
+        for line in done.stdout.splitlines():
+            status, _, rest = line.partition(' ')
+            if status in ('PASS', 'FAIL'):
+                name, _, message = rest.partition(': ')
+                cls.results[name] = (status, message)
+
+    def check(self, name):
+        self.assertIn(name, self.results)
+        self.assertEqual(self.results[name], ('PASS', ''), self.results[name])
+
+    def test_every_case_ran_and_the_binary_passed(self):
+        self.assertEqual(sorted(self.results), sorted(EXPECTED))
+        self.assertEqual(self.returncode, 0)
+
+
+    def test_4dad60_init_swap_buttons(self):
+        """FL-24b: direct test of m4dad60_init_swap_buttons"""
+        self.check('test_m4dad60_init_swap_buttons')
+
+    def test_466073_click_27d2_27d3(self):
+        """FL-24b: direct test of m466073_click_27d2_27d3"""
+        self.check('test_m466073_click_27d2_27d3')
+
+    def test_467740_hit_test(self):
+        """FL-24b: direct test of m467740_hit_test"""
+        self.check('test_m467740_hit_test')
+
+    def test_4b7563_click_27bf_27c1(self):
+        """FL-24b: direct test of m4b7563_click_27bf_27c1"""
+        self.check('test_m4b7563_click_27bf_27c1')
+
+    def test_459e49_click_2742(self):
+        """FL-24b: direct test of m459e49_click_2742"""
+        self.check('test_m459e49_click_2742')
+
+    def test_482359_hit_test(self):
+        """FL-24b: direct test of m482359_hit_test"""
+        self.check('test_m482359_hit_test')
+
+    def test_46793a_click_27ab_27ac(self):
+        """FL-24b: direct test of m46793a_click_27ab_27ac"""
+        self.check('test_m46793a_click_27ab_27ac')
+
+    def test_4ad310_click_2774_2776(self):
+        """FL-24b: direct test of m4ad310_click_2774_2776"""
+        self.check('test_m4ad310_click_2774_2776')
+
+    def test_4acf45_hit_test(self):
+        """FL-24b: direct test of m4acf45_hit_test"""
+        self.check('test_m4acf45_hit_test')
+
+    def test_4aa0f0_hit_test(self):
+        """FL-24b: direct test of m4aa0f0_hit_test"""
+        self.check('test_m4aa0f0_hit_test')
+
+    def test_487ed5_click_2788_2789(self):
+        """FL-24b: direct test of m487ed5_click_2788_2789"""
+        self.check('test_m487ed5_click_2788_2789')
+
+    def test_464c59_click_27c9_27cd(self):
+        """FL-24b: direct test of m464c59_click_27c9_27cd"""
+        self.check('test_m464c59_click_27c9_27cd')
+
+
+if __name__ == '__main__':
+    unittest.main()
