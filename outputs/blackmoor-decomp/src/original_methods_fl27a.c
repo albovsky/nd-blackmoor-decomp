@@ -156,4 +156,21 @@ int32_t m4bef85_bink_wait(uint8_t *self, uint32_t handle, const Fl18Host *host)
     return call1(host, 0x52a52c, 0, handle) != 0 ? 0 : 1;
 }
 
+/* ---- 0x4bee5f ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bee5f, thiscall, `ret 4`: calls 0x4bf38c (this = self); with a zero argument clears 0x1f dwords (`rep stosd`, 124 bytes) at self + 8,
+ * stores [self + 0x2c0] = 0xfffffffd and returns 0; otherwise calls _BinkGetSummary@8 (import 0x52a508: the handle, self + 8) and returns
+ * self + 8 (the host pointer; the original returns the address of the object plus 8). The result of the import is ignored. */
+uint8_t *m4bee5f_bink_summary(uint8_t *self, uint32_t handle, const Fl18Host *host)
+{
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    if (handle == 0) {
+        memset(self + 8, 0, 0x1f * 4);
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return NULL;
+    }
+    call2(host, 0x52a508, 0, handle, (uintptr_t)(self + 8));
+    return self + 8;
+}
+
 /*NEXT*/

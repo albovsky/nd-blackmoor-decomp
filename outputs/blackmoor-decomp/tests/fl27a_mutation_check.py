@@ -40,6 +40,7 @@ FUNCS = {'4de1f5': 'test_4de1f5_clear_flags',
          '44c479': 'test_44c479_wait_state',
          '4bee2c': 'test_4bee2c_get_field',
          '4bef85': 'test_4bef85_bink_wait',
+         '4bee5f': 'test_4bee5f_bink_summary',
          # FUNCS-END
          }
 

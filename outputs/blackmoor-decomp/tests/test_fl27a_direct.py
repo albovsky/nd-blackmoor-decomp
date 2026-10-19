@@ -25,6 +25,7 @@ EXPECTED = [
     'test_m44c479_wait_state',
     'test_m4bee2c_get_field',
     'test_m4bef85_bink_wait',
+    'test_m4bee5f_bink_summary',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -98,6 +99,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4bef85_bink_wait(self):
         """FL-27a: direct test of m4bef85_bink_wait"""
         self.check('test_m4bef85_bink_wait')
+
+    def test_4bee5f_bink_summary(self):
+        """FL-27a: direct test of m4bee5f_bink_summary"""
+        self.check('test_m4bee5f_bink_summary')
 
     # CASES-END
 

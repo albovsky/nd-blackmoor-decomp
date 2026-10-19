@@ -433,6 +433,37 @@ static void test_m4bef85_bink_wait(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bee5f: 0x4bf38c(self); handle 0 -> 124 bytes at self+8 cleared, [self+0x2c0] = -3, return 0; else _BinkGetSummary(handle, self+8), return self+8 */
+
+static void test_m4bee5f_bink_summary(void)
+{
+    uint8_t *r;
+    size_t b;
+    setup();
+    expect_begin();
+    r = m4bee5f_bink_summary(fx.self, 0, &fx.host);
+    CK(r == NULL);
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    for (b = 8; b < 8 + 0x1f * 4; b++) exp_self[b] = 0;                  /* exactly 0x1f dwords: the bytes 7 and 0x84 stay */
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    CK(fx.self[7] == 0xA5 && fx.self[0x84] == 0xA5 && fx.self[8] == 0 && fx.self[0x83] == 0);
+    CK(L.c[0].snap_self[8] == 0xA5);                                     /* cleared after the first call */
+    setup();
+    script_ret(0x52a508, 0x55);
+    expect_begin();
+    r = m4bee5f_bink_summary(fx.self, VA_A + 0x20, &fx.host);
+    CK(r == fx.self + 8);
+    CK(L.n == 2);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    ck_call(1, 0x52a508, 0, 2);
+    ck_arg(1, 0, VA_A + 0x20);                                           /* the handle is the last pushed = the first argument */
+    ck_arg(1, 1, (uintptr_t)(fx.self + 8));
+    expect_end();                                                        /* the object is not written when the handle is not null */
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -467,6 +498,7 @@ static void test_sweep(void)
         (void)m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
         (void)m4bee2c_get_field(fx.self, rnd() % 2 ? VA_A + (rnd() % 64) : 0, &fx.host);
         (void)m4bef85_bink_wait(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
+        (void)m4bee5f_bink_summary(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -483,6 +515,7 @@ static const struct {
     {"test_m44c479_wait_state", test_m44c479_wait_state},
     {"test_m4bee2c_get_field", test_m4bee2c_get_field},
     {"test_m4bef85_bink_wait", test_m4bef85_bink_wait},
+    {"test_m4bee5f_bink_summary", test_m4bee5f_bink_summary},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

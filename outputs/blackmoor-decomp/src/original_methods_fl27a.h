@@ -73,6 +73,11 @@ int32_t m4bee2c_get_field(uint8_t *self, uint32_t handle, const Fl18Host *host);
  * 0xfffffffd, returns 0; otherwise _BinkWait@4 (import 0x52a52c): returns 0 when it answers non-zero, else 1. */
 int32_t m4bef85_bink_wait(uint8_t *self, uint32_t handle, const Fl18Host *host);
 
+/* 0x4bee5f: thiscall, `ret 4`, one argument `handle` (only passed on): calls 0x4bf38c (this = self); handle zero: the 124 bytes at self + 8
+ * are cleared, [self + 0x2c0] = 0xfffffffd, returns NULL (0); otherwise _BinkGetSummary@8 (import 0x52a508: handle, self + 8; its answer is
+ * ignored; it fills the summary at self + 8, which is the host's) and returns self + 8. */
+uint8_t *m4bee5f_bink_summary(uint8_t *self, uint32_t handle, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus
