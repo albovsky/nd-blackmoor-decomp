@@ -121,15 +121,53 @@ class Fl24bDifferential(DiffBase):
         self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
 
 
-def _make(key):
-    def test(self):
-        self.run_key(key)
-    test.__doc__ = 'FL-24b: differential test of 0x%s' % key
-    return test
+    def test_4dad60_init_swap_buttons(self):
+        """FL-24b: differential test of m4dad60_init_swap_buttons (original 0x4dad60)"""
+        self.run_key('4dad60')
 
+    def test_466073_click_27d2_27d3(self):
+        """FL-24b: differential test of m466073_click_27d2_27d3 (original 0x466073)"""
+        self.run_key('466073')
 
-for _key in fx.KEYS:
-    setattr(Fl24bDifferential, 'test_' + _key, _make(_key))
+    def test_467740_hit_test(self):
+        """FL-24b: differential test of m467740_hit_test (original 0x467740)"""
+        self.run_key('467740')
+
+    def test_4b7563_click_27bf_27c1(self):
+        """FL-24b: differential test of m4b7563_click_27bf_27c1 (original 0x4b7563)"""
+        self.run_key('4b7563')
+
+    def test_459e49_click_2742(self):
+        """FL-24b: differential test of m459e49_click_2742 (original 0x459e49)"""
+        self.run_key('459e49')
+
+    def test_482359_hit_test(self):
+        """FL-24b: differential test of m482359_hit_test (original 0x482359)"""
+        self.run_key('482359')
+
+    def test_46793a_click_27ab_27ac(self):
+        """FL-24b: differential test of m46793a_click_27ab_27ac (original 0x46793a)"""
+        self.run_key('46793a')
+
+    def test_4ad310_click_2774_2776(self):
+        """FL-24b: differential test of m4ad310_click_2774_2776 (original 0x4ad310)"""
+        self.run_key('4ad310')
+
+    def test_4acf45_hit_test(self):
+        """FL-24b: differential test of m4acf45_hit_test (original 0x4acf45)"""
+        self.run_key('4acf45')
+
+    def test_4aa0f0_hit_test(self):
+        """FL-24b: differential test of m4aa0f0_hit_test (original 0x4aa0f0)"""
+        self.run_key('4aa0f0')
+
+    def test_487ed5_click_2788_2789(self):
+        """FL-24b: differential test of m487ed5_click_2788_2789 (original 0x487ed5)"""
+        self.run_key('487ed5')
+
+    def test_464c59_click_27c9_27cd(self):
+        """FL-24b: differential test of m464c59_click_27c9_27cd (original 0x464c59)"""
+        self.run_key('464c59')
 
 
 if __name__ == '__main__':

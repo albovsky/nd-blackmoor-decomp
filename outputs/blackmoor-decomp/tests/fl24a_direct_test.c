@@ -191,8 +191,9 @@ static void ck_tick(int i)
 
 /* ---- 0x4d3bef ----------------------------------------------------------------------------------------------------------------- */
 
-static void test_m4d3bef(void)
+static void test_m4d3bef_reset_flags(void)
 {
+    (void)m4d3bef_reset_flags;
     static const uint8_t values[] = {0, 1, 0x80, 0xff, 0x7f};
     size_t i;
     for (i = 0; i < sizeof values; i++) {
@@ -235,8 +236,9 @@ static void run_44edfb(void)
     m44edfb_click_2785_2787(fx.self, &fx.w, &fx.host);
 }
 
-static void test_m44edfb(void)
+static void test_m44edfb_click_2785_2787(void)
 {
+    (void)m44edfb_click_2785_2787;
     static const int idxs[] = {2, -1};
     static const uint32_t sels[] = {0x2787, 0x2786, 0x2785, 0x2784};
     size_t ii, si, k;
@@ -429,8 +431,9 @@ static void run_4cb3ab(void)
     m4cb3ab_store_flag(fx.self, &fx.w, &fx.host);
 }
 
-static void test_m4cb3ab(void)
+static void test_m4cb3ab_store_flag(void)
 {
+    (void)m4cb3ab_store_flag;
     static const size_t guards[] = {0xe, 0x12, 0x16, 0x15c};
     size_t k;
     int arm, g;
@@ -529,8 +532,9 @@ static int32_t run_44eab1(int x, int y)
     return m44eab1_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
 }
 
-static void test_m44eab1(void)
+static void test_m44eab1_hit_test(void)
 {
+    (void)m44eab1_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
     static const size_t fixed[4][4] = {{0x61, 0x69, 0x5d, 0x65}, {0x71, 0x79, 0x6d, 0x75}, {0x31, 0x39, 0x2d, 0x35}, {0x25d, 0x265, 0x259, 0x261}};
@@ -658,8 +662,9 @@ static void run_46ebff(void)
     m46ebff_click_27c2_27c3(fx.self, &fx.w, &fx.host);
 }
 
-static void test_m46ebff(void)
+static void test_m46ebff_click_27c2_27c3(void)
 {
+    (void)m46ebff_click_27c2_27c3;
     static const int idxs[] = {2, -1};
     static const uint32_t sels[] = {0x27c2, 0x27c3, 0x27c4};
     static const int bytes52[] = {0, 9, 10, 11, 0xff};
@@ -813,8 +818,9 @@ static int32_t run_4571e1(int x, int y)
     return m4571e1_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
 }
 
-static void test_m4571e1(void)
+static void test_m4571e1_hit_test(void)
 {
+    (void)m4571e1_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
     static const size_t R[3][4] = {{0x3b, 0x43, 0x37, 0x3f}, {0x4b, 0x53, 0x47, 0x4f}, {0x5b, 0x63, 0x57, 0x5f}};
@@ -992,8 +998,9 @@ static void row2(int i, int x, int y)
     set32(fx.obj, b + 0x11d, (uint32_t)(y + 3));
 }
 
-static void test_m47b4aa(void)
+static void test_m47b4aa_hit_test(void)
 {
+    (void)m47b4aa_hit_test;
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
     static const int ss[] = {2, 0, -1};
     static const int bytes[] = {1, 0x80, 0xff};
@@ -1147,8 +1154,9 @@ static int32_t run_4a6574(int x, int y)
     return m4a6574_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
 }
 
-static void test_m4a6574(void)
+static void test_m4a6574_hit_test(void)
 {
+    (void)m4a6574_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
     static const size_t R[6][4] = {{0x2b2, 0x2ba, 0x2ae, 0x2b6}, {0x2c2, 0x2ca, 0x2be, 0x2c6}, {0x1ba, 0x1c2, 0x1b6, 0x1be},
@@ -1328,8 +1336,9 @@ static void ck_row(int x, int y, int k, int w2c, int d, int t, int want_a, int w
     }
 }
 
-static void test_m465c99(void)
+static void test_m465c99_hit_test(void)
 {
+    (void)m465c99_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
     static const int ks[] = {-4, -1, 0, 1, 6, 7, 9};
@@ -1462,8 +1471,9 @@ static void run_482724(void)
     m482724_click_27b5_27b6(fx.self, &fx.w, &fx.host);
 }
 
-static void test_m482724(void)
+static void test_m482724_click_27b5_27b6(void)
 {
+    (void)m482724_click_27b5_27b6;
     static const int idxs[] = {2, -1};
     static const uint32_t bad78[] = {2, 0x100, 0x10000, 3, 0xffffffffu, 0x80000000u};
     static const int bad_a9[] = {0, 1, 0x7fff, 0x8000, 0xfffe, 2};
@@ -1718,8 +1728,9 @@ static void ck_world(void)
     CK(memcmp(&exp_world, &fx.w, sizeof fx.w) == 0);
 }
 
-static void test_m470ffe(void)
+static void test_m470ffe_hit_test(void)
 {
+    (void)m470ffe_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
     static const size_t FIRST[4] = {0x100, 0x108, 0xfc, 0x104};
@@ -1876,8 +1887,9 @@ static void run_4a6946(void)
     m4a6946_click_276f_2770(fx.self, &fx.w, &fx.host);
 }
 
-static void test_m4a6946(void)
+static void test_m4a6946_click_276f_2770(void)
 {
+    (void)m4a6946_click_276f_2770;
     static const int idxs[] = {2, -1};
     static const uint32_t sels[] = {0x2770, 0x276f};
     static const int ns[] = {-2, 0, 1, 2, 3};
@@ -2196,18 +2208,18 @@ static const struct {
     const char *name;
     void (*fn)(void);
 } CASES[] = {
-    {"test_m4d3bef_reset_flags", test_m4d3bef},
-    {"test_m44edfb_click_2785_2787", test_m44edfb},
-    {"test_m4cb3ab_store_flag", test_m4cb3ab},
-    {"test_m44eab1_hit_test", test_m44eab1},
-    {"test_m46ebff_click_27c2_27c3", test_m46ebff},
-    {"test_m4571e1_hit_test", test_m4571e1},
-    {"test_m47b4aa_hit_test", test_m47b4aa},
-    {"test_m4a6574_hit_test", test_m4a6574},
-    {"test_m465c99_hit_test", test_m465c99},
-    {"test_m482724_click_27b5_27b6", test_m482724},
-    {"test_m470ffe_hit_test", test_m470ffe},
-    {"test_m4a6946_click_276f_2770", test_m4a6946},
+    {"test_m4d3bef_reset_flags", test_m4d3bef_reset_flags},
+    {"test_m44edfb_click_2785_2787", test_m44edfb_click_2785_2787},
+    {"test_m4cb3ab_store_flag", test_m4cb3ab_store_flag},
+    {"test_m44eab1_hit_test", test_m44eab1_hit_test},
+    {"test_m46ebff_click_27c2_27c3", test_m46ebff_click_27c2_27c3},
+    {"test_m4571e1_hit_test", test_m4571e1_hit_test},
+    {"test_m47b4aa_hit_test", test_m47b4aa_hit_test},
+    {"test_m4a6574_hit_test", test_m4a6574_hit_test},
+    {"test_m465c99_hit_test", test_m465c99_hit_test},
+    {"test_m482724_click_27b5_27b6", test_m482724_click_27b5_27b6},
+    {"test_m470ffe_hit_test", test_m470ffe_hit_test},
+    {"test_m4a6946_click_276f_2770", test_m4a6946_click_276f_2770},
     {"test_sweep_bounded", test_sweep},
 };
 

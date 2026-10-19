@@ -1258,6 +1258,7 @@ static int32_t run_4acf45(int16_t x, int16_t y)
 
 static int test_m4acf45_hit_test(void)
 {
+    (void)m4acf45_hit_test;
     int k, v, i;
     int32_t r;
     g_failed = 0;

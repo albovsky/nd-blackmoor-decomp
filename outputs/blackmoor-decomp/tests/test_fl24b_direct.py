@@ -76,16 +76,53 @@ class Fl24bDirect(unittest.TestCase):
         self.assertEqual(self.returncode, 0)
 
 
-def _make(name):
-    def test(self):
-        self.check('test_m' + name)
-    test.__doc__ = 'FL-24b: direct test of m' + name
-    return test
+    def test_4dad60_init_swap_buttons(self):
+        """FL-24b: direct test of m4dad60_init_swap_buttons"""
+        self.check('test_m4dad60_init_swap_buttons')
 
+    def test_466073_click_27d2_27d3(self):
+        """FL-24b: direct test of m466073_click_27d2_27d3"""
+        self.check('test_m466073_click_27d2_27d3')
 
-for _name in EXPECTED:
-    _short = _name[len('test_m'):]
-    setattr(Fl24bDirect, 'test_' + _short.split('_')[0], _make(_short))
+    def test_467740_hit_test(self):
+        """FL-24b: direct test of m467740_hit_test"""
+        self.check('test_m467740_hit_test')
+
+    def test_4b7563_click_27bf_27c1(self):
+        """FL-24b: direct test of m4b7563_click_27bf_27c1"""
+        self.check('test_m4b7563_click_27bf_27c1')
+
+    def test_459e49_click_2742(self):
+        """FL-24b: direct test of m459e49_click_2742"""
+        self.check('test_m459e49_click_2742')
+
+    def test_482359_hit_test(self):
+        """FL-24b: direct test of m482359_hit_test"""
+        self.check('test_m482359_hit_test')
+
+    def test_46793a_click_27ab_27ac(self):
+        """FL-24b: direct test of m46793a_click_27ab_27ac"""
+        self.check('test_m46793a_click_27ab_27ac')
+
+    def test_4ad310_click_2774_2776(self):
+        """FL-24b: direct test of m4ad310_click_2774_2776"""
+        self.check('test_m4ad310_click_2774_2776')
+
+    def test_4acf45_hit_test(self):
+        """FL-24b: direct test of m4acf45_hit_test"""
+        self.check('test_m4acf45_hit_test')
+
+    def test_4aa0f0_hit_test(self):
+        """FL-24b: direct test of m4aa0f0_hit_test"""
+        self.check('test_m4aa0f0_hit_test')
+
+    def test_487ed5_click_2788_2789(self):
+        """FL-24b: direct test of m487ed5_click_2788_2789"""
+        self.check('test_m487ed5_click_2788_2789')
+
+    def test_464c59_click_27c9_27cd(self):
+        """FL-24b: direct test of m464c59_click_27c9_27cd"""
+        self.check('test_m464c59_click_27c9_27cd')
 
 
 if __name__ == '__main__':

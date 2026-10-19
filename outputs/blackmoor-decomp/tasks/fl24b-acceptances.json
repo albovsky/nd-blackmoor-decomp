@@ -15,11 +15,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_4dad60"
+    "test_id": "Fl24bDirect.test_4dad60_init_swap_buttons"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_4dad60"
+    "test_id": "Fl24bDifferential.test_4dad60_init_swap_buttons"
    }
   ],
   "oracle": {
@@ -48,11 +48,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_466073"
+    "test_id": "Fl24bDirect.test_466073_click_27d2_27d3"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_466073"
+    "test_id": "Fl24bDifferential.test_466073_click_27d2_27d3"
    }
   ],
   "oracle": {
@@ -81,11 +81,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_467740"
+    "test_id": "Fl24bDirect.test_467740_hit_test"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_467740"
+    "test_id": "Fl24bDifferential.test_467740_hit_test"
    }
   ],
   "oracle": {
@@ -114,11 +114,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_4b7563"
+    "test_id": "Fl24bDirect.test_4b7563_click_27bf_27c1"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_4b7563"
+    "test_id": "Fl24bDifferential.test_4b7563_click_27bf_27c1"
    }
   ],
   "oracle": {
@@ -147,11 +147,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_459e49"
+    "test_id": "Fl24bDirect.test_459e49_click_2742"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_459e49"
+    "test_id": "Fl24bDifferential.test_459e49_click_2742"
    }
   ],
   "oracle": {
@@ -180,11 +180,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_482359"
+    "test_id": "Fl24bDirect.test_482359_hit_test"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_482359"
+    "test_id": "Fl24bDifferential.test_482359_hit_test"
    }
   ],
   "oracle": {
@@ -213,11 +213,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_46793a"
+    "test_id": "Fl24bDirect.test_46793a_click_27ab_27ac"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_46793a"
+    "test_id": "Fl24bDifferential.test_46793a_click_27ab_27ac"
    }
   ],
   "oracle": {
@@ -246,11 +246,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_4ad310"
+    "test_id": "Fl24bDirect.test_4ad310_click_2774_2776"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_4ad310"
+    "test_id": "Fl24bDifferential.test_4ad310_click_2774_2776"
    }
   ],
   "oracle": {
@@ -279,11 +279,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_4acf45"
+    "test_id": "Fl24bDirect.test_4acf45_hit_test"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_4acf45"
+    "test_id": "Fl24bDifferential.test_4acf45_hit_test"
    }
   ],
   "oracle": {
@@ -312,11 +312,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_4aa0f0"
+    "test_id": "Fl24bDirect.test_4aa0f0_hit_test"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_4aa0f0"
+    "test_id": "Fl24bDifferential.test_4aa0f0_hit_test"
    }
   ],
   "oracle": {
@@ -345,11 +345,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_487ed5"
+    "test_id": "Fl24bDirect.test_487ed5_click_2788_2789"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_487ed5"
+    "test_id": "Fl24bDifferential.test_487ed5_click_2788_2789"
    }
   ],
   "oracle": {
@@ -378,11 +378,11 @@
    },
    {
     "path": "tests/test_fl24b_direct.py",
-    "test_id": "Fl24bDirect.test_464c59"
+    "test_id": "Fl24bDirect.test_464c59_click_27c9_27cd"
    },
    {
     "path": "tests/test_fl24b_differential.py",
-    "test_id": "Fl24bDifferential.test_464c59"
+    "test_id": "Fl24bDifferential.test_464c59_click_27c9_27cd"
    }
   ],
   "oracle": {
