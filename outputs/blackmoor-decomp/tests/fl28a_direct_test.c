@@ -27,6 +27,8 @@ static char g_msg[256];
 #define VA_A 0x20010000u
 #define VA_B 0x20020000u
 #define VA_V 0x20030000u
+#define VA_C 0x20040000u
+#define VA_D 0x20050000u
 #define A_SZ 0x400
 #define V_SZ 0x100
 #define VT30 0x7e000900u
@@ -49,7 +51,7 @@ static uint16_t get16(const uint8_t *o, size_t off)
 }
 
 static struct {
-    uint8_t self[SELF_SZ], a[A_SZ], b[A_SZ], v[V_SZ];
+    uint8_t self[SELF_SZ], a[A_SZ], b[A_SZ], v[V_SZ], c[A_SZ], d[A_SZ], low[0x80];
     Fl28aWorld w;
     Fl18Host host;
 } fx;
@@ -103,9 +105,12 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
 {
     (void)ctx;
+    if (a >= 0x20 && a < sizeof fx.low) return fx.low + a;      /* address 0 itself stays unmapped */
     if (a >= VA_A && a < VA_A + A_SZ) return fx.a + (a - VA_A);
     if (a >= VA_B && a < VA_B + A_SZ) return fx.b + (a - VA_B);
     if (a >= VA_V && a < VA_V + V_SZ) return fx.v + (a - VA_V);
+    if (a >= VA_C && a < VA_C + A_SZ) return fx.c + (a - VA_C);
+    if (a >= VA_D && a < VA_D + A_SZ) return fx.d + (a - VA_D);
     return NULL;
 }
 
@@ -117,6 +122,9 @@ static void reset(unsigned seed)
     for (i = 0; i < sizeof fx.a; i++) fx.a[i] = (uint8_t)rand();
     for (i = 0; i < sizeof fx.b; i++) fx.b[i] = (uint8_t)rand();
     for (i = 0; i < sizeof fx.v; i++) fx.v[i] = (uint8_t)rand();
+    for (i = 0; i < sizeof fx.c; i++) fx.c[i] = (uint8_t)rand();
+    for (i = 0; i < sizeof fx.low; i++) fx.low[i] = (uint8_t)rand();
+    for (i = 0; i < sizeof fx.d; i++) fx.d[i] = (uint8_t)rand();
     memset(&fx.w, 0, sizeof fx.w);
     memset(&fx.host, 0, sizeof fx.host);
     fx.host.call = host_call;
@@ -452,22 +460,25 @@ static void test_m423368_hash_name(void)
 /* a record at VA_B with the nine fields of 0x4f356e set to `on` (bit i = field i of the list) and three objects in fx.a (vtable fx.v, entry +8 = REL) */
 static const uint32_t F356E[9] = {0x162, 0x29b, 0x28f, 0x28b, 0x293, 0x297, 0x166, 0x2f1, 0x156};
 
-static void setup_4f356e(uint32_t on, uint32_t idx, uint32_t unload_count)
+/* layout 0: the three objects at the start of three 64 KiB regions (the low 16 bits of the addresses are zero); layout 1: at +0x41 (low byte non-zero, so that
+ * a narrower read or a read at the neighbouring offset of the fields sees a difference) */
+static void setup_4f356e(uint32_t on, uint32_t idx, uint32_t unload_count, uint32_t layout)
 {
     int i;
     reset(30 + on);
     set32(SELF, 0x3ce, VA_B + 0x100 - idx * 0x5bbu);
     set32(SELF, 0x3d6, unload_count);
-    set32(fx.a, 0, VA_V);
-    set32(fx.a, 0x40, VA_V);
-    set32(fx.a, 0x80, VA_V);
+    set32(fx.a, layout ? 0x41 : 0, VA_V);
+    set32(fx.c, layout ? 0x41 : 0, VA_V);
+    set32(fx.low, 0x24, VA_V);
+    set32(fx.d, layout ? 0x41 : 0, VA_V);
     set32(fx.v, 8, REL);
     for (i = 0; i < 9; i++) {
         uint32_t f = F356E[i], v = (on >> i & 1) ? 0x77000000u + f : 0;
         if (on >> i & 1) {
-            if (f == 0x293) v = VA_A;
-            if (f == 0x29b) v = VA_A + 0x40;
-            if (f == 0x28f) v = VA_A + 0x80;
+            if (f == 0x293) v = VA_A + (layout ? 0x41u : 0u);
+            if (f == 0x29b) v = VA_D + (layout ? 0x41u : 0u);
+            if (f == 0x28f) v = layout == 2 ? 0x24u : VA_C + (layout ? 0x41u : 0u);
         }
         set32(fx.b, 0x100 + f, v);
     }
@@ -480,7 +491,7 @@ static void test_m4f356e_unload(void)
     uint8_t exp[SELF_SZ], expb[A_SZ];
     uint32_t r;
     /* everything set: the counter drops, the callees run in the order of the original, the fields are cleared */
-    setup_4f356e(0x1ff, 1, 5);
+    setup_4f356e(0x1ff, 1, 5, 0);
     memcpy(exp, fx.self, sizeof exp);
     memcpy(expb, fx.b, sizeof expb);
     r = m4f356e_unload(SELF, 1, &fx.host);
@@ -501,12 +512,21 @@ static void test_m4f356e_unload(void)
     CK(call_is(2, 0x4f61e7, (uintptr_t)SELF, 1, 1, 0, 0, 0));
     CK(call_is(3, REL, 0, 1, VA_A, 0, 0, 0));
     CK(call_is(4, 0x51dc6c, 0, 1, 0x77000297u, 0, 0, 0));
-    CK(call_is(5, REL, 0, 1, VA_A + 0x40, 0, 0, 0));
-    CK(call_is(6, REL, 0, 1, VA_A + 0x80, 0, 0, 0));
+    CK(call_is(5, REL, 0, 1, VA_D, 0, 0, 0));
+    CK(call_is(6, REL, 0, 1, VA_C, 0, 0, 0));
     CK(call_is(7, 0x4fcef0, 0, 1, VA_B + 0x100 + 0x2f1, 0, 0, 0));
     CK(call_is(8, 0x50cee4, 0, 1, 0x77000156u, 0, 0, 0));
+    /* the other layout: the objects at +0x41, the same calls with those addresses, the same clears */
+    setup_4f356e(0x1ff, 1, 5, 1);
+    (void)m4f356e_unload(SELF, 1, &fx.host);
+    CK(L.n == 9 && call_is(3, REL, 0, 1, VA_A + 0x41, 0, 0, 0) && call_is(5, REL, 0, 1, VA_D + 0x41, 0, 0, 0) && call_is(6, REL, 0, 1, VA_C + 0x41, 0, 0, 0));
+    CK(get32(fx.b, 0x100 + 0x293) == 0 && get32(fx.b, 0x100 + 0x29b) == 0 && get32(fx.b, 0x100 + 0x28f) == 0);
+    /* layout 2: the [rec + 0x28f] object at the address 0x24 (a dword read at the neighbouring offset 0x290 would see zero) */
+    setup_4f356e(0x1ff, 0, 5, 2);
+    (void)m4f356e_unload(SELF, 0, &fx.host);
+    CK(L.n == 9 && call_is(6, REL, 0, 1, 0x24, 0, 0, 0) && get32(fx.b, 0x100 + 0x28f) == 0);
     /* 0x4f709c answers zero: only the stamp [self + 0x3c2] is stored */
-    setup_4f356e(0x1ff, 0, 5);
+    setup_4f356e(0x1ff, 0, 5, 0);
     script_ret(0x4f709c, 0, 0);
     memcpy(exp, fx.self, sizeof exp);
     memcpy(expb, fx.b, sizeof expb);
@@ -514,37 +534,38 @@ static void test_m4f356e_unload(void)
     set32(exp, SELF_OFF + 0x3c2, 0x3e8);
     CK(r == 1 && memcmp(exp, fx.self, sizeof exp) == 0 && memcmp(expb, fx.b, sizeof expb) == 0 && L.n == 1);
     /* the counter is unsigned: 0 leaves it and [0x28b] alone; 0x80000000 counts down */
-    setup_4f356e(0x1ff, 0, 0);
+    setup_4f356e(0x1ff, 0, 0, 0);
     (void)m4f356e_unload(SELF, 0, &fx.host);
     CK(get32(SELF, 0x3d6) == 0);
-    setup_4f356e(0x1ff, 0, 0x80000000u);
+    setup_4f356e(0x1ff, 0, 0x80000000u, 0);
     (void)m4f356e_unload(SELF, 0, &fx.host);
     CK(get32(SELF, 0x3d6) == 0x7fffffffu);
     /* each of the four guards of the counter in turn: nothing counted down, the record fields still cleared by the later steps */
     {
         static const unsigned off_bits[4] = {0, 1, 2, 3};
-        unsigned k;
-        for (k = 0; k < 4; k++) {
-            setup_4f356e(0x1ff & ~(1u << off_bits[k]), 0, 5);
-            (void)m4f356e_unload(SELF, 0, &fx.host);
-            CK(get32(SELF, 0x3d6) == 5);
-        }
+        unsigned k, layout;
+        for (layout = 0; layout < 2; layout++)
+            for (k = 0; k < 4; k++) {
+                setup_4f356e(0x1ff & ~(1u << off_bits[k]), 0, 5, layout);
+                (void)m4f356e_unload(SELF, 0, &fx.host);
+                CK(get32(SELF, 0x3d6) == 5);
+            }
     }
     /* 0x4f6334 answers zero: 0x4f61e7 is not called */
-    setup_4f356e(0x1ff, 0, 5);
+    setup_4f356e(0x1ff, 0, 5, 0);
     script_ret(0x4f6334, 0, 0);
     (void)m4f356e_unload(SELF, 0, &fx.host);
     CK(L.n == 8 && L.c[2].callee == REL);
     /* [0x28f] zero: no 0x4f6334, no last Release; the neighbouring flag [0x28b] has a high bit only (a dword test) */
-    setup_4f356e(0x1ff & ~(1u << 2), 0, 5);
+    setup_4f356e(0x1ff & ~(1u << 2), 0, 5, 0);
     (void)m4f356e_unload(SELF, 0, &fx.host);
     CK(L.n == 6 && L.c[1].callee == REL);
-    setup_4f356e(0x1ff, 0, 5);
+    setup_4f356e(0x1ff, 0, 5, 0);
     set32(fx.b, 0x100 + 0x28b, 0x80000000u);
     (void)m4f356e_unload(SELF, 0, &fx.host);
     CK(get32(SELF, 0x3d6) == 4 && get32(fx.b, 0x100 + 0x28b) == 0);
     /* nothing set: no call besides 0x4f709c; [0x152] is cleared (the other nine fields are already zero) */
-    setup_4f356e(0, 2, 5);
+    setup_4f356e(0, 2, 5, 0);
     memcpy(expb, fx.b, sizeof expb);
     (void)m4f356e_unload(SELF, 2, &fx.host);
     set32(expb, 0x100 + 0x152, 0);
@@ -714,6 +735,20 @@ static void test_m423142_insert(void)
     set32(fx.a, 0x25, VA_A);
     r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
     CK(r == 0 && L.n == 1);
+    /* an unresolvable value string (before the buffer allocation), name string (after the buffer pointer was stored), buffer address (after the name copy) */
+    setup_423142(0, NEWNODE, NEWNODE, "ab", "v");
+    set32(SELF, 0, 0);
+    r = m423142_insert(SELF, VA_V, 0x11110000u, &fx.host);
+    CK(r == 0 && L.n == 3 && get32(SELF, 0) == NEWNODE);
+    setup_423142(0, NEWNODE, NEWNODE, "ab", "v");
+    set32(SELF, 0, 0);
+    r = m423142_insert(SELF, 0x11110000u, VA_V + 0x40, &fx.host);
+    CK(r == 0 && L.n == 4 && get32(fx.b, 0x100) == NEWBUF);
+    setup_423142(0, NEWNODE, NEWNODE, "ab", "v");
+    script_ret(0x51dc43, NEWNODE, 0x22220000u);
+    set32(SELF, 0, 0);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 0 && L.n == 4 && get32(fx.b, 0x100) == 0x22220000u && fx.b[0x104] == 'a' && fx.b[0x105] == 'b' && fx.b[0x106] == 0);
     /* an unresolvable chain address */
     setup_423142(0, NEWNODE, NEWNODE, "ab", "v");
     set32(SELF, 0, 0x11110000u);
@@ -745,7 +780,7 @@ static void test_sweep_bounded(void)
         script_ret(0x50cb1b, k, k);
         fx.a[A_SZ - 1] = 0;
         (void)m423368_hash_name(VA_A + (s % 8), &fx.host);
-        setup_4f356e(s % 512, s % 3 == 0 ? 0 : 1, s % 4);
+        setup_4f356e(s % 512, s % 3 == 0 ? 0 : 1, s % 4, 0);
         (void)m4f356e_unload(SELF, s % 3 == 0 ? 0 : 1, &fx.host);
         setup_4fadc4(s % 3 ? 0 : 1);
         script_ret(0x4f379c, s % 2, 0);

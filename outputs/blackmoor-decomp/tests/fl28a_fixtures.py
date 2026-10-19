@@ -500,12 +500,16 @@ def gen_4f356e(rng, n):
     rec_va = (base + idx * 0x5bb) & 0xffffffff
     rec_off = rec_va - od.region_va(1)
     rec = junk(rng, 0x1400)
-    objs = junk(rng, 0xc0)
-    for k in range(3):
-        put32(objs, 0x40 * k, od.region_va(3))
+    objs = {f: junk(rng, 0x80) for f in (0x293, 0x29b, 0x28f)}
+    layouts = {f: rng.choice([0, 0x41]) for f in objs}       # 0: the object at the start of its 64 KiB region (low 16 bits zero); 0x41: low byte non-zero
+    low = rng.random() < 0.25       # the [rec + 0x28f] object at the address 0x24 (only its low byte is non-zero: a dword read at [rec + 0x290] sees zero where it should see the pointer)
+    for f in objs:
+        put32(objs[f], 0, od.region_va(3))
+        put32(objs[f], 0x41, od.region_va(3))
+    put32(objs[0x28f], 0x24, od.region_va(3))
     vt = junk(rng, 0x100)
     put32(vt, 8, VT_REL)
-    objaddr = {0x293: od.region_va(2), 0x29b: od.region_va(2) + 0x40, 0x28f: od.region_va(2) + 0x80}
+    objaddr = {0x293: od.region_va(2) + layouts[0x293], 0x29b: od.region_va(5) + layouts[0x29b], 0x28f: 0x24 if low else od.region_va(6) + layouts[0x28f]}
     for f in FIELDS_4F356E:
         value = 0 if not on[f] else (objaddr[f] if f in objaddr else rng.choice(FLAGS))
         put32(rec, rec_off + f, value)
@@ -521,8 +525,8 @@ def gen_4f356e(rng, n):
              0x4f61e7: stub(0x4f61e7, THISCALL(1), probe, results=[rng.randrange(1 << 32)], writes=w61e7), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe),
              0x4fcef0: stub(0x4fcef0, CDECL(1), probe), 0x50cee4: stub(0x50cee4, CDECL(1), probe),
              VT_REL: stub(VT_REL, STDCALL(1), probe, results=[rng.randrange(1 << 32)], writes=wrel)}
-    areas = [Area('self', od.region_va(0), selfd, image=False), Area('rec', od.region_va(1), rec, image=False), Area('objs', od.region_va(2), objs, image=False),
-             Area('vtbl', od.region_va(3), vt, image=False)]
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('rec', od.region_va(1), rec, image=False), Area('o293', od.region_va(2), objs[0x293], image=False),
+             Area('o29b', od.region_va(5), objs[0x29b], image=False), Area('o28f', 0 if low else od.region_va(6), objs[0x28f], image=False), Area('vtbl', od.region_va(3), vt, image=False)]
     return make('4f356e', areas, stubs, {}, [idx], (idx,), (early, combo))
 
 

@@ -12,6 +12,7 @@ jump of it (fl28a_fixtures.UNTAKEN_ALLOWED lists the one edge that is deliberate
 import ctypes
 from pathlib import Path
 import random
+import re
 import struct
 import sys
 import unittest
@@ -143,6 +144,15 @@ class Fl28aDifferential(DiffBase):
         unexpected, stale, _ = fx.check_edges(key, edges)
         self.assertEqual(unexpected, [], 'conditional jumps never taken one way (address, direction): %s' % [(hex(a), d) for a, d in unexpected])
         self.assertEqual(stale, [], 'allowlisted untaken edges that are taken after all (remove them): %s' % [(hex(a), d) for a, d in stale])
+
+    def test_embedded_constants_match_the_original(self):
+        """FL-28a: the float constants that 0x4fadc4 embeds (bit patterns in the port) are the bytes of GAME.EXE at 0x52e4e0 (float) and 0x52e4d8 (double)"""
+        text = (PROJECT / 'src/original_methods_fl28a.c').read_text()
+        scale = int(re.search(r'scale_bits = (0x[0-9a-f]+)u', text).group(1), 16)
+        offset = int(re.search(r'offset_bits = (0x[0-9a-f]+)ull', text).group(1), 16)
+        pe = od.load_image()
+        self.assertEqual(struct.unpack('<I', pe.image[0x52e4e0 - pe.image_base:][:4])[0], scale)
+        self.assertEqual(struct.unpack('<Q', pe.image[0x52e4d8 - pe.image_base:][:8])[0], offset)
 
     # CASES-BEGIN
     def test_4235fd_pop(self):
