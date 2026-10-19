@@ -12675,6 +12675,539 @@
    },
    "parts_accounted": [],
    "note": "1:1 with m412db8_wrap_text. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 975 bytes."
+  },
+  {
+   "va": "0x4cb586",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21a.c",
+    "symbol": "m4cb586_visit"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21a_direct_test.c",
+     "test_id": "test_m4cb586_visit"
+    },
+    {
+     "path": "tests/test_fl21a_direct.py",
+     "test_id": "Fl21aDirect.test_visit_4cb586"
+    },
+    {
+     "path": "tests/test_fl21a_differential.py",
+     "test_id": "Fl21aDifferential.test_4cb586_visit"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4cb586",
+     "0x4cb8d5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4cb586_visit. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 847 bytes.",
+   "blockers_reviewed": [
+    {
+     "id": "A-1C.1:362b4be6e273abb8",
+     "rationale": "The item asks for the dispatcher arm 0x427cc1, the handler 0x4cb586 and the meaning of the 105 bytes and of subtype 2; the handler is ported 1:1 here with all three record states and the string compare and copy, while the dispatcher arm 0x427cc1 and the meaning of the bytes stay outside this function."
+    }
+   ]
+  },
+  {
+   "va": "0x42caa8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21a.c",
+    "symbol": "m42caa8_clip_rect"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21a_direct_test.c",
+     "test_id": "test_m42caa8_clip_rect"
+    },
+    {
+     "path": "tests/test_fl21a_direct.py",
+     "test_id": "Fl21aDirect.test_clip_rect_42caa8"
+    },
+    {
+     "path": "tests/test_fl21a_differential.py",
+     "test_id": "Fl21aDifferential.test_42caa8_clip_rect"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_33_runtime_original_oracle.py",
+    "window": [
+     "0x42caa8",
+     "0x42cecd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m42caa8_clip_rect. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1061 bytes.",
+   "blockers_reviewed": [
+    {
+     "id": "A-33.1:35de5dfe55ad70d2",
+     "rationale": "The item lists the runtime handler 0x42c221 and its descendants 0x42ca22, 0x42caa8 and 0x42d215 plus the dependency gate 0x423f57; only descendant 0x42caa8 is ported here, with every clip branch and the optional record store, and the other handlers and the gate stay pending."
+    }
+   ]
+  },
+  {
+   "va": "0x462c39",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21a.c",
+    "symbol": "m462c39_pointer_move"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21a_direct_test.c",
+     "test_id": "test_m462c39_pointer_move"
+    },
+    {
+     "path": "tests/test_fl21a_direct.py",
+     "test_id": "Fl21aDirect.test_pointer_move_462c39"
+    },
+    {
+     "path": "tests/test_fl21a_differential.py",
+     "test_id": "Fl21aDifferential.test_462c39_pointer_move"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x462c39",
+     "0x4630a3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m462c39_pointer_move. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1130 bytes."
+  },
+  {
+   "va": "0x484f42",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21a.c",
+    "symbol": "m484f42_pointer_move"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21a_direct_test.c",
+     "test_id": "test_m484f42_pointer_move"
+    },
+    {
+     "path": "tests/test_fl21a_direct.py",
+     "test_id": "Fl21aDirect.test_pointer_move_484f42"
+    },
+    {
+     "path": "tests/test_fl21a_differential.py",
+     "test_id": "Fl21aDifferential.test_484f42_pointer_move"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x484f42",
+     "0x4853b0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m484f42_pointer_move. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1134 bytes."
+  },
+  {
+   "va": "0x48d914",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21a.c",
+    "symbol": "m48d914_step_scene"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21a_direct_test.c",
+     "test_id": "test_m48d914_step_scene"
+    },
+    {
+     "path": "tests/test_fl21a_direct.py",
+     "test_id": "Fl21aDirect.test_step_scene_48d914"
+    },
+    {
+     "path": "tests/test_fl21a_differential.py",
+     "test_id": "Fl21aDifferential.test_48d914_step_scene"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d914",
+     "0x48dec7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48d914_step_scene. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1459 bytes.",
+   "blockers_reviewed": [
+    {
+     "id": "A-D0.1:4054616505a59cc7",
+     "rationale": "The item asks for the runtime dispatcher arm 0x42a0ea, the handler 0x48d914 with its callees and the global object 0x61d345; the handler 0x48d914 is ported 1:1 here including the jump table over [self+0x2b], while the dispatcher arm, the callees and the global object stay outside this function."
+    }
+   ]
+  },
+  {
+   "va": "0x423f57",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21 root, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl19a.c",
+    "symbol": "m423f57_load_entry"
+   },
+   "tests": [
+    {
+     "path": "tests/fl19a_direct_test.c",
+     "test_id": "test_m423f57_load_entry"
+    },
+    {
+     "path": "tests/test_fl19a_direct.py",
+     "test_id": "Fl19aDirect.test_load_entry_423f57"
+    },
+    {
+     "path": "tests/test_fl19a_differential.py",
+     "test_id": "Fl19aDifferential.test_423f57_load_entry"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1b_runtime_original_oracle.py",
+    "window": [
+     "0x423f57",
+     "0x423fbb"
+    ]
+   },
+   "parts_accounted": [],
+   "blockers_reviewed": [
+    {
+     "id": "A-16.1:0a18fcffb930af84",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-17.1:4c4e433ead1d5b04",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-1B.1:852ed72cb0abacd9",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-1C.1:ed4e5ace44639868",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-20.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-2D.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-2E.1:6cca21030ace49fd",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-33.1:35de5dfe55ad70d2",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-35.1:7bb731a8a71694b8",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-3F.1:55cd610a6c2cc7f4",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-64:9411be32ea606b60",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-6D.1:489443acb9dc6613",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-70.1:cdfc0efd1a441194",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-76.1:e9603939cb140c5d",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-80.1:81dd04580d9edf3f",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-80.1:e9603939cb140c5d",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-83.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-9A.1:e9603939cb140c5d",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-AA.1:e9603939cb140c5d",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-D0.1:e9603939cb140c5d",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-D6.1:356a1abf64f5a4a7",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-D6.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-DA.1:911fe1b5b151ed0e",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-E0.1:335ca054f681b238",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-E0.1:3569dcbecd021873",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-E4.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-EA.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-EB.1:73891c8780d546df",
+     "rationale": "Item names 0x423f57 as the gate before an arm or handler whose runtime is not covered. This ports 0x423f57 alone; the arm, handler and its effects stay separate pending rows."
+    },
+    {
+     "id": "A-EE.1:d0149986b03963ea",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-F5.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "A-F6.1:73b5448b5be09195",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "RT-13:6ab2628db4e2d2c0",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "RT-16:6659a8e806c9774d",
+     "rationale": "Item is about which mode callers pass or how a caller treats the result. The port stores the given mode at +0x614 and returns the original's value; caller-side mode handling stays with the callers' rows."
+    },
+    {
+     "id": "RT-20:6d4dd7bed1897301",
+     "rationale": "Item is about building or evaluating the dependency tree in callees (0x424aa8, 0x424201). 0x423f57 only forwards to 0x424201; the port and its callee-scripted differential test claim just that forwarding."
+    },
+    {
+     "id": "RT-3:878e0f3f729c2635",
+     "rationale": "Item is about which mode callers pass or how a caller treats the result. The port stores the given mode at +0x614 and returns the original's value; caller-side mode handling stays with the callers' rows."
+    },
+    {
+     "id": "RT-4:f6bd2b1270b2ae51",
+     "rationale": "Item is about which mode callers pass or how a caller treats the result. The port stores the given mode at +0x614 and returns the original's value; caller-side mode handling stays with the callers' rows."
+    }
+   ],
+   "note": "1:1 with m423f57_load_entry (100 bytes, checked against the disassembly in FL-21). Direct and Unicorn differential tests; oracle window runs all 100 bytes. The RT-5 divergence is not a blocker here."
+  },
+  {
+   "va": "0x4468fe",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21b.c",
+    "symbol": "m4468fe_draw_clock"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21b_direct_test.c",
+     "test_id": "test_m4468fe_draw_clock"
+    },
+    {
+     "path": "tests/test_fl21b_direct.py",
+     "test_id": "Fl21bDirect.test_draw_clock_4468fe"
+    },
+    {
+     "path": "tests/test_fl21b_differential.py",
+     "test_id": "Fl21bDifferential.test_4468fe_draw_clock"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4468fe",
+     "0x446ed0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4468fe_draw_clock. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1490 bytes."
+  },
+  {
+   "va": "0x47f421",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21b.c",
+    "symbol": "m47f421_pointer_hit"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21b_direct_test.c",
+     "test_id": "test_m47f421_pointer_hit"
+    },
+    {
+     "path": "tests/test_fl21b_direct.py",
+     "test_id": "Fl21bDirect.test_pointer_hit_47f421"
+    },
+    {
+     "path": "tests/test_fl21b_differential.py",
+     "test_id": "Fl21bDifferential.test_47f421_pointer_hit"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x47f421",
+     "0x47fa11"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m47f421_pointer_hit. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1520 bytes."
+  },
+  {
+   "va": "0x48569e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21b.c",
+    "symbol": "m48569e_handle_key"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21b_direct_test.c",
+     "test_id": "test_m48569e_handle_key"
+    },
+    {
+     "path": "tests/test_fl21b_direct.py",
+     "test_id": "Fl21bDirect.test_handle_key_48569e"
+    },
+    {
+     "path": "tests/test_fl21b_differential.py",
+     "test_id": "Fl21bDifferential.test_48569e_handle_key"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x48569e",
+     "0x485ca1"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48569e_handle_key. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1539 bytes."
+  },
+  {
+   "va": "0x44e035",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21b.c",
+    "symbol": "m44e035_draw_panel"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21b_direct_test.c",
+     "test_id": "test_m44e035_draw_panel"
+    },
+    {
+     "path": "tests/test_fl21b_direct.py",
+     "test_id": "Fl21bDirect.test_draw_panel_44e035"
+    },
+    {
+     "path": "tests/test_fl21b_differential.py",
+     "test_id": "Fl21bDifferential.test_44e035_draw_panel"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44e035",
+     "0x44e650"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44e035_draw_panel. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1563 bytes."
+  },
+  {
+   "va": "0x44da08",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+   "date": "2026-10-19",
+   "native_source": {
+    "path": "src/original_methods_fl21b.c",
+    "symbol": "m44da08_run_state"
+   },
+   "tests": [
+    {
+     "path": "tests/fl21b_direct_test.c",
+     "test_id": "test_m44da08_run_state"
+    },
+    {
+     "path": "tests/test_fl21b_direct.py",
+     "test_id": "Fl21bDirect.test_run_state_44da08"
+    },
+    {
+     "path": "tests/test_fl21b_differential.py",
+     "test_id": "Fl21bDifferential.test_44da08_run_state"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44da08",
+     "0x44e025"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44da08_run_state. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1565 bytes.",
+   "blockers_reviewed": [
+    {
+     "id": "A-AA.1:3ee7bd6086aa9352",
+     "rationale": "The item lists handler 0x44da08 (reached from arm 0x42a66e) as an unverified branch. This port is that handler and covers its states; the arm and its gate 0x423f57 are not part of it."
+    }
+   ]
   }
  ],
  "not_needed_entries": [
