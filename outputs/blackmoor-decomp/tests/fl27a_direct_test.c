@@ -758,6 +758,62 @@ static void test_m4c2dfb_free_pair(void)
     expect_end();
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4159db: byte [a+0x20] == 2 -> 0x415db9(self; a, word); else 0x415011, 0x50ca3e (byte re-read, a+0x151), 0x52139c, [0x63a58a] = 4, 0x4c97b4 */
+
+static void test_m4159db_dispatch_piece(void)
+{
+    static const uint8_t OTHER[] = {0, 1, 3, 0x82, 0xff, 0x20, 0x12};
+    static const uint16_t WORDS[] = {0, 1, 0xffff, 0x8000, 0x1234};
+    size_t i;
+    for (i = 0; i < sizeof WORDS / sizeof WORDS[0]; i++) {
+        setup();
+        fx.a[0x30 + 0x20] = 2;                                           /* a = VA_A + 0x30; the neighbours are non-zero: a byte compare */
+        fx.a[0x30 + 0x21] = 0x7f;
+        fx.a[0x30 + 0x1f] = 0x7e;
+        fx.w.value_63a58a = 0x77;
+        expect_begin();
+        m4159db_dispatch_piece(fx.self, VA_A + 0x30, WORDS[i], &fx.w, &fx.host);
+        CK(L.n == 1);
+        ck_call(0, 0x415db9, (uintptr_t)fx.self, 2);
+        ck_arg(0, 0, VA_A + 0x30);                                       /* the object is the last pushed = the first argument */
+        ck_arg(0, 1, WORDS[i]);
+        CK(fx.w.value_63a58a == 0x77);
+        expect_end();
+    }
+    for (i = 0; i < sizeof OTHER; i++) {
+        setup();
+        fx.a[0x30 + 0x20] = OTHER[i];
+        fx.a[0x30 + 0x21] = 0;
+        fx.w.value_63a58a = 0x77;
+        expect_begin();
+        m4159db_dispatch_piece(fx.self, VA_A + 0x30, 0x55, &fx.w, &fx.host);
+        CK(L.n == 4);
+        ck_call(0, 0x415011, (uintptr_t)fx.self, 1);
+        ck_arg(0, 0, VA_A + 0x30);
+        ck_call(1, 0x50ca3e, 0, 4);
+        ck_arg(1, 0, 0x63888b);
+        ck_arg(1, 1, 0x541dd8);
+        ck_arg(1, 2, OTHER[i]);                                          /* zero-extended byte */
+        ck_arg(1, 3, VA_A + 0x30 + 0x151);
+        ck_call(2, 0x52139c, 0, 3);
+        ck_arg(2, 0, 0x63888b);
+        ck_arg(2, 1, 0);
+        ck_arg(2, 2, 0);
+        ck_call(3, 0x4c97b4, 0x5cf659, 0);
+        CK(L.c[0].v63a58a == 0x77 && L.c[1].v63a58a == 0x77 && L.c[2].v63a58a == 0x77);   /* 4 is stored after 0x52139c, before 0x4c97b4 */
+        CK(L.c[3].v63a58a == 4);
+        CK(fx.w.value_63a58a == 4);
+        expect_end();
+    }
+    setup();                                                            /* 0x415011 changes the byte: the formatted byte is the NEW one */
+    fx.a[0x30 + 0x20] = 4;
+    script_poke(0x415011, 0, fx.a + 0x30 + 0x20, 1, 0xaa);
+    m4159db_dispatch_piece(fx.self, VA_A + 0x30, 0, &fx.w, &fx.host);
+    CK(L.n == 4);
+    ck_arg(1, 2, 0xaa);
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -800,6 +856,7 @@ static void test_sweep(void)
         (void)m4bf315_bink_open(fx.self, VA_A + (rnd() % 64), rnd(), &fx.host);
         set32(fx.c, 4, rnd() % 2 ? VA_B + (rnd() % 16) : 0);
         m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
+        m4159db_dispatch_piece(fx.self, VA_A + (rnd() % 0x80), (uint16_t)rnd(), &fx.w, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -823,6 +880,7 @@ static const struct {
     {"test_m4bf10f_bink_next", test_m4bf10f_bink_next},
     {"test_m4bf315_bink_open", test_m4bf315_bink_open},
     {"test_m4c2dfb_free_pair", test_m4c2dfb_free_pair},
+    {"test_m4159db_dispatch_piece", test_m4159db_dispatch_piece},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

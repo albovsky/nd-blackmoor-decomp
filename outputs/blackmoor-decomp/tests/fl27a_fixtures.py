@@ -535,6 +535,35 @@ def gen_4c2dfb(rng, n):
 
 SPECS['4c2dfb'] = dict(id=14, va=0x4c2dfb, size=96, gen=gen_4c2dfb, cleanup=4, n=45)
 
+def gen_4159db(rng, n):
+    """The byte [a+0x20] is 2 (callee 0x415db9 gets a and the word; the bytes beside it are junk, so a wider compare fails) or not
+    (0x415011, the format call with the byte read again, the stdcall, the global, the singleton call; 'relocate': the first callee changes the byte)."""
+    others = (0, 1, 3, 0x82, 0xff, 0x20)
+    profiles = [('two', w) for w in (0, 1, 0xffff, 0x8000, 0x1234)] + [('other', b, None) for b in others] + [('other', 4, 'relocate'), ('other', 2, 'relocate'), ('other', 0xf0, 'relocate')]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    aoff = rng.choice([0, 1, 0x10])
+    a = od.region_va(1) + aoff
+    obj = bytearray(rng.randbytes(0x200))
+    obj[aoff + 0x20] = 2 if kind == 'two' else rest[0]
+    obj[aoff + 0x1f] = rng.randrange(1, 256)
+    obj[aoff + 0x21] = rng.randrange(1, 256)
+    pokes = None
+    if kind == 'other' and rest[1] == 'relocate':
+        pokes = {0: [(a + 0x20, 1, rng.choice([2, 7, 0xaa]))]}
+    word = rest[0] if kind == 'two' else rng.randrange(0x10000)
+    stack_word = (rng.randrange(0x10000) << 16) | word
+    probes = [('obj', aoff, 0x160), ('g:value_63a58a', 0, 4)]
+    stubs = {0x415db9: stub(0x415db9, results=[rng.randrange(1 << 32)]), 0x415011: stub(0x415011, results=[rng.randrange(1 << 32)], pokes=pokes),
+             0x50ca3e: stub(0x50ca3e, results=[rng.randrange(1 << 32)]), 0x52139c: stub(0x52139c, results=[rng.randrange(1 << 32)]),
+             0x4c97b4: stub(0x4c97b4, results=[rng.randrange(1 << 32)])}
+    g = {'value_63a58a': rng.choice([0, 1, 4, 0x100, rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('obj', od.region_va(1), obj, image=False)]
+    return make('4159db', areas, stubs, g, [a, stack_word], (a, stack_word), (kind, *rest), probes=probes)
+
+
+SPECS['4159db'] = dict(id=15, va=0x4159db, size=134, gen=gen_4159db, cleanup=8, n=42)
+
 KEYS = list(SPECS)
 
 

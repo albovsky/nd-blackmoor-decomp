@@ -312,4 +312,33 @@ void m4c2dfb_free_pair(uint8_t *self, uint32_t slot, const Fl18Host *host)
     wr32(s, 0, 0);
 }
 
+/* ---- 0x4159db ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4159db, thiscall, `ret 8` (a, word): the byte [a + 0x20]; when it is 2 calls 0x415db9 (this = self; a, the low word of the second
+ * argument) and ends. Otherwise: calls 0x415011 (this = self; a); then calls 0x50ca3e (cdecl: 0x63888b, 0x541dd8, the byte [a + 0x20] read
+ * AGAIN (the callee may have changed it), a + 0x151); calls 0x52139c (stdcall: 0x63888b, 0, 0); [0x63a58a] = 4 (dword); calls 0x4c97b4
+ * (ecx 0x5cf659). `a` is read through Fl18Host.resolve (0x21 bytes). The original pushes the word from a 32-bit register whose upper half
+ * is stale: the port passes the word alone. */
+void m4159db_dispatch_piece(uint8_t *self, uint32_t a, uint16_t word, Fl27aWorld *world, const Fl18Host *host)
+{
+    const uint8_t *obj = mem_at(host, a);
+    uintptr_t args[4];
+    if (obj[0x20] == 2) {
+        call2(host, 0x415db9, (uintptr_t)self, a, word);
+        return;
+    }
+    call1(host, 0x415011, (uintptr_t)self, a);
+    args[0] = 0x63888b;
+    args[1] = 0x541dd8;
+    args[2] = mem_at(host, a)[0x20];
+    args[3] = a + 0x151u;
+    if (host->call != NULL) host->call(host->context, 0x50ca3e, 0, args, 4);
+    args[0] = 0x63888b;
+    args[1] = 0;
+    args[2] = 0;
+    if (host->call != NULL) host->call(host->context, 0x52139c, 0, args, 3);
+    world->value_63a58a = 4;
+    call0(host, 0x4c97b4, 0x5cf659);
+}
+
 /*NEXT*/

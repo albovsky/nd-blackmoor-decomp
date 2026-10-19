@@ -109,6 +109,12 @@ uint32_t m4bf315_bink_open(uint8_t *self, uint32_t name, uint32_t flags, const F
  * slot is read again (the callee may have changed it), 0x51dc6c (cdecl) gets that value and the slot is cleared. */
 void m4c2dfb_free_pair(uint8_t *self, uint32_t slot, const Fl18Host *host);
 
+/* 0x4159db: thiscall, `ret 8` (a, word; `a` read through resolve, 0x21 bytes): the byte [a + 0x20] == 2 (a byte compare): calls 0x415db9
+ * (this = self; a, word) and ends. Otherwise calls 0x415011 (this = self; a); 0x50ca3e (cdecl: 0x63888b, 0x541dd8, the byte [a + 0x20]
+ * read again after the callee, a + 0x151); 0x52139c (stdcall: 0x63888b, 0, 0); [0x63a58a] = 4; 0x4c97b4 (ecx 0x5cf659). The word is the low
+ * 16 bits of the second stack argument. */
+void m4159db_dispatch_piece(uint8_t *self, uint32_t a, uint16_t word, Fl27aWorld *world, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus
