@@ -162,14 +162,15 @@ SPECS = {
                    sels=[0x279a, 0x2798, 0x2799], callees=[0x4f6334, 0x4fb2e3, 0x4a8bf2], post=lambda c: post_4a8818(c), scen=1000,
                    probes=[(0xa40, 0x1ea), (0xe00, 0x90)]),
     '4aa3d2': dict(id=2, va=0x4aa3d2, size=1100, selfsz=0x80, idx=0x21, gates=[('nz8', 0x45)], sels=[0x276f, 0x2770, 0x2771],
-                   callees=[0x4fb2e3, 0x4fb77a, 0x423259, 0x448d11], post=lambda c: post_4aa3d2(c), scen=1800, probes=[(0, 0x80)]),
+                   callees=[0x4fb2e3, 0x4fb77a, 0x423259, 0x448d11], post=lambda c: post_4aa3d2(c), scen=1800, probes=[(0, 0x80)],
+                   objpad=0x400),   # the record object sits 0x400 bytes into its area: a negative entry index k reads below it (k * 0x15c)
     '46c6a9': dict(id=3, va=0x46c6a9, size=1506, selfsz=0x4a80, idx=0x1e, gates=[('nz32', 0x4a48), ('z8', 0x4a59), ('z32', 0x4a55)],
                    sels=[0x27ea, 0x27e6, 0x27e8, 0x27e2, 0x27e3, 0x27e4, 0x27e5], callees=[0x4f6334, 0x4fb2e3, 0x46cc8b], post=lambda c: post_46c6a9(c),
                    scen=1800, probes=[(0x48a0, 0x180), (0x4a20, 0x40)]),
     # (the span ends with a 16-byte jump table at 0x4a4c05: the coverage target is the 1861 code bytes)
     '4a44c0': dict(id=4, va=0x4a44c0, size=1877, code=1861, selfsz=0x290, idx=0x1e, gates=[('nz32', 0x26e), ('z8', 0x27f), ('z32', 0x27b)],
                    sels=[0x274f, 0x274e, 0x274c, 0x274d], callees=[0x4f6334, 0x4fb2e3, 0x4a4d55], post=lambda c: post_4a44c0(c), scen=1800,
-                   probes=[(0x200, 0x90)]),
+                   probes=[(0x200, 0x90)], matpad=0x200),   # the matrices start 0x200 bytes into their area: negative index words read below them
     # SPECS-END
 }
 KEYS = list(SPECS)
@@ -239,11 +240,11 @@ def chain_build(key, rng, n):
     rec = bytearray(rng.randbytes(6 * 0x8d))
     for i in range(-1, 5):
         base = (i + 1) * 0x8d
-        struct.pack_into('<I', rec, base, od.region_va(1) if i == idx else od.region_va(4))
+        struct.pack_into('<I', rec, base, od.region_va(1) + sp.get('objpad', 0) if i == idx else od.region_va(4))
         bad = rng.choice([0, 2, 3, 0xffffffff, 0x101, 0x10001])
         struct.pack_into('<I', rec, base + 0x4d, (bad if state_fail else 1) if i == idx else (1 if state_fail else 0))
-    obj = bytearray(rng.randbytes(0x1000))
-    c = SimpleNamespace(d=d, obj=obj, rng=rng, n=n, variant=variant, sel=sel, passing=kind == 'pass', failing=failing, idx=idx, now=now,
+    obj = bytearray(rng.randbytes(sp.get('objpad', 0) + 0x1000))     # (the first objpad bytes are the slack below the object; offsets into obj add c.objpad)
+    c = SimpleNamespace(d=d, obj=obj, objpad=sp.get('objpad', 0), matpad=sp.get('matpad', 0), rng=rng, n=n, variant=variant, sel=sel, passing=kind == 'pass', failing=failing, idx=idx, now=now,
                         areas=[], g={}, pointers={}, consts={}, stack_args=[], stubs_results={}, iat={}, stub_kw={})
     if sp.get('post'):
         sp['post'](c)
@@ -364,30 +365,31 @@ SLENS = [1, 2, 3, 4, 5, 7, 8, 11, 12, 15, 16, 24, 27, 28]
 
 def post_4aa3d2(c):
     d, obj, rng, v, sel = c.d, c.obj, c.rng, c.variant, c.sel
+    P = c.objpad                             # the object starts P bytes into obj: obj[P + n] is its byte n (n may be negative: the slack below)
     if c.passing and sel == 0x276f:
         d[0x47] = 0 if v % 5 != 4 else rng.choice([1, 0x80, 0xff])
     else:
         d[0x47] = rng.choice([0, 0, 1, 0xff])
     arm1 = c.passing and sel == 0x276f and d[0x47] == 0
     arm2 = c.passing and sel == 0x2770
-    k = rng.choice([0, 1, 2, 3, 5, 9]) if arm2 else rng.choice([-1, 0, 1, 2, 3, 5, 9])
+    k = rng.choice([0, 1, 2, 3, 5, 9, -1, -2]) if arm2 else rng.choice([-2, -1, 0, 1, 2, 3, 5, 9])   # (-1, -2: the words 0xffff, 0xfffe)
     struct.pack_into('<h', d, 0x23, k)
     nine = (v % 11) - 1
     sub = (v // 3) % 4                       # arm 1: 0 words equal and flag byte zero (the counting arm), 1 words differ, 2 flag byte set, 3 both
-    word = struct.unpack_from('<H', obj, k * 0x15c + 0x233)[0]
+    word = struct.unpack_from('<H', obj, P + k * 0x15c + 0x233)[0]
     if arm1:
         struct.pack_into('<H', d, 0x40, word if sub in (0, 2) else different_word(rng, word))
         d[k + 0x2c] = 0 if sub in (0, 1) else rng.choice([1, 0x80, 0xff])
         if (v // 12) % 2:
-            obj[0x83] = rng.choice([1, 0x80, 0xff])
+            obj[P + 0x83] = rng.choice([1, 0x80, 0xff])
         else:
-            obj[0x83] = 0
-            obj[0x84:0x87] = bytes(rng.randrange(1, 256) for _ in range(3))
-        struct.pack_into('<h', obj, 0xf7, rng.choice([-2, 0, 1, 3, 7, 20, 40, -0x8000]))
-    nine_const(c, 0x550e2c, 0x52, obj, arm1 and sub == 0, nine=nine)
-    nine_const(c, 0x550e38, 0x21, obj, arm1 and sub != 0, nine=nine)
+            obj[P + 0x83] = 0
+            obj[P + 0x84:P + 0x87] = bytes(rng.randrange(1, 256) for _ in range(3))
+        struct.pack_into('<h', obj, P + 0xf7, rng.choice([-2, 0, 1, 3, 7, 20, 40, -0x8000]))
+    nine_const(c, 0x550e2c, P + 0x52, obj, arm1 and sub == 0, nine=nine)
+    nine_const(c, 0x550e38, P + 0x21, obj, arm1 and sub != 0, nine=nine)
     e = k * 0x15c
-    nine_const(c, 0x550e44, e + 0x119, obj, arm2, nine=nine)
+    nine_const(c, 0x550e44, P + e + 0x119, obj, arm2, nine=nine)
     g_nz = rng.random() < 0.8
     c.g['value_5bb202'] = rng.choice([1, 0x100, 0x80000000, 0xffffffff]) if g_nz else 0
     c.g['value_5d03b3'] = rng.randrange(1 << 32)
@@ -397,8 +399,8 @@ def post_4aa3d2(c):
     if arm2:
         len1 = 0 if rng.random() < 0.2 else rng.choice(SLENS)
         len2 = 0 if rng.random() < 0.3 else rng.choice(SLENS)
-        obj[e + 0x14a:e + 0x14a + len1 + 1] = bytes(rng.randrange(1, 256) for _ in range(len1)) + b'\0'
-        obj[e + 0x16b:e + 0x16b + len2 + 1] = bytes(rng.randrange(1, 256) for _ in range(len2)) + b'\0'
+        obj[P + e + 0x14a:P + e + 0x14a + len1 + 1] = bytes(rng.randrange(1, 256) for _ in range(len1)) + b'\0'
+        obj[P + e + 0x16b:P + e + 0x16b + len2 + 1] = bytes(rng.randrange(1, 256) for _ in range(len2)) + b'\0'
         smode = (v // 11) % 5                # the result of 0x423259: 0, a short string, an empty string, a string longer than 0x9c40, a short one
         slen = SLENS[(v // 55) % len(SLENS)]
         off = rng.choice([0, 1, 2, 3, 5, 0x100])
@@ -444,18 +446,24 @@ def post_4a44c0(c):
     known = sel in (0x274f, 0x274e, 0x274c, 0x274d)
     nz = ((sel == 0x274d) != flip) if (c.passing and known) else bool(rng.getrandbits(1))
     struct.pack_into('<I', d, 0x260, rng.choice([1, 0x100, 0x01000000, 0xffffffff, rng.randrange(1, 1 << 32)]) if nz else 0)
-    row, sub, i = rng.choice([0, 1, 2, 3]), rng.choice([0, 1, 2, 3, 4]), rng.choice([0, 1, 2, 3, 4, 5])
+    # the three index words, negative too (the words 0xffff, 0xfffe ...): the cell then lies below the start of the matrices, in the slack
+    row, sub, i = rng.choice([0, 1, 2, 3, -1, -2]), rng.choice([0, 1, 2, 3, 4, -1, -2]), rng.choice([0, 1, 2, 3, 4, 5, -1, -2, -3])
+    if v % 3 == 1:      # one word negative at a time (and the other two non-negative), so that each of the three sign extensions matters alone
+        which = (v // 3) % 3
+        row, sub, i = (rng.choice([-1, -2]) if which == 0 else abs(row), rng.choice([-1, -2]) if which == 1 else abs(sub),
+                       rng.choice([-1, -2, -3]) if which == 2 else abs(i))
     struct.pack_into('<h', d, 0x264, row)
     struct.pack_into('<h', d, 0x278, sub)
     struct.pack_into('<h', d, 0x276, i)
+    mp = c.matpad
     p_off = row * 0x7c + sub * 0xc + i * 2
-    buf = bytearray(rng.randbytes(0x200))
+    buf = bytearray(rng.randbytes(mp + 0x200))
     bvals = [0, 7, -1, -10, -0x8000, 0x7fff]
     avals = [0, 1, 2, 3, 4, -1, 0x7fff, -0x8000]
-    struct.pack_into('<h', buf, p_off, bvals[(v // 16) % 6])
-    struct.pack_into('<h', buf, 0x3c + p_off, avals[(v // 2) % 8])
-    c.areas.append(Area('b591a28', 0x591a28, buf))
-    c.pointers['buf_591a28'] = ('b591a28', 0)
+    struct.pack_into('<h', buf, mp + p_off, bvals[(v // 16) % 6])
+    struct.pack_into('<h', buf, mp + 0x3c + p_off, avals[(v // 2) % 8])
+    c.areas.append(Area('b591a28', 0x591a28 - mp, buf))
+    c.pointers['buf_591a28'] = ('b591a28', mp)
     dvals = [1, 2, 3, 5, 7, -1, -3, 127, -128]
     obj[0x21] = dvals[(v // 3) % 9] & 0xff
     struct.pack_into('<H', obj, 0x413, 1 if (v // 5) % 2 else rng.choice([0, 2, 0x8001, 0xffff, 0x101]))

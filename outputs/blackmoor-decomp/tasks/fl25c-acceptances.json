@@ -63,7 +63,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m4aa3d2_click_276f_2771 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 1800 fixtures, every code instruction reached (262/262), both directions of every conditional jump. See tasks/fl25c-handoff.md."
+  "note": "Matches arm by arm, host calls in order, except two rejections: S longer than 200 bytes (201..0x9c40) or unresolvable returns early (original overruns its frame). Direct, differential, oracle: 1800 fixtures, 262/262, both jcc ways."
  },
  {
   "va": "0x46c6a9",
@@ -96,7 +96,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m46c6a9_click_27e2_27ea (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 1800 fixtures, every code instruction reached (304/304), both directions of every conditional jump. See tasks/fl25c-handoff.md."
+  "note": "1:1 (guards, arms, host calls in order). Direct, differential, oracle: 1800 fixtures, 304/304; both jcc ways except the three allowlisted untaken edges 0x46c840, 0x46c99f, 0x46cb02 (re-tests of a known selector). See handoff."
  },
  {
   "va": "0x4a44c0",
@@ -129,6 +129,6 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m4a44c0_click_274c_274f (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 1800 fixtures, every code instruction reached (412/412), both directions of every conditional jump. See tasks/fl25c-handoff.md."
+  "note": "Matches arm by arm except one rejection: a zero divisor r[+0x21] in the split (0x274c/0x274d) returns (original divide error). Direct, differential, oracle: 1800 fixtures, 412/412, both jcc ways. See handoff."
  }
 ]

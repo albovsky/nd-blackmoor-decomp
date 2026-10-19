@@ -230,9 +230,11 @@ void m4a8818_click_2798_279a(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
  *     returned 0) and the string at r[k * 0x15c + 0x16b] is not empty, 0x448d11(this 0x619a05, [0x5d03b3], its guest address,
  *     -1, 0) runs. Whenever the nine bytes were equal or the calls are done: the byte [+0x2b] = 0 and [+0x25] = 2;
  *   the selector 0x2771 (the check follows both of the above, which cannot match it): the byte [+0x46] = 1 and the record state = 2.
- * Unsafe original behaviour with a native rejection: the local buffer is 0xcc bytes (ebp - 0xd8 up to the local S) and the original copies
- * strlen(S) + 1 bytes and then stores a dword at its end without any bound; the port returns at once (no call, no further store) when
- * strlen(S) is in 201 .. 0x9c40 (the original overruns its frame), and when the guest address S cannot be resolved. A callee that changes
+ * Unsafe original behaviour with a native rejection: the local buffer is 0xcc = 204 bytes (ebp - 0xd8 up to the local S) and the original
+ * copies strlen(S) + 1 bytes and then stores a dword at buf + strlen(S) without any bound. For strlen(S) 201 .. 203 that store clobbers only
+ * the low 1 .. 3 bytes of the local S (afterwards S is only compared with zero) and the original still calls 0x448d11 and stores [+0x2b] and
+ * [+0x25], which the port skips; for 204 .. 0x9c40 the copy and the store overrun the frame. The port returns at once (no call, no further
+ * store) when strlen(S) is in 201 .. 0x9c40 (a documented divergence), and when the guest address S cannot be resolved. A callee that changes
  * self is not exercised. */
 void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *host)
 {
@@ -292,7 +294,12 @@ void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
                         if (len > 0x9c40) {
                             s = 0;
                         } else {
-                            if (len > 200) return;      /* the original overruns its 0xcc-byte buffer */
+                            /* Documented divergence (rejection). The original's buffer is 0xcc = 204 bytes (ebp - 0xd8 up to the local S at ebp - 0xc), and
+                             * the dword store lands at buf + len. For len 201 .. 203 that store only clobbers the low 1 .. 3 bytes of S (which is just
+                             * compared with zero afterwards, at 0x4aa771), and the original still copies, calls 0x448d11 and stores [+0x2b] and
+                             * [+0x25]; the port skips all of that. For len > 203 the copy and the store overrun the frame (saved registers, return
+                             * address). The port rejects from len 201 on. */
+                            if (len > 200) return;
                             memcpy(local, sp, len + 1);
                             wr32(local, (ptrdiff_t)len, world->value_550e50);
                             call4(host, 0x448d11, 0x619a05, world->value_5d03b3, (uintptr_t)local, 0xffffffffu, 0);

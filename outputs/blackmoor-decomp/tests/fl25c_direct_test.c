@@ -30,6 +30,7 @@ static int g_phase, g_phase2;
 #define OBJ2_VA 0x20030000u       /* a second object (an address kept in the object under test) */
 #define MASK_VA 0x20040000u       /* a byte mask (0x4acf45) */
 #define BIG 0x4b00
+#define OBJ_SLACK 0x400           /* readable bytes below the object of the target record */
 
 static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
 static void set16(uint8_t *o, size_t off, uint16_t v) { memcpy(o + off, &v, 2); }
@@ -49,11 +50,12 @@ static uint32_t get32(const uint8_t *o, size_t off)
 static struct {
     uint8_t self[BIG];
     uint8_t tab[TAB_SZ];
+    uint8_t obj_lo[OBJ_SLACK];                       /* slack just below obj (adjacent: a negative record entry index reads here) */
     uint8_t obj[0x1000], decoy[0x1000], obj2[0x1000], mask[0x20100];
     Fl25cWorld w;
     Fl18Host host;
 } fx;
-static uint8_t xs[BIG], xt[TAB_SZ], xo[0x1000];     /* the expected object, record table and target object */
+static uint8_t xs[BIG], xt[TAB_SZ], xo_lo[OBJ_SLACK], xo[0x1000];     /* the expected object, record table and target object */
 static uint8_t consts[8][16];                        /* nine-byte constants (the tables of the original) */
 
 static struct {
@@ -115,6 +117,7 @@ static void base(uint32_t sel, int idx, size_t idx_off)
 {
     int i;
     memset(fx.self, 0xA5, sizeof fx.self);
+    memset(fx.obj_lo, 0x6d, sizeof fx.obj_lo);
     memset(fx.obj, 0x5c, sizeof fx.obj);
     memset(fx.decoy, 0x11, sizeof fx.decoy);
     memset(fx.obj2, 0x22, sizeof fx.obj2);
@@ -143,6 +146,7 @@ static void begin(void)
 {
     memcpy(xs, fx.self, BIG);
     memcpy(xt, fx.tab, TAB_SZ);
+    memcpy(xo_lo, fx.obj_lo, sizeof xo_lo);
     memcpy(xo, fx.obj, sizeof xo);
 }
 #define X32(o, v) set32(xs, (o), (v))
@@ -157,6 +161,7 @@ static void check_mem(void)
         snprintf(g_msg, sizeof g_msg, "self differs at +0x%zx (got %02x, want %02x) [phase %d.%d]", o, fx.self[o], xs[o], g_phase, g_phase2);
     }
     CK(memcmp(fx.tab, xt, TAB_SZ) == 0);
+    CK(memcmp(fx.obj_lo, xo_lo, sizeof xo_lo) == 0);
     CK(memcmp(fx.obj, xo, sizeof xo) == 0);
 }
 static void check_call(int k, uint32_t callee, uintptr_t this_ptr, int nargs)
@@ -491,6 +496,9 @@ static void nine_diff2(size_t off, int m)
     if (m == 9) fx.obj[off + 9] ^= 0x40;
 }
 
+/* the byte n of the object of the target record, n may be negative (the slack fx.obj_lo lies right below it) */
+static uint8_t *objat(ptrdiff_t n) { return fx.obj + n; }
+
 static int test_m4aa3d2_click_276f_2771(void)
 {
     static const int idxs[2] = {1, -1};
@@ -499,6 +507,7 @@ static int test_m4aa3d2_click_276f_2771(void)
     int ii, s, g, m, res, k, i;
     g_failed = 0;
     g_msg[0] = 0;
+    CK(fx.obj == fx.obj_lo + OBJ_SLACK);       /* the slack is adjacent: the negative entry indices below read it */
     for (ii = 0; ii < 2; ii++) {
         int idx = idxs[ii];
         g_phase = ii;
@@ -665,6 +674,65 @@ static int test_m4aa3d2_click_276f_2771(void)
                     check_arg(2, 3, 0, 0xffffffffu);
                     CK(memcmp(L.c[2].snap_str, fx.obj + E4B + 0x16b, (size_t)l2[k] + 1) == 0);
                     CK(get32(L.c[2].snap_self, 0x25) == 0x77);
+                }
+            }
+        }
+        /* arm 2 with a negative entry index: the word [+0x23] = 0xffff / 0xfffe is sign-extended (k = -1 / -2), so the entry lies BELOW the object
+         * (E = k * 0x15c; the object has OBJ_SLACK readable bytes under it). v 0: flag dword zero; v 1: string 1 empty, string 2 "xyz"; v 2: string 1
+         * "ab" and S = a 5-byte string from 0x423259 (copied into the local buffer). A zero extension (E = 0xffff * 0x15c) would read far away. */
+        for (k = 0; k < 2; k++) {
+            int v;
+            for (v = 0; v < 3; v++) {
+                int kk = k ? -2 : -1;
+                ptrdiff_t E = (ptrdiff_t)kk * 0x15c;
+                uint32_t eu = (uint32_t)(int32_t)E;
+                int j;
+                setup_4aa3d2(0x2770, idx);
+                set16(fx.self, 0x23, (uint16_t)(int16_t)kk);
+                set16(objat(E), 0x233, 0xcafe);
+                set16(objat(E), 0x13a, 0x8123);
+                memset(objat(E) + 0x119, 0x37, 9);
+                objat(E)[0x14a] = 0;
+                objat(E)[0x16b] = 0;
+                fx.w.value_5bb202 = v ? 0x100u : 0;
+                if (v == 1) {
+                    memcpy(objat(E) + 0x16b, "xyz", 4);
+                    g_snap_n = 7;
+                }
+                if (v == 2) {
+                    memcpy(objat(E) + 0x14a, "ab", 3);
+                    memcpy(objat(E) + 0x16b, "xyz", 4);
+                    memset(fx.obj2, 0x44, 0x1000);
+                    for (j = 0; j < 5; j++) fx.obj2[0x10 + j] = (uint8_t)('h' + j);
+                    fx.obj2[0x15] = 0;
+                    g_ret_by[0].callee = 0x423259;
+                    g_ret_by[0].value = OBJ2_VA + 0x10;
+                    g_snap_n = 9;
+                }
+                g_phase2 = kk;
+                run_4aa3d2();
+                X16(0x42, (uint16_t)(int16_t)kk);
+                X16(0x40, 0xcafe);
+                X8(0x2b, 0);
+                X32(0x25, 2);
+                finish_4aa3d2();
+                CK(L.n == (v == 0 ? 2 : v == 1 ? 3 : 4));
+                check_call(0, 0x4fb77a, 0x5c3a67u, 1);
+                check_arg(0, 0, OBJ_VA + eu + 0x119, 0xffffffffu);
+                check_call(1, 0x4fb2e3, 0x5c3a67u, 1);
+                check_arg(1, 0, 0x8123, 0xffffu);
+                CK(get16x(L.c[0].snap_self, 0x40) == 0xcafe && get16x(L.c[0].snap_self, 0x42) == (uint16_t)(int16_t)kk);
+                if (v == 1) {
+                    check_call(2, 0x448d11, 0x619a05u, 4);
+                    check_arg(2, 1, OBJ_VA + eu + 0x16b, 0xffffffffu);
+                    CK(memcmp(L.c[2].snap_str, "xyz", 4) == 0);
+                }
+                if (v == 2) {
+                    static const uint8_t want[9] = {'h', 'i', 'j', 'k', 'l', 0x00, 0x3e, 0x65, 0x3c};
+                    check_call(2, 0x423259, 0x619a6bu, 1);
+                    check_arg(2, 0, OBJ_VA + eu + 0x14a, 0xffffffffu);
+                    check_call(3, 0x448d11, 0x619a05u, 4);
+                    CK(memcmp(L.c[3].snap_str, want, 9) == 0);
                 }
             }
         }
@@ -984,12 +1052,15 @@ static int test_m46c6a9_click_27e2_27ea(void)
  * 0x9a; B is the word at 0x591a28 + P (buf47 + P) and A the word at 0x591a64 + P (buf47 + 0x3c + P). Constants 0x550570 / 0x55057c / 0x550588 are
  * consts[0..2]. The expected object is built store by store from the disassembly. */
 #define P47 0x9a
-static uint8_t buf47[0x200], xb47[0x200];
+#define M47 0x200            /* the matrices start M47 bytes into buf47s: a negative index word reads (and the original would write) below them */
+static uint8_t buf47s[M47 + 0x200], xb47s[M47 + 0x200];
+#define buf47 (buf47s + M47)
+#define xb47 (xb47s + M47)
 static const uint8_t NINE47[9] = {'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's'};
 static void setup_4a44c0(uint32_t sel, int idx)
 {
     base(sel, idx, 0x1e);
-    memset(buf47, 0x5a, sizeof buf47);
+    memset(buf47s, 0x5a, sizeof buf47s);
     fx.w.buf_591a28 = buf47;
     fx.w.bytes_550570 = consts[0];
     fx.w.bytes_55057c = consts[1];
@@ -1028,13 +1099,13 @@ static void set_a(int16_t v) { set16(buf47, 0x3c + P47, (uint16_t)v); }
 static void run_4a44c0(void)
 {
     begin();
-    memcpy(xb47, buf47, sizeof xb47);
+    memcpy(xb47s, buf47s, sizeof xb47s);
     m4a44c0_click_274c_274f(fx.self, &fx.w, &fx.host);
 }
 static void finish_4a44c0(void)
 {
     check_mem();
-    CK(memcmp(buf47, xb47, sizeof buf47) == 0);
+    CK(memcmp(buf47s, xb47s, sizeof buf47s) == 0);
 }
 static void xA47(int16_t v) { set16(xb47, 0x3c + P47, (uint16_t)v); }
 static void xB47(int16_t v) { set16(xb47, P47, (uint16_t)v); }
@@ -1207,6 +1278,60 @@ static int test_m4a44c0_click_274c_274f(void)
             xB47(-10);
             xA47(-10);
             finish_4a44c0();
+        }
+        /* negative index words (0xffff, 0xfffe, ...): each of the row [+0x264], sub-row [+0x278] and word [+0x276] index words in turn is negative,
+         * the other two stay 1, 2, 3; the sign-extended cell lies BELOW the matrices (M47 readable bytes under them). A zero extension of the row
+         * (0xffff * 0x7c), the sub-row (0xffff * 0xc) or the word index would pick a cell far away and so a wrong value. */
+        for (a = 0; a < 3; a++) {
+            for (w = 0; w < 2; w++) {
+                static const int16_t neg[3][2] = {{-1, -2}, {-1, -2}, {-1, -3}};
+                int16_t iw[3] = {1, 2, 3};
+                int ev;
+                ptrdiff_t P;
+                iw[a] = neg[a][w];
+                P = (ptrdiff_t)iw[0] * 0x7c + (ptrdiff_t)iw[1] * 0xc + (ptrdiff_t)iw[2] * 2;
+                for (ev = 0; ev < 3; ev++) {
+                    static const uint32_t evs[3] = {0x274c, 0x274d, 0x274e};
+                    setup_4a44c0(evs[ev], idx);
+                    set16(fx.self, 0x264, (uint16_t)iw[0]);
+                    set16(fx.self, 0x278, (uint16_t)iw[1]);
+                    set16(fx.self, 0x276, (uint16_t)iw[2]);
+                    set32(fx.self, 0x260, ev == 1 ? 0x100u : 0u);
+                    set16(buf47 + P, 0, 77);
+                    set16(buf47 + P + 0x3c, 0, ev == 0 ? 0x1357 : ev == 1 ? 0x2468 : 0);
+                    g_phase2 = a * 100 + w * 10 + ev;
+                    run_4a44c0();
+                    if (ev == 0) {
+                        X32(0x272, 0);
+                        X32(0x260, 1);
+                        X32(0x258, 1);
+                        X16(0x214, 77);
+                        expect_split(77, 3);
+                        X16(0x216, 0x1357);
+                        set16(xb47 + P, 0, 0xfff6);
+                        set16(xb47 + P + 0x3c, 0, 0xfff6);
+                    } else if (ev == 1) {
+                        set16(xb47 + P, 0, 0x1234);
+                        set16(xb47 + P + 0x3c, 0, 0x5678);
+                        X32(0x25c, 1);
+                        X32(0x266, 1);
+                        X16(0x26a, (uint16_t)iw[2]);
+                        X16(0x26c, (uint16_t)iw[1]);
+                        X32(0x258, 1);
+                        X16(0x214, 77);
+                        expect_split(77, 3);
+                        X16(0x216, 0x2468);
+                    } else {
+                        set16(xb47 + P + 0x3c, 0, 1);           /* A = 0 and the word r[+0x413] is 1: A = 1 */
+                        X32(0x266, 1);
+                        X16(0x26a, (uint16_t)iw[2]);
+                        X16(0x26c, (uint16_t)iw[1]);
+                    }
+                    finish_4a44c0();
+                    CK(L.n == (ev == 2 ? 1 : 0));
+                    if (ev == 2) check_call(0, 0x4a4d55, (uintptr_t)fx.self, 0);
+                }
+            }
         }
         /* the divide error of the original (non-zero B, byte 0): rejected after [+0x272], [+0x260], [+0x258] and [+0x214]; nothing else */
         setup_4a44c0(0x274c, idx);
