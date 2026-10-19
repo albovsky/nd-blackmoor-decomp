@@ -19,9 +19,18 @@ extern "C" {
  *
  * Unsafe original behaviour is rejected explicitly, not reproduced: an address that Fl18Host.resolve cannot resolve (the original would read
  * or write wild memory), an endless loop of the original (a node of an unknown kind, a cycle of the chain, a string longer than the local
- * buffer). The functions with such a case take `int32_t *reject` (NULL allowed): it is set to 0 for valid input, else to one of the
- * FL26B_REJECT_ codes; a rejected call stops at that point (effects already made stay made) and returns 0. This is a native-only
+ * buffer). The functions with such a case take `int32_t *reject`: it is set to 0 for valid input, else to one of the
+ * FL26B_REJECT_ codes (NULL is allowed except for m423fbb, whose rejection also returns INT32_MIN, a value its sign-extended word can never have, so it is never
+ * invisible); a rejected call stops at that point (effects already made stay made) and returns 0 (m423fbb: INT32_MIN). This is a native-only
  * behaviour, documented in tasks/fl26b-handoff.md; the original has no such branch.
+ *
+ * Caller-validated (the port does not check, like the original): the record index of 0x42ea87 (-1 .. 4 are exercised; the record table pointer needs two
+ * bytes of slack below it), the signed-word index `a` of its flag table 0x585801 (`flags_585801[a * 4]`: the host must supply a table that covers every
+ * value of a word that its objects can hold), the item of 0x4eb107 (the row `self + item * 0x16d + 0x77e` must exist) and the record number n of 0x4eb184
+ * (n >= 0 is tested, `self + n * 0x16d` and the record table must cover it). Resolve width contract: Fl18Host.resolve(a) must return memory that is valid
+ * for as many bytes as the function reads from `a`: 1 to 4 bytes for a field, up to 0x7d bytes for a string of 0x4eb184 (0x3d for a translated text).
+ * Integration blocker for 0x4eb184: its calls mix host pointers (the local structure, the buffer, a row of `self`) with original addresses (the record
+ * text 0x583f5c + n * 0x6e); the host adapter must translate the first kind and know the second.
  *
  * Host contract (as in FL-25): the Fl26bWorld scalars are a snapshot. A host that backs a callee with real original code must flush the
  * world to the original's memory BEFORE each Fl18Host.call and resync it AFTER the call. A callee that changes `self`, a node or a global
@@ -44,7 +53,7 @@ typedef struct Fl26bWorld {
     uint32_t value_5bb202, value_55cbc4, value_5d03b3, value_585d37;   /* 0x4eb184: the text flag, the dword appended to the text, two dwords of the display call */
 } Fl26bWorld;
 
-/* 0x423fbb (thiscall, `ret 4`, ecx unused): accessor of the leaf behind the dword [node + 0x1c]. When it is 0: dword [node + 0x20] = 0, returns -1.
+/* 0x423fbb (thiscall, `ret 4`, ecx unused; `reject` should not be NULL: a rejection returns INT32_MIN, never a valid value): accessor of the leaf behind the dword [node + 0x1c]. When it is 0: dword [node + 0x20] = 0, returns -1.
  * Else dword [node + 0x20] = dword [leaf + 0x40] and returns the signed word [leaf + 0x12] (movsx). */
 int32_t m423fbb_leaf_word(uint32_t node, const Fl18Host *host, int32_t *reject);
 
@@ -70,10 +79,10 @@ void m42ea87_record_state(int16_t index, Fl26bWorld *world, const Fl18Host *host
 /* 0x4eb184 (thiscall, `ret 4`): item-use feedback for the record n (a signed dword, negative returns). Record byte 0x583f1f + n * 0x6e == 0: picks a row
  * j (1..3) of the strings of self + n * 0x16d + 0x74e + j * 0x5d + 0x56 (9-byte compare with 0x55cba0, one byte with 0x63aa00), idx = rand() % j via 0x50cd50.
  * Then 0x4f6334(this = 0x5cf1eb, 0x11) != 0 returns. A text is chosen (record string at 0x583f5c + n * 0x6e, or the row idx of self, which is announced
- * through 0x4fb77a(this = 0x5c3a67) with a local structure) and, when 0x5bb202 is set, translated through 0x423259(this = 0x619a6b) into a buffer of 0x3c bytes
+ * through 0x4fb77a(this = 0x5c3a67) with a local structure) and, when 0x5bb202 is set, translated through 0x423259(this = 0x619a6b) into the local buffer (the original's frame lets a copy run to 0x7c bytes)
  * that is shown with 0x448d11(this = 0x619a05; [0x5d03b3], buffer, -1, 0) after the dword [0x55cbc4] is appended; [self + 0x8256] = 1 and
  * [self + 0x8286] = [0x585d37] + the signed word [self + 0x69d]; finally 0x4fb2e3(this = 0x5c3a67, 0x11). Rejected explicitly: a string that does not fit the
- * local buffer of the original (60 bytes; the structure copy: 52 bytes; the append needs 4 more bytes). */
+ * local frame of the original: a copy of 0x7c or more characters into the buffer (its NUL would be the live flag's low byte), a structure copy of 0x38 or more characters (saved ebp). A translated text is used only when its length is at most 0x3c (the original's own guard). */
 void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl18Host *host, int32_t *reject);
 
 #ifdef __cplusplus

@@ -336,6 +336,7 @@ def gen_4d3073(rng, n):
 
 def profiles_469057():
     profiles = [('gate',)] + [('row', k, f) for k in range(6) for f in EDGES] + [('wrap', k, e) for k in (0, 5) for e in range(4)]
+    profiles += [('overlap', 1, 4), ('overlap', 0, 5)]      # two rows hold the point: the first one wins (the callee gets its index), the later one is never looked at
     return profiles + [('tail', f) for f in EDGES] + [('tailwrap', e) for e in range(4)] + [('none',)]
 
 
@@ -357,6 +358,9 @@ def gen_469057(rng, n):
     elif kind == 'wrap':
         edge_fail(rng, d, x, y, row(rest[0]), adj, None)
         wrap_edge(rng, d, row(rest[0]), rest[1])
+    elif kind == 'overlap':
+        for k in rest:
+            edge_fail(rng, d, x, y, row(k), adj, None)
     if kind == 'tail':
         edge_fail(rng, obj, x, y, tail, adj, rest[0])
     elif kind == 'tailwrap':
@@ -371,6 +375,7 @@ def gen_469057(rng, n):
 def profiles_4b42d3():
     profiles = [('gate',)] + [('row', k, f) for k in range(3) for f in EDGES]
     profiles += [('w750', v) for v in (1, 0xffff, 0x8000, 0x7fff, 0x80000001)] + [('w750z', v) for v in (0, 0x10000, 0xabcd0000)]
+    profiles += [('overlap', 0, 2), ('overlap', 1, 2)]      # two rows hold the point: the first one wins
     return profiles + [('tail', f) for f in EDGES] + [('none',)]
 
 
@@ -390,6 +395,9 @@ def gen_4b42d3(rng, n):
         rect_into(rng, obj, x, y, row(k), adj, kind == 'gate')
     if kind == 'row':
         edge_fail(rng, obj, x, y, row(rest[0]), adj, rest[1])
+    elif kind == 'overlap':
+        for k in rest:
+            edge_fail(rng, obj, x, y, row(k), adj, None)
     if kind == 'tail':
         edge_fail(rng, obj, x, y, tail, adj, rest[0])
         put32(d, 0x750, rng.choice([0, 0x10000]))
@@ -411,6 +419,7 @@ def profiles_4897cd():
     profiles = [('gate',)] + [('count', c) for c in (-1, 0x80000000, 0xffffffff, 0x10000)]
     profiles += [('target', t, f) for t in TARGETS_4897CD for f in FAULTS_4897CD]
     profiles += [('nrows', c) for c in (0, -1, -32768, 0xffff)] + [('none',)]
+    profiles += [('orows', 0, 1), ('orows', 1, 3), ('oobjs', 0, 2), ('oobjs', 1, 2)]      # two rows of one object / two objects hold the point: the first one wins
     profiles += [('ann', s, b) for s in (-1, 0, 5, 0x7fff, -2, -32768) for b in (0, 1, 0x10000, 0x80000000)]
     return profiles
 
@@ -426,18 +435,22 @@ def gen_4897cd(rng, n):
     globals: the word 0x583a29 and the dword 0x5b44f8 take every combination)."""
     (kind, *rest), variant = prof(n, profiles_4897cd())
     x, y, stack = points(rng)
-    t, j = rest[0] if kind == 'target' else rng.choice(TARGETS_4897CD) if kind != 'ann' else (1, 2)
+    t, j = rest[0] if kind == 'target' else (1, rest[0]) if kind == 'orows' else (rest[0], 0) if kind == 'oobjs' else rng.choice(TARGETS_4897CD) if kind != 'ann' else (1, 2)
     fault = rest[1] if kind == 'target' else None
     d = bytearray(rng.randbytes(0x100))
     if kind == 'gate':
         count = 0
     elif kind == 'count':
         count = rest[0]
-    elif kind in ('target', 'ann', 'nrows'):
+    elif kind in ('target', 'ann', 'nrows', 'orows'):
         count = max(t + 1, rng.choice([1, 2, 3, 3]))
+    elif kind == 'oobjs':
+        count = 3
     else:
         count = rng.choice([1, 2, 3])
     put32(d, 0xcc, count)
+    if 0 < count < 0x100 and variant % 2:
+        d[0xd0] = 0      # (the dword at +0xcd is then zero too: a gate that read the count one byte off would see an empty list)
     rec_indices = rng.sample([-1, 0, 1, 2, 3, 4], 3)
     objs = [bytearray(rng.randbytes(0xb00)) for _ in range(3)]
     states = {r: rng.choice(BAD_STATES) for r in range(-1, 5)}
@@ -488,6 +501,13 @@ def gen_4897cd(rng, n):
             put16(o, b, w5bb50b + rng.choice([1, -1, 0x4000, 0x8000]))
         elif fault == 'w4':
             put16(o, b + 4, rng.choice([0, 2, -1, 0x7fff, -32768, 3]))
+    if kind == 'orows':
+        struct.pack_into('<h', objs[t], 0xaa, 4)
+        for r in rest:
+            rect_into(rng, objs[t], x, y, row_offs(r), (0, 0, 0, 0), True)
+    elif kind == 'oobjs':
+        for k in rest:
+            rect_into(rng, objs[k], x, y, row_offs(0), (0, 0, 0, 0), True)
     # stray junk beside the compared words (the bytes next to each compared word)
     for o in objs:
         for r in range(ROWS_4897CD):

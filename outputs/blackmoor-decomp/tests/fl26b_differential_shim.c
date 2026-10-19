@@ -21,7 +21,7 @@ typedef struct ShimCall {
     int32_t nargs;
     uint64_t this_ptr;
     uint64_t arg[12];
-    uint8_t data[128];    /* bytes behind pointer arguments that the test asked to see: [0..64) shim_script_deref, [64..128) shim_script_deref2 */
+    uint8_t data[256];    /* bytes behind pointer arguments that the test asked to see: [0..128) shim_script_deref, [128..256) shim_script_deref2 */
     uint8_t probe[4096];  /* bytes at the probed host addresses (shim_script_probe), concatenated, read at the call */
 } ShimCall;
 
@@ -152,7 +152,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     for (i = 0; i < nargs && i < 12; i++) c->arg[i] = args[i];
     /* a pointer argument is a host pointer (a local of the function) or an original address inside a fixture region */
     if (s->deref_arg > 0) memcpy(c->data, deref_ptr(args[s->deref_arg - 1]), (size_t)s->deref_bytes);
-    if (s->deref_arg2 > 0) memcpy(c->data + 64, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
+    if (s->deref_arg2 > 0) memcpy(c->data + 128, deref_ptr(args[s->deref_arg2 - 1]), (size_t)s->deref_bytes2);
     {
         int at = 0;
         for (i = 0; i < s->nprobe; i++) {

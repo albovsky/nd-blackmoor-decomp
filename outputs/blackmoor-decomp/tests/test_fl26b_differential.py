@@ -27,7 +27,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 class ShimCall24(ctypes.Structure):
     _fields_ = [('id', ctypes.c_uint32), ('nargs', ctypes.c_int32), ('this_ptr', ctypes.c_uint64), ('arg', ctypes.c_uint64 * 12),
-                ('data', ctypes.c_uint8 * 128), ('probe', ctypes.c_uint8 * 4096)]
+                ('data', ctypes.c_uint8 * 256), ('probe', ctypes.c_uint8 * 4096)]
 
 
 @unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
@@ -60,7 +60,7 @@ class Fl26bDifferential(DiffBase):
             c = calls[i]
             entry = ['tick' if c.id == fx.TICK_SLOT else c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(c.nargs)]]
             if c.id in deref_len:
-                entry.append(bytes(0 if b == 0x71 else b for b in bytes(c.data)[:deref_len[c.id]]))
+                entry.append(fx.norm_deref(c.id, bytes(c.data)[:deref_len[c.id]]))
             if c.id in probe_len:
                 entry.append(bytes(c.probe)[:probe_len[c.id]])
             out.append(entry)

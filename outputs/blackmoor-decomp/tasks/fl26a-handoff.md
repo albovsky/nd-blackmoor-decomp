@@ -35,9 +35,9 @@ Oracle results (instructions reached / in the code window, conditional-jump dire
 | va | instr | branch directions | scenarios | digest |
 |---|---|---|---|---|
 | 0x4d3073 | 44/44 | 4/4 | 144 | 500210c86ad4ccc38c8f75171ac8347122aaf9f6dbc19d6cc398493214e470a5 |
-| 0x469057 | 111/111 | 20/20 | 294 | 92e6c894b4f296c541f6ac8b3b213fcb9bc71cbb597dd0fafde3f20ae96d94a3 |
-| 0x4b42d3 | 129/129 | 22/22 | 180 | 83eb43bf0b7746e0523f69fb72aa15f612a53abed9373c6a83b7c61a17effe03 |
-| 0x4897cd | 125/125 | 30/30 | 316 | c46eada03409a34f6d9a61ea4a7695e2a4e54cda64f5a38d423b9aa50ce89289 |
+| 0x469057 | 111/111 | 20/20 | 306 | b0940b498327d39314d82a96c51cc41a1f619036b861f5d570d5917675ad889a |
+| 0x4b42d3 | 129/129 | 22/22 | 192 | 34b505a56ef0ab4040a559646b7a7eba07063e33077a1d6125fc445444eae70d |
+| 0x4897cd | 125/125 | 30/30 | 332 | c8d58ee794d63ea29316dfd89a7168e26ccd78b2bc8f2f68c64da65270deb3ae |
 
 No untaken conditional-jump direction in any function (the allowlist `UNTAKEN_ALLOWED` is empty). The direction of a jump is read from the original run itself (every (instruction, next instruction) pair seen by the Unicorn code hook). The code window of 0x4d3073 for coverage is the 180 code bytes (`code=180` in the fixtures); the 16 bytes behind it are the jump table, not code. Every switch arm (index 0..3) and the out-of-range default (sel = 0, 1, 6, 7, 0x7fffffff, 0x80000002, 0x80000005, 0xffffffff) is reached with all four values of the flag byte.
 
@@ -63,6 +63,7 @@ Only OS and host boundaries are stubbed; no decision of the function under test 
 - 0x4d3073: the byte [0x5a161f] is read as a byte (`xor eax, eax; mov al, [..]`); the oracle fixtures vary the three bytes behind it, the native world holds only the byte, so a widening of that read in the native code is not distinguishable by the differential (the direct test cannot see it either); the hand mutant that changed the test of the value is caught.
 - 0x469057, 0x4b42d3, 0x4897cd: out-of-range word indices (a record index outside -1..4 in the tests) read memory the original would also read; the native code does the same on the host buffers and the tests never go there. No unsafe original behaviour is rejected natively.
 - Unreachable instructions: none in the four ported functions. 0x4e0978 has four (see above).
+- Review fixes (FL-26 a+b review, no P1). (1) Fixture gap closed: the differential now has profiles with two overlapping hits where the first must win: 0x469057 `('overlap', 1, 4)` and `('overlap', 0, 5)` (rows), 0x4b42d3 `('overlap', 0, 2)` and `('overlap', 1, 2)` (rows), 0x4897cd `('orows', 0, 1)`, `('orows', 1, 3)` (two rows of one object; `self+0x24` shows the row where the loop stopped) and `('oobjs', 0, 2)`, `('oobjs', 1, 2)` (two objects; `[0x5c39e5]` and `self+0x1c` show which object won). Hand mutants that drop the early `return 1` of the first hit (`continue` in the row loops, `continue` and `break` in the row loop of 0x4897cd) are all detected. A mutant of the count gate that reads the dword at +0xcd (line 184) had survived by chance after the profile list changed; the fixtures now zero the byte at +0xd0 in half of the small-count scenarios, which kills it (the survivors are again the 2 equivalent ones). (2) Safety policy: the port is caller-validated, like the original, and says so in the header of `original_methods_fl26a.h`: the object count [+0xcc] of 0x4897cd must not exceed 40 (the list at [+0x2c + 4i] has 40 entries; a count whose signed value is not positive is an empty loop, tested), the row count word [+0xaa] needs that many rows, `Fl18Host.resolve` is called unchecked (NULL is dereferenced), the record table must cover the signed record words times 0x8d. Resolve width contract: `Fl18Host.resolve(a)` must return memory valid for the bytes read through it (16 bytes for the 0x4b42d3 rectangle, 0x8ae bytes for a 0x4b42d3 object, 0x41 bytes for a 0x469057 object, 0xab6 bytes plus the rows for a 0x4897cd object). (3) Integration blocker, as in FL-25: the 0x4897cd stores into `self` ([+0x1c], [+0x20], [+0x24]) are original addresses, and the calls of 0x4691ee / 0x4b450f / 0x4b3f98 pass `self` as a HOST pointer while the hit-test inputs (the rectangle address, the object addresses) are original addresses: the host adapter must say which side translates.
 - No independent review; no claim that the batch or FL-26 is complete.
 
 ## Hashes
@@ -82,7 +83,7 @@ Code windows (sha256 of the original bytes, va to va+span):
 
 ## Mutation
 
-`python3 tests/fl26a_mutation_check.py` (full, unsampled run, final tests): 136 mutants, 131 caught by the direct test (build failures and timeouts included), 3 more caught only by the Unicorn differential, 2 survivors. Both survivors are equivalent:
+`python3 tests/fl26a_mutation_check.py` (full, unsampled run, final tests): 136 mutants, 131 caught by the direct test (build failures and timeouts included), 3 more caught only by the Unicorn differential, 2 survivors (re-run after the review fixes: same counts). Both survivors are equivalent:
 
 - line 168 (0x4b42d3) `rds16(self, 0x750) != 0` -> `rd16(...) != 0`: a zero test of a word gives the same answer sign-extended or zero-extended.
 - line 199 (0x4897cd) `rds16(row, 4) != 1` -> `rd16(row, 4) != 1`: `movsx` of a word equals 1 exactly when the zero-extended word equals 1.

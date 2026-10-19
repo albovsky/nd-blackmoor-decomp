@@ -59,7 +59,7 @@ static struct {
         uintptr_t this_ptr;
         int nargs;
         uintptr_t a[4];
-        uint8_t snap[0x40];     /* the bytes behind the pointer argument of 0x4fb77a (arg 0) / 0x448d11 (arg 1) at the call */
+        uint8_t snap[0x80];     /* the bytes behind the pointer argument of 0x4fb77a (arg 0) / 0x448d11 (arg 1) at the call */
     } c[16];
 } L;
 static uint32_t g_ret_4235fd[4];
@@ -77,7 +77,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     for (i = 0; i < nargs && i < 4; i++) L.c[L.n].a[i] = args[i];
     memset(L.c[L.n].snap, 0, sizeof L.c[L.n].snap);
     if ((callee == 0x4fb77a && nargs >= 1 && args[0] > 0xffffffffu) || (callee == 0x448d11 && nargs >= 2))
-        memcpy(L.c[L.n].snap, (const void *)args[callee == 0x448d11], callee == 0x448d11 ? 0x3c : 0x34);
+        memcpy(L.c[L.n].snap, (const void *)args[callee == 0x448d11], callee == 0x448d11 ? 0x80 : 0x38);
     L.n++;
     if (callee == 0x50cd50) return g_ret_50cd50;
     if (callee == 0x4f6334) return g_ret_4f6334;
@@ -153,10 +153,13 @@ static void test_m423fbb_leaf_word(void)
     CK(r == 0 && get32(arena, 0x20) == 0);
     /* native rejections: the node, then the leaf, cannot be resolved */
     r = m423fbb_leaf_word(0x1000, &host, &rej);
-    CK(r == 0 && rej == FL26B_REJECT_UNRESOLVED);
+    CK(r == INT32_MIN && rej == FL26B_REJECT_UNRESOLVED);
     A32(0x1c, 0x30000000u);
     r = m423fbb_leaf_word(VA(0), &host, &rej);
-    CK(r == 0 && rej == FL26B_REJECT_UNRESOLVED);
+    CK(r == INT32_MIN && rej == FL26B_REJECT_UNRESOLVED);
+    /* a rejection is never invisible: without a reject pointer the result is still INT32_MIN, which no word can be (the word is sign-extended from 16 bits) */
+    r = m423fbb_leaf_word(0x1000, &host, NULL);
+    CK(r == INT32_MIN);
     CK(L.n == 0);
 }
 
@@ -647,33 +650,74 @@ static void test_m4eb184_use_feedback(void)
     world.value_55cbc4 = 0x00323130u;
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
     CK(L.n == 5 && call_is(2, 0x423259, 0x619a6b, 1) && L.c[2].a[0] == 0x583f5c + 0x6e && memcmp(L.c[3].snap, "abc012", 7) == 0);
-    /* native rejections: a translated text of exactly 0x3c characters (the original overruns the 60-byte buffer by one), a record text whose append does not fit,
-     * a structure copy without a NUL in 0x34 bytes (the stores of the fields are made first), an unresolved translation */
+    /* the buffer of the original is followed only by dead locals up to the flag (0x7c bytes), so these are valid and handled as the original does:
+     * a translated text of 0x38 .. 0x3c characters (the text is used up to 0x3c characters) with the dword appended after it, and a record text of 0x7b
+     * characters (the append then ends in the flag slot, which is dead after its test) */
+    for (j = 0x38; j <= 0x3c; j++) {
+        setup4();
+        recs_tab[n * 0x6e] = 1;
+        put_str(recs_tab + n * 0x6e + 0x3d, "abc");
+        world.value_5bb202 = 1;
+        world.value_55cbc4 = 0x00444342u;
+        memset(arena + 0x300, 'z', (size_t)j);
+        arena[0x300 + j] = 0;
+        g_ret_423259 = VA(0x300);
+        m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+        CK(rej == 0 && L.n == 5 && call_is(3, 0x448d11, 0x619a05, 4) && memcmp(L.c[3].snap, arena + 0x300, (size_t)j) == 0 && memcmp(L.c[3].snap + j, "BCD", 4) == 0);
+    }
+    /* a translated text of 0x3d characters is not used (the original's own guard): the record text is */
     setup4();
     recs_tab[n * 0x6e] = 1;
     put_str(recs_tab + n * 0x6e + 0x3d, "abc");
     world.value_5bb202 = 1;
-    memset(arena + 0x300, 'z', 0x3c);
-    arena[0x300 + 0x3c] = 0;
+    memset(arena + 0x300, 'z', 0x3d);
+    arena[0x300 + 0x3d] = 0;
     g_ret_423259 = VA(0x300);
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
-    CK(rej == FL26B_REJECT_OVERRUN && L.n == 3);
+    CK(rej == 0 && L.n == 5 && memcmp(L.c[3].snap, "abc", 4) == 0);
+    for (j = 0; j < 3; j++) {
+        int len = j == 0 ? 0x39 : j == 1 ? 0x60 : 0x7b;
+        setup4();
+        recs_tab[n * 0x6e] = 1;
+        memset(recs_tab + n * 0x6e + 0x3d, 'r', (size_t)len);
+        recs_tab[n * 0x6e + 0x3d + len] = 0;
+        world.value_5bb202 = 1;
+        world.value_55cbc4 = 0x00323130u;
+        m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+        CK(rej == 0 && L.n == 5 && memcmp(L.c[3].snap, recs_tab + n * 0x6e + 0x3d, (size_t)len) == 0 && memcmp(L.c[3].snap + len, "012", 4) == 0);
+    }
+    /* without the text display there is no append: 0x7b characters are the longest the buffer takes, 0x7c characters do not fit */
     setup4();
     recs_tab[n * 0x6e] = 1;
-    memset(recs_tab + n * 0x6e + 0x3d, 'r', 0x39);
-    recs_tab[n * 0x6e + 0x3d + 0x39] = 0;
-    world.value_5bb202 = 0;
+    memset(recs_tab + n * 0x6e + 0x3d, 'r', 0x7b);
+    recs_tab[n * 0x6e + 0x3d + 0x7b] = 0;
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
     CK(rej == 0 && L.n == 3);
-    world.value_5bb202 = 1;
-    L.n = 0;
+    setup4();
+    recs_tab[n * 0x6e] = 1;
+    memset(recs_tab + n * 0x6e + 0x3d, 'r', 0x7c);
+    recs_tab[n * 0x6e + 0x3d + 0x7c] = 0;
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
-    CK(rej == FL26B_REJECT_OVERRUN && L.n == 3 && call_is(2, 0x423259, 0x619a6b, 1));
+    CK(rej == FL26B_REJECT_OVERRUN && L.n == 2);
+    /* native rejections where the original would clobber the live flag (a text of 0x7c characters: its NUL is the flag's low byte) or the saved ebp (a
+     * structure string of 0x38 characters): the second one here; the append never clobbers a live local (the flag is tested before it) */
     setup4();
     recs_tab[n * 0x6e] = 0;
     memset(self_buf + ROW(n, 0), 'x', 0x5d);
+    self_buf[ROW(n, 0) + 0x38] = 0;
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
     CK(rej == FL26B_REJECT_OVERRUN && L.n == 2);
+    /* the string at row + 0x21 for the buffer: 0x7b characters are valid, 0x7c are not */
+    for (j = 0x7b; j <= 0x7c; j++) {
+        setup4();
+        recs_tab[n * 0x6e] = 0;
+        memset(self_buf + ROW(n, 0), 'x', 0x5d + 0x80);
+        self_buf[ROW(n, 0) + 0x20] = 0;
+        self_buf[ROW(n, 0) + 0x21 + j] = 0;
+        m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+        if (j == 0x7b) CK(rej == 0 && L.n == 4);
+        else CK(rej == FL26B_REJECT_OVERRUN && L.n == 3);
+    }
     setup4();
     recs_tab[n * 0x6e] = 1;
     world.value_5bb202 = 1;
@@ -690,19 +734,17 @@ static void test_m4eb184_use_feedback(void)
     g_ret_423259 = 0x30000000u;
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
     CK(rej == FL26B_REJECT_UNRESOLVED && L.n == 4 && call_is(2, 0x4fb77a, 0x5c3a67, 1) && call_is(3, 0x423259, 0x619a6b, 1));
-    /* the structure copy: a string of 0x33 characters (0x34 bytes with the NUL) fits the 52-byte structure; 0x34 characters do not */
-    setup4();
-    recs_tab[n * 0x6e] = 0;
-    memset(self_buf + ROW(n, 0), 'x', 0x5d);
-    self_buf[ROW(n, 0) + 0x33] = 0;
-    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
-    CK(rej == 0 && L.n == 4 && call_is(2, 0x4fb77a, 0x5c3a67, 1) && L.c[2].snap[0x33] == 0 && L.c[2].snap[0x32] == 'x' && L.c[2].snap[0x31] == 'x');
-    setup4();
-    recs_tab[n * 0x6e] = 0;
-    memset(self_buf + ROW(n, 0), 'x', 0x5d);
-    self_buf[ROW(n, 0) + 0x34] = 0;
-    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
-    CK(rej == FL26B_REJECT_OVERRUN && L.n == 2);
+    /* the structure copy: the structure is 0x34 bytes plus the flag dword that follows it, which the original rewrites to 1 right after the field stores:
+     * strings of 0x33 .. 0x37 characters are valid (the copy runs into the flag), 0x38 characters are rejected */
+    for (j = 0x33; j <= 0x38; j++) {
+        setup4();
+        recs_tab[n * 0x6e] = 0;
+        memset(self_buf + ROW(n, 0), 'x', 0x5d);
+        self_buf[ROW(n, 0) + j] = 0;
+        m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+        if (j <= 0x37) CK(rej == 0 && L.n == 4 && call_is(2, 0x4fb77a, 0x5c3a67, 1) && L.c[2].snap[0x20] == 'x' && get16(L.c[2].snap, 0x21) == 0x11);
+        else CK(rej == FL26B_REJECT_OVERRUN && L.n == 2);
+    }
 }
 
 /* ---- a bounded random sweep (meant for the sanitiser builds) ---------------------------------------------------------------- */

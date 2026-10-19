@@ -21,6 +21,13 @@ extern "C" {
  * record or an object keeps is the 32-bit original address; Fl18Host.resolve turns it into host memory where the function reads through
  * it. Fl18Host.resolve is called UNCHECKED; only Fl18Host.call may be NULL (the calls then return 0).
  *
+ * Caller-validated (the port does not check, like the original, and no native rejection exists in this batch): the object count [+0xcc] of 0x4897cd (the list at
+ * [+0x2c + 4i] holds 40 addresses, so a count above 40 reads past it; a count whose signed value is not positive is a valid empty loop), the row count word [+0xaa] of an
+ * object (the rows at +0x6ec + 0x26 j must exist), every address that Fl18Host.resolve is called with (it is called UNCHECKED: a NULL result is dereferenced), the
+ * record number words (the record table must cover the signed word times 0x8d, -1 .. 4 are exercised), and the rectangle address of 0x4b42d3. Resolve width contract:
+ * Fl18Host.resolve(a) must return memory valid for the bytes read through it: 16 bytes for the rectangle of 0x4b42d3, 0x8ae bytes for an object of 0x4b42d3
+ * (the tail rectangle ends at +0x8ae), 0x41 bytes for one of 0x469057, and for an object of 0x4897cd 0xab6 bytes and the rows up to +0x6ec + 0x26 * (row count).
+ *
  * Host contract (as in FL-21, FL-25): the Fl26aWorld scalars are a snapshot. A host that backs a callee with real original code must
  * flush the world to the original's memory BEFORE each Fl18Host.call and resync it AFTER the call. A callee that changes `self`, the
  * record table, an object or a global that the function reads again afterwards is not exercised by the tests of this slice.
