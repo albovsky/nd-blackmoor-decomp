@@ -31,6 +31,8 @@ EXPECTED = [
     'test_kind_0x14',
     'test_kind_0x15',
     'test_partial_reads_reject',
+    'test_kind_0x14_holes',
+    'test_null_host_rejects',
     'test_sweep_bounded',
 ]
 
@@ -127,6 +129,14 @@ class Fl26cDirect(unittest.TestCase):
     def test_partial_reads_reject(self):
         """FL-26c: a read that fails in the middle of the node stops the call before any host call or store"""
         self.check('test_partial_reads_reject')
+
+    def test_kind_0x14_holes(self):
+        """FL-26c: kind 0x14 rejects before the random draw when [node + 0x2c], [node + 0x30] or [node + 4] does not resolve"""
+        self.check('test_kind_0x14_holes')
+
+    def test_null_host_rejects(self):
+        """FL-26c: a host without call or resolve is rejected"""
+        self.check('test_null_host_rejects')
 
     # CASES-END
 

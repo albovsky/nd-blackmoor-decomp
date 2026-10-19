@@ -347,6 +347,7 @@ def gen_424346(rng, n):
     t1, t2, t3 = (bytearray(rng.randbytes(0x44)) for _ in range(3))
     t4 = bytearray(rng.randbytes(0x42))
     t5 = bytearray(rng.randbytes(4 * REC106 + 8))
+    t5m = bytearray(rng.randbytes(8))      # the record -1: only its two dwords (the bytes above it are other globals)
     g = {'word_583a29': rng.randrange(0x10000), 'word_58c94f': rng.randrange(0x10000), 'word_5bb20a': rng.randrange(0x10000),
          'word_63a4cd': rng.choice([0, 1, 0x100, 0xffff]), 'value_5bb202': rng.choice([0, 1, 0x10000]), 'value_5bb57b': rng.randrange(1 << 32),
          'value_585d37': rng.randrange(1 << 32), 'value_585d41': rng.randrange(1 << 32), 'value_585d4b': rng.randrange(1 << 32),
@@ -407,13 +408,16 @@ def gen_424346(rng, n):
         g['value_585d41'] = case['v'] & M32
         d = case['d'] & M32
     elif kind in (0xd, 0xe, 0x16):
-        a = rng.choice([0, 1, 2, 3])
+        a = (0, 1, 2, 3, -1)[(n + pass_) % 5]          # the record -1 (0x585c5f) is a valid record of the original
         for j in range(4):
             put32(t5, j * REC106, rng.choice([1, 5, 6, 0, 2]))
             put32(t5, j * REC106 + 4, rng.randrange(1 << 32))
-        put32(t5, a * REC106, case['s'])
+        put32(t5m, 0, rng.choice([1, 5, 6, 0, 2]))
+        put32(t5m, 4, rng.randrange(1 << 32))
+        rec = t5m if a < 0 else t5
+        put32(rec, 0 if a < 0 else a * REC106, case['s'])
         if kind != 0x16:
-            put32(t5, a * REC106 + 4, case['v'] & M32)
+            put32(rec, 4 if a < 0 else a * REC106 + 4, case['v'] & M32)
             d = case['d'] & M32
     elif kind == 6:
         if case['b'] == 3:
@@ -444,7 +448,7 @@ def gen_424346(rng, n):
     stubs[0x50cd50] = stub(0x50cd50, None, results=[rand_result])
     areas = [Area('self', self_va, self_, image=False), Area('node', node_va, node, image=False), Area('obj', obj_va, obj, image=False),
              Area('rr', rr_va, rr, image=False), Area('t1', T1 - 0x20, t1), Area('t2', T2 - 0x20, t2), Area('t3', T3 - 0x20, t3),
-             Area('t4', T4 - 0x20, t4), Area('t5', T5, t5)]
+             Area('t4', T4 - 0x20, t4), Area('t5', T5, t5), Area('t5m', T5 - REC106, t5m)]
     return common26('424346', areas, stubs, [('node', 0, NODE_SZ), ('rr', 0, 0x30)], g=g, stack=[node_va], args=(node_va,),
                     profile=(hex(kind & 0xffff), n % len(CASES), pass_))
 

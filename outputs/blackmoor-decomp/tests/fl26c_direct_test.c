@@ -33,6 +33,7 @@ static char g_msg[256];
 #define W3 0x581a51u    /* table 0x581a71 */
 #define W4 0x587b0du    /* table 0x587b2d, word index -16 .. 16 */
 #define W5 0x585d65u    /* table 0x585d65, records 0 .. 3 */
+#define W5M (0x585d65u - 0x106u)   /* the record -1: only its two dwords (the bytes above it hold other globals) */
 
 /* (the arrays have 16 bytes of slack: an address is resolved by its first byte, a dword read may run a few bytes past the logical end) */
 #define T1SZ 0x44
@@ -40,6 +41,7 @@ static char g_msg[256];
 #define T5SZ (4 * 0x106 + 8)
 static uint8_t arena[ARENA_SZ + 16];
 static uint8_t self_buf[SELF_SZ];
+static uint8_t tab5m[8 + 16];
 static uint8_t tab1[T1SZ + 16], tab2[T1SZ + 16], tab3[T1SZ + 16], tab4[T4SZ + 16], tab5[T5SZ + 16];
 static size_t g_node_off;         /* the node is at arena + g_node_off (0 unless a test moves it) */
 static uint32_t g_hole;           /* an original address that does not resolve (0: none) */
@@ -94,6 +96,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     if (a >= W3 && a < W3 + T1SZ) return tab3 + (a - W3);
     if (a >= W4 && a < W4 + T4SZ) return tab4 + (a - W4);
     if (a >= W5 && a < W5 + T5SZ) return tab5 + (a - W5);
+    if (a >= W5M && a < W5M + 8) return tab5m + (a - W5M);
     return NULL;
 }
 
@@ -112,6 +115,7 @@ static void setup(void)
     memset(tab3, 0xCC, sizeof tab3);
     memset(tab4, 0xCC, sizeof tab4);
     memset(tab5, 0xCC, sizeof tab5);
+    memset(tab5m, 0xCC, sizeof tab5m);
     memset(&world, 0, sizeof world);
     memset(&host, 0, sizeof host);
     host.call = host_call;
@@ -402,6 +406,11 @@ static void rec5(int a, uint32_t s, uint32_t v)
         set32(tab5, (size_t)j * 0x106, 0);              /* the other records are dead */
         set32(tab5, (size_t)j * 0x106 + 4, 0x7fffffffu);
     }
+    if (a < 0) {      /* the record -1 */
+        set32(tab5m, 0, s);
+        set32(tab5m, 4, v);
+        return;
+    }
     set32(tab5, (size_t)a * 0x106, s);
     set32(tab5, (size_t)a * 0x106 + 4, v);
 }
@@ -417,7 +426,7 @@ static void test_record_kinds_0xd_0xe_0x16(void)
              {-3, -3, 1, 0}, {0x10000, 0, 0, 1}, {0, 0x10000, 1, 0}};
     size_t i, k;
     int a;
-    for (a = 0; a < 4; a++) {
+    for (a = -1; a < 4; a++) {
         for (k = 0; k < 3; k++) {
             for (i = 0; i < sizeof T / sizeof T[0]; i++) {
                 setup();
@@ -449,12 +458,12 @@ static void test_record_kinds_0xd_0xe_0x16(void)
             CK(run() == 0 && result() == 0 && L.n == 0);
         }
     }
-    /* a record index outside the window is rejected */
+    /* a record index outside the windows (the record -2 and the record 100) is rejected; the record -1 is a valid record of the original */
     setup();
     node(0xd, 100, 0, 0, 0, 0);
     CK(run() == FL26C_REJECT_UNRESOLVED && result() == INIT);
     setup();
-    node(0x16, -1, 0, 0, 0, 0);
+    node(0x16, -2, 0, 0, 0, 0);
     CK(run() == FL26C_REJECT_UNRESOLVED && result() == INIT);
 }
 
@@ -630,6 +639,51 @@ static void test_partial_reads_reject(void)
     CK(run() == FL26C_REJECT_UNRESOLVED && result() == INIT && get32(arena, RR_OFF + 0x24) == 0xA5A5A5A5u);
 }
 
+/* kind 0x14: a failed read of the flag [node + 0x2c], or a store target that does not resolve ([node + 4], [node + 0x30], [node + 0x2c]), is rejected
+ * before the random draw and before any diagnostic call; nothing is stored */
+static void test_kind_0x14_holes(void)
+{
+    static const uint32_t holes[] = {0x2c, 0x30, 4};
+    static const int bs[] = {50, 0};       /* in range, and out of range (with word 0x63a4cd non-zero: the diagnostic path) */
+    size_t i, j;
+    for (i = 0; i < sizeof holes / sizeof holes[0]; i++) {
+        for (j = 0; j < 2; j++) {
+            setup();
+            g_node_off = 0x80;
+            node(0x14, 0, bs[j], 0, 0, 0);
+            set32(arena, g_node_off + 4, INIT);
+            set32(arena, g_node_off + 0x2c, 0);
+            set32(arena, g_node_off + 0x30, 0x99999999u);
+            world.word_63a4cd = 1;
+            g_ret_50cd50 = 250;
+            g_hole = ARENA_VA + (uint32_t)g_node_off + holes[i];
+            CK(run() == FL26C_REJECT_UNRESOLVED && L.n == 0 && result() == INIT && get32(arena, g_node_off + 0x2c) == 0 &&
+               get32(arena, g_node_off + 0x30) == 0x99999999u);
+        }
+    }
+}
+
+/* a host without `call` or `resolve` is rejected at once */
+static void test_null_host_rejects(void)
+{
+    int32_t rej = -1;
+    Fl18Host no_call;
+    setup();
+    node(0, 0, 0, 0, 0, 0);
+    no_call = host;
+    no_call.call = NULL;
+    m424346_node_condition(self_buf, ARENA_VA, &world, &no_call, &rej);
+    CK(rej == FL26C_REJECT_UNRESOLVED && result() == INIT);
+    rej = -1;
+    no_call = host;
+    no_call.resolve = NULL;
+    m424346_node_condition(self_buf, ARENA_VA, &world, &no_call, &rej);
+    CK(rej == FL26C_REJECT_UNRESOLVED && result() == INIT);
+    rej = -1;
+    m424346_node_condition(self_buf, ARENA_VA, &world, NULL, &rej);
+    CK(rej == FL26C_REJECT_UNRESOLVED && result() == INIT);
+}
+
 static unsigned rnd(void)
 {
     static unsigned s = 0x12345678u;
@@ -691,6 +745,8 @@ static const struct {
     {"test_kind_0x14", test_kind_0x14},
     {"test_kind_0x15", test_kind_0x15_and_calls},
     {"test_partial_reads_reject", test_partial_reads_reject},
+    {"test_kind_0x14_holes", test_kind_0x14_holes},
+    {"test_null_host_rejects", test_null_host_rejects},
     {"test_sweep_bounded", test_sweep},
 };
 

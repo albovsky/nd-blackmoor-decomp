@@ -141,6 +141,7 @@ void m424346_node_condition(uint8_t *self, uint32_t node, const Fl26cWorld *worl
     Ctx c = {host, 0};
     int32_t kind, a, b, d, e, f;
     uint32_t q;
+    uint32_t flag;
     int res = -1;      /* 1 or 0: stored into [node + 4] after the switch; -1: this arm stores nothing there itself */
 
 #define CHK()                      \
@@ -148,6 +149,10 @@ void m424346_node_condition(uint8_t *self, uint32_t node, const Fl26cWorld *worl
         if (c.bad) goto done;      \
     } while (0)
 
+    if (host == NULL || host->call == NULL || host->resolve == NULL) {      /* no host: every access and call would be wild */
+        if (reject != NULL) *reject = FL26C_REJECT_UNRESOLVED;
+        return;
+    }
     kind = g16s(&c, node, 0x10);
     a = g16s(&c, node, 0x12);
     b = g16s(&c, node, 0x14);
@@ -284,8 +289,16 @@ void m424346_node_condition(uint8_t *self, uint32_t node, const Fl26cWorld *worl
         }
         break;
     case 0x14:  /* 0x424930 */
-        if (g32(&c, node, 0x2c) == 0) {
-            int32_t r = (int32_t)call0(host, 0x50cd50, 0);
+        flag = g32(&c, node, 0x2c);       /* (a failed read leaves c.bad set: the preflight CHK() below stops before the draw) */
+        if (flag == 0) {
+            int32_t r;
+            uint32_t drawn;
+            /* native rejection preflight: the three stores of this arm ([node + 4], [node + 0x30], [node + 0x2c]) must resolve before any host call is made
+             * (the original would fault at the store after the calls) */
+            (void)at(&c, node + 4);
+            (void)at(&c, node + 0x30);
+            CHK();
+            r = (int32_t)call0(host, 0x50cd50, 0);
             s32(&c, node, 0x30, (uint32_t)(r % 100));
             if ((int16_t)world->word_63a4cd != 0 && (b < 1 || b > 100)) {
                 call4(host, 0x50ca3e, 0, 0x63888b, 0x544a34, world->value_5bb57b, (uint32_t)b);
@@ -293,7 +306,8 @@ void m424346_node_condition(uint8_t *self, uint32_t node, const Fl26cWorld *worl
                 call1(host, 0x44a2b7, 0, 0x63888b);
                 call0(host, 0x4c97b4, 0x5cf659);
             }
-            s32(&c, node, 4, (int32_t)g32(&c, node, 0x30) < b ? 1u : 0u);
+            drawn = g32(&c, node, 0x30);      /* (resolved by the preflight and the store above) */
+            s32(&c, node, 4, (int32_t)drawn < b ? 1u : 0u);
             s32(&c, node, 0x2c, 1);
         }
         break;
