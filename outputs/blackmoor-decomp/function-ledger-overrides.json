@@ -11751,6 +11751,930 @@
    },
    "parts_accounted": [],
    "note": "1:1 with m447ac7_split_pixels. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 341 bytes."
+  },
+  {
+   "va": "0x4d3c88",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m4d3c88_clear_flag"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m4d3c88_clear_flag"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_clear_flag_4d3c88"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_4d3c88_clear_flag"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x4d3c88",
+     "0x4d3c9a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4d3c88_clear_flag. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 18 bytes."
+  },
+  {
+   "va": "0x4d3c5f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m4d3c5f_set_ready"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m4d3c5f_set_ready"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_set_ready_4d3c5f"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_4d3c5f_set_ready"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x4d3c5f",
+     "0x4d3c88"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4d3c5f_set_ready. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 41 bytes."
+  },
+  {
+   "va": "0x41c509",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m41c509_init_fields"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m41c509_init_fields"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_init_fields_41c509"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_41c509_init_fields"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3f_original_oracle.py",
+    "window": [
+     "0x41c509",
+     "0x41c544"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m41c509_init_fields. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 59 bytes."
+  },
+  {
+   "va": "0x43ec4a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m43ec4a_forward_4db000"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m43ec4a_forward_4db000"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_forward_4db000_43ec4a"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_43ec4a_forward_4db000"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ec4a",
+     "0x43ec85"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m43ec4a_forward_4db000. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 59 bytes."
+  },
+  {
+   "va": "0x43ec85",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m43ec85_forward_4dafc3"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m43ec85_forward_4dafc3"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_forward_4dafc3_43ec85"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_43ec85_forward_4dafc3"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ec85",
+     "0x43ecc0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m43ec85_forward_4dafc3. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 59 bytes."
+  },
+  {
+   "va": "0x43ecc0",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m43ecc0_forward_4db04f"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m43ecc0_forward_4db04f"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_forward_4db04f_43ecc0"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_43ecc0_forward_4db04f"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ecc0",
+     "0x43ecfb"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m43ecc0_forward_4db04f. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 59 bytes."
+  },
+  {
+   "va": "0x43ed71",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m43ed71_forward_4daf9f"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m43ed71_forward_4daf9f"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_forward_4daf9f_43ed71"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_43ed71_forward_4daf9f"
+    }
+   ],
+   "oracle": {
+    "path": "tests/session_input_original_oracle.py",
+    "window": [
+     "0x43ed71",
+     "0x43edac"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m43ed71_forward_4daf9f. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 59 bytes."
+  },
+  {
+   "va": "0x475885",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m475885_release"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m475885_release"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_release_475885"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_475885_release"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x475885",
+     "0x4758e8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m475885_release. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 99 bytes."
+  },
+  {
+   "va": "0x4caf03",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m4caf03_reset"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m4caf03_reset"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_reset_4caf03"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_4caf03_reset"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_1c_runtime_original_oracle.py",
+    "window": [
+     "0x4caf03",
+     "0x4caf8a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4caf03_reset. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 135 bytes."
+  },
+  {
+   "va": "0x41c770",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m41c770_init_fields"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m41c770_init_fields"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_init_fields_41c770"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_41c770_init_fields"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_3e_original_oracle.py",
+    "window": [
+     "0x41c770",
+     "0x41c7f4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m41c770_init_fields. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 132 bytes."
+  },
+  {
+   "va": "0x4757da",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m4757da_clear_grid"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m4757da_clear_grid"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_clear_grid_4757da"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_4757da_clear_grid"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x4757da",
+     "0x475885"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4757da_clear_grid. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 171 bytes."
+  },
+  {
+   "va": "0x48bb86",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m48bb86_release"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m48bb86_release"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_release_48bb86"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_48bb86_release"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48bb86",
+     "0x48bc38"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48bb86_release. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 178 bytes."
+  },
+  {
+   "va": "0x483fb5",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m483fb5_release_all"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m483fb5_release_all"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_release_all_483fb5"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_483fb5_release_all"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x483fb5",
+     "0x4840d9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m483fb5_release_all. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 292 bytes."
+  },
+  {
+   "va": "0x4343a2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m4343a2_find_name"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m4343a2_find_name"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_find_name_4343a2"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_4343a2_find_name"
+    }
+   ],
+   "oracle": {
+    "path": "tests/hiff_original_oracle.py",
+    "window": [
+     "0x4343a2",
+     "0x4344bf"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4343a2_find_name. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 285 bytes."
+  },
+  {
+   "va": "0x44727a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m44727a_start_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m44727a_start_record"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_start_record_44727a"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_44727a_start_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_28_original_oracle.py",
+    "window": [
+     "0x44727a",
+     "0x4473a9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44727a_start_record. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 303 bytes."
+  },
+  {
+   "va": "0x42b87a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20a.c",
+    "symbol": "m42b87a_apply_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20a_direct_test.c",
+     "test_id": "test_m42b87a_apply_record"
+    },
+    {
+     "path": "tests/test_fl20a_direct.py",
+     "test_id": "Fl20aDirect.test_apply_record_42b87a"
+    },
+    {
+     "path": "tests/test_fl20a_differential.py",
+     "test_id": "Fl20aDifferential.test_42b87a_apply_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_64_original_oracle.py",
+    "window": [
+     "0x42b87a",
+     "0x42ba3a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m42b87a_apply_record. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 424 bytes."
+  },
+  {
+   "va": "0x446688",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m446688_draw_digits"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m446688_draw_digits"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_draw_digits_446688"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_446688_draw_digits"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x446688",
+     "0x4468fe"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m446688_draw_digits. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 630 bytes."
+  },
+  {
+   "va": "0x48d5f4",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m48d5f4_confirm_pick"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m48d5f4_confirm_pick"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_confirm_pick_48d5f4"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_48d5f4_confirm_pick"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d0_runtime_original_oracle.py",
+    "window": [
+     "0x48d5f4",
+     "0x48d89e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48d5f4_confirm_pick. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 682 bytes."
+  },
+  {
+   "va": "0x48cc70",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m48cc70_draw_slots"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m48cc70_draw_slots"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_draw_slots_48cc70"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_48cc70_draw_slots"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d8_runtime_original_oracle.py",
+    "window": [
+     "0x48cc70",
+     "0x48cf50"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m48cc70_draw_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 723 bytes."
+  },
+  {
+   "va": "0x4876ed",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m4876ed_redraw_items"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m4876ed_redraw_items"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_redraw_items_4876ed"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_4876ed_redraw_items"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_ea_runtime_original_oracle.py",
+    "window": [
+     "0x4876ed",
+     "0x487a00"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4876ed_redraw_items. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 778 bytes."
+  },
+  {
+   "va": "0x44d28c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m44d28c_click"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m44d28c_click"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_click_44d28c"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_44d28c_click"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_aa_runtime_original_oracle.py",
+    "window": [
+     "0x44d28c",
+     "0x44d597"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m44d28c_click. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 779 bytes."
+  },
+  {
+   "va": "0x47608e",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m47608e_step_swap"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m47608e_step_swap"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_step_swap_47608e"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_47608e_step_swap"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_e4_runtime_original_oracle.py",
+    "window": [
+     "0x47608e",
+     "0x4763b3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m47608e_step_swap. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 805 bytes."
+  },
+  {
+   "va": "0x4b8a27",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20b.c",
+    "symbol": "m4b8a27_spawn_slots"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20b_direct_test.c",
+     "test_id": "test_m4b8a27_spawn_slots"
+    },
+    {
+     "path": "tests/test_fl20b_direct.py",
+     "test_id": "Fl20bDirect.test_spawn_slots_4b8a27"
+    },
+    {
+     "path": "tests/test_fl20b_differential.py",
+     "test_id": "Fl20bDifferential.test_4b8a27_spawn_slots"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b8a27",
+     "0x4b8d5e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4b8a27_spawn_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 823 bytes."
+  },
+  {
+   "va": "0x4b9a88",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20c.c",
+    "symbol": "m4b9a88_draw_slots"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20c_direct_test.c",
+     "test_id": "test_m4b9a88_draw_slots"
+    },
+    {
+     "path": "tests/test_fl20c_direct.py",
+     "test_id": "Fl20cDirect.test_draw_slots_4b9a88"
+    },
+    {
+     "path": "tests/test_fl20c_differential.py",
+     "test_id": "Fl20cDifferential.test_4b9a88_draw_slots"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_f5_runtime_original_oracle.py",
+    "window": [
+     "0x4b9a88",
+     "0x4b9dd0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4b9a88_draw_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 835 bytes."
+  },
+  {
+   "va": "0x4619be",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20c.c",
+    "symbol": "m4619be_check_direction"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20c_direct_test.c",
+     "test_id": "test_m4619be_check_direction"
+    },
+    {
+     "path": "tests/test_fl20c_direct.py",
+     "test_id": "Fl20cDirect.test_check_direction_4619be"
+    },
+    {
+     "path": "tests/test_fl20c_differential.py",
+     "test_id": "Fl20cDifferential.test_4619be_check_direction"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x4619be",
+     "0x461d4b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m4619be_check_direction. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 893 bytes."
+  },
+  {
+   "va": "0x481cb9",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20c.c",
+    "symbol": "m481cb9_draw_cells"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20c_direct_test.c",
+     "test_id": "test_m481cb9_draw_cells"
+    },
+    {
+     "path": "tests/test_fl20c_direct.py",
+     "test_id": "Fl20cDirect.test_draw_cells_481cb9"
+    },
+    {
+     "path": "tests/test_fl20c_differential.py",
+     "test_id": "Fl20cDifferential.test_481cb9_draw_cells"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_eb_runtime_original_oracle.py",
+    "window": [
+     "0x481cb9",
+     "0x482060"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m481cb9_draw_cells. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 923 bytes."
+  },
+  {
+   "va": "0x463b10",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20c.c",
+    "symbol": "m463b10_draw_grid"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20c_direct_test.c",
+     "test_id": "test_m463b10_draw_grid"
+    },
+    {
+     "path": "tests/test_fl20c_direct.py",
+     "test_id": "Fl20cDirect.test_draw_grid_463b10"
+    },
+    {
+     "path": "tests/test_fl20c_differential.py",
+     "test_id": "Fl20cDifferential.test_463b10_draw_grid"
+    }
+   ],
+   "oracle": {
+    "path": "tests/action_family_d3_runtime_original_oracle.py",
+    "window": [
+     "0x463b10",
+     "0x463f00"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m463b10_draw_grid. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 960 bytes."
+  },
+  {
+   "va": "0x412db8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-20 implementer, diff slice-reviewer",
+   "date": "2026-10-18",
+   "native_source": {
+    "path": "src/original_methods_fl20c.c",
+    "symbol": "m412db8_wrap_text"
+   },
+   "tests": [
+    {
+     "path": "tests/fl20c_direct_test.c",
+     "test_id": "test_m412db8_wrap_text"
+    },
+    {
+     "path": "tests/test_fl20c_direct.py",
+     "test_id": "Fl20cDirect.test_wrap_text_412db8"
+    },
+    {
+     "path": "tests/test_fl20c_differential.py",
+     "test_id": "Fl20cDifferential.test_412db8_wrap_text"
+    }
+   ],
+   "oracle": {
+    "path": "tests/autotext_writer_original_oracle.py",
+    "window": [
+     "0x412db8",
+     "0x413187"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "1:1 with m412db8_wrap_text. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 975 bytes."
   }
  ],
  "not_needed_entries": [

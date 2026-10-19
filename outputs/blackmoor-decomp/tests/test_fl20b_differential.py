@@ -1,0 +1,639 @@
+"""FL-20 (batch b) differential tests: the original GAME.EXE bytes (Unicorn) against src/original_methods_fl20b.c on the same random
+fixtures.
+
+See test_fl_differential.py, test_fl18_differential.py and original_differential.py for the method. Every case compares all the memory
+the function can write (objects, record tables, globals), the return value where there is one, how many bytes the function popped, and
+the ordered calls out: callee, ecx, stack arguments (pointers into a fixture are compared as the original addresses they stand for,
+pointers to a local of the function as 'L'; 'word' arguments, which the original pushes from a 16-bit register, by their low 16 bits)
+and the bytes behind a pointer argument where the call is described that way. The callees are recording stubs (which may store
+scripted values through a pointer argument); the function under test runs as the original bytes. A case also requires that its
+scenarios reached every instruction of the original function.
+"""
+import ctypes
+import math
+from dataclasses import dataclass
+from pathlib import Path
+import random
+import re
+import struct
+import sys
+import unittest
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import original_differential as od
+from test_fl_differential import DiffBase, buf, ptr
+
+PROJECT = Path(__file__).resolve().parents[1]
+SCENARIOS = 300
+LOCAL = 'L'
+TICK_SLOT = 0x52a23c
+
+CTYPES = {'float': ctypes.c_float, 'double': ctypes.c_double, 'uint8_t': ctypes.c_uint8, 'int16_t': ctypes.c_int16, 'uint16_t': ctypes.c_uint16, 'int32_t': ctypes.c_int32,
+          'uint32_t': ctypes.c_uint32}
+
+
+def parse_world():
+    """The fields of Fl20bWorld, from the header, as [(name, ctype, is_pointer)]."""
+    text = (PROJECT / 'src/original_methods_fl20b.h').read_text()
+    body = re.search(r'typedef struct Fl20bWorld \{(.*?)\} Fl20bWorld;', text, re.S).group(1)
+    body = re.sub(r'/\*.*?\*/', '', body, flags=re.S)
+    fields = []
+    for decl in body.split(';'):
+        decl = decl.strip().replace('const ', '')
+        if not decl:
+            continue
+        kind, _, names = decl.partition(' ')
+        for name in names.split(','):
+            name = name.strip()
+            if name.startswith('*'):
+                fields.append((name[1:], ctypes.c_void_p, True))
+            else:
+                fields.append((name, CTYPES[kind], False))
+    return fields
+
+
+WORLD_FIELDS = parse_world()
+
+
+class World(ctypes.Structure):
+    _fields_ = [(n, t) for n, t, _ in WORLD_FIELDS]
+
+
+# the globals of the original that a case may set (every scalar field of the world): name -> (address, size)
+GLOBALS = {n: (int(n.rsplit('_', 1)[1], 16), ctypes.sizeof(t)) for n, t, p in WORLD_FIELDS if not p}
+SIGNED = {n for n, t, p in WORLD_FIELDS if not p and t in (ctypes.c_int16, ctypes.c_int32)}
+FMT = {1: '<B', 2: '<H', 4: '<I'}
+
+
+@dataclass
+class Area:
+    name: str
+    va: int
+    data: bytearray
+    image: bool = True      # inside the image (a global or table) or a region outside it
+    compare: bool = True
+
+
+class Original20(od.Original):
+    """od.Original whose stubs can also store scripted values through a pointer argument: stub.writes[call] is a list of
+    (stack argument index, offset, size, value)."""
+
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self._nth = {}
+        self._set_x87_precision()
+
+    def _set_x87_precision(self):
+        """fldcw 0x27f, run as code: the 53-bit precision control of the Microsoft runtime."""
+        base = od.STUB_BASE
+        self.uc.mem_write(base + 0xf00, struct.pack('<H', 0x27f))
+        self.uc.mem_write(base + 0x900, b'\xd9\x2d' + struct.pack('<I', base + 0xf00) + b'\x90')
+        self.uc.emu_start(base + 0x900, base + 0x906, count=1)
+
+    def _ftol(self, uc, address, stub):
+        """0x50ce04 takes st0: log its value (as the bits of a double) and return the scripted result."""
+        esp = uc.reg_read(self._r['ESP'])
+        ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
+        top = (uc.reg_read(od.x.UC_X86_REG_FPSW) >> 11) & 7   # st0 is the physical register `top`
+        mantissa, exponent = uc.reg_read(od.x.UC_X86_REG_FP0 + top)
+        value = math.ldexp(mantissa, (exponent & 0x7fff) - 16383 - 63)
+        value = -value if exponent & 0x8000 else value
+        self.calls.append((stub.name, struct.unpack('<Q', struct.pack('<d', value))[0]))
+        n = self._nth.get(address, 0)
+        self._nth[address] = n + 1
+        uc.reg_write(self._r['EAX'], stub.results[min(n, len(stub.results) - 1)])
+        uc.reg_write(self._r['ESP'], esp + 4)
+        uc.reg_write(self._r['EIP'], ret)
+
+    def _stub_hook(self, uc, address, size, user):
+        stub = self.stubs[address]
+        if getattr(stub, 'ftol', False):
+            return self._ftol(uc, address, stub)
+        derefs = getattr(stub, 'derefs', None)
+        probe = getattr(stub, 'probe_addr', None)
+        before = len(self.calls)
+        data = ()
+        if derefs:   # several pointer arguments to look behind: appended to the logged entry in order
+            esp = uc.reg_read(self._r['ESP'])
+            data = tuple(bytes(uc.mem_read(struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0], n)) for arg, n in derefs)
+        if probe:    # the memory at the probed addresses as it is at the call (read before the stub stores anything), appended last
+            data += (b''.join(bytes(uc.mem_read(a, n)) for a, n in probe),)
+        self._stub_hook_writes(uc, address, size, user, stub)
+        if data:
+            self.calls[before] = self.calls[before] + data
+
+    def _stub_hook_writes(self, uc, address, size, user, stub):
+        writes = getattr(stub, 'writes', None)
+        if writes:
+            n = self._nth.get(address, 0)
+            self._nth[address] = n + 1
+            esp = uc.reg_read(self._r['ESP'])
+            for arg, off, sz, value in (writes[n] if n < len(writes) else ()):
+                pointer = struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0]
+                uc.mem_write(pointer + off, struct.pack('<I' if sz == 4 else '<H', value & (0xffffffff if sz == 4 else 0xffff)))
+        super()._stub_hook(uc, address, size, user)
+
+
+def stub(callee, **kw):
+    """A recording stub; writes=[[(arg, offset, size, value), ...] per call]; derefs=[(arg, nbytes), ...] (at most two) log the bytes behind
+    those pointer arguments; probe=[(area name or 'g:<world field>', offset, nbytes), ...] (at most four) log the bytes at those places as
+    they are at the call (call-time state), after the deref bytes."""
+    writes = kw.pop('writes', None)
+    derefs = kw.pop('derefs', None)
+    probe = kw.pop('probe', None)
+    s = od.Stub(callee, **kw)
+    s.probe = probe
+    s.writes = writes
+    s.derefs = derefs
+    return s
+
+
+class ShimCall20(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_uint32), ('nargs', ctypes.c_int32), ('this_ptr', ctypes.c_uint64), ('arg', ctypes.c_uint64 * 8),
+                ('data', ctypes.c_uint8 * 64), ('probe', ctypes.c_uint8 * 64)]
+
+
+def sword(v):
+    return struct.unpack('<h', struct.pack('<H', v & 0xffff))[0]
+
+
+@unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
+class Fl20bDifferential(DiffBase):
+    SHIM = PROJECT / 'tests/fl20b_differential_shim.c'
+    KERNELS = ['original_methods_fl20b.c']
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.lib.shim_calls.restype = ctypes.POINTER(ShimCall20)
+        cls.lib.shim_world_size.restype = ctypes.c_size_t
+        cls.lib.shim_script_probe.argtypes = [ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
+        cls.lib.shim_fl20b.argtypes = [ctypes.c_int, ctypes.c_void_p] + [ctypes.c_uint64] * 4 + [ctypes.c_void_p, ctypes.c_void_p]
+        assert cls.lib.shim_world_size() == ctypes.sizeof(World), 'the World mirror does not match Fl20bWorld'
+
+    def native_calls20(self, areas, deref_len=None, probe_len=None):
+        """The shim's call log as comparable tuples: [callee, this, *args, *data, probe]; GetTickCount is ['tick', 0]."""
+        spans = [(ctypes.addressof(arr), len(arr), a.va) for a, arr in areas]
+
+        def va_of(value):
+            for base, length, va in spans:
+                if base <= value < base + length:
+                    return va + (value - base)
+            return LOCAL if value >= 1 << 32 else value
+        calls = self.lib.shim_calls()
+        out = []
+        for i in range(self.lib.shim_call_count()):
+            c = calls[i]
+            # (0x50ce04 takes the bits of a double, not an address)
+            entry = ['tick' if c.id == TICK_SLOT else c.id, va_of(c.this_ptr),
+                     *[c.arg[k] if c.id == 0x50ce04 else va_of(c.arg[k]) for k in range(c.nargs)]]
+            for slot, length in enumerate((deref_len or {}).get(c.id, ())):
+                entry.append(bytes(c.data)[32 * slot:32 * slot + length])
+            if c.id in (probe_len or {}):
+                entry.append(bytes(c.probe)[:probe_len[c.id]])
+            out.append(entry)
+        return out
+
+    def normalize_original(self, calls, stubs, iat, word_args=None):
+        by_name = {s.name: s for s in [*stubs.values(), *iat.values()]}
+        out = []
+        for call in calls:
+            s = by_name[call[0]]
+            entry = [call[0], call[1] if s.this else 0]
+            rest = list(call[2 if s.this else 1:])
+            probe = rest.pop() if getattr(s, 'probe_addr', None) else None
+            ndata = len(getattr(s, 'derefs', None) or ()) or (1 if s.deref is not None else 0)
+            data = [rest.pop() for _ in range(ndata)][::-1]
+            wa = (word_args or {}).get(call[0], ())
+            for position, v in enumerate(rest):
+                if position in wa:
+                    entry.append(v & (wa[position] if isinstance(wa, dict) else 0xffff))
+                else:
+                    entry.append(LOCAL if od.STACK_BASE <= v < od.STACK_BASE + od.STACK_SIZE else v)
+            entry.extend(data)
+            if probe is not None:
+                entry.append(probe)
+            out.append(entry)
+        return out
+
+    def pair(self, fn, va, size, areas, stubs, g, *, ecx=0, stack=(), iat=None, cleanup=0, word_args=None, args=(0, 0, 0, 0),
+             self_name=None, tick=None, executed=None, pointers=None, ret_mask=None, scalars=None):
+        """Run the original and the native function on one fixture and compare. `g` maps scalar world fields to initial values
+        (written to the image; read back and compared); `pointers` maps world pointer fields to (area name, offset); `args` are the
+        native a, b, c, d (an int, or ('ptr', area name, offset) for a host pointer into an area)."""
+        iat = dict(iat or {})
+        image_patches = [(a.va, a.data) for a in areas if a.image]
+        for field, value in g.items():
+            address, size_ = GLOBALS[field]
+            image_patches.append((address, struct.pack(FMT[size_], value & ((1 << (8 * size_)) - 1))))
+        regions = {a.name: (a.va, a.data) for a in areas if not a.image}
+        read = {a.name: (a.va, len(a.data)) for a in areas if a.compare}
+        for field in g:
+            read['g:' + field] = GLOBALS[field]
+        probed = [x for x in [*stubs.values(), *iat.values()] if getattr(x, 'probe', None)]
+        for x in probed:   # x.probe = [(area name | 'g:<field>', offset, length)]: the original addresses
+            x.probe_addr = [((GLOBALS[n[2:]][0] if n.startswith('g:') else next(a.va for a in areas if a.name == n)) + off, ln)
+                            for n, off, ln in x.probe]
+        orig = Original20(image_patches, regions, stubs, iat).run(va, size, ecx=ecx, stack_args=stack, read=read)
+        self.assertEqual(orig.cleanup, cleanup)
+        # native
+        self.lib.shim_reset()
+        arrays, by_name = [], {}
+        for a in areas:
+            arr = buf(a.data)
+            by_name[a.name] = arr
+            arrays.append((a, arr))
+            self.lib.shim_add_region(a.va, ptr(arr), len(arr))
+        sw = World()
+        for field, value in g.items():
+            setattr(sw, field, sword(value) if field in SIGNED and GLOBALS[field][1] == 2 else
+                    (struct.unpack('<i', struct.pack('<I', value & 0xffffffff))[0] if field in SIGNED else value & ((1 << (8 * GLOBALS[field][1])) - 1)))
+        for field, value in (scalars or {}).items():
+            setattr(sw, field, value)
+        for field, (name, offset) in (pointers or {}).items():
+            setattr(sw, field, ctypes.cast(ctypes.byref(by_name[name], offset), ctypes.c_void_p).value)
+        for s in [*stubs.values(), *iat.values()]:
+            if isinstance(s.name, str):
+                continue
+            for r in (s.results or ([s.result] if s.result else [])):
+                self.lib.shim_script_return(s.name, r)
+            if s.deref is not None:
+                self.lib.shim_script_deref(s.name, s.deref[0], s.deref[1])
+            for slot, (arg, nbytes) in enumerate(getattr(s, 'derefs', None) or ()):
+                (self.lib.shim_script_deref if slot == 0 else self.lib.shim_script_deref2)(s.name, arg, nbytes)
+            for n, off, ln in (getattr(s, 'probe', None) or ()):
+                host = (ctypes.addressof(sw) + getattr(World, n[2:]).offset + off) if n.startswith('g:') else \
+                    ctypes.cast(ctypes.byref(by_name[n], off), ctypes.c_void_p).value
+                self.lib.shim_script_probe(s.name, host, ln)
+            for callno, lst in enumerate(getattr(s, 'writes', None) or ()):
+                for arg, off, sz, value in lst:
+                    self.lib.shim_script_write(s.name, callno, arg, off, sz, value & 0xffffffff)
+        if tick is not None:
+            self.lib.shim_set_tick(tick)
+        native_args = []
+        for item in args:
+            if isinstance(item, tuple):
+                native_args.append(ctypes.cast(ctypes.byref(by_name[item[1]], item[2]), ctypes.c_void_p).value)
+            else:
+                native_args.append(item & 0xffffffffffffffff)
+        native_args += [0] * (4 - len(native_args))
+        self_ptr = ptr(by_name[self_name]) if self_name else None
+        result = ctypes.c_int32(0)
+        self.lib.shim_fl20b(fn, self_ptr, *native_args, ctypes.byref(sw), ctypes.byref(result))
+        for a in areas:
+            if a.compare:
+                self.assertEqual(bytes(by_name[a.name]), orig.memory[a.name], a.name)
+        for field in g:
+            address, size_ = GLOBALS[field]
+            native_value = getattr(sw, field) & ((1 << (8 * size_)) - 1)
+            self.assertEqual(struct.pack(FMT[size_], native_value), orig.memory['g:' + field], field)
+        if ret_mask is not None:
+            self.assertEqual(result.value & ret_mask, orig.eax & ret_mask, 'return value')
+        expected = self.normalize_original(orig.calls, stubs, iat, word_args)
+        actual = self.native_calls20(arrays, {x.name: [x.deref[1]] if x.deref else [n for _, n in x.derefs] for x in [*stubs.values(), *iat.values()]
+                                          if x.deref or getattr(x, 'derefs', None)},
+                                     {x.name: sum(ln for _, _, ln in x.probe) for x in probed})
+        for calls in (expected, actual):
+            for entry in calls:
+                wa = (word_args or {}).get(entry[0], ())
+                for index in wa:
+                    entry[2 + index] = entry[2 + index] & (wa[index] if isinstance(wa, dict) else 0xffff)
+        self.assertEqual(actual, expected)
+        if executed is not None:
+            executed |= orig.executed
+        if tick is not None and TICK_SLOT in iat:
+            pass
+        return orig, sw
+
+    def finish(self, va, size, executed):
+        missing = sorted(od.instruction_addresses(va, size) - executed)
+        self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
+
+    def records_area(self, rng, nrec=6, slack=1):
+        """The record table at 0x5bb5e5 (stride 0x8d) with `slack` records below it."""
+        return Area('records', 0x5bb5e5 - slack * 0x8d, bytearray(rng.randbytes((slack + nrec) * 0x8d))), slack * 0x8d
+
+    def globals_(self, rng, *names):
+        return {n: rng.randrange(1 << (8 * GLOBALS[n][1])) for n in names}
+
+    # ---- 0x446688 ----
+    def test_446688_draw_digits(self):
+        """FL-20b: differential test of m446688_draw_digits (original 0x446688)"""
+        rng = random.Random(0x446688)
+        executed = set()
+        size = 0x4468fe - 0x446688
+        tslack = 0x4a
+        for n in range(SCENARIOS):
+            bs = 0x400   # slack below 0x638600 for the signed index of a character that is not a digit
+            block = bytearray(rng.randbytes(bs + 0x300))
+            if rng.random() < 0.85:
+                struct.pack_into('<I', block, bs + 0x07, rng.choice([1, 1, 2, 0x80000000]))
+                struct.pack_into('<I', block, bs + 0x0f, rng.choice([1, 1, 5, 0x100]))
+            elif rng.random() < 0.5:
+                struct.pack_into('<I', block, bs + 0x07, 0)
+            else:
+                struct.pack_into('<I', block, bs + 0x0f, 0)
+            for d in range(-1, 10):   # widths 0x638617[d], heights 0x63863f[d]
+                struct.pack_into('<I', block, bs + 0x17 + 4 * d, rng.choice([0, 1, 7, 20 + d, 0xffffffff, rng.randrange(1 << 32)]) if rng.random() < 0.3 else rng.randrange(1, 60))
+                struct.pack_into('<I', block, bs + 0x3f + 4 * d, rng.choice([0, 1, 9, 0x80000000, rng.randrange(1 << 32)]) if rng.random() < 0.3 else rng.randrange(1, 60))
+            struct.pack_into('<I', block, bs + 0x15f, rng.choice([100, 0xfffffff0, rng.randrange(1 << 32)]))
+            struct.pack_into('<I', block, bs + 0x163, rng.choice([200, 0x7fffffff, rng.randrange(1 << 32)]))
+            struct.pack_into('<I', block, bs + 0x167, rng.choice([4, 0, 0xffffffff, rng.randrange(1 << 32)]))
+            index = rng.choice([-1, 0, 1, 1, 2, 3])
+            struct.pack_into('<I', block, bs + 0x16f, index & 0xffffffff)
+            digits = b'0123456789/0123456789/\x80\xc9\xff'
+            kind = rng.choice(['diff', 'diff', 'same', 'empty_new', 'empty_old', 'long', 'prefix'])
+            old = bytes(rng.choice(digits) for _ in range(rng.randrange(0, 7)))
+            new = bytes(rng.choice(digits) for _ in range(rng.randrange(0, 7)))
+            if kind == 'same':
+                new = old
+            elif kind == 'empty_new':
+                new = b''
+            elif kind == 'empty_old':
+                old = b''
+            elif kind == 'long':   # the new string runs into the old one: the copy overlaps itself
+                new = bytes(rng.choice(digits) for _ in range(rng.randrange(0x1e, 0x29)))
+            elif kind == 'prefix':
+                new = old + bytes(rng.choice(digits) for _ in range(rng.randrange(1, 3)))
+            block[bs + 0x25f:bs + 0x25f + len(new) + 1] = new + b'\x00'
+            if kind != 'long':
+                block[bs + 0x27d:bs + 0x27d + len(old) + 1] = old + b'\x00'
+            block_area = Area('block', 0x638600 - bs, block)
+            table = Area('table', 0x5d1599 - tslack, bytearray(rng.randbytes(tslack + 5 * 0x4a)), compare=False)
+            g = self.globals_(rng, 'origin_x_583186', 'origin_y_58318a', 'value_5cf665', 'value_5d15e3')
+            struct.pack_into('<I', table.data, tslack + 0x4a, g['value_5d15e3'])  # 0x5d15e3 = the dword of record 1
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(2, 16), (3, 16)]),
+                     0x4c5d4b: od.Stub(0x4c5d4b, args=5, this=True, cleanup=20, deref=(3, 16))}
+            self.pair(1, 0x446688, size, [block_area, table], stubs, g, executed=executed,
+                      pointers={'block_638600': ('block', bs), 'table_5d1599': ('table', tslack)})
+        self.finish(0x446688, size, executed)
+
+    # ---- 0x48d5f4 ----
+    def test_48d5f4_confirm_pick(self):
+        """FL-20b: differential test of m48d5f4_confirm_pick (original 0x48d5f4)"""
+        rng = random.Random(0x48d5f4)
+        executed = set()
+        size = 0x48d89e - 0x48d5f4
+        text_len = 0x9d00
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
+            struct.pack_into('<h', this.data, 0x1e, index)
+            struct.pack_into('<I', this.data, 0x33, rng.choice([1, 1, 1, 1, 0, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x2b, rng.choice([1, 1, 1, 1, 1, 0, 2]))
+            struct.pack_into('<I', this.data, 0x2f, rng.choice([0, 1, 0xff00]))
+            pick = rng.choice([0, 1, 2, 3, 4, -1, -2])
+            struct.pack_into('<h', this.data, 0x27, pick)
+            records, slack = self.records_area(rng, nrec=4)
+            rec_va = od.region_va(1) + 0x100
+            struct.pack_into('<I', records.data, slack + index * 0x8d, rec_va)
+            struct.pack_into('<I', records.data, slack + index * 0x8d + 0x4d, rng.choice([1, 1, 1, 1, 1, 0, 2]))
+            rec = bytearray(rng.randbytes(0x1100))
+            for k in range(-2, 6):   # the strings of the picks: terminated within their 0x42-byte slot
+                text = bytes(rng.choice(b'abcXYZ ') for _ in range(rng.randrange(0, 14))) + b'\x00'
+                rec[0x100 + 0x337 + k * 0x42:0x100 + 0x337 + k * 0x42 + len(text)] = text
+            struct.pack_into('<h', rec, 0x100 + 0x317, rng.choice([-2, -1, 0, 1, 2, 3, 5, 4]))
+            struct.pack_into('<h', rec, 0x100 + 0x736, rng.choice([0, 1, -1, 5, -16, 0x7fff, rng.randrange(-32768, 32768)]))
+            # the string that ends up at rec + 0x715, and the nine bytes it is compared with
+            first = bytes(rec[0x100 + 0x337 + pick * 0x42:0x100 + 0x337 + pick * 0x42 + 15]).split(b'\x00')[0] + b'\x00'
+            after = bytearray(rec[0x100 + 0x715:0x100 + 0x715 + 16])
+            after[:len(first)] = first
+            pattern = bytearray(after[:9]) if rng.random() < 0.35 else bytearray(rng.randbytes(9))
+            if rng.random() < 0.3:
+                pattern[rng.choice([8, 8, rng.randrange(9)])] ^= 1
+            pat = Area('pat', 0x54e88c, pattern, compare=False)
+            kind = rng.choice(['short', 'short', 'short', 'empty', 'null', 'long'])
+            body = bytes(rng.choice(b'hello wrld0123') for _ in range(rng.randrange(1, 40)))
+            text = {'short': body, 'empty': b'', 'null': b'', 'long': b'x' * 0x9c41}[kind]
+            text_area = Area('text', od.region_va(2), bytearray(text + b'\x00' + bytes(text_len - len(text) - 1)), image=False, compare=False)
+            rec_area = Area('rec', od.region_va(1), rec, image=False)
+            g = {'value_5c39e5': rng.choice([0x2765, 0x2765, 0x2765, 0x2766, 0x2764, 0]), 'value_5bb1ca': rng.choice([0, 1, 1, 1, 0x100]),
+                 'value_54e898': rng.choice([0x00212121, 0x00002e2e, rng.randrange(1 << 32)]),
+                 'value_5d03b3': rng.randrange(1 << 32)}
+            deref = (1, min(len(text) + 4, 32))
+            now = rng.choice([1000, 0xfffffe00, rng.randrange(1 << 32)])
+            stubs = {0x4f6334: od.Stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 1])]),
+                     0x4fb77a: od.Stub(0x4fb77a, args=1, this=True, cleanup=4),
+                     0x4fb2e3: od.Stub(0x4fb2e3, args=1, this=True, cleanup=4),
+                     0x423259: od.Stub(0x423259, args=1, this=True, cleanup=4, results=[0 if kind == 'null' else od.region_va(2)]),
+                     0x448d11: od.Stub(0x448d11, args=4, this=True, cleanup=16, deref=deref)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
+            self.pair(2, 0x48d5f4, size, [this, records, rec_area, text_area, pat], stubs, g, ecx=od.region_va(0), iat=iat, tick=now,
+                      self_name='self', executed=executed, word_args={0x4fb2e3: {0}},
+                      pointers={'records_5bb5e5': ('records', slack), 'bytes_54e88c': ('pat', 0)})
+        self.finish(0x48d5f4, size, executed)
+
+    # ---- 0x48cc70 ----
+    def test_48cc70_draw_slots(self):
+        """FL-20b: differential test of m48cc70_draw_slots (original 0x48cc70)"""
+        rng = random.Random(0x48cc70)
+        executed = set()
+        size = 0x48cf43 - 0x48cc70
+        tslack = 0x4a
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 3])
+            records, slack = self.records_area(rng, nrec=4)
+            struct.pack_into('<I', records.data, slack + index * 0x8d, od.region_va(0))
+            rec = bytearray(rng.randbytes(0x200))
+            rec[0x42] = rng.choice([2, 2, 0, 1, 3, 0x82])
+            for off in (0x54, 0x58, 0x5c, 0x60, 0x64, 0x68, 0x6c, 0x70, *[0x74 + 4 * j for j in range(16)]):
+                struct.pack_into('<I', rec, off, rng.choice([0, 1, 100, 0xffffffff, 0x7fffffff, 0x80000000, rng.randrange(1 << 32)]))
+            rec_area = Area('rec', od.region_va(0), rec, image=False, compare=False)
+            table = Area('table', 0x5d1599 - tslack, bytearray(rng.randbytes(tslack + 5 * 0x4a)), compare=False)
+            flags = Area('flags', 0x6246ba, bytearray(rng.choice([0, 0, 1, 5, 0xff]) for _ in range(12)), compare=False)
+            g = {**self.globals_(rng, 'origin_x_583186', 'origin_y_58318a', 'value_5cf665', 'value_5d15e3'),
+                 'word_6246ac': index, 'word_6246b4': rng.choice([-1, 0, 1, 2, 3]), 'word_6246b6': rng.choice([-1, 0, 1, 2, 3]),
+                 'word_6246c7': rng.choice([0, 1, -1, 5, -32768, 32767, rng.randrange(-32768, 32768)]),
+                 'word_6246c9': rng.choice([0, 1, -1, 5, -32768, 32767, rng.randrange(-32768, 32768)]),
+                 'byte_6246a2': rng.choice([0, 1, 2, 3, 3, 4, 0x80, 0xff]), 'byte_6246a3': rng.choice([0, 1, 1, 1, 0x80]),
+                 'byte_6246c6': rng.choice([0, 1, 1, 7])}
+            struct.pack_into('<I', table.data, tslack + 0x4a, g['value_5d15e3'])  # 0x5d15e3 = the dword of record 1
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(2, 16), (3, 16)]),
+                     0x4c5d4b: stub(0x4c5d4b, args=5, this=True, cleanup=20, derefs=[(2, 16), (3, 16)])}
+            self.pair(3, 0x48cc70, size, [rec_area, records, table, flags], stubs, g, executed=executed,
+                      pointers={'records_5bb5e5': ('records', slack), 'table_5d1599': ('table', tslack), 'bytes_6246ba': ('flags', 0),
+                                'bytes_6246be': ('flags', 4), 'bytes_6246c2': ('flags', 8)})
+        self.finish(0x48cc70, size, executed)
+
+    # ---- 0x4876ed ----
+    def test_4876ed_redraw_items(self):
+        """FL-20b: differential test of m4876ed_redraw_items (original 0x4876ed)"""
+        rng = random.Random(0x4876ed)
+        executed = set()
+        size = 0x4879f7 - 0x4876ed
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            records, slack = self.records_area(rng, nrec=4)
+            struct.pack_into('<I', records.data, slack + index * 0x8d, od.region_va(0))
+            count = rng.choice([0, 1, 2, 3, 3, 4, 4])
+            rec = bytearray(rng.randbytes(0x700))
+            struct.pack_into('<h', rec, 0x21, count)
+            sel = rng.choice([0, 1, 2, 3, 4, 5])
+            flags = {name: rng.choice([0, 1, 1, 0x80000000]) for name in ('value_625d43', 'value_625d3f', 'value_625d47', 'value_625e40', 'value_625e3c')}
+            if count == 0:
+                flags['value_625d3f'] = 0   # (a negative target count would never be reached)
+            items = bytearray(rng.randbytes(7 * 0x85 + 0x40))
+            for k in range(7):
+                struct.pack_into('<h', items, k * 0x85, rng.choice([0, 1, 2, 3]))
+                items[k * 0x85 + 0x22] = rng.choice([0, 1, 2])
+                items[k * 0x85 + 0x84] = rng.choice([0, 0, 1, 7])
+            rec_area = Area('rec', od.region_va(0), rec, image=False, compare=False)
+            items_area = Area('items', 0x6252d5, items, compare=False)
+            glob = Area('glob', 0x625d6d, bytearray(rng.randbytes(16)), compare=False)
+            g = {**self.globals_(rng, 'value_5cf665', 'value_5d15e3', 'value_6252cf', 'value_6252cb'), 'word_6252d3': index,
+                 'word_625d4b': sel, **flags}
+            writes = [[(1, 4 * q, 4, rng.randrange(1 << 32)) for q in range(4)] for _ in range(2)]
+            # call-time state: each of the three flags is cleared after its own draw, so the draws see them in a fixed pattern
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=20, derefs=[(3, 16)],
+                                    probe=[('g:value_625d43', 0, 4), ('g:value_625d47', 0, 4), ('g:value_625e3c', 0, 4)]),
+                     0x4c5d4b: od.Stub(0x4c5d4b, args=5, this=True, cleanup=20),
+                     0x4841cb: stub(0x4841cb, args=2, this=True, cleanup=8, writes=writes,
+                                    probe=[('g:value_625d47', 0, 4), ('g:value_625e3c', 0, 4)])}
+            self.pair(4, 0x4876ed, size, [rec_area, records, items_area, glob], stubs, g, executed=executed,
+                      pointers={'records_5bb5e5': ('records', slack), 'items_6252d5': ('items', 0)})
+        self.finish(0x4876ed, size, executed)
+
+    # ---- 0x44d28c ----
+    def test_44d28c_click(self):
+        """FL-20b: differential test of m44d28c_click (original 0x44d28c)"""
+        rng = random.Random(0x44d28c)
+        executed = set()
+        size = 0x44d597 - 0x44d28c
+        boxes = [(0x61, 0x69, 0x65, 0x6d), (0x51, 0x59, 0x55, 0x5d), (0x91, 0x99, 0x95, 0x9d), (0xa1, 0xa9, 0xa5, 0xad), (0x71, 0x79, 0x75, 0x7d),
+                 (0x81, 0x89, 0x85, 0x8d), (0x21, 0x29, 0x25, 0x2d), (0x31, 0x39, 0x35, 0x3d), (0xb1, 0xb9, 0xb5, 0xbd)]
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
+            struct.pack_into('<h', this.data, 0x1e, index)
+            struct.pack_into('<I', this.data, 0x25, rng.choice([0, 1, 1, 1, 1, 1, 1, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x2d, rng.choice([0, 1, 1, 0, 1, 2, 0xffffffff]))
+            records, slack = self.records_area(rng, nrec=4, slack=0)
+            struct.pack_into('<I', records.data, index * 0x8d, od.region_va(1))
+            rec = bytearray(rng.randbytes(0x100))
+            x, y = rng.randrange(-30, 30), rng.randrange(-30, 30)
+            if rng.random() < 0.15:
+                x, y = rng.choice([-32768, 32767, -1, 0]), rng.choice([-32768, 32767, -1, 0])
+            for (xl, xh, yl, yh) in boxes:
+                inside = rng.random() < 0.5
+                deltas = [0, 1, -1, 1, -1, 50, -50, rng.randrange(-60, 60)]
+                if inside:   # the point lies inside, on or one unit off the edges
+                    vals = [x - rng.choice([0, 0, 1, 2, 7]), x + rng.choice([0, 0, 1, 2, 7]), y - rng.choice([0, 0, 1, 2, 7]), y + rng.choice([0, 0, 1, 2, 7])]
+                else:
+                    vals = [x + rng.choice(deltas), x + rng.choice(deltas), y + rng.choice(deltas), y + rng.choice(deltas)]
+                for off, v in zip((xl, xh, yl, yh), vals):
+                    struct.pack_into('<i', rec, off, max(-1 << 31, min((1 << 31) - 1, v)))
+            if rng.random() < 0.8:   # the region limits let the point through
+                struct.pack_into('<i', rec, 0x51, max(-1 << 31, x - rng.choice([0, 0, 1, 5])))
+                struct.pack_into('<i', rec, 0x99, min((1 << 31) - 1, x + rng.choice([0, 0, 1, 5])))
+                struct.pack_into('<i', rec, 0x8d, min((1 << 31) - 1, y + rng.choice([0, 0, 1, 5])))
+            obj = Area('obj', od.region_va(1), rec, image=False, compare=False)
+            stubs = {0x44d597: od.Stub(0x44d597, args=1, this=True, cleanup=4)}
+            hx, hy = rng.randrange(1 << 16) << 16, rng.randrange(1 << 16) << 16
+            self.pair(5, 0x44d28c, size, [this, records, obj], stubs, {}, ecx=od.region_va(0),
+                      stack=[hx | (x & 0xffff), hy | (y & 0xffff)], cleanup=8, args=(x & 0xffff, y & 0xffff), self_name='self',
+                      executed=executed, ret_mask=0xffffffff, pointers={'records_5bb5e5': ('records', 0)})
+        self.finish(0x44d28c, size, executed)
+
+    # ---- 0x47608e ----
+    def test_47608e_step_swap(self):
+        """FL-20b: differential test of m47608e_step_swap (original 0x47608e)"""
+        rng = random.Random(0x47608e)
+        executed = set()
+        size = 0x4763b3 - 0x47608e
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x900)), image=False)
+            struct.pack_into('<h', this.data, 0x22, index)
+            struct.pack_into('<I', this.data, 0x89a, rng.choice([1, 1, 1, 1, 1, 0, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x1c, rng.choice([0, 0, 0, 0, 0, 1, 0x80000000]))
+            struct.pack_into('<I', this.data, 0x2c, rng.choice([0, 0, 0, 0, 0, 3, 0x80000000]))
+            this.data[0x8d8] = rng.choice([0, 0, 0, 0, 0, 1, 0xff])
+            this.data[0x8d9] = rng.choice([0, 0, 0, 0, 0, 1, 0x80])
+            struct.pack_into('<I', this.data, 0x8b6, rng.choice([0, 1, 1, 0, 0x100]))
+            for off in (0x8aa, 0x8a6, 0x8be, 0x8ba):
+                struct.pack_into('<I', this.data, off, rng.choice([0, 1, 2, 3]) if off in (0x8aa, 0x8be) else rng.choice([0, 1, 2, 3, 4, 5]))
+            records, slack = self.records_area(rng, nrec=4, slack=0)
+            struct.pack_into('<I', records.data, index * 0x8d, od.region_va(1))
+            struct.pack_into('<I', records.data, index * 0x8d + 0x4d, rng.choice([1] * 8 + [0, 2]))
+            rec = bytearray(rng.randbytes(0x800))
+            struct.pack_into('<h', rec, 0x76d, rng.choice([0, 1, -1, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            struct.pack_into('<h', rec, 0x73c, rng.choice([0, 1, -1, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            pats = []
+            for name, off in (('p844', 0x74c), ('p850', 0x74c), ('p85c', 0x71b)):
+                pat = bytearray(rng.randbytes(9))
+                if rng.random() < 0.4:
+                    pat = bytearray(rec[off:off + 9])
+                    if rng.random() < 0.6:
+                        pat[rng.choice([8, 8, 8, rng.randrange(9)])] ^= rng.randrange(1, 256)
+                pats.append(Area(name, {'p844': 0x54c844, 'p850': 0x54c850, 'p85c': 0x54c85c}[name], pat, compare=False))
+            obj = Area('obj', od.region_va(1), rec, image=False, compare=False)
+            sel = rng.choice([0x27d5, 0x27d5, 0x27d5, 0x27d6, 0x27d7, 0x27d7, 0x27d4, 0])
+            g = {'value_5c39e5': sel}
+            now = rng.choice([1000, 0xffffff00, rng.randrange(1 << 32)])
+            # call-time state: the flag, the cursor and its copies, and the byte [self+0x8d8] (all stored after or before the calls as in the original)
+            probe = [('self', 0x8b6, 4), ('self', 0x8aa, 4), ('self', 0x8b2, 4), ('self', 0x8d8, 1)]
+            stubs = {0x4f6334: stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 1])], probe=probe),
+                     0x4fb2e3: stub(0x4fb2e3, args=1, this=True, cleanup=4, probe=probe)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
+            self.pair(6, 0x47608e, size, [this, records, obj, *pats], stubs, g, ecx=od.region_va(0), iat=iat, tick=now, self_name='self',
+                      executed=executed, word_args={0x4fb2e3: {0}},
+                      pointers={'records_5bb5e5': ('records', 0), 'bytes_54c844': ('p844', 0), 'bytes_54c850': ('p850', 0),
+                                'bytes_54c85c': ('p85c', 0)})
+        self.finish(0x47608e, size, executed)
+
+    # ---- 0x4b8a27 ----
+    def test_4b8a27_spawn_slots(self):
+        """FL-20b: differential test of m4b8a27_spawn_slots (original 0x4b8a27)"""
+        rng = random.Random(0x4b8a27)
+        executed = set()
+        size = 0x4b8d5c - 0x4b8a27
+        for n in range(SCENARIOS):
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x300)), image=False)
+            struct.pack_into('<I', this.data, 8, od.region_va(1))
+            obj = bytearray(rng.randbytes(0x800))
+            count = rng.choice([0, 1, 2, 3, 4, 4, -1])
+            slots_wanted = count > 0
+            struct.pack_into('<h', obj, 0x173, count)
+            struct.pack_into('<h', obj, 0x21, rng.choice([1, 2, 3, -2, 5]))
+            low = rng.choice([a for a in (0, 10, -5, 100)])
+            step = rng.choice([0, 1, 2, 3, 5, 6])
+            struct.pack_into('<h', this.data, 0x48, rng.choice([0, 1, -3, 8, 100, -30000, 32000]))
+            cur = struct.unpack_from('<h', this.data, 0x48)[0]
+            struct.pack_into('<h', obj, 0x456, max(-32768, min(32767, cur + rng.choice([-4, -1, 0, 1, 3, 8]))))
+            lo = struct.unpack_from('<h', obj, 0x456)[0]
+            valid = rng.randrange(max(0, min(step, lo - cur)), step + 1)   # a draw that the range test accepts (when the clamp path is not taken)
+            struct.pack_into('<h', obj, 0x458, max(-32768, min(32767, max(lo, cur + valid) + rng.choice([0, 0, 1, 4]))))
+            if rng.random() < 0.15:   # cur + n below the lowest value: the clamp path (no slots: its local is uninitialised in the original)
+                struct.pack_into('<h', obj, 0x456, min(32767, cur + step + rng.choice([1, 5])))
+                struct.pack_into('<h', obj, 0x173, rng.choice([0, 0, -2]))
+            if cur + step < struct.unpack_from('<h', obj, 0x456)[0]:   # the clamp path leaves the loop's local uninitialised in the original: no slots
+                struct.pack_into('<h', obj, 0x173, rng.choice([0, 0, -2]))
+            span = rng.choice([1, 2, 6, 9, -3])
+            base = rng.choice([4, 0, -2, 100])
+            struct.pack_into('<h', obj, 0x452, base)
+            struct.pack_into('<h', obj, 0x454, base + span - 1)
+            for k in range(4):
+                struct.pack_into('<I', this.data, k * 0x37 + 0x7d, rng.choice([0, 0, 0, 1, 0x80000000]))
+            # draws: random values, one of them accepted by the range test within the first four; every draw is in 0 .. 32767
+            draws = [rng.randrange(0, 0x8000) for _ in range(12)]
+            draws[rng.randrange(0, 4)] = valid + (step + 1) * rng.randrange(0, 3)
+            # call-time state: the busy dwords of the four slots (a slot is marked after its own 0x4b866e)
+            stubs = {0x50cd50: od.Stub(0x50cd50, results=draws),
+                     0x4b866e: stub(0x4b866e, this=True, results=[rng.choice([0, 1, 2, 3, 0x10002, -1 & 0xffffffff]) for _ in range(4)],
+                                    probe=[('self', k * 0x37 + 0x7d, 4) for k in range(4)]),
+                     0x4b85f6: od.Stub(0x4b85f6, this=True, results=[rng.randrange(1 << 32) for _ in range(4)])}
+            now = rng.choice([1000, 0xfffffff0, rng.randrange(1 << 32)])
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
+            obj_area = Area('obj', od.region_va(1), obj, image=False, compare=False)
+            g = self.globals_(rng, 'origin_x_583186', 'origin_y_58318a')
+            hi_word = rng.randrange(1 << 16) << 16
+            self.pair(7, 0x4b8a27, size, [this, obj_area], stubs, g, ecx=od.region_va(0), iat=iat, tick=now, self_name='self',
+                      executed=executed, stack=[hi_word | (step & 0xffff)], cleanup=4, args=(step,))
+        self.finish(0x4b8a27, size, executed)
+
+    # DIFF-END
+
+
+if __name__ == '__main__':
+    unittest.main()
