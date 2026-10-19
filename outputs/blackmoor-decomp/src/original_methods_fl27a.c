@@ -71,4 +71,19 @@ void m4de214_clear_flags_thunk(uint8_t *self, Fl27aWorld *world)
     m4de1f5_clear_flags(self, world);
 }
 
+/* ---- 0x4de2d8 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4de2d8, thiscall, plain `ret`: [self + 0x991] = 1; calls 0x4e053f (ecx 0x570508, argument 1) and 0x4e1113 (ecx 0x570508); the
+ * dwords [0x5b15d6] and [0x5d17f5] = 0; then calls 0x4de214 (this = self; natively, it clears [self + 0x991] and the byte [0x5a161f]
+ * again). The callees see [self + 0x991] = 1 and the two dwords still set. */
+void m4de2d8_reset_caption(uint8_t *self, Fl27aWorld *world, const Fl18Host *host)
+{
+    wr32(self, 0x991, 1);
+    call1(host, 0x4e053f, 0x570508, 1);
+    call0(host, 0x4e1113, 0x570508);
+    world->value_5b15d6 = 0;
+    world->value_5d17f5 = 0;
+    m4de214_clear_flags_thunk(self, world);
+}
+
 /*NEXT*/

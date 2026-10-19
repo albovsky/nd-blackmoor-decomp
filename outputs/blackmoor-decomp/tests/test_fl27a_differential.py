@@ -149,6 +149,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m4de214_clear_flags_thunk (original 0x4de214)"""
         self.run_key('4de214')
 
+    def test_4de2d8_reset_caption(self):
+        """FL-27a: differential test of m4de2d8_reset_caption (original 0x4de2d8)"""
+        self.run_key('4de2d8')
+
     # CASES-END
 
 

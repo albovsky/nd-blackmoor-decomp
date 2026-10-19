@@ -239,6 +239,39 @@ static void test_m4de214_clear_flags_thunk(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4de2d8: [self+0x991] = 1; 0x4e053f(1) and 0x4e1113 with the singleton ecx; the two dwords cleared AFTER the calls; 0x4de214 last */
+
+static void test_m4de2d8_reset_caption(void)
+{
+    int round;
+    for (round = 0; round < 4; round++) {
+        static const uint8_t FLAGS[4] = {0xff, 1, 0x80, 0};
+        setup();
+        set32(fx.self, 0x991, round == 3 ? 0u : 0xdeadbeefu);
+        fx.w.byte_5a161f = FLAGS[round];
+        fx.w.value_5b15d6 = 0x11111111u + (uint32_t)round;
+        fx.w.value_5d17f5 = 0x22222222u + (uint32_t)round;
+        fx.w.value_63a58a = 9;
+        script_ret(0x4e053f, 0x77);
+        expect_begin();
+        m4de2d8_reset_caption(fx.self, &fx.w, &fx.host);
+        set32(exp_self, 0x991, 0);                       /* set to 1 first, cleared by 0x4de214 at the end */
+        expect_end();
+        CK(L.n == 2);
+        ck_call(0, 0x4e053f, 0x570508, 1);
+        ck_arg(0, 0, 1);
+        ck_call(1, 0x4e1113, 0x570508, 0);
+        /* at both calls: [self+0x991] is 1 (its neighbours untouched), the flags and the two dwords are still the old values */
+        CK(get32(L.c[0].snap_self, 0x991) == 1 && get32(L.c[1].snap_self, 0x991) == 1);
+        CK(L.c[0].snap_self[0x990] == 0xA5 && L.c[0].snap_self[0x995] == 0xA5);
+        CK(L.c[0].b161f == FLAGS[round] && L.c[1].b161f == FLAGS[round]);
+        CK(L.c[0].v5b15d6 == 0x11111111u + (uint32_t)round && L.c[1].v5b15d6 == 0x11111111u + (uint32_t)round);
+        CK(L.c[0].v5d17f5 == 0x22222222u + (uint32_t)round && L.c[1].v5d17f5 == 0x22222222u + (uint32_t)round);
+        CK(fx.w.byte_5a161f == 0 && fx.w.value_5b15d6 == 0 && fx.w.value_5d17f5 == 0 && fx.w.value_63a58a == 9);
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -266,6 +299,7 @@ static void test_sweep(void)
         L.n = 0;
         m4de1f5_clear_flags(fx.self, &fx.w);
         m4de214_clear_flags_thunk(fx.self, &fx.w);
+        m4de2d8_reset_caption(fx.self, &fx.w, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -277,6 +311,7 @@ static const struct {
 } CASES[] = {
     {"test_m4de1f5_clear_flags", test_m4de1f5_clear_flags},
     {"test_m4de214_clear_flags_thunk", test_m4de214_clear_flags_thunk},
+    {"test_m4de2d8_reset_caption", test_m4de2d8_reset_caption},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

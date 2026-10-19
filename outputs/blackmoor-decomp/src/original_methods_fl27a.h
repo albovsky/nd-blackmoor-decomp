@@ -51,6 +51,11 @@ void m4de1f5_clear_flags(uint8_t *self, Fl27aWorld *world);
 /* 0x4de214: thiscall, plain `ret`: calls 0x4de1f5 (this = self), i.e. m4de1f5_clear_flags. */
 void m4de214_clear_flags_thunk(uint8_t *self, Fl27aWorld *world);
 
+/* 0x4de2d8: thiscall, plain `ret`: [self + 0x991] = 1; calls 0x4e053f (ecx 0x570508, argument 1) and 0x4e1113 (ecx 0x570508); [0x5b15d6] = 0;
+ * [0x5d17f5] = 0; then 0x4de214 (this = self, native: clears [self + 0x991] and [0x5a161f]). The effects of the two callees (their own
+ * writes to the caption objects, the globals 0x5b1602 / 0x5b1606) are the host's: not modelled here (receipt items A-51 #1 and #5). */
+void m4de2d8_reset_caption(uint8_t *self, Fl27aWorld *world, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

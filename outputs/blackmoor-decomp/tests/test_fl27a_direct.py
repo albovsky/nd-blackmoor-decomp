@@ -20,6 +20,7 @@ KERNELS = ['original_methods_fl27a.c']
 EXPECTED = [
     'test_m4de1f5_clear_flags',
     'test_m4de214_clear_flags_thunk',
+    'test_m4de2d8_reset_caption',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -73,6 +74,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4de214_clear_flags_thunk(self):
         """FL-27a: direct test of m4de214_clear_flags_thunk"""
         self.check('test_m4de214_clear_flags_thunk')
+
+    def test_4de2d8_reset_caption(self):
+        """FL-27a: direct test of m4de2d8_reset_caption"""
+        self.check('test_m4de2d8_reset_caption')
 
     # CASES-END
 

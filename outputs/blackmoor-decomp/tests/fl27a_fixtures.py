@@ -300,6 +300,21 @@ def gen_4de214(rng, n):
 
 SPECS['4de214'] = dict(id=2, va=0x4de214, size=19, gen=gen_4de214, cleanup=0, n=16)
 
+def gen_4de2d8(rng, n):
+    """Both callees see [self+0x991] = 1 and the globals not yet cleared; the function then clears them (through 0x4de214)."""
+    d = junk_self(rng)
+    if n % 2:
+        d[0x990] = d[0x995] = 0xff
+    put32(d, 0x991, rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)]))
+    g = {'byte_5a161f': rng.choice([0, 1, 0x80, 0xff]), 'value_5b15d6': rng.choice([0, 1, 0x100, 0xffffffff, rng.randrange(1 << 32)]),
+         'value_5d17f5': rng.choice([0, 1, 0x10000, 0xffffffff, rng.randrange(1 << 32)])}
+    probes = [('self', 0, SELF_LEN), ('g:byte_5a161f', 0, 1), ('g:value_5b15d6', 0, 4), ('g:value_5d17f5', 0, 4)]
+    stubs = {0x4e053f: stub(0x4e053f, results=[rng.randrange(1 << 32)]), 0x4e1113: stub(0x4e1113, results=[rng.randrange(1 << 32)])}
+    return make('4de2d8', [Area('self', od.region_va(0), d, image=False)], stubs, g, [], (), (n,), probes=probes)
+
+
+SPECS['4de2d8'] = dict(id=3, va=0x4de2d8, size=74, gen=gen_4de2d8, cleanup=0, n=32)
+
 KEYS = list(SPECS)
 
 
