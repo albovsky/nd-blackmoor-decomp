@@ -634,6 +634,93 @@ static void test_m4fadc4_set_name(void)
     CK(r == 1 && L.n == 3 && call_is(2, 0x4f379c, 0x5cf1eb, 1, (get32(big, 0x144) & 0xffff0000u), 0, 0, 0));
 }
 
+#define NEWNODE (VA_B + 0x100u)
+#define NEWBUF (VA_B + 0x200u)
+
+/* name "ab" at VA_V, value "value" at VA_V + 0x40; the hash answers `idx`; allocation answers: node, buffer; the constructor answers `ctor` */
+static void setup_423142(uint32_t idx, uint32_t node, uint32_t ctor, const char *name, const char *value)
+{
+    reset(50 + idx);
+    memcpy(fx.v, name, strlen(name) + 1);
+    memcpy(fx.v + 0x40, value, strlen(value) + 1);
+    script_ret(0x423368, idx, idx);
+    script_ret(0x51dc43, node, NEWBUF);
+    script_ret(0x423000, ctor, ctor);
+    fx.w.word_63a4cd = 0;
+}
+
+static void test_m423142_insert(void)
+{
+    uint32_t r;
+    uint8_t expb[A_SZ], expa[A_SZ];
+    /* an empty chain: the cell at self + 4 * idx receives the node */
+    setup_423142(2, NEWNODE, NEWNODE, "ab", "value");
+    set32(SELF, 8, 0);
+    memcpy(expb, fx.b, sizeof expb);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 6);
+    CK(get32(SELF, 8) == NEWNODE);
+    set32(expb, 0x100, NEWBUF);
+    memcpy(expb + 0x104, "ab", 3);
+    memcpy(expb + 0x200, "value", 6);
+    CK(memcmp(expb, fx.b, sizeof expb) == 0);
+    CK(L.n == 4);
+    CK(call_is(0, 0x423368, (uintptr_t)SELF, 1, VA_V, 0, 0, 0));
+    CK(call_is(1, 0x51dc43, 0, 1, 0x29, 0, 0, 0));
+    CK(call_is(2, 0x423000, NEWNODE, 0, 0, 0, 0, 0));
+    CK(call_is(3, 0x51dc43, 0, 1, 7, 0, 0, 0));       /* strlen("value") + 2 */
+    /* a chain of two nodes (A at VA_A, B at VA_A + 0x60): the new node goes into the cell at B + 0x25 */
+    setup_423142(0xffffffffu, NEWNODE, NEWNODE, "x", "");
+    set32(SELF, (size_t)-4, VA_A);
+    set32(fx.a, 0x25, VA_A + 0x60);
+    set32(fx.a, 0x60 + 0x25, 0);
+    memcpy(expa, fx.a, sizeof expa);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 1 && get32(SELF, (size_t)-4) == VA_A);
+    set32(expa, 0x60 + 0x25, NEWNODE);
+    CK(memcmp(expa, fx.a, sizeof expa) == 0);
+    CK(L.n == 4 && call_is(3, 0x51dc43, 0, 1, 2, 0, 0, 0) && fx.b[0x200] == 0 && get32(fx.b, 0x100) == NEWBUF && fx.b[0x104] == 'x' && fx.b[0x105] == 0);
+    /* the constructor answers another address than the node: that address is stored and used */
+    setup_423142(1, NEWNODE, NEWNODE + 0x40, "ab", "v");
+    set32(SELF, 4, 0);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 2 && get32(SELF, 4) == NEWNODE + 0x40 && get32(fx.b, 0x140) == NEWBUF && fx.b[0x144] == 'a');
+    /* the node allocation failed: the constructor is not called, the cell is zero, address 0 (unmapped here) is the original's fault: rejection after the store */
+    setup_423142(1, 0, 0, "ab", "v");
+    set32(SELF, 4, 0);
+    set32(SELF, 4, 0);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 0 && get32(SELF, 4) == 0 && L.n == 3 && L.c[2].callee == 0x51dc43);
+    /* the name fits 0x25 bytes with its terminator (0x24 characters) and not more (0x25 characters: rejection, the node and the buffer pointer are stored) */
+    {
+        char name[0x30];
+        memset(name, 'n', sizeof name);
+        name[0x24] = 0;
+        setup_423142(1, NEWNODE, NEWNODE, name, "v");
+        set32(SELF, 4, 0);
+        r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+        CK(r == 2 && memcmp(fx.b + 0x104, name, 0x25) == 0);
+        name[0x24] = 'n';
+        name[0x25] = 0;
+        setup_423142(1, NEWNODE, NEWNODE, name, "v");
+        set32(SELF, 4, 0);
+        memset(fx.b + 0x100, 0x5a, 0x40);
+        r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+        CK(r == 0 && get32(fx.b, 0x100) == NEWBUF && fx.b[0x104] == 0x5a && fx.b[0x128] == 0x5a);
+    }
+    /* a cycle in the chain: bounded, nothing allocated */
+    setup_423142(0, NEWNODE, NEWNODE, "ab", "v");
+    set32(SELF, 0, VA_A);
+    set32(fx.a, 0x25, VA_A);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 0 && L.n == 1);
+    /* an unresolvable chain address */
+    setup_423142(0, NEWNODE, NEWNODE, "ab", "v");
+    set32(SELF, 0, 0x11110000u);
+    r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
+    CK(r == 0 && L.n == 1);
+}
+
 static void test_sweep_bounded(void)
 {
     unsigned s;
@@ -663,6 +750,10 @@ static void test_sweep_bounded(void)
         setup_4fadc4(s % 3 ? 0 : 1);
         script_ret(0x4f379c, s % 2, 0);
         (void)m4fadc4_set_name(big, VA_A, s % 4, &fx.w, &fx.host);
+        setup_423142(s % 8, s % 5 ? NEWNODE : 0, s % 7 ? NEWNODE : 0, s % 3 ? "ab" : "", s % 4 ? "value" : "");
+        set32(SELF, 4 * (s % 8), s % 6 == 0 ? VA_A : 0);
+        set32(fx.a, 0x25, s % 9 == 0 ? VA_A : 0);
+        (void)m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
     }
 }
 
@@ -692,6 +783,7 @@ int main(void)
     RUN(test_m423368_hash_name);
     RUN(test_m4f356e_unload);
     RUN(test_m4fadc4_set_name);
+    RUN(test_m423142_insert);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

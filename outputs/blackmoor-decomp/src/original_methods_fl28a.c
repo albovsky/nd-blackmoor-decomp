@@ -369,4 +369,43 @@ uint32_t m4fadc4_set_name(uint8_t *self, uint32_t name, uint32_t slot, const Fl2
     return 1;
 }
 
+/* ---- 0x423142 ------------------------------------------------------------------------------------------------------------------ */
+
+#define INSERT_CHAIN_LIMIT 0x100000u
+
+/* 0x423142, thiscall, `ret 8`: see the header. [ebp-0x24] is `self`, [ebp-0x14] the index, [ebp-0x10] the cell, [ebp-0x1c] the new node, [ebp-0x18] the constructor
+ * result, [ebp-0x20] the buffer. */
+uint32_t m423142_insert(uint8_t *self, uint32_t name, uint32_t value, const Fl18Host *host)
+{
+    uint32_t idx = call1(host, 0x423368, (uintptr_t)self, name);
+    uint8_t *cell = self + (ptrdiff_t)(int32_t)(idx * 4u);
+    uint32_t steps = 0, node, r, len, buf, name_len;
+    const uint8_t *value_ptr, *name_ptr;
+    uint8_t *object, *dest;
+    while (rd32(cell, 0) != 0) {
+        if (++steps > INSERT_CHAIN_LIMIT) return 0;
+        cell = mem_at(host, rd32(cell, 0) + 0x25u);
+        if (cell == NULL) return 0;
+    }
+    node = call1(host, 0x51dc43, 0, 0x29);
+    r = node != 0 ? call0(host, 0x423000, node) : 0;
+    wr32(cell, 0, r);
+    value_ptr = mem_at(host, value);
+    if (value_ptr == NULL) return 0;
+    len = (uint32_t)strlen((const char *)value_ptr) + 1u;
+    buf = call1(host, 0x51dc43, 0, len + 1u);
+    object = mem_at(host, rd32(cell, 0));
+    if (object == NULL) return 0;
+    wr32(object, 0, buf);
+    name_ptr = mem_at(host, name);
+    if (name_ptr == NULL) return 0;
+    name_len = (uint32_t)strlen((const char *)name_ptr) + 1u;
+    if (name_len > 0x25u) return 0;
+    memcpy(object + 4, name_ptr, name_len);
+    dest = mem_at(host, rd32(object, 0));
+    if (dest == NULL) return 0;
+    memcpy(dest, value_ptr, len);
+    return len;
+}
+
 /*NEXT*/

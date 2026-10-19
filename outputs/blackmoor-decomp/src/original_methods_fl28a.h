@@ -95,6 +95,18 @@ uint32_t m4f356e_unload(uint8_t *self, uint32_t idx, const Fl18Host *host);
  * The copy is unbounded in the original (caller-validated: the name must fit the record). */
 uint32_t m4fadc4_set_name(uint8_t *self, uint32_t name, uint32_t slot, const Fl28aWorld *world, const Fl18Host *host);
 
+/* 0x423142: thiscall, `ret 8`, arguments `name` and `value` (original addresses of zero-terminated strings, read through resolve): a hash-table insert at the end
+ * of a chain. idx = 0x423368 (this = self, name), the whole eax; the cell is the dword at self + 4 * idx (32-bit wrap; self is a host pointer); while the cell holds
+ * a non-zero node address the cell becomes the dword at node + 0x25 (an original address). Then node = 0x51dc43(0x29); r = 0x423000 (this = node) when node is
+ * non-zero, else 0 (the original runs the constructor inside a structured-exception frame: the handler 0x5273db, trylevel 0 around the call; the frame is linked
+ * into fs:[0] and unlinked on return; no callee throws here, so the port does not model it). The cell = r. len = strlen(value) + 1; buf = 0x51dc43(len + 1) (one byte
+ * more than copied). [r] = buf; strlen(name) + 1 bytes of name are copied to r + 4; then len bytes of value to the dword [r] (read again). Returns len (eax at the
+ * end of the original). A null r or buf is stored and dereferenced as in the original: the memory at address 0 is whatever Fl18Host.resolve gives for it.
+ * Native rejections (return 0; the original faults or overruns): resolve gives NULL for an address the original writes or reads through (address 0 without a
+ * mapping, a chain cell, the name, the value), the name needs more than 0x25 bytes (the node has 0x29: the original overruns the block), or the chain has more
+ * than 0x100000 nodes (a cycle: the original never ends). All happen after the effects that precede them in the original. */
+uint32_t m423142_insert(uint8_t *self, uint32_t name, uint32_t value, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

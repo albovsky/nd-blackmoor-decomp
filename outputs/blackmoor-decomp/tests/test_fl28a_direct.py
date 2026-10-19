@@ -28,6 +28,7 @@ EXPECTED = [
     'test_m423368_hash_name',
     'test_m4f356e_unload',
     'test_m4fadc4_set_name',
+    'test_m423142_insert',
     'test_sweep_bounded',
 ]
 
@@ -108,6 +109,10 @@ class Fl28aDirect(unittest.TestCase):
     def test_4fadc4_set_name(self):
         """FL-28a: direct test of m4fadc4_set_name"""
         self.check('test_m4fadc4_set_name')
+
+    def test_423142_insert(self):
+        """FL-28a: direct test of m423142_insert"""
+        self.check('test_m423142_insert')
 
     def test_sweep_bounded(self):
         """FL-28a: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""

@@ -561,6 +561,42 @@ def gen_4fadc4(rng, n):
     return make('4fadc4', areas, stubs, g, [od.region_va(1), slot], (od.region_va(1), slot), (dbg, r, k))
 
 
+# 0x423142 ---------------------------------------------------------------------------------------------------------------------------
+
+def profiles_423142():
+    return [(chain, idx, kind) for chain in range(4) for idx in (0, 1, 0x3f, -1) for kind in ('ok', 'nodenull', 'ctor0', 'ctorother')]
+
+
+def gen_423142(rng, n):
+    (chain, idx, kind), variant = prof(n, profiles_423142())
+    self_off = 0x100
+    d = junk(rng, 0x800)
+    nodes = junk(rng, 0x400)
+    addr = [od.region_va(1) + 0x60 * i for i in range(3)]
+    cell_off = self_off + 4 * idx
+    # the chain: the table cell holds node 0 (when chain >= 1), node i's cell at +0x25 holds node i + 1, the last cell is zero
+    put32(d, cell_off, addr[0] if chain >= 1 else 0)
+    for i in range(3):
+        put32(nodes, 0x60 * i + 0x25, addr[i + 1] if i + 1 < chain else 0)
+    new_va, buf_va = od.region_va(2), od.region_va(3)
+    newnode = junk(rng, 0x80)
+    bufd = junk(rng, 0x80)
+    nulld = junk(rng, 0x100)
+    name = zstring(rng, [0, 1, 2, 3, 4, 7, 8, 0x20, 0x23, 0x24][(variant + n) % 10], 0x60)
+    value = zstring(rng, [0, 1, 3, 4, 5, 0x20, 0x40, 0x4f][(variant + n // 3) % 8], 0x60)
+    node_ret = 0 if kind == 'nodenull' else new_va + rng.choice([0, 4, 0x10])
+    ctor_ret = {'ok': node_ret, 'nodenull': 0, 'ctor0': 0, 'ctorother': new_va + 0x30}[kind]
+    probe = [('self', 0, 0x800), ('nodes', 0, 0x400), ('newnode', 0, 0x80), ('buf', 0, 0x80), ('null', 0, 0x100)]
+    stubs = {0x423368: stub(0x423368, THISCALL(1), probe, results=[idx & 0xffffffff]), 0x51dc43: stub(0x51dc43, CDECL(1), probe, results=[node_ret, buf_va + rng.choice([0, 8])]),
+             0x423000: stub(0x423000, THISCALL(0), probe, results=[ctor_ret])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('nodes', od.region_va(1), nodes, image=False), Area('newnode', new_va, newnode, image=False),
+             Area('buf', buf_va, bufd, image=False), Area('null', 0, nulld, image=False), Area('name', od.region_va(4), name, image=False),
+             Area('value', od.region_va(5), value, image=False)]
+    sc = make('423142', areas, stubs, {}, [od.region_va(4), od.region_va(5)], (od.region_va(4), od.region_va(5)), (chain, idx, kind), self_off=self_off)
+    sc.seh = rng.randrange(1 << 32)
+    return sc
+
+
 def _count(key):
     return {'423368': len(profiles_423368()) * 2}.get(key)
 
@@ -575,6 +611,7 @@ SPECS = {
     '4fb2e3': dict(id=7, va=0x4fb2e3, size=180, gen=gen_4fb2e3, cleanup=4, n=160),
     '4f356e': dict(id=9, va=0x4f356e, size=558, gen=gen_4f356e, cleanup=4, ret=0xffffffff, n=8 + 512 * 2),
     '4fadc4': dict(id=10, va=0x4fadc4, size=468, gen=gen_4fadc4, cleanup=8, ret=0xffffffff, fpcw=0x27f, n=len(profiles_4fadc4()) * 12),
+    '423142': dict(id=11, va=0x423142, size=279, gen=gen_423142, cleanup=8, ret=0xffffffff, n=len(profiles_423142()) * 3),
     '423368': dict(id=8, va=0x423368, size=232, code=218, gen=gen_423368, cleanup=4, ret=0xffffffff, n=len(profiles_423368()) * 2),
 }
 # 0x42342a `jne 0x423437`: the word [ebp-0xc] is zero at that point (the same word was tested non-zero at 0x4233be, and the loop leaves it unchanged
