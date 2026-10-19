@@ -96,11 +96,12 @@ def main():
                 survivors.append((i + 1, what, 'direct only'))
                 continue
             key = function_of(lines, i)
-            import test_fl24b_differential as diff
-            base.SRC = tmp
-            suite = unittest.TestSuite([diff.Fl24bDifferential(FUNCS[key])])
-            result = unittest.TextTestRunner(stream=open('/dev/null', 'w')).run(suite)
-            if result.wasSuccessful():
+            # (a mutant can crash the shared library: the differential of a survivor runs in its own process; a crash counts as caught)
+            code = ("import sys, unittest, pathlib; sys.path.insert(0, %r); import test_fl_differential as base; base.SRC = pathlib.Path(%r); "
+                    "import test_fl24b_differential as diff; r = unittest.TextTestRunner(stream=open('/dev/null', 'w')).run("
+                    "unittest.TestSuite([diff.Fl24bDifferential(%r)])); sys.exit(0 if r.wasSuccessful() else 1)" % (str(HERE), str(tmp), FUNCS[key]))
+            done = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, timeout=600)
+            if done.returncode == 0:
                 survivors.append((i + 1, what, '0x' + key))
             else:
                 caught_diff += 1

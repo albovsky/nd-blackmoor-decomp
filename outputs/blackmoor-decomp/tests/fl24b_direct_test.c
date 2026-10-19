@@ -5,8 +5,8 @@
  *
  * Every function is checked three ways: (1) a guard matrix (each guard of the chain failing in turn leaves the object, the record table
  * and the call log untouched), (2) each arm with the whole object, the record table and the globals compared with a hand-edited copy and
- * the ordered host calls with arguments and the state at the call, (3) the boundaries of signed words and dwords. A bounded random
- * sweep at the end only requires that nothing reads or writes outside the buffers (run it under ASan/UBSan). */
+ * the ordered host calls with arguments and the state at the call, (3) the boundaries of signed words and dwords. The whole binary is
+ * also run under ASan/UBSan (gcc -fsanitize=address,undefined, -O0/-O1/-O2): every tested input stays inside the buffers. */
 #include "../src/original_methods_fl24b.h"
 
 #include <stdio.h>
