@@ -80,6 +80,10 @@ LEDGER_KINDS = {"code", "data"}
 TOOL_ASSISTED = "tool_assisted_reconstructed_assembly"
 TOOL_ASSISTED_DATA = "tool_assisted_reconstructed_data"
 DATA_ASM_SCHEMA = "blackmoor-data-asm/1"
+_DATA_ASM_SPEC = importlib.util.spec_from_file_location("blackmoor_data_asm_layout", HERE.parent / "scripts" / "data_asm.py")
+DATA_ASM = importlib.util.module_from_spec(_DATA_ASM_SPEC)
+sys.modules[_DATA_ASM_SPEC.name] = DATA_ASM  # dataclasses need the module registered before it runs
+_DATA_ASM_SPEC.loader.exec_module(DATA_ASM)
 # Same pin as scripts/audit_tool_assisted.py. Only audit metadata is read here;
 # neither the assembler, objects nor GAME.EXE are needed for normal generation.
 M03_ASSEMBLER_VERSION = "GNU assembler (GNU Binutils) 2.43.1"
@@ -396,8 +400,10 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
 def audited_data_evidence(layout: dict, out_dir: Path):
     """Validate committed data sources (``asm_data/data-NNN.json``, packet M-C) against their audit reports.
 
-    Same contract as the M03 code batches: the report must accept every byte of exactly this manifest, the
-    pinned assembler must have passed its self-test, and the committed source must still be the audited one.
+    Same contract as the M03 code batches: the report must accept every byte of exactly this manifest, and the
+    pinned assembler must have passed its self-test.  The full source is a build output regenerated from the
+    owner's original (it is not committed), so the committed layout (``data-NNN.layout``) must still be the
+    audited one and carry no payload value, and the manifest and report must name the same source hash.
     Each range is matched data (kind ``data``); nothing here reads the assembler or the original.
     """
     rows, inputs, batches, claimed = [], [], [], []
@@ -428,11 +434,16 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             assembler = report["assembler"]
             require(assembler.get("self_test") == "passed" and assembler["version_line"] == M03_ASSEMBLER_VERSION,
                     "audit assembler is not pinned")
-            source = (path.parent / man["source"]).resolve()
-            require(source.parent == path.parent.resolve() and source.suffix == ".s", "bad source path")
-            require(report["source"]["path"] == man["source"] and
-                    report["source"]["sha256"] == man["source_sha256"] == sha256_file(source),
+            require(DATA_ASM.safe_batch_names(man) and
+                    report["source"]["path"] == man["source"] and report["source"]["sha256"] == man["source_sha256"],
                     "source hash differs from audit")
+            layout_file = (path.parent / man["layout"]).resolve()
+            require(layout_file.parent == path.parent.resolve() and layout_file.suffix == ".layout", "bad layout path")
+            require(report["layout"]["path"] == man["layout"] and
+                    report["layout"]["sha256"] == man["layout_sha256"] == sha256_file(layout_file),
+                    "layout hash differs from audit")
+            require(not DATA_ASM.audit_layout(layout_file.read_text(encoding="utf-8")),
+                    "the layout carries payload values or lines the generator does not write")
             require(report["ranges"] == man["ranges"], "audited ranges differ from the manifest")
             for r in man["ranges"]:
                 off, size = int(r["offset"], 16), r["length"]
@@ -452,8 +463,8 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
                            {"path": report_path.relative_to(out_dir).as_posix(),
                             "sha256": sha256_file(report_path), "role": "audit"},
-                           {"path": source.relative_to(out_dir.resolve()).as_posix(),
-                            "sha256": man["source_sha256"], "role": "audited-source"}])
+                           {"path": layout_file.relative_to(out_dir.resolve()).as_posix(),
+                            "sha256": man["layout_sha256"], "role": "audited-layout"}])
         except (KeyError, TypeError, ValueError, OSError) as exc:
             raise ProgressError(f"{name}: malformed or unavailable audited evidence: {exc}") from exc
     return rows, inputs, batches

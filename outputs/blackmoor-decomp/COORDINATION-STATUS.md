@@ -44,13 +44,27 @@ Next: (1) raw 0xd1 Turning Puzzle (11 scenes, object `0x61d449`, handler `0x4b64
 
 For a future raw 0x2d / mode-0 owner: `0x4ceb3b` also sets the completion byte of the row in obj+0x23e (`0x4ceb75..0x4ceb7f`), and the movie state in `SessionA2EMovie` needs a reset hook once 0x2d lands.
 
+## Handoff: Track M data slice 2, data payloads extracted at build time (2026-10-19 PDT, cloud thread)
+
+What changed: the two full data sources of PR 144 (`asm_data/data-001.s`, `data-002.s`: the game's own strings, numbers and resource bytes as directive text) are no longer committed. `scripts/data_asm.py` regenerates them from the owner's local `GAME.EXE` into `work/asm_data/` (git-ignored) when it generates, audits or checks a batch, and `compose_image.bind_data_batches` regenerates them in memory at build time. The repository keeps the generator, the manifest `asm_data/data-NNN.json` (ranges, range hashes, SHA-256 of the full source and of the layout), the audit report, and a layout `asm_data/data-NNN.layout`: the source with every string, numeric dword and byte list masked as `[length]`. Labels, offsets, zero runs, pointer expressions and the named `.set` address constants of pointer targets stay (structure: which dwords are pointers and where they point); no string, number or byte value does.
+
+Counting is unchanged: 274,976 data bytes still reassemble byte for byte with the pinned `i686-w64-mingw32-as` 2.43.1, the composer still binds them as `tool_assisted_reconstructed_data`, and the composed hash still equals the original. A source counts only when its SHA-256 equals the manifest's and the report's and its masked form equals the committed layout; the layout audit is an allowlist of the line shapes the generator writes (`data_asm.audit_layout`), also enforced by the map generator, which runs without the original. Manifest names must be plain `data-NNN.s` / `data-NNN.layout`.
+
+Wording: `AGENTS.md` ruling (6), `asm/README.md`, `image/README.md`, `WORK-SLICES.md` and `decomp-progress/README.md` now describe the extract-at-build form. It was implemented as the recommended default of the coordinator's card; the owner has not recorded a different choice.
+
+Not changed, for Glib to know: the full sources remain in git history (PR 144); only a history rewrite would remove them. Pointer targets (code, data and import addresses) remain visible in the layouts.
+
+Review: one Sonnet `slice-reviewer` pass on the diff. P1 (a variable in `audited_data_evidence` shadowed the layout dict; the map generator crashed on the real repo) fixed, and the map was regenerated from the real tree. P2 fixed: layout allowlist replaces the two-shape denylist. P2 reworded: pointers are structure, not a value, in all docs. P3 fixed: plain-name check on manifest paths, missing layout reported as a clean error, stale doc lines.
+
+Verification: `tests.test_data_asm` (24), `tests.test_compose_image` (76 before the review fixes; rerun in the full suite), `decomp-progress/test_progress` data tests, `data_asm.py audit` and `check` on both batches, `extract_function_evidence.py --write` and `build_function_ledger.py --write` (557 ported, unchanged; only the pinned test-file hashes changed).
+
 ## Handoff: Track M data slice 1, .rdata, .data and resource payloads bound (2026-10-19 PDT, cloud thread)
 
 Glib's ruling (decision card, 10:57 AM PDT 2026-10-19): data and resources rebuilt as sources with machine-named labels count as matched when they reassemble byte for byte. Recorded as ruling (6) in `AGENTS.md` (which also now permits the `asm_data/` sources in the public repo) and in `asm/README.md`.
 
 Result: **274,976 data bytes reassemble byte for byte with the pinned `i686-w64-mingw32-as` 2.43.1** and are bound in the composer; 0 bytes are referenced any more, and the composed image hash equals the original (composer evidence only, not an x86 match claim). New class `tool_assisted_reconstructed_data`, reported apart from code, functions, index tables and padding.
-- `asm_data/data-001.s` (+ manifest and report): `.rdata` 0x12a54c to 0x134910 and `.data` 0x137000 to 0x16a000, 250,820 bytes, 10,181 labels (32,352 lines).
-- `asm_data/data-002.s`: the 22 resource payload runs from `image/resources.json`, 24,156 bytes, 454 labels (2,672 lines; no pointer detection).
+- `asm_data/data-001.s` (+ manifest and report; since the extract-at-build slice a build output, not committed): `.rdata` 0x12a54c to 0x134910 and `.data` 0x137000 to 0x16a000, 250,820 bytes, 10,181 labels (32,352 lines).
+- `asm_data/data-002.s` (build output): the 22 resource payload runs from `image/resources.json`, 24,156 bytes, 454 labels (2,672 lines; no pointer detection).
 - `scripts/data_asm.py` (`gen`, `audit`, `check`): classifies by heuristic only (NUL-ended ASCII of 4+ printable bytes is `.asciz` / `STR_<va>`, UTF-16LE of 4+ characters is `.string16` / `WSTR_<va>`, aligned zero runs `.fill`, aligned dwords that point into a mapped section are pointers, the rest `.long` / `.byte`; labels `DAT_<va>`). Pointers into the source are `LABEL - IMG + origin`, so a misplaced label changes the bytes; pointers outside it are `.set` constants named `FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_<va>` that must equal their name. The auditor is a lexical whitelist (no `.incbin`, no free byte lists beyond the data directives, fill size capped), pins the assembler by version line plus self-test, requires zero relocations, byte equality over every range and every label at its address; `check` regenerates the sources from the local original and requires them identical.
 - `compose_image.py`: `data_batches` in `image/reconstructed.json`; `bind_data_batches` re-checks the report, manifest hash, source hash, pinned assembler, relocations, lexical audit and generator regeneration before it takes the assembled bytes. `image/ranges.json` is now empty. `decomp-progress/generate.py` counts audited data batches as matched data (274,976 of 298,406) with the same checks.
 

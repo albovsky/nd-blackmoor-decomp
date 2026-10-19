@@ -3,10 +3,14 @@
  "batch": "002",
  "class_requested": "tool_assisted_reconstructed_data",
  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
- "manifest_sha256": "c91b795e46db628d344732bd14477707db46eb47707ba3ee723e62a1393aaca4",
+ "manifest_sha256": "4849eba40dbcd6d573050a39f8a1d57ab0763758f99d899e5720f217d2622907",
  "source": {
   "path": "data-002.s",
   "sha256": "5733dd411b19ed6c22cecdf157107127992290bd681032f936596b0aee9224a0"
+ },
+ "layout": {
+  "path": "data-002.layout",
+  "sha256": "aa5aeef1ac94f53ff304327049ba569d148d777a3d1819f5fb60e00ab9f541a4"
  },
  "assembler": {
   "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",

@@ -686,19 +686,25 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             compose_image.compose(directory, ORIGINAL, self.build_dir)
         self.assertIn(fragment, str(ctx.exception))
 
-    def rehash(self, asm_dir, name="data-002"):
-        """Make manifest and report agree with an edited source, as an attacker who controls the files would."""
-        source = asm_dir / f"{name}.s"
+    def rehash(self, asm_dir, name="data-002", source_sha256=None):
+        """Make manifest and report agree with an edited layout (or a claimed source hash), as an attacker who controls the files would."""
+        layout = asm_dir / f"{name}.layout"
         manifest = json.loads((asm_dir / f"{name}.json").read_text())
-        manifest["source_sha256"] = hashlib.sha256(source.read_bytes()).hexdigest()
+        manifest["layout_sha256"] = hashlib.sha256(layout.read_bytes()).hexdigest()
+        if source_sha256:
+            manifest["source_sha256"] = source_sha256
         (asm_dir / f"{name}.json").write_text(json.dumps(manifest, indent=1))
         report = json.loads((asm_dir / f"{name}-report.json").read_text())
         report["manifest_sha256"] = hashlib.sha256((asm_dir / f"{name}.json").read_bytes()).hexdigest()
         report["source"]["sha256"] = manifest["source_sha256"]
+        report["layout"]["sha256"] = manifest["layout_sha256"]
         (asm_dir / f"{name}-report.json").write_text(json.dumps(report, indent=1))
 
-    def test_data_source_edited_after_the_audit_is_rejected(self):
-        self.assert_data_batch_rejected(lambda d: (d / "data-002.s").write_text((d / "data-002.s").read_text() + "# edited\n"), "differs from the audited hash")
+    def test_data_layout_edited_after_the_audit_is_rejected(self):
+        self.assert_data_batch_rejected(lambda d: (d / "data-002.layout").write_text((d / "data-002.layout").read_text() + ".fill 4, 1, 0\n"), "differs from the manifest hash")
+
+    def test_full_data_source_is_not_committed(self):
+        self.assertEqual(sorted((PROJECT / "asm_data").glob("*.s")), [])
 
     def test_stale_data_audit_report_is_rejected(self):
         def edit(d):
@@ -708,20 +714,23 @@ class MutantTests(OriginalMixin, unittest.TestCase):
 
         self.assert_data_batch_rejected(edit, "audit report is stale")
 
-    def test_data_source_with_an_incbin_cannot_ride_on_a_rehashed_report(self):
+    def test_data_layout_with_a_payload_value_cannot_ride_on_a_rehashed_report(self):
         def edit(d):
-            (d / "data-002.s").write_text((d / "data-002.s").read_text() + '.incbin "GAME.EXE", 0, 4\n')
+            (d / "data-002.layout").write_text((d / "data-002.layout").read_text() + '.asciz "GAME.EXE"\n')
             self.rehash(d)
 
-        self.assert_data_batch_rejected(edit, "not permitted")
+        self.assert_data_batch_rejected(edit, "unexpected line in the layout")
 
-    def test_data_source_that_is_not_the_generators_output_is_rejected(self):
+    def test_data_layout_that_is_not_the_generators_output_is_rejected(self):
         def edit(d):
-            text = (d / "data-002.s").read_text()
-            (d / "data-002.s").write_text(text + "# a comment the generator does not write\n")
+            text = (d / "data-002.layout").read_text()
+            (d / "data-002.layout").write_text(text.replace(".long [4]", ".long [3]", 1))
             self.rehash(d)
 
-        self.assert_data_batch_rejected(edit, "generator's output")
+        self.assert_data_batch_rejected(edit, "does not have the committed layout")
+
+    def test_data_source_hash_that_the_original_does_not_regenerate_is_rejected(self):
+        self.assert_data_batch_rejected(lambda d: self.rehash(d, source_sha256="0" * 64), "regenerated from the original differs")
 
     def test_a_range_both_bound_and_referenced_is_rejected(self):
         def add_referenced(directory):
