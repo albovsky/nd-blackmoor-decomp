@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FL-28 (batch b): original-x86 oracle for the movie-player methods of GAME.EXE listed in tasks/FL-28-action-family-35-runtime.md (batch c).
+"""FL-28 (batch b): original-x86 oracle for the action 0x3f / 0x3e runtime methods of GAME.EXE listed in tasks/FL-28-action-family-a1-3f-3e-2d-runtime.md (batch b).
 
 Runs ONLY the original bytes (Unicorn, no native library) on the fixtures of tests/fl28b_fixtures.py, the same generator and the same
 original-run function that tests/test_fl28b_differential.py uses against the native port. The hooks are the OS and host boundaries only:
@@ -9,7 +9,7 @@ index computation and store of the bodies runs as original instructions.
 
 Prints one line per function:  0x<va> instructions <executed>/<total> branch-directions <taken>/<total> scenarios <n> digest <sha256 of the ordered calls and the memory
 read back, over all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken (except the
-allowlisted edge in fl28b_fixtures.UNTAKEN_ALLOWED). No original bytes or memory dumps are
+allowlist fl28b_fixtures.UNTAKEN_ALLOWED (empty)). No original bytes or memory dumps are
 printed. Run from outputs/blackmoor-decomp:  python3 tests/fl28b_original_oracle.py
 """
 import hashlib

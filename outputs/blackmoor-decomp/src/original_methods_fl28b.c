@@ -466,8 +466,8 @@ void m422a0a_draw_marked(Fl28bWorld *world, const Fl18Host *host)
                 if ((int32_t)tbl[j + 0xb2] != (int32_t)i) continue;
                 obj = world->objs_5d34d1 + (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)rd16(world->words_61879d, 2 * (ptrdiff_t)j) * 0x84du);
                 sub_addr = rd32(rec, 6 + 4 * (ptrdiff_t)j);
-                sub = object_at(host, sub_addr);
                 if (obj[0x1e] > 3) break;
+                sub = object_at(host, sub_addr);    /* the original never dereferences the sub-object on the sel > 3 path */
                 memset(l1c, 0, sizeof l1c);
                 memset(l34, 0, sizeof l34);
                 memset(l44, 0, sizeof l44);

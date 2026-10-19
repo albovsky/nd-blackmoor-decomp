@@ -9,7 +9,7 @@ parts vary from one pass of the cycle to the next; random bytes fill everything 
 stubs (OS or host boundaries); nothing inside the function under test is patched. A stub can also carry scripted WRITES (a callee that
 changes `self` or a local of the caller: call number, argument or absolute address, offset, size, value or a byte string) so that a
 function's re-reads after a call are exercised. Two more host/OS boundaries are modelled outside the function: the thread information block
-behind fs (0x4497a0 links a structured-exception frame into fs:[0]; the run asserts that the chain is restored) and the x87 control word
+behind fs (not used by this batch's functions; kept from the shared harness) and the x87 control word (0x27f, set for 0x4f6ef4)
 (0x27f, the Windows process default: 53-bit precision, all exceptions masked). It returns the result, the normalised ordered call log and a
 digest of the ordered calls, the return value and the memory read back.
 """
@@ -520,11 +520,13 @@ TAILS = [(0x14, 0x14), (0, 0x14), (0x14, 1), (5, 0x13), (0x13, 5), (0x15, 0xff),
 
 
 def profiles_4205c1():
-    return [(slot, cnt, pat) for slot in (0, 1, -1, 2) for cnt in (-1, 0, 1, 2, 3, 4) for pat in range(8 if cnt > 0 else 1)]
+    p = [(slot, cnt, pat, None) for slot in (0, 1, -1, 2) for cnt in (-1, 0, 1, 2, 3, 4) for pat in range(8 if cnt > 0 else 1)]
+    # the first 0x420737 call rewrites the record (its entry array address, its count): the re-reads after the call are exercised
+    return p + [(0, 3, 7, rw) for rw in ('ptr', 'dn', 'up')]
 
 
 def gen_4205c1(rng, n):
-    (slot, cnt, pat), variant = prof(n, profiles_4205c1())
+    (slot, cnt, pat, rw), variant = prof(n, profiles_4205c1())
     tail = TAILS[(n + variant) % len(TAILS)]
     selfd = bytearray(rng.randbytes(0x1400))
     for i, k in enumerate(KSET):
@@ -540,23 +542,29 @@ def gen_4205c1(rng, n):
         ents[k * 0x1d1 + 0x1b7] = kinds[(k + variant * 3 + n) % len(kinds)]
     recs, pointers = records_area(rng, slot, od.region_va(1))
     probe = [('self', 0, 0x40)]
-    stubs = {0x420737: stub(0x420737, THISCALL(3), probe, results=call_results(rng, pat, 4)), 0x41fa11: stub(0x41fa11, THISCALL(1), probe),
+    ents2 = bytearray(rng.randbytes(0x800))
+    for k in range(4):
+        ents2[k * 0x1d1 + 0x1b7] = (0, 1, 2, 3)[(k + 1 + n) % 4]
+    writes = {'ptr': [(0, -1, od.region_va(1) + 0x795, 4, od.region_va(8))], 'dn': [(0, -1, od.region_va(1) + 0x793, 2, 1)],
+              'up': [(0, -1, od.region_va(1) + 0x793, 2, 4)]}.get(rw, [])
+    stubs = {0x420737: stub(0x420737, THISCALL(3), probe, results=call_results(rng, pat, 4), writes=writes), 0x41fa11: stub(0x41fa11, THISCALL(1), probe),
              0x41fd08: stub(0x41fd08, THISCALL(1), probe), 0x42028e: stub(0x42028e, THISCALL(1), probe)}
     for i in range(len(KSET)):
         stubs[STUB_T1 + 0x10 * i] = stub(STUB_T1 + 0x10 * i, (0, True, 0), probe)
         stubs[STUB_T2 + 0x10 * i] = stub(STUB_T2 + 0x10 * i, (0, True, 0), probe)
     WORD_ARGS[0x420737] = (1,)
     a = word_arg(rng, slot)
-    return make('4205c1', [self_area(selfd), Area('rec', od.region_va(1), rec, image=False), Area('ents', od.region_va(2), ents, image=False), recs],
-                stubs, {}, [a], (a,), (slot, cnt, pat, tail), pointers=pointers)
+    return make('4205c1', [self_area(selfd), Area('rec', od.region_va(1), rec, image=False), Area('ents', od.region_va(2), ents, image=False), recs,
+                           Area('ents2', od.region_va(8), ents2, image=False)], stubs, {}, [a], (a,), (slot, cnt, pat, tail, rw), pointers=pointers)
 
 
 def profiles_4209e8():
-    return [(slot, cnt, pat, dbg) for slot in (0, 2, -1) for cnt in (-1, 0, 1, 2, 3, 5) for pat in range(8 if cnt > 0 else 1) for dbg in ((0, 1) if cnt > 0 else (0,))]
+    p = [(slot, cnt, pat, dbg, None) for slot in (0, 2, -1) for cnt in (-1, 0, 1, 2, 3, 5) for pat in range(8 if cnt > 0 else 1) for dbg in ((0, 1) if cnt > 0 else (0,))]
+    return p + [(0, 3, 7, 0, rw) for rw in ('ptr', 'dn', 'up')]
 
 
 def gen_4209e8(rng, n):
-    (slot, cnt, pat, dbg), variant = prof(n, profiles_4209e8())
+    (slot, cnt, pat, dbg, rw), variant = prof(n, profiles_4209e8())
     selfd = bytearray(rng.randbytes(0x2100))
     rec = bytearray(rng.randbytes(0x800))
     put16(rec, 0x79f, cnt)
@@ -567,11 +575,18 @@ def gen_4209e8(rng, n):
         ents[k * 10 + 6] = kinds[(k + variant * 2 + n) % len(kinds)]
         ents[k * 10 + 9] = rng.choice([0, 1, 2, 0xff, 1])
         put16(ents, k * 10 + 7, rng.choice([0, 1, 5, -1, -4, 4, 0xfffe, 3]))
+    ents2 = bytearray(rng.randbytes(0x100))
+    for k in range(5):
+        ents2[k * 10 + 6] = (1, 2, 0, 3, 2)[(k + n) % 5]
+        ents2[k * 10 + 9] = rng.choice([0, 1, 2, 0xff])
+        put16(ents2, k * 10 + 7, rng.choice([0, 1, 5, -1, -4, 4, 3]))
+    writes = {'ptr': [(0, -1, od.region_va(1) + 0x7a1, 4, od.region_va(8))], 'dn': [(0, -1, od.region_va(1) + 0x79f, 2, 1)],
+              'up': [(0, -1, od.region_va(1) + 0x79f, 2, 5)]}.get(rw, [])
     tab = bytearray(rng.randbytes(80))
     recs, pointers = records_area(rng, slot, od.region_va(1))
     pointers['dwords_585801'] = ('tab', 32)
     probe = [('self', 0x1f00, 0x100)]
-    stubs = {0x420737: stub(0x420737, THISCALL(3), probe, results=call_results(rng, pat, 5)), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe),
+    stubs = {0x420737: stub(0x420737, THISCALL(3), probe, results=call_results(rng, pat, 5), writes=writes), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe),
              0x44a2b7: stub(0x44a2b7, CDECL(1), probe), 0x4e9e84: stub(0x4e9e84, THISCALL(2), probe), 0x4ea06c: stub(0x4ea06c, THISCALL(1), probe)}
     WORD_ARGS[0x420737] = (1,)
     WORD_ARGS[0x4e9e84] = (0,)
@@ -579,7 +594,7 @@ def gen_4209e8(rng, n):
     g, nbr = debug_areas(rng, dbg * rng.choice([1, 0x100, 0x8000]))
     a = word_arg(rng, slot)
     return make('4209e8', [self_area(selfd), Area('rec', od.region_va(1), rec, image=False), Area('ents', od.region_va(2), ents, image=False), recs,
-                           Area('tab', 0x585801 - 32, tab, image=True), *nbr], stubs, g, [a], (a,), (slot, cnt, pat, dbg), pointers=pointers)
+                           Area('tab', 0x585801 - 32, tab, image=True), Area('ents2', od.region_va(8), ents2, image=False), *nbr], stubs, g, [a], (a,), (slot, cnt, pat, dbg, rw), pointers=pointers)
 
 
 N_VALUES = (1, 2, 3, 7, 100, 0x7fffffff, 0, -2, 0x80000000, 0xfffffffe, 5000)
@@ -588,10 +603,10 @@ LH_VALUES = ((0, 1), (5, 10), (-3, 100), (0x7fffffff, 0x80000000), (0x80000000, 
 
 
 def profiles_4f6ef4():
-    p = [('s709c', r) for r in (0, 1, 0x100)]
+    p = [('s709c', r) for r in (0, 1, 0x100, 0x10000, 0xabcd0000)]
     p += [('s162', 0, 1), ('s162', 1, 0), ('s162', 0, 0), ('s162', 5, 5)]
     p = [x for x in p]
-    p += [('s6334', r) for r in (0, 1, 0x100)]
+    p += [('s6334', r) for r in (0, 1, 0x100, 0x10000, 0xabcd0000)]
     p += [('nm1', d) for d in (0, 1)]
     p += [('calc', nn, dd, lo, hi) for nn in N_VALUES for dd in D_VALUES for (lo, hi) in LH_VALUES]
     return p
@@ -600,9 +615,9 @@ def profiles_4f6ef4():
 def gen_4f6ef4(rng, n):
     (kind, *rest), variant = prof(n, profiles_4f6ef4())
     arg = rng.choice([0, 1, 2, 0xffffffff, 0x80000000, 3])
-    r709c = rest[0] if kind == 's709c' else rng.choice([1, 0x100, 0xffffffff])
+    r709c = rest[0] if kind == 's709c' else rng.choice([1, 0x100, 0xffffffff, 0x10000, 0xabcd0000])
     f162, f28f = (rest[0], rest[1]) if kind == 's162' else (rng.choice([1, 0x80000000, 0xffffffff]), rng.choice([1, 0x100]))
-    r6334 = rest[0] if kind == 's6334' else rng.choice([1, 0x100, 0xffffffff])
+    r6334 = rest[0] if kind == 's6334' else rng.choice([1, 0x100, 0xffffffff, 0x10000, 0xabcd0000])
     nres, divisor, lo, hi = 0xffffffff, rng.choice(D_VALUES), rng.randrange(1 << 32), rng.randrange(1 << 32)
     dbg = rest[0] if kind == 'nm1' else 0
     if kind == 'calc':
@@ -674,9 +689,9 @@ def gen_41fa11(rng, n):
     arg[0x196:0x196 + 0x40] = zstring(rng, ln, 0x40)
     buf = bytearray(rng.randbytes(0x1a0))
     if kind == 'dup':
-        results = [rng.randrange(1, 1 << 32) for _ in range(extra)] + [0]
+        results = [rng.choice([0x10000, 0xabcd0000, rng.randrange(1, 1 << 32)]) for _ in range(extra)] + [0]
     else:
-        results = [rng.randrange(1, 1 << 32) for _ in range(min(max(count, 1), 0x20))]
+        results = [rng.choice([0x10000, 0xabcd0000, rng.randrange(1, 1 << 32)]) for _ in range(min(max(count, 1), 0x20))]
     probe = [('self', 0xea5, 0x80), ('self', 0xf20, 4), ('buf', 0, 0x1a0)]
     stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3), probe), 0x4264e8: stub(0x4264e8, THISCALL(1), probe), 0x51ea75: stub(0x51ea75, THISCALL(1), probe, results=[od.region_va(3)]),
              0x50d550: stub(0x50d550, CDECL(3), probe, results=results), 0x51eac4: stub(0x51eac4, THISCALL(1), probe)}

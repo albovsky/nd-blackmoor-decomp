@@ -5,7 +5,7 @@ tests/fl28b_original_oracle.py uses).
 Every case compares all the memory the function can write (the object, the record table, the object of the target record, the
 globals), how many bytes the function popped, and the ordered calls out: callee, ecx, stack arguments (pointers into a fixture are compared
 as the original addresses they stand for; 'word' arguments, which the original pushes from a 16-bit register, by their low 16 bits), the
-state of the object and of the record table at each call, and GetTickCount as an ordered event. The callees are recording stubs; the
+state of the object and of the record table at each call. The callees are recording stubs; the
 function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function and took both directions of every conditional
 jump of it (fl28b_fixtures.UNTAKEN_ALLOWED lists the one edge that is deliberately not reached, with the reason).
 """
@@ -47,7 +47,7 @@ class Fl28bDifferential(DiffBase):
         assert cls.lib.shim_world_size() == ctypes.sizeof(fx.World), 'the World mirror does not match Fl28bWorld'
 
     def native_calls(self, arrays, probe_spec, deref_len):
-        """The shim's call log as comparable lists: [callee, this, *args, probe]; GetTickCount is ['tick', 0]."""
+        """The shim's call log as comparable lists: [callee, this, *args, probe]."""
         spans = [(ctypes.addressof(arr), len(arr), a.va) for a, arr in arrays]
 
         def va_of(value):
@@ -144,17 +144,53 @@ class Fl28bDifferential(DiffBase):
         self.assertEqual(unexpected, [], 'conditional jumps never taken one way (address, direction): %s' % [(hex(a), d) for a, d in unexpected])
         self.assertEqual(stale, [], 'allowlisted untaken edges that are taken after all (remove them): %s' % [(hex(a), d) for a, d in stale])
 
+    def test_41e043_find_free_slot(self):
+        """FL-28b: differential test of m41e043_find_free_slot (original 0x41e043)"""
+        self.run_key('41e043')
 
+    def test_42e493_take_pending(self):
+        """FL-28b: differential test of m42e493_take_pending (original 0x42e493)"""
+        self.run_key('42e493')
 
-def _case(key):
-    def test(self):
-        self.run_key(key)
-    test.__doc__ = 'FL-28b: differential test of m%s_%s (original 0x%s)' % (key, fx.NAMES[key], key)
-    return test
+    def test_41de29_clear_slots(self):
+        """FL-28b: differential test of m41de29_clear_slots (original 0x41de29)"""
+        self.run_key('41de29')
 
+    def test_41e250_release_slot(self):
+        """FL-28b: differential test of m41e250_release_slot (original 0x41e250)"""
+        self.run_key('41e250')
 
-for _key in fx.KEYS:
-    setattr(Fl28bDifferential, 'test_%s_%s' % (_key, fx.NAMES[_key]), _case(_key))
+    def test_4edfaf_centre_rect(self):
+        """FL-28b: differential test of m4edfaf_centre_rect (original 0x4edfaf)"""
+        self.run_key('4edfaf')
+
+    def test_41e0b4_add_slot(self):
+        """FL-28b: differential test of m41e0b4_add_slot (original 0x41e0b4)"""
+        self.run_key('41e0b4')
+
+    def test_4205c1_run_entries(self):
+        """FL-28b: differential test of m4205c1_run_entries (original 0x4205c1)"""
+        self.run_key('4205c1')
+
+    def test_4209e8_run_small_entries(self):
+        """FL-28b: differential test of m4209e8_run_small_entries (original 0x4209e8)"""
+        self.run_key('4209e8')
+
+    def test_4f6ef4_advance_record(self):
+        """FL-28b: differential test of m4f6ef4_advance_record (original 0x4f6ef4)"""
+        self.run_key('4f6ef4')
+
+    def test_41c544_init_record(self):
+        """FL-28b: differential test of m41c544_init_record (original 0x41c544)"""
+        self.run_key('41c544')
+
+    def test_41fa11_add_entry(self):
+        """FL-28b: differential test of m41fa11_add_entry (original 0x41fa11)"""
+        self.run_key('41fa11')
+
+    def test_422a0a_draw_marked(self):
+        """FL-28b: differential test of m422a0a_draw_marked (original 0x422a0a)"""
+        self.run_key('422a0a')
 
 
 if __name__ == '__main__':

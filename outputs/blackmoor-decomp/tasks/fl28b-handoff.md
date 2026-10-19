@@ -16,24 +16,12 @@ All in `src/original_methods_fl28b.c` / `.h` (symbols `m<va>_*`, world struct `F
 | 0x41e250 | 235 | m41e250_release_slot | 65/65 | 8/8 | 330 | 857f5bf345bffbd224b8d5b0985b95148cd0c8392b1d9784595aa70d201138e8 | 28fe16f9d2ba495cd2a03299064b8f4e39557efc4a6dde6f7cef06f939f880b2 |
 | 0x4edfaf | 293 | m4edfaf_centre_rect | 95/95 | 2/2 | 360 | 14f489fe4ea3678aba0b43785807a152cbd3821686f2cc453e69921cd6604597 | dab73ecd68c6b5e5e98c4955a484e410f564728f4a882e9e41c8b6ad667c6ed5 |
 | 0x41e0b4 | 304 | m41e0b4_add_slot | 85/85 | 12/12 | 462 | 3cfb9038c129c057d02d37ea4ac0b296486bed07adf655a4230b994571e6807a | 8b8cd13d302c2c426cac07f36c2fd364da72428c4b2acb83b6e9963ba39a1b55 |
-| 0x4205c1 | 374 | m4205c1_run_entries | 101/101 | 14/14 | 408 | 3446f16f5cb545c52a060f455bf208cae3d736ef3a7bcd93ceaa51b49de73c8a | f9f9d1981494a2a4f8a4b7dc665a723f3a642728e0f601b8df2ce9fd1b7c1044 |
-| 0x4209e8 | 438 | m4209e8_run_small_entries | 119/119 | 12/12 | 396 | 0446df668a7590f9969b88a47ebdd88378ebc4c7d49fc3f123e4a2848d1a0841 | bec0cbec20f6d2a627290a5503cf8250ce3edb6aa0e6bb1901b2de836a0df7a7 |
-| 0x4f6ef4 | 424 | m4f6ef4_advance_record | 116/116 | 18/18 | 1002 | 8eb6f84822670ac8578c51e95cd0c3f600aed722b8885f8e584d6f248f570478 | c68cffc7ff7cab44a5e0d8cd127ab4c68bdb9252eabd15c6983dcc5062bd4e74 |
+| 0x4205c1 | 374 | m4205c1_run_entries | 101/101 | 14/14 | 417 | f1edee38c6b62bf3cf2a4d5142bcfe33ce509c401e8c613872d7fd3d439b9f67 | f9f9d1981494a2a4f8a4b7dc665a723f3a642728e0f601b8df2ce9fd1b7c1044 |
+| 0x4209e8 | 438 | m4209e8_run_small_entries | 119/119 | 12/12 | 402 | d654342d6dd05568aebc1ed695cd0e29c90df94a4d576f2dc3cc809cdcf6023c | bec0cbec20f6d2a627290a5503cf8250ce3edb6aa0e6bb1901b2de836a0df7a7 |
+| 0x4f6ef4 | 424 | m4f6ef4_advance_record | 116/116 | 18/18 | 1006 | 09956b1a7217821e73a9002f4abf0755a3f07a4be65e39dd52b436c95c45642e | c68cffc7ff7cab44a5e0d8cd127ab4c68bdb9252eabd15c6983dcc5062bd4e74 |
 | 0x41c544 | 556 | m41c544_init_record | 155/155 | 4/4 | 120 | 79335b4c1b93f28c1784b1c448835a60e1745da8ed1fee46125ae11d77327e43 | 8fc0e546a1d150c81da998a294be229b9b654916c674a1ae2f6b1460ee840632 |
-| 0x41fa11 | 759 | m41fa11_add_entry | 188/188 | 10/10 | 210 | 7274eb8c74e10d3219ded5897fc227f0dd7e12c08518b0efa46360617aad3448 | f809abda9a9f9d10ce6ac69ad5244e04b5811b6e8a8c1167ca43a3d83deceba9 |
+| 0x41fa11 | 759 | m41fa11_add_entry | 188/188 | 10/10 | 210 | 883d44eda0c6a1fdcaf2ee2645df4cccfd04eabfeba928777aca9182e4ebcf8b | f809abda9a9f9d10ce6ac69ad5244e04b5811b6e8a8c1167ca43a3d83deceba9 |
 | 0x422a0a | 1088 | m422a0a_draw_marked | 303/303 | 24/24 | 360 | 7b8a22b1ab07f21c1c6dad99a2f825de8174971c28435da76ed20c35e8395b8a | 8caef4a93275cc66dabe8957776504955d37b54d49f1f0a56a8cb135b4ba3c41 |
-
-| file | sha256 |
-|---|---|
-| src/original_methods_fl28b.c | de9bd4a8c12286ac072ca213d6fe8e6b048f5b869e636ca8dbc8ca1a166f01eb |
-| src/original_methods_fl28b.h | bb84b7cf0caeea2da357abca4b8aea23002fe77fd72c1d58fee1c1677fa9ee06 |
-| tests/fl28b_original_oracle.py | 916b2e2b78ec0d4f60db1fa9ffc1ec6a6f9c7d51c00e1403c688720e33ad0848 |
-| tests/fl28b_fixtures.py | a1f771e0bcbab77f3ab6125171f56b83b49317bf0ea6c2a1c520f5260ab4b9a9 |
-| tests/fl28b_direct_test.c | 8f38fd60d42b78976f32028b2e6bd587bae5628b1b947db0c9875b3c3c4bb848 |
-| tests/fl28b_differential_shim.c | 851d8ff35abcf094e3d1452520f19db6b438cf6870568c3a4685dadc4b0b3a1d |
-| tests/test_fl28b_differential.py | 6df692f4e663fd9e1fc5a7fddf4f8c2cc33b1aaa3bcb00a6e03eeabe94392f82 |
-| tests/test_fl28b_direct.py | deb76112c0a10ca8f70ec139ec03edea0d422593c9b5ada29c1c026b206e9c8d |
-| tests/fl28b_mutation_check.py | 4882bc29df41fb8756b7665d8e872c15746d52d6e3ea9001a0adec0d2c74cd3d |
 
 Notes per function (the headers of `original_methods_fl28b.h` give the byte-level contract):
 
@@ -74,15 +62,22 @@ Which callees are batch functions: 0x41e043 and 0x41e0b4 are called by 0x422e4a 
 - Nothing is bounds checked, as in the original: the slot index, the count, the capacity, the entry counts (0x793/0x79f/0xf21/0xf9b/0x618783) and the table indices (0x585801) are caller-validated. The tests keep them inside their buffers; the bounded sweep restricts counts (for example `[+0xf9b] < 0x20`) so that the sanitiser run is meaningful. There is no native rejection path in this batch.
 - 0x4f6ef4: the `__ftol` truncation is `ftol_low_dword` (the 64-bit truncation, low dword, 0 for NaN, infinities and out-of-range values); the explicit guards are required for the saturating float-to-int conversion on ARM64 and are equivalent on x86 (the mutants that delete them survive on this host).
 - 0x41c544: the three strings are embedded constants of the port.
-- Word arguments are taken from the low 16 bits of the stack dword; arguments the original pushes from a 16-bit register (the first argument of 0x417b04, the second of 0x420737, the word of 0x4e9e84/0x4ea06c) carry stale upper bits in the original: the tests compare the low 16 bits.
+- Word arguments are taken from the low 16 bits of the stack dword. Of the arguments the original pushes from a 16-bit register, those with stale upper halves are the first argument of 0x417b04 and the second of 0x420737 (taken from `ax`/`cx` after an `imul`): the tests compare the low 16 bits there. 0x4ea06c passes its argument whole in the original (the stub is logged without masking), and in 0x4209e8 the stale upper half of `edx`/`ecx` before `mov dx/cx, word` only matters for entry indices i >= 6554 (i*10 above 16 bits), far outside any fixture.
 - 0x41e043 returns `ax`; the upper half of `eax` is not compared.
 
 ## Unverified
 
 - Not exercised: a callee that changes `self`, the record or a global that the function reads again afterwards (for example 0x4205c1/0x4209e8 re-read the record fields and the entry array after the 0x420737 call; the stubs never change them). The ports re-read like the original.
-- x87 precision of 0x4f6ef4: the oracle runs with 0x27f and the port uses IEEE doubles; fixtures with all quotients of two single-precision floats give identical results, but the tests do not discriminate 53-bit from 64-bit extended precision for quotients extremely close to an integer.
+- x87 precision of 0x4f6ef4 (assumption stated: the Windows process default control word 0x27f, 53-bit precision): the oracle runs with 0x27f and the port uses IEEE doubles; fixtures with all quotients of two single-precision floats give identical results, but the tests do not discriminate 53-bit from 64-bit extended precision for quotients extremely close to an integer.
 - Import/callee names are hints from the call shapes only; the meaning of the tables (slot table, records, rectangles) is a description of what the code does, not recovered source names.
 - No independent review; no claim that the 0x3f/0x3e pools or the action family are complete.
+
+## Review fixes (second commit after de4ecac)
+
+- The Python test ids are now explicit `def test_<va>_<name>` methods in `tests/test_fl28b_direct.py` and `tests/test_fl28b_differential.py` (each docstring names the word-bounded symbol); `function_ledger.test_area` was run on all 24 Python ids of `tasks/fl28b-acceptances.json` and accepts them.
+- Fixtures: 0x10000 and 0xabcd0000 (non-zero eax with a zero low word) are results of 0x4f709c and 0x4f6334 (0x4f6ef4) and of 0x50d550 (0x41fa11); the three 16-bit truncation mutants `(uint16_t)call(...) == 0` are caught by the differential test.
+- Scripted writes: one scenario each for 0x4205c1 and 0x4209e8 (profiles `ptr`, `dn`, `up`) where the first 0x420737 call rewrites the entry-array address or the count of the record, pinning the post-call re-reads; the mutants "drop the second entry-address re-read" and "cache the loop bound in a local" are caught by the differential test (checked by hand against both functions). The same for the [0x618783] bound of 0x422a0a was not done: the word is a world scalar, outside the fixture regions the scripted-write shim can reach.
+- 0x422a0a resolves the sub-object only after the `sel > 3` break.
 
 ## Mutation check
 
@@ -117,14 +112,14 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, `if 
 
 | file | sha256 |
 |---|---|
-| src/original_methods_fl28b.c | de9bd4a8c12286ac072ca213d6fe8e6b048f5b869e636ca8dbc8ca1a166f01eb |
+| src/original_methods_fl28b.c | fc32d299244126c4390e16ca9d9c2599ebf90f29d0390a81cefd015df1df51cc |
 | src/original_methods_fl28b.h | bb84b7cf0caeea2da357abca4b8aea23002fe77fd72c1d58fee1c1677fa9ee06 |
-| tests/fl28b_original_oracle.py | 916b2e2b78ec0d4f60db1fa9ffc1ec6a6f9c7d51c00e1403c688720e33ad0848 |
-| tests/fl28b_fixtures.py | a1f771e0bcbab77f3ab6125171f56b83b49317bf0ea6c2a1c520f5260ab4b9a9 |
+| tests/fl28b_original_oracle.py | d9cb36e6a2481bf6ebc364d026dc27099ed0e779ae0ff93fcbd9fe6be3b18c69 |
+| tests/fl28b_fixtures.py | 5653b5c8e12a6ce0a764ee79904c6cfc014756960ad95190e812921d2e582929 |
 | tests/fl28b_direct_test.c | 8f38fd60d42b78976f32028b2e6bd587bae5628b1b947db0c9875b3c3c4bb848 |
 | tests/fl28b_differential_shim.c | 851d8ff35abcf094e3d1452520f19db6b438cf6870568c3a4685dadc4b0b3a1d |
-| tests/test_fl28b_differential.py | 6df692f4e663fd9e1fc5a7fddf4f8c2cc33b1aaa3bcb00a6e03eeabe94392f82 |
-| tests/test_fl28b_direct.py | deb76112c0a10ca8f70ec139ec03edea0d422593c9b5ada29c1c026b206e9c8d |
+| tests/test_fl28b_differential.py | a90a77a33f3cefbacfface12fd4a07369c5d2297e634dbde141cd4418ee242d6 |
+| tests/test_fl28b_direct.py | ffbca52a3e498f3938f81d45141649b4d0bf312359fa03e5ad41b8c80a01cbd8 |
 | tests/fl28b_mutation_check.py | 4882bc29df41fb8756b7665d8e872c15746d52d6e3ea9001a0adec0d2c74cd3d |
 
 Native library: the differential builds `tests/fl28b_differential_shim.c` + `src/original_methods_fl28b.c` into a throwaway shared object per run (no committed binary).
