@@ -2,7 +2,7 @@
  {
   "va": "0x4a1efd",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -35,7 +35,7 @@
  {
   "va": "0x4ba4f2",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -68,7 +68,7 @@
  {
   "va": "0x46957d",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -101,7 +101,7 @@
  {
   "va": "0x4b45ed",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -134,7 +134,7 @@
  {
   "va": "0x473ffc",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -167,7 +167,7 @@
  {
   "va": "0x48e851",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -200,7 +200,7 @@
  {
   "va": "0x45e587",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -233,7 +233,7 @@
  {
   "va": "0x48ab49",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -266,7 +266,7 @@
  {
   "va": "0x4ab899",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -299,7 +299,7 @@
  {
   "va": "0x4574e4",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -332,7 +332,7 @@
  {
   "va": "0x47a03c",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
@@ -365,7 +365,7 @@
  {
   "va": "0x4b2a9e",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-23b implementer (slice-reviewer review pending)",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl23b.c",
