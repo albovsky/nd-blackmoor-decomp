@@ -511,6 +511,77 @@ class Fl22aDifferential(DiffBase):
         if not scripted:
             self.finish(0x461d82, size, executed)
 
+    # ---- 0x4778df ----
+    def test_4778df_render(self):
+        """FL-22a: differential test of m4778df_render (original 0x4778df)"""
+        self.run_4778df(0x4778df, False)
+
+    def test_4778df_scripted(self):
+        """FL-22a: differential test of m4778df_render with distinct callee results for 0x4d3836 (the word added to 0xd) and scripted text for 0x50ca3e"""
+        self.run_4778df(0x4778e0, True)
+
+    def run_4778df(self, seed, targeted):
+        rng = random.Random(seed)
+        executed = set()
+        size = 0x4780d2 - 0x4778df   # (the bytes after the ret are padding)
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 3])
+            records, rslack = self.records_area(rng, nrec=5, slack=1)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(1))
+            rec = bytearray(rng.randbytes(0x700))
+            struct.pack_into('<h', rec, 0x42, rng.choice([0, 1, 2, 3, -1, 3]))
+            struct.pack_into('<h', rec, 0x44, rng.choice([0, 1, 2, 3, 4, -2, 4]))
+            rec[0x238] = rng.choice([0, 1, 0xff, 1])
+            rec[0x63d] = rng.choice([0, 1, 0xff, 1])
+            rec[0x23e] = rng.randrange(256)
+            struct.pack_into('<h', rec, 0x23a, rng.choice([-1, 0, 1, 3, 0x7f, -32768, 0x7fff]))
+            struct.pack_into('<h', rec, 0x63e, rng.choice([-1, 0, 1, 5, 0x7fff, -32768]))
+            # the table of the entries (rows of 0xc8, entries of 0x14): the first two bytes are often zero or small
+            tbl = bytearray(rng.randbytes(0x300))
+            for off in range(0, 0x300 - 2, 0x14):
+                tbl[off] = rng.choice([0, 0, 1, 0xff, 5])
+                tbl[off + 1] = rng.choice([0, 0, 1, 0xff, 3])
+                if rng.random() < 0.5:
+                    struct.pack_into('<h', tbl, off + 2, rng.choice([0, 1, 2, -1, -3, 0x7ff, -0x800, 0x1234]))
+            t5d = Area('t5d1599', 0x5d1599 - 0x4a, bytearray(rng.randbytes(0x4a * 5)), compare=False)
+            d5a = Area('d5a0549', 0x5a0549, bytearray(rng.randbytes(20)), compare=False)
+            ox = rng.choice([0, 7, 0xfffffff9, 0x7fffffff, 0x80000000, rng.randrange(1 << 32)])
+            oy = rng.choice([0, 7, 0xfffffff9, 0x7fffffff, 0x80000000, rng.randrange(1 << 32)])
+            odata = bytearray(rng.randbytes(0x40))
+            struct.pack_into('<I', odata, 6, ox)
+            struct.pack_into('<I', odata, 0xa, oy)
+            flagsdata = bytearray(rng.randbytes(0xc0))
+            flag_choices = [0, 1, 0xff, 1, 2]
+            gb = {n_: rng.choice(flag_choices) for n_ in ('byte_6237a2', 'byte_6237a3', 'byte_6237a4', 'byte_6237a5', 'byte_62383a', 'byte_62383b')}
+            for field in gb:   # the bytes of the image are the ones of the region that is handed to the callee
+                flagsdata[GLOBALS[field][0] - 0x6237a0] = gb[field]
+            bytes_pair = {}
+            for a_name, b_name in (('byte_6237f8', 'byte_63a88c'), ('byte_623819', 'byte_63a894')):
+                a_v = rng.randrange(256)
+                gb[a_name] = a_v
+                gb[b_name] = a_v if rng.random() < 0.5 else rng.randrange(256)
+                flagsdata[GLOBALS[a_name][0] - 0x6237a0] = a_v
+            gb['byte_63a890'] = rec[0x23e] if rng.random() < 0.5 else rng.randrange(256)
+            g = {**gb, 'word_622fc4': index, 'word_622fc2': rng.choice([-1, 0, 1, 2, 3]), 'value_5cf665': rng.randrange(1 << 32), 'value_5d15e3': rng.randrange(1 << 32),
+                 'value_622fce': rng.choice([6, 6, 6, 0, 5, 7, 0xffffffff, 0x100, 6]), 'value_622fca': rng.randrange(1 << 32),
+                 'origin_x_583186': ox, 'origin_y_58318a': oy}
+            # (the table at 0x5d1599 holds the global 0x5d15e3 at its entry 1: the area bytes are the global's)
+            struct.pack_into('<I', t5d.data, 0x5d15e3 - t5d.va, g['value_5d15e3'])
+            if rng.random() < 0.15:
+                g['value_622fce'] = 6
+                rec[0x42:0x44] = b'\0\0'
+            stubs = {0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=0x14, derefs=[(3, 16)],
+                                    probe=[('g:byte_6237a4', 0, 1), ('g:byte_6237a5', 0, 1), ('g:byte_6237a3', 0, 1), ('g:byte_62383b', 0, 1)]),
+                     0x475cc4: stub(0x475cc4, args=2, this=True, cleanup=8, derefs=[(0, 4), (1, 16)]),
+                     0x4d3836: stub(0x4d3836, args=3, results=[rng.choice([0, 1, 0x10, 0xffff, 0x8000, 0x7ff3, rng.randrange(1 << 32), 0xfffffff3])]),
+                     0x50ca3e: stub(0x50ca3e, args=3, writes=[[(0, 0, 4, rng.randrange(1 << 32))] for _ in range(6)])}
+            self.pair(4, 0x4778df, size, [records, Area('rec', od.region_va(1), rec, image=False, compare=False), Area('t622fd2', 0x622fd2, tbl, compare=False), t5d, d5a,
+                                          Area('o583180', 0x583180, odata, compare=False), Area('f6237a0', 0x6237a0, flagsdata, compare=False)], stubs, g,
+                      ecx=0, stack=[], cleanup=0, args=(), executed=executed,
+                      pointers={'records_5bb5e5': ('records', rslack), 'table_622fd2': ('t622fd2', 0), 'table_5d1599': ('t5d1599', 0x4a), 'dwords_5a0549': ('d5a0549', 0)})
+        if not targeted:
+            self.finish(0x4778df, size, executed)
+
     # TESTS-END
 
 

@@ -842,6 +842,384 @@ static void test_m461d82_move_step(void)
     CK(q_run(&w) == 0 && get32(Q_CELL(1, 1), 0x14) == get32(q_cexp + 0x2d0 + 0x140 + 0x28, 0x14) + 0x40000000u && get16(q_self, 0x59) == 6);
 }
 
+/* ---- 0x4778df ---- */
+
+#define R_VA 0x00d50000u
+#define R_5D15E3 0x0a5d15e3u
+#define R_5CF665 0x0b5cf665u
+#define R_622FCA 0x0c622fcau
+#define R_DWORD 0x0d5d1599u   /* the dword at 0x5d1599 + 4 * 0x4a (word 0x622fc2 = 1) */
+#define R_OX 100
+#define R_OY (-7)
+#define HOSTPTR ((uintptr_t)-1)
+
+static uint8_t r_rec[0x700], r_records[0x8d * 6], r_tbl[0x300], r_t5d[0x4a * 5], r_d5a[20];
+
+typedef struct Exp {
+    uint32_t callee;
+    uintptr_t this_ptr;
+    int n;
+    uintptr_t a[5];
+    int rect_arg;       /* the argument that points to the 16-byte rectangle local (-1: none) */
+    uint32_t rect[4];
+    int buf_arg;        /* the argument that points to the text buffer (-1: none) */
+    uint32_t buf0;
+} Exp;
+
+static Exp r_x[80];
+static int r_nx;
+
+static void xcall(uint32_t callee, uintptr_t this_ptr, int n, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
+{
+    Exp *e = &r_x[r_nx++];
+    memset(e, 0, sizeof *e);
+    e->callee = callee;
+    e->this_ptr = this_ptr;
+    e->n = n;
+    e->a[0] = a0;
+    e->a[1] = a1;
+    e->a[2] = a2;
+    e->a[3] = a3;
+    e->a[4] = a4;
+    e->rect_arg = -1;
+    e->buf_arg = -1;
+}
+
+static void xrect(int arg, uint32_t l, uint32_t t, uint32_t r, uint32_t b)
+{
+    Exp *e = &r_x[r_nx - 1];
+    e->rect_arg = arg;
+    e->rect[0] = l;
+    e->rect[1] = t;
+    e->rect[2] = r;
+    e->rect[3] = b;
+    e->a[arg] = HOSTPTR;
+}
+
+static void xbuf(uint32_t first_dword)
+{
+    Exp *e = &r_x[r_nx - 1];
+    e->buf_arg = 0;
+    e->buf0 = first_dword;
+    e->a[0] = HOSTPTR;
+}
+
+static int r_match(void)
+{
+    int i, k;
+    if (L.n != r_nx) return 0;
+    for (i = 0; i < r_nx; i++) {
+        const Exp *e = &r_x[i];
+        if (!is_call(i, e->callee, e->this_ptr, e->n)) return 0;
+        for (k = 0; k < e->n; k++) {
+            if (e->a[k] == HOSTPTR) {
+                if (!((uint64_t)L.c[i].a[k] > 0xffffffffu)) return 0;
+            } else if (L.c[i].a[k] != e->a[k]) {
+                return 0;
+            }
+        }
+        if (e->rect_arg >= 0 && memcmp(L.c[i].pd[e->rect_arg], e->rect, 16) != 0) return 0;
+        if (e->buf_arg >= 0) {
+            uint8_t want[16];
+            memset(want, 0, sizeof want);
+            memcpy(want, &e->buf0, 4);
+            if (memcmp(L.c[i].pd[e->buf_arg], want, 16) != 0) return 0;
+        }
+    }
+    return 1;
+}
+
+#define RR(off) (0x01000000u + (uint32_t)(off)*16u)   /* the dword of the record at `off` */
+
+static void r_prepare(Fl22aWorld *w, int index)
+{
+    int off;
+    reset_log();
+    add_region(R_VA, r_rec, sizeof r_rec);
+    r_nx = 0;
+    memset(r_rec, 0x5c, sizeof r_rec);
+    memset(r_records, 0x11, sizeof r_records);
+    memset(r_tbl, 0, sizeof r_tbl);
+    memset(r_t5d, 0x22, sizeof r_t5d);
+    memset(r_d5a, 0, sizeof r_d5a);
+    memset(w, 0, sizeof *w);
+    w->records_5bb5e5 = r_records + 0x8d;
+    w->table_622fd2 = r_tbl;
+    w->table_5d1599 = r_t5d + 0x4a;
+    w->dwords_5a0549 = r_d5a;
+    set32(r_records + 0x8d + (ptrdiff_t)index * 0x8d, 0, R_VA);
+    w->word_622fc4 = (int16_t)index;
+    w->word_622fc2 = 1;
+    set32(r_t5d + 0x4a + 0x4a, 0, R_DWORD);
+    w->value_5d15e3 = R_5D15E3;
+    w->value_5cf665 = R_5CF665;
+    w->value_622fca = R_622FCA;
+    w->origin_x_583186 = R_OX;
+    w->origin_y_58318a = R_OY;
+    for (off = 0x678; off <= 0x6ec; off += 4) set32(r_rec, (size_t)off, RR(off));
+    set16(r_rec, 0x42, 0);
+    set16(r_rec, 0x44, 0);
+    set16(r_rec, 0x63e, 0);
+    r_rec[0x238] = 0;
+    r_rec[0x63d] = 0;
+    r_rec[0x23e] = 0;
+}
+
+static void r_run(Fl22aWorld *w)
+{
+    Fl18Host h = host();
+    m4778df_render(w, &h);
+}
+
+/* the rectangle that the original builds from the four dwords at base .. base + 0xc */
+static void x_rect_args(int arg, uint32_t base)
+{
+    xrect(arg, RR(base) + (uint32_t)R_OX, RR(base + 4) + (uint32_t)R_OY, RR(base + 8) + (uint32_t)R_OX, RR(base + 0xc) + (uint32_t)R_OY);
+}
+
+static void test_m4778df_render(void)
+{
+    Fl22aWorld w;
+    int mask, i, j;
+    /* ---- step 1 and the empty scene: the byte 0x6237a4 selects the first call and is cleared after it; value 6 selects the other branch ---- */
+    for (mask = 0; mask < 6; mask++) {
+        static const uint32_t modes[6] = {0, 5, 7, 0xffffffffu, 0x100, 6};
+        for (i = 0; i < 3; i++) {   /* the byte: 0, 1, 0xff */
+            static const uint8_t bytes[3] = {0, 1, 0xff};
+            r_prepare(&w, 2);
+            w.byte_6237a4 = bytes[i];
+            w.value_622fce = modes[mask];
+            L.probe_ptr[0] = &w.byte_6237a4;
+            L.probe_len[0] = 1;
+            L.nprobe = 1;
+            r_run(&w);
+            if (bytes[i] != 0) {
+                xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, 0x583196, 0x583186, 0x54c9b0);
+                CK(L.c[0].probe[0] == bytes[i]);   /* (the byte is cleared after the call) */
+            }
+            CK(r_match() && w.byte_6237a4 == 0 && L.ticks == 0);
+        }
+    }
+    /* ---- the grid: i < signed word [rec+0x42], j < signed word [rec+0x44]; entry e = 0x622fd2 + i * 0xc8 + j * 0x14 ---- */
+    {
+        static const struct { int16_t ni, nj; } limits[] = {{2, 3}, {1, 1}, {0, 3}, {3, 0}, {-1, 2}, {2, -1}, {-32768, 5}, {1, 2}, {3, 4}};
+        size_t n;
+        for (n = 0; n < sizeof limits / sizeof limits[0]; n++)
+            for (mask = 0; mask < 3; mask++) {
+                static const int16_t words[3] = {5, -3, 0x1234};
+                r_prepare(&w, 2);
+                w.value_622fce = 0;
+                set16(r_rec, 0x42, (uint16_t)limits[n].ni);
+                set16(r_rec, 0x44, (uint16_t)limits[n].nj);
+                for (i = 0; i < 4; i++)
+                    for (j = 0; j < 5; j++) {
+                        uint8_t *e = r_tbl + i * 0xc8 + j * 0x14;
+                        e[0] = (uint8_t)(((i + j) & 1) ? 0 : 0x80 + j);       /* checkerboard: some entries are skipped */
+                        e[1] = (uint8_t)((i * 5 + j) % 3 == 0 ? 0 : 0xff);    /* the second byte selects the call */
+                        set16(e, 2, (uint16_t)words[(i + j + mask) % 3]);
+                    }
+                r_run(&w);
+                for (i = 0; i < limits[n].ni; i++)
+                    for (j = 0; j < limits[n].nj; j++) {
+                        const uint8_t *e = r_tbl + i * 0xc8 + j * 0x14;
+                        const uint32_t e_va = 0x622fd2u + (uint32_t)(i * 0xc8 + j * 0x14);
+                        if (e[0] == 0) continue;
+                        if (e[1] == 0)
+                            xcall(0x4c5377, 0x5cf659, 5, R_DWORD, R_5CF665, R_VA + (uint32_t)((int)(int16_t)get16(e, 2) * 16) + 0x58u, e_va + 4u, 0x54c9d8);
+                        else
+                            xcall(0x4c5377, 0x5cf659, 5, R_DWORD, R_5CF665, R_VA + 0x646u, e_va + 4u, 0x54c9f0);
+                    }
+                CK(r_match());
+            }
+    }
+    /* the dword of the grid call is read at 0x5d1599 + n * 0x4a for the signed word n = 0x622fc2 */
+    {
+        static const int16_t ns[] = {-1, 0, 2, 3};
+        size_t n;
+        for (n = 0; n < sizeof ns / sizeof ns[0]; n++) {
+            r_prepare(&w, 2);
+            w.value_622fce = 0;
+            w.word_622fc2 = ns[n];
+            set16(r_rec, 0x42, 1);
+            set16(r_rec, 0x44, 1);
+            r_tbl[0] = 1;
+            r_tbl[1] = 0;
+            set32(r_t5d + 0x4a + ns[n] * 0x4a, 0, 0xfeed0000u + (uint32_t)(ns[n] & 0xff));
+            r_run(&w);
+            xcall(0x4c5377, 0x5cf659, 5, 0xfeed0000u + (uint32_t)(ns[n] & 0xff), R_5CF665, R_VA + 0x58u + 0u + (uint32_t)((int)(int16_t)get16(r_tbl, 2) * 16), 0x622fd6, 0x54c9d8);
+            CK(r_match());
+        }
+    }
+    /* ---- every group after the grid (value != 6): all combinations of the eleven conditions, the grid empty ---- */
+    for (mask = 0; mask < 2048; mask++) {
+        const int a4 = mask & 1, g238 = (mask >> 1) & 1, a2 = (mask >> 2) & 1, a5 = (mask >> 3) & 1, g63d = (mask >> 4) & 1, a3 = (mask >> 5) & 1,
+                  diff6a8 = (mask >> 6) & 1, f3a = (mask >> 7) & 1, f3b = (mask >> 8) & 1, diff23e = (mask >> 9) & 1, diff819 = (mask >> 10) & 1;
+        r_prepare(&w, 3);
+        w.value_622fce = 0x22;
+        w.byte_6237a4 = (uint8_t)(a4 ? 0x80 : 0);
+        r_rec[0x238] = (uint8_t)(g238 ? 0xff : 0);
+        w.byte_6237a2 = (uint8_t)(a2 ? 3 : 0);
+        w.byte_6237a5 = (uint8_t)(a5 ? 2 : 0);
+        r_rec[0x63d] = (uint8_t)(g63d ? 0x40 : 0);
+        w.byte_6237a3 = (uint8_t)(a3 ? 9 : 0);
+        w.byte_6237f8 = 0x31;
+        w.byte_63a88c = (uint8_t)(diff6a8 ? 0x32 : 0x31);
+        w.byte_62383a = (uint8_t)(f3a ? 4 : 0);
+        w.byte_62383b = (uint8_t)(f3b ? 6 : 0);
+        r_rec[0x23e] = 0x41;
+        w.byte_63a890 = (uint8_t)(diff23e ? 0x40 : 0x41);
+        w.byte_623819 = 0x51;
+        w.byte_63a894 = (uint8_t)(diff819 ? 0x50 : 0x51);
+        L.probe_ptr[0] = &w.byte_6237a4;
+        L.probe_len[0] = 1;
+        L.probe_ptr[1] = &w.byte_6237a5;
+        L.probe_len[1] = 1;
+        L.probe_ptr[2] = &w.byte_6237a3;
+        L.probe_len[2] = 1;
+        L.probe_ptr[3] = &w.byte_62383b;
+        L.probe_len[3] = 1;
+        L.nprobe = 4;
+        r_run(&w);
+        if (a4) xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, 0x583196, 0x583186, 0x54c9b0);
+        if (g238) {
+            if (a2) {
+                xcall(0x475cc4, 0x622fa2, 2, 0x6237a6, R_VA + 0x6b8u, 0, 0, 0);
+                xcall(0x4c5377, 0x5cf659, 5, R_DWORD, R_5CF665, 0x6237c7, 0, 0x54ca08);
+                x_rect_args(3, 0x6c8);
+            } else if (a5) {
+                xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, R_VA + 0x6b8u, 0, 0x54ca18);
+                x_rect_args(3, 0x6b8);
+                xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, R_VA + 0x6c8u, 0, 0x54ca3c);
+                x_rect_args(3, 0x6c8);
+            }
+        }
+        if (g63d) {
+            if (a3) {
+                xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, R_VA + 0x698u, 0, 0x54ca4c);
+                x_rect_args(3, 0x698);
+            }
+            xcall(0x475cc4, 0x622fa2, 2, 0x6237d7, R_VA + 0x698u, 0, 0, 0);
+        }
+        if (diff6a8) {
+            xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, R_VA + 0x6a8u, 0, 0x54ca70);
+            x_rect_args(3, 0x6a8);
+            xcall(0x475cc4, 0x622fa2, 2, 0x6237f8, R_VA + 0x6a8u, 0, 0, 0);
+        }
+        if (f3a) {
+            xcall(0x4c5377, 0x5cf659, 5, R_DWORD, R_5CF665, R_VA + 0x48u, 0, 0x54ca88);
+            x_rect_args(3, 0x678);
+        } else if (f3b) {
+            xcall(0x4c5377, 0x5cf659, 5, R_5D15E3, R_5CF665, R_VA + 0x678u, 0, 0x54caa8);
+            x_rect_args(3, 0x678);
+        }
+        if (diff23e) xcall(0x475cc4, 0x622fa2, 2, R_VA + 0x23eu, R_VA + 0x668u, 0, 0, 0);
+        if (diff819) xcall(0x475cc4, 0x622fa2, 2, 0x623819, R_VA + 0x688u, 0, 0, 0);
+        CK(r_match());
+        /* the flags 0x6237a4 / 0x6237a5 / 0x6237a3 / 0x62383b are cleared exactly when their group ran; the call-time probes see them set */
+        CK(w.byte_6237a4 == 0);
+        CK(w.byte_6237a5 == (uint8_t)((g238 && !a2 && a5) ? 0 : (a5 ? 2 : 0)));
+        CK(w.byte_6237a3 == (uint8_t)((g63d && a3) ? 0 : (a3 ? 9 : 0)));
+        CK(w.byte_62383b == (uint8_t)((!f3a && f3b) ? 0 : (f3b ? 6 : 0)));
+        CK(w.byte_6237a2 == (uint8_t)(a2 ? 3 : 0) && w.byte_62383a == (uint8_t)(f3a ? 4 : 0));
+        {
+            int c;
+            for (c = 0; c < r_nx; c++) {   /* each draw call (0x4c5377) sees the flags that are not yet cleared by its own group */
+                if (r_x[c].callee != 0x4c5377) continue;
+                if (r_x[c].a[4] == 0x54c9b0) CK(L.c[c].probe[0] != 0);
+                if (r_x[c].a[4] == 0x54ca18 || r_x[c].a[4] == 0x54ca3c) CK(L.c[c].probe[1] == 2);
+                if (r_x[c].a[4] == 0x54ca4c) CK(L.c[c].probe[2] == 9);
+                if (r_x[c].a[4] == 0x54caa8) CK(L.c[c].probe[3] == 6);
+            }
+        }
+    }
+    /* the rectangle arithmetic wraps like the original's 32-bit adds */
+    r_prepare(&w, 1);
+    w.value_622fce = 0;
+    w.origin_x_583186 = (int32_t)0x80000000u;
+    w.origin_y_58318a = 0x7fffffff;
+    w.byte_62383a = 1;
+    r_rec[0x238] = 0;
+    set32(r_rec, 0x678, 0x80000000u);
+    set32(r_rec, 0x67c, 2);
+    set32(r_rec, 0x680, 0xffffffffu);
+    set32(r_rec, 0x684, 0x7fffffffu);
+    r_run(&w);
+    xcall(0x4c5377, 0x5cf659, 5, R_DWORD, R_5CF665, R_VA + 0x48u, 0, 0x54ca88);
+    xrect(3, 0, 0x80000001u, 0x7fffffffu, 0xfffffffeu);
+    CK(r_match());
+    /* ---- value 6: the caption rows ---- */
+    {
+        static const struct { uint32_t ret; int16_t k; int16_t count; } cases[] = {
+            {0, 0, 1}, {5, 1, 5}, {0xfff5, 3, 0x7fff}, {0x7ff3, -1, 2}, {0xffff, 0x7f, 1}, {0xffff0005u, 2, 3},
+            {0x8000, 1, 1}, {2, 5, 0}, {2, 5, -1}, {2, 5, -32768},
+        };
+        size_t n;
+        for (n = 0; n < sizeof cases / sizeof cases[0]; n++) {
+            r_prepare(&w, 2);
+            w.value_622fce = 6;
+            w.byte_6237a4 = 0;
+            set16(r_rec, 0x42, 2);   /* (the grid is skipped for value 6) */
+            set16(r_rec, 0x44, 2);
+            r_tbl[0] = 1;
+            set16(r_rec, 0x63e, (uint16_t)cases[n].count);
+            set16(r_rec, 0x23a, (uint16_t)cases[n].k);
+            set32(r_d5a, 0, 0xa0a0a0a0u);
+            set32(r_d5a, 4, 0xa1a1a1a1u);
+            set32(r_d5a, 8, 0xa2a2a2a2u);
+            set32(r_d5a, 12, 0xa3a3a3a3u);
+            set32(r_d5a, 16, 0xa4a4a4a4u);
+            queue_return(0x4d3836, cases[n].ret);
+            queue_write(0x50ca3e, 0, 0, 0, 4, 0x11111111u);
+            queue_write(0x50ca3e, 1, 0, 0, 4, 0x22222222u);
+            queue_write(0x50ca3e, 2, 0, 0, 4, 0x33333333u);
+            queue_write(0x50ca3e, 3, 0, 0, 4, 0x44444444u);
+            queue_write(0x50ca3e, 4, 0, 0, 4, 0x55555555u);
+            queue_write(0x50ca3e, 5, 0, 0, 4, 0x66666666u);
+            r_run(&w);
+            if (cases[n].count > 0) {
+                const int16_t height = (int16_t)(uint16_t)(cases[n].ret + 0xdu);
+                const uint32_t h32 = (uint32_t)(int32_t)height;
+                uint32_t top, bottom, left;
+                int m;
+                xcall(0x4c5377, 0x5cf659, 5, R_622FCA, R_5CF665, 0x583196, 0x583186, 0x54cac8);
+                xcall(0x4d3836, 0, 3, 0x54caf0, (uint32_t)(cases[n].k * 0x7f3) + 0x5a4c24u, (uint32_t)(cases[n].k * 0x1d0) + 0x5adb3au, 0, 0);
+                top = RR(0x6dc) + (uint32_t)R_OY - 6u;
+                bottom = top + h32;
+                left = RR(0x6d8) + (uint32_t)R_OX;
+                xcall(0x50ca3e, 0, 3, HOSTPTR, 0x54caf4, 0x6237d7, 0, 0);
+                xcall(0x475cc4, 0x622fa2, 2, HOSTPTR, HOSTPTR, 0, 0, 0);
+                xbuf(0x11111111u);
+                {
+                    Exp *e = &r_x[r_nx - 1];
+                    e->rect_arg = 1;
+                    e->rect[0] = left;
+                    e->rect[1] = top;
+                    e->rect[2] = left + 0x64u;
+                    e->rect[3] = bottom;
+                }
+                top = RR(0x6e4) + (uint32_t)R_OY - 0x10u;
+                bottom = top + h32;
+                left = RR(0x6e0) + (uint32_t)R_OX;
+                for (m = 0; m < 5; m++) {
+                    Exp *e;
+                    top = bottom;
+                    bottom = top + h32;
+                    xcall(0x50ca3e, 0, 3, HOSTPTR, 0x54caf8, 0xa0a0a0a0u + (uint32_t)m * 0x01010101u, 0, 0);
+                    xcall(0x475cc4, 0x622fa2, 2, HOSTPTR, HOSTPTR, 0, 0, 0);
+                    xbuf(0x22222222u + (uint32_t)m * 0x11111111u);
+                    e = &r_x[r_nx - 1];
+                    e->rect_arg = 1;
+                    e->rect[0] = left;
+                    e->rect[1] = top;
+                    e->rect[2] = left + 0x50u;
+                    e->rect[3] = bottom;
+                }
+            }
+            CK(r_match() && L.ticks == 0);
+        }
+    }
+}
+
 /* TESTS-HERE */
 
 int main(void)
@@ -849,6 +1227,7 @@ int main(void)
     int failures = 0;
     RUN(test_m463392_step_scene);
     RUN(test_m461d82_move_step);
+    RUN(test_m4778df_render);
     /* RUN-END */
     return failures;
 }

@@ -35,6 +35,15 @@ typedef struct Fl22aWorld {
     uint8_t *flags_585801;         /* dwords at 0x585801, indexed by a signed word (the caller leaves slack on both sides) */
     uint8_t *cells_594db5;         /* 0x461d82: cells of stride 0x28 in rows of 0x140 bytes, cell(r, c) = 0x594db5 + r * 0x140 + c * 0x28 (r, c signed words; the caller
                                       leaves slack): +0 dword, +0x14 / +0x18 / +0x1c / +0x20 dwords (0x594dc9 ... 0x594dd5), +0x24 / +0x26 words (0x594dd9, 0x594ddb) */
+    const uint8_t *table_622fd2;   /* 0x4778df: rows of 0xc8 bytes with entries of 0x14 bytes, entry(i, j) = 0x622fd2 + i * 0xc8 + j * 0x14: +0 byte, +1 byte, +2 word, +4 = the
+                                      start of the data whose original address is handed to the draw call */
+    const uint8_t *table_5d1599;   /* 0x4778df: the dword at 0x5d1599 + n * 0x4a (n = the signed word word_622fc2) */
+    const uint8_t *dwords_5a0549;  /* 0x4778df: five dwords at 0x5a0549 */
+    int16_t word_622fc4, word_622fc2;                                                /* 0x4778df: read */
+    uint32_t value_5cf665, value_5d15e3, value_622fce, value_622fca;                 /* 0x4778df: read */
+    int32_t origin_x_583186, origin_y_58318a;                                        /* 0x4778df: read */
+    uint8_t byte_6237a2, byte_6237a3, byte_6237a4, byte_6237a5, byte_62383a, byte_62383b;   /* 0x4778df: read; 0x6237a3, 0x6237a4, 0x6237a5 and 0x62383b are cleared */
+    uint8_t byte_6237f8, byte_63a88c, byte_63a890, byte_623819, byte_63a894;         /* 0x4778df: read (the bytes that the record bytes and each other are compared with) */
     uint32_t value_5bb1ca, value_583999;                                    /* 0x463392: written */
     uint32_t value_5bb57b, value_5bb59b, value_5bb59f, value_5bb5a3;       /* 0x463392: written */
     uint16_t word_5bb599, word_5bb595, word_5c39ff;                         /* 0x463392: written */
@@ -44,6 +53,11 @@ typedef struct Fl22aWorld {
  * the divisor (the signed word [rec+0x24a]) is 0 or the quotient overflows (dividend INT32_MIN, divisor -1) the original raises a divide fault; the
  * port returns 0 at that point instead (an explicit rejection: every store made before the division stays made, nothing after it happens). */
 int32_t m461d82_move_step(uint8_t *self, Fl22aWorld *world, const Fl18Host *host);
+/* 0x4778df: no stack argument, plain `ret`, no result (cdecl). Every callee is a host call (0x4c5377 thiscall on 0x5cf659 with five arguments, 0x475cc4 thiscall
+ * on 0x622fa2 with two, 0x4d3836 and 0x50ca3e cdecl with three); the rectangles and the text buffer that the original keeps in its frame are host pointers to
+ * locals of the port (the rectangle is four dwords left, top, right, bottom; the buffer is 0x24 bytes, zeroed at entry where the original's stack is
+ * uninitialised). Nothing is bounds-checked: the loop limits are the signed words [rec+0x42] and [rec+0x44]. */
+void m4778df_render(Fl22aWorld *world, const Fl18Host *host);
 void m463392_step_scene(uint8_t *self, int16_t index, Fl22aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus

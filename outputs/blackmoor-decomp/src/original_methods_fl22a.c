@@ -56,6 +56,25 @@ UNUSED_OK static uint32_t call1(const Fl18Host *host, uint32_t callee, uintptr_t
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 1) : 0;
 }
 
+UNUSED_OK static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1)
+{
+    uintptr_t args[2];
+    args[0] = a0;
+    args[1] = a1;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 2) : 0;
+}
+
+UNUSED_OK static uint32_t call5(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
+{
+    uintptr_t args[5];
+    args[0] = a0;
+    args[1] = a1;
+    args[2] = a2;
+    args[3] = a3;
+    args[4] = a4;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 5) : 0;
+}
+
 UNUSED_OK static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2)
 {
     uintptr_t args[3];
@@ -351,4 +370,131 @@ int32_t m461d82_move_step(uint8_t *self, Fl22aWorld *world, const Fl18Host *host
     if (arm == 1) return step_arm(self, world, rec, host, 0x18, 0x53, 0, 0x20, 0x5b, -1);
     if (arm == 2) return step_arm(self, world, rec, host, 0x18, 0x53, 1, 0x20, 0x5b, 1);
     return step_arm(self, world, rec, host, 0x14, 0x4f, 1, 0x1c, 0x5d, 1);
+}
+
+/* the rectangle of 0x4778df in its frame (left, top, right, bottom = [ebp-0x40], [ebp-0x3c], [ebp-0x38], [ebp-0x34]) loaded from the four dwords of the
+ * record at base (left), base + 4 (top), base + 8 (right), base + 0xc (bottom) plus the origin (x for left / right, y for top / bottom) */
+static void load_rect(uint32_t *rect, const uint8_t *rec, ptrdiff_t base, const Fl22aWorld *world)
+{
+    rect[1] = rd32(rec, base + 4) + (uint32_t)world->origin_y_58318a;
+    rect[3] = rd32(rec, base + 0xc) + (uint32_t)world->origin_y_58318a;
+    rect[0] = rd32(rec, base) + (uint32_t)world->origin_x_583186;
+    rect[2] = rd32(rec, base + 8) + (uint32_t)world->origin_x_583186;
+}
+
+/* the dword at 0x5d1599 + n * 0x4a, n = the signed word 0x622fc2 (re-read at every use, as the original does) */
+static uint32_t dword_5d1599(const Fl22aWorld *world)
+{
+    return rd32(world->table_5d1599, (ptrdiff_t)world->word_622fc2 * 0x4a);
+}
+
+/* original GAME.EXE 0x4778df (FUN_004778df; cdecl, no stack argument, plain ret, no result): draws the scene of the record that the signed word 0x622fc4 names
+ * (rec = the dword [record+0], the original address of the record's object, read through Fl18Host.resolve). Everything is a host call: C = 0x4c5377
+ * (thiscall on 0x5cf659, five arguments), T = 0x475cc4 (thiscall on 0x622fa2, two arguments), W = 0x4d3836 and S = 0x50ca3e (cdecl, three arguments).
+ * 1. When the byte 0x6237a4 is not 0: C(args [0x5d15e3], [0x5cf665], 0x583196, 0x583186, 0x54c9b0), then the byte := 0.
+ * 2. When the dword 0x622fce is not 6: for i = 0 .. (signed word [rec+0x42]) - 1 (a word counter), for j = 0 .. (signed word [rec+0x44]) - 1 (a word counter):
+ *    e = 0x622fd2 + i * 0xc8 + j * 0x14; when the byte [e] is not 0: when the byte [e+1] is 0: C([dword at 0x5d1599 + n * 0x4a], [0x5cf665], rec + (signed word
+ *    [e+2] << 4) + 0x58, e + 4, 0x54c9d8), otherwise C([dword at 0x5d1599 + n * 0x4a], [0x5cf665], rec + 0x646, e + 4, 0x54c9f0) (n = the signed word 0x622fc2).
+ *    Then, when the byte [rec+0x238] is not 0: when the byte 0x6237a2 is not 0: rect(0x6b8) (left = [rec+0x6b8] + x, top = [rec+0x6bc] + y, right = [rec+0x6c0] + x, bottom =
+ *    [rec+0x6c4] + y; x = the dword 0x583186, y = the dword 0x58318a), T(0x6237a6, rec + 0x6b8), rect(0x6c8), C([5d1599 dword], [0x5cf665], 0x6237c7, &rect, 0x54ca08);
+ *    otherwise, when the byte 0x6237a5 is not 0: rect(0x6b8), C([0x5d15e3], [0x5cf665], rec + 0x6b8, &rect, 0x54ca18), rect(0x6c8), C([0x5d15e3], [0x5cf665], rec + 0x6c8,
+ *    &rect, 0x54ca3c), the byte 0x6237a5 := 0. Then, when the byte [rec+0x63d] is not 0: when the byte 0x6237a3 is not 0: rect(0x698), C([0x5d15e3], [0x5cf665],
+ *    rec + 0x698, &rect, 0x54ca4c), the byte 0x6237a3 := 0; then T(0x6237d7, rec + 0x698). Then, when the byte 0x6237f8 differs from the byte 0x63a88c: rect(0x6a8),
+ *    C([0x5d15e3], [0x5cf665], rec + 0x6a8, &rect, 0x54ca70), T(0x6237f8, rec + 0x6a8). Then, when the byte 0x62383a is not 0: rect(0x678), C([5d1599 dword],
+ *    [0x5cf665], rec + 0x48, &rect, 0x54ca88); otherwise, when the byte 0x62383b is not 0: rect(0x678), C([0x5d15e3], [0x5cf665], rec + 0x678, &rect, 0x54caa8), the
+ *    byte 0x62383b := 0. Then, when the byte [rec+0x23e] differs from the byte 0x63a890: T(rec + 0x23e, rec + 0x668); when the byte 0x623819 differs from the byte
+ *    0x63a894: T(0x623819, rec + 0x688).
+ * 3. When the dword 0x622fce is 6 and the signed word [rec+0x63e] is greater than 0: C([0x622fca], [0x5cf665], 0x583196, 0x583186, 0x54cac8); k = the signed word
+ *    [rec+0x23a]; h = (word) (W(0x54caf0, k * 0x7f3 + 0x5a4c24, k * 0x1d0 + 0x5adb3a) as a signed word + 0xd); rect = (left [rec+0x6d8] + x, top [rec+0x6dc] + y - 6,
+ *    right left + 0x64, bottom top + h); S(&buffer, 0x54caf4, 0x6237d7); T(&buffer, &rect); rect = (left [rec+0x6e0] + x, top [rec+0x6e4] + y - 0x10, right left +
+ *    0x50, bottom top + h); then for m = 0 .. 4 (a word counter): top := bottom, bottom := top + h, S(&buffer, 0x54caf8, the dword at 0x5a0549 + m * 4), T(&buffer, &rect).
+ * Divergence: the local buffer (0x24 bytes) is zeroed at entry; the original's is uninitialised stack. */
+void m4778df_render(Fl22aWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(record_of(world->records_5bb5e5, world->word_622fc4), 0);
+    const uint8_t *rec = object_at(host, rec_va);
+    uint32_t rect[4];
+    uint8_t buffer[0x24];
+    memset(rect, 0, sizeof rect);
+    memset(buffer, 0, sizeof buffer);
+    if (world->byte_6237a4 != 0) {
+        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, 0x583196, 0x583186, 0x54c9b0);
+        world->byte_6237a4 = 0;
+    }
+    if (world->value_622fce != 6) {
+        int16_t i, j;
+        for (i = 0; i < rds16(rec, 0x42); i = (int16_t)(i + 1)) {
+            for (j = 0; j < rds16(rec, 0x44); j = (int16_t)(j + 1)) {
+                ptrdiff_t e = (ptrdiff_t)i * 0xc8 + (ptrdiff_t)j * 0x14;
+                uint32_t e_va = 0x622fd2u + (uint32_t)((int32_t)i * 0xc8) + (uint32_t)((int32_t)j * 0x14);
+                if (world->table_622fd2[e] == 0) continue;
+                if (world->table_622fd2[e + 1] == 0)
+                    call5(host, 0x4c5377, 0x5cf659, dword_5d1599(world), world->value_5cf665,
+                          rec_va + (uint32_t)(rds16(world->table_622fd2, e + 2) * 16) + 0x58u, e_va + 4u, 0x54c9d8);
+                else
+                    call5(host, 0x4c5377, 0x5cf659, dword_5d1599(world), world->value_5cf665, rec_va + 0x646u, e_va + 4u, 0x54c9f0);
+            }
+        }
+        if (rec[0x238] != 0) {
+            if (world->byte_6237a2 != 0) {
+                load_rect(rect, rec, 0x6b8, world);
+                call2(host, 0x475cc4, 0x622fa2, 0x6237a6, rec_va + 0x6b8u);
+                load_rect(rect, rec, 0x6c8, world);
+                call5(host, 0x4c5377, 0x5cf659, dword_5d1599(world), world->value_5cf665, 0x6237c7, (uintptr_t)rect, 0x54ca08);
+            } else if (world->byte_6237a5 != 0) {
+                load_rect(rect, rec, 0x6b8, world);
+                call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x6b8u, (uintptr_t)rect, 0x54ca18);
+                load_rect(rect, rec, 0x6c8, world);
+                call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x6c8u, (uintptr_t)rect, 0x54ca3c);
+                world->byte_6237a5 = 0;
+            }
+        }
+        if (rec[0x63d] != 0) {
+            if (world->byte_6237a3 != 0) {
+                load_rect(rect, rec, 0x698, world);
+                call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x698u, (uintptr_t)rect, 0x54ca4c);
+                world->byte_6237a3 = 0;
+            }
+            call2(host, 0x475cc4, 0x622fa2, 0x6237d7, rec_va + 0x698u);
+        }
+        if (world->byte_6237f8 != world->byte_63a88c) {
+            load_rect(rect, rec, 0x6a8, world);
+            call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x6a8u, (uintptr_t)rect, 0x54ca70);
+            call2(host, 0x475cc4, 0x622fa2, 0x6237f8, rec_va + 0x6a8u);
+        }
+        if (world->byte_62383a != 0) {
+            load_rect(rect, rec, 0x678, world);
+            call5(host, 0x4c5377, 0x5cf659, dword_5d1599(world), world->value_5cf665, rec_va + 0x48u, (uintptr_t)rect, 0x54ca88);
+        } else if (world->byte_62383b != 0) {
+            load_rect(rect, rec, 0x678, world);
+            call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, rec_va + 0x678u, (uintptr_t)rect, 0x54caa8);
+            world->byte_62383b = 0;
+        }
+        if (rec[0x23e] != world->byte_63a890) call2(host, 0x475cc4, 0x622fa2, rec_va + 0x23eu, rec_va + 0x668u);
+        if (world->byte_623819 != world->byte_63a894) call2(host, 0x475cc4, 0x622fa2, 0x623819, rec_va + 0x688u);
+        return;
+    }
+    if (rds16(rec, 0x63e) > 0) {
+        int32_t k = rds16(rec, 0x23a);
+        int16_t height;
+        int16_t m;
+        call5(host, 0x4c5377, 0x5cf659, world->value_622fca, world->value_5cf665, 0x583196, 0x583186, 0x54cac8);
+        height = (int16_t)(uint16_t)(uint32_t)((int32_t)(int16_t)call3(host, 0x4d3836, 0, 0x54caf0, (uint32_t)(k * 0x7f3) + 0x5a4c24u, (uint32_t)(k * 0x1d0) + 0x5adb3au) + 0xd);
+        rect[1] = rd32(rec, 0x6dc) + (uint32_t)world->origin_y_58318a - 6u;
+        rect[3] = rect[1] + (uint32_t)(int32_t)height;
+        rect[0] = rd32(rec, 0x6d8) + (uint32_t)world->origin_x_583186;
+        rect[2] = rect[0] + 0x64u;
+        call3(host, 0x50ca3e, 0, (uintptr_t)buffer, 0x54caf4, 0x6237d7);
+        call2(host, 0x475cc4, 0x622fa2, (uintptr_t)buffer, (uintptr_t)rect);
+        rect[1] = rd32(rec, 0x6e4) + (uint32_t)world->origin_y_58318a - 0x10u;
+        rect[3] = rect[1] + (uint32_t)(int32_t)height;
+        rect[0] = rd32(rec, 0x6e0) + (uint32_t)world->origin_x_583186;
+        rect[2] = rect[0] + 0x50u;
+        for (m = 0; m < 5; m = (int16_t)(m + 1)) {
+            rect[1] = rect[3];
+            rect[3] = rect[1] + (uint32_t)(int32_t)height;
+            call3(host, 0x50ca3e, 0, (uintptr_t)buffer, 0x54caf8, rd32(world->dwords_5a0549, (ptrdiff_t)m * 4));
+            call2(host, 0x475cc4, 0x622fa2, (uintptr_t)buffer, (uintptr_t)rect);
+        }
+    }
 }

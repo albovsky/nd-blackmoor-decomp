@@ -17,6 +17,7 @@ KERNELS = ['original_methods_fl22a.c']
 EXPECTED = [
     'test_m463392_step_scene',
     'test_m461d82_move_step',
+    'test_m4778df_render',
     # EXPECTED-END
 ]
 
@@ -69,6 +70,10 @@ class Fl22aDirect(unittest.TestCase):
     def test_move_step_461d82(self):
         """FL-22a: direct test of m461d82_move_step (original 0x461d82)"""
         self.check('test_m461d82_move_step')
+
+    def test_render_4778df(self):
+        """FL-22a: direct test of m4778df_render (original 0x4778df)"""
+        self.check('test_m4778df_render')
 
     # TESTS-END
 
