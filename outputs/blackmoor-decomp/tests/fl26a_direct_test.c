@@ -590,6 +590,13 @@ static void test_m4897cd_hit_test(void)
             expect_end();
             CK(world_untouched());
         }
+        /* a count that is zero in its low word only is not zero (the gate is a dword compare): the first row of the first object hits, so the loop leaves at once */
+        for (q = 0; q < 2; q++) {
+            setup_4897cd(q ? 0x01000000 : 0x10000, w5, x, y);
+            row_rect(0, 0, x, y, -1);
+            CK(run_4897cd(x, y) == 1);
+            CK(get32(fx.self, 0x1c) == OBJ_VA(0) && get32(fx.self, 0x24) == OBJ_VA(0) + (uint32_t)ROWB(0));
+        }
         /* nothing holds the point: the stores of each visited object, return 0 */
         for (k = 1; k <= 3; k++) {
             setup_4897cd(k, w5, x, y);
