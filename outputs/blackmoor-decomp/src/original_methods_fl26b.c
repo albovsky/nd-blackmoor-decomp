@@ -126,7 +126,7 @@ int32_t m423fbb_leaf_word(uint32_t node, const Fl18Host *host, int32_t *reject)
         }
     }
     finish(&c, reject);
-    return c.bad ? 0 : result;
+    return c.bad ? INT32_MIN : result;      /* (INT32_MIN is outside the range of a word and of -1: a rejection is visible even without `reject`) */
 }
 
 /* ---- 0x4eb107 -------------------------------------------------------------------------------------------------------------- */
@@ -338,8 +338,16 @@ void m42ea87_record_state(int16_t index, Fl26bWorld *world, const Fl18Host *host
 
 /* ---- 0x4eb184 -------------------------------------------------------------------------------------------------------------- */
 
-#define BUF_SZ 0x3c      /* the local buffer at ebp-0x80 up to the word at ebp-0x44 */
-#define LOCAL_SZ 0x34    /* the local structure at ebp-0x38 up to the flag at ebp-4 */
+/* The frame of the original, from the low addresses: this [ebp-0x84], the buffer [ebp-0x80, ebp-0x44), idx (word, ebp-0x44), j (word, ebp-0x40),
+ * the string pointer (ebp-0x3c), the structure [ebp-0x38, ebp-4), the flag (dword, ebp-4), the saved ebp and the return address. idx, j and the pointer are read
+ * only BEFORE the copy into the buffer and never after it, and the structure is dead after 0x4fb77a, so a copy into the buffer may run on over them up to the flag
+ * (the only live local above the buffer): BUF_SZ is that distance, 0x7c bytes. The structure copy may run into the flag (4 bytes), which the original rewrites to 1
+ * right after the field stores: LOCAL_SZ is 0x38. Anything longer would clobber the flag while it is live or the saved ebp / return address: rejected natively.
+ * The guard of the translated text (`ja` at 0x4eb2f9 / 0x4eb4c4: length <= 0x3c) is the original's own and is kept. */
+#define BUF_SZ 0x7c          /* what a copy into the buffer may take: its NUL included, 0x7b characters */
+#define BUF_ALLOC (BUF_SZ + 4)   /* + the flag slot: the append after the flag test (the flag is dead then) may reach it */
+#define TEXT_MAX 0x3c
+#define LOCAL_SZ 0x38
 
 /* strlen(s) + 1 when it is at most `limit`, else 0 (no NUL within `limit` bytes: the original's copy would not fit) */
 static size_t fits(const uint8_t *s, size_t limit)
@@ -363,7 +371,7 @@ static int copy_string(uint8_t *dst, size_t limit, const uint8_t *src)
  * the arm that does not set it; it is not read there. */
 void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl18Host *host, int32_t *reject)
 {
-    uint8_t buf[BUF_SZ];
+    uint8_t buf[BUF_ALLOC];
     uint8_t local[LOCAL_SZ];
     const uint8_t *rec_str;
     uint8_t *rec = NULL;
@@ -400,7 +408,7 @@ void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl1
                     if (reject != NULL) *reject = FL26B_REJECT_UNRESOLVED;
                     return;
                 }
-                if (fits(t, BUF_SZ + 1) != 0 && fits(t, BUF_SZ + 1) <= BUF_SZ + 1) ok = copy_string(buf, BUF_SZ, t);
+                if (fits(t, TEXT_MAX + 1) != 0) ok = copy_string(buf, BUF_SZ, t);
                 else ok = copy_string(buf, BUF_SZ, rec_str);
             } else {
                 ok = copy_string(buf, BUF_SZ, rec_str);
@@ -431,7 +439,7 @@ void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl1
                     if (reject != NULL) *reject = FL26B_REJECT_UNRESOLVED;
                     return;
                 }
-                if (fits(t, BUF_SZ + 1) != 0) ok = copy_string(buf, BUF_SZ, t);
+                if (fits(t, TEXT_MAX + 1) != 0) ok = copy_string(buf, BUF_SZ, t);
                 else ok = copy_string(buf, BUF_SZ, rec + 0x21);
             } else {
                 ok = copy_string(buf, BUF_SZ, rec + 0x21);
@@ -445,11 +453,7 @@ void m4eb184_use_feedback(uint8_t *self, int32_t n, Fl26bWorld *world, const Fl1
     }
     if (world->value_5bb202 != 0) {
         uintptr_t args[4];
-        size_t len = fits(buf, BUF_SZ) - 1;
-        if (len + 4 > BUF_SZ) {
-            if (reject != NULL) *reject = FL26B_REJECT_OVERRUN;
-            return;
-        }
+        size_t len = fits(buf, BUF_SZ) - 1;      /* (the copy above left a NUL within BUF_SZ bytes: len <= 0x7b, so len + 4 <= BUF_ALLOC; the flag was tested before) */
         wr32(buf, (ptrdiff_t)len, world->value_55cbc4);
         args[0] = world->value_5d03b3;
         args[1] = (uintptr_t)buf;

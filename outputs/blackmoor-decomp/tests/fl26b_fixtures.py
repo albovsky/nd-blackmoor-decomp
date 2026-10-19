@@ -224,6 +224,15 @@ def check_edges(key, edges):
     return [e for e in untaken if e not in allowed], [e for e in allowed if e not in untaken], total
 
 
+def norm_deref(callee, data):
+    """The bytes behind a pointer argument as compared: the native locals are zero, the original's stack is filled with 0x71 (mapped to 0); the text buffer
+    of 0x448d11 is a C string, compared up to its NUL (what follows is the original's other locals)."""
+    data = bytes(0 if b == 0x71 else b for b in data)
+    if callee == 0x448d11 and 0 in data:
+        data = data[:data.index(0) + 1]
+    return data
+
+
 def normalize(calls, stubs, iat, word_args):
     """The original's call log as comparable lists: [callee or 'tick', ecx, *args (word arguments by their low 16 bits), probe]."""
     by_name = {s.name: s for s in [*stubs.values(), *iat.values()]}
@@ -240,7 +249,7 @@ def normalize(calls, stubs, iat, word_args):
                 entry.append(v & 0xffff)
             else:
                 entry.append(LOCAL if od.STACK_BASE <= v < od.STACK_BASE + od.STACK_SIZE else v)
-        entry.extend(bytes(0 if b == 0x71 else b for b in d) for d in derefs)      # (the native locals are zero, the original's stack is filled with 0x71)
+        entry.extend(norm_deref(call[0], d) for d in derefs)
         if probe is not None:
             entry.append(probe)
         out.append(entry)
@@ -547,7 +556,7 @@ def gen_4eb184(rng, n):
     # the structured rows -2 .. 3: a string of 9 .. 0x33 characters; the string at +0x21 ends L2 characters after it
     for j in range(-2, 4):
         o = row(j)
-        len0 = rng.choice([9, 12, 0x20, 0x21, 0x25, 0x33])
+        len0 = rng.choice([9, 12, 0x20, 0x21, 0x25, 0x33, 0x34, 0x35, 0x37])
         self_[o:o + 0x5d] = letters(rng, 0x5d)
         self_[o + len0] = 0
         if len0 <= 0x20:
@@ -565,6 +574,7 @@ def gen_4eb184(rng, n):
         pass
     j_final = 3
     idx = 0
+    tail = 0x38 if flag0 else 0      # the longest string that can reach the buffer from the rows (see the tail below)
     if flag0:
         jm = rest[0] if kind == 'f0' else 'j1_9'
         m = {'j1_9': 1, 'j1_1': 1, 'j2_9': 2, 'j2_1': 2, 'j3': None}[jm]
@@ -600,12 +610,21 @@ def gen_4eb184(rng, n):
                 if self_[orow] == d[0]:
                     self_[orow] = rng.choice(LETTERS)
         rand_result = r
+        if arm == 'copy' and idx < 0 and variant % 2 == 0:
+            # the string at row + 0x21 is long (it runs over the following rows, not over the loop rows 1 and 2): the copy into the buffer then
+            # runs over the dead locals of the original's frame
+            T = rng.choice([0x39, 0x3c, 0x3d, 0x50, 0x70, 0x78])
+            tail = T
+            o = orow
+            self_[o + 9:o + 0x21 + T] = letters(rng, 0x21 + T - 9)
+            self_[o + rng.choice([0x10, 0x20])] = 0
+            self_[o + 0x21 + T] = 0
     else:
         rand_result = 0
         arm = 'copy'
     s5, sm = (rest[2], rest[3]) if kind == 'f0' and rest[1] == 'copy' else (rest[1], rest[2]) if kind == 'f1' and rest[0] == 'copy' else (rng.choice([0, 1]), rng.choice(['none', 'short', 'long']))
     # the record string (flag set): nothing of the first nine bytes equal to B (b9: equal)
-    L = rng.choice([0, 1, 5, 8, 9, 20, 0x30, 0x38])
+    L = rng.choice([0, 1, 5, 8, 9, 20, 0x30, 0x38, 0x39, 0x3b, 0x3c, 0x60, 0x78, 0x79, 0x7b])
     so = rn * 0x6e + 0x3d
     recs[so:so + L + 1] = letters(rng, L) + b'\0'
     if kind == 'f1' and rest[0] == 'b9':
@@ -614,7 +633,7 @@ def gen_4eb184(rng, n):
     # the translated text of 0x423259
     result_423259 = 0
     if sm == 'short':
-        t = letters(rng, rng.choice([0, 1, 7, 0x20, 0x38]))
+        t = letters(rng, rng.choice([0, 1, 7, 0x20, 0x38, 0x39, 0x3c]))
         strarea[0:len(t) + 1] = t + b'\0'
         result_423259 = od.region_va(2)
     elif sm == 'long':
@@ -625,12 +644,16 @@ def gen_4eb184(rng, n):
     res_4f6334 = rng.choice([1, 0x100, 0xffffffff, 0x10000]) if busy else 0
     s_nz = rng.choice([1, 0x100, 0xffffffff, 0x10000]) if s5 else 0
     self_[0x69d:0x69f] = struct.pack('<h', rng.choice([0, 1, -1, 0x7fff, -32768, 300]))
-    appended = struct.unpack('<I', letters(rng, 3) + b'\0')[0] if rng.random() < 0.7 else struct.unpack('<I', letters(rng, 4))[0]
+    # the dword appended after the text. Without a NUL in it the string goes on into whatever follows the buffer: with the text up to 0x37 characters (the buffer of the original is 0x3c bytes, then idx) that is
+    # the stack fill of the original (0x71, compared as 0, like the zeros of the native buffer); with a longer text it is the original's dead locals (idx, j,
+    # the string pointer), which the native buffer does not reproduce: only a NUL-terminated dword is generated then (the direct test covers the lengths)
+    longest = max(L, tail, len(t) if sm == 'short' else 0)
+    appended = struct.unpack('<I', letters(rng, 3) + b'\0')[0] if rng.random() < 0.7 or longest > 0x37 else struct.unpack('<I', letters(rng, 4))[0]
     g = {'value_5bb202': s_nz, 'value_55cbc4': appended, 'value_5d03b3': rng.randrange(1 << 32), 'value_585d37': rng.choice([0, 5, 0xffffff00, rng.randrange(1 << 32)])}
     stubs = {0x50cd50: stub(0x50cd50, None, results=[rand_result & 0xffffffff]), 0x4f6334: stub(0x4f6334, None, results=[res_4f6334]),
              0x4fb77a: stub(0x4fb77a, None), 0x423259: stub(0x423259, None, results=[result_423259]), 0x448d11: stub(0x448d11, None), 0x4fb2e3: stub(0x4fb2e3, None)}
     stubs[0x4fb77a].derefs = [(0, 0x34)]
-    stubs[0x448d11].derefs = [(1, 0x3c)]
+    stubs[0x448d11].derefs = [(1, 0x80)]
     areas = [Area('self', od.region_va(0), self_, image=False), Area('recs', 0x583f1f, recs), Area('consts', 0x55cba0, consts, compare=False),
              Area('c2', 0x63aa00, consts2, compare=False), Area('str', od.region_va(2), strarea, image=False, compare=False)]
     ptrs = {'records_583f1f': ('recs', 0), 'bytes_55cba0': ('consts', 0), 'bytes_55cbac': ('consts', 0xc), 'bytes_55cbb8': ('consts', 0x18),
