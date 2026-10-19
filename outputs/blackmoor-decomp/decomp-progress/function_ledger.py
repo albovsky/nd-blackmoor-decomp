@@ -101,7 +101,13 @@ SAMPLE_MIN = 59
 BLOCKER_RATIONALE_MIN = 40      # a blocker review is a written reason, not a tick box
 
 STATUSES = ("ported", "not_needed", "pending")
-PORTED_CLASSES = ("native_oracle_verified", "native_tests_only", "host_adapter_tested")
+PORTED_CLASSES = ("native_oracle_verified", "native_oracle_verified_inlined", "native_tests_only",
+                  "host_adapter_tested")
+# FL-12: an original function that the native code inlines into a larger named symbol.  The oracle run must have executed
+# every byte of the original and driven the enclosing symbol (or its module); a reviewer writes down where the logic sits.
+INLINED_CLASS = "native_oracle_verified_inlined"
+ORACLE_CLASSES = ("native_oracle_verified", INLINED_CLASS)
+INLINED_NOTE_MIN = 80           # the acceptance note says where in the symbol the original's logic sits
 NOT_NEEDED_CLASSES = ("nn_rule", "nn_reviewed")
 PENDING_CLASSES = ("candidate_port", "partial_native", "static_navigation_only", "none")
 CLASSES = PORTED_CLASSES + NOT_NEEDED_CLASSES + PENDING_CLASSES
@@ -560,10 +566,10 @@ def check_ported_evidence(entry, what):
     for need in ("native_source", "test"):
         if need not in kinds:
             fail(f"{what}: ported entry has no {need} pointer")
-    if cls == "native_oracle_verified":
+    if cls in ORACLE_CLASSES:
         oracles = [p for p in evidence if p["kind"] == "oracle"]
         if not oracles:
-            fail(f"{what}: native_oracle_verified needs an oracle pointer")
+            fail(f"{what}: {cls} needs an oracle pointer")
         if not any(p["use"] in QUALIFYING_USES for p in oracles):
             fail(f"{what}: oracle windows used only as 'mapped' never qualify (needs entry or callee)")
         good = [p for p in oracles if qualifies(p)]
@@ -1244,10 +1250,14 @@ def load_overrides(inputs, uni, xrefs):
             if not isinstance(w, list) or len(w) != 2:
                 fail(f"{what}: oracle window must be [start, end_exclusive]")
             oracle = (a["oracle"]["path"], fmt(parse_va(w[0], what)), fmt(parse_va(w[1], what)))
-        if a["class"] == "native_oracle_verified" and oracle is None:
-            fail(f"{what}: native_oracle_verified needs an oracle")
-        if a["class"] != "native_oracle_verified" and oracle is not None:
-            fail(f"{what}: only native_oracle_verified names an oracle")
+        if a["class"] in ORACLE_CLASSES and oracle is None:
+            fail(f"{what}: {a['class']} needs an oracle")
+        if a["class"] not in ORACLE_CLASSES and oracle is not None:
+            fail(f"{what}: only the oracle classes name an oracle")
+        if a["class"] == INLINED_CLASS and (len(a.get("note", "")) < INLINED_NOTE_MIN or not re.search(
+                r"\b" + re.escape(a["native_source"]["symbol"]) + r"\b", a.get("note", ""))):
+            fail(f"{what}: {INLINED_CLASS} needs a note of at least {INLINED_NOTE_MIN} characters that names the "
+                 "native symbol and says where in it the original's logic sits")
         acceptances[va] = {"va": va, "class": a["class"], "reviewer": a["reviewer"], "date": a["date"],
                            "symbol": (a["native_source"]["path"], a["native_source"]["symbol"]),
                            "tests": tests, "oracle": oracle, "reviewed": reviewed,
@@ -1562,6 +1572,8 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
     pointers = f["pointers"]
     if uni.regions[va] == "vorbis" and a["class"] != "host_adapter_tested":
         fail(f"{what}: a vorbis function is accepted only as host_adapter_tested under the PCM parity rule")
+    if a["class"] == INLINED_CLASS and (uni.regions[va] != "game" or f["x"]["origin"] != "game"):
+        fail(f"{what}: {INLINED_CLASS} is for game-region functions of game origin; library rules never count")
     path, symbol = a["symbol"]
     if not any(p["kind"] == "native_source" and p["path"] == path and p["symbol"] == symbol for p in pointers):
         fail(f"{what}: native_source {path}:{symbol} is not in the evidence for this function")
@@ -1581,7 +1593,7 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
             fail(f"{what}: test {tid} does not reference {symbol} or module {module}")
     # (c) oracle coverage
     body_size = f["body"]
-    if a["class"] == "native_oracle_verified":
+    if a["class"] in ORACLE_CLASSES:
         opath, start, end = a["oracle"]
         match = [p for p in pointers if p["kind"] == "oracle" and p["path"] == opath and p["window"] == [start, end]]
         if not match:
@@ -1594,12 +1606,25 @@ def check_acceptance(va, a, f, root, uni, xrefs, floor):
         good = [p for p in good if p["use_basis"] == EXECUTED_BASIS]
         if not good:
             fail(f"{what}: oracle window is structural (use_basis {match[0]['use_basis']!r}); "
-                 "native_oracle_verified needs a recorded run that executed the whole function (use_basis 'executed')")
+                 f"{a['class']} needs a recorded run that executed the whole function (use_basis 'executed')")
         if body_size is None:
             fail(f"{what}: body_size from xrefs is needed to check oracle coverage")
         if not covers(good[0], va, body_size):
             fail(f"{what}: oracle window [{start}, {end}) does not cover the body "
                  f"[{fmt(va)}, {fmt(va + body_size)})")
+        if a["class"] == INLINED_CLASS:
+            # the run must have compared the enclosing native handler: the oracle script names its symbol or module
+            # (the symbol itself, not just the module's file name: a docstring naming the source file proves nothing)
+            word = re.compile(r"\b" + re.escape(symbol) + r"\b")
+            otext = read_text_input(root, opath, what)
+            driven = bool(word.search(otext))
+            if not driven:                  # or a test driver source the oracle names, pinned as this function's evidence
+                named = set(re.findall(r"([A-Za-z0-9_]+\.(?:c|h|mm))\b", otext))
+                driven = any(Path(p["path"]).name in named and word.search(read_text_input(root, p["path"], what))
+                             for p in pointers if p["kind"] == "test")
+            if not driven:
+                fail(f"{what}: oracle {opath} and the driver sources it names do not reference {symbol}; it did "
+                     "not drive the enclosing native symbol")
     # (d) blockers: a deliberate safety rejection, or a written review in this acceptance (blockers_reviewed);
     # a review must name a blocker the function really has and may not duplicate a safety rejection
     open_ids = {b["id"] for b in f["blockers"]}

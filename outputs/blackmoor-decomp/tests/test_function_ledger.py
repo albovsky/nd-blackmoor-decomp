@@ -374,7 +374,7 @@ class FixtureDerivationTests(unittest.TestCase):
         self.assertEqual(c["total"], 30)
         self.assertEqual(c["status"], {"ported": 5, "not_needed": 8, "pending": 17})
         self.assertEqual(c["class"], {
-            "native_oracle_verified": 3, "native_tests_only": 1, "host_adapter_tested": 1,
+            "native_oracle_verified": 3, "native_oracle_verified_inlined": 0, "native_tests_only": 1, "host_adapter_tested": 1,
             "nn_rule": 2, "nn_reviewed": 6,
             "candidate_port": 2, "partial_native": 1, "static_navigation_only": 1, "none": 13})
         self.assertEqual(c["region"], {
@@ -871,6 +871,55 @@ class PortAcceptanceTests(ScratchCase):
         self.acceptance(0x401000, lambda a: a.update(oracle=None))
         self.fails("oracle")
 
+    INLINED_NOTE = ("The original's logic is the first statement block of fixture_entry (the early return and the "
+                    "increment); the oracle run compares the enclosing symbol's result")
+
+    def as_inlined(self, va, note=None, driven=True):
+        self.acceptance(va, lambda a: a.update(**{"class": "native_oracle_verified_inlined"},
+                                               note=self.INLINED_NOTE if note is None else note))
+        if driven:      # the fixture oracle stand-in runs nothing; let it name the enclosing symbol
+            self.s.text("tests/fixture_core_oracle.py", lambda t: t + "# drives fixture_entry\n")
+            self.s.resync_evidence_hashes()
+
+    def test_inlined_class_is_ported_with_a_note_and_an_oracle_that_drives_the_symbol(self):
+        self.as_inlined(0x401000)
+        self.assertEqual(self.status(0x401000), ("ported", "native_oracle_verified_inlined"))
+
+    def test_inlined_class_needs_a_note_saying_where_the_logic_sits(self):
+        self.as_inlined(0x401000, note="inlined in fixture_entry")
+        self.fails("note")
+
+    def test_inlined_class_needs_an_oracle(self):
+        self.as_inlined(0x401000)
+        self.acceptance(0x401000, lambda a: a.update(oracle=None))
+        self.fails("needs an oracle")
+
+    def test_inlined_class_needs_a_run_that_executed_the_whole_body(self):
+        self.as_inlined(0x401000)
+        self.s.ev(0x401000, lambda f: f["evidence"][2].update(use_basis="executed_partial"))
+        self.fails("structural")
+
+    def test_inlined_class_oracle_must_name_the_enclosing_symbol_or_module(self):
+        self.as_inlined(0x401000, driven=False)
+        self.fails("enclosing")
+
+    def test_inlined_class_note_must_name_the_symbol(self):
+        self.as_inlined(0x401000, note="x" * 90)
+        self.fails("names the native symbol")
+
+    def test_inlined_class_module_file_name_in_the_oracle_is_not_enough(self):
+        self.as_inlined(0x401000, driven=False)
+        self.s.text("tests/fixture_core_oracle.py", lambda t: t + "# see src/fixture_core.c\n")
+        self.s.resync_evidence_hashes()
+        self.fails("do not reference fixture_entry")
+
+    def test_inlined_class_never_takes_library_region_functions(self):
+        self.acceptance(0x406000, lambda a: a.update(**{"class": "native_oracle_verified_inlined"},
+                                                     note=self.INLINED_NOTE + " (fixture_rand)",
+                                                     oracle={"path": "tests/fixture_core_oracle.py",
+                                                             "window": ["0x406000", "0x406040"]}))
+        self.fails("library rules never count")
+
     def test_other_classes_must_not_name_an_oracle(self):
         self.acceptance(0x401100, lambda a: a.update(
             oracle={"path": "tests/fixture_core_oracle.py", "window": ["0x401100", "0x401300"]}))
@@ -1208,7 +1257,8 @@ class NotNeededTests(ScratchCase):
             "debug_diagnostic_only", "unreachable_no_refs", "compiler_eh_funclet"})
         self.assertEqual(set(FL.PREDICATES), {"R-EH", "R-LIB-INTERNAL"})
         self.assertEqual(set(FL.PREDICATES), set(XM.RULE_PREDICATES))
-        self.assertEqual(set(FL.PORTED_CLASSES), {"native_oracle_verified", "native_tests_only", "host_adapter_tested"})
+        self.assertEqual(set(FL.PORTED_CLASSES), {"native_oracle_verified", "native_oracle_verified_inlined", "native_tests_only",
+                                              "host_adapter_tested"})
         self.assertEqual(set(FL.NOT_NEEDED_CLASSES), {"nn_rule", "nn_reviewed"})
         self.assertEqual(set(FL.PENDING_CLASSES), {"candidate_port", "partial_native", "static_navigation_only", "none"})
         self.assertEqual(set(FL.ORIGINS), set(XM.ORIGINS))
