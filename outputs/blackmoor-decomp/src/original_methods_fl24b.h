@@ -65,6 +65,8 @@ int32_t m4acf45_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *blo
 int32_t m4aa0f0_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
 /* 0x487ed5: events 0x2789 and 0x2788 (a four-state slot per entry at +0x25, a queue of words at +0x7a; reads the tick) */
 void m487ed5_click_2788_2789(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x464c59: events 0x27cc, 0x27cb, 0x27ca, 0x27c9 and 0x27cd (calls 0x464fff, 0x4641bb, 0x464faa, 0x464f55, 0x465075 with this = self) */
+void m464c59_click_27c9_27cd(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

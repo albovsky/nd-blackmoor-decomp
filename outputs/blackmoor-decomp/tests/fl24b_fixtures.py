@@ -127,10 +127,13 @@ SPECS.update({
     '4aa0f0': dict(id=10, va=0x4aa0f0, size=738, selfsz=0x60, ret='eax', callee_pops=True, scen=640),
     '487ed5': dict(id=11, va=0x487ed5, size=756, selfsz=0x100, idx=0x1e, gates=[('nz32', 0x71), ('eq32', 0x6c, 1)], sels=[0x2789, 0x2788],
                    callees=[0x4fb2e3], tick=True, post=lambda c: post_487ed5(c), scen=600, probes=[(0, 0x100)]),
+    '464c59': dict(id=12, va=0x464c59, size=764, selfsz=0x140, idx=0x1e, gates=[('nz32', 0xb8), ('z8', 0xc1), ('z32', 0xbd)],
+                   sels=[0x27cc, 0x27cb, 0x27ca, 0x27c9, 0x27cd], callees=[0x464fff, 0x4641bb, 0x464faa, 0x464f55, 0x465075],
+                   post=lambda c: post_464c59(c), scen=600, probes=[(0, 0x140)]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
-STUB_SHAPE = {0x4af96e: dict(args=0, this=True, cleanup=0), 0x4ada56: dict(args=0, this=True, cleanup=0), 0x4ae683: dict(args=1, this=True, cleanup=4), 0x4ae495: dict(args=1, this=True, cleanup=4), 0x4ada9f: dict(args=0, this=True, cleanup=0), 0x4ae96c: dict(args=1, this=True, cleanup=4), 0x4aef4a: dict(args=2, this=True, cleanup=8), 0x4adae8: dict(args=0, this=True, cleanup=0), 0x467c0e: dict(args=0, this=True, cleanup=0), 0x467d5f: dict(args=0, this=True, cleanup=0), 0x467e70: dict(args=0, this=True, cleanup=0), 0x467eb0: dict(args=0, this=True, cleanup=0), 0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
+STUB_SHAPE = {0x464fff: dict(args=0, this=True, cleanup=0), 0x4641bb: dict(args=0, this=True, cleanup=0), 0x464faa: dict(args=0, this=True, cleanup=0), 0x464f55: dict(args=0, this=True, cleanup=0), 0x465075: dict(args=0, this=True, cleanup=0), 0x4af96e: dict(args=0, this=True, cleanup=0), 0x4ada56: dict(args=0, this=True, cleanup=0), 0x4ae683: dict(args=1, this=True, cleanup=4), 0x4ae495: dict(args=1, this=True, cleanup=4), 0x4ada9f: dict(args=0, this=True, cleanup=0), 0x4ae96c: dict(args=1, this=True, cleanup=4), 0x4aef4a: dict(args=2, this=True, cleanup=8), 0x4adae8: dict(args=0, this=True, cleanup=0), 0x467c0e: dict(args=0, this=True, cleanup=0), 0x467d5f: dict(args=0, this=True, cleanup=0), 0x467e70: dict(args=0, this=True, cleanup=0), 0x467eb0: dict(args=0, this=True, cleanup=0), 0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
               0x4e26fc: dict(args=0, this=True, cleanup=0), 0x45e6bd: dict(args=3, this=True, cleanup=12)}
 WORD_ARGS = {0x4fb2e3: (0,), 0x45e6bd: (2,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
@@ -573,6 +576,20 @@ def post_487ed5(c):
     c.g['value_5bb1ca'] = 0 if (v // 3) % 2 == 0 else rng.choice([1, 0x100, 0xffffffff])
     nine_const(c, 0x54de04, 0x4ab, obj, True)
     nine_const(c, 0x54de10, 0x4dc, obj, True, rng)
+
+
+def post_464c59(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    struct.pack_into('<h', d, 0x8a, rng.choice([-1, 0, 1, 2, 3, 4, 0x7fff, -0x8000]))
+    struct.pack_into('<I', d, 0x2a, 0 if v % 3 == 0 else rng.choice([1, 0x100, 0x80000000]))
+    w38 = rng.choice([-2, -1, 0, 1, 2, 5, 20])
+    w36 = w38 if v % 2 == 0 else rng.choice([-3, -1, 0, 1, 2, 3, 5, 30]) if c.sel == 0x27cd else rng.choice([-2, 0, 1, 2, 5, 20])
+    struct.pack_into('<h', d, 0x38, w38)
+    struct.pack_into('<h', d, 0x36, w36)
+    struct.pack_into('<I', d, 0x8c, 0 if (v // 2) % 2 == 0 else rng.choice([1, 0x100, 0x80000000]))
+    struct.pack_into('<I', d, 0x90, 0 if (v // 4) % 2 == 0 else rng.choice([1, 0x100]))
+    if c.sel == 0x27cd:      # (the slot store at +0x94 + 4 * w36 may land on [+0x8c] / [+0x90] or the words: all in range)
+        pass
 
 
 # BUILDERS-END
