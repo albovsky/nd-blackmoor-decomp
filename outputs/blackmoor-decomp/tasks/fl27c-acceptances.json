@@ -1,0 +1,134 @@
+[
+  {
+    "va": "0x4497a0",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27c implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27c.c",
+      "symbol": "m4497a0_construct"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27c_direct_test.c",
+        "test_id": "test_m4497a0_construct"
+      },
+      {
+        "path": "tests/test_fl27c_direct.py",
+        "test_id": "Fl27cDirect.test_4497a0_construct"
+      },
+      {
+        "path": "tests/test_fl27c_differential.py",
+        "test_id": "Fl27cDifferential.test_4497a0_construct"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27c_original_oracle.py",
+      "window": [
+        "0x4497a0",
+        "0x449a78"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4497a0_construct: the thread-wrapper constructor, including the fs:[0] exception frame link and unlink (not modelled natively; the oracle checks the chain is restored). The oracle executes every instruction of the code bytes of 0x4497a0..0x449a78 and both directions of every conditional jump, comparing ordered host calls, arguments and the memory behind the objects. See tasks/fl27c-handoff.md."
+  },
+  {
+    "va": "0x414ceb",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27c implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27c.c",
+      "symbol": "m414ceb_open_map"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27c_direct_test.c",
+        "test_id": "test_m414ceb_open_map"
+      },
+      {
+        "path": "tests/test_fl27c_direct.py",
+        "test_id": "Fl27cDirect.test_414ceb_open_map"
+      },
+      {
+        "path": "tests/test_fl27c_differential.py",
+        "test_id": "Fl27cDifferential.test_414ceb_open_map"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27c_original_oracle.py",
+      "window": [
+        "0x414ceb",
+        "0x415011"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m414ceb_open_map: the chunk file open and map (three imports through IAT slots, header signature test, table copy). The oracle executes every instruction of the code bytes of 0x414ceb..0x415011 and both directions of every conditional jump, comparing ordered host calls, arguments and the memory behind the objects. See tasks/fl27c-handoff.md."
+  },
+  {
+    "va": "0x4c2e97",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27c implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27c.c",
+      "symbol": "m4c2e97_read_pixel_format"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27c_direct_test.c",
+        "test_id": "test_m4c2e97_read_pixel_format"
+      },
+      {
+        "path": "tests/test_fl27c_direct.py",
+        "test_id": "Fl27cDirect.test_4c2e97_read_pixel_format"
+      },
+      {
+        "path": "tests/test_fl27c_differential.py",
+        "test_id": "Fl27cDifferential.test_4c2e97_read_pixel_format"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27c_original_oracle.py",
+      "window": [
+        "0x4c2e97",
+        "0x4c334f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4c2e97_read_pixel_format: the pixel-format mask decoding (three shift loops; a zero mask is a native rejection because the original loops for ever). The oracle executes every instruction of the code bytes of 0x4c2e97..0x4c334f and both directions of every conditional jump, comparing ordered host calls, arguments and the memory behind the objects. See tasks/fl27c-handoff.md."
+  },
+  {
+    "va": "0x44c4c1",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27c implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27c.c",
+      "symbol": "m44c4c1_open_video"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27c_direct_test.c",
+        "test_id": "test_m44c4c1_open_video"
+      },
+      {
+        "path": "tests/test_fl27c_direct.py",
+        "test_id": "Fl27cDirect.test_44c4c1_open_video"
+      },
+      {
+        "path": "tests/test_fl27c_differential.py",
+        "test_id": "Fl27cDifferential.test_44c4c1_open_video"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27c_original_oracle.py",
+      "window": [
+        "0x44c4c1",
+        "0x44c9db"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m44c4c1_open_video: the movie open with the x87 frame-rate computation and __ftol (0x50ce04, run as original bytes inside the oracle; inlined in the port as a truncating conversion). The oracle executes every instruction of the code bytes of 0x44c4c1..0x44c9db and both directions of every conditional jump, comparing ordered host calls, arguments and the memory behind the objects. See tasks/fl27c-handoff.md."
+  }
+]
