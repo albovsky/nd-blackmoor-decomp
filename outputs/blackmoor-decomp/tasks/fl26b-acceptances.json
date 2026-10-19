@@ -1,0 +1,185 @@
+[
+ {
+  "va": "0x423fbb",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26b.c",
+   "symbol": "m423fbb_leaf_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26b_direct_test.c",
+    "test_id": "test_m423fbb_leaf_word"
+   },
+   {
+    "path": "tests/test_fl26b_direct.py",
+    "test_id": "Fl26bDirect.test_423fbb_leaf_word"
+   },
+   {
+    "path": "tests/test_fl26b_differential.py",
+    "test_id": "Fl26bDifferential.test_423fbb_leaf_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26b_original_oracle.py",
+   "window": [
+    "0x423fbb",
+    "0x423ff9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m423fbb_leaf_word. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl26b-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-4:f6ab4e757efaab2f",
+    "rationale": "The item says the opcode-11 leaf chain (loader node +0x3c/+0x40, container +0x1c/+0x30, accessors 0x423fbb and 0x423ff9) is not reproduced; the accessor 0x423fbb is ported 1:1 here (leaf pointer [+0x1c], copy of [leaf+0x40] to [+0x20], signed word [leaf+0x12], the zero-leaf arm returning -1) and every instruction and branch of it ran under the original-bytes oracle, while the consumers of the chain, 0x423ff9 and the loader fields stay outside this function."
+   }
+  ]
+ },
+ {
+  "va": "0x4eb107",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26b.c",
+   "symbol": "m4eb107_item_use_feedback"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26b_direct_test.c",
+    "test_id": "test_m4eb107_item_use_feedback"
+   },
+   {
+    "path": "tests/test_fl26b_direct.py",
+    "test_id": "Fl26bDirect.test_4eb107_item_use_feedback"
+   },
+   {
+    "path": "tests/test_fl26b_differential.py",
+    "test_id": "Fl26bDifferential.test_4eb107_item_use_feedback"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26b_original_oracle.py",
+   "window": [
+    "0x4eb107",
+    "0x4eb184"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4eb107_item_use_feedback. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl26b-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-6:8b3f2cfb116d111c",
+    "rationale": "The item says the item-use feedback calls 0x4eb107 and 0x4eb184 after the accept block are not modelled; 0x4eb107 is ported 1:1 here with the three arms of the word at item * 0x16d + 0x77e, the exact first stack argument of 0x4e9e84 and the final 0x4d36ed call, all executed under the original-bytes oracle; the accept block that calls it and the callees stay outside this function."
+   }
+  ]
+ },
+ {
+  "va": "0x42406d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26b.c",
+   "symbol": "m42406d_propagate"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26b_direct_test.c",
+    "test_id": "test_m42406d_propagate"
+   },
+   {
+    "path": "tests/test_fl26b_direct.py",
+    "test_id": "Fl26bDirect.test_42406d_propagate"
+   },
+   {
+    "path": "tests/test_fl26b_differential.py",
+    "test_id": "Fl26bDifferential.test_42406d_propagate"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26b_original_oracle.py",
+   "window": [
+    "0x42406d",
+    "0x424201"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m42406d_propagate. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl26b-handoff.md."
+ },
+ {
+  "va": "0x424201",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26b.c",
+   "symbol": "m424201_walk"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26b_direct_test.c",
+    "test_id": "test_m424201_walk"
+   },
+   {
+    "path": "tests/test_fl26b_direct.py",
+    "test_id": "Fl26bDirect.test_424201_walk"
+   },
+   {
+    "path": "tests/test_fl26b_differential.py",
+    "test_id": "Fl26bDifferential.test_424201_walk"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26b_original_oracle.py",
+   "window": [
+    "0x424201",
+    "0x424346"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m424201_walk. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl26b-handoff.md.",
+  "blockers_reviewed": [
+   {
+    "id": "A-2E.1:6cca21030ace49fd",
+    "rationale": "The item lists the dependency construction, evaluation and balancing in 0x424aa8, 0x423f57 and 0x424201 as unverified; 0x424201 is ported 1:1 here with both node kinds, the continuation through the popped record and the error path, every instruction run under the original-bytes oracle with its callees as host calls, while 0x424aa8, 0x423f57 and the callees 0x424346, 0x42406d, 0x42356d and 0x4235fd are outside this function."
+   }
+  ]
+ },
+ {
+  "va": "0x42ea87",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl26b.c",
+   "symbol": "m42ea87_record_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl26b_direct_test.c",
+    "test_id": "test_m42ea87_record_state"
+   },
+   {
+    "path": "tests/test_fl26b_direct.py",
+    "test_id": "Fl26bDirect.test_42ea87_record_state"
+   },
+   {
+    "path": "tests/test_fl26b_differential.py",
+    "test_id": "Fl26bDifferential.test_42ea87_record_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl26b_original_oracle.py",
+   "window": [
+    "0x42ea87",
+    "0x42ed54"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m42ea87_record_state. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl26b-handoff.md."
+ }
+]
