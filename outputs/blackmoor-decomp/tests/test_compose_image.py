@@ -664,6 +664,79 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             compose_image.compose(directory, ORIGINAL, self.build_dir)
         self.assertIn("overlap", str(ctx.exception))
 
+    def data_batch_dir(self, edit):
+        """Copy asm_data/ to a temp dir, apply ``edit(asm_dir)`` and point data_batches at the copy."""
+        asm_dir = Path(self.tmp.name) / f"asm_data-{hashlib.sha1(repr(edit).encode()).hexdigest()[:8]}"
+        shutil.copytree(PROJECT / "asm_data", asm_dir)
+        edit(asm_dir)
+
+        def prepare(directory):
+            recon = json.loads((directory / "reconstructed.json").read_text())
+            recon["data_batches"] = [
+                {"manifest": str(asm_dir / Path(b["manifest"]).name), "report": str(asm_dir / Path(b["report"]).name), "provenance_class": b["provenance_class"]}
+                for b in recon["data_batches"]
+            ]
+            (directory / "reconstructed.json").write_text(json.dumps(recon))
+
+        return self.mutated_dir(prepare)
+
+    def assert_data_batch_rejected(self, edit, fragment):
+        directory = self.data_batch_dir(edit)
+        with self.assertRaises(compose_image.ComposeError) as ctx:
+            compose_image.compose(directory, ORIGINAL, self.build_dir)
+        self.assertIn(fragment, str(ctx.exception))
+
+    def rehash(self, asm_dir, name="data-002"):
+        """Make manifest and report agree with an edited source, as an attacker who controls the files would."""
+        source = asm_dir / f"{name}.s"
+        manifest = json.loads((asm_dir / f"{name}.json").read_text())
+        manifest["source_sha256"] = hashlib.sha256(source.read_bytes()).hexdigest()
+        (asm_dir / f"{name}.json").write_text(json.dumps(manifest, indent=1))
+        report = json.loads((asm_dir / f"{name}-report.json").read_text())
+        report["manifest_sha256"] = hashlib.sha256((asm_dir / f"{name}.json").read_bytes()).hexdigest()
+        report["source"]["sha256"] = manifest["source_sha256"]
+        (asm_dir / f"{name}-report.json").write_text(json.dumps(report, indent=1))
+
+    def test_data_source_edited_after_the_audit_is_rejected(self):
+        self.assert_data_batch_rejected(lambda d: (d / "data-002.s").write_text((d / "data-002.s").read_text() + "# edited\n"), "differs from the audited hash")
+
+    def test_stale_data_audit_report_is_rejected(self):
+        def edit(d):
+            manifest = json.loads((d / "data-002.json").read_text())
+            manifest["description"] += " (edited)"
+            (d / "data-002.json").write_text(json.dumps(manifest, indent=1))
+
+        self.assert_data_batch_rejected(edit, "audit report is stale")
+
+    def test_data_source_with_an_incbin_cannot_ride_on_a_rehashed_report(self):
+        def edit(d):
+            (d / "data-002.s").write_text((d / "data-002.s").read_text() + '.incbin "GAME.EXE", 0, 4\n')
+            self.rehash(d)
+
+        self.assert_data_batch_rejected(edit, "not permitted")
+
+    def test_data_source_that_is_not_the_generators_output_is_rejected(self):
+        def edit(d):
+            text = (d / "data-002.s").read_text()
+            (d / "data-002.s").write_text(text + "# a comment the generator does not write\n")
+            self.rehash(d)
+
+        self.assert_data_batch_rejected(edit, "generator's output")
+
+    def test_a_range_both_bound_and_referenced_is_rejected(self):
+        def add_referenced(directory):
+            manifest = json.loads((PROJECT / "asm_data" / "data-002.json").read_text())
+            e = manifest["ranges"][0]
+            ranges = json.loads((directory / "ranges.json").read_text())
+            head = {k: v for k, v in ranges.items() if k != "ranges"}
+            row = [int(e["offset"], 16), e["length"], e["sha256"], "data", "", "resource duplicate"]
+            compose_image.write_json_rows(directory / "ranges.json", head, "ranges", [row])
+
+        directory = self.mutated_dir(add_referenced)
+        with self.assertRaises(compose_image.ComposeError) as ctx:
+            compose_image.compose(directory, ORIGINAL, self.build_dir)
+        self.assertIn("overlap", str(ctx.exception))
+
     def test_a_reconstructed_byte_mismatch_is_rejected(self):
         """A reconstruction source that no longer reproduces the original bytes cannot be bound."""
         directory = self.mutated_dir(lambda d: None)

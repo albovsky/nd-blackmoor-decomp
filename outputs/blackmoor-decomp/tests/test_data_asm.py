@@ -146,7 +146,7 @@ class LexicalAuditTests(unittest.TestCase):
     def expect(self):
         sections = data_asm.load_sections()
         ranges = ((LO, HI),)
-        return {"ranges": ranges, "sections": sections, "origin_va": (BASE + LO) & ~0xFFF, "bias": BASE, "pointers": True}
+        return {"ranges": ranges, "sections": sections, "origin_va": (BASE + LO) & ~0xFFF, "bias": BASE, "pointers": True, "max_fill": HI - LO}
 
     def source(self, body):
         e = self.expect()
@@ -165,6 +165,12 @@ class LexicalAuditTests(unittest.TestCase):
         problems, counts = data_asm.audit_source(self.source(body), self.expect())
         self.assertEqual(problems, [])
         self.assertEqual((counts["strings"], counts["pointers"], counts["zero_runs"], counts["numeric_dwords"]), (1, 1, 1, 2))
+
+    def test_a_hash_inside_a_quoted_string_is_not_a_comment_and_an_absurd_fill_is_rejected(self):
+        problems, _ = data_asm.audit_source(self.source(['.string16 "a#b"', '.asciz "x#y"']), self.expect())
+        self.assertEqual(problems, [])
+        problems, _ = data_asm.audit_source(self.source([".fill 4000000000, 1, 0"]), self.expect())
+        self.assertTrue(any("larger than any claimed range" in p for p in problems))
 
     def test_forbidden_directives_are_rejected(self):
         for line in (

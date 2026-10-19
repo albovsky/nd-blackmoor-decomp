@@ -674,7 +674,7 @@ def bind_reconstructed(
                 }
             )
     asm_items, asm_records = bind_asm_batches(layout, reconstructed.get("asm_batches", []), build_dir, assembler, taken, None if structured is None else list(structured))
-    data_items, data_records = bind_data_batches(layout, reconstructed.get("data_batches", []), assembler, taken)
+    data_items, data_records = bind_data_batches(layout, reconstructed.get("data_batches", []), assembler, taken, original_path)
     return items + asm_items + data_items, records + asm_records + data_records
 
 
@@ -712,17 +712,21 @@ def bind_data_batches(
     batches: list[dict[str, Any]],
     assembler: Path,
     taken: list[tuple[int, int, str]],
+    original_path: Path,
 ) -> tuple[list[Item], list[dict[str, Any]]]:
     """Bind audited data sources (``asm_data/data-NNN.json``, ``data_asm.py``) as reconstructed data ranges.
 
     Each batch needs an all-accepted audit report for exactly that manifest.  The source is reassembled with the
     pinned GNU as (version line plus the self-test), must carry no relocation, and every range's assembled bytes
     must hash to the SHA-256 the manifest records for the original range (a hash comparison; the original is not
-    read here).  The image takes the assembled bytes.
+    read for the hash comparison).  The composer also re-runs the lexical audit (only the directive forms the
+    generator writes) and requires the source to equal the generator's output for the manifest ranges
+    (``data_asm.py check``), so a hand edit cannot ride on a stale report.  The image takes the assembled bytes.
     """
     if not batches:
         return [], []
     data_asm = load_data_asm()
+    original_bytes = original_path.read_bytes()
     problem, assembler_info = data_asm.check_assembler(assembler)
     if problem:
         raise ComposeError(f"data batches need the pinned assembler: {problem}")
@@ -744,8 +748,15 @@ def bind_data_batches(
         source = manifest_path.parent / manifest["source"]
         if file_sha256(source) != manifest["source_sha256"] or report.get("source", {}).get("sha256") != manifest["source_sha256"]:
             raise ComposeError(f"{manifest['source']}: source differs from the audited hash")
-        if re.search(r"^\s*\.(incbin|include)\b", source.read_text(encoding="utf-8", errors="replace"), re.MULTILINE):
-            raise ComposeError(f"{manifest['source']}: .incbin and .include are not permitted")
+        source_text = source.read_text(encoding="utf-8")
+        lexical, _counts = data_asm.audit_source(source_text, data_asm.source_expectation(manifest, data_asm.load_sections()))
+        if lexical:
+            raise ComposeError(f"{manifest['source']}: {lexical[0]}")
+        regenerated, _analysis, _origin = data_asm.generate(
+            original_bytes, data_asm.manifest_ranges(manifest), pointers=bool(manifest["pointers"])
+        )
+        if regenerated != source_text:
+            raise ComposeError(f"{manifest['source']}: differs from the generator's output for its ranges (data_asm.py check)")
         assembled, relocations, _symbols = data_asm.assemble(assembler, source)
         if relocations:
             raise ComposeError(f"{manifest['source']}: the assembled object carries {relocations} relocations")

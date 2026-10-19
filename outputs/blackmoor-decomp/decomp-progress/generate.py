@@ -419,9 +419,12 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             require(man["original_sha256"] == report["original_sha256"] == layout["original_sha256"],
                     "audit/manifest does not describe the pinned GAME.EXE")
             require(report["manifest_sha256"] == sha256_file(path), "manifest hash differs from audit")
+            require(man["batch"] == report["batch"] == path.stem.removeprefix("data-"),
+                    "batch identity differs from its audit")
             total = sum(r["length"] for r in man["ranges"])
             require(report["all_accepted"] is True and report["errors"] == [] and report["relocations"] == 0 and
-                    report["compared_bytes"] == report["bytes_total"] == total, "data audit not accepted")
+                    report["compared_bytes"] == report["bytes_total"] == total and report["labels_checked"] > 0,
+                    "data audit not accepted")
             assembler = report["assembler"]
             require(assembler.get("self_test") == "passed" and assembler["version_line"] == M03_ASSEMBLER_VERSION,
                     "audit assembler is not pinned")
@@ -437,6 +440,8 @@ def audited_data_evidence(layout: dict, out_dir: Path):
                 require(type(size) is int and size > 0 and r["section"] != ".text" and
                         sec["raw_off"] <= off and off + size <= sec["raw_off"] + sec["raw_size"],
                         "data range is outside its section's raw data")
+                require(int(r["va"], 16) == layout["image_base"] + sec["rva"] + off - sec["raw_off"],
+                        "data range VA/offset disagree")
                 require(not overlap(claimed, off, off + size), "data ranges overlap")
                 claimed = merge_intervals([tuple(c) for c in claimed] + [(off, off + size)])
                 rows.append((off, off + size, "reconstructed", name, r["va"]))

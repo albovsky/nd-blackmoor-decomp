@@ -504,7 +504,8 @@ def audit_source(text: str, expect: dict[str, Any]) -> tuple[list[str], dict[str
     seen_img = False
     constants: dict[str, int] = {}
     for number, raw in enumerate(lines, 1):
-        code = raw.partition("#")[0].strip() if not raw.startswith('.asciz') else raw.strip()
+        quoted = raw.startswith((".asciz", ".string16"))  # a quoted string may contain '#'
+        code = raw.strip() if quoted else raw.partition("#")[0].strip()
         if not code or raw.lstrip().startswith("#"):
             continue
         where = f"line {number}"
@@ -526,7 +527,10 @@ def audit_source(text: str, expect: dict[str, Any]) -> tuple[list[str], dict[str
             continue
         if _ORG.match(code):
             continue
-        if _FILL.match(code):
+        fill = _FILL.match(code)
+        if fill:
+            if int(fill.group(1)) > expect.get("max_fill", 1 << 20):
+                problems.append(f"{where}: .fill count is larger than any claimed range")
             counts["zero_runs"] += 1
         elif _BYTES.match(code):
             counts["byte_lines"] += 1
@@ -585,6 +589,18 @@ def manifest_ranges(manifest: dict[str, Any]) -> tuple[tuple[int, int], ...]:
     return tuple((int(e["offset"], 16), int(e["offset"], 16) + e["length"]) for e in manifest["ranges"])
 
 
+def source_expectation(manifest: dict[str, Any], sections: list[Section]) -> dict[str, Any]:
+    ranges = manifest_ranges(manifest)
+    return {
+        "ranges": ranges,
+        "sections": sections,
+        "origin_va": int(manifest["origin_va"], 16),
+        "bias": int(manifest["va_bias"], 16),
+        "pointers": bool(manifest["pointers"]),
+        "max_fill": max(hi - lo for lo, hi in ranges),
+    }
+
+
 def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, image_dir: Path = IMAGE_DIR) -> dict[str, Any]:
     manifest = load_json(manifest_path)
     problems: list[str] = []
@@ -603,7 +619,7 @@ def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, im
     bias = int(manifest["va_bias"], 16)
     if bias != bias_of(sections, ranges):
         problems.append("the manifest VA bias does not match the section table")
-    lexical, counts = audit_source(text, {"ranges": ranges, "sections": sections, "origin_va": origin_va, "bias": bias, "pointers": bool(manifest["pointers"])})
+    lexical, counts = audit_source(text, source_expectation(manifest, sections))
     problems += lexical
     problem, assembler_info = check_assembler(assembler)
     if problem:
