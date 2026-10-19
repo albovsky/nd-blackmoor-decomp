@@ -934,6 +934,12 @@ static void test_m422a0a_draw_marked(void)
         CK(L.n == 0 && g_w.value_5d191d == 0 && g_r1[0] == 0xe1);
     }
     setup();
+    world_422a0a(0, 1, 0x39);                                   /* the byte equals the count, not an index: i never reaches it */
+    g_tbl[0xb2] = 1;
+    obj_set(0, 2, 1);
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 0 && g_w.value_5d191d == 0 && g_r1[0] == 0xe1);
+    setup();
     world_422a0a(0, -1, 0x39);                                  /* a negative count: no loop */
     m422a0a_draw_marked(&g_w, &g_host);
     CK(L.n == 0 && g_w.value_5d191d == 0);

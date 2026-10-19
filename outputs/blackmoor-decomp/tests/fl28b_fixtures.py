@@ -720,7 +720,7 @@ def gen_422a0a(rng, n):
         objs[w * 0x84d + 0x1f] = rng.choice([1, 2, 0, 3, 1, 2])
     tbl = bytearray(rng.randbytes(0x140))
     for j in range(4):
-        tbl[0xb2 + j] = rng.choice([x for x in range(max(c, 1))] + [0xff]) if rng.random() < 0.9 else 0xff
+        tbl[0xb2 + j] = rng.choice([x for x in range(max(c, 1))] + [0xff, c & 0xff, (c + 1) & 0xff]) if rng.random() < 0.9 else 0xff
         tbl[0xb6 + j] = rng.choice([2, 2, 0, 1, 3])
     subs = [Area('sub%d' % j, od.region_va(3 + j), bytearray(rng.randbytes(0x80)), image=False) for j in range(4)]
     g = {'word_617e78': idx, 'word_618783': c, 'byte_617f42': k, 'value_618795': od.region_va(1), 'value_58318a': rng.choice([0, 1, rng.randrange(1 << 32)]),
