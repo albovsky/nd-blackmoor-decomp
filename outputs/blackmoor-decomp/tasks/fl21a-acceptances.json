@@ -1,0 +1,185 @@
+[
+ {
+  "va": "0x4cb586",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21a.c",
+   "symbol": "m4cb586_visit"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21a_direct_test.c",
+    "test_id": "test_m4cb586_visit"
+   },
+   {
+    "path": "tests/test_fl21a_direct.py",
+    "test_id": "Fl21aDirect.test_visit_4cb586"
+   },
+   {
+    "path": "tests/test_fl21a_differential.py",
+    "test_id": "Fl21aDifferential.test_4cb586_visit"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_1c_runtime_original_oracle.py",
+   "window": [
+    "0x4cb586",
+    "0x4cb8d5"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4cb586_visit. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 847 bytes.",
+  "blockers_reviewed": [
+   {
+    "id": "A-1C.1:362b4be6e273abb8",
+    "rationale": "The item asks for the dispatcher arm 0x427cc1, the handler 0x4cb586 and the meaning of the 105 bytes and of subtype 2; the handler is ported 1:1 here with all three record states and the string compare and copy, while the dispatcher arm 0x427cc1 and the meaning of the bytes stay outside this function."
+   }
+  ]
+ },
+ {
+  "va": "0x42caa8",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21a.c",
+   "symbol": "m42caa8_clip_rect"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21a_direct_test.c",
+    "test_id": "test_m42caa8_clip_rect"
+   },
+   {
+    "path": "tests/test_fl21a_direct.py",
+    "test_id": "Fl21aDirect.test_clip_rect_42caa8"
+   },
+   {
+    "path": "tests/test_fl21a_differential.py",
+    "test_id": "Fl21aDifferential.test_42caa8_clip_rect"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_33_runtime_original_oracle.py",
+   "window": [
+    "0x42caa8",
+    "0x42cecd"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m42caa8_clip_rect. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1061 bytes.",
+  "blockers_reviewed": [
+   {
+    "id": "A-33.1:35de5dfe55ad70d2",
+    "rationale": "The item lists the runtime handler 0x42c221 and its descendants 0x42ca22, 0x42caa8 and 0x42d215 plus the dependency gate 0x423f57; only descendant 0x42caa8 is ported here, with every clip branch and the optional record store, and the other handlers and the gate stay pending."
+   }
+  ]
+ },
+ {
+  "va": "0x462c39",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21a.c",
+   "symbol": "m462c39_pointer_move"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21a_direct_test.c",
+    "test_id": "test_m462c39_pointer_move"
+   },
+   {
+    "path": "tests/test_fl21a_direct.py",
+    "test_id": "Fl21aDirect.test_pointer_move_462c39"
+   },
+   {
+    "path": "tests/test_fl21a_differential.py",
+    "test_id": "Fl21aDifferential.test_462c39_pointer_move"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d3_runtime_original_oracle.py",
+   "window": [
+    "0x462c39",
+    "0x4630a3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m462c39_pointer_move. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1130 bytes."
+ },
+ {
+  "va": "0x484f42",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21a.c",
+   "symbol": "m484f42_pointer_move"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21a_direct_test.c",
+    "test_id": "test_m484f42_pointer_move"
+   },
+   {
+    "path": "tests/test_fl21a_direct.py",
+    "test_id": "Fl21aDirect.test_pointer_move_484f42"
+   },
+   {
+    "path": "tests/test_fl21a_differential.py",
+    "test_id": "Fl21aDifferential.test_484f42_pointer_move"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_ea_runtime_original_oracle.py",
+   "window": [
+    "0x484f42",
+    "0x4853b0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m484f42_pointer_move. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1134 bytes."
+ },
+ {
+  "va": "0x48d914",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21a.c",
+   "symbol": "m48d914_step_scene"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21a_direct_test.c",
+    "test_id": "test_m48d914_step_scene"
+   },
+   {
+    "path": "tests/test_fl21a_direct.py",
+    "test_id": "Fl21aDirect.test_step_scene_48d914"
+   },
+   {
+    "path": "tests/test_fl21a_differential.py",
+    "test_id": "Fl21aDifferential.test_48d914_step_scene"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d0_runtime_original_oracle.py",
+   "window": [
+    "0x48d914",
+    "0x48dec7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m48d914_step_scene. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1459 bytes.",
+  "blockers_reviewed": [
+   {
+    "id": "A-D0.1:4054616505a59cc7",
+    "rationale": "The item asks for the runtime dispatcher arm 0x42a0ea, the handler 0x48d914 with its callees and the global object 0x61d345; the handler 0x48d914 is ported 1:1 here including the jump table over [self+0x2b], while the dispatcher arm, the callees and the global object stay outside this function."
+   }
+  ]
+ }
+]

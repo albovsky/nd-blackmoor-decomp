@@ -21,7 +21,7 @@ void scene_restore_slot_init_words(SceneRestoreSlot *slot)
     slot->word_5c3a23 = 2;                              /* 0x437035 */
 }
 
-/* FL-12: original FUN_004eb70f is this function (function ledger acceptance). */
+/* original GAME.EXE 0x4eb70f (FUN_004eb70f): saver of the second "return to this scene" record 0x5c3a1b..0x5c3a2f from the running-scene globals and the one stack argument (low word). */
 void scene_restore_slot_save(SceneRestoreSlot *slot, const SceneStackCurrent *current, int32_t type_argument)
 {
     if (slot == NULL || current == NULL) {

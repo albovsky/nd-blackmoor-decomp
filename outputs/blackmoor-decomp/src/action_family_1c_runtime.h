@@ -85,8 +85,8 @@ typedef struct {
     C1cEntry *entries;
 } C1cIv;
 
-/* The fields of the singleton at 0x63847b that the handler keeps between visits (scratch fields +0x122..+0x136 and the stale
- * FILE pointer +0x12a are not modelled). */
+/* The fields of the singleton at 0x63847b that the handler keeps between visits (scratch fields +0x122..+0x132 and the stale
+ * FILE pointer +0x12a are not modelled; +0x136 is the entry search counter). */
 typedef struct {
     const uint8_t *body;     /* +0x16 */
     C1cIv *iv;               /* +0x1a (0 = nothing loaded) */
@@ -100,6 +100,7 @@ typedef struct {
     int32_t dword_154;       /* +0x154 */
     int32_t dword_158;       /* +0x158 */
     int32_t origin_present;  /* +0x15c (nonzero = the player's origin object pointer was kept) */
+    int32_t scan_index;      /* +0x136, the loop counter of the entry search 0x4cb944 (FL-13) */
 } C1cObject;
 
 typedef struct {

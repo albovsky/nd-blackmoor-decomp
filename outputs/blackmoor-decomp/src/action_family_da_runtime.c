@@ -112,7 +112,7 @@ static int no_sound(const uint8_t *name)
     return memcmp(name, k, sizeof k) == 0;
 }
 
-/* 0x45be3f: a real sound name is not "NO SOUND" and not empty. */
+/* original GAME.EXE 0x45be3f (FUN_0045be3f): a real sound name is not "NO SOUND" and not empty. */
 static int real_name(const uint8_t *name)
 {
     return !no_sound(name) && name[0] != 0;
@@ -366,8 +366,8 @@ static int pick_moves(Ctx *c, int16_t set, int16_t *moves)
     return BUL_OK;
 }
 
-/* 0x45bda7: win / lose check. */
-static void score_check(Ctx *c)
+/* 0x45bda7: win / lose check; returns 1 when the game is decided (win or lose), else 0, like the original. */
+static int score_check(Ctx *c)
 {
     BulObject *o = c->o;
     const int16_t n = rd_s16(c->body, BUL_B_PIECES);
@@ -378,7 +378,10 @@ static void score_check(Ctx *c)
     } else if (o->score_computer == n) {
         o->state = BUL_STATE_LOSE;
         o->finish_kind = 1;
+    } else {
+        return 0;
     }
+    return 1;
 }
 
 /* 0x45bcc1: one step check (the two position words equal). */
@@ -974,7 +977,9 @@ int bul_click(BulObject *object, const uint8_t *body, size_t body_length, const 
     return BUL_OK;
 }
 
-/* FL-12: original FUN_0045b477 is this function (function ledger acceptance). */
+/* original GAME.EXE 0x45b477 (FUN_0045b477): if object+0x166 (active) is nonzero and the word at object+0x1c (slot) is not -1,
+ * store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that global store. Native
+ * only: NULL arguments or an incomplete host return BUL_ERR_ARGUMENT, a nonzero host result BUL_ERR_HOST. */
 int bul_invalidate(const BulObject *object, const BulHost *host)
 {
     if (object == NULL || !host_complete(host)) return BUL_ERR_ARGUMENT;
@@ -985,7 +990,6 @@ int bul_invalidate(const BulObject *object, const BulHost *host)
     return BUL_OK;
 }
 
-/* FL-12: original FUN_0045b42e is this function (function ledger acceptance). */
 int bul_cleanup(BulObject *object, const BulHost *host)
 {
     if (object == NULL || !host_complete(host)) return BUL_ERR_ARGUMENT;

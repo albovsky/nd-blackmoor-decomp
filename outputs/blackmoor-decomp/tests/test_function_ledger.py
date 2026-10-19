@@ -1217,6 +1217,29 @@ class PortAcceptanceTests(ScratchCase):
         self.fails("both")
 
 
+class SymbolAreaTests(unittest.TestCase):
+    """symbol_area finds the one definition of a symbol, and a call in an ``if (...) {`` header is not a second definition."""
+    def test_calls_in_if_headers_are_not_definitions(self):
+        text = ("static int ok(int x)\n{\n    return x > 0;\n}\n\n"
+                "int run(int a)\n{\n    if (ok(a)) {\n        return 1;\n    }\n"
+                "    if (a > 3 && !ok(a - 1)) {\n        return 2;\n    }\n    return 0;\n}\n")
+        area = FL.symbol_area(text, "ok", "x.c")
+        self.assertIn("return x > 0;", area)
+        self.assertNotIn("return 1;", area)
+
+    def test_two_definitions_stay_ambiguous(self):
+        text = "static int ok(int x)\n{\n    return 1;\n}\n\nint ok(int y)\n{\n    return 2;\n}\n"
+        with self.assertRaises(FL.LedgerError) as caught:
+            FL.symbol_area(text, "ok", "x.c")
+        self.assertIn("ambiguous", str(caught.exception))
+
+    def test_call_only_symbol_is_not_found(self):
+        text = "int run(int a)\n{\n    if (ok(a)) {\n        return 1;\n    }\n    return 0;\n}\n"
+        with self.assertRaises(FL.LedgerError) as caught:
+            FL.symbol_area(text, "ok", "x.c")
+        self.assertIn("not found", str(caught.exception))
+
+
 # ------------------------------------------------ not_needed entries and rules --
 
 class NotNeededTests(ScratchCase):

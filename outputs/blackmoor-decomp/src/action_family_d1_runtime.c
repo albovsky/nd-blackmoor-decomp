@@ -259,20 +259,26 @@ static void moving_step(D1Object *o, const uint8_t *body, int16_t n, int *any)
     }
 }
 
+/* 0x4b642d: the idle state's solved check. The original reads the tile count from the row body; the row body is `body`. */
+static void solved_check(D1Object *o, const uint8_t *body, const D1Host *host)
+{
+    const int16_t n = rd_s16(body, B_COUNT);
+    int16_t i = 0;
+    while (i < n && o->frame[i] == rd_s16(body, B_TARGET + (size_t)i * 2u)) ++i;
+    if (i >= n) {
+        o->solved = 1;
+        o->state = D1_STATE_START_SOLVED;
+        fx(host, D1_FX_STATE, o->state, 0);
+    }
+}
+
 static int phase1(D1Object *o, const uint8_t *body, uint32_t *row_phase, const D1Host *host)
 {
     const int16_t n = rd_s16(body, B_COUNT);
     switch (o->state) {
     case D1_STATE_IDLE:
         if (o->solved == 0) {
-            /* 0x4b642d */
-            int16_t i = 0;
-            while (i < n && o->frame[i] == rd_s16(body, B_TARGET + (size_t)i * 2u)) ++i;
-            if (i >= n) {
-                o->solved = 1;
-                o->state = D1_STATE_START_SOLVED;
-                fx(host, D1_FX_STATE, o->state, 0);
-            }
+            solved_check(o, body, host);
         } else {
             o->state = D1_STATE_AUTO;
             fx(host, D1_FX_STATE, o->state, 0);
@@ -538,7 +544,7 @@ int d1_click(D1Object *object, const uint8_t *body, size_t body_length, uint32_t
     return D1_OK;
 }
 
-/* FL-12: original FUN_004b5c11 is this function (function ledger acceptance). */
+/* original GAME.EXE 0x4b5c11 (FUN_004b5c11): invalidate; with active (+0x225) != 0 and slot (+0x1c) != -1 the entry's redraw dword (0x5d15a5 + slot * 0x4a) := 1 (the host's mark_dirty). */
 int d1_invalidate(D1Object *object, const D1Host *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return D1_ERR_ARGUMENT;
@@ -546,7 +552,6 @@ int d1_invalidate(D1Object *object, const D1Host *host)
     return D1_OK;
 }
 
-/* FL-12: original FUN_004b5bc8 is this function (function ledger acceptance). */
 int d1_cleanup(D1Object *object, const D1Host *host)
 {
     if (object == NULL || host == NULL || host->release_surface == NULL || host->release_slot == NULL)

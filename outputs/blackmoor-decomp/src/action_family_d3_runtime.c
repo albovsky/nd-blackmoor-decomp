@@ -84,7 +84,8 @@ void cpz_object_reset(CpzObject *object)
     object->row = -1;
 }
 
-/* FL-12: original FUN_004618df is this function (function ledger acceptance). */
+/* original GAME.EXE 0x4618df (FUN_004618df): the grid flag byte 0x594db3 := 0 and the 0x280 dwords at 0x594db5 (64 cells of
+ * 40 bytes) := 0. */
 void cpz_grid_reset(CpzWorld *world)
 {
     world->grid_ready = 0;
@@ -685,7 +686,9 @@ int cpz_click(CpzObject *object, const uint8_t *body, size_t body_length, uint32
     return CPZ_OK;
 }
 
-/* FL-12: original FUN_004618ab is this function (function ledger acceptance). */
+/* original GAME.EXE 0x4618ab (FUN_004618ab): if object+0x3f (active) is nonzero and the word at object+0x1c (slot) is not -1,
+ * store 1 in the generic z entry's +0x14 (redraw request). The host mark_dirty callback replaces that global store. Native
+ * only: NULL arguments return CPZ_ERR_ARGUMENT, a nonzero host result CPZ_ERR_HOST. */
 int cpz_invalidate(CpzObject *object, const CpzHost *host)
 {
     if (object == NULL || host == NULL || host->mark_dirty == NULL) return CPZ_ERR_ARGUMENT;
@@ -693,7 +696,6 @@ int cpz_invalidate(CpzObject *object, const CpzHost *host)
     return CPZ_OK;
 }
 
-/* FL-12: original FUN_00461862 is this function (function ledger acceptance). */
 int cpz_cleanup(CpzObject *object, const CpzHost *host)
 {
     if (object == NULL || host == NULL || host->release_surface == NULL || host->release_slot == NULL)

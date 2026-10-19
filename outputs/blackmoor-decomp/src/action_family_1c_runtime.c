@@ -122,16 +122,19 @@ fail:
     return C1C_ERR_FILE;
 }
 
-static const C1cEntry *find_entry(const C1cObject *object, int32_t index)  /* 0x4cb944 */
+/* 0x4cb944: the loop counter is the object field +0x136 (untouched when no file is loaded, the match index or the count after). */
+static const C1cEntry *find_entry(C1cObject *object, int32_t index)
 {
-    int32_t i;
     if (object->iv == NULL) {
         return NULL;
     }
-    for (i = 0; i < object->iv->count; ++i) {
-        if (object->iv->entries[i].id == index) {
-            return &object->iv->entries[i];
+    object->scan_index = 0;
+    while (object->scan_index < object->iv->count) {
+        const C1cEntry *entry = &object->iv->entries[object->scan_index];
+        if (entry->id == index) {
+            return entry;
         }
+        object->scan_index = object->scan_index + 1;
     }
     return NULL;
 }
@@ -146,8 +149,6 @@ static int names_equal(const uint8_t *a, const uint8_t *b)               /* 0x4c
     return 1;
 }
 
-/* FL-12: original FUN_004caf03 is inlined in this function (function ledger acceptance). */
-/* FL-12: original FUN_004caf8a is inlined in this function (function ledger acceptance). */
 int c1c_visit(C1cObject *object, const uint8_t body[C1C_BODY_BYTES], uint32_t phase, const C1cHost *host, C1cOutcome *outcome)
 {
     int32_t state, index32;

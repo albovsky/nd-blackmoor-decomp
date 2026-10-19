@@ -389,7 +389,9 @@ def match_brace(masked, open_index):
 def symbol_area(text, symbol, path):
     """Leading comments plus body of the single definition of ``symbol``."""
     masked = mask_source(text)
-    found = list(re.finditer(r"\b" + re.escape(symbol) + r"\s*\([^;{}]*\)\s*\{", masked))
+    # a definition has a return type or declarator before the name; a call inside an ``if (...) {`` header has an operator or ``(``
+    found = [m for m in re.finditer(r"\b" + re.escape(symbol) + r"\s*\([^;{}]*\)\s*\{", masked)
+             if re.search(r"[A-Za-z0-9_*]\s*$", masked[:m.start()])]
     if not found:
         fail(f"source symbol {symbol} not found in {path}")
     if len(found) > 1:

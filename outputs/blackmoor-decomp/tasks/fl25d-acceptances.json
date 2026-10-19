@@ -1,0 +1,101 @@
+[
+ {
+  "va": "0x4712bd",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25d.c",
+   "symbol": "m4712bd_click_27a6_27ad"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25d_direct_test.c",
+    "test_id": "test_m4712bd_click_27a6_27ad"
+   },
+   {
+    "path": "tests/test_fl25d_direct.py",
+    "test_id": "Fl25dDirect.test_4712bd_click_27a6_27ad"
+   },
+   {
+    "path": "tests/test_fl25d_differential.py",
+    "test_id": "Fl25dDifferential.test_4712bd_click_27a6_27ad"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25d_original_oracle.py",
+   "window": [
+    "0x4712bd",
+    "0x471722"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4712bd_click_27a6_27ad. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25d-handoff.md."
+ },
+ {
+  "va": "0x4b2250",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25d.c",
+   "symbol": "m4b2250_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25d_direct_test.c",
+    "test_id": "test_m4b2250_hit_test"
+   },
+   {
+    "path": "tests/test_fl25d_direct.py",
+    "test_id": "Fl25dDirect.test_4b2250_hit_test"
+   },
+   {
+    "path": "tests/test_fl25d_differential.py",
+    "test_id": "Fl25dDifferential.test_4b2250_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25d_original_oracle.py",
+   "window": [
+    "0x4b2250",
+    "0x4b2917"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b2250_hit_test. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25d-handoff.md."
+ },
+ {
+  "va": "0x46bca9",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25d.c",
+   "symbol": "m46bca9_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25d_direct_test.c",
+    "test_id": "test_m46bca9_hit_test"
+   },
+   {
+    "path": "tests/test_fl25d_direct.py",
+    "test_id": "Fl25dDirect.test_46bca9_hit_test"
+   },
+   {
+    "path": "tests/test_fl25d_differential.py",
+    "test_id": "Fl25dDifferential.test_46bca9_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25d_original_oracle.py",
+   "window": [
+    "0x46bca9",
+    "0x46c41e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m46bca9_hit_test. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25d-handoff.md."
+ }
+]

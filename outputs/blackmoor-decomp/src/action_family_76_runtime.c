@@ -91,6 +91,7 @@ int pwd_validate_body(const uint8_t *body, size_t length, const char **failure)
     return why == NULL ? PWD_OK : PWD_ERR_BODY;
 }
 
+/* original GAME.EXE 0x437ea1 (FUN_00437ea1): the character filter of the character message handler; letters, digits, \b \r space and . , ? ! / $ ( ) & : ; + % = -, plus 27 Latin-1 accented bytes (signed char compares). */
 int pwd_char_accepted(int8_t ch)
 {
     const int c = ch;

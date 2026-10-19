@@ -2181,7 +2181,7 @@ MUTANTS = {
  'm20_exit_click_keeps_phase': ('object->exit_taken = 1;\n        *new_phase = 2u;', 'object->exit_taken = 1;\n        *new_phase = row_phase;'),
  'm21_click_ignores_state': ('object->solved == 0 && object->state == D1_STATE_IDLE && row_phase == 1u', 'object->solved == 0 && row_phase == 1u'),
  'm22_click_ignores_busy': ('if (busy == 0) {\n            object->state = D1_STATE_ANIMATE;', 'if (1) {\n            object->state = D1_STATE_ANIMATE;'),
- 'm23_solved_wins_state_wrong': ('o->solved = 1;\n                o->state = D1_STATE_START_SOLVED;', 'o->solved = 1;\n                o->state = D1_STATE_AUTO;'),
+ 'm23_solved_wins_state_wrong': ('o->solved = 1;\n        o->state = D1_STATE_START_SOLVED;', 'o->solved = 1;\n        o->state = D1_STATE_AUTO;'),
  'm24_auto_counter_not_incremented': ('o->counter = (uint8_t)(o->counter + 1u);', ''),
  'm25_auto_frame_compare_le': ('if ((int32_t)o->frame[0] < frames - 1 ||', 'if ((int32_t)o->frame[0] <= frames - 1 ||'),
  'm26_win_sound_busy_inverted': ('        if (busy == 0) {\n            HOST(host->sound_stop(host->context, 1, body + B_SOUND1));', '        if (busy != 0) {\n            HOST(host->sound_stop(host->context, 1, body + B_SOUND1));'),

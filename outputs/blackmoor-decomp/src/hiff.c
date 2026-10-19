@@ -384,7 +384,6 @@ static int select_chunk_index(Hiff *hiff, const char *id, int require_unused)
     return HIFF_ERR_NOT_FOUND;
 }
 
-/* FL-12: original FUN_004343a2 is this function (function ledger acceptance). */
 int hiff_select_chunk(Hiff *hiff, const char *id)
 {
     size_t index;
