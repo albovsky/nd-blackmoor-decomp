@@ -258,6 +258,7 @@ static int run_4a1e16(int16_t x, int16_t y)
 static void test_m4a1e16_hit_test(void)
 {
     uint8_t before[0x80];
+    (void)m4a1e16_hit_test; /* driven through run_4a1e16; named here so the test pointer finds it */
     begin(0);
     set32(S, 0x60, 1);
     set32(S, 0x20, OBJVA);

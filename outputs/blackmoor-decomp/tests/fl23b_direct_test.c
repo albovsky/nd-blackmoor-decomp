@@ -759,22 +759,109 @@ typedef void (*Arms)(int);
 static const Arms ARMS[N_FUNCS] = {arms_4a1efd, arms_4ba4f2, arms_46957d, arms_4b45ed, arms_473ffc, arms_48e851,
                                    arms_45e587, arms_48ab49, arms_4ab899, arms_4574e4, arms_47a03c, arms_4b2a9e};
 
+/* one named test per function (the ledger test pointer names the C function); each drives the table-driven runner above */
+static int run_function(int f)
+{
+    g_failed = 0;
+    g_msg[0] = 0;
+    matrix(f);
+    ARMS[f](2);
+    ARMS[f](-1);
+    sweep(f);
+    if (g_failed) {
+        printf("FAIL %s: %s\n", S[f].name, g_msg);
+        return 1;
+    }
+    printf("PASS %s\n", S[f].name);
+    return 0;
+}
+
+static int test_m4a1efd_click_2760(void)
+{
+    (void)m4a1efd_click_2760;
+    return run_function(0);
+}
+
+static int test_m4ba4f2_click_276a(void)
+{
+    (void)m4ba4f2_click_276a;
+    return run_function(1);
+}
+
+static int test_m46957d_click_272e(void)
+{
+    (void)m46957d_click_272e;
+    return run_function(2);
+}
+
+static int test_m4b45ed_click_2739(void)
+{
+    (void)m4b45ed_click_2739;
+    return run_function(3);
+}
+
+static int test_m473ffc_click_27a1(void)
+{
+    (void)m473ffc_click_27a1;
+    return run_function(4);
+}
+
+static int test_m48e851_click_27b8_27b9(void)
+{
+    (void)m48e851_click_27b8_27b9;
+    return run_function(5);
+}
+
+static int test_m45e587_click_27ec_27ef(void)
+{
+    (void)m45e587_click_27ec_27ef;
+    return run_function(6);
+}
+
+static int test_m48ab49_click_2756_2757(void)
+{
+    (void)m48ab49_click_2756_2757;
+    return run_function(7);
+}
+
+static int test_m4ab899_click_27ce_27d0(void)
+{
+    (void)m4ab899_click_27ce_27d0;
+    return run_function(8);
+}
+
+static int test_m4574e4_click_27bc_27be(void)
+{
+    (void)m4574e4_click_27bc_27be;
+    return run_function(9);
+}
+
+static int test_m47a03c_click_279c_279d(void)
+{
+    (void)m47a03c_click_279c_279d;
+    return run_function(10);
+}
+
+static int test_m4b2a9e_click_2792_2793(void)
+{
+    (void)m4b2a9e_click_2792_2793;
+    return run_function(11);
+}
+
 int main(void)
 {
-    int f, failures = 0;
-    for (f = 0; f < N_FUNCS; f++) {
-        g_failed = 0;
-        g_msg[0] = 0;
-        matrix(f);
-        ARMS[f](2);
-        ARMS[f](-1);
-        sweep(f);
-        if (g_failed) {
-            printf("FAIL %s: %s\n", S[f].name, g_msg);
-            failures++;
-        } else {
-            printf("PASS %s\n", S[f].name);
-        }
-    }
+    int failures = 0;
+    failures += test_m4a1efd_click_2760();
+    failures += test_m4ba4f2_click_276a();
+    failures += test_m46957d_click_272e();
+    failures += test_m4b45ed_click_2739();
+    failures += test_m473ffc_click_27a1();
+    failures += test_m48e851_click_27b8_27b9();
+    failures += test_m45e587_click_27ec_27ef();
+    failures += test_m48ab49_click_2756_2757();
+    failures += test_m4ab899_click_27ce_27d0();
+    failures += test_m4574e4_click_27bc_27be();
+    failures += test_m47a03c_click_279c_279d();
+    failures += test_m4b2a9e_click_2792_2793();
     return failures;
 }
