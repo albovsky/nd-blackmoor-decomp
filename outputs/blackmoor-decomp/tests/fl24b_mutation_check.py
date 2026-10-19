@@ -10,7 +10,7 @@ A mutant is detected when the direct test binary fails to build or fails; if the
 that contains the mutated line is run against the original bytes (the shim and port are rebuilt from the mutated copy). Prints the counts
 and every survivor (an equivalent mutant is expected only where the changed value cannot reach an observable effect).
 
-Run from outputs/blackmoor-decomp:  python3 tests/fl24b_mutation_check.py [--limit N] [--no-differential]
+Run from outputs/blackmoor-decomp:  python3 tests/fl24b_mutation_check.py [--limit N] [--no-differential] [--lines N,N,...]
 """
 import argparse
 from pathlib import Path
@@ -29,7 +29,10 @@ import test_fl_differential as base
 
 SRC = HERE.parent / 'src'
 import fl24b_fixtures as fixtures
-FUNCS = {k: 'test_' + k for k in fixtures.KEYS}
+import test_fl24b_differential as differential
+# (the differential test method of each function: test_<va>_<name>; a name that does not exist would make every differential run fail and
+# every mutant look detected, so the lookup is strict)
+FUNCS = {k: next(n for n in dir(differential.Fl24bDifferential) if n.startswith('test_%s_' % k)) for k in fixtures.KEYS}
 
 
 def mutants(lines):
@@ -68,9 +71,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--limit', type=int, default=0)
     ap.add_argument('--no-differential', action='store_true')
+    ap.add_argument('--lines', default='', help='only the mutants of these source lines (comma separated)')
     args = ap.parse_args()
     lines = (SRC / 'original_methods_fl24b.c').read_text().splitlines(keepends=True)
     muts = mutants(lines)
+    if args.lines:
+        wanted = {int(x) for x in args.lines.split(',')}
+        muts = [m for m in muts if m[0] + 1 in wanted]
     if args.limit:
         muts = muts[::max(1, len(muts) // args.limit)]
     caught_direct = caught_diff = 0
@@ -99,12 +106,14 @@ def main():
             # (a mutant can crash the shared library: the differential of a survivor runs in its own process; a crash counts as caught)
             code = ("import sys, unittest, pathlib; sys.path.insert(0, %r); import test_fl_differential as base; base.SRC = pathlib.Path(%r); "
                     "import test_fl24b_differential as diff; r = unittest.TextTestRunner(stream=open('/dev/null', 'w')).run("
-                    "unittest.TestSuite([diff.Fl24bDifferential(%r)])); sys.exit(0 if r.wasSuccessful() else 1)" % (str(HERE), str(tmp), FUNCS[key]))
+                    "unittest.TestSuite([diff.Fl24bDifferential(%r)])); sys.exit(0 if r.wasSuccessful() else 3)" % (str(HERE), str(tmp), FUNCS[key]))
             done = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, timeout=600)
             if done.returncode == 0:
                 survivors.append((i + 1, what, '0x' + key))
-            else:
+            elif done.returncode == 3 or done.returncode < 0:      # (3: a failing test; negative: the mutant crashed the process)
                 caught_diff += 1
+            else:                                                  # (any other exit is a fault of the harness, not a detection)
+                raise RuntimeError('differential run of the mutant at line %d failed to run:\n%s' % (i + 1, done.stderr[-2000:]))
     print('mutants %d: caught by the direct test %d, by the differential test only %d, survivors %d' % (len(muts), caught_direct, caught_diff, len(survivors)))
     for line_no, what, where in survivors:
         print('  survivor: line %d (%s) %s' % (line_no, where, what))

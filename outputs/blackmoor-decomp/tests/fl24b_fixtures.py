@@ -74,8 +74,59 @@ class Area:
     compare: bool = True
 
 
+def jcc_table(va, size):
+    """{address: (taken target, fall-through, mnemonic)} of the conditional jumps (jcc, loop, jecxz) in [va, va+size); jmp, call and ret are
+    not conditional. (A jump through a table, `jmp [reg*4+table]`, has no two edges and is not listed.)"""
+    import capstone
+    pe = od.load_image()
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = va - pe.image_base
+    out = {}
+    for i in md.disasm(pe.image[off:off + size], va):
+        if i.mnemonic[0] == 'j' and i.mnemonic != 'jmp' or i.mnemonic.startswith('loop'):
+            out[i.address] = (i.operands[0].imm, i.address + i.size, i.mnemonic)
+    return out
+
+
+def untaken_edges(va, size, edges):
+    """[(address of a conditional jump, 'taken' | 'fall')]: the directions of the jumps of the function that no run of `edges` took.
+    `edges` is the union of Original20.edges ((jump address, address of the next instruction executed))."""
+    missing = []
+    for address, (target, fall, _) in sorted(jcc_table(va, size).items()):
+        if (address, target) not in edges:
+            missing.append((address, 'taken'))
+        if target != fall and (address, fall) not in edges:
+            missing.append((address, 'fall'))
+    return missing
+
+
+# The directions of conditional jumps that no state of the function can take, with the reason (the differential test requires every other
+# direction of every jcc of every function to be taken by the scenarios, and every entry here to stay untaken).
+UNTAKEN_EDGES = {
+    (0x467ac9, 'taken'): 'jne after the je at 0x467a2a on the same two values (word [+0xa] sign-extended vs dword [+0x1ba]); nothing between them changes either',
+    (0x4ad409, 'taken'): 'je on dword [+0x20] == 0 after the jne at 0x4ad36e tested the same dword non-zero; no call or store in between',
+}
+
+
 class Original20(od.Original):
-    """od.Original whose stubs can also log the bytes at some places as they are at the call (stub.probe_addr = [(address, length)])."""
+    """od.Original whose stubs can also log the bytes at some places as they are at the call (stub.probe_addr = [(address, length)]),
+    and which records the edges of the conditional jumps of the function under test: `edges` = {(address of a jcc, address executed next)}."""
+
+    def run(self, va, body_size, **kw):
+        table = jcc_table(va, body_size)
+        self.edges = set()
+        pending = []
+
+        def hook(uc, address, size, user):
+            if pending:
+                a = pending.pop()
+                if address in table[a][:2]:
+                    self.edges.add((a, address))
+            if address in table:
+                pending.append(address)
+        self.uc.hook_add(od.unicorn.UC_HOOK_CODE, hook, begin=va, end=va + body_size - 1)
+        return super().run(va, body_size, **kw)
 
     def _stub_hook(self, uc, address, size, user):
         stub = self.stubs[address]
@@ -96,10 +147,11 @@ def stub(callee, **kw):
 
 
 
-def mk_scenario(sp, key, rng, *, areas, g=None, stubs=None, iat=None, pointers=None, stack_args=(), sel=0, profile=('x', 0), tick=None, ptr_args=None):
-    """A scenario namespace (the fields run_original and the differential read)."""
+def mk_scenario(sp, key, rng, *, areas, g=None, stubs=None, iat=None, pointers=None, stack_args=(), sel=0, profile=('x', 0), tick=None, ptr_args=None, self_pad=0):
+    """A scenario namespace (the fields run_original and the differential read). `self_pad`: the object is that many bytes into its area (the
+    bytes before it are mapped, compared and random, for a handler that can store below its object)."""
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], areas=areas, stubs=stubs or {}, iat=iat or {}, g=g or {},
-                           ecx=od.region_va(0), tick=tick, pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, sel=sel,
+                           ecx=od.region_va(0) + self_pad, self_pad=self_pad, tick=tick, pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, sel=sel,
                            stack_args=list(stack_args), ptr_args=ptr_args or {}, ret=sp.get('ret'), cleanup=4 * len(stack_args) if sp.get('callee_pops') else 0)
 
 
@@ -122,11 +174,11 @@ SPECS.update({
                    probes=[(0x1a0, 0xc0), (0x238, 0x28)]),
     '4ad310': dict(id=8, va=0x4ad310, size=640, selfsz=0xc30, idx=0x1e, gates=[('nz32', 0xc1b), ('z8', 0xc24), ('z32', 0xc20)],
                    sels=[0x2775, 0x2774, 0x2776], callees=[0x4af96e, 0x4ada56, 0x4ae683, 0x4ae495, 0x4ada9f, 0x4ae96c, 0x4aef4a, 0x4adae8],
-                   post=lambda c: post_4ad310(c), scen=640, probes=[(0, 0xc30)]),
+                   post=lambda c: post_4ad310(c), scen=640, probes=[(0, 0xc30)], pad=0x400),
     '4acf45': dict(id=9, va=0x4acf45, size=672, selfsz=0xe60, ret='eax', callee_pops=True, scen=640),
     '4aa0f0': dict(id=10, va=0x4aa0f0, size=738, selfsz=0x60, ret='eax', callee_pops=True, scen=640),
     '487ed5': dict(id=11, va=0x487ed5, size=756, selfsz=0x100, idx=0x1e, gates=[('nz32', 0x71), ('eq32', 0x6c, 1)], sels=[0x2789, 0x2788],
-                   callees=[0x4fb2e3], tick=True, post=lambda c: post_487ed5(c), scen=600, probes=[(0, 0x100)]),
+                   callees=[0x4fb2e3], tick=True, post=lambda c: post_487ed5(c), scen=960, probes=[(0, 0x100)]),
     '464c59': dict(id=12, va=0x464c59, size=764, selfsz=0x140, idx=0x1e, gates=[('nz32', 0xb8), ('z8', 0xc1), ('z32', 0xbd)],
                    sels=[0x27cc, 0x27cb, 0x27ca, 0x27c9, 0x27cd], callees=[0x464fff, 0x4641bb, 0x464faa, 0x464f55, 0x465075],
                    post=lambda c: post_464c59(c), scen=600, probes=[(0, 0x140)]),
@@ -207,7 +259,8 @@ def chain_build(key, rng, n):
                         areas=[], g={}, pointers={}, consts={}, stack_args=[], stubs_results={}, iat={})
     if sp.get('post'):
         sp['post'](c)
-    areas = [Area('self', od.region_va(0), d, image=False), Area('records', RECORDS_VA - 0x8d, rec),
+    pad = sp.get('pad', 0)
+    areas = [Area('self', od.region_va(0), bytearray(rng.randbytes(pad)) + d, image=False), Area('records', RECORDS_VA - 0x8d, rec),
              Area('obj', od.region_va(1), obj, image=False),
              Area('decoy', od.region_va(4), bytearray(rng.randbytes(0x1000)), image=False, compare=False), *c.areas]
     pointers = {'records_5bb5e5': ('records', 0x8d), **c.pointers}
@@ -215,7 +268,7 @@ def chain_build(key, rng, n):
         areas.append(Area('c%x' % table, table, bytearray(data), compare=False))
         pointers['bytes_%x' % table] = ('c%x' % table, 0)
     g = {'value_5c39e5': sel, **c.g}
-    probes = [('self', o, ln) for o, ln in sp.get('probes', ())] + [('records', 0, len(rec))]
+    probes = [('self', o + pad, ln) for o, ln in sp.get('probes', ())] + [('records', 0, len(rec))]
     stubs = {}
     for callee in sp.get('callees', ()):
         kw = dict(STUB_SHAPE[callee], probe=probes)
@@ -226,10 +279,10 @@ def chain_build(key, rng, n):
     if sp.get('tick'):
         iat[TICK_SLOT] = od.Stub('tick', result=now)
     return mk_scenario(sp, key, rng, areas=areas, g=g, stubs=stubs, iat=iat, pointers=pointers, stack_args=c.stack_args, sel=sel,
-                       profile=(kind, which), tick=now if sp.get('tick') else None)
+                       profile=(kind, which), tick=now if sp.get('tick') else None, self_pad=pad)
 
 
-def nine_const(c, table, off, obj, active, rng=None):
+def nine_const(c, table, off, obj, active, rng=None, nine=None):
     """Sets the constant at `table` and, when the compare is active, the nine bytes of obj at `off` equal to it or different at the byte
     `nine` (0..8; 9 = only the tenth byte, which is not compared; -1 = equal)."""
     rng = rng or c.rng
@@ -237,7 +290,7 @@ def nine_const(c, table, off, obj, active, rng=None):
     c.consts[table] = const
     if active:
         obj[off:off + 9] = const
-        nine = ((c.variant >> 1) % 11) - 1
+        nine = ((c.variant >> 1) % 11) - 1 if nine is None else nine
         if 0 <= nine <= 8:
             obj[off + nine] ^= rng.choice([1, 0x40, 0x80, 0xff])
         elif nine == 9:
@@ -439,7 +492,9 @@ def post_4ad310(c):
     zero = expect_zero if v % 4 != 3 else not expect_zero
     struct.pack_into('<I', d, 0x20, 0 if zero else rng.choice([1, 0x100, 0x80000000, 0xffffffff]))
     struct.pack_into('<I', d, 0xc17, od.region_va(1))
-    struct.pack_into('<h', d, 0x24, rng.choice([0, 1, 2, 3, 5, 6, 0x0b]))
+    # (the selected word [+0x24]: every third pass of the cycle a value >= 0x8000, which the original sign-extends: the entry lives below the
+    # object, p = word * 0xc7 + 0x6e; the area of the object has 0x400 bytes of padding for it)
+    struct.pack_into('<h', d, 0x24, rng.choice([-1, -2, -3]) if (v // 4) % 3 == 2 else rng.choice([0, 1, 2, 3, 5, 6, 0x0b]))
     struct.pack_into('<h', obj, 0x42, rng.choice([0, 1, 2, 3, 5, 8, 12, -1, -5, 4, 6]))
     for t in range(14):
         struct.pack_into('<h', d, t * 0xc7 + 0x6e, rng.choice([0, 1, -1, 0x7fff, -0x8000, rng.randrange(-300, 300)]))
@@ -459,6 +514,7 @@ def nspan(rng, v, fail=None):
 
 def build_4acf45(sp, rng, n):
     prof = n % 10
+    neg = (n // 10) % 3 == 1
     d = bytearray(rng.randbytes(sp['selfsz']))
     struct.pack_into('<I', d, 0xc1b, 0 if prof == 0 else rng.choice([1, 0x100, 0x01000000, 0xffffffff]))
     struct.pack_into('<I', d, 0xc17, od.region_va(1))
@@ -487,8 +543,10 @@ def build_4acf45(sp, rng, n):
         b = rng.choice([0, 0, 1, 2, 3])
         d[e + 0x26] = b
         q = e + 0x27 + b * 0x28
-        struct.pack_into('<I', d, q + 0x1c, od.region_va(6))
-        struct.pack_into('<h', d, q + 0x20, rng.choice([0, 1, 2, 3, 8, 5]))
+        # (every third pass of the cycle: the mask pointer is 0x80 bytes into the mask and the stride is negative, so a stride word read as
+        # unsigned would address 65000 bytes on; the offsets stay inside the mask: dy * stride + dx >= -0x80)
+        struct.pack_into('<I', d, q + 0x1c, od.region_va(6) + (0x80 if neg else 0))
+        struct.pack_into('<h', d, q + 0x20, rng.choice([-1, -2, -3, -5]) if neg else rng.choice([0, 1, 2, 3, 8, 5]))
     outer = None if prof in (4, 6, 7, 8) else ['ylo', 'yhi', 'xlo', 'xhi'][rng.randrange(4)]
     ylo, yhi = span(rng, y, 'lo' if outer == 'ylo' else 'hi' if outer == 'yhi' else None)
     xlo, xhi = span(rng, x, 'lo' if outer == 'xlo' else 'hi' if outer == 'xhi' else None)
@@ -554,18 +612,20 @@ def build_4aa0f0(sp, rng, n):
 
 def post_487ed5(c):
     d, obj, rng, v = c.d, c.obj, c.rng, c.variant
-    arm = v % 8
+    arm = v % 12      # (arms 8 to 11: the equal word with a slot dword whose low word is 1 or 0 but which is not: rd16 would match it)
     obj[0x23] = 0 if arm in (0, 1) else rng.choice([1, 0x80, 0xff])
     obj[0x24] = rng.randrange(256)
     t447 = rng.choice([0, 1, -1, 0x7fff, -0x8000, rng.randrange(-300, 300)])
     struct.pack_into('<h', obj, 0x447, t447)
-    equal = arm in (2, 5)
+    equal = arm in (2, 5) or arm >= 8
     g = t447 if equal else (t447 ^ rng.choice([1, 0x100, 0x8000])) if rng.random() < 0.5 else (t447 + 1)
     if not equal and (g & 0xffff) == (t447 & 0xffff):
         g = t447 + 1
     c.g['value_583a29'] = g & 0xffff
-    slot = {0: 0, 1: rng.choice([1, 2, 3, 0x100, 0x10000, 0xffffffff]), 2: 0, 3: 0, 4: 2, 5: 1, 6: 1, 7: rng.choice([3, 0x100, 0x10000, 0xffffffff, 0x10002, 0x10001])}[arm]
-    k = rng.choice([0, 1, 2, 3, 4, 9, -1])
+    slot = {0: 0, 1: rng.choice([1, 2, 3, 0x100, 0x10000, 0xffffffff]), 2: 0, 3: 0, 4: 2, 5: 1, 6: 1, 7: rng.choice([3, 0x100, 0x10000, 0xffffffff, 0x10002, 0x10001]),
+            8: 0x10001, 9: 0x80000001, 10: 0xffff0001, 11: 0x10000}[arm]
+    # (the slot index [+0x66]: every value in turn, whatever the arm, so that each arm meets the negative one: m = the cycle of 12)
+    k = [0, 1, 2, 3, 4, 9, -1][(v // 12 + arm) % 7]
     struct.pack_into('<h', d, 0x66, k)
     struct.pack_into('<I', d, 0x25 + 4 * k, slot)
     d[0x65] = rng.choice([0, 0, 0, 1, 0x80, 0xff]) if (v // 8) % 3 != 2 else rng.choice([1, 0x80])
@@ -575,7 +635,13 @@ def post_487ed5(c):
     struct.pack_into('<h', obj, 0x425, n425)
     c.g['value_5bb1ca'] = 0 if (v // 3) % 2 == 0 else rng.choice([1, 0x100, 0xffffffff])
     nine_const(c, 0x54de04, 0x4ab, obj, True)
-    nine_const(c, 0x54de10, 0x4dc, obj, True, rng)
+    # (the second constant is compared only on the matched arms 2 and 5 with the byte [+0x65] clear and the flag set: those arms get exactly that
+    # in all cycles of 12 but every fourth; the constant is equal in the even cycles and differs at byte 0 .. 9 in the odd ones (arm 5 adds one))
+    m = v // 12
+    if arm in (2, 5) and m % 4 != 2:
+        d[0x65] = 0
+        c.g['value_5bb1ca'] = rng.choice([1, 0x100, 0xffffffff])
+    nine_const(c, 0x54de10, 0x4dc, obj, True, rng, nine=-1 if m % 2 == 0 else (m // 2 * 2 + (arm == 5)) % 10)
 
 
 def post_464c59(c):
@@ -587,7 +653,11 @@ def post_464c59(c):
     struct.pack_into('<h', d, 0x38, w38)
     struct.pack_into('<h', d, 0x36, w36)
     struct.pack_into('<I', d, 0x8c, 0 if (v // 2) % 2 == 0 else rng.choice([1, 0x100, 0x80000000]))
-    struct.pack_into('<I', d, 0x90, 0 if (v // 4) % 2 == 0 else rng.choice([1, 0x100]))
+    # ([+0x90] is a dword tested whole: values with only the high word or a high byte set, and the bytes after it (the slot at [+0x94]) clear in
+    # half of the passes, so that a test of the low word or of the dword at [+0x91] reads zero)
+    struct.pack_into('<I', d, 0x90, 0 if (v // 4) % 2 == 0 else rng.choice([1, 0x100, 0x10000, 0x80000000, 0x01000000, 0xffffffff]))
+    if (v // 8) % 2 == 0:
+        d[0x94:0x98] = bytes(4)
     if c.sel == 0x27cd:      # (the slot store at +0x94 + 4 * w36 may land on [+0x8c] / [+0x90] or the words: all in range)
         pass
 
@@ -633,7 +703,9 @@ def run_original(sc):
         read['g:' + field] = GLOBALS[field]
     for x in sc.stubs.values():
         x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in x.probe]
-    orig = Original20(image_patches, regions, sc.stubs, sc.iat).run(sc.va, SPECS[sc.key].get('code', sc.size), ecx=sc.ecx, stack_args=sc.stack_args, read=read)
+    runner = Original20(image_patches, regions, sc.stubs, sc.iat)
+    orig = runner.run(sc.va, SPECS[sc.key].get('code', sc.size), ecx=sc.ecx, stack_args=sc.stack_args, read=read)
+    orig.edges = runner.edges
     if orig.cleanup != sc.cleanup:
         raise AssertionError('%s popped %d bytes, expected %d' % (sc.key, orig.cleanup, sc.cleanup))
     if sc.ret == 'self' and orig.eax != sc.ecx:

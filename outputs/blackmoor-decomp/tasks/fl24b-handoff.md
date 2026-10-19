@@ -4,7 +4,7 @@ Branch `worktree-agent-adcb0aa0235c772b2` (worktree `.claude/worktrees/agent-adc
 
 ## Ported symbols (`src/original_methods_fl24b.c/.h`, `Fl18Host` convention, `Fl24bWorld`)
 
-Thiscall (`ecx` = the object `self`). The five hit tests (0x467740, 0x482359, 0x4acf45, 0x4aa0f0 and none else) take word arguments (read by `movsx`) and end in `ret 8` / `ret 0xc` and return eax = 1 or 0 as `int32_t`; the other seven end in a plain `ret` and return `void` (0x4dad60 leaves eax = this, asserted in the oracle run). Arms are 1:1 with the disassembly of `work/original/GAME.EXE`, not the ledger names.
+Thiscall (`ecx` = the object `self`). The four hit tests (0x467740, 0x482359, 0x4acf45 and 0x4aa0f0) take word arguments (read by `movsx`) and end in `ret 8` / `ret 0xc` and return eax = 1 or 0 as `int32_t`; the other seven end in a plain `ret` and return `void` (0x4dad60 leaves eax = this, asserted in the oracle run). Arms are 1:1 with the disassembly of `work/original/GAME.EXE`, not the ledger names.
 
 | va | span | symbol | instructions executed (original) | scenarios |
 |---|---|---|---|---|
@@ -18,7 +18,7 @@ Thiscall (`ecx` = the object `self`). The five hit tests (0x467740, 0x482359, 0x
 | 0x4ad310 | 640 | `m4ad310_click_2774_2776` | 173/173 | 640 |
 | 0x4acf45 | 672 | `m4acf45_hit_test` | 183/183 | 640 |
 | 0x4aa0f0 | 738 | `m4aa0f0_hit_test` | 154/154 | 640 |
-| 0x487ed5 | 756 | `m487ed5_click_2788_2789` | 196/196 | 600 |
+| 0x487ed5 | 756 | `m487ed5_click_2788_2789` | 196/196 | 960 |
 | 0x464c59 | 764 | `m464c59_click_27c9_27cd` | 181/181 | 600 |
 
 Dropped: none. Remaining: none.
@@ -44,48 +44,13 @@ Dropped: none. Remaining: none.
 - `python3 -m unittest tests.test_fl24b_direct tests.test_fl24b_differential` : 25 tests OK (direct: 1 all-cases check + 12; differential: 12).
 - `python3 tests/fl24b_original_oracle.py` : exit 0, 12 lines `0x... instructions N/N scenarios M digest ...` (table above; digests below). Original bytes only, no native library.
 - ASan/UBSan: the direct binary built with `gcc -fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer` at -O0, -O1, -O2 : all 12 cases PASS, no sanitizer output. There is no random sweep in this batch (the FL-23 `sweep()` was not ported): sanitizer coverage is the tested inputs, which stay inside the buffers by construction. The Python differential cannot be sanitised (capstone/unicorn).
-- Mutation check `python3 tests/fl24b_mutation_check.py --limit 330` (about 25 minutes):
-
-```
-mutants 364: caught by the direct test 311, by the differential test only 23, survivors 30
-  survivor: line 148 (0x466073) literal 0x31 -> 0x32
-  survivor: line 170 (0x466073) width rd16( -> rd32(
-  survivor: line 178 (0x466073) width rd16( -> rd32(
-  survivor: line 190 (0x466073) width rd16( -> rd32(
-  survivor: line 250 (0x4b7563) width rd16( -> rd32(
-  survivor: line 310 (0x459e49) width rd16( -> rd32(
-  survivor: line 315 (0x459e49) width rd16( -> rd32(
-  survivor: line 324 (0x459e49) width rd16( -> rd32(
-  survivor: line 334 (0x459e49) width rd16( -> rd32(
-  survivor: line 361 (0x482359) width rds16( -> rd16(
-  survivor: line 362 (0x482359) width rds16( -> rd16(
-  survivor: line 429 (0x46793a) width rd16( -> rd32(
-  survivor: line 470 (0x4ad310) width rds16( -> rd16(
-  survivor: line 472 (0x4ad310) width rds16( -> rd16(
-  survivor: line 476 (0x4ad310) width rds16( -> rd16(
-  survivor: line 477 (0x4ad310) width rds16( -> rd16(
-  survivor: line 485 (0x4ad310) width rd16( -> rd32(
-  survivor: line 489 (0x4ad310) width rds16( -> rd16(
-  survivor: line 543 (0x4acf45) width rds16( -> rd16(
-  survivor: line 544 (0x4acf45) width rds16( -> rd16(
-  survivor: line 547 (0x4acf45) width rds16( -> rd16(
-  survivor: line 638 (0x487ed5) width rd16( -> rd32(
-  survivor: line 652 (0x487ed5) width rd32( -> rd16(
-  survivor: line 657 (0x487ed5) width rd16( -> rd32(
-  survivor: line 662 (0x487ed5) width rd16( -> rd32(
-  survivor: line 693 (0x464c59) width rd16( -> rd32(
-  survivor: line 700 (0x464c59) width rd16( -> rd32(
-  survivor: line 716 (0x464c59) width rd16( -> rd32(
-  survivor: line 719 (0x464c59) width rd32( -> rd16(
-  survivor: line 721 (0x464c59) width rd32( -> rd16(
-```
-
-The run is a deterministic stride sample (`--limit 330`, 364 mutants of the roughly 1100 the script generates; the full run was started first but one mutant crashed the in-process shared library (exit 139), so the differential of a direct-test survivor now runs in its own process and a crash counts as caught). Survivors are width/signedness mutants and one literal. Triage (by reading, not individually proven): `rd16 -> rd32` mutants feed `wr16` or a word-typed host argument and are equivalent (low 16 bits only); `rd32 -> rd16` in 0x464c59 lines 719/721 compare the low 16 bits of a difference that is truncated to a word anyway (equivalent); the 0x31-byte local copy of 0x466073 reads one byte more than used (equivalent). `rds16 -> rd16` survivors in 0x482359 (361, 362), 0x4ad310 (470-489) and 0x4acf45 (543-547) are real fixture gaps in the NEGATIVE-word case where the original indexes before the object or the count word has its sign bit set (for example a negative `[+0x24]` makes the entry pointer of 0x4ad310 precede the object, so no legal fixture exists; negative `[+0xe57]` is unreachable with at most 15 matches). They are listed as unverified branches, not claimed as covered. The unsampled mutants were not run.
+- Mutation check `python3 tests/fl24b_mutation_check.py` (all 728 mutants; `--lines N,N` runs chosen source lines). IMPORTANT correction: the differential stage of the earlier runs (this note's first version and the independent review's) looked up test names that do not exist (`test_<va>` instead of `test_<va>_<name>`), so every direct-test survivor counted as "caught by the differential" and the reported survivor lists were wrong or empty. The script now resolves the real method names and treats any harness fault as an error, not a detection. Result of the full run after the first fixture fixes: `mutants 728: caught by the direct test 627, by the differential test only 59, survivors 42`; the 0x464c59 [+0x90] gap (lines 737, two mutants) was then closed by a fixture change and the 108 mutants of lines 680 to 760 re-run (5 survivors, all equivalent, below); the other functions were not re-run after that change (their fixtures were untouched by it). The mutants of the review findings (0x487ed5 rd32 -> rd16 and rds16 -> rd16 at lines 652, 0x4acf45 at 543, 0x4ad310 at 470, 472, 477, 489) are all caught.
+- Remaining survivors (40, none a fixture gap by reading): rd16 -> rd32 whose value feeds `wr16`, a truncation to 16 bits or a word-typed host argument (equivalent): 0x466073 lines 170, 178, 183, 190; 0x4b7563 250, 253, 274, 281; 0x459e49 310, 315, 316, 324, 334; 0x46793a 429; 0x4ad310 485, 488; 0x4acf45 545; 0x487ed5 638, 646, 650, 657, 658, 660, 662; 0x464c59 693, 700, 716. rds16 -> rd16 where neither reading can equal the loop index or the compared constant (equivalent): 0x466073 161 (switch index 0 to 3 only), 0x4b7563 251 (low 16 bits), 0x482359 361, 362, 363, 0x4ad310 476, 0x4acf45 544, 547 (the list counter is at most 15). 0x464c59 719, 721 (low 16 bits of a difference stored as a word). 0x466073 148 (0x31 -> 0x32: one extra byte of a zeroed local copy). 0x46793a 417 (`[+0x240] == 0` read as a word: equivalent for any valid pair count, a dword with a zero low word is out of the object). 0x4ad310 478 (guard `count >= 15` deleted: unreachable, see below).
 
 ## Tests
 
 - Direct (`tests/fl24b_direct_test.c`, expectations hand-derived from the disassembly): per function a guard matrix (every guard failing in turn with several fail values, byte guards with junk neighbours, dword guards failing only in a high byte, the record state with 0/2/3/0xffffffff/0x101/0x10001 while the decoy records pass; record index 2 and -1), every arm with the whole object, record table and target object compared against a hand-edited copy, the ordered host calls with arguments (word arguments masked, sign-extended dword arguments exact), the object at call time, the nine-byte compare at every byte position plus the tenth byte, signed and word boundaries.
-- Differential (`tests/test_fl24b_differential.py`, shim `tests/fl24b_differential_shim.c`, fixtures `tests/fl24b_fixtures.py`): original bytes (Unicorn) against the port on 224 to 640 generated scenarios per function (guard-chain profiles or a function-specific builder), comparing all writable memory, the globals, eax where a value is returned, the bytes the function popped, and the ordered calls with ecx, arguments and the object / record-table bytes at each call.
+- Differential (`tests/test_fl24b_differential.py`, shim `tests/fl24b_differential_shim.c`, fixtures `tests/fl24b_fixtures.py`): original bytes (Unicorn) against the port on 224 to 960 generated scenarios per function (guard-chain profiles or a function-specific builder), comparing all writable memory, the globals, eax where a value is returned, the bytes the function popped, and the ordered calls with ecx, arguments and the object / record-table bytes at each call. A run also requires that the scenarios reached every instruction of the original and BOTH directions of every conditional jump (the Unicorn code hook records the instruction executed after each jcc, `fl24b_fixtures.untaken_edges`); the only untaken directions are the two in `fl24b_fixtures.UNTAKEN_EDGES`, each a redundant re-test that no state can flip: 0x467ac9 `jne` taken (re-tests the pair already found equal at 0x467a2a) and 0x4ad409 `je` taken (re-tests dword [+0x20] != 0 already found by 0x4ad36e). The 0x4ad310 scenarios place the object 0x400 bytes into its area so that a selected word [+0x24] of -1 to -3 (entry below the object) is exercised; 0x4acf45 scenarios in every third cycle use a mask pointer 0x80 bytes into the mask with negative strides (-1, -2, -3, -5), and the direct test a 0x20100-byte mask with the stride words 0xffff and 0xfffd; 0x487ed5 arms 8 to 11 give the equal word a slot dword whose low word is 1 or 0 (0x10001, 0x80000001, 0xffff0001, 0x10000), and the direct test arm 7 uses 0x10001 with the equal word.
 
 ## Hooks (OS and host boundaries only; nothing inside a function under test is patched)
 
@@ -107,8 +72,8 @@ The callees are called with `ret` forms verified by the oracle (a wrong `ret N` 
 - A callee that changes `self` or the record object is not exercised (the stubs change nothing); the ports re-read the object after calls as the original does where it does.
 - No bounds checks, as in the original: record index words; 0x459e49 `[+0xcc]` and `[+0xdf]` (byte store at `self + p + 0x1e`, word store at `self + 2n + 0xce`; fixtures keep both in the buffer and exercise p pointing at `[+0xcc]` itself); 0x46793a `n = [+0x240]` (pairs at `n*8+0x1b8 .. 0x1c4`; n = -1 overlaps the gate dwords [+0x1b2], [+0x1b6] and the selection [+0x1ba], covered in direct and differential); 0x487ed5 `[+0x66]` slot index and the queue count `ro[+0x425]`; 0x464c59 `[+0x36]` slot index and entry `[+0x36] * 32`; 0x482359 / 0x4aa0f0 / 0x4acf45 / 0x467740 entry counts (fixtures keep them to 8 to 12 entries and, for 0x4acf45, to a mask offset inside the mask region).
 - 0x466073: in the out-of-range word arm (not 1 to 4) with the flag 0x5bb1ca set, the original compares an uninitialised stack local with the constant; the port uses zeros (packet rule). The differential and the oracle force the flag clear in that arm, so that exact combination (flag set, default arm) is an unverified branch: the native result there is `compare zeros` (verified only by reading the code).
-- 0x4ad310: the original computes a pointer from the byte `p[0x26]` that it never uses (not reproduced, no effect). The 15-word local array overruns when more than 15 entries answer non-zero; the port rejects the 16th (returns, no further effect). Fixtures keep the list size at 12 or fewer, so the rejection is not exercised (it is a native-only explicit rejection, documented here).
-- 0x4acf45: the same unused pointer in the `[+0x20] != 0` arm is not reproduced. With 16 or more matches the original writes the entry index over the counter word `[+0xe57]` itself (index 15 = address 0xe57); the port does the same (unchecked), but fixtures stop at 8 entries so this is not exercised. The mask address `dword[q+0x1c] + dy * stride + dx` is formed in 32 bits and read through `Fl18Host.resolve` (NULL result would crash; the host must map it).
+- 0x4ad310: the original computes a pointer from the byte `p[0x26]` that it never uses (not reproduced, no effect). The local array holds 15 words; the original tolerates up to 19 matches (words 15 to 17 land in padding and the unused pointer slot, word 18 writes i over itself). Entry 15 would start at the list pointer [+0xc17], so at most 15 entries exist, one of them the selected entry, hence at most 14 matches: the port's `count >= 15` rejection (a native-only rejection) is unreachable through the handlers and is not exercised. A selected word [+0x24] >= 0x8000 (entry pointer below the object) is exercised in the differential only (the direct fixture has no memory before the object).
+- 0x4acf45: the same unused pointer in the `[+0x20] != 0` arm is not reproduced. The entry index list at `[+0xe39]` has 15 words before the counter word `[+0xe57]`, and at most 15 entries exist, so the list cannot reach the counter word through the handlers (the earlier remark about 16 or more matches was wrong); fixtures stop at 8 entries. The mask address `dword[q+0x1c] + dy * stride + dx` is formed in 32 bits and read through `Fl18Host.resolve` (NULL result would crash; the host must map it).
 - 0x467740 / 0x482359 / 0x4aa0f0 / 0x4acf45: the arming of the globals reads the globals back after storing them (shifts of the just-stored values), as the original does; the world scalars are a snapshot (host contract of FL-21: flush before / resync after a call, no call occurs between the stores).
 - Word arguments of 0x4fb2e3 compare by their low 16 bits (the original pushes `ax` / `cx` / `dx` with leftover upper halves); the dword arguments built by `movsx` (0x4f6334, 0x467b9e, 0x4ae683 ...) are compared exactly (the port casts through `uint32_t`).
 - 0x4dad60 returns `this` in eax in the original; the port is `void`. The IAT call 0x52a498 goes through `Fl18Host.call` with the slot as callee and `this_ptr` 0.
@@ -131,17 +96,17 @@ The callees are called with `ret` forms verified by the oracle (a wrong `ret N` 
   - 0x487ed5 650e438e73319c0554fe3d8c7d80e44ad20177639a8526db7de41dc7e3057ced
   - 0x464c59 fb1f838f00c9eb2c9e89eaea4d3369993d58c051dc71dd4508216c7c71068e0e
 - Source and test hashes (sha256, at the commit before this note; the acceptances file is generated with the note):
-  - `src/original_methods_fl24b.c` 9594e8991a560525266dbff84851c13604265a84ecb283fa9dfcbb7903cf6bc8
+  - `src/original_methods_fl24b.c` 5fad87633d5db90c11c73187ea001b5f47de0dc2270805a51050ac61432a457f
   - `src/original_methods_fl24b.h` 7fb89e3a5684be79d77db0a575b7e080da6cceb7372e740133c2983637df92d1
-  - `tests/fl24b_direct_test.c` a36d076d54abda425538a6d692c1323f4b59e64887ecdd00a005b10d3c0356c5
-  - `tests/test_fl24b_direct.py` fc0e0ab78a7c4bcc0276c373b1bce2cd262d5d5d1dd21a236c187d7c7759cd2e
+  - `tests/fl24b_direct_test.c` 0a03c5e22279d872829fb449a8317214aac24f4d52e50c7a28f72d9fff49a8ba
+  - `tests/test_fl24b_direct.py` 5022395757f47b9db0088c1bdd1920879388d3f1a7df857d943690236e893946
   - `tests/fl24b_differential_shim.c` 5c95998d3dfa12d381ee78893724c5d70adf9cdbd38b475ab0e39edc926903d0
-  - `tests/test_fl24b_differential.py` b4c3f2a91b4091829bebcbf9638886c964a47da1dd239305db9a895dacf3fe2e
-  - `tests/fl24b_fixtures.py` 8e92fda09a1434647bd1c233a44deb9a673e7d40635c9596e26b5c90e21f13ef
+  - `tests/test_fl24b_differential.py` 2440234115376ce82a1ba84506a2cd6f30ecf72c95c50906c203c9f8dae756b7
+  - `tests/fl24b_fixtures.py` f296fce2191cee60057bf93c984a6d402168a2d347191cc8c36cc2005344283e
   - `tests/fl24b_original_oracle.py` bb3c57732d9c0f556ee410888652af6c4e6408c4e7676a0270a91b94d279f75e
-  - `tests/fl24b_mutation_check.py` 467a47694a0625c809c8e8607cf32a496e4498916e752fc47253621123c91227
+  - `tests/fl24b_mutation_check.py` b68fa8b613e40496df1b10f470ac84e801a94b7d48c92aa2ac2e17f2697dc7a3
   - `tasks/fl24b-acceptances.json` db6fc17e45769806ae4a5f44734baf8233705b3147f5793d69ba5cb18bf77749
-- Oracle digests (sha256 over the ordered call logs and the memory read back of all scenarios, deterministic): 0x4dad60 65955e585e00da2fbfd787d42c5171d1fa8c1cd52a2c98e07a6c47eb61aec0d2, 0x466073 27458579b1c23194fff5979f4b9b4ab1e1483d7a2e1c93176856e7f3a78048fd, 0x467740 cfcddd8d82e4401841d76998d74e0a611087aa6e93f1b10ea93195512623c4f8, 0x4b7563 1bdeba04a1dc443f2d2c24a5fa620b1a6696775d80ffb599b89da332f3413819, 0x459e49 f61355facd063ea9931579a9f57b8b9571ab25ed1d3eb321cf1cf2f8b1e72607, 0x482359 f084100114f722b1f2830067bc29be5e84391f3fcf01d2e7d399029d7975d79a, 0x46793a d04e2b6f535c7385fdb5947a17b9f3eabcd286ac24530acd034f1e0d49cfcda2, 0x4ad310 148bbaee787cff3129bf8a9cf31e93e26ddb1d3727178e1cb02f163b79146956, 0x4acf45 417d662881996c8c8db81bce4bdc60ea7e2e9579334dcd1b22b46d24d9755e11, 0x4aa0f0 efad23b4f1ca3287622047ba72da9e73193cd5e670a9229a4f9a3daca7fd0492, 0x487ed5 2331d9ed94080f24c9710057530d9475f1c67a64dd467f49734ac0f42cd8ab64, 0x464c59 62f3dc74e1ae5d2d9934597a1c04e89c6accbd6f837a056629cc6b255905be12.
+- Oracle digests (sha256 over the ordered call logs and the memory read back of all scenarios, deterministic): 0x4dad60 65955e585e00da2fbfd787d42c5171d1fa8c1cd52a2c98e07a6c47eb61aec0d2, 0x466073 27458579b1c23194fff5979f4b9b4ab1e1483d7a2e1c93176856e7f3a78048fd, 0x467740 cfcddd8d82e4401841d76998d74e0a611087aa6e93f1b10ea93195512623c4f8, 0x4b7563 1bdeba04a1dc443f2d2c24a5fa620b1a6696775d80ffb599b89da332f3413819, 0x459e49 f61355facd063ea9931579a9f57b8b9571ab25ed1d3eb321cf1cf2f8b1e72607, 0x482359 f084100114f722b1f2830067bc29be5e84391f3fcf01d2e7d399029d7975d79a, 0x46793a d04e2b6f535c7385fdb5947a17b9f3eabcd286ac24530acd034f1e0d49cfcda2, 0x4ad310 aeced9de546f82b3226304ae2df2926baba6448f34544c56530e847dc23b0ce2, 0x4acf45 8d0f488e3fdcb5606f872073ac230bb39a9d56b6a7cbadb054aa2ec32dfc3b7e, 0x4aa0f0 efad23b4f1ca3287622047ba72da9e73193cd5e670a9229a4f9a3daca7fd0492, 0x487ed5 71da656b804f98c7b634e33f262e55ed037a0d06bcd4fcbd0759106ef0d53658, 0x464c59 77b021661e9e3376345b8d08332f8993bfd85e9328ed82f67458246e247721b1.
 
 ## Reproduce
 

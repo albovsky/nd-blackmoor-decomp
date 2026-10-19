@@ -438,9 +438,9 @@ void m46793a_click_27ab_27ac(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
  * [+0xc17], except i == word[+0x24], for which 0x4aef4a(word[+0x24], i) answers non-zero are collected in a local array of words
  * (initially 0xffff, 15 words); the word at p becomes the larger (signed) of itself and each collected entry's first word, then is
  * incremented; 0x4ae495(word[+0x24]); [+0x6a] = 1; word[+0x24] = 0xffff; [+0x20] = 0; 0x4adae8. The original computes a pointer from the byte
- * p[0x26] that it never uses (not reproduced). The local array holds 15 words; the original overruns it when more than 15 entries answer
- * non-zero: the port rejects the 16th (returns at that point, no further effect), an explicit native rejection for an input the original
- * cannot handle. A callee that changes self is not exercised. */
+ * p[0x26] that it never uses (not reproduced). The local array holds 15 words; the original tolerates up to 19 matches (words 15 to 17 land
+ * in padding and an unused slot, word 18 stores i over itself); entry 15 would start at the list pointer [+0xc17], so at most 14 entries
+ * match and the port's `count >= 15` rejection is unreachable through the handlers. A callee that changes self is not exercised. */
 void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
 {
     uint16_t arr[15];
