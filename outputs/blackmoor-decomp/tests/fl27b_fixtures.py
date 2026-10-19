@@ -499,12 +499,105 @@ def gen_4c0d3f(rng, n):
     return make('4c0d3f', areas, stubs, g, [], (), (kind, *rest), pointers={'player_637fd7': ('player', 0), 'rect_583122': ('rectd', 0)})
 
 
+IDXS = [1, 5, 0x100, 0x10000, 0xffffffff, 0x80000000]
+
+
+def profiles_4c5377():
+    profiles = [('dbgfail', w, d) for w in ('dx', 'dy', 'surf0', 'idx0', 'all') for d in (1, 0x8000, 0x100)]
+    profiles += [('dbgok', d) for d in DBG_VALUES]
+    profiles += [('norm', h, w, bpp, pitch) for h in (-1, 0, 1, 2, 3) for w in (0, 1, 3, 4, 5, 8) for bpp in (1, 2, 3, 4) for pitch in (0x40, -0x40)][::5]
+    profiles += [('norm', h, w, bpp, 0x30) for h in (1, 2, 3) for w in (1, 2, 4, 5, 6, 7, 9) for bpp in (0, 1, 2, 4)][::3]
+    profiles += [('overlap', shift) for shift in (1, 2, 3, 4, 6, 8)]
+    profiles += [('idx', i) for i in range(6)]
+    profiles += [('smash', i) for i in range(4)]
+    return profiles
+
+
+def gen_4c5377(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4c5377())
+    dbg, idx_equal, pitch, bpp, h, w = 0, rng.choice([True, False]), rng.choice([0x40, 0x30, 0x20, -0x20, 0x41]), rng.choice([1, 2, 3, 4]), rng.choice([1, 2, 3]), rng.choice([1, 2, 3, 4, 5, 8, 9])
+    idx = rng.choice(IDXS)
+    stride = rng.choice([0, 8, 0x10, 0x20, -16, 3, 0x25])
+    surf0 = False
+    if kind == 'dbgfail':
+        dbg = rest[1]
+    elif kind == 'dbgok':
+        dbg = rest[0]
+    elif kind == 'norm':
+        h, w, bpp, pitch = rest
+        if variant % 2:
+            dbg = rng.choice(DBG_VALUES[1:])
+    elif kind == 'idx':
+        idx_equal = rest[0] % 2 == 0
+        idx = IDXS[rest[0]]
+        h, w = 2, 3
+    overlap = kind == 'overlap'
+    smash = kind == 'smash'
+    if smash:       # the rows are copied over the surface record itself, which replaces its pitch word between two rows
+        pitch, bpp, h, w, stride = rng.choice([0x10, 0x18, 0x20]), 1, 3, 4, 0
+    x0, y0 = rng.choice([0, 1, 2, 3]), rng.choice([0, 1, 2])
+    r1 = [x0, y0, x0 + w - 1, y0 + h - 1]
+    r2 = list(r1)
+    r2 = [r2[0] + rng.choice([0, 0, 4]), r2[1] + rng.choice([0, 3]), 0, 0]
+    r2[2], r2[3] = r2[0] + w - 1, r2[1] + h - 1
+    if kind == 'dbgfail':
+        which = rest[0]
+        if which in ('dx', 'all'):
+            r2[2] += rng.choice([1, -1, 5])
+        if which in ('dy', 'all'):
+            r2[3] += rng.choice([1, -1, 7])
+        if which in ('surf0', 'all'):
+            surf0 = True
+        if which in ('idx0', 'all'):
+            idx = 0
+            idx_equal = rng.choice([True, False])
+    pix = bytearray(rng.randbytes(0x400))
+    dst = bytearray(rng.randbytes(0x400))
+    base_off = 0x200 if pitch < 0 else rng.choice([0, 3, 16])
+    dst_off = 0x200 if stride < 0 else rng.choice([0, 5, 0x10])
+    pix_va, dst_va = od.region_va(2), od.region_va(3)
+    dst_base = dst_va + dst_off
+    areas_dst = Area('dst', dst_va, dst, image=False)
+    if overlap:
+        # the destination lies inside the source region, `shift` bytes after the source row: forward copies smear
+        dst_base = pix_va + base_off + x0 * bpp + y0 * pitch + rest[0] if pitch > 0 else pix_va + base_off + rest[0]
+        stride = pitch
+    if smash:
+        dst_base = od.region_va(1) + 0x2d
+        s0 = base_off + y0 * pitch + x0 * bpp
+        newp = rng.choice([8, 0x10, 0x20, 0x30])
+        pix[s0 + 2], pix[s0 + 3] = newp, 0
+        pix[s0 + newp + 2], pix[s0 + newp + 3] = rng.choice([8, 0x10, 0x20]), 0
+    surf = bytearray(rng.randbytes(0x40))
+    put32(surf, 0, pix_va + base_off)
+    put16(surf, 0x2f, pitch)
+    selfd = bytearray(rng.randbytes(0x40))
+    put32(selfd, 0xc, idx if idx_equal else (idx ^ rng.choice([1, 0x10000, 0x80000000])) & 0xffffffff)
+    rects = bytearray(rng.randbytes(0x20))
+    for i in range(4):
+        struct.pack_into('<i', rects, 4 * i, r1[i])
+        struct.pack_into('<i', rects, 0x10 + 4 * i, r2[i])
+    probe = [('pix', 0, 0x400), ('dst', 0, 0x400)]
+    writes = [(0, 2, 0x24, 4, dst_base), (0, 2, 0x10, 4, stride)]
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(11), probe), 0x52139c: stub(0x52139c, STDCALL(3), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe),
+             0x4c4067: stub(0x4c4067, THISCALL(5), probe, writes=writes), 0x4c4202: stub(0x4c4202, THISCALL(3), probe), 0x4c952f: stub(0x4c952f, THISCALL(1), probe)}
+    g, nbr = debug_areas(rng, dbg)
+    g['word_639895'] = bpp
+    nbr.append(Area('bppnbr', 0x639897, bytearray(rng.randbytes(2)), compare=False))
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('surf', od.region_va(1), surf, image=False), Area('pix', pix_va, pix, image=False), areas_dst,
+             Area('rects', od.region_va(4), rects, image=False), *nbr]
+    arg = rng.randrange(1 << 32)
+    stack = [0 if surf0 else od.region_va(1), idx, od.region_va(4), od.region_va(4) + 0x10, arg]
+    return make('4c5377', areas, stubs, g, stack, tuple(stack), (kind, *rest))
+
+
 SPECS = {
     '449bff': dict(id=1, va=0x449bff, size=253, gen=gen_449bff, cleanup=0, n=len(profiles_449bff()) * 3),
     '449a94': dict(id=2, va=0x449a94, size=273, gen=gen_449a94, cleanup=0, n=len(profiles_449a94()) * 3),
     '4bf773': dict(id=3, va=0x4bf773, size=308, gen=gen_4bf773, cleanup=0, n=len(profiles_4bf773()) * 2),
     '4c2c3a': dict(id=5, va=0x4c2c3a, size=449, gen=gen_4c2c3a, ret=True, cleanup=0x14, n=len(profiles_4c2c3a()) * 4),
     '4c0d3f': dict(id=6, va=0x4c0d3f, size=497, code=483, gen=gen_4c0d3f, cleanup=0, n=len(profiles_4c0d3f()) * 4),
+    '4c5377': dict(id=7, va=0x4c5377, size=532, gen=gen_4c5377, cleanup=0x14, n=len(profiles_4c5377()) * 3),
     '4161d1': dict(id=4, va=0x4161d1, size=346, gen=gen_4161d1, cleanup=4, n=len(profiles_4161d1()) * 4),
 }
 KEYS = list(SPECS)

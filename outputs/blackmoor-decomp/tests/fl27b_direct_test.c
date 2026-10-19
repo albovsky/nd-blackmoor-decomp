@@ -26,6 +26,10 @@ static char g_msg[256];
 #define OBJ_VA 0x20010000u
 #define VT_VA 0x20020000u
 #define NAME_VA 0x20040000u
+#define SF_VA 0x20050000u
+#define PX_VA 0x20060000u
+#define DT_VA 0x20070000u
+#define RC_VA 0x20080000u
 #define OBJ2_VA 0x20030000u
 #define VT_STUB_A 0x7e000900u
 #define VT_STUB_B 0x7e000a00u
@@ -40,11 +44,11 @@ static uint32_t get32(const uint8_t *o, size_t off)
 }
 
 static struct {
-    uint8_t self[SELF_SZ], obj[OBJ_SZ], obj2[OBJ_SZ], vt[0x100], name[0x100], player[0x220], rectd[0x20];
+    uint8_t self[SELF_SZ], obj[OBJ_SZ], obj2[OBJ_SZ], vt[0x100], name[0x100], player[0x220], rectd[0x20], sf[0x40], px[0x100], dt[0x100], rc[0x20];
     Fl27bWorld w;
     Fl18Host host;
 } fx;
-static uint8_t exp_self[SELF_SZ], exp_obj[OBJ_SZ], exp_obj2[OBJ_SZ], exp_name[0x100], exp_player[0x220], exp_rectd[0x20];
+static uint8_t exp_self[SELF_SZ], exp_obj[OBJ_SZ], exp_obj2[OBJ_SZ], exp_name[0x100], exp_player[0x220], exp_rectd[0x20], exp_sf[0x40], exp_px[0x100], exp_dt[0x100], exp_rc[0x20];
 
 #define MAXCALL 64
 static struct {
@@ -120,6 +124,10 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     if (a >= OBJ2_VA && a < OBJ2_VA + OBJ_SZ) return fx.obj2 + (a - OBJ2_VA);
     if (a >= VT_VA && a < VT_VA + 0x100) return fx.vt + (a - VT_VA);
     if (a >= NAME_VA && a < NAME_VA + 0x100) return fx.name + (a - NAME_VA);
+    if (a >= SF_VA && a < SF_VA + 0x40) return fx.sf + (a - SF_VA);
+    if (a >= PX_VA && a < PX_VA + 0x100) return fx.px + (a - PX_VA);
+    if (a >= DT_VA && a < DT_VA + 0x100) return fx.dt + (a - DT_VA);
+    if (a >= RC_VA && a < RC_VA + 0x20) return fx.rc + (a - RC_VA);
     return NULL;
 }
 
@@ -1153,6 +1161,262 @@ static void test_m4c0d3f_present_rect(void)
     }
 }
 
+/* ---- 0x4c5377 -------------------------------------------------------------------------------------------------------------------- */
+
+static struct {
+    uint32_t dst_base, stride;
+} g_desc;
+
+/* the lock call 0x4c4067 fills the local descriptor behind its third argument: the stride at +0x10 and the destination base at +0x24 */
+static void effect_desc(int i, uint32_t callee, const uintptr_t *args)
+{
+    (void)i;
+    if (callee == 0x4c4067) {
+        memcpy((void *)(args[2] + 0x10), &g_desc.stride, 4);
+        memcpy((void *)(args[2] + 0x24), &g_desc.dst_base, 4);
+    }
+}
+
+static void setup_blit(uint32_t src_off, int16_t pitch, const int32_t *r1, const int32_t *r2, int16_t bpp, uint32_t dst_off, uint32_t stride)
+{
+    size_t b;
+    int i;
+    setup();
+    for (b = 0; b < sizeof fx.px; b++) fx.px[b] = (uint8_t)(b * 7 + 1);
+    memset(fx.dt, 0xEE, sizeof fx.dt);
+    memset(fx.sf, 0x5A, sizeof fx.sf);
+    set32(fx.sf, 0, PX_VA + src_off);
+    set16(fx.sf, 0x2f, (uint16_t)pitch);
+    for (i = 0; i < 4; i++) {
+        set32(fx.rc, 4 * (size_t)i, (uint32_t)r1[i]);
+        set32(fx.rc, 0x10 + 4 * (size_t)i, (uint32_t)r2[i]);
+    }
+    fx.w.word_639895 = bpp;
+    g_desc.dst_base = DT_VA + dst_off;
+    g_desc.stride = stride;
+    g_effect = effect_desc;
+    set32(fx.self, 0xc, 0x42);
+}
+
+static void expect_blit_begin(void)
+{
+    expect_begin();
+    memcpy(exp_px, fx.px, sizeof exp_px);
+    memcpy(exp_dt, fx.dt, sizeof exp_dt);
+    memcpy(exp_sf, fx.sf, sizeof exp_sf);
+    memcpy(exp_rc, fx.rc, sizeof exp_rc);
+}
+
+static void expect_blit_end_at(int line)
+{
+    if (!g_failed && (memcmp(exp_px, fx.px, sizeof exp_px) != 0 || memcmp(exp_dt, fx.dt, sizeof exp_dt) != 0 || memcmp(exp_sf, fx.sf, sizeof exp_sf) != 0 ||
+                      memcmp(exp_rc, fx.rc, sizeof exp_rc) != 0)) {
+        g_failed = 1;
+        snprintf(g_msg, sizeof g_msg, "line %d: a pixel buffer, the surface or the rectangles differ from the expected copy", line);
+    }
+}
+
+#define expect_blit_end() expect_blit_end_at(__LINE__)
+
+/* the rows the original copies, hand-derived: row i of rowbytes bytes from src_off + i * pitch to dst_off + i * stride (non-overlapping buffers) */
+static void expect_rows(int rows, uint32_t rowbytes, uint32_t src_off, int32_t pitch, uint32_t dst_off, int32_t stride)
+{
+    int i;
+    uint32_t k;
+    for (i = 0; i < rows; i++)
+        for (k = 0; k < rowbytes; k++) exp_dt[(uint32_t)((int32_t)dst_off + i * stride) + k] = fx.px[(uint32_t)((int32_t)src_off + i * pitch) + k];
+}
+
+static void test_m4c5377_blit_rows(void)
+{
+    int32_t r1[4] = {1, 1, 3, 2}, r2[4] = {5, 6, 7, 7};
+    int32_t r1w[4];
+    int32_t ret;
+    unsigned k;
+    /* the normal path: x 1..3 (3 pixels of 2 bytes = 6 bytes), y 1..2 (2 rows); src = base 0 + 1 * 16 + 1 * 2 = 18, the next row at 34; dst base 4, stride 8; idx 7 differs from [self+0xc] = 0x42 */
+    setup_blit(0, 16, r1, r2, 2, 4, 8);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 0xabcd, &fx.w, &fx.host);
+    CK(ret == 0);
+    expect_rows(2, 6, 18, 16, 4, 8);
+    CK(fx.dt[4] == fx.px[18] && fx.dt[9] == fx.px[23] && fx.dt[10] == 0xEE && fx.dt[12] == fx.px[34] && fx.dt[17] == fx.px[39] && fx.dt[18] == 0xEE);
+    CKN(2);
+    CKC(0, 0x4c4067, SELFP, 7, RC_VA + 0x10, L.c[0].a[2], 0xabcd, 0x20);
+    CK(L.c[0].a[2] > 0xffffffffu);
+    CKC(1, 0x4c4202, SELFP, 7, RC_VA + 0x10, 0x554990);
+    expect_blit_end();
+    /* idx equal to [self+0xc]: 0x4c952f(this self, r2) follows; the compare is on the dword (0x10000 + 0x42 is not equal) */
+    setup_blit(0, 16, r1, r2, 2, 4, 8);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 0x42, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    expect_rows(2, 6, 18, 16, 4, 8);
+    CKN(3);
+    CKC(2, 0x4c952f, SELFP, RC_VA + 0x10);
+    expect_blit_end();
+    setup_blit(0, 16, r1, r2, 2, 4, 8);
+    set32(fx.self, 0xc, 0x10042u);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 0x42, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    expect_rows(2, 6, 18, 16, 4, 8);
+    CKN(2);
+    expect_blit_end();
+    /* every row length 0..9 bytes (bpp 1): the dword part and the byte tail are exactly rowbytes bytes */
+    for (k = 0; k < 10; k++) {
+        r1w[0] = 0;
+        r1w[1] = 0;
+        r1w[2] = (int32_t)k - 1;
+        r1w[3] = 2;
+        setup_blit(0, 16, r1w, r2, 1, 0, 16);
+        expect_blit_begin();
+        ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+        CK(ret == 0);
+        expect_rows(3, k, 0, 16, 0, 16);
+        CKN(2);
+        expect_blit_end();
+    }
+    /* no rows: y1 = y0 - 1 (zero rows) and y1 = y0 - 2 (negative: the signed compare), the callees are still called, nothing copied */
+    for (k = 0; k < 2; k++) {
+        r1w[0] = 0;
+        r1w[1] = 3;
+        r1w[2] = 4;
+        r1w[3] = 3 - 1 - (int32_t)k;
+        setup_blit(0, 16, r1w, r2, 2, 0, 16);
+        expect_blit_begin();
+        ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+        CK(ret == 0);
+        CKN(2);
+        expect_blit_end();
+    }
+    /* a negative pitch (movsx of the word) walks upwards: base 0x80, pitch -16, y 1..2: the first row at 0x80 - 16 + 0 (x 0) = 0x70, the second at 0x60 */
+    r1w[0] = 0;
+    r1w[1] = 1;
+    r1w[2] = 3;
+    r1w[3] = 2;
+    setup_blit(0x80, -16, r1w, r2, 1, 0, 16);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    expect_rows(2, 4, 0x70, -16, 0, 16);
+    expect_blit_end();
+    /* a negative stride from the callee: the destination rows walk downwards */
+    setup_blit(0, 16, r1, r2, 2, 0x40, 0xfffffff0u);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    expect_rows(2, 6, 18, 16, 0x40, -16);
+    expect_blit_end();
+    /* source and destination overlap (the same buffer, destination one byte after the source, 8 bytes): `rep movsd` forward gives a0 a0 a1 a2 a3 a3 a5 a6 a7 where memmove would give ... a4 ... */
+    setup_blit(0, 16, (const int32_t[4]){0, 0, 7, 0}, r2, 1, 0, 0);
+    g_desc.dst_base = PX_VA + 1;
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    /* hand-derived expectation from the original source bytes: b0 b0 b1 b2 b3 b3 b5 b6 b7 (b = the original px[0..7]) */
+    {
+        uint8_t b[8];
+        int j;
+        for (j = 0; j < 8; j++) b[j] = (uint8_t)(j * 7 + 1);
+        exp_px[0] = b[0];
+        exp_px[1] = b[0];
+        exp_px[2] = b[1];
+        exp_px[3] = b[2];
+        exp_px[4] = b[3];
+        exp_px[5] = b[3];
+        exp_px[6] = b[5];
+        exp_px[7] = b[6];
+        exp_px[8] = b[7];
+    }
+    expect_blit_end();
+    /* the pitch is read again after every row: the first row (4 bytes) is copied over the surface at +0x2d, which replaces the pitch word at +0x2f by bytes 2..3 of the row */
+    r1w[0] = 0;
+    r1w[1] = 0;
+    r1w[2] = 3;
+    r1w[3] = 1;
+    setup_blit(0, 16, r1w, r2, 1, 0, 0);
+    fx.px[2] = 0x20;      /* the new pitch word: 0x0020 */
+    fx.px[3] = 0x00;
+    g_desc.dst_base = SF_VA + 0x2d;
+    g_desc.stride = 0;
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    /* row 0: px[0..3] -> sf[0x2d..0x30]; the new pitch is 0x20, so row 1 comes from 0x20 .. 0x23 (px[0x20 + j]) and is copied to the same place (stride 0) */
+    exp_sf[0x2d] = fx.px[0x20];
+    exp_sf[0x2e] = fx.px[0x21];
+    exp_sf[0x2f] = fx.px[0x22];
+    exp_sf[0x30] = fx.px[0x23];
+    expect_blit_end();
+    /* the debug word on, rectangles of the same size, surf and idx non-zero: the normal path (every non-zero word value is on) */
+    {
+        static const int16_t on[] = {1, 0x100, -32768, -1};
+        for (k = 0; k < sizeof on / sizeof on[0]; k++) {
+            setup_blit(0, 16, r1, (const int32_t[4]){5, 6, 7, 7}, 2, 4, 8);
+            fx.w.word_63a4cd = on[k];
+            expect_blit_begin();
+            ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+            CK(ret == 0);
+            expect_rows(2, 6, 18, 16, 4, 8);
+            CKN(2);
+            expect_blit_end();
+        }
+    }
+    /* the debug word on and one condition failing: the diagnostic, no copy; the text is a local buffer; r2 = (5, 6, 7, 7) is 2 x 1 big, r1 is 2 x 1 (x1 - x0 = 2, y1 - y0 = 1) */
+    {
+        struct {
+            int32_t r2[4];
+            uint32_t surf, idx;
+        } bad[] = {{{5, 6, 8, 7}, SF_VA, 7}, {{5, 6, 7, 8}, SF_VA, 7}, {{5, 6, 7, 7}, 0, 7}, {{5, 6, 7, 7}, SF_VA, 0}, {{5, 6, 8, 9}, 0, 0}};
+        for (k = 0; k < sizeof bad / sizeof bad[0]; k++) {
+            setup_blit(0, 16, r1, bad[k].r2, 2, 4, 8);
+            fx.w.word_63a4cd = 0x100;
+            expect_blit_begin();
+            ret = m4c5377_blit_rows(fx.self, bad[k].surf, bad[k].idx, RC_VA, RC_VA + 0x10, 0x77, &fx.w, &fx.host);
+            CK(ret == 0);
+            CKN(3);
+            CKC(0, 0x50ca3e, 0, L.c[0].a[0], 0x5548ec, 0x77, 1, 1, 3, 2, (uintptr_t)bad[k].r2[0], (uintptr_t)bad[k].r2[1], (uintptr_t)bad[k].r2[2], (uintptr_t)bad[k].r2[3]);
+            CK(L.c[0].a[0] > 0xffffffffu);
+            CKC(1, 0x52139c, 0, L.c[0].a[0], 0, 0);
+            CKC0(2, 0x4c97b4, SELFP);
+            expect_blit_end();
+        }
+    }
+    /* the debug word off: the extents are not checked */
+    setup_blit(0, 16, r1, (const int32_t[4]){0, 0, 99, 99}, 2, 4, 8);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 0, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    expect_rows(2, 6, 18, 16, 4, 8);
+    CKN(2);
+    expect_blit_end();
+    /* native rejections: surf == 0 without the debug word (nothing happens at all), and a negative width with rows to copy (after the lock call) */
+    setup_blit(0, 16, r1, r2, 2, 4, 8);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, 0, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 1);
+    CKN(0);
+    expect_blit_end();
+    r1w[0] = 3;
+    r1w[1] = 0;
+    r1w[2] = 1;
+    r1w[3] = 1;
+    setup_blit(0, 16, r1w, r2, 2, 4, 8);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 1);
+    CKN(1);
+    expect_blit_end();
+    /* a negative width with no rows is not rejected */
+    r1w[3] = -1;
+    setup_blit(0, 16, r1w, r2, 2, 4, 8);
+    expect_blit_begin();
+    ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 1, &fx.w, &fx.host);
+    CK(ret == 0);
+    CKN(2);
+    expect_blit_end();
+}
+
 /* ---- sweep (for the sanitiser builds) -------------------------------------------------------------------------------------------- */
 
 static uint32_t g_rng = 12345;
@@ -1223,6 +1487,24 @@ static void test_sweep_bounded(void)
         if (rnd() & 1) set32(fx.player, 0x20e, 0);
         set32(fx.player, 0x176, rnd() & 1);
         m4c0d3f_present_rect(&fx.w, &fx.host);
+        /* 0x4c5377: random small rectangles inside the buffers (the caller-validated bounds are respected), the debug word on in half of the runs */
+        L.n = 0;
+        g_nscript = 0;
+        {
+            int32_t q1[4], q2[4];
+            int bpp = 1 + (int)(rnd() % 4);
+            q1[0] = (int32_t)(rnd() % 4);
+            q1[1] = (int32_t)(rnd() % 3);
+            q1[2] = q1[0] + (int32_t)(rnd() % 5) - 1;
+            q1[3] = q1[1] + (int32_t)(rnd() % 3) - 1;
+            q2[0] = (int32_t)(rnd() % 4);
+            q2[1] = (int32_t)(rnd() % 3);
+            q2[2] = q2[0] + (int32_t)(rnd() % 5) - 1;
+            q2[3] = q2[1] + (int32_t)(rnd() % 3) - 1;
+            setup_blit(rnd() % 0x10, (int16_t)(0x10 + rnd() % 0x10), q1, q2, (int16_t)bpp, rnd() % 0x20, rnd() % 0x20);
+            fx.w.word_63a4cd = (int16_t)(rnd() & 1);
+            (void)m4c5377_blit_rows(fx.self, (rnd() & 7) ? SF_VA : 0, rnd() & 3, RC_VA, RC_VA + 0x10, rnd(), &fx.w, &fx.host);
+        }
     }
 }
 
@@ -1248,6 +1530,7 @@ int main(void)
     RUN(test_m4161d1_alloc_buffers);
     RUN(test_m4c2c3a_make_record);
     RUN(test_m4c0d3f_present_rect);
+    RUN(test_m4c5377_blit_rows);
     /* TESTS-END */
     RUN(test_sweep_bounded);
     return failures;

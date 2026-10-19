@@ -84,6 +84,20 @@ uint32_t m4c2c3a_make_record(uint8_t *self, int16_t a, int16_t b, uint32_t v10, 
  * 0x4c5377(this 0x5cf659, [0x5d19ef], [0x5cf665], &out, &isect, 0x552b90) with host pointers to the two local arrays of four int32. The callee may change the player object (the port re-reads it). */
 void m4c0d3f_present_rect(Fl27bWorld *world, const Fl18Host *host);
 
+/* 0x4c5377, thiscall (`self` = ecx; the dword [self+0xc] is compared with `idx`), `ret 0x14`: the stack arguments surf (the original address of a surface record: the dword [surf] is the pixel base,
+ * the signed word [surf+0x2f] the row pitch), idx (a dword), r1 and r2 (original addresses of rectangles of four signed dwords x0, y0, x1, y1) and arg (a dword that is only passed on).
+ * With the debug word 0x63a4cd non-zero the rectangles are checked first: when (r1.x1 - r1.x0) != (r2.x1 - r2.x0) or the same for y or surf == 0 or idx == 0, a diagnostic follows and the function ends
+ * (no pixels are copied): 0x50ca3e(local text, 0x5548ec, arg, r1.x0, r1.y0, r1.x1, r1.y1, r2.x0, r2.y0, r2.x1, r2.y1), 0x52139c(text, 0, 0) (stdcall), 0x4c97b4(this self).
+ * Otherwise: src = [surf] + r1.y0 * pitch + r1.x0 * (signed word 0x639895) (32-bit); 0x4c4067(this self, idx, r2, &desc, arg, 0x20) fills the local descriptor desc (the dword at +0x10 is the
+ * destination row stride, the dword at +0x24 the destination base address); h = r1.y1 - r1.y0 + 1 rows (signed; none when h <= 0) of rowbytes = (r1.x1 - r1.x0 + 1) * (word 0x639895) bytes are copied
+ * (forward `rep movsd` of rowbytes / 4 dwords, then `rep movsb` of rowbytes % 4 bytes, exactly in that order, also where source and destination overlap) from src (advanced by the CURRENT word
+ * [surf+0x2f] after each row) to dst (advanced by desc[+0x10]); then 0x4c4202(this self, idx, r2, 0x554990) and, when idx == dword [self+0xc], 0x4c952f(this self, r2).
+ * Returns 0. Native rejections (not in the original; each is an access violation or an endless copy there): returns 1 BEFORE anything else happens when the surface address is 0 on the non-diagnostic
+ * path (the original reads the word at address 0x2f), and returns 1 after 0x4c4067 when rows are to be copied (h > 0) and rowbytes is above 0x7fffffff as an unsigned count (a negative width). The
+ * descriptor desc is a zero-initialised local of 0x7c bytes (the original leaves it to the callee; the callee must fill the two fields). Caller-validated: the addresses must resolve to memory valid for
+ * the rows that are read and written (Fl18Host.resolve is called unchecked on the source and destination of every row). */
+int32_t m4c5377_blit_rows(uint8_t *self, uint32_t surf, uint32_t idx, uint32_t r1, uint32_t r2, uint32_t arg, const Fl27bWorld *world, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif

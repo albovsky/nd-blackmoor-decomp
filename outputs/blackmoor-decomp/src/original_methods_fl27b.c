@@ -51,6 +51,13 @@ static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr,
 }
 
 /* the object of an original address (an address that an object keeps), as host memory */
+static uint16_t rd16(const uint8_t *base, ptrdiff_t off)
+{
+    uint16_t v;
+    memcpy(&v, base + off, sizeof v);
+    return v;
+}
+
 static uint8_t *object_at(const Fl18Host *host, uint32_t address)
 {
     return (uint8_t *)host->resolve(host->context, address);
@@ -292,4 +299,86 @@ void m4c0d3f_present_rect(Fl27bWorld *world, const Fl18Host *host)
     out[1] = (int32_t)((uint32_t)isect[1] - rd32(cc, 4) + rd32(bb, 4));
     out[3] = (int32_t)((uint32_t)isect[3] - rd32(cc, 4) + rd32(bb, 4));
     calln(host, 0x4c5377, 0x5cf659, 5, world->value_5d19ef, world->value_5cf665, (uintptr_t)out, (uintptr_t)isect, 0x552b90);
+}
+
+/* ---- 0x4c5377 ------------------------------------------------------------------------------------------------------------------ */
+
+static uint32_t callv(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int n)
+{
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, n) : 0;
+}
+
+/* `rep movsd` (count / 4 dwords) then `rep movsb` (count % 4 bytes), forward, a dword read before it is written: the same result as the original where the two blocks overlap */
+static void rep_movs(uint8_t *dst, const uint8_t *src, uint32_t count)
+{
+    uint32_t k, dwords = count >> 2, bytes = count & 3u;
+    for (k = 0; k < dwords; k++) {
+        uint32_t v;
+        memcpy(&v, src, 4);
+        memcpy(dst, &v, 4);
+        src += 4;
+        dst += 4;
+    }
+    for (k = 0; k < bytes; k++) *dst++ = *src++;
+}
+
+/* 0x4c5377, `ret 0x14`: see the header. Locals of the original: [ebp-0x1a0] this, [ebp-0x19c] / [ebp-0x198] the r1 extents, [ebp-0x94] / [ebp-0x194] the r2 extents, [ebp-0x190] the 0x fb-byte text,
+ * [ebp-0x90] the row counter i, [ebp-0x8c] h, [ebp-0x88] the descriptor desc (+0x10 = [ebp-0x78] the stride, +0x24 = [ebp-0x64] the destination), [ebp-0xc] rowbytes, [ebp-8] src, [ebp-4] dst. The
+ * row loop compares `i` and `h` as signed dwords (`jge`); `shr ecx, 2` and the `and ecx, 3` make the copy counts unsigned. */
+int32_t m4c5377_blit_rows(uint8_t *self, uint32_t surf, uint32_t idx, uint32_t r1, uint32_t r2, uint32_t arg, const Fl27bWorld *world, const Fl18Host *host)
+{
+    uint8_t text[0xfb];
+    uint8_t desc[0x7c];
+    const uint8_t *a = object_at(host, r1), *b = object_at(host, r2);
+    uint8_t *sm;
+    int32_t h, i;
+    uint32_t rowbytes, src, dst, bpp;
+    if (debug_on(world)) {
+        uint32_t d1x = rd32(a, 8) - rd32(a, 0), d1y = rd32(a, 0xc) - rd32(a, 4), d2x = rd32(b, 8) - rd32(b, 0), d2y = rd32(b, 0xc) - rd32(b, 4);
+        if (!(d1x == d2x && d1y == d2y && surf != 0 && idx != 0)) {
+            uintptr_t args[11];
+            memset(text, 0, sizeof text);
+            args[0] = (uintptr_t)text;
+            args[1] = 0x5548ec;
+            args[2] = arg;
+            args[3] = rd32(a, 0);
+            args[4] = rd32(a, 4);
+            args[5] = rd32(a, 8);
+            args[6] = rd32(a, 0xc);
+            args[7] = rd32(b, 0);
+            args[8] = rd32(b, 4);
+            args[9] = rd32(b, 8);
+            args[10] = rd32(b, 0xc);
+            callv(host, 0x50ca3e, 0, args, 11);
+            calln(host, 0x52139c, 0, 3, (uintptr_t)text, 0, 0, 0, 0);
+            call0(host, 0x4c97b4, (uintptr_t)self);
+            return 0;
+        }
+    }
+    if (surf == 0) return 1;      /* native rejection: the original reads the word at address 0x2f */
+    sm = object_at(host, surf);
+    bpp = (uint32_t)(int32_t)world->word_639895;
+    src = rd32(sm, 0) + rd32(a, 4) * (uint32_t)(int32_t)(int16_t)rd16(sm, 0x2f) + rd32(a, 0) * bpp;
+    memset(desc, 0, sizeof desc);
+    {
+        uintptr_t args[5];
+        args[0] = idx;
+        args[1] = r2;
+        args[2] = (uintptr_t)desc;
+        args[3] = arg;
+        args[4] = 0x20;
+        callv(host, 0x4c4067, (uintptr_t)self, args, 5);
+    }
+    h = (int32_t)(rd32(a, 0xc) - rd32(a, 4) + 1u);
+    rowbytes = (rd32(a, 8) - rd32(a, 0) + 1u) * bpp;
+    dst = rd32(desc, 0x24);
+    if (h > 0 && rowbytes > 0x7fffffffu) return 1;      /* native rejection: the original copies ~4 GB */
+    for (i = 0; i < h; i++) {
+        rep_movs(rowbytes != 0 ? object_at(host, dst) : NULL, rowbytes != 0 ? object_at(host, src) : NULL, rowbytes);
+        src += (uint32_t)(int32_t)(int16_t)rd16(sm, 0x2f);
+        dst += rd32(desc, 0x10);
+    }
+    calln(host, 0x4c4202, (uintptr_t)self, 3, idx, r2, 0x554990, 0, 0);
+    if (idx == rd32(self, 0xc)) call1(host, 0x4c952f, (uintptr_t)self, r2);
+    return 0;
 }
