@@ -145,3 +145,9 @@ Known gap of the tool: mutants are single textual edits (one literal, one operat
 ## Files owned
 
 `src/original_methods_fl27a.c`, `src/original_methods_fl27a.h`, `tests/fl27a_differential_shim.c`, `tests/fl27a_direct_test.c`, `tests/fl27a_fixtures.py`, `tests/fl27a_mutation_check.py`, `tests/fl27a_original_oracle.py`, `tests/test_fl27a_differential.py`, `tests/test_fl27a_direct.py`, `tasks/fl27a-acceptances.json`, `tasks/fl27a-handoff.md`. `function-ledger.json`, `function-ledger-overrides.json`, `function-evidence.json`, `function-execution.json` are untouched.
+
+## Root decisions after review
+
+- `0x4de2d8` is not credited: its A-51 blockers concern the renderer/UI callbacks it calls, which no oracle here models, so its acceptance entry was removed (the port and tests stay; the row stays pending).
+- `0x4c0c7d` is credited: one `je` direction is dead (`mov ecx,1; test ecx,ecx`), but its target is also reached by the `jmp` at `0x4c0ca5`, so all 55 instructions execute. Glib's ruling covers blocks that no input reaches; this function has none. Flagged for the owner.
+- Review P3 (native spin limit rejected a wait that ended during the limit-th Sleep) fixed in `m44c479_wait_state` and `m4c0c7d_movie_thread`, with a direct test.
