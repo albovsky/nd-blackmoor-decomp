@@ -1297,6 +1297,16 @@ static void s_expect_loops(int n, int rec23, int w6ec, int w6ea)
     for (i = 0; i < w6ea; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x1fd); xc(T, R_VA + 0x45d, 0x54ac98); }
 }
 
+static uint32_t g_count_b, g_count_c;
+
+static uint32_t count_call(void *context, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
+{
+    (void)context; (void)this_ptr; (void)args; (void)nargs;
+    if (callee == 0x45b568) g_count_b++;
+    if (callee == 0x4c5377) g_count_c++;
+    return 0;
+}
+
 static void test_m45d2c6_render(void)
 {
     (void)m45d2c6_render; /* driven through the file's runner helper; named here so the test pointer finds it */
@@ -1323,6 +1333,21 @@ static void test_m45d2c6_render(void)
             xb(0x624800); xc(S_T(2), 0x624830, 0x54adc8);
             CK(r_match() && L.ticks == 0);
         }
+    }
+    /* ---- a limit beyond a word (rec23 0x7fff, 0x6247ec -5 gives 0x8003): the original's 16-bit counter wraps and never leaves loop 3; the port stops that loop at 0x7fff and goes on with the rest ---- */
+    {
+        Fl18Host h = host();
+        s_prepare(&w, 1);
+        set16(r_rec, 0x23, 0x7fff);
+        w.word_6247ec = -5;
+        w.word_6247ea = 0;
+        w.word_6247ee = 0;
+        h.call = count_call;
+        g_count_b = g_count_c = 0;
+        m45d2c6_render(&w, &h);
+        /* 4 + 4 fixed, 0x7fff in loop 3 (i = 0 .. 0x7ffe), none in loops 4, 6 and 7, 0x7ffe in loop 5 and 5 in the tail */
+        CK(g_count_b == 4u + 4u + 0x7fffu + 0x7ffeu + 5u);
+        CK(g_count_c == g_count_b);
     }
     /* ---- the table dword is read at 0x5d1599 + n * 0x4a for the signed word n = 0x624750 ---- */
     {

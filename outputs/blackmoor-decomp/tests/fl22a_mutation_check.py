@@ -35,7 +35,7 @@ MUTATIONS = [
 
 
 def run(module):
-    done = subprocess.run([sys.executable, '-I', '-m', 'unittest', module], cwd=PROJECT, capture_output=True, text=True, timeout=900)
+    done = subprocess.run([sys.executable, '-m', 'unittest', module], cwd=PROJECT, capture_output=True, text=True, timeout=900)
     return done.returncode != 0
 
 
@@ -44,6 +44,10 @@ def main():
     wanted = sys.argv[2:]
     original = SOURCE.read_text()
     results = []
+    # the unmutated source must pass both suites, otherwise 'detected' proves nothing
+    for module in ('tests.test_fl22a_direct', 'tests.test_fl22a_differential'):
+        if run(module):
+            raise SystemExit(f'baseline {module} fails on the unmutated source')
     try:
         for label, old, new in MUTATIONS:
             if wanted and not any(w in label for w in wanted):

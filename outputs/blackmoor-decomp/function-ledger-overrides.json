@@ -13342,7 +13342,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "1:1 with m45d2c6_render. Word loops rejected at 0x7fff (unreachable in fixtures). Unicorn differential: 600 fixtures, 590/590 instructions, 26086 ordered calls. Window covers all 2212 bytes. See tasks/fl22a-handoff.md.",
+   "note": "1:1 with m45d2c6_render. Loops 3 and 5 stop at counter 0x7fff (direct test only). Unicorn differential: 600 fixtures, 590/590 instructions, 26086 ordered calls. Window covers all 2212 bytes. See tasks/fl22a-handoff.md.",
    "blockers_reviewed": []
   },
   {

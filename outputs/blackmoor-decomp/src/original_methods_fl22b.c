@@ -461,7 +461,7 @@ int32_t m4b64a9_run_scene(uint8_t *self, int16_t index, Fl22bWorld *world, const
     int32_t i;
     if (state == 0) {
         wr16(self, 0x1e, (uint16_t)index);
-        wr32(self, 0x225, 1);   /* (the bytes +0x229 and +0x22a are overwritten below) */
+        wr32(self, 0x225, 1);   /* (dword at +0x225..+0x228; the bytes +0x229 and +0x22a are separate stores below) */
         world->value_5bb1ca = 1;
         call0(host, 0x4e8d96, 0x571442);
         wr32(self, 0x254, 0);

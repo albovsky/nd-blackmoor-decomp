@@ -554,7 +554,7 @@ void m45d2c6_render(Fl22aWorld *world, const Fl18Host *host)
         call_c(host, world, dword_5d1599_n(world), 0x6247aau + (uint32_t)(i * 16), rect, 0x54ac28);
     }
     for (i = 0; i < rds16(rec, 0x23) - world->word_6247ec - 1; i = (int16_t)(i + 1)) {
-        if (i == INT16_MAX) return;   /* the limit is beyond a word: the original never leaves this loop (rejected) */
+        if (i == INT16_MAX) break;   /* the limit is beyond a word: the original's counter wraps and never leaves this loop; the port leaves this loop only (native stop) */
         call_b(host, rec_va + (uint32_t)(i * 16) + 0x19du, rect);
         call_c(host, world, dword_5d1599_n(world), rec_va + 0x42du, rect, 0x54ac3c);
     }
@@ -563,7 +563,7 @@ void m45d2c6_render(Fl22aWorld *world, const Fl18Host *host)
         call_c(host, world, dword_5d1599_n(world), rec_va + 0x45du, rect, 0x54ac54);
     }
     for (i = 0; i < rds16(rec, 0x23) - world->word_6247ea - 1; i = (int16_t)(i + 1)) {
-        if (i == INT16_MAX) return;   /* the limit is beyond a word: the original never leaves this loop (rejected) */
+        if (i == INT16_MAX) break;   /* the limit is beyond a word: the original's counter wraps and never leaves this loop; the port leaves this loop only (native stop) */
         call_b(host, rec_va + (uint32_t)(i * 16) + 0x25du, rect);
         call_c(host, world, dword_5d1599_n(world), rec_va + 0x43du, rect, 0x54ac68);
     }
