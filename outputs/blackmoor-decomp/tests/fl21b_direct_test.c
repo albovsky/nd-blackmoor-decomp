@@ -472,6 +472,7 @@ static int32_t hit_run(Fl21bWorld *w, int16_t x, int16_t y)
 
 static void test_m47f421_pointer_hit(void)
 {
+    (void)m47f421_pointer_hit; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl21bWorld w;
     int32_t r;
     int k;
@@ -787,6 +788,7 @@ static void key_run(Fl21bWorld *w)
 
 static void test_m48569e_handle_key(void)
 {
+    (void)m48569e_handle_key; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl21bWorld w;
     size_t k;
     static const uint32_t selectors[] = {0x2779, 0x277c, 0x2778, 0x2777, 0x277b, 0x277a, 0x2776, 0, 0x2780};
@@ -1050,6 +1052,7 @@ static void panel_run(Fl21bWorld *w)
 
 static void test_m44e035_draw_panel(void)
 {
+    (void)m44e035_draw_panel; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl21bWorld w;
     int k;
     /* plain (mode 0), flag set: the four standard parts; a = 3, b = 2 -> 0x131 and 0xe1 */
@@ -1248,6 +1251,7 @@ static void state_run(Fl21bWorld *w, int16_t index)
 
 static void test_m44da08_run_state(void)
 {
+    (void)m44da08_run_state; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl21bWorld w;
     int k, pos;
     /* ---- state 0 (the entry table[2] is the one that 0x4d39f9 names) ---- */
