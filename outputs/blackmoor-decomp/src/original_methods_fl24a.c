@@ -578,3 +578,51 @@ void m482724_click_27b5_27b6(uint8_t *self, const Fl24aWorld *world, const Fl18H
     }
     wr16(self, 0x92, (uint16_t)(rd16(self, 0x92) + 1));
 }
+
+/* ---- 0x470ffe ------------------------------------------------------------------------------------------------------------------ */
+
+/* the globals that every hit of 0x470ffe sets: 0x5b44f0 = a, 0x5b44f4 = 1, 0x5d162d = [0x5d0377], 0x5d1631 = (a << 5) + (1 << 4) + 0x5b160c
+ * (computed from the two globals just stored), 0x5d1639 = 1, and the event 0x5c39e5 = event */
+static void announce_hit(Fl24aWorld *world, uint32_t a, uint32_t event)
+{
+    world->value_5b44f0 = a;
+    world->value_5b44f4 = 1;
+    world->value_5d162d = world->value_5d0377;
+    world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+    world->value_5d1639 = 1;
+    world->value_5c39e5 = event;
+}
+
+/* 0x470ffe, thiscall, `ret 8`: x is the word at [esp+4], y the word at [esp+8]. The record object is that of the record of the signed word
+ * [+0xd28] (read at entry). With the byte [+0xd3e] clear: [+0xd2a] = 0xffff, return 0. Else the rectangle +0x100/+0x108 (y), +0xfc/+0x104
+ * (x) of the record object: announce (9, event 0x27ad), return 1. Else for i below the signed word [obj + 0x21], while the byte [+0xd3b]
+ * is clear, the rectangle of 16 bytes at self + 16 i (y +0x660/+0x668, x +0x65c/+0x664): announce (0x16, event 0x27a6), word [+0xd2a] =
+ * i, return 1. Then, with the byte [+0xd3b] clear and the byte [obj + 0x24] set, the rectangle obj +0x39/+0x41 (y), +0x35/+0x3d (x):
+ * announce (0x16, 0x27a6), word [+0xd2a] = 0x28, return 1. Anything else: [+0xd2a] = 0xffff, return 0. */
+int32_t m470ffe_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24aWorld *world, const Fl18Host *host)
+{
+    const uint8_t *obj = object_at(host, record_object_address(world, self, 0xd28));
+    int16_t i;
+    if (self[0xd3e] != 0) {
+        if (in_range(y, rds32(obj, 0x100), rds32(obj, 0x108)) && in_range(x, rds32(obj, 0xfc), rds32(obj, 0x104))) {
+            announce_hit(world, 9, 0x27ad);
+            return 1;
+        }
+        for (i = 0; (int32_t)i < rds16(obj, 0x21); i++) {
+            ptrdiff_t at = (ptrdiff_t)((int32_t)i << 4);
+            if (self[0xd3b] != 0) continue;
+            if (!in_range(y, rds32(self, at + 0x660), rds32(self, at + 0x668))) continue;
+            if (!in_range(x, rds32(self, at + 0x65c), rds32(self, at + 0x664))) continue;
+            announce_hit(world, 0x16, 0x27a6);
+            wr16(self, 0xd2a, (uint16_t)i);
+            return 1;
+        }
+        if (self[0xd3b] == 0 && obj[0x24] != 0 && in_range(y, rds32(obj, 0x39), rds32(obj, 0x41)) && in_range(x, rds32(obj, 0x35), rds32(obj, 0x3d))) {
+            announce_hit(world, 0x16, 0x27a6);
+            wr16(self, 0xd2a, 0x28);
+            return 1;
+        }
+    }
+    wr16(self, 0xd2a, 0xffff);
+    return 0;
+}

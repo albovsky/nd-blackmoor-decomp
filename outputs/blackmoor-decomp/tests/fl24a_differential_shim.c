@@ -189,7 +189,7 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F24A_4D3BEF = 1, F24A_44EDFB, F24A_4CB3AB, F24A_44EAB1, F24A_46EBFF, F24A_4571E1, F24A_47B4AA, F24A_4A6574, F24A_465C99, F24A_482724 };
+enum { F24A_4D3BEF = 1, F24A_44EDFB, F24A_4CB3AB, F24A_44EAB1, F24A_46EBFF, F24A_4571E1, F24A_47B4AA, F24A_4A6574, F24A_465C99, F24A_482724, F24A_470FFE };
 
 /* Runs one port on `self` (this); x and y are the two stack words of the hit test. `result` is the return value of the ports that have one. */
 void shim_fl24a(int fn, uint8_t *self, uintptr_t x, uintptr_t y, Fl24aWorld *w, int32_t *result)
@@ -211,6 +211,7 @@ void shim_fl24a(int fn, uint8_t *self, uintptr_t x, uintptr_t y, Fl24aWorld *w, 
     case F24A_4A6574: *result = m4a6574_hit_test(self, (int16_t)x, (int16_t)y, w, &host); break;
     case F24A_465C99: *result = m465c99_hit_test(self, (int16_t)x, (int16_t)y, w, &host); break;
     case F24A_482724: m482724_click_27b5_27b6(self, w, &host); break;
+    case F24A_470FFE: *result = m470ffe_hit_test(self, (int16_t)x, (int16_t)y, w, &host); break;
     default: break;
     }
 }

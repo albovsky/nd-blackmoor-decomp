@@ -586,6 +586,31 @@ def gen_482724(rng, n):
     return common('482724', rng, d, obj, idx, sel, False, 0, stubs, now=0, profile=(kind, *rest, w, w92))
 
 
+def gen_470ffe(rng, n):
+    profiles = [('gate',), ('first',), ('loop', 0), ('loop', 1), ('loop', 2), ('loop', 3), ('skip', 0), ('skip', 1), ('tail',), ('tail_b24',), ('tail_skip',),
+                ('none',)]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0xd80))
+    set_gate(d, 'nz8', 0xd3e, kind == 'gate', rng)
+    skipping = kind in ('skip', 'tail_skip')
+    set_gate(d, 'z8', 0xd3b, skipping, rng)
+    put16(d, 0xd28, idx)
+    obj = bytearray(rng.randbytes(0x400))
+    count = max(rng.choice([1, 2, 3, 4]), rest[0] + 1) if kind in ('loop', 'skip') else rng.choice([0, 1, 3, -1, 2, 4, -32768])
+    struct.pack_into('<h', obj, 0x21, count)
+    obj[0x24] = 0 if kind == 'tail_b24' else rng.choice([1, 0x80, 0xff])
+    rect_into(rng, obj, x, y, (0x100, 0x108, 0xfc, 0x104), (0, 0, 0, 0), kind == 'first')
+    for i in range(4):
+        rect_into(rng, d, x, y, (0x660 + 16 * i, 0x668 + 16 * i, 0x65c + 16 * i, 0x664 + 16 * i), (0, 0, 0, 0), kind in ('loop', 'skip') and i == rest[0])
+    rect_into(rng, obj, x, y, (0x39, 0x41, 0x35, 0x3d), (0, 0, 0, 0), kind in ('tail', 'tail_b24', 'tail_skip'))
+    g = {name: rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)]) for name in
+         ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639')}
+    return common('470ffe', rng, d, obj, idx, rng.choice([0, 0x27ad, 0x27a6, rng.randrange(1 << 32)]), False, 0, {}, now=0, profile=(kind, *rest), stack=stack,
+                  args=(x, y), g=g)
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -599,6 +624,7 @@ SPECS = {
     '4a6574': dict(id=8, va=0x4a6574, size=639, gen=gen_4a6574, ret=True, cleanup=8, n=13 * 40),
     '465c99': dict(id=9, va=0x465c99, size=757, gen=gen_465c99, ret=True, cleanup=8, n=14 * 81),
     '482724': dict(id=10, va=0x482724, size=740, gen=gen_482724, probes=[(0, 0x100)], n=10 * 64),
+    '470ffe': dict(id=11, va=0x470ffe, size=690, gen=gen_470ffe, ret=True, cleanup=8, n=12 * 40),
 }
 KEYS = list(SPECS)
 

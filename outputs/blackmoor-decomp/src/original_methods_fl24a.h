@@ -35,6 +35,7 @@ typedef struct Fl24aWorld {
     int16_t word_63a4cd;       /* 0x4cb3ab: tested as a signed word */
     uint32_t value_5d03b3;     /* 0x46ebff: the dword passed to 0x448d11 */
     uint32_t value_61d3c2;     /* 0x4a6574: the tail compares it with 6 */
+    uint32_t value_5b44f0, value_5b44f4, value_5d0377, value_5d162d, value_5d1631, value_5d1639;   /* 0x470ffe: the announcement globals */
 } Fl24aWorld;
 
 /* 0x4d3bef: clears [+0x462]; sets [+0x1c] when the byte at 0x61c6ae is non-zero */
@@ -59,6 +60,8 @@ int32_t m4a6574_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
 int32_t m465c99_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 /* 0x482724: events 0x27b6 and 0x27b5 (state machine over the words 0x39e, 0x3a0, 0x3a2, 0x3a4 of the record object; calls 0x482595) */
 void m482724_click_27b5_27b6(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host);
+/* 0x470ffe: hit test (ret 8) over the rectangles of the record object and of the object itself; a hit announces through the globals 0x5b44f0, 0x5b44f4, 0x5d162d, 0x5d1631, 0x5d1639 and 0x5c39e5 (the world is written) */
+int32_t m470ffe_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

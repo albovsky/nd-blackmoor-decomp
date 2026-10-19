@@ -1666,6 +1666,184 @@ static void test_m482724(void)
     }
 }
 
+/* ---- 0x470ffe ----------------------------------------------------------------------------------------------------------------- */
+
+static Fl24aWorld exp_world;
+
+static void setup_470ffe(int idx, int count)
+{
+    setup(idx, 0x9999);
+    set16(fx.self, 0xd28, (uint16_t)idx);
+    fx.self[0xd3e] = 0x80;
+    fx.self[0xd3b] = 0;
+    memset(fx.obj, 0x80, 0x400);
+    set16(fx.obj, 0x21, (uint16_t)count);
+    fx.obj[0x24] = 0x01;
+    fx.w.value_5b44f0 = 0x11111111u;
+    fx.w.value_5b44f4 = 0x22222222u;
+    fx.w.value_5d0377 = 0x1234abcdu;
+    fx.w.value_5d162d = 0x33333333u;
+    fx.w.value_5d1631 = 0x44444444u;
+    fx.w.value_5d1639 = 0x55555555u;
+}
+
+/* the same for a rectangle of the object itself */
+static void eff_rect_self(const size_t o[4], int x, int y)
+{
+    set32(fx.self, o[0], (uint32_t)y);
+    set32(fx.self, o[1], (uint32_t)y);
+    set32(fx.self, o[2], (uint32_t)x);
+    set32(fx.self, o[3], (uint32_t)x);
+}
+
+static int32_t run_470ffe(int x, int y)
+{
+    L.n = 0;
+    return m470ffe_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
+}
+
+/* the expected world after a hit that announces (a, event) */
+static void exp_announce(uint32_t a, uint32_t event)
+{
+    exp_world.value_5b44f0 = a;
+    exp_world.value_5b44f4 = 1;
+    exp_world.value_5d162d = 0x1234abcdu;
+    exp_world.value_5d1631 = 0x5b160cu + a * 32 + 16;
+    exp_world.value_5d1639 = 1;
+    exp_world.value_5c39e5 = event;
+}
+
+static void ck_world(void)
+{
+    CK(memcmp(&exp_world, &fx.w, sizeof fx.w) == 0);
+}
+
+static void test_m470ffe(void)
+{
+    static const int idxs[] = {2, -1};
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
+    static const size_t FIRST[4] = {0x100, 0x108, 0xfc, 0x104};
+    static const size_t TAIL[4] = {0x39, 0x41, 0x35, 0x3d};
+    static const int ZERO[4] = {0, 0, 0, 0};
+    size_t ii, pi;
+    int e, i, b;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (pi = 0; pi < 6; pi++) {
+            int x = pts[pi][0], y = pts[pi][1];
+            /* the first rectangle: announce (9, 0x27ad); [+0xd2a] is not stored */
+            setup_470ffe(idx, 0);
+            eff_rect(FIRST, ZERO, x, y);
+            expect_begin();
+            exp_world = fx.w;
+            exp_announce(9, 0x27ad);
+            CK(run_470ffe(x, y) == 1);
+            expect_end();
+            ck_world();
+            CK(L.n == 0);
+            /* the gate: the byte [+0xd3e] clear (its neighbours set) fails even with the rectangle holding the point */
+            setup_470ffe(idx, 0);
+            eff_rect(FIRST, ZERO, x, y);
+            fx.self[0xd3e] = 0;
+            expect_begin();
+            exp_world = fx.w;
+            set16(exp_self, 0xd2a, 0xffff);
+            CK(run_470ffe(x, y) == 0);
+            expect_end();
+            ck_world();
+            for (e = 0; e < 4; e++) {
+                setup_470ffe(idx, 0);
+                eff_rect(FIRST, ZERO, x, y);
+                edge_out(FIRST, e);
+                expect_begin();
+                exp_world = fx.w;
+                set16(exp_self, 0xd2a, 0xffff);
+                CK(run_470ffe(x, y) == 0);
+                expect_end();
+                ck_world();
+            }
+            /* the loop: rectangle i of count 4, with the byte [+0xd3b] clear: announce (0x16, 0x27a6) and [+0xd2a] = i */
+            for (i = 0; i < 4; i++) {
+                size_t o[4];
+                o[0] = 0x660 + 16 * (size_t)i; o[1] = 0x668 + 16 * (size_t)i; o[2] = 0x65c + 16 * (size_t)i; o[3] = 0x664 + 16 * (size_t)i;
+                setup_470ffe(idx, 4);
+                for (b = 0; b < 4; b++) {
+                    size_t o2[4];
+                    o2[0] = 0x660 + 16 * (size_t)b; o2[1] = 0x668 + 16 * (size_t)b; o2[2] = 0x65c + 16 * (size_t)b; o2[3] = 0x664 + 16 * (size_t)b;
+                    if (b > i) {
+                        eff_rect_self(o2, x, y);       /* later rectangles hold the point too, but the first hit wins */
+                    }
+                }
+                eff_rect_self(o, x, y);
+                expect_begin();
+                exp_world = fx.w;
+                exp_announce(0x16, 0x27a6);
+                set16(exp_self, 0xd2a, (uint16_t)i);
+                CK(run_470ffe(x, y) == 1);
+                expect_end();
+                ck_world();
+                /* each edge one outside misses (the tail is not reachable: its byte [obj + 0x24] rectangle misses) */
+                for (e = 0; e < 4; e++) {
+                    setup_470ffe(idx, 4);
+                    eff_rect_self(o, x, y);
+                    set32(fx.self, o[e], get32(fx.self, o[e]) + (e % 2 == 0 ? 1u : (uint32_t)-1));
+                    CK(run_470ffe(x, y) == 0 && get16s(fx.self, 0xd2a) == -1);
+                }
+                /* the byte [+0xd3b] set skips the loop (the first rectangle is not affected) */
+                for (b = 0; b < 3; b++) {
+                    static const int vals[] = {1, 0x80, 0xff};
+                    setup_470ffe(idx, 4);
+                    eff_rect_self(o, x, y);
+                    fx.self[0xd3b] = (uint8_t)vals[b];
+                    CK(run_470ffe(x, y) == 0 && get16s(fx.self, 0xd2a) == -1);
+                }
+                /* the rectangle at the index count is not looked at */
+                setup_470ffe(idx, i);
+                eff_rect_self(o, x, y);
+                CK(run_470ffe(x, y) == 0);
+            }
+            /* a negative count: no loop */
+            setup_470ffe(idx, -1);
+            eff_rect_self((const size_t[4]){0x660, 0x668, 0x65c, 0x664}, x, y);
+            CK(run_470ffe(x, y) == 0);
+            /* the tail: [+0xd3b] clear and the byte [obj + 0x24] set: announce (0x16, 0x27a6), [+0xd2a] = 0x28 */
+            setup_470ffe(idx, 0);
+            eff_rect(TAIL, ZERO, x, y);
+            expect_begin();
+            exp_world = fx.w;
+            exp_announce(0x16, 0x27a6);
+            set16(exp_self, 0xd2a, 0x28);
+            CK(run_470ffe(x, y) == 1);
+            expect_end();
+            ck_world();
+            for (e = 0; e < 4; e++) {
+                setup_470ffe(idx, 0);
+                eff_rect(TAIL, ZERO, x, y);
+                edge_out(TAIL, e);
+                CK(run_470ffe(x, y) == 0 && get16s(fx.self, 0xd2a) == -1);
+            }
+            setup_470ffe(idx, 0);
+            eff_rect(TAIL, ZERO, x, y);
+            fx.obj[0x24] = 0;
+            CK(run_470ffe(x, y) == 0 && get16s(fx.self, 0xd2a) == -1);
+            setup_470ffe(idx, 0);
+            eff_rect(TAIL, ZERO, x, y);
+            fx.self[0xd3b] = 1;
+            CK(run_470ffe(x, y) == 0 && get16s(fx.self, 0xd2a) == -1);
+            /* the first rectangle wins over the loop, the loop over the tail */
+            setup_470ffe(idx, 1);
+            eff_rect(FIRST, ZERO, x, y);
+            eff_rect_self((const size_t[4]){0x660, 0x668, 0x65c, 0x664}, x, y);
+            eff_rect(TAIL, ZERO, x, y);
+            CK(run_470ffe(x, y) == 1 && fx.w.value_5b44f0 == 9);
+            setup_470ffe(idx, 1);
+            eff_rect_self((const size_t[4]){0x660, 0x668, 0x65c, 0x664}, x, y);
+            eff_rect(TAIL, ZERO, x, y);
+            CK(run_470ffe(x, y) == 1 && fx.w.value_5b44f0 == 0x16 && get16s(fx.self, 0xd2a) == 0);
+        }
+    }
+}
+
 /* ---- the table of cases ------------------------------------------------------------------------------------------------------- */
 
 static const struct {
@@ -1682,6 +1860,7 @@ static const struct {
     {"test_m4a6574_hit_test", test_m4a6574},
     {"test_m465c99_hit_test", test_m465c99},
     {"test_m482724_click_27b5_27b6", test_m482724},
+    {"test_m470ffe_hit_test", test_m470ffe},
 };
 
 int main(void)
