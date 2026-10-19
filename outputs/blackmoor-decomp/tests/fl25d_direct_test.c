@@ -238,6 +238,7 @@ static uint32_t state_of(int idx) { return (uint32_t)get32s(fx.tab, (size_t)(idx
 
 static void test_m4712bd_click_27a6_27ad(void)
 {
+    (void)m4712bd_click_27a6_27ad;
     static const int idxs[] = {2, -1};
     size_t ii;
     int k, w;
@@ -535,6 +536,7 @@ static void t5(int a, int b)
 
 static void test_m4b2250_hit_test(void)
 {
+    (void)m4b2250_hit_test;
     static const int idxs[] = {2, -1};
     size_t ii;
     int e, k;
@@ -844,6 +846,7 @@ static void ck_call4(int n, uint32_t msg, int i, int j, int k)
 
 static void test_m46bca9_hit_test(void)
 {
+    (void)m46bca9_hit_test;
     static const int idxs[] = {2, -1};
     size_t ii;
     int k, e, s, mode;

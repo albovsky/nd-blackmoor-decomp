@@ -250,6 +250,7 @@ static void expect_calls_455180(int pre, uint32_t event, uint32_t word)
 
 static int test_m455180_hit_test(void)
 {
+    (void)m455180_hit_test;
     static const int idxs[2] = {2, -1};
     static const int w36s[4] = {2, 0, 7, -1};
     static const uint32_t gates[4] = {0, 0x100, 0x80000000u, 0xff};
@@ -526,6 +527,7 @@ static void ck_armed_4cb058(uint32_t a, uint32_t b, uint32_t c, uint32_t event)
 
 static int test_m4cb058_hit_test(void)
 {
+    (void)m4cb058_hit_test;
     static const uint32_t gates[5] = {0, 0x100, 0x01000000u, 0x80000000u, 0xff};
     int i, k, v, e;
     int32_t r;

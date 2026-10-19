@@ -228,6 +228,7 @@ static int run_45e1ca(int x, int y)
 
 static void test_m45e1ca_hit_test(void)
 {
+    (void)m45e1ca_hit_test;
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}};
     size_t pi;
     int e, i, j, k;
@@ -448,6 +449,7 @@ static void exp_rect_stores(void)
 
 static void test_m464792_hit_test(void)
 {
+    (void)m464792_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}};
     static const size_t fixed[3][4] = {{0x25, 0x2d, 0x21, 0x29}, {0x35, 0x3d, 0x31, 0x39}, {0x433, 0x43b, 0x42f, 0x437}};
@@ -653,6 +655,7 @@ static int world_unchanged_4a835c(void)
 
 static void test_m4a835c_hit_test(void)
 {
+    (void)m4a835c_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}};
     size_t ii, pi;
@@ -822,6 +825,7 @@ static void row_hold_41e(int i, int x, int y, int e)
 
 static void test_m45841e_hit_test(void)
 {
+    (void)m45841e_hit_test;
     static const int idxs[] = {2, -1};
     static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}};
     static const uint32_t a_flags[] = {0, 4, 6, 0x105, 0x10000005u, 0x80000005u, 0xffffffffu};
@@ -1033,6 +1037,7 @@ static void ck_plain(int n, uint32_t callee)
 
 static void test_m45565f_click_27c4_27c8(void)
 {
+    (void)m45565f_click_27c4_27c8;
     static const int idxs[] = {2, -1};
     static const uint32_t sels[] = {0x27c4, 0x27c5, 0x27c6, 0x27c7, 0x27c8};
     size_t ii;
@@ -1323,6 +1328,7 @@ static int run_473206(int x, int y)
 
 static void test_m473206_click(void)
 {
+    (void)m473206_click;
     static const int idxs[] = {2, -1};
     size_t ii;
     int i, k, e;

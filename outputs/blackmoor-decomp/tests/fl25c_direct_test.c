@@ -501,6 +501,7 @@ static uint8_t *objat(ptrdiff_t n) { return fx.obj + n; }
 
 static int test_m4aa3d2_click_276f_2771(void)
 {
+    (void)m4aa3d2_click_276f_2771;
     static const int idxs[2] = {1, -1};
     static const uint32_t sels[4] = {0x276f, 0x2770, 0x2771, 0x2710};
     static const int lens[12] = {0, 1, 2, 3, 4, 5, 7, 8, 11, 27, 200, 28};
@@ -899,6 +900,7 @@ static void nine_diff3(size_t off, int m)
 
 static int test_m46c6a9_click_27e2_27ea(void)
 {
+    (void)m46c6a9_click_27e2_27ea;
     static const int idxs[2] = {0, -1};
     static const uint32_t all[8] = {0x27ea, 0x27e6, 0x27e8, 0x27e2, 0x27e3, 0x27e4, 0x27e5, 0x2710};
     static const int ks[4][2] = {{3, 5}, {5, 5}, {-1, 2}, {18, 0}};
@@ -1142,6 +1144,7 @@ static void expect_announce(int first, int made, uint16_t word, int second)
 
 static int test_m4a44c0_click_274c_274f(void)
 {
+    (void)m4a44c0_click_274c_274f;
     static const int idxs[2] = {3, -1};
     static const uint32_t sels[5] = {0x274f, 0x274e, 0x274c, 0x274d, 0x2710};
     static const int16_t avs[8] = {0, 1, 2, 3, 4, -1, 0x7fff, -0x8000};

@@ -2,7 +2,7 @@
  {
   "va": "0x473206",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-25a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl25a.c",
@@ -30,12 +30,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m473206_click (click handler (ret 8): centre of a table rectangle, 0x4e22fd, record-object rectangle announcement, loop over four block rows (byte or 0x4d5316), 0x473f7d, 0x4eb184, 0x47409e, tick and 0x47512a). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+  "note": "1:1 with m473206_click. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25a-handoff.md."
  },
  {
   "va": "0x45565f",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-25a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl25a.c",
@@ -63,12 +63,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m45565f_click_27c4_27c8 (events 0x27c7, 0x27c6, 0x27c5, 0x27c4, 0x27c8: word state machine, 16-byte row copy, loop over rows of 0x96 bytes; calls 0x455ab8, 0x455a63, 0x455a0e, 0x455b2e, 0x455c4f). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+  "note": "1:1 with m45565f_click_27c4_27c8. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25a-handoff.md."
  },
  {
   "va": "0x45841e",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-25a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl25a.c",
@@ -96,12 +96,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m45841e_hit_test (hit test (ret 0xc): rectangle argument stored, three paths on [+0x20] and word [+0x3a], local rectangle for 0x45839e, tail rectangle; calls 0x458262, 0x45839e, 0x45879e). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+  "note": "1:1 with m45841e_hit_test. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25a-handoff.md."
  },
  {
   "va": "0x4a835c",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-25a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl25a.c",
@@ -129,12 +129,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m4a835c_hit_test (hit test (ret 0xc): rectangle argument stored, blocks of rows, 0x4a8007 and announcement globals or tail rectangle; calls 0x4a8697). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+  "note": "1:1 with m4a835c_hit_test. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25a-handoff.md."
  },
  {
   "va": "0x464792",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-25a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl25a.c",
@@ -162,12 +162,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m464792_hit_test (hit test (ret 0xc): rectangle argument stored, 0x46465d, condition on words, three fixed rectangles, five rows; calls 0x464ab5). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+  "note": "1:1 with m464792_hit_test. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25a-handoff.md."
  },
  {
   "va": "0x45e1ca",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-25a implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl25a.c",
@@ -195,6 +195,6 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m45e1ca_hit_test (hit test (ret 8): arm A loop, arm B double loop, tail rectangle; calls 0x45e4d4 with 0x27ed/0x27ec/0x27ef). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+  "note": "1:1 with m45e1ca_hit_test. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25a-handoff.md."
  }
 ]
