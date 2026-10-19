@@ -115,6 +115,13 @@ void m4c2dfb_free_pair(uint8_t *self, uint32_t slot, const Fl18Host *host);
  * 16 bits of the second stack argument. */
 void m4159db_dispatch_piece(uint8_t *self, uint32_t a, uint16_t word, Fl27aWorld *world, const Fl18Host *host);
 
+/* 0x4c0c7d: thread procedure, one argument `param` (the original address of a dword stop flag). Loop: [param] != 0 (dword): calls 0x51ec84
+ * (AfxEndThread, 0, 1) and ends (returns 0; the original thread never returns). Otherwise, when the signed word [0x637fd7 + 0x1cc] is 0:
+ * 0x44c479(0x637fd3) (native) and, if its ax is not 2, the dword [0x637fd7 + 0x172] 0 -> 0x41546f, 1 -> 0x4156ea (ecx 0x5e2dbe, argument
+ * 0x637fd7), then 0x44c4ab(0x637fd3) and the word [0x637fd7 + 0x1cc] = 1. Each pass ends with Sleep(1). Native rejection: FL27A_REJECTED
+ * after native_spin_limit passes (0 = FL27A_SPIN_LIMIT) or when 0x44c479 is rejected. */
+int32_t m4c0c7d_movie_thread(uint32_t param, Fl27aWorld *world, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

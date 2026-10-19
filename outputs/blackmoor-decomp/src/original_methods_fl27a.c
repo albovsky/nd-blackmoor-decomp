@@ -341,4 +341,44 @@ void m4159db_dispatch_piece(uint8_t *self, uint32_t a, uint16_t word, Fl27aWorld
     call0(host, 0x4c97b4, 0x5cf659);
 }
 
+/* ---- 0x4c0c7d ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4c0c7d, a thread procedure with one argument `param` (the address of a dword stop flag; `ret` never reached in the original). The loop
+ * (`mov ecx, 1; test ecx, ecx; je` is the compiler's `while (1)`: the `je` is never taken): when the flag dword [param] is non-zero it
+ * calls 0x51ec84 (AfxEndThread: stdcall, 0, 1) and the original thread ends there. Otherwise, when the signed word [0x637fd7 + 0x1cc] is
+ * zero: calls 0x44c479 (0x637fd3) (natively) and, unless its `ax` is 2, switches on the dword [0x637fd7 + 0x172]: 0 -> 0x41546f (ecx
+ * 0x5e2dbe, argument 0x637fd7), 1 -> 0x4156ea (ecx 0x5e2dbe, argument 0x637fd7), any other value nothing; then calls 0x44c4ab (cdecl,
+ * 0x637fd3) and stores the word [0x637fd7 + 0x1cc] = 1. Every pass ends with Sleep(1) (import 0x52a2b0). Returns 0 after the call of
+ * 0x51ec84 (the original never comes back from it; if the host's call returns, the port stops there). Native rejection: FL27A_REJECTED
+ * after Fl27aWorld.native_spin_limit (0 = FL27A_SPIN_LIMIT) passes without the flag being set, or when 0x44c479 is rejected. The flag, the
+ * state dword 0x637fd3 and the object 0x637fd7 are read and written through Fl18Host.resolve (the object up to +0x1ce). */
+int32_t m4c0c7d_movie_thread(uint32_t param, Fl27aWorld *world, const Fl18Host *host)
+{
+    uint32_t limit = world->native_spin_limit != 0 ? world->native_spin_limit : FL27A_SPIN_LIMIT;
+    uint32_t passes = 0;
+    for (;;) {
+        uint8_t *obj;
+        if (rd32(mem_at(host, param), 0) != 0) {
+            call2(host, 0x51ec84, 0, 0, 1);
+            return 0;
+        }
+        obj = mem_at(host, 0x637fd7);
+        if ((int16_t)rd16(obj, 0x1cc) == 0) {
+            int32_t state = m44c479_wait_state(0x637fd3, world, host);
+            if (state == FL27A_REJECTED) return FL27A_REJECTED;
+            if ((int16_t)state != 2) {
+                uint32_t selector = rd32(obj, 0x172);
+                if (selector == 0)
+                    call1(host, 0x41546f, 0x5e2dbe, 0x637fd7);
+                else if (selector == 1)
+                    call1(host, 0x4156ea, 0x5e2dbe, 0x637fd7);
+                call1(host, 0x44c4ab, 0, 0x637fd3);
+                wr16(obj, 0x1cc, 1);
+            }
+        }
+        call1(host, 0x52a2b0, 0, 1);
+        if (++passes >= limit) return FL27A_REJECTED;
+    }
+}
+
 /*NEXT*/

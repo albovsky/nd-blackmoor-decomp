@@ -564,6 +564,55 @@ def gen_4159db(rng, n):
 
 SPECS['4159db'] = dict(id=15, va=0x4159db, size=134, gen=gen_4159db, cleanup=8, n=42)
 
+G_STATE_VA, G_OBJ_VA = 0x637fd3, 0x637fd7
+G_LEN = 0x1e0                       # the state dword at +0 and the object at +4: word +0x1cc is at +0x1d0, dword +0x172 at +0x176
+
+
+def gen_4c0c7d(rng, n):
+    """The thread loop. 'exit': the stop flag is set from the start. 'run': the word [obj+0x1cc], the state dword (0x637fd3) and the selector
+    start with the given values; the other thread's pokes at the Sleep calls (index k = the k-th Sleep, inside the wait of 0x44c479 too) change
+    the state, the word and the selector at random, and the poke at index K sets the flag and ends a wait on the state (original 0x44c479 and the
+    callees 0x41546f / 0x4156ea / 0x44c4ab run as recording stubs, except 0x44c479 which runs as original bytes)."""
+    words = (0, 1, 0x10000, 0x8000)
+    states = (0, 1, 2, 3)
+    sels = (0, 1, 2, 0x100, 0x10001, 0x10000)
+    profiles = [('exit', v) for v in (1, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff)]
+    profiles += [('run', w, st, sel, k) for w in words for st in states for sel in sels for k in (0, 2)]
+    (kind, *rest), variant = prof(n, profiles)
+    pflag = od.region_va(1) + rng.choice([0, 1, 0x10])
+    param = bytearray(rng.randbytes(0x40))
+    gm = bytearray(rng.randbytes(G_LEN))
+    put32(param, pflag - od.region_va(1), rest[0] if kind == 'exit' else 0)
+    if kind == 'exit':
+        w, st, sel, k = rng.choice(words), rng.choice(states), rng.choice(sels), 0
+    else:
+        w, st, sel, k = rest
+    put32(gm, 0, st)
+    put16(gm, 0x1d0, w)
+    put16(gm, 0x1d2, rng.randrange(0x10000))
+    put32(gm, 0x176, sel)
+    # the other thread: random changes at the Sleep calls before the last, and the stop at the last one
+    pokes = {}
+    for idx in range(k):
+        items = []
+        for _ in range(rng.choice([0, 1, 2])):
+            items.append(rng.choice([(G_STATE_VA, 4, rng.choice(states)), (G_OBJ_VA + 0x1cc, 2, rng.choice(words)), (G_OBJ_VA + 0x172, 4, rng.choice(sels))]))
+        if items:
+            pokes[idx] = items
+    pokes[k] = [(G_STATE_VA, 4, rng.choice([0, 2, 3])), (pflag, 4, rng.choice([1, 0x100, 0xffffffff, 0x10000]))]
+    gprobe = [('gm', 0, G_LEN), ('param', 0, 0x40)]
+    stubs = {0x52a2b0: stub(0x52a2b0, probe=gprobe, pokes=pokes), 0x51ec84: stub(0x51ec84, probe=gprobe, halt=True),
+             0x41546f: stub(0x41546f, probe=gprobe, results=[rng.randrange(1 << 32)]), 0x4156ea: stub(0x4156ea, probe=gprobe, results=[rng.randrange(1 << 32)]),
+             0x44c4ab: stub(0x44c4ab, probe=gprobe, results=[rng.randrange(1 << 32)])}
+    areas = [Area('param', od.region_va(1), param, image=False), Area('gm', G_STATE_VA, gm)]
+    return make('4c0c7d', areas, stubs, {}, [pflag], (pflag,), (kind, *rest), probes=gprobe)
+
+
+SPECS['4c0c7d'] = dict(id=16, va=0x4c0c7d, size=194, gen=gen_4c0c7d, n=396)
+# `mov ecx, 1; test ecx, ecx; je 0x4c0d32` at 0x4c0c90..0x4c0c97 is the compiler's `while (1)`: ecx is the constant 1, so the `je` is never
+# taken (the instruction at its target is reached by the other `jmp 0x4c0d32` at 0x4c0ca5, so every instruction runs)
+UNTAKEN_ALLOWED['4c0c7d'] = {(0x4c0c97, 'taken'): 'the loop condition is the constant 1 (mov ecx, 1; test ecx, ecx; je)'}
+
 KEYS = list(SPECS)
 
 

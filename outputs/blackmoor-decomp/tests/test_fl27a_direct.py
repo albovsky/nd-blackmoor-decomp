@@ -33,6 +33,7 @@ EXPECTED = [
     'test_m4bf315_bink_open',
     'test_m4c2dfb_free_pair',
     'test_m4159db_dispatch_piece',
+    'test_m4c0c7d_movie_thread',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -138,6 +139,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4159db_dispatch_piece(self):
         """FL-27a: direct test of m4159db_dispatch_piece"""
         self.check('test_m4159db_dispatch_piece')
+
+    def test_4c0c7d_movie_thread(self):
+        """FL-27a: direct test of m4c0c7d_movie_thread"""
+        self.check('test_m4c0c7d_movie_thread')
 
     # CASES-END
 

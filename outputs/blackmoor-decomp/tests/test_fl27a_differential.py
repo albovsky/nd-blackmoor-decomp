@@ -201,6 +201,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m4159db_dispatch_piece (original 0x4159db)"""
         self.run_key('4159db')
 
+    def test_4c0c7d_movie_thread(self):
+        """FL-27a: differential test of m4c0c7d_movie_thread (original 0x4c0c7d)"""
+        self.run_key('4c0c7d')
+
     # CASES-END
 
 

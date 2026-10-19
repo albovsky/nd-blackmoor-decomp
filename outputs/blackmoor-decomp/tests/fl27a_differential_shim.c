@@ -141,7 +141,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F27A_4DE1F5 = 1 , F27A_4DE214 , F27A_4DE2D8 , F27A_449D90 , F27A_44C479 , F27A_4BEE2C , F27A_4BEF85 , F27A_4BEE5F , F27A_4BEFC8 , F27A_4BEF11 , F27A_4BF098 , F27A_4BF10F , F27A_4BF315 , F27A_4C2DFB , F27A_4159DB /*ENUM*/ };
+enum { F27A_4DE1F5 = 1 , F27A_4DE214 , F27A_4DE2D8 , F27A_449D90 , F27A_44C479 , F27A_4BEE2C , F27A_4BEF85 , F27A_4BEE5F , F27A_4BEFC8 , F27A_4BEF11 , F27A_4BF098 , F27A_4BF10F , F27A_4BF315 , F27A_4C2DFB , F27A_4159DB , F27A_4C0C7D /*ENUM*/ };
 
 /* Runs one port. `self` is `this` (NULL for the functions without one), a[0..7] the stack arguments as the original passes them (an original
  * address, a value). `result` is the return value of the ports that have one (a pointer is returned as its host address). The world is the
@@ -172,6 +172,7 @@ void shim_fl27a(int fn, uint8_t *self, const uint64_t *a, Fl27aWorld *w, uint64_
     case F27A_4BF315: *result = m4bf315_bink_open(self, (uint32_t)a[0], (uint32_t)a[1], &host); break;
     case F27A_4C2DFB: m4c2dfb_free_pair(self, (uint32_t)a[0], &host); break;
     case F27A_4159DB: m4159db_dispatch_piece(self, (uint32_t)a[0], (uint16_t)a[1], w, &host); break;
+    case F27A_4C0C7D: *result = (uint32_t)m4c0c7d_movie_thread((uint32_t)a[0], w, &host); break;
     /*CASES*/
     default: break;
     }

@@ -814,6 +814,125 @@ static void test_m4159db_dispatch_piece(void)
     ck_arg(1, 2, 0xaa);
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4c0c7d: stop flag -> 0x51ec84(0, 1); else word [obj+0x1cc] == 0 -> 0x44c479 (ax != 2 -> switch [obj+0x172]: 0x41546f / 0x4156ea / none; 0x44c4ab; word = 1); Sleep(1) */
+
+#define OBJ_VA (VA_G + 4u)
+#define W1CC 0x1d0         /* the word [obj + 0x1cc] in fx.g */
+#define SEL172 0x176       /* the dword [obj + 0x172] in fx.g */
+
+static void setup_thread(uint32_t flag, uint16_t w1cc, uint32_t state, uint32_t sel)
+{
+    setup();
+    set32(fx.c, 8, flag);                                               /* param = VA_C + 8 */
+    set32(fx.g, 0, state);
+    set16(fx.g, W1CC, w1cc);
+    set16(fx.g, W1CC + 2, 0xffff);
+    set32(fx.g, SEL172, sel);
+}
+
+static void test_m4c0c7d_movie_thread(void)
+{
+    static const uint32_t FLAGS[] = {1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    size_t i;
+    int32_t r;
+    for (i = 0; i < sizeof FLAGS / sizeof FLAGS[0]; i++) {              /* the stop flag: at once */
+        setup_thread(FLAGS[i], 0, 0, 0);
+        expect_begin();
+        r = m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host);
+        CK(r == 0 && L.n == 1);
+        ck_call(0, 0x51ec84, 0, 2);
+        ck_arg(0, 0, 0);                                                 /* AfxEndThread(0, 1): nExitCode is the last pushed */
+        ck_arg(0, 1, 1);
+        expect_end();
+    }
+    /* one pass, then the stop (the stop is set by the Sleep): word 0, state 0 -> 0x44c479 stores 1, returns 1; selector 0 / 1 / other */
+    {
+        static const struct {
+            uint32_t sel, callee;
+            int calls;
+        } SELS[] = {{0, 0x41546f, 1}, {1, 0x4156ea, 1}, {2, 0, 0}, {0x100, 0, 0}, {0x10000, 0, 0}, {0xffffffffu, 0, 0}};
+        for (i = 0; i < sizeof SELS / sizeof SELS[0]; i++) {
+            int c = 0;
+            setup_thread(0, 0, 0, SELS[i].sel);
+            script_poke(0x52a2b0, 0, fx.c + 8, 4, 1);
+            expect_begin();
+            r = m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host);
+            CK(r == 0);
+            CK(L.n == 3 + SELS[i].calls);
+            if (SELS[i].calls) {
+                ck_call(c, SELS[i].callee, 0x5e2dbe, 1);
+                ck_arg(c, 0, OBJ_VA);
+                c++;
+            }
+            ck_call(c, 0x44c4ab, 0, 1);
+            ck_arg(c, 0, VA_G);
+            CK(get32(L.c[c].snap_g, 0) == 1 && get16(L.c[c].snap_g, W1CC) == 0);     /* 0x44c479 stored the state 1; the word is set after */
+            c++;
+            ck_call(c, 0x52a2b0, 0, 1);
+            ck_arg(c, 0, 1);
+            c++;
+            ck_call(c, 0x51ec84, 0, 2);
+            set32(exp_g, 0, 1);
+            set16(exp_g, W1CC, 1);
+            set32(exp_c, 8, 1);
+            expect_end();
+        }
+    }
+    /* state 2: 0x44c479 returns 2 -> no switch, no 0x44c4ab, the word stays 0; only the Sleep */
+    setup_thread(0, 0, 2, 0);
+    script_poke(0x52a2b0, 0, fx.c + 8, 4, 1);
+    expect_begin();
+    CK(m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host) == 0);
+    CK(L.n == 2);
+    ck_call(0, 0x52a2b0, 0, 1);
+    ck_call(1, 0x51ec84, 0, 2);
+    set32(exp_c, 8, 1);
+    expect_end();
+    /* a non-zero word (movsx; the upper half is junk): no wait call at all */
+    {
+        static const uint16_t WORDS[] = {1, 0xffff, 0x8000, 0x0100, 0x00ff};
+        for (i = 0; i < sizeof WORDS / sizeof WORDS[0]; i++) {
+            setup_thread(0, WORDS[i], 1, 0);                             /* (state 1 would spin if 0x44c479 were called) */
+            script_poke(0x52a2b0, 0, fx.c + 8, 4, 1);
+            expect_begin();
+            CK(m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host) == 0);
+            CK(L.n == 2);
+            ck_call(0, 0x52a2b0, 0, 1);
+            set32(exp_c, 8, 1);
+            expect_end();
+        }
+    }
+    /* a word whose low half is zero and whose upper half is not: still zero */
+    setup_thread(0, 0, 0, 5);
+    set16(fx.g, W1CC + 2, 0x1234);
+    script_poke(0x52a2b0, 0, fx.c + 8, 4, 1);
+    CK(m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host) == 0);
+    CK(L.n == 3 && get16(fx.g, W1CC) == 1 && get16(fx.g, W1CC + 2) == 0x1234);
+    /* three passes: the second finds the word set (Sleep only), the third the stop; the state is waited on in the first (state 1 -> ended by the 1st Sleep) */
+    setup_thread(0, 0, 1, 0);
+    script_poke(0x52a2b0, 0, fx.g, 4, 3);                               /* inside 0x44c479: the state leaves 1 */
+    script_poke(0x52a2b0, 2, fx.c + 8, 4, 1);
+    r = m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host);
+    CK(r == 0);
+    CK(L.n == 6);                                                       /* Sleep (wait), 0x41546f, 0x44c4ab, Sleep, Sleep, AfxEndThread */
+    ck_call(0, 0x52a2b0, 0, 1);
+    ck_call(1, 0x41546f, 0x5e2dbe, 1);
+    ck_call(2, 0x44c4ab, 0, 1);
+    ck_call(3, 0x52a2b0, 0, 1);
+    ck_call(4, 0x52a2b0, 0, 1);
+    ck_call(5, 0x51ec84, 0, 2);
+    /* native rejection: the flag never comes */
+    setup_thread(0, 1, 0, 0);
+    fx.w.native_spin_limit = 7;
+    CK(m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host) == FL27A_REJECTED);
+    CK(L.n == 7);
+    setup_thread(0, 0, 1, 0);                                           /* the wait of 0x44c479 never ends */
+    fx.w.native_spin_limit = 4;
+    CK(m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host) == FL27A_REJECTED);
+    CK(L.n == 4);
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -857,6 +976,14 @@ static void test_sweep(void)
         set32(fx.c, 4, rnd() % 2 ? VA_B + (rnd() % 16) : 0);
         m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
         m4159db_dispatch_piece(fx.self, VA_A + (rnd() % 0x80), (uint16_t)rnd(), &fx.w, &fx.host);
+        set32(fx.c, 8, 0);
+        set16(fx.g, W1CC, (uint16_t)(rnd() % 3));
+        set32(fx.g, 0, rnd() % 4);
+        set32(fx.g, SEL172, rnd() % 3);
+        script_poke(0x52a2b0, (int)(rnd() % 3), fx.c + 8, 4, 1);
+        script_poke(0x52a2b0, 0, fx.g, 4, rnd() % 4);
+        fx.w.native_spin_limit = 50;
+        (void)m4c0c7d_movie_thread(VA_C + 8, &fx.w, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -881,6 +1008,7 @@ static const struct {
     {"test_m4bf315_bink_open", test_m4bf315_bink_open},
     {"test_m4c2dfb_free_pair", test_m4c2dfb_free_pair},
     {"test_m4159db_dispatch_piece", test_m4159db_dispatch_piece},
+    {"test_m4c0c7d_movie_thread", test_m4c0c7d_movie_thread},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

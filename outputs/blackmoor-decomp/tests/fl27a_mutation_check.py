@@ -48,6 +48,7 @@ FUNCS = {'4de1f5': 'test_4de1f5_clear_flags',
          '4bf315': 'test_4bf315_bink_open',
          '4c2dfb': 'test_4c2dfb_free_pair',
          '4159db': 'test_4159db_dispatch_piece',
+         '4c0c7d': 'test_4c0c7d_movie_thread',
          # FUNCS-END
          }
 
