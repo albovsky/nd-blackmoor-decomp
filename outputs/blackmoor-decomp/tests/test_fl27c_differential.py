@@ -113,6 +113,8 @@ class Fl27cDifferential(DiffBase):
         self.lib.shim_fl27c(sc.fn, self_ptr, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result))
         if fx.SPECS[sc.key].get('retself'):
             self.assertEqual(result.value, 0, 'the constructor must return self')
+        if fx.SPECS[sc.key].get('ret16'):
+            self.assertEqual(result.value & 0xffff, orig.eax & 0xffff, 'return value (ax)')
         if fx.SPECS[sc.key].get('ret'):
             self.assertEqual(result.value & 0xffffffff, orig.eax & 0xffffffff, 'return value')
         for a, arr in arrays:
@@ -150,6 +152,10 @@ class Fl27cDifferential(DiffBase):
     def test_414ceb_open_map(self):
         """FL-27c: differential test of m414ceb_open_map (original 0x414ceb)"""
         self.run_key('414ceb')
+
+    def test_4c2e97_read_pixel_format(self):
+        """FL-27c: differential test of m4c2e97_read_pixel_format (original 0x4c2e97)"""
+        self.run_key('4c2e97')
 
     # CASES-END
 

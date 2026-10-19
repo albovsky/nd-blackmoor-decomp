@@ -50,7 +50,7 @@ __attribute__((unused)) static uint16_t get16(const uint8_t *o, size_t off)
 }
 
 static struct {
-    uint8_t self[SELF_SZ], obj[OBJ_SZ], vt[0x100], name[0x200], arg[ARG_SZ], file[0x400], dest[0x400];
+    uint8_t self[SELF_SZ], obj[OBJ_SZ], vt[0x100], name[0x200], arg[ARG_SZ], file[0x400], dest[0x400], big[0x38e0];
     Fl27cWorld w;
     Fl18Host host;
 } fx;
@@ -67,6 +67,7 @@ static struct {
         uint8_t snap_self[SNAP];
         uint8_t snap_obj[OBJ_SZ];
         uint8_t snap_arg[ARG_SZ];
+        uint8_t snap_big[0x40];
         uint32_t w_63a58a;
     } c[MAXCALL];
 } L;
@@ -103,6 +104,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         memcpy(L.c[i].snap_self, fx.self, SNAP);
         memcpy(L.c[i].snap_obj, fx.obj, OBJ_SZ);
         memcpy(L.c[i].snap_arg, fx.arg, ARG_SZ);
+        memcpy(L.c[i].snap_big, fx.big + 0x38a0, 0x40);
         L.c[i].w_63a58a = fx.w.value_63a58a;
     }
     L.n++;
@@ -702,6 +704,210 @@ static void test_m414ceb_open_map(void)
     expect_end();
 }
 
+/* ---- 0x4c2e97 -------------------------------------------------------------------------------------------------------------------- */
+
+#define BIG_SZ 0x38e0
+#define big fx.big
+static uint8_t exp_big[BIG_SZ];
+
+/* the descriptor the method is to fill: the effect hook copies what the original passes (zeroed, size and flags) and then stores these */
+static struct {
+    uint32_t hr;
+    uint32_t m[3], bpp, flags;
+    uint8_t seen[0x7c];
+    uintptr_t seen_ptr;
+    int called;
+} DS;
+
+static void desc_effect(int i, uint32_t callee, const uintptr_t *args)
+{
+    (void)i;
+    if (callee == VT_STUB_B) {
+        uint8_t *d = (uint8_t *)args[1];
+        memcpy(DS.seen, d, 0x7c);
+        DS.seen_ptr = args[1];
+        DS.called++;
+        if (DS.hr == 0) {
+            set32(d, 0x58, DS.m[0]);
+            set32(d, 0x5c, DS.m[1]);
+            set32(d, 0x60, DS.m[2]);
+            set32(d, 0x54, DS.bpp);
+            set32(d, 0x4c, DS.flags);
+        }
+    }
+}
+
+static void pf_setup(uint32_t hr, uint32_t m0, uint32_t m1, uint32_t m2, uint32_t bpp, uint32_t flags, uint8_t g57, uint8_t g58, uint8_t g59)
+{
+    size_t b;
+    setup();
+    ctor_object();
+    set32(fx.vt, 0x58, VT_STUB_B);
+    for (b = 0; b < BIG_SZ; b++) big[b] = (uint8_t)(b * 5 + 1);
+    memset(&DS, 0, sizeof DS);
+    DS.hr = hr;
+    DS.m[0] = m0;
+    DS.m[1] = m1;
+    DS.m[2] = m2;
+    DS.bpp = bpp;
+    DS.flags = flags;
+    script(VT_STUB_B, 1, &hr);
+    g_effect = desc_effect;
+    fx.w.byte_5b0257 = g57;
+    fx.w.byte_5b0258 = g58;
+    fx.w.byte_5b0259 = g59;
+    memcpy(exp_big, big, BIG_SZ);
+    expect_begin();
+}
+
+static void pf_end(int line)
+{
+    if (!g_failed && memcmp(exp_big, big, BIG_SZ) != 0) {
+        g_failed = 1;
+        snprintf(g_msg, sizeof g_msg, "line %d: the object differs from the expected copy", line);
+    }
+    expect_end_at(line);
+}
+
+static void ck_desc_sent(void)
+{
+    size_t b;
+    CK(DS.called == 1);
+    CK(get32(DS.seen, 0) == 0x7c && get32(DS.seen, 4) == 0x1000);
+    for (b = 8; b < 0x7c; b++) CK(DS.seen[b] == 0);
+}
+
+typedef struct PfRow {
+    uint32_t m[3];
+    uint8_t g[3];
+    uint8_t cnt[3], byte[3], kind[3], gout[3];
+    uint16_t word;
+    uint32_t a8;
+} PfRow;
+
+static const PfRow PFROWS[] = {
+    {{0xf800, 0x07e0, 0x001f}, {0xff, 0xff, 0xff}, {11, 5, 0}, {0x1f, 0x3f, 0x1f}, {5, 6, 5}, {0x1f, 0x7e, 0x1f}, 0xffdf, 1},
+    {{0x7c00, 0x03e0, 0x001f}, {0xff, 0xff, 0xff}, {10, 5, 0}, {0x1f, 0x1f, 0x1f}, {5, 5, 5}, {0x1f, 0x1f, 0x1f}, 0x7fff, 0},
+    {{0xff0000, 0xff00, 0xff}, {0xff, 0xff, 0xff}, {16, 8, 0}, {0xff, 0xff, 0xff}, {6, 6, 6}, {0xfe, 0xfe, 0xfe}, 0xfefe, 1},
+    {{0x001f, 0x07e0, 0xf800}, {0x55, 0xaa, 0x0f}, {0, 5, 11}, {0x1f, 0x3f, 0x1f}, {5, 6, 5}, {0x15, 0x54, 0x0f}, 0x7a95, 1},
+    {{0x80000000u, 0x70, 1}, {0x81, 0xff, 0x03}, {31, 4, 0}, {1, 7, 1}, {6, 6, 6}, {2, 0xe, 2}, 0x00e2, 1},
+    {{0x11f, 0x83e0, 0xf8000000u}, {0xf0, 0x0f, 0xff}, {0, 5, 27}, {0x1f, 0x1f, 0x1f}, {6, 6, 5}, {0x20, 0x1e, 0x1f}, 0x03e0, 1},
+    {{0x3e, 0x7c0, 0x1f}, {0x1f, 0x1f, 0x1f}, {1, 6, 0}, {0x1f, 0x1f, 0x1f}, {5, 5, 5}, {0x1f, 0x1f, 0x1f}, 0x07ff, 0},
+    {{0xff, 0xff00, 0xff0000}, {0x80, 0xc0, 0x7f}, {0, 8, 16}, {0xff, 0xff, 0xff}, {6, 6, 6}, {0x00, 0x80, 0xfe}, 0x8000, 1},
+};
+
+static void exp_pf_rows(const PfRow *r)
+{
+    static const uint32_t cnt_off[3] = {0x38c2, 0x38c1, 0x38c0}, byte_off[3] = {0x38c6, 0x38c5, 0x38c4}, kind_off[3] = {0x38ca, 0x38c9, 0x38c8};
+    int i;
+    for (i = 0; i < 3; i++) {
+        exp_big[cnt_off[i]] = r->cnt[i];
+        exp_big[byte_off[i]] = r->byte[i];
+        exp_big[kind_off[i]] = r->kind[i];
+    }
+    set16(exp_big, 0x38d0, r->word);
+    exp_big[0x38d2] = (uint8_t)(r->word & 0xff);
+    exp_big[0x38d3] = (uint8_t)(r->word >> 8);
+    set32(exp_big, 0x38a8, r->a8);
+}
+
+static void test_m4c2e97_read_pixel_format(void)
+{
+    unsigned k, j;
+    /* the rows: masks, the three byte globals, the stored counts, mask bytes and kinds, the globals afterwards, the word, the flag dword */
+    for (k = 0; k < sizeof PFROWS / sizeof PFROWS[0]; k++) {
+        const PfRow *r = &PFROWS[k];
+        pf_setup(0, r->m[0], r->m[1], r->m[2], 0, 0, r->g[0], r->g[1], r->g[2]);
+        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 1);
+        exp_pf_rows(r);
+        CK(fx.w.byte_5b0257 == r->gout[0] && fx.w.byte_5b0258 == r->gout[1] && fx.w.byte_5b0259 == r->gout[2]);
+        CKN(1);
+        CKC(0, VT_STUB_B, OBJ_VA, OBJ_VA, DS.seen_ptr);
+        CK(DS.seen_ptr > 0xffffffffu || sizeof(void *) == 4);
+        ck_desc_sent();
+        pf_end(__LINE__);
+    }
+    /* a failing method: the report with the converted code, nothing else happens (the globals and the object stay) */
+    for (k = 0; k < 4; k++) {
+        static const uint32_t hrs[] = {1, 0x80004005u, 0xffffffffu, 0x100};
+        uint32_t text = 0x1234 + k;
+        pf_setup(hrs[k], 1, 2, 4, 0, 0, 0xaa, 0xbb, 0xcc);
+        script(0x4c88c7, 1, &text);
+        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 0);
+        CKN(3);
+        CKC(0, VT_STUB_B, OBJ_VA, OBJ_VA, DS.seen_ptr);
+        CKC(1, 0x4c88c7, (uintptr_t)big, hrs[k]);
+        CKC(2, 0x42639d, 0x583979, 0x553f14, text);
+        CK(fx.w.byte_5b0257 == 0xaa && fx.w.byte_5b0258 == 0xbb && fx.w.byte_5b0259 == 0xcc);
+        ck_desc_sent();
+        pf_end(__LINE__);
+    }
+    /* the debug trace: row 0 (565) with a bit depth in the descriptor: the 16 arguments in order, then the format check calls for the flag bits 2, 0x20, 0x40, 0x400 (other bits ignored) */
+    for (k = 0; k < 16 + 5; k++) {
+        static const int16_t on[] = {0, 1, 0x100, -32768, -1};
+        uint32_t flags = (0x03030000u | 0x1b0) & ~(2u | 0x20 | 0x40 | 0x400);
+        int want[4], nwant = 0, q;
+        static const uint32_t strs[4] = {0x55400c, 0x55403c, 0x554074, 0x5540a0}, bits[4] = {2, 0x20, 0x40, 0x400};
+        const PfRow *r = &PFROWS[0];
+        int dbg_on = k >= 16 ? on[k - 16] != 0 : 1;
+        pf_setup(0, r->m[0], r->m[1], r->m[2], 0x12345678u, 0, r->g[0], r->g[1], r->g[2]);
+        if (k < 16) {
+            for (q = 0; q < 4; q++)
+                if ((k >> q) & 1) flags |= bits[q];
+            fx.w.word_63a4cd = 1;
+        } else {
+            fx.w.word_63a4cd = on[k - 16];
+            flags |= 2 | 0x20 | 0x40 | 0x400;
+        }
+        DS.flags = flags;
+        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 1);
+        exp_pf_rows(r);
+        for (q = 0; q < 4; q++)
+            if (dbg_on && (flags & bits[q])) want[nwant++] = q;
+        CKN(1 + (dbg_on ? 2 + nwant : 0));
+        if (dbg_on) {
+            const uintptr_t t[] = {0x63888b, 0x553f30, 11, 0x1f, 5, 5, 0x3f, 6, 0, 0x1f, 5, 1, 0xffdf, 0xff, 0xdf, 0x12345678u};
+            ck_call_at(__LINE__, 1, 0x50ca3e, 0, 16, t);
+            CKC(2, 0x44a2b7, 0, 0x63888b);
+            for (q = 0; q < nwant; q++) CKC(3 + q, 0x44a2b7, 0, strs[want[q]]);
+            /* the trace sees the finished object and globals */
+            CK(get32(L.c[1].snap_big, 8) == 1 && get16(L.c[1].snap_big, 0x30) == 0xffdf);
+        }
+        pf_end(__LINE__);
+    }
+    /* the kind test is on the whole shifted dword (0x1f), not on its low byte: 0x11f and 0x83e0 are kind 6 with the mask byte 0x1f (rows 5) */
+    /* native rejection: a zero mask never ends the original's shift loop; the masks before it are stored, nothing after */
+    for (k = 0; k < 3; k++) {
+        uint32_t m[3] = {0xf800, 0x07e0, 0x001f};
+        m[k] = 0;
+        pf_setup(0, m[0], m[1], m[2], 0, 0, 0xff, 0xff, 0xff);
+        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 2);
+        if (k >= 1) {
+            exp_big[0x38c2] = 11;
+            exp_big[0x38c6] = 0x1f;
+            exp_big[0x38ca] = 5;
+        }
+        if (k >= 2) {
+            exp_big[0x38c1] = 5;
+            exp_big[0x38c5] = 0x3f;
+            exp_big[0x38c9] = 6;
+        }
+        CK(fx.w.byte_5b0257 == 0xff && fx.w.byte_5b0258 == 0xff && fx.w.byte_5b0259 == 0xff);
+        CKN(1);
+        pf_end(__LINE__);
+    }
+    /* every single-bit red mask (count = the bit number, the shifted mask 1 is kind 6 with the byte 1); green and blue stay 0x1f */
+    for (j = 0; j < 32; j++) {
+        pf_setup(0, 1u << j, 0x1f, 0x1f, 0, 0, 0xff, 0xff, 0xff);
+        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 1);
+        CK(big[0x38c2] == j && big[0x38c6] == 1 && big[0x38ca] == 6);
+        CK(big[0x38c1] == 0 && big[0x38c5] == 0x1f && big[0x38c9] == 5 && big[0x38c0] == 0 && big[0x38c4] == 0x1f && big[0x38c8] == 5);
+        CK(fx.w.byte_5b0257 == 2 && fx.w.byte_5b0258 == 0x1f && fx.w.byte_5b0259 == 0x1f);
+        CK(get32(big, 0x38a8) == 1);
+        CK(get16(big, 0x38d0) == (uint16_t)((2u << j) | (0x1fu) | (0x1fu)));
+    }
+}
+
 /*TESTS*/
 
 /* ---- sweep (for the sanitiser builds) -------------------------------------------------------------------------------------------- */
@@ -744,6 +950,12 @@ static void test_sweep_bounded(void)
         map_scripts(h, m, v, a);
         (void)m414ceb_open_map(fx.self, fx.arg, &fx.w, &fx.host);
     }
+    for (i = 0; i < 300; i++) {
+        uint32_t m0 = rnd() % 16 == 0 ? 0 : (rnd() << 8) ^ rnd(), m1 = rnd() % 16 == 0 ? 0 : rnd() << (rnd() % 24), m2 = rnd() % 16 == 0 ? 0 : (rnd() >> 3) << (rnd() % 16);
+        pf_setup(rnd() % 8 == 0 ? rnd() | 1 : 0, m0, m1, m2, rnd(), rnd(), (uint8_t)rnd(), (uint8_t)rnd(), (uint8_t)rnd());
+        fx.w.word_63a4cd = (int16_t)(rnd() % 3);
+        (void)m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host);
+    }
     /*SWEEPS*/
 }
 
@@ -765,6 +977,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4497a0_construct);
     RUN(test_m414ceb_open_map);
+    RUN(test_m4c2e97_read_pixel_format);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

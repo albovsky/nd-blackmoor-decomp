@@ -210,6 +210,8 @@ def run_original(sc):
     h.update(repr(calls).encode())
     if SPECS[sc.key].get('ret'):
         h.update(struct.pack('<I', orig.eax))
+    if SPECS[sc.key].get('ret16'):
+        h.update(struct.pack('<H', orig.eax & 0xffff))
     for name in sorted(orig.memory):
         h.update(name.encode() + orig.memory[name])
     return orig, calls, h.hexdigest()
@@ -413,7 +415,63 @@ def gen_414ceb(rng, n):
     return make('414ceb', areas, stubs, g, [od.region_va(1)], (od.region_va(1),), (kind, *rest), iat=iat)
 
 
+def make_mask(rng, kind, shift):
+    """A colour mask whose lowest set bit is `shift`: kind 5 gives 0x1f << shift, kind 6 any other odd pattern."""
+    if kind == 5:
+        return (0x1f << shift) & 0xffffffff
+    while True:
+        width = 32 - shift
+        pattern = (rng.getrandbits(rng.choice([1, 2, 3, 6, 8, 16, width])) | 1) & ((1 << width) - 1)
+        if pattern != 0x1f:
+            return (pattern << shift) & 0xffffffff
+
+
+FLAG_BITS = (0x2, 0x20, 0x40, 0x400)
+
+
+def profiles_4c2e97():
+    profiles = [('hrfail', hr, d) for hr in (1, 0x80004005, 0xffffffff, 0x100) for d in (0, 1)]
+    profiles += [('rgb', kinds, d, flags) for kinds in range(8) for d in (0, 1) for flags in (0, 2, 0x20, 0x40, 0x400, 0x462, 0xffffffff, 0x1b3)]
+    profiles += [('shift', ch, c) for ch in range(3) for c in range(32)]
+    profiles += [('flags', subset) for subset in range(16)]
+    return profiles
+
+
+def gen_4c2e97(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4c2e97())
+    dbg = {'hrfail': rest[1] if kind == 'hrfail' else 0, 'rgb': rest[1] if kind == 'rgb' else 0}.get(kind, 1)
+    shifts = [rng.choice([0, 0, 1, 2, 5, 6, 11, 16, 31, rng.randrange(32)]) for _ in range(3)]
+    kinds = [rng.choice([5, 6]) for _ in range(3)]
+    flags = rng.randrange(1 << 32)
+    if kind == 'rgb':
+        kinds = [5 if (rest[0] >> i) & 1 else 6 for i in range(3)]
+        flags = rest[2]
+    elif kind == 'shift':
+        shifts[rest[0]] = rest[1]
+        kinds[rest[0]] = 6 if rest[1] > 27 else rng.choice([5, 6])
+    elif kind == 'flags':
+        flags = (rng.randrange(1 << 32) & ~sum(FLAG_BITS)) | sum(b for i, b in enumerate(FLAG_BITS) if (rest[0] >> i) & 1)
+    masks = [make_mask(rng, kinds[i], min(shifts[i], 27) if kinds[i] == 5 else shifts[i]) for i in range(3)]
+    hr = rest[0] if kind == 'hrfail' else 0
+    selfd = bytearray(rng.randbytes(0x38e0))
+    surf = bytearray(rng.randbytes(0x40))
+    put32(surf, 0, od.region_va(2))
+    vt = vtable_area(0x58, VT_STUB_A, rng)
+    bpp = rng.choice([0, 8, 15, 16, 24, 32, rng.randrange(1 << 32)])
+    writes = [] if hr else [(0, 1, 0x58, 4, masks[0]), (0, 1, 0x5c, 4, masks[1]), (0, 1, 0x60, 4, masks[2]), (0, 1, 0x54, 4, bpp), (0, 1, 0x4c, 4, flags)]
+    probe = [('self', 0x38a0, 0x40), ('g:byte_5b0257', 0, 1), ('g:byte_5b0258', 0, 1), ('g:byte_5b0259', 0, 1)]
+    stubs = {0x4c88c7: stub(0x4c88c7, THISCALL(1), probe, results=[rng.randrange(1 << 32)]), 0x42639d: stub(0x42639d, THISCALL(2), probe),
+             0x50ca3e: stub(0x50ca3e, CDECL(16), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe),
+             VT_STUB_A: stub(VT_STUB_A, (2, True, 8), probe, results=[hr], writes=writes, derefs=[(1, 0x7c)])}
+    g, nbr = debug_areas(rng, DBG_VALUES[1 + (variant + n) % (len(DBG_VALUES) - 1)] if dbg else 0)
+    g.update({'byte_5b0257': rng.choice([0, 0xff, 0x80, 0x7f, rng.randrange(256)]), 'byte_5b0258': rng.choice([0, 0xff, 0x81, 0x40, rng.randrange(256)]),
+              'byte_5b0259': rng.choice([0, 0xff, 0xc0, 0x3f, rng.randrange(256)])})
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('surf', od.region_va(1), surf, image=False), vt, *nbr]
+    return make('4c2e97', areas, stubs, g, [od.region_va(1)], (od.region_va(1),), (kind, *rest))
+
+
 SPECS = {
+    '4c2e97': dict(id=3, va=0x4c2e97, size=1208, gen=gen_4c2e97, cleanup=4, ret16=True, n=len(profiles_4c2e97()) * 2),
     '414ceb': dict(id=2, va=0x414ceb, size=806, gen=gen_414ceb, cleanup=4, n=len(profiles_414ceb()) * 3),
     '4497a0': dict(id=1, va=0x4497a0, size=728, gen=gen_4497a0, cleanup=0x10, retself=True, n=len(profiles_4497a0()) * 3),
 }

@@ -28,6 +28,7 @@ extern "C" {
 typedef struct Fl27cWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
     uint32_t value_63a58a;     /* 0x414ceb: set to 4 on every failure report */
+    uint8_t byte_5b0257, byte_5b0258, byte_5b0259;   /* 0x4c2e97: the three colour byte masks, each ANDed with a field and shifted left by one */
 } Fl27cWorld;
 
 /* 0x4497a0, constructor of the thread wrapper, `ret 0x10`, `self` = this (ecx): the stack arguments are `arg8` (a dword passed on to 0x524aff), `name` (the original address of a
@@ -58,6 +59,19 @@ uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t
  * and before the copy. Caller-validated: the string at arg+0x4d must be terminated inside the record, `arg` must hold the record (0x151 bytes plus the text), and Fl18Host.resolve must give memory valid for the 0x21 header
  * bytes at v, the n bytes after them and the n bytes at a (it is called unchecked). The callees are host calls and are not exercised for effects on `arg` (the scripted writes of the oracle model a mapped file). */
 int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const Fl18Host *host);
+
+/* 0x4c2e97, thiscall (`self` = ecx, a large object of at least 0x38d4 bytes), `ret 4`, returns ax (1 or 0): the stack argument `surf` is the original address of a surface object (a COM-style object: the dword [surf]
+ * is the vtable, the entry 0x58 is the method that fills a 0x7c-byte descriptor). A zeroed descriptor with [0] = 0x7c and [4] = 0x1000 is passed to that method as (surf, &descriptor) (stdcall, this = surf in
+ * ecx too). A non-zero result hr: t = 0x4c88c7(this self, hr), 0x42639d(this 0x583979, 0x553f14, t), return 0. Otherwise the three masks red = descriptor[+0x58], green = [+0x5c], blue = [+0x60] are
+ * processed in that order, each: count the low zero bits (cnt, a byte) while shifting the mask right, store cnt in the byte [self + 0x38c2 / 0x38c1 / 0x38c0], the shifted mask's low byte in
+ * [self + 0x38c6 / 0x38c5 / 0x38c4] and the kind 5 (the shifted mask == 0x1f as a dword) or 6 in [self + 0x38ca / 0x38c9 / 0x38c8]. Then the three byte globals are ANDed with the three mask bytes (0x5b0257
+ * with [0x38c6], 0x5b0258 with [0x38c5], 0x5b0259 with [0x38c4]), each global whose kind is not 5 is shifted left by one (as a byte), and the word [self + 0x38d0] = (g57 << [0x38c2]) | (g58 << [0x38c1]) |
+ * (g59 << [0x38c0]) (32-bit, low word stored), the bytes [self + 0x38d2] and [0x38d3] are its low and high bytes, and the dword [self + 0x38a8] is 0 when all three kinds are 5, else 1. With the
+ * debug word: 0x50ca3e(0x63888b, 0x553f30, 14 more values: the bytes 38c2 38c6 38ca 38c1 38c5 38c9 38c0 38c4 38c8, the dword 38a8, the word 38d0, the bytes 38d3 38d2, descriptor[+0x54]) and 0x44a2b7(0x63888b);
+ * then 0x44a2b7 with 0x55400c / 0x55403c / 0x554074 / 0x5540a0 for the descriptor flags [+0x4c] bits 0x2 / 0x20 / 0x40 / 0x400, in that order. Returns 1.
+ * Native rejection (not in the original, whose shift loop never ends on a zero mask): a mask of 0 returns 2 at its own loop, after the stores of the masks before it. Caller-validated: `self` holds the object,
+ * Fl18Host.resolve must give the surface object and its vtable (the host call is unchecked). The descriptor is a local; the method must fill it (the port does not model its effect on anything else). */
+int32_t m4c2e97_read_pixel_format(uint8_t *self, uint32_t surf, Fl27cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

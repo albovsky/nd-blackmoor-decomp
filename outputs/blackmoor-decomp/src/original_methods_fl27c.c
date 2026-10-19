@@ -21,6 +21,11 @@ static int32_t rds16(const uint8_t *base, ptrdiff_t off)
     return (int16_t)rd16(base, off);
 }
 
+static void wr16(uint8_t *base, ptrdiff_t off, uint16_t v)
+{
+    memcpy(base + off, &v, sizeof v);
+}
+
 static void wr32(uint8_t *base, ptrdiff_t off, uint32_t v)
 {
     memcpy(base + off, &v, sizeof v);
@@ -250,4 +255,86 @@ int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const F
     copy_bytes(object_at(host, rd32(arg, 0x21)), object_at(host, rd32(arg, 0x2d) + 0x21), n);
     wr32(arg, 0x41, (uint32_t)rds16(arg, 0x17) * (uint32_t)rds16(arg, 0x19) * (uint32_t)(arg[0x1b] >> 3));
     return 0;
+}
+
+/* ---- 0x4c2e97 ------------------------------------------------------------------------------------------------------------------ */
+
+/* One colour mask of 0x4c2e97: `while ((mask & 1) == 0) { mask >>= 1; ++cnt; }`, then the three stores. Returns 0 for a zero mask (the original never leaves the loop). */
+static int mask_fields(uint8_t *self, uint8_t *desc, ptrdiff_t desc_off, ptrdiff_t count_off, ptrdiff_t mask_off, ptrdiff_t kind_off)
+{
+    uint32_t mask = rd32(desc, desc_off);
+    uint8_t count = 0;
+    if (mask == 0) return 0;
+    while ((mask & 1u) == 0) {
+        mask >>= 1;
+        count = (uint8_t)(count + 1);
+    }
+    wr32(desc, desc_off, mask);
+    self[count_off] = count;
+    self[mask_off] = (uint8_t)mask;
+    self[kind_off] = mask == 0x1f ? 5 : 6;
+    return 1;
+}
+
+/* 0x4c2e97, `ret 4`: see the header. [ebp-0x88] is `self`, [ebp-0x80] the 0x7c-byte descriptor, [ebp-4] the method's result, [ebp-0x84] the shift counter. The virtual call is
+ * `mov ecx,[ebp+8]; mov edx,[ecx]; push [ebp+8]; call [edx+0x58]` with the second argument &descriptor pushed first. */
+int32_t m4c2e97_read_pixel_format(uint8_t *self, uint32_t surf, Fl27cWorld *world, const Fl18Host *host)
+{
+    uint8_t desc[0x7c];
+    uint32_t vtable, entry, hr, value;
+    uintptr_t args[16];
+    uint32_t flags;
+    memset(desc, 0, sizeof desc);
+    wr32(desc, 0, 0x7c);
+    wr32(desc, 4, 0x1000);
+    vtable = rd32(object_at(host, surf), 0);
+    entry = rd32(object_at(host, vtable), 0x58);
+    args[0] = surf;
+    args[1] = (uintptr_t)desc;
+    hr = callv(host, entry, surf, args, 2);
+    if (hr != 0) {
+        uint32_t text = call1(host, 0x4c88c7, (uintptr_t)self, hr);
+        call2(host, 0x42639d, 0x583979, 0x553f14, text);
+        return 0;
+    }
+    if (!mask_fields(self, desc, 0x58, 0x38c2, 0x38c6, 0x38ca)) return 2;
+    if (!mask_fields(self, desc, 0x5c, 0x38c1, 0x38c5, 0x38c9)) return 2;
+    if (!mask_fields(self, desc, 0x60, 0x38c0, 0x38c4, 0x38c8)) return 2;
+    world->byte_5b0257 = (uint8_t)(world->byte_5b0257 & self[0x38c6]);
+    world->byte_5b0258 = (uint8_t)(world->byte_5b0258 & self[0x38c5]);
+    world->byte_5b0259 = (uint8_t)(world->byte_5b0259 & self[0x38c4]);
+    if (self[0x38ca] != 5) world->byte_5b0257 = (uint8_t)(world->byte_5b0257 << 1);
+    if (self[0x38c9] != 5) world->byte_5b0258 = (uint8_t)(world->byte_5b0258 << 1);
+    if (self[0x38c8] != 5) world->byte_5b0259 = (uint8_t)(world->byte_5b0259 << 1);
+    value = ((uint32_t)world->byte_5b0257 << self[0x38c2]) | ((uint32_t)world->byte_5b0258 << self[0x38c1]) | ((uint32_t)world->byte_5b0259 << self[0x38c0]);
+    wr16(self, 0x38d0, (uint16_t)value);
+    self[0x38d2] = (uint8_t)(rd16(self, 0x38d0) & 0xff);
+    self[0x38d3] = (uint8_t)((rd16(self, 0x38d0) >> 8) & 0xff);
+    wr32(self, 0x38a8, self[0x38ca] == 5 && self[0x38c9] == 5 && self[0x38c8] == 5 ? 0u : 1u);
+    if (debug_on(world)) {
+        args[0] = 0x63888b;
+        args[1] = 0x553f30;
+        args[2] = self[0x38c2];
+        args[3] = self[0x38c6];
+        args[4] = self[0x38ca];
+        args[5] = self[0x38c1];
+        args[6] = self[0x38c5];
+        args[7] = self[0x38c9];
+        args[8] = self[0x38c0];
+        args[9] = self[0x38c4];
+        args[10] = self[0x38c8];
+        args[11] = rd32(self, 0x38a8);
+        args[12] = rd16(self, 0x38d0);
+        args[13] = self[0x38d3];
+        args[14] = self[0x38d2];
+        args[15] = rd32(desc, 0x54);
+        callv(host, 0x50ca3e, 0, args, 16);
+        call1(host, 0x44a2b7, 0, 0x63888b);
+        flags = rd32(desc, 0x4c);
+        if ((flags & 2u) != 0) call1(host, 0x44a2b7, 0, 0x55400c);
+        if ((flags & 0x20u) != 0) call1(host, 0x44a2b7, 0, 0x55403c);
+        if ((flags & 0x40u) != 0) call1(host, 0x44a2b7, 0, 0x554074);
+        if ((flags & 0x400u) != 0) call1(host, 0x44a2b7, 0, 0x5540a0);
+    }
+    return 1;
 }
