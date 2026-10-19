@@ -1,5 +1,38 @@
 [
  {
+  "va": "0x473206",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25a.c",
+   "symbol": "m473206_click"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25a_direct_test.c",
+    "test_id": "test_m473206_click"
+   },
+   {
+    "path": "tests/test_fl25a_direct.py",
+    "test_id": "Fl25aDirect.test_473206_click"
+   },
+   {
+    "path": "tests/test_fl25a_differential.py",
+    "test_id": "Fl25aDifferential.test_473206_click"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25a_original_oracle.py",
+   "window": [
+    "0x473206",
+    "0x473651"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m473206_click (click handler (ret 8): centre of a table rectangle, 0x4e22fd, record-object rectangle announcement, loop over four block rows (byte or 0x4d5316), 0x473f7d, 0x4eb184, 0x47409e, tick and 0x47512a). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+ },
+ {
   "va": "0x45565f",
   "class": "native_oracle_verified",
   "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",

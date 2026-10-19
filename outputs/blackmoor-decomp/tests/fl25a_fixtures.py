@@ -101,9 +101,9 @@ class Original20(od.Original):
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12), 0x458262: (0, True, 0), 0x45839e: (2, True, 8), 0x45879e: (1, True, 4), 0x455ab8: (0, True, 0), 0x455a63: (0, True, 0), 0x455a0e: (0, True, 0), 0x455b2e: (0, True, 0), 0x455c4f: (0, True, 0)}
+SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12), 0x458262: (0, True, 0), 0x45839e: (2, True, 8), 0x45879e: (1, True, 4), 0x455ab8: (0, True, 0), 0x455a63: (0, True, 0), 0x455a0e: (0, True, 0), 0x455b2e: (0, True, 0), 0x455c4f: (0, True, 0), 0x4e22fd: (2, True, 8), 0x473651: (0, True, 0), 0x4d5316: (2, True, 8), 0x473f7d: (0, True, 0), 0x4eb184: (1, True, 4), 0x47409e: (0, True, 0), 0x47512a: (0, True, 0)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
-WORD_ARGS = {0x464ab5: (1,)}
+WORD_ARGS = {0x464ab5: (1,), 0x4e22fd: (0, 1)}
 RECORDS_VA = 0x5bb5e5
 REC = 0x8d
 
@@ -660,6 +660,105 @@ def gen_45565f(rng, n):
     return common('45565f', rng, d, obj, idx, sel, failing == 2, 0, stubs, now=0, profile=(kind, *rest), obj_bias=bias)
 
 
+def gen_473206(rng, n):
+    edges = ('hit', 'e0', 'e1', 'e2', 'e3')
+    profiles = [('gate',), ('r4e',)] + [('rect', f) for f in edges]
+    profiles += [('byte', k, f) for k in range(4) for f in edges] + [('call', k, r) for k in range(4) for r in ('nz', 'z')]
+    profiles += [('nohit', 'byte'), ('nohit', 'call'), ('allskip',)]
+    profiles += [('final', c, m1, z371) for c in ('eq', 'neg1') for m1 in (True, False) for z371 in (True, False)] + [('final', 'diff0', None, None), ('final', 'diff1', None, None)]
+    assert len(profiles) == 48
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    now = rng.choice([1000, 0x7fffffff, 0xffffff40, rng.randrange(1 << 32)])
+    d = bytearray(rng.randbytes(0x400))
+    put16(d, 0xc, idx)
+    set_gate(d, 'nz32', 0x7a, kind == 'gate', rng)
+    A, B = rng.choice([0, 1, 2, 3]), rng.choice([0, 1])
+    o2, o6 = rng.choice([0, 5, -7, 300, 0x7fffffff, rng.randrange(-500, 500)]), rng.choice([0, 9, -3, 200, rng.randrange(-500, 500)])
+    t40 = bytearray(rng.randbytes(0x60))
+    t8 = bytearray(rng.randbytes(0x20))
+    v0, v1 = rng.choice([0, 3, 100, -4, rng.randrange(0, 400)]), rng.choice([0, 7, 60, -2, rng.randrange(0, 400)])
+    wa, wb = rng.choice([1, 2, 5, 40, 0, -1, -9, 0x7fff]), rng.choice([1, 2, 7, 33, 0, -1, -4, 0x7fff])
+    put32(t40, A * 16 + B * 8, v0)
+    put32(t40, A * 16 + B * 8 + 4, v1)
+    put16(t8, A * 8 + B * 4, wa)
+    put16(t8, A * 8 + B * 4 + 2, wb)
+    m32 = 0xffffffff
+    left, top = (o2 + v0) & m32, (o6 + v1) & m32
+    right, bottom = (left + wa - 1) & m32, (top + wb - 1) & m32
+    s32 = lambda v: v - (1 << 32) if v & 0x80000000 else v
+    s16 = lambda v: v - (1 << 16) if v & 0x8000 else v
+    cx = s16((left + ((s32((right - left) & m32) + (1 if s32((right - left) & m32) < 0 else 0)) >> 1)) & 0xffff)
+    cy = s16((top + ((s32((bottom - top) & m32) + (1 if s32((bottom - top) & m32) < 0 else 0)) >> 1)) & 0xffff)
+    blk = bytearray(rng.randbytes(0x90))
+    ticks = bytearray(rng.randbytes(0x10))
+    obj = bytearray(rng.randbytes(0x600))
+    rect2 = (0x4f3, 0x4fb, 0x4ef, 0x4f7)
+    hit_k = rest[0] if kind in ('byte', 'call') else rng.choice([0, 1, 2, 3])
+    mode_byte = kind in ('byte', 'allskip', 'final') or (kind == 'nohit' and rest[0] == 'byte')
+    obj[0x106] = rng.choice([1, 0x80, 0xff, 7]) if mode_byte else 0
+    obj[0x107:0x10a] = rng.randbytes(3)
+    results4e = [rng.choice([1, 0x100, 0x80000000, 0xffffffff])] if kind == 'r4e' else [0]
+    rect_into(rng, obj, x, y, rect2, (0, 0, 0, 0), False)
+    if kind == 'rect':
+        edge_fail(rng, obj, x, y, rect2, None if rest[0] == 'hit' else rest[0])
+    elif kind in ('gate', 'r4e'):
+        rect_into(rng, obj, x, y, rect2, (0, 0, 0, 0), True)
+    NZ = [1, 0x100, 0xffffffff, 0x10000]
+    results_4d = []
+    has_target = kind in ('byte', 'call', 'final')
+    for k in range(4):
+        base = 0x10 + 16 * k
+        offs = (base + 4, base + 12, base, base + 8)
+        rect_into(rng, blk, cx, cy, offs, (0, 0, 0, 0), False)
+        put32(blk, 4 * k, 0)
+        if kind == 'allskip':
+            put32(blk, 4 * k, rng.choice(NZ))
+        elif has_target and k == hit_k:
+            if kind == 'call':
+                results_4d.append(rng.choice(NZ) if rest[1] == 'nz' else 0)
+            else:
+                edge_fail(rng, blk, cx, cy, offs, None if (kind == 'final' or rest[1] == 'hit') else rest[1])
+        elif has_target and k < hit_k:
+            skipped = rng.random() < 0.4
+            put32(blk, 4 * k, rng.choice(NZ) if skipped else 0)
+            if not skipped and kind == 'call':
+                results_4d.append(0)
+        elif kind == 'nohit' and rest[0] == 'call':
+            results_4d.append(0)
+    # the final stage
+    c = rest[0] if kind == 'final' else rng.choice(['eq', 'neg1', 'diff0', 'diff1'])
+    m1 = rest[1] if kind == 'final' and rest[0] in ('eq', 'neg1') else rng.random() < 0.5
+    z371 = rest[2] if kind == 'final' and rest[0] in ('eq', 'neg1') else rng.random() < 0.5
+    v = rng.choice([0, 5, -1, 0x7fff, -32768, 1234])
+    if c == 'eq':
+        r104, w3a29 = v, v
+    elif c == 'neg1':
+        r104, w3a29 = -1, rng.choice([0, 5, 0x7fff, -2])
+    else:
+        r104 = rng.choice([0, 5, 0x7fff, -32768, 1234])
+        w3a29 = rng.choice([x for x in (0, 5, -1, 0x7fff, 77) if x != r104])
+    struct.pack_into('<h', obj, 0x104, r104)
+    put32(blk, 0x80, 0xffffffff if m1 else rng.choice([0, 1, 0xfffe, 0xffff, 0x80000000]))
+    put32(d, 0x371, 0 if z371 else rng.choice([1, 0x100, 0xffffffff]))
+    for i in range(4):
+        put32(d, 0x375 + 4 * i, 0 if (c == 'diff0' or rng.random() < 0.5) and c != 'diff1' else rng.choice([1, 0x100, 0xffffffff]))
+    if c == 'diff1':
+        for i in range(4):
+            put32(d, 0x375 + 4 * i, rng.choice([1, 0x100, 0xffffffff]))
+    g = {'value_5b44f0': A, 'value_5b44f4': B, 'value_583102': o2 & m32, 'value_583106': o6 & m32, 'word_583a29': w3a29 & 0xffff,
+         'value_5d0377': rng.choice([0, 1, rng.randrange(1 << 32)]), 'value_5d162d': rng.randrange(1 << 32), 'value_5d1631': rng.randrange(1 << 32),
+         'value_5d1639': rng.randrange(1 << 32)}
+    probes = [('self', 0, 0x400), ('records', 0, 6 * REC), ('blk', 0, 0x90)]
+    s4e = stub(0x4e22fd, probes, results=results4e)
+    s4d = stub(0x4d5316, probes, results=results_4d or [0])
+    stubs = {0x4e22fd: s4e, 0x4d5316: s4d, **{c_: stub(c_, probes) for c_ in (0x473651, 0x473f7d, 0x4eb184, 0x47409e, 0x47512a)}}
+    extra = [Area('t3e40', 0x5b3e40, t40), Area('t3ae8', 0x5b3ae8, t8), Area('blk', 0x5a4b4e, blk), Area('ticks', 0x63a864, ticks)]
+    ptrs = {'table_5b3e40': ('t3e40', 0), 'table_5b3ae8': ('t3ae8', 0), 'block_5a4b4e': ('blk', 0), 'ticks_63a864': ('ticks', 0)}
+    return common('473206', rng, d, obj, 0, 0, False, 0, stubs, extra=extra, pointers=ptrs, g=g, now=now, profile=(kind, *rest), stack=stack, args=(x, y))
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -668,6 +767,7 @@ SPECS = {
     '4a835c': dict(id=3, va=0x4a835c, size=827, gen=gen_4a835c, ret=True, cleanup=12, probes=[(0xe00, 0x300)], n=60 * 6),
     '45841e': dict(id=4, va=0x45841e, size=896, gen=gen_45841e, ret=True, cleanup=12, probes=[(0, 0x100)], n=63 * 6),
     '45565f': dict(id=5, va=0x45565f, size=943, gen=gen_45565f, n=48 * 6),
+    '473206': dict(id=6, va=0x473206, size=1099, gen=gen_473206, ret=True, cleanup=8, tick=True, n=48 * 8),
 }
 KEYS = list(SPECS)
 

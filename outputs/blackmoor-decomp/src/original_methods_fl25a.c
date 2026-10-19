@@ -432,3 +432,104 @@ void m45565f_click_27c4_27c8(uint8_t *self, const Fl25aWorld *world, const Fl18H
         call0(host, 0x455c4f, (uintptr_t)self);
     }
 }
+
+/* ---- 0x473206 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the signed division by two of `cdq; sub eax, edx; sar eax, 1` (rounds toward zero for a negative value: d + 1 first), in 32-bit arithmetic */
+static int32_t half_toward_zero(int32_t d)
+{
+    uint32_t t = (uint32_t)d - (uint32_t)(d >> 31);
+    return (int32_t)t >> 1;
+}
+
+/* 0x473206, thiscall, `ret 8`: x is the word at [ebp+8], y the word at [ebp+0xc]. [+0x76] = the address of the object of the record (word [+0xc]);
+ * word [+0xe] = 0xffff. Returns 0 when dword [+0x7a] is clear. Otherwise, with A = [0x5b44f0] and B = [0x5b44f4]:
+ *   [+0x335] = [0x583102] + dword[0x5b3e40 + 16A + 8B];  [+0x33d] = [+0x335] + signed word[0x5b3ae8 + 8A + 4B] - 1;
+ *   [+0x339] = [0x583106] + dword[0x5b3e44 + 16A + 8B];  [+0x341] = [+0x339] + signed word[0x5b3aea + 8A + 4B] - 1;
+ *   word [+0x345] = [+0x335] + ([+0x33d] - [+0x335]) / 2;  word [+0x347] = [+0x339] + ([+0x341] - [+0x339]) / 2   (halves round toward zero).
+ * 0x4e22fd(this = self + 0x1a6, word [+0x345], word [+0x347]) non-zero: [0x5c39e5] = 0x27a3, return 1. Else the rectangle of the record object
+ * (y in [+0x4f3, +0x4fb], x in [+0x4ef, +0x4f7], signed): [0x5b44f0] = 9, [0x5b44f4] = 1, [0x5d162d] = [0x5d0377], [0x5d1631] = (9 << 5) +
+ * (1 << 4) + 0x5b160c, [0x5d1639] = 1, [0x5c39e5] = 0x27a1, return 1. Else 0x473651(this = self); for k below 4 whose dword [0x5a4b4e + 4k] is
+ * clear: with the signed byte obj[0x106] set, the centre (words [+0x345], [+0x347]) inside the rectangle 0x5a4b5e + 16k (x low +0, y low +4, x high
+ * +8, y high +0xc) sets word [+0xe] = k and ends the loop; with it clear 0x4d5316(this = 0x570450, 0x5a4b5e + 16k, self + 0x335) non-zero does.
+ * word [+0xe] == -1: 0x473f7d(this = self), return 0. Then, when the signed word 0x583a29 differs from the signed word obj[0x104] and that is not
+ * -1: dword [+0x375 + 4 [+0xe]] clear: 0x4eb184(this = 0x571442, the sign-extended word obj[0x104]) and the dword = 1; return 0. Else
+ * 0x47409e(this = self); with dword 0x5a4bce == -1: w = word [+0xe]: dword[0x5a4b9e + 8w] = [0x583102] - rect.xlow, dword[0x5a4ba2 + 8w] =
+ * [0x583106] - rect.ylow, [0x5a4bce] = w, dword[0x5a4bbe + 4w] = 1, dword[0x63a864 + 4k] = GetTickCount(), and with dword [+0x371] set: it is
+ * cleared and 0x47512a(this = self) is called. Return 1. */
+int32_t m473206_click(uint8_t *self, int16_t x, int16_t y, Fl25aWorld *world, const Fl18Host *host)
+{
+    const uint8_t *rec2;
+    uint8_t *blk;
+    int32_t k, a, b, d;
+    int16_t w;
+    wr32(self, 0x76, record_object_address(world, self, 0xc));
+    wr16(self, 0xe, 0xffff);
+    if (rd32(self, 0x7a) == 0) return 0;
+    a = (int32_t)world->value_5b44f0;
+    b = (int32_t)world->value_5b44f4;
+    wr32(self, 0x335, world->value_583102 + rd32(world->table_5b3e40, (ptrdiff_t)(int32_t)((uint32_t)a * 16u + (uint32_t)b * 8u)));
+    wr32(self, 0x33d, rd32(self, 0x335) + (uint32_t)rds16(world->table_5b3ae8, (ptrdiff_t)(int32_t)((uint32_t)b * 4u + (uint32_t)a * 8u)) - 1u);
+    wr32(self, 0x339, world->value_583106 + rd32(world->table_5b3e40, (ptrdiff_t)(int32_t)((uint32_t)a * 16u + (uint32_t)b * 8u) + 4));
+    wr32(self, 0x341, rd32(self, 0x339) + (uint32_t)rds16(world->table_5b3ae8, (ptrdiff_t)(int32_t)((uint32_t)b * 4u + (uint32_t)a * 8u) + 2) - 1u);
+    d = half_toward_zero((int32_t)(rd32(self, 0x33d) - rd32(self, 0x335)));
+    wr16(self, 0x345, (uint16_t)(rd32(self, 0x335) + (uint32_t)d));
+    d = half_toward_zero((int32_t)(rd32(self, 0x341) - rd32(self, 0x339)));
+    wr16(self, 0x347, (uint16_t)(rd32(self, 0x339) + (uint32_t)d));
+    if (call2(host, 0x4e22fd, (uintptr_t)(self + 0x1a6), rd16(self, 0x345), rd16(self, 0x347)) != 0) {
+        world->value_5c39e5 = 0x27a3;
+        return 1;
+    }
+    rec2 = object_at(host, rd32(self, 0x76));
+    if (in_range(y, rds32(rec2, 0x4f3), rds32(rec2, 0x4fb)) && in_range(x, rds32(rec2, 0x4ef), rds32(rec2, 0x4f7))) {
+        world->value_5b44f0 = 9;
+        world->value_5b44f4 = 1;
+        world->value_5d162d = world->value_5d0377;
+        world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+        world->value_5d1639 = 1;
+        world->value_5c39e5 = 0x27a1;
+        return 1;
+    }
+    call0(host, 0x473651, (uintptr_t)self);
+    blk = world->block_5a4b4e;
+    for (k = 0; k < 4; k++) {
+        ptrdiff_t r = 0x10 + 16 * (ptrdiff_t)k;
+        if (rd32(blk, 4 * (ptrdiff_t)k) != 0) continue;
+        if ((int8_t)rec2[0x106] != 0) {
+            if (!in_range(rds16(self, 0x347), rds32(blk, r + 4), rds32(blk, r + 0xc))) continue;
+            if (!in_range(rds16(self, 0x345), rds32(blk, r), rds32(blk, r + 8))) continue;
+            wr16(self, 0xe, (uint16_t)k);
+            break;
+        }
+        if (call2(host, 0x4d5316, 0x570450, (uintptr_t)(0x5a4b5eu + 16u * (uint32_t)k), (uintptr_t)(self + 0x335)) != 0) {
+            wr16(self, 0xe, (uint16_t)k);
+            break;
+        }
+    }
+    if (rds16(self, 0xe) == -1) {
+        call0(host, 0x473f7d, (uintptr_t)self);
+        return 0;
+    }
+    if ((int32_t)world->word_583a29 != rds16(rec2, 0x104) && rds16(rec2, 0x104) != -1) {
+        ptrdiff_t at = 0x375 + 4 * (ptrdiff_t)rds16(self, 0xe);
+        if (rd32(self, at) == 0) {
+            call1(host, 0x4eb184, 0x571442, (uintptr_t)(uint32_t)rds16(rec2, 0x104));
+            wr32(self, at, 1);
+        }
+        return 0;
+    }
+    call0(host, 0x47409e, (uintptr_t)self);
+    if (rd32(blk, 0x80) == 0xffffffffu) {
+        w = (int16_t)rds16(self, 0xe);
+        wr32(blk, 0x50 + 8 * (ptrdiff_t)w, world->value_583102 - rd32(blk, 0x10 + 16 * (ptrdiff_t)w));
+        wr32(blk, 0x54 + 8 * (ptrdiff_t)w, world->value_583106 - rd32(blk, 0x14 + 16 * (ptrdiff_t)w));
+        wr32(blk, 0x80, (uint32_t)(int32_t)w);
+        wr32(blk, 0x70 + 4 * (ptrdiff_t)w, 1);
+        wr32(world->ticks_63a864, 4 * (ptrdiff_t)k, host->tick(host->context));
+        if (rd32(self, 0x371) != 0) {
+            wr32(self, 0x371, 0);
+            call0(host, 0x47512a, (uintptr_t)self);
+        }
+    }
+    return 1;
+}

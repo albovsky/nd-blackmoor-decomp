@@ -145,6 +145,10 @@ class Fl25aDifferential(DiffBase):
         """FL-25a: differential test of m45565f_click_27c4_27c8 (original 0x45565f)"""
         self.run_key('45565f')
 
+    def test_473206_click(self):
+        """FL-25a: differential test of m473206_click (original 0x473206)"""
+        self.run_key('473206')
+
     # CASES-END
 
 
