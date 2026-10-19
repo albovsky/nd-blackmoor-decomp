@@ -1,0 +1,309 @@
+[
+  {
+    "va": "0x449bff",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m449bff_resume_thread"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m449bff_resume_thread"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_449bff_resume_thread"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_449bff_resume_thread"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x449bff",
+        "0x449cfc"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m449bff_resume_thread: the oracle executes every instruction of the code bytes of 0x449bff..0x449cfc and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x449a94",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m449a94_stop_thread"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m449a94_stop_thread"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_449a94_stop_thread"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_449a94_stop_thread"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x449a94",
+        "0x449ba5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m449a94_stop_thread: the oracle executes every instruction of the code bytes of 0x449a94..0x449ba5 and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x4bf773",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m4bf773_release_player"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m4bf773_release_player"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_4bf773_release_player"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_4bf773_release_player"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x4bf773",
+        "0x4bf8a7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4bf773_release_player: the oracle executes every instruction of the code bytes of 0x4bf773..0x4bf8a7 and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x4161d1",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m4161d1_alloc_buffers"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m4161d1_alloc_buffers"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_4161d1_alloc_buffers"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_4161d1_alloc_buffers"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x4161d1",
+        "0x41632b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4161d1_alloc_buffers: the oracle executes every instruction of the code bytes of 0x4161d1..0x41632b and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x4c2c3a",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m4c2c3a_make_record"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m4c2c3a_make_record"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_4c2c3a_make_record"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_4c2c3a_make_record"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x4c2c3a",
+        "0x4c2dfb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4c2c3a_make_record: the oracle executes every instruction of the code bytes of 0x4c2c3a..0x4c2dfb and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x4c0d3f",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m4c0d3f_present_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m4c0d3f_present_rect"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_4c0d3f_present_rect"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_4c0d3f_present_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x4c0d3f",
+        "0x4c0f30"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4c0d3f_present_rect: the oracle executes every instruction of the code bytes of 0x4c0d3f..0x4c0f30 and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x4c5377",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m4c5377_blit_rows"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m4c5377_blit_rows"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_4c5377_blit_rows"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_4c5377_blit_rows"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x4c5377",
+        "0x4c558b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4c5377_blit_rows: the oracle executes every instruction of the code bytes of 0x4c5377..0x4c558b and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md.",
+    "blockers_reviewed": [
+      {
+        "id": "S05:cbac757a041d45e6",
+        "rationale": "The S05 item names the taskbar presentation path 0x4e1157 -> 0x4c5377; what this function does with its arguments is verified (rows blit, overlap, pitch, debug trace) but who builds the rectangles and surface in the UI lifecycle is not a property of 0x4c5377 and stays open."
+      },
+      {
+        "id": "S05-2:767c11cd049fda53",
+        "rationale": "The S05-2 item says the offscreen pixel-composition fixture (0x4c5377/0x4c5d4b pixel loops with the 0x4c4067 lock) is not built; the pixel loop of 0x4c5377 is verified here against a scripted lock descriptor (rows, overlap, pitch, debug trace); the real 0x4c4067 lock and the sibling 0x4c5d4b are not run, so the end-to-end composition fixture stays open."
+      }
+    ]
+  },
+  {
+    "va": "0x4c04e3",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m4c04e3_start_movie"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m4c04e3_start_movie"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_4c04e3_start_movie"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_4c04e3_start_movie"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x4c04e3",
+        "0x4c0774"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4c04e3_start_movie: the oracle executes every instruction of the code bytes of 0x4c04e3..0x4c0774 and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  },
+  {
+    "va": "0x415db9",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-27b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl27b.c",
+      "symbol": "m415db9_unpack"
+    },
+    "tests": [
+      {
+        "path": "tests/fl27b_direct_test.c",
+        "test_id": "test_m415db9_unpack"
+      },
+      {
+        "path": "tests/test_fl27b_direct.py",
+        "test_id": "Fl27bDirect.test_415db9_unpack"
+      },
+      {
+        "path": "tests/test_fl27b_differential.py",
+        "test_id": "Fl27bDifferential.test_415db9_unpack"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl27b_original_oracle.py",
+      "window": [
+        "0x415db9",
+        "0x41608b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m415db9_unpack: the oracle executes every instruction of the code bytes of 0x415db9..0x41608b and both directions of every conditional jump (untaken edges only where listed in tasks/fl27b-handoff.md), comparing ordered host calls, arguments and the memory behind the object. See tasks/fl27b-handoff.md."
+  }
+]
