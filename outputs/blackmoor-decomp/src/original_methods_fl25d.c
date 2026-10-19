@@ -170,3 +170,103 @@ void m4712bd_click_27a6_27ad(uint8_t *self, Fl25dWorld *world, const Fl18Host *h
         wr32(world->records_5bb5e5, rec_offset(self, 0xd28) + 0x4d, 2);
     }
 }
+
+/* ---- 0x4b2250 ------------------------------------------------------------------------------------------------------------------ */
+
+/* `mov eax, v; cdq; and edx, 3; add eax, edx; sar eax, 2`: v / 4 rounded toward zero */
+static int32_t div4(int32_t v)
+{
+    uint32_t t = (uint32_t)v + (v < 0 ? 3u : 0u);
+    return (int32_t)t >> 2;
+}
+
+/* 32-bit wrapping add / sub (add, sub on registers) */
+static int32_t add32(int32_t a, int32_t b) { return (int32_t)((uint32_t)a + (uint32_t)b); }
+static int32_t sub32(int32_t a, int32_t b) { return (int32_t)((uint32_t)a - (uint32_t)b); }
+
+/* the byte offset of the cell (a + da, b + db) in self: `0x43 + a * 0x1e4 + b * 0x2c` (a and b signed words, sign-extended) */
+static ptrdiff_t cell_at(int16_t a, int16_t b, int da, int db)
+{
+    return (ptrdiff_t)(0x43 + ((int32_t)a + da) * 0x1e4 + ((int32_t)b + db) * 0x2c);
+}
+
+/* 0x4b2250, thiscall, `ret 8`: x is the word at [ebp+8], y the word at [ebp+0xc]. X = x + dword 0x583186 and Y = y + dword 0x58318a (32-bit sums, signed
+ * compares). R is the object of the record of the word [+0x1e], read at entry. Returns 0 when dword [+0x1515] is clear or dword [+0x24] is 1 or 2.
+ * The words [+0x1531] and [+0x1533] are cleared when Y > the dword at [(R.w21 - 1) * 0x1e4 + 0x6b] or X > the dword at [(R.w23 - 1) * 0x2c + 0x67] or
+ * X < the dword [+0x5f] (those are fields of cells (R.w21 - 1, 0) and (0, R.w23 - 1)). Then, for A below the signed word R[0x21] and B below the signed
+ * word R[0x23] (two word counters that the body also advances), with the cell c = A * 0x1e4 + B * 0x2c + 0x43 (words +0x18, +0x1a, dwords +0x1c,
+ * +0x20, +0x24, +0x28), q1 = dword [+0x152d] / 4 and q2 = dword [+0x1529] / 4 (toward zero):
+ *  - word c[0x1a] set and word c[0x18] == 5: four tests in turn, each overwriting the code: block 1 (code 0x2795, B += 1), block 2 on the row below (0x2796,
+ *    A += 1), block 3 (0x2794), block 4 (0x2797, B += 1 and A += 1); each block is a chain of four signed compares of Y or X with a cell field +- q1 / q2
+ *    that must all hold (see the comments below), and later blocks read the cells at the A and B that earlier blocks advanced;
+ *  - else, when c[0x1a] is set: Y in [c.20, c.28] and X in [c.1c, c.24] give the code c[0x1a];
+ * a non-zero code stores A to [+0x3f] and B to [+0x41], calls 0x4afec1(this = self, code) and returns 0, or, when that returns exactly 1, calls
+ * 0x4b2917(this = self, code) and returns 1. Without a code after both loops: byte R[0x17d] clear: the point (x, y) inside the rectangle
+ * y in [R.370, R.378], x in [R.36c, R.374] calls 0x4b2917(0x2793) and returns 1; byte set: y in [R.192, R.19a], x in [R.18e, R.196] calls 0x4b2917(0x2792)
+ * and returns 1; otherwise 0. */
+int32_t m4b2250_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl25dWorld *world, const Fl18Host *host)
+{
+    int32_t X, Y;
+    int16_t A, B, code = 0;
+    const uint8_t *R;
+#define Q1 div4(rds32(self, 0x152d))
+#define Q2 div4(rds32(self, 0x1529))
+#define CELL(da, db, off) rds32(self, cell_at(A, B, (da), (db)) + (off))
+    if (rd32(self, 0x1515) == 0) return 0;
+    if (rd32(self, 0x24) == 2) return 0;
+    if (rd32(self, 0x24) == 1) return 0;
+    X = add32((int32_t)x, (int32_t)world->value_583186);
+    Y = add32((int32_t)y, (int32_t)world->value_58318a);
+    R = object_at(host, record_object_address(world, self, 0x1e));
+    if (Y > rds32(self, (ptrdiff_t)((rds16(R, 0x21) - 1) * 0x1e4) + 0x6b) || X > rds32(self, (ptrdiff_t)((rds16(R, 0x23) - 1) * 0x2c) + 0x67) ||
+        X < rds32(self, 0x5f)) {
+        wr16(self, 0x1531, 0);
+        wr16(self, 0x1533, 0);
+    }
+    for (A = 0; (int32_t)A < rds16(R, 0x21); A = (int16_t)(A + 1)) {
+        for (B = 0; (int32_t)B < rds16(R, 0x23); B = (int16_t)(B + 1)) {
+            if (rds16(self, cell_at(A, B, 0, 0) + 0x1a) != 0 && rds16(self, cell_at(A, B, 0, 0) + 0x18) == 5) {
+                /* block 1: Y >= c.20, Y <= c.20 + q1, X >= c.1c + q2, X <= (B + 1).24 - q2 */
+                if (!(Y < CELL(0, 0, 0x20)) && !(Y > add32(CELL(0, 0, 0x20), Q1)) && !(X < add32(CELL(0, 0, 0x1c), Q2)) && !(X > sub32(CELL(0, 1, 0x24), Q2))) {
+                    code = 0x2795;
+                    B = (int16_t)(B + 1);
+                }
+                /* block 2: Y >= (A + 1).28 - q1, Y <= (A + 1).28, X >= c.1c + q2, X <= (B + 1).24 - q2 */
+                if (!(Y < sub32(CELL(1, 0, 0x28), Q1)) && !(Y > CELL(1, 0, 0x28)) && !(X < add32(CELL(0, 0, 0x1c), Q2)) && !(X > sub32(CELL(0, 1, 0x24), Q2))) {
+                    code = 0x2796;
+                    A = (int16_t)(A + 1);
+                }
+                /* block 3: Y >= c.20 + q1, Y <= (A + 1).28 - q1, X >= c.1c, X <= c.1c + q2 */
+                if (!(Y < add32(CELL(0, 0, 0x20), Q1)) && !(Y > sub32(CELL(1, 0, 0x28), Q1)) && !(X < CELL(0, 0, 0x1c)) && !(X > add32(CELL(0, 0, 0x1c), Q2)))
+                    code = 0x2794;
+                /* block 4: Y >= c.20 + q1, Y <= (A + 1).28 - q1, X >= (B + 1).24 - q2, X <= (B + 1).24 */
+                if (!(Y < add32(CELL(0, 0, 0x20), Q1)) && !(Y > sub32(CELL(1, 0, 0x28), Q1)) && !(X < sub32(CELL(0, 1, 0x24), Q2)) && !(X > CELL(0, 1, 0x24))) {
+                    code = 0x2797;
+                    B = (int16_t)(B + 1);
+                    A = (int16_t)(A + 1);
+                }
+            } else if (rds16(self, cell_at(A, B, 0, 0) + 0x1a) != 0) {
+                if (!(Y < CELL(0, 0, 0x20)) && !(Y > CELL(0, 0, 0x28)) && !(X < CELL(0, 0, 0x1c)) && !(X > CELL(0, 0, 0x24))) code = (int16_t)rd16(self, cell_at(A, B, 0, 0) + 0x1a);
+            }
+            if (code != 0) {
+                wr16(self, 0x3f, (uint16_t)A);
+                wr16(self, 0x41, (uint16_t)B);
+                if (call1(host, 0x4afec1, (uintptr_t)self, (uint16_t)code) != 1) return 0;
+                call1(host, 0x4b2917, (uintptr_t)self, (uint16_t)code);
+                return 1;
+            }
+        }
+    }
+    if (R[0x17d] == 0 && !((int32_t)y < rds32(R, 0x370)) && !((int32_t)y > rds32(R, 0x378)) && !((int32_t)x < rds32(R, 0x36c)) && !((int32_t)x > rds32(R, 0x374))) {
+        call1(host, 0x4b2917, (uintptr_t)self, 0x2793);
+        return 1;
+    }
+    if (R[0x17d] != 0 && !((int32_t)y < rds32(R, 0x192)) && !((int32_t)y > rds32(R, 0x19a)) && !((int32_t)x < rds32(R, 0x18e)) && !((int32_t)x > rds32(R, 0x196))) {
+        call1(host, 0x4b2917, (uintptr_t)self, 0x2792);
+        return 1;
+    }
+#undef CELL
+#undef Q2
+#undef Q1
+    return 0;
+}

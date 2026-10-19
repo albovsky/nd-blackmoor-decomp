@@ -101,9 +101,9 @@ class Original20(od.Original):
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x4fb2e3: (1, True, 4)}
+SHAPES = {0x4fb2e3: (1, True, 4), 0x4afec1: (1, True, 4), 0x4b2917: (1, True, 4)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
-WORD_ARGS = {}
+WORD_ARGS = {0x4afec1: (0,), 0x4b2917: (0,)}
 RECORDS_VA = 0x5bb5e5
 REC = 0x8d
 
@@ -173,8 +173,8 @@ def common(key, rng, d, obj, idx, sel, state_fail, flag, stubs, extra=(), consts
         s.probe = s.probe if s.probe is not None else probes
     now = kw.pop('now')
     iat = {TICK_SLOT: od.Stub('tick', result=now)} if sp.get('tick') else {}
-    return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], areas=areas, stubs=stubs, iat=iat, g=gl, ecx=od.region_va(0),
-                           pointers=ptrs, word_args=WORD_ARGS, tick=now if sp.get('tick') else None, profile=kw.pop('profile', None), stack=kw.pop('stack', []), args=kw.pop('args', (0, 0)), **kw)
+    return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], areas=areas, stubs=stubs, iat=iat, g=gl, ecx=od.region_va(0) + kw.get('self_bias', 0),
+                           pointers=ptrs, word_args=WORD_ARGS, tick=now if sp.get('tick') else None, profile=kw.pop('profile', None), stack=kw.pop('stack', []), self_bias=kw.pop('self_bias', 0), args=kw.pop('args', (0, 0)), **kw)
 
 
 def run_original(sc):
@@ -402,10 +402,182 @@ def gen_4712bd(rng, n):
     return common('4712bd', rng, d, obj, idx, sel, kind == 'g3', flag, stubs, consts=[(0x54c480, c1), (0x54c48c, c2)], now=now, profile=(kind, *rest))
 
 
+def s32(v):
+    v &= 0xffffffff
+    return v - (1 << 32) if v & 0x80000000 else v
+
+
+class Model:
+    """The bytes of an object plus the set of bytes that a scenario has already decided: `cond` reads a dword at `off` (relative to `base`) and, when it is
+    still undecided, picks a value for it that makes the comparison `val OP (field + adj)` come out as `want` (random values and edge offsets of 0, 1,
+    2, 5, 70000 and 2^30 from the boundary). A decided dword keeps its value (the outcome is then whatever the original will compute)."""
+
+    def __init__(self, buf, base, rng):
+        self.buf, self.base, self.rng, self.known = buf, base, rng, set()
+
+    def is_known(self, off, ln):
+        return all((self.base + off + i) in self.known for i in range(ln))
+
+    def put(self, off, ln, v):
+        fmt = {1: '<B', 2: '<H', 4: '<I'}[ln]
+        struct.pack_into(fmt, self.buf, self.base + off, v & ((1 << (8 * ln)) - 1))
+        self.known.update(range(self.base + off, self.base + off + ln))
+
+    def get(self, off, signed=True):
+        return struct.unpack_from('<i' if signed else '<I', self.buf, self.base + off)[0]
+
+    def cond(self, off, val, op, adj, want):
+        if want is None:
+            want = self.rng.random() < 0.5
+        if not self.is_known(off, 4):
+            k = self.rng.choice([0, 0, 1, 2, 5, 70000, 1 << 30])
+            if op == '>=':       # holds iff val >= f + adj
+                f = val - adj - k if want else val - adj + 1 + k
+            else:                # holds iff val <= f + adj
+                f = val - adj + k if want else val - adj - 1 - k
+            self.put(off, 4, f)
+        total = s32(self.get(off) + adj)
+        return val >= total if op == '>=' else val <= total
+
+
+def div4(v):
+    return (v + (3 if v < 0 else 0)) >> 2
+
+
+def gen_4b2250(rng, n):
+    BIAS = 0x400
+    profiles = [('gate', 1), ('gate', 2), ('gate', 3)]
+    profiles += [('post', byte, f) for byte in (0, 1) for f in (None, 0, 1, 2, 3)]
+    profiles += [('Z', f, pos) for f in (None, 0, 1, 2, 3) for pos in ((0, 0), (1, 2))]
+    profiles += [('T5', mask, pos) for mask in range(16) for pos in ((0, 0), (1, 2))]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    gx, gy = (rng.choice([0, 0, 1, -1, 100, -200, 70000, -70000, rng.randrange(-1 << 20, 1 << 20)]) for _ in range(2))
+    X, Y = s32(x + gx), s32(y + gy)
+    d = bytearray(rng.randbytes(BIAS + 0x1600))
+    obj = bytearray(rng.randbytes(0x1000))
+    S, O = Model(d, BIAS, rng), Model(obj, 0, rng)
+    put16(d, BIAS + 0x1e, idx)
+    set_gate(d, 'nz32', BIAS + 0x1515, kind == 'gate' and rest[0] == 1, rng)
+    if kind == 'gate' and rest[0] in (2, 3):
+        put32(d, BIAS + 0x24, {2: 2, 3: 1}[rest[0]])
+    else:
+        put32(d, BIAS + 0x24, rng.choice([0, 3, 0x102, 0x101, 0xffffffff, 0x10001, 0x80000002]))
+    raw1 = rng.choice([0, 1, 3, 4, 7, 8, 100, -1, -3, -4, -5, -8, -101, 0x7fffffff, -0x80000000, rng.randrange(-1000, 1000)])
+    raw2 = rng.choice([0, 1, 3, 4, 7, 8, 100, -1, -3, -4, -5, -8, -101, 0x7fffffff, -0x80000000, rng.randrange(-1000, 1000)])
+    put32(d, BIAS + 0x152d, raw1)
+    put32(d, BIAS + 0x1529, raw2)
+    q1, q2 = div4(raw1), div4(raw2)
+    for off in (0x1531, 0x1533):
+        put16(d, BIAS + off, rng.choice([1, 0x100, 0xffff, 0x8000, rng.randrange(1, 0x10000)]))
+    pos = rest[-1] if kind in ('Z', 'T5') else None
+    if kind in ('Z', 'T5'):
+        w21, w23 = pos[0] + 1 + rng.choice([0, 1]), pos[1] + 1 + rng.choice([0, 1])
+    elif kind == 'post':
+        w21, w23 = rng.choice([-1, 0, 1, 2]), rng.choice([-1, 0, 1, 2, 3])
+    else:
+        w21, w23 = rng.choice([-1, 0, 1, 2]), rng.choice([0, 1, 2])
+    struct.pack_into('<h', obj, 0x21, w21)
+    struct.pack_into('<h', obj, 0x23, w23)
+    hit = False
+    if not (kind == 'gate'):
+        # the clearing test: Y <= [(w21 - 1) * 0x1e4 + 0x6b], X <= [(w23 - 1) * 0x2c + 0x67], X >= [0x5f]
+        mode = ['none', 'a', 'b', 'c', 'none', 'none'][(variant + (pos[0] if pos else 0)) % 6]
+        if S.cond((w21 - 1) * 0x1e4 + 0x6b, Y, '<=', 0, mode != 'a') and S.cond((w23 - 1) * 0x2c + 0x67, X, '<=', 0, mode != 'b'):
+            S.cond(0x5f, X, '>=', 0, mode != 'c')
+
+        def cell(A, B, da, db, field):
+            return 0x43 + (A + da) * 0x1e4 + (B + db) * 0x2c + field
+
+        def chain(conds, want_pass, fail_idx):
+            for i, (val, op, off, adj) in enumerate(conds):
+                if not S.cond(off, val, op, adj, True if want_pass or i < fail_idx else False):
+                    return False
+            return True
+
+        def blocks(A, B, spec):
+            """The four blocks of a type-5 cell in turn, as the original does (a block that holds advances A and / or B for the ones after it); spec is
+            [(want_pass, fail_idx)] * 4. Returns (code, A, B)."""
+            code = 0
+            c = lambda da, db, f: cell(A, B, da, db, f)
+            if chain([(Y, '>=', c(0, 0, 0x20), 0), (Y, '<=', c(0, 0, 0x20), q1), (X, '>=', c(0, 0, 0x1c), q2), (X, '<=', c(0, 1, 0x24), -q2)], *spec[0]):
+                code, B = 0x2795, B + 1
+            c = lambda da, db, f: cell(A, B, da, db, f)
+            if chain([(Y, '>=', c(1, 0, 0x28), -q1), (Y, '<=', c(1, 0, 0x28), 0), (X, '>=', c(0, 0, 0x1c), q2), (X, '<=', c(0, 1, 0x24), -q2)], *spec[1]):
+                code, A = 0x2796, A + 1
+            c = lambda da, db, f: cell(A, B, da, db, f)
+            if chain([(Y, '>=', c(0, 0, 0x20), q1), (Y, '<=', c(1, 0, 0x28), -q1), (X, '>=', c(0, 0, 0x1c), 0), (X, '<=', c(0, 0, 0x1c), q2)], *spec[2]):
+                code = 0x2794
+            if chain([(Y, '>=', c(0, 0, 0x20), q1), (Y, '<=', c(1, 0, 0x28), -q1), (X, '>=', c(0, 1, 0x24), -q2), (X, '<=', c(0, 1, 0x24), 0)], *spec[3]):
+                code, A, B = 0x2797, A + 1, B + 1
+            return code, A, B
+
+        A = 0
+        while A < w21 and not hit:
+            B = 0
+            while B < w23 and not hit:
+                is_target = kind in ('Z', 'T5') and (A, B) == pos
+                if is_target and kind == 'Z':
+                    cell_kind = 'nf5'
+                elif is_target:
+                    cell_kind = 't5'
+                else:
+                    cell_kind = rng.choice(['z0', 'z0', 'z0', 'nf5', 't5'])
+                w1a_nz = rng.choice([1, 0x100, 0x7fff, -1, -32768, 5])
+                code = 0
+                if cell_kind == 'z0':
+                    S.put(cell(A, B, 0, 0, 0x1a), 2, 0)
+                    S.put(cell(A, B, 0, 0, 0x18), 2, rng.choice([5, 5, 0, 4, 0x7fff]))
+                else:
+                    S.put(cell(A, B, 0, 0, 0x1a), 2, w1a_nz)
+                    S.put(cell(A, B, 0, 0, 0x18), 2, 5 if cell_kind == 't5' else rng.choice([0, 4, 6, -5, 0x7fff, -32768]))
+                if cell_kind == 'nf5':
+                    wf = rest[0] if is_target else rng.randrange(4)
+                    ok = chain([(Y, '>=', cell(A, B, 0, 0, 0x20), 0), (Y, '<=', cell(A, B, 0, 0, 0x28), 0), (X, '>=', cell(A, B, 0, 0, 0x1c), 0),
+                                (X, '<=', cell(A, B, 0, 0, 0x24), 0)], wf is None, -1 if wf is None else wf)
+                    if ok:
+                        code = w1a_nz
+                elif cell_kind == 't5':
+                    if is_target:
+                        mask = rest[0]
+                        spec = [(bool(mask >> b & 1), (variant + b) % 4) for b in range(4)]
+                    else:
+                        spec = [(False, rng.randrange(4)) for _ in range(4)]
+                    code, A, B = blocks(A, B, spec)
+                if code != 0:
+                    hit = True
+                    break
+                B += 1
+            if not hit:
+                A += 1
+    # the rectangles of the record object (the point itself, not X and Y)
+    obj[0x17c], obj[0x17e] = rng.choice([1, 0x80]), rng.choice([1, 0x80])
+    if kind == 'post':
+        pf = rest[1]
+        obj[0x17d] = 0 if rest[0] == 0 else rng.choice([1, 0x80, 0xff])
+    else:
+        pf = rng.randrange(-1, 4)
+        pf = None if pf < 0 else pf
+        obj[0x17d] = rng.choice([0, 1, 0x80, 0xff])
+    offs = (0x370, 0x378, 0x36c, 0x374) if obj[0x17d] == 0 else (0x192, 0x19a, 0x18e, 0x196)
+    ops = ('>=', '<=', '>=', '<=')
+    vals = (y, y, x, x)
+    for i in range(4):
+        if not O.cond(offs[i], vals[i], ops[i], 0, True if pf is None or i < pf else False):
+            break
+    results = [rng.choice([1, 1, 0, 2, 0x100, 0xffffffff])] if (variant % 3) else [1]
+    stubs = {c: stub(c, None, results=results if c == 0x4afec1 else None) for c in (0x4afec1, 0x4b2917)}
+    g = {'value_583186': gx & 0xffffffff, 'value_58318a': gy & 0xffffffff}
+    return common('4b2250', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest), stack=stack, args=(x, y), g=g, self_bias=BIAS)
+
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
     '4712bd': dict(id=1, va=0x4712bd, size=1125, gen=gen_4712bd, tick=True, probes=[(0xc90, 0x180)], n=50 * 12),
+    '4b2250': dict(id=2, va=0x4b2250, size=1735, gen=gen_4b2250, ret=True, cleanup=8, probes=[(0x430, 0x20), (0x1920, 0x20)], n=65 * 14),
 }
 KEYS = list(SPECS)
 

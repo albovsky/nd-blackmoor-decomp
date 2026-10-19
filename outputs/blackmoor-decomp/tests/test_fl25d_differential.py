@@ -93,7 +93,7 @@ class Fl25dDifferential(DiffBase):
         if sc.tick is not None:
             self.lib.shim_set_tick(sc.tick)
         result = ctypes.c_int32(0)
-        self_ptr = ptr(by_name['self'])
+        self_ptr = ctypes.cast(ptr(by_name['self']), ctypes.c_void_p).value + sc.self_bias
         self.lib.shim_fl25d(sc.fn, self_ptr, sc.args[0] & 0xffffffffffffffff, sc.args[1] & 0xffffffffffffffff, (sc.args[2] if len(sc.args) > 2 else 0), ctypes.byref(sw), ctypes.byref(result))
         if fx.SPECS[sc.key].get('ret'):
             self.assertEqual(result.value & 0xffffffff, orig.eax & 0xffffffff, 'return value')
@@ -128,6 +128,10 @@ class Fl25dDifferential(DiffBase):
     def test_4712bd_click_27a6_27ad(self):
         """FL-25d: differential test of m4712bd_click_27a6_27ad (original 0x4712bd)"""
         self.run_key('4712bd')
+
+    def test_4b2250_hit_test(self):
+        """FL-25d: differential test of m4b2250_hit_test (original 0x4b2250)"""
+        self.run_key('4b2250')
 
     # CASES-END
 

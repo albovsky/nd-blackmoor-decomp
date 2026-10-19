@@ -33,7 +33,7 @@ sys.path.insert(0, str(HERE))
 import test_fl25d_direct as direct
 
 SRC = HERE.parent / 'src'
-FUNCS = {'4712bd': 'test_4712bd_click_27a6_27ad'}
+FUNCS = {'4712bd': 'test_4712bd_click_27a6_27ad', '4b2250': 'test_4b2250_hit_test'}
 
 
 # the differential test of one function against the mutated copy in sys.argv[1], in a child process (exit 0 = passed)
@@ -90,9 +90,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--limit', type=int, default=0)
     ap.add_argument('--no-differential', action='store_true')
+    ap.add_argument('--only', default='', help='only the mutants inside the function with this address (hex digits)')
     args = ap.parse_args()
     lines = (SRC / 'original_methods_fl25d.c').read_text().splitlines(keepends=True)
     muts = mutants(lines)
+    if args.only:
+        muts = [m for m in muts if function_of(lines, m[0]) == args.only]
     if args.limit:
         muts = muts[::max(1, len(muts) // args.limit)]
     caught_direct = caught_diff = 0
