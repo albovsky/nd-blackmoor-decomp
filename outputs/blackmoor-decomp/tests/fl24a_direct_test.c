@@ -1279,6 +1279,155 @@ static void test_m4a6574(void)
     }
 }
 
+/* ---- 0x465c99 ----------------------------------------------------------------------------------------------------------------- */
+
+static void setup_465c99(int idx, int k, int w2c)
+{
+    setup(idx, 0);
+    set32(fx.self, 0x49, 0x01000000);
+    set16(fx.self, 0x2a, (uint16_t)k);
+    set16(fx.self, 0x2c, (uint16_t)w2c);
+    memset(fx.obj, 0x80, 0x600);
+}
+
+static int32_t run_465c99(int x, int y)
+{
+    L.n = 0;
+    return m465c99_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
+}
+
+/* the row of k: lo [+0xf8], y low [+0xfc], hi [+0x100], y high [+0x104] at 16 k */
+static void set_row(int k, uint32_t lo, int ylo, uint32_t hi, int yhi)
+{
+    size_t b = (size_t)(ptrdiff_t)(16 * k);
+    set32(fx.obj, b + 0xf8, lo);
+    set32(fx.obj, b + 0xfc, (uint32_t)ylo);
+    set32(fx.obj, b + 0x100, hi);
+    set32(fx.obj, b + 0x104, (uint32_t)yhi);
+}
+
+/* 0: no call; else the argument pair (a, b) of the call (0x27d2, a, b) that is expected */
+static void ck_row(int x, int y, int k, int w2c, int d, int t, int want_a, int want_b)
+{
+    /* lo = x - t, hi = lo + d (32-bit) */
+    setup_465c99(2, k, w2c);
+    set_row(k, (uint32_t)(x - t), y, (uint32_t)(x - t) + (uint32_t)d, y);
+    if (want_a == 0) {
+        CK(run_465c99(x, y) == 0 && L.n == 0);
+    } else {
+        CK(run_465c99(x, y) == 1 && L.n == 1);
+        ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, (uintptr_t)want_a, (uintptr_t)want_b, 0, 0, 0);
+    }
+}
+
+static void test_m465c99(void)
+{
+    static const int idxs[] = {2, -1};
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
+    static const int ks[] = {-4, -1, 0, 1, 6, 7, 9};
+    static const int ws[] = {0, 1, -1, 3, 0x7fff, -32768};
+    static const size_t RECT[3][4] = {{0x6c, 0x74, 0x68, 0x70}, {0x5c, 0x64, 0x58, 0x60}, {0x553, 0x55b, 0x54f, 0x557}};
+    static const int ZERO[4] = {0, 0, 0, 0};
+    size_t ii, pi, ki, wi, k;
+    int e, r;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (pi = 0; pi < 6; pi++) {
+            int x = pts[pi][0], y = pts[pi][1];
+            /* the gate: dword [+0x49] clear returns 0 even with a rectangle that holds the point */
+            setup_465c99(idx, 1, 0);
+            set_row(1, (uint32_t)(x - 1), y, (uint32_t)(x - 1) + 8u, y);
+            set32(fx.self, 0x49, 0);
+            expect_begin();
+            CK(run_465c99(x, y) == 0 && L.n == 0);
+            expect_end();
+            /* the row: the split at (hi - lo) / 2 and the strict / non-strict edges, for every row index and [+0x2c] */
+            for (ki = 0; ki < 7; ki++) {
+                for (wi = 0; wi < 6; wi++) {
+                    int k_ = ks[ki], w_ = ws[wi];
+                    int c1 = k_ > 0 && w_ == 0, c2 = k_ < 7 && w_ == 0;
+                    /* d = 8 (half 4): t = 1..4 -> the first test, 5..7 -> the second, -1, 0, 8 -> none */
+                    ck_row(x, y, k_, w_, 8, -1, 0, 0);
+                    ck_row(x, y, k_, w_, 8, 0, 0, 0);
+                    ck_row(x, y, k_, w_, 8, 1, c1 ? 0x19 : 0, 2);
+                    ck_row(x, y, k_, w_, 8, 4, c1 ? 0x19 : 0, 2);
+                    ck_row(x, y, k_, w_, 8, 5, c2 ? 0x1a : 0, 3);
+                    ck_row(x, y, k_, w_, 8, 7, c2 ? 0x1a : 0, 3);
+                    ck_row(x, y, k_, w_, 8, 8, 0, 0);
+                    /* d = 9 (half 4, not 5): t = 5 is already the second test, 8 too, 9 is out */
+                    ck_row(x, y, k_, w_, 9, 4, c1 ? 0x19 : 0, 2);
+                    ck_row(x, y, k_, w_, 9, 5, c2 ? 0x1a : 0, 3);
+                    ck_row(x, y, k_, w_, 9, 8, c2 ? 0x1a : 0, 3);
+                    ck_row(x, y, k_, w_, 9, 9, 0, 0);
+                    /* d = 2 (half 1): t = 1 first test; t = 2 is not below hi; d = 1 (half 0): nothing; negative d: nothing */
+                    ck_row(x, y, k_, w_, 2, 1, c1 ? 0x19 : 0, 2);
+                    ck_row(x, y, k_, w_, 2, 2, 0, 0);
+                    ck_row(x, y, k_, w_, 1, 1, 0, 0);
+                    ck_row(x, y, k_, w_, -3, 0, 0, 0);
+                    ck_row(x, y, k_, w_, -3, -1, 0, 0);
+                }
+            }
+            /* the 32-bit subtraction wraps: lo = INT_MIN, hi = INT_MAX give d = -1, half 0: the point is above lo + 0 and below hi: second test */
+            setup_465c99(idx, 1, 0);
+            set_row(1, 0x80000000u, y, 0x7fffffffu, y);
+            CK(run_465c99(x, y) == 1 && L.n == 1);
+            ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, 0x1a, 3, 0, 0, 0);
+            /* the y edges of the row: one outside misses */
+            setup_465c99(idx, 1, 0);
+            set_row(1, (uint32_t)(x - 1), y + 1, (uint32_t)(x - 1) + 8u, y);
+            CK(run_465c99(x, y) == 0 && L.n == 0);
+            setup_465c99(idx, 1, 0);
+            set_row(1, (uint32_t)(x - 1), y, (uint32_t)(x - 1) + 8u, y - 1);
+            CK(run_465c99(x, y) == 0 && L.n == 0);
+            /* the rectangles: 0x16, then 0x14 / 0x15 by [+0x2c], then the last */
+            for (r = 0; r < 3; r++) {
+                static const int wsel[] = {0, 1, 2, -1, -32768, 3, 4, 0x7fff};
+                for (k = 0; k < 8; k++) {
+                    int w_ = wsel[k];
+                    if (r != 1 && k > 0) break;
+                    setup_465c99(idx, 5, r == 1 ? w_ : 5);
+                    eff_rect(RECT[r], ZERO, x, y);
+                    expect_begin();
+                    if (r == 0) {
+                        CK(run_465c99(x, y) == 1 && L.n == 1);
+                        ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, 0x16, 1, 0, 0, 0);
+                    } else if (r == 2) {
+                        CK(run_465c99(x, y) == 1 && L.n == 1);
+                        ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d3, 0, 0, 0, 0, 0);
+                    } else if (w_ < 3) {
+                        CK(run_465c99(x, y) == 1 && L.n == 1);
+                        ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, 0x14, 4, 0, 0, 0);
+                    } else if (w_ == 3) {
+                        CK(run_465c99(x, y) == 1 && L.n == 1);
+                        ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, 0x15, 4, 0, 0, 0);
+                    } else {
+                        CK(run_465c99(x, y) == 0 && L.n == 0);
+                    }
+                    expect_end();
+                }
+                for (e = 0; e < 4; e++) {
+                    setup_465c99(idx, 5, 0);
+                    eff_rect(RECT[r], ZERO, x, y);
+                    edge_out(RECT[r], e);
+                    CK(run_465c99(x, y) == 0 && L.n == 0);
+                }
+            }
+            /* the order: the rectangle 0x16 comes before 0x14, which comes before the last */
+            setup_465c99(idx, 5, 1);
+            eff_rect(RECT[0], ZERO, x, y);
+            eff_rect(RECT[1], ZERO, x, y);
+            eff_rect(RECT[2], ZERO, x, y);
+            CK(run_465c99(x, y) == 1 && L.n == 1);
+            ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, 0x16, 1, 0, 0, 0);
+            setup_465c99(idx, 5, 1);
+            eff_rect(RECT[1], ZERO, x, y);
+            eff_rect(RECT[2], ZERO, x, y);
+            CK(run_465c99(x, y) == 1 && L.n == 1);
+            ck_call(0, 0x465f8e, (uintptr_t)fx.self, 3, 0, 0x27d2, 0x14, 4, 0, 0, 0);
+        }
+    }
+}
+
 /* ---- the table of cases ------------------------------------------------------------------------------------------------------- */
 
 static const struct {
@@ -1293,6 +1442,7 @@ static const struct {
     {"test_m4571e1_hit_test", test_m4571e1},
     {"test_m47b4aa_hit_test", test_m47b4aa},
     {"test_m4a6574_hit_test", test_m4a6574},
+    {"test_m465c99_hit_test", test_m465c99},
 };
 
 int main(void)

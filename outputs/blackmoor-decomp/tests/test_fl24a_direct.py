@@ -26,6 +26,7 @@ EXPECTED = [
     'test_m4571e1_hit_test',
     'test_m47b4aa_hit_test',
     'test_m4a6574_hit_test',
+    'test_m465c99_hit_test',
 ]
 
 
@@ -103,6 +104,11 @@ class Fl24aDirect(unittest.TestCase):
     def test_4a6574_hit_test(self):
         """FL-24a: direct test of m4a6574_hit_test"""
         self.check('test_m4a6574_hit_test')
+
+
+    def test_465c99_hit_test(self):
+        """FL-24a: direct test of m465c99_hit_test"""
+        self.check('test_m465c99_hit_test')
 
 
 if __name__ == '__main__':

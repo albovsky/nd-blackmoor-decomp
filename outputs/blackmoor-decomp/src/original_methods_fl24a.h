@@ -55,6 +55,8 @@ int32_t m4571e1_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
 int32_t m47b4aa_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 /* 0x4a6574: hit test (ret 8) over five rectangles of the record object (calls 0x4a67f3) and a tail that sets the byte [+0x20]; returns 1 on a hit, else 0 */
 int32_t m4a6574_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
+/* 0x465c99: hit test (ret 8): a row of the record object split at its middle, three rectangles and a last one (calls 0x465f8e with three arguments); returns 1 on a hit, else 0 */
+int32_t m465c99_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

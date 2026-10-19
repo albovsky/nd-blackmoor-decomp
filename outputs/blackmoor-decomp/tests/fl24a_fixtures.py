@@ -85,7 +85,7 @@ class Original20(od.Original):
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
 SHAPES = {0x4fb2e3: (1, True, 4), 0x4f6334: (1, True, 4), 0x44ecaf: (2, True, 8), 0x50ca3e: (6, False, 0), 0x44a2b7: (1, False, 0),
           0x4709bb: (1, True, 4), 0x4709de: (2, True, 8), 0x448d11: (4, True, 16),
-          0x45741d: (2, True, 8), 0x47b709: (1, True, 4), 0x4a67f3: (2, True, 8)}
+          0x45741d: (2, True, 8), 0x47b709: (1, True, 4), 0x4a67f3: (2, True, 8), 0x465f8e: (3, True, 12)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
 WORD_ARGS = {0x4fb2e3: (0,), 0x44ecaf: (1,), 0x45741d: (1,)}
 RECORDS_VA = 0x5bb5e5
@@ -495,6 +495,63 @@ def gen_4a6574(rng, n):
     return common('4a6574', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest), stack=stack, args=(x, y), g={'value_61d3c2': g61})
 
 
+def gen_465c99(rng, n):
+    profiles = [('gate',), ('c1',), ('c1', 'ylo'), ('c1', 'yhi'), ('c1', 'xlo'), ('c1', 'xmid'), ('c2',), ('c2', 'xhi'), ('c2', 'ymiss'), ('c3',),
+                ('c4',), ('c5',), ('c6',), ('none',)]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    k = [1, 2, 0, -1, 6, 7, 9, 3, -4][variant % 9]
+    w2c = [0, 0, 1, 3, 2, -1, 5, 0, 0x7fff][(variant // 9) % 9]
+    if kind == 'c4':
+        w2c = rng.choice([0, 1, 2, -5, -32768])
+    if kind == 'c5':
+        w2c = 3
+    d = bytearray(rng.randbytes(0x100))
+    set_gate(d, 'nz32', 0x49, kind == 'gate', rng)
+    put16(d, 0x1e, idx)
+    struct.pack_into('<h', d, 0x2a, k)
+    struct.pack_into('<h', d, 0x2c, w2c)
+    obj = bytearray(rng.randbytes(0x600))
+    # the row of k: lo = [+0xf8], ylo = [+0xfc], hi = [+0x100], yhi = [+0x104]
+    base = 0xf8 + 16 * k
+    h = rng.choice([2, 3, 10, 100, 70000])
+    a = rng.randrange(1, h)
+    odd = rng.randrange(2)
+    ylo, yhi = y - rng.choice([0, 0, 1, 9]), y + rng.choice([0, 0, 1, 9])
+    if kind == 'c1':
+        lo = x - rng.choice([1, 1, 2, a])         # lo < x
+        hi = lo + 2 * (h + rng.choice([0, 0, 1, 5]) + (x - lo)) + odd     # half >= x - lo: x <= lo + half
+        if rest and rest[0] == 'ylo':
+            ylo = y + 1
+        elif rest and rest[0] == 'yhi':
+            yhi = y - 1
+        elif rest and rest[0] == 'xlo':
+            lo = x                                     # x > lo fails
+            hi = lo + 2 * h + odd
+        elif rest and rest[0] == 'xmid':
+            lo = x - 1
+            hi = lo + 2 * 0 + odd - 2 * rng.choice([0, 1, 3])    # half <= 0 or so: x > lo + half
+    elif kind == 'c2':
+        lo = x - h - a                                 # x > lo + half
+        hi = lo + 2 * h + odd
+        if rest and rest[0] == 'xhi':
+            hi = x                                     # x < hi fails
+        elif rest and rest[0] == 'ymiss':
+            ylo = y + 1
+    else:
+        lo = x + rng.choice([1, 5, 70000]) if rng.random() < 0.5 else x - rng.choice([1, 5, 70000])
+        hi = lo + rng.choice([-9, 0, 7, 100000])
+        ylo, yhi = y + rng.choice([1, 5]), y + rng.choice([6, 9])
+    for off, v in ((0xf8, lo), (0xfc, ylo), (0x100, hi), (0x104, yhi)):
+        put32(obj, 16 * k + off, v)
+    rect_into(rng, obj, x, y, (0x6c, 0x74, 0x68, 0x70), (0, 0, 0, 0), kind == 'c3')
+    rect_into(rng, obj, x, y, (0x5c, 0x64, 0x58, 0x60), (0, 0, 0, 0), kind in ('c4', 'c5'))
+    rect_into(rng, obj, x, y, (0x553, 0x55b, 0x54f, 0x557), (0, 0, 0, 0), kind == 'c6')
+    stubs = {0x465f8e: stub(0x465f8e, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=[rng.randrange(1 << 32)])}
+    return common('465c99', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest, k, w2c), stack=stack, args=(x, y))
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -506,6 +563,7 @@ SPECS = {
     '4571e1': dict(id=6, va=0x4571e1, size=572, gen=gen_4571e1, ret=True, cleanup=8, n=13 * 40),
     '47b4aa': dict(id=7, va=0x47b4aa, size=607, gen=gen_47b4aa, ret=True, cleanup=8, n=17 * 40),
     '4a6574': dict(id=8, va=0x4a6574, size=639, gen=gen_4a6574, ret=True, cleanup=8, n=13 * 40),
+    '465c99': dict(id=9, va=0x465c99, size=757, gen=gen_465c99, ret=True, cleanup=8, n=14 * 81),
 }
 KEYS = list(SPECS)
 
