@@ -160,6 +160,22 @@ class Fl26bDifferential(DiffBase):
         struct.pack_into('<I', nodes.data, head, 3)
         with self.assertRaises(RuntimeError):
             fx.run_original(sc)
+        # a kind whose low word is 2 or 1 but whose dword is not (the compares are dword compares): the original does not return either
+        for kind in (0x10002, 0x10001, 0x80000002):
+            sc = fx.build('424201', random.Random(1), 0)
+            nodes = next(a for a in sc.areas if a.name == 'nodes')
+            head = struct.unpack_from('<I', next(a for a in sc.areas if a.name == 'self').data, 4)[0] - nodes.va
+            struct.pack_into('<I', nodes.data, head, kind)
+            with self.assertRaises(RuntimeError):
+                fx.run_original(sc)
+        # a chain of kind-2 nodes that is a cycle: the original does not return (the port stops after its pass limit)
+        sc = fx.build('424201', random.Random(1), 0)
+        nodes = next(a for a in sc.areas if a.name == 'nodes')
+        head = struct.unpack_from('<I', next(a for a in sc.areas if a.name == 'self').data, 4)[0] - nodes.va
+        struct.pack_into('<I', nodes.data, head, 2)
+        struct.pack_into('<I', nodes.data, head + 0x38, nodes.va + head)
+        with self.assertRaises(RuntimeError):
+            fx.run_original(sc)
         sc = fx.build('42406d', random.Random(2), 0)
         nodes = next(a for a in sc.areas if a.name == 'nodes')
         head = struct.unpack_from('<I', next(a for a in sc.areas if a.name == 'self').data, 4)[0] - nodes.va
