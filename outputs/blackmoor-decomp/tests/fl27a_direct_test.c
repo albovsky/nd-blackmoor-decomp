@@ -312,7 +312,7 @@ static void test_m449d90_file_exists(void)
 
 static void test_m44c479_wait_state(void)
 {
-    static const uint32_t OTHERS[] = {0, 3, 4, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu, 0x201};
+    static const uint32_t OTHERS[] = {0, 3, 4, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu, 0x201, 0x102, 0x10002};
     size_t i;
     int32_t r;
     int k;
@@ -501,7 +501,7 @@ static void test_m4befc8_bink_do_frame(void)
 
 static void test_m4bef11_bink_goto(void)
 {
-    static const uint32_t OTHER_MODES[] = {0, 2, 3, 0x100, 0x101, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    static const uint32_t OTHER_MODES[] = {0, 2, 3, 0x100, 0x101, 0x10000, 0x10001, 0x01000000u, 0x80000000u, 0xffffffffu};
     size_t i;
     setup();
     expect_begin();
@@ -589,7 +589,7 @@ static void set_handle(uint32_t total, uint32_t cur)                      /* the
 
 static void test_m4bf10f_bink_next(void)
 {
-    static const uint32_t MODES[] = {0, 2, 0x100, 0x101, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    static const uint32_t MODES[] = {0, 2, 0x100, 0x101, 0x10000, 0x10001, 0x01000000u, 0x80000000u, 0xffffffffu};
     static const uint32_t CURS[] = {0, 2, 0x100, 0x101, 0x10001, 0x10000, 0x80000000u, 0xffffffffu, 5};
     size_t i;
     setup();

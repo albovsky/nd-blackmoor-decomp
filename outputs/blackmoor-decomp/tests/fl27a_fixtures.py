@@ -332,7 +332,7 @@ SPECS['449d90'] = dict(id=4, va=0x449d90, size=55, gen=gen_449d90, ret=0xfffffff
 def gen_44c479(rng, n):
     """The state dword (at an odd address, junk beside it): not 1 and not 2 -> stored 1 and returned 1; 2 -> returned 2 untouched; 1 -> Sleep(1)
     until a poke of the other thread (at the k-th Sleep) changes it, then the same two outcomes."""
-    profiles = [('init', v) for v in (0, 3, 4, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff, 2)]
+    profiles = [('init', v) for v in (0, 3, 4, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff, 0x102, 0x10002, 0x201, 2)]
     profiles += [('wait', k, v) for k in (0, 1, 2, 4) for v in (0, 2, 3, 0x101, 0xffffffff, 0x100)]
     profiles += [('wait', 0, 2), ('relapse', 2, 2), ('relapse', 3, 0)]       # (relapse: the state goes 1 -> 5 -> 1 again before it ends)
     (kind, *rest), variant = prof(n, profiles)
@@ -353,7 +353,7 @@ def gen_44c479(rng, n):
     return make('44c479', [Area('flag', od.region_va(1), area, image=False)], stubs, {}, [flag_va], (flag_va,), (kind, *rest))
 
 
-SPECS['44c479'] = dict(id=5, va=0x44c479, size=50, gen=gen_44c479, ret=0xffff, cleanup=0, n=60)
+SPECS['44c479'] = dict(id=5, va=0x44c479, size=50, gen=gen_44c479, ret=0xffff, cleanup=0, n=78)
 
 def bink_area(rng, size=0x100):
     return bytearray(rng.randbytes(size))
@@ -423,7 +423,7 @@ SPECS['4befc8'] = dict(id=9, va=0x4befc8, size=92, gen=gen_4befc8, ret=0xfffffff
 def gen_4bef11(rng, n):
     """null handle -> error code, -3 returned; else [self+0x2c4] = mode; mode 1 goes to the frame count [handle+8], every other mode (dword
     compare: 0x101, 0x10000, ...) to frame 1."""
-    modes = (0, 1, 2, 3, 0x100, 0x101, 0x10000, 0x01000000, 0x80000000, 0xffffffff)
+    modes = (0, 1, 2, 3, 0x100, 0x101, 0x10000, 0x10001, 0x01000000, 0x80000000, 0xffffffff)
     profiles = [('null', 5)] + [('mode', m) for m in modes]
     (kind, *rest), variant = prof(n, profiles)
     d = junk_self(rng)
@@ -437,7 +437,7 @@ def gen_4bef11(rng, n):
     return make('4bef11', areas, stubs, {}, [handle, mode], (handle, mode), (kind, *rest), probes=[('self', 0, 0x300)])
 
 
-SPECS['4bef11'] = dict(id=10, va=0x4bef11, size=116, gen=gen_4bef11, ret=0xffffffff, cleanup=8, n=33)
+SPECS['4bef11'] = dict(id=10, va=0x4bef11, size=116, gen=gen_4bef11, ret=0xffffffff, cleanup=8, n=36)
 
 def gen_4bf098(rng, n):
     """null handle -> error code, [self+0xbc] (0) returned; else the import gets the six arguments and [self+4], its answer is stored in
@@ -458,7 +458,7 @@ SPECS['4bf098'] = dict(id=11, va=0x4bf098, size=119, gen=gen_4bf098, ret=0xfffff
 def gen_4bf10f(rng, n):
     """null handle -> error code; mode (dword [self+0x2c4]) not 1: current == total (0) or not (NextFrame, 1); mode 1: current == 1 (0) or not
     (Goto current-1, 1). The dword compares are probed with values that agree in their low byte or word only."""
-    modes = (0, 2, 0x100, 0x101, 0x10000, 0x80000000, 0xffffffff)
+    modes = (0, 2, 0x100, 0x101, 0x10000, 0x10001, 0x80000000, 0xffffffff)
     curs = (0, 2, 0x100, 0x101, 0x10001, 0x10000, 0x80000000, 0xffffffff, 5)
     profiles = [('null',)] + [('other', m, 'eq') for m in modes] + [('other', m, 'ne') for m in modes] + [('one', 1)] + [('one', c) for c in curs]
     profiles += [('other', 0, 'ne_hi'), ('other', 2, 'ne_lo'), ('other', 0xffffffff, 'ne_mid')]
@@ -483,7 +483,7 @@ def gen_4bf10f(rng, n):
     return make('4bf10f', areas, stubs, {}, [handle], (handle,), (kind, *rest), probes=[('self', 0, 0x300)])
 
 
-SPECS['4bf10f'] = dict(id=12, va=0x4bf10f, size=139, gen=gen_4bf10f, ret=0xffffffff, cleanup=4, n=36)
+SPECS['4bf10f'] = dict(id=12, va=0x4bf10f, size=139, gen=gen_4bf10f, ret=0xffffffff, cleanup=4, n=60)
 
 def gen_4bf315(rng, n):
     """An empty name (first byte zero, junk after it; error code -5) or a name of 1 to 0x30 bytes whose first byte is non-zero (including
