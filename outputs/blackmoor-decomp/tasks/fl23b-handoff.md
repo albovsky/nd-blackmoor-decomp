@@ -58,7 +58,17 @@ Recording stubs entered by address, popping the stack arguments of the callee, w
   - 0x4574e4..0x45764a 0225ab2aa7114245eed06245911867bb28fece8e4fef1e1e0ddf3e2bf34a83a7
   - 0x47a03c..0x47a1a9 b9bdb49708ab5294f09473f5dc4f7e14d20a417cde5818726c8f91c4bb28563e
   - 0x4b2a9e..0x4b2c32 fd8b4da13e9aea0341c81505f4fac7c14e23640ce3e11a20d1039ff455c886ce
-- Source and test hashes: `sha256sum` of the owned files at the final commit (run `git show --stat HEAD`, then `sha256sum` the paths under "Files"); the oracle's per-function digests are in the oracle output.
+- Source and test hashes (sha256, at the commit that adds this block):
+  - `src/original_methods_fl23b.c` b23128e40f94676fb2d799a09396297c3da9590cc29988bc673020eb37ae512f
+  - `src/original_methods_fl23b.h` ce49db6dfe9392ba1a0f5ad08e310dfd73e577feaaaf014a6e56586fa91299e8
+  - `tests/fl23b_direct_test.c` ac2e4939314da6c7e5b4acb406e90af11c2c5dd764f23a66759a8a4ac5db939d
+  - `tests/test_fl23b_direct.py` 2640f705b045f4bed4926f39ba900ec86379d6fde9cc0b9add7cac629ba43738
+  - `tests/fl23b_differential_shim.c` e5d7d75ed3162ec8c5240fa50621d18ac8c2cd8b4d2d9f47a9a53218b6b9639c
+  - `tests/test_fl23b_differential.py` a84787f1ff80a29065181db5ae40021301a8182fe3f5ca46a196cf1d35565913
+  - `tests/fl23b_fixtures.py` 486019be7ab6864bdfe920acfa1fd6d44c43133249a45107e962f0f6c3042aa2
+  - `tests/fl23b_original_oracle.py` 2ebc80e78cef6ef5b5797f0fbdce4c20ac743a5f9f60d6c943ff1a3e8f9f4448
+  - `tests/fl23b_mutation_check.py` 4f1ee2360b2cfbef78d84c86f1d1716f1342082b069b02565c334b8bf56cbaf3
+  - `tasks/fl23b-acceptances.json` 0bf1303118ecc1c8c6c79bd9b2adaa657c1fa8857386532fa1d96a65956083b2
 - Oracle digests (sha256 over the ordered call logs and the memory read back of all 224 scenarios, deterministic, identical plain and under the recorder; prefixes, the full values are printed by `python3 tests/fl23b_original_oracle.py`): 0x4a1efd 9ba6a92e48c3ca2a, 0x4ba4f2 63e9e976e1e8de99, 0x46957d eb2dd613bb587894, 0x4b45ed aa22f28d06169b91, 0x473ffc db54da65e79ea688, 0x48e851 8cc5bbb0fe5a1f7a, 0x45e587 10148f62d425a5fd, 0x48ab49 1b4b83d4adbacf79, 0x4ab899 7f227b145c6a6d15, 0x4574e4 d3203b3e423d1861, 0x47a03c 9d4c781806c64712, 0x4b2a9e 88aedec6cd96f823.
 
 ## Deliberate divergences and known limits
