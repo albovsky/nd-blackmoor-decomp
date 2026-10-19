@@ -44,6 +44,9 @@ int32_t m4a835c_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, Fl2
 /* 0x45841e: hit test (ret 0xc; the third argument is the original address of four dwords that it stores into the object; the record is indexed by the word [+0x26]): calls 0x458262, 0x45839e (with the pointers self + 0x3e and the rectangle of the object or of a local) and 0x45879e; returns 1 on a hit, else 0 */
 int32_t m45841e_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, const Fl25aWorld *world, const Fl18Host *host);
 
+/* 0x45565f: events 0x27c7, 0x27c6, 0x27c5, 0x27c4 and 0x27c8 (state machine over the words 0x8a, 0x8c, 0x36, 0x38 of the object and rows of 0x96 bytes of the record object; calls 0x455ab8, 0x455a63, 0x455a0e, 0x455b2e, 0x455c4f; writes the record object). Plain `ret`. */
+void m45565f_click_27c4_27c8(uint8_t *self, const Fl25aWorld *world, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif

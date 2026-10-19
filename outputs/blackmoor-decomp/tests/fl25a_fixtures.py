@@ -101,7 +101,7 @@ class Original20(od.Original):
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12), 0x458262: (0, True, 0), 0x45839e: (2, True, 8), 0x45879e: (1, True, 4)}
+SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12), 0x458262: (0, True, 0), 0x45839e: (2, True, 8), 0x45879e: (1, True, 4), 0x455ab8: (0, True, 0), 0x455a63: (0, True, 0), 0x455a0e: (0, True, 0), 0x455b2e: (0, True, 0), 0x455c4f: (0, True, 0)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
 WORD_ARGS = {0x464ab5: (1,)}
 RECORDS_VA = 0x5bb5e5
@@ -158,7 +158,8 @@ def records(rng, idx, state_fail, target_va, decoy_va):
 def common(key, rng, d, obj, idx, sel, state_fail, flag, stubs, extra=(), consts=(), g=None, pointers=None, **kw):
     """Assembles a scenario around the `self` bytes d and the record object bytes obj."""
     sp = SPECS[key]
-    areas = [Area('self', od.region_va(0), d, image=False), records(rng, idx, state_fail, od.region_va(1), od.region_va(4)),
+    bias = kw.pop('obj_bias', 0)
+    areas = [Area('self', od.region_va(0), d, image=False), records(rng, idx, state_fail, od.region_va(1) + bias, od.region_va(4)),
              Area('obj', od.region_va(1), obj, image=False), Area('decoy', od.region_va(4), bytearray(rng.randbytes(0x1000)), image=False, compare=False)]
     ptrs = {'records_5bb5e5': ('records', REC), **(pointers or {})}
     for table, const in consts:
@@ -603,6 +604,62 @@ def gen_45841e(rng, n):
                   stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)), g={'word_5a4c08': w5a})
 
 
+def gen_45565f(rng, n):
+    profiles = [('gate', i) for i in range(3)] + [('c7',)] + [('c6', w) for w in (0, 1, 2, 3, -1, 5, 0x7fff, -32768)]
+    profiles += [('c5', w) for w in (0, 1, 2, 3, -1, -32768, 0x7fff)]
+    profiles += [('c4', z, e) for z in (True, False) for e in (True, False)] + [('c8', a, b, c) for a in (0, 1) for b in ('eq', 'ne') for c in ('lt_all1', 'lt_bad0', 'lt_bad1', 'lt_bad3', 'ge')]
+    profiles += [('other', v) for v in (0, 0x27c3, 0x27c9, 0xffffffff, 0x127c8)]
+    (kind, *rest), variant = prof(n, profiles)
+    bias = 0x800
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    failing = rest[0] if kind == 'gate' else None
+    sel = {'c7': 0x27c7, 'c6': 0x27c6, 'c5': 0x27c5, 'c4': 0x27c4, 'c8': 0x27c8, 'other': rest[0] if kind == 'other' else 0}.get(kind, rng.choice([0x27c4, 0x27c5, 0x27c6, 0x27c7, 0x27c8]))
+    d = bytearray(rng.randbytes(0x200))
+    set_gate(d, 'nz32', 0x150, failing == 0, rng)
+    set_gate(d, 'z32', 0x155, failing == 1, rng)
+    put16(d, 0x1e, idx)
+    obj = bytearray(rng.randbytes(bias + 0x1400))
+    w8a = rest[0] if kind in ('c6', 'c5') else rng.choice([0, 1, 2, 3, -1, 5])
+    w36, w38 = rng.choice([-1, 0, 1, 2, 3, 6]), rng.choice([-3, -1, 0, 1, 2, 3, 6])
+    if kind == 'c4':
+        nz, eq = rest[0], rest[1]
+        set_gate(d, 'z32' if nz else 'nz32', 0x2a, False, rng)        # (rest[0] True: [+0x2a] is zero)
+        if eq:
+            w38 = w36
+        elif w38 == w36:
+            w38 += 1
+    elif kind == 'c8':
+        w8c = {'lt_all1': rng.choice([-2, 0, 1, 2, 3, 4]), 'lt_bad0': rng.choice([1, 2, 3]), 'lt_bad1': rng.choice([1, 2, 3, 4]), 'lt_bad3': rng.choice([1, 2, 3, 4]), 'ge': rng.choice([0, 1, 4])}[rest[2]]
+        put16(d, 0x8c, w8c)
+    put16(d, 0x8a, w8a)
+    put16(d, 0x36, w36)
+    put16(d, 0x38, w38)
+    put16(d, 0x8c, rng.choice([-2, -1, 0, 1, 2, 3, 4]) if kind != 'c8' else struct.unpack_from('<h', d, 0x8c)[0])
+    struct.pack_into('<h', obj, bias + 0x23, rng.choice([-3, 0, 1, 2, 3, 5, 6, 0x7fff]))
+    if kind == 'c8':
+        has7e0, equal, case = rest[0], rest[1], rest[2]
+        struct.pack_into('<h', obj, bias + 0x7e0, rng.choice([1, 0x100, -1, 0x7fff]) if has7e0 else 0)
+        m = w36 * 0x96
+        struct.pack_into('<h', obj, bias + m + 0xd5, w8a if equal == 'eq' else (w8a + 1 if w8a < 0x7fff else w8a - 1))
+        w8c = struct.unpack_from('<h', d, 0x8c)[0]
+        count = {'lt_all1': w8c + 1 + rng.choice([0, 1, 5]), 'ge': w8c - rng.choice([0, 1, 5])}.get(case, w8c + 1 + rng.choice([0, 1, 3]))
+        struct.pack_into('<h', obj, bias + 0x23, max(-32768, min(32767, count)))
+        for j in range(4 * w8c - 4, 4 * w8c):
+            pos = bias + j * 0x96 + 0xd9
+            if 0 <= pos < len(obj) - 2:
+                struct.pack_into('<h', obj, pos, 1)
+        bad = {'lt_bad0': 4 * w8c - 4, 'lt_bad1': 4 * w8c - 3, 'lt_bad3': 4 * w8c - 1}.get(case)
+        if bad is not None:
+            pos = bias + bad * 0x96 + 0xd9
+            if 0 <= pos < len(obj) - 2:
+                struct.pack_into('<h', obj, pos, rng.choice([0, 2, -1, 0x101, 0x7fff]))
+        if bad is None and case == 'lt_all1' and variant % 2:
+            struct.pack_into('<h', obj, bias + m + 0xd9, rng.choice([0, 2, 5]))        # (the store of 1 to this row is what the loop then reads)
+    probes = [('self', 0, 0x200), ('records', 0, 6 * REC), ('obj', bias + 0xd0, 0xb0)]
+    stubs = {c: stub(c, probes) for c in (0x455ab8, 0x455a63, 0x455a0e, 0x455b2e, 0x455c4f)}
+    return common('45565f', rng, d, obj, idx, sel, failing == 2, 0, stubs, now=0, profile=(kind, *rest), obj_bias=bias)
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -610,6 +667,7 @@ SPECS = {
     '464792': dict(id=2, va=0x464792, size=803, gen=gen_464792, ret=True, cleanup=12, probes=[(0, 0x100)], n=89 * 6),
     '4a835c': dict(id=3, va=0x4a835c, size=827, gen=gen_4a835c, ret=True, cleanup=12, probes=[(0xe00, 0x300)], n=60 * 6),
     '45841e': dict(id=4, va=0x45841e, size=896, gen=gen_45841e, ret=True, cleanup=12, probes=[(0, 0x100)], n=63 * 6),
+    '45565f': dict(id=5, va=0x45565f, size=943, gen=gen_45565f, n=48 * 6),
 }
 KEYS = list(SPECS)
 

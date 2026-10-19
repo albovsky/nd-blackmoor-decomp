@@ -22,6 +22,7 @@ EXPECTED = [
     'test_m464792_hit_test',
     'test_m4a835c_hit_test',
     'test_m45841e_hit_test',
+    'test_m45565f_click_27c4_27c8',
     'test_sweep_bounded',
 ]
 
@@ -82,6 +83,10 @@ class Fl25aDirect(unittest.TestCase):
     def test_45841e_hit_test(self):
         """FL-25a: direct test of m45841e_hit_test"""
         self.check('test_m45841e_hit_test')
+
+    def test_45565f_click_27c4_27c8(self):
+        """FL-25a: direct test of m45565f_click_27c4_27c8"""
+        self.check('test_m45565f_click_27c4_27c8')
 
     # CASES-END
 

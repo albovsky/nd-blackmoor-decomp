@@ -337,3 +337,98 @@ int32_t m45841e_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, con
     call1(host, 0x45879e, (uintptr_t)self, 0x279f);
     return 1;
 }
+
+/* ---- 0x45565f ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x45565f, thiscall, plain `ret`: the record object address (word [+0x1e]) is read at entry. Guards: dword [+0x150] set, dword [+0x155]
+ * clear, record state 1. Then by the selector [0x5c39e5]:
+ *  0x27c7: byte [+0x154] = 1, record state = 2.
+ *  0x27c6: word [+0x8e] = word [+0x8a]; word [+0x8a] = signed [+0x8a] < 3 ? [+0x8a] + 1 : 0; 0x455ab8(this = self).
+ *  0x27c5: word [+0x8e] = word [+0x8a]; word [+0x8a] = signed [+0x8a] > 0 ? [+0x8a] - 1 : 3; 0x455ab8(this = self).
+ *  0x27c4: with dword [+0x2a] set: 0x455a63(this = self), dword [+0x2e] = 1. With [+0x2a] set (read again) and signed words [+0x36] == [+0x38]:
+ *    [+0x2a] = 0, word [+0x36] = 0xffff, done. Else word [+0x36] = word [+0x38]; m = signed [+0x36] * 0x96; word [+0x16a] = low 16 bits of
+ *    obj[m+0xcd] - obj[m+0xc5], word [+0x16c] = low 16 bits of obj[m+0xd1] - obj[m+0xc9]; 0x455a0e(this = self); [+0x2a] = 1, [+0x32] = 1;
+ *    the 16 bytes at obj + m + 0xc5 are copied to self + 0x7a as four dwords.
+ *  0x27c8: when the signed word obj[0x7e0] is set and the signed word [+0x8a] differs from the signed word obj[m+0xd5] (m as above, from
+ *    [+0x36]): 0x455b2e(this = self). Else 0x455a63(this = self); word obj[m+0xd9] = 1; when signed [+0x8c] < signed obj[0x23]: flag = 1;
+ *    for j from 4 * [+0x8c] - 4 while j < 4 * [+0x8c] and flag == 1: flag = 0 unless signed word obj[j * 0x96 + 0xd9] == 1 (j is a signed
+ *    dword and may be negative: the original then reads below the object, as this port does); when flag is set word [+0x8c] += 1. Then
+ *    always: [+0x2a] = 0, [+0x2e] = 1, word [+0x36] = 0xffff, 0x455c4f(this = self).
+ * Any other selector: nothing. The record object is written (word obj[m+0xd9]); the host's resolve returns mutable memory. */
+void m45565f_click_27c4_27c8(uint8_t *self, const Fl25aWorld *world, const Fl18Host *host)
+{
+    uint32_t record = record_object_address(world, self, 0x1e);
+    uint8_t *obj;
+    uint32_t sel;
+    ptrdiff_t m;
+    if (rd32(self, 0x150) == 0) return;
+    if (rd32(self, 0x155) != 0) return;
+    if (rd32(world->records_5bb5e5, rec_offset(self, 0x1e) + 0x4d) != 1) return;
+    sel = world->value_5c39e5;
+    if (sel == 0x27c7) {
+        self[0x154] = 1;
+        wr32(world->records_5bb5e5, rec_offset(self, 0x1e) + 0x4d, 2);
+        return;
+    }
+    if (sel == 0x27c6) {
+        wr16(self, 0x8e, rd16(self, 0x8a));
+        if (rds16(self, 0x8a) < 3) wr16(self, 0x8a, (uint16_t)(rd16(self, 0x8a) + 1));
+        else wr16(self, 0x8a, 0);
+        call0(host, 0x455ab8, (uintptr_t)self);
+        return;
+    }
+    if (sel == 0x27c5) {
+        wr16(self, 0x8e, rd16(self, 0x8a));
+        if (rds16(self, 0x8a) > 0) wr16(self, 0x8a, (uint16_t)(rd16(self, 0x8a) - 1));
+        else wr16(self, 0x8a, 3);
+        call0(host, 0x455ab8, (uintptr_t)self);
+        return;
+    }
+    if (sel == 0x27c4) {
+        obj = (uint8_t *)object_at(host, record);
+        if (rd32(self, 0x2a) != 0) {
+            call0(host, 0x455a63, (uintptr_t)self);
+            wr32(self, 0x2e, 1);
+        }
+        if (rd32(self, 0x2a) != 0 && rds16(self, 0x36) == rds16(self, 0x38)) {
+            wr32(self, 0x2a, 0);
+            wr16(self, 0x36, 0xffff);
+            return;
+        }
+        wr16(self, 0x36, rd16(self, 0x38));
+        m = (ptrdiff_t)(rds16(self, 0x36) * 0x96);
+        wr16(self, 0x16a, (uint16_t)(rd32(obj, m + 0xcd) - rd32(obj, m + 0xc5)));
+        wr16(self, 0x16c, (uint16_t)(rd32(obj, m + 0xd1) - rd32(obj, m + 0xc9)));
+        call0(host, 0x455a0e, (uintptr_t)self);
+        wr32(self, 0x2a, 1);
+        wr32(self, 0x32, 1);
+        m = (ptrdiff_t)(rds16(self, 0x36) * 0x96);
+        wr32(self, 0x7a, rd32(obj, m + 0xc5));
+        wr32(self, 0x7e, rd32(obj, m + 0xc9));
+        wr32(self, 0x82, rd32(obj, m + 0xcd));
+        wr32(self, 0x86, rd32(obj, m + 0xd1));
+        return;
+    }
+    if (sel == 0x27c8) {
+        int32_t j;
+        int flag;
+        obj = (uint8_t *)object_at(host, record);
+        if (rds16(obj, 0x7e0) != 0 && rds16(self, 0x8a) != rds16(obj, (ptrdiff_t)(rds16(self, 0x36) * 0x96) + 0xd5)) {
+            call0(host, 0x455b2e, (uintptr_t)self);
+        } else {
+            call0(host, 0x455a63, (uintptr_t)self);
+            wr16(obj, (ptrdiff_t)(rds16(self, 0x36) * 0x96) + 0xd9, 1);
+            if (rds16(self, 0x8c) < rds16(obj, 0x23)) {
+                flag = 1;
+                for (j = rds16(self, 0x8c) * 4 - 4; j < rds16(self, 0x8c) * 4 && flag == 1; j++) {
+                    if (rds16(obj, (ptrdiff_t)(j * 0x96) + 0xd9) != 1) flag = 0;
+                }
+                if (flag != 0) wr16(self, 0x8c, (uint16_t)(rd16(self, 0x8c) + 1));
+            }
+        }
+        wr32(self, 0x2a, 0);
+        wr32(self, 0x2e, 1);
+        wr16(self, 0x36, 0xffff);
+        call0(host, 0x455c4f, (uintptr_t)self);
+    }
+}

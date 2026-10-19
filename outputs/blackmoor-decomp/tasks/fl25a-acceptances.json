@@ -1,5 +1,38 @@
 [
  {
+  "va": "0x45565f",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25a.c",
+   "symbol": "m45565f_click_27c4_27c8"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25a_direct_test.c",
+    "test_id": "test_m45565f_click_27c4_27c8"
+   },
+   {
+    "path": "tests/test_fl25a_direct.py",
+    "test_id": "Fl25aDirect.test_45565f_click_27c4_27c8"
+   },
+   {
+    "path": "tests/test_fl25a_differential.py",
+    "test_id": "Fl25aDifferential.test_45565f_click_27c4_27c8"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25a_original_oracle.py",
+   "window": [
+    "0x45565f",
+    "0x455a0e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m45565f_click_27c4_27c8 (events 0x27c7, 0x27c6, 0x27c5, 0x27c4, 0x27c8: word state machine, 16-byte row copy, loop over rows of 0x96 bytes; calls 0x455ab8, 0x455a63, 0x455a0e, 0x455b2e, 0x455c4f). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+ },
+ {
   "va": "0x45841e",
   "class": "native_oracle_verified",
   "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
