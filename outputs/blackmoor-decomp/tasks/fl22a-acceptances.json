@@ -1,0 +1,138 @@
+[
+ {
+  "va": "0x463392",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m463392_step_scene"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m463392_step_scene"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_step_scene_463392"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_463392_step_scene"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d3_runtime_original_oracle.py",
+   "window": [
+    "0x463392",
+    "0x463b00"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m463392_step_scene: the scene step with states 0, 1 (jump table of five arms) and 2; the table at 0x463aec is data and is not part of the instruction coverage. Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 456 of 456 instructions reached; the oracle window runs all 1882 bytes.",
+  "blockers_reviewed": []
+ },
+ {
+  "va": "0x461d82",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m461d82_move_step"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m461d82_move_step"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_move_step_461d82"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_461d82_move_step"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d3_runtime_original_oracle.py",
+   "window": [
+    "0x461d82",
+    "0x462577"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m461d82_move_step: the cell mover with its four-arm jump table at 0x462567 (data, not part of the instruction coverage); the unguarded divisions are an explicit native rejection (divisor 0 and INT32_MIN / -1 return 0 at the division). Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 504 of 504 instructions reached; the oracle window runs all 2021 bytes.",
+  "blockers_reviewed": []
+ },
+ {
+  "va": "0x4778df",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m4778df_render"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m4778df_render"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_render_4778df"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_4778df_render"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_e4_runtime_original_oracle.py",
+   "window": [
+    "0x4778df",
+    "0x4780e0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4778df_render: the scene render: every callee (0x4c5377, 0x475cc4, 0x4d3836, 0x50ca3e) is a host call; the text buffer local is zeroed where the original leaves it uninitialised. Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 514 of 514 instructions reached; the oracle window runs all 2035 bytes.",
+  "blockers_reviewed": []
+ },
+ {
+  "va": "0x45d2c6",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m45d2c6_render"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m45d2c6_render"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_render_45d2c6"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_45d2c6_render"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_da_runtime_original_oracle.py",
+   "window": [
+    "0x45d2c6",
+    "0x45db70"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m45d2c6_render: the overlay render: every callee (0x45b568, 0x4c5377, 0x4c5d4b) is a host call; the two loops with a limit computed from [rec+0x23] reject a limit beyond a word (the original never leaves them). Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 590 of 590 instructions reached; the oracle window runs all 2212 bytes.",
+  "blockers_reviewed": []
+ }
+]
