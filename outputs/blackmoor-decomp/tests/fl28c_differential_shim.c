@@ -20,7 +20,7 @@ typedef struct ShimCall {
     uint64_t this_ptr;
     uint64_t arg[16];
     uint8_t data[256];    /* bytes behind pointer arguments that the test asked to see: [0..128) shim_script_deref, [128..256) shim_script_deref2 */
-    uint8_t probe[4096];  /* bytes at the probed host addresses (shim_script_probe), concatenated, read at the call */
+    uint8_t probe[512];   /* bytes at the probed host addresses (shim_script_probe), concatenated, read at the call (at most 0x80 are used) */
     uint8_t world[256];   /* the first bytes of the Fl28cWorld snapshot at the call */
 } ShimCall;
 
@@ -33,7 +33,7 @@ typedef struct ShimWrite {
 
 typedef struct ShimScript {
     uint32_t callee;
-    uint32_t results[512];
+    uint32_t results[4096];
     int nresults, used;
     int deref_arg, deref_bytes, deref_arg2, deref_bytes2;
     const uint8_t *probe_ptr[8];
@@ -44,7 +44,7 @@ typedef struct ShimScript {
 
 static ShimRegion g_regions[16];
 static int g_region_count;
-static ShimCall g_calls[1024];
+static ShimCall g_calls[40000];
 static int g_call_count;
 static ShimScript g_script[16];
 static int g_script_count;
@@ -151,7 +151,7 @@ static const void *deref_ptr(uintptr_t value)
 
 static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
-    ShimCall *c = &g_calls[g_call_count++];
+    ShimCall *c = &g_calls[g_call_count < 39999 ? g_call_count++ : 39999];
     ShimScript *s = script_for(callee);
     uint32_t result = 0;
     int i;

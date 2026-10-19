@@ -193,7 +193,7 @@ def run_original(sc):
     for x in [*sc.stubs.values(), *sc.iat.values()]:
         x.probe_addr = [((GLOBALS[name[2:]][0] if name.startswith('g:') else next(a.va for a in sc.areas if a.name == name)) + off, ln) for name, off, ln in (x.probe or ())]
     runner = Original28(image_patches, regions, sc.stubs, sc.iat, seh=sc.seh, fpcw=SPECS[sc.key].get('fpcw'))
-    orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
+    orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read, limit=20000000)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
@@ -303,14 +303,17 @@ def profiles_4cf026():
     profiles = [('guard', 1, 0), ('guard', 0, 1), ('guard', 0, 0)]
     profiles += [('empty', c) for c in (0, -1, -2, -0x8000)]
     profiles += [('hit', c, i) for c in (1, 2, 3, 5) for i in range(c)]
-    profiles += [('hit', 0x7fff, 3), ('hit', 0x100, 0), ('hit', 6, 5)]
-    profiles += [('miss', c) for c in (1, 2, 3, 6)]
+    profiles += [('hit', 0x7fff, 3), ('hit', 0x100, 0), ('hit', 6, 5), ('hit', 0x7fff, 1237), ('hit', 0x7fff, 1300)]
+    profiles += [('miss', c) for c in (1, 2, 3, 6, 0x7fff)]
     return profiles
 
 
 def gen_4cf026(rng, n):
     (kind, *rest), variant = prof(n, profiles_4cf026())
     count = 0 if kind == 'guard' else rest[0]
+    if variant and count == 0x7fff and kind == 'miss':       # the full 32767-step walk (a 16-bit index would wrap) once; the other passes take 1300 steps
+        count = 1300
+        rest = (count,)
     if kind == 'guard':
         count = rng.choice([0, 3, 0x7fff])
     selfd = self_area(rng)
@@ -323,7 +326,7 @@ def gen_4cf026(rng, n):
     if kind == 'hit':
         results = [rng.choice(NONZERO) for _ in range(rest[1])] + [0]
     elif kind == 'miss':
-        results = [rng.choice(NONZERO) for _ in range(rest[0])]
+        results = [rng.choice(NONZERO) for _ in range(min(rest[0], 64))]        # the last answer repeats
     else:
         results = []
     key = rng.randrange(1 << 32)
@@ -344,13 +347,20 @@ def profiles_4cec6c():
     return profiles
 
 
+# record indices, small and wide: the table base is moved down by index * stride (mod 2**32), so that the record address is in the fixture region whatever the index
+INDEXES_4CEC6C = (None, 0x100, 0x10000, 0x10003, 0x1000000, 0x12345678, 0x7fffffff, 0x80000000, 0xfffffffe)
+
+
 def gen_4cec6c(rng, n):
     (kind, *rest), variant = prof(n, profiles_4cec6c())
     selfd = self_area(rng)
     tbl = bytearray(rng.randbytes(0x35 * 4))
-    index = rng.randrange(4) if kind == 'run' else rng.choice([0, 1, 3, 0x7fffffff])
+    slot = rng.randrange(4)                          # the record that the index addresses
+    wide = INDEXES_4CEC6C[(variant + n) % len(INDEXES_4CEC6C)]
+    index = slot if wide is None else wide
+    base = (od.region_va(1) + 0x35 * slot - 0x35 * index) & 0xffffffff
     put32(selfd, 0x222, rng.choice([od.region_va(2), 1, 0x80000000, 0xffffffff]))
-    put32(selfd, 0x226, od.region_va(1))
+    put32(selfd, 0x226, base)
     put32(selfd, 0x246, index)
     if kind == 'guard':
         which = rest[0]
@@ -362,17 +372,18 @@ def gen_4cec6c(rng, n):
             put32(selfd, 0x246, 0xffffffff)
     else:
         put16(selfd, 0x1ca, rest[0])
-        put16(tbl, 0x35 * index + 0x23, rest[1])
+        put16(tbl, 0x35 * slot + 0x23, rest[1])
     areas = [Area('self', od.region_va(0), selfd, image=False), Area('tbl', od.region_va(1), tbl, image=False)]
-    return make('4cec6c', areas, {}, {}, [], (), (kind, *rest))
+    return make('4cec6c', areas, {}, {}, [], (), (kind, *rest, index))
 
 
 # ---- 0x4cf1e4: allocate and clear ---------------------------------------------------------------------------------------------------
 
 
 def profiles_4cf1e4():
-    profiles = [('fail', size, d) for size in (0, 1, 8, 0x100, 0xffffffff) for d in DBG_VALUES]
-    profiles += [('ok', size, off) for size in (0, 1, 2, 3, 4, 5, 7, 8, 9, 0x1f, 0x20, 0x23, 0x35, 0x80) for off in (0, 0x10)]
+    profiles = [('fail', size, d) for size in (0, 1, 8, 0x100, 0x10000, 0xffffffff) for d in DBG_VALUES]
+    profiles += [('ok', size, off) for size in (0, 1, 2, 3, 4, 5, 7, 8, 9, 0x1f, 0x20, 0x23, 0x35, 0x80, 0xff, 0x100, 0x101, 0x103, 0x1ff, 0x400, 0x10000, 0x10001, 0x10003, 0x1fffc)
+                 for off in (0, 0x10)]
     profiles += [('ok_unmapped', 0, 0x1234), ('ok_unmapped', 0, 0xffffffff)]
     return profiles
 
@@ -381,7 +392,7 @@ def gen_4cf1e4(rng, n):
     (kind, *rest), variant = prof(n, profiles_4cf1e4())
     size = rest[0]
     dbg = rest[1] if kind == 'fail' else rng.choice(DBG_VALUES)
-    heap = bytearray(rng.randbytes(0x100))
+    heap = bytearray(rng.randbytes(0x20100))
     out = bytearray(rng.randbytes(8))
     if kind == 'fail':
         p = 0
@@ -406,23 +417,31 @@ def profiles_4ceb8c():
     return profiles
 
 
+INDEXES_4CEB8C = (None, 0x100, 0x10000, 0x10003, 0x1000000, 0x12345678, 0x7fffffff, 0x80000000, 0xfffffffe)
+
+
 def gen_4ceb8c(rng, n):
     (kind, *rest), variant = prof(n, profiles_4ceb8c())
     selfd = self_area(rng)
     tbl = bytearray(rng.randbytes(0x22 * 4))
+    slot = rest[0] if kind == 'run' else 0
+    wide = INDEXES_4CEB8C[(variant + n) % len(INDEXES_4CEB8C)]
+    index = slot if wide is None else wide
     for off in (0x16, 0x1e, 0x12, 0x1a):          # a field that wraps with the origin
         if variant % 2:
-            put32(tbl, 0x22 * (rest[0] if kind == 'run' else 0) + off, rng.choice([0xffffff00, 0x7fffffff, 0x80000000, 5]))
+            put32(tbl, 0x22 * slot + off, rng.choice([0xffffff00, 0x7fffffff, 0x80000000, 5]))
     put32(selfd, 0x222, rng.choice([od.region_va(2), 1, 0x80000000, 0xffffffff]))
-    put32(selfd, 0x22a, od.region_va(1))
-    put32(selfd, 0x24a, rest[0] if kind == 'run' else rng.choice([0, 1, 3, 0x7fffffff]))
+    put32(selfd, 0x22a, (od.region_va(1) + 0x22 * slot - 0x22 * index) & 0xffffffff)      # the record address is in the region whatever the index
+    put32(selfd, 0x24a, index)
     g = {'origin_x_583186': rng.randrange(1 << 32), 'origin_y_58318a': rng.randrange(1 << 32)}
     if kind == 'guard':
+        put32(selfd, 0x22a, od.region_va(1))
+        put32(selfd, 0x24a, rng.choice([0, 1, 3, 0x7fffffff]))
         put32(selfd, (0x222, 0x22a, 0x24a)[rest[0]], (0, 0, 0xffffffff)[rest[0]])
     else:
         g = {'origin_x_583186': rest[1], 'origin_y_58318a': rest[2]}
     areas = [Area('self', od.region_va(0), selfd, image=False), Area('tbl', od.region_va(1), tbl, image=False)]
-    return make('4ceb8c', areas, {}, g, [], (), (kind, *rest))
+    return make('4ceb8c', areas, {}, g, [], (), (kind, *rest, index))
 
 
 # ---- 0x4ccef1: release the movie player and the movie record ------------------------------------------------------------------------
@@ -502,46 +521,72 @@ def gen_4ce8ea(rng, n):
 
 # ---- 0x4cd243: read the scene tables from a stream -----------------------------------------------------------------------------------
 
-STREAM_VA, HDRBUF_VA, TBL_VA, SUBS_VA, TBL2_VA, CELLS_VA = (od.region_va(i) for i in (1, 2, 3, 4, 5, 6))
+# the regions of this function are 16 MiB apart so that the wide scenarios (tables of more than 64 KiB) fit
+STREAM_VA, HDRBUF_VA, TBL_VA, SUBS_VA, TBL2_VA, CELLS_VA = (0x30000000 + i * 0x1000000 for i in range(6))
+ANSWERS = (1, 0x10000, 0x80000000, 0xffffffff, 0x100, 0x7fffffff)       # a success of 0x4cf1e4 is any non-zero eax: the answers are tested as a whole dword
 
 
 def profiles_4cd243():
     profiles = [('busy', flag, d) for flag in (1, 0x80000000, 0xffffffff) for d in (0, 1, 0x8000)]
     profiles += [('fail', k, count, d) for count in (2, 1) for k in range(2 + count + 1) for d in (0, 1)]
+    profiles += [('fail', 1, 1300, 0), ('fail', 1, 0x7fff, 1), ('fail', 1, -2, 0), ('fail', 1, -0x8000, 1)]       # the size passed to the table allocation does not fit in 16 bits / is negative
     profiles += [('ok', count, count2, d) for count in (0, 1, 2, 3) for count2 in (0, 1, 2, 5) for d in (0, 1, 0x8000)]
     profiles += [('negcount', c) for c in (-1, -0x8000)]
     profiles += [('negword', 0)]
+    # sizes that do not fit in 8 or 16 bits: a sub table of 315 / 65555 bytes, a second table of 272 / 65552 bytes, a running offset above 0x10000
+    profiles += [('wide', 'm8', 1, (9,), 0), ('wide', 'm16', 1, (1873,), 3), ('wide', 'n8', 0, (), 8), ('wide', 'n16', 0, (), 1928),
+                 ('wide', 'c16', 2, (1873, 9), 2), ('wide', 'both', 2, (40, 1900), 1930)]
     return profiles
 
 
 def gen_4cd243(rng, n):
     (kind, *rest), variant = prof(n, profiles_4cd243())
-    count, count2, dbg, fail_at = 2, rng.choice([0, 1, 2, 3]), 0, -1
+    count, count2, dbg, fail_at, wide = 2, rng.choice([0, 1, 2, 3]), 0, -1, False
+    explicit = None
     if kind == 'busy':
         dbg = rest[1]
     elif kind == 'fail':
         fail_at, count, dbg = rest[0], rest[1], rest[2]
+        if fail_at == 2 + count:         # the second table fails: its size is the (signed) word [hdr+0x25] * 0x22, also negative or above 16 bits
+            count2 = rng.choice([0, 1, 2, 3, 0xffff, 0x8000, -3, 1930])
     elif kind == 'ok':
         count, count2, dbg = rest
     elif kind == 'negcount':
         count, count2 = rest[0], 0
     elif kind == 'negword':
         fail_at = 2
+    elif kind == 'wide':
+        count, explicit, count2, wide = rest[1], rest[2], rest[3], True
     # the word [+0x2f] of each record (the size of its sub table): small and non-negative where the allocation succeeds
-    words = [rng.choice([0, 1, 2, 3, 7]) for _ in range(max(count, 0))]
+    shown = min(max(count, 0), 8)
+    words = list(explicit) if explicit is not None else [rng.choice([0, 1, 2, 3, 7]) for _ in range(shown)]
     if kind == 'negword':
         words[0] = rng.choice([-1, -0x8000, -7])
-    elif kind == 'fail' and fail_at >= 2 and fail_at < 2 + count:
+    elif kind == 'fail' and 2 <= fail_at < 2 + count:
         words[fail_at - 2] = rng.choice([-1, 0, 1, 3, 0x7fff])
-    stream = bytearray(rng.randbytes(0x400))
+    # the calls of 0x4cf1e4 that happen: 0 the header, 1 the table, 2.. one sub table per record, then the second table
+    total_calls = 3 + max(count, 0)
+    ncalls = total_calls if fail_at < 0 else min(total_calls, fail_at + 1)
+    # variant 1: the sub-table allocation of a record changes the word [rec+0x2f]; variant 2: the second-table allocation changes the word [hdr+0x25] (the sizes are computed again after the call)
+    rewrite = {}
+    if variant % 3 == 1 and kind in ('ok', 'wide'):
+        for i, w in enumerate(words):
+            if 2 + i < ncalls - (1 if fail_at < 0 else 0):
+                rewrite[i] = (w // 2 + 1) if wide else (w + 3) % 8
+    rewrite_last = variant % 3 == 2 and kind in ('ok', 'wide', 'negcount') and fail_at < 0
+    eff = [rewrite.get(i, w) for i, w in enumerate(words)]
+    count2_last = count2 + 1 if rewrite_last else count2
+    sized = max(0, min(max(count2, count2_last), 2000))          # a table that is really copied
+    need = 0x27 + sum(0x31 + (e * 0x23 if e > 0 else 0) for e in eff) + sized * 0x22 + 0x80
+    stream = bytearray(rng.randbytes(max(0x400, need)))
     put16(stream, 0x23, count)
     put16(stream, 0x25, count2)
     at = 0x27
-    for w in words:
-        if at + 0x31 > len(stream):         # a record behind a failing allocation is never read
+    for w, e in zip(words, eff):
+        if at + 0x31 > len(stream) - 0x80:         # a record behind a failing allocation is never read
             break
         put16(stream, at + 0x2f, w)
-        at += 0x31 + (w * 0x23 if w > 0 else 0)
+        at += 0x31 + (e * 0x23 if e > 0 else 0)
     selfd = self_area(rng)
     put32(selfd, 0x216, rest[0] if kind == 'busy' else 0)
     cells = bytearray(rng.randbytes(16))
@@ -549,16 +594,19 @@ def gen_4cd243(rng, n):
     put32(cells, 4, STREAM_VA)
     hdrbuf = bytearray(rng.randbytes(0x40))
     tbl = bytearray(rng.randbytes(0x100))
-    subs = bytearray(rng.randbytes(0x400))
-    tbl2 = bytearray(rng.randbytes(0x100))
-    # the answers of 0x4cf1e4 (call 0: the header, 1: the table, 2..: the sub tables of the records, last: the second table) and the pointers that it stores
-    cells_of = [(CELLS_VA, 0, HDRBUF_VA), (None, 0, TBL_VA)] + [(None, 0, SUBS_VA + 0x100 * i) for i in range(max(count, 0))] + [(None, 0, TBL2_VA)]
+    stride = 0x20000 if wide else 0x100
+    subs = bytearray(rng.randbytes(max(0x400, stride * min(max(count, 1), 4))))
+    tbl2 = bytearray(rng.randbytes(max(0x100, sized * 0x22 + 0x40)))
+    values = [HDRBUF_VA, TBL_VA] + [SUBS_VA + stride * i for i in range(max(count, 0))] + [TBL2_VA]
     results, writes = [], []
-    for k, (_, _, value) in enumerate(cells_of):
+    for k in range(ncalls):
         ok = k != fail_at
-        results.append(1 if ok else 0)
-        arg, off = (0, 0)
-        writes.append((k, arg, off, 4, value if ok else 0))
+        results.append(rng.choice(ANSWERS) if ok else 0)
+        writes.append((k, 0, 0, 4, values[k] if ok else 0))
+        if ok and 2 <= k < 2 + max(count, 0) and (k - 2) in rewrite:
+            writes.append((k, 0, -2, 2, rewrite[k - 2]))               # [rec+0x2f], two bytes below the pointer cell that the call stores
+        if ok and k == total_calls - 1 and rewrite_last:
+            writes.append((k, -1, HDRBUF_VA + 0x25, 2, count2_last))
     probe = [('self', 0x210, 0x40), ('self', 0x220, 0x30), ('cells', 0, 16)]
     f50 = CDECL(3) if kind == 'busy' else CDECL(4)
     stubs = {0x4cf1e4: stub(0x4cf1e4, THISCALL(2), probe, results=results, writes=writes), 0x50ca3e: stub(0x50ca3e, f50, probe), 0x42639d: stub(0x42639d, THISCALL(2), probe),

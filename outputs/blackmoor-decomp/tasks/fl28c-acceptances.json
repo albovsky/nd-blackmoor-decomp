@@ -30,7 +30,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4cf026_find_record (record index search). Oracle: 42/42 instructions of the 131 code bytes, 8/8 jcc directions, 75 scenarios. See tasks/fl28c-handoff.md."
+    "note": "1:1 with m4cf026_find_record (record index search). Oracle: 42/42 instructions of the 131 code bytes, 8/8 jcc directions, 84 scenarios. See tasks/fl28c-handoff.md."
   },
   {
     "va": "0x4cec6c",
@@ -96,7 +96,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4cf1e4_alloc_clear (alloc and clear, failure report). Oracle: 47/47 instructions of the 146 code bytes, 4/4 jcc directions, 165 scenarios. See tasks/fl28c-handoff.md.",
+    "note": "1:1 with m4cf1e4_alloc_clear (alloc and clear, failure report). Oracle: 47/47 instructions of the 146 code bytes, 4/4 jcc directions, 240 scenarios. See tasks/fl28c-handoff.md.",
     "blockers_reviewed": [
       {
         "id": "A-2E.1:98d39096d37b0362",
@@ -234,7 +234,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4cd243_read_tables (scene-table reader). Oracle: 302/302 instructions of the 1026 code bytes, 16/16 jcc directions, 234 scenarios. See tasks/fl28c-handoff.md.",
+    "note": "1:1 with m4cd243_read_tables (scene-table reader). Oracle: 302/302 instructions of the 1026 code bytes, 16/16 jcc directions, 264 scenarios. See tasks/fl28c-handoff.md.",
     "blockers_reviewed": [
       {
         "id": "A-2D.1:2351c9c937e38a7d",

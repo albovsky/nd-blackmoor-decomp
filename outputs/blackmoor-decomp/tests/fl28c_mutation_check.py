@@ -7,6 +7,8 @@ Mechanical mutants of src/original_methods_fl28c.c, one at a time, each applied 
   boundary  one relational operator of an if / for / while condition moved across its boundary (`<` <-> `<=`, `>` <-> `>=`)
   guard     one `... return;` guard line deleted
   width     rd16 <-> rd32 and rds16 <-> rd16 (a width or signedness slip)
+  decimal   a decimal literal raised by one
+  cast      one integer or floating cast removed, one at a time
 A mutant is detected when the direct test binary fails to build or fails; if the direct test passes, the differential test of the function
 that contains the mutated line is run against the original bytes (the shim and port are rebuilt from the mutated copy; the run is in a
 child process, so that a mutant that crashes the shim counts as detected). Prints the counts
@@ -76,6 +78,14 @@ def mutants(lines):
                 out.append((i, 'boundary %s -> %s' % (m.group(), new), line[:m.start()] + new + line[m.end():]))
         if re.match(r'\s*if \(.*\) return( \d+)?;\s*$', code):
             out.append((i, 'guard deleted', '\n'))
+        for m in re.finditer(r'(?<![0-9a-zA-Z_.x])([1-9][0-9]*)(?![0-9a-zA-Z_.])', code):      # decimal literals (hexadecimal ones are above)
+            if code[:m.start()].rstrip().endswith('0x'):
+                continue
+            new = str(int(m.group(1)) + 1)
+            out.append((i, 'decimal literal %s -> %s' % (m.group(1), new), line[:m.start(1)] + new + line[m.end(1):]))
+        for m in re.finditer(r'\((?:u?int(?:8|16|32|64)_t|ptrdiff_t|uintptr_t|size_t|float|double)\) ?', code):       # a cast removed
+            if not code.lstrip().startswith('static'):
+                out.append((i, 'cast removed %s' % m.group().strip(), line[:m.start()] + line[m.end():]))
         for a, b in (('rds16(', 'rd16('), ('rd16(', 'rd32('), ('rd32(', 'rd16(')):
             if a in code and not code.lstrip().startswith('static'):
                 out.append((i, 'width %s -> %s' % (a, b), line.replace(a, b, 1)))

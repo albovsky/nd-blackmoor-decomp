@@ -784,6 +784,7 @@ static size_t tables_stream(uint16_t count, uint16_t count2, const int16_t *w)
 static uint32_t g_values[8];
 static int g_fail_at, g_alloc_calls;
 static int16_t g_new_count;
+static int g_rw_word, g_rw_count2;     /* the sub-table allocation of record 0 changes the word [rec+0x2f]; the last allocation changes the word [hdr+0x25] (-1: no) */
 static void store_ptr(uintptr_t where, uint32_t v)
 {
     uint8_t *p = where <= 0xffffffffu ? (uint8_t *)host_resolve(NULL, (uint32_t)where) : NULL;
@@ -795,6 +796,8 @@ static void alloc_effect(int i, uint32_t callee, const uintptr_t *args)
     (void)i;
     if (callee != 0x4cf1e4) return;
     store_ptr(args[0], g_alloc_calls == g_fail_at ? 0 : g_values[g_alloc_calls]);
+    if (g_alloc_calls == 2 && g_rw_word >= 0) set16(fx.tbl, 0x2f, (uint16_t)g_rw_word);
+    if (g_alloc_calls == 3 && g_rw_count2 >= 0) set16(fx.hdr, 0x25, (uint16_t)g_rw_count2);
     if (g_alloc_calls == 2 && g_new_count >= 0) set16(fx.hdr, 0x23, (uint16_t)g_new_count);     /* a header word that changes after the first record's allocation */
     g_alloc_calls++;
 }
@@ -818,12 +821,13 @@ static void tables_setup(int fail_at, uint16_t count, uint16_t count2, const int
     g_fail_at = fail_at;
     g_alloc_calls = 0;
     g_new_count = -1;
+    g_rw_word = g_rw_count2 = -1;
     g_effect = alloc_effect;
     fx.w.word_5c39e3 = -2;
     fx.w.value_5bb57b = 0x12345678u;
     {
         uint32_t res[8];
-        for (k = 0; k < 8; k++) res[k] = (int)k == fail_at ? 0 : 1;
+        for (k = 0; k < 8; k++) res[k] = (int)k == fail_at ? 0 : (k & 1) ? 0x10000u : 0x80000000u;      /* successes whose low 16 bits are zero */
         script(0x4cf1e4, 8, res);
     }
 }
@@ -871,8 +875,8 @@ static void test_m4cd243_read_tables(void)
     CKN(5);
     CKC(0, 0x4cf1e4, SELFP, (uintptr_t)CELL_A, 0x27);
     CKC(1, 0x4cf1e4, SELFP, SELFP + 0x226, 0x6a);
-    CKC(2, 0x4cf1e4, SELFP, TBL_VA + 0x31, 0x23);
-    CKC(3, 0x4cf1e4, SELFP, TBL_VA + 0x35 + 0x31, 0);
+    CKC(2, 0x4cf1e4, SELFP, (uintptr_t)(fx.tbl + 0x31), 0x23);
+    CKC(3, 0x4cf1e4, SELFP, (uintptr_t)(fx.tbl + 0x35 + 0x31), 0);
     CKC(4, 0x4cf1e4, SELFP, SELFP + 0x22a, 0x66);
     CK(get32(L.c[0].snap_self, 0x23e) == 0xfffffffeu && get32(L.c[1].snap_self, 0x222) == HDR_VA);
     CK(get32(fx.cursor, 0) == HDR_VA && get32(fx.cursor, 4) == SRC_VA + 0x112 && get32(fx.cursor, 8) == 0x1000 + 0x112);
@@ -921,7 +925,7 @@ static void test_m4cd243_read_tables(void)
     CK(get32(fx.cursor, 4) == SRC_VA + 0x27);
     tables_setup(2, 1, 0, wneg);
     CK(m4cd243_read_tables(fx.self, CELL_A, CELL_B, CELL_C, &fx.w, &fx.host) == 0);
-    CKC(2, 0x4cf1e4, SELFP, TBL_VA + 0x31, (uint32_t)(-1 * 0x23));
+    CKC(2, 0x4cf1e4, SELFP, (uintptr_t)(fx.tbl + 0x31), (uint32_t)(-1 * 0x23));
     /* native rejections: a negative size after a successful allocation returns 0 before the copy (the first record's, the second table's) */
     tables_setup(-1, 1, 0, wneg);
     expect_begin();
@@ -934,6 +938,20 @@ static void test_m4cd243_read_tables(void)
     CK(m4cd243_read_tables(fx.self, CELL_A, CELL_B, CELL_C, &fx.w, &fx.host) == 0);
     CKN(3);
     CK(fx.tbl2[0] == 2 && get32(fx.cursor, 4) == SRC_VA + 0x27);
+    /* the sub-table allocation changes the word [rec+0x2f] from 1 to 3: the copy and c use the new size (0x69), the allocation was asked for the old one (0x23) */
+    tables_setup(-1, 1, 0, w2);
+    g_rw_word = 3;
+    CK(m4cd243_read_tables(fx.self, CELL_A, CELL_B, CELL_C, &fx.w, &fx.host) == 1);
+    CKC(2, 0x4cf1e4, SELFP, (uintptr_t)(fx.tbl + 0x31), 0x23);
+    CK(memcmp(fx.heap, fx.src + 0x58, 0x69) == 0 && fx.heap[0x69] == 0xAA);
+    CK(get32(fx.cursor, 4) == SRC_VA + 0x27 + 0x31 + 0x69 && get32(fx.cursor, 8) == 0x1000 + 0x27 + 0x31 + 0x69);
+    /* the last allocation changes the word [hdr+0x25] from 2 to 3: the copy and the cursors use 3 * 0x22, the allocation was asked for 2 * 0x22 */
+    tables_setup(-1, 1, 2, w2);
+    g_rw_count2 = 3;
+    CK(m4cd243_read_tables(fx.self, CELL_A, CELL_B, CELL_C, &fx.w, &fx.host) == 1);
+    CKC(3, 0x4cf1e4, SELFP, SELFP + 0x22a, 0x44);
+    CK(memcmp(fx.tbl2, fx.src + 0x27 + 0x31 + 0x23, 0x66) == 0 && fx.tbl2[0x66] == (uint8_t)(0x66 * 9 + 2));
+    CK(get32(fx.cursor, 4) == SRC_VA + 0x27 + 0x31 + 0x23 + 0x66);
     /* the header word is read again for the loop: a callee that lowers it to 1 after the first record's allocation ends the loop there */
     tables_setup(-1, 2, 3, w2);
     g_new_count = 1;

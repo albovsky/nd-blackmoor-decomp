@@ -289,7 +289,7 @@ int32_t m4cd243_read_tables(uint8_t *self, uint8_t *dst, uint8_t *src, uint8_t *
         wr16(r, 0x2f, rd16(s, 0x2f));
         c += 2;
         m = (uint32_t)(rds16(r, 0x2f) * 0x23);
-        if (call2(host, 0x4cf1e4, (uintptr_t)self, u32(record + 0x31u), m) == 0) {
+        if (call2(host, 0x4cf1e4, (uintptr_t)self, (uintptr_t)(r + 0x31), m) == 0) {
             tables_fail(world, host, 0x5591a0, 0x5591e4);
             return 0;
         }
@@ -305,6 +305,7 @@ int32_t m4cd243_read_tables(uint8_t *self, uint8_t *dst, uint8_t *src, uint8_t *
         tables_fail(world, host, 0x559200, 0x559240);
         return 0;
     }
+    n = (uint32_t)(rds16(object_at(host, rd32(self, 0x222)), 0x25) * 0x22);      /* the count of the copy is computed again after the call (0x4cd5b7..0x4cd5d7) */
     if ((int32_t)n < 0) return 0;          /* native rejection: the original copies about 4 GB */
     if (n != 0) copy_forward(object_at(host, rd32(self, 0x22a)), object_at(host, rd32(src, 0)), n);
     n = (uint32_t)(rds16(object_at(host, rd32(self, 0x222)), 0x25) * 0x22);

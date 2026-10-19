@@ -27,7 +27,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 class ShimCall24(ctypes.Structure):
     _fields_ = [('id', ctypes.c_uint32), ('nargs', ctypes.c_int32), ('this_ptr', ctypes.c_uint64), ('arg', ctypes.c_uint64 * 16),
-                ('data', ctypes.c_uint8 * 256), ('probe', ctypes.c_uint8 * 4096), ('world', ctypes.c_uint8 * 256)]
+                ('data', ctypes.c_uint8 * 256), ('probe', ctypes.c_uint8 * 512), ('world', ctypes.c_uint8 * 256)]
 
 
 @unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
