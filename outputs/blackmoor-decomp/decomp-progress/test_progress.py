@@ -650,18 +650,19 @@ class AuditedBatchTests(unittest.TestCase):
         self.layout["sections"].append({"name": ".data", "rva": 0x140, "raw_off": 0x140, "raw_size": 0xc0, "virt_size": 0xc0})
         out = self.dir / "asm_data"
         out.mkdir(exist_ok=True)
-        source = out / "data-001.s"
-        source.write_text("# synthetic data source fixture\n")
+        layout = out / "data-001.layout"
+        layout.write_text("# synthetic data layout fixture\n.asciz [5]\n")
         entries = [{"offset": hex(off), "length": size, "va": f"0x{0x400000 + off:08x}", "section": ".data",
                     "sha256": hashlib_sha(f"data{off}")} for off, size in ranges]
         manifest = {"schema": GEN.DATA_ASM_SCHEMA, "batch": "001", "class": "tool_assisted_reconstructed_data",
-                    "original_sha256": SHA, "source": "data-001.s",
-                    "source_sha256": GEN.sha256_file(source), "ranges": entries}
+                    "original_sha256": SHA, "source": "data-001.s", "source_sha256": hashlib_sha("generated source"),
+                    "layout": "data-001.layout", "layout_sha256": GEN.sha256_file(layout), "ranges": entries}
         write(out / "data-001.json", manifest)
         total = sum(size for _, size in ranges)
         report = {"batch": "001", "class_requested": "tool_assisted_reconstructed_data", "original_sha256": SHA,
                   "manifest_sha256": GEN.sha256_file(out / "data-001.json"),
                   "source": {"path": "data-001.s", "sha256": manifest["source_sha256"]},
+                  "layout": {"path": "data-001.layout", "sha256": manifest["layout_sha256"]},
                   "assembler": {"version_line": "GNU assembler (GNU Binutils) 2.43.1", "self_test": "passed",
                                 "sha256": "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b"},
                   "ranges": entries, "bytes_total": total, "compared_bytes": total, "relocations": 0,
@@ -681,10 +682,29 @@ class AuditedBatchTests(unittest.TestCase):
         tail = next(u for u in model["units"] if u["id"] == "tail")
         self.assertEqual(tail["matched_data"], 0x40)
 
-    def test_changed_data_source_is_not_counted(self):
+    def test_changed_data_layout_or_source_hash_is_not_counted(self):
         self.create_data_batch()
-        (self.dir / "asm_data" / "data-001.s").write_text("# edited after audit\n")
+        (self.dir / "asm_data" / "data-001.layout").write_text("# edited after audit\n")
+        with self.assertRaisesRegex(GEN.ProgressError, "layout hash"):
+            self.model()
+        self.setUp()
+        self.create_data_batch(mutate=lambda r: r["source"].update(sha256=hashlib_sha("another source")))
         with self.assertRaisesRegex(GEN.ProgressError, "source hash"):
+            self.model()
+
+    def test_a_layout_carrying_payload_values_is_not_counted(self):
+        def payload(report):
+            layout = self.dir / "asm_data" / "data-001.layout"
+            layout.write_text('.asciz "Hello"\n')
+            sha = GEN.sha256_file(layout)
+            report["layout"]["sha256"] = sha
+            manifest = json.loads((self.dir / "asm_data" / "data-001.json").read_text())
+            manifest["layout_sha256"] = sha
+            write(self.dir / "asm_data" / "data-001.json", manifest)
+            report["manifest_sha256"] = GEN.sha256_file(self.dir / "asm_data" / "data-001.json")
+
+        self.create_data_batch(mutate=payload)
+        with self.assertRaisesRegex(GEN.ProgressError, "payload"):
             self.model()
 
     def test_unaccepted_or_partial_data_audit_is_not_counted(self):

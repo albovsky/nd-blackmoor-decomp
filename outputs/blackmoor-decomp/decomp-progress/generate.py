@@ -396,8 +396,10 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
 def audited_data_evidence(layout: dict, out_dir: Path):
     """Validate committed data sources (``asm_data/data-NNN.json``, packet M-C) against their audit reports.
 
-    Same contract as the M03 code batches: the report must accept every byte of exactly this manifest, the
-    pinned assembler must have passed its self-test, and the committed source must still be the audited one.
+    Same contract as the M03 code batches: the report must accept every byte of exactly this manifest, and the
+    pinned assembler must have passed its self-test.  The full source is a build output regenerated from the
+    owner's original (it is not committed), so the committed layout (``data-NNN.layout``) must still be the
+    audited one and carry no payload value, and the manifest and report must name the same source hash.
     Each range is matched data (kind ``data``); nothing here reads the assembler or the original.
     """
     rows, inputs, batches, claimed = [], [], [], []
@@ -428,11 +430,16 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             assembler = report["assembler"]
             require(assembler.get("self_test") == "passed" and assembler["version_line"] == M03_ASSEMBLER_VERSION,
                     "audit assembler is not pinned")
-            source = (path.parent / man["source"]).resolve()
-            require(source.parent == path.parent.resolve() and source.suffix == ".s", "bad source path")
-            require(report["source"]["path"] == man["source"] and
-                    report["source"]["sha256"] == man["source_sha256"] == sha256_file(source),
+            require(re.fullmatch(r"data-[0-9]+\.s", man["source"]) is not None and
+                    report["source"]["path"] == man["source"] and report["source"]["sha256"] == man["source_sha256"],
                     "source hash differs from audit")
+            layout = (path.parent / man["layout"]).resolve()
+            require(layout.parent == path.parent.resolve() and layout.suffix == ".layout", "bad layout path")
+            require(report["layout"]["path"] == man["layout"] and
+                    report["layout"]["sha256"] == man["layout_sha256"] == sha256_file(layout),
+                    "layout hash differs from audit")
+            require(not re.search(r'(?m)^\s*\.(?:asciz|string16) "|^\s*\.(?:long|byte) 0x', layout.read_text(encoding="utf-8")),
+                    "the layout carries payload values")
             require(report["ranges"] == man["ranges"], "audited ranges differ from the manifest")
             for r in man["ranges"]:
                 off, size = int(r["offset"], 16), r["length"]
@@ -452,8 +459,8 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
                            {"path": report_path.relative_to(out_dir).as_posix(),
                             "sha256": sha256_file(report_path), "role": "audit"},
-                           {"path": source.relative_to(out_dir.resolve()).as_posix(),
-                            "sha256": man["source_sha256"], "role": "audited-source"}])
+                           {"path": layout.relative_to(out_dir.resolve()).as_posix(),
+                            "sha256": man["layout_sha256"], "role": "audited-layout"}])
         except (KeyError, TypeError, ValueError, OSError) as exc:
             raise ProgressError(f"{name}: malformed or unavailable audited evidence: {exc}") from exc
     return rows, inputs, batches

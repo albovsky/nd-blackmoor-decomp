@@ -7,9 +7,9 @@ data and resources as matched when they reassemble byte for byte?", answered Yes
 from the owner's local ``GAME.EXE`` as one GNU assembly source with machine-named labels, reassembled with the pinned
 ``i686-w64-mingw32-as`` 2.43.1 and compared byte for byte with the original.
 
-    data_asm.py gen      --out asm_data            write data-001.s and data-001.json from the local original
-    data_asm.py audit    asm_data/data-001.json    reassemble, compare, write data-001-report.json
-    data_asm.py check    asm_data/data-001.json    regenerate the source and require identical text
+    data_asm.py gen      --out asm_data            write the layout and manifest (committed) and the full source (build output)
+    data_asm.py audit    asm_data/data-001.json    regenerate the source, reassemble, compare, write data-001-report.json
+    data_asm.py check    asm_data/data-001.json    regenerate the source and require the manifest's hash and layout
 
 What the generator does, and nothing else (no datum is interpreted):
 
@@ -22,9 +22,14 @@ What the generator does, and nothing else (no datum is interpreted):
   (``FUN_<va>`` code entries, ``CODE_<va>``, ``BSS_<va>``, ``IAT_<va>``, ``RSRC_<va>``, ``OUT_<va>``);
 * every other aligned dword is ``.long 0x...``; leftover bytes are ``.byte``.
 
-Original data bytes are never committed in binary form, but the source is a faithful textual form of them: that is
-what the owner ruling allows, exactly as the assembly sources are for code.  Nothing here claims original C
-provenance, and the PE headers, import tables and resources are not part of this source.
+The full source holds the game's own strings, numbers and resource bytes as directive text, so it is a build
+output, not a committed file (owner decision of 2026-10-19: "extract at build"): it is regenerated from the owner's
+local ``GAME.EXE`` into ``work/asm_data/`` whenever it is audited or composed, and the repository keeps only the
+generator, the manifest (ranges, hashes) and the layout.  The layout (``asm_data/data-NNN.layout``) is that source
+with every string, numeric dword and byte list masked as ``[length]``: labels, offsets, zero runs, pointer
+expressions and named constants remain, no value does.  The manifest pins the SHA-256 of the full source and of the
+layout, so a build from any other bytes is refused.  Nothing here claims original C provenance, and the PE headers,
+import tables and the resource directory tree are not part of this source.
 """
 
 from __future__ import annotations
@@ -48,6 +53,7 @@ PROJECT = SCRIPT_DIR.parent
 REPOSITORY = PROJECT.parent.parent
 IMAGE_DIR = PROJECT / "image"
 DEFAULT_OUT = PROJECT / "asm_data"
+DEFAULT_BUILD = REPOSITORY / "work" / "asm_data"
 DEFAULT_ORIGINAL = REPOSITORY / "work" / "original" / "GAME.EXE"
 DEFAULT_ASSEMBLER = REPOSITORY / "work" / "tools" / "s08-binutils-2.43.1" / "prefix" / "bin" / "i686-w64-mingw32-as"
 
@@ -419,6 +425,46 @@ def generate(original: bytes, ranges: tuple[tuple[int, int], ...] = DEFAULT_RANG
 
 
 # --------------------------------------------------------------------------
+# layout: the committed, payload-free form of a source
+# --------------------------------------------------------------------------
+
+LAYOUT_HEADER = (
+    "# Layout of a generated GAME.EXE data source (Track M, packet M-C): labels, offsets, zero runs, pointer expressions and named",
+    "# constants only.  Every string, numeric dword and byte list is masked as [length]; scripts/data_asm.py regenerates the full source from the owner's local original.",
+)
+_MASK_STRING = re.compile(r'^\.(asciz|string16) "(.*)"$')
+_MASK_LONG = re.compile(r"^\.long 0x[0-9a-f]{1,8}(?:, 0x[0-9a-f]{1,8})*$")
+_MASK_BYTE = re.compile(r"^\.byte 0x[0-9a-f]{2}(?:, 0x[0-9a-f]{2})*$")
+_PAYLOAD_LINE = re.compile(r'^\s*\.(?:asciz|string16) "|^\s*\.(?:long|byte) 0x')
+
+
+def _unescaped_length(body: str) -> int:
+    """Characters of a quoted directive body (an escape such as ``\\n`` or ``\\"`` is one character)."""
+    return len(re.sub(r"\\.", "x", body))
+
+
+def layout_of(text: str) -> str:
+    """The full source with every payload value masked; its labels and structure are the source's own."""
+    lines = list(LAYOUT_HEADER)
+    for line in text.splitlines():
+        m = _MASK_STRING.match(line)
+        if m:
+            lines.append(f".{m.group(1)} [{_unescaped_length(m.group(2))}]")
+        elif _MASK_LONG.match(line):
+            lines.append(f".long [{line.count(',') + 1}]")
+        elif _MASK_BYTE.match(line):
+            lines.append(f".byte [{line.count(',') + 1}]")
+        else:
+            lines.append(line)
+    return "\n".join(lines) + "\n"
+
+
+def audit_layout(text: str) -> list[str]:
+    """Problems in a layout file: it must carry no string, numeric dword or byte value."""
+    return [f"line {number}: payload value in the layout: {line[:60]}" for number, line in enumerate(text.splitlines(), 1) if _PAYLOAD_LINE.match(line)]
+
+
+# --------------------------------------------------------------------------
 # assembling
 # --------------------------------------------------------------------------
 
@@ -476,6 +522,16 @@ def assemble(assembler: Path, source: Path) -> tuple[bytes, int, dict[str, int]]
         if run.returncode != 0 or not obj.is_file():
             raise DataAsmError(f"assembly failed: {run.stderr.strip()[:600]}")
         return read_coff(obj.read_bytes())
+
+
+def assemble_text(assembler: Path, text: str, source: Optional[Path] = None) -> tuple[bytes, int, dict[str, int]]:
+    """Assemble a source text (from ``source`` when it is already on disk, else from a temporary file)."""
+    if source is not None:
+        return assemble(assembler, source)
+    with tempfile.TemporaryDirectory(prefix="data-src-") as tmp:
+        path = Path(tmp) / "data.s"
+        path.write_text(text, encoding="utf-8")
+        return assemble(assembler, path)
 
 
 # --------------------------------------------------------------------------
@@ -559,7 +615,7 @@ def audit_source(text: str, expect: dict[str, Any]) -> tuple[list[str], dict[str
 # --------------------------------------------------------------------------
 
 
-def build_manifest(source_name: str, source_text: str, original: bytes, ranges: tuple[tuple[int, int], ...], origin_va: int, sections: list[Section], batch: str, pointers: bool) -> dict[str, Any]:
+def build_manifest(source_name: str, source_text: str, layout_name: str, layout_text: str, original: bytes, ranges: tuple[tuple[int, int], ...], origin_va: int, sections: list[Section], batch: str, pointers: bool) -> dict[str, Any]:
     bias = bias_of(sections, ranges)
     entries = []
     for lo, hi in ranges:
@@ -574,13 +630,15 @@ def build_manifest(source_name: str, source_text: str, original: bytes, ranges: 
         "batch": batch,
         "class": DATA_CLASS,
         "original_sha256": ORIGINAL_SHA256,
-        "description": "initialized .rdata and .data as labeled data directives (owner ruling of 2026-10-19)",
+        "description": "initialized data or resource payloads as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)",
         "image_base": hx8(IMAGE_BASE),
         "va_bias": hx8(bias),
         "pointers": pointers,
         "origin_va": hx8(origin_va),
         "source": source_name,
         "source_sha256": sha256(source_text.encode("utf-8")),
+        "layout": layout_name,
+        "layout_sha256": sha256(layout_text.encode("utf-8")),
         "ranges": entries,
     }
 
@@ -601,7 +659,36 @@ def source_expectation(manifest: dict[str, Any], sections: list[Section]) -> dic
     }
 
 
-def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, image_dir: Path = IMAGE_DIR) -> dict[str, Any]:
+def regenerate_source(manifest: dict[str, Any], original: bytes, image_dir: Path = IMAGE_DIR) -> str:
+    """The full source of a manifest, regenerated from the local original (the committed layout and hashes pin it)."""
+    text, _analysis, _origin = generate(original, manifest_ranges(manifest), image_dir, pointers=bool(manifest["pointers"]))
+    return text
+
+
+def write_build_source(manifest: dict[str, Any], text: str, build_dir: Path) -> Path:
+    build_dir.mkdir(parents=True, exist_ok=True)
+    path = build_dir / manifest["source"]
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def layout_problems(manifest: dict[str, Any], manifest_dir: Path, text: str) -> tuple[list[str], str]:
+    """Problems of the committed layout against a source text; the second value is the layout file's SHA-256."""
+    layout_path = manifest_dir / manifest["layout"]
+    have = layout_path.read_text(encoding="utf-8")
+    problems = [f"layout: {p}" for p in audit_layout(have)]
+    if sha256(have.encode("utf-8")) != manifest["layout_sha256"]:
+        problems.append("the layout differs from the manifest hash")
+    if layout_of(text) != have:
+        problems.append("the source does not have the committed layout")
+    return problems, file_sha256(layout_path)
+
+
+def audit_manifest(
+    manifest_path: Path, original_path: Path, assembler: Path, image_dir: Path = IMAGE_DIR, source_path: Optional[Path] = None, build_dir: Optional[Path] = None
+) -> dict[str, Any]:
+    """Audit one batch.  The source is regenerated from the original (and written to ``build_dir`` when given) unless
+    ``source_path`` names a source to audit instead (the mutant tests do)."""
     manifest = load_json(manifest_path)
     problems: list[str] = []
     original = original_path.read_bytes()
@@ -609,10 +696,15 @@ def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, im
         problems.append("the manifest is not a data-asm manifest of this class")
     if sha256(original) != ORIGINAL_SHA256 or manifest.get("original_sha256") != ORIGINAL_SHA256:
         problems.append("the original is not the pinned GAME.EXE")
-    source_path = manifest_path.parent / manifest["source"]
-    text = source_path.read_text(encoding="utf-8")
+    if source_path is None:
+        text = regenerate_source(manifest, original, image_dir)
+        source_path = write_build_source(manifest, text, build_dir) if build_dir is not None else None
+    else:
+        text = source_path.read_text(encoding="utf-8")
+    # hash and layout problems do not stop the reassembly, so that a report names every difference
+    pinned, layout_sha = layout_problems(manifest, manifest_path.parent, text)
     if sha256(text.encode("utf-8")) != manifest["source_sha256"]:
-        problems.append("the source differs from the manifest hash")
+        pinned.append("the source differs from the manifest hash")
     sections = load_sections(image_dir)
     ranges = manifest_ranges(manifest)
     origin_va = int(manifest["origin_va"], 16)
@@ -628,7 +720,7 @@ def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, im
     labels_checked = 0
     relocations = -1
     if not problems:
-        data, relocations, symbols = assemble(assembler, source_path)
+        data, relocations, symbols = assemble_text(assembler, text, source_path)
         if relocations:
             problems.append(f"the object carries {relocations} relocations")
         for entry in manifest["ranges"]:
@@ -649,6 +741,7 @@ def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, im
                 labels_checked += 1
                 if int(m.group(1), 16) != origin_va + off:
                     problems.append(f"label {name} sits at {hx8(origin_va + off)}, not at the address in its name")
+    problems = pinned + problems
     total = sum(e["length"] for e in manifest["ranges"])
     return {
         "schema": SCHEMA + "/report",
@@ -656,7 +749,8 @@ def audit_manifest(manifest_path: Path, original_path: Path, assembler: Path, im
         "class_requested": DATA_CLASS,
         "original_sha256": ORIGINAL_SHA256,
         "manifest_sha256": file_sha256(manifest_path),
-        "source": {"path": manifest["source"], "sha256": file_sha256(source_path)},
+        "source": {"path": manifest["source"], "sha256": sha256(text.encode("utf-8"))},
+        "layout": {"path": manifest["layout"], "sha256": layout_sha},
         "assembler": assembler_info,
         "ranges": [dict(e) for e in manifest["ranges"]],
         "bytes_total": total,
@@ -690,9 +784,12 @@ def cmd_gen(args: argparse.Namespace) -> int:
         args.no_pointers = True
     text, analysis, origin_va = generate(original, ranges, pointers=not args.no_pointers)
     args.out.mkdir(parents=True, exist_ok=True)
+    args.build_dir.mkdir(parents=True, exist_ok=True)
     name = f"data-{args.batch}"
-    (args.out / f"{name}.s").write_text(text, encoding="utf-8")
-    manifest = build_manifest(f"{name}.s", text, original, ranges, origin_va, load_sections(), args.batch, not args.no_pointers)
+    (args.build_dir / f"{name}.s").write_text(text, encoding="utf-8")
+    layout_text = layout_of(text)
+    (args.out / f"{name}.layout").write_text(layout_text, encoding="utf-8")
+    manifest = build_manifest(f"{name}.s", text, f"{name}.layout", layout_text, original, ranges, origin_va, load_sections(), args.batch, not args.no_pointers)
     (args.out / f"{name}.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
     kinds: dict[str, int] = {}
     for atom in analysis.atoms:
@@ -702,7 +799,7 @@ def cmd_gen(args: argparse.Namespace) -> int:
 
 
 def cmd_audit(args: argparse.Namespace) -> int:
-    report = audit_manifest(args.manifest, args.original, args.assembler)
+    report = audit_manifest(args.manifest, args.original, args.assembler, build_dir=args.build_dir)
     out = args.report or args.manifest.with_name(args.manifest.stem + "-report.json")
     out.write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
     print(f"{args.manifest.name}: {'accepted' if report['all_accepted'] else 'REJECTED'}; {report['compared_bytes']:,} of {report['bytes_total']:,} bytes identical; relocations {report['relocations']}")
@@ -713,15 +810,15 @@ def cmd_audit(args: argparse.Namespace) -> int:
 
 def cmd_check(args: argparse.Namespace) -> int:
     manifest = load_json(args.manifest)
-    original = args.original.read_bytes()
-    text, _analysis, _origin = generate(original, manifest_ranges(manifest), pointers=bool(manifest["pointers"]))
-    have = (args.manifest.parent / manifest["source"]).read_text(encoding="utf-8")
-    if text != have:
-        a, b = text.splitlines(), have.splitlines()
-        first = next((i for i, (x, y) in enumerate(zip(a, b)) if x != y), min(len(a), len(b)))
-        print(f"{manifest['source']}: differs from the regenerated source at line {first + 1}", file=sys.stderr)
+    text = regenerate_source(manifest, args.original.read_bytes())
+    problems, _layout_sha = layout_problems(manifest, args.manifest.parent, text)
+    if sha256(text.encode("utf-8")) != manifest["source_sha256"]:
+        problems.append("the regenerated source differs from the manifest hash")
+    for problem in problems:
+        print(f"{manifest['source']}: {problem}", file=sys.stderr)
+    if problems:
         return 1
-    print(f"{manifest['source']}: regenerates identically")
+    print(f"{manifest['source']}: regenerates with the committed layout and hash")
     return 0
 
 
@@ -730,7 +827,8 @@ def make_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("gen")
     g.add_argument("--original", type=Path, default=DEFAULT_ORIGINAL)
-    g.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    g.add_argument("--out", type=Path, default=DEFAULT_OUT, help="where the manifest and layout (committed files) go")
+    g.add_argument("--build-dir", type=Path, default=DEFAULT_BUILD, help="where the full source (a build output, never committed) goes")
     g.add_argument("--batch", default="001")
     g.add_argument("--no-pointers", action="store_true", help="resource payloads: do not detect pointers")
     g.add_argument("--resources", action="store_true", help="the resource leaf payloads of image/resources.json (implies --no-pointers)")
@@ -741,6 +839,7 @@ def make_parser() -> argparse.ArgumentParser:
     a.add_argument("--original", type=Path, default=DEFAULT_ORIGINAL)
     a.add_argument("--assembler", type=Path, default=DEFAULT_ASSEMBLER)
     a.add_argument("--report", type=Path)
+    a.add_argument("--build-dir", type=Path, default=DEFAULT_BUILD, help="where the regenerated full source is written")
     a.set_defaults(func=cmd_audit)
     c = sub.add_parser("check")
     c.add_argument("manifest", type=Path)

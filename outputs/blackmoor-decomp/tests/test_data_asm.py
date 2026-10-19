@@ -1,7 +1,8 @@
 """Tests for the Track M data sources (packet M-C): scripts/data_asm.py and the committed asm_data/ batches.
 
-The classifier and renderer run on synthetic bytes; the committed batches are audited against the owner's local
-``GAME.EXE`` with the pinned GNU assembler and skip when either is absent.
+The classifier and renderer run on synthetic bytes; the committed batches (manifest, layout, report; the full source
+is regenerated at build time) are audited against the owner's local ``GAME.EXE`` with the pinned GNU assembler and
+skip when either is absent.
 """
 
 import importlib.util
@@ -198,28 +199,57 @@ class LexicalAuditTests(unittest.TestCase):
         self.assertTrue(any("does not equal" in p for p in problems))
 
 
+class LayoutTests(unittest.TestCase):
+    def test_the_layout_masks_every_value_and_keeps_labels_and_structure(self):
+        text = "\n".join([
+            "# header",
+            "IMG:",
+            "STR_00537000:",
+            '.asciz "a \\"q\\" \\\\ x\\n"',
+            '.string16 "Wide"',
+            ".fill 12, 1, 0",
+            ".long 0x1, 0x2, 0x3",
+            ".long STR_00537000 - IMG + 0x537000",
+            ".long FUN_00401000",
+            ".byte 0x01, 0x02",
+        ]) + "\n"
+        layout = data_asm.layout_of(text).splitlines()[len(data_asm.LAYOUT_HEADER):]
+        self.assertEqual(layout, [
+            "# header", "IMG:", "STR_00537000:", ".asciz [10]", ".string16 [4]", ".fill 12, 1, 0", ".long [3]",
+            ".long STR_00537000 - IMG + 0x537000", ".long FUN_00401000", ".byte [2]",
+        ])
+        self.assertEqual(data_asm.audit_layout(data_asm.layout_of(text)), [])
+
+    def test_a_layout_carrying_a_value_is_rejected(self):
+        for line in ('.asciz "Hello"', '.string16 "Hi there"', ".long 0x12345678", "  .byte 0x41"):
+            self.assertTrue(data_asm.audit_layout(f"IMG:\n{line}\n"), line)
+
+
 class CommittedBatchTests(unittest.TestCase):
     """The committed asm_data/ batches against the local original (skipped without it)."""
 
     def manifests(self):
         return sorted(p for p in ASM_DATA.glob("data-[0-9][0-9][0-9].json"))
 
-    def test_the_committed_batches_cover_the_non_code_sections_and_carry_no_binary_blob(self):
+    def test_the_committed_batches_cover_the_non_code_sections_and_carry_no_payload(self):
         manifests = self.manifests()
         self.assertEqual([m.name for m in manifests], ["data-001.json", "data-002.json"])
+        self.assertEqual(sorted(ASM_DATA.glob("*.s")), [])  # the full sources are build outputs, never committed
         total = 0
         for path in manifests:
             manifest = json.loads(path.read_text())
             self.assertEqual(manifest["class"], data_asm.DATA_CLASS)
             self.assertEqual(manifest["original_sha256"], data_asm.ORIGINAL_SHA256)
             total += sum(r["length"] for r in manifest["ranges"])
-            source = (path.parent / manifest["source"]).read_text()
-            self.assertEqual(data_asm.sha256(source.encode()), manifest["source_sha256"])
-            self.assertNotRegex(source, r"(?m)^\s*\.(incbin|include)\b")
+            layout = (path.parent / manifest["layout"]).read_text()
+            self.assertEqual(data_asm.sha256(layout.encode()), manifest["layout_sha256"])
+            self.assertEqual(data_asm.audit_layout(layout), [])
             report = json.loads(path.with_name(path.stem + "-report.json").read_text())
             self.assertTrue(report["all_accepted"])
             self.assertEqual(report["relocations"], 0)
             self.assertEqual(report["manifest_sha256"], data_asm.file_sha256(path))
+            self.assertEqual(report["source"]["sha256"], manifest["source_sha256"])
+            self.assertEqual(report["layout"]["sha256"], manifest["layout_sha256"])
         self.assertEqual(total, 274976)  # .rdata 41,924 + .data 208,896 + resource payloads 24,156
 
     @needs_toolchain
@@ -232,33 +262,51 @@ class CommittedBatchTests(unittest.TestCase):
         original = data_asm.DEFAULT_ORIGINAL.read_bytes()
         for path in self.manifests():
             manifest = json.loads(path.read_text())
-            text, _analysis, _origin = data_asm.generate(original, data_asm.manifest_ranges(manifest), pointers=bool(manifest["pointers"]))
-            self.assertEqual(text, (ASM_DATA / manifest["source"]).read_text(), path.name)
+            text = data_asm.regenerate_source(manifest, original)
+            self.assertEqual(data_asm.sha256(text.encode()), manifest["source_sha256"], path.name)
+            self.assertEqual(data_asm.layout_of(text), (ASM_DATA / manifest["layout"]).read_text(), path.name)
 
 
 @needs_toolchain
 class MutantTests(unittest.TestCase):
-    """A one-line edit of the resource source must be caught by the audit."""
+    """A one-line edit of the regenerated resource source, or of the committed layout, must be caught by the audit."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.dir = Path(self.tmp.name)
-        for name in ("data-002.json", "data-002.s"):
+        for name in ("data-002.json", "data-002.layout"):
             shutil.copy(ASM_DATA / name, self.dir / name)
+        manifest = json.loads((self.dir / "data-002.json").read_text())
+        self.text = data_asm.regenerate_source(manifest, data_asm.DEFAULT_ORIGINAL.read_bytes())
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def audit(self, edit, rehash=True):
         source = self.dir / "data-002.s"
-        text = edit(source.read_text())
+        text = edit(self.text)
         source.write_text(text)
         manifest_path = self.dir / "data-002.json"
         manifest = json.loads(manifest_path.read_text())
         if rehash:
+            layout = data_asm.layout_of(text)
+            (self.dir / "data-002.layout").write_text(layout)
             manifest["source_sha256"] = data_asm.sha256(text.encode())
+            manifest["layout_sha256"] = data_asm.sha256(layout.encode())
             manifest_path.write_text(json.dumps(manifest))
-        return data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER)
+        return data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, source_path=source)
+
+    def test_the_unedited_regenerated_source_is_accepted(self):
+        report = self.audit(lambda text: text, rehash=False)
+        self.assertEqual(report["errors"], [])
+        self.assertTrue(report["all_accepted"])
+
+    def test_an_edited_layout_is_rejected(self):
+        layout = self.dir / "data-002.layout"
+        layout.write_text(layout.read_text().replace(".long [4]", ".long [3]", 1))
+        report = self.audit(lambda text: text, rehash=False)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("layout" in e for e in report["errors"]))
 
     def test_a_changed_value_is_rejected(self):
         def edit(text):
