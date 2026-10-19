@@ -43,6 +43,13 @@ static uint32_t get32(const uint8_t *o, size_t off)
     return v;
 }
 
+static int16_t get16s(const uint8_t *o, size_t off)
+{
+    int16_t v;
+    memcpy(&v, o + off, 2);
+    return v;
+}
+
 static struct {
     uint8_t self[SELF_SZ], tab[TAB_SZ], obj[OBJ_SZ], decoy[0x1000], a154[0x100], a12[0x100], tbl[0x400], flags[0x200];
     Fl24aWorld w;
@@ -53,7 +60,7 @@ static uint8_t exp_self[SELF_SZ], exp_tab[TAB_SZ], exp_flags[0x200];
 static const uint8_t T[2][9] = {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}, {'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'}};
 
 static uint32_t g_tick;
-static uint32_t g_ret_4f6334, g_ret_4709bb[16], g_ret_4709de[16];
+static uint32_t g_ret_4f6334, g_ret_4709bb[16], g_ret_4709de[16], g_ret_482595;
 static struct {
     int n;
     struct {
@@ -83,6 +90,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     (void)ctx;
     log_call(callee, this_ptr, args, nargs);
     if (callee == 0x4f6334) return g_ret_4f6334;
+    if (callee == 0x482595) return g_ret_482595;
     if (callee == 0x4709bb) return g_ret_4709bb[n_4709bb++ & 15];
     if (callee == 0x4709de) return g_ret_4709de[n_4709de++ & 15];
     return 0;
@@ -1428,6 +1436,236 @@ static void test_m465c99(void)
     }
 }
 
+/* ---- 0x482724 ----------------------------------------------------------------------------------------------------------------- */
+
+static void setup_482724(int idx, uint32_t sel, int w, int w92, int b91)
+{
+    setup(idx, sel);
+    fx.self[0xa8] = 0x80;
+    set16(fx.self, 0xa9, 0xffff);
+    set32(fx.self, 0x78, 0);
+    set16(fx.self, 0xad, (uint16_t)w);
+    set16(fx.self, 0x92, (uint16_t)w92);
+    fx.self[0x91] = (uint8_t)b91;
+    memset(fx.obj, 0x5c, 0x400);
+    set16(fx.obj, 0x3a2, 2);
+    set16(fx.obj, 0x3a4, 3);
+    set16(fx.obj, 0x39e, 4);
+    set16(fx.obj, 0x3a0, 5);
+    fx.obj[0xfb] = 0;
+    g_ret_482595 = 0x12345680u;
+}
+
+static void run_482724(void)
+{
+    L.n = 0;
+    m482724_click_27b5_27b6(fx.self, &fx.w, &fx.host);
+}
+
+static void test_m482724(void)
+{
+    static const int idxs[] = {2, -1};
+    static const uint32_t bad78[] = {2, 0x100, 0x10000, 3, 0xffffffffu, 0x80000000u};
+    static const int bad_a9[] = {0, 1, 0x7fff, 0x8000, 0xfffe, 2};
+    static const uint32_t other_sel[] = {0x27b4, 0x27b7, 0x26b5, 0, 0xffffffffu};
+    size_t ii, k;
+    int b, wi;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        size_t rec = (size_t)(idx + 1) * REC + 0x4d;
+        /* the byte [+0xa8] clear (the bytes next to it set): nothing, for both events */
+        for (k = 0; k < 2; k++) {
+            setup_482724(idx, k ? 0x27b6u : 0x27b5u, 2, 0, 0);
+            fx.self[0xa8] = 0;
+            expect_begin();
+            run_482724();
+            expect_end();
+            CK(L.n == 0);
+        }
+        /* event 0x27b6: [+0xab] = 1, the record goes to state 2, whatever the rest */
+        setup_482724(idx, 0x27b6, 2, 0, 0);
+        set32(fx.self, 0x78, 5);
+        set16(fx.self, 0xa9, 3);
+        expect_begin();
+        exp_self[0xab] = 1;
+        set32(exp_tab, rec, 2);
+        run_482724();
+        expect_end();
+        CK(L.n == 0);
+        /* [+0x78] other than 0 or 1: nothing */
+        for (k = 0; k < 6; k++) {
+            setup_482724(idx, 0x27b5, 2, 0, 0);
+            set32(fx.self, 0x78, bad78[k]);
+            expect_begin();
+            run_482724();
+            expect_end();
+            CK(L.n == 0);
+        }
+        /* [+0xa9] other than -1: nothing */
+        for (k = 0; k < 6; k++) {
+            setup_482724(idx, 0x27b5, 2, 0, 0);
+            set16(fx.self, 0xa9, (uint16_t)bad_a9[k]);
+            expect_begin();
+            run_482724();
+            expect_end();
+            CK(L.n == 0);
+        }
+        /* another event: nothing */
+        for (k = 0; k < 5; k++) {
+            setup_482724(idx, other_sel[k], 2, 0, 0);
+            expect_begin();
+            run_482724();
+            expect_end();
+            CK(L.n == 0);
+        }
+        /* w == word 0x3a2 (= 2): with [+0x92] > 0 or the byte [+0x91] set, [+0x78] = 2 and [+0x91] = 0 and done; the dword [+0x30] = 1 */
+        for (b = 0; b < 2; b++) {
+            static const int w92s[] = {0, 1, 0x7fff, -1, -32768};
+            for (wi = 0; wi < 5; wi++) {
+                int done = w92s[wi] > 0 || b;
+                setup_482724(idx, 0x27b5, 2, w92s[wi], b ? 0x80 : 0);
+                set32(fx.self, 0x78, (uint32_t)(wi & 1));
+                expect_begin();
+                set16(exp_self, 0xa9, 2);
+                set32(exp_self, 0x30, 1);
+                if (done) {
+                    set32(exp_self, 0x78, 2);
+                    exp_self[0x91] = 0;
+                    run_482724();
+                    expect_end();
+                    CK(L.n == 0);
+                } else {
+                    /* falls through: w is not 0x3a4, 0x39e or 0x3a0, and is 0x3a2: return */
+                    run_482724();
+                    expect_end();
+                    CK(L.n == 0);
+                }
+            }
+        }
+        /* w == word 0x3a4 (= 3): the byte [+0x91] clear: [+0x92] = 0, call 0x482595 (word 0x39e, 1), [+0x91] = the low byte of eax */
+        {
+            static const uint32_t rets[] = {0x12345680u, 0x1ffu, 0x100u, 0, 0xffffff7fu};
+            for (k = 0; k < 5; k++) {
+                setup_482724(idx, 0x27b5, 3, 0x1234, 0);
+                g_ret_482595 = rets[k];
+                expect_begin();
+                set16(exp_self, 0xa9, 3);
+                set32(exp_self, 0x34, 1);
+                set16(exp_self, 0x92, 0);
+                exp_self[0x91] = (uint8_t)rets[k];
+                run_482724();
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x482595, (uintptr_t)fx.self, 2, 1, 4, 1, 0, 0, 0, 0);
+                CK(get16s(L.c[0].snap_self, 0x92) == 0 && L.c[0].snap_self[0x91] == 0);     /* [+0x92] is cleared before the call, [+0x91] after */
+            }
+            /* ... with the byte set: no call for 0x3a4, nothing else */
+            setup_482724(idx, 0x27b5, 3, 0x1234, 7);
+            expect_begin();
+            set16(exp_self, 0xa9, 3);
+            set32(exp_self, 0x34, 1);
+            run_482724();
+            expect_end();
+            CK(L.n == 0);
+            /* w == word 0x39e (= 4): [+0x91] clear: call (4, 1); set: call (4, 0); the byte is stored from eax in both */
+            setup_482724(idx, 0x27b5, 4, 0x1234, 0);
+            expect_begin();
+            set16(exp_self, 0xa9, 4);
+            set32(exp_self, 0x38, 1);
+            set16(exp_self, 0x92, 0);
+            exp_self[0x91] = 0x80;
+            run_482724();
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x482595, (uintptr_t)fx.self, 2, 1, 4, 1, 0, 0, 0, 0);
+            setup_482724(idx, 0x27b5, 4, 0x1234, 0x40);
+            expect_begin();
+            set16(exp_self, 0xa9, 4);
+            set32(exp_self, 0x38, 1);
+            exp_self[0x91] = 0x80;
+            run_482724();
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x482595, (uintptr_t)fx.self, 2, 1, 4, 0, 0, 0, 0, 0);
+            CK(L.c[0].snap_self[0x91] == 0x40);
+            /* w == word 0x3a0 (= 5): [+0x91] clear: the call still names the word 0x39e (4) and 1; set: (5, 0) */
+            setup_482724(idx, 0x27b5, 5, 0x1234, 0);
+            expect_begin();
+            set16(exp_self, 0xa9, 5);
+            set32(exp_self, 0x3c, 1);
+            set16(exp_self, 0x92, 0);
+            exp_self[0x91] = 0x80;
+            run_482724();
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x482595, (uintptr_t)fx.self, 2, 1, 4, 1, 0, 0, 0, 0);
+            setup_482724(idx, 0x27b5, 5, 0x1234, 0xff);
+            g_ret_482595 = 0x33;
+            expect_begin();
+            set16(exp_self, 0xa9, 5);
+            set32(exp_self, 0x3c, 1);
+            exp_self[0x91] = 0x33;
+            run_482724();
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x482595, (uintptr_t)fx.self, 2, 1, 5, 0, 0, 0, 0, 0);
+            /* the words 0x39e and 0x3a2 equal (2): w = 2 with the first block failing falls into the chain, which matches 0x39e */
+            setup_482724(idx, 0x27b5, 2, 0, 0);
+            set16(fx.obj, 0x39e, 2);
+            expect_begin();
+            set16(exp_self, 0xa9, 2);
+            set32(exp_self, 0x30, 1);
+            exp_self[0x91] = 0x80;
+            run_482724();
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x482595, (uintptr_t)fx.self, 2, 1, 2, 1, 0, 0, 0, 0);
+            /* the words are compared as signed words: the word 0x3a4 = 0x8003 does not equal 3 (a high bit alone differs) */
+            setup_482724(idx, 0x27b5, 3, 0, 0);
+            set16(fx.obj, 0x3a4, 0x8003);
+            expect_begin();
+            run_482724();
+            CK(L.n == 0 && fx.self[0x91] == 0 && get32(fx.self, 0xa2) == 1);   /* took the tail */
+        }
+        /* the tail: w = 7 matches none of the words */
+        {
+            static const int w92s[] = {0, 1, -1, 3, -3, 8, -2};
+            static const int fbs[] = {0, 0x80, 0xff};
+            for (wi = 0; wi < 7; wi++) {
+                for (k = 0; k < 3; k++) {
+                    int w92 = w92s[wi];
+                    setup_482724(idx, 0x27b5, 7, w92, 0x55);
+                    fx.obj[0xfb] = (uint8_t)fbs[k];
+                    expect_begin();
+                    set16(exp_self, 0xa9, 7);
+                    set32(exp_self, 0x44, 1);
+                    exp_self[0x91] = 0;
+                    if (w92 == 0) {
+                        exp_self[0x94] = 1;
+                        memset(exp_self + 0x95, 0, 11);
+                    }
+                    exp_self[0x95 + w92] = 7;
+                    if (w92 == 0) set32(exp_self, 0xa2, fbs[k] == 0 ? 1u : 0u);
+                    /* the final increment reads the word again (the store above can be its own low byte: index -3) */
+                    set16(exp_self, 0x92, (uint16_t)(exp_self[0x92] | (exp_self[0x93] << 8)) + 1u);
+                    run_482724();
+                    expect_end();
+                    CK(L.n == 0);
+                }
+            }
+            /* w = 1: [+0xa2] = 1 even with the byte [obj + 0xfb] set */
+            setup_482724(idx, 0x27b5, 1, 0, 0);
+            fx.obj[0xfb] = 0xff;
+            run_482724();
+            CK(get32(fx.self, 0xa2) == 1 && fx.self[0x95] == 1 && fx.self[0x94] == 1 && get16s(fx.self, 0x92) == 1);
+            /* the store at 0x95 + [+0x92] and the test of [+0x92] == 0 for [+0xa2]: with [+0x92] = 1 the dword [+0xa2] is left alone */
+            setup_482724(idx, 0x27b5, 7, 1, 0);
+            run_482724();
+            CK(get32(fx.self, 0xa2) == 0xA5A5A5A5u && fx.self[0x96] == 7 && fx.self[0x94] == 0xA5);
+        }
+    }
+}
+
 /* ---- the table of cases ------------------------------------------------------------------------------------------------------- */
 
 static const struct {
@@ -1443,6 +1681,7 @@ static const struct {
     {"test_m47b4aa_hit_test", test_m47b4aa},
     {"test_m4a6574_hit_test", test_m4a6574},
     {"test_m465c99_hit_test", test_m465c99},
+    {"test_m482724_click_27b5_27b6", test_m482724},
 };
 
 int main(void)

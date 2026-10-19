@@ -85,9 +85,9 @@ class Original20(od.Original):
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
 SHAPES = {0x4fb2e3: (1, True, 4), 0x4f6334: (1, True, 4), 0x44ecaf: (2, True, 8), 0x50ca3e: (6, False, 0), 0x44a2b7: (1, False, 0),
           0x4709bb: (1, True, 4), 0x4709de: (2, True, 8), 0x448d11: (4, True, 16),
-          0x45741d: (2, True, 8), 0x47b709: (1, True, 4), 0x4a67f3: (2, True, 8), 0x465f8e: (3, True, 12)}
+          0x45741d: (2, True, 8), 0x47b709: (1, True, 4), 0x4a67f3: (2, True, 8), 0x465f8e: (3, True, 12), 0x482595: (2, True, 8)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
-WORD_ARGS = {0x4fb2e3: (0,), 0x44ecaf: (1,), 0x45741d: (1,)}
+WORD_ARGS = {0x4fb2e3: (0,), 0x44ecaf: (1,), 0x45741d: (1,), 0x482595: (0,)}
 RECORDS_VA = 0x5bb5e5
 REC = 0x8d
 
@@ -552,6 +552,40 @@ def gen_465c99(rng, n):
     return common('465c99', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest, k, w2c), stack=stack, args=(x, y))
 
 
+def gen_482724(rng, n):
+    profiles = [('a8',), ('s6',), ('g78',), ('a9',), ('sel',), ('arm', '3a2'), ('arm', '3a4'), ('arm', '39e'), ('arm', '3a0'), ('arm', 'none')]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    sel = {'s6': 0x27b6}.get(kind, rng.choice([0x27b4, 0x27b7, 0, 0xffffffff, 0x27b5 ^ 0x100]) if kind == 'sel' else 0x27b5)
+    if kind in ('a8', 'g78', 'a9'):
+        sel = rng.choice([0x27b5, 0x27b6])
+    if kind == 'a8':
+        sel = rng.choice([0x27b5, 0x27b6, 0x27b4])
+    d = bytearray(rng.randbytes(0x300))
+    d[0xa8] = 0 if kind == 'a8' else rng.choice([1, 0x80, 0xff])
+    d[0xa9:0xac] = bytes(rng.randrange(1, 256) for _ in range(3))
+    put16(d, 0xa9, rng.choice([0, 5, 0x7fff, 0x8000, 0xfffe, 0x100]) if kind == 'a9' else 0xffff)
+    put16(d, 0x1e, idx)
+    put32(d, 0x78, rng.choice([2, 0x100, 0x10000, 0xffffffff, 3, 0x80000000]) if kind == 'g78' else (variant >> 4) & 1)
+    # the four words of the record object; w = word [+0xad] is the one the arm names (or none of them)
+    pool = [v for v in range(-2, 14) if v not in (-1, 1)]
+    r = {name: pool.pop(rng.randrange(len(pool))) for name in ('3a2', '3a4', '39e', '3a0')}
+    if (variant >> 5) & 1:
+        r['39e'] = r['3a2']        # two of the words equal: the first block falls through into the second chain with a match
+    w = r[rest[0]] if kind == 'arm' and rest[0] != 'none' else (1 if (variant >> 6) & 1 else rng.choice([v for v in pool if v not in r.values()]))
+    put16(d, 0xad, w)
+    w92 = [0, 1, -1, 3, -3, 8, -2, 0][(variant >> 1) % 8]
+    put16(d, 0x92, w92)
+    d[0x91] = (variant & 1) * rng.choice([1, 0x80, 0xff])
+    obj = bytearray(rng.randbytes(0x400))
+    for name, off in (('3a2', 0x3a2), ('3a4', 0x3a4), ('39e', 0x39e), ('3a0', 0x3a0)):
+        struct.pack_into('<h', obj, off, r[name])
+    obj[0xfb] = rng.choice([0, 1, 0x80, 0xff])
+    stubs = {0x482595: stub(0x482595, [('self', 0, 0x100), ('records', 0, 6 * REC)],
+                            results=[rng.choice([0, 1, 0x100, 0xffffff00, 0x12345680, rng.randrange(1 << 32)]) for _ in range(4)])}
+    return common('482724', rng, d, obj, idx, sel, False, 0, stubs, now=0, profile=(kind, *rest, w, w92))
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -564,6 +598,7 @@ SPECS = {
     '47b4aa': dict(id=7, va=0x47b4aa, size=607, gen=gen_47b4aa, ret=True, cleanup=8, n=17 * 40),
     '4a6574': dict(id=8, va=0x4a6574, size=639, gen=gen_4a6574, ret=True, cleanup=8, n=13 * 40),
     '465c99': dict(id=9, va=0x465c99, size=757, gen=gen_465c99, ret=True, cleanup=8, n=14 * 81),
+    '482724': dict(id=10, va=0x482724, size=740, gen=gen_482724, probes=[(0, 0x100)], n=10 * 64),
 }
 KEYS = list(SPECS)
 

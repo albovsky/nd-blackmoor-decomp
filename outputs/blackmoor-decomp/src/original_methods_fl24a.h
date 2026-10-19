@@ -57,6 +57,8 @@ int32_t m47b4aa_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
 int32_t m4a6574_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 /* 0x465c99: hit test (ret 8): a row of the record object split at its middle, three rectangles and a last one (calls 0x465f8e with three arguments); returns 1 on a hit, else 0 */
 int32_t m465c99_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
+/* 0x482724: events 0x27b6 and 0x27b5 (state machine over the words 0x39e, 0x3a0, 0x3a2, 0x3a4 of the record object; calls 0x482595) */
+void m482724_click_27b5_27b6(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

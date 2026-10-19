@@ -515,3 +515,66 @@ int32_t m465c99_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *
     }
     return 0;
 }
+
+/* ---- 0x482724 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x482724, thiscall, plain `ret`. The record object address is read at entry. Nothing happens when the byte [+0xa8] is clear. Event
+ * 0x27b6: byte [+0xab] = 1 and the record goes to state 2. Otherwise only the event 0x27b5 acts, and only when the dword [+0x78] is 0 or 1
+ * and the signed word [+0xa9] is -1: [+0xa9] = word [+0xad]; the dword [self + 0x28 + 4 * [+0xa9]] = 1; w = [+0xa9] is compared with the
+ * words 0x3a2, 0x3a4, 0x39e, 0x3a0 of the record object (signed). w == [obj + 0x3a2] with (signed word [+0x92] > 0 or byte [+0x91] set):
+ * [+0x78] = 2, byte [+0x91] = 0, done. Else w == any of 0x3a4, 0x39e, 0x3a0: with the byte [+0x91] clear, word [+0x92] = 0 and
+ * byte [+0x91] = the low byte of 0x482595(this = self, word [obj + 0x39e], 1); with it set, the same call with 0 when w == [obj + 0x39e],
+ * else when w == [obj + 0x3a0] with the word [obj + 0x3a0] (nothing for w == [obj + 0x3a4]); done. Else, unless w == [obj + 0x3a2]: byte
+ * [+0x91] = 0; with word [+0x92] == 0 the bytes [+0x94] = 1 and [+0x95 .. +0x9f] = 0; byte [+0x95 + word [+0x92]] = byte [+0xa9]; with
+ * word [+0x92] == 0 (read again) dword [+0xa2] = 1 when w == 1 or byte [obj + 0xfb] is clear, else 0; word [+0x92] += 1. Every use re-reads
+ * the object, as the original does (the stores can alias its own fields for wild indexes). */
+void m482724_click_27b5_27b6(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host)
+{
+    uint32_t record = record_object_address(world, self, 0x1e);
+    const uint8_t *obj;
+    if (self[0xa8] == 0) return;
+    if (world->value_5c39e5 == 0x27b6) {
+        self[0xab] = 1;
+        set_record_state_2(world, self, 0x1e);
+        return;
+    }
+    if (rd32(self, 0x78) != 0 && rd32(self, 0x78) != 1) return;
+    if (rds16(self, 0xa9) != -1) return;
+    if (world->value_5c39e5 != 0x27b5) return;
+    wr16(self, 0xa9, rd16(self, 0xad));
+    wr32(self, (ptrdiff_t)(rds16(self, 0xa9) * 4) + 0x28, 1);
+    obj = object_at(host, record);
+    if (rds16(self, 0xa9) == rds16(obj, 0x3a2)) {
+        if (rds16(self, 0x92) > 0 || self[0x91] != 0) {
+            wr32(self, 0x78, 2);
+            self[0x91] = 0;
+            return;
+        }
+    }
+    if (rds16(self, 0xa9) == rds16(obj, 0x3a4) || rds16(self, 0xa9) == rds16(obj, 0x39e) || rds16(self, 0xa9) == rds16(obj, 0x3a0)) {
+        if (self[0x91] == 0) {
+            wr16(self, 0x92, 0);
+            self[0x91] = (uint8_t)call2(host, 0x482595, (uintptr_t)self, rd16(obj, 0x39e), 1);
+        } else if (rds16(self, 0xa9) == rds16(obj, 0x39e)) {
+            self[0x91] = (uint8_t)call2(host, 0x482595, (uintptr_t)self, rd16(obj, 0x39e), 0);
+        } else if (rds16(self, 0xa9) == rds16(obj, 0x3a0)) {
+            self[0x91] = (uint8_t)call2(host, 0x482595, (uintptr_t)self, rd16(obj, 0x3a0), 0);
+        }
+        return;
+    }
+    if (rds16(self, 0xa9) == rds16(obj, 0x3a2)) return;
+    self[0x91] = 0;
+    if (rds16(self, 0x92) == 0) {
+        self[0x94] = 1;
+        wr32(self, 0x95, 0);
+        wr32(self, 0x99, 0);
+        wr16(self, 0x9d, 0);
+        self[0x9f] = 0;
+    }
+    self[0x95 + rds16(self, 0x92)] = self[0xa9];
+    if (rds16(self, 0x92) == 0) {
+        if (rds16(self, 0xa9) == 1 || obj[0xfb] == 0) wr32(self, 0xa2, 1);
+        else wr32(self, 0xa2, 0);
+    }
+    wr16(self, 0x92, (uint16_t)(rd16(self, 0x92) + 1));
+}
