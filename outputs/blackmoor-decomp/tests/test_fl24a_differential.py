@@ -6,7 +6,8 @@ Every case compares all the memory the function can write (the object, the recor
 globals), how many bytes the function popped, and the ordered calls out: callee, ecx, stack arguments (pointers into a fixture are compared
 as the original addresses they stand for; 'word' arguments, which the original pushes from a 16-bit register, by their low 16 bits), the
 state of the object and of the record table at each call, and GetTickCount as an ordered event. The callees are recording stubs; the
-function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function.
+function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function and took both directions of every conditional
+jump of it (fl24a_fixtures.UNTAKEN_ALLOWED lists the one edge that is deliberately not reached, with the reason).
 """
 import ctypes
 from pathlib import Path
@@ -62,7 +63,7 @@ class Fl24aDifferential(DiffBase):
             out.append(entry)
         return out
 
-    def pair(self, sc, executed):
+    def pair(self, sc, executed, edges):
         """Runs the original and the native function on scenario `sc` and compares."""
         orig, expected, _ = fx.run_original(sc)
         self.lib.shim_reset()
@@ -103,15 +104,20 @@ class Fl24aDifferential(DiffBase):
                 entry[2 + index] &= 0xffff
         self.assertEqual(actual, expected, '%s scenario profile %s' % (sc.key, sc.profile))
         executed |= orig.executed
+        edges |= orig.edges
 
     def run_key(self, key):
         rng = random.Random(int(key, 16))
-        executed = set()
+        executed, edges = set(), set()
         va, size = fx.SPECS[key]['va'], fx.SPECS[key].get('code', fx.SPECS[key]['size'])
         for n in range(fx.scenarios(key)):
-            self.pair(fx.build(key, rng, n), executed)
+            self.pair(fx.build(key, rng, n), executed, edges)
         missing = sorted(od.instruction_addresses(va, size) - executed)
         self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
+        # both directions of every conditional jump of the original function (the next address after the jump, recorded by the code hook)
+        unexpected, stale, _ = fx.check_edges(key, edges)
+        self.assertEqual(unexpected, [], 'conditional jumps never taken one way (address, direction): %s' % [(hex(a), d) for a, d in unexpected])
+        self.assertEqual(stale, [], 'allowlisted untaken edges that are taken after all (remove them): %s' % [(hex(a), d) for a, d in stale])
 
     # CASES-BEGIN
     def test_4d3bef_reset_flags(self):

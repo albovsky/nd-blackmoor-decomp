@@ -7,8 +7,9 @@ the recording stubs of the callees listed in fl24a_fixtures.SHAPES (by entry add
 their stack arguments) and the GetTickCount import slot 0x52a23c. Nothing inside a function under test is patched; every guard, compare,
 index computation and store of the twelve bodies runs as original instructions.
 
-Prints one line per function:  0x<va> instructions <executed>/<total> scenarios <n> digest <sha256 of the ordered calls and the memory
-read back, over all scenarios>. Exits 0 only when every instruction of every function was executed. No original bytes or memory dumps are
+Prints one line per function:  0x<va> instructions <executed>/<total> branch-directions <taken>/<total> scenarios <n> digest <sha256 of the ordered calls and the memory
+read back, over all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken (except the
+allowlisted edge in fl24a_fixtures.UNTAKEN_ALLOWED). No original bytes or memory dumps are
 printed. Run from outputs/blackmoor-decomp:  python3 tests/fl24a_original_oracle.py
 """
 import hashlib
@@ -31,15 +32,21 @@ def main():
         spec = fx.SPECS[key]
         rng = random.Random(int(key, 16))
         count = fx.scenarios(key)
-        executed = set()
+        executed, edges = set(), set()
         chain = hashlib.sha256()
         for n in range(count):
             orig, _, digest = fx.run_original(fx.build(key, rng, n))
             executed |= orig.executed
+            edges |= orig.edges
             chain.update(digest.encode())
         total = od.instruction_addresses(spec['va'], spec.get('code', spec['size']))
         missing = sorted(total - executed)
-        print('0x%x instructions %d/%d scenarios %d digest %s' % (spec['va'], len(total) - len(missing), len(total), count, chain.hexdigest()))
+        unexpected, stale, directions = fx.check_edges(key, edges)
+        print('0x%x instructions %d/%d branch-directions %d/%d scenarios %d digest %s' % (spec['va'], len(total) - len(missing), len(total),
+              directions - len(fx.untaken_edges(key, edges)), directions, count, chain.hexdigest()))
+        if unexpected or stale:
+            print('  untaken conditional-jump directions: %s; stale allowlist entries: %s' % ([(hex(a), d) for a, d in unexpected], [hex(a) for a, _ in stale]), file=sys.stderr)
+            status = 1
         if missing:
             print('  never executed: %s' % ' '.join(hex(a) for a in missing[:16]), file=sys.stderr)
             status = 1

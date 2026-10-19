@@ -72,6 +72,17 @@ class Area:
 class Original20(od.Original):
     """od.Original whose stubs can also log the bytes at some places as they are at the call (stub.probe_addr = [(address, length)])."""
 
+    def _count(self, uc, address, size, user):
+        """Records the executed instructions as od.Original does, and every (previous instruction, next instruction) pair of them: after a
+        conditional jump the next address says which way it went. A stub entered in between does not break the pair (the call returns to
+        the next instruction of the function)."""
+        super()._count(uc, address, size, user)
+        if not hasattr(self, 'edges'):
+            self.edges = set()
+        if getattr(self, 'last', None) is not None:
+            self.edges.add((self.last, address))
+        self.last = address
+
     def _stub_hook(self, uc, address, size, user):
         stub = self.stubs[address]
         probe = getattr(stub, 'probe_addr', None)
@@ -171,7 +182,9 @@ def run_original(sc):
         read['g:' + field] = GLOBALS[field]
     for x in sc.stubs.values():
         x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in x.probe]
-    orig = Original20(image_patches, regions, sc.stubs, sc.iat).run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
+    runner = Original20(image_patches, regions, sc.stubs, sc.iat)
+    orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
+    orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
     calls = normalize(orig.calls, sc.stubs, sc.iat, sc.word_args)
@@ -182,6 +195,51 @@ def run_original(sc):
     for name in sorted(orig.memory):
         h.update(name.encode() + orig.memory[name])
     return orig, calls, h.hexdigest()
+
+
+def conditional_edges(va, size):
+    """[(jcc address, mnemonic, taken-edge target, fall-through address)] of every conditional jump of the original function (loop and
+    jecxz forms included), by linear disassembly of the code part."""
+    import capstone
+    pe = od.load_image()
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = va - pe.image_base
+    out = []
+    for i in md.disasm(pe.image[off:off + size], va):
+        if i.mnemonic.startswith('j') and i.mnemonic != 'jmp' or i.mnemonic.startswith('loop'):
+            out.append((i.address, i.mnemonic, int(i.op_str, 16), i.address + i.size))
+    return out
+
+
+# the conditional-jump directions that no scenario takes, with the reason (anything else untaken fails the tests)
+UNTAKEN_ALLOWED = {
+    '4a6574': {(0x4a6597, 'taken'): 'byte [+0x29] != 0 (jne 0x4a679f): the original reaches it only through the documented uninitialised-slot path '
+                                    '(the tail reads the record object through a local that was never stored), which is not fixtured; the port rejects it'},
+}
+
+
+def untaken_edges(key, edges):
+    """[(jcc address, 'taken' or 'fall-through')] of the conditional jumps of the function `key` that none of `edges` (the union of the
+    (instruction, next instruction) pairs of the scenarios) went the way of."""
+    sp = SPECS[key]
+    out = []
+    for address, _, target, after in conditional_edges(sp['va'], sp.get('code', sp['size'])):
+        if (address, target) not in edges:
+            out.append((address, 'taken'))
+        if (address, after) not in edges:
+            out.append((address, 'fall-through'))
+    return out
+
+
+def check_edges(key, edges):
+    """(unexpected untaken edges, allowlisted edges that were taken after all, number of directions): both directions of every conditional
+    jump of the function must be taken by some scenario, except the ones in UNTAKEN_ALLOWED (an allowlist entry that is taken is stale)."""
+    allowed = UNTAKEN_ALLOWED.get(key, {})
+    untaken = untaken_edges(key, edges)
+    sp = SPECS[key]
+    total = 2 * len(conditional_edges(sp['va'], sp.get('code', sp['size'])))
+    return [e for e in untaken if e not in allowed], [e for e in allowed if e not in untaken], total
 
 
 def normalize(calls, stubs, iat, word_args):
@@ -221,8 +279,9 @@ def nine(rng, variant, active, const, obj, off):
 
 
 def results(rng, variant, shift):
-    """The scripted answer of 0x4f6334: zero, or non-zero."""
-    return [0 if (variant >> shift) % 3 != 2 else rng.choice([1, 5, 0x10000, 0x80000000])]
+    """The scripted answer of 0x4f6334: zero, or (when bits `shift`.. of the pass number read 3 mod 4: with the compare pass numbers
+    of the callers, the passes that reach the call with a differing nine-byte compare) non-zero."""
+    return [0 if (variant >> shift) % 4 != 3 else rng.choice([1, 5, 0x10000, 0x80000000])]
 
 
 def gen_4d3bef(rng, n):
@@ -259,7 +318,7 @@ def gen_44edfb(rng, n):
     else:
         nine(rng, variant, kind == 'pass', const, d, 0x32)
     flag = 0 if variant & 1 == 0 else rng.choice([1, 0x100, 0xffffffff])
-    stubs = {c: stub(c, None, results=results(rng, variant, 5) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
+    stubs = {c: stub(c, None, results=results(rng, variant, 1) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
     return common('44edfb', rng, d, obj, idx, sel, failing == 2, flag, stubs, consts=[(0x549824, const)], now=now, profile=(kind, which, *rest))
 
 
@@ -272,10 +331,15 @@ def gen_4cb3ab(rng, n):
     for i, off in enumerate((0xe, 0x12, 0x16, 0x15c)):
         set_gate(d, 'nz32', off, failing == i, rng)
     arm = rng.choice(['A', 'B']) if kind == 'fail' else kind
+    if failing == 1:
+        arm = 'A'     # (a port that lost the [+0x12] guard would otherwise read through the null pointer in arm B: it is caught by the memory instead)
     obj154, obj12 = od.region_va(5), od.region_va(6)
     tbl = od.region_va(7) + 0x100
-    put32(d, 0x16, tbl)
-    put32(d, 0x12, obj12)
+    # the pointers are stored only when their own gate holds: a failing gate stays 0 (set_gate), so that a port without the guard goes on
+    if failing != 2:
+        put32(d, 0x16, tbl)
+    if failing != 1:
+        put32(d, 0x12, obj12)
     put32(d, 0x154, obj154 if arm == 'A' else 0)
     put32(d, 0x14e, 0 if (kind, which) == ('B', 'off') else rng.choice([1, 0x100, 0xffffffff]))
     a154 = bytearray(rng.randbytes(0x40))
@@ -293,7 +357,7 @@ def gen_4cb3ab(rng, n):
     stubs = {c: stub(c, [('self', 0, 0x200), ('flags', 0, 0x200)]) for c in (0x50ca3e, 0x44a2b7)}
     extra = [Area('a154', obj154, a154, image=False), Area('a12', obj12, a12, image=False), Area('tbl', od.region_va(7), t, image=False),
              Area('flags', 0x585801 - 0x80, flags)]
-    sc = common('4cb3ab', rng, d, bytearray(0x10), 0, 0, False, 0, stubs, extra=extra, g={'word_63a4cd': g63 if arm else 0},
+    sc = common('4cb3ab', rng, d, bytearray(0x10), 0, 0, False, 0, stubs, extra=extra, g={'word_63a4cd': 0 if failing == 1 else g63 if arm else 0},
                 pointers={'flags_585801': ('flags', 0x80)}, now=0, profile=(kind, which))
     return sc
 
@@ -353,7 +417,7 @@ def gen_46ebff(rng, n):
     const = rng.randbytes(9)
     nine(rng, variant, kind == 'c2', const, obj, 0x64d + k * 0x95 + 0x64)
     flag = 0 if variant & 1 == 0 else rng.choice([1, 0x100, 0xffffffff])
-    stubs = {c: stub(c, [('self', 0, 0x100)], results=results(rng, variant, 5) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
+    stubs = {c: stub(c, [('self', 0, 0x100)], results=results(rng, variant, 1) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
     for c in (0x4709bb, 0x4709de):
         stubs[c] = stub(c, [('self', 0, 0x100)], results=[rng.choice([0, 1, 0x7fffffff, 0xffffff00, rng.randrange(1 << 32)]) for _ in range(14)])
     stubs[0x448d11] = stub(0x448d11, [('self', 0, 0x100)])
@@ -497,7 +561,7 @@ def gen_4a6574(rng, n):
 
 def gen_465c99(rng, n):
     profiles = [('gate',), ('c1',), ('c1', 'ylo'), ('c1', 'yhi'), ('c1', 'xlo'), ('c1', 'xmid'), ('c2',), ('c2', 'xhi'), ('c2', 'ymiss'), ('c3',),
-                ('c4',), ('c5',), ('c6',), ('none',)]
+                ('c4',), ('c5',), ('c7',), ('c6',), ('none',)]
     (kind, *rest), variant = prof(n, profiles)
     idx = rng.choice([-1, 0, 1, 2, 3, 4])
     x, y, stack = points(rng)
@@ -507,6 +571,8 @@ def gen_465c99(rng, n):
         w2c = rng.choice([0, 1, 2, -5, -32768])
     if kind == 'c5':
         w2c = 3
+    if kind == 'c7':
+        w2c = rng.choice([4, 5, 100, 0x7fff])       # above 3: the 0x58/0x60 rectangle hit takes neither of its two words
     d = bytearray(rng.randbytes(0x100))
     set_gate(d, 'nz32', 0x49, kind == 'gate', rng)
     put16(d, 0x1e, idx)
@@ -546,7 +612,7 @@ def gen_465c99(rng, n):
     for off, v in ((0xf8, lo), (0xfc, ylo), (0x100, hi), (0x104, yhi)):
         put32(obj, 16 * k + off, v)
     rect_into(rng, obj, x, y, (0x6c, 0x74, 0x68, 0x70), (0, 0, 0, 0), kind == 'c3')
-    rect_into(rng, obj, x, y, (0x5c, 0x64, 0x58, 0x60), (0, 0, 0, 0), kind in ('c4', 'c5'))
+    rect_into(rng, obj, x, y, (0x5c, 0x64, 0x58, 0x60), (0, 0, 0, 0), kind in ('c4', 'c5', 'c7'))
     rect_into(rng, obj, x, y, (0x553, 0x55b, 0x54f, 0x557), (0, 0, 0, 0), kind == 'c6')
     stubs = {0x465f8e: stub(0x465f8e, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=[rng.randrange(1 << 32)])}
     return common('465c99', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest, k, w2c), stack=stack, args=(x, y))
@@ -572,7 +638,7 @@ def gen_482724(rng, n):
     r = {name: pool.pop(rng.randrange(len(pool))) for name in ('3a2', '3a4', '39e', '3a0')}
     if (variant >> 5) & 1:
         r['39e'] = r['3a2']        # two of the words equal: the first block falls through into the second chain with a match
-    w = r[rest[0]] if kind == 'arm' and rest[0] != 'none' else (1 if (variant >> 6) & 1 else rng.choice([v for v in pool if v not in r.values()]))
+    w = r[rest[0]] if kind == 'arm' and rest[0] != 'none' else (1 if (variant >> 4) & 1 else rng.choice([v for v in pool if v not in r.values()]))
     put16(d, 0xad, w)
     w92 = [0, 1, -1, 3, -3, 8, -2, 0][(variant >> 1) % 8]
     put16(d, 0x92, w92)
@@ -593,15 +659,15 @@ def gen_470ffe(rng, n):
     idx = rng.choice([-1, 0, 1, 2, 3, 4])
     x, y, stack = points(rng)
     d = bytearray(rng.randbytes(0xd80))
-    set_gate(d, 'nz8', 0xd3e, kind == 'gate', rng)
     skipping = kind in ('skip', 'tail_skip')
-    set_gate(d, 'z8', 0xd3b, skipping, rng)
+    set_gate(d, 'z8', 0xd3b, skipping, rng)       # (fills the three bytes after 0xd3b non-zero, 0xd3e among them: the gate byte comes second)
+    set_gate(d, 'nz8', 0xd3e, kind == 'gate', rng)
     put16(d, 0xd28, idx)
     obj = bytearray(rng.randbytes(0x400))
     count = max(rng.choice([1, 2, 3, 4]), rest[0] + 1) if kind in ('loop', 'skip') else rng.choice([0, 1, 3, -1, 2, 4, -32768])
     struct.pack_into('<h', obj, 0x21, count)
     obj[0x24] = 0 if kind == 'tail_b24' else rng.choice([1, 0x80, 0xff])
-    rect_into(rng, obj, x, y, (0x100, 0x108, 0xfc, 0x104), (0, 0, 0, 0), kind == 'first')
+    rect_into(rng, obj, x, y, (0x100, 0x108, 0xfc, 0x104), (0, 0, 0, 0), kind in ('first', 'gate'))     # (the gate scenarios hold the point: only the gate stops it)
     for i in range(4):
         rect_into(rng, d, x, y, (0x660 + 16 * i, 0x668 + 16 * i, 0x65c + 16 * i, 0x664 + 16 * i), (0, 0, 0, 0), kind in ('loop', 'skip') and i == rest[0])
     rect_into(rng, obj, x, y, (0x39, 0x41, 0x35, 0x3d), (0, 0, 0, 0), kind in ('tail', 'tail_b24', 'tail_skip'))
@@ -644,7 +710,7 @@ def gen_4a6946(rng, n):
     flag = 0 if variant & 1 == 0 else rng.choice([1, 0x100, 0xffffffff])
     if t is None or t > 3:
         flag = 0                     # (the kept string and word are uninitialised locals there: not fixtured)
-    stubs = {c: stub(c, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=results(rng, variant, 5) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
+    stubs = {c: stub(c, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=results(rng, variant, 1) if c == 0x4f6334 else None) for c in (0x4f6334, 0x4fb2e3)}
     return common('4a6946', rng, d, obj, idx, sel, failing == 3, flag, stubs, consts=[(0x550964, bytes(const))], now=now, profile=(kind, *rest))
 
 
@@ -659,7 +725,7 @@ SPECS = {
     '4571e1': dict(id=6, va=0x4571e1, size=572, gen=gen_4571e1, ret=True, cleanup=8, n=13 * 40),
     '47b4aa': dict(id=7, va=0x47b4aa, size=607, gen=gen_47b4aa, ret=True, cleanup=8, n=17 * 40),
     '4a6574': dict(id=8, va=0x4a6574, size=639, gen=gen_4a6574, ret=True, cleanup=8, n=13 * 40),
-    '465c99': dict(id=9, va=0x465c99, size=757, gen=gen_465c99, ret=True, cleanup=8, n=14 * 81),
+    '465c99': dict(id=9, va=0x465c99, size=757, gen=gen_465c99, ret=True, cleanup=8, n=15 * 81),
     '482724': dict(id=10, va=0x482724, size=740, gen=gen_482724, probes=[(0, 0x100)], n=10 * 64),
     '470ffe': dict(id=11, va=0x470ffe, size=690, gen=gen_470ffe, ret=True, cleanup=8, n=12 * 40),
     '4a6946': dict(id=12, va=0x4a6946, size=664, gen=gen_4a6946, code=648, tick=True, probes=[(0, 0x100)], n=14 * 44),

@@ -33,26 +33,30 @@ Run from `outputs/blackmoor-decomp`.
 - Unicorn differential: `python3 -m unittest tests.test_fl24a_differential`. With the direct tests, 26 tests, all OK.
 - Original-bytes-only oracle: `python3 tests/fl24a_original_oracle.py`, and under the recorder with `BLACKMOOR_EXEC_TRACE_DIR=<dir> PYTHONPATH=scripts/exec_trace python3 tests/fl24a_original_oracle.py`. The two outputs are byte-identical (checked with `cmp`).
 - Sanitisers: `tests/fl24a_direct_test.c` built with gcc `-fsanitize=address,undefined -fno-sanitize-recover=all` at -O0, -O1 and -O2 (the bounded random sweep, 12 x 2500 iterations plus the case tables): clean.
-- Mutation: `python3 tests/fl24a_mutation_check.py` (literal +1, ==/!= swap, guard deletion, width swaps over each port). Result: 641 mutants, 604 caught by the direct tests (including build failures and non-terminating mutants, which time out after 20 s and count as caught), 8 more caught only by the Unicorn differential, 29 survivors.
+- Mutation: `python3 tests/fl24a_mutation_check.py` (literal +1, ==/!= swap, guard deletion, width swaps and, new in the review-fix revision, relational boundary flips `<` <-> `<=`, `>` <-> `>=` in if/for/while conditions over each port; the differential of a surviving mutant now runs in a child process, so a mutant that crashes the shim counts as caught). Result: 665 mutants (24 of them boundary flips), 626 caught by the direct tests (including build failures and non-terminating mutants, which time out after 20 s and count as caught), 9 more caught only by the Unicorn differential, 30 survivors.
 
-Survivors (not claimed equivalent; they are gaps in fixture data, to be closed by review or a follow-up). 27 of the 29 are width-only swaps (`rd16` to `rd32`, `rds16` to `rd16`, `rd32` to `rd16`) at lines 153-171 (0x44edfb), 209 and 218 (0x4cb3ab), 293 (0x46ebff), 348 (0x4571e1), 395 (0x47b4aa), 489/495/508 (0x465c99), 544-579 (0x482724) and 679-691 (0x4a6946). A word-to-dword widening survives where the two bytes after the word are zero in the fixtures, and a signed-to-unsigned change survives where the word never has bit 15 set at that read. The original disassembly uses the stated widths and signedness at each of those reads (checked while porting), so these are weaknesses of the test data, not known divergences; the Unicorn differential test of the same function does exercise the instruction paths. The other two are literals: line 208 (0x4cb3ab) `0x12` to `0x13` and line 569 (0x482724) `0x95` to `0x96`, field offsets whose neighbouring bytes carry the same fixture values. Run: `python3 tests/fl24a_mutation_check.py` (about 40 minutes).
+Mutation-tool gap (stated so that the tool is not over-read): its mutants are single textual edits (one literal, one operator, one one-line `if (...) return;` guard, one width). It does not model a deleted multi-line guard, `if (1)`, a dropped `||` operand, or a changed comparison against a constant (`== 3` to `>= 3` is only reached through the new boundary flips for `<`/`>`, not through `==`), nor two edits together, which is exactly where the review found the fixtures weak (the direct test caught those, the Unicorn differential did not). The branch-direction assertion above closes that class for conditional jumps of the original; the five review mutants were applied by hand as listed in the coverage claim.
 
-Oracle results (instructions reached / instructions in the code window, scenarios, digest):
+Survivors (not claimed equivalent, except the one stated; they are gaps in fixture data, to be closed by review or a follow-up). The line numbers below are those of the port, which this revision did not change. 27 of the 30 are width-only swaps (`rd16` to `rd32`, `rds16` to `rd16`, `rd32` to `rd16`) at lines 153-171 (0x44edfb), 209 and 218 (0x4cb3ab), 293 (0x46ebff), 348 (0x4571e1), 395 (0x47b4aa), 489/495/508 (0x465c99), 544-579 (0x482724) and 679-691 (0x4a6946). A word-to-dword widening survives where the two bytes after the word are zero in the fixtures, and a signed-to-unsigned change survives where the word never has bit 15 set at that read. The original disassembly uses the stated widths and signedness at each of those reads (checked while porting), so these are weaknesses of the test data, not known divergences; the Unicorn differential test of the same function does exercise the instruction paths. Two are literals: line 208 (0x4cb3ab) `0x12` to `0x13` and line 569 (0x482724) `0x95` to `0x96`, field offsets whose neighbouring bytes carry the same fixture values. The thirtieth is the one boundary survivor, line 679 (0x4a6946) `i < n - 1` to `i <= n - 1` in the shift loop: the extra iteration copies word `[+0x94 + 2(n-1)]` from `[+0x96 + 2(n-1)]`, and the very next statement (line 680) stores `[+0x92 + 2n]`, the same slot, so no observable state differs; an equivalent mutant. Run: `python3 tests/fl24a_mutation_check.py` (about 40 minutes).
 
-| va | instr | scenarios | digest |
-|---|---|---|---|
-| 0x4d3bef | 15/15 | 12 | e53d4e19789450cf3ca0ffdaa1ce6f2b8a36e98a046410e66fce139036b8aa75 |
-| 0x44edfb | 128/128 | 484 | 16e0fb9bdc1438173a81eefec157f450a4724972bb59d7eabac5462997287426 |
-| 0x4cb3ab | 126/126 | 156 | e022a6a3fe7da6b29d19fae8eb2d2987a0c271fe4304f08387e1f56a247500e0 |
-| 0x44eab1 | 146/146 | 440 | 1fd0a6edd54b37f00db9c3d9e6238e8bc3aca476ab8415fa7b380d1dae06584f |
-| 0x46ebff | 146/146 | 704 | 9b4272b570b1cf59501c2918feff43697c726326136a90347512c41eb864f272 |
-| 0x4571e1 | 166/166 | 520 | cc832faa30655ea7a9861b25057a3a1e7ca26497bd9321c1e072a190a372d791 |
-| 0x47b4aa | 159/159 | 680 | ddd4f84166bc59b0f626570855d7f2ed0f5c1985051a4699295f990970556add |
-| 0x4a6574 | 179/179 | 520 | 347b575c4ff7ccea4f6db7189bd2f192e7e40487670b9876aa6c50bbfc8dc75a |
-| 0x465c99 | 222/222 | 1134 | b85443c6ce9396536d6770fd0274099cf221ef1f3279d2b7c1b3f4afa62f5a0b |
-| 0x482724 | 180/180 | 640 | 97a0f60c9508dadc318805632558b2290164b133d422052ebed1f47e102cc721 |
-| 0x470ffe | 149/149 | 480 | 488ad82f9164223acf2fa2e718c150df170f18e3c80e2330ec2b7030168967a1 |
-| 0x4a6946 | 177/177 | 616 | a039b76d45dd5944286842fe4359d29d3681d302324962211e6cce0dd218da8e |
+Coverage claim (review-fix revision). The scenarios of each function reach every instruction of the code window AND take both directions of every conditional jump (jcc, loop, jecxz forms) of it, with one allowlisted untaken edge: 0x4a6597 `jne 0x4a679f` in 0x4a6574 (byte `[+0x29]` != 0, the documented uninitialised-slot path; not fixtured; reason recorded in `fl24a_fixtures.UNTAKEN_ALLOWED`). The direction of a jump is read from the original run itself: the Unicorn code hook records every (instruction, next instruction) pair and the next address after each jcc says which way it went (`fl24a_fixtures.Original20`, `conditional_edges`, `check_edges`). `tests.test_fl24a_differential` asserts it for each function (and fails if an allowlisted edge is taken after all); `tests/fl24a_original_oracle.py` prints it and exits non-zero otherwise. 419 of the 420 directions are taken. Instruction reach alone did not show this: before the review fixes the fixtures never made 0x4f6334 answer non-zero in 0x44edfb, 0x46ebff and 0x4a6946, never failed the `[+0x12]` / `[+0x16]` gates of 0x4cb3ab (the pointers were stored after the gate bytes), never cleared `[+0xd3e]` in 0x470ffe, never had `[+0xa9]` == 1 with `[+0x92]` == 0 in 0x482724, and never combined `[+0x2c]` > 3 with the 0x58/0x60 rectangle hit in 0x465c99; a deleted guard at any of them left the Unicorn differential green and was caught by the direct test only. Hand-applied mutants (one at a time, then reverted), all now failing the differential of their function: delete the `!= 0) return` after the 0x4f6334 call (0x44edfb, 0x46ebff, 0x4a6946), delete the `[+0x12]` guard and the `[+0x16]` guard of 0x4cb3ab (the second makes the shim fault, process exit -11, which counts as detected), `if (self[0xd3e] != 0)` -> `if (1)` in 0x470ffe, drop `rds16(self, 0xa9) == 1 ||` in 0x482724, `rds16(self, 0x2c) == 3` -> `>= 3` in 0x465c99.
+
+Oracle results (instructions reached / instructions in the code window, conditional-jump directions taken / total, scenarios, digest):
+
+| va | instr | branch directions | scenarios | digest |
+|---|---|---|---|---|
+| 0x4d3bef | 15/15 | 2/2 | 12 | e53d4e19789450cf3ca0ffdaa1ce6f2b8a36e98a046410e66fce139036b8aa75 |
+| 0x44edfb | 128/128 | 24/24 | 484 | 9c941456c2eb30886bf8a6f228a1f2fe46d7368463ec9813e150fac2e72b08df |
+| 0x4cb3ab | 126/126 | 24/24 | 156 | 616c43f9bf8d0d4f5e044a6bc3d06ff4acab362533d4923d05a9b8423244e2dc |
+| 0x44eab1 | 146/146 | 44/44 | 440 | 1fd0a6edd54b37f00db9c3d9e6238e8bc3aca476ab8415fa7b380d1dae06584f |
+| 0x46ebff | 146/146 | 24/24 | 704 | cdd2b94e3254c00e66f6b178ab39b8d9596c475e81a8677cba2659521ac1299b |
+| 0x4571e1 | 166/166 | 48/48 | 520 | cc832faa30655ea7a9861b25057a3a1e7ca26497bd9321c1e072a190a372d791 |
+| 0x47b4aa | 159/159 | 32/32 | 680 | ddd4f84166bc59b0f626570855d7f2ed0f5c1985051a4699295f990970556add |
+| 0x4a6574 | 179/179 | 63/64 | 520 | 347b575c4ff7ccea4f6db7189bd2f192e7e40487670b9876aa6c50bbfc8dc75a |
+| 0x465c99 | 222/222 | 62/62 | 1215 | a8c8f3055966568769d093308ce230ab6ae9f61ed34d25ce7b57af941d7c485b |
+| 0x482724 | 180/180 | 40/40 | 640 | eff3049c0e1f630d9a969c73713b97ae446212b5ce5ff2fa4b271a25ef1e722b |
+| 0x470ffe | 149/149 | 34/34 | 480 | 61939cea4f89e84a313c76319932ca74062bc2c1462e7f2ff3471cb88463c5f7 |
+| 0x4a6946 | 177/177 | 22/22 | 616 | a351cba8e3047628b194800594cce346672d08da696513b7bd56773d57f54158 |
 
 `tasks/fl24a-acceptances.json` has 12 entries (class `native_oracle_verified`, window = start to start+span).
 
@@ -82,19 +86,19 @@ Code windows (sha256 of the original bytes, va to va+span):
 | 0x470ffe | 690 | 1a99ab253749788c02e0224f889d8dfcdf2d74f3b92e0989721b5121733255f9 |
 | 0x4a6946 | 664 | 2ef83bf35c58e5be070d4d5a6ab6049ade3db22e48fad28fcae445d1a1e74a6a |
 
-Files (sha256 at the time of the acceptance entries; the final commit may add this handoff only):
+Files (sha256 at the review-fix revision; the port, header, shim, direct test and acceptances are unchanged by it; the direct test C file hash is the current file, which differs from the earlier table entry):
 
 | file | sha256 |
 |---|---|
 | src/original_methods_fl24a.c | fe60a3e974d57042b10ebfeb8ab9b1f9a0c5b83b531a8bc02bc1557e4c1c7d75 |
 | src/original_methods_fl24a.h | 511f14614ee5c82653ceff79ccf87827796c6cb597363e98bb7f76602d2f74d1 |
-| tests/fl24a_direct_test.c | c1abdfed73bf24fa26a4a949a3ce2ff9eeb487d5d3ba2a95013890a192d5085e |
+| tests/fl24a_direct_test.c | c8bd68bb6b81ed022ea26f1f867c360f2e85283d3a84d7f350fad6a6025dc848 |
 | tests/test_fl24a_direct.py | d1216ee0c88d2093fbe70b4bd04156058cb55afddc23d14a600fff0622580f99 |
 | tests/fl24a_differential_shim.c | 2ffc2d9d78e9c6ed38c775781d4d0ba3f4f83a53c1debe8bb713f39993bc7e7b |
-| tests/test_fl24a_differential.py | abf7499aba569b05d197e9a511f7edef026e4929ff7179cc6f8db46f0d0d3238 |
-| tests/fl24a_fixtures.py | c698a89d115c2a275b2089f2f00def401833c4c4526ff0e950fd29efc00935ac |
-| tests/fl24a_original_oracle.py | 174ba4e49b921cbf93172348082ba724ed5f617936f5db2b2cc064856d6cdaa6 |
-| tests/fl24a_mutation_check.py | e6d2be31b43cf8ba6c507e27a486ac012e977ae751a8d563223d43e4f0138f26 |
+| tests/test_fl24a_differential.py | 3983c8813baba72a6954efa3957ab7888eb684948e336150f4364adb41d99594 |
+| tests/fl24a_fixtures.py | f614852906a74b90409aa7bdd634974621186ed8b54049a66310ae32bb92593d |
+| tests/fl24a_original_oracle.py | 57c8a7960398c20d5b7cc683dd12d022c84ba0e5d5411ce1c877e25f9e5a56c9 |
+| tests/fl24a_mutation_check.py | 683926d1b2d0414c2a2d144de5a7e6b13fbeb4f907c665709769fd2ef9035a85 |
 | tasks/fl24a-acceptances.json | 0a24a29d4b483f25f710a4d0ebc5227638989a4235c74c2c397749d59af7e2ca |
 
 ## Deliberate divergences (native rejections of unsafe original behaviour)

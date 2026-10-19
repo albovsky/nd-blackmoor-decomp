@@ -4,11 +4,18 @@
 Mechanical mutants of src/original_methods_fl24a.c, one at a time, each applied to a copy in a scratch directory:
   literal   a hexadecimal literal (an offset, a selector, a table address, a constant) is raised by one
   compare   `==` and `!=` swapped in a condition
+  boundary  one relational operator of an if / for / while condition moved across its boundary (`<` <-> `<=`, `>` <-> `>=`)
   guard     one `... return;` guard line deleted
   width     rd16 <-> rd32 and rds16 <-> rd16 (a width or signedness slip)
 A mutant is detected when the direct test binary fails to build or fails; if the direct test passes, the differential test of the function
-that contains the mutated line is run against the original bytes (the shim and port are rebuilt from the mutated copy). Prints the counts
+that contains the mutated line is run against the original bytes (the shim and port are rebuilt from the mutated copy; the run is in a
+child process, so that a mutant that crashes the shim counts as detected). Prints the counts
 and every survivor (an equivalent mutant is expected only where the changed value cannot reach an observable effect).
+
+Known gap: the mutants are single textual edits of the port, one operator or literal at a time. They do not model a missing statement other
+than a one-line `if (...) return;` guard, a reordering of effects, a loop bound written as an expression, or two edits together. The
+mutants behind the review fixes of tests/fl24a_fixtures.py (deleted multi-line guards, `if (1)`, a dropped `||` operand, `== 3` -> `>= 3`)
+were applied by hand and are listed in tasks/fl24a-handoff.md.
 
 Run from outputs/blackmoor-decomp:  python3 tests/fl24a_mutation_check.py [--limit N] [--no-differential]
 """
@@ -19,19 +26,31 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import unittest
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import test_fl24a_direct as direct
-import test_fl_differential as base
 
 SRC = HERE.parent / 'src'
 FUNCS = {'4d3bef': 'test_4d3bef_reset_flags', '44edfb': 'test_44edfb_click_2785_2787', '4cb3ab': 'test_4cb3ab_store_flag',
          '44eab1': 'test_44eab1_hit_test', '46ebff': 'test_46ebff_click_27c2_27c3', '4571e1': 'test_4571e1_hit_test',
          '47b4aa': 'test_47b4aa_hit_test', '4a6574': 'test_4a6574_hit_test', '465c99': 'test_465c99_hit_test',
          '482724': 'test_482724_click_27b5_27b6', '470ffe': 'test_470ffe_hit_test', '4a6946': 'test_4a6946_click_276f_2770'}
+
+
+# the differential test of one function against the mutated copy in sys.argv[1], in a child process (exit 0 = passed)
+DIFFERENTIAL_CHILD = """
+import sys, unittest
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tests')
+import test_fl_differential as base
+import test_fl24a_differential as diff
+base.SRC = Path(sys.argv[1])
+result = unittest.TextTestRunner(stream=open('/dev/null', 'w')).run(unittest.TestSuite([diff.Fl24aDifferential(sys.argv[2])]))
+sys.exit(0 if result.wasSuccessful() else 1)
+"""
 
 
 def mutants(lines):
@@ -50,6 +69,10 @@ def mutants(lines):
             out.append((i, 'literal %s -> %s' % (m.group(), new), line[:m.start()] + new + line[m.end():]))
         if re.search(r'\bif \(.*(==|!=)', code):
             out.append((i, 'compare swapped', re.sub(r'(==|!=)', lambda m: '!=' if m.group() == '==' else '==', code, count=1) + line[len(code):]))
+        if re.match(r'\s*(if|for|while) \(', code):
+            for m in re.finditer(r'(?<![-<>])(<=|>=|<|>)(?![<>])', code):
+                new = {'<': '<=', '<=': '<', '>': '>=', '>=': '>'}[m.group()]
+                out.append((i, 'boundary %s -> %s' % (m.group(), new), line[:m.start()] + new + line[m.end():]))
         if re.match(r'\s*if \(.*\) return;\s*$', code):
             out.append((i, 'guard deleted', '\n'))
         for a, b in (('rds16(', 'rd16('), ('rd16(', 'rd32('), ('rd32(', 'rd16(')):
@@ -104,11 +127,13 @@ def main():
                 survivors.append((i + 1, what, 'direct only'))
                 continue
             key = function_of(lines, i)
-            import test_fl24a_differential as diff
-            base.SRC = tmp
-            suite = unittest.TestSuite([diff.Fl24aDifferential(FUNCS[key])])
-            result = unittest.TextTestRunner(stream=open('/dev/null', 'w')).run(suite)
-            if result.wasSuccessful():
+            try:
+                child = subprocess.run([sys.executable, '-c', DIFFERENTIAL_CHILD, str(tmp), FUNCS[key]], capture_output=True, text=True,
+                                       timeout=600, cwd=str(HERE.parent))
+            except subprocess.TimeoutExpired:
+                caught_diff += 1
+                continue
+            if child.returncode == 0:
                 survivors.append((i + 1, what, '0x' + key))
             else:
                 caught_diff += 1
