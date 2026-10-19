@@ -2,7 +2,7 @@
  {
   "va": "0x423fbb",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-26b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl26b.c",
@@ -41,7 +41,7 @@
  {
   "va": "0x4eb107",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-26b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl26b.c",
@@ -80,7 +80,7 @@
  {
   "va": "0x42406d",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-26b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl26b.c",
@@ -113,7 +113,7 @@
  {
   "va": "0x424201",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-26b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl26b.c",
@@ -152,7 +152,7 @@
  {
   "va": "0x42ea87",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-26b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl26b.c",
@@ -185,7 +185,7 @@
  {
   "va": "0x4eb184",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-26b implementer; no independent review yet",
+  "reviewer": "Claude Sonnet FL-26b implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl26b.c",
@@ -213,7 +213,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m4eb184_use_feedback. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways. Strings that would overrun the original's local buffers are rejected natively (documented in tasks/fl26b-handoff.md). See tasks/fl26b-handoff.md.",
+  "note": "1:1 with m4eb184_*: models the real frame (60-byte buffer to the live flag); strings of 0x7c+ or struct 0x38+ chars are rejected natively. Direct, differential 329/329, oracle. See tasks/fl26b-handoff.md.",
   "blockers_reviewed": [
    {
     "id": "RT-6:8b3f2cfb116d111c",

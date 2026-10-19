@@ -11,11 +11,11 @@
   "tests": [
    {
     "path": "tests/fl26c_direct_test.c",
-    "test_id": "test_kind_1"
+    "test_id": "test_sweep"
    },
    {
     "path": "tests/test_fl26c_direct.py",
-    "test_id": "Fl26cDirect.test_kind_1"
+    "test_id": "Fl26cDirect.test_kind_0_unused_and_out_of_range"
    },
    {
     "path": "tests/test_fl26c_differential.py",
@@ -30,7 +30,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m424346_node_condition. The oracle window is the 1,782 code bytes (451 instructions, 451/451 executed, 116/116 conditional-jump directions taken, no allowlisted edge) plus the 108 bytes behind them (the 23-entry jump table 0x424a3c on the kind and the 4-entry jump table 0x424a98 on b of kind 6), which are data, not code. Every table entry is reached: the kinds 0 to 6, 9, 0xb to 0x11, 0x14 to 0x16 take their arms, the kinds 7, 8, 0xa, 0x12, 0x13 and every kind above 0x16 or negative take the shared default arm, and b = 0 to 3 of kind 6 take their four arms plus the out-of-range arm. The direct test (16 cases) is in tests/fl26c_direct_test.c; tests/test_fl26c_direct.py has one unittest per case (Fl26cDirect.test_kind_0_unused_and_out_of_range, test_kind_1, test_kind_0xb, test_table_kinds_2_and_3, test_kind_0x11, test_word_kinds_0xf_0xc_0x10, test_kind_9, test_kinds_4_and_5, test_record_kinds_0xd_0xe_0x16, test_kind_6, test_kind_0x14, test_kind_0x15, test_partial_reads_reject, test_kind_0x14_holes, test_null_host_rejects, test_sweep_bounded). See tasks/fl26c-handoff.md. function-evidence.json lists no blocker and no divergence for 0x424346, so there is no blockers_reviewed entry.",
+  "note": "1:1 with m424346_node_condition: every kind arm and both jump tables, 451/451 instructions, 116/116 jump directions, 2292 scenarios. Native rejections listed in tasks/fl26c-handoff.md.",
   "blockers_reviewed": []
  }
 ]
