@@ -120,8 +120,9 @@ int32_t m44c479_wait_state(uint32_t state, const Fl27aWorld *world, const Fl18Ho
     uint32_t limit = world->native_spin_limit != 0 ? world->native_spin_limit : FL27A_SPIN_LIMIT;
     uint32_t spins = 0;
     while (rd32_volatile(p) == 1) {
+        if (spins >= limit) return FL27A_REJECTED;
         call1(host, 0x52a2b0, 0, 1);
-        if (++spins >= limit) return FL27A_REJECTED;
+        spins++;
     }
     if (rd32_volatile(p) == 2) return 2;
     wr32(p, 0, 1);
@@ -362,6 +363,7 @@ int32_t m4c0c7d_movie_thread(uint32_t param, Fl27aWorld *world, const Fl18Host *
             call2(host, 0x51ec84, 0, 0, 1);
             return 0;
         }
+        if (passes >= limit) return FL27A_REJECTED;
         obj = mem_at(host, 0x637fd7);
         if ((int16_t)rd16(obj, 0x1cc) == 0) {
             int32_t state = m44c479_wait_state(0x637fd3, world, host);
@@ -377,7 +379,7 @@ int32_t m4c0c7d_movie_thread(uint32_t param, Fl27aWorld *world, const Fl18Host *
             }
         }
         call1(host, 0x52a2b0, 0, 1);
-        if (++passes >= limit) return FL27A_REJECTED;
+        passes++;
     }
 }
 

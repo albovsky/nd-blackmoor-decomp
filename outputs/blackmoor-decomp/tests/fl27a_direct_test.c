@@ -367,6 +367,11 @@ static void test_m44c479_wait_state(void)
     fx.w.native_spin_limit = 2;
     script_poke(0x52a2b0, 0, fx.c + 1, 4, 2);
     CK(m44c479_wait_state(STATE_VA, &fx.w, &fx.host) == 2 && L.n == 1);
+    setup();                                                            /* the wait that ends during the limit-th Sleep is honoured, not rejected */
+    set32(fx.c, 1, 1);
+    fx.w.native_spin_limit = 1;
+    script_poke(0x52a2b0, 0, fx.c + 1, 4, 2);
+    CK(m44c479_wait_state(STATE_VA, &fx.w, &fx.host) == 2 && L.n == 1);
 }
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
