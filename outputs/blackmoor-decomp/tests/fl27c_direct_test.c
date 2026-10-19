@@ -1066,8 +1066,8 @@ static void test_m44c4c1_open_video(void)
     CKN(3);
     expect_end();
     /* every kind other than 1 is the AVF path (the whole dword is compared) */
-    for (k = 0; k < 6; k++) {
-        static const uint32_t kinds[] = {0, 2, 3, 0x100, 0x80000000u, 0xffffffffu};
+    for (k = 0; k < 9; k++) {
+        static const uint32_t kinds[] = {0, 2, 3, 0x100, 0x80000000u, 0xffffffffu, 0x10001u, 0x80000001u, 0xffff0001u};
         video_setup(kinds[k], 0, "a", "b");
         m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
         CKN(4);

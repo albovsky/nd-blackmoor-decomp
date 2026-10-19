@@ -474,7 +474,7 @@ RATES = [(30, 1), (0, 5), (5, 0), (0, 0), (1, 1), (0xffffffff, 1), (1, 0xfffffff
 
 
 def profiles_44c4c1():
-    profiles = [('avf', k, r) for k in (0, 2, 3, 0x100, 0x80000000, 0xffffffff) for r in (0, 1)]
+    profiles = [('avf', k, r) for k in (0, 2, 3, 0x100, 0x80000000, 0xffffffff, 0x10001, 0x80000001, 0xffff0001) for r in (0, 1)]
     profiles += [('nohandle', d, r) for d in DBG_VALUES for r in (0, 1)]
     profiles += [('noinfo', d, r) for d in (0, 1, 0x8000) for r in (0, 1)]
     profiles += [('rewrite', d, 1) for d in (0, 1)]
