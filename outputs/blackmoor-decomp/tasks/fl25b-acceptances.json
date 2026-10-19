@@ -97,5 +97,38 @@
   },
   "parts_accounted": [],
   "note": "1:1 with m4a3f40_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 720 fixtures, every code instruction reached, both directions of every conditional jump. See tasks/fl25b-handoff.md."
+ },
+ {
+  "va": "0x4588ad",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25b implementer; independent slice-reviewer pass not done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25b.c",
+   "symbol": "m4588ad_click_279f_27a5"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25b_direct_test.c",
+    "test_id": "test_m4588ad_click_279f_27a5"
+   },
+   {
+    "path": "tests/test_fl25b_direct.py",
+    "test_id": "Fl25bDirect.test_4588ad_click_279f_27a5"
+   },
+   {
+    "path": "tests/test_fl25b_differential.py",
+    "test_id": "Fl25bDifferential.test_4588ad_click_279f_27a5"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25b_original_oracle.py",
+   "window": [
+    "0x4588ad",
+    "0x458c32"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4588ad_click_279f_27a5 (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 960 fixtures, every code instruction reached, both directions of every conditional jump. See tasks/fl25b-handoff.md."
  }
 ]

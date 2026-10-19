@@ -160,13 +160,18 @@ SPECS = {
     '455180': dict(id=1, va=0x455180, size=827, selfsz=0x180, ret='eax', callee_pops=True, scen=640),
     '4cb058': dict(id=2, va=0x4cb058, size=851, selfsz=0x170, ret='eax', callee_pops=True, scen=720),
     '4a3f40': dict(id=3, va=0x4a3f40, size=896, selfsz=0x900, ret='eax', callee_pops=True, scen=720),
+    '4588ad': dict(id=4, va=0x4588ad, size=901, selfsz=0x100, idx=0x26, gates=[('nz32', 0x98), ('z8', 0x9d), ('in32', 0x20, (0, 5))],
+                   sels=[0x279f, 0x27a4, 0x27a5], callees=[0x448d11, 0x458c32, 0x4fb77a, 0x4fb2e3], tick=True, post=lambda c: post_4588ad(c), scen=960,
+                   probes=[(0, 0x100)]),
     # SPECS-END
 }
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
 STUB_SHAPE = {0x45504b: dict(args=0, this=True, cleanup=0), 0x4554bb: dict(args=2, this=True, cleanup=8),
-              0x4ea06c: dict(args=1, this=True, cleanup=4), 0x4a3beb: dict(args=0, this=True, cleanup=0), 0x4a42c0: dict(args=3, this=True, cleanup=12)}
-WORD_ARGS = {0x4554bb: (1,), 0x4ea06c: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
+              0x4ea06c: dict(args=1, this=True, cleanup=4), 0x4a3beb: dict(args=0, this=True, cleanup=0), 0x4a42c0: dict(args=3, this=True, cleanup=12),
+              0x448d11: dict(args=4, this=True, cleanup=16), 0x458c32: dict(args=0, this=True, cleanup=0), 0x4fb77a: dict(args=1, this=True, cleanup=4),
+              0x4fb2e3: dict(args=1, this=True, cleanup=4)}
+WORD_ARGS = {0x4554bb: (1,), 0x4ea06c: (0,), 0x4fb2e3: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
 
 def _set_gate(d, gate, fail, rng):
@@ -186,6 +191,8 @@ def _set_gate(d, gate, fail, rng):
         struct.pack_into('<H', d, off, rng.choice([1, 0x8000, 0xffff, 0x100]) if fail else 0)
     elif kind == 'eq32':
         struct.pack_into('<I', d, off, rng.choice([0, 2, 0x101, 0x10001, 0xffffffff, 0x80000001, 0x100]) if fail else gate[2])
+    elif kind == 'in32':
+        struct.pack_into('<I', d, off, rng.choice([1, 2, 3, 4, 6, 0x100, 0x10005, 0xffffffff, 0x80000000]) if fail else rng.choice(gate[2]))
     elif kind == 'ne32':
         struct.pack_into('<I', d, off, gate[2] if fail else rng.choice([0, 5, 0x10a, 0xb, 0xffffffff, 0x1000a, 0x8000000a]))
 
@@ -590,6 +597,32 @@ def build_4a3f40(sp, rng, n):
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '4a3f40', rng, areas=areas, stubs=stubs, pointers={'records_5bb5e5': ('records', 0x8d)},
                        stack_args=[junk(x), junk(y), od.region_va(5)], ptr_args={2: 'block'}, profile=('x', prof))
+
+
+def post_4588ad(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    mode = v % 4              # (event 0x27a4: 0 = [+0x20] == 5, 1 = the count branch, 2 = [+0xb4] != 0, 3 = the count <= 0)
+    nine = ((v // 4) % 11) - 1
+    if c.failing != 2:
+        struct.pack_into('<I', d, 0x20, 5 if (c.sel == 0x27a4 and mode == 0) else 0)
+    b4 = (mode == 2) if c.sel == 0x27a4 else (v % 2 == 1)
+    struct.pack_into('<I', d, 0xb4, rng.choice([1, 0x100, 0x80000000, 0xffffffff]) if b4 else 0)
+    cnt = {0: rng.choice([-32, -3, -1, 0, 1, 7, 25]), 1: rng.choice([1, 2, 7, 25]), 2: rng.choice([1, 2, 25, 7, 0, -1]),
+           3: rng.choice([0, -1, -3, -32])}[mode]
+    c.g['value_5a4c08'] = cnt & 0xffff
+    c.g['value_5d03b3'] = rng.randrange(1 << 32)
+    struct.pack_into('<H', d, 0xae, rng.choice([0, 1, 2, 5, 15, 20]))
+    struct.pack_into('<h', obj, 0x21, rng.choice([-1, 0, 1, 5, 0x7fff, -0x8000]))
+    struct.pack_into('<H', obj, 0x57c, rng.randrange(0x10000))
+    struct.pack_into('<H', obj, 0x54b, rng.randrange(0x10000))
+    c.areas.append(Area('t5a4bd4', 0x5a4bd4 - 64, bytearray(rng.randbytes(64 + 0x34))))
+    c.pointers['words_5a4bd4'] = ('t5a4bd4', 64)
+    a27a4 = c.sel == 0x27a4
+    a27a5 = c.sel == 0x27a5
+    nine_const(c, 0x54a5f8, 0x55b, obj, a27a4 and mode == 1, nine=nine)
+    nine_const(c, 0x54a604, 0x4f9, obj, a27a4 and mode in (2, 3), nine=nine)
+    nine_const(c, 0x54a610, 0x4f9, obj, a27a5 and b4, nine=nine)
+    nine_const(c, 0x54a61c, 0x52a, obj, a27a5 and not b4, nine=nine)
 
 
 # BUILDERS-END

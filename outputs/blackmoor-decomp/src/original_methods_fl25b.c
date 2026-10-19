@@ -329,3 +329,93 @@ int32_t m4a3f40_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *blo
     return 0;
 }
 
+/* ---- 0x4588ad ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4588ad, thiscall, plain `ret`. `ro` is the object of the record of the word [+0x26] (its address is `ro_addr`). Guards, in order: dword
+ * [+0x98] != 0, byte [+0x9d] == 0, dword [+0x20] is 0 or 5, the record state == 1; then the selector 0x5c39e5. 0x279f: byte [+0x9c] = 1 and the
+ * record state 2. 0x27a4 with [+0x20] == 5: [+0x20] = 0, 0x448d11 (this 0x619a05; the dword 0x5d03b3, 0x54a5f0, -1, 0), [+0x94] = 1, the
+ * word table at 0x5a4bd4 gets 0xffff at the signed word index 0x5a4c08, that count is decremented (a word), the words [+0x3c] and [+0x3a]
+ * = 0xffff. 0x27a4 otherwise with the dword [+0xb4] == 0 and the signed word 0x5a4c08 > 0: unless the nine bytes ro[+0x55b] equal the
+ * constant at 0x54a5f8 (0x4fb77a(this 0x5c3a67, ro_addr + 0x55b) then 0x4fb2e3(the word ro[+0x57c])), the word [+0x3a] = the table word at
+ * that count, [+0x3c] = the count, the count is decremented, [+0x20] = 2, [+0xbc] = GetTickCount() + 0x28, [+0x2e] = 0. 0x27a4 else:
+ * unless the nine bytes ro[+0x4f9] equal the constant at 0x54a604 the 0x31 bytes there are copied to [+0xc0] and 0x458c32 runs (this = self);
+ * [+0x2e] = 1, [+0x3a] = the word [+0xae], the words [+0xb0] and [+0xb2] = the differences (low words) of the dwords of ro at 16 * [+0x3a]
+ * + 0x2d / 0x25 and + 0x31 / 0x29. 0x27a5: [+0x2e] = 0, [+0x32] = 1; with [+0xb4] != 0 the same copy-and-call against the constant at 0x54a610
+ * and [+0x3a] = 0xffff; else unless ro[+0x52a] equals the constant at 0x54a61c (0x4fb77a(ro_addr + 0x52a) then 0x4fb2e3(the word ro[+0x54b])),
+ * the word [+0x3c] = the signed word ro[+0x21] - 1, [+0x20] = 1, [+0xbc] = GetTickCount() + 0x28. The table index and the record words are not
+ * bounds-checked (as in the original). A callee that changes self is not exercised. */
+void m4588ad_click_279f_27a5(uint8_t *self, Fl25bWorld *world, const Fl18Host *host)
+{
+    uint32_t ro_addr = record_object_address(world, self, 0x26);
+    const uint8_t *ro;
+    if (rd32(self, 0x98) == 0) return;
+    if (self[0x9d] != 0) return;
+    if (rd32(self, 0x20) != 0 && rd32(self, 0x20) != 5) return;
+    if (!record_state_is_1(world, self, 0x26)) return;
+    ro = object_at(host, ro_addr);
+    if (world->value_5c39e5 == 0x279f) {
+        self[0x9c] = 1;
+        set_record_state_2(world, self, 0x26);
+        return;
+    }
+    if (world->value_5c39e5 == 0x27a4) {
+        if (rd32(self, 0x20) == 5) {
+            uintptr_t args[4];
+            wr32(self, 0x20, 0);
+            args[0] = world->value_5d03b3;
+            args[1] = 0x54a5f0;
+            args[2] = 0xffffffffu;
+            args[3] = 0;
+            if (host->call != NULL) host->call(host->context, 0x448d11, 0x619a05, args, 4);
+            wr32(self, 0x94, 1);
+            wr16(world->words_5a4bd4, (ptrdiff_t)world->value_5a4c08 * 2, 0xffff);
+            world->value_5a4c08 = (int16_t)(world->value_5a4c08 - 1);
+            wr16(self, 0x3c, 0xffff);
+            wr16(self, 0x3a, 0xffff);
+        } else if (rd32(self, 0xb4) == 0 && world->value_5a4c08 > 0) {
+            if (!nine_bytes_equal(ro + 0x55b, world->bytes_54a5f8)) {
+                call1(host, 0x4fb77a, 0x5c3a67, ro_addr + 0x55b);
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x57c));
+            }
+            wr16(self, 0x3a, rd16(world->words_5a4bd4, (ptrdiff_t)world->value_5a4c08 * 2));
+            wr16(self, 0x3c, (uint16_t)world->value_5a4c08);
+            world->value_5a4c08 = (int16_t)(world->value_5a4c08 - 1);
+            wr32(self, 0x20, 2);
+            wr32(self, 0xbc, host->tick(host->context) + 0x28);
+            wr32(self, 0x2e, 0);
+        } else {
+            ptrdiff_t i;
+            if (!nine_bytes_equal(ro + 0x4f9, world->bytes_54a604)) {
+                memcpy(self + 0xc0, ro + 0x4f9, 0x31);
+                call0(host, 0x458c32, (uintptr_t)self);
+            }
+            wr32(self, 0x2e, 1);
+            wr16(self, 0x3a, rd16(self, 0xae));
+            i = rds16(self, 0x3a) * 16;
+            wr16(self, 0xb0, (uint16_t)(rd32(ro, i + 0x2d) - rd32(ro, i + 0x25)));
+            i = rds16(self, 0x3a) * 16;
+            wr16(self, 0xb2, (uint16_t)(rd32(ro, i + 0x31) - rd32(ro, i + 0x29)));
+        }
+        return;
+    }
+    if (world->value_5c39e5 == 0x27a5) {
+        wr32(self, 0x2e, 0);
+        wr32(self, 0x32, 1);
+        if (rd32(self, 0xb4) != 0) {
+            if (!nine_bytes_equal(ro + 0x4f9, world->bytes_54a610)) {
+                memcpy(self + 0xc0, ro + 0x4f9, 0x31);
+                call0(host, 0x458c32, (uintptr_t)self);
+            }
+            wr16(self, 0x3a, 0xffff);
+        } else {
+            if (!nine_bytes_equal(ro + 0x52a, world->bytes_54a61c)) {
+                call1(host, 0x4fb77a, 0x5c3a67, ro_addr + 0x52a);
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x54b));
+            }
+            wr16(self, 0x3c, (uint16_t)(rds16(ro, 0x21) - 1));
+            wr32(self, 0x20, 1);
+            wr32(self, 0xbc, host->tick(host->context) + 0x28);
+        }
+    }
+}
+

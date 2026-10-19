@@ -14,11 +14,12 @@
 
 static int g_failed;
 static char g_msg[256];
+static int g_phase, g_phase2;
 #define CK(cond)                                                               \
     do {                                                                       \
         if (!(cond) && !g_failed) {                                            \
             g_failed = 1;                                                      \
-            snprintf(g_msg, sizeof g_msg, "line %d: %.200s", __LINE__, #cond); \
+            snprintf(g_msg, sizeof g_msg, "line %d: %.200s [phase %d.%d]", __LINE__, #cond, g_phase, g_phase2); \
         }                                                                      \
     } while (0)
 
@@ -143,7 +144,12 @@ static void begin(void)
 #define X8(o, v) (xs[(o)] = (v))
 static void check_mem(void)
 {
-    CK(memcmp(fx.self, xs, BIG) == 0);
+    if (memcmp(fx.self, xs, BIG) != 0 && !g_failed) {
+        size_t o = 0;
+        while (fx.self[o] == xs[o]) o++;
+        g_failed = 1;
+        snprintf(g_msg, sizeof g_msg, "self differs at +0x%zx (got %02x, want %02x) [phase %d.%d]", o, fx.self[o], xs[o], g_phase, g_phase2);
+    }
     CK(memcmp(fx.tab, xt, TAB_SZ) == 0);
     CK(memcmp(fx.obj, xo, sizeof xo) == 0);
 }
@@ -906,6 +912,282 @@ static int test_m4a3f40_hit_test(void)
     return g_failed;
 }
 
+/* 0x4588ad: guards dword [+0x98] != 0, byte [+0x9d] == 0, dword [+0x20] in {0, 5}, record state (word [+0x26]) == 1; then the events 0x279f,
+ * 0x27a4, 0x27a5. The object of the record is OBJ_VA; the word stack at 0x5a4bd4 is tab5a + 64 (the count 0x5a4c08 indexes it, signed). The nine-byte
+ * constants are consts[0] (0x54a5f8, compared with ro+0x55b), consts[1] (0x54a604, ro+0x4f9), consts[2] (0x54a610, ro+0x4f9) and consts[3] (0x54a61c, ro+0x52a). */
+static uint8_t tab5a[64 + 0x34], xtab5a[64 + 0x34];
+static void setup_4588ad(uint32_t sel, int idx)
+{
+    int i;
+    base(sel, idx, 0x26);
+    set32(fx.self, 0x98, 0x01000000u);
+    fx.self[0x9d] = 0;
+    set32(fx.self, 0x20, 0);
+    set32(fx.self, 0xb4, 0);
+    set16(fx.self, 0xae, 3);
+    memset(tab5a, 0x77, sizeof tab5a);
+    for (i = 0; i < 26; i++) set16(tab5a, 64 + 2 * (size_t)i, (uint16_t)(0x1000 + i));
+    fx.w.words_5a4bd4 = tab5a + 64;
+    fx.w.value_5a4c08 = 3;
+    fx.w.value_5d03b3 = 0xcafe0001u;
+    memcpy(consts[0], "ABCDEFGHI", 9);
+    memcpy(consts[1], "JKLMNOPQR", 9);
+    memcpy(consts[2], "STUVWXYZ0", 9);
+    memcpy(consts[3], "123456789", 9);
+    fx.w.bytes_54a5f8 = consts[0];
+    fx.w.bytes_54a604 = consts[1];
+    fx.w.bytes_54a610 = consts[2];
+    fx.w.bytes_54a61c = consts[3];
+    memcpy(fx.obj + 0x55b, consts[0], 9);
+    memcpy(fx.obj + 0x4f9, consts[1], 9);
+    memcpy(fx.obj + 0x52a, consts[3], 9);
+    set16(fx.obj, 0x57c, 0x4321);
+    set16(fx.obj, 0x54b, 0x8765);
+    set16(fx.obj, 0x21, 5);
+    set32(fx.obj, 0x5d, 1000);     /* i = 3: dwords at 16 * 3 + 0x2d, 0x25, 0x31, 0x29 */
+    set32(fx.obj, 0x55, 300);
+    set32(fx.obj, 0x61, 5);
+    set32(fx.obj, 0x59, 20);
+    g_tick = 1000;
+}
+static void begin_4588ad(void)
+{
+    begin();
+    memcpy(xtab5a, tab5a, sizeof tab5a);
+}
+static void check_4588ad(void)
+{
+    check_mem();
+    CK(memcmp(tab5a, xtab5a, sizeof tab5a) == 0);
+}
+/* the two calls of the announce: 0x4fb77a(this 0x5c3a67, the address) and 0x4fb2e3(this 0x5c3a67, a word) starting at call k */
+static void ck_announce_4588ad(int k, uint32_t address, uint32_t word)
+{
+    check_call(k, 0x4fb77a, 0x5c3a67, 1);
+    check_arg(k, 0, address, 0xffffffffu);
+    check_call(k + 1, 0x4fb2e3, 0x5c3a67, 1);
+    check_arg(k + 1, 0, word, 0xffffu);
+}
+static void ck_tick_4588ad(int k) { CK(k < L.n && L.c[k].callee == 0x52a23c); }
+/* the copy of 0x31 bytes ro+0x4f9 to [+0xc0] and the call 0x458c32 at call k (the snapshot at the call shows the copy) */
+static void ck_copy_4588ad(int k)
+{
+    memcpy(xs + 0xc0, fx.obj + 0x4f9, 0x31);
+    check_call(k, 0x458c32, (uintptr_t)fx.self, 0);
+    CK(k < L.n && memcmp(L.c[k].snap_self + 0xc0, fx.obj + 0x4f9, 0x31) == 0);
+    CK(k < L.n && get32(L.c[k].snap_self, 0x2e) == 0xA5A5A5A5u);
+}
+
+static int test_m4588ad_click_279f_27a5(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const int counts[7] = {3, 0, -1, 25, -32, 1, 7};
+    int ii, k, v, c;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        size_t st = (size_t)(idx + 1) * REC + 0x4d;
+        g_phase = 1;
+        /* the guard matrix with the event 0x27a4 and [+0x20] == 5 (which would call and store a lot) */
+        for (v = 0; v < 20; v++) {
+            static const uint32_t bad20[7] = {1, 2, 4, 6, 0x100, 0x10005, 0xffffffffu};
+            static const uint32_t badst[6] = {0, 2, 3, 0xffffffffu, 0x101, 0x10001};
+            setup_4588ad(0x27a4, idx);
+            set32(fx.self, 0x20, 5);
+            if (v == 0) set32(fx.self, 0x98, 0);
+            else if (v < 3) fx.self[0x9d] = v == 1 ? 1 : 0x80;
+            else if (v < 10) set32(fx.self, 0x20, bad20[v - 3]);
+            else if (v < 16) set32(fx.tab, st, badst[v - 10]);
+            else set32(fx.self, 0x20, v == 16 ? 0 : 5);          /* (v 16 and 17 pass: the matrix below is for the failing ones only) */
+            if (v >= 16) continue;
+            begin_4588ad();
+            m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+            check_4588ad();
+            CK(L.n == 0 && fx.w.value_5a4c08 == 3);
+        }
+        g_phase = 2;
+        /* 0x279f: [+0x9c] = 1 and the record state 2 (with [+0x20] == 0 or 5; the neighbours of the byte [+0x9d] are non-zero) */
+        for (v = 0; v < 2; v++) {
+            setup_4588ad(0x279f, idx);
+            set32(fx.self, 0x20, v ? 5 : 0);
+            begin_4588ad();
+            X8(0x9c, 1);
+            set32(xt, st, 2);
+            m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+            check_4588ad();
+            CK(L.n == 0);
+        }
+        g_phase = 3;
+        /* an unrelated event changes nothing */
+        setup_4588ad(0x27a6, idx);
+        begin_4588ad();
+        m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+        check_4588ad();
+        CK(L.n == 0);
+        g_phase = 4;
+        /* 0x27a4, [+0x20] == 5: the call 0x448d11 (this 0x619a05; the dword 0x5d03b3, 0x54a5f0, -1, 0), the stack entry at the count gets 0xffff */
+        for (c = 0; c < 5; c++) {
+            setup_4588ad(0x27a4, idx);
+            set32(fx.self, 0x20, 5);
+            fx.w.value_5a4c08 = (int16_t)counts[c];
+            begin_4588ad();
+            X32(0x20, 0);
+            X32(0x94, 1);
+            set16(xtab5a, (size_t)(64 + 2 * counts[c]), 0xffff);
+            X16(0x3c, 0xffff);
+            X16(0x3a, 0xffff);
+            m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+            check_4588ad();
+            CK(fx.w.value_5a4c08 == (int16_t)(counts[c] - 1));
+            CK(L.n == 1);
+            check_call(0, 0x448d11, 0x619a05, 4);
+            check_arg(0, 0, 0xcafe0001u, 0xffffffffu);
+            check_arg(0, 1, 0x54a5f0, 0xffffffffu);
+            check_arg(0, 2, 0xffffffffu, 0xffffffffu);
+            check_arg(0, 3, 0, 0xffffffffu);
+            CK(get32(L.c[0].snap_self, 0x20) == 0 && get32(L.c[0].snap_self, 0x94) == 0xA5A5A5A5u && get16x(L.c[0].snap_self, 0x3a) == 0xA5A5u);
+        }
+        g_phase = 5;
+        /* 0x27a4, [+0x20] == 0, [+0xb4] == 0, count > 0: the nine bytes ro+0x55b against consts[0] (every byte position, and the tenth byte not compared) */
+        for (c = 5; c < 7; c++) {
+            for (k = -1; k < 10; k++) {
+                setup_4588ad(0x27a4, idx);
+                fx.w.value_5a4c08 = (int16_t)counts[c];
+                if (k >= 0) fx.obj[0x55b + k] ^= 0x40;
+                begin_4588ad();
+                X16(0x3a, get16x(tab5a, (size_t)(64 + 2 * counts[c])));
+                X16(0x3c, (uint16_t)counts[c]);
+                X32(0x20, 2);
+                X32(0xbc, 1000 + 0x28);
+                X32(0x2e, 0);
+                m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+                check_4588ad();
+                CK(fx.w.value_5a4c08 == counts[c] - 1);
+                if (k >= 0 && k < 9) {
+                    CK(L.n == 3);
+                    ck_announce_4588ad(0, OBJ_VA + 0x55b, 0x4321);
+                    ck_tick_4588ad(2);
+                    CK(get32(L.c[0].snap_self, 0x20) == 0 && get16x(L.c[0].snap_self, 0x3a) == 0xA5A5u && get32(L.c[1].snap_self, 0xbc) == 0xA5A5A5A5u);
+                } else {
+                    CK(L.n == 1);
+                    ck_tick_4588ad(0);
+                }
+            }
+        }
+        g_phase = 6;
+        /* the tick wraps: 0xffffffff + 0x28 */
+        setup_4588ad(0x27a4, idx);
+        g_tick = 0xffffffffu;
+        begin_4588ad();
+        X16(0x3a, get16x(tab5a, 64 + 6));
+        X16(0x3c, 3);
+        X32(0x20, 2);
+        X32(0xbc, 0x27);
+        X32(0x2e, 0);
+        m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+        check_4588ad();
+        g_phase = 7;
+        /* 0x27a4 else branch: [+0xb4] != 0 (any bit) or the count <= 0: the nine bytes ro+0x4f9 against consts[1]; a difference copies 0x31 bytes to [+0xc0]
+         * and runs 0x458c32; [+0x2e] = 1, [+0x3a] = [+0xae], the words [+0xb0] and [+0xb2] = the low words of the differences at 16 * [+0xae] */
+        for (v = 0; v < 6; v++) {
+            static const uint32_t b4[6] = {0x100, 0x80000000u, 1, 0, 0, 0};
+            static const int cnt[6] = {3, 1, 25, 0, -1, -32};
+            static const uint16_t ae[6] = {3, 0, 7, 3, 7, 0};
+            for (k = -1; k < 10; k++) {
+                int i = ae[v];
+                setup_4588ad(0x27a4, idx);
+                fx.w.value_5a4c08 = (int16_t)cnt[v];
+                set32(fx.self, 0xb4, b4[v]);
+                set16(fx.self, 0xae, ae[v]);
+                set32(fx.obj, (size_t)(i * 16 + 0x2d), v == 2 ? 0x10005u : 1000u);
+                set32(fx.obj, (size_t)(i * 16 + 0x25), 300);
+                set32(fx.obj, (size_t)(i * 16 + 0x31), 5);
+                set32(fx.obj, (size_t)(i * 16 + 0x29), 20);
+                if (k >= 0) fx.obj[0x4f9 + k] ^= 0x80;
+                begin_4588ad();
+                X32(0x2e, 1);
+                X16(0x3a, ae[v]);
+                X16(0xb0, (uint16_t)((v == 2 ? 0x10005u : 1000u) - 300u));
+                X16(0xb2, (uint16_t)(5u - 20u));
+                if (k >= 0 && k < 9) {
+                    memcpy(xs + 0xc0, fx.obj + 0x4f9, 0x31);
+                    X16(0xae, ae[v]);
+                }
+                m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+                memcpy(xs + 0xc0, k >= 0 && k < 9 ? fx.obj + 0x4f9 : xs + 0xc0, k >= 0 && k < 9 ? 0x31 : 0);
+                check_4588ad();
+                CK(fx.w.value_5a4c08 == cnt[v]);
+                if (k >= 0 && k < 9) {
+                    CK(L.n == 1);
+                    check_call(0, 0x458c32, (uintptr_t)fx.self, 0);
+                    CK(memcmp(L.c[0].snap_self + 0xc0, fx.obj + 0x4f9, 0x31) == 0 && get32(L.c[0].snap_self, 0x2e) == 0xA5A5A5A5u);
+                } else {
+                    CK(L.n == 0);
+                }
+            }
+        }
+        g_phase = 8;
+        /* 0x27a5: [+0x2e] = 0, [+0x32] = 1; [+0xb4] != 0: the copy-and-call against consts[2], then [+0x3a] = 0xffff */
+        for (v = 0; v < 2; v++) {
+            for (k = -1; k < 10; k++) {
+                setup_4588ad(0x27a5, idx);
+                set32(fx.self, 0xb4, v ? 0x01000000u : 0x100u);
+                if (k >= 0) fx.obj[0x4f9 + k] ^= 0x01;
+                memcpy(fx.obj + 0x4f9, k < 0 ? consts[2] : fx.obj + 0x4f9, k < 0 ? 9 : 0);
+                if (k >= 0) {
+                    memcpy(fx.obj + 0x4f9, consts[2], 9);
+                    fx.obj[0x4f9 + k] ^= 0x01;
+                }
+                begin_4588ad();
+                X32(0x2e, 0);
+                X32(0x32, 1);
+                X16(0x3a, 0xffff);
+                if (k >= 0 && k < 9) memcpy(xs + 0xc0, fx.obj + 0x4f9, 0x31);
+                m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+                check_4588ad();
+                CK(L.n == (k >= 0 && k < 9 ? 1 : 0));
+                if (k >= 0 && k < 9) {
+                    check_call(0, 0x458c32, (uintptr_t)fx.self, 0);
+                    CK(memcmp(L.c[0].snap_self + 0xc0, fx.obj + 0x4f9, 0x31) == 0 && get32(L.c[0].snap_self, 0x32) == 1 && get16x(L.c[0].snap_self, 0x3a) == 0xA5A5u);
+                }
+            }
+        }
+        g_phase = 9;
+        /* 0x27a5, [+0xb4] == 0: the nine bytes ro+0x52a against consts[3]: a difference announces; [+0x3c] = ro[+0x21] - 1 (a word), [+0x20] = 1, the tick */
+        for (v = 0; v < 5; v++) {
+            static const int16_t w21[5] = {5, 0, -32768, 0x7fff, -1};
+            for (k = -1; k < 10; k++) {
+                setup_4588ad(0x27a5, idx);
+                set16(fx.obj, 0x21, (uint16_t)w21[v]);
+                g_phase2 = v * 20 + k + 1;
+                if (k >= 0) fx.obj[0x52a + k] ^= 0x20;
+                begin_4588ad();
+                X32(0x2e, 0);
+                X32(0x32, 1);
+                X16(0x3c, (uint16_t)(w21[v] - 1));
+                X32(0x20, 1);
+                X32(0xbc, 1000 + 0x28);
+                m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+                check_4588ad();
+                if (k >= 0 && k < 9) {
+                    CK(L.n == 3);
+                    ck_announce_4588ad(0, OBJ_VA + 0x52a, 0x8765);
+                    ck_tick_4588ad(2);
+                    CK(get32(L.c[0].snap_self, 0x32) == 1 && get32(L.c[0].snap_self, 0x20) == 0 && get32(L.c[1].snap_self, 0xbc) == 0xA5A5A5A5u);
+                } else {
+                    CK(L.n == 1);
+                    ck_tick_4588ad(0);
+                }
+            }
+        }
+    }
+    (void)ck_copy_4588ad;
+    if (g_failed) printf("FAIL test_m4588ad_click_279f_27a5: %s\n", g_msg);
+    else printf("PASS test_m4588ad_click_279f_27a5\n");
+    return g_failed;
+}
+
 /* FL25B-TESTS-END */
 
 int main(void)
@@ -914,6 +1196,7 @@ int main(void)
     failures += test_m455180_hit_test();
     failures += test_m4cb058_hit_test();
     failures += test_m4a3f40_hit_test();
+    failures += test_m4588ad_click_279f_27a5();
     /* FL25B-MAIN-END */
     return failures;
 }
