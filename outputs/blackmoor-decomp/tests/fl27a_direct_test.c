@@ -538,6 +538,46 @@ static void test_m4bef11_bink_goto(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bf098: 0x4bf38c(self); [self+0xbc] = 0; handle 0 -> [self+0x2c0] = -3, return [self+0xbc]; else [self+0xbc] = _BinkCopyToBuffer(handle, 5 args, [self+4]) */
+
+static void test_m4bf098_bink_copy_to_buffer(void)
+{
+    static const uint32_t RESULTS[] = {0, 1, 2, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    size_t i;
+    setup();
+    set32(fx.self, 4, 0x7777u);
+    script_ret(0x52a524, 9);                                             /* never called */
+    expect_begin();
+    CK(m4bf098_bink_copy_to_buffer(fx.self, 0, 0x22, 0x33, 0x44, 0x55, 0x66, &fx.host) == 0);
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    CK(get32(L.c[0].snap_self, 0xbc) == 0xa5a5a5a5u);                    /* cleared after the first call */
+    set32(exp_self, 0xbc, 0);
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    for (i = 0; i < sizeof RESULTS / sizeof RESULTS[0]; i++) {
+        setup();
+        set32(fx.self, 4, 0x7777u);
+        script_ret(0x52a524, RESULTS[i]);
+        expect_begin();
+        CK((uint32_t)m4bf098_bink_copy_to_buffer(fx.self, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, &fx.host) == RESULTS[i]);
+        CK(L.n == 2);
+        ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+        ck_call(1, 0x52a524, 0, 7);
+        ck_arg(1, 0, 0x11);                                              /* the first argument is the handle ([ebp+8], pushed last) */
+        ck_arg(1, 1, 0x22);
+        ck_arg(1, 2, 0x33);
+        ck_arg(1, 3, 0x44);
+        ck_arg(1, 4, 0x55);
+        ck_arg(1, 5, 0x66);
+        ck_arg(1, 6, 0x7777);                                            /* [self + 4] is the last argument (pushed first) */
+        CK(get32(L.c[1].snap_self, 0xbc) == 0);                          /* the import sees the cleared field */
+        set32(exp_self, 0xbc, RESULTS[i]);
+        expect_end();
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -575,6 +615,7 @@ static void test_sweep(void)
         (void)m4bee5f_bink_summary(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4befc8_bink_do_frame(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4bef11_bink_goto(fx.self, rnd() % 2 ? VA_A : 0, rnd() % 3, &fx.host);
+        (void)m4bf098_bink_copy_to_buffer(fx.self, rnd() % 2 ? VA_A : 0, rnd(), rnd(), rnd(), rnd(), rnd(), &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -594,6 +635,7 @@ static const struct {
     {"test_m4bee5f_bink_summary", test_m4bee5f_bink_summary},
     {"test_m4befc8_bink_do_frame", test_m4befc8_bink_do_frame},
     {"test_m4bef11_bink_goto", test_m4bef11_bink_goto},
+    {"test_m4bf098_bink_copy_to_buffer", test_m4bf098_bink_copy_to_buffer},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

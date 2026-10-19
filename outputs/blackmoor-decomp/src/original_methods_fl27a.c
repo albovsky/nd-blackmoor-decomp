@@ -212,4 +212,30 @@ int32_t m4bef11_bink_goto(uint8_t *self, uint32_t handle, uint32_t mode, const F
     return 0;
 }
 
+/* ---- 0x4bf098 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bf098, thiscall, `ret 0x18` (handle, dest, pitch, height, x, y): calls 0x4bf38c (this = self); [self + 0xbc] = 0; with a zero handle
+ * stores [self + 0x2c0] = 0xfffffffd and returns [self + 0xbc] (0); otherwise calls _BinkCopyToBuffer@28 (import 0x52a524: the six
+ * arguments in order and, last, the dword [self + 4]), stores its result in [self + 0xbc] and returns [self + 0xbc]. */
+int32_t m4bf098_bink_copy_to_buffer(uint8_t *self, uint32_t handle, uint32_t dest, uint32_t pitch, uint32_t height, uint32_t x, uint32_t y,
+                                    const Fl18Host *host)
+{
+    uintptr_t args[7];
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    wr32(self, 0xbc, 0);
+    if (handle == 0) {
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return (int32_t)rd32(self, 0xbc);
+    }
+    args[0] = handle;
+    args[1] = dest;
+    args[2] = pitch;
+    args[3] = height;
+    args[4] = x;
+    args[5] = y;
+    args[6] = rd32(self, 4);
+    wr32(self, 0xbc, host->call != NULL ? host->call(host->context, 0x52a524, 0, args, 7) : 0);
+    return (int32_t)rd32(self, 0xbc);
+}
+
 /*NEXT*/
