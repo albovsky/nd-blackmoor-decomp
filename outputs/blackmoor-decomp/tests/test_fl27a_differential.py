@@ -173,6 +173,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m4bee5f_bink_summary (original 0x4bee5f)"""
         self.run_key('4bee5f')
 
+    def test_4befc8_bink_do_frame(self):
+        """FL-27a: differential test of m4befc8_bink_do_frame (original 0x4befc8)"""
+        self.run_key('4befc8')
+
     # CASES-END
 
 

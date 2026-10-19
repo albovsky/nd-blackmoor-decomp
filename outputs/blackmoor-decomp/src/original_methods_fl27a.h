@@ -78,6 +78,10 @@ int32_t m4bef85_bink_wait(uint8_t *self, uint32_t handle, const Fl18Host *host);
  * ignored; it fills the summary at self + 8, which is the host's) and returns self + 8. */
 uint8_t *m4bee5f_bink_summary(uint8_t *self, uint32_t handle, const Fl18Host *host);
 
+/* 0x4befc8: thiscall, `ret 4`, one argument `handle` (only passed on): calls 0x4bf38c (this = self); [self + 0xbc] = 0; handle zero:
+ * [self + 0x2c0] = 0xfffffffd, returns [self + 0xbc] (0); otherwise [self + 0xbc] = _BinkDoFrame@4 (import 0x52a528) and returns it. */
+int32_t m4befc8_bink_do_frame(uint8_t *self, uint32_t handle, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

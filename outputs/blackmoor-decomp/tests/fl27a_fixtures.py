@@ -405,6 +405,21 @@ def gen_4bee5f(rng, n):
 
 SPECS['4bee5f'] = dict(id=8, va=0x4bee5f, size=84, gen=gen_4bee5f, ret=0xffffffff, ret_ptr=True, cleanup=4, n=16)
 
+def gen_4befc8(rng, n):
+    """[self+0xbc] is cleared right after the first call (the import sees it zero); null handle -> error code, 0 returned; else the import's
+    answer is stored there and returned."""
+    profiles = [('null',)] + [('frame', v) for v in (0, 1, 2, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff)]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    put32(d, 0xbc, rng.choice([0xffffffff, 1, rng.randrange(1, 1 << 32)]))
+    handle = 0 if kind == 'null' else od.region_va(1) + rng.choice([0, 8, 0x30])
+    stubs = {0x4bf38c: stub(0x4bf38c, results=[rng.randrange(1 << 32)]), 0x52a528: stub(0x52a528, results=[rest[0] if rest else 0])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('bink', od.region_va(1), bink_area(rng), image=False)]
+    return make('4befc8', areas, stubs, {}, [handle], (handle,), (kind, *rest), probes=[('self', 0, 0x300)])
+
+
+SPECS['4befc8'] = dict(id=9, va=0x4befc8, size=92, gen=gen_4befc8, ret=0xffffffff, cleanup=4, n=27)
+
 KEYS = list(SPECS)
 
 

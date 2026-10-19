@@ -173,4 +173,21 @@ uint8_t *m4bee5f_bink_summary(uint8_t *self, uint32_t handle, const Fl18Host *ho
     return self + 8;
 }
 
+/* ---- 0x4befc8 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4befc8, thiscall, `ret 4`: calls 0x4bf38c (this = self); [self + 0xbc] = 0; with a zero argument stores [self + 0x2c0] = 0xfffffffd and
+ * returns [self + 0xbc] (0); otherwise calls _BinkDoFrame@4 (import 0x52a528, the handle), stores its result in [self + 0xbc] and returns
+ * [self + 0xbc]. */
+int32_t m4befc8_bink_do_frame(uint8_t *self, uint32_t handle, const Fl18Host *host)
+{
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    wr32(self, 0xbc, 0);
+    if (handle == 0) {
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return (int32_t)rd32(self, 0xbc);
+    }
+    wr32(self, 0xbc, call1(host, 0x52a528, 0, handle));
+    return (int32_t)rd32(self, 0xbc);
+}
+
 /*NEXT*/

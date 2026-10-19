@@ -464,6 +464,38 @@ static void test_m4bee5f_bink_summary(void)
     expect_end();                                                        /* the object is not written when the handle is not null */
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4befc8: 0x4bf38c(self); [self+0xbc] = 0; handle 0 -> [self+0x2c0] = -3, return [self+0xbc]; else [self+0xbc] = _BinkDoFrame(handle), return it */
+
+static void test_m4befc8_bink_do_frame(void)
+{
+    static const uint32_t FRAMES[] = {0, 1, 2, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    size_t i;
+    setup();
+    script_ret(0x52a528, 9);                                             /* never called */
+    expect_begin();
+    CK(m4befc8_bink_do_frame(fx.self, 0, &fx.host) == 0);
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    CK(get32(L.c[0].snap_self, 0xbc) == 0xa5a5a5a5u);                    /* cleared after the first call */
+    set32(exp_self, 0xbc, 0);
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    for (i = 0; i < sizeof FRAMES / sizeof FRAMES[0]; i++) {
+        setup();
+        script_ret(0x52a528, FRAMES[i]);
+        expect_begin();
+        CK((uint32_t)m4befc8_bink_do_frame(fx.self, VA_A + 0x18, &fx.host) == FRAMES[i]);
+        CK(L.n == 2);
+        ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+        ck_call(1, 0x52a528, 0, 1);
+        ck_arg(1, 0, VA_A + 0x18);
+        CK(get32(L.c[1].snap_self, 0xbc) == 0);                          /* the import sees the cleared field */
+        set32(exp_self, 0xbc, FRAMES[i]);
+        expect_end();
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -499,6 +531,7 @@ static void test_sweep(void)
         (void)m4bee2c_get_field(fx.self, rnd() % 2 ? VA_A + (rnd() % 64) : 0, &fx.host);
         (void)m4bef85_bink_wait(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4bee5f_bink_summary(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
+        (void)m4befc8_bink_do_frame(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -516,6 +549,7 @@ static const struct {
     {"test_m4bee2c_get_field", test_m4bee2c_get_field},
     {"test_m4bef85_bink_wait", test_m4bef85_bink_wait},
     {"test_m4bee5f_bink_summary", test_m4bee5f_bink_summary},
+    {"test_m4befc8_bink_do_frame", test_m4befc8_bink_do_frame},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };
