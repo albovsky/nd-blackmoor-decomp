@@ -2,7 +2,7 @@
  {
   "va": "0x463392",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl22a.c",
@@ -30,13 +30,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m463392_step_scene: the scene step with states 0, 1 (jump table of five arms) and 2; the table at 0x463aec is data and is not part of the instruction coverage. Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 456 of 456 instructions reached; the oracle window runs all 1882 bytes.",
+  "note": "1:1 with m463392_step_scene (states 0-2, five-arm jump table in direct test). Direct: objects, ordered calls, probes. Unicorn differential: 600 fixtures, 456/456 instructions. Window covers all 1882 bytes. Details: tasks/fl22a-handoff.md.",
   "blockers_reviewed": []
  },
  {
   "va": "0x461d82",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl22a.c",
@@ -64,13 +64,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m461d82_move_step: the cell mover with its four-arm jump table at 0x462567 (data, not part of the instruction coverage); the unguarded divisions are an explicit native rejection (divisor 0 and INT32_MIN / -1 return 0 at the division). Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 504 of 504 instructions reached; the oracle window runs all 2021 bytes.",
+  "note": "1:1 with m461d82_move_step. idiv faults return 0 natively (direct test only). Direct: objects, ordered calls. Unicorn differential: 600 fixtures, 504/504 instructions. Window covers all 2021 bytes. See tasks/fl22a-handoff.md.",
   "blockers_reviewed": []
  },
  {
   "va": "0x4778df",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl22a.c",
@@ -98,13 +98,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m4778df_render: the scene render: every callee (0x4c5377, 0x475cc4, 0x4d3836, 0x50ca3e) is a host call; the text buffer local is zeroed where the original leaves it uninitialised. Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 514 of 514 instructions reached; the oracle window runs all 2035 bytes.",
+  "note": "1:1 with m4778df_render. Direct: objects, ordered calls, probes. Unicorn differential: 600 fixtures, 514/514 instructions, 5000 ordered host calls. Window covers all 2035 bytes. See tasks/fl22a-handoff.md.",
   "blockers_reviewed": []
  },
  {
   "va": "0x45d2c6",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-22a implementer, diff slice-reviewer (pending)",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
   "date": "2026-10-19",
   "native_source": {
    "path": "src/original_methods_fl22a.c",
@@ -132,7 +132,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "1:1 with m45d2c6_render: the overlay render: every callee (0x45b568, 0x4c5377, 0x4c5d4b) is a host call; the two loops with a limit computed from [rec+0x23] reject a limit beyond a word (the original never leaves them). Direct test: whole-object checks, ordered host calls, call-time probes. Differential test: original bytes (Unicorn) vs native on 600 random fixtures (two seeds), 590 of 590 instructions reached; the oracle window runs all 2212 bytes.",
+  "note": "1:1 with m45d2c6_render. Word loops rejected at 0x7fff (unreachable in fixtures). Unicorn differential: 600 fixtures, 590/590 instructions, 26086 ordered calls. Window covers all 2212 bytes. See tasks/fl22a-handoff.md.",
   "blockers_reviewed": []
  }
 ]

@@ -288,6 +288,7 @@ static uintptr_t p_addr(int k) { return (uintptr_t)(P_VA + p_pat_rec[k]); }
 
 static void test_m463392_step_scene(void)
 {
+    (void)m463392_step_scene; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl22aWorld w;
     size_t n;
     int mask, variant, r21, s20, k;
@@ -728,6 +729,7 @@ static const struct {
 
 static void test_m461d82_move_step(void)
 {
+    (void)m461d82_move_step; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl22aWorld w;
     size_t n;
     int arm;
@@ -979,6 +981,7 @@ static void x_rect_args(int arg, uint32_t base)
 
 static void test_m4778df_render(void)
 {
+    (void)m4778df_render; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl22aWorld w;
     int mask, i, j;
     /* ---- step 1 and the empty scene: the byte 0x6237a4 selects the first call and is cleared after it; value 6 selects the other branch ---- */
@@ -1296,6 +1299,7 @@ static void s_expect_loops(int n, int rec23, int w6ec, int w6ea)
 
 static void test_m45d2c6_render(void)
 {
+    (void)m45d2c6_render; /* driven through the file's runner helper; named here so the test pointer finds it */
     Fl22aWorld w;
     int mask, i;
     size_t n;
