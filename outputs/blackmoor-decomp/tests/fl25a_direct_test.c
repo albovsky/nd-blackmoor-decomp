@@ -29,10 +29,18 @@ static char g_msg[256];
 #define OBJ_VA 0x20010000u        /* the object of the target record / behind the pointer of the object */
 #define DECOY_VA 0x20020000u      /* the object of every other record */
 #define OBJ_SZ 0xa000
+#define RECT_VA 0x20030000u       /* the rectangle argument of 0x464792 */
 #define SNAP 0x400
 
 static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
 static void set16(uint8_t *o, size_t off, uint16_t v) { memcpy(o + off, &v, 2); }
+static int32_t get32s(const uint8_t *o, size_t off)
+{
+    int32_t v;
+    memcpy(&v, o + off, 4);
+    return v;
+}
+
 static int16_t get16s(const uint8_t *o, size_t off)
 {
     int16_t v;
@@ -41,7 +49,7 @@ static int16_t get16s(const uint8_t *o, size_t off)
 }
 
 static struct {
-    uint8_t self[SELF_SZ], tab[TAB_SZ], obj[OBJ_SZ], decoy[0x1000];
+    uint8_t self[SELF_SZ], tab[TAB_SZ], obj[OBJ_SZ], decoy[0x1000], rect[16];
     Fl25aWorld w;
     Fl18Host host;
 } fx;
@@ -82,6 +90,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     (void)ctx;
     if (a >= OBJ_VA && a < OBJ_VA + OBJ_SZ) return fx.obj + (a - OBJ_VA);
     if (a >= DECOY_VA && a < DECOY_VA + 0x1000) return fx.decoy + (a - DECOY_VA);
+    if (a >= RECT_VA && a < RECT_VA + 16) return fx.rect + (a - RECT_VA);
     return NULL;
 }
 
@@ -100,6 +109,10 @@ static void setup(int idx, uint32_t sel)
     memset(fx.self, 0xA5, sizeof fx.self);
     for (k = 0; k < sizeof fx.obj; k++) fx.obj[k] = (uint8_t)(k * 7 + 3);
     memset(fx.decoy, 0x11, sizeof fx.decoy);
+    set32(fx.rect, 0, 0x11111111u);
+    set32(fx.rect, 4, 0x22222222u);
+    set32(fx.rect, 8, 0x33333333u);
+    set32(fx.rect, 12, 0x44444444u);
     memset(fx.tab, 0xCC, sizeof fx.tab);
     for (i = -1; i <= 4; i++) {
         set32(fx.tab, (size_t)(i + 1) * REC, i == idx ? OBJ_VA : DECOY_VA);
@@ -368,6 +381,182 @@ static void test_m45e1ca_hit_test(void)
     }
 }
 
+/* ======================================================================================================================== 0x464792 */
+
+/* record idx; [+0xb8] set; [+0x2a] = mode; every rectangle of the object far away (edges 0x7000) */
+static void setup_464792(int idx, uint32_t mode2a, int w36, int w8a, uint32_t d8c)
+{
+    size_t o;
+    setup(idx, 0);
+    set16(fx.self, 0x1e, (uint16_t)idx);
+    set32(fx.self, 0xb8, 1);
+    set32(fx.self, 0x2a, mode2a);
+    set16(fx.self, 0x36, (uint16_t)w36);
+    set16(fx.self, 0x8a, (uint16_t)w8a);
+    set32(fx.self, 0x8c, d8c);
+    for (o = 0; o < 5; o++) set32(fx.self, 0x94 + 4 * o, 0x100);
+    for (o = 0x20; o < 0x50; o += 4) set32(fx.obj, o, 0x7000);
+    for (o = 0x60; o < 0x100; o += 4) set32(fx.obj, o, 0x7000);
+    for (o = 0x42c; o < 0x440; o += 4) set32(fx.obj, o, 0x7000);
+}
+
+static int run_464792(int x, int y)
+{
+    return m464792_hit_test(fx.self, (int16_t)x, (int16_t)y, RECT_VA, &fx.w, &fx.host);
+}
+
+/* the stores of the rectangle argument into the expected copy of the object */
+static void exp_rect_stores(void)
+{
+    set32(exp_self, 0x26, 1);
+    set32(exp_self, 0xc6, 0x22222222u);
+    set32(exp_self, 0xce, 0x44444444u);
+    set32(exp_self, 0xc2, 0x11111111u);
+    set32(exp_self, 0xca, 0x33333333u);
+}
+
+static void test_m464792_hit_test(void)
+{
+    static const int idxs[] = {2, -1};
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}};
+    static const size_t fixed[3][4] = {{0x25, 0x2d, 0x21, 0x29}, {0x35, 0x3d, 0x31, 0x39}, {0x433, 0x43b, 0x42f, 0x437}};
+    static const uint32_t fsel[3] = {0x27ca, 0x27cb, 0x27cc};
+    size_t ii, pi;
+    int e, i, k, f;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (pi = 0; pi < 5; pi++) {
+            int x = pts[pi][0], y = pts[pi][1];
+            /* the gate: dword [+0xb8] clear returns 0 and stores nothing, with every rectangle holding the point; 0x100 and 0x10000 count as set */
+            setup_464792(idx, 0, 0, 0, 0);
+            rect_at(0x25, 0x2d, 0x21, 0x29, x, y);
+            set32(fx.self, 0xb8, 0);
+            expect_begin();
+            CK(run_464792(x, y) == 0);
+            expect_end();
+            CK(L.n == 0);
+            for (i = 0; i < 2; i++) {
+                setup_464792(idx, 0, 0, 0, 0);
+                rect_at(0x25, 0x2d, 0x21, 0x29, x, y);
+                set32(fx.self, 0xb8, i ? 0x10000u : 0x100u);
+                CK(run_464792(x, y) == 1 && L.n == 1);
+            }
+            /* [+0x2a] clear: the three fixed rectangles in order, each calling 0x464ab5(this, selector, 0); the first holding one wins */
+            for (f = 0; f < 3; f++) {
+                setup_464792(idx, 0, 0, 0, 0);
+                rect_at(fixed[f][0], fixed[f][1], fixed[f][2], fixed[f][3], x, y);
+                if (f == 0) rect_at(fixed[1][0], fixed[1][1], fixed[1][2], fixed[1][3], x, y);
+                if (f == 1) rect_at(fixed[2][0], fixed[2][1], fixed[2][2], fixed[2][3], x, y);
+                rect_at(0x65, 0x6d, 0x61, 0x69, x, y);       /* (row 0 also holds the point: the fixed rectangles come first) */
+                set32(fx.self, 0x94, 0);
+                expect_begin();
+                CK(run_464792(x, y) == 1);
+                exp_rect_stores();
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x464ab5, (uintptr_t)fx.self, 2, fsel[f]);
+                CK(L.n < 1 || L.c[0].a[1] == 0);
+                CK(L.n < 1 || (get32s(L.c[0].snap_self, 0xc6) == 0x22222222 && get32s(L.c[0].snap_self, 0x26) == 1));      /* stored before the call */
+                for (e = 0; e < 4; e++) {
+                    setup_464792(idx, 0, 0, 0, 0);
+                    rect_miss(fixed[f][0], fixed[f][1], fixed[f][2], fixed[f][3], x, y, e);
+                    expect_begin();
+                    CK(run_464792(x, y) == 0);
+                    exp_rect_stores();
+                    expect_end();
+                    CK(L.n == 0);
+                }
+            }
+            /* [+0x2a] set: 0x46465d(this) first, then the +0x41 rectangle under the condition; the fixed rectangles are not looked at */
+            {
+                static const struct { int w36, w8a; uint32_t d8c; int match; } cases[] = {
+                    {0, 0, 0, 1}, {0, 0, 5, 1}, {0, 0, 0x10000u, 1},            /* both words zero: the dword does not matter */
+                    {1, 0, 0, 1}, {2, 1, 0, 1}, {-1, -2, 0, 1}, {0x7fff, 0x7ffe, 0, 1}, {-2, -3, 0, 1},
+                    {0, -1, 0, 1},                                                /* w36 - 1 = -1 */
+                    {1, 0, 1, 0}, {1, 0, 0x100, 0}, {1, 0, 0x10000u, 0}, {1, 0, 0xffffffffu, 0},    /* the dword is non-zero */
+                    {1, 1, 0, 0}, {1, 2, 0, 0}, {3, 0, 0, 0}, {-1, -1, 0, 0}, {5, 5, 0, 0},      /* the words differ by other than one */
+                    {0, 1, 0, 0}, {0, -2, 0, 0}, {0, 0x7fff, 0, 0}, {0, -32768, 0, 0},
+                    {-32768, 0x7fff, 0, 0},                                       /* w36 - 1 is -32769 in 32 bits: no wrap to 0x7fff */
+                    {-32768, -32768, 0, 0}, {-32768, -1, 0, 0}, {0x7fff, 0x7fff, 0, 0}, {0x7fff, -32768, 0, 0},
+                };
+                for (i = 0; i < (int)(sizeof cases / sizeof cases[0]); i++) {
+                    setup_464792(idx, 1, cases[i].w36, cases[i].w8a, cases[i].d8c);
+                    rect_at(0x45, 0x4d, 0x41, 0x49, x, y);
+                    rect_at(0x25, 0x2d, 0x21, 0x29, x, y);           /* (not looked at) */
+                    expect_begin();
+                    CK(run_464792(x, y) == cases[i].match);
+                    exp_rect_stores();
+                    expect_end();
+                    CK(L.n == (cases[i].match ? 2 : 1));
+                    CK(L.n >= 1 && L.c[0].callee == 0x46465d && L.c[0].this_ptr == (uintptr_t)fx.self && L.c[0].nargs == 0);
+                    CK(L.n < 1 || (get32s(L.c[0].snap_self, 0xca) == 0x33333333 && get32s(L.c[0].snap_self, 0x26) == 1));
+                    if (cases[i].match) {
+                        CK(L.n < 2 || (L.c[1].callee == 0x464ab5 && L.c[1].this_ptr == (uintptr_t)fx.self && L.c[1].nargs == 2 && L.c[1].a[0] == 0x27cd &&
+                                       (uint16_t)L.c[1].a[1] == (uint16_t)cases[i].w36));
+                    }
+                }
+                for (e = 0; e < 4; e++) {
+                    setup_464792(idx, 1, 0, 0, 0);
+                    rect_miss(0x45, 0x4d, 0x41, 0x49, x, y, e);
+                    CK(run_464792(x, y) == 0 && L.n == 1);
+                }
+            }
+            /* the five rows: row k holds the point; [+0x94 + 4k] clear gives (0x27c9, k); with [+0x2a] set and the dword non-zero (0x27c9, w36) */
+            for (k = 0; k < 5; k++) {
+                size_t e32 = 32 * (size_t)k;
+                for (f = 0; f < 2; f++) {
+                    setup_464792(idx, (uint32_t)f, 3, 9, 9);          /* (mode 1 with these words misses the +0x41 rectangle's condition) */
+                    rect_at(0x65 + e32, 0x6d + e32, 0x61 + e32, 0x69 + e32, x, y);
+                    set32(fx.self, 0x94 + 4 * (size_t)k, 0);
+                    expect_begin();
+                    CK(run_464792(x, y) == 1);
+                    exp_rect_stores();
+                    expect_end();
+                    CK(L.n == (f == 0 ? 1 : 2));
+                    {
+                        int c = f == 0 ? 0 : 1;
+                        ck_call(c, 0x464ab5, (uintptr_t)fx.self, 2, 0x27c9);
+                        CK(L.n <= c || (uint16_t)L.c[c].a[1] == (uint16_t)k);
+                    }
+                }
+                /* [+0x2a] set, slot non-zero: the word [+0x36] is the argument */
+                setup_464792(idx, 1, 3, 9, 9);
+                rect_at(0x65 + e32, 0x6d + e32, 0x61 + e32, 0x69 + e32, x, y);
+                set32(fx.self, 0x94 + 4 * (size_t)k, 0x100u);
+                set16(fx.self, 0x36, 0x1234);
+                CK(run_464792(x, y) == 1 && L.n == 2);
+                ck_call(1, 0x464ab5, (uintptr_t)fx.self, 2, 0x27c9);
+                CK(L.n < 2 || (uint16_t)L.c[1].a[1] == 0x1234);
+                /* [+0x2a] clear, slot non-zero: the row is skipped */
+                setup_464792(idx, 0, 0, 0, 0);
+                rect_at(0x65 + e32, 0x6d + e32, 0x61 + e32, 0x69 + e32, x, y);
+                set32(fx.self, 0x94 + 4 * (size_t)k, 0x100u);
+                CK(run_464792(x, y) == 0 && L.n == 0);
+                /* each edge of the row missing, both modes and both slot states */
+                for (e = 0; e < 4; e++) {
+                    for (f = 0; f < 4; f++) {
+                        setup_464792(idx, (uint32_t)(f & 1), 3, 9, 9);
+                        rect_miss(0x65 + e32, 0x6d + e32, 0x61 + e32, 0x69 + e32, x, y, e);
+                        set32(fx.self, 0x94 + 4 * (size_t)k, (f & 2) ? 0u : 0x100u);
+                        CK(run_464792(x, y) == 0 && L.n == (f & 1 ? 1 : 0));
+                    }
+                }
+            }
+            /* the first holding row wins; row 5 is not looked at */
+            setup_464792(idx, 0, 0, 0, 0);
+            rect_at(0x65 + 64, 0x6d + 64, 0x61 + 64, 0x69 + 64, x, y);
+            rect_at(0x65 + 96, 0x6d + 96, 0x61 + 96, 0x69 + 96, x, y);
+            set32(fx.self, 0x94 + 8, 0);
+            set32(fx.self, 0x94 + 12, 0);
+            CK(run_464792(x, y) == 1 && L.n == 1 && (uint16_t)L.c[0].a[1] == 2);
+            setup_464792(idx, 0, 0, 0, 0);
+            rect_at(0x65 + 160, 0x6d + 160, 0x61 + 160, 0x69 + 160, x, y);
+            set32(fx.self, 0x94 + 20, 0);
+            CK(run_464792(x, y) == 0 && L.n == 0);
+        }
+    }
+}
+
 /* ---- a bounded random sweep (meant for the sanitiser builds) ----------------------------------------------------------------- */
 
 static uint32_t g_seed = 0x2545f491u;
@@ -384,13 +573,29 @@ static int rr(int lo, int hi) { return lo + (int)(rnd() % (uint32_t)(hi - lo + 1
 static void test_sweep(void)
 {
     int it, f;
-    for (f = 0; f < 1; f++) {
+    for (f = 0; f < 2; f++) {
         for (it = 0; it < 2500; it++) {
             size_t o;
             int idx = rr(-1, 4);
             setup(idx, 0);
             for (o = 0; o < 0x400; o++) fx.self[o] = (uint8_t)rnd();
             switch (f) {
+            case 1: {
+                int16_t x = (int16_t)rr(-40, 40), y = (int16_t)rr(-40, 40);
+                set16(fx.self, 0x1e, (uint16_t)idx);
+                set32(fx.self, 0xb8, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x2a, (uint32_t)(rnd() & 1));
+                set16(fx.self, 0x36, (uint16_t)(int16_t)rr(-2, 3));
+                set16(fx.self, 0x8a, (uint16_t)(int16_t)rr(-3, 3));
+                set32(fx.self, 0x8c, (uint32_t)(rnd() & 3 ? 0 : 1));
+                for (o = 0; o < 5; o++) set32(fx.self, 0x94 + 4 * o, (uint32_t)(rnd() & 1));
+                for (o = 0x20; o < 0x440; o += 4) {
+                    uint32_t v = (uint32_t)(int32_t)(rr(-3, 3) + (rnd() & 1 ? x : y) + (int)(rnd() % 5) - 2);
+                    if (rnd() & 1) set32(fx.obj, o, v);
+                }
+                m464792_hit_test(fx.self, x, y, RECT_VA, &fx.w, &fx.host);
+                break;
+            }
             default: {
                 int16_t x = (int16_t)rr(-40, 40), y = (int16_t)rr(-40, 40);
                 set32(fx.self, 0x31d, OBJ_VA);
@@ -417,6 +622,7 @@ static const struct {
     void (*fn)(void);
 } CASES[] = {
     {"test_m45e1ca_hit_test", test_m45e1ca_hit_test},
+    {"test_m464792_hit_test", test_m464792_hit_test},
     {"test_sweep_bounded", test_sweep},
 };
 

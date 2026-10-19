@@ -33,6 +33,9 @@ typedef struct Fl25aWorld {
 /* 0x45e1ca: hit test (ret 8): the rows of the object behind [+0x31d] (two loops and a tail rectangle); calls 0x45e4d4 with 0x27ed, 0x27ec or 0x27ef and returns 1, else 0 */
 int32_t m45e1ca_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl18Host *host);
 
+/* 0x464792: hit test (ret 0xc; the third argument is the original address of four dwords, a rectangle that it stores into the object): the rectangles of the object of the record, then five rows; calls 0x46465d and 0x464ab5; returns 1 on a hit, else 0 */
+int32_t m464792_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, const Fl25aWorld *world, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif

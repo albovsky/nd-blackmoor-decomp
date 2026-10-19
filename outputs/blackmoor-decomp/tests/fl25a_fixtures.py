@@ -94,9 +94,9 @@ class Original20(od.Original):
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x45e4d4: (1, True, 4)}
+SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
-WORD_ARGS = {}
+WORD_ARGS = {0x464ab5: (1,)}
 RECORDS_VA = 0x5bb5e5
 REC = 0x8d
 
@@ -359,10 +359,93 @@ def gen_45e1ca(rng, n):
     return common('45e1ca', rng, d, p, 0, 0, False, 0, stubs, now=0, profile=(kind, *rest), stack=stack, args=(x, y))
 
 
+def edge_fail(rng, obj, x, y, offs, fail):
+    """Sets a rectangle that holds the point, or (fail 'e0'..'e3': y low, y high, x low, x high) misses it at that one edge by one or more."""
+    rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), True)
+    if fail:
+        e = int(fail[-1])
+        put32(obj, offs[e], (y if e < 2 else x) + (1 if e % 2 == 0 else -1) * rng.choice([1, 1, 5]))
+
+
+NZ32 = [1, 0x100, 0x10000, 0x01000000, 0xffffffff]
+
+
+def gen_464792(rng, n):
+    edges = (None, 'e0', 'e1', 'e2', 'e3')
+    profiles = [('gate',)] + [('n', r, f) for r in (1, 2, 3) for f in edges] + [('z', c, f) for c in ('c1', 'c2', 'c5') for f in edges]
+    profiles += [('zmiss', c) for c in ('c3', 'c4', 'c5b', 'c6')]
+    for k in (0, 1, 4):
+        profiles += [('loop', 0, k, kd) for kd in ('hit0', 'e0', 'e1', 'e2', 'e3', 'nz_no2a', 'none')]
+        profiles += [('loop', 1, k, kd) for kd in ('hit0', 'e0', 'e1', 'e2', 'e3', 'nzhit', 'nze0', 'nze1', 'nze2', 'nze3', 'none')]
+    assert len(profiles) == 89
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x100))
+    obj = bytearray(rng.randbytes(0x500))
+    set_gate(d, 'nz32', 0xb8, kind == 'gate', rng)
+    put16(d, 0x1e, idx)
+    mode2a = {'n': 0, 'z': 1, 'zmiss': 1, 'loop': rest[0] if kind == 'loop' else 0}.get(kind, rng.choice([0, 1]))
+    set_gate(d, 'nz32' if mode2a else 'z32', 0x2a, False, rng)
+    w36, w8a, d8c = rng.choice([0, 1, -5, 0x7fff, -32768]), rng.choice([0, 1, -1, 0x7fff, -32768]), rng.choice([0, *NZ32])
+    cond = rest[0] if kind in ('z', 'zmiss') else 'c3'
+    if cond == 'c1':
+        w36, w8a = 0, 0
+    elif cond == 'c2':
+        w36 = rng.choice([1, 2, 5, -1, 0x7fff, -2])
+        w8a, d8c = w36 - 1, 0
+    elif cond == 'c5':
+        w36, w8a, d8c = 0, -1, 0
+    elif cond == 'c3':
+        w36 = rng.choice([1, -1, 7, -32768, 0x7fff])
+        w8a, d8c = rng.choice([w36 - 1 if w36 > -32768 else 0, w36, 0]), rng.choice(NZ32)
+    elif cond == 'c4':
+        w36 = rng.choice([1, -1, 7, 0x7fff])
+        w8a, d8c = rng.choice([w36, w36 - 2, w36 + 1 if w36 < 0x7fff else 0, 0, -32768]), 0
+    elif cond == 'c5b':
+        w36, w8a, d8c = 0, rng.choice([1, -2, 0x7fff, -32768]), 0
+    elif cond == 'c6':
+        w36, w8a, d8c = -32768, 0x7fff, 0
+    put16(d, 0x36, w36)
+    put16(d, 0x8a, w8a)
+    put32(d, 0x8c, d8c)
+    for k in range(5):
+        put32(d, 0x94 + 4 * k, rng.choice([0, *NZ32]))
+    fixed = {1: (0x25, 0x2d, 0x21, 0x29), 2: (0x35, 0x3d, 0x31, 0x39), 3: (0x433, 0x43b, 0x42f, 0x437), 'z': (0x45, 0x4d, 0x41, 0x49)}
+    row = lambda k: (0x65 + 32 * k, 0x6d + 32 * k, 0x61 + 32 * k, 0x69 + 32 * k)
+    for offs in [*fixed.values(), *[row(k) for k in range(5)]]:
+        rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), False)
+    if kind == 'n':
+        edge_fail(rng, obj, x, y, fixed[rest[0]], rest[1])
+    elif kind == 'z':
+        edge_fail(rng, obj, x, y, fixed['z'], rest[1])
+    elif kind == 'zmiss':
+        rect_into(rng, obj, x, y, fixed['z'], (0, 0, 0, 0), True)      # (the rectangle holds the point: only the condition keeps it out)
+    elif kind == 'gate':
+        for offs in [*fixed.values(), row(0)]:
+            rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), True)
+    elif kind == 'loop':
+        _, k, kd = rest
+        for offs in fixed.values():
+            rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), False)
+        if kd == 'none':
+            pass
+        else:
+            put32(d, 0x94 + 4 * k, rng.choice(NZ32) if kd.startswith('nz') else 0)
+            edge_fail(rng, obj, x, y, row(k), kd[-2:] if kd[-2] == 'e' else None)
+            if kd == 'nz_no2a':
+                rect_into(rng, obj, x, y, row(k), (0, 0, 0, 0), True)
+    rect = bytearray(rng.randbytes(16))
+    stubs = {c: stub(c, [('self', 0, 0x100), ('records', 0, 6 * REC)]) for c in (0x46465d, 0x464ab5)}
+    return common('464792', rng, d, obj, idx, 0, False, 0, stubs, extra=[Area('rect', od.region_va(5), rect, image=False)], now=0, profile=(kind, *rest),
+                  stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)))
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
     '45e1ca': dict(id=1, va=0x45e1ca, size=778, gen=gen_45e1ca, ret=True, cleanup=8, probes=[(0, 0x3c0)], n=74 * 6),
+    '464792': dict(id=2, va=0x464792, size=803, gen=gen_464792, ret=True, cleanup=12, probes=[(0, 0x100)], n=89 * 6),
 }
 KEYS = list(SPECS)
 

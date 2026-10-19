@@ -39,6 +39,31 @@ static int32_t rds16(const uint8_t *base, ptrdiff_t off)
     return (int16_t)rd16(base, off);
 }
 
+static uint32_t call0(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr)
+{
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, NULL, 0) : 0;
+}
+
+static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1)
+{
+    uintptr_t args[2];
+    args[0] = a0;
+    args[1] = a1;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 2) : 0;
+}
+
+/* `movsx ecx, word [self + idx]; imul ecx, ecx, 0x8d`: the byte offset of the record n in the table at 0x5bb5e5 */
+static ptrdiff_t rec_offset(const uint8_t *self, ptrdiff_t idx_off)
+{
+    return (ptrdiff_t)(rds16(self, idx_off) * 0x8d);
+}
+
+/* `mov eax, [n * 0x8d + 0x5bb5e5]`: the original address of the object of record n */
+static uint32_t record_object_address(const Fl25aWorld *world, const uint8_t *self, ptrdiff_t idx_off)
+{
+    return rd32(world->records_5bb5e5, rec_offset(self, idx_off));
+}
+
 static uint32_t call1(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0)
 {
     uintptr_t args[1];
@@ -108,4 +133,69 @@ int32_t m45e1ca_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl18Host *ho
     if (!in_range(x, rds32(p, 0x1336), rds32(p, 0x133e))) return 0;
     call1(host, 0x45e4d4, (uintptr_t)self, 0x27ef);
     return 1;
+}
+
+/* ---- 0x464792 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x464792, thiscall, `ret 0xc`: x is the word at [ebp+8], y the word at [ebp+0xc], rect the address at [ebp+0x10] of four dwords. The
+ * address of the object of the record (word [+0x1e]) is read at entry. Returns 0 when dword [+0xb8] is clear. Otherwise [+0x26] = 1 and
+ * the rectangle is stored: [+0xc6] = rect[1], [+0xce] = rect[3], [+0xc2] = rect[0], [+0xca] = rect[2] (in that order).
+ * With dword [+0x2a] set: 0x46465d(this = self) is called, then the object's rectangle at +0x45/+0x4d (y) and +0x41/+0x49 (x) is tested
+ * when (word [+0x36] == 0 and word [+0x8a] == 0) or (dword [+0x8c] == 0 and word [+0x8a] == word [+0x36] - 1, a 32-bit subtract): a hit calls
+ * 0x464ab5(this = self, 0x27cd, word [+0x36]) and returns 1. With it clear: the object's rectangles +0x25/+0x2d/+0x21/+0x29 (0x27ca),
+ * +0x35/+0x3d/+0x31/+0x39 (0x27cb) and +0x433/+0x43b/+0x42f/+0x437 (0x27cc), each with the word argument 0.
+ * Then for k below 5 (a dword counter): the 32-byte row k of the object (y at +0x65/+0x6d + 32k, x at +0x61/+0x69 + 32k): when dword
+ * [+0x94 + 4k] is clear a hit calls 0x464ab5(0x27c9, k); and, with [+0x2a] and [+0x94 + 4k] both set, a hit calls 0x464ab5(0x27c9, word
+ * [+0x36]); the first call returns 1. No hit returns 0. */
+int32_t m464792_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, const Fl25aWorld *world, const Fl18Host *host)
+{
+    uint32_t record = record_object_address(world, self, 0x1e);
+    const uint8_t *obj, *r;
+    int32_t k;
+    if (rd32(self, 0xb8) == 0) return 0;
+    obj = object_at(host, record);
+    r = object_at(host, rect);
+    wr32(self, 0x26, 1);
+    wr32(self, 0xc6, rd32(r, 4));
+    wr32(self, 0xce, rd32(r, 0xc));
+    wr32(self, 0xc2, rd32(r, 0));
+    wr32(self, 0xca, rd32(r, 8));
+    if (rd32(self, 0x2a) != 0) {
+        call0(host, 0x46465d, (uintptr_t)self);
+        if ((rds16(self, 0x36) == 0 && rds16(self, 0x8a) == 0) || (rd32(self, 0x8c) == 0 && rds16(self, 0x8a) == rds16(self, 0x36) - 1)) {
+            if (in_range(y, rds32(obj, 0x45), rds32(obj, 0x4d)) && in_range(x, rds32(obj, 0x41), rds32(obj, 0x49))) {
+                call2(host, 0x464ab5, (uintptr_t)self, 0x27cd, rd16(self, 0x36));
+                return 1;
+            }
+        }
+    } else {
+        if (in_range(y, rds32(obj, 0x25), rds32(obj, 0x2d)) && in_range(x, rds32(obj, 0x21), rds32(obj, 0x29))) {
+            call2(host, 0x464ab5, (uintptr_t)self, 0x27ca, 0);
+            return 1;
+        }
+        if (in_range(y, rds32(obj, 0x35), rds32(obj, 0x3d)) && in_range(x, rds32(obj, 0x31), rds32(obj, 0x39))) {
+            call2(host, 0x464ab5, (uintptr_t)self, 0x27cb, 0);
+            return 1;
+        }
+        if (in_range(y, rds32(obj, 0x433), rds32(obj, 0x43b)) && in_range(x, rds32(obj, 0x42f), rds32(obj, 0x437))) {
+            call2(host, 0x464ab5, (uintptr_t)self, 0x27cc, 0);
+            return 1;
+        }
+    }
+    for (k = 0; k < 5; k++) {
+        ptrdiff_t e = (ptrdiff_t)(k << 5);
+        if (rd32(self, 0x94 + 4 * (ptrdiff_t)k) == 0) {
+            if (in_range(y, rds32(obj, e + 0x65), rds32(obj, e + 0x6d)) && in_range(x, rds32(obj, e + 0x61), rds32(obj, e + 0x69))) {
+                call2(host, 0x464ab5, (uintptr_t)self, 0x27c9, (uint16_t)k);
+                return 1;
+            }
+        }
+        if (rd32(self, 0x2a) == 0) continue;
+        if (rd32(self, 0x94 + 4 * (ptrdiff_t)k) == 0) continue;
+        if (in_range(y, rds32(obj, e + 0x65), rds32(obj, e + 0x6d)) && in_range(x, rds32(obj, e + 0x61), rds32(obj, e + 0x69))) {
+            call2(host, 0x464ab5, (uintptr_t)self, 0x27c9, rd16(self, 0x36));
+            return 1;
+        }
+    }
+    return 0;
 }

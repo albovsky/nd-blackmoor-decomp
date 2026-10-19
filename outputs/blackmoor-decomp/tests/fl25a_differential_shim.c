@@ -189,10 +189,10 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F25A_45E1CA = 1 /*ENUM*/ };
+enum { F25A_45E1CA = 1, F25A_464792 /*ENUM*/ };
 
 /* Runs one port on `self` (this); x and y are the two stack words of the hit test. `result` is the return value of the ports that have one. */
-void shim_fl25a(int fn, uint8_t *self, uintptr_t x, uintptr_t y, Fl25aWorld *w, int32_t *result)
+void shim_fl25a(int fn, uint8_t *self, uintptr_t x, uintptr_t y, uintptr_t z, Fl25aWorld *w, int32_t *result)
 {
     Fl18Host host;
     *result = 0;
@@ -200,9 +200,10 @@ void shim_fl25a(int fn, uint8_t *self, uintptr_t x, uintptr_t y, Fl25aWorld *w, 
     host.call = host_call;
     host.resolve = shim_resolve;
     host.tick = host_tick;
-    (void)w;
+
     switch (fn) {
     case F25A_45E1CA: *result = m45e1ca_hit_test(self, (int16_t)x, (int16_t)y, &host); break;
+    case F25A_464792: *result = m464792_hit_test(self, (int16_t)x, (int16_t)y, (uint32_t)z, w, &host); break;
     /*CASES*/
     default: break;
     }

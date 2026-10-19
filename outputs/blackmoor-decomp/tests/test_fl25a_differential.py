@@ -41,7 +41,7 @@ class Fl25aDifferential(DiffBase):
         cls.lib.shim_calls.restype = ctypes.POINTER(ShimCall24)
         cls.lib.shim_world_size.restype = ctypes.c_size_t
         cls.lib.shim_script_probe.argtypes = [ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
-        cls.lib.shim_fl25a.argtypes = [ctypes.c_int, ctypes.c_void_p] + [ctypes.c_uint64] * 2 + [ctypes.c_void_p, ctypes.c_void_p]
+        cls.lib.shim_fl25a.argtypes = [ctypes.c_int, ctypes.c_void_p] + [ctypes.c_uint64] * 3 + [ctypes.c_void_p, ctypes.c_void_p]
         assert cls.lib.shim_world_size() == ctypes.sizeof(fx.World), 'the World mirror does not match Fl25aWorld'
 
     def native_calls(self, arrays, probe_len):
@@ -89,7 +89,7 @@ class Fl25aDifferential(DiffBase):
             self.lib.shim_set_tick(sc.tick)
         result = ctypes.c_int32(0)
         self_ptr = ptr(by_name['self'])
-        self.lib.shim_fl25a(sc.fn, self_ptr, sc.args[0] & 0xffffffffffffffff, sc.args[1] & 0xffffffffffffffff, ctypes.byref(sw), ctypes.byref(result))
+        self.lib.shim_fl25a(sc.fn, self_ptr, sc.args[0] & 0xffffffffffffffff, sc.args[1] & 0xffffffffffffffff, (sc.args[2] if len(sc.args) > 2 else 0), ctypes.byref(sw), ctypes.byref(result))
         if fx.SPECS[sc.key].get('ret'):
             self.assertEqual(result.value & 0xffffffff, orig.eax & 0xffffffff, 'return value')
         for a, arr in arrays:
@@ -123,6 +123,10 @@ class Fl25aDifferential(DiffBase):
     def test_45e1ca_hit_test(self):
         """FL-25a: differential test of m45e1ca_hit_test (original 0x45e1ca)"""
         self.run_key('45e1ca')
+
+    def test_464792_hit_test(self):
+        """FL-25a: differential test of m464792_hit_test (original 0x464792)"""
+        self.run_key('464792')
 
     # CASES-END
 

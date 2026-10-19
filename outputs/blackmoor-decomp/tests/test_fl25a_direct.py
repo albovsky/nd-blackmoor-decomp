@@ -19,6 +19,7 @@ TEST_C = PROJECT / 'tests/fl25a_direct_test.c'
 KERNELS = ['original_methods_fl25a.c']
 EXPECTED = [
     'test_m45e1ca_hit_test',
+    'test_m464792_hit_test',
     'test_sweep_bounded',
 ]
 
@@ -67,6 +68,10 @@ class Fl25aDirect(unittest.TestCase):
     def test_45e1ca_hit_test(self):
         """FL-25a: direct test of m45e1ca_hit_test"""
         self.check('test_m45e1ca_hit_test')
+
+    def test_464792_hit_test(self):
+        """FL-25a: direct test of m464792_hit_test"""
+        self.check('test_m464792_hit_test')
 
     # CASES-END
 
