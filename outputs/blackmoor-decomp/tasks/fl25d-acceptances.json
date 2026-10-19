@@ -1,0 +1,35 @@
+[
+ {
+  "va": "0x4712bd",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25d implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25d.c",
+   "symbol": "m4712bd_click_27a6_27ad"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25d_direct_test.c",
+    "test_id": "test_m4712bd_click_27a6_27ad"
+   },
+   {
+    "path": "tests/test_fl25d_direct.py",
+    "test_id": "Fl25dDirect.test_4712bd_click_27a6_27ad"
+   },
+   {
+    "path": "tests/test_fl25d_differential.py",
+    "test_id": "Fl25dDifferential.test_4712bd_click_27a6_27ad"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25d_original_oracle.py",
+   "window": [
+    "0x4712bd",
+    "0x471722"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4712bd_click_27a6_27ad (click handler for the events 0x27a6 and 0x27ad (plain ret): three arms over the word lists at +0xd4a / +0xd32, the list at +0xdc2, the nine-byte announcement through 0x4fb2e3 (0x54c480 / 0x54c48c), GetTickCount and the record state 2). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken (allowlisted untaken edges, with reasons, in tests/fl25d_fixtures.py UNTAKEN_ALLOWED). See tasks/fl25d-handoff.md."
+ }
+]
