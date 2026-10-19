@@ -37,7 +37,8 @@ static struct {
         uint32_t callee;
         uintptr_t this_ptr;
         int nargs;
-        uintptr_t a[4];
+        uintptr_t a[6];
+        uint8_t d2[16], d3[16];     /* the 16 bytes behind the arguments 2 and 3 when they are host pointers */
         uint8_t snap[SNAP];
     } c[MAXCALL];
 } L;
@@ -58,6 +59,9 @@ static void script(uint32_t callee, int n, const uint32_t *results)
 #define REC_VA 0x20010000u
 #define ENT_VA 0x20020000u
 #define TXT_VA 0x20030000u
+#define TBL_VA 0x20050000u
+#define SUB_VA(j) (0x20040000u + 0x1000u * (uint32_t)(j))
+static uint8_t g_t617804[4 * 0x16], g_w61879d[8], g_objs[4 * 0x84d], g_r1[0x40], g_r2[0x40], g_tbl[0x140], g_sub[4][0x80];
 static uint8_t g_rec[0x900], g_ents[0x800], g_records[5 * 0x8d], g_tab[96], g_txt[0x200];
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
@@ -69,7 +73,11 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].callee = callee;
         L.c[i].this_ptr = this_ptr;
         L.c[i].nargs = nargs;
-        for (k = 0; k < nargs && k < 4; k++) L.c[i].a[k] = args[k];
+        for (k = 0; k < nargs && k < 6; k++) L.c[i].a[k] = args[k];
+        memset(L.c[i].d2, 0, 16);
+        memset(L.c[i].d3, 0, 16);
+        if (nargs > 3 && args[2] > 0xffffffffu) memcpy(L.c[i].d2, (const void *)args[2], 16);
+        if (nargs > 3 && args[3] > 0xffffffffu) memcpy(L.c[i].d3, (const void *)args[3], 16);
         memcpy(L.c[i].snap, g_self, SNAP);
     }
     L.n++;
@@ -87,6 +95,8 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     if (a >= REC_VA && a < REC_VA + sizeof g_rec) return g_rec + (a - REC_VA);
     if (a >= ENT_VA && a < ENT_VA + sizeof g_ents) return g_ents + (a - ENT_VA);
     if (a >= TXT_VA && a < TXT_VA + sizeof g_txt) return g_txt + (a - TXT_VA);
+    if (a >= TBL_VA && a < TBL_VA + sizeof g_tbl) return g_tbl + (a - TBL_VA);
+    if (a >= SUB_VA(0) && a < SUB_VA(3) + 0x80 && (a & 0xfff) < 0x80) return g_sub[(a - SUB_VA(0)) >> 12] + (a & 0xfff);
     return NULL;
 }
 
@@ -100,6 +110,18 @@ static void setup(void)
     memset(g_records, 0, sizeof g_records);
     memset(g_tab, 0, sizeof g_tab);
     memset(g_txt, 0x77, sizeof g_txt);
+    memset(g_t617804, 0, sizeof g_t617804);
+    memset(g_w61879d, 0, sizeof g_w61879d);
+    memset(g_objs, 0, sizeof g_objs);
+    memset(g_r1, 0xe1, sizeof g_r1);
+    memset(g_r2, 0xe2, sizeof g_r2);
+    memset(g_tbl, 0, sizeof g_tbl);
+    memset(g_sub, 0, sizeof g_sub);
+    g_w.table_617804 = g_t617804 + 0x16;
+    g_w.words_61879d = g_w61879d;
+    g_w.objs_5d34d1 = g_objs + 0x84d;
+    g_w.rects_617ec2 = g_r1;
+    g_w.rects_617f02 = g_r2;
     g_w.records_5bb5e5 = g_records + 0x8d;
     g_w.dwords_585801 = g_tab + 32;
     memset(&g_host, 0, sizeof g_host);
@@ -451,6 +473,7 @@ static void test_m41e0b4_add_slot(void)
 
 
 /* ---- the record-driven methods ---------------------------------------------------------------------------------------------------- */
+static uint32_t rd32_(const uint8_t *o, size_t off) { uint32_t v; memcpy(&v, o + off, 4); return v; }
 static void rec_set32(size_t off, uint32_t v) { memcpy(g_rec + off, &v, 4); }
 static void rec_set16(size_t off, uint16_t v) { memcpy(g_rec + off, &v, 2); }
 static void ent_set32(size_t off, uint32_t v) { memcpy(g_ents + off, &v, 4); }
@@ -808,6 +831,114 @@ static void test_m41fa11_add_entry(void)
     }
 }
 
+/* ---- 0x422a0a ------------------------------------------------------------------------------------------------------------------ */
+static void sub32(int j, size_t off, uint32_t v) { memcpy(g_sub[j] + off, &v, 4); }
+static void sub_pattern(int j, uint8_t base)
+{
+    size_t b;
+    for (b = 0x35; b < 0x55; b++) g_sub[j][b] = (uint8_t)(base + b);
+}
+static void tbl32(size_t off, uint32_t v) { memcpy(g_tbl + off, &v, 4); }
+static void obj_set(int w, uint8_t sel, uint8_t sel2) { g_objs[(size_t)(w + 1) * 0x84d + 0x1e] = sel; g_objs[(size_t)(w + 1) * 0x84d + 0x1f] = sel2; }
+static void world_422a0a(int16_t idx, int16_t count, uint8_t kind)
+{
+    int j;
+    g_w.word_617e78 = idx;
+    g_w.word_618783 = count;
+    g_w.byte_617f42 = kind;
+    g_w.value_618795 = TBL_VA;
+    g_w.value_58318a = 5;
+    g_w.value_583186 = 7;
+    g_w.value_5cf665 = 0x5cf665aa;
+    g_w.value_5d15e3 = 0x5d15e3bb;
+    g_w.value_5d191d = 99;
+    for (j = 0; j < 4; j++) memcpy(g_t617804 + (size_t)(idx + 1) * 0x16 + 6 + 4 * (size_t)j, &(uint32_t){SUB_VA(j)}, 4);
+    for (j = 0; j < 4; j++) sub_pattern(j, (uint8_t)(0x10 * j));
+}
+static int d_eq32(const uint8_t *d, uint32_t a, uint32_t b, uint32_t c, uint32_t e)
+{
+    uint32_t v[4] = {a, b, c, e};
+    return memcmp(d, v, 16) == 0;
+}
+
+static void test_m422a0a_draw_marked(void)
+{
+    int k;
+    /* first arms: j = 0 from the table (byte 0xb6 == 2, selector 0, second selector 1), then j = 1 from the sub-object (selector 3, second selector 2) */
+    setup();
+    world_422a0a(1, 2, 0x3b);
+    g_tbl[0xb2] = 0; g_tbl[0xb3] = 1; g_tbl[0xb6] = 2; g_tbl[0xb7] = 0;
+    memcpy(g_w61879d, (const uint16_t[]){0, 1, 0, 0}, 8);
+    obj_set(0, 0, 1);
+    obj_set(1, 3, 2);
+    for (k = 0; k < 4; k++) { tbl32(0xba + 4 * (size_t)k, 1 + (uint32_t)k); tbl32(0xfa + 4 * (size_t)k, 0x100u * (1 + (uint32_t)k)); }
+    sub32(0, 0, 0xabc0); g_sub[0][0x2f] = 0xf0; g_sub[0][0x30] = 0xff;
+    sub32(1, 0, 0xabc1); g_sub[1][0x2f] = 0x34; g_sub[1][0x30] = 0x12;
+    sub32(1, 0x45, 0x10); sub32(1, 0x49, 0x20); sub32(1, 0x4d, 0x30); sub32(1, 0x51, 0x40);
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 3 && g_w.value_5d191d == 0);
+    CKC(0, 0x4c5377, 0x5cf659, 5, 0x5d15e3bb, 0x5cf665aa, L.c[0].a[2], L.c[0].a[3], 0x544330);
+    CK(d_eq32(L.c[0].d2, 0x100, 0x200, 0x300, 0x400) && d_eq32(L.c[0].d3, 0x107, 0x205, 0x307, 0x405));      /* l34 = the table words, l44 = the table words plus the offsets */
+    CKC(1, 0x4c609b, 0x5cf659, 6, 0xabc0, 0x5cf665aa, L.c[1].a[2], L.c[1].a[3], 0xfffffff0u, 0x54434c);
+    CK(d_eq32(L.c[1].d2, 1, 2, 3, 4) && d_eq32(L.c[1].d3, 0x107, 0x205, 0x307, 0x405) && L.c[1].a[3] == L.c[0].a[3]);
+    CKC(2, 0x4c5770, 0x5cf659, 6, 0xabc1, 0x5cf665aa, L.c[2].a[2], L.c[2].a[3], 0x1234, 0x544368);
+    CK(memcmp(L.c[2].d2, g_sub[1] + 0x35, 16) == 0);                                                          /* l1c = sub+0x35 */
+    CK(d_eq32(L.c[2].d3, 0x10 + 7, 0x20 + 5, 0x30 + 7, 0x40 + 5));                                            /* l44 = sub fields plus the offsets */
+    {
+        uint8_t e[0x40];
+        memset(e, 0xe1, sizeof e);
+        CK(memcmp(g_r1, e, sizeof e) == 0);                                                                   /* the first arm writes no rectangle */
+    }
+    /* the second arm (selector 2) at j = 1 and j = 0 (i = 0 finds j = 1, i = 1 finds j = 0), second selector 1; a second selector of 0 calls once */
+    setup();
+    world_422a0a(0, 2, 0x39);
+    g_tbl[0xb2] = 1; g_tbl[0xb3] = 0;
+    memcpy(g_w61879d, (const uint16_t[]){0xffff, 0xffff, 0, 0}, 8);                                            /* word -1: object 0 of the area */
+    obj_set(-1, 2, 1);
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 4);
+    CKC(0, 0x4c5377, 0x5cf659, 5, 0x5d15e3bb, 0x5cf665aa, 0x617ec2 + 16, 0x617f02 + 16, 0x544388);           /* j = 1 first */
+    CKC(1, 0x4c609b, 0x5cf659, 6, L.c[1].a[0], 0x5cf665aa, SUB_VA(1) + 0x35, L.c[1].a[3], 0, 0x5443a4);
+    CKC(2, 0x4c5377, 0x5cf659, 5, 0x5d15e3bb, 0x5cf665aa, 0x617ec2, 0x617f02, 0x544388);                     /* then j = 0 */
+    CK(L.c[1].a[0] == rd32_(g_sub[1], 0) && L.c[1].a[4] == (uint32_t)(int32_t)(int16_t)get16(g_sub[1], 0x2f));
+    CK(memcmp(g_r1 + 16, g_sub[1] + 0x45, 16) == 0 && memcmp(g_r1, g_sub[0] + 0x45, 16) == 0);
+    CK(d_eq32(g_r2 + 16, get32(g_sub[1], 0x45) + 7, get32(g_sub[1], 0x49) + 5, get32(g_sub[1], 0x4d) + 7, get32(g_sub[1], 0x51) + 5));
+    CK(d_eq32(g_r2, get32(g_sub[0], 0x45) + 7, get32(g_sub[0], 0x49) + 5, get32(g_sub[0], 0x4d) + 7, get32(g_sub[0], 0x51) + 5));
+    /* second arm, second selector 2 -> 0x4c5770; a selector above 3 ends the inner loop without anything; kinds that do not match do nothing but the clear */
+    setup();
+    world_422a0a(0, 1, 0x3e);
+    g_tbl[0xb2] = 0;
+    memcpy(g_w61879d, (const uint16_t[]){0xffff, 0, 0, 0}, 8);
+    obj_set(-1, 2, 2);
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 2 && L.c[1].callee == 0x4c5770 && L.c[1].a[5] == 0x5443c0 && L.c[1].a[2] == SUB_VA(0) + 0x35);
+    setup();
+    world_422a0a(0, 2, 0x39);
+    g_tbl[0xb2] = 0; g_tbl[0xb3] = 0;
+    obj_set(0, 4, 1);                                           /* sel > 3: ends the j loop, j = 1 is never looked at (both bytes match i = 0) */
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 0 && g_w.value_5d191d == 0);
+    setup();
+    world_422a0a(0, 2, 0x39);
+    g_tbl[0xb2] = 0; g_tbl[0xb3] = 0;
+    obj_set(0, 1, 0);                                           /* selector 1 with a second selector of 0: nothing is called, i = 1 matches nothing */
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 0);
+    for (k = 0; k < 5; k++) {
+        static const uint8_t kinds[5] = {0x38, 0x3a, 0x3c, 0, 0xff};
+        setup();
+        world_422a0a(0, 2, kinds[k]);
+        g_tbl[0xb2] = 0;
+        obj_set(0, 2, 1);
+        m422a0a_draw_marked(&g_w, &g_host);
+        CK(L.n == 0 && g_w.value_5d191d == 0 && g_r1[0] == 0xe1);
+    }
+    setup();
+    world_422a0a(0, -1, 0x39);                                  /* a negative count: no loop */
+    m422a0a_draw_marked(&g_w, &g_host);
+    CK(L.n == 0 && g_w.value_5d191d == 0);
+}
+
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
 static void test_sweep_bounded(void)
 {
@@ -893,6 +1024,7 @@ int main(void)
     RUN(test_m4f6ef4_advance_record);
     RUN(test_m41c544_init_record);
     RUN(test_m41fa11_add_entry);
+    RUN(test_m422a0a_draw_marked);
     RUN(test_sweep_bounded);
     return failures;
 }

@@ -34,6 +34,12 @@ typedef struct Fl28bWorld {
     int16_t word_5b3790, word_5b3792;                                          /* 0x4edfaf: the two extents that centre the rectangle */
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
     uint8_t *records_5bb5e5;   /* records of stride 0x8d: the dword at +0 is the address of the object of record n (index: a signed word argument) */
+    int16_t word_617e78, word_618783;   /* 0x422a0a: the selected record of table 0x617804 (signed) and the entry count */
+    uint8_t byte_617f42;                /* 0x422a0a: the kind (0x39, 0x3b, 0x3e run the loops) */
+    uint32_t value_618795;              /* 0x422a0a: the original address of the entry table (resolved through Fl18Host) */
+    uint32_t value_58318a, value_583186, value_5cf665, value_5d15e3;   /* 0x422a0a: the offsets added to the rectangles and the two values passed to the drawing calls */
+    uint32_t value_5d191d;              /* 0x422a0a: cleared at the end */
+    uint8_t *table_617804, *words_61879d, *objs_5d34d1, *rects_617ec2, *rects_617f02;   /* 0x422a0a: host memory of the global tables at those addresses (stride 0x16, words, stride 0x84d, 16-byte rectangles) */
     uint8_t *dwords_585801;    /* 0x4209e8: the base of the dword table 0x585801 (indexed by a signed word, so the host memory must extend below the base too) */
 } Fl28bWorld;
 
@@ -111,6 +117,19 @@ void m41c544_init_record(uint8_t *self, uint8_t *rec, const uint8_t *src, const 
  * [+0x1c0], [b+0x806] = [+0x1c4], [b+0x80a] = [+0x1c8], the string at arg+0x196 (strlen + 1 bytes, dwords first) to b+0x7d9 (a string of 0x21 or more characters clobbers the words stored before it), word [b+0x80e] =
  * arg word [+0x1cc], byte [b+0x810] = arg byte [+0x1ce], word [b+0x811] = arg word [+0x1cf], and the word count is incremented. Caller-validated: the table index must lie inside `self`. */
 void m41fa11_add_entry(uint8_t *self, const uint8_t *arg, const Fl28bWorld *world, const Fl18Host *host);
+
+/* 0x422a0a, cdecl, no arguments, plain `ret`: draws the marked entries. rec = table_617804 + (signed word_617e78) * 0x16 (its dwords at +6 + 4*j are the original addresses of the sub-objects). When the byte
+ * 0x617f42 is 0x39, 0x3b or 0x3e: for i = 0 .. (signed word_618783) - 1 (a word), for j = 0 .. (signed word_618783) - 1 (a word): with tbl = value_618795 (an original address): the byte [tbl + j + 0xb2] must
+ * equal i (the byte is compared against the sign-extended word), else the next j; the first j that matches ends the inner loop after its arm (and so does sel > 3 without any arm): i goes on. obj = objs_5d34d1 + (signed word [words_61879d + 2*j]) * 0x84d; sub = dword [rec + 6 + 4*j]; sel = byte [obj + 0x1e], unsigned > 3: the inner loop ends;
+ * the jump table makes 2 the second arm and 0, 1, 3 the first. First arm: when byte [tbl + j + 0xb6] == 2 (rectangles from the table at tbl + j*16: l1c = the 16 bytes at +0xba, l44 = {[+0xfa] + value_583186,
+ * [+0xfe] + value_58318a, [+0x102] + value_583186, [+0x106] + value_58318a}, l34 = the 16 bytes at +0xfa), otherwise from sub (l1c = the 16 bytes at sub+0x35, l44 = {[sub+0x45] + value_583186, [sub+0x49] +
+ * value_58318a, [sub+0x4d] + value_583186, [sub+0x51] + value_58318a}, l34 = the 16 bytes at sub+0x45). Then by the byte [obj + 0x1f]: 1 -> 0x4c5377(this 0x5cf659, value_5d15e3, value_5cf665, &l34, &l44, 0x544330)
+ * (thiscall, five arguments) and 0x4c609b(this 0x5cf659, dword [sub], value_5cf665, &l1c, &l44, signed word [sub+0x2f], 0x54434c) (six arguments); 2 -> 0x4c5770(this 0x5cf659, dword [sub], value_5cf665, &l1c,
+ * &l44, signed word [sub+0x2f], 0x544368); anything else nothing. Second arm: l44 from sub as above, 0x4c5377(this 0x5cf659, value_5d15e3, value_5cf665, 0x617ec2 + j*16, 0x617f02 + j*16, 0x544388); then by
+ * the byte [obj + 0x1f] (read again): 1 -> 0x4c609b(dword [sub], value_5cf665, sub+0x35, &l44, signed word [sub+0x2f], 0x5443a4), 2 -> 0x4c5770(.., 0x5443c0); then the 16 bytes at sub+0x45 are copied to
+ * rects_617ec2 + j*16 and l44 to rects_617f02 + j*16. At the end (also when the kind does not match) value_5d191d = 0. The pointers &l.. are host pointers to locals; Caller-validated: j < 4, the tables
+ * must hold every index the words and counts name. Not exercised: a callee that changes the tables. */
+void m422a0a_draw_marked(Fl28bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

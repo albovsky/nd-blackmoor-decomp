@@ -693,6 +693,56 @@ KEYS = list(SPECS)
 NAMES.update({'41c544': 'init_record', '41fa11': 'add_entry'})
 
 
+# ---- 0x422a0a --------------------------------------------------------------------------------------------------------------------------
+
+def profiles_422a0a():
+    p = [('kind', k) for k in (0x38, 0x3a, 0x3c, 0, 0xff, 0x40)]
+    p += [('run', c, idx) for c in (-1, 0, 1, 2, 3, 4) for idx in (-1, 0, 1, 2)]
+    return p
+
+
+def gen_422a0a(rng, n):
+    (kind, *rest), variant = prof(n, profiles_422a0a())
+    k = rest[0] if kind == 'kind' else (0x39, 0x3b, 0x3e)[(n + variant) % 3]
+    c = rng.choice([2, 3, 4]) if kind == 'kind' else rest[0]
+    idx = rng.choice([-1, 0, 1, 2]) if kind == 'kind' else rest[1]
+    tbl617804 = bytearray(rng.randbytes(4 * 0x16))
+    for j in range(4):
+        put32(tbl617804, (idx + 1) * 0x16 + 6 + 4 * j, od.region_va(3 + j))
+    words = bytearray(8)
+    for j in range(4):
+        put16(words, 2 * j, rng.choice([-1, 0, 1, 2]))
+    objs = bytearray(rng.randbytes(4 * 0x84d))
+    for w in range(4):
+        objs[w * 0x84d + 0x1e + 0x84d - 0x84d] = 0
+    for w in range(4):         # the objects for the words -1, 0, 1, 2 start at (w - 1) * 0x84d + 0x5d34d1; the area starts one object before 0x5d34d1
+        objs[w * 0x84d + 0x1e] = rng.choice([0, 1, 2, 3, 4, 0xff, 2, 0, 3, 2])
+        objs[w * 0x84d + 0x1f] = rng.choice([1, 2, 0, 3, 1, 2])
+    tbl = bytearray(rng.randbytes(0x140))
+    for j in range(4):
+        tbl[0xb2 + j] = rng.choice([x for x in range(max(c, 1))] + [0xff]) if rng.random() < 0.9 else 0xff
+        tbl[0xb6 + j] = rng.choice([2, 2, 0, 1, 3])
+    subs = [Area('sub%d' % j, od.region_va(3 + j), bytearray(rng.randbytes(0x80)), image=False) for j in range(4)]
+    g = {'word_617e78': idx, 'word_618783': c, 'byte_617f42': k, 'value_618795': od.region_va(1), 'value_58318a': rng.choice([0, 1, rng.randrange(1 << 32)]),
+         'value_583186': rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]), 'value_5cf665': rng.randrange(1 << 32), 'value_5d15e3': rng.randrange(1 << 32),
+         'value_5d191d': rng.choice([1, 0x80000000, 0xdeadbeef])}
+    probe = [('r1', 0, 0x40), ('r2', 0, 0x40)]
+    d = [(2, 16), (3, 16)]
+    stubs = {0x4c5377: stub(0x4c5377, THISCALL(5), probe, derefs=d), 0x4c609b: stub(0x4c609b, THISCALL(6), probe, derefs=d), 0x4c5770: stub(0x4c5770, THISCALL(6), probe, derefs=d)}
+    areas = [Area('tbl617804', 0x617804 - 0x16, tbl617804, image=True), Area('w', 0x61879d, words, image=True), Area('objs', 0x5d34d1 - 0x84d, objs, image=True),
+             Area('r1', 0x617ec2, bytearray(rng.randbytes(0x40)), image=True), Area('r2', 0x617f02, bytearray(rng.randbytes(0x40)), image=True),
+             Area('tbl', od.region_va(1), tbl, image=False), *subs]
+    pointers = {'table_617804': ('tbl617804', 0x16), 'words_61879d': ('w', 0), 'objs_5d34d1': ('objs', 0x84d), 'rects_617ec2': ('r1', 0), 'rects_617f02': ('r2', 0)}
+    return make('422a0a', areas, stubs, g, [], (), (kind, *rest, hex(k)), pointers=pointers)
+
+
+SPECS.update({
+    '422a0a': dict(id=12, va=0x422a0a, size=1088, code=1072, gen=gen_422a0a, cleanup=0, n=len(profiles_422a0a()) * 12),
+})
+KEYS = list(SPECS)
+NAMES.update({'422a0a': 'draw_marked'})
+
+
 def build(key, rng, n):
     return SPECS[key]['gen'](rng, n)
 

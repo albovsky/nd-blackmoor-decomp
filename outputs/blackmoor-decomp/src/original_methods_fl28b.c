@@ -65,6 +65,19 @@ static uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr,
     return callv(host, callee, this_ptr, a, 4);
 }
 
+/* calls with five and six stack arguments */
+static uint32_t call5(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
+{
+    const uintptr_t a[5] = {a0, a1, a2, a3, a4};
+    return callv(host, callee, this_ptr, a, 5);
+}
+
+static uint32_t call6(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5)
+{
+    const uintptr_t a[6] = {a0, a1, a2, a3, a4, a5};
+    return callv(host, callee, this_ptr, a, 6);
+}
+
 /* the object of an original address (an address that an object keeps), as host memory */
 static uint8_t *object_at(const Fl18Host *host, uint32_t address)
 {
@@ -425,4 +438,82 @@ void m41fa11_add_entry(uint8_t *self, const uint8_t *arg, const Fl28bWorld *worl
     self[b + 0x810] = arg[0x1ce];
     wr16(self, b + 0x811, rd16(arg, 0x1cf));
     wr16(self, 0xf21, (uint16_t)(rd16(self, 0xf21) + 1u));
+}
+
+/* ---- 0x422a0a ------------------------------------------------------------------------------------------------------------------ */
+
+static void copy16(uint32_t *dst, const uint8_t *src)
+{
+    int k;
+    for (k = 0; k < 4; k++) dst[k] = rd32(src, 4 * k);
+}
+
+/* 0x422a0a, cdecl: see the header. [ebp-0x24] is rec, [ebp-4] the word i, [ebp-8] the word j, [ebp-0x20] obj, [ebp-0xc] sub; l1c at [ebp-0x1c], l44 at [ebp-0x44], l34 at [ebp-0x34]. */
+void m422a0a_draw_marked(Fl28bWorld *world, const Fl18Host *host)
+{
+    uint8_t *rec = world->table_617804 + (ptrdiff_t)(int32_t)((uint32_t)(int32_t)world->word_617e78 * 0x16u);
+    uint8_t kind = world->byte_617f42;
+    int16_t i, j;
+    if (kind == 0x39 || kind == 0x3b || kind == 0x3e) {
+        for (i = 0; (int32_t)i < world->word_618783; i = (int16_t)(i + 1)) {
+            for (j = 0; (int32_t)j < world->word_618783; j = (int16_t)(j + 1)) {
+                uint32_t l1c[4], l34[4], l44[4];
+                const uint8_t *obj;
+                uint8_t *tbl, *sub;
+                uint32_t sub_addr;
+                ptrdiff_t entry = 16 * (ptrdiff_t)j;
+                tbl = object_at(host, world->value_618795);
+                if ((int32_t)tbl[j + 0xb2] != (int32_t)i) continue;
+                obj = world->objs_5d34d1 + (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)rd16(world->words_61879d, 2 * (ptrdiff_t)j) * 0x84du);
+                sub_addr = rd32(rec, 6 + 4 * (ptrdiff_t)j);
+                sub = object_at(host, sub_addr);
+                if (obj[0x1e] > 3) break;
+                memset(l1c, 0, sizeof l1c);
+                memset(l34, 0, sizeof l34);
+                memset(l44, 0, sizeof l44);
+                if (obj[0x1e] != 2) {
+                    tbl = object_at(host, world->value_618795);
+                    if (tbl[j + 0xb6] == 2) {
+                        copy16(l1c, tbl + entry + 0xba);
+                        l44[1] = rd32(tbl, entry + 0xfe) + world->value_58318a;
+                        l44[3] = rd32(tbl, entry + 0x106) + world->value_58318a;
+                        l44[0] = rd32(tbl, entry + 0xfa) + world->value_583186;
+                        l44[2] = rd32(tbl, entry + 0x102) + world->value_583186;
+                        copy16(l34, tbl + entry + 0xfa);
+                    } else {
+                        copy16(l1c, sub + 0x35);
+                        l44[1] = rd32(sub, 0x49) + world->value_58318a;
+                        l44[3] = rd32(sub, 0x51) + world->value_58318a;
+                        l44[0] = rd32(sub, 0x45) + world->value_583186;
+                        l44[2] = rd32(sub, 0x4d) + world->value_583186;
+                        copy16(l34, sub + 0x45);
+                    }
+                    if (obj[0x1f] == 1) {
+                        call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, (uintptr_t)l34, (uintptr_t)l44, 0x544330);
+                        call6(host, 0x4c609b, 0x5cf659, rd32(sub, 0), world->value_5cf665, (uintptr_t)l1c, (uintptr_t)l44, (uint32_t)rds16(sub, 0x2f), 0x54434c);
+                    } else if (obj[0x1f] == 2) {
+                        call6(host, 0x4c5770, 0x5cf659, rd32(sub, 0), world->value_5cf665, (uintptr_t)l1c, (uintptr_t)l44, (uint32_t)rds16(sub, 0x2f), 0x544368);
+                    }
+                } else {
+                    l44[1] = rd32(sub, 0x49) + world->value_58318a;
+                    l44[3] = rd32(sub, 0x51) + world->value_58318a;
+                    l44[0] = rd32(sub, 0x45) + world->value_583186;
+                    l44[2] = rd32(sub, 0x4d) + world->value_583186;
+                    call5(host, 0x4c5377, 0x5cf659, world->value_5d15e3, world->value_5cf665, 0x617ec2u + (uint32_t)entry, 0x617f02u + (uint32_t)entry, 0x544388);
+                    if (obj[0x1f] == 1) {
+                        call6(host, 0x4c609b, 0x5cf659, rd32(sub, 0), world->value_5cf665, sub_addr + 0x35, (uintptr_t)l44, (uint32_t)rds16(sub, 0x2f), 0x5443a4);
+                    } else if (obj[0x1f] == 2) {
+                        call6(host, 0x4c5770, 0x5cf659, rd32(sub, 0), world->value_5cf665, sub_addr + 0x35, (uintptr_t)l44, (uint32_t)rds16(sub, 0x2f), 0x5443c0);
+                    }
+                    {
+                        int k;
+                        for (k = 0; k < 4; k++) wr32(world->rects_617ec2, entry + 4 * k, rd32(sub, 0x45 + 4 * k));
+                        for (k = 0; k < 4; k++) wr32(world->rects_617f02, entry + 4 * k, l44[k]);
+                    }
+                }
+                break;      /* 0x422e20 -> 0x422e27 -> 0x422a4a: the first matching j ends the inner loop, i goes on */
+            }
+        }
+    }
+    world->value_5d191d = 0;
 }

@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F28B_41E043 = 1, F28B_42E493, F28B_41DE29, F28B_41E250, F28B_4EDFAF, F28B_41E0B4, F28B_4205C1, F28B_4209E8, F28B_4F6EF4, F28B_41C544, F28B_41FA11 /*ENUM*/ };
+enum { F28B_41E043 = 1, F28B_42E493, F28B_41DE29, F28B_41E250, F28B_4EDFAF, F28B_41E0B4, F28B_4205C1, F28B_4209E8, F28B_4F6EF4, F28B_41C544, F28B_41FA11, F28B_422A0A /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values. `result` is the return value of the ports that have one
  * (0x41e043: the sign-extended ax). The world is the host context, so that each logged call keeps a snapshot of it. */
@@ -213,6 +213,7 @@ void shim_fl28b(int fn, uint8_t *self, const uintptr_t *a, Fl28bWorld *w, int32_
     case F28B_4F6EF4: *result = (int32_t)m4f6ef4_advance_record(self, (uint32_t)a[0], w, &host); break;
     case F28B_41C544: m41c544_init_record(self, (uint8_t *)shim_resolve(NULL, (uint32_t)a[0]), (const uint8_t *)shim_resolve(NULL, (uint32_t)a[1]), w, &host); break;
     case F28B_41FA11: m41fa11_add_entry(self, (const uint8_t *)shim_resolve(NULL, (uint32_t)a[0]), w, &host); break;
+    case F28B_422A0A: m422a0a_draw_marked(w, &host); break;
     /*CASES*/
     default: break;
     }
