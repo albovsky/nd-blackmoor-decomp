@@ -93,6 +93,12 @@ int32_t m4bef11_bink_goto(uint8_t *self, uint32_t handle, uint32_t mode, const F
 int32_t m4bf098_bink_copy_to_buffer(uint8_t *self, uint32_t handle, uint32_t dest, uint32_t pitch, uint32_t height, uint32_t x, uint32_t y,
                                     const Fl18Host *host);
 
+/* 0x4bf10f: thiscall, `ret 4`, one argument `handle` (read through resolve, 0x10 bytes): calls 0x4bf38c (this = self); handle zero:
+ * [self + 0x2c0] = 0xfffffffd, returns 0; [self + 0x2c4] not 1 (dword compare): returns 0 when [handle + 0xc] == [handle + 8], else
+ * _BinkNextFrame@4 (import 0x52a520: handle) and returns 1; [self + 0x2c4] == 1: returns 0 when [handle + 0xc] == 1, else _BinkGoto@12
+ * (import 0x52a530: handle, [handle + 0xc] - 1, 0) and returns 1. */
+int32_t m4bf10f_bink_next(uint8_t *self, uint32_t handle, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

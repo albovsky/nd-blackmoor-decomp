@@ -185,6 +185,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m4bf098_bink_copy_to_buffer (original 0x4bf098)"""
         self.run_key('4bf098')
 
+    def test_4bf10f_bink_next(self):
+        """FL-27a: differential test of m4bf10f_bink_next (original 0x4bf10f)"""
+        self.run_key('4bf10f')
+
     # CASES-END
 
 

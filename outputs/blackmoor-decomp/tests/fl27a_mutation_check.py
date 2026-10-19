@@ -44,6 +44,7 @@ FUNCS = {'4de1f5': 'test_4de1f5_clear_flags',
          '4befc8': 'test_4befc8_bink_do_frame',
          '4bef11': 'test_4bef11_bink_goto',
          '4bf098': 'test_4bf098_bink_copy_to_buffer',
+         '4bf10f': 'test_4bf10f_bink_next',
          # FUNCS-END
          }
 

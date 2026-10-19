@@ -455,6 +455,36 @@ def gen_4bf098(rng, n):
 
 SPECS['4bf098'] = dict(id=11, va=0x4bf098, size=119, gen=gen_4bf098, ret=0xffffffff, cleanup=0x18, n=27)
 
+def gen_4bf10f(rng, n):
+    """null handle -> error code; mode (dword [self+0x2c4]) not 1: current == total (0) or not (NextFrame, 1); mode 1: current == 1 (0) or not
+    (Goto current-1, 1). The dword compares are probed with values that agree in their low byte or word only."""
+    modes = (0, 2, 0x100, 0x101, 0x10000, 0x80000000, 0xffffffff)
+    curs = (0, 2, 0x100, 0x101, 0x10001, 0x10000, 0x80000000, 0xffffffff, 5)
+    profiles = [('null',)] + [('other', m, 'eq') for m in modes] + [('other', m, 'ne') for m in modes] + [('one', 1)] + [('one', c) for c in curs]
+    profiles += [('other', 0, 'ne_hi'), ('other', 2, 'ne_lo'), ('other', 0xffffffff, 'ne_mid')]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    obj = bink_area(rng)
+    hoff = rng.choice([0, 4, 0x20])
+    handle = 0 if kind == 'null' else od.region_va(1) + hoff
+    mode = 1 if kind == 'one' else (rest[0] if kind == 'other' else rng.choice([0, 1, 5]))
+    put32(d, 0x2c4, mode)
+    total = rng.choice([1, 2, 0x100, 0x7fffffff, 0xffffffff, rng.randrange(1 << 32)])
+    cur = total
+    if kind == 'other' and rest[1] != 'eq':
+        cur = {'ne': total ^ 1, 'ne_hi': total ^ 0x01000000, 'ne_lo': total ^ 0x80, 'ne_mid': total ^ 0x00010000}[rest[1]]
+    if kind == 'one':
+        cur = rest[0]
+    put32(obj, hoff + 8, total)
+    put32(obj, hoff + 0xc, cur)
+    stubs = {0x4bf38c: stub(0x4bf38c, results=[rng.randrange(1 << 32)]), 0x52a520: stub(0x52a520, results=[rng.randrange(1 << 32)]),
+             0x52a530: stub(0x52a530, results=[rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('bink', od.region_va(1), obj, image=False)]
+    return make('4bf10f', areas, stubs, {}, [handle], (handle,), (kind, *rest), probes=[('self', 0, 0x300)])
+
+
+SPECS['4bf10f'] = dict(id=12, va=0x4bf10f, size=139, gen=gen_4bf10f, ret=0xffffffff, cleanup=4, n=36)
+
 KEYS = list(SPECS)
 
 

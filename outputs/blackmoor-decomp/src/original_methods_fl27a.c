@@ -238,4 +238,33 @@ int32_t m4bf098_bink_copy_to_buffer(uint8_t *self, uint32_t handle, uint32_t des
     return (int32_t)rd32(self, 0xbc);
 }
 
+/* ---- 0x4bf10f ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bf10f, thiscall, `ret 4`: calls 0x4bf38c (this = self); with a zero handle stores [self + 0x2c0] = 0xfffffffd and returns 0. Reading
+ * the dword [self + 0x2c4]: not 1 -> returns 0 when [handle + 0xc] equals [handle + 8], otherwise calls _BinkNextFrame@4 (import 0x52a520:
+ * handle) and returns 1; 1 -> returns 0 when [handle + 0xc] is 1, otherwise calls _BinkGoto@12 (import 0x52a530: handle,
+ * [handle + 0xc] - 1, 0) and returns 1. The handle is read through Fl18Host.resolve (0x10 bytes). */
+int32_t m4bf10f_bink_next(uint8_t *self, uint32_t handle, const Fl18Host *host)
+{
+    const uint8_t *h;
+    uintptr_t args[3];
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    if (handle == 0) {
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return 0;
+    }
+    h = mem_at(host, handle);
+    if (rd32(self, 0x2c4) != 1) {
+        if (rd32(h, 0xc) == rd32(h, 8)) return 0;
+        call1(host, 0x52a520, 0, handle);
+        return 1;
+    }
+    if (rd32(h, 0xc) == 1) return 0;
+    args[0] = handle;
+    args[1] = rd32(h, 0xc) - 1u;
+    args[2] = 0;
+    if (host->call != NULL) host->call(host->context, 0x52a530, 0, args, 3);
+    return 1;
+}
+
 /*NEXT*/

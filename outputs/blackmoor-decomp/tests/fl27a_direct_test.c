@@ -578,6 +578,80 @@ static void test_m4bf098_bink_copy_to_buffer(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bf10f: 0x4bf38c(self); handle 0 -> [self+0x2c0] = -3, return 0; mode != 1: cur == total -> 0 else NextFrame, 1; mode == 1: cur == 1 -> 0 else Goto(cur - 1), 1 */
+
+static void set_handle(uint32_t total, uint32_t cur)                      /* the handle is VA_A + 0x10 */
+{
+    set32(fx.a, 0x18, total);
+    set32(fx.a, 0x1c, cur);
+}
+
+static void test_m4bf10f_bink_next(void)
+{
+    static const uint32_t MODES[] = {0, 2, 0x100, 0x101, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    static const uint32_t CURS[] = {0, 2, 0x100, 0x101, 0x10001, 0x10000, 0x80000000u, 0xffffffffu, 5};
+    size_t i;
+    setup();
+    set32(fx.self, 0x2c4, 1);
+    expect_begin();
+    CK(m4bf10f_bink_next(fx.self, 0, &fx.host) == 0);
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    for (i = 0; i < sizeof MODES / sizeof MODES[0]; i++) {               /* mode not 1 (compared as a dword) */
+        static const uint32_t TOTALS[] = {7, 0x100, 0x10001, 0xffffffffu};
+        size_t t, d;
+        for (t = 0; t < 4; t++) {
+            setup();
+            set32(fx.self, 0x2c4, MODES[i]);
+            set_handle(TOTALS[t], TOTALS[t]);                            /* current == total: nothing */
+            expect_begin();
+            CK(m4bf10f_bink_next(fx.self, VA_A + 0x10, &fx.host) == 0);
+            CK(L.n == 1);
+            expect_end();
+            for (d = 0; d < 4; d++) {                                    /* current differs in one byte only */
+                setup();
+                set32(fx.self, 0x2c4, MODES[i]);
+                set_handle(TOTALS[t], TOTALS[t] ^ (1u << (8 * d)));
+                expect_begin();
+                CK(m4bf10f_bink_next(fx.self, VA_A + 0x10, &fx.host) == 1);
+                CK(L.n == 2);
+                ck_call(1, 0x52a520, 0, 1);
+                ck_arg(1, 0, VA_A + 0x10);
+                expect_end();
+            }
+        }
+    }
+    for (i = 0; i < sizeof CURS / sizeof CURS[0]; i++) {                 /* mode 1 */
+        setup();
+        set32(fx.self, 0x2c4, 1);
+        set_handle(CURS[i], CURS[i]);                                    /* the total is not looked at */
+        expect_begin();
+        if (CURS[i] == 1) {
+            CK(m4bf10f_bink_next(fx.self, VA_A + 0x10, &fx.host) == 0 && L.n == 1);
+        } else {
+            CK(m4bf10f_bink_next(fx.self, VA_A + 0x10, &fx.host) == 1);
+            CK(L.n == 2);
+            ck_call(1, 0x52a530, 0, 3);
+            ck_arg(1, 0, VA_A + 0x10);
+            ck_arg(1, 1, CURS[i] - 1u);
+            ck_arg(1, 2, 0);
+        }
+        expect_end();
+    }
+    setup();                                                            /* mode 1, current exactly 1, different from the total: nothing */
+    set32(fx.self, 0x2c4, 1);
+    set_handle(9, 1);
+    CK(m4bf10f_bink_next(fx.self, VA_A + 0x10, &fx.host) == 0 && L.n == 1);
+    setup();                                                            /* 0x101 and 0x10001 are not 1 */
+    set32(fx.self, 0x2c4, 1);
+    set_handle(9, 0x101);
+    CK(m4bf10f_bink_next(fx.self, VA_A + 0x10, &fx.host) == 1 && L.n == 2);
+    CK(L.c[1].a[1] == 0x100);
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -616,6 +690,7 @@ static void test_sweep(void)
         (void)m4befc8_bink_do_frame(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4bef11_bink_goto(fx.self, rnd() % 2 ? VA_A : 0, rnd() % 3, &fx.host);
         (void)m4bf098_bink_copy_to_buffer(fx.self, rnd() % 2 ? VA_A : 0, rnd(), rnd(), rnd(), rnd(), rnd(), &fx.host);
+        (void)m4bf10f_bink_next(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -636,6 +711,7 @@ static const struct {
     {"test_m4befc8_bink_do_frame", test_m4befc8_bink_do_frame},
     {"test_m4bef11_bink_goto", test_m4bef11_bink_goto},
     {"test_m4bf098_bink_copy_to_buffer", test_m4bf098_bink_copy_to_buffer},
+    {"test_m4bf10f_bink_next", test_m4bf10f_bink_next},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };
