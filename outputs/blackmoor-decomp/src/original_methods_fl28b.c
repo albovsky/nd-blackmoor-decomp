@@ -324,3 +324,105 @@ uint32_t m4f6ef4_advance_record(uint8_t *self, uint32_t arg, const Fl28bWorld *w
     wr32(object_at(host, rec), 0x182, v);
     return rd32(object_at(host, rec), 0x17e);
 }
+
+/* ---- 0x41c544 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the string with its terminator, `repne scasb` for the length, then `rep movsd` / `rep movsb` forward */
+static void copy_string(uint8_t *dst, const uint8_t *src)
+{
+    size_t n = 0, i;
+    while (src[n] != 0) n++;
+    n++;
+    for (i = 0; i + 4 <= n; i += 4) wr32(dst, (ptrdiff_t)i, rd32(src, (ptrdiff_t)i));
+    for (; i < n; i++) dst[i] = src[i];
+}
+
+/* 0x41c544, thiscall, `ret 8`: see the header. [ebp-8] is `self`, [ebp+8] `rec`, [ebp+0xc] `src`, [ebp-4] the result of 0x423259. The constants are the strings of the original at 0x5431b0 / 0x5431fc / 0x543240. */
+void m41c544_init_record(uint8_t *self, uint8_t *rec, const uint8_t *src, const Fl28bWorld *world, const Fl18Host *host)
+{
+    static const char dummy[] = "dummy";
+    static const char missing[] = "<i>Missing conversation text (please contact Tech Support)<n><o>";
+    uint32_t s;
+    copy_string(rec + 0x747, (const uint8_t *)dummy);
+    wr16(rec, 0x768, 0xd);
+    wr16(rec, 0x76a, 2);
+    wr16(rec, 0x76c, 1);
+    wr16(rec, 0x76e, 1);
+    wr32(rec, 0x770, 1);
+    rec[0x778] = 0;
+    rec[0x77c] = 2;
+    wr16(rec, 0x781, 0);
+    wr16(rec, 0x783, 1);
+    wr32(rec, 0x785, 0);
+    wr32(rec, 0x789, 0);
+    wr32(rec, 0x78d, 1);
+    wr16(rec, 0x791, 2);
+    rec[0x779] = src[0x21];
+    rec[0x77a] = src[0x22];
+    rec[0x77b] = src[0x23];
+    wr16(rec, 0x77d, rd16(src, 0x24));
+    wr16(rec, 0x77f, rd16(src, 0x26));
+    s = call1(host, 0x423259, (uintptr_t)(self + 0xfd1), (uintptr_t)src);
+    if (s == 0) {
+        if (world->word_63a4cd != 0) {
+            call4(host, 0x50ca3e, 0, 0x63888b, 0x5431b8, (uintptr_t)src, world->value_5bb57b);
+            call3(host, 0x52139c, 0, 0x63888b, 0, 0);
+            copy_string(rec + 0x16b, (const uint8_t *)missing);
+        } else {
+            copy_string(rec + 0x16b, (const uint8_t *)missing);
+        }
+    } else {
+        copy_string(rec + 0x16b, object_at(host, s));
+    }
+    wr16(rec, 0x793, rd16(src, 0x28));
+    wr16(rec, 0x799, 0);
+    wr32(rec, 0x79b, 0);
+}
+
+/* ---- 0x41fa11 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x41fa11, thiscall, `ret 4`: see the header. [ebp-0xc] is `self`, [ebp+8] `arg`, [ebp-8] the block pointer p, [ebp-4] the word j. */
+void m41fa11_add_entry(uint8_t *self, const uint8_t *arg, const Fl28bWorld *world, const Fl18Host *host)
+{
+    int16_t j;
+    uint32_t p;
+    ptrdiff_t b;
+    size_t k;
+    if (world->word_63a4cd != 0 && rds16(self, 0xf21) + 1 > 0x1e) {
+        call3(host, 0x50ca3e, 0, 0x63888b, 0x543a58, (uint32_t)(rds16(self, 0xf21) + 1));
+        call1(host, 0x4264e8, 0x583979, 0x63888b);
+    }
+    if (rds16(self, 0xf21) + 1 > 0x1e) return;
+    for (j = 0; (int32_t)j < rds16(self, 0xf21); j = (int16_t)(j + 1)) {
+        uintptr_t slot = (uintptr_t)(self + 0xea5 + 4 * (ptrdiff_t)j);
+        p = call1(host, 0x51ea75, slot, 0x190);
+        if (call3(host, 0x50d550, 0, p, (uintptr_t)(arg + 6), 0x190) == 0) {
+            call1(host, 0x51eac4, slot, 0xffffffffu);
+            return;
+        }
+        call1(host, 0x51eac4, slot, 0xffffffffu);
+    }
+    {
+        uintptr_t slot = (uintptr_t)(self + 0xea5 + 4 * (ptrdiff_t)rds16(self, 0xf21));
+        uint8_t *dst;
+        p = call1(host, 0x51ea75, slot, 0x190);
+        dst = object_at(host, p);
+        for (k = 0; k < 0x64; k++) wr32(dst, (ptrdiff_t)(4 * k), rd32(arg, 6 + (ptrdiff_t)(4 * k)));
+        call1(host, 0x51eac4, (uintptr_t)(self + 0xea5 + 4 * (ptrdiff_t)rds16(self, 0xf21)), 0xffffffffu);
+    }
+    b = (ptrdiff_t)(int32_t)((uint32_t)(int32_t)rds16(self, 0xf21) * 0x3au);
+    wr16(self, b + 0x800, rd16(arg, 0x1be));
+    b = (ptrdiff_t)(int32_t)((uint32_t)(int32_t)rds16(self, 0xf21) * 0x3au);
+    wr16(self, b + 0x7fe, rd16(arg, 0x1bc));
+    b = (ptrdiff_t)(int32_t)((uint32_t)(int32_t)rds16(self, 0xf21) * 0x3au);
+    wr16(self, b + 0x7fa, rd16(arg, 0x1b8));
+    wr16(self, b + 0x7fc, rd16(arg, 0x1ba));
+    wr32(self, b + 0x802, rd32(arg, 0x1c0));
+    wr32(self, b + 0x806, rd32(arg, 0x1c4));
+    wr32(self, b + 0x80a, rd32(arg, 0x1c8));
+    copy_string(self + b + 0x7d9, arg + 0x196);
+    wr16(self, b + 0x80e, rd16(arg, 0x1cc));
+    self[b + 0x810] = arg[0x1ce];
+    wr16(self, b + 0x811, rd16(arg, 0x1cf));
+    wr16(self, 0xf21, (uint16_t)(rd16(self, 0xf21) + 1u));
+}

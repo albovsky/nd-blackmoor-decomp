@@ -94,6 +94,24 @@ void m4209e8_run_small_entries(uint8_t *self, uint32_t slot, const Fl28bWorld *w
  * is the dword [rec+0x17e]. Not exercised: a callee that changes the record. */
 uint32_t m4f6ef4_advance_record(uint8_t *self, uint32_t arg, const Fl28bWorld *world, const Fl18Host *host);
 
+/* 0x41c544, thiscall (`self` = ecx), `ret 8`, the stack arguments are `rec` (a host pointer to the record to initialise, at least 0x79f bytes) and `src` (a host pointer to the source record):
+ * copies the 6 bytes "dummy" (the string at 0x5431b0, an embedded constant of the port) to rec+0x747, then sets word [rec+0x768] = 0xd, [+0x76a] = 2, [+0x76c] = 1, [+0x76e] = 1, dword [+0x770] = 1,
+ * byte [+0x778] = 0, byte [+0x77c] = 2, word [+0x781] = 0, [+0x783] = 1, dwords [+0x785] = 0, [+0x789] = 0, [+0x78d] = 1, word [+0x791] = 2, then bytes [+0x779] [+0x77a] [+0x77b] = src [+0x21] [+0x22] [+0x23],
+ * words [+0x77d] [+0x77f] = src [+0x24] [+0x26]. s = 0x423259(this self+0xfd1, src) (thiscall, one argument). s == 0: with the debug word 0x50ca3e(0x63888b, 0x5431b8, src, dword 0x5bb57b) (cdecl, four
+ * arguments) and 0x52139c(0x63888b, 0, 0) (stdcall) and then the 65 bytes of the string at 0x5431fc ("<i>Missing conversation text ..." ) are copied to rec+0x16b; without it the string at 0x543240
+ * (the same 65 bytes) is copied there. s != 0: the string at the original address s is copied to rec+0x16b (strlen + 1 bytes, dwords first). Finally word [rec+0x793] = src word [+0x28], word [+0x799] = 0,
+ * dword [+0x79b] = 0. The two fixed strings are embedded constants. Caller-validated: the copied strings must fit in the record; Fl18Host.resolve must give the memory of s. */
+void m41c544_init_record(uint8_t *self, uint8_t *rec, const uint8_t *src, const Fl28bWorld *world, const Fl18Host *host);
+
+/* 0x41fa11, thiscall (`self` = ecx), `ret 4`, the stack argument `arg` is a host pointer to a 0x1d0-byte record: adds the record to the table of at most 0x1e entries unless an equal block exists. count = the
+ * signed word [self+0xf21]. With the debug word and count + 1 > 0x1e: 0x50ca3e(0x63888b, 0x543a58, count + 1) (cdecl, three arguments) and 0x4264e8(this 0x583979, 0x63888b). count + 1 > 0x1e: return. For
+ * j = 0 .. count - 1 (a word): p = 0x51ea75(this self+0xea5+j*4, 0x190) (thiscall, one argument); 0x50d550(p, arg+6, 0x190) (cdecl, three arguments); then 0x51eac4(this self+0xea5+j*4, 0xffffffff) in both
+ * cases; a zero result of 0x50d550 (an equal block) returns at once. No equal block: p = 0x51ea75(this self+0xea5+count*4, 0x190); 0x190 bytes from arg+6 are copied to the original address p (dwords);
+ * 0x51eac4(this ..., 0xffffffff); then for b = self + count*0x3a (signed count, 32-bit): word [b+0x800] = arg word [+0x1be], [b+0x7fe] = [+0x1bc], [b+0x7fa] = [+0x1b8], [b+0x7fc] = [+0x1ba], dwords [b+0x802] =
+ * [+0x1c0], [b+0x806] = [+0x1c4], [b+0x80a] = [+0x1c8], the string at arg+0x196 (strlen + 1 bytes, dwords first) to b+0x7d9 (a string of 0x21 or more characters clobbers the words stored before it), word [b+0x80e] =
+ * arg word [+0x1cc], byte [b+0x810] = arg byte [+0x1ce], word [b+0x811] = arg word [+0x1cf], and the word count is incremented. Caller-validated: the table index must lie inside `self`. */
+void m41fa11_add_entry(uint8_t *self, const uint8_t *arg, const Fl28bWorld *world, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif

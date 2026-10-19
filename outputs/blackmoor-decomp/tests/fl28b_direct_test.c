@@ -57,7 +57,8 @@ static void script(uint32_t callee, int n, const uint32_t *results)
 }
 #define REC_VA 0x20010000u
 #define ENT_VA 0x20020000u
-static uint8_t g_rec[0x900], g_ents[0x800], g_records[5 * 0x8d], g_tab[96];
+#define TXT_VA 0x20030000u
+static uint8_t g_rec[0x900], g_ents[0x800], g_records[5 * 0x8d], g_tab[96], g_txt[0x200];
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
@@ -85,6 +86,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     (void)ctx;
     if (a >= REC_VA && a < REC_VA + sizeof g_rec) return g_rec + (a - REC_VA);
     if (a >= ENT_VA && a < ENT_VA + sizeof g_ents) return g_ents + (a - ENT_VA);
+    if (a >= TXT_VA && a < TXT_VA + sizeof g_txt) return g_txt + (a - TXT_VA);
     return NULL;
 }
 
@@ -97,6 +99,7 @@ static void setup(void)
     memset(g_ents, 0, sizeof g_ents);
     memset(g_records, 0, sizeof g_records);
     memset(g_tab, 0, sizeof g_tab);
+    memset(g_txt, 0x77, sizeof g_txt);
     g_w.records_5bb5e5 = g_records + 0x8d;
     g_w.dwords_585801 = g_tab + 32;
     memset(&g_host, 0, sizeof g_host);
@@ -638,6 +641,173 @@ static void test_m4f6ef4_advance_record(void)
     CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 9);             /* v == low: the same */
 }
 
+static const char MISSING[] = "<i>Missing conversation text (please contact Tech Support)<n><o>";
+
+static void init_prep(void)
+{
+    setup();
+    memset(g_rec, 0xcc, sizeof g_rec);
+    memset(g_ents, 0x11, sizeof g_ents);
+    g_ents[0x21] = 0x31; g_ents[0x22] = 0x32; g_ents[0x23] = 0x33;
+    ent_set16(0x24, 0x4444); ent_set16(0x26, 0x5555); ent_set16(0x28, 0x6666);
+}
+
+/* the fixed stores of 0x41c544 applied to the expected record `x` */
+static void init_expect(uint8_t *x)
+{
+    memcpy(x + 0x747, "dummy", 6);
+    x[0x768] = 0xd; x[0x769] = 0;
+    x[0x76a] = 2; x[0x76b] = 0;
+    x[0x76c] = 1; x[0x76d] = 0;
+    x[0x76e] = 1; x[0x76f] = 0;
+    memcpy(x + 0x770, (const uint32_t[]){1}, 4);
+    x[0x778] = 0; x[0x77c] = 2;
+    x[0x781] = 0; x[0x782] = 0; x[0x783] = 1; x[0x784] = 0;
+    memset(x + 0x785, 0, 8);
+    memcpy(x + 0x78d, (const uint32_t[]){1}, 4);
+    x[0x791] = 2; x[0x792] = 0;
+    x[0x779] = 0x31; x[0x77a] = 0x32; x[0x77b] = 0x33;
+    x[0x77d] = 0x44; x[0x77e] = 0x44; x[0x77f] = 0x55; x[0x780] = 0x55;
+    x[0x793] = 0x66; x[0x794] = 0x66;
+    memset(x + 0x799, 0, 6);
+}
+
+static void test_m41c544_init_record(void)
+{
+    uint8_t x[0x900];
+    size_t i;
+    init_prep();
+    m41c544_init_record(g_self, g_rec, g_ents, &g_w, &g_host);        /* no text, no debug */
+    memset(x, 0xcc, sizeof x);
+    init_expect(x);
+    memcpy(x + 0x16b, MISSING, sizeof MISSING);
+    CK(memcmp(x, g_rec, sizeof x) == 0);
+    CK(L.n == 1);
+    CKC(0, 0x423259, (uintptr_t)(g_self + 0xfd1), 1, (uintptr_t)g_ents);
+    init_prep();                                                       /* no text, debug: report first */
+    g_w.word_63a4cd = (int16_t)0x8000;
+    g_w.value_5bb57b = 0x1234;
+    m41c544_init_record(g_self, g_rec, g_ents, &g_w, &g_host);
+    CK(memcmp(x, g_rec, sizeof x) == 0 && L.n == 3);
+    CKC(1, 0x50ca3e, 0, 4, 0x63888b, 0x5431b8, (uintptr_t)g_ents, 0x1234);
+    CKC(2, 0x52139c, 0, 3, 0x63888b, 0, 0);
+    CK(memcmp(L.c[1].snap, g_self, SNAP) == 0);
+    {
+        static const char *texts[] = {"", "A", "AB", "ABC", "ABCD", "ABCDE", "0123456789abcdefghij"};
+        for (i = 0; i < sizeof texts / sizeof texts[0]; i++) {
+            init_prep();
+            strcpy((char *)g_txt, texts[i]);
+            script(0x423259, 1, (const uint32_t[]){TXT_VA});
+            g_w.word_63a4cd = 1;                                       /* the debug word does not matter when the text exists */
+            m41c544_init_record(g_self, g_rec, g_ents, &g_w, &g_host);
+            memset(x, 0xcc, sizeof x);
+            init_expect(x);
+            memcpy(x + 0x16b, texts[i], strlen(texts[i]) + 1);
+            CK(memcmp(x, g_rec, sizeof x) == 0 && L.n == 1);
+        }
+    }
+}
+
+static void add_prep(int count, const char *text)
+{
+    const uint32_t results[2] = {5, 7};
+    setup();
+    memset(g_ents, 0x11, sizeof g_ents);
+    set16(0xf21, (uint16_t)count);
+    strcpy((char *)g_ents + 0x196, text);
+    ent_set16(0x1be, 0x1111); ent_set16(0x1bc, 0x2222); ent_set16(0x1b8, 0x3333); ent_set16(0x1ba, 0x4444);
+    ent_set32(0x1c0, 0xa0a0a0a0u); ent_set32(0x1c4, 0xb1b1b1b1u); ent_set32(0x1c8, 0xc2c2c2c2u);
+    ent_set16(0x1cc, 0x5555); g_ents[0x1ce] = 0x66; ent_set16(0x1cf, 0x7777);
+    script(0x51ea75, 1, (const uint32_t[]){TXT_VA});
+    script(0x50d550, 2, results);
+}
+
+static void add_expect(int count, const char *text)
+{
+    size_t b = (size_t)(ptrdiff_t)(count * 0x3a);
+    x16(0x800 + b, 0x1111); x16(0x7fe + b, 0x2222); x16(0x7fa + b, 0x3333); x16(0x7fc + b, 0x4444);
+    x32(0x802 + b, 0xa0a0a0a0u); x32(0x806 + b, 0xb1b1b1b1u); x32(0x80a + b, 0xc2c2c2c2u);
+    memcpy(g_exp + 0x7d9 + b, text, strlen(text) + 1);
+    x16(0x80e + b, 0x5555); g_exp[0x810 + b] = 0x66; x16(0x811 + b, 0x7777);
+    x16(0xf21, (uint16_t)(count + 1));
+}
+
+static void test_m41fa11_add_entry(void)
+{
+    int j;
+    add_prep(2, "hello");
+    begin();
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    add_expect(2, "hello");
+    end();
+    CK(L.n == 8);
+    for (j = 0; j < 2; j++) {
+        CKC(3 * j, 0x51ea75, (uintptr_t)(g_self + 0xea5 + 4 * j), 1, 0x190);
+        CKC(3 * j + 1, 0x50d550, 0, 3, TXT_VA, (uintptr_t)(g_ents + 6), 0x190);
+        CKC(3 * j + 2, 0x51eac4, (uintptr_t)(g_self + 0xea5 + 4 * j), 1, 0xffffffffu);
+    }
+    CKC(6, 0x51ea75, (uintptr_t)(g_self + 0xea5 + 8), 1, 0x190);
+    CKC(7, 0x51eac4, (uintptr_t)(g_self + 0xea5 + 8), 1, 0xffffffffu);
+    CK(memcmp(g_txt, g_ents + 6, 0x190) == 0 && g_txt[0x190] == 0x77);        /* 0x190 bytes copied, no more */
+    /* a block that is equal to a stored one: released, then nothing else */
+    add_prep(2, "hello");
+    script(0x50d550, 2, (const uint32_t[]){5, 0});
+    begin();
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    end();
+    CK(L.n == 6 && g_txt[0] == 0x77);
+    CKC(5, 0x51eac4, (uintptr_t)(g_self + 0xea5 + 4), 1, 0xffffffffu);
+    /* the table limit: 0x1d -> 0x1e entries is allowed, 0x1e is refused (silently, or traced) */
+    add_prep(0x1d, "x");
+    begin();
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    add_expect(0x1d, "x");
+    end();
+    CK(L.n == 29 * 3 + 2);
+    add_prep(0x1e, "x");
+    begin();
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    end();
+    CK(L.n == 0);
+    add_prep(0x1e, "x");
+    g_w.word_63a4cd = 1;
+    begin();
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    end();
+    CK(L.n == 2);
+    CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x543a58, 0x1f);
+    CKC(1, 0x4264e8, 0x583979, 1, 0x63888b);
+    add_prep(0x7fff, "x");
+    g_w.word_63a4cd = 1;
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    CK(L.n == 2 && L.c[0].a[2] == 0x8000);
+    add_prep(0x1d, "x");                                                      /* the debug word alone does not trace below the limit */
+    g_w.word_63a4cd = 1;
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    CK(L.c[0].callee == 0x51ea75);
+    /* count -1 (a word): the entry is built at index -1 and the count becomes 0 */
+    add_prep(-1, "neg");
+    begin();
+    m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+    add_expect(-1, "neg");
+    end();
+    CK(L.n == 2 && get16(g_self, 0xf21) == 0);
+    /* a 0x22-character string clobbers the first byte of the word at +0x7fa that was stored before it (the NUL lands in the next byte) */
+    {
+        char text[0x23];
+        memset(text, 'x', 0x22);
+        text[0x22] = 0;
+        add_prep(0, text);
+        g_ents[0x1b8] = 0;                                                    /* field low byte = the string's terminator position */
+        ent_set16(0x1b8, 0x3300);
+        begin();
+        m41fa11_add_entry(g_self, g_ents, &g_w, &g_host);
+        add_expect(0, text);
+        x16(0x7fa, 0x0078);                                                   /* 'x' then the terminator replaced the stored 0x3300 */
+        end();
+    }
+}
+
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
 static void test_sweep_bounded(void)
 {
@@ -721,6 +891,8 @@ int main(void)
     RUN(test_m4205c1_run_entries);
     RUN(test_m4209e8_run_small_entries);
     RUN(test_m4f6ef4_advance_record);
+    RUN(test_m41c544_init_record);
+    RUN(test_m41fa11_add_entry);
     RUN(test_sweep_bounded);
     return failures;
 }

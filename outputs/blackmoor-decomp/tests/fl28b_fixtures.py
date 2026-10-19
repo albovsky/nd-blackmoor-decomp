@@ -632,6 +632,67 @@ KEYS = list(SPECS)
 NAMES.update({'4205c1': 'run_entries', '4209e8': 'run_small_entries', '4f6ef4': 'advance_record'})
 
 
+# ---- 0x41c544 and 0x41fa11 -----------------------------------------------------------------------------------------------------------
+
+STR_LENGTHS = [0, 1, 2, 3, 4, 5, 8, 0x15, 0x30]
+
+
+def profiles_41c544():
+    return [(dbg, has, ln) for dbg in (0, 1, 0x100, 0x8000) for has in (0, 1) for ln in (STR_LENGTHS if has else [0])]
+
+
+def gen_41c544(rng, n):
+    (dbg, has, ln), variant = prof(n, profiles_41c544())
+    selfd = bytearray(rng.randbytes(0x1100))
+    rec = bytearray(rng.randbytes(0x800))
+    src = bytearray(rng.randbytes(0x40))
+    text = zstring(rng, ln, 0x80)
+    probe = [('rec', 0, 0x800), ('g:value_5bb57b', 0, 4)]
+    stubs = {0x423259: stub(0x423259, THISCALL(1), probe, results=[od.region_va(3) if has else 0]), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe),
+             0x52139c: stub(0x52139c, STDCALL(3), probe)}
+    g, nbr = debug_areas(rng, dbg)
+    g['value_5bb57b'] = rng.choice([0, 1, rng.randrange(1 << 32), 0xffffffff])
+    return make('41c544', [self_area(selfd), Area('rec', od.region_va(1), rec, image=False), Area('src', od.region_va(2), src, image=False),
+                           Area('text', od.region_va(3), text, image=False), *nbr], stubs, g, [od.region_va(1), od.region_va(2)], (od.region_va(1), od.region_va(2)), (dbg, has, ln))
+
+
+def profiles_41fa11():
+    p = [('early', c, d) for c in (0x1e, 0x1f, 0x7fff) for d in (0, 1)]
+    p += [('dup', c, k) for c in (1, 2, 3, 5, 0x1d) for k in range(0, c, max(1, c // 3))]
+    p += [('new', c, ln) for c in (-1, 0, 1, 2, 3, 0x1d) for ln in (0, 1, 3, 4, 0x10, 0x1f, 0x25, 0x30)]
+    p += [('trace', 0x1e, 1)]
+    return p
+
+
+def gen_41fa11(rng, n):
+    (kind, count, extra), variant = prof(n, profiles_41fa11())
+    dbg = extra if kind in ('early', 'trace') else rng.choice([0, 1])
+    selfd = bytearray(rng.randbytes(0x1000))
+    put16(selfd, 0xf21, count)
+    arg = bytearray(rng.randbytes(0x200))
+    ln = extra if kind == 'new' else rng.choice([0, 3, 0x10])
+    arg[0x196:0x196 + 0x40] = zstring(rng, ln, 0x40)
+    buf = bytearray(rng.randbytes(0x1a0))
+    if kind == 'dup':
+        results = [rng.randrange(1, 1 << 32) for _ in range(extra)] + [0]
+    else:
+        results = [rng.randrange(1, 1 << 32) for _ in range(min(max(count, 1), 0x20))]
+    probe = [('self', 0xea5, 0x80), ('self', 0xf20, 4), ('buf', 0, 0x1a0)]
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3), probe), 0x4264e8: stub(0x4264e8, THISCALL(1), probe), 0x51ea75: stub(0x51ea75, THISCALL(1), probe, results=[od.region_va(3)]),
+             0x50d550: stub(0x50d550, CDECL(3), probe, results=results), 0x51eac4: stub(0x51eac4, THISCALL(1), probe)}
+    g, nbr = debug_areas(rng, dbg * rng.choice([1, 0x100, 0x8000]))
+    return make('41fa11', [self_area(selfd), Area('arg', od.region_va(1), arg, image=False), Area('buf', od.region_va(3), buf, image=False), *nbr], stubs, g, [od.region_va(1)],
+                (od.region_va(1),), (kind, count, extra))
+
+
+SPECS.update({
+    '41c544': dict(id=10, va=0x41c544, size=556, gen=gen_41c544, cleanup=8, n=len(profiles_41c544()) * 3),
+    '41fa11': dict(id=11, va=0x41fa11, size=759, gen=gen_41fa11, cleanup=4, n=len(profiles_41fa11()) * 3),
+})
+KEYS = list(SPECS)
+NAMES.update({'41c544': 'init_record', '41fa11': 'add_entry'})
+
+
 def build(key, rng, n):
     return SPECS[key]['gen'](rng, n)
 
