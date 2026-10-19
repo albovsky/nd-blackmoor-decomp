@@ -628,7 +628,7 @@ def gen_46bca9(rng, n):
     kt = None
     if kind == 'hit':
         kt = last if last != 'none' else None
-        count = kt + 1 + rng.choice([0, 1]) if kt is not None else rng.choice([0, 1, 2, 3])
+        count = kt + 1 + rng.choice([0, 1]) if kt is not None else rng.choice([0, 1, 2, 3, -1])
     w(0x4f, count)
     for s in (1, 2):
         for k in range(5):
@@ -643,6 +643,12 @@ def gen_46bca9(rng, n):
             put32(d, e, rng.choice([0, 2, 0x101, 0xffffffff, 0x10001, 0x100]) if t == 0 or s != stage else 1)
             put16(d, e + 8, ei if t != 1 else (ei + rng.choice([1, -1, 0x100, 5])) & 0xffff)
             put16(d, e + 10, ej if t != 2 else (ej + rng.choice([1, -1, 0x100, 7])) & 0xffff)
+    if kind == 'hit' and last == 'none' and variant % 2 and count >= 0:
+        # an entry that would match sits just past the count (a loop bound one too far would find it)
+        e = ent_of[stage] + 16 * count
+        put32(d, e, 1)
+        put16(d, e + 8, ti)
+        put16(d, e + 10, tj)
     # the tail rectangle of mode B
     roffs = (0x6d5, 0x6dd, 0x6d1, 0x6d9)
     if kind == 'tailB':

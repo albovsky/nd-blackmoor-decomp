@@ -905,6 +905,16 @@ static void test_m46bca9_hit_test(void)
                 }
             }
         }
+        /* the entry count R[0x4f] bounds the search (a signed word): a matching entry at index 1 is not found when the count is 1, and a count of -1 finds none
+         * (the cell holds the point: 0x46c41e(self, 0x27e3, 1, 2, -1)) */
+        for (k = 0; k < 2; k++) {
+            setup_46bca9(idx, 1, 3, 4, 3, 4, k ? -1 : 1);
+            set_cell(1, 1, 2, py, py, px, px);
+            set_entry(1, 1, 1, 1, 2);
+            if (k) set_entry(1, 0, 1, 1, 2);
+            CK(run_46bca9(px, py) == 1 && L.n == 2);
+            ck_call4(1, 0x27e3, 1, 2, -1);
+        }
         /* the order: row-major, the first holding cell wins: (0, 1) before (1, 0) */
         setup_46bca9(idx, 1, 2, 2, 2, 2, 1);
         set_cell(1, 1, 0, py, py, px, px);
