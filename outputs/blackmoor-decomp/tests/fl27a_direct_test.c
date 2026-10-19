@@ -369,6 +369,35 @@ static void test_m44c479_wait_state(void)
     CK(m44c479_wait_state(STATE_VA, &fx.w, &fx.host) == 2 && L.n == 1);
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bee2c: 0x4bf38c(self) first; handle 0 -> [self+0x2c0] = -3, return -1; else return [handle+0xc] */
+
+static void test_m4bee2c_get_field(void)
+{
+    static const uint32_t FIELDS[] = {0, 1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu, 0x12345678u};
+    size_t i;
+    int32_t r;
+    setup();
+    expect_begin();
+    r = m4bee2c_get_field(fx.self, 0, &fx.host);
+    CK(r == -1);
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    CK(get32(L.c[0].snap_self, 0x2c0) == 0xa5a5a5a5u);                  /* the call comes first */
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    for (i = 0; i < sizeof FIELDS / sizeof FIELDS[0]; i++) {
+        setup();
+        set32(fx.a, 0x1c, FIELDS[i]);                                    /* handle = VA_A + 0x10 */
+        expect_begin();
+        r = m4bee2c_get_field(fx.self, VA_A + 0x10, &fx.host);
+        CK((uint32_t)r == FIELDS[i]);
+        CK(L.n == 1);
+        ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+        expect_end();                                                    /* nothing is written when the handle is not null */
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -401,6 +430,7 @@ static void test_sweep(void)
         fx.w.native_spin_limit = 3;
         set32(fx.c, 1, rnd() % 4);
         (void)m44c479_wait_state(STATE_VA, &fx.w, &fx.host);
+        (void)m4bee2c_get_field(fx.self, rnd() % 2 ? VA_A + (rnd() % 64) : 0, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -415,6 +445,7 @@ static const struct {
     {"test_m4de2d8_reset_caption", test_m4de2d8_reset_caption},
     {"test_m449d90_file_exists", test_m449d90_file_exists},
     {"test_m44c479_wait_state", test_m44c479_wait_state},
+    {"test_m4bee2c_get_field", test_m4bee2c_get_field},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

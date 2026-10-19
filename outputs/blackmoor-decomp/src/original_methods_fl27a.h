@@ -65,6 +65,10 @@ int32_t m449d90_file_exists(uint32_t path, const Fl18Host *host);
  * rejection: FL27A_REJECTED after Fl27aWorld.native_spin_limit (0 = FL27A_SPIN_LIMIT) Sleep calls with the dword still 1. */
 int32_t m44c479_wait_state(uint32_t state, const Fl27aWorld *world, const Fl18Host *host);
 
+/* 0x4bee2c: thiscall, `ret 4`, one argument `handle` (an original address): calls 0x4bf38c (this = self); handle zero: [self + 0x2c0] =
+ * 0xfffffffd, returns -1; otherwise returns the dword [handle + 0xc] (read through resolve, 0x10 bytes). */
+int32_t m4bee2c_get_field(uint8_t *self, uint32_t handle, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

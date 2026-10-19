@@ -128,4 +128,18 @@ int32_t m44c479_wait_state(uint32_t state, const Fl27aWorld *world, const Fl18Ho
     return 1;
 }
 
+/* ---- 0x4bee2c ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bee2c, thiscall, `ret 4`: calls 0x4bf38c (this = self); with a zero argument stores [self + 0x2c0] = 0xfffffffd and returns -1,
+ * otherwise returns the dword [argument + 0xc] (the frame number of a Bink handle). The handle is read through Fl18Host.resolve (0x10 bytes). */
+int32_t m4bee2c_get_field(uint8_t *self, uint32_t handle, const Fl18Host *host)
+{
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    if (handle == 0) {
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return -1;
+    }
+    return (int32_t)rd32(mem_at(host, handle), 0xc);
+}
+
 /*NEXT*/

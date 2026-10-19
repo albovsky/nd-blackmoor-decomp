@@ -355,6 +355,27 @@ def gen_44c479(rng, n):
 
 SPECS['44c479'] = dict(id=5, va=0x44c479, size=50, gen=gen_44c479, ret=0xffff, cleanup=0, n=60)
 
+def bink_area(rng, size=0x100):
+    return bytearray(rng.randbytes(size))
+
+
+def gen_4bee2c(rng, n):
+    """The handle is null (error code stored, -1 returned) or points at an object whose dword +0xc is returned (its neighbours are junk)."""
+    profiles = [('null',)] + [('ok', v) for v in (0, 1, 0xffffffff, 0x80000000, 0x100, 0x10000, 0x01000000, None)]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    obj = bink_area(rng)
+    hoff = rng.choice([0, 4, 0x20])
+    handle = 0 if kind == 'null' else od.region_va(1) + hoff
+    if kind == 'ok':
+        put32(obj, hoff + 0xc, rest[0] if rest[0] is not None else rng.randrange(1 << 32))
+    stubs = {0x4bf38c: stub(0x4bf38c, results=[rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('bink', od.region_va(1), obj, image=False)]
+    return make('4bee2c', areas, stubs, {}, [handle], (handle,), (kind, *rest), probes=[('self', 0, 0x300)])
+
+
+SPECS['4bee2c'] = dict(id=6, va=0x4bee2c, size=51, gen=gen_4bee2c, ret=0xffffffff, cleanup=4, n=27)
+
 KEYS = list(SPECS)
 
 

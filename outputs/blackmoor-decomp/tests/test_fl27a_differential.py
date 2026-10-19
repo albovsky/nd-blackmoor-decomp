@@ -161,6 +161,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m44c479_wait_state (original 0x44c479)"""
         self.run_key('44c479')
 
+    def test_4bee2c_get_field(self):
+        """FL-27a: differential test of m4bee2c_get_field (original 0x4bee2c)"""
+        self.run_key('4bee2c')
+
     # CASES-END
 
 
