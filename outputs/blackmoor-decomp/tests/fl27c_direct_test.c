@@ -883,7 +883,7 @@ static void test_m4c2e97_read_pixel_format(void)
         uint32_t m[3] = {0xf800, 0x07e0, 0x001f};
         m[k] = 0;
         pf_setup(0, m[0], m[1], m[2], 0, 0, 0xff, 0xff, 0xff);
-        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 2);
+        CK(m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host) == 0);
         if (k >= 1) {
             exp_big[0x38c2] = 11;
             exp_big[0x38c6] = 0x1f;

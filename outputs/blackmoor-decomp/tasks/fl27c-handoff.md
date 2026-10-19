@@ -103,3 +103,8 @@ Native library: the differential builds `tests/fl27c_differential_shim.c` + `src
 ## Branch and commit
 
 Branch `worktree-agent-a7acaa5a285fda3ae`; port commits `1a0dc98f` (0x4497a0), `a3003a6c` (0x414ceb), `0e6667ff` (0x4c2e97), `83dacc69` (0x44c4c1), `1b8d6b23` (test fix); the final commit adds this handoff and the acceptances (see git log).
+
+## Root decisions after review
+
+- A Sonnet `slice-reviewer` found no P1. Fixed: the zero-mask native rejection of `0x4c2e97` now returns 0 (the caller's failure path; any non-zero value would have continued as success), header and direct test updated; header notes for `0x414ceb` (rejection result must be treated as a failed open; the original leaves `eax = arg`) and the import name (`0x52a2ac` is `SetThreadPriority`, parameter renamed `priority`).
+- Left as an unexercised branch, stated here: `0x4497a0` re-reads `[self+0x36]` after the callee `0x51ed8c` and after the import `0x52a2ac`; the fixtures only change it to zero, so a callee that swaps in a second object is not exercised (the port does re-read). The x87 precision (53-bit double versus the 64-bit extended mantissa under control word 0x37f) is not pinned by fixtures at the realistic rates (10 to 60 fps).

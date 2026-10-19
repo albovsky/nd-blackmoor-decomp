@@ -111,7 +111,7 @@ static void virtual_78(const Fl18Host *host, uint32_t obj)
 
 /* 0x4497a0, `ret 0x10`: see the header. [ebp-0x8c] is `self`; [ebp-0x78] the allocation, [ebp-0x74] the object (0x524aff's result), [ebp-0x7c] and [ebp-0x84] the object
  * address re-read for the imports, [ebp-0x70] a 0x68-byte trace buffer. fs:[0] is linked in the prologue and restored before the return (not modelled). */
-uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t timeout, uint32_t flags, const Fl27cWorld *world, const Fl18Host *host)
+uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t priority, uint32_t flags, const Fl27cWorld *world, const Fl18Host *host)
 {
     uint32_t p, obj, r;
     uint8_t text[0x68];
@@ -141,7 +141,7 @@ uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t
     }
     obj = rd32(self, 0x36);
     if (obj == 0) return NULL;
-    r = call2(host, 0x52a2ac, 0, rd32(object_at(host, obj), 0x28), timeout);
+    r = call2(host, 0x52a2ac, 0, rd32(object_at(host, obj), 0x28), priority);
     if (r == 0) {
         if (rd32(self, 0x36) == 0) return NULL;
         virtual_78(host, rd32(self, 0x36));
@@ -297,9 +297,9 @@ int32_t m4c2e97_read_pixel_format(uint8_t *self, uint32_t surf, Fl27cWorld *worl
         call2(host, 0x42639d, 0x583979, 0x553f14, text);
         return 0;
     }
-    if (!mask_fields(self, desc, 0x58, 0x38c2, 0x38c6, 0x38ca)) return 2;
-    if (!mask_fields(self, desc, 0x5c, 0x38c1, 0x38c5, 0x38c9)) return 2;
-    if (!mask_fields(self, desc, 0x60, 0x38c0, 0x38c4, 0x38c8)) return 2;
+    if (!mask_fields(self, desc, 0x58, 0x38c2, 0x38c6, 0x38ca)) return 0;
+    if (!mask_fields(self, desc, 0x5c, 0x38c1, 0x38c5, 0x38c9)) return 0;
+    if (!mask_fields(self, desc, 0x60, 0x38c0, 0x38c4, 0x38c8)) return 0;
     world->byte_5b0257 = (uint8_t)(world->byte_5b0257 & self[0x38c6]);
     world->byte_5b0258 = (uint8_t)(world->byte_5b0258 & self[0x38c5]);
     world->byte_5b0259 = (uint8_t)(world->byte_5b0259 & self[0x38c4]);

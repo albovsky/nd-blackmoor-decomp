@@ -34,19 +34,19 @@ typedef struct Fl27cWorld {
 } Fl27cWorld;
 
 /* 0x4497a0, constructor of the thread wrapper, `ret 0x10`, `self` = this (ecx): the stack arguments are `arg8` (a dword passed on to 0x524aff), `name` (the original address of a
- * zero-terminated string), `timeout` (a dword passed on to the import 0x52a2ac) and `flags` (a dword). It first stores the vtable address 0x52cb5c in [self], [self+0x36] = 0,
+ * zero-terminated string), `priority` (a dword passed on to the import 0x52a2ac) and `flags` (a dword). It first stores the vtable address 0x52cb5c in [self], [self+0x36] = 0,
  * [self+0x42] = 3, [self+0x3a] = 0xffffffff, [self+0x3e] = 0, then copies the string (with its terminator) to self+4 (forward, dwords first; the destination reaches
  * +0x3a .. +0x45 when the string is 0x36 characters or longer: those fields are then the string's bytes, as in the original). Then obj = 0 or, when 0x51dc43(0x68) is non-zero,
  * 0x524aff(this = that result, arg8, self+0x3e); [self+0x36] = obj. obj == 0: 0x4264e8(this 0x583979, 0x548844), 0x4c97b4(this 0x5cf659) and return. Otherwise
  * [[self+0x36] + 0x24] = 1 and 0x51ed8c(this = [self+0x36], flags | 4, 0, 0) (thiscall, 3 stack arguments); a result of 0: the virtual call [[o] + 0x78](this o) with o = [self+0x36],
- * 0x4264e8(0x583979, 0x548894), 0x4c97b4, return. Then the import 0x52a2ac([o + 0x28], timeout) (stdcall); a result of 0: the virtual call, 0x4264e8(.., 0x5488d8), 0x4c97b4, return.
+ * 0x4264e8(0x583979, 0x548894), 0x4c97b4, return. Then the import 0x52a2ac([o + 0x28], priority) (stdcall); a result of 0: the virtual call, 0x4264e8(.., 0x5488d8), 0x4c97b4, return.
  * With bit 2 of `flags` clear: the import 0x52a284([o + 0x28]); a result of 0xffffffff: the virtual call, 0x4264e8(.., 0x548920), 0x4c97b4, return. Success: [[o] + 0x24] = 0, [self+0x3a] =
  * [o + 0x2c], [self+0x42] = 1 when flags == 4 (the whole dword) else 2, and with the debug word 0x50ca3e(local text, 0x548968, [self+0x3a], self+4) + 0x44a2b7(local text).
  * Returns `self` (the original returns this in eax). The object address [self+0x36] is read again at every use, like the original.
  * Not modelled: the structured-exception frame the original links into fs:[0] (the handler 0x527f1a runs only when a callee throws; the frame is unlinked again before every return).
  * Native rejection (not in the original, which would fault on address 0x24 / 0x28 / 0): returns NULL when [self+0x36] is zero at one of its re-reads after a callee ran (the host's
  * callee cleared it). Caller-validated: the string must be terminated and `self` must have room for it. */
-uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t timeout, uint32_t flags, const Fl27cWorld *world, const Fl18Host *host);
+uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t priority, uint32_t flags, const Fl27cWorld *world, const Fl18Host *host);
 
 /* 0x414ceb, thiscall (`self` = ecx, only forwarded to 0x415011), `ret 4`: the stack argument `arg` is the chunk-streamer record (a host pointer here); a failure report is the sequence 0x42639d(this
  * 0x583979, message, text) (thiscall, 2 stack arguments), [0x63a58a] = 4, 0x4c97b4(this 0x5cf659), and every report except the ones inside the first four steps ends the function.
@@ -57,7 +57,7 @@ uint8_t *m4497a0_construct(uint8_t *self, uint32_t arg8, uint32_t name, uint32_t
  * the 15 bytes at arg are compared with the signature at 0x541978 and the words [+0x10] == 2 and [+0x12] == 0 are required; otherwise 0x415011(this self, arg) and the report (0x541988, arg+0x4d), end.
  * 8. n = (signed word [+0x15]) * 0x13 in 32 bits; [+0x21] = a = 0x51dc43(n); a == 0: 0x415011(this self, arg), the report (0x5419ec, 0x5419dc), end. 9. n bytes are copied from [+0x2d] + 0x21 to a (dwords first, then
  * bytes, forward) and [+0x41] = (signed word [+0x17]) * (signed word [+0x19]) * (byte [+0x1b] >> 3), all in 32 bits. Returns 0.
- * Native rejection (not in the original, whose copy would run for 4 GB): when n is above 0x7fffffff as an unsigned count (a negative word) and the allocation succeeded, the function returns 1 after the store of [+0x21]
+ * Native rejection (not in the original, whose copy would run for 4 GB): when n is above 0x7fffffff as an unsigned count (a negative word) and the allocation succeeded, the function returns 1 after the store of [+0x21] (the allocation is not released and the original callers ignore the result, so the host must treat 1 as a failed open; on its other paths the original leaves eax = arg and the port returns 0)
  * and before the copy. Caller-validated: the string at arg+0x4d must be terminated inside the record, `arg` must hold the record (0x151 bytes plus the text), and Fl18Host.resolve must give memory valid for the 0x21 header
  * bytes at v, the n bytes after them and the n bytes at a (it is called unchecked). The callees are host calls and are not exercised for effects on `arg` (the scripted writes of the oracle model a mapped file). */
 int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const Fl18Host *host);
@@ -71,7 +71,7 @@ int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const F
  * (g59 << [0x38c0]) (32-bit, low word stored), the bytes [self + 0x38d2] and [0x38d3] are its low and high bytes, and the dword [self + 0x38a8] is 0 when all three kinds are 5, else 1. With the
  * debug word: 0x50ca3e(0x63888b, 0x553f30, 14 more values: the bytes 38c2 38c6 38ca 38c1 38c5 38c9 38c0 38c4 38c8, the dword 38a8, the word 38d0, the bytes 38d3 38d2, descriptor[+0x54]) and 0x44a2b7(0x63888b);
  * then 0x44a2b7 with 0x55400c / 0x55403c / 0x554074 / 0x5540a0 for the descriptor flags [+0x4c] bits 0x2 / 0x20 / 0x40 / 0x400, in that order. Returns 1.
- * Native rejection (not in the original, whose shift loop never ends on a zero mask): a mask of 0 returns 2 at its own loop, after the stores of the masks before it. Caller-validated: `self` holds the object,
+ * Native rejection (not in the original, whose shift loop never ends on a zero mask): a mask of 0 returns 0 (the caller's failure path; 0x4c26a2 treats any non-zero value as success) at its own loop, after the stores of the masks before it. Caller-validated: `self` holds the object,
  * Fl18Host.resolve must give the surface object and its vtable (the host call is unchecked). The descriptor is a local; the method must fill it (the port does not model its effect on anything else). */
 int32_t m4c2e97_read_pixel_format(uint8_t *self, uint32_t surf, Fl27cWorld *world, const Fl18Host *host);
 
