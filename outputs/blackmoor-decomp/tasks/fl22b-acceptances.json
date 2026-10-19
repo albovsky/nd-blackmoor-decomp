@@ -31,5 +31,38 @@
   },
   "parts_accounted": [],
   "note": "1:1 with m42ed54_run_state. Three states of a record (dword +0x4d): 0 (start: rand, clamp, table reset, 4 host calls), 1 (jump table of 4 sub-steps at 0x42f500, the dword 0x5b5162) and 2 (load of the globals 0x5bb57b.. from one of two record blocks, flag-table store, 0x42ba3a). Direct test: ordered host calls with hand-derived arguments, call-time probes of every global and table, signed/unsigned boundaries, the jump-table bounds. Differential test: original bytes (Unicorn, rand/callees/GetTickCount as recording stubs) vs native on 300 random fixtures, every instruction of the 1964-byte body reached, jump table included. The CRT rand at 0x50cd50 is a host call whose result is scripted; the idiv by 5 is part of the function and runs as original code."
+ },
+ {
+  "va": "0x47ff0e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22b.c",
+   "symbol": "m47ff0e_handle_click"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22b_direct_test.c",
+    "test_id": "test_m47ff0e_handle_click"
+   },
+   {
+    "path": "tests/test_fl22b_direct.py",
+    "test_id": "Fl22bDirect.test_handle_click_47ff0e"
+   },
+   {
+    "path": "tests/test_fl22b_differential.py",
+    "test_id": "Fl22bDifferential.test_47ff0e_handle_click"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_eb_runtime_original_oracle.py",
+   "window": [
+    "0x47ff0e",
+    "0x4809a7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m47ff0e_handle_click (thiscall, self = ecx). Events 0x278d..0x2791 of the item picker: gates, state 2 (0x278f/0x2790), selection (0x278e), click (two entry conditions, optional 0x47e9d3 call, 0x47e582/0x47ed96, 16-byte copies, counter decrement, 0x4809a7) and release (held or not held, nine-byte compare, caption strings via 0x423259 and 0x448d11, common end). Direct test: ordered host calls with hand-derived arguments, call-time probes of self, the item table and the record state, word-argument masks, wrap-arounds, the rejection of captions longer than 200 bytes. Differential test: original bytes (Unicorn, callees and GetTickCount as recording stubs, the bytes behind the frame pointer of 0x448d11 compared) vs native on 300 random fixtures, every instruction of the 2713-byte body reached. Deliberate divergence: a caption string longer than 200 bytes overruns the original's 0xcc-byte frame buffer; the native port returns FL22B_47FF0E_REJECT_LONG_STRING instead of copying (not exercised by the differential test)."
  }
 ]

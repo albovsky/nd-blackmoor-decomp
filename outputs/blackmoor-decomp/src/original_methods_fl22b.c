@@ -32,6 +32,11 @@ UNUSED_OK static void wr16(uint8_t *base, ptrdiff_t off, uint16_t v)
     memcpy(base + off, &v, sizeof v);
 }
 
+UNUSED_OK static uint32_t rd_u8(const uint8_t *base, ptrdiff_t off)
+{
+    return base[off];
+}
+
 /* a signed word, sign-extended (movsx) */
 UNUSED_OK static int32_t rds16(const uint8_t *base, ptrdiff_t off)
 {
@@ -48,6 +53,23 @@ UNUSED_OK static uint32_t call1(const Fl18Host *host, uint32_t callee, uintptr_t
     uintptr_t args[1];
     args[0] = a0;
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 1) : 0;
+}
+
+UNUSED_OK static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1)
+{
+    uintptr_t args[2];
+    args[0] = a0;
+    args[1] = a1;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 2) : 0;
+}
+
+UNUSED_OK static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2)
+{
+    uintptr_t args[3];
+    args[0] = a0;
+    args[1] = a1;
+    args[2] = a2;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 3) : 0;
 }
 
 UNUSED_OK static uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2,
@@ -221,4 +243,169 @@ void m42ed54_run_state(int16_t index, Fl22bWorld *world, const Fl18Host *host)
     } else {
         return;
     }
+}
+
+/* four dwords, ascending, each read and written before the next (the unrolled 16-byte copy of the original) */
+UNUSED_OK static void copy16(uint8_t *dst, const uint8_t *src)
+{
+    wr32(dst, 0, rd32(src, 0));
+    wr32(dst, 4, rd32(src, 4));
+    wr32(dst, 8, rd32(src, 8));
+    wr32(dst, 0xc, rd32(src, 0xc));
+}
+
+/* the inlined strlen of the original (repne scasb): the number of bytes before the first zero */
+UNUSED_OK static uint32_t string_length(const uint8_t *s)
+{
+    uint32_t n = 0;
+    while (s[n] != 0) n++;
+    return n;
+}
+
+/* ---- 0x47ff0e ------------------------------------------------------------------------------------------------------------------ */
+
+#define OBJ47(rec_va) object_at(host, (rec_va))                      /* the record object [ebp-4], read through again at every use */
+#define ITEM_N(self) ((ptrdiff_t)rds16((self), 0x1350))              /* the selected item (a signed word) */
+#define ITEM(self, off) ((ptrdiff_t)0x7b6 + ITEM_N(self) * 0x25 + (off))   /* offset of field `off` of the selected item (stride 0x25) in self */
+
+/* the two words at +0x13e3 and +0x13e5: the extent of the selected item (right - left, bottom - top, low words) */
+static void store_item_extent_47ff0e(uint8_t *self)
+{
+    wr16(self, 0x13e3, (uint16_t)(rd32(self, ITEM(self, 8)) - rd32(self, ITEM(self, 0))));
+    wr16(self, 0x13e5, (uint16_t)(rd32(self, ITEM(self, 0xc)) - rd32(self, ITEM(self, 4))));
+}
+
+/* The inlined strcpy of `text` (length + 1 bytes, by dwords then bytes) into the frame buffer of the original followed by the strcat of the
+ * dword `suffix` at the terminator, and the call of 0x448d11. The original has 0xcc bytes below its local [ebp-0xc]; a text of more than 200
+ * bytes would overwrite its locals, its saved registers and the return address, so it is rejected (returns 0), not copied. */
+static int show_caption_47ff0e(const Fl22bWorld *world, const Fl18Host *host, const uint8_t *text, uint32_t suffix)
+{
+    uint8_t frame[0xcc];
+    uint32_t len = string_length(text);
+    if (len > 200u) return 0;
+    memcpy(frame, text, len + 1u);
+    wr32(frame, (ptrdiff_t)len, suffix);   /* mov [edi-1], eax over the terminator: four bytes at frame + len */
+    call4(host, 0x448d11, 0x619a05, world->value_5d03b3, (uintptr_t)frame, 0xffffffffu, 0);
+    return 1;
+}
+
+/* 0x47ff0e: `self` (ecx) is the object with the record index (word +0x1e), the item table (stride 0x25 from +0x7b6) and the counters (+0x7a0);
+ * the dword 0x5c39e5 is the event (0x278d .. 0x2791). A thiscall method of 0xdc bytes of frame; `ret` pops nothing. */
+int32_t m47ff0e_handle_click(uint8_t *self, Fl22bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d);   /* [ebp-4] */
+    uint32_t lc = 0;                                                                       /* [ebp-0xc] */
+    uint32_t sel;
+    int16_t w;
+    if (rd32(self, 0x13c5) == 0) return FL22B_47FF0E_OK;
+    if (self[0x13ce] != 0) return FL22B_47FF0E_OK;
+    if (rd32(self, 0x13ca) != 0) return FL22B_47FF0E_OK;
+    if (rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d) != 1) return FL22B_47FF0E_OK;
+    sel = world->value_5c39e5;
+    if (sel == 0x278f || sel == 0x2790) {
+        wr32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d, 2);
+        call0(host, 0x480b34, (uintptr_t)self);
+        if (self[0x13ce] == 0) self[0x13c9] = 1;
+        return FL22B_47FF0E_OK;
+    }
+    if (sel == 0x278e) {
+        w = (int16_t)call0(host, 0x47e8fe, (uintptr_t)self);
+        if (w == -1) return FL22B_47FF0E_OK;
+        call1(host, 0x47fa11, (uintptr_t)self, (uint16_t)w);
+        call0(host, 0x480abe, (uintptr_t)self);
+        wr32(self, 0x1344, 1);
+        wr16(self, 0x1350, (uint16_t)w);
+        store_item_extent_47ff0e(self);
+        return FL22B_47FF0E_OK;
+    }
+    if ((rd32(self, 0x1344) == 0 && sel == 0x278d) || (rd32(self, 0x1344) != 0 && self[0x13b1] != 0)) {
+        /* 0x48013a: a click on an item */
+        uint32_t kind;
+        wr32(self, 0x1344, 1);
+        if (self[0x13b0] != 0 && self[0x13b1] == 0) {
+            w = (int16_t)call0(host, 0x47e9d3, (uintptr_t)self);
+            wr16(self, 0x1350, (uint16_t)w);
+            call1(host, 0x47fb76, (uintptr_t)self, (uint16_t)w);
+            self[0x13b1] = 1;
+            return FL22B_47FF0E_OK;
+        }
+        if (self[0x13b0] == 0) {
+            w = (int16_t)call0(host, 0x47e9d3, (uintptr_t)self);
+            wr16(self, 0x1350, (uint16_t)w);
+        }
+        kind = self[ITEM(self, 0x21)];
+        if (rd_u8(OBJ47(rec_va), (ptrdiff_t)kind * 0x53 + 0xe9) != 0) {
+            call3(host, 0x47e582, (uintptr_t)self, rd16(self, 0x13a2), self[ITEM(self, 0x21)], 1);
+            call1(host, 0x47ed96, (uintptr_t)self, rd16(self, 0x13a2));
+            wr16(self, 0x13a2, (uint16_t)(rd16(self, 0x13a2) + 1u));
+        }
+        self[0x13b1] = 0;
+        wr32(self, 0x134c, 1);
+        copy16(self + 0x1392, self + ITEM(self, 0));
+        kind = self[ITEM(self, 0x21)];
+        if (call1(host, 0x47e99e, (uintptr_t)self, rec_va + kind * 0x53u + 0xb9u) != 0) {
+            kind = self[ITEM(self, 0x21)];
+            copy16(self + ITEM(self, 0), OBJ47(rec_va) + (ptrdiff_t)kind * 0x53 + 0xb9);
+        }
+        call2(host, 0x47e52f, (uintptr_t)self, (uintptr_t)(self + ITEM(self, 0)), (uintptr_t)(self + ITEM(self, 0x10)));
+        store_item_extent_47ff0e(self);
+        kind = self[ITEM(self, 0x21)];
+        if (self[0x7a0 + kind] > 0) {
+            kind = self[ITEM(self, 0x21)];
+            if (rd_u8(OBJ47(rec_va), (ptrdiff_t)kind * 0x53 + 0xe9) == 0) {
+                kind = self[ITEM(self, 0x21)];
+                self[0x7a0 + self[ITEM(self, 0x21)]] = (uint8_t)(self[0x7a0 + kind] - 1);
+            }
+        }
+        call0(host, 0x4809a7, (uintptr_t)self);
+        return FL22B_47FF0E_OK;
+    }
+    if (sel != 0x2791) return FL22B_47FF0E_OK;
+    /* 0x480524: the release of the item */
+    wr32(self, 0x1344, 0);
+    wr32(self, 0x1348, 1);
+    copy16(self + ITEM(self, 0), self + 0x1352);
+    copy16(self + ITEM(self, 0x10), self + 0x1372);
+    call1(host, 0x47ed96, (uintptr_t)self, rd16(self, 0x1350));
+    if (rd32(self, 0x13df) != 0 && rd_u8(OBJ47(rec_va), 0x5e) != 2) {
+        self[ITEM(self, 0x22)] = 1;
+        self[0x7a0 + self[ITEM(self, 0x21)]] = (uint8_t)(self[0x7a0 + self[ITEM(self, 0x21)]] + 1);
+        call0(host, 0x480a1d, (uintptr_t)self);
+        wr16(self, 0x1350, 0xffffu);
+        return FL22B_47FF0E_OK;
+    }
+    if (rd32(self, 0x13df) != 0 && rd_u8(OBJ47(rec_va), 0x5e) == 2) {
+        self[0x7a0 + self[ITEM(self, 0x21)]] = (uint8_t)(self[0x7a0 + self[ITEM(self, 0x21)]] + 1);
+        call0(host, 0x480a1d, (uintptr_t)self);
+    } else if (!nine_bytes_equal(OBJ47(rec_va) + 0x7a8, world->bytes_54d5a4)) {
+        uint32_t now;
+        call1(host, 0x4fb2e3, 0x5c3a67, rd16(OBJ47(rec_va), 0x7c9));
+        now = host->tick(host->context);
+        wr32(self, 0x13e7, now + 0xc8u);
+        wr32(self, 0x13ca, 1);
+        if (world->value_5bb202 != 0) {
+            if (string_length(OBJ47(rec_va) + 0x7d9) > 0) {
+                lc = call1(host, 0x423259, 0x619a6b, rec_va + 0x7d9u);
+                if (lc != 0) {
+                    if (string_length(object_at(host, lc)) > 0x9c40u) {
+                        lc = 0;
+                    } else {
+                        if (!show_caption_47ff0e(world, host, object_at(host, lc), world->dword_54d5b0)) return FL22B_47FF0E_REJECT_LONG_STRING;
+                    }
+                } else {
+                    lc = 0;
+                }
+            }
+            if (lc == 0 && string_length(OBJ47(rec_va) + 0x7fa) > 0) {
+                if (!show_caption_47ff0e(world, host, OBJ47(rec_va) + 0x7fa, world->dword_54d5b4)) return FL22B_47FF0E_REJECT_LONG_STRING;
+            }
+        }
+    }
+    /* 0x4808af */
+    self[ITEM(self, 0x22)] = 0;
+    copy16(self + ITEM(self, 0), OBJ47(rec_va) + (ptrdiff_t)self[ITEM(self, 0x21)] * 0x53 + 0xa9);
+    call2(host, 0x47e52f, (uintptr_t)self, (uintptr_t)(self + ITEM(self, 0)), (uintptr_t)(self + ITEM(self, 0x10)));
+    self[ITEM(self, 0x20)] = 0;
+    wr16(self, 0x1350, 0xffffu);
+    return FL22B_47FF0E_OK;
 }

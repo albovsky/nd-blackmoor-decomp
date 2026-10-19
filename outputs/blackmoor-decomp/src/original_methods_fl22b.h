@@ -38,9 +38,23 @@ typedef struct Fl22bWorld {
     uint32_t value_5bb1ca, value_5bb57b, value_5bb59b, value_5bb59f, value_5bb5a3, value_583999;
     uint16_t word_5bb599, word_5bb595, word_5c39ff;
     const uint8_t *bytes_545b48, *bytes_545b54, *bytes_545b60;   /* the nine bytes that a record field is compared with (three variants) */
+    /* 0x47ff0e */
+    uint32_t value_5c39e5;        /* the selector (the event) that the handler dispatches on */
+    uint32_t value_5bb202;        /* a flag: non-zero = look up and show the caption strings */
+    uint32_t value_5d03b3;        /* pushed as the first argument of 0x448d11 */
+    uint32_t dword_54d5b0, dword_54d5b4;   /* the read-only dwords (the bytes "<e>" and a NUL, twice) written over the terminator of a caption string */
+    const uint8_t *bytes_54d5a4;  /* the nine bytes that a record field is compared with */
 } Fl22bWorld;
 
 void m42ed54_run_state(int16_t index, Fl22bWorld *world, const Fl18Host *host);
+
+/* 0x47ff0e: the result is FL22B_47FF0E_OK, or FL22B_47FF0E_REJECT_LONG_STRING when a caption string (the one that 0x423259 returns, or the
+ * record's string at +0x7fa) is longer than the 200 bytes that the original's 0xcc-byte frame buffer can take before it overwrites its own
+ * locals (the original overruns its stack frame there: this is a native rejection, not original behaviour); the stores made before the
+ * rejected copy stay made and the call to 0x448d11 is not made. */
+#define FL22B_47FF0E_OK 0
+#define FL22B_47FF0E_REJECT_LONG_STRING 1
+int32_t m47ff0e_handle_click(uint8_t *self, Fl22bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

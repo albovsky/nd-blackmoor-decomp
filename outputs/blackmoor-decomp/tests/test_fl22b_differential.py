@@ -402,6 +402,107 @@ class Fl22bDifferential(DiffBase):
                                 'bytes_545b60': ('consts', 0x18)})
         self.finish(0x42ed54, size, executed)
 
+    # ---- 0x47ff0e ----
+    def test_47ff0e_handle_click(self):
+        """FL-22b: differential test of m47ff0e_handle_click (original 0x47ff0e): every event, the click, the release and the caption strings"""
+        rng = random.Random(0x47ff0e)
+        executed = set()
+        size = 2713
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            now = rng.choice([1000, 0x7fffffff, 0xffffff40, rng.randrange(1 << 32)])
+            self_area = Area('self', od.region_va(0), bytearray(rng.randbytes(0x1400)), image=False)
+            d = self_area.data
+            put = lambda fmt, offset, value: struct.pack_into(fmt, d, offset, value)
+            put('<h', 0x1e, rng.choice([index, index, index]))
+            put('<I', 0x13c5, rng.choice([1, 1, 1, 0, 0x100, 0xff000000]))
+            d[0x13ce] = rng.choice([0, 0, 0, 0, 1, 0xff])
+            put('<I', 0x13ca, rng.choice([0, 0, 0, 0, 1, 0x10000]))
+            put('<I', 0x1344, rng.choice([0, 1, 1, 0x100]))
+            put('<I', 0x13df, rng.choice([0, 1, 0x10000, 0x100]))
+            d[0x13b0] = rng.choice([0, 1, 1, 0xff])
+            d[0x13b1] = rng.choice([0, 1, 1, 0xff])
+            put('<h', 0x1350, rng.choice([0, 1, 2, 3, 4, -1]))
+            put('<H', 0x13a2, rng.choice([0, 1, 5, 0xfffe, 0xffff, rng.randrange(0x10000)]))
+            for k in range(4):
+                d[0x7a0 + k] = rng.choice([0, 1, 2, 0x7f, 0xff])
+            for item in range(-1, 6):   # the kind byte of every item
+                d[0x7b6 + item * 0x25 + 0x21] = rng.choice([0, 1, 2, 3])
+            records, rslack = self.records_area(rng, nrec=5, slack=0)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(1))
+            struct.pack_into('<I', records.data, rslack + index * 0x8d + 0x4d, rng.choice([1, 1, 1, 1, 1, 0, 2, 3, 0xffffffff]))
+            # the strings: all of one length m so that the bytes behind the frame pointer can be compared
+            m = rng.randrange(1, 28)
+            text = lambda k: bytes(rng.randrange(1, 256) for _ in range(k))
+            rec = bytearray(rng.randbytes(0x1000))
+            consts = bytearray(rng.randbytes(0x20))
+            nine = bytes(consts[0:9])
+            rec[0x7a8:0x7b1] = rng.choice([nine, nine, bytes(rng.randbytes(9)), nine[:8] + bytes([nine[8] ^ 0x40]), bytes([nine[0] ^ 1]) + nine[1:]])
+            rec[0x5e] = rng.choice([0, 1, 2, 2, 3])
+            for k in range(4):
+                rec[0xe9 + k * 0x53] = rng.choice([0, 0, 1, 0x80, 0xff])
+            rec[0x7d9:0x7d9 + 40] = bytes(40)
+            rec[0x7fa:0x7fa + 40] = bytes(40)
+            len1 = rng.choice([0, m, m, m, 3])
+            len2 = rng.choice([0, m, m, m])
+            rec[0x7d9:0x7d9 + len1] = text(len1)
+            rec[0x7fa:0x7fa + len2] = text(len2)
+            areas = [self_area, records, Area('rec', od.region_va(1), rec, image=False, compare=False), Area('consts', 0x54d5a4, consts, compare=False)]
+            mode = rng.choice(['text', 'text', 'text', 'null', 'big'])
+            result_addr = 0
+            if mode == 'text':
+                areas.append(Area('text', od.region_va(2), bytearray(text(m) + b'\0' + bytes(8)), image=False, compare=False))
+                result_addr = od.region_va(2)
+            elif mode == 'big':   # longer than 0x9c40: the original drops it (and the second string is used)
+                big = bytearray(b'a' * rng.choice([0x9c41, 0x9c41, 0x9c41 + rng.randrange(0, 20)]) + b'\0')
+                areas.append(Area('text', od.region_va(2), big, image=False, compare=False))
+                result_addr = od.region_va(2)
+            sel = rng.choice([0x278d, 0x278d, 0x278e, 0x278f, 0x2790, 0x2791, 0x2791, 0x2791, 0x2791, 0x2792, 0x278c, 0])
+            profile = rng.choice(['free', 'free', 'release', 'release', 'click', 'select'])
+            if profile != 'free':   # the gates pass; then a release (the caption part), a first click, or a selection
+                put('<I', 0x13c5, 1)
+                d[0x13ce] = 0
+                put('<I', 0x13ca, 0)
+                struct.pack_into('<I', records.data, rslack + index * 0x8d + 0x4d, 1)
+            if profile == 'release':
+                put('<I', 0x13df, rng.choice([0, 0, 0, 0, 1, 0x10000]))   # (mostly nothing held: the caption part)
+                put('<I', 0x1344, rng.choice([0, 1]))
+                d[0x13b1] = 0
+                rec[0x7a8:0x7b1] = rng.choice([nine, bytes(rng.randbytes(9)), bytes(rng.randbytes(9)), bytes(rng.randbytes(9))])
+                sel = 0x2791
+            elif profile == 'click':
+                put('<I', 0x1344, rng.choice([0, 0, 1]))
+                d[0x13b0] = rng.choice([0, 1, 1])
+                d[0x13b1] = rng.choice([0, 0, 1])
+                sel = 0x278d
+            elif profile == 'select':
+                sel = rng.choice([0x278e, 0x278f, 0x2790])
+            g = {'value_5c39e5': sel, 'value_5bb202': rng.choice([0, 1, 1, 1, 1, 1, 2, 0x10000]), 'value_5d03b3': rng.randrange(1 << 32),
+                 'dword_54d5b0': rng.randrange(1 << 32), 'dword_54d5b4': rng.randrange(1 << 32)}
+            probe = [('self', 0, 0x20), ('self', 0x790, 0x80), ('self', 0x1340, 0x30), ('self', 0x1390, 0x60), ('records', 0, len(records.data))]
+            word = lambda: (rng.randrange(0x10000) << 16) | rng.choice([0xffff, 0, 1, 2, 3, 4])   # (an item index: the object holds a few items)
+            frame_len = m + 4
+            stubs = {0x480b34: stub(0x480b34, args=0, this=True, probe=probe),
+                     0x47e8fe: stub(0x47e8fe, args=0, this=True, results=[word()], probe=probe),
+                     0x47fa11: stub(0x47fa11, args=1, this=True, cleanup=4, probe=probe),
+                     0x480abe: stub(0x480abe, args=0, this=True, probe=probe),
+                     0x47e9d3: stub(0x47e9d3, args=0, this=True, results=[word()], probe=probe),
+                     0x47fb76: stub(0x47fb76, args=1, this=True, cleanup=4, probe=probe),
+                     0x47e582: stub(0x47e582, args=3, this=True, cleanup=12, probe=probe),
+                     0x47ed96: stub(0x47ed96, args=1, this=True, cleanup=4, probe=probe),
+                     0x47e99e: stub(0x47e99e, args=1, this=True, cleanup=4, results=[rng.choice([0, 1, 0x10000, 0xffffffff])], probe=probe),
+                     0x47e52f: stub(0x47e52f, args=2, this=True, cleanup=8, probe=probe),
+                     0x4809a7: stub(0x4809a7, args=0, this=True, probe=probe),
+                     0x480a1d: stub(0x480a1d, args=0, this=True, probe=probe),
+                     0x4fb2e3: stub(0x4fb2e3, args=1, this=True, cleanup=4, probe=probe),
+                     0x423259: stub(0x423259, args=1, this=True, cleanup=4, results=[result_addr], probe=probe),
+                     0x448d11: stub(0x448d11, args=4, this=True, cleanup=16, derefs=[(1, frame_len)], probe=probe)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
+            self.pair(2, 0x47ff0e, size, areas, stubs, g, ecx=od.region_va(0), stack=[], cleanup=0, self_name='self', iat=iat, tick=now,
+                      executed=executed, word_args={0x47fa11: (0,), 0x47fb76: (0,), 0x47e582: (0, 1), 0x47ed96: (0,), 0x4fb2e3: (0,)},
+                      pointers={'records_5bb5e5': ('records', rslack), 'bytes_54d5a4': ('consts', 0)}, scalars={})
+        self.finish(0x47ff0e, size, executed)
+
     # TESTS-END
 
 
