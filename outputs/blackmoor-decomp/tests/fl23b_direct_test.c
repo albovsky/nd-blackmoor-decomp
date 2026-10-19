@@ -164,7 +164,7 @@ static void set_gate(const Gate *g, int pass, int variant)
     case Z8: fx.self[g->off] = pass ? 0 : (uint8_t[]){1, 0x80, 0xff}[variant % 3]; break;
     case WEQ: set16(fx.self, g->off, (uint16_t)(pass ? g->val : (uint16_t[]){(uint16_t)(g->val ^ 1), (uint16_t)(g->val + 0x100), (uint16_t)(g->val ^ 0x8000)}[variant % 3])); break;
     case WZ: set16(fx.self, g->off, pass ? 0 : (uint16_t)wz_fail[variant % 4]); break;
-    case NE32: set32(fx.self, g->off, pass ? 0x10au : g->val); break;
+    case NE32: set32(fx.self, g->off, pass ? 0x1000au : g->val); break;
     default: break;
     }
 }
@@ -469,6 +469,8 @@ static void arms_48ab49(int idx)
                 fx.w.value_5bb1ca = flag ? 0x100u : 0;
                 g_tick = r ? 0x7fffffffu : 1000;
                 g_ret_4f6334 = r ? 5u : 0u;
+                set16(fx.self, 0x1b0, 0x1234);
+                fx.self[0x1b2] = 0x56;
                 set16(fx.obj, 0x3a6, 0xfffe);
                 set16(fx.obj, 0x365, 0xfff0);
                 set_nine(0x344, T[0], v);
@@ -697,6 +699,7 @@ static void arms_4b2a9e(int idx)
                 setup(11, 0x2711, idx);
                 fx.w.value_5bb1ca = flag ? 0x100u : 0;
                 set16(fx.self, 0x1531, w1531[w]);
+                fx.self[0x1533] = 0;
                 set16(fx.obj, 0x295, 0x6123);
                 set_nine(0x274, T[6], v);
                 begin();

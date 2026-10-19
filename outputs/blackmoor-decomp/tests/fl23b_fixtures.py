@@ -138,14 +138,14 @@ def _set_gate(d, gate, fail, rng):
     elif kind in ('nz8', 'z8'):
         set_ = (kind == 'nz8') != fail
         d[off] = rng.choice([1, 0x80, 0xff]) if set_ else 0
-        d[off + 1:off + 4] = b'\xff\xff\xff'     # (a dword read instead of the byte would see these)
+        d[off + 1:off + 4] = bytes(rng.randrange(1, 256) for _ in range(3))     # (non-zero: a dword read instead of the byte would see these)
     elif kind == 'weq':
         v = gate[2]
         struct.pack_into('<H', d, off, rng.choice([v ^ 1, v + 0x100, v ^ 0x8000, (v + 7) & 0xffff]) if fail else v)
     elif kind == 'wz':
         struct.pack_into('<H', d, off, rng.choice([1, 0x8000, 0xffff, 0x100]) if fail else 0)
     elif kind == 'ne32':
-        struct.pack_into('<I', d, off, gate[2] if fail else rng.choice([0, 5, 0x10a, 0xb, 0xffffffff]))
+        struct.pack_into('<I', d, off, gate[2] if fail else rng.choice([0, 5, 0x10a, 0xb, 0xffffffff, 0x1000a, 0x8000000a]))
 
 
 def build(key, rng, n):
@@ -191,6 +191,7 @@ def build(key, rng, n):
         struct.pack_into('<H', d, 0x159a, rng.choice([0, 0x8000, 5, 0x100, 0xffff]))
     if key == '4b2a9e':
         struct.pack_into('<H', d, 0x1531, rng.choice([0, 1, 0x8000, 0x100, rng.randrange(0x10000)]))
+        d[0x1533] = rng.choice([0, 0, rng.randrange(256)])   # (the byte after the word: zero makes the word at 0x1532 zero when [0x1531] is 1)
     self_area = Area('self', od.region_va(0), d, image=False)
     # the record table: records -1 .. 4; the target holds the object, the others a decoy
     rec = bytearray(rng.randbytes(6 * 0x8d))
