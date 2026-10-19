@@ -20,6 +20,7 @@ KERNELS = ['original_methods_fl22b.c']
 EXPECTED = [
     'test_m42ed54_run_state',
     'test_m47ff0e_handle_click',
+    'test_m4b64a9_run_scene',
     # EXPECTED-END
 ]
 
@@ -72,6 +73,10 @@ class Fl22bDirect(unittest.TestCase):
     def test_handle_click_47ff0e(self):
         """FL-22b: direct test of m47ff0e_handle_click (original 0x47ff0e)"""
         self.check('test_m47ff0e_handle_click')
+
+    def test_run_scene_4b64a9(self):
+        """FL-22b: direct test of m4b64a9_run_scene (original 0x4b64a9)"""
+        self.check('test_m4b64a9_run_scene')
 
     # TESTS-END
 

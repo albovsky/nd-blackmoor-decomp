@@ -44,6 +44,11 @@ typedef struct Fl22bWorld {
     uint32_t value_5d03b3;        /* pushed as the first argument of 0x448d11 */
     uint32_t dword_54d5b0, dword_54d5b4;   /* the read-only dwords (the bytes "<e>" and a NUL, twice) written over the terminator of a caption string */
     const uint8_t *bytes_54d5a4;  /* the nine bytes that a record field is compared with */
+    /* 0x4b64a9 */
+    uint8_t *table_5d1591;        /* the table of 0x4a-byte entries at 0x5d1591, indexed by a signed word (the caller leaves slack on both sides) */
+    const uint8_t *string_551b24; /* the NUL-terminated string at 0x551b24 ("TURNING PUZZLE OVERLAYS") copied into an entry of that table */
+    const uint8_t *bytes_551b5c;  /* seven 12-byte slots from 0x551b5c; the first nine bytes of slot k (at +12*k) are what a record field is compared with */
+    uint32_t value_58318a, value_583186;   /* the offsets that are added to the item coordinates of the record */
 } Fl22bWorld;
 
 void m42ed54_run_state(int16_t index, Fl22bWorld *world, const Fl18Host *host);
@@ -55,6 +60,16 @@ void m42ed54_run_state(int16_t index, Fl22bWorld *world, const Fl18Host *host);
 #define FL22B_47FF0E_OK 0
 #define FL22B_47FF0E_REJECT_LONG_STRING 1
 int32_t m47ff0e_handle_click(uint8_t *self, Fl22bWorld *world, const Fl18Host *host);
+
+/* 0x4b64a9: `self` (ecx) is the session object with the record index (word +0x1e), the item table (16-byte entries from +0x24 and +0x124),
+ * the word tables at +0x232 and +0x254 and the step dword +0x274; `index` is the stack argument (a word); the record state (dword +0x4d of
+ * the record) is 0, 1 or 2 and in state 1 the step selects one of six arms of the jump table at 0x4b7029. `ret 4`. The result is
+ * FL22B_4B64A9_OK, or FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO when the word at +0x25 of the record, the divisor of the two idiv instructions
+ * (in step 2 without an item to move and in step 4), is zero: the original raises a divide fault there (after the GetTickCount call, before
+ * any further store); this is a native rejection, not original behaviour. The original's eax at return is garbage. */
+#define FL22B_4B64A9_OK 0
+#define FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO 1
+int32_t m4b64a9_run_scene(uint8_t *self, int16_t index, Fl22bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

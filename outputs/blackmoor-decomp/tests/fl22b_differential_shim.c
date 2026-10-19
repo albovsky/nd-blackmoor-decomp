@@ -207,6 +207,7 @@ void shim_fl22b(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     switch (fn) {
     case F22B_42ED54: m42ed54_run_state((int16_t)a, w, &host); break;
     case F22B_47FF0E: *result = m47ff0e_handle_click(self, w, &host); break;
+    case F22B_4B64A9: *result = m4b64a9_run_scene(self, (int16_t)a, w, &host); break;
     default: break;
     }
 }

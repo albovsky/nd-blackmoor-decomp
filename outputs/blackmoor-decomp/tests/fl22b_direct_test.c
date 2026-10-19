@@ -50,7 +50,7 @@ typedef struct Call {
     uintptr_t this_ptr;
     int n;
     uintptr_t a[12];
-    uint8_t probe[512];     /* the bytes at the host addresses probe_ptr[] (concatenated), as they are at the call */
+    uint8_t probe[2048];    /* the bytes at the host addresses probe_ptr[] (concatenated), as they are at the call */
     uint8_t pd[5][16];      /* the 16 bytes behind each of args[0..4] that is a host pointer (a value above 32 bits), for every call */
     uint8_t wide[256];      /* L.wide_len bytes behind args[L.wide_arg] of a call of L.wide_callee */
 } Call;
@@ -74,7 +74,7 @@ static struct {
     int ret_count[8], ret_used[8];
     const uint8_t *probe_ptr[32];
     int probe_len[32], nprobe;
-    OutWrite w[32];
+    OutWrite w[128];
     int nw;
     int calls_of[16];       /* per callee slot: how many calls were made (for OutWrite.call) */
     uint32_t calls_callee[16];
@@ -1192,6 +1192,688 @@ static void test_m47ff0e_handle_click(void)
     /* anything else with +0x1344 == 0 or +0x13b1 == 0 and an event that is neither a click nor a release */
 }
 
+/* ---- 0x4b64a9 ---------------------------------------------------------------------------------------------------------------- */
+
+#define RECVA4 0x31000000u
+#define IDX4 2                       /* the record index used by every case */
+#define SIDX4 ((size_t)IDX4 * REC)
+#define TSLACK4 3                    /* entries of 0x4a bytes below the table at 0x5d1591 */
+#define ENT4(idx) ((size_t)((idx) + TSLACK4) * 0x4a)
+#define SLOT4 7                      /* the slot word (+0x1c) that states 1 and 2 find in the session */
+
+static uint8_t g4_self[0x300], x4_self[0x300], o4_self[0x300];
+static uint8_t g_rec4[0x400], x_rec4[0x400];
+static uint8_t g_tab4[(TSLACK4 + 0x44) * 0x4a], x_tab4[sizeof g_tab4];
+static uint8_t g_consts4[84], g_str4[40];
+static Fl22bWorld w4, e4;
+static int32_t g_ret4;
+static int g_probe_slot = SLOT4;
+
+/* the offsets of the probe snapshot taken at every host call and at GetTickCount */
+enum { Q_SELF = 0, Q_1CA = 0x300, Q_STATE = 0x304, Q_ENT = 0x308, Q_G = 0x352, Q_FLAGS = 0x36c };
+
+static void probe_all_4b64a9(void)
+{
+    add_probe(g4_self, 0x300);
+    add_probe(&w4.value_5bb1ca, 4);
+    add_probe(g_records + SIDX4 + 0x4d, 4);
+    add_probe(g_tab4 + ENT4(g_probe_slot), 0x4a);
+    add_probe(&w4.value_5bb57b, 4);
+    add_probe(&w4.value_5bb59b, 4);
+    add_probe(&w4.value_5bb59f, 4);
+    add_probe(&w4.value_5bb5a3, 4);
+    add_probe(&w4.value_583999, 4);
+    add_probe(&w4.word_5bb599, 2);
+    add_probe(&w4.word_5bb595, 2);
+    add_probe(&w4.word_5c39ff, 2);
+    add_probe(g_flags, 0x100);
+}
+
+/* the nine bytes of slot k of the constants: "SLOT<k>-ABC"; record fields set equal to them (eq9) or one byte off (ne9) */
+static void eq9(size_t off, int k) { memcpy(g_rec4 + off, g_consts4 + 12 * k, 9); }
+static void ne9(size_t off, int k, int pos)
+{
+    eq9(off, k);
+    g_rec4[off + (size_t)pos] ^= (uint8_t)(0x01u << (pos & 7));
+}
+
+/* a fixed fixture: record IDX4 in `state`, the session with the step `step`; the record has 3 items, the divisor 4 (+0x25), the last
+ * position 4 (+0x23 == 5), +0x2d4 == 3, +0x2d7 == 2, the words +0x2fa == -3 and +0x366 == 0x1234, the byte +0x2d6 == 1 and the names
+ * (+0x2d9, +0x345) equal to slots 0 and 1 */
+static void setup4(uint32_t state, uint32_t step)
+{
+    size_t i;
+    int k;
+    for (i = 0; i < sizeof g4_self; i++) g4_self[i] = (uint8_t)(i * 5 + 1);
+    for (i = 0; i < sizeof g_rec4; i++) g_rec4[i] = (uint8_t)(i * 7 + 3);
+    for (i = 0; i < sizeof g_tab4; i++) g_tab4[i] = (uint8_t)(i * 3 + 2);
+    for (i = 0; i < sizeof g_flags; i++) g_flags[i] = (uint8_t)(i * 5 + 2);
+    for (k = 0; k < 7; k++) {
+        memcpy(g_consts4 + 12 * k, "SLOT0-ABC", 9);
+        g_consts4[12 * k + 4] = (uint8_t)('0' + k);
+        memset(g_consts4 + 12 * k + 9, 0xee, 3);
+    }
+    memset(g_str4, 0x77, sizeof g_str4);
+    memcpy(g_str4, "OVERLAYS", 9);
+    set16(g_rec4, 0x21, 3);
+    set16(g_rec4, 0x25, 4);
+    set16(g_rec4, 0x23, 5);
+    set16(g_rec4, 0x2d4, 3);
+    set16(g_rec4, 0x2d7, 2);
+    set16(g_rec4, 0x2fa, 0xfffd);
+    set16(g_rec4, 0x366, 0x1234);
+    g_rec4[0x2d6] = 1;
+    eq9(0x2d9, 0);
+    eq9(0x345, 1);
+    set16(g4_self, 0x1e, IDX4);
+    set16(g4_self, 0x1c, SLOT4);
+    set32(g4_self, 0x274, step);
+    memset(g_records, 0, sizeof g_records);
+    set32(g_records, SIDX4, RECVA4);
+    set32(g_records, SIDX4 + 0x4d, state);
+    set32(g_records, 4 * REC + 0x4d, 0x44);
+    set32(g_records, 3 * REC, 0x32000000u);
+    memset(&w4, 0, sizeof w4);
+    w4.records_5bb5e5 = g_records;
+    w4.flags_585801 = g_flags + 0x40;
+    w4.table_5d1591 = g_tab4 + TSLACK4 * 0x4a;
+    w4.string_551b24 = g_str4;
+    w4.bytes_551b5c = g_consts4;
+    w4.value_58318a = 0x100;
+    w4.value_583186 = 0x10000;
+    w4.value_5bb1ca = 0x55;
+    w4.value_5bb57b = 0x5557;
+    w4.value_5bb59b = 0x559b;
+    w4.value_5bb59f = 0x559f;
+    w4.value_5bb5a3 = 0x55a3;
+    w4.value_583999 = 0x5599;
+    w4.word_5bb599 = 0x1111;
+    w4.word_5bb595 = 0x2222;
+    w4.word_5c39ff = 0x3333;
+    reset_log();
+    add_region(RECVA4, g_rec4, sizeof g_rec4);
+    for (i = 0; i < 20; i++) {   /* the call n of 0x4b6355 fills its four dwords with A, B, C, D of n */
+        queue_write(0x4b6355, (int)i, 3, 0, 4, 0xa0000000u + (uint32_t)i);
+        queue_write(0x4b6355, (int)i, 3, 4, 4, 0xb0000000u + (uint32_t)i);
+        queue_write(0x4b6355, (int)i, 3, 8, 4, 0xc0000000u + (uint32_t)i);
+        queue_write(0x4b6355, (int)i, 3, 12, 4, 0xd0000000u + (uint32_t)i);
+    }
+    probe_all_4b64a9();
+}
+
+static void snap4(void)
+{
+    memcpy(x4_self, g4_self, sizeof g4_self);
+    memcpy(o4_self, g4_self, sizeof g4_self);
+    memcpy(x_rec4, g_rec4, sizeof g_rec4);
+    memcpy(x_tab4, g_tab4, sizeof g_tab4);
+    memcpy(x_flags, g_flags, sizeof g_flags);
+    memcpy(x_records, g_records, sizeof g_records);
+    e4 = w4;
+}
+
+/* everything the function can touch is as snapshotted-and-edited (the record object is never written) */
+static int same4(void)
+{
+    return memcmp(g4_self, x4_self, sizeof g4_self) == 0 && memcmp(g_rec4, x_rec4, sizeof g_rec4) == 0 && memcmp(g_tab4, x_tab4, sizeof g_tab4) == 0 &&
+           memcmp(g_flags, x_flags, sizeof g_flags) == 0 && memcmp(g_records, x_records, sizeof g_records) == 0 && memcmp(&w4, &e4, sizeof w4) == 0;
+}
+
+static void run4(int16_t index)
+{
+    Fl18Host h = host();
+    g_ret4 = m4b64a9_run_scene(g4_self, index, &w4, &h);
+}
+
+#define XS32(off, v) set32(x4_self, (off), (v))
+#define XS16(off, v) set16(x4_self, (off), (v))
+
+/* the stores that follow the n-th call of 0x4b6355 for item i: +0x24 A, +0x28 B, +0x2c C, +0x30 D (the dwords of the local) */
+static void expect_item(int i, int n)
+{
+    XS32(0x24 + (size_t)i * 16, 0xa0000000u + (uint32_t)n);
+    XS32(0x28 + (size_t)i * 16, 0xb0000000u + (uint32_t)n);
+    XS32(0x2c + (size_t)i * 16, 0xc0000000u + (uint32_t)n);
+    XS32(0x30 + (size_t)i * 16, 0xd0000000u + (uint32_t)n);
+}
+
+/* a call of 0x4b6355 with the index, the two words and a host pointer */
+static int is_place(int k, int index, uint16_t w1, uint16_t w2)
+{
+    return is_call(k, 0x4b6355, (uintptr_t)g4_self, 4) && (L.c[k].a[0] & 0xffff) == (uint16_t)index && (L.c[k].a[1] & 0xffff) == w1 &&
+           (L.c[k].a[2] & 0xffff) == w2 && (uint64_t)L.c[k].a[3] > 0xffffffffu;
+}
+
+/* ---- state 0 ---- */
+static void state0_4b64a9(void)
+{
+    static const int counts[] = {0, 1, 3, 16};
+    static const struct { int16_t idx; size_t len; } slots[] = {{0x18, 0}, {0x3f, 3}, {-2, 22}, {0x41, 23}, {0, 31}, {-3, 1}};
+    int c, s, a, b, i, nlog;
+    for (c = 0; c < 4; c++) {
+        for (s = 0; s < 6; s++) {
+            for (a = -1; a < 2; a++) {            /* the first name: equal (-1) / differs at byte 0 / byte 8 */
+                for (b = -1; b < 2; b++) {        /* the second name */
+                    int n = counts[c], f20 = (s & 1) == 0;   /* +0x20 zero: 0x4c2790 is called */
+                    int16_t idx = slots[s].idx;
+                    size_t len = slots[s].len, e = ENT4(idx);
+                    g_probe_slot = idx;
+                    setup4(0, 0);
+                    set16(g_rec4, 0x21, (uint16_t)n);
+                    for (i = 0; i < n; i++) {
+                        set32(g_rec4, 0x47 + (size_t)i * 16, 0x1000u + (uint32_t)i);   /* x */
+                        set32(g_rec4, 0x4b + (size_t)i * 16, 0x2000u + (uint32_t)i);   /* x2 */
+                        set32(g_rec4, 0x4f + (size_t)i * 16, 0x3000u + (uint32_t)i);   /* y */
+                        set32(g_rec4, 0x53 + (size_t)i * 16, 0x4000u + (uint32_t)i);   /* y2 */
+                        set16(g_rec4, 0x27 + (size_t)i * 2, (uint16_t)(0x500 + i));
+                    }
+                    if (a >= 0) ne9(0x2d9, 0, a * 8);
+                    if (b >= 0) ne9(0x345, 1, b * 8);
+                    memset(g_str4, 0x77, sizeof g_str4);
+                    memset(g_str4, 'x', len);
+                    g_str4[len] = 0;
+                    set32(g4_self, 0x20, f20 ? 0 : 0x77777777u);
+                    w4.value_583186 = 0xfffffff0u;   /* (a wrap) */
+                    queue_return(0x4d39f9, 0xabcd0000u | (uint16_t)idx);
+                    queue_return(0x4c2790, 0xcafe0001u);
+                    snap4();
+                    /* expected result */
+                    XS16(0x1e, IDX4);
+                    XS32(0x225, 1);
+                    XS32(0x254, 0);
+                    XS32(0x258, 0);
+                    XS32(0x25c, 0);
+                    XS32(0x260, 0);
+                    for (i = 0; i < n; i++) {
+                        XS32(0x128 + (size_t)i * 16, 0x2000u + (uint32_t)i + 0x100u);
+                        XS32(0x130 + (size_t)i * 16, 0x4000u + (uint32_t)i + 0x100u);
+                        XS32(0x124 + (size_t)i * 16, 0x1000u + (uint32_t)i + 0xfffffff0u);
+                        XS32(0x12c + (size_t)i * 16, 0x3000u + (uint32_t)i + 0xfffffff0u);
+                        XS16(0x254 + (size_t)i * 2, (uint16_t)(0x500 + i));
+                        expect_item(i, i);
+                    }
+                    x4_self[0x224] = 1;
+                    XS16(0x1c, (uint16_t)idx);
+                    if (f20) XS32(0x20, 0xcafe0001u);
+                    x4_self[0x229] = 0;
+                    x4_self[0x22a] = 0;
+                    XS16(0x22c, 1);
+                    XS32(0x274, 0);
+                    set32(x_tab4, e + 0, 0xa);
+                    set32(x_tab4, e + 4, 0x4b7051);
+                    set32(x_tab4, e + 8, f20 ? 0xcafe0001u : 0x77777777u);
+                    set32(x_tab4, e + 0xc, 0);
+                    set32(x_tab4, e + 0x10, 0);
+                    set32(x_tab4, e + 0x14, 1);
+                    set32(x_tab4, e + 0x18, 1);
+                    set16(x_tab4, e + 0x1c, 0);
+                    memset(x_tab4 + e + 0x22, 'x', len);
+                    x_tab4[e + 0x22 + len] = 0;   /* the string with its terminator; the bytes after it are not touched */
+                    e4.value_5bb1ca = 1;
+                    set32(x_records, SIDX4 + 0x4d, 1);
+                    run4(IDX4);
+                    CK(g_ret4 == FL22B_4B64A9_OK);
+                    nlog = 0;
+                    CK(is_call(nlog, 0x4e8d96, 0x571442, 0));
+                    CK(P32(nlog, Q_1CA) == 1 && P16(nlog, Q_SELF + 0x1e) == IDX4);   /* 0x5bb1ca and the index are stored before the first call */
+                    CK(P32(nlog, Q_STATE) == 0 && P32(nlog, Q_SELF + 0x225) == 1);
+                    nlog++;
+                    for (i = 0; i < n; i++, nlog++) {
+                        CK(is_place(nlog, i, (uint16_t)(0x500 + i), 0));
+                        CK(P32(nlog, Q_SELF + 0x128 + (size_t)i * 16) == 0x2100u + (uint32_t)i);   /* the coordinates are stored before the call */
+                        CK(P16(nlog, Q_SELF + 0x254 + (size_t)i * 2) == 0x500 + i);
+                        CK(P32(nlog, Q_SELF + 0x24 + (size_t)i * 16) == get32(o4_self, 0x24 + (size_t)i * 16));   /* this item is stored after the call */
+                        if (i > 0) CK(P32(nlog, Q_SELF + 0x24 + (size_t)(i - 1) * 16) == 0xa0000000u + (uint32_t)(i - 1));   /* the previous item is stored */
+                    }
+                    CK(is_call(nlog, 0x4d39f9, 0, 0));
+                    CK(P8(nlog, Q_SELF + 0x224) == 1);
+                    nlog++;
+                    if (f20) {
+                        CK(is_call(nlog, 0x4c2790, 0x5cf659, 4));
+                        CK(L.c[nlog].a[0] == 0x551b54 && L.c[nlog].a[1] == RECVA4 && L.c[nlog].a[2] == 6 && L.c[nlog].a[3] == 0x551b3c);
+                        CK(get32(L.c[nlog].probe, Q_ENT) == 0xa && get32(L.c[nlog].probe, Q_ENT + 4) == 0x4b7051);   /* the entry is filled in first */
+                        CK(get32(L.c[nlog].probe, Q_ENT + 8) == 0 && P32(nlog, Q_SELF + 0x20) == 0);
+                        CK(memcmp(L.c[nlog].probe + Q_ENT + 0x22, x_tab4 + e + 0x22, len + 1) == 0);
+                        nlog++;
+                    }
+                    if (a >= 0) {
+                        CK(is_call(nlog, 0x4fb77a, 0x5c3a67, 1) && L.c[nlog].a[0] == RECVA4 + 0x2d9);
+                        CK(get32(L.c[nlog].probe, Q_ENT + 8) == (f20 ? 0xcafe0001u : 0x77777777u));   /* the session's +0x20 is stored into the entry before */
+                        CK(P8(nlog, Q_SELF + 0x22a) == o4_self[0x22a]);                                 /* the flag bytes are cleared after */
+                        nlog++;
+                    }
+                    if (b >= 0) {
+                        CK(is_call(nlog, 0x4fb77a, 0x5c3a67, 1) && L.c[nlog].a[0] == RECVA4 + 0x345);
+                        nlog++;
+                    }
+                    CK(L.n == nlog);
+                    CK(same4());
+                }
+            }
+        }
+    }
+}
+
+/* ---- state 1 ---- */
+static void step03_4b64a9(void)
+{
+    static const struct { uint32_t tick, deadline; int due; } c[] = {{999, 1000, 0}, {1000, 1000, 1}, {1001, 1000, 1}, {0x7fffffffu, 0x80000000u, 0},
+                                                                    {0x80000000u, 0x7fffffffu, 1}, {0, 0xffffffffu, 0}, {0xffffffffu, 0, 1}};
+    int k, pos, f;
+    /* step 0: the byte +0x22a decides between the step 4 and a call of 0x4b642d */
+    for (f = 0; f < 3; f++) {
+        setup4(1, 0);
+        g4_self[0x22a] = (uint8_t)(f == 0 ? 0 : f == 1 ? 1 : 0xff);
+        snap4();
+        if (f != 0) XS32(0x274, 4);
+        run4(IDX4);
+        CK(g_ret4 == 0);
+        if (f == 0) {
+            CK(L.n == 1 && is_call(0, 0x4b642d, (uintptr_t)g4_self, 0) && P32(0, Q_SELF + 0x274) == 0);
+        } else {
+            CK(L.n == 0);
+        }
+        CK(same4());
+    }
+    /* step 3: GetTickCount (unsigned) against +0x22e; then 274 := 2, and with +0x22a set the name against slot 2 */
+    for (k = 0; k < 7; k++) {
+        for (f = 0; f < 2; f++) {
+            for (pos = -1; pos < 9; pos++) {
+                setup4(1, 3);
+                set32(g4_self, 0x22e, c[k].deadline);
+                g4_self[0x22a] = (uint8_t)(f ? 0x80 : 0);
+                if (pos >= 0) ne9(0x2d9, 2, pos); else eq9(0x2d9, 2);
+                L.tick = c[k].tick;
+                snap4();
+                if (c[k].due) XS32(0x274, 2);
+                run4(IDX4);
+                CK(is_tick(0));
+                if (!c[k].due || !f || pos < 0) {
+                    CK(L.n == 1);
+                } else {
+                    CK(L.n == 2 && is_call(1, 0x4fb2e3, 0x5c3a67, 1) && (L.c[1].a[0] & 0xffff) == 0xfffd && P32(1, Q_SELF + 0x274) == 2);
+                }
+                CK(same4());
+            }
+        }
+    }
+    /* steps above 5 and states above 2 do nothing */
+    {
+        static const uint32_t steps[] = {6, 7, 0x80000000u, 0xffffffffu};
+        static const uint32_t states[] = {3, 4, 0x80000000u, 0xffffffffu};
+        for (k = 0; k < 4; k++) {
+            setup4(1, steps[k]);
+            snap4();
+            run4(IDX4);
+            CK(g_ret4 == 0 && L.n == 0 && same4());
+            setup4(states[k], 0);
+            snap4();
+            run4(IDX4);
+            CK(g_ret4 == 0 && L.n == 0 && same4());
+        }
+    }
+}
+
+/* step 2: the items that move */
+static void step2_4b64a9(void)
+{
+    /* the expected division results: (+0x2d4 * 1000) / +0x25 with idiv (truncation toward zero), added to GetTickCount */
+    static const struct { int16_t w2d4, w25; uint32_t tick, deadline; } dv[] = {
+        {3, 4, 1000, 1750}, {-7, 3, 1000, 1000u - 2333u}, {0x7fff, 1, 0xffffff00u, 0xffffff00u + 32767000u}, {-32768, -3, 5, 5u + 10922666u},
+        {0, 7, 77, 77}, {1, -2, 100, 100u - 500u}};
+    int d, mv, moved, a22, mode, i, nlog, n, calls, lasti;
+    for (d = 0; d < 6; d++) {
+        for (mv = 0; mv < 2; mv++) {        /* +0x22c equal to +0x25: the items advance */
+            for (a22 = 0; a22 < 2; a22++) {
+                for (mode = 0; mode < 6; mode++) {
+                    /* the flag words F[0..2], the positions P[0..2] */
+                    static const int16_t F[6][3] = {{1, 1, 1}, {1, 0, 1}, {0, 0, 0}, {0x100, 5, 0x7fff}, {0, 1, 0}, {1, 1, 1}};
+                    static const int16_t Pp[6][3] = {{4, 4, 4}, {3, 4, 0}, {4, 4, 4}, {4, 3, -32768}, {4, 2, 4}, {-1, 5, 3}};
+                    int16_t w25 = dv[d].w25, s22c = (int16_t)(mv ? w25 : (int16_t)(w25 + 1));
+                    n = 3;
+                    setup4(1, 2);
+                    set16(g_rec4, 0x25, (uint16_t)w25);
+                    set16(g_rec4, 0x2d4, (uint16_t)dv[d].w2d4);
+                    set16(g_rec4, 0x23, 5);   /* the last position is 4 */
+                    set16(g4_self, 0x22c, (uint16_t)s22c);
+                    g4_self[0x22a] = (uint8_t)(a22 ? 1 : 0);
+                    for (i = 0; i < n; i++) {
+                        set16(g4_self, 0x232 + (size_t)i * 2, (uint16_t)F[mode][i]);
+                        set16(g4_self, 0x254 + (size_t)i * 2, (uint16_t)Pp[mode][i]);
+                    }
+                    L.tick = dv[d].tick;
+                    snap4();
+                    x4_self[0x224] = 1;
+                    /* an item only counts as moved when it has its flag word set: with none the step schedules the next one */
+                    moved = mv && (F[mode][0] != 0 || F[mode][1] != 0 || F[mode][2] != 0);
+                    calls = 0;
+                    for (i = 0; i < n; i++) {
+                        if (F[mode][i] == 0) continue;
+                        if (mv && Pp[mode][i] == 4) XS16(0x254 + (size_t)i * 2, 0);
+                        else if (mv) XS16(0x254 + (size_t)i * 2, (uint16_t)(Pp[mode][i] + 1));
+                        expect_item(i, calls++);
+                    }
+                    if (moved) {
+                        XS32(0x274, 0);
+                        XS16(0x22c, 1);
+                        if (!a22) for (i = 0; i < n; i++) XS16(0x232 + (size_t)i * 2, 0);
+                    } else {
+                        XS32(0x22e, dv[d].deadline);
+                        XS32(0x274, 3);
+                        XS16(0x22c, (uint16_t)(s22c + 1));
+                    }
+                    run4(IDX4);
+                    CK(g_ret4 == 0);
+                    nlog = 0;
+                    calls = 0;
+                    lasti = 0;
+                    for (i = 0; i < n; i++) {
+                        if (F[mode][i] == 0) continue;
+                        if (mv && Pp[mode][i] == 4) CK(is_place(nlog, i, 0, 0));
+                        else CK(is_place(nlog, i, (uint16_t)Pp[mode][i], (uint16_t)s22c));
+                        CK(P8(nlog, Q_SELF + 0x224) == 1);
+                        CK(P16(nlog, Q_SELF + 0x254 + (size_t)i * 2) == (uint16_t)Pp[mode][i]);   /* the position is stored after the call */
+                        if (calls > 0) CK(P32(nlog, Q_SELF + 0x24 + 16u * (uint32_t)lasti) == 0xa0000000u + (uint32_t)(calls - 1));   /* the previous item is stored */
+                        lasti = i;
+                        nlog++;
+                        calls++;
+                    }
+                    if (!moved) {
+                        CK(is_tick(nlog));
+                        CK(P32(nlog, Q_SELF + 0x274) == 2 && P16(nlog, Q_SELF + 0x22c) == (uint16_t)s22c);   /* nothing is stored before the tick */
+                        nlog++;
+                    }
+                    CK(L.n == nlog);
+                    CK(same4());
+                }
+            }
+        }
+    }
+}
+
+/* the same words in 0x4b6355 calls with no moving item at all (mode 2) do not touch the call log: only the tick */
+static void step14_4b64a9(void)
+{
+    int pos, r, z, k;
+    /* step 1 */
+    for (pos = -1; pos < 9; pos++) {
+        for (z = 0; z < 2; z++) {
+            for (r = 0; r < 3; r++) {
+                static const uint32_t res[] = {0, 1, 0x80000000u};
+                for (k = -1; k < 9; k += 3) {
+                    int eqname = pos < 0, cnt = 3;
+                    setup4(1, 1);
+                    if (pos >= 0) ne9(0x345, 3, pos); else eq9(0x345, 3);
+                    g_rec4[0x2d6] = (uint8_t)(z ? 0 : 0x40);
+                    if (k >= 0) ne9(0x2d9, 4, k); else eq9(0x2d9, 4);
+                    set16(g4_self, 0x1e, (uint16_t)(pos & 1 ? 4 : IDX4));   /* the record that is moved on is the one of the session */
+                    queue_return(0x4f6334, res[r]);
+                    snap4();
+                    run4(IDX4);
+                    CK(g_ret4 == 0);
+                    if (!eqname) {
+                        CK(L.n == 1 && is_call(0, 0x4fb2e3, 0x5c3a67, 1) && (L.c[0].a[0] & 0xffff) == 0x1234 && P32(0, Q_SELF + 0x274) == 1);
+                        XS32(0x274, 5);
+                    } else if (!z && res[r] == 0) {
+                        int i;
+                        CK(is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == (uintptr_t)(uint32_t)(int32_t)(int16_t)0xfffd);
+                        for (i = 0; i < cnt; i++) XS16(0x232 + (size_t)i * 2, 1);
+                        XS32(0x274, 2);
+                        XS16(0x22c, 1);
+                        x4_self[0x22b] = 0;
+                        if (k >= 0) {
+                            CK(L.n == 2 && is_call(1, 0x4fb2e3, 0x5c3a67, 1) && (L.c[1].a[0] & 0xffff) == 0xfffd);
+                            CK(P32(1, Q_SELF + 0x274) == 2 && P16(1, Q_SELF + 0x22c) == 1 && P8(1, Q_SELF + 0x22b) == 0);   /* the stores come first */
+                        } else {
+                            CK(L.n == 1);
+                        }
+                    } else if (!z) {
+                        CK(L.n == 1 && is_call(0, 0x4f6334, 0x5cf1eb, 1));   /* the call is non-zero: nothing happens */
+                    } else {
+                        CK(L.n == 0);
+                        set32(x_records, (size_t)(pos & 1 ? 4 : IDX4) * REC + 0x4d, 2);
+                    }
+                    CK(same4());
+                }
+            }
+        }
+    }
+    /* step 5 */
+    for (pos = 0; pos < 2; pos++) {
+        for (z = 0; z < 2; z++) {
+            for (r = 0; r < 3; r++) {
+                static const uint32_t res[] = {0, 1, 0x80000000u};
+                for (k = -1; k < 9; k += 3) {
+                    int second, i;
+                    setup4(1, 5);
+                    g_rec4[0x2d6] = (uint8_t)(z ? 0 : 0x40);
+                    if (k >= 0) ne9(0x2d9, 5, k); else eq9(0x2d9, 5);
+                    set16(g4_self, 0x1e, (uint16_t)(pos ? 4 : IDX4));
+                    queue_return(0x4f6334, res[pos ? 1 : 0]);   /* the first answer */
+                    queue_return(0x4f6334, res[r]);             /* the second */
+                    snap4();
+                    run4(IDX4);
+                    CK(g_ret4 == 0);
+                    if (pos) {   /* the first call answers non-zero: nothing else */
+                        CK(L.n == 1 && is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == 0x1234);
+                    } else {
+                        CK(is_call(0, 0x4f6334, 0x5cf1eb, 1) && L.c[0].a[0] == 0x1234);
+                        CK(is_call(1, 0x4fba69, 0x5c3a67, 1) && L.c[1].a[0] == RECVA4 + 0x345);
+                        second = !z && res[r] == 0;
+                        if (second) {
+                            CK(is_call(2, 0x4f6334, 0x5cf1eb, 1) && L.c[2].a[0] == (uintptr_t)(uint32_t)(int32_t)(int16_t)0xfffd);
+                            for (i = 0; i < 3; i++) XS16(0x232 + (size_t)i * 2, 1);
+                            XS32(0x274, 2);
+                            XS16(0x22c, 1);
+                            x4_self[0x22b] = 0;
+                            if (k >= 0) {
+                                CK(L.n == 4 && is_call(3, 0x4fb2e3, 0x5c3a67, 1) && (L.c[3].a[0] & 0xffff) == 0xfffd);
+                                CK(P32(3, Q_SELF + 0x274) == 2);
+                            } else {
+                                CK(L.n == 3);
+                            }
+                        } else if (!z) {
+                            CK(L.n == 3);
+                        } else {
+                            CK(L.n == 2);
+                            set32(x_records, (size_t)IDX4 * REC + 0x4d, 2);
+                        }
+                    }
+                    CK(same4());
+                }
+            }
+        }
+    }
+}
+
+/* step 4 */
+static void step4_4b64a9(void)
+{
+    static const struct { int16_t w2d4, w25; uint32_t tick, deadline; } dv[] = {
+        {3, 4, 1000, 1000u + 6000u}, {-7, 3, 1000, 1000u - 18666u}, {0x7fff, 1, 0xffffff00u, 0xffffff00u + 262136000u}, {-32768, -3, 5, 5u + 87381333u},
+        {0, 7, 77, 77}, {1, -2, 100, 100u - 4000u}};
+    /* again == (p0 < w23 - 1) || !(b22b >= w2d7 * (w23 - 1) - 1), worked out by hand for each row */
+    static const struct { int16_t p0, w23, w2d7; uint8_t b22b; int again; } c[] = {
+        {3, 5, 2, 0, 1},         /* 3 < 4: again */
+        {4, 5, 2, 0, 1},         /* 4 < 4 no; 0 >= 2 * 4 - 1 = 7 no: again */
+        {4, 5, 2, 7, 0},         /* 7 >= 7: done */
+        {4, 5, 2, 6, 1},         /* 6 >= 7 no: again */
+        {5, 5, 2, 200, 0},       /* 200 >= 7: done */
+        {-32768, 1, 1, 0, 1},    /* -32768 < 0: again */
+        {0, 1, 1, 0, 0},         /* 0 < 0 no; 0 >= 1 * 0 - 1 = -1: done */
+        {4, 5, 2, 0xff, 0},      /* the byte is zero-extended: 255 >= 7: done */
+        {4, 5, -1, 0, 0},        /* 0 >= -1 * 4 - 1 = -5: done */
+        {4, 5, 0x7fff, 0xff, 1}, /* 255 >= 0x7fff * 4 - 1 = 131067 no: again */
+        {3, 5, 2, 0xff, 1},      /* again, the byte wraps to 0 */
+    };
+    int k, d;
+    for (k = 0; k < 11; k++) {
+        int again = c[k].again, a;
+        for (d = 0; d < 6; d++) {
+            for (a = 0; a < 2; a++) {
+                setup4(1, 4);
+                set16(g_rec4, 0x23, (uint16_t)c[k].w23);
+                set16(g_rec4, 0x2d7, (uint16_t)c[k].w2d7);
+                set16(g_rec4, 0x25, (uint16_t)dv[d].w25);
+                set16(g_rec4, 0x2d4, (uint16_t)dv[d].w2d4);
+                set16(g4_self, 0x254, (uint16_t)c[k].p0);
+                g4_self[0x22b] = c[k].b22b;
+                g4_self[0x22a] = (uint8_t)a;
+                set16(g4_self, 0x1e, (uint16_t)(a ? 4 : IDX4));
+                L.tick = dv[d].tick;
+                snap4();
+                if (again) {
+                    XS32(0x22e, dv[d].deadline);
+                    XS32(0x274, 3);
+                    x4_self[0x22b] = (uint8_t)(c[k].b22b + 1);
+                } else {
+                    set32(x_records, (size_t)(a ? 4 : IDX4) * REC + 0x4d, 2);
+                }
+                run4(IDX4);
+                CK(g_ret4 == 0);
+                if (again) {
+                    CK(L.n == 1 && is_tick(0) && P32(0, Q_SELF + 0x274) == 4 && P8(0, Q_SELF + 0x22b) == c[k].b22b);
+                } else {
+                    CK(L.n == 0);
+                }
+                CK(same4());
+            }
+        }
+    }
+}
+
+/* a zero divisor (+0x25 == 0) in steps 2 (nothing moves) and 4: the original divides by zero after the GetTickCount call */
+static void divide_4b64a9(void)
+{
+    setup4(1, 4);
+    set16(g_rec4, 0x25, 0);
+    set16(g4_self, 0x254, 0);
+    L.tick = 0x1234;
+    snap4();
+    run4(IDX4);
+    CK(g_ret4 == FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO && L.n == 1 && is_tick(0) && same4());
+    setup4(1, 2);
+    set16(g_rec4, 0x25, 0);
+    set16(g4_self, 0x22c, 1);   /* different from the divisor: no item moves */
+    set16(g4_self, 0x232, 0);
+    set16(g4_self, 0x234, 0);
+    set16(g4_self, 0x236, 0);
+    L.tick = 0x1234;
+    snap4();
+    x4_self[0x224] = 1;
+    run4(IDX4);
+    CK(g_ret4 == FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO && L.n == 1 && is_tick(0) && same4());
+    setup4(1, 2);
+    set16(g_rec4, 0x25, 0);
+    set16(g4_self, 0x22c, 0);   /* equal to the divisor: the items advance and no division happens */
+    set16(g4_self, 0x232, 1);
+    set16(g4_self, 0x234, 0);
+    set16(g4_self, 0x236, 0);
+    set16(g4_self, 0x254, 4);
+    g4_self[0x22a] = 0;
+    snap4();
+    x4_self[0x224] = 1;
+    XS16(0x254, 0);
+    expect_item(0, 0);
+    XS32(0x274, 0);
+    XS16(0x22c, 1);
+    XS16(0x232, 0);
+    XS16(0x234, 0);
+    XS16(0x236, 0);
+    run4(IDX4);
+    CK(g_ret4 == 0 && L.n == 1 && is_place(0, 0, 0, 0) && same4());
+}
+
+/* ---- state 2 ---- */
+static void state2_4b64a9(void)
+{
+    int pos, f9, fa, sel, fidx, sub, base, nlog;
+    for (pos = -1; pos < 9; pos += 3) {
+        for (f9 = 0; f9 < 2; f9++) {
+            for (fa = 0; fa < 2; fa++) {
+                for (sel = 0; sel < 3; sel++) {          /* the selector word of the block: 0x270f (nothing loaded), or 5 / -7 */
+                    for (fidx = 0; fidx < 3; fidx++) {   /* the flag index word: -1 (none), 3, -2 */
+                        for (sub = 0; sub < 3; sub++) {  /* the word at block + 0x14: 1 (clears 0x5bb1ca), 2, -1 */
+                            int16_t selw = (int16_t)(sel == 0 ? 0x270f : sel == 1 ? 5 : -7);
+                            int16_t flw = (int16_t)(fidx == 0 ? -1 : fidx == 1 ? 3 : -2);
+                            int16_t subw = (int16_t)(sub == 0 ? 1 : sub == 1 ? 2 : -1);
+                            int blocks = f9 ? 1 : fa ? 2 : 0;   /* 1: the block at 0x376, 2: the block at 0x32a */
+                            size_t o = blocks == 1 ? 0x376 : 0x32a;
+                            setup4(2, 0);
+                            if (pos >= 0) ne9(0x2d9, 6, pos); else eq9(0x2d9, 6);
+                            g4_self[0x229] = (uint8_t)(f9 ? 0x80 : 0);
+                            g4_self[0x22a] = (uint8_t)(fa ? 1 : 0);
+                            set16(g4_self, 0x1e, (uint16_t)(f9 ? 4 : IDX4));
+                            /* (with neither flag set both blocks are armed: nothing may be loaded from either) */
+                            set16(g_rec4, 0x376, (uint16_t)(blocks != 2 ? selw : 0x270f));
+                            set16(g_rec4, 0x32a, (uint16_t)(blocks != 1 ? selw : 0x270f));
+                            set16(g_rec4, 0x376 + 0x14, (uint16_t)subw);
+                            set16(g_rec4, 0x32a + 0x14, (uint16_t)subw);
+                            for (base = 0; base < 2; base++) {   /* both blocks hold recognisable values */
+                                size_t b = base ? 0x32a : 0x376;
+                                set16(g_rec4, b + 2, (uint16_t)(0x1100 + base));
+                                set16(g_rec4, b + 4, (uint16_t)(0x2200 + base));
+                                set16(g_rec4, b + 6, (uint16_t)(0x3300 + base));
+                                set32(g_rec4, b + 8, 0x44000000u + (uint32_t)base);
+                                set32(g_rec4, b + 0xc, 0x55000000u + (uint32_t)base);
+                                set32(g_rec4, b + 0x10, 0x66000000u + (uint32_t)base);
+                            }
+                            set16(g_rec4, 0x38c, (uint16_t)(blocks != 2 ? flw : -1));
+                            set16(g_rec4, 0x340, (uint16_t)(blocks != 1 ? flw : -1));
+                            g_rec4[0x38e] = 0xa5;
+                            g_rec4[0x342] = 0x5a;
+                            snap4();
+                            e4.value_5bb1ca = 1;
+                            if (blocks != 0) {
+                                if (selw != 0x270f) {
+                                    e4.value_5bb57b = (uint32_t)(int32_t)selw;
+                                    e4.word_5bb599 = get16(g_rec4, o + 2);
+                                    e4.word_5bb595 = get16(g_rec4, o + 4);
+                                    e4.word_5c39ff = get16(g_rec4, o + 6);
+                                    e4.value_5bb59b = get32(g_rec4, o + 8);
+                                    e4.value_5bb59f = get32(g_rec4, o + 0xc);
+                                    e4.value_5bb5a3 = get32(g_rec4, o + 0x10);
+                                    e4.value_5bb1ca = subw == 1 ? 0u : 1u;
+                                    e4.value_583999 = 4;
+                                }
+                                if (flw != -1) set32(x_flags, 0x40 + (size_t)(flw * 4), blocks == 1 ? 0xa5u : 0x5au);
+                            }
+                            run4(IDX4);
+                            CK(g_ret4 == 0);
+                            nlog = 0;
+                            if (pos >= 0) {
+                                CK(is_call(nlog, 0x4fba69, 0x5c3a67, 1) && L.c[nlog].a[0] == RECVA4 + 0x2d9);
+                                CK(P32(nlog, Q_1CA) == 1 && P32(nlog, Q_G) == 0x5557 && P32(nlog, Q_G + 16) == 0x5599);   /* 0x5bb1ca first; nothing loaded yet */
+                                nlog++;
+                            }
+                            CK(is_call(nlog, 0x42ba3a, 0, 1) && (L.c[nlog].a[0] & 0xffff) == (f9 ? 4 : IDX4));
+                            CK(P32(nlog, Q_1CA) == e4.value_5bb1ca && P32(nlog, Q_G) == e4.value_5bb57b && P32(nlog, Q_G + 16) == e4.value_583999);
+                            CK(P16(nlog, Q_G + 20) == e4.word_5bb599 && P16(nlog, Q_G + 24) == e4.word_5c39ff);
+                            CK(memcmp(L.c[nlog].probe + Q_FLAGS, x_flags, 0x100) == 0);   /* the flag entry is stored before the call */
+                            nlog++;
+                            CK(is_call(nlog, 0x4b5bc8, (uintptr_t)g4_self, 0));
+                            nlog++;
+                            CK(L.n == nlog);
+                            CK(same4());
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void test_m4b64a9_run_scene(void)
+{
+    state0_4b64a9();
+    step03_4b64a9();
+    step2_4b64a9();
+    step14_4b64a9();
+    step4_4b64a9();
+    divide_4b64a9();
+    state2_4b64a9();
+}
+
 /* TESTS-END */
 
 int main(void)
@@ -1199,6 +1881,7 @@ int main(void)
     int failures = 0;
     RUN(test_m42ed54_run_state);
     RUN(test_m47ff0e_handle_click);
+    RUN(test_m4b64a9_run_scene);
     /* RUN-END */
     return failures;
 }

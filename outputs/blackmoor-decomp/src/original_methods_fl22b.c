@@ -409,3 +409,220 @@ int32_t m47ff0e_handle_click(uint8_t *self, Fl22bWorld *world, const Fl18Host *h
     wr16(self, 0x1350, 0xffffu);
     return FL22B_47FF0E_OK;
 }
+
+/* ---- 0x4b64a9 ------------------------------------------------------------------------------------------------------------------ */
+
+/* The record object [ebp-0x20] (the address kept in the record table at entry), read through again at every use. */
+#define REC4B(rec_va) object_at(host, (rec_va))
+/* offset in the table at 0x5d1591 of field `field` of the entry (0x4a bytes) of the slot that the session holds (the signed word +0x1c), read again at every use */
+#define SLOT4B(self, field) ((ptrdiff_t)rds16((self), 0x1c) * 0x4a + (field))
+/* the nine bytes "NO SOUND\0" of slot k of 0x551b5c (the compared constants lie 12 bytes apart) */
+#define K4B(world, k) ((world)->bytes_551b5c + 12 * (k))
+
+/* the call of 0x4b6355 (thiscall, ret 0x10): the arguments are the item index, two words and a pointer to four dwords (the local
+ * [ebp-0x1c]) that the callee fills in; args[0] is the index (the last pushed) */
+static void place_item_4b64a9(uint8_t *self, const Fl18Host *host, int32_t i, uint32_t w1, uint32_t w2, uint32_t *local)
+{
+    call4(host, 0x4b6355, (uintptr_t)self, (uint16_t)i, (uint16_t)w1, (uint16_t)w2, (uintptr_t)local);
+}
+
+/* the four dwords of the local go into the 16-byte item entry i of the session, in this order: [-0x18] -> +0x28, [-0x10] -> +0x30,
+ * [-0x1c] -> +0x24, [-0x14] -> +0x2c */
+static void store_item_4b64a9(uint8_t *self, int32_t i, const uint32_t *local)
+{
+    wr32(self, (ptrdiff_t)i * 16 + 0x28, local[1]);
+    wr32(self, (ptrdiff_t)i * 16 + 0x30, local[3]);
+    wr32(self, (ptrdiff_t)i * 16 + 0x24, local[0]);
+    wr32(self, (ptrdiff_t)i * 16 + 0x2c, local[2]);
+}
+
+/* `for (i = 0; i < count; i++) word[self + 0x232 + 2*i] = value`: the count word of the record is read again at every test */
+static void fill_flags_4b64a9(uint8_t *self, const Fl18Host *host, uint32_t rec_va, uint16_t value)
+{
+    int32_t i;
+    for (i = 0; i < rds16(REC4B(rec_va), 0x21); i++) wr16(self, (ptrdiff_t)i * 2 + 0x232, value);
+}
+
+/* 0x4b6bfc / 0x4b6d16: the record goes to state 2 when its byte +0x2d6 is clear (the byte is read again) */
+static void finish_step_4b64a9(uint8_t *self, Fl22bWorld *world, const Fl18Host *host, uint32_t rec_va)
+{
+    if (rd_u8(REC4B(rec_va), 0x2d6) == 0) wr32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d, 2);
+}
+
+/* 0x4b64a9: one step of the session object `self` (ecx) for the record `index` (a word). Record state (dword +0x4d) 0 sets the session up
+ * (calls 0x4e8d96, 0x4b6355 for every item, 0x4d39f9, 0x4c2790, 0x4fb77a), 1 runs the step in self+0x274 (jump table of six arms at
+ * 0x4b7029), 2 loads the globals 0x5bb57b.. from one of two blocks of the record and calls 0x42ba3a and 0x4b5bc8. The block load of
+ * state 2 stores the same globals in the same order as in 0x42ed54 (load_block_42ed54). */
+int32_t m4b64a9_run_scene(uint8_t *self, int16_t index, Fl22bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(world->records_5bb5e5, (ptrdiff_t)index * 0x8d);       /* [ebp-0x20] */
+    uint32_t state = rd32(world->records_5bb5e5, (ptrdiff_t)index * 0x8d + 0x4d); /* [ebp-0x34] */
+    uint32_t local[4] = {0, 0, 0, 0};                                              /* [ebp-0x1c .. -0x10], filled in by 0x4b6355 */
+    int32_t i;
+    if (state == 0) {
+        wr16(self, 0x1e, (uint16_t)index);
+        wr32(self, 0x225, 1);   /* (the bytes +0x229 and +0x22a are overwritten below) */
+        world->value_5bb1ca = 1;
+        call0(host, 0x4e8d96, 0x571442);
+        wr32(self, 0x254, 0);
+        wr32(self, 0x258, 0);
+        wr32(self, 0x25c, 0);
+        wr32(self, 0x260, 0);
+        for (i = 0; i < rds16(REC4B(rec_va), 0x21); i++) {
+            ptrdiff_t o = (ptrdiff_t)i * 16;
+            uint16_t w;
+            wr32(self, o + 0x128, rd32(REC4B(rec_va), o + 0x4b) + world->value_58318a);
+            wr32(self, o + 0x130, rd32(REC4B(rec_va), o + 0x53) + world->value_58318a);
+            wr32(self, o + 0x124, rd32(REC4B(rec_va), o + 0x47) + world->value_583186);
+            wr32(self, o + 0x12c, rd32(REC4B(rec_va), o + 0x4f) + world->value_583186);
+            w = rd16(REC4B(rec_va), (ptrdiff_t)i * 2 + 0x27);   /* [ebp-8] */
+            wr16(self, (ptrdiff_t)i * 2 + 0x254, rd16(REC4B(rec_va), (ptrdiff_t)i * 2 + 0x27));
+            place_item_4b64a9(self, host, i, w, 0, local);
+            store_item_4b64a9(self, i, local);
+        }
+        self[0x224] = 1;
+        wr16(self, 0x1c, (uint16_t)call0(host, 0x4d39f9, 0));
+        wr32(world->table_5d1591, SLOT4B(self, 0), 0xa);
+        wr32(world->table_5d1591, SLOT4B(self, 4), 0x4b7051);
+        wr32(world->table_5d1591, SLOT4B(self, 8), 0);
+        wr32(world->table_5d1591, SLOT4B(self, 0xc), 0);
+        wr32(world->table_5d1591, SLOT4B(self, 0x10), 0);
+        wr32(world->table_5d1591, SLOT4B(self, 0x14), 1);
+        wr32(world->table_5d1591, SLOT4B(self, 0x18), 1);
+        wr16(world->table_5d1591, SLOT4B(self, 0x1c), 0);
+        {   /* the inlined strcpy: length + 1 bytes of 0x551b24 into the entry at +0x22 */
+            uint32_t len = string_length(world->string_551b24) + 1u;
+            memcpy(world->table_5d1591 + SLOT4B(self, 0x22), world->string_551b24, len);
+        }
+        if (rd32(self, 0x20) == 0) wr32(self, 0x20, call4(host, 0x4c2790, 0x5cf659, 0x551b54, rec_va, 6, 0x551b3c));
+        wr32(world->table_5d1591, SLOT4B(self, 8), rd32(self, 0x20));
+        if (!nine_bytes_equal(REC4B(rec_va) + 0x2d9, K4B(world, 0))) call1(host, 0x4fb77a, 0x5c3a67, rec_va + 0x2d9u);
+        if (!nine_bytes_equal(REC4B(rec_va) + 0x345, K4B(world, 1))) call1(host, 0x4fb77a, 0x5c3a67, rec_va + 0x345u);
+        self[0x22a] = 0;
+        self[0x229] = 0;
+        wr16(self, 0x22c, 1);
+        wr32(self, 0x274, 0);
+        wr32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d, 1);
+        return FL22B_4B64A9_OK;
+    }
+    if (state == 1) {
+        uint32_t step = rd32(self, 0x274);
+        if (step > 5) return FL22B_4B64A9_OK;
+        switch (step) {
+        case 0:   /* 0x4b6858 */
+            if (self[0x22a] != 0)
+                wr32(self, 0x274, 4);
+            else
+                call0(host, 0x4b642d, (uintptr_t)self);
+            break;
+        case 3:   /* 0x4b6883 */
+            if (host->tick(host->context) < rd32(self, 0x22e)) break;
+            wr32(self, 0x274, 2);
+            if (self[0x22a] != 0 && !nine_bytes_equal(REC4B(rec_va) + 0x2d9, K4B(world, 2)))
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(REC4B(rec_va), 0x2fa));
+            break;
+        case 2: { /* 0x4b68e3 */
+            int32_t moved = 0;   /* [ebp-4] */
+            self[0x224] = 1;
+            for (i = 0; i < rds16(REC4B(rec_va), 0x21); i++) {
+                ptrdiff_t at = (ptrdiff_t)i * 2;
+                if (rds16(self, at + 0x232) == 0) continue;
+                if (rds16(self, 0x22c) == rds16(REC4B(rec_va), 0x25)) {
+                    moved = 1;
+                    if (rds16(self, at + 0x254) == rds16(REC4B(rec_va), 0x23) - 1) {
+                        place_item_4b64a9(self, host, i, 0, 0, local);
+                        wr16(self, at + 0x254, 0);
+                    } else {
+                        place_item_4b64a9(self, host, i, rd16(self, at + 0x254), rd16(self, 0x22c), local);
+                        wr16(self, at + 0x254, (uint16_t)(rd16(self, at + 0x254) + 1u));
+                    }
+                } else {
+                    place_item_4b64a9(self, host, i, rd16(self, at + 0x254), rd16(self, 0x22c), local);
+                }
+                store_item_4b64a9(self, i, local);
+            }
+            if (moved != 0) {
+                wr32(self, 0x274, 0);
+                wr16(self, 0x22c, 1);
+                if (self[0x22a] == 0) {
+                    for (i = 0; i < rds16(REC4B(rec_va), 0x21); i++) wr16(self, (ptrdiff_t)i * 2 + 0x232, 0);
+                }
+            } else {
+                uint32_t now = host->tick(host->context);
+                int32_t numerator = rds16(REC4B(rec_va), 0x2d4) * 0x3e8;
+                int32_t divisor = rds16(REC4B(rec_va), 0x25);
+                if (divisor == 0) return FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO;
+                wr32(self, 0x22e, now + (uint32_t)(numerator / divisor));
+                wr32(self, 0x274, 3);
+                wr16(self, 0x22c, (uint16_t)(rd16(self, 0x22c) + 1u));
+            }
+            break;
+        }
+        case 1:   /* 0x4b6b03 */
+            if (!nine_bytes_equal(REC4B(rec_va) + 0x345, K4B(world, 3))) {
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(REC4B(rec_va), 0x366));
+                wr32(self, 0x274, 5);
+            } else if (rd_u8(REC4B(rec_va), 0x2d6) != 0 &&
+                       call1(host, 0x4f6334, 0x5cf1eb, (uint32_t)rds16(REC4B(rec_va), 0x2fa)) == 0) {
+                fill_flags_4b64a9(self, host, rec_va, 1);
+                wr32(self, 0x274, 2);
+                wr16(self, 0x22c, 1);
+                self[0x22b] = 0;
+                if (!nine_bytes_equal(REC4B(rec_va) + 0x2d9, K4B(world, 4))) call1(host, 0x4fb2e3, 0x5c3a67, rd16(REC4B(rec_va), 0x2fa));
+            } else {
+                finish_step_4b64a9(self, world, host, rec_va);
+            }
+            break;
+        case 5:   /* 0x4b6c27 */
+            if (call1(host, 0x4f6334, 0x5cf1eb, (uint32_t)rds16(REC4B(rec_va), 0x366)) != 0) break;
+            call1(host, 0x4fba69, 0x5c3a67, rec_va + 0x345u);
+            if (rd_u8(REC4B(rec_va), 0x2d6) != 0 &&
+                call1(host, 0x4f6334, 0x5cf1eb, (uint32_t)rds16(REC4B(rec_va), 0x2fa)) == 0) {
+                fill_flags_4b64a9(self, host, rec_va, 1);
+                wr32(self, 0x274, 2);
+                wr16(self, 0x22c, 1);
+                self[0x22b] = 0;
+                if (!nine_bytes_equal(REC4B(rec_va) + 0x2d9, K4B(world, 5))) call1(host, 0x4fb2e3, 0x5c3a67, rd16(REC4B(rec_va), 0x2fa));
+            } else {
+                finish_step_4b64a9(self, world, host, rec_va);
+            }
+            break;
+        default: { /* 4: 0x4b6d41 */
+            if (!(rds16(self, 0x254) < rds16(REC4B(rec_va), 0x23) - 1)) {
+                int32_t limit = rds16(REC4B(rec_va), 0x2d7) * (rds16(REC4B(rec_va), 0x23) - 1) - 1;
+                if ((int32_t)self[0x22b] >= limit) {
+                    wr32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x1e) * 0x8d + 0x4d, 2);
+                    break;
+                }
+            }
+            {   /* 0x4b6d82 */
+                uint32_t now = host->tick(host->context);
+                int32_t numerator = rds16(REC4B(rec_va), 0x2d4) * 0x1f40;
+                int32_t divisor = rds16(REC4B(rec_va), 0x25);
+                if (divisor == 0) return FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO;
+                wr32(self, 0x22e, now + (uint32_t)(numerator / divisor));
+                wr32(self, 0x274, 3);
+                self[0x22b] = (uint8_t)(self[0x22b] + 1u);
+            }
+            break;
+        }
+        }
+        return FL22B_4B64A9_OK;
+    }
+    if (state == 2) {   /* 0x4b6dee */
+        world->value_5bb1ca = 1;
+        if (!nine_bytes_equal(REC4B(rec_va) + 0x2d9, K4B(world, 6))) call1(host, 0x4fba69, 0x5c3a67, rec_va + 0x2d9u);
+        if (self[0x229] != 0) {
+            if (rds16(REC4B(rec_va), 0x376) != 0x270f) load_block_42ed54(world, REC4B(rec_va), 0x376);
+            if (rds16(REC4B(rec_va), 0x38c) != -1)
+                wr32(world->flags_585801, (ptrdiff_t)rds16(REC4B(rec_va), 0x38c) * 4, rd_u8(REC4B(rec_va), 0x38e));
+        } else if (self[0x22a] != 0) {
+            if (rds16(REC4B(rec_va), 0x32a) != 0x270f) load_block_42ed54(world, REC4B(rec_va), 0x32a);
+            if (rds16(REC4B(rec_va), 0x340) != -1)
+                wr32(world->flags_585801, (ptrdiff_t)rds16(REC4B(rec_va), 0x340) * 4, rd_u8(REC4B(rec_va), 0x342));
+        }
+        call1(host, 0x42ba3a, 0, rd16(self, 0x1e));   /* word argument, cdecl */
+        call0(host, 0x4b5bc8, (uintptr_t)self);
+    }
+    return FL22B_4B64A9_OK;
+}

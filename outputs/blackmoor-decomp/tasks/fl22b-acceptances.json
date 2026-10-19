@@ -64,5 +64,38 @@
   },
   "parts_accounted": [],
   "note": "1:1 with m47ff0e_handle_click (thiscall, self = ecx). Events 0x278d..0x2791 of the item picker: gates, state 2 (0x278f/0x2790), selection (0x278e), click (two entry conditions, optional 0x47e9d3 call, 0x47e582/0x47ed96, 16-byte copies, counter decrement, 0x4809a7) and release (held or not held, nine-byte compare, caption strings via 0x423259 and 0x448d11, common end). Direct test: ordered host calls with hand-derived arguments, call-time probes of self, the item table and the record state, word-argument masks, wrap-arounds, the rejection of captions longer than 200 bytes. Differential test: original bytes (Unicorn, callees and GetTickCount as recording stubs, the bytes behind the frame pointer of 0x448d11 compared) vs native on 300 random fixtures, every instruction of the 2713-byte body reached. Deliberate divergence: a caption string longer than 200 bytes overruns the original's 0xcc-byte frame buffer; the native port returns FL22B_47FF0E_REJECT_LONG_STRING instead of copying (not exercised by the differential test)."
+ },
+ {
+  "va": "0x4b64a9",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 batch b continuation implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22b.c",
+   "symbol": "m4b64a9_run_scene"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22b_direct_test.c",
+    "test_id": "test_m4b64a9_run_scene"
+   },
+   {
+    "path": "tests/test_fl22b_direct.py",
+    "test_id": "Fl22bDirect.test_run_scene_4b64a9"
+   },
+   {
+    "path": "tests/test_fl22b_differential.py",
+    "test_id": "Fl22bDifferential.test_4b64a9_run_scene"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d1_runtime_original_oracle.py",
+   "window": [
+    "0x4b64a9",
+    "0x4b7041"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b64a9_run_scene (thiscall, self = ecx, one word stack argument, ret 4). Three states of a record (dword +0x4d): 0 (session set-up: 0x4e8d96, 0x4b6355 for every item with the coordinates stored first, 0x4d39f9, the 0x4a-byte table entry at 0x5d1591 with the string copy from 0x551b24, 0x4c2790, two nine-byte name checks with 0x4fb77a), 1 (the step in self+0x274 through the jump table of six arms at 0x4b7029 behind the unsigned bound check: 0x4b642d, tick wait with 0x4fb2e3, item advance with two idiv-timed deadlines, name checks with 0x4f6334/0x4fba69/0x4fb2e3, the record to state 2) and 2 (the block load of the globals 0x5bb57b.. from one of two record blocks, the flag-table store, 0x42ba3a and 0x4b5bc8). Direct test: ordered host calls with hand-derived arguments, call-time probes of self, the table entry, the globals and the flag table, hand-worked deadlines and bounds, signed/unsigned/word/byte boundaries, steps above 5 and states above 2. Differential test: original bytes (Unicorn, callees and GetTickCount as recording stubs, 0x4b6355 filling its four-dword out parameter) vs native on 300 random fixtures with profiles for the arms random data rarely reaches, every instruction of the 2944-byte body reached; the jump table at 0x4b7029 lies after the code and is read by the original's own jmp, so all six arms and the out-of-range exit run through it. The 11 unlocated_unverified receipt items of slice A-D1.1 are that slice's own list (loader and parser of the action record, allocator, dependencies, reviewer); the ledger lists no blocker for this function. Deliberate divergence: a zero divisor (+0x25 of the record) in step 2 (no item moves) or step 4 makes the original fault with a divide error after the GetTickCount call; the native port returns FL22B_4B64A9_REJECT_DIVIDE_BY_ZERO at that point (not exercised by the differential test, whose fixtures keep the divisor non-zero because the emulated original would fault)."
  }
 ]

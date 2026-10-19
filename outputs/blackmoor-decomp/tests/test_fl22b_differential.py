@@ -503,6 +503,152 @@ class Fl22bDifferential(DiffBase):
                       pointers={'records_5bb5e5': ('records', rslack), 'bytes_54d5a4': ('consts', 0)}, scalars={})
         self.finish(0x47ff0e, size, executed)
 
+    # ---- 0x4b64a9 ----
+    def test_4b64a9_run_scene(self):
+        """FL-22b: differential test of m4b64a9_run_scene (original 0x4b64a9): the three record states and all six arms of the jump table at 0x4b7029"""
+        rng = random.Random(0x4b64a9)
+        executed = set()
+        size = 2944
+        scalars = ['value_5bb1ca', 'value_5bb57b', 'value_5bb59b', 'value_5bb59f', 'value_5bb5a3', 'value_583999', 'word_5bb599', 'word_5bb595',
+                   'word_5c39ff', 'value_58318a', 'value_583186']
+        TSLACK = 3   # entries of 0x4a bytes below 0x5d1591 in the fixture
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            now = rng.choice([1000, 0x7fffffff, 0xffffff40, rng.randrange(1 << 32)])
+            records, rslack = self.records_area(rng, nrec=5, slack=0)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(1))
+            profile = ['blk', 'move', 'finish', 'bound', 'go', 'due', 'go', 'finish', 'bound', 'move', 'step0', 'free', 'free', 'free'][n % 14]   # (the arms that random fixtures rarely reach)
+            state = rng.choice([0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 0xffffffff, 0x80000000])
+            if profile != 'free':
+                state = 2 if profile == 'blk' else 1
+            struct.pack_into('<I', records.data, rslack + index * 0x8d + 0x4d, state)
+            # the nine-byte constants: "NO SOUND\0" in the original; here a random base, mostly the same in every slot
+            base9 = bytes(rng.randbytes(9))
+            slots = [base9 if rng.random() < 0.5 else bytes(rng.randbytes(9)) for _ in range(7)]
+            consts = bytearray()
+            for slot in slots:
+                consts += slot + bytes(rng.randbytes(3))
+            text = bytes(rng.randrange(1, 256) for _ in range(rng.choice([0, 1, 3, 4, 5, 22, 23, 30])))
+            string = Area('string', 0x551b24, bytearray(text + b'\0' + bytes(rng.randbytes(1))), compare=False)
+            rec = bytearray(rng.randbytes(0x400))
+            sw = lambda off, v: struct.pack_into('<h', rec, off, v)
+            small = lambda: rng.choice([-3, -1, 0, 1, 2, 3, 4, 5, 8, 0x270f, rng.randrange(-32768, 32768)])
+            count = rng.choice([0, 1, 1, 2, 3, 3, 4, 5, 6, 16, 17, -1, -32768])
+            sw(0x21, count)
+            nonzero = lambda: rng.choice([1, 2, 3, 5, 7, -1, -3, 100, 0x7fff, -32768, rng.randrange(1, 32768), -rng.randrange(1, 32768)])
+            div = nonzero()
+            sw(0x25, div)
+            sw(0x23, rng.choice([0, 1, 2, 3, 4, -1, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            sw(0x2d4, rng.choice([0, 1, 5, -3, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            sw(0x2d7, rng.choice([0, 1, 2, 3, 5, -2, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            sw(0x2fa, rng.choice([0, 1, 5, -3, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            sw(0x366, rng.choice([0, 1, 5, -3, 0x7fff, -32768, rng.randrange(-32768, 32768)]))
+            rec[0x2d6] = rng.choice([0, 1, 1, 0xff])
+            for off in (0x2d9, 0x345):
+                pick = rng.choice(slots)   # (equal to the compared slot or not, depending on which slots happen to agree)
+                rec[off:off + 9] = rng.choice([base9, pick, pick, bytes(rng.randbytes(9)), pick[:8] + bytes([pick[8] ^ 0x40]),
+                                               bytes([pick[0] ^ 1]) + pick[1:]])
+            for off in (0x376, 0x32a):   # the blocks of state 2
+                sw(off, rng.choice([0x270f, 0x270f, 0, 5, -1, rng.randrange(-32768, 32768)]))
+                sw(off + 0x14, rng.choice([1, 1, 0, 2, -1, 0x7fff]))
+            for off in (0x38c, 0x340):
+                sw(off, rng.choice([-1, -1, 0, 1, 5, 9, -3, 40, -16, 47]))
+            flags = Area('flags', 0x585801 - 0x40, bytearray(rng.randbytes(0x100)))
+            tab = Area('tab', 0x5d1591 - TSLACK * 0x4a, bytearray(rng.randbytes((TSLACK + 0x44) * 0x4a)))
+            # the session object
+            d = bytearray(rng.randbytes(0x300))
+            put = lambda fmt, offset, value: struct.pack_into(fmt.replace('h', 'H') if fmt == '<h' else fmt, d, offset, value & 0xffff if fmt == '<h' else value)
+            put('<h', 0x1e, rng.choice([index, index, index, index, (index + 1) % 5]))
+            put('<h', 0x1c, rng.choice([0, 1, 5, 0x18, 0x3f, 0x40, 0x41, -1, -2, 7]))
+            step = rng.choice([0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 0xffffffff, 0x80000000])
+            put('<I', 0x274, step)
+            f6334 = [rng.choice([0, 0, 1, 5, 0x10000, 0x80000000]) for _ in range(2)]
+            put('<I', 0x20, rng.choice([0, 0, 0, 0x12345678, 0xffffffff]))
+            d[0x229] = rng.choice([0, 1, 0xff])
+            d[0x22a] = rng.choice([0, 0, 1, 0xff])
+            limit4 = struct.unpack_from('<h', rec, 0x2d7)[0] * (struct.unpack_from('<h', rec, 0x23)[0] - 1) - 1   # the bound that step 4 compares +0x22b with
+            d[0x22b] = rng.choice([0, 1, 2, 5, 0xfe, 0xff, 0x80, 0x7f, rng.randrange(256), (limit4 - 1) & 0xff, limit4 & 0xff, (limit4 + 1) & 0xff])
+            put('<h', 0x22c, rng.choice([div, div, div, (div + 1) & 0xffff, 1, 0, 0x7fff, rng.randrange(-32768, 32768)]))
+            put('<I', 0x22e, rng.choice([now, (now + 1) & 0xffffffff, (now - 1) & 0xffffffff, 0, 0xffffffff, rng.randrange(1 << 32)]))
+            last = struct.unpack_from('<h', rec, 0x23)[0] - 1
+            for i in range(16):   # the word tables: flags (+0x232) mostly non-zero, positions (+0x254) at or around the last one
+                put('<h', 0x232 + 2 * i, rng.choice([0, 1, 1, 1, -1, 0x100, 0x4000, -32768, rng.randrange(-32768, 32768)]))
+                put('<h', 0x254 + 2 * i, sword(rng.choice([last, last, last - 1, last + 1, 0, 1, rng.randrange(-32768, 32768)])))
+            if profile == 'blk':   # state 2 with one block armed (the one at +0x376 or at +0x32a) and its word 1 or not
+                base = (0x376, 0x32a)[(n // 10) % 2]
+                d[0x229], d[0x22a] = ((1, rng.choice([0, 1])) if base == 0x376 else (0, 1))
+                sw(base, rng.choice([5, -7, 0]))
+                sw(base + 0x14, (1, 2, 1, -1)[(n // 20) % 4])
+            elif profile == 'due':   # step 3 that is due (the deadline at or before the tick), +0x22a set and the name different from slot 2
+                step = 3
+                put('<I', 0x274, step)
+                put('<I', 0x22e, rng.choice([now, (now - 1) & 0xffffffff, 0]))
+                d[0x22a] = rng.choice([1, 0xff])
+                rec[0x2d9:0x2e2] = rng.choice([bytes([slots[2][0] ^ 0x80]) + slots[2][1:], bytes(rng.randbytes(9)), slots[2][:8] + bytes([slots[2][8] ^ 1]), slots[3], slots[4], slots[2]])
+            elif profile == 'step0':   # step 0 with the byte +0x22a set (the step becomes 4) or clear (0x4b642d is called), or a step above 5
+                put('<I', 0x274, rng.choice([0, 0, 0, 6, 7, 0x80000000, 0xffffffff, 6]))   # (the steps above 5 do nothing)
+                d[0x22a] = rng.choice([0, 1, 0xff])
+            elif profile == 'move':   # step 2 with the items due to move (+0x22c equals the divisor) and the clearing of the flag words (+0x22a clear)
+                step = 2
+                put('<I', 0x274, step)
+                d[0x22a] = 0
+                put('<h', 0x22c, div)
+                sw(0x21, rng.choice([1, 2, 3, 4]))
+                for i in range(4):
+                    put('<h', 0x232 + 2 * i, rng.choice([0, 1, 1, 0x100]))
+            elif profile == 'bound':   # step 4 with the first position at the last one: +0x22b against its bound, one either side
+                step = 4
+                put('<I', 0x274, step)
+                put('<h', 0x254, struct.unpack_from('<h', rec, 0x23)[0] - 1 if struct.unpack_from('<h', rec, 0x23)[0] > -32768 else 0)
+                bound = struct.unpack_from('<h', rec, 0x2d7)[0] * (struct.unpack_from('<h', rec, 0x23)[0] - 1) - 1
+                d[0x22b] = rng.choice([bound - 1, bound, bound + 1, bound ^ 0x80, bound]) & 0xff
+            elif profile == 'finish':   # steps 1 and 5 that end by moving the record to its state 2 (the byte +0x2d6 clear)
+                step = rng.choice([1, 5])
+                put('<I', 0x274, step)
+                rec[0x2d6] = 0
+                if step == 1:
+                    rec[0x345:0x34e] = consts[36:45]
+                f6334 = [0, 0]
+            if profile == 'go':   # step 1 or 5, the arm in which the record's byte +0x2d6 is set, 0x4f6334 answers 0 and the name differs
+                step = rng.choice([1, 5])
+                put('<I', 0x274, step)
+                rec[0x345:0x34e] = consts[36:45]
+                rec[0x2d6] = 1
+                rec[0x2d9:0x2e2] = rng.choice([slots[4], slots[5], bytes([slots[4][0] ^ 0x80]) + slots[4][1:], bytes([slots[5][8] ^ 0x80]).join([slots[5][:8], b''])])
+                f6334 = [0, 0]
+            self_area = Area('self', od.region_va(0), d, image=False)
+            idx = struct.unpack_from('<h', d, 0x1c)[0]
+            idx_result = rng.choice([0, 1, 5, 0x18, 0x3f, 0x40, 0x41, -1, -2, 7])   # what 0x4d39f9 returns (the low word)
+            slot_probe_at = max(0, (idx_result + TSLACK) * 0x4a) if state == 0 else max(0, (idx + TSLACK) * 0x4a)
+            g = self.globals_(rng, *scalars)
+            P = [('self', 0, 0x300), ('tab', slot_probe_at, 0x4a), ('records', 0, len(records.data)), ('g:value_5bb1ca', 0, 4), ('g:value_5bb57b', 0, 4),
+                 ('g:word_5bb599', 0, 2), ('g:word_5c39ff', 0, 2), ('flags', 0x20, 0x40)]
+            P2 = [('g:value_5bb1ca', 0, 4), ('g:value_5bb57b', 0, 4), ('g:value_5bb59b', 0, 4), ('g:value_5bb59f', 0, 4), ('g:value_5bb5a3', 0, 4),
+                  ('g:value_583999', 0, 4), ('g:word_5bb599', 0, 2), ('g:word_5bb595', 0, 2)]
+            P3 = [('g:word_5c39ff', 0, 2), ('flags', 0, 0x100), ('g:value_5bb1ca', 0, 4), ('g:value_583999', 0, 4), ('self', 0, 0x300)]
+            place_writes = [[(3, 0, 4, rng.randrange(1 << 32)), (3, 4, 4, rng.randrange(1 << 32)), (3, 8, 4, rng.randrange(1 << 32)),
+                             (3, 0xc, 4, rng.randrange(1 << 32))] for _ in range(40)]
+            stubs = {0x4e8d96: stub(0x4e8d96, args=0, this=True, probe=P),
+                     0x4b6355: stub(0x4b6355, args=4, this=True, cleanup=16, writes=place_writes, probe=P),
+                     0x4d39f9: stub(0x4d39f9, args=0, results=[(rng.randrange(0x10000) << 16) | (idx_result & 0xffff)], probe=P),
+                     0x4c2790: stub(0x4c2790, args=4, this=True, cleanup=16, results=[rng.choice([0, 0xdeadbeef, 0x12345678])], probe=P),
+                     0x4fb77a: stub(0x4fb77a, args=1, this=True, cleanup=4, probe=P),
+                     0x4fb2e3: stub(0x4fb2e3, args=1, this=True, cleanup=4, probe=P),
+                     0x4f6334: stub(0x4f6334, args=1, this=True, cleanup=4, results=f6334, probe=P),
+                     0x4fba69: stub(0x4fba69, args=1, this=True, cleanup=4, probe=P),
+                     0x4b642d: stub(0x4b642d, args=0, this=True, probe=P),
+                     0x42ba3a: stub(0x42ba3a, args=1, probe=P3),
+                     0x4b5bc8: stub(0x4b5bc8, args=0, this=True, probe=P2)}
+            iat = {TICK_SLOT: od.Stub('tick', result=now)}
+            # (0x4f6334 is called twice in step 5: two scripted results)
+            stack = [(rng.randrange(0x10000) << 16) | (index & 0xffff)]
+            self.pair(3, 0x4b64a9, size, [records, Area('rec', od.region_va(1), rec, image=False), self_area, tab, flags, string,
+                                          Area('consts', 0x551b5c, consts)], stubs, g, ecx=od.region_va(0), stack=stack, cleanup=4,
+                      args=(index,), self_name='self', iat=iat, tick=now, executed=executed, word_args={0x4b6355: (0, 1, 2), 0x4fb2e3: (0,), 0x42ba3a: (0,)},
+                      pointers={'records_5bb5e5': ('records', rslack), 'flags_585801': ('flags', 0x40), 'table_5d1591': ('tab', TSLACK * 0x4a),
+                                'string_551b24': ('string', 0), 'bytes_551b5c': ('consts', 0)})
+        self.finish(0x4b64a9, size, executed)
+
     # TESTS-END
 
 
