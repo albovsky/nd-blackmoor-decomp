@@ -291,4 +291,25 @@ uint32_t m4bf315_bink_open(uint8_t *self, uint32_t name, uint32_t flags, const F
     return bink;
 }
 
+/* ---- 0x4c2dfb ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4c2dfb, thiscall, `ret 4`: the argument is the address of a slot that holds a pointer p. A zero p does nothing. Otherwise: when the low
+ * bit of the dword [p + 0x55] is clear, calls 0x4c2e5b (this = self, argument p); when it is set, stores the dword [p] = 0. Then reads the
+ * slot AGAIN (the callee may have replaced it), calls 0x51dc6c (cdecl, that value) and clears the slot. The slot is read and written
+ * through Fl18Host.resolve (4 bytes), p through it as well (0x59 bytes; 4 writable bytes at p for the set bit). */
+void m4c2dfb_free_pair(uint8_t *self, uint32_t slot, const Fl18Host *host)
+{
+    uint8_t *s = mem_at(host, slot);
+    uint32_t p = rd32(s, 0);
+    uint8_t *obj;
+    if (p == 0) return;
+    obj = mem_at(host, p);
+    if ((rd32(obj, 0x55) & 1u) == 0)
+        call1(host, 0x4c2e5b, (uintptr_t)self, p);
+    else
+        wr32(obj, 0, 0);
+    call1(host, 0x51dc6c, 0, rd32(s, 0));
+    wr32(s, 0, 0);
+}
+
 /*NEXT*/

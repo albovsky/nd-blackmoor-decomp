@@ -193,6 +193,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m4bf315_bink_open (original 0x4bf315)"""
         self.run_key('4bf315')
 
+    def test_4c2dfb_free_pair(self):
+        """FL-27a: differential test of m4c2dfb_free_pair (original 0x4c2dfb)"""
+        self.run_key('4c2dfb')
+
     # CASES-END
 
 

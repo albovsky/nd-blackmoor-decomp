@@ -509,6 +509,32 @@ def gen_4bf315(rng, n):
 
 SPECS['4bf315'] = dict(id=13, va=0x4bf315, size=119, gen=gen_4bf315, ret=0xffffffff, cleanup=8, n=44)
 
+def gen_4c2dfb(rng, n):
+    """The slot holds null (nothing happens) or a pointer p to an object whose dword +0x55 has bit 0 clear (callee 0x4c2e5b, which may replace
+    the slot: 'relocate') or set (the dword [p] is cleared); then the slot's current value is freed and the slot cleared."""
+    set_values = (1, 3, 0xffffffff, 0x80000001, 0x01010101, 0x100001)
+    clear_values = (0, 2, 0x100, 0xfffffffe, 0x80000000, 0x01010100, 0x10000)
+    profiles = [('null',), ('null',)] + [('set', v) for v in set_values] + [('clear', v, None) for v in clear_values] + [('clear', 0, 'relocate'), ('clear', 2, 'relocate')]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    soff = rng.choice([0, 1, 4, 0x13])
+    slot_va = od.region_va(1) + soff
+    pobj_va = od.region_va(2) + rng.choice([0, 3, 0x10])
+    pregion = bytearray(rng.randbytes(0x100))
+    slots = bytearray(rng.randbytes(0x40))
+    put32(slots, soff, 0 if kind == 'null' else pobj_va)
+    if kind != 'null':
+        put32(pregion, pobj_va - od.region_va(2) + 0x55, rest[0])
+    pokes = None
+    if kind == 'clear' and rest[1] == 'relocate':
+        pokes = {0: [(slot_va, 4, od.region_va(3) + 0x20)]}
+    stubs = {0x4c2e5b: stub(0x4c2e5b, results=[rng.randrange(1 << 32)], pokes=pokes), 0x51dc6c: stub(0x51dc6c, results=[rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('slots', od.region_va(1), slots, image=False), Area('pobj', od.region_va(2), pregion, image=False)]
+    return make('4c2dfb', areas, stubs, {}, [slot_va], (slot_va,), (kind, *rest), probes=[('slots', 0, 0x40), ('pobj', 0, 0x80)])
+
+
+SPECS['4c2dfb'] = dict(id=14, va=0x4c2dfb, size=96, gen=gen_4c2dfb, cleanup=4, n=45)
+
 KEYS = list(SPECS)
 
 

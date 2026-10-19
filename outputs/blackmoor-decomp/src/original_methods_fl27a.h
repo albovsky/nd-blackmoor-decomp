@@ -104,6 +104,11 @@ int32_t m4bf10f_bink_next(uint8_t *self, uint32_t handle, const Fl18Host *host);
  * result: [self + 0x2c0] = 0xfffffffa, returns 0; else returns the result. */
 uint32_t m4bf315_bink_open(uint8_t *self, uint32_t name, uint32_t flags, const Fl18Host *host);
 
+/* 0x4c2dfb: thiscall, `ret 4`, one argument `slot` (the original address of a dword that holds a pointer p, read and written through
+ * resolve): p zero: nothing; otherwise bit 0 of the dword [p + 0x55] clear: 0x4c2e5b (this = self, p); set: [p] = 0 (dword); then the
+ * slot is read again (the callee may have changed it), 0x51dc6c (cdecl) gets that value and the slot is cleared. */
+void m4c2dfb_free_pair(uint8_t *self, uint32_t slot, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

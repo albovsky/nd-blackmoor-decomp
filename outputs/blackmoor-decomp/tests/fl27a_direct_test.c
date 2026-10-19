@@ -703,6 +703,61 @@ static void test_m4bf315_bink_open(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4c2dfb: slot -> p; p == 0 -> nothing; bit0 of [p+0x55] clear -> 0x4c2e5b(self, p), set -> [p] = 0; then free(*slot) (re-read) and *slot = 0 */
+
+static void test_m4c2dfb_free_pair(void)
+{
+    static const uint32_t SET[] = {1, 3, 0xffffffffu, 0x80000001u, 0x01010101u, 0x100001u};
+    static const uint32_t CLEAR[] = {0, 2, 0x100, 0xfffffffeu, 0x80000000u, 0x01010100u, 0x10000};
+    size_t i;
+    setup();                                                            /* the slot (VA_C + 4) is null */
+    set32(fx.c, 4, 0);
+    expect_begin();
+    m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
+    CK(L.n == 0);
+    expect_end();
+    for (i = 0; i < sizeof SET / sizeof SET[0]; i++) {                  /* bit 0 set: [p] = 0, no callee */
+        setup();
+        set32(fx.c, 4, VA_B + 0x10);
+        set32(fx.b, 0x10 + 0x55, SET[i]);
+        set32(fx.b, 0x10, 0xcafef00du);
+        expect_begin();
+        m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
+        CK(L.n == 1);
+        ck_call(0, 0x51dc6c, 0, 1);
+        ck_arg(0, 0, VA_B + 0x10);
+        CK(get32(L.c[0].snap_c, 4) == VA_B + 0x10);                      /* the slot is cleared only after the free */
+        set32(exp_b, 0x10, 0);                                           /* one dword */
+        set32(exp_c, 4, 0);
+        expect_end();
+    }
+    for (i = 0; i < sizeof CLEAR / sizeof CLEAR[0]; i++) {              /* bit 0 clear: the callee gets (self, p); [p] stays */
+        setup();
+        set32(fx.c, 4, VA_B + 0x10);
+        set32(fx.b, 0x10 + 0x55, CLEAR[i]);
+        expect_begin();
+        m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
+        CK(L.n == 2);
+        ck_call(0, 0x4c2e5b, (uintptr_t)fx.self, 1);
+        ck_arg(0, 0, VA_B + 0x10);
+        ck_call(1, 0x51dc6c, 0, 1);
+        ck_arg(1, 0, VA_B + 0x10);
+        set32(exp_c, 4, 0);
+        expect_end();
+    }
+    setup();                                                            /* the callee replaces the slot: the NEW value is freed, the slot is cleared */
+    set32(fx.c, 4, VA_B + 0x10);
+    set32(fx.b, 0x10 + 0x55, 0);
+    script_poke(0x4c2e5b, 0, fx.c + 4, 4, 0x20061234u);
+    expect_begin();
+    m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
+    CK(L.n == 2);
+    ck_arg(1, 0, 0x20061234u);
+    set32(exp_c, 4, 0);
+    expect_end();
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -743,6 +798,8 @@ static void test_sweep(void)
         (void)m4bf098_bink_copy_to_buffer(fx.self, rnd() % 2 ? VA_A : 0, rnd(), rnd(), rnd(), rnd(), rnd(), &fx.host);
         (void)m4bf10f_bink_next(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4bf315_bink_open(fx.self, VA_A + (rnd() % 64), rnd(), &fx.host);
+        set32(fx.c, 4, rnd() % 2 ? VA_B + (rnd() % 16) : 0);
+        m4c2dfb_free_pair(fx.self, VA_C + 4, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -765,6 +822,7 @@ static const struct {
     {"test_m4bf098_bink_copy_to_buffer", test_m4bf098_bink_copy_to_buffer},
     {"test_m4bf10f_bink_next", test_m4bf10f_bink_next},
     {"test_m4bf315_bink_open", test_m4bf315_bink_open},
+    {"test_m4c2dfb_free_pair", test_m4c2dfb_free_pair},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };
