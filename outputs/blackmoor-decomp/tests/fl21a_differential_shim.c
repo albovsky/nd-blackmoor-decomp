@@ -37,7 +37,7 @@ typedef struct ShimScript {
     int deref_arg, deref_bytes, deref_arg2, deref_bytes2;
     const uint8_t *probe_ptr[8];
     int probe_len[8], nprobe;
-    ShimWrite writes[16];
+    ShimWrite writes[256];
     int nwrites;
 } ShimScript;
 

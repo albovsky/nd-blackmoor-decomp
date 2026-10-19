@@ -23,7 +23,14 @@ extern "C" {
  *
  * Fl21aWorld holds by-value snapshots of the original's globals and records: a ported function reads and writes them in the same order
  * as the original, but an integration host that backs a callee with real original code must resync the world from the original's
- * memory after each Fl18Host.call.
+ * memory after each Fl18Host.call and must also flush it to the original's memory before each call (0x48d914 state 2 writes
+ * 0x5bb57b, 0x5bb59b, 0x5bb59f, 0x5bb5a3, 0x583999, 0x5bb599, 0x5bb595, 0x5c39ff and 0x5bb1ca before it calls 0x42ba3a and 0x48d09c, and
+ * 0x42caa8 stores its 0x5b4e.. values before 0x42cecd).
+ *
+ * Fl18Host.resolve is called unchecked (no NULL test; a NULL result is dereferenced) and a host supplies it. Fl18Host.tick is called
+ * through a guard that yields 0 when the pointer is NULL, but a host should supply it: 0x48d914 compares the tick with stored deadlines.
+ * Where a port writes through memory that resolve returned, resolve must return writable memory: 0x484f42 clears the word [rec+0x2b] of
+ * the record object it resolved (0x4cb586, 0x462c39 and 0x48d914 only read through resolve, 0x42caa8 stores into the records table).
  *
  * Nothing here claims original source structure. */
 

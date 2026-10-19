@@ -25,6 +25,17 @@ extern "C" {
  * The Fl21bWorld scalars are snapshots taken before the call: a function that clears one of them does so in the struct it was given,
  * and an integration host that backs a callee with real original code must resync them after each Fl18Host.call. The blocks and
  * tables (`block_638600`, `records_5bb5e5`, `table_5d1599`, `flags_585801`) are live host memory addressed at the original offsets.
+ *
+ * Host contract, in both directions: the world is a snapshot, so a host that backs a callee with real original code must flush
+ * world->memory (the scalars, and the memory behind the table pointers) to the original's memory BEFORE each Fl18Host.call as well as
+ * resync it AFTER the call. The ports store into the world before they call: 0x44da08 state 2 writes 0x5bb57b, 0x5bb59b, 0x5bb59f,
+ * 0x5bb5a3, 0x583999, 0x5bb599, 0x5bb595, 0x5c39ff and 0x5bb1ca (value_5bb1ca) and the flag dword of the table at 0x585801 BEFORE it calls
+ * 0x42ba3a and 0x44d154, which read them; a host that only resynced after the calls would run those callees on the old values.
+ *
+ * Fl18Host.tick and Fl18Host.resolve are called UNCHECKED (the ports do not test either pointer for NULL, and a NULL result of resolve is
+ * dereferenced); a host supplies both. No port of this batch writes through memory that resolve returned (the record objects are only
+ * read; every store goes to `self`, the world or the tables), but a host that hands out a view of the original's memory must still return
+ * writable memory if a later change adds such a store. Only Fl18Host.call may be NULL (the calls then return 0).
  * Nothing here claims original source structure. */
 
 /* The globals and tables of the original that the batch touches (named by their address). A table pointer points at the byte that the

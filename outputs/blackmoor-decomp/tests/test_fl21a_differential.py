@@ -399,7 +399,14 @@ class Fl21aDifferential(DiffBase):
     # ---- 0x42caa8 ----
     def test_42caa8_clip_rect(self):
         """FL-21a: differential test of m42caa8_clip_rect (original 0x42caa8)"""
-        rng = random.Random(0x42caa8)
+        self.run_42caa8(0x42caa8, False)
+
+    def test_42caa8_inverted_clip(self):
+        """FL-21a: differential test of m42caa8_clip_rect on inverted clips (c12 <= c4, y1 at c12 / c4) with the mode words 0 and 2"""
+        self.run_42caa8(0x42caa9, True)
+
+    def run_42caa8(self, seed, targeted):
+        rng = random.Random(seed)
         executed = set()
         size = 0x42cecd - 0x42caa8
 
@@ -432,17 +439,37 @@ class Fl21aDifferential(DiffBase):
             if rng.random() < 0.5:
                 g['origin_x_583186'] = rng.choice([0, 7, 0xfffffff9, 0x7fffffff, 0x80000000])
                 g['origin_y_58318a'] = rng.choice([0, 7, 0xfffffff9, 0x7fffffff, 0x80000000])
+            if targeted:   # the entry of `index` and the clip are replaced: an inverted clip (c12 <= c4), y1 at c12, c4 and one either side
+                c4 = rng.choice([10, 5, 0, -3, 20])
+                c12 = c4 - rng.choice([0, 1, 5, 5, 9])
+                y1 = rng.choice([c12, c12, c12, c12 - 1, c12 + 1, c4, c4 - 1, c4 + 1])
+                y0 = rng.choice([c4 - 7, c4 - 7, c4 - 1, c4, c4 + 1, c12 - 2, c12, c12 + 1, y1 - 2, y1])
+                struct.pack_into('<i', entries, (eslack + index) * 0x42 + 0x16, i32(y0))
+                struct.pack_into('<i', entries, (eslack + index) * 0x42 + 0x1e, i32(y1))
+                struct.pack_into('<i', clip.data, 4, i32(c4))
+                struct.pack_into('<i', clip.data, 0xc, i32(c12))
+                g['word_5b4ea3'] = rng.choice([0, 2])
+                g['word_5b4e8b'] = rng.choice([0, 2])
             stubs = {0x42cecd: stub(0x42cecd, args=2)}
             high = rng.randrange(0x10000) << 16
             self.pair(2, 0x42caa8, size, [ent, clip, records, ptr_area], stubs, g, ecx=0, stack=[high | (index & 0xffff), clip.va], cleanup=0,
                       args=(index, ('ptr', 'clip', 0)), executed=executed,
                       pointers={'records_5bb5e5': ('records', rslack), 'entries_5b4ea9': ('entries', eslack * 0x42)})
-        self.finish(0x42caa8, size, executed)
+        if not targeted:
+            self.finish(0x42caa8, size, executed)
 
     # ---- 0x462c39 ----
     def test_462c39_pointer_move(self):
         """FL-21a: differential test of m462c39_pointer_move (original 0x462c39)"""
-        rng = random.Random(0x462c39)
+        self.run_462c39(0x462c39, False)
+
+    def test_462c39_scripted_stubs(self):
+        """FL-21a: differential test of m462c39_pointer_move with 0x4619be / 0x4630a3 stubs that store [self+0x4f], [self+0x53], [self+0x3f] and
+        [self+0x24] at each call (the port reads them where the original reads them, not once before the loops)"""
+        self.run_462c39(0x462c3a, True)
+
+    def run_462c39(self, seed, scripted):
+        rng = random.Random(seed)
         executed = set()
         size = 0x4630a3 - 0x462c39
         for n in range(SCENARIOS):
@@ -480,21 +507,41 @@ class Fl21aDifferential(DiffBase):
                     struct.pack_into('<h', cells, cb + 0x26, rng.choice([0, 0, 1, 2, -1, 0x1234, -32768]))
             g = {'origin_x_583186': ox, 'origin_y_58318a': oy}
             state = [('self', 0x39, 2), ('self', 0x5b, 4), ('self', 0x57, 2)]
-            stubs = {0x4619be: stub(0x4619be, args=1, this=True, cleanup=4, results=[rng.choice([1, 0, 2, 0xffffffff, 0x80000001, 1]) for _ in range(24)],
-                                    probe=state),
-                     0x4630a3: stub(0x4630a3, args=1, this=True, cleanup=4, probe=state)}
+            writes = writes2 = None
+            results = [rng.choice([1, 0, 2, 0xffffffff, 0x80000001, 1]) for _ in range(24)]
+            if scripted:   # every call of the first stub moves the divisors and (a quarter of the calls) the two gate dwords; mostly "not accepted"
+                results = [rng.choice([0, 0, 0, 0, 1, 2, 0xffffffff]) for _ in range(24)]
+                writes = []
+                for _ in range(24):
+                    call = [(-1, 0x4f, 4, rng.choice([0, 1, 3, 4, 8, 9, 12, 13, 20, 40, 80, -1, -2, -5, -9, -13, -21]) & 0xffffffff),
+                            (-1, 0x53, 4, rng.choice([0, 1, 2, 3, 7, 10, 20, 21, 200, -1, -3, -9, -21]) & 0xffffffff)]
+                    if rng.random() < 0.25:
+                        call += [(-1, 0x3f, 4, rng.choice([0, 1])), (-1, 0x24, 4, rng.choice([0, 1, 2]))]
+                    writes.append(call)
+                writes2 = [[(-1, 0x4f, 4, rng.randrange(1 << 32)), (-1, 0x53, 4, rng.randrange(1 << 32))]]
+            stubs = {0x4619be: stub(0x4619be, args=1, this=True, cleanup=4, results=results, probe=state, writes=writes),
+                     0x4630a3: stub(0x4630a3, args=1, this=True, cleanup=4, probe=state, writes=writes2)}
             xw = (rng.randrange(0x10000) << 16) | (x & 0xffff)
             yw = (rng.randrange(0x10000) << 16) | (y & 0xffff)
             self.pair(3, 0x462c39, size, [this, records, Area('rec', od.region_va(1), rec, image=False, compare=False),
                                           Area('cells', 0x594db5, cells, compare=False)], stubs, g, ecx=this.va, stack=[xw, yw], cleanup=8,
                       args=(x, y), self_name='self', executed=executed, ret_mask=0xffffffff,
                       pointers={'records_5bb5e5': ('records', rslack), 'cells_594db5': ('cells', 0)})
-        self.finish(0x462c39, size, executed)
+        if not scripted:
+            self.finish(0x462c39, size, executed)
 
     # ---- 0x484f42 ----
     def test_484f42_pointer_move(self):
         """FL-21a: differential test of m484f42_pointer_move (original 0x484f42)"""
-        rng = random.Random(0x484f42)
+        self.run_484f42(0x484f42, False)
+
+    def test_484f42_scripted_stub(self):
+        """FL-21a: differential test of m484f42_pointer_move with a 0x484d87 stub that stores [self+0xa9e] and the four extents [self+0xaa0] ...
+        [self+0xaac] (so a port that reads them before the call, or takes slot0 after it, differs), byte flags of 2, negative [rec+0x2b]"""
+        self.run_484f42(0x484f43, True)
+
+    def run_484f42(self, seed, targeted):
+        rng = random.Random(seed)
         executed = set()
         size = 0x4853b0 - 0x484f42
         for n in range(SCENARIOS):
@@ -513,12 +560,12 @@ class Fl21aDifferential(DiffBase):
             y = rng.choice([rng.randrange(-3, 30), rng.randrange(-3, 30), -32768, 32767])
             rec = bytearray(rng.randbytes(0x1000))
             struct.pack_into('<h', rec, 0x21, rng.choice([0, 1, 2, 3, 4, 4, -1]))
-            rec[0x24] = rng.choice([0, 1, 1, 0xff])
-            rec[0x25] = rng.choice([0, 1, 1, 0xff])
-            rec[0x2a] = rng.choice([0, 1, 1, 0xff])
+            rec[0x24] = rng.choice([0, 1, 2, 0xff, 1] if targeted else [0, 1, 1, 0xff])
+            rec[0x25] = rng.choice([0, 1, 2, 0xff, 1] if targeted else [0, 1, 1, 0xff])
+            rec[0x2a] = rng.choice([0, 1, 2, 0xff, 2] if targeted else [0, 1, 1, 0xff])
             struct.pack_into('<h', rec, 0x26, rng.choice([0, 3, 6, 10, -2]))
             struct.pack_into('<h', rec, 0x28, rng.choice([0, 3, 6, 10, -2]))
-            struct.pack_into('<h', rec, 0x2b, rng.choice([0, 1, 2, -1, -3, 5]))
+            struct.pack_into('<h', rec, 0x2b, rng.choice([0, 1, 2, -1, -3, 5, -2, -7, -3] if targeted else [0, 1, 2, -1, -3, 5]))
             near = lambda base: rng.choice([base - 1, base, base + 1, base, rng.randrange(-5, 40)])
             for left, right, top, bottom in ((0x5b7, 0x5bf, 0x5bb, 0x5c3), (0x5f8, 0x600, 0x5fc, 0x604), (0xef7, 0xeff, 0xefb, 0xf03)):
                 struct.pack_into('<i', rec, left, near(x))
@@ -548,25 +595,65 @@ class Fl21aDifferential(DiffBase):
                 struct.pack_into('<i', d, sb + 6, st)
                 struct.pack_into('<i', d, sb + 0xa, sl + rng.choice([0, 2, 5, 12, -2]))
                 struct.pack_into('<i', d, sb + 0xe, st + rng.choice([0, 2, 5, 12, -2]))
-                d[sb + 0x22] = rng.choice([0, 0, 1, 0xff])
-                d[sb + 0x23] = rng.choice([0, 0, 0, 1, 0xff])
+                d[sb + 0x22] = rng.choice([0, 0, 1, 2, 0xff] if targeted else [0, 0, 1, 0xff])
+                d[sb + 0x23] = rng.choice([0, 0, 0, 1, 2, 0xff] if targeted else [0, 0, 0, 1, 0xff])
             records, rslack = self.records_area(rng, nrec=4)
             struct.pack_into('<I', records.data, rslack + rindex * 0x8d, od.region_va(1))
             rect = Area('rect', od.region_va(2), bytearray(rng.randbytes(16)), image=False, compare=False)
             probe_all = [('self', 0xbb1, 0x7a), ('rec', 0x2b, 2)]
-            stubs = {0x484d87: stub(0x484d87, this=True, probe=[('self', 0xbb1, 0x10)]),
+            writes = None
+            if targeted:
+                # the mode with the 0x484d87 call is the common one; the call stores a new slot word and the extents, which are good (all four
+                # compares hold, within one step either way) or random, against the entry of the NEW slot; before the call the extents are garbage
+                if rng.random() < 0.8:
+                    struct.pack_into('<I', d, 0xa92, rng.choice([1, 0x100, 0xffffffff]))
+                for i in range(4):   # small entries for every slot, so that the compares can go either way
+                    for off in (0xa3, 0xab, 0x9f, 0xa7):
+                        struct.pack_into('<i', rec, i * 0x42 + off, rng.randrange(-10, 10))
+                post = rng.choice([0, 1, 2, 3, slot_index])
+                t = struct.unpack_from('<h', rec, 0x2b)[0] if rec[0x2a] != 0 else 0
+                a, b, c_, dd = [struct.unpack_from('<i', rec, post * 0x42 + o)[0] for o in (0xa3, 0xab, 0x9f, 0xa7)]
+                good = rng.random() < 0.7
+                new = {0xaa4: a - t + rng.randrange(-1, 3) if good else rng.randrange(-12, 12),
+                       0xaac: b + t - rng.randrange(-1, 3) if good else rng.randrange(-12, 12),
+                       0xaa0: c_ - t + rng.randrange(-1, 3) if good else rng.randrange(-12, 12),
+                       0xaa8: dd + t - rng.randrange(-1, 3) if good else rng.randrange(-12, 12)}
+                if rng.random() < 0.5:
+                    # an edge scenario: the box accepts, [rec+0x2a] is set and slot0 has a zero byte +0x22; the word [rec+0x2b] is mostly negative; all four
+                    # compares sit exactly on their limits (they hold) except at most one, which is one step beyond (so the result hangs on that one sign)
+                    rec[0x2a] = rng.choice([1, 2, 0xff])
+                    struct.pack_into('<h', rec, 0x2b, rng.choice([-1, -2, -3, -7, -3, 3, 5]))
+                    struct.pack_into('<I', rec, 0x5bf, struct.unpack_from('<I', rec, 0x5b7)[0])
+                    d[0x28 + slot_index * 0x85 + 0x22] = 0
+                    t = struct.unpack_from('<h', rec, 0x2b)[0]
+                    wrong = rng.choice([None, 0xaa4, 0xaac, 0xaa0, 0xaa8, 0xaa4, 0xaa4])
+                    new = {0xaa4: a - t - (1 if wrong == 0xaa4 else 0), 0xaac: b + t + (1 if wrong == 0xaac else 0),
+                           0xaa0: c_ - t - (1 if wrong == 0xaa0 else 0), 0xaa8: dd + t + (1 if wrong == 0xaa8 else 0)}
+                for off in new:   # (what the extents are before the call: values that go the other way, or random)
+                    struct.pack_into('<i', d, off, rng.choice([-9999, 9999, rng.randrange(-12, 12), new[off]]))
+                writes = [[(-1, 0xa9e, 2, post)] + [(-1, off, 4, value & 0xffffffff) for off, value in new.items()]]
+            stubs = {0x484d87: stub(0x484d87, this=True, probe=[('self', 0xbb1, 0x10)], writes=writes),
                      0x4854fb: stub(0x4854fb, args=1, this=True, cleanup=4, probe=probe_all)}
             xw = (rng.randrange(0x10000) << 16) | (x & 0xffff)
             yw = (rng.randrange(0x10000) << 16) | (y & 0xffff)
             self.pair(4, 0x484f42, size, [this, records, Area('rec', od.region_va(1), rec, image=False), rect], stubs, {}, ecx=this.va,
                       stack=[xw, yw, rect.va], cleanup=0xc, args=(x, y, ('ptr', 'rect', 0)), self_name='self', executed=executed, ret_mask=0xffffffff,
                       pointers={'records_5bb5e5': ('records', rslack)})
-        self.finish(0x484f42, size, executed)
+        if not targeted:
+            self.finish(0x484f42, size, executed)
 
     # ---- 0x48d914 ----
     def test_48d914_step_scene(self):
         """FL-21a: differential test of m48d914_step_scene (original 0x48d914)"""
-        rng = random.Random(0x48d914)
+        self.run_48d914(0x48d914, False)
+
+    def test_48d914_targeted(self):
+        """FL-21a: differential test of m48d914_step_scene with byte flags of 2, near-miss 0x270f words, v = 4 and v = 3 steps of a record other
+        than `index` ([self+0x1e] != index) and nine-byte compares with an embedded zero and a difference behind it"""
+        self.run_48d914(0x48d915, True)
+
+    def run_48d914(self, seed, targeted):
+        rng = random.Random(seed)
         executed = set()
         # the original's body ends with its switch table (five dwords at 0x48deb3): only the code before it is instructions
         size = 0x48deb3 - 0x48d914
@@ -588,8 +675,8 @@ class Fl21aDifferential(DiffBase):
             struct.pack_into('<I', this.data, 0x2f, rng.choice([0, 1, 0x100]))
             struct.pack_into('<I', this.data, 0x39, (now + rng.choice([0, -1, -5, 0x80000001] if focus else [-5, -1, 0, 1, 5, 0x7fffffff, 0x80000000, 0x80000001])) & 0xffffffff)
             struct.pack_into('<I', this.data, 0x20, rng.choice([0, 0, 0x1234, 0xffffffff]))
-            this.data[0x37] = rng.choice([0, 1, 0xff])
-            this.data[0x38] = rng.choice([0, 1, 0xff])
+            this.data[0x37] = rng.choice([0, 1, 2, 0xff] if targeted else [0, 1, 0xff])
+            this.data[0x38] = rng.choice([0, 1, 2, 0xff] if targeted else [0, 1, 0xff])
             same_byte = rng.random() < 0.5
             rec = bytearray(rng.randbytes(0x800))
             byte_63a8ac = rng.randrange(256)
@@ -601,7 +688,7 @@ class Fl21aDifferential(DiffBase):
             struct.pack_into('<h', rec, 0x75f, rng.choice([0, 1, 5, -1, -3, 40, 4000, -32768]))
             struct.pack_into('<h', rec, 0x782, rng.choice([0, 1, 5, -1, 0x7fff, -32768, 300]))
             for base in (0x792, 0x746):   # the two groups of 0x270f / flag / table words
-                struct.pack_into('<h', rec, base, rng.choice([0x270f, 0x270f, 0, 5, -1, -0x270f]))
+                struct.pack_into('<h', rec, base, rng.choice([0x270f, 0x270f, 0x260f, 0x2710, 0x270e, 0x2f0f, 0, -1] if targeted else [0x270f, 0x270f, 0, 5, -1, -0x270f]))
                 struct.pack_into('<h', rec, base + 0x14, rng.choice([1, 1, 0, 2, -1, 0x101]))
                 struct.pack_into('<h', rec, base + 0x16, rng.choice([-1, -1, -3, -2, 0, 1, 5, 9]))
             flags = Area('flags', 0x585801 - 0x10, bytearray(rng.randbytes(0x50)))
@@ -611,6 +698,21 @@ class Fl21aDifferential(DiffBase):
             b54 = Area('b54e8d4', 0x54e8d4, bytearray(bytes9), compare=False)
             g = {**self.globals_(rng, 'value_5bb1ca', 'value_583999', 'value_5bb57b', 'value_5bb59b', 'value_5bb59f', 'value_5bb5a3', 'word_5bb599',
                                  'word_5bb595', 'word_5c39ff'), 'byte_63a8ac': byte_63a8ac}
+            if targeted:
+                kind = rng.choice(['v4', 'v4', 'v3zero', 'v3zero', 'v3', 'free', 'free'])
+                if kind != 'free':   # the record `index` is in state 1 at step v; [self+0x1e] names another record
+                    struct.pack_into('<I', records.data, rslack + index * 0x8d + 0x4d, 1)
+                    struct.pack_into('<h', this.data, 0x1e, (index + rng.randrange(1, 4)) % 4)
+                    struct.pack_into('<I', this.data, 0x2b, 4 if kind == 'v4' else 3)
+                    struct.pack_into('<I', this.data, 0x39, (now + rng.choice([0, -1, -5, 0x80000001])) & 0xffffffff)
+                if kind == 'v3zero':   # the nine bytes hold a zero; a difference lies behind it (a string compare would stop at the zero)
+                    zero = rng.randrange(1, 8)
+                    nine = bytearray(rng.randbytes(9))
+                    nine[zero] = 0
+                    rec[0x761:0x761 + 9] = nine
+                    b54.data[:] = nine
+                    if rng.random() < 0.7:
+                        rec[0x761 + rng.randrange(zero + 1, 9)] ^= rng.choice([1, 0x80])
             iat = {TICK_SLOT: od.Stub('tick', result=now)}
             idx_word = rng.choice([-1, 0, 1, 2, 3]) | (rng.randrange(0x10000) << 16)
             rbyte = [('records', rslack + index * 0x8d + 0x4d, 4)]
@@ -623,7 +725,8 @@ class Fl21aDifferential(DiffBase):
                      0x48d89e: stub(0x48d89e, this=True, probe=[('self', 0x2b, 4)]),
                      0x4fb77a: stub(0x4fb77a, args=1, this=True, cleanup=4, probe=[('self', 0x2b, 4)]),
                      0x4fb2e3: stub(0x4fb2e3, args=1, this=True, cleanup=4, probe=[('self', 0x2b, 4)]),
-                     0x4f6334: stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 1, 0xffffffff, 0x100])], probe=[('self', 0x2b, 4)] + rbyte),
+                     0x4f6334: stub(0x4f6334, args=1, this=True, cleanup=4, results=[rng.choice([0, 0, 0, 1] if targeted and kind == 'v4' else [0, 1, 0xffffffff, 0x100])],
+                                    probe=[('self', 0x2b, 4)] + rbyte),
                      0x42ba3a: stub(0x42ba3a, args=1, probe=[('g:value_5bb1ca', 0, 4), ('g:value_583999', 0, 4), ('flags', 0, 0x50)]),
                      0x48d09c: stub(0x48d09c, this=True, probe=[('g:value_5bb1ca', 0, 4), ('flags', 0, 0x50)])}
             high = rng.randrange(0x10000) << 16
@@ -632,7 +735,8 @@ class Fl21aDifferential(DiffBase):
                       word_args={0x42ba3a: (0,), 0x4fb2e3: (0,)},
                       pointers={'records_5bb5e5': ('records', rslack), 'table_5d1591': ('table', tslack), 'string_54e89c': ('s54e89c', 0),
                                 'bytes_54e8d4': ('b54e8d4', 0), 'flags_585801': ('flags', 0x10)})
-        self.finish(0x48d914, size, executed)
+        if not targeted:
+            self.finish(0x48d914, size, executed)
 
     # TESTS-END
 
