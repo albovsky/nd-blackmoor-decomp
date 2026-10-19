@@ -347,6 +347,160 @@ static int test_m466073_click_27d2_27d3(void)
     return g_failed;
 }
 
+/* 0x467740: (x, y) words against the outer rectangle (x lo +0x3f8, y lo +0x3fc, x hi +0x400, y hi +0x404 of the object of the record of
+ * the word [+8]) and the 17 hotspots (+0x21 x lo, +0x25 y lo, +0x29 x hi, +0x2d y hi, stride 16); signed dwords, inclusive bounds. */
+static void rect_outer(int32_t xlo, int32_t ylo, int32_t xhi, int32_t yhi)
+{
+    set32(fx.obj, 0x3f8, (uint32_t)xlo);
+    set32(fx.obj, 0x3fc, (uint32_t)ylo);
+    set32(fx.obj, 0x400, (uint32_t)xhi);
+    set32(fx.obj, 0x404, (uint32_t)yhi);
+}
+static void rect_hot(int i, int32_t xlo, int32_t ylo, int32_t xhi, int32_t yhi)
+{
+    set32(fx.obj, (size_t)i * 16 + 0x21, (uint32_t)xlo);
+    set32(fx.obj, (size_t)i * 16 + 0x25, (uint32_t)ylo);
+    set32(fx.obj, (size_t)i * 16 + 0x29, (uint32_t)xhi);
+    set32(fx.obj, (size_t)i * 16 + 0x2d, (uint32_t)yhi);
+}
+static void setup_467740(int idx)
+{
+    int i;
+    base(0x2711, idx, 8);
+    set32(fx.self, 0x1ae, 0x00010000u);
+    fx.w.value_5d0377 = 0xabcdef01u;
+    fx.w.value_5d162d = 0x11111111u;
+    fx.w.value_5d1631 = 0x22222222u;
+    fx.w.value_5d1639 = 0x33333333u;
+    fx.w.value_5b44f0 = 0x44444444u;
+    fx.w.value_5b44f4 = 0x55555555u;
+    rect_outer(1000, 1000, 2000, 2000);
+    for (i = 0; i < 0x11; i++) rect_hot(i, 1000, 1000, 1001, 1001);   /* (x, y) = (5, 5) misses all */
+}
+static void expect_hit_467740(int idx, uint32_t a, uint32_t event)
+{
+    CK(fx.w.value_5b44f0 == a && fx.w.value_5b44f4 == 1 && fx.w.value_5d162d == 0xabcdef01u && fx.w.value_5d1639 == 1);
+    CK(fx.w.value_5d1631 == (a << 5) + 16 + 0x5b160c);
+    CK(fx.w.value_5c39e5 == event);
+    (void)idx;
+}
+static void expect_miss_467740(void)
+{
+    CK(fx.w.value_5b44f0 == 0x44444444u && fx.w.value_5b44f4 == 0x55555555u && fx.w.value_5d162d == 0x11111111u);
+    CK(fx.w.value_5d1631 == 0x22222222u && fx.w.value_5d1639 == 0x33333333u && fx.w.value_5c39e5 == 0x2711);
+}
+
+static int test_m467740_hit_test(void)
+{
+    static const int idxs[2] = {2, -1};
+    int ii, k, i;
+    int32_t r;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        /* [+0x1aa] is stored before the zero test of [+0x1ae]; zero -> 0, nothing else */
+        setup_467740(idx);
+        set32(fx.self, 0x1ae, 0);
+        rect_outer(0, 0, 100, 100);
+        begin();
+        X32(0x1aa, OBJ_VA);
+        r = m467740_hit_test(fx.self, 5, 5, &fx.w, &fx.host);
+        CK(r == 0);
+        check_mem();
+        expect_miss_467740();
+        CK(L.n == 0);
+        /* the outer hit: all four edges inclusive, with the arguments as words (upper halves would be junk in the original's stack) */
+        for (k = 0; k < 6; k++) {
+            int16_t x = (int16_t[]){5, 5, 5, 5, -5, -32768}[k], y = (int16_t[]){5, 5, 5, 5, -5, 32767}[k];
+            int32_t xlo = (int32_t[]){5, 0, 5, 0, -10, -32768}[k], xhi = (int32_t[]){5, 5, 9, 5, -5, -32768}[k];
+            int32_t ylo = (int32_t[]){5, 5, 0, 5, -10, 32767}[k], yhi = (int32_t[]){5, 9, 5, 5, -5, 0x7fffffff}[k];
+            setup_467740(idx);
+            rect_outer(xlo, ylo, xhi, yhi);
+            begin();
+            X32(0x1aa, OBJ_VA);
+            r = m467740_hit_test(fx.self, x, y, &fx.w, &fx.host);
+            CK(r == 1);
+            check_mem();
+            expect_hit_467740(idx, 9, 0x27ac);
+            CK(L.n == 0);
+        }
+        /* the outer rectangle fails at each of its four comparisons (one short of each bound) */
+        for (k = 0; k < 4; k++) {
+            setup_467740(idx);
+            rect_outer(k == 2 ? 6 : 5, k == 0 ? 6 : 5, 5, k == 1 ? 4 : 5);   /* x lo, y lo, x hi, y hi */
+            if (k == 3) rect_outer(5, 5, 4, 5);
+            if (k == 2) rect_outer(6, 5, 5, 5);
+            if (k == 0) rect_outer(5, 6, 5, 5);
+            if (k == 1) rect_outer(5, 5, 5, 4);
+            begin();
+            X32(0x1aa, OBJ_VA);
+            r = m467740_hit_test(fx.self, 5, 5, &fx.w, &fx.host);
+            CK(r == 0);
+            check_mem();
+            expect_miss_467740();
+            CK(L.n == 0);
+        }
+        /* hotspots: one that fails each of its four comparisons by one, then a hit at index 16 whose callee answers 0 */
+        for (k = 0; k < 4; k++) {
+            setup_467740(idx);
+            rect_outer(1000, 1000, 2000, 2000);
+            for (i = 0; i < 0x11; i++) rect_hot(i, 5, 5, 5, 5);
+            if (k == 0) rect_hot(0, 5, 6, 5, 5);      /* y low */
+            if (k == 1) rect_hot(0, 5, 5, 5, 4);      /* y high */
+            if (k == 2) rect_hot(0, 6, 5, 5, 5);      /* x low */
+            if (k == 3) rect_hot(0, 5, 5, 4, 5);      /* x high */
+            for (i = 1; i < 0x11; i++) rect_hot(i, 6, 6, 6, 6);
+            rect_hot(16, -0x80000000, -0x80000000, 0x7fffffff, 0x7fffffff);
+            begin();
+            X32(0x1aa, OBJ_VA);
+            X16(0xa, 16);
+            r = m467740_hit_test(fx.self, 5, 5, &fx.w, &fx.host);
+            CK(r == 1);
+            check_mem();
+            expect_hit_467740(idx, 0, 0x27ab);
+            CK(L.n == 1);
+            check_call(0, 0x467b9e, (uintptr_t)fx.self, 1);
+            check_arg(0, 0, 16, 0xffffffffu);
+            CK(L.c[0].snap_self[0x1aa] == (OBJ_VA & 0xff) && get32(L.c[0].snap_self, 0xa) == 0xA5A5A5A5u);   /* word [+0xa] not yet stored */
+        }
+        /* two hits: index 3 answers non-zero (skipped), index 5 answers 0 (accepted); index 7 would hit but is not reached */
+        setup_467740(idx);
+        rect_hot(3, 0, 0, 9, 9);
+        rect_hot(5, 5, 5, 5, 5);
+        rect_hot(7, 0, 0, 9, 9);
+        g_ret_by[0].callee = 0x467b9e;
+        g_ret_by[0].value = 0;
+        {
+            /* the host answers per callee, not per call: use two runs. First run answers non-zero for everything: all hits are tried */
+            g_ret_by[0].value = 0x100;
+            begin();
+            X32(0x1aa, OBJ_VA);
+            r = m467740_hit_test(fx.self, 5, 5, &fx.w, &fx.host);
+            CK(r == 0);
+            check_mem();
+            expect_miss_467740();
+            CK(L.n == 3);
+            check_call(0, 0x467b9e, (uintptr_t)fx.self, 1);
+            check_arg(0, 0, 3, 0xffffffffu);
+            check_arg(1, 0, 5, 0xffffffffu);
+            check_arg(2, 0, 7, 0xffffffffu);
+        }
+        /* signed words: x = -1 and y = 0x8000 (-32768) against signed bounds */
+        setup_467740(idx);
+        rect_outer(-2, -32768, -1, -32768);
+        begin();
+        X32(0x1aa, OBJ_VA);
+        r = m467740_hit_test(fx.self, (int16_t)0xffff, (int16_t)0x8000, &fx.w, &fx.host);
+        CK(r == 1);
+        check_mem();
+        expect_hit_467740(idx, 9, 0x27ac);
+    }
+    if (g_failed) printf("FAIL test_m467740_hit_test: %s\n", g_msg);
+    else printf("PASS test_m467740_hit_test\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -354,6 +508,7 @@ int main(void)
     int failures = 0;
     failures += test_m4dad60_init_swap_buttons();
     failures += test_m466073_click_27d2_27d3();
+    failures += test_m467740_hit_test();
     /* FL24B-MAIN-END */
     return failures;
 }

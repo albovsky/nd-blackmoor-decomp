@@ -111,10 +111,11 @@ KEYS = list(SPECS)
 SPECS.update({
     '466073': dict(id=2, va=0x466073, size=468, code=0x1c4, selfsz=0x100, idx=0x1e, gates=[('nz32', 0x49), ('z8', 0x4e)], sels=[0x27d3, 0x27d2],
                    callees=[0x4fb2e3], post=lambda c: post_466073(c), scen=396, probes=[(0, 0x100)]),
+    '467740': dict(id=3, va=0x467740, size=506, selfsz=0x1c0, ret='eax', callee_pops=True, scen=480, callees=[0x467b9e]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
-STUB_SHAPE = {0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
+STUB_SHAPE = {0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
               0x4e26fc: dict(args=0, this=True, cleanup=0), 0x45e6bd: dict(args=3, this=True, cleanup=12)}
 WORD_ARGS = {0x4fb2e3: (0,), 0x45e6bd: (2,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
@@ -238,6 +239,55 @@ def post_466073(c):
     c.g['value_5bb1ca'] = 0 if flag == 0 else rng.choice([1, 0x100, 0xffffffff])
     nine_const(c, 0x54b54c, off if off is not None else 0, obj, c.sel == 0x27d2 and off is not None)
     c.stubs_results[0x4fb2e3] = [0]
+
+
+def span(rng, v, fail=None):
+    """(lo, hi) signed dwords around the signed value v: it lies inside unless fail is 'lo' (lo = v + 1) or 'hi' (hi = v - 1)."""
+    lo = rng.choice([v, v - 1, v - 7, -0x80000000, v - rng.randrange(1, 400), v - 0x10000])
+    hi = rng.choice([v, v + 1, v + 9, 0x7fffffff, v + rng.randrange(1, 400), v + 0x10000])
+    if fail == 'lo':
+        lo = v + 1
+    if fail == 'hi':
+        hi = v - 1
+    return lo & 0xffffffff, hi & 0xffffffff
+
+
+def build_467740(sp, rng, n):
+    prof = n % 12
+    d = bytearray(rng.randbytes(sp['selfsz']))
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    struct.pack_into('<h', d, 8, idx)
+    struct.pack_into('<I', d, 0x1ae, 0 if prof == 0 else rng.choice([1, 0x100, 0x01000000, 0xffffffff, rng.randrange(1, 1 << 32)]))
+    x = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    y = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    obj = bytearray(rng.randbytes(0x1000))
+    fail = None if prof in (0, 1, 2) else ['ylo', 'yhi', 'xlo', 'xhi'][(prof - 3) % 4]
+    ylo, yhi = span(rng, y, 'lo' if fail == 'ylo' else 'hi' if fail == 'yhi' else None)
+    xlo, xhi = span(rng, x, 'lo' if fail == 'xlo' else 'hi' if fail == 'xhi' else None)
+    if prof == 2:
+        ylo, yhi, xlo, xhi = y & 0xffffffff, y & 0xffffffff, x & 0xffffffff, x & 0xffffffff
+    struct.pack_into('<IIII', obj, 0x3f8, xlo, ylo, xhi, yhi)      # 0x3f8 x lo, 0x3fc y lo, 0x400 x hi, 0x404 y hi
+    hit_prob = {7: 0.0, 8: 1.0, 9: 0.1}.get(prof, 0.3)
+    for i in range(0x11):
+        mode = None if rng.random() < hit_prob else rng.choice(['ylo', 'yhi', 'xlo', 'xhi'])
+        ilo_y, ihi_y = span(rng, y, 'lo' if mode == 'ylo' else 'hi' if mode == 'yhi' else None)
+        ilo_x, ihi_x = span(rng, x, 'lo' if mode == 'xlo' else 'hi' if mode == 'xhi' else None)
+        struct.pack_into('<IIII', obj, i * 16 + 0x21, ilo_x, ilo_y, ihi_x, ihi_y)    # 0x21 x lo, 0x25 y lo, 0x29 x hi, 0x2d y hi
+    rec = bytearray(rng.randbytes(6 * 0x8d))
+    for i in range(-1, 5):
+        struct.pack_into('<I', rec, (i + 1) * 0x8d, od.region_va(1) if i == idx else od.region_va(4))
+    results = [rng.choice([0, 0, 1, 0x100, 0x80000000, 0xffffffff]) for _ in range(0x11)]
+    if prof == 8:
+        results = [rng.choice([1, 0x100, 0x80000000, 0xffffffff]) for _ in range(0x11)]
+    if prof == 10:
+        results = [0] * 0x11
+    areas = [Area('self', od.region_va(0), d, image=False), Area('records', RECORDS_VA - 0x8d, rec), Area('obj', od.region_va(1), obj, image=False),
+             Area('decoy', od.region_va(4), bytearray(rng.randbytes(0x1000)), image=False, compare=False)]
+    g = {f: rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]) for f in ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639', 'value_5c39e5')}
+    stubs = {0x467b9e: stub(0x467b9e, args=1, this=True, cleanup=4, results=results, probe=[('self', 0, 0x1c0)])}
+    junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
+    return mk_scenario(sp, '467740', rng, areas=areas, g=g, stubs=stubs, pointers={'records_5bb5e5': ('records', 0x8d)},
+                       stack_args=[junk(x), junk(y)], profile=('x', prof))
 
 
 # BUILDERS-END

@@ -20,6 +20,7 @@ KERNELS = ['original_methods_fl24b.c']
 EXPECTED = [
     'test_m4dad60_init_swap_buttons',
     'test_m466073_click_27d2_27d3',
+    'test_m467740_hit_test',
     # EXPECTED-END
 ]
 

@@ -29,6 +29,7 @@ typedef struct Fl24bWorld {
     uint32_t value_5bb1ca;     /* a flag: non-zero = compare a record field with a constant and maybe announce it through 0x4fb2e3 */
     uint8_t value_58321d, value_58321e;
     const uint8_t *bytes_54b54c;   /* the nine bytes at 0x54b54c (0x466073) */
+    uint32_t value_5b44f0, value_5b44f4, value_5d0377, value_5d162d, value_5d1631, value_5d1639;   /* 0x467740 */
     /* FL24B-WORLD-END */
 } Fl24bWorld;
 
@@ -36,6 +37,9 @@ typedef struct Fl24bWorld {
 void m4dad60_init_swap_buttons(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* 0x466073: events 0x27d3 and 0x27d2 (the second switches on the word [+0x28], 1 to 4, then compares the 49-byte copy of a record field) */
 void m466073_click_27d2_27d3(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x467740 (ret 8): hit test of the point (x, y) (two words, movsx) against the outer rectangle of the record's object and then its 17
+ * hotspot rectangles; returns 1 and arms the globals, or 0 */
+int32_t m467740_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

@@ -190,4 +190,53 @@ void m466073_click_27d2_27d3(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
     if (world->value_5bb1ca != 0 && !nine_bytes_equal(local, world->bytes_54b54c)) call1(host, 0x4fb2e3, 0x5c3a67, rd16(local, 0x21));
 }
 
+/* ---- 0x467740 ------------------------------------------------------------------------------------------------------------------ */
+
+/* arm the globals for the event `event` the way both hits of 0x467740 do (`mov [0x5b44f0], a; mov [0x5b44f4], 1; mov edx, [0x5d0377];
+ * mov [0x5d162d], edx; eax = [0x5b44f0] << 5; ecx = [0x5b44f4] << 4; mov [0x5d1631], eax + ecx + 0x5b160c; mov [0x5d1639], 1;
+ * mov [0x5c39e5], event`); the shifts read the globals back, as the original does */
+static void arm_467740(Fl24bWorld *world, uint32_t a, uint32_t event)
+{
+    world->value_5b44f0 = a;
+    world->value_5b44f4 = 1;
+    world->value_5d162d = world->value_5d0377;
+    world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+    world->value_5d1639 = 1;
+    world->value_5c39e5 = event;
+}
+
+/* 0x467740, thiscall, `ret 8`, arguments x then y pushed as words (read by movsx); eax = 1 on a hit, else 0. It stores the address of
+ * the object of the record of the word [+8] at [+0x1aa] first. The outer rectangle is at +0x3f8 (x low), +0x3fc (y low), +0x400 (x high),
+ * +0x404 (y high) of that object (signed dwords, inclusive); then 17 rectangles of 16 bytes at +0x21 (x low), +0x25, +0x29, +0x2d; the
+ * object is re-read through [+0x1aa] at every use. A hotspot that is hit is accepted when the host call 0x467b9e (this = self, argument
+ * the index) returns 0. A callee that changes self is not exercised. */
+int32_t m467740_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *o;
+    int32_t i;
+    wr32(self, 0x1aa, record_object_address(world, self, 8));
+    if (rd32(self, 0x1ae) == 0) return 0;
+    o = object_at(host, rd32(self, 0x1aa));
+    if ((int32_t)y >= (int32_t)rd32(o, 0x3fc) && (int32_t)y <= (int32_t)rd32(o, 0x404) && (int32_t)x >= (int32_t)rd32(o, 0x3f8) &&
+        (int32_t)x <= (int32_t)rd32(o, 0x400)) {
+        arm_467740(world, 9, 0x27ac);
+        return 1;
+    }
+    for (i = 0; i < 0x11; i++) {
+        o = object_at(host, rd32(self, 0x1aa));
+        if ((int32_t)y < (int32_t)rd32(o, (ptrdiff_t)i * 16 + 0x25)) continue;
+        o = object_at(host, rd32(self, 0x1aa));
+        if ((int32_t)y > (int32_t)rd32(o, (ptrdiff_t)i * 16 + 0x2d)) continue;
+        o = object_at(host, rd32(self, 0x1aa));
+        if ((int32_t)x < (int32_t)rd32(o, (ptrdiff_t)i * 16 + 0x21)) continue;
+        o = object_at(host, rd32(self, 0x1aa));
+        if ((int32_t)x > (int32_t)rd32(o, (ptrdiff_t)i * 16 + 0x29)) continue;
+        if (call1(host, 0x467b9e, (uintptr_t)self, (uintptr_t)i) != 0) continue;
+        arm_467740(world, 0, 0x27ab);
+        wr16(self, 0xa, (uint16_t)i);
+        return 1;
+    }
+    return 0;
+}
+
 /* FL24B-END */
