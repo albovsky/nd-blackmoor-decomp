@@ -380,6 +380,22 @@ static void test_m424201_walk(void)
     walk_init(3, 0, -1);
     m424201_walk(self_buf, VA(0), &world, &host, &rej);
     CK(rej == FL26B_REJECT_ENDLESS && L.n == 0);
+    /* the kind is a dword: 0x10002, 0x10001 and 0x80000002 are not 2 or 1 although their low words are */
+    walk_init(0x10002, 0, -1);
+    m424201_walk(self_buf, VA(0), &world, &host, &rej);
+    CK(rej == FL26B_REJECT_ENDLESS && L.n == 0);
+    walk_init(0x10001, 0, -1);
+    m424201_walk(self_buf, VA(0), &world, &host, &rej);
+    CK(rej == FL26B_REJECT_ENDLESS && L.n == 0);
+    walk_init((int)0x80000002u, 0, -1);
+    m424201_walk(self_buf, VA(0), &world, &host, &rej);
+    CK(rej == FL26B_REJECT_ENDLESS && L.n == 0);
+    /* a kind-2 node whose next is itself: the original never returns; the port stops after its pass limit */
+    walk_init(2, 0, 0);
+    rej = 0;
+    m424201_walk(self_buf, VA(0), &world, &host, &rej);
+    CK(rej == FL26B_REJECT_ENDLESS);
+    setup();
     A32(4, 0);
     m424201_walk(self_buf, VA(0), &world, &host, &rej);
     CK(rej == FL26B_REJECT_UNRESOLVED && L.n == 0);
@@ -664,6 +680,29 @@ static void test_m4eb184_use_feedback(void)
     g_ret_423259 = 0x30000000u;
     m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
     CK(rej == FL26B_REJECT_UNRESOLVED);
+    /* the same unresolved translation on the arm of the flag byte 0 (after the structure announcement) */
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    memset(self_buf + ROW(n, 0), 'x', 0x5d);
+    put_str(self_buf + ROW(n, 0), "name");
+    put_str(self_buf + ROW(n, 0) + 0x21, "t");
+    world.value_5bb202 = 1;
+    g_ret_423259 = 0x30000000u;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == FL26B_REJECT_UNRESOLVED && L.n == 4 && call_is(2, 0x4fb77a, 0x5c3a67, 1) && call_is(3, 0x423259, 0x619a6b, 1));
+    /* the structure copy: a string of 0x33 characters (0x34 bytes with the NUL) fits the 52-byte structure; 0x34 characters do not */
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    memset(self_buf + ROW(n, 0), 'x', 0x5d);
+    self_buf[ROW(n, 0) + 0x33] = 0;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == 0 && L.n == 4 && call_is(2, 0x4fb77a, 0x5c3a67, 1) && L.c[2].snap[0x33] == 0 && L.c[2].snap[0x32] == 'x' && L.c[2].snap[0x31] == 'x');
+    setup4();
+    recs_tab[n * 0x6e] = 0;
+    memset(self_buf + ROW(n, 0), 'x', 0x5d);
+    self_buf[ROW(n, 0) + 0x34] = 0;
+    m4eb184_use_feedback(self_buf, n, &world, &host, &rej);
+    CK(rej == FL26B_REJECT_OVERRUN && L.n == 2);
 }
 
 /* ---- a bounded random sweep (meant for the sanitiser builds) ---------------------------------------------------------------- */

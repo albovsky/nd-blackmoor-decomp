@@ -363,10 +363,11 @@ def gen_42406d(rng, n):
     # nodes of the chain whose link [0x34] leaves the chain are fine: they only get their flag set
     expected = model_42406d(model, order[0])
     put32(arg, 4, nodes_va + NODE * order[0])
-    put32(arg, 0xc, arg_va + 0x40 if aux else 0)
+    aux_va = arg_va + 0x40 if variant % 2 == 0 else od.region_va(2)       # (the second place has a zero low word: the pointer test is a dword test)
+    put32(arg, 0xc, aux_va if aux else 0)
     put32(arg, 0x18, expected if eq else (expected + rng.choice([1, 2, 0x10000, 0xffffffff])) & 0xffffffff)
     put32(arg, 0, rng.choice([0, 1, 0x100, 0xffffffff]))
-    areas = [Area('self', arg_va, arg, image=False), Area('nodes', nodes_va, nd, image=False)]
+    areas = [Area('self', arg_va, arg, image=False), Area('nodes', nodes_va, nd, image=False), Area('aux', od.region_va(2), bytearray(rng.randbytes(0x40)), image=False)]
     return common26('42406d', areas, {}, [('self', 0, 0x80)], stack=[arg_va], args=(arg_va,), profile=(aux, eq, m))
 
 
