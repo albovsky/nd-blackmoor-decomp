@@ -288,6 +288,18 @@ def gen_4de1f5(rng, n):
 
 
 SPECS['4de1f5'] = dict(id=1, va=0x4de1f5, size=31, gen=gen_4de1f5, cleanup=0, n=16)
+def gen_4de214(rng, n):
+    """0x4de214 only calls 0x4de1f5 (run as original bytes in the oracle): the same fixtures as 0x4de1f5."""
+    d = junk_self(rng)
+    if n % 2:
+        d[0x990] = d[0x995] = 0xff
+        put32(d, 0x991, 0xffffffff)
+    g = {'byte_5a161f': rng.choice([0, 1, 0x80, 0xff])}
+    return make('4de214', [Area('self', od.region_va(0), d, image=False)], {}, g, [], (), (n,))
+
+
+SPECS['4de214'] = dict(id=2, va=0x4de214, size=19, gen=gen_4de214, cleanup=0, n=16)
+
 KEYS = list(SPECS)
 
 

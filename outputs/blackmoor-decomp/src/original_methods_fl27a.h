@@ -48,6 +48,9 @@ typedef struct Fl27aWorld {
 /* 0x4de1f5: thiscall, plain `ret`: [self + 0x991] = 0 (a dword at an odd offset) and the byte [0x5a161f] = 0. */
 void m4de1f5_clear_flags(uint8_t *self, Fl27aWorld *world);
 
+/* 0x4de214: thiscall, plain `ret`: calls 0x4de1f5 (this = self), i.e. m4de1f5_clear_flags. */
+void m4de214_clear_flags_thunk(uint8_t *self, Fl27aWorld *world);
+
 /*DECLS*/
 
 #ifdef __cplusplus

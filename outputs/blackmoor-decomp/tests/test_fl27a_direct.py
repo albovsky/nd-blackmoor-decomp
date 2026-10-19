@@ -19,6 +19,7 @@ TEST_C = PROJECT / 'tests/fl27a_direct_test.c'
 KERNELS = ['original_methods_fl27a.c']
 EXPECTED = [
     'test_m4de1f5_clear_flags',
+    'test_m4de214_clear_flags_thunk',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -68,6 +69,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4de1f5_clear_flags(self):
         """FL-27a: direct test of m4de1f5_clear_flags"""
         self.check('test_m4de1f5_clear_flags')
+
+    def test_4de214_clear_flags_thunk(self):
+        """FL-27a: direct test of m4de214_clear_flags_thunk"""
+        self.check('test_m4de214_clear_flags_thunk')
 
     # CASES-END
 

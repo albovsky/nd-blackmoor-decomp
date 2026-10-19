@@ -141,7 +141,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F27A_4DE1F5 = 1 /*ENUM*/ };
+enum { F27A_4DE1F5 = 1 , F27A_4DE214 /*ENUM*/ };
 
 /* Runs one port. `self` is `this` (NULL for the functions without one), a[0..7] the stack arguments as the original passes them (an original
  * address, a value). `result` is the return value of the ports that have one (a pointer is returned as its host address). The world is the
@@ -158,6 +158,7 @@ void shim_fl27a(int fn, uint8_t *self, const uint64_t *a, Fl27aWorld *w, uint64_
     (void)a;
     switch (fn) {
     case F27A_4DE1F5: m4de1f5_clear_flags(self, w); break;
+    case F27A_4DE214: m4de214_clear_flags_thunk(self, w); break;
     /*CASES*/
     default: break;
     }

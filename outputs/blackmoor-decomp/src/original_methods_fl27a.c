@@ -63,4 +63,12 @@ void m4de1f5_clear_flags(uint8_t *self, Fl27aWorld *world)
     world->byte_5a161f = 0;
 }
 
+/* ---- 0x4de214 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4de214, thiscall, plain `ret`: calls 0x4de1f5 with this = self (called natively: it is in this batch). */
+void m4de214_clear_flags_thunk(uint8_t *self, Fl27aWorld *world)
+{
+    m4de1f5_clear_flags(self, world);
+}
+
 /*NEXT*/

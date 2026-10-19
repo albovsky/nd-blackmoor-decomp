@@ -218,6 +218,27 @@ static void test_m4de1f5_clear_flags(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4de214: calls 0x4de1f5 (natively), so its two effects are the whole observable behaviour; no host call */
+
+static void test_m4de214_clear_flags_thunk(void)
+{
+    int round;
+    for (round = 0; round < 4; round++) {
+        static const uint8_t FLAGS[4] = {0xff, 1, 0x80, 0};
+        setup();
+        set32(fx.self, 0x991, round == 3 ? 0u : 0xffffffffu);
+        fx.w.byte_5a161f = FLAGS[round];
+        fx.w.value_5b15d6 = 7;
+        expect_begin();
+        m4de214_clear_flags_thunk(fx.self, &fx.w);
+        set32(exp_self, 0x991, 0);
+        expect_end();
+        CK(fx.w.byte_5a161f == 0 && fx.w.value_5b15d6 == 7);
+        CK(L.n == 0);
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -244,6 +265,7 @@ static void test_sweep(void)
         fx.w.byte_5a161f = (uint8_t)(rnd() % 3);
         L.n = 0;
         m4de1f5_clear_flags(fx.self, &fx.w);
+        m4de214_clear_flags_thunk(fx.self, &fx.w);
         /*SWEEP*/
     }
     CK(1);
@@ -254,6 +276,7 @@ static const struct {
     void (*fn)(void);
 } CASES[] = {
     {"test_m4de1f5_clear_flags", test_m4de1f5_clear_flags},
+    {"test_m4de214_clear_flags_thunk", test_m4de214_clear_flags_thunk},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

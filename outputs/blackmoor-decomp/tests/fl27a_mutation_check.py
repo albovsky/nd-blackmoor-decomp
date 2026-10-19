@@ -34,6 +34,7 @@ import test_fl27a_direct as direct
 
 SRC = HERE.parent / 'src'
 FUNCS = {'4de1f5': 'test_4de1f5_clear_flags',
+         '4de214': 'test_4de214_clear_flags_thunk',
          # FUNCS-END
          }
 
