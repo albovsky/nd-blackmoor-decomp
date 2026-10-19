@@ -425,11 +425,88 @@ def gen_4ceb8c(rng, n):
     return make('4ceb8c', areas, {}, g, [], (), (kind, *rest))
 
 
+# ---- 0x4ccef1: release the movie player and the movie record ------------------------------------------------------------------------
+
+
+def profiles_4ccef1():
+    profiles = [('none', 0), ('none', 1)]
+    profiles += [('live', cleared, pre4) for cleared in (0, 1) for pre4 in (0, 1, 2, 0xffffffff)]
+    return profiles
+
+
+def gen_4ccef1(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4ccef1())
+    selfd = self_area(rng)
+    player = bytearray(rng.randbytes(0x40))
+    put32(player, 0, od.region_va(5))
+    vt = vtable_area(0, VT_STUB_A, rng)
+    put32(selfd, 0x1d6, od.region_va(3) if kind == 'live' else 0)
+    if kind == 'live':
+        put32(selfd, 4, rest[1])
+    cleared = kind == 'live' and rest[0] == 1
+    writes = [(0, -1, od.region_va(0) + 0x1d6, 4, 0)] if cleared else []
+    probe = [('self', 0, 0x10), ('self', 0x1d0, 0x10)]
+    stubs = {0x44c479: stub(0x44c479, CDECL(1), probe, results=[rng.randrange(1 << 32)]), 0x449a94: stub(0x449a94, THISCALL(0), probe, results=[rng.randrange(1 << 32)], writes=writes),
+             0x44c4ab: stub(0x44c4ab, CDECL(1), probe), 0x415011: stub(0x415011, THISCALL(1), probe), 0x41632b: stub(0x41632b, THISCALL(1), probe),
+             0x4bedfa: stub(0x4bedfa, THISCALL(1), probe), VT_STUB_A: stub(VT_STUB_A, THISCALL(1), probe, results=[rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('player', od.region_va(3), player, image=False), vt]
+    # the vtable region is region 5: the player's first dword
+    return make('4ccef1', areas, stubs, {}, [], (), (kind, *rest))
+
+
+# ---- 0x4ce8ea: one step of the scan state machine ---------------------------------------------------------------------------------
+
+
+STATES = (1, 2, 3, 0x10000, 0x10004, 0xffffffff, 0x80000000, 0x100)
+
+
+def profiles_4ce8ea():
+    profiles = [('state', s) for s in STATES]
+    profiles += [('z85', s) for s in (0, 4)]
+    profiles += [('run', s, r10f, match, dbg) for s in (0, 4) for r10f in (0, 1) for match in (0, 1, 2, 3) for dbg in (0, 1, 0x8000)]
+    return profiles
+
+
+def gen_4ce8ea(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4ce8ea())
+    state = rest[0] if kind in ('state', 'z85', 'run') else 0
+    match = rest[2] if kind == 'run' else 0
+    w16 = rng.choice([-3, -1, -0x8000]) if match == 3 else rng.choice([0, 5, -3, 0x7fff, -0x8000, 1, -1])
+    selfd = self_area(rng)
+    tbl = bytearray(rng.randbytes(0x35 * 4))
+    index = rng.randrange(4)
+    put32(selfd, 0x1da, state)
+    put32(selfd, 0x226, od.region_va(1))
+    put32(selfd, 0x246, index)
+    put32(selfd, 0x212, od.region_va(3))
+    put32(selfd, 0x18e, rng.choice([0, 1, 7, 0xffffffff, 0x80000000, rng.randrange(1 << 32)]))
+    put16(tbl, 0x35 * index + 0x23, w16)
+    player = bytearray(rng.randbytes(0x40))
+    for off in (0x2d, 0x2f):
+        put16(player, off, rng.choice([0, 1, 0x7fff, 0x8000, 0xffff, rng.randrange(1 << 16)]))
+    r85 = 0 if kind == 'z85' else rng.choice(NONZERO)
+    r10f = 0 if kind == 'run' and rest[1] == 0 else rng.choice(NONZERO)
+    # [self+0x232] = result of 0x4bee2c - 1: equal to the sign-extended word (1), different (0), different until 0x4ceb8c stores the equal value (2), the zero-extended word (3)
+    ext = w16 & 0xffffffff
+    r_bee = {0: (ext + 2) & 0xffffffff, 1: (ext + 1) & 0xffffffff, 2: (ext + 7) & 0xffffffff, 3: ((w16 & 0xffff) + 1) & 0xffffffff}[match]
+    writes = [(0, -1, od.region_va(0) + 0x232, 4, ext)] if match == 2 else []
+    dbg = rest[3] if kind == 'run' else rng.choice(DBG_VALUES)
+    probe = [('self', 0x18e, 4), ('self', 0x1d8, 0x68)]
+    stubs = {0x4bef85: stub(0x4bef85, THISCALL(1), probe, results=[r85]), 0x4befc8: stub(0x4befc8, THISCALL(1), probe), 0x4bf098: stub(0x4bf098, THISCALL(6), probe),
+             0x4bee2c: stub(0x4bee2c, THISCALL(1), probe, results=[r_bee]), 0x4bf10f: stub(0x4bf10f, THISCALL(1), probe, results=[r10f]),
+             0x4ceb8c: stub(0x4ceb8c, THISCALL(0), probe, writes=writes), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe)}
+    g, nbr = debug_areas(rng, dbg)
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('tbl', od.region_va(1), tbl, image=False), Area('player', od.region_va(3), player, image=False), *nbr]
+    return make('4ce8ea', areas, stubs, g, [], (), (kind, *rest))
+
+
 SPECS = {
     '4cf026': dict(id=1, va=0x4cf026, size=131, gen=gen_4cf026, cleanup=4, ret=True, n=len(profiles_4cf026()) * 3),
     '4cec6c': dict(id=2, va=0x4cec6c, size=139, gen=gen_4cec6c, cleanup=0, n=len(profiles_4cec6c()) * 3),
     '4cf1e4': dict(id=3, va=0x4cf1e4, size=146, gen=gen_4cf1e4, cleanup=8, ret=True, n=len(profiles_4cf1e4()) * 3),
     '4ceb8c': dict(id=4, va=0x4ceb8c, size=224, gen=gen_4ceb8c, cleanup=0, n=len(profiles_4ceb8c()) * 3),
+    '4ccef1': dict(id=5, va=0x4ccef1, size=204, gen=gen_4ccef1, cleanup=0, n=len(profiles_4ccef1()) * 4),
+    '4ce8ea': dict(id=6, va=0x4ce8ea, size=593, gen=gen_4ce8ea, cleanup=0, n=len(profiles_4ce8ea()) * 3),
     # SPECS-INSERT
 }
 KEYS = list(SPECS)

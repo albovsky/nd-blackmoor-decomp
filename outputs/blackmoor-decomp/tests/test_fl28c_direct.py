@@ -22,6 +22,8 @@ EXPECTED = [
     'test_m4cec6c_bump_counter',
     'test_m4cf1e4_alloc_clear',
     'test_m4ceb8c_load_rect',
+    'test_m4ccef1_release_movie',
+    'test_m4ce8ea_scan_step',
     'test_sweep_bounded',
 ]
 
@@ -82,6 +84,14 @@ class Fl28cDirect(unittest.TestCase):
     def test_4ceb8c_load_rect(self):
         """FL-28c: direct test of m4ceb8c_load_rect"""
         self.check('test_m4ceb8c_load_rect')
+
+    def test_4ccef1_release_movie(self):
+        """FL-28c: direct test of m4ccef1_release_movie"""
+        self.check('test_m4ccef1_release_movie')
+
+    def test_4ce8ea_scan_step(self):
+        """FL-28c: direct test of m4ce8ea_scan_step"""
+        self.check('test_m4ce8ea_scan_step')
 
     # CASES-END
 

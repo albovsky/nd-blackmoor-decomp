@@ -159,6 +159,14 @@ class Fl28cDifferential(DiffBase):
         """FL-28c: differential test of m4ceb8c_load_rect (original 0x4ceb8c)"""
         self.run_key('4ceb8c')
 
+    def test_4ccef1_release_movie(self):
+        """FL-28c: differential test of m4ccef1_release_movie (original 0x4ccef1)"""
+        self.run_key('4ccef1')
+
+    def test_4ce8ea_scan_step(self):
+        """FL-28c: differential test of m4ce8ea_scan_step (original 0x4ce8ea)"""
+        self.run_key('4ce8ea')
+
     # CASES-END
 
 

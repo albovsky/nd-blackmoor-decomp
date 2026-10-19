@@ -157,4 +157,70 @@ void m4ceb8c_load_rect(uint8_t *self, const Fl28cWorld *world, const Fl18Host *h
     wr32(self, 0x1fa, rd32(rec, 0x1a) + (uint32_t)world->origin_x_583186);
 }
 
+/* ---- 0x4ccef1 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4ccef1, plain `ret`: see the header. [ebp-0xc] is `self`, [ebp-8] / [ebp-4] the player object read again, [ebp-0x10] the (unused) result of the virtual call. */
+void m4ccef1_release_movie(uint8_t *self, const Fl18Host *host)
+{
+    if (rd32(self, 0x1d6) != 0) {
+        uint32_t obj;
+        call1(host, 0x44c479, 0, (uintptr_t)(self + 4));
+        wr32(self, 4, 2);
+        call0(host, 0x449a94, rd32(self, 0x1d6));
+        obj = rd32(self, 0x1d6);
+        if (obj != 0) {
+            uint32_t vtable = rd32(object_at(host, obj), 0);
+            call1(host, rd32(object_at(host, vtable), 0), obj, 1);
+        }
+        wr32(self, 0x1d6, 0);
+        call1(host, 0x44c4ab, 0, (uintptr_t)(self + 4));
+        wr32(self, 4, 0);
+    }
+    call1(host, 0x415011, 0x5e2dbe, (uintptr_t)(self + 8));
+    call1(host, 0x41632b, 0x5e2dbe, (uintptr_t)(self + 8));
+    call1(host, 0x4bedfa, 0x6201f9, (uintptr_t)(self + 0x18e));
+}
+
+/* ---- 0x4ce8ea ------------------------------------------------------------------------------------------------------------------ */
+
+/* the sequence both arms of 0x4ce8ea share: 0x4befc8, 0x4bf098, [self+0x232], [self+0x206] (the arm adds its own stores after it) */
+static void scan_rect(uint8_t *self, const Fl18Host *host)
+{
+    const uint8_t *player;
+    call1(host, 0x4befc8, 0x6201f9, rd32(self, 0x18e));
+    player = object_at(host, rd32(self, 0x212));
+    call6(host, 0x4bf098, 0x6201f9, rd32(self, 0x18e), rd32(player, 0), u32((uint32_t)rds16(player, 0x2f)), u32((uint32_t)rds16(player, 0x2d)), 0, 0);
+    wr32(self, 0x232, call1(host, 0x4bee2c, 0x6201f9, rd32(self, 0x18e)) - 1u);
+    wr32(self, 0x206, 1);
+}
+
+/* 0x4ce8ea, plain `ret`: see the header. [ebp-8] is `self`, [ebp-4] the record, [ebp-0xc] the state (the switch value). */
+void m4ce8ea_scan_step(uint8_t *self, const Fl28cWorld *world, const Fl18Host *host)
+{
+    uint32_t rec = rd32(self, 0x226) + rd32(self, 0x246) * 0x35u;
+    uint32_t state = rd32(self, 0x1da);
+    uint32_t r;
+    if (state == 0) {
+        if (call1(host, 0x4bef85, 0x6201f9, rd32(self, 0x18e)) == 0) return;
+        scan_rect(self, host);
+        wr32(self, 0x20a, 1);
+        call0(host, 0x4ceb8c, (uintptr_t)self);
+        r = call1(host, 0x4bf10f, 0x6201f9, rd32(self, 0x18e));
+        if (r != 0 && rd32(self, 0x232) != (uint32_t)rds16(object_at(host, rec), 0x23)) {
+            wr32(self, 0x1da, 4);
+            return;
+        }
+        wr32(self, 0x1de, 3);
+        if (debug_on(world)) call1(host, 0x44a2b7, 0, 0x559a28);
+    } else if (state == 4) {
+        if (call1(host, 0x4bef85, 0x6201f9, rd32(self, 0x18e)) == 0) return;
+        scan_rect(self, host);
+        call0(host, 0x4ceb8c, (uintptr_t)self);
+        r = call1(host, 0x4bf10f, 0x6201f9, rd32(self, 0x18e));
+        if (r != 0 && rd32(self, 0x232) != (uint32_t)rds16(object_at(host, rec), 0x23)) return;
+        wr32(self, 0x1de, 3);
+        if (debug_on(world)) call1(host, 0x44a2b7, 0, 0x559aa8);
+    }
+}
+
 /*SOURCE-INSERT*/

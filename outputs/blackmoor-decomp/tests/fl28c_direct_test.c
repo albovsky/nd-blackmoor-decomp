@@ -516,6 +516,248 @@ static void test_m4ceb8c_load_rect(void)
     CK(get32(fx.self, 0x1f2) == 1 && get32(fx.self, 0x1f6) == 0x80000000u);
 }
 
+/* ---- 0x4ccef1 -------------------------------------------------------------------------------------------------------------------- */
+
+#define PLAYER_VA 0x20060000u
+#define VT2_VA 0x20070000u
+#define VT_STUB 0x7e000a00u
+#define SELFP ((uintptr_t)fx.self)
+
+static void release_object(uint32_t player)
+{
+    set32(fx.self, 0x1d6, player);
+    set32(fx.self, 4, 0x77);
+    set32(fx.src, 0, VT2_VA);
+    set32(fx.dst, 0, VT_STUB);
+}
+
+static void clear_player_at_449a94(int i, uint32_t callee, const uintptr_t *args)
+{
+    (void)i;
+    (void)args;
+    if (callee == 0x449a94) set32(fx.self, 0x1d6, 0);
+}
+
+static void test_m4ccef1_release_movie(void)
+{
+    /* no player: only the three closing calls, in order, with the pointers into the object */
+    setup();
+    release_object(0);
+    expect_begin();
+    m4ccef1_release_movie(fx.self, &fx.host);
+    CKN(3);
+    CKC(0, 0x415011, 0x5e2dbe, SELFP + 8);
+    CKC(1, 0x41632b, 0x5e2dbe, SELFP + 8);
+    CKC(2, 0x4bedfa, 0x6201f9, SELFP + 0x18e);
+    expect_end();
+    /* a player: 0x44c479(self+4); [self+4] = 2; 0x449a94(this = player); the virtual call [[player]+0] with this = player and 1; [self+0x1d6] = 0; 0x44c4ab(self+4); [self+4] = 0; the closing calls */
+    setup();
+    release_object(PLAYER_VA);
+    expect_begin();
+    set32(exp_self, 0x1d6, 0);
+    set32(exp_self, 4, 0);
+    m4ccef1_release_movie(fx.self, &fx.host);
+    CKN(7);
+    CKC(0, 0x44c479, 0, SELFP + 4);
+    CKC0(1, 0x449a94, PLAYER_VA);
+    CKC(2, VT_STUB, PLAYER_VA, 1);
+    CKC(3, 0x44c4ab, 0, SELFP + 4);
+    CKC(4, 0x415011, 0x5e2dbe, SELFP + 8);
+    CKC(5, 0x41632b, 0x5e2dbe, SELFP + 8);
+    CKC(6, 0x4bedfa, 0x6201f9, SELFP + 0x18e);
+    CK(get32(L.c[0].snap_self, 4) == 0x77 && get32(L.c[0].snap_self, 0x1d6) == PLAYER_VA);        /* the state at each call */
+    CK(get32(L.c[1].snap_self, 4) == 2 && get32(L.c[1].snap_self, 0x1d6) == PLAYER_VA);
+    CK(get32(L.c[2].snap_self, 4) == 2 && get32(L.c[2].snap_self, 0x1d6) == PLAYER_VA);
+    CK(get32(L.c[3].snap_self, 4) == 2 && get32(L.c[3].snap_self, 0x1d6) == 0);
+    CK(get32(L.c[4].snap_self, 4) == 0);
+    expect_end();
+    /* 0x449a94 clears [self+0x1d6]: the re-read gives zero, so no virtual call */
+    setup();
+    release_object(PLAYER_VA);
+    g_effect = clear_player_at_449a94;
+    m4ccef1_release_movie(fx.self, &fx.host);
+    CKN(6);
+    CKC(0, 0x44c479, 0, SELFP + 4);
+    CKC0(1, 0x449a94, PLAYER_VA);
+    CKC(2, 0x44c4ab, 0, SELFP + 4);
+    CK(get32(fx.self, 0x1d6) == 0 && get32(fx.self, 4) == 0);
+}
+
+/* ---- 0x4ce8ea -------------------------------------------------------------------------------------------------------------------- */
+
+static void scan_object(uint32_t state, int16_t word)
+{
+    set32(fx.self, 0x1da, state);
+    set32(fx.self, 0x226, TBL_VA);
+    set32(fx.self, 0x246, 2);
+    set32(fx.self, 0x212, PLAYER_VA);
+    set32(fx.self, 0x18e, 0x1234);
+    set16(fx.tbl, 2 * 0x35 + 0x23, (uint16_t)word);
+    set32(fx.src, 0, 0xaabbccddu);
+    set16(fx.src, 0x2d, 0xfffe);
+    set16(fx.src, 0x2f, 5);
+}
+
+static void scan_scripts(uint32_t r85, uint32_t rbee, uint32_t r10f)
+{
+    script1(0x4bef85, r85);
+    script1(0x4bee2c, rbee);
+    script1(0x4bf10f, r10f);
+}
+
+static int16_t g_store232;
+static void store_232_at_4ceb8c(int i, uint32_t callee, const uintptr_t *args)
+{
+    (void)i;
+    (void)args;
+    if (callee == 0x4ceb8c) set32(fx.self, 0x232, (uint32_t)(int32_t)g_store232);
+}
+
+/* the calls of both arms up to and including 0x4bf10f, checked from the call after 0x4bef85 */
+static void ck_scan_calls(void)
+{
+    CKC(0, 0x4bef85, 0x6201f9, 0x1234);
+    CKC(1, 0x4befc8, 0x6201f9, 0x1234);
+    CKC(2, 0x4bf098, 0x6201f9, 0x1234, 0xaabbccddu, 5, 0xfffffffeu, 0, 0);
+    CKC(3, 0x4bee2c, 0x6201f9, 0x1234);
+}
+
+static void test_m4ce8ea_scan_step(void)
+{
+    uint32_t other[] = {1, 2, 3, 0x10000, 0x10004, 0xffffffffu, 0x80000000u, 0x100};
+    size_t k;
+    /* every other state value returns at once */
+    for (k = 0; k < sizeof other / sizeof other[0]; k++) {
+        setup();
+        scan_object(other[k], 7);
+        expect_begin();
+        m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+        CKN(0);
+        expect_end();
+    }
+    /* arm 0, 0x4bef85 answers 0: nothing else happens */
+    setup();
+    scan_object(0, 7);
+    scan_scripts(0, 8, 1);
+    expect_begin();
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(1);
+    CKC(0, 0x4bef85, 0x6201f9, 0x1234);
+    expect_end();
+    /* arm 0, [self+0x232] = 8 - 1 = 7 equals the word 7: [+0x206] = [+0x20a] = 1, [+0x1de] = 3, state kept, the debug text */
+    setup();
+    scan_object(0, 7);
+    scan_scripts(1, 8, 1);
+    fx.w.word_63a4cd = 1;
+    expect_begin();
+    set32(exp_self, 0x232, 7);
+    set32(exp_self, 0x206, 1);
+    set32(exp_self, 0x20a, 1);
+    set32(exp_self, 0x1de, 3);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(7);
+    ck_scan_calls();
+    CKC0(4, 0x4ceb8c, SELFP);
+    CKC(5, 0x4bf10f, 0x6201f9, 0x1234);
+    CKC(6, 0x44a2b7, 0, 0x559a28);
+    CK(get32(L.c[4].snap_self, 0x232) == 7 && get32(L.c[4].snap_self, 0x206) == 1 && get32(L.c[4].snap_self, 0x20a) == 1 && get32(L.c[4].snap_self, 0x1de) == 0xa5a5a5a5u);
+    expect_end();
+    /* without the debug word: no 0x44a2b7 */
+    setup();
+    scan_object(0, 7);
+    scan_scripts(1, 8, 1);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(6);
+    CK(get32(fx.self, 0x1de) == 3);
+    /* arm 0, a different value and 0x4bf10f non-zero: [+0x1da] = 4, no [+0x1de], no debug text */
+    setup();
+    scan_object(0, 7);
+    scan_scripts(1, 20, 5);
+    fx.w.word_63a4cd = 1;
+    expect_begin();
+    set32(exp_self, 0x232, 19);
+    set32(exp_self, 0x206, 1);
+    set32(exp_self, 0x20a, 1);
+    set32(exp_self, 0x1da, 4);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(6);
+    expect_end();
+    /* arm 0, a different value but 0x4bf10f answers 0: [+0x1de] = 3 and the state is kept */
+    setup();
+    scan_object(0, 7);
+    scan_scripts(1, 20, 0);
+    expect_begin();
+    set32(exp_self, 0x232, 19);
+    set32(exp_self, 0x206, 1);
+    set32(exp_self, 0x20a, 1);
+    set32(exp_self, 0x1de, 3);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(6);
+    expect_end();
+    /* the word is signed: -3 equals 0xfffffffd ([+0x232] = 0xfffffffe - 1), 0xfffd does not (state 4) */
+    setup();
+    scan_object(0, -3);
+    scan_scripts(1, 0xfffffffeu, 1);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CK(get32(fx.self, 0x1de) == 3 && get32(fx.self, 0x1da) == 0);
+    setup();
+    scan_object(0, -3);
+    scan_scripts(1, 0xfffeu, 1);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CK(get32(fx.self, 0x1da) == 4 && get32(fx.self, 0x232) == 0xfffdu);
+    /* [self+0x232] is read again after 0x4ceb8c: a callee that stores the equal value turns a difference into a match */
+    setup();
+    scan_object(0, 7);
+    scan_scripts(1, 20, 1);
+    g_store232 = 7;
+    g_effect = store_232_at_4ceb8c;
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CK(get32(fx.self, 0x1de) == 3 && get32(fx.self, 0x1da) == 0 && get32(fx.self, 0x232) == 7);
+    /* arm 4: the same sequence without [+0x20a] and without the [+0x1da] store; the debug text is 0x559aa8 */
+    setup();
+    scan_object(4, 7);
+    scan_scripts(0, 8, 1);
+    expect_begin();
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(1);
+    expect_end();
+    setup();
+    scan_object(4, 7);
+    scan_scripts(1, 8, 1);
+    fx.w.word_63a4cd = (int16_t)0x8000;
+    expect_begin();
+    set32(exp_self, 0x232, 7);
+    set32(exp_self, 0x206, 1);
+    set32(exp_self, 0x1de, 3);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(7);
+    ck_scan_calls();
+    CKC0(4, 0x4ceb8c, SELFP);
+    CKC(5, 0x4bf10f, 0x6201f9, 0x1234);
+    CKC(6, 0x44a2b7, 0, 0x559aa8);
+    expect_end();
+    setup();
+    scan_object(4, 7);
+    scan_scripts(1, 20, 5);
+    fx.w.word_63a4cd = 1;
+    expect_begin();
+    set32(exp_self, 0x232, 19);
+    set32(exp_self, 0x206, 1);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(6);
+    expect_end();
+    setup();
+    scan_object(4, 7);
+    scan_scripts(1, 20, 0);
+    expect_begin();
+    set32(exp_self, 0x232, 19);
+    set32(exp_self, 0x206, 1);
+    set32(exp_self, 0x1de, 3);
+    m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    CKN(6);
+    expect_end();
+}
+
 /*TESTS*/
 
 static uint32_t rng_state = 12345;
@@ -555,6 +797,20 @@ static void test_sweep_bounded(void)
         fx.w.word_63a4cd = (int16_t)(rnd() % 3);
         (void)m4cf1e4_alloc_clear(fx.out, rnd() % 0x40, &fx.w, &fx.host);
     }
+    for (i = 0; i < 300; i++) {
+        uint32_t r[1];
+        setup();
+        release_object(rnd() % 3 == 0 ? 0 : PLAYER_VA);
+        if (rnd() % 3 == 0) g_effect = clear_player_at_449a94;
+        m4ccef1_release_movie(fx.self, &fx.host);
+        scan_object(rnd() % 3 == 0 ? rnd() % 6 : (rnd() % 2) * 4, (int16_t)(rnd() % 4 == 0 ? 7 : rnd()));
+        script1(0x4bef85, rnd() % 4 != 0);
+        r[0] = rnd() % 2 ? 8 : rnd();
+        script(0x4bee2c, 1, r);
+        script1(0x4bf10f, rnd() % 3 != 0);
+        fx.w.word_63a4cd = (int16_t)(rnd() % 3);
+        m4ce8ea_scan_step(fx.self, &fx.w, &fx.host);
+    }
     /*SWEEPS*/
 }
 
@@ -578,6 +834,8 @@ int main(void)
     RUN(test_m4cec6c_bump_counter);
     RUN(test_m4cf1e4_alloc_clear);
     RUN(test_m4ceb8c_load_rect);
+    RUN(test_m4ccef1_release_movie);
+    RUN(test_m4ce8ea_scan_step);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

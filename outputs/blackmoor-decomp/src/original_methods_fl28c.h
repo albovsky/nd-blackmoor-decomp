@@ -52,6 +52,22 @@ int32_t m4cf1e4_alloc_clear(uint8_t *out, uint32_t size, const Fl28cWorld *world
  * [+0x1f2] = [rec+0x12] + x, [+0x1fa] = [rec+0x1a] + x (32-bit sums) with x = [0x583186], y = [0x58318a] (read at the store). Caller-validated: Fl18Host.resolve must give the record (0x22 bytes). */
 void m4ceb8c_load_rect(uint8_t *self, const Fl28cWorld *world, const Fl18Host *host);
 
+/* 0x4ccef1, thiscall (`self` = ecx), plain `ret`, no result: releases the movie player and the movie record of the object. When the dword [self+0x1d6] (the original address of a player object) is non-zero:
+ * 0x44c479(self+4) (cdecl, one argument), [self+4] = 2, 0x449a94(this = [self+0x1d6]), then o = [self+0x1d6] (read again): o non-zero calls the virtual method at [[o]+0] with this = o and the one stack argument 1
+ * (the deleting destructor of the object, whose result is discarded), then [self+0x1d6] = 0, 0x44c4ab(self+4) (cdecl, one argument), [self+4] = 0. Whether the player was set or not: 0x415011(this 0x5e2dbe, self+8),
+ * 0x41632b(this 0x5e2dbe, self+8) and 0x4bedfa(this 0x6201f9, self+0x18e) (all thiscall, one stack argument; `self+n` is a host pointer into the object). The callees are host calls; a callee that changes `self`
+ * is exercised only where tasks/fl28c-handoff.md says so (0x449a94 clearing [self+0x1d6]). Caller-validated: Fl18Host.resolve must give the player object and its vtable. */
+void m4ccef1_release_movie(uint8_t *self, const Fl18Host *host);
+
+/* 0x4ce8ea, thiscall (`self` = ecx), plain `ret`, no result: one step of the scan state machine of the object. rec = [self+0x226] + [self+0x246] * 0x35 (32-bit, no guard, taken before the switch). The state is the
+ * dword [self+0x1da]: 0 and 4 are the two arms, every other value (as a dword) returns at once. Arm 0: 0x4bef85(this 0x6201f9, [self+0x18e]) (thiscall, one argument) zero returns. Otherwise the common
+ * sequence: 0x4befc8(this 0x6201f9, [self+0x18e]); 0x4bf098(this 0x6201f9, [self+0x18e], dword [[self+0x212]], signed word [[self+0x212]+0x2f], signed word [[self+0x212]+0x2d], 0, 0) (thiscall, six arguments;
+ * the two words are sign-extended to 32 bits); [self+0x232] = 0x4bee2c(this 0x6201f9, [self+0x18e]) - 1; [self+0x206] = 1; [self+0x20a] = 1 (arm 0 only); 0x4ceb8c(this self) (thiscall, no argument; a callee, host-called
+ * here); r = 0x4bf10f(this 0x6201f9, [self+0x18e]). r non-zero and the dword [self+0x232] (read again) different from the signed word [rec+0x23]: [self+0x1da] = 4 and return (arm 0 only). Otherwise
+ * [self+0x1de] = 3 and, with the debug word, 0x44a2b7(0x559a28). Arm 4: the same, but without the store to [self+0x20a], without the [self+0x1da] store (r non-zero and different returns without any store) and with the
+ * debug text 0x559aa8. Caller-validated: Fl18Host.resolve must give the player record ([self+0x212], 0x31 bytes) and rec (0x25 bytes). */
+void m4ce8ea_scan_step(uint8_t *self, const Fl28cWorld *world, const Fl18Host *host);
+
 /*HEADER-INSERT*/
 
 #ifdef __cplusplus
