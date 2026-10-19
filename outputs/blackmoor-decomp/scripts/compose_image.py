@@ -716,12 +716,13 @@ def bind_data_batches(
 ) -> tuple[list[Item], list[dict[str, Any]]]:
     """Bind audited data sources (``asm_data/data-NNN.json``, ``data_asm.py``) as reconstructed data ranges.
 
-    Each batch needs an all-accepted audit report for exactly that manifest.  The source is reassembled with the
-    pinned GNU as (version line plus the self-test), must carry no relocation, and every range's assembled bytes
-    must hash to the SHA-256 the manifest records for the original range (a hash comparison; the original is not
-    read for the hash comparison).  The composer also re-runs the lexical audit (only the directive forms the
-    generator writes) and requires the source to equal the generator's output for the manifest ranges
-    (``data_asm.py check``), so a hand edit cannot ride on a stale report.  The image takes the assembled bytes.
+    Each batch needs an all-accepted audit report for exactly that manifest.  The full source is not committed
+    (it holds the game's own data as directive text): the composer regenerates it from the local original with
+    the generator, and requires its SHA-256 to equal the manifest's and the audit's, and its masked form to equal
+    the committed layout (``asm_data/data-NNN.layout``, pinned by hash in manifest and report).  It re-runs the
+    lexical audit (only the directive forms the generator writes), reassembles the source with the pinned GNU as
+    (version line plus the self-test), requires no relocation, and every range's assembled bytes must hash to the
+    SHA-256 the manifest records for the original range.  The image takes the assembled bytes.
     """
     if not batches:
         return [], []
@@ -745,19 +746,26 @@ def bind_data_batches(
             raise ComposeError(f"{batch['report']}: audit report is stale (manifest hash differs)")
         if not report.get("all_accepted") or report.get("errors") or report.get("compared_bytes") != sum(r["length"] for r in manifest["ranges"]):
             raise ComposeError(f"{batch['report']}: the audit did not accept every byte of the batch")
-        source = manifest_path.parent / manifest["source"]
-        if file_sha256(source) != manifest["source_sha256"] or report.get("source", {}).get("sha256") != manifest["source_sha256"]:
-            raise ComposeError(f"{manifest['source']}: source differs from the audited hash")
-        source_text = source.read_text(encoding="utf-8")
+        if not data_asm.safe_batch_names(manifest):
+            raise ComposeError(f"{batch['manifest']}: source and layout must be plain data-NNN.s and data-NNN.layout names")
+        source_text = data_asm.regenerate_source(manifest, original_bytes)
+        if sha256(source_text.encode("utf-8")) != manifest["source_sha256"] or report.get("source", {}).get("sha256") != manifest["source_sha256"]:
+            raise ComposeError(f"{manifest['source']}: the source regenerated from the original differs from the audited hash")
+        layout_path = manifest_path.parent / manifest["layout"]
+        if not layout_path.is_file():
+            raise ComposeError(f"{manifest['layout']}: the layout file is missing")
+        if report.get("layout", {}).get("sha256") != manifest["layout_sha256"]:
+            raise ComposeError(f"{manifest['layout']}: layout differs from the audited hash")
+        try:
+            layout_issues, _layout_sha = data_asm.layout_problems(manifest, manifest_path.parent, source_text)
+        except data_asm.DataAsmError as exc:
+            raise ComposeError(f"{batch['manifest']}: {exc}") from exc
+        if layout_issues:
+            raise ComposeError(f"{manifest['layout']}: {layout_issues[0]}")
         lexical, _counts = data_asm.audit_source(source_text, data_asm.source_expectation(manifest, data_asm.load_sections()))
         if lexical:
             raise ComposeError(f"{manifest['source']}: {lexical[0]}")
-        regenerated, _analysis, _origin = data_asm.generate(
-            original_bytes, data_asm.manifest_ranges(manifest), pointers=bool(manifest["pointers"])
-        )
-        if regenerated != source_text:
-            raise ComposeError(f"{manifest['source']}: differs from the generator's output for its ranges (data_asm.py check)")
-        assembled, relocations, _symbols = data_asm.assemble(assembler, source)
+        assembled, relocations, _symbols = data_asm.assemble_text(assembler, source_text)
         if relocations:
             raise ComposeError(f"{manifest['source']}: the assembled object carries {relocations} relocations")
         origin = num(manifest["origin_va"])
@@ -792,6 +800,7 @@ def bind_data_batches(
                 "manifest_sha256": file_sha256(manifest_path),
                 "report_sha256": file_sha256(report_path),
                 "source_sha256": manifest["source_sha256"],
+                "layout_sha256": file_sha256(layout_path),
                 "range_sha256": sha256("\n".join(range_hashes).encode()),
                 "assembler_version_line": assembler_info.get("version_line"),
             }

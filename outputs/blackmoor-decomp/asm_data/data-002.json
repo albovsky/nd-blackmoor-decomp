@@ -3,13 +3,15 @@
  "batch": "002",
  "class": "tool_assisted_reconstructed_data",
  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
- "description": "initialized .rdata and .data as labeled data directives (owner ruling of 2026-10-19)",
+ "description": "initialized .rdata and .data as labeled data directives, regenerated at build time (owner ruling of 2026-10-19)",
  "image_base": "0x00400000",
  "va_bias": "0x004d5000",
  "pointers": false,
  "origin_va": "0x0063f000",
  "source": "data-002.s",
  "source_sha256": "5733dd411b19ed6c22cecdf157107127992290bd681032f936596b0aee9224a0",
+ "layout": "data-002.layout",
+ "layout_sha256": "aa5aeef1ac94f53ff304327049ba569d148d777a3d1819f5fb60e00ab9f541a4",
  "ranges": [
   {
    "offset": "0x16a820",
