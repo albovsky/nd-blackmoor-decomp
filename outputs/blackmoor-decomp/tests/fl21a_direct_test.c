@@ -521,6 +521,10 @@ static void test_m42caa8_clip_rect(void)
     /* the edge tests with a clip c4 > c12 (inverted): y0 = 60 > c12 = 50: the second edge test (y0 > c4 = 70 is false, y1 = 80 >= 70): clipped */
     b_run(&w, 3, 60, 80, 70, 50, 100, 1000);
     CK(w.value_5d1967 == 1 && w.value_5b4e2c == 70 - 70 + 1000 + 0 && w.value_5b4e34 == 50 - 70 + 1000);
+    /* inverted clip c4 = 50 > c12 = 10 with y0 = c4 = 50, y1 = 60: y0 > c12 jumps to the edge tests, y0 > c4 is false (a >= would leave the entry
+     * unchanged) and y1 < c4 is false: clipped to y0 = 50 and y1 = c12 = 10 */
+    b_run(&w, 3, 50, 60, 50, 10, 100, 1000);
+    CK(w.value_5d1967 == 1 && w.value_5b4e2c == 1000 && w.value_5b4e34 == 960 && w.value_5b4e1c == 0x22 && w.value_5b4e24 == 0x44 - 50);
     /* the entry index is a signed word (here -2: the lowest slack entry) and the entry fields are the ones of that entry */
     b_run(&w, -2, 20, 40, 10, 50, 100, 1000);
     CK(w.value_5b4e18 == 0x11 && w.value_5b4e2c == 1010 && w.value_5b4e34 == 1030);

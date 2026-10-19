@@ -10,6 +10,7 @@ scripted values through a pointer argument); the function under test runs as the
 scenarios reached every instruction of the original function.
 """
 import ctypes
+import hashlib
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,9 @@ from test_fl_differential import DiffBase, buf, ptr
 PROJECT = Path(__file__).resolve().parents[1]
 SCENARIOS = 300
 LOCAL = 'L'
+# per original address: scenarios run, ordered host calls compared, bytes of memory compared, globals compared, a digest of every fixture
+STATS = {}
+COVERAGE = {}
 TICK_SLOT = 0x52a23c
 
 CTYPES = {'float': ctypes.c_float, 'double': ctypes.c_double, 'uint8_t': ctypes.c_uint8, 'int16_t': ctypes.c_int16, 'uint16_t': ctypes.c_uint16, 'int32_t': ctypes.c_int32,
@@ -239,6 +243,10 @@ class Fl21aDifferential(DiffBase):
         probed = [s for s in [*stubs.values(), *iat.values()] if getattr(s, 'probe', None)]
         for s in probed:   # s.probe = [(area name or 'g:<world field>', offset, length)]: the original addresses
             s.probe_addr = [((GLOBALS[n[2:]][0] if n.startswith('g:') else next(a.va for a in areas if a.name == n)) + off, ln) for n, off, ln in s.probe]
+        stats = STATS.setdefault(va, {'scenarios': 0, 'calls_compared': 0, 'memory_bytes_compared': 0, 'globals_compared': 0, 'digest': hashlib.sha256()})
+        stats['scenarios'] += 1
+        stats['digest'].update(repr((va, ecx, list(stack), g, sorted((a.name, a.va, bytes(a.data)) for a in areas),
+                                     sorted((hex(k) if isinstance(k, int) else k, v.results, v.result) for k, v in {**stubs, **iat}.items()))).encode())
         orig = Original20(image_patches, regions, stubs, iat).run(va, size, ecx=ecx, stack_args=stack, read=read, limit=limit)
         self.assertEqual(orig.cleanup, cleanup)
         # native
@@ -307,6 +315,9 @@ class Fl21aDifferential(DiffBase):
                 for index in wa:
                     entry[2 + index] = entry[2 + index] & (wa[index] if isinstance(wa, dict) else 0xffff)
         self.assertEqual(actual, expected)
+        stats['calls_compared'] += len(expected)
+        stats['memory_bytes_compared'] += sum(len(a.data) for a in areas if a.compare)
+        stats['globals_compared'] += len(g)
         if executed is not None:
             executed |= orig.executed
         if tick is not None and TICK_SLOT in iat:
@@ -314,7 +325,9 @@ class Fl21aDifferential(DiffBase):
         return orig, sw
 
     def finish(self, va, size, executed):
-        missing = sorted(od.instruction_addresses(va, size) - executed)
+        wanted = od.instruction_addresses(va, size)
+        COVERAGE[va] = (len(wanted & executed), len(wanted))
+        missing = sorted(wanted - executed)
         self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
 
     def records_area(self, rng, nrec=6, slack=1):
@@ -562,15 +575,18 @@ class Fl21aDifferential(DiffBase):
             index = rng.choice([0, 1, 2, 3])
             now = rng.choice([0, 3, 0xfffffffe, 1000, rng.randrange(1 << 32)])
             state = rng.choice([0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 0xffffffff, 5])
+            focus = rng.random() < 0.3   # (a share of the scenarios sits on the v = 3 compare of the nine bytes with the timer due)
+            if focus:
+                state = 1
             # (no slack record below the table: it would overlap the globals 0x5bb57b ... 0x5bb5a3 that the function writes)
             records, rslack = self.records_area(rng, nrec=5, slack=0)
             struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(1))
             struct.pack_into('<I', records.data, rslack + index * 0x8d + 0x4d, state)
             this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
             struct.pack_into('<h', this.data, 0x1e, rng.choice([0, 1, 2, 3]))
-            struct.pack_into('<I', this.data, 0x2b, rng.choice([0, 1, 2, 3, 4, 5, 0xffffffff, 0x80000000, 1, 3]))
+            struct.pack_into('<I', this.data, 0x2b, 3 if focus else rng.choice([0, 1, 2, 3, 4, 5, 0xffffffff, 0x80000000, 1, 3]))
             struct.pack_into('<I', this.data, 0x2f, rng.choice([0, 1, 0x100]))
-            struct.pack_into('<I', this.data, 0x39, (now + rng.choice([-5, -1, 0, 1, 5, 0x7fffffff, 0x80000000, 0x80000001])) & 0xffffffff)
+            struct.pack_into('<I', this.data, 0x39, (now + rng.choice([0, -1, -5, 0x80000001] if focus else [-5, -1, 0, 1, 5, 0x7fffffff, 0x80000000, 0x80000001])) & 0xffffffff)
             struct.pack_into('<I', this.data, 0x20, rng.choice([0, 0, 0x1234, 0xffffffff]))
             this.data[0x37] = rng.choice([0, 1, 0xff])
             this.data[0x38] = rng.choice([0, 1, 0xff])
@@ -579,9 +595,9 @@ class Fl21aDifferential(DiffBase):
             byte_63a8ac = rng.randrange(256)
             rec[0] = byte_63a8ac if same_byte else (byte_63a8ac ^ rng.choice([1, 0x80, 0xff]))
             bytes9 = rng.randbytes(9)
-            rec[0x761:0x761 + 9] = bytes9 if rng.random() < 0.5 else bytes(b ^ (1 if k == rng.randrange(9) else 0) for k, b in enumerate(bytes9))
-            if rng.random() < 0.3:   # (a difference in just one position)
-                rec[0x761 + rng.randrange(9)] ^= 0x80
+            rec[0x761:0x761 + 9] = bytes9
+            if rng.random() < 0.5:   # (a difference in just one position; the ninth byte is the one a shorter compare would miss)
+                rec[0x761 + rng.choice([8, 8, *range(9)])] ^= rng.choice([1, 0x80])
             struct.pack_into('<h', rec, 0x75f, rng.choice([0, 1, 5, -1, -3, 40, 4000, -32768]))
             struct.pack_into('<h', rec, 0x782, rng.choice([0, 1, 5, -1, 0x7fff, -32768, 300]))
             for base in (0x792, 0x746):   # the two groups of 0x270f / flag / table words
