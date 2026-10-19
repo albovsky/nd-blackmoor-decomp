@@ -1384,6 +1384,19 @@ static void test_m4c5377_blit_rows(void)
             expect_blit_end();
         }
     }
+    /* the diagnostic passes the eight coordinates as full dwords (negative values and bits above the low word survive) */
+    {
+        static const int32_t wide1[4] = {-5, 0x10001, 0x20002, -0x20000}, wide2[4] = {0x10005, -0x10006, 0x20007, 0x10008};
+        setup_blit(0, 16, wide1, wide2, 2, 4, 8);
+        fx.w.word_63a4cd = 1;
+        expect_blit_begin();
+        ret = m4c5377_blit_rows(fx.self, SF_VA, 7, RC_VA, RC_VA + 0x10, 0x77, &fx.w, &fx.host);
+        CK(ret == 0);
+        CKN(3);
+        CKC(0, 0x50ca3e, 0, L.c[0].a[0], 0x5548ec, 0x77, (uintptr_t)(uint32_t)wide1[0], (uintptr_t)(uint32_t)wide1[1], (uintptr_t)(uint32_t)wide1[2], (uintptr_t)(uint32_t)wide1[3],
+            (uintptr_t)(uint32_t)wide2[0], (uintptr_t)(uint32_t)wide2[1], (uintptr_t)(uint32_t)wide2[2], (uintptr_t)(uint32_t)wide2[3]);
+        expect_blit_end();
+    }
     /* the debug word off: the extents are not checked */
     setup_blit(0, 16, r1, (const int32_t[4]){0, 0, 99, 99}, 2, 4, 8);
     expect_blit_begin();
