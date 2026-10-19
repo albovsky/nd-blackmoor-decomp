@@ -678,12 +678,177 @@ static void test_m463392_step_scene(void)
     }
 }
 
+/* ---- 0x461d82 ---- */
+
+#define Q_VA 0x00d40000u
+
+static uint8_t q_self[0x100], q_exp[0x100], q_rec[0x300], q_records[0x8d * 6], q_cells[0x780], q_cexp[0x780];
+
+#define Q_CELL(r, c) (q_cells + 0x2d0 + (ptrdiff_t)(r)*0x140 + (ptrdiff_t)(c)*0x28)
+#define QE_CELL(r, c) (q_cexp + 0x2d0 + (ptrdiff_t)(r)*0x140 + (ptrdiff_t)(c)*0x28)
+
+static void q_prepare(Fl22aWorld *w, int rec_index, int row, int col, int16_t word57, int16_t divisor, int32_t d4f, int32_t d53, int16_t counter)
+{
+    reset_log();
+    add_region(Q_VA, q_rec, sizeof q_rec);
+    memset(q_self, 0x5a, sizeof q_self);
+    memset(q_records, 0x11, sizeof q_records);
+    fill(q_rec, sizeof q_rec, 0x31);
+    fill(q_cells, sizeof q_cells, 0x77);
+    memset(w, 0, sizeof *w);
+    w->records_5bb5e5 = q_records + 0x8d;
+    w->cells_594db5 = q_cells + 0x2d0;
+    set32(q_records + 0x8d + (ptrdiff_t)rec_index * 0x8d, 0, Q_VA);
+    set16(q_self, 0x1e, (uint16_t)rec_index);
+    set16(q_rec, 0x24a, (uint16_t)divisor);
+    set16(q_self, 0x5b, (uint16_t)row);
+    set16(q_self, 0x5d, (uint16_t)col);
+    set16(q_self, 0x57, (uint16_t)word57);
+    set32(q_self, 0x4f, (uint32_t)d4f);
+    set32(q_self, 0x53, (uint32_t)d53);
+    set16(q_self, 0x59, (uint16_t)counter);
+    set16(q_self, 0x39, 0x4321);
+    set32(q_self, 0x3b, 0x12345678u);
+}
+
+static int32_t q_run(Fl22aWorld *w)
+{
+    Fl18Host h = host();
+    return m461d82_move_step(q_self, w, &h);
+}
+
+/* the expectations come from the four arms of the disassembly: word57, [self+src], the cell field to adjust, its sign, the cell field to derive,
+ * the axis (0 = column word +0x5d, 1 = row word +0x5b) and its step */
+static const struct {
+    int16_t w57;
+    int src, plus, field_a, field_b, row_axis, delta;
+} q_arms[4] = {
+    {0x10, 0x4f, 0, 0x14, 0x1c, 0, -1}, {0x11, 0x53, 0, 0x18, 0x20, 1, -1}, {0x12, 0x53, 1, 0x18, 0x20, 1, 1}, {0x13, 0x4f, 1, 0x14, 0x1c, 0, 1},
+};
+
+static void test_m461d82_move_step(void)
+{
+    Fl22aWorld w;
+    size_t n;
+    int arm;
+    static const struct {
+        int row, col;
+        int16_t divisor;
+        int32_t d4f, d53;
+        int complete;     /* the counter reaches the divisor */
+        int f24zero;      /* the word cell+0x24 is 0 */
+    } cases[] = {
+        {1, 1, 4, 100, 200, 0, 0},       {1, 1, 4, 100, 200, 1, 0},       {1, 1, 4, 100, 200, 1, 1},       {0, 0, 2, 7, 7, 1, 1},
+        {-1, 2, 2, -7, -7, 1, 0},        {2, -1, -2, 7, -7, 1, 1},        {1, 2, -2, -7, 7, 0, 1},         {0, 1, 3, 0, 0, 1, 0},
+        {1, 0, 1, 12345, -12345, 1, 1},  {2, 2, -3, 0x7fffffff, -0x7fffffff, 1, 0}, {0, 2, 0x7fff, 0x7fffffff, 5, 1, 1}, {1, 1, -32768, 100, 100, 1, 1},
+        {-1, -1, 5, 3, 4, 1, 0},         {2, 1, 7, -(1 << 30), 1 << 30, 0, 0},
+    };
+    for (arm = 0; arm < 4; arm++)
+        for (n = 0; n < sizeof cases / sizeof cases[0]; n++) {
+            const int r = cases[n].row, c = cases[n].col;
+            const int32_t dividend = q_arms[arm].src == 0x4f ? cases[n].d4f : cases[n].d53;
+            const int32_t divisor = cases[n].divisor;
+            const int16_t counter = cases[n].complete ? (int16_t)(divisor - 1) : (int16_t)(divisor + 5);
+            const int rr = q_arms[arm].row_axis ? r + q_arms[arm].delta : r, cc = q_arms[arm].row_axis ? c : c + q_arms[arm].delta;
+            uint8_t *e;
+            const uint8_t *cell0;
+            int32_t q = dividend / divisor, result;
+            uint32_t na, nb;
+            q_prepare(&w, 2, r, c, q_arms[arm].w57, (int16_t)divisor, cases[n].d4f, cases[n].d53, counter);
+            if (cases[n].f24zero) set16(Q_CELL(r, c), 0x24, 0);
+            else set16(Q_CELL(r, c), 0x24, 0x0100);
+            memcpy(q_cexp, q_cells, sizeof q_cexp);
+            memcpy(q_exp, q_self, sizeof q_exp);
+            cell0 = QE_CELL(r, c);
+            L.probe_ptr[0] = Q_CELL(r, c);
+            L.probe_len[0] = 0x28;
+            L.probe_ptr[1] = q_self + 0x59;
+            L.probe_len[1] = 2;
+            L.probe_ptr[2] = q_self + 0x3b;
+            L.probe_len[2] = 4;
+            L.nprobe = 3;
+            result = q_run(&w);
+            /* the expected self: the copy of the four dwords of the cell, the counter, and on completion the axis, the counter, +0x3b */
+            memcpy(q_exp + 0x29, cell0 + 0x14, 16);
+            e = QE_CELL(r, c);
+            na = q_arms[arm].plus ? get32(e, q_arms[arm].field_a) + (uint32_t)q : get32(e, q_arms[arm].field_a) - (uint32_t)q;
+            nb = na + (uint32_t)dividend;
+            set32(e, q_arms[arm].field_a, na);
+            set32(e, q_arms[arm].field_b, nb);
+            set16(q_exp, 0x59, (uint16_t)(counter + 1));
+            if (cases[n].complete) {
+                CK(L.n == 1 && is_call(0, 0x462b84, (uintptr_t)q_self, 4));
+                CK((L.c[0].a[0] & 0xffff) == (uint16_t)r && (L.c[0].a[1] & 0xffff) == (uint16_t)c && L.c[0].a[2] == 0 &&
+                   L.c[0].a[3] == 0x594db5u + (uint32_t)(r * 0x140 + c * 0x28) + 0x14u);
+                set16(e, 0x26, 0);
+                if (cases[n].f24zero) set32(e, 0, 0);
+                /* at the call: the cell holds the new fields, +0x26 is 0, +0 is 0 when +0x24 is 0; the counter is already advanced, +0x3b not yet */
+                CK(memcmp(L.c[0].probe, e, 0x28) == 0 && get16(L.c[0].probe, 0x28) == (uint16_t)(counter + 1) && get32(L.c[0].probe, 0x2a) == 0x12345678u);
+                e = QE_CELL(rr, cc);
+                set16(e, 0x26, 0x4321);
+                set32(e, 0, 1);
+                set16(q_exp, 0x59, 0);
+                set32(q_exp, 0x3b, 1);
+                if (q_arms[arm].row_axis) set16(q_exp, 0x5b, (uint16_t)rr);
+                else set16(q_exp, 0x5d, (uint16_t)cc);
+                CK(result == 1);
+            } else {
+                CK(L.n == 0 && result == 0);
+            }
+            CK(memcmp(q_self, q_exp, sizeof q_self) == 0);
+            CK(memcmp(q_cells, q_cexp, sizeof q_cells) == 0);
+        }
+    /* the callee's stores are read where the original reads them: it moves the column / row and the word [self+0x39] */
+    for (arm = 0; arm < 4; arm++) {
+        const int r = 1, c = 1;
+        int rr, cc;
+        q_prepare(&w, 1, r, c, q_arms[arm].w57, 3, 30, 60, 2);
+        set16(Q_CELL(r, c), 0x24, 5);
+        memcpy(q_cexp, q_cells, sizeof q_cexp);
+        queue_write(0x462b84, 0, -1, 0x5b, 2, (uint32_t)(uint16_t)-1);   /* row := -1 */
+        queue_write(0x462b84, 0, -1, 0x5d, 2, 2);                       /* column := 2 */
+        queue_write(0x462b84, 0, -1, 0x39, 2, 0xbeef);
+        CK(q_run(&w) == 1 && L.n == 1);
+        /* the axis step is applied to the stored value; the +0x26 word and +0 go to the cell of the new row / column */
+        rr = q_arms[arm].row_axis ? -1 + q_arms[arm].delta : -1;
+        cc = q_arms[arm].row_axis ? 2 : 2 + q_arms[arm].delta;
+        CK((int16_t)get16(q_self, 0x5b) == rr && (int16_t)get16(q_self, 0x5d) == cc);
+        CK(get16(Q_CELL(rr, cc), 0x26) == 0xbeef && get32(Q_CELL(rr, cc), 0) == 1);
+        CK(get16(Q_CELL(1, 1), 0x26) == 0 && get32(Q_CELL(1, 1), 0) == get32(q_cexp + 0x2d0 + 0x140 + 0x28, 0));   /* (+0x24 is 5: the old cell keeps its dword +0) */
+    }
+    /* any other selector: only the copy of the four dwords, result 0, no tick and no call */
+    {
+        static const int16_t sel[] = {0x0f, 0x14, 0, -1, 0x7fff, -32768, 0x110, 0x1f};
+        for (n = 0; n < sizeof sel / sizeof sel[0]; n++) {
+            q_prepare(&w, 0, 1, 1, sel[n], 4, 100, 200, 3);
+            memcpy(q_cexp, q_cells, sizeof q_cexp);
+            memcpy(q_exp, q_self, sizeof q_exp);
+            memcpy(q_exp + 0x29, Q_CELL(1, 1) + 0x14, 16);
+            CK(q_run(&w) == 0 && L.n == 0 && L.ticks == 0 && memcmp(q_self, q_exp, sizeof q_self) == 0 && memcmp(q_cells, q_cexp, sizeof q_cells) == 0);
+        }
+    }
+    /* the rejected divisions (the original faults): divisor 0 and INT32_MIN / -1; the copy of the four dwords was made before, nothing after */
+    for (arm = 0; arm < 4; arm++)
+        for (n = 0; n < 2; n++) {
+            q_prepare(&w, 0, 1, 1, q_arms[arm].w57, n ? -1 : 0, (int32_t)0x80000000u, (int32_t)0x80000000u, -1);
+            memcpy(q_cexp, q_cells, sizeof q_cexp);
+            memcpy(q_exp, q_self, sizeof q_exp);
+            memcpy(q_exp + 0x29, Q_CELL(1, 1) + 0x14, 16);
+            CK(q_run(&w) == 0 && L.n == 0 && memcmp(q_self, q_exp, sizeof q_self) == 0 && memcmp(q_cells, q_cexp, sizeof q_cells) == 0);
+        }
+    /* a plain INT32_MIN / 1 and INT32_MIN / 2 are not faults */
+    q_prepare(&w, 0, 1, 1, 0x10, 2, (int32_t)0x80000000u, 0, 5);
+    memcpy(q_cexp, q_cells, sizeof q_cexp);
+    CK(q_run(&w) == 0 && get32(Q_CELL(1, 1), 0x14) == get32(q_cexp + 0x2d0 + 0x140 + 0x28, 0x14) + 0x40000000u && get16(q_self, 0x59) == 6);
+}
+
 /* TESTS-HERE */
 
 int main(void)
 {
     int failures = 0;
     RUN(test_m463392_step_scene);
+    RUN(test_m461d82_move_step);
     /* RUN-END */
     return failures;
 }

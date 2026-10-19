@@ -451,6 +451,66 @@ class Fl22aDifferential(DiffBase):
         if not scripted:
             self.finish(0x463392, size, executed)
 
+    # ---- 0x461d82 ----
+    def test_461d82_move_step(self):
+        """FL-22a: differential test of m461d82_move_step (original 0x461d82)"""
+        self.run_461d82(0x461d82, False)
+
+    def test_461d82_scripted_stub(self):
+        """FL-22a: differential test of m461d82_move_step with a 0x462b84 stub that stores [self+0x5b], [self+0x5d] and [self+0x39] at its call
+        (the port re-reads the row, the column and the word after the call, as the original does)"""
+        self.run_461d82(0x461d83, True)
+
+    def run_461d82(self, seed, scripted):
+        rng = random.Random(seed)
+        executed = set()
+        # the original's body ends with its switch table (four dwords at 0x462567): only the code before it is instructions
+        size = 0x462567 - 0x461d82
+        for n in range(SCENARIOS):
+            index = rng.choice([0, 1, 2, 3])
+            records, rslack = self.records_area(rng, nrec=5, slack=1)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(1))
+            this = Area('self', od.region_va(0), bytearray(rng.randbytes(0x100)), image=False)
+            struct.pack_into('<h', this.data, 0x1e, index)
+            divisor = rng.choice([1, 2, 3, 4, 5, 7, -1, -2, -3, 0x7fff, -32768, 10])
+            rec = bytearray(rng.randbytes(0x300))
+            struct.pack_into('<h', rec, 0x24a, divisor)
+            row = rng.choice([-1, 0, 1, 2])
+            col = rng.choice([-1, 0, 1, 2])
+            struct.pack_into('<h', this.data, 0x5b, row)
+            struct.pack_into('<h', this.data, 0x5d, col)
+            struct.pack_into('<h', this.data, 0x57, rng.choice([0x10, 0x11, 0x12, 0x13, 0x10, 0x11, 0x12, 0x13, 0x0f, 0x14, 0, -1, 0x7fff, -32768, -0x7ff0]))
+            dividend = lambda: rng.choice([0, 1, -1, 7, -7, 1000, -1000, 0x7fffffff, rng.randrange(-5000, 5000), rng.randrange(-(1 << 31) + 1, 1 << 31),
+                                           divisor * rng.randrange(-30, 30), divisor * 100 + 1, 0x7fffffff // max(1, abs(divisor))])
+            for off in (0x4f, 0x53):
+                value = dividend()
+                if divisor == -1 and value == -(1 << 31):
+                    value = 5
+                struct.pack_into('<i', this.data, off, value)
+            # the move counter [self+0x59]: one before the divisor (the cell completes) or something else
+            struct.pack_into('<h', this.data, 0x59, sword(divisor - 1) if rng.random() < 0.55 else sword(rng.choice([0, 1, -1, 0x7fff, divisor, divisor - 2])))
+            struct.pack_into('<h', this.data, 0x39, rng.randrange(-32768, 32768))
+            cells = bytearray(rng.randbytes(0x780))
+            for r in range(-2, 4):
+                for c in range(-2, 4):   # the word cell+0x24 is zero in about half of the cells
+                    if rng.random() < 0.5:
+                        struct.pack_into('<h', cells, 0x2d0 + r * 0x140 + c * 0x28 + 0x24, 0)
+            cell_area = Area('cells', 0x594db5 - 0x2d0, cells)
+            stubs_writes = None
+            if scripted:
+                stubs_writes = [[(-1, 0x5b, 2, rng.choice([-1, 0, 1, 2])), (-1, 0x5d, 2, rng.choice([-1, 0, 1, 2])), (-1, 0x39, 2, rng.randrange(0x10000))]]
+
+            def cell_probe(r, c):
+                return ('cells', 0x2d0 + r * 0x140 + c * 0x28, 0x28)
+            stubs = {0x462b84: stub(0x462b84, args=4, this=True, cleanup=0x10, writes=stubs_writes,
+                                    probe=[cell_probe(row, col), ('self', 0x39, 2), ('self', 0x3b, 4), ('self', 0x59, 2), ('self', 0x5b, 4)])}
+            self.pair(2, 0x461d82, size, [this, records, Area('rec', od.region_va(1), rec, image=False, compare=False), cell_area], stubs, {},
+                      ecx=this.va, stack=[], cleanup=0, args=(), self_name='self', executed=executed, ret_mask=0xffffffff,
+                      word_args={0x462b84: (0, 1)},
+                      pointers={'records_5bb5e5': ('records', rslack), 'cells_594db5': ('cells', 0x2d0)})
+        if not scripted:
+            self.finish(0x461d82, size, executed)
+
     # TESTS-END
 
 

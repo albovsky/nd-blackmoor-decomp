@@ -33,11 +33,17 @@ typedef struct Fl22aWorld {
     const uint8_t *data_54b164;    /* 0x463392: the constant bytes of the image from 0x54b164 (a zero-terminated string) up to 0x54b210 (0xac bytes): the
                                       nine-byte patterns at 0x54b1a4, 0x54b1b0, 0x54b1bc, 0x54b1c8, 0x54b1d4, 0x54b1e0, 0x54b1ec, 0x54b1f8, 0x54b204 */
     uint8_t *flags_585801;         /* dwords at 0x585801, indexed by a signed word (the caller leaves slack on both sides) */
+    uint8_t *cells_594db5;         /* 0x461d82: cells of stride 0x28 in rows of 0x140 bytes, cell(r, c) = 0x594db5 + r * 0x140 + c * 0x28 (r, c signed words; the caller
+                                      leaves slack): +0 dword, +0x14 / +0x18 / +0x1c / +0x20 dwords (0x594dc9 ... 0x594dd5), +0x24 / +0x26 words (0x594dd9, 0x594ddb) */
     uint32_t value_5bb1ca, value_583999;                                    /* 0x463392: written */
     uint32_t value_5bb57b, value_5bb59b, value_5bb59f, value_5bb5a3;       /* 0x463392: written */
     uint16_t word_5bb599, word_5bb595, word_5c39ff;                         /* 0x463392: written */
 } Fl22aWorld;
 
+/* 0x461d82: no stack argument, plain `ret`; returns 1 when the step completed a cell, otherwise 0. The divisions of the original are unguarded: when
+ * the divisor (the signed word [rec+0x24a]) is 0 or the quotient overflows (dividend INT32_MIN, divisor -1) the original raises a divide fault; the
+ * port returns 0 at that point instead (an explicit rejection: every store made before the division stays made, nothing after it happens). */
+int32_t m461d82_move_step(uint8_t *self, Fl22aWorld *world, const Fl18Host *host);
 void m463392_step_scene(uint8_t *self, int16_t index, Fl22aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus

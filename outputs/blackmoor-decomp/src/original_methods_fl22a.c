@@ -1,5 +1,7 @@
 #include "original_methods_fl22a.h"
 
+#include <limits.h>
+#include <stdint.h>
 #include <string.h>
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -269,4 +271,84 @@ void m463392_step_scene(uint8_t *self, int16_t index, Fl22aWorld *world, const F
         call1(host, 0x42ba3a, 0, rd16(self, 0x1e));
         call0(host, 0x461862, (uintptr_t)self);
     }
+}
+
+/* the cell of table 0x594db5 that the signed words [self+0x5b] (row) and [self+0x5d] (column) name; the original recomputes the address at every access */
+static uint8_t *cell_of(const Fl22aWorld *world, const uint8_t *self)
+{
+    return world->cells_594db5 + (ptrdiff_t)rds16(self, 0x5b) * 0x140 + (ptrdiff_t)rds16(self, 0x5d) * 0x28;
+}
+
+/* the original address of cell + 0x14 (the pointer 0x461d82 hands to 0x462b84: lea [row * 0x140 + column * 0x28 + 0x594dc9]) */
+static uint32_t cell_va_plus_14(const uint8_t *self)
+{
+    return (uint32_t)(rds16(self, 0x5b) * 0x140) + (uint32_t)(rds16(self, 0x5d) * 0x28) + 0x594dc9u;
+}
+
+/* One arm of the switch of 0x461d82; the four arms (0x461e0b, 0x461fe1, 0x4621b7, 0x46238d) are the same sequence of stores on different
+ * fields: q = the signed dword [self+src] / the signed word [rec+0x24a] (idiv); cell+field_a := cell+field_a -/+ q; cell+field_b :=
+ * cell+field_a + [self+src]; the word [self+0x59] += 1 and, when it equals the signed word [rec+0x24a]: the word cell+0x26 := 0, the dword
+ * cell+0 := 0 when the word cell+0x24 is 0, 0x462b84 on self with (word row, word column, 0, original address of cell+0x14), the word
+ * [self+axis] += delta, the word cell+0x26 := [self+0x39] (of the cell that the changed row / column names), the dword cell+0 := 1,
+ * [self+0x59] := 0, the result := 1, [self+0x3b] := 1. Returns 0 with nothing more done when the division would fault. */
+static int32_t step_arm(uint8_t *self, Fl22aWorld *world, const uint8_t *rec, const Fl18Host *host, ptrdiff_t field_a, ptrdiff_t src, int plus,
+                        ptrdiff_t field_b, ptrdiff_t axis, int delta)
+{
+    int32_t divisor = rds16(rec, 0x24a);
+    int32_t dividend = rds32(self, src);
+    int32_t quotient;
+    uint8_t *cell;
+    if (divisor == 0 || (dividend == INT32_MIN && divisor == -1)) return 0;   /* the original's divide fault */
+    quotient = dividend / divisor;
+    cell = cell_of(world, self);
+    wr32(cell, field_a, plus ? rd32(cell, field_a) + (uint32_t)quotient : rd32(cell, field_a) - (uint32_t)quotient);
+    cell = cell_of(world, self);
+    wr32(cell, field_b, rd32(cell, field_a) + rd32(self, src));
+    wr16(self, 0x59, (uint16_t)(rd16(self, 0x59) + 1u));
+    if (rds16(self, 0x59) == rds16(rec, 0x24a)) {
+        cell = cell_of(world, self);
+        wr16(cell, 0x26, 0);
+        cell = cell_of(world, self);
+        if (rds16(cell, 0x24) == 0) {
+            cell = cell_of(world, self);
+            wr32(cell, 0, 0);
+        }
+        call4(host, 0x462b84, (uintptr_t)self, rd16(self, 0x5b), rd16(self, 0x5d), 0, cell_va_plus_14(self));
+        wr16(self, axis, (uint16_t)(rd16(self, axis) + (uint16_t)delta));
+        cell = cell_of(world, self);
+        wr16(cell, 0x26, rd16(self, 0x39));
+        cell = cell_of(world, self);
+        wr32(cell, 0, 1);
+        wr16(self, 0x59, 0);
+        wr32(self, 0x3b, 1);
+        return 1;
+    }
+    return 0;
+}
+
+/* original GAME.EXE 0x461d82 (FUN_00461d82; thiscall, no stack argument, plain ret; result eax = 0 or 1): the step of a cell mover.
+ * rec = the dword [record+0] of the record that the signed word [self+0x1e] names in the table at 0x5bb5e5 (the original address of the
+ * record's object; read through Fl18Host.resolve); the cell is cell(row = signed word [self+0x5b], column = signed word [self+0x5d]) of the
+ * table at 0x594db5 (Fl22aWorld.cells_594db5). First the 16 bytes (four dwords) at cell+0x14 are copied to self+0x29. Then the signed word
+ * [self+0x57] - 0x10 selects the arm (unsigned compare with 3, the original's jump table of four dwords at 0x462567; any other value: the
+ * result is 0 and nothing else happens): 0x10: step_arm(+0x14, [self+0x4f], minus, +0x1c, column - 1); 0x11: step_arm(+0x18, [self+0x53],
+ * minus, +0x20, row - 1); 0x12: step_arm(+0x18, [self+0x53], plus, +0x20, row + 1); 0x13: step_arm(+0x14, [self+0x4f], plus, +0x1c,
+ * column + 1). The words handed to 0x462b84 are only meaningful in their low 16 bits (the upper half is a leftover of edx = the address of
+ * self and of the product column * 0x28). */
+int32_t m461d82_move_step(uint8_t *self, Fl22aWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(record_of(world->records_5bb5e5, rds16(self, 0x1e)), 0);
+    const uint8_t *rec = object_at(host, rec_va);
+    const uint8_t *cell = cell_of(world, self);
+    uint32_t arm;
+    wr32(self, 0x29, rd32(cell, 0x14));
+    wr32(self, 0x2d, rd32(cell, 0x18));
+    wr32(self, 0x31, rd32(cell, 0x1c));
+    wr32(self, 0x35, rd32(cell, 0x20));
+    arm = (uint32_t)(rds16(self, 0x57) - 0x10);
+    if (arm > 3) return 0;
+    if (arm == 0) return step_arm(self, world, rec, host, 0x14, 0x4f, 0, 0x1c, 0x5d, -1);
+    if (arm == 1) return step_arm(self, world, rec, host, 0x18, 0x53, 0, 0x20, 0x5b, -1);
+    if (arm == 2) return step_arm(self, world, rec, host, 0x18, 0x53, 1, 0x20, 0x5b, 1);
+    return step_arm(self, world, rec, host, 0x14, 0x4f, 1, 0x1c, 0x5d, 1);
 }
