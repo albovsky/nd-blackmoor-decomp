@@ -56,6 +56,8 @@ static struct {
 static uint8_t exp_self[SELF_SZ], exp_tab[TAB_SZ];
 
 static uint32_t g_tick;
+static uint32_t g_ret_45839e[4];
+static int g_n_45839e;
 static struct {
     int n;
     struct {
@@ -64,8 +66,11 @@ static struct {
         int nargs;
         uintptr_t a[6];
         uint8_t snap_self[SNAP];
+        uint8_t deref[16];      /* 0x45839e: the 16 bytes behind its second argument at the call */
     } c[32];
 } L;
+
+static const uint8_t *host_resolve_fwd(uint32_t a);
 
 static void log_call(uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
@@ -75,6 +80,11 @@ static void log_call(uint32_t callee, uintptr_t this_ptr, const uintptr_t *args,
     L.c[L.n].nargs = nargs;
     for (i = 0; i < nargs && i < 6; i++) L.c[L.n].a[i] = args[i];
     memcpy(L.c[L.n].snap_self, fx.self, SNAP);
+    memset(L.c[L.n].deref, 0, 16);
+    if (callee == 0x45839e && nargs >= 2) {
+        const uint8_t *q = args[1] > 0xffffffffu ? (const uint8_t *)args[1] : host_resolve_fwd((uint32_t)args[1]);
+        if (q != NULL) memcpy(L.c[L.n].deref, q, 16);
+    }
     L.n++;
 }
 
@@ -82,7 +92,14 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
 {
     (void)ctx;
     log_call(callee, this_ptr, args, nargs);
+    if (callee == 0x45839e) return g_ret_45839e[g_n_45839e++ & 3];
     return 0;
+}
+
+static const uint8_t *host_resolve_fwd(uint32_t a)
+{
+    if (a >= OBJ_VA && a < OBJ_VA + OBJ_SZ) return fx.obj + (a - OBJ_VA);
+    return NULL;
 }
 
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
@@ -127,6 +144,8 @@ static void setup(int idx, uint32_t sel)
     fx.host.tick = host_tick;
     L.n = 0;
     g_tick = 0;
+    memset(g_ret_45839e, 0, sizeof g_ret_45839e);
+    g_n_45839e = 0;
 }
 
 static void expect_begin(void)
@@ -504,7 +523,7 @@ static void test_m464792_hit_test(void)
             /* the five rows: row k holds the point; [+0x94 + 4k] clear gives (0x27c9, k); with [+0x2a] set and the dword non-zero (0x27c9, w36) */
             for (k = 0; k < 5; k++) {
                 size_t e32 = 32 * (size_t)k;
-                for (f = 0; f < 3; f++) {
+                for (f = 0; f < 2; f++) {
                     setup_464792(idx, (uint32_t)f, 3, 9, 9);          /* (mode 1 with these words misses the +0x41 rectangle's condition) */
                     rect_at(0x65 + e32, 0x6d + e32, 0x61 + e32, 0x69 + e32, x, y);
                     set32(fx.self, 0x94 + 4 * (size_t)k, 0);
@@ -741,6 +760,234 @@ static void test_m4a835c_hit_test(void)
     }
 }
 
+/* ======================================================================================================================== 0x45841e */
+
+#define ROW41E(i) (0x105 + 16 * (size_t)(i))      /* x low; y low +4, x high +8, y high +0xc */
+
+/* record idx (word [+0x26]); [+0x98] set; [+0x20] = flag20; word [+0x3a] = w3a; obj[0x21] = c21, obj[0x23] = count; word 0x5a4c08 = w5a; the
+ * rectangles of the object far away; the four dwords of row i are 100 + i, 200 + i, 300 + i, 400 + i */
+static void setup_45841e(int idx, uint32_t flag20, int w3a, int c21, int count, int w5a)
+{
+    size_t o;
+    int i;
+    setup(idx, 0);
+    set16(fx.self, 0x26, (uint16_t)idx);
+    set32(fx.self, 0x98, 1);
+    set32(fx.self, 0x20, flag20);
+    set16(fx.self, 0x3a, (uint16_t)w3a);
+    set16(fx.obj, 0x21, (uint16_t)c21);
+    set16(fx.obj, 0x23, (uint16_t)count);
+    fx.w.word_5a4c08 = (int16_t)w5a;
+    for (o = 0xe0; o < 0x150; o += 4) set32(fx.obj, o, 0x7000);
+    for (o = 0x650; o < 0x660; o += 4) set32(fx.obj, o, 0x7000);
+    for (i = 0; i < 4; i++) {
+        set32(fx.obj, ROW41E(i), (uint32_t)(100 + i));
+        set32(fx.obj, ROW41E(i) + 4, (uint32_t)(200 + i));
+        set32(fx.obj, ROW41E(i) + 8, (uint32_t)(300 + i));
+        set32(fx.obj, ROW41E(i) + 12, (uint32_t)(400 + i));
+    }
+}
+
+static int run_45841e(int x, int y)
+{
+    return m45841e_hit_test(fx.self, (int16_t)x, (int16_t)y, RECT_VA, &fx.w, &fx.host);
+}
+
+static void exp_stores_45841e(void)
+{
+    set32(exp_self, 0xa2, 0x22222222u);
+    set32(exp_self, 0xaa, 0x44444444u);
+    set32(exp_self, 0x9e, 0x11111111u);
+    set32(exp_self, 0xa6, 0x33333333u);
+}
+
+/* a row of the object (y low +4, y high +0xc, x low +0, x high +8) holds the point, or misses at the edge e (-1: holds) */
+static void row_hold_41e(int i, int x, int y, int e)
+{
+    if (e < 0) rect_at(ROW41E(i) + 4, ROW41E(i) + 12, ROW41E(i), ROW41E(i) + 8, x, y);
+    else rect_miss(ROW41E(i) + 4, ROW41E(i) + 12, ROW41E(i), ROW41E(i) + 8, x, y, e);
+}
+
+static void test_m45841e_hit_test(void)
+{
+    static const int idxs[] = {2, -1};
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}};
+    static const uint32_t a_flags[] = {0, 4, 6, 0x105, 0x10000005u, 0x80000005u, 0xffffffffu};
+    size_t ii, pi;
+    int e, i, k;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (pi = 0; pi < 5; pi++) {
+            int x = pts[pi][0], y = pts[pi][1];
+            /* the gate: dword [+0x98] clear returns 0, nothing stored, whatever else holds; 0x100 is set */
+            setup_45841e(idx, 0, -1, 3, 3, 0);
+            row_hold_41e(0, x, y, -1);
+            rect_at(0x657, 0x65f, 0x653, 0x65b, x, y);
+            set32(fx.self, 0x98, 0);
+            expect_begin();
+            CK(run_45841e(x, y) == 0);
+            expect_end();
+            CK(L.n == 0);
+            set32(fx.self, 0x98, 0x100);
+            CK(run_45841e(x, y) == 1);
+            /* path A (word [+0x3a] != -1, dword [+0x20] != 5): 0x458262, then 0x45839e(this, self + 0x3e, obj + 0xe5) */
+            for (k = 0; k < 7; k++) {
+                setup_45841e(idx, a_flags[k], 2, 3, 4, 0);
+                g_ret_45839e[0] = 0x100;
+                expect_begin();
+                CK(run_45841e(x, y) == 1);
+                exp_stores_45841e();
+                set32(exp_self, 0xb4, 0);
+                expect_end();
+                CK(L.n == 3);
+                CK(L.n >= 3 && L.c[0].callee == 0x458262 && L.c[0].nargs == 0 && L.c[0].this_ptr == (uintptr_t)fx.self);
+                ck_call(1, 0x45839e, (uintptr_t)fx.self, 2, (uintptr_t)(fx.self + 0x3e));
+                CK(L.n < 2 || L.c[1].a[1] == OBJ_VA + 0xe5);
+                CK(L.n < 2 || (get32s(L.c[1].snap_self, 0xa2) == 0x22222222 && get32s(L.c[1].snap_self, 0x9e) == 0x11111111));
+                ck_call(2, 0x45879e, (uintptr_t)fx.self, 1, 0x27a5);
+            }
+            /* ... zero: the rows i below the count are built, and the call is made for i == word [+0x3a] only, with the local rectangle */
+            for (i = 0; i < 4; i++) {
+                int r;
+                for (r = 0; r < 2; r++) {
+                    setup_45841e(idx, 0, i, 3, 4, 0);
+                    g_ret_45839e[1] = r ? 0xffffffffu : 0;
+                    expect_begin();
+                    CK(run_45841e(x, y) == r);
+                    exp_stores_45841e();
+                    if (r) set32(exp_self, 0xb4, 1);
+                    expect_end();
+                    CK(L.n == (r ? 4 : 3));
+                    ck_call(2, 0x45839e, (uintptr_t)fx.self, 2, (uintptr_t)(fx.self + 0x3e));
+                    if (L.n > 2) {
+                        uint32_t want[4] = {(uint32_t)(100 + i + 10), (uint32_t)(200 + i + 10), (uint32_t)(300 + i - 10), (uint32_t)(400 + i - 10)};
+                        CK(L.c[2].a[1] > 0xffffffffu);
+                        CK(memcmp(L.c[2].deref, want, 16) == 0);
+                    }
+                    if (r) ck_call(3, 0x45879e, (uintptr_t)fx.self, 1, 0x27a5);
+                    CK(!r || get32s(L.c[3].snap_self, 0xb4) == (int32_t)0xA5A5A5A5);       /* [+0xb4] is set after the call */
+                }
+            }
+            /* a word [+0x3a] at or above the count, or negative but not -1, makes no second call; the tail answers */
+            {
+                static const int w[] = {4, 5, -2, -32768, 0x7fff};
+                for (k = 0; k < 5; k++) {
+                    setup_45841e(idx, 0, w[k], 3, 4, 0);
+                    CK(run_45841e(x, y) == 0 && L.n == 2);
+                    rect_at(0x657, 0x65f, 0x653, 0x65b, x, y);
+                    L.n = 0;
+                    CK(run_45841e(x, y) == 1 && L.n == 3);
+                    ck_call(2, 0x45879e, (uintptr_t)fx.self, 1, 0x279f);
+                }
+                for (k = 0; k < 3; k++) {
+                    static const int cnt[] = {0, -1, -32768};
+                    setup_45841e(idx, 0, 0, 3, cnt[k], 0);
+                    CK(run_45841e(x, y) == 0 && L.n == 2);
+                }
+            }
+            /* path B (word [+0x3a] == -1, even with garbage above bit 15 of the dword it sits in): rows while word 0x5a4c08 < obj[0x21] */
+            for (i = 0; i < 4; i++) {
+                setup_45841e(idx, 0, -1, 3, 4, 0);
+                row_hold_41e(i, x, y, -1);
+                row_hold_41e(i == 3 ? 2 : 3, x, y, -1);
+                if (i == 3) row_hold_41e(2, x, y, 0);
+                rect_at(0xe9, 0xf1, 0xe5, 0xed, x, y);
+                expect_begin();
+                CK(run_45841e(x, y) == 1);
+                exp_stores_45841e();
+                set32(exp_self, 0xb4, 1);
+                set16(exp_self, 0xae, (uint16_t)i);
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x45879e, (uintptr_t)fx.self, 1, 0x27a4);
+                CK(L.n < 1 || get32s(L.c[0].snap_self, 0xb4) == (int32_t)0xA5A5A5A5);
+                for (e = 0; e < 4; e++) {
+                    setup_45841e(idx, 0, -1, 3, 4, 0);
+                    row_hold_41e(i, x, y, e);
+                    expect_begin();
+                    CK(run_45841e(x, y) == 0 && L.n == 0);
+                    exp_stores_45841e();
+                    expect_end();
+                }
+            }
+            /* ... the rows are not looked at when word 0x5a4c08 >= obj[0x21] (signed words) and when the count is not positive */
+            {
+                static const int wc[][2] = {{3, 3}, {4, 3}, {0, 0}, {32767, -32768}, {-1, -1}, {1, 1}};
+                for (k = 0; k < 6; k++) {
+                    setup_45841e(idx, 0, -1, wc[k][1], 4, wc[k][0]);
+                    row_hold_41e(0, x, y, -1);
+                    rect_at(0xe9, 0xf1, 0xe5, 0xed, x, y);
+                    CK(run_45841e(x, y) == 0 && L.n == 0);
+                }
+                setup_45841e(idx, 0, -1, 32767, 4, -32768);
+                row_hold_41e(1, x, y, -1);
+                CK(run_45841e(x, y) == 1 && L.n == 1 && get16s(fx.self, 0xae) == 1);
+                for (k = 0; k < 3; k++) {
+                    static const int cnt[] = {0, -1, -32768};
+                    setup_45841e(idx, 0, -1, 3, cnt[k], 0);
+                    row_hold_41e(0, x, y, -1);
+                    CK(run_45841e(x, y) == 0 && L.n == 0);
+                }
+            }
+            /* the post rectangle +0xe9/+0xf1 (y), +0xe5/+0xed (x) counts only when word 0x5a4c08 > 0: 0x27a4, [+0xb4] = 0, [+0xae] kept */
+            {
+                static const int wp[] = {1, 7, 32766, 0, -1, -32768};
+                for (k = 0; k < 6; k++) {
+                    int w = wp[k];
+                    setup_45841e(idx, 0, -1, w + 1, 0, w);
+                    rect_at(0xe9, 0xf1, 0xe5, 0xed, x, y);
+                    expect_begin();
+                    CK(run_45841e(x, y) == (w > 0 ? 1 : 0));
+                    exp_stores_45841e();
+                    if (w > 0) set32(exp_self, 0xb4, 0);
+                    expect_end();
+                    CK(L.n == (w > 0 ? 1 : 0));
+                    if (w > 0) ck_call(0, 0x45879e, (uintptr_t)fx.self, 1, 0x27a4);
+                }
+                for (e = 0; e < 4; e++) {
+                    setup_45841e(idx, 0, -1, 2, 0, 1);
+                    rect_miss(0xe9, 0xf1, 0xe5, 0xed, x, y, e);
+                    CK(run_45841e(x, y) == 0 && L.n == 0);
+                }
+            }
+            /* path C (dword [+0x20] == 5): the rectangle +0xf9/+0x101 (y), +0xf5/+0xfd (x): 0x27a4, [+0xb4] untouched; no 0x458262 whatever word [+0x3a] is */
+            for (k = 0; k < 2; k++) {
+                setup_45841e(idx, 5, k ? 2 : -1, 3, 4, 0);
+                rect_at(0xf9, 0x101, 0xf5, 0xfd, x, y);
+                row_hold_41e(0, x, y, -1);
+                rect_at(0xe9, 0xf1, 0xe5, 0xed, x, y);
+                expect_begin();
+                CK(run_45841e(x, y) == 1);
+                exp_stores_45841e();
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x45879e, (uintptr_t)fx.self, 1, 0x27a4);
+                for (e = 0; e < 4; e++) {
+                    setup_45841e(idx, 5, k ? 2 : -1, 3, 4, 0);
+                    rect_miss(0xf9, 0x101, 0xf5, 0xfd, x, y, e);
+                    CK(run_45841e(x, y) == 0 && L.n == 0);
+                }
+            }
+            /* the tail rectangle +0x657/+0x65f (y), +0x653/+0x65b (x): 0x279f, nothing else changes; each edge missing by one */
+            for (k = 0; k < 3; k++) {
+                setup_45841e(idx, k == 2 ? 5u : 0u, -1, 0, 0, 5);
+                rect_at(0x657, 0x65f, 0x653, 0x65b, x, y);
+                expect_begin();
+                CK(run_45841e(x, y) == 1);
+                exp_stores_45841e();
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x45879e, (uintptr_t)fx.self, 1, 0x279f);
+                for (e = 0; e < 4; e++) {
+                    setup_45841e(idx, k == 2 ? 5u : 0u, -1, 0, 0, 5);
+                    rect_miss(0x657, 0x65f, 0x653, 0x65b, x, y, e);
+                    CK(run_45841e(x, y) == 0 && L.n == 0);
+                }
+            }
+        }
+    }
+}
+
 /* ---- a bounded random sweep (meant for the sanitiser builds) ----------------------------------------------------------------- */
 
 static uint32_t g_seed = 0x2545f491u;
@@ -757,7 +1004,7 @@ static int rr(int lo, int hi) { return lo + (int)(rnd() % (uint32_t)(hi - lo + 1
 static void test_sweep(void)
 {
     int it, f;
-    for (f = 0; f < 3; f++) {
+    for (f = 0; f < 4; f++) {
         for (it = 0; it < 2500; it++) {
             size_t o;
             int idx = rr(-1, 4);
@@ -795,6 +1042,25 @@ static void test_sweep(void)
                 m4a835c_hit_test(fx.self, x, y, RECT_VA, &fx.w, &fx.host);
                 break;
             }
+            case 3: {
+                int16_t x = (int16_t)rr(-40, 40), y = (int16_t)rr(-40, 40);
+                set16(fx.self, 0x26, (uint16_t)idx);
+                set32(fx.self, 0x98, rnd() & 7 ? 1u : 0u);
+                set32(fx.self, 0x20, rnd() & 3 ? (uint32_t)(rnd() & 1) : 5u);
+                set16(fx.self, 0x3a, (uint16_t)(int16_t)rr(-2, 4));
+                set16(fx.obj, 0x21, (uint16_t)(int16_t)rr(-2, 4));
+                set16(fx.obj, 0x23, (uint16_t)(int16_t)rr(-2, 5));
+                fx.w.word_5a4c08 = (int16_t)rr(-2, 4);
+                g_ret_45839e[0] = rnd() & 3 ? 0u : 1u;
+                g_ret_45839e[1] = rnd() & 3 ? 0u : 1u;
+                for (o = 0xe0; o < 0x150; o += 4) {
+                    uint32_t v = (uint32_t)(int32_t)(rr(-3, 3) + (rnd() & 1 ? x : y) + (int)(rnd() % 5) - 2);
+                    if (rnd() & 1) set32(fx.obj, o, v);
+                }
+                for (o = 0x650; o < 0x660; o += 4) set32(fx.obj, o, (uint32_t)(int32_t)(rr(-3, 3) + (rnd() & 1 ? x : y)));
+                m45841e_hit_test(fx.self, x, y, RECT_VA, &fx.w, &fx.host);
+                break;
+            }
             default: {
                 int16_t x = (int16_t)rr(-40, 40), y = (int16_t)rr(-40, 40);
                 set32(fx.self, 0x31d, OBJ_VA);
@@ -823,6 +1089,7 @@ static const struct {
     {"test_m45e1ca_hit_test", test_m45e1ca_hit_test},
     {"test_m464792_hit_test", test_m464792_hit_test},
     {"test_m4a835c_hit_test", test_m4a835c_hit_test},
+    {"test_m45841e_hit_test", test_m45841e_hit_test},
     {"test_sweep_bounded", test_sweep},
 };
 

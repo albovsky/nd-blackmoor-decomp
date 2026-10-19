@@ -1,5 +1,38 @@
 [
  {
+  "va": "0x45841e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25a.c",
+   "symbol": "m45841e_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25a_direct_test.c",
+    "test_id": "test_m45841e_hit_test"
+   },
+   {
+    "path": "tests/test_fl25a_direct.py",
+    "test_id": "Fl25aDirect.test_45841e_hit_test"
+   },
+   {
+    "path": "tests/test_fl25a_differential.py",
+    "test_id": "Fl25aDifferential.test_45841e_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25a_original_oracle.py",
+   "window": [
+    "0x45841e",
+    "0x45879e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m45841e_hit_test (hit test (ret 0xc): rectangle argument stored, three paths on [+0x20] and word [+0x3a], local rectangle for 0x45839e, tail rectangle; calls 0x458262, 0x45839e, 0x45879e). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+ },
+ {
   "va": "0x4a835c",
   "class": "native_oracle_verified",
   "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",

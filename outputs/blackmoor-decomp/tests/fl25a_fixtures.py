@@ -88,13 +88,20 @@ class Original20(od.Original):
         probe = getattr(stub, 'probe_addr', None)
         before = len(self.calls)
         data = b''.join(bytes(uc.mem_read(a, n)) for a, n in probe) if probe else None
+        derefs = getattr(stub, 'derefs', None)
+        deref_data = ()
+        if derefs:
+            esp = uc.reg_read(self._r['ESP'])
+            deref_data = tuple(bytes(uc.mem_read(struct.unpack('<I', uc.mem_read(esp + 4 + 4 * arg, 4))[0], n)) for arg, n in derefs)
         super()._stub_hook(uc, address, size, user)
+        if deref_data:
+            self.calls[before] = self.calls[before] + deref_data
         if data is not None:
             self.calls[before] = self.calls[before] + (data,)
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12)}
+SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12), 0x458262: (0, True, 0), 0x45839e: (2, True, 8), 0x45879e: (1, True, 4)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
 WORD_ARGS = {0x464ab5: (1,)}
 RECORDS_VA = 0x5bb5e5
@@ -212,7 +219,10 @@ def conditional_edges(va, size):
 
 
 # the conditional-jump directions that no scenario takes, with the reason (anything else untaken fails the tests)
-UNTAKEN_ALLOWED = {}
+UNTAKEN_ALLOWED = {
+    '45841e': {(0x4586f4, 'taken'): 'jne 0x458746 repeats the compare dword [+0x20] != 5 whose negation (je 0x4586ed at 0x45848f) led here, with no store and '
+                                    'no call in between: it cannot be taken'},
+}
 
 
 def untaken_edges(key, edges):
@@ -247,12 +257,14 @@ def normalize(calls, stubs, iat, word_args):
         entry = [call[0], call[1] if s.this else 0]
         rest = list(call[2 if s.this else 1:])
         probe = rest.pop() if getattr(s, 'probe_addr', None) else None
+        derefs = [rest.pop() for _ in getattr(s, 'derefs', None) or ()][::-1]
         wa = word_args.get(call[0], ())
         for position, v in enumerate(rest):
             if position in wa:
                 entry.append(v & 0xffff)
             else:
                 entry.append(LOCAL if od.STACK_BASE <= v < od.STACK_BASE + od.STACK_SIZE else v)
+        entry.extend(derefs)
         if probe is not None:
             entry.append(probe)
         out.append(entry)
@@ -492,12 +504,112 @@ def gen_4a835c(rng, n):
                   stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)), g=g)
 
 
+def gen_45841e(rng, n):
+    edges = ('hit', 'e0', 'e1', 'e2', 'e3')
+    profiles = [('gate', None, None), ('A', 'pre', None)]
+    profiles += [('A', 'loop', (i, r)) for i in range(3) for r in ('nz', 'z')]
+    profiles += [('A', 'nomatch', w) for w in (5, -2, -32768, 0x7fff, 3)] + [('A', 'count', c) for c in (0, -1)]
+    profiles += [('B', 'row', (i, f)) for i in range(3) for f in edges]
+    profiles += [('B', 'skip', wc) for wc in ((3, 3), (4, 3), (0, 0), (32767, -32768), (-1, -1))]
+    profiles += [('B', 'post', (w, f)) for w in (1, 7, 32766) for f in edges] + [('B', 'postskip', w) for w in (0, -1, -32768)]
+    profiles += [('C', f, None) for f in edges] + [('T', f, None) for f in edges]
+    assert len(profiles) == 63
+    (kind, sub, arg), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x100))
+    obj = bytearray(rng.randbytes(0x700))
+    set_gate(d, 'nz32', 0x98, kind == 'gate', rng)
+    put16(d, 0x26, idx)
+    put32(d, 0x20, 5 if kind == 'C' else rng.choice([0, 1, 4, 6, 0x105, 0x10000005, 0x500, 0xffffffff, 0x80000005]))
+    NZ = [1, 0x100, 0x10000, 0x80000000, 0xffffffff]
+    count = rng.choice([0, 1, 2, 3, -1, 4])
+    c21, w5a = rng.choice([0, 1, 5, -3, 32767, -32768]), rng.choice([0, 1, 5, -3, 32767, -32768])
+    w3a = rng.choice([0, 1, 2, 5, -2, -32768, 0x7fff]) if kind != 'B' and kind != 'C' else -1
+    if kind == 'C':
+        w3a = rng.choice([-1, 0, 2, 5])
+    elif kind == 'T':
+        w3a = -1
+        c21, w5a = 0, 5                          # (5 < 0 is false: the rows are skipped; the tail answers)
+    results = [0, 0]
+    pre_nz = None
+    if kind == 'A':
+        if sub == 'pre':
+            results = [rng.choice(NZ)]
+            count = rng.choice([0, 1, 2, 3])
+            w3a = rng.choice([-2, 0, 1, 7])
+        elif sub == 'loop':
+            i, r = arg
+            count = max(rng.choice([1, 2, 3, 4]), i + 1)
+            w3a = i
+            results = [0, rng.choice(NZ) if r == 'nz' else 0]
+        elif sub == 'nomatch':
+            w3a = arg
+            count = rng.choice([1, 2, 3, 4])
+        else:
+            w3a = rng.choice([0, 1, -2, 7])
+            count = arg
+    elif kind == 'B':
+        if sub == 'row':
+            i, f = arg
+            count = max(rng.choice([1, 2, 3, 4]), i + 1)
+            c21, w5a = 3, rng.choice([0, 1, 2, -3, -32768])
+        elif sub == 'skip':
+            w5a, c21 = arg
+            count = rng.choice([1, 2])
+        elif sub == 'post':
+            w5a, f = arg
+            c21 = w5a + 1
+            count = rng.choice([0, 1, 2, -1])
+        else:
+            w5a, c21 = arg, 1
+            count = rng.choice([0, 1, 2])
+    put16(d, 0x3a, w3a)
+    struct.pack_into('<h', obj, 0x23, count)
+    struct.pack_into('<h', obj, 0x21, c21)
+    row = lambda i: (0x109 + 16 * i, 0x111 + 16 * i, 0x105 + 16 * i, 0x10d + 16 * i)
+    post, crect, tail = (0xe9, 0xf1, 0xe5, 0xed), (0xf9, 0x101, 0xf5, 0xfd), (0x657, 0x65f, 0x653, 0x65b)
+    for i in range(5):
+        rect_into(rng, obj, x, y, row(i), (0, 0, 0, 0), False)
+    for offs in (post, crect, tail):
+        rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), False)
+    if kind == 'gate':
+        for offs in (post, crect, tail, row(0)):
+            rect_into(rng, obj, x, y, offs, (0, 0, 0, 0), True)
+    elif kind == 'B' and sub == 'row':
+        edge_fail(rng, obj, x, y, row(arg[0]), None if arg[1] == 'hit' else arg[1])
+        rect_into(rng, obj, x, y, post, (0, 0, 0, 0), True)           # (the post rectangle holds it as well: the rows come first)
+    elif kind == 'B' and sub == 'post':
+        edge_fail(rng, obj, x, y, post, None if arg[1] == 'hit' else arg[1])
+    elif kind == 'B' and sub == 'postskip':
+        rect_into(rng, obj, x, y, post, (0, 0, 0, 0), True)
+    elif kind == 'C':
+        edge_fail(rng, obj, x, y, crect, None if sub == 'hit' else sub)
+        rect_into(rng, obj, x, y, tail, (0, 0, 0, 0), bool(variant & 1))
+    elif kind == 'T':
+        edge_fail(rng, obj, x, y, tail, None if sub == 'hit' else sub)
+        rect_into(rng, obj, x, y, post, (0, 0, 0, 0), True)
+        rect_into(rng, obj, x, y, crect, (0, 0, 0, 0), True)
+    else:
+        rect_into(rng, obj, x, y, tail, (0, 0, 0, 0), bool(variant & 1))
+    if kind == 'C':
+        rect_into(rng, obj, x, y, post, (0, 0, 0, 0), True)
+    rect = bytearray(rng.randbytes(16))
+    s45839e = stub(0x45839e, [('self', 0, 0x100), ('records', 0, 6 * REC)], results=results)
+    s45839e.derefs = [(1, 16)]
+    stubs = {0x458262: stub(0x458262, [('self', 0, 0x100), ('records', 0, 6 * REC)]), 0x45839e: s45839e,
+             0x45879e: stub(0x45879e, [('self', 0, 0x100), ('records', 0, 6 * REC)])}
+    return common('45841e', rng, d, obj, idx, 0, False, 0, stubs, extra=[Area('rect', od.region_va(5), rect, image=False)], now=0, profile=(kind, sub, arg),
+                  stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)), g={'word_5a4c08': w5a})
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
     '45e1ca': dict(id=1, va=0x45e1ca, size=778, gen=gen_45e1ca, ret=True, cleanup=8, probes=[(0, 0x3c0)], n=74 * 6),
     '464792': dict(id=2, va=0x464792, size=803, gen=gen_464792, ret=True, cleanup=12, probes=[(0, 0x100)], n=89 * 6),
     '4a835c': dict(id=3, va=0x4a835c, size=827, gen=gen_4a835c, ret=True, cleanup=12, probes=[(0xe00, 0x300)], n=60 * 6),
+    '45841e': dict(id=4, va=0x45841e, size=896, gen=gen_45841e, ret=True, cleanup=12, probes=[(0, 0x100)], n=63 * 6),
 }
 KEYS = list(SPECS)
 
