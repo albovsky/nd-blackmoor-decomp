@@ -104,6 +104,9 @@ def untaken_edges(va, size, edges):
 # The directions of conditional jumps that no state of the function can take, with the reason (the differential test requires every other
 # direction of every jcc of every function to be taken by the scenarios, and every entry here to stay untaken).
 UNTAKEN_EDGES = {
+    (0x46c840, 'taken'): 'jne on selector != 0x27e8 after 0x46c836 found it != 0x27e6; this block is reached only with the selector 0x27e6 or 0x27e8 (the je/jne at 0x46c76f/0x46c77b) and the global is not changed in between (no call, no store to it)',
+    (0x46c99f, 'taken'): 'jne on selector != 0x27e3 after 0x46c995 found it != 0x27e2; this block is reached only with the selector 0x27e2 or 0x27e3 (0x46c8c3..0x46c8d9), unchanged in between',
+    (0x46cb02, 'taken'): 'jne on selector != 0x27e5 after 0x46caf8 found it != 0x27e4; this block is reached only with the selector 0x27e4 or 0x27e5 (0x46ca26..0x46ca3c), unchanged in between',
 }
 
 
@@ -160,6 +163,9 @@ SPECS = {
                    probes=[(0xa40, 0x1ea), (0xe00, 0x90)]),
     '4aa3d2': dict(id=2, va=0x4aa3d2, size=1100, selfsz=0x80, idx=0x21, gates=[('nz8', 0x45)], sels=[0x276f, 0x2770, 0x2771],
                    callees=[0x4fb2e3, 0x4fb77a, 0x423259, 0x448d11], post=lambda c: post_4aa3d2(c), scen=1800, probes=[(0, 0x80)]),
+    '46c6a9': dict(id=3, va=0x46c6a9, size=1506, selfsz=0x4a80, idx=0x1e, gates=[('nz32', 0x4a48), ('z8', 0x4a59), ('z32', 0x4a55)],
+                   sels=[0x27ea, 0x27e6, 0x27e8, 0x27e2, 0x27e3, 0x27e4, 0x27e5], callees=[0x4f6334, 0x4fb2e3, 0x46cc8b], post=lambda c: post_46c6a9(c),
+                   scen=1800, probes=[(0x48a0, 0x180), (0x4a20, 0x40)]),
     # SPECS-END
 }
 KEYS = list(SPECS)
@@ -167,6 +173,7 @@ RECORDS_VA = 0x5bb5e5
 STUB_SHAPE = {
     0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4a8bf2: dict(args=0, this=True, cleanup=0),
     0x423259: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4), 0x448d11: dict(args=4, this=True, cleanup=16),
+    0x46cc8b: dict(args=0, this=True, cleanup=0),
     # STUBS-END
 }
 WORD_ARGS = {0x4fb2e3: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
@@ -404,6 +411,26 @@ def post_4aa3d2(c):
         c.stub_kw[0x448d11] = dict(deref=(1, n + 4))
     else:
         c.stub_kw[0x448d11] = dict(deref=(1, 4))
+
+
+def post_46c6a9(c):
+    d, obj, rng, v, sel = c.d, c.obj, c.rng, c.variant, c.sel
+    flip = v % 2 == 1                      # the dword [+0x4a2c] disagrees with the group of the event
+    group_nz = sel in (0x27e2, 0x27e3, 0x27e4, 0x27e5)
+    known = sel in (0x27ea, 0x27e6, 0x27e8, 0x27e2, 0x27e3, 0x27e4, 0x27e5)
+    nz = (group_nz != flip) if (c.passing and known) else bool(rng.getrandbits(1))
+    struct.pack_into('<I', d, 0x4a2c, rng.choice([1, 0x100, 0x01000000, 0xffffffff, rng.randrange(1, 1 << 32)]) if nz else 0)
+    ks = [-2, -1, 0, 1, 2, 5, 12, 18]
+    struct.pack_into('<h', d, 0x49e0, rng.choice(ks))
+    struct.pack_into('<h', d, 0x49e2, rng.choice(ks) if v % 3 else struct.unpack_from('<h', d, 0x49e0)[0])
+    g_nz = (v // 2) % 2 == 1
+    nine = ((v // 4) % 11) - 1
+    c.g['value_5bb1ca'] = rng.choice([1, 0x100, 0x80000000, 0xffffffff, rng.randrange(1, 1 << 32)]) if g_nz else 0
+    nine_const(c, 0x54bd00, 0x63d, obj, c.passing and sel in (0x27e2, 0x27e3, 0x27e4, 0x27e5) and g_nz, nine=nine)
+    nine_const(c, 0x54bd0c, 0x60c, obj, c.passing and sel in (0x27e6, 0x27e8) and g_nz, nine=nine)
+    c.stubs_results[0x4f6334] = [0 if (v // 44) % 2 == 0 else rng.choice([1, 0x100, 0xffffffff])]
+    c.areas.append(Area('b5a14df', 0x5a14df, bytearray(rng.randbytes(0x140 + 0x20))))
+    c.pointers['buf_5a14df'] = ('b5a14df', 0)
 
 
 # BUILDERS-END

@@ -29,6 +29,8 @@ typedef struct Fl25cWorld {
     uint32_t value_5bb1ca;     /* 0x4a8818: a flag dword (non-zero: the nine-byte compares and the callee calls are made) */
     uint8_t *buf_5a110f;       /* 0x4a8818: the 0x1e6-byte buffer at that address (host memory), a copy of self + 0xa40 */
     const uint8_t *bytes_550bac, *bytes_550bb8;   /* 0x4a8818: nine-byte constants */
+    uint8_t *buf_5a14df;                                  /* 0x46c6a9: the 0x140-byte buffer at that address (host memory) */
+    const uint8_t *bytes_54bd00, *bytes_54bd0c;           /* 0x46c6a9: nine-byte constants */
     /* FL25C-WORLD-END */
 } Fl25cWorld;
 
@@ -38,6 +40,9 @@ void m4a8818_click_2798_279a(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
 /* 0x4aa3d2: events 0x276f, 0x2770 and 0x2771 (a record state, nine-byte compares against three constants, strlen and a copy into a local
  * buffer; calls 0x4fb2e3, 0x4fb77a, 0x423259 and 0x448d11). Rejects instead of overrunning its 0xcc-byte buffer (see the .c file). */
 void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *host);
+/* 0x46c6a9: events 0x27e2 .. 0x27e6, 0x27e8 and 0x27ea (a table of 16-byte cells at [+0x48a0], two nine-byte compares, calls 0x46cc8b, 0x4f6334 and
+ * 0x4fb2e3, a 0x140-byte copy to the buffer at 0x5a14df) */
+void m46c6a9_click_27e2_27ea(uint8_t *self, Fl25cWorld *world, const Fl18Host *host);
 /* FL25C-PROTOS-END */
 
 #ifdef __cplusplus

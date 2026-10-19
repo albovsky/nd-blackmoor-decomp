@@ -313,4 +313,109 @@ void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
     }
 }
 
+/* ---- 0x46c6a9 ------------------------------------------------------------------------------------------------------------------ */
+
+/* `movsx ecx, word [self + idx]; shl ecx, 4`: the byte offset of cell n of the table of 16-byte cells at [+0x48a0] */
+FL25C_UNUSED static ptrdiff_t cell16(const uint8_t *self, ptrdiff_t idx_off)
+{
+    return (ptrdiff_t)(rds16(self, idx_off) * 16);
+}
+
+/* 0x46c6a9, thiscall, plain `ret`: the handler of events 0x27e2 .. 0x27e6, 0x27e8 and 0x27ea. `r` is the object of the record of the word
+ * [+0x1e]. Returns at once (nothing stored) when the dword [+0x4a48] is zero, the BYTE [+0x4a59] is non-zero, the dword [+0x4a55] is
+ * non-zero or the record state (dword [n * 0x8d + 0x5bb632]) is not 1. Cells are 16 bytes at self + 0x48a0 + 16 * index (the indices are the
+ * words [+0x49e0] and [+0x49e2], sign-extended; 20 cells fill the table up to [+0x49e0]). Then, by the dword [+0x4a2c] and the event:
+ *   [+0x4a2c] == 0 and 0x27ea: the byte [+0x4a54] = 1 and the record state 2;
+ *   [+0x4a2c] == 0 and 0x27e6 / 0x27e8: the word [+0x49e0] = [+0x49e2], [+0x4a4c] = 0, [+0x4a2c] = 1, [+0x4a24] = 1; 0x27e6: [+0x4a30] = 1, the
+ *     words [+0x4a3c] / [+0x4a3e] = the words at cell(49e2) + 0x48aa / + 0x48a8, the dword cell(49e0) + 0x48a0 = 0; 0x27e8: [+0x4a34] = 1, the
+ *     same words from + 0x48ae / + 0x48ac and the dword cell(49e2) + 0x48a4 = 0;
+ *   [+0x4a2c] != 0 and 0x27e2 / 0x27e3: the dword cell(49e0) + 0x48a0 = 1, the words + 0x48a8 / + 0x48aa = the words [+0x4a50] / [+0x4a52]; 0x27e2:
+ *     [+0x49e0] = [+0x49e2], the dword cell(49e0) + 0x48a0 = 0, [+0x4a4c] = 0, [+0x4a2c] = 1; 0x27e3: [+0x4a2c] = 0 and 0x46cc8b(this = self); then
+ *     [+0x4a28] = [+0x4a24] = [+0x4a30] = 1 and the words [+0x4a3c] / [+0x4a3e] = the words at cell(49e2) + 0x48aa / + 0x48a8;
+ *   [+0x4a2c] != 0 and 0x27e4 / 0x27e5: the same with the dword + 0x48a4, the words + 0x48ac / + 0x48ae, 0x27e4 resetting the dword + 0x48a4 and 0x27e5
+ *     only clearing [+0x4a2c] (no call); [+0x4a34] = 1 instead of [+0x4a30]; the words [+0x4a3c] / [+0x4a3e] come from + 0x48ae / + 0x48ac.
+ * Every passing call then: for 0x27e2 .. 0x27e5 with the dword 0x5bb1ca non-zero and the nine bytes r[+0x63d] different from the constant at
+ * 0x54bd00: 0x4f6334(this 0x5cf1eb, the sign-extended word r[+0x65e]) and, when it returns 0, 0x4fb2e3(this 0x5c3a67, the word r[+0x65e]); for
+ * 0x27e6 / 0x27e8 the same with r[+0x60c], 0x54bd0c and the word r[+0x62d]; finally the 0x140 bytes at self + 0x48a0 are copied to 0x5a14df.
+ * A callee that changes self is not exercised. */
+void m46c6a9_click_27e2_27ea(uint8_t *self, Fl25cWorld *world, const Fl18Host *host)
+{
+    uint32_t selector;
+    const uint8_t *r;
+    if (rd32(self, 0x4a48) == 0) return;
+    if (self[0x4a59] != 0) return;
+    if (rd32(self, 0x4a55) != 0) return;
+    if (!record_state_is_1(world, self, 0x1e)) return;
+    selector = world->value_5c39e5;
+    if (rd32(self, 0x4a2c) == 0 && selector == 0x27ea) {
+        self[0x4a54] = 1;
+        set_record_state_2(world, self, 0x1e);
+    } else if (rd32(self, 0x4a2c) == 0 && (selector == 0x27e6 || selector == 0x27e8)) {
+        wr16(self, 0x49e0, rd16(self, 0x49e2));
+        wr32(self, 0x4a4c, 0);
+        wr32(self, 0x4a2c, 1);
+        wr32(self, 0x4a24, 1);
+        if (selector == 0x27e6) {
+            wr32(self, 0x4a30, 1);
+            wr16(self, 0x4a3c, rd16(self, cell16(self, 0x49e2) + 0x48aa));
+            wr16(self, 0x4a3e, rd16(self, cell16(self, 0x49e2) + 0x48a8));
+            wr32(self, cell16(self, 0x49e0) + 0x48a0, 0);
+        } else {
+            wr32(self, 0x4a34, 1);
+            wr16(self, 0x4a3c, rd16(self, cell16(self, 0x49e2) + 0x48ae));
+            wr16(self, 0x4a3e, rd16(self, cell16(self, 0x49e2) + 0x48ac));
+            wr32(self, cell16(self, 0x49e2) + 0x48a4, 0);
+        }
+    } else if (rd32(self, 0x4a2c) != 0 && (selector == 0x27e2 || selector == 0x27e3)) {
+        wr32(self, cell16(self, 0x49e0) + 0x48a0, 1);
+        wr16(self, cell16(self, 0x49e0) + 0x48a8, rd16(self, 0x4a50));
+        wr16(self, cell16(self, 0x49e0) + 0x48aa, rd16(self, 0x4a52));
+        if (selector == 0x27e2) {
+            wr16(self, 0x49e0, rd16(self, 0x49e2));
+            wr32(self, cell16(self, 0x49e0) + 0x48a0, 0);
+            wr32(self, 0x4a4c, 0);
+            wr32(self, 0x4a2c, 1);
+        } else {
+            wr32(self, 0x4a2c, 0);
+            call0(host, 0x46cc8b, (uintptr_t)self);
+        }
+        wr32(self, 0x4a28, 1);
+        wr32(self, 0x4a24, 1);
+        wr32(self, 0x4a30, 1);
+        wr16(self, 0x4a3c, rd16(self, cell16(self, 0x49e2) + 0x48aa));
+        wr16(self, 0x4a3e, rd16(self, cell16(self, 0x49e2) + 0x48a8));
+    } else if (rd32(self, 0x4a2c) != 0 && (selector == 0x27e4 || selector == 0x27e5)) {
+        wr32(self, cell16(self, 0x49e0) + 0x48a4, 1);
+        wr16(self, cell16(self, 0x49e0) + 0x48ac, rd16(self, 0x4a50));
+        wr16(self, cell16(self, 0x49e0) + 0x48ae, rd16(self, 0x4a52));
+        if (selector == 0x27e4) {
+            wr16(self, 0x49e0, rd16(self, 0x49e2));
+            wr32(self, cell16(self, 0x49e0) + 0x48a4, 0);
+            wr32(self, 0x4a4c, 0);
+            wr32(self, 0x4a2c, 1);
+        } else {
+            wr32(self, 0x4a2c, 0);
+        }
+        wr32(self, 0x4a28, 1);
+        wr32(self, 0x4a24, 1);
+        wr32(self, 0x4a34, 1);
+        wr16(self, 0x4a3c, rd16(self, cell16(self, 0x49e2) + 0x48ae));
+        wr16(self, 0x4a3e, rd16(self, cell16(self, 0x49e2) + 0x48ac));
+    }
+    r = object_at(host, record_object_address(world, self, 0x1e));
+    if ((selector == 0x27e2 || selector == 0x27e3 || selector == 0x27e4 || selector == 0x27e5) && world->value_5bb1ca != 0) {
+        if (!nine_bytes_equal(r + 0x63d, world->bytes_54bd00)) {
+            if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(r, 0x65e)) == 0)
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(r, 0x65e));
+        }
+    }
+    if ((selector == 0x27e6 || selector == 0x27e8) && world->value_5bb1ca != 0) {
+        if (!nine_bytes_equal(r + 0x60c, world->bytes_54bd0c)) {
+            if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(r, 0x62d)) == 0)
+                call1(host, 0x4fb2e3, 0x5c3a67, rd16(r, 0x62d));
+        }
+    }
+    memcpy(world->buf_5a14df, self + 0x48a0, 0x140);
+}
+
 /* FL25C-FUNCS-END */

@@ -20,6 +20,7 @@ KERNELS = ['original_methods_fl25c.c']
 EXPECTED = [
     'test_m4a8818_click_2798_279a',
     'test_m4aa3d2_click_276f_2771',
+    'test_m46c6a9_click_27e2_27ea',
     # EXPECTED-END
 ]
 
@@ -73,6 +74,10 @@ class Fl25cDirect(unittest.TestCase):
     def test_4aa3d2_click_276f_2771(self):
         """FL-25c: direct test of m4aa3d2_click_276f_2771"""
         self.check('test_m4aa3d2_click_276f_2771')
+
+    def test_46c6a9_click_27e2_27ea(self):
+        """FL-25c: direct test of m46c6a9_click_27e2_27ea"""
+        self.check('test_m46c6a9_click_27e2_27ea')
 
     # DIRECT-TESTS-END
 
