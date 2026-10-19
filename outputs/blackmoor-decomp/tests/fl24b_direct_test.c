@@ -1404,6 +1404,147 @@ static int test_m4acf45_hit_test(void)
     return g_failed;
 }
 
+/* 0x4aa0f0 (ret 8): byte [+0x45] gate; the outer rectangle y low +0xeb, y high +0xf3, x low +0xe7, x high +0xef of the object of the record of
+ * the word [+0x21]; entries of 0x15c bytes below the signed word +0xf7: rectangle A (y low +0x10d, y high +0x115, x low +0x109, x high +0x111)
+ * while the byte [+0x2b] is set and the byte 0x630a60[i] is zero, rectangle B (+0x249, +0x251, +0x245, +0x24d) unless the dword [+0x25] == 2. */
+static uint8_t tab630[16];
+static void rect_4aa0f0(int i, int second, int32_t xlo, int32_t ylo, int32_t xhi, int32_t yhi)
+{
+    size_t o = (size_t)i * 0x15c + (second ? 0x245 : 0x109);
+    set32(fx.obj, o, (uint32_t)xlo);
+    set32(fx.obj, o + 4, (uint32_t)ylo);
+    set32(fx.obj, o + 8, (uint32_t)xhi);
+    set32(fx.obj, o + 12, (uint32_t)yhi);
+}
+static void setup_4aa0f0(int idx, int count)
+{
+    int i;
+    base(0x2711, idx, 0x21);
+    fx.self[0x45] = 0x80;
+    fx.self[0x2b] = 1;
+    set32(fx.self, 0x25, 0);
+    set16(fx.obj, 0xf7, (uint16_t)count);
+    for (i = 0; i < 9; i++) {
+        rect_4aa0f0(i, 0, 100, 100, 101, 101);
+        rect_4aa0f0(i, 1, 100, 100, 101, 101);
+    }
+    memset(tab630, 0, sizeof tab630);
+    fx.w.bytes_630a60 = tab630;
+    set32(fx.obj, 0xe7, 1000);
+    set32(fx.obj, 0xeb, 1000);
+    set32(fx.obj, 0xef, 2000);
+    set32(fx.obj, 0xf3, 2000);
+    fx.w.value_5d0377 = 0xabcdef01u;
+    fx.w.value_5d162d = 0x11111111u;
+    fx.w.value_5d1631 = 0x22222222u;
+    fx.w.value_5d1639 = 0x33333333u;
+    fx.w.value_5b44f0 = 0x44444444u;
+    fx.w.value_5b44f4 = 0x55555555u;
+}
+/* runs (5, 5); `a`/`event` the expected arming, `word` the expected [+0x23] (-1: not stored) */
+static void run_4aa0f0(int hit, uint32_t a, uint32_t event, int word)
+{
+    int32_t r;
+    begin();
+    if (word >= 0) X16(0x23, (uint16_t)word);
+    r = m4aa0f0_hit_test(fx.self, 5, 5, &fx.w, &fx.host);
+    check_mem();
+    CK(L.n == 0);
+    if (hit) {
+        CK(r == 1);
+        CK(fx.w.value_5b44f0 == a && fx.w.value_5b44f4 == 1 && fx.w.value_5d162d == 0xabcdef01u && fx.w.value_5d1639 == 1);
+        CK(fx.w.value_5d1631 == (a << 5) + 16 + 0x5b160c && fx.w.value_5c39e5 == event);
+    } else {
+        CK(r == 0);
+        CK(fx.w.value_5b44f0 == 0x44444444u && fx.w.value_5c39e5 == 0x2711 && fx.w.value_5d1639 == 0x33333333u);
+    }
+}
+
+static int test_m4aa0f0_hit_test(void)
+{
+    static const int idxs[2] = {2, -1};
+    int ii, k, v;
+    int32_t r;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        /* the byte gate: only the low byte */
+        setup_4aa0f0(idx, 3);
+        fx.self[0x45] = 0;
+        fx.self[0x46] = 0xff;
+        rect_4aa0f0(0, 0, 0, 0, 9, 9);
+        set32(fx.obj, 0xe7, 0);
+        set32(fx.obj, 0xeb, 0);
+        set32(fx.obj, 0xef, 9);
+        set32(fx.obj, 0xf3, 9);
+        run_4aa0f0(0, 0, 0, -1);
+        /* the outer rectangle: bounds inclusive, one short of each misses (count 0: no entries) */
+        for (k = 0; k < 5; k++) {
+            setup_4aa0f0(idx, 0);
+            set32(fx.obj, 0xe7, k == 3 ? 6 : 5);
+            set32(fx.obj, 0xeb, k == 1 ? 6 : 5);
+            set32(fx.obj, 0xef, k == 4 ? 4 : 5);
+            set32(fx.obj, 0xf3, k == 2 ? 4 : 5);
+            run_4aa0f0(k == 0, 9, 0x2771, -1);
+        }
+        /* rectangle A of entry 2: needs [+0x2b] != 0 and the table byte zero; each comparison one short misses (B is then tried and misses too) */
+        for (k = 0; k < 4; k++) {
+            setup_4aa0f0(idx, 5);
+            rect_4aa0f0(2, 0, k == 2 ? 6 : 5, k == 0 ? 6 : 5, k == 3 ? 4 : 5, k == 1 ? 4 : 5);
+            run_4aa0f0(0, 0, 0, -1);
+        }
+        for (v = 0; v < 4; v++) {                   /* the gates of A: [+0x2b] == 0 or table[2] != 0 skip it */
+            setup_4aa0f0(idx, 5);
+            rect_4aa0f0(2, 0, 0, 0, 9, 9);
+            if (v == 1) fx.self[0x2b] = 0;
+            if (v == 2) tab630[2] = 0x80;
+            if (v == 3) fx.self[0x2b] = 0x80;
+            run_4aa0f0(v == 0 || v == 3, 0x16, 0x276f, v == 0 || v == 3 ? 2 : -1);
+        }
+        /* rectangle B of entry 3 (A of entry 3 would miss): [+0x25] == 2 skips it, any other value (also 0x100, 0x80000002) does not */
+        for (v = 0; v < 4; v++) {
+            setup_4aa0f0(idx, 5);
+            rect_4aa0f0(3, 1, 0, 0, 9, 9);
+            set32(fx.self, 0x25, (uint32_t[]){0, 2, 0x100, 0x80000002u}[v]);
+            run_4aa0f0(v != 1, 0x16, 0x2770, v != 1 ? 3 : -1);
+        }
+        /* each comparison of B one short */
+        for (k = 0; k < 4; k++) {
+            setup_4aa0f0(idx, 5);
+            rect_4aa0f0(1, 1, k == 2 ? 6 : 5, k == 0 ? 6 : 5, k == 3 ? 4 : 5, k == 1 ? 4 : 5);
+            run_4aa0f0(0, 0, 0, -1);
+        }
+        /* the order: entry 1's B is hit before entry 2's A; the count limits the scan (entry 4 is out of a count of 4) */
+        setup_4aa0f0(idx, 4);
+        rect_4aa0f0(1, 1, 0, 0, 9, 9);
+        rect_4aa0f0(2, 0, 0, 0, 9, 9);
+        run_4aa0f0(1, 0x16, 0x2770, 1);
+        setup_4aa0f0(idx, 4);
+        rect_4aa0f0(4, 0, 0, 0, 9, 9);
+        run_4aa0f0(0, 0, 0, -1);
+        setup_4aa0f0(idx, 5);
+        rect_4aa0f0(4, 0, 0, 0, 9, 9);
+        run_4aa0f0(1, 0x16, 0x276f, 4);
+        /* a negative count scans nothing; signed words */
+        setup_4aa0f0(idx, -1);
+        rect_4aa0f0(0, 0, 0, 0, 9, 9);
+        run_4aa0f0(0, 0, 0, -1);
+        setup_4aa0f0(idx, 0);
+        set32(fx.obj, 0xe7, 0xffff8000u);
+        set32(fx.obj, 0xeb, 0xffffffffu);
+        set32(fx.obj, 0xef, 0xffff8000u);
+        set32(fx.obj, 0xf3, 0xffffffffu);
+        begin();
+        r = m4aa0f0_hit_test(fx.self, (int16_t)0x8000, (int16_t)0xffff, &fx.w, &fx.host);
+        CK(r == 1);
+        check_mem();
+    }
+    if (g_failed) printf("FAIL test_m4aa0f0_hit_test: %s\n", g_msg);
+    else printf("PASS test_m4aa0f0_hit_test\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -1418,6 +1559,7 @@ int main(void)
     failures += test_m46793a_click_27ab_27ac();
     failures += test_m4ad310_click_2774_2776();
     failures += test_m4acf45_hit_test();
+    failures += test_m4aa0f0_hit_test();
     /* FL24B-MAIN-END */
     return failures;
 }

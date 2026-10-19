@@ -33,6 +33,7 @@ typedef struct Fl24bWorld {
     const uint8_t *bytes_551c54, *bytes_551c60;   /* 0x4b7563 */
     int16_t value_583a29;      /* 0x459e49: compared with the word 0x217 of the record object */
     const uint8_t *bytes_54a7c4, *bytes_54a7d0;   /* 0x459e49 */
+    const uint8_t *bytes_630a60;   /* 0x4aa0f0: a byte per entry, indexed by the signed word counter */
     /* FL24B-WORLD-END */
 } Fl24bWorld;
 
@@ -59,6 +60,8 @@ void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
  * entries of 0xc7 bytes at +0x6e (a mask byte per pixel read through Fl18Host.resolve) and the outer rectangle of the list object;
  * returns 1 or 0 */
 int32_t m4acf45_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *block, Fl24bWorld *world, const Fl18Host *host);
+/* 0x4aa0f0 (ret 8): hit test of the point (x, y) against the outer rectangle and the entries of 0x15c bytes of the record's object */
+int32_t m4aa0f0_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

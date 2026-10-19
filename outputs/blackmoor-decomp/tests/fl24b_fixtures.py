@@ -124,6 +124,7 @@ SPECS.update({
                    sels=[0x2775, 0x2774, 0x2776], callees=[0x4af96e, 0x4ada56, 0x4ae683, 0x4ae495, 0x4ada9f, 0x4ae96c, 0x4aef4a, 0x4adae8],
                    post=lambda c: post_4ad310(c), scen=640, probes=[(0, 0xc30)]),
     '4acf45': dict(id=9, va=0x4acf45, size=672, selfsz=0xe60, ret='eax', callee_pops=True, scen=640),
+    '4aa0f0': dict(id=10, va=0x4aa0f0, size=738, selfsz=0x60, ret='eax', callee_pops=True, scen=640),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
@@ -497,6 +498,51 @@ def build_4acf45(sp, rng, n):
         stubs[callee] = stub(callee, this=True, probe=probes, **shape)
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '4acf45', rng, areas=areas, stubs=stubs, stack_args=[junk(x), junk(y), od.region_va(5)], ptr_args={2: 'block'}, profile=('x', prof))
+
+
+def build_4aa0f0(sp, rng, n):
+    prof = n % 8
+    d = bytearray(rng.randbytes(sp['selfsz']))
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    struct.pack_into('<h', d, 0x21, idx)
+    d[0x45] = 0 if prof == 0 else rng.choice([1, 0x80, 0xff])
+    d[0x2b] = rng.choice([0, 1, 0x80, 1, 1])
+    struct.pack_into('<I', d, 0x25, 2 if rng.random() < 0.3 else rng.choice([0, 1, 3, 0x100, 0x80000002]))
+    x = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    y = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    obj = bytearray(rng.randbytes(0x2000))
+    count = rng.choice([0, 1, 2, 3, 5, 9, -1, -0x8000]) if prof != 2 else 0
+    if prof in (3, 4, 5, 6, 7) and count <= 0:
+        count = rng.choice([1, 2, 3, 5, 9])
+    struct.pack_into('<h', obj, 0xf7, count)
+    fail = None if prof in (0, 1) else ['ylo', 'yhi', 'xlo', 'xhi'][rng.randrange(4)]
+    ylo, yhi = span(rng, y, 'lo' if fail == 'ylo' else 'hi' if fail == 'yhi' else None)
+    xlo, xhi = span(rng, x, 'lo' if fail == 'xlo' else 'hi' if fail == 'xhi' else None)
+    struct.pack_into('<I', obj, 0xe7, xlo)
+    struct.pack_into('<I', obj, 0xeb, ylo)
+    struct.pack_into('<I', obj, 0xef, xhi)
+    struct.pack_into('<I', obj, 0xf3, yhi)
+    hit_prob = 0.0 if prof == 3 else 0.3
+    for i in range(10):
+        for base_off in (0x109, 0x245):
+            mode = None if rng.random() < hit_prob else rng.choice(['ylo', 'yhi', 'xlo', 'xhi'])
+            ylo, yhi = span(rng, y, 'lo' if mode == 'ylo' else 'hi' if mode == 'yhi' else None)
+            xlo, xhi = span(rng, x, 'lo' if mode == 'xlo' else 'hi' if mode == 'xhi' else None)
+            o = i * 0x15c + base_off
+            struct.pack_into('<I', obj, o, xlo)             # x low
+            struct.pack_into('<I', obj, o + 4, ylo)         # y low
+            struct.pack_into('<I', obj, o + 8, xhi)         # x high
+            struct.pack_into('<I', obj, o + 12, yhi)        # y high
+    table = bytearray(rng.choice([0, 0, 1, 0x80, 0xff]) for _ in range(16))
+    rec = bytearray(rng.randbytes(6 * 0x8d))
+    for i in range(-1, 5):
+        struct.pack_into('<I', rec, (i + 1) * 0x8d, od.region_va(1) if i == idx else od.region_va(4))
+    areas = [Area('self', od.region_va(0), d, image=False), Area('records', RECORDS_VA - 0x8d, rec), Area('obj', od.region_va(1), obj, image=False),
+             Area('decoy', od.region_va(4), bytearray(rng.randbytes(0x1000)), image=False, compare=False), Area('c630a60', 0x630a60, table, compare=False)]
+    g = {f: rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]) for f in ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639', 'value_5c39e5')}
+    junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
+    return mk_scenario(sp, '4aa0f0', rng, areas=areas, g=g, pointers={'records_5bb5e5': ('records', 0x8d), 'bytes_630a60': ('c630a60', 0)},
+                       stack_args=[junk(x), junk(y)], profile=('x', prof))
 
 
 # BUILDERS-END

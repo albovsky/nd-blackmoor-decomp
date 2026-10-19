@@ -567,4 +567,42 @@ int32_t m4acf45_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *blo
     return 0;
 }
 
+/* ---- 0x4aa0f0 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4aa0f0, thiscall, `ret 8`, arguments x then y as words (movsx); eax = 1 on a hit, else 0. Returns 0 at once when the byte [+0x45] is
+ * zero. `ro` is the object of the record of the word [+0x21]. The outer rectangle (y low +0xeb, y high +0xf3, x low +0xe7, x high +0xef;
+ * signed dwords, inclusive) arms (9, event 0x2771). Then a word counter i runs below the signed word ro[+0xf7] (not bounded, as in the
+ * original); entry i is at ro + 0x15c * i: while the byte [+0x2b] is set and the byte 0x630a60[i] is zero its first rectangle (y low +0x10d,
+ * y high +0x115, x low +0x109, x high +0x111) arms (0x16, event 0x276f); then, unless the dword [+0x25] == 2, its second rectangle (+0x249,
+ * +0x251, +0x245, +0x24d) arms (0x16, event 0x2770); both store the word [+0x23] = i and return 1. */
+int32_t m4aa0f0_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *ro;
+    uint32_t ro_addr = record_object_address(world, self, 0x21);
+    int16_t i;
+    if (self[0x45] == 0) return 0;
+    ro = object_at(host, ro_addr);
+    if ((int32_t)y >= (int32_t)rd32(ro, 0xeb) && (int32_t)y <= (int32_t)rd32(ro, 0xf3) && (int32_t)x >= (int32_t)rd32(ro, 0xe7) &&
+        (int32_t)x <= (int32_t)rd32(ro, 0xef)) {
+        arm_467740(world, 9, 0x2771);
+        return 1;
+    }
+    for (i = 0; (int32_t)i < rds16(ro, 0xf7); i = (int16_t)(i + 1)) {
+        ptrdiff_t e = (ptrdiff_t)((int32_t)i * 0x15c);
+        if (self[0x2b] != 0 && world->bytes_630a60[(int32_t)i] == 0 && (int32_t)y >= (int32_t)rd32(ro, e + 0x10d) &&
+            (int32_t)y <= (int32_t)rd32(ro, e + 0x115) && (int32_t)x >= (int32_t)rd32(ro, e + 0x109) && (int32_t)x <= (int32_t)rd32(ro, e + 0x111)) {
+            arm_467740(world, 0x16, 0x276f);
+            wr16(self, 0x23, (uint16_t)i);
+            return 1;
+        }
+        if (rd32(self, 0x25) != 2 && (int32_t)y >= (int32_t)rd32(ro, e + 0x249) && (int32_t)y <= (int32_t)rd32(ro, e + 0x251) &&
+            (int32_t)x >= (int32_t)rd32(ro, e + 0x245) && (int32_t)x <= (int32_t)rd32(ro, e + 0x24d)) {
+            arm_467740(world, 0x16, 0x2770);
+            wr16(self, 0x23, (uint16_t)i);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* FL24B-END */
