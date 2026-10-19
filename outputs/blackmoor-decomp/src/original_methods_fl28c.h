@@ -28,6 +28,8 @@ extern "C" {
 typedef struct Fl28cWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
     int32_t origin_x_583186, origin_y_58318a;   /* 0x4ceb8c: the origin that is added to the rectangle of the record */
+    int16_t word_5c39e3;       /* 0x4cd243: the scene number (read as signed): stored in [self+0x23e] and passed to the reports */
+    uint32_t value_5bb57b;     /* 0x4cd243: a dword that the failure reports print */
 } Fl28cWorld;
 
 /* 0x4cf026, thiscall (`self` = ecx), `ret 4`, returns eax: the index of the first record whose compare callee answers 0, or -1. `self` keeps [+0x222] = the original address of a header
@@ -67,6 +69,23 @@ void m4ccef1_release_movie(uint8_t *self, const Fl18Host *host);
  * [self+0x1de] = 3 and, with the debug word, 0x44a2b7(0x559a28). Arm 4: the same, but without the store to [self+0x20a], without the [self+0x1da] store (r non-zero and different returns without any store) and with the
  * debug text 0x559aa8. Caller-validated: Fl18Host.resolve must give the player record ([self+0x212], 0x31 bytes) and rec (0x25 bytes). */
 void m4ce8ea_scan_step(uint8_t *self, const Fl28cWorld *world, const Fl18Host *host);
+
+/* 0x4cd243, thiscall (`self` = ecx), `ret 0xc`, returns eax = 1 or 0: reads the scene tables from a stream. The three stack arguments are host pointers to dwords of the caller: `dst` (the dword holds the original address of the
+ * header buffer that 0x4cf1e4 fills in), `src` (the read cursor: the dword holds the original address of the stream) and `tail` (a second cursor, only advanced). A failure report is 0x50ca3e(0x63888b, text, [0x5bb57b], signed
+ * word [0x5c39e3]) (cdecl, four arguments), 0x42639d(this 0x583979, text2, 0x63888b) (thiscall, two arguments), 0x4c97b4(this 0x5cf659), and the function returns 0.
+ * 1. [self+0x216] non-zero: with the debug word 0x50ca3e(0x63888b, 0x55907c, signed word [0x5c39e3]) (three arguments) and 0x44a2b7(0x63888b); return 0 (nothing else is touched).
+ * 2. [self+0x23e] = signed word [0x5c39e3]; 0x4cf1e4(this self, dst, 0x27) (thiscall, two arguments; the alloc-and-clear function of this batch, host-called here); 0 = report (0x5590f8, 0x559124), return 0.
+ * 3. 0x27 bytes from the stream [src] to the buffer [dst] (dwords first, forward); [tail] += 0x27; [src] += 0x27; [self+0x222] = [dst].
+ * 4. 0x4cf1e4(this self, self+0x226, signed word [[self+0x222]+0x23] * 0x35): 0 = report (0x559140, 0x559184), return 0.
+ * 5. For i = 0 .. while i < the signed word [[self+0x222]+0x23] (read again): rec = [self+0x226] + i * 0x35 and c (a running offset, 0 at first) into the stream: s = [src] + c; 0x21 bytes from s to rec (8 dwords, 1 byte), c += 0x21;
+ * word [rec+0x21] = word [s+0x21], c += 2; word [+0x23] likewise, c += 2; dword [+0x25], c += 4; dword [+0x29], c += 4; word [+0x2d], c += 2; word [+0x2f], c += 2 (the fields are copied from s, which does not move);
+ * 0x4cf1e4(this self, rec+0x31, signed word [rec+0x2f] * 0x23): 0 = report (0x5591a0, 0x5591e4), return 0; then m = signed word [rec+0x2f] * 0x23 bytes from [src] + c to the buffer at [rec+0x31] (dwords first), c += m.
+ * 6. [tail] += c; [src] += c. 0x4cf1e4(this self, self+0x22a, signed word [[self+0x222]+0x25] * 0x22): 0 = report (0x559200, 0x559240), return 0. Then that many bytes from [src] to the buffer [self+0x22a],
+ * and [tail] += k; [src] += k with k the same product read again. With the debug word 0x4cf276(this self) (thiscall, no argument) and 0x44a2b7(0x55925c). Returns 1.
+ * Native rejection (not in the original, whose copy count would be about 4 GB): a size m or k that is negative as a signed 32-bit value after its allocation succeeded returns 0 at once, before the copy and before any later store.
+ * Caller-validated: the pointers `dst`, `src`, `tail` must point to dwords; Fl18Host.resolve must give the stream, the buffers that the host-called allocations returned and the header (it is called UNCHECKED, but not for a size of 0).
+ * The host-called allocations are not exercised for effects on anything but the pointers they store (the scripted writes of the oracle model them). */
+int32_t m4cd243_read_tables(uint8_t *self, uint8_t *dst, uint8_t *src, uint8_t *tail, const Fl28cWorld *world, const Fl18Host *host);
 
 /*HEADER-INSERT*/
 

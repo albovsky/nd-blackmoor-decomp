@@ -142,9 +142,11 @@ static const uint8_t *shim_resolve(void *context, uint32_t address)
     return NULL;
 }
 
+/* an argument is either the original address of a fixture region (turned into host memory) or a host pointer (the process heap of a non-PIE binary can sit below 4 GB, so the region table decides, not the width) */
 static const void *deref_ptr(uintptr_t value)
 {
-    return value > 0xffffffffu ? (const void *)value : (const void *)shim_resolve(NULL, (uint32_t)value);
+    const void *p = value <= 0xffffffffu ? (const void *)shim_resolve(NULL, (uint32_t)value) : NULL;
+    return p != NULL ? p : (const void *)value;
 }
 
 static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
@@ -188,7 +190,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F28C_4CF026 = 1, F28C_4CEC6C, F28C_4CF1E4, F28C_4CEB8C, F28C_4CCEF1, F28C_4CE8EA /*ENUM*/ };
+enum { F28C_4CF026 = 1, F28C_4CEC6C, F28C_4CF1E4, F28C_4CEB8C, F28C_4CCEF1, F28C_4CE8EA, F28C_4CD243 /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values (original addresses of pointers into a fixture region,
  * 32-bit values otherwise). `result` is the return value of the ports that have one. The world is the host context, so that each logged call keeps a
@@ -209,6 +211,9 @@ void shim_fl28c(int fn, uint8_t *self, const uintptr_t *a, Fl28cWorld *w, int32_
     case F28C_4CEB8C: m4ceb8c_load_rect(self, w, &host); break;
     case F28C_4CCEF1: m4ccef1_release_movie(self, &host); break;
     case F28C_4CE8EA: m4ce8ea_scan_step(self, w, &host); break;
+    case F28C_4CD243:
+        *result = m4cd243_read_tables(self, (uint8_t *)shim_resolve(NULL, (uint32_t)a[0]), (uint8_t *)shim_resolve(NULL, (uint32_t)a[1]), (uint8_t *)shim_resolve(NULL, (uint32_t)a[2]), w, &host);
+        break;
     /*CASES*/
     default: break;
     }

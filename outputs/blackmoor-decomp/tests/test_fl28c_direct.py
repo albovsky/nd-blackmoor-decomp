@@ -24,6 +24,7 @@ EXPECTED = [
     'test_m4ceb8c_load_rect',
     'test_m4ccef1_release_movie',
     'test_m4ce8ea_scan_step',
+    'test_m4cd243_read_tables',
     'test_sweep_bounded',
 ]
 
@@ -92,6 +93,10 @@ class Fl28cDirect(unittest.TestCase):
     def test_4ce8ea_scan_step(self):
         """FL-28c: direct test of m4ce8ea_scan_step"""
         self.check('test_m4ce8ea_scan_step')
+
+    def test_4cd243_read_tables(self):
+        """FL-28c: direct test of m4cd243_read_tables"""
+        self.check('test_m4cd243_read_tables')
 
     # CASES-END
 

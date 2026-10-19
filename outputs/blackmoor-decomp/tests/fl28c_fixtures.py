@@ -500,6 +500,77 @@ def gen_4ce8ea(rng, n):
     return make('4ce8ea', areas, stubs, g, [], (), (kind, *rest))
 
 
+# ---- 0x4cd243: read the scene tables from a stream -----------------------------------------------------------------------------------
+
+STREAM_VA, HDRBUF_VA, TBL_VA, SUBS_VA, TBL2_VA, CELLS_VA = (od.region_va(i) for i in (1, 2, 3, 4, 5, 6))
+
+
+def profiles_4cd243():
+    profiles = [('busy', flag, d) for flag in (1, 0x80000000, 0xffffffff) for d in (0, 1, 0x8000)]
+    profiles += [('fail', k, count, d) for count in (2, 1) for k in range(2 + count + 1) for d in (0, 1)]
+    profiles += [('ok', count, count2, d) for count in (0, 1, 2, 3) for count2 in (0, 1, 2, 5) for d in (0, 1, 0x8000)]
+    profiles += [('negcount', c) for c in (-1, -0x8000)]
+    profiles += [('negword', 0)]
+    return profiles
+
+
+def gen_4cd243(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4cd243())
+    count, count2, dbg, fail_at = 2, rng.choice([0, 1, 2, 3]), 0, -1
+    if kind == 'busy':
+        dbg = rest[1]
+    elif kind == 'fail':
+        fail_at, count, dbg = rest[0], rest[1], rest[2]
+    elif kind == 'ok':
+        count, count2, dbg = rest
+    elif kind == 'negcount':
+        count, count2 = rest[0], 0
+    elif kind == 'negword':
+        fail_at = 2
+    # the word [+0x2f] of each record (the size of its sub table): small and non-negative where the allocation succeeds
+    words = [rng.choice([0, 1, 2, 3, 7]) for _ in range(max(count, 0))]
+    if kind == 'negword':
+        words[0] = rng.choice([-1, -0x8000, -7])
+    elif kind == 'fail' and fail_at >= 2 and fail_at < 2 + count:
+        words[fail_at - 2] = rng.choice([-1, 0, 1, 3, 0x7fff])
+    stream = bytearray(rng.randbytes(0x400))
+    put16(stream, 0x23, count)
+    put16(stream, 0x25, count2)
+    at = 0x27
+    for w in words:
+        if at + 0x31 > len(stream):         # a record behind a failing allocation is never read
+            break
+        put16(stream, at + 0x2f, w)
+        at += 0x31 + (w * 0x23 if w > 0 else 0)
+    selfd = self_area(rng)
+    put32(selfd, 0x216, rest[0] if kind == 'busy' else 0)
+    cells = bytearray(rng.randbytes(16))
+    put32(cells, 0, rng.randrange(1 << 32))
+    put32(cells, 4, STREAM_VA)
+    hdrbuf = bytearray(rng.randbytes(0x40))
+    tbl = bytearray(rng.randbytes(0x100))
+    subs = bytearray(rng.randbytes(0x400))
+    tbl2 = bytearray(rng.randbytes(0x100))
+    # the answers of 0x4cf1e4 (call 0: the header, 1: the table, 2..: the sub tables of the records, last: the second table) and the pointers that it stores
+    cells_of = [(CELLS_VA, 0, HDRBUF_VA), (None, 0, TBL_VA)] + [(None, 0, SUBS_VA + 0x100 * i) for i in range(max(count, 0))] + [(None, 0, TBL2_VA)]
+    results, writes = [], []
+    for k, (_, _, value) in enumerate(cells_of):
+        ok = k != fail_at
+        results.append(1 if ok else 0)
+        arg, off = (0, 0)
+        writes.append((k, arg, off, 4, value if ok else 0))
+    probe = [('self', 0x210, 0x40), ('self', 0x220, 0x30), ('cells', 0, 16)]
+    f50 = CDECL(3) if kind == 'busy' else CDECL(4)
+    stubs = {0x4cf1e4: stub(0x4cf1e4, THISCALL(2), probe, results=results, writes=writes), 0x50ca3e: stub(0x50ca3e, f50, probe), 0x42639d: stub(0x42639d, THISCALL(2), probe),
+             0x4c97b4: stub(0x4c97b4, THISCALL(0), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe), 0x4cf276: stub(0x4cf276, THISCALL(0), probe)}
+    g, nbr = debug_areas(rng, dbg)
+    g.update({'word_5c39e3': rng.choice([0, 1, -1, 0x7fff, -0x8000, 5, rng.randrange(1 << 16)]), 'value_5bb57b': rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)])})
+    nbr.append(Area('scenenbr', 0x5c39e5, bytearray(rng.randbytes(2)), compare=False))
+    areas = [Area('self', od.region_va(0), selfd, image=False), Area('stream', STREAM_VA, stream, image=False), Area('hdrbuf', HDRBUF_VA, hdrbuf, image=False),
+             Area('tbl', TBL_VA, tbl, image=False), Area('subs', SUBS_VA, subs, image=False), Area('tbl2', TBL2_VA, tbl2, image=False), Area('cells', CELLS_VA, cells, image=False), *nbr]
+    return make('4cd243', areas, stubs, g, [CELLS_VA, CELLS_VA + 4, CELLS_VA + 8], (CELLS_VA, CELLS_VA + 4, CELLS_VA + 8), (kind, *rest))
+
+
 SPECS = {
     '4cf026': dict(id=1, va=0x4cf026, size=131, gen=gen_4cf026, cleanup=4, ret=True, n=len(profiles_4cf026()) * 3),
     '4cec6c': dict(id=2, va=0x4cec6c, size=139, gen=gen_4cec6c, cleanup=0, n=len(profiles_4cec6c()) * 3),
@@ -507,6 +578,7 @@ SPECS = {
     '4ceb8c': dict(id=4, va=0x4ceb8c, size=224, gen=gen_4ceb8c, cleanup=0, n=len(profiles_4ceb8c()) * 3),
     '4ccef1': dict(id=5, va=0x4ccef1, size=204, gen=gen_4ccef1, cleanup=0, n=len(profiles_4ccef1()) * 4),
     '4ce8ea': dict(id=6, va=0x4ce8ea, size=593, gen=gen_4ce8ea, cleanup=0, n=len(profiles_4ce8ea()) * 3),
+    '4cd243': dict(id=7, va=0x4cd243, size=1026, gen=gen_4cd243, cleanup=12, ret=True, n=len(profiles_4cd243()) * 3),
     # SPECS-INSERT
 }
 KEYS = list(SPECS)

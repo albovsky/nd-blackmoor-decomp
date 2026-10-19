@@ -35,6 +35,7 @@ import test_fl28c_direct as direct
 SRC = HERE.parent / 'src'
 FUNCS = {'4cf026': 'test_4cf026_find_record', '4cec6c': 'test_4cec6c_bump_counter', '4cf1e4': 'test_4cf1e4_alloc_clear', '4ceb8c': 'test_4ceb8c_load_rect'
          , '4ccef1': 'test_4ccef1_release_movie', '4ce8ea': 'test_4ce8ea_scan_step'
+         , '4cd243': 'test_4cd243_read_tables'
          # FUNCS-INSERT
          }
 

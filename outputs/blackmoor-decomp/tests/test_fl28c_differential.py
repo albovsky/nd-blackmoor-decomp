@@ -167,6 +167,10 @@ class Fl28cDifferential(DiffBase):
         """FL-28c: differential test of m4ce8ea_scan_step (original 0x4ce8ea)"""
         self.run_key('4ce8ea')
 
+    def test_4cd243_read_tables(self):
+        """FL-28c: differential test of m4cd243_read_tables (original 0x4cd243)"""
+        self.run_key('4cd243')
+
     # CASES-END
 
 

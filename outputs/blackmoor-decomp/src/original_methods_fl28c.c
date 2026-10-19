@@ -223,4 +223,98 @@ void m4ce8ea_scan_step(uint8_t *self, const Fl28cWorld *world, const Fl18Host *h
     }
 }
 
+/* ---- 0x4cd243 ------------------------------------------------------------------------------------------------------------------ */
+
+/* `rep movsd` of n / 4 dwords, then `rep movsb` of n % 4 bytes, forward */
+static void copy_forward(uint8_t *dst, const uint8_t *src, size_t n)
+{
+    size_t i;
+    for (i = 0; i + 4 <= n; i += 4) wr32(dst, (ptrdiff_t)i, rd32(src, (ptrdiff_t)i));
+    for (; i < n; i++) dst[i] = src[i];
+}
+
+/* the failure report shared by the four allocation failures of 0x4cd243 */
+static void tables_fail(const Fl28cWorld *world, const Fl18Host *host, uint32_t text, uint32_t text2)
+{
+    call4(host, 0x50ca3e, 0, 0x63888b, text, world->value_5bb57b, u32((uint32_t)(int32_t)world->word_5c39e3));
+    call2(host, 0x42639d, 0x583979, text2, 0x63888b);
+    call0(host, 0x4c97b4, 0x5cf659);
+}
+
+/* 0x4cd243, `ret 0xc`: see the header. [ebp-0x14] is `self`, [ebp+8] / [ebp+0xc] / [ebp+0x10] are `dst` / `src` / `tail`, [ebp-8] the index, [ebp-0xc] the running offset c,
+ * [ebp-0x10] the record, [ebp-4] the stream position s of the record. */
+int32_t m4cd243_read_tables(uint8_t *self, uint8_t *dst, uint8_t *src, uint8_t *tail, const Fl28cWorld *world, const Fl18Host *host)
+{
+    int32_t i;
+    uint32_t c, n, m;
+    if (rd32(self, 0x216) != 0) {
+        if (debug_on(world)) {
+            call3(host, 0x50ca3e, 0, 0x63888b, 0x55907c, u32((uint32_t)(int32_t)world->word_5c39e3));
+            call1(host, 0x44a2b7, 0, 0x63888b);
+        }
+        return 0;
+    }
+    wr32(self, 0x23e, (uint32_t)(int32_t)world->word_5c39e3);
+    if (call2(host, 0x4cf1e4, (uintptr_t)self, (uintptr_t)dst, 0x27) == 0) {
+        tables_fail(world, host, 0x5590f8, 0x559124);
+        return 0;
+    }
+    copy_forward(object_at(host, rd32(dst, 0)), object_at(host, rd32(src, 0)), 0x27);
+    wr32(tail, 0, rd32(tail, 0) + 0x27u);
+    wr32(src, 0, rd32(src, 0) + 0x27u);
+    wr32(self, 0x222, rd32(dst, 0));
+    n = (uint32_t)(rds16(object_at(host, rd32(self, 0x222)), 0x23) * 0x35);
+    if (call2(host, 0x4cf1e4, (uintptr_t)self, (uintptr_t)(self + 0x226), n) == 0) {
+        tables_fail(world, host, 0x559140, 0x559184);
+        return 0;
+    }
+    c = 0;
+    for (i = 0; i < rds16(object_at(host, rd32(self, 0x222)), 0x23); i++) {
+        uint32_t record = rd32(self, 0x226) + (uint32_t)i * 0x35u;
+        uint32_t at = rd32(src, 0) + c;
+        uint8_t *r = object_at(host, record);
+        const uint8_t *s = object_at(host, at);
+        copy_forward(r, s, 0x21);
+        c += 0x21;
+        wr16(r, 0x21, rd16(s, 0x21));
+        c += 2;
+        wr16(r, 0x23, rd16(s, 0x23));
+        c += 2;
+        wr32(r, 0x25, rd32(s, 0x25));
+        c += 4;
+        wr32(r, 0x29, rd32(s, 0x29));
+        c += 4;
+        wr16(r, 0x2d, rd16(s, 0x2d));
+        c += 2;
+        wr16(r, 0x2f, rd16(s, 0x2f));
+        c += 2;
+        m = (uint32_t)(rds16(r, 0x2f) * 0x23);
+        if (call2(host, 0x4cf1e4, (uintptr_t)self, u32(record + 0x31u), m) == 0) {
+            tables_fail(world, host, 0x5591a0, 0x5591e4);
+            return 0;
+        }
+        m = (uint32_t)(rds16(r, 0x2f) * 0x23);
+        if ((int32_t)m < 0) return 0;      /* native rejection: the original copies about 4 GB */
+        if (m != 0) copy_forward(object_at(host, rd32(r, 0x31)), object_at(host, rd32(src, 0) + c), m);
+        c += (uint32_t)(rds16(r, 0x2f) * 0x23);
+    }
+    wr32(tail, 0, rd32(tail, 0) + c);
+    wr32(src, 0, rd32(src, 0) + c);
+    n = (uint32_t)(rds16(object_at(host, rd32(self, 0x222)), 0x25) * 0x22);
+    if (call2(host, 0x4cf1e4, (uintptr_t)self, (uintptr_t)(self + 0x22a), n) == 0) {
+        tables_fail(world, host, 0x559200, 0x559240);
+        return 0;
+    }
+    if ((int32_t)n < 0) return 0;          /* native rejection: the original copies about 4 GB */
+    if (n != 0) copy_forward(object_at(host, rd32(self, 0x22a)), object_at(host, rd32(src, 0)), n);
+    n = (uint32_t)(rds16(object_at(host, rd32(self, 0x222)), 0x25) * 0x22);
+    wr32(tail, 0, rd32(tail, 0) + n);
+    wr32(src, 0, rd32(src, 0) + n);
+    if (debug_on(world)) {
+        call0(host, 0x4cf276, (uintptr_t)self);
+        call1(host, 0x44a2b7, 0, 0x55925c);
+    }
+    return 1;
+}
+
 /*SOURCE-INSERT*/

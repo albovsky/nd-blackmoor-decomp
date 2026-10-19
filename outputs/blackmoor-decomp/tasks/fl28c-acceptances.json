@@ -1,0 +1,245 @@
+[
+  {
+    "va": "0x4cf026",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4cf026_find_record"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4cf026_find_record"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4cf026_find_record"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4cf026_find_record"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4cf026",
+        "0x4cf0a9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4cf026_find_record (record index search). Oracle: 42/42 instructions of the 131 code bytes, 8/8 jcc directions, 75 scenarios. See tasks/fl28c-handoff.md."
+  },
+  {
+    "va": "0x4cec6c",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4cec6c_bump_counter"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4cec6c_bump_counter"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4cec6c_bump_counter"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4cec6c_bump_counter"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4cec6c",
+        "0x4cecf7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4cec6c_bump_counter (counter bump and clamp). Oracle: 39/39 instructions of the 139 code bytes, 8/8 jcc directions, 225 scenarios. See tasks/fl28c-handoff.md."
+  },
+  {
+    "va": "0x4cf1e4",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4cf1e4_alloc_clear"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4cf1e4_alloc_clear"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4cf1e4_alloc_clear"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4cf1e4_alloc_clear"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4cf1e4",
+        "0x4cf276"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4cf1e4_alloc_clear (alloc and clear, failure report). Oracle: 47/47 instructions of the 146 code bytes, 4/4 jcc directions, 165 scenarios. See tasks/fl28c-handoff.md.",
+    "blockers_reviewed": [
+      {
+        "id": "A-2E.1:98d39096d37b0362",
+        "rationale": "The located item is the allocation-failure path at 0x4cf20b..0x4cf250 (the 0x50ca3e report, 0x4264e8, the debug-word 0x44a2b7, 0x4c97b4 and the zero return). It is reached by the original-only oracle (47/47 instructions, 4/4 conditional-jump directions, five failure scenarios per debug value 0, 1, 0x8000, 0x100, 0xffff) and by the differential and direct tests against the port, which compares the ordered calls and their arguments; the callees' own bodies (the fatal-logging internals) are not part of this function and stay open."
+      }
+    ]
+  },
+  {
+    "va": "0x4ceb8c",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4ceb8c_load_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4ceb8c_load_rect"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4ceb8c_load_rect"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4ceb8c_load_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4ceb8c",
+        "0x4cec6c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4ceb8c_load_rect (rectangle load with origin). Oracle: 60/60 instructions of the 224 code bytes, 6/6 jcc directions, 81 scenarios. See tasks/fl28c-handoff.md."
+  },
+  {
+    "va": "0x4ccef1",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4ccef1_release_movie"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4ccef1_release_movie"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4ccef1_release_movie"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4ccef1_release_movie"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4ccef1",
+        "0x4ccfbd"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4ccef1_release_movie (movie release incl. virtual delete). Oracle: 59/59 instructions of the 204 code bytes, 4/4 jcc directions, 40 scenarios. See tasks/fl28c-handoff.md."
+  },
+  {
+    "va": "0x4ce8ea",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4ce8ea_scan_step"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4ce8ea_scan_step"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4ce8ea_scan_step"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4ce8ea_scan_step"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4ce8ea",
+        "0x4ceb3b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4ce8ea_scan_step (two-arm scan state machine). Oracle: 154/154 instructions of the 593 code bytes, 20/20 jcc directions, 174 scenarios. See tasks/fl28c-handoff.md."
+  },
+  {
+    "va": "0x4cd243",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28c.c",
+      "symbol": "m4cd243_read_tables"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28c_direct_test.c",
+        "test_id": "test_m4cd243_read_tables"
+      },
+      {
+        "path": "tests/test_fl28c_direct.py",
+        "test_id": "Fl28cDirect.test_4cd243_read_tables"
+      },
+      {
+        "path": "tests/test_fl28c_differential.py",
+        "test_id": "Fl28cDifferential.test_4cd243_read_tables"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28c_original_oracle.py",
+      "window": [
+        "0x4cd243",
+        "0x4cd645"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "1:1 with m4cd243_read_tables (scene-table reader). Oracle: 302/302 instructions of the 1026 code bytes, 16/16 jcc directions, 234 scenarios. See tasks/fl28c-handoff.md.",
+    "blockers_reviewed": [
+      {
+        "id": "A-2D.1:2351c9c937e38a7d",
+        "rationale": "The located items (0x4cd25a, 0x4cd289, 0x4cd618, 0x4cd635) are the debug-word branches: the busy-guard trace (0x50ca3e with three arguments, 0x44a2b7) and the tail (0x4cf276, 0x44a2b7). The original-only oracle takes both directions of each (302/302 instructions, 16/16 jcc directions, debug values 0, 1 and 0x8000) and the differential and direct tests compare the ordered calls and arguments with the port. The bodies of 0x4cf276 (dump) and the 0x40b43e logging it reaches are separate functions and stay open."
+      }
+    ]
+  }
+]
