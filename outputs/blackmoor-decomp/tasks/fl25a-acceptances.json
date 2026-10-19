@@ -1,0 +1,35 @@
+[
+ {
+  "va": "0x45e1ca",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25a implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25a.c",
+   "symbol": "m45e1ca_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25a_direct_test.c",
+    "test_id": "test_m45e1ca_hit_test"
+   },
+   {
+    "path": "tests/test_fl25a_direct.py",
+    "test_id": "Fl25aDirect.test_45e1ca_hit_test"
+   },
+   {
+    "path": "tests/test_fl25a_differential.py",
+    "test_id": "Fl25aDifferential.test_45e1ca_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25a_original_oracle.py",
+   "window": [
+    "0x45e1ca",
+    "0x45e4d4"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m45e1ca_hit_test (hit test (ret 8): arm A loop, arm B double loop, tail rectangle; calls 0x45e4d4 with 0x27ed/0x27ec/0x27ef). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken. See tasks/fl25a-handoff.md."
+ }
+]
