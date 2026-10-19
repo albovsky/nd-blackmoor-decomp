@@ -165,6 +165,10 @@ class Fl27bDifferential(DiffBase):
         """FL-27b: differential test of m4c5377_blit_rows (original 0x4c5377)"""
         self.run_key('4c5377')
 
+    def test_4c04e3_start_movie(self):
+        """FL-27b: differential test of m4c04e3_start_movie (original 0x4c04e3)"""
+        self.run_key('4c04e3')
+
     # CASES-END
 
 

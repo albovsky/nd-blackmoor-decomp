@@ -36,6 +36,7 @@ typedef struct Fl27bWorld {
     int16_t word_639895, word_639893;   /* 0x4c2c3a: the bytes per pixel factor (read as signed) and the word copied to [+0x33] */
     uint8_t *player_637fd7;    /* the movie player object at 0x637fd7: 0x4c0d3f reads the flags at +0x20e (0x6381e5), +0x212 (0x6381e9), +0x216 (0x6381ed), the dwords +0x172 / +0x176, the rectangle at +0x1d6 (0x6381ad) and +0x1e6 (0x6381bd), and clears the word +0x1cc */
     uint8_t *rect_583122;      /* the rectangle of four dwords at 0x583122 */
+    uint8_t *records_5bb5e5;   /* records of stride 0x8d (0x4c04e3 stores the dword 2 at +0x4d of record n: the address 0x5bb632 + 0x8d n) */
     uint32_t value_5d19f7, value_5d19f3, value_5cf665, value_5d19ef;   /* 0x4c0d3f: the dwords passed on to 0x4c5377 */
 } Fl27bWorld;
 
@@ -97,6 +98,14 @@ void m4c0d3f_present_rect(Fl27bWorld *world, const Fl18Host *host);
  * descriptor desc is a zero-initialised local of 0x7c bytes (the original leaves it to the callee; the callee must fill the two fields). Caller-validated: the addresses must resolve to memory valid for
  * the rows that are read and written (Fl18Host.resolve is called unchecked on the source and destination of every row). */
 int32_t m4c5377_blit_rows(uint8_t *self, uint32_t surf, uint32_t idx, uint32_t r1, uint32_t r2, uint32_t arg, const Fl27bWorld *world, const Fl18Host *host);
+
+/* 0x4c04e3, thiscall (`self` = ecx), `ret 4` (the stack argument is the word `rec`, sign-extended, the record number): the dword [self+0x1da] is the state; state 0 and state 4 are handled, every other value
+ * (as a dword) does nothing. State 0: the trace 0x50ca3e(0x63888b, 0x5529e0) + 0x44a2b7(0x63888b) (debug word only), then, when 0x4bef85(this 0x6201f9, [self+0x18e]) is non-zero: 0x4befc8(this 0x6201f9, h),
+ * 0x4bf098(this 0x6201f9, h, dword [o], sext word [o+0x2f], sext word [o+0x2d], 0, 0) with h = [self+0x18e] and o = the object at the address [self+0x222], word [self+0x244] = 0x4bee2c(this 0x6201f9, h) - 1,
+ * 0x4c0ab1(this self), [self+0x216] = 1, [self+0x240] = 2, [self+0x21a] = 1, 0x4c08d3(this self); then, when 0x4bf10f(this 0x6201f9, h) is non-zero: [self+0x1da] = 4 (+ trace 0x552a14), else the dword 2 at
+ * +0x4d of the record `rec` (+ trace 0x552a58). State 4: the same sequence when 0x4bef85 is non-zero but without [self+0x21a] = 1 and without the trace at the start, and the record store (+ trace 0x552ac4)
+ * happens when 0x4bf10f is ZERO (a non-zero result leaves the state alone). Each trace only with the debug word set (read at its place). */
+void m4c04e3_start_movie(uint8_t *self, int16_t rec, const Fl27bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

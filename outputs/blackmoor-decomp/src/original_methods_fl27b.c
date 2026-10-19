@@ -50,6 +50,11 @@ static uint32_t call2(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr,
     return calln(host, callee, this_ptr, 2, a0, a1, 0, 0, 0);
 }
 
+static uint32_t callv(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int n)
+{
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, n) : 0;
+}
+
 /* the object of an original address (an address that an object keeps), as host memory */
 static uint16_t rd16(const uint8_t *base, ptrdiff_t off)
 {
@@ -303,10 +308,6 @@ void m4c0d3f_present_rect(Fl27bWorld *world, const Fl18Host *host)
 
 /* ---- 0x4c5377 ------------------------------------------------------------------------------------------------------------------ */
 
-static uint32_t callv(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int n)
-{
-    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, n) : 0;
-}
 
 /* `rep movsd` (count / 4 dwords) then `rep movsb` (count % 4 bytes), forward, a dword read before it is written: the same result as the original where the two blocks overlap */
 static void rep_movs(uint8_t *dst, const uint8_t *src, uint32_t count)
@@ -381,4 +382,58 @@ int32_t m4c5377_blit_rows(uint8_t *self, uint32_t surf, uint32_t idx, uint32_t r
     calln(host, 0x4c4202, (uintptr_t)self, 3, idx, r2, 0x554990, 0, 0);
     if (idx == rd32(self, 0xc)) call1(host, 0x4c952f, (uintptr_t)self, r2);
     return 0;
+}
+
+/* ---- 0x4c04e3 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the sequence that states 0 and 4 share (0x4befc8 .. 0x4c08d3), with the stores in the original order; `first` selects the state-0 store [self+0x21a] = 1 */
+static void start_sequence(uint8_t *self, const Fl18Host *host, int first)
+{
+    uint32_t r;
+    call1(host, 0x4befc8, 0x6201f9, rd32(self, 0x18e));
+    {
+        uintptr_t args[6];
+        args[0] = rd32(self, 0x18e);
+        args[1] = rd32(object_at(host, rd32(self, 0x222)), 0);
+        args[2] = (uint32_t)(int32_t)(int16_t)rd16(object_at(host, rd32(self, 0x222)), 0x2f);
+        args[3] = (uint32_t)(int32_t)(int16_t)rd16(object_at(host, rd32(self, 0x222)), 0x2d);
+        args[4] = 0;
+        args[5] = 0;
+        callv(host, 0x4bf098, 0x6201f9, args, 6);
+    }
+    r = call1(host, 0x4bee2c, 0x6201f9, rd32(self, 0x18e));
+    wr16(self, 0x244, (uint16_t)(r - 1u));
+    call0(host, 0x4c0ab1, (uintptr_t)self);
+    wr32(self, 0x216, 1);
+    wr32(self, 0x240, 2);
+    if (first) wr32(self, 0x21a, 1);
+    call0(host, 0x4c08d3, (uintptr_t)self);
+}
+
+/* 0x4c04e3, `ret 4`: see the header. [ebp-4] is `self`, [ebp-8] the state dword (compared with 0, then with 4). The object [self+0x222] and the handle [self+0x18e] are read again at every use. */
+void m4c04e3_start_movie(uint8_t *self, int16_t rec, const Fl27bWorld *world, const Fl18Host *host)
+{
+    uint32_t state = rd32(self, 0x1da);
+    if (state == 0) {
+        if (debug_on(world)) {
+            call2(host, 0x50ca3e, 0, 0x63888b, 0x5529e0);
+            call1(host, 0x44a2b7, 0, 0x63888b);
+        }
+        if (call1(host, 0x4bef85, 0x6201f9, rd32(self, 0x18e)) == 0) return;
+        start_sequence(self, host, 1);
+        if (call1(host, 0x4bf10f, 0x6201f9, rd32(self, 0x18e)) != 0) {
+            wr32(self, 0x1da, 4);
+            if (debug_on(world)) call1(host, 0x44a2b7, 0, 0x552a14);
+        } else {
+            wr32(world->records_5bb5e5, (ptrdiff_t)((int32_t)rec * 0x8d + 0x4d), 2);
+            if (debug_on(world)) call1(host, 0x44a2b7, 0, 0x552a58);
+        }
+    } else if (state == 4) {
+        if (call1(host, 0x4bef85, 0x6201f9, rd32(self, 0x18e)) == 0) return;
+        start_sequence(self, host, 0);
+        if (call1(host, 0x4bf10f, 0x6201f9, rd32(self, 0x18e)) == 0) {
+            wr32(world->records_5bb5e5, (ptrdiff_t)((int32_t)rec * 0x8d + 0x4d), 2);
+            if (debug_on(world)) call1(host, 0x44a2b7, 0, 0x552ac4);
+        }
+    }
 }

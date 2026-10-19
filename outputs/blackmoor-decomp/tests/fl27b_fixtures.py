@@ -591,6 +591,48 @@ def gen_4c5377(rng, n):
     return make('4c5377', areas, stubs, g, stack, tuple(stack), (kind, *rest))
 
 
+RECORDS_VA = 0x5bb5e5
+REC = 0x8d
+NZ_RESULTS = [1, 0x100, 0x80000000, 0xffffffff]
+
+
+def profiles_4c04e3():
+    profiles = []
+    for state in (0, 4):
+        for ok in (0, 1, 0x100):
+            for f in (0, 1, 0x10000, 0xffffffff):
+                if ok == 0 and f != 0:
+                    continue
+                for d in (0, 1, 0x100):
+                    profiles.append(('state', state, ok, f, d))
+    profiles += [('other', st, d) for st in (1, 2, 3, 5, 0x100, 0x10000, 0x01000000, 0xffffffff, 0x80000000) for d in (0, 1)]
+    return profiles
+
+
+def gen_4c04e3(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4c04e3())
+    state, ok, f, dbg = (rest[0], rest[1], rest[2], rest[3]) if kind == 'state' else (rest[0], 0, 0, rest[1])
+    d = bytearray(rng.randbytes(0x260))
+    put32(d, 0x1da, state)
+    put32(d, 0x222, od.region_va(1))
+    obj = bytearray(rng.randbytes(0x40))
+    put16(obj, 0x2d, rng.choice([0, 1, 0x7fff, 0x8000, 0xffff, rng.randrange(0x10000)]))
+    put16(obj, 0x2f, rng.choice([0, 2, 0x7ffe, 0x8001, 0xfffe, rng.randrange(0x10000)]))
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    rec = bytearray(rng.randbytes(6 * REC))
+    for i in range(-1, 5):
+        put32(rec, (i + 1) * REC + 0x4d, rng.choice([0, 1, 3, 0xffffffff, 0x10002]))
+    r_ee2c = rng.choice([0, 1, 2, 0x10001, 0xffffffff, 0x12345, rng.randrange(1 << 32)])
+    probe = [('self', 0, 0x260), ('records', 0, 6 * REC)]
+    stubs = {0x4bef85: stub(0x4bef85, THISCALL(1), probe, results=[ok]), 0x4befc8: stub(0x4befc8, THISCALL(1), probe), 0x4bf098: stub(0x4bf098, THISCALL(6), probe),
+             0x4bee2c: stub(0x4bee2c, THISCALL(1), probe, results=[r_ee2c]), 0x4c0ab1: stub(0x4c0ab1, (0, True, 0), probe), 0x4c08d3: stub(0x4c08d3, (0, True, 0), probe),
+             0x4bf10f: stub(0x4bf10f, THISCALL(1), probe, results=[f]), 0x50ca3e: stub(0x50ca3e, CDECL(2), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe)}
+    g, nbr = debug_areas(rng, dbg)
+    areas = [Area('self', od.region_va(0), d, image=False), Area('obj', od.region_va(1), obj, image=False), Area('records', RECORDS_VA - REC, rec), *nbr]
+    stack = [(rng.randrange(1 << 16) << 16) | (idx & 0xffff)]
+    return make('4c04e3', areas, stubs, g, stack, (idx,), (kind, *rest), pointers={'records_5bb5e5': ('records', REC)})
+
+
 SPECS = {
     '449bff': dict(id=1, va=0x449bff, size=253, gen=gen_449bff, cleanup=0, n=len(profiles_449bff()) * 3),
     '449a94': dict(id=2, va=0x449a94, size=273, gen=gen_449a94, cleanup=0, n=len(profiles_449a94()) * 3),
@@ -598,6 +640,7 @@ SPECS = {
     '4c2c3a': dict(id=5, va=0x4c2c3a, size=449, gen=gen_4c2c3a, ret=True, cleanup=0x14, n=len(profiles_4c2c3a()) * 4),
     '4c0d3f': dict(id=6, va=0x4c0d3f, size=497, code=483, gen=gen_4c0d3f, cleanup=0, n=len(profiles_4c0d3f()) * 4),
     '4c5377': dict(id=7, va=0x4c5377, size=532, gen=gen_4c5377, cleanup=0x14, n=len(profiles_4c5377()) * 3),
+    '4c04e3': dict(id=8, va=0x4c04e3, size=657, gen=gen_4c04e3, cleanup=4, n=len(profiles_4c04e3()) * 3),
     '4161d1': dict(id=4, va=0x4161d1, size=346, gen=gen_4161d1, cleanup=4, n=len(profiles_4161d1()) * 4),
 }
 KEYS = list(SPECS)

@@ -172,7 +172,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F27B_449BFF = 1, F27B_449A94, F27B_4BF773, F27B_4161D1, F27B_4C2C3A, F27B_4C0D3F, F27B_4C5377 /*ENUM*/ };
+enum { F27B_449BFF = 1, F27B_449A94, F27B_4BF773, F27B_4161D1, F27B_4C2C3A, F27B_4C0D3F, F27B_4C5377, F27B_4C04E3 /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values (original addresses of pointers into a fixture region,
  * 32-bit values otherwise). `result` is the return value of the ports that have one. The world is the host context, so that each logged call keeps a snapshot
@@ -195,6 +195,7 @@ void shim_fl27b(int fn, uint8_t *self, const uintptr_t *a, Fl27bWorld *w, int32_
     case F27B_4C2C3A: *result = (int32_t)m4c2c3a_make_record(self, (int16_t)a[0], (int16_t)a[1], (uint32_t)a[2], (uint32_t)a[3], (uint32_t)a[4], w, &host); break;
     case F27B_4C0D3F: m4c0d3f_present_rect(w, &host); break;
     case F27B_4C5377: *result = m4c5377_blit_rows(self, (uint32_t)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3], (uint32_t)a[4], w, &host); break;
+    case F27B_4C04E3: m4c04e3_start_movie(self, (int16_t)a[0], w, &host); break;
     /*CASES*/
     default: break;
     }

@@ -33,7 +33,7 @@ static char g_msg[256];
 #define OBJ2_VA 0x20030000u
 #define VT_STUB_A 0x7e000900u
 #define VT_STUB_B 0x7e000a00u
-#define SNAP 0x240
+#define SNAP 0x260
 
 static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
 static uint32_t get32(const uint8_t *o, size_t off)
@@ -44,11 +44,11 @@ static uint32_t get32(const uint8_t *o, size_t off)
 }
 
 static struct {
-    uint8_t self[SELF_SZ], obj[OBJ_SZ], obj2[OBJ_SZ], vt[0x100], name[0x100], player[0x220], rectd[0x20], sf[0x40], px[0x100], dt[0x100], rc[0x20];
+    uint8_t self[SELF_SZ], obj[OBJ_SZ], obj2[OBJ_SZ], vt[0x100], name[0x100], player[0x220], rectd[0x20], rec[6 * 0x8d], sf[0x40], px[0x100], dt[0x100], rc[0x20];
     Fl27bWorld w;
     Fl18Host host;
 } fx;
-static uint8_t exp_self[SELF_SZ], exp_obj[OBJ_SZ], exp_obj2[OBJ_SZ], exp_name[0x100], exp_player[0x220], exp_rectd[0x20], exp_sf[0x40], exp_px[0x100], exp_dt[0x100], exp_rc[0x20];
+static uint8_t exp_self[SELF_SZ], exp_obj[OBJ_SZ], exp_obj2[OBJ_SZ], exp_name[0x100], exp_player[0x220], exp_rectd[0x20], exp_rec[6 * 0x8d], exp_sf[0x40], exp_px[0x100], exp_dt[0x100], exp_rc[0x20];
 
 #define MAXCALL 64
 static struct {
@@ -62,6 +62,7 @@ static struct {
         uint8_t snap_obj[OBJ_SZ];
         uint32_t w_value;      /* Fl27bWorld.value_63a58a at the call */
         uint8_t snap_player[0x220];
+        uint8_t snap_rec[6 * 0x8d];
         int has_loc;           /* a call with two host pointers (locals): their 16 bytes at the call */
         int32_t out[4], isect[4];
     } c[MAXCALL];
@@ -100,6 +101,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         memcpy(L.c[i].snap_obj, fx.obj, OBJ_SZ);
         L.c[i].w_value = fx.w.value_63a58a;
         memcpy(L.c[i].snap_player, fx.player, sizeof fx.player);
+        memcpy(L.c[i].snap_rec, fx.rec, sizeof fx.rec);
         L.c[i].has_loc = 0;
         if (callee == 0x4c5377 && nargs == 5 && args[2] > 0xffffffffu && args[3] > 0xffffffffu) {
             memcpy(L.c[i].out, (const void *)args[2], 16);
@@ -1417,6 +1419,218 @@ static void test_m4c5377_blit_rows(void)
     expect_blit_end();
 }
 
+/* ---- 0x4c04e3 -------------------------------------------------------------------------------------------------------------------- */
+
+static void setup_movie(uint32_t state, uint32_t ok, uint32_t f, uint32_t r_ee2c, int16_t dbg)
+{
+    uint32_t okv[1], fv[1], rv[1];
+    size_t b;
+    setup();
+    for (b = 0; b < sizeof fx.rec; b++) fx.rec[b] = 0xA5;
+    fx.w.records_5bb5e5 = fx.rec + 0x8d;
+    fx.w.word_63a4cd = dbg;
+    set32(fx.self, 0x1da, state);
+    set32(fx.self, 0x18e, 0x1357);
+    set32(fx.self, 0x222, OBJ_VA);
+    set32(fx.obj, 0, 0xaabbccddu);
+    set16(fx.obj, 0x2d, 0xfffe);
+    set16(fx.obj, 0x2f, 0x8001);
+    okv[0] = ok;
+    fv[0] = f;
+    rv[0] = r_ee2c;
+    script(0x4bef85, 1, okv);
+    script(0x4bf10f, 1, fv);
+    script(0x4bee2c, 1, rv);
+}
+
+static void expect_movie_begin(void)
+{
+    expect_begin();
+    memcpy(exp_rec, fx.rec, sizeof exp_rec);
+}
+
+static void expect_movie_end_at(int line)
+{
+    expect_end_at(line);
+    if (!g_failed && memcmp(exp_rec, fx.rec, sizeof exp_rec) != 0) {
+        g_failed = 1;
+        snprintf(g_msg, sizeof g_msg, "line %d: the record table differs from the expected copy", line);
+    }
+}
+
+#define expect_movie_end() expect_movie_end_at(__LINE__)
+
+#define H 0x6201f9u
+
+/* the calls of the shared sequence from index n on (0x4befc8, 0x4bf098, 0x4bee2c, 0x4c0ab1, 0x4c08d3, 0x4bf10f) */
+static void ck_sequence(int n)
+{
+    CKC(n, 0x4befc8, H, 0x1357);
+    CKC(n + 1, 0x4bf098, H, 0x1357, 0xaabbccddu, 0xffff8001u, 0xfffffffeu, 0, 0);
+    CKC(n + 2, 0x4bee2c, H, 0x1357);
+    CKC0(n + 3, 0x4c0ab1, SELFP);
+    CKC0(n + 4, 0x4c08d3, SELFP);
+    CKC(n + 5, 0x4bf10f, H, 0x1357);
+}
+
+static void test_m4c04e3_start_movie(void)
+{
+    static const int16_t idxs[] = {-1, 0, 2, 4};
+    unsigned k;
+    /* state 0, 0x4bef85 non-zero, 0x4bf10f non-zero, debug off: the sequence; [+0x244] = result - 1 (word), [+0x216] = 1, [+0x240] = 2, [+0x21a] = 1, then [+0x1da] = 4; no record store */
+    setup_movie(0, 1, 1, 0x10005, 0);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, 2, &fx.w, &fx.host);
+    set16(exp_self, 0x244, 4);
+    set32(exp_self, 0x216, 1);
+    set32(exp_self, 0x240, 2);
+    set32(exp_self, 0x21a, 1);
+    set32(exp_self, 0x1da, 4);
+    CKN(7);
+    CKC(0, 0x4bef85, H, 0x1357);
+    ck_sequence(1);
+    CK(get32(L.c[4].snap_self, 0x216) == 0xA5A5A5A5u && L.c[4].snap_self[0x244] == 4);          /* 0x4c0ab1 comes after the word store, before [+0x216] */
+    CK(get32(L.c[5].snap_self, 0x216) == 1 && get32(L.c[5].snap_self, 0x240) == 2 && get32(L.c[5].snap_self, 0x21a) == 1 && get32(L.c[5].snap_self, 0x1da) == 0);
+    CK(get32(L.c[6].snap_self, 0x1da) == 0);
+    expect_movie_end();
+    /* 0x4bf10f zero: the record `rec` (signed word, stride 0x8d) gets the dword 2 at +0x4d; [+0x1da] stays 0 */
+    for (k = 0; k < sizeof idxs / sizeof idxs[0]; k++) {
+        setup_movie(0, 1, 0, 1, 0);
+        expect_movie_begin();
+        m4c04e3_start_movie(fx.self, idxs[k], &fx.w, &fx.host);
+        set16(exp_self, 0x244, 0);
+        set32(exp_self, 0x216, 1);
+        set32(exp_self, 0x240, 2);
+        set32(exp_self, 0x21a, 1);
+        set32(exp_rec, (size_t)((idxs[k] + 1) * 0x8d + 0x4d), 2);
+        CKN(7);
+        expect_movie_end();
+    }
+    /* the word store wraps: a result of 0 gives 0xffff, 0x10000 gives 0xffff, 0xffffffff gives 0xfffe */
+    {
+        static const uint32_t rs[] = {0, 0x10000, 0xffffffffu, 0x12345};
+        static const uint16_t want[] = {0xffff, 0xffff, 0xfffe, 0x2344};
+        for (k = 0; k < 4; k++) {
+            setup_movie(0, 1, 1, rs[k], 0);
+            expect_movie_begin();
+            m4c04e3_start_movie(fx.self, 0, &fx.w, &fx.host);
+            set16(exp_self, 0x244, want[k]);
+            set32(exp_self, 0x216, 1);
+            set32(exp_self, 0x240, 2);
+            set32(exp_self, 0x21a, 1);
+            set32(exp_self, 0x1da, 4);
+            expect_movie_end();
+        }
+    }
+    /* debug on (any non-zero word): the first trace 0x50ca3e(0x63888b, 0x5529e0), 0x44a2b7(0x63888b) before 0x4bef85; the closing trace after the 0x4bf10f branch (0x552a14 when it is non-zero) */
+    {
+        static const int16_t on[] = {1, 0x100, -32768, -1};
+        for (k = 0; k < sizeof on / sizeof on[0]; k++) {
+            setup_movie(0, 1, 1, 3, on[k]);
+            expect_movie_begin();
+            m4c04e3_start_movie(fx.self, 1, &fx.w, &fx.host);
+            set16(exp_self, 0x244, 2);
+            set32(exp_self, 0x216, 1);
+            set32(exp_self, 0x240, 2);
+            set32(exp_self, 0x21a, 1);
+            set32(exp_self, 0x1da, 4);
+            CKN(10);
+            CKC(0, 0x50ca3e, 0, 0x63888b, 0x5529e0);
+            CKC(1, 0x44a2b7, 0, 0x63888b);
+            CKC(2, 0x4bef85, H, 0x1357);
+            ck_sequence(3);
+            CKC(9, 0x44a2b7, 0, 0x552a14);
+            CK(get32(L.c[9].snap_self, 0x1da) == 4);
+            expect_movie_end();
+        }
+    }
+    /* debug on, 0x4bf10f zero: the record is stored before the trace 0x552a58 */
+    setup_movie(0, 1, 0, 3, 1);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, 3, &fx.w, &fx.host);
+    set16(exp_self, 0x244, 2);
+    set32(exp_self, 0x216, 1);
+    set32(exp_self, 0x240, 2);
+    set32(exp_self, 0x21a, 1);
+    set32(exp_rec, (size_t)((3 + 1) * 0x8d + 0x4d), 2);
+    CKN(10);
+    CKC(9, 0x44a2b7, 0, 0x552a58);
+    CK(get32(L.c[9].snap_rec, (4 * 0x8d) + 0x4d) == 2);
+    expect_movie_end();
+    /* 0x4bef85 zero (every dword: 0x4bef85 non-zero is the test of the whole eax): nothing else happens in either state, also with the debug word on (state 0 traces first) */
+    {
+        static const uint32_t oks[] = {1, 0x100, 0x80000000u, 0xffffffffu};
+        for (k = 0; k < sizeof oks / sizeof oks[0]; k++) {
+            setup_movie(0, oks[k], 1, 3, 0);
+            expect_movie_begin();
+            m4c04e3_start_movie(fx.self, 1, &fx.w, &fx.host);
+            set16(exp_self, 0x244, 2);
+            set32(exp_self, 0x216, 1);
+            set32(exp_self, 0x240, 2);
+            set32(exp_self, 0x21a, 1);
+            set32(exp_self, 0x1da, 4);
+            CKN(7);
+            expect_movie_end();
+        }
+    }
+    setup_movie(0, 0, 1, 3, 1);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, 1, &fx.w, &fx.host);
+    CKN(3);
+    CKC(2, 0x4bef85, H, 0x1357);
+    expect_movie_end();
+    setup_movie(4, 0, 1, 3, 1);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, 1, &fx.w, &fx.host);
+    CKN(1);
+    CKC(0, 0x4bef85, H, 0x1357);
+    expect_movie_end();
+    /* state 4: no first trace, no [+0x21a], the state stays 4; with 0x4bf10f non-zero nothing more */
+    setup_movie(4, 1, 1, 0x10005, 1);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, 2, &fx.w, &fx.host);
+    set16(exp_self, 0x244, 4);
+    set32(exp_self, 0x216, 1);
+    set32(exp_self, 0x240, 2);
+    CKN(7);
+    CKC(0, 0x4bef85, H, 0x1357);
+    ck_sequence(1);
+    CK(get32(L.c[5].snap_self, 0x216) == 1 && get32(L.c[5].snap_self, 0x240) == 2 && get32(L.c[5].snap_self, 0x21a) == 0xA5A5A5A5u);
+    expect_movie_end();
+    /* state 4 and 0x4bf10f zero: the record store and the trace 0x552ac4 */
+    setup_movie(4, 1, 0, 0x10005, 1);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, 2, &fx.w, &fx.host);
+    set16(exp_self, 0x244, 4);
+    set32(exp_self, 0x216, 1);
+    set32(exp_self, 0x240, 2);
+    set32(exp_rec, (size_t)((2 + 1) * 0x8d + 0x4d), 2);
+    CKN(8);
+    CKC(7, 0x44a2b7, 0, 0x552ac4);
+    CK(get32(L.c[7].snap_rec, 3 * 0x8d + 0x4d) == 2);
+    expect_movie_end();
+    setup_movie(4, 1, 0, 3, 0);
+    expect_movie_begin();
+    m4c04e3_start_movie(fx.self, -1, &fx.w, &fx.host);
+    set16(exp_self, 0x244, 2);
+    set32(exp_self, 0x216, 1);
+    set32(exp_self, 0x240, 2);
+    set32(exp_rec, 0x4d, 2);
+    CKN(7);
+    expect_movie_end();
+    /* any other state (a dword compare: 0x100, 0x10000, 0x01000000, 0x80000000 and 0xffffffff are not 0 or 4): nothing is called or stored */
+    {
+        static const uint32_t others[] = {1, 2, 3, 5, 0x100, 0x10000, 0x01000000, 0x80000000u, 0xffffffffu, 0x104, 0x10004};
+        for (k = 0; k < sizeof others / sizeof others[0]; k++) {
+            setup_movie(others[k], 1, 1, 3, 1);
+            expect_movie_begin();
+            m4c04e3_start_movie(fx.self, 1, &fx.w, &fx.host);
+            CKN(0);
+            expect_movie_end();
+        }
+    }
+}
+
 /* ---- sweep (for the sanitiser builds) -------------------------------------------------------------------------------------------- */
 
 static uint32_t g_rng = 12345;
@@ -1505,6 +1719,11 @@ static void test_sweep_bounded(void)
             fx.w.word_63a4cd = (int16_t)(rnd() & 1);
             (void)m4c5377_blit_rows(fx.self, (rnd() & 7) ? SF_VA : 0, rnd() & 3, RC_VA, RC_VA + 0x10, rnd(), &fx.w, &fx.host);
         }
+        /* 0x4c04e3 */
+        L.n = 0;
+        g_nscript = 0;
+        setup_movie((uint32_t)((rnd() & 1) ? 4 : (rnd() & 1) ? 0 : rnd()), rnd() & 1, rnd() & 1, rnd(), (int16_t)(rnd() & 1));
+        m4c04e3_start_movie(fx.self, (int16_t)((int)(rnd() % 6) - 1), &fx.w, &fx.host);
     }
 }
 
@@ -1531,6 +1750,7 @@ int main(void)
     RUN(test_m4c2c3a_make_record);
     RUN(test_m4c0d3f_present_rect);
     RUN(test_m4c5377_blit_rows);
+    RUN(test_m4c04e3_start_movie);
     /* TESTS-END */
     RUN(test_sweep_bounded);
     return failures;

@@ -25,6 +25,7 @@ EXPECTED = [
     'test_m4c2c3a_make_record',
     'test_m4c0d3f_present_rect',
     'test_m4c5377_blit_rows',
+    'test_m4c04e3_start_movie',
     'test_sweep_bounded',
 ]
 
@@ -97,6 +98,10 @@ class Fl27bDirect(unittest.TestCase):
     def test_4c5377_blit_rows(self):
         """FL-27b: direct test of m4c5377_blit_rows"""
         self.check('test_m4c5377_blit_rows')
+
+    def test_4c04e3_start_movie(self):
+        """FL-27b: direct test of m4c04e3_start_movie"""
+        self.check('test_m4c04e3_start_movie')
 
     # CASES-END
 
