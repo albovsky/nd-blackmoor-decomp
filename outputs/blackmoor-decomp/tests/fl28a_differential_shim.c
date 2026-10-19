@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F28A_4235FD = 1, F28A_4FC808, F28A_4237F7, F28A_4236D6, F28A_4F80D3, F28A_42356D, F28A_4FB2E3, F28A_423368, F28A_4F356E /*ENUM*/ };
+enum { F28A_4235FD = 1, F28A_4FC808, F28A_4237F7, F28A_4236D6, F28A_4F80D3, F28A_42356D, F28A_4FB2E3, F28A_423368, F28A_4F356E, F28A_4FADC4 /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values (original addresses of pointers into a fixture region,
  * 32-bit values otherwise). `result` is the return value of the ports that have one (a pointer is returned as its host address). The world is the
@@ -212,6 +212,7 @@ void shim_fl28a(int fn, uint8_t *self, const uintptr_t *a, Fl28aWorld *w, uint64
     case F28A_4FB2E3: m4fb2e3_start_slot(self, (uint32_t)a[0], w, &host); break;
     case F28A_423368: *result = (uint32_t)m423368_hash_name((uint32_t)a[0], &host); break;
     case F28A_4F356E: *result = m4f356e_unload(self, (uint32_t)a[0], &host); break;
+    case F28A_4FADC4: *result = m4fadc4_set_name(self, (uint32_t)a[0], (uint32_t)a[1], w, &host); break;
     /*CASES*/
     default: break;
     }

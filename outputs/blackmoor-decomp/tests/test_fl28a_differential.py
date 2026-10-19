@@ -181,6 +181,10 @@ class Fl28aDifferential(DiffBase):
         """FL-28a: differential test of m4f356e_unload (original 0x4f356e)"""
         self.run_key('4f356e')
 
+    def test_4fadc4_set_name(self):
+        """FL-28a: differential test of m4fadc4_set_name (original 0x4fadc4)"""
+        self.run_key('4fadc4')
+
     # CASES-END
 
 

@@ -85,6 +85,16 @@ int32_t m423368_hash_name(uint32_t name, const Fl18Host *host);
  * objects and their vtables (12 bytes) are caller-validated. */
 uint32_t m4f356e_unload(uint8_t *self, uint32_t idx, const Fl18Host *host);
 
+/* 0x4fadc4: thiscall, `ret 8`, arguments `name` (the original address of a zero-terminated string, read through resolve) and `slot` (low 16 bits): debug word
+ * non-zero: 0x50ca3e(0x63888b, 0x5605e0, slot16, name), 0x44a2b7(0x63888b). The string (strlen + 1 bytes) is copied to self + slot16 * 0x5bb + 8. Then
+ * [rec + 0x140] and [rec + 0x144] (rec = self + slot16 * 0x5bb) receive __ftol (0x50ce04, inlined: truncation toward zero, the low dword of the 64-bit result, NaN and
+ * out-of-range values give 0) of the x87 expression (float [rec + 0x138 / 0x13c] * float [self + 4 * (signed word [rec + 0x10c]) + 0xb764]) * 2857.142822265625f +
+ * -2857.142857142857, evaluated in double precision as the process default control word 0x27f does (each operation rounded to 53 bits). Then r = 0x4f379c (ecx
+ * 0x5cf1eb; the argument is the second __ftol result with its low 16 bits replaced by slot16). r non-zero: the word [rec + 0x132] = 1, returns 1. Otherwise x = 0x4fa2a8
+ * (ecx 0x5cf1eb), 0x50ca3e(0x63888b, 0x560610, slot16, name, x), 0x52139c(0x63888b, 0, 0), 0x44a2b7(0x63888b) when the debug word (read again) is non-zero, returns 0.
+ * The copy is unbounded in the original (caller-validated: the name must fit the record). */
+uint32_t m4fadc4_set_name(uint8_t *self, uint32_t name, uint32_t slot, const Fl28aWorld *world, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

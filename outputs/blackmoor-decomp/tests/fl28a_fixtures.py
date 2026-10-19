@@ -315,6 +315,16 @@ def junk(rng, n):
     return bytearray(rng.randbytes(n))
 
 
+def zstring(rng, length, size):
+    """`size` bytes: `length` non-zero random bytes, a terminator, then random bytes."""
+    s = bytearray(rng.randbytes(size))
+    for i in range(length):
+        if s[i] == 0:
+            s[i] = 1 + i % 255
+    s[length] = 0
+    return s
+
+
 def debug_stubs(extra, probe, dbg_nargs=None):
     """The reporting callees of the debug traces (0x50ca3e with 3 then 4 arguments in 0x4fb2e3, otherwise a given count) and 0x44a2b7."""
     out = dict(extra)
@@ -516,6 +526,41 @@ def gen_4f356e(rng, n):
     return make('4f356e', areas, stubs, {}, [idx], (idx,), (early, combo))
 
 
+# 0x4fadc4 ---------------------------------------------------------------------------------------------------------------------------
+
+F32 = lambda v: struct.pack('<f', v)
+FLOATS = (0.0, -0.0, 1.0, -1.0, 2.0, 1000.5, 1e-30, 3.4e38, -3.4e38, float('inf'), float('-inf'), float('nan'), 0.35, 12345.678, -77.25, 1.0e-45)
+SELF_4FADC4 = 0xb800
+
+
+def profiles_4fadc4():
+    return [(dbg, r, k) for dbg in (0, 1, 0x8000, 0xffff) for r in (0, 1, 0x100, 0xffffffff) for k in range(4)]
+
+
+def gen_4fadc4(rng, n):
+    (dbg, r, k), variant = prof(n, profiles_4fadc4())
+    slot16 = k
+    d = junk(rng, SELF_4FADC4)
+    rec = slot16 * 0x5bb
+    idx_a, idx_b = rng.choice([0, 1, 2, 3, 5, 0xffff, 0xfffe, 0xfffd]), rng.choice([0, 1, 2, 3, 7, 0xffff])
+    put16(d, rec + 0x10c, idx_a)
+    for i in range(-3, 8):
+        d[0xb764 + 4 * i:0xb764 + 4 * i + 4] = F32(rng.choice(FLOATS)) if rng.random() < 0.8 else rng.randbytes(4)
+    d[rec + 0x138:rec + 0x13c] = F32(rng.choice(FLOATS)) if rng.random() < 0.8 else rng.randbytes(4)
+    d[rec + 0x13c:rec + 0x140] = F32(rng.choice(FLOATS)) if rng.random() < 0.8 else rng.randbytes(4)
+    if variant % 2:
+        put16(d, rec + 0x10c, idx_b)
+    name = zstring(rng, rng.choice([0, 1, 2, 3, 4, 5, 7, 0x10, 0x31]), 0x40)
+    probe = [('self', 0, 0x1400), ('self', 0xb740, 0x60)]
+    g, nbr = debug_areas(rng, dbg)
+    stubs = debug_stubs({0x50ca3e: stub(0x50ca3e, CDECL(4), probe), 0x4f379c: stub(0x4f379c, THISCALL(1), probe, results=[r]),
+                         0x4fa2a8: stub(0x4fa2a8, THISCALL(0), probe, results=[rng.randrange(1 << 32)]), 0x52139c: stub(0x52139c, STDCALL(3), probe)}, probe)
+    stubs[0x50ca3e].arg_seq = [4, 5] if dbg else [5]
+    slot = (rng.choice([0, 1, 0xffff, rng.randrange(0x10000)]) << 16) | k
+    areas = [Area('self', od.region_va(0), d, image=False), Area('name', od.region_va(1), name, image=False), *nbr]
+    return make('4fadc4', areas, stubs, g, [od.region_va(1), slot], (od.region_va(1), slot), (dbg, r, k))
+
+
 def _count(key):
     return {'423368': len(profiles_423368()) * 2}.get(key)
 
@@ -529,6 +574,7 @@ SPECS = {
     '42356d': dict(id=6, va=0x42356d, size=144, gen=gen_42356d, cleanup=8, n=60),
     '4fb2e3': dict(id=7, va=0x4fb2e3, size=180, gen=gen_4fb2e3, cleanup=4, n=160),
     '4f356e': dict(id=9, va=0x4f356e, size=558, gen=gen_4f356e, cleanup=4, ret=0xffffffff, n=8 + 512 * 2),
+    '4fadc4': dict(id=10, va=0x4fadc4, size=468, gen=gen_4fadc4, cleanup=8, ret=0xffffffff, fpcw=0x27f, n=len(profiles_4fadc4()) * 12),
     '423368': dict(id=8, va=0x423368, size=232, code=218, gen=gen_423368, cleanup=4, ret=0xffffffff, n=len(profiles_423368()) * 2),
 }
 # 0x42342a `jne 0x423437`: the word [ebp-0xc] is zero at that point (the same word was tested non-zero at 0x4233be, and the loop leaves it unchanged

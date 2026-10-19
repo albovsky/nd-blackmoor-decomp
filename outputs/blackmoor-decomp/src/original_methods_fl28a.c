@@ -297,4 +297,76 @@ uint32_t m4f356e_unload(uint8_t *self, uint32_t idx, const Fl18Host *host)
     return 1;
 }
 
+/* ---- 0x4fadc4 ------------------------------------------------------------------------------------------------------------------ */
+
+/* The library routine __ftol at 0x50ce04 (called with the value on the x87 stack): fnstcw / fldcw with the rounding control forced to truncation, `fistp qword`, and
+ * eax = the low dword of the 64-bit result. A NaN or a value outside the 64-bit range gives the integer indefinite 0x8000000000000000, whose low dword is 0. */
+static uint32_t ftol_low_dword(double value)
+{
+    if (value != value) return 0;
+    if (value >= 9223372036854775808.0 || value < -9223372036854775808.0) return 0;
+    return (uint32_t)(int64_t)value;
+}
+
+static float rdf32(const uint8_t *base, ptrdiff_t off)
+{
+    uint32_t bits = rd32(base, off);
+    float f;
+    memcpy(&f, &bits, sizeof f);
+    return f;
+}
+
+/* the expression of one __ftol argument: fld dword [rec + field]; fmul dword [self + 4 * index + 0xb764]; fmul dword [0x52e4e0]; fadd qword [0x52e4d8] */
+static uint32_t scaled_ftol(const uint8_t *self, ptrdiff_t rec, ptrdiff_t field)
+{
+    static const uint32_t scale_bits = 0x45329249u;                 /* the float at 0x52e4e0: 2857.142822265625 */
+    static const uint64_t offset_bits = 0xc0a6524924924924ull;      /* the double at 0x52e4d8: -2857.142857142857 */
+    float scale;
+    double offset, v;
+    int16_t index = (int16_t)rd16(self, rec + 0x10c);
+    memcpy(&scale, &scale_bits, sizeof scale);
+    memcpy(&offset, &offset_bits, sizeof offset);
+    v = (double)rdf32(self, rec + field);
+    v = v * (double)rdf32(self, (ptrdiff_t)index * 4 + 0xb764);
+    v = v * (double)scale;
+    v = v + offset;
+    return ftol_low_dword(v);
+}
+
+/* 0x4fadc4, thiscall, `ret 8`: see the header. [ebp-4] is `self`. */
+uint32_t m4fadc4_set_name(uint8_t *self, uint32_t name, uint32_t slot, const Fl28aWorld *world, const Fl18Host *host)
+{
+    uint32_t slot16 = slot & 0xffffu;
+    ptrdiff_t rec = (ptrdiff_t)(slot16 * 0x5bbu);
+    uint32_t second, r;
+    if (world->word_63a4cd != 0) {
+        call4(host, 0x50ca3e, 0, 0x63888b, 0x5605e0, slot16, name);
+        call1(host, 0x44a2b7, 0, 0x63888b);
+    }
+    {
+        const uint8_t *src = mem_at(host, name);
+        size_t n = strlen((const char *)src) + 1u;
+        memcpy(self + rec + 8, src, n);
+    }
+    wr32(self, rec + 0x140, scaled_ftol(self, rec, 0x138));
+    second = scaled_ftol(self, rec, 0x13c);
+    wr32(self, rec + 0x144, second);
+    r = call1(host, 0x4f379c, 0x5cf1eb, (second & 0xffff0000u) | slot16);
+    if (r == 0) {
+        uint32_t x = call0(host, 0x4fa2a8, 0x5cf1eb);
+        uintptr_t args[5];
+        args[0] = 0x63888b;
+        args[1] = 0x560610;
+        args[2] = slot16;
+        args[3] = name;
+        args[4] = x;
+        host->call(host->context, 0x50ca3e, 0, args, 5);
+        call3(host, 0x52139c, 0, 0x63888b, 0, 0);
+        if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x63888b);
+        return 0;
+    }
+    wr16(self, rec + 0x132, 1);
+    return 1;
+}
+
 /*NEXT*/

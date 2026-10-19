@@ -41,7 +41,8 @@ FUNCS = {'4235fd': 'test_4235fd_pop',
          '42356d': 'test_42356d_push',
          '4fb2e3': 'test_4fb2e3_start_slot',
          '423368': 'test_423368_hash_name',
-         '4f356e': 'test_4f356e_unload'}
+         '4f356e': 'test_4f356e_unload',
+         '4fadc4': 'test_4fadc4_set_name'}
 
 
 # the differential test of one function against the mutated copy in sys.argv[1], in a child process (exit 0 = passed)

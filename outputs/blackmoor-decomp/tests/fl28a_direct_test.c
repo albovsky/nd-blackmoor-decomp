@@ -551,6 +551,89 @@ static void test_m4f356e_unload(void)
     CK(L.n == 1 && memcmp(expb, fx.b, sizeof expb) == 0);
 }
 
+static uint8_t big[0xb800];
+
+static void setf(uint8_t *o, size_t off, float f)
+{
+    memcpy(o + off, &f, 4);
+}
+
+static void setup_4fadc4(uint32_t dbg)
+{
+    size_t i;
+    reset(40 + dbg);
+    for (i = 0; i < sizeof big; i++) big[i] = (uint8_t)rand();
+    for (i = 0; i < 4; i++) set16(big, i * 0x5bb + 0x10c, (uint16_t)(rand() % 8));      /* the table index: caller-validated, small here */
+    fx.w.word_63a4cd = (int16_t)dbg;
+    memcpy(fx.a, "hi\0", 3);
+    script_ret(0x4f379c, 1, 1);
+}
+
+static void test_m4fadc4_set_name(void)
+{
+    uint32_t r;
+    size_t rec = 0x5bb;
+    uint8_t exp[sizeof big];
+    /* slot 1, record fields 2.0 and 0.0, table entry [index 2] = 2.0: 4 * 2857.142822265625 - 2857.142857142857 = 8571.43 -> 8571; 0 - 2857.14 -> -2857 */
+    setup_4fadc4(0);
+    set16(big, rec + 0x10c, 2);
+    setf(big, rec + 0x138, 2.0f);
+    setf(big, rec + 0x13c, 0.0f);
+    setf(big, 0xb764 + 8, 2.0f);
+    memcpy(exp, big, sizeof exp);
+    r = m4fadc4_set_name(big, VA_A, 0xabcd0001u, &fx.w, &fx.host);
+    memcpy(exp + rec + 8, "hi", 3);
+    set32(exp, rec + 0x140, 8571);
+    set32(exp, rec + 0x144, 0xfffff4d7u);
+    set16(exp, rec + 0x132, 1);
+    CK(r == 1);
+    CK(memcmp(exp, big, sizeof exp) == 0);
+    CK(L.n == 1 && call_is(0, 0x4f379c, 0x5cf1eb, 1, 0xffff0001u, 0, 0, 0));
+    /* the table index is a signed word: 0xfffe = -2 reads 0xb764 - 8 */
+    setup_4fadc4(0);
+    set16(big, rec + 0x10c, 0xfffe);
+    setf(big, rec + 0x138, 2.0f);
+    setf(big, rec + 0x13c, 2.0f);
+    setf(big, 0xb764 - 8, 2.0f);
+    r = m4fadc4_set_name(big, VA_A, 1, &fx.w, &fx.host);
+    CK(r == 1 && get32(big, rec + 0x140) == 8571 && get32(big, rec + 0x144) == 8571);
+    CK(L.n == 1 && call_is(0, 0x4f379c, 0x5cf1eb, 1, 1, 0, 0, 0));
+    /* NaN gives the integer indefinite, whose low dword is 0; a huge value as well */
+    setup_4fadc4(0);
+    set16(big, rec + 0x10c, 0);
+    big[rec + 0x138] = 0; big[rec + 0x139] = 0; big[rec + 0x13a] = 0xc0; big[rec + 0x13b] = 0x7f;      /* a NaN */
+    setf(big, rec + 0x13c, 3.4e38f);
+    setf(big, 0xb764, 3.4e38f);
+    (void)m4fadc4_set_name(big, VA_A, 1, &fx.w, &fx.host);
+    CK(get32(big, rec + 0x140) == 0);
+    CK(get32(big, rec + 0x144) == 0);
+    /* the pair is not converted: r zero (no debug word): 0x4f379c, 0x4fa2a8, the report with five arguments, 0x52139c; the word [rec + 0x132] is not stored */
+    setup_4fadc4(0);
+    script_ret(0x4f379c, 0, 0);
+    script_ret(0x4fa2a8, 0xcafef00du, 0);
+    memcpy(exp, big, sizeof exp);
+    r = m4fadc4_set_name(big, VA_A, 2, &fx.w, &fx.host);
+    CK(r == 0);
+    CK(memcmp(exp + 2 * rec + 0x132, big + 2 * rec + 0x132, 2) == 0);
+    CK(L.n == 4);
+    CK(call_is(1, 0x4fa2a8, 0x5cf1eb, 0, 0, 0, 0, 0));
+    CK(L.c[2].callee == 0x50ca3e && L.c[2].nargs == 5 && L.c[2].a[0] == 0x63888b && L.c[2].a[1] == 0x560610 && L.c[2].a[2] == 2 && L.c[2].a[3] == VA_A && L.c[2].a[4] == 0xcafef00du);
+    CK(call_is(3, 0x52139c, 0, 3, 0x63888b, 0, 0, 0));
+    /* with the debug word: the first trace, and 0x44a2b7 at the end */
+    setup_4fadc4(0x100);
+    script_ret(0x4f379c, 0, 0);
+    r = m4fadc4_set_name(big, VA_A, 3, &fx.w, &fx.host);
+    CK(r == 0 && L.n == 7);
+    CK(call_is(0, 0x50ca3e, 0, 4, 0x63888b, 0x5605e0, 3, VA_A));
+    CK(call_is(1, 0x44a2b7, 0, 1, 0x63888b, 0, 0, 0));
+    CK(L.c[2].callee == 0x4f379c && L.c[3].callee == 0x4fa2a8 && L.c[4].callee == 0x50ca3e && L.c[5].callee == 0x52139c);
+    CK(call_is(6, 0x44a2b7, 0, 1, 0x63888b, 0, 0, 0));
+    /* the debug word with the success path: only the first trace */
+    setup_4fadc4(1);
+    r = m4fadc4_set_name(big, VA_A, 0, &fx.w, &fx.host);
+    CK(r == 1 && L.n == 3 && call_is(2, 0x4f379c, 0x5cf1eb, 1, (get32(big, 0x144) & 0xffff0000u), 0, 0, 0));
+}
+
 static void test_sweep_bounded(void)
 {
     unsigned s;
@@ -577,6 +660,9 @@ static void test_sweep_bounded(void)
         (void)m423368_hash_name(VA_A + (s % 8), &fx.host);
         setup_4f356e(s % 512, s % 3 == 0 ? 0 : 1, s % 4);
         (void)m4f356e_unload(SELF, s % 3 == 0 ? 0 : 1, &fx.host);
+        setup_4fadc4(s % 3 ? 0 : 1);
+        script_ret(0x4f379c, s % 2, 0);
+        (void)m4fadc4_set_name(big, VA_A, s % 4, &fx.w, &fx.host);
     }
 }
 
@@ -605,6 +691,7 @@ int main(void)
     RUN(test_m4fb2e3_start_slot);
     RUN(test_m423368_hash_name);
     RUN(test_m4f356e_unload);
+    RUN(test_m4fadc4_set_name);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;
