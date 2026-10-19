@@ -22,7 +22,7 @@ static char g_msg[256];
         }                                                                      \
     } while (0)
 
-#define SELF_SZ 0x2000
+#define SELF_SZ 0x7000
 #define REC 0x8d
 #define TAB_SZ (REC * 6)          /* records -1 .. 4 */
 #define TICK_ID 0x52a23cu
@@ -30,7 +30,7 @@ static char g_msg[256];
 #define DECOY_VA 0x20020000u      /* the object of every other record */
 #define OBJ_SZ 0xa000
 #define RECT_VA 0x20030000u       /* the rectangle argument of 0x464792 */
-#define SNAP 0x2000
+#define SNAP 0x7000
 
 __attribute__((unused)) static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
 __attribute__((unused)) static void set16(uint8_t *o, size_t off, uint16_t v) { memcpy(o + off, &v, 2); }
@@ -773,6 +773,213 @@ static void test_m4b2250_hit_test(void)
     }
 }
 
+/* ======================================================================================================================== 0x46bca9 */
+
+/* the cell (i, j) of the scan s (1: +0x4a6a, 2: +0x636a): y in [ylo, yhi], x in [xlo, xhi] */
+static void set_cell(int s, int i, int j, int ylo, int yhi, int xlo, int xhi)
+{
+    size_t c = (size_t)((s == 1 ? 0x4a6a : 0x636a) + i * 0x140 + j * 16);
+    set32(fx.self, c + 4, (uint32_t)ylo);
+    set32(fx.self, c + 0xc, (uint32_t)yhi);
+    set32(fx.self, c, (uint32_t)xlo);
+    set32(fx.self, c + 8, (uint32_t)xhi);
+}
+
+/* the entry k of the scan s: dword flag, words i and j */
+static void set_entry(int s, int k, uint32_t flag, int i, int j)
+{
+    size_t e = (size_t)((s == 1 ? 0x48a0 : 0x48a4) + 16 * k);
+    set32(fx.self, e, flag);
+    set16(fx.self, e + 8, (uint16_t)i);
+    set16(fx.self, e + 0xa, (uint16_t)j);
+}
+
+/* the gate open, mode A or B, every cell far from the point (-7, 11), the record object counts, the rectangle argument four distinct dwords */
+static void setup_46bca9(int idx, int mode_a, int w43, int w45, int w47, int w49, int w4f)
+{
+    int s, i, j, k;
+    setup(idx, 0);
+    memset(fx.self, 0, SELF_SZ);
+    memset(fx.obj, 0, 0x1000);
+    set32(fx.self, 0x4a48, 1);
+    set32(fx.self, 0x4a2c, mode_a ? 0x100u : 0u);
+    set16(fx.self, 0x1e, (uint16_t)idx);
+    set16(fx.obj, 0x43, (uint16_t)w43);
+    set16(fx.obj, 0x45, (uint16_t)w45);
+    set16(fx.obj, 0x47, (uint16_t)w47);
+    set16(fx.obj, 0x49, (uint16_t)w49);
+    set16(fx.obj, 0x4f, (uint16_t)w4f);
+    for (s = 1; s <= 2; s++) {
+        for (i = 0; i < 4; i++)
+            for (j = 0; j < 4; j++) set_cell(s, i, j, 1000, 2000, 1000, 2000);
+        for (k = 0; k < 4; k++) set_entry(s, k, 0, 0, 0);
+    }
+    /* the rectangle of the tail is far away as well */
+    set32(fx.obj, 0x6d5, 1000);
+    set32(fx.obj, 0x6dd, 2000);
+    set32(fx.obj, 0x6d1, 1000);
+    set32(fx.obj, 0x6d9, 2000);
+}
+
+static int run_46bca9(int x, int y) { return m46bca9_hit_test(fx.self, (int16_t)x, (int16_t)y, RECT_VA, &fx.w, &fx.host); }
+
+/* the writes that every run makes after the gate */
+static void expect_prologue_46bca9(void)
+{
+    set16(exp_self, 0x4a50, 0xffff);
+    set16(exp_self, 0x4a52, 0xffff);
+    set32(exp_self, 0x4a5e, 0x22222222u);
+    set32(exp_self, 0x4a66, 0x44444444u);
+    set32(exp_self, 0x4a5a, 0x11111111u);
+    set32(exp_self, 0x4a62, 0x33333333u);
+}
+
+static void ck_call4(int n, uint32_t msg, int i, int j, int k)
+{
+    CK(L.n > n);
+    if (L.n <= n) return;
+    CK(L.c[n].callee == 0x46c41e && L.c[n].this_ptr == (uintptr_t)fx.self && L.c[n].nargs == 4);
+    CK(L.c[n].a[0] == msg && (uint32_t)L.c[n].a[1] == (uint32_t)i && (uint32_t)L.c[n].a[2] == (uint32_t)j && (uint32_t)L.c[n].a[3] == (uint32_t)k);
+}
+
+static void test_m46bca9_hit_test(void)
+{
+    static const int idxs[] = {2, -1};
+    size_t ii;
+    int k, e, s, mode;
+    const int px = -7, py = 11;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        /* the gate: dword [+0x4a48] clear returns 0 and writes nothing (a set neighbour byte does not count); any non-zero value opens it */
+        setup_46bca9(idx, 1, 2, 2, 2, 2, 2);
+        set32(fx.self, 0x4a48, 0);
+        fx.self[0x4a47] = 1;
+        fx.self[0x4a4c] = 1;
+        expect_begin();
+        CK(run_46bca9(px, py) == 0);
+        expect_end();
+        CK(L.n == 0);
+        setup_46bca9(idx, 1, 2, 2, 2, 2, 2);
+        set32(fx.self, 0x4a48, 0x01000000u);
+        CK(run_46bca9(px, py) == 1);
+        CK(L.n == 1 && L.c[0].callee == 0x46b954);
+        /* mode A (dword [+0x4a2c] != 0), nothing found: the announcement globals (the quotient 0x24 * 32 + 0 * 16 + 0x5b160c) and return 1 */
+        setup_46bca9(idx, 1, 2, 2, 2, 2, 2);
+        fx.w.value_5d0377 = 0xabcdef01u;
+        expect_begin();
+        CK(run_46bca9(px, py) == 1);
+        expect_prologue_46bca9();
+        expect_end();
+        CK(L.n == 1 && L.c[0].callee == 0x46b954 && L.c[0].this_ptr == (uintptr_t)fx.self && L.c[0].nargs == 0);
+        CK(get16s(L.c[0].snap_self, 0x4a50) == -1 && get32s(L.c[0].snap_self, 0x4a62) == 0x33333333);
+        CK(fx.w.value_5b44f0 == 0x24 && fx.w.value_5b44f4 == 0 && fx.w.value_5d162d == 0xabcdef01u && fx.w.value_5d1631 == 0x5b1a8cu && fx.w.value_5d1639 == 1);
+        /* the stage 1 cell (1, 2) holds the point (every edge exactly on it): the entries 0 to 1 fail one condition each (flag, i, j), entry 2 matches:
+         * 0x46c41e(self, 0x27e2, i = 1, j = 2, k = 2); a cell before it in the order (0, 0) would win, a cell after it (1, 3) does not */
+        for (mode = 0; mode < 2; mode++) {
+            for (s = 1; s <= 2; s++) {
+                for (k = -1; k < 3; k++) {
+                    /* k -1: no entry matches (the count is 3 and every entry fails); 0 to 2: the entry k matches, the ones before it fail by flag, i, j in turn */
+                    int ok = k >= 0, f;
+                    setup_46bca9(idx, !mode, 3, 4, 3, 4, 3);
+                    set_cell(s, 1, 2, py, py, px, px);
+                    set_cell(s, 1, 3, py - 5, py + 5, px - 5, px + 5);
+                    for (f = 0; f < 3; f++) {
+                        uint32_t flag = f == 0 ? 2u : 1u;
+                        int ei = f == 1 ? 0 : 1, ej = f == 2 ? 1 : 2;
+                        if (ok && f >= k) break;
+                        set_entry(s, f, flag, ei, ej);
+                    }
+                    if (ok) set_entry(s, k, 1, 1, 2);
+                    expect_begin();
+                    CK(run_46bca9(px, py) == 1);
+                    expect_prologue_46bca9();
+                    expect_end();
+                    if (!mode) {
+                        CK(L.n == 2 && L.c[0].callee == 0x46b954);
+                        ck_call4(1, (uint32_t)(s == 1 ? (ok ? 0x27e2 : 0x27e3) : (ok ? 0x27e4 : 0x27e5)), 1, 2, ok ? k : -1);
+                    } else {
+                        CK(L.n == 1);
+                        ck_call4(0, (uint32_t)(s == 1 ? (ok ? 0x27e6 : 0x27e7) : (ok ? 0x27e8 : 0x27e9)), 1, 2, ok ? k : -1);
+                    }
+                    CK(fx.w.value_5b44f0 == 0);
+                }
+            }
+        }
+        /* the order: row-major, the first holding cell wins: (0, 1) before (1, 0) */
+        setup_46bca9(idx, 1, 2, 2, 2, 2, 1);
+        set_cell(1, 1, 0, py, py, px, px);
+        set_cell(1, 0, 1, py, py, px, px);
+        set_entry(1, 0, 1, 0, 1);
+        CK(run_46bca9(px, py) == 1 && L.n == 2);
+        ck_call4(1, 0x27e2, 0, 1, 0);
+        /* the bounds: the cell (1, 2) is not scanned when R[0x43] = 1 or R[0x45] = 2; stage 2 of mode A uses R[0x43] x R[0x45] (not 0x47 / 0x49), stage 2 of
+         * mode B uses R[0x47] x R[0x49] (not 0x43 / 0x45) */
+        setup_46bca9(idx, 1, 1, 3, 3, 3, 1);
+        set_cell(1, 1, 2, py, py, px, px);
+        set_cell(2, 1, 2, py, py, px, px);
+        CK(run_46bca9(px, py) == 1 && L.n == 1 && fx.w.value_5b44f0 == 0x24);
+        setup_46bca9(idx, 1, 2, 2, 3, 3, 1);
+        set_cell(2, 1, 1, py, py, px, px);
+        set_entry(2, 0, 1, 1, 1);
+        CK(run_46bca9(px, py) == 1 && L.n == 2);
+        ck_call4(1, 0x27e4, 1, 1, 0);
+        setup_46bca9(idx, 1, 3, 3, 1, 1, 1);        /* the bounds 0x47 / 0x49 do not matter for mode A */
+        set_cell(2, 1, 1, py, py, px, px);
+        set_entry(2, 0, 1, 1, 1);
+        CK(run_46bca9(px, py) == 1 && L.n == 2);
+        ck_call4(1, 0x27e4, 1, 1, 0);
+        setup_46bca9(idx, 0, 1, 1, 2, 2, 1);        /* mode B, stage 2 with 0x47 / 0x49 = 2 x 2 reaches (1, 1), 0x43 / 0x45 = 1 x 1 would not */
+        set_cell(2, 1, 1, py, py, px, px);
+        set_entry(2, 0, 1, 1, 1);
+        CK(run_46bca9(px, py) == 1 && L.n == 1);
+        ck_call4(0, 0x27e8, 1, 1, 0);
+        setup_46bca9(idx, 0, 2, 2, 1, 1, 1);        /* and 0x43 / 0x45 = 2 x 2 do not matter for stage 2 of mode B */
+        set_cell(2, 1, 1, py, py, px, px);
+        CK(run_46bca9(px, py) == 0 && L.n == 0);
+        /* each edge of the target cell missing by one lets the scans continue (mode A: the globals and 1; mode B: the rectangle, here absent: 0) */
+        for (mode = 0; mode < 2; mode++) {
+            for (s = 1; s <= 2; s++) {
+                for (e = 0; e < 4; e++) {
+                    setup_46bca9(idx, !mode, 2, 2, 2, 2, 1);
+                    set_cell(s, 1, 1, py, py, px, px);
+                    if (e == 0) set_cell(s, 1, 1, py + 1, py, px, px);
+                    if (e == 1) set_cell(s, 1, 1, py, py - 1, px, px);
+                    if (e == 2) set_cell(s, 1, 1, py, py, px + 1, px);
+                    if (e == 3) set_cell(s, 1, 1, py, py, px, px - 1);
+                    set_entry(s, 0, 1, 1, 1);
+                    CK(run_46bca9(px, py) == (mode ? 0 : 1));
+                    CK(L.n == (mode ? 0 : 1));
+                }
+            }
+        }
+        /* the rectangle of mode B: y in [R.6d5, R.6dd], x in [R.6d1, R.6d9]; a hit calls 0x46c41e(self, 0x27ea, 0, 0, -1) and returns 1; the point itself is used */
+        for (e = -1; e < 4; e++) {
+            setup_46bca9(idx, 0, 1, 1, 1, 1, 0);
+            set32(fx.obj, 0x6d5, (uint32_t)(e == 0 ? py + 1 : py));
+            set32(fx.obj, 0x6dd, (uint32_t)(e == 1 ? py - 1 : py));
+            set32(fx.obj, 0x6d1, (uint32_t)(e == 2 ? px + 1 : px));
+            set32(fx.obj, 0x6d9, (uint32_t)(e == 3 ? px - 1 : px));
+            expect_begin();
+            CK(run_46bca9(px, py) == (e < 0 ? 1 : 0));
+            expect_prologue_46bca9();
+            expect_end();
+            if (e < 0) {
+                CK(L.n == 1);
+                ck_call4(0, 0x27ea, 0, 0, -1);
+            } else {
+                CK(L.n == 0);
+            }
+        }
+        /* mode A never looks at the rectangle: it returns 1 with the globals instead */
+        setup_46bca9(idx, 1, 1, 1, 1, 1, 0);
+        set32(fx.obj, 0x6d5, (uint32_t)py);
+        set32(fx.obj, 0x6dd, (uint32_t)py);
+        set32(fx.obj, 0x6d1, (uint32_t)px);
+        set32(fx.obj, 0x6d9, (uint32_t)px);
+        CK(run_46bca9(px, py) == 1 && L.n == 1 && L.c[0].callee == 0x46b954);
+    }
+}
+
 /* ---- a bounded random sweep (meant for the sanitiser builds) ----------------------------------------------------------------- */
 
 static uint32_t g_seed = 0x2545f491u;
@@ -789,7 +996,7 @@ static int rr(int lo, int hi) { return lo + (int)(rnd() % (uint32_t)(hi - lo + 1
 static void test_sweep(void)
 {
     int it, f;
-    for (f = 0; f < 2; f++) {
+    for (f = 0; f < 3; f++) {
         for (it = 0; it < 2500; it++) {
             int idx = rr(-1, 4);
             setup(idx, 0);
@@ -844,6 +1051,24 @@ static void test_sweep(void)
                 m4b2250_hit_test(fx.self + B4, x, y, &fx.w, &fx.host);
                 break;
             }
+            case 2:
+            {
+                int16_t x = (int16_t)rr(-3, 3), y = (int16_t)rr(-3, 3);
+                int s, i, j, k;
+                setup_46bca9(idx, rnd() & 1, rr(-1, 3), rr(-1, 3), rr(-1, 3), rr(-1, 3), rr(-1, 3));
+                set32(fx.self, 0x4a48, rnd() & 7 ? 1u : 0u);
+                for (s = 1; s <= 2; s++) {
+                    for (i = 0; i < 4; i++)
+                        for (j = 0; j < 4; j++) set_cell(s, i, j, rr(-3, 3), rr(-3, 3), rr(-3, 3), rr(-3, 3));
+                    for (k = 0; k < 4; k++) set_entry(s, k, (uint32_t)(rnd() & 1), rr(-1, 3), rr(-1, 3));
+                }
+                set32(fx.obj, 0x6d5, (uint32_t)rr(-3, 3));
+                set32(fx.obj, 0x6dd, (uint32_t)rr(-3, 3));
+                set32(fx.obj, 0x6d1, (uint32_t)rr(-3, 3));
+                set32(fx.obj, 0x6d9, (uint32_t)rr(-3, 3));
+                m46bca9_hit_test(fx.self, x, y, RECT_VA, &fx.w, &fx.host);
+                break;
+            }
             default: break;
             }
         }
@@ -858,6 +1083,7 @@ static const struct {
 } CASES[] = {
     {"test_m4712bd_click_27a6_27ad", test_m4712bd_click_27a6_27ad},
     {"test_m4b2250_hit_test", test_m4b2250_hit_test},
+    {"test_m46bca9_hit_test", test_m46bca9_hit_test},
     {"test_sweep_bounded", test_sweep},
 };
 

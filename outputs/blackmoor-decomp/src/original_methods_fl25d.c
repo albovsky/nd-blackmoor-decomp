@@ -270,3 +270,86 @@ int32_t m4b2250_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl25dWorld *
 #undef Q1
     return 0;
 }
+
+/* ---- 0x46bca9 ------------------------------------------------------------------------------------------------------------------ */
+
+static uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3)
+{
+    uintptr_t args[4];
+    args[0] = a0;
+    args[1] = a1;
+    args[2] = a2;
+    args[3] = a3;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 4) : 0;
+}
+
+/* One of the four scans of 0x46bca9 (the original has four copies): for i below the signed word R[rows_off] and j below the signed word R[cols_off], the
+ * cell c = base + i * 0x140 + j * 16 of self holds y in [c+4, c+0xc] and x in [c, c+8] (signed dword compares of the sign-extended words); the first such cell
+ * ends the scan: for k below the signed word R[0x4f] the entry e = ebase + k * 16 with dword [e] == 1, signed word [e+8] == i and signed word [e+0xa] == j makes
+ * 0x46c41e(this = self, msg_hit, i, j, k) (dword stack arguments, args[0] = msg_hit); with no such entry 0x46c41e(this = self, msg_none, i, j, -1).
+ * Returns 1 when it called, else 0 (no cell holds the point). */
+static int scan_cells(uint8_t *self, const uint8_t *R, int32_t x, int32_t y, ptrdiff_t base, ptrdiff_t ebase, ptrdiff_t rows_off, ptrdiff_t cols_off, uint32_t msg_hit,
+                      uint32_t msg_none, const Fl18Host *host)
+{
+    int32_t i, j, k;
+    for (i = 0; i < rds16(R, rows_off); i++) {
+        for (j = 0; j < rds16(R, cols_off); j++) {
+            ptrdiff_t c = base + (ptrdiff_t)i * 0x140 + (ptrdiff_t)j * 16;
+            if (y < rds32(self, c + 4)) continue;
+            if (y > rds32(self, c + 0xc)) continue;
+            if (x < rds32(self, c)) continue;
+            if (x > rds32(self, c + 8)) continue;
+            for (k = 0; k < rds16(R, 0x4f); k++) {
+                ptrdiff_t e = ebase + (ptrdiff_t)k * 16;
+                if (rd32(self, e) != 1) continue;
+                if (rds16(self, e + 8) != i) continue;
+                if (rds16(self, e + 0xa) != j) continue;
+                call4(host, 0x46c41e, (uintptr_t)self, msg_hit, (uintptr_t)(uint32_t)i, (uintptr_t)(uint32_t)j, (uintptr_t)(uint32_t)k);
+                return 1;
+            }
+            call4(host, 0x46c41e, (uintptr_t)self, msg_none, (uintptr_t)(uint32_t)i, (uintptr_t)(uint32_t)j, 0xffffffffu);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* 0x46bca9, thiscall, `ret 0xc`: x is the word at [ebp+8], y the word at [ebp+0xc], rect the address at [ebp+0x10] of four dwords. Returns 0 when dword
+ * [+0x4a48] is clear. R is the object of the record of the word [+0x1e]. Writes the words [+0x4a50] and [+0x4a52] = 0xffff and the rectangle: [+0x4a5e] = rect[1],
+ * [+0x4a66] = rect[3], [+0x4a5a] = rect[0], [+0x4a62] = rect[2] (in that order). With dword [+0x4a2c] set: 0x46b954(this = self), then the scan of the cells at
+ * +0x4a6a (rows R[0x43], columns R[0x45], entries at +0x48a0, messages 0x27e2 / 0x27e3), then of the cells at +0x636a (the same bounds, entries at +0x48a4,
+ * 0x27e4 / 0x27e5); when neither scan called: [0x5b44f0] = 0x24, [0x5b44f4] = 0, [0x5d162d] = [0x5d0377], [0x5d1631] = [0x5b44f0] * 32 + [0x5b44f4] * 16 +
+ * 0x5b160c (read back), [0x5d1639] = 1, and returns 1 (the world is written). With the dword clear: the scan of the cells at +0x4a6a (messages 0x27e6 / 0x27e7),
+ * then of the cells at +0x636a with the bounds R[0x47] and R[0x49] (0x27e8 / 0x27e9), then the rectangle y in [R+0x6d5, R+0x6dd], x in [R+0x6d1, R+0x6d9]:
+ * 0x46c41e(this = self, 0x27ea, 0, 0, -1); each scan or the rectangle that calls makes the return value 1, else 0. */
+int32_t m46bca9_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, Fl25dWorld *world, const Fl18Host *host)
+{
+    const uint8_t *R, *rp;
+    if (rd32(self, 0x4a48) == 0) return 0;
+    R = object_at(host, record_object_address(world, self, 0x1e));
+    wr16(self, 0x4a50, 0xffff);
+    wr16(self, 0x4a52, 0xffff);
+    rp = object_at(host, rect);
+    wr32(self, 0x4a5e, rd32(rp, 4));
+    wr32(self, 0x4a66, rd32(rp, 0xc));
+    wr32(self, 0x4a5a, rd32(rp, 0));
+    wr32(self, 0x4a62, rd32(rp, 8));
+    if (rd32(self, 0x4a2c) != 0) {
+        call0(host, 0x46b954, (uintptr_t)self);
+        if (scan_cells(self, R, x, y, 0x4a6a, 0x48a0, 0x43, 0x45, 0x27e2, 0x27e3, host)) return 1;
+        if (scan_cells(self, R, x, y, 0x636a, 0x48a4, 0x43, 0x45, 0x27e4, 0x27e5, host)) return 1;
+        world->value_5b44f0 = 0x24;
+        world->value_5b44f4 = 0;
+        world->value_5d162d = world->value_5d0377;
+        world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+        world->value_5d1639 = 1;
+        return 1;
+    }
+    if (scan_cells(self, R, x, y, 0x4a6a, 0x48a0, 0x43, 0x45, 0x27e6, 0x27e7, host)) return 1;
+    if (scan_cells(self, R, x, y, 0x636a, 0x48a4, 0x47, 0x49, 0x27e8, 0x27e9, host)) return 1;
+    if (!((int32_t)y < rds32(R, 0x6d5)) && !((int32_t)y > rds32(R, 0x6dd)) && !((int32_t)x < rds32(R, 0x6d1)) && !((int32_t)x > rds32(R, 0x6d9))) {
+        call4(host, 0x46c41e, (uintptr_t)self, 0x27ea, 0, 0, 0xffffffffu);
+        return 1;
+    }
+    return 0;
+}

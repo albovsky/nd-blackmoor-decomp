@@ -64,5 +64,38 @@
   },
   "parts_accounted": [],
   "note": "1:1 with m4b2250_hit_test (hit test (ret 8): clearing of the words [+0x1531] and [+0x1533], the grid of cells (rows of 0x1e4, cells of 0x2c) with the Z path and the four overlapping type-5 blocks, the calls 0x4afec1 and 0x4b2917, then the two rectangles of the record object). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken (allowlisted untaken edges, with reasons, in tests/fl25d_fixtures.py UNTAKEN_ALLOWED). See tasks/fl25d-handoff.md."
+ },
+ {
+  "va": "0x46bca9",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25d implementer; no independent review yet",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25d.c",
+   "symbol": "m46bca9_hit_test"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25d_direct_test.c",
+    "test_id": "test_m46bca9_hit_test"
+   },
+   {
+    "path": "tests/test_fl25d_direct.py",
+    "test_id": "Fl25dDirect.test_46bca9_hit_test"
+   },
+   {
+    "path": "tests/test_fl25d_differential.py",
+    "test_id": "Fl25dDifferential.test_46bca9_hit_test"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25d_original_oracle.py",
+   "window": [
+    "0x46bca9",
+    "0x46c41e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m46bca9_hit_test (hit test (ret 0xc): rectangle stored into the object, mode A (0x46b954, two cell scans, announcement globals) or mode B (two cell scans with their own bounds, then a rectangle), calls 0x46c41e with 0x27e2..0x27ea). Direct, Unicorn differential and oracle: every instruction reached and both directions of every conditional jump taken (allowlisted untaken edges, with reasons, in tests/fl25d_fixtures.py UNTAKEN_ALLOWED). See tasks/fl25d-handoff.md."
  }
 ]

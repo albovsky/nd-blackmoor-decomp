@@ -31,6 +31,7 @@ typedef struct Fl25dWorld {
     uint32_t value_5bb1ca;     /* a flag: non-zero = compare a field of the record object with a nine-byte constant and maybe announce it through 0x4fb2e3 */
     const uint8_t *bytes_54c480, *bytes_54c48c;   /* 0x4712bd: the nine-byte constants (repe cmpsb, ecx = 9) */
     uint32_t value_583186, value_58318a;   /* 0x4b2250: the offsets that are added to the x and y of the point */
+    uint32_t value_5b44f0, value_5b44f4, value_5d0377, value_5d162d, value_5d1631, value_5d1639;   /* 0x46bca9: the announcement globals (5d0377 is read, the others are written) */
 } Fl25dWorld;
 
 /* 0x4712bd (plain `ret`): events 0x27a6 and 0x27ad. Gates: byte [+0xd3e], dword [+0xd2c] == 0, record state 1 (record = signed word [+0xd28]).
@@ -44,6 +45,11 @@ void m4712bd_click_27a6_27ad(uint8_t *self, Fl25dWorld *world, const Fl18Host *h
 /* 0x4b2250: hit test (ret 8): the grid of cells at self + 0x43 (rows of 0x1e4, cells of 0x2c) of the object, four overlapping tests per cell, then two rectangles of the
  * record object; calls 0x4afec1 and 0x4b2917 (see the comment at the definition); returns 1 on a hit that 0x4afec1 confirms with exactly 1 or on a rectangle hit, else 0 */
 int32_t m4b2250_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl25dWorld *world, const Fl18Host *host);
+
+/* 0x46bca9: hit test (ret 0xc; the third argument is the original address of four dwords that it stores into the object): two scans of cell tables (with the
+ * object [+0x4a2c] set) or three steps (clear) over the cells at +0x4a6a / +0x636a and a rectangle of the record object; calls 0x46b954 and 0x46c41e, writes the
+ * announcement globals (mode set, nothing found) and returns 1 on any call, else 0 */
+int32_t m46bca9_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, Fl25dWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

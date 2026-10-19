@@ -101,7 +101,7 @@ class Original20(od.Original):
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x4fb2e3: (1, True, 4), 0x4afec1: (1, True, 4), 0x4b2917: (1, True, 4)}
+SHAPES = {0x4fb2e3: (1, True, 4), 0x4afec1: (1, True, 4), 0x4b2917: (1, True, 4), 0x46b954: (0, True, 0), 0x46c41e: (4, True, 16)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
 WORD_ARGS = {0x4afec1: (0,), 0x4b2917: (0,)}
 RECORDS_VA = 0x5bb5e5
@@ -573,10 +573,96 @@ def gen_4b2250(rng, n):
 
 
 
+def gen_46bca9(rng, n):
+    # scans: stage 1 = cells at +0x4a6a (entries +0x48a0), stage 2 = cells at +0x636a (entries +0x48a4); mode A (dword [+0x4a2c] set) scans both with the
+    # bounds R[0x43] x R[0x45], mode B stage 2 with R[0x47] x R[0x49] and then tests a rectangle of R.
+    profiles = [('gate',)]
+    profiles += [('hit', mode, stage, pos, kt) for mode in 'AB' for stage in (1, 2) for pos in ((0, 0), (1, 2)) for kt in (0, 1, 2, 'none')]
+    profiles += [('miss', mode, stage, pos, e) for mode in 'AB' for stage in (1, 2) for pos in ((0, 0), (1, 2)) for e in range(4)]
+    profiles += [('tailA',)] + [('tailB', f) for f in (None, 0, 1, 2, 3)]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x6e00))
+    obj = bytearray(rng.randbytes(0x1000))
+    set_gate(d, 'nz32', 0x4a48, kind == 'gate', rng)
+    put16(d, 0x1e, idx)
+    mode = rest[0] if kind in ('hit', 'miss') else 'A' if kind == 'tailA' else 'B' if kind == 'tailB' else rng.choice('AB')
+    put32(d, 0x4a2c, rng.choice([1, 0x100, 0x10000, 0x01000000, 0xffffffff]) if mode == 'A' else 0)
+    stage = rest[1] if kind in ('hit', 'miss') else 0
+    (ti, tj) = rest[2] if kind in ('hit', 'miss') else (None, None)
+    last = rest[3] if kind in ('hit', 'miss') else None
+    w = lambda off, v: struct.pack_into('<h', obj, off, v)
+    small = lambda: rng.choice([-1, 0, 1, 2, 3])
+    b1, b2, unused = [small(), small()], [small(), small()], [small(), small()]
+    if kind in ('hit', 'miss'):
+        tb = [ti + 1 + rng.choice([0, 1]), tj + 1 + rng.choice([0, 1])]
+        if mode == 'A' or stage == 1:
+            b1 = tb
+        else:
+            b2 = tb
+    sb = {1: b1, 2: b1 if mode == 'A' else b2}      # mode A scans both with R[0x43] x R[0x45]; mode B stage 2 with R[0x47] x R[0x49]
+    w(0x43, b1[0])
+    w(0x45, b1[1])
+    w(0x47, unused[0] if mode == 'A' else b2[0])
+    w(0x49, unused[1] if mode == 'A' else b2[1])
+    base_of = {1: 0x4a6a, 2: 0x636a}
+    ent_of = {1: 0x48a0, 2: 0x48a4}
+    for s in (1, 2):
+        rows, cols = sb[s]
+        for i in range(max(rows, 0)):
+            for j in range(max(cols, 0)):
+                c = base_of[s] + i * 0x140 + j * 16
+                offs = (c + 4, c + 0xc, c, c + 8)
+                if kind in ('hit', 'miss') and s == stage and (i, j) == (ti, tj):
+                    if kind == 'hit':
+                        rect_into(rng, d, x, y, offs, (0, 0, 0, 0), True)
+                    else:
+                        edge_fail(rng, d, x, y, offs, 'e%d' % last)
+                elif kind == 'hit' and s == stage and (i, j) > (ti, tj):
+                    rect_into(rng, d, x, y, offs, (0, 0, 0, 0), rng.random() < 0.5)
+                else:
+                    rect_into(rng, d, x, y, offs, (0, 0, 0, 0), False)
+    # the entries (target scan: entries before kt fail one condition each, entry kt matches)
+    count = rng.choice([0, 1, 2, 3])
+    kt = None
+    if kind == 'hit':
+        kt = last if last != 'none' else None
+        count = kt + 1 + rng.choice([0, 1]) if kt is not None else rng.choice([0, 1, 2, 3])
+    w(0x4f, count)
+    for s in (1, 2):
+        for k in range(5):
+            e = ent_of[s] + 16 * k
+            ei, ej = ti if ti is not None else rng.choice([0, 1]), tj if tj is not None else rng.choice([0, 1, 2])
+            if kind == 'hit' and s == stage and k == kt:
+                put32(d, e, 1)
+                put16(d, e + 8, ei)
+                put16(d, e + 10, ej)
+                continue
+            t = (variant + k) % 3
+            put32(d, e, rng.choice([0, 2, 0x101, 0xffffffff, 0x10001, 0x100]) if t == 0 or s != stage else 1)
+            put16(d, e + 8, ei if t != 1 else (ei + rng.choice([1, -1, 0x100, 5])) & 0xffff)
+            put16(d, e + 10, ej if t != 2 else (ej + rng.choice([1, -1, 0x100, 7])) & 0xffff)
+    # the tail rectangle of mode B
+    roffs = (0x6d5, 0x6dd, 0x6d1, 0x6d9)
+    if kind == 'tailB':
+        edge_fail(rng, obj, x, y, roffs, None if rest[0] is None else 'e%d' % rest[0])
+    else:
+        rect_into(rng, obj, x, y, roffs, (0, 0, 0, 0), rng.random() < 0.5)
+    rect = bytearray(rng.randbytes(16))
+    g = {name: rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)]) for name in
+         ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639')}
+    stubs = {c: stub(c, None) for c in (0x46b954, 0x46c41e)}
+    return common('46bca9', rng, d, obj, idx, 0, False, 0, stubs, extra=[Area('rect', od.region_va(5), rect, image=False)], now=0, profile=(kind, *rest),
+                  stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)), g=g)
+
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
     '4712bd': dict(id=1, va=0x4712bd, size=1125, gen=gen_4712bd, tick=True, probes=[(0xc90, 0x180)], n=50 * 12),
+    '46bca9': dict(id=3, va=0x46bca9, size=1909, gen=gen_46bca9, ret=True, cleanup=12, probes=[(0x4a48, 0x28)], n=71 * 8),
     '4b2250': dict(id=2, va=0x4b2250, size=1735, gen=gen_4b2250, ret=True, cleanup=8, probes=[(0x430, 0x20), (0x1920, 0x20)], n=65 * 14),
 }
 KEYS = list(SPECS)

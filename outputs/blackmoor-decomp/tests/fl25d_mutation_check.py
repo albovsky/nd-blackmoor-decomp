@@ -33,7 +33,7 @@ sys.path.insert(0, str(HERE))
 import test_fl25d_direct as direct
 
 SRC = HERE.parent / 'src'
-FUNCS = {'4712bd': 'test_4712bd_click_27a6_27ad', '4b2250': 'test_4b2250_hit_test'}
+FUNCS = {'4712bd': 'test_4712bd_click_27a6_27ad', '4b2250': 'test_4b2250_hit_test', '46bca9': 'test_46bca9_hit_test'}
 
 
 # the differential test of one function against the mutated copy in sys.argv[1], in a child process (exit 0 = passed)

@@ -20,6 +20,7 @@ KERNELS = ['original_methods_fl25d.c']
 EXPECTED = [
     'test_m4712bd_click_27a6_27ad',
     'test_m4b2250_hit_test',
+    'test_m46bca9_hit_test',
     'test_sweep_bounded',
 ]
 
@@ -72,6 +73,10 @@ class Fl25dDirect(unittest.TestCase):
     def test_4b2250_hit_test(self):
         """FL-25d: direct test of m4b2250_hit_test"""
         self.check('test_m4b2250_hit_test')
+
+    def test_46bca9_hit_test(self):
+        """FL-25d: direct test of m46bca9_hit_test"""
+        self.check('test_m46bca9_hit_test')
 
     # CASES-END
 
