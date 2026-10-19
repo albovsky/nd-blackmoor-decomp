@@ -713,6 +713,45 @@ static void arms_4b2a9e(int idx)
             }
 }
 
+
+/* a bounded random sweep for the sanitisers: every function on 3000 random objects, record tables and selectors, with the guards passing or
+ * failing at random and the index words that the original does not bound (the record index, [+0x2d4] of 0x4ba4f2, the item words of 0x48e851 and
+ * 0x4574e4) kept inside the fixture. It checks no value, only that nothing reads or writes outside the buffers or has undefined behaviour. */
+static uint32_t g_rng = 0x1234567u;
+static uint32_t rnd(void)
+{
+    g_rng ^= g_rng << 13;
+    g_rng ^= g_rng >> 17;
+    g_rng ^= g_rng << 5;
+    return g_rng;
+}
+
+static void sweep(int f)
+{
+    int it, k, i;
+    for (it = 0; it < 3000; it++) {
+        int idx = (int)(rnd() % 6) - 1;
+        uint32_t sel = rnd() % 3 == 0 ? rnd() : (S[f].nsels > 0 ? S[f].sels[rnd() % (uint32_t)S[f].nsels] : 0);
+        setup(f, sel, idx);
+        for (i = 0; i < 40; i++) fx.self[rnd() % SELF_SZ] = (uint8_t)rnd();
+        for (i = 0; i < 20; i++) fx.obj[rnd() % sizeof fx.obj] = (uint8_t)rnd();
+        for (k = 0; k < S[f].ngates; k++) set_gate(&S[f].gates[k], (int)(rnd() % 4 != 0), (int)(rnd() % 5));
+        set16(fx.self, S[f].idx_off, (uint16_t)(int16_t)idx);
+        if (rnd() % 8 == 0) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, rnd());
+        fx.w.value_5bb1ca = rnd() % 2 ? 0 : rnd();
+        g_ret_4e26fc = rnd() % 3 ? 0 : rnd();
+        g_ret_4f6334 = rnd() % 3 ? 0 : rnd();
+        g_tick = rnd();
+        if (f == 1) {
+            set32(fx.self, 0x2d4, (uint32_t)((int)(rnd() % 43) - 2));
+            set32(fx.self, 0x18, OBJ18_VA);
+        }
+        if (f == 5) set16(fx.self, 0x3fe, (uint16_t)(int16_t)((int)(rnd() % 24) - 3));
+        if (f == 9) set16(fx.self, 0x42, (uint16_t)(int16_t)((int)(rnd() % 24) - 3));
+        run(f);
+    }
+}
+
 typedef void (*Arms)(int);
 static const Arms ARMS[N_FUNCS] = {arms_4a1efd, arms_4ba4f2, arms_46957d, arms_4b45ed, arms_473ffc, arms_48e851,
                                    arms_45e587, arms_48ab49, arms_4ab899, arms_4574e4, arms_47a03c, arms_4b2a9e};
@@ -726,6 +765,7 @@ int main(void)
         matrix(f);
         ARMS[f](2);
         ARMS[f](-1);
+        sweep(f);
         if (g_failed) {
             printf("FAIL %s: %s\n", S[f].name, g_msg);
             failures++;
