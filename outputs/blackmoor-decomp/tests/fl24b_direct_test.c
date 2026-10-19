@@ -917,6 +917,157 @@ static int test_m482359_hit_test(void)
     return g_failed;
 }
 
+/* 0x46793a: [+0x1aa] := the object address of the record of the word [+8] (always, first); guards [+0x1ae] != 0, [+0xc] == 0, the record
+ * state == 1, [+0x1b6] == 0, [+0x1b2] == 0; events 0x27ac and 0x27ab (the selection [+0x1ba], the stack depth [+0x240], the pairs at +0x1b8 / +0x1c0). */
+static void setup_46793a(uint32_t sel, int idx)
+{
+    base(sel, idx, 8);
+    set32(fx.self, 0x1ae, 0x01000000u);
+    set32(fx.self, 0xc, 0);
+    set32(fx.self, 0x1b6, 0);
+    set32(fx.self, 0x1b2, 0);
+    set32(fx.self, 0x248, 0);
+    set32(fx.self, 0x240, 0);
+    set16(fx.self, 0xa, 7);
+    set32(fx.self, 0x1ba, 7);
+    set16(fx.obj, 0x2bf, 0x1234);
+}
+#define EXPECT_STORE_1AA() X32(0x1aa, OBJ_VA)
+
+static int test_m46793a_click_27ab_27ac(void)
+{
+    static const int idxs[2] = {2, -1};
+    int ii, k, v, s, c;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        static const uint32_t sels[] = {0x27ab, 0x27ac, 0x2711};
+        for (s = 0; s < 3; s++)
+            for (k = 0; k < 5; k++)
+                for (v = 0; v < 6; v++) {
+                    setup_46793a(sels[s], idx);
+                    set32(fx.self, 0x248, 1);
+                    if (k == 0) set32(fx.self, 0x1ae, 0);
+                    if (k == 1) set32(fx.self, 0xc, (uint32_t[]){1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 3}[v]);
+                    if (k == 2) set32(fx.self, 0x1b6, (uint32_t[]){1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 3}[v]);
+                    if (k == 3) set32(fx.self, 0x1b2, (uint32_t[]){1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 3}[v]);
+                    if (k == 4) {
+                        int i;
+                        for (i = -1; i <= 4; i++)
+                            set32(fx.tab, (size_t)(i + 1) * REC + 0x4d, i == idx ? (uint32_t[]){0, 2, 3, 0xffffffffu, 0x101, 0x10001}[v] : 1u);
+                    }
+                    begin();
+                    EXPECT_STORE_1AA();
+                    m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    CK(L.n == 0);
+                }
+        /* 0x27ac */
+        setup_46793a(0x27ac, idx);
+        set32(fx.self, 0x248, 1);
+        begin();
+        EXPECT_STORE_1AA();
+        X32(0x1b2, 1);
+        set32(xt, (size_t)(idx + 1) * REC + 0x4d, 2);
+        m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+        check_mem();
+        CK(L.n == 0);
+        /* 0x27ab, selection -1: it becomes w sign-extended; with w = -1 it stays; no announcement while [+0x248] is zero */
+        for (v = 0; v < 3; v++) {
+            int16_t w = (int16_t[]){-5, 0x7fff, -1}[v];
+            setup_46793a(0x27ab, idx);
+            set32(fx.self, 0x1ba, 0xffffffffu);
+            set16(fx.self, 0xa, (uint16_t)w);
+            begin();
+            EXPECT_STORE_1AA();
+            X32(0x1ba, (uint32_t)(int32_t)w);
+            m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == 0);
+        }
+        /* a different w pushes (s, w) at depth n, selects w, n + 1, then the four callees in order; [+0x1b6] is the first one's result */
+        for (c = 0; c < 4; c++) {
+            uint32_t n = (uint32_t[]){0, 1, 5, 0xffffffffu}[c];
+            int16_t w = -2;
+            setup_46793a(0x27ab, idx);
+            set32(fx.self, 0x240, n);
+            set16(fx.self, 0xa, (uint16_t)w);
+            set32(fx.self, 0x1ba, 0xfffffffeu & ~0u ? 0x0000fffeu : 0);   /* 0xfffe: equal to w as a word but not as a dword */
+            set32(fx.self, 0x248, 1);
+            g_ret_by[0].callee = 0x467c0e;
+            g_ret_by[0].value = 0xdead0001u;
+            begin();
+            EXPECT_STORE_1AA();
+            set32(xs, (size_t)((int32_t)n * 8 + 0x1c0), 0x0000fffeu);
+            set32(xs, (size_t)((int32_t)n * 8 + 0x1c4), 0xfffffffeu);
+            if ((int32_t)n == -1) {          /* the pair at n = -1 overlaps [+0x1b8..] and [+0x1ba]: the original stores the pair first, then the selection */
+                X32(0x1b8, 0x0000fffeu);
+                X32(0x1bc, 0xfffffffeu);
+            }
+            X32(0x1ba, 0xfffffffeu);
+            X32(0x240, n + 1);
+            X32(0x1b6, 0xdead0001u);
+            m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == 5);
+            check_call(0, 0x467c0e, (uintptr_t)fx.self, 0);
+            check_call(1, 0x467d5f, (uintptr_t)fx.self, 0);
+            check_call(2, 0x467e70, (uintptr_t)fx.self, 0);
+            check_call(3, 0x467eb0, (uintptr_t)fx.self, 0);
+            check_call(4, 0x4fb2e3, 0x5c3a67, 1);
+            check_arg(4, 0, 0x1234, 0xffff);
+            CK(get32(L.c[0].snap_self, 0x1b6) == ((int32_t)n == -1 ? 0xfffe0000u : 0));   /* (the pair at n = -1 reaches into the dword) */
+            CK(get32(L.c[1].snap_self, 0x1b6) == 0xdead0001u);
+            CK(get32(L.c[0].snap_self, 0x240) == n + 1);
+        }
+        /* the same w: n == 0 clears the selection */
+        setup_46793a(0x27ab, idx);
+        set16(fx.self, 0xa, 7);
+        begin();
+        EXPECT_STORE_1AA();
+        X32(0x1ba, 0xffffffffu);
+        m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+        check_mem();
+        /* the same w, n = 2: the pair at +0x1c8 / +0x1cc; a match in the first dword pops to it, in the second only also pops (to the FIRST dword);
+         * no match leaves everything; n = 1 pops to 0 */
+        for (v = 0; v < 5; v++) {
+            uint32_t n = v == 4 ? 1 : 2;
+            uint32_t first = v == 0 || v == 3 || v == 4 ? 7u : 9u, second = v == 1 ? 7u : 9u;
+            setup_46793a(0x27ab, idx);
+            set32(fx.self, 0x240, n);
+            set32(fx.self, n * 8 + 0x1b8, first);
+            set32(fx.self, n * 8 + 0x1bc, second);
+            if (v == 2) { set32(fx.self, n * 8 + 0x1b8, 8); set32(fx.self, n * 8 + 0x1bc, 0x100000007ull & 0xffffffffu ? 0x80000007u : 0); }
+            set32(fx.self, 0x248, v == 3 ? 1 : 0);
+            begin();
+            EXPECT_STORE_1AA();
+            if (v != 2) {
+                X32(0x1ba, first);
+                X32(0x240, n - 1);
+            }
+            m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+            check_mem();
+            if (v == 3) { CK(L.n == 1); check_arg(0, 0, 0x1234, 0xffff); } else { CK(L.n == 0); }
+        }
+        /* n = -1 with a matching pair at +0x1b0: popped to -2 and clamped to 0 */
+        setup_46793a(0x27ab, idx);
+        set32(fx.self, 0x240, 0xffffffffu);
+        set32(fx.self, 0x1b0, 7);
+        set32(fx.self, 0x1b4, 0);
+        set32(fx.self, 0x1b2, 0);        /* (overlaps: the gate dword [+0x1b2] is the high half of the pair) */
+        begin();
+        EXPECT_STORE_1AA();
+        X32(0x1ba, 7);
+        X32(0x240, 0);
+        m46793a_click_27ab_27ac(fx.self, &fx.w, &fx.host);
+        check_mem();
+    }
+    if (g_failed) printf("FAIL test_m46793a_click_27ab_27ac: %s\n", g_msg);
+    else printf("PASS test_m46793a_click_27ab_27ac\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -928,6 +1079,7 @@ int main(void)
     failures += test_m4b7563_click_27bf_27c1();
     failures += test_m459e49_click_2742();
     failures += test_m482359_hit_test();
+    failures += test_m46793a_click_27ab_27ac();
     /* FL24B-MAIN-END */
     return failures;
 }

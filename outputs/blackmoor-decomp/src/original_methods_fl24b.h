@@ -49,6 +49,9 @@ void m4b7563_click_27bf_27c1(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
 void m459e49_click_2742(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* 0x482359 (ret 8): hit test of the point (x, y) against up to word [ro+0xfc] rectangles of the record's object, then its outer rectangle */
 int32_t m482359_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
+/* 0x46793a: events 0x27ac and 0x27ab (a small stack of (from, to) pairs at +0x1c0 with the depth [+0x240]; calls 0x467c0e, 0x467d5f,
+ * 0x467e70, 0x467eb0 with this = self and no arguments, and 0x4fb2e3) */
+void m46793a_click_27ab_27ac(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

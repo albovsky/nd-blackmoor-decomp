@@ -117,10 +117,13 @@ SPECS.update({
     '459e49': dict(id=5, va=0x459e49, size=562, selfsz=0x100, idx=0x1c, gates=[('nz8', 0xd6), ('z8', 0xe1), ('z32', 0xdb)], sels=[0x2742],
                    callees=[0x4f6334, 0x4fb2e3], post=lambda c: post_459e49(c), scen=480, probes=[(0, 0x100)]),
     '482359': dict(id=6, va=0x482359, size=572, selfsz=0x100, ret='eax', callee_pops=True, scen=480),
+    '46793a': dict(id=7, va=0x46793a, size=612, selfsz=0x260, idx=8, gates=[('nz32', 0x1ae), ('z32', 0xc), ('z32', 0x1b6), ('z32', 0x1b2)],
+                   sels=[0x27ac, 0x27ab], callees=[0x467c0e, 0x467d5f, 0x467e70, 0x467eb0, 0x4fb2e3], post=lambda c: post_46793a(c), scen=630,
+                   probes=[(0x1a0, 0xc0), (0x238, 0x28)]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
-STUB_SHAPE = {0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
+STUB_SHAPE = {0x467c0e: dict(args=0, this=True, cleanup=0), 0x467d5f: dict(args=0, this=True, cleanup=0), 0x467e70: dict(args=0, this=True, cleanup=0), 0x467eb0: dict(args=0, this=True, cleanup=0), 0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
               0x4e26fc: dict(args=0, this=True, cleanup=0), 0x45e6bd: dict(args=3, this=True, cleanup=12)}
 WORD_ARGS = {0x4fb2e3: (0,), 0x45e6bd: (2,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
@@ -383,6 +386,39 @@ def build_482359(sp, rng, n):
     g = {f: rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]) for f in ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639', 'value_5c39e5')}
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '482359', rng, areas=areas, g=g, pointers={'records_5bb5e5': ('records', 0x8d)}, stack_args=[junk(x), junk(y)], profile=('x', prof))
+
+
+def post_46793a(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    case = v % 7
+    k = [0, 1, 2, 5, -1, 15, 3][(v // 7) % 7]
+    w = rng.choice([0, 1, -1, 0x7fff, -0x8000, rng.randrange(-300, 300), 2])
+    if k == -1 and case in (3, 4):      # (the pair at n = -1 overlaps the gates [+0x1b2] and [+0x1b6], which must stay zero)
+        w = 0 if case == 4 else rng.choice([0, 5, 0x7fff])
+    struct.pack_into('<h', d, 0xa, w)
+    sext = w & 0xffffffff
+    struct.pack_into('<I', d, 0x240, k & 0xffffffff)
+    if case == 0:
+        s = 0xffffffff
+    elif case == 1:
+        s = rng.choice([(w + 1) & 0xffffffff, w & 0xffff, rng.randrange(1 << 32), (w ^ 0x80000000) & 0xffffffff])
+        if s == sext or s == 0xffffffff:
+            s = (s + 5) & 0xffffffff
+    else:
+        s = sext
+        if s == 0xffffffff and case != 0:
+            s = sext          # (w == -1: the first test wins)
+    struct.pack_into('<I', d, 0x1ba, s)
+    # the pair at the top of the stack (only meaningful when w equals the selection and k != 0)
+    if case in (2, 3, 4, 5, 6) and k != 0:
+        other = rng.randrange(1 << 32)
+        a, b2 = {3: (s, other), 4: (other, s), 5: (other, other ^ 1), 6: (s, s), 2: (other, other ^ 1)}[case]
+        if k == -1:
+            a, b2 = (s, 0) if case == 3 else (rng.randrange(1, 0x10000), 0) if case == 4 else (0, 0)
+        if k * 8 + 0x1b8 + 8 <= len(d) and k * 8 + 0x1b8 >= 0 and not (0x1b8 <= k * 8 + 0x1b8 <= 0x1bc):
+            struct.pack_into('<II', d, k * 8 + 0x1b8, a, b2)
+    struct.pack_into('<I', d, 0x248, rng.choice([0, 0, 1, 0x100, 0x80000000]))
+    c.stubs_results[0x467c0e] = [rng.choice([0, 1, 0x100, 0xffffffff, rng.randrange(1 << 32)])]
 
 
 # BUILDERS-END

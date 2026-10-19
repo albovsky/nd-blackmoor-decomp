@@ -374,4 +374,59 @@ int32_t m482359_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world,
     return 0;
 }
 
+/* ---- 0x46793a ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x46793a, thiscall, plain `ret`. Stores the address of the object of the record of the word [+8] at [+0x1aa] first. Then the guards:
+ * [+0x1ae] != 0, [+0xc] == 0, the record state == 1, [+0x1b6] == 0, [+0x1b2] == 0. Event 0x27ac sets [+0x1b2] = 1 and the state 2. Event
+ * 0x27ab with w = the signed word [+0xa] and the current selection s = [+0x1ba]: s == -1 selects w; otherwise a different w pushes the
+ * pair (s, w) at [+ n * 8 + 0x1c0 / 0x1c4] (n = [+0x240], a signed dword, not bounds-checked), selects w, increments n and runs 0x467c0e
+ * (the result goes to [+0x1b6]), 0x467d5f, 0x467e70, 0x467eb0; the same w pops: n == 0 clears the selection (-1), else when the pair at
+ * [+ n * 8 + 0x1b8 / 0x1bc] holds s in either dword the selection becomes the first dword and n is decremented, clamped at 0. In every
+ * 0x27ab arm that falls out, a non-zero [+0x248] announces the word at +0x2bf of the record object through 0x4fb2e3 (this 0x5c3a67). A
+ * callee that changes self is not exercised. */
+void m46793a_click_27ab_27ac(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
+{
+    int32_t w, k;
+    wr32(self, 0x1aa, record_object_address(world, self, 8));
+    if (rd32(self, 0x1ae) == 0) return;
+    if (rd32(self, 0xc) != 0) return;
+    if (!record_state_is_1(world, self, 8)) return;
+    if (rd32(self, 0x1b6) != 0) return;
+    if (rd32(self, 0x1b2) != 0) return;
+    if (world->value_5c39e5 == 0x27ac) {
+        wr32(self, 0x1b2, 1);
+        set_record_state_2(world, self, 8);
+        return;
+    }
+    if (world->value_5c39e5 != 0x27ab) return;
+    if (rd32(self, 0x1ba) == 0xffffffffu) {
+        wr32(self, 0x1ba, (uint32_t)rds16(self, 0xa));
+    } else if ((uint32_t)rds16(self, 0xa) != rd32(self, 0x1ba)) {
+        k = (int32_t)rd32(self, 0x240);
+        wr32(self, (ptrdiff_t)k * 8 + 0x1c0, rd32(self, 0x1ba));
+        k = (int32_t)rd32(self, 0x240);
+        w = rds16(self, 0xa);
+        wr32(self, (ptrdiff_t)k * 8 + 0x1c4, (uint32_t)w);
+        wr32(self, 0x1ba, (uint32_t)rds16(self, 0xa));
+        wr32(self, 0x240, rd32(self, 0x240) + 1);
+        wr32(self, 0x1b6, call0(host, 0x467c0e, (uintptr_t)self));
+        call0(host, 0x467d5f, (uintptr_t)self);
+        call0(host, 0x467e70, (uintptr_t)self);
+        call0(host, 0x467eb0, (uintptr_t)self);
+    } else {
+        if (rd32(self, 0x240) == 0) {
+            wr32(self, 0x1ba, 0xffffffffu);
+        } else {
+            k = (int32_t)rd32(self, 0x240);
+            if (rd32(self, (ptrdiff_t)k * 8 + 0x1b8) == rd32(self, 0x1ba) || (k = (int32_t)rd32(self, 0x240), rd32(self, (ptrdiff_t)k * 8 + 0x1bc) == rd32(self, 0x1ba))) {
+                k = (int32_t)rd32(self, 0x240);
+                wr32(self, 0x1ba, rd32(self, (ptrdiff_t)k * 8 + 0x1b8));
+                wr32(self, 0x240, rd32(self, 0x240) - 1);
+                if ((int32_t)rd32(self, 0x240) < 0) wr32(self, 0x240, 0);
+            }
+        }
+    }
+    if (rd32(self, 0x248) != 0) call1(host, 0x4fb2e3, 0x5c3a67, rd16(object_at(host, rd32(self, 0x1aa)), 0x2bf));
+}
+
 /* FL24B-END */
