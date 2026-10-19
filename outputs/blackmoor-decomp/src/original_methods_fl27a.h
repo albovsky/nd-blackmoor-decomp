@@ -99,6 +99,11 @@ int32_t m4bf098_bink_copy_to_buffer(uint8_t *self, uint32_t handle, uint32_t des
  * (import 0x52a530: handle, [handle + 0xc] - 1, 0) and returns 1. */
 int32_t m4bf10f_bink_next(uint8_t *self, uint32_t handle, const Fl18Host *host);
 
+/* 0x4bf315: thiscall, `ret 8` (name, flags): calls 0x4bf38c and 0x4bede7 (this = self); an empty zero-terminated name (read through resolve,
+ * the first byte; see the .c comment): [self + 0x2c0] = 0xfffffffb, returns 0; otherwise _BinkOpen@8 (import 0x52a518: name, flags): zero
+ * result: [self + 0x2c0] = 0xfffffffa, returns 0; else returns the result. */
+uint32_t m4bf315_bink_open(uint8_t *self, uint32_t name, uint32_t flags, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

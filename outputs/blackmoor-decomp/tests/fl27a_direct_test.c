@@ -652,6 +652,57 @@ static void test_m4bf10f_bink_next(void)
     CK(L.c[1].a[1] == 0x100);
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bf315: 0x4bf38c(self), 0x4bede7(self); empty name -> [self+0x2c0] = -5, return 0; else _BinkOpen(name, flags): 0 -> [self+0x2c0] = -6, return 0; else the handle */
+
+static void test_m4bf315_bink_open(void)
+{
+    static const uint32_t HANDLES[] = {1, 2, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    static const uint8_t FIRST[] = {1, 0x41, 0x80, 0xff};
+    size_t i;
+    setup();
+    fx.a[0x10] = 0;                                                     /* the name is VA_A + 0x10: empty, junk behind the terminator */
+    fx.a[0x11] = 'x';
+    script_ret(0x52a518, 5);                                            /* never called */
+    expect_begin();
+    CK(m4bf315_bink_open(fx.self, VA_A + 0x10, 0x99, &fx.host) == 0);
+    CK(L.n == 2);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    ck_call(1, 0x4bede7, (uintptr_t)fx.self, 0);
+    CK(get32(L.c[1].snap_self, 0x2c0) == 0xa5a5a5a5u);
+    set32(exp_self, 0x2c0, 0xfffffffbu);
+    expect_end();
+    for (i = 0; i < sizeof FIRST; i++) {                                /* the first byte alone decides; the open fails (zero) */
+        setup();
+        fx.a[0x10] = FIRST[i];
+        fx.a[0x11] = 0;
+        expect_begin();
+        CK(m4bf315_bink_open(fx.self, VA_A + 0x10, 0x4242, &fx.host) == 0);
+        CK(L.n == 3);
+        ck_call(2, 0x52a518, 0, 2);
+        ck_arg(2, 0, VA_A + 0x10);                                      /* the name is the last pushed = the first argument */
+        ck_arg(2, 1, 0x4242);
+        set32(exp_self, 0x2c0, 0xfffffffau);
+        expect_end();
+    }
+    for (i = 0; i < sizeof HANDLES / sizeof HANDLES[0]; i++) {
+        setup();
+        fx.a[0x10] = 'a';
+        fx.a[0x11] = 'b';
+        fx.a[0x12] = 0;
+        script_ret(0x52a518, HANDLES[i]);
+        expect_begin();
+        CK(m4bf315_bink_open(fx.self, VA_A + 0x10, 0xabcd0123u, &fx.host) == HANDLES[i]);
+        CK(L.n == 3);
+        ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+        ck_call(1, 0x4bede7, (uintptr_t)fx.self, 0);
+        ck_call(2, 0x52a518, 0, 2);
+        ck_arg(2, 0, VA_A + 0x10);
+        ck_arg(2, 1, 0xabcd0123u);
+        expect_end();                                                   /* no error code on success */
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -691,6 +742,7 @@ static void test_sweep(void)
         (void)m4bef11_bink_goto(fx.self, rnd() % 2 ? VA_A : 0, rnd() % 3, &fx.host);
         (void)m4bf098_bink_copy_to_buffer(fx.self, rnd() % 2 ? VA_A : 0, rnd(), rnd(), rnd(), rnd(), rnd(), &fx.host);
         (void)m4bf10f_bink_next(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
+        (void)m4bf315_bink_open(fx.self, VA_A + (rnd() % 64), rnd(), &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -712,6 +764,7 @@ static const struct {
     {"test_m4bef11_bink_goto", test_m4bef11_bink_goto},
     {"test_m4bf098_bink_copy_to_buffer", test_m4bf098_bink_copy_to_buffer},
     {"test_m4bf10f_bink_next", test_m4bf10f_bink_next},
+    {"test_m4bf315_bink_open", test_m4bf315_bink_open},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

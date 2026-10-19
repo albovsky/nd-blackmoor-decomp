@@ -30,6 +30,7 @@ EXPECTED = [
     'test_m4bef11_bink_goto',
     'test_m4bf098_bink_copy_to_buffer',
     'test_m4bf10f_bink_next',
+    'test_m4bf315_bink_open',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -123,6 +124,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4bf10f_bink_next(self):
         """FL-27a: direct test of m4bf10f_bink_next"""
         self.check('test_m4bf10f_bink_next')
+
+    def test_4bf315_bink_open(self):
+        """FL-27a: direct test of m4bf315_bink_open"""
+        self.check('test_m4bf315_bink_open')
 
     # CASES-END
 

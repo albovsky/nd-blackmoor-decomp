@@ -485,6 +485,30 @@ def gen_4bf10f(rng, n):
 
 SPECS['4bf10f'] = dict(id=12, va=0x4bf10f, size=139, gen=gen_4bf10f, ret=0xffffffff, cleanup=4, n=36)
 
+def gen_4bf315(rng, n):
+    """An empty name (first byte zero, junk after it; error code -5) or a name of 1 to 0x30 bytes whose first byte is non-zero (including
+    0x80 and 0xff): _BinkOpen answers zero (error code -6) or a handle (returned)."""
+    profiles = [('empty',), ('empty',)] + [('open', v) for v in (0, 0, 1, 2, 0x100, 0x10000, 0x01000000, 0x80000000, 0xffffffff)]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    s = bytearray(rng.randbytes(0x40))
+    noff = rng.choice([0, 1, 7])
+    length = 0 if kind == 'empty' else rng.choice([1, 1, 2, 5, 0x30 - noff])
+    for k in range(length):
+        s[noff + k] = rng.choice([1, 0x41, 0x80, 0xff, rng.randrange(1, 256)])
+    s[noff + length] = 0
+    if kind == 'empty' and variant % 2:
+        s[noff + 1] = rng.randrange(1, 256)
+    name = od.region_va(1) + noff
+    flags = rng.randrange(1 << 32)
+    stubs = {0x4bf38c: stub(0x4bf38c, results=[rng.randrange(1 << 32)]), 0x4bede7: stub(0x4bede7, results=[rng.randrange(1 << 32)]),
+             0x52a518: stub(0x52a518, results=[rest[0] if rest else 0])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('name', od.region_va(1), s, image=False)]
+    return make('4bf315', areas, stubs, {}, [name, flags], (name, flags), (kind, *rest), probes=[('self', 0, 0x300)])
+
+
+SPECS['4bf315'] = dict(id=13, va=0x4bf315, size=119, gen=gen_4bf315, ret=0xffffffff, cleanup=8, n=44)
+
 KEYS = list(SPECS)
 
 

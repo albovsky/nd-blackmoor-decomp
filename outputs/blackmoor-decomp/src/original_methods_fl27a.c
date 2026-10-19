@@ -267,4 +267,28 @@ int32_t m4bf10f_bink_next(uint8_t *self, uint32_t handle, const Fl18Host *host)
     return 1;
 }
 
+/* ---- 0x4bf315 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bf315, thiscall, `ret 8` (name, flags): calls 0x4bf38c and then 0x4bede7 (this = self for both); measures the zero-terminated name
+ * (`repne scasb`); an empty name stores [self + 0x2c0] = 0xfffffffb and returns 0; otherwise calls _BinkOpen@8 (import 0x52a518: name,
+ * flags): a zero result stores [self + 0x2c0] = 0xfffffffa and returns 0, any other result is returned (the Bink handle). The scan only
+ * decides whether the length is zero, so the port reads the first byte; the original scans on to the terminator (a name without one
+ * runs off the memory: caller-validated). The name is read through Fl18Host.resolve (1 byte). */
+uint32_t m4bf315_bink_open(uint8_t *self, uint32_t name, uint32_t flags, const Fl18Host *host)
+{
+    uint32_t bink;
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    call0(host, 0x4bede7, (uintptr_t)self);
+    if (mem_at(host, name)[0] == 0) {
+        wr32(self, 0x2c0, 0xfffffffbu);
+        return 0;
+    }
+    bink = call2(host, 0x52a518, 0, name, flags);
+    if (bink == 0) {
+        wr32(self, 0x2c0, 0xfffffffau);
+        return 0;
+    }
+    return bink;
+}
+
 /*NEXT*/
