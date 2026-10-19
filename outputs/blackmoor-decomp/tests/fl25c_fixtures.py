@@ -166,6 +166,10 @@ SPECS = {
     '46c6a9': dict(id=3, va=0x46c6a9, size=1506, selfsz=0x4a80, idx=0x1e, gates=[('nz32', 0x4a48), ('z8', 0x4a59), ('z32', 0x4a55)],
                    sels=[0x27ea, 0x27e6, 0x27e8, 0x27e2, 0x27e3, 0x27e4, 0x27e5], callees=[0x4f6334, 0x4fb2e3, 0x46cc8b], post=lambda c: post_46c6a9(c),
                    scen=1800, probes=[(0x48a0, 0x180), (0x4a20, 0x40)]),
+    # (the span ends with a 16-byte jump table at 0x4a4c05: the coverage target is the 1861 code bytes)
+    '4a44c0': dict(id=4, va=0x4a44c0, size=1877, code=1861, selfsz=0x290, idx=0x1e, gates=[('nz32', 0x26e), ('z8', 0x27f), ('z32', 0x27b)],
+                   sels=[0x274f, 0x274e, 0x274c, 0x274d], callees=[0x4f6334, 0x4fb2e3, 0x4a4d55], post=lambda c: post_4a44c0(c), scen=1800,
+                   probes=[(0x200, 0x90)]),
     # SPECS-END
 }
 KEYS = list(SPECS)
@@ -174,6 +178,7 @@ STUB_SHAPE = {
     0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4a8bf2: dict(args=0, this=True, cleanup=0),
     0x423259: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4), 0x448d11: dict(args=4, this=True, cleanup=16),
     0x46cc8b: dict(args=0, this=True, cleanup=0),
+    0x4a4d55: dict(args=0, this=True, cleanup=0),
     # STUBS-END
 }
 WORD_ARGS = {0x4fb2e3: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
@@ -431,6 +436,37 @@ def post_46c6a9(c):
     c.stubs_results[0x4f6334] = [0 if (v // 44) % 2 == 0 else rng.choice([1, 0x100, 0xffffffff])]
     c.areas.append(Area('b5a14df', 0x5a14df, bytearray(rng.randbytes(0x140 + 0x20))))
     c.pointers['buf_5a14df'] = ('b5a14df', 0)
+
+
+def post_4a44c0(c):
+    d, obj, rng, v, sel = c.d, c.obj, c.rng, c.variant, c.sel
+    flip = v % 2 == 1                      # the dword [+0x260] disagrees with the group of the event
+    known = sel in (0x274f, 0x274e, 0x274c, 0x274d)
+    nz = ((sel == 0x274d) != flip) if (c.passing and known) else bool(rng.getrandbits(1))
+    struct.pack_into('<I', d, 0x260, rng.choice([1, 0x100, 0x01000000, 0xffffffff, rng.randrange(1, 1 << 32)]) if nz else 0)
+    row, sub, i = rng.choice([0, 1, 2, 3]), rng.choice([0, 1, 2, 3, 4]), rng.choice([0, 1, 2, 3, 4, 5])
+    struct.pack_into('<h', d, 0x264, row)
+    struct.pack_into('<h', d, 0x278, sub)
+    struct.pack_into('<h', d, 0x276, i)
+    p_off = row * 0x7c + sub * 0xc + i * 2
+    buf = bytearray(rng.randbytes(0x200))
+    bvals = [0, 7, -1, -10, -0x8000, 0x7fff]
+    avals = [0, 1, 2, 3, 4, -1, 0x7fff, -0x8000]
+    struct.pack_into('<h', buf, p_off, bvals[(v // 16) % 6])
+    struct.pack_into('<h', buf, 0x3c + p_off, avals[(v // 2) % 8])
+    c.areas.append(Area('b591a28', 0x591a28, buf))
+    c.pointers['buf_591a28'] = ('b591a28', 0)
+    dvals = [1, 2, 3, 5, 7, -1, -3, 127, -128]
+    obj[0x21] = dvals[(v // 3) % 9] & 0xff
+    struct.pack_into('<H', obj, 0x413, 1 if (v // 5) % 2 else rng.choice([0, 2, 0x8001, 0xffff, 0x101]))
+    struct.pack_into('<h', d, 0x214, rng.choice([0, 1, -1, 100, -0x8000, 0x7fff, 0x1234, -7]))
+    g_nz = rng.random() < 0.75
+    nine = ((v // 3) % 11) - 1
+    c.g['value_5bb1ca'] = rng.choice([1, 0x100, 0x80000000, 0xffffffff]) if g_nz else 0
+    nine_const(c, 0x550570, 0x61b, obj, c.passing and sel == 0x274e and not nz and g_nz, nine=nine)
+    nine_const(c, 0x55057c, 0x5b9, obj, c.passing and sel == 0x274c and not nz and g_nz, nine=nine)
+    nine_const(c, 0x550588, 0x5ea, obj, c.passing and sel == 0x274d and nz and g_nz, nine=nine)
+    c.stubs_results[0x4f6334] = [0 if (v // 33) % 2 == 0 else rng.choice([1, 0x100, 0xffffffff])]
 
 
 # BUILDERS-END

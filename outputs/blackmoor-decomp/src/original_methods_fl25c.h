@@ -31,6 +31,8 @@ typedef struct Fl25cWorld {
     const uint8_t *bytes_550bac, *bytes_550bb8;   /* 0x4a8818: nine-byte constants */
     uint8_t *buf_5a14df;                                  /* 0x46c6a9: the 0x140-byte buffer at that address (host memory) */
     const uint8_t *bytes_54bd00, *bytes_54bd0c;           /* 0x46c6a9: nine-byte constants */
+    uint8_t *buf_591a28;                                  /* 0x4a44c0: the word matrices at 0x591a28 and 0x591a64 (0x3c bytes apart) as one area (host memory) */
+    const uint8_t *bytes_550570, *bytes_55057c, *bytes_550588;   /* 0x4a44c0: nine-byte constants */
     /* FL25C-WORLD-END */
 } Fl25cWorld;
 
@@ -43,6 +45,9 @@ void m4aa3d2_click_276f_2771(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
 /* 0x46c6a9: events 0x27e2 .. 0x27e6, 0x27e8 and 0x27ea (a table of 16-byte cells at [+0x48a0], two nine-byte compares, calls 0x46cc8b, 0x4f6334 and
  * 0x4fb2e3, a 0x140-byte copy to the buffer at 0x5a14df) */
 void m46c6a9_click_27e2_27ea(uint8_t *self, Fl25cWorld *world, const Fl18Host *host);
+/* 0x4a44c0: events 0x274c .. 0x274f (a switch through a jump table on a word of a global matrix, a signed division by a byte of the record object,
+ * three nine-byte compares; calls 0x4f6334, 0x4fb2e3 and 0x4a4d55). Rejects the divide error of the original (see the .c file). */
+void m4a44c0_click_274c_274f(uint8_t *self, Fl25cWorld *world, const Fl18Host *host);
 /* FL25C-PROTOS-END */
 
 #ifdef __cplusplus

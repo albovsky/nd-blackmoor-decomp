@@ -21,6 +21,7 @@ EXPECTED = [
     'test_m4a8818_click_2798_279a',
     'test_m4aa3d2_click_276f_2771',
     'test_m46c6a9_click_27e2_27ea',
+    'test_m4a44c0_click_274c_274f',
     # EXPECTED-END
 ]
 
@@ -78,6 +79,10 @@ class Fl25cDirect(unittest.TestCase):
     def test_46c6a9_click_27e2_27ea(self):
         """FL-25c: direct test of m46c6a9_click_27e2_27ea"""
         self.check('test_m46c6a9_click_27e2_27ea')
+
+    def test_4a44c0_click_274c_274f(self):
+        """FL-25c: direct test of m4a44c0_click_274c_274f"""
+        self.check('test_m4a44c0_click_274c_274f')
 
     # DIRECT-TESTS-END
 

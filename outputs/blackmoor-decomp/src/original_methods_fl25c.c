@@ -418,4 +418,125 @@ void m46c6a9_click_27e2_27ea(uint8_t *self, Fl25cWorld *world, const Fl18Host *h
     memcpy(world->buf_5a14df, self + 0x48a0, 0x140);
 }
 
+/* ---- 0x4a44c0 ------------------------------------------------------------------------------------------------------------------ */
+
+/* `movsx eax, word [+0x264]; imul eax, eax, 0x7c; + movsx word [+0x278] * 0xc; + movsx word [+0x276] * 2`: the byte offset, in the two word
+ * matrices at 0x591a28 and 0x591a64 (0x3c bytes apart: one area, `buf_591a28`), of the cell that the three index words name */
+FL25C_UNUSED static ptrdiff_t matrix_offset(const uint8_t *self)
+{
+    return (ptrdiff_t)(rds16(self, 0x264) * 0x7c) + (ptrdiff_t)(rds16(self, 0x278) * 0xc) + (ptrdiff_t)(rds16(self, 0x276) * 2);
+}
+
+/* the word [+0x214] split by the signed byte r[+0x21]: zero gives [+0x210] = [+0x212] = 0; else [+0x212] = the quotient (idiv, truncated to a
+ * word) and [+0x210] = [+0x214] - [+0x212] * the byte (words, sign-extended). The original divides without a test: a zero byte raises a divide
+ * error. Returns 0 (rejected, nothing stored by this step) in that case. */
+FL25C_UNUSED static int split_by_byte_21(uint8_t *self, const uint8_t *r)
+{
+    int32_t divisor, quotient;
+    if (rds16(self, 0x214) == 0) {
+        wr16(self, 0x210, 0);
+        wr16(self, 0x212, 0);
+        return 1;
+    }
+    divisor = (int8_t)r[0x21];
+    if (divisor == 0) return 0;
+    quotient = rds16(self, 0x214) / divisor;
+    wr16(self, 0x212, (uint16_t)quotient);
+    wr16(self, 0x210, (uint16_t)(rds16(self, 0x214) - rds16(self, 0x212) * (int32_t)(int8_t)r[0x21]));
+    return 1;
+}
+
+/* the announcement that three of the arms share: when the dword 0x5bb1ca is non-zero and the nine bytes r[nine_off] differ from `constant`:
+ * 0x4f6334(this 0x5cf1eb, the sign-extended word r[word_off]) and, when it returns 0, 0x4fb2e3(this 0x5c3a67, the word r[word_off]) */
+FL25C_UNUSED static void announce_if_different(const Fl25cWorld *world, const Fl18Host *host, const uint8_t *r, ptrdiff_t nine_off, const uint8_t *constant,
+                                                ptrdiff_t word_off)
+{
+    if (world->value_5bb1ca == 0) return;
+    if (nine_bytes_equal(r + nine_off, constant)) return;
+    if (call1(host, 0x4f6334, 0x5cf1eb, (uintptr_t)(uint32_t)rds16(r, word_off)) == 0) call1(host, 0x4fb2e3, 0x5c3a67, rd16(r, word_off));
+}
+
+/* 0x4a44c0, thiscall, plain `ret`: the handler of events 0x274c / 0x274d / 0x274e / 0x274f. `r` is the object of the record of the word [+0x1e].
+ * Returns at once (nothing stored) when the dword [+0x26e] is zero, the BYTE [+0x27f] is non-zero, the dword [+0x27b] is non-zero or the record
+ * state (dword [n * 0x8d + 0x5bb632]) is not 1. P is matrix_offset(); B is the word at 0x591a28 + P and A the word at 0x591a64 + P. By the dword
+ * [+0x260] and the event:
+ *   [+0x260] == 0 and 0x274f: the byte [+0x27a] = 1 and the record state 2;
+ *   [+0x260] == 0 and 0x274e: by the signed word A, taken as an unsigned number (the switch through the table at 0x4a4c05 for 0 .. 3, anything
+ *     else leaves A alone): 0: A = 1 when the word r[+0x413] is 1, else 2; 1: A = 2; 2: A = 3 when it is 1, else 0; 3: A = 0 when it is 1; then
+ *     the announcement (r[+0x61b], 0x550570, word r[+0x63c]), [+0x266] = 1, [+0x26a] = [+0x276], [+0x26c] = [+0x278] (words) and 0x4a4d55(this = self);
+ *   [+0x260] == 0 and 0x274c: [+0x272] = 0, [+0x260] = 1, [+0x258] = 1, [+0x214] = B, the split of [+0x214] by the byte r[+0x21], [+0x216] = A,
+ *     B = A = 0xfff6, the announcement (r[+0x5b9], 0x55057c, word r[+0x5da]);
+ *   [+0x260] != 0 and 0x274d: the words B and A are saved, B = [+0x214], A = [+0x216], [+0x25c] = [+0x266] = 1, [+0x26a] = [+0x276], [+0x26c] =
+ *     [+0x278], the announcement (r[+0x5ea], 0x550588, word r[+0x60b]); when the saved B is -10 (sign-extended): [+0x260] = 0 and 0x4a4d55(this =
+ *     self); else [+0x258] = 1, [+0x214] = the saved B, the split of [+0x214] and [+0x216] = the saved A.
+ * Unsafe original behaviour, rejected: a zero byte r[+0x21] where the split runs (a divide error in the original): the port returns there, after
+ * the stores that precede it. A callee that changes self is not exercised. */
+void m4a44c0_click_274c_274f(uint8_t *self, Fl25cWorld *world, const Fl18Host *host)
+{
+    uint32_t selector;
+    const uint8_t *r;
+    uint8_t *b_cell, *a_cell;
+    if (rd32(self, 0x26e) == 0) return;
+    if (self[0x27f] != 0) return;
+    if (rd32(self, 0x27b) != 0) return;
+    if (!record_state_is_1(world, self, 0x1e)) return;
+    selector = world->value_5c39e5;
+    r = object_at(host, record_object_address(world, self, 0x1e));
+    b_cell = world->buf_591a28 + matrix_offset(self);
+    a_cell = world->buf_591a28 + 0x3c + matrix_offset(self);
+    if (rd32(self, 0x260) == 0 && selector == 0x274f) {
+        self[0x27a] = 1;
+        set_record_state_2(world, self, 0x1e);
+        return;
+    }
+    if (rd32(self, 0x260) == 0 && selector == 0x274e) {
+        switch ((uint32_t)rds16(a_cell, 0)) {
+        case 0: wr16(a_cell, 0, rds16(r, 0x413) == 1 ? 1 : 2); break;
+        case 1: wr16(a_cell, 0, 2); break;
+        case 2: wr16(a_cell, 0, rds16(r, 0x413) == 1 ? 3 : 0); break;
+        case 3:
+            if (rds16(r, 0x413) == 1) wr16(a_cell, 0, 0);
+            break;
+        default: break;
+        }
+        announce_if_different(world, host, r, 0x61b, world->bytes_550570, 0x63c);
+        wr32(self, 0x266, 1);
+        wr16(self, 0x26a, rd16(self, 0x276));
+        wr16(self, 0x26c, rd16(self, 0x278));
+        call0(host, 0x4a4d55, (uintptr_t)self);
+        return;
+    }
+    if (rd32(self, 0x260) == 0 && selector == 0x274c) {
+        wr32(self, 0x272, 0);
+        wr32(self, 0x260, 1);
+        wr32(self, 0x258, 1);
+        wr16(self, 0x214, rd16(b_cell, 0));
+        if (!split_by_byte_21(self, r)) return;
+        wr16(self, 0x216, rd16(a_cell, 0));
+        wr16(b_cell, 0, 0xfff6);
+        wr16(a_cell, 0, 0xfff6);
+        announce_if_different(world, host, r, 0x5b9, world->bytes_55057c, 0x5da);
+        return;
+    }
+    if (rd32(self, 0x260) != 0 && selector == 0x274d) {
+        uint16_t saved_b = rd16(b_cell, 0), saved_a = rd16(a_cell, 0);
+        wr16(b_cell, 0, rd16(self, 0x214));
+        wr16(a_cell, 0, rd16(self, 0x216));
+        wr32(self, 0x25c, 1);
+        wr32(self, 0x266, 1);
+        wr16(self, 0x26a, rd16(self, 0x276));
+        wr16(self, 0x26c, rd16(self, 0x278));
+        announce_if_different(world, host, r, 0x5ea, world->bytes_550588, 0x60b);
+        if ((int16_t)saved_b == -10) {
+            wr32(self, 0x260, 0);
+            call0(host, 0x4a4d55, (uintptr_t)self);
+            return;
+        }
+        wr32(self, 0x258, 1);
+        wr16(self, 0x214, saved_b);
+        if (!split_by_byte_21(self, r)) return;
+        wr16(self, 0x216, saved_a);
+    }
+}
+
 /* FL25C-FUNCS-END */

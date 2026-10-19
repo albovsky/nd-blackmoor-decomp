@@ -194,6 +194,7 @@ enum {
     F25C_4A8818 = 1,
     F25C_4AA3D2 = 2,
     F25C_46C6A9 = 3,
+    F25C_4A44C0 = 4,
     /* F25C-ENUM-END */
 };
 
@@ -215,6 +216,7 @@ void shim_fl25c(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     case F25C_4A8818: m4a8818_click_2798_279a(self, w, &host); break;
     case F25C_4AA3D2: m4aa3d2_click_276f_2771(self, w, &host); break;
     case F25C_46C6A9: m46c6a9_click_27e2_27ea(self, w, &host); break;
+    case F25C_4A44C0: m4a44c0_click_274c_274f(self, w, &host); break;
     /* F25C-CASE-END */
     default: break;
     }

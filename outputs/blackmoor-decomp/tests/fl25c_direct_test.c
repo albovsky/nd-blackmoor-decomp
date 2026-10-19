@@ -979,6 +979,370 @@ static int test_m46c6a9_click_27e2_27ea(void)
     return g_failed;
 }
 
+/* 0x4a44c0 (plain ret): record n = word [+0x1e]; R = OBJ_VA (the byte R[+0x21], the word R[+0x413], the nine bytes and words of the three
+ * announcements). The index words are [+0x264] = 1 (row, 0x7c bytes), [+0x278] = 2 (sub-row, 0xc), [+0x276] = 3 (word), so P = 0x7c + 0x18 + 6 =
+ * 0x9a; B is the word at 0x591a28 + P (buf47 + P) and A the word at 0x591a64 + P (buf47 + 0x3c + P). Constants 0x550570 / 0x55057c / 0x550588 are
+ * consts[0..2]. The expected object is built store by store from the disassembly. */
+#define P47 0x9a
+static uint8_t buf47[0x200], xb47[0x200];
+static const uint8_t NINE47[9] = {'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's'};
+static void setup_4a44c0(uint32_t sel, int idx)
+{
+    base(sel, idx, 0x1e);
+    memset(buf47, 0x5a, sizeof buf47);
+    fx.w.buf_591a28 = buf47;
+    fx.w.bytes_550570 = consts[0];
+    fx.w.bytes_55057c = consts[1];
+    fx.w.bytes_550588 = consts[2];
+    memcpy(consts[0], NINE47, 9);
+    memcpy(consts[1], NINE47, 9);
+    memcpy(consts[2], NINE47, 9);
+    fx.w.value_5bb1ca = 0;
+    set32(fx.self, 0x26e, 0x100);
+    fx.self[0x27f] = 0;
+    set32(fx.self, 0x27b, 0);
+    set32(fx.self, 0x260, 0);
+    set16(fx.self, 0x264, 1);
+    set16(fx.self, 0x278, 2);
+    set16(fx.self, 0x276, 3);
+    set16(fx.self, 0x214, 0x1234);
+    set16(fx.self, 0x216, 0x5678);
+    set32(fx.self, 0x258, 0x77777777u);
+    set32(fx.self, 0x25c, 0x77777777u);
+    set32(fx.self, 0x266, 0x77777777u);
+    set32(fx.self, 0x272, 0x77777777u);
+    fx.self[0x27a] = 0x66;
+    set16(fx.self, 0x210, 0x7777);
+    set16(fx.self, 0x212, 0x7777);
+    fx.obj[0x21] = 3;
+    set16(fx.obj, 0x413, 1);
+    memcpy(fx.obj + 0x61b, NINE47, 9);
+    memcpy(fx.obj + 0x5b9, NINE47, 9);
+    memcpy(fx.obj + 0x5ea, NINE47, 9);
+    set16(fx.obj, 0x63c, 0x8301);
+    set16(fx.obj, 0x5da, 0x8302);
+    set16(fx.obj, 0x60b, 0x8303);
+}
+static void set_b(int16_t v) { set16(buf47, P47, (uint16_t)v); }
+static void set_a(int16_t v) { set16(buf47, 0x3c + P47, (uint16_t)v); }
+static void run_4a44c0(void)
+{
+    begin();
+    memcpy(xb47, buf47, sizeof xb47);
+    m4a44c0_click_274c_274f(fx.self, &fx.w, &fx.host);
+}
+static void finish_4a44c0(void)
+{
+    check_mem();
+    CK(memcmp(buf47, xb47, sizeof buf47) == 0);
+}
+static void xA47(int16_t v) { set16(xb47, 0x3c + P47, (uint16_t)v); }
+static void xB47(int16_t v) { set16(xb47, P47, (uint16_t)v); }
+static void nine_diff4(size_t off, int m)
+{
+    if (m >= 0 && m <= 8) fx.obj[off + (size_t)m] ^= 0x20;
+    if (m == 9) fx.obj[off + 9] ^= 0x40;
+}
+/* the split of the expected word [+0x214] by the signed byte d: zero gives two zero words; else the quotient (truncated to a word) and
+ * n - quotient * d (words) */
+static void expect_split(int16_t n, int8_t d)
+{
+    int16_t q;
+    if (n == 0) {
+        X16(0x210, 0);
+        X16(0x212, 0);
+        return;
+    }
+    q = (int16_t)((int32_t)n / (int32_t)d);
+    X16(0x212, (uint16_t)q);
+    X16(0x210, (uint16_t)(n - q * d));
+}
+/* the announcement: calls 0x4f6334(this 0x5cf1eb, sign-extended `word`) and, when it returned 0, 0x4fb2e3(this 0x5c3a67, word) from index `first` */
+static void expect_announce(int first, int made, uint16_t word, int second)
+{
+    if (!made) return;
+    check_call(first, 0x4f6334, 0x5cf1ebu, 1);
+    check_arg(first, 0, (uint32_t)(int32_t)(int16_t)word, 0xffffffffu);
+    if (second) {
+        check_call(first + 1, 0x4fb2e3, 0x5c3a67u, 1);
+        check_arg(first + 1, 0, word, 0xffffu);
+    }
+}
+
+static int test_m4a44c0_click_274c_274f(void)
+{
+    static const int idxs[2] = {3, -1};
+    static const uint32_t sels[5] = {0x274f, 0x274e, 0x274c, 0x274d, 0x2710};
+    static const int16_t avs[8] = {0, 1, 2, 3, 4, -1, 0x7fff, -0x8000};
+    static const uint16_t w413[4] = {1, 0, 2, 0x8001};
+    static const int8_t ds[9] = {1, 2, 3, 5, 7, -1, -3, 127, -128};
+    static const int16_t ns[8] = {1, -1, 100, -32768, 32767, 12345, -7, 4};
+    int ii, s, g, m, res, a, w, d, n;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        g_phase = ii;
+        /* guards: each failing leaves everything (the matrices too) untouched, for every event and both values of [+0x260] */
+        for (s = 0; s < 5; s++) {
+            for (g = 0; g < 6; g++) {
+                setup_4a44c0(sels[s], idx);
+                set32(fx.self, 0x260, (s & 1) ? 0x100u : 0);
+                if (g == 0) set32(fx.self, 0x26e, 0);
+                if (g == 1) fx.self[0x27f] = 1;
+                if (g == 2) fx.self[0x27f] = 0x80;
+                if (g == 3) set32(fx.self, 0x27b, 0x01000000u);
+                if (g == 4) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, 0);
+                if (g == 5) set32(fx.tab, (size_t)(idx + 1) * REC + 0x4d, 2);
+                fx.w.value_5bb1ca = 1;
+                nine_diff4(0x61b, 0);
+                run_4a44c0();
+                finish_4a44c0();
+                CK(L.n == 0);
+            }
+        }
+        /* [+0x27f] is a byte: non-zero bytes after it do not fail the guard; 0x274f with [+0x260] == 0: [+0x27a] = 1 and the state 2 */
+        setup_4a44c0(0x274f, idx);
+        fx.self[0x280] = 0xff;
+        fx.self[0x281] = 0xff;
+        run_4a44c0();
+        X8(0x27a, 1);
+        rec_state(idx, 2);
+        finish_4a44c0();
+        CK(L.n == 0);
+        /* [+0x260] != 0 with 0x274f / 0x274e / 0x274c: nothing; [+0x260] == 0 with 0x274d and an unrelated event: nothing */
+        for (s = 0; s < 5; s++) {
+            static const int sl[5] = {0, 1, 2, 3, 4};
+            setup_4a44c0(sels[sl[s]], idx);
+            set32(fx.self, 0x260, s == 3 || s == 4 ? 0u : 0x80000000u);
+            fx.w.value_5bb1ca = 1;
+            nine_diff4(0x61b, 1);
+            nine_diff4(0x5b9, 1);
+            nine_diff4(0x5ea, 1);
+            run_4a44c0();
+            finish_4a44c0();
+            CK(L.n == 0);
+        }
+        /* 0x274e, [+0x260] == 0: the switch on the word A (unsigned: 0 .. 3 through the table, else nothing) */
+        for (a = 0; a < 8; a++) {
+            for (w = 0; w < 4; w++) {
+                int16_t av = avs[a], want = av;
+                int one = (w413[w] == 1);
+                setup_4a44c0(0x274e, idx);
+                set_a(av);
+                set_b(-10);
+                set16(fx.obj, 0x413, w413[w]);
+                run_4a44c0();
+                if (av == 0) want = one ? 1 : 2;
+                if (av == 1) want = 2;
+                if (av == 2) want = one ? 3 : 0;
+                if (av == 3) want = one ? 0 : 3;
+                xA47(want);
+                X32(0x266, 1);
+                X16(0x26a, 3);
+                X16(0x26c, 2);
+                finish_4a44c0();
+                CK(L.n == 1);
+                check_call(0, 0x4a4d55, (uintptr_t)fx.self, 0);
+                CK(get32(L.c[0].snap_self, 0x266) == 1 && get16x(L.c[0].snap_self, 0x26a) == 3 && get16x(L.c[0].snap_self, 0x26c) == 2);
+            }
+        }
+        /* 0x274e: the announcement (r[+0x61b] against consts[0], word r[+0x63c]) before the stores and the call of 0x4a4d55 */
+        for (m = -2; m <= 9; m++) {
+            for (res = 0; res < 2; res++) {
+                int differs = m >= 0 && m <= 8;
+                setup_4a44c0(0x274e, idx);
+                set_a(1);
+                fx.w.value_5bb1ca = m == -2 ? 0u : 0x2000u;
+                nine_diff4(0x61b, m);
+                g_ret_by[0].callee = 0x4f6334;
+                g_ret_by[0].value = res ? 0x100u : 0u;
+                g_phase2 = m;
+                run_4a44c0();
+                xA47(2);
+                X32(0x266, 1);
+                X16(0x26a, 3);
+                X16(0x26c, 2);
+                finish_4a44c0();
+                CK(L.n == (differs ? (res ? 1 : 2) : 0) + 1);
+                expect_announce(0, differs, 0x8301, !res);
+                if (differs) CK(get32(L.c[0].snap_self, 0x266) == 0x77777777u);
+                check_call(L.n - 1, 0x4a4d55, (uintptr_t)fx.self, 0);
+            }
+        }
+        /* 0x274c, [+0x260] == 0: [+0x272] = 0, [+0x260] = 1, [+0x258] = 1, [+0x214] = B, the split by the byte r[+0x21], [+0x216] = A, B = A = -10 */
+        for (d = 0; d < 9; d++) {
+            for (n = 0; n < 8; n++) {
+                setup_4a44c0(0x274c, idx);
+                fx.obj[0x21] = (uint8_t)ds[d];
+                set_b(ns[n]);
+                set_a(0x1357);
+                run_4a44c0();
+                X32(0x272, 0);
+                X32(0x260, 1);
+                X32(0x258, 1);
+                X16(0x214, (uint16_t)ns[n]);
+                expect_split(ns[n], ds[d]);
+                X16(0x216, 0x1357);
+                xB47(-10);
+                xA47(-10);
+                finish_4a44c0();
+                CK(L.n == 0);
+            }
+        }
+        /* a zero word B: [+0x210] = [+0x212] = 0 (the byte r[+0x21] may be anything, also zero: no division) */
+        for (d = 0; d < 2; d++) {
+            setup_4a44c0(0x274c, idx);
+            fx.obj[0x21] = (uint8_t)(d ? 0 : 0x80);
+            set_b(0);
+            set_a(0x1357);
+            run_4a44c0();
+            X32(0x272, 0);
+            X32(0x260, 1);
+            X32(0x258, 1);
+            X16(0x214, 0);
+            X16(0x210, 0);
+            X16(0x212, 0);
+            X16(0x216, 0x1357);
+            xB47(-10);
+            xA47(-10);
+            finish_4a44c0();
+        }
+        /* the divide error of the original (non-zero B, byte 0): rejected after [+0x272], [+0x260], [+0x258] and [+0x214]; nothing else */
+        setup_4a44c0(0x274c, idx);
+        fx.obj[0x21] = 0;
+        set_b(77);
+        set_a(0x1357);
+        fx.w.value_5bb1ca = 1;
+        nine_diff4(0x5b9, 0);
+        run_4a44c0();
+        X32(0x272, 0);
+        X32(0x260, 1);
+        X32(0x258, 1);
+        X16(0x214, 77);
+        finish_4a44c0();
+        CK(L.n == 0);
+        /* 0x274c: the announcement (r[+0x5b9] against consts[1], word r[+0x5da]) after the matrix stores */
+        for (m = -2; m <= 9; m++) {
+            for (res = 0; res < 2; res++) {
+                int differs = m >= 0 && m <= 8;
+                setup_4a44c0(0x274c, idx);
+                set_b(5);
+                set_a(9);
+                fx.w.value_5bb1ca = m == -2 ? 0u : 0x2000u;
+                nine_diff4(0x5b9, m);
+                g_ret_by[0].callee = 0x4f6334;
+                g_ret_by[0].value = res ? 0x100u : 0u;
+                run_4a44c0();
+                X32(0x272, 0);
+                X32(0x260, 1);
+                X32(0x258, 1);
+                X16(0x214, 5);
+                expect_split(5, 3);
+                X16(0x216, 9);
+                xB47(-10);
+                xA47(-10);
+                finish_4a44c0();
+                CK(L.n == (differs ? (res ? 1 : 2) : 0));
+                expect_announce(0, differs, 0x8302, !res);
+                if (differs) {
+                    CK(get16x(L.c[0].snap_self, 0x216) == 9 && get32(L.c[0].snap_self, 0x258) == 1);
+                    CK(get16x(buf47, P47) == 0xfff6 && get16x(buf47, 0x3c + P47) == 0xfff6);
+                }
+            }
+        }
+        /* 0x274d, [+0x260] != 0: B and A are saved and replaced by [+0x214] and [+0x216]; saved B == -10 (only its low word counts): [+0x260] = 0 and
+         * 0x4a4d55; else [+0x258] = 1, [+0x214] = the saved B, the split, [+0x216] = the saved A */
+        for (a = 0; a < 6; a++) {
+            for (d = 0; d < 9; d += 2) {
+                static const int16_t sb[6] = {-10, 7, -1, 0, -0x8000, 0x00f6};
+                setup_4a44c0(0x274d, idx);
+                set32(fx.self, 0x260, 0x100);
+                set_b(sb[a]);
+                set_a(0x2468);
+                fx.obj[0x21] = (uint8_t)ds[d];
+                run_4a44c0();
+                xB47(0x1234);
+                xA47(0x5678);
+                X32(0x25c, 1);
+                X32(0x266, 1);
+                X16(0x26a, 3);
+                X16(0x26c, 2);
+                if (sb[a] == -10) {
+                    X32(0x260, 0);
+                } else {
+                    X32(0x258, 1);
+                    X16(0x214, (uint16_t)sb[a]);
+                    expect_split(sb[a], ds[d]);
+                    X16(0x216, 0x2468);
+                }
+                finish_4a44c0();
+                CK(L.n == (sb[a] == -10 ? 1 : 0));
+                if (sb[a] == -10) {
+                    check_call(0, 0x4a4d55, (uintptr_t)fx.self, 0);
+                    CK(get32(L.c[0].snap_self, 0x260) == 0);
+                }
+            }
+        }
+        /* 0x274d: the divide error (saved B non-zero and not -10, byte 0): rejected after [+0x258] and [+0x214] */
+        setup_4a44c0(0x274d, idx);
+        set32(fx.self, 0x260, 0x100);
+        set_b(9);
+        set_a(0x2468);
+        fx.obj[0x21] = 0;
+        run_4a44c0();
+        xB47(0x1234);
+        xA47(0x5678);
+        X32(0x25c, 1);
+        X32(0x266, 1);
+        X16(0x26a, 3);
+        X16(0x26c, 2);
+        X32(0x258, 1);
+        X16(0x214, 9);
+        finish_4a44c0();
+        CK(L.n == 0);
+        /* 0x274d: the announcement (r[+0x5ea] against consts[2], word r[+0x60b]) after the stores and before the -10 test */
+        for (m = -2; m <= 9; m++) {
+            for (res = 0; res < 2; res++) {
+                for (a = 0; a < 2; a++) {
+                    int differs = m >= 0 && m <= 8, ten = a == 0;
+                    setup_4a44c0(0x274d, idx);
+                    set32(fx.self, 0x260, 0x100);
+                    set_b(ten ? -10 : 6);
+                    set_a(0x2468);
+                    fx.w.value_5bb1ca = m == -2 ? 0u : 0x2000u;
+                    nine_diff4(0x5ea, m);
+                    g_ret_by[0].callee = 0x4f6334;
+                    g_ret_by[0].value = res ? 0x100u : 0u;
+                    run_4a44c0();
+                    xB47(0x1234);
+                    xA47(0x5678);
+                    X32(0x25c, 1);
+                    X32(0x266, 1);
+                    X16(0x26a, 3);
+                    X16(0x26c, 2);
+                    if (ten) {
+                        X32(0x260, 0);
+                    } else {
+                        X32(0x258, 1);
+                        X16(0x214, 6);
+                        expect_split(6, 3);
+                        X16(0x216, 0x2468);
+                    }
+                    finish_4a44c0();
+                    CK(L.n == (differs ? (res ? 1 : 2) : 0) + (ten ? 1 : 0));
+                    expect_announce(0, differs, 0x8303, !res);
+                    if (differs) CK(get32(L.c[0].snap_self, 0x25c) == 1 && get32(L.c[0].snap_self, 0x260) == 0x100);
+                    if (ten) check_call(L.n - 1, 0x4a4d55, (uintptr_t)fx.self, 0);
+                }
+            }
+        }
+    }
+    if (g_failed) printf("FAIL test_m4a44c0_click_274c_274f: %s\n", g_msg);
+    else printf("PASS test_m4a44c0_click_274c_274f\n");
+    return g_failed;
+}
+
 /* FL25C-TESTS-END */
 
 int main(void)
@@ -987,6 +1351,7 @@ int main(void)
     failures += test_m4a8818_click_2798_279a();
     failures += test_m4aa3d2_click_276f_2771();
     failures += test_m46c6a9_click_27e2_27ea();
+    failures += test_m4a44c0_click_274c_274f();
     /* FL25C-MAIN-END */
     return failures;
 }
