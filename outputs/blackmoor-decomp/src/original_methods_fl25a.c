@@ -64,6 +64,15 @@ static uint32_t record_object_address(const Fl25aWorld *world, const uint8_t *se
     return rd32(world->records_5bb5e5, rec_offset(self, idx_off));
 }
 
+static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2)
+{
+    uintptr_t args[3];
+    args[0] = a0;
+    args[1] = a1;
+    args[2] = a2;
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 3) : 0;
+}
+
 static uint32_t call1(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0)
 {
     uintptr_t args[1];
@@ -198,4 +207,56 @@ int32_t m464792_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, con
         }
     }
     return 0;
+}
+
+/* ---- 0x4a835c ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4a835c, thiscall, `ret 0xc`: x is the word at [ebp+8], y the word at [ebp+0xc], rect the address at [ebp+0x10] of four dwords. Returns 0
+ * when dword [+0xe72] is clear. Otherwise the address of the object of the record (word [+0x1e]) is read; words [+0xe7a] and [+0xe7c] = 0xffff;
+ * the rectangle is stored: [+0xe88] = rect[1], [+0xe90] = rect[3], [+0xe84] = rect[0], [+0xe8c] = rect[2] (in that order). Then the blocks
+ * i below the signed word obj[0x43] (a dword counter, stride 0x90 from +0xe94) of rows j below the signed word obj[0x45] (16 bytes: x low
+ * +0, y low +4, x high +8, y high +0xc, signed compares of the sign-extended words): the first row that holds the point calls
+ * 0x4a8697(this = self, selector, i, j) and returns 1, with the selector 0x2799 when dword [+0xe5e] is set (after 0x4a8007(this = self), which
+ * runs before the loops) and 0x2798 when it is clear. With [+0xe5e] set and no hit: [0x5b44f0] = 0x24, [0x5b44f4] = 0, [0x5d162d] = [0x5d0377],
+ * [0x5d1631] = ([0x5b44f0] << 5) + ([0x5b44f4] << 4) + 0x5b160c, [0x5d1639] = 1, return 1. With it clear and no hit: the rectangle of the
+ * object at +0x43e/+0x446 (y) and +0x43a/+0x442 (x): a hit calls 0x4a8697(this = self, 0x279a, 0, 0) and returns 1, else 0. */
+int32_t m4a835c_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, Fl25aWorld *world, const Fl18Host *host)
+{
+    uint32_t record;
+    const uint8_t *obj, *r;
+    int32_t i, j;
+    int announce;
+    if (rd32(self, 0xe72) == 0) return 0;
+    record = record_object_address(world, self, 0x1e);
+    obj = object_at(host, record);
+    r = object_at(host, rect);
+    wr16(self, 0xe7a, 0xffff);
+    wr16(self, 0xe7c, 0xffff);
+    wr32(self, 0xe88, rd32(r, 4));
+    wr32(self, 0xe90, rd32(r, 0xc));
+    wr32(self, 0xe84, rd32(r, 0));
+    wr32(self, 0xe8c, rd32(r, 8));
+    announce = rd32(self, 0xe5e) != 0;
+    if (announce) call0(host, 0x4a8007, (uintptr_t)self);
+    for (i = 0; i < rds16(obj, 0x43); i++) {
+        for (j = 0; j < rds16(obj, 0x45); j++) {
+            ptrdiff_t b = (ptrdiff_t)(i * 0x90) + 0xe94 + (ptrdiff_t)(j << 4);
+            if (!in_range(y, rds32(self, b + 4), rds32(self, b + 0xc))) continue;
+            if (!in_range(x, rds32(self, b), rds32(self, b + 8))) continue;
+            call3(host, 0x4a8697, (uintptr_t)self, announce ? 0x2799 : 0x2798, (uintptr_t)i, (uintptr_t)j);
+            return 1;
+        }
+    }
+    if (announce) {
+        world->value_5b44f0 = 0x24;
+        world->value_5b44f4 = 0;
+        world->value_5d162d = world->value_5d0377;
+        world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+        world->value_5d1639 = 1;
+        return 1;
+    }
+    if (!in_range(y, rds32(obj, 0x43e), rds32(obj, 0x446))) return 0;
+    if (!in_range(x, rds32(obj, 0x43a), rds32(obj, 0x442))) return 0;
+    call3(host, 0x4a8697, (uintptr_t)self, 0x279a, 0, 0);
+    return 1;
 }

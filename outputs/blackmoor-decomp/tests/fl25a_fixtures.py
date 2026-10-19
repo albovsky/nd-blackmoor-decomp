@@ -94,7 +94,7 @@ class Original20(od.Original):
 
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
-SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8)}
+SHAPES = {0x45e4d4: (1, True, 4), 0x46465d: (0, True, 0), 0x464ab5: (2, True, 8), 0x4a8007: (0, True, 0), 0x4a8697: (3, True, 12)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
 WORD_ARGS = {0x464ab5: (1,)}
 RECORDS_VA = 0x5bb5e5
@@ -441,11 +441,63 @@ def gen_464792(rng, n):
                   stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)))
 
 
+def gen_4a835c(rng, n):
+    edges = ('hit', 'e0', 'e1', 'e2', 'e3')
+    targets = [(0, 0), (0, 1), (1, 0), (1, 2), (2, 1)]
+    profiles = [('gate', None, None)]
+    for mode in ('U', 'S'):
+        profiles += [(mode, t, f) for t in targets for f in edges] + [(mode, 'none_c1', None), (mode, 'none_c2', None)]
+    profiles += [('tail', None, f) for f in ('hit', 'e0', 'e1', 'e2', 'e3')]
+    assert len(profiles) == 60
+    (kind, target, fail), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x1200))
+    obj = bytearray(rng.randbytes(0x500))
+    set_gate(d, 'nz32', 0xe72, kind == 'gate', rng)
+    put16(d, 0x1e, idx)
+    set_gate(d, 'nz32' if kind == 'U' else 'z32', 0xe5e, False, rng)
+    if isinstance(target, tuple):
+        c1, c2 = max(rng.choice([1, 2, 3]), target[0] + 1), max(rng.choice([1, 2, 3, 4]), target[1] + 1)
+    elif target == 'none_c1':
+        c1, c2 = rng.choice([0, -1, -32768]), rng.choice([1, 2])
+    elif target == 'none_c2':
+        c1, c2 = rng.choice([1, 2]), rng.choice([0, -1, -32768])
+    else:
+        c1, c2 = rng.choice([0, 1, 2, 3, -1]), rng.choice([0, 1, 2, 3, -1])
+    struct.pack_into('<h', obj, 0x43, c1)
+    struct.pack_into('<h', obj, 0x45, c2)
+    row = lambda i, j: (0xe94 + 0x90 * i + 16 * j + 4, 0xe94 + 0x90 * i + 16 * j + 0xc, 0xe94 + 0x90 * i + 16 * j, 0xe94 + 0x90 * i + 16 * j + 8)
+    for i in range(4):
+        for j in range(5):
+            rect_into(rng, d, x, y, row(i, j), (0, 0, 0, 0), False)
+    if isinstance(target, tuple):
+        edge_fail(rng, d, x, y, row(*target), None if fail == 'hit' else fail)
+    tail = (0x43e, 0x446, 0x43a, 0x442)
+    if kind == 'tail':
+        edge_fail(rng, obj, x, y, tail, None if fail == 'hit' else fail)
+    elif kind == 'gate' or isinstance(target, tuple):
+        rect_into(rng, obj, x, y, tail, (0, 0, 0, 0), True)
+    else:
+        rect_into(rng, obj, x, y, tail, (0, 0, 0, 0), bool(variant & 1))
+    if kind == 'gate':
+        for i in range(4):
+            for j in range(5):
+                rect_into(rng, d, x, y, row(i, j), (0, 0, 0, 0), True)
+    rect = bytearray(rng.randbytes(16))
+    g = {name: rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)]) for name in
+         ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d', 'value_5d1631', 'value_5d1639')}
+    stubs = {c: stub(c, [('self', 0xe00, 0x300), ('records', 0, 6 * REC)]) for c in (0x4a8007, 0x4a8697)}
+    return common('4a835c', rng, d, obj, idx, 0, False, 0, stubs, extra=[Area('rect', od.region_va(5), rect, image=False)], now=0, profile=(kind, target, fail),
+                  stack=[stack[0], stack[1], od.region_va(5)], args=(x, y, od.region_va(5)), g=g)
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
     '45e1ca': dict(id=1, va=0x45e1ca, size=778, gen=gen_45e1ca, ret=True, cleanup=8, probes=[(0, 0x3c0)], n=74 * 6),
     '464792': dict(id=2, va=0x464792, size=803, gen=gen_464792, ret=True, cleanup=12, probes=[(0, 0x100)], n=89 * 6),
+    '4a835c': dict(id=3, va=0x4a835c, size=827, gen=gen_4a835c, ret=True, cleanup=12, probes=[(0xe00, 0x300)], n=60 * 6),
 }
 KEYS = list(SPECS)
 

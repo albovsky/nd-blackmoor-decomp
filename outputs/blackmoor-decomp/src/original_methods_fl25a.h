@@ -28,6 +28,7 @@ extern "C" {
 typedef struct Fl25aWorld {
     uint8_t *records_5bb5e5;   /* records of stride 0x8d: the dword at +0 is the address of the object of record n, the dword at +0x4d is its state */
     uint32_t value_5c39e5;     /* the selector (the event) that the handler dispatches on */
+    uint32_t value_5b44f0, value_5b44f4, value_5d0377, value_5d162d, value_5d1631, value_5d1639;   /* 0x4a835c: the announcement globals */
 } Fl25aWorld;
 
 /* 0x45e1ca: hit test (ret 8): the rows of the object behind [+0x31d] (two loops and a tail rectangle); calls 0x45e4d4 with 0x27ed, 0x27ec or 0x27ef and returns 1, else 0 */
@@ -35,6 +36,9 @@ int32_t m45e1ca_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl18Host *ho
 
 /* 0x464792: hit test (ret 0xc; the third argument is the original address of four dwords, a rectangle that it stores into the object): the rectangles of the object of the record, then five rows; calls 0x46465d and 0x464ab5; returns 1 on a hit, else 0 */
 int32_t m464792_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, const Fl25aWorld *world, const Fl18Host *host);
+
+/* 0x4a835c: hit test (ret 0xc; the third argument is the original address of four dwords that it stores into the object): rows of 16 bytes in blocks of 0x90 behind [+0xe94]; calls 0x4a8007 and 0x4a8697; with the flag [+0xe5e] a miss announces through the globals 0x5b44f0, 0x5b44f4, 0x5d162d, 0x5d1631, 0x5d1639 (the world is written) and returns 1 */
+int32_t m4a835c_hit_test(uint8_t *self, int16_t x, int16_t y, uint32_t rect, Fl25aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }
