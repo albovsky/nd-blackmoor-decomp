@@ -1,0 +1,398 @@
+[
+ {
+  "va": "0x4a1efd",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m4a1efd_click_2760"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m4a1efd_click_2760"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_4a1efd_click_2760"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_4a1efd_click_2760"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x4a1efd",
+    "0x4a1f59"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4a1efd_click_2760 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x4ba4f2",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m4ba4f2_click_276a"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m4ba4f2_click_276a"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_4ba4f2_click_276a"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_4ba4f2_click_276a"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x4ba4f2",
+    "0x4ba56a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4ba4f2_click_276a (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x46957d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m46957d_click_272e"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m46957d_click_272e"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_46957d_click_272e"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_46957d_click_272e"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x46957d",
+    "0x4695f7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m46957d_click_272e (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x4b45ed",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m4b45ed_click_2739"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m4b45ed_click_2739"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_4b45ed_click_2739"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_4b45ed_click_2739"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x4b45ed",
+    "0x4b4676"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b45ed_click_2739 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x473ffc",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m473ffc_click_27a1"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m473ffc_click_27a1"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_473ffc_click_27a1"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_473ffc_click_27a1"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x473ffc",
+    "0x47409e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m473ffc_click_27a1 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x48e851",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m48e851_click_27b8_27b9"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m48e851_click_27b8_27b9"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_48e851_click_27b8_27b9"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_48e851_click_27b8_27b9"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x48e851",
+    "0x48e93e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m48e851_click_27b8_27b9 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x45e587",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m45e587_click_27ec_27ef"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m45e587_click_27ec_27ef"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_45e587_click_27ec_27ef"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_45e587_click_27ec_27ef"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x45e587",
+    "0x45e67d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m45e587_click_27ec_27ef (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x48ab49",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m48ab49_click_2756_2757"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m48ab49_click_2756_2757"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_48ab49_click_2756_2757"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_48ab49_click_2756_2757"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x48ab49",
+    "0x48ac92"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m48ab49_click_2756_2757 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x4ab899",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m4ab899_click_27ce_27d0"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m4ab899_click_27ce_27d0"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_4ab899_click_27ce_27d0"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_4ab899_click_27ce_27d0"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x4ab899",
+    "0x4ab9fa"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4ab899_click_27ce_27d0 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x4574e4",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m4574e4_click_27bc_27be"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m4574e4_click_27bc_27be"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_4574e4_click_27bc_27be"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_4574e4_click_27bc_27be"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x4574e4",
+    "0x45764a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4574e4_click_27bc_27be (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x47a03c",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m47a03c_click_279c_279d"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m47a03c_click_279c_279d"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_47a03c_click_279c_279d"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_47a03c_click_279c_279d"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x47a03c",
+    "0x47a1a9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m47a03c_click_279c_279d (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ },
+ {
+  "va": "0x4b2a9e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-23 implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl23b.c",
+   "symbol": "m4b2a9e_click_2792_2793"
+  },
+  "tests": [
+   {
+    "path": "tests/fl23b_direct_test.c",
+    "test_id": "test_m4b2a9e_click_2792_2793"
+   },
+   {
+    "path": "tests/test_fl23b_direct.py",
+    "test_id": "Fl23bDirect.test_4b2a9e_click_2792_2793"
+   },
+   {
+    "path": "tests/test_fl23b_differential.py",
+    "test_id": "Fl23bDifferential.test_4b2a9e_click_2792_2793"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl23b_original_oracle.py",
+   "window": [
+    "0x4b2a9e",
+    "0x4b2c32"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b2a9e_click_2792_2793 (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md."
+ }
+]
