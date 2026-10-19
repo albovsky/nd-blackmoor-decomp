@@ -21,6 +21,7 @@ EXPECTED = [
     'test_m4497a0_construct',
     'test_m414ceb_open_map',
     'test_m4c2e97_read_pixel_format',
+    'test_m44c4c1_open_video',
     'test_sweep_bounded',
 ]
 
@@ -77,6 +78,10 @@ class Fl27cDirect(unittest.TestCase):
     def test_4c2e97_read_pixel_format(self):
         """FL-27c: direct test of m4c2e97_read_pixel_format"""
         self.check('test_m4c2e97_read_pixel_format')
+
+    def test_44c4c1_open_video(self):
+        """FL-27c: direct test of m44c4c1_open_video"""
+        self.check('test_m44c4c1_open_video')
 
     # CASES-END
 

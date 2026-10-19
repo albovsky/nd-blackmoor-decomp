@@ -470,7 +470,58 @@ def gen_4c2e97(rng, n):
     return make('4c2e97', areas, stubs, g, [od.region_va(1)], (od.region_va(1),), (kind, *rest))
 
 
+RATES = [(30, 1), (0, 5), (5, 0), (0, 0), (1, 1), (0xffffffff, 1), (1, 0xffffffff), (24, 1001), (30000, 1001), (3, 7), (0x7fffffff, 2), (1000, 3), (0x1000001, 7), (299, 13), (2, 3), (7, 5)]
+
+
+def profiles_44c4c1():
+    profiles = [('avf', k, r) for k in (0, 2, 3, 0x100, 0x80000000, 0xffffffff) for r in (0, 1)]
+    profiles += [('nohandle', d, r) for d in DBG_VALUES for r in (0, 1)]
+    profiles += [('noinfo', d, r) for d in (0, 1, 0x8000) for r in (0, 1)]
+    profiles += [('rewrite', d, 1) for d in (0, 1)]
+    profiles += [('reread', k, r) for k in (1, 0) for r in (0, 1)]
+    profiles += [('ok', a, b, r) for (a, b) in RATES for r in (0, 1)]
+    return profiles
+
+
+def gen_44c4c1(rng, n):
+    (kind, *rest), variant = prof(n, profiles_44c4c1())
+    kind176 = {'avf': rest[0] if rest else 0, 'reread': rest[0] if kind == 'reread' else 1}.get(kind, 1)
+    r449 = rng.choice([1, 0x80000000, 0xffffffff, 0x100]) if rest[-1] else 0
+    dbg = rest[0] if kind in ('nohandle', 'noinfo', 'rewrite') else 0
+    arg = bytearray(rng.randbytes(0x200))
+    put32(arg, 0x176, kind176)
+    s1 = zstring(rng, rng.choice([0, 1, 3, 4, 0x20, 0x61, 0x7f]), 0x80)
+    s2 = zstring(rng, rng.choice([0, 1, 5, 8, 0x21, 0x60, 0x7f]), 0x80)
+    info = bytearray(rng.randbytes(0x40))
+    sizes = [0, 1, 2, 0x7fff, 0x8000, 0xffff, 0x10000, 0x12345, 0x7fffffff, 0x80000000, 0xffffffff, 320, 640, 480]
+    put32(info, 0, rng.choice(sizes))
+    put32(info, 4, rng.choice(sizes))
+    put32(info, 0x20, rng.choice([0, 1, 2, 100, 0xffff, 0x10000, 0x7fffffff, 0x80000000, 0xffffffff]))
+    if kind == 'ok':
+        put32(info, 0xc, rest[0])
+        put32(info, 0x10, rest[1])
+    handle = 0 if kind == 'nohandle' else rng.choice([1, 0x77, 0x80000000, 0xffffffff])
+    info_result = 0 if kind == 'noinfo' else od.region_va(2)
+    probe = [('arg', 0, 0x1d0), ('g:value_5bb20c', 0, 4)]
+    writes_449 = [(0, -1, od.region_va(1) + 0x176, 4, 0 if kind176 == 1 else 1)] if kind == 'reread' else []
+    writes_sprintf = [(0, 0, 0, 0, bytes(s1)), (1, 0, 0, 0, bytes(s2))]
+    writes_ee5f = [(0, -1, od.region_va(1) + 0x186, 4, 0)] if kind == 'rewrite' else []
+    stubs = {0x50cd72: stub(0x50cd72, CDECL(5), probe, writes=writes_sprintf, derefs=[(4, 5)]),
+             0x449d90: stub(0x449d90, CDECL(1), probe, results=[r449], writes=writes_449, derefs=[(0, 0x80)]),
+             0x414ceb: stub(0x414ceb, THISCALL(1), probe), 0x4bf315: stub(0x4bf315, THISCALL(2), probe, results=[handle]),
+             0x4bf3b8: stub(0x4bf3b8, THISCALL(1), probe, results=[rng.randrange(1 << 32)]), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe),
+             0x4264e8: stub(0x4264e8, THISCALL(1), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe), 0x50ca3e: stub(0x50ca3e, CDECL(3), probe),
+             0x4bee5f: stub(0x4bee5f, THISCALL(1), probe, results=[info_result], writes=writes_ee5f)}
+    g, nbr = debug_areas(rng, dbg)
+    g['value_5bb20c'] = rng.choice([0, 1, rng.randrange(1 << 32)])
+    g['word_639895'] = rng.choice([0, 1, 2, 3, 4, -1, 0x7fff, -0x8000, 0x100])
+    nbr.append(Area('bppnbr', 0x639897, bytearray(rng.randbytes(2)), compare=False))
+    areas = [Area('arg', od.region_va(1), arg, image=False), Area('info', od.region_va(2), info, image=False), *nbr]
+    return make('44c4c1', areas, stubs, g, [od.region_va(1)], (od.region_va(1),), (kind, *rest))
+
+
 SPECS = {
+    '44c4c1': dict(id=4, va=0x44c4c1, size=1306, gen=gen_44c4c1, cleanup=0, fpcw=0x27f, n=len(profiles_44c4c1()) * 3),
     '4c2e97': dict(id=3, va=0x4c2e97, size=1208, gen=gen_4c2e97, cleanup=4, ret16=True, n=len(profiles_4c2e97()) * 2),
     '414ceb': dict(id=2, va=0x414ceb, size=806, gen=gen_414ceb, cleanup=4, n=len(profiles_414ceb()) * 3),
     '4497a0': dict(id=1, va=0x4497a0, size=728, gen=gen_4497a0, cleanup=0x10, retself=True, n=len(profiles_4497a0()) * 3),

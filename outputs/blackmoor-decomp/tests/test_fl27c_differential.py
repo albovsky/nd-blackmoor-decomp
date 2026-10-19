@@ -157,6 +157,10 @@ class Fl27cDifferential(DiffBase):
         """FL-27c: differential test of m4c2e97_read_pixel_format (original 0x4c2e97)"""
         self.run_key('4c2e97')
 
+    def test_44c4c1_open_video(self):
+        """FL-27c: differential test of m44c4c1_open_video (original 0x44c4c1)"""
+        self.run_key('44c4c1')
+
     # CASES-END
 
 

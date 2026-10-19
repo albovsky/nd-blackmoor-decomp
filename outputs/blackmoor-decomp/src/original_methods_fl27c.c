@@ -338,3 +338,105 @@ int32_t m4c2e97_read_pixel_format(uint8_t *self, uint32_t surf, Fl27cWorld *worl
     }
     return 1;
 }
+
+/* ---- 0x44c4c1 ------------------------------------------------------------------------------------------------------------------ */
+
+/* The library routine __ftol at 0x50ce04 (called with the value on the x87 stack): fnstcw / fldcw with the rounding control forced to truncation, `fistp qword`, and eax = the low dword of the 64-bit result.
+ * A NaN or a value outside the 64-bit range gives the integer indefinite 0x8000000000000000, whose low dword is 0. */
+static uint32_t ftol_low_dword(double value)
+{
+    if (value != value) return 0;
+    if (value >= 9223372036854775808.0 || value < -9223372036854775808.0) return 0;
+    return (uint32_t)(int64_t)value;
+}
+
+/* The common tail of 0x44c4c1 (at 0x44c98d): four dwords copied inside the record. */
+static void copy_rectangle(uint8_t *arg)
+{
+    wr32(arg, 0x1ae, rd32(arg, 0x19e));
+    wr32(arg, 0x1b6, rd32(arg, 0x1a6));
+    wr32(arg, 0x1aa, rd32(arg, 0x19a));
+    wr32(arg, 0x1b2, rd32(arg, 0x1a2));
+}
+
+/* 0x44c4c1, plain `ret` (cdecl, one stack argument): see the header. [ebp+8] is `arg`; [ebp-0x308] a local text, [ebp-0x204] the extension text, [ebp-0x104] a second local text, [ebp-0x30c] the info object. */
+void m44c4c1_open_video(uint8_t *arg, Fl27cWorld *world, const Fl18Host *host)
+{
+    uint8_t text1[0x100], text2[0x100], ext[0x100];
+    uint32_t handle, info_address;
+    const uint8_t *info;
+    memset(text1, 0, sizeof text1);
+    memset(text2, 0, sizeof text2);
+    memset(ext, 0, sizeof ext);
+    copy_string(ext, (const uint8_t *)(rd32(arg, 0x176) != 1 ? ".AVF" : ".BIK"));
+    wr16(arg, 0x1c4, 1);
+    {
+        const uintptr_t a[5] = {(uintptr_t)text1, 0x639dae, 0x639eb5, (uintptr_t)(arg + 0x151), (uintptr_t)ext};
+        callv(host, 0x50cd72, 0, a, 5);
+    }
+    if (call1(host, 0x449d90, 0, (uintptr_t)text1) == 0) {
+        const uintptr_t a[5] = {(uintptr_t)text2, 0x639dab, 0x639fb9, (uintptr_t)(arg + 0x151), (uintptr_t)ext};
+        callv(host, 0x50cd72, 0, a, 5);
+        copy_string(arg + 0x4d, text2);
+    } else {
+        copy_string(arg + 0x4d, text1);
+    }
+    if (rd32(arg, 0x176) != 1) {
+        call1(host, 0x414ceb, 0x5e2dbe, (uintptr_t)arg);
+        wr16(arg, 0x18c, 0);
+        wr32(arg, 0x190, (uint32_t)rds16(arg, 0x15));
+        wr16(arg, 0x18e, (uint16_t)((uint32_t)rds16(arg, 0x18c) + rd32(arg, 0x190) - 1u));
+        wr32(arg, 0x19e, 0);
+        wr32(arg, 0x19a, 0);
+        wr32(arg, 0x1a6, rd32(arg, 0x19e) + (uint32_t)rds16(arg, 0x19) - 1u);
+        wr32(arg, 0x1a2, rd32(arg, 0x19a) + (uint32_t)rds16(arg, 0x17) - 1u);
+        wr16(arg, 0x194, rd16(arg, 0x17));
+        wr16(arg, 0x198, rd16(arg, 0x19));
+        wr16(arg, 0x196, (uint16_t)((uint32_t)rds16(arg, 0x194) * (uint32_t)(arg[0x1b] >> 3)));
+        wr32(arg, 0x1ba, rd32(arg, 0x1c));
+        wr32(arg, 0x1c8, (uint32_t)rds16(arg, 0x196) * (uint32_t)rds16(arg, 0x198));
+        copy_rectangle(arg);
+        return;
+    }
+    handle = call2(host, 0x4bf315, 0x6201f9, (uintptr_t)(arg + 0x4d), 0);
+    wr32(arg, 0x186, handle);
+    if (rd32(arg, 0x186) == 0) {
+        if (debug_on(world)) call1(host, 0x44a2b7, 0, call1(host, 0x4bf3b8, 0x6201f9, (uintptr_t)(arg + 0x4d)));
+        call1(host, 0x4264e8, 0x583979, call1(host, 0x4bf3b8, 0x6201f9, (uintptr_t)(arg + 0x4d)));
+        world->value_5bb20c = 1;
+        call0(host, 0x4c97b4, 0x5cf659);
+        return;
+    }
+    info_address = call1(host, 0x4bee5f, 0x6201f9, rd32(arg, 0x186));
+    if (rd32(arg, 0x186) == 0 || info_address == 0) {
+        call3(host, 0x50ca3e, 0, 0x63888b, 0x54939c, (uintptr_t)(arg + 0x4d));
+        if (debug_on(world)) call1(host, 0x44a2b7, 0, 0x63888b);
+        call1(host, 0x4264e8, 0x583979, 0x63888b);
+        world->value_5bb20c = 1;
+        call0(host, 0x4c97b4, 0x5cf659);
+        return;
+    }
+    info = object_at(host, info_address);
+    wr16(arg, 0x18c, 0);
+    wr32(arg, 0x190, rd32(info, 0x20));
+    wr16(arg, 0x18e, (uint16_t)(rd32(arg, 0x190) - 1u));
+    wr32(arg, 0x19e, 0);
+    wr32(arg, 0x19a, 0);
+    wr32(arg, 0x1a6, rd32(info, 4) - 1u);
+    wr32(arg, 0x1a2, rd32(info, 0) - 1u);
+    wr16(arg, 0x194, rd16(info, 0));
+    wr16(arg, 0x198, rd16(info, 4));
+    wr16(arg, 0x196, (uint16_t)(rd32(info, 0) * (uint32_t)(int32_t)world->word_639895));
+    {
+        /* fild qword (the dword with a zero upper half), fstp dword: each count becomes a single-precision float; fld, fdiv, fdivr qword [0x52c598] (1.0), fmul qword [0x52c590] (1000.0) in
+         * 53-bit precision (the process default control word 0x27f), then __ftol (0x50ce04) */
+        float frames = (float)rd32(info, 0xc);
+        float period = (float)rd32(info, 0x10);
+        double quotient = (double)frames / (double)period;
+        double rate = 1.0 / quotient;
+        double scaled = rate * 1000.0;
+        wr32(arg, 0x1ba, ftol_low_dword(scaled));
+    }
+    wr32(arg, 0x1c8, (uint32_t)rds16(arg, 0x196) * (uint32_t)rds16(arg, 0x198));
+    copy_rectangle(arg);
+}

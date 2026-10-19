@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F27C_4497A0 = 1, F27C_414CEB, F27C_4C2E97 /*ENUM*/ };
+enum { F27C_4497A0 = 1, F27C_414CEB, F27C_4C2E97, F27C_44C4C1 /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values (original addresses of pointers into a fixture region,
  * 32-bit values otherwise). `result` is the return value of the ports that have one (the constructor: 0 = returned self, 1 = something else, 2 = NULL).
@@ -211,6 +211,7 @@ void shim_fl27c(int fn, uint8_t *self, const uintptr_t *a, Fl27cWorld *w, int32_
     }
     case F27C_414CEB: *result = m414ceb_open_map(self, (uint8_t *)shim_resolve(NULL, (uint32_t)a[0]), w, &host); break;
     case F27C_4C2E97: *result = m4c2e97_read_pixel_format(self, (uint32_t)a[0], w, &host); break;
+    case F27C_44C4C1: m44c4c1_open_video((uint8_t *)shim_resolve(NULL, (uint32_t)a[0]), w, &host); break;
     /*CASES*/
     default: break;
     }

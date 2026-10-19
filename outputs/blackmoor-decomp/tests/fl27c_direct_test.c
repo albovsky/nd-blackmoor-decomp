@@ -69,6 +69,7 @@ static struct {
         uint8_t snap_arg[ARG_SZ];
         uint8_t snap_big[0x40];
         uint32_t w_63a58a;
+        uint32_t w_5bb20c;
     } c[MAXCALL];
 } L;
 
@@ -106,6 +107,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         memcpy(L.c[i].snap_arg, fx.arg, ARG_SZ);
         memcpy(L.c[i].snap_big, fx.big + 0x38a0, 0x40);
         L.c[i].w_63a58a = fx.w.value_63a58a;
+        L.c[i].w_5bb20c = fx.w.value_5bb20c;
     }
     L.n++;
     for (k = 0; k < g_nscript; k++)
@@ -908,6 +910,281 @@ static void test_m4c2e97_read_pixel_format(void)
     }
 }
 
+/* ---- 0x44c4c1 -------------------------------------------------------------------------------------------------------------------- */
+
+/* the sprintf callee writes scripted strings into its first argument (a 0x80-byte window of the local text), 0x449d90 shows what it was given, and effects on the record are scripted */
+static struct {
+    char s1[0x80], s2[0x80];
+    uint8_t ext_seen[2][8];
+    uintptr_t text_ptr[2], ext_ptr[2];
+    int nsprintf;
+    uint8_t text_seen[0x80];
+    int kind_after_set;
+    uint32_t kind_after;
+    int clear_handle;
+} V;
+
+static void video_effect(int i, uint32_t callee, const uintptr_t *args)
+{
+    (void)i;
+    if (callee == 0x50cd72 && V.nsprintf < 2) {
+        int n = V.nsprintf++;
+        memcpy(V.ext_seen[n], (const void *)args[4], 8);
+        V.text_ptr[n] = args[0];
+        V.ext_ptr[n] = args[4];
+        memset((void *)args[0], 0, 0x80);
+        strcpy((char *)args[0], n == 0 ? V.s1 : V.s2);
+    } else if (callee == 0x449d90) {
+        memcpy(V.text_seen, (const void *)args[0], 0x80);
+        if (V.kind_after_set) set32(fx.arg, 0x176, V.kind_after);
+    } else if (callee == 0x4bee5f && V.clear_handle) {
+        set32(fx.arg, 0x186, 0);
+    }
+}
+
+static void video_setup(uint32_t kind, uint32_t r449, const char *s1, const char *s2)
+{
+    setup();
+    memset(&V, 0, sizeof V);
+    strcpy(V.s1, s1);
+    strcpy(V.s2, s2);
+    set32(fx.arg, 0x176, kind);
+    script(0x449d90, 1, &r449);
+    g_effect = video_effect;
+    open_arg("old", 0);
+    set32(fx.arg, 0x4d + 4, 0x11223344u);
+    fx.w.value_5bb20c = 0x55;
+    fx.w.word_639895 = 2;
+}
+
+/* the common tail and the AVF block of the expectation, from the record fields in exp_arg */
+static void exp_tail(void)
+{
+    set32(exp_arg, 0x1ae, get32(exp_arg, 0x19e));
+    set32(exp_arg, 0x1b6, get32(exp_arg, 0x1a6));
+    set32(exp_arg, 0x1aa, get32(exp_arg, 0x19a));
+    set32(exp_arg, 0x1b2, get32(exp_arg, 0x1a2));
+}
+
+static void exp_name(const char *s)
+{
+    memcpy(exp_arg + 0x4d, s, strlen(s) + 1);
+    set16(exp_arg, 0x1c4, 1);
+}
+
+/* the info record at OBJ_VA: width, height, [+0xc], [+0x10], [+0x20] */
+static void info_set(uint32_t w, uint32_t h, uint32_t a, uint32_t b, uint32_t c20)
+{
+    set32(fx.obj, 0, w);
+    set32(fx.obj, 4, h);
+    set32(fx.obj, 0xc, a);
+    set32(fx.obj, 0x10, b);
+    set32(fx.obj, 0x20, c20);
+}
+
+static void bink_scripts(uint32_t h, uint32_t info)
+{
+    script(0x4bf315, 1, &h);
+    script(0x4bee5f, 1, &info);
+}
+
+/* the BINK success block of the expectation (w, h, c20 from the info record, bpp = word 0x639895) */
+static void exp_bink(uint32_t w, uint32_t h, uint32_t c20, int16_t bpp, uint32_t rate)
+{
+    set16(exp_arg, 0x18c, 0);
+    set32(exp_arg, 0x190, c20);
+    set16(exp_arg, 0x18e, (uint16_t)(c20 - 1));
+    set32(exp_arg, 0x19e, 0);
+    set32(exp_arg, 0x19a, 0);
+    set32(exp_arg, 0x1a6, h - 1);
+    set32(exp_arg, 0x1a2, w - 1);
+    set16(exp_arg, 0x194, (uint16_t)w);
+    set16(exp_arg, 0x198, (uint16_t)h);
+    set16(exp_arg, 0x196, (uint16_t)(w * (uint32_t)(int32_t)bpp));
+    set32(exp_arg, 0x1ba, rate);
+    set32(exp_arg, 0x1c8, (uint32_t)((int32_t)(int16_t)get16(exp_arg, 0x196) * (int32_t)(int16_t)get16(exp_arg, 0x198)));
+    exp_tail();
+}
+
+static void test_m44c4c1_open_video(void)
+{
+    unsigned k;
+    /* the AVF path with 0x449d90 != 0: ".AVF", the first text is copied to the name, 0x414ceb, then the geometry from the (signed) words */
+    video_setup(0, 1, "clip.avf", "other");
+    set16(fx.arg, 0x15, 5);
+    set16(fx.arg, 0x17, 320);
+    set16(fx.arg, 0x19, 240);
+    fx.arg[0x1b] = 24;
+    set32(fx.arg, 0x1c, 0x2a);
+    expect_begin();
+    m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+    exp_name("clip.avf");
+    set16(exp_arg, 0x18c, 0);
+    set32(exp_arg, 0x190, 5);
+    set16(exp_arg, 0x18e, 4);
+    set32(exp_arg, 0x19e, 0);
+    set32(exp_arg, 0x19a, 0);
+    set32(exp_arg, 0x1a6, 239);
+    set32(exp_arg, 0x1a2, 319);
+    set16(exp_arg, 0x194, 320);
+    set16(exp_arg, 0x198, 240);
+    set16(exp_arg, 0x196, 960);
+    set32(exp_arg, 0x1ba, 0x2a);
+    set32(exp_arg, 0x1c8, 230400);
+    exp_tail();
+    CKN(3);
+    CKC(0, 0x50cd72, 0, V.text_ptr[0], 0x639dae, 0x639eb5, ARGP + 0x151, V.ext_ptr[0]);
+    CKC(1, 0x449d90, 0, V.text_ptr[0]);
+    CKC(2, 0x414ceb, 0x5e2dbe, ARGP);
+    CK(memcmp(V.ext_seen[0], ".AVF\0", 5) == 0 && memcmp(V.text_seen, "clip.avf", 9) == 0 && V.nsprintf == 1);
+    CK(V.text_ptr[0] > 0xffffffffu && V.ext_ptr[0] > 0xffffffffu);
+    expect_end();
+    /* negative words and the signed multiplications: w15 = -3, w17 = -5, w19 = -32768, byte 0xff (>> 3 = 31): [+0x190] = 0xfffffffd, word [+0x18e] = 0xfffc, [+0x1a6] = 0xffff7fff, [+0x1a2] = 0xfffffffa, word [+0x196] = -155 = 0xff65,
+     * [+0x1c8] = -155 * -32768 = 0x4d8000 */
+    video_setup(2, 7, "n", "m");
+    set16(fx.arg, 0x15, 0xfffd);
+    set16(fx.arg, 0x17, 0xfffb);
+    set16(fx.arg, 0x19, 0x8000);
+    fx.arg[0x1b] = 0xff;
+    set32(fx.arg, 0x1c, 0x80000001u);
+    expect_begin();
+    m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+    exp_name("n");
+    set16(exp_arg, 0x18c, 0);
+    set32(exp_arg, 0x190, 0xfffffffdu);
+    set16(exp_arg, 0x18e, 0xfffc);
+    set32(exp_arg, 0x19e, 0);
+    set32(exp_arg, 0x19a, 0);
+    set32(exp_arg, 0x1a6, 0xffff7fffu);
+    set32(exp_arg, 0x1a2, 0xfffffffau);
+    set16(exp_arg, 0x194, 0xfffb);
+    set16(exp_arg, 0x198, 0x8000);
+    set16(exp_arg, 0x196, 0xff65);
+    set32(exp_arg, 0x1ba, 0x80000001u);
+    set32(exp_arg, 0x1c8, 0x4d8000u);
+    exp_tail();
+    CKN(3);
+    expect_end();
+    /* every kind other than 1 is the AVF path (the whole dword is compared) */
+    for (k = 0; k < 6; k++) {
+        static const uint32_t kinds[] = {0, 2, 3, 0x100, 0x80000000u, 0xffffffffu};
+        video_setup(kinds[k], 0, "a", "b");
+        m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+        CKN(4);
+        CKC(3, 0x414ceb, 0x5e2dbe, ARGP);
+        CK(memcmp(V.ext_seen[0], ".AVF\0", 5) == 0 && memcmp(V.ext_seen[1], ".AVF\0", 5) == 0);
+    }
+    /* 0x449d90 == 0: the second text, and the second call with the other format constants; the name is the second text */
+    video_setup(0, 0, "first", "second.avf");
+    expect_begin();
+    m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+    CK(memcmp(fx.arg + 0x4d, "second.avf", 11) == 0);
+    CKC(2, 0x50cd72, 0, V.text_ptr[1], 0x639dab, 0x639fb9, ARGP + 0x151, V.ext_ptr[1]);
+    CK(V.text_ptr[1] != V.text_ptr[0] && V.ext_ptr[1] == V.ext_ptr[0]);
+    CK(memcmp(V.ext_seen[1], ".AVF\0", 5) == 0);
+    /* the BINK path: ".BIK", the handle, the info record, the geometry and the rate 1000 / 30 = 33 */
+    video_setup(1, 3, "movie.bik", "unused");
+    info_set(640, 480, 30, 1, 100);
+    bink_scripts(0x77, OBJ_VA);
+    expect_begin();
+    m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+    exp_name("movie.bik");
+    set32(exp_arg, 0x186, 0x77);
+    exp_bink(640, 480, 100, 2, 33);
+    CKN(4);
+    CKC(0, 0x50cd72, 0, V.text_ptr[0], 0x639dae, 0x639eb5, ARGP + 0x151, V.ext_ptr[0]);
+    CK(memcmp(V.ext_seen[0], ".BIK\0", 5) == 0);
+    CKC(2, 0x4bf315, 0x6201f9, ARGP + 0x4d, 0);
+    CKC(3, 0x4bee5f, 0x6201f9, 0x77);
+    CK(get32(L.c[3].snap_arg, 0x186) == 0x77);
+    CK(fx.w.value_5bb20c == 0x55);
+    expect_end();
+    /* the rate: 1000 * [+0x10] / [+0xc] truncated, through single-precision floats of unsigned dwords and a 64-bit truncation whose low dword is kept */
+    {
+        static const struct { uint32_t a, b, rate; } rates[] = {
+            {30, 1, 33}, {24, 1001, 41708}, {1, 1, 1000}, {2, 3, 1500}, {3, 7, 2333}, {5, 0, 0}, {0, 5, 0}, {0, 0, 0},
+            {1, 0xffffffffu, 0}, {0xffffffffu, 1, 0}, {1, 0x1000000, 0xe8000000u}, {1000, 1, 1}, {7, 1, 142}, {1, 3, 3000},
+        };
+        for (k = 0; k < sizeof rates / sizeof rates[0]; k++) {
+            video_setup(1, 3, "m", "u");
+            info_set(0x12345, 0x7fff, rates[k].a, rates[k].b, 0x10000);
+            bink_scripts(5, OBJ_VA);
+            fx.w.word_639895 = -3;
+            expect_begin();
+            m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+            exp_name("m");
+            set32(exp_arg, 0x186, 5);
+            exp_bink(0x12345, 0x7fff, 0x10000, -3, rates[k].rate);
+            CK(get32(fx.arg, 0x1ba) == rates[k].rate);
+            expect_end();
+        }
+    }
+    /* h == 0: the report with the converted name (0x4bf3b8), [0x5bb20c] = 1 at the 0x4c97b4 call; the debug word adds the same conversion first */
+    for (k = 0; k < 5; k++) {
+        static const int16_t dbg[] = {0, 1, 0x100, -32768, -1};
+        uint32_t t = 0xabc00 + k;
+        video_setup(1, 1, "z", "y");
+        bink_scripts(0, OBJ_VA);
+        script(0x4bf3b8, 1, &t);
+        fx.w.word_63a4cd = dbg[k];
+        expect_begin();
+        m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+        exp_name("z");
+        set32(exp_arg, 0x186, 0);
+        CKN(k == 0 ? 6 : 8);
+        CKC(2, 0x4bf315, 0x6201f9, ARGP + 0x4d, 0);
+        if (k == 0) {
+            CKC(3, 0x4bf3b8, 0x6201f9, ARGP + 0x4d);
+            CKC(4, 0x4264e8, 0x583979, t);
+            CKC0(5, 0x4c97b4, 0x5cf659);
+            CK(L.c[5].w_5bb20c == 1 && L.c[4].w_5bb20c == 0x55);
+        } else {
+            CKC(3, 0x4bf3b8, 0x6201f9, ARGP + 0x4d);
+            CKC(4, 0x44a2b7, 0, t);
+            CKC(5, 0x4bf3b8, 0x6201f9, ARGP + 0x4d);
+            CKC(6, 0x4264e8, 0x583979, t);
+            CKC0(7, 0x4c97b4, 0x5cf659);
+        }
+        CK(fx.w.value_5bb20c == 1);
+        expect_end();
+    }
+    /* no info record, and a handle that the callee clears again (the re-read of [+0x186] is zero): the report 0x50ca3e(0x63888b, 0x54939c, name), the debug word 0x44a2b7(0x63888b), 0x4264e8(.., 0x63888b);
+     * the record keeps everything but the handle and the name */
+    for (k = 0; k < 8; k++) {
+        static const int16_t dbg[] = {0, 1, -1, 0x100};
+        int cleared = (int)k >= 4;
+        video_setup(1, 0, "p", "q");
+        bink_scripts(9, cleared ? OBJ_VA : 0);
+        V.clear_handle = cleared;
+        fx.w.word_63a4cd = dbg[k % 4];
+        expect_begin();
+        m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+        exp_name("q");
+        set32(exp_arg, 0x186, cleared ? 0 : 9);
+        CKN(k % 4 == 0 ? 8 : 9);
+        CKC(4, 0x4bee5f, 0x6201f9, 9);
+        CKC(5, 0x50ca3e, 0, 0x63888b, 0x54939c, ARGP + 0x4d);
+        if (k % 4) CKC(6, 0x44a2b7, 0, 0x63888b);
+        CKC(k % 4 ? 7 : 6, 0x4264e8, 0x583979, 0x63888b);
+        CKC0(k % 4 ? 8 : 7, 0x4c97b4, 0x5cf659);
+        CK(L.c[k % 4 ? 8 : 7].w_5bb20c == 1 && fx.w.value_5bb20c == 1);
+        expect_end();
+    }
+    /* [+0x176] changed by 0x449d90 after the extension was chosen: 1 -> 0 gives ".BIK" with the AVF flow (0x414ceb), 0 -> 1 gives ".AVF" with the BINK flow */
+    for (k = 0; k < 2; k++) {
+        video_setup(k == 0 ? 1 : 0, 1, "w", "x");
+        V.kind_after_set = 1;
+        V.kind_after = k == 0 ? 0 : 1;
+        info_set(4, 4, 1, 1, 1);
+        bink_scripts(3, OBJ_VA);
+        m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+        CK(memcmp(V.ext_seen[0], k == 0 ? ".BIK\0" : ".AVF\0", 5) == 0);
+        CKN(3 + (k == 1));
+        if (k == 0) CKC(2, 0x414ceb, 0x5e2dbe, ARGP);
+        else CKC(2, 0x4bf315, 0x6201f9, ARGP + 0x4d, 0);
+    }
+}
+
 /*TESTS*/
 
 /* ---- sweep (for the sanitiser builds) -------------------------------------------------------------------------------------------- */
@@ -956,6 +1233,17 @@ static void test_sweep_bounded(void)
         fx.w.word_63a4cd = (int16_t)(rnd() % 3);
         (void)m4c2e97_read_pixel_format(big, OBJ_VA, &fx.w, &fx.host);
     }
+    for (i = 0; i < 300; i++) {
+        uint32_t r449 = rnd() % 2 ? rnd() | 1 : 0;
+        const char *names[] = {"", "a", "movie.bik", "0123456789abcdef"};
+        video_setup(rnd() % 3 == 0 ? 1 : rnd() % 4, r449, names[rnd() % 4], names[rnd() % 4]);
+        info_set(rnd() % 2 ? rnd() : 640, rnd() % 2 ? rnd() : 480, rnd() % 4 == 0 ? 0 : rnd(), rnd() % 4 == 0 ? 0 : rnd(), rnd());
+        bink_scripts(rnd() % 3 == 0 ? 0 : rnd() | 1, rnd() % 4 == 0 ? 0 : OBJ_VA);
+        V.clear_handle = (int)(rnd() % 4 == 0);
+        fx.w.word_63a4cd = (int16_t)(rnd() % 3);
+        fx.w.word_639895 = (int16_t)rnd();
+        m44c4c1_open_video(fx.arg, &fx.w, &fx.host);
+    }
     /*SWEEPS*/
 }
 
@@ -978,6 +1266,7 @@ int main(void)
     RUN(test_m4497a0_construct);
     RUN(test_m414ceb_open_map);
     RUN(test_m4c2e97_read_pixel_format);
+    RUN(test_m44c4c1_open_video);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

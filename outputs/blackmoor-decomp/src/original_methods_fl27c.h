@@ -29,6 +29,8 @@ typedef struct Fl27cWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
     uint32_t value_63a58a;     /* 0x414ceb: set to 4 on every failure report */
     uint8_t byte_5b0257, byte_5b0258, byte_5b0259;   /* 0x4c2e97: the three colour byte masks, each ANDed with a field and shifted left by one */
+    uint32_t value_5bb20c;     /* 0x44c4c1: set to 1 when the video cannot be opened */
+    int16_t word_639895;       /* 0x44c4c1: the bytes per pixel factor (read as signed) */
 } Fl27cWorld;
 
 /* 0x4497a0, constructor of the thread wrapper, `ret 0x10`, `self` = this (ecx): the stack arguments are `arg8` (a dword passed on to 0x524aff), `name` (the original address of a
@@ -72,6 +74,23 @@ int32_t m414ceb_open_map(uint8_t *self, uint8_t *arg, Fl27cWorld *world, const F
  * Native rejection (not in the original, whose shift loop never ends on a zero mask): a mask of 0 returns 2 at its own loop, after the stores of the masks before it. Caller-validated: `self` holds the object,
  * Fl18Host.resolve must give the surface object and its vtable (the host call is unchecked). The descriptor is a local; the method must fill it (the port does not model its effect on anything else). */
 int32_t m4c2e97_read_pixel_format(uint8_t *self, uint32_t surf, Fl27cWorld *world, const Fl18Host *host);
+
+/* 0x44c4c1, plain `ret` (cdecl, one stack argument `arg`, a record, a host pointer here): opens a movie by name. The extension text is ".BIK" when the dword [arg+0x176] is 1, else ".AVF". The word [arg+0x1c4] = 1. Then
+ * 0x50cd72(text1, 0x639dae, 0x639eb5, arg+0x151, ext) (cdecl, five arguments; text1, ext are 0x100-byte locals) and 0x449d90(text1) (cdecl, one argument); a result of 0: 0x50cd72(text2, 0x639dab, 0x639fb9,
+ * arg+0x151, ext) and the string text2 (with its terminator) is copied to arg+0x4d, else the string text1 is copied there. [arg+0x176] is read again: not 1 (the AVF path): 0x414ceb(this 0x5e2dbe, arg), then the
+ * word [+0x18c] = 0, [+0x190] = signed word [+0x15], word [+0x18e] = signed word [+0x18c] + [+0x190] - 1, [+0x19e] = 0, [+0x19a] = 0, [+0x1a6] = [+0x19e] + signed word [+0x19] - 1, [+0x1a2] = [+0x19a] + signed word
+ * [+0x17] - 1, words [+0x194] = word [+0x17], [+0x198] = word [+0x19], [+0x196] = low word of signed word [+0x194] * (byte [+0x1b] >> 3), [+0x1ba] = [+0x1c], [+0x1c8] = signed word [+0x196] * signed word [+0x198]
+ * (all products in 32 bits), and the common tail. Equal to 1 (the BINK path): h = 0x4bf315(this 0x6201f9, arg+0x4d, 0), [+0x186] = h. [+0x186] zero: with the debug word 0x44a2b7(0x4bf3b8(this 0x6201f9, arg+0x4d)), then
+ * 0x4264e8(this 0x583979, 0x4bf3b8(this 0x6201f9, arg+0x4d)), [0x5bb20c] = 1, 0x4c97b4(this 0x5cf659), return. Otherwise info = 0x4bee5f(this 0x6201f9, [+0x186]); [+0x186] zero (re-read) or info zero: 0x50ca3e(0x63888b,
+ * 0x54939c, arg+0x4d) (cdecl, three arguments), with the debug word 0x44a2b7(0x63888b), 0x4264e8(this 0x583979, 0x63888b), [0x5bb20c] = 1, 0x4c97b4, return. Else (the info record at the original address info): word [+0x18c] = 0,
+ * [+0x190] = info[+0x20], word [+0x18e] = [+0x190] - 1, [+0x19e] = [+0x19a] = 0, [+0x1a6] = info[+4] - 1, [+0x1a2] = info[+0] - 1, words [+0x194] = word info[+0], [+0x198] = word info[+4], [+0x196] = low word of info[+0] *
+ * signed word 0x639895, [+0x1ba] = the 32-bit result of __ftol (0x50ce04) applied to 1.0 / ((float)info[+0xc] / (float)info[+0x10]) * 1000.0 (the dwords are converted as unsigned 64-bit integers by fild qword and stored as
+ * single-precision floats; the divisions and the product run in 53-bit x87 precision, the process default control word 0x27f: the port uses IEEE doubles), [+0x1c8] = signed word [+0x196] * signed word [+0x198]; then the common
+ * tail (at 0x44c98d): [+0x1ae] = [+0x19e], [+0x1b6] = [+0x1a6], [+0x1aa] = [+0x19a], [+0x1b2] = [+0x1a2]. The common tail is not reached by the error returns.
+ * __ftol keeps the low dword of the truncated 64-bit integer; a quotient of zero (info[+0xc] zero, or both zero: NaN) or an out-of-range value gives 0. Caller-validated: the strings written into text1 / text2 by the
+ * callees must be terminated inside the 0x100-byte locals and short enough for the 0x104-byte name field [+0x4d .. +0x151) (the port zero-fills the locals, the original leaves them to the callee); Fl18Host.resolve must
+ * give the info record (0x24 bytes). The callees are host calls; the effects they have on `arg` that the function re-reads are named in tasks/fl27c-handoff.md. */
+void m44c4c1_open_video(uint8_t *arg, Fl27cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }
