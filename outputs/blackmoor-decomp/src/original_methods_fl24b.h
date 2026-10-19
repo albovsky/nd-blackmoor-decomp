@@ -55,6 +55,10 @@ void m46793a_click_27ab_27ac(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
 /* 0x4ad310: events 0x2775, 0x2774 and 0x2776 (selection of an entry of 0xc7 bytes at +0x6e; calls 0x4af96e, 0x4ada56, 0x4ae683, 0x4ae495,
  * 0x4ada9f, 0x4ae96c, 0x4aef4a, 0x4adae8 with this = self) */
 void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x4acf45 (ret 0xc): hit test of the point (x, y) (two words) with a block of four dwords (a pointer, host memory) against the
+ * entries of 0xc7 bytes at +0x6e (a mask byte per pixel read through Fl18Host.resolve) and the outer rectangle of the list object;
+ * returns 1 or 0 */
+int32_t m4acf45_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *block, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

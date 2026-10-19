@@ -27,6 +27,7 @@ static char g_msg[256];
 #define OBJ_VA 0x20010000u        /* the object of the target record */
 #define DECOY_VA 0x20020000u      /* the object of every other record */
 #define OBJ2_VA 0x20030000u       /* a second object (an address kept in the object under test) */
+#define MASK_VA 0x20040000u       /* a byte mask (0x4acf45) */
 #define BIG 0x1800
 
 static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
@@ -47,7 +48,7 @@ static uint32_t get32(const uint8_t *o, size_t off)
 static struct {
     uint8_t self[BIG];
     uint8_t tab[TAB_SZ];
-    uint8_t obj[0x1000], decoy[0x1000], obj2[0x1000];
+    uint8_t obj[0x1000], decoy[0x1000], obj2[0x1000], mask[0x100];
     Fl24bWorld w;
     Fl18Host host;
 } fx;
@@ -64,7 +65,7 @@ static struct {
         uint8_t snap_self[BIG], snap_obj[0x100];
     } c[24];
 } L;
-static uint32_t g_tick;
+static uint32_t g_tick, g_out_4aec35;
 static struct { uint32_t callee, value; } g_ret_by[4];
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
@@ -78,6 +79,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     memcpy(L.c[k].snap_self, fx.self, BIG);
     memcpy(L.c[k].snap_obj, fx.obj, 0x100);
     L.n++;
+    if (callee == 0x4aec35 && nargs == 1) memcpy((void *)args[0], &g_out_4aec35, 4);
     for (i = 0; i < 4; i++)
         if (g_ret_by[i].callee == callee) return g_ret_by[i].value;
     return 0;
@@ -89,6 +91,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     if (a >= OBJ_VA && a < OBJ_VA + 0x1000) return fx.obj + (a - OBJ_VA);
     if (a >= DECOY_VA && a < DECOY_VA + 0x1000) return fx.decoy + (a - DECOY_VA);
     if (a >= OBJ2_VA && a < OBJ2_VA + 0x1000) return fx.obj2 + (a - OBJ2_VA);
+    if (a >= MASK_VA && a < MASK_VA + 0x100) return fx.mask + (a - MASK_VA);
     return NULL;
 }
 
@@ -108,6 +111,8 @@ static void base(uint32_t sel, int idx, size_t idx_off)
     memset(fx.obj, 0x5c, sizeof fx.obj);
     memset(fx.decoy, 0x11, sizeof fx.decoy);
     memset(fx.obj2, 0x22, sizeof fx.obj2);
+    memset(fx.mask, 0, sizeof fx.mask);
+    g_out_4aec35 = 0;
     memset(fx.tab, 0xCC, sizeof fx.tab);
     for (i = -1; i <= 4; i++) {
         set32(fx.tab, (size_t)(i + 1) * REC, i == idx ? OBJ_VA : DECOY_VA);
@@ -1209,6 +1214,196 @@ static int test_m4ad310_click_2774_2776(void)
     return g_failed;
 }
 
+/* 0x4acf45 (ret 0xc): x, y words and a block of four dwords. Entries of 0xc7 bytes at +0x6e (x low +2, y low +6, x high +0xa, y high +0xe,
+ * the byte +0x26 selects q = entry + 0x27 + 0x28 * byte; the mask pointer at q+0x1c, the stride word at q+0x20). */
+static uint8_t blk[16];
+static void entry_4acf45(int i, int32_t xlo, int32_t ylo, int32_t xhi, int32_t yhi, int b, int stride)
+{
+    size_t e = (size_t)i * 0xc7 + 0x6e, q = e + 0x27 + (size_t)b * 0x28;
+    set32(fx.self, e + 2, (uint32_t)xlo);
+    set32(fx.self, e + 6, (uint32_t)ylo);
+    set32(fx.self, e + 0xa, (uint32_t)xhi);
+    set32(fx.self, e + 0xe, (uint32_t)yhi);
+    fx.self[e + 0x26] = (uint8_t)b;
+    set32(fx.self, q + 0x1c, MASK_VA);
+    set16(fx.self, q + 0x20, (uint16_t)stride);
+}
+static void setup_4acf45(int count)
+{
+    int i;
+    base(0x2711, 2, 0x1e);
+    set32(fx.self, 0xc1b, 0x01000000u);
+    set32(fx.self, 0xc17, OBJ_VA);
+    set32(fx.self, 0x20, 0);
+    set16(fx.self, 0x24, 1);
+    set16(fx.obj, 0x42, (uint16_t)count);
+    for (i = 0; i < 8; i++) entry_4acf45(i, 100, 100, 101, 101, 0, 1);       /* (7, 5) misses them */
+    set32(fx.obj, 0x32a, 1000);
+    set32(fx.obj, 0x32e, 1000);
+    set32(fx.obj, 0x332, 2000);
+    set32(fx.obj, 0x336, 2000);
+    memcpy(blk, "\x11\x11\x11\x11\x22\x22\x22\x22\x33\x33\x33\x33\x44\x44\x44\x44", 16);
+}
+static void expect_block_4acf45(void)
+{
+    X32(0xc25, 0x11111111u);
+    X32(0xc29, 0x22222222u);
+    X32(0xc2d, 0x33333333u);
+    X32(0xc31, 0x44444444u);
+}
+static int32_t run_4acf45(int16_t x, int16_t y)
+{
+    return m4acf45_hit_test(fx.self, x, y, blk, &fx.w, &fx.host);
+}
+
+static int test_m4acf45_hit_test(void)
+{
+    int k, v, i;
+    int32_t r;
+    g_failed = 0;
+    g_msg[0] = 0;
+    /* the gate: nothing is stored, 0 is returned (only the low half of a dword gate set still counts) */
+    for (v = 0; v < 2; v++) {
+        setup_4acf45(3);
+        set32(fx.self, 0xc1b, 0);
+        begin();
+        r = run_4acf45(7, 5);
+        CK(r == 0);
+        check_mem();
+        CK(L.n == 0);
+        setup_4acf45(3);
+        set32(fx.self, 0xc1b, 0x00000100u);
+        entry_4acf45(0, 0, 0, 9, 9, 0, 1);
+        fx.mask[0] = 1;
+        break;
+    }
+    /* [+0x20] != 0: 0x4acdc2, 0x4ad1e5(0x2776), 0x4aec35(&local), then 0x4ae495 or 0x4ae452 with the sign-extended word [+0x24] */
+    for (v = 0; v < 4; v++) {
+        uint32_t ans = v == 0 ? 0 : 0x100, out = v == 1 ? 0 : v == 0 ? 0xffffffffu : 0x01000000u;
+        setup_4acf45(3);
+        set32(fx.self, 0x20, v == 3 ? 0x80000000u : 1);
+        set16(fx.self, 0x24, 0xfffe);
+        g_ret_by[0].callee = 0x4aec35;
+        g_ret_by[0].value = ans;
+        g_out_4aec35 = out;
+        begin();
+        expect_block_4acf45();
+        r = run_4acf45(7, 5);
+        CK(r == 1);
+        check_mem();
+        CK(L.n == 4);
+        check_call(0, 0x4acdc2, (uintptr_t)fx.self, 0);
+        check_call(1, 0x4ad1e5, (uintptr_t)fx.self, 1);
+        check_arg(1, 0, 0x2776, 0xffffffffu);
+        check_call(2, 0x4aec35, (uintptr_t)fx.self, 1);
+        check_call(3, ans != 0 && out != 0 ? 0x4ae452 : 0x4ae495, (uintptr_t)fx.self, 1);
+        check_arg(3, 0, 0xfffffffeu, 0xffffffffu);
+        CK(get32(L.c[0].snap_self, 0xc25) == 0x11111111u && get32(L.c[0].snap_self, 0xc31) == 0x44444444u);
+    }
+    /* the entries: a hit looks at mask[dy * stride + dx]; entry 2 (q at b = 2, stride 3, dx 2, dy 1: index 5); the array is cleared first */
+    for (v = 0; v < 3; v++) {
+        setup_4acf45(5);
+        memset(fx.self + 0xe39, 0xee, 30 + 2);
+        entry_4acf45(2, 5, 4, 8, 6, 2, 3);
+        entry_4acf45(4, 7, 5, 7, 5, 0, 9);       /* dx 0, dy 0: index 0 */
+        fx.mask[5] = v == 0 ? 0x80 : 0;          /* a byte test: 0x80 counts, 0 does not */
+        fx.mask[4] = v == 1 ? 0 : 0;
+        fx.mask[0] = v == 2 ? 1 : 0;
+        begin();
+        expect_block_4acf45();
+        memset(xs + 0xe39, 0, 30);
+        X16(0xe57, 0);
+        if (v == 0) { X16(0xe39, 2); X16(0xe57, 1); }
+        if (v == 2) { X16(0xe39, 4); X16(0xe57, 1); }
+        r = run_4acf45(7, 5);
+        check_mem();
+        if (v != 1) {
+            CK(r == 1);
+            CK(L.n == 1);
+            check_call(0, 0x4ad1e5, (uintptr_t)fx.self, 1);
+            check_arg(0, 0, 0x2774, 0xffffffffu);
+        } else {
+            CK(r == 0);
+            CK(L.n == 0);
+        }
+    }
+    /* both entries hit: the array holds the indexes in order */
+    setup_4acf45(5);
+    entry_4acf45(1, 7, 5, 7, 5, 0, 1);
+    entry_4acf45(3, 6, 5, 8, 5, 1, 1);
+    fx.mask[0] = 1;
+    fx.mask[1] = 1;
+    begin();
+    expect_block_4acf45();
+    memset(xs + 0xe39, 0, 30);
+    X16(0xe39, 1);
+    X16(0xe39 + 2, 3);
+    X16(0xe57, 2);
+    r = run_4acf45(7, 5);
+    check_mem();
+    CK(r == 1 && L.n == 1);
+    /* each comparison failing by one: no hit (mask all ones), then the outer rectangle */
+    for (k = 0; k < 4; k++) {
+        setup_4acf45(1);
+        memset(fx.mask, 1, sizeof fx.mask);
+        entry_4acf45(0, k == 2 ? 8 : 7, k == 0 ? 6 : 5, k == 3 ? 6 : 7, k == 1 ? 4 : 5, 0, 1);
+        begin();
+        expect_block_4acf45();
+        memset(xs + 0xe39, 0, 30);
+        X16(0xe57, 0);
+        r = run_4acf45(7, 5);
+        check_mem();
+        CK(r == 0 && L.n == 0);
+    }
+    /* the outer rectangle: bounds inclusive; one short of each bound misses; a list count of 0 or negative runs no entry */
+    for (v = 0; v < 6; v++) {
+        int16_t cnt = (int16_t[]){0, -1, 3, 3, 3, 3}[v];
+        setup_4acf45(cnt);
+        memset(fx.mask, 1, sizeof fx.mask);
+        entry_4acf45(0, 0, 0, 9, 9, 0, 1);
+        if (cnt <= 0) entry_4acf45(0, 7, 5, 7, 5, 0, 1);
+        set32(fx.obj, 0x32a, 7);
+        set32(fx.obj, 0x32e, 5);
+        set32(fx.obj, 0x332, 7);
+        set32(fx.obj, 0x336, 5);
+        if (v == 2) set32(fx.obj, 0x32a, 8);
+        if (v == 3) set32(fx.obj, 0x32e, 6);
+        if (v == 4) set32(fx.obj, 0x332, 6);
+        if (v == 5) set32(fx.obj, 0x336, 4);
+        if (v >= 2) {
+            for (i = 0; i < 3; i++) entry_4acf45(i, 100, 100, 101, 101, 0, 1);
+        }
+        begin();
+        expect_block_4acf45();
+        memset(xs + 0xe39, 0, 30);
+        X16(0xe57, 0);
+        r = run_4acf45(7, 5);
+        check_mem();
+        if (v < 2) {
+            CK(r == 1 && L.n == 1);
+            check_arg(0, 0, 0x2775, 0xffffffffu);
+        } else {
+            CK(r == 0 && L.n == 0);
+        }
+    }
+    /* signed words: x = -32768, y = -1 against signed bounds */
+    setup_4acf45(0);
+    set32(fx.obj, 0x32a, 0xffff8000u);
+    set32(fx.obj, 0x32e, 0xffffffffu);
+    set32(fx.obj, 0x332, 0xffff8000u);
+    set32(fx.obj, 0x336, 0xffffffffu);
+    begin();
+    expect_block_4acf45();
+    memset(xs + 0xe39, 0, 30);
+    X16(0xe57, 0);
+    r = run_4acf45((int16_t)0x8000, (int16_t)0xffff);
+    check_mem();
+    CK(r == 1 && L.n == 1);
+    if (g_failed) printf("FAIL test_m4acf45_hit_test: %s\n", g_msg);
+    else printf("PASS test_m4acf45_hit_test\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -1222,6 +1417,7 @@ int main(void)
     failures += test_m482359_hit_test();
     failures += test_m46793a_click_27ab_27ac();
     failures += test_m4ad310_click_2774_2776();
+    failures += test_m4acf45_hit_test();
     /* FL24B-MAIN-END */
     return failures;
 }

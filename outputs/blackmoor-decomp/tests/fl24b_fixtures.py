@@ -96,11 +96,11 @@ def stub(callee, **kw):
 
 
 
-def mk_scenario(sp, key, rng, *, areas, g=None, stubs=None, iat=None, pointers=None, stack_args=(), sel=0, profile=('x', 0), tick=None):
+def mk_scenario(sp, key, rng, *, areas, g=None, stubs=None, iat=None, pointers=None, stack_args=(), sel=0, profile=('x', 0), tick=None, ptr_args=None):
     """A scenario namespace (the fields run_original and the differential read)."""
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], areas=areas, stubs=stubs or {}, iat=iat or {}, g=g or {},
                            ecx=od.region_va(0), tick=tick, pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, sel=sel,
-                           stack_args=list(stack_args), ret=sp.get('ret'), cleanup=4 * len(stack_args) if sp.get('callee_pops') else 0)
+                           stack_args=list(stack_args), ptr_args=ptr_args or {}, ret=sp.get('ret'), cleanup=4 * len(stack_args) if sp.get('callee_pops') else 0)
 
 
 # the functions: va, size from the ledger, code_size (the span without a trailing jump table: the coverage target), id, object size, ...
@@ -123,6 +123,7 @@ SPECS.update({
     '4ad310': dict(id=8, va=0x4ad310, size=640, selfsz=0xc30, idx=0x1e, gates=[('nz32', 0xc1b), ('z8', 0xc24), ('z32', 0xc20)],
                    sels=[0x2775, 0x2774, 0x2776], callees=[0x4af96e, 0x4ada56, 0x4ae683, 0x4ae495, 0x4ada9f, 0x4ae96c, 0x4aef4a, 0x4adae8],
                    post=lambda c: post_4ad310(c), scen=640, probes=[(0, 0xc30)]),
+    '4acf45': dict(id=9, va=0x4acf45, size=672, selfsz=0xe60, ret='eax', callee_pops=True, scen=640),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
@@ -436,6 +437,66 @@ def post_4ad310(c):
         struct.pack_into('<h', d, t * 0xc7 + 0x6e, rng.choice([0, 1, -1, 0x7fff, -0x8000, rng.randrange(-300, 300)]))
     c.stubs_results[0x4af96e] = [rng.choice([0xffff, 0x1234ffff, 0xffffffff, 0, 5, 0x7fff, 0x8000, 0x12340003, 0xffff8000])]
     c.stubs_results[0x4aef4a] = [rng.choice([0, 1, 0x100, 0x80000000, 0xffffffff, 0, 0]) for _ in range(16)]
+
+
+def nspan(rng, v, fail=None):
+    """A narrow (lo, hi) around v (so the offsets into a mask stay small): v inside unless fail is 'lo' (lo = v + 1) or 'hi' (hi = v - 1)."""
+    lo, hi = v - rng.choice([0, 1, 2, 3]), v + rng.choice([0, 1, 2, 3])
+    if fail == 'lo':
+        lo = v + 1
+    if fail == 'hi':
+        hi = v - 1
+    return lo & 0xffffffff, hi & 0xffffffff
+
+
+def build_4acf45(sp, rng, n):
+    prof = n % 10
+    d = bytearray(rng.randbytes(sp['selfsz']))
+    struct.pack_into('<I', d, 0xc1b, 0 if prof == 0 else rng.choice([1, 0x100, 0x01000000, 0xffffffff]))
+    struct.pack_into('<I', d, 0xc17, od.region_va(1))
+    struct.pack_into('<I', d, 0x20, rng.choice([1, 0x100, 0x80000000]) if prof in (1, 2, 3) or (prof == 0 and rng.random() < 0.5) else 0)
+    struct.pack_into('<h', d, 0x24, rng.choice([0, 1, 2, -1, 0x7fff, -0x8000]))
+    x = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    y = rng.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    obj = bytearray(rng.randbytes(0x1000))
+    count = (0 if rng.random() < 0.5 else -1 - rng.randrange(5)) if prof == 9 else rng.choice([1, 2, 3, 4, 6, 8])
+    struct.pack_into('<h', obj, 0x42, count)
+    mask = bytearray(rng.choice([0, 0, 1, 0x80, 0xff, rng.randrange(256)]) for _ in range(0x100))
+    if prof == 7:
+        mask = bytearray(0x100)
+    if prof == 6:
+        mask = bytearray(rng.choice([1, 0xff, 0x80, 3]) for _ in range(0x100))
+    hit_prob = 0.0 if prof in (4, 5) else 0.5
+    for i in range(8):
+        e = i * 0xc7 + 0x6e
+        mode = None if rng.random() < hit_prob else rng.choice(['ylo', 'yhi', 'xlo', 'xhi'])
+        ylo, yhi = nspan(rng, y, 'lo' if mode == 'ylo' else 'hi' if mode == 'yhi' else None)
+        xlo, xhi = nspan(rng, x, 'lo' if mode == 'xlo' else 'hi' if mode == 'xhi' else None)
+        struct.pack_into('<I', d, e + 2, xlo)
+        struct.pack_into('<I', d, e + 6, ylo)
+        struct.pack_into('<I', d, e + 0xa, xhi)
+        struct.pack_into('<I', d, e + 0xe, yhi)
+        b = rng.choice([0, 0, 1, 2, 3])
+        d[e + 0x26] = b
+        q = e + 0x27 + b * 0x28
+        struct.pack_into('<I', d, q + 0x1c, od.region_va(6))
+        struct.pack_into('<h', d, q + 0x20, rng.choice([0, 1, 2, 3, 8, 5]))
+    outer = None if prof in (4, 6, 7, 8) else ['ylo', 'yhi', 'xlo', 'xhi'][rng.randrange(4)]
+    ylo, yhi = span(rng, y, 'lo' if outer == 'ylo' else 'hi' if outer == 'yhi' else None)
+    xlo, xhi = span(rng, x, 'lo' if outer == 'xlo' else 'hi' if outer == 'xhi' else None)
+    struct.pack_into('<IIII', obj, 0x32a, xlo, ylo, xhi, yhi)      # 0x32a x lo, 0x32e y lo, 0x332 x hi, 0x336 y hi
+    block = bytearray(rng.randbytes(16))
+    areas = [Area('self', od.region_va(0), d, image=False), Area('obj', od.region_va(1), obj, image=False), Area('block', od.region_va(5), block, image=False, compare=False),
+             Area('mask', od.region_va(6), mask, image=False, compare=False)]
+    ans = {1: 0, 2: 0, 3: rng.choice([1, 0x100, 0xffffffff])}.get(prof, rng.choice([0, 1, 0x100, 0x80000000, 0xffffffff]))
+    out = rng.choice([0, 1, 0x100, 0xffffffff]) if prof in (1, 3) else rng.choice([0, 5])
+    probes = [('self', 0x1e, 0x10), ('self', 0xc17, 0x50), ('self', 0xe30, 0x30)]
+    stubs = {}
+    for callee, shape in ((0x4acdc2, dict(args=0, cleanup=0)), (0x4ad1e5, dict(args=1, cleanup=4)), (0x4aec35, dict(args=1, cleanup=4, out=out, results=[ans])),
+                          (0x4ae452, dict(args=1, cleanup=4)), (0x4ae495, dict(args=1, cleanup=4))):
+        stubs[callee] = stub(callee, this=True, probe=probes, **shape)
+    junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
+    return mk_scenario(sp, '4acf45', rng, areas=areas, stubs=stubs, stack_args=[junk(x), junk(y), od.region_va(5)], ptr_args={2: 'block'}, profile=('x', prof))
 
 
 # BUILDERS-END

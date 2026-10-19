@@ -39,6 +39,7 @@ class Fl24bDifferential(DiffBase):
         super().setUpClass()
         cls.lib.shim_calls.restype = ctypes.POINTER(ShimCall24)
         cls.lib.shim_world_size.restype = ctypes.c_size_t
+        cls.lib.shim_script_write.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint32]
         cls.lib.shim_script_probe.argtypes = [ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
         cls.lib.shim_fl24b.argtypes = [ctypes.c_int, ctypes.c_void_p] + [ctypes.c_uint64] * 4 + [ctypes.c_void_p, ctypes.c_void_p]
         assert cls.lib.shim_world_size() == ctypes.sizeof(fx.World), 'the World mirror does not match Fl24bWorld'
@@ -83,6 +84,8 @@ class Fl24bDifferential(DiffBase):
                 self.lib.shim_script_return(s.name, r)
             for name, off, ln in (getattr(s, 'probe', None) or ()):
                 self.lib.shim_script_probe(s.name, ctypes.cast(ctypes.byref(by_name[name], off), ctypes.c_void_p).value, ln)
+            if s.out is not None:
+                self.lib.shim_script_write(s.name, 0, 0, 0, 4, s.out)
             if getattr(s, 'probe', None):
                 probe_len[s.name] = sum(ln for _, _, ln in s.probe)
         if sc.tick is not None:
@@ -90,6 +93,8 @@ class Fl24bDifferential(DiffBase):
         result = ctypes.c_int32(0)
         self_ptr = ptr(by_name['self'])
         sa = [*sc.stack_args, 0, 0, 0, 0][:4]
+        for position, name in getattr(sc, 'ptr_args', {}).items():
+            sa[position] = ctypes.cast(ctypes.byref(by_name[name]), ctypes.c_void_p).value
         self.lib.shim_fl24b(sc.fn, self_ptr, *sa, ctypes.byref(sw), ctypes.byref(result))
         if sc.ret == 'eax':
             self.assertEqual(result.value & 0xffffffff, orig.eax, '%s eax' % sc.key)

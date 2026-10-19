@@ -493,4 +493,78 @@ void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
     call0(host, 0x4adae8, (uintptr_t)self);
 }
 
+/* ---- 0x4acf45 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4acf45, thiscall, `ret 0xc`: arguments x and y (words, movsx) and a pointer to a block of four dwords; eax = 1 or 0. Returns 0 at once
+ * when the dword [+0xc1b] is zero. Copies block[1] to [+0xc29], block[3] to [+0xc31], block[0] to [+0xc25], block[2] to [+0xc2d]. With
+ * [+0x20] != 0 (an entry is selected: word [+0x24]): 0x4acdc2, 0x4ad1e5(0x2776), 0x4aec35(&local) and then 0x4ae452(word [+0x24]) when it
+ * answered non-zero and the local is non-zero, else 0x4ae495(word [+0x24]); returns 1. Otherwise clears 15 words at +0xe39 and the word
+ * [+0xe57] (the counter), tests the entries i below the signed word at +0x42 of the object at the dword [+0xc17]: entry i is at
+ * +0x6e + 0xc7 * i (x low +2, y low +6, x high +0xa, y high +0xe, signed dwords inclusive); a hit looks at the mask byte at
+ * (dword at q+0x1c) + (y - ylow) * (word at q+0x20) + (x - xlow) where q = entry + 0x27 + 0x28 * byte [entry+0x26]; a non-zero mask byte
+ * appends i to the word array (the counter indexes it unchecked, as in the original). A non-empty array runs 0x4ad1e5(0x2774) and returns
+ * 1; else the outer rectangle (+0x32a x low, +0x32e y low, +0x332 x high, +0x336 y high of the list object) runs 0x4ad1e5(0x2775) and
+ * returns 1, or 0. The original also computes a pointer from the byte [entry+0x26] in the [+0x20] != 0 arm that it never uses (not
+ * reproduced). A callee that changes self is not exercised. */
+int32_t m4acf45_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *block, Fl24bWorld *world, const Fl18Host *host)
+{
+    uint32_t local10 = 0;
+    int32_t i;
+    (void)world;
+    if (rd32(self, 0xc1b) == 0) return 0;
+    wr32(self, 0xc29, rd32(block, 4));
+    wr32(self, 0xc31, rd32(block, 0xc));
+    wr32(self, 0xc25, rd32(block, 0));
+    wr32(self, 0xc2d, rd32(block, 8));
+    if (rd32(self, 0x20) != 0) {
+        call0(host, 0x4acdc2, (uintptr_t)self);
+        call1(host, 0x4ad1e5, (uintptr_t)self, 0x2776);
+        if (call1(host, 0x4aec35, (uintptr_t)self, (uintptr_t)&local10) != 0) {
+            if (local10 != 0) call1(host, 0x4ae452, (uintptr_t)self, (uint32_t)rds16(self, 0x24));
+            else call1(host, 0x4ae495, (uintptr_t)self, (uint32_t)rds16(self, 0x24));
+        } else {
+            call1(host, 0x4ae495, (uintptr_t)self, (uint32_t)rds16(self, 0x24));
+        }
+        return 1;
+    }
+    memset(self + 0xe39, 0, 30);
+    wr16(self, 0xe57, 0);
+    for (i = 0; i < rds16(object_at(host, rd32(self, 0xc17)), 0x42); i++) {
+        ptrdiff_t e = (ptrdiff_t)i * 0xc7 + 0x6e;
+        ptrdiff_t q;
+        uint32_t dx, dy;
+        if ((int32_t)y < (int32_t)rd32(self, e + 6)) continue;
+        if ((int32_t)y > (int32_t)rd32(self, e + 0xe)) continue;
+        if ((int32_t)x < (int32_t)rd32(self, e + 2)) continue;
+        if ((int32_t)x > (int32_t)rd32(self, e + 0xa)) continue;
+        q = e + (ptrdiff_t)self[e + 0x26] * 0x28 + 0x27;
+        dx = (uint32_t)((int32_t)x - (int32_t)rd32(self, e + 2));
+        dy = (uint32_t)((int32_t)y - (int32_t)rd32(self, e + 6));
+        if (object_at(host, rd32(self, q + 0x1c) + dy * (uint32_t)rds16(self, q + 0x20) + dx)[0] == 0) continue;
+        wr16(self, (ptrdiff_t)rds16(self, 0xe57) * 2 + 0xe39, (uint16_t)i);
+        wr16(self, 0xe57, (uint16_t)(rd16(self, 0xe57) + 1));
+    }
+    if (rds16(self, 0xe57) != 0) {
+        call1(host, 0x4ad1e5, (uintptr_t)self, 0x2774);
+        return 1;
+    }
+    {
+        const uint8_t *o = object_at(host, rd32(self, 0xc17));
+        if ((int32_t)y >= (int32_t)rd32(o, 0x32e)) {
+            o = object_at(host, rd32(self, 0xc17));
+            if ((int32_t)y <= (int32_t)rd32(o, 0x336)) {
+                o = object_at(host, rd32(self, 0xc17));
+                if ((int32_t)x >= (int32_t)rd32(o, 0x32a)) {
+                    o = object_at(host, rd32(self, 0xc17));
+                    if ((int32_t)x <= (int32_t)rd32(o, 0x332)) {
+                        call1(host, 0x4ad1e5, (uintptr_t)self, 0x2775);
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 /* FL24B-END */
