@@ -741,12 +741,12 @@ def gen_473206(rng, n):
         w3a29 = rng.choice([x for x in (0, 5, -1, 0x7fff, 77) if x != r104])
     struct.pack_into('<h', obj, 0x104, r104)
     put32(blk, 0x80, 0xffffffff if m1 else rng.choice([0, 1, 0xfffe, 0xffff, 0x80000000]))
-    put32(d, 0x371, 0 if z371 else rng.choice([1, 0x100, 0xffffffff]))
+    put32(d, 0x371, 0 if z371 else rng.choice([1, 0x100, 0x10000, 0x01000000, 0xffffffff]))   # high-word-only values too (the test is a dword compare)
     for i in range(4):
-        put32(d, 0x375 + 4 * i, 0 if (c == 'diff0' or rng.random() < 0.5) and c != 'diff1' else rng.choice([1, 0x100, 0xffffffff]))
+        put32(d, 0x375 + 4 * i, 0 if (c == 'diff0' or rng.random() < 0.5) and c != 'diff1' else rng.choice([1, 0x100, 0x10000, 0x01000000, 0xffffffff]))
     if c == 'diff1':
         for i in range(4):
-            put32(d, 0x375 + 4 * i, rng.choice([1, 0x100, 0xffffffff]))
+            put32(d, 0x375 + 4 * i, rng.choice([1, 0x100, 0x10000, 0x01000000, 0xffffffff]))
     g = {'value_5b44f0': A, 'value_5b44f4': B, 'value_583102': o2 & m32, 'value_583106': o6 & m32, 'word_583a29': w3a29 & 0xffff,
          'value_5d0377': rng.choice([0, 1, rng.randrange(1 << 32)]), 'value_5d162d': rng.randrange(1 << 32), 'value_5d1631': rng.randrange(1 << 32),
          'value_5d1639': rng.randrange(1 << 32)}

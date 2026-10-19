@@ -1443,14 +1443,16 @@ static void test_m473206_click(void)
         blk_row(1, -1);
         CK(run_473206(5, 7) == 1 && get16s(fx.self, 0xe) == 1);
         /* the final stage: the signed words 0x583a29 and obj[0x104] */
-        for (i = 0; i < 4; i++) {
-            static const int r104[] = {5, -1, 77, 77};
-            static const int w29[] = {5, 9, 5, 5};
+        for (i = 0; i < 6; i++) {
+            static const int r104[] = {5, -1, 77, 77, 77, 77};
+            static const int w29[] = {5, 9, 5, 5, 5, 5};
+            /* the skip dword at [+0x375 + 8]: a value in the high word only (0x10000, 0x01000000) is non-zero too */
+            static const uint32_t d375[] = {0, 0, 0, 0x100u, 0x10000u, 0x01000000u};
             setup_473206(idx);
             blk_row(2, -1);
             set16(fx.obj, 0x104, (uint16_t)r104[i]);
             fx.w.word_583a29 = (int16_t)w29[i];
-            set32(fx.self, 0x375 + 8, i == 3 ? 0x100u : 0u);
+            set32(fx.self, 0x375 + 8, d375[i]);
             set32(fx.self, 0x371, 0);
             set32(fx.blk, 0x80, 0xffffffffu);
             if (i < 2) {
@@ -1462,7 +1464,7 @@ static void test_m473206_click(void)
                 if (i == 2) {
                     CK(L.n == 3 && L.c[2].callee == 0x4eb184 && L.c[2].this_ptr == 0x571442 && L.c[2].a[0] == 77 && get32s(fx.self, 0x375 + 8) == 1);
                 } else {
-                    CK(L.n == 2 && get32s(fx.self, 0x375 + 8) == 0x100);
+                    CK(L.n == 2 && (uint32_t)get32s(fx.self, 0x375 + 8) == d375[i]);
                 }
             }
         }
@@ -1478,6 +1480,13 @@ static void test_m473206_click(void)
         set32(fx.blk, 0x80, 0xfffffffeu);
         set32(fx.self, 0x371, 1);
         CK(run_473206(5, 7) == 1 && L.n == 3 && get32s(fx.self, 0x371) == 1);
+        /* [+0x371] set only in its high word (0x10000, 0x01000000): still non-zero, so it is cleared and 0x47512a runs */
+        for (i = 0; i < 2; i++) {
+            setup_473206(idx);
+            blk_row(3, -1);
+            set32(fx.self, 0x371, i ? 0x01000000u : 0x10000u);
+            CK(run_473206(5, 7) == 1 && L.n == 5 && L.c[4].callee == 0x47512a && get32s(L.c[4].snap_self, 0x371) == 0 && get32s(fx.self, 0x371) == 0);
+        }
         /* [+0x371] clear: no 0x47512a */
         setup_473206(idx);
         blk_row(3, -1);

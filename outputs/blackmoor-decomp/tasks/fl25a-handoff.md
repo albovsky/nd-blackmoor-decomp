@@ -31,7 +31,7 @@ Run from `outputs/blackmoor-decomp` with `export PATH=/tmp/claude-0/shim:$PATH` 
 - Direct and Unicorn differential, slice tests only: `python3 -m unittest tests.test_fl25a_direct tests.test_fl25a_differential` -> 14 tests, OK (8 direct: six functions, `test_sweep_bounded`, and the run-all check; 6 differential).
 - Original-bytes-only oracle: `python3 tests/fl25a_original_oracle.py`; also under the recorder `BLACKMOOR_EXEC_TRACE_DIR=<dir> PYTHONPATH=scripts/exec_trace python3 tests/fl25a_original_oracle.py` (same summary lines, one trace file written).
 - Sanitisers: `tests/fl25a_direct_test.c` + the port built with gcc `-std=c11 -g -O1 -fsanitize=address,undefined -fno-sanitize-recover=undefined`: all 7 cases PASS, no report. (clang in this environment has no ASan runtime, so gcc was used.)
-- Mutation: `python3 tests/fl25a_mutation_check.py --limit 80` (see the section below).
+- Mutation: `python3 tests/fl25a_mutation_check.py` (full run): 478 mutants, 22 survivors. 20 survivors are equivalent: a dword narrowed to a word whose result is then truncated to the low 16 bits, `wr16` stores that truncate anyway, word arguments of the callees that the host contract masks to 16 bits, and a redundant `else if`. The other two were fixture gaps in 0x473206 and are now fixed: line 529 (`rd32(self, 0x371) != 0` -> `rd16`) and line 515 (`rd32(self, at) == 0` on the dwords at 0x375 + 4w -> `rd16`). The Unicorn fixtures now also draw the dwords [+0x371] and [+0x375 + 4i] from 0x10000 and 0x01000000 (non-zero in the high word only), and `tests/fl25a_direct_test.c` has cases where only the high word is non-zero (0x47512a still runs and [+0x371] is cleared; the 0x4eb184 call is skipped). Hand mutants `rd32 -> rd16` at lines 515 and 529 now fail both the direct test and the differential. The tool has no `--lines` option; the two hand mutants were run with a scratch driver.
 
 Oracle results (instructions reached / in the code window, conditional-jump directions taken / total, scenarios, digest):
 
@@ -42,7 +42,7 @@ Oracle results (instructions reached / in the code window, conditional-jump dire
 | 0x4a835c | 207/207 | 36/36 | 360 | 37c2d81585dd505c4e5b6317fedc826caa77947c1480ba2d9b34c3380b2a403e |
 | 0x45841e | 234/234 | 53/54 | 378 | c043b0f3c26a6a24879b3965ef3013bbc2687f14f09f35fe294535be56d61bb5 |
 | 0x45565f | 219/219 | 40/40 | 288 | aa9a03aba37073af7a6f20c863ab644a999312408d33e1e4f93b51427896115c |
-| 0x473206 | 257/257 | 40/40 | 384 | e3a69b3540bb368c6eb6adaf4e591ce5ef03e822c2d888e666cb6bc30a492dda |
+| 0x473206 | 257/257 | 40/40 | 384 | 0a5e8f6be33fedd15f08b7df04409bf7930a0c809f6cda69c4e8dd12aa95704a |
 
 The one untaken direction is 0x4586f4 `jne 0x458746` in 0x45841e (allowlisted in `fl25a_fixtures.UNTAKEN_ALLOWED`): it repeats the compare dword [+0x20] != 5 whose negation led there, with no store or call in between, so it cannot be taken. All six windows are pure code (no data inside). The direction of a jump is read from the original run itself (every (instruction, next instruction) pair seen by the Unicorn code hook).
 
@@ -62,6 +62,7 @@ Only OS and host boundaries are stubbed; no decision of the function under test 
 - 0x4586f4 (above) is unreachable by the bytes; no native rejection was needed.
 - 0x473206: the tick store uses the loop index k at the `break` (the original's register); the direct and differential tests cover k = 0..3 with the matching index. A loop that ends without a hit returns before reaching it, so k = 4 is never used.
 - Unsafe original behaviour: none rejected. Out-of-range word indices (a record index outside -1..4 in the tests, a row index outside 0..3 in 0x473206) read memory the original would also read; the native code does the same on the host buffers and the tests never go there.
+- P3, integration: in 0x45841e and 0x473206 the `Fl18Host.call` arguments mix host pointers (self+0x3e, &local, self+0x335) and guest addresses (record+0xe5, 0x5a4b5e+16k). The differential hides this by mapping addresses; the integration step must say which side the host adapter translates.
 - No independent review; no claim that the batch or FL-25 is complete.
 
 ## Hashes
@@ -85,4 +86,4 @@ Known gap of the tool: mutants are single textual edits (one literal, one operat
 
 ## Last commit
 
-COMMIT-PLACEHOLDER
+see git log

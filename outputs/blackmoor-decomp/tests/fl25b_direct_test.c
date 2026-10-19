@@ -1127,6 +1127,45 @@ static int test_m4588ad_click_279f_27a5(void)
                 }
             }
         }
+        /* the word [+0xae] is signed: 0xffff and 0xfffe index the entries at 16 * -1 and 16 * -2 before ro (a zero-extending read would index 0xffff0
+         * and 0xffee0 and miss the values set here). The record points at OBJ_VA + 0x40 so that the negative offsets stay inside the buffer. */
+        for (v = 0; v < 3; v++) {
+            static const uint16_t ae[3] = {0xffff, 0xfffe, 0xfffd};
+            static const int aes[3] = {-1, -2, -3};
+            const size_t R = 0x40;
+            for (k = -1; k < 10; k++) {
+                ptrdiff_t i = 16 * (ptrdiff_t)aes[v];
+                setup_4588ad(0x27a4, idx);
+                set32(fx.tab, (size_t)(idx + 1) * REC, OBJ_VA + (uint32_t)R);
+                fx.w.value_5a4c08 = 0;
+                set32(fx.self, 0xb4, 0);
+                set16(fx.self, 0xae, ae[v]);
+                memcpy(fx.obj + R + 0x4f9, consts[1], 9);
+                set32(fx.obj, (size_t)((ptrdiff_t)R + i + 0x2d), 0x20000u + (uint32_t)(v * 7) + 900u);
+                set32(fx.obj, (size_t)((ptrdiff_t)R + i + 0x25), 300);
+                set32(fx.obj, (size_t)((ptrdiff_t)R + i + 0x31), 5);
+                set32(fx.obj, (size_t)((ptrdiff_t)R + i + 0x29), 20);
+                if (k >= 0) fx.obj[R + 0x4f9 + (size_t)k] ^= 0x80;
+                begin_4588ad();
+                X32(0x2e, 1);
+                X16(0x3a, ae[v]);
+                X16(0xb0, (uint16_t)((0x20000u + (uint32_t)(v * 7) + 900u) - 300u));
+                X16(0xb2, (uint16_t)(5u - 20u));
+                if (k >= 0 && k < 9) {
+                    memcpy(xs + 0xc0, fx.obj + R + 0x4f9, 0x31);
+                    X16(0xae, ae[v]);
+                }
+                m4588ad_click_279f_27a5(fx.self, &fx.w, &fx.host);
+                memcpy(xs + 0xc0, k >= 0 && k < 9 ? fx.obj + R + 0x4f9 : xs + 0xc0, k >= 0 && k < 9 ? 0x31 : 0);
+                check_4588ad();
+                if (k >= 0 && k < 9) {
+                    CK(L.n == 1);
+                    check_call(0, 0x458c32, (uintptr_t)fx.self, 0);
+                } else {
+                    CK(L.n == 0);
+                }
+            }
+        }
         g_phase = 8;
         /* 0x27a5: [+0x2e] = 0, [+0x32] = 1; [+0xb4] != 0: the copy-and-call against consts[2], then [+0x3a] = 0xffff */
         for (v = 0; v < 2; v++) {

@@ -160,7 +160,7 @@ SPECS = {
     '455180': dict(id=1, va=0x455180, size=827, selfsz=0x180, ret='eax', callee_pops=True, scen=640),
     '4cb058': dict(id=2, va=0x4cb058, size=851, selfsz=0x170, ret='eax', callee_pops=True, scen=720),
     '4a3f40': dict(id=3, va=0x4a3f40, size=896, selfsz=0x900, ret='eax', callee_pops=True, scen=720),
-    '4588ad': dict(id=4, va=0x4588ad, size=901, selfsz=0x100, idx=0x26, gates=[('nz32', 0x98), ('z8', 0x9d), ('in32', 0x20, (0, 5))],
+    '4588ad': dict(id=4, va=0x4588ad, size=901, selfsz=0x100, idx=0x26, obj_bias=0x40, gates=[('nz32', 0x98), ('z8', 0x9d), ('in32', 0x20, (0, 5))],
                    sels=[0x279f, 0x27a4, 0x27a5], callees=[0x448d11, 0x458c32, 0x4fb77a, 0x4fb2e3], tick=True, post=lambda c: post_4588ad(c), scen=960,
                    probes=[(0, 0x100)]),
     # SPECS-END
@@ -226,14 +226,15 @@ def chain_build(key, rng, n):
     for gi, g in enumerate(gates):
         _set_gate(d, g, gi == failing, rng)
     struct.pack_into('<h', d, sp['idx'], idx)
+    bias = sp.get('obj_bias', 0)     # ro = the object area + bias (room for negative offsets from ro)
     rec = bytearray(rng.randbytes(6 * 0x8d))
     for i in range(-1, 5):
         base = (i + 1) * 0x8d
-        struct.pack_into('<I', rec, base, od.region_va(1) if i == idx else od.region_va(4))
+        struct.pack_into('<I', rec, base, od.region_va(1) + bias if i == idx else od.region_va(4))
         bad = rng.choice([0, 2, 3, 0xffffffff, 0x101, 0x10001])
         struct.pack_into('<I', rec, base + 0x4d, (bad if state_fail else 1) if i == idx else (1 if state_fail else 0))
-    obj = bytearray(rng.randbytes(0x1000))
-    c = SimpleNamespace(d=d, obj=obj, rng=rng, n=n, variant=variant, sel=sel, passing=kind == 'pass', failing=failing, idx=idx, now=now,
+    obj = bytearray(rng.randbytes(bias + 0x1000))
+    c = SimpleNamespace(d=d, obj=obj, bias=bias, rng=rng, n=n, variant=variant, sel=sel, passing=kind == 'pass', failing=failing, idx=idx, now=now,
                         areas=[], g={}, pointers={}, consts={}, stack_args=[], stubs_results={}, iat={})
     if sp.get('post'):
         sp['post'](c)
@@ -601,6 +602,7 @@ def build_4a3f40(sp, rng, n):
 
 def post_4588ad(c):
     d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    bias = c.bias            # ro = obj + bias
     mode = v % 4              # (event 0x27a4: 0 = [+0x20] == 5, 1 = the count branch, 2 = [+0xb4] != 0, 3 = the count <= 0)
     nine = ((v // 4) % 11) - 1
     if c.failing != 2:
@@ -611,18 +613,19 @@ def post_4588ad(c):
            3: rng.choice([0, -1, -3, -32])}[mode]
     c.g['value_5a4c08'] = cnt & 0xffff
     c.g['value_5d03b3'] = rng.randrange(1 << 32)
-    struct.pack_into('<H', d, 0xae, rng.choice([0, 1, 2, 5, 15, 20]))
-    struct.pack_into('<h', obj, 0x21, rng.choice([-1, 0, 1, 5, 0x7fff, -0x8000]))
-    struct.pack_into('<H', obj, 0x57c, rng.randrange(0x10000))
-    struct.pack_into('<H', obj, 0x54b, rng.randrange(0x10000))
+    # the word [+0xae] is signed in the original (movsx): the negative words 0xffff and 0xfffe index the entries before ro (bias >= 0x40 keeps them mapped)
+    struct.pack_into('<H', d, 0xae, rng.choice([0, 1, 2, 5, 15, 20, 0xffff, 0xfffe]))
+    struct.pack_into('<h', obj, bias + 0x21, rng.choice([-1, 0, 1, 5, 0x7fff, -0x8000]))
+    struct.pack_into('<H', obj, bias + 0x57c, rng.randrange(0x10000))
+    struct.pack_into('<H', obj, bias + 0x54b, rng.randrange(0x10000))
     c.areas.append(Area('t5a4bd4', 0x5a4bd4 - 64, bytearray(rng.randbytes(64 + 0x34))))
     c.pointers['words_5a4bd4'] = ('t5a4bd4', 64)
     a27a4 = c.sel == 0x27a4
     a27a5 = c.sel == 0x27a5
-    nine_const(c, 0x54a5f8, 0x55b, obj, a27a4 and mode == 1, nine=nine)
-    nine_const(c, 0x54a604, 0x4f9, obj, a27a4 and mode in (2, 3), nine=nine)
-    nine_const(c, 0x54a610, 0x4f9, obj, a27a5 and b4, nine=nine)
-    nine_const(c, 0x54a61c, 0x52a, obj, a27a5 and not b4, nine=nine)
+    nine_const(c, 0x54a5f8, bias + 0x55b, obj, a27a4 and mode == 1, nine=nine)
+    nine_const(c, 0x54a604, bias + 0x4f9, obj, a27a4 and mode in (2, 3), nine=nine)
+    nine_const(c, 0x54a610, bias + 0x4f9, obj, a27a5 and b4, nine=nine)
+    nine_const(c, 0x54a61c, bias + 0x52a, obj, a27a5 and not b4, nine=nine)
 
 
 # BUILDERS-END
