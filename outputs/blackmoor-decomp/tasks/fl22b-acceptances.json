@@ -1,0 +1,101 @@
+[
+ {
+  "va": "0x42ed54",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22b.c",
+   "symbol": "m42ed54_run_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22b_direct_test.c",
+    "test_id": "test_m42ed54_run_state"
+   },
+   {
+    "path": "tests/test_fl22b_direct.py",
+    "test_id": "Fl22bDirect.test_run_state_42ed54"
+   },
+   {
+    "path": "tests/test_fl22b_differential.py",
+    "test_id": "Fl22bDifferential.test_42ed54_run_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_77_runtime_original_oracle.py",
+   "window": [
+    "0x42ed54",
+    "0x42f510"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m42ed54_run_state (rand via host, idiv in port, 4-arm table). Direct: objects, ordered calls. Unicorn differential: 300 fixtures, every instruction reached. Window covers all 1964 bytes. See tasks/fl22b-handoff.md."
+ },
+ {
+  "va": "0x47ff0e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22b.c",
+   "symbol": "m47ff0e_handle_click"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22b_direct_test.c",
+    "test_id": "test_m47ff0e_handle_click"
+   },
+   {
+    "path": "tests/test_fl22b_direct.py",
+    "test_id": "Fl22bDirect.test_handle_click_47ff0e"
+   },
+   {
+    "path": "tests/test_fl22b_differential.py",
+    "test_id": "Fl22bDifferential.test_47ff0e_handle_click"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_eb_runtime_original_oracle.py",
+   "window": [
+    "0x47ff0e",
+    "0x4809a7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m47ff0e_handle_click. Caption longer than 200 is rejected natively (original overruns its frame; direct test only). Unicorn differential: 300 fixtures, all instructions. Window covers 2713 bytes. See tasks/fl22b-handoff.md."
+ },
+ {
+  "va": "0x4b64a9",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22b.c",
+   "symbol": "m4b64a9_run_scene"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22b_direct_test.c",
+    "test_id": "test_m4b64a9_run_scene"
+   },
+   {
+    "path": "tests/test_fl22b_direct.py",
+    "test_id": "Fl22bDirect.test_run_scene_4b64a9"
+   },
+   {
+    "path": "tests/test_fl22b_differential.py",
+    "test_id": "Fl22bDifferential.test_4b64a9_run_scene"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d1_runtime_original_oracle.py",
+   "window": [
+    "0x4b64a9",
+    "0x4b7041"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4b64a9_run_scene (thiscall state machine, six-arm table compared in the differential). Zero divisor rejected natively (direct only). Unicorn: 300 fixtures, 725/725 instructions. See tasks/fl22b-handoff.md."
+ }
+]

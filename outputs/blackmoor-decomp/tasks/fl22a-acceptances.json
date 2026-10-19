@@ -1,0 +1,138 @@
+[
+ {
+  "va": "0x463392",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m463392_step_scene"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m463392_step_scene"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_step_scene_463392"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_463392_step_scene"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d3_runtime_original_oracle.py",
+   "window": [
+    "0x463392",
+    "0x463b00"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m463392_step_scene (states 0-2, five-arm jump table in direct test). Direct: objects, ordered calls, probes. Unicorn differential: 600 fixtures, 456/456 instructions. Window covers all 1882 bytes. Details: tasks/fl22a-handoff.md.",
+  "blockers_reviewed": []
+ },
+ {
+  "va": "0x461d82",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m461d82_move_step"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m461d82_move_step"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_move_step_461d82"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_461d82_move_step"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_d3_runtime_original_oracle.py",
+   "window": [
+    "0x461d82",
+    "0x462577"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m461d82_move_step. idiv faults return 0 natively (direct test only). Direct: objects, ordered calls. Unicorn differential: 600 fixtures, 504/504 instructions. Window covers all 2021 bytes. See tasks/fl22a-handoff.md.",
+  "blockers_reviewed": []
+ },
+ {
+  "va": "0x4778df",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m4778df_render"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m4778df_render"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_render_4778df"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_4778df_render"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_e4_runtime_original_oracle.py",
+   "window": [
+    "0x4778df",
+    "0x4780e0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4778df_render. Direct: objects, ordered calls, probes. Unicorn differential: 600 fixtures, 514/514 instructions, 5000 ordered host calls. Window covers all 2035 bytes. See tasks/fl22a-handoff.md.",
+  "blockers_reviewed": []
+ },
+ {
+  "va": "0x45d2c6",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 implementer (slice-reviewer diff review pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22a.c",
+   "symbol": "m45d2c6_render"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22a_direct_test.c",
+    "test_id": "test_m45d2c6_render"
+   },
+   {
+    "path": "tests/test_fl22a_direct.py",
+    "test_id": "Fl22aDirect.test_render_45d2c6"
+   },
+   {
+    "path": "tests/test_fl22a_differential.py",
+    "test_id": "Fl22aDifferential.test_45d2c6_render"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_da_runtime_original_oracle.py",
+   "window": [
+    "0x45d2c6",
+    "0x45db70"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m45d2c6_render. Loops 3 and 5 stop at counter 0x7fff (direct test only). Unicorn differential: 600 fixtures, 590/590 instructions, 26086 ordered calls. Window covers all 2212 bytes. See tasks/fl22a-handoff.md.",
+  "blockers_reviewed": []
+ }
+]
