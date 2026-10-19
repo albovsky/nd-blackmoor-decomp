@@ -134,6 +134,14 @@ class Fl24aDifferential(DiffBase):
         """FL-24a: differential test of m46ebff_click_27c2_27c3 (original 0x46ebff)"""
         self.run_key('46ebff')
 
+    def test_4571e1_hit_test(self):
+        """FL-24a: differential test of m4571e1_hit_test (original 0x4571e1)"""
+        self.run_key('4571e1')
+
+    def test_47b4aa_hit_test(self):
+        """FL-24a: differential test of m47b4aa_hit_test (original 0x47b4aa)"""
+        self.run_key('47b4aa')
+
 
 if __name__ == '__main__':
     unittest.main()

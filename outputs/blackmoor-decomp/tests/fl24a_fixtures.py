@@ -84,9 +84,10 @@ class Original20(od.Original):
 
 # the recording stubs of the callees (entered by address): (stack arguments, thiscall, bytes the callee pops)
 SHAPES = {0x4fb2e3: (1, True, 4), 0x4f6334: (1, True, 4), 0x44ecaf: (2, True, 8), 0x50ca3e: (6, False, 0), 0x44a2b7: (1, False, 0),
-          0x4709bb: (1, True, 4), 0x4709de: (2, True, 8), 0x448d11: (4, True, 16)}
+          0x4709bb: (1, True, 4), 0x4709de: (2, True, 8), 0x448d11: (4, True, 16),
+          0x45741d: (2, True, 8), 0x47b709: (1, True, 4)}
 # stack arguments that are pushed from 16-bit registers (only the low 16 bits are meaningful), by position
-WORD_ARGS = {0x4fb2e3: (0,), 0x44ecaf: (1,)}
+WORD_ARGS = {0x4fb2e3: (0,), 0x44ecaf: (1,), 0x45741d: (1,)}
 RECORDS_VA = 0x5bb5e5
 REC = 0x8d
 
@@ -360,6 +361,99 @@ def gen_46ebff(rng, n):
                   now=now, profile=(kind, which))
 
 
+def rect_into(rng, obj, x, y, offs, adj, hit):
+    """Four signed dwords at offs = (ylo, yhi, xlo, xhi) such that the point (x, y) is inside the EFFECTIVE rectangle, often exactly on an
+    edge (hit), or one effective edge misses it by one or more. `adj` is what the code adds to each stored edge before it compares (32-bit)."""
+    m = lambda: rng.choice([0, 0, 1, 2, 9, rng.randrange(0, 100000)])
+    eff = [y - m(), y + m(), x - m(), x + m()]
+    if not hit:
+        k = rng.randrange(4)
+        eff[k] = (y if k < 2 else x) + (1 if k % 2 == 0 else -1) * rng.choice([1, 1, 2, 70000])
+    for off, e, a in zip(offs, eff, adj):
+        put32(obj, off, e - a)
+
+
+def points(rng):
+    xs = [-32768, -1, 0, 1, 2, 9, 255, 0x7fff, rng.randrange(-32768, 32768)]
+    x, y = rng.choice(xs), rng.choice(xs)
+    return x, y, [(rng.randrange(0x10000) << 16) | (x & 0xffff), (rng.randrange(0x10000) << 16) | (y & 0xffff)]
+
+
+def gen_4571e1(rng, n):
+    profiles = [('gate', 0), ('gate', 1), ('r', 0), ('r', 1), ('r', 2), ('loop', 0, 0), ('loop', 1, 0), ('loop', 2, 1), ('loop', 3, 0), ('loop', 1, 1),
+                ('final',), ('none',), ('wrap',)]
+    (kind, *rest), variant = prof(n, profiles)
+    idx = rng.choice([-1, 0, 1, 2, 3, 4])
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x80))
+    set_gate(d, 'nz32', 0x3e, kind == 'gate' and rest[0] == 0, rng)
+    set_gate(d, 'z32', 0x2c, kind == 'gate' and rest[0] == 1, rng)
+    put16(d, 0x1e, idx)
+    obj = bytearray(rng.randbytes(0x300))
+    count = max(rng.choice([1, 2, 3, 4]), rest[0] + 1) if kind == 'loop' else rng.choice([0, 1, 3, -1, -32768, 2, 4])
+    struct.pack_into('<h', obj, 0x25, count)
+    struct.pack_into('<h', d, 0x2a, rest[0] if kind == 'loop' and rest[1] else rng.choice([-1, 0, 1, 2, 3, 5, 0x7fff]))
+    if kind == 'loop' and rest[1] == 0:
+        w = struct.unpack_from('<h', d, 0x2a)[0]
+        if w == rest[0]:
+            struct.pack_into('<h', d, 0x2a, rest[0] + 1)
+    rect_into(rng, obj, x, y, (0x3b, 0x43, 0x37, 0x3f), (-5, 5, 0, 0), kind == 'r' and rest[0] == 0)
+    rect_into(rng, obj, x, y, (0x4b, 0x53, 0x47, 0x4f), (5, 5, 10, -10), kind == 'r' and rest[0] == 1)
+    rect_into(rng, obj, x, y, (0x5b, 0x63, 0x57, 0x5f), (0, 0, 0, 0), kind == 'r' and rest[0] == 2)
+    for i in range(4):
+        rect_into(rng, obj, x, y, (0x9b + 16 * i, 0xa3 + 16 * i, 0x97 + 16 * i, 0x9f + 16 * i), (0, 0, 0, 0), kind == 'loop' and i == rest[0])
+    rect_into(rng, obj, x, y, (0x26f, 0x277, 0x26b, 0x273), (0, 0, 0, 0), kind == 'final')
+    if kind == 'wrap':
+        # R0 would hold the point but its stored low y edge is -2^31 + 2: minus 5 wraps to a large positive edge, so the point is below it
+        rect_into(rng, obj, x, y, (0x3b, 0x43, 0x37, 0x3f), (-5, 5, 0, 0), True)
+        put32(obj, 0x3b, 0x80000002 + rng.randrange(3))
+        if variant % 2:
+            put32(obj, 0x43, 0x7ffffffe + rng.randrange(2))     # + 5 wraps negative: the point is above it
+            put32(obj, 0x3b, y + 5)
+    stubs = {0x45741d: stub(0x45741d, [('self', 0, 0x80), ('records', 0, 6 * REC)], results=[rng.randrange(1 << 32)])}
+    return common('4571e1', rng, d, obj, idx, 0, False, 0, stubs, now=0, profile=(kind, *rest), stack=stack, args=(x, y))
+
+
+def gen_47b4aa(rng, n):
+    profiles = [('gate', 0), ('gate', 1), ('gate', 2), ('l1', 0), ('l1', 1), ('l1', 2), ('l1none',), ('l2', 0, 'ok'), ('l2', 1, 'ok'), ('l2', 2, 'ok'),
+                ('l2', 3, 'ok'), ('l2', 1, 'b4'), ('l2', 2, 'b8'), ('l2', 0, 'b4'), ('l2', 3, 'b8'), ('byte0',), ('none',)]
+    (kind, *rest), variant = prof(n, profiles)
+    x, y, stack = points(rng)
+    d = bytearray(rng.randbytes(0x2c0))
+    set_gate(d, 'nz32', 0x24, kind == 'gate' and rest[0] == 0, rng)
+    set_gate(d, 'z32', 0x28, kind == 'gate' and rest[0] == 1, rng)
+    set_gate(d, 'z32', 0x2c, kind == 'gate' and rest[0] == 2, rng)
+    a_va, b_va = od.region_va(5), od.region_va(6)
+    put32(d, 0xc, a_va)
+    put32(d, 0x14, b_va)
+    s28c = rng.choice([0, 1, 2, 3])
+    put32(d, 0x28c, s28c)
+    cnt = max(rng.choice([1, 2, 3, 4]), rest[0] + 1) if kind == 'l2' else rng.choice([0, 1, 2, 3, 4, -1, 0x80000000, 5])
+    if cnt > 5 or cnt < 0:
+        cnt = rng.choice([0, 1, 2]) if cnt >= 0 else cnt
+    put32(d, 0x280, cnt)
+    a = bytearray(rng.randbytes(0x600))
+    a[0x35b] = 0 if kind == 'byte0' else rng.choice([1, 0x80, 0xff, 0x7f])
+    for i in range(3):
+        rect_into(rng, a, x, y, (0x2a1 + s28c * 0x30 + 16 * i + 4, 0x2a1 + s28c * 0x30 + 16 * i + 0xc, 0x2a1 + s28c * 0x30 + 16 * i, 0x2a1 + s28c * 0x30 + 16 * i + 8),
+                  (0, 0, 0, 0), (kind == 'l1' and i == rest[0]) or (kind == 'byte0' and i == variant % 3))
+    for i in range(5):
+        rect_into(rng, a, x, y, (0x115 + 16 * i, 0x11d + 16 * i, 0x111 + 16 * i, 0x119 + 16 * i), (3, -3, 3, -3), kind == 'l2' and i == rest[0])
+    b = bytearray(rng.randbytes(0x400))
+    for e in range(24):
+        for off in (4, 8):
+            if rng.random() < 0.5:
+                put32(b, e * 12 + off, 0)
+    if kind == 'l2':
+        e = (s28c * cnt + rest[0]) * 12
+        put32(b, e + 4, rng.choice([1, 0x100, 0x80000000, 0xffffffff]) if rest[1] == 'b4' else 0)
+        put32(b, e + 8, rng.choice([1, 0x100, 0x80000000, 0xffffffff]) if rest[1] == 'b8' else 0)
+    extra = [Area('a', a_va, a, image=False), Area('b', b_va, b, image=False)]
+    stubs = {0x47b709: stub(0x47b709, [('self', 0, 0x2c0)], results=[rng.randrange(1 << 32)])}
+    return common('47b4aa', rng, d, bytearray(0x10), 0, 0, False, 0, stubs, extra=extra, now=0, profile=(kind, *rest), stack=stack, args=(x, y))
+
+
+
 # the functions: id (the shim number), va, size from the ledger, the object-window probes of the call logs, whether GetTickCount is
 # imported, whether the function returns a value (compared), the bytes it pops, the generator
 SPECS = {
@@ -368,6 +462,8 @@ SPECS = {
     '4cb3ab': dict(id=3, va=0x4cb3ab, size=475, gen=gen_4cb3ab, n=13 * 12),
     '44eab1': dict(id=4, va=0x44eab1, size=510, gen=gen_44eab1, ret=True, cleanup=8, n=11 * 40),
     '46ebff': dict(id=5, va=0x46ebff, size=545, gen=gen_46ebff, tick=True, probes=[(0, 0x100)], n=16 * 44),
+    '4571e1': dict(id=6, va=0x4571e1, size=572, gen=gen_4571e1, ret=True, cleanup=8, n=13 * 40),
+    '47b4aa': dict(id=7, va=0x47b4aa, size=607, gen=gen_47b4aa, ret=True, cleanup=8, n=17 * 40),
 }
 KEYS = list(SPECS)
 

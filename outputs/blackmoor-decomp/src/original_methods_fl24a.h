@@ -46,6 +46,12 @@ void m4cb3ab_store_flag(uint8_t *self, const Fl24aWorld *world, const Fl18Host *
 int32_t m44eab1_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 /* 0x46ebff: events 0x27c2 and 0x27c3 (tick, 0x4f6334, 0x4fb2e3, 0x4709bb, 0x4709de, 0x448d11) */
 void m46ebff_click_27c2_27c3(uint8_t *self, const Fl24aWorld *world, const Fl18Host *host);
+/* 0x4571e1: hit test (ret 8): three rectangles with margins, a loop of rectangles (the one at the index of the word [+0x2a] is silent) and
+ * a last rectangle; calls 0x45741d and returns 1, else 0 */
+int32_t m4571e1_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
+/* 0x47b4aa: hit test (ret 8) over the three rows behind the signed byte [object + 0x35b] and the item rows; stores [+0x27c], [+0x2b4];
+ * calls 0x47b709 and returns 1, else 0 */
+int32_t m47b4aa_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

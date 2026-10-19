@@ -307,3 +307,102 @@ void m46ebff_click_27c2_27c3(uint8_t *self, const Fl24aWorld *world, const Fl18H
         call4(host, 0x448d11, 0x619a05, world->value_5d03b3, 0x54c14c, 0xffffffffu, 0);
     }
 }
+
+/* ---- 0x4571e1 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the edge arithmetic of the original is 32-bit and wraps: `mov ecx, [edge]; sub ecx, 5` */
+static int32_t plus(int32_t edge, int32_t amount)
+{
+    return (int32_t)((uint32_t)edge + (uint32_t)amount);
+}
+
+/* 0x4571e1, thiscall, `ret 8`: x is the word at [esp+4], y the word at [esp+8]. Returns 0 when dword [+0x3e] is clear or dword [+0x2c] is
+ * set. The record object (read after the guards) holds, in this order (y low/high, x low/high; the added amounts wrap in 32 bits):
+ * +0x3b - 5 / +0x43 + 5 / +0x37 / +0x3f -> (0x27bc, 0); +0x4b + 5 / +0x53 + 5 / +0x47 + 10 / +0x4f - 10 -> (0x27bc, 1);
+ * +0x5b / +0x63 / +0x57 / +0x5f -> (0x27bc, 2); then `count` = signed word [+0x25] rectangles of 16 bytes (y +0x9b / +0xa3, x +0x97 /
+ * +0x9f): the first hit calls (0x27be, index as a word) unless the index equals the signed word [+0x2a], and returns 1 either way; last
+ * +0x26f / +0x277 / +0x26b / +0x273 -> (0x27bd, 0). Each hit calls 0x45741d and returns 1; no hit returns 0. */
+int32_t m4571e1_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host)
+{
+    const uint8_t *obj;
+    int16_t i;
+    if (rd32(self, 0x3e) == 0) return 0;
+    if (rd32(self, 0x2c) != 0) return 0;
+    obj = object_at(host, record_object_address(world, self, 0x1e));
+    if (in_range(y, plus(rds32(obj, 0x3b), -5), plus(rds32(obj, 0x43), 5)) && in_range(x, rds32(obj, 0x37), rds32(obj, 0x3f))) {
+        call2(host, 0x45741d, (uintptr_t)self, 0x27bc, 0);
+        return 1;
+    }
+    if (in_range(y, plus(rds32(obj, 0x4b), 5), plus(rds32(obj, 0x53), 5)) && in_range(x, plus(rds32(obj, 0x47), 10), plus(rds32(obj, 0x4f), -10))) {
+        call2(host, 0x45741d, (uintptr_t)self, 0x27bc, 1);
+        return 1;
+    }
+    if (in_range(y, rds32(obj, 0x5b), rds32(obj, 0x63)) && in_range(x, rds32(obj, 0x57), rds32(obj, 0x5f))) {
+        call2(host, 0x45741d, (uintptr_t)self, 0x27bc, 2);
+        return 1;
+    }
+    for (i = 0; (int32_t)i < rds16(obj, 0x25); i++) {
+        ptrdiff_t at = (ptrdiff_t)((int32_t)i << 4);
+        if (!in_range(y, rds32(obj, at + 0x9b), rds32(obj, at + 0xa3))) continue;
+        if (!in_range(x, rds32(obj, at + 0x97), rds32(obj, at + 0x9f))) continue;
+        if ((int32_t)i != rds16(self, 0x2a)) call2(host, 0x45741d, (uintptr_t)self, 0x27be, (uint16_t)i);
+        return 1;
+    }
+    if (in_range(y, rds32(obj, 0x26f), rds32(obj, 0x277)) && in_range(x, rds32(obj, 0x26b), rds32(obj, 0x273))) {
+        call2(host, 0x45741d, (uintptr_t)self, 0x27bd, 0);
+        return 1;
+    }
+    return 0;
+}
+
+/* ---- 0x47b4aa ------------------------------------------------------------------------------------------------------------------ */
+
+/* the 32-bit product of two dwords (imul), as a byte offset */
+static ptrdiff_t times(uint32_t a, uint32_t b)
+{
+    return (ptrdiff_t)(int32_t)(a * b);
+}
+
+/* 0x47b4aa, thiscall, `ret 8`: x is the word at [esp+4], y the word at [esp+8]. Returns 0 when dword [+0x24] is clear or dword [+0x28] or
+ * [+0x2c] is set. Then [+0x27c] = -1. With the signed byte [A + 0x35b] non-zero, A being the object whose address is the dword [+0xc],
+ * the three rows i of 16 bytes at A + [+0x28c] * 0x30 + 0x2a1 (x low +0, y low +4, x high +8, y high +0xc) are tried: a hit stores
+ * [+0x27c] = i, calls 0x47b709 with 0x2768 and returns 1. Then for i below the signed dword [+0x280]: [+0x2b4] = [+0x28c] * [+0x280] + i
+ * is stored first, and a hit of the rectangle (y +0x115 + 3 .. +0x11d - 3, x +0x111 + 3 .. +0x119 - 3 of A + 16 i) whose 12-byte entry
+ * [+0x2b4] of the table whose address is the dword [+0x14] has its dwords +4 and +8 both zero stores [+0x27c] = i, calls 0x47b709 with
+ * 0x2769 and returns 1. No hit returns 0. */
+int32_t m47b4aa_hit_test(uint8_t *self, int16_t x, int16_t y, const Fl24aWorld *world, const Fl18Host *host)
+{
+    int32_t i;
+    (void)world;
+    if (rd32(self, 0x24) == 0) return 0;
+    if (rd32(self, 0x28) != 0) return 0;
+    if (rd32(self, 0x2c) != 0) return 0;
+    wr32(self, 0x27c, 0xffffffffu);
+    if ((int8_t)object_at(host, rd32(self, 0xc))[0x35b] != 0) {
+        for (i = 0; i < 3; i++) {
+            const uint8_t *row = object_at(host, rd32(self, 0xc)) + times(rd32(self, 0x28c), 0x30) + 0x2a1 + ((ptrdiff_t)i << 4);
+            if (y < rds32(row, 4)) continue;
+            if (y > rds32(row, 0xc)) continue;
+            if (x < rds32(row, 0)) continue;
+            if (x > rds32(row, 8)) continue;
+            wr32(self, 0x27c, (uint32_t)i);
+            call1(host, 0x47b709, (uintptr_t)self, 0x2768);
+            return 1;
+        }
+    }
+    for (i = 0; i < rds32(self, 0x280); i++) {
+        const uint8_t *a;
+        wr32(self, 0x2b4, (uint32_t)times(rd32(self, 0x28c), rd32(self, 0x280)) + (uint32_t)i);
+        a = object_at(host, rd32(self, 0xc)) + ((ptrdiff_t)i << 4);
+        if (y < plus(rds32(a, 0x115), 3)) continue;
+        if (y > plus(rds32(a, 0x11d), -3)) continue;
+        if (x < plus(rds32(a, 0x111), 3)) continue;
+        if (x > plus(rds32(a, 0x119), -3)) continue;
+        if (rd32(object_at(host, rd32(self, 0x14)), times(rd32(self, 0x2b4), 12) + 4) != 0) continue;
+        if (rd32(object_at(host, rd32(self, 0x14)), times(rd32(self, 0x2b4), 12) + 8) != 0) continue;
+        wr32(self, 0x27c, (uint32_t)i);
+        call1(host, 0x47b709, (uintptr_t)self, 0x2769);
+        return 1;
+    }
+    return 0;
+}

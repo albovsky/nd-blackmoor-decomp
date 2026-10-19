@@ -23,6 +23,8 @@ EXPECTED = [
     'test_m4cb3ab_store_flag',
     'test_m44eab1_hit_test',
     'test_m46ebff_click_27c2_27c3',
+    'test_m4571e1_hit_test',
+    'test_m47b4aa_hit_test',
 ]
 
 
@@ -86,6 +88,15 @@ class Fl24aDirect(unittest.TestCase):
     def test_46ebff_click_27c2_27c3(self):
         """FL-24a: direct test of m46ebff_click_27c2_27c3"""
         self.check('test_m46ebff_click_27c2_27c3')
+
+
+    def test_4571e1_hit_test(self):
+        """FL-24a: direct test of m4571e1_hit_test"""
+        self.check('test_m4571e1_hit_test')
+
+    def test_47b4aa_hit_test(self):
+        """FL-24a: direct test of m47b4aa_hit_test"""
+        self.check('test_m47b4aa_hit_test')
 
 
 if __name__ == '__main__':

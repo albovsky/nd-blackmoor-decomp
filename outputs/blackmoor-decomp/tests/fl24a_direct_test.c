@@ -32,7 +32,7 @@ static char g_msg[256];
 #define A12_VA 0x20040000u
 #define TBL_VA 0x20050000u
 #define OBJ_SZ 0xa000
-#define SNAP 0x200
+#define SNAP 0x300
 
 static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
 static void set16(uint8_t *o, size_t off, uint16_t v) { memcpy(o + off, &v, 2); }
@@ -772,6 +772,353 @@ static void test_m46ebff(void)
     }
 }
 
+/* ---- 0x4571e1 ----------------------------------------------------------------------------------------------------------------- */
+
+static void setup_4571e1(int idx, int count)
+{
+    setup(idx, 0);
+    set32(fx.self, 0x3e, 0x01000000);
+    set32(fx.self, 0x2c, 0);
+    set16(fx.self, 0x2a, 0x7fff);
+    memset(fx.obj, 0x80, 0x300);
+    set16(fx.obj, 0x25, (uint16_t)count);
+}
+
+/* the stored edges (ylo, yhi, xlo, xhi) of a rectangle whose EFFECTIVE edges (stored + adj) are exactly the point */
+static void eff_rect(const size_t o[4], const int adj[4], int x, int y)
+{
+    set32(fx.obj, o[0], (uint32_t)(y - adj[0]));
+    set32(fx.obj, o[1], (uint32_t)(y - adj[1]));
+    set32(fx.obj, o[2], (uint32_t)(x - adj[2]));
+    set32(fx.obj, o[3], (uint32_t)(x - adj[3]));
+}
+
+/* moves edge e (0 y low, 1 y high, 2 x low, 3 x high) of the rectangle one outside the point */
+static void edge_out(const size_t o[4], int e)
+{
+    set32(fx.obj, o[e], get32(fx.obj, o[e]) + (e % 2 == 0 ? 1u : (uint32_t)-1));
+}
+
+static int32_t run_4571e1(int x, int y)
+{
+    L.n = 0;
+    return m4571e1_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
+}
+
+static void test_m4571e1(void)
+{
+    static const int idxs[] = {2, -1};
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
+    static const size_t R[3][4] = {{0x3b, 0x43, 0x37, 0x3f}, {0x4b, 0x53, 0x47, 0x4f}, {0x5b, 0x63, 0x57, 0x5f}};
+    static const int ADJ[3][4] = {{-5, 5, 0, 0}, {5, 5, 10, -10}, {0, 0, 0, 0}};
+    static const int ZERO[4] = {0, 0, 0, 0};
+    static const size_t LAST[4] = {0x26f, 0x277, 0x26b, 0x273};
+    size_t ii, pi, k;
+    int r, e, i;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (pi = 0; pi < 6; pi++) {
+            int x = pts[pi][0], y = pts[pi][1];
+            /* the gates */
+            setup_4571e1(idx, 1);
+            eff_rect(R[0], ADJ[0], x, y);
+            set32(fx.self, 0x3e, 0);
+            expect_begin();
+            CK(run_4571e1(x, y) == 0 && L.n == 0);
+            expect_end();
+            for (k = 0; k < 5; k++) {
+                setup_4571e1(idx, 1);
+                eff_rect(R[0], ADJ[0], x, y);
+                set32(fx.self, 0x2c, z32_fail[k]);
+                expect_begin();
+                CK(run_4571e1(x, y) == 0 && L.n == 0);
+                expect_end();
+            }
+            /* the three rectangles with their margins: exact edges hit, each edge one outside misses */
+            for (r = 0; r < 3; r++) {
+                setup_4571e1(idx, 0);
+                eff_rect(R[r], ADJ[r], x, y);
+                expect_begin();
+                CK(run_4571e1(x, y) == 1);
+                expect_end();
+                CK(L.n == 1);
+                ck_call(0, 0x45741d, (uintptr_t)fx.self, 2, 2, 0x27bc, (uintptr_t)r, 0, 0, 0, 0);
+                for (e = 0; e < 4; e++) {
+                    setup_4571e1(idx, 0);
+                    eff_rect(R[r], ADJ[r], x, y);
+                    edge_out(R[r], e);
+                    CK(run_4571e1(x, y) == 0 && L.n == 0);
+                }
+            }
+            /* the order: R1 before R2 */
+            setup_4571e1(idx, 1);
+            eff_rect(R[1], ADJ[1], x, y);
+            eff_rect(R[2], ADJ[2], x, y);
+            CK(run_4571e1(x, y) == 1 && L.n == 1);
+            ck_call(0, 0x45741d, (uintptr_t)fx.self, 2, 2, 0x27bc, 1, 0, 0, 0, 0);
+            /* the loop (count 3): hit i calls 0x27be with i unless i is the word [+0x2a]; the call is silent then but the result is 1 */
+            for (i = 0; i < 3; i++) {
+                size_t o[4];
+                int quiet;
+                o[0] = 0x9b + 16 * (size_t)i; o[1] = 0xa3 + 16 * (size_t)i; o[2] = 0x97 + 16 * (size_t)i; o[3] = 0x9f + 16 * (size_t)i;
+                for (quiet = 0; quiet < 2; quiet++) {
+                    setup_4571e1(idx, 3);
+                    eff_rect(o, ZERO, x, y);
+                    eff_rect(LAST, ZERO, x, y);          /* the last rectangle also holds the point, but the loop comes first */
+                    set16(fx.self, 0x2a, (uint16_t)(quiet ? i : i + 0x100));
+                    expect_begin();
+                    CK(run_4571e1(x, y) == 1);
+                    expect_end();
+                    if (quiet) {
+                        CK(L.n == 0);
+                    } else {
+                        CK(L.n == 1);
+                        ck_call(0, 0x45741d, (uintptr_t)fx.self, 2, 2, 0x27be, (uintptr_t)i, 0, 0, 0, 0);
+                    }
+                }
+                for (e = 0; e < 4; e++) {
+                    setup_4571e1(idx, 3);
+                    eff_rect(o, ZERO, x, y);
+                    edge_out(o, e);
+                    CK(run_4571e1(x, y) == 0 && L.n == 0);
+                }
+            }
+            /* the word [+0x2a] is signed: 0xffff is -1, which is no index, so the call is made */
+            setup_4571e1(idx, 1);
+            {
+                const size_t o[4] = {0x9b, 0xa3, 0x97, 0x9f};
+                eff_rect(o, ZERO, x, y);
+            }
+            set16(fx.self, 0x2a, 0xffff);
+            CK(run_4571e1(x, y) == 1 && L.n == 1);
+            /* the rectangle at the index count is not looked at; a negative or zero count skips the loop */
+            setup_4571e1(idx, 2);
+            {
+                const size_t o[4] = {0x9b + 32, 0xa3 + 32, 0x97 + 32, 0x9f + 32};
+                eff_rect(o, ZERO, x, y);
+            }
+            CK(run_4571e1(x, y) == 0 && L.n == 0);
+            for (k = 0; k < 3; k++) {
+                static const int counts[] = {0, -1, -32768};
+                const size_t o[4] = {0x9b, 0xa3, 0x97, 0x9f};
+                setup_4571e1(idx, counts[k]);
+                eff_rect(o, ZERO, x, y);
+                CK(run_4571e1(x, y) == 0 && L.n == 0);
+            }
+            /* the last rectangle */
+            setup_4571e1(idx, 0);
+            eff_rect(LAST, ZERO, x, y);
+            expect_begin();
+            CK(run_4571e1(x, y) == 1);
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x45741d, (uintptr_t)fx.self, 2, 2, 0x27bd, 0, 0, 0, 0, 0);
+            for (e = 0; e < 4; e++) {
+                setup_4571e1(idx, 0);
+                eff_rect(LAST, ZERO, x, y);
+                edge_out(LAST, e);
+                CK(run_4571e1(x, y) == 0 && L.n == 0);
+            }
+        }
+        /* the margins wrap in 32 bits: R0 low y 0x80000002 - 5 wraps to a large positive edge (the point is below it: a miss), R0 high y
+         * 0x7ffffffe + 5 wraps to a large negative one (the point is above it: a miss); R1 low x 0x7ffffff9 + 10 wraps negative: a hit */
+        setup_4571e1(idx, 0);
+        eff_rect(R[0], ADJ[0], 3, 3);
+        set32(fx.obj, 0x3b, 0x80000002u);
+        CK(run_4571e1(3, 3) == 0 && L.n == 0);
+        eff_rect(R[0], ADJ[0], 3, 3);
+        set32(fx.obj, 0x43, 0x7ffffffeu);
+        CK(run_4571e1(3, 3) == 0 && L.n == 0);
+        eff_rect(R[1], ADJ[1], 3, 3);
+        set32(fx.obj, 0x47, 0x7ffffff9u);
+        CK(run_4571e1(3, 3) == 1 && L.n == 1);
+        ck_call(0, 0x45741d, (uintptr_t)fx.self, 2, 2, 0x27bc, 1, 0, 0, 0, 0);
+    }
+}
+
+/* ---- 0x47b4aa ----------------------------------------------------------------------------------------------------------------- */
+
+static void setup_47b4aa(int cnt, int s28c)
+{
+    setup(0, 0);
+    set32(fx.self, 0x24, 0x01000000);
+    set32(fx.self, 0x28, 0);
+    set32(fx.self, 0x2c, 0);
+    set32(fx.self, 0xc, OBJ_VA);
+    set32(fx.self, 0x14, DECOY_VA);
+    set32(fx.self, 0x28c, (uint32_t)s28c);
+    set32(fx.self, 0x280, (uint32_t)cnt);
+    memset(fx.obj, 0x80, 0x600);
+    fx.obj[0x35b] = 0x80;      /* a negative signed byte is non-zero */
+    memset(fx.decoy, 0, 0x400);
+}
+
+static int32_t run_47b4aa(int x, int y)
+{
+    L.n = 0;
+    return m47b4aa_hit_test(fx.self, (int16_t)x, (int16_t)y, &fx.w, &fx.host);
+}
+
+/* row i of the first table: x low, y low, x high, y high at +0, +4, +8, +0xc */
+static size_t row1_base(int s28c, int i)
+{
+    return 0x2a1 + (size_t)(ptrdiff_t)s28c * 0x30 + 16 * (size_t)i;
+}
+
+static void row1(int s28c, int i, int x, int y)
+{
+    size_t b = row1_base(s28c, i);
+    set32(fx.obj, b, (uint32_t)x);
+    set32(fx.obj, b + 4, (uint32_t)y);
+    set32(fx.obj, b + 8, (uint32_t)x);
+    set32(fx.obj, b + 0xc, (uint32_t)y);
+}
+
+/* row i of the second table (the code narrows it by 3 on every side) */
+static void row2(int i, int x, int y)
+{
+    size_t b = 16 * (size_t)i;
+    set32(fx.obj, b + 0x111, (uint32_t)(x - 3));
+    set32(fx.obj, b + 0x115, (uint32_t)(y - 3));
+    set32(fx.obj, b + 0x119, (uint32_t)(x + 3));
+    set32(fx.obj, b + 0x11d, (uint32_t)(y + 3));
+}
+
+static void test_m47b4aa(void)
+{
+    static const int pts[][2] = {{5, 7}, {-1, -1}, {-32768, 32767}, {32767, -32768}, {0, 0}, {255, -2}};
+    static const int ss[] = {2, 0, -1};
+    static const int bytes[] = {1, 0x80, 0xff};
+    static const uint32_t nz[] = {0x01000000u, 1, 0x80000000u, 0xffffffffu};
+    size_t pi, k, si;
+    int i, e, b, which;
+    for (pi = 0; pi < 6; pi++) {
+        int x = pts[pi][0], y = pts[pi][1];
+        /* the gates: no store, no call */
+        setup_47b4aa(0, 1);
+        set32(fx.self, 0x24, 0);
+        expect_begin();
+        CK(run_47b4aa(x, y) == 0 && L.n == 0);
+        expect_end();
+        for (k = 0; k < 5; k++) {
+            setup_47b4aa(0, 1);
+            set32(fx.self, 0x28, z32_fail[k]);
+            expect_begin();
+            CK(run_47b4aa(x, y) == 0 && L.n == 0);
+            expect_end();
+            setup_47b4aa(0, 1);
+            set32(fx.self, 0x2c, z32_fail[k]);
+            expect_begin();
+            CK(run_47b4aa(x, y) == 0 && L.n == 0);
+            expect_end();
+        }
+        /* no hit: [+0x27c] = -1 and nothing else (count 0) */
+        setup_47b4aa(0, 1);
+        expect_begin();
+        set32(exp_self, 0x27c, 0xffffffffu);
+        CK(run_47b4aa(x, y) == 0 && L.n == 0);
+        expect_end();
+        for (si = 0; si < 3; si++) {
+            int s = ss[si];
+            /* the first table: row i holds the point exactly on its edges -> [+0x27c] = i, call 0x2768 */
+            for (i = 0; i < 3; i++) {
+                for (b = 0; b < 3; b++) {
+                    setup_47b4aa(0, s);
+                    fx.obj[0x35b] = (uint8_t)bytes[b];
+                    row1(s, i, x, y);
+                    expect_begin();
+                    set32(exp_self, 0x27c, (uint32_t)i);
+                    CK(run_47b4aa(x, y) == 1);
+                    expect_end();
+                    CK(L.n == 1);
+                    ck_call(0, 0x47b709, (uintptr_t)fx.self, 1, 0, 0x2768, 0, 0, 0, 0, 0);
+                    CK(get32(L.c[0].snap_self, 0x27c) == (uint32_t)i);   /* stored before the call */
+                }
+                /* each edge one outside misses */
+                for (e = 0; e < 4; e++) {
+                    size_t at = row1_base(s, i) + (size_t)(e == 0 ? 4 : e == 1 ? 0xc : e == 2 ? 0 : 8);
+                    setup_47b4aa(0, s);
+                    row1(s, i, x, y);
+                    set32(fx.obj, at, get32(fx.obj, at) + (e % 2 == 0 ? 1u : (uint32_t)-1));
+                    CK(run_47b4aa(x, y) == 0 && L.n == 0 && get32(fx.self, 0x27c) == 0xffffffffu);
+                }
+                /* the byte [object + 0x35b] zero skips the first table */
+                setup_47b4aa(0, s);
+                fx.obj[0x35b] = 0;
+                row1(s, i, x, y);
+                CK(run_47b4aa(x, y) == 0 && L.n == 0);
+            }
+        }
+        /* the second table: s = 2, count 3, row i holds the point with the narrowed edges; the entry 6 + i of the third table is zero */
+        for (i = 0; i < 3; i++) {
+            setup_47b4aa(3, 2);
+            row2(i, x, y);
+            expect_begin();
+            set32(exp_self, 0x27c, (uint32_t)i);
+            set32(exp_self, 0x2b4, (uint32_t)(6 + i));
+            CK(run_47b4aa(x, y) == 1);
+            expect_end();
+            CK(L.n == 1);
+            ck_call(0, 0x47b709, (uintptr_t)fx.self, 1, 0, 0x2769, 0, 0, 0, 0, 0);
+            CK(get32(L.c[0].snap_self, 0x2b4) == (uint32_t)(6 + i) && get32(L.c[0].snap_self, 0x27c) == (uint32_t)i);
+            /* a non-zero dword +4 or +8 (only a high byte, or all ones) of the entry rejects the row; the index 2b4 stays at the last tried */
+            for (k = 0; k < 4; k++) {
+                for (which = 0; which < 2; which++) {
+                    setup_47b4aa(3, 2);
+                    row2(i, x, y);
+                    set32(fx.decoy, (size_t)(6 + i) * 12 + (which ? 8 : 4), nz[k]);
+                    expect_begin();
+                    set32(exp_self, 0x27c, 0xffffffffu);
+                    set32(exp_self, 0x2b4, 8);
+                    CK(run_47b4aa(x, y) == 0 && L.n == 0);
+                    expect_end();
+                }
+            }
+            /* ... and the next row takes over when it holds the point and its entry is zero */
+            if (i < 2) {
+                setup_47b4aa(3, 2);
+                row2(i, x, y);
+                row2(i + 1, x, y);
+                set32(fx.decoy, (size_t)(6 + i) * 12 + 4, 7);
+                CK(run_47b4aa(x, y) == 1 && L.n == 1);
+                CK(get32(fx.self, 0x27c) == (uint32_t)(i + 1) && get32(fx.self, 0x2b4) == (uint32_t)(6 + i + 1));
+            }
+            for (e = 0; e < 4; e++) {
+                size_t at = 16 * (size_t)i + (size_t)(e == 0 ? 0x115 : e == 1 ? 0x11d : e == 2 ? 0x111 : 0x119);
+                setup_47b4aa(3, 2);
+                row2(i, x, y);
+                set32(fx.obj, at, get32(fx.obj, at) + (e % 2 == 0 ? 1u : (uint32_t)-1));
+                CK(run_47b4aa(x, y) == 0 && L.n == 0);
+            }
+        }
+        /* counts: the row at the count is not looked at; a negative count (also 0x80000000) runs nothing; [+0x2b4] = s * count + i */
+        setup_47b4aa(2, 2);
+        row2(2, x, y);
+        CK(run_47b4aa(x, y) == 0 && L.n == 0 && get32(fx.self, 0x2b4) == 5);
+        setup_47b4aa(-1, 2);
+        row2(0, x, y);
+        CK(run_47b4aa(x, y) == 0 && L.n == 0 && get32(fx.self, 0x2b4) == 0xA5A5A5A5u);
+        setup_47b4aa((int)0x80000000u, 2);
+        row2(0, x, y);
+        CK(run_47b4aa(x, y) == 0 && L.n == 0);
+        /* the first table wins over the second */
+        setup_47b4aa(3, 0);
+        row1(0, 2, x, y);
+        row2(0, x, y);
+        CK(run_47b4aa(x, y) == 1 && L.n == 1 && get32(fx.self, 0x27c) == 2);
+        ck_call(0, 0x47b709, (uintptr_t)fx.self, 1, 0, 0x2768, 0, 0, 0, 0, 0);
+    }
+    /* the second table's margins wrap: x low 0x7ffffffe + 3 wraps negative, so the point holds; x high 0x80000002 - 3 wraps positive */
+    setup_47b4aa(1, 0);
+    row2(0, 4, 4);
+    set32(fx.obj, 0x111, 0x7ffffffeu);
+    CK(run_47b4aa(4, 4) == 1 && L.n == 1);
+    setup_47b4aa(1, 0);
+    row2(0, 4, 4);
+    set32(fx.obj, 0x119, 0x80000002u);
+    CK(run_47b4aa(4, 4) == 1 && L.n == 1);
+}
+
 /* ---- the table of cases ------------------------------------------------------------------------------------------------------- */
 
 static const struct {
@@ -783,6 +1130,8 @@ static const struct {
     {"test_m4cb3ab_store_flag", test_m4cb3ab},
     {"test_m44eab1_hit_test", test_m44eab1},
     {"test_m46ebff_click_27c2_27c3", test_m46ebff},
+    {"test_m4571e1_hit_test", test_m4571e1},
+    {"test_m47b4aa_hit_test", test_m47b4aa},
 };
 
 int main(void)
