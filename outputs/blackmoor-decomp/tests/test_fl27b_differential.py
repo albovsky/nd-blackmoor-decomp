@@ -169,6 +169,10 @@ class Fl27bDifferential(DiffBase):
         """FL-27b: differential test of m4c04e3_start_movie (original 0x4c04e3)"""
         self.run_key('4c04e3')
 
+    def test_415db9_unpack(self):
+        """FL-27b: differential test of m415db9_unpack (original 0x415db9)"""
+        self.run_key('415db9')
+
     # CASES-END
 
 

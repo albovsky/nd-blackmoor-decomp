@@ -107,6 +107,18 @@ int32_t m4c5377_blit_rows(uint8_t *self, uint32_t surf, uint32_t idx, uint32_t r
  * happens when 0x4bf10f is ZERO (a non-zero result leaves the state alone). Each trace only with the debug word set (read at its place). */
 void m4c04e3_start_movie(uint8_t *self, int16_t rec, const Fl27bWorld *world, const Fl18Host *host);
 
+/* 0x415db9, thiscall that does not use ecx, `ret 8` (stack arguments: `arg`, a record, a host pointer here, and `index`, a word, sign-extended): an LZSS-style unpacker with a 0x1000-byte ring. The
+ * input is the byte string at base + off with base = the dword [arg+0x2d] and off = the dword at [table + index * 0x13 + 2], table = the original address [arg+0x21] (32-bit add); its length is the dword
+ * [arg+0x39] and the output goes to the original address [arg+0x35]. Every input byte is de-obfuscated: decoded = input byte - (the count of input bytes read before it, modulo 256). The ring starts with
+ * 0xfee bytes of 0x20 and the write position 0xfee (the last 0x12 bytes of the ring are not initialised in the original: GAME.EXE leaves stack garbage there; the port zeroes them, and a stream that reads
+ * them before they are written is outside what the oracle compares). Decoding: a flag byte (decoded) gives 8 bits, the lowest first (it is kept as flags = byte | 0xff00 and shifted right by one before
+ * each token; a new flag byte is read when bit 8 is clear): bit set = a literal byte (copied to the output and to ring[w], w = (w + 1) & 0xfff); bit clear = a pair of bytes a, b: position = a | ((b & 0xf0) << 4)
+ * and length (b & 0xf) + 3, each byte read from ring[(position + k) & 0xfff] and written to the output and to ring[w] in turn (so an overlapping copy repeats). Decoding stops when the count of
+ * consumed input bytes reaches the length: the check is on every byte before it is read (an exact compare, as in the original: a length of 0 stops at once). The output length is not stored anywhere.
+ * Returns 0. Native rejection (not in the original, which would read on for ever / past the buffer): returns 1 before anything is read when the length dword is above 0x7fffffff. Caller-validated: the
+ * input buffer holds length bytes and the output buffer the decoded bytes (at most 9 per input byte pair; the original does not bound it either). */
+int32_t m415db9_unpack(uint8_t *arg, int16_t index, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif

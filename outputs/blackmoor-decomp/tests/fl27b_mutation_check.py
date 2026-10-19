@@ -33,7 +33,8 @@ sys.path.insert(0, str(HERE))
 import test_fl27b_direct as direct
 
 SRC = HERE.parent / 'src'
-FUNCS = {'449bff': 'test_449bff_resume_thread', '449a94': 'test_449a94_stop_thread', '4bf773': 'test_4bf773_release_player', '4161d1': 'test_4161d1_alloc_buffers', '4c2c3a': 'test_4c2c3a_make_record', '4c0d3f': 'test_4c0d3f_present_rect'}
+FUNCS = {'449bff': 'test_449bff_resume_thread', '449a94': 'test_449a94_stop_thread', '4bf773': 'test_4bf773_release_player', '4161d1': 'test_4161d1_alloc_buffers', '4c2c3a': 'test_4c2c3a_make_record', '4c0d3f': 'test_4c0d3f_present_rect',
+         '4c5377': 'test_4c5377_blit_rows', '4c04e3': 'test_4c04e3_start_movie', '415db9': 'test_415db9_unpack'}
 
 
 # the differential test of one function against the mutated copy in sys.argv[1], in a child process (exit 0 = passed)

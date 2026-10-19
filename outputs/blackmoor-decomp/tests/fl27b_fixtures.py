@@ -633,6 +633,113 @@ def gen_4c04e3(rng, n):
     return make('4c04e3', areas, stubs, g, stack, (idx,), (kind, *rest), pointers={'records_5bb5e5': ('records', REC)})
 
 
+def lzss_stream(rng, ntok, literal_rate):
+    """A valid obfuscated stream of `ntok` tokens: returns (the encoded bytes, token boundaries as the byte counts after each token's last byte, the offsets of the first byte of each match token).
+    Matches only reference ring bytes that are initialised (the first 0xfee bytes hold 0x20; later ones hold what was decoded)."""
+    ring = [0x20] * 0xfee + [None] * 0x12
+    w = 0xfee
+    raw = []
+    tokens = []
+    for t in range(ntok):
+        literal = rng.random() < literal_rate
+        if not literal:
+            # a match: pick a position whose bytes are known (an overlapping copy reads bytes written during the copy)
+            ok = False
+            for _ in range(40):
+                position = rng.choice([0, 1, 0x10, 0x100, 0x2c0, 0xf00, rng.randrange(0x1000), (w - rng.randrange(1, 20)) & 0xfff, (w - 1) & 0xfff])
+                length = rng.randrange(3, 19)
+                sim = list(ring)
+                sw = w
+                good = True
+                for k in range(length):
+                    v = sim[(position + k) & 0xfff]
+                    if v is None:
+                        good = False
+                        break
+                    sim[sw] = v
+                    sw = (sw + 1) & 0xfff
+                if good:
+                    ok = True
+                    break
+            if ok:
+                for k in range(length):
+                    v = ring[(position + k) & 0xfff]
+                    ring[w] = v
+                    w = (w + 1) & 0xfff
+                tokens.append(('m', position, length))
+                continue
+        v = rng.randrange(256)
+        ring[w] = v
+        w = (w + 1) & 0xfff
+        tokens.append(('l', v))
+    flag_positions, boundaries, matches = [], [], []
+    for g in range(0, len(tokens), 8):
+        group = tokens[g:g + 8]
+        flag = 0
+        for bit, tk in enumerate(group):
+            if tk[0] == 'l':
+                flag |= 1 << bit
+        for bit in range(len(group), 8):
+            flag |= 1 << bit        # unused bits read as literals: the decoder then runs out of input
+        flag_positions.append(len(raw))
+        raw.append(flag)
+        for tk in group:
+            if tk[0] == 'l':
+                raw.append(tk[1])
+            else:
+                matches.append(len(raw))
+                raw.append(tk[1] & 0xff)
+                raw.append(((tk[1] >> 4) & 0xf0) | (tk[2] - 3))
+            boundaries.append(len(raw))
+    return bytes((b + i) & 0xff for i, b in enumerate(raw)), boundaries, matches, flag_positions
+
+
+def profiles_415db9():
+    profiles = [('full', rate) for rate in (0.0, 0.3, 0.6, 0.9, 1.0)]
+    profiles += [('len0',), ('len1',)]
+    profiles += [('cut', which) for which in ('flag', 'literal', 'pair1', 'pair2', 'bound', 'any1', 'any2')]
+    profiles += [('badlen', v) for v in (0, 1)][:0]
+    return profiles
+
+
+def gen_415db9(rng, n):
+    (kind, *rest), variant = prof(n, profiles_415db9())
+    rate = rest[0] if kind == 'full' else rng.choice([0.2, 0.5, 0.8])
+    ntok = rng.choice([1, 3, 8, 9, 17, 40, 120])
+    stream, boundaries, matches, flags = lzss_stream(rng, ntok, rate)
+    total = len(stream)
+    length = total
+    if kind == 'len0':
+        length = 0
+    elif kind == 'len1':
+        length = 1
+    elif kind == 'cut':
+        which = rest[0]
+        choices = {'flag': flags[1:] or [total], 'literal': [m for m in range(1, total) if m not in matches and m not in flags][:50] or [1], 'pair1': matches or [1],
+                   'pair2': [m + 1 for m in matches] or [2], 'bound': boundaries, 'any1': list(range(total + 1)), 'any2': list(range(total + 1))}[which]
+        length = rng.choice(choices)
+    index = rng.choice([-1, 0, 1, 2, 3])
+    table = bytearray(rng.randbytes(5 * 0x13))
+    off = rng.choice([0, 3, 0x10])
+    # record `index` (stride 0x13) holds the offset of the stream at +2; the other records hold other offsets
+    for i in range(-1, 4):
+        put32(table, (i + 1) * 0x13 + 2, off if i == index else off + 0x400)
+    base_off = rng.choice([0, 1, 7])
+    data = bytearray(rng.randbytes(0x1000))
+    data[base_off + off:base_off + off + total] = stream
+    data[base_off + off + 0x400:base_off + off + 0x400 + total] = rng.randbytes(total)
+    out = bytearray(rng.randbytes(0x2000))
+    arg = bytearray(rng.randbytes(0x60))
+    put32(arg, 0x21, od.region_va(2) + 0x13)          # the table pointer (one slack record below index 0)
+    put32(arg, 0x2d, od.region_va(3) + base_off)
+    put32(arg, 0x35, od.region_va(4))
+    put32(arg, 0x39, length)
+    stack = [od.region_va(1), (rng.randrange(1 << 16) << 16) | (index & 0xffff)]
+    areas = [Area('self', od.region_va(0), bytearray(rng.randbytes(0x20)), image=False), Area('arg', od.region_va(1), arg, image=False), Area('table', od.region_va(2), table, image=False),
+             Area('data', od.region_va(3), data, image=False), Area('out', od.region_va(4), out, image=False)]
+    return make('415db9', areas, {}, {}, stack, (od.region_va(1), index), (kind, *rest))
+
+
 SPECS = {
     '449bff': dict(id=1, va=0x449bff, size=253, gen=gen_449bff, cleanup=0, n=len(profiles_449bff()) * 3),
     '449a94': dict(id=2, va=0x449a94, size=273, gen=gen_449a94, cleanup=0, n=len(profiles_449a94()) * 3),
@@ -641,6 +748,7 @@ SPECS = {
     '4c0d3f': dict(id=6, va=0x4c0d3f, size=497, code=483, gen=gen_4c0d3f, cleanup=0, n=len(profiles_4c0d3f()) * 4),
     '4c5377': dict(id=7, va=0x4c5377, size=532, gen=gen_4c5377, cleanup=0x14, n=len(profiles_4c5377()) * 3),
     '4c04e3': dict(id=8, va=0x4c04e3, size=657, gen=gen_4c04e3, cleanup=4, n=len(profiles_4c04e3()) * 3),
+    '415db9': dict(id=9, va=0x415db9, size=722, gen=gen_415db9, cleanup=8, n=len(profiles_415db9()) * 3),
     '4161d1': dict(id=4, va=0x4161d1, size=346, gen=gen_4161d1, cleanup=4, n=len(profiles_4161d1()) * 4),
 }
 KEYS = list(SPECS)

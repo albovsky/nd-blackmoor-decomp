@@ -1631,6 +1631,106 @@ static void test_m4c04e3_start_movie(void)
     }
 }
 
+/* ---- 0x415db9 -------------------------------------------------------------------------------------------------------------------- */
+
+/* The record `arg` is fx.self: [+0x21] the table pointer, [+0x2d] the data base, [+0x35] the output, [+0x39] the length. The table is fx.obj (record stride 0x13, the stream offset at +2), the data fx.px,
+ * the output fx.dt (filled with 0xEE). Streams are written as the raw token bytes and encoded by hand: byte i is stored as raw[i] + i (modulo 256). */
+static void setup_unpack(uint32_t table_va, int32_t rec, uint32_t base_va, uint32_t stream_off, uint32_t length, const uint8_t *enc, size_t enc_len)
+{
+    setup();
+    memset(fx.px, 0x77, sizeof fx.px);
+    memset(fx.dt, 0xEE, sizeof fx.dt);
+    set32(fx.self, 0x21, table_va);
+    set32(fx.self, 0x2d, base_va);
+    set32(fx.self, 0x35, DT_VA);
+    set32(fx.self, 0x39, length);
+    set32(fx.obj, (size_t)((int32_t)(table_va - OBJ_VA) + rec * 0x13 + 2), stream_off);
+    memcpy(fx.px + (base_va - PX_VA) + stream_off, enc, enc_len);
+}
+
+static int dt_is(const uint8_t *want, size_t n)
+{
+    size_t b;
+    for (b = 0; b < n; b++)
+        if (fx.dt[b] != want[b]) return 0;
+    for (; b < sizeof fx.dt; b++)
+        if (fx.dt[b] != 0xEE) return 0;
+    return 1;
+}
+
+static void test_m415db9_unpack(void)
+{
+    /* raw 07 41 42 43 ee f3: flags 0x07 (three literals A B C, then a pair); the pair gives position 0xfee and length 6: the copy overlaps what it writes (ring[0xfee..] holds A B C) and repeats ABC */
+    static const uint8_t enc1[] = {0x07, 0x42, 0x44, 0x46, 0xf2, 0xf8};
+    static const uint8_t out1[] = {'A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C'};
+    /* raw 00 00 02: flag 0, a pair at position 0 of length 5: the ring starts with 0xfee spaces */
+    static const uint8_t enc2[] = {0x00, 0x01, 0x04};
+    static const uint8_t out2[] = {0x20, 0x20, 0x20, 0x20, 0x20};
+    /* raw ff 01..08 01 99: eight literals, a new flag byte (the shift register runs dry after eight tokens), then one more literal */
+    static const uint8_t enc3[] = {0xff, 2, 4, 6, 8, 10, 12, 14, 16, 0x0a, 0xa3};
+    static const uint8_t out3[] = {1, 2, 3, 4, 5, 6, 7, 8, 0x99};
+    uint8_t before[SELF_SZ], before_obj[OBJ_SZ];
+    int32_t r;
+    /* the three streams with the record at index 2 and a data offset of 3 */
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, sizeof enc1, enc1, sizeof enc1);
+    memcpy(before, fx.self, sizeof before);
+    memcpy(before_obj, fx.obj, sizeof before_obj);
+    r = m415db9_unpack(fx.self, 2, &fx.host);
+    CK(r == 0);
+    CK(dt_is(out1, sizeof out1));
+    CK(memcmp(before, fx.self, sizeof before) == 0 && memcmp(before_obj, fx.obj, sizeof before_obj) == 0);
+    CKN(0);
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, sizeof enc2, enc2, sizeof enc2);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out2, sizeof out2));
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, sizeof enc3, enc3, sizeof enc3);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out3, sizeof out3));
+    /* the data base and the record index: index -1 (a word, sign-extended) with the table pointer 0x13 above the object, and a base 0x10 into the data */
+    setup_unpack(OBJ_VA + 0x13, -1, PX_VA + 0x10, 5, sizeof enc1, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, -1, &fx.host) == 0);
+    CK(dt_is(out1, sizeof out1));
+    /* the length is the number of input bytes: a cut inside a pair emits nothing for the pair (length 5 stops while reading the second byte), a cut before a literal emits nothing for it */
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 5, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out1, 3));
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 3, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out1, 2));
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 4, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out1, 3));
+    /* a length of 1 reads the flag byte only, a length of 0 reads nothing */
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 1, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out1, 0));
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 0, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 0);
+    CK(dt_is(out1, 0));
+    /* the counter that is subtracted is the number of bytes read before, modulo 256: a 300 byte run of literals (flag 0xff, 0x00 raw bytes encoded as i) is 300 - 38 literals of value 0 */
+    {
+        uint8_t enc[0x100];
+        size_t b;
+        /* 0x100 bytes of input would not fit with the stream offset; use offset 0 and the 0x100 bytes of fx.px: flag 0xff then literals 0 (stored as i), flag bytes at 9, 18, ... are 0xff - i */
+        for (b = 0; b < sizeof enc; b++) enc[b] = (uint8_t)b;                            /* raw 0 everywhere ... */
+        enc[0] = 0xff;                                                                   /* ... except the first flag byte: raw 0xff */
+        for (b = 9; b < sizeof enc; b += 9) enc[b] = (uint8_t)(0xff + b);                /* the later flag bytes: raw 0xff */
+        setup_unpack(OBJ_VA, 0, PX_VA, 0, 0x100, enc, sizeof enc);
+        CK(m415db9_unpack(fx.self, 0, &fx.host) == 0);
+        /* 0x100 input bytes = 29 groups: 29 flag bytes (at 0, 9, ..., 252 -> 0..28 * 9 = 252) and 0x100 - 29 = 227 literals, all 0 */
+        for (b = 0; b < 227; b++) CK(fx.dt[b] == 0);
+        CK(fx.dt[227] == 0xEE);
+    }
+    /* native rejection: a length above 0x7fffffff returns 1 and writes nothing */
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 0x80000000u, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 1);
+    CK(dt_is(out1, 0));
+    setup_unpack(OBJ_VA, 2, PX_VA, 3, 0xffffffffu, enc1, sizeof enc1);
+    CK(m415db9_unpack(fx.self, 2, &fx.host) == 1);
+    CK(dt_is(out1, 0));
+    CKN(0);
+}
+
 /* ---- sweep (for the sanitiser builds) -------------------------------------------------------------------------------------------- */
 
 static uint32_t g_rng = 12345;
@@ -1724,6 +1824,13 @@ static void test_sweep_bounded(void)
         g_nscript = 0;
         setup_movie((uint32_t)((rnd() & 1) ? 4 : (rnd() & 1) ? 0 : rnd()), rnd() & 1, rnd() & 1, rnd(), (int16_t)(rnd() & 1));
         m4c04e3_start_movie(fx.self, (int16_t)((int)(rnd() % 6) - 1), &fx.w, &fx.host);
+        /* 0x415db9: random streams of at most 23 input bytes (at most 9 output bytes each: the 0x100 byte output holds them) */
+        {
+            uint8_t enc[0x20];
+            for (k = 0; k < (int)sizeof enc; k++) enc[k] = (uint8_t)rnd();
+            setup_unpack(OBJ_VA, 0, PX_VA, 0, rnd() % 24, enc, sizeof enc);
+            (void)m415db9_unpack(fx.self, 0, &fx.host);
+        }
     }
 }
 
@@ -1751,6 +1858,7 @@ int main(void)
     RUN(test_m4c0d3f_present_rect);
     RUN(test_m4c5377_blit_rows);
     RUN(test_m4c04e3_start_movie);
+    RUN(test_m415db9_unpack);
     /* TESTS-END */
     RUN(test_sweep_bounded);
     return failures;

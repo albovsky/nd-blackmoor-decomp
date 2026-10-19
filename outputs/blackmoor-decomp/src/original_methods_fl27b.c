@@ -437,3 +437,62 @@ void m4c04e3_start_movie(uint8_t *self, int16_t rec, const Fl27bWorld *world, co
         }
     }
 }
+
+/* ---- 0x415db9 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x415db9, `ret 8`: see the header. Locals of the original: [ebp-0x1c] the input pointer, [ebp-0x1050] the length, [ebp-0x1054] the output pointer, [ebp-0x14] the ring (0x1000 bytes), [ebp-0x10] the byte
+ * counter, [ebp-0x18] the output index, [ebp-0x24] the input index (starts at 0xffffffff), [ebp-4] the flags, [ebp-8] the ring write position, [ebp-0x28] the byte just read. The frame also holds the stack
+ * probe `call 0x50c920` (`_chkstk` for 0x1058 bytes), which has no effect on the data. */
+int32_t m415db9_unpack(uint8_t *arg, int16_t index, const Fl18Host *host)
+{
+    uint8_t ring[0x1000];
+    const uint8_t *in, *table;
+    uint8_t *out;
+    uint32_t length, flags = 0, idx = 0xffffffffu, w, k, out_i = 0, position, count;
+    uint8_t counter = 0, c, c2;
+    length = rd32(arg, 0x39);
+    if (length > 0x7fffffffu) return 1;      /* native rejection */
+    table = object_at(host, rd32(arg, 0x21));
+    in = object_at(host, rd32(arg, 0x2d) + rd32(table, (ptrdiff_t)((int32_t)index * 0x13 + 2)));
+    out = object_at(host, rd32(arg, 0x35));
+    memset(ring, 0, sizeof ring);
+    memset(ring, 0x20, 0x1000 - 0x12);
+    w = 0x1000 - 0x12;
+    for (;;) {
+        flags >>= 1;
+        if ((flags & 0x100u) == 0) {
+            idx++;
+            if (idx == length) return 0;
+            c = (uint8_t)(in[idx] - counter);
+            counter++;
+            flags = (uint32_t)c | 0xff00u;
+        }
+        if ((flags & 1u) != 0) {
+            idx++;
+            if (idx == length) return 0;
+            c = (uint8_t)(in[idx] - counter);
+            counter++;
+            out[out_i++] = c;
+            ring[w] = c;
+            w = (w + 1u) & 0xfffu;
+        } else {
+            idx++;
+            if (idx == length) return 0;
+            c = (uint8_t)(in[idx] - counter);
+            counter++;
+            position = c;
+            idx++;
+            if (idx == length) return 0;
+            c2 = (uint8_t)(in[idx] - counter);
+            counter++;
+            position |= ((uint32_t)c2 & 0xf0u) << 4;
+            count = ((uint32_t)c2 & 0xfu) + 2u;
+            for (k = 0; k <= count; k++) {
+                c = ring[(position + k) & 0xfffu];
+                out[out_i++] = c;
+                ring[w] = c;
+                w = (w + 1u) & 0xfffu;
+            }
+        }
+    }
+}
