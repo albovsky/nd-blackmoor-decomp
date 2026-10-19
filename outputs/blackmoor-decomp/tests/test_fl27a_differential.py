@@ -153,6 +153,10 @@ class Fl27aDifferential(DiffBase):
         """FL-27a: differential test of m4de2d8_reset_caption (original 0x4de2d8)"""
         self.run_key('4de2d8')
 
+    def test_449d90_file_exists(self):
+        """FL-27a: differential test of m449d90_file_exists (original 0x449d90)"""
+        self.run_key('449d90')
+
     # CASES-END
 
 

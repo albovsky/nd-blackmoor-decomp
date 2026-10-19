@@ -56,6 +56,10 @@ void m4de214_clear_flags_thunk(uint8_t *self, Fl27aWorld *world);
  * writes to the caption objects, the globals 0x5b1602 / 0x5b1606) are the host's: not modelled here (receipt items A-51 #1 and #5). */
 void m4de2d8_reset_caption(uint8_t *self, Fl27aWorld *world, const Fl18Host *host);
 
+/* 0x449d90: cdecl, one argument `path` (an original address, only passed on): file = 0x50d0a9(path, 0x548aac); returns 0 when file is zero,
+ * otherwise calls 0x50cee4(file) and returns 1. Both callees are host calls (their stack is cleaned by the caller in the original). */
+int32_t m449d90_file_exists(uint32_t path, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

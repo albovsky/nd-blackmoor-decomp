@@ -21,6 +21,7 @@ EXPECTED = [
     'test_m4de1f5_clear_flags',
     'test_m4de214_clear_flags_thunk',
     'test_m4de2d8_reset_caption',
+    'test_m449d90_file_exists',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -78,6 +79,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4de2d8_reset_caption(self):
         """FL-27a: direct test of m4de2d8_reset_caption"""
         self.check('test_m4de2d8_reset_caption')
+
+    def test_449d90_file_exists(self):
+        """FL-27a: direct test of m449d90_file_exists"""
+        self.check('test_m449d90_file_exists')
 
     # CASES-END
 

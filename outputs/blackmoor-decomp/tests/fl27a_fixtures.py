@@ -315,6 +315,20 @@ def gen_4de2d8(rng, n):
 
 SPECS['4de2d8'] = dict(id=3, va=0x4de2d8, size=74, gen=gen_4de2d8, cleanup=0, n=32)
 
+def gen_449d90(rng, n):
+    """The open call answers zero (return 0, no close) or a handle (the close gets that very value, return 1)."""
+    answers = [0, 1, 0x100, 0x80000000, 0xffffffff, 0x10000, None]
+    answer = answers[n % len(answers)]
+    if answer is None:
+        answer = rng.randrange(1, 1 << 32)
+    path = od.region_va(1) + rng.choice([0, 1, 0x20])
+    stubs = {0x50d0a9: stub(0x50d0a9, results=[answer]), 0x50cee4: stub(0x50cee4, results=[rng.randrange(1 << 32)])}
+    areas = [Area('path', od.region_va(1), bytearray(rng.randbytes(0x40)), image=False)]
+    return make('449d90', areas, stubs, {}, [path], (path,), (answer,))
+
+
+SPECS['449d90'] = dict(id=4, va=0x449d90, size=55, gen=gen_449d90, ret=0xffffffff, cleanup=0, n=21)
+
 KEYS = list(SPECS)
 
 

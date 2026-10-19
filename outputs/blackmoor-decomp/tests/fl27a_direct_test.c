@@ -272,6 +272,39 @@ static void test_m4de2d8_reset_caption(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x449d90: file = 0x50d0a9(path, 0x548aac); 0 -> return 0 with no further call; else 0x50cee4(file), return 1 */
+
+static void test_m449d90_file_exists(void)
+{
+    static const uint32_t FILES[] = {1, 2, 0x100, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    size_t i;
+    int32_t r;
+    setup();
+    script_ret(0x50d0a9, 0);
+    expect_begin();
+    r = m449d90_file_exists(VA_A + 5, &fx.host);
+    CK(r == 0);
+    CK(L.n == 1);
+    ck_call(0, 0x50d0a9, 0, 2);
+    ck_arg(0, 0, VA_A + 5);                    /* the path is the last pushed: the first argument */
+    ck_arg(0, 1, 0x548aac);
+    expect_end();
+    for (i = 0; i < sizeof FILES / sizeof FILES[0]; i++) {
+        setup();
+        script_ret(0x50d0a9, FILES[i]);
+        script_ret(0x50cee4, 0xdead);              /* the answer of the close is ignored */
+        r = m449d90_file_exists(0x12345678u, &fx.host);
+        CK(r == 1);
+        CK(L.n == 2);
+        ck_call(0, 0x50d0a9, 0, 2);
+        ck_arg(0, 0, 0x12345678u);
+        ck_arg(0, 1, 0x548aac);
+        ck_call(1, 0x50cee4, 0, 1);
+        ck_arg(1, 0, FILES[i]);
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -300,6 +333,7 @@ static void test_sweep(void)
         m4de1f5_clear_flags(fx.self, &fx.w);
         m4de214_clear_flags_thunk(fx.self, &fx.w);
         m4de2d8_reset_caption(fx.self, &fx.w, &fx.host);
+        (void)m449d90_file_exists(VA_A + (rnd() % 64), &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -312,6 +346,7 @@ static const struct {
     {"test_m4de1f5_clear_flags", test_m4de1f5_clear_flags},
     {"test_m4de214_clear_flags_thunk", test_m4de214_clear_flags_thunk},
     {"test_m4de2d8_reset_caption", test_m4de2d8_reset_caption},
+    {"test_m449d90_file_exists", test_m449d90_file_exists},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

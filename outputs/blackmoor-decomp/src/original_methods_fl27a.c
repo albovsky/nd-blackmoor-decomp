@@ -86,4 +86,17 @@ void m4de2d8_reset_caption(uint8_t *self, Fl27aWorld *world, const Fl18Host *hos
     m4de214_clear_flags_thunk(self, world);
 }
 
+/* ---- 0x449d90 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x449d90, cdecl, plain `ret`, one argument (an address of the original: a path string, only passed on): calls 0x50d0a9 (path, 0x548aac)
+ * (fopen: args[0] = the path, the last one pushed, args[1] = the mode string 0x548aac); returns 0 when the result is zero, otherwise
+ * calls 0x50cee4 (that result) (fclose) and returns 1. */
+int32_t m449d90_file_exists(uint32_t path, const Fl18Host *host)
+{
+    uint32_t file = call2(host, 0x50d0a9, 0, path, 0x548aac);
+    if (file == 0) return 0;
+    call1(host, 0x50cee4, 0, file);
+    return 1;
+}
+
 /*NEXT*/
