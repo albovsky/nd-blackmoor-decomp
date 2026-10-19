@@ -57,6 +57,12 @@ HELPER uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr,
     return host->call != NULL ? host->call(host->context, callee, this_ptr, args, 3) : 0;
 }
 
+/* a host call with a prepared argument array (NULL-guarded like the helpers above) */
+HELPER uint32_t callv(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
+{
+    return host->call != NULL ? host->call(host->context, callee, this_ptr, args, nargs) : 0;
+}
+
 HELPER uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3)
 {
     uintptr_t args[4];
@@ -145,7 +151,7 @@ static uint32_t vcall(const Fl18Host *host, uint32_t obj, uint32_t slot, const u
 {
     uint32_t vtable = rd32(mem_at(host, obj), 0);
     uint32_t entry = rd32(mem_at(host, vtable), (ptrdiff_t)slot);
-    return host->call(host->context, entry, 0, args, nargs);
+    return callv(host, entry, 0, args, nargs);
 }
 
 /* 0x4f80d3, thiscall, `ret 8`: see the header. [ebp-4] is `self`. */
@@ -244,7 +250,7 @@ static void release_field(const Fl18Host *host, const uint8_t *rec, ptrdiff_t fi
     uint32_t vtable = rd32(mem_at(host, obj), 0);
     uint32_t entry = rd32(mem_at(host, vtable), 8);
     args[0] = obj;
-    host->call(host->context, entry, 0, args, 1);
+    callv(host, entry, 0, args, 1);
 }
 
 /* 0x4f356e, thiscall, `ret 4`: see the header. [ebp-0x10] is `self`, [ebp-4] the record; [ebp-8] / [ebp-0xc] hold the dword [rec + 0x297]. */
@@ -345,8 +351,11 @@ uint32_t m4fadc4_set_name(uint8_t *self, uint32_t name, uint32_t slot, const Fl2
     }
     {
         const uint8_t *src = mem_at(host, name);
-        size_t n = strlen((const char *)src) + 1u;
-        memcpy(self + rec + 8, src, n);
+        size_t n = strlen((const char *)src) + 1u, i;
+        uint8_t *dst = self + rec + 8;
+        /* rep movsd then rep movsb, forward (defined on overlap: each dword is read, then written; the bytes follow) */
+        for (i = 0; i + 4 <= n; i += 4) wr32(dst, (ptrdiff_t)i, rd32(src, (ptrdiff_t)i));
+        for (; i < n; i++) dst[i] = src[i];
     }
     wr32(self, rec + 0x140, scaled_ftol(self, rec, 0x138));
     second = scaled_ftol(self, rec, 0x13c);
@@ -360,7 +369,7 @@ uint32_t m4fadc4_set_name(uint8_t *self, uint32_t name, uint32_t slot, const Fl2
         args[2] = slot16;
         args[3] = name;
         args[4] = x;
-        host->call(host->context, 0x50ca3e, 0, args, 5);
+        callv(host, 0x50ca3e, 0, args, 5);
         call3(host, 0x52139c, 0, 0x63888b, 0, 0);
         if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x63888b);
         return 0;

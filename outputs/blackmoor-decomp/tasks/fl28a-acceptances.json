@@ -30,7 +30,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4235fd_pop: every instruction of the code bytes of 0x4235fd..423634 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m4235fd_pop: the oracle runs every instruction of 0x4235fd..0x423634 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x4fc808",
@@ -63,7 +63,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4fc808_clear_slot: every instruction of the code bytes of 0x4fc808..4fc878 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m4fc808_clear_slot: the oracle runs every instruction of 0x4fc808..0x4fc878 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x4237f7",
@@ -96,7 +96,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4237f7_new_block: every instruction of the code bytes of 0x4237f7..423876 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m4237f7_new_block: the oracle runs every instruction of 0x4237f7..0x423876 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x4236d6",
@@ -129,7 +129,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4236d6_new_block: every instruction of the code bytes of 0x4236d6..423755 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m4236d6_new_block: the oracle runs every instruction of 0x4236d6..0x423755 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x4f80d3",
@@ -162,7 +162,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4f80d3_play_retry: every instruction of the code bytes of 0x4f80d3..4f8157 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m4f80d3_play_retry: the oracle runs every instruction of 0x4f80d3..0x4f8157 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x42356d",
@@ -195,7 +195,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m42356d_push: every instruction of the code bytes of 0x42356d..4235fd and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m42356d_push: the oracle runs every instruction of 0x42356d..0x4235fd and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x4fb2e3",
@@ -228,11 +228,11 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4fb2e3_start_slot: every instruction of the code bytes of 0x4fb2e3..4fb397 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md.",
+    "note": "1:1 with m4fb2e3_start_slot: the oracle runs every instruction of 0x4fb2e3..0x4fb397 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md.",
     "blockers_reviewed": [
       {
         "id": "RT-14:724f0d1d3a66e4b3",
-        "rationale": "The located item names 0x4fb2e3 among the sound start/stop/query kernels compared with scripted hooks (the native app has no provider). The new oracle runs all 48 instructions of 0x4fb2e3 on the original bytes with recording stubs for 0x4f6059, 0x4fa2a8 and the reporting calls, and the port is compared call for call; the missing provider is the app's concern, not this function's."
+        "rationale": "The located item says the native app has no sound provider, which this function does not execute either. The oracle reaches only what 0x4fb2e3 itself does: the debug traces, the stubbed answers of 0x4f6059 and 0x4fa2a8 (16-bit-distinguishing values included) and the word store at [self+slot*0x5bb+0x132]. The provider stays open and is the weakest part of this review."
       },
       {
         "id": "RT-19:99a66ef4611b84d5",
@@ -271,7 +271,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m423368_hash_name: every instruction of the code bytes of 0x423368..423450 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m423368_hash_name: the oracle runs every instruction of 0x423368..0x423450 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md. One untaken jump edge is allowlisted (see the handoff)."
   },
   {
     "va": "0x423142",
@@ -304,7 +304,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m423142_insert: every instruction of the code bytes of 0x423142..423259 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md.",
+    "note": "1:1 with m423142_insert: the oracle runs every instruction of 0x423142..0x423259 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md.",
     "blockers_reviewed": [
       {
         "id": "A-44.1:73d0f8c08d8126a7",
@@ -343,7 +343,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4fadc4_set_name: every instruction of the code bytes of 0x4fadc4..4faf98 and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md."
+    "note": "1:1 with m4fadc4_set_name: the oracle runs every instruction of 0x4fadc4..0x4faf98 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md."
   },
   {
     "va": "0x4f356e",
@@ -376,7 +376,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "1:1 with m4f356e_unload: every instruction of the code bytes of 0x4f356e..4f379c and both directions of every conditional jump (except an allowlisted one stated in tasks/fl28a-handoff.md) run in the original-only oracle, which compares ordered host calls, arguments and the memory behind the objects; the Unicorn differential and the direct test compare the port. See tasks/fl28a-handoff.md.",
+    "note": "1:1 with m4f356e_unload: the oracle runs every instruction of 0x4f356e..0x4f379c and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md.",
     "blockers_reviewed": [
       {
         "id": "RT-11.1:ca74a07f38ad60bd",

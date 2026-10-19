@@ -102,9 +102,13 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     return result;
 }
 
+static uint32_t ov_va;
+static uint8_t *ov_ptr;       /* one address that resolves to a given host pointer (a string inside the object itself) */
+
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
 {
     (void)ctx;
+    if (ov_ptr != NULL && a == ov_va) return ov_ptr;
     if (a >= 0x20 && a < sizeof fx.low) return fx.low + a;      /* address 0 itself stays unmapped */
     if (a >= VA_A && a < VA_A + A_SZ) return fx.a + (a - VA_A);
     if (a >= VA_B && a < VA_B + A_SZ) return fx.b + (a - VA_B);
@@ -649,6 +653,15 @@ static void test_m4fadc4_set_name(void)
     CK(call_is(1, 0x44a2b7, 0, 1, 0x63888b, 0, 0, 0));
     CK(L.c[2].callee == 0x4f379c && L.c[3].callee == 0x4fa2a8 && L.c[4].callee == 0x50ca3e && L.c[5].callee == 0x52139c);
     CK(call_is(6, 0x44a2b7, 0, 1, 0x63888b, 0, 0, 0));
+    /* the name lies inside the record, two bytes before the destination (self + 8): rep movsd reads each dword before it writes it, so the second dword
+     * sees the bytes the first one wrote: "ABCDEFG" at 6..13 gives A B C D C D G 0 at 8..15 (a byte-wise or memmove copy gives A B A B A B A B ...) */
+    setup_4fadc4(0);
+    memcpy(big + 6, "ABCDEFG", 8);
+    ov_va = 0x30000000u;
+    ov_ptr = big + 6;
+    r = m4fadc4_set_name(big, 0x30000000u, 0, &fx.w, &fx.host);
+    ov_ptr = NULL;
+    CK(r == 1 && memcmp(big + 8, "ABCDCDG", 8) == 0);
     /* the debug word with the success path: only the first trace */
     setup_4fadc4(1);
     r = m4fadc4_set_name(big, VA_A, 0, &fx.w, &fx.host);

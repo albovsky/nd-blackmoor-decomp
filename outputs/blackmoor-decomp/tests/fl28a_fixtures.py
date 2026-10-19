@@ -393,7 +393,7 @@ VT_ENTRY_30, VT_ENTRY_50 = od.STUB_BASE + 0x900, od.STUB_BASE + 0xa00
 
 
 def gen_4f80d3(rng, n):
-    firsts = (0, 1, LOST, LOST + 1, LOST - 1, 0xffffffff, 0x188780096 & 0xffffffff, 0x80000000, 0x8878)
+    firsts = (0, 1, 0x96, 0x12340096, LOST, LOST + 1, LOST - 1, 0xffffffff, 0x188780096 & 0xffffffff, 0x80000000, 0x8878)
     seconds = (0, 5, LOST, 0xffffffff)
     profiles = [(f, s) for f in firsts for s in seconds]
     (first, second), variant = prof(n, profiles)
@@ -428,7 +428,7 @@ def gen_42356d(rng, n):
 # 0x4fb2e3 ---------------------------------------------------------------------------------------------------------------------------
 
 def gen_4fb2e3(rng, n):
-    profiles = [(dbg, r, k) for dbg in (0, 1, 0x8000, 0x100, 0xffff) for r in (0, 1, 0x100, 0xffffffff) for k in range(4)]
+    profiles = [(dbg, r, k) for dbg in (0, 1, 0x8000, 0x100, 0xffff) for r in (0, 1, 0x100, 0xffffffff, 0x10000, 0x80000000) for k in range(4)]
     (dbg, r, k), variant = prof(n, profiles)
     d = junk(rng, 0x1400)
     probe = [('self', 0, 0x1400)]
@@ -516,8 +516,8 @@ def gen_4f356e(rng, n):
     selfd = junk(rng, 0x400)
     put32(selfd, 0x3ce, base)
     put32(selfd, 0x3d6, rng.choice([0, 1, 2, 0x80000000, 0xffffffff]))
-    r709 = 0 if early else rng.choice([1, 0x100, 0xffffffff])
-    r6334 = rng.choice([0, 1, 0xffffffff, 0x100])
+    r709 = 0 if early else rng.choice([1, 0x100, 0xffffffff, 0x10000, 0x80000000])
+    r6334 = rng.choice([0, 1, 0xffffffff, 0x100, 0x10000, 0x80000000])
     probe = [('self', 0, 0x400), ('rec', 0, 0x1400)]
     w61e7 = [(0, -1, rec_va + 0x28f, 4, 0)] if rng.random() < 0.3 else []
     wrel = [(0, -1, rec_va + 0x28f, 4, 0)] if rng.random() < 0.2 else []
@@ -610,9 +610,9 @@ SPECS = {
     '4fc808': dict(id=2, va=0x4fc808, size=112, gen=gen_4fc808, cleanup=4, n=40),
     '4237f7': dict(id=3, va=0x4237f7, size=127, gen=gen_4237f7, cleanup=0, ret=0xffffffff, n=34),
     '4236d6': dict(id=4, va=0x4236d6, size=127, gen=gen_4236d6, cleanup=0, ret=0xffffffff, n=34),
-    '4f80d3': dict(id=5, va=0x4f80d3, size=132, gen=gen_4f80d3, cleanup=8, ret=0xffffffff, n=72),
+    '4f80d3': dict(id=5, va=0x4f80d3, size=132, gen=gen_4f80d3, cleanup=8, ret=0xffffffff, n=88),
     '42356d': dict(id=6, va=0x42356d, size=144, gen=gen_42356d, cleanup=8, n=60),
-    '4fb2e3': dict(id=7, va=0x4fb2e3, size=180, gen=gen_4fb2e3, cleanup=4, n=160),
+    '4fb2e3': dict(id=7, va=0x4fb2e3, size=180, gen=gen_4fb2e3, cleanup=4, n=240),
     '4f356e': dict(id=9, va=0x4f356e, size=558, gen=gen_4f356e, cleanup=4, ret=0xffffffff, n=8 + 512 * 2),
     '4fadc4': dict(id=10, va=0x4fadc4, size=468, gen=gen_4fadc4, cleanup=8, ret=0xffffffff, fpcw=0x27f, n=len(profiles_4fadc4()) * 12),
     '423142': dict(id=11, va=0x423142, size=279, gen=gen_423142, cleanup=8, ret=0xffffffff, n=len(profiles_423142()) * 3),
