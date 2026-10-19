@@ -1,0 +1,35 @@
+[
+ {
+  "va": "0x4a8818",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-25c implementer; independent slice-reviewer pass not done",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl25c.c",
+   "symbol": "m4a8818_click_2798_279a"
+  },
+  "tests": [
+   {
+    "path": "tests/fl25c_direct_test.c",
+    "test_id": "test_m4a8818_click_2798_279a"
+   },
+   {
+    "path": "tests/test_fl25c_direct.py",
+    "test_id": "Fl25cDirect.test_4a8818_click_2798_279a"
+   },
+   {
+    "path": "tests/test_fl25c_differential.py",
+    "test_id": "Fl25cDifferential.test_4a8818_click_2798_279a"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl25c_original_oracle.py",
+   "window": [
+    "0x4a8818",
+    "0x4a8bf2"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4a8818_click_2798_279a (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 1000 fixtures, every code instruction reached (236/236), both directions of every conditional jump. See tasks/fl25c-handoff.md."
+ }
+]
