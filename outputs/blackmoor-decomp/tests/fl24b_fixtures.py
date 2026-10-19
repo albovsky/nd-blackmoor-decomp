@@ -125,6 +125,8 @@ SPECS.update({
                    post=lambda c: post_4ad310(c), scen=640, probes=[(0, 0xc30)]),
     '4acf45': dict(id=9, va=0x4acf45, size=672, selfsz=0xe60, ret='eax', callee_pops=True, scen=640),
     '4aa0f0': dict(id=10, va=0x4aa0f0, size=738, selfsz=0x60, ret='eax', callee_pops=True, scen=640),
+    '487ed5': dict(id=11, va=0x487ed5, size=756, selfsz=0x100, idx=0x1e, gates=[('nz32', 0x71), ('eq32', 0x6c, 1)], sels=[0x2789, 0x2788],
+                   callees=[0x4fb2e3], tick=True, post=lambda c: post_487ed5(c), scen=600, probes=[(0, 0x100)]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
@@ -156,6 +158,8 @@ def _set_gate(d, gate, fail, rng):
         struct.pack_into('<H', d, off, rng.choice([v ^ 1, v + 0x100, v ^ 0x8000, (v + 7) & 0xffff]) if fail else v)
     elif kind == 'wz':
         struct.pack_into('<H', d, off, rng.choice([1, 0x8000, 0xffff, 0x100]) if fail else 0)
+    elif kind == 'eq32':
+        struct.pack_into('<I', d, off, rng.choice([0, 2, 0x101, 0x10001, 0xffffffff, 0x80000001, 0x100]) if fail else gate[2])
     elif kind == 'ne32':
         struct.pack_into('<I', d, off, gate[2] if fail else rng.choice([0, 5, 0x10a, 0xb, 0xffffffff, 0x1000a, 0x8000000a]))
 
@@ -543,6 +547,32 @@ def build_4aa0f0(sp, rng, n):
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '4aa0f0', rng, areas=areas, g=g, pointers={'records_5bb5e5': ('records', 0x8d), 'bytes_630a60': ('c630a60', 0)},
                        stack_args=[junk(x), junk(y)], profile=('x', prof))
+
+
+def post_487ed5(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    arm = v % 8
+    obj[0x23] = 0 if arm in (0, 1) else rng.choice([1, 0x80, 0xff])
+    obj[0x24] = rng.randrange(256)
+    t447 = rng.choice([0, 1, -1, 0x7fff, -0x8000, rng.randrange(-300, 300)])
+    struct.pack_into('<h', obj, 0x447, t447)
+    equal = arm in (2, 5)
+    g = t447 if equal else (t447 ^ rng.choice([1, 0x100, 0x8000])) if rng.random() < 0.5 else (t447 + 1)
+    if not equal and (g & 0xffff) == (t447 & 0xffff):
+        g = t447 + 1
+    c.g['value_583a29'] = g & 0xffff
+    slot = {0: 0, 1: rng.choice([1, 2, 3, 0x100, 0x10000, 0xffffffff]), 2: 0, 3: 0, 4: 2, 5: 1, 6: 1, 7: rng.choice([3, 0x100, 0x10000, 0xffffffff, 0x10002, 0x10001])}[arm]
+    k = rng.choice([0, 1, 2, 3, 4, 9, -1])
+    struct.pack_into('<h', d, 0x66, k)
+    struct.pack_into('<I', d, 0x25 + 4 * k, slot)
+    d[0x65] = rng.choice([0, 0, 0, 1, 0x80, 0xff]) if (v // 8) % 3 != 2 else rng.choice([1, 0x80])
+    struct.pack_into('<H', d, 0x6a, rng.choice([0, 1, 0xffff, 0x7fff, rng.randrange(0x10000)]))
+    struct.pack_into('<H', d, 0x68, rng.randrange(0x10000))
+    n425 = rng.choice([-3, 0, 1, 2, 3, 6, 20, 40, 1])
+    struct.pack_into('<h', obj, 0x425, n425)
+    c.g['value_5bb1ca'] = 0 if (v // 3) % 2 == 0 else rng.choice([1, 0x100, 0xffffffff])
+    nine_const(c, 0x54de04, 0x4ab, obj, True)
+    nine_const(c, 0x54de10, 0x4dc, obj, True, rng)
 
 
 # BUILDERS-END

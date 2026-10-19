@@ -34,6 +34,7 @@ typedef struct Fl24bWorld {
     int16_t value_583a29;      /* 0x459e49: compared with the word 0x217 of the record object */
     const uint8_t *bytes_54a7c4, *bytes_54a7d0;   /* 0x459e49 */
     const uint8_t *bytes_630a60;   /* 0x4aa0f0: a byte per entry, indexed by the signed word counter */
+    const uint8_t *bytes_54de04, *bytes_54de10;   /* 0x487ed5 */
     /* FL24B-WORLD-END */
 } Fl24bWorld;
 
@@ -62,6 +63,8 @@ void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
 int32_t m4acf45_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *block, Fl24bWorld *world, const Fl18Host *host);
 /* 0x4aa0f0 (ret 8): hit test of the point (x, y) against the outer rectangle and the entries of 0x15c bytes of the record's object */
 int32_t m4aa0f0_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world, const Fl18Host *host);
+/* 0x487ed5: events 0x2789 and 0x2788 (a four-state slot per entry at +0x25, a queue of words at +0x7a; reads the tick) */
+void m487ed5_click_2788_2789(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

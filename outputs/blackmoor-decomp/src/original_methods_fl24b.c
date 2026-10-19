@@ -605,4 +605,64 @@ int32_t m4aa0f0_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world,
     return 0;
 }
 
+/* ---- 0x487ed5 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x487ed5, thiscall, plain `ret`: guards dword [+0x71] != 0, dword [+0x6c] == 1 and the record state of the word [+0x1e]. Event 0x2789 sets
+ * the byte [+0x75] and the record state 2 and ends. Event 0x2788 steps the slot dword s at [+ k * 4 + 0x25] (k = the signed word [+0x66],
+ * not bounds-checked) by the byte ro[+0x23] of the record object and the equality m of the signed word 0x583a29 with the signed word
+ * ro[+0x447]: ro[+0x23] == 0: s == 0 -> byte [+0x65] = 1, word [+0x6a] += 1, s = 1; ro[+0x23] != 0: s == 0 and m -> s = 2 and `matched`;
+ * s == 0 -> byte [+0x65] = 1, word [+0x6a] += 1, s = 1; s == 2 -> the same with s = 3; s == 1 and m -> s = 3 and `matched`. Then, when the
+ * byte [+0x65] is non-zero (set here or before): word [+0x68] = word [+0x66], the queue words [+0x7a + 2j] = [+0x7c + 2j] for
+ * j < ro[+0x425] - 1, word [+0x78 + 2 * ro[+0x425]] = k + 1, and with the flag 0x5bb1ca the nine bytes at ro+0x4ab against 0x54de04
+ * announce the word ro[+0x4cc] through 0x4fb2e3 (this 0x5c3a67) when they differ; else when `matched`, the same with ro+0x4dc, 0x54de10 and
+ * the word ro[+0x4fd]. Finally [+0x76] = GetTickCount + 0x1f4 and [+0x6c] = 0. */
+void m487ed5_click_2788_2789(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
+{
+    uint32_t matched = 0;
+    int32_t j;
+    const uint8_t *ro;
+    uint32_t ro_addr = record_object_address(world, self, 0x1e);
+    if (rd32(self, 0x71) == 0) return;
+    if (rd32(self, 0x6c) != 1) return;
+    if (!record_state_is_1(world, self, 0x1e)) return;
+    if (world->value_5c39e5 == 0x2789) {
+        self[0x75] = 1;
+        set_record_state_2(world, self, 0x1e);
+        return;
+    }
+    if (world->value_5c39e5 != 0x2788) return;
+    ro = object_at(host, ro_addr);
+    if (ro[0x23] == 0) {
+        if (rd32(self, rds16(self, 0x66) * 4 + 0x25) == 0) {
+            self[0x65] = 1;
+            wr16(self, 0x6a, (uint16_t)(rd16(self, 0x6a) + 1));
+            wr32(self, rds16(self, 0x66) * 4 + 0x25, 1);
+        }
+    } else if (rd32(self, rds16(self, 0x66) * 4 + 0x25) == 0 && (int32_t)(int16_t)world->value_583a29 == rds16(ro, 0x447)) {
+        matched = 1;
+        wr32(self, rds16(self, 0x66) * 4 + 0x25, 2);
+    } else if (rd32(self, rds16(self, 0x66) * 4 + 0x25) == 0) {
+        self[0x65] = 1;
+        wr16(self, 0x6a, (uint16_t)(rd16(self, 0x6a) + 1));
+        wr32(self, rds16(self, 0x66) * 4 + 0x25, 1);
+    } else if (rd32(self, rds16(self, 0x66) * 4 + 0x25) == 2) {
+        self[0x65] = 1;
+        wr16(self, 0x6a, (uint16_t)(rd16(self, 0x6a) + 1));
+        wr32(self, rds16(self, 0x66) * 4 + 0x25, 3);
+    } else if (rd32(self, rds16(self, 0x66) * 4 + 0x25) == 1 && (int32_t)(int16_t)world->value_583a29 == rds16(ro, 0x447)) {
+        wr32(self, rds16(self, 0x66) * 4 + 0x25, 3);
+        matched = 1;
+    }
+    if (self[0x65] != 0) {
+        wr16(self, 0x68, rd16(self, 0x66));
+        for (j = 0; j < rds16(ro, 0x425) - 1; j++) wr16(self, (ptrdiff_t)j * 2 + 0x7a, rd16(self, (ptrdiff_t)j * 2 + 0x7c));
+        wr16(self, (ptrdiff_t)rds16(ro, 0x425) * 2 + 0x78, (uint16_t)(rds16(self, 0x66) + 1));
+        if (world->value_5bb1ca != 0 && !nine_bytes_equal(ro + 0x4ab, world->bytes_54de04)) call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x4cc));
+    } else if (matched != 0) {
+        if (world->value_5bb1ca != 0 && !nine_bytes_equal(ro + 0x4dc, world->bytes_54de10)) call1(host, 0x4fb2e3, 0x5c3a67, rd16(ro, 0x4fd));
+    }
+    wr32(self, 0x76, host->tick(host->context) + 0x1f4);
+    wr32(self, 0x6c, 0);
+}
+
 /* FL24B-END */

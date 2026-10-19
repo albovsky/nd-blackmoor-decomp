@@ -1545,6 +1545,155 @@ static int test_m4aa0f0_hit_test(void)
     return g_failed;
 }
 
+/* 0x487ed5: guards dword [+0x71] != 0, dword [+0x6c] == 1 (exactly), record state (word [+0x1e]); events 0x2789 / 0x2788; the slot of the word
+ * [+0x66] = 3 is the dword at [+0x31]; the queue words at [+0x7a ...]; the tick is read last. */
+static void setup_487ed5(uint32_t sel, int idx)
+{
+    base(sel, idx, 0x1e);
+    set32(fx.self, 0x71, 0x01000000u);
+    set32(fx.self, 0x6c, 1);
+    set16(fx.self, 0x66, 3);
+    fx.self[0x65] = 0;
+    set16(fx.self, 0x6a, 0xffff);
+    set16(fx.self, 0x7a, 0x1111);
+    set16(fx.self, 0x7c, 0x2222);
+    set16(fx.self, 0x7e, 0x3333);
+    set16(fx.self, 0x80, 0x4444);
+    fx.w.value_5bb1ca = 0;
+    fx.w.value_583a29 = 0x1234;
+    fx.w.bytes_54de04 = consts[0];
+    fx.w.bytes_54de10 = consts[1];
+    memcpy(consts[0], "ABCDEFGHI", 9);
+    memcpy(consts[1], "JKLMNOPQR", 9);
+    memcpy(fx.obj + 0x4ab, "ABCDEFGHI", 9);
+    memcpy(fx.obj + 0x4dc, "JKLMNOPQR", 9);
+    set16(fx.obj, 0x4cc, 0x1234);
+    set16(fx.obj, 0x4fd, 0x5678);
+    set16(fx.obj, 0x425, 3);
+    set16(fx.obj, 0x447, 0x1234);
+    fx.obj[0x23] = 0;
+    g_tick = 0xfffffe10u;
+}
+
+static int test_m487ed5_click_2788_2789(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const uint32_t sels[] = {0x2788, 0x2789, 0x2711};
+    int ii, k, v, s, arm, b65, flag, d, eq;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (s = 0; s < 3; s++)
+            for (k = 0; k < 4; k++)
+                for (v = 0; v < 6; v++) {
+                    setup_487ed5(sels[s], idx);
+                    if (k == 0) set32(fx.self, 0x71, 0);
+                    if (k == 1) set32(fx.self, 0x6c, (uint32_t[]){0, 2, 0x100, 0x10001, 0xffffffffu, 0x80000001u}[v]);
+                    if (k == 3) {
+                        int i;
+                        for (i = -1; i <= 4; i++)
+                            set32(fx.tab, (size_t)(i + 1) * REC + 0x4d, i == idx ? (uint32_t[]){0, 2, 3, 0xffffffffu, 0x101, 0x10001}[v] : 1u);
+                    }
+                    if (k == 2) {
+                        set32(fx.self, 0x71, 0x00000100u);      /* the dword is tested, not its low byte: this passes */
+                        set32(fx.self, 0x6c, 1);
+                        fx.self[0x65] = 1;
+                    }
+                    fx.w.value_5bb1ca = 1;
+                    begin();
+                    if (k == 2 && s == 0) {
+                        /* all guards pass: handled below */
+                        continue;
+                    }
+                    if (k == 2 && s == 1) {
+                        X8(0x75, 1);
+                        set32(xt, (size_t)(idx + 1) * REC + 0x4d, 2);
+                    }
+                    m487ed5_click_2788_2789(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    CK(L.n == 0);
+                }
+        /* the arms of 0x2788 */
+        for (arm = 0; arm < 8; arm++)
+            for (b65 = 0; b65 < 2; b65++)
+                for (flag = 0; flag < 2; flag++)
+                    for (d = -1; d < 3; d++) {
+                        static const uint32_t slots[8] = {0, 2, 0, 0, 2, 1, 1, 3};
+                        int ro23 = !(arm == 0 || arm == 1);
+                        uint32_t slot = slots[arm], nslot = slot;
+                        int set65 = 0, matched = 0;
+                        size_t dpos = d < 0 ? 0 : d == 0 ? 0 : d == 1 ? 4 : 8;
+                        eq = arm == 2 || arm == 5;
+                        setup_487ed5(0x2788, idx);
+                        fx.obj[0x23] = ro23 ? 0x80 : 0;
+                        fx.w.value_583a29 = eq ? 0x1234 : (int16_t)0x9234;
+                        set32(fx.self, 0x31, slot);
+                        fx.self[0x65] = (uint8_t)b65;
+                        fx.w.value_5bb1ca = flag ? 0x100u : 0;
+                        if (d >= 0) {
+                            fx.obj[0x4ab + dpos] ^= 0x40;
+                            fx.obj[0x4dc + dpos] ^= 0x40;
+                        }
+                        if (arm == 0 || arm == 3) { nslot = 1; set65 = 1; }
+                        if (arm == 2) { nslot = 2; matched = 1; }
+                        if (arm == 4) { nslot = 3; set65 = 1; }
+                        if (arm == 5) { nslot = 3; matched = 1; }
+                        if (arm == 1) { fx.self[0x31] = 0x02; }
+                        begin();
+                        X32(0x31, nslot);
+                        if (set65) { X8(0x65, 1); X16(0x6a, 0); }
+                        if (set65 || b65) {
+                            X16(0x68, 3);
+                            X16(0x7a, 0x2222);
+                            X16(0x7c, 0x3333);
+                            X16(0x7e, 4);
+                        }
+                        X32(0x76, 4);
+                        X32(0x6c, 0);
+                        m487ed5_click_2788_2789(fx.self, &fx.w, &fx.host);
+                        check_mem();
+                        {
+                            int announce = flag && d >= 0 && (set65 || b65 || matched);
+                            CK(L.n == (announce ? 2 : 1));
+                            if (announce) {
+                                check_call(0, 0x4fb2e3, 0x5c3a67, 1);
+                                check_arg(0, 0, (set65 || b65) ? 0x1234 : 0x5678, 0xffff);
+                                CK(L.c[1].callee == 0x52a23c);
+                            } else {
+                                CK(L.c[0].callee == 0x52a23c);
+                            }
+                        }
+                    }
+        /* the queue with the count word 0, 1 (no copy), -3 (the store lands at +0x72) and 40; the store precedes the tick store */
+        for (v = 0; v < 4; v++) {
+            int16_t n = (int16_t[]){0, 1, -3, 40}[v];
+            int j;
+            setup_487ed5(0x2788, idx);
+            fx.self[0x65] = 1;
+            set16(fx.obj, 0x425, (uint16_t)n);
+            begin();
+            X16(0x68, 3);
+            for (j = 0; j < n - 1; j++) memcpy(xs + 0x7a + 2 * j, fx.self + 0x7c + 2 * j, 2);
+            set16(xs, (size_t)(0x78 + 2 * n), 4);
+            X32(0x76, 4);
+            X32(0x6c, 0);
+            if (n == 40) {
+                /* the copy of 39 words moves the whole run down by one word: words 0x7c.. of the original */
+                for (j = 0; j < 39; j++) set16(xs, (size_t)(0x7a + 2 * j), (uint16_t)((fx.self[0x7c + 2 * j]) | (fx.self[0x7d + 2 * j] << 8)));
+                set16(xs, (size_t)(0x78 + 80), 4);
+            }
+            m487ed5_click_2788_2789(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == 1);
+        }
+    }
+    (void)eq;
+    if (g_failed) printf("FAIL test_m487ed5_click_2788_2789: %s\n", g_msg);
+    else printf("PASS test_m487ed5_click_2788_2789\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -1560,6 +1709,7 @@ int main(void)
     failures += test_m4ad310_click_2774_2776();
     failures += test_m4acf45_hit_test();
     failures += test_m4aa0f0_hit_test();
+    failures += test_m487ed5_click_2788_2789();
     /* FL24B-MAIN-END */
     return failures;
 }

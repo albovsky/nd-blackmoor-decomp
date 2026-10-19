@@ -28,6 +28,7 @@ EXPECTED = [
     'test_m4ad310_click_2774_2776',
     'test_m4acf45_hit_test',
     'test_m4aa0f0_hit_test',
+    'test_m487ed5_click_2788_2789',
     # EXPECTED-END
 ]
 
