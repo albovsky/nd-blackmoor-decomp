@@ -511,6 +511,58 @@ class Fl22aDifferential(DiffBase):
         if not scripted:
             self.finish(0x461d82, size, executed)
 
+    # ---- 0x45d2c6 ----
+    def test_45d2c6_render(self):
+        """FL-22a: differential test of m45d2c6_render (original 0x45d2c6)"""
+        self.run_45d2c6(0x45d2c6, False)
+
+    def test_45d2c6_boundaries(self):
+        """FL-22a: differential test of m45d2c6_render with the loop limits and the selector words on their boundaries"""
+        self.run_45d2c6(0x45d2c7, True)
+
+    def run_45d2c6(self, seed, boundary):
+        rng = random.Random(seed)
+        executed = set()
+        size = 0x45db6a - 0x45d2c6   # (the bytes after the ret are padding)
+        for n in range(SCENARIOS):
+            index = rng.choice([-1, 0, 1, 2, 3])
+            records, rslack = self.records_area(rng, nrec=5, slack=1)
+            struct.pack_into('<I', records.data, rslack + index * 0x8d, od.region_va(1))
+            rec = bytearray(rng.randbytes(0x700))
+            struct.pack_into('<h', rec, 0x23, rng.choice([0, 1, 2, 3, 4, 5, 6, -1, 7] if not boundary else [0, 1, 2, 3, 4, 5]))
+            t5d = Area('t5d1599', 0x5d1599 - 0x4a, bytearray(rng.randbytes(0x4a * 5)), compare=False)
+            small = [0, 1, 2, 3, 4, -1]
+            word_choice = [0, 1, 2, 3, -1, 0x100]
+            dword_choice = [0, 0, 1, 0xffffffff, 0x10000, 0x100, 0x1000000]
+            g = {'word_624752': index, 'word_624750': rng.choice([-1, 0, 1, 2, 3]), 'value_5cf665': rng.randrange(1 << 32), 'value_5d15e3': rng.randrange(1 << 32),
+                 'word_6247ec': rng.choice(small), 'word_6247ea': rng.choice(small), 'word_6247ee': rng.choice(word_choice),
+                 'value_624892': rng.choice(dword_choice), 'value_62475c': rng.choice(dword_choice), 'value_624896': rng.choice(dword_choice),
+                 'value_624758': rng.choice([6, 6, 9, 9, 0, 5, 7, 0xffffffff, 0x100, 0x100000006 & 0xffffffff]), 'value_624766': rng.choice(dword_choice),
+                 'word_624760': rng.choice([-2, -1, 0, 1, 2, 3]), 'word_624890': rng.choice([0, 1, 2, -1, 0x100]),
+                 'value_624818': rng.choice(dword_choice), 'value_624848': rng.choice(dword_choice)}
+            for name in ('value_624840', 'value_624844', 'value_62484c', 'value_624810', 'value_624814', 'value_62481c'):
+                g[name] = rng.randrange(1 << 32)
+            if boundary:   # the selectors sit on the values that the compares test
+                g['word_6247ee'] = rng.choice([0, 1, 2, 1, 2, 0, 3])
+                g['value_624758'] = rng.choice([6, 9, 6, 9, 5])
+                g['word_624890'] = rng.choice([0, 1, 1, 0, 2])
+                g['value_624896'] = rng.choice([0, 0, 1])
+                g['word_6247ec'] = rng.choice([0, 1, 2, 3])
+                g['word_6247ea'] = rng.choice([0, 1, 2, 3])
+            # (the table at 0x5d1599 holds the global 0x5d15e3 at its entry 1: the area bytes are the global's)
+            struct.pack_into('<I', t5d.data, 0x5d15e3 - t5d.va, g['value_5d15e3'])
+            # B fills the rectangle (arg 1) with four dwords at each call
+            writes_b = [[(1, 4 * k, 4, rng.randrange(1 << 32)) for k in range(4)] for _ in range(60)]
+            probes = [('g:value_624848', 0, 4), ('g:value_62475c', 0, 4), ('g:value_624818', 0, 4), ('g:value_624840', 0, 4), ('g:value_624810', 0, 4)]
+            stubs = {0x45b568: stub(0x45b568, args=2, this=True, cleanup=8, writes=writes_b),
+                     0x4c5377: stub(0x4c5377, args=5, this=True, cleanup=0x14, derefs=[(3, 16)], probe=probes),
+                     0x4c5d4b: stub(0x4c5d4b, args=5, this=True, cleanup=0x14, derefs=[(3, 16)], probe=probes)}
+            self.pair(3, 0x45d2c6, size, [records, Area('rec', od.region_va(1), rec, image=False, compare=False), t5d], stubs, g,
+                      ecx=0, stack=[], cleanup=0, args=(), executed=executed,
+                      pointers={'records_5bb5e5': ('records', rslack), 'table_5d1599': ('t5d1599', 0x4a)})
+        if not boundary:
+            self.finish(0x45d2c6, size, executed)
+
     # ---- 0x4778df ----
     def test_4778df_render(self):
         """FL-22a: differential test of m4778df_render (original 0x4778df)"""

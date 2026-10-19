@@ -1220,6 +1220,217 @@ static void test_m4778df_render(void)
     }
 }
 
+/* ---- 0x45d2c6 (shares the expectation helpers of the 0x4778df test above) ---- */
+
+#define S_F R_5CF665
+#define S_G R_5D15E3
+
+static void s_prepare(Fl22aWorld *w, int index)
+{
+    int k;
+    reset_log();
+    add_region(R_VA, r_rec, sizeof r_rec);
+    r_nx = 0;
+    memset(r_rec, 0, sizeof r_rec);
+    memset(r_records, 0x11, sizeof r_records);
+    memset(r_t5d, 0, sizeof r_t5d);
+    memset(w, 0, sizeof *w);
+    w->records_5bb5e5 = r_records + 0x8d;
+    w->table_5d1599 = r_t5d + 0x4a;
+    set32(r_records + 0x8d + (ptrdiff_t)index * 0x8d, 0, R_VA);
+    w->word_624752 = (int16_t)index;
+    for (k = -1; k <= 3; k++) set32(r_t5d + 0x4a + k * 0x4a, 0, 0xf0000000u + (uint32_t)(k + 1));
+    w->word_624750 = 2;
+    w->value_5cf665 = S_F;
+    w->value_5d15e3 = S_G;
+    w->value_624758 = 5;   /* neither 6 nor 9 */
+}
+
+static void s_run(Fl22aWorld *w)
+{
+    Fl18Host h = host();
+    m45d2c6_render(w, &h);
+}
+
+#define S_T(n) (0xf0000000u + (uint32_t)((n) + 1))
+
+static void xb(uint32_t src)
+{
+    xcall(0x45b568, 0x624734, 2, src, HOSTPTR, 0, 0, 0);
+    r_x[r_nx - 1].a[1] = HOSTPTR;
+}
+
+static void xc(uint32_t a0, uint32_t a2, uint32_t fmt)
+{
+    xcall(0x4c5377, 0x5cf659, 5, a0, S_F, a2, HOSTPTR, fmt);
+}
+
+static void s_probe(const Fl22aWorld *w)
+{
+    L.probe_ptr[0] = (const uint8_t *)&w->value_624848;
+    L.probe_len[0] = 4;
+    L.probe_ptr[1] = (const uint8_t *)&w->value_62475c;
+    L.probe_len[1] = 4;
+    L.probe_ptr[2] = (const uint8_t *)&w->value_624818;
+    L.probe_len[2] = 4;
+    L.probe_ptr[3] = (const uint8_t *)&w->value_624840;
+    L.probe_len[3] = 4;
+    L.probe_ptr[4] = (const uint8_t *)&w->value_624810;
+    L.probe_len[4] = 4;
+    L.nprobe = 5;
+}
+
+/* the calls of the disassembly for the parameters (rec23, 0x6247ec, 0x6247ea; the sixteen calls of the two fixed loops are included) */
+static void s_expect_loops(int n, int rec23, int w6ec, int w6ea)
+{
+    const uint32_t T = S_T(n);
+    int i;
+    for (i = 0; i < 4; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x2d); xc(T, 0x62476au + (uint32_t)(i * 16), 0x54ac14); }
+    for (i = 0; i < 4; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x6d); xc(T, 0x6247aau + (uint32_t)(i * 16), 0x54ac28); }
+    for (i = 0; i < rec23 - w6ec - 1; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x19d); xc(T, R_VA + 0x42d, 0x54ac3c); }
+    for (i = 0; i < w6ea; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x1fd); xc(T, R_VA + 0x45d, 0x54ac54); }
+    for (i = 0; i < rec23 - w6ea - 1; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x25d); xc(T, R_VA + 0x43d, 0x54ac68); }
+    for (i = 0; i < w6ec; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x2bd); xc(T, R_VA + 0x44d, 0x54ac80); }
+    for (i = 0; i < w6ea; i++) { xb(R_VA + (uint32_t)(i * 16) + 0x1fd); xc(T, R_VA + 0x45d, 0x54ac98); }
+}
+
+static void test_m45d2c6_render(void)
+{
+    Fl22aWorld w;
+    int mask, i;
+    size_t n;
+    /* ---- the loop limits: i < 4 twice, i < rec23 - 0x6247ec - 1, i < 0x6247ea, i < rec23 - 0x6247ea - 1, i < 0x6247ec, i < 0x6247ea ---- */
+    {
+        static const struct { int16_t rec23, w6ec, w6ea; } lim[] = {
+            {0, 0, 0}, {5, 1, 2}, {6, 0, 0}, {3, 3, 0}, {2, 0, 3}, {1, 4, 4}, {-1, 0, 0}, {2, 1, 0}, {3, 1, 1}, {4, 2, 1}, {1, 0, 0}, {2, 0, 0}, {-32768, 5, 5}, {5, -3, -2},
+        };
+        for (n = 0; n < sizeof lim / sizeof lim[0]; n++) {
+            s_prepare(&w, 1);
+            set16(r_rec, 0x23, (uint16_t)lim[n].rec23);
+            w.word_6247ec = lim[n].w6ec;
+            w.word_6247ea = lim[n].w6ea;
+            w.word_6247ee = 0;   /* (the blocks after the loops are tested below; here the standard w = 0 calls follow) */
+            s_run(&w);
+            s_expect_loops(2, lim[n].rec23, lim[n].w6ec, lim[n].w6ea);
+            xb(R_VA + 0x34d); xc(S_T(2), R_VA + 0x49d, 0x54accc);
+            xb(R_VA + 0x35d); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, R_VA + 0x35d, HOSTPTR, 0x54ace0);
+            xb(R_VA + 0x32d); xc(S_T(2), R_VA + 0x4bd, 0x54ad2c);
+            xb(0x6247f0); xc(S_T(2), 0x624820, 0x54adac);
+            xb(0x624800); xc(S_T(2), 0x624830, 0x54adc8);
+            CK(r_match() && L.ticks == 0);
+        }
+    }
+    /* ---- the table dword is read at 0x5d1599 + n * 0x4a for the signed word n = 0x624750 ---- */
+    {
+        static const int16_t ns[] = {-1, 0, 1, 2, 3};
+        for (n = 0; n < sizeof ns / sizeof ns[0]; n++) {
+            s_prepare(&w, 3);
+            w.word_624750 = ns[n];
+            w.word_6247ee = 2;
+            s_run(&w);
+            s_expect_loops(ns[n], 0, 0, 0);
+            xb(R_VA + 0x32d); xc(S_T(ns[n]), R_VA + 0x4bd, 0x54ad2c);
+            xb(0x6247f0); xc(S_T(ns[n]), 0x624820, 0x54adac);
+            xb(0x624800); xc(S_T(ns[n]), 0x624830, 0x54adc8);
+            CK(r_match());
+        }
+    }
+    /* ---- the rectangle that B fills is the one that C gets: B stores four dwords per call (the first four calls are scripted) ---- */
+    s_prepare(&w, 2);
+    for (i = 0; i < 4; i++) {
+        queue_write(0x45b568, i, 1, 0, 4, 0x100u * (uint32_t)(i + 1) + 1);
+        queue_write(0x45b568, i, 1, 4, 4, 0x100u * (uint32_t)(i + 1) + 2);
+        queue_write(0x45b568, i, 1, 8, 4, 0x100u * (uint32_t)(i + 1) + 3);
+        queue_write(0x45b568, i, 1, 12, 4, 0x100u * (uint32_t)(i + 1) + 4);
+    }
+    s_run(&w);
+    s_expect_loops(2, 0, 0, 0);
+    for (i = 0; i < 4; i++) {
+        /* the first 4 draw calls, in the order B0 C0 B1 C1 ...: the rectangle of draw call k holds the four dwords of B call k */
+        const int c = 2 * i + 1;
+        uint32_t want[4];
+        want[0] = 0x100u * (uint32_t)(i + 1) + 1;
+        want[1] = 0x100u * (uint32_t)(i + 1) + 2;
+        want[2] = 0x100u * (uint32_t)(i + 1) + 3;
+        want[3] = 0x100u * (uint32_t)(i + 1) + 4;
+        CK(L.c[c].callee == 0x4c5377 && memcmp(L.c[c].pd[3], want, 16) == 0);
+    }
+    /* ---- every conditional block: the combinations of the selectors ---- */
+    for (mask = 0; mask < 2304; mask++) {
+        static const uint32_t q_values[3] = {6, 9, 5};
+        const int w6ee = mask & 3, d892 = (mask >> 2) & 1, d5c = (mask >> 3) & 1, d766 = (mask >> 4) & 1, d896 = (mask >> 5) & 1, qi = (mask >> 6) % 3, w890i = (mask / 192) % 3,
+                  d818 = (mask / 576) & 1, d848 = (mask / 1152) & 1;
+        const uint32_t q = q_values[qi];
+        const int16_t w890 = (int16_t)w890i;
+        const uint32_t T = S_T(2), R = R_VA;
+        int s_index;
+        s_prepare(&w, 1);
+        w.word_6247ee = (int16_t)w6ee;
+        w.value_624892 = d892 ? 0x10000u : 0;
+        w.value_62475c = d5c ? 0x100u : 0;
+        w.value_624766 = d766 ? 0x1000000u : 0;
+        w.value_624896 = d896 ? 0x100u : 0;
+        w.value_624758 = q;
+        w.word_624890 = w890;
+        w.value_624818 = d818 ? 0x10000u : 0;
+        w.value_624848 = d848 ? 0x100u : 0;
+        w.word_624760 = (int16_t)(mask % 5 - 2);   /* -2 .. 2 */
+        s_index = w.word_624760;
+        w.value_624810 = 0x11;
+        w.value_624814 = 0x22;
+        w.value_62481c = 0x33;
+        w.value_624840 = 0x44;
+        w.value_624844 = 0x55;
+        w.value_62484c = 0x66;
+        s_probe(&w);
+        s_run(&w);
+        s_expect_loops(2, 0, 0, 0);
+        if (d848) { xb(0x624840); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, 0x624840, HOSTPTR, 0x54acac); }
+        if (w6ee == 0 || (w6ee == 1 && d892)) {
+            xb(R + 0x34d); xc(T, R + 0x49d, 0x54accc);
+            xb(R + 0x35d); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, R + 0x35d, HOSTPTR, 0x54ace0);
+        } else if (d892) {
+            xb(R + 0x35d); xc(T, R + 0x4ad, 0x54acfc);
+            xb(R + 0x34d); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, R + 0x34d, HOSTPTR, 0x54ad10);
+        }
+        if (w6ee == 0 || w6ee == 2) {
+            xb(R + 0x32d); xc(T, R + 0x4bd, 0x54ad2c);
+        } else {
+            xb(R + 0x32d); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, R + 0x32d, HOSTPTR, 0x54ad48);
+        }
+        if (d5c) {
+            xb(R + (uint32_t)(s_index * 16) + 0x31d);
+            if (d766) {
+                xcall(0x4c5d4b, 0x5cf659, 5, T, S_F, R + (uint32_t)(s_index * 16) + 0x46d, HOSTPTR, 0x54ad5c);
+            } else {
+                xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, R + (uint32_t)(s_index * 16) + 0x31d, HOSTPTR, 0x54ad88);
+            }
+        }
+        if (!d896) {
+            if (q != 6 || w890 == 0) { xb(0x6247f0); xc(T, 0x624820, 0x54adac); }
+            if (q != 6 || w890 == 1) { xb(0x624800); xc(T, 0x624830, 0x54adc8); }
+        }
+        if (d818) { xb(0x624810); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, 0x624810, HOSTPTR, 0x54ade8); }
+        if (q == 9) {
+            xb(0x624850); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, 0x624850, HOSTPTR, 0x54ae08);
+            xb(0x624860); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, 0x624860, HOSTPTR, 0x54ae34);
+            xb(0x624870); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, 0x624870, HOSTPTR, 0x54ae64);
+            xb(0x624880); xcall(0x4c5377, 0x5cf659, 5, S_G, S_F, 0x624880, HOSTPTR, 0x54ae88);
+        }
+        CK(r_match());
+        /* the dwords that the function clears are cleared after the call that uses them (the call-time probes see the old values) */
+        CK(w.value_624840 == (d848 ? 0u : 0x44u) && w.value_624844 == (d848 ? 0u : 0x55u) && w.value_62484c == (d848 ? 0u : 0x66u) && w.value_624848 == 0);
+        CK(w.value_624818 == 0 && w.value_624810 == (d818 ? 0u : 0x11u) && w.value_624814 == (d818 ? 0u : 0x22u) && w.value_62481c == (d818 ? 0u : 0x33u));
+        CK(w.value_62475c == (uint32_t)((d5c && !d766) ? 0 : (d5c ? 0x100 : 0)));
+        for (i = 0; i < r_nx; i++) {
+            if (r_x[i].callee != 0x4c5377 && r_x[i].callee != 0x4c5d4b) continue;
+            if (r_x[i].a[4] == 0x54acac) CK(get32(L.c[i].probe, 0) == 0x100 && get32(L.c[i].probe, 12) == 0x44);
+            if (r_x[i].a[4] == 0x54ad88) CK(get32(L.c[i].probe, 4) == 0x100);
+            if (r_x[i].a[4] == 0x54ade8) CK(get32(L.c[i].probe, 8) == 0x10000 && get32(L.c[i].probe, 16) == 0x11);
+        }
+    }
+}
+
 /* TESTS-HERE */
 
 int main(void)
@@ -1228,6 +1439,7 @@ int main(void)
     RUN(test_m463392_step_scene);
     RUN(test_m461d82_move_step);
     RUN(test_m4778df_render);
+    RUN(test_m45d2c6_render);
     /* RUN-END */
     return failures;
 }

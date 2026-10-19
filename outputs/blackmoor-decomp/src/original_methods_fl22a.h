@@ -44,6 +44,11 @@ typedef struct Fl22aWorld {
     int32_t origin_x_583186, origin_y_58318a;                                        /* 0x4778df: read */
     uint8_t byte_6237a2, byte_6237a3, byte_6237a4, byte_6237a5, byte_62383a, byte_62383b;   /* 0x4778df: read; 0x6237a3, 0x6237a4, 0x6237a5 and 0x62383b are cleared */
     uint8_t byte_6237f8, byte_63a88c, byte_63a890, byte_623819, byte_63a894;         /* 0x4778df: read (the bytes that the record bytes and each other are compared with) */
+    int16_t word_624752, word_624750;                                                /* 0x45d2c6: read (the record index, the index of the table at 0x5d1599) */
+    int16_t word_6247ec, word_6247ea, word_6247ee, word_624760, word_624890;         /* 0x45d2c6: read */
+    uint32_t value_624892, value_62475c, value_624896, value_624758, value_624766;   /* 0x45d2c6: read; 0x62475c is cleared */
+    uint32_t value_624840, value_624844, value_624848, value_62484c;                 /* 0x45d2c6: 0x624848 is read, all four are cleared */
+    uint32_t value_624810, value_624814, value_624818, value_62481c;                 /* 0x45d2c6: 0x624818 is read, all four are cleared */
     uint32_t value_5bb1ca, value_583999;                                    /* 0x463392: written */
     uint32_t value_5bb57b, value_5bb59b, value_5bb59f, value_5bb5a3;       /* 0x463392: written */
     uint16_t word_5bb599, word_5bb595, word_5c39ff;                         /* 0x463392: written */
@@ -58,6 +63,10 @@ int32_t m461d82_move_step(uint8_t *self, Fl22aWorld *world, const Fl18Host *host
  * locals of the port (the rectangle is four dwords left, top, right, bottom; the buffer is 0x24 bytes, zeroed at entry where the original's stack is
  * uninitialised). Nothing is bounds-checked: the loop limits are the signed words [rec+0x42] and [rec+0x44]. */
 void m4778df_render(Fl22aWorld *world, const Fl18Host *host);
+/* 0x45d2c6: no stack argument, plain `ret`, no result (cdecl). Every callee is a host call: B = 0x45b568 (thiscall on 0x624734, two arguments: a source address and
+ * the address of a 16-byte rectangle that B fills), C = 0x4c5377 and D = 0x4c5d4b (thiscall on 0x5cf659, five arguments, the fourth is the rectangle). The rectangle
+ * is a zeroed local of the port (the original's is uninitialised stack until B fills it). Nothing is bounds-checked. */
+void m45d2c6_render(Fl22aWorld *world, const Fl18Host *host);
 void m463392_step_scene(uint8_t *self, int16_t index, Fl22aWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus

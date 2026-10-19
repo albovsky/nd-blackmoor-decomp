@@ -498,3 +498,145 @@ void m4778df_render(Fl22aWorld *world, const Fl18Host *host)
         }
     }
 }
+
+/* B = 0x45b568 (thiscall on 0x624734; two arguments: args[0] = source address, args[1] = the rectangle that it fills) */
+static void call_b(const Fl18Host *host, uint32_t src, uint32_t *rect)
+{
+    call2(host, 0x45b568, 0x624734, src, (uintptr_t)rect);
+}
+
+/* C = 0x4c5377 (thiscall on 0x5cf659; args[0] = a dword of the caller, args[1] = [0x5cf665], args[2] = an address, args[3] = the rectangle, args[4] = a constant) */
+static void call_c(const Fl18Host *host, const Fl22aWorld *world, uint32_t a0, uint32_t a2, uint32_t *rect, uint32_t constant)
+{
+    call5(host, 0x4c5377, 0x5cf659, a0, world->value_5cf665, a2, (uintptr_t)rect, constant);
+}
+
+/* the dword at 0x5d1599 + n * 0x4a, n = the signed word 0x624750 (re-read at every use, as the original does) */
+static uint32_t dword_5d1599_n(const Fl22aWorld *world)
+{
+    return rd32(world->table_5d1599, (ptrdiff_t)world->word_624750 * 0x4a);
+}
+
+/* original GAME.EXE 0x45d2c6 (FUN_0045d2c6; cdecl, no stack argument, plain ret, no result): draws the overlay of the record that the signed word 0x624752 names
+ * (rec = the dword [record+0], the original address of the record's object; [rec+0x23] is read through Fl18Host.resolve, everything else of the record only as an
+ * address rec + offset). Everything is a host call: B = 0x45b568 fills the local rectangle from a source address, C = 0x4c5377 draws with it (D = 0x4c5d4b in one place).
+ * With T = the dword at 0x5d1599 + n * 0x4a (n = the signed word 0x624750), G = [0x5d15e3], F = [0x5cf665] and R = rec (original address), in order:
+ *  1. i = 0 .. 3 (a word counter): B(R + (i << 4) + 0x2d); C(T, F, 0x62476a + (i << 4), 0x54ac14).
+ *  2. i = 0 .. 3: B(R + (i << 4) + 0x6d); C(T, F, 0x6247aa + (i << 4), 0x54ac28).
+ *  3. i = 0 .. (signed word [rec+0x23]) - (signed word 0x6247ec) - 2: B(R + (i << 4) + 0x19d); C(T, F, R + 0x42d, 0x54ac3c).
+ *  4. i = 0 .. (signed word 0x6247ea) - 1: B(R + (i << 4) + 0x1fd); C(T, F, R + 0x45d, 0x54ac54).
+ *  5. i = 0 .. [rec+0x23] - 0x6247ea - 2: B(R + (i << 4) + 0x25d); C(T, F, R + 0x43d, 0x54ac68).
+ *  6. i = 0 .. (signed word 0x6247ec) - 1: B(R + (i << 4) + 0x2bd); C(T, F, R + 0x44d, 0x54ac80).
+ *  7. i = 0 .. (signed word 0x6247ea) - 1: B(R + (i << 4) + 0x1fd); C(T, F, R + 0x45d, 0x54ac98).
+ *  8. When the dword 0x624848 is not 0: B(0x624840); C(G, F, 0x624840, 0x54acac); the dwords 0x624840, 0x624844, 0x624848, 0x62484c := 0.
+ *  9. w = the signed word 0x6247ee: when w is 0, or w is 1 and the dword 0x624892 is not 0: B(R + 0x34d); C(T, F, R + 0x49d, 0x54accc); B(R + 0x35d); C(G, F, R + 0x35d, 0x54ace0);
+ *     otherwise, when the dword 0x624892 is not 0: B(R + 0x35d); C(T, F, R + 0x4ad, 0x54acfc); B(R + 0x34d); C(G, F, R + 0x34d, 0x54ad10).
+ * 10. w again (read again): when w is 0 or 2: B(R + 0x32d); C(T, F, R + 0x4bd, 0x54ad2c); otherwise B(R + 0x32d); C(G, F, R + 0x32d, 0x54ad48).
+ * 11. When the dword 0x62475c is not 0: s = the signed word 0x624760; B(R + (s << 4) + 0x31d); when the dword 0x624766 is not 0: D(T, F, R + (s << 4) + 0x46d, 0x54ad5c);
+ *     otherwise C(G, F, R + (s << 4) + 0x31d, 0x54ad88) and the dword 0x62475c := 0.
+ * 12. When the dword 0x624896 is 0: with q = the dword 0x624758 and v = the signed word 0x624890: when q is not 6 or v is 0: B(0x6247f0); C(T, F, 0x624820, 0x54adac);
+ *     then when q is not 6 or v is 1: B(0x624800); C(T, F, 0x624830, 0x54adc8).
+ * 13. When the dword 0x624818 is not 0: B(0x624810); C(G, F, 0x624810, 0x54ade8); the dwords 0x624810, 0x624814, 0x624818, 0x62481c := 0.
+ * 14. When q is 9: for (0x624850, 0x54ae08), (0x624860, 0x54ae34), (0x624870, 0x54ae64), (0x624880, 0x54ae88): B(address); C(G, F, address, constant). */
+void m45d2c6_render(Fl22aWorld *world, const Fl18Host *host)
+{
+    uint32_t rec_va = rd32(record_of(world->records_5bb5e5, world->word_624752), 0);
+    const uint8_t *rec = object_at(host, rec_va);
+    uint32_t rect[4];
+    int16_t i;
+    memset(rect, 0, sizeof rect);
+    for (i = 0; i < 4; i = (int16_t)(i + 1)) {
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x2du, rect);
+        call_c(host, world, dword_5d1599_n(world), 0x62476au + (uint32_t)(i * 16), rect, 0x54ac14);
+    }
+    for (i = 0; i < 4; i = (int16_t)(i + 1)) {
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x6du, rect);
+        call_c(host, world, dword_5d1599_n(world), 0x6247aau + (uint32_t)(i * 16), rect, 0x54ac28);
+    }
+    for (i = 0; i < rds16(rec, 0x23) - world->word_6247ec - 1; i = (int16_t)(i + 1)) {
+        if (i == INT16_MAX) return;   /* the limit is beyond a word: the original never leaves this loop (rejected) */
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x19du, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x42du, rect, 0x54ac3c);
+    }
+    for (i = 0; i < world->word_6247ea; i = (int16_t)(i + 1)) {
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x1fdu, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x45du, rect, 0x54ac54);
+    }
+    for (i = 0; i < rds16(rec, 0x23) - world->word_6247ea - 1; i = (int16_t)(i + 1)) {
+        if (i == INT16_MAX) return;   /* the limit is beyond a word: the original never leaves this loop (rejected) */
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x25du, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x43du, rect, 0x54ac68);
+    }
+    for (i = 0; i < world->word_6247ec; i = (int16_t)(i + 1)) {
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x2bdu, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x44du, rect, 0x54ac80);
+    }
+    for (i = 0; i < world->word_6247ea; i = (int16_t)(i + 1)) {
+        call_b(host, rec_va + (uint32_t)(i * 16) + 0x1fdu, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x45du, rect, 0x54ac98);
+    }
+    if (world->value_624848 != 0) {
+        call_b(host, 0x624840, rect);
+        call_c(host, world, world->value_5d15e3, 0x624840, rect, 0x54acac);
+        world->value_624840 = 0;
+        world->value_624844 = 0;
+        world->value_624848 = 0;
+        world->value_62484c = 0;
+    }
+    if (world->word_6247ee == 0 || (world->word_6247ee == 1 && world->value_624892 != 0)) {
+        call_b(host, rec_va + 0x34du, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x49du, rect, 0x54accc);
+        call_b(host, rec_va + 0x35du, rect);
+        call_c(host, world, world->value_5d15e3, rec_va + 0x35du, rect, 0x54ace0);
+    } else if (world->value_624892 != 0) {
+        call_b(host, rec_va + 0x35du, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x4adu, rect, 0x54acfc);
+        call_b(host, rec_va + 0x34du, rect);
+        call_c(host, world, world->value_5d15e3, rec_va + 0x34du, rect, 0x54ad10);
+    }
+    if (world->word_6247ee == 0 || world->word_6247ee == 2) {
+        call_b(host, rec_va + 0x32du, rect);
+        call_c(host, world, dword_5d1599_n(world), rec_va + 0x4bdu, rect, 0x54ad2c);
+    } else {
+        call_b(host, rec_va + 0x32du, rect);
+        call_c(host, world, world->value_5d15e3, rec_va + 0x32du, rect, 0x54ad48);
+    }
+    if (world->value_62475c != 0) {
+        int16_t s = world->word_624760;
+        call_b(host, rec_va + (uint32_t)(s * 16) + 0x31du, rect);
+        if (world->value_624766 != 0) {
+            call5(host, 0x4c5d4b, 0x5cf659, dword_5d1599_n(world), world->value_5cf665, rec_va + (uint32_t)(s * 16) + 0x46du, (uintptr_t)rect, 0x54ad5c);
+        } else {
+            call_c(host, world, world->value_5d15e3, rec_va + (uint32_t)(s * 16) + 0x31du, rect, 0x54ad88);
+            world->value_62475c = 0;
+        }
+    }
+    if (world->value_624896 == 0) {
+        if (world->value_624758 != 6 || world->word_624890 == 0) {
+            call_b(host, 0x6247f0, rect);
+            call_c(host, world, dword_5d1599_n(world), 0x624820, rect, 0x54adac);
+        }
+        if (world->value_624758 != 6 || world->word_624890 == 1) {
+            call_b(host, 0x624800, rect);
+            call_c(host, world, dword_5d1599_n(world), 0x624830, rect, 0x54adc8);
+        }
+    }
+    if (world->value_624818 != 0) {
+        call_b(host, 0x624810, rect);
+        call_c(host, world, world->value_5d15e3, 0x624810, rect, 0x54ade8);
+        world->value_624810 = 0;
+        world->value_624814 = 0;
+        world->value_624818 = 0;
+        world->value_62481c = 0;
+    }
+    if (world->value_624758 == 9) {
+        call_b(host, 0x624850, rect);
+        call_c(host, world, world->value_5d15e3, 0x624850, rect, 0x54ae08);
+        call_b(host, 0x624860, rect);
+        call_c(host, world, world->value_5d15e3, 0x624860, rect, 0x54ae34);
+        call_b(host, 0x624870, rect);
+        call_c(host, world, world->value_5d15e3, 0x624870, rect, 0x54ae64);
+        call_b(host, 0x624880, rect);
+        call_c(host, world, world->value_5d15e3, 0x624880, rect, 0x54ae88);
+    }
+}

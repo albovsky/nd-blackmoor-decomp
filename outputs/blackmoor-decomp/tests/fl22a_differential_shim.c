@@ -205,6 +205,7 @@ void shim_fl22a(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     case F22A_463392: m463392_step_scene(self, (int16_t)a, w, &host); break;
     case F22A_461D82: *result = m461d82_move_step(self, w, &host); break;
     case F22A_4778DF: m4778df_render(w, &host); break;
+    case F22A_45D2C6: m45d2c6_render(w, &host); break;
     default: break;
     }
 }

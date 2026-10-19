@@ -18,6 +18,7 @@ EXPECTED = [
     'test_m463392_step_scene',
     'test_m461d82_move_step',
     'test_m4778df_render',
+    'test_m45d2c6_render',
     # EXPECTED-END
 ]
 
@@ -74,6 +75,10 @@ class Fl22aDirect(unittest.TestCase):
     def test_render_4778df(self):
         """FL-22a: direct test of m4778df_render (original 0x4778df)"""
         self.check('test_m4778df_render')
+
+    def test_render_45d2c6(self):
+        """FL-22a: direct test of m45d2c6_render (original 0x45d2c6)"""
+        self.check('test_m45d2c6_render')
 
     # TESTS-END
 
