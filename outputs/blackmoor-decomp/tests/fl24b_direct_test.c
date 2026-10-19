@@ -48,7 +48,7 @@ static uint32_t get32(const uint8_t *o, size_t off)
 static struct {
     uint8_t self[BIG];
     uint8_t tab[TAB_SZ];
-    uint8_t obj[0x1000], decoy[0x1000], obj2[0x1000], mask[0x100];
+    uint8_t obj[0x1000], decoy[0x1000], obj2[0x1000], mask[0x20100];
     Fl24bWorld w;
     Fl18Host host;
 } fx;
@@ -91,7 +91,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     if (a >= OBJ_VA && a < OBJ_VA + 0x1000) return fx.obj + (a - OBJ_VA);
     if (a >= DECOY_VA && a < DECOY_VA + 0x1000) return fx.decoy + (a - DECOY_VA);
     if (a >= OBJ2_VA && a < OBJ2_VA + 0x1000) return fx.obj2 + (a - OBJ2_VA);
-    if (a >= MASK_VA && a < MASK_VA + 0x100) return fx.mask + (a - MASK_VA);
+    if (a >= MASK_VA && a < MASK_VA + sizeof fx.mask) return fx.mask + (a - MASK_VA);
     return NULL;
 }
 
@@ -1387,6 +1387,33 @@ static int test_m4acf45_hit_test(void)
             CK(r == 0 && L.n == 0);
         }
     }
+    /* a negative stride: the word 0xffff at q+0x20 is -1 (signed), the mask pointer is MASK_VA + 0x80; entry 0 at dx 2, dy 1 reads the byte at
+     * 0x80 - 1 + 2 = 0x81, not the one 65535 rows on (a mask larger than 0x100 bytes); v 0: byte 0x81 set (a hit), v 1: only the byte at
+     * 0x10081 set (no hit); stride -3 with dy 1 (v 2, 3) reads 0x80 - 3 + 2 = 0x7f */
+    for (v = 0; v < 4; v++) {
+        size_t q = (size_t)0x6e + 0x27;
+        setup_4acf45(1);
+        entry_4acf45(0, 5, 4, 8, 6, 0, (v < 2) ? 0xffff : 0xfffd);
+        set32(fx.self, q + 0x1c, MASK_VA + 0x80);
+        if (v == 0) fx.mask[0x81] = 1;
+        if (v == 1) fx.mask[0x10081] = 1;
+        if (v == 2) fx.mask[0x7f] = 0x80;
+        if (v == 3) { fx.mask[0x10081] = 1; fx.mask[0x81] = 1; fx.mask[0x80] = 1; }
+        begin();
+        expect_block_4acf45();
+        memset(xs + 0xe39, 0, 30);
+        X16(0xe57, 0);
+        if (v != 1 && v != 3) { X16(0xe39, 0); X16(0xe57, 1); }
+        r = run_4acf45(7, 5);
+        check_mem();
+        if (v != 1 && v != 3) {
+            CK(r == 1 && L.n == 1);
+            check_call(0, 0x4ad1e5, (uintptr_t)fx.self, 1);
+            check_arg(0, 0, 0x2774, 0xffffffffu);
+        } else {
+            CK(r == 0 && L.n == 0);
+        }
+    }
     /* signed words: x = -32768, y = -1 against signed bounds */
     setup_4acf45(0);
     set32(fx.obj, 0x32a, 0xffff8000u);
@@ -1616,16 +1643,17 @@ static int test_m487ed5_click_2788_2789(void)
                     CK(L.n == 0);
                 }
         /* the arms of 0x2788 */
-        for (arm = 0; arm < 8; arm++)
+        for (arm = 0; arm < 9; arm++)
             for (b65 = 0; b65 < 2; b65++)
                 for (flag = 0; flag < 2; flag++)
                     for (d = -1; d < 3; d++) {
-                        static const uint32_t slots[8] = {0, 2, 0, 0, 2, 1, 1, 3};
+                        /* (arm 7: the dword 0x10001 is not 1 although its low word is: the equal word does not match it; arm 8: the dword 3) */
+                        static const uint32_t slots[9] = {0, 2, 0, 0, 2, 1, 1, 0x10001, 3};
                         int ro23 = !(arm == 0 || arm == 1);
                         uint32_t slot = slots[arm], nslot = slot;
                         int set65 = 0, matched = 0;
                         size_t dpos = d < 0 ? 0 : d == 0 ? 0 : d == 1 ? 4 : 8;
-                        eq = arm == 2 || arm == 5;
+                        eq = arm == 2 || arm == 5 || arm == 7;
                         setup_487ed5(0x2788, idx);
                         fx.obj[0x23] = ro23 ? 0x80 : 0;
                         fx.w.value_583a29 = eq ? 0x1234 : (int16_t)0x9234;

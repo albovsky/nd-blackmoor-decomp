@@ -6,7 +6,8 @@ Every case compares all the memory the function can write (the object, the recor
 globals), how many bytes the function popped, and the ordered calls out: callee, ecx, stack arguments (pointers into a fixture are compared
 as the original addresses they stand for; 'word' arguments, which the original pushes from a 16-bit register, by their low 16 bits), the
 state of the object and of the record table at each call, and GetTickCount as an ordered event. The callees are recording stubs; the
-function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function.
+function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function
+and both directions of every conditional jump of it (fl24b_fixtures.UNTAKEN_EDGES lists the two directions that no state can take).
 """
 import ctypes
 from pathlib import Path
@@ -63,7 +64,7 @@ class Fl24bDifferential(DiffBase):
             out.append(entry)
         return out
 
-    def pair(self, sc, executed):
+    def pair(self, sc, executed, edges):
         """Runs the original and the native function on scenario `sc` and compares."""
         orig, expected, _ = fx.run_original(sc)
         self.lib.shim_reset()
@@ -91,7 +92,7 @@ class Fl24bDifferential(DiffBase):
         if sc.tick is not None:
             self.lib.shim_set_tick(sc.tick)
         result = ctypes.c_int32(0)
-        self_ptr = ptr(by_name['self'])
+        self_ptr = ctypes.cast(ctypes.byref(by_name['self'], sc.self_pad), ctypes.c_void_p).value
         sa = [*sc.stack_args, 0, 0, 0, 0][:4]
         for position, name in getattr(sc, 'ptr_args', {}).items():
             sa[position] = ctypes.cast(ctypes.byref(by_name[name]), ctypes.c_void_p).value
@@ -110,15 +111,22 @@ class Fl24bDifferential(DiffBase):
                 entry[2 + index] &= 0xffff
         self.assertEqual(actual, expected, '%s scenario profile %s' % (sc.key, sc.profile))
         executed |= orig.executed
+        edges |= orig.edges
 
     def run_key(self, key):
         rng = random.Random(int(key, 16))
-        executed = set()
+        executed, edges = set(), set()
         va, size = fx.SPECS[key]['va'], fx.SPECS[key].get('code', fx.SPECS[key]['size'])
         for n in range(fx.scenarios(key)):
-            self.pair(fx.build(key, rng, n), executed)
+            self.pair(fx.build(key, rng, n), executed, edges)
         missing = sorted(od.instruction_addresses(va, size) - executed)
         self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
+        # both directions of every conditional jump of the original (the Unicorn code hook records the next instruction after each jcc),
+        # except the directions in fx.UNTAKEN_EDGES (each with its reason); an allowlisted direction that the scenarios do take is stale
+        untaken = fx.untaken_edges(va, size, edges)
+        allowed = sorted((a, d) for (a, d) in fx.UNTAKEN_EDGES if va <= a < va + size)
+        self.assertEqual(untaken, allowed, 'untaken jump directions (address, direction) %s, allowed %s' % (
+            [(hex(a), d) for a, d in untaken], [(hex(a), d) for a, d in allowed]))
 
 
     def test_4dad60_init_swap_buttons(self):
