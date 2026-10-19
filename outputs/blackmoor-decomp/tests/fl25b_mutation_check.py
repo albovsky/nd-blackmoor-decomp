@@ -10,7 +10,7 @@ A mutant is detected when the direct test binary fails to build or fails; if the
 that contains the mutated line is run against the original bytes (the shim and port are rebuilt from the mutated copy). Prints the counts
 and every survivor (an equivalent mutant is expected only where the changed value cannot reach an observable effect).
 
-Run from outputs/blackmoor-decomp:  python3 tests/fl25b_mutation_check.py [--limit N] [--no-differential] [--lines N,N,...]
+Run from outputs/blackmoor-decomp:  python3 tests/fl25b_mutation_check.py [--limit N] [--no-differential] [--lines N,N,...] [--range A-B]
 """
 import argparse
 from pathlib import Path
@@ -72,12 +72,16 @@ def main():
     ap.add_argument('--limit', type=int, default=0)
     ap.add_argument('--no-differential', action='store_true')
     ap.add_argument('--lines', default='', help='only the mutants of these source lines (comma separated)')
+    ap.add_argument('--range', default='', help='only the mutants of the source lines A-B')
     args = ap.parse_args()
     lines = (SRC / 'original_methods_fl25b.c').read_text().splitlines(keepends=True)
     muts = mutants(lines)
     if args.lines:
         wanted = {int(x) for x in args.lines.split(',')}
         muts = [m for m in muts if m[0] + 1 in wanted]
+    if args.range:
+        lo, hi = (int(v) for v in args.range.split('-'))
+        muts = [m for m in muts if lo <= m[0] + 1 <= hi]
     if args.limit:
         muts = muts[::max(1, len(muts) // args.limit)]
     caught_direct = caught_diff = 0

@@ -443,12 +443,271 @@ static int test_m455180_hit_test(void)
     return g_failed;
 }
 
+/* 0x4cb058 (ret 8): P12 = OBJ_VA (the list object: word +2 count, byte +4, word +7 k, dword +9 the entry array = P12 + 0x100, entries of 0x18
+ * bytes: x low +4, y low +8, x high +0xc, y high +0x10, word +0x16 k), P16 = OBJ2_VA (the words at 0x5f + 2k), R = DECOY_VA (x low +0x12,
+ * y low +0x16, x high +0x1a, y high +0x1e). Point (5, 5); a rectangle misses by one on the side `miss` (0 y low, 1 y high, 2 x low, 3 x high). */
+#define P12 OBJ_VA
+#define P16 OBJ2_VA
+#define PRC DECOY_VA
+#define ENT 0x100
+static void rectb(uint8_t *b, size_t xlo, size_t ylo, size_t xhi, size_t yhi, int miss)
+{
+    set32(b, ylo, miss == 0 ? 6u : 5u);
+    set32(b, yhi, miss == 1 ? 4u : 5u);
+    set32(b, xlo, miss == 2 ? 6u : 5u);
+    set32(b, xhi, miss == 3 ? 4u : 5u);
+}
+#define ENTRY(i, m) rectb(fx.obj, ENT + (size_t)(i) * 0x18 + 4, ENT + (size_t)(i) * 0x18 + 8, ENT + (size_t)(i) * 0x18 + 0xc, ENT + (size_t)(i) * 0x18 + 0x10, m)
+#define ENTRY_K(i, k) set16(fx.obj, ENT + (size_t)(i) * 0x18 + 0x16, (uint16_t)(k))
+#define RECT_R(m) rectb(fx.decoy, 0x12, 0x16, 0x1a, 0x1e, m)
+#define TBL(k, v) set16(fx.obj2, (size_t)(0x5f + 2 * (k)), (uint16_t)(v))
+#define G_INIT_SEL 0x2711u
+static void setup_4cb058(int count)
+{
+    int i;
+    base(G_INIT_SEL, 0, 0x1e);
+    set32(fx.self, 0xe, 0x01000000u);
+    set32(fx.self, 0x12, P12);
+    set32(fx.self, 0x16, P16);
+    set32(fx.self, 0x15c, PRC);
+    set16(fx.self, 0x152, 5);
+    fx.w.value_583a29 = 5;
+    set16(fx.obj, 2, (uint16_t)count);
+    fx.obj[4] = 0;
+    fx.obj[5] = 0xff;
+    fx.obj[6] = 0xff;
+    set16(fx.obj, 7, 0xffff);
+    set32(fx.obj, 9, P12 + ENT);
+    for (i = 0; i < 8; i++) {
+        ENTRY(i, 0);
+        ENTRY_K(i, 0xffff);
+    }
+    RECT_R(0);
+    fx.w.value_5b44f0 = 0x44444444u;
+    fx.w.value_5b44f4 = 0x55555555u;
+    fx.w.value_5d0377 = 0xabcdef01u;
+    fx.w.value_5d162d = 0x11111111u;
+    fx.w.value_5d1631 = 0x22222222u;
+    fx.w.value_5d1639 = 0x33333333u;
+    fx.w.value_571ad3 = 0x0badcafeu;
+}
+static int exp_14e;
+/* runs (x, y); `loop` = the final value of [+0x132] (-1: the loop is not reached), `hit` = it ended on an entry */
+static int32_t run_4cb058(int16_t x, int16_t y, int loop, int hit)
+{
+    begin();
+    X32(0x154, 0);
+    X32(0x14e, (uint32_t)exp_14e);
+    if (loop >= 0) {
+        int examined = loop + (hit ? 1 : 0);
+        X32(0x132, (uint32_t)loop);
+        if (examined > 0) X32(0x126, P12 + ENT + (uint32_t)(examined - 1) * 0x18);
+        if (hit) X32(0x154, P12 + ENT + (uint32_t)loop * 0x18);
+    }
+    exp_14e = 0;
+    return m4cb058_hit_test(fx.self, x, y, &fx.w, &fx.host);
+}
+static void ck_untouched_4cb058(void)
+{
+    CK(fx.w.value_5b44f0 == 0x44444444u && fx.w.value_5b44f4 == 0x55555555u && fx.w.value_5d162d == 0x11111111u);
+    CK(fx.w.value_5d1631 == 0x22222222u && fx.w.value_5d1639 == 0x33333333u && fx.w.value_5c39e5 == G_INIT_SEL);
+}
+static void ck_armed_4cb058(uint32_t a, uint32_t b, uint32_t c, uint32_t event)
+{
+    CK(fx.w.value_5b44f0 == a && fx.w.value_5b44f4 == b && fx.w.value_5d162d == c);
+    CK(fx.w.value_5d1631 == (a << 5) + (b << 4) + 0x5b160c && fx.w.value_5d1639 == 1 && fx.w.value_5c39e5 == event);
+}
+
+static int test_m4cb058_hit_test(void)
+{
+    static const uint32_t gates[5] = {0, 0x100, 0x01000000u, 0x80000000u, 0xff};
+    int i, k, v, e;
+    int32_t r;
+    g_failed = 0;
+    g_msg[0] = 0;
+    /* the gate is the whole dword [+0xe]; the pointers [+0x12], [+0x16], [+0x15c] are tested against zero before the loop */
+    for (v = 0; v < 5; v++) {
+        setup_4cb058(0);
+        set32(fx.self, 0xe, gates[v]);
+        r = run_4cb058(5, 5, v == 0 ? -1 : 0, 0);
+        check_mem();
+        CK(r == 0 && L.n == 0);
+        ck_untouched_4cb058();
+    }
+    for (v = 0; v < 3; v++) {
+        setup_4cb058(0);
+        set32(fx.self, v == 0 ? 0x12 : v == 1 ? 0x16 : 0x15c, 0);
+        if (v == 0) set32(fx.self, 0x16, P16 + 1);          /* (never reached; a dword test at +0x13 would see the nonzero low byte) */
+        r = run_4cb058(5, 5, -1, 0);
+        check_mem();
+        CK(r == 0 && L.n == 0);
+        ck_untouched_4cb058();
+    }
+    /* the word [+0x152] against the word 0x583a29: only a difference of the words (sign-extended) with the word P16[+0x5f] == 0xc8 and
+     * [+0x152] != -1 calls 0x4ea06c(this 0x571442, the word) and stores the word */
+    for (v = 0; v < 9; v++) {
+        static const int16_t s152[9] = {7, 7, -1, 7, -0x8000, -1, 7, 7, 0x7fff};
+        static const int16_t g583[9] = {5, 5, 5, 5, 5, -1, 7, 5, (int16_t)0x7f7f};
+        static const uint16_t w5f[9] = {0xc9, 0x10c8, 0xc8, 0xc8, 0xc8, 0xc8, 0xc8, 0xffc8, 0xc8};
+        int called = v == 3 || v == 4 || v == 8;
+        setup_4cb058(0);
+        set16(fx.self, 0x152, (uint16_t)s152[v]);
+        fx.w.value_583a29 = g583[v];
+        TBL(0, w5f[v]);
+        r = run_4cb058(5, 5, 0, 0);
+        check_mem();
+        CK(r == 0);
+        CK(fx.w.value_583a29 == (called ? s152[v] : g583[v]));
+        CK(L.n == (called ? 1 : 0));
+        if (called) {
+            check_call(0, 0x4ea06c, 0x571442, 1);
+            check_arg(0, 0, (uint16_t)s152[v], 0xffffu);
+            CK(get32(L.c[0].snap_self, 0x154) == 0 && get32(L.c[0].snap_self, 0x14e) == 0 && get32(L.c[0].snap_self, 0x132) == 0xA5A5A5A5u);
+        }
+        ck_untouched_4cb058();
+    }
+    /* the loop: each side of entry 3 one short misses (all eight entries are examined: [+0x132] ends at 8, [+0x126] at the last entry) */
+    for (k = 0; k < 4; k++) {
+        setup_4cb058(8);
+        ENTRY(3, k);
+        r = run_4cb058(5, 5, 8, 0);
+        check_mem();
+        CK(r == 0 && L.n == 0);
+        ck_untouched_4cb058();
+    }
+    /* a hit with the word -1 arms nothing: 0x5c39e5 = 0x27b0 and 1; entries 0, 3 and 7; the count limits the scan */
+    for (v = 0; v < 8; v++) {
+        static const int entry[8] = {0, 3, 7, 3, 3, 0, 0, 0};
+        static const int counts[8] = {8, 8, 8, 3, 4, 0, -1, -32768};
+        int hit = counts[v] > entry[v];
+        setup_4cb058(counts[v]);
+        ENTRY(entry[v], -1);
+        r = run_4cb058(5, 5, hit ? entry[v] : counts[v] > 0 ? counts[v] : 0, hit);
+        check_mem();
+        CK(r == (hit ? 1 : 0) && L.n == 0);
+        if (hit) {
+            CK(fx.w.value_5c39e5 == 0x27b0);
+            CK(fx.w.value_5b44f0 == 0x44444444u && fx.w.value_5d1639 == 0x33333333u);
+        } else {
+            ck_untouched_4cb058();
+        }
+    }
+    /* the first matching entry wins */
+    setup_4cb058(8);
+    ENTRY(1, -1);
+    ENTRY(2, -1);
+    ENTRY_K(1, 4);
+    ENTRY_K(2, 0xffff);
+    TBL(4, 0xc9);
+    r = run_4cb058(5, 5, 1, 1);
+    check_mem();
+    CK(r == 1);
+    ck_armed_4cb058(0xc9, 1, 0xabcdef01u, 0x27b0);
+    /* the arm of a hit with a word k != -1 and P16[+0x5f + 2k] == 0xc8 and [+0x152] != -1: 0x5b44f0 = [+0x152] + 0x25, 0x5d162d = 0x571ad3 */
+    for (v = 0; v < 5; v++) {
+        static const int16_t s152[5] = {7, -2, 0x7fff, -0x8000, 0};
+        static const int ks[5] = {2, 1, -3, 40, 0};
+        setup_4cb058(4);
+        set16(fx.self, 0x152, (uint16_t)s152[v]);
+        fx.w.value_583a29 = s152[v];
+        for (i = -8; i < 48; i++) TBL(i, 0xc7);
+        TBL(ks[v], 0xc8);
+        ENTRY(2, -1);
+        ENTRY_K(2, ks[v]);
+        r = run_4cb058(5, 5, 2, 1);
+        check_mem();
+        CK(r == 1 && L.n == 0);
+        ck_armed_4cb058((uint32_t)(s152[v] + 0x25), 1, 0x0badcafeu, 0x27b0);
+    }
+    /* ... with [+0x152] == -1 (equal to the word 0x583a29, so no call) the else arm: 0x5b44f0 = 0xc8, 0x5d162d = 0x5d0377 */
+    setup_4cb058(4);
+    set16(fx.self, 0x152, 0xffff);
+    fx.w.value_583a29 = -1;
+    TBL(2, 0xc8);
+    ENTRY(2, -1);
+    ENTRY_K(2, 2);
+    r = run_4cb058(5, 5, 2, 1);
+    check_mem();
+    CK(r == 1 && L.n == 0);
+    ck_armed_4cb058(0xc8, 1, 0xabcdef01u, 0x27b0);
+    /* ... and a table word other than 0xc8 (sign-extended) */
+    for (v = 0; v < 6; v++) {
+        static const uint16_t vals[6] = {0xffc8, 0x10c8, 0xc9, 0, 0x8000, 0x80c8};
+        static const int ks[6] = {1, -3, 40, 0, 2, 5};
+        setup_4cb058(4);
+        for (i = -8; i < 48; i++) TBL(i, 0x1111);
+        TBL(ks[v], vals[v]);
+        ENTRY(2, -1);
+        ENTRY_K(2, ks[v]);
+        r = run_4cb058(5, 5, 2, 1);
+        check_mem();
+        CK(r == 1 && L.n == 0);
+        ck_armed_4cb058((uint32_t)(int32_t)(int16_t)vals[v], 1, 0xabcdef01u, 0x27b0);
+    }
+    /* after the loop (count 0): the byte P12[+4] (only that byte), then the rectangle R (each side one short), [+0x14e] = 1 */
+    setup_4cb058(0);
+    fx.obj[4] = 0;
+    RECT_R(-1);
+    r = run_4cb058(5, 5, 0, 0);
+    check_mem();
+    CK(r == 0);
+    ck_untouched_4cb058();
+    for (v = 0; v < 15; v++) {
+        static const uint8_t b4[3] = {1, 0x80, 0xff};
+        setup_4cb058(0);
+        fx.obj[4] = b4[v / 5];
+        RECT_R(v % 5 == 4 ? -1 : v % 5);
+        exp_14e = v % 5 == 4;
+        r = run_4cb058(5, 5, 0, 0);
+        check_mem();
+        CK(r == (v % 5 == 4 ? 1 : 0));
+        if (v % 5 == 4) {
+            CK(fx.w.value_5c39e5 == 0x27b2);
+            CK(fx.w.value_5b44f0 == 0x44444444u && fx.w.value_5d1639 == 0x33333333u);
+        } else {
+            ck_untouched_4cb058();
+        }
+    }
+    /* the word P12[+7] != -1 arms with the table word of that k and [+0x5b44f4] = 0 */
+    for (v = 0; v < 4; v++) {
+        static const int ks[4] = {2, 0, -3, 40};
+        static const uint16_t vals[4] = {0x1234, 0xffc8, 0xc8, 0};
+        setup_4cb058(3);
+        for (i = -8; i < 48; i++) TBL(i, 0x1111);
+        TBL(ks[v], vals[v]);
+        fx.obj[4] = 0x80;
+        set16(fx.obj, 7, (uint16_t)ks[v]);
+        RECT_R(-1);
+        exp_14e = 1;
+        r = run_4cb058(5, 5, 3, 0);
+        check_mem();
+        CK(r == 1 && L.n == 0);
+        ck_armed_4cb058((uint32_t)(int32_t)(int16_t)vals[v], 0, 0xabcdef01u, 0x27b2);
+    }
+    /* signed compares: the point (-32768, -1) inside R given as signed dwords */
+    setup_4cb058(0);
+    fx.obj[4] = 1;
+    set32(fx.decoy, 0x12, 0xffff8000u);
+    set32(fx.decoy, 0x1a, 0xffff8000u);
+    set32(fx.decoy, 0x16, 0xffffffffu);
+    set32(fx.decoy, 0x1e, 0xffffffffu);
+    exp_14e = 1;
+    r = run_4cb058((int16_t)0x8000, (int16_t)0xffff, 0, 0);
+    check_mem();
+    CK(r == 1 && fx.w.value_5c39e5 == 0x27b2);
+    (void)e;
+    if (g_failed) printf("FAIL test_m4cb058_hit_test: %s\n", g_msg);
+    else printf("PASS test_m4cb058_hit_test\n");
+    return g_failed;
+}
+
 /* FL25B-TESTS-END */
 
 int main(void)
 {
     int failures = 0;
     failures += test_m455180_hit_test();
+    failures += test_m4cb058_hit_test();
     /* FL25B-MAIN-END */
     return failures;
 }

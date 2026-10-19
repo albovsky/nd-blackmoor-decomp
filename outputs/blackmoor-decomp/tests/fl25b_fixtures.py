@@ -158,12 +158,14 @@ def mk_scenario(sp, key, rng, *, areas, g=None, stubs=None, iat=None, pointers=N
 # the functions: va, size from the ledger, code_size (the span without a trailing jump table: the coverage target), id, object size, ...
 SPECS = {
     '455180': dict(id=1, va=0x455180, size=827, selfsz=0x180, ret='eax', callee_pops=True, scen=640),
+    '4cb058': dict(id=2, va=0x4cb058, size=851, selfsz=0x170, ret='eax', callee_pops=True, scen=720),
     # SPECS-END
 }
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
-STUB_SHAPE = {0x45504b: dict(args=0, this=True, cleanup=0), 0x4554bb: dict(args=2, this=True, cleanup=8)}
-WORD_ARGS = {0x4554bb: (1,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
+STUB_SHAPE = {0x45504b: dict(args=0, this=True, cleanup=0), 0x4554bb: dict(args=2, this=True, cleanup=8),
+              0x4ea06c: dict(args=1, this=True, cleanup=4)}
+WORD_ARGS = {0x4554bb: (1,), 0x4ea06c: (0,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
 
 def _set_gate(d, gate, fail, rng):
@@ -407,6 +409,132 @@ def build_455180(sp, rng, n):
     junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
     return mk_scenario(sp, '455180', rng, areas=areas, stubs=stubs, pointers={'records_5bb5e5': ('records', 0x8d)},
                        stack_args=[junk(x), junk(y), od.region_va(5)], ptr_args={2: 'block'}, profile=('x', prof))
+
+
+TBL_VALUES_NOT_C8 = [0, 1, 0xc9, 0x10c8, 0xffc8, 0x80c8, 7, 0xffff, 0x7fff]
+
+
+def build_4cb058(sp, rng, n):
+    prof = n % 24
+    var = n // 24
+    P12, P16, PR = od.region_va(1), od.region_va(2), od.region_va(3)
+    ENT = 0x100
+    d = bytearray(rng.randbytes(sp['selfsz']))
+    x = rng.choice(COORDS)
+    y = rng.choice(COORDS)
+    struct.pack_into('<I', d, 0xe, 0 if prof == 0 else rng.choice([1, 0x100, 0x01000000, 0x80000000, rng.randrange(1, 1 << 32)]))
+    struct.pack_into('<I', d, 0x12, 0 if prof == 1 else P12)
+    struct.pack_into('<I', d, 0x16, 0 if prof == 2 else P16)
+    struct.pack_into('<I', d, 0x15c, 0 if prof == 3 else PR)
+    # ---- the loop entries
+    hit_profs = (14, 15, 16, 17, 18, 21, 22, 23)
+    cnt = rng.choice([1, 2, 3, 5, 8, 4])
+    if prof in (7, 19):
+        cnt = rng.choice([0, 0, 1, 3, 8])
+    if prof == 20:
+        cnt = rng.choice([0, -1, -0x8000, -5, 0x7fff - 0x10000 + 1])
+    k_hit = rng.randrange(max(cnt, 1))
+    p12 = bytearray(rng.randbytes(0x400))
+    struct.pack_into('<h', p12, 2, cnt)
+    struct.pack_into('<I', p12, 9, P12 + ENT)
+    kind = {14: 'skip', 15: 'c8', 16: 'c8m1', 17: 'not'}.get(prof)
+    if kind is None and prof in (21, 22, 23):
+        kind = ['skip', 'c8', 'c8m1', 'not'][(var + prof) % 4]
+    s152 = rng.choice([0, 5, 0x7fff, -0x8000, 0x25, 100, -2])
+    if kind == 'c8m1':
+        s152 = -1
+    elif kind == 'c8' and s152 == -1:
+        s152 = 5
+    ks = [1, 2, 3, 5, -3, 40, 0]
+    for i in range(8):
+        e = ENT + i * 0x18
+        if prof in hit_profs and i == k_hit:
+            mode = None
+        elif prof == 18:
+            mode = MODES[(i + var) % 4]
+        else:
+            mode = rng.choice(MODES)
+        put_rect(p12, e, (8, 0x10, 4, 0xc), x, y, rng, mode)
+        kk = rng.choice([-1, -1, *ks])
+        if prof in hit_profs and i == k_hit:
+            kk = -1 if kind == 'skip' else rng.choice(ks[:-1] if prof != 21 else ks)
+        struct.pack_into('<h', p12, e + 0x16, kk)
+    # ---- the second part: the byte, the rectangle R and the word k
+    after = prof in (7, 8, 9, 10, 11, 12, 13) or prof in (0, 19, 20) or prof >= 24 or prof in (1, 2, 3, 4, 5, 6)
+    byte4 = 0 if prof == 7 else rng.choice([1, 0x80, 0xff]) if prof in (8, 9, 10, 11, 12, 13) else rng.choice([0, 1, 0x80, 0xff, 0])
+    p12[4] = byte4
+    if byte4 == 0:
+        p12[5] = rng.randrange(1, 256)
+        p12[6] = rng.randrange(1, 256)
+    rmode = {8: 'ylo', 9: 'yhi', 10: 'xlo', 11: 'xhi'}.get(prof)
+    if prof in (12, 13):
+        rmode = None
+    elif rmode is None:
+        rmode = rng.choice([None, None, *MODES])
+    pr = bytearray(rng.randbytes(0x100))
+    put_rect(pr, 0, (0x16, 0x1e, 0x12, 0x1a), x, y, rng, rmode)
+    k7 = -1 if prof == 12 else rng.choice(ks) if prof == 13 else rng.choice([-1, *ks])
+    struct.pack_into('<h', p12, 7, k7)
+    # ---- the table of words in P16 and the block B (word [+0x152] against the global word)
+    p16 = bytearray(rng.randbytes(0x400))
+    for kk in range(-8, 48):
+        if 0 <= 0x5f + kk * 2 < 0x3fe:
+            struct.pack_into('<H', p16, 0x5f + kk * 2, rng.choice(TBL_VALUES_NOT_C8 + [0xc8, 0xc8]))
+    if prof in (15, 16):
+        for i in range(8):
+            if i == k_hit:
+                kk = struct.unpack_from('<h', p12, ENT + i * 0x18 + 0x16)[0]
+                struct.pack_into('<H', p16, 0x5f + kk * 2, 0xc8)
+    if prof == 17:
+        kk = struct.unpack_from('<h', p12, ENT + k_hit * 0x18 + 0x16)[0]
+        struct.pack_into('<H', p16, 0x5f + kk * 2, rng.choice(TBL_VALUES_NOT_C8))
+    if prof == 13:
+        pass
+    b_how = ['equal', 'not_c8', 'c8_m1', 'c8_call'][var % 4]
+    if prof == 2:
+        b_how = 'equal'
+    if prof == 4:
+        b_how = 'not_c8'
+    if prof == 5:
+        b_how = 'c8_m1'
+    if prof == 6:
+        b_how = 'c8_call'
+    if prof in (15, 16, 17, 14) and rng.random() < 0.5:
+        b_how = 'equal'
+    if b_how == 'c8_m1':
+        s152 = -1
+    elif b_how == 'c8_call' and s152 == -1:
+        s152 = 7
+    if b_how == 'equal':
+        g583 = s152
+    else:
+        g583 = s152 ^ rng.choice([1, 0x100, 0x8000, 0x4000])
+        if (g583 & 0xffff) == (s152 & 0xffff):
+            g583 = s152 ^ 1
+    if b_how in ('c8_m1', 'c8_call'):
+        struct.pack_into('<H', p16, 0x5f, 0xc8)
+    elif b_how == 'not_c8':
+        struct.pack_into('<H', p16, 0x5f, rng.choice(TBL_VALUES_NOT_C8))
+    if prof in (15, 16, 17) and b_how == 'equal':
+        pass
+    struct.pack_into('<h', d, 0x152, s152)
+    # (the entry/table words of the hit entry for profile 15/16 may be the word 0x5f itself: the table was written first, B last: restore the
+    # chosen value for the hit entry when it collides)
+    if prof in (15, 16):
+        kk = struct.unpack_from('<h', p12, ENT + k_hit * 0x18 + 0x16)[0]
+        if kk == 0:
+            struct.pack_into('<H', p16, 0x5f, 0xc8)
+            if b_how != 'equal':
+                g583 = s152
+    areas = [Area('self', od.region_va(0), d, image=False), Area('p12', P12, p12, image=False), Area('p16', P16, p16, image=False),
+             Area('rect', PR, pr, image=False)]
+    g = {f: rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]) for f in ('value_5b44f0', 'value_5b44f4', 'value_5d0377', 'value_5d162d',
+                                                                           'value_5d1631', 'value_5d1639', 'value_5c39e5', 'value_571ad3')}
+    g['value_583a29'] = g583 & 0xffff
+    probes = [('self', 0, sp['selfsz'])]
+    stubs = {0x4ea06c: stub(0x4ea06c, probe=probes, **STUB_SHAPE[0x4ea06c])}
+    junk = lambda v: (v & 0xffff) | (rng.randrange(0x10000) << 16)
+    return mk_scenario(sp, '4cb058', rng, areas=areas, g=g, stubs=stubs, stack_args=[junk(x), junk(y)], profile=('x', prof))
 
 
 # BUILDERS-END

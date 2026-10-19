@@ -175,3 +175,90 @@ int32_t m455180_hit_test(uint8_t *self, int16_t x, int16_t y, const uint8_t *blo
     return 0;
 }
 
+/* ---- 0x4cb058 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4cb058, thiscall, `ret 8`: arguments x, y as words (movsx); eax = 1 on a hit, else 0. Clears the dwords [+0x154] and [+0x14e]; returns
+ * 0 when the dword [+0xe] is zero. When the word [+0x152] differs from the word 0x583a29 and the word at +0x5f of the object P16 (the
+ * address at [+0x16]) is 0xc8 and [+0x152] != -1, 0x4ea06c runs (this 0x571442, the word [+0x152]) and 0x583a29 takes [+0x152]. Then 0
+ * is returned when [+0x12] (the list object P12), [+0x16] or [+0x15c] (a rectangle object R) is zero. A dword counter [+0x132] runs
+ * from 0 while it is below the signed word P12[+2]; entry i is at the address dword P12[+9] + 0x18 * i (kept at [+0x126]) with the
+ * rectangle y low +8, y high +0x10, x low +4, x high +0xc (signed dwords, inclusive) and the word +0x16 = k. A hit stores the entry address
+ * at [+0x154]; k != -1 arms the globals: when the word P16[+0x5f + 2k] is 0xc8 and [+0x152] != -1, 0x5b44f0 = [+0x152] + 0x25, 0x5b44f4 =
+ * 1 and 0x5d162d = the dword 0x571ad3; else 0x5b44f0 = that word (sign-extended), 0x5b44f4 = 1 and 0x5d162d = the dword 0x5d0377; both
+ * then 0x5d1631 = (0x5b44f0 << 5) + (0x5b44f4 << 4) + 0x5b160c and 0x5d1639 = 1. The hit ends with 0x5c39e5 = 0x27b0 and 1. After the loop:
+ * the byte P12[+4] zero returns 0; the point must lie in R (y low +0x16, y high +0x1e, x low +0x12, x high +0x1a), then [+0x14e] = 1;
+ * P12[+7] (a signed word, k) != -1 arms 0x5b44f0 = P16[+0x5f + 2k], 0x5b44f4 = 0, 0x5d162d = 0x5d0377, 0x5d1631 and 0x5d1639 as above; then
+ * 0x5c39e5 = 0x27b2 and 1. The object pointers are not checked (the original dereferences [+0x16] even when it is zero, if [+0x152]
+ * differs from 0x583a29). A callee that changes self is not exercised. */
+int32_t m4cb058_hit_test(uint8_t *self, int16_t x, int16_t y, Fl25bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *p12, *p16, *e, *r;
+    int32_t k;
+    wr32(self, 0x154, 0);
+    wr32(self, 0x14e, 0);
+    if (rd32(self, 0xe) == 0) return 0;
+    if (rds16(self, 0x152) != (int32_t)world->value_583a29) {
+        p16 = object_at(host, rd32(self, 0x16));
+        if (rds16(p16, 0x5f) == 0xc8 && rds16(self, 0x152) != -1) {
+            call1(host, 0x4ea06c, 0x571442, rd16(self, 0x152));
+            world->value_583a29 = (int16_t)rd16(self, 0x152);
+        }
+    }
+    if (rd32(self, 0x12) == 0) return 0;
+    if (rd32(self, 0x16) == 0) return 0;
+    if (rd32(self, 0x15c) == 0) return 0;
+    wr32(self, 0x132, 0);
+    for (;;) {
+        p12 = object_at(host, rd32(self, 0x12));
+        if ((int32_t)rd32(self, 0x132) >= rds16(p12, 2)) break;
+        wr32(self, 0x126, rd32(p12, 9) + (uint32_t)((int32_t)rd32(self, 0x132) * 0x18));
+        e = object_at(host, rd32(self, 0x126));
+        if ((int32_t)y >= (int32_t)rd32(e, 8) && (int32_t)y <= (int32_t)rd32(e, 0x10) && (int32_t)x >= (int32_t)rd32(e, 4) &&
+            (int32_t)x <= (int32_t)rd32(e, 0xc)) {
+            wr32(self, 0x154, rd32(self, 0x126));
+            e = object_at(host, rd32(self, 0x126));
+            if (rds16(e, 0x16) != -1) {
+                p16 = object_at(host, rd32(self, 0x16));
+                k = rds16(object_at(host, rd32(self, 0x126)), 0x16);
+                if (rds16(p16, 0x5f + (ptrdiff_t)k * 2) == 0xc8 && rds16(self, 0x152) != -1) {
+                    world->value_5b44f0 = (uint32_t)(rds16(self, 0x152) + 0x25);
+                    world->value_5b44f4 = 1;
+                    world->value_5d162d = world->value_571ad3;
+                } else {
+                    world->value_5b44f0 = (uint32_t)rds16(p16, 0x5f + (ptrdiff_t)k * 2);
+                    world->value_5b44f4 = 1;
+                    world->value_5d162d = world->value_5d0377;
+                }
+                world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+                world->value_5d1639 = 1;
+            }
+            world->value_5c39e5 = 0x27b0;
+            return 1;
+        }
+        wr32(self, 0x132, rd32(self, 0x132) + 1);
+    }
+    p12 = object_at(host, rd32(self, 0x12));
+    if (p12[4] == 0) return 0;
+    r = object_at(host, rd32(self, 0x15c));
+    if ((int32_t)y < (int32_t)rd32(r, 0x16)) return 0;
+    r = object_at(host, rd32(self, 0x15c));
+    if ((int32_t)y > (int32_t)rd32(r, 0x1e)) return 0;
+    r = object_at(host, rd32(self, 0x15c));
+    if ((int32_t)x < (int32_t)rd32(r, 0x12)) return 0;
+    r = object_at(host, rd32(self, 0x15c));
+    if ((int32_t)x > (int32_t)rd32(r, 0x1a)) return 0;
+    wr32(self, 0x14e, 1);
+    p12 = object_at(host, rd32(self, 0x12));
+    if (rds16(p12, 7) != -1) {
+        p16 = object_at(host, rd32(self, 0x16));
+        k = rds16(object_at(host, rd32(self, 0x12)), 7);
+        world->value_5b44f0 = (uint32_t)rds16(p16, 0x5f + (ptrdiff_t)k * 2);
+        world->value_5b44f4 = 0;
+        world->value_5d162d = world->value_5d0377;
+        world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+        world->value_5d1639 = 1;
+    }
+    world->value_5c39e5 = 0x27b2;
+    return 1;
+}
+

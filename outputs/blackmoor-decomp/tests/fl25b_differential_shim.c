@@ -192,6 +192,7 @@ static uint32_t host_tick(void *context)
 enum {
     F25B_NONE = 0,
     F25B_455180 = 1,
+    F25B_4CB058 = 2,
     /* F25B-ENUM-END */
 };
 
@@ -211,6 +212,7 @@ void shim_fl25b(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     host.tick = host_tick;
     switch (fn) {
     case F25B_455180: *result = m455180_hit_test(self, (int16_t)a, (int16_t)b, (const uint8_t *)c, w, &host); break;
+    case F25B_4CB058: *result = m4cb058_hit_test(self, (int16_t)a, (int16_t)b, w, &host); break;
     /* F25B-CASE-END */
     default: break;
     }
