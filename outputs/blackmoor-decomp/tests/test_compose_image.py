@@ -701,7 +701,7 @@ class MutantTests(OriginalMixin, unittest.TestCase):
         (asm_dir / f"{name}-report.json").write_text(json.dumps(report, indent=1))
 
     def test_data_layout_edited_after_the_audit_is_rejected(self):
-        self.assert_data_batch_rejected(lambda d: (d / "data-002.layout").write_text((d / "data-002.layout").read_text() + "# edited\n"), "differs from the manifest hash")
+        self.assert_data_batch_rejected(lambda d: (d / "data-002.layout").write_text((d / "data-002.layout").read_text() + ".fill 4, 1, 0\n"), "differs from the manifest hash")
 
     def test_full_data_source_is_not_committed(self):
         self.assertEqual(sorted((PROJECT / "asm_data").glob("*.s")), [])
