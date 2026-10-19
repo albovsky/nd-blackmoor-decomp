@@ -1,0 +1,68 @@
+[
+ {
+  "va": "0x4468fe",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21b.c",
+   "symbol": "m4468fe_draw_clock"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21b_direct_test.c",
+    "test_id": "test_m4468fe_draw_clock"
+   },
+   {
+    "path": "tests/test_fl21b_direct.py",
+    "test_id": "Fl21bDirect.test_draw_clock_4468fe"
+   },
+   {
+    "path": "tests/test_fl21b_differential.py",
+    "test_id": "Fl21bDifferential.test_4468fe_draw_clock"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_f5_runtime_original_oracle.py",
+   "window": [
+    "0x4468fe",
+    "0x446ed0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m4468fe_draw_clock. Direct test: ordered host calls with hand-derived rectangles, string state at each call, gate, table index 2, x wrap, overlapping forward copy. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1478 body bytes."
+ },
+ {
+  "va": "0x47f421",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-21 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl21b.c",
+   "symbol": "m47f421_pointer_hit"
+  },
+  "tests": [
+   {
+    "path": "tests/fl21b_direct_test.c",
+    "test_id": "test_m47f421_pointer_hit"
+   },
+   {
+    "path": "tests/test_fl21b_direct.py",
+    "test_id": "Fl21bDirect.test_pointer_hit_47f421"
+   },
+   {
+    "path": "tests/test_fl21b_differential.py",
+    "test_id": "Fl21bDifferential.test_47f421_pointer_hit"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_f5_runtime_original_oracle.py",
+   "window": [
+    "0x47f421",
+    "0x47fa11"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m47f421_pointer_hit. Direct test: gate, rectangle copy, drag-mode bound edges, 0x47ec06 fallback, item-loop overlap cases, pick lists, record boxes. Differential test: original bytes (Unicorn) vs native on 300 random fixtures, every instruction reached. Oracle window runs all 1520 bytes."
+ }
+]
