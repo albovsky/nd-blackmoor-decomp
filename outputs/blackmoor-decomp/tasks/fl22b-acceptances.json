@@ -1,0 +1,35 @@
+[
+ {
+  "va": "0x42ed54",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-22 batch b implementer (independent slice-reviewer pending)",
+  "date": "2026-10-19",
+  "native_source": {
+   "path": "src/original_methods_fl22b.c",
+   "symbol": "m42ed54_run_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl22b_direct_test.c",
+    "test_id": "test_m42ed54_run_state"
+   },
+   {
+    "path": "tests/test_fl22b_direct.py",
+    "test_id": "Fl22bDirect.test_run_state_42ed54"
+   },
+   {
+    "path": "tests/test_fl22b_differential.py",
+    "test_id": "Fl22bDifferential.test_42ed54_run_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/action_family_77_runtime_original_oracle.py",
+   "window": [
+    "0x42ed54",
+    "0x42f510"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "1:1 with m42ed54_run_state. Three states of a record (dword +0x4d): 0 (start: rand, clamp, table reset, 4 host calls), 1 (jump table of 4 sub-steps at 0x42f500, the dword 0x5b5162) and 2 (load of the globals 0x5bb57b.. from one of two record blocks, flag-table store, 0x42ba3a). Direct test: ordered host calls with hand-derived arguments, call-time probes of every global and table, signed/unsigned boundaries, the jump-table bounds. Differential test: original bytes (Unicorn, rand/callees/GetTickCount as recording stubs) vs native on 300 random fixtures, every instruction of the 1964-byte body reached, jump table included. The CRT rand at 0x50cd50 is a host call whose result is scripted; the idiv by 5 is part of the function and runs as original code."
+ }
+]
