@@ -429,4 +429,68 @@ void m46793a_click_27ab_27ac(uint8_t *self, Fl24bWorld *world, const Fl18Host *h
     if (rd32(self, 0x248) != 0) call1(host, 0x4fb2e3, 0x5c3a67, rd16(object_at(host, rd32(self, 0x1aa)), 0x2bf));
 }
 
+/* ---- 0x4ad310 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4ad310, thiscall, plain `ret`: guards dword [+0xc1b] != 0, byte [+0xc24] == 0, dword [+0xc20] == 0, the record state (word [+0x1e]).
+ * With [+0x20] == 0: event 0x2775 sets the byte [+0xc1f] and the state 2; event 0x2774 asks 0x4af96e (a word answer, -1 ends), runs
+ * 0x4ada56, 0x4ae683(r), sets [+0x20] = 1 and the word [+0x24] = r, runs 0x4ae495(r). With [+0x20] != 0 and event 0x2776: p = self + word[+0x24]
+ * * 0xc7 + 0x6e; 0x4ada9f, 0x4ae96c(word[+0x24]); the entries i below the signed word at +0x42 of the object whose address is the dword
+ * [+0xc17], except i == word[+0x24], for which 0x4aef4a(word[+0x24], i) answers non-zero are collected in a local array of words
+ * (initially 0xffff, 15 words); the word at p becomes the larger (signed) of itself and each collected entry's first word, then is
+ * incremented; 0x4ae495(word[+0x24]); [+0x6a] = 1; word[+0x24] = 0xffff; [+0x20] = 0; 0x4adae8. The original computes a pointer from the byte
+ * p[0x26] that it never uses (not reproduced). The local array holds 15 words; the original overruns it when more than 15 entries answer
+ * non-zero: the port rejects the 16th (returns at that point, no further effect), an explicit native rejection for an input the original
+ * cannot handle. A callee that changes self is not exercised. */
+void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
+{
+    uint16_t arr[15];
+    int32_t r, i, count, j;
+    ptrdiff_t p;
+    int k;
+    if (rd32(self, 0xc1b) == 0) return;
+    if (self[0xc24] != 0) return;
+    if (rd32(self, 0xc20) != 0) return;
+    if (!record_state_is_1(world, self, 0x1e)) return;
+    if (rd32(self, 0x20) == 0) {
+        if (world->value_5c39e5 == 0x2775) {
+            self[0xc1f] = 1;
+            set_record_state_2(world, self, 0x1e);
+        } else if (world->value_5c39e5 == 0x2774) {
+            r = (int16_t)call0(host, 0x4af96e, (uintptr_t)self);
+            if (r == -1) return;
+            call0(host, 0x4ada56, (uintptr_t)self);
+            call1(host, 0x4ae683, (uintptr_t)self, (uint32_t)r);
+            wr32(self, 0x20, 1);
+            wr16(self, 0x24, (uint16_t)r);
+            call1(host, 0x4ae495, (uintptr_t)self, (uint32_t)r);
+        }
+        return;
+    }
+    if (world->value_5c39e5 != 0x2776) return;
+    p = (ptrdiff_t)rds16(self, 0x24) * 0xc7 + 0x6e;
+    call0(host, 0x4ada9f, (uintptr_t)self);
+    call1(host, 0x4ae96c, (uintptr_t)self, (uint32_t)rds16(self, 0x24));
+    for (k = 0; k < 15; k++) arr[k] = 0xffff;
+    count = 0;
+    for (i = 0; i < rds16(object_at(host, rd32(self, 0xc17)), 0x42); i++) {
+        if (i == rds16(self, 0x24)) continue;
+        if (call2(host, 0x4aef4a, (uintptr_t)self, (uint32_t)rds16(self, 0x24), (uint32_t)i) != 0) {
+            if (count >= 15) return;
+            arr[count] = (uint16_t)i;
+            count++;
+        }
+    }
+    for (j = 0; j < count; j++) {
+        int32_t e = rds16(self, (ptrdiff_t)(int16_t)arr[j] * 0xc7 + 0x6e);
+        uint16_t tmp = rds16(self, p) > e ? rd16(self, p) : (uint16_t)e;
+        wr16(self, p, tmp);
+    }
+    wr16(self, p, (uint16_t)(rd16(self, p) + 1));
+    call1(host, 0x4ae495, (uintptr_t)self, (uint32_t)rds16(self, 0x24));
+    wr32(self, 0x6a, 1);
+    wr16(self, 0x24, 0xffff);
+    wr32(self, 0x20, 0);
+    call0(host, 0x4adae8, (uintptr_t)self);
+}
+
 /* FL24B-END */

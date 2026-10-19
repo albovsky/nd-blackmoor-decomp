@@ -189,7 +189,7 @@ static uint32_t host_tick(void *context)
     return g_tick;
 }
 
-enum { F24B_4DAD60 = 1, F24B_466073, F24B_467740, F24B_4B7563, F24B_459E49, F24B_482359, F24B_46793A /* F24B-ENUM-END */ };
+enum { F24B_4DAD60 = 1, F24B_466073, F24B_467740, F24B_4B7563, F24B_459E49, F24B_482359, F24B_46793A, F24B_4AD310 /* F24B-ENUM-END */ };
 
 /* Runs one port on `self` (this) with the stack arguments a, b, c, d (as dwords; a word argument is cut by the port). *result is eax
  * where the function returns a value. */
@@ -213,6 +213,7 @@ void shim_fl24b(int fn, uint8_t *self, uintptr_t a, uintptr_t b, uintptr_t c, ui
     case F24B_459E49: m459e49_click_2742(self, w, &host); break;
     case F24B_482359: *result = m482359_hit_test(self, (int16_t)a, (int16_t)b, w, &host); break;
     case F24B_46793A: m46793a_click_27ab_27ac(self, w, &host); break;
+    case F24B_4AD310: m4ad310_click_2774_2776(self, w, &host); break;
     /* F24B-CASE-END */
     default: break;
     }

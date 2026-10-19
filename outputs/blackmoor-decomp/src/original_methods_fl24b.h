@@ -52,6 +52,9 @@ int32_t m482359_hit_test(uint8_t *self, int16_t x, int16_t y, Fl24bWorld *world,
 /* 0x46793a: events 0x27ac and 0x27ab (a small stack of (from, to) pairs at +0x1c0 with the depth [+0x240]; calls 0x467c0e, 0x467d5f,
  * 0x467e70, 0x467eb0 with this = self and no arguments, and 0x4fb2e3) */
 void m46793a_click_27ab_27ac(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x4ad310: events 0x2775, 0x2774 and 0x2776 (selection of an entry of 0xc7 bytes at +0x6e; calls 0x4af96e, 0x4ada56, 0x4ae683, 0x4ae495,
+ * 0x4ada9f, 0x4ae96c, 0x4aef4a, 0x4adae8 with this = self) */
+void m4ad310_click_2774_2776(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

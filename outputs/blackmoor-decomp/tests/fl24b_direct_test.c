@@ -1068,6 +1068,147 @@ static int test_m46793a_click_27ab_27ac(void)
     return g_failed;
 }
 
+/* 0x4ad310: guards dword [+0xc1b] != 0, byte [+0xc24] == 0, dword [+0xc20] == 0, record state (word [+0x1e]); [+0x20] == 0 selects the events
+ * 0x2775 / 0x2774, [+0x20] != 0 the event 0x2776 (entries of 0xc7 bytes at +0x6e, the list size is the word at +0x42 of the object at [+0xc17]). */
+static void setup_4ad310(uint32_t sel, int idx, uint32_t d20)
+{
+    base(sel, idx, 0x1e);
+    set32(fx.self, 0xc1b, 0x01000000u);
+    fx.self[0xc24] = 0;
+    set32(fx.self, 0xc20, 0);
+    set32(fx.self, 0x20, d20);
+    set32(fx.self, 0xc17, OBJ_VA);
+    set16(fx.self, 0x24, 1);
+    set16(fx.obj, 0x42, 0);
+    L.n = 0;
+}
+
+static int test_m4ad310_click_2774_2776(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const uint32_t sels[] = {0x2775, 0x2774, 0x2776, 0x2711};
+    int ii, k, v, s, i;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        for (s = 0; s < 4; s++)
+            for (k = 0; k < 4; k++)
+                for (v = 0; v < 6; v++) {
+                    setup_4ad310(sels[s], idx, s == 2 ? 1u : 0u);
+                    if (k == 0) set32(fx.self, 0xc1b, 0);
+                    if (k == 1) fx.self[0xc24] = (uint8_t[]){1, 0x80, 0xff, 0x7f, 2, 0x55}[v];
+                    if (k == 2) set32(fx.self, 0xc20, (uint32_t[]){1, 0x100, 0x10000, 0x01000000u, 0x80000000u, 3}[v]);
+                    if (k == 3) {
+                        int j;
+                        for (j = -1; j <= 4; j++)
+                            set32(fx.tab, (size_t)(j + 1) * REC + 0x4d, j == idx ? (uint32_t[]){0, 2, 3, 0xffffffffu, 0x101, 0x10001}[v] : 1u);
+                    }
+                    set16(fx.obj, 0x42, 3);
+                    begin();
+                    m4ad310_click_2774_2776(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    CK(L.n == 0);
+                }
+        /* [+0x20] != 0 with the events 0x2775 / 0x2774 and [+0x20] == 0 with 0x2776: nothing */
+        for (s = 0; s < 3; s++) {
+            setup_4ad310(sels[s], idx, s == 2 ? 0u : 0x100u);
+            begin();
+            m4ad310_click_2774_2776(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == 0);
+        }
+        /* 0x2775 */
+        setup_4ad310(0x2775, idx, 0);
+        begin();
+        X8(0xc1f, 1);
+        set32(xt, (size_t)(idx + 1) * REC + 0x4d, 2);
+        m4ad310_click_2774_2776(fx.self, &fx.w, &fx.host);
+        check_mem();
+        CK(L.n == 0);
+        /* 0x2774: the answer of 0x4af96e is a word (upper half ignored): -1 ends after one call; others go on with the sign-extended value */
+        for (v = 0; v < 4; v++) {
+            uint32_t ans = (uint32_t[]){0xffffu, 0x1234ffffu, 0x12348000u, 3u}[v];
+            int32_t r = (int16_t)(ans & 0xffff);
+            setup_4ad310(0x2774, idx, 0);
+            g_ret_by[0].callee = 0x4af96e;
+            g_ret_by[0].value = ans;
+            begin();
+            if (r != -1) {
+                X32(0x20, 1);
+                X16(0x24, (uint16_t)r);
+            }
+            m4ad310_click_2774_2776(fx.self, &fx.w, &fx.host);
+            check_mem();
+            if (r == -1) {
+                CK(L.n == 1);
+            } else {
+                CK(L.n == 4);
+                check_call(0, 0x4af96e, (uintptr_t)fx.self, 0);
+                check_call(1, 0x4ada56, (uintptr_t)fx.self, 0);
+                check_call(2, 0x4ae683, (uintptr_t)fx.self, 1);
+                check_arg(2, 0, (uint32_t)r, 0xffffffffu);
+                check_call(3, 0x4ae495, (uintptr_t)fx.self, 1);
+                check_arg(3, 0, (uint32_t)r, 0xffffffffu);
+                CK(get32(L.c[2].snap_self, 0x20) == 0 && get32(L.c[3].snap_self, 0x20) == 1 && (L.c[3].snap_self[0x24] | L.c[3].snap_self[0x25] << 8) == (r & 0xffff));
+            }
+        }
+        /* 0x2776: list of 4 entries, word [+0x24] = 1 (skipped); 0x4aef4a answers non-zero for entries 0 and 3 only (one answer per call is
+         * not scriptable here: the host answers by callee, so answer non-zero for all three, then zero for all) */
+        for (v = 0; v < 2; v++) {
+            setup_4ad310(0x2776, idx, 1);
+            set16(fx.obj, 0x42, 4);
+            set16(fx.self, 0x24, 1);
+            set16(fx.self, 1 * 0xc7 + 0x6e, 5);            /* p */
+            set16(fx.self, 0 * 0xc7 + 0x6e, 7);
+            set16(fx.self, 2 * 0xc7 + 0x6e, 0x7fff);
+            set16(fx.self, 3 * 0xc7 + 0x6e, 0x8000);
+            g_ret_by[0].callee = 0x4aef4a;
+            g_ret_by[0].value = v ? 0 : 0x100;
+            begin();
+            X16(1 * 0xc7 + 0x6e, v ? 6 : 0x8000);          /* max(5, 7, 0x7fff, -32768) = 0x7fff, +1 wraps to 0x8000; no answers: 5 + 1 */
+            X32(0x6a, 1);
+            X16(0x24, 0xffff);
+            X32(0x20, 0);
+            m4ad310_click_2774_2776(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == (v ? 2 + 3 + 2 : 2 + 3 + 2));
+            check_call(0, 0x4ada9f, (uintptr_t)fx.self, 0);
+            check_call(1, 0x4ae96c, (uintptr_t)fx.self, 1);
+            check_arg(1, 0, 1, 0xffffffffu);
+            check_call(2, 0x4aef4a, (uintptr_t)fx.self, 2);
+            check_arg(2, 0, 1, 0xffffffffu);      /* args[0] = word [+0x24] (pushed last), args[1] = i */
+            check_arg(2, 1, 0, 0xffffffffu);
+            check_arg(3, 1, 2, 0xffffffffu);
+            check_arg(4, 1, 3, 0xffffffffu);
+            check_call(5, 0x4ae495, (uintptr_t)fx.self, 1);
+            check_arg(5, 0, 1, 0xffffffffu);
+            check_call(6, 0x4adae8, (uintptr_t)fx.self, 0);
+            /* at 0x4ae495 the word at p is already updated, [+0x6a] not yet, [+0x24] not yet */
+            CK(L.c[5].snap_self[1 * 0xc7 + 0x6e] == (v ? 6 : 0x00) && get32(L.c[5].snap_self, 0x20) == 1);
+        }
+        /* an empty and a negative list: no 0x4aef4a call; the word at p only incremented (0xffff + 1 wraps to 0) */
+        for (v = 0; v < 2; v++) {
+            setup_4ad310(0x2776, idx, 1);
+            set16(fx.obj, 0x42, v ? 0xfffb : 0);
+            set16(fx.self, 0x24, 2);
+            set16(fx.self, 2 * 0xc7 + 0x6e, 0xffff);
+            begin();
+            X16(2 * 0xc7 + 0x6e, 0);
+            X32(0x6a, 1);
+            X16(0x24, 0xffff);
+            X32(0x20, 0);
+            m4ad310_click_2774_2776(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == 4);
+        }
+        (void)i;
+    }
+    if (g_failed) printf("FAIL test_m4ad310_click_2774_2776: %s\n", g_msg);
+    else printf("PASS test_m4ad310_click_2774_2776\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
@@ -1080,6 +1221,7 @@ int main(void)
     failures += test_m459e49_click_2742();
     failures += test_m482359_hit_test();
     failures += test_m46793a_click_27ab_27ac();
+    failures += test_m4ad310_click_2774_2776();
     /* FL24B-MAIN-END */
     return failures;
 }

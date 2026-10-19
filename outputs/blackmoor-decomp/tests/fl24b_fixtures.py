@@ -120,10 +120,13 @@ SPECS.update({
     '46793a': dict(id=7, va=0x46793a, size=612, selfsz=0x260, idx=8, gates=[('nz32', 0x1ae), ('z32', 0xc), ('z32', 0x1b6), ('z32', 0x1b2)],
                    sels=[0x27ac, 0x27ab], callees=[0x467c0e, 0x467d5f, 0x467e70, 0x467eb0, 0x4fb2e3], post=lambda c: post_46793a(c), scen=630,
                    probes=[(0x1a0, 0xc0), (0x238, 0x28)]),
+    '4ad310': dict(id=8, va=0x4ad310, size=640, selfsz=0xc30, idx=0x1e, gates=[('nz32', 0xc1b), ('z8', 0xc24), ('z32', 0xc20)],
+                   sels=[0x2775, 0x2774, 0x2776], callees=[0x4af96e, 0x4ada56, 0x4ae683, 0x4ae495, 0x4ada9f, 0x4ae96c, 0x4aef4a, 0x4adae8],
+                   post=lambda c: post_4ad310(c), scen=640, probes=[(0, 0xc30)]),
 })
 KEYS = list(SPECS)
 RECORDS_VA = 0x5bb5e5
-STUB_SHAPE = {0x467c0e: dict(args=0, this=True, cleanup=0), 0x467d5f: dict(args=0, this=True, cleanup=0), 0x467e70: dict(args=0, this=True, cleanup=0), 0x467eb0: dict(args=0, this=True, cleanup=0), 0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
+STUB_SHAPE = {0x4af96e: dict(args=0, this=True, cleanup=0), 0x4ada56: dict(args=0, this=True, cleanup=0), 0x4ae683: dict(args=1, this=True, cleanup=4), 0x4ae495: dict(args=1, this=True, cleanup=4), 0x4ada9f: dict(args=0, this=True, cleanup=0), 0x4ae96c: dict(args=1, this=True, cleanup=4), 0x4aef4a: dict(args=2, this=True, cleanup=8), 0x4adae8: dict(args=0, this=True, cleanup=0), 0x467c0e: dict(args=0, this=True, cleanup=0), 0x467d5f: dict(args=0, this=True, cleanup=0), 0x467e70: dict(args=0, this=True, cleanup=0), 0x467eb0: dict(args=0, this=True, cleanup=0), 0x467b9e: dict(args=1, this=True, cleanup=4), 0x4fb2e3: dict(args=1, this=True, cleanup=4), 0x4f6334: dict(args=1, this=True, cleanup=4), 0x4fb77a: dict(args=1, this=True, cleanup=4),
               0x4e26fc: dict(args=0, this=True, cleanup=0), 0x45e6bd: dict(args=3, this=True, cleanup=12)}
 WORD_ARGS = {0x4fb2e3: (0,), 0x45e6bd: (2,)}   # (pushed from 16-bit registers: only the low 16 bits are meaningful)
 
@@ -419,6 +422,20 @@ def post_46793a(c):
             struct.pack_into('<II', d, k * 8 + 0x1b8, a, b2)
     struct.pack_into('<I', d, 0x248, rng.choice([0, 0, 1, 0x100, 0x80000000]))
     c.stubs_results[0x467c0e] = [rng.choice([0, 1, 0x100, 0xffffffff, rng.randrange(1 << 32)])]
+
+
+def post_4ad310(c):
+    d, obj, rng, v = c.d, c.obj, c.rng, c.variant
+    expect_zero = c.sel in (0x2775, 0x2774)
+    zero = expect_zero if v % 4 != 3 else not expect_zero
+    struct.pack_into('<I', d, 0x20, 0 if zero else rng.choice([1, 0x100, 0x80000000, 0xffffffff]))
+    struct.pack_into('<I', d, 0xc17, od.region_va(1))
+    struct.pack_into('<h', d, 0x24, rng.choice([0, 1, 2, 3, 5, 6, 0x0b]))
+    struct.pack_into('<h', obj, 0x42, rng.choice([0, 1, 2, 3, 5, 8, 12, -1, -5, 4, 6]))
+    for t in range(14):
+        struct.pack_into('<h', d, t * 0xc7 + 0x6e, rng.choice([0, 1, -1, 0x7fff, -0x8000, rng.randrange(-300, 300)]))
+    c.stubs_results[0x4af96e] = [rng.choice([0xffff, 0x1234ffff, 0xffffffff, 0, 5, 0x7fff, 0x8000, 0x12340003, 0xffff8000])]
+    c.stubs_results[0x4aef4a] = [rng.choice([0, 1, 0x100, 0x80000000, 0xffffffff, 0, 0]) for _ in range(16)]
 
 
 # BUILDERS-END
