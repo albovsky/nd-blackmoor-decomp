@@ -5,6 +5,7 @@
 #include "../src/original_methods_fl23a.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static int g_failed;
@@ -63,6 +64,7 @@ static struct {
     int probe_len[8], nprobe;
     Region regions[4];
     int nregions;
+    int resolves;   /* calls of host->resolve */
 } L;
 
 static void queue_return(uint32_t v) { L.ret_value[L.ret_count++] = v; }
@@ -100,6 +102,7 @@ static const uint8_t *h_resolve(void *ctx, uint32_t va)
 {
     int i;
     (void)ctx;
+    L.resolves++;
     for (i = 0; i < L.nregions; i++)
         if (va >= L.regions[i].va && va < L.regions[i].va + L.regions[i].len) return L.regions[i].ptr + (va - L.regions[i].va);
     return NULL;
@@ -965,6 +968,175 @@ static void test_m4ab528_hit_test(void)
     edges(run_4ab528, O, 0, R4AF);
 }
 
+/* ---- the record index is a signed word ------------------------------------------------------------------------------------- */
+
+/* The originals do `movsx ecx, word [self+idx]; imul ecx, 0x8d`: the word 0xffff reads the record BELOW the table, 0x8000 the record 32768
+ * below it. A port that zero-extends the word reads the record ABOVE the table (65535 or 32768 records up) instead. This fixture has room
+ * for both: WIDE holds records -32768 .. 65535 around the table pointer; the record of the signed index leads to O, the record of the
+ * zero-extended index leads to O2 (all zero, so a wrong read changes the result). */
+#define WIDE_LO 32768u
+#define WIDE_HI 65536u
+static uint8_t *WIDE;
+static size_t g_wide_prev[2];
+static int g_wide_used;
+
+static void wide_table(uint16_t word)
+{
+    if (WIDE == NULL) {
+        WIDE = (uint8_t *)calloc(WIDE_LO + WIDE_HI, REC);
+        if (WIDE == NULL) {
+            fprintf(stderr, "out of memory\n");
+            exit(2);
+        }
+    }
+    if (g_wide_used) {
+        set32(WIDE, g_wide_prev[0], 0);
+        set32(WIDE, g_wide_prev[1], 0);
+    }
+    g_wide_prev[0] = (size_t)((int32_t)WIDE_LO + (int16_t)word) * REC;
+    g_wide_prev[1] = (size_t)(WIDE_LO + (uint32_t)word) * REC;
+    g_wide_used = 1;
+    set32(WIDE, g_wide_prev[0], OBJVA);
+    set32(WIDE, g_wide_prev[1], OBJVA2);
+    W.records_5bb5e5 = WIDE + (size_t)WIDE_LO * REC;
+}
+
+static const uint16_t NEG_WORDS[] = {0xffff, 0xfffe, 0x8000, 0x8001};
+#define NNEG (sizeof NEG_WORDS / sizeof NEG_WORDS[0])
+
+static void test_m459cc9_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set16(S, 0x1c, w);
+        S[0xd6] = 1;
+        set_rect(O, 0, R45, 0, 10, 0, 10);
+        CK(m459cc9_hit_test(S, 5, 5, &W, &H) == 1);
+        CK(L.n == 1 && is_call(0, 0x459ddc, (uintptr_t)S, 1) && L.c[0].a[0] == 0);
+    }
+}
+
+static void test_m487c92_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set32(S, 0x71, 1);
+        S[0x65] = 1;
+        set16(S, 0x1e, w);
+        set16(O, 0x21, 1);
+        set_rect(O, 0, R48, 0, 10, 0, 10);
+        CK(m487c92_hit_test(S, 5, 5, &W, &H) == 1);
+        CK(L.n == 1 && is_call(0, 0x487dcf, (uintptr_t)S, 2) && L.c[0].a[0] == 0x2788 && L.c[0].a[1] == 0 && S[0x24] == 1);
+    }
+}
+
+static void test_m48a920_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set32(S, 0x1aa, 1);
+        set16(S, 0x1e, w);
+        O[0x21] = 1;
+        set_rect(O, 0, R48A, 0, 10, 0, 10);
+        CK(m48a920_hit_test(S, 5, 5, &W, &H) == 1);
+        CK(L.n == 1 && is_call(0, 0x48aa66, (uintptr_t)S, 2) && L.c[0].a[0] == 0x2756 && L.c[0].a[1] == 0);
+    }
+}
+
+static void test_m48e628_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set16(S, 0x1e, w);
+        set16(O, 0xb0, 1);
+        set_rect(O, 0, R48E, 0, 10, 0, 10);
+        set16(S, 0x3fe, 0xffff);
+        /* the gate (the dword +0x462) comes first: closed, the record object is not resolved at all */
+        CK(m48e628_hit_test(S, 5, 5, &W, &H) == 0 && L.n == 0 && L.resolves == 0);
+        set32(S, 0x462, 1);
+        CK(m48e628_hit_test(S, 5, 5, &W, &H) == 1);
+        CK(L.n == 1 && is_call(0, 0x48e776, (uintptr_t)S, 2) && L.c[0].a[0] == 0x27b8 && L.c[0].a[1] == 0);
+    }
+}
+
+static void test_m479deb_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set32(S, 0x157a, 1);
+        set16(S, 0x1e, w);
+        set_rect(O, 0, R479, -20, 30, -20, 30);   /* shrunk by 10 on every side: the point (5, 5) is inside */
+        queue_return(1);
+        CK(m479deb_hit_test(S, 5, 5, &W, &H) == 1);
+        CK(L.n == 2 && is_call(0, 0x478396, (uintptr_t)S, 3) && is_call(1, 0x479f72, (uintptr_t)S, 2) && L.c[1].a[0] == 0x279c && L.c[1].a[1] == 1);
+    }
+}
+
+static void test_m46ea16_negative_index(void)
+{
+    size_t k;
+    int i;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set32(S, 0x46, 1);
+        set16(S, 0x1e, w);
+        for (i = 0; i < 16; i++) O[0xf23 + i] = (uint8_t)(0x30 + i);   /* the structure at object + 0xf23 */
+        queue_return(1);
+        CK(m46ea16_hit_test(S, 3, 4, &W, &H) == 1);
+        CK(L.n == 1 && is_call(0, 0x46ebbd, (uintptr_t)S, 6) && L.c[0].a[2] == 0x33323130u && L.c[0].a[5] == 0x3f3e3d3cu);
+        CK(W.value_5c39e5 == 0x27c3);
+    }
+}
+
+static void test_m4b7389_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set16(S, 0x21, w);
+        set_rect(O, 0, RA, 0, 10, 0, 10);
+        /* the gate (the byte +0x35) comes first: closed, the record object is not resolved at all */
+        CK(m4b7389_hit_test(S, 5, 5, &W, &H) == 0 && L.resolves == 0 && W.value_5c39e5 == 0);
+        S[0x35] = 1;
+        CK(m4b7389_hit_test(S, 5, 5, &W, &H) == 1 && W.value_5c39e5 == 0x27c1 && W.value_5b44f0 == 9);
+    }
+}
+
+static void test_m4ab528_negative_index(void)
+{
+    size_t k;
+    for (k = 0; k < NNEG; k++) {
+        uint16_t w = NEG_WORDS[k];
+        begin(0);
+        wide_table(w);
+        set32(S, 0x54, 1);
+        set16(S, 0x1e, w);
+        set16(O, 0x21, 1);
+        set_rect(O, 0, R4A1, 0, 10, 0, 10);
+        CK(m4ab528_hit_test(S, 5, 5, &W, &H) == 1);
+        CK(L.n == 1 && is_call(0, 0x4ab706, (uintptr_t)S, 2) && L.c[0].a[0] == 0x27cf && L.c[0].a[1] == 0);
+    }
+}
+
 int main(void)
 {
     int failures = 0;
@@ -979,5 +1151,13 @@ int main(void)
     RUN(test_m46ea16_hit_test);
     RUN(test_m4b7389_hit_test);
     RUN(test_m4ab528_hit_test);
+    RUN(test_m459cc9_negative_index);
+    RUN(test_m487c92_negative_index);
+    RUN(test_m48a920_negative_index);
+    RUN(test_m48e628_negative_index);
+    RUN(test_m479deb_negative_index);
+    RUN(test_m46ea16_negative_index);
+    RUN(test_m4b7389_negative_index);
+    RUN(test_m4ab528_negative_index);
     return failures;
 }

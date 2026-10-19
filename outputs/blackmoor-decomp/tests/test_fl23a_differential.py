@@ -69,11 +69,29 @@ class Fl23aDifferential(DiffBase):
         areas, stubs, g = spec['areas'], spec['stubs'], spec['g']
         self.lib.shim_reset()
         arrays, by_name = [], {}
+        wide = next((a.wide for a in areas if a.wide), None)
+        joined = set()
+        if wide:
+            # a negative record index word: the table and the areas below it are ONE contiguous host buffer that reaches fx.HI_RECORDS records
+            # above the table (the original never reads there); the record at the zero-extended word leads to the decoy object, so that a
+            # port that zero-extends the index reads a different object and fails the comparison instead of faulting
+            parts = [a for a in areas if a.name in wide['spans']]
+            joined = {a.name for a in parts}
+            low = min(a.va for a in parts)
+            big = bytearray(wide['table_va'] + fx.HI_RECORDS * 0x8d + 4 - low)
+            for a in parts:
+                big[a.va - low:a.va - low + len(a.data)] = a.data
+            fx.put32(big, wide['table_va'] + wide['hi_word'] * 0x8d - low, wide['decoy_va'])
+            whole = (ctypes.c_ubyte * len(big)).from_buffer(big)
+            self.lib.shim_add_region(low, ptr(whole), len(big))
         for a in areas:
-            arr = buf(a.data)
+            if a.name in joined:
+                arr = (ctypes.c_ubyte * len(a.data)).from_buffer(big, a.va - low)   # a view of the shared buffer
+            else:
+                arr = buf(a.data)
+                self.lib.shim_add_region(a.va, ptr(arr), len(arr))
             by_name[a.name] = arr
             arrays.append((a, arr))
-            self.lib.shim_add_region(a.va, ptr(arr), len(arr))
         sw = World()
         for field, value in g.items():
             setattr(sw, field, value & ((1 << (8 * fx.GLOBALS[field][1])) - 1))

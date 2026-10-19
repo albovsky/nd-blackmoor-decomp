@@ -119,6 +119,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_459cc9_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m459cc9_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_459cc9_negative_index"
    }
   ],
   "oracle": {
@@ -152,6 +160,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_487c92_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m487c92_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_487c92_negative_index"
    }
   ],
   "oracle": {
@@ -185,6 +201,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_48a920_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m48a920_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_48a920_negative_index"
    }
   ],
   "oracle": {
@@ -218,6 +242,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_48e628_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m48e628_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_48e628_negative_index"
    }
   ],
   "oracle": {
@@ -251,6 +283,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_479deb_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m479deb_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_479deb_negative_index"
    }
   ],
   "oracle": {
@@ -284,6 +324,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_46ea16_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m46ea16_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_46ea16_negative_index"
    }
   ],
   "oracle": {
@@ -317,6 +365,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_4b7389_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m4b7389_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_4b7389_negative_index"
    }
   ],
   "oracle": {
@@ -350,6 +406,14 @@
    {
     "path": "tests/test_fl23a_differential.py",
     "test_id": "Fl23aDifferential.test_4ab528_hit_test"
+   },
+   {
+    "path": "tests/fl23a_direct_test.c",
+    "test_id": "test_m4ab528_negative_index"
+   },
+   {
+    "path": "tests/test_fl23a_direct.py",
+    "test_id": "Fl23aDirect.test_4ab528_negative_index"
    }
   ],
   "oracle": {

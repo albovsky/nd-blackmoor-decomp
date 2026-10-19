@@ -195,9 +195,10 @@ int32_t m48a920_hit_test(uint8_t *self, int16_t x, int16_t y, Fl23aWorld *world,
 
 int32_t m48e628_hit_test(uint8_t *self, int16_t x, int16_t y, Fl23aWorld *world, const Fl18Host *host)
 {
-    const uint8_t *o = record_object(world, host, rds16(self, 0x1e));
+    const uint8_t *o;
     int16_t i;
     if (rd32(self, 0x462) == 0) return 0;
+    o = record_object(world, host, rds16(self, 0x1e));   /* the original loads the record dword before the gate but dereferences it only after */
     if (in_rect(o, 0x9e, 0xa6, 0x9a, 0xa2, x, y)) {
         call2(host, 0x48e776, (uintptr_t)self, 0x27b9, 0);
         return 1;
@@ -273,8 +274,9 @@ int32_t m46ea16_hit_test(uint8_t *self, int16_t x, int16_t y, Fl23aWorld *world,
 
 int32_t m4b7389_hit_test(uint8_t *self, int16_t x, int16_t y, Fl23aWorld *world, const Fl18Host *host)
 {
-    const uint8_t *o = record_object(world, host, rds16(self, 0x21));
+    const uint8_t *o;
     if (self[0x35] == 0) return 0;
+    o = record_object(world, host, rds16(self, 0x21));   /* the original loads the record dword before the gate but dereferences it only after */
     if (in_rect(o, 0x3ba, 0x3c2, 0x3b6, 0x3be, x, y)) {
         world->value_5b44f0 = 9;
         world->value_5b44f4 = 1;

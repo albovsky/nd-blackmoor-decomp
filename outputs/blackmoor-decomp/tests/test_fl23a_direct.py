@@ -29,6 +29,14 @@ EXPECTED = [
     'test_m46ea16_hit_test',
     'test_m4b7389_hit_test',
     'test_m4ab528_hit_test',
+    'test_m459cc9_negative_index',
+    'test_m487c92_negative_index',
+    'test_m48a920_negative_index',
+    'test_m48e628_negative_index',
+    'test_m479deb_negative_index',
+    'test_m46ea16_negative_index',
+    'test_m4b7389_negative_index',
+    'test_m4ab528_negative_index',
     # EXPECTED-END
 ]
 
@@ -117,6 +125,38 @@ class Fl23aDirect(unittest.TestCase):
     def test_4ab528_hit_test(self):
         """FL-23a: direct test of m4ab528_hit_test (original 0x4ab528)"""
         self.check('test_m4ab528_hit_test')
+
+    def test_459cc9_negative_index(self):
+        """FL-23a: the record index word of 0x459cc9 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m459cc9_negative_index')
+
+    def test_487c92_negative_index(self):
+        """FL-23a: the record index word of 0x487c92 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m487c92_negative_index')
+
+    def test_48a920_negative_index(self):
+        """FL-23a: the record index word of 0x48a920 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m48a920_negative_index')
+
+    def test_48e628_negative_index(self):
+        """FL-23a: the record index word of 0x48e628 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m48e628_negative_index')
+
+    def test_479deb_negative_index(self):
+        """FL-23a: the record index word of 0x479deb is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m479deb_negative_index')
+
+    def test_46ea16_negative_index(self):
+        """FL-23a: the record index word of 0x46ea16 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m46ea16_negative_index')
+
+    def test_4b7389_negative_index(self):
+        """FL-23a: the record index word of 0x4b7389 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m4b7389_negative_index')
+
+    def test_4ab528_negative_index(self):
+        """FL-23a: the record index word of 0x4ab528 is sign-extended (movsx): 0xffff, 0xfffe, 0x8000, 0x8001 read the records below the table"""
+        self.check('test_m4ab528_negative_index')
 
     # TESTS-END
 
