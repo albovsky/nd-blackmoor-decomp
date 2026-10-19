@@ -1,0 +1,180 @@
+"""FL-27 (batch b) differential tests: the original GAME.EXE bytes (Unicorn) against src/original_methods_fl27b.c on the same generated
+fixtures (tests/fl27b_fixtures.py builds them; the original side is fl27b_fixtures.run_original, the same function that
+tests/fl27b_original_oracle.py uses).
+
+Every case compares all the memory the function can write (the object, the record table, the object of the target record, the
+globals), how many bytes the function popped, and the ordered calls out: callee, ecx, stack arguments (pointers into a fixture are compared
+as the original addresses they stand for; 'word' arguments, which the original pushes from a 16-bit register, by their low 16 bits), the
+state of the object and of the record table at each call, and GetTickCount as an ordered event. The callees are recording stubs; the
+function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function and took both directions of every conditional
+jump of it (fl27b_fixtures.UNTAKEN_ALLOWED lists the one edge that is deliberately not reached, with the reason).
+"""
+import ctypes
+from pathlib import Path
+import random
+import struct
+import sys
+import unittest
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import original_differential as od
+import fl27b_fixtures as fx
+from test_fl_differential import DiffBase, buf, ptr
+
+PROJECT = Path(__file__).resolve().parents[1]
+
+
+class ShimCall24(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_uint32), ('nargs', ctypes.c_int32), ('this_ptr', ctypes.c_uint64), ('arg', ctypes.c_uint64 * 12),
+                ('data', ctypes.c_uint8 * 64), ('probe', ctypes.c_uint8 * 4096), ('world', ctypes.c_uint8 * 256)]
+
+
+@unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
+class Fl27bDifferential(DiffBase):
+    SHIM = PROJECT / 'tests/fl27b_differential_shim.c'
+    KERNELS = ['original_methods_fl27b.c']
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.lib.shim_calls.restype = ctypes.POINTER(ShimCall24)
+        cls.lib.shim_world_size.restype = ctypes.c_size_t
+        cls.lib.shim_script_probe.argtypes = [ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
+        cls.lib.shim_fl27b.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        cls.lib.shim_script_write.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint32]
+        assert cls.lib.shim_world_size() == ctypes.sizeof(fx.World), 'the World mirror does not match Fl27bWorld'
+
+    def native_calls(self, arrays, probe_spec, deref_len):
+        """The shim's call log as comparable lists: [callee, this, *args, probe]; GetTickCount is ['tick', 0]."""
+        spans = [(ctypes.addressof(arr), len(arr), a.va) for a, arr in arrays]
+
+        def va_of(value):
+            for base, length, va in spans:
+                if base <= value < base + length:
+                    return va + (value - base)
+            return fx.LOCAL if value >= 1 << 32 else value
+        calls = self.lib.shim_calls()
+        out = []
+        for i in range(self.lib.shim_call_count()):
+            c = calls[i]
+            entry = [c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(c.nargs)]]
+            for index, (arg, nbytes) in enumerate(deref_len.get(c.id, ())):       # the bytes behind pointer arguments that are host pointers (locals of the function)
+                entry.append(bytes(c.data)[32 * index:32 * index + nbytes] if c.arg[arg] >= 1 << 32 else b'')
+            if c.id in probe_spec:       # one blob, in the order of the stub's probe list: fixture bytes (from the shim's probe buffer) and globals (from the world snapshot)
+                snap, mem, at, parts = bytes(c.world), bytes(c.probe), 0, []
+                for part in probe_spec[c.id]:
+                    if part[0] == 'p':
+                        parts.append(mem[at:at + part[1]])
+                        at += part[1]
+                    else:
+                        parts.append(snap[part[1]:part[1] + part[2]])
+                entry.append(b''.join(parts))
+            out.append(entry)
+        return out
+
+    def pair(self, sc, executed, edges):
+        """Runs the original and the native function on scenario `sc` and compares."""
+        orig, expected, _ = fx.run_original(sc)
+        self.lib.shim_reset()
+        arrays, by_name = [], {}
+        for a in sc.areas:
+            arr = buf(a.data)
+            by_name[a.name] = arr
+            arrays.append((a, arr))
+            self.lib.shim_add_region(a.va, ptr(arr), len(arr))
+        sw = fx.World()
+        for field, value in sc.g.items():
+            setattr(sw, field, value & ((1 << (8 * fx.GLOBALS[field][1])) - 1))
+        for field, (name, offset) in sc.pointers.items():
+            setattr(sw, field, ctypes.cast(ctypes.byref(by_name[name], offset), ctypes.c_void_p).value)
+        probe_spec, deref_len = {}, {}
+        for s in [*sc.stubs.values(), *sc.iat.values()]:
+            for call, arg, offset, size_, value in s.writes:
+                self.lib.shim_script_write(s.name, call, arg, offset, size_, value)
+            for r in (s.results or ([s.result] if s.result else [])):
+                self.lib.shim_script_return(s.name, r)
+            for name, off, ln in (s.probe or ()):
+                if name.startswith('g:'):
+                    probe_spec.setdefault(s.name, []).append(('w', getattr(fx.World, name[2:]).offset, fx.GLOBALS[name[2:]][1]))
+                else:
+                    probe_spec.setdefault(s.name, []).append(('p', ln))
+                    self.lib.shim_script_probe(s.name, ctypes.cast(ctypes.byref(by_name[name], off), ctypes.c_void_p).value, ln)
+            for index, (arg, nbytes) in enumerate(getattr(s, 'derefs', None) or ()):
+                (self.lib.shim_script_deref if index == 0 else self.lib.shim_script_deref2)(s.name, arg, nbytes)
+                deref_len.setdefault(s.name, []).append((arg, nbytes))
+        result = ctypes.c_int32(0)
+        self_ptr = ptr(by_name['self']) if 'self' in by_name else None
+        stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
+        self.lib.shim_fl27b(sc.fn, self_ptr, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result))
+        if fx.SPECS[sc.key].get('ret'):
+            self.assertEqual(result.value & 0xffffffff, orig.eax & 0xffffffff, 'return value')
+        for a, arr in arrays:
+            if a.compare:
+                self.assertEqual(bytes(arr), orig.memory[a.name], '%s %s' % (sc.key, a.name))
+        for field in sc.g:
+            size = fx.GLOBALS[field][1]
+            self.assertEqual(struct.pack(fx.FMT[size], getattr(sw, field) & ((1 << (8 * size)) - 1)), orig.memory['g:' + field], field)
+        actual = self.native_calls(arrays, probe_spec, deref_len)
+        for entry in actual:
+            for index in sc.word_args.get(entry[0], ()):
+                entry[2 + index] &= 0xffff
+        self.assertEqual(actual, expected, '%s scenario profile %s' % (sc.key, sc.profile))
+        executed |= orig.executed
+        edges |= orig.edges
+
+    def run_key(self, key):
+        rng = random.Random(int(key, 16))
+        executed, edges = set(), set()
+        va, size = fx.SPECS[key]['va'], fx.SPECS[key].get('code', fx.SPECS[key]['size'])
+        for n in range(fx.scenarios(key)):
+            self.pair(fx.build(key, rng, n), executed, edges)
+        missing = sorted(od.instruction_addresses(va, size) - executed)
+        self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
+        # both directions of every conditional jump of the original function (the next address after the jump, recorded by the code hook)
+        unexpected, stale, _ = fx.check_edges(key, edges)
+        self.assertEqual(unexpected, [], 'conditional jumps never taken one way (address, direction): %s' % [(hex(a), d) for a, d in unexpected])
+        self.assertEqual(stale, [], 'allowlisted untaken edges that are taken after all (remove them): %s' % [(hex(a), d) for a, d in stale])
+
+    # CASES-BEGIN
+    def test_449bff_resume_thread(self):
+        """FL-27b: differential test of m449bff_resume_thread (original 0x449bff)"""
+        self.run_key('449bff')
+
+    def test_449a94_stop_thread(self):
+        """FL-27b: differential test of m449a94_stop_thread (original 0x449a94)"""
+        self.run_key('449a94')
+
+    def test_4bf773_release_player(self):
+        """FL-27b: differential test of m4bf773_release_player (original 0x4bf773)"""
+        self.run_key('4bf773')
+
+    def test_4161d1_alloc_buffers(self):
+        """FL-27b: differential test of m4161d1_alloc_buffers (original 0x4161d1)"""
+        self.run_key('4161d1')
+
+    def test_4c2c3a_make_record(self):
+        """FL-27b: differential test of m4c2c3a_make_record (original 0x4c2c3a)"""
+        self.run_key('4c2c3a')
+
+    def test_4c0d3f_present_rect(self):
+        """FL-27b: differential test of m4c0d3f_present_rect (original 0x4c0d3f)"""
+        self.run_key('4c0d3f')
+
+    def test_4c5377_blit_rows(self):
+        """FL-27b: differential test of m4c5377_blit_rows (original 0x4c5377)"""
+        self.run_key('4c5377')
+
+    def test_4c04e3_start_movie(self):
+        """FL-27b: differential test of m4c04e3_start_movie (original 0x4c04e3)"""
+        self.run_key('4c04e3')
+
+    def test_415db9_unpack(self):
+        """FL-27b: differential test of m415db9_unpack (original 0x415db9)"""
+        self.run_key('415db9')
+
+    # CASES-END
+
+
+if __name__ == '__main__':
+    unittest.main()
