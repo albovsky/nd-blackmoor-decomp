@@ -59,6 +59,18 @@ static uint32_t call3(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr,
     return callv(host, callee, this_ptr, a, 3);
 }
 
+static uint32_t call4(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3)
+{
+    const uintptr_t a[4] = {a0, a1, a2, a3};
+    return callv(host, callee, this_ptr, a, 4);
+}
+
+/* the object of an original address (an address that an object keeps), as host memory */
+static uint8_t *object_at(const Fl18Host *host, uint32_t address)
+{
+    return (uint8_t *)host->resolve(host->context, address);
+}
+
 /* `imul reg, slot, 0x16` on the sign-extended word, then the table base [self + 0x1c]: the offset of the entry of `slot` */
 static ptrdiff_t entry_off(int32_t slot)
 {
@@ -192,4 +204,123 @@ void m41e0b4_add_slot(uint8_t *self, uint32_t slot, uint32_t id, const Fl18Host 
     }
     wr16(self, entry_off(s), (uint16_t)id);
     wr16(self, 0x68e, (uint16_t)(rd16(self, 0x68e) + 1u));
+}
+
+/* ---- 0x4205c1 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the original address of record `slot` (`movsx eax, word [ebp+8]; imul eax, eax, 0x8d; mov ecx, [eax + 0x5bb5e5]`) */
+static uint32_t record_address(const Fl28bWorld *world, uint32_t slot)
+{
+    return rd32(world->records_5bb5e5, (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)(slot & 0xffffu) * 0x8du));
+}
+
+/* 0x4205c1, thiscall, `ret 4`: see the header. [ebp-0xc] is `self`, [ebp-8] the record address, [ebp-4] the word i, [ebp-0x10] the kind byte. */
+void m4205c1_run_entries(uint8_t *self, uint32_t slot, const Fl28bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec = record_address(world, slot);
+    uint32_t e;
+    int16_t i;
+    uint8_t b;
+    for (i = 0; (int32_t)i < rds16(object_at(host, rec), 0x793); i = (int16_t)(i + 1)) {
+        uint8_t *ent;
+        uint32_t r;
+        e = rd32(object_at(host, rec), 0x795) + (uint32_t)(int32_t)i * 0x1d1u;
+        ent = object_at(host, e);
+        r = call3(host, 0x420737, (uintptr_t)self, rd32(ent, 2), rd16(ent, 0), (uintptr_t)(self + 0x78e));
+        if ((int16_t)r == 0) continue;
+        e = rd32(object_at(host, rec), 0x795) + (uint32_t)(int32_t)i * 0x1d1u;
+        b = object_at(host, e)[0x1b7];
+        if (b == 0) call1(host, 0x41fa11, (uintptr_t)self, e);
+        else if (b == 1) call1(host, 0x41fd08, (uintptr_t)self, e);
+        else if (b == 2) call1(host, 0x42028e, (uintptr_t)self, e);
+    }
+    if (object_at(host, rec)[0x779] != 0x14) call0(host, rd32(self, 0xf23 + 4 * (ptrdiff_t)object_at(host, rec)[0x779]), rec);
+    if (object_at(host, rec)[0x77a] != 0x14) call0(host, rd32(self, 0xf4b + 4 * (ptrdiff_t)object_at(host, rec)[0x77a]), object_at(host, rec)[0x77a]);
+}
+
+/* ---- 0x4209e8 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4209e8, thiscall, `ret 4`: see the header. */
+void m4209e8_run_small_entries(uint8_t *self, uint32_t slot, const Fl28bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec = record_address(world, slot);
+    uint32_t e;
+    int16_t i;
+    for (i = 0; (int32_t)i < rds16(object_at(host, rec), 0x79f); i = (int16_t)(i + 1)) {
+        uint8_t *ent;
+        uint32_t r;
+        uint8_t kind;
+        e = rd32(object_at(host, rec), 0x7a1) + (uint32_t)(int32_t)i * 10u;
+        ent = object_at(host, e);
+        r = call3(host, 0x420737, (uintptr_t)self, rd32(ent, 2), rd16(ent, 0), (uintptr_t)(self + 0x7c0));
+        if ((int16_t)r == 0) continue;
+        e = rd32(object_at(host, rec), 0x7a1) + (uint32_t)(int32_t)i * 10u;
+        ent = object_at(host, e);
+        kind = ent[6];
+        if (kind == 1) {
+            if (world->word_63a4cd != 0) {
+                call4(host, 0x50ca3e, 0, (uintptr_t)(self + 0x1fd1), 0x543b34, (uint32_t)rds16(ent, 7), ent[9]);
+                call1(host, 0x44a2b7, 0, (uintptr_t)(self + 0x1fd1));
+            }
+            ent = object_at(host, e);
+            wr32(world->dwords_585801, 4 * (ptrdiff_t)rds16(ent, 7), ent[9]);
+        } else if (kind == 2) {
+            if (ent[9] == 1) call2(host, 0x4e9e84, 0x571442, rd16(ent, 7), 1);
+            else call1(host, 0x4ea06c, 0x571442, rd16(ent, 7));
+        }
+    }
+}
+
+/* ---- 0x4f6ef4 ------------------------------------------------------------------------------------------------------------------ */
+
+/* The library routine __ftol at 0x50ce04 (called with the value on the x87 stack): fnstcw / fldcw with the rounding control forced to truncation, `fistp qword`, and eax = the low dword of the 64-bit result.
+ * A NaN, an infinity or a value outside the 64-bit range gives the integer indefinite 0x8000000000000000, whose low dword is 0. */
+static uint32_t ftol_low_dword(double value)
+{
+    if (value != value) return 0;
+    if (value >= 9223372036854775808.0 || value < -9223372036854775808.0) return 0;
+    return (uint32_t)(int64_t)value;
+}
+
+/* 0x4f6ef4, thiscall, `ret 4`: see the header. [ebp-0x10] is `self`, [ebp-0xc] the record address, [ebp-8] the value v, [ebp-4] n. */
+uint32_t m4f6ef4_advance_record(uint8_t *self, uint32_t arg, const Fl28bWorld *world, const Fl18Host *host)
+{
+    uint32_t rec, n, v;
+    int32_t low, high;
+    wr32(self, 0x3c2, 0x3e8);
+    rec = rd32(self, 0x3ce) + arg * 0x5bbu;
+    v = 0;
+    if (call0(host, 0x4f709c, (uintptr_t)self) == 0) {
+        wr32(self, 0x3c2, 0x3ea);
+        return 0xffffffffu;
+    }
+    if (rd32(object_at(host, rec), 0x162) == 0 || rd32(object_at(host, rec), 0x28f) == 0) {
+        wr32(self, 0x3c2, 0x3ef);
+        return 0xffffffffu;
+    }
+    if (call1(host, 0x4f6334, (uintptr_t)self, arg) == 0) return 0xffffffffu;
+    n = call1(host, 0x4f81fa, (uintptr_t)self, arg);
+    if (n == 0xffffffffu) {
+        if (world->word_63a4cd != 0) {
+            call4(host, 0x50ca3e, 0, 0x63888b, 0x55e994, arg, rec + 4);
+            call1(host, 0x44a2b7, 0, 0x63888b);
+        }
+        wr32(self, 0x3c2, 0x410);
+        return 0xffffffffu;
+    }
+    if ((int32_t)n > 0) {
+        /* fild dword, fstp dword (a single-precision float each), fld, fdiv in 53-bit precision (control word 0x27f), __ftol */
+        float count = (float)(int32_t)n;
+        float divisor = (float)(int32_t)rd32(object_at(host, rec), 0x176);
+        v = ftol_low_dword((double)count / (double)divisor);
+    } else {
+        v = 0;
+    }
+    low = (int32_t)rd32(object_at(host, rec), 0x182);
+    if ((int32_t)v <= low) v = (uint32_t)low;
+    high = (int32_t)(rd32(object_at(host, rec), 0x17a) - 1u);
+    if (high < (int32_t)v) v = (uint32_t)high;
+    wr32(object_at(host, rec), 0x17e, v);
+    wr32(object_at(host, rec), 0x182, v);
+    return rd32(object_at(host, rec), 0x17e);
 }

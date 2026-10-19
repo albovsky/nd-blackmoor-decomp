@@ -32,6 +32,9 @@ typedef struct Fl28bWorld {
     int16_t word_5bb599, word_5bb595;
     uint32_t value_5bb59b, value_5bb59f, value_5bb5a3, value_5bb1ca, value_583999;
     int16_t word_5b3790, word_5b3792;                                          /* 0x4edfaf: the two extents that centre the rectangle */
+    int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
+    uint8_t *records_5bb5e5;   /* records of stride 0x8d: the dword at +0 is the address of the object of record n (index: a signed word argument) */
+    uint8_t *dwords_585801;    /* 0x4209e8: the base of the dword table 0x585801 (indexed by a signed word, so the host memory must extend below the base too) */
 } Fl28bWorld;
 
 /* 0x41e043, thiscall, plain `ret`, returns ax: the index (a word) of the first free slot, or 0xffff. When the signed word count [+0x68e] is below the signed word capacity
@@ -67,6 +70,29 @@ void m4edfaf_centre_rect(uint8_t *self, uint32_t arg, const Fl28bWorld *world, c
  * three arguments; the first is pushed from `ax` with the upper half of eax left over from the address arithmetic, so only its low 16 bits are defined); any other kind: 0x52139c(0x54384c,
  * 0, 0) and 0x4c97b4(this 0x5cf659). Then word [+0x1c + slot*0x16] = id and the word [+0x68e] is incremented as a word. */
 void m41e0b4_add_slot(uint8_t *self, uint32_t slot, uint32_t id, const Fl18Host *host);
+
+/* 0x4205c1, thiscall, `ret 4`, the stack argument is the word `slot`: runs the entries of the record `slot`. rec = the dword at records_5bb5e5 + (signed slot) * 0x8d (an original address; Fl18Host.resolve
+ * gives its memory). For i = 0 .. (signed word [rec+0x793]) - 1 (a word): e = dword [rec+0x795] + (signed i) * 0x1d1; r = 0x420737(this self, dword [e+2], word [e], self+0x78e) (thiscall, three
+ * arguments; the second is pushed from `cx` with stale upper bits, so only its low word is defined); when the low word of r is zero the entry is skipped, otherwise the byte [e+0x1b7] selects
+ * 0 -> 0x41fa11(this self, e), 1 -> 0x41fd08(this self, e), 2 -> 0x42028e(this self, e) (thiscall, one argument), anything else nothing. The record fields and the array address are read again
+ * after the call. After the loop: b = byte [rec+0x779]; unless it is 0x14: the indirect call [self + b*4 + 0xf23] (ecx = rec, no arguments); c = byte [rec+0x77a]; unless 0x14: [self + c*4 + 0xf4b]
+ * (ecx = c, no arguments). Caller-validated: the entry array must hold the count of entries; the table of the indirect calls must lie inside `self` for the bytes b and c. */
+void m4205c1_run_entries(uint8_t *self, uint32_t slot, const Fl28bWorld *world, const Fl18Host *host);
+
+/* 0x4209e8, thiscall, `ret 4`, the stack argument is the word `slot`: the second entry loop of the record. rec as in 0x4205c1; for i = 0 .. (signed word [rec+0x79f]) - 1 (a word): e = dword [rec+0x7a1] +
+ * (signed i) * 10; r = 0x420737(this self, dword [e+2], word [e], self+0x7c0); the low word of r zero: next entry. Otherwise by the byte [e+6]: 1 -> with the debug word 0x50ca3e(self+0x1fd1,
+ * 0x543b34, signed word [e+7], byte [e+9]) (cdecl, four arguments) and 0x44a2b7(self+0x1fd1); then the dword at dwords_585801 + (signed word [e+7]) * 4 = the byte [e+9]; 2 -> byte [e+9] == 1:
+ * 0x4e9e84(this 0x571442, word [e+7], 1) (the word is pushed from `cx` with stale upper bits), otherwise 0x4ea06c(this 0x571442, word [e+7]); anything else nothing. Caller-validated: the
+ * dword table must hold every index the entries name. */
+void m4209e8_run_small_entries(uint8_t *self, uint32_t slot, const Fl28bWorld *world, const Fl18Host *host);
+
+/* 0x4f6ef4, thiscall, `ret 4`, the stack argument is the dword `arg` (a record number), returns eax: [self+0x3c2] = 0x3e8; rec = dword [self+0x3ce] + arg * 0x5bb (an original address); r = 0x4f709c(this self)
+ * (no arguments); r == 0: [self+0x3c2] = 0x3ea, return 0xffffffff. dword [rec+0x162] == 0 or dword [rec+0x28f] == 0: [self+0x3c2] = 0x3ef, return 0xffffffff. 0x4f6334(this self, arg) == 0: return 0xffffffff
+ * (no store). n = 0x4f81fa(this self, arg); n == -1: with the debug word 0x50ca3e(0x63888b, 0x55e994, arg, rec+4) (cdecl, four arguments) and 0x44a2b7(0x63888b); [self+0x3c2] = 0x410, return
+ * 0xffffffff. Otherwise v = 0 when n <= 0 (signed), else v = __ftol((float)n / (float)(signed dword [rec+0x176])) in 53-bit x87 precision (the quotient of two single-precision floats; __ftol keeps the low dword
+ * of the truncated 64-bit result; NaN, infinity and out-of-range values give 0); v = max(v, [rec+0x182]) then v = min(v, [rec+0x17a] - 1) (both signed); [rec+0x17e] = v, [rec+0x182] = v, and the result
+ * is the dword [rec+0x17e]. Not exercised: a callee that changes the record. */
+uint32_t m4f6ef4_advance_record(uint8_t *self, uint32_t arg, const Fl28bWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

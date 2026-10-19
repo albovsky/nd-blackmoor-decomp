@@ -493,6 +493,145 @@ KEYS = list(SPECS)
 NAMES = {'41e043': 'find_free_slot', '42e493': 'take_pending', '41de29': 'clear_slots', '41e250': 'release_slot', '4edfaf': 'centre_rect', '41e0b4': 'add_slot'}
 
 
+# ---- the record-driven methods (0x4205c1, 0x4209e8, 0x4f6ef4) -----------------------------------------------------------------------------
+
+RECORDS_VA = 0x5bb5e5
+REC_STRIDE = 0x8d
+STUB_T1, STUB_T2 = od.STUB_BASE + 0xa00, od.STUB_BASE + 0xb00         # the indirect-call targets in the tables of `self` (0xf23 and 0xf4b)
+KSET = (0, 1, 5, 0x13, 0x15, 0x7f, 0xff)                               # the table indices (bytes) that the fixtures give a stub
+ZERO_AX = [0, 0x10000, 0xabcd0000]                                     # results with a zero low word (the original tests `movsx eax, ax`)
+NONZERO_AX = [1, 0x8000, 0xffff, 0x12340001, 0xffff8000]
+
+
+def records_area(rng, slot, rec_va):
+    """The table of records of stride 0x8d (one record before and three after the used one so that a negative slot lies inside) whose dword at +0 for `slot` is rec_va."""
+    data = bytearray(rng.randbytes(5 * REC_STRIDE))
+    for i in range(5):
+        put32(data, i * REC_STRIDE, rng.randrange(1 << 32))
+    put32(data, (slot + 1) * REC_STRIDE, rec_va)
+    return Area('records', RECORDS_VA - REC_STRIDE, data, image=True), {'records_5bb5e5': ('records', REC_STRIDE)}
+
+
+def call_results(rng, pattern, count):
+    return [rng.choice(NONZERO_AX) if (pattern >> k) & 1 else rng.choice(ZERO_AX) for k in range(count)]
+
+
+TAILS = [(0x14, 0x14), (0, 0x14), (0x14, 1), (5, 0x13), (0x13, 5), (0x15, 0xff), (0x7f, 0), (1, 0x7f), (0xff, 0x15)]
+
+
+def profiles_4205c1():
+    return [(slot, cnt, pat) for slot in (0, 1, -1, 2) for cnt in (-1, 0, 1, 2, 3, 4) for pat in range(8 if cnt > 0 else 1)]
+
+
+def gen_4205c1(rng, n):
+    (slot, cnt, pat), variant = prof(n, profiles_4205c1())
+    tail = TAILS[(n + variant) % len(TAILS)]
+    selfd = bytearray(rng.randbytes(0x1400))
+    for i, k in enumerate(KSET):
+        put32(selfd, 0xf23 + 4 * k, STUB_T1 + 0x10 * i)
+        put32(selfd, 0xf4b + 4 * k, STUB_T2 + 0x10 * i)
+    rec = bytearray(rng.randbytes(0x800))
+    put16(rec, 0x793, cnt)
+    put32(rec, 0x795, od.region_va(2))
+    rec[0x779], rec[0x77a] = tail
+    ents = bytearray(rng.randbytes(0x800))
+    kinds = [0, 1, 2, 3, 0xff, 2, 1, 0]
+    for k in range(4):
+        ents[k * 0x1d1 + 0x1b7] = kinds[(k + variant * 3 + n) % len(kinds)]
+    recs, pointers = records_area(rng, slot, od.region_va(1))
+    probe = [('self', 0, 0x40)]
+    stubs = {0x420737: stub(0x420737, THISCALL(3), probe, results=call_results(rng, pat, 4)), 0x41fa11: stub(0x41fa11, THISCALL(1), probe),
+             0x41fd08: stub(0x41fd08, THISCALL(1), probe), 0x42028e: stub(0x42028e, THISCALL(1), probe)}
+    for i in range(len(KSET)):
+        stubs[STUB_T1 + 0x10 * i] = stub(STUB_T1 + 0x10 * i, (0, True, 0), probe)
+        stubs[STUB_T2 + 0x10 * i] = stub(STUB_T2 + 0x10 * i, (0, True, 0), probe)
+    WORD_ARGS[0x420737] = (1,)
+    a = word_arg(rng, slot)
+    return make('4205c1', [self_area(selfd), Area('rec', od.region_va(1), rec, image=False), Area('ents', od.region_va(2), ents, image=False), recs],
+                stubs, {}, [a], (a,), (slot, cnt, pat, tail), pointers=pointers)
+
+
+def profiles_4209e8():
+    return [(slot, cnt, pat, dbg) for slot in (0, 2, -1) for cnt in (-1, 0, 1, 2, 3, 5) for pat in range(8 if cnt > 0 else 1) for dbg in ((0, 1) if cnt > 0 else (0,))]
+
+
+def gen_4209e8(rng, n):
+    (slot, cnt, pat, dbg), variant = prof(n, profiles_4209e8())
+    selfd = bytearray(rng.randbytes(0x2100))
+    rec = bytearray(rng.randbytes(0x800))
+    put16(rec, 0x79f, cnt)
+    put32(rec, 0x7a1, od.region_va(2))
+    ents = bytearray(rng.randbytes(0x100))
+    kinds = [1, 2, 0, 3, 0xff, 2, 1, 2]
+    for k in range(5):
+        ents[k * 10 + 6] = kinds[(k + variant * 2 + n) % len(kinds)]
+        ents[k * 10 + 9] = rng.choice([0, 1, 2, 0xff, 1])
+        put16(ents, k * 10 + 7, rng.choice([0, 1, 5, -1, -4, 4, 0xfffe, 3]))
+    tab = bytearray(rng.randbytes(80))
+    recs, pointers = records_area(rng, slot, od.region_va(1))
+    pointers['dwords_585801'] = ('tab', 32)
+    probe = [('self', 0x1f00, 0x100)]
+    stubs = {0x420737: stub(0x420737, THISCALL(3), probe, results=call_results(rng, pat, 5)), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe),
+             0x44a2b7: stub(0x44a2b7, CDECL(1), probe), 0x4e9e84: stub(0x4e9e84, THISCALL(2), probe), 0x4ea06c: stub(0x4ea06c, THISCALL(1), probe)}
+    WORD_ARGS[0x420737] = (1,)
+    WORD_ARGS[0x4e9e84] = (0,)
+    WORD_ARGS[0x4ea06c] = (0,)
+    g, nbr = debug_areas(rng, dbg * rng.choice([1, 0x100, 0x8000]))
+    a = word_arg(rng, slot)
+    return make('4209e8', [self_area(selfd), Area('rec', od.region_va(1), rec, image=False), Area('ents', od.region_va(2), ents, image=False), recs,
+                           Area('tab', 0x585801 - 32, tab, image=True), *nbr], stubs, g, [a], (a,), (slot, cnt, pat, dbg), pointers=pointers)
+
+
+N_VALUES = (1, 2, 3, 7, 100, 0x7fffffff, 0, -2, 0x80000000, 0xfffffffe, 5000)
+D_VALUES = (0, 1, 2, 3, -1, 7, 0x7fffffff, 0x80000000, 1000, 0x1000001)
+LH_VALUES = ((0, 1), (5, 10), (-3, 100), (0x7fffffff, 0x80000000), (0x80000000, 5), (0, 0), (2, 3), (-5, -5), (1, 0x7fffffff))
+
+
+def profiles_4f6ef4():
+    p = [('s709c', r) for r in (0, 1, 0x100)]
+    p += [('s162', 0, 1), ('s162', 1, 0), ('s162', 0, 0), ('s162', 5, 5)]
+    p = [x for x in p]
+    p += [('s6334', r) for r in (0, 1, 0x100)]
+    p += [('nm1', d) for d in (0, 1)]
+    p += [('calc', nn, dd, lo, hi) for nn in N_VALUES for dd in D_VALUES for (lo, hi) in LH_VALUES]
+    return p
+
+
+def gen_4f6ef4(rng, n):
+    (kind, *rest), variant = prof(n, profiles_4f6ef4())
+    arg = rng.choice([0, 1, 2, 0xffffffff, 0x80000000, 3])
+    r709c = rest[0] if kind == 's709c' else rng.choice([1, 0x100, 0xffffffff])
+    f162, f28f = (rest[0], rest[1]) if kind == 's162' else (rng.choice([1, 0x80000000, 0xffffffff]), rng.choice([1, 0x100]))
+    r6334 = rest[0] if kind == 's6334' else rng.choice([1, 0x100, 0xffffffff])
+    nres, divisor, lo, hi = 0xffffffff, rng.choice(D_VALUES), rng.randrange(1 << 32), rng.randrange(1 << 32)
+    dbg = rest[0] if kind == 'nm1' else 0
+    if kind == 'calc':
+        nres, divisor, lo, hi = rest
+    selfd = bytearray(rng.randbytes(0x400))
+    rec_va = od.region_va(1)
+    put32(selfd, 0x3ce, rec_va - arg * 0x5bb)
+    rec = bytearray(rng.randbytes(0x300))
+    put32(rec, 0x162, f162)
+    put32(rec, 0x28f, f28f)
+    put32(rec, 0x176, divisor)
+    put32(rec, 0x17a, hi)
+    put32(rec, 0x182, lo)
+    probe = [('self', 0x3c0, 0x10), ('rec', 0x17a, 0x10)]
+    stubs = {0x4f709c: stub(0x4f709c, THISCALL(0), probe, results=[r709c]), 0x4f6334: stub(0x4f6334, THISCALL(1), probe, results=[r6334]),
+             0x4f81fa: stub(0x4f81fa, THISCALL(1), probe, results=[nres]), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe)}
+    g, nbr = debug_areas(rng, dbg * rng.choice([1, 0x100, 0x8000]))
+    return make('4f6ef4', [self_area(selfd), Area('rec', rec_va, rec, image=False), *nbr], stubs, g, [arg], (arg,), (kind, *rest))
+
+
+SPECS.update({
+    '4205c1': dict(id=7, va=0x4205c1, size=374, gen=gen_4205c1, cleanup=4, n=len(profiles_4205c1()) * 3),
+    '4209e8': dict(id=8, va=0x4209e8, size=438, gen=gen_4209e8, cleanup=4, n=len(profiles_4209e8()) * 2),
+    '4f6ef4': dict(id=9, va=0x4f6ef4, size=424, gen=gen_4f6ef4, cleanup=4, ret=True, fpcw=0x27f, n=len(profiles_4f6ef4())),
+})
+KEYS = list(SPECS)
+NAMES.update({'4205c1': 'run_entries', '4209e8': 'run_small_entries', '4f6ef4': 'advance_record'})
+
+
 def build(key, rng, n):
     return SPECS[key]['gen'](rng, n)
 

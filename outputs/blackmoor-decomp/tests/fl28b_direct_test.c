@@ -17,7 +17,7 @@ static char g_msg[256];
         }                                                                      \
     } while (0)
 
-#define SELF_SZ 0x1000
+#define SELF_SZ 0x2200
 #define SNAP 0x700
 static uint8_t g_self[SELF_SZ], g_exp[SELF_SZ];
 static Fl28bWorld g_w;
@@ -42,9 +42,22 @@ static struct {
     } c[MAXCALL];
 } L;
 static struct {
-    uint32_t callee, result;
-} S[4];
+    uint32_t callee, results[8];
+    int n, used;
+} S[8];
 static int g_nscript;
+static void script(uint32_t callee, int n, const uint32_t *results)
+{
+    int i;
+    S[g_nscript].callee = callee;
+    S[g_nscript].n = n;
+    S[g_nscript].used = 0;
+    for (i = 0; i < n; i++) S[g_nscript].results[i] = results[i];
+    g_nscript++;
+}
+#define REC_VA 0x20010000u
+#define ENT_VA 0x20020000u
+static uint8_t g_rec[0x900], g_ents[0x800], g_records[5 * 0x8d], g_tab[96];
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
@@ -60,14 +73,18 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     }
     L.n++;
     for (k = 0; k < g_nscript; k++)
-        if (S[k].callee == callee) result = S[k].result;
+        if (S[k].callee == callee && S[k].n > 0) {
+            result = S[k].results[S[k].used < S[k].n ? S[k].used : S[k].n - 1];
+            S[k].used++;
+        }
     return result;
 }
 
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
 {
     (void)ctx;
-    (void)a;
+    if (a >= REC_VA && a < REC_VA + sizeof g_rec) return g_rec + (a - REC_VA);
+    if (a >= ENT_VA && a < ENT_VA + sizeof g_ents) return g_ents + (a - ENT_VA);
     return NULL;
 }
 
@@ -76,6 +93,12 @@ static void setup(void)
     size_t b;
     for (b = 0; b < SELF_SZ; b++) g_self[b] = (uint8_t)(b * 7 + 3);
     memset(&g_w, 0, sizeof g_w);
+    memset(g_rec, 0, sizeof g_rec);
+    memset(g_ents, 0, sizeof g_ents);
+    memset(g_records, 0, sizeof g_records);
+    memset(g_tab, 0, sizeof g_tab);
+    g_w.records_5bb5e5 = g_records + 0x8d;
+    g_w.dwords_585801 = g_tab + 32;
     memset(&g_host, 0, sizeof g_host);
     g_host.call = host_call;
     g_host.resolve = host_resolve;
@@ -423,6 +446,198 @@ static void test_m41e0b4_add_slot(void)
     CK(get16(g_self, 6) == 4);
 }
 
+
+/* ---- the record-driven methods ---------------------------------------------------------------------------------------------------- */
+static void rec_set32(size_t off, uint32_t v) { memcpy(g_rec + off, &v, 4); }
+static void rec_set16(size_t off, uint16_t v) { memcpy(g_rec + off, &v, 2); }
+static void ent_set32(size_t off, uint32_t v) { memcpy(g_ents + off, &v, 4); }
+static void ent_set16(size_t off, uint16_t v) { memcpy(g_ents + off, &v, 2); }
+static void set_record(int slot) { memcpy(g_records + 0x8d + (ptrdiff_t)slot * 0x8d, &(uint32_t){REC_VA}, 4); }
+
+static void test_m4205c1_run_entries(void)
+{
+    const uint32_t res[3] = {0x12340001u, 0x10000u, 0x8000u};
+    setup();
+    set_record(1);
+    rec_set16(0x793, 3);
+    rec_set32(0x795, ENT_VA);
+    g_rec[0x779] = 5;
+    g_rec[0x77a] = 0x14;
+    ent_set16(0, 0xaaa1); ent_set32(2, 0x11111111u); g_ents[0x1b7] = 0;
+    ent_set16(0x1d1, 0xaaa2); ent_set32(0x1d1 + 2, 0x22222222u); g_ents[0x1d1 + 0x1b7] = 1;
+    ent_set16(2 * 0x1d1, 0xaaa3); ent_set32(2 * 0x1d1 + 2, 0x33333333u); g_ents[2 * 0x1d1 + 0x1b7] = 2;
+    set32(0xf23 + 4 * 5, 0x7e000a00u);
+    script(0x420737, 3, res);
+    begin();
+    m4205c1_run_entries(g_self, 0x99990001u, &g_w, &g_host);     /* slot 1 (the upper half is ignored) */
+    end();
+    CK(L.n == 6);
+    CKC0(5, 0x7e000a00u, REC_VA);                                /* the tail: byte 0x779 = 5 */
+    CKC(0, 0x420737, (uintptr_t)g_self, 3, 0x11111111u, 0xaaa1, (uintptr_t)(g_self + 0x78e));
+    CKC(1, 0x41fa11, (uintptr_t)g_self, 1, ENT_VA);
+    CKC(2, 0x420737, (uintptr_t)g_self, 3, 0x22222222u, 0xaaa2, (uintptr_t)(g_self + 0x78e));    /* result 0x10000: its low word is zero, the entry is skipped */
+    CKC(3, 0x420737, (uintptr_t)g_self, 3, 0x33333333u, 0xaaa3, (uintptr_t)(g_self + 0x78e));
+    CKC(4, 0x42028e, (uintptr_t)g_self, 1, ENT_VA + 2 * 0x1d1);
+    /* the tail: byte 0x779 = 5 calls [self + 0xf23 + 20] with ecx = the record; byte 0x77a = 0x14 is skipped */
+    setup();
+    set_record(0);
+    rec_set16(0x793, 0);
+    g_rec[0x779] = 5;
+    g_rec[0x77a] = 0xff;
+    set32(0xf23 + 4 * 5, 0x7e000a00u);
+    set32(0xf4b + 4 * 0xff, 0x7e000b00u);
+    m4205c1_run_entries(g_self, 0, &g_w, &g_host);
+    CK(L.n == 2);
+    CKC0(0, 0x7e000a00u, REC_VA);
+    CKC0(1, 0x7e000b00u, 0xff);                                  /* ecx = the byte */
+    /* kind 1 -> 0x41fd08, kind 3 -> nothing, count -1 -> no loop */
+    setup();
+    set_record(2);
+    rec_set16(0x793, 2);
+    rec_set32(0x795, ENT_VA);
+    g_rec[0x779] = 0x14;
+    g_rec[0x77a] = 0x14;
+    g_ents[0x1b7] = 1;
+    g_ents[0x1d1 + 0x1b7] = 3;
+    script(0x420737, 1, (const uint32_t[]){0xffffffffu});
+    m4205c1_run_entries(g_self, 2, &g_w, &g_host);
+    CK(L.n == 3);
+    CKC(1, 0x41fd08, (uintptr_t)g_self, 1, ENT_VA);
+    rec_set16(0x793, 0xffff);
+    L.n = 0;
+    m4205c1_run_entries(g_self, 2, &g_w, &g_host);
+    CK(L.n == 0);
+    set_record(-1);                                             /* slot -1 is the record before the table base */
+    rec_set16(0x793, 1);
+    L.n = 0;
+    m4205c1_run_entries(g_self, 0xffff, &g_w, &g_host);
+    CK(L.n == 2 && L.c[0].callee == 0x420737);
+}
+
+static void test_m4209e8_run_small_entries(void)
+{
+    const uint32_t res[3] = {1, 0, 0x8000};
+    uint32_t v;
+    setup();
+    set_record(1);
+    rec_set16(0x79f, 4);
+    rec_set32(0x7a1, ENT_VA);
+    ent_set16(0, 0x0a01); ent_set32(2, 0xc0de0001u); g_ents[6] = 1; ent_set16(7, 0xfffe); g_ents[9] = 0xab;      /* store 0xab into table[-2] */
+    ent_set16(10, 0x0a02); ent_set32(12, 0xc0de0002u); g_ents[16] = 2; ent_set16(17, 0x105); g_ents[19] = 1;       /* result 0: skipped */
+    ent_set16(20, 0x0a03); ent_set32(22, 0xc0de0003u); g_ents[26] = 2; ent_set16(27, 0x106); g_ents[29] = 0xff;   /* 0x4ea06c */
+    ent_set16(30, 0x0a04); ent_set32(32, 0xc0de0004u); g_ents[36] = 3; ent_set16(37, 3); g_ents[39] = 1;          /* nothing */
+    g_w.word_63a4cd = 0;
+    script(0x420737, 3, res);
+    memset(g_tab, 0x5a, sizeof g_tab);
+    m4209e8_run_small_entries(g_self, 1, &g_w, &g_host);
+    memcpy(&v, g_tab + 32 - 8, 4);
+    CK(v == 0xab);
+    CK(g_tab[32 - 8 + 4] == 0x5a && g_tab[32 - 9] == 0x5a);       /* only the one dword is written */
+    CK(L.n == 5);
+    CKC(0, 0x420737, (uintptr_t)g_self, 3, 0xc0de0001u, 0x0a01, (uintptr_t)(g_self + 0x7c0));
+    CKC(1, 0x420737, (uintptr_t)g_self, 3, 0xc0de0002u, 0x0a02, (uintptr_t)(g_self + 0x7c0));
+    CKC(2, 0x420737, (uintptr_t)g_self, 3, 0xc0de0003u, 0x0a03, (uintptr_t)(g_self + 0x7c0));
+    CKC(3, 0x4ea06c, 0x571442, 1, 0x106);
+    CKC(4, 0x420737, (uintptr_t)g_self, 3, 0xc0de0004u, 0x0a04, (uintptr_t)(g_self + 0x7c0));   /* kind 3: nothing after it */
+    /* with the debug word: kind 1 reports first; byte 1 in kind 2 -> 0x4e9e84(word, 1) */
+    setup();
+    set_record(0);
+    rec_set16(0x79f, 2);
+    rec_set32(0x7a1, ENT_VA);
+    ent_set32(2, 1); g_ents[6] = 1; ent_set16(7, 0xfffd); g_ents[9] = 0x80;
+    ent_set32(12, 2); g_ents[16] = 2; ent_set16(17, 0x107); g_ents[19] = 1;
+    g_w.word_63a4cd = (int16_t)0x8000;
+    script(0x420737, 1, (const uint32_t[]){5});
+    m4209e8_run_small_entries(g_self, 0, &g_w, &g_host);
+    CK(L.n == 5);
+    CKC(1, 0x50ca3e, 0, 4, (uintptr_t)(g_self + 0x1fd1), 0x543b34, 0xfffffffdu, 0x80);
+    CKC(2, 0x44a2b7, 0, 1, (uintptr_t)(g_self + 0x1fd1));
+    CKC(4, 0x4e9e84, 0x571442, 2, 0x107, 1);
+    memcpy(&v, g_tab + 32 - 12, 4);
+    CK(v == 0x80);
+    setup();                                                    /* a negative count: no entry */
+    set_record(0);
+    rec_set16(0x79f, 0x8000);
+    m4209e8_run_small_entries(g_self, 0, &g_w, &g_host);
+    CK(L.n == 0);
+}
+
+static void rec_prep(uint32_t arg, uint32_t n_result, uint32_t divisor, uint32_t lo, uint32_t hi)
+{
+    setup();
+    set32(0x3ce, REC_VA - arg * 0x5bbu);
+    rec_set32(0x162, 1);
+    rec_set32(0x28f, 1);
+    rec_set32(0x176, divisor);
+    rec_set32(0x17a, hi);
+    rec_set32(0x182, lo);
+    script(0x4f709c, 1, (const uint32_t[]){1});
+    script(0x4f6334, 1, (const uint32_t[]){1});
+    script(0x4f81fa, 1, &n_result);
+}
+
+static uint32_t rec_get(size_t off)
+{
+    return get32(g_rec, off);
+}
+
+static void test_m4f6ef4_advance_record(void)
+{
+    uint32_t r;
+    rec_prep(2, 0xffffffffu, 1, 0, 1);
+    script(0x4f709c, 1, (const uint32_t[]){0});
+    r = m4f6ef4_advance_record(g_self, 2, &g_w, &g_host);
+    CK(r == 0xffffffffu && get32(g_self, 0x3c2) == 0x3ea && L.n == 1);
+    CKC0(0, 0x4f709c, (uintptr_t)g_self);
+    rec_prep(2, 1, 1, 0, 1);
+    rec_set32(0x162, 0);
+    r = m4f6ef4_advance_record(g_self, 2, &g_w, &g_host);
+    CK(r == 0xffffffffu && get32(g_self, 0x3c2) == 0x3ef && L.n == 1);
+    rec_prep(2, 1, 1, 0, 1);
+    rec_set32(0x28f, 0);
+    r = m4f6ef4_advance_record(g_self, 2, &g_w, &g_host);
+    CK(r == 0xffffffffu && get32(g_self, 0x3c2) == 0x3ef && L.n == 1);
+    rec_prep(2, 1, 1, 0, 1);
+    S[1].results[0] = 0;
+    r = m4f6ef4_advance_record(g_self, 2, &g_w, &g_host);
+    CK(r == 0xffffffffu && get32(g_self, 0x3c2) == 0x3e8 && L.n == 2);
+    CKC(1, 0x4f6334, (uintptr_t)g_self, 1, 2);
+    rec_prep(0xffffffffu, 0xffffffffu, 1, 0, 1);               /* arg -1: rec = base - 0x5bb */
+    r = m4f6ef4_advance_record(g_self, 0xffffffffu, &g_w, &g_host);
+    CK(r == 0xffffffffu && get32(g_self, 0x3c2) == 0x410 && L.n == 3);
+    CKC(2, 0x4f81fa, (uintptr_t)g_self, 1, 0xffffffffu);
+    rec_prep(2, 0xffffffffu, 1, 0, 1);
+    g_w.word_63a4cd = 1;
+    r = m4f6ef4_advance_record(g_self, 2, &g_w, &g_host);
+    CK(L.n == 5);
+    CKC(3, 0x50ca3e, 0, 4, 0x63888b, 0x55e994, 2, REC_VA + 4);
+    CKC(4, 0x44a2b7, 0, 1, 0x63888b);
+    /* the quotient and the clamps: (n, divisor, low, high) -> value */
+    rec_prep(0, 7, 2, 0, 10);
+    r = m4f6ef4_advance_record(g_self, 0, &g_w, &g_host);
+    CK(r == 3 && rec_get(0x17e) == 3 && rec_get(0x182) == 3 && L.n == 3 && get32(g_self, 0x3c2) == 0x3e8);     /* 3.5 truncates to 3 */
+    rec_prep(0, 100, 3, 5, 10);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 9);   /* 33 -> min(33, 10 - 1) */
+    rec_prep(0, 1, 100, 4, 100);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 4);   /* 0 -> max(0, 4) */
+    rec_prep(0, 0, 5, 0xfffffffdu, 100);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 0);   /* n == 0: v = 0; signed low -3 */
+    rec_prep(0, 0xfffffffbu, 5, 2, 100);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 2);   /* n = -5: v = 0 -> max(0, 2) */
+    rec_prep(0, 5, 0, 2, 100);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 2);   /* 5 / 0 = infinity -> the indefinite integer, low dword 0 -> max(0, 2) */
+    rec_prep(0, 0x7fffffffu, 1, 0x80000000u, 0);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 0x80000000u);   /* float(2147483647) = 2^31: low dword 0x80000000, signed lowest, high -1 does not clamp */
+    rec_prep(0, 6, 0xfffffffdu, 0xfffffffbu, 100);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 0xfffffffeu);   /* 6 / -3 = -2 */
+    rec_prep(0, 16777217u, 1, 0, 0x7fffffffu);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 0x1000000u);    /* 2^24 + 1 is rounded to 2^24 by the single-precision store */
+    rec_prep(0, 3, 1, 0, 0);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 0xffffffffu);   /* high = 0 - 1 = -1 < 3 */
+    rec_prep(0, 9, 1, 9, 10);
+    CK(m4f6ef4_advance_record(g_self, 0, &g_w, &g_host) == 9);             /* v == low: the same */
+}
+
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
 static void test_sweep_bounded(void)
 {
@@ -450,6 +665,38 @@ static void test_sweep_bounded(void)
         m41de29_clear_slots(g_self, &g_host);
         L.n = 0;
     }
+    for (n = 0; n < 300 && !g_failed; n++) {       /* the record-driven methods: random records, counts up to four, indices inside the dword table */
+        uint32_t results[2];
+        setup();
+        for (i = 0; i < (int)sizeof g_rec; i++) { seed = seed * 1103515245u + 12345u; g_rec[i] = (uint8_t)(seed >> 16); }
+        for (i = 0; i < (int)sizeof g_ents; i++) { seed = seed * 1103515245u + 12345u; g_ents[i] = (uint8_t)(seed >> 16); }
+        for (i = 0; i < SELF_SZ; i++) { seed = seed * 1103515245u + 12345u; g_self[i] = (uint8_t)(seed >> 16); }
+        seed = seed * 1103515245u + 12345u;
+        set_record((int)(seed >> 20) % 3);
+        rec_set16(0x793, (uint16_t)((seed >> 8) % 5));
+        rec_set16(0x79f, (uint16_t)((seed >> 11) % 5));
+        rec_set32(0x795, ENT_VA);
+        rec_set32(0x7a1, ENT_VA);
+        g_rec[0x779] = (uint8_t)((seed & 1) ? 0x14 : 5);
+        g_rec[0x77a] = (uint8_t)((seed & 2) ? 0x14 : 0xff);
+        set32(0xf23 + 4 * 5, 0x7e000a00u);
+        set32(0xf4b + 4 * 0xff, 0x7e000b00u);
+        for (i = 0; i < 5; i++) ent_set16(10 * (size_t)i + 7, (uint16_t)((seed >> i) % 16 - 8));
+        results[0] = seed;
+        results[1] = seed >> 3;
+        script(0x420737, 2, results);
+        g_w.word_63a4cd = (int16_t)(seed >> 9);
+        m4205c1_run_entries(g_self, (uint32_t)((int)(seed >> 20) % 3), &g_w, &g_host);
+        m4209e8_run_small_entries(g_self, (uint32_t)((int)(seed >> 20) % 3), &g_w, &g_host);
+        L.n = 0;
+        set32(0x3ce, REC_VA - 1u * 0x5bbu);
+        rec_set32(0x162, 1);
+        rec_set32(0x28f, 1);
+        script(0x4f709c, 1, (const uint32_t[]){1});
+        script(0x4f6334, 1, (const uint32_t[]){1});
+        script(0x4f81fa, 1, &results[0]);
+        m4f6ef4_advance_record(g_self, 1, &g_w, &g_host);
+    }
     CK(1);
 }
 
@@ -471,6 +718,9 @@ int main(void)
     RUN(test_m41e250_release_slot);
     RUN(test_m4edfaf_centre_rect);
     RUN(test_m41e0b4_add_slot);
+    RUN(test_m4205c1_run_entries);
+    RUN(test_m4209e8_run_small_entries);
+    RUN(test_m4f6ef4_advance_record);
     RUN(test_sweep_bounded);
     return failures;
 }
