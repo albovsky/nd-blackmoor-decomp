@@ -110,7 +110,7 @@ class Fl24bDifferential(DiffBase):
         rng = random.Random(int(key, 16))
         executed = set()
         va, size = fx.SPECS[key]['va'], fx.SPECS[key].get('code', fx.SPECS[key]['size'])
-        for n in range(fx.SCENARIOS):
+        for n in range(fx.scenarios(key)):
             self.pair(fx.build(key, rng, n), executed)
         missing = sorted(od.instruction_addresses(va, size) - executed)
         self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])

@@ -19,6 +19,7 @@ TEST_C = PROJECT / 'tests/fl24b_direct_test.c'
 KERNELS = ['original_methods_fl24b.c']
 EXPECTED = [
     'test_m4dad60_init_swap_buttons',
+    'test_m466073_click_27d2_27d3',
     # EXPECTED-END
 ]
 

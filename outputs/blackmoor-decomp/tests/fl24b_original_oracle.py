@@ -32,13 +32,13 @@ def main():
         rng = random.Random(int(key, 16))
         executed = set()
         chain = hashlib.sha256()
-        for n in range(fx.SCENARIOS):
+        for n in range(fx.scenarios(key)):
             orig, _, digest = fx.run_original(fx.build(key, rng, n))
             executed |= orig.executed
             chain.update(digest.encode())
         total = od.instruction_addresses(spec['va'], spec.get('code', spec['size']))
         missing = sorted(total - executed)
-        print('0x%x instructions %d/%d scenarios %d digest %s' % (spec['va'], len(total) - len(missing), len(total), fx.SCENARIOS, chain.hexdigest()))
+        print('0x%x instructions %d/%d scenarios %d digest %s' % (spec['va'], len(total) - len(missing), len(total), fx.scenarios(key), chain.hexdigest()))
         if missing:
             print('  never executed: %s' % ' '.join(hex(a) for a in missing[:16]), file=sys.stderr)
             status = 1

@@ -28,11 +28,14 @@ typedef struct Fl24bWorld {
     uint32_t value_5c39e5;     /* the selector (the event) that the handler dispatches on */
     uint32_t value_5bb1ca;     /* a flag: non-zero = compare a record field with a constant and maybe announce it through 0x4fb2e3 */
     uint8_t value_58321d, value_58321e;
+    const uint8_t *bytes_54b54c;   /* the nine bytes at 0x54b54c (0x466073) */
     /* FL24B-WORLD-END */
 } Fl24bWorld;
 
 /* 0x4dad60: constructor-style init of a 0x28-byte object (stores, then GetSystemMetrics(0x17) through the import slot 0x52a498) */
 void m4dad60_init_swap_buttons(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
+/* 0x466073: events 0x27d3 and 0x27d2 (the second switches on the word [+0x28], 1 to 4, then compares the 49-byte copy of a record field) */
+void m466073_click_27d2_27d3(uint8_t *self, Fl24bWorld *world, const Fl18Host *host);
 /* FL24B-PROTOS-END */
 
 #ifdef __cplusplus

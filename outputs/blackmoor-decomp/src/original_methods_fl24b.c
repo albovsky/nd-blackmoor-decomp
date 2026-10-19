@@ -135,4 +135,59 @@ void m4dad60_init_swap_buttons(uint8_t *self, Fl24bWorld *world, const Fl18Host 
     wr32(self, 0x1c, 0);
 }
 
+/* ---- 0x466073 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x466073, thiscall, plain `ret`: guards [+0x49] != 0, byte [+0x4e] == 0 and the state of the record of the word [+0x1e]; event 0x27d3
+ * sets the byte [+0x4d] and the state 2; event 0x27d2 switches on the signed word [+0x28] - 1 (unsigned compare with 3; jump table at
+ * 0x466237: word 1 -> 0x466131, 2 -> 0x4661aa, 3 -> 0x4661d9, 4 -> 0x466164), each arm copies 49 bytes of the record's object into a
+ * local (rep movsd x12 + movsb) and the common tail compares the first nine bytes of the local with the constant at 0x54b54c when the
+ * flag 0x5bb1ca is set, announcing the word at local+0x21 through 0x4fb2e3 (this 0x5c3a67) when they differ. The out-of-range arm leaves
+ * the local uninitialised (zero here). */
+void m466073_click_27d2_27d3(uint8_t *self, Fl24bWorld *world, const Fl18Host *host)
+{
+    uint8_t local[0x31];
+    uint32_t rec_obj, k;
+    memset(local, 0, sizeof local);
+    rec_obj = record_object_address(world, self, 0x1e);
+    if (rd32(self, 0x49) == 0) return;
+    if (self[0x4e] != 0) return;
+    if (!record_state_is_1(world, self, 0x1e)) return;
+    if (world->value_5c39e5 == 0x27d3) {
+        self[0x4d] = 1;
+        set_record_state_2(world, self, 0x1e);
+        return;
+    }
+    if (world->value_5c39e5 != 0x27d2) return;
+    k = (uint32_t)(rds16(self, 0x28) - 1);
+    switch (k) {
+    case 0:   /* 0x466131 */
+        self[0x3e] = (uint8_t)(self[0x3e] == 0);
+        self[0x42] = 1;
+        memcpy(local, object_at(host, rec_obj + 0x43e), sizeof local);
+        break;
+    case 3:   /* 0x466164 */
+        if (rds16(self, 0x2c) < 3) {
+            wr16(self, 0x2c, (uint16_t)(rd16(self, 0x2c) + 1));
+        } else {
+            self[0x41] = 1;
+            wr16(self, 0x2c, 0);
+        }
+        memcpy(local, object_at(host, rec_obj + 0x46f), sizeof local);
+        break;
+    case 1:   /* 0x4661aa */
+        wr16(self, 0x2a, (uint16_t)(rd16(self, 0x2a) - 1));
+        memcpy(local, object_at(host, rec_obj + 0x40d), sizeof local);
+        self[0x3f] = 1;
+        break;
+    case 2:   /* 0x4661d9 */
+        wr16(self, 0x2a, (uint16_t)(rd16(self, 0x2a) + 1));
+        memcpy(local, object_at(host, rec_obj + 0x40d), sizeof local);
+        self[0x40] = 1;
+        break;
+    default:  /* 0x466206 with an uninitialised local */
+        break;
+    }
+    if (world->value_5bb1ca != 0 && !nine_bytes_equal(local, world->bytes_54b54c)) call1(host, 0x4fb2e3, 0x5c3a67, rd16(local, 0x21));
+}
+
 /* FL24B-END */

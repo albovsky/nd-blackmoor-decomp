@@ -31,6 +31,12 @@ static char g_msg[256];
 
 static void set32(uint8_t *o, size_t off, uint32_t v) { memcpy(o + off, &v, 4); }
 static void set16(uint8_t *o, size_t off, uint16_t v) { memcpy(o + off, &v, 2); }
+static uint16_t get16x(const uint8_t *o, size_t off)
+{
+    uint16_t v;
+    memcpy(&v, o + off, 2);
+    return v;
+}
 static uint32_t get32(const uint8_t *o, size_t off)
 {
     uint32_t v;
@@ -191,12 +197,163 @@ static int test_m4dad60_init_swap_buttons(void)
     return g_failed;
 }
 
+/* 0x466073: gates [+0x49] != 0 (dword), byte [+0x4e] == 0, the state of the record of the signed word [+0x1e] == 1, then the selector. */
+static void setup_466073(uint32_t sel, int idx, int sw)
+{
+    base(sel, idx, 0x1e);
+    set32(fx.self, 0x49, 0x01000000u);
+    fx.self[0x4e] = 0;
+    set16(fx.self, 0x28, (uint16_t)sw);
+    fx.w.value_5bb1ca = 0;
+    fx.w.bytes_54b54c = consts[0];
+    memcpy(consts[0], "ABCDEFGHI", 9);
+}
+
+/* the common tail: with the flag set, a copy (49 bytes of obj at `off`) whose first nine bytes differ from the constant at byte `diff`
+ * (-1: equal) announces the word at copy+0x21 */
+static void tail_466073(int sw, size_t off, int idx, int flag, int diff)
+{
+    setup_466073(0x27d2, idx, sw);
+    set16(fx.self, 0x2c, 1);
+    fx.self[0x3e] = 0;
+    fx.w.value_5bb1ca = flag ? 0x100u : 0;
+    memcpy(fx.obj + off, "ABCDEFGHI", 9);
+    if (diff >= 0) fx.obj[off + (size_t)diff] ^= 0x40;
+    fx.obj[off + 0x21] = 0x34;
+    fx.obj[off + 0x22] = 0x92;
+    fx.obj[off + 0x23] = 0xee;
+    begin();
+    if (sw == 1) { X8(0x3e, 1); X8(0x42, 1); }
+    if (sw == 4) { X16(0x2c, 2); }
+    if (sw == 2) { X16(0x2a, (uint16_t)(get16x(fx.self, 0x2a) - 1)); X8(0x3f, 1); }
+    if (sw == 3) { X16(0x2a, (uint16_t)(get16x(fx.self, 0x2a) + 1)); X8(0x40, 1); }
+    m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+    check_mem();
+    if (flag && diff >= 0) {
+        CK(L.n == 1);
+        check_call(0, 0x4fb2e3, 0x5c3a67, 1);
+        check_arg(0, 0, 0x9234, 0xffff);       /* the word at copy+0x21, not the byte after it */
+    } else {
+        CK(L.n == 0);
+    }
+}
+
+static int test_m466073_click_27d2_27d3(void)
+{
+    static const int idxs[2] = {2, -1};
+    static const int sws[] = {1, 2, 3, 4};
+    static const uint32_t sels[] = {0x27d3, 0x27d2, 0x2711, 0};
+    int ii, k, v, s, d, f;
+    g_failed = 0;
+    g_msg[0] = 0;
+    for (ii = 0; ii < 2; ii++) {
+        int idx = idxs[ii];
+        /* the guard matrix: every guard failing in turn, every selector, no effect */
+        for (s = 0; s < 4; s++)
+            for (k = 0; k < 3; k++)
+                for (v = 0; v < 6; v++) {
+                    setup_466073(sels[s], idx, 1);
+                    if (k == 0) set32(fx.self, 0x49, 0);
+                    if (k == 1) fx.self[0x4e] = (uint8_t[]){1, 0x80, 0xff, 0x7f, 2, 0x55}[v];
+                    if (k == 2) {
+                        int i;
+                        for (i = -1; i <= 4; i++)
+                            set32(fx.tab, (size_t)(i + 1) * REC + 0x4d, i == idx ? (uint32_t[]){0, 2, 3, 0xffffffffu, 0x101, 0x10001}[v] : 1u);
+                    }
+                    fx.w.value_5bb1ca = 1;
+                    begin();
+                    m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+                    check_mem();
+                    CK(L.n == 0);
+                }
+        /* a high-byte only [+0x49] (0x01000000) passes; an unrelated selector with every guard passing does nothing */
+        setup_466073(0x2711, idx, 1);
+        fx.w.value_5bb1ca = 1;
+        begin();
+        m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+        check_mem();
+        CK(L.n == 0);
+        /* 0x27d3: byte [+0x4d] = 1 and the state of the record 2 */
+        setup_466073(0x27d3, idx, 1);
+        fx.w.value_5bb1ca = 1;
+        begin();
+        X8(0x4d, 1);
+        set32(xt, (size_t)(idx + 1) * REC + 0x4d, 2);
+        m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+        check_mem();
+        CK(L.n == 0);
+        /* 0x27d2: out-of-range words fall to the tail with the local not written (nothing changes; flag clear: no call) */
+        for (v = 0; v < 6; v++) {
+            setup_466073(0x27d2, idx, (int[]){0, 5, -1, -32768, 0x7fff, 0x100}[v]);
+            begin();
+            m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+            check_mem();
+            CK(L.n == 0);
+        }
+        /* the four arms, the flag clear and set, the nine-byte compare at every byte position and equal */
+        for (s = 0; s < 4; s++) {
+            size_t off = sws[s] == 1 ? 0x43e : sws[s] == 4 ? 0x46f : 0x40d;
+            for (f = 0; f < 2; f++)
+                for (d = -1; d < 9; d++) tail_466073(sws[s], off, idx, f, d);
+        }
+        /* word 1 toggles the byte [+0x3e] both ways; word 4 counts [+0x2c] up to 3 and then wraps with [+0x41] set */
+        for (v = 0; v < 3; v++) {
+            setup_466073(0x27d2, idx, 1);
+            fx.self[0x3e] = (uint8_t[]){0, 1, 0x80}[v];
+            begin();
+            X8(0x3e, v == 0 ? 1 : 0);
+            X8(0x42, 1);
+            m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+            check_mem();
+        }
+        for (v = 0; v < 7; v++) {
+            int16_t w2c = (int16_t[]){0, 2, 3, 4, -1, -32768, 0x7fff}[v];
+            setup_466073(0x27d2, idx, 4);
+            set16(fx.self, 0x2c, (uint16_t)w2c);
+            begin();
+            if (w2c < 3) X16(0x2c, (uint16_t)(w2c + 1));
+            else { X8(0x41, 1); X16(0x2c, 0); }
+            m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+            check_mem();
+        }
+        /* words 2 and 3 wrap [+0x2a] at the word boundaries */
+        for (v = 0; v < 4; v++) {
+            uint16_t w2a = (uint16_t[]){0, 0xffff, 0x8000, 0x7fff}[v];
+            setup_466073(0x27d2, idx, 2);
+            set16(fx.self, 0x2a, w2a);
+            begin();
+            X16(0x2a, (uint16_t)(w2a - 1));
+            X8(0x3f, 1);
+            m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+            check_mem();
+            setup_466073(0x27d2, idx, 3);
+            set16(fx.self, 0x2a, w2a);
+            begin();
+            X16(0x2a, (uint16_t)(w2a + 1));
+            X8(0x40, 1);
+            m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+            check_mem();
+        }
+    }
+    /* the state of the call: at the call the object has all its stores done */
+    setup_466073(0x27d2, 2, 4);
+    fx.w.value_5bb1ca = 1;
+    set16(fx.self, 0x2c, 9);
+    memset(fx.obj + 0x46f, 'z', 9);
+    m466073_click_27d2_27d3(fx.self, &fx.w, &fx.host);
+    CK(L.n == 1 && L.c[0].snap_self[0x41] == 1 && L.c[0].snap_self[0x2c] == 0 && L.c[0].snap_self[0x2d] == 0);
+    if (g_failed) printf("FAIL test_m466073_click_27d2_27d3: %s\n", g_msg);
+    else printf("PASS test_m466073_click_27d2_27d3\n");
+    return g_failed;
+}
+
 /* FL24B-TESTS-END */
 
 int main(void)
 {
     int failures = 0;
     failures += test_m4dad60_init_swap_buttons();
+    failures += test_m466073_click_27d2_27d3();
     /* FL24B-MAIN-END */
     return failures;
 }
