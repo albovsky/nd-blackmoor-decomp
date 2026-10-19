@@ -496,6 +496,48 @@ static void test_m4befc8_bink_do_frame(void)
     }
 }
 
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+/* 0x4bef11: 0x4bf38c(self); handle 0 -> [self+0x2c0] = -3, return -3; else [self+0x2c4] = mode, _BinkGoto(handle, mode == 1 ? [handle+8] : 1, 0), return 0 */
+
+static void test_m4bef11_bink_goto(void)
+{
+    static const uint32_t OTHER_MODES[] = {0, 2, 3, 0x100, 0x101, 0x10000, 0x01000000u, 0x80000000u, 0xffffffffu};
+    size_t i;
+    setup();
+    expect_begin();
+    CK(m4bef11_bink_goto(fx.self, 0, 1, &fx.host) == -3);               /* the mode is not stored */
+    CK(L.n == 1);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    set32(exp_self, 0x2c0, 0xfffffffdu);
+    expect_end();
+    setup();                                                            /* mode 1: the frame count of the handle */
+    set32(fx.a, 0x18, 0x00000abcu);                                      /* handle = VA_A + 0x10: [handle + 8] */
+    set32(fx.a, 0x14, 0xdeadbeefu);
+    expect_begin();
+    CK(m4bef11_bink_goto(fx.self, VA_A + 0x10, 1, &fx.host) == 0);
+    CK(L.n == 2);
+    ck_call(0, 0x4bf38c, (uintptr_t)fx.self, 0);
+    ck_call(1, 0x52a530, 0, 3);
+    ck_arg(1, 0, VA_A + 0x10);
+    ck_arg(1, 1, 0xabc);
+    ck_arg(1, 2, 0);
+    CK(get32(L.c[1].snap_self, 0x2c4) == 1);                             /* stored before the import */
+    set32(exp_self, 0x2c4, 1);
+    expect_end();
+    for (i = 0; i < sizeof OTHER_MODES / sizeof OTHER_MODES[0]; i++) {
+        setup();
+        expect_begin();
+        CK(m4bef11_bink_goto(fx.self, VA_A + 0x10, OTHER_MODES[i], &fx.host) == 0);
+        CK(L.n == 2);
+        ck_call(1, 0x52a530, 0, 3);
+        ck_arg(1, 0, VA_A + 0x10);
+        ck_arg(1, 1, 1);
+        ck_arg(1, 2, 0);
+        set32(exp_self, 0x2c4, OTHER_MODES[i]);
+        expect_end();
+    }
+}
+
 /*TESTS*/
 
 /* --------------------------------------------------------------------------------------------------------------------------------- */
@@ -532,6 +574,7 @@ static void test_sweep(void)
         (void)m4bef85_bink_wait(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4bee5f_bink_summary(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
         (void)m4befc8_bink_do_frame(fx.self, rnd() % 2 ? VA_A : 0, &fx.host);
+        (void)m4bef11_bink_goto(fx.self, rnd() % 2 ? VA_A : 0, rnd() % 3, &fx.host);
         /*SWEEP*/
     }
     CK(1);
@@ -550,6 +593,7 @@ static const struct {
     {"test_m4bef85_bink_wait", test_m4bef85_bink_wait},
     {"test_m4bee5f_bink_summary", test_m4bee5f_bink_summary},
     {"test_m4befc8_bink_do_frame", test_m4befc8_bink_do_frame},
+    {"test_m4bef11_bink_goto", test_m4bef11_bink_goto},
     /*CASELIST*/
     {"test_sweep_bounded", test_sweep},
 };

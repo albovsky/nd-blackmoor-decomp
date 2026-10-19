@@ -82,6 +82,11 @@ uint8_t *m4bee5f_bink_summary(uint8_t *self, uint32_t handle, const Fl18Host *ho
  * [self + 0x2c0] = 0xfffffffd, returns [self + 0xbc] (0); otherwise [self + 0xbc] = _BinkDoFrame@4 (import 0x52a528) and returns it. */
 int32_t m4befc8_bink_do_frame(uint8_t *self, uint32_t handle, const Fl18Host *host);
 
+/* 0x4bef11: thiscall, `ret 8` (handle, mode; only the handle is read through resolve, 12 bytes, and only for mode 1): calls 0x4bf38c
+ * (this = self); handle zero: [self + 0x2c0] = 0xfffffffd, returns -3; otherwise [self + 0x2c4] = mode; mode 1: _BinkGoto@12 (import
+ * 0x52a530: handle, [handle + 8], 0); any other mode (a dword compare): _BinkGoto@12(handle, 1, 0); returns 0. */
+int32_t m4bef11_bink_goto(uint8_t *self, uint32_t handle, uint32_t mode, const Fl18Host *host);
+
 /*DECLS*/
 
 #ifdef __cplusplus

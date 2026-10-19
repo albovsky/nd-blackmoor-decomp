@@ -27,6 +27,7 @@ EXPECTED = [
     'test_m4bef85_bink_wait',
     'test_m4bee5f_bink_summary',
     'test_m4befc8_bink_do_frame',
+    'test_m4bef11_bink_goto',
     # EXPECTED-END
     'test_sweep_bounded',
 ]
@@ -108,6 +109,10 @@ class Fl27aDirect(unittest.TestCase):
     def test_4befc8_bink_do_frame(self):
         """FL-27a: direct test of m4befc8_bink_do_frame"""
         self.check('test_m4befc8_bink_do_frame')
+
+    def test_4bef11_bink_goto(self):
+        """FL-27a: direct test of m4bef11_bink_goto"""
+        self.check('test_m4bef11_bink_goto')
 
     # CASES-END
 

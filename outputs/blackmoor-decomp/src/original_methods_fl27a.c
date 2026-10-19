@@ -190,4 +190,26 @@ int32_t m4befc8_bink_do_frame(uint8_t *self, uint32_t handle, const Fl18Host *ho
     return (int32_t)rd32(self, 0xbc);
 }
 
+/* ---- 0x4bef11 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x4bef11, thiscall, `ret 8` (handle, mode): calls 0x4bf38c (this = self); with a zero handle stores [self + 0x2c0] = 0xfffffffd and
+ * returns 0xfffffffd; otherwise [self + 0x2c4] = mode and, reading it back (a dword compare with 1): mode 1 calls _BinkGoto@12 (import
+ * 0x52a530: handle, the dword [handle + 8], 0), any other mode calls it with (handle, 1, 0); returns 0 (the import's result is ignored).
+ * The handle is read through Fl18Host.resolve (12 bytes) for mode 1 only. */
+int32_t m4bef11_bink_goto(uint8_t *self, uint32_t handle, uint32_t mode, const Fl18Host *host)
+{
+    uintptr_t args[3];
+    call0(host, 0x4bf38c, (uintptr_t)self);
+    if (handle == 0) {
+        wr32(self, 0x2c0, 0xfffffffdu);
+        return (int32_t)0xfffffffd;
+    }
+    wr32(self, 0x2c4, mode);
+    args[0] = handle;
+    args[1] = rd32(self, 0x2c4) != 1 ? 1 : rd32(mem_at(host, handle), 8);
+    args[2] = 0;
+    if (host->call != NULL) host->call(host->context, 0x52a530, 0, args, 3);
+    return 0;
+}
+
 /*NEXT*/

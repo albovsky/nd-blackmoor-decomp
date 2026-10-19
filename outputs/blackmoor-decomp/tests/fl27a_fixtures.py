@@ -420,6 +420,25 @@ def gen_4befc8(rng, n):
 
 SPECS['4befc8'] = dict(id=9, va=0x4befc8, size=92, gen=gen_4befc8, ret=0xffffffff, cleanup=4, n=27)
 
+def gen_4bef11(rng, n):
+    """null handle -> error code, -3 returned; else [self+0x2c4] = mode; mode 1 goes to the frame count [handle+8], every other mode (dword
+    compare: 0x101, 0x10000, ...) to frame 1."""
+    modes = (0, 1, 2, 3, 0x100, 0x101, 0x10000, 0x01000000, 0x80000000, 0xffffffff)
+    profiles = [('null', 5)] + [('mode', m) for m in modes]
+    (kind, *rest), variant = prof(n, profiles)
+    d = junk_self(rng)
+    obj = bink_area(rng)
+    hoff = rng.choice([0, 4, 0x20])
+    handle = 0 if kind == 'null' else od.region_va(1) + hoff
+    mode = rest[0]
+    put32(obj, hoff + 8, rng.choice([0, 1, 2, 0x7fffffff, 0x80000000, 0xffffffff, rng.randrange(1 << 32)]))
+    stubs = {0x4bf38c: stub(0x4bf38c, results=[rng.randrange(1 << 32)]), 0x52a530: stub(0x52a530, results=[rng.randrange(1 << 32)])}
+    areas = [Area('self', od.region_va(0), d, image=False), Area('bink', od.region_va(1), obj, image=False)]
+    return make('4bef11', areas, stubs, {}, [handle, mode], (handle, mode), (kind, *rest), probes=[('self', 0, 0x300)])
+
+
+SPECS['4bef11'] = dict(id=10, va=0x4bef11, size=116, gen=gen_4bef11, ret=0xffffffff, cleanup=8, n=33)
+
 KEYS = list(SPECS)
 
 
