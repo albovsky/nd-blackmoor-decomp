@@ -23,6 +23,11 @@ FL30_UNUSED static int32_t rds16(const uint8_t *base, ptrdiff_t off)
     return (int16_t)rd16(base, off);
 }
 
+static void wr16(uint8_t *base, ptrdiff_t off, uint16_t v)
+{
+    memcpy(base + off, &v, sizeof v);
+}
+
 static void wr32(uint8_t *base, ptrdiff_t off, uint32_t v)
 {
     memcpy(base + off, &v, sizeof v);
@@ -295,5 +300,113 @@ void m41b6e2_lz_decode(const uint8_t *src, uint8_t *dst, uint32_t srclen, uint32
                 r = (r + 1) & 0xfff;
             }
         }
+    }
+}
+
+/* ---- 0x4763b3 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the cell of the grid at self + 0x30: rows of 0xc8 bytes, cells of 0x14 bytes (the row and the column are 32-bit values as the original multiplies them) */
+#define CELL(self, row, col) ((self) + 0x30 + (ptrdiff_t)(int32_t)(row) * 0xc8 + (ptrdiff_t)(int32_t)(col) * 0x14)
+
+static void add_score(uint8_t *self, const uint8_t *rec, ptrdiff_t cells_off, ptrdiff_t thousands_off)
+{
+    wr32(self, 0x8c2, rd32(self, 0x8c2) + (uint32_t)rds16(rec, cells_off));
+    wr32(self, 0x8c6, rd32(self, 0x8c6) + (uint32_t)(rds16(rec, thousands_off) * 1000));
+}
+
+/* 0x4763b3, thiscall: see the header. [ebp-0x14] is `self`, [ebp-4] rec, [ebp-0xc] ref, [ebp-0x10] the flag byte, [ebp-8] k. */
+void m4763b3_mark_runs(uint8_t *self, uint32_t x, uint32_t y, const Fl30cWorld *world, const Fl18Host *host)
+{
+    uint8_t *rec = object_at(host, rd32(world->records_5bb5e5, (ptrdiff_t)rds16(self, 0x22) * 0x8d));
+    int32_t ref;
+    int flag;
+    int16_t k;
+    if (rec == NULL) return;                                    /* NATIVE REJECTION */
+    if (world->word_63a4cd != 0) {
+        call4(host, 0x50ca3e, 0, 0x63888b, 0x54c868, y, x);
+        call1(host, 0x44a2b7, 0, 0x63888b);
+    }
+    self[0x8d6] = 0;
+    self[0x8d7] = 0;
+    ref = rds16(CELL(self, y, x), 2);
+    wr16(self, 0x8ce, (uint16_t)y);
+    for (flag = 1; flag;) {
+        if (rds16(self, 0x8ce) == 0) {
+            flag = 0;
+        } else {
+            wr16(self, 0x8ce, (uint16_t)(rd16(self, 0x8ce) - 1));
+            if (ref != rds16(CELL(self, rds16(self, 0x8ce), x), 2)) {
+                flag = 0;
+                wr16(self, 0x8ce, (uint16_t)(rd16(self, 0x8ce) + 1));
+            }
+        }
+    }
+    wr16(self, 0x8d0, (uint16_t)y);
+    for (flag = 1; flag;) {
+        if (rds16(self, 0x8d0) == rds16(rec, 0x42) - 1) {
+            flag = 0;
+        } else {
+            wr16(self, 0x8d0, (uint16_t)(rd16(self, 0x8d0) + 1));
+            if (ref != rds16(CELL(self, rds16(self, 0x8d0), x), 2)) {
+                flag = 0;
+                wr16(self, 0x8d0, (uint16_t)(rd16(self, 0x8d0) - 1));
+            }
+        }
+    }
+    wr16(self, 0x8d2, (uint16_t)x);
+    for (flag = 1; flag;) {
+        if (rds16(self, 0x8d2) == 0) {
+            flag = 0;
+        } else {
+            wr16(self, 0x8d2, (uint16_t)(rd16(self, 0x8d2) - 1));
+            if (ref != rds16(CELL(self, y, rds16(self, 0x8d2)), 2)) {
+                flag = 0;
+                wr16(self, 0x8d2, (uint16_t)(rd16(self, 0x8d2) + 1));
+            }
+        }
+    }
+    wr16(self, 0x8d4, (uint16_t)x);
+    for (flag = 1; flag;) {
+        if (rds16(self, 0x8d4) == rds16(rec, 0x44) - 1) {
+            flag = 0;
+        } else {
+            wr16(self, 0x8d4, (uint16_t)(rd16(self, 0x8d4) + 1));
+            if (ref != rds16(CELL(self, y, rds16(self, 0x8d4)), 2)) {
+                flag = 0;
+                wr16(self, 0x8d4, (uint16_t)(rd16(self, 0x8d4) - 1));
+            }
+        }
+    }
+    if (rds16(self, 0x8d0) - rds16(self, 0x8ce) >= 2) {
+        self[0x8d6] = 1;
+        for (k = (int16_t)rd16(self, 0x8ce); k <= rds16(self, 0x8d0); k = (int16_t)(k + 1)) {
+            CELL(self, k, x)[1] = 1;
+            wr32(self, 0x8c2, rd32(self, 0x8c2) + (uint32_t)rds16(rec, 0x644));
+        }
+        if (rds16(self, 0x8d4) - rds16(self, 0x8d2) == 2) {
+            wr32(self, 0x8c6, rd32(self, 0x8c6) + (uint32_t)(rds16(rec, 0x656) * 1000));
+        } else if (rds16(self, 0x8d0) - rds16(self, 0x8ce) == 3) {
+            add_score(self, rec, 0x658, 0x65a);
+        } else if (rds16(self, 0x8d0) - rds16(self, 0x8ce) == 4) {
+            add_score(self, rec, 0x65c, 0x65e);
+        }
+        call3(host, 0x50ca3e, 0, (uintptr_t)(self + 0x835), 0x54c898, rd32(self, 0x8c2));
+        self[0x801] = 1;
+    }
+    if (rds16(self, 0x8d4) - rds16(self, 0x8d2) >= 2) {
+        self[0x8d7] = 1;
+        for (k = (int16_t)rd16(self, 0x8d2); k <= rds16(self, 0x8d4); k = (int16_t)(k + 1)) {
+            CELL(self, y, k)[1] = 1;
+            wr32(self, 0x8c2, rd32(self, 0x8c2) + (uint32_t)rds16(rec, 0x644));
+        }
+        if (rds16(self, 0x8d4) - rds16(self, 0x8d2) == 2) {
+            wr32(self, 0x8c6, rd32(self, 0x8c6) + (uint32_t)(rds16(rec, 0x656) * 1000));
+        } else if (rds16(self, 0x8d4) - rds16(self, 0x8d2) == 3) {
+            add_score(self, rec, 0x658, 0x65a);
+        } else if (rds16(self, 0x8d4) - rds16(self, 0x8d2) == 4) {
+            add_score(self, rec, 0x65c, 0x65e);
+        }
+        call3(host, 0x50ca3e, 0, (uintptr_t)(self + 0x835), 0x54c89c, rd32(self, 0x8c2));
+        self[0x801] = 1;
     }
 }

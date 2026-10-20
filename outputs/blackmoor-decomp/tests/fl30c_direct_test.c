@@ -377,6 +377,99 @@ static void test_m41b6e2_lz_decode(void)
     CK(memcmp(dst, "AB", 2) == 0 && dst[2] == 0x77 && ring[0xff0] == 0x5a);
 }
 
+/* ---- 0x4763b3 ---- */
+#define CELL4(row, col) ((size_t)0x30 + (size_t)(row) * 0xc8 + (size_t)(col) * 0x14)
+static void clear_grid(uint8_t *p, uint16_t fill)
+{
+    int r, c;
+    for (r = 0; r < 5; r++)
+        for (c = 0; c < 6; c++) set16(p, CELL4(r, c) + 2, fill);
+}
+
+static void setup_4763b3(uint8_t *self, uint8_t *rec, uint8_t *records)
+{
+    memset(self, 0, 0x1000);
+    memset(rec, 0, 0x800);
+    memset(records, 0, 5 * 0x8d);
+    reset();
+    set16(self, 0x22, 1);
+    set32(records, 0x8d, 0x20010000u);
+    region(0x20010000u, rec, 0x800);
+    g_w.records_5bb5e5 = records;
+    set16(rec, 0x42, 5);
+    set16(rec, 0x44, 6);
+    clear_grid(self, 9);
+}
+
+static void test_m4763b3_mark_runs(void)
+{
+    static uint8_t self[0x1000], rec[0x800], records[5 * 0x8d];
+    int r, c;
+    /* x = 2, y = 2, ref 7; vertical run rows 1..3 of column 2 (row 0 and 4 differ), row 2 has 8 beside the cell: v = 2, h = 0. Block 1 only: rows 1..3 marked, +3 * 5, no 0x8c6 change,
+     * then 0x50ca3e(self + 0x835, 0x54c898, 115) and byte 0x801 = 1 */
+    setup_4763b3(self, rec, records);
+    set16(rec, 0x644, 5);
+    set32(self, 0x8c2, 100);
+    set32(self, 0x8c6, 77);
+    self[0x8d7] = 0x55;
+    for (r = 1; r <= 3; r++) set16(self, CELL4(r, 2) + 2, 7);
+    set16(self, CELL4(2, 1) + 2, 8);
+    set16(self, CELL4(2, 3) + 2, 8);
+    m4763b3_mark_runs(self, 2, 2, &g_w, &g_host);
+    CK(get16(self, 0x8ce) == 1 && get16(self, 0x8d0) == 3 && get16(self, 0x8d2) == 2 && get16(self, 0x8d4) == 2);
+    CK(self[0x8d6] == 1 && self[0x8d7] == 0 && get32(self, 0x8c2) == 115 && get32(self, 0x8c6) == 77 && self[0x801] == 1);
+    for (r = 0; r < 5; r++)
+        for (c = 0; c < 6; c++) CK(self[CELL4(r, c) + 1] == ((c == 2 && r >= 1 && r <= 3) ? 1 : 0));
+    CK(L.n == 1 && L.c[0].callee == 0x50ca3e && L.c[0].this_ptr == 0 && L.c[0].nargs == 3 && L.c[0].a[0] == (uintptr_t)(self + 0x835) && L.c[0].a[1] == 0x54c898 && L.c[0].a[2] == 115);
+    /* horizontal run cols 2..4 of row 2 (col 1 and col 5 differ, rows 1 and 3 of column 2 differ): v = 0, h = 2: block 2 only: marks, +3 * 5, 0x8c6 += (-2) * 1000, text 0x54c89c; with the debug word */
+    setup_4763b3(self, rec, records);
+    g_w.word_63a4cd = 0x100;
+    set16(rec, 0x644, 5);
+    set16(rec, 0x656, 0xfffe);
+    set32(self, 0x8c2, 100);
+    set32(self, 0x8c6, 77);
+    for (c = 2; c <= 4; c++) set16(self, CELL4(2, c) + 2, 7);
+    m4763b3_mark_runs(self, 3, 2, &g_w, &g_host);
+    CK(get16(self, 0x8d2) == 2 && get16(self, 0x8d4) == 4 && get16(self, 0x8ce) == 2 && get16(self, 0x8d0) == 2);
+    CK(self[0x8d6] == 0 && self[0x8d7] == 1 && get32(self, 0x8c2) == 115 && get32(self, 0x8c6) == 77u - 2000u && self[0x801] == 1);
+    for (r = 0; r < 5; r++)
+        for (c = 0; c < 6; c++) CK(self[CELL4(r, c) + 1] == ((r == 2 && c >= 2 && c <= 4) ? 1 : 0));
+    CK(L.n == 3 && L.c[0].callee == 0x50ca3e && L.c[0].nargs == 4 && L.c[0].a[0] == 0x63888b && L.c[0].a[1] == 0x54c868 && L.c[0].a[2] == 2 && L.c[0].a[3] == 3);
+    CK(L.c[1].callee == 0x44a2b7 && L.c[1].nargs == 1 && L.c[1].a[0] == 0x63888b);
+    CK(L.c[2].callee == 0x50ca3e && L.c[2].nargs == 3 && L.c[2].a[0] == (uintptr_t)(self + 0x835) && L.c[2].a[1] == 0x54c89c && L.c[2].a[2] == 115);
+    /* v = 3 from the top edge (rows 0..3 of column 2; x = 2, y = 1), h = 0: block 1: +4 * 5, then (h != 2) v == 3: 0x8c2 += word 0x658 (0x8000 = -32768), 0x8c6 += 3 * 1000 */
+    setup_4763b3(self, rec, records);
+    set16(rec, 0x644, 5);
+    set16(rec, 0x658, 0x8000);
+    set16(rec, 0x65a, 3);
+    set16(rec, 0x65c, 11);
+    set32(self, 0x8c2, 100);
+    for (r = 0; r <= 3; r++) set16(self, CELL4(r, 2) + 2, 7);
+    m4763b3_mark_runs(self, 2, 1, &g_w, &g_host);
+    CK(get16(self, 0x8ce) == 0 && get16(self, 0x8d0) == 3 && self[0x8d6] == 1 && self[0x8d7] == 0);
+    CK(get32(self, 0x8c2) == 100u + 20u - 32768u && get32(self, 0x8c6) == 3000u && L.n == 1 && L.c[0].a[2] == 100u + 20u - 32768u);
+    /* v = 4 (rows 0..4: the bottom edge, rows - 1 = 4) and h = 4 (cols 0..4 of row 2; the left edge: the scan ends at 0): block 1: v != 2.. -> h == 2 no, v == 3 no, v == 4: words 0x65c, 0x65e;
+     * block 2: h == 4: the same words again; two texts */
+    setup_4763b3(self, rec, records);
+    set16(rec, 0x644, 1);
+    set16(rec, 0x65c, 11);
+    set16(rec, 0x65e, 2);
+    set32(self, 0x8c2, 0);
+    for (r = 0; r <= 4; r++) set16(self, CELL4(r, 2) + 2, 7);
+    for (c = 0; c <= 4; c++) set16(self, CELL4(2, c) + 2, 7);
+    m4763b3_mark_runs(self, 2, 2, &g_w, &g_host);
+    CK(get16(self, 0x8ce) == 0 && get16(self, 0x8d0) == 4 && get16(self, 0x8d2) == 0 && get16(self, 0x8d4) == 4);
+    /* block 1: 5 cells (+5), then +11, 0x8c6 = 2000; block 2: 5 cells (+5), +11, 0x8c6 = 4000 */
+    CK(get32(self, 0x8c2) == 32 && get32(self, 0x8c6) == 4000);
+    CK(L.n == 2 && L.c[0].a[1] == 0x54c898 && L.c[0].a[2] == 16 && L.c[1].a[1] == 0x54c89c && L.c[1].a[2] == 32);
+    /* the record cannot be resolved: native rejection, nothing is written and nothing is called */
+    setup_4763b3(self, rec, records);
+    g_nregion = 0;
+    self[0x8d6] = 0x33;
+    m4763b3_mark_runs(self, 2, 2, &g_w, &g_host);
+    CK(self[0x8d6] == 0x33 && self[0x801] == 0 && L.n == 0);
+}
+
 /* TESTS-END */
 
 /* ---- the bounded sweep: every port on random in-bounds buffers (meant for the sanitiser builds) ---- */
@@ -419,6 +512,20 @@ static void test_sweep_bounded(void)
             g_w.ring_56f354 = lring;
             m41b6e2_lz_decode(lsrc, ldst, rnd() % 40, 0, &g_w);
         }
+        /* 0x4763b3 */
+        {
+            static uint8_t sp[0x1000], sr[0x800], sreg[5 * 0x8d];
+            for (k = 0; k < (int)sizeof sp; k++) sp[k] = (uint8_t)(rnd() % 3);
+            memset(sreg, 0, sizeof sreg);
+            set16(sp, 0x22, 1);
+            set32(sreg, 0x8d, 0x20010000u);
+            memset(sr, 0, sizeof sr);
+            set16(sr, 0x42, 5);
+            set16(sr, 0x44, 6);
+            region(0x20010000u, sr, sizeof sr);
+            g_w.records_5bb5e5 = sreg;
+            m4763b3_mark_runs(sp, rnd() % 6, rnd() % 5, &g_w, &g_host);
+        }
         /* SWEEP-END */
     }
 }
@@ -443,6 +550,7 @@ int main(void)
     RUN(test_m43d7f0_init_scenes);
     RUN(test_m434025_scan_entries);
     RUN(test_m41b6e2_lz_decode);
+    RUN(test_m4763b3_mark_runs);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

@@ -82,6 +82,10 @@ class Fl30cDirect(unittest.TestCase):
         """FL-30c: direct test of m41b6e2_lz_decode (original 0x41b6e2)"""
         self.check('test_m41b6e2_lz_decode')
 
+    def test_4763b3_mark_runs(self):
+        """FL-30c: direct test of m4763b3_mark_runs (original 0x4763b3)"""
+        self.check('test_m4763b3_mark_runs')
+
     # CASES-END
 
     def test_sweep_bounded(self):

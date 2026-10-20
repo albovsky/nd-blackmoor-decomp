@@ -160,6 +160,10 @@ class Fl30cDifferential(DiffBase):
         """FL-30c: differential test of m41b6e2_lz_decode (original 0x41b6e2)"""
         self.run_key('41b6e2')
 
+    def test_4763b3_mark_runs(self):
+        """FL-30c: differential test of m4763b3_mark_runs (original 0x4763b3)"""
+        self.run_key('4763b3')
+
     # TESTS-END
 
 

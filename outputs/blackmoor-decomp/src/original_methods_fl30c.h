@@ -26,6 +26,7 @@ typedef struct Fl30cWorld {
     uint8_t byte_5b5158, byte_5b51ab, byte_5b51c6, byte_5b615e, byte_5b61af, byte_5b51f6;
     uint32_t value_5d1a8f, value_5d1ad9, value_5d1b23, value_5d1bb7, value_5d1c01, value_5d1b6d;
     uint8_t *ring_56f354;      /* 0x41b6e2: host memory of the 0x1000-byte ring buffer at 0x56f354 */
+    uint8_t *records_5bb5e5;   /* 0x4763b3: host memory of the records of stride 0x8d at 0x5bb5e5 (the dword at +0 is the address of the object of record n) */
 } Fl30cWorld;
 
 /* 0x4fcb5c, thiscall (`self` = ecx), `ret 4`, the stack argument `idx` is a signed dword: the float table at self + 0xb764 (indexed by idx) holds a master volume per category.
@@ -65,6 +66,22 @@ void m434025_scan_entries(uint8_t *self, const Fl18Host *host);
  * ring[(pos + k) & 0xfff]; dst[out++] = b; ring[r] = b; r = (r + 1) & 0xfff. Not bounds checked, as in the original: `dst` must hold the whole output (up to 18 bytes per two source bytes) and `src` srclen bytes; a
  * srclen the source never reaches (the test is an equality) reads on; the caller validates. */
 void m41b6e2_lz_decode(const uint8_t *src, uint8_t *dst, uint32_t srclen, uint32_t unused, const Fl30cWorld *world);
+
+/* 0x4763b3, thiscall (`self` = ecx), `ret 8`, two stack dwords: `x` (column) then `y` (row) of a cell (the first and the second argument of the prototype: [ebp+8] and [ebp+0xc]). Marks the run of equal
+ * cells through (x, y) of the grid at self + 0x30 (rows of 0xc8 bytes, cells of 0x14 bytes; the word at cell+2 is the value, the byte at cell+1 the mark). rec = dword [0x5bb5e5 + (signed word [self+0x22]) * 0x8d] (an
+ * original address; its dword is resolved by Fl18Host.resolve); rows = signed word [rec+0x42], columns = signed word [rec+0x44]. A non-zero debug word 0x63a4cd: 0x50ca3e(0x63888b, 0x54c868, y, x) (cdecl,
+ * four arguments) and 0x44a2b7(0x63888b) (cdecl, one). Then: bytes [self+0x8d6] = [self+0x8d7] = 0; ref = the word at cell (x, y) + 2; four scans over the words of self (each flag loop is the
+ * original's `byte flag = 1; while (flag)`): word [self+0x8ce] = y, then while the word is not 0: it is decremented and, when the value of cell (x, that row) differs from ref, incremented back and the scan ends (the top
+ * of the vertical run); word [self+0x8d0] = y, then while the word != rows - 1 (signed): incremented, and when the cell differs decremented back and the scan ends (the bottom); [self+0x8d2] = x, then while != 0:
+ * decremented, back on a mismatch (the left end, cells (column, y)); [self+0x8d4] = x, then while != columns - 1: incremented, back on a mismatch (the right end). Vertical length v = [8d0] - [8ce] (signed
+ * words), horizontal length h = [8d4] - [8d2]. v >= 2: byte [self+0x8d6] = 1; for k = [8ce] while (signed word) k <= [8d0]: byte [cell (x, k) + 1] = 1 and dword [self+0x8c2] += signed word [rec+0x644]; then
+ * (the original tests the HORIZONTAL length here, as written) h == 2: dword [self+0x8c6] += signed word [rec+0x656] * 1000; otherwise v == 3: [8c2] += word [rec+0x658], [8c6] += word [rec+0x65a] * 1000; otherwise
+ * v == 4: [8c2] += word [rec+0x65c], [8c6] += word [rec+0x65e] * 1000. Then 0x50ca3e(self + 0x835, 0x54c898, dword [self+0x8c2]) (cdecl, three arguments) and byte [self+0x801] = 1. Independently h >= 2: byte
+ * [self+0x8d7] = 1; for k = [8d2] while k <= [8d4]: byte [cell (k, y) + 1] = 1 and [8c2] += word [rec+0x644]; h == 2: [8c6] += word [rec+0x656] * 1000; h == 3: [8c2] += word [rec+0x658], [8c6] += word
+ * [rec+0x65a] * 1000; h == 4: [8c2] += word [rec+0x65c], [8c6] += word [rec+0x65e] * 1000; 0x50ca3e(self + 0x835, 0x54c89c, [8c2]); byte [self+0x801] = 1. Not bounds checked, as in the original: the scans
+ * end only on the conditions above (a start outside the grid runs on until a word wraps); the caller passes a cell inside the grid. NATIVE REJECTION (not original behaviour): when Fl18Host.resolve gives NULL
+ * for the record the function returns at once without any effect. */
+void m4763b3_mark_runs(uint8_t *self, uint32_t x, uint32_t y, const Fl30cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

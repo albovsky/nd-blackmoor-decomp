@@ -140,6 +140,7 @@ CDECL = lambda n: (n, False, 0)
 STDCALL = lambda n: (n, False, 4 * n)
 THISCALL = lambda n: (n, True, 4 * n)
 WORD_ARGS = {}
+TRIM = {}     # callee -> function(logged stack dwords) -> the dwords that the call really passes (a stub that serves calls of two arities logs the larger count)
 DBG_VALUES = (0, 1, 0x8000, 0x100, 0xffff)      # the debug word 0x63a4cd: every non-zero value is on
 
 
@@ -267,6 +268,8 @@ def normalize(calls, stubs, iat, word_args):
         entry = [call[0], call[1] if s.this else 0]
         rest = list(call[2 if s.this else 1:])
         probe = rest.pop() if getattr(s, 'probe_addr', None) else None
+        if call[0] in TRIM:
+            rest = TRIM[call[0]](rest)
         derefs = [rest.pop() for _ in getattr(s, 'derefs', None) or ()][::-1]
         wa = word_args.get(call[0], ())
         for position, v in enumerate(rest):
@@ -490,16 +493,84 @@ def gen_41b6e2(rng, n):
                 pointers={'ring_56f354': ('ring', 0)})
 
 
+# ---- 0x4763b3 ------------------------------------------------------------------------------------------------------------------------------
+
+# 0x50ca3e is called with four stack arguments (the debug trace) and with three (the text of a score); the stub logs four dwords, the fourth of the three-argument call is the
+# caller's own local (`self`), not an argument: it is dropped here from the log of the original
+TRIM[0x50ca3e] = lambda rest: rest if rest[0] == 0x63888b else rest[:3]
+CELL_VALUES = [0, 1, 2, 3, 0xffff, 0x8000, 0x7fff]
+REC_WORDS = [0, 1, 2, 5, 0x7fff, 0x8000, 0xffff, 0xfffe, 0x100, 10, 0x3e8, 7, 0xfff0]
+
+
+def profiles_4763b3():
+    edges = [(0, 0, 0, 0), (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (1, 0, 1, 0), (0, 1, 0, 1), (1, 0, 0, 1), (0, 1, 1, 0)]
+    return [(d, h, e) for d in range(6) for h in range(6) for e in edges]
+
+
+def gen_4763b3(rng, n):
+    (d, h, (top, bottom, left, right)), variant = prof(n, profiles_4763b3())
+    nrows, ncols = rng.choice([8, 9]), rng.choice([9, 10])
+    if top:
+        y0 = 0
+    elif bottom:
+        y0 = nrows - 1 - d
+    else:
+        y0 = rng.randint(1, nrows - 2 - d)
+    if left:
+        x0 = 0
+    elif right:
+        x0 = ncols - 1 - h
+    else:
+        x0 = rng.randint(1, ncols - 2 - h)
+    y1, x1 = y0 + d, x0 + h
+    yy, xx = rng.randint(y0, y1), rng.randint(x0, x1)
+    ref = rng.choice(CELL_VALUES)
+    s = bytearray(rng.randbytes(0x1000))
+    for r in range(9):
+        for c in range(10):
+            put16(s, 0x30 + r * 0xc8 + c * 0x14 + 2, rng.choice(CELL_VALUES))
+            s[0x30 + r * 0xc8 + c * 0x14 + 1] = rng.choice([0, 0, 0, 1])
+    def other():
+        return rng.choice([v for v in CELL_VALUES if v != ref])
+    for r in range(y0, y1 + 1):
+        put16(s, 0x30 + r * 0xc8 + xx * 0x14 + 2, ref)
+    for c in range(x0, x1 + 1):
+        put16(s, 0x30 + yy * 0xc8 + c * 0x14 + 2, ref)
+    if y0 > 0:
+        put16(s, 0x30 + (y0 - 1) * 0xc8 + xx * 0x14 + 2, other())
+    if y1 < nrows - 1:
+        put16(s, 0x30 + (y1 + 1) * 0xc8 + xx * 0x14 + 2, other())
+    if x0 > 0:
+        put16(s, 0x30 + yy * 0xc8 + (x0 - 1) * 0x14 + 2, other())
+    if x1 < ncols - 1:
+        put16(s, 0x30 + yy * 0xc8 + (x1 + 1) * 0x14 + 2, other())
+    slot = rng.choice([0, 1, -1, 2])
+    put16(s, 0x22, slot)
+    rec = bytearray(rng.randbytes(0x800))
+    put16(rec, 0x42, nrows)
+    put16(rec, 0x44, ncols)
+    for off in (0x644, 0x656, 0x658, 0x65a, 0x65c, 0x65e):
+        put16(rec, off, rng.choice(REC_WORDS))
+    recs, pointers = records_area(rng, slot, od.region_va(1))
+    dbg = (0, rng.choice([1, 0x100, 0x8000]))[variant % 2]
+    g, nbr = debug_areas(rng, dbg)
+    probe = [('self', 0x8c0, 0x18), ('self', 0x800, 2), ('self', 0x835, 0x10)]
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(4), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe)}
+    return make('4763b3', [self_area(s), Area('rec', od.region_va(1), rec, image=False), recs, *nbr], stubs, g, [xx, yy], (xx, yy), (d, h, top, bottom, left, right, variant % 2),
+                pointers=pointers)
+
+
 SPECS = {
     '4fcb5c': dict(id=1, va=0x4fcb5c, size=406, gen=gen_4fcb5c, cleanup=4, fpcw=0x27f, n=len(profiles_4fcb5c()) * 6),
     '43d7f0': dict(id=2, va=0x43d7f0, size=675, gen=gen_43d7f0, cleanup=0, n=len(profiles_43d7f0()) * 2),
     '434025': dict(id=3, va=0x434025, size=536, gen=gen_434025, cleanup=0, n=len(profiles_434025()) * 3),
     '41b6e2': dict(id=4, va=0x41b6e2, size=579, gen=gen_41b6e2, cleanup=16, n=len(profiles_41b6e2()) * 3),
+    '4763b3': dict(id=5, va=0x4763b3, size=1650, gen=gen_4763b3, cleanup=8, n=len(profiles_4763b3()) * 2),
 }
 KEYS = list(SPECS)
 UNTAKEN_ALLOWED['434025'] = {(0x4340e3, 'taken'): 'je after `mov eax, 1; test eax, eax` guards the endless entry loop: the guard is always true, so the jump to 0x434233 is never taken from here '
                                                     '(0x434233 itself is reached by the jumps at 0x43416e and 0x43422c, and every instruction of the function is executed)'}
-NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries', '41b6e2': 'lz_decode'}
+NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries', '41b6e2': 'lz_decode', '4763b3': 'mark_runs'}
 
 
 def build(key, rng, n):
