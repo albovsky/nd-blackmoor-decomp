@@ -228,7 +228,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Release: calls 0x4c2dfb(self+8), frees [self+0x14] and [self+0x18], calls 0x4d3992 when the word is not -1, then 0x47b23b; every instruction and jump direction executed."
+  "note": "Release: when non-null, calls 0x4c2dfb on [self+8] and frees [self+0x14] and [self+0x18]; calls 0x4d3992 if the word is not -1, then 0x47b23b; all instructions and jump directions run."
  },
  {
   "va": "0x47c049",

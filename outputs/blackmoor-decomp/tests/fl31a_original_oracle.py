@@ -8,8 +8,8 @@ scripted value, pop their stack arguments and, where a scenario needs a callee t
 index computation and store of the bodies runs as original instructions.
 
 Prints one line per function:  0x<va> instructions <executed>/<total> branch-directions <taken>/<total> scenarios <n> digest <sha256 of the ordered calls and the memory
-read back, over all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken (except the
-allowlist fl31a_fixtures.UNTAKEN_ALLOWED: two directions of 0x4c3efb that its own instructions make impossible, with the reason). No original bytes or memory dumps are
+read back, over all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken (the
+allowlist fl31a_fixtures.UNTAKEN_ALLOWED is empty). No original bytes or memory dumps are
 printed. Run from outputs/blackmoor-decomp:  python3 tests/fl31a_original_oracle.py
 """
 import hashlib
