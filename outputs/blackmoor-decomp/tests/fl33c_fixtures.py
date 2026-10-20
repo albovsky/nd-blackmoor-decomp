@@ -54,6 +54,27 @@ class World(ctypes.Structure):
 
 GLOBALS = {n: (int(n.rsplit('_', 1)[1], 16), ctypes.sizeof(t)) for n, t, p in WORLD_FIELDS if not p}
 WORD_ARGS = {0x43ef77: (1,)}       # callee -> positions of stack arguments pushed from a 16-bit register with a stale upper half (the callee reads a word): the comparison masks them to 16 bits
+BYTE_ARGS = {0x4d214b: (0,)}    # 0x4d2c20 pushes a char from cl with a stale upper part: the comparison masks it to 8 bits
+
+
+def mask_raw(calls):
+    """The original's raw call log (name, args ...) with the byte arguments of BYTE_ARGS (non-thiscall callees) masked to 8 bits before the normaliser turns stack-looking values into locals."""
+    out = []
+    for call in calls:
+        call = list(call)
+        for index in BYTE_ARGS.get(call[0], ()):
+            call[1 + index] &= 0xff
+        out.append(tuple(call))
+    return out
+
+
+def mask_bytes(entries):
+    for entry in entries:
+        for index in BYTE_ARGS.get(entry[0], ()):
+            entry[2 + index] &= 0xff
+    return entries
+
+
 NONZERO = [1, 0x80000000, 0x10000, 0xff000000, 0x00ff0000, 0xdeadbeef, 0xffffffff, 0x100]    # non-zero dwords, some with a zero low word / byte
 WORDS_OTHER = [0, 1, 0x7fff, 0x8000, 0xfffe, 0x1234, 0xff00, 0x00ff]
 
@@ -142,7 +163,7 @@ def run_original(sc):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
     if SPECS[sc.key].get('retoff') is not None and orig.eax is not None and orig.eax != sc.ecx + SPECS[sc.key]['retoff']:
         raise AssertionError('the function did not return this + 0x%x' % SPECS[sc.key]['retoff'])
-    calls = normalize(orig.calls, sc.stubs, sc.iat, sc.word_args)
+    calls = normalize(mask_raw(orig.calls), sc.stubs, sc.iat, sc.word_args)
     h = hashlib.sha256()
     h.update(repr(calls).encode())
     if SPECS[sc.key].get('ret') and orig.eax is not None:
@@ -410,16 +431,61 @@ def gen_4db38a(rng, n):
     return make('4db38a', areas, stubs, g, [], (), (mi, ai, b0, b4, variant % 2), pointers={'table_5b3790': ('wtbl', UC_SLACK), 'table_5b30cc': ('dtbl', UC_SLACK)})
 
 
+# ---- 0x4d2c20 ---------------------------------------------------------------------------------------------------------------------
+
+LT_BIAS = {      # probability that the scripted answer of (4d214b, 651, 67f, 6a7, 6cf) is non-zero
+    'rand': (0.5, 0.5, 0.5, 0.5, 0.5), 'mostly': (0.3, 0.7, 0.7, 0.7, 0.7), 'upper': (0, 1, 1, 0, 0), 'lower': (0, 1, 0, 1, 0), 'digit': (0, 0, 0, 0, 1), 'none': (0, 0, 0, 0, 0), 'special': (1, 0, 0, 0, 0)}
+LT_PROFILES = [(0, 'ascii', 'rand'), (1, 'ascii', 'special'), (4, 'ascii', 'upper'), (4, 'ascii', 'lower'), (4, 'ascii', 'digit'), (5, 'ascii', 'none'), (6, 'ascii', 'rand'), (8, 'mixed', 'rand'),
+               (8, 'mixed', 'mostly'), (6, 'edge', 'upper'), (6, 'edge', 'lower'), (6, 'edge', 'digit'), (6, 'high', 'upper'), (6, 'high', 'lower'), (6, 'high', 'digit'), (6, 'high', 'rand'), (10, 'mixed', 'rand'), (3, 'ascii', 'mostly')]
+LT_DBG = ['off', 'on_ok', 'on_a0', 'on_b0', 'on_both0']
+
+
+def gen_4d2c20(rng, n):
+    (length, charset, bias), variant = prof(n, LT_PROFILES)
+    dbgcase = LT_DBG[(variant + n) % len(LT_DBG)]
+    text_va, font_va, metrics_va = od.region_va(1) + 1 + variant % 2, od.region_va(2) + 0x700, od.region_va(3) + 0x200
+    chars = bytearray()
+    for _ in range(length):
+        chars.append(rng.choice({'ascii': range(0x21, 0x7f), 'high': range(0x80, 0x100), 'mixed': [*range(1, 0x21), *range(0x21, 0x7f), *range(0x80, 0x100)], 'edge': [0x7e, 0x7f, 0x80, 0x81, 0xff]}[charset]))
+    text = bytearray(rng.randbytes(1 + variant % 2)) + chars + b'\0' + bytearray(rng.randbytes(0x20))
+    font = bytearray(rng.randbytes(0x1800))
+    w4f, w51 = rng.choice([0, 1, 7, -3, 0x7fff, -0x8000]), rng.choice([0, 2, -5, 0x1234])
+    w53, w55, w57 = rng.choice([0, 5, -3]), rng.choice([0, 2, -4]), rng.choice([0, 1, 9])
+    for off, w in ((0x4f, w4f), (0x51, w51), (0x53, w53), (0x55, w55), (0x57, w57)):
+        put16(font, 0x700 + off, w)
+    metrics = bytearray(rng.randbytes(0x400))
+    sel = rng.choice([0, 1, 2, 3, -1])
+    x, y = rng.choice([0, 5, 0x7fff, -0x8000, -1, 100]), rng.choice([0, 7, 0x7fff, -0x8000, -1, 200])
+    a = 0 if dbgcase in ('on_a0', 'on_both0') else rnd32(rng) | 1
+    b = 0 if dbgcase in ('on_b0', 'on_both0') else rnd32(rng) | 1
+    probs = LT_BIAS[bias]
+    longn = 4 * length + 4
+
+    def answers(p):
+        return [rng.choice([1, 0x80000000, 0xff, 0x100]) if rng.random() < p else 0 for _ in range(longn)]
+    probe = [('g:value_63a8e0', 0, 4), ('g:value_63a8e4', 0, 4), ('g:value_63a8e8', 0, 4)]
+    writes = [(i, 2, 0, 2, rng.choice([-8, -1, 0, 1, 5, 20, 3, 0x41 - 0x30])) for i in range(length + 1)]
+    stubs = {0x52139c: stub(0x52139c, STDCALL(3), probe=probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe=probe),
+             0x4d214b: stub(0x4d214b, CDECL(3), probe=probe, results=answers(probs[0]), writes=writes), 0x50d651: stub(0x50d651, CDECL(1), probe=probe, results=answers(probs[1])),
+             0x50d67f: stub(0x50d67f, CDECL(1), probe=probe, results=answers(probs[2])), 0x50d6a7: stub(0x50d6a7, CDECL(1), probe=probe, results=answers(probs[3])),
+             0x50d6cf: stub(0x50d6cf, CDECL(1), probe=probe, results=answers(probs[4])), 0x4c5d4b: stub(0x4c5d4b, THISCALL(5), probe=probe, derefs=[(2, 16)])}
+    g = {'value_63a8e0': rnd32(rng), 'value_63a8e4': rnd32(rng), 'value_63a8e8': rnd32(rng), 'value_63a8ec': rnd32(rng), 'word_63a4cd': 0 if dbgcase == 'off' else rng.choice([1, 0x100, 0x8000])}
+    areas = [Area('text', od.region_va(1), text, image=False), Area('font', od.region_va(2), font, image=False), Area('metrics', od.region_va(3), metrics, image=False)]
+    args = [text_va, font_va, metrics_va, word_arg(rng, x), word_arg(rng, y), a, b, word_arg(rng, sel)]
+    return make('4d2c20', areas, stubs, g, args, tuple(args), (length, charset, bias, dbgcase, variant))
+
+
 # GEN-END
 
 SPECS = {
     '4c6929': dict(id=1, va=0x4c6929, size=769, gen=gen_4c6929, cleanup=0x1c, status=True, n=len(CM_PROFILES) * 2),
     '416af3': dict(id=2, va=0x416af3, size=870, gen=gen_416af3, cleanup=0x18, status=True, n=len(PA_PROFILES) * 2),
     '4db38a': dict(id=3, va=0x4db38a, size=998, gen=gen_4db38a, cleanup=0, n=len(UC_MOVES) * len(UC_ARMS) * 2),
+    '4d2c20': dict(id=4, va=0x4d2c20, size=1107, gen=gen_4d2c20, cleanup=0, ret=True, n=len(LT_PROFILES) * 5),
     # SPECS-END
 }
 KEYS = list(SPECS)
-NAMES = {'4c6929': 'copy_masked', '416af3': 'apply_patches', '4db38a': 'update_cursor'}
+NAMES = {'4c6929': 'copy_masked', '416af3': 'apply_patches', '4db38a': 'update_cursor', '4d2c20': 'layout_text'}
 
 
 def build(key, rng, n):

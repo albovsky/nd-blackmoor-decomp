@@ -28,6 +28,7 @@ typedef struct Fl33cWorld {
     int16_t word_5d2f0d, word_5d2f0f;                                                                           /* 0x4db38a */
     const uint8_t *table_5b3790;     /* 0x4db38a: pairs of signed words (x extent at +0, y extent at +2) at 0x5b3790, indexed by (value_5b44f4 << 2) + value_5b44f0 * 8 (32-bit; slack below it) */
     const uint8_t *table_5b30cc;     /* 0x4db38a: dwords at 0x5b30cc (+0) and 0x5b30d0 (+4), indexed by (value_5b44f0 << 4) + value_5b44f4 * 8 (32-bit; slack below it) */
+    uint32_t value_63a8e0, value_63a8e4, value_63a8e8, value_63a8ec;                                            /* 0x4d2c20 */
     /* WORLD-END */
 } Fl33cWorld;
 
@@ -74,6 +75,22 @@ int m416af3_apply_patches(uint32_t hdr, uint32_t out, uint32_t size, uint32_t st
  * dword 0x5b44f4 * 8: [self+0x9c] = dword 0x583106 + dword at 0x5b30d0 + f; [self+0xa0] = dword 0x583102 + dword at 0x5b30cc + f (f recomputed); dwords 0x5c3a53 = [self+0xa0] and 0x5c3a57 = [self+0x9c].
  * The callees 0x4dbb13, 0x4db780 and 0x4db817 are given self and may change it; that is not exercised (tasks/fl33c-handoff.md). */
 void m4db38a_update_cursor(uint8_t *self, Fl33cWorld *world, const Fl18Host *host);
+
+/* 0x4d2c20, cdecl (plain `ret`, the arguments stay on the stack), stack arguments text ([ebp+8]), font ([ebp+0xc]), metrics ([ebp+0x10]) (original addresses), x ([ebp+0x14]), y ([ebp+0x18]) and sel ([ebp+0x24])
+ * (WORDS: only the low 16 bits are read, sign-extended; the upper half is left over from the caller) and a ([ebp+0x1c]), b ([ebp+0x20]) (dwords). Returns the address 0x63a8e0 (the original loads it into eax last).
+ * When the signed word 0x63a4cd != 0 (a word compare) and (a == 0 or b == 0): 0x52139c(0x55a344, 0, 0) (stdcall, 3 arguments) and 0x4c97b4(this 0x5cf659) (thiscall, 0 arguments); the original goes on after them as in the
+ * other case. Then dwords 0x63a8ec = y, 0x63a8e4 = 0, 0x63a8e0 = x, 0x63a8e8 = 0 (x, y sign extended), and for each byte c of the NUL-terminated string (c = the SIGNED byte; the terminator is a signed compare against 0), in order:
+ *  - r = 0x4d214b(c, font, the address of a local word) (cdecl, 3 arguments; the char is pushed from cl with a stale upper part: the port passes the zero-extended byte, the comparison masks to 8 bits; the callee stores the
+ *    glyph index word into the local); r != 0: the glyph with that index (a signed word) is emitted;
+ *  - else when 0x50d651(c) != 0 and 0x50d67f(c) != 0 (cdecl, 1 argument each, the SIGN-EXTENDED byte) and the zero-extended byte < 0x80: index = (word)(c + signed word [font+0x53] - 0x41), emitted;
+ *  - else when 0x50d651(c) != 0 and 0x50d6a7(c) != 0 and the zero-extended byte < 0x80: index = (word)(c + signed word [font+0x55] - 0x61), emitted;
+ *  - else when 0x50d6cf(c) != 0 and the zero-extended byte < 0x80: index = (word)(c + signed word [font+0x57] - 0x30), emitted;
+ *  - else: dword 0x63a8e0 += signed word [font+0x4f]; dword 0x63a8e8 = dword 0x63a8e0 + signed word [font+0x4f] - 1.
+ * Emitting glyph i (signed word) with s = sel * 8: rect = {dword [font + i*16 + 0xc3] + dword [font + s + 0x3f], dword [font + i*16 + 0xc7] + dword [font + s + 0x43], dword [font + i*16 + 0xcb] + dword [font + s + 0x3f],
+ * dword [font + i*16 + 0xcf] + dword [font + s + 0x43]} (32-bit; a local of four dwords, a host pointer); dword 0x63a8e4 = dword 0x63a8ec - signed word [metrics + i*4 + 2] + 1; dword 0x63a8e8 = dword 0x63a8e0 + signed word
+ * [metrics + i*4] - 1; 0x4c5d4b(this 0x5cf659, a, b, rect, 0x63a8e0, 0x55a37c) (thiscall, 5 arguments); dword 0x63a8e0 = signed word [font+0x51] + dword 0x63a8e0 + signed word [metrics + i*4] (the global is read again after
+ * the call); dword 0x63a8e8 = dword 0x63a8e0 + signed word [metrics + i*4] - 1. The index local is read again (as a word) after the call. */
+uint32_t m4d2c20_layout_text(uint32_t text, uint32_t font, uint32_t metrics, uint32_t x, uint32_t y, uint32_t a, uint32_t b, uint32_t sel, Fl33cWorld *world, const Fl18Host *host);
 
 /* FNS-END */
 

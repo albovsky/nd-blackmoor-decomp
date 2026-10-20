@@ -143,6 +143,7 @@ class Fl33cDifferential(DiffBase):
         for entry in actual:
             for index in sc.word_args.get(entry[0], ()):
                 entry[2 + index] &= 0xffff
+        fx.mask_bytes(actual)
         self.assertEqual(actual, expected, '%s scenario profile %s' % (sc.key, sc.profile))
         executed |= orig.executed
         edges |= orig.edges
@@ -171,6 +172,10 @@ class Fl33cDifferential(DiffBase):
     def test_4db38a_update_cursor(self):
         """FL-33c: differential test of m4db38a_update_cursor (original 0x4db38a)"""
         self.run_key('4db38a')
+
+    def test_4d2c20_layout_text(self):
+        """FL-33c: differential test of m4d2c20_layout_text (original 0x4d2c20)"""
+        self.run_key('4d2c20')
 
     # TESTS-END
 

@@ -78,6 +78,10 @@ class Fl33cDirect(unittest.TestCase):
         """FL-33c: direct test of m4db38a_update_cursor (original 0x4db38a)"""
         self.check('test_m4db38a_update_cursor')
 
+    def test_4d2c20_layout_text(self):
+        """FL-33c: direct test of m4d2c20_layout_text (original 0x4d2c20)"""
+        self.check('test_m4d2c20_layout_text')
+
     # TESTS-END
 
     def test_sweep_bounded(self):

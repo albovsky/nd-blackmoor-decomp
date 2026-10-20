@@ -59,6 +59,18 @@ HAND = [
     ('4db38a', 'p = rp == (uint32_t)(uintptr_t)pair ? (const uint8_t *)pair : res(host, rp);\n    x = rd32(p, 0);\n    y = rd32(p, 4);\n    wr32(self, 0x14', 'p = res(host, rp);\n    x = rd32(p, 0);\n    y = rd32(p, 4);\n    wr32(self, 0x14'),
     ('4db38a', '    call0(host, 0x4dbb13, (uintptr_t)self);\n    v = world->value_583204 - 2u;', '    v = world->value_583204 - 2u;'),
     ('4db38a', '    wr32(self, 0x1c, rd32(self, 0x14));\n    wr32(self, 0x20, rd32(self, 0x18));', '    wr32(self, 0x20, rd32(self, 0x18));\n    wr32(self, 0x1c, rd32(self, 0x14));\n    wr32(self, 0x1c, rd32(self, 0x1c) ^ 1u);'),
+    ('4d2c20', 'static uint32_t sdw(const Fl18Host *host, uint32_t a) { return (uint32_t)(int32_t)(int16_t)rdw(host, a); }', 'static uint32_t sdw(const Fl18Host *host, uint32_t a) { return rdw(host, a); }'),
+    ('4d2c20', '        if (a == 0 || b == 0) {\n            call3(host, 0x52139c', '        if (a == 0 && b == 0) {\n            call3(host, 0x52139c'),
+    ('4d2c20', '        if (r != 0) {\n            emit = 1;', '        if ((int32_t)r > 0) {\n            emit = 1;'),
+    ('4d2c20', 'call1(host, 0x50d651, 0, c) != 0 && call1(host, 0x50d67f, 0, c) != 0', 'call1(host, 0x50d651, 0, c & 0xffu) != 0 && call1(host, 0x50d67f, 0, c) != 0'),
+    ('4d2c20', '            world->value_63a8e0 += sdw(host, font + 0x4f);', '            world->value_63a8e0 += sdw(host, font + 0x51);'),
+    ('4d2c20', '        rect[1] = rdd(host, font + i16 + 0xc7) + rdd(host, font + s + 0x43);', '        rect[1] = rdd(host, font + i16 + 0xc7) + rdd(host, font + s + 0x3f);'),
+    ('4d2c20', 'uint32_t s = (uint32_t)(int32_t)(int16_t)sel * 8u;', 'uint32_t s = (uint32_t)(uint16_t)sel * 8u;'),
+    ('4d2c20', 'world->value_63a8e4 = world->value_63a8ec - sdw(host, metrics + m4 + 2u) + 1u;', 'world->value_63a8e4 = world->value_63a8ec + sdw(host, metrics + m4 + 2u) + 1u;'),
+    ('4d2c20', '            callv(host, 0x4c5d4b, 0x5cf659, args, 5);\n            m4 = (uint32_t)(int32_t)(int16_t)idx * 4u;\n            world->value_63a8e0 = sdw(host, font + 0x51) + world->value_63a8e0 + sdw(host, metrics + m4);', '            m4 = (uint32_t)(int32_t)(int16_t)idx * 4u;\n            world->value_63a8e0 = sdw(host, font + 0x51) + world->value_63a8e0 + sdw(host, metrics + m4);\n            callv(host, 0x4c5d4b, 0x5cf659, args, 5);'),
+    ('4d2c20', '    world->value_63a8ec = (uint32_t)(int32_t)(int16_t)y;', '    world->value_63a8ec = (uint32_t)(uint16_t)y;'),
+    ('4d2c20', 'if (call1(host, 0x50d6cf, 0, c) != 0 && (c & 0xffu) < 0x80)', 'if (call1(host, 0x50d6cf, 0, c) != 0 && (int32_t)c < 0x80)'),
+    # EQUIVALENT (not a mutant): in 0x4d2c20 `(c & 0xff) < 0x80` -> `(c & 0x100) < 0x80`: c is a sign-extended byte, so bit 8 equals bit 7.
     # EQUIVALENT (not a mutant): in 0x4db38a `>` -> `>=` of |dx| against the word: when they are equal the clamped coordinate equals x0 + dx
     # EQUIVALENT (not a mutant): the 0x120-byte message local and the 0x80-byte descriptor local are only sizes of host scratch; rd16 -> rd32 of the copied word is truncated by wr16
     # HAND-END

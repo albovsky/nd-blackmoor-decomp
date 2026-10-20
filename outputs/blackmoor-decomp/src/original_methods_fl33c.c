@@ -308,3 +308,63 @@ void m4db38a_update_cursor(uint8_t *self, Fl33cWorld *world, const Fl18Host *hos
     world->value_5c3a53 = rd32(self, 0xa0);
     world->value_5c3a57 = rd32(self, 0x9c);
 }
+
+/* ---- 0x4d2c20 layout_text ------------------------------------------------------------------------------------------------------ */
+static uint32_t sdw(const Fl18Host *host, uint32_t a) { return (uint32_t)(int32_t)(int16_t)rdw(host, a); }     /* movsx eax, word ptr [a] */
+
+uint32_t m4d2c20_layout_text(uint32_t text, uint32_t font, uint32_t metrics, uint32_t x, uint32_t y, uint32_t a, uint32_t b, uint32_t sel, Fl33cWorld *world, const Fl18Host *host)
+{
+    uint32_t s = (uint32_t)(int32_t)(int16_t)sel * 8u;
+    if (world->word_63a4cd != 0) {
+        if (a == 0 || b == 0) {
+            call3(host, 0x52139c, 0, 0x55a344, 0, 0);
+            call0(host, 0x4c97b4, 0x5cf659);
+        }
+    }
+    world->value_63a8ec = (uint32_t)(int32_t)(int16_t)y;
+    world->value_63a8e4 = 0;
+    world->value_63a8e0 = (uint32_t)(int32_t)(int16_t)x;
+    world->value_63a8e8 = 0;
+    for (;; text++) {
+        uint32_t c = (uint32_t)(int32_t)(int8_t)rdb(host, text);
+        uint16_t idx = 0;                         /* the local word that 0x4d214b stores into */
+        uint32_t r, i16, rect[4];
+        int emit = 0;
+        if (c == 0) break;
+        r = call3(host, 0x4d214b, 0, c & 0xffu, font, (uintptr_t)&idx);
+        if (r != 0) {
+            emit = 1;
+        } else if (call1(host, 0x50d651, 0, c) != 0 && call1(host, 0x50d67f, 0, c) != 0 && (c & 0xffu) < 0x80) {
+            idx = (uint16_t)(c + sdw(host, font + 0x53) - 0x41u);
+            emit = 1;
+        } else if (call1(host, 0x50d651, 0, c) != 0 && call1(host, 0x50d6a7, 0, c) != 0 && (c & 0xffu) < 0x80) {
+            idx = (uint16_t)(c + sdw(host, font + 0x55) - 0x61u);
+            emit = 1;
+        } else if (call1(host, 0x50d6cf, 0, c) != 0 && (c & 0xffu) < 0x80) {
+            idx = (uint16_t)(c + sdw(host, font + 0x57) - 0x30u);
+            emit = 1;
+        }
+        if (!emit) {
+            world->value_63a8e0 += sdw(host, font + 0x4f);
+            world->value_63a8e8 = world->value_63a8e0 + sdw(host, font + 0x4f) - 1u;
+            continue;
+        }
+        i16 = (uint32_t)(int32_t)(int16_t)idx * 16u;
+        rect[1] = rdd(host, font + i16 + 0xc7) + rdd(host, font + s + 0x43);
+        rect[3] = rdd(host, font + i16 + 0xcf) + rdd(host, font + s + 0x43);
+        rect[0] = rdd(host, font + i16 + 0xc3) + rdd(host, font + s + 0x3f);
+        rect[2] = rdd(host, font + i16 + 0xcb) + rdd(host, font + s + 0x3f);
+        {
+            uint32_t m4 = (uint32_t)(int32_t)(int16_t)idx * 4u;
+            uintptr_t args[5];
+            world->value_63a8e4 = world->value_63a8ec - sdw(host, metrics + m4 + 2u) + 1u;
+            world->value_63a8e8 = world->value_63a8e0 + sdw(host, metrics + m4) - 1u;
+            args[0] = a; args[1] = b; args[2] = (uintptr_t)rect; args[3] = 0x63a8e0; args[4] = 0x55a37c;
+            callv(host, 0x4c5d4b, 0x5cf659, args, 5);
+            m4 = (uint32_t)(int32_t)(int16_t)idx * 4u;
+            world->value_63a8e0 = sdw(host, font + 0x51) + world->value_63a8e0 + sdw(host, metrics + m4);
+            world->value_63a8e8 = world->value_63a8e0 + sdw(host, metrics + m4) - 1u;
+        }
+    }
+    return 0x63a8e0;
+}
