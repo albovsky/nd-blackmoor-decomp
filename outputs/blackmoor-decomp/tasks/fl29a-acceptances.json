@@ -294,7 +294,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Allocates and clears the 0xaba-byte buffer, copies the string and the fields, bumps two caller dwords and traces; the allocation-failure block is executed by the oracle on a mapped zero page and the native port rejects there. Every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+    "note": "Allocates and clears the 0xaba-byte buffer, copies the string and the fields, bumps two caller dwords and traces; every instruction and jump direction executed. On the reachable allocation-failure branch the symbol deliberately diverges: the original faults storing through null after 0x4c97b4 has posted the quit (the oracle runs it on a mapped zero page to execute the reporting block), the native port returns 1 after the four reporting calls and changes nothing else. See tasks/fl29a-handoff.md."
   },
   {
     "va": "0x4c3efb",

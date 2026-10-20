@@ -123,12 +123,19 @@ class Fl29aDifferential(DiffBase):
             for field in sc.g:
                 size = fx.GLOBALS[field][1]
                 self.assertEqual(struct.pack(fx.FMT[size], getattr(sw, field) & ((1 << (8 * size)) - 1)), orig.memory['g:' + field], field)
-        else:       # the native port rejects after sc.partial[0] calls (the original goes on through a null pointer): compare that prefix and the named memory
+        else:       # the native port rejects after sc.partial[0] calls (the original goes on through a null pointer): compare that prefix, and require
+            # that EVERY byte of EVERY area and every global is unchanged except the bytes named in sc.partial[1] ({area: nbytes}), which are the original's
             self.assertEqual(result.value, 1, 'native rejection status')
             expected = expected[:sc.partial[0]]
             for a, arr in arrays:
-                if a.name in sc.partial[1]:
-                    self.assertEqual(bytes(arr)[:sc.partial[1][a.name]], orig.memory[a.name][:sc.partial[1][a.name]], '%s %s' % (sc.key, a.name))
+                want = bytearray(a.data)
+                n = sc.partial[1].get(a.name, 0)
+                if n:
+                    want[:n] = orig.memory[a.name][:n]
+                self.assertEqual(bytes(arr), bytes(want), '%s %s (rejection must leave everything else unchanged)' % (sc.key, a.name))
+            for field, value in sc.g.items():
+                size = fx.GLOBALS[field][1]
+                self.assertEqual(getattr(sw, field) & ((1 << (8 * size)) - 1), value & ((1 << (8 * size)) - 1), field)
         actual = self.native_calls(arrays, probe_spec, deref_len)
         for entry in actual:
             for index in sc.word_args.get(entry[0], ()):

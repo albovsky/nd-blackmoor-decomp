@@ -471,6 +471,8 @@ static void init_setup(const char *text, uint32_t buf)
     g_w.value_5bb57b = 0xcafe0001u;
     g_w.word_5c39e3 = -2;
 }
+static uint8_t snap[8][RSZ];
+static Fl29aWorld wsnap;
 static void test_m4895cc_init_buffer(void)
 {
     int i;
@@ -499,13 +501,18 @@ static void test_m4895cc_init_buffer(void)
     m4895cc_init_buffer(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host);
     CK(g_r[4][0] == 0 && L.n == 2);
     init_setup("X", 0);                                                                  /* the allocation fails: reports, then (native) rejection */
+    memcpy(snap, g_r, sizeof g_r);
+    memcpy(&wsnap, &g_w, sizeof g_w);
     CK(m4895cc_init_buffer(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host) == 1);
+    memset(snap[1], 0, 4);                                                               /* the only store: [p0] = 0 */
+    CK(memcmp(snap, g_r, sizeof g_r) == 0);                                              /* every other byte of every region is unchanged (self included) */
+    CK(memcmp(&wsnap, &g_w, sizeof g_w) == 0);
     CK(L.n == 4);
     CKC(0, 0x51dc43, 0, 1, 0xaba);
     CKC(1, 0x50ca3e, 0, 4, 0x63888b, 0x54e064, 0xcafe0001u, 0xfffffffeu);
     CKC(2, 0x42639d, 0x583979, 2, 0x54e090, 0x63888b);
     CKC0(3, 0x4c97b4, 0x5cf659);
-    CK(get32(g_r[1], 0) == 0 && get32(g_r[1], 8) == 0x10 && get32(SELF, 0x1c) != 0);      /* [p0] = 0; nothing else touched */
+    CK(get32(g_r[1], 0) == 0 && get32(g_r[1], 8) == 0x10);                                /* [p0] = 0; nothing else touched (see the snapshot above) */
 }
 
 /* ---- 0x4c3efb ------------------------------------------------------------------------------------------------------------------ */

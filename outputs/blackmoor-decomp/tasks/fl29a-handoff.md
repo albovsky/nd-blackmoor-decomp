@@ -6,7 +6,7 @@ GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c
 
 ## Ported (10 of 10, none dropped)
 
-All in `src/original_methods_fl29a.c` / `.h` (symbols `m<va>_*`, world struct `Fl29aWorld`, host convention `Fl18Host` as in FL-18/26/27/28). Ports land in commit `f182039`; this handoff, the acceptances and the final notes are the commit after it. Addresses that the original passes or stores (surface, rectangle, descriptor, string, vtable, entry array) are 32-bit original addresses here too and go through `Fl18Host.resolve`; only `self` and the `Fl29aWorld` table pointers are host pointers.
+All in `src/original_methods_fl29a.c` / `.h` (symbols `m<va>_*`, world struct `Fl29aWorld`, host convention `Fl18Host` as in FL-18/26/27/28). Ports land in commit `f182039`; the handoff and acceptances in `81cfb44`; the review fixes (rejection snapshot, wording) are the commit after it. Addresses that the original passes or stores (surface, rectangle, descriptor, string, vtable, entry array) are 32-bit original addresses here too and go through `Fl18Host.resolve`; only `self` and the `Fl29aWorld` table pointers are host pointers.
 
 | va | span | symbol | instructions | branch directions | scenarios | oracle digest (sha256) | window sha256 (original bytes, va..va+span) |
 |---|---|---|---|---|---|---|---|
@@ -32,7 +32,7 @@ Notes per function (the header `original_methods_fl29a.h` gives the byte-level c
 - **0x4c46d1** `fill_surface`: byte masks, `shl dl,1` byte shifts when the selector byte is not 5, 32-bit `shl eax, cl` (count modulo 32 as the CPU does), low word to `w*h` pixels; the pixel base and the sizes are re-read each pass like the original.
 - **0x4cb9d1** `relocate_entries`: the callee 0x4c0c69 returns the object stored at `[self+0x15c]`; the entry address `[ [self+0x12] + 9 ] + counter*0x18` is stored to `[self+0x126]` and each of the four fields is updated through `[self+0x126]`, `[self+0x15c]` re-read at every access, in the original order.
 - **0x4895cc** `init_buffer`: see divergences (allocation failure). Success path: clear 0xaba bytes (`rep stosd` 0x2ae dwords + `stosw`), the string copy as dwords then bytes (`repne scasb` length including the NUL), the two words stored after the copy and in that order (a string of 0x24 or more characters has them clobber it, tested), the 16-byte copy to `+0xac`, the two `+= 0x45`, the trace call when the word `0x63a4cd` is non-zero.
-- **0x4c3efb** `lock_surface`: fast path for the stored surface (rectangle or none), otherwise the retry loop around the vtable entry `[ [surface] + 0x64 ]` (`ecx` is the leftover 1 and is not an argument).
+- **0x4c3efb** `lock_surface`: fast path for the stored surface (rectangle or none), otherwise the retry loop around the vtable entry `[ [surface] + 0x64 ]` (at the call `ecx` = the surface, from `mov ecx,[ebp+8]` at 0x4c3ff8; the callee takes its arguments on the stack and the stubs ignore ecx, so it is not logged or compared).
 
 ## Dropped
 
@@ -55,7 +55,7 @@ All callees are recording stubs entered by address (the callee is not run): they
 
 ## Deliberate divergences and native rejections (not original behaviour)
 
-- **0x4895cc, allocation returns 0**: after the reporting block the original runs `rep stosd` with `edi = 0` (it writes through the null pointer; Windows would fault). The oracle runs it on a mapped zero page only so that the reporting instructions (0x4895f5..0x48962e) are executed; the native port returns 1 right after the four reporting calls (0x51dc43, 0x50ca3e, 0x42639d, 0x4c97b4) and does nothing else. The differential test compares exactly those four calls and the dword `[p0]` (= 0) for that scenario, and the native status 1; the rest of the original's run on the zero page is not compared.
+- **0x4895cc, allocation returns 0 (a reachable branch where the symbol DELIBERATELY DIVERGES from the original)**: after the reporting block, in which 0x4c97b4 has posted the quit, the original runs `rep stosd` with `edi = 0`, i.e. it stores through the null pointer and faults on Windows. The oracle runs it on a mapped zero page only so that the reporting instructions (0x4895f5..0x48962e) are executed; the native port returns 1 right after the four reporting calls (0x51dc43, 0x50ca3e, 0x42639d, 0x4c97b4) and does nothing else. The acceptance keeps class `native_oracle_verified`, but its note says that this branch is a native rejection and not an original behaviour. The differential test compares exactly those four calls and the native status 1, and requires that every byte of every area (self, the cells, the string, the buffer, the zero page) and every global is unchanged except `[p0]`, which must equal the original's value 0; the direct test takes a snapshot of all regions and of the world and requires the same. Hand-applied mutants (`wr32(self, 0x1c, ...)` or a store to `[p1]` before `return 1`) are caught by both.
 - Nothing else is bounds checked, as in the original: the indices of 0x4d3992 and 0x4c92c5 (a reported index still clears its record), the string length of 0x4895cc (a string over 0xaba bytes overruns the buffer), the pixel counts of 0x4c46d1, the rows and widths of 0x4c9340 and the entry counts of 0x4cb9d1 are caller-validated and the fixtures keep them inside their buffers.
 - Word arguments are taken from the low 16 bits of the stack dword (the fixtures put garbage in the upper half); byte arguments of 0x4c46d1 from the low byte. 0x4d39f9, 0x4c948f and 0x4c9340 return `ax`; the upper half of `eax` is not compared.
 
@@ -88,15 +88,19 @@ All eight survivors were read and are equivalent on every reachable input:
 - 0x4cb9d1: the counter `[self+0x132]` read with `rd16` instead of `rd32` (twice): the counter starts at 0 and the loop bound is a signed word (at most 0x7fff), so the high half is always 0.
 - 0x4895cc: the two `wr16(..., rd16(q + 0x21 / 0x23))` read as `rd32`: truncated by the 16-bit store.
 
-Known gap of the tool: mutants are single textual edits; multi-line guards, `if (1)`, a dropped `||` operand, loop-bound expressions and double edits are not modelled. The retry-loop arms of 0x4c3efb (the `continue` after 0x8876021c, the three error-report calls) and the rejection block of 0x4895cc are covered by the direct test and by the differential test but have no automatic mutant.
+Mutants applied by hand (the whole slice tests run on each; all CAUGHT by the direct and the differential tests): an extra `wr32(self, 0x1c, 0x1234)` before `return 1` of 0x4895cc; an extra store to `[p1]` before that `return 1`; the `continue` after 0x8876021c removed from 0x4c3efb (the code then reports it as an error); the `continue` after 0x887601c2 removed; the last reporting call (0x4c97b4) of 0x4d3992 deleted.
+
+Known gap of the tool: mutants are single textual edits; multi-line guards, `if (1)`, a dropped `||` operand, loop-bound expressions and double edits are not modelled. The retry-loop arms of 0x4c3efb (the `continue` after 0x8876021c, the three error-report calls) and the rejection block of 0x4895cc are covered by the direct test and by the differential test; the hand-applied mutants above exercise them.
 
 ## Integration proposal (for the integration owner)
 
 - The ports take `Fl18Host` with `call` / `resolve`; the world pointers (`table_5d15a5`, `words_5afbda`, `dwords_5d032f`) must point to host memory that mirrors those global tables, with slack for a negative index (`words_5afbda` and `dwords_5d032f` are indexed by a signed word). The stack-argument addresses of 0x4c4202, 0x4c9340, 0x4c46d1, 0x4895cc and 0x4c3efb are original addresses that `resolve` must map to writable memory (the surface descriptor, pixel buffer and the three output dwords are written).
 - The host must treat the return value of `m4895cc_init_buffer` as follows: 0 = done, 1 = the allocation failed and the reports were made (the original would crash; the host should stop the scene or exit with the report).
+- `m4d39f9_find_free_entry`, `m4c948f_find_free_slot` and `m4c9340_scan_surface` return `ax` as an `int32_t` (0xffff is -1, the upper half of eax is not part of the result): callers must treat the value as a truncated 16-bit word (compare `(int16_t)` or `(uint16_t)` as the original caller does), not as a full 32-bit result.
+- `m4895cc_init_buffer` returning 1 means that the quit has already been posted by 0x4c97b4 (the report just before) and that the original would have crashed on the next store; the host must not use the buffer or the object afterwards.
 - The ports are standalone; no shared parser, dispatcher or app file was edited. 0x4c97b4 is the common reporting call (the same callee as in FL-28); a host that binds the other callees to ported `m<va>_*` symbols says so itself.
 
-## Source and test hashes (sha256, at the commit of the ports)
+## Source and test hashes (sha256, at the last commit)
 
 | file | sha256 |
 |---|---|
@@ -104,10 +108,10 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, `if 
 | src/original_methods_fl29a.h | 920b815bc5f0eda28ebcda7acbfbad0d564529b14a1989acf578594da147930e |
 | tests/fl29a_original_oracle.py | a931e75351bd6889de9a19cb1a17250a41faee22a4054aa9aef9a263a40b1044 |
 | tests/fl29a_fixtures.py | d4e843897f44373fb655db146d426eb99b869307621aeaab71f6fb0704e6f370 |
-| tests/fl29a_direct_test.c | a7b4d4e900fb2ea77be12beb51268f6c1da7d5aa18372cf8e36d2cc6c3a3d536 |
+| tests/fl29a_direct_test.c | 35341f1c66eea41df2f0809e7d7272c2bfa1c3897cbcc8576b5b02c6a9335c10 |
 | tests/fl29a_differential_shim.c | fd3bb28929ead71e3aac8b1fe130f1279c5e1e46de115c445ad44ad2212d847c |
-| tests/test_fl29a_differential.py | 2fd0a7c3fd84e07c70d502f21f8a2aeed3966f024689489ddd39fc0472b174be |
+| tests/test_fl29a_differential.py | 85c2bea4140ed7b0feea201e3f449d3474ec135b2bab385d930cf40a42575de3 |
 | tests/test_fl29a_direct.py | c8518d6af2708deca82e4b250d12e47871797cb50a13a4057d7e01c583d30b3e |
-| tests/fl29a_mutation_check.py | 8c9da1b1e3dae61b5c7b72b66d4550e6c072e368a9ca365f475ce776c54e2996 |
+| tests/fl29a_mutation_check.py | 487ed2a2b6301853a452c5982235ab6572b9a6365946fa4f60fd4fa3e3e3109b |
 
 Native library: the differential builds `tests/fl29a_differential_shim.c` + `src/original_methods_fl29a.c` into a throwaway shared object per run (no committed binary).
