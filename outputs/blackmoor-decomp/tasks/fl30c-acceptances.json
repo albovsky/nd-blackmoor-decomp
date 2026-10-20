@@ -1,0 +1,200 @@
+[
+  {
+    "va": "0x4fcb5c",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-30c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl30c.c",
+      "symbol": "m4fcb5c_set_category_master"
+    },
+    "tests": [
+      {
+        "path": "tests/fl30c_direct_test.c",
+        "test_id": "test_m4fcb5c_set_category_master"
+      },
+      {
+        "path": "tests/test_fl30c_direct.py",
+        "test_id": "Fl30cDirect.test_4fcb5c_set_category_master"
+      },
+      {
+        "path": "tests/test_fl30c_differential.py",
+        "test_id": "Fl30cDifferential.test_4fcb5c_set_category_master"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl30c_original_oracle.py",
+      "window": [
+        "0x4fcb5c",
+        "0x4fccf2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Master volume clamp 0..1 of the float table at +0xb764, then per matching channel (category word == idx, state word 1) the two attenuations ftol(scalar*master*2857.14-2857.14) and 0x4f684a(this 0x5cf1eb, channel); x87 with the 53-bit control word, ftol 0x50ce04 run as original library code. See fl30c-handoff.md."
+  },
+  {
+    "va": "0x43d7f0",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-30c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl30c.c",
+      "symbol": "m43d7f0_init_scenes"
+    },
+    "tests": [
+      {
+        "path": "tests/fl30c_direct_test.c",
+        "test_id": "test_m43d7f0_init_scenes"
+      },
+      {
+        "path": "tests/test_fl30c_direct.py",
+        "test_id": "Fl30cDirect.test_43d7f0_init_scenes"
+      },
+      {
+        "path": "tests/test_fl30c_differential.py",
+        "test_id": "Fl30cDifferential.test_43d7f0_init_scenes"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl30c_original_oracle.py",
+      "window": [
+        "0x43d7f0",
+        "0x43da93"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Scene initialiser: [0x5d15a5]=1, 47 thiscall initialisers on fixed object addresses, two dword copy-and-clear flags and six byte-to-dword flags. See fl30c-handoff.md."
+  },
+  {
+    "va": "0x434025",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-30c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl30c.c",
+      "symbol": "m434025_scan_entries"
+    },
+    "tests": [
+      {
+        "path": "tests/fl30c_direct_test.c",
+        "test_id": "test_m434025_scan_entries"
+      },
+      {
+        "path": "tests/test_fl30c_direct.py",
+        "test_id": "Fl30cDirect.test_434025_scan_entries"
+      },
+      {
+        "path": "tests/test_fl30c_differential.py",
+        "test_id": "Fl30cDifferential.test_434025_scan_entries"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl30c_original_oracle.py",
+      "window": [
+        "0x434025",
+        "0x43423d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Entry table scan of the object at +0x1144/+0x20e4/+0x3084 with two callees per record (0x4347b8, 0x434773), reports at n<=8 and count>0x3e6; the always-true loop guard at 0x4340dc..0x4340e3 leaves one jump direction untaken (allowlisted). See fl30c-handoff.md."
+  },
+  {
+    "va": "0x41b6e2",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-30c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl30c.c",
+      "symbol": "m41b6e2_lz_decode"
+    },
+    "tests": [
+      {
+        "path": "tests/fl30c_direct_test.c",
+        "test_id": "test_m41b6e2_lz_decode"
+      },
+      {
+        "path": "tests/test_fl30c_direct.py",
+        "test_id": "Fl30cDirect.test_41b6e2_lz_decode"
+      },
+      {
+        "path": "tests/test_fl30c_differential.py",
+        "test_id": "Fl30cDifferential.test_41b6e2_lz_decode"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl30c_original_oracle.py",
+      "window": [
+        "0x41b6e2",
+        "0x41b925"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "LZ decoder with the 0x1000-byte ring at 0x56f354 (key-offset bytes, 8 flag bits, 12-bit position and 4-bit length matches). See fl30c-handoff.md."
+  },
+  {
+    "va": "0x4763b3",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-30c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl30c.c",
+      "symbol": "m4763b3_mark_runs"
+    },
+    "tests": [
+      {
+        "path": "tests/fl30c_direct_test.c",
+        "test_id": "test_m4763b3_mark_runs"
+      },
+      {
+        "path": "tests/test_fl30c_direct.py",
+        "test_id": "Fl30cDirect.test_4763b3_mark_runs"
+      },
+      {
+        "path": "tests/test_fl30c_differential.py",
+        "test_id": "Fl30cDifferential.test_4763b3_mark_runs"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl30c_original_oracle.py",
+      "window": [
+        "0x4763b3",
+        "0x476a25"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Four run scans (up, down, left, right) of equal cells in the grid at +0x30, then two marking blocks adding the record scores and formatting the text via 0x50ca3e; native rejection when the record does not resolve. See fl30c-handoff.md."
+  },
+  {
+    "va": "0x423876",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-30c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl30c.c",
+      "symbol": "m423876_unwind_chain"
+    },
+    "tests": [
+      {
+        "path": "tests/fl30c_direct_test.c",
+        "test_id": "test_m423876_unwind_chain"
+      },
+      {
+        "path": "tests/test_fl30c_direct.py",
+        "test_id": "Fl30cDirect.test_423876_unwind_chain"
+      },
+      {
+        "path": "tests/test_fl30c_differential.py",
+        "test_id": "Fl30cDifferential.test_423876_unwind_chain"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl30c_original_oracle.py",
+      "window": [
+        "0x423876",
+        "0x423a30"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Recursive node chain release (0x423aae/0x423a30/0x4234dd/0x4235fd callees), c+4 cleared on the last node, optional free of the cell; error report block; native rejection of the endless-loop node types (oracle runs the original and shows it does not return). See fl30c-handoff.md."
+  }
+]
