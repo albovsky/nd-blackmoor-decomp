@@ -152,6 +152,10 @@ class Fl30cDifferential(DiffBase):
         """FL-30c: differential test of m43d7f0_init_scenes (original 0x43d7f0)"""
         self.run_key('43d7f0')
 
+    def test_434025_scan_entries(self):
+        """FL-30c: differential test of m434025_scan_entries (original 0x434025)"""
+        self.run_key('434025')
+
     # TESTS-END
 
 

@@ -190,3 +190,55 @@ void m43d7f0_init_scenes(Fl30cWorld *world, const Fl18Host *host)
     if (world->byte_5b51f6 != 0) world->value_5d1b6d = 1;
     for (i = 1; i < 47; i++) call0(host, kInitCalls[i].callee, kInitCalls[i].object);
 }
+
+/* ---- 0x434025 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x434025, thiscall: see the header. [ebp-0x20] is `self`, [ebp-0x14] i, [ebp-0x18] p, [ebp-8] n, [ebp-0x1c] q, [ebp-0xc] m, [ebp-0x10] j, [ebp-4] sel. */
+void m434025_scan_entries(uint8_t *self, const Fl18Host *host)
+{
+    int32_t i;
+    uint32_t sel = 0;
+    wr32(self, 0x5f68, 0);
+    for (i = 0; i < (int32_t)rd32(self, 0x5f64); i++) {
+        uint32_t p = rd32(self, 0x1144 + (ptrdiff_t)i * 4) + 4;       /* + the length of "DATA" at 0x545e7c */
+        uint32_t n = call1(host, 0x4347b8, (uintptr_t)self, p);
+        uint32_t q = 5;
+        if (n <= 8) {
+            call2(host, 0x42639d, 0x583979, 0x545e98, 0x545e84);
+            call0(host, 0x4c97b4, 0x5cf659);
+        }
+        p += 4;
+        p += 4;
+        for (;;) {
+            uint32_t m;
+            if (call1(host, 0x434773, (uintptr_t)self, p) == 1) {
+                int32_t j;
+                for (j = 0; j < (int32_t)rd32(self, 0x5f64); j++) {
+                    if (j == i) continue;
+                    if (rd32(self, 0x1144 + (ptrdiff_t)j * 4) == p) {
+                        sel = (uint32_t)j;
+                        break;
+                    }
+                }
+                p += rd32(self, 0x3084 + (ptrdiff_t)(int32_t)sel * 4);
+                q += rd32(self, 0x3084 + (ptrdiff_t)(int32_t)sel * 4);
+                if (!(q < n)) break;
+            }
+            if ((int32_t)rd32(self, 0x5f68) > 0x3e6) {
+                call2(host, 0x42639d, 0x583979, 0x545ed0, 0x545ebc);
+                call0(host, 0x4c97b4, 0x5cf659);
+            }
+            wr32(self, 0x20e4 + (ptrdiff_t)(int32_t)rd32(self, 0x5f68) * 4, p);
+            wr32(self, 0x5f68, rd32(self, 0x5f68) + 1);
+            p += 4;
+            q += 4;
+            m = call1(host, 0x4347b8, (uintptr_t)self, p);
+            if ((m & 1) == 1) m += 1;
+            p += 4;
+            q += 4;
+            p += m;
+            q += m;
+            if (q > n) break;
+        }
+    }
+}

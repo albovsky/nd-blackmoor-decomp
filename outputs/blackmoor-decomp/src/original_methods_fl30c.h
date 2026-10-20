@@ -45,6 +45,17 @@ void m4fcb5c_set_category_master(uint8_t *self, int32_t idx, const Fl18Host *hos
  * results are ignored, a callee that changes one of the globals above is not exercised. */
 void m43d7f0_init_scenes(Fl30cWorld *world, const Fl18Host *host);
 
+/* 0x434025, thiscall (`self` = ecx), plain `ret` (no arguments, no result): builds the table of record offsets of the object. dword [self+0x5f68] = 0; sel = 0 (a local that keeps its value over the
+ * whole function); for i = 0 while i < (signed dword [self+0x5f64]) (read again every pass): p = dword [self + 0x1144 + i*4] + 4 (4 = the length of the constant string "DATA" at 0x545e7c, measured by
+ * `repne scasb`); n = 0x4347b8(this self, p) (thiscall, one argument); n <= 8 (unsigned): the report 0x42639d(this 0x583979, 0x545e98, 0x545e84) (thiscall, two arguments) and 0x4c97b4(this 0x5cf659),
+ * and the function goes on. p += 8; q = 5. Then the loop (the original's `mov eax, 1; test eax, eax; je` guard is always true): when 0x434773(this self, p) (thiscall, one argument) returns 1: for j = 0 while
+ * j < (signed dword [self+0x5f64]) (read again): j == i is skipped, and the first j with dword [self + 0x1144 + j*4] == p sets sel = j and ends the scan; then p += dword [self + 0x3084 + sel*4],
+ * q += the same dword, and q >= n (unsigned) leaves the loop. Then (also when the call did not return 1): a signed dword [self+0x5f68] > 0x3e6: the report 0x42639d(this 0x583979, 0x545ed0, 0x545ebc)
+ * and 0x4c97b4(this 0x5cf659) (the original goes on); dword [self + 0x20e4 + [self+0x5f68]*4] = p; [self+0x5f68] += 1; p += 4; q += 4; m = 0x4347b8(this self, p); an odd m is made even (+1); p += 4; q += 4;
+ * p += m; q += m; q > n (unsigned) leaves the loop, otherwise it goes on. Not bounds checked, as in the original: the entries from index 0x3e8 on overwrite the dwords from self+0x3084 (the table that the
+ * loop above reads), and the count is not limited at all; the caller guarantees an object big enough. */
+void m434025_scan_entries(uint8_t *self, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif

@@ -33,7 +33,7 @@ typedef struct ShimWrite {
 
 typedef struct ShimScript {
     uint32_t callee;
-    uint32_t results[1100];
+    uint32_t results[4096];
     int nresults, used;
     int deref_arg, deref_bytes, deref_arg2, deref_bytes2;
     const uint8_t *probe_ptr[8];
@@ -44,7 +44,7 @@ typedef struct ShimScript {
 
 static ShimRegion g_regions[16];
 static int g_region_count;
-static ShimCall g_calls[2048];
+static ShimCall g_calls[16384];
 static int g_call_count;
 static ShimScript g_script[64];
 static int g_script_count;
@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F30C_4FCB5C = 1, F30C_43D7F0 /* ENUM-END */ };
+enum { F30C_4FCB5C = 1, F30C_43D7F0, F30C_434025 /* ENUM-END */ };
 
 /* Runs one port; `a` holds the stack arguments of the function as 64-bit values (the original addresses of the fixture memory). `self` is the host pointer of the object (ecx) when the
  * scenario has one. Pointer arguments are resolved to host pointers here, as the host would. `result` is the return value of the ports that have one. */
@@ -205,6 +205,7 @@ void shim_fl30c(int fn, uint8_t *self, const uintptr_t *a, Fl30cWorld *w, int32_
     switch (fn) {
     case F30C_4FCB5C: m4fcb5c_set_category_master(self, (int32_t)a[0], &host); break;
     case F30C_43D7F0: m43d7f0_init_scenes(w, &host); break;
+    case F30C_434025: m434025_scan_entries(self, &host); break;
     /* CASES-END */
     default: break;
     }

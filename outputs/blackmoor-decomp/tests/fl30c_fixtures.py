@@ -401,12 +401,59 @@ def world_all(rng):
     return {name: rng.randrange(1 << (8 * size)) for name, (address, size) in GLOBALS.items()}
 
 
+# ---- 0x434025 ------------------------------------------------------------------------------------------------------------------------------
+
+SELF_434025 = 0x6000
+
+
+def profiles_434025():
+    return [('empty', 0), ('empty', -1), ('empty', 0x80000000)] + [('norm', k) for k in range(160)] + [('big', 0)]
+
+
+def gen_434025(rng, n):
+    (kind, k), variant = prof(n, profiles_434025())
+    s = bytearray(rng.randbytes(SELF_434025))
+    if kind == 'empty':
+        put32(s, 0x5f64, k)
+        put32(s, 0x5f68, rng.randrange(1 << 32))
+        pool_n, pool_r = [20], [1]
+    elif kind == 'big':
+        count = 500
+        put32(s, 0x5f64, count)
+        for i in range(count):
+            put32(s, 0x1144 + 4 * i, rand32(rng))
+        pool_n, pool_r = [40, 0, 40] * 500, [0]
+    else:
+        count = 1 + k % 6
+        put32(s, 0x5f64, count)
+        a = [rand32(rng) for _ in range(count)]
+        for i in range(count):
+            put32(s, 0x1144 + 4 * i, a[i])
+        for i in range(count):      # sometimes another entry equals the first p of entry i (A[i] + 4 + 4 + 4): the scan finds it
+            if count > 1 and rng.random() < 0.5:
+                j = rng.choice([x for x in range(count) if x != i])
+                put32(s, 0x1144 + 4 * j, a[i] + 12)
+        if rng.random() < 0.4:      # the dword behind the last entry equals the p of an entry: a scan that runs one entry too far finds it
+            put32(s, 0x1144 + 4 * count, a[rng.randrange(count)] + 12)
+        for j in range(count + 1):
+            put32(s, 0x3084 + 4 * j, rng.choice([0, 1, 4, 8, 16, 20, 0x7ffffff0, 3, 0x10000, 5]))
+        pool_n = [rng.choice([0, 3, 8, 9, 12, 20, 41, 60, 7, 16, 0x20000, 0x30001]) for _ in range(400)]
+        pool_r = [rng.choice([0, 1, 1, 1, 2, 0xffffffff, 1]) for _ in range(400)]
+    probe = [('self', 0x5f64, 8), ('self', 0x20e4, 64)]
+    stubs = {0x4347b8: stub(0x4347b8, THISCALL(1), probe, results=pool_n), 0x434773: stub(0x434773, THISCALL(1), probe, results=pool_r),
+             0x42639d: stub(0x42639d, THISCALL(2), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe)}
+    return make('434025', [self_area(s)], stubs, {}, [], (), (kind, k))
+
+
 SPECS = {
     '4fcb5c': dict(id=1, va=0x4fcb5c, size=406, gen=gen_4fcb5c, cleanup=4, fpcw=0x27f, n=len(profiles_4fcb5c()) * 6),
     '43d7f0': dict(id=2, va=0x43d7f0, size=675, gen=gen_43d7f0, cleanup=0, n=len(profiles_43d7f0()) * 2),
+    '434025': dict(id=3, va=0x434025, size=536, gen=gen_434025, cleanup=0, n=len(profiles_434025()) * 3),
 }
 KEYS = list(SPECS)
-NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes'}
+UNTAKEN_ALLOWED['434025'] = {(0x4340e3, 'taken'): 'je after `mov eax, 1; test eax, eax` guards the endless entry loop: the guard is always true, so the jump to 0x434233 is never taken from here '
+                                                    '(0x434233 itself is reached by the jumps at 0x43416e and 0x43422c, and every instruction of the function is executed)'}
+NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries'}
 
 
 def build(key, rng, n):

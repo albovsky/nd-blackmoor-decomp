@@ -35,7 +35,7 @@ static struct {
 } L;
 static struct {
     uint32_t callee;
-    uint32_t results[1100];
+    uint32_t results[4096];
     int n, used;
 } S[8];
 static int g_nscript;
@@ -239,6 +239,104 @@ static void test_m43d7f0_init_scenes(void)
     CK(g_w.value_5d1a8f == 0 && g_w.value_5d1ad9 == 1 && g_w.value_5d1b23 == 0 && g_w.value_5d1bb7 == 1 && g_w.value_5d1c01 == 0 && g_w.value_5d1b6d == 1);
 }
 
+/* ---- 0x434025 ---- */
+static void test_m434025_scan_entries(void)
+{
+    static uint8_t self[0x6000];
+    uint32_t r1[1500], r2[2];
+    int k;
+    /* count 1, A[0] = 0x10000, 0x4347b8 answers 20 then 4, 0x434773 answers 0: p = 0x10000 + 4 ("DATA") -> n = 20; p = 0x1000c, q = 5; entry 0x1000c stored, p = 0x10018, q = 17 (m = 4); not above 20: entry
+     * 0x10018 stored, p = 0x10024, q = 29 > 20 */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 1);
+    set32(self, 0x1144, 0x10000);
+    set32(self, 0x5f68, 77);
+    r1[0] = 20; r1[1] = 4;
+    r2[0] = 0;
+    script(0x4347b8, 2, r1);
+    script(0x434773, 1, r2);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 2 && get32(self, 0x20e4) == 0x1000c && get32(self, 0x20e8) == 0x10018);
+    CK(L.n == 5);
+    CK(L.c[0].callee == 0x4347b8 && L.c[0].this_ptr == (uintptr_t)self && L.c[0].nargs == 1 && L.c[0].a[0] == 0x10004);
+    CK(L.c[1].callee == 0x434773 && L.c[1].a[0] == 0x1000c && L.c[2].callee == 0x4347b8 && L.c[2].a[0] == 0x10010);
+    CK(L.c[3].callee == 0x434773 && L.c[3].a[0] == 0x10018 && L.c[4].callee == 0x4347b8 && L.c[4].a[0] == 0x1001c);
+    /* n = 8 (not above 8): the report first; an odd m (3) is made even (4): p = 0x20018, q = 17 > 8 ends */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 1);
+    set32(self, 0x1144, 0x20000);
+    r1[0] = 8; r1[1] = 3;
+    r2[0] = 0;
+    script(0x4347b8, 2, r1);
+    script(0x434773, 1, r2);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 1 && get32(self, 0x20e4) == 0x2000c);
+    CK(L.n == 5 && L.c[1].callee == 0x42639d && L.c[1].this_ptr == 0x583979 && L.c[1].nargs == 2 && L.c[1].a[0] == 0x545e98 && L.c[1].a[1] == 0x545e84);
+    CK(L.c[2].callee == 0x4c97b4 && L.c[2].this_ptr == 0x5cf659 && L.c[2].nargs == 0 && L.c[3].callee == 0x434773 && L.c[3].a[0] == 0x2000c);
+    CK(L.c[4].callee == 0x4347b8 && L.c[4].a[0] == 0x20010);
+    /* the scan: A[1] equals the first p of entry 0 (0x30000 + 12); 0x434773 answers 1 once; sel = 1 (j = 0 is entry 0 itself, skipped); dword [self+0x3084+4] = 0x10 is added to p and q */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 2);
+    set32(self, 0x1144, 0x30000);
+    set32(self, 0x1148, 0x3000c);
+    set32(self, 0x3084 + 4, 0x10);
+    r1[0] = 100; r1[1] = 2; r1[2] = 90;
+    r2[0] = 1; r2[1] = 0;
+    script(0x4347b8, 3, r1);
+    script(0x434773, 2, r2);
+    m434025_scan_entries(self, &g_host);
+    /* entry 0: p = 0x3001c, q = 21 < 100: stored; p = 0x30020 -> m = 2 -> p = 0x30026, q = 31; again (answer 0): stored 0x30026, p = 0x3002a, m = 90, q = 129 > 100 ends;
+     * entry 1: p = 0x3000c + 4 = 0x30010 -> n = 90, p = 0x30018, answer 0: stored 0x30018 */
+    CK(get32(self, 0x5f68) == 3 && get32(self, 0x20e4) == 0x3001c && get32(self, 0x20e8) == 0x30026 && get32(self, 0x20ec) == 0x30018);
+    CK(L.n == 8 && L.c[0].a[0] == 0x30004 && L.c[1].callee == 0x434773 && L.c[1].a[0] == 0x3000c && L.c[2].callee == 0x4347b8 && L.c[2].a[0] == 0x30020);
+    CK(L.c[3].callee == 0x434773 && L.c[3].a[0] == 0x30026 && L.c[4].callee == 0x4347b8 && L.c[4].a[0] == 0x3002a && L.c[5].callee == 0x4347b8 && L.c[5].a[0] == 0x30010);
+    CK(L.c[6].callee == 0x434773 && L.c[6].a[0] == 0x30018 && L.c[7].callee == 0x4347b8 && L.c[7].a[0] == 0x3001c);
+    /* answer 1 without a match: sel stays 0 and dword [self+0x3084] = 0x7ffffff0 makes q >= n: leaves the loop without a store */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 1);
+    set32(self, 0x1144, 0x40000);
+    set32(self, 0x3084, 0x7ffffff0u);
+    r1[0] = 50;
+    r2[0] = 1;
+    script(0x4347b8, 1, r1);
+    script(0x434773, 1, r2);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 0 && get32(self, 0x20e4) == 0 && L.n == 2);
+    /* a count of 0 or a negative count: nothing but [self+0x5f68] = 0 */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 0xffffffffu);
+    set32(self, 0x5f68, 5);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 0 && L.n == 0);
+    /* 500 entries, two stores each (answers 40, 0, 40 per entry): 1000 stores; the store with the count 999 (> 0x3e6) reports 0x42639d(0x583979, 0x545ed0, 0x545ebc) and 0x4c97b4 first, once */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 500);
+    for (k = 0; k < 500; k++) set32(self, 0x1144 + 4 * k, 0x100000u + 0x100u * (uint32_t)k);
+    for (k = 0; k < 1500; k += 3) { r1[k] = 40; r1[k + 1] = 0; r1[k + 2] = 40; }
+    r2[0] = 0;
+    script(0x4347b8, 1500, r1);
+    script(0x434773, 1, r2);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 1000);
+    CK(get32(self, 0x20e4) == 0x100000u + 12 && get32(self, 0x20e4 + 4 * 999) != 0);
+    {
+        int reports = 0, bad = 0;
+        for (k = 0; k < L.n; k++) {
+            if (L.c[k].callee == 0x42639d) {
+                reports++;
+                if (L.c[k].this_ptr != 0x583979 || L.c[k].a[0] != 0x545ed0 || L.c[k].a[1] != 0x545ebc || L.c[k + 1].callee != 0x4c97b4 || L.c[k + 1].this_ptr != 0x5cf659) bad++;
+            }
+        }
+        CK(reports == 1 && bad == 0);
+    }
+}
+
 /* TESTS-END */
 
 /* ---- the bounded sweep: every port on random in-bounds buffers (meant for the sanitiser builds) ---- */
@@ -262,6 +360,18 @@ static void test_sweep_bounded(void)
         g_w.byte_5b5158 = (uint8_t)(rnd() & 1);
         g_w.byte_5b51f6 = (uint8_t)(rnd() & 1);
         m43d7f0_init_scenes(&g_w, &g_host);
+        /* 0x434025 */
+        {
+            static uint8_t so[0x6000];
+            uint32_t r1[8], r2[8];
+            for (k = 0; k < 8; k++) { r1[k] = rnd() % 30; r2[k] = rnd() % 3; }
+            script(0x4347b8, 8, r1);
+            script(0x434773, 8, r2);
+            memset(so, 0, sizeof so);
+            set32(so, 0x5f64, rnd() % 5);
+            for (k = 0; k < 5; k++) { set32(so, 0x1144 + 4 * k, rnd()); set32(so, 0x3084 + 4 * k, rnd() % 20); }
+            m434025_scan_entries(so, &g_host);
+        }
         /* SWEEP-END */
     }
 }
@@ -284,6 +394,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4fcb5c_set_category_master);
     RUN(test_m43d7f0_init_scenes);
+    RUN(test_m434025_scan_entries);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;
