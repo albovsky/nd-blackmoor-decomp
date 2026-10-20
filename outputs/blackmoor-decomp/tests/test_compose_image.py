@@ -192,7 +192,7 @@ class RangeDescriptionTests(unittest.TestCase):
         referenced = [
             compose_image.Item(int(r[0]), int(r[1]), "referenced", "referenced", data=b"") for r in desc["ranges"]["ranges"]
         ]
-        self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
+        self.assertEqual(len(desc["reconstructed"]["bindings"]), 3)  # the three hand-written S08 assembly sources; no byte is compiled
         self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 10)
         self.assertEqual(len(desc["reconstructed"]["data_batches"]), 5)
         # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
@@ -483,13 +483,14 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         progress = report["progress"]
         self.assertEqual(progress["generated_bytes"] + progress["referenced_bytes"], progress["total_bytes"])
         self.assertEqual(progress["missing_bytes"], 0)
-        # 398 baseline bytes plus 4,773 audited tool-assisted functions (1,201,090 bytes: 4,163 indexed functions in
-        # batches 001-008, 554 derived entries in batch 009 and the 56 fragment entries of batch 010); the 13 functions
-        # that overlap the baseline (11 S08 assembly functions, 2 incomplete C ranges) are counted once, in the
-        # baseline.  The audited data items that no structured group generates are bound in classes of their own and
+        # 384 baseline bytes (11 hand-written S08 assembly functions) plus 4,775 audited tool-assisted functions
+        # (1,201,104 bytes: 4,165 indexed functions in batches 001-008, 554 derived entries in batch 009 and the 56
+        # fragment entries of batch 010); the 11 functions that overlap the baseline are counted once, in the
+        # baseline.  The two 7-byte ranges the packet-M02 baseline compiled from C are audited assembly (batch 007)
+        # since packet M-D.  The audited data items that no structured group generates are bound in classes of their own and
         # are not code.
         by_provenance = report["reconstructed_by_provenance"]
-        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4773, "bytes": 1201090})
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4775, "bytes": 1201104})
         self.assertEqual(by_provenance["explicit_reconstructed_assembly_source"]["bytes"], 384)
         self.assertEqual(by_provenance["tool_assisted_reconstructed_index_table"], {"ranges": 19, "bytes": 1934})
         self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 616, "bytes": 3740})  # 2,214 of them int 3 padding
@@ -536,7 +537,7 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         self.assertEqual([r["batch"] for r in data_batches], ["001", "002", "003", "004", "005"])
         self.assertEqual([r["profile"] for r in data_batches], ["payloads", "payloads", "structures", "structures", "jump_tables"])
         self.assertEqual(sum(r["length"] for r in data_batches), 298406 + 240)
-        self.assertEqual(sum(r["length"] for r in baseline), 398)
+        self.assertEqual(sum(r["length"] for r in baseline), 384)
         assembly = [r for r in baseline if r["provenance_class"] == "explicit_reconstructed_assembly_source"]
         self.assertEqual(sum(r["length"] for r in assembly), 384)
         self.assertEqual(len(assembly), 11)
@@ -545,16 +546,17 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
             self.assertEqual(hashlib.sha256(self.original[offset : offset + record["length"]]).hexdigest(), record["range_sha256"])
         batches = {r["batch"]: r for r in comp.reconstructed_records if "functions" in r}
         self.assertEqual(sorted(batches), ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010"])
-        self.assertEqual(sum(r["functions"] for r in batches.values()), 4773)
-        self.assertEqual(sum(r["length"] for r in batches.values()), 1201090)
+        self.assertEqual(sum(r["functions"] for r in batches.values()), 4775)
+        self.assertEqual(sum(r["length"] for r in batches.values()), 1201104)
         self.assertEqual(sum(r["index_table_bytes"] for r in batches.values()), 1934)
         self.assertEqual(sum(r["padding_bytes"] for r in batches.values()), 3740)
         self.assertEqual(sum(r["jump_tables"] for r in batches.values()), 158)
         self.assertEqual(sum(r["jump_table_bytes"] for r in batches.values()), 5616)
-        # the baseline keeps its own class: 11 S08 functions in batch 001 and 2 incomplete C ranges in batch 007
+        # the baseline keeps its own class: 11 S08 functions in batch 001; batch 007's two 7-byte functions are bound
+        # from audited assembler (no compiled range is left in the image)
         self.assertEqual(batches["001"]["superseded"], 11)
-        self.assertEqual(batches["007"]["superseded"], 2)
-        self.assertEqual(sum(r["superseded"] for r in batches.values()), 13)
+        self.assertEqual(batches["007"]["superseded"], 0)
+        self.assertEqual(sum(r["superseded"] for r in batches.values()), 11)
         # every reconstructed range, whichever class, is byte-identical to the original: the match claim
         for item in comp.items:
             if item.cls == "reconstructed":

@@ -29,12 +29,11 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 | Class | Functions or ranges | Bytes |
 |---|---:|---:|
 | tool_assisted_reconstructed_data | 51 | 298,406 |
-| tool_assisted_reconstructed_assembly | 4,773 | 1,201,090 |
+| tool_assisted_reconstructed_assembly | 4,775 | 1,201,104 |
 | tool_assisted_reconstructed_padding | 616 | 3,740 |
 | tool_assisted_reconstructed_jump_table | 170 | 5,856 |
 | tool_assisted_reconstructed_index_table | 19 | 1,934 |
 | explicit_reconstructed_assembly_source | 11 | 384 |
-| incomplete_byte_range_not_a_complete_function | 2 | 14 |
 
 ## By section
 
@@ -75,15 +74,13 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 | `_FUN_004daf02` | 0xdaf02 | 22 | assembly | bound |
 | `_FUN_004daf18` | 0xdaf18 | 17 | assembly | bound |
 | `_FUN_004daf29` | 0xdaf29 | 22 | assembly | bound |
-| `_FUN_0051cfd1` | 0x11cfd1 | 7 | c_incomplete_byte_range | bound |
-| `_FUN_0052398b` | 0x12398b | 7 | c_incomplete_byte_range | bound |
 | `asm/batch-001.json` (35 functions, 11 superseded by earlier bindings) | - | 12,138 | tool_assisted_assembly | bound |
 | `asm/batch-002.json` (40 functions, 0 superseded by earlier bindings) | - | 20,790 | tool_assisted_assembly | bound |
 | `asm/batch-003.json` (700 functions, 0 superseded by earlier bindings) | - | 285,792 | tool_assisted_assembly | bound |
 | `asm/batch-004.json` (700 functions, 0 superseded by earlier bindings) | - | 281,442 | tool_assisted_assembly | bound |
 | `asm/batch-005.json` (700 functions, 0 superseded by earlier bindings) | - | 306,703 | tool_assisted_assembly | bound |
 | `asm/batch-006.json` (700 functions, 0 superseded by earlier bindings) | - | 189,707 | tool_assisted_assembly | bound |
-| `asm/batch-007.json` (698 functions, 2 superseded by earlier bindings) | - | 72,430 | tool_assisted_assembly | bound |
+| `asm/batch-007.json` (700 functions, 0 superseded by earlier bindings) | - | 72,444 | tool_assisted_assembly | bound |
 | `asm/batch-008.json` (590 functions, 0 superseded by earlier bindings) | - | 10,208 | tool_assisted_assembly | bound |
 | `asm/batch-009.json` (554 functions, 0 superseded by earlier bindings) | - | 20,323 | tool_assisted_assembly | bound |
 | `asm/batch-010.json` (56 functions, 0 superseded by earlier bindings) | - | 1,557 | tool_assisted_assembly | bound |
