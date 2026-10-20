@@ -184,7 +184,7 @@ void m4db870_load_cursor(uint8_t *self, Fl31cWorld *world, const Fl18Host *host)
     wr32(self, 0x2c, world->dword_58310a);
 }
 
-/* ---- 0x47cd90 / 0x47ce6f / 0x47cf4e pick_variant ---------------------------------------------------------------------------------- */
+/* ---- 0x47cd90 pick_variant: the body shared by the three near-identical methods 0x47cd90, 0x47ce6f and 0x47cf4e (they differ only in the constants below) ------- */
 static uint32_t record_address(const uint8_t *self, uint32_t index, uint32_t base)
 {
     return rd32(self, 0xc) + index * 0xb6u + base;
@@ -212,16 +212,19 @@ static void pick_variant(uint8_t *self, const Fl18Host *host, uint32_t sel, uint
     }
 }
 
+/* ---- 0x47cd90 pick_variant_a: record offset 0x4c8, selector +0x2b8, 5 records, strings 0x54d104 / 0x54d110 -------------------------------------- */
 void m47cd90_pick_variant_a(uint8_t *self, const Fl18Host *host)
 {
     pick_variant(self, host, 0x2b8, 0x4c8, 5, 0x54d104, 0x54d110);
 }
 
+/* ---- 0x47ce6f pick_variant_b: record offset 0x856, selector +0x2bc, 10 records, strings 0x54d11c / 0x54d128 ------------------------------------- */
 void m47ce6f_pick_variant_b(uint8_t *self, const Fl18Host *host)
 {
     pick_variant(self, host, 0x2bc, 0x856, 10, 0x54d11c, 0x54d128);
 }
 
+/* ---- 0x47cf4e pick_variant_c: record offset 0xf72, selector +0x2c0, 10 records, strings 0x54d134 / 0x54d140 ------------------------------------- */
 void m47cf4e_pick_variant_c(uint8_t *self, const Fl18Host *host)
 {
     pick_variant(self, host, 0x2c0, 0xf72, 10, 0x54d134, 0x54d140);
