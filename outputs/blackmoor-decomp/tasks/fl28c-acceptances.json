@@ -2,7 +2,7 @@
   {
     "va": "0x4cf026",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",
@@ -35,7 +35,7 @@
   {
     "va": "0x4cec6c",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",
@@ -68,7 +68,7 @@
   {
     "va": "0x4cf1e4",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",
@@ -107,7 +107,7 @@
   {
     "va": "0x4ceb8c",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",
@@ -140,7 +140,7 @@
   {
     "va": "0x4ccef1",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",
@@ -173,7 +173,7 @@
   {
     "va": "0x4ce8ea",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",
@@ -206,7 +206,7 @@
   {
     "va": "0x4cd243",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28c implementer; independent review pending",
+    "reviewer": "Claude Sonnet FL-28c implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28c.c",

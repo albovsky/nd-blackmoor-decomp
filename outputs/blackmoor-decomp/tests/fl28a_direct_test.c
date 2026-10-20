@@ -251,8 +251,8 @@ static void check_block(uint32_t size, uint32_t message, int is_4237f7)
     CK(call_is(4, 0x4c97b4, 0x5cf659, 0, 0, 0, 0, 0));
 }
 
-static void test_m4237f7_new_block(void) { check_block(0x4c, 0x5446e0, 1); }
-static void test_m4236d6_new_block(void) { check_block(0x1c, 0x5445f8, 0); }
+static void test_m4237f7_new_block(void) { (void)m4237f7_new_block; check_block(0x4c, 0x5446e0, 1); }
+static void test_m4236d6_new_block(void) { (void)m4236d6_new_block; check_block(0x1c, 0x5445f8, 0); }
 
 static void test_m4f80d3_play_retry(void)
 {

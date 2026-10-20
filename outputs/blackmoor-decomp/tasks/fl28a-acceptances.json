@@ -2,7 +2,7 @@
   {
     "va": "0x4235fd",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -35,7 +35,7 @@
   {
     "va": "0x4fc808",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -68,7 +68,7 @@
   {
     "va": "0x4237f7",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -101,7 +101,7 @@
   {
     "va": "0x4236d6",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -134,7 +134,7 @@
   {
     "va": "0x4f80d3",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -167,7 +167,7 @@
   {
     "va": "0x42356d",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -200,7 +200,7 @@
   {
     "va": "0x4fb2e3",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -243,7 +243,7 @@
   {
     "va": "0x423368",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -276,7 +276,7 @@
   {
     "va": "0x423142",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -315,7 +315,7 @@
   {
     "va": "0x4fadc4",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",
@@ -348,7 +348,7 @@
   {
     "va": "0x4f356e",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28a implementer; independent slice-reviewer review pending",
+    "reviewer": "Claude Sonnet FL-28a implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28a.c",

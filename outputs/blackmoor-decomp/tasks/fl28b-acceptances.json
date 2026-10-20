@@ -2,7 +2,7 @@
   {
     "va": "0x41e043",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -35,7 +35,7 @@
   {
     "va": "0x42e493",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -68,7 +68,7 @@
   {
     "va": "0x41de29",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -101,7 +101,7 @@
   {
     "va": "0x41e250",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -134,7 +134,7 @@
   {
     "va": "0x4edfaf",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -167,7 +167,7 @@
   {
     "va": "0x41e0b4",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -200,7 +200,7 @@
   {
     "va": "0x4205c1",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -233,7 +233,7 @@
   {
     "va": "0x4209e8",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -266,7 +266,7 @@
   {
     "va": "0x4f6ef4",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -294,12 +294,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Advances a record: the guard chain with its three store/return arms, the n == -1 trace arm and the single-precision x87 quotient through the real __ftol with the two signed clamps; every instruction and jump covered. See tasks/fl28b-handoff.md."
+    "note": "Advances a record: the guard chain with its three store/return arms, the n == -1 trace arm and the single-precision x87 quotient through the real __ftol with two signed clamps; fully executed. See tasks/fl28b-handoff.md."
   },
   {
     "va": "0x41c544",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -327,12 +327,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Initialises a record: the constant string copies, the field stores from the source, the 0x423259 text pointer with its debug-report arm and the missing-text fallback; every instruction and jump direction executed. See tasks/fl28b-handoff.md."
+    "note": "Initialises a record: the constant string copies, the field stores from the source, the 0x423259 text pointer with its debug-report arm and the missing-text fallback; fully executed. See tasks/fl28b-handoff.md."
   },
   {
     "va": "0x41fa11",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -365,7 +365,7 @@
   {
     "va": "0x422a0a",
     "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-28b implementer; no independent review yet",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
     "date": "2026-10-19",
     "native_source": {
       "path": "src/original_methods_fl28b.c",
@@ -393,6 +393,6 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Draws the marked entries: the kind gate, the two nested word loops with the first-match break, the jump-table switch (arms 0/1/3 and 2) and the second-selector calls; code bytes 0x422a0a..0x422e39 fully executed, the jump table is data. See tasks/fl28b-handoff.md."
+    "note": "Draws the marked entries: kind gate, two nested word loops with first-match break, jump-table switch (arms 0/1/3 and 2), second-selector calls; code bytes 0x422a0a..0x422e39 executed, the table is data. See tasks/fl28b-handoff.md."
   }
 ]
