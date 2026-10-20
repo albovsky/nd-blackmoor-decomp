@@ -1,0 +1,299 @@
+[
+ {
+  "va": "0x47b200",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47b200_construct"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47b200_construct"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47b200_construct"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47b200_construct"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47b200",
+    "0x47b21f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Constructor: stores the table pointer 0x52d568 into the object, calls 0x47b23b with ecx = this and returns this; every instruction executed."
+ },
+ {
+  "va": "0x47b3bc",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47b3bc_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47b3bc_mark_entry"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47b3bc_mark_entry"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47b3bc_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47b3bc",
+    "0x47b3f0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Sets the dword of record [word self+4] at 0x5d15a5 (stride 0x4a) to 1 when [self+0x24] is non-zero and the signed word is not -1; every instruction and both directions executed."
+ },
+ {
+  "va": "0x47d640",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47d640_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47d640_mark_entry"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47d640_mark_entry"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47d640_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47d640",
+    "0x47d677"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Sets the dword of record [word self+0x23] at 0x5d15a5 (stride 0x4a) to 1 when byte [self+0x57] is non-zero and the signed word is not -1; every instruction and jump direction executed."
+ },
+ {
+  "va": "0x47b709",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47b709_set_selector"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47b709_set_selector"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47b709_set_selector"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47b709_set_selector"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47b709",
+    "0x47b767"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the sign-extended word argument to 0x5c39e5 and sets the globals 0x5b44f0/f4, 0x5d162d, 0x5d1631 (0x5b161c) and 0x5d1639; straight line, every instruction executed."
+ },
+ {
+  "va": "0x47ba79",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47ba79_expire_links"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47ba79_expire_links"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47ba79_expire_links"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47ba79_expire_links"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47ba79",
+    "0x47badf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When the gate is set and the (unsigned) tick count is above [self+0x38], clears [[self+0x1c]+4], [[self+0x20]+4] and four fields of self; every instruction and jump direction executed."
+ },
+ {
+  "va": "0x47badf",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47badf_check_range"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47badf_check_range"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47badf_check_range"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47badf_check_range"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47badf",
+    "0x47bb56"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Signed compares of [self+0x290/0x294] with [self+0x2a0] and [[self+0xc]+0x341] select flag [self+0x28] or [self+0x2c]; 81 profiles, every instruction and jump direction executed."
+ },
+ {
+  "va": "0x47b321",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47b321_release"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47b321_release"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47b321_release"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47b321_release"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47b321",
+    "0x47b3bc"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Release: calls 0x4c2dfb(self+8), frees [self+0x14] and [self+0x18], calls 0x4d3992 when the word is not -1, then 0x47b23b; every instruction and jump direction executed."
+ },
+ {
+  "va": "0x47c049",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47c049_pick_slot"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47c049_pick_slot"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47c049_pick_slot"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47c049_pick_slot"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47c049",
+    "0x47c0f0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Picks a slot: rand % n when no slot is free, else redraws until a free slot, marks it 1; n==0 and INT_MIN/-1 fault in the original (native rejection INT32_MIN); N/N executed."
+ },
+ {
+  "va": "0x47b23b",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31a.c",
+   "symbol": "m47b23b_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31a_direct_test.c",
+    "test_id": "test_m47b23b_reset_fields"
+   },
+   {
+    "path": "tests/test_fl31a_direct.py",
+    "test_id": "Fl31aDirect.test_47b23b_reset_fields"
+   },
+   {
+    "path": "tests/test_fl31a_differential.py",
+    "test_id": "Fl31aDifferential.test_47b23b_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31a_original_oracle.py",
+   "window": [
+    "0x47b23b",
+    "0x47b321"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Resets the object: words +4 and +6 to 0xffff and eighteen dwords to 0, in the original order; straight line, every instruction executed."
+ }
+]
