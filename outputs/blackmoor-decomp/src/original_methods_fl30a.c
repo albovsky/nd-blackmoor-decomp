@@ -177,7 +177,7 @@ void m484ac0_latch_hit(uint8_t *self, const Fl30aWorld *world, const Fl18Host *h
     call1(host, 0x484935, (uintptr_t)self, (uint16_t)h);
 }
 
-/* ---- 0x44b3c8 sum_kinds ------------------------------------------------------------------------------------------------------ */
+/* ---- sum_kinds helpers ------------------------------------------------------------------------------------------------------ */
 static float rdf32(const uint8_t *base, ptrdiff_t off)
 {
     float v;
@@ -190,6 +190,7 @@ static void wrf32(uint8_t *base, ptrdiff_t off, float v)
     memcpy(base + off, &v, sizeof v);
 }
 
+/* 0x44b3c8 m44b3c8_sum_kinds */
 void m44b3c8_sum_kinds(uint32_t index, const Fl30aWorld *world, const Fl18Host *host)
 {
     uint32_t rec = rd32(world->table_5bb5e5, (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)index * 0x8du));
@@ -276,7 +277,7 @@ void m47ef0f_latch_hit_counter(uint8_t *self, const Fl30aWorld *world, const Fl1
     call1(host, 0x47ed96, (uintptr_t)self, (uint16_t)h);
 }
 
-/* ---- 0x4d270b draw_text -------------------------------------------------------------------------------------------------------- */
+/* ---- draw_text helpers -------------------------------------------------------------------------------------------------------- */
 /* The library routine __ftol at 0x50ce04 (the value on the x87 stack): truncation to a 64-bit integer, eax = its low dword; a NaN or a value outside the 64-bit range gives 0 (the integer indefinite's low dword). */
 static uint32_t ftol_low_dword(double value)
 {
@@ -296,6 +297,7 @@ static void glyph_rect(const uint8_t *layout, int16_t idx, uint16_t sel, uint32_
     rect[2] = rd32(layout, row + 0xcb) + rd32(layout, s + 0x3f);
 }
 
+/* 0x4d270b m4d270b_draw_text */
 uint32_t m4d270b_draw_text(uint32_t str, uint32_t layout, uint32_t extents, uint32_t x, uint32_t y, uint32_t dest_a, uint32_t dest_b, uint32_t sel, uint32_t flag, uint32_t color,
                            Fl30aWorld *world, const Fl18Host *host)
 {

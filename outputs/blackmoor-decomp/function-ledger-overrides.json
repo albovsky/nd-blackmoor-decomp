@@ -18849,6 +18849,798 @@
    },
    "parts_accounted": [],
    "note": "Clears 1000 flags, searches +0x20e4; je at 0x4345aa (flag==1) is taken only via flag aliasing at count>1000 (synthetic, faithfully reproduced). resolve must be total. See fl29c-handoff.md."
+  },
+  {
+   "va": "0x4f61e7",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30a implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30a.c",
+    "symbol": "m4f61e7_start_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30a_direct_test.c",
+     "test_id": "test_m4f61e7_start_record"
+    },
+    {
+     "path": "tests/test_fl30a_direct.py",
+     "test_id": "Fl30aDirect.test_4f61e7_start_record"
+    },
+    {
+     "path": "tests/test_fl30a_differential.py",
+     "test_id": "Fl30aDifferential.test_4f61e7_start_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30a_original_oracle.py",
+    "window": [
+     "0x4f61e7",
+     "0x4f6334"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Start of a record: stores 0x3e8/0, calls 0x4f709c, checks rec+0x162/+0x28f, calls the vtable entry +0x48 and reports via 0x50ca3e/0x44a2b7; all instructions and jump directions run."
+  },
+  {
+   "va": "0x484ac0",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30a implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30a.c",
+    "symbol": "m484ac0_latch_hit"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30a_direct_test.c",
+     "test_id": "test_m484ac0_latch_hit"
+    },
+    {
+     "path": "tests/test_fl30a_direct.py",
+     "test_id": "Fl30aDirect.test_484ac0_latch_hit"
+    },
+    {
+     "path": "tests/test_fl30a_differential.py",
+     "test_id": "Fl30aDifferential.test_484ac0_latch_hit"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30a_original_oracle.py",
+    "window": [
+     "0x484ac0",
+     "0x484caf"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Latches the hit index (stored word or 0x4846c2 answer), stores the two word offsets at +0xbc5/+0xbc7, calls 0x4853b0/0x485f12/0x484935; all instructions and jump directions run."
+  },
+  {
+   "va": "0x44b3c8",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30a implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30a.c",
+    "symbol": "m44b3c8_sum_kinds"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30a_direct_test.c",
+     "test_id": "test_m44b3c8_sum_kinds"
+    },
+    {
+     "path": "tests/test_fl30a_direct.py",
+     "test_id": "Fl30aDirect.test_44b3c8_sum_kinds"
+    },
+    {
+     "path": "tests/test_fl30a_differential.py",
+     "test_id": "Fl30aDifferential.test_44b3c8_sum_kinds"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30a_original_oracle.py",
+    "window": [
+     "0x44b3c8",
+     "0x44b641"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Sums up to ten (kind, value) triples into the float cells at 0x58c91d in 53-bit x87 order (divide then multiply), re-reads the kind byte; all instructions run, one jump direction allowlisted."
+  },
+  {
+   "va": "0x47ef0f",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30a implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30a.c",
+    "symbol": "m47ef0f_latch_hit_counter"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30a_direct_test.c",
+     "test_id": "test_m47ef0f_latch_hit_counter"
+    },
+    {
+     "path": "tests/test_fl30a_direct.py",
+     "test_id": "Fl30aDirect.test_47ef0f_latch_hit_counter"
+    },
+    {
+     "path": "tests/test_fl30a_differential.py",
+     "test_id": "Fl30aDifferential.test_47ef0f_latch_hit_counter"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30a_original_oracle.py",
+    "window": [
+     "0x47ef0f",
+     "0x47f19d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Same latch as 0x484ac0 with other offsets plus the counter decrement at +0x7a0 on the second path; all instructions and jump directions run."
+  },
+  {
+   "va": "0x4d270b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30a implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30a.c",
+    "symbol": "m4d270b_draw_text"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30a_direct_test.c",
+     "test_id": "test_m4d270b_draw_text"
+    },
+    {
+     "path": "tests/test_fl30a_direct.py",
+     "test_id": "Fl30aDirect.test_4d270b_draw_text"
+    },
+    {
+     "path": "tests/test_fl30a_differential.py",
+     "test_id": "Fl30aDifferential.test_4d270b_draw_text"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30a_original_oracle.py",
+    "window": [
+     "0x4d270b",
+     "0x4d2c20"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Draws a string glyph by glyph (0x4d214b, class routines, 0x4c5b3a, pen globals, __ftol, word fill); all instructions and jump directions run; flag set with no glyph is a native rejection."
+  },
+  {
+   "va": "0x484762",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30a implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30a.c",
+    "symbol": "m484762_intersect_rects"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30a_direct_test.c",
+     "test_id": "test_m484762_intersect_rects"
+    },
+    {
+     "path": "tests/test_fl30a_direct.py",
+     "test_id": "Fl30aDirect.test_484762_intersect_rects"
+    },
+    {
+     "path": "tests/test_fl30a_differential.py",
+     "test_id": "Fl30aDifferential.test_484762_intersect_rects"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30a_original_oracle.py",
+    "window": [
+     "0x484762",
+     "0x484935"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Rectangle intersection of two stride-0x85 records (signed dwords at +2); returns 1 when non-empty and no coordinate is -1, else 0; leaf; all instructions and jump directions run."
+  },
+  {
+   "va": "0x44b26a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m44b26a_apply_delta"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m44b26a_apply_delta"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_44b26a_apply_delta"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_44b26a_apply_delta"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x44b26a",
+     "0x44b3c8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Applies a record item delta to a word table (0x270f sentinel) or a float table (9999.0 sentinel, x87 fadd), reports kinds above 0x27 under the debug word; all instructions run, one impossible jl edge allowlisted. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x488e9c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m488e9c_init_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m488e9c_init_record"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_488e9c_init_record"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_488e9c_init_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x488e9c",
+     "0x48905b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Allocates 0xaba bytes and fills them by three copies; all instructions run; allocation failure and negative or overrunning counts are native rejections, not original behaviour. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x42e844",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m42e844_step_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m42e844_step_record"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_42e844_step_record"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_42e844_step_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x42e844",
+     "0x42ea87"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Three-state record stepper: state 0 sets a global and acts as state 1 (key match), state 2 loads ten pairs into a dword table; all instructions and jump directions run. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x411f24",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m411f24_replace_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m411f24_replace_record"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_411f24_replace_record"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_411f24_replace_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x411f24",
+     "0x4121b8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Record replacement: free, reallocate, built text, copy; both allocation-failure branches are native rejections; all instructions run. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x4cbba9",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m4cbba9_load_file"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m4cbba9_load_file"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_4cbba9_load_file"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_4cbba9_load_file"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x4cbba9",
+     "0x4cbf72"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "File loader through scripted callees with the failure block; all instructions and jump directions run; the 0x4cc70f host stub stores allocation addresses. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x4d214b",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m4d214b_lookup_word"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m4d214b_lookup_word"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_4d214b_lookup_word"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_4d214b_lookup_word"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x4d214b",
+     "0x4d270b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Byte-to-word lookup (jmp-table switch, 53 mapped values, default 0); all 256 byte values run through the original; window covers the jump and index tables. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x4c5b3a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30b implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30b.c",
+    "symbol": "m4c5b3a_copy_keyed"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30b_direct_test.c",
+     "test_id": "test_m4c5b3a_copy_keyed"
+    },
+    {
+     "path": "tests/test_fl30b_direct.py",
+     "test_id": "Fl30bDirect.test_4c5b3a_copy_keyed"
+    },
+    {
+     "path": "tests/test_fl30b_differential.py",
+     "test_id": "Fl30bDifferential.test_4c5b3a_copy_keyed"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30b_original_oracle.py",
+    "window": [
+     "0x4c5b3a",
+     "0x4c5d4b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Colour-keyed word copy between two surface descriptors, size-equality report under the debug word; all instructions and jump directions run; a null descriptor is a native rejection. See fl30b-handoff.md."
+  },
+  {
+   "va": "0x4fcb5c",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30c implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30c.c",
+    "symbol": "m4fcb5c_set_category_master"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30c_direct_test.c",
+     "test_id": "test_m4fcb5c_set_category_master"
+    },
+    {
+     "path": "tests/test_fl30c_direct.py",
+     "test_id": "Fl30cDirect.test_4fcb5c_set_category_master"
+    },
+    {
+     "path": "tests/test_fl30c_differential.py",
+     "test_id": "Fl30cDifferential.test_4fcb5c_set_category_master"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30c_original_oracle.py",
+    "window": [
+     "0x4fcb5c",
+     "0x4fccf2"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Master volume clamp 0..1 of the float table, then per matching channel two ftol attenuations and 0x4f684a(this 0x5cf1eb, channel); x87 at 0x27f, __ftol run as original code. See fl30c-handoff.md."
+  },
+  {
+   "va": "0x43d7f0",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30c implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30c.c",
+    "symbol": "m43d7f0_init_scenes"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30c_direct_test.c",
+     "test_id": "test_m43d7f0_init_scenes"
+    },
+    {
+     "path": "tests/test_fl30c_direct.py",
+     "test_id": "Fl30cDirect.test_43d7f0_init_scenes"
+    },
+    {
+     "path": "tests/test_fl30c_differential.py",
+     "test_id": "Fl30cDifferential.test_43d7f0_init_scenes"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30c_original_oracle.py",
+    "window": [
+     "0x43d7f0",
+     "0x43da93"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Scene initialiser: [0x5d15a5]=1, 47 thiscall initialisers on fixed object addresses, two dword copy-and-clear flags and six byte-to-dword flags. See fl30c-handoff.md."
+  },
+  {
+   "va": "0x434025",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30c implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30c.c",
+    "symbol": "m434025_scan_entries"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30c_direct_test.c",
+     "test_id": "test_m434025_scan_entries"
+    },
+    {
+     "path": "tests/test_fl30c_direct.py",
+     "test_id": "Fl30cDirect.test_434025_scan_entries"
+    },
+    {
+     "path": "tests/test_fl30c_differential.py",
+     "test_id": "Fl30cDifferential.test_434025_scan_entries"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30c_original_oracle.py",
+    "window": [
+     "0x434025",
+     "0x43423d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Entry table scan with callees 0x4347b8/0x434773, reports at n<=8 and count>0x3e6; always-true guard 0x4340dc leaves one jump direction allowlisted. See fl30c-handoff.md."
+  },
+  {
+   "va": "0x41b6e2",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30c implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30c.c",
+    "symbol": "m41b6e2_lz_decode"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30c_direct_test.c",
+     "test_id": "test_m41b6e2_lz_decode"
+    },
+    {
+     "path": "tests/test_fl30c_direct.py",
+     "test_id": "Fl30cDirect.test_41b6e2_lz_decode"
+    },
+    {
+     "path": "tests/test_fl30c_differential.py",
+     "test_id": "Fl30cDifferential.test_41b6e2_lz_decode"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30c_original_oracle.py",
+    "window": [
+     "0x41b6e2",
+     "0x41b925"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "LZ decoder with the 0x1000-byte ring at 0x56f354 (key-offset bytes, 8 flag bits, 12-bit position and 4-bit length matches). See fl30c-handoff.md."
+  },
+  {
+   "va": "0x4763b3",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30c implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30c.c",
+    "symbol": "m4763b3_mark_runs"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30c_direct_test.c",
+     "test_id": "test_m4763b3_mark_runs"
+    },
+    {
+     "path": "tests/test_fl30c_direct.py",
+     "test_id": "Fl30cDirect.test_4763b3_mark_runs"
+    },
+    {
+     "path": "tests/test_fl30c_differential.py",
+     "test_id": "Fl30cDifferential.test_4763b3_mark_runs"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30c_original_oracle.py",
+    "window": [
+     "0x4763b3",
+     "0x476a25"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Four run scans (up, down, left, right) of equal cells in the grid at +0x30, then two marking blocks adding the record scores and formatting the text via 0x50ca3e; native rejection when the record does not resolve. See fl30c-handoff.md."
+  },
+  {
+   "va": "0x423876",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30c implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30c.c",
+    "symbol": "m423876_unwind_chain"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30c_direct_test.c",
+     "test_id": "test_m423876_unwind_chain"
+    },
+    {
+     "path": "tests/test_fl30c_direct.py",
+     "test_id": "Fl30cDirect.test_423876_unwind_chain"
+    },
+    {
+     "path": "tests/test_fl30c_differential.py",
+     "test_id": "Fl30cDifferential.test_423876_unwind_chain"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30c_original_oracle.py",
+    "window": [
+     "0x423876",
+     "0x423a30"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Recursive node chain release (callees 0x423aae/0x423a30/0x4234dd/0x4235fd), c+4 cleared, optional free; endless-loop node types rejected natively. See fl30c-handoff.md."
+  },
+  {
+   "va": "0x4e2e05",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30d.c",
+    "symbol": "m4e2e05_copy_state"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30d_direct_test.c",
+     "test_id": "test_m4e2e05_copy_state"
+    },
+    {
+     "path": "tests/test_fl30d_direct.py",
+     "test_id": "Fl30dDirect.test_4e2e05_copy_state"
+    },
+    {
+     "path": "tests/test_fl30d_differential.py",
+     "test_id": "Fl30dDifferential.test_4e2e05_copy_state"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30d_original_oracle.py",
+    "window": [
+     "0x4e2e05",
+     "0x4e2faa"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Copies count*0x29 bytes and the two compare-selected string groups into the 0x5a1e54 globals; bad count is a native rejection; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+  },
+  {
+   "va": "0x4c2a8d",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30d.c",
+    "symbol": "m4c2a8d_make_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30d_direct_test.c",
+     "test_id": "test_m4c2a8d_make_record"
+    },
+    {
+     "path": "tests/test_fl30d_direct.py",
+     "test_id": "Fl30dDirect.test_4c2a8d_make_record"
+    },
+    {
+     "path": "tests/test_fl30d_differential.py",
+     "test_id": "Fl30dDifferential.test_4c2a8d_make_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30d_original_oracle.py",
+    "window": [
+     "0x4c2a8d",
+     "0x4c2c3a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Allocates and fills the 0x59 byte record (name cut at 0x18); both allocation failures report and return 0; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+  },
+  {
+   "va": "0x48d3cb",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30d.c",
+    "symbol": "m48d3cb_select_entry"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30d_direct_test.c",
+     "test_id": "test_m48d3cb_select_entry"
+    },
+    {
+     "path": "tests/test_fl30d_direct.py",
+     "test_id": "Fl30dDirect.test_48d3cb_select_entry"
+    },
+    {
+     "path": "tests/test_fl30d_differential.py",
+     "test_id": "Fl30dDifferential.test_48d3cb_select_entry"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30d_original_oracle.py",
+    "window": [
+     "0x48d3cb",
+     "0x48d5f4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Selection 0x2766/0x2765/other; for 0x2765 two signed four-test boxes pick 0x5b44f0; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+  },
+  {
+   "va": "0x4f684a",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30d.c",
+    "symbol": "m4f684a_prepare_entry"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30d_direct_test.c",
+     "test_id": "test_m4f684a_prepare_entry"
+    },
+    {
+     "path": "tests/test_fl30d_direct.py",
+     "test_id": "Fl30dDirect.test_4f684a_prepare_entry"
+    },
+    {
+     "path": "tests/test_fl30d_differential.py",
+     "test_id": "Fl30dDifferential.test_4f684a_prepare_entry"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30d_original_oracle.py",
+    "window": [
+     "0x4f684a",
+     "0x4f6a7e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Clamps two dwords (min 0, x87 clamp at -2857.14, truncation) and calls vtable +0x3c; 0x50ce04 runs in the oracle, C conversion in the port; all instructions executed. See tasks/fl30d-handoff.md."
+  },
+  {
+   "va": "0x414692",
+   "class": "native_oracle_verified",
+   "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl30d.c",
+    "symbol": "m414692_read_block"
+   },
+   "tests": [
+    {
+     "path": "tests/fl30d_direct_test.c",
+     "test_id": "test_m414692_read_block"
+    },
+    {
+     "path": "tests/test_fl30d_direct.py",
+     "test_id": "Fl30dDirect.test_414692_read_block"
+    },
+    {
+     "path": "tests/test_fl30d_differential.py",
+     "test_id": "Fl30dDifferential.test_414692_read_block"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl30d_original_oracle.py",
+    "window": [
+     "0x414692",
+     "0x414947"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Reads a three-allocation block through cells p1/p2; allocation failures report then port rejects, negative count rejected; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
   }
  ],
  "not_needed_entries": [
