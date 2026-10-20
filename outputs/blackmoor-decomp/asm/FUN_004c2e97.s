@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c2e97
+# name:         m4c2e97_read_pixel_format
+# naming:       native port src/original_methods_fl27c.c:m4c2e97_read_pixel_format (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4c2e97_read_pixel_format: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27c-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_4, local_20, local_24, local_28, local_2c, local_34, local_7c, local_80, local_84, local_88
 # fields:       [eax + n] field_38c2, field_38c4, field_38c5, field_38c6, field_38c8, field_38c9, field_38ca, field_38d0, field_38d2, field_38d3; [ecx + n] field_38a8, field_38c0, field_38c1, field_38c4, field_38c5, field_38c6, field_38c8, field_38c9, field_38ca, field_38d0, field_38d3; [edx + n] field_58, field_38a8, field_38c0, field_38c1, field_38c2, field_38c6, field_38c8, field_38c9, field_38ca, field_38d2
 # callees:      calls FUN_004c88c7, FUN_0042639d, FUN_0050ca3e, FUN_0044a2b7; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 298 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27c.c:m4c2e97_read_pixel_format (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 298 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

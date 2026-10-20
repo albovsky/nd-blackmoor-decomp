@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047a03c
+# name:         m47a03c_click_279c_279d
+# naming:       native port src/original_methods_fl23b.c:m47a03c_click_279c_279d (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m47a03c_click_279c_279d (guards, record-state compare, selector arms, callees via host). Direct: matrix and arms. Unicorn differential and oracle: 224 fixtures, every instruction reached. See tasks/fl23b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1e, field_1528, field_152c, field_157a, field_157e, field_159a; [ecx + n] field_1e, field_216, field_152e, field_1576, field_159a; [edx + n] field_24, field_1528, field_1532
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004f6334, FUN_004fb2e3
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 83 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl23b.c:m47a03c_click_279c_279d (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 83 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

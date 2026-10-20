@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0048bb17
+# name:         reset_fields
+# naming:       native port src/action_family_d8_runtime.c:reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    reset_fields stores exactly the 12 fields of the original (+0x26/+0x2e/+0x30 = -1, +0x1c = 0xff, +0x41/+0x43, bytes +0x40/+0x45/+0x46/+0x47, dwords +0x1e/+0x22);
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_1c, field_26, field_40, field_45; [ecx + n] field_1e, field_2e, field_43, field_46; [edx + n] field_22, field_30, field_41, field_47
 # callees:      none: no call or outward jump
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 31 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_d8_runtime.c:reset_fields (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 31 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

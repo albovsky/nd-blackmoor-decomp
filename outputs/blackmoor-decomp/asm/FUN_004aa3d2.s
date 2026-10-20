@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004aa3d2
+# name:         m4aa3d2_click_276f_2771
+# naming:       native port src/original_methods_fl25c.c:m4aa3d2_click_276f_2771 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Matches arm by arm, host calls in order, except two rejections: S longer than 200 bytes (201..0x9c40) or unresolvable returns early (original overruns its frame). Direct, differential, oracle: 1800 fixtures, 262/262, both jcc ways.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_d8, local_dc
 # fields:       [eax + n] field_21, field_23, field_25, field_2b, field_2c, field_42, field_44, field_45, field_48, field_73, field_119, field_13a and 1 more; [ecx + n] field_23, field_25, field_2b, field_40, field_42, field_47, field_48, field_83, field_f7, field_14a; [edi + n] field_minus_1; [edx + n] field_21, field_23, field_25, field_2c, field_42, field_46, field_119, field_233
 # callees:      calls FUN_004fb2e3, FUN_004fb77a, FUN_00423259, FUN_00448d11
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 262 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl25c.c:m4aa3d2_click_276f_2771 (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 262 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

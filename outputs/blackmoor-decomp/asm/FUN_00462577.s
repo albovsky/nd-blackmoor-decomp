@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00462577
+# name:         grid_setup
+# naming:       native port src/action_family_d3_runtime.c:grid_setup (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with grid_setup (64-cell grid, arrows, start table). Native: setup flag is a byte (original word, only 0/1 stored); view origin passed in.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_1e, field_22, field_210, field_214, field_228, field_22c; [ecx + n] field_24, field_26, field_28, field_a8, field_220, field_224; [edx + n] field_4f, field_53, field_aa, field_218, field_21c, field_248
 # callees:      calls FUN_00462b84
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 385 instruction(s), 10 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_d3_runtime.c:grid_setup (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 385 instruction(s), 10 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

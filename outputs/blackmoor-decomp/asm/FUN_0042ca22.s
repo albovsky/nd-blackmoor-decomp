@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0042ca22
+# name:         m42ca22_apply_event_flags
+# naming:       native port src/original_methods_fl17.c:m42ca22_apply_event_flags (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m42ca22_apply_event_flags. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 134 bytes.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_4, field_6d; [ecx + n] field_2; [edx + n] field_2
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:secondary_tick (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 42 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl17.c:m42ca22_apply_event_flags (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 42 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

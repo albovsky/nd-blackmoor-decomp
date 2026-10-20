@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0050c17c
+# name:         CWnd::GetOwner
+# naming:       Ghidra name from function-index.json (not re-derived here); note is the ledger reason (win32_plumbing_no_observable_effect, function-ledger-overrides.json not_needed_entries)
+# name-note:    CWnd::GetOwner: returns owner HWND or GetParent, maps handle via FUN_0051abe4; window bookkeeping only, no game data
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [ecx + n] field_1c, field_20
 # callees:      calls USER32.dll!GetParent, FUN_0051abe4
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 8 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 8 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

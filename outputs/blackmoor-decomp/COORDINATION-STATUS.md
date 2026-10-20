@@ -44,6 +44,23 @@ Next: (1) raw 0xd1 Turning Puzzle (11 scenes, object `0x61d449`, handler `0x4b64
 
 For a future raw 0x2d / mode-0 owner: `0x4ceb3b` also sets the completion byte of the row in obj+0x23e (`0x4ceb75..0x4ceb7f`), and the movie state in `SessionA2EMovie` needs a reset hook once 0x2d lands.
 
+## Handoff: Track M names slice, evidence-backed function names in the assembly (2026-10-20 PDT, cloud thread)
+
+Result: **483 of the 4,786 assembly sources now carry the name of a recovered function** (399 from a reviewed native port, 1 from the Vorbis parity rule, 83 Ghidra MFC/CRT names), **570 more carry only Ghidra's `Unwind@`/`Catch@` funclet label** (counted as their own tier, not as names), **86 are hand-annotated**, and **3,647 stay machine-only** (`fn_<va>`; the earlier handoff's "4,090" counted only indexed functions, the other 610 machine sources are derived entries and fragments). No instruction byte changed: `scripts/build_game_exe.sh` and `compose_image.py build` still reproduce the original SHA-256 (`afd337a2...5c45`). Build evidence only; no whole-file x86 match is claimed and the game is not complete.
+
+What changed (details in `asm/README.md`, "Function names from committed evidence"):
+- `asm/function-names.json` + `scripts/function_names.py` (`write`, `check`, `count`): names copied from `port_acceptances` (symbol and acceptance note), `function-index.json` (Ghidra names; reviewed ledger reasons as notes for 88 `not_needed` entries) and the parity rule. Left out: the 178 Vorbis entries whose only symbol is the shared adapter, three Ghidra library names on game-region functions, `FID_conflict:~CHotKeyCtrl`, every hand-annotated source.
+- `annotate_machine.py`: writes `# name:`, `# naming:`, `# name-note:` from the table (`annotate --named`); `refresh` re-hashes existing batch manifests; `check` regenerates all 4,700 machine sources identically. The run also refreshed `track-n` in 365 sources whose ledger entry had changed since annotation (`check` ignores that line); named native ports now point at the acceptance's own symbol.
+- `audit_tool_assisted.py`: validates the table against the evidence, then requires a machine source to carry exactly the table's name, naming, note and the "not read from this code" caveat (or `fn_<va>` and nothing), rejects the lines elsewhere, and records `naming`, `named_functions` and the table's SHA-256 in each report. All batches 003 to 010 re-audited (accepted, 0 mismatching bytes, 0 relocations).
+- Map: the facts line and `REPORT.md` show Hand, Named, Funclet and Machine only (`generate.py` refuses reports made against another table); `function_names.py count` prints the same from the sources.
+- Not touched: hash-pinned kernel files, `matches.json` label, the pending headers and strings/resources cards.
+
+For Glib to know: there is no owner ruling for the named tier. It only copies evidence the repository holds into the header comment of sources that remain `# annotation:  machine` under ruling (4). The Ghidra names are Ghidra's recognition, not re-derived or read here; the note of a native port is the reviewer's acceptance note about the native code, not a statement about the assembly. To drop the tier, delete `asm/function-names.json` and re-annotate.
+
+Next steps if wanted: more names for the 2,000 pending game functions would need a reader per function (no evidence names them today); frame and field symbols of the 399 ported functions could be renamed from the port's struct fields; new ports add names via `function_names.py write`, `annotate_machine.py annotate --named`, `refresh` and a re-audit.
+
+Verification: see the PR description.
+
 ## Handoff: Track M single build step, as + ld + objcopy (2026-10-19 PDT, cloud thread)
 
 Result: `scripts/build_game_exe.sh` is one command (about ten seconds, four cores) that goes from the committed sources to `build/game/GAME.linked.exe` with the pinned binutils 2.43.1: it assembles 4,786 function sources and 5 data sources with `i686-w64-mingw32-as` (one object each), links the objects with `i686-w64-mingw32-ld` and a generated linker script, writes the image with `objcopy -O binary`, and requires the SHA-256 to equal the original's (`afd337a2...5c45`, 1,511,424 bytes). It is byte-identical to the composer's image. That is **build evidence, not a whole-file x86 match claim** and not "game complete".

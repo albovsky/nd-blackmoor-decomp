@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041e043
+# name:         m41e043_find_free_slot
+# naming:       native port src/original_methods_fl28b.c:m41e043_find_free_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    The first free slot of the 0x4b-entry table: signed word compares, the word counter, ax result (0xffff); the oracle executes every instruction and both directions of every jump. See tasks/fl28b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_1c, field_68e, field_696; [edx + n] field_696
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_first_free (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 35 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m41e043_find_free_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 35 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

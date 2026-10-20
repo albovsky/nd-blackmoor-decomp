@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c0774
+# name:         m4c0774_open_piece
+# naming:       native port src/original_methods_fl18.c:m4c0774_open_piece (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4c0774_open_piece. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 351 bytes.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_37, field_39, field_1d4, field_20e, field_22a; [ecx + n] field_21, field_23, field_25, field_2f, field_31, field_33, field_35; [edx + n] field_22a, field_240
 # callees:      calls FUN_004d36ed, FUN_004bf773, FUN_0042ba3a
-# track-n:      outputs/blackmoor-decomp/src/action_family_35_runtime.c:action35_runtime_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 76 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl18.c:m4c0774_open_piece (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 76 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

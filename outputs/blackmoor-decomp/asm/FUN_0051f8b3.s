@@ -9,13 +9,15 @@
 # frame:        none
 # ending:       call-end (the code part ends in a call with no instruction after it; the call may or may not return, so it is counted only bound together with the range at 0x0051f8c4 that follows it, under the owner ruling of 2026-10-16)
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0051f8b3
+# name:         Catch@0051f8b3
+# naming:       Ghidra name from function-index.json (not re-derived here); note is the ledger reason (compiler_eh_funclet, function-ledger-overrides.json not_needed_entries)
+# name-note:    Catch@ handler of a library parent: Runs FUN_0051dc31 (restores saved alloc-failure hook) and rethrows; tail is spilled map-cleanup code of another fn. Parent has no recovery path
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; no ret instruction in the code part; ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [ebp + n] field_8
 # callees:      calls FUN_0051dc31, FUN_0050f997
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 5 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; the code part ends in a call with no instruction after it, whether the callee returns is not proven here, and the entry is counted only bound together with the range at 0x0051f8c4 that follows it (owner ruling of 2026-10-16); function ledger class nn_reviewed is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 5 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; the code part ends in a call with no instruction after it, whether the callee returns is not proven here, and the entry is counted only bound together with the range at 0x0051f8c4 that follows it (owner ruling of 2026-10-16); function ledger class nn_reviewed is a native-touch record, not a counterpart claim
 # note:         call_without_fallthrough:0x0051f8bf
 .intel_syntax noprefix
 .code32

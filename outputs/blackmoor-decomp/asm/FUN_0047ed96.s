@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047ed96
+# name:         set_layer
+# naming:       native port src/action_family_eb_runtime.c:set_layer (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    Compared the original set_layer (collect overlapping pieces except itself in index order, take running max z into the piece word, add one) with the native set_layer; same call arguments and stores.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_ac, local_b0, local_b4, local_b6
 # fields:       [eax + n] field_1e; [ecx + n] field_7b4; [edx + n] field_13a2
 # callees:      calls FUN_0047ea73
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 91 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:set_layer (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 91 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

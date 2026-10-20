@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004bef11
+# name:         m4bef11_bink_goto
+# naming:       native port src/original_methods_fl27a.c:m4bef11_bink_goto (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4bef11_bink_goto: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27a-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_8, field_2c0, field_2c4; [ecx + n] field_2c4
 # callees:      calls FUN_004bf38c, binkw32.dll!_BinkGoto@12
-# track-n:      outputs/blackmoor-decomp/src/bink_player.h:bink_player_set_mode (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 37 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27a.c:m4bef11_bink_goto (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 37 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

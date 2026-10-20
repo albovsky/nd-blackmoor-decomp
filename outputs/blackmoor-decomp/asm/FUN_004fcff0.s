@@ -8,13 +8,15 @@
 # region:       vorbis
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004fcff0
+# name:         ov_open_callbacks
+# naming:       vorbis_parity_rule.criterion in function-ledger-overrides.json (name and address are stated there)
+# name-note:    libvorbisfile ov_open_callbacks, one of the two original entry points the Vorbis parity rule drives under Unicorn; credited as ported only through the output-parity rule, with no per-function port claim
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_4, field_8, field_c; [esp + n] stk_14, stk_18, stk_1c, stk_20, stk_24, stk_30, stk_34
 # callees:      calls FUN_004fd040, FUN_004fd3e0
 # track-n:      outputs/blackmoor-decomp/src/his_audio.c:his_audio_decode_memory (function ledger class host_adapter_tested; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 28 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 28 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

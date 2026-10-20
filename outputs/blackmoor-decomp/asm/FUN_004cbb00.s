@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004cbb00
+# name:         c1c_free_iv
+# naming:       native port src/action_family_1c_runtime.c:c1c_free_iv (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    Free order, strides and rect frees match the original. The native also nulls the record pointer, which the original leaves dangling (deliberate safe deviation; callers null it too). The 1c oracle compares live allocations and free order.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_1a, field_21, field_25, field_122; [ecx + n] field_122; [edx + n] field_9, field_1a
 # callees:      calls FUN_0051dc6c
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 55 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_1c_runtime.c:c1c_free_iv (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 55 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

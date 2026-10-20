@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044d8ad
+# name:         step_hour
+# naming:       native port src/action_family_aa_runtime.c:step_hour (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    step_hour matches increase (+1 mod 12, flip AM at 0xb) and decrease (0 -> 0xb, else -1 mod 12, flip AM at 0xa); object image compared against the original after each handler step.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_3d, field_41; [ecx + n] field_3d; [edx + n] field_3d, field_41
 # callees:      none: no call or outward jump
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 53 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_aa_runtime.c:step_hour (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 53 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

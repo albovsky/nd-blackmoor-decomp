@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00513bd7
+# name:         __startOneArgErrorHandling
+# naming:       Ghidra name from function-index.json (not re-derived here)
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_10, arg_14; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_8, local_14, local_18, local_1c, local_20
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_005187fb
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 23 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 23 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 # note:         further_unindexed_code_at:0x00513c20
 .intel_syntax noprefix
 .code32

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0042e560
+# name:         m42e560_save_block
+# naming:       native port src/original_methods_fl16.c:m42e560_save_block (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m42e560_save_block; the 7 source globals are Fl16World fields, the target is a 0x12-byte block (0x5c3a05). The dword at 0x5c3a13 is stored twice (0x5bb5ab, then 0x5bb5af wins); native keeps both stores.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      none: no call or outward jump
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 20 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl16.c:m42e560_save_block (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 20 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

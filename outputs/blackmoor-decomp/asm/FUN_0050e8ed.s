@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0050e8ed
+# name:         __amsg_exit
+# naming:       Ghidra name from function-index.json (not re-derived here)
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [esp + n] stk_4
 # callees:      calls FUN_00514d99, FUN_00514dd2; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 10 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 10 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

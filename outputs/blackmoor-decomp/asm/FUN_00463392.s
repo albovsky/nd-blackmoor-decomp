@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00463392
+# name:         m463392_step_scene
+# naming:       native port src/original_methods_fl22a.c:m463392_step_scene (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m463392_step_scene (states 0-2, five-arm jump table in direct test). Direct: objects, ordered calls, probes. Unicorn differential: 600 fixtures, 456/456 instructions. Window covers all 1882 bytes. Details: tasks/fl22a-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_1c, field_1e, field_24, field_39, field_3b, field_3f, field_4f, field_57, field_d8, field_2a1, field_2d2, field_2e2 and 8 more; [ecx + n] field_1c, field_1e, field_20, field_21, field_43, field_47, field_4b, field_53, field_57, field_5b, field_d0, field_dc and 10 more; [edx + n] field_4, field_8, field_c, field_1c, field_24, field_28, field_43, field_47, field_59, field_5d, field_d4, field_2e2 and 7 more
 # callees:      calls FUN_004618df, FUN_004e8d96, FUN_00462577, FUN_004d39f9, FUN_004c2790, FUN_004fb77a, FUN_004632bf, FUN_00461d82, FUN_004619be, FUN_00461d4b, FUN_004fb2e3, KERNEL32.dll!GetTickCount, FUN_004f6334, FUN_004fba69, FUN_0042ba3a, FUN_00461862
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 456 instruction(s), 29 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl22a.c:m463392_step_scene (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 456 instruction(s), 29 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

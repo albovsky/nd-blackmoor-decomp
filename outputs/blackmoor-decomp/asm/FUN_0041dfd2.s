@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041dfd2
+# name:         cel_evict_pass
+# naming:       native port src/action_family_3f_runtime.c:cel_evict_pass (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-16); the note is the acceptance note, a statement about the native port
+# name-note:    Cel video cache eviction pass. RT-25 oracle runs the original, every byte executed, compared after every effect. Native loop bound is the clamped capacity.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [ecx + n] field_1c, field_69c; [edx + n] field_690, field_696
 # callees:      calls FUN_0041e250
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_evict_pass (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 35 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 35 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

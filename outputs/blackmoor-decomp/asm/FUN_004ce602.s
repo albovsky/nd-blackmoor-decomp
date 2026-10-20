@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004ce602
+# name:         random_step
+# naming:       native port src/avf_player.c:random_step (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the note is the acceptance note, a statement about the native port
+# name-note:    Matches line by line. Seams: surface copy is the host present call, 0x4ceb8c the RECT event, debug logs omitted; the 0x4cec6c guards (+0x222, +0x226, +0x246) are not mirrored. Tests-only.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_23, field_182, field_192, field_1ca, field_1d4, field_1de, field_206, field_20e, field_212, field_232, field_246; [ecx + n] field_23, field_17a, field_1c6, field_1d4, field_1da, field_20a, field_20e, field_212, field_232; [edx + n] field_23, field_24, field_17a, field_182, field_1da, field_20e, field_212, field_226, field_232
 # callees:      calls FUN_004ceb8c, FUN_004cec6c, KERNEL32.dll!GetTickCount, FUN_0050ca3e, FUN_0044a2b7
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:random_present (function ledger class native_tests_only; also random_step; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 187 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:random_step (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 187 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0050c950
+# name:         __global_unwind2
+# naming:       Ghidra name from function-index.json (not re-derived here)
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_00519a24
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 18 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 18 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 # note:         further_unindexed_code_at:0x0050c970
 .intel_syntax noprefix
 .code32
