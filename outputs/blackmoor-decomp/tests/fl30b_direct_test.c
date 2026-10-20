@@ -59,6 +59,8 @@ static __attribute__((unused)) void script(uint32_t callee, int n, uint32_t r0, 
     g_nscript++;
 }
 
+static char g_const[16] = "ABCDEFGHIJK";           /* the string the host serves at the original address 0x5415c8 */
+static uint8_t g_numtext[8];
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
     int k, i = L.n;
@@ -71,6 +73,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         for (k = 0; k < nargs && k < 12; k++) L.c[i].a[k] = args[k];
         memcpy(L.c[i].probe, g_r[4], 16);
     }
+    if (callee == 0x5193ca && nargs == 3) memcpy((void *)args[1], g_numtext, 8);       /* the number to text conversion writes into the caller local */
     L.n++;
     for (k = 0; k < g_nscript; k++)
         if (S[k].callee == callee && S[k].n > 0) {
@@ -83,6 +86,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
 {
     (void)ctx;
+    if (a >= 0x5415c8u && a < 0x5415c8u + sizeof g_const) return (const uint8_t *)g_const + (a - 0x5415c8u);
     if (a >= RVA(0) && a < RVA(8)) {
         uint32_t i = (a - RVA(0)) >> 16, off = (a - RVA(0)) & 0xffff;
         if (off < RSZ) return g_r[i] + off;
@@ -439,6 +443,80 @@ static void test_m42e844_step_record(void)
     CK(g_w.value_5bb1ca == 0 && get32(g_w.records_5bb5e5, 0x4d) == 3 && L.n == 0);
 }
 
+/* ---- 0x411f24 ------------------------------------------------------------------------------------------------------------------ */
+static void rep411(int slot, const char *num, uint32_t buf1, uint32_t buf2)
+{
+    size_t i;
+    setup();
+    for (i = 0; i < 0x200; i++) g_r[1][i] = (uint8_t)(i * 11 + 5);
+    set16(g_r[1], 0, 0x1357);
+    set16(g_r[1], 2, 41);
+    set16(g_r[1], 0xe7, 0x2468);
+    rec44(slot, RVA(1));
+    memset(g_numtext, 0, 8);
+    memcpy(g_numtext, num, strlen(num));
+    script(0x51dc43, 2, buf1, buf2, 0, 0);
+    memset(g_r[3], 0xcc, 0xc00);
+    memset(g_r[4], 0xdd, 0xc00);
+    g_w.value_5bb57b = 0x0a0b0c0du;
+    g_w.word_5c39e3 = -2;
+}
+static void test_m411f24_replace_record(void)
+{
+    uint8_t *r, expect[0xaba];
+    rep411(1, "42", RVA(3), RVA(4));
+    r = g_w.records_5bb5e5 + 0x8d;
+    CK(m411f24_replace_record(SELF, 0x10001u, &g_w, &g_host) == 0);
+    memset(expect, 0, sizeof expect);
+    memcpy(expect, "ABCDEFGHIJK42", 14);
+    set16(expect, 0x23, 0x1357);
+    set16(expect, 0x27, 0x2468);
+    memcpy(expect + 0xac, g_r[1] + 0xe7 + 0x12, 16);
+    CK(memcmp(g_r[3], expect, 0xaba) == 0 && g_r[3][0xaba] == 0xcc);
+    CK(memcmp(g_r[4], expect, 0xaba) == 0 && g_r[4][0xaba] == 0xdd);
+    CK(get32(r, 0) == RVA(4) && r[0x40] == 0 && r[-2] == 0x36 && r[-1] == 1 && get32(r, 0x4d) == 0);
+    CK(L.n == 8);
+    CKC(0, 0x413187, SELFP, 4, RVA(1), RVA(1) + 0x12d, 0, 0);
+    CKC(1, 0x42ba3a, 0, 1, 1);
+    CKC(2, 0x51dc43, 0, 1, 0xaba);
+    CKC(3, 0x48945b, 0x619935, 2, RVA(3), RVA(1) + 0xe7 + 2);
+    CK(L.c[4].callee == 0x5193ca && L.c[4].nargs == 3 && L.c[4].a[0] == 42 && L.c[4].a[2] == 10);
+    CKC(5, 0x51dc6c, 0, 1, RVA(1));
+    CKC(6, 0x51dc43, 0, 1, 0xaba);
+    CKC(7, 0x51dc6c, 0, 1, RVA(3));
+    /* the converted number is the signed word + 1: 0x8000 gives -32767, 0xffff gives 0; an empty text appends only the NUL */
+    rep411(-1, "", RVA(3), RVA(4));
+    set16(g_r[1], 2, 0x8000);
+    CK(m411f24_replace_record(SELF, 0xffffu, &g_w, &g_host) == 0 && L.c[4].a[0] == 0xffff8001u && memcmp(g_r[3], "ABCDEFGHIJK\0", 12) == 0);
+    CK(get32(g_w.records_5bb5e5 - 0x8d, 0) == RVA(4) && (g_w.records_5bb5e5 - 0x8d)[-2] == 0x36);
+    set16(g_r[1], 2, 0xffff);
+    rep411(0, "999", RVA(3), RVA(4));
+    set16(g_r[1], 2, 0xffff);
+    CK(m411f24_replace_record(SELF, 0, &g_w, &g_host) == 0 && L.c[4].a[0] == 0);
+    /* first allocation fails: the report with the globals, then the native rejection with nothing else done */
+    rep411(0, "5", 0, RVA(4));
+    CK(m411f24_replace_record(SELF, 0, &g_w, &g_host) == 1);
+    CK(L.n == 6);
+    CKC(2, 0x51dc43, 0, 1, 0xaba);
+    CKC(3, 0x50ca3e, 0, 4, 0x63888b, 0x541564, 0x0a0b0c0du, 0xfffffffeu);
+    CKC(4, 0x42639d, 0x583979, 2, 0x5415ac, 0x63888b);
+    CKC0(5, 0x4c97b4, 0x5cf659);
+    CK(get32(g_w.records_5bb5e5, 0) == RVA(1) && g_r[3][0] == 0xcc);
+    /* second allocation fails: the second report; the record pointer is 0, the first buffer is filled and not freed */
+    rep411(0, "5", RVA(3), 0);
+    CK(m411f24_replace_record(SELF, 0, &g_w, &g_host) == 1);
+    CK(L.n == 10);
+    CKC(6, 0x51dc43, 0, 1, 0xaba);
+    CKC(7, 0x50ca3e, 0, 4, 0x63888b, 0x5415d8, 0x0a0b0c0du, 0xfffffffeu);
+    CKC(8, 0x42639d, 0x583979, 2, 0x54161c, 0x63888b);
+    CKC0(9, 0x4c97b4, 0x5cf659);
+    CK(get32(g_w.records_5bb5e5, 0) == 0 && memcmp(g_r[3], "ABCDEFGHIJK5", 13) == 0);
+    /* a conversion text without a NUL in the 8 byte local: native rejection after the conversion call */
+    rep411(0, "", RVA(3), RVA(4));
+    memset(g_numtext, 'x', 8);
+    CK(m411f24_replace_record(SELF, 0, &g_w, &g_host) == 1 && L.n == 5 && get32(g_w.records_5bb5e5, 0) == RVA(1));
+}
+
 /* CASES-NEXT */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -474,6 +552,9 @@ static void test_sweep_bounded(void)
         for (i = 0; i < 10; i++) set16(g_r[1], (size_t)i * 4, (uint16_t)((seed >> i) % 11 - 6));
         g_w.word_5bb50b = (int16_t)(seed >> 5);
         m42e844_step_record((uint32_t)(((int)(seed >> 3) % 3) - 1), &g_w, &g_host);
+        rep411(((int)(seed >> 3) % 3) - 1, "7", RVA(3), RVA(4));
+        set16(g_r[1], 2, (uint16_t)seed);
+        m411f24_replace_record(SELF, (uint32_t)(((int)(seed >> 3) % 3) - 1), &g_w, &g_host);
         /*SWEEP*/
         L.n = 0;
     }
@@ -499,6 +580,7 @@ int main(void)
     RUN(test_m488e9c_init_record);
     RUN(test_m4c5b3a_copy_keyed);
     RUN(test_m42e844_step_record);
+    RUN(test_m411f24_replace_record);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

@@ -347,14 +347,56 @@ def gen_42e844(rng, n):
     return make('42e844', [Area('items', p_va, items, image=False), recs, dtab], stubs, g, [a], (a,), (kind, *rest, slot, hex(state)), pointers)
 
 
+# ---- 0x411f24 ---------------------------------------------------------------------------------------------------------------------
+
+BUF1_VA, BUF2_VA = od.region_va(4), od.region_va(5)
+NUMBERS = [b'7\0', b'32768\0', b'-1\0', b'\0', b'123456\0']
+CONST_VA = 0x5415c8
+
+
+def gen_411f24(rng, n):
+    profiles = [('ok', t) for t in range(len(NUMBERS))] + [('null1',), ('null2',)]
+    (kind, *rest), variant = prof(n, profiles)
+    slot = (0, 2, -1, 1)[(n + variant) % 4]
+    p_va = od.region_va(1)
+    item = bytearray(rng.randbytes(0x200))
+    put16(item, 0, rng.choice([0, 0xffff, 0x1234, rng.randrange(0x10000)]))
+    put16(item, 2, rng.choice([0, 0xffff, 0x7fff, 0x8000, 5, rng.randrange(0x10000)]))
+    me = bytearray(rng.randbytes(0x40))
+    buf1, buf2 = bytearray(rng.randbytes(0xc00)), bytearray(rng.randbytes(0xc00))
+    recs, pointers = records_area(rng, slot, p_va)
+    recs = Area('records', RECORDS_VA - 2 * REC_STRIDE, bytearray(rng.randbytes(REC_STRIDE)) + recs.data, image=True)      # one more record below: the function writes the two bytes in front of a record
+    pointers = {'records_5bb5e5': ('records', 2 * REC_STRIDE)}
+    pe = od.load_image()
+    const = bytearray(pe.image[CONST_VA - pe.image_base:CONST_VA - pe.image_base + 0x20])        # the string at 0x5415c8, read from the pinned local original at test time
+    # the dword 0x5bb57b lies inside the table of records (slot -1, +0x23): the global is the same memory
+    g = {'value_5bb57b': struct.unpack_from('<I', recs.data, 0x5bb57b - (RECORDS_VA - 2 * REC_STRIDE))[0], 'word_5c39e3': rng.choice([0, 1, -1, 0x7fff, -0x8000, 0x1234])}
+    probe = [('records', 0, 6 * REC_STRIDE), ('buf', 0, 0xc0)]
+    text = NUMBERS[rest[0]] if kind == 'ok' else NUMBERS[(n + variant) % len(NUMBERS)]
+    stubs = {0x413187: stub(0x413187, THISCALL(4), probe), 0x42ba3a: stub(0x42ba3a, CDECL(1), probe),
+             0x51dc43: stub(0x51dc43, CDECL(1), probe, results=[0 if kind == 'null1' else BUF1_VA, 0 if kind == 'null2' else BUF2_VA]),
+             0x50ca3e: stub(0x50ca3e, CDECL(4), probe), 0x42639d: stub(0x42639d, THISCALL(2), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe),
+             0x48945b: stub(0x48945b, THISCALL(2), probe), 0x5193ca: stub(0x5193ca, CDECL(3), probe, writes=[(0, 1, 0, 0, text)]), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe)}
+    areas = [self_area(me), Area('item', p_va, item, image=False), recs, Area('buf', BUF1_VA, buf1, image=False), Area('buf2', BUF2_VA, buf2, image=False),
+             Area('const', CONST_VA, const, image=True, compare=False)]
+    partial = None
+    if kind in ('null1', 'null2'):
+        areas.append(Area('zero', 0, bytearray(0x1000), image=False, compare=False))
+        # the native port rejects after the report; the original goes on. Compared: the calls up to the report, and the bytes the native port has written by then
+        partial = (6, {}) if kind == 'null1' else (10, {'buf': len(buf1), 'records': [((slot + 2) * REC_STRIDE, 4)]})
+    a = word_arg(rng, slot)
+    return make('411f24', areas, stubs, g, [a], (a,), (kind, *rest, slot), pointers, partial=partial)
+
+
 SPECS = {
     '44b26a': dict(id=1, va=0x44b26a, size=350, gen=gen_44b26a, cleanup=4, fpcw=0x27f, n=(16 + 4 * 3 * len(WORDS) + 4 * 3 * len(FLOATS)) * 2),
     '488e9c': dict(id=2, va=0x488e9c, size=447, gen=gen_488e9c, cleanup=12, n=61 * 10),
     '42e844': dict(id=4, va=0x42e844, size=579, gen=gen_42e844, cleanup=0, n=60 * 3),
+    '411f24': dict(id=5, va=0x411f24, size=660, gen=gen_411f24, cleanup=4, n=7 * 12),
     '4c5b3a': dict(id=3, va=0x4c5b3a, size=529, gen=gen_4c5b3a, cleanup=20, n=26 * 16),
 }
 KEYS = list(SPECS)
-NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed', '42e844': 'step_record'}
+NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed', '42e844': 'step_record', '411f24': 'replace_record'}
 
 
 def build(key, rng, n):

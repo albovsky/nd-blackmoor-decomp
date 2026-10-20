@@ -236,3 +236,60 @@ void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host
         call1(host, 0x42ba3a, 0, (uint16_t)index);
     }
 }
+
+/* ---- 0x411f24 replace_record ----------------------------------------------------------------------------------------------------- */
+static size_t c_strlen(const uint8_t *s)
+{
+    size_t n = 0;
+    while (s[n] != 0) n++;
+    return n;
+}
+
+int32_t m411f24_replace_record(uint8_t *self, uint32_t index, const Fl30bWorld *world, const Fl18Host *host)
+{
+    uint8_t *rec = world->records_5bb5e5 + (ptrdiff_t)(int16_t)index * 0x8d;
+    uint32_t p = rd32(rec, 0), q = p + 0xe7, buf, buf2, value;
+    uint8_t num[8];
+    uint8_t *b;
+    size_t n, at;
+    call4(host, 0x413187, (uintptr_t)self, p, p + 0x12d, 0, 0);
+    call1(host, 0x42ba3a, 0, (uint16_t)index);
+    buf = call1(host, 0x51dc43, 0, 0xaba);
+    if (buf == 0) {
+        call4(host, 0x50ca3e, 0, 0x63888b, 0x541564, world->value_5bb57b, (uint32_t)(int32_t)world->word_5c39e3);
+        call2(host, 0x42639d, 0x583979, 0x5415ac, 0x63888b);
+        call0(host, 0x4c97b4, 0x5cf659);
+        return 1;          /* the original goes on and stores through the null pointer */
+    }
+    b = res(host, buf);
+    memset(b, 0, 0xaba);
+    call2(host, 0x48945b, 0x619935, buf, q + 2);
+    n = c_strlen(res(host, 0x5415c8)) + 1;
+    rep_copy(b, res(host, 0x5415c8), (uint32_t)n);
+    value = (uint32_t)(rds16(res(host, p), 2) + 1);
+    memset(num, 0, sizeof num);
+    call3(host, 0x5193ca, 0, value, (uintptr_t)num, 10);
+    if (memchr(num, 0, sizeof num) == NULL) return 1;      /* native rejection: the original overwrites the local behind num */
+    at = c_strlen(b);
+    rep_copy(b + at, num, (uint32_t)c_strlen(num) + 1);
+    wr16(b, 0x23, rd16(res(host, p), 0));
+    wr16(b, 0x27, rd16(res(host, q), 0));
+    memcpy(b + 0xac, res(host, q + 0x12), 16);
+    call1(host, 0x51dc6c, 0, rd32(rec, 0));
+    wr32(rec, 0, 0);
+    buf2 = call1(host, 0x51dc43, 0, 0xaba);
+    wr32(rec, 0, buf2);
+    if (buf2 == 0) {
+        call4(host, 0x50ca3e, 0, 0x63888b, 0x5415d8, world->value_5bb57b, (uint32_t)(int32_t)world->word_5c39e3);
+        call2(host, 0x42639d, 0x583979, 0x54161c, 0x63888b);
+        call0(host, 0x4c97b4, 0x5cf659);
+        return 1;          /* the original goes on and stores through the null pointer */
+    }
+    memcpy(res(host, rd32(rec, 0)), b, 0xaba);
+    rec[0x40] = 0;
+    rec[-2] = 0x36;
+    rec[-1] = 1;
+    wr32(rec, 0x4d, 0);
+    call1(host, 0x51dc6c, 0, buf);
+    return 0;
+}

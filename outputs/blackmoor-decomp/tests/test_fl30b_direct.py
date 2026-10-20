@@ -82,6 +82,10 @@ class Fl30bDirect(unittest.TestCase):
         """FL-30b: direct test of m42e844_step_record (original 0x42e844)"""
         self.check('test_m42e844_step_record')
 
+    def test_411f24_replace_record(self):
+        """FL-30b: direct test of m411f24_replace_record (original 0x411f24)"""
+        self.check('test_m411f24_replace_record')
+
     # CASES-END
 
     def test_sweep_bounded(self):

@@ -67,6 +67,17 @@ int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint
  * argument, the low 16 bits). Any other state: nothing. P is read again at every use. The count [P+0x28] is caller-validated (nothing is bounds checked, as in the original). */
 void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host);
 
+/* 0x411f24, thiscall, `ret 4`, the stack argument is the word `index` (signed): record r = 0x5bb5e5 + index*0x8d, P = dword [r+0] (an original address), Q = P + 0xe7. 0x413187(this self, P, P + 0x12d, 0, 0)
+ * (thiscall, 4 arguments), 0x42ba3a(index) (cdecl, 1 argument, the low 16 bits). buf = 0x51dc43(0xaba) (cdecl, 1 argument); when buf == 0: 0x50ca3e(0x63888b, 0x541564, dword 0x5bb57b, sign-extended word
+ * 0x5c39e3) (cdecl, 4 arguments), 0x42639d(this 0x583979, 0x5415ac, 0x63888b) (thiscall, 2 arguments), 0x4c97b4(this 0x5cf659) and THE ORIGINAL GOES ON AND WRITES THROUGH THE NULL POINTER: this port returns
+ * 1 there (native rejection). Otherwise: the 0xaba bytes at buf are cleared; 0x48945b(this 0x619935, buf, Q + 2) (thiscall, 2 arguments); the NUL-terminated string at the original address 0x5415c8
+ * (a 12 byte string in the original's data, resolved through Fl18Host.resolve) is copied to buf with its NUL (dwords, then bytes); 0x5193ca(signed word [P+2] + 1, num, 10) (cdecl, 3 arguments, a number to
+ * text conversion that writes into the 8 byte local `num`); the text in num is appended to buf (its NUL included); word [buf+0x23] = word [P], word [buf+0x27] = word [Q]; the 16 bytes at Q + 0x12 go to buf +
+ * 0xac; 0x51dc6c(dword [r+0]) (cdecl, 1 argument); dword [r+0] = 0; buf2 = 0x51dc43(0xaba) is stored to dword [r+0]; when buf2 == 0 the same report with 0x5415d8 and 0x54161c (and the original then writes
+ * through the null pointer: native rejection, return 1, buf is not freed). Otherwise the 0xaba bytes at buf are copied to buf2, byte [r+0x40] = 0, byte [r-2] = 0x36, byte [r-1] = 1, dword [r+0x4d] = 0 and
+ * 0x51dc6c(buf) (cdecl, 1 argument). Returns 0. NATIVE REJECTION (return 1) also when num holds no NUL in its 8 bytes (the original overwrites the local that follows). Every pointer is an original address. */
+int32_t m411f24_replace_record(uint8_t *self, uint32_t index, const Fl30bWorld *world, const Fl18Host *host);
+
 /* NEXT-DECL */
 
 #ifdef __cplusplus

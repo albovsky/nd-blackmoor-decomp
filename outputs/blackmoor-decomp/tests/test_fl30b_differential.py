@@ -129,9 +129,9 @@ class Fl30bDifferential(DiffBase):
             expected = expected[:sc.partial[0]]
             for a, arr in arrays:
                 want = bytearray(a.data)
-                n = sc.partial[1].get(a.name, 0)
-                if n:
-                    want[:n] = orig.memory[a.name][:n]
+                n = sc.partial[1].get(a.name, 0)       # a number of leading bytes, or a list of (offset, length) ranges
+                for off, ln in (([(0, n)] if n else []) if isinstance(n, int) else n):
+                    want[off:off + ln] = orig.memory[a.name][off:off + ln]
                 self.assertEqual(bytes(arr), bytes(want), '%s %s (rejection must leave everything else unchanged)' % (sc.key, a.name))
             for field, value in sc.g.items():
                 size = fx.GLOBALS[field][1]
@@ -172,6 +172,10 @@ class Fl30bDifferential(DiffBase):
     def test_42e844_step_record(self):
         """FL-30b: differential test of m42e844_step_record (original 0x42e844)"""
         self.run_key('42e844')
+
+    def test_411f24_replace_record(self):
+        """FL-30b: differential test of m411f24_replace_record (original 0x411f24)"""
+        self.run_key('411f24')
 
     # TESTS-END
 
