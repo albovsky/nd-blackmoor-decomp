@@ -19,8 +19,8 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 
 | Class | Bytes | Contiguous runs |
 |---|---:|---:|
-| structured | 31,500 | 560 |
-| reconstructed | 1,479,924 | 1,010 |
+| structured | 0 | 0 |
+| reconstructed | 1,511,424 | 1,480 |
 | referenced | 0 | 0 |
 | missing | 0 | 0 |
 
@@ -28,22 +28,23 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 
 | Class | Functions or ranges | Bytes |
 |---|---:|---:|
+| tool_assisted_reconstructed_data | 51 | 298,406 |
 | tool_assisted_reconstructed_assembly | 4,773 | 1,201,090 |
+| tool_assisted_reconstructed_padding | 616 | 3,740 |
+| tool_assisted_reconstructed_jump_table | 170 | 5,856 |
 | tool_assisted_reconstructed_index_table | 19 | 1,934 |
 | explicit_reconstructed_assembly_source | 11 | 384 |
-| tool_assisted_reconstructed_padding | 235 | 1,526 |
 | incomplete_byte_range_not_a_complete_function | 2 | 14 |
-| tool_assisted_reconstructed_data | 24 | 274,976 |
 
 ## By section
 
 | Section | structured | reconstructed | referenced |
 |---|---:|---:|---:|
-| <headers> | 4,096 | 0 | 0 |
-| .text | 11,564 | 1,204,948 | 0 |
-| .rdata | 11,324 | 41,924 | 0 |
+| <headers> | 0 | 4,096 | 0 |
+| .text | 0 | 1,216,512 | 0 |
+| .rdata | 0 | 53,248 | 0 |
 | .data | 0 | 208,896 | 0 |
-| .rsrc | 4,516 | 24,156 | 0 |
+| .rsrc | 0 | 28,672 | 0 |
 
 ## By code region
 
@@ -57,18 +58,7 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 
 | Group | Bytes | Items |
 |---|---:|---:|
-| dos_header | 128 | 1 |
-| rich_header | 144 | 1 |
-| pe_headers | 248 | 1 |
-| section_table | 160 | 1 |
-| header_padding | 3,416 | 1 |
-| reconstructed | 1,479,924 | 5,064 |
-| int3_padding | 2,214 | 381 |
-| jump_tables | 5,856 | 172 |
-| section_padding | 8,502 | 24 |
-| iat | 1,356 | 13 |
-| import_directory | 7,396 | 357 |
-| resource_tree | 2,080 | 87 |
+| reconstructed | 1,511,424 | 5,642 |
 
 ## Reconstructed ranges
 
@@ -99,5 +89,8 @@ Ranges below are maximal contiguous runs of one class; the referenced list in `r
 | `asm/batch-010.json` (56 functions, 0 superseded by earlier bindings) | - | 1,557 | tool_assisted_assembly | bound |
 | `asm_data/data-001.json` | 0x12a54c | 250820 | tool_assisted_data_directives | bound |
 | `asm_data/data-002.json` | 0x16a820 | 24156 | tool_assisted_data_directives | bound |
+| `asm_data/data-003.json` | 0x0 | 18914 | tool_assisted_data_directives | bound |
+| `asm_data/data-004.json` | 0x16a000 | 4516 | tool_assisted_data_directives | bound |
+| `asm_data/data-005.json` | 0x10edb4 | 240 | tool_assisted_data_directives | bound |
 
 The full referenced-range list (offset, length, SHA-256) is `ranges.json`; `build/image/coverage-report.json` embeds it.

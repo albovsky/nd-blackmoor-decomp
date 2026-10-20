@@ -1,0 +1,295 @@
+# Layout of a generated GAME.EXE data source (Track M, packet M-C): labels, offsets, zero runs, pointer expressions and named
+# constants only.  Every string, numeric dword and byte list is masked as [length]; scripts/data_asm.py regenerates the full source from the owner's local original.
+# annotation:  machine
+# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by
+# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of
+# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the
+# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.
+# original-sha256: afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45
+# image-base: 0x00400000
+# pointers: not detected (PE structures)
+# origin-va: 0x0063f000
+# ranges: 0x0063f000-0x0063f820 (.rsrc) 0x0063fc52-0x0063fc58 (.rsrc) 0x00640ade-0x00640ae0 (.rsrc) 0x0064111a-0x00641120 (.rsrc) 0x00641cae-0x00641cb0 (.rsrc) 0x00641faa-0x00641fb0 (.rsrc) 0x006429b2-0x006429b8 (.rsrc) 0x006436aa-0x006436b0 (.rsrc) 0x00643f8a-0x00643f90 (.rsrc) 0x0064401a-0x00644020 (.rsrc) 0x0064450c-0x00644510 (.rsrc) 0x00644524-0x00644528 (.rsrc) 0x0064465c-0x00644660 (.rsrc) 0x00644674-0x00644678 (.rsrc) 0x00644714-0x00644718 (.rsrc) 0x0064474a-0x00644750 (.rsrc) 0x00644796-0x00644798 (.rsrc) 0x00644a2c-0x00644a30 (.rsrc) 0x00644af2-0x00644af8 (.rsrc) 0x00644c82-0x00644c88 (.rsrc) 0x006450e6-0x006450e8 (.rsrc) 0x00645366-0x00645368 (.rsrc) 0x006456da-0x00646000 (.rsrc)
+# classification: strings are printable ASCII runs of 4 or more bytes ended by a NUL (wide strings: the same in UTF-16LE); pointers are aligned dwords
+# that point into a mapped section (a target in these ranges is resolved from its label, any other target is a named
+# absolute constant); aligned zero runs are .fill; every other aligned dword is numeric; leftovers are bytes.
+# Not claimed: original C provenance, that any value is a pointer or a string in the original program, that any field is
+# meaningful, or an x86 match of the whole file (code and the other data sources are separate batches).
+.intel_syntax noprefix
+.data
+IMG:
+.org 0x0
+DAT_0063f000:
+.fill 12, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [4]
+.long [3]
+.fill 12, 1, 0
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [4]
+.long [1]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [3]
+.fill 12, 1, 0
+.long [4]
+.long [1]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.long [2]
+.fill 8, 1, 0
+.org 0xc52
+DAT_0063fc52:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x1ade
+DAT_00640ade:
+.fill 2, 1, 0
+.org 0x211a
+DAT_0064111a:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x2cae
+DAT_00641cae:
+.fill 2, 1, 0
+.org 0x2faa
+DAT_00641faa:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x39b2
+DAT_006429b2:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x46aa
+DAT_006436aa:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x4f8a
+DAT_00643f8a:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x501a
+DAT_0064401a:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x550c
+DAT_0064450c:
+.fill 4, 1, 0
+.org 0x5524
+DAT_00644524:
+.fill 4, 1, 0
+.org 0x565c
+DAT_0064465c:
+.fill 4, 1, 0
+.org 0x5674
+DAT_00644674:
+.fill 4, 1, 0
+.org 0x5714
+DAT_00644714:
+.fill 4, 1, 0
+.org 0x574a
+DAT_0064474a:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x5796
+DAT_00644796:
+.fill 2, 1, 0
+.org 0x5a2c
+DAT_00644a2c:
+.fill 4, 1, 0
+.org 0x5af2
+DAT_00644af2:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x5c82
+DAT_00644c82:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.org 0x60e6
+DAT_006450e6:
+.fill 2, 1, 0
+.org 0x6366
+DAT_00645366:
+.fill 2, 1, 0
+.org 0x66da
+DAT_006456da:
+.fill 2, 1, 0
+.fill 2340, 1, 0

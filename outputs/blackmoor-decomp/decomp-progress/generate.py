@@ -406,7 +406,7 @@ def audited_data_evidence(layout: dict, out_dir: Path):
     audited one and carry no payload value, and the manifest and report must name the same source hash.
     Each range is matched data (kind ``data``); nothing here reads the assembler or the original.
     """
-    rows, inputs, batches, claimed = [], [], [], []
+    rows, inputs, batches, claimed, table_claims = [], [], [], [], []
     sections = {s["name"]: s for s in layout["sections"]}
     for path in sorted((out_dir / "asm_data").glob("data-*.json")):
         if not re.fullmatch(r"data-[0-9]+\.json", path.name):
@@ -428,6 +428,7 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             require(man["batch"] == report["batch"] == path.stem.removeprefix("data-"),
                     "batch identity differs from its audit")
             total = sum(r["length"] for r in man["ranges"])
+            counted = 0 if man.get("profile") == DATA_ASM.PROFILE_TABLES else total
             require(report["all_accepted"] is True and report["errors"] == [] and report["relocations"] == 0 and
                     report["compared_bytes"] == report["bytes_total"] == total and report["labels_checked"] > 0,
                     "data audit not accepted")
@@ -447,17 +448,32 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             require(report["ranges"] == man["ranges"], "audited ranges differ from the manifest")
             for r in man["ranges"]:
                 off, size = int(r["offset"], 16), r["length"]
-                sec = sections[r["section"]]
-                require(type(size) is int and size > 0 and r["section"] != ".text" and
-                        sec["raw_off"] <= off and off + size <= sec["raw_off"] + sec["raw_size"],
-                        "data range is outside its section's raw data")
+                # the file headers are the pseudo-section "<headers>" of the data batches ("headers" in this layout)
+                sec = sections["headers" if r["section"] == DATA_ASM.HEADERS else r["section"]]
+                tables = man.get("profile") == DATA_ASM.PROFILE_TABLES
+                if tables:
+                    # jump tables inside .text (batch 005): lie within the code atoms the map already accounts for, so
+                    # they are validated here but add no row (code and data totals stay as they are)
+                    require(sec["name"] == ".text" and type(size) is int and size > 0 and
+                            sec["raw_off"] <= off and off + size <= sec["raw_off"] + sec["virt_size"],
+                            "jump-table range is outside .text")
+                else:
+                    # .text holds code, so a data range there may only lie in the zero fill past its virtual size
+                    code_end = sec["raw_off"] + sec["virt_size"] if sec["name"] == ".text" else sec["raw_off"]
+                    require(type(size) is int and size > 0 and
+                            code_end <= off and off + size <= sec["raw_off"] + sec["raw_size"],
+                            "data range is outside its section's raw data")
                 require(int(r["va"], 16) == layout["image_base"] + sec["rva"] + off - sec["raw_off"],
                         "data range VA/offset disagree")
+                if tables:
+                    require(not overlap(table_claims, off, off + size), "jump-table ranges overlap")
+                    table_claims = merge_intervals([tuple(c) for c in table_claims] + [(off, off + size)])
+                    continue
                 require(not overlap(claimed, off, off + size), "data ranges overlap")
                 claimed = merge_intervals([tuple(c) for c in claimed] + [(off, off + size)])
                 rows.append((off, off + size, "reconstructed", name, r["va"]))
             batches.append({"manifest": name, "audit": report_path.relative_to(out_dir).as_posix(),
-                            "ranges": len(man["ranges"]), "bytes": total,
+                            "ranges": len(man["ranges"]), "bytes": counted,
                             "labels_checked": report["labels_checked"],
                             "assembler_sha256": assembler["sha256"], "assembler_version": assembler["version_line"]})
             inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
@@ -863,12 +879,13 @@ def write_report(model, path: Path):
         notes += [
             "- Baseline code totals are function spans (start to next indexed start). A span "
             "also holds the function's switch jump tables and `int 3` padding "
-            "(about 10.9 KB in all, M0 report section 3), so baseline code is slightly "
+            "(11,530 bytes in all: 5,856 switch table, 2,214 `int 3`, 1,934 index table and 1,526 alignment padding; "
+            "11,290 are audited data items of the M03 batches, 240 are the tables of two CRT block copies), so baseline code is slightly "
             "overstated and baseline data slightly understated until the M02 ledger splits them.",
             "- M03 tables and padding are excluded from matched code; their data items are "
             "handed to M02. Baseline mode counts the audited data sources (`asm_data/data-*.json`) as "
-            "matched data; the composer's `structured` data (PE headers, import tables, resource "
-            "directory, section padding) is not counted here, use a ledger for it."]
+            "matched data, including the `structures` batches (PE headers, import tables, resource "
+            "directory tree, section padding); the composer's `structured` jump tables and `int 3` padding are not counted here, use a ledger for them."]
     else:
         notes += [
             "- Code and data totals come from the composer ledger, where every classified byte has "
@@ -911,6 +928,8 @@ def write_report(model, path: Path):
                   "| Manifest | Ranges | Matched data bytes | Labels checked |", "|---|---:|---:|---:|"]
         for b in ev["tool_assisted_data_batches"]:
             lines += [f"| {b['manifest']} | {b['ranges']} | {b['bytes']:,} | {b['labels_checked']:,} |"]
+        lines += ["", "A `jump_tables` batch lies inside `.text`, in code atoms the map already accounts for; it is "
+                  "validated like the others and shown with 0 matched data bytes."]
         lines += ["", "Each source is reassembled by `scripts/data_asm.py audit` with the pinned GNU assembler: "
                   "no relocation, every range identical to the original, every label at the address in its "
                   "name. This metadata check re-reads manifests, audit reports and source hashes only. "
