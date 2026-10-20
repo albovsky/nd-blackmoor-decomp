@@ -2,7 +2,7 @@
  {
   "va": "0x40a613",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -35,7 +35,7 @@
  {
   "va": "0x40a665",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -68,7 +68,7 @@
  {
   "va": "0x4a9f27",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -101,7 +101,7 @@
  {
   "va": "0x4b71f7",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -134,7 +134,7 @@
  {
   "va": "0x4781fa",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -167,7 +167,7 @@
  {
   "va": "0x4afd3a",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -200,7 +200,7 @@
  {
   "va": "0x4e04f3",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -233,7 +233,7 @@
  {
   "va": "0x454565",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
@@ -266,7 +266,7 @@
  {
   "va": "0x4a638a",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32b",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl32b.c",
