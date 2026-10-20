@@ -120,3 +120,48 @@ int32_t m4e2e05_copy_state(uint8_t *self, const Fl30dWorld *world, const Fl18Hos
     (void)host;
     return 0;
 }
+
+/* ---- 0x4c2a8d make_record -------------------------------------------------------------------------------------------------------- */
+uint32_t m4c2a8d_make_record(uint8_t *self, uint32_t w, uint32_t h, uint32_t tag, uint32_t name, const Fl30dWorld *world, const Fl18Host *host)
+{
+    int32_t sw = (int16_t)w, sh = (int16_t)h, size;
+    uint32_t rec_va, pix_va;
+    uint8_t *rec, *str;
+    size_t len;
+    rec_va = call1(host, 0x51dc43, 0, 0x59);
+    if (rec_va == 0) {
+        call2(host, 0x42639d, 0x583979, 0x553dbc, name);
+        call0(host, 0x4c97b4, (uintptr_t)self);
+        return 0;
+    }
+    rec = res(host, rec_va);
+    memset(rec, 0, 0x59);
+    size = (int32_t)((uint32_t)sw * (uint32_t)(int32_t)world->word_639895 * (uint32_t)sh);
+    pix_va = call1(host, 0x51dc43, 0, (uint32_t)size);
+    wr32(rec, 0, pix_va);
+    if (pix_va == 0) {
+        call2(host, 0x42639d, 0x583979, 0x553e14, name);
+        call0(host, 0x4c97b4, (uintptr_t)self);
+        return 0;
+    }
+    str = res(host, name);
+    len = strlen((const char *)str);
+    if (len >= 0x19) str[0x18] = 0;
+    memcpy(rec + 8, str, strlen((const char *)str) + 1);
+    wr32(rec, 4, tag);
+    wr16(rec, 0x21, 0x59);
+    wr32(rec, 0x23, (uint32_t)size);
+    wr32(rec, 0x27, (uint32_t)size + 0x59);
+    wr16(rec, 0x2b, (uint16_t)w);
+    wr16(rec, 0x2d, (uint16_t)h);
+    wr16(rec, 0x2f, (uint16_t)((uint32_t)sw * (uint32_t)(int32_t)world->word_639895));
+    wr16(rec, 0x31, (uint16_t)h);
+    wr16(rec, 0x33, world->word_639893);
+    wr32(rec, 0x55, 0);
+    wr32(rec, 0x35, 0);
+    wr32(rec, 0x39, 0);
+    wr32(rec, 0x3d, (uint32_t)(sw - 1));
+    wr32(rec, 0x41, (uint32_t)(sh - 1));
+    memset(rec + 0x45, 0, 16);
+    return rec_va;
+}

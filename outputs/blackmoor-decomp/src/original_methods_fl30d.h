@@ -26,6 +26,8 @@ typedef struct Fl30dWorld {
     uint8_t *block_5a1e54;     /* 0x4e2e05: host mirror of the original addresses 0x5a1e54 .. 0x5a1e54 + FL30D_BLOCK_5A1E54_SIZE (the destination globals) */
     uint8_t byte_63a9e4;       /* 0x4e2e05: first byte compared with the first byte of the string at self + 0x139d */
     uint8_t byte_63a9e8;       /* 0x4e2e05: first byte compared with the first byte of the string at self + 0x13e3 */
+    int16_t word_639895;       /* 0x4c2a8d: bytes per pixel (a signed word) */
+    uint16_t word_639893;      /* 0x4c2a8d: the word stored at +0x33 of the new record */
 } Fl30dWorld;
 
 /* 0x4e2e05, thiscall, plain `ret`, no result. Native rejection (NOT original behaviour): when the signed word [self+0x1471] is negative, or its product with 0x29 does not fit
@@ -37,6 +39,15 @@ typedef struct Fl30dWorld {
  * self + 0x13e3 is copied to 0x5a434c, dword [0x5a4371] = sign-extended word [self+0x1404], word [0x5a436d] = word [self+0x1406], word [0x5a436f] = word [self+0x1408] (in this
  * order, the dword at 0x5a4371 overlaps nothing of the others); otherwise word [0x5a1e60] = 0. */
 int32_t m4e2e05_copy_state(uint8_t *self, const Fl30dWorld *world, const Fl18Host *host);
+
+/* 0x4c2a8d, thiscall, `ret 0x10`, returns eax (the original address of the new 0x59 byte record, 0 on failure). Stack arguments (first pushed last): the words w and h (low 16 bits of the
+ * stack dwords, signed), the dword `tag` and the original address `name` of a NUL-terminated string. rec = 0x51dc43(0x59) (cdecl, 1 argument); when 0: 0x42639d(this 0x583979, 0x553dbc,
+ * name) (thiscall, 2 arguments), 0x4c97b4(this self) and the result is 0. Otherwise the 0x59 bytes at rec are cleared (0x16 dwords and a byte); size = w * (signed word 0x639895) * h (32-bit
+ * products); pix = 0x51dc43(size) is stored to dword [rec]; when 0: 0x42639d(this 0x583979, 0x553e14, name), 0x4c97b4(this self) and the result is 0 (rec is not freed). Otherwise, when
+ * strlen(name) >= 0x19 the byte name[0x18] is set to 0 (the caller's string is shortened); the string (NUL included) is copied to rec + 8; dword [rec+4] = tag; word [rec+0x21] = 0x59;
+ * dword [rec+0x23] = size; dword [rec+0x27] = size + 0x59; word [rec+0x2b] = w; word [rec+0x2d] = h; word [rec+0x2f] = w * bpp (16 bits); word [rec+0x31] = h; word [rec+0x33] = word
+ * 0x639893; dword [rec+0x55] = [rec+0x35] = [rec+0x39] = 0; dword [rec+0x3d] = w - 1; dword [rec+0x41] = h - 1; the four dwords at rec + 0x45 = 0; the result is rec. */
+uint32_t m4c2a8d_make_record(uint8_t *self, uint32_t w, uint32_t h, uint32_t tag, uint32_t name, const Fl30dWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

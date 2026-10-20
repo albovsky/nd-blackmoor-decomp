@@ -176,13 +176,41 @@ def gen_4e2e05(rng, n):
     return make('4e2e05', [self_area(s), blk], stubs, {'byte_63a9e4': g1 & 0xff, 'byte_63a9e8': g2 & 0xff}, [], (), (count, d1, d2), {'block_5a1e54': ('blk', 0)})
 
 
+# ---- 0x4c2a8d ---------------------------------------------------------------------------------------------------------------------
+
+REC_VA, PIX2_VA, STR_VA = od.region_va(1), od.region_va(2), od.region_va(3)
+NAME_LENS = [0, 1, 5, 0x17, 0x18, 0x19, 0x1a, 0x30]
+DIMS = [(1, 1), (3, 2), (0x10, 5), (0x7fff, 2), (-1, 4), (4, -2), (-3, -5), (0, 7), (0x1234, 0)]
+
+
+def gen_4c2a8d(rng, n):
+    (kind, *rest), variant = prof(n, [('a1fail',), ('a2fail',)] + [('ok', ln, d) for ln in NAME_LENS for d in range(len(DIMS))])
+    s = bytearray(rng.randbytes(0x40))
+    rec = bytearray(rng.randbytes(0x100))
+    pix = bytearray(rng.randbytes(0x20))
+    name = bytearray(rng.randbytes(0x80))
+    ln = rest[0] if kind == 'ok' else rng.choice(NAME_LENS)
+    zbytes(rng, name, 0, ln)
+    w, h = DIMS[rest[1] if kind == 'ok' else variant % len(DIMS)]
+    bpp = [2, 1, 3, 0, -1, 4][(variant + (rest[1] if kind == 'ok' else 0)) % 6]
+    g = {'word_639895': bpp, 'word_639893': rng.choice([0, 1, 0x7fff, 0x8000, 0xffff, rng.randrange(0x10000)])}
+    results = {'a1fail': [0], 'a2fail': [REC_VA, 0]}.get(kind, [REC_VA, PIX2_VA])
+    stubs = {0x51dc43: stub(0x51dc43, CDECL(1), results=results, probe=[('rec', 0, 0x59), ('name', 0, 0x30)]), 0x42639d: stub(0x42639d, THISCALL(2)),
+             0x4c97b4: stub(0x4c97b4, THISCALL(0))}
+    tag = rng.randrange(1 << 32)
+    stack = [word_arg(rng, w), word_arg(rng, h), tag, STR_VA]
+    return make('4c2a8d', [self_area(s), Area('rec', REC_VA, rec, image=False), Area('pix', PIX2_VA, pix, image=False), Area('name', STR_VA, name, image=False)],
+                stubs, g, stack, tuple(stack), (kind, *rest, w, h, bpp))
+
+
 # @@GENERATORS@@
 
 SPECS = {
     '4e2e05': dict(id=1, va=0x4e2e05, size=421, gen=gen_4e2e05, cleanup=0, n=28 * 4),
+    '4c2a8d': dict(id=2, va=0x4c2a8d, size=429, gen=gen_4c2a8d, cleanup=16, ret=True, n=74 * 2),
 }
 KEYS = list(SPECS)
-NAMES = {'4e2e05': 'copy_state'}
+NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record'}
 
 
 def build(key, rng, n):

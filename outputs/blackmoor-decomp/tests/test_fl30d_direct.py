@@ -70,6 +70,10 @@ class Fl30dDirect(unittest.TestCase):
         """FL-30d: direct test of m4e2e05_copy_state (original 0x4e2e05)"""
         self.check('test_m4e2e05_copy_state')
 
+    def test_4c2a8d_make_record(self):
+        """FL-30d: direct test of m4c2a8d_make_record (original 0x4c2a8d)"""
+        self.check('test_m4c2a8d_make_record')
+
     # CASES-END
 
     def test_sweep_bounded(self):

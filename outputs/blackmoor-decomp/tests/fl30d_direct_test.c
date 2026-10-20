@@ -195,6 +195,69 @@ static void test_m4e2e05_copy_state(void)
     }
 }
 
+/* ---- 0x4c2a8d ------------------------------------------------------------------------------------------------------------------ */
+static void test_m4c2a8d_make_record(void)
+{
+    uint8_t *rec = g_r[1], *name = g_r[3];
+    int i;
+    uint32_t r;
+    setup();
+    memset(rec, 0x77, 0x100);
+    memset(name, 'x', 0x80);
+    name[0x30] = 0;                                     /* a 0x30 character name */
+    g_w.word_639895 = 3;
+    g_w.word_639893 = 0xbeef;
+    script(0x51dc43, 2, RVA(1), RVA(2), 0, 0);
+    r = m4c2a8d_make_record(SELF, 0xabcd0005u, 0x12340004u, 0xdeadbeefu, RVA(3), &g_w, &g_host);
+    CK(r == RVA(1));
+    CK(L.n == 2);
+    CKC(0, 0x51dc43, 0, 1, 0x59);
+    CKC(1, 0x51dc43, 0, 1, 5 * 3 * 4);                  /* size = w * bpp * h from the low words */
+    CK(get32(rec, 0) == RVA(2));
+    CK(name[0x18] == 0 && name[0x17] == 'x');           /* a name of 0x19 or more characters is cut at 0x18 in the caller's buffer */
+    for (i = 0; i < 0x18; i++) CK(rec[8 + i] == 'x');
+    CK(rec[8 + 0x18] == 0);                             /* the NUL of the cut string */
+    CK(get32(rec, 4) == 0xdeadbeefu && get16(rec, 0x21) == 0x59 && get32(rec, 0x23) == 60 && get32(rec, 0x27) == 60 + 0x59);
+    CK(get16(rec, 0x2b) == 5 && get16(rec, 0x2d) == 4 && get16(rec, 0x2f) == 15 && get16(rec, 0x31) == 4 && get16(rec, 0x33) == 0xbeef);
+    CK(get32(rec, 0x35) == 0 && get32(rec, 0x39) == 0 && get32(rec, 0x3d) == 4 && get32(rec, 0x41) == 3 && get32(rec, 0x55) == 0);
+    for (i = 0; i < 16; i++) CK(rec[0x45 + i] == 0);
+    CK(rec[0x59] == 0x77 && rec[0x2a] == 0 && rec[0x58] == 0);   /* the 0x59 bytes are cleared first, nothing past them is written */
+    /* negative dimensions: the products are 32-bit signed; w = -2, h = -3, bpp = 2 gives size 12, the dword at +0x3d is -3 */
+    setup();
+    memset(rec, 0x77, 0x100);
+    memcpy(name, "ab\0", 3);
+    g_w.word_639895 = 2;
+    script(0x51dc43, 2, RVA(1), RVA(2), 0, 0);
+    r = m4c2a8d_make_record(SELF, 0xfffe, 0xfffd, 1, RVA(3), &g_w, &g_host);
+    CK(r == RVA(1) && get32(rec, 0x23) == 12 && get32(rec, 0x3d) == 0xfffffffdu && get32(rec, 0x41) == 0xfffffffcu && get16(rec, 0x2f) == 0xfffc);
+    CK(rec[8] == 'a' && rec[9] == 'b' && rec[10] == 0 && name[2] == 0);
+    CKC(1, 0x51dc43, 0, 1, 12);
+    /* a name of exactly 0x18 characters is copied as it is (no cut) */
+    setup();
+    memset(name, 'y', 0x30);
+    name[0x18] = 0;
+    memset(rec, 0x77, 0x100);
+    script(0x51dc43, 2, RVA(1), RVA(2), 0, 0);
+    m4c2a8d_make_record(SELF, 1, 1, 0, RVA(3), &g_w, &g_host);
+    CK(rec[8 + 0x17] == 'y' && rec[8 + 0x18] == 0 && name[0x17] == 'y');
+    /* first allocation fails: the report and 0 */
+    setup();
+    script(0x51dc43, 1, 0, 0, 0, 0);
+    CK(m4c2a8d_make_record(SELF, 1, 1, 0, RVA(3), &g_w, &g_host) == 0);
+    CK(L.n == 3);
+    CKC(1, 0x42639d, 0x583979, 2, 0x553dbc, RVA(3));
+    CKC0(2, 0x4c97b4, SELFP);
+    /* second allocation fails: another report, [rec] = 0, 0 and no further effect */
+    setup();
+    memset(rec, 0x77, 0x100);
+    script(0x51dc43, 2, RVA(1), 0, 0, 0);
+    CK(m4c2a8d_make_record(SELF, 1, 1, 0, RVA(3), &g_w, &g_host) == 0);
+    CK(L.n == 4);
+    CKC(2, 0x42639d, 0x583979, 2, 0x553e14, RVA(3));
+    CKC0(3, 0x4c97b4, SELFP);
+    CK(get32(rec, 0) == 0 && rec[0x58] == 0 && get32(rec, 0x59) == 0x77777777u);
+}
+
 /*TESTS*/
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -215,6 +278,11 @@ static void test_sweep_bounded(void)
         g_w.byte_63a9e4 = (uint8_t)seed;
         g_w.byte_63a9e8 = (uint8_t)(seed >> 8);
         m4e2e05_copy_state(SELF, &g_w, &g_host);
+        L.n = 0;
+        g_nscript = 0;
+        script(0x51dc43, 2, RVA(1), RVA(2), 0, 0);
+        g_w.word_639895 = (int16_t)(1 + seed % 3);
+        m4c2a8d_make_record(SELF, (seed >> 2) % 9, (seed >> 6) % 9, seed, RVA(3), &g_w, &g_host);
         L.n = 0;
         /*SWEEPBODY*/
     }
@@ -237,6 +305,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m4e2e05_copy_state);
+    RUN(test_m4c2a8d_make_record);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;
