@@ -1,0 +1,266 @@
+[
+ {
+  "va": "0x47d02d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m47d02d_show_names"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m47d02d_show_names"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_47d02d_show_names"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_47d02d_show_names"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x47d02d",
+    "0x47d1c3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Name text for 0x448d11: the 0x423259 (or rec+0x52) string is copied into a 0x68 byte local and 7 bytes are stored over its NUL; texts of 97+ chars are rejected, the original overruns."
+ },
+ {
+  "va": "0x4c51a5",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m4c51a5_copy_rows"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m4c51a5_copy_rows"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_4c51a5_copy_rows"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_4c51a5_copy_rows"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x4c51a5",
+    "0x4c5377"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies rows of bytes between two surfaces by rect and pitch (rep movsd/movsb); debug-mismatch report path; null surface on the copy path and a negative byte count are rejected (original faults)."
+ },
+ {
+  "va": "0x47df57",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m47df57_update_view"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m47df57_update_view"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_47df57_update_view"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_47df57_update_view"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x47df57",
+    "0x47e134"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Builds two rectangles and an offset pair from globals plus origin and calls 0x4c5377, then 0x4c62f0 or 0x4c6929 by byte [item+0x22]; the signed size/width/height compares are covered."
+ },
+ {
+  "va": "0x4c2898",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m4c2898_alloc_surface"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m4c2898_alloc_surface"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_4c2898_alloc_surface"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_4c2898_alloc_surface"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x4c2898",
+    "0x4c2a8d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates a 0x59 byte surface record and its pixel buffer through 0x51dc43, fills the fields and copies the name (cut to 0x18 chars); three report arms for existing cell or failed allocations."
+ },
+ {
+  "va": "0x4f594d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m4f594d_read_checked"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m4f594d_read_checked"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_4f594d_read_checked"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_4f594d_read_checked"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x4f594d",
+    "0x4f5b50"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Checked block read: fills a local 7 dword struct, calls 0x4f5e95, 0x4f5b50 (again for the remainder), pads the rest with 0x80 or 0 and calls 0x4f5e35; sets status 0x405 to 0x407 on each failure."
+ },
+ {
+  "va": "0x41e3c0",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m41e3c0_build_text"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m41e3c0_build_text"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_41e3c0_build_text"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_41e3c0_build_text"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x41e3c0",
+    "0x41e647"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Builds a text in a 0x3a98 byte buffer from the item string, constants, formatted numbers and the entry strings; rejects a null buffer and writes that would leave the buffer or the 0x34 byte local."
+ },
+ {
+  "va": "0x4f5b50",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m4f5b50_read_block"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m4f5b50_read_block"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_4f5b50_read_block"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_4f5b50_read_block"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x4f5b50",
+    "0x4f5e35"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads a block by record mode: mode 2 loops 0x4fe2d0 with flag and zero-read handling, mode 1 calls 0x50cf61 with the 0x10/0x20 file flag test, other modes set status 0x3f9; returns count or -1."
+ },
+ {
+  "va": "0x41db40",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33b.c",
+   "symbol": "m41db40_free_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33b_direct_test.c",
+    "test_id": "test_m41db40_free_record"
+   },
+   {
+    "path": "tests/test_fl33b_direct.py",
+    "test_id": "Fl33bDirect.test_41db40_free_record"
+   },
+   {
+    "path": "tests/test_fl33b_differential.py",
+    "test_id": "Fl33bDifferential.test_41db40_free_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33b_original_oracle.py",
+   "window": [
+    "0x41db40",
+    "0x41de29"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Frees a record: three counted tables of entries (strides 0x1d1, 0x1c, 0xa) free each non-null pointer of a positive entry, then the table pointer is freed and cleared, then the record; debug traces."
+ }
+]
