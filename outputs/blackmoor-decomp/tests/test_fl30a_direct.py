@@ -70,6 +70,10 @@ class Fl30aDirect(unittest.TestCase):
         """FL-30a: direct test of m4f61e7_start_record (original 0x4f61e7)"""
         self.check('test_m4f61e7_start_record')
 
+    def test_484762_intersect_rects(self):
+        """FL-30a: direct test of m484762_intersect_rects (original 0x484762)"""
+        self.check('test_m484762_intersect_rects')
+
     # CASES-END
 
     def test_sweep_bounded(self):

@@ -111,3 +111,37 @@ uint32_t m4f61e7_start_record(uint8_t *self, uint32_t index, const Fl30aWorld *w
     wr32(self, 0x3be, 0);
     return rd32(self, 0x3be);
 }
+
+/* ---- 0x484762 intersect_rects ---------------------------------------------------------------------------------------------------- */
+uint32_t m484762_intersect_rects(const uint8_t *self, uint32_t a, uint32_t b)
+{
+    const uint8_t *r1 = self + (ptrdiff_t)(int32_t)(a * 0x85u) + 0x28;
+    const uint8_t *r2 = self + (ptrdiff_t)(int32_t)(b * 0x85u) + 0x28;
+    const uint8_t *ra = r1 + (ptrdiff_t)r1[0x22] * 0x18 + 0x24;
+    const uint8_t *rb = r2 + (ptrdiff_t)r2[0x22] * 0x18 + 0x24;
+    const uint8_t *A = r1 + 2, *B = r2 + 2;
+    uint16_t unused_a = rd16(ra, 0x14), unused_b = rd16(rb, 0x14);
+    int32_t rx0 = -1, ry0 = -1, rx1 = -1, ry1 = -1;
+    (void)unused_a;
+    (void)unused_b;
+    if ((int32_t)rd32(A, 0) < (int32_t)rd32(B, 0)) {
+        if ((int32_t)rd32(A, 8) < (int32_t)rd32(B, 0)) return 0;
+        rx0 = (int32_t)rd32(B, 0);
+        rx1 = (int32_t)rd32(A, 8) > (int32_t)rd32(B, 8) ? (int32_t)rd32(B, 8) : (int32_t)rd32(A, 8);
+    } else {
+        if ((int32_t)rd32(A, 0) > (int32_t)rd32(B, 8)) return 0;
+        rx0 = (int32_t)rd32(A, 0);
+        rx1 = (int32_t)rd32(A, 8) > (int32_t)rd32(B, 8) ? (int32_t)rd32(B, 8) : (int32_t)rd32(A, 8);
+    }
+    if ((int32_t)rd32(A, 4) < (int32_t)rd32(B, 4)) {
+        if ((int32_t)rd32(A, 0xc) < (int32_t)rd32(B, 4)) return 0;
+        ry0 = (int32_t)rd32(B, 4);
+        ry1 = (int32_t)rd32(A, 0xc) > (int32_t)rd32(B, 0xc) ? (int32_t)rd32(B, 0xc) : (int32_t)rd32(A, 0xc);
+    } else {
+        if ((int32_t)rd32(A, 4) > (int32_t)rd32(B, 0xc)) return 0;
+        ry0 = (int32_t)rd32(A, 4);
+        ry1 = (int32_t)rd32(A, 0xc) > (int32_t)rd32(B, 0xc) ? (int32_t)rd32(B, 0xc) : (int32_t)rd32(A, 0xc);
+    }
+    if (ry0 == -1 || ry1 == -1 || rx0 == -1 || rx1 == -1) return 0;
+    return 1;
+}

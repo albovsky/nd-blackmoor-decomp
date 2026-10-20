@@ -170,11 +170,51 @@ def gen_4f61e7(rng, n):
                 (arg,), (kind, arg))
 
 
+# ---- 0x484762 ---------------------------------------------------------------------------------------------------------------------
+
+AXIS = [-3, -2, -1, 0, 1]
+EXH = len(AXIS) ** 4
+
+
+def gen_484762(rng, n):
+    """n < EXH: every (A.x0, A.x1, B.x0, B.x1) over AXIS with a valid y rectangle; EXH <= n < 2 * EXH: the same on the y axis; then random coordinates (some at the signed extremes)."""
+    if n < EXH:
+        xs, ys, profile = [AXIS[(n // 5 ** k) % 5] for k in range(4)], [0, 1, 0, 1], ('x', n)
+    elif n < 2 * EXH:
+        ys, xs, profile = [AXIS[((n - EXH) // 5 ** k) % 5] for k in range(4)], [0, 1, 0, 1], ('y', n - EXH)
+    else:
+        xs = [rng.randrange(-3, 4) for _ in range(4)]
+        ys = [rng.randrange(-3, 4) for _ in range(4)]
+        extremes = [-0x80000000, 0x7fffffff, -1, 0, 1, -2, 0x10000, -0x10000, 0x10001, 0xffff]
+        if n % 2 == 0:
+            xs = [rng.choice(extremes) for _ in range(4)]
+        if n % 3 != 1:
+            ys = [rng.choice(extremes) for _ in range(4)]
+        profile = ('r', n)
+    a, b = rng.randrange(4), rng.randrange(4)
+    if n % 7 == 0:
+        b = a
+    s = bytearray(rng.randbytes(0x2000))
+    for index, (x0, x1), (y0, y1) in ((a, (xs[0], xs[1]), (ys[0], ys[1])), (b, (xs[2], xs[3]), (ys[2], ys[3]))):
+        if index == b and b == a and index is not a:
+            continue
+        base = 0x28 + index * 0x85 + 2
+        for off, v in ((0, x0), (4, y0), (8, x1), (0xc, y1)):
+            put32(s, base + off, v)
+    if a == b:       # one record is both rectangles: A == B (the first rectangle)
+        base = 0x28 + a * 0x85 + 2
+        for off, v in ((0, xs[0]), (4, ys[0]), (8, xs[1]), (0xc, ys[1])):
+            put32(s, base + off, v)
+    stack = [a, b]
+    return make('484762', [self_area(s)], {}, {}, stack, tuple(stack), profile)
+
+
 SPECS = {
     '4f61e7': dict(id=1, va=0x4f61e7, size=333, gen=gen_4f61e7, cleanup=4, ret=True, n=24 * 8),
+    '484762': dict(id=2, va=0x484762, size=467, gen=gen_484762, cleanup=8, ret=True, n=2 * 625 + 600),
 }
 KEYS = list(SPECS)
-NAMES = {'4f61e7': 'start_record'}
+NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects'}
 
 
 def build(key, rng, n):

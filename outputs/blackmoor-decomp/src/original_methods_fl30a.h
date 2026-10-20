@@ -33,6 +33,13 @@ typedef struct Fl30aWorld {
  * and 0x44a2b7(0x63888b) (cdecl, 1 argument); returns 1. Otherwise dword [self+0x3c2] = 0x40b, dword [self+0x3be] = 0, returns dword [self+0x3be] (0). */
 uint32_t m4f61e7_start_record(uint8_t *self, uint32_t index, const Fl30aWorld *world, const Fl18Host *host);
 
+/* 0x484762, thiscall, `ret 8`, returns eax (0 or 1), no host calls: the stack arguments are the signed dwords `a` and `b`. r1 = self + a*0x85 + 0x28 and r2 = self + b*0x85 + 0x28 are two records of stride
+ * 0x85 (32-bit product); A = r1 + 2 and B = r2 + 2 each hold the dwords x0, y0, x1, y1 at +0, +4, +8, +0xc (all comparisons are signed). The function intersects the rectangles A and B: on the x axis
+ * when A.x0 < B.x0: A.x1 < B.x0 gives 0, else rx0 = B.x0; otherwise A.x0 > B.x1 gives 0, else rx0 = A.x0; then rx1 = B.x1 when A.x1 > B.x1, else A.x1. The y axis is the same with the dwords at +4 and +0xc.
+ * The result is 0 when any of ry0, ry1, rx0, rx1 is -1 (the initial value; a computed coordinate of -1 is not told apart), else 1. The original also loads the word at r*[0x24 + byte[r*+0x22]*0x18 + 0x14]
+ * into two locals that nothing reads (these loads are made here as well, so that a sanitiser sees the reach). */
+uint32_t m484762_intersect_rects(const uint8_t *self, uint32_t a, uint32_t b);
+
 #ifdef __cplusplus
 }
 #endif

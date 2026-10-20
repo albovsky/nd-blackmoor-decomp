@@ -219,6 +219,62 @@ static void test_m4f61e7_start_record(void)
     CK(get32(g_r[1], 0x287) == 1 && get32(SELF, 0x3ca) == 9);
 }
 
+/* ---- 0x484762 intersect_rects ----------------------------------------------------------------------------------------------- */
+/* rectangle (x0, y0, x1, y1) stored at the dwords +2.. of record `index` (stride 0x85, base 0x28) */
+static void rect_at(int index, int32_t x0, int32_t y0, int32_t x1, int32_t y1)
+{
+    size_t base = 0x28 + (size_t)index * 0x85 + 2;
+    set32(SELF, base, (uint32_t)x0);
+    set32(SELF, base + 4, (uint32_t)y0);
+    set32(SELF, base + 8, (uint32_t)x1);
+    set32(SELF, base + 12, (uint32_t)y1);
+}
+static void test_m484762_intersect_rects(void)
+{
+    setup();
+    rect_at(0, 0, 0, 10, 10);
+    rect_at(1, 5, 5, 20, 20);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 1);                  /* A.x0 < B.x0, A.x1 >= B.x0 */
+    CK(m484762_intersect_rects(SELF, 1, 0) == 1);                  /* A.x0 >= B.x0, A.x0 <= B.x1 */
+    rect_at(1, 11, 5, 20, 20);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* A.x1 < B.x0 */
+    CK(m484762_intersect_rects(SELF, 1, 0) == 0);                  /* A.x0 > B.x1 */
+    rect_at(1, 10, 5, 20, 20);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 1);                  /* A.x1 == B.x0 touches */
+    CK(m484762_intersect_rects(SELF, 1, 0) == 1);                  /* A.x0 == B.x1 touches */
+    rect_at(1, 5, 11, 20, 20);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* y: A.y1 < B.y0 */
+    CK(m484762_intersect_rects(SELF, 1, 0) == 0);                  /* y: A.y0 > B.y1 */
+    rect_at(1, 5, 10, 20, 20);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 1 && m484762_intersect_rects(SELF, 1, 0) == 1);
+    /* the coordinate -1 is the "unset" marker: an intersection whose coordinate is -1 counts as empty */
+    rect_at(0, -3, 0, 4, 4);
+    rect_at(1, -1, 0, 9, 9);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* rx0 = B.x0 = -1 */
+    CK(m484762_intersect_rects(SELF, 1, 0) == 0);                  /* A.x0 = -1 >= B.x0 = -3: rx0 = A.x0 = -1 */
+    rect_at(0, 0, -3, 4, 4);
+    rect_at(1, 0, -1, 9, 9);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0 && m484762_intersect_rects(SELF, 1, 0) == 0);      /* ry0 = -1 */
+    rect_at(0, 0, 0, -1, 4);
+    rect_at(1, -5, 0, 9, 9);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* rx1 = A.x1 = -1 (A.x1 <= B.x1) */
+    rect_at(0, 0, 0, 4, -1);
+    rect_at(1, 0, -5, 9, 9);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* ry1 = A.y1 = -1 */
+    rect_at(0, -9, -9, 9, 9);
+    rect_at(1, -2, -2, -1, 3);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* rx1 = B.x1 = -1 (A.x1 > B.x1) */
+    rect_at(1, -2, -2, 3, -1);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 0);                  /* ry1 = B.y1 = -1 */
+    rect_at(1, -2, -2, 3, 3);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 1);
+    /* a rectangle with the record index byte at +0x22 and the signed 32-bit comparison */
+    rect_at(0, (int32_t)0x80000000, 0, 4, 4);
+    rect_at(1, 0, 0, 9, 9);
+    CK(m484762_intersect_rects(SELF, 0, 1) == 1);                  /* 0x80000000 is the smallest signed value: A.x0 < B.x0 */
+    CK(m484762_intersect_rects(SELF, 1, 0) == 1);                  /* A.x0 = 0 >= B.x0 = INT_MIN and 0 <= B.x1 = 4: rx0 = 0, rx1 = 4 */
+}
+
 /* CASES-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -235,6 +291,11 @@ static void test_sweep_bounded(void)
         seed = seed * 1103515245u + 12345u;
         for (i = 0; i < (int)sizeof g_tbl; i++) g_tbl[i] = (uint8_t)(seed >> (i & 15));
         /* SWEEP */
+        rect_at(0, (int32_t)(seed % 7) - 3, (int32_t)(seed % 5) - 2, (int32_t)((seed >> 3) % 7) - 3, (int32_t)((seed >> 6) % 5) - 2);
+        rect_at(1, (int32_t)((seed >> 9) % 7) - 3, (int32_t)((seed >> 12) % 5) - 2, (int32_t)((seed >> 15) % 7) - 3, (int32_t)((seed >> 18) % 5) - 2);
+        g_r[0][0x28 + 0x22] = (uint8_t)seed;
+        g_r[0][0x28 + 0x85 + 0x22] = (uint8_t)(seed >> 4);
+        m484762_intersect_rects(SELF, 0, 1);
         set32(SELF, 0x3ce, RVA(1));
         set32(g_r[1], 0x162, seed | 1);
         set32(g_r[1], 0x28f, RVA(2));
@@ -265,6 +326,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m4f61e7_start_record);
+    RUN(test_m484762_intersect_rects);
     /* RUNS */
     RUN(test_sweep_bounded);
     return failures;
