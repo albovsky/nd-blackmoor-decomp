@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_cursor_recenter
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:31 says "0x4db870 recenter the mouse cursor (ECX 0x5830ce; only when body+0x345 != 0): SetCursorPos(0, 0), cursor cells."
-# name-note:    Recenters the mouse cursor with SetCursorPos(0, 0) and updates the cursor cells.
+# name:         m4db870_load_cursor
+# naming:       native port src/original_methods_fl31c.c:m4db870_load_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Calls 0x4dae88 and 0x4daeb5 (returns the local pair or an address), copies the pair into the object and the globals around 0x583102..0x58310e with the word table at 0x5b3790; 73/73 instructions, 2/2 jump directions.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_8, local_c
 # fields:       [eax + n] field_4, field_14, field_18; [ecx + n] field_14, field_18, field_2c, field_30; [edx + n] field_14, field_18, field_1c, field_20, field_24, field_28, field_minus_1
 # callees:      calls FUN_004dae88, FUN_004daeb5
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_aee_view (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 73 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31c.c:m4db870_load_cursor (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 73 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

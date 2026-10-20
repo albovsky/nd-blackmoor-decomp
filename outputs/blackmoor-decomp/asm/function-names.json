@@ -2,13 +2,13 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 1822,
-  "native_port": 422,
+  "entries": 1830,
+  "native_port": 448,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
-  "inferred_prose": 180,
+  "inferred_prose": 162,
   "inferred_strings": 289,
   "inferred_import": 19
  },
@@ -852,18 +852,15 @@
   },
   {
    "va": "0x00420b9e",
-   "name": "inferred_hotspot_surface_refresh",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Hotspot surface refresh routine used by the conversation phase 1.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.c:1289 says \"hotspot surface refresh (0x420b9e)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_3f_runtime.c",
-     "line": 1289,
-     "quote": "hotspot surface refresh (0x420b9e)"
-    }
-   ]
+   "name": "m420b9e_report_name",
+   "basis": "native_port",
+   "summary": "Picks word +0xf75 or +0xf73 and string 0x543b60 or 0x543b88 by dword 0x5b15da, calls 0x4c51a5 with the table entry; 32/32, 2/2 jump directions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m420b9e_report_name (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m420b9e_report_name",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00422970",
@@ -4908,63 +4905,51 @@
   },
   {
    "va": "0x0047b200",
-   "name": "inferred_memory_puzzle_constructor",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Constructor of the raw 0xee Memory puzzle object (startup call), setting the vtable then resetting.",
-   "source": "INFERRED (lower confidence, not verified): the repository text tasks/RT-60-memory-puzzle-ee-runtime.md:18 says \"`0x47b200` | constructor (startup call `0x426834`)\"",
-   "evidence": [
-    {
-     "path": "tasks/RT-60-memory-puzzle-ee-runtime.md",
-     "line": 18,
-     "quote": "`0x47b200` | constructor (startup call `0x426834`)"
-    }
-   ]
+   "name": "m47b200_construct",
+   "basis": "native_port",
+   "summary": "Constructor: stores the table pointer 0x52d568 into the object, calls 0x47b23b with ecx = this and returns this; every instruction executed.",
+   "source": "native port src/original_methods_fl31a.c:m47b200_construct (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47b200_construct",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047b23b",
-   "name": "inferred_memory_puzzle_object_reset",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Object reset of the Memory puzzle that the clear runs.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:181 says \"0x47b23b: the object reset the clear runs\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 181,
-     "quote": "0x47b23b: the object reset the clear runs"
-    }
-   ]
+   "name": "m47b23b_reset_fields",
+   "basis": "native_port",
+   "summary": "Resets the object: words +4 and +6 to 0xffff and eighteen dwords to 0, in the original order; straight line, every instruction executed.",
+   "source": "native port src/original_methods_fl31a.c:m47b23b_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47b23b_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047b321",
-   "name": "inferred_memory_puzzle_clear",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Clear of the Memory puzzle: releases surface, cells and render entry, then resets.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:239 says \"0x47b321: release the surface, cells and slot, then 0x47b23b.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.h",
-     "line": 239,
-     "quote": "0x47b321: release the surface, cells and slot, then 0x47b23b."
-    }
-   ]
+   "name": "m47b321_release",
+   "basis": "native_port",
+   "summary": "Release: when non-null, calls 0x4c2dfb on [self+8] and frees [self+0x14] and [self+0x18]; calls 0x4d3992 if the word is not -1, then 0x47b23b; all instructions and jump directions run.",
+   "source": "native port src/original_methods_fl31a.c:m47b321_release (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47b321_release",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047b3bc",
-   "name": "inferred_memory_puzzle_slot_invalidate",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Slot invalidate: sets entry +0x14 := 1 as a redraw request.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:166 says \"0x47b3bc: entry +0x14 := 1 (redraw request).\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.h",
-     "line": 166,
-     "quote": "0x47b3bc: entry +0x14 := 1 (redraw request)."
-    }
-   ]
+   "name": "m47b3bc_mark_entry",
+   "basis": "native_port",
+   "summary": "Sets the dword of record [word self+4] at 0x5d15a5 (stride 0x4a) to 1 when [self+0x24] is non-zero and the signed word is not -1; every instruction and both directions executed.",
+   "source": "native port src/original_methods_fl31a.c:m47b3bc_mark_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47b3bc_mark_entry",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047b3f0",
@@ -4994,6 +4979,18 @@
    }
   },
   {
+   "va": "0x0047b709",
+   "name": "m47b709_set_selector",
+   "basis": "native_port",
+   "summary": "Stores the sign-extended word argument to 0x5c39e5 and sets the globals 0x5b44f0/f4, 0x5d162d, 0x5d1631 (0x5b161c) and 0x5d1639; straight line, every instruction executed.",
+   "source": "native port src/original_methods_fl31a.c:m47b709_set_selector (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47b709_set_selector",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0047b767",
    "name": "inferred_memory_puzzle_click_handler",
    "basis": "inferred_prose",
@@ -5010,33 +5007,27 @@
   },
   {
    "va": "0x0047ba79",
-   "name": "inferred_memory_puzzle_flip_back_timer",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Flip-back timer of the Memory puzzle.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:486 says \"0x47ba79: the flip-back timer.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 486,
-     "quote": "0x47ba79: the flip-back timer."
-    }
-   ]
+   "name": "m47ba79_expire_links",
+   "basis": "native_port",
+   "summary": "When the gate is set and the (unsigned) tick count is above [self+0x38], clears [[self+0x1c]+4], [[self+0x20]+4] and four fields of self; every instruction and jump direction executed.",
+   "source": "native port src/original_methods_fl31a.c:m47ba79_expire_links (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47ba79_expire_links",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047badf",
-   "name": "inferred_memory_puzzle_win_lose_check",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Win or lose check after a try in the Memory puzzle.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:503 says \"0x47badf: win or lose after a try.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 503,
-     "quote": "0x47badf: win or lose after a try."
-    }
-   ]
+   "name": "m47badf_check_range",
+   "basis": "native_port",
+   "summary": "Signed compares of [self+0x290/0x294] with [self+0x2a0] and [[self+0xc]+0x341] select flag [self+0x28] or [self+0x2c]; 81 profiles, every instruction and jump direction executed.",
+   "source": "native port src/original_methods_fl31a.c:m47badf_check_range (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47badf_check_range",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047bb56",
@@ -5055,18 +5046,15 @@
   },
   {
    "va": "0x0047c049",
-   "name": "inferred_memory_puzzle_pick_picture_id",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Picks a picture id that no pair has used yet, else any.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:336 says \"0x47c049: a picture id that no pair has used yet, else any.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 336,
-     "quote": "0x47c049: a picture id that no pair has used yet, else any."
-    }
-   ]
+   "name": "m47c049_pick_slot",
+   "basis": "native_port",
+   "summary": "Picks a slot: rand % n when no slot is free, else redraws until a free slot, marks it 1; n==0 and INT_MIN/-1 fault in the original (native rejection INT32_MIN); N/N executed.",
+   "source": "native port src/original_methods_fl31a.c:m47c049_pick_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47c049_pick_slot",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047c0f0",
@@ -5085,33 +5073,39 @@
   },
   {
    "va": "0x0047cd90",
-   "name": "inferred_random_sound_record_player",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Picks a sound record other than NO SOUND at random and plays it.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:316 says \"0x47cd90 / 0x47ce6f / 0x47cf4e: pick a sound record other than \"NO SOUND\" at random and play it.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 316,
-     "quote": "0x47cd90 / 0x47ce6f / 0x47cf4e: pick a sound record other than \"NO SOUND\" at random and play it."
-    }
-   ]
+   "name": "m47cd90_pick_variant_a",
+   "basis": "native_port",
+   "summary": "Scans 5 records with 0x516530, then draws 0x50cd50 % 5 until a record passes the second compare, calls 0x47d02d; selector +0x2b8; shared static helper; 62/62 instr, 8/8 directions.",
+   "source": "native port src/original_methods_fl31c.c:m47cd90_pick_variant_a (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m47cd90_pick_variant_a",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047ce6f",
-   "name": "inferred_wrong_sound_record_player",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Picks a random sound record and plays it; used for the 'wrong' sound on a mismatch.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:65 says \"a mismatch plays the \"wrong\" sound record at once (0x47ce6f)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.h",
-     "line": 65,
-     "quote": "a mismatch plays the \"wrong\" sound record at once (0x47ce6f)"
-    }
-   ]
+   "name": "m47ce6f_pick_variant_b",
+   "basis": "native_port",
+   "summary": "Same method via the shared static helper over 10 records at +0x856, selector +0x2bc, strings 0x54d11c / 0x54d128, then 0x47d02d; 62/62 instructions, 8/8 directions.",
+   "source": "native port src/original_methods_fl31c.c:m47ce6f_pick_variant_b (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m47ce6f_pick_variant_b",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0047cf4e",
+   "name": "m47cf4e_pick_variant_c",
+   "basis": "native_port",
+   "summary": "Same method via the shared static helper over 10 records at +0xf72, selector +0x2c0, strings 0x54d134 / 0x54d140, then 0x47d02d; 62/62 instructions, 8/8 directions.",
+   "source": "native port src/original_methods_fl31c.c:m47cf4e_pick_variant_c (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m47cf4e_pick_variant_c",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d02d",
@@ -5127,6 +5121,18 @@
      "quote": "0x47d02d: play the sound record at body offset `id` and show its caption."
     }
    ]
+  },
+  {
+   "va": "0x0047d1c3",
+   "name": "m47d1c3_alloc_zeroed",
+   "basis": "native_port",
+   "summary": "Allocates via 0x51dc43, stores the result; zeroes size bytes (rep stos) or on null reports (0x44a2b7 only if the debug flag is set); 45/45, 4/4 directions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m47d1c3_alloc_zeroed (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m47d1c3_alloc_zeroed",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d24e",
@@ -5161,48 +5167,39 @@
   },
   {
    "va": "0x0047d4f7",
-   "name": "inferred_d9_puzzle_object_reset",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Reset of the raw 0xd9 puzzle object: resets cursor, window and buffers.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.c:229 says \"0x47d4f7 resets the cursor, window and buffers\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d9_runtime.c",
-     "line": 229,
-     "quote": "0x47d4f7 resets the cursor, window and buffers"
-    }
-   ]
+   "name": "m47d4f7_reset_fields",
+   "basis": "native_port",
+   "summary": "Resets the word, byte and dword fields of the object (0xffff, 0xfe0c, zeros) in the original order; 39/39 instructions, no jump. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m47d4f7_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m47d4f7_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d59b",
-   "name": "inferred_d9_puzzle_cleanup",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Cleanup of the raw 0xd9 puzzle: releases surface, buffers and slot, then resets.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.h:158 says \"0x47d59b: release surface, buffers and slot, then the 0x47d4f7 reset.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d9_runtime.h",
-     "line": 158,
-     "quote": "0x47d59b: release surface, buffers and slot, then the 0x47d4f7 reset."
-    }
-   ]
+   "name": "m47d59b_release_fields",
+   "basis": "native_port",
+   "summary": "Frees the fields through 0x4c2dfb, 0x51dc6c x3 and 0x4d3992 (word != -1) and calls 0x47d4f7; 56/56 instructions, 10/10 jump directions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m47d59b_release_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m47d59b_release_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d640",
-   "name": "inferred_d9_puzzle_slot_invalidate",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Slot invalidate: sets entry +0x14 := 1 as a redraw request.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.h:118 says \"0x47d640: entry +0x14 := 1 (redraw request).\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d9_runtime.h",
-     "line": 118,
-     "quote": "0x47d640: entry +0x14 := 1 (redraw request)."
-    }
-   ]
+   "name": "m47d640_mark_entry",
+   "basis": "native_port",
+   "summary": "Sets the dword of record [word self+0x23] at 0x5d15a5 (stride 0x4a) to 1 when byte [self+0x57] is non-zero and the signed word is not -1; every instruction and jump direction executed.",
+   "source": "native port src/original_methods_fl31a.c:m47d640_mark_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31a.c",
+    "symbol": "m47d640_mark_entry",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d682",
@@ -8485,6 +8482,18 @@
    ]
   },
   {
+   "va": "0x004c2790",
+   "name": "m4c2790_new_record",
+   "basis": "native_port",
+   "summary": "Allocates 0x59 bytes (0x51dc43), clears and fills the record (cut copy of the string, three fields), calls 0x4181c6, reports through 0x42639d and 0x4c97b4 on failure; 91/91 instructions, 6/6 directions.",
+   "source": "native port src/original_methods_fl31c.c:m4c2790_new_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m4c2790_new_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004c2a8d",
    "name": "inferred_surface_create",
    "basis": "inferred_prose",
@@ -9111,18 +9120,15 @@
   },
   {
    "va": "0x004c946b",
-   "name": "inferred_surface_cache_slot_release",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Releases an acquired surface cache slot.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:327 says \"REQUIRED when a slot was acquired. 0x4c946b(slot).\"",
-   "evidence": [
-    {
-     "path": "src/action_family_3f_runtime.h",
-     "line": 327,
-     "quote": "REQUIRED when a slot was acquired. 0x4c946b(slot)."
-    }
-   ]
+   "name": "m4c946b_call_slot",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb with ecx = this and the address of the slot at +0xc72 + 4 * (signed word index); 13/13 instructions, no jump. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m4c946b_call_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m4c946b_call_slot",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c948f",
@@ -10401,18 +10407,15 @@
   },
   {
    "va": "0x004dadff",
-   "name": "inferred_async_key_state_poll",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Polls GetAsyncKeyState of two keys on the input object.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:334 says \"0x4dadff: GetAsyncKeyState of two keys.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_3f_runtime.h",
-     "line": 334,
-     "quote": "0x4dadff: GetAsyncKeyState of two keys."
-    }
-   ]
+   "name": "m4dadff_poll_keys",
+   "basis": "native_port",
+   "summary": "Two GetAsyncKeyState polls (slot 0x52a4b4) for the dwords at +0x20/+0x24 set bytes 0x58321d/0x58321e from bit 15 of ax; 29/29, 4/4 directions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m4dadff_poll_keys (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m4dadff_poll_keys",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004dae88",
@@ -10431,18 +10434,15 @@
   },
   {
    "va": "0x004daeb5",
-   "name": "inferred_get_cursor_pos_wrapper",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "GetCursorPos wrapper on the input object.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:341 says \"then 0x4daeb5 GetCursorPos.\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.c",
-     "line": 341,
-     "quote": "then 0x4daeb5 GetCursorPos."
-    }
-   ]
+   "name": "m4daeb5_read_cursor",
+   "basis": "native_port",
+   "summary": "Stores the GetCursorPos pair (import slot 0x52a484) at +0x18/+0x1c, then through the out pointer, and returns the out pointer; 22/22 instructions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m4daeb5_read_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m4daeb5_read_cursor",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004db04f",
@@ -10458,18 +10458,15 @@
   },
   {
    "va": "0x004db870",
-   "name": "inferred_cursor_recenter",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Recenters the mouse cursor with SetCursorPos(0, 0) and updates the cursor cells.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:31 says \"0x4db870 recenter the mouse cursor (ECX 0x5830ce; only when body+0x345 != 0): SetCursorPos(0, 0), cursor cells.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.h",
-     "line": 31,
-     "quote": "0x4db870 recenter the mouse cursor (ECX 0x5830ce; only when body+0x345 != 0): SetCursorPos(0, 0), cursor cells."
-    }
-   ]
+   "name": "m4db870_load_cursor",
+   "basis": "native_port",
+   "summary": "Calls 0x4dae88 and 0x4daeb5 (returns the local pair or an address), copies the pair into the object and the globals around 0x583102..0x58310e with the word table at 0x5b3790; 73/73 instructions, 2/2 jump directions.",
+   "source": "native port src/original_methods_fl31c.c:m4db870_load_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m4db870_load_cursor",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004dbcd0",
@@ -11029,6 +11026,18 @@
      "quote": "`0x4e2e05` with the source object. That routine copies all 12 rows into runtime list `0x005a1e62`"
     }
    ]
+  },
+  {
+   "va": "0x004e2faa",
+   "name": "m4e2faa_release_cells",
+   "basis": "native_port",
+   "summary": "Calls 0x4e1d34 for 26 cells (stride 0x18f from +0x1ca2), 0x4e2dd3, two word-argument calls to 0x4c92c5 and, when dword +0x6ce is set, 0x4c2dfb; 40/40 instructions, 4/4 jump directions.",
+   "source": "native port src/original_methods_fl31c.c:m4e2faa_release_cells (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m4e2faa_release_cells",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004e303b",
@@ -11663,6 +11672,18 @@
    }
   },
   {
+   "va": "0x004eba54",
+   "name": "m4eba54_retarget_words",
+   "basis": "native_port",
+   "summary": "Two-record loop calling 0x4e1d34 for non-zero flags, then replaces words equal to 8 in the table at 0x59f27b below the signed count at +0x28da, then 0x4eb9c8; 62/62 instructions, 8/8 directions.",
+   "source": "native port src/original_methods_fl31c.c:m4eba54_retarget_words (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m4eba54_retarget_words",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004ebb5b",
    "name": "inferred_notebook_create",
    "basis": "inferred_strings",
@@ -11711,6 +11732,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004edb97",
+   "name": "m4edb97_release_members",
+   "basis": "native_port",
+   "summary": "Releases the members in order (0x4e1d34, 0x4eead0, 0x4c2dfb, four 0x4fba69 calls each followed by clearing its dword), then 0x4edae5; 69/69 instructions, 14/14 jump directions.",
+   "source": "native port src/original_methods_fl31c.c:m4edb97_release_members (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31c.c",
+    "symbol": "m4edb97_release_members",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004edcb1",
@@ -11772,6 +11805,18 @@
    "native_source": {
     "path": "src/original_methods_fl16.c",
     "symbol": "m4ee5cd_get_global",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004ee673",
+   "name": "m4ee673_forward_if_set",
+   "basis": "native_port",
+   "summary": "When the dword at +0x252 is non-zero calls 0x4ef4f0 with ecx = this + 0x4b7 and the argument; 15/15 instructions, 2/2 jump directions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m4ee673_forward_if_set (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m4ee673_forward_if_set",
     "class": "native_oracle_verified"
    }
   },
@@ -12559,23 +12604,15 @@
   },
   {
    "va": "0x004fc878",
-   "name": "inferred_scene_sound_channel_stop",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Stops one sound channel by index on the scene sound object 0x5c3a67.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_9a_runtime.h:27 says \"each stop is 0x4fc878 on the scene sound object 0x5c3a67\"; src/action_family_9a_runtime.h:61 says \"0x4fc878(channel) on 0x5c3a67\"",
-   "evidence": [
-    {
-     "path": "src/action_family_9a_runtime.h",
-     "line": 27,
-     "quote": "each stop is 0x4fc878 on the scene sound object 0x5c3a67"
-    },
-    {
-     "path": "src/action_family_9a_runtime.h",
-     "line": 61,
-     "quote": "0x4fc878(channel) on 0x5c3a67"
-    }
-   ]
+   "name": "m4fc878_activate_record",
+   "basis": "native_port",
+   "summary": "Optional trace calls, then when the state word of record index*0x5bb is 1 calls 0x4f61e7 and sets it to 2; 38/38 instructions, 4/4 directions. See tasks/fl31b-handoff.md.",
+   "source": "native port src/original_methods_fl31b.c:m4fc878_activate_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl31b.c",
+    "symbol": "m4fc878_activate_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004fc909",

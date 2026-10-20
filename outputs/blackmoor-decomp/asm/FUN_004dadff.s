@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_async_key_state_poll
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:334 says "0x4dadff: GetAsyncKeyState of two keys."
-# name-note:    Polls GetAsyncKeyState of two keys on the input object.
+# name:         m4dadff_poll_keys
+# naming:       native port src/original_methods_fl31b.c:m4dadff_poll_keys (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Two GetAsyncKeyState polls (slot 0x52a4b4) for the dwords at +0x20/+0x24 set bytes 0x58321d/0x58321e from bit 15 of ax; 29/29, 4/4 directions. See tasks/fl31b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_20, field_24
 # callees:      calls USER32.dll!GetAsyncKeyState
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase1 (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 29 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31b.c:m4dadff_poll_keys (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 29 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_hotspot_surface_refresh
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.c:1289 says "hotspot surface refresh (0x420b9e)"
-# name-note:    Hotspot surface refresh routine used by the conversation phase 1.
+# name:         m420b9e_report_name
+# naming:       native port src/original_methods_fl31b.c:m420b9e_report_name (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Picks word +0xf75 or +0xf73 and string 0x543b60 or 0x543b88 by dword 0x5b15da, calls 0x4c51a5 with the table entry; 32/32, 2/2 jump directions. See tasks/fl31b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [ecx + n] field_f75; [edx + n] field_f73
 # callees:      calls FUN_004c51a5
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 32 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31b.c:m420b9e_report_name (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 32 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

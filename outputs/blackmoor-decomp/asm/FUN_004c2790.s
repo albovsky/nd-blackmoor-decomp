@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c2790
+# name:         m4c2790_new_record
+# naming:       native port src/original_methods_fl31c.c:m4c2790_new_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Allocates 0x59 bytes (0x51dc43), clears and fills the record (cut copy of the string, three fields), calls 0x4181c6, reports through 0x42639d and 0x4c97b4 on failure; 91/91 instructions, 6/6 directions.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_21, field_55; [ecx + n] field_4, field_33; [edx + n] field_18
 # callees:      calls FUN_0051dc43, FUN_0042639d, FUN_004c97b4, FUN_004181c6
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:load_native_raw555_image (function ledger class candidate_port; also native_a36_load_surface, native_a77_random, native_aaa_alloc_slot, native_ad0_alloc_slot, native_ad1_alloc_slot, native_ad3_alloc_slot, native_ad9_alloc_slot, native_ada_alloc_slot, native_ae0_alloc_slot, native_ae4_alloc_slot, native_aea_image, native_aeb_view, native_aee_view, native_af6_alloc_slot; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 91 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31c.c:m4c2790_new_record (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 91 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
