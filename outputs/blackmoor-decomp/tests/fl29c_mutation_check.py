@@ -13,9 +13,8 @@ child process, so that a mutant that crashes the shim counts as detected). Print
 and every survivor (an equivalent mutant is expected only where the changed value cannot reach an observable effect).
 
 Known gap: the mutants are single textual edits of the port, one operator or literal at a time. They do not model a missing statement other
-than a one-line `if (...) return;` guard, a reordering of effects, a loop bound written as an expression, or two edits together. The
-mutants behind the review fixes of tests/fl29c_fixtures.py (deleted multi-line guards, `if (1)`, a dropped `||` operand, `== 3` -> `>= 3`)
-were applied by hand and are listed in tasks/fl29c-handoff.md.
+than a one-line `if (...) return;` guard, a reordering of effects, a loop bound written as an expression, or two edits together. Mutants of that
+kind (a hoisted loop bound in 0x43423d / 0x4344bf, the flag store of 0x4344bf moved after the 0x112c store, 0x4bf19a returning the import result) were applied by hand; they are listed in tasks/fl29c-handoff.md.
 
 Run from outputs/blackmoor-decomp:  python3 tests/fl29c_mutation_check.py [--limit N] [--no-differential]
 """

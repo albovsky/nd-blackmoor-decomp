@@ -18,7 +18,15 @@ extern "C" {
  * a C prototype); a host that binds them to other m<va>_* symbols says so itself. Host contract: the Fl29cWorld scalars are a snapshot; a host that backs a callee with real
  * original code must flush the world to the original's memory BEFORE each Fl18Host.call and resync it AFTER the call. A callee that changes `self` or a global that the function
  * reads again afterwards is not exercised (tasks/fl29c-handoff.md). Pointer-valued stack arguments are host pointers to the memory they name; 32-bit values stored in objects,
- * cells and tables are original addresses that Fl18Host.resolve turns into memory. Nothing here claims original source structure. */
+ * cells and tables are original addresses that Fl18Host.resolve turns into memory. Nothing here claims original source structure.
+ *
+ * Failure contract for unresolvable addresses: the native rejections of this file (marked NATIVE REJECTION below) are silent and are not original behaviour. Integration must
+ * therefore bind Fl18Host.resolve to a TOTAL function (valid host memory for every address the original could legitimately use, including the scratch page at address 0 that the
+ * allocation-failure scenarios of the four copy functions rely on); a NULL answer makes a port skip or return early without any report.
+ *
+ * NOT CREDITED: m45bbd8_roll_rects is a faithful port with a full oracle (N/N), but it is not in tasks/fl29c-acceptances.json (root decision): the two signed-remainder fix-ups
+ * (`dec eax; or eax, low; inc eax` at 0x45bc2a..0x45bc2e and 0x45bc54..0x45bc58) run only for a callee result with bit 31 set, and the real callee 0x50cd50 (`rand`, ends in
+ * `and eax, 0x7fff`) never returns one, so those instructions cannot run in the game. */
 
 typedef struct Fl29cWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace calls */
