@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004a0d73
+# name:         inferred_raycast_level_map_validator
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4a0d73.c.txt, not original source) refers to the data labelled s_CRayCastLevelBuilder__ValidateMa_00550080, s_CRayCastLevelBuilder__ValidateMa_005500e4
+# name-note:    CRayCastLevelBuilder::ValidateMap: scans all cells and reports an error and aborts when a cell is 1 or a layer value is -1.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [ecx + n] field_1c, field_20
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 94 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 94 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

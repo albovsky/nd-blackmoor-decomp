@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004477d1
+# name:         inferred_effect_frame_blender
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_28.h:47 says "Full synchronous 0x4477d1 frame boundary. It blends the two captures into"
+# name-note:    Frame boundary of the special effect: blends the two captures into the target.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x14 (callee pops 20 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       23 ebp-relative slot(s): local_4, local_8, local_60, local_74, local_84, local_4084, local_4088, local_408c, local_4090, local_4094, local_4098, local_409c and 11 more
 # fields:       [eax + n] field_4, field_8, field_25, field_29, field_3d; [ecx + n] field_4, field_8, field_1d, field_21; [edx + n] field_4e, field_52
 # callees:      calls FUN_0050c920, FUN_004c3efb, FUN_0050ce04, FUN_004c4202, FUN_004c952f, FUN_004c4c2b
 # track-n:      outputs/blackmoor-decomp/src/action_family_28.h:action_family28_blend_pixels (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 176 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 176 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

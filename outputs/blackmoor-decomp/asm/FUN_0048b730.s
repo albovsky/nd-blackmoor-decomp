@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0048b730
+# name:         inferred_override_lock_puzzle_renderer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/48b730.c.txt, not original source) refers to the data labelled s_Override_Lock_Puzzle_Button_DOWN_0054e4d8, s_Override_Lock_Puzzle_Light_Wedge_0054e590
+# name-note:    Redraws the Override Lock puzzle: restores backgrounds, draws pressed buttons (Button DOWN) and light wedges.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_21, field_24, field_c4; [ecx + n] field_24, field_c4, field_2a4; [edx + n] field_22, field_204
 # callees:      calls FUN_004c5377, FUN_004c5d4b, FUN_0048ac92
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 180 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 180 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c62f0
+# name:         inferred_alpha_blend_blit
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.h:206 says "0x4c62f0 DFBltAlpha: dst = bg + trunc((puzzle - bg) * alpha) per channel"
+# name-note:    DFBltAlpha: blends the puzzle surface over the background per channel by an alpha value.
 # arguments:    9 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c, arg_20, arg_24, arg_28; ret 0x24 (callee pops 36 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       37 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_74, local_88, local_98, local_9c, local_a0 and 25 more
 # fields:       [eax + n] field_4, field_8, field_c, field_2f; [ecx + n] field_4, field_8, field_c; [edx + n] field_4, field_8, field_c, field_2f
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004c4067, FUN_0050ce04, FUN_004c4202, FUN_004c952f
 # track-n:      outputs/blackmoor-decomp/src/action_family_d9_runtime.h:d9_blit_alpha (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 437 instruction(s), 23 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 437 instruction(s), 23 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

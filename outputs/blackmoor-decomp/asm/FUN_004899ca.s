@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004899ca
+# name:         inferred_overlay_process
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_36_runtime.h:17 says "0x4899ca COverlay::Process, ONE function with the phase switch on the row"
+# name-note:    COverlay::Process: one function with a phase switch on the row phase (init, wait, finish).
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       18 ebp-relative slot(s): local_4, local_8, local_2c, local_50, local_54, local_58, local_5c, local_60, local_64, local_68, local_6c, local_70 and 6 more
 # fields:       [eax + n] field_1c, field_20, field_21, field_25, field_28, field_29, field_2d, field_2f, field_33, field_35, field_3d, field_3f and 15 more; [ecx + n] field_1, field_1c, field_20, field_27, field_28, field_2d, field_2f, field_33, field_35, field_37, field_51, field_9a and 5 more; [edx + n] field_1, field_1c, field_20, field_29, field_2c, field_2d, field_2f, field_31, field_35, field_39, field_3b, field_51 and 8 more
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_0052139c, FUN_004c97b4, FUN_004fb77a, FUN_004fb2e3, FUN_004d36ed, FUN_0050d0bc, FUN_004c948f, FUN_004c2790, FUN_004d39f9, FUN_0050ce04, KERNEL32.dll!GetTickCount, FUN_004f6334, FUN_004fba69, FUN_0042ba3a
 # track-n:      outputs/blackmoor-decomp/src/action_family_36_runtime.c:overlay36_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 665 instruction(s), 48 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 665 instruction(s), 48 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

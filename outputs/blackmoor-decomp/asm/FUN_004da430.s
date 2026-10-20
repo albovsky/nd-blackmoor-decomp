@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004da430
+# name:         inferred_startup_menu_dispatcher
+# naming:       INFERRED (lower confidence, not verified): the repository text README.md:40 says "original x86 `0x4da430` routine"; world-init-recovery.md:7 says "At VA 0x4da430, menu dispatch DAT_005aff55 == 1"
+# name-note:    Startup menu selector and dispatch routine (hover, button boundaries, NEW GAME selection).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 2 more
 # fields:       [eax + n] field_4; [edx + n] field_minus_1
 # callees:      calls FUN_004daeb5, FUN_004dae88, FUN_004dad60, FUN_004daef1, FUN_004fb2e3, KERNEL32.dll!GetTickCount, FUN_004f6334, FUN_0043dbd5, FUN_0044a2b7, FUN_004d7a15, FUN_004d812e, FUN_004db870, FUN_004c97b4, FUN_004c2dfb, FUN_004cf7e0
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 457 instruction(s), 43 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 457 instruction(s), 43 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

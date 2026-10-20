@@ -14,7 +14,7 @@
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_00524c59, FUN_004d5260, FUN_004e0410, FUN_004e7a70, FUN_004e2ce0, FUN_004eb870, FUN_004e7630, FUN_004db260, FUN_004f0000, FUN_00447d10, FUN_00437710, FUN_004de5f0, FUN_00426300, FUN_004fa980, FUN_004f2640, FUN_004c0f70 and 69 more
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 356 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 356 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

@@ -130,19 +130,108 @@ class CommittedTableTests(unittest.TestCase):
             self.assertIn(f"# name:         {e['name']}\n", text)
             self.assertIn(f"# naming:       {e['source']}\n", text)
             self.assertIn(f"# name-note:    {e['summary']}\n", text)
-            self.assertIn(names.NAMED_CLAUSE, text)
+            self.assertIn(names.unverified_clause(e), text)
             self.assertFalse(re.search(r"(?m)^# name:\s+fn_", text))
 
     def test_the_counts_from_the_sources_agree_with_the_audit_reports(self) -> None:
         counts = names.count_sources()
         self.assertEqual(counts["sources"], len(list((names.PROJECT / "asm").glob("FUN_*.s"))))
-        self.assertEqual(counts["named"] + counts["funclet"], len(names.load()))
-        self.assertEqual(counts["named"] + counts["funclet"], sum(counts["named_by_basis"].values()))
-        tally = {"hand": 0, "named": 0, "funclet": 0, "machine_only": 0}
+        lower = counts["named"] + counts["funclet"] + counts["structural"] + counts["inferred"]
+        self.assertEqual(lower, len(names.load()))
+        self.assertEqual(lower, sum(counts["named_by_basis"].values()))
+        tally = {"hand": 0, "named": 0, "funclet": 0, "structural": 0, "inferred": 0, "machine_only": 0}
         for report in sorted((names.PROJECT / "asm").glob("batch-[0-9][0-9][0-9]-report.json")):
             for f in json.loads(report.read_text(encoding="utf-8"))["functions"]:
-                tally["hand" if f.get("annotation", "hand") != "machine" else "funclet" if f.get("naming") == "ghidra_funclet" else "named" if f.get("naming") else "machine_only"] += 1
+                tally["hand" if f.get("annotation", "hand") != "machine" else
+                      names.tier_of_basis(f["naming"]) if f.get("naming") else "machine_only"] += 1
         self.assertEqual(tally, {k: counts[k] for k in tally})
+
+
+XREFS = {
+    "thunks": [{"va": "0x007f1000", "size": 6, "kind": "import", "import": "DSOUND.dll!#2", "container": "0x007f0f00", "ghidra_thunk": True},
+               {"va": "0x007f1010", "size": 5, "kind": "jump", "target": "0x007f2000", "container": "0x007f0f00", "ghidra_thunk": False}],
+    "eh_stubs": [{"va": "0x007f1020", "container": "0x007f0f20", "funcinfo": "0x007f3000", "owners": ["0x007f0000"]}],
+    "entries": [
+        {"va": "0x007f1100", "body_size": 16, "imports": ["KERNEL32.dll!GlobalFree"], "callees": [], "tail_callees": [],
+         "indirect_calls": 0, "derived_parts": []},
+        {"va": "0x007f1110", "body_size": 16, "imports": ["KERNEL32.dll!GlobalFree"], "callees": ["0x007f0000"], "tail_callees": [],
+         "indirect_calls": 0, "derived_parts": []},
+    ],
+}
+
+
+class LowerTierTests(unittest.TestCase):
+    def test_structural_roles_come_from_the_xrefs_facts(self) -> None:
+        got = names.structural_entries(XREFS)
+        self.assertEqual(got[0x7f1000]["name"], "import_thunk_DSOUND_ordinal_2")
+        self.assertEqual(got[0x7f1010]["name"], "jump_thunk_to_007f2000")
+        self.assertEqual(got[0x7f1020]["name"], "eh_handler_stub_of_007f0000")
+        self.assertTrue(all(e["basis"] == "structural" for e in got.values()))
+
+    def test_the_import_rule_takes_only_leaf_functions(self) -> None:
+        got = names.import_wrapper_entries(XREFS)
+        self.assertEqual(list(got), [0x7f1100])
+        self.assertEqual(got[0x7f1100]["name"], "inferred_only_call_GlobalFree")
+        self.assertEqual(got[0x7f1100]["confidence"], "low")
+
+    def test_a_stronger_tier_is_never_replaced_by_a_lower_one(self) -> None:
+        xrefs = copy.deepcopy(XREFS)
+        xrefs["thunks"][0]["va"] = "0x007f0000"  # the native port keeps its name
+        got = {e["va"]: e for e in names.build(copy.deepcopy(LEDGER), copy.deepcopy(OVERRIDES), copy.deepcopy(INDEX), xrefs)}
+        self.assertEqual(got["0x007f0000"]["basis"], "native_port")
+        self.assertEqual(got["0x007f1020"]["basis"], "structural")
+
+    def prose(self, **over):
+        quote = next(iter(names.load().values()))
+        good = next(e for e in names.load().values() if e["basis"] == "inferred_prose")
+        entry = copy.deepcopy(good)
+        entry.update(over)
+        return good, entry
+
+    def test_every_committed_inferred_entry_is_tied_to_its_evidence(self) -> None:
+        inferred = [e for e in names.load().values() if e["basis"] in names.INFERRED_BASES]
+        self.assertTrue(inferred)
+        for e in inferred:
+            self.assertTrue(e["name"].startswith("inferred_"), e["name"])
+            self.assertEqual(e["confidence"], "low")
+            self.assertEqual(names.inferred_problems(e), [], e["name"])
+
+    def test_a_moved_or_misattributed_quote_is_rejected(self) -> None:
+        good, entry = self.prose()
+        entry["evidence"][0]["quote"] = "a sentence that no file contains"
+        self.assertTrue(any("no longer occurs" in p for p in names.inferred_problems(entry)))
+        _, other = self.prose(va="0x007f9999")
+        self.assertTrue(any("does not contain the address" in p for p in names.inferred_problems(other)))
+
+    def test_an_inferred_name_needs_the_prefix_a_low_confidence_and_a_plain_role(self) -> None:
+        _, entry = self.prose(name="scroll_list_loader")
+        self.assertTrue(names.inferred_problems(entry))
+        _, entry = self.prose(confidence="high")
+        self.assertTrue(any("confidence" in p for p in names.inferred_problems(entry)))
+        _, entry = self.prose(name="inferred_Bad Name")
+        self.assertTrue(names.inferred_problems(entry))
+
+    def test_string_evidence_must_occur_in_the_committed_pseudocode(self) -> None:
+        entry = next((e for e in names.load().values() if e["basis"] == "inferred_strings"), None)
+        if entry is None:
+            self.skipTest("no inferred_strings entry")
+        self.assertEqual(names.inferred_problems(entry), [])
+        broken = copy.deepcopy(entry)
+        broken["evidence"][0]["strings"] = ["s_not_in_this_function_00000000"]
+        self.assertTrue(any("does not occur" in p for p in names.inferred_problems(broken)))
+
+    def test_check_refuses_an_inferred_entry_that_shadows_a_stronger_name(self) -> None:
+        doc = json.loads(names.NAMES.read_text(encoding="utf-8"))
+        good = next(e for e in doc["entries"] if e["basis"] == "inferred_prose")
+        port = next(e for e in doc["entries"] if e["basis"] == "native_port")
+        doc["entries"].remove(port)
+        shadow = copy.deepcopy(good)
+        shadow["va"] = port["va"]
+        doc["entries"].append(shadow)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "names.json"
+            path.write_text(json.dumps(doc), encoding="utf-8")
+            self.assertTrue(any("a stronger tier" in p for p in names.check(path)))
 
 
 class RefreshTests(unittest.TestCase):

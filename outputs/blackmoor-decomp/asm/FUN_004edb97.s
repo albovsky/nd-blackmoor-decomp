@@ -13,8 +13,8 @@
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_15f, field_675, field_679, field_67d, field_681; [ecx + n] field_252, field_675, field_679, field_67d, field_681; [edx + n] field_4ab
 # callees:      calls FUN_004e1d34, FUN_004eead0, FUN_004c2dfb, FUN_004fba69, FUN_004edae5
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 69 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/caption_lifecycle.c:popup_init (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 69 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

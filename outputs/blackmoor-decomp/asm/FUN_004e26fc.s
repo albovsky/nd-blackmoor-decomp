@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004e26fc
+# name:         inferred_taskbar_button_click_test
+# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:38 says "asks every button in order (0x4e26fc): hovered, no pending click flag"
+# name-note:    Asks a task bar button whether it was hovered with no pending click flag and starts the press.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_c, field_20, field_30, field_7a, field_17f, field_183; [ecx + n] field_4, field_10, field_18, field_2c, field_30, field_f2, field_117, field_17b, field_183; [edi + n] field_minus_1; [edx + n] field_8, field_20, field_2c, field_30, field_f2, field_117, field_17f
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004fb77a, FUN_004fb2e3, FUN_0050ca3e, FUN_0044a2b7, FUN_00427a40
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 146 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 146 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

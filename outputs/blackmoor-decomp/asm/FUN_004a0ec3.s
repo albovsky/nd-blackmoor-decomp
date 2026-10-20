@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004a0ec3
+# name:         inferred_raycast_level_exit_writer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4a0ec3.c.txt, not original source) refers to the data labelled s_CRayCastLevelBuilder__WriteExitF_005501b0
+# name-note:    CRayCastLevelBuilder::WriteExitF...: picks a random valid entry from a 10-entry list (error if none) and writes it into cells marked 1.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_40 and 2 more
 # fields:       [eax + n] field_1c, field_a0, field_e3c, field_e44; [ecx + n] field_1c; [edx + n] field_1c, field_20, field_2c, field_e30, field_e44
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0050cd50
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 154 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 154 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

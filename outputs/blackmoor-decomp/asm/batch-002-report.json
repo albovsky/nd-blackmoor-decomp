@@ -5,7 +5,7 @@
     "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
     "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
     "self_test": "passed",
-    "sha256": "459ab053b16d25841cf302ece6f5ddd65ebd0f33a91fbbb6c6a665b74de0565b",
+    "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
     "version_line": "GNU assembler (GNU Binutils) 2.43.1"
   },
   "baseline": {
@@ -85,6 +85,7 @@
   "errors": [],
   "functions": [
     {
+      "annotation": "hand",
       "basic_blocks": 25,
       "code": {
         "rva": 462846,
@@ -111,6 +112,7 @@
       "va": 4657150
     },
     {
+      "annotation": "hand",
       "basic_blocks": 47,
       "code": {
         "rva": 132919,
@@ -137,6 +139,7 @@
       "va": 4327223
     },
     {
+      "annotation": "hand",
       "basic_blocks": 36,
       "code": {
         "rva": 492438,
@@ -171,6 +174,7 @@
       "va": 4686742
     },
     {
+      "annotation": "hand",
       "basic_blocks": 18,
       "code": {
         "rva": 443422,
@@ -197,6 +201,7 @@
       "va": 4637726
     },
     {
+      "annotation": "hand",
       "basic_blocks": 53,
       "code": {
         "rva": 229025,
@@ -231,6 +236,7 @@
       "va": 4423329
     },
     {
+      "annotation": "hand",
       "basic_blocks": 9,
       "code": {
         "rva": 874731,
@@ -257,6 +263,7 @@
       "va": 5069035
     },
     {
+      "annotation": "hand",
       "basic_blocks": 5,
       "code": {
         "rva": 659697,
@@ -283,6 +290,7 @@
       "va": 4854001
     },
     {
+      "annotation": "hand",
       "basic_blocks": 14,
       "code": {
         "rva": 176254,
@@ -309,6 +317,7 @@
       "va": 4370558
     },
     {
+      "annotation": "hand",
       "basic_blocks": 5,
       "code": {
         "rva": 287443,
@@ -335,6 +344,7 @@
       "va": 4481747
     },
     {
+      "annotation": "hand",
       "basic_blocks": 24,
       "code": {
         "rva": 113042,
@@ -361,6 +371,7 @@
       "va": 4307346
     },
     {
+      "annotation": "hand",
       "basic_blocks": 1,
       "code": {
         "rva": 761403,
@@ -387,6 +398,7 @@
       "va": 4955707
     },
     {
+      "annotation": "hand",
       "basic_blocks": 23,
       "code": {
         "rva": 533337,
@@ -413,6 +425,7 @@
       "va": 4727641
     },
     {
+      "annotation": "hand",
       "basic_blocks": 14,
       "code": {
         "rva": 176868,
@@ -439,6 +452,7 @@
       "va": 4371172
     },
     {
+      "annotation": "hand",
       "basic_blocks": 19,
       "code": {
         "rva": 578507,
@@ -465,6 +479,7 @@
       "va": 4772811
     },
     {
+      "annotation": "hand",
       "basic_blocks": 46,
       "code": {
         "rva": 1025624,
@@ -506,6 +521,7 @@
       "va": 5219928
     },
     {
+      "annotation": "hand",
       "basic_blocks": 38,
       "code": {
         "rva": 926461,
@@ -532,6 +548,7 @@
       "va": 5120765
     },
     {
+      "annotation": "hand",
       "basic_blocks": 11,
       "code": {
         "rva": 175731,
@@ -558,6 +575,7 @@
       "va": 4370035
     },
     {
+      "annotation": "hand",
       "basic_blocks": 9,
       "code": {
         "rva": 672448,
@@ -584,6 +602,7 @@
       "va": 4866752
     },
     {
+      "annotation": "hand",
       "basic_blocks": 5,
       "code": {
         "rva": 286934,
@@ -610,6 +629,7 @@
       "va": 4481238
     },
     {
+      "annotation": "hand",
       "basic_blocks": 28,
       "code": {
         "rva": 563149,
@@ -636,6 +656,7 @@
       "va": 4757453
     },
     {
+      "annotation": "hand",
       "basic_blocks": 8,
       "code": {
         "rva": 729150,
@@ -670,6 +691,7 @@
       "va": 4923454
     },
     {
+      "annotation": "hand",
       "basic_blocks": 15,
       "code": {
         "rva": 644445,
@@ -696,6 +718,7 @@
       "va": 4838749
     },
     {
+      "annotation": "hand",
       "basic_blocks": 12,
       "code": {
         "rva": 355784,
@@ -730,6 +753,7 @@
       "va": 4550088
     },
     {
+      "annotation": "hand",
       "basic_blocks": 25,
       "code": {
         "rva": 750473,
@@ -756,6 +780,7 @@
       "va": 4944777
     },
     {
+      "annotation": "hand",
       "basic_blocks": 21,
       "code": {
         "rva": 975060,
@@ -782,6 +807,7 @@
       "va": 5169364
     },
     {
+      "annotation": "hand",
       "basic_blocks": 35,
       "code": {
         "rva": 542562,
@@ -808,6 +834,7 @@
       "va": 4736866
     },
     {
+      "annotation": "hand",
       "basic_blocks": 17,
       "code": {
         "rva": 612378,
@@ -834,6 +861,7 @@
       "va": 4806682
     },
     {
+      "annotation": "hand",
       "basic_blocks": 9,
       "code": {
         "rva": 375307,
@@ -860,6 +888,7 @@
       "va": 4569611
     },
     {
+      "annotation": "hand",
       "basic_blocks": 15,
       "code": {
         "rva": 933598,
@@ -886,6 +915,7 @@
       "va": 5127902
     },
     {
+      "annotation": "hand",
       "basic_blocks": 15,
       "code": {
         "rva": 113625,
@@ -912,6 +942,7 @@
       "va": 4307929
     },
     {
+      "annotation": "hand",
       "basic_blocks": 28,
       "code": {
         "rva": 961897,
@@ -938,6 +969,7 @@
       "va": 5156201
     },
     {
+      "annotation": "hand",
       "basic_blocks": 16,
       "code": {
         "rva": 953268,
@@ -964,6 +996,7 @@
       "va": 5147572
     },
     {
+      "annotation": "hand",
       "basic_blocks": 16,
       "code": {
         "rva": 333070,
@@ -990,6 +1023,7 @@
       "va": 4527374
     },
     {
+      "annotation": "hand",
       "basic_blocks": 14,
       "code": {
         "rva": 523621,
@@ -1016,6 +1050,7 @@
       "va": 4717925
     },
     {
+      "annotation": "hand",
       "basic_blocks": 10,
       "code": {
         "rva": 349371,
@@ -1042,6 +1077,7 @@
       "va": 4543675
     },
     {
+      "annotation": "hand",
       "basic_blocks": 10,
       "code": {
         "rva": 412341,
@@ -1068,6 +1104,7 @@
       "va": 4606645
     },
     {
+      "annotation": "hand",
       "basic_blocks": 8,
       "code": {
         "rva": 546043,
@@ -1094,6 +1131,7 @@
       "va": 4740347
     },
     {
+      "annotation": "hand",
       "basic_blocks": 11,
       "code": {
         "rva": 816257,
@@ -1120,6 +1158,7 @@
       "va": 5010561
     },
     {
+      "annotation": "hand",
       "basic_blocks": 27,
       "code": {
         "rva": 317201,
@@ -1146,6 +1185,7 @@
       "va": 4511505
     },
     {
+      "annotation": "hand",
       "basic_blocks": 35,
       "code": {
         "rva": 518771,
@@ -1173,6 +1213,8 @@
     }
   ],
   "manifest_sha256": "b162b72f11bf8b60690953376541f3b97f126821684b1ec87acab515c845e867",
+  "named_functions": 0,
+  "names_sha256": "391751490ef1156eebcbede2b23588387192543249f554b2d40a1e02228a12f8",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

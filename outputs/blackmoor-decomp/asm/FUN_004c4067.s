@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c4067
+# name:         inferred_surface_lock_descriptor
+# naming:       INFERRED (lower confidence, not verified): the repository text src/original_methods_fl27b.h:92 says "0x4c4067(this self, idx, r2, &desc, arg, 0x20) fills the local descriptor desc"; tasks/RT-32-screen-file-94-runtime.md:11 says "the front-buffer lock `0x4c4067`"
+# name-note:    Surface lock: fills a local surface descriptor (destination stride and base address); the front-buffer lock.
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_4, field_8, field_c, field_10, field_14, field_1c, field_64; [ecx + n] field_4, field_8, field_c, field_1c, field_20, field_42; [edx + n] field_4, field_14, field_18, field_1a, field_24, field_64
 # callees:      calls FUN_004c4dc3, FUN_004c88c7, FUN_0050ca3e, FUN_004264e8; plus 2 indirect transfer(s) whose target is not resolved
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 137 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27b.c:m4c5377_blit_rows (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 137 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

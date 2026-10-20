@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00424aa8
+# name:         inferred_dependency_tail_parser
+# naming:       INFERRED (lower confidence, not verified): the repository text tasks/A-0C.1-body-boundary-and-decoder.md:16 says "the generic dependency tail parser is `FUN_00424aa8`"
+# name-note:    Generic dependency tail parser used by the raw-type loader.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       18 ebp-relative slot(s): local_4, local_8, local_c, local_40c, local_80c, local_810, local_814, local_818, local_81c, local_820, local_824, local_828 and 6 more
 # fields:       [eax + n] field_2, field_4, field_6, field_8, field_c, field_10, field_12, field_14, field_16, field_18, field_1c, field_1e and 12 more; [ecx + n] field_2, field_4, field_a, field_c, field_e, field_10, field_12, field_14, field_16, field_18, field_1a, field_1c and 12 more; [edx + n] field_4, field_6, field_8, field_c, field_e, field_10, field_12, field_14, field_16, field_18, field_1a, field_1c and 12 more
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004237f7, FUN_004236d6, FUN_0052139c, FUN_004234c8, FUN_00425b8b, FUN_004c97b4
 # track-n:      outputs/blackmoor-decomp/src/action_family_e0.h:action_family_e0_decode (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 975 instruction(s), 46 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 975 instruction(s), 46 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

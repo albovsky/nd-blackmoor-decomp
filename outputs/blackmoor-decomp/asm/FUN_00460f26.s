@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00460f26
+# name:         inferred_card_puzzle_render_callback
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:30 says "0x460f26 the render callback of generic Z entry type 10"
+# name-note:    Render callback of generic Z entry type 10 for the card puzzle overlays.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_1c, local_20, local_24
 # fields:       [eax + n] field_4b, field_48b, field_723, field_99b; [ecx + n] field_25, field_27, field_2b, field_4b, field_6b, field_633, field_653, field_723, field_aa3; [edx + n] field_25, field_2b, field_4b, field_3ab, field_633, field_653
 # callees:      calls FUN_004d3a52, FUN_004c5377, FUN_004c5d4b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 562 instruction(s), 27 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 562 instruction(s), 27 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

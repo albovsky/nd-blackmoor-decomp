@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044aa79
+# name:         inferred_file_modified_time_formatter
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/44aa79.c.txt, not original source) refers to the data labelled s_GetFileTime_____Bad_return_on_Ge_00548d18, s_GetFileTime_____Unable_to_open_a_00548ce8
+# name-note:    Opens a file, reads its last write time via GetFileTime, converts to DOS date/time and formats it as a string; GetFileTime error strings report failures.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       13 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_18, local_1c, local_20, local_28, local_30, local_34, local_3c, local_40 and 1 more
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!CreateFileA, FUN_004264e8, KERNEL32.dll!GetFileTime, KERNEL32.dll!CloseHandle, KERNEL32.dll!FileTimeToLocalFileTime, KERNEL32.dll!FileTimeToDosDateTime, FUN_0050ca3e
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 134 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 134 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

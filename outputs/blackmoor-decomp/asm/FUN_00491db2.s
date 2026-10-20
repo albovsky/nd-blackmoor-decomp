@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00491db2
+# name:         inferred_raycast_map_validator
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/491db2.c.txt, not original source) refers to the data labelled s_CRayCast__ValidateMap_____ERROR___0054ef4c, s_CRayCast__ValidateMap_____ERROR___0054f138
+# name-note:    CRayCast::ValidateMap: scans the 0xa6 by 0xa6 map checking value ranges and flags, collects entries, and reports ERROR messages and aborts on invalid data.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       9 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24
 # fields:       [eax + n] field_1f47, field_1f53, field_20c1, field_45c1, field_4765; [ecx + n] field_20c1, field_20c5, field_45ad, field_45c1, field_45c9, field_45cd, field_45d1, field_45d5, field_4765; [edx + n] field_1f67, field_20c1, field_20c9, field_45c5, field_45d9, field_4765, field_47ad
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_0044a2b7, FUN_004c97b4
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 262 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 262 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

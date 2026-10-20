@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0049027c
+# name:         inferred_quiz_puzzle_text_entry_refresher
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/49027c.c.txt, not original source) refers to the data labelled s_QUIZ_PUZZLE_text_entry_refresh_i_0054ea24, s_QUIZ_PUZZLE_text_entry_refresh_i_0054ea54
+# name-note:    For each quiz entry restores the background (QUIZ PUZZLE text entry refresh) and redraws its text with FUN_004d2c20 when non-empty.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [ecx + n] field_b0, field_b2, field_b6, field_ba, field_be
 # callees:      calls FUN_004c5377, FUN_004d2c20
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 124 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 124 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c4c2b
+# name:         inferred_dirty_rect_fast_blt_flush
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4c4c2b.c.txt, not original source) refers to the data labelled s_Dirty_Rect_Fast_Blt_00554670
+# name-note:    Walks the dirty-rectangle list and blits each flagged rectangle with FastBlt (Dirty Rect Fast Blt), tracking the maximum count.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_e
 # fields:       [eax + n] field_e86, field_e88, field_e8a, field_f84, field_f88; [ecx + n] field_c; [edx + n] field_8
 # callees:      calls FUN_004c9805, FUN_004c500c, FUN_004c94ec
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 79 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 79 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

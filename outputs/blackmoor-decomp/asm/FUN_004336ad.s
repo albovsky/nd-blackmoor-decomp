@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4, field_a, field_16, field_19; [ecx + n] field_2, field_8, field_12, field_18; [edx + n] field_2, field_6, field_e, field_16
 # callees:      calls FUN_004fc878, FUN_004fc808
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 141 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 141 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

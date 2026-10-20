@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004eeb23
+# name:         inferred_slider_init
+# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:422 says "0x4eeb23 (config at box + 0x256)."
+# name-note:    Slider initialiser using the config at box + 0x256.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4, field_8, field_c, field_5a, field_66, field_a6, field_ae, field_b2, field_b6, field_ba, field_d2, field_d6 and 14 more; [ecx + n] field_4, field_8, field_c, field_5e, field_6a, field_9e, field_aa, field_ce, field_12e, field_132, field_136, field_13a and 10 more; [edx + n] field_4, field_8, field_c, field_10, field_14, field_5a, field_62, field_a2, field_be, field_ce, field_12e, field_132 and 13 more
 # callees:      calls FUN_004ee9bb, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4, FUN_004ef89b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 504 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 504 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

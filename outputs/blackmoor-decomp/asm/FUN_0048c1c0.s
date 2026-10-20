@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0048c1c0
+# name:         inferred_peephole_record_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_d8_runtime.h:18 says "0x48c1c0 the handler, a phase switch on the row phase dword"
+# name-note:    Handler of the 0xd8 Peephole record: phase switch (init, scroll, finish).
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_24, local_28, local_2c, local_30, local_34, local_38, local_3c, local_40, local_48, local_4c
 # fields:       [eax + n] field_1c, field_1e, field_22, field_26, field_2e, field_30, field_34, field_37, field_3c, field_41, field_43, field_45 and 13 more; [ecx + n] field_1c, field_1e, field_26, field_2e, field_30, field_34, field_35, field_36, field_37, field_38, field_41, field_43 and 14 more; [edx + n] field_1c, field_1d, field_1e, field_22, field_2e, field_30, field_35, field_36, field_37, field_38, field_3c, field_41 and 17 more
 # callees:      calls USER32.dll!IsRectEmpty, FUN_004d39f9, FUN_0050cb1b, FUN_004c2790, FUN_00516530, KERNEL32.dll!GetTickCount, FUN_0050ca3e, FUN_0044a2b7, FUN_0042ba3a, FUN_0048bb86
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 759 instruction(s), 34 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_d8_runtime.h:d8_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 759 instruction(s), 34 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00437774
+# name:         inferred_arrow_key_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/session_navigation.h:42 says "Keys VK_LEFT/RIGHT/UP/DOWN (0x437774) store"
+# name-note:    Keyboard handler storing arrow-key (VK_LEFT/RIGHT/UP/DOWN) navigation flags 1/2/3/4.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_b, field_c, field_d, field_e, field_1c, field_22, field_25, field_27; [ecx + n] field_4, field_5, field_21, field_22, field_28; [edx + n] field_4, field_5, field_1c, field_1d, field_1e, field_1f, field_20, field_26, field_29
 # callees:      calls USER32.dll!GetKeyState, FUN_00425fc0, FUN_00425fa0, FUN_00493a47, FUN_004fb2e3
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 397 instruction(s), 93 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 397 instruction(s), 93 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

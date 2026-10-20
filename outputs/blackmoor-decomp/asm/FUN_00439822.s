@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00439822
+# name:         inferred_load_new_scene_data
+# naming:       INFERRED (lower confidence, not verified): the repository text src/session_exit.h:7 says "LoadNewSceneData 0x439822"
+# name-note:    LoadNewSceneData: loads the pending scene (calls the background opener 0x4163b4).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       18 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_114, local_118, local_11c, local_4f5c, local_4f68, local_6088, local_608c, local_6090 and 6 more
 # fields:       [eax + n] field_76, field_minus_1; [ecx + n] field_74, field_7c; [edx + n] field_7a
 # callees:      calls FUN_0050c920, FUN_0044a2b7, KERNEL32.dll!GetTickCount, FUN_0050ca3e, FUN_004264e8, FUN_004c97b4, FUN_00433c60, FUN_00433e63, FUN_004343a2, FUN_0042639d, FUN_0043dbe3, FUN_004163b4, FUN_004f70b0, FUN_00415176, FUN_004bf1f0, FUN_0052139c and 12 more
 # track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:load_viewport (function ledger class candidate_port; also perform_session_transition; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 868 instruction(s), 73 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 868 instruction(s), 73 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

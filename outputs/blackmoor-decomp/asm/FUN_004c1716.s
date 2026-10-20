@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4, field_8, field_c, field_10, field_1c, field_30, field_42, field_46, field_50, field_58, field_5c, field_c4e and 7 more; [ecx + n] field_4, field_8, field_c, field_10, field_14, field_18, field_1a, field_20, field_46, field_50, field_54, field_58 and 15 more; [edx + n] field_4, field_8, field_c, field_10, field_14, field_18, field_1a, field_c52, field_c56, field_c5a, field_c5e, field_d56 and 8 more
 # callees:      calls FUN_0044a2b7, FUN_004264e8, FUN_004c97b4, FUN_004fcebe, FUN_004c88c7, FUN_0042639d, FUN_004ca92e, FUN_004bf297, FUN_004bf3b8, FUN_0050ca3e, FUN_0052139c, FUN_004c98b5, FUN_0051dc43, FUN_004c2e97, FUN_004c2c3a, FUN_004c2a8d and 1 more; plus 12 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 1019 instruction(s), 80 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 1019 instruction(s), 80 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

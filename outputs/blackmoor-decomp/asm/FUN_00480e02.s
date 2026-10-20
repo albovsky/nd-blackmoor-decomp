@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00480e02
+# name:         inferred_multibuild_puzzle_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_eb_runtime.h:17 says "0x480e02 the handler, a switch on the row phase dword"
+# name-note:    Handler of the raw 0xeb Multibuild puzzle: a switch on the row phase dword.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       12 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_e4, local_e8, local_ec, local_f0, local_f4, local_f8
 # fields:       [eax + n] field_4, field_8, field_c, field_10, field_1c, field_1e, field_20, field_42, field_43, field_85, field_91, field_798 and 21 more; [ecx + n] field_4, field_8, field_c, field_1c, field_1e, field_89, field_93, field_95, field_8c8, field_8ce, field_8d8, field_902 and 20 more; [edi + n] field_minus_1; [edx + n] field_4, field_8, field_c, field_1c, field_1e, field_43, field_81, field_8d, field_93, field_95, field_97, field_8c8 and 25 more
 # callees:      calls FUN_004e8d96, FUN_004c2790, FUN_0047e582, FUN_004d39f9, FUN_004fb77a, KERNEL32.dll!GetTickCount, FUN_004f6334, FUN_004fb2e3, FUN_00423259, FUN_00448d11, FUN_004fba69, FUN_0042ba3a, FUN_0047e2a5
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 831 instruction(s), 48 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:caption_block (function ledger class candidate_port; also phase0, phase1, phase2; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 831 instruction(s), 48 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

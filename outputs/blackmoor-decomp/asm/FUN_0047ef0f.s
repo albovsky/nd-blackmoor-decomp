@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047ef0f
+# name:         inferred_multibuild_rotate_piece_event
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_eb_runtime.h:23 says "0x47ef0f second-button event (0x43c129, after the 0xea handler 0x484ac0): rotates a piece."
+# name-note:    Second-button event that rotates a piece in the Multibuild puzzle.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1e, field_49, field_7be, field_7c2, field_7d7, field_1344, field_1350, field_13c5, field_13e3, field_13e5; [ecx + n] field_48, field_7d7, field_1344, field_1350, field_13ca, field_13e5, field_1417; [edx + n] field_1e, field_e9, field_7a0, field_7c2, field_1350, field_13ce, field_13e3; [esi + n] field_7b6, field_7ba
 # callees:      calls FUN_0047fa11, FUN_0047e9d3, FUN_00480abe, FUN_0047ed96
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 163 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.h:eb_rotate_key (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 163 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

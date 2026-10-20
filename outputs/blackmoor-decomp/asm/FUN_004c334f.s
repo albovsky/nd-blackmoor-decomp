@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c334f
+# name:         inferred_bmp_screen_file_writer
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_94_runtime.h:75 says "format 0 -> 0x4c334f: 14-byte BM header, 40-byte info header, 24-bit bottom-up rows"; src/action_family_94_runtime.h:39 says "0 = 24-bit BMP (0x4c334f)"
+# name-note:    Writes the screen capture as a 24-bit bottom-up BMP (14-byte BM header, 40-byte info header).
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       39 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1e, local_20, local_22, local_26, local_28, local_2c and 27 more
 # fields:       [eax + n] field_1
 # callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_004c7481, FUN_0050cd72, FUN_0050d0a9, FUN_0050e493, FUN_0050cee4, FUN_0051dc6c
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 253 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_94_runtime.h:a94_encode (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 253 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

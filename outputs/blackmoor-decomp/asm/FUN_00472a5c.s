@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00472a5c
+# name:         inferred_keypad_puzzle_render_callback
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_e0_runtime.h:25 says "0x472a5c the render callback of a generic Z entry of type 10"
+# name-note:    Render callback of the keypad puzzle overlays (generic Z entry of type 10).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_35, field_41, field_10e; [ecx + n] field_39, field_3d, field_41, field_1ae, field_1fe; [edx + n] field_21, field_35, field_39, field_3d, field_15e, field_162, field_166, field_16a, field_1fe, field_202, field_206, field_20a; [esi + n] field_162, field_202
 # callees:      calls FUN_004c5d4b, FUN_004c5377
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 289 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 289 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

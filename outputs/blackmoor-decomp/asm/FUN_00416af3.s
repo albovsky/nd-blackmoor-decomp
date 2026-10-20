@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00416af3
+# name:         inferred_avf_command_expander
+# naming:       INFERRED (lower confidence, not verified): the repository text src/avf_decoder.h:17 says "0x416af3 type-1 / type-2 command expansion"
+# name-note:    AVF type-1/type-2 command expansion, using fill helper 0x43ef77.
 # arguments:    6 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c; ret 0x18 (callee pops 24 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       13 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 1 more
 # fields:       [eax + n] field_1, field_5, field_7, field_a; [ecx + n] field_2, field_3, field_5, field_7; [edx + n] field_1, field_2, field_3, field_5, field_7, field_e
 # callees:      calls FUN_0043ef77, FUN_004c7314
 # track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:convert_span (function ledger class candidate_port; also decode_commands; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 295 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 295 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -13,8 +13,8 @@
 # locals:       none: no [ebp-n] slot referenced
 # fields:       [eax + n] field_4; [edx + n] field_8c
 # callees:      calls FUN_00525371, FUN_005212b5; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 20 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a4e_handler (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 20 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

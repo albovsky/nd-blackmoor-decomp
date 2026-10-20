@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004ca5b6
+# name:         inferred_ddraw_enumerate_callback
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ca5b6.c.txt, not original source) refers to the data labelled s_DirectDrawEnumerateCallback_____D_00558164
+# name-note:    DirectDrawEnumerate callback: creates a DirectDraw object per driver, copies description and name, queries caps, and logs DirectDrawEnumerateCallback results.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x14 (callee pops 20 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4, field_8, field_c, field_10, field_20, field_2c, field_304, field_1758; [ecx + n] field_4, field_8, field_c, field_300, field_308, field_1758; [edx + n] field_4, field_10, field_184, field_300, field_304, field_1758
 # callees:      calls FUN_004fcebe, FUN_0050ca3e, FUN_0044a2b7, FUN_0050d960; plus 3 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 183 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 183 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0045de8a
+# name:         inferred_card_deal_step
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.c:242 says "0x45de8a: deal one card (or end the game) for `player`."
+# name-note:    Deal one card (or end the game) for a player: random pick.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_24, field_d0, field_262, field_264, field_2a6, field_2a8, field_31d; [ecx + n] field_24, field_25, field_27, field_142, field_262, field_2a6, field_2a8, field_31d, field_3a2; [edx + n] field_24, field_25, field_142, field_264, field_2a6, field_2a8, field_2a9, field_31d, field_f22; [esi + n] field_24
 # callees:      calls FUN_0045e6bd, FUN_0050cd50
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 214 instruction(s), 12 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 214 instruction(s), 12 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

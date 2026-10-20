@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f438f
+# name:         inferred_his_streaming_sound_path
+# naming:       INFERRED (lower confidence, not verified): the repository text his-audio-recovery.md:14 says "otherwise the streaming path at `0x4f438f`"; src/live_audio.c:43 says "loader (0x4f438f) with stream_state"
+# name-note:    Streaming load path (16-chunk ring) for larger HIS sounds.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_4, field_8, field_c, field_10, field_15e, field_28f, field_293, field_297, field_29b, field_2a7, field_2b7, field_2d7 and 3 more; [ecx + n] field_4, field_8, field_c, field_144, field_15e, field_28f, field_293, field_297, field_29b, field_2a3, field_2b3, field_2d3 and 6 more; [edx + n] field_4, field_8, field_c, field_10, field_116, field_122, field_126, field_156, field_28f, field_293, field_297, field_29f and 5 more; [esi + n] field_2ba
 # callees:      calls FUN_004f5f69, FUN_004f356e, FUN_0050ca3e, FUN_0044a2b7, FUN_004f95a4, FUN_0051dc43, FUN_004fdb90, FUN_0052139c, FUN_004f594d, KERNEL32.dll!GetTickCount, FUN_004f684a; plus 5 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 526 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 526 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

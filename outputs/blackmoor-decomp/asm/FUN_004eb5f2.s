@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004eb5f2
+# name:         inferred_examined_scene_return_pop
+# naming:       INFERRED (lower confidence, not verified): the repository text src/session_bindings_a7d.h:33 says "The original calls 0x4eb5f2 (restore the second saved-scene record, re-add the item taken along, request the"; src/action_family_7d_runtime.h:22 says "0x4eb5f2 is the pop that pairs with 0x4eb70f"
+# name-note:    Returns from the examined item scene: restores the second saved-scene record, re-adds the item, requests the inventory screen.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_7011
 # callees:      calls FUN_0052139c, FUN_004e9e84, FUN_004e0559
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 61 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_7d_runtime.h:scene_restore_slot_pop (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 61 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text
