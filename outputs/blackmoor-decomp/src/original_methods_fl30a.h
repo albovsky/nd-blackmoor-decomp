@@ -33,6 +33,14 @@ typedef struct Fl30aWorld {
  * and 0x44a2b7(0x63888b) (cdecl, 1 argument); returns 1. Otherwise dword [self+0x3c2] = 0x40b, dword [self+0x3be] = 0, returns dword [self+0x3be] (0). */
 uint32_t m4f61e7_start_record(uint8_t *self, uint32_t index, const Fl30aWorld *world, const Fl18Host *host);
 
+/* 0x484ac0, thiscall, plain `ret`, no result: w = signed word [self+0x26]; rec = dword [0x5bb5e5 + w*0x8d] (an original address; the table is the Fl30aWorld pointer) and the state dword [0x5bb632 + w*0x8d]
+ * (the same table, +0x4d). Returns at once (nothing else happens) unless dword [self+0xba7] != 0, byte [rec+0x24] != 0, byte [rec+0x25] == 0, byte [self+0xbb0] == 0, dword [self+0xbac] == 0, the state == 1 and the
+ * signed word [self+0xbf9] != 0. Then, when dword [self+0xa92] != 0: h = word [self+0xa9e] and 0x4853b0(this self, h) (thiscall, 1 word argument); otherwise h = ax of 0x4846c2(this self) (thiscall, no arguments),
+ * and h == -1 (signed) returns; 0x4853b0(this self, h); dword [self+0xa92] = 1; word [self+0xa9e] = h. In both cases (h read again from [self+0xa9e] in the second case, as a signed word): word [self+0xbc5] =
+ * dword [self + h*0x85 + 0x32] - dword [self + h*0x85 + 0x2a] and word [self+0xbc7] = dword [self + h*0x85 + 0x36] - dword [self + h*0x85 + 0x2e] (low 16 bits of the 32-bit differences); then 0x485f12(this self)
+ * (thiscall, no arguments) and 0x484935(this self, h) (thiscall, 1 word argument). */
+void m484ac0_latch_hit(uint8_t *self, const Fl30aWorld *world, const Fl18Host *host);
+
 /* 0x484762, thiscall, `ret 8`, returns eax (0 or 1), no host calls: the stack arguments are the signed dwords `a` and `b`. r1 = self + a*0x85 + 0x28 and r2 = self + b*0x85 + 0x28 are two records of stride
  * 0x85 (32-bit product); A = r1 + 2 and B = r2 + 2 each hold the dwords x0, y0, x1, y1 at +0, +4, +8, +0xc (all comparisons are signed). The function intersects the rectangles A and B: on the x axis
  * when A.x0 < B.x0: A.x1 < B.x0 gives 0, else rx0 = B.x0; otherwise A.x0 > B.x1 gives 0, else rx0 = A.x0; then rx1 = B.x1 when A.x1 > B.x1, else A.x1. The y axis is the same with the dwords at +4 and +0xc.

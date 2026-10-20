@@ -145,3 +145,34 @@ uint32_t m484762_intersect_rects(const uint8_t *self, uint32_t a, uint32_t b)
     if (ry0 == -1 || ry1 == -1 || rx0 == -1 || rx1 == -1) return 0;
     return 1;
 }
+
+/* ---- 0x484ac0 latch_hit ----------------------------------------------------------------------------------------------------------- */
+void m484ac0_latch_hit(uint8_t *self, const Fl30aWorld *world, const Fl18Host *host)
+{
+    ptrdiff_t slot = (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)rd16(self, 0x26) * 0x8du);
+    uint32_t rec = rd32(world->table_5bb5e5, slot);
+    int16_t h;
+    if (rd32(self, 0xba7) == 0) return;
+    if (res(host, rec)[0x24] == 0) return;
+    if (res(host, rec)[0x25] != 0) return;
+    if (self[0xbb0] != 0) return;
+    if (rd32(self, 0xbac) != 0) return;
+    if (rd32(world->table_5bb5e5, slot + 0x4d) != 1) return;
+    if ((int16_t)rd16(self, 0xbf9) == 0) return;
+    if (rd32(self, 0xa92) != 0) {
+        h = (int16_t)rd16(self, 0xa9e);
+        call1(host, 0x4853b0, (uintptr_t)self, (uint16_t)h);
+        wr16(self, 0xbc5, (uint16_t)(rd32(self, (ptrdiff_t)h * 0x85 + 0x32) - rd32(self, (ptrdiff_t)h * 0x85 + 0x2a)));
+        wr16(self, 0xbc7, (uint16_t)(rd32(self, (ptrdiff_t)h * 0x85 + 0x36) - rd32(self, (ptrdiff_t)h * 0x85 + 0x2e)));
+    } else {
+        h = (int16_t)call0(host, 0x4846c2, (uintptr_t)self);
+        if (h == -1) return;
+        call1(host, 0x4853b0, (uintptr_t)self, (uint16_t)h);
+        wr32(self, 0xa92, 1);
+        wr16(self, 0xa9e, (uint16_t)h);
+        wr16(self, 0xbc5, (uint16_t)(rd32(self, (ptrdiff_t)(int16_t)rd16(self, 0xa9e) * 0x85 + 0x32) - rd32(self, (ptrdiff_t)(int16_t)rd16(self, 0xa9e) * 0x85 + 0x2a)));
+        wr16(self, 0xbc7, (uint16_t)(rd32(self, (ptrdiff_t)(int16_t)rd16(self, 0xa9e) * 0x85 + 0x36) - rd32(self, (ptrdiff_t)(int16_t)rd16(self, 0xa9e) * 0x85 + 0x2e)));
+    }
+    call0(host, 0x485f12, (uintptr_t)self);
+    call1(host, 0x484935, (uintptr_t)self, (uint16_t)h);
+}

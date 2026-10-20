@@ -33,6 +33,39 @@
   "note": "Starts a record: stores 0x3e8/0 to the object, calls 0x4f709c, checks the record fields at +0x162 and +0x28f, sets +0x287, calls the vtable entry at +0x48 of the record object and reports through 0x50ca3e/0x44a2b7 when it returns 0; every instruction and both directions of every jump executed. See tasks/fl30a-handoff.md."
  },
  {
+  "va": "0x484ac0",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30a.c",
+   "symbol": "m484ac0_latch_hit"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30a_direct_test.c",
+    "test_id": "test_m484ac0_latch_hit"
+   },
+   {
+    "path": "tests/test_fl30a_direct.py",
+    "test_id": "Fl30aDirect.test_484ac0_latch_hit"
+   },
+   {
+    "path": "tests/test_fl30a_differential.py",
+    "test_id": "Fl30aDifferential.test_484ac0_latch_hit"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30a_original_oracle.py",
+   "window": [
+    "0x484ac0",
+    "0x484caf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Selects the record for the object and latches the hit index (either the stored word at +0xa9e or the answer of 0x4846c2), stores the two word offsets at +0xbc5/+0xbc7 and calls 0x485f12 and 0x484935; every instruction and both directions of every jump executed. See tasks/fl30a-handoff.md."
+ },
+ {
   "va": "0x484762",
   "class": "native_oracle_verified",
   "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",

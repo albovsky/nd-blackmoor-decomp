@@ -209,12 +209,86 @@ def gen_484762(rng, n):
     return make('484762', [self_area(s)], {}, {}, stack, tuple(stack), profile)
 
 
+# ---- 0x484ac0 and 0x47ef0f (the same latch of a hit index, with different offsets) ----------------------------------------------------
+
+WORD_ARGS.update({0x4853b0: (0,), 0x484935: (0,), 0x47fa11: (0,), 0x47ed96: (0,)})
+HIT_GUARDS = ['ba7', '24', '25', 'bb0', 'bac', 'state', 'bf9']
+BAD_STATES = [0, 2, 0x101, 0xffffffff, 0x100, 0x80000001]
+# offsets: self word (record number), the guards, the latched flag and index, the two output words; rec bytes; probes
+HIT = {
+    '484ac0': dict(wsel=0x26, ba7=0xba7, r24=0x24, r25=0x25, bb0=0xbb0, bac=0xbac, bf9=0xbf9, a92=0xa92, a9e=0xa9e, out1=0xbc5, out2=0xbc7, probes=[('self', 0xa90, 0x10), ('self', 0xbc0, 0x10)],
+                   call_a='4853b0', call_b='4846c2', call_c='485f12', call_d='484935'),
+    '47ef0f': dict(wsel=0x1e, ba7=0x13c5, r24=0x48, r25=0x49, bb0=0x13ce, bac=0x13ca, bf9=0x1417, a92=0x1344, a9e=0x1350, out1=0x13e3, out2=0x13e5,
+                   probes=[('self', 0x1340, 0x18), ('self', 0x13e0, 0x10), ('self', 0x7a0, 0x40)], call_a='47fa11', call_b='47e9d3', call_c='480abe', call_d='47ed96'),
+}
+
+
+def hit_table(rng, w, rec_va, rec2_va, state, lo=-2, hi=3):
+    """The record table (stride 0x8d) of 0x5bb5e5 for the entries lo..hi: entry w holds the record address `rec_va` and the state `state`, the others point at another record and hold another state."""
+    data = bytearray(rng.randbytes((hi - lo + 1) * 0x8d + 0x10))
+    for index in range(lo, hi + 1):
+        put32(data, (index - lo) * 0x8d, rec_va if index == w else rec2_va)
+        put32(data, (index - lo) * 0x8d + 0x4d, state if index == w else rng.choice([1, 0, 2]))
+    return Area('tbl', 0x5bb5e5 + lo * 0x8d, data, image=True), {'table_5bb5e5': ('tbl', -lo * 0x8d)}
+
+
+def gen_hit(key, rng, n, paths, extra=None):
+    """The profile is (a failed guard or a path, an argument) and the pass number; `extra(s, rec, kind, variant)` adds the data that only 0x47ef0f has."""
+    O = HIT[key]
+    (kind, *rest), variant = prof(n, [(g,) for g in HIT_GUARDS for _ in range(2)] + paths)
+    w = rng.choice([-2, -1, 0, 1, 2, 3])
+    rec_va, rec2_va = od.region_va(1), od.region_va(2)
+    s = bytearray(rng.randbytes(0x1800))
+    rec, rec2 = bytearray(rng.randbytes(0x400)), bytearray(rng.randbytes(0x400))
+    put16(s, O['wsel'], w & 0xffff)
+    put32(s, O['ba7'], NONZERO[variant % 8])
+    rec[O['r24']], rec[O['r25']], s[O['bb0']] = rng.choice([1, 0x80, 0xff, 0x7f]), 0, 0
+    put32(s, O['bac'], 0)
+    put16(s, O['bf9'], rng.choice([1, 0x8000, 0x100, 0xff, 0x7fff, 0xffff]))
+    state = 1
+    # the other record is the opposite of the right one for every guard, so that a wrong table index shows
+    rec2[O['r24']], rec2[O['r25']] = 0, 0xff
+    guard_fail = kind in HIT_GUARDS
+    if kind == 'ba7':
+        put32(s, O['ba7'], 0)
+    elif kind == '24':
+        rec[O['r24']] = 0
+    elif kind == '25':
+        rec[O['r25']] = rng.choice([1, 0x80, 0xff])
+    elif kind == 'bb0':
+        s[O['bb0']] = rng.choice([1, 0x80, 0xff])
+    elif kind == 'bac':
+        put32(s, O['bac'], NONZERO[variant % 8])
+    elif kind == 'state':
+        state = BAD_STATES[variant % len(BAD_STATES)]
+    elif kind == 'bf9':
+        put16(s, O['bf9'], 0)
+    path_a = kind == 'A' or (guard_fail and n % 2 == 1)      # the guards are failed on both paths
+    h = rest[0] if kind == 'A' else rng.choice([0, 1, 3])
+    put32(s, O['a92'], NONZERO[variant % 8] if path_a else 0)
+    put16(s, O['a9e'], h)
+    ret = rest[0] if kind == 'B' else rng.choice([0xffff, 2, 4])
+    if extra:
+        extra(s, rec, kind, variant, h, ret, path_a)
+    area, ptrs = hit_table(rng, w, rec_va, rec2_va, state)
+    probes = O['probes']
+    ca, cb, cc, cd = (int(O[k], 16) for k in ('call_a', 'call_b', 'call_c', 'call_d'))
+    stubs = {ca: stub(ca, THISCALL(1), probe=probes), cb: stub(cb, THISCALL(0), results=[ret]), cc: stub(cc, THISCALL(0), probe=probes), cd: stub(cd, THISCALL(1), probe=probes)}
+    return make(key, [self_area(s), Area('rec', rec_va, rec, image=False), Area('rec2', rec2_va, rec2, image=False), area], stubs, {}, [], (), (kind, *rest, variant, n % 2), ptrs)
+
+
+def gen_484ac0(rng, n):
+    paths = [('A', h) for h in (0, 1, 3, 5)] + [('B', r) for r in (0xffff, 0x1ffff, 0, 1, 2, 5, 0x12340003, 0x7f000004)]
+    return gen_hit('484ac0', rng, n, paths)
+
+
 SPECS = {
     '4f61e7': dict(id=1, va=0x4f61e7, size=333, gen=gen_4f61e7, cleanup=4, ret=True, n=24 * 8),
+    '484ac0': dict(id=3, va=0x484ac0, size=495, gen=gen_484ac0, cleanup=0, n=(7 * 2 + 12) * 12),
     '484762': dict(id=2, va=0x484762, size=467, gen=gen_484762, cleanup=8, ret=True, n=2 * 625 + 600),
 }
 KEYS = list(SPECS)
-NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects'}
+NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit'}
 
 
 def build(key, rng, n):

@@ -163,6 +163,9 @@ class Fl30aDifferential(DiffBase):
     def test_484762_intersect_rects(self):
         """FL-30a: differential test of m484762_intersect_rects (original 0x484762)"""
         self.run_key('484762')
+    def test_484ac0_latch_hit(self):
+        """FL-30a: differential test of m484ac0_latch_hit (original 0x484ac0)"""
+        self.run_key('484ac0')
     # CASES-END
 
 if __name__ == '__main__':

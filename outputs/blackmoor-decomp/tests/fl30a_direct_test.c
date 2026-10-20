@@ -275,6 +275,89 @@ static void test_m484762_intersect_rects(void)
     CK(m484762_intersect_rects(SELF, 1, 0) == 1);                  /* A.x0 = 0 >= B.x0 = INT_MIN and 0 <= B.x1 = 4: rx0 = 0, rx1 = 4 */
 }
 
+/* ---- 0x484ac0 latch_hit ------------------------------------------------------------------------------------------------------ */
+static void hit_good(void)
+{
+    setup();
+    set16(SELF, 0x26, 1);
+    set32(g_w.table_5bb5e5, 1 * 0x8d, RVA(1));
+    set32(g_w.table_5bb5e5, 1 * 0x8d + 0x4d, 1);
+    set32(g_w.table_5bb5e5, 0, RVA(2));                     /* the other entries point at a record that fails every guard */
+    set32(g_w.table_5bb5e5, 0x4d, 1);
+    memset(g_r[1] + 0x20, 0, 0x20);
+    memset(g_r[2] + 0x20, 0, 0x20);
+    g_r[1][0x24] = 1;
+    set32(SELF, 0xba7, 1);
+    memset(SELF + 0xbac, 0, 0x10);
+    set16(SELF, 0xbf9, 1);
+    set32(SELF, 0xa92, 0);
+    set16(SELF, 0xbc5, 0x1111);
+    set16(SELF, 0xbc7, 0x2222);
+}
+static void test_m484ac0_latch_hit(void)
+{
+    int guard;
+    /* each guard on its own ends the function at once */
+    for (guard = 0; guard < 7; guard++) {
+        hit_good();
+        switch (guard) {
+        case 0: set32(SELF, 0xba7, 0); break;
+        case 1: g_r[1][0x24] = 0; break;
+        case 2: g_r[1][0x25] = 7; break;
+        case 3: SELF[0xbb0] = 1; break;
+        case 4: set32(SELF, 0xbac, 0x10000); break;
+        case 5: set32(g_w.table_5bb5e5, 1 * 0x8d + 0x4d, 2); break;
+        default: set16(SELF, 0xbf9, 0); break;
+        }
+        g_nscript = 0;
+        script(0x4846c2, 1, 2, 0, 0, 0);
+        m484ac0_latch_hit(SELF, &g_w, &g_host);
+        CK(L.n == 0 && get16(SELF, 0xbc5) == 0x1111 && get32(SELF, 0xa92) == 0);
+    }
+    /* the guards read a byte at 0xbb0 (a set byte at 0xbb1 does not stop the function), a word at 0xbf9 (0x100 is not zero) and a dword at 0xba7 / 0xbac */
+    hit_good();
+    SELF[0xbb1] = 1;
+    set16(SELF, 0xbf9, 0x100);
+    script(0x4846c2, 1, 0xffff, 0, 0, 0);
+    m484ac0_latch_hit(SELF, &g_w, &g_host);
+    CK(L.n == 1);
+    /* path A: a92 != 0, h = word [0xa9e] = 2 */
+    hit_good();
+    set32(SELF, 0xa92, 0x10000);
+    set16(SELF, 0xa9e, 2);
+    set32(SELF, 0x10a + 0x32, 100);
+    set32(SELF, 0x10a + 0x2a, 60);
+    set32(SELF, 0x10a + 0x36, 5);
+    set32(SELF, 0x10a + 0x2e, 0x10008);
+    m484ac0_latch_hit(SELF, &g_w, &g_host);
+    CK(L.n == 3);
+    CKC(0, 0x4853b0, SELFP, 1, 2);
+    CKC0(1, 0x485f12, SELFP);
+    CKC(2, 0x484935, SELFP, 1, 2);
+    CK(get16(SELF, 0xbc5) == 40 && get16(SELF, 0xbc7) == 0xfffd && get32(SELF, 0xa92) == 0x10000 && get16(SELF, 0xa9e) == 2);
+    /* path B: a92 == 0, 0x4846c2 returns ax = 3 (the upper half is garbage) */
+    hit_good();
+    g_nscript = 0;
+    script(0x4846c2, 1, 0xabcd0003u, 0, 0, 0);
+    set32(SELF, 0x18f + 0x32, 7);
+    set32(SELF, 0x18f + 0x2a, 9);
+    set32(SELF, 0x18f + 0x36, 0x20000);
+    set32(SELF, 0x18f + 0x2e, 1);
+    m484ac0_latch_hit(SELF, &g_w, &g_host);
+    CK(L.n == 4);
+    CKC0(0, 0x4846c2, SELFP);
+    CKC(1, 0x4853b0, SELFP, 1, 3);
+    CKC0(2, 0x485f12, SELFP);
+    CKC(3, 0x484935, SELFP, 1, 3);
+    CK(get32(SELF, 0xa92) == 1 && get16(SELF, 0xa9e) == 3 && get16(SELF, 0xbc5) == 0xfffe && get16(SELF, 0xbc7) == 0xffff);
+    /* path B: ax == -1 (also with a non-zero upper half) ends the function after the first callee */
+    hit_good();
+    g_nscript = 0;
+    script(0x4846c2, 1, 0x1ffff, 0, 0, 0);
+    m484ac0_latch_hit(SELF, &g_w, &g_host);
+    CK(L.n == 1 && get32(SELF, 0xa92) == 0 && get16(SELF, 0xbc5) == 0x1111);
+}
+
 /* CASES-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -296,6 +379,13 @@ static void test_sweep_bounded(void)
         g_r[0][0x28 + 0x22] = (uint8_t)seed;
         g_r[0][0x28 + 0x85 + 0x22] = (uint8_t)(seed >> 4);
         m484762_intersect_rects(SELF, 0, 1);
+        hit_good();
+        for (i = 0; i < 0x100; i++) g_r[0][0x100 + i] = (uint8_t)(seed >> (i & 7));
+        set32(SELF, 0xa92, seed & 1);
+        set16(SELF, 0xa9e, (uint16_t)(seed % 6));
+        g_nscript = 0;
+        script(0x4846c2, 1, (seed >> 4) % 6, 0, 0, 0);
+        m484ac0_latch_hit(SELF, &g_w, &g_host);
         set32(SELF, 0x3ce, RVA(1));
         set32(g_r[1], 0x162, seed | 1);
         set32(g_r[1], 0x28f, RVA(2));
@@ -327,6 +417,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4f61e7_start_record);
     RUN(test_m484762_intersect_rects);
+    RUN(test_m484ac0_latch_hit);
     /* RUNS */
     RUN(test_sweep_bounded);
     return failures;

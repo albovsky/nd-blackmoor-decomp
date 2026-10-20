@@ -74,6 +74,10 @@ class Fl30aDirect(unittest.TestCase):
         """FL-30a: direct test of m484762_intersect_rects (original 0x484762)"""
         self.check('test_m484762_intersect_rects')
 
+    def test_484ac0_latch_hit(self):
+        """FL-30a: direct test of m484ac0_latch_hit (original 0x484ac0)"""
+        self.check('test_m484ac0_latch_hit')
+
     # CASES-END
 
     def test_sweep_bounded(self):
