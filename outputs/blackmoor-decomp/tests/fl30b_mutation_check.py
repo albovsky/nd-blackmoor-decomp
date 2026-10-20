@@ -53,7 +53,7 @@ sys.exit(0 if result.wasSuccessful() else 1)
 def mutants(lines):
     """[(line index, description, new line)] for the code lines (from the first function marker on, comments skipped)."""
     out = []
-    start = next(i for i, l in enumerate(lines) if l.startswith('/* ---- 0x'))
+    start = next(i for i, l in enumerate(lines) if re.match(r'/\* 0x[0-9a-f]+ m', l))
     for i in range(start, len(lines)):
         line = lines[i]
         code = line.split('/*')[0]
@@ -80,7 +80,7 @@ def mutants(lines):
 
 def function_of(lines, i):
     for j in range(i, -1, -1):
-        m = re.match(r'/\* ---- 0x([0-9a-f]+) ', lines[j])
+        m = re.match(r'/\* 0x([0-9a-f]+) m', lines[j])
         if m:
             return m.group(1)
     return None
