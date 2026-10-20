@@ -10,7 +10,7 @@ All in `src/original_methods_fl30d.c` / `.h` (symbols `m<va>_*`, world struct `F
 
 | va | span | symbol | instructions | branch directions | scenarios | oracle digest (sha256) | window sha256 (original bytes, va..va+span) |
 |---|---|---|---|---|---|---|---|
-| 0x4e2e05 | 421 | m4e2e05_copy_state | 117/117 | 4/4 | 112 | e4abf93033e4ca8ec59b65125eaf4c7bd0c5a47b884ef33ecf014cc9c6e9db9f | 403e9dd3794e6b312cddbc0aabc5064fc7e5ad46ba84e3180fc34098e605ec25 |
+| 0x4e2e05 | 421 | m4e2e05_copy_state | 117/117 | 4/4 | 112 | 5ea893a3d7773ffcb2856d285af9d60032d5fd9a8fdfd5226feeaedf63f50cd4 | 403e9dd3794e6b312cddbc0aabc5064fc7e5ad46ba84e3180fc34098e605ec25 |
 | 0x4c2a8d | 429 | m4c2a8d_make_record | 136/136 | 6/6 | 148 | cf49ff442b6e4acc577058c2aa5c5eb3ff83ca1e95d6a569cbfd458c593002eb | 9e30a70ee2613a1ea7fb608e88a98b56478e5c3e71814992f28c9609cc451f75 |
 | 0x48d3cb | 553 | m48d3cb_select_entry | 124/124 | 22/22 | 258 | d051801cfbc366e5ad6dcb9bad6cb9ae4d835da62ebefdbf903ade6722f79887 | 24c7997adcd6e49ebf1cc544724aacb8770595cf8b5831aa00942d01edd94b2b |
 | 0x4f684a | 564 | m4f684a_prepare_entry | 137/137 | 16/16 | 264 | 7cf8d33a447a859d579d7742307f8ae7507838e02924a53c1bc8248af35c0b3a | ec0a5c5d12137f671987aea9599e247b21fbc05d82f194c3af9ded151225a56e |
