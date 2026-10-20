@@ -40,6 +40,20 @@ typedef struct Fl33cWorld {
  * Fl18Host.resolve can resolve, like the original dereferences them. */
 int m4c6929_copy_masked(uint8_t *self, uint32_t a, uint32_t b, uint32_t c, uint32_t r1, uint32_t r2, uint32_t r3, uint32_t d, const Fl33cWorld *world, const Fl18Host *host);
 
+/* 0x416af3, thiscall (ecx is stored and never read), `ret 0x18`, stack arguments hdr ([ebp+8]), out ([ebp+0xc]), size ([ebp+0x10]), stream ([ebp+0x14]), base ([ebp+0x18]) and flag ([ebp+0x1c]), all 32-bit
+ * original values (addresses of the original, resolved through Fl18Host.resolve; unaligned fields are read as such). count = dword [hdr+0xa] (SIGNED compares below), kind = byte [hdr+0xe]. The stream is a
+ * list of ops at byte offsets idx (idx starts at 0, 32-bit arithmetic, `p` = stream + idx at the op); the opcode byte is [p]:
+ *  0x20: idx += 9; n = dword [p+5]; the n * 2 bytes (32-bit; `shl 1`) at stream + idx are copied to out + dword [p+1] * 2 (dwords first, then bytes); idx += n * 2 (n read again). Kind 2 also calls
+ *        0x4c7314(this 0x5cf659, out + dword [p+1] * 2, dword [p+5] * 2) (thiscall, 2 arguments) between the copy and the idx update.
+ *  0x40: idx += 0xb; 0x43ef77(this 0x5d2f2d, out + dword [p+3] * 2, word [p+1], dword [p+7]) (thiscall, 3 arguments; the word is pushed from cx with a stale upper half, the port passes it zero extended);
+ *        kind 2 also calls 0x4c7314(this 0x5cf659, out + dword [p+3] * 2, dword [p+7] * 2).
+ *  0x80: m = byte [p+1] (zero extended); idx += 6; data = stream + idx; idx += m * 2; for k = 0 while k < SIGNED dword [p+2] (read again each pass): off = dword [stream + idx]; the m * 2 bytes at data are copied to
+ *        out + off * 2; kind 2 then calls 0x4c7314(this 0x5cf659, out + off * 2, m * 2); idx += 4.
+ * Kind 1: while idx < count (signed): the op; after the loop 0x4c7314(this 0x5cf659, out, size). Kind 2: first, when dword flag == 0, size bytes are copied from base to out (dwords, then bytes); then the same loop
+ * (without the final call). Any other kind: nothing. Any other opcode byte: the original jumps back to the loop head without moving idx and NEVER finishes: the port returns 1 there (everything the ops before it
+ * did has happened, the final call has not), otherwise 0. */
+int m416af3_apply_patches(uint32_t hdr, uint32_t out, uint32_t size, uint32_t stream, uint32_t base, uint32_t flag, const Fl18Host *host);
+
 /* FNS-END */
 
 #ifdef __cplusplus

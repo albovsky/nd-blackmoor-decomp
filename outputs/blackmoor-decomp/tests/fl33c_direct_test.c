@@ -286,6 +286,140 @@ static void test_m4c6929_copy_masked(void)
     CK(cm_call(0, 0x4444) == 1 && L.n == 1 && L.c[0].callee == 0x4c4067 && memcmp(g_r[4], want4, sizeof want4) == 0);
 }
 
+/* ---- 0x416af3 ------------------------------------------------------------------------------------------------------------------ */
+/* layout: header at RVA(0)+3 (count at +0xa, kind at +0xe), the stream at RVA(1)+1, the word buffer `out` at RVA(4)+0x80 (so the region snapshot at each call shows out-0x80 .. out+0x7f),
+ * the full-copy source `base` at RVA(3)+0x10. */
+#define PA_HDR (RVA(0) + 3)
+#define PA_STREAM (RVA(1) + 1)
+#define PA_OUT (RVA(4) + 0x80)
+#define PA_BASE (RVA(3) + 0x10)
+static size_t pa_cur;
+static uint8_t *pa_s(void) { return g_r[1] + 1; }
+static void pa_b(uint8_t v) { g_r[1][1 + pa_cur++] = v; }
+static void pa_d(uint32_t v) { set32(g_r[1], 1 + pa_cur, v); pa_cur += 4; }
+static void pa_w(uint16_t v) { set16(g_r[1], 1 + pa_cur, v); pa_cur += 2; }
+static void pa_x20(int32_t off, uint32_t n, uint8_t first)    /* n * 2 data bytes first, first + 1, ... (at most 20) */
+{
+    uint32_t i;
+    pa_b(0x20); pa_d((uint32_t)off); pa_d(n);
+    for (i = 0; i < ((n * 2u) & 0xffffffffu) && i < 20; i++) pa_b((uint8_t)(first + i));
+}
+static void pa_x40(uint16_t word, int32_t off, uint32_t val) { pa_b(0x40); pa_w(word); pa_d((uint32_t)off); pa_d(val); }
+static void pa_x80(uint8_t m, int32_t k, uint8_t first, int32_t o0, int32_t o1)
+{
+    uint32_t i;
+    pa_b(0x80); pa_b(m); pa_d((uint32_t)k);
+    for (i = 0; i < 2u * m && i < 20; i++) pa_b((uint8_t)(first + i));
+    if (k >= 1) pa_d((uint32_t)o0);
+    if (k >= 2) pa_d((uint32_t)o1);
+}
+static void pa_setup(uint8_t kind)
+{
+    setup();
+    memset(g_r[4], 0xee, RSZ);
+    set32(g_r[0], 3 + 0xa, 0);
+    g_r[0][3 + 0xe] = kind;
+    pa_cur = 0;
+    (void)pa_s;
+}
+static void pa_count(uint32_t count) { set32(g_r[0], 3 + 0xa, count); }
+static int pa_call(uint32_t size, uint32_t flag)
+{
+    return m416af3_apply_patches(PA_HDR, PA_OUT, size, PA_STREAM, PA_BASE, flag, &g_host);
+}
+static void test_m416af3_apply_patches(void)
+{
+    uint8_t want[RSZ];
+    int k, i;
+    for (k = 1; k <= 2; k++) {
+        /* x20 (off 3, 5 words a0..a9), x40 (word 0x1234, off 5, 0xdeadbeef), x80 (m = 3 -> e0..e5, K = 2, offsets 4 and -6) */
+        pa_setup((uint8_t)k);
+        for (i = 0; i < 64; i++) g_r[3][0x10 + i] = (uint8_t)(0x30 + i);
+        pa_x20(3, 5, 0xa0);
+        pa_x40(0x1234, 5, 0xdeadbeefu);
+        pa_x80(3, 2, 0xe0, 4, -6);
+        pa_count((uint32_t)pa_cur);
+        memcpy(want, g_r[4], RSZ);
+        if (k == 2) memcpy(want + 0x80, g_r[3] + 0x10, 7);                 /* the full copy of `size` = 7 bytes (flag == 0) */
+        memcpy(want + 0x80 + 6, "\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9", 10);
+        memcpy(want + 0x80 + 8, "\xe0\xe1\xe2\xe3\xe4\xe5", 6);
+        memcpy(want + 0x80 - 12, "\xe0\xe1\xe2\xe3\xe4\xe5", 6);
+        CK(pa_call(7, 0) == 0);
+        CK(memcmp(g_r[4], want, RSZ) == 0);
+        if (k == 1) {
+            CK(L.n == 2);
+            CKC(0, 0x43ef77, 0x5d2f2d, 3, PA_OUT + 10, 0x1234, 0xdeadbeefu);
+            CKC(1, 0x4c7314, 0x5cf659, 2, PA_OUT, 7);                      /* after the loop */
+            CK(L.c[1].r4[0x80 + 6] == 0xa0 && L.c[1].r4[0x80 - 12] == 0xe0);
+        } else {
+            CK(L.n == 5);
+            CKC(0, 0x4c7314, 0x5cf659, 2, PA_OUT + 6, 10);                 /* x20: after its copy */
+            CK(L.c[0].r4[0x80 + 6] == 0xa0 && L.c[0].r4[0x80 + 15] == 0xa9 && L.c[0].r4[0x80 + 0] == 0x30);
+            CKC(1, 0x43ef77, 0x5d2f2d, 3, PA_OUT + 10, 0x1234, 0xdeadbeefu);
+            CKC(2, 0x4c7314, 0x5cf659, 2, PA_OUT + 10, 0xbd5b7ddeu);       /* 0xdeadbeef * 2 (32-bit) */
+            CKC(3, 0x4c7314, 0x5cf659, 2, PA_OUT + 8, 6);
+            CK(L.c[3].r4[0x80 + 8] == 0xe0 && L.c[3].r4[0x80 - 12] == 0xee);
+            CKC(4, 0x4c7314, 0x5cf659, 2, PA_OUT - 12, 6);
+        }
+    }
+    /* kind 2 with a flag whose low word is zero: non-zero, so no full copy */
+    pa_setup(2);
+    for (i = 0; i < 64; i++) g_r[3][0x10 + i] = (uint8_t)(0x30 + i);
+    pa_x40(1, 0, 2);
+    pa_count((uint32_t)pa_cur);
+    memcpy(want, g_r[4], RSZ);
+    CK(pa_call(7, 0x10000) == 0 && memcmp(g_r[4], want, RSZ) == 0 && L.n == 2);
+    /* the count is a SIGNED compare: 0x80000000 | length runs nothing (kind 1 still makes the final call, kind 2 makes none) */
+    pa_setup(1);
+    pa_x20(3, 2, 0xa0);
+    pa_count(0x80000000u | (uint32_t)pa_cur);
+    memcpy(want, g_r[4], RSZ);
+    CK(pa_call(9, 0) == 0 && memcmp(g_r[4], want, RSZ) == 0 && L.n == 1);
+    CKC(0, 0x4c7314, 0x5cf659, 2, PA_OUT, 9);
+    pa_count(0);
+    L.n = 0;
+    CK(pa_call(9, 0) == 0 && L.n == 1);
+    /* n = 0x80000000: n * 2 wraps to 0 bytes copied and idx advances by 9 only, so the next op follows at once */
+    pa_setup(1);
+    pa_x20(3, 0x80000000u, 0xa0);
+    pa_x40(7, 4, 0x11223344u);
+    pa_count((uint32_t)pa_cur);
+    memcpy(want, g_r[4], RSZ);
+    CK(pa_call(0, 0) == 0 && memcmp(g_r[4], want, RSZ) == 0 && L.n == 2);
+    CKC(0, 0x43ef77, 0x5d2f2d, 3, PA_OUT + 8, 7, 0x11223344u);
+    /* K = -1 (signed): no iteration, the op after it is then read at the right place */
+    pa_setup(1);
+    pa_x80(3, -1, 0xe0, 0, 0);
+    pa_x20(0, 1, 0x77);
+    pa_count((uint32_t)pa_cur);
+    CK(pa_call(0, 0) == 0 && get16(g_r[4], 0x80) == 0x7877 && L.n == 1);
+    /* an unknown opcode after a valid op: the original never finishes; the port returns 1 with the first op done and no final call */
+    pa_setup(1);
+    pa_x20(1, 2, 0x50);
+    pa_b(0x21);
+    pa_count((uint32_t)pa_cur);
+    memcpy(want, g_r[4], RSZ);
+    memcpy(want + 0x80 + 2, "\x50\x51\x52\x53", 4);
+    CK(pa_call(9, 0) == 1 && memcmp(g_r[4], want, RSZ) == 0 && L.n == 0);
+    pa_setup(2);
+    pa_b(0xa0);
+    pa_count(1);
+    CK(pa_call(9, 1) == 1 && L.n == 0);
+    pa_setup(2);
+    pa_b(0x00);
+    pa_count(0);                                       /* the loop never starts: not an unknown opcode */
+    CK(pa_call(9, 1) == 0 && L.n == 0);
+    /* any other kind: nothing */
+    for (k = 0; k < 4; k++) {
+        if (k == 1 || k == 2) continue;
+        pa_setup((uint8_t)(k == 0 ? 0 : 0x81));
+        pa_x20(3, 2, 0xa0);
+        pa_count((uint32_t)pa_cur);
+        memcpy(want, g_r[4], RSZ);
+        CK(pa_call(9, 0) == 0 && memcmp(g_r[4], want, RSZ) == 0 && L.n == 0);
+    }
+}
+
 /* TESTS-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -309,6 +443,14 @@ static void test_sweep_bounded(void)
         script_write(0x4c4067, 0, 2, 0x10, 4, (uint32_t)((int32_t)(seed % 33) - 16));
         cm_call(CM_A, seed & 1 ? 0x4444 : 0);
         L.n = 0;
+        /* 0x416af3: a valid stream (x20, x40, x80), kind 1 or 2 */
+        pa_setup((uint8_t)(1 + (seed & 1)));
+        pa_x20((int32_t)(seed % 40) - 20, seed % 6, (uint8_t)seed);
+        pa_x40((uint16_t)seed, (int32_t)(seed % 30) - 10, seed);
+        pa_x80((uint8_t)(seed % 8), (int32_t)(seed % 3), (uint8_t)(seed >> 3), (int32_t)(seed % 50), -(int32_t)(seed % 50));
+        pa_count((uint32_t)pa_cur);
+        pa_call(seed % 40, seed >> 9 & 1);
+        L.n = 0;
         /* SWEEP-END */
         L.n = 0;
     }
@@ -331,6 +473,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m4c6929_copy_masked);
+    RUN(test_m416af3_apply_patches);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

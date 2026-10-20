@@ -196,7 +196,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F33C_NONE = 0, F33C_4C6929 /*ENUM*/ };
+enum { F33C_NONE = 0, F33C_4C6929, F33C_416AF3 /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values. `result` is the status/return value of the ports that have one (see each case). The world is the host
  * context, so that each logged call keeps a snapshot of it. */
@@ -211,6 +211,7 @@ void shim_fl33c(int fn, uint8_t *self, const uintptr_t *a, Fl33cWorld *w, int32_
 
     switch (fn) {
     case F33C_4C6929: *result = m4c6929_copy_masked(self, (uint32_t)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3], (uint32_t)a[4], (uint32_t)a[5], (uint32_t)a[6], w, &host); break;
+    case F33C_416AF3: *result = m416af3_apply_patches((uint32_t)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3], (uint32_t)a[4], (uint32_t)a[5], &host); break;
     /*CASES*/
     default: break;
     }

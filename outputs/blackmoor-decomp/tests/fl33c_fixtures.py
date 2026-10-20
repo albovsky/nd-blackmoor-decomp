@@ -53,7 +53,7 @@ class World(ctypes.Structure):
 
 
 GLOBALS = {n: (int(n.rsplit('_', 1)[1], 16), ctypes.sizeof(t)) for n, t, p in WORLD_FIELDS if not p}
-WORD_ARGS = {}       # callee -> positions of stack arguments pushed from a 16-bit register with a stale upper half (the callee reads a word): the comparison masks them to 16 bits
+WORD_ARGS = {0x43ef77: (1,)}       # callee -> positions of stack arguments pushed from a 16-bit register with a stale upper half (the callee reads a word): the comparison masks them to 16 bits
 NONZERO = [1, 0x80000000, 0x10000, 0xff000000, 0x00ff0000, 0xdeadbeef, 0xffffffff, 0x100]    # non-zero dwords, some with a zero low word / byte
 WORDS_OTHER = [0, 1, 0x7fff, 0x8000, 0xfffe, 0x1234, 0xff00, 0x00ff]
 
@@ -293,14 +293,86 @@ def gen_4c6929(rng, n):
     return make('4c6929', areas, stubs, g, args, tuple(args), (prof_, variant), fault=FAULT_4C6929 if kind == 'fault' else None)
 
 
+# ---- 0x416af3 ---------------------------------------------------------------------------------------------------------------------
+
+PA_OUT_OFF = 0x200            # the word buffer 'out' starts this far into its area (slack for negative word offsets)
+PA_X20 = lambda off, n: ('x20', off, n)
+PA_X40 = lambda word, off, val: ('x40', word, off, val)
+PA_X80 = lambda m, k, offs: ('x80', m, k, offs)
+PA_OPS = {
+    'x20_zero': [PA_X20(1, 0)], 'x20_5': [PA_X20(3, 5)], 'x20_2': [PA_X20(-7, 2)], 'x20_1': [PA_X20(0, 1)], 'x20_3': [PA_X20(10, 3)], 'x20_wrap': [PA_X20(2, 0x80000000), PA_X40(7, 4, 0x11223344)],
+    'x20_wrap2': [PA_X20(-3, 0x80000002)], 'x40': [PA_X40(0x1234, 5, 0xdeadbeef)], 'x40_neg': [PA_X40(0xffff, -9, 0x80000001), PA_X40(0, 0, 0)],
+    'x80_m3': [PA_X80(3, 2, [4, -6])], 'x80_m1': [PA_X80(1, 3, [0, 9, 20])], 'x80_m2': [PA_X80(2, 1, [-4])], 'x80_m0': [PA_X80(0, 2, [3, 8])], 'x80_k0': [PA_X80(3, 0, [])],
+    'x80_kneg': [PA_X80(3, -1, []), PA_X20(5, 1)], 'x80_kbig': [PA_X80(3, 0x80000000, [])], 'x80_m80': [PA_X80(0x80, 1, [2])], 'x80_m81': [PA_X80(0x81, 1, [-30])], 'x80_mff': [PA_X80(0xff, 2, [0, 130])],
+    'mixed': [PA_X20(2, 4), PA_X40(9, -3, 0x01020304), PA_X80(2, 2, [6, 30]), PA_X20(40, 3)],
+    'bad_first': [('bad', 0x00)], 'bad_21': [PA_X20(1, 2), ('bad', 0x21)], 'bad_a0': [PA_X40(1, 2, 3), PA_X80(1, 1, [1]), ('bad', 0xa0)], 'bad_c0': [('bad', 0xc0)], 'bad_ff': [PA_X20(0, 3), ('bad', 0xff)],
+    'bad_60': [('bad', 0x60)], 'bad_10': [('bad', 0x10)],
+}
+PA_COUNTS = ['full', 'zero', 'neg', 'min', 'first']
+PA_PROFILES = ([(kind, ops, 'full') for kind in (1, 2) for ops in PA_OPS] + [(kind, 'mixed', c) for kind in (1, 2) for c in PA_COUNTS[1:]]
+               + [(kind, 'x20_5', 'zero') for kind in (0, 3, 0x81, 0xff)])
+PA_SIZES = [0, 1, 3, 4, 5, 0x20, 0x21, 0x23]
+PA_FLAGS = [0, 1, 0x10000, 0x80000000, 0x100]
+
+
+def pa_stream(rng, ops):
+    """(bytes of the stream, [offset of the op in the stream])."""
+    s, starts = bytearray(), []
+    for op in ops:
+        starts.append(len(s))
+        if op[0] == 'bad':
+            s += bytes([op[1]]) + rng.randbytes(8)
+        elif op[0] == 'x20':
+            s += bytes([0x20]) + struct.pack('<I', op[1] & 0xffffffff) + struct.pack('<I', op[2] & 0xffffffff) + rng.randbytes((2 * op[2]) & 0xffffffff)
+        elif op[0] == 'x40':
+            s += bytes([0x40]) + struct.pack('<H', op[1]) + struct.pack('<I', op[2] & 0xffffffff) + struct.pack('<I', op[3])
+        else:
+            m, k, offs = op[1:]
+            s += bytes([0x80, m]) + struct.pack('<I', k & 0xffffffff) + rng.randbytes(2 * m) + b''.join(struct.pack('<I', o & 0xffffffff) for o in offs)
+    return s, starts
+
+
+def gen_416af3(rng, n):
+    (kind, opsname, countmode), variant = prof(n, PA_PROFILES)
+    ops = PA_OPS[opsname]
+    stream, starts = pa_stream(rng, ops)
+    stream_va = od.region_va(1) + 1 + variant % 2
+    area_stream = bytearray(rng.randbytes(1 + variant % 2)) + stream + bytearray(rng.randbytes(0x40))
+    count = {'full': len(stream), 'zero': 0, 'neg': 0x80000000 | len(stream), 'min': 0xffffffff, 'first': starts[1] if len(starts) > 1 else len(stream)}[countmode]
+    hdr = bytearray(rng.randbytes(0x20))
+    put32(hdr, 3 + 0xa, count)
+    hdr[3 + 0xe] = kind
+    hdr_va = od.region_va(0) + 3
+    out = bytearray(rng.randbytes(0x800))
+    base = bytearray(rng.randbytes(0x400))
+    size = PA_SIZES[(variant + n) % len(PA_SIZES)]
+    flag = PA_FLAGS[(variant // 2 + n) % len(PA_FLAGS)]
+    out_va = od.region_va(2) + PA_OUT_OFF + variant % 2
+    base_va = od.region_va(3) + 0x40 + variant % 3
+    probe = [('out', 0x100, 0x400)]
+    stubs = {0x4c7314: stub(0x4c7314, THISCALL(2), probe=probe), 0x43ef77: stub(0x43ef77, THISCALL(3), probe=probe)}
+    areas = [Area('hdr', od.region_va(0), hdr, image=False), Area('stream', od.region_va(1), area_stream, image=False), Area('out', od.region_va(2), out, image=False),
+             Area('base', od.region_va(3), base, image=False)]
+    args = [hdr_va, out_va, size, stream_va, base_va, flag]
+    cycle = None
+    if any(o[0] == 'bad' for o in ops) and kind in (1, 2):
+        lo, hi, tail = (0x416b2c, 0x416b5f, 0x416c6f) if kind == 1 else (0x416ca8, 0x416cdb, 0x416e4c)
+        cycle = {a for a in od.instruction_addresses(0x416af3, 870) if lo <= a <= hi} | {tail}
+        # the endless cycle is only reached when the count lets the loop run up to the bad op
+        if countmode != 'full':
+            cycle = None
+    return make('416af3', areas, stubs, {}, args, tuple(args), (kind, opsname, countmode, variant), endless=cycle)
+
+
 # GEN-END
 
 SPECS = {
     '4c6929': dict(id=1, va=0x4c6929, size=769, gen=gen_4c6929, cleanup=0x1c, status=True, n=len(CM_PROFILES) * 2),
+    '416af3': dict(id=2, va=0x416af3, size=870, gen=gen_416af3, cleanup=0x18, status=True, n=len(PA_PROFILES) * 2),
     # SPECS-END
 }
 KEYS = list(SPECS)
-NAMES = {'4c6929': 'copy_masked'}
+NAMES = {'4c6929': 'copy_masked', '416af3': 'apply_patches'}
 
 
 def build(key, rng, n):

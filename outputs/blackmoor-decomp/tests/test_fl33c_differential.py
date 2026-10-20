@@ -164,6 +164,10 @@ class Fl33cDifferential(DiffBase):
         """FL-33c: differential test of m4c6929_copy_masked (original 0x4c6929), including the scenario in which the original faults (a == 0) and the port rejects"""
         self.run_key('4c6929')
 
+    def test_416af3_apply_patches(self):
+        """FL-33c: differential test of m416af3_apply_patches (original 0x416af3), including the scenarios in which the original never finishes (an unknown opcode) and the port rejects"""
+        self.run_key('416af3')
+
     # TESTS-END
 
 

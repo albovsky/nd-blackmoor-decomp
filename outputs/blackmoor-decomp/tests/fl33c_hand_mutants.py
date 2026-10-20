@@ -33,6 +33,19 @@ HAND = [
     ('4c6929', '    call3(host, 0x4c4202, (uintptr_t)self, b, r2, 0x555164);\n    if (b == rd32(self, 0xc)) call1(host, 0x4c952f, (uintptr_t)self, r2);\n    return 0;',
      '    if (b == rd32(self, 0xc)) call1(host, 0x4c952f, (uintptr_t)self, r2);\n    call3(host, 0x4c4202, (uintptr_t)self, b, r2, 0x555164);\n    return 0;'),
     ('4c6929', 'wr16(res(host, dst + col * 2u), 0, rd16(res(host, src + col * 2u), 0));', 'wr16(res(host, dst + col * 2u), 0, rd16(res(host, src + col * 2u + 2u), 0));'),
+    ('416af3', 'if (flag == 0) rep_movs(host, out, base, size);', 'if ((uint16_t)flag == 0) rep_movs(host, out, base, size);'),
+    ('416af3', 'while ((int32_t)idx < (int32_t)count) {', 'while (idx < count) {'),
+    ('416af3', 'idx = idx + rdb(host, p + 1) * 2u;', 'idx = idx + rdw(host, p + 1) * 2u;'),
+    ('416af3', '                idx = idx + rdd(host, p + 5) * 2u;', '                idx = idx + rdd(host, p + 5);'),
+    ('416af3', '                rep_movs(host, out + rdd(host, p + 1) * 2u, stream + idx, rdd(host, p + 5) << 1);\n                call2(host, 0x4c7314, 0x5cf659, out + rdd(host, p + 1) * 2u, rdd(host, p + 5) << 1);',
+     '                call2(host, 0x4c7314, 0x5cf659, out + rdd(host, p + 1) * 2u, rdd(host, p + 5) << 1);\n                rep_movs(host, out + rdd(host, p + 1) * 2u, stream + idx, rdd(host, p + 5) << 1);'),
+    ('416af3', 'call3(host, 0x43ef77, 0x5d2f2d, out + rdd(host, p + 3) * 2u, rdw(host, p + 1), rdd(host, p + 7));\n                call2', 'call3(host, 0x43ef77, 0x5d2f2d, out + rdd(host, p + 3) * 2u, rdd(host, p + 1), rdd(host, p + 7));\n                call2'),
+    ('416af3', '                return 1;                                  /* the original jumps to the loop head again and again */', '                break;'),
+    ('416af3', 'call2(host, 0x4c7314, 0x5cf659, out, size);', 'call2(host, 0x4c7314, 0x5cf659, size, out);'),
+    ('416af3', '} else if (kind == 2) {', '} else if (kind == 3) {'),
+    ('416af3', 'for (k = 0; (int32_t)k < (int32_t)rdd(host, p + 2); k++) {\n                    off = rdd(host, stream + idx);\n                    rep_movs(host, out + off * 2u, data, rdb(host, p + 1) * 2u);',
+     'for (k = 0; k < rdd(host, p + 2); k++) {\n                    off = rdd(host, stream + idx);\n                    rep_movs(host, out + off * 2u, data, rdb(host, p + 1) * 2u);'),
+    ('416af3', 'rep_movs(host, out + off * 2u, data, m * 2u);', 'rep_movs(host, out + off * 2u, data, (uint32_t)(int8_t)m * 2u);'),
     # EQUIVALENT (not a mutant): the 0x120-byte message local and the 0x80-byte descriptor local are only sizes of host scratch; rd16 -> rd32 of the copied word is truncated by wr16
     # HAND-END
 ]

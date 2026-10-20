@@ -135,3 +135,92 @@ int m4c6929_copy_masked(uint8_t *self, uint32_t a, uint32_t b, uint32_t c, uint3
     return 0;
 }
 
+
+/* ---- 0x416af3 apply_patches ---------------------------------------------------------------------------------------------------- */
+static uint32_t rdd(const Fl18Host *host, uint32_t a) { return rd32(res(host, a), 0); }
+static uint32_t rdw(const Fl18Host *host, uint32_t a) { return rd16(res(host, a), 0); }
+static uint32_t rdb(const Fl18Host *host, uint32_t a) { return *res(host, a); }
+
+/* mov ecx, count; shr ecx, 2; rep movsd; mov ecx, count; and ecx, 3; rep movsb: forward, dwords first */
+static void rep_movs(const Fl18Host *host, uint32_t dst, uint32_t src, uint32_t count)
+{
+    uint32_t n = count >> 2, i;
+    uint8_t *d;
+    const uint8_t *s;
+    if (count == 0) return;
+    d = res(host, dst);
+    s = res(host, src);
+    for (i = 0; i < n; i++) {
+        uint8_t t[4];
+        memcpy(t, s + 4u * i, 4);
+        memcpy(d + 4u * i, t, 4);
+    }
+    for (i = 4u * n; i < count; i++) d[i] = s[i];
+}
+
+int m416af3_apply_patches(uint32_t hdr, uint32_t out, uint32_t size, uint32_t stream, uint32_t base, uint32_t flag, const Fl18Host *host)
+{
+    uint32_t count = rdd(host, hdr + 0xa);
+    uint32_t kind = rdb(host, hdr + 0xe);
+    uint32_t idx = 0, p, data, k, off, m;
+    if (kind == 1) {
+        while ((int32_t)idx < (int32_t)count) {
+            uint32_t op = rdb(host, stream + idx);
+            if (op == 0x20) {
+                p = stream + idx;
+                idx += 9;
+                rep_movs(host, out + rdd(host, p + 1) * 2u, stream + idx, rdd(host, p + 5) << 1);
+                idx = idx + rdd(host, p + 5) * 2u;
+            } else if (op == 0x40) {
+                p = stream + idx;
+                idx += 0xb;
+                call3(host, 0x43ef77, 0x5d2f2d, out + rdd(host, p + 3) * 2u, rdw(host, p + 1), rdd(host, p + 7));
+            } else if (op == 0x80) {
+                p = stream + idx;
+                idx += 6;
+                data = stream + idx;
+                idx = idx + rdb(host, p + 1) * 2u;
+                for (k = 0; (int32_t)k < (int32_t)rdd(host, p + 2); k++) {
+                    off = rdd(host, stream + idx);
+                    rep_movs(host, out + off * 2u, data, rdb(host, p + 1) * 2u);
+                    idx += 4;
+                }
+            } else {
+                return 1;                                  /* the original jumps to the loop head again and again */
+            }
+        }
+        call2(host, 0x4c7314, 0x5cf659, out, size);
+    } else if (kind == 2) {
+        if (flag == 0) rep_movs(host, out, base, size);
+        while ((int32_t)idx < (int32_t)count) {
+            uint32_t op = rdb(host, stream + idx);
+            if (op == 0x20) {
+                p = stream + idx;
+                idx += 9;
+                rep_movs(host, out + rdd(host, p + 1) * 2u, stream + idx, rdd(host, p + 5) << 1);
+                call2(host, 0x4c7314, 0x5cf659, out + rdd(host, p + 1) * 2u, rdd(host, p + 5) << 1);
+                idx = idx + rdd(host, p + 5) * 2u;
+            } else if (op == 0x40) {
+                p = stream + idx;
+                idx += 0xb;
+                call3(host, 0x43ef77, 0x5d2f2d, out + rdd(host, p + 3) * 2u, rdw(host, p + 1), rdd(host, p + 7));
+                call2(host, 0x4c7314, 0x5cf659, out + rdd(host, p + 3) * 2u, rdd(host, p + 7) << 1);
+            } else if (op == 0x80) {
+                p = stream + idx;
+                idx += 6;
+                data = stream + idx;
+                idx = idx + rdb(host, p + 1) * 2u;
+                for (k = 0; (int32_t)k < (int32_t)rdd(host, p + 2); k++) {
+                    off = rdd(host, stream + idx);
+                    m = rdb(host, p + 1);
+                    rep_movs(host, out + off * 2u, data, m * 2u);
+                    call2(host, 0x4c7314, 0x5cf659, out + off * 2u, rdb(host, p + 1) * 2u);
+                    idx += 4;
+                }
+            } else {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}

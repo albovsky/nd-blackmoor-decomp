@@ -70,6 +70,10 @@ class Fl33cDirect(unittest.TestCase):
         """FL-33c: direct test of m4c6929_copy_masked (original 0x4c6929)"""
         self.check('test_m4c6929_copy_masked')
 
+    def test_416af3_apply_patches(self):
+        """FL-33c: direct test of m416af3_apply_patches (original 0x416af3)"""
+        self.check('test_m416af3_apply_patches')
+
     # TESTS-END
 
     def test_sweep_bounded(self):
