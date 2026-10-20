@@ -1,0 +1,299 @@
+[
+ {
+  "va": "0x4c946b",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m4c946b_call_slot"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m4c946b_call_slot"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_4c946b_call_slot"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_4c946b_call_slot"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x4c946b",
+    "0x4c948f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4c2dfb with ecx = this and the address of the slot at +0xc72 + 4 * (signed word index); 13/13 instructions, no jump. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x4ee673",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m4ee673_forward_if_set"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m4ee673_forward_if_set"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_4ee673_forward_if_set"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_4ee673_forward_if_set"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x4ee673",
+    "0x4ee69e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When the dword at +0x252 is non-zero calls 0x4ef4f0 with ecx = this + 0x4b7 and the argument; 15/15 instructions, 2/2 jump directions. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x4daeb5",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m4daeb5_read_cursor"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m4daeb5_read_cursor"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_4daeb5_read_cursor"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_4daeb5_read_cursor"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x4daeb5",
+    "0x4daef1"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the pair from the GetCursorPos import (slot 0x52a484) at +0x18/+0x1c, then through the out pointer, and returns it; 22/22 instructions. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x4dadff",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m4dadff_poll_keys"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m4dadff_poll_keys"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_4dadff_poll_keys"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_4dadff_poll_keys"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x4dadff",
+    "0x4dae66"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Two GetAsyncKeyState polls (slot 0x52a4b4) for the dwords at +0x20/+0x24 set bytes 0x58321d/0x58321e from bit 15 of ax; 29/29, 4/4 directions. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x420b9e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m420b9e_report_name"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m420b9e_report_name"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_420b9e_report_name"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_420b9e_report_name"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x420b9e",
+    "0x420c17"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Picks word +0xf75 or +0xf73 and string 0x543b60 or 0x543b88 by dword 0x5b15da, calls 0x4c51a5 with the table entry; 32/32, 2/2 jump directions. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x47d1c3",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m47d1c3_alloc_zeroed"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m47d1c3_alloc_zeroed"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_47d1c3_alloc_zeroed"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_47d1c3_alloc_zeroed"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x47d1c3",
+    "0x47d24e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates through 0x51dc43 and stores the result; zeroes size bytes (rep stos) or on null reports through four callees; 45/45, 4/4 directions. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x4fc878",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m4fc878_activate_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m4fc878_activate_record"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_4fc878_activate_record"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_4fc878_activate_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x4fc878",
+    "0x4fc909"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Optional trace calls, then when the state word of record index*0x5bb is 1 calls 0x4f61e7 and sets it to 2; 38/38 instructions, 4/4 directions. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x47d4f7",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m47d4f7_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m47d4f7_reset_fields"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_47d4f7_reset_fields"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_47d4f7_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x47d4f7",
+    "0x47d59b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Resets the word, byte and dword fields of the object (0xffff, 0xfe0c, zeros) in the original order; 39/39 instructions, no jump. See tasks/fl31b-handoff.md."
+ },
+ {
+  "va": "0x47d59b",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-31b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl31b.c",
+   "symbol": "m47d59b_release_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl31b_direct_test.c",
+    "test_id": "test_m47d59b_release_fields"
+   },
+   {
+    "path": "tests/test_fl31b_direct.py",
+    "test_id": "Fl31bDirect.test_47d59b_release_fields"
+   },
+   {
+    "path": "tests/test_fl31b_differential.py",
+    "test_id": "Fl31bDifferential.test_47d59b_release_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl31b_original_oracle.py",
+   "window": [
+    "0x47d59b",
+    "0x47d640"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Frees the fields through 0x4c2dfb, 0x51dc6c x3 and 0x4d3992 (word != -1) and calls 0x47d4f7; 56/56 instructions, 10/10 jump directions. See tasks/fl31b-handoff.md."
+ }
+]
