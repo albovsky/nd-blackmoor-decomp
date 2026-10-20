@@ -1,4 +1,4 @@
-/* Flat entry points for tests/test_fl29a_differential.py: each wraps one FL-31 (batch b) port (src/original_methods_fl29a.c) so that
+/* Flat entry points for tests/test_fl31b_differential.py: each wraps one FL-31 (batch b) port (src/original_methods_fl31b.c) so that
  * ctypes can drive it on the same fixture as the original bytes run under Unicorn. One generic host logs every call (callee, ecx,
  * stack arguments, the bytes behind a pointer argument when the test asked for them) and a per-callee script tells it what to return
  * and which dwords / words / byte strings to store through a pointer argument. Pointers into fixture regions are turned back into the

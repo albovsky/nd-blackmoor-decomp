@@ -247,8 +247,25 @@ def gen_47d1c3(rng, n):
 REC = 0x5bb
 
 
+FAR_INDICES = (0x8000, 0x8001, 0xffff)       # bit 15 of the record index: the index is unsigned (0x8000 * 0x5bb is 48 MB, 0xffff * 0x5bb is 96 MB)
+
+
 def gen_4fc878(rng, n):
-    (dbg, idx, word), variant = prof(n, [(d, i, w) for d in DBG_VALUES for i in (0, 1, 2, 3, 6) for w in (1, 0, 2, 0xffff, 0x8001, 3, 0x0100)])
+    near = [('near', d, i, w) for d in DBG_VALUES for i in (0, 1, 2, 3, 6) for w in (1, 0, 2, 0xffff, 0x8001, 3, 0x0100)]
+    far = [('far', d, i, w) for d in (1, 0x8000) for i in FAR_INDICES for w in (1, 0)]
+    (kind, dbg, idx, word), variant = prof(n, near + far)
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3)), 0x44a2b7: stub(0x44a2b7, CDECL(1))}
+    a = word_arg(rng, idx)
+    if kind == 'far':
+        # the object would be 48 to 96 MB: the fixture maps only the 0x200 bytes around the record word (area offset 0x40) and puts `this` (ecx) where
+        # this + idx * 0x5bb + 0x132 is that word, so the original (Unicorn) and the native port both address it by the full unsigned index
+        s = bytearray(rng.randbytes(0x200))
+        put16(s, 0x40, word)
+        if variant % 2:
+            put16(s, 0x42, rng.choice([0xffff, 1, 0x8000]))
+        stubs[0x4f61e7] = stub(0x4f61e7, THISCALL(1), probe=[('self', 0x40, 2)])
+        return make('4fc878', [self_area(s), debug_area(rng)], stubs, {'word_63a4cd': dbg}, [a], (a,), (kind, hex(dbg), hex(idx), hex(word)),
+                    self_off=0x40 - 0x132 - idx * REC)
     s = bytearray(rng.randbytes(0x4000))
     for r in range(8):                  # the same word of every other record is 1 (or 2): a wrong record or a wrong stride is seen
         put16(s, r * REC + 0x132, rng.choice([1, 1, 2, 0]))
@@ -256,9 +273,8 @@ def gen_4fc878(rng, n):
     if variant % 2:                     # the word after it: a dword compare would see it
         put16(s, idx * REC + 0x134, rng.choice([0xffff, 1, 0x8000]))
     off = idx * REC + 0x132
-    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3)), 0x44a2b7: stub(0x44a2b7, CDECL(1)), 0x4f61e7: stub(0x4f61e7, THISCALL(1), probe=[('self', off, 2)])}
-    a = word_arg(rng, idx)
-    return make('4fc878', [self_area(s), debug_area(rng)], stubs, {'word_63a4cd': dbg}, [a], (a,), (hex(dbg), idx, hex(word)))
+    stubs[0x4f61e7] = stub(0x4f61e7, THISCALL(1), probe=[('self', off, 2)])
+    return make('4fc878', [self_area(s), debug_area(rng)], stubs, {'word_63a4cd': dbg}, [a], (a,), (kind, hex(dbg), idx, hex(word)))
 
 
 # ---- 0x47d4f7 ---------------------------------------------------------------------------------------------------------------------
@@ -292,7 +308,7 @@ SPECS = {
     '4dadff': dict(id=4, va=0x4dadff, size=103, gen=gen_4dadff, cleanup=0, n=100 * 2),
     '420b9e': dict(id=5, va=0x420b9e, size=121, gen=gen_420b9e, cleanup=0, n=72 * 2),
     '47d1c3': dict(id=6, va=0x47d1c3, size=139, gen=gen_47d1c3, cleanup=8, n=18 * 8),
-    '4fc878': dict(id=7, va=0x4fc878, size=145, gen=gen_4fc878, cleanup=4, n=175 * 2),
+    '4fc878': dict(id=7, va=0x4fc878, size=145, gen=gen_4fc878, cleanup=4, n=187 * 2),
     '47d4f7': dict(id=8, va=0x47d4f7, size=164, gen=gen_47d4f7, cleanup=0, n=4 * 3),
     '47d59b': dict(id=9, va=0x47d59b, size=165, gen=gen_47d59b, cleanup=0, n=32 * 3),
 }
