@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_surface_cache_free_slot_finder
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_36_runtime.h:24 says "0x4c948f first free surface cache slot in 0..23"
-# name-note:    Finds the first free surface cache slot in 0..23, reporting an error when the cache is exhausted.
+# name:         m4c948f_find_free_slot
+# naming:       native port src/original_methods_fl29a.c:m4c948f_find_free_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    The first zero dword of the 0x18 slots at self+0xc72 or the report and ax = 0xffff; every instruction and both directions of every jump executed. See tasks/fl29a-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_c72
 # callees:      calls FUN_0052139c, FUN_004c97b4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 29 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl29a.c:m4c948f_find_free_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 29 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

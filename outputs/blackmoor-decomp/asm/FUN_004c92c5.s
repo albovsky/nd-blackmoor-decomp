@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_font_sheet_release
-# naming:       INFERRED (lower confidence, not verified): the repository text src/session_bindings_af5.h:27 says "it still issues the font release 0x4c92c5(10)"; src/blackmoor_app.mm:7293 says "0x4c92c5: the font reference the text draws would hold."
-# name-note:    Releases a font-sheet reference (font surface count), counterpart of 0x4c924d.
+# name:         m4c92c5_count_down
+# naming:       native port src/original_methods_fl29a.c:m4c92c5_count_down (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Decrements the word counter of a non-zero entry, calls 0x4c2dfb with the original address of the dword when it reaches zero, and floors a negative word at 0; every instruction and jump direction executed. See tasks/fl29a-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_004c2dfb
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a76_font_acquire (function ledger class candidate_port; also native_ae4_font_release, native_af5_font_acquire; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 30 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl29a.c:m4c92c5_count_down (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 30 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

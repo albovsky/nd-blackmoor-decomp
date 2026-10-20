@@ -2,14 +2,14 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 1857,
-  "native_port": 399,
+  "entries": 1863,
+  "native_port": 422,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
-  "inferred_prose": 237,
-  "inferred_strings": 290,
+  "inferred_prose": 221,
+  "inferred_strings": 289,
   "inferred_import": 19
  },
  "entries": [
@@ -228,18 +228,15 @@
   },
   {
    "va": "0x00411a22",
-   "name": "inferred_raw_47_row_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader for raw 0x47 rows: pData is a 0x27-byte copy of the raw body.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_47_runtime.h:14 says \"0x411a22 loader: the row's pData is a 0x27-byte copy of the raw body\"",
-   "evidence": [
-    {
-     "path": "src/action_family_47_runtime.h",
-     "line": 14,
-     "quote": "0x411a22 loader: the row's pData is a 0x27-byte copy of the raw body"
-    }
-   ]
+   "name": "m411a22_alloc_copy",
+   "basis": "native_port",
+   "summary": "Allocates 0x27 bytes, stores the result in the record table at a signed-word index, copies 0x27 bytes between two cell addresses and advances both; oracle executes every instruction and all jump directions. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m411a22_alloc_copy (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m411a22_alloc_copy",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00411b16",
@@ -1136,19 +1133,27 @@
   },
   {
    "va": "0x00423a30",
-   "name": "inferred_dependency_bud_deleter",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "CDependency::DeleteBud: frees the bud pointer and clears it, with an ERROR message if it was already null.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/423a30.c.txt, not original source) refers to the data labelled s_CDependency__DeleteBud_____ERROR_00544820",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/423a30.c.txt",
-     "strings": [
-      "s_CDependency__DeleteBud_____ERROR_00544820"
-     ]
-    }
-   ]
+   "name": "m423a30_free_cell",
+   "basis": "native_port",
+   "summary": "Frees a pointer cell and clears it, or on a null cell reports through 0x50ca3e and 0x52139c and calls 0x4c97b4; the oracle executes every instruction and both directions of every jump. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m423a30_free_cell (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m423a30_free_cell",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00423aae",
+   "name": "m423aae_chain_end",
+   "basis": "native_port",
+   "summary": "Walks the [+4] link and then the [+0x38] chain to its last object, with the null-argument and null-link exits; the oracle executes every instruction and both directions of the three jumps. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m423aae_chain_end (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m423aae_chain_end",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00423af1",
@@ -1569,18 +1574,15 @@
   },
   {
    "va": "0x0042e72c",
-   "name": "inferred_secondary_video_page_flip",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Page flip under the stream lock toggling the 0/1 buffer page.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_33_runtime.h:43 says \"0x42e72c page flip\"",
-   "evidence": [
-    {
-     "path": "src/action_family_33_runtime.h",
-     "line": 43,
-     "quote": "0x42e72c page flip"
-    }
-   ]
+   "name": "m42e72c_toggle_state",
+   "basis": "native_port",
+   "summary": "Toggles word 0x5b4dc8 and in mode 2 stores the selected table entry through the address at 0x5d03bf; oracle executes every instruction and both directions of every jump. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m42e72c_toggle_state (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m42e72c_toggle_state",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0042ea87",
@@ -1770,18 +1772,15 @@
   },
   {
    "va": "0x00437dcd",
-   "name": "inferred_character_message_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Character message handler that stores an accepted typed character when a puzzle is active.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_76_runtime.h:23 says \"0x437dcd character message handler\"",
-   "evidence": [
-    {
-     "path": "src/action_family_76_runtime.h",
-     "line": 23,
-     "quote": "0x437dcd character message handler"
-    }
-   ]
+   "name": "m437dcd_note_key",
+   "basis": "native_port",
+   "summary": "Latches the first accepted character in two flag pairs via 0x437ea1 (byte argument only) and passes it sign-extended to three calls; oracle executes every instruction and all jump directions. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m437dcd_note_key (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m437dcd_note_key",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004381f4",
@@ -2375,6 +2374,18 @@
      "quote": "The original `0x446ffb` initializer sets object `+0x39 = width*height`"
     }
    ]
+  },
+  {
+   "va": "0x004471ca",
+   "name": "m4471ca_copy_record15",
+   "basis": "native_port",
+   "summary": "Allocates 0x15 bytes (0x51dc43), stores the pointer, reports a failure, copies 5 dwords + byte forward, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md.",
+   "source": "native port src/original_methods_fl29c.c:m4471ca_copy_record15 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29c.c",
+    "symbol": "m4471ca_copy_record15",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0044727a",
@@ -3603,18 +3614,15 @@
   },
   {
    "va": "0x0045b4ae",
-   "name": "inferred_raw_da_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader for raw 0xda rows: copies 2,958 bytes into a fresh row allocation.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_da_runtime.h:23 says \"0x45b4ae loader (arm 0x41061d): copies 2,958 bytes into a fresh row allocation\"",
-   "evidence": [
-    {
-     "path": "src/action_family_da_runtime.h",
-     "line": 23,
-     "quote": "0x45b4ae loader (arm 0x41061d): copies 2,958 bytes into a fresh row allocation"
-    }
-   ]
+   "name": "m45b4ae_copy_record_b8e",
+   "basis": "native_port",
+   "summary": "Allocates 0xb8e bytes, stores the pointer, reports a failure, copies 0x2e3 dwords + word, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md.",
+   "source": "native port src/original_methods_fl29c.c:m45b4ae_copy_record_b8e (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29c.c",
+    "symbol": "m45b4ae_copy_record_b8e",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0045b568",
@@ -4115,18 +4123,15 @@
   },
   {
    "va": "0x00461903",
-   "name": "inferred_raw_d3_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader for raw 0xd3 rows: copies the 855-byte typed body into a fresh row allocation.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d3_runtime.h:18 says \"0x461903 loader (0x410484): copies the 855-byte typed body\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d3_runtime.h",
-     "line": 18,
-     "quote": "0x461903 loader (0x410484): copies the 855-byte typed body"
-    }
-   ]
+   "name": "m461903_copy_record_357",
+   "basis": "native_port",
+   "summary": "Allocates 0x357 bytes, stores the pointer, reports a failure, copies 0xd5 dwords + word + byte, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md.",
+   "source": "native port src/original_methods_fl29c.c:m461903_copy_record_357 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29c.c",
+    "symbol": "m461903_copy_record_357",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004619be",
@@ -4202,18 +4207,15 @@
   },
   {
    "va": "0x004630a3",
-   "name": "inferred_cursor_candidate_writer",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Cursor/candidate writer of the raw 0xd3 puzzle pointer logic.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d3_runtime.h:25 says \"0x4630a3 the cursor / candidate writer\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d3_runtime.h",
-     "line": 25,
-     "quote": "0x4630a3 the cursor / candidate writer"
-    }
-   ]
+   "name": "m4630a3_select_action",
+   "basis": "native_port",
+   "summary": "Selection globals: the 0x277f case, [self+0x57] set when zero, the 4-arm jump table 0x2780..0x2783 and the default arm; 286 code bytes executed, the table is data. See fl29c-handoff.md.",
+   "source": "native port src/original_methods_fl29c.c:m4630a3_select_action (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29c.c",
+    "symbol": "m4630a3_select_action",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004631d1",
@@ -7789,23 +7791,15 @@
   },
   {
    "va": "0x004b5c5c",
-   "name": "inferred_d1_turning_puzzle_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader that copies the 927-byte typed body of the 0xd1 Turning Puzzle into a fresh row allocation.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d1_runtime.h:16 says \"0x4b5c5c loader (0x40b34a, 0x4103ee): copies the 927-byte typed body into a fresh row allocation\"; src/scene_resource.c:164 says \"0x4b5c5c copies 927 bytes (A-D1.1)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d1_runtime.h",
-     "line": 16,
-     "quote": "0x4b5c5c loader (0x40b34a, 0x4103ee): copies the 927-byte typed body into a fresh row allocation"
-    },
-    {
-     "path": "src/scene_resource.c",
-     "line": 164,
-     "quote": "0x4b5c5c copies 927 bytes (A-D1.1)"
-    }
-   ]
+   "name": "m4b5c5c_copy_record_39f",
+   "basis": "native_port",
+   "summary": "Allocates 0x39f bytes, stores the pointer, reports a failure, copies 0xe7 dwords + word + byte, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md.",
+   "source": "native port src/original_methods_fl29c.c:m4b5c5c_copy_record_39f (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29c.c",
+    "symbol": "m4b5c5c_copy_record_39f",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004b5d17",
@@ -8454,23 +8448,15 @@
   },
   {
    "va": "0x004bf19a",
-   "name": "inferred_bink_goto_range_check",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Bink prepare/seek helper that matches a one-based BinkGoto range check (1..total_frames).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/bink_player.h:90 says \"Matches FUN_004bf19a's one-based BinkGoto range check (1..total_frames).\"; src/action_family_2d_runtime.h:170 says \"0x4bf19a(id, frames + 1): a = id, b = count -> nonzero = ok\"",
-   "evidence": [
-    {
-     "path": "src/bink_player.h",
-     "line": 90,
-     "quote": "Matches FUN_004bf19a's one-based BinkGoto range check (1..total_frames)."
-    },
-    {
-     "path": "src/action_family_2d_runtime.h",
-     "line": 170,
-     "quote": "0x4bf19a(id, frames + 1): a = id, b = count -> nonzero = ok"
-    }
-   ]
+   "name": "m4bf19a_bink_goto",
+   "basis": "native_port",
+   "summary": "Bink seek: thiscall 0x4bf38c, null handle word -3, signed frame<1 / unsigned frame>count rejections, else _BinkGoto@12 via slot 0x52a530 (result ignored) and 1. See fl29c-handoff.md.",
+   "source": "native port src/original_methods_fl29c.c:m4bf19a_bink_goto (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29c.c",
+    "symbol": "m4bf19a_bink_goto",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004bf297",
@@ -8920,6 +8906,18 @@
    ]
   },
   {
+   "va": "0x004c3efb",
+   "name": "m4c3efb_lock_surface",
+   "basis": "native_port",
+   "summary": "Surface lock with retry loop around the vtable entry at +0x64 (lost and busy codes, error report); every instruction executed, two jump directions impossible by construction are allowlisted. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4c3efb_lock_surface (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4c3efb_lock_surface",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004c4067",
    "name": "inferred_surface_lock_descriptor",
    "basis": "inferred_prose",
@@ -8941,38 +8939,27 @@
   },
   {
    "va": "0x004c4202",
-   "name": "inferred_surface_unlock",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Surface unlock, the counterpart of the front-buffer lock.",
-   "source": "INFERRED (lower confidence, not verified): the repository text tasks/RT-32-screen-file-94-runtime.md:11 says \"the unlock `0x4c4202`\"",
-   "evidence": [
-    {
-     "path": "tasks/RT-32-screen-file-94-runtime.md",
-     "line": 11,
-     "quote": "the unlock `0x4c4202`"
-    }
-   ]
+   "name": "m4c4202_check_vtable_call",
+   "basis": "native_port",
+   "summary": "Compares the object with the stored one, calls the vtable entry at +0x80 and reports a non-zero result through 0x4c88c7, 0x42639d and 0x4c97b4; every instruction and both jump directions executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4c4202_check_vtable_call (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4c4202_check_vtable_call",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c46d1",
-   "name": "inferred_surface_clear_fill",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Surface clear: fills width*height words of a surface with the packed colour, pitch ignored.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_layout_internal.h:44 says \"0x4c46d1: fills surface->width * surface->height words (pitch ignored) with\"; src/caption_layout.h:8 says \"Clear: 0x4c46d1.\"",
-   "evidence": [
-    {
-     "path": "src/caption_layout_internal.h",
-     "line": 44,
-     "quote": "0x4c46d1: fills surface->width * surface->height words (pitch ignored) with"
-    },
-    {
-     "path": "src/caption_layout.h",
-     "line": 8,
-     "quote": "Clear: 0x4c46d1."
-    }
-   ]
+   "name": "m4c46d1_fill_surface",
+   "basis": "native_port",
+   "summary": "Builds the 16-bit colour from three masked, optionally byte-shifted components with 32-bit shifts modulo 32 and fills w*h words of the surface buffer; every instruction and jump direction executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4c46d1_fill_surface (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4c46d1_fill_surface",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c47e6",
@@ -9395,43 +9382,27 @@
   },
   {
    "va": "0x004c92c5",
-   "name": "inferred_font_sheet_release",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Releases a font-sheet reference (font surface count), counterpart of 0x4c924d.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/session_bindings_af5.h:27 says \"it still issues the font release 0x4c92c5(10)\"; src/blackmoor_app.mm:7293 says \"0x4c92c5: the font reference the text draws would hold.\"",
-   "evidence": [
-    {
-     "path": "src/session_bindings_af5.h",
-     "line": 27,
-     "quote": "it still issues the font release 0x4c92c5(10)"
-    },
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 7293,
-     "quote": "0x4c92c5: the font reference the text draws would hold."
-    }
-   ]
+   "name": "m4c92c5_count_down",
+   "basis": "native_port",
+   "summary": "Decrements the word counter of a non-zero entry, calls 0x4c2dfb with the original address of the dword when it reaches zero, and floors a negative word at 0; every instruction and jump direction executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4c92c5_count_down (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4c92c5_count_down",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c9340",
-   "name": "inferred_sheet_color_key_scan",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Returns the first sheet word in an inclusive rectangle that is not the colour key, else 0.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_layout_internal.h:37 says \"0x4c9340: first sheet word in the inclusive rectangle that is not the\"; src/caption_layout.c:398 says \"0x4c9340: first non-key word in a sheet rectangle, else 0.\"",
-   "evidence": [
-    {
-     "path": "src/caption_layout_internal.h",
-     "line": 37,
-     "quote": "0x4c9340: first sheet word in the inclusive rectangle that is not the"
-    },
-    {
-     "path": "src/caption_layout.c",
-     "line": 398,
-     "quote": "0x4c9340: first non-key word in a sheet rectangle, else 0."
-    }
-   ]
+   "name": "m4c9340_scan_surface",
+   "basis": "native_port",
+   "summary": "Scans the rectangle of a surface word by word (pitch, bytes per pixel, odd widths, negative pitch) for the first word that differs from the key at self+0x38d0; every instruction and jump direction executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4c9340_scan_surface (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4c9340_scan_surface",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c946b",
@@ -9450,18 +9421,15 @@
   },
   {
    "va": "0x004c948f",
-   "name": "inferred_surface_cache_free_slot_finder",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Finds the first free surface cache slot in 0..23, reporting an error when the cache is exhausted.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_36_runtime.h:24 says \"0x4c948f first free surface cache slot in 0..23\"",
-   "evidence": [
-    {
-     "path": "src/action_family_36_runtime.h",
-     "line": 24,
-     "quote": "0x4c948f first free surface cache slot in 0..23"
-    }
-   ]
+   "name": "m4c948f_find_free_slot",
+   "basis": "native_port",
+   "summary": "The first zero dword of the 0x18 slots at self+0xc72 or the report and ax = 0xffff; every instruction and both directions of every jump executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4c948f_find_free_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4c948f_find_free_slot",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c9805",
@@ -9687,18 +9655,15 @@
   },
   {
    "va": "0x004cb9d1",
-   "name": "inferred_hotspot_origin_adjuster",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Adds the player origin to the x/y fields of every 24-byte hotspot rectangle of the 0x1c object.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_1c_runtime.h:31 says \"0x4cb9d1 adds the player's origin\"",
-   "evidence": [
-    {
-     "path": "src/action_family_1c_runtime.h",
-     "line": 31,
-     "quote": "0x4cb9d1 adds the player's origin"
-    }
-   ]
+   "name": "m4cb9d1_relocate_entries",
+   "basis": "native_port",
+   "summary": "Fetches the object through 0x4c0c69 and adds its two offsets to the four fields of every 0x18-byte entry, re-reading the stored pointers, with the null guards; every instruction and jump direction executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4cb9d1_relocate_entries (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4cb9d1_relocate_entries",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004cbb00",
@@ -10419,6 +10384,30 @@
    "native_source": {
     "path": "src/original_methods_fl19b.c",
     "symbol": "m4d3836_text_width",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004d3992",
+   "name": "m4d3992_clear_entry",
+   "basis": "native_port",
+   "summary": "Range check of the signed word index (0 to 0x57) with the three reporting calls, then the two dword clears of the record, also after a report; every instruction and jump direction executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4d3992_clear_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4d3992_clear_entry",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004d39f9",
+   "name": "m4d39f9_find_free_entry",
+   "basis": "native_port",
+   "summary": "The first free entry (dword at +4 of stride-0x4a records, indices 0x18 to 0x3f) or the report and ax = 0xffff; every instruction and both directions of every jump executed. See tasks/fl29a-handoff.md.",
+   "source": "native port src/original_methods_fl29a.c:m4d39f9_find_free_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29a.c",
+    "symbol": "m4d39f9_find_free_entry",
     "class": "native_oracle_verified"
    }
   },
@@ -11632,23 +11621,15 @@
   },
   {
    "va": "0x004e4337",
-   "name": "inferred_uicl_chunk_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader of the UICL payload: copies the fixed prefix and configuration blocks and the count-dependent rows.",
-   "source": "INFERRED (lower confidence, not verified): the repository text boot-world-inputs-recovery.md:43 says \"Original loader `0x4e4337` copies the fixed prefix and configuration blocks\"; src/action_family_83_runtime.h:59 says \"after 0x4e4337 copies UICL\"",
-   "evidence": [
-    {
-     "path": "boot-world-inputs-recovery.md",
-     "line": 43,
-     "quote": "Original loader `0x4e4337` copies the fixed prefix and configuration blocks"
-    },
-    {
-     "path": "src/action_family_83_runtime.h",
-     "line": 59,
-     "quote": "after 0x4e4337 copies UICL"
-    }
-   ]
+   "name": "m4e4337_load_blocks",
+   "basis": "native_port",
+   "summary": "Three forward block copies (rep movsd/movsb) into self with a word-sized third length and a signed limit check; oracle executes every instruction and both jump directions (negative word is a native rejection). See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m4e4337_load_blocks (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m4e4337_load_blocks",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004e444d",
@@ -12044,18 +12025,15 @@
   },
   {
    "va": "0x004e9c2f",
-   "name": "inferred_action_78_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader of action 0x78 that copies a six-byte object (one dword, one word).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_78_runtime.h:15 says \"Loader: 0x40e56a -> 0x4e9c2f copies a six-byte object (one dword, one word)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_78_runtime.h",
-     "line": 15,
-     "quote": "Loader: 0x40e56a -> 0x4e9c2f copies a six-byte object (one dword, one word)"
-    }
-   ]
+   "name": "m4e9c2f_copy_six",
+   "basis": "native_port",
+   "summary": "Allocates six bytes, copies a dword and a word between two cell addresses and advances both cells by 6; oracle executes every instruction (failure path included) and both jump directions. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m4e9c2f_copy_six (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m4e9c2f_copy_six",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004e9cdf",
@@ -12419,6 +12397,18 @@
    "native_source": {
     "path": "src/original_methods_fl16.c",
     "symbol": "m4ee5cd_get_global",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004ee69e",
+   "name": "m4ee69e_forward_if_set",
+   "basis": "native_port",
+   "summary": "A one-field forwarder: the dword at +0x252 decides between 0 and the result of the 0x4ef516 call on self + 0x4b7; the oracle executes every instruction and both directions of the jump. See tasks/fl29b-handoff.md.",
+   "source": "native port src/original_methods_fl29b.c:m4ee69e_forward_if_set (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl29b.c",
+    "symbol": "m4ee69e_forward_if_set",
     "class": "native_oracle_verified"
    }
   },

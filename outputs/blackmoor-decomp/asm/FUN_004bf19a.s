@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_bink_goto_range_check
-# naming:       INFERRED (lower confidence, not verified): the repository text src/bink_player.h:90 says "Matches FUN_004bf19a's one-based BinkGoto range check (1..total_frames)."; src/action_family_2d_runtime.h:170 says "0x4bf19a(id, frames + 1): a = id, b = count -> nonzero = ok"
-# name-note:    Bink prepare/seek helper that matches a one-based BinkGoto range check (1..total_frames).
+# name:         m4bf19a_bink_goto
+# naming:       native port src/original_methods_fl29c.c:m4bf19a_bink_goto (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Bink seek: thiscall 0x4bf38c, null handle word -3, signed frame<1 / unsigned frame>count rejections, else _BinkGoto@12 via slot 0x52a530 (result ignored) and 1. See fl29c-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_2c0; [ecx + n] field_8
 # callees:      calls FUN_004bf38c, binkw32.dll!_BinkGoto@12
-# track-n:      outputs/blackmoor-decomp/src/bink_player.h:bink_player_seek (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 30 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl29c.c:m4bf19a_bink_goto (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 30 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

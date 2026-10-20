@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_d1_turning_puzzle_loader
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_d1_runtime.h:16 says "0x4b5c5c loader (0x40b34a, 0x4103ee): copies the 927-byte typed body into a fresh row allocation"; src/scene_resource.c:164 says "0x4b5c5c copies 927 bytes (A-D1.1)"
-# name-note:    Loader that copies the 927-byte typed body of the 0xd1 Turning Puzzle into a fresh row allocation.
+# name:         m4b5c5c_copy_record_39f
+# naming:       native port src/original_methods_fl29c.c:m4b5c5c_copy_record_39f (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Allocates 0x39f bytes, stores the pointer, reports a failure, copies 0xe7 dwords + word + byte, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_0044a2b7
-# track-n:      outputs/blackmoor-decomp/src/scene_resource.c:known_body_length (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 58 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl29c.c:m4b5c5c_copy_record_39f (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 58 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
