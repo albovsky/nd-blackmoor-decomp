@@ -1,0 +1,332 @@
+[
+  {
+    "va": "0x4ee69e",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m4ee69e_forward_if_set"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m4ee69e_forward_if_set"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_4ee69e_forward_if_set"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_4ee69e_forward_if_set"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x4ee69e",
+        "0x4ee6c7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "A one-field forwarder: the dword at +0x252 decides between 0 and the result of the 0x4ef516 call on self + 0x4b7; the oracle executes every instruction and both directions of the jump. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x423aae",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m423aae_chain_end"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m423aae_chain_end"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_423aae_chain_end"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_423aae_chain_end"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x423aae",
+        "0x423af1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Walks the [+4] link and then the [+0x38] chain to its last object, with the null-argument and null-link exits; the oracle executes every instruction and both directions of the three jumps. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x4fccf2",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m4fccf2_store_percent"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m4fccf2_store_percent"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_4fccf2_store_percent"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_4fccf2_store_percent"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x4fccf2",
+        "0x4fcd4d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "A masked word divided as a float by the constant 100.0 (x87, 53-bit mode, stored as a float) at an indexed slot of self, then the 0x4fcb5c call; the oracle executes every instruction and both directions of the debug jump. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x423a30",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m423a30_free_cell"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m423a30_free_cell"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_423a30_free_cell"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_423a30_free_cell"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x423a30",
+        "0x423aae"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Frees a pointer cell and clears it, or on a null cell reports through 0x50ca3e and 0x52139c and calls 0x4c97b4; the oracle executes every instruction and both directions of every jump. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x42e72c",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m42e72c_toggle_state"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m42e72c_toggle_state"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_42e72c_toggle_state"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_42e72c_toggle_state"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x42e72c",
+        "0x42e7b8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the word 0x5b4dc8 and in mode 2 stores the table entry it selects through the address at 0x5d03bf, between the 0x44c479 and 0x44c4ab calls; the oracle executes every instruction and both directions of every jump. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x4e9c2f",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m4e9c2f_copy_six"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m4e9c2f_copy_six"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_4e9c2f_copy_six"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_4e9c2f_copy_six"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x4e9c2f",
+        "0x4e9cdf"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates six bytes (failure reports and continues), copies a dword and a word between the addresses held in two cells and advances two cells by 6; the oracle executes every instruction (the failure path with a scripted repair of the cell) and both directions of every jump. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x4e45be",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m4e45be_find_row"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m4e45be_find_row"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_4e45be_find_row"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_4e45be_find_row"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x4e45be",
+        "0x4e467f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Searches the rows of 0x29 bytes at 0x5a1e64 for one equal to a byte string, signed word counters, the word length argument and the sete result; the oracle executes every instruction and both directions of all ten jumps. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x437dcd",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m437dcd_note_key"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m437dcd_note_key"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_437dcd_note_key"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_437dcd_note_key"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x437dcd",
+        "0x437ea1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Latches the first accepted character in two flag pairs (calls to 0x437ea1 whose byte argument is the only part used) and passes the sign-extended character to three further calls; the oracle executes every instruction and both directions of all jumps. See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x4e4337",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m4e4337_load_blocks"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m4e4337_load_blocks"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_4e4337_load_blocks"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_4e4337_load_blocks"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x4e4337",
+        "0x4e4428"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Three forward block copies (rep movsd / movsb) from a source buffer into self with a word-sized third length and a signed limit check that reports on overflow; the oracle executes every instruction and both directions of the jump (all legal sizes: a negative word is a native rejection). See tasks/fl29b-handoff.md."
+  },
+  {
+    "va": "0x411a22",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29b.c",
+      "symbol": "m411a22_alloc_copy"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29b_direct_test.c",
+        "test_id": "test_m411a22_alloc_copy"
+      },
+      {
+        "path": "tests/test_fl29b_direct.py",
+        "test_id": "Fl29bDirect.test_411a22_alloc_copy"
+      },
+      {
+        "path": "tests/test_fl29b_differential.py",
+        "test_id": "Fl29bDifferential.test_411a22_alloc_copy"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29b_original_oracle.py",
+      "window": [
+        "0x411a22",
+        "0x411b16"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates 0x27 bytes (failure reports and continues), stores the result in the record table at a signed-word index, copies 0x27 bytes between the addresses held in two cells and advances two cells; the oracle executes every instruction and both directions of every jump. See tasks/fl29b-handoff.md."
+  }
+]
