@@ -87,6 +87,7 @@ static void copy_z(uint8_t *dst, const uint8_t *src)
     memcpy(dst, src, len);
 }
 
+/* 0x4e2e05 m4e2e05_copy_state */
 int32_t m4e2e05_copy_state(uint8_t *self, const Fl30dWorld *world, const Fl18Host *host)
 {
     uint8_t *b = world->block_5a1e54;
@@ -122,6 +123,7 @@ int32_t m4e2e05_copy_state(uint8_t *self, const Fl30dWorld *world, const Fl18Hos
 }
 
 /* ---- 0x4c2a8d make_record -------------------------------------------------------------------------------------------------------- */
+/* 0x4c2a8d m4c2a8d_make_record */
 uint32_t m4c2a8d_make_record(uint8_t *self, uint32_t w, uint32_t h, uint32_t tag, uint32_t name, const Fl30dWorld *world, const Fl18Host *host)
 {
     int32_t sw = (int16_t)w, sh = (int16_t)h, size;
@@ -172,10 +174,12 @@ static int32_t box_field(const uint8_t *p, int32_t k, ptrdiff_t a)
     return (int32_t)rd32(p, (ptrdiff_t)(int32_t)((uint32_t)k << 4) + a);
 }
 
+/* 0x48d3cb m48d3cb_select_entry */
 void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k_arg, Fl30dWorld *world, const Fl18Host *host)
 {
     int32_t index = rds16(self, 0x1e);
-    uint8_t *p = res(host, rd32(world->table_5bb5e5, (ptrdiff_t)(index * 0x8d)));
+    uint32_t p_va = rd32(world->table_5bb5e5, (ptrdiff_t)(index * 0x8d));      /* the original reads the table entry always, and dereferences it only for sel == 0x2765 */
+    uint8_t *p;
     int32_t s = (int16_t)sel, k = (int16_t)k_arg;
     if (s == 0x2766) {
         world->dword_5b44f0 = 9;
@@ -192,6 +196,7 @@ void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k_arg, Fl30dWorl
         wr16(self, 0x27, 0xffff);
         return;
     }
+    p = res(host, p_va);
     world->dword_5b44f4 = 1;
     world->dword_5d162d = world->dword_5d0377;
     if (box_field(p, k, 0x207) >= (int32_t)rd32(p, 0x2f9) && box_field(p, k, 0x20f) <= (int32_t)rd32(p, 0x301) &&
@@ -222,6 +227,7 @@ static uint32_t clamp_ftol(int32_t value)
     return (uint32_t)(int32_t)use;
 }
 
+/* 0x4f684a m4f684a_prepare_entry */
 uint32_t m4f684a_prepare_entry(uint8_t *self, uint32_t a0, const Fl30dWorld *world, const Fl18Host *host)
 {
     uint32_t q_va, obj, vtbl, entry, hr;
@@ -279,6 +285,7 @@ static void cell_add(const Fl18Host *host, uint32_t cell, uint32_t n)
     wr32(c, 0, rd32(c, 0) + n);
 }
 
+/* 0x414692 m414692_read_block */
 int32_t m414692_read_block(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30dWorld *world, const Fl18Host *host)
 {
     uint32_t b_va, c_va, d_va, src;

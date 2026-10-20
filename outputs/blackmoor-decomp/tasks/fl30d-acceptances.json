@@ -2,7 +2,7 @@
  {
   "va": "0x4e2e05",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl30d.c",
@@ -30,12 +30,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Copies the sign-extended-word * 0x29 byte table from self+0x457b to the globals at 0x5a1e62 and, per the two first-byte compares against 0x63a9e4 / 0x63a9e8, the strings and words into the globals at 0x5a2664.. and 0x5a434c..; a negative or out-of-mirror count is a native rejection (not original behaviour); every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+  "note": "Copies count*0x29 bytes and the two compare-selected string groups into the 0x5a1e54 globals; bad count is a native rejection; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
  },
  {
   "va": "0x4c2a8d",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl30d.c",
@@ -63,12 +63,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates and fills the 0x59 byte record (second allocation of w*bpp*h bytes, name copy cut at 0x18, size fields); both allocation failures report and return 0; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+  "note": "Allocates and fills the 0x59 byte record (name cut at 0x18); both allocation failures report and return 0; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
  },
  {
   "va": "0x48d3cb",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl30d.c",
@@ -96,12 +96,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Selection 0x2766 / 0x2765 / other; for 0x2765 the two four-test signed boxes against the entry at p + k*16 select the value of 0x5b44f0; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+  "note": "Selection 0x2766/0x2765/other; for 0x2765 two signed four-test boxes pick 0x5b44f0; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
  },
  {
   "va": "0x4f684a",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl30d.c",
@@ -129,12 +129,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Clamps two signed dwords (min(v,0), then the x87 fild/fcomp against -2857.14.. and the truncating 0x50ce04) and calls the vtable entry +0x3c; the original 0x50ce04 bytes run in the oracle and the port uses the equivalent C conversion; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+  "note": "Clamps two dwords (min 0, x87 clamp at -2857.14, truncation) and calls vtable +0x3c; 0x50ce04 runs in the oracle, C conversion in the port; all instructions executed. See tasks/fl30d-handoff.md."
  },
  {
   "va": "0x414692",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl30d.c",
@@ -162,6 +162,6 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Reads a block with three allocations from a stream through cells p1/p2; each allocation failure reports and the port rejects there (the original would store through address 0), a negative count word is a native rejection; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+  "note": "Reads a three-allocation block through cells p1/p2; allocation failures report then port rejects, negative count rejected; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
  }
 ]

@@ -41,6 +41,7 @@ All callees are recording stubs entered by address (the callee is not run): they
 - **0x414692, an allocation returns 0 (three reachable branches where the symbol DELIBERATELY DIVERGES)**: after the report block (0x50ca3e, 0x42639d, 0x4c97b4) the original stores through address 0 (`mov [ecx], dx` with ecx = 0 after the first failure, `rep movsd` with edi = 0 after the second and third). The port returns 1 right after the report calls of that allocation and does nothing else. The differential requires that the effects before the report (the cell `[p0]`, `self+0x1c`/`+0x20`, `[B]`, `[B+2]`, `[B+0x1e]`, the cells `[p1]`/`[p2]`, and the ordered call log up to and including 0x4c97b4) equal the original's state at that point, byte for byte, and that the port returns 1.
 - **0x414692, negative count words** (`signed word [B]` or `[B+0x1c]` < 0): in the original `count * 0x16` / `* 0x12` is passed to the allocator as a huge unsigned size; the port returns 1 before that allocation call (the effects before it are the original's). Direct test only (the original cannot be run on it: it would copy about 4 GB).
 - **0x4e2e05, count out of range**: the port returns 1 and changes nothing (not even the two zeroed dwords) when `signed word [self+0x1471]` is negative or `count * 0x29` exceeds the mirror (`0x2540 - 0xe` = 0x2532 bytes, so counts above 232). The original would copy to or past the end of its globals. Direct test only; counts 0 to 0x33 are compared with the original (0x33 * 0x29 runs past 0x5a2664, which the original also does).
+- Caller-validated, unbounded as in the original: the `strlen` and the string copy (`copy_z`) of 0x4e2e05 and of 0x4c2a8d read until a NUL and write that many bytes (the fixtures keep every string NUL-terminated inside its field and inside the destination); a missing NUL overruns exactly as the original does.
 - Nothing else is bounds checked, as in the original: the lengths of the strings of 0x4e2e05 (they must end inside their fields in the fixtures), the pixel and stream sizes of 0x4c2a8d, 0x414692 and the `k`/index of 0x48d3cb are caller-validated and the fixtures keep them inside their buffers.
 - Word arguments are taken from the low 16 bits of the stack dword (the fixtures put garbage in the upper half). 0x4c2a8d and 0x4f684a return the full `eax` and the oracle compares it.
 
@@ -62,6 +63,10 @@ All callees are recording stubs entered by address (the callee is not run): they
 - Oracle: `python3 tests/fl30d_original_oracle.py` (5 lines as in the table, exit 0).
 - Sanitisers: `gcc -std=c11 -g -O1 -fsanitize=address,undefined -fno-sanitize-recover=undefined -Isrc tests/fl30d_direct_test.c src/original_methods_fl30d.c -lm` -> 6 PASS (5 functions + the bounded sweep of 300 random scenarios), no report. The sweep keeps counts, sizes and indices inside the fixture buffers; the malformed inputs (negative and over-large counts, failed allocations) are in the function tests.
 - Mutation: `python3 tests/fl30d_mutation_check.py [--only <va key>]`.
+
+## Review fixes (coordinator review, no P1)
+
+Section comments now sit directly above each port function (`/* 0x<va> m<va>_<name> */`); 0x48d3cb no longer resolves `p` for the 0x2766 and default selections (only the table entry is read, as in the original); 0x4e2e05 has deterministic xor 0x01 / 0x80 / 0xff first-byte profiles (a hand-applied `(a & 0x7f) != (b & 0x7f)` mutant on both compares is now caught by the differential); acceptance reviewer/note lengths trimmed. Oracle counts unchanged except the 0x4e2e05 digest (new fixtures): 117/117, 4/4, 112 scenarios, digest in `tests/fl30d_original_oracle.py` output. Full mutation script: 237 mutants, 212 caught by the direct test, 7 by the differential only, 18 survivors (the same 18 equivalent ones listed below).
 
 ## Mutation check
 
@@ -95,8 +100,9 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, a dr
 
 | file | sha256 |
 |---|---|
-| src/original_methods_fl30d.c | 9fff5c471c418a778490e48d44be5859da06ecbc7cfbc86a8136f5ead4fc3c48 |
+| src/original_methods_fl30d.c | 75401f8faa14b677afd517cf0bfc09f5ecb956a22fde0ddf51d03d9d7c7f868e |
 | src/original_methods_fl30d.h | 6d67eb545587f7496075667b5362ce664fe95e2dc5577acd402c5f4543f404f7 |
+| tests/fl30d_fixtures.py | 5e1d91233b10828879a62b02b1ffa3d55d453bd2502b4d5d9ad7db515283f073 |
 | tests/fl30d_original_oracle.py | 3c272eb108e6ec60d8f74df82dc5072e52474012c920cd9799283a5ff59c8fbf |
 | tests/fl30d_direct_test.c | 907080fda3cecc1bc91e3ebda6af348df57888dc907290fbcac4073480b1cda6 |
 | tests/fl30d_differential_shim.c | 4fa5a67b8ac0c78c79cbe062d768d2dc3f3d476e396c1907548efd8b5d35d90f |
@@ -104,4 +110,4 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, a dr
 | tests/test_fl30d_direct.py | f431937d4cda81a45a2df0d31b40762dd84b9e3a6ceac2d98ef9779c81a809be |
 | tests/fl30d_mutation_check.py | 08c2ec0b36c32d1a678b220ec5be98ee5c40532547b98d0956d3723efaaafa69 |
 
-`tests/fl30d_fixtures.py` changed after the table above was computed (a docstring edit only); its hash is in the commit. Native library: the differential builds `tests/fl30d_differential_shim.c` + `src/original_methods_fl30d.c` into a throwaway shared object per run (no committed binary).
+Hashes are those of the review-fix commit. Native library: the differential builds `tests/fl30d_differential_shim.c` + `src/original_methods_fl30d.c` into a throwaway shared object per run (no committed binary).
