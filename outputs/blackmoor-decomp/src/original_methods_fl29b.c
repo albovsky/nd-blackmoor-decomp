@@ -199,7 +199,7 @@ void m4e9c2f_copy_six(uint8_t *out, uint8_t *src, uint8_t *adv, const Fl29bWorld
 
 /* ---- 0x4e45be ------------------------------------------------------------------------------------------------------------------ */
 
-/* 0x4e45be, thiscall, `ret 0x10`: see the header. [ebp+0x14] = len (a word), [ebp-8] the row i, [ebp-4] the column j, [ebp-0xc] the "different" flag. */
+/* 0x4e45be, thiscall, `ret 0x10`: see the header. Row count <= 0 is reachable from 0x4e7253 and its result is an uninitialised local in the original: documented-unspecified, port not credited. [ebp+0x14] = len (a word), [ebp-8] the row i, [ebp-4] the column j, [ebp-0xc] the "different" flag. */
 uint32_t m4e45be_find_row(uint8_t *out, const uint8_t *bytes, uint32_t len, const Fl29bWorld *world)
 {
     int16_t i, j;

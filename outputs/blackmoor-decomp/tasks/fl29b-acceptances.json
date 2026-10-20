@@ -198,39 +198,6 @@
     "note": "Allocates six bytes (failure reports and continues), copies a dword and a word between the addresses held in two cells and advances two cells by 6; the oracle executes every instruction (the failure path with a scripted repair of the cell) and both directions of every jump. See tasks/fl29b-handoff.md."
   },
   {
-    "va": "0x4e45be",
-    "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",
-    "date": "2026-10-20",
-    "native_source": {
-      "path": "src/original_methods_fl29b.c",
-      "symbol": "m4e45be_find_row"
-    },
-    "tests": [
-      {
-        "path": "tests/fl29b_direct_test.c",
-        "test_id": "test_m4e45be_find_row"
-      },
-      {
-        "path": "tests/test_fl29b_direct.py",
-        "test_id": "Fl29bDirect.test_4e45be_find_row"
-      },
-      {
-        "path": "tests/test_fl29b_differential.py",
-        "test_id": "Fl29bDifferential.test_4e45be_find_row"
-      }
-    ],
-    "oracle": {
-      "path": "tests/fl29b_original_oracle.py",
-      "window": [
-        "0x4e45be",
-        "0x4e467f"
-      ]
-    },
-    "parts_accounted": [],
-    "note": "Searches the rows of 0x29 bytes at 0x5a1e64 for one equal to a byte string, signed word counters, the word length argument and the sete result; the oracle executes every instruction and both directions of all ten jumps. See tasks/fl29b-handoff.md."
-  },
-  {
     "va": "0x437dcd",
     "class": "native_oracle_verified",
     "reviewer": "Claude Sonnet FL-29b implementer; no independent review yet",

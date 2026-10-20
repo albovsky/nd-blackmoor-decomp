@@ -7,7 +7,7 @@ globals), how many bytes the function popped, and the ordered calls out: callee,
 as the original addresses they stand for; 'word' arguments, which the original pushes from a 16-bit register, by their low 16 bits), the
 state of the object and of the record table at each call. The callees are recording stubs; the
 function under test runs as the original bytes. A case also requires that its scenarios reached every instruction of the original function and took both directions of every conditional
-jump of it (fl29b_fixtures.UNTAKEN_ALLOWED lists the one edge that is deliberately not reached, with the reason).
+jump of it (fl29b_fixtures.UNTAKEN_ALLOWED is empty: every direction is taken).
 """
 import ctypes
 from pathlib import Path

@@ -9,7 +9,7 @@ parts vary from one pass of the cycle to the next; random bytes fill everything 
 stubs (OS or host boundaries); nothing inside the function under test is patched. A stub can also carry scripted WRITES (a callee that
 changes `self` or a local of the caller: call number, argument or absolute address, offset, size, value or a byte string) so that a
 function's re-reads after a call are exercised. Two more host/OS boundaries are modelled outside the function: the thread information block
-behind fs (not used by this batch's functions; kept from the shared harness) and the x87 control word (0x27f, set for 0x4f6ef4)
+behind fs (not used by this batch's functions; kept from the shared harness) and the x87 control word (0x27f, set for 0x4fccf2)
 (0x27f, the Windows process default: 53-bit precision, all exceptions masked). It returns the result, the normalised ordered call log and a
 digest of the ordered calls, the return value and the memory read back.
 """
@@ -540,7 +540,7 @@ def profiles_437dcd():
     p = []
     for e1 in (0, 0x100, 1, 0x80000000):
         for latched in (0, 1, 0x1000000):
-            for r1 in (0, 1, 0x100):
+            for r1 in (0, 1, 0x100, 0x10000, 0x80000000):
                 for c in (CHARS if (e1 and not latched and r1) else CHARS[:2]):
                     for e2 in ((0, 1), (1, 0), (1, 1), (0xff, 0)):
                         p.append((e1, latched, r1, c, e2, 1))
@@ -549,7 +549,7 @@ def profiles_437dcd():
 
 def gen_437dcd(rng, n):
     (e1, latched, r1, c, (e2, b6b), r2), variant = prof(n, profiles_437dcd())
-    r2 = (1, 0, 0x100)[variant % 3] if (e2 and not b6b) else 1
+    r2 = (1, 0, 0x100, 0x10000, 0x80000000)[variant % 5] if (e2 and not b6b) else 1
     ch = bytearray(rng.randbytes(0x10))
     ch[0] = c
     g = {'value_5e32c9': e1, 'value_5e32de': latched, 'byte_5e32dd': rng.randrange(256), 'byte_5b61af': e2, 'byte_5b616b': b6b, 'byte_5b616c': rng.randrange(256)}
@@ -559,7 +559,7 @@ def gen_437dcd(rng, n):
     return make('437dcd', [self_area(bytearray(rng.randbytes(0x100))), Area('ch', CELLS_VA, ch, image=False)], stubs, g, a, tuple(a), (e1, latched, r1, hex(c), e2, b6b))
 
 
-finish('437dcd', 'note_key', id=8, va=0x437dcd, size=212, gen=gen_437dcd, cleanup=12, n=len(profiles_437dcd()) * 3)
+finish('437dcd', 'note_key', id=8, va=0x437dcd, size=212, gen=gen_437dcd, cleanup=12, n=len(profiles_437dcd()) * 5)
 
 
 # ---- 0x4e4337 -----------------------------------------------------------------------------------------------------------------------

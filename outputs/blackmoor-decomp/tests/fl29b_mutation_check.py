@@ -14,8 +14,7 @@ and every survivor (an equivalent mutant is expected only where the changed valu
 
 Known gap: the mutants are single textual edits of the port, one operator or literal at a time. They do not model a missing statement other
 than a one-line `if (...) return;` guard, a reordering of effects, a loop bound written as an expression, or two edits together. The
-mutants behind the review fixes of tests/fl29b_fixtures.py (deleted multi-line guards, `if (1)`, a dropped `||` operand, `== 3` -> `>= 3`)
-were applied by hand and are listed in tasks/fl29b-handoff.md.
+No hand-applied mutants are claimed for this batch beyond the mechanical ones below; the survivors are listed and explained in tasks/fl29b-handoff.md.
 
 Run from outputs/blackmoor-decomp:  python3 tests/fl29b_mutation_check.py [--limit N] [--no-differential]
 """

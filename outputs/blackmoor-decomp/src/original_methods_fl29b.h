@@ -76,7 +76,7 @@ void m4e9c2f_copy_six(uint8_t *out, uint8_t *src, uint8_t *adv, const Fl29bWorld
  * signed word len is 0: returns 0 (nothing stored). Otherwise word [out] = 0 and for i = 0 while the signed word i is below the signed word [0x5a1e5c], i++: j = 0 while the
  * signed word j is below len: compares the byte [0x5a1e64 + i * 0x29 + j] with bytes[j] and, on the first difference, leaves the inner loop with the row marked as different; a row
  * without difference stores word [out] = i and ends the search. Returns 1 when the last row examined had no difference, else 0. When the row count is not positive the original
- * returns `sete` of an uninitialised local: the port returns 0 there (rejection; the fixtures keep the count positive). */
+ * returns `sete` of an uninitialised local: the port returns 0 there (rejection; the fixtures keep the count positive). That result is unspecified in the original and the case is REACHABLE: the caller 0x4e7253 (phone insert) calls this with the count 0x5a1e5c = 0 on an empty table, so 0x4e45be is NOT credited as a port acceptance (tasks/fl29b-handoff.md). */
 uint32_t m4e45be_find_row(uint8_t *out, const uint8_t *bytes, uint32_t len, const Fl29bWorld *world);
 
 /* 0x437dcd, thiscall, `ret 0xc` (only the first of the three stack arguments is read): `p` points to a character (host pointer). With c = *p: when the dword [0x5e32c9] is non-zero and
