@@ -765,6 +765,21 @@ class AuditedBatchTests(unittest.TestCase):
         self.assertEqual(model["evidence"]["tool_assisted_data_batches"][0]["bytes"], 0)
         self.tearDown()
         self.setUp()
+        self.create_jump_table_batch(0x120)
+        manifest_path = self.dir / "asm_data" / "data-001.json"
+        manifest = GEN.load_json(manifest_path)
+        manifest["ranges"].append(dict(manifest["ranges"][0], offset=hex(0x128), length=0x10, va=f"0x{0x400128:08x}"))
+        write(manifest_path, manifest)
+        report_path = self.dir / "asm_data" / "data-001-report.json"
+        report = GEN.load_json(report_path)
+        report["ranges"] = manifest["ranges"]
+        report["bytes_total"] = report["compared_bytes"] = sum(r["length"] for r in manifest["ranges"])
+        report["manifest_sha256"] = GEN.sha256_file(manifest_path)
+        write(report_path, report)
+        with self.assertRaisesRegex(GEN.ProgressError, "overlap"):  # two table ranges claiming the same bytes
+            self.model()
+        self.tearDown()
+        self.setUp()
         self.create_jump_table_batch(0x140)  # past the code: not a jump table of .text
         with self.assertRaisesRegex(GEN.ProgressError, "outside .text"):
             self.model()

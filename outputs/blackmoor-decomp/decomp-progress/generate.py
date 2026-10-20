@@ -406,7 +406,7 @@ def audited_data_evidence(layout: dict, out_dir: Path):
     audited one and carry no payload value, and the manifest and report must name the same source hash.
     Each range is matched data (kind ``data``); nothing here reads the assembler or the original.
     """
-    rows, inputs, batches, claimed = [], [], [], []
+    rows, inputs, batches, claimed, table_claims = [], [], [], [], []
     sections = {s["name"]: s for s in layout["sections"]}
     for path in sorted((out_dir / "asm_data").glob("data-*.json")):
         if not re.fullmatch(r"data-[0-9]+\.json", path.name):
@@ -466,6 +466,8 @@ def audited_data_evidence(layout: dict, out_dir: Path):
                 require(int(r["va"], 16) == layout["image_base"] + sec["rva"] + off - sec["raw_off"],
                         "data range VA/offset disagree")
                 if tables:
+                    require(not overlap(table_claims, off, off + size), "jump-table ranges overlap")
+                    table_claims = merge_intervals([tuple(c) for c in table_claims] + [(off, off + size)])
                     continue
                 require(not overlap(claimed, off, off + size), "data ranges overlap")
                 claimed = merge_intervals([tuple(c) for c in claimed] + [(off, off + size)])

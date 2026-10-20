@@ -378,11 +378,18 @@ def header_lines(ranges: tuple[tuple[int, int], ...], sections: list[Section], o
     parts = []
     for lo, hi in ranges:
         parts.append(f"{hx8(bias + lo)}-{hx8(bias + hi)} ({section_name_at(sections, lo)})")
+    ruling = (
+        ["# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  These are code-section jump",
+         "# tables, not data-section bytes: the 2026-10-19 data ruling is not claimed for them; the composer reports them as the class",
+         "# tool_assisted_reconstructed_jump_table and the map counts no byte for them.  No datum is interpreted: names state the"]
+        if profile == PROFILE_TABLES
+        else ["# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of",
+              "# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the"]
+    )
     return [
         MACHINE_HEADER,
         "# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by",
-        "# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of",
-        "# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the",
+        *ruling,
         "# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.",
         f"# original-sha256: {ORIGINAL_SHA256}",
         f"# image-base: {hx8(IMAGE_BASE)}",

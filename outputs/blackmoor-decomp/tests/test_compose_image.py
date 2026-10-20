@@ -526,9 +526,13 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         comp = compose_image.compose(IMAGE_DIR, ORIGINAL, self.build_dir)
         baseline = [
             r for r in comp.reconstructed_records
-            if "functions" not in r and r["status"] == "bound" and r["provenance_class"] != "tool_assisted_reconstructed_data"
+            if "functions" not in r and "data_ranges" not in r and r["status"] == "bound"
         ]
-        data_batches = [r for r in comp.reconstructed_records if r["provenance_class"] == "tool_assisted_reconstructed_data"]
+        data_batches = [r for r in comp.reconstructed_records if "data_ranges" in r]
+        # data batch 005 is a data-batch record, but its bytes are counted in the jump-table class
+        self.assertEqual(
+            [r["provenance_class"] for r in data_batches], ["tool_assisted_reconstructed_data"] * 4 + ["tool_assisted_reconstructed_jump_table"]
+        )
         self.assertEqual([r["batch"] for r in data_batches], ["001", "002", "003", "004", "005"])
         self.assertEqual([r["profile"] for r in data_batches], ["payloads", "payloads", "structures", "structures", "jump_tables"])
         self.assertEqual(sum(r["length"] for r in data_batches), 298406 + 240)
@@ -630,6 +634,18 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             table["entries"][0] = hex(int(table["entries"][0], 16) ^ 1)
 
         self.assert_mutant_fails(self.edit_json("text_data", change), "jump_tables")
+
+    def test_duplicate_structured_items_do_not_tile_a_bound_range(self):
+        item = compose_image.Item(0, 10, compose_image.CLS_STRUCTURED, "jump_tables", data=bytes(10))
+        bound = compose_image.Item(0, 20, compose_image.CLS_RECONSTRUCTED, "reconstructed", data=bytes(20), replaces_structured=True)
+        with self.assertRaisesRegex(compose_image.ComposeError, "do not tile"):
+            compose_image.supersede_structured([item, item], [bound])
+        gap = compose_image.Item(12, 8, compose_image.CLS_STRUCTURED, "jump_tables", data=bytes(8))
+        with self.assertRaisesRegex(compose_image.ComposeError, "gap"):
+            compose_image.supersede_structured([item, gap], [bound])
+        tail = compose_image.Item(10, 10, compose_image.CLS_STRUCTURED, "jump_tables", data=bytes(10))
+        kept, replaced = compose_image.supersede_structured([item, tail], [bound])
+        self.assertEqual((kept, replaced), ([], {"items": 2, "bytes": 20}))
 
     def test_without_data_batch_005_the_crt_tables_would_fall_back_to_structured_bytes(self):
         """The jump_tables group only cross-checks the audited sources: unbound, exactly the 240 CRT table bytes remain structured."""

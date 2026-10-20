@@ -813,7 +813,8 @@ def bind_data_batches(
                 "offset": num(manifest["ranges"][0]["offset"]),
                 "length": bound_bytes,
                 "source_kind": "tool_assisted_data_directives",
-                "provenance_class": DATA_ASM_CLASS,
+                # a jump_tables batch is a data-batch record, but its bytes are counted in the jump-table class
+                "provenance_class": ASM_JUMP_TABLE_CLASS if manifest.get("profile") == data_asm.PROFILE_TABLES else DATA_ASM_CLASS,
                 "status": "bound",
                 "data_ranges": len(manifest["ranges"]),
                 "profile": manifest.get("profile", data_asm.PROFILE_PAYLOADS),
@@ -1124,6 +1125,7 @@ def supersede_structured(items: list[Item], bound: list[Item]) -> tuple[list[Ite
         else:
             spans.append([lo, hi])
     kept: list[Item] = []
+    replaced_items: list[Item] = []
     count = total = 0
     dropped = [0] * len(spans)
     for item in items:
@@ -1134,13 +1136,20 @@ def supersede_structured(items: list[Item], bound: list[Item]) -> tuple[list[Ite
         if inside:
             count += 1
             total += item.length
+            replaced_items.append(item)
             dropped[next(n for n, (lo, hi) in enumerate(spans) if lo <= item.offset and item.end <= hi)] += item.length
         else:
             kept.append(item)
-    # the replaced items must tile every bound range, so a structured item lost from a description cannot hide behind the batch
-    for (lo, hi), got in zip(spans, dropped):
-        if got != hi - lo:
-            raise ComposeError(f"the structured groups cover {got} of the {hi - lo} bytes of the structures range at {hx(lo)}")
+    # the replaced items must tile every bound range exactly (contiguous, no overlap), so a structured item lost from a
+    # description cannot hide behind the batch
+    for lo, hi in spans:
+        cursor = lo
+        for item in sorted((i for i in replaced_items if lo <= i.offset and i.end <= hi), key=lambda i: i.offset):
+            if item.offset != cursor:
+                raise ComposeError(f"the structured groups do not tile the bound range at {hx(lo)}: {'gap' if item.offset > cursor else 'overlap'} at {hx(cursor)}")
+            cursor = item.end
+        if cursor != hi:
+            raise ComposeError(f"the structured groups cover {cursor - lo} of the {hi - lo} bytes of the structures range at {hx(lo)}")
     return kept, {"items": count, "bytes": total}
 
 
